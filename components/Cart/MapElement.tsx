@@ -6,9 +6,6 @@ import {
   Polygon,
 } from "@react-google-maps/api";
 
-// import "leaflet/dist/leaflet.css";
-// import "leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.css";
-// import "leaflet-defaulticon-compatibility";
 import { useAppStore } from "store";
 import { toast } from "react-toastify";
 import { translateFunction } from "utils/functions";

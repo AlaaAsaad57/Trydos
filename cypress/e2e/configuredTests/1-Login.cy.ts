@@ -77,7 +77,7 @@ describe("1-3 Login UnSuccessful Attempt should show error message to user", () 
     cy.ComplateLoginByMobilePhone();
   });
   it("Should Enter His Number In Number Entry Box", () => {
-    cy.enterPhoneNumber("963937288307");
+    cy.enterPhoneNumber("963917288319");
   });
   it("Should Click Recive Otp Code By SMS Button", () => {
     cy.ChooseWayToRecieveOtpAndWaitOtpRequest();
@@ -244,7 +244,7 @@ describe("1-7 Should Input name in login if the user does not input your name wh
     cy.ComplateLoginByMobilePhone();
   });
   it("Should Enter His Number In Number Entry Box", () => {
-    cy.enterPhoneNumber("963937288307");
+    cy.enterPhoneNumber("963917288319");
   });
   it("Should Click Recive Otp Code By SMS Button", () => {
     cy.ChooseWayToRecieveOtpAndWaitOtpRequest();

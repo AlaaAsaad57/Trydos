@@ -138,11 +138,7 @@ describe("8-4 should change phone number and confirm it", () => {
     cy.ChooseWayToRecieveOtpAndWaitOtpRequest();
     cy.CheckIfTrySendOtp();
     cy.typePincode("999999");
-    // cy.wait(["@marketReq", "@storyReq", "@chatReq"]).then((s) => {
-    //   expect(s[0].response.statusCode).to.equal(200);
-    //   expect(s[1].response.statusCode).to.equal(200);
-    //   expect(s[2].response.statusCode).to.equal(200);
-    // });
+    cy.wait(["@marketReq", "@storyReq", "@chatReq"]).then((s) => {});
   });
 });
 describe("8-5 should test update size", () => {
@@ -159,10 +155,28 @@ describe("8-5 should test update size", () => {
     });
   });
   it("should edit tall and weight", () => {
-    cy.get('[data-cy="personal-size-tall-input"]').clear();
-    cy.get('[data-cy="personal-size-tall-input"]').type("180");
-    cy.get('[data-cy="personal-size-weight-input"]').clear();
-    cy.get('[data-cy="personal-size-weight-input"]').type("70");
+    cy.get('[data-cy="personal-size-tall-input"]')
+      .invoke("val")
+      .then((text) => {
+        if (text === "180") {
+          cy.get('[data-cy="personal-size-tall-input"]').clear();
+          cy.get('[data-cy="personal-size-tall-input"]').type("181");
+        } else {
+          cy.get('[data-cy="personal-size-tall-input"]').clear();
+          cy.get('[data-cy="personal-size-tall-input"]').type("181");
+        }
+      });
+    cy.get('[data-cy="personal-size-weight-input"]')
+      .invoke("val")
+      .then((text) => {
+        if (text === "70") {
+          cy.get('[data-cy="personal-size-weight-input"]').clear();
+          cy.get('[data-cy="personal-size-weight-input"]').type("72");
+        } else {
+          cy.get('[data-cy="personal-size-weight-input"]').clear();
+          cy.get('[data-cy="personal-size-weight-input"]').type("70");
+        }
+      });
   });
   it("should click on save button", () => {
     cy.intercept("POST", "**/customer/update-profile").as("marketReq");

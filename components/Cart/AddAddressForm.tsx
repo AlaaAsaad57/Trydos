@@ -2,7 +2,6 @@
 import { allCountries } from "country-telephone-data";
 import React, { useEffect, useState } from "react";
 import { translateFunction } from "utils/functions";
-import "leaflet/dist/leaflet.css";
 import Map from "./Map";
 import SyFlage from "public/svg/sy.svg";
 import { useParams } from "next/navigation";

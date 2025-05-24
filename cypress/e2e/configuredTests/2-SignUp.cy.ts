@@ -83,7 +83,7 @@ describe("2-2 Signup UnSuccessful Attempt should show error message to user", ()
     cy.AgreeTerms();
   });
   it("Should Enter His Number In Number Entry Box", () => {
-    cy.enterPhoneNumber("963937288307");
+    cy.enterPhoneNumber("963917288319");
   });
   it("Should Click Recive Otp Code By SMS Button", () => {
     cy.ChooseWayToRecieveOtpAndWaitOtpRequest();
@@ -165,7 +165,7 @@ describe("2-4 Should show user is already registered when registering with regis
     cy.AgreeTerms();
   });
   it("Should Enter His Number In Number Entry Box", () => {
-    cy.enterPhoneNumber("963937288307");
+    cy.enterPhoneNumber("963917288319");
   });
   it("Should Click Recive Otp Code By SMS Button", () => {
     cy.ChooseWayToRecieveOtpAndWaitOtpRequest();
