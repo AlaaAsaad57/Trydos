@@ -6,7 +6,6 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "test:parallel": "npx cypress-parallel -s cy:run -t 4 -d cypress/e2e/configuredTests/",
     "lint": "next lint",
     "cypress": "cypress open",
     "cy:run": "cypress run",
@@ -18,8 +17,6 @@
   "dependencies": {
     "@google/generative-ai": "^0.21.0",
     "@vercel/speed-insights": "^1.2.0",
-    "cypress-multi-reporters": "^2.0.5",
-    "cypress-parallel": "^0.15.0",
     "react-avatar-editor": "^13.0.2",
     "@react-google-maps/api": "^2.20.6",
     "@sentry/nextjs": "^7.93.0",
@@ -98,8 +95,6 @@
   "devDependencies": {
     "@cypress/code-coverage": "^3.13.11",
     "@svgr/webpack": "^8.1.0",
-    "glob": "^11.0.2",
-    "mkdirp": "^3.0.1",
     "@types/node": "^20.12.7",
     "autoprefixer": "^10.4.19",
     "cypress-file-upload": "^5.0.8",
