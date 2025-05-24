@@ -187,6 +187,7 @@ function PersonalInfoAddress({
                     data-cy="Address"
                   >
                     <EditIcon
+                      data-cy="EditAddress"
                       onClick={() => {
                         // closeSelect();
                         // slideNext();
@@ -197,6 +198,7 @@ function PersonalInfoAddress({
                       address={s}
                     />
                     <DeleteIcon
+                      data-cy="DeleteAddress"
                       address={s}
                       onClick={() => {
                         setDeleteModal(s);

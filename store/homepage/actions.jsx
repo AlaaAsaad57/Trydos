@@ -3,6 +3,7 @@ import Cookies from "js-cookie";
 import { Sendevent } from "utils/functions";
 import { changeAppLanguageServer, changeToken } from "./cachedActions";
 import { useAppStore } from "store";
+import { GA_CLICK_EVENT_VALUES, GA_EVENT_NAMES } from "utils/GAEvents";
 export const changeAppLanguage = (language) => {
   const { setAppLanguage } = useAppStore.getState();
   Cookies.set("language", language, {
