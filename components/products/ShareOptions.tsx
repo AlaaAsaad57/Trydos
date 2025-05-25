@@ -40,7 +40,7 @@ function ShareOptions({
       body: {
         app_name: appName,
         product_id: product.id,
-        shared_count: sharesCount,
+        shared_count: 1,
       },
       title: "Share Product on Social",
     });
@@ -49,9 +49,10 @@ function ShareOptions({
   };
   return (
     <div className="share-options">
-      <div className={`share-avatar`} data-cy="Facebook">
+      <div className={`share-avatar`}>
         <div className="share-image social shadow-none">
           <FacebookShareButton
+            data-cy="Facebook"
             url={window.location.href}
             beforeOnClick={() => {
               Sendevent({

@@ -17,11 +17,11 @@ describe("10-1 should visit product page", () => {
     cy.get('[data-cy="boutique_link"]')
       .first()
       .click({ force: true, scrollBehavior: false });
+  });
+  it("should ensure that required requests are success", () => {
     cy.get('[data-cy="product_link"]')
       .first()
       .click({ force: true, scrollBehavior: false });
-  });
-  it("should ensure that required requests are success", () => {
     cy.intercept("POST", "**/api/products/view").as("ViewsReq");
     cy.intercept(
       "GET",
@@ -41,7 +41,7 @@ describe("10-2 should test product Actions", () => {
       scrollBehavior: false,
     });
     cy.wait("@LikeProductReq").then((interceptions) => {
-      expect(interceptions[0].response.statusCode).to.equal(200);
+      expect(interceptions.response.statusCode).to.equal(200);
     });
     cy.intercept("POST", "**/product_likes/delete").as("DislikeProductReq");
     cy.get('[data-cy="LoveSymbol"]').click({
@@ -49,7 +49,7 @@ describe("10-2 should test product Actions", () => {
       scrollBehavior: false,
     });
     cy.wait("@DislikeProductReq").then((interceptions) => {
-      expect(interceptions[0].response.statusCode).to.equal(200);
+      expect(interceptions.response.statusCode).to.equal(200);
     });
   });
   it("should share product", () => {
@@ -65,7 +65,7 @@ describe("10-2 should test product Actions", () => {
       scrollBehavior: false,
     });
     cy.wait("@ShareProductReq").then((interceptions) => {
-      expect(interceptions[0].response.statusCode).to.equal(200);
+      expect(interceptions.response.statusCode).to.equal(200);
     });
   });
   it("should click on copy link button", () => {
@@ -91,7 +91,7 @@ describe("10-2 should test product Actions", () => {
       scrollBehavior: false,
     });
     cy.wait("@SocialDataReq").then((interceptions) => {
-      expect(interceptions[0].response.statusCode).to.equal(200);
+      expect(interceptions.response.statusCode).to.equal(200);
     });
     cy.get('[data-cy="CommentField"]').type("test comment");
     cy.intercept("POST", "**/api/v1/customer/product_comment").as(
@@ -102,7 +102,7 @@ describe("10-2 should test product Actions", () => {
       scrollBehavior: false,
     });
     cy.wait("@SubmitCommentReq").then((interceptions) => {
-      expect(interceptions[0].response.statusCode).to.equal(200);
+      expect(interceptions.response.statusCode).to.equal(200);
     });
     cy.get('[data-cy="close_extended_area"]').click({
       force: true,
@@ -131,7 +131,8 @@ describe("10-2 should test product Actions", () => {
     cy.intercept("POST", "**/api/v1/firebase_device_tokens/subscribe_topic").as(
       "UpdateFBNotificationsReq"
     );
-    cy.get('[data-cy="notify-type"]').click({
+    cy.wait(3000);
+    cy.get('[data-cy="notify-type"]').first().click({
       force: true,
       scrollBehavior: false,
     });
@@ -142,7 +143,7 @@ describe("10-2 should test product Actions", () => {
       "POST",
       "**/api/v1/firebase_device_tokens/unsubscribe_topic"
     ).as("UnsubscribeFBNotificationsReq");
-    cy.get('[data-cy="notify-type"]').click({
+    cy.get('[data-cy="notify-type"]').first().click({
       force: true,
       scrollBehavior: false,
     });
