@@ -230,7 +230,7 @@ describe("1-6 Should show user not found when registering with non registered nu
     cy.clickElement("[data-cy=Cancel-Look-App]");
   });
 });
-describe("1-7 Should Input name in login if the user does not input your name when sign up operation", () => {
+describe("1-7 Should Input name in login if the user does not input his name when sign up operation", () => {
   it("Should Ensure The User Has Not LogIn Previously", () => {
     cy.WaitUntilLoadWebsiteAndlogoutAndViewport();
   });
@@ -266,6 +266,12 @@ describe("1-7 Should Input name in login if the user does not input your name wh
     cy.wait("@verifyOtpSignin", { timeout: 10000 }).then((interception) => {
       expect(interception.response.statusCode).to.be.eq(200);
       cy.log("✅✅ verifyOtpSignin request arrived");
+    });
+  });
+  it("should click on Create New Account and continue", () => {
+    cy.get('[data-cy="Create-New-Account"]').click({
+      scrollBehavior: false,
+      force: true,
     });
   });
   it("Should Click On Input Field For Writ User Name", () => {

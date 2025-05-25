@@ -383,7 +383,7 @@ describe("2-7 Should show user is already registered when registering with regis
   });
 });
 // ****************************************************
-describe("2-8 Should show user is already registered when registering with registered number and write your name", () => {
+describe("2-8 Should show user is already registered when registering with registered number and ask for user name", () => {
   let userName: string = "a";
   it("Should Ensure The User Has Not LogIn Previously", () => {
     cy.WaitUntilLoadWebsiteAndlogoutAndViewport();

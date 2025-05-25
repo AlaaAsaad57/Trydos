@@ -11,7 +11,7 @@ import LogInPins from "./LogInPins";
 import SignSteps from "./SignSteps";
 import InputName from "./InputName";
 import AuthService from "services/auth";
-
+import Cookies from "js-cookie";
 import LoginMethods from "./LoginMethods";
 import { AnimatedComponent } from "components/global/AnimatedComponent";
 import { useParams } from "next/navigation";
@@ -88,6 +88,11 @@ function NewLoginWidget() {
     }, 1500);
   }, [loginOpen]);
   const setLoginOpenAction = (e: boolean) => {
+    if (e === false && stepIndicator === 7) {
+      localStorage.removeItem("MARKET-TOKEN");
+      localStorage.removeItem("USER");
+      Cookies.remove("MARKET-TOKEN");
+    }
     setLoginOpen(e);
   };
   const VerifyOtpHook = async ({
