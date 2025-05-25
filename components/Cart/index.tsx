@@ -1920,9 +1920,6 @@ const QuantutyInput = ({
     }
   };
   const shouldDisablePlus = () => {
-    if (maxAllowed !== "0" && inputValue >= maxAllowed) {
-      return true;
-    }
     if (isCollectedAfterOrdering) {
       return false;
     }
