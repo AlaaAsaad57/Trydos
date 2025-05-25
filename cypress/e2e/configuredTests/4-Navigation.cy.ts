@@ -31,7 +31,7 @@ describe("4-3 should navigate to Boutique/product Page", () => {
     cy.wait(3000);
   });
   it("should click on first product then go back to boutique page", () => {
-    cy.get("[data-cy=product-link]").first().click({ force: true });
+    cy.get("[data-cy=product_link]").first().click({ force: true });
     cy.wait(3000);
     cy.get("[data-cy=backIcon_productPage]").click({ force: true });
     cy.wait(3000);

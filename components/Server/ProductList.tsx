@@ -72,7 +72,7 @@ function ProductListServer({
                 productColor ? `?color=${productColor.color_name}` : ""
               }`}
               className="product-container  align-center flex-col relative"
-              data-cy="product-link"
+              data-cy="product_link"
             >
               <Suspense fallback={<div className="min-w-full min-h-[290px]" />}>
                 <ProductPhotosSlider

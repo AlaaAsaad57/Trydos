@@ -8,12 +8,15 @@ import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
 import LocalizationServiceClass from "services/localization";
 import { useAppStore } from "store";
+import { getNotificationsTypes } from "services/notifications";
 function MoreOptionsSection() {
   const {
     disableNotification,
     enableNotification,
     SelectedProduct,
     firebaseSettings,
+    NotificationsType,
+    setNotificationsType,
   } = useAppStore();
 
   let { lang } = useParams();
@@ -22,7 +25,17 @@ function MoreOptionsSection() {
   const translate = (key, lang) => {
     return translateFunction(key, languageVariable);
   };
+  const getNotificationsType = async () => {
+    if (NotificationsType?.length === 0) {
+      const response = await getNotificationsTypes();
+
+      setNotificationsType(response?.notification_types);
+    } else {
+      setNotificationsType(NotificationsType);
+    }
+  };
   useEffect(() => {
+    getNotificationsType();
     if (typeof document !== "undefined") {
       const slider: HTMLDivElement = document?.querySelector("#slider-options");
       let isDown = false;
@@ -87,6 +100,7 @@ function MoreOptionsSection() {
   const getData = async () => {
     setLoading(true);
     await home.GetFireBaseSettings();
+    await getNotificationsType();
     setLoading(false);
   };
   useEffect(() => {
@@ -171,75 +185,32 @@ function MoreOptionsSection() {
             </span>
           </div>
           <div id="slider-options" className="notify-row">
-            <div
-              className={`button-option ${
-                checkIfTopicEnabled(
-                  `product_before_stock_out_${SelectedProduct.id}`
-                ) && "bg-green-300"
-              }`}
-              onClick={async () => {
-                enableNotificationTopic(
-                  `product_before_stock_out_${SelectedProduct.id}`
-                );
-              }}
-            >
-              {checkIfTopicEnabled(
-                `product_before_stock_out_${SelectedProduct.id}`
-              ) && <CheckIcon className="mx-1" />}
-              {translate("Before Stock Out", language)}
-            </div>
-            <div
-              className={`button-option ${
-                checkIfTopicEnabled(
-                  `product_when_change_in_price_${SelectedProduct.id}`
-                ) && "bg-green-300"
-              }`}
-              onClick={() => {
-                enableNotificationTopic(
-                  `product_when_change_in_price_${SelectedProduct.id}`
-                );
-              }}
-            >
-              {checkIfTopicEnabled(
-                `product_when_change_in_price_${SelectedProduct.id}`
-              ) && <CheckIcon className="mx-1" />}
-              {translate("Change In Price", language)}
-            </div>
-            <div
-              className={`button-option ${
-                checkIfTopicEnabled(`product_discount_${SelectedProduct.id}`) &&
-                "bg-green-300"
-              }`}
-              onClick={() => {
-                enableNotificationTopic(
-                  `product_discount_${SelectedProduct.id}`
-                );
-              }}
-            >
-              {checkIfTopicEnabled(
-                `product_discount_${SelectedProduct.id}`
-              ) && <CheckIcon className="mx-1" />}
-              {translate("Discounts", language)}
-            </div>
-            <div
-              className={`button-option ${
-                checkIfTopicEnabled(`product_comment_${SelectedProduct.id}`) &&
-                "bg-green-300"
-              }`}
-              onClick={async () => {
-                enableNotificationTopic(
-                  `product_comment_${SelectedProduct.id}`
-                );
-              }}
-            >
-              {checkIfTopicEnabled(`product_comment_${SelectedProduct.id}`) && (
-                <CheckIcon className="mx-1" />
-              )}
-              {translate("Follow Comments", language)}
-            </div>
-            <div className="button-option">
-              {translate("Offers", language)}( not Coded)
-            </div>
+            {NotificationsType.length === 0 ? (
+              <div className="flex items-center w-full h-full justify-center">
+                <Spinner />
+              </div>
+            ) : (
+              NotificationsType?.map((type) => (
+                <div
+                  className={`button-option ${
+                    checkIfTopicEnabled(
+                      `${type.topic}_${SelectedProduct.id}`
+                    ) && "bg-green-300"
+                  }`}
+                  onClick={async () => {
+                    enableNotificationTopic(
+                      `${type.topic}_${SelectedProduct.id}`
+                    );
+                  }}
+                  data-cy={`notify-type`}
+                >
+                  {checkIfTopicEnabled(
+                    `${type.topic}_${SelectedProduct.id}`
+                  ) && <CheckIcon className="mx-1" />}
+                  {type.showed_name}
+                </div>
+              ))
+            )}
           </div>
         </div>
         <div className="more-options-button" data-cy="add-checkList">

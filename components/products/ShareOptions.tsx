@@ -136,8 +136,9 @@ function ShareOptions({
         </div>
         <div className="share-name">Gmail</div>
       </div>
-      <div className={`share-avatar`} data-cy="Whatsapp">
+      <div className={`share-avatar`}>
         <div
+          data-cy="copy_link_button"
           className="share-image social shadow-none flex justify-center items-center bg-[#f8f8e4]"
           onClick={() => {
             Sendevent({

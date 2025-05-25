@@ -57,6 +57,7 @@ export const useAuthStore = (set, get) => ({
     whatsapp: 0,
     firebase: 0,
   },
+  NotificationsType: [],
   userProfile: null,
   totalOrders: -1,
   isActiveAddress: false,
@@ -66,7 +67,7 @@ export const useAuthStore = (set, get) => ({
   updateUserIsVerified: (user_obj) =>
     set((state) => ({ userProfile: { ...state.userProfile, ...user_obj } })),
   setTotalOrders: (total) => set({ totalOrders: total }),
-
+  setNotificationsType: (type) => set({ NotificationsType: type }),
   editUserInfo: (info) =>
     set((state) => ({
       userProfile: { ...state.userProfile, ...info },

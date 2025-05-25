@@ -210,13 +210,13 @@ describe("7-2 Filtering In Filter Widget", () => {
 });
 describe("7-3 Search for product in filters page", () => {
   it("should search for first product and should show", () => {
-    cy.get('[data-cy="product-link"] .product-body [data-cy="productName"]')
+    cy.get('[data-cy="product_link"] .product-body [data-cy="productName"]')
       .invoke("text")
       .then((text) => {
         cy.get('[data-cy="searchIcon_boutiquePage"]').click({ force: true });
         cy.get('[data-cy="inputFiled"]').type(text.split(" ")[0]);
         cy.wait(3000);
-        cy.get('[data-cy="product-link"]').should("be.visible");
+        cy.get('[data-cy="product_link"]').should("be.visible");
       });
   });
   it("should click on reset filter button", () => {
