@@ -281,17 +281,17 @@ Cypress.Commands.add("AddProductToCartFromBoutiquePage", () => {
     "QtyPriceReq"
   );
   cy.get('[data-cy="product-card"] [data-cy="buy-button"]')
-    .first()
+    .eq(1)
     .click({ force: true });
   cy.wait(["@SocialDataReq", "@QtyPriceReq"]).then((interception) => {
     expect(interception[0].response.statusCode).to.equal(200);
     expect(interception[1].response.statusCode).to.equal(200);
   });
   cy.Exist('[data-cy="color_slide"]').then((e) => {
-    if (e) cy.get('[data-cy="color_slide"]').eq(1).click();
+    if (e) cy.get('[data-cy="color_slide"]').eq(0).click();
   });
   cy.Exist('[data-cy="size_slide"]').then((e) => {
-    if (e) cy.get('[data-cy="size_slide"]').eq(1).click();
+    if (e) cy.get('[data-cy="size_slide"]').eq(0).click();
   });
   cy.intercept("POST", "**/api/v1/cart/**").as("AddToCartRequest");
   cy.get('[data-cy="addTo_cart_button"]').click();

@@ -162,6 +162,7 @@ function PlaceOrderButtons({ orderLoading, successOrder, backToCart, close }) {
       >
         {!orderData.success && (
           <div
+            data-cy="Place-Order-Buttons"
             onClick={() => {
               if (orderData.success) {
                 setOrderData({

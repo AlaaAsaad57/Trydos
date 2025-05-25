@@ -505,7 +505,7 @@ const CODInput = ({ active, setActive, total }) => {
 
   return (
     <div
-      data-cy="Cach-on-delivery"
+      data-cy="Cash-on-delivery"
       onClick={() => {
         setActive();
       }}

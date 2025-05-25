@@ -534,6 +534,9 @@ function OrderButton({ close, toOrders }) {
                 "inset 0px 3px 6px rgba(255,255,255,0.16), 0px 3px 6px rgba(0,0,0,0.1)",
             }}
             onClick={() => {
+              if (option) {
+                return;
+              }
               if (cart.length === 0) {
                 close();
               } else {

@@ -69,6 +69,7 @@ function UserNavTopSection() {
       )} */}
       <div
         className="nav-question-item cart-icon-selector cursor-pointer relative"
+        data-cy="cart_icon_button"
         style={{ marginRight: "30px", marginLeft: "0px" }}
         onClick={() => enableCartAction(true)}
       >
