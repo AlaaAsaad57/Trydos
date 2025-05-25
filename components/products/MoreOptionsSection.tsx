@@ -192,6 +192,7 @@ function MoreOptionsSection() {
             ) : (
               NotificationsType?.map((type) => (
                 <div
+                  key={type.topic}
                   className={`button-option ${
                     checkIfTopicEnabled(
                       `${type.topic}_${SelectedProduct.id}`
