@@ -189,7 +189,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, lang }) => {
         const userData = JSON.parse(isGuestUser || isAuthenticatedUser || "{}");
         userData[field] = editValue;
         localStorage.setItem(
-          isGuestUser ? "guest-user" : "user",
+          isGuestUser ? "guest-user" : "USER",
           JSON.stringify(userData)
         );
 

@@ -1,6 +1,6 @@
 "use client";
 import { useAppStore } from "store";
-import { GetChats } from "store/chat/actions";
+
 import Cookies from "js-cookie";
 import userImage from "public/images/profileNo.png";
 import {
@@ -35,6 +35,7 @@ import {
 } from "models/Api";
 import auth from "./auth";
 import LocalizationServiceClass from "./localization";
+import chat from "./chat";
 const getHeader = () => {
   let [countryUrl, languageUrl] = window.location.pathname
     .split("/")[1]
@@ -79,7 +80,7 @@ class HomeService {
           localStorage.setItem("LAST_JSON", JSON.stringify(repo));
       }
       setTimeout(() => {
-        if (localStorage.getItem("USER")) GetChats(false);
+        if (localStorage.getItem("USER")) chat.getChats(false);
       }, 5000);
     } catch (e) {
       console.error(e);

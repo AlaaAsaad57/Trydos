@@ -11,13 +11,13 @@ import { ChatConroller } from "utils/tinyUtils";
 import { SSRDetect, getUserChat } from "utils/functions";
 import ChatService from "services/chat";
 import dynamic from "next/dynamic";
-import { GetChats } from "store/chat/actions";
 import { useAppStore } from "store";
+import chat from "services/chat";
 function ChatModal() {
   const { isCallIncoming, callInProgress, chatVar } = useAppStore();
   useEffect(() => {
     if (chatVar) {
-      GetChats(false);
+      chat.getChats(false);
     }
   }, []);
   return (

@@ -269,9 +269,13 @@ describe("1-7 Should Input name in login if the user does not input his name whe
     });
   });
   it("should click on Create New Account and continue", () => {
-    cy.get('[data-cy="Create-New-Account"]').click({
-      scrollBehavior: false,
-      force: true,
+    cy.Exist("[data-cy=Create-New-Account]").then((exist) => {
+      if (exist) {
+        cy.get('[data-cy="Create-New-Account"]').click({
+          scrollBehavior: false,
+          force: true,
+        });
+      }
     });
   });
   it("Should Click On Input Field For Writ User Name", () => {

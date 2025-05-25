@@ -8,90 +8,9 @@ import {
   SET_CHANNEL_OPT_UTL,
 } from "utils/endpointConfig";
 import { getUserChat } from "utils/functions";
-
-import { AxiosGet } from "utils/AxiosApi";
-import { GetChatsApi, GetContactsApi } from "models/Api";
 import { useAppStore } from "store";
+import chat from "services/chat";
 
-export const GetChats = async (payload) => {
-  const {
-    setChatLoading,
-    setChatDone,
-    setChats,
-    setIsTyping,
-    setLastNotificationDate,
-    setContacts,
-  } = useAppStore.getState();
-
-  const { onValue, ref } = await import("firebase/database");
-  try {
-    let axios = (await import("axios")).default;
-    if (!payload) {
-      setChatLoading();
-    }
-    let resp: GetChatsApi = await axios.post(
-      process.env.NEXT_PUBLIC_CHAT_BACKEND_URL + GET_CHATS_URL,
-      { role_id: 116 },
-      {
-        headers: {
-          Authorization:
-            `Bearer ` +
-            JSON.parse(localStorage.getItem("USER-CHAT"))?.access_token,
-        },
-      }
-    );
-    setChats(resp.data.data.channels, resp.data.data.pinned_channels);
-    const { db } = await import("../../utils/firebaseInitv1");
-    let chats = [...resp.data.data.channels, ...resp.data.data.pinned_channels];
-    chats.map((chat) => {
-      let friendID = chat.channel_members.filter(
-        (member) => parseInt(member.user_id) !== parseInt(getUserChat().id)
-      )[0]?.user_id;
-      let MyId = getUserChat().id;
-      //wew
-
-      const dbRef = ref(db, `Transaction/${friendID}/${MyId}`);
-      onValue(dbRef, (snapshot) => {
-        const desc = snapshot.val();
-
-        if (!!desc) {
-          if (typeof desc === "string") {
-            setIsTyping({ id: chat.id, desc: desc });
-          } else {
-            setIsTyping({
-              id: chat.id,
-              desc:
-                Object.keys(desc).length > 0
-                  ? desc[Object.keys(desc)[0]]
-                  : null,
-            });
-          }
-        } else {
-          setIsTyping({ id: chat.id, desc: null });
-        }
-      });
-    });
-
-    setLastNotificationDate(new Date().toLocaleString());
-    setChatDone();
-    if (payload !== "share") {
-      getCalls(null);
-      let response: GetContactsApi = await axios.get(
-        process.env.NEXT_PUBLIC_CHAT_BACKEND_URL + GET_CONTATCS_URL,
-        {
-          headers: {
-            Authorization:
-              `Bearer ` +
-              JSON.parse(localStorage.getItem("USER-CHAT"))?.access_token,
-          },
-        }
-      );
-      setContacts(response.data.data);
-    }
-  } catch (e) {
-    console.error(e);
-  }
-};
 export const GetLastSeen = async (chatId, friendID) => {
   const { setServerTime, setIsTyping } = useAppStore.getState();
   try {
@@ -404,7 +323,7 @@ export async function PinnChat(payload) {
         pin: payload.value ? 1 : 0,
       })
     );
-    GetChats(true);
+    chat.getChats(true);
   } catch (e) {}
 }
 export async function MuteChat(payload) {

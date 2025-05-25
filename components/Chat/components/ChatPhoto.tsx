@@ -6,8 +6,8 @@ import profile from "public/images/profileNo.png";
 function ChatPhoto({
   user,
   className,
-  width,
-  height,
+  width = 30,
+  height = 30,
 }: {
   user: any;
   className?: string;
@@ -17,14 +17,23 @@ function ChatPhoto({
   if (user.photo_path)
     return (
       <Image
-        src={process.env.NEXT_PUBLIC_CLOUDINARY_URL + user.photo_path}
+        src={
+          user.photo_path?.includes("http")
+            ? user.photo_path
+            : process.env.NEXT_PUBLIC_CLOUDINARY_URL + user.photo_path
+        }
         alt=""
         width={width}
         height={height}
         className={className + " object-cover object-center"}
       />
     );
-  if (user.name?.length > 1) return <>{getTwoLetters(user.name)}</>;
+  if (user.name?.length > 1)
+    return (
+      <div className={`text-avatar w-[${width}px] h-[${height}px]`}>
+        {getTwoLetters(user.name)}
+      </div>
+    );
   else return <Image src={profile} alt="user-photo" />;
 }
 

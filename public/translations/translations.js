@@ -2,6 +2,8 @@ const translations = {
   en: {},
   ar: {
     "Total Products:": "إجمالي المنتجات:",
+    "Session Expired..please Login again":
+      "انتهت صلاحية الجلسة ززالرجاء تسجيل الدخول",
     Reschedule: "تأجيل",
     "Please Select an Address": "الرجاء اختيار عنوان",
     "Please Be Accurate and select your Location":
@@ -524,6 +526,8 @@ const translations = {
       "Satın Alma Başarıyla Tamamlandı",
     "Please Select an Address": "Lütfen Bir Adres Seçiniz",
     Reschedule: "Yeniden Planla",
+    "Session Expired..please Login again":
+      "Oturum Süresi Doldu..Lütfen Tekrar Giriş Yapın",
     "Please Be Accurate and select your Location":
       "Lütfen doğru ve konumunuzu seçin",
     "Your Current Location is Not belong to Country Bounds":

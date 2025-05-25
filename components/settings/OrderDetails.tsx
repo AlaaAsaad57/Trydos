@@ -33,6 +33,17 @@ function OrderDetails({
   const [isExpanded, setIsExpanded] = useState(false);
 
   if (!selectedOrder?.id) return null;
+  const shouldShowChatIcon = () => {
+    // Out for Delivery
+    if (selectedOrder.order_status.label === "In Delivery Center") return true;
+    if (
+      selectedOrder.details?.find(
+        (s) => s.order_status === "In Delivery Center"
+      )
+    )
+      return true;
+    return false;
+  };
   return (
     <div className="flex-col h-[calc(100vh)]">
       <SettingTopBar
@@ -49,6 +60,7 @@ function OrderDetails({
         }
         Save={null}
         hasOptions={true}
+        hasChat={shouldShowChatIcon()}
       />
 
       <div

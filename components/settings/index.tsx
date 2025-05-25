@@ -228,6 +228,7 @@ function Settings({ lang }: { lang: string }) {
           {NavigationOptions.map((option, index) => (
             <div
               key={option.id}
+              id={option.id.split(" ").join("")}
               className={`${
                 [currentScreen - 1, currentScreen, currentScreen + 1].includes(
                   index

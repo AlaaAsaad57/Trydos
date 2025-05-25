@@ -1,15 +1,22 @@
-import { LOG_IN_CHAT } from "utils/endpointConfig";
+import {
+  GET_CHATS_URL,
+  GET_CONTATCS_URL,
+  LOG_IN_CHAT,
+} from "utils/endpointConfig";
 import HomeService from "services/home";
 import Cookies from "js-cookie";
 import { useAppStore } from "store";
 import {
   _isStoreLastJson,
   getLang,
+  getUserChat,
   translateFunction as translate,
 } from "utils/functions";
 import axios from "axios";
-import { GetChats } from "store/chat/actions";
+
 import { toast } from "react-toastify";
+import { getCalls } from "store/chat/actions";
+import { AxiosGet, AxiosPost } from "utils/AxiosApi";
 const ChatHeader = () => {
   return {
     headers: {
@@ -102,7 +109,7 @@ class ChatService {
         }),
         { ...ChatHeader() }
       );
-      await GetChats("share");
+      await this.getChats("share");
       toast.success(translate("Shared Successfully", language));
       callback();
     } catch (e) {
@@ -139,6 +146,77 @@ class ChatService {
     }
     setFirebaseToken(payload.token);
     localStorage.setItem("firebase_id", repo.data.id);
+  }
+  async getChats(payload) {
+    const {
+      setChatLoading,
+      setChatDone,
+      setChats,
+      setIsTyping,
+      setLastNotificationDate,
+      setContacts,
+    } = useAppStore.getState();
+
+    const { onValue, ref } = await import("firebase/database");
+    try {
+      if (!payload) {
+        setChatLoading();
+      }
+
+      let resp = await AxiosPost({
+        url: process.env.NEXT_PUBLIC_CHAT_BACKEND_URL + GET_CHATS_URL,
+        body: { role_id: 16 },
+        token: JSON.parse(localStorage.getItem("USER-CHAT"))?.access_token,
+      });
+
+      setChats(resp.channels, resp.pinned_channels);
+      const { db } = await import("../utils/firebaseInitv1");
+      let chats = [...resp.channels, ...resp.pinned_channels];
+      chats.map((chat) => {
+        let friendID = chat.channel_members.filter(
+          (member) => parseInt(member.user_id) !== parseInt(getUserChat().id)
+        )[0]?.user_id;
+        let MyId = getUserChat().id;
+        //wew
+
+        const dbRef = ref(db, `Transaction/${friendID}/${MyId}`);
+        onValue(dbRef, (snapshot) => {
+          const desc = snapshot.val();
+
+          if (!!desc) {
+            if (typeof desc === "string") {
+              setIsTyping({ id: chat.id, desc: desc });
+            } else {
+              setIsTyping({
+                id: chat.id,
+                desc:
+                  Object.keys(desc).length > 0
+                    ? desc[Object.keys(desc)[0]]
+                    : null,
+              });
+            }
+          } else {
+            setIsTyping({ id: chat.id, desc: null });
+          }
+        });
+      });
+
+      setLastNotificationDate(new Date().toLocaleString());
+      setChatDone();
+      if (payload !== "share") {
+        getCalls(null);
+
+        let response = await AxiosGet({
+          url: process.env.NEXT_PUBLIC_CHAT_BACKEND_URL + GET_CONTATCS_URL,
+          title: "Get Contacts",
+          token: JSON.parse(localStorage.getItem("USER-CHAT"))?.access_token,
+        });
+
+        setContacts(response);
+      }
+    } catch (e) {
+      console.error(e);
+    }
   }
 }
 export default new ChatService();
