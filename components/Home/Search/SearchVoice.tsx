@@ -15,13 +15,10 @@ function SearchVoice({ setSearchValue }: { setSearchValue: Function }) {
   const { finalTranscript, listening, browserSupportsSpeechRecognition } =
     useSpeechRecognition();
 
-  function handleOnRecord() {
-    SpeechRecognition.startListening({
+  async function handleOnRecord() {
+    await SpeechRecognition.startListening({
       language: language === "ar" ? "ar-SA" : "en-US",
     });
-  }
-  const { lang } = useParams();
-  useEffect(() => {
     if (finalTranscript?.length > 0) {
       setSearchValue(finalTranscript);
       console.log(finalTranscript);
@@ -32,7 +29,9 @@ function SearchVoice({ setSearchValue }: { setSearchValue: Function }) {
     } else {
       toast.info(translateFunction("Failed to recognize your voice", language));
     }
-  }, [finalTranscript]);
+  }
+  const { lang } = useParams();
+
   return (
     <>
       {browserSupportsSpeechRecognition && (
