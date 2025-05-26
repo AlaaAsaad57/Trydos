@@ -112,7 +112,7 @@ class SearchService {
           search_text: processed_search_value.str || value,
         };
       }
-      console.log(searchFiltersEdit);
+
       ("use server");
       let requestSearchParams = new URLSearchParams();
       let requestSearchParamsString = "";
@@ -138,23 +138,39 @@ class SearchService {
         total_size,
       } = filtersResponse.data;
       setTotalSizeOfProducts({ total_size });
-
-      setSearchResults(
-        {
-          products,
-          categories,
-          brands,
-          boutiques,
-          colors,
-          sizes: attributes?.[0]?.options || [],
-          prices: {
-            min_price: filtersResponse?.data?.prices?.min_price || null,
-            max_price: filtersResponse?.data?.prices?.max_price || null,
+      if (!noProducts)
+        setSearchResults(
+          {
+            products,
+            categories,
+            brands,
+            boutiques,
+            colors,
+            sizes: attributes?.[0]?.options || [],
+            prices: {
+              min_price: filtersResponse?.data?.prices?.min_price || null,
+              max_price: filtersResponse?.data?.prices?.max_price || null,
+            },
+            prices_ranges: filtersResponse?.data?.prices?.priceRanges || [],
           },
-          prices_ranges: filtersResponse?.data?.prices?.priceRanges || [],
-        },
-        replace
-      );
+          replace
+        );
+      else
+        setSearchResults(
+          {
+            categories,
+            brands,
+            boutiques,
+            colors,
+            sizes: attributes?.[0]?.options || [],
+            prices: {
+              min_price: filtersResponse?.data?.prices?.min_price || null,
+              max_price: filtersResponse?.data?.prices?.max_price || null,
+            },
+            prices_ranges: filtersResponse?.data?.prices?.priceRanges || [],
+          },
+          replace
+        );
       setSearchPartialLoading(false);
       setSearchLoading(false);
       return filtersResponse;

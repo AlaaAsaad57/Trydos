@@ -15,23 +15,21 @@ function SearchVoice({ setSearchValue }: { setSearchValue: Function }) {
   const { finalTranscript, listening, browserSupportsSpeechRecognition } =
     useSpeechRecognition();
 
-  async function handleOnRecord() {
-    await SpeechRecognition.startListening({
+  function handleOnRecord() {
+    SpeechRecognition.startListening({
       language: language === "ar" ? "ar-SA" : "en-US",
     });
+  }
+  const { lang } = useParams();
+  useEffect(() => {
     if (finalTranscript?.length > 0) {
       setSearchValue(finalTranscript);
-      console.log(finalTranscript);
       search.getSearchOptions({
         noProducts: false,
         lang: lang,
       });
-    } else {
-      toast.info(translateFunction("Failed to recognize your voice", language));
     }
-  }
-  const { lang } = useParams();
-
+  }, [finalTranscript]);
   return (
     <>
       {browserSupportsSpeechRecognition && (
