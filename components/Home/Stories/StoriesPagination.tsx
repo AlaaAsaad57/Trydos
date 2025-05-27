@@ -7,7 +7,7 @@ import story from "services/story";
 import { useAppStore } from "store";
 
 function StoriesPagination({ next_page_url }: { next_page_url: string }) {
-  const { storiesData } = useAppStore();
+  const { storiesData, setStoryData } = useAppStore();
   const [loading, setLoading] = useState(false);
   const [next_page, setNextPage] = useState(next_page_url ? 2 : null);
   const [data, setData] = useState([]);
@@ -26,7 +26,7 @@ function StoriesPagination({ next_page_url }: { next_page_url: string }) {
       return null;
     }
     const res = await story.getStories(next_page);
-    setData(res.data);
+    setStoryData({ ...storiesData, ...res.data });
     if (res.next_page_url) {
       setNextPage(next_page + 1);
     } else {
@@ -37,9 +37,6 @@ function StoriesPagination({ next_page_url }: { next_page_url: string }) {
 
   return (
     <>
-      {data.map((item: any, index) => (
-        <StoryElement key={item.id} index={index} story={item} />
-      ))}
       {next_page && (
         <div className="flex justify-center items-center w-[100px]">
           <InView

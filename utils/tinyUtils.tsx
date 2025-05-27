@@ -226,3 +226,52 @@ export const FlagIcon = ({ iso }) => {
 
   return <img src={`/svg/flag/${iso?.toLowerCase()}.svg`} alt={iso} />;
 };
+export const formatTime = (timeString: string) => {
+  const MONTH_NAMES = [
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
+  ];
+  const date = new Date(timeString + "Z");
+
+  const today = new Date();
+  const yesterday = new Date(today);
+  yesterday.setDate(yesterday.getDate() - 1);
+
+  const hours = date.getHours().toString().padStart(2, "0");
+  const minutes = date.getMinutes().toString().padStart(2, "0");
+  const seconds = date.getSeconds().toString().padStart(2, "0");
+  const timeFormat = `${hours}:${minutes}:${seconds}`;
+
+  if (date.toDateString() === today.toDateString()) {
+    return `Today | ${timeFormat}`;
+  }
+
+  if (date.toDateString() === yesterday.toDateString()) {
+    return `Yesterday | ${timeFormat}`;
+  }
+
+  const isSameYear = date.getFullYear() === today.getFullYear();
+  const isNewerThanToday = date > today;
+
+  if (isSameYear && isNewerThanToday) {
+    const day = date.getDate();
+    const monthName = MONTH_NAMES[date.getMonth()];
+    return `${day} ${monthName}`;
+  }
+
+  const day = date.getDate().toString().padStart(2, "0");
+  const month = (date.getMonth() + 1).toString().padStart(2, "0");
+  const year = date.getFullYear();
+
+  return `${day}/${month}/${year} | ${timeFormat}`;
+};

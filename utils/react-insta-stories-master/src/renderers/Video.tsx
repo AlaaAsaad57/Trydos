@@ -35,6 +35,7 @@ export const renderer: Renderer = ({
     }
   }, [isPaused]);
   React.useEffect(() => {
+    console.log(activeId, id);
     if (vid.current) {
       if (activeId !== id) {
         vid.current.pause();
@@ -90,19 +91,21 @@ export const renderer: Renderer = ({
               {story.link}
             </a>
           )}
-          <video
-            ref={vid}
-            style={computedStyles}
-            src={story.url}
-            controls={false}
-            onLoadedData={videoLoaded}
-            playsInline
-            onWaiting={onWaiting}
-            onPlaying={onPlaying}
-            muted={activeId !== id}
-            autoPlay={true}
-            webkit-playsinline="true"
-          />
+          {activeId === id && (
+            <video
+              ref={vid}
+              style={computedStyles}
+              src={story.url}
+              controls={false}
+              onLoadedData={videoLoaded}
+              playsInline
+              onWaiting={onWaiting}
+              onPlaying={onPlaying}
+              muted={activeId !== id}
+              autoPlay={true}
+              webkit-playsinline="true"
+            />
+          )}
           {!loaded && (
             <div
               style={{

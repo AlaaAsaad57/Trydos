@@ -14,6 +14,7 @@ import { GetStoriesApi, LoginStoreisApi, UploadStoryApi } from "models/Api";
 import profilePicture from "public/images/profileNo.png";
 import { useAppStore } from "store";
 import { AxiosGet } from "utils/AxiosApi";
+import { formatTime } from "utils/tinyUtils";
 
 class StoryService {
   /* get stories */
@@ -172,8 +173,12 @@ class StoryService {
           id: storyItem.id,
           header: {
             heading: story.name ?? story.mobile_phone ?? "Unknown",
-            subheading: "Posted 30m ago",
-            profileImage: story.photo_path ?? profilePicture.src,
+            subheading: formatTime(storyItem.created_at),
+            profileImage: story.photo_path
+              ? story.photo_path?.includes("http")
+                ? story.photo_path
+                : process.env.NEXT_PUBLIC_CLOUDINARY_URL + story.photo_path
+              : profilePicture.src,
           },
           duration: storyItem.duration,
           preloadResource: true,
@@ -193,8 +198,12 @@ class StoryService {
           id: storyItem.id,
           header: {
             heading: story.name ?? story.mobile_phone ?? "Unknown",
-            subheading: "Posted 30m ago",
-            profileImage: story.photo_path ?? profilePicture.src,
+            subheading: formatTime(storyItem.created_at),
+            profileImage: story.photo_path
+              ? story.photo_path?.includes("http")
+                ? story.photo_path
+                : process.env.NEXT_PUBLIC_CLOUDINARY_URL + story.photo_path
+              : profilePicture.src,
           },
           preloadResource: true,
           type: "image",

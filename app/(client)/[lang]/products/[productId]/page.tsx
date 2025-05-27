@@ -338,7 +338,7 @@ async function Page({ params, searchParams }: Props) {
               />
             </Suspense>
             <Suspense>
-              <ProductShippingOption />
+              <ProductShippingOption days={product.shipping_days} />
             </Suspense>
             {product.shipping_cost === 0 && (
               <Suspense>

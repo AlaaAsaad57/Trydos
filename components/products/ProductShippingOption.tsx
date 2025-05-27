@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import ShippingIcon from "public/svg/product/ShippingIcon.svg";
 import ShippingDollar from "public/svg/product/ShippingDollar.svg";
 import FastIcon from "public/svg/product/FastIcon.svg";
@@ -9,13 +9,29 @@ import MarkerIcon from "public/svg/product/MarkerIcon.svg";
 import { Sendevent, translateFunction } from "utils/functions";
 import { useParams } from "next/navigation";
 import { GA_CLICK_EVENT_VALUES, GA_EVENT_NAMES } from "utils/GAEvents";
-function ProductShippingOption() {
+import { getCountriesApi } from "store/homepage/cachedActions";
+import Spinner from "components/global/Spinner";
+import { formatTime } from "utils/tinyUtils";
+function ProductShippingOption({ days }) {
+  const [countriesData, setCountries] = useState([]);
+  const getCountries = async () => {
+    try {
+      const countries = await getCountriesApi();
+
+      setCountries(countries);
+    } catch (error) {
+      console.log(error);
+    }
+  };
   let { lang } = useParams();
   // @ts-ignore
-  let languageVariable = lang.split("-")[1];
+  let [countryIso, languageVariable] = lang.split("-");
   const translate = (key, lang?) => {
     return translateFunction(key, languageVariable);
   };
+  useEffect(() => {
+    getCountries();
+  }, []);
   const [extended, setExtended] = useState(false);
   return (
     <div
@@ -46,9 +62,16 @@ function ProductShippingOption() {
           }
         >
           {translate("At Your Address In")}
-          <span>{translate("Lebanon")}</span>
+          <span className="uppercase">
+            {countriesData?.length ? (
+              countriesData?.find((s) => s.iso?.toLowerCase() === countryIso)
+                ?.name
+            ) : (
+              <Spinner />
+            )}
+          </span>
           {translate("Expected Within")}
-          <span>4</span>
+          <span>{days}</span>
           <span>{translate("Days")}</span>
         </div>
       </div>
@@ -82,8 +105,20 @@ function ProductShippingOption() {
           <PlaneIcon />
           <div className="flex-col address-row-desc justify-center">
             <div className="flex-row align-center">
-              <span className="blue-address">
-                12. Jun. {translate("In Lebanon")}
+              <span className="blue-address uppercase">
+                {formatTime(
+                  new Date(
+                    new Date().getTime() + Number(days) * 24 * 60 * 60 * 1000
+                  ).toLocaleDateString()
+                )}
+                {","}
+                {countriesData?.length ? (
+                  countriesData?.find(
+                    (s) => s.iso?.toLowerCase() === countryIso
+                  )?.name
+                ) : (
+                  <Spinner />
+                )}
               </span>
             </div>
             <span className="gray-address">
@@ -101,7 +136,12 @@ function ProductShippingOption() {
           <div className="flex-col address-row-desc justify-center">
             <div className="flex-row align-center">
               <span className="blue-address">
-                14. Jun. {translate("In Your Address")}
+                {formatTime(
+                  new Date(
+                    new Date().getTime() + Number(days) * 24 * 60 * 60 * 1000
+                  ).toLocaleDateString()
+                )}{" "}
+                {translate("In Your Address")}
               </span>
             </div>
             <span className="gray-address">

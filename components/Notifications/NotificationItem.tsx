@@ -11,37 +11,14 @@ import { translateFunction } from "utils/functions";
 import { useAppStore } from "store";
 import NextLink from "components/global/NextLink";
 import search from "services/search";
+import { formatTime } from "utils/tinyUtils";
 
 interface NotificationItemProps {
   notification: NotificationItemType;
   onClose: () => void;
   closeWindow: () => void;
 }
-const formatTime = (timeString: string) => {
-  const date = new Date(timeString + "Z");
-  const today = new Date();
-  const yesterday = new Date(today);
-  yesterday.setDate(yesterday.getDate() - 1);
 
-  const hours = date.getHours().toString().padStart(2, "0");
-  const minutes = date.getMinutes().toString().padStart(2, "0");
-  const seconds = date.getSeconds().toString().padStart(2, "0");
-  const timeFormat = `${hours}:${minutes}:${seconds}`;
-
-  if (date.toDateString() === today.toDateString()) {
-    return `Today | ${timeFormat}`;
-  }
-
-  if (date.toDateString() === yesterday.toDateString()) {
-    return `Yesterday | ${timeFormat}`;
-  }
-
-  const day = date.getDate().toString().padStart(2, "0");
-  const month = (date.getMonth() + 1).toString().padStart(2, "0");
-  const year = date.getFullYear();
-
-  return `${day}/${month}/${year} | ${timeFormat}`;
-};
 const NotificationItem: React.FC<NotificationItemProps> = ({
   notification,
   onClose,

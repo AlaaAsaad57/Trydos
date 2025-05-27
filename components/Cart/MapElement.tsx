@@ -1,4 +1,4 @@
-import { LegacyRef, memo, useEffect, useRef, useState } from "react";
+import { memo, useEffect, useRef, useState } from "react";
 import {
   GoogleMap,
   useJsApiLoader,
@@ -208,8 +208,11 @@ export const MapElement: React.FC<MapProps> = memo(
                 streetViewControl: false,
                 fullscreenControl: false,
                 mapTypeControl: false,
-                zoomControl: false,
+                zoomControl: true,
                 cameraControl: false,
+                zoomControlOptions: {
+                  position: google.maps.ControlPosition.RIGHT_TOP,
+                },
               }}
               onLoad={(m) => {
                 if (

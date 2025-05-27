@@ -550,12 +550,6 @@ export const AddAddressButtons = ({ valid, slidePrev }) => {
     }
   };
   const validate = () => {
-    if (
-      !addressDetails.location.latitude &&
-      !addressDetails.location.longitude
-    ) {
-      shake("map-border");
-    }
     if (addressDetails.address_detail?.length === 0) {
       shake("details-border");
     }

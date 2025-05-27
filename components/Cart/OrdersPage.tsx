@@ -839,7 +839,6 @@ const OrderButtons = ({ orderLoading, setNext, setPrev }) => {
     }
   };
   const Validate = () => {
-    console.log(addressLists);
     if (!isBalanceEnough()) {
       shake("payment-valid-border");
       // alert(translateFunction("Your Balance Not meet purchase value"));

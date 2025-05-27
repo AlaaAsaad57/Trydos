@@ -343,9 +343,13 @@ export const normalizeView = () => {
       .classList.add("relative");
   }
   if (document.querySelector<HTMLElement>(".boutique-top-info")) {
-    document.querySelector<HTMLElement>(
-      ".boutique-top-info .boutique-text"
-    ).style.display = "flex";
+    if (
+      document.querySelector<HTMLElement>(".boutique-top-info .boutique-text")
+    ) {
+      document.querySelector<HTMLElement>(
+        ".boutique-top-info .boutique-text"
+      ).style.display = "flex";
+    }
     document
       .querySelectorAll(".boutique-top-info .boutique-logo-container svg")
       .forEach((s: HTMLElement) => {

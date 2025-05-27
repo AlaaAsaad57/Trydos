@@ -435,7 +435,7 @@ function AddToCartComponent({
                     strokeWidth="2"
                   />
                 </svg>
-                {getSelectedVariantQty()?.price &&
+                {getSelectedVariantQty()?.price >= 0 &&
                 RoundPrice({ num: getSelectedVariantQty()?.price }) >= 0 ? (
                   <>{RoundPrice({ num: getSelectedVariantQty()?.price })}</>
                 ) : (

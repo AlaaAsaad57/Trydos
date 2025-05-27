@@ -1,26 +1,37 @@
+"use client";
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 import AddStory from "components/Home/AddStory";
 import StoriesBorder from "components/Home/Stories/StoriesBorder";
 import StoriesPagination from "components/Home/Stories/StoriesPagination";
 import StoryElement from "components/Home/Stories/StoryElement";
 import StoriesSkeleton from "components/skeleton/StoriesSkeleton";
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { useAppStore } from "store";
 import { getStoriesServer } from "store/homepage/cachedActions";
 
-async function StoriesBarServer() {
-  const { data, next_page_url } = await getStoriesServer();
+function StoriesBarServer() {
+  const { storiesData, setStoryData } = useAppStore();
+  const [next_page_url, setNextPageUrl] = useState(null);
+  const getData = async () => {
+    let { data, next_page_url } = await getStoriesServer();
+    setStoryData(data);
+    setNextPageUrl(next_page_url);
+  };
+  useEffect(() => {
+    getData();
+  }, []);
 
   try {
     return (
       <div className="stories-bar-container">
         <div id="stories-bar" className="stories-bar">
           {<AddStory />}
-          {data ? (
+          {storiesData ? (
             <HortiznalScrollBar
               id="stories-bar-container"
               className="stories-bars pl-[10px]"
             >
-              {data?.map((story, index) => (
+              {storiesData?.map((story, index) => (
                 <StoryElement key={index} index={index} story={story} />
               ))}
               <StoriesPagination next_page_url={next_page_url} />
