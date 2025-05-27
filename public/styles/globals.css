@@ -1322,3 +1322,6 @@ input[type="number"] {
     bottom: calc(20px + env(safe-area-inset-bottom));
   }
 }
+.add-address-button-m {
+  bottom: calc(80px + env(safe-area-inset-bottom));
+}

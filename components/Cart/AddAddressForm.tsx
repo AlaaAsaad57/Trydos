@@ -19,6 +19,7 @@ function AddAddressForm({
   slidePrev,
   setOpenSelect,
   activeIndex,
+  isInSettings = false,
 }) {
   const { setMapCenter, center, addressDetails, countries, orderLoading } =
     useAppStore();
@@ -176,6 +177,7 @@ function AddAddressForm({
       </div>
       {!expanded && (
         <AddAddressButtons
+          isInSettings={isInSettings}
           valid={isValid()}
           slidePrev={() => {
             slidePrev();
@@ -536,7 +538,7 @@ const ContactInfo = () => {
     </div>
   );
 };
-export const AddAddressButtons = ({ valid, slidePrev }) => {
+export const AddAddressButtons = ({ valid, slidePrev, isInSettings }) => {
   const { addAddress, updateAddress, addressDetails, orderLoading } =
     useAppStore();
 
@@ -579,7 +581,9 @@ export const AddAddressButtons = ({ valid, slidePrev }) => {
       style={{
         boxShadow: "0px -3px 20px #0000001a",
       }}
-      className={`add-address-button ${
+      className={`${
+        isInSettings ? "add-address-button-m" : "add-address-button"
+      } ${
         orderLoading && "opacity-55"
       } absolute text-center  left-0 w-full h-[100px] bg-[#fff] px-[20px] pt-[12px]`}
       data-cy="add-address-buttons-container" // Added data-cy

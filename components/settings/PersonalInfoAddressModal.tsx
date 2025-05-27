@@ -34,6 +34,7 @@ function PersonalInfoAddressModal({
       )}
       {isActiveAddress && (
         <AddAddressForm
+          isInSettings={true}
           activeIndex={true}
           setOpenSelect={() => {
             setOpenSelect(true);
