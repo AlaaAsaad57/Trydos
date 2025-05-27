@@ -252,9 +252,7 @@ function ProductLoader({ product }) {
                 }
               />
             </Suspense>
-            <Suspense>
-              <ProductShippingOption />
-            </Suspense>
+            <Suspense></Suspense>
             {product?.shipping_cost === 0 && (
               <Suspense>
                 <FreeShippingOption lang={lang} />
