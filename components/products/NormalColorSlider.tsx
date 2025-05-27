@@ -74,7 +74,7 @@ function NormalColorSlider({
               activeColor?.color_name === color.color_name
                 ? ProductColorsArray?.filter(
                     (s) => s.name === color.color_name
-                  )[0].color
+                  )?.[0]?.color
                 : "#fff"
             }
           />

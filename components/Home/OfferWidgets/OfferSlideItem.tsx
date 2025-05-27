@@ -13,13 +13,18 @@ function OfferSlideItem({
   offerPhoto,
 }: OfferSlideItemProps) {
   return (
-    <div className="offer-slide-item">
-      <div className="image-offer">
-        <div className="image-inner-shadow" style={{ height: "100%" }} />
+    <div data-cy="offer_slide_item_length1" className="offer-slide-item">
+      <div data-cy="image_offer_length1" className="image-offer">
+        <div
+          data-cy="image_inner_shadow_length1"
+          className="image-inner-shadow"
+          style={{ height: "100%" }}
+        />
         {
           <Image
-            loading={mykey < 2 ? "eager" : "lazy"}
-            fetchPriority={mykey < 2 ? "high" : "low"}
+            data-cy="image_boutigue_length1"
+            loading="eager"
+            fetchPriority="auto"
             priority={mykey < 2}
             style={{ borderRadius: "15px" }}
             className="OfferImage object-cover"
@@ -28,7 +33,6 @@ function OfferSlideItem({
               `/upload/h_342/f_avif/q_auto`
             )}
             width={900}
-            unoptimized
             height={342}
             alt="offer"
           />

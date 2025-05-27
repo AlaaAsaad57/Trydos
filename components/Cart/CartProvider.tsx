@@ -1,28 +1,52 @@
 "use client";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import {
+  useParams,
+  usePathname,
+  useRouter,
+  useSearchParams,
+} from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
 import { expandView, normalizeView, Sendevent } from "utils/functions";
 import CartContainer from ".";
 import home from "services/home";
 import { Swiper, SwiperSlide } from "swiper/react";
 import OrdersPage from "./OrdersPage";
-import { Swiper as SwiperType } from "node_modules/swiper/types";
+import { Swiper as SwiperType } from "swiper/types";
 import ModalIframe from "./ModalIframe";
 import { ToastContainer } from "react-toastify";
+import { useAppStore } from "store";
+import { getCurrency } from "utils/tinyUtils";
+import AddToCartComponent from "./AddToCartComponent";
+import { GA_CLICK_EVENT_VALUES } from "utils/GAEvents";
+import { GA_EVENT_NAMES } from "utils/GAEvents";
 const CartProvider = () => {
-  const dispatch = useDispatch();
+  const {
+    enableCart,
+    disableAddToCartOption,
+    setEnableSearch,
+    setLoginOpen,
+    setSelectedStory,
+    setCurrency,
+    setChatOpen,
+    filterEnabled,
+    openPayIframe,
+    payIframeURL,
+    cart_enable: enable,
+    selected_product_for_add_to_cart,
+    setSelectedProductForCart,
+  } = useAppStore();
+
   const pathname = usePathname();
   const router = useRouter();
-
+  const { lang } = useParams();
+  // @ts-ignore
+  const [country, language] = lang?.split("-");
   const searchParams = useSearchParams();
-  const filterEnabled = useSelector(
-    (state: StateInterface) => state.listing.filterEnabled
-  );
-  const enableCart = (s) => {
-    dispatch({ type: "AddToCartOptionDisable", payload: false });
+
+  const enableCartAction = (s) => {
+    disableAddToCartOption();
     window.history.pushState({ isPopup: true }, "open Cart");
-    dispatch({ type: "ENABLE-CART", payload: s });
+    enableCart(s);
     if (s) {
       const newParams = new URLSearchParams(searchParams);
       newParams.set("cart", "true");
@@ -42,15 +66,20 @@ const CartProvider = () => {
   useEffect(() => {
     setTimeout(() => {
       home.getClientData();
+      getCurrency({
+        callback: (data) => {
+          setCurrency(data.currency);
+        },
+      });
       home.GetFireBaseSettings();
     }, 10);
     window.addEventListener("popstate", (event) => {
       if (event.state?.isPopup) {
-        dispatch({ type: "STORY-SELECTED", payload: null });
-        dispatch({ type: "ENABLE-CART", payload: false });
-        dispatch({ type: "LOGIN-OPEN", payload: false });
-        dispatch({ type: "CHAT-OPEN", payload: false });
-        dispatch({ type: "ENABLE-SEARCH", payload: false });
+        setSelectedStory(null);
+        enableCart(false);
+        setLoginOpen(false);
+        setChatOpen(false);
+        setEnableSearch(false);
       }
     });
     window.addEventListener("scroll", function (e) {
@@ -66,16 +95,19 @@ const CartProvider = () => {
 
   useEffect(() => {
     if (searchParams.get("cart")) {
-      enableCart(true);
+      enableCartAction(true);
     }
+    let a = searchParams.get("coupon");
+
+    setTimeout(() => {
+      if (a) {
+        localStorage.setItem("coupon-number", a);
+        const newParams = new URLSearchParams(searchParams);
+        newParams.delete("coupon");
+        router.replace(newParams.size ? `${pathname}?${newParams}` : pathname);
+      }
+    }, 1000);
   }, []);
-  const cartEnable = useSelector((state: StateInterface) => state.cart.enable);
-  const showMessage = useSelector(
-    (state: StateInterface) => state.homepage.showMessage
-  );
-  const { openPayIframe, payIframeURL } = useSelector(
-    (state: StateInterface) => state.cart
-  );
   useEffect(() => {
     if (openPayIframe) {
       _openIframe(payIframeURL);
@@ -95,9 +127,24 @@ const CartProvider = () => {
     setIsLoading(false);
     // init();
   };
+
   return (
     <>
-      {cartEnable ? <StepSlider enableCart={(e) => enableCart(e)} /> : <></>}
+      {enable ? <StepSlider enableCart={(e) => enableCartAction(e)} /> : <></>}
+      {selected_product_for_add_to_cart && (
+        <AddToCartComponent
+          enableCartAction={enableCartAction}
+          close={() => {
+            setSelectedProductForCart(null);
+          }}
+          color={selected_product_for_add_to_cart?.colors?.[0]}
+          size={
+            selected_product_for_add_to_cart?.choice_options?.[0]?.options?.[0]
+          }
+          product={selected_product_for_add_to_cart}
+          slug={selected_product_for_add_to_cart?.slug}
+        />
+      )}
       {openIframe.isShow && (
         <div
           ref={modalIframeRef}
@@ -118,13 +165,13 @@ const CartProvider = () => {
 };
 export default CartProvider;
 export const StepSlider = ({ enableCart }) => {
+  const { cart_enable: enable } = useAppStore();
   const [step, setStep] = useState(0);
   const ref = useRef<SwiperType | null>();
-  const cartEnable = useSelector((state: StateInterface) => state.cart.enable);
 
   return (
     <div className="w-full h-[100vh] fixed z-[9999999999] cart-provider">
-      {cartEnable && <ToastContainer position="top-right" />}
+      {enable && <ToastContainer position="top-right" />}
       <Swiper
         initialSlide={step}
         navigation={false}
@@ -149,8 +196,8 @@ export const StepSlider = ({ enableCart }) => {
             }}
             close={() => {
               Sendevent({
-                event: "button_clicked",
-                value: "appbar_backicon_button",
+                event: GA_EVENT_NAMES.CLICK,
+                value: GA_CLICK_EVENT_VALUES.APPBAR_BACKICON_BUTTON,
               });
               enableCart(false);
             }}
@@ -164,6 +211,9 @@ export const StepSlider = ({ enableCart }) => {
                   setStep={(e) => {
                     setStep(0);
                     ref.current.slidePrev();
+                  }}
+                  close={() => {
+                    enableCart(false);
                   }}
                 />
               </>

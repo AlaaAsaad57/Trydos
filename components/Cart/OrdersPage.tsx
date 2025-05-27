@@ -1,7 +1,6 @@
 import { useRef, useState } from "react";
 import BackIcon from "public/svg/listing/backIcon.svg";
 import {
-  GetAppLanguage,
   getCart,
   RoundPrice,
   Sendevent,
@@ -10,10 +9,9 @@ import {
 import { useParams } from "next/navigation";
 import { Swiper, SwiperSlide } from "swiper/react";
 import ShippingAddressContainer from "./ShippingAddressContainer";
-import { Swiper as SwiperType } from "node_modules/swiper/types";
+import { Swiper as SwiperType } from "swiper/types";
 import AddAddressIcon from "public/svg/cart/AddAddress.svg";
 import AddAddressForm from "./AddAddressForm";
-import { useDispatch, useSelector } from "react-redux";
 import SelectRegion from "./SelectRegion";
 import AddressListContainer from "./AddressListContainer";
 import TrashIcon from "public/svg/cart/TrashIcon.svg";
@@ -24,6 +22,9 @@ import PlaceOrderButtons from "./PlaceOrderButtons";
 
 import { toast } from "react-toastify";
 import Spinner from "components/global/Spinner";
+import LocalizationServiceClass from "services/localization";
+import { useAppStore } from "store";
+import { GA_CLICK_EVENT_VALUES, GA_EVENT_NAMES } from "utils/GAEvents";
 
 const DeleteIcon = () => {
   return (
@@ -106,12 +107,21 @@ const DeleteIcon = () => {
     </svg>
   );
 };
-function OrdersPage({ setStep }: { setStep: (e: number) => void }) {
+function OrdersPage({
+  setStep,
+  close,
+}: {
+  setStep: (e: number) => void;
+  close: () => void;
+}) {
+  const {
+    addressDetails,
+    orderData,
+    setOrderData,
+    setAddressDetails,
+    initCart,
+  } = useAppStore();
   let { lang } = useParams();
-  const addressDetails = useSelector(
-    (state: StateInterface) => state.cart.addressDetails
-  );
-
   // @ts-ignore
   let languageVariable = lang.split("-")[1];
   const translate = (key: string, lang?: string) => {
@@ -121,10 +131,6 @@ function OrdersPage({ setStep }: { setStep: (e: number) => void }) {
   const [orderStep, setOrderStep] = useState(0);
   const [AddressListsOpen, openAddressList] = useState(false);
   const ref = useRef<SwiperType>();
-  const dispatch = useDispatch();
-  const setAddressDetails = (e) => {
-    dispatch({ type: "set-address-details", payload: e });
-  };
   const [openSelect, setOpenSelect] = useState(false);
   const colseSelect = () => {
     setOpenSelect(false);
@@ -140,12 +146,12 @@ function OrdersPage({ setStep }: { setStep: (e: number) => void }) {
       if (orderData?.payment?.length === 1) {
         let payment_method =
           orderData?.payment[0]?.id === 0
-            ? "COD"
+            ? "cash_on_delivery"
             : orderData?.payment[0]?.id === 1
-            ? "TrydosWallet"
+            ? "trydos_wallet"
             : orderData?.payment[0]?.id === 2
-            ? "Card"
-            : "Crypto";
+            ? "card"
+            : "crypto";
         setLoading(true);
         await order.PlaceOrder({
           payment_method,
@@ -159,7 +165,7 @@ function OrdersPage({ setStep }: { setStep: (e: number) => void }) {
         ) {
           setLoading(true);
           await order.PlaceOrder({
-            payment_method: "Card",
+            payment_method: "card",
             pay_by_wallet: true,
           });
           setLoading(false);
@@ -170,7 +176,7 @@ function OrdersPage({ setStep }: { setStep: (e: number) => void }) {
         ) {
           setLoading(true);
           await order.PlaceOrder({
-            payment_method: "Crypto",
+            payment_method: "crypto",
             pay_by_wallet: true,
           });
           setLoading(false);
@@ -181,7 +187,7 @@ function OrdersPage({ setStep }: { setStep: (e: number) => void }) {
         ) {
           setLoading(true);
           await order.PlaceOrder({
-            payment_method: "COD",
+            payment_method: "cash_on_delivery",
             pay_by_wallet: true,
           });
           setLoading(false);
@@ -190,10 +196,7 @@ function OrdersPage({ setStep }: { setStep: (e: number) => void }) {
     } catch (error) {
       getCart({
         callback: ([data, res]) => {
-          dispatch({
-            type: "CART-INIT",
-            payload: data ?? { cart: [] },
-          });
+          initCart(data ?? { cart: [] });
         },
       });
       setStep(0);
@@ -201,11 +204,9 @@ function OrdersPage({ setStep }: { setStep: (e: number) => void }) {
   };
 
   const setLoading = (e) => {
-    dispatch({ type: "ORDER-DATA", payload: { loading: e } });
+    setOrderData({ loading: e });
   };
-  const orderData = useSelector(
-    (state: StateInterface) => state.cart.orderData
-  );
+
   const [nextStep, setNextStep] = useState(false);
 
   return (
@@ -245,6 +246,7 @@ function OrdersPage({ setStep }: { setStep: (e: number) => void }) {
         wrapperClass="flex  h-full"
       >
         <SwiperSlide
+          data-cy="swiper-slide"
           className={` min-w-[100vw] h-[100vh] relative cart-widget`}
         >
           {AddressListsOpen && (
@@ -262,14 +264,21 @@ function OrdersPage({ setStep }: { setStep: (e: number) => void }) {
               }}
             />
           )}
-          <div className="flex-col pl-2 pr-2 bg-[#fff] p-1 ">
-            <div className="flex-row  w-full min-h-[50px] pl-1 pr-2  relative justify-between items-center ">
+          <div
+            data-cy="header-delivery"
+            className="flex-col pl-2 pr-2 bg-[#fff] p-1 "
+          >
+            <div
+              data-cy="header-delivery-container"
+              className="flex-row  w-full min-h-[50px] pl-1 pr-2  relative justify-between items-center "
+            >
               <BackIcon
+                data-cy="swiperSlide-backIcon"
                 className="cursor-pointer z-50"
                 onClick={() => {
                   Sendevent({
-                    event: "button_clicked",
-                    value: "appbar_backicon_button",
+                    event: GA_EVENT_NAMES.CLICK,
+                    value: GA_CLICK_EVENT_VALUES.APPBAR_BACKICON_BUTTON,
                   });
                   setStep(0);
                   setOrderStep(0);
@@ -280,6 +289,7 @@ function OrdersPage({ setStep }: { setStep: (e: number) => void }) {
                 data-cy="TitleInOrderPage"
               >
                 <svg
+                  data-cy="TitleInOrderPage-svg"
                   xmlns="http://www.w3.org/2000/svg"
                   xmlnsXlink="http://www.w3.org/1999/xlink"
                   width="18"
@@ -367,14 +377,20 @@ function OrdersPage({ setStep }: { setStep: (e: number) => void }) {
                     </g>
                   </g>
                 </svg>
-                <span className="regular ml-[8px]">
+                <span
+                  data-cy="shippingDelivery-text"
+                  className="regular ml-[8px]"
+                >
                   <>{translate("Bag Shipping & Delivery Address")}</>
                 </span>
               </span>
               <span />
             </div>
           </div>
-          <div className="flex-col overflow-auto pb-[292px] max-h-full">
+          <div
+            data-cy="Shipping-Address-Container"
+            className="flex-col overflow-auto pb-[292px] max-h-full"
+          >
             <ShippingAddressContainer
               openAddressList={(e) => {
                 openAddressList(e);
@@ -399,10 +415,7 @@ function OrdersPage({ setStep }: { setStep: (e: number) => void }) {
               setNextStep(false);
               getCart({
                 callback: ([data, res]) => {
-                  dispatch({
-                    type: "CART-INIT",
-                    payload: data ?? { cart: [] },
-                  });
+                  initCart(data ?? { cart: [] });
                 },
               });
               ref.current.slidePrev();
@@ -423,8 +436,9 @@ function OrdersPage({ setStep }: { setStep: (e: number) => void }) {
                           className="cursor-pointer z-50"
                           onClick={() => {
                             Sendevent({
-                              event: "button_clicked",
-                              value: "appbar_backicon_button",
+                              event: GA_EVENT_NAMES.CLICK,
+                              value:
+                                GA_CLICK_EVENT_VALUES.APPBAR_BACKICON_BUTTON,
                             });
                             ref.current.slidePrev();
                             setNextStep(false);
@@ -439,6 +453,11 @@ function OrdersPage({ setStep }: { setStep: (e: number) => void }) {
                         <span
                           onClick={() => {
                             if (addressDetails.id) {
+                              Sendevent({
+                                event: GA_EVENT_NAMES.CLICK,
+                                value:
+                                  GA_CLICK_EVENT_VALUES.OPEN_DELETE_ADDRESS_MODAL,
+                              });
                               openAddressList(false);
                               setDeleteModal(addressDetails);
                             }
@@ -455,13 +474,13 @@ function OrdersPage({ setStep }: { setStep: (e: number) => void }) {
                     backToCart={() => {
                       getCart({
                         callback: ([data, res]) => {
-                          dispatch({
-                            type: "CART-INIT",
-                            payload: data ?? { cart: [] },
-                          });
+                          initCart(data ?? { cart: {} });
                         },
                       });
                       setStep(0);
+                    }}
+                    close={() => {
+                      close();
                     }}
                     successOrder={() => setOrderSuccess(true)}
                   />
@@ -475,8 +494,8 @@ function OrdersPage({ setStep }: { setStep: (e: number) => void }) {
                         data-cy="back-icon-addadresspage" // Added data-cy
                         onClick={() => {
                           Sendevent({
-                            event: "button_clicked",
-                            value: "appbar_backicon_button",
+                            event: GA_EVENT_NAMES.CLICK,
+                            value: GA_CLICK_EVENT_VALUES.APPBAR_BACKICON_BUTTON,
                           });
                           ref.current.slidePrev();
                           setNextStep(false);
@@ -499,6 +518,11 @@ function OrdersPage({ setStep }: { setStep: (e: number) => void }) {
                         data-cy="delete-icon-container" // Added data-cy
                         onClick={() => {
                           if (addressDetails.id) {
+                            Sendevent({
+                              event: GA_EVENT_NAMES.CLICK,
+                              value:
+                                GA_CLICK_EVENT_VALUES.OPEN_DELETE_ADDRESS_MODAL,
+                            });
                             openAddressList(false);
                             setDeleteModal(addressDetails);
                           }
@@ -533,11 +557,12 @@ function OrdersPage({ setStep }: { setStep: (e: number) => void }) {
 }
 
 export default OrdersPage;
-const DeleteModalComponent = ({ closeModal, deletedAddress, slidePrev }) => {
-  const dispatch = useDispatch();
-  const addressLists = useSelector(
-    (state: StateInterface) => state.cart.addressLists
-  );
+export const DeleteModalComponent = ({
+  closeModal,
+  deletedAddress,
+  slidePrev,
+}) => {
+  const { deleteAddress } = useAppStore();
   const GetAddressString = (location) => {
     let str = "";
     if (
@@ -577,11 +602,15 @@ const DeleteModalComponent = ({ closeModal, deletedAddress, slidePrev }) => {
       <div
         className="absolute top-0 left-0 min-w-[100vw] z-[999999998] min-h-[100vh] opacity-60 bg-[black]"
         onClick={() => {
+          Sendevent({
+            event: GA_EVENT_NAMES.CLICK,
+            value: GA_CLICK_EVENT_VALUES.CLOSE_DELETE_ADDRESS_MODAL,
+          });
           closeModal();
         }}
       />
       <div
-        className="flex-col w-full h-full px-[24px] absolute z-[999999999]  justify-between"
+        className="flex-col w-full h-[90%] px-[24px] absolute z-[999999999]  justify-between"
         style={{
           backdropFilter: "blur(7px) brightness(1.3)",
         }}
@@ -726,10 +755,14 @@ const DeleteModalComponent = ({ closeModal, deletedAddress, slidePrev }) => {
         <div className="flex-col w-full  delete-button-address">
           <div
             onClick={() => {
+              Sendevent({
+                event: GA_EVENT_NAMES.CLICK,
+                value: GA_CLICK_EVENT_VALUES.DELETE_ADDRESS_BUTTON,
+              });
               slidePrev();
               closeModal();
               order.DeleteAddressList({ address: deletedAddress.id });
-              dispatch({ type: "DELETE-ADDRESS", payload: deletedAddress.id });
+              deleteAddress(deletedAddress.id);
             }}
             className="w-full cursor-pointer flex justify-center items-center rounded-[15px] h-[50px] bg-[#F8F8F8] bold text-[16px] text-[#FF5F61]"
             data-cy="Yes-Delete-Address"
@@ -741,6 +774,10 @@ const DeleteModalComponent = ({ closeModal, deletedAddress, slidePrev }) => {
           </div>
           <div
             onClick={() => {
+              Sendevent({
+                event: GA_EVENT_NAMES.CLICK,
+                value: GA_CLICK_EVENT_VALUES.CLOSE_DELETE_ADDRESS_MODAL,
+              });
               closeModal();
             }}
             className="w-full flex justify-center items-center cursor-pointer  rounded-[15px] h-[50px] bg-transparent regular text-[16px] text-[#fff]"
@@ -753,17 +790,15 @@ const DeleteModalComponent = ({ closeModal, deletedAddress, slidePrev }) => {
   );
 };
 const OrderButtons = ({ orderLoading, setNext, setPrev }) => {
-  const cart = useSelector((state: StateInterface) => state.cart);
-  const currency_symbol = useSelector(
-    (state: StateInterface) => state.homepage.currency
-  );
-  const orderData = useSelector(
-    (state: StateInterface) => state.cart.orderData
-  );
-
-  const address = useSelector(
-    (state: StateInterface) => state.cart.addressLists
-  );
+  const {
+    initCart,
+    currency,
+    orderData,
+    addressLists,
+    total_cash,
+    total,
+    cart,
+  } = useAppStore();
   const shake = (v) => {
     if (document.querySelector(`.${v}`)) {
       document.querySelector(`.${v}`).scrollIntoView({ block: "end" });
@@ -773,7 +808,7 @@ const OrderButtons = ({ orderLoading, setNext, setPrev }) => {
       }, 1300);
     }
   };
-  const wallet = useSelector((state: StateInterface) => state.cart.wallet);
+
   const totalBalance = () => {
     let val = 0;
     orderData.payment.map((s) => {
@@ -781,16 +816,17 @@ const OrderButtons = ({ orderLoading, setNext, setPrev }) => {
     });
     return val;
   };
+
   const isBalanceEnough = () => {
     return (
       RoundPrice({ num: totalBalance(), returnNumber: true }) >=
-      RoundPrice({ num: cart.total_cash, returnNumber: true })
+      RoundPrice({ num: getTotalPrice(), returnNumber: true })
     );
   };
   const isValid = () => {
     let defaultAddress =
-      address.filter((s) => s.is_default === 1)?.length > 0 &&
-      address.filter((s) => s.is_default === 1)[0];
+      addressLists.filter((s) => s.is_default === 1)?.length > 0 &&
+      addressLists.filter((s) => s.is_default === 1)[0];
     if (
       defaultAddress &&
       defaultAddress?.id &&
@@ -807,7 +843,11 @@ const OrderButtons = ({ orderLoading, setNext, setPrev }) => {
       shake("payment-valid-border");
       // alert(translateFunction("Your Balance Not meet purchase value"));
     }
-    if (!address[0]?.id) {
+    if (
+      addressLists.length === 0 ||
+      addressLists?.filter((s) => s.is_default === 1)?.length === 0
+    ) {
+      toast.info(translateFunction("Please Select an Address"));
       shake("address-valid-border");
     }
     if (orderData.payment?.length === 0) {
@@ -816,19 +856,19 @@ const OrderButtons = ({ orderLoading, setNext, setPrev }) => {
   };
   const getTotalPrice = () => {
     if (orderData.payment.filter((s) => s.id === 0).length > 0) {
-      return cart.total_cash;
+      return total_cash;
     } else {
-      return cart.total;
+      return total;
     }
   };
   const [loading, setLoading] = useState(false);
-  const dispatch = useDispatch();
+
   const VerifyCart = async () => {
     setLoading(true);
     let a = (
       await getCart({
         callback: ([data, res]) => {
-          dispatch({ type: "CART-INIT", payload: data ?? { cart: [] } });
+          initCart(data ?? { cart: [] });
         },
       })
     ).cart;
@@ -840,7 +880,7 @@ const OrderButtons = ({ orderLoading, setNext, setPrev }) => {
         (s) =>
           s?.check_availability === false ||
           s.is_country_restricted === true ||
-          s.is_available_in_market === false
+          s.is_active === false
       ).length === 0
     ) {
       setNext();
@@ -862,6 +902,11 @@ const OrderButtons = ({ orderLoading, setNext, setPrev }) => {
           onClick={() => {
             Validate();
             if (isValid() && !orderLoading) {
+              Sendevent({
+                event: GA_EVENT_NAMES.CLICK,
+                value:
+                  GA_CLICK_EVENT_VALUES.CONFIRM_SHIPPING_AND_PAYMENT_BUTTON,
+              });
               VerifyCart();
             }
           }}
@@ -879,12 +924,14 @@ const OrderButtons = ({ orderLoading, setNext, setPrev }) => {
               <span>{translateFunction("Confirm Shipping & Payment")}</span>
               <span
                 className={`text-[#FEFEFE] text-[14px] medium ${
-                  GetAppLanguage() === "ar" && "dir-rtl"
+                  LocalizationServiceClass.GetAppLanguage() === "ar" &&
+                  "dir-rtl"
                 } `}
                 data-cy="Number-Of-Products-Required"
               >
-                {cart.cart.length} {translateFunction("items")}{" "}
-                {RoundPrice({ num: getTotalPrice() })} {currency_symbol?.symbol}
+                {cart.length} {translateFunction("items")}{" "}
+                {RoundPrice({ num: getTotalPrice(), returnNumber: true })}{" "}
+                {currency?.symbol}
               </span>
             </>
           )}

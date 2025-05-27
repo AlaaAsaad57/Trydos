@@ -28,6 +28,7 @@ build-app:
 deploy:
   image: node:20.9.0
   stage: deploy
-
+  only:
+    - development
   script:
     - echo "Test Deploy to Vercel"

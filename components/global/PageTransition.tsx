@@ -3,9 +3,11 @@ import React from "react";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import "public/styles/pageTransition.css";
-import { getCurrency } from "store/chat/actions";
-import { useDispatch } from "node_modules/react-redux/es";
+import { getCurrency } from "utils/tinyUtils";
+
+import { useAppStore } from "store";
 function PageTransition({ children, init }) {
+  const { setCurrency } = useAppStore();
   const pathname = usePathname();
   const [prevPathname, setPrevPathname] = useState("");
   const [isAnimating, setIsAnimating] = useState(false);
@@ -20,13 +22,10 @@ function PageTransition({ children, init }) {
     }
     setPrevPathname(pathname);
   }, [pathname]);
-  const dispatch = useDispatch();
 
   useEffect(() => {
     let country = init?.split("-")[0];
     getCurrency({
-      lang: init.split("-")[1],
-      country: init.split("-")[0],
       callback: ({ currency, res }) => {
         let ciel = null;
         if (country === "sy") {
@@ -34,7 +33,7 @@ function PageTransition({ children, init }) {
         } else if (country === "lb") {
           ciel = parseInt(process.env.NEXT_PUBLIC_LB_CIEL);
         }
-        dispatch({ type: "CURRENCY", payload: { ...currency, ceil: ciel } });
+        setCurrency({ ...currency, ceil: ciel });
       },
     });
   }, []);

@@ -1,12 +1,12 @@
-import { useDispatch } from "node_modules/react-redux/es";
+import { useAppStore } from "store";
 
 function ProductHurryUp({ data }) {
-  const dispatch = useDispatch();
+  const { enableCart } = useAppStore();
   return (
     <div
       className="flex-row"
       onClick={() => {
-        dispatch({ type: "ENABLE-CART", payload: true });
+        enableCart(true);
       }}
     >
       <div className="b-icon">

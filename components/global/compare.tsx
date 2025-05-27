@@ -2,24 +2,20 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import { ProductInterface } from "models/product";
-import {
-  filterProducts,
-  GetAppLanguage,
-  searchProducts,
-  translateFunction,
-  RoundPrice,
-} from "utils/functions";
+import { filterProducts, translateFunction, RoundPrice } from "utils/functions";
 import AsyncSelectCustom from "./AsyncSelectCustom";
 import Link from "next/link";
 import CompareLoadingWidget from "./CompareLoadingWidget";
 import { toast } from "react-toastify";
-import { useSelector } from "react-redux";
-
+import SearchService from "services/search";
+import { useAppStore } from "store";
+import NextLink from "./NextLink";
 const ComparePage: React.FC = ({
   showInstantLoading = true,
 }: {
   showInstantLoading?: boolean;
 }) => {
+  const { currency } = useAppStore();
   const searchParams = useSearchParams();
   const [product1, setProduct1] = useState<any>(null);
   const [product2, setProduct2] = useState<any>(null);
@@ -27,9 +23,6 @@ const ComparePage: React.FC = ({
   const [loading2, setLoading2] = useState(false);
   const [initialLoading, setInitialLoading] = useState(showInstantLoading);
   const { lang } = useParams();
-  const currency = useSelector(
-    (state: StateInterface) => state.homepage.currency
-  );
   useEffect(() => {
     const { f_p, s_p } = {
       f_p: searchParams.get("f_p"),
@@ -107,17 +100,30 @@ const ComparePage: React.FC = ({
   };
 
   const [searchLoading, setSearchLoading] = useState(false);
+  const searchFunction = async (inputValue: string) => {
+    setSearchLoading(true);
+    const productsVar = await fetch(
+      process.env.NEXT_PUBLIC_API_BASE_URL +
+        `/api/${lang}/search?searchText=${inputValue}&noFilters=true`,
+      {
+        headers: {
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+          "Access-Control-Allow-Headers": "Content-Type, Authorization",
+        },
+      }
+    );
+    const productsVarJson = await productsVar.json();
+    return productsVarJson;
+  };
   const search = async (inputValue: string) => {
     setSearchLoading(true);
-    const productsVar = await searchProducts({
-      searchText: inputValue,
-    });
-
+    const productsVar = await searchFunction(inputValue);
     setProducts(
       productsVar?.map((p) => ({
         label: p.name,
         value: p.slug,
-        thumbnail: p.thumbnail?.file_path,
+        images: p.images[0]?.file_path,
         price: p.price,
       })) || []
     );
@@ -197,7 +203,7 @@ const ComparePage: React.FC = ({
       const option = {
         label: product.name,
         value: product.slug,
-        thumbnail: product.thumbnail,
+        images: product.images[0]?.file_path,
         price: product.price,
       };
       setProducts([option]);
@@ -305,12 +311,18 @@ const ComparePage: React.FC = ({
       key: "name",
       label: translateFunction("Name"),
       render: (product: ProductInterface) => (
-        <Link
+        <NextLink
+          data={{
+            is_product: true,
+            ...product,
+            href: `/${lang}/products/${product.slug}`,
+          }}
+          ariaLabel={`Compare Product ${product.slug} ${lang}`}
           href={`/${lang}/products/${product.slug}`}
           className="text-blue-600 hover:text-blue-800 hover:underline"
         >
           {product.name}
-        </Link>
+        </NextLink>
       ),
     },
     {
@@ -320,7 +332,7 @@ const ComparePage: React.FC = ({
         <Link href={`/${lang}/products/${product.slug}`}>
           <img
             // @ts-ignore
-            src={product.thumbnail}
+            src={product.images}
             alt={product.name}
             className="w-32 h-32 object-contain hover:opacity-80 transition-opacity"
           />
@@ -522,7 +534,7 @@ const ComparePage: React.FC = ({
                       ? {
                           label: product1.name,
                           value: product1.slug,
-                          thumbnail: product1.thumbnail,
+                          images: product1.images[0],
                           price: product1.price,
                         }
                       : null
@@ -545,7 +557,7 @@ const ComparePage: React.FC = ({
                       ? {
                           label: product2.name,
                           value: product2.slug,
-                          thumbnail: product2.thumbnail,
+                          images: product2.images[0],
                           price: product2.price,
                         }
                       : null

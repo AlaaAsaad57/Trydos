@@ -20,9 +20,11 @@ import { EffectCoverflow } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/react";
 import CircleBorder from "public/svg/product/CircleBorder";
 import NormalColorSlider from "./NormalColorSlider";
-import { useDispatch, useSelector } from "react-redux";
+import { useAppStore } from "store";
+import { GA_CLICK_EVENT_VALUES, GA_EVENT_NAMES } from "utils/GAEvents";
 
 function ProductColors({ colors, ProductColorsArray }) {
+  const { setActiveColorDetails, showInfoMessage, product } = useAppStore();
   let { lang } = useParams();
   // @ts-ignore
   let languageVariable = lang.split("-")[1];
@@ -31,13 +33,11 @@ function ProductColors({ colors, ProductColorsArray }) {
   };
   const [extended, setExtended] = useState(false);
 
-  const activeColor = useSelector(
-    (state: StateInterface) => state.details.product?.activeColor
-  );
+  const activeColor = product.activeColor;
   const setActiveColor = (e) => {
-    dispatch({ type: "SET-ACTIVE-COLOR-DETAILS", payload: e });
+    setActiveColorDetails(e);
   };
-  const dispatch = useDispatch();
+
   // const setActiveColor = (e) => {
   //   setActiveColorFunc(e);
   // };
@@ -66,15 +66,16 @@ function ProductColors({ colors, ProductColorsArray }) {
           data-cy="QuestionMark"
           style={{ marginLeft: "9px" }}
           onClick={() => {
-            dispatch({
-              type: "SHOW-INFO-MESSAGE",
-              payload: {
-                showInfoMessage: true,
-                title: `Available ${colors.length} Color`,
-                text: "The Colors In The Image Are Intended To Give Approximate Information About The Color Of The Product And 100% Compatibility Is Not Guaranteed. However, The Display And Resolution Of Your Electronic Device There May Be Differences Between The Color Images And The Colors Of The Products Due To The Settings. It Is Technically Possible For An Inevitable Difference To Occur. Trydos Because Of The Difference. Does Not Have Any Liability.",
-                icon: "/svg/product/colors.svg",
-                value: [],
-              },
+            Sendevent({
+              event: GA_EVENT_NAMES.CLICK,
+              value: GA_CLICK_EVENT_VALUES.SHOW_AVAILABLE_COLOR_INFO_MESSAGE,
+            });
+            showInfoMessage({
+              showInfoMessage: true,
+              title: `Available ${colors.length} Color`,
+              text: "The Colors In The Image Are Intended To Give Approximate Information About The Color Of The Product And 100% Compatibility Is Not Guaranteed. However, The Display And Resolution Of Your Electronic Device There May Be Differences Between The Color Images And The Colors Of The Products Due To The Settings. It Is Technically Possible For An Inevitable Difference To Occur. Trydos Because Of The Difference. Does Not Have Any Liability.",
+              icon: "/svg/product/colors.svg",
+              value: [],
             });
           }}
         />
@@ -119,8 +120,8 @@ function ProductColors({ colors, ProductColorsArray }) {
           threshold={1}
           onSlideChange={(e) => {
             Sendevent({
-              event: "button_clicked",
-              value: "choose_available_color_button",
+              event: GA_EVENT_NAMES.CLICK,
+              value: GA_CLICK_EVENT_VALUES.CHOOSE_AVAILABLE_COLOR_BUTTON,
             });
             const newParams = new URLSearchParams(searchParams);
             newParams.set("color", colors[e.activeIndex].color_name);
@@ -173,7 +174,7 @@ function ProductColors({ colors, ProductColorsArray }) {
                       isActive
                         ? ProductColorsArray?.filter(
                             (s) => s.name === color.color_name
-                          )[0].color
+                          )?.[0]?.color
                         : "#fff"
                     }
                   />

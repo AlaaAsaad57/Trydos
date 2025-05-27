@@ -20,11 +20,12 @@ function Timer({ onFinish, minutes }: TimerProps) {
   }, []);
   // Add leading zero for single digits
   const formattedMinutes = String(data.minutes).padStart(2, "0");
+  const formattedHours = String(data.hours).padStart(2, "0");
   const formattedSeconds = String(data.seconds).padStart(2, "0");
 
   return (
     <>
-      {formattedMinutes}:{formattedSeconds}
+      {formattedHours}:{formattedMinutes}:{formattedSeconds}
     </>
   );
 }

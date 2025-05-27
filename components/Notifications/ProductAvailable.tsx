@@ -1,10 +1,19 @@
+"use client";
 import NextLink from "components/global/NextLink";
+import { useParams } from "next/navigation";
 
 function ProductAvailable({ data }) {
+  const { lang } = useParams();
   return (
     <NextLink
+      data={{
+        is_product: true,
+        ...data,
+        href: `/${lang}/products/${data.product_slug}`,
+      }}
       className="flex-row"
-      href={`/products/${data.product_slug}`}
+      ariaLabel={`notification Product Available ${data.product_slug}`}
+      href={`/${lang}/products/${data.product_slug}`}
       prefetch
     >
       <div className="b-icon">

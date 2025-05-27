@@ -59,11 +59,10 @@ function ProductSlider({
                   <BorderImage isBig={false} />
                   <div className="inset-shadow-img rounded-15 absolute w-100 h-100" />
                   <Image
-                    loading="lazy"
+                    loading="eager"
                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                     style={{ borderRadius: "15px", zIndex: "3" }}
                     fill
-                    unoptimized
                     // @ts-ignore
                     src={getConfiguredImage({
                       // @ts-ignore

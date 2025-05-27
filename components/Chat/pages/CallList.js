@@ -1,24 +1,20 @@
 import { useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
 import { showDate } from "../chatsFunctions";
 import CallItem from "components/Chat/components/CallItem";
 import { InView } from "react-intersection-observer";
 import Spinner from "components/global/Spinner";
 import { DeleteMessageApi, getCalls } from "store/chat/actions";
+import { useAppStore } from "store";
 
 function CallList() {
-  const calls = useSelector((state) => state.chat.calls);
-  const call_loading = useSelector((state) => state.chat.call_loading);
-  const dispatch = useDispatch();
+  const { calls, call_loading, deleteMessage, deleteCall } = useAppStore();
+
   useEffect(() => {
     getCalls();
   }, []);
   const DeleteCall = (id, ch_id) => {
-    dispatch({
-      type: "DELETE_MESSAGE",
-      payload: { ch_id: ch_id, msg_id: id, bool: false },
-    });
-    dispatch({ type: "DELETE_CALL", payload: id });
+    deleteMessage({ ch_id: ch_id, msg_id: id, bool: false });
+    deleteCall(id);
     DeleteMessageApi(id, false);
   };
   return (

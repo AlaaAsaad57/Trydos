@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+
 import {
-  GetAppLanguage,
   getCart,
   getOldCart,
   getConfiguredImage,
@@ -19,29 +18,38 @@ import "styles/productDetails.css";
 import NextLink from "components/global/NextLink";
 import { useParams, useSearchParams } from "next/navigation";
 import home from "services/home";
-
-import { toast } from "react-toastify";
 import OrderButton from "./OrderButton";
 import { AxiosGet, AxiosPost } from "utils/AxiosApi";
 import { dispatchRouteChangeEvent } from "utils/events";
 import Spinner from "components/global/Spinner";
 import Timer from "components/Login/Timer";
 import { QuantityDetailsProductApi } from "models/Api";
+import LocalizationServiceClass from "services/localization";
+import { useAppStore } from "store";
+import cart from "services/cart";
+import { GA_CLICK_EVENT_VALUES, GA_EVENT_NAMES } from "utils/GAEvents";
 
 function CartContainer({ close, toOrders }) {
+  const {
+    storeOldCart,
+    hideOldCart,
+    initCart,
+    removeFromCart,
+    setCartLoading,
+    getProductDetailsForCart,
+    setActiveColorDetails,
+    language,
+    oldCart,
+    cart_loading,
+    product,
+    cart,
+  } = useAppStore();
   let { lang } = useParams();
   // @ts-ignore
   let languageVariable = lang.split("-")[1];
   const translate = (key: string, lang?: string) => {
     return translateFunction(key, languageVariable);
   };
-  const language = useSelector(
-    (state: StateInterface) => state.homepage.language
-  );
-  const oldCart = useSelector((state: StateInterface) => state.cart.oldCart);
-
-  const loading = useSelector((state: StateInterface) => state.cart.loading);
-  const cart = useSelector((state: StateInterface) => state.cart?.cart);
 
   const getURLOfProduct = ({ product }) => {
     let productUrl;
@@ -61,32 +69,25 @@ function CartContainer({ close, toOrders }) {
       }${`?size=${product?.variations[0]?.Size}&color=${product?.variations[0]?.color}`}`;
     return productUrl;
   };
-  const currency = useSelector(
-    (state: StateInterface) => state.homepage.currency
-  ) || { exchange_rate: 1, symbol: "" };
-  const decimal_point_settings = useSelector(
-    (state: StateInterface) => state.homepage.settings
-  );
-  const dispatch = useDispatch();
+
   useEffect(() => {
-    dispatch({ type: "CART-LOADING" });
+    setCartLoading(true);
     getData();
   }, []);
   const getData = async () => {
     await getCart({
       callback: ([data, res]) => {
-        dispatch({ type: "CART-INIT", payload: data ?? { cart: [] } });
+        initCart(data ?? { cart: [] });
       },
     });
+    setCartLoading(false);
     await getOldCart();
   };
   const params = useParams();
 
   const sarchParams = useSearchParams();
 
-  const ProductDetails = useSelector(
-    (state: StateInterface) => state.details.product
-  );
+  const ProductDetails = product;
   const updateDataForProduct = async (slug) => {
     if (params?.productId === slug) {
       let data: QuantityDetailsProductApi["data"] = await AxiosGet({
@@ -96,14 +97,11 @@ function CartContainer({ close, toOrders }) {
           `/${slug}`,
         title: "Get Product",
       });
-      dispatch({ type: "GET-PRODUCT-DETAILS-FOR-CART", payload: data });
+      getProductDetailsForCart(data);
     }
   };
-  const RemoveFromCart = async (product) => {
-    dispatch({
-      type: "REMOVE-FROM-CART",
-      payload: product.id,
-    });
+  const RemoveFromCartAction = async (product) => {
+    removeFromCart(product.id);
     await home.RemoveFromCart({ key: product.id });
     await GetCartOreview();
     await updateDataForProduct(product.slug);
@@ -113,23 +111,34 @@ function CartContainer({ close, toOrders }) {
       className={`flex-col ${
         cart.length > 0 ? "pb-[283px]" : "100px"
       }   top-0 left-0 min-h-screen max-h-full h-auto overflow-hidden w-full bg-[#ffffff] min-w-[100vw] z-[9999999999] pt-1`}
+      data-cy="cartPage-container"
     >
-      <div className="flex-col pl-2 pr-2 bg-[#fff] p-1">
-        <div className="flex-row  w-full min-h-[50px] pl-1 pr-2  relative justify-between items-center ">
+      <div
+        className="flex-col pl-2 pr-2 bg-[#fff] p-1"
+        data-cy="cartPage-header-container"
+      >
+        <div
+          className="flex-row  w-full min-h-[50px] pl-1 pr-2  relative justify-between items-center "
+          data-cy="cartPage-headerComponents-container"
+        >
           <BackIcon
             className="cursor-pointer z-50"
             data-cy="CartBackIcon"
             onClick={() => {
               Sendevent({
-                event: "button_clicked",
-                value: "appbar_backicon_button",
+                event: GA_EVENT_NAMES.CLICK,
+                value: GA_CLICK_EVENT_VALUES.APPBAR_BACKICON_BUTTON,
               });
               document.documentElement.style.overflow = "auto";
               close();
             }}
           />
-          <span className="text-[13px] text-[#505050] regular flex-row items-center">
+          <span
+            className="text-[13px] text-[#505050] regular flex-row items-center"
+            data-cy="cartPage-textContainer-onHeader"
+          >
             <svg
+              data-cy="svg-textContainer"
               xmlns="http://www.w3.org/2000/svg"
               xmlnsXlink="http://www.w3.org/1999/xlink"
               width="20"
@@ -246,30 +255,42 @@ function CartContainer({ close, toOrders }) {
                 </g>
               </g>
             </svg>
-            <span className="regular ml-[8px]">
+            <span
+              className="regular ml-[8px]"
+              data-cy="textContainer-textOnHeader"
+            >
               {translate("Shopping Bag", language)}{" "}
               {cart.length > 0 && (
-                <span className="bold">
+                <span className="bold" data-cy="length-ofItems">
                   {cart.length} {translate("Items")}
                 </span>
               )}
             </span>
           </span>
 
-          <ShareIcon />
+          <ShareIcon data-cy="shareIcon-onHeader" />
         </div>
       </div>
 
       <div className="flex-col overflow-auto max-h-screen">
         <div className="flex-col  w-full h-auto mt-10 pb-[20px]">
-          {!loading ? (
+          {!cart_loading ? (
             <>
               {cart.length > 0 ? (
                 <>
                   {cart?.map((product, key) => (
-                    <div className="relative px-[12px]" key={key}>
+                    <div
+                      className="relative px-[12px]"
+                      key={key}
+                      data-cy="one-product"
+                    >
                       {" "}
                       <NextLink
+                        exportparts={
+                          params?.productId === product.slug
+                            ? "no-navigate"
+                            : ""
+                        }
                         href={
                           params?.productId === product.slug &&
                           product?.variations[0]?.color ===
@@ -277,6 +298,24 @@ function CartContainer({ close, toOrders }) {
                             ? "#"
                             : getURLOfProduct({ product })
                         }
+                        data={
+                          params?.productId === product.slug &&
+                          product?.variations[0]?.color ===
+                            sarchParams.get("color")
+                            ? null
+                            : {
+                                is_product: true,
+                                active_color: sarchParams.get("color"),
+                                ...product,
+                                href:
+                                  params?.productId === product.slug &&
+                                  product?.variations[0]?.color ===
+                                    sarchParams.get("color")
+                                    ? "#"
+                                    : getURLOfProduct({ product }),
+                              }
+                        }
+                        ariaLabel={`Cart Product ${product.slug} ${params.lang}`}
                         className={`flex-row mt-2 w-full relative  ${
                           product.have_hurry_up_notify || true
                             ? "min-h-[230px]"
@@ -285,28 +324,34 @@ function CartContainer({ close, toOrders }) {
                         key={key}
                         onClick={(e) => {
                           // @ts-ignore
-
+                          Sendevent({
+                            event: GA_EVENT_NAMES.CLICK,
+                            value:
+                              GA_CLICK_EVENT_VALUES.PRODUCT_IN_CART_CLICKED,
+                          });
                           if (params?.productId === product.slug) {
                             if (product.variations[0].color) {
-                              dispatch({
-                                type: "SET-ACTIVE-COLOR-DETAILS",
-                                payload:
-                                  ProductDetails.sync_color_images[
-                                    ProductDetails.sync_color_images.findIndex(
-                                      (s) =>
-                                        s.color_name ===
-                                        product?.variations[0]?.color
-                                    )
-                                  ],
-                              });
+                              setActiveColorDetails(
+                                ProductDetails.sync_color_images[
+                                  ProductDetails.sync_color_images.findIndex(
+                                    (s) =>
+                                      s.color_name ===
+                                      product?.variations[0]?.color
+                                  )
+                                ]
+                              );
                             }
                           } else {
                           }
                           close();
                         }}
                       >
-                        <div className="flex-row w-[110px] min-h-[161px] max-h-[161px] relative">
+                        <div
+                          className="flex-row w-[110px] min-h-[161px] max-h-[161px] relative"
+                          data-cy="container-image-onCard"
+                        >
                           <img
+                            data-cy="image-onCard"
                             src={getConfiguredImage({
                               height: 150,
                               width: 150,
@@ -317,9 +362,16 @@ function CartContainer({ close, toOrders }) {
                             className="rounded-2xl"
                           />
                         </div>
-                        <div className="flex-col mt-4 ml-5">
-                          <div className="h-[10px] overflow-hidden">
+                        <div
+                          className="flex-col mt-4 ml-5"
+                          data-cy="container-ofProduct-information"
+                        >
+                          <div
+                            className="h-[10px] overflow-hidden"
+                            data-cy="container-ofProduct-information-img"
+                          >
                             <img
+                              data-cy="img-ofProduct-information"
                               src={getConfiguredImage({
                                 height: 150,
                                 width: 150,
@@ -341,63 +393,97 @@ function CartContainer({ close, toOrders }) {
                             {product.name.substring(0, 30)}
                           </div>
 
-                          <div className="flex-row flex-wrap">
+                          <div
+                            className="flex-row flex-wrap"
+                            data-cy="color-div"
+                          >
                             {product.variations[0]?.color && (
-                              <div className="flex-row items-center text-[12px] regular text-[#505050] mt-1 mr-3">
-                                <CartColorIcon />
+                              <div
+                                className="flex-row items-center text-[12px] regular text-[#505050] mt-1 mr-3"
+                                data-cy="color-div2"
+                              >
+                                <CartColorIcon data-cy="color-icon" />
                                 <span
+                                  data-cy="color-text"
                                   className={`${
                                     language === "ar" && "dir-rtl"
                                   } ml-1.5`}
                                 >
                                   {translateFunction("Color")}:{" "}
-                                  <span className="regular">
+                                  <span
+                                    className="regular"
+                                    data-cy="color-name"
+                                  >
                                     {product.variations[0].color}
                                   </span>
                                 </span>
                               </div>
                             )}
                             {product.variations[0]?.Size && (
-                              <div className="flex-row items-center text-[12px] light text-[#505050] mt-1">
-                                <CartSizeIcon />
+                              <div
+                                className="flex-row items-center text-[12px] light text-[#505050] mt-1"
+                                data-cy="size-container"
+                              >
+                                <CartSizeIcon data-cy="size-svg" />
                                 <span
                                   className={`ml-1.5 ${
                                     language === "ar" && "dir-rtl"
                                   }`}
+                                  data-cy="size-container-text"
                                 >
                                   {translateFunction("Size")}:
-                                  <span className="regular">
+                                  <span
+                                    className="regular"
+                                    data-cy="size-container-size"
+                                  >
                                     {product.variations[0].Size}
                                   </span>
                                 </span>
                               </div>
                             )}
                           </div>
-                          <div className="flex-row items-center text-[12px] regular text-[#505050] mt-1 mr-3">
-                            <PiecesIcon />
+                          <div
+                            className="flex-row items-center text-[12px] regular text-[#505050] mt-1 mr-3"
+                            data-cy="countPieces-container"
+                          >
+                            <PiecesIcon data-cy="pieces-svg" />
                             <span
                               className={`ml-1.5 ${
                                 language === "ar" && "dir-rtl"
                               } text-[#8D8D8D] regular `}
+                              data-cy="countPieces-text"
                             >
                               {translate("Composed Of:")}{" "}
-                              <span className="regular">
+                              <span
+                                className="regular"
+                                data-cy="countPieces-number"
+                              >
                                 {product.count_of_pieces} {translate("Piece")}
                               </span>
                             </span>
                           </div>
                           {product.shipping_days && (
-                            <div className="flex-row whitespace-nowrap items-center text-[12px] light text-[#505050] mt-1 mr-3">
-                              <DeleiveryIcon />
+                            <div
+                              className="flex-row whitespace-nowrap items-center text-[12px] light text-[#505050] mt-1 mr-3"
+                              data-cy="sshipping-container"
+                            >
+                              <DeleiveryIcon data-cy="sshipping-svg" />
                               <span
                                 className={`ml-1.5 flex whitespace-nowrap ${
                                   language === "ar" && "dir-rtl"
                                 } text-[#8D8D8D] regular`}
+                                data-cy="shipping-text"
                               >
                                 {translate("Shipping")}:{" "}
-                                <span className="regular whitespace-nowrap">
+                                <span
+                                  className="regular whitespace-nowrap"
+                                  data-cy="days-number"
+                                >
                                   {product.shipping_days} {translate("Days")}{" "}
-                                  <span className="ml-1 underline">
+                                  <span
+                                    className="ml-1 underline"
+                                    data-cy="days-text"
+                                  >
                                     {translate("Details")}
                                   </span>
                                 </span>
@@ -405,9 +491,7 @@ function CartContainer({ close, toOrders }) {
                             </div>
                           )}
 
-                          {(parseInt(product.quantity) >
-                            product.available_quantity ||
-                            !product.check_availability) && (
+                          {!product.check_availability && (
                             <div className="flex-row items-center mt-1 text-[12px] light text-[#fd445d]">
                               <ErrorIcon />
                               <div
@@ -454,7 +538,7 @@ function CartContainer({ close, toOrders }) {
                               </div>
                             </div>
                           )}
-                          {product.is_available_in_market === false && (
+                          {product.is_active === false && (
                             <div className="flex-row items-center mt-1 text-[12px] light text-[#fd445d]">
                               <svg
                                 width="15"
@@ -483,8 +567,12 @@ function CartContainer({ close, toOrders }) {
                           )}
                         </div>
 
-                        <div className="absolute top-1 right-1">
+                        <div
+                          className="absolute top-1 right-1"
+                          data-cy="card-numbering-container"
+                        >
                           <input
+                            data-cy="card-numbering-value"
                             defaultValue={key + 1}
                             type="number"
                             min={1}
@@ -500,15 +588,18 @@ function CartContainer({ close, toOrders }) {
                               <HurryIcon />
                             </span>
                             <span className="bold ml-1">
-                              {translate("Hurry Up!", GetAppLanguage())}
+                              {translate(
+                                "Hurry Up!",
+                                LocalizationServiceClass.GetAppLanguage()
+                              )}
                             </span>
                             {product?.have_hurry_up_notify_time_left && (
                               <>
                                 <span className="regular ml-1">
                                   {product.have_hurry_up_notify_time_left &&
                                     translate(
-                                      "Quantity Running Out. ",
-                                      GetAppLanguage()
+                                      "Time Running Out. ",
+                                      LocalizationServiceClass.GetAppLanguage()
                                     )}
                                 </span>
 
@@ -528,7 +619,7 @@ function CartContainer({ close, toOrders }) {
                                   {product.have_hurry_up_notify_qty &&
                                     translate(
                                       "Quantity Running Out. ",
-                                      GetAppLanguage()
+                                      LocalizationServiceClass.GetAppLanguage()
                                     )}
                                 </span>
 
@@ -546,13 +637,17 @@ function CartContainer({ close, toOrders }) {
                           await updateDataForProduct(product.slug);
                         }}
                         product={product}
+                        maxAllowed={product.max_allowed_qty}
+                        isCollectedAfterOrdering={Boolean(
+                          product.collected_after_ordering
+                        )}
                         isHurry={true || product.have_hurry_up_notify}
                         disabled={false}
                         max={product.available_quantity}
                         setValue={() => {}}
                         value={product.quantity}
                         deleteFunction={() => {
-                          RemoveFromCart(product);
+                          RemoveFromCartAction(product);
                         }}
                       />
                     </div>
@@ -563,7 +658,10 @@ function CartContainer({ close, toOrders }) {
                   className="flex-row items-center justify-center light text-[#5d5d5d] text-[16px]"
                   data-cy="EmptyCRart"
                 >
-                  {translate("Cart is Empty", GetAppLanguage())}
+                  {translate(
+                    "Cart is Empty",
+                    LocalizationServiceClass.GetAppLanguage()
+                  )}
                 </div>
               )}
             </>
@@ -637,38 +735,73 @@ function CartContainer({ close, toOrders }) {
           )}
         </div>
         {oldCart?.oldCart?.length > 0 && (
-          <div className="flex-col bg-[#F8F8F8]  w-full h-auto mt-10">
-            <hr className="p-4" />
-            <div className="flex-row mt-0 min-h-[30px] w-full items-center justify-start bg-[#F8F8F8] rounded-[10px]">
-              <span className="ml-[32px]">
-                <OldCartIcon />
+          <div
+            className="flex-col bg-[#F8F8F8]  w-full h-auto mt-10"
+            data-cy="oldCart-outOfBag"
+          >
+            <hr className="p-4" data-cy="line" />
+            <div
+              className="flex-row mt-0 min-h-[30px] w-full items-center justify-start bg-[#F8F8F8] rounded-[10px]"
+              data-cy="oldCart-viewer"
+            >
+              <span className="ml-[32px]" data-cy="spanContainer-oldCartIcon">
+                <OldCartIcon data-cy="oldCart-icon" />
               </span>{" "}
-              <span className="regular text-[#505050] text-[15px] ml-1">
-                {translate("Out Of Bag!", GetAppLanguage())}
+              <span
+                className="regular text-[#505050] text-[15px] ml-1"
+                data-cy="outOfBag-text"
+              >
+                {translate(
+                  "Out Of Bag!",
+                  LocalizationServiceClass.GetAppLanguage()
+                )}
               </span>
               <span
+                data-cy="hideAll"
                 className="cursor-pointer border border-solid border-[#69a8ff80] mx-2  rounded-md flex-row items-center justify-center px-3 py-2 text-[#69a8ff]"
                 onClick={() => {
                   Sendevent({
-                    event: "button_clicked",
-                    value: "remove_old_products_button",
+                    event: GA_EVENT_NAMES.CLICK,
+                    value: GA_CLICK_EVENT_VALUES.REMOVE_OLD_PRODUCTS_BUTTON,
                   });
                   home.hideOldCart({});
-                  dispatch({ type: "STORE-OLD-CART", payload: [] });
+                  storeOldCart([]);
                 }}
               >
-                {translate("Hide All", GetAppLanguage())}
+                {translate(
+                  "Hide All",
+                  LocalizationServiceClass.GetAppLanguage()
+                )}
               </span>
             </div>
             <div
-              className="flex-col  w-full h-auto mt-3"
+              className="flex-col  w-full h-auto mt-3 pb-[200px]"
               data-cy="Product_Non_Available_In_Cart"
             >
-              {!loading ? (
+              {!cart_loading ? (
                 <>
                   {oldCart?.oldCart.map((product, key) => (
-                    <div className="relative px-[12px]" key={key}>
+                    <div
+                      className="relative px-[12px]"
+                      key={key}
+                      data-cy="oldProduct-card"
+                    >
                       <NextLink
+                        exportparts={
+                          params?.productId === product.slug
+                            ? "no-navigate"
+                            : ""
+                        }
+                        data={{
+                          is_product: true,
+                          ...product,
+                          href:
+                            params?.productId === product.slug &&
+                            product?.variations[0]?.color ===
+                              sarchParams.get("color")
+                              ? "#"
+                              : getURLOfProduct({ product }),
+                        }}
                         href={
                           params?.productId === product.slug &&
                           product?.variations[0]?.color ===
@@ -676,6 +809,7 @@ function CartContainer({ close, toOrders }) {
                             ? "#"
                             : getURLOfProduct({ product })
                         }
+                        ariaLabel={`old Cart Product ${product.slug} ${params.lang}`}
                         className="flex-row mt-2 w-full relative  min-h-[230px] bg-[#FEFEFE] rounded-2xl overflow-hidden shadow-[0px_3px_10px_rgba(0,0,0,0.1)]"
                         key={key}
                         style={{ border: "1px solid #ff5f617a" }}
@@ -687,19 +821,22 @@ function CartContainer({ close, toOrders }) {
                             }, 1500);
                             return false;
                           }
+                          Sendevent({
+                            event: GA_EVENT_NAMES.CLICK,
+                            value:
+                              GA_CLICK_EVENT_VALUES.PRODUCT_IN_OLD_CART_CLICKED,
+                          });
                           if (params?.productId === product.slug) {
                             if (product.variations[0].color) {
-                              dispatch({
-                                type: "SET-ACTIVE-COLOR-DETAILS",
-                                payload:
-                                  ProductDetails.sync_color_images[
-                                    ProductDetails.sync_color_images.findIndex(
-                                      (s) =>
-                                        s.color_name ===
-                                        product?.variations[0]?.color
-                                    )
-                                  ],
-                              });
+                              setActiveColorDetails(
+                                ProductDetails.sync_color_images[
+                                  ProductDetails.sync_color_images.findIndex(
+                                    (s) =>
+                                      s.color_name ===
+                                      product?.variations[0]?.color
+                                  )
+                                ]
+                              );
                             }
                           } else {
                           }
@@ -828,19 +965,19 @@ function CartContainer({ close, toOrders }) {
                             onClick={(e) => {
                               e.preventDefault();
                               Sendevent({
-                                event: "button_clicked",
-                                value: "remove_old_product_item_button",
+                                event: GA_EVENT_NAMES.CLICK,
+                                value:
+                                  GA_CLICK_EVENT_VALUES.REMOVE_OLD_PRODUCT_ITEM_BUTTON,
                               });
-
-                              dispatch({
-                                type: "HIDE-OLD-CART",
-                                payload: product.id,
-                              });
+                              hideOldCart(product.id);
                               home.hideOldCart({ id: product.id });
                             }}
                           >
                             <span className="hide-btn cursor-pointer border border-solid border-[#69a8ff80] mx-2  rounded-md flex-row items-center justify-center px-3 py-2 text-[#69a8ff]">
-                              {translate("Hide", GetAppLanguage())}
+                              {translate(
+                                "Hide",
+                                LocalizationServiceClass.GetAppLanguage()
+                              )}
                             </span>
                           </div>
                         }
@@ -866,7 +1003,10 @@ function CartContainer({ close, toOrders }) {
                             <OldCartIcon />
                           </span>
                           <span className="text-[#8D8D8D] bold text-[12px] ml-1">
-                            {translate("Out Of Bag!", GetAppLanguage())}{" "}
+                            {translate(
+                              "Out Of Bag!",
+                              LocalizationServiceClass.GetAppLanguage()
+                            )}{" "}
                             <span className="regular">
                               {translate("Time Running Out.")}{" "}
                               <span className="bold">-30:00</span> |{" "}
@@ -922,6 +1062,8 @@ function CartContainer({ close, toOrders }) {
                         id={product.id}
                         product={product}
                         updateData={async () => {}}
+                        isCollectedAfterOrdering={false}
+                        maxAllowed={product.max_allowed_qty}
                         disabled={true}
                         isHurry={false}
                         value={product.quantity}
@@ -1005,7 +1147,7 @@ function CartContainer({ close, toOrders }) {
         )}
       </div>
 
-      {!loading && (
+      {!cart_loading && (
         <OrderButton toOrders={() => toOrders()} close={() => close()} />
       )}
     </div>
@@ -1638,7 +1780,10 @@ const QuantutyInput = ({
   updateData,
   isHurry,
   product,
+  maxAllowed,
+  isCollectedAfterOrdering,
 }) => {
+  const { initCart, settings, currency, removeFromCart } = useAppStore();
   const [inputValue, setInputValue] = useState(parseInt(value));
   const PlusIcon = ({ className }) => {
     return (
@@ -1698,7 +1843,7 @@ const QuantutyInput = ({
       </svg>
     );
   };
-  const dispatch = useDispatch();
+
   const updateQuantity = async (quantity, bool) => {
     let dataBody = [];
     let dataObj = { key: id, quantity: quantity };
@@ -1717,10 +1862,10 @@ const QuantutyInput = ({
         title: "Update Quantity For Product In cart",
         body: dataBody,
       });
-      dispatch({
-        type: "UPDATE-CART-QUANTITY",
-        payload: { key: id, quantity: quantity },
-      });
+      // dispatch({
+      //   type: "UPDATE-CART-QUANTITY",
+      //   payload: { key: id, quantity: quantity },
+      // });
       updateData();
     } catch (error) {
       setLoading(false);
@@ -1731,27 +1876,26 @@ const QuantutyInput = ({
       }
     }
   };
-  const decimal_point_settings = useSelector(
-    (state: StateInterface) => state.homepage.settings
-  );
+
   let { lang } = useParams();
   // @ts-ignore
   let languageVariable = lang.split("-")[1];
   const translate = (key: string, lang?: string) => {
     return translateFunction(key, languageVariable);
   };
-  const currency = useSelector(
-    (state: StateInterface) => state.homepage.currency
-  ) || { exchange_rate: 1, symbol: "" };
   const decreaseQuantity = async (i) => {
     if (!loading) {
+      Sendevent({
+        event: GA_EVENT_NAMES.CLICK,
+        value: GA_CLICK_EVENT_VALUES.DECREASE_QUANTITY_BUTTON_FROM_CART,
+      });
       setInputValue(parseInt(i) - 1);
       setLoading(true);
 
       await updateQuantity(parseInt(i.toString()) - 1, false);
       await getCart({
         callback: ([data, res]) => {
-          dispatch({ type: "CART-INIT", payload: data ?? { cart: [] } });
+          initCart(data ?? { cart: [] });
         },
       });
       setLoading(false);
@@ -1760,142 +1904,216 @@ const QuantutyInput = ({
   const [loading, setLoading] = useState(false);
   const increaseQuantity = async (i) => {
     if (!loading) {
+      Sendevent({
+        event: GA_EVENT_NAMES.CLICK,
+        value: GA_CLICK_EVENT_VALUES.INCREASE_QUANTITY_BUTTON_FROM_CART,
+      });
       setInputValue(parseInt(i.toString()) + 1);
       setLoading(true);
       await updateQuantity(parseInt(i.toString()) + 1, true);
       await getCart({
         callback: ([data, res]) => {
-          dispatch({ type: "CART-INIT", payload: data ?? { cart: [] } });
+          initCart(data ?? { cart: [] });
         },
       });
       setLoading(false);
     }
   };
+  const shouldDisablePlus = () => {
+    if (isCollectedAfterOrdering) {
+      return false;
+    }
+
+    if (inputValue >= product.available_quantity) {
+      return true;
+    }
+    return false;
+  };
+  const ConvertToOldCart = async () => {
+    try {
+      setLoading(true);
+      await cart.ConvertToOldCart({ cart_item: id });
+      setLoading(false);
+      removeFromCart(id);
+      await getOldCart();
+    } catch (error) {
+      setLoading(false);
+    }
+  };
   return (
     <div
+      data-cy="card-footer"
       className={`absolute flex-wrap ${"top-[125px]"} left-[137px] flex-row items-center justify-between max-w-[calc(100%-152px)] w-full`}
     >
-      <div
-        className={`${
-          loading && "opacity-40"
-        } flex-row hide-btn relative max-w-[72px] w-[72px] h-[24px] mt-4 z-50`}
-      >
-        <svg
-          className="absolute hide-btn"
-          xmlns="http://www.w3.org/2000/svg"
-          width="72"
-          height="24"
-          viewBox="0 0 72 24"
+      <div className="flex-col">
+        {" "}
+        <div
+          className={`${
+            loading && "opacity-40"
+          } flex-row hide-btn relative max-w-[72px] w-[72px] h-[24px] mt-4 z-50`}
+          data-cy="plus-delete-increase-container"
         >
-          <g
-            id="Group_12755"
-            data-name="Group 12755"
-            transform="translate(-140 -277)"
+          <svg
+            data-cy="square-icon"
+            className="absolute hide-btn"
+            xmlns="http://www.w3.org/2000/svg"
+            width="72"
+            height="24"
+            viewBox="0 0 72 24"
           >
             <g
-              id="Rectangle_5745"
-              data-name="Rectangle 5745"
-              transform="translate(140 277)"
-              fill="none"
-              stroke="#d3d3d3"
-              strokeWidth="0.5"
+              id="Group_12755"
+              data-name="Group 12755"
+              transform="translate(-140 -277)"
             >
-              <rect width="72" height="24" rx="5" stroke="none" />
-              <rect
-                x="0.25"
-                y="0.25"
-                width="71.5"
-                height="23.5"
-                rx="4.75"
+              <g
+                id="Rectangle_5745"
+                data-name="Rectangle 5745"
+                transform="translate(140 277)"
                 fill="none"
-              />
+                stroke="#d3d3d3"
+                strokeWidth="0.5"
+              >
+                <rect width="72" height="24" rx="5" stroke="none" />
+                <rect
+                  x="0.25"
+                  y="0.25"
+                  width="71.5"
+                  height="23.5"
+                  rx="4.75"
+                  fill="none"
+                />
+              </g>
             </g>
-          </g>
-        </svg>
-        <div
-          className="absolute hide-btn h-[24px] flex items-center right-[6px]  cursor-pointer"
-          data-cy="PlusIcon_CartPage"
-          onClick={() => {
-            if (disabled) return false;
-            // if (inputValue === max) {
-            //   toast.error(translate("stock is limited"));
-            //   return false;
-            // }
-            // // @ts-ignore
-            // else {
-            increaseQuantity(inputValue);
-          }}
-        >
-          <PlusIcon className="" />
-        </div>
-
-        {inputValue > 1 ? (
-          <>
+          </svg>
+          {!shouldDisablePlus() && (
             <div
-              className="absolute h-[24px] flex items-center hide-btn left-[6px]  cursor-pointer"
-              data-cy="MinusIcon_CartPage"
+              className="absolute hide-btn h-[24px] flex items-center right-[6px]  cursor-pointer"
+              data-cy="PlusIcon_CartPage"
               onClick={() => {
                 if (disabled) return false;
-                if (inputValue > 1) {
-                  // @ts-ignore
-
-                  decreaseQuantity(inputValue);
-                }
+                // if (inputValue === max) {
+                //   toast.error(translate("stock is limited"));
+                //   return false;
+                // }
+                // // @ts-ignore
+                // else {
+                increaseQuantity(inputValue);
               }}
             >
-              <MinusIcon className="" />
+              <PlusIcon className="" />
             </div>
-            {!loading && (
+          )}
+
+          {inputValue > 1 ? (
+            <>
               <div
-                className="absolute h-[24px] flex items-center hide-btn right-[-20px] top-[-1px] scale-125  cursor-pointer"
-                data-cy="DeleteIcon_CartPage"
+                className="absolute h-[24px] flex items-center hide-btn left-[6px]  cursor-pointer"
+                data-cy="MinusIcon_CartPage"
                 onClick={() => {
-                  deleteFunction();
+                  if (disabled) return false;
+                  if (inputValue > 1) {
+                    // @ts-ignore
+
+                    decreaseQuantity(inputValue);
+                  }
                 }}
               >
-                <DeleteIcon />
+                <MinusIcon className="" data-cy="minus-icon-svg" />
               </div>
-            )}
-          </>
-        ) : (
+              {!loading && (
+                <div
+                  className="absolute h-[24px] flex items-center hide-btn right-[-20px] top-[-1px] scale-125  cursor-pointer"
+                  data-cy="DeleteIcon_CartPage"
+                  onClick={() => {
+                    Sendevent({
+                      event: GA_EVENT_NAMES.CLICK,
+                      value: GA_CLICK_EVENT_VALUES.REMOVE_PRODUCT_FROM_CART,
+                    });
+                    deleteFunction();
+                  }}
+                >
+                  <DeleteIcon data-cy="delete-icon-svg" />
+                </div>
+              )}
+            </>
+          ) : (
+            <div
+              className="absolute h-[24px] flex items-center hide-btn left-[6px]  cursor-pointer"
+              data-cy="DeleteIcon_CartPage"
+              onClick={() => {
+                Sendevent({
+                  event: GA_EVENT_NAMES.CLICK,
+                  value: GA_CLICK_EVENT_VALUES.REMOVE_PRODUCT_FROM_CART,
+                });
+                deleteFunction();
+              }}
+            >
+              <DeleteIcon data-cy="delete-icon-svg" />
+            </div>
+          )}
+          <input
+            // @ts-ignore
+            value={parseInt(inputValue)}
+            data-cy="QuantityInCart"
+            max={max}
+            disabled
+            onChange={(e) => {}}
+            className="outline-none hide-btn text-[14px] medium text-[#1D1D1D] text-center max-w-[72px] border-none py-1  w-[72px] h-[24px]"
+          />
+          {loading && <Spinner />}
+        </div>
+        {!disabled && (
           <div
-            className="absolute h-[24px] flex items-center hide-btn left-[6px]  cursor-pointer"
-            data-cy="DeleteIcon_CartPage"
+            className="flex rounded-md p-[5px] items-center whitespace-nowrap bg-[#54b8ff] shadow-sm text-[10px] light mt-[5px] text-[#fafafa] cursor-pointer"
             onClick={() => {
-              deleteFunction();
+              Sendevent({
+                event: GA_EVENT_NAMES.CLICK,
+                value: GA_CLICK_EVENT_VALUES.CONVERT_TO_OLD_CART_BUTTON,
+              });
+              ConvertToOldCart();
             }}
           >
-            <DeleteIcon />
+            <svg
+              className="mr-[5px]"
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 16 16"
+              fill="none"
+            >
+              <path
+                d="M8 0C3.6 0 0 3.6 0 8C0 12.4 3.6 16 8 16C12.4 16 16 12.4 16 8C16 3.6 12.4 0 8 0ZM8 14C4.7 14 2 11.3 2 8C2 4.7 4.7 2 8 2C11.3 2 14 4.7 14 8C14 11.3 11.3 14 8 14Z"
+                fill="#fafafa"
+              />
+              <path d="M8.5 4H7V9L11.2 11.2L12 10L8.5 8.2V4Z" fill="#fafafa" />
+            </svg>
+            {translateFunction("Reschedule")}
           </div>
         )}
-        <input
-          // @ts-ignore
-          value={parseInt(inputValue)}
-          data-cy="QuantityInCart"
-          max={max}
-          disabled
-          onChange={(e) => {}}
-          className="outline-none hide-btn text-[14px] medium text-[#1D1D1D] text-center max-w-[72px] border-none py-1  w-[72px] h-[24px]"
-        />
-        {loading && <Spinner />}
       </div>
-      <div className={`pl-[30px]`}>
-        <div className="product-info-price">
+
+      <div className={`pl-[30px]`} data-cy="oldNew-price-container">
+        <div className="product-info-price" data-cy="oldNew-price-container2">
           {product?.offer_price ? (
             <>
-              <div className="flex-col">
-                <div className="flex-row">
-                  <div className="product-old-price text-[18px] text-[#C4C2C2] regular">
+              <div className="flex-col" data-cy="Subdivisions">
+                <div className="flex-row" data-cy="newOld-price">
+                  <div
+                    className="product-old-price text-[18px] text-[#C4C2C2] regular"
+                    data-cy="oldPrice-container"
+                  >
                     {RoundPrice({
                       num: product.price * product.quantity,
                       rate: currency?.exchange_rate,
                       points:
-                        (decimal_point_settings &&
-                          decimal_point_settings["starting-setting"]
+                        (settings &&
+                          settings["starting-setting"]
                             ?.decimal_point_settings) ||
                         0,
                     })}
                     <svg
+                      data-cy="oldPrice-svg"
                       className="bottom-3"
                       xmlns="http://www.w3.org/2000/svg"
                       width="100%"
@@ -1912,26 +2130,35 @@ const QuantutyInput = ({
                       />
                     </svg>
                   </div>
-                  <div className="product-new-price text-[18px] bold">
+                  <div
+                    className="product-new-price text-[18px] bold"
+                    data-cy="new-price"
+                  >
                     {RoundPrice({
                       num: product?.offer_price * product.quantity,
-                      rate: currency.exchange_rate,
+                      rate: currency?.exchange_rate,
                       points:
-                        (decimal_point_settings &&
-                          decimal_point_settings["starting-setting"]
+                        (settings &&
+                          settings["starting-setting"]
                             ?.decimal_point_settings) ||
                         0,
                     })}
                   </div>
-                  <div className="product-currency text-[8px] light text-[#1D1D1D]">
+                  <div
+                    className="product-currency text-[8px] light text-[#1D1D1D]"
+                    data-cy="currency-symbol"
+                  >
                     {currency?.symbol}
                   </div>
                 </div>
-                <div className="flex-row">
-                  <SavedIcon />
-                  <span className="text-[8px] text-[#388CFF]  need-row-rev mx-[4px]">
+                <div className="flex-row" data-cy="below-subdivisions">
+                  <SavedIcon data-cy="saved-svg" />
+                  <span
+                    className="text-[8px] text-[#388CFF]  need-row-rev mx-[4px]"
+                    data-cy="saved-text"
+                  >
                     {translate("Saved")}{" "}
-                    <span className="bold">
+                    <span className="bold" data-cy="rate">
                       {parseInt(
                         (
                           ((product.price - product?.offer_price) /
@@ -1950,11 +2177,10 @@ const QuantutyInput = ({
               <div className="product-new-price text-[14px] light text-[#1D1D1D]">
                 {RoundPrice({
                   num: product.price * product.quantity,
-                  rate: currency.exchange_rate,
+                  rate: currency?.exchange_rate,
                   points:
-                    (decimal_point_settings &&
-                      decimal_point_settings["starting-setting"]
-                        ?.decimal_point_settings) ||
+                    (settings &&
+                      settings["starting-setting"]?.decimal_point_settings) ||
                     0,
                 })}
               </div>

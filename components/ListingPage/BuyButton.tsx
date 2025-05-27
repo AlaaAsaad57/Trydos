@@ -1,8 +1,9 @@
 "use client";
 
 import { useParams } from "next/navigation";
+import LocalizationServiceClass from "services/localization";
 import { dispatchRouteChangeEvent } from "utils/events";
-import { GetAppLanguage, translateFunction } from "utils/functions";
+import { translateFunction } from "utils/functions";
 
 function BuyButton({ buy }) {
   let { lang } = useParams();
@@ -13,18 +14,15 @@ function BuyButton({ buy }) {
   };
   return (
     <div
-      className="buy-button light-text flex align-start justify-start cursor-pointer"
-      data-cy="Cart-ByButton"
+      className="buy-button light-text flex align-start justify-start cursor-pointer absolute z-[50] bottom-0 right-[10px] h-[40px] items-center"
+      data-cy="buy-button"
       onClick={(e) => {
         e.preventDefault();
         buy();
-        setTimeout(() => {
-          dispatchRouteChangeEvent("completed");
-        }, 1000);
       }}
     >
       <span className="f-10 flex align-start">
-        {translate("Buy", GetAppLanguage())}
+        {translate("Buy", LocalizationServiceClass.GetAppLanguage())}
       </span>
       <img
         src={"/svg/BuyButton.svg"}

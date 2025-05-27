@@ -1,22 +1,30 @@
 import StoryAvatar from "./StoryAvatar";
 import Story from "./Story";
 import profilePicture from "public/images/profileNo.png";
-import { configureStory } from "utils/functions";
-import { GetUnviewedStory } from "store/homepage/actions";
-import { Story as StoryInterface } from "models/story";
 
-function StoryElement({ index, story, select }) {
+import { GetUnviewedStory } from "store/homepage/actions";
+import { getConfiguredImage } from "utils/functions";
+
+function StoryElement({ index, story }) {
   return (
     <div className="story-element-container">
       <StoryAvatar
         isSeen={story.stories.filter((s) => s.is_seen === false).length === 0}
-        avatar={story.photo_path ?? profilePicture}
+        avatar={
+          typeof story.photo_path === "string"
+            ? getConfiguredImage({
+                src: process.env.NEXT_PUBLIC_CLOUDINARY_URL + story.photo_path,
+                width: 20,
+                height: 20,
+              })
+            : profilePicture
+        }
       />
       <Story
         index={1}
         media={story.stories[GetUnviewedStory(story)]}
         Name={story.name ?? story.mobile_phone ?? "Unknown"}
-        onClick={() => select(configureStory(story))}
+        story={story}
       />
     </div>
   );

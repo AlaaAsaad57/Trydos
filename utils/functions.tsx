@@ -1,14 +1,11 @@
 import translations from "public/translations/translations.js";
-import profilePicture from "public/images/profileNo.png";
-import { store } from "store";
+import { useAppStore } from "store";
 import Cookies from "js-cookie";
 
 import { notFound } from "next/navigation";
 import { LogData } from "store/homepage/actions";
 import { AxiosCacheApi, AxiosGet } from "./AxiosApi";
 import home from "services/home";
-import { analytics } from "./firebaseInitv1";
-import { logEvent } from "@firebase/analytics";
 import axios from "axios";
 import {
   CartApi,
@@ -18,6 +15,9 @@ import {
   SimpleDetailsProductApi,
 } from "models/Api";
 import auth from "services/auth";
+import LocalizationServiceClass from "services/localization";
+import { CielNumber } from "./tinyUtils";
+import { event } from "./gtag";
 export const SSRDetect = () => {
   return typeof window !== "undefined";
 };
@@ -28,7 +28,7 @@ export function translateFunction(key: string, language?: string | string[]) {
   if (typeof window !== "undefined") {
     languageUrl = window.location.pathname.split("/")[1].split("-")[1];
   } else {
-    languageUrl = GetAppLanguage();
+    languageUrl = language || LocalizationServiceClass.GetAppLanguage();
   }
 
   // Ensure translations object exists and has the requested language
@@ -43,86 +43,6 @@ export function translateFunction(key: string, language?: string | string[]) {
   return translations[languageUrl]?.[key] || key;
 }
 
-export const getStoriesHeaders = () => {
-  const token = SSRDetect() && localStorage.getItem("STORIES-TOKEN");
-
-  return {
-    headers: {
-      Authentication: `Bearer ${token}`,
-      Authorization: `Bearer ${token}`,
-    },
-
-    next: {
-      tags: ["stories"],
-      revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE),
-    },
-  };
-};
-export const GeneralCahcedHeader = (apiName) => {
-  return {
-    next: {
-      tags: [apiName],
-      revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE),
-    },
-  };
-};
-export const configureStory = (story) => {
-  let returnedData = [];
-  story?.stories?.map((storyItem) => {
-    if (storyItem.full_video_path) {
-      let vid = storyItem.full_video_path.replace(
-        "/upload",
-        "/upload/w_700/f_webm/q_auto"
-      );
-      returnedData.push({
-        url: vid,
-        FixedUrl: vid,
-        is_seen: storyItem.is_seen,
-        id: storyItem.id,
-        header: {
-          heading: story.name ?? story.mobile_phone ?? "Unknown",
-          subheading: "Posted 30m ago",
-          profileImage: story.photo_path ?? profilePicture.src,
-        },
-        duration: 5000,
-        preloadResource: true,
-        type: "video",
-      });
-    } else if (storyItem.photo_path) {
-      let img = storyItem.photo_path.replace(
-        "/upload",
-        "/upload/w_800/f_avif/q_auto"
-      );
-      returnedData.push({
-        url: img,
-        FixedUrl: img,
-        is_seen: storyItem.is_seen,
-        duration: 5000,
-        id: storyItem.id,
-        header: {
-          heading: story.name ?? story.mobile_phone ?? "Unknown",
-          subheading: "Posted 30m ago",
-          profileImage: story.photo_path ?? profilePicture.src,
-        },
-        preloadResource: true,
-        type: "image",
-      });
-    }
-  });
-  return { ...story, stories: returnedData };
-};
-export const getThumb = (url, isVideo) => {
-  if (url) {
-    if (isVideo) {
-      return url.replace("/upload", "/upload/h_194/f_avif/q_100");
-    } else return url.replace("/upload", "/upload/h_194/f_avif/q_100");
-  }
-};
-export const getUser = () => {
-  return (
-    localStorage.getItem("USER") && JSON.parse(localStorage.getItem("USER"))
-  );
-};
 export const getUserChat = () => {
   if (typeof window !== "undefined")
     return (
@@ -130,84 +50,38 @@ export const getUserChat = () => {
       JSON.parse(localStorage.getItem("USER-CHAT"))
     );
 };
-export const UserToken = () => {
-  return (
-    localStorage.getItem("MARKET-TOKEN") ||
-    localStorage.getItem("DEVICE-TOKEN") ||
-    false
-  );
-};
-export const UserID = () => {
-  return (
-    (localStorage.getItem("USER") &&
-      JSON.parse(localStorage.getItem("USER"))?.id) ||
-    (localStorage.getItem("guest-user") &&
-      JSON.parse(localStorage.getItem("guest-user"))?.id) ||
-    false
-  );
-};
-export const User = () => {
-  return (
-    (localStorage.getItem("USER") &&
-      JSON.parse(localStorage.getItem("USER"))) ||
-    (localStorage.getItem("guest-user") &&
-      JSON.parse(localStorage.getItem("guest-user"))) ||
-    false
-  );
-};
-export const getUserStories = () => {
-  return (
-    localStorage.getItem("USER-STORIES") &&
-    JSON.parse(localStorage.getItem("USER-STORIES"))
-  );
-};
 
 export const _isStoreLastJson = () => {
   return !!process.env.NEXT_PUBLIC_IS_STORE_LAST_JSON;
 };
 export const Sendevent = async (params: {
-  event:
-    | "programming_event"
-    | "button_clicked"
-    | "viewed_product"
-    | "viewed_boutique";
+  event: string;
   value?: string;
   extra?: any;
   category?: any;
 }) => {
+  let { session_id, previous_event_button_name, setGAEvent } =
+    useAppStore.getState();
   try {
-    let userId = localStorage.getItem("USER")
-      ? JSON.parse(localStorage.getItem("USER"))?.id
-      : "empty";
     // @ts-ignore
     if (typeof window !== "undefined") {
       // @ts-ignore
-      let a = analytics;
-      // @ts-ignore
-      logEvent(analytics, params.event, {
-        executed_event_name: params.value,
-        country_name: Cookies.get("country"),
-        userID: userId,
-        device_language: Cookies.get("language"),
-        time_stamp: new Date().toISOString(),
 
-        our_session_id: store.getState().homepage.session_id,
-        previous_event_button_name:
-          store.getState().homepage.previous_event_button_name,
+      // @ts-ignore
+      event({
+        action: params.event,
+        params: {
+          value: params.value,
+        },
       });
     }
 
-    store.dispatch({ type: "GA-EVENT", payload: params.value });
+    setGAEvent(params.value);
   } catch (e) {
     console.error(e);
   }
 };
-export const GetAppLanguage = () => {
-  return store.getState().homepage.language;
-};
-export const GetAppCountry = () => {
-  return store.getState().homepage.country;
-};
+
 export function encode_utf8(params: {
   s: string;
   element: NodeListOf<Element>;
@@ -218,14 +92,27 @@ export function encode_utf8(params: {
   return "";
 }
 
-export const getConfiguredImage = ({ src, width, height }) => {
+export const getConfiguredImage = ({
+  src,
+  width,
+  height,
+  q,
+}: {
+  src: string | any;
+  width?: number | string;
+  height?: number | string;
+  q?: number | string;
+}) => {
   if (typeof src === "string") {
-    return src.replace("/upload", `/upload/h_${height}/f_avif/q_auto`);
+    return src.replace(
+      "/upload",
+      `/upload/h_${height}/f_avif/q_${q || "auto"}`
+    );
   }
   if (src?.file_path?.includes("cloudinary")) {
     return src.file_path.replace(
       "/upload",
-      `/upload/h_${height}/f_avif/q_auto`
+      `/upload/h_${height}/f_avif/q_${q || "auto"}`
     );
   } else return src?.file_path || "";
 };
@@ -250,8 +137,6 @@ export const getLang = (lang, cookieLang) => {
 };
 
 export const getProductMeta = async ({ productId, lang, color }) => {
-  const cookies = (await import("next/headers")).cookies;
-  const cookieStore = cookies();
   let start = new Date();
   let [country, language] = lang.split("-");
 
@@ -267,8 +152,8 @@ export const getProductMeta = async ({ productId, lang, color }) => {
       headers: new Headers({
         Accept: "application/json",
         "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
-        lang: await getLang(language, cookieStore.get("language")?.value),
-        country: country || cookieStore.get("country")?.value,
+        lang: language,
+        country: country,
       }),
     },
     "Product SimpleDetails"
@@ -281,12 +166,8 @@ export const getProductMeta = async ({ productId, lang, color }) => {
       process.env.NEXT_PUBLIC_BACKEND_URL +
       `/web/product/simpleDetails/${productId}`,
     headers: {
-      Authorization: `Bearer ${
-        typeof localStorage !== "undefined" &&
-        localStorage.getItem("MARKET-TOKEN")
-      }`,
-      lang: getLang(null, cookieStore.get("language")?.value),
-      country: cookieStore.get("country")?.value,
+      lang: language,
+      country: country,
     },
     response: data,
     time: end.getTime() - start.getTime(),
@@ -298,8 +179,8 @@ export const getProductMeta = async ({ productId, lang, color }) => {
   return data.data;
 };
 export const getBoutiqueMeta = async ({ boutiqueId, lang }) => {
-  const cookies = (await import("next/headers")).cookies;
-  const cookieStore = cookies();
+  if (boutiqueId === "listing")
+    return { name: "Search", banners: null, icon: null };
   let [country, language] = lang.split("-");
   let start = new Date();
   let resp = await fetch(
@@ -312,9 +193,8 @@ export const getBoutiqueMeta = async ({ boutiqueId, lang }) => {
       headers: new Headers({
         Accept: "application/json",
         "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
-        lang: await getLang(language, cookieStore.get("language")?.value),
-        country:
-          cookieStore.get("country") && cookieStore.get("country")?.value,
+        lang: language,
+        country: country,
       }),
     }
   );
@@ -327,13 +207,8 @@ export const getBoutiqueMeta = async ({ boutiqueId, lang }) => {
       process.env.NEXT_PUBLIC_BACKEND_URL +
       `/web/boutique/simpleDetails/${boutiqueId}`,
     headers: {
-      Authorization: `Bearer ${
-        typeof localStorage !== "undefined"
-          ? localStorage.getItem("MARKET-TOKEN")
-          : cookieStore.get("token")?.value
-      }`,
-      lang: getLang(null, cookieStore.get("language")?.value),
-      country: cookieStore.get("country")?.value,
+      lang: language,
+      country: country,
     },
     response: data,
     time: end.getTime() - start.getTime(),
@@ -368,7 +243,8 @@ export const caseCheck = (word, value) => {
   return word.join("");
 };
 export const expandView = ({ filter }) => {
-  let filterEnabled = store.getState().listing.filterEnabled;
+  const { filterEnabled } = useAppStore.getState();
+
   if (!filter && filterEnabled) {
     return;
   }
@@ -436,7 +312,7 @@ export const expandView = ({ filter }) => {
     ).style.maxHeight = "0px";
 };
 export const normalizeView = () => {
-  let filterEnabled = store.getState().listing.filterEnabled;
+  const { filterEnabled } = useAppStore.getState();
   if (filterEnabled) {
     return;
   }
@@ -467,9 +343,13 @@ export const normalizeView = () => {
       .classList.add("relative");
   }
   if (document.querySelector<HTMLElement>(".boutique-top-info")) {
-    document.querySelector<HTMLElement>(
-      ".boutique-top-info .boutique-text"
-    ).style.display = "flex";
+    if (
+      document.querySelector<HTMLElement>(".boutique-top-info .boutique-text")
+    ) {
+      document.querySelector<HTMLElement>(
+        ".boutique-top-info .boutique-text"
+      ).style.display = "flex";
+    }
     document
       .querySelectorAll(".boutique-top-info .boutique-logo-container svg")
       .forEach((s: HTMLElement) => {
@@ -537,7 +417,9 @@ export const filterProducts = async ({
   searchText?: string;
   serachTrigger?: boolean;
 }) => {
-  const filterObj = store.getState().details.selectedFilter;
+  const { selectedFilter } = useAppStore.getState();
+
+  const filterObj = selectedFilter;
 
   storeCallback(filterObj);
 
@@ -558,14 +440,14 @@ export const filterProducts = async ({
   };
   let str = "";
   if (reset) {
-    str = `/api/products/search?limit=4&${
+    str = `/api/products/searchInCatalog?limit=10&${
       boutiqueId !== "listing" &&
       boutiqueId &&
       `boutique_slugs=${JSON.stringify([boutiqueId])}`
     }`;
   } else {
     let urlParam = urlParams({ filters: filters, noProducts: false });
-    str = `/api/products/search?${urlParam}`;
+    str = `/api/products/searchInCatalog?${urlParam}`;
   }
   let product: FilterProductApi = await AxiosCacheApi({
     url: process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL + str,
@@ -594,18 +476,9 @@ export const filterProducts = async ({
   callback(product.data.products);
   return product.data.products;
 };
-export const searchProducts = async ({ searchText }) => {
-  let product: FilterProductApi["data"] = await AxiosGet({
-    url:
-      process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL +
-      `/api/products/search?limit=4&search_text=${searchText}`,
-    title: "Search Products",
-  });
-  console.log(product);
-  return product.products;
-};
-const urlParams = ({ filters, noProducts }) => {
-  const PriceFiltered = store.getState().details.PriceFiltered;
+export const urlParams = ({ filters, noProducts, noFilter = false }) => {
+  const { PriceFiltered } = useAppStore.getState();
+
   let urlParams = new URLSearchParams();
   if (filters.categories.length > 0) {
     urlParams.set("category_slugs", JSON.stringify(filters.categories));
@@ -613,11 +486,14 @@ const urlParams = ({ filters, noProducts }) => {
   if (filters.brands.length > 0) {
     urlParams.set("brand_slugs", JSON.stringify(filters.brands));
   }
-  if (filters.boutique_slug.length > 0 && filters.boutique_slug !== "listing") {
+  if (
+    filters?.boutique_slug?.length > 0 &&
+    filters.boutique_slug !== "listing"
+  ) {
     urlParams.set("boutique_slugs", JSON.stringify([filters.boutique_slug]));
   }
   if (filters?.attributes?.options?.length > 0) {
-    urlParams.set("attributes", JSON.stringify(filters.attributes));
+    urlParams.set("attributes", JSON.stringify([filters.attributes]));
   }
   if (filters.prices !== null && PriceFiltered) {
     urlParams.set("price", JSON.stringify(filters.prices));
@@ -627,6 +503,9 @@ const urlParams = ({ filters, noProducts }) => {
   }
   if (noProducts) {
     urlParams.set("with_products", "false");
+  }
+  if (noFilter) {
+    urlParams.set("with_filters", "false");
   }
   if (filters.colors && filters?.colors.length > 0) {
     urlParams.set("colors", JSON.stringify(filters.colors));
@@ -652,7 +531,9 @@ export const UpdateFilter = async ({
   filtersVar?: any;
 }) => {
   try {
-    const filterObj = filtersVar || store.getState().details.selectedFilter;
+    const { selectedFilter } = useAppStore.getState();
+
+    const filterObj = filtersVar || selectedFilter;
 
     let filters = {
       categories: filterObj.categories.map((s) => s.slug),
@@ -671,8 +552,7 @@ export const UpdateFilter = async ({
       colors: filterObj.colors.map((s) => s),
     };
     let urlParam = urlParams({ filters: filters, noProducts: true });
-    let str = `/api/products/search?${urlParam}`;
-
+    let str = `/api/products/searchInCatalog?${urlParam}`;
     let product: FilterProductApi = await AxiosCacheApi({
       url: process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL + str,
       params:
@@ -704,25 +584,23 @@ export const UpdateFilter = async ({
     console.log(error);
   }
 };
-function formatPrice(price) {
-  let currency = store.getState().homepage.currency;
-  let ceil = currency?.ciel;
+
+export function formatPrice(price) {
+  const { currency } = useAppStore.getState();
+
   if (price >= 1000000) {
-    return (
-      (ceil
-        ? Math.ceil(parseFloat((price / 1000000).toFixed(3)) * ceil) / ceil
-        : parseFloat((price / 1000000).toFixed(3))) + translateFunction("M")
-    ); // For millions
-  } else if (price >= 1000) {
-    return (
-      (ceil
-        ? Math.ceil(parseFloat((price / 1000).toFixed(3)) * ceil) / ceil
-        : parseFloat((price / 1000).toFixed(3))) + translateFunction("K")
-    ); // For thousands
+    return CielNumber(price / 1000000) + translateFunction("M"); // For millions
+  } else if (price >= 100000) {
+    return CielNumber(price / 1000) + translateFunction("K"); // For thousands
   } else {
     return price; // For prices under 1000
   }
 }
+export const toUSD = (price) => {
+  const { currency } = useAppStore.getState();
+
+  return price / currency?.exchange_rate;
+};
 export const RoundPrice = ({
   num,
   rate,
@@ -734,25 +612,21 @@ export const RoundPrice = ({
   points?: any;
   returnNumber?: boolean;
 }): number => {
-  let currency = store.getState().homepage.currency;
-  let rateVariable =
-    rate || store.getState().homepage.currency?.exchange_rate || 1;
-  let pointsVariable =
-    points ||
-    (store.getState().homepage?.settings &&
-      store.getState().homepage?.settings["starting-setting"]
-        ?.decimal_point_settings) ||
-    0;
-  let a = parseFloat(num);
+  const { currency, settings } = useAppStore.getState();
 
+  let rateVariable = rate || currency?.exchange_rate || 1;
+  let pointsVariable =
+    (num * rateVariable < 1 && 2) ||
+    points ||
+    (settings && settings["starting-setting"]?.decimal_point_settings) ||
+    0;
+  let a = num * rateVariable;
   if (returnNumber) {
-    a = parseFloat((a * rateVariable).toFixed(pointsVariable));
+    a = Number(a.toFixed(pointsVariable));
     return a;
   }
-  a = parseFloat((a * rateVariable).toFixed(pointsVariable));
-  if (currency?.ciel) {
-    a = Math.ceil(a / currency.ceil) * currency.ceil;
-  }
+  a = Number(a.toFixed(pointsVariable));
+
   return formatPrice(a);
 };
 export const onClickSearchHistory = (searchValue) => {
@@ -798,23 +672,7 @@ export async function fetchWithRetry(url, options, title) {
     }
   }
 }
-export const getSearchOptions = async () => {
-  let categories: FilterProductApi["data"] = await AxiosGet({
-    url:
-      process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL +
-      "/api/products/search?with_products=false",
-    title: "get Search Filter Options Request",
-  });
 
-  return [
-    {
-      categories: categories?.categories ?? [],
-      brands: categories?.brands ?? [],
-      boutiques: categories?.boutiques ?? [],
-    },
-    {},
-  ];
-};
 export const getOldCart = async () => {
   if (
     !localStorage.getItem("DEVICE-TOKEN") &&
@@ -825,12 +683,11 @@ export const getOldCart = async () => {
     url: process.env.NEXT_PUBLIC_BACKEND_URL + "/old-cart/get_old_cart",
     title: "Old Cart Request",
   });
-  store.dispatch({
-    type: "STORE-OLD-CART",
-    payload: oldCartData?.original?.data,
-  });
+  const { storeOldCart } = useAppStore.getState();
+  storeOldCart(oldCartData?.original?.data);
 };
 export const getCart = async ({ callback }) => {
+  const { initCart } = useAppStore.getState();
   if (
     !localStorage.getItem("DEVICE-TOKEN") &&
     !localStorage.getItem("MARKET-TOKEN")
@@ -840,15 +697,16 @@ export const getCart = async ({ callback }) => {
     url: process.env.NEXT_PUBLIC_BACKEND_URL + "/cart/cart_shipping",
     title: "Cart Request",
   });
-  callback([data, {}]);
+  initCart(data);
   return data;
 };
 export const GetCartOreview = async () => {
+  const { setCartPreview } = useAppStore.getState();
   let data = await AxiosGet({
     url: process.env.NEXT_PUBLIC_BACKEND_URL + "/cart/cart_overview",
     title: "Cart Oreview",
   });
-  store.dispatch({ type: "CART-OREVIEW", payload: data });
+  setCartPreview(data);
 };
 export const AddToCartAnimation = () => {
   let productImage = document.getElementById("added-to-cart");
@@ -909,32 +767,22 @@ export const AddToCartAnimation = () => {
       fill: "forwards",
     }
   );
-  // setTimeout(() => {
-  //   store.dispatch({ type: "LOADED-CART", payload: true });
-  // }, 1500);
 };
 
 export const LogError = (error, url, href) => {
   axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/mobile_error_log/store`, {
     error_description: JSON.stringify(error),
-    token: UserToken(),
+    token: auth.UserToken(),
     url: href,
     backend_url: url,
   });
 };
-export const ExpiredUser = async () => {
-  if (getUser()?.phone) localStorage.setItem("has-phone", getUser()?.phone);
-  await home.registerForExpire(getUser().id);
 
-  auth.cancelAuth();
-  localStorage.removeItem("MARKET-TOKEN");
-  localStorage.removeItem("USER");
-  Cookies.remove("MARKET-TOKEN");
-};
 export const WaitForCondition = async () => {
+  const { isRegisteringReady } = useAppStore.getState();
   return new Promise((resolve, reject) => {
     const interval = setInterval(() => {
-      const isReady = store.getState().homepage.isRegisteringReady;
+      const isReady = isRegisteringReady;
       if (isReady) {
         clearInterval(interval);
         resolve("Ready, now performing the request!");

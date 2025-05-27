@@ -1,0 +1,10 @@
+{
+  "suites": 2,
+  "tests": 2,
+  "passes": 0,
+  "pending": 0,
+  "failures": 2,
+  "start": "2025-05-20T10:15:15.643Z",
+  "duration": 633923,
+  "file": "cypress\\e2e\\configuredTests\\4-Navigation.cy.ts"
+}

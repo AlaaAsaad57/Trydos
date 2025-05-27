@@ -4,10 +4,16 @@ import "styles/home.css";
 import "styles/unused-onload.css";
 import Providers from "store/provider";
 import localFont from "next/font/local";
-
-import "regenerator-runtime/runtime";
-import PageTransition from "components/global/PageTransition";
-
+import { Suspense } from "react";
+import NextLink from "components/global/NextLink";
+import Logo from "components/Home/Logo";
+import UserNavTopSection from "components/Home/UserNavTopSection";
+import Skeleton from "react-loading-skeleton";
+import NavbarClient from "components/Home/NavbarClient";
+import PageLoadingIndicator from "hooks/PageLoadingIndicator";
+import { SpeedInsights } from "@vercel/speed-insights/next";
+import Script from "next/script";
+import { GA_MEASUREMENT_ID } from "utils/gtag";
 export const metadata = {
   title: "TryDos",
   description: "TryDos E-Commerce Website",
@@ -53,14 +59,14 @@ const quicksand_semibold = localFont({
   preload: false,
   fallback: ["system-ui", "arial"],
 });
-export const revalidte = 360000;
-export default async function RootLayout({ params, children }) {
+export const revalidte = parseInt(process.env.NEXT_PUBLIC_REVALIDATE);
+
+export default function RootLayout({ params, children }) {
   // ${sf_pro_rounded_light.variable}
   // ${sf_pro_rounded_semibold.variable}
   // ${sf_pro_rounded_regular.variable}
   // ${sf_pro_rounded_medium.variable}
   // ${sf_pro_rounded_bold.variable}
-
   return (
     <html
       className={`
@@ -69,20 +75,79 @@ export default async function RootLayout({ params, children }) {
       ${quicksand_medium.variable}
       ${quicksand_bold.variable}
       ${quicksand_semibold.variable}
-      font-sans`}
+      font-sans overflow-x-hidden`}
       lang={params.lang.split("-")[1] === "ar" ? "ar-AE" : "en-US"}
     >
       <head>
+        <Script
+          strategy="afterInteractive"
+          src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
+        />
+        <Script
+          id="gtag-init"
+          strategy="afterInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              gtag('js', new Date());
+              gtag('config', '${GA_MEASUREMENT_ID}', {
+                page_path: window.location.pathname,
+              });
+            `,
+          }}
+        />
         <link rel="manifest" href="/manifest.json" />
         <link rel="icon" href="/favicon.ico" sizes="any" />
         <meta name="google" content="notranslate" />
       </head>
 
       <body className={params.lang.split("-")[1] === "ar" ? "text-rtl" : ""}>
+        <SpeedInsights />
+        <Suspense>
+          <PageLoadingIndicator />
+        </Suspense>
+
         <Providers>
-          <div className="site-container">
-            <></>
-            <PageTransition init={params.lang}>{children}</PageTransition>
+          <div
+            className="site-container items-center"
+            key={`${JSON.stringify(params)}`}
+          >
+            <Suspense fallback={<></>}>
+              <NavbarClient />
+            </Suspense>
+            <div className="home-navbar max-h-[1365px]">
+              <NextLink
+                data={{
+                  is_full_home: true,
+                  href: `/${params.lang}`,
+                }}
+                href={`/${params.lang}`}
+                aria-label="TryDos Home"
+                data-cy="NavLogo"
+              >
+                <Logo animated={false} style={false} key={1} />
+              </NextLink>
+              <Suspense
+                fallback={
+                  <div className="user-nav-container">
+                    <div className="nav-question-item">
+                      <Skeleton className="w-[30px] h-[30px] rounded-sm" />
+                    </div>
+                    <div className="nav-question-item ml-2">
+                      <Skeleton className="w-[30px] h-[30px] rounded-sm" />
+                    </div>
+                    <div className="nav-question-item ml-2">
+                      <Skeleton className="w-[30px] h-[30px] rounded-sm" />
+                    </div>
+                  </div>
+                }
+              >
+                <UserNavTopSection />
+              </Suspense>
+            </div>
+
+            {children}
           </div>
         </Providers>
       </body>

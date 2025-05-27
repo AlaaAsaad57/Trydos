@@ -1,15 +1,16 @@
 "use client";
 import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
-import CustomNavbar from "components/Home/CustomNav";
+import { useEffect } from "react";
+import { dispatchRouteChangeEvent } from "utils/events";
+
 export default function NotFound() {
-  const params = useParams();
-  // @ts-ignore
-  const { lang } = params;
+  useEffect(() => {
+    dispatchRouteChangeEvent("completed");
+  }, []);
   return (
     <>
       {/* @ts-ignore*/}
-      <CustomNavbar init={lang} />
+
       <div className="w-full items-center flex-col justify-around  h-full ">
         <h2 className="text-[#5d5d5d] text-[18px] light">404 - Not Found</h2>
         <p className="mt-[30px] text-[#5d5d5d] text-[18px] light ">

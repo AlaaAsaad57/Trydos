@@ -8,5 +8,18 @@ module.exports = {
     "./utils/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   plugins: [],
-  theme: {},
+  theme: {
+    extend: {
+      keyframes: {
+        expandWidth: {
+          "0%": { width: "97px" }, // Tailwind w-20
+          "100%": { width: "100%" },
+        },
+      },
+      animation: {
+        expandWidth: "expandWidth 0.7s ease-out forwards 0.3s",
+        // ^ duration 0.7s, delay 0.3s, and 'forwards' keeps the final state
+      },
+    },
+  },
 };

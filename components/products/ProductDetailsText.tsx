@@ -2,19 +2,20 @@
 import { ProductInterface } from "models/product";
 import { useParams, useSearchParams } from "next/navigation";
 import { useEffect, useState, useMemo } from "react";
-import { useDispatch } from "react-redux";
+import { useAppStore } from "store";
 import { Sendevent, translateFunction } from "utils/functions";
+import { GA_CLICK_EVENT_VALUES, GA_EVENT_NAMES } from "utils/GAEvents";
 
 function ProductDetailsText({
   details,
   product,
 }: {
   details: string;
-  product: ProductInterface;
+  product: ProductInterface["sync_color_images"];
 }) {
+  const { setActiveColorDetails } = useAppStore();
   const { lang } = useParams();
   const searchParams = useSearchParams();
-  const dispatch = useDispatch();
   // @ts-ignore
   const languageVariable = lang?.split("-")[1];
   const translate = useMemo(
@@ -28,21 +29,21 @@ function ProductDetailsText({
   useEffect(() => {
     const color = searchParams.get("color");
     if (color) {
-      const selectedColor = product.sync_color_images?.find(
-        (s) => s.color_name === color
-      );
+      const selectedColor = product?.find((s) => s.color_name === color);
       if (selectedColor) {
-        dispatch({ type: "SET-ACTIVE-COLOR-DETAILS", payload: selectedColor });
+        setActiveColorDetails(selectedColor);
       }
     }
-  }, [searchParams, dispatch, product.sync_color_images]);
+  }, [searchParams, product]);
 
   const toggleText = () => {
     const newShowState = !show;
     setShow(newShowState);
     Sendevent({
-      event: "button_clicked",
-      value: newShowState ? "read_more_button" : "read_less_button",
+      event: GA_EVENT_NAMES.CLICK,
+      value: newShowState
+        ? GA_CLICK_EVENT_VALUES.READ_MORE_BUTTON
+        : GA_CLICK_EVENT_VALUES.READ_LESS_BUTTON,
     });
   };
 

@@ -32,7 +32,6 @@ function WebViewVoiceCall(props) {
       client.on("user-joined", (user) => {
         reset();
         start();
-        console.log("reset");
 
         setUsers((prevUsers) => {
           return [...prevUsers, user];

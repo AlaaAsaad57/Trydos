@@ -1,16 +1,16 @@
 import React from "react";
-import { useDispatch, useSelector } from "react-redux";
+
 import { useSwipeable } from "react-swipeable";
+import { useAppStore } from "store";
 
 function InfoWindow() {
-  const InfoMessage = useSelector(
-    (state: StateInterface) => state.details.InfoMessage
-  );
+  const { closeInfoMessage, InfoMessage } = useAppStore();
+
   let { icon, text, title, showInfoMessage, value } = InfoMessage;
-  const dispatch = useDispatch();
+
   const handlers = useSwipeable({
     onSwipedDown: (e) => {
-      dispatch({ type: "CLOSE-INFO-MESSAGE" });
+      closeInfoMessage();
     },
     delta: 10,
     trackMouse: true,
@@ -26,7 +26,7 @@ function InfoWindow() {
         <div
           className="w-[100vw] h-[100vh] bg-[#1D1D1D] opacity-75 fixed top-0 left-0 z-[999999999989]"
           onClick={() => {
-            dispatch({ type: "CLOSE-INFO-MESSAGE" });
+            closeInfoMessage();
           }}
         />
       )}

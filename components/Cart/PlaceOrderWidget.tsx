@@ -1,5 +1,5 @@
-import { useSelector } from "node_modules/react-redux/es";
 import {
+  formatPrice,
   getConfiguredImage,
   RoundPrice,
   translateFunction,
@@ -20,11 +20,11 @@ import ApplePayIcon from "assets/svg/cart/Payment/ApplePay.svg";
 import GooglePayIcon from "assets/svg/cart/Payment/GooglePay.svg";
 import CryptoIcon from "assets/svg/cart/CryptoIcon.svg";
 import OrderSuccess from "./OrderSuccess";
-import { useParams } from "node_modules/next/navigation";
+import { useParams } from "next/navigation";
+import { useAppStore } from "store";
 function PlaceOrderWidget() {
-  const orderData = useSelector(
-    (state: StateInterface) => state.cart.orderData
-  );
+  const { orderData } = useAppStore();
+
   return (
     <div className="flex-col overflow-auto pb-[292px] max-h-[100vh]">
       {orderData.success && <OrderSuccess />}
@@ -38,10 +38,7 @@ function PlaceOrderWidget() {
 export default PlaceOrderWidget;
 
 const OrderCartItem = () => {
-  const items = useSelector((state: StateInterface) => state.cart.cart);
-  const orders = useSelector(
-    (state: StateInterface) => state.cart.orderData?.data
-  );
+  const { cart, orderData } = useAppStore();
   const { lang } = useParams();
   // @ts-ignore
   const language = lang.split("-")[1];
@@ -58,7 +55,8 @@ const OrderCartItem = () => {
         <div className="regular text-[#1D1D1D] text-[14px] ml-2">
           {translateFunction("Your Shopping Bag", language)}
           <span className={language === "ar" ? "mr-1 bold" : "ml-1 bold"}>
-            {items.length || orders.length}
+            {/* @ts-ignore */}
+            {cart.length || orderData?.data?.length}
             <span className={"ml-1"}>
               {translateFunction("items", language)}
             </span>
@@ -68,8 +66,8 @@ const OrderCartItem = () => {
       <div
         className={`${`pl-[11px] pb-[12px] pt-[11px] `} transition flex-row `}
       >
-        {items.length
-          ? items.map((s, i) => {
+        {cart.length
+          ? cart.map((s, i) => {
               return (
                 <div className="flex relative h-[125px]" key={i}>
                   <span
@@ -89,7 +87,9 @@ const OrderCartItem = () => {
                 </div>
               );
             })
-          : orders.map((s, i) => {
+          : orderData &&
+            // @ts-ignore
+            orderData?.data?.map((s, i) => {
               return (
                 <div className="flex relative h-[125px]" key={i}>
                   <span
@@ -114,6 +114,7 @@ const OrderCartItem = () => {
   );
 };
 const AddressOrder = ({ success }) => {
+  const { addressLists } = useAppStore();
   const GetAddressString = (location) => {
     let str = "";
     if (
@@ -148,9 +149,7 @@ const AddressOrder = ({ success }) => {
       str += ` | ${location?.building}`;
     return str;
   };
-  const addressLists = useSelector(
-    (state: StateInterface) => state.cart.addressLists
-  );
+
   let defaultAddress = addressLists.filter((s) => s.is_default === 1)[0];
   return (
     <div
@@ -397,9 +396,19 @@ const AddressOrder = ({ success }) => {
   );
 };
 const PaymentOrder = ({ success }) => {
-  const orderData = useSelector(
-    (state: StateInterface) => state.cart.orderData
-  );
+  const { orderData, coupon_discount, currency, wallet, total, total_cash } =
+    useAppStore();
+  const getWalletInUSD = () => {
+    if (wallet?.wallet_balance > 0)
+      return wallet?.wallet_balance / currency?.exchange_rate;
+    else return 0;
+  };
+  const showCodValue = () => {
+    if (getWalletInUSD() <= 0 || getWalletInUSD() >= total) return total_cash;
+    if (getWalletInUSD() > 0 && getWalletInUSD() < total) {
+      return total_cash - getWalletInUSD();
+    }
+  };
   return (
     <div className="px-[12px] flex-col">
       <div
@@ -494,24 +503,59 @@ const PaymentOrder = ({ success }) => {
           )}
         </div> */}
         {orderData?.payment?.filter((s) => s.id === 0).length > 0 && (
-          <CODInput
-            total={orderData?.payment?.filter((s) => s.id === 0)[0].balance}
-          />
+          <CODInput total={showCodValue()} />
         )}
         {orderData?.payment?.filter((s) => s.id === 1).length > 0 && (
           <TryDosWalletInput
-            total={orderData?.payment?.filter((s) => s.id === 1)[0].balance}
+            total={
+              orderData?.data?.order_amount ||
+              orderData?.data?.partial_payment_by_wallet ||
+              orderData?.payment?.filter((s) => s.id === 1)[0].balance
+            }
           />
         )}
         {orderData?.payment?.filter((s) => s.id === 2).length > 0 && (
           <CreditInput
-            total={orderData?.payment?.filter((s) => s.id === 2)[0].balance}
+            total={
+              orderData?.data?.order_amount ||
+              orderData?.payment?.filter((s) => s.id === 2)[0].balance
+            }
           />
         )}
         {orderData?.payment?.filter((s) => s.id === 3).length > 0 && (
           <CryptoInput
-            total={orderData?.payment?.filter((s) => s.id === 3)[0].balance}
+            total={
+              orderData?.data?.order_amount ||
+              orderData?.payment?.filter((s) => s.id === 3)[0].balance
+            }
           />
+        )}
+        {coupon_discount > 0 && (
+          <div
+            className={`w-full cursor-pointer pt-[12px] mt-[30px] ${" h-[42px] bg-[#f8f8f8]"} rounded-[15px] flex-col items-start px-[12px]`}
+          >
+            <div className="flex-row ">
+              <div className="regular text-[#1D1D1D] text-[14px] ml-2">
+                {translateFunction("Discount Coupon")}
+              </div>
+            </div>
+
+            <div className="mt-[10px] w-full items-center justify-between flex rounded-[15px] h-[40px] bg-[#F8F8F8] relative">
+              <div className="flex-row items-center w-full">
+                <div
+                  className={`transition-all text-[#1d1d1d] apply-button 
+                    min-w-full
+                    flex items-center justify-center h-[40px] rounded-[15px] bg-white`}
+                  style={{ border: "1px solid rgb(56 144 255 / 51%)" }}
+                >
+                  {`- ${RoundPrice({
+                    num: coupon_discount,
+                    returnNumber: true,
+                  })} ${currency.symbol}`}
+                </div>
+              </div>
+            </div>
+          </div>
         )}
       </div>
       {/* {
@@ -529,9 +573,7 @@ const PaymentOrder = ({ success }) => {
   );
 };
 const CODInput = ({ total }) => {
-  const currency_symbol = useSelector(
-    (state: StateInterface) => state.homepage.currency
-  );
+  const { currency, cod_cost } = useAppStore();
   return (
     <div
       className="w-full cursor-pointer mt-[10px] items-center pl-[23px] justify-between pr-[26px] flex rounded-[15px] h-[40px] bg-[#F8F8F8] relative"
@@ -551,16 +593,15 @@ const CODInput = ({ total }) => {
           {translateFunction("Total")}
         </span>
         <span className="text-[#1D1D1D] semibold text-[12px] ml-1">
-          {RoundPrice({ num: total })} {currency_symbol?.symbol}
+          {RoundPrice({ num: cod_cost, returnNumber: true })} {currency?.symbol}
         </span>
       </div>
     </div>
   );
 };
 const TryDosWalletInput = ({ total }) => {
-  const currency_symbol = useSelector(
-    (state: StateInterface) => state.homepage.currency
-  );
+  const { currency } = useAppStore();
+
   return (
     <div
       className="w-full cursor-pointer mt-[10px] items-center pl-[23px] justify-between pr-[26px] flex rounded-[15px] h-[40px] bg-[#F8F8F8] relative"
@@ -579,7 +620,7 @@ const TryDosWalletInput = ({ total }) => {
           {translateFunction("Total")}
         </span>
         <span className="text-[#1D1D1D] semibold text-[12px] ml-1">
-          {RoundPrice({ num: total })} {currency_symbol?.symbol}
+          {RoundPrice({ num: total, returnNumber: true })} {currency?.symbol}
         </span>
       </div>
     </div>

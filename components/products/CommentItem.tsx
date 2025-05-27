@@ -38,7 +38,7 @@ function CommentItem({
         />
       )}
       <div className="comment-photo">
-        <Image src={photo} unoptimized width={20} height={20} alt={name} />
+        <Image src={photo} width={20} height={20} alt={name} />
       </div>
       <div className="comment-content">
         <div className="comment-source" data-cy="Source-Of-Comment">

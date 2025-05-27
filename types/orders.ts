@@ -2,8 +2,18 @@ export interface OrderItem {
   id: number;
   customer_id: number;
   payment_status: string;
-  order_status: string;
-  payment_method: string;
+  order_status: {
+    value: string;
+    label: string;
+  };
+  order_group_status: {
+    value: string;
+    label: string;
+  };
+  payment_method: {
+    value: string;
+    label: string;
+  };
   transaction_ref: string;
   order_amount: number;
   partial_payment_by_wallet: number;
@@ -60,8 +70,12 @@ export interface OrderDetail {
   id: number;
   order_id: number;
   product_id: number;
+  product_slug: string;
+  image: string;
+  order_status: string;
   product_details: {
     id: number;
+    count_of_pieces: any;
     name: string;
     slug: string;
     share_link: string;
@@ -71,7 +85,7 @@ export interface OrderDetail {
     price: number;
     offer_price: number;
     is_favourite: boolean;
-    in_stock: boolean;
+    is_active: boolean;
     rating: {
       overall_rating: number;
       total_rating: number;

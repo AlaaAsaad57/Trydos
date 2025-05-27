@@ -1,15 +1,21 @@
 import { AxiosGet, AxiosPost } from "utils/AxiosApi";
-import { store } from "store";
+import { useAppStore } from "store";
 import { GetAddressListApi, GetWalletApi, PlaceOrderApi } from "models/Api";
-import { GetCartOreview } from "utils/functions";
+import { GetCartOreview, toUSD } from "utils/functions";
+import { getCurrency } from "utils/tinyUtils";
 
 class OrderService {
   async PlaceOrder({ payment_method, pay_by_wallet }) {
-    let addressId = store
-      .getState()
-      .cart.addressLists.filter((s) => s.is_default === 1)[0]?.id;
+    const {
+      addressLists,
+      setOrderLoading,
+      setOrderSuccess,
+      setOrderData,
+      setCryptoCardPayment,
+    } = useAppStore.getState();
+    let addressId = addressLists.filter((s) => s.is_default === 1)[0]?.id;
     try {
-      store.dispatch({ type: "ORDER-LOADING", payload: true });
+      setOrderLoading(true);
       let data: PlaceOrderApi = await AxiosPost({
         url:
           process.env.NEXT_PUBLIC_BACKEND_URL +
@@ -21,53 +27,60 @@ class OrderService {
       });
 
       if (!data[0]?.url) {
-        store.dispatch({ type: "ORDER-SUCCESS", payload: { data } });
-        store.dispatch({
-          type: "ORDER-DATA",
-          payload: { data, success: true },
-        });
+        setOrderSuccess({ data });
+        setOrderData({ data, success: true });
       } else {
-        store.dispatch({ type: "CRYPTO_CARD_PAYMENT", payload: data[0] });
+        setCryptoCardPayment(data[0]);
       }
 
-      store.dispatch({ type: "ORDER-LOADING", payload: false });
+      setOrderLoading(false);
     } catch (error) {
-      store.dispatch({ type: "ORDER-LOADING", payload: false });
+      setOrderLoading(false);
     }
   }
   async GetWallet() {
+    const { setOrderLoading, setWalletUser, setCurrency } =
+      useAppStore.getState();
     try {
-      store.dispatch({ type: "ORDER-LOADING", payload: true });
+      setOrderLoading(true);
+      getCurrency({
+        callback: (data) => {
+          setCurrency(data.currency);
+        },
+      });
       let data: GetWalletApi = await AxiosGet({
         url:
           process.env.NEXT_PUBLIC_BACKEND_URL +
           "/customer/wallet/list?limit=10&offset=1",
         title: "Get Wallet",
       });
-      store.dispatch({
-        type: "WALLET-USER",
-        payload: data,
+      setWalletUser({
+        ...data,
+        wallet_balance: data.wallet_balance || 0,
       });
-      store.dispatch({ type: "ORDER-LOADING", payload: false });
+      setOrderLoading(false);
     } catch (error) {
-      store.dispatch({ type: "ORDER-LOADING", payload: false });
+      setOrderLoading(false);
     }
   }
   async GetAddressList() {
+    const { setOrderLoading, setAddressList } = useAppStore.getState();
+    this.GetProvinces();
     try {
-      store.dispatch({ type: "ORDER-LOADING", payload: true });
+      setOrderLoading(true);
       let data: GetAddressListApi = await AxiosGet({
         url: process.env.NEXT_PUBLIC_BACKEND_URL + "/customer/address/list",
         title: "Get Address List",
       });
-
-      store.dispatch({ type: "GET-ADRRESS-LIST", payload: data });
-      store.dispatch({ type: "ORDER-LOADING", payload: false });
+      setAddressList(data);
+      setOrderLoading(false);
     } catch (error) {
-      store.dispatch({ type: "ORDER-LOADING", payload: false });
+      setOrderLoading(false);
     }
   }
   async SetDefault({ id }) {
+    const { setOrderLoading } = useAppStore.getState();
+
     let details = {
       address_id: id,
     };
@@ -79,7 +92,7 @@ class OrderService {
     }
     formBody = formBody.join("&");
     try {
-      store.dispatch({ type: "ORDER-LOADING", payload: true });
+      setOrderLoading(true);
       let data = await AxiosPost({
         url:
           process.env.NEXT_PUBLIC_BACKEND_URL + "/customer/address/set-default",
@@ -87,12 +100,14 @@ class OrderService {
         body: formBody,
       });
       await GetCartOreview();
-      store.dispatch({ type: "ORDER-LOADING", payload: false });
+      setOrderLoading(false);
     } catch (error) {
-      store.dispatch({ type: "ORDER-LOADING", payload: false });
+      setOrderLoading(false);
     }
   }
   async AddAddressList({ address, callback }) {
+    const { setOrderLoading } = useAppStore.getState();
+
     let body = {
       latitude: address.location?.latitude,
       longitude: address.location?.longitude,
@@ -118,7 +133,7 @@ class OrderService {
     }
     formBody = formBody.join("&");
     try {
-      store.dispatch({ type: "ORDER-LOADING", payload: true });
+      setOrderLoading(true);
       let data = await AxiosPost({
         url: process.env.NEXT_PUBLIC_BACKEND_URL + "/customer/address/add",
         title: "Add Address",
@@ -127,13 +142,15 @@ class OrderService {
       await this.GetAddressList();
       await GetCartOreview();
       callback();
-      store.dispatch({ type: "ADD-ADRRESS-LIST", payload: data });
-      store.dispatch({ type: "ORDER-LOADING", payload: false });
+
+      setOrderLoading(false);
     } catch (error) {
-      store.dispatch({ type: "ORDER-LOADING", payload: false });
+      setOrderLoading(false);
     }
   }
   async UpdateAddressList({ address, callback }) {
+    const { setOrderLoading } = useAppStore.getState();
+
     let body = {
       id: address.id,
       latitude: address.location?.latitude,
@@ -160,7 +177,7 @@ class OrderService {
     }
     formBody = formBody.join("&");
     try {
-      store.dispatch({ type: "ORDER-LOADING", payload: true });
+      setOrderLoading(true);
       let data = await AxiosPost({
         url: process.env.NEXT_PUBLIC_BACKEND_URL + "/customer/address/update",
         title: "Update Address",
@@ -168,14 +185,16 @@ class OrderService {
       });
       callback();
 
-      store.dispatch({ type: "ORDER-LOADING", payload: false });
+      setOrderLoading(false);
     } catch (error) {
-      store.dispatch({ type: "ORDER-LOADING", payload: false });
+      setOrderLoading(false);
     }
   }
   async DeleteAddressList({ address }) {
+    const { setOrderLoading } = useAppStore.getState();
+
     try {
-      store.dispatch({ type: "ORDER-LOADING", payload: true });
+      setOrderLoading(true);
       let data = await AxiosPost({
         url:
           process.env.NEXT_PUBLIC_BACKEND_URL +
@@ -185,9 +204,26 @@ class OrderService {
         hasMessageOnly: true,
       });
 
-      store.dispatch({ type: "ORDER-LOADING", payload: false });
+      setOrderLoading(false);
     } catch (error) {
-      store.dispatch({ type: "ORDER-LOADING", payload: false });
+      setOrderLoading(false);
+    }
+  }
+  async GetProvinces() {
+    const { setOrderLoading, setProvinces } = useAppStore.getState();
+    try {
+      setOrderLoading(true);
+      let data = await AxiosGet({
+        url:
+          process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL +
+          "/api/addresses/get-provinces-by-iso",
+        title: "Get Provinces",
+      });
+
+      setProvinces(data);
+      setOrderLoading(false);
+    } catch (error) {
+      setOrderLoading(false);
     }
   }
 }

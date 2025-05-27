@@ -8,17 +8,16 @@ import ArrowIcon from "../svg/arrow.svg";
 import ContactIcon from "../svg/contact.svg";
 import StoriesList from "./StoriesList";
 
-import { useDispatch, useSelector } from "react-redux";
 import ContactLists from "./ContactLists";
 import { getUserChat, translateFunction } from "utils/functions";
-import { GetLastSeen, setLastSeen } from "store/chat/actions";
+import { setLastSeen } from "store/chat/actions";
+import { useAppStore } from "store";
 function ChatWindow(props) {
+  const { language, forwarded_message, setMain, setForwardMessage } =
+    useAppStore();
   const Tabs = ["Chats", "Calls", "Stories"];
-  const language = useSelector((state) => state.homepage.language);
-  let forwarded_message = useSelector((state) => state.chat.forwarded_message);
-  let activeChat = useSelector((state) => state.chat.activeChat);
   const [SelectedTab, setSelectedTab] = useState("Chats");
-  const dispatch = useDispatch();
+
   useEffect(() => {
     setLastSeen(getUserChat()?.id?.toString());
     let interval = setInterval(() => {
@@ -49,8 +48,8 @@ function ChatWindow(props) {
           <div
             className="forward-cancel-icon"
             onClick={() => {
-              dispatch({ type: "FORWARD-MESSAGEs", payload: null });
-              dispatch({ type: "MAIN", payload: "chat" });
+              setForwardMessage(null);
+              setMain("chat");
             }}
           >
             <ArrowIcon />

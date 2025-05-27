@@ -1,23 +1,30 @@
 "use client";
 import { StoriesInterface } from "models/Stories";
-import { store } from "store";
+
 import { _isStoreLastJson, getLang } from "utils/functions";
 import {
   GET_USERS_STORIES,
   LOG_IN_STORIES,
   UPLOAD_STORY_URL,
 } from "utils/endpointConfig";
-import { getUserStories } from "utils/functions";
+
 import Cookies from "js-cookie";
 import axios from "axios";
 import { GetStoriesApi, LoginStoreisApi, UploadStoryApi } from "models/Api";
+import profilePicture from "public/images/profileNo.png";
+import { useAppStore } from "store";
+import { AxiosGet } from "utils/AxiosApi";
+import { formatTime } from "utils/tinyUtils";
 
 class StoryService {
   /* get stories */
 
-  async getStories() {
+  async getStories(page: number = 1) {
+    const { setStoryData, storiesData } = useAppStore.getState();
     const res = await fetch(
-      process.env.NEXT_PUBLIC_STORIES_BACKEND_URL + GET_USERS_STORIES,
+      process.env.NEXT_PUBLIC_STORIES_BACKEND_URL +
+        GET_USERS_STORIES +
+        `?page=${page}`,
       {
         headers: {
           Authorization:
@@ -32,14 +39,17 @@ class StoryService {
       }
     );
     let repo: GetStoriesApi = await res.json();
-
     const data: StoriesInterface[] = repo.data.data;
-    store.dispatch({ type: "STORY-DATA", payload: data });
+    if (page == 1) {
+      setStoryData(data);
+    } else {
+      setStoryData([...storiesData, ...data]);
+    }
     if (typeof window !== "undefined") {
       _isStoreLastJson() &&
         localStorage.setItem("LAST_JSON", JSON.stringify(res));
     }
-    return data;
+    return { data, next_page_url: repo.data.next_page_url };
   }
   async loginStories() {
     const response: LoginStoreisApi = await axios.post(
@@ -61,9 +71,11 @@ class StoryService {
     await this.getStories();
   }
   async WatchStory(pid: number | string, id: number | string) {
+    const { watchStory } = useAppStore.getState();
     try {
-      if (getUserStories()?.id) {
-        store.dispatch({ type: "WATCH-STORY", payload: { pid: pid, id: id } });
+      if (this.getUserStories()?.id) {
+        watchStory({ pid: pid, id: id });
+
         const response = await fetch(
           process.env.NEXT_PUBLIC_STORIES_BACKEND_URL +
             "/api/v1/stories/increase_viewers/" +
@@ -94,11 +106,15 @@ class StoryService {
     file: File,
     callback: Function,
     is_video: any,
-    endUpload: Function
+    endUpload: Function,
+    link
   ) {
     try {
       let axios = (await import("axios")).default;
       const formData = new FormData();
+      if (link?.length) {
+        formData.append("link", link);
+      }
       formData.append("file", file);
       formData.append("is_video", is_video);
       const response: UploadStoryApi = await axios.post(
@@ -132,6 +148,88 @@ class StoryService {
     } catch (e) {
       callback(null);
       endUpload();
+      throw e;
+    }
+  }
+  getUserStories() {
+    return (
+      localStorage.getItem("USER-STORIES") &&
+      JSON.parse(localStorage.getItem("USER-STORIES"))
+    );
+  }
+  configureStory(story) {
+    let returnedData = [];
+    story?.stories?.map((storyItem) => {
+      if (storyItem.full_video_path) {
+        let vid = storyItem.full_video_path.replace(
+          "/upload",
+          "/upload/w_700/f_webm/q_auto"
+        );
+        returnedData.push({
+          url: vid,
+          link: storyItem.link,
+          FixedUrl: vid,
+          is_seen: storyItem.is_seen,
+          id: storyItem.id,
+          header: {
+            heading: story.name ?? story.mobile_phone ?? "Unknown",
+            subheading: formatTime(storyItem.created_at),
+            profileImage: story.photo_path
+              ? story.photo_path?.includes("http")
+                ? story.photo_path
+                : process.env.NEXT_PUBLIC_CLOUDINARY_URL + story.photo_path
+              : profilePicture.src,
+          },
+          duration: storyItem.duration,
+          preloadResource: true,
+          type: "video",
+        });
+      } else if (storyItem.photo_path) {
+        let img = storyItem.photo_path.replace(
+          "/upload",
+          "/upload/w_800/f_avif/q_auto"
+        );
+        returnedData.push({
+          url: img,
+          link: storyItem.link,
+          FixedUrl: img,
+          is_seen: storyItem.is_seen,
+          duration: 5000,
+          id: storyItem.id,
+          header: {
+            heading: story.name ?? story.mobile_phone ?? "Unknown",
+            subheading: formatTime(storyItem.created_at),
+            profileImage: story.photo_path
+              ? story.photo_path?.includes("http")
+                ? story.photo_path
+                : process.env.NEXT_PUBLIC_CLOUDINARY_URL + story.photo_path
+              : profilePicture.src,
+          },
+          preloadResource: true,
+          type: "image",
+        });
+      }
+    });
+    return { ...story, stories: returnedData };
+  }
+  getThumb(url, isVideo) {
+    if (url) {
+      if (isVideo) {
+        return url.replace("/upload", "/upload/h_194/f_avif/q_100");
+      } else return url.replace("/upload", "/upload/h_194/f_avif/q_100");
+    }
+  }
+  async getStoriesForProducts({ id, page }) {
+    try {
+      let data = await AxiosGet({
+        url:
+          process.env.NEXT_PUBLIC_STORIES_BACKEND_URL +
+          `/api/v1/stories/product_stories/${id}?page=${page}`,
+      });
+      return data;
+    } catch (error) {
+      console.log(error);
+      return [];
     }
   }
 }

@@ -11,23 +11,25 @@ import {
 } from "utils/functions";
 
 import CameraShotGallery from "./CameraShotGallery";
-import { useDispatch } from "react-redux";
 import CircleBorder from "public/svg/product/CircleBorder";
 import { useParams } from "next/navigation";
+import { useAppStore } from "store";
+import { GA_CLICK_EVENT_VALUES, GA_EVENT_NAMES } from "utils/GAEvents";
 
 function CameraShots({ images }) {
+  const { setActiveCameraGallery, showInfoMessage } = useAppStore();
   let { lang } = useParams();
   // @ts-ignore
   let languageVariable = lang.split("-")[1];
   const translate = (key, lang?) => {
     return translateFunction(key, languageVariable);
   };
-  const dispatch = useDispatch();
+
   return (
     <>
       <CameraShotGallery
         close={() => {
-          dispatch({ type: "ACTIVE-CAMERA-GALLERY", payload: false });
+          setActiveCameraGallery(false);
           document.documentElement.style.overflow = "initial";
         }}
         images={images}
@@ -37,10 +39,10 @@ function CameraShots({ images }) {
         data-cy="CameraProduct"
         onClick={() => {
           Sendevent({
-            event: "button_clicked",
-            value: "show_buyers_camera_button",
+            event: GA_EVENT_NAMES.CLICK,
+            value: GA_CLICK_EVENT_VALUES.SHOW_BUYERS_CAMERA_BUTTON,
           });
-          dispatch({ type: "ACTIVE-CAMERA-GALLERY", payload: true });
+          setActiveCameraGallery(true);
           window.scrollTo({ top: 0 });
           document.documentElement.style.overflow = "hidden";
         }}
@@ -54,17 +56,16 @@ function CameraShots({ images }) {
             data-cy="QuestionMark"
             style={{ marginLeft: "9px" }}
             onClick={() => {
-              dispatch({
-                type: "SHOW-INFO-MESSAGE",
-                payload: {
-                  showInfoMessage: true,
-                  title: ` ${translate("Buyers Camera")} 12 ${translate(
-                    "Shot"
-                  )}`,
-                  text: "According To The Opinions Of Our Fashion Team, The Appropriate Occasions For This Product Have Been Identified Based On Long Experience. We Provide An Opinion Only And Opinions May Differ From One Person To Another. So It Is Suitable For",
-                  icon: "/svg/product/CameraShotIcon.svg",
-                  value: ["Birthday", "Casual", "Business"],
-                },
+              Sendevent({
+                event: GA_EVENT_NAMES.CLICK,
+                value: GA_CLICK_EVENT_VALUES.SHOW_BUYERS_CAMERA_INFO_MESSAGE,
+              });
+              showInfoMessage({
+                showInfoMessage: true,
+                title: ` ${translate("Buyers Camera")} 12 ${translate("Shot")}`,
+                text: "According To The Opinions Of Our Fashion Team, The Appropriate Occasions For This Product Have Been Identified Based On Long Experience. We Provide An Opinion Only And Opinions May Differ From One Person To Another. So It Is Suitable For",
+                icon: "/svg/product/CameraShotIcon.svg",
+                value: ["Birthday", "Casual", "Business"],
               });
             }}
           />

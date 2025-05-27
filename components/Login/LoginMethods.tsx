@@ -1,13 +1,17 @@
 import { useEffect, useState } from "react";
 import Qr from "public/svg/qr.svg";
 import LoginCall from "public/svg/loginCall.svg";
-import { translateFunction } from "utils/functions";
-import { useSelector } from "react-redux";
+import { Sendevent, translateFunction } from "utils/functions";
+
 import Border from "./Border";
 import "styles/methods.css";
 import { useParams } from "next/navigation";
+import { useAppStore } from "store";
+import { GA_CLICK_EVENT_VALUES, GA_EVENT_NAMES } from "utils/GAEvents";
 
 const LoginMethods = ({ confirm }) => {
+  const { language } = useAppStore();
+
   let { lang } = useParams();
   // @ts-ignore
   let languageVariable = lang.split("-")[1];
@@ -15,9 +19,6 @@ const LoginMethods = ({ confirm }) => {
     return translateFunction(key, languageVariable);
   };
   const [showQr, setShowQr] = useState(false);
-  const language = useSelector(
-    (state: StateInterface) => state.homepage.language
-  );
   useEffect(() => {
     let e = document.querySelector<HTMLDivElement>(".login-widget-container");
     if (e.classList.contains("qr-extend-comtainer")) {
@@ -32,6 +33,10 @@ const LoginMethods = ({ confirm }) => {
         data-testid="login-method-qr"
         className={`${showQr ? "qr-extended" : ""} login-method-qr`}
         onClick={(e) => {
+          Sendevent({
+            event: GA_EVENT_NAMES.CLICK,
+            value: GA_CLICK_EVENT_VALUES.LOGIN_METHOD_QR_BUTTON,
+          });
           e.preventDefault();
           setShowQr(!showQr);
         }}
@@ -4677,7 +4682,13 @@ const LoginMethods = ({ confirm }) => {
         <div
           data-cy="login-method-phone"
           className="login-method-phone"
-          onClick={() => confirm()}
+          onClick={() => {
+            Sendevent({
+              event: GA_EVENT_NAMES.CLICK,
+              value: GA_CLICK_EVENT_VALUES.LOGIN_METHOD_PHONE_BUTTON,
+            });
+            confirm();
+          }}
         >
           <Border className="border-button" />
           <LoginCall />

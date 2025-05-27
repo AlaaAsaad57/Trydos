@@ -5,49 +5,24 @@ const CircularProgressbarComponent = dynamic(() => import("./Progress"), {
   ssr: false,
 });
 import PlusIcon from "public/svg/chatplus.svg";
-import { useDispatch, useSelector } from "react-redux";
 import { AddStoryAction } from "store/homepage/actions";
 import { revalidateStories } from "utils/serverActions";
-const NewStoryModal = dynamic(() => import("./Stories/CameraStory"), {
-  ssr: false,
-});
-import { dataURLtoFile } from "components/Chat/chatsFunctions";
 import dynamic from "next/dynamic";
-import { toast } from "react-toastify";
-import { Sendevent, translateFunction } from "utils/functions";
+import { Sendevent } from "utils/functions";
+import { useAppStore } from "store";
+import AddStoryWidget from "./Stories/AddStoryWidget";
+import {
+  GA_CLICK_EVENT_VALUES,
+  GA_EVENT_NAMES,
+  GA_PROGRAMMING_EVENT_VALUES,
+} from "utils/GAEvents";
 
 function AddStory() {
+  const { user, setNameModal, addStoryEnable, setAddStory } = useAppStore();
   const [uploaded, setUpload] = useState(0);
-  const language: string = useSelector(
-    (state: StateInterface) => state.homepage.language
-  );
-  const [openMenu, setOpenMenu] = useState(false);
-  const OpenCamera = useSelector(
-    (state: StateInterface) => state.homepage.OpenCamera
-  );
-  const setOpenCamera = (value: boolean) => {
-    if (value) {
-      // @ts-ignore
-      document.querySelector(".stories-bar-container").style.zIndex =
-        "999999999999999999999999";
-      // @ts-ignore
-      document.querySelector(".stories-bars").classList.add("overflow-visible");
-      dispatch({ type: "OPEN_CAMERA", payload: value });
-    } else {
-      // @ts-ignore
-      document.querySelector(".stories-bar-container").style.zIndex =
-        "99999999";
-      // @ts-ignore
-      document
-        .querySelector(".stories-bars")
-        .classList.remove("overflow-visible");
-      dispatch({ type: "OPEN_CAMERA", payload: value });
-    }
-  };
   const [isSelected, setIsSelected] = useState(null);
   const [file, setFile] = useState(null);
-  const dispatch = useDispatch();
-  const handleChange = async (e: any) => {
+  const handleChange = async (e, link) => {
     const { toast } = await import("react-toastify");
     if (e.target.files[0]?.type.includes("video")) {
       new Promise((resolve, reject) => {
@@ -69,10 +44,7 @@ function AddStory() {
                 return;
               } else {
                 clearInterval(timer);
-                Sendevent({
-                  event: "button_clicked",
-                  value: "confirm_upload_story_button",
-                });
+
                 let path = await StoryService.upload(
                   e.target.files[0],
                   (e) => setUpload(e),
@@ -80,20 +52,21 @@ function AddStory() {
                   () => {
                     setIsSelected(null);
                     setFile(null);
-                  }
+                  },
+                  link
                 )
                   .then((data) => {
                     Sendevent({
-                      event: "programming_event",
-                      value: "upload_story_success",
+                      event: GA_EVENT_NAMES.PROGRAMMING_EVENT,
+                      value: GA_PROGRAMMING_EVENT_VALUES.UPLOAD_STORY_SUCCESS,
                     });
 
-                    dispatch(AddStoryAction(data));
+                    AddStoryAction(data);
                   })
                   .catch((e) => {
                     Sendevent({
-                      event: "programming_event",
-                      value: "upload_story_failed",
+                      event: GA_EVENT_NAMES.PROGRAMMING_EVENT,
+                      value: GA_PROGRAMMING_EVENT_VALUES.UPLOAD_STORY_FAILED,
                     });
 
                     setFile(null);
@@ -121,13 +94,15 @@ function AddStory() {
         reader.readAsDataURL(e.target.files[0]);
         reader.onload = async () => {
           setIsSelected(reader.result);
+
           let path = await StoryService.upload(
             e.target.files[0],
             (e) => setUpload(e),
             0,
-            () => {}
+            () => {},
+            link
           ).then((data) => {
-            dispatch(AddStoryAction(data));
+            AddStoryAction(data);
           });
           setIsSelected(path);
           setFile(e.target.files[0]);
@@ -139,229 +114,144 @@ function AddStory() {
       });
     }
   };
-  const HandleUploadedVideo = async (e) => {
-    if (e.target.files[0]?.type.includes("video")) {
-      new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.readAsDataURL(e.target.files[0]);
-        reader.onload = async () => {
-          setFile(e.target.files[0]);
-          setIsSelected(reader.result);
-          let path = await StoryService.upload(
-            e.target.files[0],
-            (e: any) => setUpload(e),
-            1,
-            () => {
-              setIsSelected(null);
-              setFile(null);
-            }
-          )
-            .then((data) => {
-              dispatch(AddStoryAction(data));
-            })
-            .catch((e) => {
-              setFile(null);
-              setIsSelected(null);
+  // const HandleUploadedVideo = async (e) => {
+  //   if (e.target.files[0]?.type.includes("video")) {
+  //     new Promise((resolve, reject) => {
+  //       const reader = new FileReader();
+  //       reader.readAsDataURL(e.target.files[0]);
+  //       reader.onload = async () => {
+  //         setFile(e.target.files[0]);
+  //         setIsSelected(reader.result);
+  //         let path = await StoryService.upload(
+  //           e.target.files[0],
+  //           (e: any) => setUpload(e),
+  //           1,
 
-              toast.error("Upload Failed Try Again");
-            });
-          setIsSelected(path);
-          setFile(e.target.files[0]);
+  //           () => {
+  //             setIsSelected(null);
+  //             setFile(null);
+  //           }
+  //         )
+  //           .then((data) => {
+  //             AddStoryAction(data);
+  //           })
+  //           .catch((e) => {
+  //             setFile(null);
+  //             setIsSelected(null);
 
-          setIsSelected(null);
-          setFile(null);
-          revalidateStories();
-        };
-      });
-    }
+  //             toast.error("Upload Failed Try Again");
+  //           });
+  //         setIsSelected(path);
+  //         setFile(e.target.files[0]);
+
+  //         setIsSelected(null);
+  //         setFile(null);
+  //         revalidateStories();
+  //       };
+  //     });
+  //   }
+  // };
+  const selectMedia = async ({ imageFile, link }) => {
+    handleChange({ target: { files: [imageFile] } }, link);
   };
-  const sendStory = async (imageFile) => {
-    let a = dataURLtoFile(
-      imageFile,
-      "image-story" + parseInt((Math.random() * 1000).toString())
-    );
-    handleChange({ target: { files: [a] } });
-  };
-  return (
-    <>
-      {OpenCamera && (
-        <NewStoryModal
-          send={(e) => {
-            sendStory(e);
-          }}
-          HandleUploadedVideo={(e) => {
-            let a = dataURLtoFile(
-              e,
-              "image-story" + parseInt((Math.random() * 1000).toString())
-            );
-            HandleUploadedVideo({ target: { files: [a] } });
-          }}
-          close={() => {
-            setOpenCamera(false);
-            document.body.style.overflow = "scroll";
-          }}
-        />
-      )}
-      {openMenu && (
-        <div
-          className={`lang-modalDisable addStory-modal ${openMenu && "open"}`}
-          onClick={() => setOpenMenu(false)}
-        >
-          <div
-            className="file-picker"
-            style={{
-              width: "150px",
-              height: "auto",
-              backgroundColor: "#FAFAFA",
-              position: "absolute",
-              top: "200px",
-              overflow: "hidden",
-              left: "20px",
 
-              zIndex: 999999,
-              borderRadius: "15px",
+  if (user)
+    return (
+      <>
+        {addStoryEnable && (
+          <AddStoryWidget
+            selectMedia={({ media, link }) => {
+              selectMedia({ imageFile: media, link: link });
             }}
-          >
-            <div
-              className="menuItem"
-              style={{
-                width: "100%",
-                borderTopRightRadius: "15px",
-                borderTopLeftRadius: "15px",
-                padding: "10px",
-                cursor: "pointer",
-                textAlign: "center",
-                border: "#00000029 1px solid",
-              }}
-              onClick={(e) => {
-                setOpenCamera(true);
-                Sendevent({
-                  event: "button_clicked",
-                  value: "upload_camera_button",
-                });
-                document.body.style.overflow = "hidden";
-              }}
-            >
-              {translateFunction("From Camera")}
-            </div>
-            <div
-              className="menuItem"
-              data-cy="Gallery-Photo-Option"
-              style={{
-                width: "100%",
-                borderBottomRightRadius: "15px",
-                cursor: "pointer",
-                borderBottomLeftRadius: "15px",
-                padding: "10px",
-                textAlign: "center",
-                border: "#00000029 1px solid",
-              }}
-              onClick={() => {
-                Sendevent({
-                  event: "button_clicked",
-                  value: "upload_gallery_button",
-                });
-
-                if (!isSelected) {
-                  let Image = document.createElement("input");
-                  Image.onblur = () => {};
-                  Image["data-cy"] = "Input-Story-File";
-                  Image.onchange = async (e) => {
-                    handleChange(e);
-                  };
-                  Image.type = "file";
-                  Image.hidden = true;
-                  Image.accept =
-                    "image/*;capture=camera,video/*;capture=camera";
-                  Image.style.position = "absolute";
-                  Image.style.position = "0";
-                  let i = document.body.appendChild(Image);
-                  i.click();
-                }
-              }}
-            >
-              {translateFunction("From Files")}
-            </div>
-          </div>
-        </div>
-      )}
-      <div
-        data-cy="Add-Story-Button"
-        className="story-element-container add-story-container flex align-center justify-center"
-        style={{
-          borderRadius: "20px",
-          animation: "none",
-          backgroundColor: !isSelected && "#f0f0f0",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-        onClick={() => {
-          if (JSON.parse(localStorage.getItem("USER"))?.name?.length > 1) {
-            Sendevent({
-              event: "button_clicked",
-              value: "upload_story_button",
-            });
-            setOpenMenu(true);
-          } else dispatch({ type: "SHOW-MODAL", payload: true });
-        }}
-      >
-        {isSelected ? (
-          <>
-            {uploaded > 0 && (
-              <div
-                className="progress-container"
-                style={{
-                  borderRadius: "20px",
-                  position: "absolute",
-                  top: "0px",
-                  left: "0px",
-                  zIndex: "20",
-                  width: "100%",
-                  height: "100%",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                <CircularProgressbarComponent
-                  strokeWidth={2}
-                  value={uploaded}
-                  text={`${uploaded} %`}
-                />
-              </div>
-            )}
-            {file?.type?.includes("video") ? (
-              <video
-                style={{
-                  borderRadius: "20px",
-                  objectFit: "cover",
-                  height: "100%",
-                }}
-                src={isSelected}
-              />
-            ) : (
-              <img
-                style={{
-                  objectFit: "cover",
-                  width: "100%",
-                  height: "100%",
-                  borderRadius: "20px",
-                }}
-                className="thumb-img"
-                alt="story"
-                src={isSelected}
-              />
-            )}
-          </>
-        ) : (
-          <>
-            <PlusIcon />
-          </>
+            onClose={() => {
+              Sendevent({
+                event: GA_EVENT_NAMES.CLICK,
+                value: GA_CLICK_EVENT_VALUES.CLOSE_ADD_STORY_WIDGET_BUTTON,
+              });
+              setAddStory(false);
+            }}
+          />
         )}
-      </div>
-    </>
-  );
+        <div
+          data-cy="Add-Story-Button"
+          className="story-element-container add-story-container flex align-center justify-center ml-[20px]"
+          style={{
+            borderRadius: "20px",
+            animation: "none",
+            backgroundColor: !isSelected && "#f0f0f0",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+          onClick={() => {
+            if (JSON.parse(localStorage.getItem("USER"))?.name?.length > 1) {
+              Sendevent({
+                event: GA_EVENT_NAMES.CLICK,
+                value: GA_CLICK_EVENT_VALUES.UPLOAD_STORY_BUTTON,
+              });
+              setAddStory(true);
+            } else {
+              setNameModal(true);
+            }
+          }}
+        >
+          {isSelected ? (
+            <>
+              {uploaded > 0 && (
+                <div
+                  className="progress-container"
+                  style={{
+                    borderRadius: "20px",
+                    position: "absolute",
+                    top: "0px",
+                    left: "0px",
+                    zIndex: "20",
+                    width: "100%",
+                    height: "100%",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <CircularProgressbarComponent
+                    strokeWidth={2}
+                    value={uploaded}
+                    text={`${uploaded} %`}
+                  />
+                </div>
+              )}
+              {file?.type?.includes("video") ? (
+                <video
+                  style={{
+                    borderRadius: "20px",
+                    objectFit: "cover",
+                    height: "100%",
+                  }}
+                  src={isSelected}
+                />
+              ) : (
+                <img
+                  style={{
+                    objectFit: "cover",
+                    width: "100%",
+                    height: "100%",
+                    borderRadius: "20px",
+                  }}
+                  className="thumb-img"
+                  alt="story"
+                  src={isSelected}
+                />
+              )}
+            </>
+          ) : (
+            <>
+              <PlusIcon />
+            </>
+          )}
+        </div>
+      </>
+    );
+  else return <></>;
 }
 
 export default AddStory;

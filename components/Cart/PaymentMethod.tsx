@@ -1,6 +1,5 @@
 import { useParams } from "next/navigation";
-import { useDispatch, useSelector } from "react-redux";
-import { RoundPrice, translateFunction } from "utils/functions";
+import { formatPrice, RoundPrice, translateFunction } from "utils/functions";
 import WalletIcon from "assets/svg/cart/WalletIcon.svg";
 import CreditIcon from "assets/svg/cart/CreditIcon.svg";
 import PaymentIconOne from "assets/svg/cart/Payment/DimondPay.svg";
@@ -17,47 +16,160 @@ import CryptoIcon from "assets/svg/cart/CryptoIcon.svg";
 import Spinner from "components/global/Spinner";
 import CouponElement from "./couponElement";
 import { toast } from "react-toastify";
+import { useAppStore } from "store";
+import { useEffect } from "react";
 function PaymentMethod() {
+  const {
+    setWalletBalance,
+    setCodUser,
+    setCryptoUser,
+    setCreditUser,
+    orderLoading,
+    orderData,
+    available_payment_method,
+    setOrderData,
+    wallet,
+    total,
+    total_cash,
+    currency,
+    cod_cost,
+  } = useAppStore();
   const { lang } = useParams();
   // @ts-ignore
   const language = lang.split("-")[1];
-  const dispatch = useDispatch();
-  const orderLoading = useSelector(
-    (state: StateInterface) => state.cart.orderLoading
-  );
-  const orderData = useSelector(
-    (state: StateInterface) => state.cart.orderData
-  );
-  const cart = useSelector((state: StateInterface) => state.cart);
-  const available_payment_method = useSelector(
-    (state: StateInterface) => state.cart.available_payment_method
-  );
-  const wallet = useSelector((state: StateInterface) => state.cart.wallet);
-  const setOrderData = (e) => {
-    dispatch({ type: "ORDER-DATA", payload: e });
+  const getWalletInUSD = () => {
+    console.log(wallet, currency);
+    if (wallet?.wallet_balance > 0)
+      return wallet?.wallet_balance / currency?.exchange_rate;
+    else return 0;
   };
-  // const totalBalance = () => {
-  //   let val = 0;
-  //   orderData.payment.map((s) => {
-  //     val += s.balance;
-  //   });
-  //   return val;
-  // };
-  // const isBalanceEnough = () => {
-  //   return totalBalance() >= cart.total_cash;
-  // };
+  useEffect(() => {
+    if (getWalletInUSD() > 0 && getWalletInUSD() < total) {
+      setWalletBalance();
+      setOrderData({
+        payment: [
+          ...orderData.payment?.filter((s) => s.id !== 1),
+          {
+            id: 1,
+            balance: getWalletInUSD(),
+          },
+        ],
+      });
+    }
+    if (getWalletInUSD() >= total) {
+      setWalletBalance();
+      setOrderData({
+        payment: [
+          ...orderData.payment?.filter((s) => s.id !== 1),
+          {
+            id: 1,
+            balance: total,
+          },
+        ],
+      });
+    }
+  }, [available_payment_method, wallet]);
+  const handleCODPayment = () => {
+    if (getWalletInUSD() >= total) {
+      toast.info(
+        translateFunction("Only Allowed To Pay through TryDos Wallet")
+      );
+    } else {
+      if (orderData?.payment?.find((s) => s.id === 0)) {
+        setOrderData({
+          payment: orderData?.payment?.filter((s) => s.id !== 0),
+        });
+      } else {
+        setCodUser();
+        setOrderData({
+          payment: [
+            ...orderData.payment?.filter((s) => s.id === 1),
+            {
+              id: 0,
+              balance: total_cash - (getWalletInUSD() || 0),
+            },
+          ],
+        });
+      }
+    }
+  };
+  const handleWalletPayment = () => {
+    if (orderData?.payment?.find((s) => s.id === 1)) {
+      toast.info(translateFunction("Wallet Already Selected"));
+    } else {
+      if (getWalletInUSD() <= 0) {
+        toast.info(translateFunction("your TryDos Wallet balance is empty"));
+      }
+    }
+  };
+  const handleCryptoPayment = () => {
+    if (getWalletInUSD() >= total) {
+      toast.info(
+        translateFunction("Only Allowed To Pay through TryDos Wallet")
+      );
+    } else {
+      if (orderData?.payment?.find((s) => s.id === 3)) {
+        setOrderData({
+          payment: orderData?.payment?.filter((s) => s.id !== 3),
+        });
+      } else {
+        setCryptoUser();
+        setOrderData({
+          payment: [
+            ...orderData.payment?.filter((s) => s.id === 1),
+            {
+              id: 3,
+              balance: total - (getWalletInUSD() || 0),
+            },
+          ],
+        });
+      }
+    }
+  };
+  const handleCardPayment = () => {
+    if (getWalletInUSD() >= total) {
+      toast.info(
+        translateFunction("Only Allowed To Pay through TryDos Wallet")
+      );
+    } else {
+      if (orderData?.payment?.find((s) => s.id === 2)) {
+        setOrderData({
+          payment: orderData?.payment?.filter((s) => s.id !== 2),
+        });
+      } else {
+        setCreditUser();
+        setOrderData({
+          payment: [
+            ...orderData.payment?.filter((s) => s.id === 1),
+            {
+              id: 2,
+              balance: total - (getWalletInUSD() || 0),
+            },
+          ],
+        });
+      }
+    }
+  };
+  const showCodValue = () => {
+    if (getWalletInUSD() <= 0 || getWalletInUSD() >= total) return total_cash;
+    if (getWalletInUSD() > 0 && getWalletInUSD() < total) {
+      return total_cash - getWalletInUSD();
+    }
+  };
   return (
     <>
-      <div className="px-[12px] flex-col">
+      <div data-cy="payment-viewer" className="px-[12px] flex-col">
         <div
+          data-cy="payment-viewer-container"
           style={{
             border: "1px solid rgb(196 194 194 / 51%)",
             borderRadius: "15px",
           }}
           className={`flex-col payment-valid-border ${"mt-[30px] min-h-[203px]"} pb-[12px] relative pr-[12px] pl-[12px] justify-start pt-[15px] w-full  `}
         >
-          <div className="flex-row ">
+          <div data-cy="first-bay-way" className="flex-row ">
             <svg
+              data-cy="payment-viewer-svg"
               id="_15x15_photo_back"
               data-name="15x15 photo back"
               xmlns="http://www.w3.org/2000/svg"
@@ -127,11 +239,17 @@ function PaymentMethod() {
               </g>
             </svg>
 
-            <div className="regular text-[#1D1D1D] text-[14px] ml-2">
+            <div
+              data-cy="payment-viewer-text"
+              className="regular text-[#1D1D1D] text-[14px] ml-2"
+            >
               {translateFunction("Payment Method", language)}
             </div>
           </div>
-          <div className="regular text-[12px] text-[#8D8D8D] ml-[28px]">
+          <div
+            data-cy="payment-viewer-text2"
+            className="regular text-[12px] text-[#8D8D8D] ml-[28px]"
+          >
             {translateFunction(
               "Please Choose Your Payment Method About Your Bag",
               language
@@ -140,7 +258,7 @@ function PaymentMethod() {
           {available_payment_method &&
             available_payment_method.length &&
             available_payment_method.map((item, key) => {
-              if (item === "COD") {
+              if (item?.toLowerCase() === "cash_on_delivery".toLowerCase()) {
                 return (
                   <CODInput
                     key={key}
@@ -148,65 +266,15 @@ function PaymentMethod() {
                       orderData?.payment?.filter((s) => s.id === 0).length > 0
                     }
                     setActive={() => {
-                      if (
-                        !(
-                          wallet?.total_wallet_balance >= cart.total &&
-                          wallet.total_wallet_balance >= cart.total_cash
-                        )
-                      ) {
-                        if (!orderLoading) {
-                          if (
-                            orderData.payment.length === 1 &&
-                            orderData?.payment?.filter((one) => one.id === 1)
-                              .length === 1 &&
-                            orderData?.payment?.filter((one) => one.id === 1)[0]
-                              .balance < cart.total_cash
-                          ) {
-                            dispatch({ type: "COD-USER", payload: true });
-                            setOrderData({
-                              payment: [
-                                ...orderData.payment,
-                                {
-                                  id: 0,
-                                  balance:
-                                    cart.total_cash -
-                                    orderData?.payment?.filter(
-                                      (one) => one.id === 1
-                                    )[0].balance,
-                                },
-                              ],
-                            });
-                          } else {
-                            if (
-                              orderData?.payment?.filter((s) => s.id === 0)
-                                .length > 0
-                            ) {
-                              dispatch({ type: "COD-USER", payload: false });
-                              setOrderData({
-                                payment: orderData?.payment?.filter(
-                                  (s) => s.id !== 0
-                                ),
-                              });
-                            } else {
-                              dispatch({ type: "COD-USER", payload: true });
-                              setOrderData({
-                                payment: [{ id: 0, balance: cart.total_cash }],
-                              });
-                            }
-                          }
-                        }
-                      } else {
-                        toast.info(
-                          translateFunction(
-                            "Only Allowed To Pay through TryDos Wallet"
-                          )
-                        );
+                      if (!orderLoading) {
+                        handleCODPayment();
                       }
                     }}
+                    total={showCodValue()}
                   />
                 );
               }
-              if (item === "TrydosWallet") {
+              if (item?.toLowerCase() === "trydos_wallet".toLowerCase()) {
                 return (
                   <TryDosWalletInput
                     key={key}
@@ -215,54 +283,13 @@ function PaymentMethod() {
                     }
                     setActive={() => {
                       if (!orderLoading) {
-                        if (
-                          orderData.payment.length === 1 &&
-                          orderData?.payment?.filter(
-                            (one) => one.id === 2 || one.id === 3
-                          ).length === 1 &&
-                          wallet?.total_wallet_balance < cart.total_cash
-                        ) {
-                          dispatch({
-                            type: "WALLET_BALANCE-USER",
-                            payload: true,
-                          });
-                          setOrderData({
-                            payment: [
-                              ...orderData.payment,
-                              { id: 1, balance: wallet?.total_wallet_balance },
-                            ],
-                          });
-                        } else {
-                          if (
-                            orderData?.payment?.filter((s) => s.id === 1)
-                              .length > 0
-                          ) {
-                            setOrderData({
-                              payment: orderData?.payment?.filter(
-                                (s) => s.id !== 1
-                              ),
-                            });
-                          } else {
-                            dispatch({
-                              type: "WALLET_BALANCE-USER",
-                              payload: false,
-                            });
-                            setOrderData({
-                              payment: [
-                                {
-                                  id: 1,
-                                  balance: wallet?.total_wallet_balance,
-                                },
-                              ],
-                            });
-                          }
-                        }
+                        handleWalletPayment();
                       }
                     }}
                   />
                 );
               }
-              if (item === "Crypto") {
+              if (item?.toLowerCase() === "crypto".toLowerCase()) {
                 return (
                   <CryptoInput
                     key={key}
@@ -270,65 +297,14 @@ function PaymentMethod() {
                       orderData?.payment?.filter((s) => s.id === 3).length > 0
                     }
                     setActive={() => {
-                      if (
-                        !(
-                          wallet?.total_wallet_balance >= cart.total &&
-                          wallet.total_wallet_balance >= cart.total_cash
-                        )
-                      ) {
-                        if (!orderLoading) {
-                          if (
-                            orderData.payment.length === 1 &&
-                            orderData?.payment?.filter((one) => one.id === 1)
-                              .length === 1 &&
-                            orderData?.payment?.filter((one) => one.id === 1)[0]
-                              .balance < cart.total_cash
-                          ) {
-                            dispatch({ type: "CRYPTO-USER", payload: true });
-                            setOrderData({
-                              payment: [
-                                ...orderData.payment,
-                                {
-                                  id: 3,
-                                  balance:
-                                    cart.total_cash -
-                                    orderData?.payment?.filter(
-                                      (one) => one.id === 1
-                                    )[0].balance,
-                                },
-                              ],
-                            });
-                          } else {
-                            if (
-                              orderData?.payment?.filter((s) => s.id === 3)
-                                .length > 0
-                            ) {
-                              dispatch({ type: "CRYPTO-USER", payload: false });
-                              setOrderData({
-                                payment: orderData?.payment?.filter(
-                                  (s) => s.id !== 3
-                                ),
-                              });
-                            } else {
-                              dispatch({ type: "CRYPTO-USER", payload: true });
-                              setOrderData({
-                                payment: [{ id: 3, balance: cart.total_cash }],
-                              });
-                            }
-                          }
-                        }
-                      } else {
-                        toast.info(
-                          translateFunction(
-                            "Only Allowed To Pay through TryDos Wallet"
-                          )
-                        );
+                      if (!orderLoading) {
+                        handleCryptoPayment();
                       }
                     }}
                   />
                 );
               }
-              if (item === "Card") {
+              if (item?.toLowerCase() === "card".toLowerCase()) {
                 return (
                   <CreditInput
                     key={key}
@@ -336,60 +312,7 @@ function PaymentMethod() {
                       orderData?.payment?.filter((s) => s.id === 2).length > 0
                     }
                     setActive={() => {
-                      if (
-                        !(
-                          wallet?.total_wallet_balance >= cart.total &&
-                          wallet.total_wallet_balance >= cart.total_cash
-                        )
-                      ) {
-                        if (!orderLoading) {
-                          if (
-                            orderData.payment.length === 1 &&
-                            orderData?.payment?.filter((one) => one.id === 1)
-                              .length === 1 &&
-                            orderData?.payment?.filter((one) => one.id === 1)[0]
-                              .balance < cart.total_cash
-                          ) {
-                            dispatch({ type: "CREDIT-USER", payload: true });
-                            setOrderData({
-                              payment: [
-                                ...orderData.payment,
-                                {
-                                  id: 2,
-                                  balance:
-                                    cart.total_cash -
-                                    orderData?.payment?.filter(
-                                      (one) => one.id === 1
-                                    )[0].balance,
-                                },
-                              ],
-                            });
-                          } else {
-                            if (
-                              orderData?.payment?.filter((s) => s.id === 2)
-                                .length > 0
-                            ) {
-                              dispatch({ type: "CREDIT-USER", payload: false });
-                              setOrderData({
-                                payment: orderData?.payment?.filter(
-                                  (s) => s.id !== 2
-                                ),
-                              });
-                            } else {
-                              dispatch({ type: "CREDIT-USER", payload: true });
-                              setOrderData({
-                                payment: [{ id: 2, balance: cart.total_cash }],
-                              });
-                            }
-                          }
-                        }
-                      } else {
-                        toast.info(
-                          translateFunction(
-                            "Only Allowed To Pay through TryDos Wallet"
-                          )
-                        );
-                      }
+                      handleCardPayment();
                     }}
                   />
                 );
@@ -420,7 +343,6 @@ export default PaymentMethod;
 //     (state: StateInterface) => state.cart.orderData.coupon_number
 //   );
 //   const onChange = (e) => {
-//     dispatch({ type: "ORDER-DATA", payload: { coupon_number: e } });
 //   };
 //   useEffect(() => {
 //     if (active) {
@@ -578,28 +500,24 @@ export default PaymentMethod;
 //     </div>
 //   );
 // };
-const CODInput = ({ active, setActive }) => {
-  const orderLoading = useSelector(
-    (state: StateInterface) => state.cart.orderLoading
-  );
-  const total = useSelector((state: StateInterface) => state.cart.total_cash);
-  const currency_symbol = useSelector(
-    (state: StateInterface) => state.homepage.currency
-  );
+const CODInput = ({ active, setActive, total }) => {
+  const { cod_cost, currency } = useAppStore();
+
   return (
     <div
+      data-cy="Cash-on-delivery"
       onClick={() => {
         setActive();
       }}
       className="w-full cursor-pointer mt-[10px] items-center pl-[23px] justify-between pr-[26px] flex rounded-[15px] h-[40px] bg-[#F8F8F8] relative"
-      data-cy="Cach-on-delivery"
       style={{
         border: active && "1px solid rgb(56 144 255 / 51%)",
       }}
     >
-      <div className="flex-row items-center">
-        <WalletIcon />
+      <div data-cy="WalletIcon-container" className="flex-row items-center">
+        <WalletIcon data-cy="WalletIcon-container-svg" />
         <span
+          data-cy="Cash-texts"
           className={`ml-[8px]  ${
             active ? "text-[#1D1D1D]" : "text-[#C4C2C2]"
           } regular text-[12px]`}
@@ -607,40 +525,43 @@ const CODInput = ({ active, setActive }) => {
           {translateFunction("Cash On Delivery")}
         </span>
       </div>
-      <div className="flex-row items-center">
-        <span className="text-[#D3D3D3] regular text-[12px]">
+      <div data-cy="total-container" className="flex-row items-center">
+        <span
+          data-cy="total-container-span"
+          className="text-[#D3D3D3] regular text-[12px]"
+        >
           {translateFunction("Total")}
         </span>
-        <span className="text-[#1D1D1D] semibold text-[12px] ml-1">
-          {RoundPrice({ num: total })} {currency_symbol?.symbol}
-        </span>
+        {currency && (
+          <span className="text-[#1D1D1D] semibold text-[12px] ml-1">
+            {RoundPrice({ num: cod_cost, returnNumber: true })}{" "}
+            {currency?.symbol}
+          </span>
+        )}
       </div>
     </div>
   );
 };
 const TryDosWalletInput = ({ active, setActive }) => {
-  const orderLoading = useSelector(
-    (state: StateInterface) => state.cart.orderLoading
-  );
-  const wallet = useSelector((state: StateInterface) => state.cart.wallet);
-  const currency_symbol = useSelector(
-    (state: StateInterface) => state.homepage.currency
-  );
+  const { orderLoading, wallet, currency, settings } = useAppStore();
+  const points = settings["starting-setting"]?.decimal_point_settings || 0;
   return (
     <div
+      data-cy="second-bay-way"
       onClick={() => {
-        if (wallet?.total_wallet_balance > 0) setActive();
+        setActive();
       }}
       className={`${
-        wallet?.total_wallet_balance === 0 && "opacity-45"
+        wallet?.wallet_balance <= 0 && "opacity-45"
       } w-full cursor-pointer mt-[10px] items-center pl-[23px] justify-between pr-[26px] flex rounded-[15px] h-[40px] bg-[#F8F8F8] relative`}
       style={{
         border: active && "1px solid rgb(56 144 255 / 51%)",
       }}
     >
-      <div className="flex-row items-center">
-        <WalletIcon />
+      <div data-cy="second-bay-way-con" className="flex-row items-center">
+        <WalletIcon data-cy="second-bay-way-svg" />
         <span
+          data-cy="second-bay-way-con-text"
           className={`ml-[8px]  ${
             active ? "text-[#1D1D1D]" : "text-[#C4C2C2]"
           } regular text-[12px]`}
@@ -648,18 +569,24 @@ const TryDosWalletInput = ({ active, setActive }) => {
           {translateFunction("Trydos Wallet")}
         </span>
         {orderLoading && (
-          <span className="bold ml-[11px]">
+          <span
+            data-cy="second-bay-way-con-text-load"
+            className="bold ml-[11px]"
+          >
             <Spinner />
           </span>
         )}
       </div>
-      <div className="flex-row items-center">
-        <span className="text-[#D3D3D3] regular text-[12px]">
+      <div data-cy="third-bay-way" className="flex-row items-center">
+        <span
+          data-cy="third-bay-way-text"
+          className="text-[#D3D3D3] regular text-[12px]"
+        >
           {translateFunction("Your Balance")}
         </span>
         <span className="text-[#1D1D1D] semibold text-[12px] ml-1">
-          {RoundPrice({ num: wallet?.total_wallet_balance || 0 })}{" "}
-          {currency_symbol?.symbol}
+          {!orderLoading && wallet?.wallet_balance?.toFixed(points)}{" "}
+          {currency?.symbol}
         </span>
       </div>
     </div>
@@ -669,6 +596,7 @@ const TryDosWalletInput = ({ active, setActive }) => {
 const CreditInput = ({ active, setActive }) => {
   return (
     <div
+      data-cy="dredit-way"
       onClick={() => {
         setActive();
       }}
@@ -677,9 +605,10 @@ const CreditInput = ({ active, setActive }) => {
       }}
       className="mt-[6px] cursor-pointer w-full items-center pl-[23px] justify-between pr-[26px] flex rounded-[15px] h-[40px] bg-[#F8F8F8] relative"
     >
-      <div className="flex-row items-center">
-        <CreditIcon />
+      <div data-cy="dredit-way-con" className="flex-row items-center">
+        <CreditIcon data-cy="dredit-way-svg" />
         <span
+          data-cy="dredit-way-text"
           className={`ml-[8px] ${
             active ? "text-[#1D1D1D]" : "text-[#C4C2C2]"
           } regular text-[12px]`}
@@ -687,13 +616,16 @@ const CreditInput = ({ active, setActive }) => {
           {translateFunction("Credit Cards")}
         </span>
       </div>
-      <div className="flex-row items-center">
-        <VisaIcon />
-        <MasterIcon className="ml-[5px]" />
-        <MaestroIcon className="ml-[5px]" />
-        <AmericanExpressIcon className="ml-[5px]" />
-        <ApplePayIcon className="ml-[5px]" />
-        <GooglePayIcon className="ml-[5px]" />
+      <div data-cy="container-icons" className="flex-row items-center">
+        <VisaIcon data-cy="Visa-Icon" />
+        <MasterIcon data-cy="Master-Icon" className="ml-[5px]" />
+        <MaestroIcon data-cy="Maestro-Icon" className="ml-[5px]" />
+        <AmericanExpressIcon
+          data-cy="AmericanExpress-Icon"
+          className="ml-[5px]"
+        />
+        <ApplePayIcon data-cy="ApplePay-Icon" className="ml-[5px]" />
+        <GooglePayIcon data-cy="GooglePay-Icon" className="ml-[5px]" />
       </div>
     </div>
   );
@@ -701,6 +633,7 @@ const CreditInput = ({ active, setActive }) => {
 const CryptoInput = ({ active, setActive }) => {
   return (
     <div
+      data-cy="crypto-bay-way"
       onClick={(e) => {
         // @ts-ignore
 
@@ -711,9 +644,10 @@ const CryptoInput = ({ active, setActive }) => {
       }}
       className="mt-[6px] cursor-pointer w-full items-center pl-[23px] justify-between pr-[26px] flex rounded-[15px] h-[40px] bg-[#F8F8F8] relative"
     >
-      <div className="flex-row items-center">
-        <CryptoIcon />
+      <div data-cy="crypto-bay-way-container" className="flex-row items-center">
+        <CryptoIcon data-cy="crypto-bay-way-svg" />
         <span
+          data-cy="crypto-bay-way-text"
           className={`ml-[8px] ${
             active ? "text-[#1D1D1D]" : "text-[#C4C2C2]"
           } regular text-[12px]`}
@@ -721,11 +655,14 @@ const CryptoInput = ({ active, setActive }) => {
           {translateFunction("Crypto")}
         </span>
       </div>
-      <div className="flex-row items-center">
-        <PaymentIconOne />
-        <PaymentIconTwo className="ml-[5px]" />
-        <PaymentIconThree className="ml-[5px]" />
-        <PaymentIconFour className="ml-[5px]" />
+      <div data-cy="containers-icons" className="flex-row items-center">
+        <PaymentIconOne data-cy="PaymentIconOne-icons" />
+        <PaymentIconTwo data-cy="PaymentIconTwo-icons" className="ml-[5px]" />
+        <PaymentIconThree
+          data-cy="PaymentIconThree-icons"
+          className="ml-[5px]"
+        />
+        <PaymentIconFour data-cy="PaymentIconFour-icons" className="ml-[5px]" />
       </div>
     </div>
   );

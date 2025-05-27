@@ -1,9 +1,12 @@
-import { useEffect } from "react";
-import { useSelector } from "react-redux";
+import { useEffect, useState } from "react";
 import { Sendevent, translateFunction } from "utils/functions";
 import LeftArrowIcon from "public/svg/LeftArrowIcon.svg";
 import useDetectKeyboardOpen from "use-detect-keyboard-open";
 import { useParams } from "next/navigation";
+import Spinner from "components/global/Spinner";
+import { useAppStore } from "store";
+import { GA_CLICK_EVENT_VALUES } from "utils/GAEvents";
+import { GA_EVENT_NAMES } from "utils/GAEvents";
 
 function InputName({
   value,
@@ -14,6 +17,8 @@ function InputName({
   submit: Function;
   setName: Function;
 }) {
+  const { language } = useAppStore();
+
   let { lang } = useParams();
   // @ts-ignore
   let languageVariable = lang.split("-")[1];
@@ -48,10 +53,12 @@ function InputName({
     } else {
     }
   }, [isKeyboardOpen]);
-  const language = useSelector(
-    (state: StateInterface) => state.homepage.language
-  );
-
+  const [loading, setLoading] = useState(false);
+  const updateName = async () => {
+    setLoading(true);
+    await submit();
+    setLoading(false);
+  };
   return (
     <>
       <div className="phone-input-desc" style={{ marginBottom: "28px" }}>
@@ -267,23 +274,31 @@ function InputName({
           placeholder={translate("Enter Your Name", language)}
         />
         {value.length > 7 && (
-          <span
-            className="phone-arrow"
-            onClick={() => {
-              // AuthService.CheckPhone(
-              //   inputValue,
-              //   (e) => setStepIndicator(e),
-              //   stepIndicator === 3
-              // );
-              Sendevent({
-                event: "button_clicked",
-                value: "confirm_name_button",
-              });
-              submit();
-            }}
-          >
-            <LeftArrowIcon />
-          </span>
+          <>
+            {loading ? (
+              <span className="phone-arrow">
+                <Spinner />
+              </span>
+            ) : (
+              <span
+                className="phone-arrow"
+                onClick={() => {
+                  // AuthService.CheckPhone(
+                  //   inputValue,
+                  //   (e) => setStepIndicator(e),
+                  //   stepIndicator === 3
+                  // );
+                  Sendevent({
+                    event: GA_EVENT_NAMES.CLICK,
+                    value: GA_CLICK_EVENT_VALUES.CONFIRM_NAME_BUTTON,
+                  });
+                  updateName();
+                }}
+              >
+                <LeftArrowIcon />
+              </span>
+            )}
+          </>
         )}
       </div>
       <div className="flex light text-[11px] text-[#ff5858] mt-[20px]">

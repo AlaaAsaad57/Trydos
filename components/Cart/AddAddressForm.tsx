@@ -2,38 +2,34 @@
 import { allCountries } from "country-telephone-data";
 import React, { useEffect, useState } from "react";
 import { translateFunction } from "utils/functions";
-import "leaflet/dist/leaflet.css";
 import Map from "./Map";
-import axios from "axios";
+import SyFlage from "public/svg/sy.svg";
 import { useParams } from "next/navigation";
 import Addressicon from "public/svg/cart/AddressIcon.svg";
 import AddressInfo from "public/svg/cart/AddressInfo.svg";
-import Flag from "react-world-flags";
 import TargetIcon from "public/svg/cart/Target.svg";
 import ContactInfoIcon from "public/svg/cart/ContactInfoIcon.svg";
-import { useDispatch, useSelector } from "react-redux";
+
 import order from "services/order";
+import { useAppStore } from "store";
+import { FlagIcon } from "utils/tinyUtils";
 
 function AddAddressForm({
   setAddressDetails,
   slidePrev,
   setOpenSelect,
   activeIndex,
+  isInSettings = false,
 }) {
+  const { setMapCenter, center, addressDetails, countries, orderLoading } =
+    useAppStore();
   const { lang } = useParams();
   const [expanded, setExpanded] = useState(false);
-  const dispatch = useDispatch();
-  const center = useSelector((state: StateInterface) => state.cart.center);
+
   const setCenter = (e) => {
-    dispatch({ type: "MAP-CENTER", payload: e });
+    setMapCenter(e);
   };
 
-  const addressDetails = useSelector(
-    (state: StateInterface) => state.cart.addressDetails
-  );
-  const countries = useSelector(
-    (state: StateInterface) => state.homepage.countries
-  );
   const getCenter = async () => {
     // to do
     // let ipData: IpDataApi = await axios.get("http://ip-api.com/json");
@@ -43,6 +39,7 @@ function AddAddressForm({
 
       (s) => s.iso.toLowerCase() === lang.split("-")[0].toLowerCase()
     )[0];
+
     setCenter({
       lat: parseFloat(UserCountries?.latitude),
       lng: parseFloat(UserCountries?.longitude),
@@ -52,7 +49,9 @@ function AddAddressForm({
     let valid = false;
 
     if (
-      addressDetails.contact_info.contact_person_name?.length > 0 &&
+      (addressDetails.contact_info.contact_person_name?.length > 0 ||
+        // @ts-ignore
+        addressDetails.contact_info.name?.length > 0) &&
       addressDetails.contact_info.phone?.length > 0
     ) {
       valid = true;
@@ -77,9 +76,7 @@ function AddAddressForm({
     }
     return valid;
   };
-  const orderLoading = useSelector(
-    (state: StateInterface) => state.cart.orderLoading
-  );
+
   useEffect(() => {
     if (countries.length > 0) {
       getCenter();
@@ -156,10 +153,9 @@ function AddAddressForm({
           </div>
         </div>
 
-        {activeIndex && (
+        {activeIndex && countries.length > 0 && (
           <Map
             expanded={expanded}
-            setCenter={(e) => setCenter(e)}
             setExpanded={(e) => setExpanded(e)}
             center={
               (addressDetails.location.latitude && {
@@ -181,6 +177,7 @@ function AddAddressForm({
       </div>
       {!expanded && (
         <AddAddressButtons
+          isInSettings={isInSettings}
           valid={isValid()}
           slidePrev={() => {
             slidePrev();
@@ -226,6 +223,7 @@ const AddressSection = ({ setOpenSelect }) => {
   );
 };
 const CountryLabel = () => {
+  const { setAddressDetails } = useAppStore();
   const { lang } = useParams();
   // @ts-ignore
   let country = lang.split("-")[0];
@@ -233,12 +231,9 @@ const CountryLabel = () => {
     name: allCountries.filter((s) => s.iso2 === country)[0]?.name,
     iso: country,
   };
-  const dispatch = useDispatch();
+
   useEffect(() => {
-    dispatch({
-      type: "set-address-details",
-      payload: { Country: { name: country?.name, code: country.iso } },
-    });
+    setAddressDetails({ Country: { name: country?.name, code: country.iso } });
   }, []);
   return (
     <div
@@ -256,10 +251,12 @@ const CountryLabel = () => {
       </div>
       <div className="flex-row items-center mt-[3px] ">
         <span
-          className="h-[15px] rounded-[5px] w-[22px]"
+          className="h-[20px] rounded-[5px] w-[30px]"
           data-cy="country-flag"
         >
-          <Flag height={"15"} code={country.iso} />
+          <span className="w-[30px] h-[20px]">
+            <FlagIcon iso={country.iso} />
+          </span>
         </span>
         <div
           className="medium flex text-[#1D1D1D] text-[14px] ml-[8px]"
@@ -273,9 +270,8 @@ const CountryLabel = () => {
 };
 
 const SelectRegion = ({ setOpenSelect }) => {
-  const addressDetails = useSelector(
-    (state: StateInterface) => state.cart.addressDetails
-  );
+  const { addressDetails } = useAppStore();
+
   return (
     <div
       onClick={() => {
@@ -310,10 +306,8 @@ const SelectRegion = ({ setOpenSelect }) => {
 };
 
 const DetailsAddress = () => {
-  const addressDetails = useSelector(
-    (state: StateInterface) => state.cart.addressDetails
-  );
-  const dispatch = useDispatch();
+  const { setAddressDetails, addressDetails } = useAppStore();
+
   return (
     <div
       className="flex-col details-border cursor-pointer rounded-[15px] w-full mt-[8px] py-[7px] px-[12px] items-start justify-center"
@@ -337,10 +331,7 @@ const DetailsAddress = () => {
             data-cy="text-area-placeholder"
             value={addressDetails.address_detail}
             onChange={(e) => {
-              dispatch({
-                type: "set-address-details",
-                payload: { address_detail: e.target.value },
-              });
+              setAddressDetails({ address_detail: e.target.value });
             }}
             placeholder={translateFunction(
               "Write The Address Clearly, Including The Street Address, Building, Flat, Door, Unit."
@@ -354,10 +345,7 @@ const DetailsAddress = () => {
 };
 
 const AddressTitle = () => {
-  const addressDetails = useSelector(
-    (state: StateInterface) => state.cart.addressDetails
-  );
-  const dispatch = useDispatch();
+  const { setAddressDetails, addressDetails } = useAppStore();
   return (
     <div
       data-cy="address-title" // Added data-cy
@@ -381,10 +369,7 @@ const AddressTitle = () => {
             data-cy="add-address-input"
             value={addressDetails.address}
             onChange={(e) => {
-              dispatch({
-                type: "set-address-details",
-                payload: { address: e.target.value },
-              });
+              setAddressDetails({ address: e.target.value });
             }}
             placeholder={translateFunction("Ex: Home, My Office, 2 Home Ect.")}
             className="w-full pr-6  min-h-[21px] h-auto bg-[transparent] text-[#1D1D1D] medium  text-[14px] placeholder-[#D3D3D3]  border-none outline-none resize-none"
@@ -395,25 +380,8 @@ const AddressTitle = () => {
   );
 };
 const ContactInfo = () => {
-  const user = useSelector((state: StateInterface) => state.auth.user);
-  const addressDetails = useSelector(
-    (state: StateInterface) => state.cart.addressDetails
-  );
-  const dispatch = useDispatch();
-  // useEffect(() => {
-  //   if (!addressDetails.id && user) {
-  //     dispatch({
-  //       type: "set-address-details",
-  //       payload: {
-  //         contact_info: {
-  //           ...addressDetails.contact_info,
-  //           contact_person_name: user?.name,
-  //           name: user?.name,
-  //         },
-  //       },
-  //     });
-  //   }
-  // }, [addressDetails?.id, user]);
+  const { setAddressDetails, addressDetails } = useAppStore();
+
   return (
     <div
       className="flex-col w-full mt-[30px] px-[12px] pb-[110px]"
@@ -452,15 +420,17 @@ const ContactInfo = () => {
           >
             <input
               data-cy="recipient-name-input"
-              value={addressDetails.contact_info.contact_person_name}
+              value={
+                addressDetails.contact_info.contact_person_name ||
+                // @ts-ignore
+                addressDetails.contact_info.name
+              }
               onChange={(e) => {
-                dispatch({
-                  type: "set-address-details",
-                  payload: {
-                    contact_info: {
-                      ...addressDetails.contact_info,
-                      contact_person_name: e.target.value,
-                    },
+                setAddressDetails({
+                  contact_info: {
+                    ...addressDetails.contact_info,
+                    contact_person_name: e.target.value,
+                    name: e.target.value,
                   },
                 });
               }}
@@ -502,13 +472,10 @@ const ContactInfo = () => {
               inputMode="numeric"
               value={addressDetails.contact_info.phone}
               onChange={(e) => {
-                dispatch({
-                  type: "set-address-details",
-                  payload: {
-                    contact_info: {
-                      ...addressDetails.contact_info,
-                      phone: e.target.value,
-                    },
+                setAddressDetails({
+                  contact_info: {
+                    ...addressDetails.contact_info,
+                    phone: e.target.value,
                   },
                 });
               }}
@@ -553,13 +520,10 @@ const ContactInfo = () => {
               type="number"
               value={addressDetails.contact_info.alternative_phone}
               onChange={(e) => {
-                dispatch({
-                  type: "set-address-details",
-                  payload: {
-                    contact_info: {
-                      ...addressDetails.contact_info,
-                      alternative_phone: e.target.value,
-                    },
+                setAddressDetails({
+                  contact_info: {
+                    ...addressDetails.contact_info,
+                    alternative_phone: e.target.value,
                   },
                 });
               }}
@@ -574,25 +538,20 @@ const ContactInfo = () => {
     </div>
   );
 };
-export const AddAddressButtons = ({ valid, slidePrev }) => {
-  const dispatch = useDispatch();
-  const addressDetails = useSelector(
-    (state: StateInterface) => state.cart.addressDetails
-  );
+export const AddAddressButtons = ({ valid, slidePrev, isInSettings }) => {
+  const { addAddress, updateAddress, addressDetails, orderLoading } =
+    useAppStore();
+
   const shake = (v) => {
-    document.querySelector(`.${v}`).scrollIntoView({ block: "end" });
-    document.querySelector(`.${v}`).classList.add("shake-anim");
-    setTimeout(() => {
-      document.querySelector(`.${v}`).classList.remove("shake-anim");
-    }, 1300);
+    if (document.querySelector(`.${v}`)) {
+      document.querySelector(`.${v}`)?.scrollIntoView({ block: "end" });
+      document.querySelector(`.${v}`)?.classList.add("shake-anim");
+      setTimeout(() => {
+        document.querySelector(`.${v}`)?.classList.remove("shake-anim");
+      }, 1300);
+    }
   };
   const validate = () => {
-    if (
-      !addressDetails.location.latitude &&
-      !addressDetails.location.longitude
-    ) {
-      shake("map-border");
-    }
     if (addressDetails.address_detail?.length === 0) {
       shake("details-border");
     }
@@ -609,9 +568,7 @@ export const AddAddressButtons = ({ valid, slidePrev }) => {
       shake("phone-border");
     }
   };
-  const orderLoading = useSelector(
-    (state: StateInterface) => state.cart.orderLoading
-  );
+
   const { lang } = useParams();
   // @ts-ignore
   let country = lang.split("-")[0];
@@ -624,7 +581,9 @@ export const AddAddressButtons = ({ valid, slidePrev }) => {
       style={{
         boxShadow: "0px -3px 20px #0000001a",
       }}
-      className={`add-address-button ${
+      className={`${
+        isInSettings ? "add-address-button-m" : "add-address-button"
+      } ${
         orderLoading && "opacity-55"
       } absolute text-center  left-0 w-full h-[100px] bg-[#fff] px-[20px] pt-[12px]`}
       data-cy="add-address-buttons-container" // Added data-cy
@@ -632,6 +591,7 @@ export const AddAddressButtons = ({ valid, slidePrev }) => {
       <div
         onClick={() => {
           if (valid && !orderLoading) {
+            // @ts-ignore
             if (addressDetails?.id) {
               order.UpdateAddressList({
                 address: { ...addressDetails, Country: country },
@@ -639,7 +599,7 @@ export const AddAddressButtons = ({ valid, slidePrev }) => {
                   slidePrev();
                 },
               });
-              dispatch({ type: "UPDATE-ADDRESS", payload: addressDetails });
+              updateAddress(addressDetails);
             } else {
               order.AddAddressList({
                 address: addressDetails,
@@ -647,7 +607,7 @@ export const AddAddressButtons = ({ valid, slidePrev }) => {
                   slidePrev();
                 },
               });
-              dispatch({ type: "ADD-ADDRESS", payload: addressDetails });
+              addAddress();
             }
 
             return;
@@ -659,6 +619,7 @@ export const AddAddressButtons = ({ valid, slidePrev }) => {
         } text-[#FEFEFE] text-[18px] medium rounded-[20px]`}
         data-cy="AddSaveButton"
       >
+        {/* @ts-ignore */}
         {addressDetails?.id
           ? translateFunction("Edit & Save")
           : translateFunction("Add & Save")}

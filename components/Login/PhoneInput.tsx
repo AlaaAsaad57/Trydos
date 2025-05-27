@@ -5,7 +5,7 @@ import { allCountries } from "country-telephone-data";
 import replaceString from "replace-string";
 import { textMarshal } from "text-marshal";
 import LeftArrowIcon from "public/svg/LeftArrowIcon.svg";
-import { useSelector } from "react-redux";
+
 import LoginIcon from "public/svg/LoginIcon.svg";
 import BlueCall from "public/svg/BlueCall.svg";
 import PrivacyIcon from "public/svg/privacyicon.svg";
@@ -16,6 +16,8 @@ const { flag } = require("country-emoji");
 
 import { AnimatedComponent } from "components/global/AnimatedComponent";
 import { useParams } from "next/navigation";
+import { useAppStore } from "store";
+import { GA_CLICK_EVENT_VALUES, GA_EVENT_NAMES } from "utils/GAEvents";
 
 function PhoneInput({
   stepIndicator,
@@ -36,6 +38,8 @@ function PhoneInput({
   inputValue: string;
   setInputValue: Function;
 }) {
+  const { language } = useAppStore();
+
   let { lang } = useParams();
   // @ts-ignore
   let languageVariable = lang.split("-")[1];
@@ -112,9 +116,7 @@ function PhoneInput({
           (text || inputValue).startsWith(countryItem.dialCode)
         )[0];
   };
-  const language = useSelector(
-    (state: StateInterface) => state.homepage.language
-  );
+
   const isKeyboardOpen = useDetectKeyboardOpen(200);
   useEffect(() => {
     if (isKeyboardOpen) {
@@ -141,7 +143,7 @@ function PhoneInput({
     }
   }, [isKeyboardOpen]);
   useEffect(() => {
-    if (inputValue) {
+    if (inputValue && ref.current) {
       // @ts-ignore
       ref.current.value = inputValue;
     }
@@ -164,16 +166,29 @@ function PhoneInput({
     <AnimatedComponent show={active}>
       <>
         {operation === "login" && (
-          <div className="phone-input-desc mb-4v" id="phone-desc">
-            <LoginIcon style={{ marginTop: "2px" }} className="show-logo" />
-            <div className="text-login-desc">
-              <div className="text-login-item">
+          <div
+            data-cy="login-operation"
+            className="phone-input-desc mb-4v"
+            id="phone-desc"
+          >
+            <LoginIcon
+              data-cy="login-operation-svg"
+              style={{ marginTop: "2px" }}
+              className="show-logo"
+            />
+            <div data-cy="text-loginDesc" className="text-login-desc">
+              <div data-cy="text-loginDesc-text" className="text-login-item">
                 {isForCart
                   ? translate("Enter Your Phone Number To Complete Order")
                   : translate("Enter Your Phone Number To Login", language)}
               </div>
-              <div className="icon-detail" style={{ marginTop: "3px" }}>
+              <div
+                data-cy="login-detail"
+                className="icon-detail"
+                style={{ marginTop: "3px" }}
+              >
                 <svg
+                  data-cy="login-detail-svg"
                   xmlns="http://www.w3.org/2000/svg"
                   width="7.727"
                   height="8.03"
@@ -193,8 +208,13 @@ function PhoneInput({
                   )}
                 </span>
               </div>
-              <div className="icon-detail" style={{ marginTop: "4px" }}>
+              <div
+                data-cy="login-detail-Verification"
+                className="icon-detail"
+                style={{ marginTop: "4px" }}
+              >
                 <svg
+                  data-cy="login-detail-Verification-svg"
                   xmlns="http://www.w3.org/2000/svg"
                   xmlnsXlink="http://www.w3.org/1999/xlink"
                   width="10"
@@ -264,7 +284,7 @@ function PhoneInput({
                   </g>
                 </svg>
 
-                <span>
+                <span data-cy="login-detail-Verification-text">
                   {translate(
                     "We Will Send A Verification Code To The Number",
                     language
@@ -379,16 +399,23 @@ function PhoneInput({
             </div>
           </div>
         )}
-        <div className="phone-input-element" id="phone" data-testid="hihh">
+        <div
+          data-cy="container-enterPhone"
+          className="phone-input-element"
+          id="phone"
+          data-testid="hihh"
+        >
           <Border
             height={60}
             width={"100%"}
             color={wrongNumber ? "#ff5f61" : validNumber ? "#4D84FF" : ""}
           />
           <SolidPhoneIcon
+            data-cy="solidPhhone-enterPhone-svg"
             style={{ position: "absolute", top: "22px", left: "20px" }}
           />
           <span
+            data-cy="span-flag"
             className="flag-icon"
             style={{
               position: "absolute",
@@ -399,14 +426,16 @@ function PhoneInput({
           >
             {getCountry() && getCountry()?.iso2 && flag(getCountry()?.iso2)}
           </span>
-          <span className="plus-icon-phone">+</span>
+          <span data-cy="plus-icon-span" className="plus-icon-phone">
+            +
+          </span>
           <label htmlFor="phoneInput" className="no-label">
             Search
           </label>
           <input
+            data-cy="phone-number-input"
             ref={ref}
             value={inputValue}
-            data-cy="phone-number-input"
             data-testid="phone-number-input"
             id="phoneInput"
             aria-autocomplete="both"
@@ -456,8 +485,8 @@ function PhoneInput({
                 e.target.blur();
                 if (validNumber && stepIndicator <= 3) {
                   Sendevent({
-                    event: "button_clicked",
-                    value: "confirm_phone_number_button",
+                    event: GA_EVENT_NAMES.CLICK,
+                    value: GA_CLICK_EVENT_VALUES.CONFIRM_PHONE_NUMBER_BUTTON,
                   });
                   setStepIndicator(4);
                 }
@@ -476,8 +505,8 @@ function PhoneInput({
               className="phone-arrow"
               onClick={() => {
                 Sendevent({
-                  event: "button_clicked",
-                  value: "confirm_phone_number_button",
+                  event: GA_EVENT_NAMES.CLICK,
+                  value: GA_CLICK_EVENT_VALUES.CONFIRM_PHONE_NUMBER_BUTTON,
                 });
                 setStepIndicator(4);
               }}

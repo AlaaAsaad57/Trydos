@@ -1,27 +1,31 @@
 import { dispatchRouteChangeEvent } from "utils/events";
 import NextLink from "components/global/NextLink";
 import React from "react";
-import { getConfiguredImage, Sendevent } from "utils/functions";
+import { getConfiguredImage } from "utils/functions";
 import { useParams } from "next/navigation";
 
 function ProductItem({ product, onClick }) {
   const { lang } = useParams();
   return (
     <NextLink
+      data={{
+        is_product: true,
+        ...product,
+        href: `/${lang}/products/${product.slug}`,
+      }}
+      ariaLabel={`Product ${product.slug} ${lang}`}
       suppressHydrationWarning
       // @ts-ignore
       onClick={(e, bool = false) => {
         /* @ts-ignore*/
         onClick(product.name);
-        Sendevent({
-          event: "button_clicked",
-          value: "choose_product_button",
-        });
+
         dispatchRouteChangeEvent("start", { to: "products" });
         document.documentElement.style.overflow = "hidden";
         document.documentElement.scrollTop = 0;
       }}
       href={`/${lang}/products/${product.slug}`}
+      data-cy="product-result-link"
     >
       <div className="result-product flex-row">
         <div className="image-result">
@@ -52,9 +56,8 @@ function ProductItem({ product, onClick }) {
           <img
             src={getConfiguredImage({
               src:
-                product?.thumbnail?.file_path ||
-                (product?.images && product?.images[0]?.file_path) ||
-                product?.sync_color_images?.images[0]?.file_path,
+                product?.sync_color_images?.[0]?.images?.[0]?.file_path ||
+                (product?.images && product?.images?.[0]?.file_path),
               width: 100,
               height: 100,
             })}

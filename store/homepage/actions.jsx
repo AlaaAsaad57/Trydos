@@ -2,45 +2,66 @@ import StoryService from "services/story";
 import Cookies from "js-cookie";
 import { Sendevent } from "utils/functions";
 import { changeAppLanguageServer, changeToken } from "./cachedActions";
+import { useAppStore } from "store";
+import { GA_CLICK_EVENT_VALUES, GA_EVENT_NAMES } from "utils/GAEvents";
 export const changeAppLanguage = (language) => {
+  const { setAppLanguage } = useAppStore.getState();
   Cookies.set("language", language, {
     expires: 365,
   });
   changeAppLanguageServer(language);
   changeToken({ key: "language", value: language });
   changeToken({ key: "lang", value: language });
-  return { type: "APP-LANGUAGE", payload: language };
+  setAppLanguage(language);
 };
-export const changeAppCountry = (iso) => {
+export const changeAppCountry = async (iso) => {
+  const { setAppCountry } = useAppStore.getState();
+
   // Cookies.set("country", iso, {
   //   expires: 365,
   // });
-  changeToken({ key: "country", value: iso });
-  return { type: "APP-COUNTRY", payload: iso };
+  await changeToken({ key: "country", value: iso });
+  setAppCountry(iso);
 };
 
 /*Stories Actions */
 export const SelectStory = (e) => {
+  const { setSelectedStory } = useAppStore.getState();
+
   if (e) {
     window.history.pushState({ isPopup: true }, "open Cart");
   }
   if (e) {
-    Sendevent({ event: "button_clicked", value: "view_story_button" });
+    Sendevent({
+      event: GA_EVENT_NAMES.CLICK,
+      value: GA_CLICK_EVENT_VALUES.VIEW_STORY_BUTTON,
+    });
     StoryService.WatchStory(e.stories[0].id, e.id);
   }
-  return { type: "STORY-SELECTED", payload: e };
+  setSelectedStory(e);
 };
 
 export const setNextStory = (storyId) => {
-  return { type: "NEXT-STORY", payload: storyId };
+  const { nextStory } = useAppStore.getState();
+
+  nextStory(storyId);
 };
 export const setPreviousStory = (storyId) => {
-  return { type: "PREV-STORY", payload: storyId };
+  const { prevStory } = useAppStore.getState();
+  prevStory(storyId);
 };
 export const AddStoryAction = (story) => {
-  return { type: "ADD-STORY", payload: story };
+  const { addStory } = useAppStore.getState();
+  addStory(story);
 };
 export const GetUnviewedStory = (story) => {
+  if (typeof window !== "undefined") {
+    if (
+      localStorage.getItem("USER-STORIES") &&
+      JSON.parse(localStorage.getItem("USER-STORIES"))?.id === story.id
+    )
+      return 0;
+  }
   let index = 0;
   let unseen = [];
   story.stories.map((s, id) => {

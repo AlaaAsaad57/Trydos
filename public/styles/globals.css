@@ -12,7 +12,9 @@ img {
 .filter-listing-bar.fixedAlign {
   top: 98px !important;
 }
-
+.featured-products-container::-webkit-scrollbar {
+  display: none;
+}
 @media only screen and (min-width: 430px) {
 }
 
@@ -99,7 +101,12 @@ img {
   min-width: 100% !important;
   width: 95%;
 }
-
+.overflow-x-scroll::-webkit-scrollbar {
+  display: none;
+}
+.overflow-x-scroll {
+  scrollbar-width: 0px;
+}
 .embla__slide:not(:first-child) {
   margin-left: 10px;
 }
@@ -421,7 +428,8 @@ body {
   transform-origin: top center;
   background-color: #fafafa;
   width: 100%;
-  min-width: 100%;
+  max-width: 1365px;
+  flex-direction: column;
   display: flex;
   min-height: 100%;
   justify-content: space-around;
@@ -441,15 +449,24 @@ input[type="search"]::-webkit-search-cancel-button {
 }
 
 .categories-bar-container {
-  display: flex;
+  margin: 0 !important;
+  max-width: 900px !important;
+  display: flex !important;
+  width: 100% !important;
   justify-content: flex-start;
-  align-items: flex-start;
-  padding-top: 7px;
-  z-index: 90;
-  min-height: 28px;
-  margin-left: 20px !important;
+  padding-left: 15px;
+  padding-right: 5px;
+  overflow-x: scroll;
+  overflow-y: hidden;
+  min-height: 47px;
+  background-color: #fff;
+  padding-top: 7px !important;
+  z-index: 8;
+  white-space: nowrap;
 }
-
+a {
+  -webkit-user-drag: none;
+}
 .categories-bar-container div,
 .categories-bar-item {
   display: flex;
@@ -968,8 +985,6 @@ svg {
     margin-top: 4px;
     height: auto !important;
   }
-
-  .categories-bar-container,
   .welcome-user {
     display: none !important;
   }
@@ -1018,6 +1033,8 @@ svg {
 .offer-avatar {
   cursor: pointer;
   transition: 0.3s;
+  background-color: white;
+  bottom: 0px;
   position: relative;
   display: flex;
   transform: translateX(-5px);
@@ -1044,6 +1061,7 @@ svg {
   width: 50px;
   justify-content: space-between;
   height: 24px !important;
+  display: none;
   opacity: 0;
   transition: 0.3s;
   top: 47px;
@@ -1082,7 +1100,8 @@ svg {
   display: flex;
   z-index: 9999;
   align-items: flex-end;
-  position: absolute;
+  max-height: 40px;
+
   left: 0;
   right: 0;
   margin-left: auto;
@@ -1302,4 +1321,7 @@ input[type="number"] {
   .add-address-button {
     bottom: calc(20px + env(safe-area-inset-bottom));
   }
+}
+.add-address-button-m {
+  bottom: calc(80px + env(safe-area-inset-bottom));
 }

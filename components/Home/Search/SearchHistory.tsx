@@ -1,10 +1,15 @@
 import React, { useEffect, useState } from "react";
 import SearchHistoryIcon from "public/svg/SearchHistoryIcon.svg";
 import CloseIconOption from "public/svg/CloseIconOption.svg";
-import home from "services/home";
-import { useDispatch, useSelector } from "react-redux";
+import { useAppStore } from "store";
+import search from "services/search";
+import { useParams } from "next/navigation";
+import { GA_EVENT_NAMES } from "utils/GAEvents";
+import { GA_CLICK_EVENT_VALUES } from "utils/GAEvents";
+import { Sendevent } from "utils/functions";
 
 function SearchHistory({ options, setOptions, deleteOption }) {
+  const { setSearchPartialLoading, setSearchLoading } = useAppStore();
   const [openMenu, setOpen] = useState(false);
   useEffect(() => {
     if (typeof document !== "undefined") {
@@ -38,14 +43,8 @@ function SearchHistory({ options, setOptions, deleteOption }) {
       });
     }
   }, []);
-  const dispatch = useDispatch();
-  const searchFilters = useSelector(
-    (state: StateInterface) => state.Search.searchFilters
-  );
-  const setLoading = (e) => {
-    dispatch({ type: "SEARCH-PARTIAL-LOADING", payload: e });
-  };
 
+  const { lang } = useParams();
   return (
     <div
       className={` ${
@@ -68,35 +67,23 @@ function SearchHistory({ options, setOptions, deleteOption }) {
       </div>
       {!openMenu && (
         <div className="search-filter-options s1 flex-row">
-          {options.map((s, index) => (
-            <>
-              {s?.length > 0 && (
+          {options.map((s, index) => {
+            if (s.length > 0)
+              return (
                 <div
                   key={index}
                   className="search-filter-option"
+                  data-cy="search-history-option"
                   onClick={(e) => {
                     // @ts-ignore
                     if (!e.target.closest(".close-icon-container")) {
-                      dispatch({
-                        type: "SEARCH-PARTIAL-LOADING",
-                        payload: true,
-                      });
-                      dispatch({ type: "SEARCH-LOADING", payload: true });
-                      home.UpdateFilters({
-                        search_text: s || "",
-                        callback: (e) => {
-                          setLoading(false);
-                          dispatch({ type: "EDIT-FILTER-SEARCH", payload: e });
-                        },
-                      });
-                      home.SearchProducts({
-                        search_text: s,
-                        searchFilters: searchFilters,
-                        callback: (e) => {
-                          dispatch({ type: "FIND-PRODUCTS", payload: e });
-                        },
-                      });
+                      setSearchPartialLoading(true);
+                      setSearchLoading(true);
                       setOptions(s);
+                      search.getSearchOptions({
+                        noProducts: false,
+                        lang: lang,
+                      });
                     }
                   }}
                 >
@@ -120,9 +107,8 @@ function SearchHistory({ options, setOptions, deleteOption }) {
                     </div>
                   }
                 </div>
-              )}
-            </>
-          ))}
+              );
+          })}
         </div>
       )}
       {openMenu && (
@@ -141,30 +127,17 @@ function SearchHistory({ options, setOptions, deleteOption }) {
         <div className="flex-col search-filter-menu">
           {options.map((s, index) => (
             <div
-              key={index}
+              key={`${s}-${index}`}
               className="option-row-search flex-row"
               onClick={(e) => {
+                Sendevent({
+                  event: GA_EVENT_NAMES.CLICK,
+                  value: GA_CLICK_EVENT_VALUES.SEARCH_HISTORY_OPTION,
+                });
                 // @ts-ignore
                 if (!e.target.closest(".close-icon-container")) {
-                  dispatch({
-                    type: "SEARCH-PARTIAL-LOADING",
-                    payload: true,
-                  });
-                  dispatch({ type: "SEARCH-LOADING", payload: true });
-                  home.UpdateFilters({
-                    search_text: s || "",
-                    callback: (e) => {
-                      setLoading(false);
-                      dispatch({ type: "EDIT-FILTER-SEARCH", payload: e });
-                    },
-                  });
-                  home.SearchProducts({
-                    search_text: s,
-                    searchFilters: searchFilters,
-                    callback: (e) => {
-                      dispatch({ type: "FIND-PRODUCTS", payload: e });
-                    },
-                  });
+                  setSearchPartialLoading(true);
+                  setSearchLoading(true);
                   setOptions(s);
                 }
               }}

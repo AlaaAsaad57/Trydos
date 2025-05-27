@@ -6,20 +6,21 @@ import {
   getToken,
   onMessage,
 } from "firebase/messaging";
-import { store } from "../store/index.jsx";
+import { useAppStore } from "../store";
 import { getUserChat } from "./functions";
-import { GetChats, Recive } from "store/chat/actions";
+
 import { InCall } from "store/chat/callActions";
 import Boutique from "components/Notifications/Boutique";
 import { Id } from "react-toastify";
 import ProductToOldCart from "components/Notifications/ProductToOldCart";
 import Category from "components/Notifications/Category";
 import ProductAvailable from "components/Notifications/ProductAvailable";
-import "firebase/analytics";
-import { initializeAnalytics, isSupported } from "firebase/analytics";
 import OrderPlaced from "components/Notifications/OrderPlaced";
 import { AxiosGet } from "./AxiosApi";
 import ProductHurryUp from "components/Notifications/ProductHurry";
+import OrderStatusChanged from "components/Notifications/OrderStatusChanged";
+import chat from "services/chat";
+import { Recive } from "store/chat/actions";
 const firebaseConfig = {
   // apiKey: "AIzaSyAl53TxLa2CoTBeXtg9K3Lr8G908ajb6kY",
   // authDomain: "trydos-ce234.firebaseapp.com",
@@ -46,12 +47,9 @@ export const messaging =
   typeof window !== "undefined" &&
   "serviceWorker" in navigator &&
   getMessaging(firebaseApp);
-export const analytics =
-  isSupported && typeof window !== "undefined"
-    ? initializeAnalytics(firebaseApp)
-    : null;
 
 export const requestFirebaseNotificationPermission = async () => {
+  const { setNotificationPermission } = useAppStore.getState();
   const tokenExpiry = localStorage.getItem("FBTokenExpiry");
   const tokenDate = tokenExpiry ? new Date(tokenExpiry) : null;
   const nowDate = new Date();
@@ -68,31 +66,56 @@ export const requestFirebaseNotificationPermission = async () => {
   return getToken(messaging)
     .then((currentToken) => {
       if (currentToken) {
-        store.dispatch({ type: "Notification", payload: true });
-
-        // Store the new token expiry date in localStorage
+        setNotificationPermission(true);
         localStorage.setItem("FBTokenExpiry", nowDate.toISOString());
-
+        localStorage.setItem("FCMToken", currentToken);
         return currentToken;
-        // Track the token -> client mapping, by sending to backend server
-        // show on the UI that permission is secured
       } else {
-        // shows on the UI that permission is required
       }
     })
     .catch((err) => {
-      store.dispatch({ type: "Notification", payload: false });
+      setNotificationPermission(false);
       console.error(err);
+      localStorage.setItem("FCMError", null);
+      throw err;
     });
 };
 
 export const onMessageListener = async () => {
+  const {
+    setOrderData,
+    endCall,
+    watchChannelEvent,
+    receiveChannelEvent,
+    setVideoCall,
+    setAudioCall,
+    setIncomingCall,
+    callInProgress,
+    activeChat,
+    setUserAnswerCall,
+    call,
+    data: chatData,
+    setIncomingVoiceCall,
+    setLastNotificationDate,
+    watchChannel,
+    sendMessage,
+    deleteMessage,
+    muteChat,
+    deleteChat,
+  } = useAppStore.getState();
   const { toast } = await import("react-toastify");
   return new Promise((resolve) => {
     onMessage(messaging, async (payload) => {
       console.log(payload);
       if (payload.data.title === "market") {
         const data = JSON.parse(payload.data.body);
+        if (data?.type?.startsWith("order status changed")) {
+          const toaster = (myProps, toastProps): Id =>
+            toast(<OrderStatusChanged {...myProps} />, { ...toastProps });
+          toaster.info = (myProps, toastProps): Id =>
+            toast.info(<OrderStatusChanged {...myProps} />, { ...toastProps });
+          toaster.info({ data: data }, { data: data });
+        }
         if (JSON.parse(payload.data.body)?.type?.includes("product hurry up")) {
           const toaster = (myProps, toastProps): Id =>
             toast(<ProductHurryUp {...myProps} />, { ...toastProps });
@@ -165,10 +188,7 @@ export const onMessageListener = async () => {
             toaster.info = (myProps, toastProps): Id =>
               toast.info(<OrderPlaced {...myProps} />, { ...toastProps });
             toaster.info({ data: data }, { data: data });
-            store.dispatch({
-              type: "ORDER-DATA",
-              payload: { data: dataReq, success: true },
-            });
+            setOrderData({ data: dataReq, success: true });
           }
         }
         if (
@@ -191,46 +211,34 @@ export const onMessageListener = async () => {
         }
       } else {
         if (payload.data.type === "InAnotherCallEvent") {
-          // store.dispatch({ type: "USER_END_CALL" });
           toast.info("User In Another Call");
         }
         if (payload.data.type === "RefuseCallEvent") {
           // getCalls();
           let messageID = JSON.parse(payload.data.data).message_id;
-          if (store.getState().chat.callInProgress) {
-            store.dispatch({
-              type: "USER_END_CALL",
-              payload: parseInt(messageID),
-            });
+          if (callInProgress) {
+            endCall(parseInt(messageID));
           } else {
-            store.dispatch({ type: "END-CALL", payload: parseInt(messageID) });
+            endCall(parseInt(messageID));
           }
         }
         if (payload.data.type === "AnswerCallEvent") {
-          let messageID = JSON.parse(payload.data.data).message_id;
-          store.dispatch({
-            type: "USER_ANSWER_CALL",
-            payload: parseInt(messageID),
-          });
+          setUserAnswerCall();
         }
         if (payload.data.type === "VoiceCallEvent") {
-          if (store.getState().chat.call) {
+          if (call) {
             InCall(
               JSON.parse(payload.data.data).message.channel.id,
               JSON.parse(payload.data.data).message.id
             );
           } else {
             let data = JSON.parse(payload.data.data).payload;
-            let channel = store
-              .getState()
-              .chat.data.filter(
-                (ch) => parseInt(ch.id) === parseInt(data.channelId)
-              )[0]
-              ? store
-                  .getState()
-                  .chat.data.filter(
-                    (ch) => parseInt(ch.id) === parseInt(data.channelId)
-                  )[0]
+            let channel = chatData.filter(
+              (ch) => parseInt(ch.id) === parseInt(data.channelId)
+            )[0]
+              ? chatData.filter(
+                  (ch) => parseInt(ch.id) === parseInt(data.channelId)
+                )[0]
               : {
                   id: JSON.parse(payload.data.data).message.channel.id,
                   messages: [
@@ -266,42 +274,30 @@ export const onMessageListener = async () => {
 
             if (
               data.user_id !== getUserChat()?.id &&
-              (!store.getState().chat.callInProgress ||
-                store.getState().chat.callInProgress === 2)
+              (!callInProgress || callInProgress === 2)
             ) {
-              store.dispatch({
-                type: "INCOMING_VOICE_CALL",
-                payload: {
-                  ...data,
-                  channelId: JSON.parse(payload.data.data).message.channel.id,
-                  callerChannel: channel,
-                  caller: caller,
-                  message_id: JSON.parse(payload.data.data).message.id,
-                },
+              setIncomingVoiceCall({
+                ...data,
+                channelId: JSON.parse(payload.data.data).message.channel.id,
+                callerChannel: channel,
+                caller: caller,
+                message_id: JSON.parse(payload.data.data).message.id,
               });
             }
-            store.dispatch({
-              type: "SET_LAST_NOTIFICATION_DATE",
-              payload: new Date().toLocaleString(),
-            });
-            store.dispatch({
-              type: "REC_CHA",
-              payload: parseInt(
-                JSON.parse(payload.data.data).message.channel.id
-              ),
-            });
+            setLastNotificationDate(new Date().toLocaleString());
+            receiveChannelEvent(
+              parseInt(JSON.parse(payload.data.data).message.channel.id)
+            );
+
             if (
-              parseInt(store?.getState()?.chat?.activeChat?.id) ===
+              parseInt(activeChat?.id) ===
               parseInt(JSON.parse(payload.data.data)?.message.channel?.id)
             ) {
-              store.dispatch({
-                type: "WATCH_CHANNEL",
-                payload: parseInt(
-                  JSON.parse(payload.data.data).message?.channel?.id
-                ),
-              });
+              watchChannel(
+                parseInt(JSON.parse(payload.data.data).message?.channel?.id)
+              );
             } else {
-              let active = store?.getState()?.chat?.activeChat;
+              let active = activeChat;
               if (
                 active?.id &&
                 active?.channel_members.filter(
@@ -315,38 +311,31 @@ export const onMessageListener = async () => {
                 not.play();
               }
             }
-            store.dispatch({
-              type: "SEND-MESSAGE",
-              payload: {
-                act: JSON.parse(payload.data.data).message.channel,
-                message: {
-                  ...JSON.parse(payload.data.data).message,
-                  channel: null,
-                  message_type: { name: "VoiceCall" },
-                  message_status: [],
-                },
+            sendMessage({
+              act: JSON.parse(payload.data.data).message.channel,
+              message: {
+                ...JSON.parse(payload.data.data).message,
+                channel: null,
+                message_type: { name: "VoiceCall" },
+                message_status: [],
               },
             });
           }
           resolve(payload);
         } else if (payload.data.type === "VideoCallEvent") {
-          if (store.getState().chat.call) {
+          if (call) {
             InCall(
               JSON.parse(payload.data.data).message.channel.id,
               JSON.parse(payload.data.data).message.id
             );
           } else {
             let data = JSON.parse(payload.data.data).payload;
-            let channel = store
-              .getState()
-              .chat.data.filter(
-                (ch) => parseInt(ch.id) === parseInt(data.channelId)
-              )[0]
-              ? store
-                  .getState()
-                  .chat.data.filter(
-                    (ch) => parseInt(ch.id) === parseInt(data.channelId)
-                  )[0]
+            let channel = chatData.filter(
+              (ch) => parseInt(ch.id) === parseInt(data.channelId)
+            )[0]
+              ? chatData.filter(
+                  (ch) => parseInt(ch.id) === parseInt(data.channelId)
+                )[0]
               : {
                   id: JSON.parse(payload.data.data).message.channel.id,
                   messages: [
@@ -381,42 +370,29 @@ export const onMessageListener = async () => {
             let caller = { ...JSON.parse(payload.data.data).message.channel };
             if (
               data.user_id !== getUserChat()?.id &&
-              (!store.getState().chat.callInProgress ||
-                store.getState().chat.callInProgress === 2)
+              (!callInProgress || callInProgress === 2)
             ) {
-              store.dispatch({
-                type: "INCOMING_CALL",
-                payload: {
-                  ...data,
-                  channelId: JSON.parse(payload.data.data).message.channel.id,
-                  callerChannel: channel,
-                  caller: caller,
-                  message_id: JSON.parse(payload.data.data).message.id,
-                },
+              setIncomingCall({
+                ...data,
+                channelId: JSON.parse(payload.data.data).message.channel.id,
+                callerChannel: channel,
+                caller: caller,
+                message_id: JSON.parse(payload.data.data).message.id,
               });
             }
-            store.dispatch({
-              type: "SET_LAST_NOTIFICATION_DATE",
-              payload: new Date().toLocaleString(),
-            });
-            store.dispatch({
-              type: "REC_CHA",
-              payload: parseInt(
-                JSON.parse(payload.data.data).message.channel.id
-              ),
-            });
+            setLastNotificationDate(new Date().toLocaleString());
+            receiveChannelEvent(
+              parseInt(JSON.parse(payload.data.data).message.channel.id)
+            );
             if (
-              parseInt(store?.getState()?.chat?.activeChat?.id) ===
+              parseInt(activeChat?.id) ===
               parseInt(JSON.parse(payload.data.data)?.message?.channel?.id)
             ) {
-              store.dispatch({
-                type: "WATCH_CHANNEL",
-                payload: parseInt(
-                  JSON.parse(payload.data.data).message?.channel?.id
-                ),
-              });
+              watchChannel(
+                parseInt(JSON.parse(payload.data.data).message?.channel?.id)
+              );
             } else {
-              let active = store?.getState()?.chat?.activeChat;
+              let active = activeChat;
               if (
                 active?.id &&
                 active?.channel_members.filter(
@@ -430,27 +406,22 @@ export const onMessageListener = async () => {
                 not.play();
               }
             }
-            store.dispatch({
-              type: "SEND-MESSAGE",
-              payload: {
-                act: JSON.parse(payload.data.data).message.channel,
-                message: {
-                  ...JSON.parse(payload.data.data).message,
-                  channel: null,
-                  message_type: { name: "VideoCall" },
-                  message_status: [],
-                },
+            sendMessage({
+              act: JSON.parse(payload.data.data).message.channel,
+              message: {
+                ...JSON.parse(payload.data.data).message,
+                channel: null,
+                message_type: { name: "VideoCall" },
+                message_status: [],
               },
             });
-
             resolve(payload);
           }
         } else if (payload.data.type === "message") {
           Recive(parseInt(JSON.parse(payload.data.data).message.channel.id));
           if (
-            store
-              ?.getState()
-              ?.chat?.data.filter(
+            chatData
+              .filter(
                 (chat) =>
                   parseInt(chat.id) ===
                   parseInt(JSON.parse(payload.data.data).message.channel.id)
@@ -461,28 +432,19 @@ export const onMessageListener = async () => {
                   parseInt(JSON.parse(payload.data.data).prev_message_id)
               ).length > 0
           ) {
-            store.dispatch({
-              type: "SET_LAST_NOTIFICATION_DATE",
-              payload: new Date().toLocaleString(),
-            });
-            store.dispatch({
-              type: "REC_CHA",
-              payload: parseInt(
-                JSON.parse(payload.data.data).message.channel.id
-              ),
-            });
+            setLastNotificationDate(new Date().toLocaleString());
+            receiveChannelEvent(
+              parseInt(JSON.parse(payload.data.data).message.channel.id)
+            );
             if (
-              parseInt(store?.getState()?.chat?.activeChat?.id) ===
+              parseInt(activeChat?.id) ===
               parseInt(JSON.parse(payload?.data.data)?.message?.channel?.id)
             ) {
-              store.dispatch({
-                type: "WATCH_CHANNEL",
-                payload: parseInt(
-                  JSON.parse(payload.data.data)?.message?.channel?.id
-                ),
-              });
+              watchChannel(
+                parseInt(JSON.parse(payload.data.data)?.message?.channel?.id)
+              );
             } else {
-              let active = store?.getState()?.chat?.activeChat;
+              let active = activeChat;
               if (
                 active?.id &&
                 active?.channel_members.filter(
@@ -496,42 +458,33 @@ export const onMessageListener = async () => {
                 not.play();
               }
             }
-            store.dispatch({
-              type: "SEND-MESSAGE",
-              payload: {
-                act: JSON.parse(payload.data.data)?.message?.channel,
-                message: {
-                  ...JSON.parse(payload.data.data).message,
-                  channel: null,
-                },
+            sendMessage({
+              act: JSON.parse(payload.data.data)?.message?.channel,
+              message: {
+                ...JSON.parse(payload.data.data).message,
+                channel: null,
               },
             });
 
             resolve(payload);
           } else {
-            GetChats(true);
+            chat.getChats(true);
           }
+        } else if (payload.data.type === "ShareProductEvent") {
+          let data = JSON.parse(payload.data.data);
+          console.log(data);
         }
         if (payload.data.type === "ChannelWatchedEvent") {
-          store.dispatch({
-            type: "WATCH_CHANNEL_RED",
-            payload: JSON.parse(payload.data.data).channel_id,
-          });
+          watchChannelEvent(JSON.parse(payload.data.data).channel_id);
         }
         if (payload.data.type === "ChannelReceivedEvent") {
-          store.dispatch({
-            type: "REC_CHANNEL_RED",
-            payload: JSON.parse(payload.data.data).channel_id,
-          });
+          receiveChannelEvent(JSON.parse(payload.data.data).channel_id);
         }
         if (payload.data.type === "UpdatingMessageEvent") {
-          store.dispatch({
-            type: "DELETE_MESSAGE",
-            payload: {
-              ch_id: JSON.parse(payload.data.data).message.channel_id,
-              msg_id: JSON.parse(payload.data.data).message.id,
-              bool: true,
-            },
+          deleteMessage({
+            ch_id: JSON.parse(payload.data.data).message.channel_id,
+            msg_id: JSON.parse(payload.data.data).message.id,
+            bool: true,
           });
         }
         if (payload.data.type === "ChannelUpdatedEvent") {
@@ -543,18 +496,15 @@ export const onMessageListener = async () => {
           //     value: parseInt(JSON.parse(payload.data.data).channel.is_mute),
           //   },
           // });
-          store.dispatch({
-            type: "MUTE_CHAT_REDUCER",
-            payload: {
-              event: true,
-              id: JSON.parse(payload.data.data).channel.id,
-              value: parseInt(JSON.parse(payload.data.data).channel.is_mute),
-            },
+          muteChat({
+            event: true,
+            id: JSON.parse(payload.data.data).channel.id,
+            value: parseInt(JSON.parse(payload.data.data).channel.is_mute),
           });
         }
         if (payload.data.type === "ChannelDeletedEvent") {
           let id = JSON.parse(payload.data.data).channel_id;
-          store.dispatch({ type: "DELETE_CHAT_REDUCER", payload: { id: id } });
+          deleteChat({ id: id });
         }
       }
     });

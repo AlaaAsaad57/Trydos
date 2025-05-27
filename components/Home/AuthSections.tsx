@@ -1,6 +1,6 @@
 import dynamic from "next/dynamic";
 import LandingPage from "./LandingPage";
-import { useSelector } from "react-redux";
+import { useAppStore } from "store";
 
 const ChatModal = dynamic(() => import("components/Chat/ChatModal"), {
   loading: () => <LandingPage afterLoad={true} />,
@@ -12,10 +12,8 @@ const NewLoginWidget = dynamic(
   }
 );
 function AuthSections() {
-  const chatOpen = useSelector((state: StateInterface) => state.chat.chatVar);
-  const loginOpen = useSelector(
-    (state: StateInterface) => state.homepage.loginOpen
-  );
+  const { loginOpen, chatVar: chatOpen } = useAppStore();
+
   return (
     <>
       {chatOpen && <ChatModal />}

@@ -1,22 +1,30 @@
-import { useDispatch, useSelector } from "react-redux";
 import { useState } from "react";
-import {
-  GetAppLanguage,
-  getCart,
-  getUser,
-  RoundPrice,
-  translateFunction,
-} from "utils/functions";
+import { getCart, RoundPrice, translateFunction } from "utils/functions";
 import ConfirmMobile from "./ConfirmMobile";
 import { useParams } from "next/navigation";
 import { useSwipeable } from "react-swipeable";
 import OrderMarquee from "./OrderMarquee";
 import DiscoutIcon from "public/svg/cart/Disount.svg";
 import ShippingIcon from "public/svg/cart/Shipping.svg";
-import { AxiosGet } from "utils/AxiosApi";
 import Spinner from "components/global/Spinner";
 import { toast } from "react-toastify";
+import auth from "services/auth";
+import LocalizationServiceClass from "services/localization";
+import { useAppStore } from "store";
+import GiftIcon from "public/svg/cart/Gift.svg";
 function OrderButton({ close, toOrders }) {
+  const {
+    initCart,
+    total_discount,
+    total,
+    currency,
+    user,
+    sub_total,
+    total_cash,
+    total_shipping_cost,
+    cart,
+    orderData,
+  } = useAppStore();
   let { lang } = useParams();
   // @ts-ignore
   let languageVariable = lang.split("-")[1];
@@ -25,14 +33,19 @@ function OrderButton({ close, toOrders }) {
   };
   const [expanded, setExpanded] = useState(false);
   const [loading, setLoading] = useState(false);
-  const cart = useSelector((state: StateInterface) => state.cart);
+
   const [option, setOption] = useState(false);
-  const currency_symbol = useSelector(
-    (state: StateInterface) => state.homepage.currency
-  );
+  const getTotaPriceToShow = () => {
+    if (orderData?.payment?.find((s) => s.id === 0)) {
+      return total_cash;
+    } else {
+      return total;
+    }
+  };
   const ItemsIcon = () => {
     return (
       <svg
+        data-cy="item-icons"
         xmlns="http://www.w3.org/2000/svg"
         xmlnsXlink="http://www.w3.org/1999/xlink"
         width="16"
@@ -111,11 +124,11 @@ function OrderButton({ close, toOrders }) {
       </svg>
     );
   };
-  const user = useSelector((state: StateInterface) => state.auth.user);
 
   const MenuIcon = ({ className }) => {
     return (
       <svg
+        data-cy="menu-icon2"
         className={className || ""}
         xmlns="http://www.w3.org/2000/svg"
         width="10"
@@ -137,17 +150,17 @@ function OrderButton({ close, toOrders }) {
     );
   };
   const getDiscount = () => {
-    var a = parseInt(((cart.total_discount / cart.sub_total) * 100).toString());
+    var a = parseInt(((total_discount / sub_total) * 100).toString());
     return a;
   };
-  const dispatch = useDispatch();
+
   const GoToOrders = async (bool?) => {
     try {
       setLoading(true);
       let a = (
         await getCart({
           callback: ([data, res]) => {
-            dispatch({ type: "CART-INIT", payload: data ?? { cart: [] } });
+            initCart(data ?? { cart: [] });
           },
         })
       ).cart;
@@ -157,7 +170,7 @@ function OrderButton({ close, toOrders }) {
           (s) =>
             s?.check_availability === false ||
             s.is_country_restricted === true ||
-            s.is_available_in_market === false
+            s.is_active === false
         ).length === 0
       ) {
         setTimeout(() => {
@@ -194,7 +207,7 @@ function OrderButton({ close, toOrders }) {
   });
   const IsNotAvailable = () => {
     let a = false;
-    cart.cart.map((product) => {
+    cart.map((product) => {
       if (parseInt(product.quantity) > product.available_quantity) a = true;
     });
     return a;
@@ -210,6 +223,7 @@ function OrderButton({ close, toOrders }) {
         />
       )}
       <div
+        data-cy="order-bottom-button"
         style={{
           borderTopLeftRadius: "30px",
           borderTopRightRadius: "30px",
@@ -218,8 +232,9 @@ function OrderButton({ close, toOrders }) {
         }}
         className="order-bottom-button flex-col z-50 fixed  left-0 bg-white min-h-[100px] w-full"
       >
-        {cart.cart.length > 0 && (
+        {cart.length > 0 && (
           <div
+            data-cy="overflow-hidden-container"
             {...handlers}
             className={`flex-col w-full overflow-hidden ${
               expanded
@@ -227,8 +242,12 @@ function OrderButton({ close, toOrders }) {
                 : "h-[116px] pt-[10px] px-[12px] pb-[10px] "
             }  transition-all`}
           >
-            <div className="flex-row w-full justify-center">
+            <div
+              data-cy="containerOf-questionMark"
+              className="flex-row w-full justify-center"
+            >
               <svg
+                data-cy="questionMark"
                 xmlns="http://www.w3.org/2000/svg"
                 width="14"
                 height="14"
@@ -270,66 +289,114 @@ function OrderButton({ close, toOrders }) {
                 </g>
               </svg>
             </div>
-            <OrderMarquee shippingCost={cart.total_shipping_cost} />
+            <OrderMarquee shippingCost={total_shipping_cost} />
             {expanded && (
-              <div className="flex-col bg-[#F8F8F8] rounded-t-[12px]  mt-3 pt-[15px]">
-                <div className="flex-row items-start pl-[12px]">
+              <div
+                data-cy="itemPriceDiscountShipping-container"
+                className="flex-col bg-[#F8F8F8] rounded-t-[12px]  mt-3 pt-[15px]"
+              >
+                <div
+                  data-cy="item-container"
+                  className="flex-row items-start pl-[12px]"
+                >
                   <ItemsIcon />
-                  <div className="flex-col ml-[5px]">
-                    <span className=" medium text-[#1D1D1D] text-[13px]">
+                  <div
+                    data-cy="itemTexts-container"
+                    className="flex-col ml-[5px]"
+                  >
+                    <span
+                      data-cy="itemTexts"
+                      className=" medium text-[#1D1D1D] text-[13px]"
+                    >
                       {translate("Item")}
                     </span>
-                    <span className="regular text-[11px]">
+                    <span
+                      data-cy="itemTotalTexts"
+                      className="regular text-[11px]"
+                    >
                       {translate("Total Items")}
-                      <span className="ml-1 bold">{cart.cart.length}</span>
+                      <span className="ml-1 bold">{cart.length}</span>
                     </span>
                   </div>
                 </div>
-                <div className="flex-row items-start h-[50px] w-full justify-between mt-4">
-                  <div className="flex-col pl-[28px] text-[#1D1D1D]">
-                    <span className="medium text-[13px]">
+                <div
+                  data-cy="Price-container"
+                  className="flex-row items-start h-[50px] w-full justify-between mt-4"
+                >
+                  <div
+                    data-cy="Price-statement-text"
+                    className="flex-col pl-[28px] text-[#1D1D1D]"
+                  >
+                    <span data-cy="Price-text" className="medium text-[13px]">
                       {translateFunction("Price")}
                     </span>
-                    <span className="regular text-[11px]">
+                    <span
+                      data-cy="NormalPrice-text"
+                      className="regular text-[11px]"
+                    >
                       {translateFunction("Normal Price")}
                     </span>
                   </div>
                   <span className="ml-[5px] medium text-[#1D1D1D] text-[13px] pr-[13px]">
-                    {RoundPrice({ num: cart.sub_total })}{" "}
-                    {currency_symbol.symbol}
+                    {RoundPrice({
+                      num:
+                        getTotaPriceToShow() +
+                        total_discount -
+                        total_shipping_cost,
+                      returnNumber: true,
+                    })}{" "}
+                    {currency.symbol}
                   </span>
                 </div>
-                <div className="flex-row items-start h-[50px] w-full justify-between mt-2 bg-[#FDFDEF] rounded-[12px] pt-1">
-                  <div className="flex-row pl-[12px]">
-                    <span className="flex-row translate-y-[3px]">
-                      <DiscoutIcon />
+                <div
+                  data-cy="discount-container"
+                  className="flex-row items-start h-[50px] w-full justify-between mt-2 bg-[#FDFDEF] rounded-[12px] pt-1"
+                >
+                  <div
+                    data-cy="discount-container2"
+                    className="flex-row pl-[12px]"
+                  >
+                    <span
+                      data-cy="discount-svg-container"
+                      className="flex-row translate-y-[3px]"
+                    >
+                      <DiscoutIcon data-cy="discount-svg" />
                     </span>{" "}
                     <div className="flex-col pl-1 text-[#A28E5B]">
                       <span
                         className={`medium ${
                           languageVariable === "ar" && "dir-rtl"
                         } text-[13px] text-[#A28E5B] flex whitespace-nowrap `}
+                        data-cy="totalDiscount-text"
                       >
                         {translate("Total Discount")}
-                        <div className="mx-1" />
-                        <span className="bold text-[#A28E5B] ">
+                        <div data-cy="empty-div" className="mx-1" />
+                        <span
+                          data-cy="empty-div2"
+                          className="bold text-[#A28E5B] "
+                        >
                           {" " + getDiscount()} %
                         </span>
                       </span>
-                      <span className="regular text-[11px] text-[#A28E5B]">
+                      <span
+                        data-cy="ShowDiscount"
+                        className="regular text-[11px] text-[#A28E5B]"
+                      >
                         {translate("Click To Show All Discount")}
                       </span>
                     </div>
                   </div>
 
                   <span className="ml-[5px] bold  text-[13px] pr-[13px] text-[#A28E5B]">
+                    -{" "}
                     {RoundPrice({
-                      num: cart.total_discount,
+                      num: total_discount,
+                      returnNumber: true,
                     })}{" "}
-                    {currency_symbol.symbol}
+                    {currency.symbol}
                   </span>
                 </div>
-                {/* <div className="flex-row items-start h-[50px] w-full justify-between mt-2 rounded-[12px] pt-1">
+                <div className="flex-row items-start h-[50px] w-full justify-between mt-2 rounded-[12px] pt-1">
                   <div className="flex-row pl-[12px]">
                     <span className="flex-row translate-y-[3px]">
                       <GiftIcon />
@@ -345,31 +412,50 @@ function OrderButton({ close, toOrders }) {
                   </div>
 
                   <span className="ml-[5px] bold  text-[13px] pr-[13px] text-[#5BA260]">
-                    {RoundPrice({ num: -10 })} {currency_symbol.symbol}
+                    - {RoundPrice({ num: 0 })} {currency.symbol}
                   </span>
-                </div> */}
-                <div className="flex-row items-start h-[50px] w-full justify-between mt-2 rounded-[12px] pt-1">
-                  <div className="flex-row pl-[12px]">
-                    <span className="flex-row translate-y-[3px]">
-                      <ShippingIcon />
+                </div>
+                <div
+                  data-cy="Shipping-container"
+                  className="flex-row items-start h-[50px] w-full justify-between mt-2 rounded-[12px] pt-1"
+                >
+                  <div
+                    data-cy="Shipping-container2"
+                    className="flex-row pl-[12px]"
+                  >
+                    <span
+                      data-cy="Shipping-svg-container2"
+                      className="flex-row translate-y-[3px]"
+                    >
+                      <ShippingIcon data-cy="Shipping-svg" />
                     </span>{" "}
-                    <div className="flex-col pl-1 text-[#5BA260]">
-                      <span className="medium text-[13px] text-[#5BA260]">
-                        {translate("Shipping")}
-                      </span>
-                      <span className="regular text-[11px] text-[#5BA260]">
-                        {translate(
-                          "Shipping Is Completely Free Without Any Extras"
+                    {
+                      <div className="flex-col pl-1 text-[#5BA260]">
+                        <span className="medium text-[13px] text-[#5BA260]">
+                          {translate("Shipping")}
+                        </span>
+                        {total_shipping_cost === 0 && (
+                          <span className="regular text-[11px] text-[#5BA260]">
+                            {translate(
+                              "Shipping Is Completely Free Without Any Extras"
+                            )}
+                          </span>
                         )}
-                      </span>
-                    </div>
+                      </div>
+                    }
                   </div>
 
-                  <span className="ml-[5px] bold  text-[13px] pr-[13px] text-[#5BA260]">
+                  <span
+                    data-cy="Shipping-RoundPrice"
+                    className="ml-[5px] bold  text-[13px] pr-[13px] text-[#5BA260]"
+                  >
                     <span className="">
-                      {" "}
-                      {RoundPrice({ num: cart.total_shipping_cost })}{" "}
-                      {currency_symbol.symbol}
+                      +{" "}
+                      {RoundPrice({
+                        num: total_shipping_cost,
+                        returnNumber: true,
+                      })}{" "}
+                      {currency.symbol}
                     </span>
                   </span>
                 </div>
@@ -377,6 +463,7 @@ function OrderButton({ close, toOrders }) {
             )}
 
             <div
+              data-cy="total-expanded"
               onClick={() => {
                 setExpanded(!expanded);
               }}
@@ -384,24 +471,44 @@ function OrderButton({ close, toOrders }) {
                 expanded ? "rounded-t-none" : ""
               } cursor-pointer flex-row items-center min-h-[50px] w-full justify-between  rounded-[12px] pt-1 bg-[#F8F8F8]`}
             >
-              <div className="flex-row pl-[12px]">
-                <div className="flex-col pl-4 text-[#1D1D1D]">
-                  <span className="bold text-[13px] text-[#1D1D1D]">
+              <div
+                data-cy="total-left-container"
+                className="flex-row pl-[12px]"
+              >
+                <div
+                  data-cy="total-left-container2"
+                  className="flex-col pl-4 text-[#1D1D1D]"
+                >
+                  <span
+                    data-cy="total-left-text"
+                    className="bold text-[13px] text-[#1D1D1D]"
+                  >
                     {translate("Total")}
                   </span>
-                  <span className="medium text-[11px] text-[#8D8D8D]">
+                  <span
+                    data-cy="Inclusive-text"
+                    className="medium text-[11px] text-[#8D8D8D]"
+                  >
                     {translate("All Inclusive Without Additions")}
                   </span>
                 </div>
               </div>
 
-              <span className="flex-row justify-center items-center ml-[5px] bold  text-[16px] pr-[13px] text-[#1D1D1D]">
-                <span className="line-through regular mr-2">
+              <span
+                data-cy="total-right-container"
+                className="flex-row justify-center items-center ml-[5px] bold  text-[16px] pr-[13px] text-[#1D1D1D]"
+              >
+                <span
+                  data-cy="total-right-RoundPrice"
+                  className="line-through regular mr-2"
+                >
                   {RoundPrice({
-                    num: cart.total_cash + cart.total_discount,
+                    num: getTotaPriceToShow() + total_discount,
+                    returnNumber: true,
                   })}
                 </span>{" "}
-                {RoundPrice({ num: cart.total_cash })} {currency_symbol?.symbol}
+                {RoundPrice({ num: getTotaPriceToShow(), returnNumber: true })}{" "}
+                {currency?.symbol}
                 <span className="ml-2">
                   <MenuIcon className={expanded && "rotate-180"} />
                 </span>
@@ -410,6 +517,7 @@ function OrderButton({ close, toOrders }) {
           </div>
         )}
         <div
+          data-cy="container-orderButton"
           className={`flex-row w-full px-5 `}
           style={{
             boxShadow: "#0000001a 0px -3px 10px",
@@ -426,10 +534,13 @@ function OrderButton({ close, toOrders }) {
                 "inset 0px 3px 6px rgba(255,255,255,0.16), 0px 3px 6px rgba(0,0,0,0.1)",
             }}
             onClick={() => {
-              if (cart.cart.length === 0) {
+              if (option) {
+                return;
+              }
+              if (cart.length === 0) {
                 close();
               } else {
-                if (!getUser()) {
+                if (!auth.getUser()) {
                   setOption(true);
                 } else {
                   GoToOrders();
@@ -438,7 +549,10 @@ function OrderButton({ close, toOrders }) {
             }}
           >
             {loading && (
-              <span className="flex p-1 [&>div>svg>g>path]:fill-[#fafafa] scale-150">
+              <span
+                data-cy="spinner-container"
+                className="flex p-1 [&>div>svg>g>path]:fill-[#fafafa] scale-150"
+              >
                 <Spinner />
               </span>
             )}
@@ -459,25 +573,41 @@ function OrderButton({ close, toOrders }) {
                 ) : (
                   <>
                     {" "}
-                    {cart.cart.length === 0 ? (
+                    {cart.length === 0 ? (
                       <>
-                        <span className="text-[#FEFEFE] text-[18px] medium ">
-                          {translate("Back To HomePage", GetAppLanguage())}
+                        <span
+                          className="text-[#FEFEFE] text-[18px] medium "
+                          data-cy="backHome-text"
+                        >
+                          {translate(
+                            "Back To HomePage",
+                            LocalizationServiceClass.GetAppLanguage()
+                          )}
                         </span>
                       </>
                     ) : (
                       <>
-                        <span className="text-[#FEFEFE] text-[18px] medium ">
-                          {translate("Confirm And Continue", GetAppLanguage())}
+                        <span
+                          data-cy="confirm-text"
+                          className="text-[#FEFEFE] text-[18px] medium "
+                        >
+                          {translate(
+                            "Confirm And Continue",
+                            LocalizationServiceClass.GetAppLanguage()
+                          )}
                         </span>
                         <span
                           className={`text-[#FEFEFE] text-[14px] medium ${
-                            GetAppLanguage() === "ar" && "dir-rtl"
+                            LocalizationServiceClass.GetAppLanguage() ===
+                              "ar" && "dir-rtl"
                           } `}
                         >
-                          {cart.cart.length} {translate("items")}{" "}
-                          {RoundPrice({ num: cart.total_cash })}{" "}
-                          {currency_symbol?.symbol}
+                          {cart.length} {translate("items")}{" "}
+                          {RoundPrice({
+                            num: getTotaPriceToShow(),
+                            returnNumber: true,
+                          })}{" "}
+                          {currency?.symbol}
                         </span>
                       </>
                     )}

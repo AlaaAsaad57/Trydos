@@ -1,17 +1,34 @@
 import React from "react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import {
+  useParams,
+  usePathname,
+  useRouter,
+  useSearchParams,
+} from "next/navigation";
 import { NotificationItem as NotificationItemType } from "../../types/notifications";
 import { translateFunction } from "utils/functions";
+import { useAppStore } from "store";
+import NextLink from "components/global/NextLink";
+import search from "services/search";
+import { formatTime } from "utils/tinyUtils";
 
 interface NotificationItemProps {
   notification: NotificationItemType;
+  onClose: () => void;
+  closeWindow: () => void;
 }
 
 const NotificationItem: React.FC<NotificationItemProps> = ({
   notification,
+  onClose,
+  closeWindow,
 }) => {
+  const { enableCart, disableAddToCartOption } = useAppStore();
   const { lang } = useParams();
+  const pathname = usePathname();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const parsedDescription = React.useMemo(() => {
     try {
       return JSON.parse(notification.description);
@@ -44,7 +61,7 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
 
   const renderNotificationContent = () => {
     const content = (
-      <div className="flex items-start p-4 hover:bg-gray-50 transition-colors">
+      <div className="flex items-start p-4 hover:bg-gray-50 transition-colors relative">
         {parsedDescription.boutique_icon?.file_path ||
         parsedDescription.image?.file_path ||
         parsedDescription.boutique_icon ||
@@ -84,6 +101,9 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
               }}
             />
           )}
+          <div className="absolute bottom-2 right-2 text-[10px] light text-[#5d5d5d]">
+            {formatTime(notification.updated_at)}
+          </div>
         </div>
       </div>
     );
@@ -91,31 +111,135 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
     switch (parsedDescription.type) {
       case "boutique created":
         return (
-          <Link href={`/${lang}/boutiques/${parsedDescription.boutique_slug}`}>
+          <NextLink
+            data={{
+              is_boutique: true,
+              ...parsedDescription,
+              href: `/${lang}/boutique/${parsedDescription.boutique_slug}`,
+            }}
+            ariaLabel={`notification Boutique ${parsedDescription.boutique_slug} ${lang}`}
+            href={`/${lang}/boutique/${parsedDescription.boutique_slug}`}
+            onClick={() => {
+              closeWindow();
+              onClose();
+            }}
+          >
             {content}
-          </Link>
+          </NextLink>
         );
       default:
+        if (parsedDescription.type?.startsWith("product hurry up")) {
+          return (
+            <div
+              onClick={() => {
+                window.history.pushState({ isPopup: true }, "open Cart");
+                enableCart(true);
+                disableAddToCartOption();
+                const newParams = new URLSearchParams(searchParams);
+                newParams.set("cart", "true");
+
+                // Use router.push with pathname and updated query
+                // @ts-ignore
+                router.push(`${pathname}?${newParams.toString()}`, {
+                  // @ts-ignore
+                  shallow: true,
+                });
+                onClose();
+                closeWindow();
+              }}
+            >
+              {content}
+            </div>
+          );
+        }
         if (parsedDescription.type?.startsWith("product")) {
           return (
-            <Link
+            <NextLink
+              data={{
+                is_product: true,
+                ...parsedDescription,
+                href: `/${lang}/products/${
+                  parsedDescription.product_slug || parsedDescription.slug
+                }`,
+              }}
+              ariaLabel={`notification Product ${
+                parsedDescription.product_slug || parsedDescription.slug
+              } ${lang}`}
               href={`/${lang}/products/${
                 parsedDescription.product_slug || parsedDescription.slug
               }`}
+              onClick={() => {
+                closeWindow();
+                onClose();
+              }}
             >
               {content}
-            </Link>
+            </NextLink>
           );
         }
         if (parsedDescription.type === "category created") {
           return (
-            <Link
-              href={`/${lang}/boutiques/listing?categories=${
+            <NextLink
+              data={{
+                is_category: true,
+                ...parsedDescription,
+                href: `/boutique/listing${search.getPageUrl({
+                  term: "categories",
+                  value: [
+                    {
+                      slug:
+                        parsedDescription.category_slug ||
+                        parsedDescription.slug,
+                    },
+                  ],
+                })}`,
+              }}
+              ariaLabel={`notification Category ${
                 parsedDescription.category_slug || parsedDescription.slug
-              }`}
+              } ${lang}`}
+              href={`/${lang}/boutique/listing${search.getPageUrl({
+                term: "categories",
+                value: [
+                  {
+                    slug:
+                      parsedDescription.category_slug || parsedDescription.slug,
+                  },
+                ],
+              })}`}
+              onClick={() => {
+                closeWindow();
+                onClose();
+              }}
             >
               {content}
-            </Link>
+            </NextLink>
+          );
+        }
+        if (parsedDescription.type.startsWith("order")) {
+          return (
+            <NextLink
+              data={{
+                is_settings: true,
+                ...parsedDescription,
+                href: `/setting?tab=Orders${
+                  parsedDescription?.order_group_id
+                    ? `&id=${parsedDescription.order_group_id}`
+                    : ""
+                }`,
+              }}
+              ariaLabel={`notification Order`}
+              href={`/setting?tab=Orders${
+                parsedDescription?.order_group_id
+                  ? `&id=${parsedDescription.order_group_id}`
+                  : ""
+              }`}
+              onClick={() => {
+                closeWindow();
+                onClose();
+              }}
+            >
+              {content}
+            </NextLink>
           );
         }
         return content;

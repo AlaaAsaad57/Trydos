@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
-import { useSelector } from "react-redux";
+
 import { Sendevent, translateFunction } from "utils/functions";
 import WAIcon from "public/svg/WAIcon.svg";
 import MessageIcon from "public/svg/MessageIcon.svg";
 import { AnimatedComponent } from "components/global/AnimatedComponent";
 import AuthService from "services/auth";
 import { useParams } from "next/navigation";
+import { useAppStore } from "store";
+import { GA_CLICK_EVENT_VALUES, GA_EVENT_NAMES } from "utils/GAEvents";
 
 function SendMethod({
   inputValue,
@@ -13,25 +15,26 @@ function SendMethod({
   setWrongNumber,
   setMessageMethod,
   stepIndicator,
+  setShowMobile,
+  hideEdit,
 }: {
   setStepIndicator: Function;
   stepIndicator: number;
   inputValue: string;
   setWrongNumber: Function;
   setMessageMethod: Function;
+  setShowMobile?: Function;
+  hideEdit?: boolean;
 }) {
-  const wrongNumber = useSelector(
-    (state: StateInterface) => state.auth.wrongNumber
-  );
+  const { language, wrongNumber } = useAppStore();
+
   let { lang } = useParams();
   // @ts-ignore
   let languageVariable = lang.split("-")[1];
   const translate = (key, lang) => {
     return translateFunction(key, languageVariable);
   };
-  const language = useSelector(
-    (state: StateInterface) => state.homepage.language
-  );
+
   const [loading, setLoading] = useState(false);
   const SendOtpHook = async ({
     errorCallback,
@@ -97,6 +100,7 @@ function SendMethod({
       <>
         <div data-testid="pin-inputs-desc" className="phone-input-desc">
           <svg
+            data-cy="pin-inputs-desc-svg"
             id="_15x15"
             data-name="15x15"
             xmlns="http://www.w3.org/2000/svg"
@@ -156,20 +160,33 @@ function SendMethod({
             </g>
           </svg>
 
-          <div className="text-login-desc">
-            <div className="text-login-item">
+          <div data-cy="send-verification-number" className="text-login-desc">
+            <div
+              data-cy="send-verification-number-text"
+              className="text-login-item"
+            >
               {translate(
                 "We Will Send A Verification Code To The Number",
                 language
               )}
             </div>
             <div
-              className="icon-detail"
               data-cy="Edit-Phone-Number"
+              className="icon-detail"
               style={{ cursor: "pointer", marginTop: "3px" }}
-              onClick={() => setStepIndicator(3)}
+              onClick={() => {
+                if (setShowMobile && !hideEdit) {
+                  Sendevent({
+                    event: GA_EVENT_NAMES.CLICK,
+                    value: GA_CLICK_EVENT_VALUES.EDIT_PHONE_NUMBER_BUTTON,
+                  });
+                  setShowMobile(true);
+                  setStepIndicator(3);
+                }
+              }}
             >
               <svg
+                data-cy="Edit-Phone-Number-svg"
                 id="Group_10806"
                 data-name="Group 10806"
                 xmlns="http://www.w3.org/2000/svg"
@@ -206,26 +223,40 @@ function SendMethod({
                   fill="#8d8d8d"
                 />
               </svg>
-              <span style={{ color: "#5d5d5d" }}>+{inputValue}</span>
-              <span>
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="10.001"
-                  height="10.001"
-                  viewBox="0 0 10.001 10.001"
-                >
-                  <path
-                    id="Icon_material-create"
-                    data-name="Icon material-create"
-                    d="M3.125,11.04v2.083H5.208l6.144-6.144L9.269,4.9Zm9.839-5.672a.553.553,0,0,0,0-.783l-1.3-1.3a.553.553,0,0,0-.783,0L9.864,4.3l2.083,2.083Z"
-                    transform="translate(-3.125 -3.122)"
-                    fill="#388cff"
-                  />
-                </svg>
+
+              <span
+                data-cy="Edit-Phone-Number-plus"
+                style={{ color: "#5d5d5d" }}
+              >
+                {inputValue}
               </span>
+              {!hideEdit && (
+                <span data-cy="span-edit-number">
+                  <svg
+                    data-cy="span-edit-number-svg"
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="10.001"
+                    height="10.001"
+                    viewBox="0 0 10.001 10.001"
+                  >
+                    <path
+                      id="Icon_material-create"
+                      data-name="Icon material-create"
+                      d="M3.125,11.04v2.083H5.208l6.144-6.144L9.269,4.9Zm9.839-5.672a.553.553,0,0,0,0-.783l-1.3-1.3a.553.553,0,0,0-.783,0L9.864,4.3l2.083,2.083Z"
+                      transform="translate(-3.125 -3.122)"
+                      fill="#388cff"
+                    />
+                  </svg>
+                </span>
+              )}
             </div>
-            <div className="icon-detail" style={{ marginTop: "4px" }}>
+            <div
+              data-cy="choose"
+              className="icon-detail"
+              style={{ marginTop: "4px" }}
+            >
               <svg
+                data-cy="choose-svg"
                 xmlns="http://www.w3.org/2000/svg"
                 width="10"
                 height="10"
@@ -261,7 +292,7 @@ function SendMethod({
                 </g>
               </svg>
 
-              <span>
+              <span data-cy="choose-text">
                 {translate(
                   "Choose The Verification Method, Receive Code Via:",
                   language
@@ -270,8 +301,9 @@ function SendMethod({
             </div>
           </div>
         </div>
-        <div className="phone-send-options">
+        <div data-cy="send-way" className="phone-send-options">
           <div
+            data-cy="whatssapp-way"
             data-testid={`message-whatsapp-option`}
             className={`${loading && "opacity-55"} message-recieve-option`}
             onClick={() => {
@@ -281,8 +313,8 @@ function SendMethod({
                 SendCodeRequest("1");
 
                 Sendevent({
-                  event: "button_clicked",
-                  value: "choose_whatsapp_button",
+                  event: GA_EVENT_NAMES.CLICK,
+                  value: GA_CLICK_EVENT_VALUES.CHOOSE_WHATSAPP_BUTTON,
                 });
               }
               // AuthService.SendOtp(inputValue, 1, (e) => {
@@ -290,8 +322,9 @@ function SendMethod({
               // });
             }}
           >
-            <div className="border-option">
+            <div data-cy="border-whatssapp-way" className="border-option">
               <svg
+                data-cy="border-whatssapp-way-svg"
                 xmlns="http://www.w3.org/2000/svg"
                 width="193"
                 height="50"
@@ -319,16 +352,16 @@ function SendMethod({
                 </g>
               </svg>
             </div>
-            <WAIcon style={{ left: "34px", top: "17px" }} />
+            <WAIcon data-cy="way-icon" style={{ left: "34px", top: "17px" }} />
             <div
-              className={`message-recieve-option-text ${
-                language + "-regular"
-              } `}
+              data-cy="whattsapp-text"
+              className={`message-recieve-option-text regular `}
             >
               {translate("WhatsApp", language)}
             </div>
           </div>
           <div
+            data-cy="message-way"
             data-testid="message-sms-option"
             className={`${loading && "opacity-55"} message-recieve-option`}
             onClick={() => {
@@ -338,8 +371,8 @@ function SendMethod({
 
                 SendCodeRequest("0");
                 Sendevent({
-                  event: "button_clicked",
-                  value: "choose_sms_button",
+                  event: GA_EVENT_NAMES.CLICK,
+                  value: GA_CLICK_EVENT_VALUES.CHOOSE_SMS_BUTTON,
                 });
               }
               // AuthService.SendOtp(inputValue, 0, (e) => {
@@ -347,8 +380,9 @@ function SendMethod({
               // });
             }}
           >
-            <div className="border-option">
+            <div data-cy="message-way-svg-container" className="border-option">
               <svg
+                data-cy="message-way-svg"
                 xmlns="http://www.w3.org/2000/svg"
                 width="170"
                 height="50"
@@ -376,11 +410,13 @@ function SendMethod({
                 </g>
               </svg>
             </div>
-            <MessageIcon style={{ left: "48px", top: "17px" }} />
+            <MessageIcon
+              data-cy="message-icon-svg"
+              style={{ left: "48px", top: "17px" }}
+            />
             <div
-              className={`${
-                language + "-regular"
-              }  message-recieve-option-text`}
+              data-cy="message-text"
+              className={`regular  message-recieve-option-text`}
             >
               {translate("SMS", language)}
             </div>
@@ -388,8 +424,8 @@ function SendMethod({
         </div>
         {wrongNumber && (
           <div
-            className="blue-text"
             data-cy="WaitForTryAgain"
+            className="blue-text"
             style={{ color: "#ff5f61", fontSize: "12px", marginTop: "10px" }}
           >
             {wrongNumber || translate("Invalid Phone Number", language)}

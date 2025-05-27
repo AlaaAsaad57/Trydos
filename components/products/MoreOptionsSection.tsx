@@ -1,30 +1,41 @@
 import { useParams } from "next/navigation";
-import { useDispatch, useSelector } from "react-redux";
 import { useEffect, useState } from "react";
 import home from "services/home";
-import {
-  addToCompare,
-  GetAppLanguage,
-  translateFunction,
-} from "utils/functions";
+import { addToCompare, translateFunction } from "utils/functions";
 import CheckIcon from "public/svg/CheckIcon.svg";
 import Spinner from "components/global/Spinner";
 import { toast } from "react-toastify";
-import { useRouter } from "next-nprogress-bar";
+import { useRouter } from "next/navigation";
+import LocalizationServiceClass from "services/localization";
+import { useAppStore } from "store";
+import { getNotificationsTypes } from "services/notifications";
 function MoreOptionsSection() {
+  const {
+    disableNotification,
+    enableNotification,
+    SelectedProduct,
+    firebaseSettings,
+    NotificationsType,
+    setNotificationsType,
+  } = useAppStore();
+
   let { lang } = useParams();
   // @ts-ignore
   let languageVariable = lang.split("-")[1];
   const translate = (key, lang) => {
     return translateFunction(key, languageVariable);
   };
-  const SelectedProduct = useSelector(
-    (state: StateInterface) => state.cart.SelectedProduct
-  );
-  const firebasSettings = useSelector(
-    (state: StateInterface) => state.auth.firebaseSettings
-  );
+  const getNotificationsType = async () => {
+    if (NotificationsType?.length === 0) {
+      const response = await getNotificationsTypes();
+
+      setNotificationsType(response?.notification_types);
+    } else {
+      setNotificationsType(NotificationsType);
+    }
+  };
   useEffect(() => {
+    getNotificationsType();
     if (typeof document !== "undefined") {
       const slider: HTMLDivElement = document?.querySelector("#slider-options");
       let isDown = false;
@@ -55,38 +66,41 @@ function MoreOptionsSection() {
       });
     }
   }, []);
-  const dispatch = useDispatch();
+
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [addedToCompare, setAddedToCompare] = useState(
     localStorage.getItem("f_p") === SelectedProduct.slug ||
       localStorage.getItem("s_p") === SelectedProduct.slug
   );
-  let language = GetAppLanguage();
+  let language = LocalizationServiceClass.GetAppLanguage();
   const AddedToCompare = () => {
     return addedToCompare;
   };
-  const enableNotification = async (payload) => {
+  const enableNotificationTopic = async (payload) => {
     if (!loading) {
       setLoading(true);
-      if (firebasSettings?.subscribed_topics.some((s) => s.topic === payload)) {
-        dispatch({ type: "DISABLE-NOTIFICATION", payload: payload });
+      if (
+        firebaseSettings?.subscribed_topics.some((s) => s.topic === payload)
+      ) {
+        disableNotification(payload);
         await home.UnsubscripeFromTopic({ topic: payload });
       } else {
-        dispatch({ type: "ENABLE-NOTIFICATION", payload: payload });
+        enableNotification(payload);
         await home.subscribeToTopic({ topic: payload });
       }
       setLoading(false);
     }
   };
   const checkIfTopicEnabled = (topic) => {
-    return firebasSettings?.subscribed_topics.some((s) => {
+    return firebaseSettings?.subscribed_topics.some((s) => {
       return s.topic === topic;
     });
   };
   const getData = async () => {
     setLoading(true);
     await home.GetFireBaseSettings();
+    await getNotificationsType();
     setLoading(false);
   };
   useEffect(() => {
@@ -171,75 +185,38 @@ function MoreOptionsSection() {
             </span>
           </div>
           <div id="slider-options" className="notify-row">
-            <div
-              className={`button-option ${
-                checkIfTopicEnabled(
-                  `product_before_stock_out_${SelectedProduct.id}`
-                ) && "bg-green-300"
-              }`}
-              onClick={async () => {
-                enableNotification(
-                  `product_before_stock_out_${SelectedProduct.id}`
-                );
-              }}
-            >
-              {checkIfTopicEnabled(
-                `product_before_stock_out_${SelectedProduct.id}`
-              ) && <CheckIcon className="mx-1" />}
-              {translate("Before Stock Out", language)}
-            </div>
-            <div
-              className={`button-option ${
-                checkIfTopicEnabled(
-                  `product_when_change_in_price_${SelectedProduct.id}`
-                ) && "bg-green-300"
-              }`}
-              onClick={() => {
-                enableNotification(
-                  `product_when_change_in_price_${SelectedProduct.id}`
-                );
-              }}
-            >
-              {checkIfTopicEnabled(
-                `product_when_change_in_price_${SelectedProduct.id}`
-              ) && <CheckIcon className="mx-1" />}
-              {translate("Change In Price", language)}
-            </div>
-            <div
-              className={`button-option ${
-                checkIfTopicEnabled(`product_discount_${SelectedProduct.id}`) &&
-                "bg-green-300"
-              }`}
-              onClick={() => {
-                enableNotification(`product_discount_${SelectedProduct.id}`);
-              }}
-            >
-              {checkIfTopicEnabled(
-                `product_discount_${SelectedProduct.id}`
-              ) && <CheckIcon className="mx-1" />}
-              {translate("Discounts", language)}
-            </div>
-            <div
-              className={`button-option ${
-                checkIfTopicEnabled(`product_comment_${SelectedProduct.id}`) &&
-                "bg-green-300"
-              }`}
-              onClick={async () => {
-                enableNotification(`product_comment_${SelectedProduct.id}`);
-              }}
-            >
-              {checkIfTopicEnabled(`product_comment_${SelectedProduct.id}`) && (
-                <CheckIcon className="mx-1" />
-              )}
-              {translate("Follow Comments", language)}
-            </div>
-            <div className="button-option">
-              {translate("Offers", language)}( not Coded)
-            </div>
+            {NotificationsType.length === 0 ? (
+              <div className="flex items-center w-full h-full justify-center">
+                <Spinner />
+              </div>
+            ) : (
+              NotificationsType?.map((type) => (
+                <div
+                  key={type.topic}
+                  className={`button-option ${
+                    checkIfTopicEnabled(
+                      `${type.topic}_${SelectedProduct.id}`
+                    ) && "bg-green-300"
+                  }`}
+                  onClick={async () => {
+                    enableNotificationTopic(
+                      `${type.topic}_${SelectedProduct.id}`
+                    );
+                  }}
+                  data-cy={`notify-type`}
+                >
+                  {checkIfTopicEnabled(
+                    `${type.topic}_${SelectedProduct.id}`
+                  ) && <CheckIcon className="mx-1" />}
+                  {type.showed_name}
+                </div>
+              ))
+            )}
           </div>
         </div>
-        <div className="more-options-button">
+        <div className="more-options-button" data-cy="add-checkList">
           <svg
+            data-cy="add-checkList-svg"
             xmlns="http://www.w3.org/2000/svg"
             xmlnsXlink="http://www.w3.org/1999/xlink"
             width="25"
@@ -377,12 +354,15 @@ function MoreOptionsSection() {
             </g>
           </svg>
 
-          <span>{translate("Add To My Checklist", language)}</span>
+          <span data-cy="add-checkList-text">
+            {translate("Add To My Checklist", language)}
+          </span>
         </div>
         <div
           className={`more-options-button ${
             AddedToCompare() ? "bg-green-300" : ""
           }`}
+          data-cy="add-compare"
           onClick={() => {
             if (AddedToCompare()) {
               toast.info(translate("Already Added To Compare!", language));
@@ -404,6 +384,7 @@ function MoreOptionsSection() {
           }}
         >
           <svg
+            data-cy="add-compare-svg"
             xmlns="http://www.w3.org/2000/svg"
             xmlnsXlink="http://www.w3.org/1999/xlink"
             width="25"
@@ -483,7 +464,7 @@ function MoreOptionsSection() {
               </g>
             </g>
           </svg>
-          <span>
+          <span data-cy="add-compare-text">
             {AddedToCompare() ? (
               <>{translate("Added To Compare", language)}</>
             ) : (

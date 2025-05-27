@@ -5,28 +5,24 @@ const CallComponent = dynamic(
   { ssr: false }
 );
 const Chat = dynamic(() => import("./index"), { ssr: false });
-import { useDispatch, useSelector } from "react-redux";
-import { ChatConroller } from "store/chat/actions";
+
+import { ChatConroller } from "utils/tinyUtils";
 
 import { SSRDetect, getUserChat } from "utils/functions";
 import ChatService from "services/chat";
 import dynamic from "next/dynamic";
-import { GetChats } from "store/chat/actions";
+import { useAppStore } from "store";
+import chat from "services/chat";
 function ChatModal() {
-  const isCallIncoming = useSelector((state) => state.chat.isCallIncoming);
-  const callInProgress = useSelector((state) => state.chat.callInProgress);
-  const chatVar = useSelector((state) => state.chat.chatVar);
-  const dispatch = useDispatch();
+  const { isCallIncoming, callInProgress, chatVar } = useAppStore();
   useEffect(() => {
     if (chatVar) {
-      GetChats(false);
+      chat.getChats(false);
     }
   }, []);
   return (
     <>
-      {isCallIncoming && (
-        <CallComponent reply={() => dispatch(ChatConroller(true))} />
-      )}
+      {isCallIncoming && <CallComponent reply={() => ChatConroller(true)} />}
       {chatVar && SSRDetect() && (
         <Chat
           open={chatVar}
@@ -53,7 +49,7 @@ function ChatModal() {
                   }
                 } catch (e) {}
               });
-            dispatch(ChatConroller(false));
+            ChatConroller(false);
           }}
           callInProgress={callInProgress}
         />

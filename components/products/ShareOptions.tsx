@@ -1,10 +1,11 @@
 import React from "react";
 import ShareAvatar from "./ShareAvatar";
 import "styles/share-options.css";
-import { useDispatch, useSelector } from "react-redux";
 import {
+  EmailIcon,
   FacebookIcon,
   FacebookShareButton,
+  TelegramIcon,
   TelegramShareButton,
   TwitterIcon,
   TwitterShareButton,
@@ -13,8 +14,12 @@ import {
 } from "react-share";
 
 import { ProductInterface } from "models/product";
-import { getUser, getUserChat, Sendevent } from "utils/functions";
+import { getUserChat, Sendevent } from "utils/functions";
 import { AxiosPost } from "utils/AxiosApi";
+import { useAppStore } from "store";
+import { toast } from "react-toastify";
+import CopyIcon from "public/svg/copyIcon.svg";
+import { GA_CLICK_EVENT_VALUES, GA_EVENT_NAMES } from "utils/GAEvents";
 function ShareOptions({
   setShareContacts,
   sharedContacts,
@@ -24,13 +29,9 @@ function ShareOptions({
   setShareContacts: (e: Array<number>) => void;
   product: ProductInterface;
 }) {
-  const sharesCount = useSelector(
-    (state: StateInterface) => state.details.sharesCount
-  );
-  const shareLoading = useSelector(
-    (state: StateInterface) => state.details.shareLoading
-  );
-  const dispatch = useDispatch();
+  const { incrementSharesCount, sharesCount, shareLoading, user, contacts } =
+    useAppStore();
+
   const shareSocial = async (appName) => {
     await AxiosPost({
       url:
@@ -39,25 +40,24 @@ function ShareOptions({
       body: {
         app_name: appName,
         product_id: product.id,
-        shared_count: sharesCount,
+        shared_count: 1,
       },
       title: "Share Product on Social",
     });
 
-    dispatch({ type: "SHARE-SOCIAL" });
+    incrementSharesCount();
   };
-  const contacts = useSelector((state: StateInterface) => state.chat.contacts);
-  const user = useSelector((state: StateInterface) => state.auth.user);
   return (
     <div className="share-options">
-      <div className={`share-avatar`} data-cy="Facebook">
+      <div className={`share-avatar`}>
         <div className="share-image social shadow-none">
           <FacebookShareButton
+            data-cy="Facebook"
             url={window.location.href}
             beforeOnClick={() => {
               Sendevent({
-                event: "button_clicked",
-                value: "share_with_facebook_button",
+                event: GA_EVENT_NAMES.CLICK,
+                value: GA_CLICK_EVENT_VALUES.SHARE_WITH_FACEBOOK_BUTTON,
               });
               shareSocial("Facebook");
             }}
@@ -72,8 +72,8 @@ function ShareOptions({
           <TwitterShareButton
             beforeOnClick={() => {
               Sendevent({
-                event: "button_clicked",
-                value: "share_with_twiter_button",
+                event: GA_EVENT_NAMES.CLICK,
+                value: GA_CLICK_EVENT_VALUES.SHARE_WITH_TWITTER_BUTTON,
               });
               shareSocial("Twitter");
             }}
@@ -90,8 +90,8 @@ function ShareOptions({
           <WhatsappShareButton
             beforeOnClick={() => {
               Sendevent({
-                event: "button_clicked",
-                value: "share_with_whatsapp_button",
+                event: GA_EVENT_NAMES.CLICK,
+                value: GA_CLICK_EVENT_VALUES.SHARE_WITH_WHATSAPP_BUTTON,
               });
               shareSocial("WhatsApp");
             }}
@@ -101,6 +101,59 @@ function ShareOptions({
           </WhatsappShareButton>
         </div>
         <div className="share-name">WhatsApp</div>
+      </div>
+      <div className={`share-avatar`} data-cy="Whatsapp">
+        <div className="share-image social shadow-none">
+          <TelegramShareButton
+            beforeOnClick={() => {
+              Sendevent({
+                event: GA_EVENT_NAMES.CLICK,
+                value: GA_CLICK_EVENT_VALUES.SHARE_WITH_TELEGRAM_BUTTON,
+              });
+              shareSocial("Telegram");
+            }}
+            url={window.location.href}
+          >
+            <TelegramIcon size={70} borderRadius={20} />
+          </TelegramShareButton>
+        </div>
+        <div className="share-name">Telegram</div>
+      </div>
+      <div className={`share-avatar`} data-cy="Whatsapp">
+        <div className="share-image social shadow-none">
+          <a
+            onClick={() => {
+              Sendevent({
+                event: GA_EVENT_NAMES.CLICK,
+                value: GA_CLICK_EVENT_VALUES.SHARE_WITH_EMAIL_BUTTON,
+              });
+              shareSocial("email");
+            }}
+            href={`https://mail.google.com/mail/?view=cm&fs=1&su=Check%20this%20out&body=${product?.name} %0A ${window.location.href}`}
+            target="_blank"
+          >
+            <EmailIcon size={70} borderRadius={20} />
+          </a>
+        </div>
+        <div className="share-name">Gmail</div>
+      </div>
+      <div className={`share-avatar`}>
+        <div
+          data-cy="copy_link_button"
+          className="share-image social shadow-none flex justify-center items-center bg-[#f8f8e4]"
+          onClick={() => {
+            Sendevent({
+              event: GA_EVENT_NAMES.CLICK,
+              value: GA_CLICK_EVENT_VALUES.SHARE_WITH_COPY_LINK_BUTTON,
+            });
+            navigator.clipboard.writeText(window.location.href).then(() => {
+              toast.success("Link Copied to Clipboard");
+            });
+          }}
+        >
+          <CopyIcon />
+        </div>
+        <div className="share-name">Copy Link</div>
       </div>
       {getUserChat() &&
         user &&

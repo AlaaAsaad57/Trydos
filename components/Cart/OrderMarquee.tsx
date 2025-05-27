@@ -10,61 +10,117 @@ function OrderMarquee({ shippingCost }) {
     return translateFunction(key, languageVariable);
   };
   return (
-    <div className="flex flex-row pl-3 items-center marquee-slide mt-2">
-      <div className="flex items-center">
+    <div
+      data-cy="horizontal-tape-container"
+      className="flex flex-row pl-3 items-center marquee-slide mt-2"
+    >
+      <div data-cy="firstItem-onHorizontalTape" className="flex items-center">
         <DeleiveryIcon />
-        <div className="ml-1 whitespace-nowrap regular  text-[11px] text-[#505050]">
+        <div
+          data-cy="deleivery-text"
+          className="ml-1 whitespace-nowrap regular  text-[11px] text-[#505050]"
+        >
           {translate("Delivery")}
-          <span className="bold ml-1">2 June</span>
+          <span data-cy="text-name" className="bold ml-1">
+            2 June
+          </span>
         </div>
       </div>
       {shippingCost === 0 && (
-        <div className="flex items-center ml-2">
+        <div
+          data-cy="secondItem-onHorizontalTape"
+          className="flex items-center ml-2"
+        >
           <FreeShippingIcon />
-          <div className="ml-1 whitespace-nowrap regular text-[11px] text-[#505050]">
+          <div
+            data-cy="FreeShipping-text"
+            className="ml-1 whitespace-nowrap regular text-[11px] text-[#505050]"
+          >
             {translate("Free Shipping")}
           </div>
         </div>
       )}
-      <div className="flex items-center ml-2">
+      <div
+        data-cy="thirdItem-onHorizontalTape"
+        className="flex items-center ml-2"
+      >
         <FreeReturnIcon />
-        <div className="ml-1 whitespace-nowrap regular text-[11px] text-[#505050]">
+        <div
+          data-cy="FreeReturn-text"
+          className="ml-1 whitespace-nowrap regular text-[11px] text-[#505050]"
+        >
           {translate("Free Return")}
         </div>
       </div>
-      <div className="flex items-center ml-2">
+      <div
+        data-cy="fourthItem-onHorizontalTape"
+        className="flex items-center ml-2"
+      >
         <DeleiveryGuaranteeIcon />
-        <div className="ml-1 whitespace-nowrap regular text-[11px] text-[#505050]">
+        <div
+          data-cy="DeliveryGuarantee-text"
+          className="ml-1 whitespace-nowrap regular text-[11px] text-[#505050]"
+        >
           {translate("Delivery Guarantee")}
         </div>
       </div>
-      <div className="flex items-center ml-2">
+      <div
+        data-cy="fifthItem-onHorizontalTape"
+        className="flex items-center ml-2"
+      >
         <ReturnGuranteeIcon />
-        <div className="ml-1 whitespace-nowrap regular text-[11px] text-[#505050]">
+        <div
+          data-cy="ReturnGurantee-text"
+          className="ml-1 whitespace-nowrap regular text-[11px] text-[#505050]"
+        >
           {translate("Return Guarantee")}
         </div>
       </div>
-      <div className="flex items-center ml-2">
+      <div
+        data-cy="sixtyItem-onHorizontalTape"
+        className="flex items-center ml-2"
+      >
         <SecurePaymentIcon />
-        <div className="ml-1 whitespace-nowrap regular text-[11px] text-[#505050]">
+        <div
+          data-cy="SecurePayment-text"
+          className="ml-1 whitespace-nowrap regular text-[11px] text-[#505050]"
+        >
           {translate("Secure Privacy")}
         </div>
       </div>
-      <div className="flex items-center ml-2">
+      <div
+        data-cy="seventyItem-onHorizontalTape"
+        className="flex items-center ml-2"
+      >
         <SafePaymentIcon />
-        <div className="ml-1 whitespace-nowrap regular text-[11px] text-[#505050]">
+        <div
+          data-cy="SafePayment-text"
+          className="ml-1 whitespace-nowrap regular text-[11px] text-[#505050]"
+        >
           {translate("Safe & Easy Payment")}
         </div>
       </div>
-      <div className="flex items-center ml-2">
+      <div
+        data-cy="eightyItem-onHorizontalTape"
+        className="flex items-center ml-2"
+      >
         <PurchaseProtectionIcon />
-        <div className="ml-1 whitespace-nowrap regular text-[11px] text-[#505050]">
+        <div
+          data-cy="PurchaseProtection-text"
+          className="ml-1 whitespace-nowrap regular text-[11px] text-[#505050]"
+        >
           {translate("Purshase Protection")}
         </div>
       </div>
-      <div className="flex items-center ml-2">
+      <div
+        data-cy="nintyItem-onHorizontalTape"
+        className="flex items-center ml-2"
+      >
         <MoneyIcon />
-        <div className="ml-1 whitespace-nowrap regular text-[11px] text-[#505050]">
+        <div
+          data-cy="Money-text"
+          className="ml-1 whitespace-nowrap regular text-[11px] text-[#505050]"
+        >
           {translate("Earn Money With This Order")}
         </div>
       </div>
@@ -76,6 +132,7 @@ export default OrderMarquee;
 const DeleiveryIcon = () => {
   return (
     <svg
+      data-cy="deleivery-icon"
       id="Group_3138"
       data-name="Group 3138"
       xmlns="http://www.w3.org/2000/svg"
@@ -112,6 +169,7 @@ const DeleiveryIcon = () => {
 const FreeShippingIcon = () => {
   return (
     <svg
+      data-cy="free-shipping-icon"
       xmlns="http://www.w3.org/2000/svg"
       xmlnsXlink="http://www.w3.org/1999/xlink"
       width="14"
@@ -214,6 +272,7 @@ const FreeShippingIcon = () => {
 const FreeReturnIcon = () => {
   return (
     <svg
+      data-cy="free-return-icon"
       xmlns="http://www.w3.org/2000/svg"
       xmlnsXlink="http://www.w3.org/1999/xlink"
       width="14"
@@ -316,6 +375,7 @@ const FreeReturnIcon = () => {
 const DeleiveryGuaranteeIcon = () => {
   return (
     <svg
+      data-cy="deleiveryuaranteeIcon"
       xmlns="http://www.w3.org/2000/svg"
       width="13.999"
       height="14"
@@ -365,6 +425,7 @@ const DeleiveryGuaranteeIcon = () => {
 const ReturnGuranteeIcon = () => {
   return (
     <svg
+      data-cy="Return-Gurantee-Icon"
       xmlns="http://www.w3.org/2000/svg"
       width="14"
       height="13.999"
@@ -414,6 +475,7 @@ const ReturnGuranteeIcon = () => {
 const SecurePaymentIcon = () => {
   return (
     <svg
+      data-cy="Secure-Payment-Icon"
       xmlns="http://www.w3.org/2000/svg"
       width="13.999"
       height="13.999"
@@ -476,6 +538,7 @@ const SecurePaymentIcon = () => {
 const SafePaymentIcon = () => {
   return (
     <svg
+      data-cy="Safe-Payment-Icon"
       xmlns="http://www.w3.org/2000/svg"
       width="13.999"
       height="14"
@@ -512,6 +575,7 @@ const SafePaymentIcon = () => {
 const PurchaseProtectionIcon = () => {
   return (
     <svg
+      data-cy="Purchase-Protection-Icon"
       xmlns="http://www.w3.org/2000/svg"
       width="14"
       height="14"
@@ -584,6 +648,7 @@ const PurchaseProtectionIcon = () => {
 const MoneyIcon = () => {
   return (
     <svg
+      data-cy="Money-Icon"
       xmlns="http://www.w3.org/2000/svg"
       xmlnsXlink="http://www.w3.org/1999/xlink"
       width="14"

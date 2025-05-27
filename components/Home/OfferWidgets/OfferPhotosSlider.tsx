@@ -1,5 +1,5 @@
+"use client";
 import OfferSlideItem from "./OfferSlideItem";
-import OfferAvatars from "./OfferAvatars";
 import { Boutique } from "models/offer";
 import useEmblaCarousel from "embla-carousel-react";
 import Autoplay from "embla-carousel-autoplay";
@@ -7,12 +7,12 @@ interface OfferPhotosSliderProps {
   OfferPhotos: { file_path: string }[];
   extended: boolean;
   priority: boolean;
-  boutique: Boutique;
+
   myKey: number;
 }
 function OfferPhotosSlider({
   OfferPhotos,
-  boutique,
+
   myKey,
   extended,
   priority,
@@ -23,13 +23,18 @@ function OfferPhotosSlider({
 
   return (
     <div
+      data-cy="offer_slider_container_length1"
       className="offer-slider-container"
       style={{ marginTop: extended && "39px" }}
     >
-      <div className="embla" ref={emblaRef}>
-        <div className="embla__container">
+      <div data-cy="embla_length1" className="embla" ref={emblaRef}>
+        <div data-cy="embla__container_length1" className="embla__container">
           {OfferPhotos.map((offerPhoto, key) => (
-            <div className="embla__slide" key={key}>
+            <div
+              data-cy="embla__slide_length1"
+              className="embla__slide"
+              key={key}
+            >
               <OfferSlideItem
                 mykey={key < 1 ? myKey : 10}
                 offerPhoto={offerPhoto}
@@ -40,7 +45,6 @@ function OfferPhotosSlider({
           ))}
         </div>
       </div>
-      <OfferAvatars boutique={boutique} priority={false} />
     </div>
   );
 }

@@ -11,7 +11,7 @@ import ForwardIcon from "../svg/forwarded.svg";
 import MissedIcon from "../svg/misscall.svg";
 import VideoIconMissed from "../svg/VideoMissed.svg";
 import profile from "public/images/profileNo.png";
-import { useDispatch, useSelector } from "react-redux";
+
 import OptionsMenu from "./OptionsMenu";
 import { getTwoLetters, getUser } from "../chatsFunctions";
 import RepliedMessage from "./RepliedMessage";
@@ -25,7 +25,10 @@ import Image from "next/image";
 import { DeleteMessageApi } from "store/chat/actions";
 import NextLink from "components/global/NextLink";
 import { useParams } from "next/navigation";
+import { useAppStore } from "store";
+import ChatPhoto from "./ChatPhoto";
 function ChatMessage(props) {
+  const { language, activeChat, deleteMessage } = useAppStore();
   let { lang } = useParams();
   // @ts-ignore
   let languageVariable = lang.split("-")[1];
@@ -36,14 +39,11 @@ function ChatMessage(props) {
   const message_ref = useRef();
   const [width, setWidth] = useState(0);
   const [opens, setOpen] = useState(false);
-  const language = useSelector((state) => state.homepage.language);
   const refmessage = useRef();
   const AudioRef = useRef();
-  const activeChat = useSelector((state) => state.chat.activeChat);
+
   const [playing, setPlay] = useState(false);
   const [DeleteModal, setDelete] = useState(false);
-
-  const dispatch = useDispatch();
   const getStatues = () => {
     let a = props.message.message_status.filter(
       (a) => a.user_id !== getUserChat()?.id
@@ -193,7 +193,7 @@ function ChatMessage(props) {
     }
   };
   const DeleteMessage = (ch_id, msg_id, bool) => {
-    dispatch({ type: "DELETE_MESSAGE", payload: { ch_id, msg_id, bool } });
+    deleteMessage({ ch_id, msg_id, bool });
     DeleteMessageApi(msg_id, bool);
   };
 
@@ -261,6 +261,7 @@ function ChatMessage(props) {
     document.execCommand("Copy");
   };
   const showMessage = () => {
+    const { setForwardMessage, setReplyMessage } = useAppStore.getState();
     // if (
     //   !props.message?.auth_message_status ||
     //   props.message?.auth_message_status.is_deleted !== 1
@@ -310,68 +311,16 @@ function ChatMessage(props) {
                   }`
                 }
               >
-                {activeChat.channel_members
-                  .filter((user) => user.user_id === getUserChat()?.id)[0]
-                  ?.user?.photo_path?.includes("eu") ? (
-                  activeChat.channel_members.filter(
-                    (a) => parseInt(a.user_id) === parseInt(getUserChat()?.id)
-                  )[0]?.user?.name?.length > 1 ? (
-                    <>
-                      {getTwoLetters(
-                        activeChat.channel_members.filter(
-                          (a) =>
-                            parseInt(a.user_id) === parseInt(getUserChat()?.id)
-                        )[0]?.user?.name ||
-                          activeChat.channel_members.filter(
-                            (a) =>
-                              parseInt(a.user_id) ===
-                              parseInt(getUserChat()?.id)
-                          )[0]?.user?.user_name
-                      )}
-                    </>
-                  ) : (
-                    <Image
-                      alt="user-img"
-                      src={profile}
-                      width={30}
-                      height={30}
-                    />
-                  )
-                ) : activeChat.channel_members.filter(
-                    (user) => user.user_id === getUserChat()?.id
-                  )[0]?.user?.name?.length > 1 ? (
-                  <>
-                    {getTwoLetters(
-                      activeChat.channel_members.filter(
-                        (a) =>
-                          parseInt(a.user_id) === parseInt(getUserChat()?.id)
-                      )[0]?.user?.name ||
-                        activeChat.channel_members.filter(
-                          (a) =>
-                            parseInt(a.user_id) === parseInt(getUserChat()?.id)
-                        )[0]?.user?.user_name
-                    )}
-                  </>
-                ) : activeChat.channel_members.filter(
-                    (user) => user.user_id === getUserChat()?.id
-                  )[0]?.user?.photo_path ? (
-                  <Image
-                    alt="user-img"
-                    className="abs-avva"
-                    width={30}
-                    height={30}
-                    src={
-                      activeChat &&
-                      activeChat.channel_members &&
-                      activeChat.channel_members.filter(
-                        (a) =>
-                          parseInt(a.user_id) === parseInt(getUserChat()?.id)
-                      )[0]?.user?.photo_path
-                    }
-                  />
-                ) : (
-                  <Image alt="user-img" src={profile} width={30} height={30} />
-                )}
+                <ChatPhoto
+                  user={
+                    activeChat.channel_members.filter(
+                      (user) => user.user_id === getUserChat()?.id
+                    )[0]?.user
+                  }
+                  width={30}
+                  className="abs-avva"
+                  height={30}
+                />
               </div>
             )}
             {translate("this message was deleted", language)}
@@ -407,6 +356,15 @@ function ChatMessage(props) {
             )}
 
             <NextLink
+              data={{
+                is_product: true,
+                slug: JSON.parse(props.message.message_content.content)[0]
+                  .product_slug,
+                href: `/products/${
+                  JSON.parse(props.message.message_content.content)[0]
+                    .product_slug
+                }`,
+              }}
               href={`/products/${
                 JSON.parse(props.message.message_content.content)[0]
                   .product_slug
@@ -458,78 +416,16 @@ function ChatMessage(props) {
                     }`
                   }
                 >
-                  {activeChat.channel_members
-                    .filter((user) => user.user_id === getUserChat()?.id)[0]
-                    ?.user?.photo_path?.includes("eu") ? (
-                    activeChat.channel_members.filter(
-                      (a) => parseInt(a.user_id) === parseInt(getUserChat()?.id)
-                    )[0]?.user?.name?.length > 1 ? (
-                      <>
-                        {getTwoLetters(
-                          activeChat.channel_members.filter(
-                            (a) =>
-                              parseInt(a.user_id) ===
-                              parseInt(getUserChat()?.id)
-                          )[0]?.user?.name ||
-                            activeChat.channel_members.filter(
-                              (a) =>
-                                parseInt(a.user_id) ===
-                                parseInt(getUserChat()?.id)
-                            )[0]?.user?.user_name
-                        )}
-                      </>
-                    ) : (
-                      <Image
-                        loading="eager"
-                        alt="user-img"
-                        src={profile}
-                        width={30}
-                        height={30}
-                      />
-                    )
-                  ) : activeChat.channel_members.filter(
-                      (user) => user.user_id === getUserChat()?.id
-                    )[0]?.user?.name?.length > 1 ? (
-                    <>
-                      {getTwoLetters(
-                        activeChat.channel_members.filter(
-                          (a) =>
-                            parseInt(a.user_id) === parseInt(getUserChat()?.id)
-                        )[0]?.user?.name ||
-                          activeChat.channel_members.filter(
-                            (a) =>
-                              parseInt(a.user_id) ===
-                              parseInt(getUserChat()?.id)
-                          )[0]?.user?.user_name
-                      )}
-                    </>
-                  ) : activeChat.channel_members.filter(
-                      (user) => user.user_id === getUserChat()?.id
-                    )[0]?.user?.photo_path ? (
-                    <Image
-                      loading="eager"
-                      alt="user-img"
-                      width={30}
-                      height={30}
-                      className="abs-avva"
-                      src={
-                        activeChat &&
-                        activeChat.channel_members &&
-                        activeChat.channel_members.filter(
-                          (a) =>
-                            parseInt(a.user_id) === parseInt(getUserChat()?.id)
-                        )[0]?.user?.photo_path
-                      }
-                    />
-                  ) : (
-                    <Image
-                      loading="eager"
-                      alt="user-img"
-                      src={profile}
-                      width={30}
-                      height={30}
-                    />
-                  )}
+                  <ChatPhoto
+                    user={
+                      activeChat.channel_members.filter(
+                        (user) => user.user_id === getUserChat()?.id
+                      )[0]?.user
+                    }
+                    width={30}
+                    className="abs-avva"
+                    height={30}
+                  />
                 </div>
               )}
               <img
@@ -600,11 +496,11 @@ function ChatMessage(props) {
                 DeleteMessage(activeChat.id, props.message.id, e)
               }
               copy={() => copyText()}
-              forward={() =>
-                dispatch({ type: "FORWARD-MESSAGEs", payload: props.message })
+               forward={() =>
+                setForwardMessage(props.message)
               }
               click={() =>
-                dispatch({ type: "REPLY-MESSAGE", payload: props.message })
+                setReplyMessage(props.message)
               }
             /> */}
           </div>
@@ -682,100 +578,25 @@ function ChatMessage(props) {
                     }`
                   }
                 >
-                  {activeChat.channel_members
-                    .filter((user) => user.user_id === getUserChat()?.id)[0]
-                    ?.user?.photo_path?.includes("eu") ? (
-                    activeChat.channel_members.filter(
-                      (a) => parseInt(a.user_id) === parseInt(getUserChat()?.id)
-                    )[0]?.user?.name?.length > 1 ? (
-                      <>
-                        {getTwoLetters(
-                          activeChat.channel_members.filter(
-                            (a) =>
-                              parseInt(a.user_id) ===
-                              parseInt(getUserChat()?.id)
-                          )[0]?.user?.name ||
-                            activeChat.channel_members.filter(
-                              (a) =>
-                                parseInt(a.user_id) ===
-                                parseInt(getUserChat()?.id)
-                            )[0]?.user?.user_name
-                        )}
-                      </>
-                    ) : (
-                      <Image
-                        loading="eager"
-                        alt="user-img"
-                        src={profile}
-                        width={30}
-                        height={30}
-                      />
-                    )
-                  ) : activeChat.channel_members.filter(
-                      (user) => user.user_id === getUserChat()?.id
-                    )[0]?.user?.name?.length > 1 ? (
-                    <>
-                      {getTwoLetters(
-                        activeChat.channel_members.filter(
-                          (a) =>
-                            parseInt(a.user_id) === parseInt(getUserChat()?.id)
-                        )[0]?.user?.name ||
-                          activeChat.channel_members.filter(
-                            (a) =>
-                              parseInt(a.user_id) ===
-                              parseInt(getUserChat()?.id)
-                          )[0]?.user?.user_name
-                      )}
-                    </>
-                  ) : activeChat.channel_members.filter(
-                      (user) => user.user_id === getUserChat()?.id
-                    )[0]?.user?.photo_path ? (
-                    <Image
-                      loading="eager"
-                      width={30}
-                      height={30}
-                      alt="user-img"
-                      className="abs-avva"
-                      src={
-                        activeChat &&
-                        activeChat.channel_members &&
-                        activeChat.channel_members.filter(
-                          (a) =>
-                            parseInt(a.user_id) === parseInt(getUserChat()?.id)
-                        )[0]?.user?.photo_path
-                      }
-                    />
-                  ) : (
-                    <Image
-                      loading="eager"
-                      alt="user-img"
-                      src={profile}
-                      width={30}
-                      height={30}
-                    />
-                  )}
+                  <ChatPhoto
+                    user={
+                      activeChat.channel_members.filter(
+                        (user) => user.user_id === getUserChat()?.id
+                      )[0]?.user
+                    }
+                    width={30}
+                    className="abs-avva"
+                    height={30}
+                  />
                 </div>
               )}
               <img
                 alt="user"
                 onClick={() =>
-                  setImg(
-                    props.message.type ||
-                      props.message.message_content[0]?.file_path.includes(
-                        "https"
-                      )
-                      ? props.message.message_content[0]?.file_path
-                      : props.message.message_content[0]?.file_path
-                  )
+                  setImg(props.message.message_files[0]?.file_path)
                 }
                 className="message-img"
-                src={
-                  props.message.message_content
-                    ? props.message.type
-                      ? props.message.message_content[0]?.file_path
-                      : props.message.message_content[0]?.file_path
-                    : "null"
-                }
+                src={props.message.message_files[0]?.file_path}
               />
 
               <div className="message-date">{getMessageStatus()}</div>
@@ -826,12 +647,8 @@ function ChatMessage(props) {
                 DeleteMessage(activeChat.id, props.message.id, e)
               }
               copy={() => copyText()}
-              forward={() =>
-                dispatch({ type: "FORWARD-MESSAGEs", payload: props.message })
-              }
-              click={() =>
-                dispatch({ type: "REPLY-MESSAGE", payload: props.message })
-              }
+              forward={() => setForwardMessage(props.message)}
+              click={() => setReplyMessage(props.message)}
             />
           </div>
         );
@@ -908,111 +725,30 @@ function ChatMessage(props) {
                     }`
                   }
                 >
-                  {activeChat.channel_members
-                    .filter((user) => user.user_id === getUserChat()?.id)[0]
-                    ?.user?.photo_path?.includes("eu") ? (
-                    activeChat.channel_members.filter(
-                      (a) => parseInt(a.user_id) === parseInt(getUserChat()?.id)
-                    )[0]?.user?.name?.length > 1 ? (
-                      <>
-                        {getTwoLetters(
-                          activeChat.channel_members.filter(
-                            (a) =>
-                              parseInt(a.user_id) ===
-                              parseInt(getUserChat()?.id)
-                          )[0]?.user?.name ||
-                            activeChat.channel_members.filter(
-                              (a) =>
-                                parseInt(a.user_id) ===
-                                parseInt(getUserChat()?.id)
-                            )[0]?.user?.user_name
-                        )}
-                      </>
-                    ) : (
-                      <Image
-                        alt="user-img"
-                        src={profile}
-                        width={30}
-                        height={30}
-                      />
-                    )
-                  ) : activeChat.channel_members.filter(
-                      (user) => user.user_id === getUserChat()?.id
-                    )[0]?.user?.name?.length > 1 ? (
-                    <>
-                      {getTwoLetters(
-                        activeChat.channel_members.filter(
-                          (a) =>
-                            parseInt(a.user_id) === parseInt(getUserChat()?.id)
-                        )[0]?.user?.name ||
-                          activeChat.channel_members.filter(
-                            (a) =>
-                              parseInt(a.user_id) ===
-                              parseInt(getUserChat()?.id)
-                          )[0]?.user?.user_name
-                      )}
-                    </>
-                  ) : activeChat.channel_members.filter(
-                      (user) => user.user_id === getUserChat()?.id
-                    )[0]?.user?.photo_path ? (
-                    <Image
-                      alt="user-img"
-                      className="abs-avva"
-                      width={30}
-                      height={30}
-                      src={
-                        activeChat &&
-                        activeChat.channel_members &&
-                        activeChat.channel_members.filter(
-                          (a) =>
-                            parseInt(a.user_id) === parseInt(getUserChat()?.id)
-                        )[0]?.user?.photo_path
-                      }
-                    />
-                  ) : (
-                    <Image
-                      alt="user-img"
-                      src={profile}
-                      width={30}
-                      height={30}
-                    />
-                  )}
+                  <ChatPhoto
+                    user={
+                      activeChat.channel_members.filter(
+                        (user) => user.user_id === getUserChat()?.id
+                      )[0]?.user
+                    }
+                    width={30}
+                    className="abs-avva"
+                    height={30}
+                  />
                 </div>
               )}
               <PlayIcon
                 onClick={() => {
-                  setVid(
-                    props.message.type ||
-                      props.message.message_content[0]?.file_path.includes(
-                        "https"
-                      ) ||
-                      props.message.message_content[0]?.file_path.includes(
-                        "http"
-                      )
-                      ? props.message.message_content[0]?.file_path
-                      : props.message.message_content[0]?.file_path
-                  );
+                  setVid(props.message.message_files[0]?.file_path);
                 }}
                 className="play-vid-icon"
               ></PlayIcon>
               <video
                 className="message-img"
-                src={
-                  props.message.message_content
-                    ? props.message.type
-                      ? props.message.message_content[0]?.file_path
-                      : props.message.message_content[0]?.file_path
-                    : "null"
-                }
+                src={props.message.message_files[0]?.file_path}
               >
                 <source
-                  src={
-                    props.message.message_content
-                      ? props.message.type
-                        ? props.message.message_content[0]?.file_path
-                        : props.message.message_content[0]?.file_path
-                      : "null"
-                  }
+                  src={props.message.message_files[0]?.file_path}
                 ></source>
               </video>
 
@@ -1064,12 +800,8 @@ function ChatMessage(props) {
                 DeleteMessage(activeChat.id, props.message.id, e)
               }
               copy={() => copyText()}
-              forward={() =>
-                dispatch({ type: "FORWARD-MESSAGEs", payload: props.message })
-              }
-              click={() =>
-                dispatch({ type: "REPLY-MESSAGE", payload: props.message })
-              }
+              forward={() => setForwardMessage(props.message)}
+              click={() => setReplyMessage(props.message)}
             />
           </div>
         );
@@ -1097,9 +829,9 @@ function ChatMessage(props) {
                 moving={moving}
               />
             )}
-            {props.message.message_content &&
-              props.message.message_content[0]?.file_path &&
-              props.message.message_content[0]?.file_path !== "false" && (
+            {props.message.message_files &&
+              props.message.message_files[0]?.file_path &&
+              props.message.message_files[0]?.file_path !== "false" && (
                 <div
                   onClick={() => setOpen(true)}
                   ref={refmessage}
@@ -1136,21 +868,9 @@ function ChatMessage(props) {
                     }}
                     controls={false}
                     ref={AudioRef}
-                    src={
-                      props.message.type
-                        ? props.message.message_content &&
-                          props.message.message_content[0]?.file_path
-                        : props.message.message_content[0]?.file_path
-                    }
+                    src={props.message.message_files[0]?.file_path}
                   >
-                    <source
-                      src={
-                        props.message.type
-                          ? props.message.message_content[0]?.file_path
-                          : props.message.message_content &&
-                            props.message.message_content[0]?.file_path
-                      }
-                    />
+                    <source src={props.message.message_files[0]?.file_path} />
                   </audio>
                   {(props.type === "first-chat" || props.type === "lonely") && (
                     <div
@@ -1178,78 +898,16 @@ function ChatMessage(props) {
                         }`
                       }
                     >
-                      {activeChat.channel_members
-                        .filter((user) => user.user_id === getUserChat()?.id)[0]
-                        ?.user?.photo_path?.includes("eu") ? (
-                        activeChat.channel_members.filter(
-                          (a) =>
-                            parseInt(a.user_id) === parseInt(getUserChat()?.id)
-                        )[0]?.user?.name?.length > 1 ? (
-                          <>
-                            {getTwoLetters(
-                              activeChat.channel_members.filter(
-                                (a) =>
-                                  parseInt(a.user_id) ===
-                                  parseInt(getUserChat()?.id)
-                              )[0]?.user?.name ||
-                                activeChat.channel_members.filter(
-                                  (a) =>
-                                    parseInt(a.user_id) ===
-                                    parseInt(getUserChat()?.id)
-                                )[0]?.user?.user_name
-                            )}
-                          </>
-                        ) : (
-                          <Image
-                            alt="user-img"
-                            src={profile}
-                            width={30}
-                            height={30}
-                          />
-                        )
-                      ) : activeChat.channel_members.filter(
-                          (user) => user.user_id === getUserChat()?.id
-                        )[0]?.user?.name?.length > 1 ? (
-                        <>
-                          {getTwoLetters(
-                            activeChat.channel_members.filter(
-                              (a) =>
-                                parseInt(a.user_id) ===
-                                parseInt(getUserChat()?.id)
-                            )[0]?.user?.name ||
-                              activeChat.channel_members.filter(
-                                (a) =>
-                                  parseInt(a.user_id) ===
-                                  parseInt(getUserChat()?.id)
-                              )[0]?.user?.user_name
-                          )}
-                        </>
-                      ) : activeChat.channel_members.filter(
-                          (user) => user.user_id === getUserChat()?.id
-                        )[0]?.user?.photo_path ? (
-                        <Image
-                          alt="user-img"
-                          className="abs-avva"
-                          width={30}
-                          height={30}
-                          src={
-                            activeChat &&
-                            activeChat.channel_members &&
-                            activeChat.channel_members.filter(
-                              (a) =>
-                                parseInt(a.user_id) ===
-                                parseInt(getUserChat()?.id)
-                            )[0]?.user?.photo_path
-                          }
-                        />
-                      ) : (
-                        <Image
-                          alt="user-img"
-                          src={profile}
-                          width={30}
-                          height={30}
-                        />
-                      )}
+                      <ChatPhoto
+                        user={
+                          activeChat.channel_members.filter(
+                            (user) => user.user_id === getUserChat()?.id
+                          )[0]?.user
+                        }
+                        width={30}
+                        className="abs-avva"
+                        height={30}
+                      />
                     </div>
                   )}
                   <div className="audio-message">
@@ -1350,12 +1008,8 @@ function ChatMessage(props) {
                 DeleteMessage(activeChat.id, props.message.id, e)
               }
               copy={() => copyText()}
-              forward={() =>
-                dispatch({ type: "FORWARD-MESSAGEs", payload: props.message })
-              }
-              click={() =>
-                dispatch({ type: "REPLY-MESSAGE", payload: props.message })
-              }
+              forward={() => setForwardMessage(props.message)}
+              click={() => setReplyMessage(props.message)}
             />
           </div>
         );
@@ -1427,75 +1081,16 @@ function ChatMessage(props) {
                     }`
                   }
                 >
-                  {activeChat.channel_members
-                    .filter((user) => user.user_id === getUserChat()?.id)[0]
-                    ?.user?.photo_path?.includes("eu") ? (
-                    activeChat.channel_members.filter(
-                      (a) => parseInt(a.user_id) === parseInt(getUserChat()?.id)
-                    )[0]?.user?.name?.length > 1 ? (
-                      <>
-                        {getTwoLetters(
-                          activeChat.channel_members.filter(
-                            (a) =>
-                              parseInt(a.user_id) ===
-                              parseInt(getUserChat()?.id)
-                          )[0]?.user?.name ||
-                            activeChat.channel_members.filter(
-                              (a) =>
-                                parseInt(a.user_id) ===
-                                parseInt(getUserChat()?.id)
-                            )[0]?.user?.user_name
-                        )}
-                      </>
-                    ) : (
-                      <Image
-                        alt="user-img"
-                        src={profile}
-                        width={30}
-                        height={30}
-                      />
-                    )
-                  ) : activeChat.channel_members.filter(
-                      (user) => user.user_id === getUserChat()?.id
-                    )[0]?.user?.name?.length > 1 ? (
-                    <>
-                      {getTwoLetters(
-                        activeChat.channel_members.filter(
-                          (a) =>
-                            parseInt(a.user_id) === parseInt(getUserChat()?.id)
-                        )[0]?.user?.name ||
-                          activeChat.channel_members.filter(
-                            (a) =>
-                              parseInt(a.user_id) ===
-                              parseInt(getUserChat()?.id)
-                          )[0]?.user?.user_name
-                      )}
-                    </>
-                  ) : activeChat.channel_members.filter(
-                      (user) => user.user_id === getUserChat()?.id
-                    )[0]?.user?.photo_path ? (
-                    <Image
-                      alt="user-img"
-                      className="abs-avva"
-                      width={30}
-                      height={30}
-                      src={
-                        activeChat &&
-                        activeChat.channel_members &&
-                        activeChat.channel_members.filter(
-                          (a) =>
-                            parseInt(a.user_id) === parseInt(getUserChat()?.id)
-                        )[0]?.user?.photo_path
-                      }
-                    />
-                  ) : (
-                    <Image
-                      alt="user-img"
-                      src={profile}
-                      width={30}
-                      height={30}
-                    />
-                  )}
+                  <ChatPhoto
+                    user={
+                      activeChat.channel_members.filter(
+                        (user) => user.user_id === getUserChat()?.id
+                      )[0]?.user
+                    }
+                    width={30}
+                    className="abs-avva"
+                    height={30}
+                  />
                 </div>
               )}
               <span className="message-body-text-content">
@@ -1550,12 +1145,8 @@ function ChatMessage(props) {
                 DeleteMessage(activeChat.id, props.message.id, e)
               }
               copy={() => copyText()}
-              forward={() =>
-                dispatch({ type: "FORWARD-MESSAGEs", payload: props.message })
-              }
-              click={() =>
-                dispatch({ type: "REPLY-MESSAGE", payload: props.message })
-              }
+              forward={() => setForwardMessage(props.message)}
+              click={() => setReplyMessage(props.message)}
             />
           </div>
         );
@@ -1627,92 +1218,23 @@ function ChatMessage(props) {
                     }`
                   }
                 >
-                  {activeChat.channel_members
-                    .filter((user) => user.user_id === getUserChat()?.id)[0]
-                    ?.user?.photo_path?.includes("eu") ? (
-                    activeChat.channel_members.filter(
-                      (a) => parseInt(a.user_id) === parseInt(getUserChat()?.id)
-                    )[0]?.user?.name?.length > 1 ? (
-                      <>
-                        {getTwoLetters(
-                          activeChat.channel_members.filter(
-                            (a) =>
-                              parseInt(a.user_id) ===
-                              parseInt(getUserChat()?.id)
-                          )[0]?.user?.name ||
-                            activeChat.channel_members.filter(
-                              (a) =>
-                                parseInt(a.user_id) ===
-                                parseInt(getUserChat()?.id)
-                            )[0]?.user?.user_name
-                        )}
-                      </>
-                    ) : (
-                      <Image
-                        alt="user-img"
-                        src={profile}
-                        width={30}
-                        height={30}
-                      />
-                    )
-                  ) : activeChat.channel_members.filter(
-                      (user) => user.user_id === getUserChat()?.id
-                    )[0]?.user?.name?.length > 1 ? (
-                    <>
-                      {getTwoLetters(
-                        activeChat.channel_members.filter(
-                          (a) =>
-                            parseInt(a.user_id) === parseInt(getUserChat()?.id)
-                        )[0]?.user?.name ||
-                          activeChat.channel_members.filter(
-                            (a) =>
-                              parseInt(a.user_id) ===
-                              parseInt(getUserChat()?.id)
-                          )[0]?.user?.user_name
-                      )}
-                    </>
-                  ) : activeChat.channel_members.filter(
-                      (user) => user.user_id === getUserChat()?.id
-                    )[0]?.user?.photo_path ? (
-                    <Image
-                      alt="user-img"
-                      className="abs-avva"
-                      width={30}
-                      height={30}
-                      src={
-                        activeChat &&
-                        activeChat.channel_members &&
-                        activeChat.channel_members.filter(
-                          (a) =>
-                            parseInt(a.user_id) === parseInt(getUserChat()?.id)
-                        )[0]?.user?.photo_path
-                      }
-                    />
-                  ) : (
-                    <Image
-                      alt="user-img"
-                      src={profile}
-                      width={30}
-                      height={30}
-                    />
-                  )}
+                  <ChatPhoto
+                    user={
+                      activeChat.channel_members.filter(
+                        (user) => user.user_id === getUserChat()?.id
+                      )[0]?.user
+                    }
+                    width={30}
+                    className="abs-avva"
+                    height={30}
+                  />
                 </div>
               )}
-              {props.message?.message_content &&
-                props.message?.message_content[0]?.file_path && (
+              {props.message?.message_files &&
+                props.message?.message_files[0]?.file_path && (
                   <a
                     target="_blank"
-                    href={
-                      props.message.message_content[0]?.file_path.includes(
-                        "https"
-                      ) ||
-                      props.message.message_content[0]?.file_path.includes(
-                        "http"
-                      ) ||
-                      props.message.type
-                        ? props.message.message_content[0]?.file_path
-                        : props.message.message_content[0]?.file_path
-                    }
+                    href={props.message.message_files[0]?.file_path}
                     download
                     className="replay-msg file-msg"
                   >
@@ -1785,12 +1307,8 @@ function ChatMessage(props) {
                 DeleteMessage(activeChat.id, props.message.id, e)
               }
               copy={() => copyText()}
-              forward={() =>
-                dispatch({ type: "FORWARD-MESSAGEs", payload: props.message })
-              }
-              click={() =>
-                dispatch({ type: "REPLY-MESSAGE", payload: props.message })
-              }
+              forward={() => setForwardMessage(props.message)}
+              click={() => setReplyMessage(props.message)}
             />
           </div>
         );
@@ -1822,68 +1340,16 @@ function ChatMessage(props) {
                   }`
                 }
               >
-                {activeChat.channel_members
-                  .filter((user) => user.user_id === getUserChat()?.id)[0]
-                  ?.user?.photo_path?.includes("eu") ? (
-                  activeChat.channel_members.filter(
-                    (a) => parseInt(a.user_id) === parseInt(getUserChat()?.id)
-                  )[0]?.user?.name?.length > 1 ? (
-                    <>
-                      {getTwoLetters(
-                        activeChat.channel_members.filter(
-                          (a) =>
-                            parseInt(a.user_id) === parseInt(getUserChat()?.id)
-                        )[0]?.user?.name ||
-                          activeChat.channel_members.filter(
-                            (a) =>
-                              parseInt(a.user_id) ===
-                              parseInt(getUserChat()?.id)
-                          )[0]?.user?.user_name
-                      )}
-                    </>
-                  ) : (
-                    <Image
-                      alt="user-img"
-                      src={profile}
-                      width={30}
-                      height={30}
-                    />
-                  )
-                ) : activeChat.channel_members.filter(
-                    (user) => user.user_id === getUserChat()?.id
-                  )[0]?.user?.name?.length > 1 ? (
-                  <>
-                    {getTwoLetters(
-                      activeChat.channel_members.filter(
-                        (a) =>
-                          parseInt(a.user_id) === parseInt(getUserChat()?.id)
-                      )[0]?.user?.name ||
-                        activeChat.channel_members.filter(
-                          (a) =>
-                            parseInt(a.user_id) === parseInt(getUserChat()?.id)
-                        )[0]?.user?.user_name
-                    )}
-                  </>
-                ) : activeChat.channel_members.filter(
-                    (user) => user.user_id === getUserChat()?.id
-                  )[0]?.user?.photo_path ? (
-                  <Image
-                    alt="user-img"
-                    className="abs-avva"
-                    width={30}
-                    height={30}
-                    src={
-                      activeChat &&
-                      activeChat.channel_members &&
-                      activeChat.channel_members.filter(
-                        (a) =>
-                          parseInt(a.user_id) === parseInt(getUserChat()?.id)
-                      )[0]?.user?.photo_path
-                    }
-                  />
-                ) : (
-                  <Image alt="user-img" src={profile} width={30} height={30} />
-                )}
+                <ChatPhoto
+                  user={
+                    activeChat.channel_members.filter(
+                      (user) => user.user_id === getUserChat()?.id
+                    )[0]?.user
+                  }
+                  width={30}
+                  className="abs-avva"
+                  height={30}
+                />
               </div>
             )}
             {props.message.message_type.name === "VoiceCall" ? (
@@ -1911,60 +1377,16 @@ function ChatMessage(props) {
                 }`
               }
             >
-              {activeChat.channel_members
-                .filter((user) => user.user_id === getUserChat()?.id)[0]
-                ?.user?.photo_path?.includes("eu") ? (
-                activeChat.channel_members.filter(
-                  (a) => parseInt(a.user_id) === parseInt(getUserChat()?.id)
-                )[0]?.user?.name?.length > 1 ? (
-                  <>
-                    {getTwoLetters(
-                      activeChat.channel_members.filter(
-                        (a) =>
-                          parseInt(a.user_id) === parseInt(getUserChat()?.id)
-                      )[0]?.user?.name ||
-                        activeChat.channel_members.filter(
-                          (a) =>
-                            parseInt(a.user_id) === parseInt(getUserChat()?.id)
-                        )[0]?.user?.user_name
-                    )}
-                  </>
-                ) : (
-                  <Image alt="user-img" src={profile} width={30} height={30} />
-                )
-              ) : activeChat.channel_members.filter(
-                  (user) => user.user_id === getUserChat()?.id
-                )[0]?.user?.name?.length > 1 ? (
-                <>
-                  {getTwoLetters(
-                    activeChat.channel_members.filter(
-                      (a) => parseInt(a.user_id) === parseInt(getUserChat()?.id)
-                    )[0]?.user?.name ||
-                      activeChat.channel_members.filter(
-                        (a) =>
-                          parseInt(a.user_id) === parseInt(getUserChat()?.id)
-                      )[0]?.user?.user_name
-                  )}
-                </>
-              ) : activeChat.channel_members.filter(
-                  (user) => user.user_id === getUserChat()?.id
-                )[0]?.user?.photo_path ? (
-                <Image
-                  alt="user-img"
-                  width={30}
-                  height={30}
-                  className="abs-avva"
-                  src={
-                    activeChat &&
-                    activeChat.channel_members &&
-                    activeChat.channel_members.filter(
-                      (a) => parseInt(a.user_id) === parseInt(getUserChat()?.id)
-                    )[0]?.user?.photo_path
-                  }
-                />
-              ) : (
-                <Image alt="user-img" src={profile} width={30} height={30} />
-              )}
+              <ChatPhoto
+                user={
+                  activeChat.channel_members.filter(
+                    (user) => user.user_id === getUserChat()?.id
+                  )[0]?.user
+                }
+                width={30}
+                className="abs-avva"
+                height={30}
+              />
             </div>
             <div className="missed-body">
               {translate("Missed  Call At", language)}{" "}
@@ -1999,6 +1421,15 @@ function ChatMessage(props) {
             )}
 
             <NextLink
+              data={{
+                is_product: true,
+                slug: JSON.parse(props.message.message_content.content)[0]
+                  .product_slug,
+                href: `/products/${
+                  JSON.parse(props.message.message_content.content)[0]
+                    .product_slug
+                }`,
+              }}
               href={`/products/${
                 JSON.parse(props.message.message_content.content)[0]
                   .product_slug
@@ -2049,75 +1480,16 @@ function ChatMessage(props) {
                     }`
                   }
                 >
-                  {activeChat.channel_members
-                    .filter((user) => user.user_id !== getUserChat()?.id)[0]
-                    ?.user?.photo_path?.includes("eu") ? (
-                    activeChat.channel_members.filter(
-                      (a) => parseInt(a.user_id) !== parseInt(getUserChat()?.id)
-                    )[0]?.user?.name?.length > 1 ? (
-                      <>
-                        {getTwoLetters(
-                          activeChat.channel_members.filter(
-                            (a) =>
-                              parseInt(a.user_id) !==
-                              parseInt(getUserChat()?.id)
-                          )[0]?.user?.name ||
-                            activeChat.channel_members.filter(
-                              (a) =>
-                                parseInt(a.user_id) !==
-                                parseInt(getUserChat()?.id)
-                            )[0]?.user?.user_name
-                        )}
-                      </>
-                    ) : (
-                      <Image
-                        alt="user-img"
-                        src={profile}
-                        width={30}
-                        height={30}
-                      />
-                    )
-                  ) : activeChat.channel_members.filter(
-                      (user) => user.user_id !== getUserChat()?.id
-                    )[0]?.user?.name?.length > 1 ? (
-                    <>
-                      {getTwoLetters(
-                        activeChat.channel_members.filter(
-                          (a) =>
-                            parseInt(a.user_id) !== parseInt(getUserChat()?.id)
-                        )[0]?.user?.name ||
-                          activeChat.channel_members.filter(
-                            (a) =>
-                              parseInt(a.user_id) !==
-                              parseInt(getUserChat()?.id)
-                          )[0]?.user?.user_name
-                      )}
-                    </>
-                  ) : activeChat.channel_members.filter(
-                      (user) => user.user_id !== getUserChat()?.id
-                    )[0]?.user?.photo_path ? (
-                    <Image
-                      alt="user-img"
-                      className="abs-avva"
-                      width={30}
-                      height={30}
-                      src={
-                        activeChat &&
-                        activeChat.channel_members &&
-                        activeChat.channel_members.filter(
-                          (a) =>
-                            parseInt(a.user_id) !== parseInt(getUserChat()?.id)
-                        )[0]?.user?.photo_path
-                      }
-                    />
-                  ) : (
-                    <Image
-                      alt="user-img"
-                      src={profile}
-                      width={30}
-                      height={30}
-                    />
-                  )}
+                  <ChatPhoto
+                    user={
+                      activeChat.channel_members.filter(
+                        (user) => user.user_id !== getUserChat()?.id
+                      )[0]?.user
+                    }
+                    width={30}
+                    className="abs-avva"
+                    height={30}
+                  />
                 </div>
               )}
               <img
@@ -2152,10 +1524,10 @@ function ChatMessage(props) {
               }
               copy={() => copyText()}
               forward={() =>
-                dispatch({ type: "FORWARD-MESSAGEs", payload: props.message })
+                setForwardMessage(props.message)
               }
               click={() =>
-                dispatch({ type: "REPLY-MESSAGE", payload: props.message })
+                setReplyMessage(props.message)
               }
             /> */}
           </div>
@@ -2231,94 +1603,25 @@ function ChatMessage(props) {
                     }`
                   }
                 >
-                  {activeChat.channel_members
-                    .filter((user) => user.user_id !== getUserChat()?.id)[0]
-                    ?.user?.photo_path?.includes("eu") ? (
-                    activeChat.channel_members.filter(
-                      (a) => parseInt(a.user_id) !== parseInt(getUserChat()?.id)
-                    )[0]?.user?.name?.length > 1 ? (
-                      <>
-                        {getTwoLetters(
-                          activeChat.channel_members.filter(
-                            (a) =>
-                              parseInt(a.user_id) !==
-                              parseInt(getUserChat()?.id)
-                          )[0]?.user?.name ||
-                            activeChat.channel_members.filter(
-                              (a) =>
-                                parseInt(a.user_id) !==
-                                parseInt(getUserChat()?.id)
-                            )[0]?.user?.user_name
-                        )}
-                      </>
-                    ) : (
-                      <Image
-                        alt="user-img"
-                        src={profile}
-                        width={30}
-                        height={30}
-                      />
-                    )
-                  ) : activeChat.channel_members.filter(
-                      (user) => user.user_id !== getUserChat()?.id
-                    )[0]?.user?.name?.length > 1 ? (
-                    <>
-                      {getTwoLetters(
-                        activeChat.channel_members.filter(
-                          (a) =>
-                            parseInt(a.user_id) !== parseInt(getUserChat()?.id)
-                        )[0]?.user?.name ||
-                          activeChat.channel_members.filter(
-                            (a) =>
-                              parseInt(a.user_id) !==
-                              parseInt(getUserChat()?.id)
-                          )[0]?.user?.user_name
-                      )}
-                    </>
-                  ) : activeChat.channel_members.filter(
-                      (user) => user.user_id !== getUserChat()?.id
-                    )[0]?.user?.photo_path ? (
-                    <Image
-                      alt="user-img"
-                      className="abs-avva"
-                      width={30}
-                      height={30}
-                      src={
-                        activeChat &&
-                        activeChat.channel_members &&
-                        activeChat.channel_members.filter(
-                          (a) =>
-                            parseInt(a.user_id) !== parseInt(getUserChat()?.id)
-                        )[0]?.user?.photo_path
-                      }
-                    />
-                  ) : (
-                    <Image
-                      alt="user-img"
-                      src={profile}
-                      width={30}
-                      height={30}
-                    />
-                  )}
+                  <ChatPhoto
+                    user={
+                      activeChat.channel_members.filter(
+                        (user) => user.user_id !== getUserChat()?.id
+                      )[0]?.user
+                    }
+                    width={30}
+                    className="abs-avva"
+                    height={30}
+                  />
                 </div>
               )}
               <img
                 alt="user"
                 onClick={() =>
-                  setImg(
-                    props.message.type ||
-                      props.message.message_content[0]?.file_path.includes(
-                        "https"
-                      ) ||
-                      props.message.message_content[0]?.file_path.includes(
-                        "http"
-                      )
-                      ? props.message.message_content[0]?.file_path
-                      : props.message.message_content[0]?.file_path
-                  )
+                  setImg(props.message.message_files[0]?.file_path)
                 }
                 className="message-img"
-                src={props.message.message_content[0]?.file_path}
+                src={props.message?.message_files?.[0]?.file_path}
               />
               <div className="other-date">
                 {getMessageTime(props.message.created_at, true)}
@@ -2331,12 +1634,8 @@ function ChatMessage(props) {
                 DeleteMessage(activeChat.id, props.message.id, e)
               }
               copy={() => copyText()}
-              forward={() =>
-                dispatch({ type: "FORWARD-MESSAGEs", payload: props.message })
-              }
-              click={() =>
-                dispatch({ type: "REPLY-MESSAGE", payload: props.message })
-              }
+              forward={() => setForwardMessage(props.message)}
+              click={() => setReplyMessage(props.message)}
             />
           </div>
         );
@@ -2411,99 +1710,30 @@ function ChatMessage(props) {
                     }`
                   }
                 >
-                  {activeChat.channel_members
-                    .filter((user) => user.user_id !== getUserChat()?.id)[0]
-                    ?.user?.photo_path?.includes("eu") ? (
-                    activeChat.channel_members.filter(
-                      (a) => parseInt(a.user_id) !== parseInt(getUserChat()?.id)
-                    )[0]?.user?.name?.length > 1 ? (
-                      <>
-                        {getTwoLetters(
-                          activeChat.channel_members.filter(
-                            (a) =>
-                              parseInt(a.user_id) !==
-                              parseInt(getUserChat()?.id)
-                          )[0]?.user?.name ||
-                            activeChat.channel_members.filter(
-                              (a) =>
-                                parseInt(a.user_id) !==
-                                parseInt(getUserChat()?.id)
-                            )[0]?.user?.user_name
-                        )}
-                      </>
-                    ) : (
-                      <Image
-                        alt="user-img"
-                        src={profile}
-                        width={30}
-                        height={30}
-                      />
-                    )
-                  ) : activeChat.channel_members.filter(
-                      (user) => user.user_id !== getUserChat()?.id
-                    )[0]?.user?.name?.length > 1 ? (
-                    <>
-                      {getTwoLetters(
-                        activeChat.channel_members.filter(
-                          (a) =>
-                            parseInt(a.user_id) !== parseInt(getUserChat()?.id)
-                        )[0]?.user?.name ||
-                          activeChat.channel_members.filter(
-                            (a) =>
-                              parseInt(a.user_id) !==
-                              parseInt(getUserChat()?.id)
-                          )[0]?.user?.user_name
-                      )}
-                    </>
-                  ) : activeChat.channel_members.filter(
-                      (user) => user.user_id !== getUserChat()?.id
-                    )[0]?.user?.photo_path ? (
-                    <Image
-                      alt="user-img"
-                      className="abs-avva"
-                      width={30}
-                      height={30}
-                      src={
-                        activeChat &&
-                        activeChat.channel_members &&
-                        activeChat.channel_members.filter(
-                          (a) =>
-                            parseInt(a.user_id) !== parseInt(getUserChat()?.id)
-                        )[0]?.user?.photo_path
-                      }
-                    />
-                  ) : (
-                    <Image
-                      alt="user-img"
-                      src={profile}
-                      width={30}
-                      height={30}
-                    />
-                  )}
+                  <ChatPhoto
+                    user={
+                      activeChat.channel_members.filter(
+                        (user) => user.user_id !== getUserChat()?.id
+                      )[0]?.user
+                    }
+                    width={30}
+                    className="abs-avva"
+                    height={30}
+                  />
                 </div>
               )}
               <PlayIcon
                 onClick={() => {
-                  setVid(
-                    props.message.type ||
-                      props.message.message_content[0]?.file_path.includes(
-                        "https"
-                      ) ||
-                      props.message.message_content[0]?.file_path.includes(
-                        "http"
-                      )
-                      ? props.message.message_content[0]?.file_path
-                      : props.message.message_content[0]?.file_path
-                  );
+                  setVid(props.message.message_files[0]?.file_path);
                 }}
                 className="play-vid-icon"
               ></PlayIcon>
               <video
                 className="message-img"
-                src={props.message.message_content[0]?.file_path}
+                src={props.message.message_files?.[0]?.file_path}
               >
                 <source
-                  src={props.message.message_content[0]?.file_path}
+                  src={props.message.message_files?.[0]?.file_path}
                 ></source>
               </video>
               <div className="other-date">
@@ -2517,12 +1747,8 @@ function ChatMessage(props) {
                 DeleteMessage(activeChat.id, props.message.id, e)
               }
               copy={() => copyText()}
-              forward={() =>
-                dispatch({ type: "FORWARD-MESSAGEs", payload: props.message })
-              }
-              click={() =>
-                dispatch({ type: "REPLY-MESSAGE", payload: props.message })
-              }
+              forward={() => setForwardMessage(props.message)}
+              click={() => setReplyMessage(props.message)}
             />
           </div>
         );
@@ -2551,9 +1777,9 @@ function ChatMessage(props) {
               />
             )}
 
-            {props.message.message_content &&
-              props.message.message_content[0]?.file_path &&
-              props.message.message_content[0]?.file_path !== "false" && (
+            {props.message.message_files &&
+              props.message.message_files[0]?.file_path &&
+              props.message.message_files[0]?.file_path !== "false" && (
                 <div
                   ref={refmessage}
                   onClick={() => setOpen(true)}
@@ -2600,78 +1826,16 @@ function ChatMessage(props) {
                         }`
                       }
                     >
-                      {activeChat.channel_members
-                        .filter((user) => user.user_id !== getUserChat()?.id)[0]
-                        ?.user?.photo_path?.includes("eu") ? (
-                        activeChat.channel_members.filter(
-                          (a) =>
-                            parseInt(a.user_id) !== parseInt(getUserChat()?.id)
-                        )[0]?.user?.name?.length > 1 ? (
-                          <>
-                            {getTwoLetters(
-                              activeChat.channel_members.filter(
-                                (a) =>
-                                  parseInt(a.user_id) !==
-                                  parseInt(getUserChat()?.id)
-                              )[0]?.user?.name ||
-                                activeChat.channel_members.filter(
-                                  (a) =>
-                                    parseInt(a.user_id) !==
-                                    parseInt(getUserChat()?.id)
-                                )[0]?.user?.user_name
-                            )}
-                          </>
-                        ) : (
-                          <Image
-                            alt="user-img"
-                            src={profile}
-                            width={30}
-                            height={30}
-                          />
-                        )
-                      ) : activeChat.channel_members.filter(
-                          (user) => user.user_id !== getUserChat()?.id
-                        )[0]?.user?.name?.length > 1 ? (
-                        <>
-                          {getTwoLetters(
-                            activeChat.channel_members.filter(
-                              (a) =>
-                                parseInt(a.user_id) !==
-                                parseInt(getUserChat()?.id)
-                            )[0]?.user?.name ||
-                              activeChat.channel_members.filter(
-                                (a) =>
-                                  parseInt(a.user_id) !==
-                                  parseInt(getUserChat()?.id)
-                              )[0]?.user?.user_name
-                          )}
-                        </>
-                      ) : activeChat.channel_members.filter(
-                          (user) => user.user_id !== getUserChat()?.id
-                        )[0]?.user?.photo_path ? (
-                        <Image
-                          alt="user-img"
-                          className="abs-avva"
-                          width={30}
-                          height={30}
-                          src={
-                            activeChat &&
-                            activeChat.channel_members &&
-                            activeChat.channel_members.filter(
-                              (a) =>
-                                parseInt(a.user_id) !==
-                                parseInt(getUserChat()?.id)
-                            )[0]?.user?.photo_path
-                          }
-                        />
-                      ) : (
-                        <Image
-                          alt="user-img"
-                          src={profile}
-                          width={30}
-                          height={30}
-                        />
-                      )}
+                      <ChatPhoto
+                        user={
+                          activeChat.channel_members.filter(
+                            (user) => user.user_id !== getUserChat()?.id
+                          )[0]?.user
+                        }
+                        width={30}
+                        className="abs-avva"
+                        height={30}
+                      />
                     </div>
                   )}
                   <div className="audio-message ">
@@ -2692,14 +1856,14 @@ function ChatMessage(props) {
                       controls={false}
                       ref={AudioRef}
                       src={
-                        props.message.message_content &&
-                        props.message.message_content[0]?.file_path
+                        props.message.message_files &&
+                        props.message.message_files[0]?.file_path
                       }
                     >
                       <source
                         src={
-                          props.message.message_content &&
-                          props.message.message_content[0]?.file_path
+                          props.message.message_files &&
+                          props.message.message_files[0]?.file_path
                         }
                       />
                     </audio>
@@ -2766,12 +1930,8 @@ function ChatMessage(props) {
                 DeleteMessage(activeChat.id, props.message.id, e)
               }
               copy={() => copyText()}
-              forward={() =>
-                dispatch({ type: "FORWARD-MESSAGEs", payload: props.message })
-              }
-              click={() =>
-                dispatch({ type: "REPLY-MESSAGE", payload: props.message })
-              }
+              forward={() => setForwardMessage(props.message)}
+              click={() => setReplyMessage(props.message)}
             />
           </div>
         );
@@ -2843,75 +2003,16 @@ function ChatMessage(props) {
                     }`
                   }
                 >
-                  {activeChat.channel_members
-                    .filter((user) => user.user_id !== getUserChat()?.id)[0]
-                    ?.user?.photo_path?.includes("eu") ? (
-                    activeChat.channel_members.filter(
-                      (a) => parseInt(a.user_id) !== parseInt(getUserChat()?.id)
-                    )[0]?.user?.name?.length > 1 ? (
-                      <>
-                        {getTwoLetters(
-                          activeChat.channel_members.filter(
-                            (a) =>
-                              parseInt(a.user_id) !==
-                              parseInt(getUserChat()?.id)
-                          )[0]?.user?.name ||
-                            activeChat.channel_members.filter(
-                              (a) =>
-                                parseInt(a.user_id) !==
-                                parseInt(getUserChat()?.id)
-                            )[0]?.user?.user_name
-                        )}
-                      </>
-                    ) : (
-                      <Image
-                        alt="user-img"
-                        src={profile}
-                        width={30}
-                        height={30}
-                      />
-                    )
-                  ) : activeChat.channel_members.filter(
-                      (user) => user.user_id !== getUserChat()?.id
-                    )[0]?.user?.name?.length > 1 ? (
-                    <>
-                      {getTwoLetters(
-                        activeChat.channel_members.filter(
-                          (a) =>
-                            parseInt(a.user_id) !== parseInt(getUserChat()?.id)
-                        )[0]?.user?.name ||
-                          activeChat.channel_members.filter(
-                            (a) =>
-                              parseInt(a.user_id) !==
-                              parseInt(getUserChat()?.id)
-                          )[0]?.user?.user_name
-                      )}
-                    </>
-                  ) : activeChat.channel_members.filter(
-                      (user) => user.user_id !== getUserChat()?.id
-                    )[0]?.user?.photo_path ? (
-                    <Image
-                      alt="user-img"
-                      className="abs-avva"
-                      width={30}
-                      height={30}
-                      src={
-                        activeChat &&
-                        activeChat.channel_members &&
-                        activeChat.channel_members.filter(
-                          (a) =>
-                            parseInt(a.user_id) !== parseInt(getUserChat()?.id)
-                        )[0]?.user?.photo_path
-                      }
-                    />
-                  ) : (
-                    <Image
-                      alt="user-img"
-                      src={profile}
-                      width={30}
-                      height={30}
-                    />
-                  )}
+                  <ChatPhoto
+                    user={
+                      activeChat.channel_members.filter(
+                        (user) => user.user_id !== getUserChat()?.id
+                      )[0]?.user
+                    }
+                    width={30}
+                    className="abs-avva"
+                    height={30}
+                  />
                 </div>
               )}
               <span className="message-body-text-content">
@@ -2930,12 +2031,8 @@ function ChatMessage(props) {
                 DeleteMessage(activeChat.id, props.message.id, e)
               }
               copy={() => copyText()}
-              forward={() =>
-                dispatch({ type: "FORWARD-MESSAGEs", payload: props.message })
-              }
-              click={() =>
-                dispatch({ type: "REPLY-MESSAGE", payload: props.message })
-              }
+              forward={() => setForwardMessage(props.message)}
+              click={() => setReplyMessage(props.message)}
             />
           </div>
         );
@@ -3007,92 +2104,23 @@ function ChatMessage(props) {
                     }`
                   }
                 >
-                  {activeChat.channel_members
-                    .filter((user) => user.user_id !== getUserChat()?.id)[0]
-                    ?.user?.photo_path?.includes("eu") ? (
-                    activeChat.channel_members.filter(
-                      (a) => parseInt(a.user_id) !== parseInt(getUserChat()?.id)
-                    )[0]?.user?.name?.length > 1 ? (
-                      <>
-                        {getTwoLetters(
-                          activeChat.channel_members.filter(
-                            (a) =>
-                              parseInt(a.user_id) !==
-                              parseInt(getUserChat()?.id)
-                          )[0]?.user?.name ||
-                            activeChat.channel_members.filter(
-                              (a) =>
-                                parseInt(a.user_id) !==
-                                parseInt(getUserChat()?.id)
-                            )[0]?.user?.user_name
-                        )}
-                      </>
-                    ) : (
-                      <Image
-                        alt="user-img"
-                        src={profile}
-                        width={30}
-                        height={30}
-                      />
-                    )
-                  ) : activeChat.channel_members.filter(
-                      (user) => user.user_id !== getUserChat()?.id
-                    )[0]?.user?.name?.length > 1 ? (
-                    <>
-                      {getTwoLetters(
-                        activeChat.channel_members.filter(
-                          (a) =>
-                            parseInt(a.user_id) !== parseInt(getUserChat()?.id)
-                        )[0]?.user?.name ||
-                          activeChat.channel_members.filter(
-                            (a) =>
-                              parseInt(a.user_id) !==
-                              parseInt(getUserChat()?.id)
-                          )[0]?.user?.user_name
-                      )}
-                    </>
-                  ) : activeChat.channel_members.filter(
-                      (user) => user.user_id !== getUserChat()?.id
-                    )[0]?.user?.photo_path ? (
-                    <Image
-                      alt="user-img"
-                      width={30}
-                      height={30}
-                      className="abs-avva"
-                      src={
-                        activeChat &&
-                        activeChat.channel_members &&
-                        activeChat.channel_members.filter(
-                          (a) =>
-                            parseInt(a.user_id) !== parseInt(getUserChat()?.id)
-                        )[0]?.user?.photo_path
-                      }
-                    />
-                  ) : (
-                    <Image
-                      alt="user-img"
-                      src={profile}
-                      width={30}
-                      height={30}
-                    />
-                  )}
+                  <ChatPhoto
+                    user={
+                      activeChat.channel_members.filter(
+                        (user) => user.user_id !== getUserChat()?.id
+                      )[0]?.user
+                    }
+                    width={30}
+                    className="abs-avva"
+                    height={30}
+                  />
                 </div>
               )}
-              {props.message?.message_content &&
-                props.message?.message_content[0]?.file_path && (
+              {props.message?.message_files &&
+                props.message?.message_files[0]?.file_path && (
                   <a
                     target="_blank"
-                    href={
-                      props.message.message_content[0]?.file_path.includes(
-                        "https"
-                      ) ||
-                      props.message.message_content[0]?.file_path.includes(
-                        "http"
-                      ) ||
-                      props.message.type
-                        ? props.message.message_content[0]?.file_path
-                        : props.message.message_content[0]?.file_path
-                    }
+                    href={props.message.message_files[0]?.file_path}
                     download
                     className="replay-msg file-msg"
                   >
@@ -3127,12 +2155,8 @@ function ChatMessage(props) {
                 DeleteMessage(activeChat.id, props.message.id, e)
               }
               copy={() => copyText()}
-              forward={() =>
-                dispatch({ type: "FORWARD-MESSAGEs", payload: props.message })
-              }
-              click={() =>
-                dispatch({ type: "REPLY-MESSAGE", payload: props.message })
-              }
+              forward={() => setForwardMessage(props.message)}
+              click={() => setReplyMessage(props.message)}
             />
           </div>
         );
@@ -3164,68 +2188,16 @@ function ChatMessage(props) {
                   }`
                 }
               >
-                {activeChat.channel_members
-                  .filter((user) => user.user_id !== getUserChat()?.id)[0]
-                  ?.user?.photo_path?.includes("eu") ? (
-                  activeChat.channel_members.filter(
-                    (a) => parseInt(a.user_id) !== parseInt(getUserChat()?.id)
-                  )[0]?.user?.name?.length > 1 ? (
-                    <>
-                      {getTwoLetters(
-                        activeChat.channel_members.filter(
-                          (a) =>
-                            parseInt(a.user_id) !== parseInt(getUserChat()?.id)
-                        )[0]?.user?.name ||
-                          activeChat.channel_members.filter(
-                            (a) =>
-                              parseInt(a.user_id) !==
-                              parseInt(getUserChat()?.id)
-                          )[0]?.user?.user_name
-                      )}
-                    </>
-                  ) : (
-                    <Image
-                      alt="user-img"
-                      src={profile}
-                      width={30}
-                      height={30}
-                    />
-                  )
-                ) : activeChat.channel_members.filter(
-                    (user) => user.user_id !== getUserChat()?.id
-                  )[0]?.user?.name?.length > 1 ? (
-                  <>
-                    {getTwoLetters(
-                      activeChat.channel_members.filter(
-                        (a) =>
-                          parseInt(a.user_id) !== parseInt(getUserChat()?.id)
-                      )[0]?.user?.name ||
-                        activeChat.channel_members.filter(
-                          (a) =>
-                            parseInt(a.user_id) !== parseInt(getUserChat()?.id)
-                        )[0]?.user?.user_name
-                    )}
-                  </>
-                ) : activeChat.channel_members.filter(
-                    (user) => user.user_id !== getUserChat()?.id
-                  )[0]?.user?.photo_path ? (
-                  <Image
-                    alt="user-img"
-                    className="abs-avva"
-                    width={30}
-                    height={30}
-                    src={
-                      activeChat &&
-                      activeChat.channel_members &&
-                      activeChat.channel_members.filter(
-                        (a) =>
-                          parseInt(a.user_id) !== parseInt(getUserChat()?.id)
-                      )[0]?.user?.photo_path
-                    }
-                  />
-                ) : (
-                  <Image alt="user-img" src={profile} width={30} height={30} />
-                )}
+                <ChatPhoto
+                  user={
+                    activeChat.channel_members.filter(
+                      (user) => user.user_id !== getUserChat()?.id
+                    )[0]?.user
+                  }
+                  width={30}
+                  className="abs-avva"
+                  height={30}
+                />
               </div>
             )}
             {props.message.message_type.name === "VoiceCall" ? (
@@ -3253,60 +2225,16 @@ function ChatMessage(props) {
                 }`
               }
             >
-              {activeChat.channel_members
-                .filter((user) => user.user_id !== getUserChat()?.id)[0]
-                ?.user?.photo_path?.includes("eu") ? (
-                activeChat.channel_members.filter(
-                  (a) => parseInt(a.user_id) !== parseInt(getUserChat()?.id)
-                )[0]?.user?.name?.length > 1 ? (
-                  <>
-                    {getTwoLetters(
-                      activeChat.channel_members.filter(
-                        (a) =>
-                          parseInt(a.user_id) !== parseInt(getUserChat()?.id)
-                      )[0]?.user?.name ||
-                        activeChat.channel_members.filter(
-                          (a) =>
-                            parseInt(a.user_id) !== parseInt(getUserChat()?.id)
-                        )[0]?.user?.user_name
-                    )}
-                  </>
-                ) : (
-                  <Image alt="user-img" src={profile} width={30} height={30} />
-                )
-              ) : activeChat.channel_members.filter(
-                  (user) => user.user_id !== getUserChat()?.id
-                )[0]?.user?.name?.length > 1 ? (
-                <>
-                  {getTwoLetters(
-                    activeChat.channel_members.filter(
-                      (a) => parseInt(a.user_id) !== parseInt(getUserChat()?.id)
-                    )[0]?.user?.name ||
-                      activeChat.channel_members.filter(
-                        (a) =>
-                          parseInt(a.user_id) !== parseInt(getUserChat()?.id)
-                      )[0]?.user?.user_name
-                  )}
-                </>
-              ) : activeChat.channel_members.filter(
-                  (user) => user.user_id !== getUserChat()?.id
-                )[0]?.user?.photo_path ? (
-                <Image
-                  alt="user-img"
-                  className="abs-avva"
-                  width={30}
-                  height={30}
-                  src={
-                    activeChat &&
-                    activeChat.channel_members &&
-                    activeChat.channel_members.filter(
-                      (a) => parseInt(a.user_id) !== parseInt(getUserChat()?.id)
-                    )[0]?.user?.photo_path
-                  }
-                />
-              ) : (
-                <Image alt="user-img" src={profile} width={30} height={30} />
-              )}
+              <ChatPhoto
+                user={
+                  activeChat.channel_members.filter(
+                    (user) => user.user_id !== getUserChat()?.id
+                  )[0]?.user
+                }
+                width={30}
+                className="abs-avva"
+                height={30}
+              />
             </div>
             <div className="missed-body">
               {translate("Missed  Call At", language)}{" "}

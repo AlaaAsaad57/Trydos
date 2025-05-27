@@ -7,7 +7,6 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import NormalSizesSlider from "./NormalSizesSlider";
 import DashedCircleBorder from "public/svg/product/DashedCircleBorder.svg";
 import SizeInfoBox from "./SizeInfoBox";
-import { useDispatch } from "react-redux";
 import { Sendevent, translateFunction } from "utils/functions";
 import {
   useParams,
@@ -15,8 +14,11 @@ import {
   useRouter,
   useSearchParams,
 } from "next/navigation";
+import { useAppStore } from "store";
+import { GA_CLICK_EVENT_VALUES, GA_EVENT_NAMES } from "utils/GAEvents";
 
 function ProductSizes({ sizes }) {
+  const { showInfoMessage } = useAppStore();
   let { lang } = useParams();
   // @ts-ignore
   let languageVariable = lang.split("-")[1];
@@ -25,7 +27,6 @@ function ProductSizes({ sizes }) {
   };
   const [extended, setExtended] = useState(false);
   const [activeColor, setActiveColorFunc] = useState([]);
-  const dispatch = useDispatch();
   const searchParams = useSearchParams();
   const pathname = usePathname();
   const router = useRouter();
@@ -51,15 +52,16 @@ function ProductSizes({ sizes }) {
           data-cy="QuestionMark"
           style={{ marginLeft: "9px" }}
           onClick={() => {
-            dispatch({
-              type: "SHOW-INFO-MESSAGE",
-              payload: {
-                showInfoMessage: true,
-                title: ` Available ${sizes.length} Sizes`,
-                text: "According To The Opinions Of Our Fashion Team, The Appropriate Occasions For This Product Have Been Identified Based On Long Experience. We Provide An Opinion Only And Opinions May Differ From One Person To Another. So It Is Suitable For",
-                icon: "/svg/product/SizesIcon.svg",
-                value: [],
-              },
+            Sendevent({
+              event: GA_EVENT_NAMES.CLICK,
+              value: GA_CLICK_EVENT_VALUES.SHOW_AVAILABLE_SIZE_INFO_MESSAGE,
+            });
+            showInfoMessage({
+              showInfoMessage: true,
+              title: ` Available ${sizes.length} Sizes`,
+              text: "According To The Opinions Of Our Fashion Team, The Appropriate Occasions For This Product Have Been Identified Based On Long Experience. We Provide An Opinion Only And Opinions May Differ From One Person To Another. So It Is Suitable For",
+              icon: "/svg/product/SizesIcon.svg",
+              value: [],
             });
           }}
         />
@@ -94,8 +96,8 @@ function ProductSizes({ sizes }) {
           slideToClickedSlide={true}
           onChange={() => {
             Sendevent({
-              event: "button_clicked",
-              value: "choose_available_size_button",
+              event: GA_EVENT_NAMES.CLICK,
+              value: GA_CLICK_EVENT_VALUES.CHOOSE_AVAILABLE_SIZE_BUTTON,
             });
           }}
           onSlideChange={(swiper) => {

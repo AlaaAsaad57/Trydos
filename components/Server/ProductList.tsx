@@ -1,69 +1,201 @@
-import ProductsList from "components/ListingPage/ProductsList";
-import dynamic from "next/dynamic";
-import React from "react";
-import { getListingData } from "store/homepage/cachedActions";
-import { fetchWithRetry, getBoutiqueMeta } from "utils/functions";
-import FilterBar from "components/ListingPage/FilterBar";
-import { cookies } from "node_modules/next/headers";
+import "styles/listing.css";
+import "styles/globals.css";
+import {
+  BuyButtonProduct,
+  ProductPhotosSlider,
+} from "components/ListingPage/Product";
+// import ProductsList from "components/ListingPage/ProductsList";
+import React, { Suspense } from "react";
+import { RoundPrice } from "utils/functions";
+import ProductsInfiniteScroll from "components/ListingPage/ProductsList";
+import NextLink from "components/global/NextLink";
+import { getActiveFilters } from "./FilterList";
+import Image from "next/image";
 
-async function ProductListServer({ params, searchParams }) {
-  const boutiqueId = params.productCategory;
-  const boutique =
-    boutiqueId === "listing"
-      ? null
-      : await getBoutiqueMeta({ boutiqueId, lang: params.lang });
-  const [Listing_Data_res, response] = await getListingData({
-    categories: (searchParams.boutique_slugs && [
-      searchParams.boutique_slugs,
-    ]) || [params.productCategory],
-    productCategory: params.boutiqueCategory,
-    lang: params.lang ? params.lang.split("-")[1] : null,
-    searchParams: searchParams,
-  });
+function ProductListServer({
+  params,
+  searchParams,
+  products,
+  currency,
+  offset,
+  colors,
+  isFeatured,
+}: {
+  params: any;
+  searchParams: any;
+  products: any;
+  currency: any;
+  offset: any;
+  colors: any;
+  isFeatured?: boolean;
+}) {
+  const activeFilters = getActiveFilters(searchParams)?.colors || [];
 
-  const getCurrency = async ({ lang, country }) => {
-    let data = await fetchWithRetry(
-      process.env.NEXT_PUBLIC_BACKEND_URL + "/mobile/home/currency",
-      {
-        next: {
-          revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE),
-        },
-        headers: new Headers({
-          Accept: "application/json",
-          "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
-          lang: lang,
-          country: country,
-        }),
-      },
-      "Get Currency"
-    );
-    return data.data.currency;
-  };
-  const currency = await getCurrency({
-    country: params.lang.split("-")[0],
-    lang: params.lang.split("-")[1],
-  });
+  let activeColor = colors?.find(
+    (s) => s === activeFilters[activeFilters.length - 1]
+  );
+
   return (
-    <>
-      <FilterBar
-        boutique={boutique}
-        productsServer={Listing_Data_res.body.data?.products}
-        filters={{
-          categories: Listing_Data_res.body.data?.categories,
-          brands: Listing_Data_res.body.data?.brands,
-          colors: Listing_Data_res.body.data?.colors,
-          prices: Listing_Data_res.body.data?.prices,
-          search_text: Listing_Data_res.body.data?.search_text,
-        }}
-      />
-      <ProductsList
+    <div
+      className={"listing-container relative flex pb-[350px] max-w-[1310px]"}
+    >
+      {products.map((product, key) => {
+        let color_name = product?.colors?.find(
+          (s) => s.color === activeColor
+        )?.name;
+        let productColor = product?.sync_color_images?.find(
+          (s) => s.color_name === color_name
+        );
+
+        return (
+          <div
+            className="max-h-[362px] relative"
+            key={product.slug}
+            data-cy="product-card"
+          >
+            <NextLink
+              data={{
+                is_product: true,
+                ...product,
+                sync_color_images: productColor
+                  ? [productColor]
+                  : product?.sync_color_images,
+                images: productColor ? productColor.images : product?.images,
+
+                href: `/${params.lang}/products/${product.slug}${
+                  productColor ? `?color=${productColor.color_name}` : ""
+                }`,
+              }}
+              ariaLabel={`go to product ${product.slug} ${params.lang}`}
+              suppressHydrationWarning
+              href={`/${params.lang}/products/${product.slug}${
+                productColor ? `?color=${productColor.color_name}` : ""
+              }`}
+              className="product-container  align-center flex-col relative"
+              data-cy="product_link"
+            >
+              <Suspense fallback={<div className="min-w-full min-h-[290px]" />}>
+                <ProductPhotosSlider
+                  product={{
+                    sync_color_images: product.sync_color_images,
+                    images: product.images,
+                  }}
+                  priority={key < 3}
+                />
+              </Suspense>
+              <div className="product-body w-100 flex-col align-start justify-start max-h-[30px] min-h-[30px]">
+                <p
+                  className="prouct-details overflow-hidden w-100 regular-text color-dark-gray f-10"
+                  data-cy="productName"
+                >
+                  {product?.brand?.icon &&
+                    typeof product.brand.icon === "string" && (
+                      <Image
+                        loading={"eager"}
+                        src={product?.brand?.icon?.replace(
+                          "/upload",
+                          "/upload/h_50/q_auto"
+                        )}
+                        width={16}
+                        height={7}
+                        alt={product.name}
+                        className="max-h-[20px] max-w-[40px]"
+                      />
+                    )}
+                  {product.name.substring(0, 50)}
+
+                  {product.category && (
+                    <span className="product-category-icon align-center">
+                      <span
+                        style={{ display: "inline" }}
+                        className="justify-start quantity flex f-10 align-center med-text"
+                      >
+                        1
+                      </span>
+                      {product?.category?.flat_photo_path?.file_path?.length >
+                        0 && (
+                        <Image
+                          loading={"eager"}
+                          src={product?.category?.flat_photo_path?.file_path?.replace(
+                            "/upload",
+                            "/upload/h_50/f_webp/q_auto"
+                          )}
+                          width={10}
+                          height={10}
+                          style={{
+                            display: "inline",
+                            minWidth: "10px",
+                            minHeight: "10px",
+                          }}
+                          alt={product.name}
+                          className="max-h-[20px] max-w-[40px]"
+                        />
+                      )}
+                    </span>
+                  )}
+                </p>
+              </div>
+              <div className="product-footer w-100 flex-row align-center max-h-[30px]">
+                <div
+                  className={`${
+                    params.lang.split("-")[1] === "ar" && "dir-rtl"
+                  } price-label flex`}
+                >
+                  {product?.offer_price >= 0 && (
+                    <span className="old-price relative f-12 color-dark-gray light-text">
+                      {RoundPrice({
+                        num: product?.price,
+                        rate: currency?.exchange_rate,
+                        points: 0,
+                      })}
+                      <svg
+                        className="absolute w-100"
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="100%"
+                        height="1"
+                      >
+                        <line
+                          id="Line_1"
+                          data-name="Line 1"
+                          x2="100%"
+                          transform="translate(0 0.5)"
+                          fill="none"
+                          stroke="#3c3c3c"
+                          strokeWidth="1"
+                        />
+                      </svg>
+                    </span>
+                  )}
+                  <span className="new-price bold-text color-dark-gray flex f-12">
+                    {product?.offer_price >= 0 &&
+                      RoundPrice({
+                        num: product?.offer_price,
+                        rate: currency?.exchange_rate,
+                        points: 0,
+                      })}
+                  </span>
+                  <span className="currency-label light-text color-dark-gray flex f-10">
+                    {currency?.symbol}
+                  </span>
+                </div>
+              </div>
+            </NextLink>
+            <Suspense fallback={<></>}>
+              <BuyButtonProduct product={product} />
+            </Suspense>
+          </div>
+        );
+      })}
+      <ProductsInfiniteScroll
+        productIds={products.map((s) => s.slug)}
+        activeColor={activeColor}
         currency={currency}
-        response={response}
-        Listing_Data_res={Listing_Data_res}
-        productCategory={params.productCategory}
-        boutiqueCategory={params.boutiqueCategory}
+        offset={offset}
+        searchParams={searchParams}
+        boutiqueId={params.boutiqueId}
+        isFeatured={isFeatured}
       />
-    </>
+    </div>
   );
 }
 

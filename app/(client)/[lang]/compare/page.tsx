@@ -1,9 +1,8 @@
 import "styles/productDetails.css";
-import CustomNavbarServer from "components/Server/ServerCustomNav";
 
 import { notFound } from "next/navigation";
 import ComparePage from "components/global/compare";
-
+export const dynamic = "auto";
 export async function generateMetadata({ params, searchParams }) {
   try {
     return {
@@ -22,11 +21,8 @@ interface Props {
   searchParams: any;
 }
 async function Page({ params, searchParams }: Props) {
-  console.log(searchParams);
   return (
     <>
-      <CustomNavbarServer lang={params.lang} />
-
       <ComparePage />
     </>
   );

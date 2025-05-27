@@ -1,22 +1,24 @@
 import ChatItem from "components/Chat/components/ChatItem";
 import { isNew } from "components/Chat/chatsFunctions";
-import { useDispatch, useSelector } from "react-redux";
+
 import { forwardMessage } from "../chatsFunctions";
 import SearchResult from "components/Chat/components/SearchResult";
 import { getUserChat } from "utils/functions";
 import { GetLastSeen } from "store/chat/actions";
 import Skeleton from "react-loading-skeleton";
+import { useAppStore } from "store";
 function ChatLists(props) {
-  const chats = useSelector((state) => state.chat.data);
-  const loading = useSelector((state) => state.chat.loading);
+  const {
+    data: chats,
+    chat_loading: loading,
+    openChat,
+    watchChannel,
+    pinnedChats: pinned,
+    chatSearchResults: searchResults,
+    activeChat,
+    forwarded_message,
+  } = useAppStore();
 
-  const pinned = useSelector((state) => state.chat.pinnedChats);
-  const searchResults = useSelector((state) => state.chat.searchResults);
-  const activeChat = useSelector((state) => state.chat.activeChat);
-  const forwarded_message = useSelector(
-    (state) => state.chat.forwarded_message
-  );
-  const dispatch = useDispatch();
   const handleClick = (e) => {
     if (true) {
       let friendId = e.channel_members.filter(
@@ -24,9 +26,9 @@ function ChatLists(props) {
       )[0]?.user_id;
       GetLastSeen(e.id, friendId);
     }
-    dispatch({ type: "OPEN-CHAT", payload: e });
+    openChat(e);
     if (e?.id && !(typeof e?.id === "string" && e.id.includes("ch")))
-      dispatch({ type: "WATCH_CHANNEL", payload: e?.id });
+      watchChannel(e?.id);
     if (forwarded_message) {
       forwardMessage(forwarded_message, e);
     }

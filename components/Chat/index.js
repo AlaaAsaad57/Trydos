@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import "styles/chat.css";
 import ChatWindow from "./pages/ChatWindow";
-import { useDispatch, useSelector } from "react-redux";
 const ConversationContainer = dynamic(
   () => import("./pages/ConversationContainer"),
   { ssr: false }
@@ -10,40 +9,42 @@ import NewChatsSide from "components/Chat/components/NewChatsSide";
 import { SSRDetect, translateFunction } from "utils/functions";
 import dynamic from "next/dynamic";
 import { useParams } from "next/navigation";
+import { useAppStore } from "store";
 function Chat(props) {
+  const {
+    main: ViewedScreen,
+    first,
+    data: chats,
+    fetch: loading,
+    activeChat,
+    language,
+    NotificationPremission,
+    setNotificationPermission,
+    setForwardMessage,
+    setMain,
+    openChat,
+  } = useAppStore();
   let { lang } = useParams();
   // @ts-ignore
   let languageVariable = lang.split("-")[1];
   const translate = (key, lang) => {
     return translateFunction(key, languageVariable);
   };
-  const dispatch = useDispatch();
-  const ViewedScreen = useSelector((state) => state.chat.main);
-  const first = useSelector((state) => state.chat.first);
-  const chats = useSelector((state) => state.chat.data);
-  const loading = useSelector((state) => state.chat.fetch);
-  const activeChat = useSelector((state) => state.chat.activeChat);
-  const language = useSelector((state) => state.homepage.language);
-  const NotificationPremission = useSelector(
-    (state) => state.chat.NotificationPremission
-  );
   const [search, setSearch] = useState("");
   const [contactOpen, setOpenContacts] = useState(false);
   useEffect(() => {
-    dispatch({
-      type: "Notification",
-      payload: Notification.permission === "granted",
-    });
+    setNotificationPermission(Notification.permission === "granted");
   }, []);
   return (
     <>
       <div
         onClick={(e) => {
           if (!props.callInProgress) {
-            dispatch({ type: "FORWARD-MESSAGEs", payload: null });
+            setForwardMessage(null);
+
             props.close();
-            dispatch({ type: "MAIN", payload: "main" });
-            dispatch({ type: "OPEN-CHAT", payload: null });
+            setMain("main");
+            openChat(null);
           }
         }}
         className={`lang-modalDisable ${props.open && "open"}`}

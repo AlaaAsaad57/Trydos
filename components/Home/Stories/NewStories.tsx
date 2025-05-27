@@ -1,18 +1,22 @@
 "use client";
 import "styles/stories.css";
 import React, { useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
 import Cube from "react-cube-navigation";
 import { SelectStory } from "store/homepage/actions";
-import { configureStory } from "utils/functions";
-import StoryHolder from "./StoryHolder";
 import { useSwipeable } from "react-swipeable";
-
-function StoriesContainer({ activeId, selectedStory }) {
-  const storiesData = useSelector(
-    (state: StateInterface) => state.homepage.storiesData
-  );
-  const dispatch = useDispatch();
+import StoryServiceClass from "services/story";
+import StoryHolder from "./StoryHolder";
+import { useAppStore } from "store";
+import Spinner from "components/global/Spinner";
+function StoriesContainer({
+  selectedStory,
+  stories,
+}: {
+  selectedStory: any;
+  stories?: any;
+}) {
+  const { storiesData: storiesCache } = useAppStore();
+  let storiesData = stories ?? storiesCache;
   var dir = 0;
   const [isTop, setIsTop] = useState("");
 
@@ -45,7 +49,7 @@ function StoriesContainer({ activeId, selectedStory }) {
             ).style.transform = `translateY(${100}%)`;
 
             setTimeout(() => {
-              dispatch(SelectStory(null));
+              SelectStory(null);
             }, 150);
           } else {
             document.querySelector<HTMLDivElement>(
@@ -69,9 +73,22 @@ function StoriesContainer({ activeId, selectedStory }) {
       passive: false,
     },
   });
+  console.log(storiesData, selectedStory);
+  if (
+    !storiesData ||
+    storiesData?.length === 0 ||
+    !storiesData?.find((s) => s.id === selectedStory.id)
+  )
+    return (
+      <div className="bg-white rounded-lg w-[300px] h-[400px] flex-row p-4 fixed z-[99999999] justify-center items-center top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+        <span className="scale-[4]">
+          <Spinner />
+        </span>
+      </div>
+    );
   return (
     <div
-      className="fixed-layout"
+      className="fixed-layout justify-start"
       {...handlers}
       onPointerLeave={() => {
         document.querySelector<HTMLDivElement>(
@@ -88,15 +105,15 @@ function StoriesContainer({ activeId, selectedStory }) {
       }}
     >
       <Cube
-        index={storiesData.findIndex((s) => s.id === selectedStory?.id)}
+        index={storiesData?.findIndex((s) => s.id === selectedStory?.id)}
         onChange={(i) => {
           if (
             Math.abs(
-              storiesData.findIndex((s) => s.id === selectedStory?.id) - i
+              storiesData?.findIndex((s) => s.id === selectedStory?.id) - i
             ) === 1 &&
             i > -1
           ) {
-            dispatch(SelectStory(storiesData[i]));
+            SelectStory(storiesData[i]);
           }
         }}
         width={window.innerWidth}
@@ -115,11 +132,15 @@ function StoriesContainer({ activeId, selectedStory }) {
               }}
             >
               {i > -1 && i < storiesData.length && (
-                <StoryHolder
-                  active={selectedStory.id === storiesData[i]?.id}
-                  isPaused={active}
-                  story={configureStory(storiesData[i])}
-                />
+                <>
+                  {
+                    <StoryHolder
+                      active={selectedStory.id === storiesData[i]?.id}
+                      isPaused={active}
+                      story={StoryServiceClass.configureStory(storiesData[i])}
+                    />
+                  }
+                </>
               )}
             </div>
           );

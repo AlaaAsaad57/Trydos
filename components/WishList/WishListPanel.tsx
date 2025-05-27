@@ -1,22 +1,18 @@
 import React, { useRef, useEffect } from "react";
 import { translateFunction } from "utils/functions";
 import Image from "next/image";
-import { useParams } from "next/navigation";
 import NextLink from "components/global/NextLink";
-import { useSelector } from "react-redux";
+import { useAppStore } from "store";
+import { useParams } from "next/navigation";
 
 interface WishListPanelProps {
   onClose: () => void;
 }
 
 const WishListPanel: React.FC<WishListPanelProps> = ({ onClose }) => {
-  const wishListRef = useRef<HTMLDivElement>(null);
-
+  const { currency } = useAppStore();
   const { lang } = useParams();
-  const currency = useSelector(
-    (state: StateInterface) => state.homepage.currency
-  ) || { symbol: "" };
-
+  const wishListRef = useRef<HTMLDivElement>(null);
   // Handle document scroll lock
   useEffect(() => {
     const originalStyle = window.getComputedStyle(document.body).overflow;
@@ -192,6 +188,12 @@ const WishListPanel: React.FC<WishListPanelProps> = ({ onClose }) => {
         {wishlistItems.length > 0 ? (
           wishlistItems.map((item) => (
             <NextLink
+              data={{
+                is_product: true,
+                ...item,
+                href: `/${lang}/products/${item.slug}`,
+              }}
+              ariaLabel={`wishlist item ${item.slug}`}
               key={item.id}
               data-cy="wishlist-item"
               className="flex gap-3 p-4 hover:bg-gray-50 border-b border-gray-100"

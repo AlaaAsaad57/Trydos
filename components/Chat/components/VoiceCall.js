@@ -9,13 +9,13 @@ import AgoraRTC, {
   createClient,
   createMicrophoneAndCameraTracks,
 } from "agora-rtc-react";
-import { useDispatch, useSelector } from "react-redux";
 import { useStopwatch } from "react-timer-hook";
 import { RefuseCall } from "store/chat/callActions";
 import { getTwoLetters } from "../chatsFunctions";
 import axios from "axios";
 
 import { getUserChat, translateFunction } from "utils/functions";
+import { useAppStore } from "store";
 const config = {
   mode: "rtc",
   codec: "h264",
@@ -26,22 +26,21 @@ const useMicrophoneAndCameraTracks = createMicrophoneAndCameraTracks();
 
 const appId = "0af959943ff542df8f2cb1b925ec0cc1";
 function VideoCall(props) {
+  const { storeClient, language, activeChat, MessageActiveCall, call } =
+    useAppStore();
+
   const { seconds, minutes, hours, days, isRunning, start, pause, reset } =
     useStopwatch({ autoStart: false });
-  const activeChat = useSelector((state) => state.chat.activeChat);
-  const dispatch = useDispatch();
   const [users, setUsers] = useState([]);
   const [startIndicator, setStart] = useState(false);
   const client = useClient(config);
-  dispatch({ type: "STORE-CLIENT", payload: client });
+  storeClient(client);
   const [callStatus, setCallStatus] = useState(null);
   useEffect(() => {
     start();
   }, []);
   // ready is a state variable, which returns true when the local tracks are initialized, untill then tracks variable is null
   const { ready, tracks, error } = useMicrophoneAndCameraTracks();
-  const language = useSelector((state) => state.homepage.language);
-  const call = useSelector((state) => state.chat.call);
   useEffect(() => {
     if (seconds === 60 && users.length === 0 && call === "aud-outgoing") {
       userEndCall(-1);
@@ -107,9 +106,6 @@ function VideoCall(props) {
       init(activeChat.id);
     }
   }, [client, ready, tracks, error]);
-  const MessageActiveCall = useSelector(
-    (state) => state.chat.MessageActiveCall
-  );
   const [joined, setJoined] = useState(false);
   const userEndCall = async (durationVal) => {
     try {

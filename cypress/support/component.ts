@@ -36,7 +36,7 @@ declare global {
       SkipForNow(): Chainable<void>;
       WaitUntilLoadWebsiteAndlogoutAndViewport(): Chainable<void>;
       HaveAccount(): Chainable<void>;
-      OpenBoutiqueAndAddProductToCartFromBoutiquePage(): Chainable<any>;
+      AddProductToCartFromBoutiquePage(): Chainable<any>;
       OpenBoutiqueAndAddProductToCartFromBoutiqueDatailPage(): Chainable<void>;
       RequestForThreeServers(): Chainable<void>;
       CreateNewAccount(): Chainable<void>;
@@ -49,7 +49,7 @@ declare global {
       ChooseWayToRecieveOtpAndWaitOtpRequest(): Chainable<void>;
       ComplateLoginByMobilePhone(): Chainable<void>;
       OpenLoginInterface(): Chainable<void>;
-      ColoredFieldRed(): Chainable<void>;
+      IncorrectCntry(): Chainable<void>;
       typePincode(pincode: string): Chainable<void>;
       enterPhoneNumber(phoneNumber: string): Chainable<void>;
       reEnterPhoneNumber(phoneNumber: string): Chainable<void>;
@@ -63,10 +63,12 @@ declare global {
       verifyBoxsInBoutiquePage(): Chainable<void>;
       verifyComponentsInProductCard(): Chainable<void>;
       ClickAddToCartAndWaitRequest(): Chainable<void>;
-      ConfirmAndComplateOrderButton(): Chainable<void>;
       AddAdress(): Chainable<void>;
       openWishlist(): Chainable<void>;
-      openNotifications(): Chainable<void>;
+      openNotificationsWhenLogout(): Chainable<void>;
+      openNotificationsWhenLogin(): Chainable<void>;
+      openOrdersWhenLogout(): Chainable<void>;
+      openOrdersWhenLogin(): Chainable<void>;
       ChooseBoutiqueAndVerifyComponentsAndBoxsInBoutiquePage(): Chainable<void>;
       ComplateAddProductOperationAndGoCartPage(): Chainable<void>;
     }
@@ -79,17 +81,3 @@ declare global {
 Cypress.Commands.add("mount", mount);
 // Example use:
 // cy.mount(<MyComponent />)
-
-// cy.wait(["@addToCart", "@updateCart"], { timeout: 30000 }).then(
-//   ([addToCart, updateCart]) => {
-//     if (addToCart.response?.statusCode === 200) {
-//       console.log("cart/add was called");
-//       expect(addToCart.response!.statusCode).to.eq(200);
-//     } else if (updateCart.response?.statusCode === 200) {
-//       console.log("cart/update was called");
-//       expect(updateCart.response!.statusCode).to.eq(200);
-//     } else {
-//       throw new Error("Neither cart/add nor cart/update was called");
-//     }
-//   }
-// );

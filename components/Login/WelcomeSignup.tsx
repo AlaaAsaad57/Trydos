@@ -1,9 +1,11 @@
 import { useParams } from "next/navigation";
-import { useRouter } from "next-nprogress-bar";
+
 import React, { useEffect, useState } from "react";
 import Animated from "react-mount-animation";
-import { useSelector } from "react-redux";
+
 import { translateFunction } from "utils/functions";
+import NextLink from "components/global/NextLink";
+import { useAppStore } from "store";
 interface Props {
   stepIndicator: number;
   Name: string | null;
@@ -11,17 +13,14 @@ interface Props {
   close: Function;
 }
 function WelcomeSignup({ stepIndicator, Name, signStep, close }: Props) {
-  const router = useRouter();
+  const { language } = useAppStore();
+
   let { lang } = useParams();
   // @ts-ignore
   let languageVariable = lang.split("-")[1];
   const translate = (key, lang) => {
     return translateFunction(key, languageVariable);
   };
-  const language = useSelector(
-    (state: StateInterface) => state.homepage.language
-  );
-
   const [active, setActive] = useState(false);
   const mountAnim = ` 
   0% {transform:translateX(800px)}
@@ -72,12 +71,17 @@ function WelcomeSignup({ stepIndicator, Name, signStep, close }: Props) {
         )}
       </div>
       <div className="login-button-group">
-        <div
+        <NextLink
+          data={{
+            is_settings: true,
+            href: `/${lang}/setting?tab=Profile`,
+          }}
+          ariaLabel={`Complete My Profile ${lang}`}
+          href={`/${lang}/setting?tab=Profile`}
           className="login-button"
           data-cy="Complate-Close"
           onClick={() => {
             close();
-            router.push(`/settings#Profile`);
           }}
           style={{
             position: "relative",
@@ -89,7 +93,7 @@ function WelcomeSignup({ stepIndicator, Name, signStep, close }: Props) {
           }}
         >
           {translate("Complete My Profile", language)}
-        </div>
+        </NextLink>
       </div>
       <div
         className="blue-text skip-text"

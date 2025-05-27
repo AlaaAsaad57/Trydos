@@ -3,7 +3,10 @@ import React, { useEffect } from "react";
 
 function LandingPage({ afterLoad }) {
   return (
-    <div className={`landing-page ${true && "loading-screnn"}`} id="landing">
+    <div
+      className={`landing-page max-w-[430px] w-full h-full max-h-[90vh] pt-[70px] top-[100px] right-[30px] rounded-md `}
+      id="landing"
+    >
       <svg
         xmlns="http://www.w3.org/2000/svg"
         xmlnsXlink="http://www.w3.org/1999/xlink"

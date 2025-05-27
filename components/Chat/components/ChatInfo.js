@@ -15,8 +15,9 @@ import BlockInfoIcon from "../svg/BlockInfo.svg";
 import { getTwoLetters, getUser } from "../chatsFunctions";
 import Image from "next/image";
 import Spinner from "components/global/Spinner";
-import { useDispatch } from "react-redux";
+
 import MediaContainer from "./MediaContainer";
+import { useAppStore } from "store";
 function ChatInfo({
   activeChat,
   cancel,
@@ -25,9 +26,10 @@ function ChatInfo({
   makeVideoCall,
   enableSearch,
 }) {
+  const { deleteChat } = useAppStore();
   const ref = useRef();
   const [showMedia, setMedia] = useState(false);
-  const dispatch = useDispatch();
+
   useEffect(() => {
     ref.current.style.display = "flex";
     setTimeout(() => {
@@ -232,10 +234,7 @@ function ChatInfo({
             <div
               className="chat-user-option delete-option"
               onClick={() => {
-                dispatch({
-                  type: "DELETE_CHAT_REDUCER",
-                  payload: { id: activeChat?.id },
-                });
+                deleteChat({ id: activeChat?.id });
                 cancel();
               }}
             >

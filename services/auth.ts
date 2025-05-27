@@ -1,4 +1,4 @@
-import { store } from "store";
+import { useAppStore } from "store";
 
 import userImage from "public/images/profileNo.png";
 import Cookies from "js-cookie";
@@ -12,6 +12,7 @@ import home from "./home";
 import { AxiosGet, AxiosPost } from "utils/AxiosApi";
 import { LikesSharesCommentsApi } from "models/Api";
 import { changeToken } from "store/homepage/cachedActions";
+import axios from "axios";
 const getHeader = () => {
   let [countryUrl, languageUrl] = window.location.pathname
     .split("/")[1]
@@ -36,6 +37,7 @@ class AuthService {
     errorCallback: Function
   ) {
     let msg = "";
+    const { setVerificationId, setWrongNumber } = useAppStore.getState();
     try {
       let response = await fetch(
         process.env.NEXT_PUBLIC_BACKEND_URL +
@@ -52,30 +54,23 @@ class AuthService {
       } = await response.json();
 
       msg = repo.message;
-      if (repo.data?.verificationId) {
-        store.dispatch({
-          type: "SET-VERFICATION-ID",
-          payload: repo.data.verificationId,
-        });
 
+      if (repo.data?.verificationId) {
+        setVerificationId(repo.data.verificationId);
         if (typeof window !== "undefined") {
           _isStoreLastJson() &&
             localStorage.setItem("LAST_JSON", JSON.stringify(repo));
         }
+        return repo.data.verificationId;
       } else {
-        store.dispatch({
-          type: "WRONG-NUMBER",
-          payload: msg,
-        });
+        setWrongNumber(msg);
         throw new Error(msg);
       }
-      return repo;
+      return repo.data.verificationId;
     } catch (e) {
       errorCallback();
-      store.dispatch({
-        type: "WRONG-NUMBER",
-        payload: msg,
-      });
+      setWrongNumber(msg);
+
       throw e;
     }
   }
@@ -85,6 +80,7 @@ class AuthService {
     Username: string,
     EditPhoneFunc: Function
   ) {
+    const { setTempUser, setWrongNumber, loginFailed } = useAppStore.getState();
     try {
       const response = await fetch(
         process.env.NEXT_PUBLIC_BACKEND_URL +
@@ -137,13 +133,10 @@ class AuthService {
       if (localStorage.getItem("customer-info")) {
         localStorage.removeItem("customer-info");
       }
-      store.dispatch({
-        type: "TEMP-USER",
-        payload: {
-          ...repo.data.user,
-          already_exists: repo.data.already_exists,
-          is_verified: false,
-        },
+      setTempUser({
+        ...repo.data.user,
+        already_exists: repo.data.already_exists,
+        is_verified: false,
       });
       if (typeof window !== "undefined") {
         localStorage.setItem("LAST_JSON", JSON.stringify(repo));
@@ -154,15 +147,41 @@ class AuthService {
       return [repo.data.already_exists, repo.data.user.name];
     } catch (e) {
       if (e.message === "user not found") {
-        store.dispatch({ type: "WRONG-NUMBER", payload: "user not found" });
+        setWrongNumber("user not found");
       } else {
-        store.dispatch({ type: "LOGIN_FAILED" });
+        loginFailed();
       }
       throw e;
     }
   }
+  async VerifyOtpForUpdatePhone(code: string, verficationID: string) {
+    const { updateUserIsVerified, setWrongNumber } = useAppStore.getState();
+    try {
+      let response = await fetch(
+        process.env.NEXT_PUBLIC_BACKEND_URL +
+          "/auth/phone/verify_otp" +
+          `?verificationId=${verficationID}&otp=${code}`,
+        getHeader()
+      );
 
+      let data = await response.json();
+      if (data?.data?.message === "user not found") {
+        throw new Error("user not found");
+      }
+
+      if (data?.isSuccessful === false) {
+        throw new Error("Wrong Code");
+      }
+      localStorage.setItem("ID-TOKEN", data.data.id_token);
+      updateUserIsVerified({ is_phone_verified: 1 });
+      return data.data.id_token;
+    } catch (error) {
+      setWrongNumber(error.message);
+      throw error;
+    }
+  }
   async UpdateName(name: string) {
+    const { updateName } = useAppStore.getState();
     try {
       localStorage.setItem(
         "USER-STORIES",
@@ -178,17 +197,35 @@ class AuthService {
           name: name,
         })
       );
-      store.dispatch({ type: "UPDATE-NAME", payload: name });
+      updateName(name);
       let axios = (await import("axios")).default;
       await AxiosPost({
         url: process.env.NEXT_PUBLIC_BACKEND_URL + "/customer/update-name",
         body: { name: name },
         title: "Update Name",
       });
+      let chat_update = await axios.put(
+        process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
+          `/api/v1/users/${this.UserID()}`,
+        { name: name },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("CHAT-TOKEN")}`,
+          },
+        }
+      );
+      localStorage.setItem(
+        "USER-CHAT",
+        JSON.stringify({
+          ...JSON.parse(localStorage.getItem("USER-STORIES")),
+          name: name,
+        })
+      );
+      await home.getCustomerInfo();
       if (!localStorage.getItem("STORIES-TOKEN")) {
         await this.ConfirmSignIn();
       }
-      axios.post(
+      await axios.post(
         process.env.NEXT_PUBLIC_STORIES_BACKEND_URL + "/api/v1/users/update",
         { name: name },
         {
@@ -205,6 +242,7 @@ class AuthService {
   }
   async ConfirmSignIn() {
     let userLocal = JSON.parse(localStorage.getItem("USER"));
+    const { loginSuccess } = useAppStore.getState();
     if (userLocal) {
       if (Smartlook.initialized())
         Smartlook.identify(userLocal.id, {
@@ -213,17 +251,15 @@ class AuthService {
           // other custom properties
         });
     }
-    store.dispatch({
-      type: "LOGIN_SUCCESS",
-      payload: {
-        id: userLocal.id,
-        idToken: userLocal.id_token,
-        name: userLocal.name,
-        avatar: userImage,
-        already_exists: userLocal.already_exists,
-        is_verified: true,
-      },
+    loginSuccess({
+      id: userLocal.id,
+      idToken: userLocal.id_token,
+      name: userLocal.name,
+      avatar: userImage,
+      already_exists: userLocal.already_exists,
+      is_verified: true,
     });
+
     localStorage.setItem(
       "USER",
       JSON.stringify({ ...userLocal, is_verified: true })
@@ -241,7 +277,8 @@ class AuthService {
     if (!localStorage.getItem("guest-user")) {
       home.registerForExpire();
     }
-    store.dispatch({ type: "CANCEL-AUTH" });
+    const { cancelAuth } = useAppStore.getState();
+    cancelAuth();
   }
   async NotifyForProducts({ id, variant }) {
     // const details = {
@@ -280,6 +317,181 @@ class AuthService {
 
       return data;
     } catch (error) {}
+  }
+  getUser() {
+    return (
+      localStorage.getItem("USER") && JSON.parse(localStorage.getItem("USER"))
+    );
+  }
+  UserToken() {
+    return (
+      localStorage.getItem("MARKET-TOKEN") ||
+      localStorage.getItem("DEVICE-TOKEN") ||
+      false
+    );
+  }
+  UserID() {
+    return (
+      (localStorage.getItem("USER") &&
+        JSON.parse(localStorage.getItem("USER"))?.id) ||
+      (localStorage.getItem("guest-user") &&
+        JSON.parse(localStorage.getItem("guest-user"))?.id) ||
+      false
+    );
+  }
+  User() {
+    return (
+      (localStorage.getItem("USER") &&
+        JSON.parse(localStorage.getItem("USER"))) ||
+      (localStorage.getItem("guest-user") &&
+        JSON.parse(localStorage.getItem("guest-user"))) ||
+      false
+    );
+  }
+  async ExpiredUser() {
+    if (this.getUser()?.phone)
+      localStorage.setItem("has-phone", this.getUser()?.phone);
+    await home.registerForExpire(this.getUser().id);
+    this.cancelAuth();
+    localStorage.removeItem("MARKET-TOKEN");
+    localStorage.removeItem("USER");
+    Cookies.remove("MARKET-TOKEN");
+  }
+  async UpdateProfile(userObj, previousUserObj) {
+    const { userProfile } = useAppStore.getState();
+    let market_done = false,
+      chat_done = false,
+      stories_done = false;
+
+    try {
+      if (localStorage.getItem("USER-STORIES")) {
+        await axios
+          .post(
+            process.env.NEXT_PUBLIC_STORIES_BACKEND_URL +
+              "/api/v1/users/update",
+            {
+              name: userObj?.name ?? userProfile?.name,
+              mobile_phone: userObj?.phone ?? userProfile?.phone,
+              photo_path: userObj?.image ?? userProfile?.image,
+            },
+            {
+              headers: {
+                Authorization: `Bearer ${localStorage.getItem(
+                  "STORIES-TOKEN"
+                )}`,
+              },
+            }
+          )
+          .then((s) => {
+            stories_done = true;
+          });
+        localStorage.setItem(
+          "USER-STORIES",
+          JSON.stringify({
+            ...JSON.parse(localStorage.getItem("USER-STORIES")),
+            name: userObj?.name ?? userProfile?.name,
+            mobile_phone: userObj?.phone ?? userProfile?.phone,
+            photo_path: userObj?.image ?? userProfile?.image,
+          })
+        );
+      }
+      // let user_id = JSON.parse(localStorage.getItem("USER-CHAT")).id;
+      if (localStorage.getItem("USER-CHAT")) {
+        let chat_update = await axios
+          .put(
+            process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
+              `/api/v1/users/${this.UserID()}`,
+            {
+              name: userObj?.name ?? userProfile?.name,
+              mobile_phone: userObj?.phone ?? userProfile?.phone,
+              photo_path: userObj?.image ?? userProfile?.image,
+            },
+            {
+              headers: {
+                Authorization: `Bearer ${localStorage.getItem("CHAT-TOKEN")}`,
+              },
+            }
+          )
+          .then((s) => {
+            chat_done = true;
+          });
+        localStorage.setItem(
+          "USER-CHAT",
+          JSON.stringify({
+            ...JSON.parse(localStorage.getItem("USER-CHAT")),
+            name: userObj?.name ?? userProfile?.name,
+            mobile_phone: userObj?.phone ?? userProfile?.phone,
+            photo_path: userObj?.image ?? userProfile?.image,
+          })
+        );
+      }
+      let res = await AxiosPost({
+        url: process.env.NEXT_PUBLIC_BACKEND_URL + "/customer/update-profile",
+        body: userObj,
+        title: "Update Profile",
+      }).then((s) => {
+        market_done = true;
+      });
+      localStorage.setItem(
+        "USER",
+        JSON.stringify({
+          ...JSON.parse(localStorage.getItem("USER")),
+          name: userObj?.name ?? userProfile?.name,
+          phone: userObj?.phone ?? userProfile?.phone,
+          image: userObj?.image ?? userProfile?.image,
+        })
+      );
+      return res;
+    } catch (error) {
+      if (market_done) {
+        await AxiosPost({
+          url: process.env.NEXT_PUBLIC_BACKEND_URL + "/customer/update-profile",
+          body: userProfile,
+          title: "Update Profile",
+        }).then((s) => {
+          market_done = true;
+        });
+      }
+      if (stories_done) {
+        await axios.post(
+          process.env.NEXT_PUBLIC_STORIES_BACKEND_URL + "/api/v1/users/update",
+          {
+            name: userProfile?.name,
+            mobile_phone: userProfile?.phone,
+            photo_path: userProfile?.image,
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("STORIES-TOKEN")}`,
+            },
+          }
+        );
+      }
+      if (chat_done) {
+        await axios.put(
+          process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
+            `/api/v1/users/${this.UserID()}`,
+          {
+            name: userProfile?.name,
+            mobile_phone: userProfile?.phone,
+            photo_path: userProfile?.image,
+          }
+        );
+      }
+      throw error;
+    }
+  }
+  async UpdateProfileImage(image) {
+    let formData = new FormData();
+    formData.append("image", image);
+    formData.append("path", "customers/profile");
+
+    let res = await AxiosPost({
+      url: process.env.NEXT_PUBLIC_BACKEND_URL + "/storage/storage-upload",
+      body: formData,
+      title: "Update Profile Image",
+    });
+    return res;
   }
 }
 export default new AuthService();

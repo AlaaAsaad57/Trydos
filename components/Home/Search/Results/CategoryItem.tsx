@@ -1,17 +1,15 @@
 import React, { useState } from "react";
 import ActiveCategoryIcon from "public/svg/listing/ActiveCategoryIcon.svg";
-import { useSelector } from "react-redux";
+import { useAppStore } from "store";
 
 function CategoryItem({ category, onClick, isActive }) {
-  const searchFilters = useSelector(
-    (state: StateInterface) => state.Search.searchFilters
-  );
+  const { searchFilters } = useAppStore();
   const [expanded, setExpand] = useState(false);
   return (
     <>
       <div
         className="category-item brand-item whitespace-nowrap relative pr-4 z-10"
-        data-cy="categoryItem"
+        data-cy="category-result"
         onClick={() => {
           if (expanded) {
             setExpand(false);

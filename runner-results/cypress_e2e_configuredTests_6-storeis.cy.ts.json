@@ -1,0 +1,10 @@
+{
+  "suites": 2,
+  "tests": 9,
+  "passes": 7,
+  "pending": 0,
+  "failures": 2,
+  "start": "2025-05-20T10:19:19.791Z",
+  "duration": 854929,
+  "file": "cypress\\e2e\\configuredTests\\6-storeis.cy.ts"
+}

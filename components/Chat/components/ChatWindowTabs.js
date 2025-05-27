@@ -8,11 +8,10 @@ import HasNewCallIcon from "../svg/Tabs/HasNewCallIcon.svg";
 import StoryIcon from "../svg/Tabs/StoryIcon.svg";
 import ActiveStoryIcon from "../svg/Tabs/ActiveStoryIcon.svg";
 import { getNew, getNewCalls } from "../chatsFunctions";
-import { useSelector } from "react-redux";
+import { useAppStore } from "store";
 
 function ChatWindowTabs({ SelectedTab, setSelectedTab }) {
-  const chats = useSelector((state) => state.chat.data);
-  const calls = useSelector((state) => state.chat.calls);
+  const { data: chats, calls } = useAppStore();
   return (
     <div className="chat-tabs-container">
       <div className="chat-tab" onClick={() => setSelectedTab("Chats")}>

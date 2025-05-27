@@ -1,36 +1,49 @@
 "use client";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import StoreisIcon from "public/svg/product/StoreisIcon.svg";
 import ColorsInfo from "public/svg/product/colorsInfo.svg";
-import { useDispatch, useSelector } from "react-redux";
 import { SelectStory } from "store/homepage/actions";
-import { configureStory, getThumb, translateFunction } from "utils/functions";
+import { translateFunction } from "utils/functions";
 import StoryServiceClass from "services/story";
 import StoriesContainer from "components/Home/Stories/NewStories";
 import InfoWindow from "./InfoWindow";
 import { useParams } from "next/navigation";
-function ProductStories() {
+import { useAppStore } from "store";
+import { InView } from "node_modules/react-intersection-observer/dist";
+import Spinner from "components/global/Spinner";
+function ProductStories({ id }) {
+  const {
+    selectedStory,
+    InfoMessage: showInfoMessageObj,
+    showInfoMessage,
+  } = useAppStore();
   let { lang } = useParams();
+  const [stories, setStories] = useState([]);
+  const [next_page, set_next_page] = useState(true);
+  const [page, setPage] = useState(1);
+  const [loading, setLoading] = useState(false);
   // @ts-ignore
   let languageVariable = lang.split("-")[1];
   const translate = (key, lang?) => {
     return translateFunction(key, languageVariable);
   };
-  const stories = useSelector(
-    (state: StateInterface) => state.homepage.storiesData
-  );
-  const dispatch = useDispatch();
-  const selectedStory = useSelector(
-    (state: StateInterface) => state.homepage.selectedStory
-  );
   const setSelectStory = (e) => {
-    dispatch(SelectStory(e));
+    SelectStory(e);
+  };
+  const GetData = async () => {
+    setLoading(true);
+    const data = await StoryServiceClass.getStoriesForProducts({
+      id: id,
+      page: page,
+    });
+
+    setPage(page + 1);
+    set_next_page(data.next_page_url);
+    setStories([...stories, ...data.data]);
+    setLoading(false);
   };
   useEffect(() => {
-    setTimeout(() => {
-      StoryServiceClass.getStories();
-    }, 5000);
-
+    GetData();
     if (typeof document !== "undefined") {
       const slider: HTMLDivElement = document?.querySelector(".stories-row");
       let isDown = false;
@@ -60,19 +73,14 @@ function ProductStories() {
       });
     }
   }, []);
-  const showInfoMessage = useSelector(
-    (state: StateInterface) => state.details.InfoMessage.showInfoMessage
-  );
+
   return (
     <div
       className={`product-colors product-stories flex-col  align-start relative`}
     >
-      {showInfoMessage && <InfoWindow />}
-      {selectedStory?.id && (
-        <StoriesContainer
-          activeId={selectedStory?.id}
-          selectedStory={selectedStory}
-        />
+      {showInfoMessageObj.showInfoMessage && <InfoWindow />}
+      {selectedStory && selectedStory?.id && (
+        <StoriesContainer stories={stories} selectedStory={selectedStory} />
       )}
       <div className="colors-label flex-row align-center">
         <StoreisIcon data-cy="StoriesIcon" />
@@ -81,15 +89,12 @@ function ProductStories() {
           data-cy="QuestionMark"
           style={{ marginLeft: "9px" }}
           onClick={() => {
-            dispatch({
-              type: "SHOW-INFO-MESSAGE",
-              payload: {
-                showInfoMessage: true,
-                title: `${translate("Product Story")}`,
-                text: "According To The Opinions Of Our Fashion Team, The Appropriate Occasions For This Product Have Been Identified Based On Long Experience. We Provide An Opinion Only And Opinions May Differ From One Person To Another. So It Is Suitable For",
-                icon: "/svg/product/StoreisIcon.svg",
-                value: [],
-              },
+            showInfoMessage({
+              showInfoMessage: true,
+              title: `${translate("Product Story")}`,
+              text: "According To The Opinions Of Our Fashion Team, The Appropriate Occasions For This Product Have Been Identified Based On Long Experience. We Provide An Opinion Only And Opinions May Differ From One Person To Another. So It Is Suitable For",
+              icon: "/svg/product/StoreisIcon.svg",
+              value: [],
             });
           }}
         />
@@ -101,19 +106,38 @@ function ProductStories() {
             key={index}
             className="product-story relative"
             data-cy="Story"
-            onClick={() => setSelectStory(configureStory(story))}
+            onClick={() =>
+              setSelectStory(StoryServiceClass.configureStory(story))
+            }
           >
             <img
               width={135}
               height={194}
-              src={getThumb(
-                story.stories[0].full_video_path || story.stories[0].photo_path,
-                Boolean(story.stories[0].full_video_path)
+              src={StoryServiceClass.getThumb(
+                // @ts-ignore
+                story.stories[0]?.full_video_path ||
+                  // @ts-ignore
+                  story.stories[0]?.photo_path,
+                // @ts-ignore
+                Boolean(story.stories[0]?.full_video_path)
               )}
             />
             <div className="inset-story-shadow absolute" />
           </div>
         ))}
+        {next_page && (
+          <InView
+            className="spinner-container min-w-[80px] flex justify-center items-center h-[194px]"
+            as="div"
+            onChange={(inView) => {
+              if (inView && !loading) {
+                GetData();
+              }
+            }}
+          >
+            <Spinner />
+          </InView>
+        )}
       </div>
     </div>
   );

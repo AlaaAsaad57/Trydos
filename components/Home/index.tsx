@@ -1,28 +1,26 @@
 "use client";
 import "styles/home.css";
-import { useDispatch, useSelector } from "react-redux";
 import dynamic from "next/dynamic";
 import { useEffect } from "react";
-import Stories from "./Stories/index";
-import ChatService from "services/chat";
-import { getUser, getUserChat } from "utils/functions";
-const NameModal = dynamic(() => import("components/global/NameModal"));
-// const StoriesContainer = dynamic(() => import("./Stories/NewStories"), {
-//   loading: () => <LandingPage afterLoad={true} />,
-//   ssr: false,
-// });
-import StoriesContainer from "./Stories/NewStories";
 
-import { getUserStories } from "../../utils/functions";
+import ChatService from "services/chat";
+import { getUserChat } from "utils/functions";
+const NameModal = dynamic(() => import("components/global/NameModal"));
+import StoriesContainer from "./Stories/NewStories";
 import StoryServiceClass from "services/story";
-// import LandingPage from "./LandingPage";
 import { dispatchRouteChangeEvent } from "utils/events";
-// const SearchContainer = dynamic(() => import("./Search/SearchContainer"), {
-//   ssr: false,
-// });
 import SearchContainer from "./Search/SearchContainer";
+import auth from "services/auth";
+import { useAppStore } from "store";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { toast } from "react-toastify";
 
 export default function Home() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const { resetFilters, selectedStory, enable_search, nameModal } =
+    useAppStore();
   useEffect(() => {
     dispatchRouteChangeEvent("completed");
     document.documentElement.style.overflow = "initial";
@@ -31,13 +29,25 @@ export default function Home() {
     try {
       initFB();
     } catch (e) {}
+    if (searchParams?.get("message")?.length > 0) {
+      let message = searchParams.get("message");
+      if (message === "product_not_found") {
+        toast.error("Product not found");
+      }
+      if (message === "boutique_not_found") {
+        toast.error("Boutique not found");
+      }
+      const newParams = new URLSearchParams(searchParams);
+      newParams.delete("message");
+      // @ts-expect-error 'shallow' does not exist in type 'NavigateOptions'
+      router.push(`${pathname}?${newParams.toString()}`, { shallow: true });
+    }
   }, []);
-  const dispatch = useDispatch();
   const initFB = async () => {
-    dispatch({ type: "RESET-FILTERS" });
-    if (getUserStories()?.id) {
+    resetFilters();
+    if (StoryServiceClass.getUserStories()?.id) {
       const Cookies = (await import("js-cookie")).default;
-      Cookies.set("token", getUserStories()?.access_token);
+      Cookies.set("token", StoryServiceClass.getUserStories()?.access_token);
     }
 
     if (getUserChat()?.id) {
@@ -45,7 +55,7 @@ export default function Home() {
         "utils/firebaseInitv1"
       );
       requestFirebaseNotificationPermission().then(async (fbtoken) => {
-        if (fbtoken) {
+        if (fbtoken && getUserChat()?.id) {
           fbtoken &&
             ChatService.StoreToken({
               id: getUserChat()?.id,
@@ -56,52 +66,23 @@ export default function Home() {
       });
     }
   };
-  const selectedStory = useSelector(
-    (state: StateInterface) => state.homepage.selectedStory
-  );
 
-  const searchEnabled = useSelector(
-    (state: StateInterface) => state.Search.enable
-  );
-
-  const nameModal = useSelector(
-    (state: StateInterface) => state.chat.nameModal
-  );
-  // useEffect(() => {
-  //   if (selectedStory) {
-  //     document.documentElement
-  //       .getElementsByTagName("meta")[0]
-  //       .setAttribute("content", "");
-  //     document.body.style.overflowY = "hidden";
-  //   } else {
-  //     document.documentElement
-  //       .getElementsByTagName("meta")[0]
-  //       .setAttribute("content", "");
-  //     document.body.style.overflowY = "initial";
-  //   }
-  // }, [selectedStory]);
   const getNameModalOpen = () => {
     let name =
       typeof window !== "undefined" &&
       JSON.parse(localStorage.getItem("USER") || "{}")?.name;
     return (
       getUserChat()?.id &&
-      getUser()?.id &&
+      auth.getUser()?.id &&
       (!name || name?.length === 0) &&
       nameModal
     );
   };
   return (
     <>
-      <Stories />
       {getNameModalOpen() && <NameModal />}
-      {selectedStory?.id && (
-        <StoriesContainer
-          activeId={selectedStory?.id}
-          selectedStory={selectedStory}
-        />
-      )}
-      {<SearchContainer active={searchEnabled} />}
+      {selectedStory?.id && <StoriesContainer selectedStory={selectedStory} />}
+      {<SearchContainer active={enable_search} />}
     </>
   );
 }

@@ -5,8 +5,10 @@ import Cookies from "js-cookie";
 import { setupCache } from "axios-cache-interceptor";
 import home from "services/home";
 
-import { ExpiredUser, getUser, LogError, WaitForCondition } from "./functions";
+import { LogError, translateFunction, WaitForCondition } from "./functions";
 import { toast } from "react-toastify";
+import auth from "services/auth";
+import { changeToken } from "store/homepage/cachedActions";
 export const errorPNG = pngErr.src;
 const getHeader = (token?) => {
   let [countryUrl, languageUrl] = window.location.pathname
@@ -23,15 +25,18 @@ const getHeader = (token?) => {
         Cookies.get("MARKET-TOKEN") ??
         Cookies.get("DEVICE-TOKEN")
       }`,
+      accept: "application/json",
     },
   };
 };
 export const AxiosGet = async ({
   url,
   title,
+  token,
 }: {
   url: string;
   title?: string;
+  token?: string;
 }) => {
   await WaitForCondition();
   let attempt = 0;
@@ -39,7 +44,7 @@ export const AxiosGet = async ({
   let delay = 2000;
   while (attempt <= retries) {
     try {
-      let res = await axios.get(url, getHeader());
+      let res = await axios.get(url, getHeader(token));
       // If the response is successful, return the data
       // if (url.includes("customer/wallet")) {
       //   return res.data;
@@ -50,11 +55,12 @@ export const AxiosGet = async ({
       if (
         url.includes("user-notifications/get") ||
         url.includes("/customer/order/list") ||
-        url.includes("/coupon/apply")
+        url.includes("/coupon/apply") ||
+        url.includes("/api/addresses/CountryBoundaryByIso")
       ) {
         return res.data;
       }
-      if (res.data.popular_search_terms) {
+      if (res?.data?.popular_search_terms) {
         return res.data.popular_search_terms;
       }
       if (res?.data.isSuccessful || res.data.data) {
@@ -63,17 +69,33 @@ export const AxiosGet = async ({
         throw new Error(res.data.message);
       }
     } catch (error) {
-      if (error.status === 422 || error.status === 500) {
+      if (error.status !== 401) {
         attempt = 2;
-        toast.error(`${title} : ${error.message ?? "Failed"}`);
+        if (!url.includes("/api/addresses/CountryBoundaryByIso"))
+          toast.error(`${title} : ${error.message ?? "Failed"}`);
         throw new Error(
           `${title} : Max retries reached. Could not fetch the data. ${error.message}`
         );
         return;
       }
-      if (error.status === 401 || error.status === 403) {
-        if (getUser()) {
-          await ExpiredUser();
+      if (error.status === 401) {
+        if (
+          url.includes(process.env.NEXT_PUBLIC_CHAT_BACKEND_URL) ||
+          url.includes(process.env.NEXT_PUBLIC_STORIES_BACKEND_URL)
+        ) {
+          changeToken({ key: "token", deleteOption: true });
+          localStorage.removeItem("USER-STORIES");
+          localStorage.removeItem("USER-CHAT");
+          localStorage.setItem("guest-user", localStorage.getItem("USER"));
+          localStorage.removeItem("USER");
+          localStorage.removeItem("CHAT-TOKEN");
+          window.location.reload();
+          Cookies.remove("token");
+          toast.info(translateFunction("Session Expired..please Login again"));
+          return;
+        }
+        if (auth.getUser()) {
+          await auth.ExpiredUser();
         } else {
           await home.registerForExpire();
         }
@@ -152,13 +174,14 @@ export const AxiosPost = async ({
           `${title} : Max retries reached. Could not fetch the data. ${error.message}`
         );
       }
-      if (
-        error.status === 422 ||
-        error.status === 500 ||
-        error === "Failed" ||
-        error?.message === "Failed"
-      ) {
-        toast.error(`${title} : ${error.message ?? "Failed"}`);
+      if (error.status !== 401) {
+        if (error?.response?.data?.message) {
+          toast.error(
+            `${title} : ${error?.response?.data?.message ?? "Failed"}`
+          );
+        } else {
+          toast.error(`${title} : ${error.message ?? "Failed"}`);
+        }
         attempt = 2;
         throw new Error(
           `${title} : Max retries reached. Could not fetch the data. ${error.message}`
@@ -166,9 +189,24 @@ export const AxiosPost = async ({
         return;
       }
 
-      if (error.status === 401 || error.status === 403) {
-        if (getUser()) {
-          await ExpiredUser();
+      if (error.status === 401) {
+        if (
+          url.includes(process.env.NEXT_PUBLIC_CHAT_BACKEND_URL) ||
+          url.includes(process.env.NEXT_PUBLIC_STORIES_BACKEND_URL)
+        ) {
+          changeToken({ key: "token", deleteOption: true });
+          localStorage.removeItem("USER-STORIES");
+          localStorage.removeItem("USER-CHAT");
+          localStorage.setItem("guest-user", localStorage.getItem("USER"));
+          localStorage.removeItem("USER");
+          localStorage.removeItem("CHAT-TOKEN");
+          window.location.reload();
+          Cookies.remove("token");
+          toast.info(translateFunction("Session Expired..please Login again"));
+          return;
+        }
+        if (auth.getUser()) {
+          await auth.ExpiredUser();
         } else {
           await home.registerForExpire();
         }
@@ -205,6 +243,7 @@ export const AxiosCacheApi = async ({
       Authorization: `Bearer ${
         Cookies.get("MARKET-TOKEN") ?? Cookies.get("DEVICE-TOKEN")
       }`,
+      accept: "application/json",
     },
     cache: {
       ttl: parseInt(process.env.NEXT_PUBLIC_REVALIDATE) * 10000,

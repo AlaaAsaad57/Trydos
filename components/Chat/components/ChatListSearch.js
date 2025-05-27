@@ -1,9 +1,10 @@
 import { useParams } from "next/navigation";
 import Mignifier from "../svg/Mignifier.svg";
-import { useDispatch, useSelector } from "react-redux";
 import { SearchContact } from "store/chat/actions";
 import { translateFunction } from "utils/functions";
+import { useAppStore } from "store";
 function ChatListSearch(props) {
+  const { language } = useAppStore();
   let { lang } = useParams();
   // @ts-ignore
   let languageVariable = lang.split("-")[1];
@@ -11,7 +12,6 @@ function ChatListSearch(props) {
     return translateFunction(key, languageVariable);
   };
   let filterTimeout;
-  let dispatch = useDispatch();
   const SearchContacts = (query) => {
     props.setSearch(query);
     clearTimeout(filterTimeout);
@@ -19,7 +19,6 @@ function ChatListSearch(props) {
       SearchContact(query);
     }, 500);
   };
-  const language = useSelector((state) => state.homepage.language);
 
   return (
     <div className="chat-window-search-holder">

@@ -103,7 +103,7 @@
 }
 
 .product-descriptor {
-  height: 51px;
+  height: 52px;
   width: auto;
   border-radius: 10px;
   background-color: #f4f4f4;
@@ -140,7 +140,7 @@
   font-family: var(--Quicksand-Regular);
   color: #8d8d8d;
   user-select: none;
-
+  width: max-content;
   font-size: 13px;
 }
 

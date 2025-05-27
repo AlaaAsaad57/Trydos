@@ -4,16 +4,13 @@ import { changeToken } from "store/homepage/cachedActions";
 import { Sendevent, translateFunction } from "utils/functions";
 import NextLink from "components/global/NextLink";
 import { useParams, usePathname } from "next/navigation";
-import { changeAppLanguage } from "store/homepage/actions";
-import { useDispatch, useSelector } from "react-redux";
 import NotificationsPanel from "../Notifications/NotificationsPanel";
-import OrdersPanel from "../Orders/OrdersPanel";
 import WishListPanel from "../WishList/WishListPanel";
-import CountrySelector from "components/global/CountrySelector";
-import { useRouter } from "next-nprogress-bar";
+import { GA_CLICK_EVENT_VALUES, GA_EVENT_NAMES } from "utils/GAEvents";
 
 interface MenuProps {
   user: any;
+  setMenuOpen: (open: boolean) => void;
 }
 
 const MenuIcon: React.FC<{ children: React.ReactNode }> = ({ children }) => (
@@ -31,66 +28,6 @@ const MenuIcon: React.FC<{ children: React.ReactNode }> = ({ children }) => (
     {children}
   </svg>
 );
-
-const LanguageSelector: React.FC = () => {
-  const { lang } = useParams();
-  const dispatch = useDispatch();
-  const language = useSelector(
-    (state: StateInterface) => state.homepage.language
-  );
-
-  const isSelected = (val: string) => language === val;
-
-  const handleLanguageChange = (newLang: string) => {
-    dispatch(changeAppLanguage(newLang));
-    window.location.href = window.location.href.replace(
-      // @ts-ignore
-      lang,
-      // @ts-ignore
-      `${lang.split("-")[0]}-${newLang}`
-    );
-  };
-
-  const currentLang = Array.isArray(lang) ? lang[0] : lang;
-
-  return (
-    <div
-      className="flex-row justify-between items-center"
-      style={{ padding: "10px 15px", cursor: "pointer", color: "#333" }}
-    >
-      <div style={{ display: "flex", alignItems: "center" }}>
-        <MenuIcon>
-          <path
-            d="M20.58 19.37L17.59 11.01C17.38 10.46 16.91 10.12 16.37 10.12C15.83 10.12 15.37 10.46 15.14 11.03L12.16 19.37C12.02 19.76 12.22 20.19 12.61 20.33C13 20.47 13.43 20.27 13.57 19.88L14.19 18.15H18.54L19.16 19.88C19.27 20.19 19.56 20.38 19.87 20.38C19.95 20.38 20.04 20.37 20.12 20.34C20.51 20.2 20.71 19.77 20.57 19.38L20.58 19.37ZM14.74 16.64L16.38 12.05L18.02 16.64H14.74ZM12.19 7.85C9.92999 11.42 7.89 13.58 5.41 15.02C5.29 15.09 5.16 15.12 5.04 15.12C4.78 15.12 4.53 14.99 4.39 14.75C4.18 14.39 4.3 13.93 4.66 13.73C6.75999 12.51 8.48 10.76 10.41 7.86H4.12C3.71 7.86 3.37 7.52 3.37 7.11C3.37 6.7 3.71 6.36 4.12 6.36H7.87V4.38C7.87 3.97 8.21 3.63 8.62 3.63C9.02999 3.63 9.37 3.97 9.37 4.38V6.36H13.12C13.53 6.36 13.87 6.7 13.87 7.11C13.87 7.52 13.53 7.86 13.12 7.86H12.18L12.19 7.85ZM12.23 15.12C12.1 15.12 11.97 15.09 11.85 15.02C11.2 14.64 10.57 14.22 9.97999 13.78C9.64999 13.53 9.58 13.06 9.83 12.73C10.08 12.4 10.55 12.33 10.88 12.58C11.42 12.99 12.01 13.37 12.61 13.72C12.97 13.93 13.09 14.39 12.88 14.75C12.74 14.99 12.49 15.12 12.23 15.12Z"
-            fill="currentColor"
-          />
-        </MenuIcon>
-        <span>{translateFunction("Language")}</span>
-      </div>
-      <div className="flex-row ml-4">
-        {["tr", "ar", "en"].map((langCode) => (
-          <div
-            key={langCode}
-            className={`${
-              isSelected(langCode) ? "border-[#3da5b0] border-[1px]" : ""
-            } flex p-1 cursor-pointer`}
-            onClick={() => handleLanguageChange(langCode)}
-          >
-            <img
-              src={`/svg/${
-                langCode === "en" ? "uk" : langCode === "ar" ? "uae" : langCode
-              }.svg`}
-              width={30}
-              height={langCode === "en" ? 15 : 20}
-              className={langCode === "en" ? "scale-125" : ""}
-              alt={`${langCode} language`}
-            />
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-};
 
 const MenuItem: React.FC<{
   onClick?: () => void;
@@ -110,7 +47,19 @@ const MenuItem: React.FC<{
 
   if (href && !pathname.includes(href)) {
     return (
-      <NextLink data-cy={dataCy} style={style} href={href}>
+      <NextLink
+        data={{
+          is_settings: true,
+          href,
+        }}
+        ariaLabel={`Menu Item ${href}`}
+        data-cy={dataCy}
+        style={style}
+        href={href}
+        onClick={() => {
+          if (onClick) onClick();
+        }}
+      >
         {icon}
         {children}
       </NextLink>
@@ -131,16 +80,15 @@ const MenuItem: React.FC<{
   );
 };
 
-const Menu: React.FC<MenuProps> = ({ user }) => {
+const Menu: React.FC<MenuProps> = ({ user, setMenuOpen }) => {
   const [showNotifications, setShowNotifications] = useState(false);
-  const [showOrders, setShowOrders] = useState(false);
   const [showWishList, setShowWishList] = useState(false);
   const { lang } = useParams();
 
   const handleLogout = () => {
     Sendevent({
-      event: "button_clicked",
-      value: "me_nav_bar_button",
+      event: GA_EVENT_NAMES.CLICK,
+      value: GA_CLICK_EVENT_VALUES.LOGOUT_BUTTON,
     });
     localStorage.clear();
     changeToken({ key: "DEVICE-TOKEN", deleteOption: true });
@@ -155,6 +103,16 @@ const Menu: React.FC<MenuProps> = ({ user }) => {
   return (
     <>
       <div
+        onClick={() => {
+          Sendevent({
+            event: GA_EVENT_NAMES.CLICK,
+            value: GA_CLICK_EVENT_VALUES.CLSOE_SIDE_MENU,
+          });
+          setMenuOpen(false);
+        }}
+        className=" w-full h-full fixed top-0 left-0 z-50"
+      />
+      <div
         style={{
           position: "absolute",
           top: "50px",
@@ -166,17 +124,17 @@ const Menu: React.FC<MenuProps> = ({ user }) => {
           zIndex: 1000,
         }}
       >
-        <div className="items-center gap-4 flex">
-          <CountrySelector init={Array.isArray(lang) ? lang[0] : lang} />
-        </div>
-        <div className="flex items-center gap-4">
-          <LanguageSelector />
-        </div>
-
         <>
           <MenuItem
             dataCy="Settings-Icon"
-            href={`/${lang}/settings`}
+            href={`/${lang}/setting?tab=main`}
+            onClick={() => {
+              Sendevent({
+                event: GA_EVENT_NAMES.CLICK,
+                value: GA_CLICK_EVENT_VALUES.PERSONAL_SETTING,
+              });
+              setMenuOpen(false);
+            }}
             icon={
               <MenuIcon>
                 <circle cx="12" cy="12" r="3" />
@@ -188,7 +146,13 @@ const Menu: React.FC<MenuProps> = ({ user }) => {
           </MenuItem>
           <MenuItem
             dataCy="WishList-Icon"
-            onClick={() => setShowWishList(!showWishList)}
+            onClick={() => {
+              Sendevent({
+                event: GA_EVENT_NAMES.CLICK,
+                value: GA_CLICK_EVENT_VALUES.WISHLIST_BUTTON,
+              });
+              setShowWishList(!showWishList);
+            }}
             icon={
               <MenuIcon>
                 <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
@@ -199,7 +163,13 @@ const Menu: React.FC<MenuProps> = ({ user }) => {
           </MenuItem>
           <MenuItem
             dataCy="Notifications-Icon"
-            onClick={() => setShowNotifications(!showNotifications)}
+            onClick={() => {
+              Sendevent({
+                event: GA_EVENT_NAMES.CLICK,
+                value: GA_CLICK_EVENT_VALUES.NOTIFICATIONS_BUTTON,
+              });
+              setShowNotifications(!showNotifications);
+            }}
             icon={
               <MenuIcon data-cy="Notifications-svg">
                 <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
@@ -209,7 +179,7 @@ const Menu: React.FC<MenuProps> = ({ user }) => {
           >
             {translateFunction("Notifications")}
           </MenuItem>
-          <MenuItem
+          {/* <MenuItem
             dataCy="Orders-Icon"
             onClick={() => setShowOrders(!showOrders)}
             icon={
@@ -219,10 +189,15 @@ const Menu: React.FC<MenuProps> = ({ user }) => {
             }
           >
             {translateFunction("Orders")}
-          </MenuItem>
+          </MenuItem> */}
           <MenuItem
             dataCy="Compare-Icon"
-            onClick={() => {}}
+            onClick={() => {
+              Sendevent({
+                event: GA_EVENT_NAMES.CLICK,
+                value: GA_CLICK_EVENT_VALUES.COMPARE_BUTTON,
+              });
+            }}
             href={`/${lang}/compare`}
             icon={
               <MenuIcon>
@@ -332,9 +307,12 @@ const Menu: React.FC<MenuProps> = ({ user }) => {
       </div>
 
       {showNotifications && (
-        <NotificationsPanel onClose={() => setShowNotifications(false)} />
+        <NotificationsPanel
+          closeWindow={() => setMenuOpen(false)}
+          onClose={() => setShowNotifications(false)}
+        />
       )}
-      {showOrders && <OrdersPanel onClose={() => setShowOrders(false)} />}
+
       {showWishList && <WishListPanel onClose={() => setShowWishList(false)} />}
     </>
   );

@@ -2,14 +2,16 @@ import React, { useState } from "react";
 import SearchCamIcon from "public/svg/SearchCamIcon.svg";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { translateFunction } from "utils/functions";
-import { useSelector } from "react-redux";
 import Spinner from "components/global/Spinner";
 import { useParams } from "next/navigation";
+import { useAppStore } from "store";
+import search from "services/search";
+import { ImageCropWidget } from "components/global/ImageCropWidget";
+import { toast } from "react-toastify";
 
 function SearchImage({ setSearchValue }: { setSearchValue: Function }) {
-  const language = useSelector(
-    (state: StateInterface) => state.homepage.language
-  );
+  const { language } = useAppStore();
+
   const genAI = new GoogleGenerativeAI(process.env.NEXT_PUBLIC_GEMINI_API_KEY);
   const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
   let { lang } = useParams();
@@ -18,15 +20,21 @@ function SearchImage({ setSearchValue }: { setSearchValue: Function }) {
   const translate = (key, lang) => {
     return translateFunction(key, languageVariable);
   };
+  const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(false);
   const GemeniFunc = async (file) => {
+    setLoading(true);
     let image_result = await fileToGenerativePart(file);
     const result = await model
       .generateContent([
-        translate("in one word what is in this photo?", language),
+        translate(
+          "Describe the product most clearly shown in this picture with no more than 5 words like: T-shirt black xxl",
+          language
+        ),
         image_result,
       ])
       .catch((e) => {
+        toast.error(e?.message || e || "failed to search with image");
         setLoading(false);
       });
     // @ts-ignore
@@ -34,6 +42,10 @@ function SearchImage({ setSearchValue }: { setSearchValue: Function }) {
     const text = response.text();
     setSearchValue(text);
     setLoading(false);
+    search.getSearchOptions({
+      noProducts: false,
+      lang: lang,
+    });
   };
   async function fileToGenerativePart(file) {
     const base64EncodedDataPromise = new Promise((resolve) => {
@@ -62,7 +74,7 @@ function SearchImage({ setSearchValue }: { setSearchValue: Function }) {
       ];
 
       if (fileLocal && allowedTypes.includes(fileLocal.type)) {
-        GemeniFunc(fileLocal);
+        setFile(fileLocal);
       } else {
         alert("please select supported image");
         // @ts-ignore
@@ -80,9 +92,24 @@ function SearchImage({ setSearchValue }: { setSearchValue: Function }) {
     i.click();
   };
   return (
-    <div className="relative " data-cy="searchImageIcon">
-      {loading ? <Spinner /> : <SearchCamIcon onClick={OpenMenu} />}
-    </div>
+    <>
+      {file && (
+        <ImageCropWidget
+          image={file}
+          onClose={() => {
+            setFile(null);
+            setLoading(false);
+          }}
+          onSave={(e) => {
+            GemeniFunc(e);
+            setFile(null);
+          }}
+        />
+      )}
+      <div className="relative " data-cy="searchImageIcon">
+        {loading ? <Spinner /> : <SearchCamIcon onClick={OpenMenu} />}
+      </div>
+    </>
   );
 }
 

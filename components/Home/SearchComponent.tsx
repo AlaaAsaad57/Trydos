@@ -1,22 +1,23 @@
 "use client";
 import CloseIcon from "public/svg/CloseIcon.svg";
 import SearchCloseIcon from "public/svg/SearchCloseIcon.svg";
-import { useDispatch, useSelector } from "react-redux";
-import { ChangeEvent, useEffect } from "react";
+
+import { ChangeEvent } from "react";
 import {
   caseCheck,
   onClickSearchHistory,
   Sendevent,
   translateFunction,
 } from "utils/functions";
-import home from "services/home";
 import { DebounceInput } from "react-debounce-input";
 import { dispatchRouteChangeEvent } from "utils/events";
-import { useParams, useSearchParams } from "next/navigation";
-import { useRouter } from "next-nprogress-bar";
+import { useParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import SearchVoice from "./Search/SearchVoice";
 import SearchImage from "./Search/SearchImage";
-
+import SearchService from "services/search";
+import { useAppStore } from "store";
+import { GA_CLICK_EVENT_VALUES, GA_EVENT_NAMES } from "utils/GAEvents";
 interface SearchComponentProps {
   searchEnabled: boolean;
   close: Function;
@@ -29,44 +30,34 @@ function SearchComponent({
   focus,
   setFocuse,
 }: SearchComponentProps) {
-  const searchValue = useSelector(
-    (state: StateInterface) => state.Search.value
-  );
+  const {
+    setSearchPartialLoading,
+    findProducts,
+    setSearchLoading,
+    setSearchWord,
+    value,
+    searchWords,
+  } = useAppStore();
 
-  const searchFilters = useSelector(
-    (state: StateInterface) => state.Search.searchFilters
-  );
-  const words = useSelector(
-    (state: StateInterface) => state.Search.searchWords
-  );
-  const dispatch = useDispatch();
   const onChange = (e: ChangeEvent<HTMLInputElement>) => {
-    if (e.target.value.length === 0) {
-      e.preventDefault();
-    }
-
-    dispatch({ type: "SEARCH-WORD", payload: e.target.value });
-    dispatch({ type: "SEARCH-PARTIAL-LOADING", payload: true });
-    dispatch({ type: "SEARCH-LOADING", payload: true });
-    home.UpdateFilters({
-      search_text: e.target.value || "",
-      callback: (e) => {
-        setLoading(false);
-        dispatch({ type: "EDIT-FILTER-SEARCH", payload: e });
-      },
+    setSearchWord(e.target.value);
+    SearchService.getSearchOptions({
+      noProducts: false,
+      lang: lang,
     });
+    router.prefetch(SearchService.getSearchPageUrl());
   };
   const onInput = (e) => {
     let suggestion = document.querySelector<HTMLDivElement>(".predicted-word");
     let arr = [];
     let regex = new RegExp("^" + e.target.value.toUpperCase(), "i");
     //loop through words array
-    for (let i in words) {
+    for (let i in searchWords) {
       //check if input matches with any word in words array
-      if (regex.test(words[i].toUpperCase()) && e.target.value != "") {
+      if (regex.test(searchWords[i].toUpperCase()) && e.target.value != "") {
         //Change case of word in words array according to user input
         let selectedWord = caseCheck(
-          words[i].toUpperCase(),
+          searchWords[i].toUpperCase(),
           e.target.value.toUpperCase()
         );
         //display suggestion
@@ -82,7 +73,7 @@ function SearchComponent({
     }
 
     if (
-      words.filter(
+      searchWords.filter(
         (s) =>
           s.substr(0, e.target.value.length).toUpperCase() ===
           e.target.value.toUpperCase()
@@ -90,66 +81,22 @@ function SearchComponent({
     ) {
     }
   };
-  const searchParams = useSearchParams();
-
   const { lang } = useParams();
   const router = useRouter();
-  const handleSearch = (data) => {
-    const params = new URLSearchParams(searchParams);
-    //categories
-    if (data.categories.length > 0) {
-      params.set("categories", `${data.categories.map((s) => s.slug)}`);
-    } else {
-      if (params.get("categories")) {
-        params.delete("categories");
-      }
-    }
-    //brands
-    if (data.brands.length > 0) {
-      params.set("brands", `${data.brands.map((s) => s.slug)}`);
-    } else {
-      if (params.get("brands")) {
-        params.delete("brands");
-      }
-    }
-    if (data.boutiques.length > 0) {
-      params.set("boutique_slugs", `${data.boutiques.map((s) => s.slug)}`);
-    } else {
-      if (params.get("boutique_slugs")) {
-        params.delete("boutique_slugs");
-      }
-    }
-    params.set("searchText", searchValue);
-
-    router.push(`/${lang}/boutiques/listing?${params.toString()}`);
-  };
-
   const onKeyDown = (e) => {
-    let suggestion = document.querySelector(".predicted-word");
-    // @ts-ignore
-    // if (e.keyCode == 13 && suggestion.innerText !== "") {
-    //   // @ts-ignore
-    //   onClickSearchHistory(suggestion.innerText);
-    //   e.preventDefault();
-    //   // @ts-ignore
-    //   // dispatch({ type: "SEARCH-WORD", payload: suggestion.innerText });
-    //   //clear the suggestion
-    //   clearSuggestion();
-    //   // @ts-ignore
-    // } else
     if (e.keyCode == 13 && e.target.value.length > 0) {
-      onClickSearchHistory(searchValue);
-      handleSearch(searchFilters);
-      dispatchRouteChangeEvent("start", { to: "boutique" });
-      document.documentElement.style.overflow = "hidden";
-      document.documentElement.scrollTop = 0;
+      onClickSearchHistory(value);
+      dispatchRouteChangeEvent("start", {
+        is_boutique: true,
+      });
+      router.push(SearchService.getSearchPageUrl());
       //go to listing
     } else {
     }
   };
 
   const setLoading = (e) => {
-    dispatch({ type: "SEARCH-PARTIAL-LOADING", payload: e });
+    setSearchPartialLoading(e);
   };
 
   return (
@@ -159,7 +106,8 @@ function SearchComponent({
           minLength={0}
           data-cy="inputField"
           className="search-input"
-          placeholder={translateFunction("Search")}
+          // @ts-ignore
+          placeholder={translateFunction("Search", lang?.split("-")[1])}
           onFocus={() => setFocuse(true)}
           onInput={(e) => {
             onInput(e);
@@ -168,163 +116,131 @@ function SearchComponent({
             onKeyDown(e);
           }}
           onBlur={() => {
-            if (searchValue.length === 0) {
+            if (value.length === 0) {
               setFocuse(false);
+            } else {
+              Sendevent({
+                event: GA_EVENT_NAMES.CLICK,
+                value: GA_CLICK_EVENT_VALUES.ADD_FILTER_ITEM,
+                extra: {
+                  filter: "search_text",
+                  value: value,
+                },
+              });
             }
           }}
           onSubmit={(e) => {
-            onClickSearchHistory(searchValue);
+            onClickSearchHistory(value);
           }}
-          value={searchValue}
+          value={value}
           onChange={(e) => {
             onChange(e);
           }}
           debounceTimeout={400}
         />
-        {/* <div className="predicted-word hidden">
-          {searchValue.length > 0 &&
-            searchValue.length < 30 &&
-            words.filter(
-              (s) =>
-                s.substr(0, searchValue.length).toUpperCase() ===
-                searchValue.toUpperCase()
-            )[0]}
-        </div> */}
       </div>
 
-      {focus ? (
-        <div className="input-icons flex-row close-search-icon">
-          <SearchCloseIcon
-            data-cy="SearchInputCloseIcon"
-            onClick={() => {
-              if (searchValue.length > 0) {
-                Sendevent({
-                  event: "button_clicked",
-                  value: "reset_home_search_button",
-                });
-                setLoading(true);
-                dispatch({ type: "SEARCH-WORD", payload: "" });
+      {searchEnabled && (
+        <>
+          {focus ? (
+            <div className="input-icons flex-row close-search-icon">
+              <SearchCloseIcon
+                data-cy="SearchInputCloseIcon"
+                onClick={() => {
+                  if (value.length > 0) {
+                    Sendevent({
+                      event: GA_EVENT_NAMES.CLICK,
+                      value: GA_CLICK_EVENT_VALUES.RESET_HOME_SEARCH_BUTTON,
+                    });
+                    setLoading(true);
+                    setSearchWord("");
 
-                dispatch({ type: "FIND-PRODUCTS", payload: [] });
-                home.UpdateFilters({
-                  search_text: "",
-                  callback: (e) => {
-                    setLoading(false);
-                    dispatch({ type: "EDIT-FILTER-SEARCH", payload: e });
-                  },
-                });
-                home.SearchProducts({
-                  search_text: "",
-                  searchFilters: searchFilters,
-                  callback: (e) => {
-                    dispatch({ type: "FIND-PRODUCTS", payload: e });
-                  },
-                });
-              } else {
-                Sendevent({
-                  event: "button_clicked",
-                  value: "search_close_icon_button",
-                });
+                    findProducts([]);
+                    SearchService.getSearchOptions({
+                      noProducts: true,
+                      lang: lang,
+                    });
+                  } else {
+                    Sendevent({
+                      event: GA_EVENT_NAMES.CLICK,
+                      value: GA_CLICK_EVENT_VALUES.SEARCH_CLOSE_ICON_BUTTON,
+                    });
 
-                close();
-                dispatch({ type: "SEARCH-WORD", payload: "" });
-                setFocuse(false);
-              }
-            }}
-          />
-        </div>
-      ) : (
-        <div className="input-icons flex-row">
-          <div className="input-icon">
-            <SearchImage
-              setSearchValue={(e) => {
-                if (e?.length > 0) {
+                    close();
+                    setSearchWord("");
+                    setFocuse(false);
+                    SearchService.getSearchOptions({
+                      noProducts: true,
+                      lang: lang,
+                    });
+                  }
+                }}
+              />
+            </div>
+          ) : (
+            <div className="input-icons flex-row">
+              <div className="input-icon">
+                <SearchImage
+                  setSearchValue={(e) => {
+                    if (e?.length > 0) {
+                      Sendevent({
+                        event: "button_clicked",
+                        value: "search_with_image_button",
+                      });
+
+                      setSearchWord(e);
+                      setSearchLoading(true);
+                    }
+                  }}
+                />
+              </div>
+              <div className="input-icon">
+                <SearchVoice
+                  setSearchValue={(e) => {
+                    if (e?.length > 0) {
+                      Sendevent({
+                        event: GA_EVENT_NAMES.CLICK,
+                        value: GA_CLICK_EVENT_VALUES.SEARCH_WITH_VOICE_BUTTON,
+                      });
+
+                      setSearchWord(e);
+                      setSearchLoading(true);
+                    }
+                  }}
+                />
+              </div>
+            </div>
+          )}
+          {!focus && (
+            <div className="search-colse-icon flex-row">
+              <CloseIcon
+                data-cy="closeIcon_searchPage"
+                onClick={() => {
                   Sendevent({
-                    event: "button_clicked",
-                    value: "search_with_image_button",
+                    event: GA_EVENT_NAMES.CLICK,
+                    value: GA_CLICK_EVENT_VALUES.SEARCH_CLOSE_ICON_BUTTON,
                   });
-
-                  dispatch({ type: "SEARCH-WORD", payload: e });
-                  dispatch({ type: "SEARCH-LOADING", payload: true });
-                  home.UpdateFilters({
-                    search_text: e || "",
-                    callback: (e) => {
-                      setLoading(false);
-                      dispatch({ type: "EDIT-FILTER-SEARCH", payload: e });
-                    },
-                  });
-                  home.SearchProducts({
-                    search_text: e,
-                    searchFilters: searchFilters,
-                    callback: (e) => {
-                      dispatch({ type: "FIND-PRODUCTS", payload: e });
-                    },
-                  });
-                }
-              }}
-            />
-          </div>
-          <div className="input-icon">
-            <SearchVoice
-              setSearchValue={(e) => {
-                if (e?.length > 0) {
-                  Sendevent({
-                    event: "button_clicked",
-                    value: "search_with_voice_button",
-                  });
-
-                  dispatch({ type: "SEARCH-WORD", payload: e });
-                  dispatch({ type: "SEARCH-LOADING", payload: true });
-                  home.UpdateFilters({
-                    search_text: e || "",
-                    callback: (e) => {
-                      setLoading(false);
-                      dispatch({ type: "EDIT-FILTER-SEARCH", payload: e });
-                    },
-                  });
-                  home.SearchProducts({
-                    search_text: e,
-                    searchFilters: searchFilters,
-                    callback: (e) => {
-                      dispatch({ type: "FIND-PRODUCTS", payload: e });
-                    },
-                  });
-                }
-              }}
-            />
-          </div>
-        </div>
-      )}
-      {!focus && (
-        <div className="search-colse-icon flex-row">
-          <CloseIcon
-            data-cy="closeIcon_searchPage"
-            onClick={() => {
-              if (searchValue.length > 0) {
-                dispatch({ type: "SEARCH-WORD", payload: "" });
-                dispatch({ type: "FIND-PRODUCTS", payload: [] });
-                dispatch({ type: "SEARCH-LOADING", payload: true });
-                home.UpdateFilters({
-                  search_text: "",
-                  callback: (e) => {
-                    setLoading(false);
-                    dispatch({ type: "EDIT-FILTER-SEARCH", payload: e });
-                  },
-                });
-                home.SearchProducts({
-                  search_text: "",
-                  searchFilters: searchFilters,
-                  callback: (e) => {
-                    dispatch({ type: "FIND-PRODUCTS", payload: e });
-                  },
-                });
-              } else {
-                close();
-                dispatch({ type: "SEARCH-WORD", payload: "" });
-              }
-            }}
-          />
-        </div>
+                  if (value.length > 0) {
+                    setSearchWord("");
+                    findProducts([]);
+                    setSearchLoading(true);
+                    SearchService.getSearchOptions({
+                      noProducts: true,
+                      lang: lang,
+                    });
+                  } else {
+                    close();
+                    setSearchWord("");
+                    SearchService.getSearchOptions({
+                      noProducts: true,
+                      lang: lang,
+                    });
+                  }
+                }}
+              />
+            </div>
+          )}
+        </>
       )}
     </div>
   );

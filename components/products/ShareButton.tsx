@@ -1,20 +1,18 @@
 "use client";
 import { useParams } from "next/navigation";
 import React from "react";
-import { useSelector } from "react-redux";
+import { useAppStore } from "store";
+
 import { Sendevent, translateFunction } from "utils/functions";
 
 function ShareButton({ onClick }: { onClick: () => void }) {
+  const { shareLoading, language } = useAppStore();
   let { lang } = useParams();
   // @ts-ignore
   let languageVariable = lang.split("-")[1];
   const translate = (key, lang?) => {
     return translateFunction(key, languageVariable);
   };
-  let language = "en";
-  const shareLoading = useSelector(
-    (state: StateInterface) => state.details.shareLoading
-  );
   return (
     <div
       onClick={() => {

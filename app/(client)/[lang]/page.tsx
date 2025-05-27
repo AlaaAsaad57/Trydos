@@ -1,18 +1,58 @@
-import Home from "components/Home";
-// import BrandsBar from "components/Home/Bars/BrandsBar";
 import NavbarServer from "components/Server/Navbar";
 import OfferListServer from "components/Server/OfferListServer";
-export const revalidate = parseInt(process.env.NEXT_PUBLIC_REVALIDATE);
+import StoriesBarServer from "components/Server/StoriesBarServer";
+import MobileNavigationSkeleton from "components/skeleton/MobileNavigation";
+import OfferListSkeleton from "components/skeleton/OfferList";
+import StoriesSkeleton from "components/skeleton/StoriesSkeleton";
 
-async function HomePage({ params }) {
+import { Suspense } from "react";
+
+import Home from "components/Home";
+import FeatureProducts from "components/Server/FeatureProducts";
+import FeaturedProductsSkeleton from "components/skeleton/loaders/FeaturedProductsSkeleton";
+export const runtime = "nodejs";
+export const preferredRegion = ["bom1", "sin1"];
+export const revalidate = parseInt(process.env.NEXT_PUBLIC_HOME_REVALIDATE);
+export const dynamicParams = true;
+export const dynamic = "auto";
+
+function HomePage({
+  params,
+}: {
+  params: { lang: string; mainCategory?: string };
+}) {
   return (
     <>
-      <NavbarServer lang={params.lang} />
+      <Suspense
+        fallback={<MobileNavigationSkeleton />}
+        key={`Navbar ${params.lang}`}
+      >
+        <NavbarServer lang={params.lang} mainCategory={params?.mainCategory} />
+      </Suspense>
 
-      <Home />
-      {/* <BrandsBar /> */}
+      <Suspense fallback={<StoriesSkeleton />} key={`Stories ${params.lang}`}>
+        <StoriesBarServer />
+      </Suspense>
 
-      <OfferListServer params={params} />
+      <Suspense fallback={<FeaturedProductsSkeleton lang={params.lang} />}>
+        <FeatureProducts lang={params.lang} />
+      </Suspense>
+      <Suspense
+        fallback={
+          <div className="min-h-[60vh] flex items-center justify-center">
+            Loading...
+          </div>
+        }
+        key={`Home ${params.lang}`}
+      >
+        <Home />
+      </Suspense>
+      <Suspense
+        fallback={<OfferListSkeleton />}
+        key={`OfferList ${params.lang}`}
+      >
+        <OfferListServer params={params} />
+      </Suspense>
     </>
   );
 }

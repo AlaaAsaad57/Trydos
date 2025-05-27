@@ -2,21 +2,20 @@ import React, { useEffect, useState } from "react";
 import OrderCartIcon from "public/svg/cart/orderCartIcon.svg";
 import { getConfiguredImage, translateFunction } from "utils/functions";
 import { useParams } from "next/navigation";
-import { useDispatch, useSelector } from "react-redux";
 import FreeShippingIcon from "public/svg/product/FreeShipping.svg";
 import AddAddressIcon from "public/svg/cart/AddAddress.svg";
 import order from "services/order";
 import Spinner from "components/global/Spinner";
 import { getCountriesApi } from "store/homepage/cachedActions";
+import { useAppStore } from "store";
 function ShippingAddressContainer({ slideNext, slidePrev, openAddressList }) {
-  const cart = useSelector((state: StateInterface) => state.cart?.cart);
-  const dispatch = useDispatch();
-  const user = useSelector((state: StateInterface) => state.auth.user);
+  const { setCountries, cart, user } = useAppStore();
+
   const getOrderData = async () => {
     order.GetWallet();
     order.GetAddressList();
     const countries = await getCountriesApi();
-    dispatch({ type: "COUNTRIES-DATA", payload: countries });
+    setCountries(countries);
   };
   useEffect(() => {
     if (user) {
@@ -24,7 +23,7 @@ function ShippingAddressContainer({ slideNext, slidePrev, openAddressList }) {
     }
   }, [user]);
   return (
-    <div className="flex flex-col w-full p-3">
+    <div data-cy="deliveryAddress-viewer" className="flex flex-col w-full p-3">
       <CartItemSelect items={cart} />
       <ShippingAddressInput
         openAddressList={(e) => {
@@ -47,6 +46,7 @@ const CartItemSelect = ({ items }) => {
 
   return (
     <div
+      data-cy="bag-viewer"
       style={{
         border: "1px solid rgb(196 194 194 / 51%)",
         borderRadius: "15px",
@@ -63,6 +63,7 @@ const CartItemSelect = ({ items }) => {
         data-cy="DropDownIcon"
       >
         <svg
+          data-cy="dropDownIcon-svg"
           className={`${openCart && "rotate-180"} transition`}
           xmlns="http://www.w3.org/2000/svg"
           width="10"
@@ -77,22 +78,26 @@ const CartItemSelect = ({ items }) => {
           />
         </svg>
       </span>
-      <div className="flex-row ">
+      <div data-cy="bag-viewer-inside" className="flex-row ">
         <OrderCartIcon data-cy="Order-Cart-Icon" />
-        <div className="regular text-[#1D1D1D] text-[14px] ml-2">
+        <div
+          data-cy="Shopping-bag-texts"
+          className="regular text-[#1D1D1D] text-[14px] ml-2"
+        >
           {translateFunction("Your Shopping Bag", language)}
           <span
             className={language === "ar" ? "mr-1 bold" : "ml-1 bold"}
             data-cy="Count-Of-Shiping"
           >
             {items.length}
-            <span className={"ml-1"}>
+            <span data-cy="items-Shiping-text" className={"ml-1"}>
               {translateFunction("items", language)}
             </span>
           </span>
         </div>
       </div>
       <div
+        data-cy="bag-product-viewer"
         className={`${
           !openCart ? "h-0 pb-[0px] pt-[0px]" : `pl-[11px] pb-[12px] pt-[11px] `
         } transition flex-row `}
@@ -102,12 +107,14 @@ const CartItemSelect = ({ items }) => {
             return (
               <div className="flex relative h-[125px]" key={i} data-cy="Item">
                 <span
+                  data-cy="span-item"
                   className="absolute w-[91px] h-full z-10 rounded-[15px]"
                   style={{
                     boxShadow: "#ffffff80 0px 3px 6px inset",
                   }}
                 />
                 <img
+                  data-cy="img-item"
                   className="w-[91px] h-[125px] rounded-[15px]"
                   src={getConfiguredImage({
                     src: s.image,
@@ -124,18 +131,15 @@ const CartItemSelect = ({ items }) => {
 };
 
 const ShippingAddressInput = ({ slideNext, slidePrev, openAddressList }) => {
+  const { initAddressForm, addressLists, orderLoading } = useAppStore();
   const { lang } = useParams();
-  const addressLists = useSelector(
-    (state: StateInterface) => state.cart.addressLists
-  );
+
   // @ts-ignore
   const language = lang.split("-")[1];
-  const dispatch = useDispatch();
-  const orderLoading = useSelector(
-    (state: StateInterface) => state.cart.orderLoading
-  );
+
   return (
     <div
+      data-cy="delivery-address-viewer"
       style={{
         border: "1px solid rgb(196 194 194 / 51%)",
         borderRadius: "15px",
@@ -229,10 +233,13 @@ const ShippingAddressInput = ({ slideNext, slidePrev, openAddressList }) => {
             </g>
           </g>
         </svg>
-        <div className="regular text-[#1D1D1D] text-[14px] ml-2">
+        <div
+          data-cy="delivery-address-stexts"
+          className="regular text-[#1D1D1D] text-[14px] ml-2"
+        >
           {translateFunction("Shipping & Delivery Address", language)}
         </div>
-        <span className="bold ml-[11px]">
+        <span data-cy="freeShupping-container" className="bold ml-[11px]">
           <FreeShippingIcon data-cy="WrapIcon1" />
         </span>
         {orderLoading && (
@@ -241,7 +248,10 @@ const ShippingAddressInput = ({ slideNext, slidePrev, openAddressList }) => {
           </span>
         )}
       </div>
-      <div className="regular text-[12px] text-[#8D8D8D] ml-[28px]">
+      <div
+        data-cy="please-text"
+        className="regular text-[12px] text-[#8D8D8D] ml-[28px]"
+      >
         {translateFunction(
           "Please Enter Shipping Address To Receive Your Bag",
           language
@@ -364,7 +374,7 @@ const ShippingAddressInput = ({ slideNext, slidePrev, openAddressList }) => {
       ) : (
         <AddAddressButton
           onClick={() => {
-            dispatch({ type: "INIT-ADDRESS-FORM", payload: true });
+            initAddressForm();
 
             slideNext();
           }}
@@ -374,9 +384,7 @@ const ShippingAddressInput = ({ slideNext, slidePrev, openAddressList }) => {
   );
 };
 const AddressContainer = ({ openAddressList }) => {
-  const addressLists = useSelector(
-    (state: StateInterface) => state.cart.addressLists
-  );
+  const { addressLists } = useAppStore();
   const GetAddressString = (location) => {
     let str = "";
     if (
@@ -415,6 +423,7 @@ const AddressContainer = ({ openAddressList }) => {
 
   return (
     <div
+      data-cy="addresses-viewer"
       onClick={() => {
         if (addressLists?.length > 0) {
           openAddressList(true);
@@ -431,9 +440,13 @@ const AddressContainer = ({ openAddressList }) => {
     >
       {defaultAddress ? (
         <>
-          <div className="flex-col">
-            <div className="flex-row items-center">
+          <div data-cy="flex-cols" className="flex-col">
+            <div
+              data-cy="flex-row items-centers"
+              className="flex-row items-center"
+            >
               <svg
+                data-cy="flex-col-svg"
                 xmlns="http://www.w3.org/2000/svg"
                 width="12"
                 height="12"
@@ -447,18 +460,25 @@ const AddressContainer = ({ openAddressList }) => {
                 />
               </svg>
 
-              <span className="regular ml-[4px] text-[12px] text-[#8D8D8D]">
+              <span
+                data-cy="regular-addresses"
+                className="regular ml-[4px] text-[12px] text-[#8D8D8D]"
+              >
                 {defaultAddress?.address}
               </span>
             </div>
             <div
-              className="flex-row mt-[5px]  items-center regular text-[12px] text-[#8D8D8D]"
               data-cy="Address-Added-Last"
+              className="flex-row mt-[5px]  items-center regular text-[12px] text-[#8D8D8D]"
             >
               {GetAddressString(defaultAddress?.region_details)}
             </div>
-            <div className="flex-row mt-[5px] items-center regular text-[12px] text-[#8D8D8D]">
+            <div
+              data-cy="Address-Added-Last-flex-row"
+              className="flex-row mt-[5px] items-center regular text-[12px] text-[#8D8D8D]"
+            >
               <svg
+                data-cy="Address-Added-Last-flex-row-svg"
                 xmlns="http://www.w3.org/2000/svg"
                 xmlnsXlink="http://www.w3.org/1999/xlink"
                 width="12"
@@ -494,11 +514,18 @@ const AddressContainer = ({ openAddressList }) => {
                 </g>
               </svg>
 
-              <div className="flex-row ml-[4px]   items-center regular text-[12px] text-[#8D8D8D]">
+              <div
+                data-cy="defaultAddress-contactinfo"
+                className="flex-row ml-[4px]   items-center regular text-[12px] text-[#8D8D8D]"
+              >
                 {defaultAddress?.contact_info.phone}
               </div>
-              <div className="flex-row ml-[17px]  items-center">
+              <div
+                data-cy="flexs-container"
+                className="flex-row ml-[17px]  items-center"
+              >
                 <svg
+                  data-cy="flexs-container-svg"
                   xmlns="http://www.w3.org/2000/svg"
                   xmlnsXlink="http://www.w3.org/1999/xlink"
                   width="12"
@@ -551,7 +578,10 @@ const AddressContainer = ({ openAddressList }) => {
                   </g>
                 </svg>
 
-                <div className="flex-row  ml-[4px]  items-center regular text-[12px] text-[#8D8D8D]">
+                <div
+                  data-cy="defaultAddress-contactpersonname"
+                  className="flex-row  ml-[4px]  items-center regular text-[12px] text-[#8D8D8D]"
+                >
                   {defaultAddress?.contact_info.contact_person_name ||
                     // @ts-ignore
                     defaultAddress?.contact_info.name}
@@ -562,8 +592,9 @@ const AddressContainer = ({ openAddressList }) => {
         </>
       ) : (
         <>
-          <span className="">
+          <span data-cy="span-noAddress" className="">
             <svg
+              data-cy="span-noAddress-svg"
               xmlns="http://www.w3.org/2000/svg"
               width="14"
               height="14"
@@ -605,10 +636,16 @@ const AddressContainer = ({ openAddressList }) => {
               </g>
             </svg>
           </span>
-          <div className="flex medium text-[12px] text-[#C4C2C2] mt-[12px]">
+          <div
+            data-cy="noAddress-text"
+            className="flex medium text-[12px] text-[#C4C2C2] mt-[12px]"
+          >
             {translateFunction("No Address Selected")}
           </div>
-          <div className="flex regular text-[12px] text-[#C4C2C2] mt-[3px]">
+          <div
+            data-cy="canAdd-text"
+            className="flex regular text-[12px] text-[#C4C2C2] mt-[3px]"
+          >
             {translateFunction("You Can Also Create Multiple Addresses To Use")}
           </div>
         </>
@@ -619,8 +656,8 @@ const AddressContainer = ({ openAddressList }) => {
 const AddAddressButton = ({ onClick }) => {
   return (
     <div
-      className="flex cursor-pointer w-full justify-center h-[40px] mt-[8px] items-center bg-[#E8FFED]"
       data-cy="AddAddres"
+      className="flex cursor-pointer w-full justify-center h-[40px] mt-[8px] items-center bg-[#E8FFED]"
       style={{
         border: "1px solid rgb(196 194 194 / 51%)",
         borderRadius: "15px",
@@ -629,8 +666,11 @@ const AddAddressButton = ({ onClick }) => {
         onClick();
       }}
     >
-      <AddAddressIcon />
-      <div className="medium text-[12px] ml-1 text-[#1D1D1D]">
+      <AddAddressIcon data-cy="AddAddres-svg" />
+      <div
+        data-cy="addShipping-text"
+        className="medium text-[12px] ml-1 text-[#1D1D1D]"
+      >
         {translateFunction("Add Shipping Address")}
       </div>
     </div>

@@ -1,20 +1,23 @@
 import ChatItem from "components/Chat/components/ChatItem";
-import { useDispatch, useSelector } from "react-redux";
+
 import { forwardMessage } from "../chatsFunctions";
 import SearchResult from "components/Chat/components/SearchResult";
 import { getUserChat, translateFunction } from "utils/functions";
+import { useAppStore } from "store";
 
 function ContactLists(props) {
-  const chats = useSelector((state) => state.chat.data);
-  const language = useSelector((state) => state.homepage.language);
-  const contacts = useSelector((state) => state.chat.contacts);
-  const forwarded_message = useSelector(
-    (state) => state.chat.forwarded_message
-  );
-  const dispatch = useDispatch();
+  const {
+    data: chats,
+    language,
+    contacts,
+    forwarded_message,
+    openChat,
+    watchChannel,
+  } = useAppStore();
+
   const handleClick = (e) => {
-    dispatch({ type: "OPEN-CHAT", payload: e });
-    if (e?.id) dispatch({ type: "WATCH_CHANNEL", payload: e?.id });
+    openChat(e);
+    if (e?.id) watchChannel(e?.id);
     if (forwarded_message) {
       forwardMessage(forwarded_message, e);
     }

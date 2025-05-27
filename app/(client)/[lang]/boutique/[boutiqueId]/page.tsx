@@ -1,0 +1,459 @@
+import FilterList from "components/Server/FilterList";
+import ProductListServer from "components/Server/ProductList";
+import BackIcon from "public/svg/listing/backIcon.svg";
+import SortIcon from "public/svg/listing/sortIcon.svg";
+import ListingSkeleton from "components/skeleton/listing";
+import { redirect } from "next/navigation";
+import { Suspense } from "react";
+
+import { getConfiguredImage } from "utils/functions";
+import NextLink from "components/global/NextLink";
+import VerificationIcon from "public/svg/listing/VerificationIcon.svg";
+import TopStarIcon from "public/svg/listing/TopStar.svg";
+import Image from "next/image";
+import BorderImage from "components/ListingPage/BorderImage";
+import "styles/listing-components.css";
+import Skeleton from "react-loading-skeleton";
+import { getBoutiqueMetadata } from "./Metadata";
+import FilterWidgetContainer from "components/filterPage/FiltersWidget";
+import ShareBoutiquePageButton from "components/filterPage/ShareBoutiquePageButton";
+import FilterBoutiquePageButton from "components/filterPage/FilterBoutiquePageButton";
+import SearchBoutiquePage from "components/filterPage/SearchBoutiquePage";
+import CarouselContainer from "components/filterPage/CarouselContainer";
+import { processStrForSearch } from "store/homepage/cachedActions";
+export const dynamicParams = true;
+
+export const runtime = "nodejs";
+export const preferredRegion = ["bom1", "sin1"];
+export const revalidate = parseInt(process.env.NEXT_PUBLIC_REVALIDATE);
+export const dynamic = "auto";
+export async function generateMetadata({ params, searchParams }) {
+  // Fetch your main product categories
+  try {
+    const metadata = await getBoutiqueMetadata({ params, searchParams });
+
+    return metadata;
+  } catch (error) {
+    console.log(error);
+    return [];
+  }
+}
+
+interface ParamsType {
+  lang: string;
+  boutiqueId: string;
+}
+export default async function Page({
+  params,
+  searchParams,
+}: {
+  params: ParamsType;
+  searchParams: any;
+}) {
+  let EditedSearchParams: any = {};
+  let processedSearchValue = await processStrForSearch(
+    searchParams.search_text
+  );
+
+  if (searchParams?.search_text) {
+    EditedSearchParams = {
+      ...EditedSearchParams,
+      search_text: processedSearchValue?.str,
+    };
+  }
+  if (searchParams?.categories) {
+    EditedSearchParams = {
+      ...EditedSearchParams,
+      categories: searchParams?.categories,
+    };
+  }
+  if (searchParams?.brands) {
+    EditedSearchParams = {
+      ...EditedSearchParams,
+      brands: searchParams?.brands,
+    };
+  }
+  // @ts-ignore
+  if (searchParams?.colors || processedSearchValue?.colors) {
+    EditedSearchParams = {
+      ...EditedSearchParams,
+      // @ts-ignore
+      colors: processedSearchValue?.colors ?? searchParams?.colors,
+    };
+  }
+  if (searchParams?.prices) {
+    EditedSearchParams = {
+      ...EditedSearchParams,
+      prices: searchParams?.prices,
+    };
+  }
+  // @ts-ignore
+  if (searchParams?.sizes || processedSearchValue?.sizes) {
+    EditedSearchParams = {
+      ...EditedSearchParams,
+      // @ts-ignore
+      sizes: processedSearchValue?.sizes ?? searchParams?.sizes,
+    };
+  }
+  if (searchParams?.boutiques) {
+    EditedSearchParams = {
+      ...EditedSearchParams,
+      boutiques: searchParams?.boutiques,
+    };
+  }
+
+  const GetProductsData = async () => {
+    let response;
+    try {
+      response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/${
+          params.lang
+        }/search?${new URLSearchParams({
+          boutiqueId:
+            params.boutiqueId === "listing" ? null : params.boutiqueId,
+          noProducts: "false",
+          noFilters: "false",
+          offset: "false",
+          searchParams:
+            Object.keys(EditedSearchParams).length > 0
+              ? JSON.stringify(EditedSearchParams)
+              : "{}",
+        }).toString()}`,
+        {
+          method: "GET",
+          next: {
+            revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE),
+            tags: ["listing"],
+          },
+          headers: {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type, Authorization",
+          },
+        }
+      );
+      let data = await response.json();
+      return data.data;
+    } catch (error) {
+      console.log(error, "getProductsData", response);
+      return {};
+    }
+  };
+  const GetCurrencyData = async () => {
+    let response;
+    try {
+      response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/${params.lang}/currency`,
+        {
+          method: "GET",
+          next: {
+            revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE_CURRENCY),
+            tags: ["currency-api"],
+          },
+          headers: {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type, Authorization",
+          },
+        }
+      );
+      let data = await response.json();
+      return data.data.currency;
+    } catch (error) {
+      console.log(error, "getCurrencyData", response);
+      return {};
+    }
+  };
+  const GetBoutiqueData = async () => {
+    let response;
+    try {
+      if (params.boutiqueId === "listing") {
+        return {
+          name: "Search",
+          banners: null,
+          icon: null,
+        };
+      }
+      let response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/${params.lang}/boutiques/${params.boutiqueId}`,
+        {
+          method: "GET",
+          next: {
+            revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE_LISTING),
+            tags: ["listing"],
+          },
+          headers: {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type, Authorization",
+          },
+        }
+      );
+      let data = await response.json();
+      if (data.code === 404) {
+        return "NOT_FOUND";
+      }
+      return data.data;
+    } catch (error) {
+      console.log(error, "getBoutiqueData", response);
+      return "NOT_FOUND";
+    }
+  };
+  const [filtersData, currency, boutique] = await Promise.all([
+    GetProductsData(),
+    GetCurrencyData(),
+    GetBoutiqueData(),
+  ]);
+  let filters = {
+    categories: filtersData?.categories,
+    brands: filtersData?.brands,
+    colors: filtersData?.colors,
+    prices: filtersData?.prices?.priceRanges,
+    sizes: filtersData?.attributes?.[0]?.options,
+    boutiques: params.boutiqueId !== "listing" ? null : filtersData?.boutiques,
+    search_text: EditedSearchParams?.search_text || null,
+  };
+  if (boutique === "NOT_FOUND") {
+    redirect(`/${params.lang}?message=boutique_not_found`);
+  }
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Store",
+    name: boutique.name,
+    description: boutique.name,
+    image: boutique.banners?.[0]?.file_path,
+    hasOfferCatalog: {
+      "@type": "OfferCatalog",
+      name: "Product Listing",
+      itemListElement: filtersData.products.map((product) => ({
+        "@type": "Product",
+        name: product.name,
+        image: product?.images?.[0]?.file_path,
+        offers: {
+          "@type": "Offer",
+          priceCurrency: currency?.name, // Update currency if necessary
+          price: product?.price * currency?.exchange_rate,
+          availability: "https://schema.org/InStock",
+          url:
+            process.env.NEXT_PUBLIC_REMOTE_FRONT +
+            `${params.lang}/products/${product.slug}`,
+        },
+        color: product.colors?.map((s) => s.name),
+        brand: {
+          "@type": "Brand",
+          name: product.brand?.name,
+        },
+        category: product.category?.name,
+      })),
+    },
+  };
+  return (
+    <>
+      <Suspense fallback={<></>}>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+        <FilterWidgetContainer key={JSON.stringify(EditedSearchParams)} />
+      </Suspense>
+      <div
+        data-cy="filter_listing_bar"
+        className="filter-listing-bar relative flex-row align-center"
+      >
+        <NextLink
+          data-cy="BackIcon_boutique"
+          data={{
+            is_full_home: true,
+            href: `/${params.lang}`,
+          }}
+          href={`/${params.lang}`}
+          ariaLabel={`TryDos Home ${params.lang}`}
+          className="back-icon"
+        >
+          <BackIcon data-cy="back_icon_boutique_page" />
+        </NextLink>
+        {/** TODO: classname edit when serach active w-full */}
+        <div
+          data-cy="filter_bar_options"
+          className={`filter-bar-options flex-row align-center ${
+            EditedSearchParams?.search_text?.length > 0 && "w-full"
+          }`}
+        >
+          <SearchBoutiquePage
+            boutique={boutique}
+            search_text={EditedSearchParams?.search_text}
+          />
+
+          <div
+            data-cy="filter_option_loseSearchInput"
+            className="filter-option"
+          >
+            <SortIcon data-cy="closeSearchInput" />
+          </div>
+
+          <FilterBoutiquePageButton key={"filter-button"} />
+
+          <ShareBoutiquePageButton />
+        </div>
+      </div>
+
+      <div
+        data-cy="boutique_header"
+        className={`boutique-header ${"flex-col"} align-center`}
+        key={`boutique-header-${params.boutiqueId}-${JSON.stringify(
+          EditedSearchParams
+        )}`}
+      >
+        {params?.boutiqueId !== "listing" && (
+          <Suspense
+            key={params.boutiqueId}
+            fallback={<BoutiqueHeaderSkeleton />}
+          >
+            <BoutiqueHeader
+              boutique={boutique}
+              key={params.boutiqueId}
+            ></BoutiqueHeader>
+          </Suspense>
+        )}
+
+        <FilterList
+          filters={filters}
+          boutique={boutique}
+          currency={currency}
+          key={`filter-list-${params.boutiqueId}`}
+          params={params}
+          searchParams={EditedSearchParams}
+        />
+      </div>
+      <Suspense
+        key={`Suspense-product-list-${JSON.stringify(EditedSearchParams)}`}
+        fallback={<ListingSkeleton forProducts={true} />}
+      >
+        <ProductListServer
+          colors={filtersData?.colors}
+          products={filtersData.products ?? []}
+          offset={filtersData.offset}
+          currency={currency}
+          key={`product-list-${JSON.stringify(EditedSearchParams)}`}
+          searchParams={EditedSearchParams}
+          params={params}
+        />
+      </Suspense>
+    </>
+  );
+}
+async function BoutiqueHeader({ boutique }) {
+  return (
+    <>
+      {boutique?.banners && (
+        <div
+          data-cy="boutique_top_icons"
+          className="boutique-top-info flex-col items-center"
+        >
+          <div className="boutique-logo-container flex-row align-center">
+            <Image
+              alt={boutique?.name}
+              width={130}
+              height={20}
+              src={boutique?.icon}
+            />
+            <VerificationIcon />
+            <TopStarIcon />
+          </div>
+        </div>
+      )}
+      {boutique?.banners && <BouqiuePhotoSlider banners={boutique.banners} />}
+    </>
+  );
+}
+const BouqiuePhotoSlider = ({ banners }) => {
+  return (
+    <div data-cy="boutique_photo_holder" className="boutique-photo-holder">
+      <div
+        data-cy="banners_length-1"
+        className={`${
+          banners?.length > 1 && "justify-start"
+        } offer-slider-container`}
+      >
+        <CarouselContainer>
+          {banners &&
+            banners?.map((banner, index) => (
+              <div
+                data-cy="embla__slide_embla"
+                className="embla__slide"
+                key={index}
+              >
+                <div
+                  data-cy="offer_slide_item_embla"
+                  className="offer-slide-item"
+                  style={{ width: "100%" }}
+                  key={index}
+                >
+                  <div data-cy="image_offer_image" className="image-offer">
+                    <div
+                      data-cy="image_inner_shadow_image"
+                      className="image-inner-shadow"
+                      style={{ height: "100%" }}
+                    />
+
+                    <Image
+                      data-cy="image_image"
+                      loading={"eager"}
+                      fetchPriority={"high"}
+                      style={{ borderRadius: "15px" }}
+                      className="OfferImage object-cover"
+                      src={getConfiguredImage({
+                        src: banner.file_path,
+                        height: 342,
+                        width: 900,
+                      })}
+                      width={380}
+                      height={135}
+                      alt="offer"
+                    />
+
+                    <BorderImage />
+                  </div>
+                </div>
+              </div>
+            ))}
+        </CarouselContainer>
+      </div>
+    </div>
+  );
+};
+const BoutiqueHeaderSkeleton = () => {
+  return (
+    <>
+      <div className="boutique-top-info flex-col">
+        <div className="boutique-logo-container flex-row align-center">
+          <Skeleton
+            className="w-fu"
+            width={130}
+            height={20}
+            borderRadius={"30"}
+          />
+        </div>
+        <div className="boutique-text">
+          <Skeleton width={200} height={10} />
+        </div>
+      </div>
+      <div className="boutique-photo-holder">
+        <div className="offer-slider-container">
+          <div className="offer-slide-item" style={{ width: "100%" }}>
+            <div className="image-offer">
+              <div className="image-inner-shadow" style={{ height: "100%" }} />
+
+              <Skeleton
+                className="w-full h-full"
+                width={380}
+                height={135}
+                borderRadius={"30"}
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+};

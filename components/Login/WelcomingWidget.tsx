@@ -2,7 +2,7 @@ import { AnimatedComponent } from "components/global/AnimatedComponent";
 import { useParams } from "next/navigation";
 
 import { useEffect, useState } from "react";
-import { useSelector } from "react-redux";
+import { useAppStore } from "store";
 import { translateFunction } from "utils/functions";
 
 function WelcomingWidget({
@@ -18,6 +18,8 @@ function WelcomingWidget({
   Name: string;
   close: Function;
 }) {
+  const { language } = useAppStore();
+
   let { lang } = useParams();
   // @ts-ignore
   let languageVariable = lang.split("-")[1];
@@ -25,10 +27,6 @@ function WelcomingWidget({
     return translateFunction(key, languageVariable);
   };
   const [active, setActive] = useState(false);
-
-  const language = useSelector(
-    (state: StateInterface) => state.homepage.language
-  );
   useEffect(() => {
     setTimeout(() => {
       if (active) close();
@@ -151,7 +149,7 @@ function WelcomingWidget({
       </div> */}
       <div className="welcoming-container">
         <div className="welcoming-label">{translate("Hello,", language)}</div>
-        <div className="welcoming-user">{Name || "Alaa Asaad"}</div>
+        <div className="welcoming-user">{Name}</div>
       </div>
       <div
         className="welcoming-enjoy"

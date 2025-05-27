@@ -1,8 +1,10 @@
+"use client";
 import { useRef } from "react";
 import OfferAvatar from "./OfferAvatar";
 import { Boutique } from "models/offer";
-import { useRouter } from "next-nprogress-bar";
+import { useParams } from "next/navigation";
 import MoreOfferAvatar from "./MoreOfferAvatar";
+import search from "services/search";
 
 interface OfferAvatarsProps {
   priority: boolean;
@@ -10,7 +12,7 @@ interface OfferAvatarsProps {
 }
 function OfferAvatars({ priority, boutique }: OfferAvatarsProps) {
   const ref = useRef<HTMLDivElement>();
-  const router = useRouter();
+  const { lang } = useParams();
   const handleMove = (e: any) => {
     let elemnts: Element[] = Array.from(ref.current.children);
     let clientX = e.clientX || e.touches[0]?.clientX;
@@ -43,14 +45,19 @@ function OfferAvatars({ priority, boutique }: OfferAvatarsProps) {
       onMouseLeave={(e) => handleEnd()}
       onTouchEnd={(e) => handleEnd()}
       onMouseMove={(e) => handleMove(e)}
+      onClick={() => {}}
     >
-      {boutique?.mainCategoriesForProductIds.map((product, index) => {
+      {boutique?.childCategoriesForProductIds.map((product, index) => {
         if (index < 7) {
           if (product?.most_viewed_product_thumbnail.file_path)
             return (
               <OfferAvatar
-                name={product.name}
-                linkUrl={`/boutiques/${boutique.slug}?categories=${product.slug}`}
+                boutique={boutique}
+                name={product.most_viewed_product_name}
+                linkUrl={`/boutique/${boutique.slug}${search.getPageUrl({
+                  term: "categories",
+                  value: [product],
+                })}`}
                 key={index}
                 category={product.name}
                 images={product?.most_viewed_product_thumbnail.file_path}
@@ -63,6 +70,8 @@ function OfferAvatars({ priority, boutique }: OfferAvatarsProps) {
       {boutique?.childCategoriesForProductIds?.length > 7 && (
         <MoreOfferAvatar
           priority={false}
+          href={`/${lang}/boutique/${boutique?.slug}`}
+          boutique={boutique}
           images={
             boutique?.childCategoriesForProductIds[7]
               .most_viewed_product_thumbnail.file_path

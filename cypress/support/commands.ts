@@ -34,7 +34,7 @@
 //   }
 // }// Custom command to visit a URL with overridden Notification permissions
 Cypress.Commands.add("Visit", function (url: string) {
-  cy.intercept("GET", "**/api/new_v1/countries").as("CountriesApi");
+  cy.intercept("GET", "**/api/v1/countries").as("CountriesApi");
   cy.visit(url, {
     onLoad(win) {
       // @ts-ignore
@@ -61,19 +61,6 @@ Cypress.Commands.add("Visit", function (url: string) {
       });
     }
   });
-  // cy.interceptAndWait([
-  //   {
-  //     method: "GET",
-  //     url: "**/api/new_v1/web/home/startingSettings",
-  //     alias: "startingSettings",
-  //   },
-  //   {
-  //     method: "GET",
-  //     url: "**/api/products/search?with_products=false",
-  //     alias: "popular-search",
-  //   },
-  // ]);
-  // cy.log("✅✅ startingSettings & popular-search Requests Arrived");
 });
 Cypress.Commands.add("Exist", (selector) => {
   cy.wait(3000);
@@ -107,13 +94,16 @@ Cypress.Commands.add("ChexkExistElement", (selector) => {
     });
 });
 Cypress.Commands.add("logout", () => {
-  cy.Exist("[data-cy=Logout-ReLogout]").then((exist) => {
+  cy.Exist("[data-cy=login-icon]").then((exist) => {
     if (exist) {
-      cy.get("[data-cy=Logout-ReLogout]").click({ force: true });
+      cy.log("✅✅ No login status");
+    } else {
+      cy.get("[data-cy=avatar-options]").click({
+        force: true,
+        scrollBehavior: false,
+      });
       cy.get("[data-cy=logout]").click({ force: true, scrollBehavior: false });
       cy.log("✅✅ You have successfully logged out");
-    } else {
-      cy.log("❌❌ No Login Founded!");
     }
   });
 });
@@ -124,7 +114,7 @@ Cypress.Commands.add("WaitUntilLoadWebsiteAndlogoutAndViewport", () => {
   cy.viewport(783, 824);
 });
 Cypress.Commands.add("OpenLoginInterface", () => {
-  cy.clickElement(".en-regular:nth-child(2)");
+  cy.clickElement("[data-cy=login-icon]");
   cy.get("[data-cy=login-widget-container]", { timeout: 30000 });
   cy.log("✅✅ Click On Login Icon & Open Its Interface");
 });
@@ -151,13 +141,14 @@ Cypress.Commands.add("AgreeTerms", () => {
   cy.log("✅✅ Agree & Countinue Button Clicked Successfuly");
 });
 Cypress.Commands.add("ChooseWayToRecieveOtpAndWaitOtpRequest", () => {
-  cy.intercept("GET", "**/api/new_v1/auth/phone/send_otp?**").as("sendOtpApi");
+  cy.intercept("GET", "**/api/v1/auth/phone/send_otp?**").as("sendOtpApi");
   cy.clickElement(".message-recieve-option:nth-child(2)");
   cy.log("✅✅ Recive Otp Code By SMS Button Clicked Successfuly");
   cy.wait("@sendOtpApi").then((response) => {
     // expect(response.response.statusCode).to.be.eq(200);
   });
   cy.log("✅✅ Send Otp Api Request Successfuly");
+  cy.CheckIfTrySendOtp();
 });
 Cypress.Commands.add("CheckIfTrySendOtp", () => {
   cy.ChexkExistElement("[data-cy=WaitForTryAgain]").then((exist) => {
@@ -166,7 +157,7 @@ Cypress.Commands.add("CheckIfTrySendOtp", () => {
         const waitTime = parseInt($element.text().match(/\d+/)[0]);
         cy.log(`✅✅ Waiting for ${waitTime} seconds before trying again`);
         cy.wait(waitTime * 1000 + 1); // Wait for the specified time in milliseconds
-        cy.intercept("GET", "**/api/new_v1/auth/phone/send_otp?**").as(
+        cy.intercept("GET", "**/api/v1/auth/phone/send_otp?**").as(
           "sendOtpApi"
         );
         cy.clickElement(".message-recieve-option:nth-child(2)");
@@ -201,35 +192,30 @@ Cypress.Commands.add("TypeName", () => {
   });
 });
 Cypress.Commands.add("MakeOtpExpired", () => {
-  cy.wait(70000);
+  cy.wait(60020);
 });
 Cypress.Commands.add("SkipForNow", () => {
   cy.clickElement("[data-cy=skipForNow]");
   cy.log("✅✅ Skip For Now Button clicked");
 });
-Cypress.Commands.add("ColoredFieldRed", () => {
-  cy.get(".input-failed", { timeout: 5000 }).should("be.visible");
-  cy.log("✅✅ OTP Code Input Fields Be Colored Red");
+Cypress.Commands.add("IncorrectCntry", () => {
+  // cy.get(".input-failed", { timeout: 5000 }).should("be.visible");
+  // cy.log("✅✅ OTP Code Input Fields Be Colored Red");
+  cy.get('[data-cy="spinner-container2"]').should("have.class", "spin-cont");
+  cy.get('[data-cy="SpinneR"]').should("have.class", "spinner-component");
 });
 Cypress.Commands.add("RequestForThreeServers", () => {
   let count = 0;
   cy.intercept("POST", "**/login", () => {
     count += 1;
   }).as("login");
-  cy.intercept("GET", "**/api/v1/stories/users_stories", () => {
-    count += 1;
-  }).as("Stories");
-  cy.wait("@login", { timeout: 10000 }).then((interception) => {
+  cy.wait("@login").then((interception) => {
     expect(interception.response.statusCode).to.be.eq(200);
     cy.log("✅✅ login request arrived");
   });
-  cy.wait("@Stories", { timeout: 10000 }).then((interception) => {
-    expect(interception.response.statusCode).to.be.eq(200);
-    cy.log("✅✅ Stories request arrived");
-  });
   cy.wait(500).then(() => {
     cy.log(`Count is: ${count}`);
-    expect(count).to.be.greaterThan(1);
+    expect(count).to.be.greaterThan(0);
   });
 });
 Cypress.Commands.add("typePincode", (pincode: string) => {
@@ -259,6 +245,7 @@ Cypress.Commands.add("reEnterPhoneNumber", (phoneNumber: string) => {
   cy.clickElement("[data-cy=Edit-Phone-Number]");
   cy.log("✅✅ Back To Write Correct Number Phone Successfuly");
   cy.get("#phoneInput").type(`${phoneNumber}`, {
+    force: true,
     scrollBehavior: false,
   });
   cy.clickElement(".phone-arrow");
@@ -286,80 +273,33 @@ Cypress.Commands.add("interceptAndWait", (routes) => {
 Cypress.Commands.add("clickElement", (selector: string) => {
   cy.get(selector).click({ scrollBehavior: false, force: true });
 });
-Cypress.Commands.add("OpenBoutiqueAndAddProductToCartFromBoutiquePage", () => {
-  let productName: string = "";
-  cy.clickElement(".offer-widget:eq(1)");
-  cy.log("✅✅ An Boutique Selected & Click");
-  cy.get("[data-cy=boutique_top_info]", { timeout: 20000 }).should(
-    "be.visible"
+Cypress.Commands.add("AddProductToCartFromBoutiquePage", () => {
+  cy.intercept("GET", "**/api/v1/web/product/likesCommentsSharesDetails/**").as(
+    "SocialDataReq"
   );
-  cy.log("✅✅ The Boutique Page Opened");
-  cy.interceptAndWait([
-    {
-      method: "POST",
-      url: "**/boutiques/**",
-      alias: "OpenBoutique",
-    },
-    {
-      method: "GET",
-      url: "**/api/products/search?&boutique_slugs**",
-      alias: "LoadallProducts",
-    },
-  ]);
-  cy.log("✅✅ OpenBoutique & LoadallProducts Requests Arrived");
-  cy.get('[data-cy="on_mouse_over_product"]', { timeout: 15000 }).then(
-    ($items) => {
-      const count = $items.length;
-      cy.log(
-        `✅✅ Number of items found after clicking the first offer widget: ${count}`
-      );
-      function processItem(index) {
-        if (index >= count) {
-          cy.log("✅✅ No more items to process.");
-          return;
-        }
-        cy.get("[data-cy=productName]", { timeout: 15000 })
-          .eq(index)
-          .invoke("text")
-          .then((text) => {
-            productName = text.trim();
-            cy.log(
-              "✅✅ Product Name Obtained & The Product Name Is:",
-              productName
-            );
-            cy.clickElement(`[data-cy=Cart-ByButton]:eq(${index})`);
-            cy.interceptAndWait([
-              {
-                method: "GET",
-                url: "**/product/qtyPriceDetails/**",
-                alias: "getProductData1",
-              },
-              {
-                method: "GET",
-                url: "**/product/likesCommentsSharesDetails/**",
-                alias: "getProductData2",
-              },
-            ]);
-            cy.log("✅✅ getProductData1 & getProductData2 Requests Arrived");
-            cy.ChexkExistElement("[data-cy=ProductQuantityFinished]").then(
-              (exists) => {
-                if (exists) {
-                  cy.clickElement("[data-cy=Back-Icon-AddToWedgit]");
-                  cy.log(
-                    `✅✅ Clicked Back-Icon-AddToWedgit for item ${index + 1}`
-                  );
-                  processItem(index + 1); // Continue looping
-                } else {
-                  cy.log("✅✅ Product successfully added. Stopping loop.");
-                }
-              }
-            );
-          });
-      }
-      processItem(0);
-    }
+  cy.intercept("GET", "**/api/v1/web/product/qtyPriceDetails/**").as(
+    "QtyPriceReq"
   );
+  cy.get('[data-cy="product-card"] [data-cy="buy-button"]')
+    .eq(1)
+    .click({ force: true });
+  cy.wait(["@SocialDataReq", "@QtyPriceReq"]).then((interception) => {
+    expect(interception[0].response.statusCode).to.equal(200);
+    expect(interception[1].response.statusCode).to.equal(200);
+  });
+  cy.Exist('[data-cy="color_slide"]').then((e) => {
+    if (e) cy.get('[data-cy="color_slide"]').eq(0).click();
+  });
+  cy.Exist('[data-cy="size_slide"]').then((e) => {
+    if (e) cy.get('[data-cy="size_slide"]').eq(0).click();
+  });
+  cy.intercept("POST", "**/api/v1/cart/**").as("AddToCartRequest");
+  cy.get('[data-cy="addTo_cart_button"]').click();
+  cy.wait("@AddToCartRequest").then((s) => {
+    expect(s.response.statusCode).to.equal(200);
+  });
 });
+
 Cypress.Commands.add("verifyProductInCart", (productName: string) => {
   cy.get("[data-cy=productNameInCart]")
     .invoke("text")
@@ -517,7 +457,7 @@ Cypress.Commands.add("AddAdress", () => {
   cy.intercept("POST", "**/api/addresses/get-address-by-text").as(
     "GetAddressByText"
   );
-  cy.get('[data-cy="SearchProvince-District-Town-Street"]').type("Latakia", {
+  cy.get('[data-cy="SearchProvince-District-Town-Street"]').type("Aleppo", {
     force: true,
     scrollBehavior: false,
   });
@@ -647,12 +587,12 @@ Cypress.Commands.add("AddAdress", () => {
   cy.interceptAndWait([
     {
       method: "POST",
-      url: "**/api/new_v1/customer/address/add",
+      url: "**/api/v1/customer/address/add",
       alias: "addAddress",
     },
     {
       method: "GET",
-      url: "**/api/new_v1/customer/address/list",
+      url: "**/api/v1/customer/address/list",
       alias: "list",
     },
   ]);
@@ -662,25 +602,19 @@ Cypress.Commands.add(
   "OpenBoutiqueAndAddProductToCartFromBoutiqueDatailPage",
   () => {
     let productName: string = "";
-    cy.clickElement(".offer-widget:eq(1)");
+    cy.intercept("GET", "**/api/products/searchInCatalog?boutique_slugs**").as(
+      "LoadallProducts"
+    );
+    cy.clickElement(".offer-widget:eq(3)");
     cy.log("✅✅ An Boutique Selected & Click");
     cy.get("[data-cy=boutique_top_info]", { timeout: 20000 }).should(
       "be.visible"
     );
     cy.log("✅✅ The Boutique Page Opened");
-    cy.interceptAndWait([
-      {
-        method: "POST",
-        url: "**/boutiques/**",
-        alias: "OpenBoutique",
-      },
-      {
-        method: "GET",
-        url: "**/api/products/search?&boutique_slugs**",
-        alias: "LoadallProducts",
-      },
-    ]);
-    cy.log("✅✅ OpenBoutique & LoadallProducts Requests Arrived");
+    cy.wait("@LoadallProducts").then((interception) => {
+      expect(interception.response.statusCode).to.be.eq(200);
+    });
+    cy.log("✅✅ LoadallProducts Request Arrived");
     cy.get('[data-cy="on_mouse_over_product"]').then(($items) => {
       const count = $items.length;
       cy.log(
@@ -735,8 +669,8 @@ Cypress.Commands.add(
 );
 Cypress.Commands.add("ClickAddToCartAndWaitRequest", () => {
   cy.intercept("POST", /\/cart\/(add|update)/).as("CartRequest");
-  cy.clickElement("[data-cy=AddToCartButton-data-cy]");
-  cy.wait("@CartRequest", { timeout: 30000 }).then((interception) => {
+  cy.clickElement("[data-cy=addTo_cart_button]");
+  cy.wait("@CartRequest", { timeout: 15000 }).then((interception) => {
     if (interception?.response) {
       expect(interception.response.statusCode).to.eq(200);
     } else {
@@ -753,51 +687,22 @@ Cypress.Commands.add("ComplateAddProductOperationAndGoCartPage", () => {
   cy.clickElement("[data-cy=CartIcon_Productpage]");
   cy.log("✅✅ Click On Cart Icon & Open Cart Page");
 });
-Cypress.Commands.add("ConfirmAndComplateOrderButton", () => {
-  cy.clickElement("[data-cy=Confirm-Order-Button]");
-  cy.log("✅✅ Confirm & Countinue Button Clicked");
-  cy.get("[data-cy=FieldToInputNumber]").then((exist) => {
-    if (!exist) {
-      cy.interceptAndWait([
-        {
-          method: "GET",
-          url: "**/api/new_v1/customer/address/list",
-          alias: "ListRequest",
-        },
-        {
-          method: "GET",
-          url: "**/api/new_v1/cart/cart_shipping",
-          alias: "CartShiping",
-        },
-      ]);
-      cy.log("✅✅ CartShiping & ListRequest Requests Arrived");
-    } else {
-      cy.log("❌❌ Should Complate Login Operation");
-    }
-  });
-});
 Cypress.Commands.add(
   "ChooseBoutiqueAndVerifyComponentsAndBoxsInBoutiquePage",
   () => {
-    cy.clickElement(".offer-widget:eq(1)");
+    cy.intercept("GET", "**/api/products/searchInCatalog?boutique_slugs**").as(
+      "LoadallProducts"
+    );
+    cy.clickElement(".offer-widget:eq(3)");
     cy.log("✅✅ An Boutique Selected & Click");
     cy.get("[data-cy=boutique_top_info]", { timeout: 30000 }).should(
       "be.visible"
     );
     cy.log("✅✅ The Boutique Page Opened");
-    cy.interceptAndWait([
-      {
-        method: "POST",
-        url: "**/boutiques/**",
-        alias: "OpenBoutique",
-      },
-      {
-        method: "GET",
-        url: "**/api/products/search?&boutique_slugs**",
-        alias: "LoadallProducts",
-      },
-    ]);
-    cy.log("✅✅ OpenBoutique & LoadallProducts Requests Arrived");
+    cy.wait("@LoadallProducts").then((interception) => {
+      expect(interception.response.statusCode).to.be.eq(200);
+    });
+    cy.log("✅✅ LoadallProducts Request Arrived");
     cy.verifyBoxsInBoutiquePage();
     cy.verifyComponentsInProductCard();
     cy.intercept("Get", "**/product/likesCommentsSharesDetails/**").as(
@@ -813,27 +718,120 @@ Cypress.Commands.add(
   }
 );
 Cypress.Commands.add("openWishlist", () => {
-  cy.get("[data-cy=Logout-ReLogout]").should("exist").should("be.visible");
-  cy.get("[data-cy=Chat-Icon]").should("exist").should("be.visible");
-  cy.get("[data-cy=Nav_CartIcon_LogIn]").should("exist").should("be.visible");
-  cy.get("[data-cy=cartIcon_mainPage]").should("exist").should("be.visible");
-  cy.log("✅✅ all components founded and website oppened");
-  cy.clickElement("[data-cy=Logout-ReLogout]");
-  cy.clickElement("[data-cy=WishList-Icon]");
-  cy.log("✅✅ wishlist oppened");
-});
-Cypress.Commands.add("openNotifications", () => {
   cy.get("[data-cy=avatar-options]").should("exist").should("be.visible");
   cy.get("[data-cy=Chat-Icon]").should("exist").should("be.visible");
   cy.get("[data-cy=Nav_CartIcon_LogIn]").should("exist").should("be.visible");
   cy.get("[data-cy=cartIcon_mainPage]").should("exist").should("be.visible");
   cy.log("✅✅ all components founded and website oppened");
-  cy.intercept("GET", "**/api/new_v1/countries").as("getCountries");
-  cy.clickElement("[data-cy=Logout-ReLogout]");
+  cy.clickElement("[data-cy=avatar-options]");
+  cy.clickElement("[data-cy=WishList-Icon]");
+  cy.log("✅✅ wishlist oppened");
+});
+Cypress.Commands.add("openNotificationsWhenLogout", () => {
+  cy.get("[data-cy=avatar-options]").should("exist").should("be.visible");
+  cy.get("[data-cy=Nav_CartIcon_LogIn]").should("exist").should("be.visible");
+  cy.get("[data-cy=cartIcon_mainPage]").should("exist").should("be.visible");
+  cy.log("✅✅ all components founded and website oppened");
+  cy.intercept("GET", "**/api/v1/countries").as("getCountries");
+  cy.clickElement("[data-cy=avatar-options]");
   cy.wait("@getCountries").then((interception) => {
     expect(interception.response.statusCode).to.be.eq(200);
   });
-  cy.get('[dataCy="Notifications-Icon"] svg').should("exist");
-  // Verify the text inside the MenuItem
-  cy.get('[dataCy="Notifications-Icon"]').contains("Settings").should("exist");
+  cy.get("[data-cy=Notifications-Icon] svg").should("exist");
+  cy.get("[data-cy=Notifications-Icon]")
+    .contains("Notifications")
+    .should("exist");
+  cy.intercept("GET", "**/api/v1/user-notifications/get?page=1").as("getPage1");
+  cy.clickElement("[data-cy=Notifications-Icon]"); //loading-svg
+  cy.get("[data-cy=notification-loading]").should("exist").should("be.visible");
+  cy.get("[data-cy=loading-svg]").should("exist").should("be.visible");
+  cy.get("[data-cy=notification-loading]")
+    .should("exist")
+    .and("be.visible")
+    .contains("Loading...");
+  cy.wait("@getPage1").then((interception) => {
+    expect(interception.response.statusCode).to.be.eq(200);
+  });
+  cy.get("[data-cy=notification-loading]").should("not.exist");
+});
+Cypress.Commands.add("openNotificationsWhenLogin", () => {
+  cy.get("[data-cy=avatar-options]").should("exist").should("be.visible");
+  cy.get("[data-cy=Chat-Icon]").should("exist").should("be.visible");
+  cy.get("[data-cy=Nav_CartIcon_LogIn]").should("exist").should("be.visible");
+  cy.get("[data-cy=cartIcon_mainPage]").should("exist").should("be.visible");
+  cy.log("✅✅ all components founded and website oppened");
+  cy.intercept("GET", "**/api/v1/countries").as("getCountries");
+  cy.clickElement("[data-cy=avatar-options]");
+  cy.wait("@getCountries").then((interception) => {
+    expect(interception.response.statusCode).to.be.eq(200);
+  });
+  cy.get("[data-cy=Notifications-Icon] svg")
+    .should("exist")
+    .should("be.visible");
+  cy.get("[data-cy=Notifications-Icon]")
+    .contains("Notifications")
+    .should("exist");
+  cy.intercept("GET", "**/api/v1/user-notifications/get?page=1").as("getPage1");
+  cy.clickElement("[data-cy=Notifications-Icon]");
+  cy.get("[data-cy=notification-loading]").should("exist").should("be.visible");
+  cy.get("[data-cy=loading-svg]").should("exist").should("be.visible");
+  cy.get("[data-cy=notification-loading]")
+    .should("exist")
+    .and("be.visible")
+    .contains("Loading...");
+  cy.wait("@getPage1").then((interception) => {
+    expect(interception.response.statusCode).to.be.eq(200);
+  });
+  cy.get("[data-cy=notification-loading]").should("not.exist");
+});
+
+Cypress.Commands.add("openOrdersWhenLogout", () => {
+  cy.get("[data-cy=avatar-options]").should("exist").should("be.visible");
+  cy.get("[data-cy=Nav_CartIcon_LogIn]").should("exist").should("be.visible");
+  cy.get("[data-cy=cartIcon_mainPage]").should("exist").should("be.visible");
+  cy.log("✅✅ all components founded and website oppened");
+  cy.intercept("GET", "**/api/v1/countries").as("getCountries");
+  cy.clickElement("[data-cy=avatar-options]");
+  cy.wait("@getCountries").then((interception) => {
+    expect(interception.response.statusCode).to.be.eq(200);
+  });
+  cy.get("[data-cy=Orders-Icon] svg").should("exist");
+  cy.get("[data-cy=Orders-Icon]").contains("Orders").should("exist");
+  ///api/v1/customer/order/list?
+  cy.intercept("GET", "**/api/v1/customer/order/list?**").as("getorder1");
+  cy.clickElement("[data-cy=Orders-Icon]"); //loading-svg
+  cy.get("[data-cy=Loading-container]").should("exist").should("be.visible");
+  cy.get("[data-cy=Loading-svg]").should("exist").should("be.visible");
+  cy.get("[data-cy=Loading-container]")
+    .should("exist")
+    .and("be.visible")
+    .contains("Loading...");
+  cy.wait("@getorder1").then((interception) => {
+    expect(interception.response.statusCode).to.be.eq(200);
+  });
+});
+Cypress.Commands.add("openOrdersWhenLogin", () => {
+  cy.get("[data-cy=avatar-options]").should("exist").should("be.visible");
+  cy.get("[data-cy=Chat-Icon]").should("exist").should("be.visible");
+  cy.get("[data-cy=Nav_CartIcon_LogIn]").should("exist").should("be.visible");
+  cy.get("[data-cy=cartIcon_mainPage]").should("exist").should("be.visible");
+  cy.log("✅✅ all components founded and website oppened");
+  cy.intercept("GET", "**/api/v1/countries").as("getCountries");
+  cy.clickElement("[data-cy=avatar-options]");
+  cy.wait("@getCountries").then((interception) => {
+    expect(interception.response.statusCode).to.be.eq(200);
+  });
+  cy.get("[data-cy=Orders-Icon] svg").should("exist");
+  cy.get("[data-cy=Orders-Icon]").contains("Orders").should("exist");
+  cy.intercept("GET", "**/api/v1/customer/order/list?**").as("getorder1");
+  cy.clickElement("[data-cy=Orders-Icon]"); //loading-svg
+  cy.get("[data-cy=Loading-container]").should("exist").should("be.visible");
+  cy.get("[data-cy=Loading-svg]").should("exist").should("be.visible");
+  cy.get("[data-cy=Loading-container]")
+    .should("exist")
+    .and("be.visible")
+    .contains("Loading...");
+  cy.wait("@getorder1").then((interception) => {
+    expect(interception.response.statusCode).to.be.eq(200);
+  });
 });

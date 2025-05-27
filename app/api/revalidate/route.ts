@@ -2,21 +2,38 @@ import { revalidatePath, revalidateTag } from "next/cache";
 import { NextRequest, NextResponse } from "next/server";
 export async function GET(request: NextRequest) {
   let searchParams = request.nextUrl.searchParams;
-  let value = searchParams.get("value");
-  if (value) {
-    revalidateTag(value);
-  } else {
-    revalidatePath("/", "layout");
-    revalidatePath("/", "page");
-    revalidateTag("home-boutiques");
+  let value = searchParams?.get("value") || "";
+  if (value === "stories") {
     revalidateTag("stories");
-    revalidateTag("listing-data");
-    revalidatePath("/listing", "layout");
-    revalidateTag("home-categories-en"); // Update cached posts
-    revalidateTag("home-categories-ar"); // Update cached posts
-
-    revalidatePath("/boutiques/[productCategory]", "page");
-    revalidatePath("/boutiques/[productCategory]", "layout");
   }
-  return NextResponse.json({ revalidated: "true" });
+  if (value === "home") {
+    revalidateTag("main-categories-Api");
+    revalidateTag("featured-Products-Api");
+    revalidateTag("boutiques");
+    revalidateTag("stories");
+  } else if (value === "listing") {
+    revalidateTag("listing");
+    revalidateTag("currency-api");
+  } else if (value === "products") {
+    revalidateTag("product-details");
+    revalidateTag("currency-api");
+  } else {
+    revalidateTag("main-categories-Api");
+    revalidateTag("featured-Products-Api");
+    revalidateTag("boutiques");
+    revalidateTag("stories");
+    revalidateTag("listing");
+    revalidateTag("currency-api");
+    revalidateTag("product-details");
+  }
+  return NextResponse.json(
+    { revalidated: "true" },
+    {
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization",
+      },
+    }
+  );
 }

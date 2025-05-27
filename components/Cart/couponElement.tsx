@@ -1,22 +1,19 @@
 import { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+
+import { useAppStore } from "store";
 import { AxiosGet } from "utils/AxiosApi";
 import { getCart, RoundPrice, translateFunction } from "utils/functions";
 
 const CouponElement = ({ active, setActive, close }) => {
-  const dispatch = useDispatch();
-
-  const coupon_number = useSelector(
-    (state: StateInterface) => state.cart.orderData.coupon_number
-  );
-  const coupon_discount = useSelector(
-    (state: StateInterface) => state.cart.coupon_discount
-  );
-  const currency = useSelector(
-    (state: StateInterface) => state.homepage.currency
-  ) || { exchange_rate: 1, symbol: "" };
-
-  const [coupon, setCoupon] = useState<number | false>(false);
+  const {
+    setOrderData,
+    initCart,
+    orderData,
+    currency,
+    coupon_discount,
+    setCouponDiscount,
+  } = useAppStore();
+  const [coupon, setCoupon] = useState<number | false | string>(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -28,11 +25,11 @@ const CouponElement = ({ active, setActive, close }) => {
   }, [coupon_discount, active, setActive]);
 
   const onChange = (e) => {
-    dispatch({ type: "ORDER-DATA", payload: { coupon_number: e } });
+    setOrderData({ coupon_number: e });
   };
 
-  const applyCoupon = async () => {
-    if (!coupon_number) return;
+  const applyCoupon = async (e?) => {
+    if (!orderData.coupon_number && !e) return;
     if (coupon) return;
     setLoading(true);
     setError("");
@@ -41,20 +38,21 @@ const CouponElement = ({ active, setActive, close }) => {
       const response = await AxiosGet({
         url:
           process.env.NEXT_PUBLIC_BACKEND_URL +
-          `/coupon/apply?code=${coupon_number}`,
+          `/coupon/apply?code=${e ?? orderData.coupon_number}`,
         title: "apply coupon request",
       });
 
       if (!response.data.status) {
+        localStorage.removeItem("coupon-number");
         throw new Error(response.message);
       }
 
-      getCart({
+      await getCart({
         callback: ([data]) => {
-          dispatch({ type: "CART-INIT", payload: data ?? { cart: [] } });
+          initCart(data ?? { cart: [] });
         },
       });
-
+      localStorage.removeItem("coupon-number");
       setCoupon(response.discount);
     } catch (err) {
       setError(err.message);
@@ -62,7 +60,13 @@ const CouponElement = ({ active, setActive, close }) => {
       setLoading(false);
     }
   };
-
+  useEffect(() => {
+    if (localStorage.getItem("coupon-number")) {
+      onChange(localStorage.getItem("coupon-number"));
+      applyCoupon(localStorage.getItem("coupon-number"));
+      setActive(true);
+    }
+  }, []);
   return (
     <div
       onClick={(e) => {
@@ -91,7 +95,7 @@ const CouponElement = ({ active, setActive, close }) => {
               {!coupon && (
                 <input
                   placeholder="Coupon No"
-                  value={coupon_number}
+                  value={orderData.coupon_number}
                   onChange={(e) => onChange(e.target.value)}
                   onBlur={(e) => {
                     if (!e.target.value) close();
@@ -104,7 +108,7 @@ const CouponElement = ({ active, setActive, close }) => {
                   coupon ? "min-w-full" : "w-[100px] min-w-[100px]"
                 } flex items-center justify-center h-[40px] rounded-[15px] bg-white`}
                 style={{ border: "1px solid rgb(56 144 255 / 51%)" }}
-                onClick={applyCoupon}
+                onClick={() => applyCoupon()}
               >
                 {loading
                   ? translateFunction("Applying...")

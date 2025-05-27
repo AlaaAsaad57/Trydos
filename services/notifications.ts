@@ -1,4 +1,3 @@
-import { UserToken } from "utils/functions";
 import { NotificationResponse } from "../types/notifications";
 import { AxiosGet } from "utils/AxiosApi";
 
@@ -16,6 +15,20 @@ export const fetchNotifications = async (
     return response;
   } catch (error) {
     console.error("Error fetching notifications:", error);
+    // Fallback to mock data if API is not available
+  }
+};
+export const getNotificationsTypes = async () => {
+  try {
+    const response = await AxiosGet({
+      url:
+        process.env.NEXT_PUBLIC_BACKEND_URL +
+        "/web/notification_types/customer-notification-to-choose",
+      title: "Fetch Notifications Types",
+    });
+    return response;
+  } catch (error) {
+    console.error("Error fetching notifications Types:", error);
     // Fallback to mock data if API is not available
   }
 };

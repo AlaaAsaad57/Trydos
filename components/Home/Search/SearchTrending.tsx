@@ -1,13 +1,21 @@
 import React, { useEffect, useState } from "react";
 import SearchTrendingicon from "public/svg/SearchTrendingicon.svg";
-import CloseIconOption from "public/svg/CloseIconOption.svg";
 import SearchMiniIcon from "public/svg/SearchMiniIcon.svg";
-import { useDispatch, useSelector } from "node_modules/react-redux/es";
-import home from "services/home";
+import { useAppStore } from "store";
+import search from "services/search";
+import { useParams } from "next/navigation";
+import { Sendevent } from "utils/functions";
+import { GA_CLICK_EVENT_VALUES, GA_EVENT_NAMES } from "utils/GAEvents";
 
 function SearchTrending() {
+  const {
+    setSearchPartialLoading,
+    findProducts,
+    setSearchLoading,
+    setSearchWord,
+    trending,
+  } = useAppStore();
   const [openMenu, setOpen] = useState(false);
-  const options = useSelector((state: StateInterface) => state.Search.trending);
   useEffect(() => {
     if (typeof document !== "undefined") {
       const slider: HTMLDivElement = document?.querySelector(
@@ -40,13 +48,9 @@ function SearchTrending() {
       });
     }
   }, []);
-  const dispatch = useDispatch();
-  const setLoading = (e) => {
-    dispatch({ type: "SEARCH-PARTIAL-LOADING", payload: e });
-  };
-  const searchFilters = useSelector(
-    (state: StateInterface) => state.Search.searchFilters
-  );
+
+  const { lang } = useParams();
+
   return (
     <div
       className={` ${
@@ -65,30 +69,18 @@ function SearchTrending() {
 
       {!openMenu && (
         <div className="search-filter-options s2 flex-row">
-          {options.map((s, index) => (
+          {trending.map((s, index) => (
             <div
               key={index}
               className="search-filter-option"
+              data-cy="search-trending-option"
               onClick={(e) => {
-                dispatch({ type: "SEARCH-WORD", payload: s.term });
-                dispatch({
-                  type: "SEARCH-PARTIAL-LOADING",
-                  payload: true,
-                });
-                dispatch({ type: "SEARCH-LOADING", payload: true });
-                home.UpdateFilters({
-                  search_text: s.term || "",
-                  callback: (e) => {
-                    setLoading(false);
-                    dispatch({ type: "EDIT-FILTER-SEARCH", payload: e });
-                  },
-                });
-                home.SearchProducts({
-                  search_text: s.term,
-                  searchFilters: searchFilters,
-                  callback: (e) => {
-                    dispatch({ type: "FIND-PRODUCTS", payload: e });
-                  },
+                setSearchWord(s.term);
+                setSearchPartialLoading(true);
+                setSearchLoading(true);
+                search.getSearchOptions({
+                  noProducts: false,
+                  lang: lang,
                 });
               }}
             >
@@ -111,23 +103,13 @@ function SearchTrending() {
         <span
           className="clear-options-button"
           onClick={(e) => {
-            setLoading(true);
-            dispatch({ type: "SEARCH-WORD", payload: "" });
-
-            dispatch({ type: "FIND-PRODUCTS", payload: [] });
-            home.UpdateFilters({
-              search_text: "",
-              callback: (e) => {
-                setLoading(false);
-                dispatch({ type: "EDIT-FILTER-SEARCH", payload: e });
-              },
-            });
-            home.SearchProducts({
-              search_text: "",
-              searchFilters: searchFilters,
-              callback: (e) => {
-                dispatch({ type: "FIND-PRODUCTS", payload: e });
-              },
+            setSearchLoading(true);
+            setSearchPartialLoading(true);
+            setSearchWord("");
+            findProducts([]);
+            search.getSearchOptions({
+              noProducts: true,
+              lang: lang,
             });
           }}
         >
@@ -136,31 +118,19 @@ function SearchTrending() {
       )}
       {openMenu && (
         <div className="flex-col search-filter-menu">
-          {options.map((s, index) => (
+          {trending.map((s, index) => (
             <div
               key={index}
               className="option-row-search flex-row"
+              data-cy="search-trending-option"
               onClick={(e) => {
-                dispatch({ type: "SEARCH-WORD", payload: s.term });
-                dispatch({
-                  type: "SEARCH-PARTIAL-LOADING",
-                  payload: true,
+                Sendevent({
+                  event: GA_EVENT_NAMES.CLICK,
+                  value: GA_CLICK_EVENT_VALUES.SEARCH_TRENDING_OPTION,
                 });
-                dispatch({ type: "SEARCH-LOADING", payload: true });
-                home.UpdateFilters({
-                  search_text: s.term || "",
-                  callback: (e) => {
-                    setLoading(false);
-                    dispatch({ type: "EDIT-FILTER-SEARCH", payload: e });
-                  },
-                });
-                home.SearchProducts({
-                  search_text: s.term,
-                  searchFilters: searchFilters,
-                  callback: (e) => {
-                    dispatch({ type: "FIND-PRODUCTS", payload: e });
-                  },
-                });
+                setSearchWord(s.term);
+                setSearchPartialLoading(true);
+                setSearchLoading(true);
               }}
             >
               {s.term}{" "}

@@ -1,21 +1,23 @@
 import { useEffect, useState } from "react";
-import { useSelector } from "react-redux";
+
 import { Sendevent, translateFunction } from "utils/functions";
 import ConditionIcon from "public/svg/ConditionIcon.svg";
 
 import { useTransition, animated } from "react-spring";
 import { useParams } from "next/navigation";
+import { useAppStore } from "store";
+import { GA_CLICK_EVENT_VALUES, GA_EVENT_NAMES } from "utils/GAEvents";
 
 function PrivacyConfirm({ stepIndicator, setStepIndicator }) {
+  const { language } = useAppStore();
+
   let { lang } = useParams();
   // @ts-ignore
   let languageVariable = lang.split("-")[1];
   const translate = (key, lang) => {
     return translateFunction(key, languageVariable);
   };
-  const language = useSelector(
-    (state: StateInterface) => state.homepage.language
-  );
+
   const [active, setActive] = useState(false);
   const transition = useTransition(active, {
     from: { x: -800 },
@@ -83,8 +85,8 @@ function PrivacyConfirm({ stepIndicator, setStepIndicator }) {
                 data-testid="Agree Terms"
                 onClick={() => {
                   Sendevent({
-                    event: "button_clicked",
-                    value: "agree_continue_button",
+                    event: GA_EVENT_NAMES.CLICK,
+                    value: GA_CLICK_EVENT_VALUES.AGREE_CONTINUE_BUTTON,
                   });
                   setStepIndicator(2);
                 }}

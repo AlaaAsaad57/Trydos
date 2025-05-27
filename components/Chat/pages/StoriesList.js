@@ -1,13 +1,13 @@
 import React from "react";
-import { GetUnviewedStory, SelectStory } from "store/homepage/actions";
+import { GetUnviewedStory } from "store/homepage/actions";
 import StoryChatRow from "../components/StoryChatRow";
-import { useDispatch, useSelector } from "react-redux";
+
+import { useAppStore } from "store";
 function StoriesList() {
-  const storiesData = useSelector((state) => state.homepage.storiesData);
-  const loading = useSelector((state) => state.homepage.loading);
-  const dispatch = useDispatch();
+  const { storiesData, setSelectedStory } = useAppStore();
+
   const setSelectStory = (e) => {
-    dispatch(SelectStory(e));
+    setSelectedStory(e);
   };
   return (
     <>
