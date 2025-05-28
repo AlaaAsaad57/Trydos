@@ -179,14 +179,18 @@ function ChatItem({
         onMouseUp={() => handleClick()}
       >
         {}
-        {photo && !photo?.includes("eu") ? (
+        {photo ? (
           <Image
             priority={false}
             width={60}
             height={60}
             alt="user"
             loading="eager"
-            src={photo}
+            src={
+              photo?.includes("http")
+                ? photo
+                : process.env.NEXT_PUBLIC_CLOUDINARY_URL + photo
+            }
           />
         ) : SenderName ? (
           <div className="text-avatar">{getTwoLetters(SenderName)}</div>

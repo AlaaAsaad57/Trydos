@@ -593,7 +593,7 @@ const CODInput = ({ total }) => {
           {translateFunction("Total")}
         </span>
         <span className="text-[#1D1D1D] semibold text-[12px] ml-1">
-          {RoundPrice({ num: cod_cost, returnNumber: true })} {currency?.symbol}
+          {RoundPrice({ num: total, returnNumber: true })} {currency?.symbol}
         </span>
       </div>
     </div>

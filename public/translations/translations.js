@@ -2,6 +2,9 @@ const translations = {
   en: {},
   ar: {
     "Total Products:": "إجمالي المنتجات:",
+    "Syncing contacts...": "جاري مزامنة جهات الاتصال...",
+    "Failed to sync contacts": "فشل مزامنة جهات الاتصال",
+    "Add Contacts": "إضافة جهات الاتصال",
     "Session Expired..please Login again":
       "انتهت صلاحية الجلسة ززالرجاء تسجيل الدخول",
     Reschedule: "تأجيل",
@@ -522,6 +525,9 @@ const translations = {
       "موقعك الحالي لا يقع ضمن حدود البلد المختار",
   },
   tr: {
+    "Syncing contacts...": "İletişim bilgileriniz eşitleniyor...",
+    "Failed to sync contacts": "İletişim bilgileriniz eşitlenemedi",
+    "Add Contacts": "İletişim bilgilerini ekle",
     "The Purchase Was Completed Successfully":
       "Satın Alma Başarıyla Tamamlandı",
     "Please Select an Address": "Lütfen Bir Adres Seçiniz",

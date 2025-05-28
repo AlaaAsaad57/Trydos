@@ -93,9 +93,16 @@ function ChatInfo({
                 alt="user-photo"
                 src={
                   process.env.REACT_APP_BASE_FILE_URL +
-                  activeChat?.channel_members.filter(
-                    (user) => user.user_id !== getUser()?.id
-                  )[0]?.user?.photo_path
+                  activeChat?.channel_members
+                    .filter((user) => user.user_id !== getUser()?.id)[0]
+                    ?.user?.photo_path?.includes("http")
+                    ? activeChat?.channel_members.filter(
+                        (user) => user.user_id !== getUser()?.id
+                      )[0]?.user?.photo_path
+                    : process.env.NEXT_PUBLIC_CLOUDINARY_URL +
+                      activeChat?.channel_members.filter(
+                        (user) => user.user_id !== getUser()?.id
+                      )[0]?.user?.photo_path
                 }
               />
             ) : (

@@ -74,7 +74,11 @@ function SearchResult({
                 currentTarget.src = ProfilePicture;
               }}
               alt=""
-              src={process.env.REACT_APP_BASE_FILE_URL + photo}
+              src={
+                !photo.includes("http")
+                  ? process.env.NEXT_PUBLIC_CLOUDINARY_URL + photo
+                  : ProfilePicture.src
+              }
             />
           ) : (
             <div className="text-avatar">{getTwoLetters(SenderName)}</div>
