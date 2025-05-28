@@ -14,8 +14,8 @@ function CallItem({ photo, name, date, type, Delete }) {
         height={55}
         alt="user-photo"
         src={
-          photo?.length > 0
-            ? process.env.REACT_APP_BASE_FILE_URL + photo
+          photo && !photo.includes("http")
+            ? process.env.NEXT_PUBLIC_CLOUDINARY_URL + photo
             : ProfilePicture.src
         }
       />

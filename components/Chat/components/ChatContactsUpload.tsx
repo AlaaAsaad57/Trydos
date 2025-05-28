@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { translateFunction } from "utils/functions";
+import { getContacts } from "store/chat/actions";
 
 declare global {
   interface Navigator {
@@ -27,18 +28,11 @@ function ChatContactsUpload() {
       setIsUploading(true);
 
       // Request permission to access contacts
-      if (!("contacts" in navigator)) {
+      if (!("contacts" in navigator && "ContactsManager" in window)) {
         throw new Error("Contacts API not supported in this browser");
       }
 
       // @ts-ignore - The Contacts API types aren't in the standard lib yet
-      const permission = await navigator.permissions.query({
-        name: "contacts",
-      });
-
-      if (permission.state === "denied") {
-        throw new Error("Please grant permission to access your contacts");
-      }
 
       // @ts-ignore - The Contacts API types aren't in the standard lib yet
       const contacts = await navigator.contacts.select(["name", "tel"], {
@@ -51,11 +45,12 @@ function ChatContactsUpload() {
 
       const formattedContacts = contacts.map((contact) => ({
         name: contact.name[0],
-        mobile_phone: contact.tel || [],
+        mobile_phone: contact.tel[0] || [],
       }));
 
       // Upload contacts with progress tracking
-      await axios.post(
+      alert(JSON.stringify({ contacts: formattedContacts }));
+      let res = await axios.post(
         process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
           "/api/v1/users/save_contacts",
         { contacts: formattedContacts },
@@ -74,7 +69,7 @@ function ChatContactsUpload() {
           },
         }
       );
-
+      await getContacts();
       setUploadProgress(100);
       setTimeout(() => {
         setUploadProgress(0);
@@ -91,7 +86,7 @@ function ChatContactsUpload() {
     <button
       onClick={handleContactSync}
       disabled={isUploading}
-      className="w-full p-4 flex items-center justify-center gap-3 bg-white hover:bg-gray-50 transition-colors border-b border-gray-200 relative overflow-hidden"
+      className="w-full p-4 flex cursor-pointer rounded-md items-center justify-center gap-3 bg-[#8fc3ff]  transition-colors border-b border-gray-200 relative overflow-hidden"
     >
       <svg
         className={`w-5 h-5 ${isUploading ? "animate-spin" : ""}`}

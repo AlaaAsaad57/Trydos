@@ -4,6 +4,7 @@ import { forwardMessage } from "../chatsFunctions";
 import SearchResult from "components/Chat/components/SearchResult";
 import { getUserChat, translateFunction } from "utils/functions";
 import { useAppStore } from "store";
+import ChatContactsUpload from "../components/ChatContactsUpload";
 
 function ContactLists(props) {
   const {
@@ -24,6 +25,7 @@ function ContactLists(props) {
   };
   return (
     <div className="chat-list-items">
+      <ChatContactsUpload />
       {contacts.length === 0 ? (
         <div className="notification-enable">
           <div>{translateFunction("No Contacts", language)}</div>
