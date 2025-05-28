@@ -8,6 +8,7 @@ import order from "services/order";
 import Spinner from "components/global/Spinner";
 import { getCountriesApi } from "store/homepage/cachedActions";
 import { useAppStore } from "store";
+import { formatTime } from "utils/tinyUtils";
 function ShippingAddressContainer({ slideNext, slidePrev, openAddressList }) {
   const { setCountries, cart, user } = useAppStore();
 
@@ -384,7 +385,20 @@ const ShippingAddressInput = ({ slideNext, slidePrev, openAddressList }) => {
   );
 };
 const AddressContainer = ({ openAddressList }) => {
-  const { addressLists } = useAppStore();
+  const { addressLists, cart } = useAppStore();
+  const getDeliveryDate = () => {
+    let shippingDay = 0;
+    cart.forEach((item) => {
+      if (item.shipping_days > shippingDay) {
+        shippingDay = item.shipping_days;
+      }
+    });
+    return formatTime(
+      new Date(
+        new Date().getTime() + Number(shippingDay) * 24 * 60 * 60 * 1000
+      ).toLocaleDateString()
+    );
+  };
   const GetAddressString = (location) => {
     let str = "";
     if (
@@ -440,7 +454,7 @@ const AddressContainer = ({ openAddressList }) => {
     >
       {defaultAddress ? (
         <>
-          <div data-cy="flex-cols" className="flex-col">
+          <div data-cy="flex-cols" className="flex-col w-full ">
             <div
               data-cy="flex-row items-centers"
               className="flex-row items-center"
@@ -587,6 +601,17 @@ const AddressContainer = ({ openAddressList }) => {
                     defaultAddress?.contact_info.name}
                 </div>
               </div>
+            </div>
+            <div className="flex-row text-[10px]  bg-[#FFFFFF] rounded-[12px] w-full h-[31px] justify-center items-center">
+              <span className="text-[#8D8D8D] regular ">
+                {translateFunction("Expected Delivery")}
+              </span>
+              <span className="text-[#1D1D1D] regular ml-[4px]">
+                {getDeliveryDate()}
+              </span>
+              <span className="text-[#388CFF] regular underline cursor-pointer ml-[4px]">
+                {translateFunction("Delivery Not")}
+              </span>
             </div>
           </div>
         </>
