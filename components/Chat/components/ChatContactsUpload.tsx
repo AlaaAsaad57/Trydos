@@ -113,7 +113,7 @@ function ChatContactsUpload() {
 
       <span className="font-medium">
         {translateFunction(
-          error ? error : isUploading ? "Syncing contacts..." : "Sync Contacts"
+          error ? error : isUploading ? "Syncing contacts..." : "Add Contacts"
         )}
       </span>
 
