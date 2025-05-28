@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import axios from "axios";
 import { translateFunction } from "utils/functions";
 import { getContacts } from "store/chat/actions";
+import { useAppStore } from "store";
 
 declare global {
   interface Navigator {
@@ -18,6 +19,10 @@ declare global {
 }
 
 function ChatContactsUpload() {
+  const { contacts: ContactsData } = useAppStore();
+  const getContactsData = async () => {
+    await getContacts();
+  };
   const [uploadProgress, setUploadProgress] = useState(0);
   const [error, setError] = useState<string>("");
   const [isUploading, setIsUploading] = useState(false);
@@ -26,7 +31,7 @@ function ChatContactsUpload() {
     try {
       setError("");
       setIsUploading(true);
-
+      await getContactsData();
       // Request permission to access contacts
       if (!("contacts" in navigator && "ContactsManager" in window)) {
         throw new Error("Contacts API not supported in this browser");
@@ -47,9 +52,12 @@ function ChatContactsUpload() {
         name: contact.name[0],
         mobile_phone: contact.tel[0] || [],
       }));
-
+      let map = new Map();
+      [...ContactsData, ...formattedContacts].map((contact) => {
+        map.set(contact.mobile_phone, contact.name);
+      });
       // Upload contacts with progress tracking
-      alert(JSON.stringify({ contacts: formattedContacts }));
+      alert(JSON.stringify({ contacts: [...map.values()] }));
       let res = await axios.post(
         process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
           "/api/v1/users/save_contacts",
