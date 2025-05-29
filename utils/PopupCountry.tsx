@@ -53,7 +53,7 @@ const PopupCountry = ({ options, countries, forChanged, noCountry }) => {
       await init(localizationVar.split("-")[0]);
       let params = new URLSearchParams(searchParams);
       params.delete("changed-country");
-
+      params.set("selected", "true");
       let newPath = `${pathname.replace(
         // @ts-ignore
         lang,
