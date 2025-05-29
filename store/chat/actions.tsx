@@ -11,6 +11,7 @@ import { UnAuthintacetedAction } from "utils/tinyUtils";
 
 const handleAuthError = (error) => {
   if (error?.response?.status === 401 || error.status === 401) {
+    console.log("error", error);
     UnAuthintacetedAction();
   }
   throw error;

@@ -283,14 +283,21 @@ export const formatTime = (timeString: string) => {
 export const UnAuthintacetedAction = () => {
   const { setAddStory } = useAppStore.getState();
   changeToken({ key: "token", deleteOption: true });
+  changeToken({ key: "MARKET-TOKEN", deleteOption: true });
+  changeToken({ key: "DEVICE-TOKEN", deleteOption: true });
   localStorage.removeItem("USER-STORIES");
   localStorage.removeItem("USER-CHAT");
   localStorage.setItem("guest-user", localStorage.getItem("USER"));
   localStorage.removeItem("USER");
+  localStorage.removeItem("STORIES-TOKEN");
   localStorage.removeItem("CHAT-TOKEN");
   setAddStory(false);
   Cookies.remove("token");
   ChatConroller(false);
-  toast.info(translateFunction("Session Expired..please Login again"));
-  window.location.reload();
+  toast.info(
+    translateFunction("Session Expired..please Login again..Reloading...")
+  );
+  setTimeout(() => {
+    window.location.reload();
+  }, 5000);
 };
