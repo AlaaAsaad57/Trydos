@@ -372,7 +372,7 @@ const ActiveFiltersBar = ({
                         value: brand,
                         arr: filters.brands,
                         key: "slug",
-                      })?.icon?.file_path?.replace(
+                      })?.icon?.replace(
                         "/upload",
                         "/upload/w_100,h_100,c_fit/f_webp/q_100"
                       )}
@@ -896,7 +896,7 @@ export const FilterItem = ({
             className="brand-photo"
             width={70}
             height={70}
-            src={item.icon?.file_path?.replace(
+            src={item.icon?.replace(
               "/upload",
               "/upload/w_100,h_100,c_fit/f_webp/q_100"
             )}

@@ -643,7 +643,7 @@ const ShowFilterRow = ({ term, values }) => {
         "/upload/w_50,h_50,c_fit/f_webp/q_100"
       );
     } else if (value.icon) {
-      return value.icon.file_path?.replace(
+      return value.icon?.replace(
         "/upload",
         "/upload/w_50,h_50,c_fit/f_webp/q_100"
       );
