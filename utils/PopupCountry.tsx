@@ -23,18 +23,22 @@ const PopupCountry = ({ options, countries, forChanged, noCountry }) => {
 
   const [selectedCountry, setSelectedCountry] = useState("");
   const init = async (e) => {
-    if (e) {
-      await changeAppCountryServer(e);
-      setLocalization({ ...localization, country: e });
-      Cookies.set("language", localization.language, {
-        expires: 365,
-      });
-      await Cookies.set("lang", localization.language, {
-        expires: 365,
-      });
-      await Cookies.set("country", e?.toLowerCase(), {
-        expires: 365,
-      });
+    try {
+      if (e) {
+        await changeAppCountryServer(e);
+        setLocalization({ ...localization, country: e });
+        Cookies.set("language", localization.language, {
+          expires: 365,
+        });
+        await Cookies.set("lang", localization.language, {
+          expires: 365,
+        });
+        await Cookies.set("country", e?.toLowerCase(), {
+          expires: 365,
+        });
+      }
+    } catch (error) {
+      console.error(error, "error");
     }
   };
   const { lang } = useParams();
@@ -57,10 +61,14 @@ const PopupCountry = ({ options, countries, forChanged, noCountry }) => {
       )}${`?${params.toString()}`}`;
 
       setTimeout(() => {
-        window.location.replace(`${window.location.origin}${newPath}`);
+        window.history.replaceState(null, "", newPath);
+        window.location.href = `${window.location.origin}${newPath}`;
       }, 1000);
+      setTimeout(() => {
+        window.location.href = `${window.location.origin}${newPath}`;
+      }, 6000);
     } catch (error) {
-      console.error(error);
+      console.error(error, "error");
     }
   };
   useEffect(() => {

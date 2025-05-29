@@ -12,7 +12,7 @@ import { getStoriesServer } from "store/homepage/cachedActions";
 function StoriesBarServer() {
   const { storiesData, setStoryData } = useAppStore();
   const [next_page_url, setNextPageUrl] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const getData = async () => {
     setLoading(true);
     let { data, next_page_url } = await getStoriesServer();
@@ -41,7 +41,9 @@ function StoriesBarServer() {
                   {storiesData?.map((story, index) => (
                     <StoryElement key={index} index={index} story={story} />
                   ))}
-                  <StoriesPagination next_page_url={next_page_url} />
+                  {next_page_url && (
+                    <StoriesPagination next_page_url={next_page_url} />
+                  )}
                 </HortiznalScrollBar>
               ) : (
                 <StoriesSkeleton />
