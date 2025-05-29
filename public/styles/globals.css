@@ -104,8 +104,9 @@ img {
 .overflow-x-scroll::-webkit-scrollbar {
   display: none;
 }
+
 .overflow-x-scroll {
-  scrollbar-width: 0px;
+  scrollbar-width: none;
 }
 .embla__slide:not(:first-child) {
   margin-left: 10px;
