@@ -12,15 +12,17 @@ import { getStoriesServer } from "store/homepage/cachedActions";
 function StoriesBarServer() {
   const { storiesData, setStoryData } = useAppStore();
   const [next_page_url, setNextPageUrl] = useState(null);
+  const [loading, setLoading] = useState(true);
   const getData = async () => {
     let { data, next_page_url } = await getStoriesServer();
     setStoryData(data);
     setNextPageUrl(next_page_url);
+    setLoading(false);
   };
   useEffect(() => {
     getData();
   }, []);
-
+  if (loading) return <StoriesSkeleton />;
   try {
     return (
       <div className="stories-bar-container">
