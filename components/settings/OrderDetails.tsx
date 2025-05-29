@@ -35,11 +35,9 @@ function OrderDetails({
   if (!selectedOrder?.id) return null;
   const shouldShowChatIcon = () => {
     // Out for Delivery
-    if (selectedOrder.order_status.label === "In Delivery Center") return true;
+    if (selectedOrder.order_status.label === "Out for Delivery") return true;
     if (
-      selectedOrder.details?.find(
-        (s) => s.order_status === "In Delivery Center"
-      )
+      selectedOrder.details?.find((s) => s.order_status === "Out for Delivery")
     )
       return true;
     return false;
