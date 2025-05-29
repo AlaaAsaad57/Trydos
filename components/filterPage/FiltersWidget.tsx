@@ -635,17 +635,17 @@ const ShowFilterRow = ({ term, values }) => {
     if (value.most_viewed_product_thumbnail) {
       return value.most_viewed_product_thumbnail.file_path?.replace(
         "/upload",
-        "/upload/w_50,h_50,c_fit/f_avif/q_100"
+        "/upload/w_50,h_50,c_fit/f_webp/q_100"
       );
     } else if (value.flat_photo_path) {
       return value.flat_photo_path.file_path?.replace(
         "/upload",
-        "/upload/w_50,h_50,c_fit/f_avif/q_100"
+        "/upload/w_50,h_50,c_fit/f_webp/q_100"
       );
     } else if (value.icon) {
       return value.icon.file_path?.replace(
         "/upload",
-        "/upload/w_50,h_50,c_fit/f_avif/q_100"
+        "/upload/w_50,h_50,c_fit/f_webp/q_100"
       );
     }
   };

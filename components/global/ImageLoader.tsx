@@ -7,7 +7,7 @@ function ImageLoader(props) {
     if (props.src?.includes("cloudinary")) {
       return props.src.replace(
         "/upload",
-        `/upload/h_${props.height}/f_avif/q_auto`
+        `/upload/h_${props.height}/f_webp/q_auto`
       );
     } else return props.src;
   };

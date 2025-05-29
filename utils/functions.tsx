@@ -106,13 +106,13 @@ export const getConfiguredImage = ({
   if (typeof src === "string") {
     return src.replace(
       "/upload",
-      `/upload/h_${height}/f_avif/q_${q || "auto"}`
+      `/upload/h_${height}/f_webp/q_${q || "auto"}`
     );
   }
   if (src?.file_path?.includes("cloudinary")) {
     return src.file_path.replace(
       "/upload",
-      `/upload/h_${height}/f_avif/q_${q || "auto"}`
+      `/upload/h_${height}/f_webp/q_${q || "auto"}`
     );
   } else return src?.file_path || "";
 };

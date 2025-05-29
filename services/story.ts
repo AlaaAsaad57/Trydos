@@ -187,7 +187,7 @@ class StoryService {
       } else if (storyItem.photo_path) {
         let img = storyItem.photo_path.replace(
           "/upload",
-          "/upload/w_800/f_avif/q_auto"
+          "/upload/w_800/f_webp/q_auto"
         );
         returnedData.push({
           url: img,
@@ -215,8 +215,8 @@ class StoryService {
   getThumb(url, isVideo) {
     if (url) {
       if (isVideo) {
-        return url.replace("/upload", "/upload/h_194/f_avif/q_100");
-      } else return url.replace("/upload", "/upload/h_194/f_avif/q_100");
+        return url.replace("/upload", "/upload/h_194/f_webp/q_100");
+      } else return url.replace("/upload", "/upload/h_194/f_webp/q_100");
     }
   }
   async getStoriesForProducts({ id, page }) {
