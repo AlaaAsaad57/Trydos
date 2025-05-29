@@ -1,6 +1,5 @@
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import NextLink from "components/global/NextLink";
 import { Boutique } from "models/offer";
 

@@ -8,7 +8,8 @@ import search from "services/search";
 
 interface OfferAvatarsProps {
   priority: boolean;
-  boutique: Boutique;
+  boutique: any;
+  // boutique: Boutique;
 }
 function OfferAvatars({ priority, boutique }: OfferAvatarsProps) {
   const ref = useRef<HTMLDivElement>();
@@ -49,7 +50,7 @@ function OfferAvatars({ priority, boutique }: OfferAvatarsProps) {
     >
       {boutique?.childCategoriesForProductIds.map((product, index) => {
         if (index < 7) {
-          if (product?.most_viewed_product_thumbnail.file_path)
+          if (product?.photo)
             return (
               <OfferAvatar
                 boutique={boutique}
@@ -60,7 +61,7 @@ function OfferAvatars({ priority, boutique }: OfferAvatarsProps) {
                 })}`}
                 key={index}
                 category={product.name}
-                images={product?.most_viewed_product_thumbnail.file_path}
+                images={product?.photo}
                 zIndex={index + 1}
                 priority={priority}
               />
@@ -72,10 +73,7 @@ function OfferAvatars({ priority, boutique }: OfferAvatarsProps) {
           priority={false}
           href={`/${lang}/boutique/${boutique?.slug}`}
           boutique={boutique}
-          images={
-            boutique?.childCategoriesForProductIds[7]
-              .most_viewed_product_thumbnail.file_path
-          }
+          images={boutique?.childCategoriesForProductIds[7].photo}
           zIndex={100}
           viewed={6}
         />

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import ActiveCategoryIcon from "public/svg/listing/ActiveCategoryIcon.svg";
 import { useAppStore } from "store";
-
+import Image from "next/image";
 function CategoryItem({ category, onClick, isActive }) {
   const { searchFilters } = useAppStore();
   const [expanded, setExpand] = useState(false);
@@ -26,7 +26,8 @@ function CategoryItem({ category, onClick, isActive }) {
           />
         )}
 
-        <img src={category.flat_photo_path?.file_path} />
+        <Image alt={category.name} width={30} height={30} src={category.icon} />
+
         {category.name}
       </div>
       {category.childes?.length > 0 && (
@@ -49,7 +50,7 @@ function CategoryItem({ category, onClick, isActive }) {
                     className="absolute"
                   />
                 )}
-              <img src={s.flat_photo_path?.file_path} />
+              <Image alt={category.name} width={30} height={30} src={s.icon} />
               {s.name}
             </div>
           ))}

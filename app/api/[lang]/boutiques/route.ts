@@ -23,7 +23,7 @@ export async function GET(
       ? `?category_slugs=["${str}"]&limit=10&offset=${offset}`
       : `?category_slugs=[]&limit=10&offset=${offset}`);
 
-  let boutiques_response: GetBoutiqueApi = await fetchWithRetry(
+  let boutiques_response = await fetch(
     process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL + BOUTIQUE_URL,
     {
       headers: new Headers({
@@ -33,14 +33,45 @@ export async function GET(
         lang: language ?? "en",
         country: country ?? "tr",
       }),
-    },
-    "Next Boutique Request"
+    }
   );
-  return NextResponse.json(boutiques_response, {
-    headers: {
-      "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type, Authorization",
+  let { data } = await boutiques_response.json();
+
+  return NextResponse.json(
+    {
+      total: data.total,
+      limit: data.limit,
+      offset: data.offset,
+      boutiques: data?.boutiques?.map((s) => ({
+        name: s.name,
+        icon: s.icon.file_path,
+        slug: s.slug,
+        description: s.description,
+        banners: s?.banners?.map((banner) => ({
+          file_path: banner?.file_path,
+        })),
+        mainCategoriesForProductIds: s?.mainCategoriesForProductIds?.map(
+          (main) => ({
+            icon: main.flat_photo_path.file_path,
+            slug: main.slug,
+          })
+        ),
+        childCategoriesForProductIds: s?.childCategoriesForProductIds?.map(
+          (main) => ({
+            photo: main.most_viewed_product_thumbnail.file_path,
+            name: main.name,
+            most_viewed_product_name: main.most_viewed_product_name,
+            slug: main.slug,
+          })
+        ),
+      })),
     },
-  });
+    {
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization",
+      },
+    }
+  );
 }

@@ -633,7 +633,7 @@ const ShowFilterRow = ({ term, values }) => {
   };
   const getImage = (value) => {
     if (value.most_viewed_product_thumbnail) {
-      return value.most_viewed_product_thumbnail.file_path?.replace(
+      return value.most_viewed_product_thumbnail?.replace(
         "/upload",
         "/upload/w_50,h_50,c_fit/f_webp/q_100"
       );

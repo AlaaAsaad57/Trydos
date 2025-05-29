@@ -110,7 +110,8 @@ export default async function Page({
         }/featured?${new URLSearchParams({
           boutiqueId: null,
           noProducts: "false",
-          noFilters: "false",
+          forHome: "true",
+          noFilters: "true",
           offset: "false",
           searchParams:
             Object.keys(EditedSearchParams).length > 0
@@ -131,7 +132,7 @@ export default async function Page({
         }
       );
       let data = await response.json();
-      return data.data;
+      return data;
     } catch (error) {
       console.log(error, "getProductsData", response);
       return {};

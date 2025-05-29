@@ -183,7 +183,7 @@ const ActiveFiltersBar = ({
                           value: category,
                           arr: filters.categories,
                           key: "slug",
-                        }).most_viewed_product_thumbnail?.file_path ??
+                        }).most_viewed_product_thumbnail ??
                         getItemData({
                           value: category,
                           arr: filters.categories,
@@ -637,7 +637,7 @@ export const FilterItem = ({
               height={70}
               className="object-center bg-white"
               src={(
-                item.most_viewed_product_thumbnail?.file_path ??
+                item.most_viewed_product_thumbnail ??
                 item.flat_photo_path?.file_path ??
                 item?.icon?.file_path
               )?.replace("/upload", "/upload/w_100,h_100,c_fit/f_webp/q_100")}
@@ -730,7 +730,7 @@ export const FilterItem = ({
                       height={50}
                       className="bg-white"
                       src={
-                        s.most_viewed_product_thumbnail?.file_path ??
+                        s.most_viewed_product_thumbnail ??
                         s.flat_photo_path?.file_path ??
                         s?.icon?.file_path
                       }
@@ -821,7 +821,7 @@ export const FilterItem = ({
                                 width={40}
                                 height={40}
                                 src={
-                                  s.most_viewed_product_thumbnail?.file_path ??
+                                  s.most_viewed_product_thumbnail ??
                                   s.flat_photo_path?.file_path ??
                                   s?.icon?.file_path
                                 }

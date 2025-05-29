@@ -36,7 +36,6 @@ function InfinteScroll({ offsetVariable }) {
   const getNextBoutique = async () => {
     if (!loading && !isEnd) {
       setLoading(true);
-      ("use server");
       let res = await fetch(
         `/api/${params.lang}/boutiques?offset=${offset}${
           params.mainCategory?.length > 0 ? `&str=${params.mainCategory}` : ""
@@ -56,16 +55,16 @@ function InfinteScroll({ offsetVariable }) {
       let body = await res.json();
       let boutiques = body;
 
-      if (offset === boutiques.data.ofsset) {
+      if (offset === boutiques.ofsset) {
         setLoading(false);
         setEnd(true);
-      } else if (boutiques.data.boutiques.length === 0) {
+      } else if (boutiques.boutiques.length === 0) {
         setLoading(false);
         setEnd(true);
       } else {
-        setBoutiques(boutiques.data.boutiques);
+        setBoutiques(boutiques.boutiques);
         setLoading(false);
-        setOffset(boutiques.data.offset);
+        setOffset(boutiques.offset);
       }
     }
   };

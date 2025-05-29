@@ -21,9 +21,10 @@ async function NavbarServer({
       }
     );
     const data = await res.json();
-    const { mainCategories: categories } = data.data;
+    const { mainCategories: categories } = data;
 
     categories.sort((a, b) => (a.slug === mainCategory ? -1 : 1));
+
     return (
       <div className="flex-row search-nav-holder">
         <SearchIcon />
@@ -41,7 +42,7 @@ async function NavbarServer({
                 active={mainCategory === category.slug}
                 key={key}
                 myKey={key}
-                icon={category?.flat_photo_path?.file_path}
+                icon={category?.icon}
                 slug={category.slug}
               />
             ))}

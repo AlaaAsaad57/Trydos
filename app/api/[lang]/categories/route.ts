@@ -33,11 +33,15 @@ export async function GET(req: NextRequest, { params }) {
       )}`
     );
   }
-  let data = await response.json();
+  let { data } = await response.json();
 
   return NextResponse.json(
     {
-      ...data,
+      mainCategories: data.mainCategories.map((s) => ({
+        name: s.name,
+        slug: s.slug,
+        icon: s.flat_photo_path?.file_path,
+      })),
     },
     {
       status: 200,
