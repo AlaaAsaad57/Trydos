@@ -12,6 +12,7 @@ import { useRouter } from "next/navigation";
 import Spinner from "components/global/Spinner";
 import { changeAppCountryServer } from "store/homepage/cachedActions";
 import { GA_CLICK_EVENT_VALUES, GA_EVENT_NAMES } from "./GAEvents";
+import Link from "node_modules/next/link";
 
 const PopupCountry = ({ options, countries, forChanged, noCountry }) => {
   const [loading, setLoading] = useState(true);
@@ -54,19 +55,18 @@ const PopupCountry = ({ options, countries, forChanged, noCountry }) => {
       let params = new URLSearchParams(searchParams);
       params.delete("changed-country");
       params.set("selected", "true");
-      let newPath = `${pathname.replace(
-        // @ts-ignore
-        lang,
-        localizationVar
-      )}${`?${params.toString()}`}`;
+      // let newPath = `${pathname.replace(
+      //   // @ts-ignore
+      //   lang,
+      //   localizationVar
+      // )}${`?${params.toString()}`}`;
 
-      setTimeout(() => {
-        window.history.replaceState(null, "", newPath);
-        window.location.href = `${window.location.origin}${newPath}`;
-      }, 1000);
-      setTimeout(() => {
-        window.location.href = `${window.location.origin}${newPath}`;
-      }, 6000);
+      // setTimeout(() => {
+      //   window.location.href = `${window.location.origin}${newPath}`;
+      // }, 1000);
+      // setTimeout(() => {
+      //   window.location.href = `${window.location.origin}${newPath}`;
+      // }, 6000);
     } catch (error) {
       console.error(error, "error");
     }
@@ -76,6 +76,17 @@ const PopupCountry = ({ options, countries, forChanged, noCountry }) => {
       setLoading(false);
     }
   }, [countries]);
+  const getUrl = (localizationVar) => {
+    let params = new URLSearchParams(window.location.search);
+    params.delete("changed-country");
+    params.delete("no-country");
+    params.set("selected", "true");
+    return `${window.location.origin}${pathname.replace(
+      // @ts-ignore
+      lang,
+      localizationVar
+    )}${`?${params.toString()}`}`;
+  };
   return (
     <div
       style={{
@@ -135,6 +146,7 @@ const PopupCountry = ({ options, countries, forChanged, noCountry }) => {
                       UpdateUrl(
                         `${decodeURI(forChanged).split(",")[0]}-${langFromUrl}`
                       );
+                      window.location.reload();
                     }}
                   >
                     {translateFunction(
@@ -157,7 +169,15 @@ const PopupCountry = ({ options, countries, forChanged, noCountry }) => {
                       Array.isArray(lang) ? lang[0] : lang.split("-")[1]
                     )}
                   </span>
-                  <span
+                  <Link
+                    prefetch={true}
+                    href={getUrl(
+                      // @ts-ignore
+                      `${decodeURI(forChanged).split(",")[1]}-${
+                        // @ts-ignore
+                        lang.split("-")[1]
+                      }`
+                    )}
                     className="text-blue-600 cursor-pointer"
                     onClick={() => {
                       Sendevent({
@@ -186,7 +206,7 @@ const PopupCountry = ({ options, countries, forChanged, noCountry }) => {
                         )[0]?.label
                       }`}
                     </span>
-                  </span>
+                  </Link>
                 </div>
               </span>
             )}
