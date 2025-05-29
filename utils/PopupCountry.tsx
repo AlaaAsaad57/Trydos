@@ -57,7 +57,7 @@ const PopupCountry = ({ options, countries, forChanged, noCountry }) => {
       )}${`?${params.toString()}`}`;
 
       setTimeout(() => {
-        window.location.href = `${window.location.origin}${newPath}`;
+        window.location.replace(`${window.location.origin}${newPath}`);
       }, 1000);
     } catch (error) {
       console.error(error);

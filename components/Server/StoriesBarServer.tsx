@@ -22,28 +22,34 @@ function StoriesBarServer() {
   useEffect(() => {
     getData();
   }, []);
-  if (loading) return <StoriesSkeleton />;
+
   try {
     return (
-      <div className="stories-bar-container">
-        <div id="stories-bar" className="stories-bar">
-          {<AddStory />}
-          {storiesData ? (
-            <HortiznalScrollBar
-              id="stories-bar-container"
-              className="stories-bars pl-[10px]"
-            >
-              {storiesData?.map((story, index) => (
-                <StoryElement key={index} index={index} story={story} />
-              ))}
-              <StoriesPagination next_page_url={next_page_url} />
-            </HortiznalScrollBar>
-          ) : (
-            <StoriesSkeleton />
-          )}
-        </div>
-        <StoriesBorder />
-      </div>
+      <>
+        {loading ? (
+          <StoriesSkeleton />
+        ) : (
+          <div className="stories-bar-container">
+            <div id="stories-bar" className="stories-bar">
+              {<AddStory />}
+              {storiesData ? (
+                <HortiznalScrollBar
+                  id="stories-bar-container"
+                  className="stories-bars pl-[10px]"
+                >
+                  {storiesData?.map((story, index) => (
+                    <StoryElement key={index} index={index} story={story} />
+                  ))}
+                  <StoriesPagination next_page_url={next_page_url} />
+                </HortiznalScrollBar>
+              ) : (
+                <StoriesSkeleton />
+              )}
+            </div>
+            <StoriesBorder />
+          </div>
+        )}
+      </>
     );
   } catch (error) {
     console.error(error);
