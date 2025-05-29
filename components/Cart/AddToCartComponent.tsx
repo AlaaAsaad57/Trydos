@@ -138,7 +138,6 @@ function AddToCartComponent({
   };
   const SizesRef = useRef<SwiperRef>();
   const getSelectedVariantQty = () => {
-    console.log(ProductData.variation);
     if (ProductData?.variation?.length > 0) {
       let selected_variant = ProductData?.variation.find(
         (s) =>
@@ -1521,7 +1520,6 @@ const AddToCartButton = ({
     });
   };
   const isVariantInCart = ({ exact }) => {
-    console.log(localCart, product.colors, color, size, product.id, id);
     if (product?.variation?.length === 0)
       return localCart?.find((s) => s.id === id);
     if (
