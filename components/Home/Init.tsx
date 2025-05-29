@@ -61,10 +61,18 @@ function Init() {
     // @ts-ignore
   }, []);
   const getCountries = async () => {
-    let data = await axios.get(
-      process.env.NEXT_PUBLIC_BACKEND_URL + "/countries"
+    let res = await fetch(
+      process.env.NEXT_PUBLIC_API_BASE_URL + `/api/${lang}/countries`,
+      {
+        next: {
+          revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE_COUNTRIES),
+          tags: ["countries"],
+        },
+      }
     );
-    setCountriesData(data.data.data.countries);
+    let data = await res.json();
+
+    setCountriesData(data.countries);
   };
   const shouldShowBluredInfo = () => {
     if (

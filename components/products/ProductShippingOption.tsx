@@ -9,16 +9,23 @@ import MarkerIcon from "public/svg/product/MarkerIcon.svg";
 import { Sendevent, translateFunction } from "utils/functions";
 import { useParams } from "next/navigation";
 import { GA_CLICK_EVENT_VALUES, GA_EVENT_NAMES } from "utils/GAEvents";
-import { getCountriesApi } from "store/homepage/cachedActions";
 import Spinner from "components/global/Spinner";
 import { formatTime } from "utils/tinyUtils";
 function ProductShippingOption({ days }) {
   const [countriesData, setCountries] = useState([]);
   const getCountries = async () => {
     try {
-      const countries = await getCountriesApi();
-
-      setCountries(countries);
+      const res = await fetch(
+        process.env.NEXT_PUBLIC_API_BASE_URL + `/api/${lang}/countries`,
+        {
+          next: {
+            revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE_COUNTRIES),
+            tags: ["countries"],
+          },
+        }
+      );
+      let data = await res.json();
+      setCountries(data.countries);
     } catch (error) {
       console.log(error);
     }

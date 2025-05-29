@@ -6,8 +6,8 @@ import AddAddressIcon from "public/svg/cart/AddAddress.svg";
 
 import order from "services/order";
 import { DeleteModalComponent } from "components/Cart/OrdersPage";
-import { getCountriesApi } from "store/homepage/cachedActions";
 import { useAppStore } from "store";
+import { useParams } from "next/navigation";
 function PersonalInfoAddress({
   swipeToScreen,
   goBack,
@@ -18,10 +18,20 @@ function PersonalInfoAddress({
   setIsActive: (isActive: boolean) => void;
 }) {
   const { setCountries, addressLists } = useAppStore();
+  const { lang } = useParams();
   const getAdditionData = async () => {
     order.GetAddressList();
-    const countries = await getCountriesApi();
-    setCountries(countries);
+    const res = await await fetch(
+      process.env.NEXT_PUBLIC_API_BASE_URL + `/api/${lang}/countries`,
+      {
+        next: {
+          revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE_COUNTRIES),
+          tags: ["countries"],
+        },
+      }
+    );
+    let data = await res.json();
+    setCountries(data.countries);
   };
   useEffect(() => {
     getAdditionData();

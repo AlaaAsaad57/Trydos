@@ -12,6 +12,7 @@ import { useRouter } from "next/navigation";
 import Spinner from "components/global/Spinner";
 import { changeAppCountryServer } from "store/homepage/cachedActions";
 import { GA_CLICK_EVENT_VALUES, GA_EVENT_NAMES } from "./GAEvents";
+
 const PopupCountry = ({ options, countries, forChanged, noCountry }) => {
   const [loading, setLoading] = useState(true);
   const [loadingWidget, setLoadingWidget] = useState(false);
@@ -43,21 +44,27 @@ const PopupCountry = ({ options, countries, forChanged, noCountry }) => {
   const Defaultcountry = lang.split("-")[0];
   const router = useRouter();
   const UpdateUrl = async (localizationVar) => {
-    setLoadingWidget(true);
-    await init(localizationVar.split("-")[0]);
-    setTimeout(() => {
+    try {
+      setLoadingWidget(true);
+      await init(localizationVar.split("-")[0]);
       let params = new URLSearchParams(searchParams);
       params.delete("changed-country");
-      // @ts-ignore
-      let newPath = `${pathname.replace(lang, localizationVar)}${
-        params.values.length > 0 ? `?${params.toString()}` : ""
-      }`;
-      window.location.search = "?selected=true";
-      window.location.pathname = `/${newPath}`;
-    }, 1000);
+
+      let newPath = `${pathname.replace(
+        // @ts-ignore
+        lang,
+        localizationVar
+      )}${`?${params.toString()}`}`;
+
+      setTimeout(() => {
+        window.location.href = `${window.location.origin}${newPath}`;
+      }, 1000);
+    } catch (error) {
+      console.error(error);
+    }
   };
   useEffect(() => {
-    if (countries?.length > 0) {
+    if (countries?.length > 0 && loading) {
       setLoading(false);
     }
   }, [countries]);
