@@ -138,6 +138,7 @@ function AddToCartComponent({
   };
   const SizesRef = useRef<SwiperRef>();
   const getSelectedVariantQty = () => {
+    console.log(ProductData.variation);
     if (ProductData?.variation?.length > 0) {
       let selected_variant = ProductData?.variation.find(
         (s) =>
@@ -435,8 +436,7 @@ function AddToCartComponent({
                     strokeWidth="2"
                   />
                 </svg>
-                {getSelectedVariantQty()?.price >= 0 &&
-                RoundPrice({ num: getSelectedVariantQty()?.price }) >= 0 ? (
+                {getSelectedVariantQty()?.price >= 0 && currency?.symbol ? (
                   <>{RoundPrice({ num: getSelectedVariantQty()?.price })}</>
                 ) : (
                   <Skeleton width={30} height={10} />
@@ -446,8 +446,8 @@ function AddToCartComponent({
                 data-cy="product_new-price_addtocart"
                 className="product-new-price"
               >
-                {RoundPrice({ num: getSelectedVariantQty()?.offer_price }) >=
-                0 ? (
+                {getSelectedVariantQty()?.offer_price >= 0 &&
+                currency?.symbol ? (
                   <>
                     {RoundPrice({ num: getSelectedVariantQty()?.offer_price })}
                   </>
