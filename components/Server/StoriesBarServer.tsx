@@ -12,8 +12,9 @@ import { getStoriesServer } from "store/homepage/cachedActions";
 function StoriesBarServer() {
   const { storiesData, setStoryData } = useAppStore();
   const [next_page_url, setNextPageUrl] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const getData = async () => {
+    setLoading(true);
     let { data, next_page_url } = await getStoriesServer();
     setStoryData(data);
     setNextPageUrl(next_page_url);
