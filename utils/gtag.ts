@@ -184,5 +184,6 @@ export const SetGAUser = (user) => {
     user_type: user.phone === "0" ? "guest" : "registered",
     user_location: country?.name,
     days_age_account: user.days_age_account,
+    gender: user?.gender?.name === "Man" ? "male" : "female",
   });
 };
