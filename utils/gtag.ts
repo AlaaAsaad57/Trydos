@@ -29,32 +29,32 @@ export const pageview = (url: string) => {
   const { session_id, previous_event_button_name } = useAppStore.getState();
   let userId = auth.UserID() || "empty";
 
-  let bool = confirm(
-    `window?.gtag?.("event", "pageview", {
-        debug_mode: true,
-        page_path: ${url},
-        country_name: ${country?.name},
-        device_language: ${language?.name},
-        userID: ${userId},
-        session_id: ${session_id},
-        previous_event_button_name: ${previous_event_button_name},
-        time_stamp: ${new Date().toISOString()},
-      })`
-  );
-  if (bool) {
-    navigator.clipboard.writeText(
-      `window?.gtag?.("event", "pageview", {
-        debug_mode: true,
-        page_path: ${url},
-        country_name: ${country?.name},
-        device_language: ${language?.name},
-        userID: ${userId},
-        session_id: ${session_id},
-        previous_event_button_name: ${previous_event_button_name},
-        time_stamp: ${new Date().toISOString()},
-      })`
-    );
-  }
+  // let bool = confirm(
+  //   `window?.gtag?.("event", "pageview", {
+  //       debug_mode: true,
+  //       page_path: ${url},
+  //       country_name: ${country?.name},
+  //       device_language: ${language?.name},
+  //       userID: ${userId},
+  //       session_id: ${session_id},
+  //       previous_event_button_name: ${previous_event_button_name},
+  //       time_stamp: ${new Date().toISOString()},
+  //     })`
+  // );
+  // if (bool) {
+  //   navigator.clipboard.writeText(
+  //     `window?.gtag?.("event", "pageview", {
+  //       debug_mode: true,
+  //       page_path: ${url},
+  //       country_name: ${country?.name},
+  //       device_language: ${language?.name},
+  //       userID: ${userId},
+  //       session_id: ${session_id},
+  //       previous_event_button_name: ${previous_event_button_name},
+  //       time_stamp: ${new Date().toISOString()},
+  //     })`
+  //   );
+  // }
   // @ts-ignore
   window?.gtag?.("event", "pageview", {
     debug_mode: true,
@@ -79,32 +79,32 @@ export const event = ({
   const { session_id, previous_event_button_name } = useAppStore.getState();
   let userId = auth.UserID() || "empty";
 
-  let bool = confirm(
-    `window?.gtag?.("event", ${action}, {
-      debug_mode: true,
-      executed_event_name: ${params.value},
-      country_name: ${country?.name},
-      device_language: ${language?.name},
-      userID: ${userId},
-      session_id: ${session_id},
-      previous_event_button_name: ${previous_event_button_name},
-      time_stamp:${new Date().toISOString()},
-    })`
-  );
-  if (bool) {
-    navigator.clipboard.writeText(
-      `window?.gtag?.("event", ${action}, {
-        debug_mode: true,
-        executed_event_name: ${params.value},
-        country_name: ${country?.name},
-        device_language: ${language?.name},
-        userID: ${userId},
-        session_id: ${session_id},
-        previous_event_button_name: ${previous_event_button_name},
-        time_stamp:${new Date().toISOString()},
-      })`
-    );
-  }
+  // let bool = confirm(
+  //   `window?.gtag?.("event", ${action}, {
+  //     debug_mode: true,
+  //     executed_event_name: ${params.value},
+  //     country_name: ${country?.name},
+  //     device_language: ${language?.name},
+  //     userID: ${userId},
+  //     session_id: ${session_id},
+  //     previous_event_button_name: ${previous_event_button_name},
+  //     time_stamp:${new Date().toISOString()},
+  //   })`
+  // );
+  // if (bool) {
+  //   navigator.clipboard.writeText(
+  //     `window?.gtag?.("event", ${action}, {
+  //       debug_mode: true,
+  //       executed_event_name: ${params.value},
+  //       country_name: ${country?.name},
+  //       device_language: ${language?.name},
+  //       userID: ${userId},
+  //       session_id: ${session_id},
+  //       previous_event_button_name: ${previous_event_button_name},
+  //       time_stamp:${new Date().toISOString()},
+  //     })`
+  //   );
+  // }
   // @ts-ignore
   window?.gtag?.("event", action, {
     debug_mode: true,
@@ -127,36 +127,36 @@ export const GAevent = ({
   const { session_id, previous_event_button_name } = useAppStore.getState();
   let userId = auth.UserID() || "empty";
 
-  let bool = confirm(
-    `window?.gtag?.("event", ${action}, {
-        debug_mode: true,
-        ${Object.entries(params || {})
-          .map(([key, value]) => `${key}: ${JSON.stringify(value)}`)
-          .join(",\n")},
-        country_name: ${country?.name},
-        device_language: ${language?.name},
-        userID: ${userId},
-        session_id: ${session_id},
-        previous_event_button_name: ${previous_event_button_name},
-        time_stamp: ${new Date().toISOString()},
-      })`
-  );
-  if (bool) {
-    navigator.clipboard.writeText(
-      `window?.gtag?.("event", ${action}, {
-        debug_mode: true,
-        ${Object.entries(params || {})
-          .map(([key, value]) => `${key}: ${JSON.stringify(value)}`)
-          .join(",\n")},
-        country_name: ${country?.name},
-        device_language: ${language?.name},
-        userID: ${userId},
-        session_id: ${session_id},
-        previous_event_button_name: ${previous_event_button_name},
-        time_stamp: ${new Date().toISOString()},
-      })`
-    );
-  }
+  // let bool = confirm(
+  //   `window?.gtag?.("event", ${action}, {
+  //       debug_mode: true,
+  //       ${Object.entries(params || {})
+  //         .map(([key, value]) => `${key}: ${JSON.stringify(value)}`)
+  //         .join(",\n")},
+  //       country_name: ${country?.name},
+  //       device_language: ${language?.name},
+  //       userID: ${userId},
+  //       session_id: ${session_id},
+  //       previous_event_button_name: ${previous_event_button_name},
+  //       time_stamp: ${new Date().toISOString()},
+  //     })`
+  // );
+  // if (bool) {
+  //   navigator.clipboard.writeText(
+  //     `window?.gtag?.("event", ${action}, {
+  //       debug_mode: true,
+  //       ${Object.entries(params || {})
+  //         .map(([key, value]) => `${key}: ${JSON.stringify(value)}`)
+  //         .join(",\n")},
+  //       country_name: ${country?.name},
+  //       device_language: ${language?.name},
+  //       userID: ${userId},
+  //       session_id: ${session_id},
+  //       previous_event_button_name: ${previous_event_button_name},
+  //       time_stamp: ${new Date().toISOString()},
+  //     })`
+  //   );
+  // }
   // @ts-ignore
   window?.gtag?.("event", action, {
     debug_mode: true,
@@ -170,24 +170,24 @@ export const GAevent = ({
   });
 };
 export const SetGAUser = (user) => {
-  let bool = confirm(
-    `window?.gtag?.("set", {
-      user_id: ${user.id},
-      user_type: ${user.phone === "0" ? "guest" : "registered"},
-      user_location: ${country?.name},
-      days_age_account: ${user.days_age_account},
-    })`
-  );
-  if (bool) {
-    navigator.clipboard.writeText(
-      `window?.gtag?.("set", {
-        user_id: ${user.id},
-        user_type: ${user.phone === "0" ? "guest" : "registered"},
-        user_location: ${country?.name},
-        days_age_account: ${user.days_age_account},
-      })`
-    );
-  }
+  // let bool = confirm(
+  //   `window?.gtag?.("set", {
+  //     user_id: ${user.id},
+  //     user_type: ${user.phone === "0" ? "guest" : "registered"},
+  //     user_location: ${country?.name},
+  //     days_age_account: ${user.days_age_account},
+  //   })`
+  // );
+  // if (bool) {
+  //   navigator.clipboard.writeText(
+  //     `window?.gtag?.("set", {
+  //       user_id: ${user.id},
+  //       user_type: ${user.phone === "0" ? "guest" : "registered"},
+  //       user_location: ${country?.name},
+  //       days_age_account: ${user.days_age_account},
+  //     })`
+  //   );
+  // }
   // @ts-ignore
   window?.gtag?.("set", {
     user_id: user.id,
