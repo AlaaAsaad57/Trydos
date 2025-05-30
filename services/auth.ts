@@ -13,6 +13,7 @@ import { AxiosGet, AxiosPost } from "utils/AxiosApi";
 import { LikesSharesCommentsApi } from "models/Api";
 import { changeToken } from "store/homepage/cachedActions";
 import axios from "axios";
+import { SetGAUser } from "utils/gtag";
 const getHeader = () => {
   let [countryUrl, languageUrl] = window.location.pathname
     .split("/")[1]
@@ -129,6 +130,7 @@ class AuthService {
           expires_at: repo.data.expires_at,
         })
       );
+      SetGAUser(repo.data.user);
       localStorage.removeItem("guest-user");
       if (localStorage.getItem("customer-info")) {
         localStorage.removeItem("customer-info");
@@ -197,6 +199,10 @@ class AuthService {
           name: name,
         })
       );
+      SetGAUser({
+        ...JSON.parse(localStorage.getItem("USER")),
+        name: name,
+      });
       updateName(name);
       let axios = (await import("axios")).default;
       await AxiosPost({
@@ -264,6 +270,7 @@ class AuthService {
       "USER",
       JSON.stringify({ ...userLocal, is_verified: true })
     );
+    SetGAUser({ ...userLocal, is_verified: true });
     if (localStorage.getItem("guest-user")) {
       localStorage.removeItem("guest-user");
     }
@@ -441,6 +448,12 @@ class AuthService {
           image: userObj?.image ?? userProfile?.image,
         })
       );
+      SetGAUser({
+        ...JSON.parse(localStorage.getItem("USER")),
+        name: userObj?.name ?? userProfile?.name,
+        phone: userObj?.phone ?? userProfile?.phone,
+        image: userObj?.image ?? userProfile?.image,
+      });
       return res;
     } catch (error) {
       if (market_done) {

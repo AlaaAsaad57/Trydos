@@ -21,6 +21,7 @@ import {
   GA_EVENT_NAMES,
   GA_PROGRAMMING_EVENT_VALUES,
 } from "utils/GAEvents";
+import { GAevent } from "utils/gtag";
 
 function NewLoginWidget() {
   let { lang } = useParams();
@@ -111,7 +112,40 @@ function NewLoginWidget() {
         EditPhoneFunc
       );
       successCallback(exists, name);
+      if (operation === "login")
+        GAevent({
+          action: "login",
+          params: {
+            method: "phone",
+            login_status: "success",
+          },
+        });
+      else
+        GAevent({
+          action: "sign_up",
+          params: {
+            method: "phone",
+            signup_status: "success",
+          },
+        });
     } catch (error) {
+      setLoadingPin(false);
+      if (operation === "login")
+        GAevent({
+          action: "login",
+          params: {
+            method: "phone",
+            login_status: "failure",
+          },
+        });
+      else
+        GAevent({
+          action: "sign_up",
+          params: {
+            method: "phone",
+            signup_status: "failure",
+          },
+        });
       errorCallback(error);
       console.error("VerifyOtp failed:", error);
     }
