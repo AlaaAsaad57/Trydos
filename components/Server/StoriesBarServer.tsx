@@ -36,7 +36,7 @@ function StoriesBarServer() {
               {storiesData ? (
                 <HortiznalScrollBar
                   id="stories-bar-container"
-                  className="stories-bars pl-[10px]"
+                  className="flex h-full pl-[10px]"
                 >
                   {storiesData?.map((story, index) => (
                     <StoryElement key={index} index={index} story={story} />
