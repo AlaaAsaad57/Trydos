@@ -97,13 +97,18 @@ const CartProvider = () => {
     if (searchParams.get("cart")) {
       enableCartAction(true);
     }
-    let a = searchParams.get("coupon");
-
+    let couponUrlVar = searchParams.get("coupon");
+    let selectedUrlVar = searchParams.get("selected");
     setTimeout(() => {
-      if (a) {
-        localStorage.setItem("coupon-number", a);
+      if (couponUrlVar) {
+        localStorage.setItem("coupon-number", couponUrlVar);
         const newParams = new URLSearchParams(searchParams);
         newParams.delete("coupon");
+        router.replace(newParams.size ? `${pathname}?${newParams}` : pathname);
+      }
+      if (selectedUrlVar) {
+        const newParams = new URLSearchParams(searchParams);
+        newParams.delete("selected");
         router.replace(newParams.size ? `${pathname}?${newParams}` : pathname);
       }
     }, 1000);
