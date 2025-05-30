@@ -1,5 +1,4 @@
 import auth from "services/auth";
-import Cookies from "js-cookie";
 import { useAppStore } from "store";
 export const GA_MEASUREMENT_ID = "G-N8LNVEWJSJ"; // replace with your ID
 let countries = [
@@ -8,12 +7,23 @@ let countries = [
   { name: "Iraq", iso: "iq" },
   { name: "Lebanon", iso: "lb" },
 ];
+let languages = [
+  { name: "English", iso: "en" },
+  { name: "Turkish", iso: "tr" },
+  { name: "arabic", iso: "ar" },
+];
 let countryCode =
   typeof document !== "undefined" &&
   window.location.pathname.split("/")[1].split("-")[0];
+let LangCode =
+  typeof document !== "undefined" &&
+  window.location.pathname.split("/")[1].split("-")[1];
 let country =
   countryCode &&
   countries.find((s) => s.iso?.toLowerCase() === countryCode?.toLowerCase());
+let language =
+  LangCode &&
+  languages.find((s) => s.iso?.toLowerCase() === LangCode?.toLowerCase());
 // Track pageview
 export const pageview = (url: string) => {
   const { session_id, previous_event_button_name } = useAppStore.getState();
@@ -24,7 +34,7 @@ export const pageview = (url: string) => {
         debug_mode: true,
         page_path: ${url},
         country_name: ${country?.name},
-        device_language: ${Cookies.get("language")},
+        device_language: ${language?.name},
         userID: ${userId},
         session_id: ${session_id},
         previous_event_button_name: ${previous_event_button_name},
@@ -37,7 +47,7 @@ export const pageview = (url: string) => {
         debug_mode: true,
         page_path: ${url},
         country_name: ${country?.name},
-        device_language: ${Cookies.get("language")},
+        device_language: ${language?.name},
         userID: ${userId},
         session_id: ${session_id},
         previous_event_button_name: ${previous_event_button_name},
@@ -50,7 +60,7 @@ export const pageview = (url: string) => {
     debug_mode: true,
     page_path: url,
     country_name: country?.name,
-    device_language: Cookies.get("language"),
+    device_language: language?.name,
     userID: userId,
     session_id: session_id,
     previous_event_button_name: previous_event_button_name,
@@ -74,7 +84,7 @@ export const event = ({
       debug_mode: true,
       executed_event_name: ${params.value},
       country_name: ${country?.name},
-      device_language: ${Cookies.get("language")},
+      device_language: ${language?.name},
       userID: ${userId},
       session_id: ${session_id},
       previous_event_button_name: ${previous_event_button_name},
@@ -87,7 +97,7 @@ export const event = ({
         debug_mode: true,
         executed_event_name: ${params.value},
         country_name: ${country?.name},
-        device_language: ${Cookies.get("language")},
+        device_language: ${language?.name},
         userID: ${userId},
         session_id: ${session_id},
         previous_event_button_name: ${previous_event_button_name},
@@ -100,7 +110,7 @@ export const event = ({
     debug_mode: true,
     executed_event_name: params.value,
     country_name: country?.name,
-    device_language: Cookies.get("language"),
+    device_language: language?.name,
     userID: userId,
     session_id: session_id,
     previous_event_button_name: previous_event_button_name,
@@ -124,7 +134,7 @@ export const GAevent = ({
           .map(([key, value]) => `${key}: ${JSON.stringify(value)}`)
           .join(",\n")},
         country_name: ${country?.name},
-        device_language: ${Cookies.get("language")},
+        device_language: ${language?.name},
         userID: ${userId},
         session_id: ${session_id},
         previous_event_button_name: ${previous_event_button_name},
@@ -139,7 +149,7 @@ export const GAevent = ({
           .map(([key, value]) => `${key}: ${JSON.stringify(value)}`)
           .join(",\n")},
         country_name: ${country?.name},
-        device_language: ${Cookies.get("language")},
+        device_language: ${language?.name},
         userID: ${userId},
         session_id: ${session_id},
         previous_event_button_name: ${previous_event_button_name},
@@ -152,7 +162,7 @@ export const GAevent = ({
     debug_mode: true,
     ...params,
     country_name: country?.name,
-    device_language: Cookies.get("language"),
+    device_language: language?.name,
     userID: userId,
     session_id: session_id,
     previous_event_button_name: previous_event_button_name,
