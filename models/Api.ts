@@ -1240,6 +1240,8 @@ export interface FireBaseSettingsApi {
   firebase_settings: string;
 }
 export interface RegisterGuestApi {
+  isSuccessful: boolean;
+  message: string;
   data: {
     token: string;
     expires_at: string;

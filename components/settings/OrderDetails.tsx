@@ -35,11 +35,12 @@ function OrderDetails({
   if (!selectedOrder?.id) return null;
   const shouldShowChatIcon = () => {
     // Out for Delivery
-    if (selectedOrder.order_status.label === "Out for Delivery") return true;
+    if (selectedOrder.order_status.label === "Out for Delivery")
+      return selectedOrder.order_group_id;
     if (
       selectedOrder.details?.find((s) => s.order_status === "Out for Delivery")
     )
-      return selectedOrder.id;
+      return selectedOrder.order_group_id;
     return false;
   };
   return (

@@ -23,31 +23,36 @@ function SettingTopBar({
   goBack: () => void;
   Icon?: React.ReactNode;
   DataCy?: string;
-  hasChat?: boolean;
+  hasChat?: any;
 }) {
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [isGettingChat, setIsGettingChat] = useState(false);
   const [chatInfo, setChatInfo] = useState(null);
   const getChatWithShipping = async () => {
     setIsGettingChat(true);
-    let res = await AxiosPost({
-      url:
-        process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
-        "/api/v1/order-chat-participants/get-recipient",
-      body: {
-        original_user_id: auth.UserID(),
-        order_id: hasChat,
-      },
-    });
-    document.documentElement.style.overflow = "hidden";
-    document.documentElement.scrollTop = 0;
-    document.querySelector("#OrderDetails").scrollTop = 0;
-    document.querySelector("#OrderDetails").classList.add("overflow-hidden");
-    document.querySelector("#OrderDetails").classList.remove("overflow-auto");
-    console.log(res);
-    setChatInfo(res);
-    setIsChatOpen(true);
-    setIsGettingChat(false);
+    try {
+      let res = await AxiosPost({
+        url:
+          process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
+          "/api/v1/order-chat-participants/get-recipient",
+        body: {
+          original_user_id: auth.UserID(),
+          order_id: hasChat,
+        },
+        title: "Get Chat with Deleivery",
+      });
+      document.documentElement.style.overflow = "hidden";
+      document.documentElement.scrollTop = 0;
+      document.querySelector("#OrderDetails").scrollTop = 0;
+      document.querySelector("#OrderDetails").classList.add("overflow-hidden");
+      document.querySelector("#OrderDetails").classList.remove("overflow-auto");
+      console.log(res);
+      setChatInfo(res);
+      setIsChatOpen(true);
+      setIsGettingChat(false);
+    } catch (error) {
+      setIsGettingChat(false);
+    }
   };
   return (
     <>

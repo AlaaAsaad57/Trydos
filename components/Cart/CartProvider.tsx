@@ -19,6 +19,7 @@ import { getCurrency } from "utils/tinyUtils";
 import AddToCartComponent from "./AddToCartComponent";
 import { GA_CLICK_EVENT_VALUES } from "utils/GAEvents";
 import { GA_EVENT_NAMES } from "utils/GAEvents";
+import auth from "services/auth";
 const CartProvider = () => {
   const {
     enableCart,
@@ -111,6 +112,7 @@ const CartProvider = () => {
         newParams.delete("selected");
         router.replace(newParams.size ? `${pathname}?${newParams}` : pathname);
       }
+      auth.CheckUserName();
     }, 1000);
   }, []);
   useEffect(() => {

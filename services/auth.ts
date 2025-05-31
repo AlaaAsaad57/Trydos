@@ -67,7 +67,6 @@ class AuthService {
         setWrongNumber(msg);
         throw new Error(msg);
       }
-      return repo.data.verificationId;
     } catch (e) {
       errorCallback();
       setWrongNumber(msg);
@@ -279,6 +278,7 @@ class AuthService {
     }
     await StoryService.loginStories();
     await ChatService.loginChat();
+    await this.CheckUserName();
   }
   async cancelAuth() {
     if (!localStorage.getItem("guest-user")) {
@@ -505,6 +505,39 @@ class AuthService {
       title: "Update Profile Image",
     });
     return res;
+  }
+  async CheckUserName() {
+    let isChatUserExist = JSON.parse(localStorage.getItem("USER-CHAT"));
+    let isStoriesUserExist = JSON.parse(localStorage.getItem("USER-STORIES"));
+    let username_stories = JSON.parse(
+      localStorage.getItem("USER-STORIES")
+    )?.name;
+    let username_chat = JSON.parse(localStorage.getItem("USER-CHAT"))?.name;
+    let username_market = JSON.parse(localStorage.getItem("USER-CHAT"))?.name;
+    if (Boolean(isChatUserExist) && Boolean(isStoriesUserExist))
+      if (
+        username_chat !== username_market ||
+        username_stories !== username_market
+      ) {
+        localStorage.setItem(
+          "USER-CHAT",
+          JSON.stringify({
+            ...isChatUserExist,
+            name: username_market,
+          })
+        );
+        localStorage.setItem(
+          "USER-STORIES",
+          JSON.stringify({
+            ...isChatUserExist,
+            name: username_market,
+          })
+        );
+        await this.UpdateProfile(
+          { name: username_market },
+          { name: username_market }
+        );
+      }
   }
 }
 export default new AuthService();
