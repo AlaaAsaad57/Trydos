@@ -8,16 +8,10 @@ export const FIREBASE_SETTINGS_URL =
   "/firebase_device_tokens/my_firebase_settings";
 
 export const SEND_OTP = "/auth/phone/send_otp";
-// export const HOME_DATA_URL = "/web/home/boutiques";
 export const HOME_DATA_URL = "/api/home/boutiques";
-// export const HOME_DATA_CATEGORIES_URL =
-//   "/web/home/mainCategoriesRelatedWithBoutique";
+
 export const HOME_DATA_CATEGORIES_URL = "/api/home/mainCategories";
 export const STARTER_SETTINGS = "/web/home/startingSettings";
-/*Chat */
-// staging d651b1bd0c18b021f264
-// live 22eecb27b12e20f4d569
-// export const CHAT_URL = "https://chating_staging_trydos.trydos.tech";
 
 export const LOG_IN_CHAT = "/api/v1/users/login";
 export const GET_CHATS_URL = "/api/v2/channels/my_channels";
