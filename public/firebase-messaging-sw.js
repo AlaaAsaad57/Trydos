@@ -41,8 +41,7 @@ messaging.onBackgroundMessage(async function (payload) {
           image: JSON.parse(payload?.data.body)?.banner[0]?.file_path,
           data: {
             url:
-              url +
-              `boutiques/${JSON.parse(payload?.data.body)?.boutique_slug}`,
+              url + `boutique/${JSON.parse(payload?.data.body)?.boutique_slug}`,
           }, // The URL which we are going to use later
         };
         self.registration.showNotification(
@@ -58,7 +57,7 @@ messaging.onBackgroundMessage(async function (payload) {
           data: {
             url:
               url +
-              `boutiques/listing?categories=['${
+              `boutique/listing?categories=['${
                 JSON.parse(payload?.data.body).category_slug
               }']`,
           }, // The URL which we are going to use later

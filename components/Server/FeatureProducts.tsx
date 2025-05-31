@@ -16,7 +16,8 @@ async function FeatureProducts({ lang }) {
   const getFeaturedProducts = async () => {
     try {
       const featuredProducts = await fetch(
-        process.env.NEXT_PUBLIC_API_BASE_URL + `/api/${lang}/featured`,
+        process.env.NEXT_PUBLIC_API_BASE_URL +
+          `/api/${lang}/featured?forHome=true`,
         {
           next: {
             revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE),
@@ -55,7 +56,7 @@ async function FeatureProducts({ lang }) {
     getFeaturedProducts(),
     GetCurrencyData(),
   ]);
-  if (featuredProducts?.data?.products?.length === 0) return <></>;
+  if (featuredProducts?.products?.length === 0) return <></>;
   return (
     <div className="flex-col px-[12px] flex items-start max-w-full w-full">
       <NextLink
@@ -83,7 +84,7 @@ async function FeatureProducts({ lang }) {
         id="featured-products-container"
         dataCy="featured-products-container"
       >
-        {featuredProducts?.data?.products?.map((product, key) => (
+        {featuredProducts?.products?.map((product, key) => (
           <div
             className="max-h-[200px] max-w-[150px] relative mx-[10px]"
             data-cy="countProduct"
@@ -142,11 +143,10 @@ async function FeatureProducts({ lang }) {
                       >
                         1
                       </span>
-                      {product?.category?.flat_photo_path?.file_path?.length >
-                        0 && (
+                      {product?.category?.icon?.length > 0 && (
                         <Image
                           loading={"eager"}
-                          src={product?.category?.flat_photo_path?.file_path?.replace(
+                          src={product?.category?.icon?.replace(
                             "/upload",
                             "/upload/h_50/f_webp/q_auto"
                           )}

@@ -31,12 +31,12 @@ function ChatContactsUpload() {
     try {
       setError("");
       setIsUploading(true);
-      await getContactsData();
+
       // Request permission to access contacts
       if (!("contacts" in navigator && "ContactsManager" in window)) {
         throw new Error("Contacts API not supported in this browser");
       }
-
+      await getContactsData();
       // @ts-ignore - The Contacts API types aren't in the standard lib yet
 
       // @ts-ignore - The Contacts API types aren't in the standard lib yet

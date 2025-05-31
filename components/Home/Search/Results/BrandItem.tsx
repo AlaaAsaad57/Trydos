@@ -15,10 +15,7 @@ function BrandItem({ brand, onClick, isActive }) {
         />
       )}
 
-      <img
-        src={brand.icon?.file_path}
-        className="h-full max-h-[30px] object-contain"
-      />
+      <img src={brand.icon} className="h-full max-h-[30px] object-contain" />
     </div>
   );
 }

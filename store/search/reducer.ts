@@ -142,7 +142,7 @@ export const useSearchStore = (set, get) => ({
           : Array.from(
               new Map(
                 [...state.searchResults.categories, ...results?.categories].map(
-                  (item) => [item.id, item]
+                  (item) => [item.slug, item]
                 )
               ).values()
             ),
@@ -151,7 +151,7 @@ export const useSearchStore = (set, get) => ({
           : Array.from(
               new Map(
                 [...state.searchResults.brands, ...results?.brands].map(
-                  (item) => [item.id, item]
+                  (item) => [item.slug, item]
                 )
               ).values()
             ),
@@ -160,7 +160,7 @@ export const useSearchStore = (set, get) => ({
           : Array.from(
               new Map(
                 [...state.searchResults.boutiques, ...results?.boutiques].map(
-                  (item) => [item.id, item]
+                  (item) => [item.slug, item]
                 )
               ).values()
             ),

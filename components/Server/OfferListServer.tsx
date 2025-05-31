@@ -22,7 +22,7 @@ async function OfferListServer({ params }) {
         },
       }
     );
-    let { data: HomeData } = await data.json();
+    let HomeData = await data.json();
 
     return (
       <div className={`offers-list pb-[184px]`} data-cy="boutiques">

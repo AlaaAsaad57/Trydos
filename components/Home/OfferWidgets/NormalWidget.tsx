@@ -8,7 +8,8 @@ import { Suspense } from "react";
 import search from "services/search";
 
 interface NormalWidgetProps {
-  boutique: Boutique;
+  // boutique: Boutique;
+  boutique: any;
   myKey: number;
   lang: string;
 }
@@ -34,7 +35,7 @@ const NormalWidget = ({ boutique, myKey, lang }: NormalWidgetProps) => {
           data-cy="offer_container_boutique"
         >
           <div className="offer-logo" data-cy="boutique_logo">
-            {boutique.icon?.file_path && (
+            {boutique?.icon && (
               <Image
                 data-cy="boutique_Image"
                 id={"img-" + boutique.id}
@@ -50,7 +51,7 @@ const NormalWidget = ({ boutique, myKey, lang }: NormalWidgetProps) => {
                 }}
                 width={20}
                 height={20}
-                src={boutique?.icon?.file_path?.replace(
+                src={boutique?.icon?.replace(
                   "/upload",
                   `/upload/h_50/f_webp/q_auto`
                 )}
@@ -90,7 +91,7 @@ const NormalWidget = ({ boutique, myKey, lang }: NormalWidgetProps) => {
           .slice(0, 5)
           .map((category, key) => {
             // @ts-ignore
-            if (category?.flat_photo_path?.file_path) {
+            if (category?.icon) {
               return (
                 <NextLink
                   data={{
@@ -120,7 +121,7 @@ const NormalWidget = ({ boutique, myKey, lang }: NormalWidgetProps) => {
                     width={12}
                     height={12}
                     // @ts-ignore
-                    src={category.flat_photo_path?.file_path?.replace(
+                    src={category.icon?.replace(
                       "/upload",
                       `/upload/h_50/f_webp/q_auto`
                     )}

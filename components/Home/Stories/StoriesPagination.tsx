@@ -26,7 +26,7 @@ function StoriesPagination({ next_page_url }: { next_page_url: string }) {
       return null;
     }
     const res = await story.getStories(next_page);
-    setStoryData({ ...storiesData, ...res.data });
+    setStoryData([...storiesData, ...res.data]);
     if (res.next_page_url) {
       setNextPage(next_page + 1);
     } else {

@@ -143,7 +143,7 @@ function CoverEffectSlider({
                 isActive={activeColor.color_name === img.color_name}
                 image={img.images[0]?.file_path?.replace(
                   "/upload",
-                  "/upload/h_50,w_50/f_avif/q_60"
+                  "/upload/h_50,w_50/f_webp/q_60"
                 )}
                 name={img.color_name}
                 alt={product_name}

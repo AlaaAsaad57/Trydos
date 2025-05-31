@@ -1,3 +1,4 @@
+"use server";
 import { NextResponse } from "next/server";
 import { getCountriesApi } from "./store/homepage/cachedActions";
 
@@ -49,7 +50,7 @@ export async function middleware(request) {
       supportedLocales.push(`${s}-${l}`);
     });
   });
-
+  let [country, lang] = countryLang?.toLowerCase()?.split("-");
   // 1- for url
   if (
     countryLang?.split("-")?.length > 1 &&
@@ -58,9 +59,53 @@ export async function middleware(request) {
     if (url.searchParams.get("selected")) {
       url.searchParams.delete("changed-country");
       url.searchParams.delete("no-country");
+      url.searchParams.delete("selected");
+      response.cookies.set("country", country.toLowerCase(), {
+        path: "/",
+        httpOnly: true,
+        secure: false,
+        sameSite: "Strict",
+        maxAge: 360 * 7 * 24 * 60 * 60,
+      });
+      response.cookies.set("lang", lang.toLowerCase(), {
+        path: "/",
+        httpOnly: true,
+        secure: false,
+        sameSite: "Strict",
+        maxAge: 360 * 7 * 24 * 60 * 60,
+      });
+      response.cookies.set("language", lang.toLowerCase(), {
+        path: "/",
+        httpOnly: true,
+        secure: false,
+        sameSite: "Strict",
+        maxAge: 360 * 7 * 24 * 60 * 60,
+      });
+      response.headers.set("set-cookie", true);
+      request.cookies.set("country", country.toLowerCase(), {
+        path: "/",
+        httpOnly: true,
+        secure: false,
+        sameSite: "Strict",
+        maxAge: 360 * 7 * 24 * 60 * 60,
+      });
+      request.cookies.set("lang", lang.toLowerCase(), {
+        path: "/",
+        httpOnly: true,
+        secure: false,
+        sameSite: "Strict",
+        maxAge: 360 * 7 * 24 * 60 * 60,
+      });
+      request.cookies.set("language", lang.toLowerCase(), {
+        path: "/",
+        httpOnly: true,
+        secure: false,
+        sameSite: "Strict",
+        maxAge: 360 * 7 * 24 * 60 * 60,
+      });
       return NextResponse.redirect(url);
     }
-    let [country, lang] = countryLang.toLowerCase().split("-");
+
     let isChangedLocalizationByUrl = CheckLocalaization({
       countryFromCookies,
       langFromCookies,

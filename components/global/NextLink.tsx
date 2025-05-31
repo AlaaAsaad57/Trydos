@@ -1,11 +1,7 @@
 "use client";
 import Link from "next/link";
-import React, {
-  ComponentProps,
-  MouseEventHandler,
-  TouchEventHandler,
-} from "react";
-import { usePathname } from "next/navigation";
+import React, { ComponentProps } from "react";
+import { usePathname, useSearchParams } from "next/navigation";
 import { dispatchRouteChangeEvent } from "utils/events";
 import { useAppStore } from "store";
 import { GA_CLICK_EVENT_VALUES } from "utils/GAEvents";
@@ -30,6 +26,7 @@ export default function NextLink({
   ...props
 }: INextLinkProps) {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const { setEnableSearch, setFilterEnabled } = useAppStore();
   const handleClick = (e) => {
     if (props["data-cy"] === "category-Link") {
@@ -66,12 +63,17 @@ export default function NextLink({
       }
     }
   };
+  const IsPrefetched = () => {
+    return !(
+      searchParams.get("changed-country") || searchParams.get("no-country")
+    );
+  };
   return (
     <Link
       aria-label={ariaLabel}
       className={className}
-      prefetch={true}
-      href={href}
+      prefetch={IsPrefetched()}
+      href={IsPrefetched() ? href : "#"}
       {...props}
       onClick={handleClick}
       data-cy={props["data-cy"]}

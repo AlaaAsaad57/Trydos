@@ -503,7 +503,7 @@ const PaymentOrder = ({ success }) => {
           )}
         </div> */}
         {orderData?.payment?.filter((s) => s.id === 0).length > 0 && (
-          <CODInput total={showCodValue()} />
+          <CODInput total={showCodValue()} order_success={success} />
         )}
         {orderData?.payment?.filter((s) => s.id === 1).length > 0 && (
           <TryDosWalletInput
@@ -572,7 +572,13 @@ const PaymentOrder = ({ success }) => {
     </div>
   );
 };
-const CODInput = ({ total }) => {
+const CODInput = ({
+  total,
+  order_success,
+}: {
+  total: number;
+  order_success?: boolean;
+}) => {
   const { currency, cod_cost } = useAppStore();
   return (
     <div
@@ -593,7 +599,10 @@ const CODInput = ({ total }) => {
           {translateFunction("Total")}
         </span>
         <span className="text-[#1D1D1D] semibold text-[12px] ml-1">
-          {RoundPrice({ num: total, returnNumber: true })} {currency?.symbol}
+          {!order_success
+            ? RoundPrice({ num: cod_cost, returnNumber: true })
+            : RoundPrice({ num: total, returnNumber: true })}{" "}
+          {currency?.symbol}
         </span>
       </div>
     </div>

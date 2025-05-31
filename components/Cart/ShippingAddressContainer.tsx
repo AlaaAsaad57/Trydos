@@ -6,17 +6,25 @@ import FreeShippingIcon from "public/svg/product/FreeShipping.svg";
 import AddAddressIcon from "public/svg/cart/AddAddress.svg";
 import order from "services/order";
 import Spinner from "components/global/Spinner";
-import { getCountriesApi } from "store/homepage/cachedActions";
 import { useAppStore } from "store";
 import { formatTime } from "utils/tinyUtils";
 function ShippingAddressContainer({ slideNext, slidePrev, openAddressList }) {
   const { setCountries, cart, user } = useAppStore();
-
+  const { lang } = useParams();
   const getOrderData = async () => {
     order.GetWallet();
     order.GetAddressList();
-    const countries = await getCountriesApi();
-    setCountries(countries);
+    const res = await await fetch(
+      process.env.NEXT_PUBLIC_API_BASE_URL + `/api/${lang}/countries`,
+      {
+        next: {
+          revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE_COUNTRIES),
+          tags: ["countries"],
+        },
+      }
+    );
+    let data = await res.json();
+    setCountries(data.countries);
   };
   useEffect(() => {
     if (user) {

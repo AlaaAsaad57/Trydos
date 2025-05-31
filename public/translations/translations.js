@@ -5,8 +5,8 @@ const translations = {
     "Syncing contacts...": "جاري مزامنة جهات الاتصال...",
     "Failed to sync contacts": "فشل مزامنة جهات الاتصال",
     "Add Contacts": "إضافة جهات الاتصال",
-    "Session Expired..please Login again":
-      "انتهت صلاحية الجلسة ززالرجاء تسجيل الدخول",
+    "Session Expired..please Login again..Reloading...":
+      "انتهت صلاحية الجلسة ,الرجاء تسجيل الدخول . إعادة التحميل",
     Reschedule: "تأجيل",
     "Please Select an Address": "الرجاء اختيار عنوان",
     "Please Be Accurate and select your Location":
@@ -532,7 +532,7 @@ const translations = {
       "Satın Alma Başarıyla Tamamlandı",
     "Please Select an Address": "Lütfen Bir Adres Seçiniz",
     Reschedule: "Yeniden Planla",
-    "Session Expired..please Login again":
+    "Session Expired..please Login again..Reloading...":
       "Oturum Süresi Doldu..Lütfen Tekrar Giriş Yapın",
     "Please Be Accurate and select your Location":
       "Lütfen doğru ve konumunuzu seçin",

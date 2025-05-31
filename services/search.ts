@@ -113,7 +113,6 @@ class SearchService {
         };
       }
 
-      ("use server");
       let requestSearchParams = new URLSearchParams();
       let requestSearchParamsString = "";
       if (Object.keys(searchFiltersEdit).length > 0) {

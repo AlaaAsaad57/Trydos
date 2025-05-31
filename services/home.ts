@@ -36,6 +36,7 @@ import {
 import auth from "./auth";
 import LocalizationServiceClass from "./localization";
 import chat from "./chat";
+import { SetGAUser } from "utils/gtag";
 const getHeader = () => {
   let [countryUrl, languageUrl] = window.location.pathname
     .split("/")[1]
@@ -350,7 +351,10 @@ class HomeService {
             expired_at: repo.data.expires_at,
           })
         );
-
+        SetGAUser({
+          ...repo.data.user,
+          expired_at: repo.data.expires_at,
+        });
         localStorage.removeItem("customer-info");
         setIsRegisteringReady(true);
         if (repo.data.user) {

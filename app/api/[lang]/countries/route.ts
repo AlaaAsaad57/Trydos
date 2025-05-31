@@ -9,12 +9,8 @@ export async function OPTIONS(req: NextRequest) {
 }
 export async function GET(req: NextRequest, { params }) {
   const [country, language] = params.lang?.split("-");
-
-  let newParams = new URLSearchParams();
-  newParams.set("lang", language);
   let response = await fetch(
-    process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL +
-      `/api/home/mainCategories?${newParams.toString()}`,
+    process.env.NEXT_PUBLIC_BACKEND_URL + `/countries`,
     {
       method: "GET",
       headers: new Headers({
@@ -28,20 +24,14 @@ export async function GET(req: NextRequest, { params }) {
   if (response.status !== 200) {
     const errorBody = await response.json();
     throw new Error(
-      `Main Categories Error: ${response.status} ${JSON.stringify(
-        errorBody.message
-      )}`
+      `Countries Error: ${response.status} ${JSON.stringify(errorBody.message)}`
     );
   }
-  let { data } = await response.json();
+  let data = await response.json();
 
   return NextResponse.json(
     {
-      mainCategories: data.mainCategories.map((s) => ({
-        name: s.name,
-        slug: s.slug,
-        icon: s.flat_photo_path?.file_path,
-      })),
+      countries: data.data.countries,
     },
     {
       status: 200,

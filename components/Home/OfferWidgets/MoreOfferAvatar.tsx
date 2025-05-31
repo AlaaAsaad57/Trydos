@@ -46,7 +46,7 @@ function MoreOfferAvatar({
       </span>
       <Image
         loading="eager"
-        src={images.replace("/upload", `/upload/h_40/f_avif/q_auto`)}
+        src={images.replace("/upload", `/upload/h_40/f_webp/q_auto`)}
         className="absolute"
         priority={priority}
         fetchPriority="auto"

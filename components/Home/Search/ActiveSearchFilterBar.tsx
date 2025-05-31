@@ -47,7 +47,7 @@ function ActiveSearchFilterBar() {
   const getCategory = (slug) => {
     let variable = {
       name: "",
-      most_viewed_product_thumbnail: { file_path: "" },
+      most_viewed_product_thumbnail: "",
     };
     searchFilters.categories.map((s) =>
       s.childes?.map((sub) => {
@@ -119,13 +119,13 @@ function ActiveSearchFilterBar() {
                       height={20}
                       src={
                         category?.icon?.file_path ??
-                        category.most_viewed_product_thumbnail?.file_path ??
+                        category.most_viewed_product_thumbnail ??
                         category.flat_photo_path?.file_path ??
                         searchFilters.categories.filter(
                           (s) => s.slug === category.slug
-                        )[0]?.most_viewed_product_thumbnail?.file_path ??
+                        )[0]?.most_viewed_product_thumbnail ??
                         getCategory(category.slug)
-                          ?.most_viewed_product_thumbnail?.file_path
+                          ?.most_viewed_product_thumbnail
                       }
                     />
                   </div>

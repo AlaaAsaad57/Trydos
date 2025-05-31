@@ -1,6 +1,5 @@
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import NextLink from "components/global/NextLink";
 import { Boutique } from "models/offer";
 
@@ -26,7 +25,7 @@ function OfferAvatar({
   const getImageCld = () => {
     if (!images) return "";
     if (images?.includes("cloudinary")) {
-      return images.replace("/upload", "/upload/h_100/f_avif/q_100");
+      return images.replace("/upload", "/upload/h_100/f_webp/q_100");
     } else return images;
   };
   return (

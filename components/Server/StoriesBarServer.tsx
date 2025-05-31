@@ -12,10 +12,13 @@ import { getStoriesServer } from "store/homepage/cachedActions";
 function StoriesBarServer() {
   const { storiesData, setStoryData } = useAppStore();
   const [next_page_url, setNextPageUrl] = useState(null);
+  const [loading, setLoading] = useState(true);
   const getData = async () => {
+    setLoading(true);
     let { data, next_page_url } = await getStoriesServer();
     setStoryData(data);
     setNextPageUrl(next_page_url);
+    setLoading(false);
   };
   useEffect(() => {
     getData();
@@ -23,25 +26,33 @@ function StoriesBarServer() {
 
   try {
     return (
-      <div className="stories-bar-container">
-        <div id="stories-bar" className="stories-bar">
-          {<AddStory />}
-          {storiesData ? (
-            <HortiznalScrollBar
-              id="stories-bar-container"
-              className="stories-bars pl-[10px]"
-            >
-              {storiesData?.map((story, index) => (
-                <StoryElement key={index} index={index} story={story} />
-              ))}
-              <StoriesPagination next_page_url={next_page_url} />
-            </HortiznalScrollBar>
-          ) : (
-            <StoriesSkeleton />
-          )}
-        </div>
-        <StoriesBorder />
-      </div>
+      <>
+        {loading ? (
+          <StoriesSkeleton />
+        ) : (
+          <div className="stories-bar-container">
+            <div id="stories-bar" className="stories-bar">
+              {<AddStory />}
+              {storiesData ? (
+                <HortiznalScrollBar
+                  id="stories-bar-container"
+                  className="flex h-full pl-[10px]"
+                >
+                  {storiesData?.map((story, index) => (
+                    <StoryElement key={index} index={index} story={story} />
+                  ))}
+                  {next_page_url && (
+                    <StoriesPagination next_page_url={next_page_url} />
+                  )}
+                </HortiznalScrollBar>
+              ) : (
+                <StoriesSkeleton />
+              )}
+            </div>
+            <StoriesBorder />
+          </div>
+        )}
+      </>
     );
   } catch (error) {
     console.error(error);

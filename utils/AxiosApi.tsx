@@ -9,6 +9,7 @@ import { LogError, translateFunction, WaitForCondition } from "./functions";
 import { toast } from "react-toastify";
 import auth from "services/auth";
 import { changeToken } from "store/homepage/cachedActions";
+import { UnAuthintacetedAction } from "./tinyUtils";
 export const errorPNG = pngErr.src;
 const getHeader = (token?) => {
   let [countryUrl, languageUrl] = window.location.pathname
@@ -83,15 +84,7 @@ export const AxiosGet = async ({
           url.includes(process.env.NEXT_PUBLIC_CHAT_BACKEND_URL) ||
           url.includes(process.env.NEXT_PUBLIC_STORIES_BACKEND_URL)
         ) {
-          changeToken({ key: "token", deleteOption: true });
-          localStorage.removeItem("USER-STORIES");
-          localStorage.removeItem("USER-CHAT");
-          localStorage.setItem("guest-user", localStorage.getItem("USER"));
-          localStorage.removeItem("USER");
-          localStorage.removeItem("CHAT-TOKEN");
-          window.location.reload();
-          Cookies.remove("token");
-          toast.info(translateFunction("Session Expired..please Login again"));
+          UnAuthintacetedAction();
           return;
         }
         if (auth.getUser()) {
@@ -194,15 +187,7 @@ export const AxiosPost = async ({
           url.includes(process.env.NEXT_PUBLIC_CHAT_BACKEND_URL) ||
           url.includes(process.env.NEXT_PUBLIC_STORIES_BACKEND_URL)
         ) {
-          changeToken({ key: "token", deleteOption: true });
-          localStorage.removeItem("USER-STORIES");
-          localStorage.removeItem("USER-CHAT");
-          localStorage.setItem("guest-user", localStorage.getItem("USER"));
-          localStorage.removeItem("USER");
-          localStorage.removeItem("CHAT-TOKEN");
-          window.location.reload();
-          Cookies.remove("token");
-          toast.info(translateFunction("Session Expired..please Login again"));
+          UnAuthintacetedAction();
           return;
         }
         if (auth.getUser()) {

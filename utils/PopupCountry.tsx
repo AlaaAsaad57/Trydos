@@ -12,6 +12,8 @@ import { useRouter } from "next/navigation";
 import Spinner from "components/global/Spinner";
 import { changeAppCountryServer } from "store/homepage/cachedActions";
 import { GA_CLICK_EVENT_VALUES, GA_EVENT_NAMES } from "./GAEvents";
+import Link from "node_modules/next/link";
+
 const PopupCountry = ({ options, countries, forChanged, noCountry }) => {
   const [loading, setLoading] = useState(true);
   const [loadingWidget, setLoadingWidget] = useState(false);
@@ -22,18 +24,22 @@ const PopupCountry = ({ options, countries, forChanged, noCountry }) => {
 
   const [selectedCountry, setSelectedCountry] = useState("");
   const init = async (e) => {
-    if (e) {
-      await changeAppCountryServer(e);
-      setLocalization({ ...localization, country: e });
-      Cookies.set("language", localization.language, {
-        expires: 365,
-      });
-      await Cookies.set("lang", localization.language, {
-        expires: 365,
-      });
-      await Cookies.set("country", e?.toLowerCase(), {
-        expires: 365,
-      });
+    try {
+      if (e) {
+        await changeAppCountryServer(e);
+        setLocalization({ ...localization, country: e });
+        Cookies.set("language", localization.language, {
+          expires: 365,
+        });
+        await Cookies.set("lang", localization.language, {
+          expires: 365,
+        });
+        await Cookies.set("country", e?.toLowerCase(), {
+          expires: 365,
+        });
+      }
+    } catch (error) {
+      console.error(error, "error");
     }
   };
   const { lang } = useParams();
@@ -43,24 +49,44 @@ const PopupCountry = ({ options, countries, forChanged, noCountry }) => {
   const Defaultcountry = lang.split("-")[0];
   const router = useRouter();
   const UpdateUrl = async (localizationVar) => {
-    setLoadingWidget(true);
-    await init(localizationVar.split("-")[0]);
-    setTimeout(() => {
+    try {
+      setLoadingWidget(true);
+      await init(localizationVar.split("-")[0]);
       let params = new URLSearchParams(searchParams);
       params.delete("changed-country");
-      // @ts-ignore
-      let newPath = `${pathname.replace(lang, localizationVar)}${
-        params.values.length > 0 ? `?${params.toString()}` : ""
-      }`;
-      window.location.search = "?selected=true";
-      window.location.pathname = `/${newPath}`;
-    }, 1000);
+      params.set("selected", "true");
+      // let newPath = `${pathname.replace(
+      //   // @ts-ignore
+      //   lang,
+      //   localizationVar
+      // )}${`?${params.toString()}`}`;
+
+      // setTimeout(() => {
+      //   window.location.href = `${window.location.origin}${newPath}`;
+      // }, 1000);
+      // setTimeout(() => {
+      //   window.location.href = `${window.location.origin}${newPath}`;
+      // }, 6000);
+    } catch (error) {
+      console.error(error, "error");
+    }
   };
   useEffect(() => {
-    if (countries?.length > 0) {
+    if (countries?.length > 0 && loading) {
       setLoading(false);
     }
   }, [countries]);
+  const getUrl = (localizationVar) => {
+    let params = new URLSearchParams(window.location.search);
+    params.delete("changed-country");
+    params.delete("no-country");
+    params.set("selected", "true");
+    return `${window.location.origin}${pathname.replace(
+      // @ts-ignore
+      lang,
+      localizationVar
+    )}${`?${params.toString()}`}`;
+  };
   return (
     <div
       style={{
@@ -120,6 +146,7 @@ const PopupCountry = ({ options, countries, forChanged, noCountry }) => {
                       UpdateUrl(
                         `${decodeURI(forChanged).split(",")[0]}-${langFromUrl}`
                       );
+                      window.location.reload();
                     }}
                   >
                     {translateFunction(
@@ -142,7 +169,15 @@ const PopupCountry = ({ options, countries, forChanged, noCountry }) => {
                       Array.isArray(lang) ? lang[0] : lang.split("-")[1]
                     )}
                   </span>
-                  <span
+                  <Link
+                    prefetch={true}
+                    href={getUrl(
+                      // @ts-ignore
+                      `${decodeURI(forChanged).split(",")[1]}-${
+                        // @ts-ignore
+                        lang.split("-")[1]
+                      }`
+                    )}
                     className="text-blue-600 cursor-pointer"
                     onClick={() => {
                       Sendevent({
@@ -171,7 +206,7 @@ const PopupCountry = ({ options, countries, forChanged, noCountry }) => {
                         )[0]?.label
                       }`}
                     </span>
-                  </span>
+                  </Link>
                 </div>
               </span>
             )}
@@ -204,6 +239,9 @@ const PopupCountry = ({ options, countries, forChanged, noCountry }) => {
 
                     if (e.target.value === Defaultcountry) {
                       window.location.search = a.toString();
+                      setTimeout(() => {
+                        window.location.reload();
+                      }, 1000);
                     } else {
                       init(e.target.value);
                       setTimeout(() => {

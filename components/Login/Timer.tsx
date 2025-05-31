@@ -9,7 +9,7 @@ interface TimerProps {
 }
 function Timer({ onFinish, minutes }: TimerProps) {
   const data = TimerUtil({
-    expiryTimestamp: new Date(Date.now() + (minutes || 1) * 60 * 1000),
+    expiryTimestamp: new Date(Date.now() + (minutes || 2) * 60 * 1000),
     autoStart: true,
     onExpire() {
       onFinish();

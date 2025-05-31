@@ -3,6 +3,8 @@ export const GA_EVENT_NAMES = {
   PROGRAMMING_EVENT: "programming_event",
   VIEW_PRODUCT_EVENT: "view_product_event",
   VIEW_BOUTIQUE_EVENT: "view_boutique_event",
+  LOGIN: "login",
+  SIGN_UP: "sign_up",
 };
 export const GA_CLICK_EVENT_VALUES = {
   CART_ICON: "cart_nav_bar_button",

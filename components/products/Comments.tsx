@@ -50,7 +50,7 @@ function Comments({
         date="18 feb"
         name="Yxxx Oxxx"
         text="Amazing Product I Buy It And I Saw It Is Good Quality Regarding Price"
-        photo="https://res.cloudinary.com/dtcmozf4d/image/upload/h_100/f_avif/q_100/v1/product/thumbnail/2024-05-12-663fce81803c3.png"
+        photo="https://res.cloudinary.com/dtcmozf4d/image/upload/h_100/f_webp/q_100/v1/product/thumbnail/2024-05-12-663fce81803c3.png"
       /> */}
       {CommentsData !== null ? (
         CommentsData.map((s, i) => (

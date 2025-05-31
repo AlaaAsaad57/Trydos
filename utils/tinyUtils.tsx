@@ -2,6 +2,11 @@ import { useAppStore } from "store";
 import { AxiosGet } from "./AxiosApi";
 import { translateFunction } from "./functions";
 import dynamic from "next/dynamic";
+
+import Cookies from "js-cookie";
+import { toast } from "react-toastify";
+import { changeToken } from "store/homepage/cachedActions";
+
 export const CielNumber = (price) => {
   return Math.ceil(price * 1000) / 1000;
 };
@@ -274,4 +279,25 @@ export const formatTime = (timeString: string) => {
   const year = date.getFullYear();
 
   return `${day}/${month}/${year} | ${timeFormat}`;
+};
+export const UnAuthintacetedAction = () => {
+  const { setAddStory } = useAppStore.getState();
+  changeToken({ key: "token", deleteOption: true });
+  changeToken({ key: "MARKET-TOKEN", deleteOption: true });
+  changeToken({ key: "DEVICE-TOKEN", deleteOption: true });
+  localStorage.removeItem("USER-STORIES");
+  localStorage.removeItem("USER-CHAT");
+  localStorage.setItem("guest-user", localStorage.getItem("USER"));
+  localStorage.removeItem("USER");
+  localStorage.removeItem("STORIES-TOKEN");
+  localStorage.removeItem("CHAT-TOKEN");
+  setAddStory(false);
+  Cookies.remove("token");
+  ChatConroller(false);
+  toast.info(
+    translateFunction("Session Expired..please Login again..Reloading...")
+  );
+  setTimeout(() => {
+    window.location.reload();
+  }, 5000);
 };
