@@ -39,7 +39,7 @@ function OrderDetails({
     if (
       selectedOrder.details?.find((s) => s.order_status === "Out for Delivery")
     )
-      return true;
+      return selectedOrder.id;
     return false;
   };
   return (
