@@ -63,7 +63,7 @@ function ProductsInfiniteScroll({
       searchParams: searchParams,
       country: lang?.split("-")[0],
       noProducts: false,
-      noFilters: false,
+      noFilters: true,
       boutiqueId: boutiqueId === "listing" ? null : boutiqueId,
       isFeatured: isFeatured,
     });

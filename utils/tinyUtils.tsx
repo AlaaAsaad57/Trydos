@@ -80,12 +80,15 @@ export const configureSearchParams = ({
   if (boutiqueId && boutiqueId !== "listing" && boutiqueId !== "null") {
     params.set("boutique_slugs", `["${decodeURIComponent(boutiqueId)}"]`);
   }
-
+  if (searchParams.tags_names && searchParams.tags_names !== "null") {
+    params.set("tags_names", decodeURIComponent(searchParams.tags_names));
+  }
   // console.log(
   //   `params: ${decodeURIComponent(params.toString())} ${JSON.stringify(
   //     searchParams
   //   )}`
   // );
+
   return params;
 };
 export const GetFilterUrlParams = ({
