@@ -596,7 +596,7 @@ const CODInput = ({
       </div>
       <div className="flex-row items-center">
         <span className="text-[#D3D3D3] regular text-[12px]">
-          {translateFunction("Total")}
+          {translateFunction("Shipping Cost")}
         </span>
         <span className="text-[#1D1D1D] semibold text-[12px] ml-1">
           {!order_success

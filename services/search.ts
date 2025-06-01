@@ -20,6 +20,7 @@ class SearchService {
     filters_offset = null,
     replace = true,
   }) {
+    "use server";
     const {
       setSearchResults,
       searchFilters,
@@ -31,10 +32,12 @@ class SearchService {
     let processed_search_value = await this.ProcessSearchInput(value);
     let params = this.getSearchParamsFromObj(
       searchFilters,
-      noProducts,
+      value.length === 0,
       noFilters,
       filters_offset
     );
+    setSearchPartialLoading(true);
+    setSearchLoading(true);
     try {
       let searchFiltersEdit = {};
       if (searchFilters?.categories && searchFilters.categories.length > 0) {
@@ -122,6 +125,7 @@ class SearchService {
         );
         requestSearchParamsString = `&${requestSearchParams.toString()}`;
       }
+
       const filtersResponseJson = await fetch(
         `/api/${lang}/search?${params.toString()}${requestSearchParamsString}`
       );
@@ -137,39 +141,22 @@ class SearchService {
         total_size,
       } = filtersResponse.data;
       setTotalSizeOfProducts({ total_size });
-      if (!noProducts)
-        setSearchResults(
-          {
-            products,
-            categories,
-            brands,
-            boutiques,
-            colors,
-            sizes: attributes?.[0]?.options || [],
-            prices: {
-              min_price: filtersResponse?.data?.prices?.min_price || null,
-              max_price: filtersResponse?.data?.prices?.max_price || null,
-            },
-            prices_ranges: filtersResponse?.data?.prices?.priceRanges || [],
+      setSearchResults(
+        {
+          products,
+          categories,
+          brands,
+          boutiques,
+          colors,
+          sizes: attributes?.[0]?.options || [],
+          prices: {
+            min_price: filtersResponse?.data?.prices?.min_price || null,
+            max_price: filtersResponse?.data?.prices?.max_price || null,
           },
-          replace
-        );
-      else
-        setSearchResults(
-          {
-            categories,
-            brands,
-            boutiques,
-            colors,
-            sizes: attributes?.[0]?.options || [],
-            prices: {
-              min_price: filtersResponse?.data?.prices?.min_price || null,
-              max_price: filtersResponse?.data?.prices?.max_price || null,
-            },
-            prices_ranges: filtersResponse?.data?.prices?.priceRanges || [],
-          },
-          replace
-        );
+          prices_ranges: filtersResponse?.data?.prices?.priceRanges || [],
+        },
+        replace
+      );
       setSearchPartialLoading(false);
       setSearchLoading(false);
       return filtersResponse;

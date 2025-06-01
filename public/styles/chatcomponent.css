@@ -209,7 +209,7 @@ html[lang="ar"] .chat-window-search-holder svg {
   width: 60px;
   height: 60px;
   user-select: none;
-  object-fit: cover;
+  object-fit: cover !important;
   border-radius: 12px;
   user-drag: none;
   -webkit-user-drag: none;

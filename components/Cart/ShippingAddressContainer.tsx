@@ -393,7 +393,7 @@ const ShippingAddressInput = ({ slideNext, slidePrev, openAddressList }) => {
   );
 };
 const AddressContainer = ({ openAddressList }) => {
-  const { addressLists, cart } = useAppStore();
+  const { addressLists, cart, settings } = useAppStore();
   const getDeliveryDate = () => {
     let shippingDay = 0;
     cart.forEach((item) => {
@@ -401,6 +401,7 @@ const AddressContainer = ({ openAddressList }) => {
         shippingDay = item.shipping_days;
       }
     });
+    shippingDay += settings?.["starting-setting"]?.shipping_duration_days || 0;
     return formatTime(
       new Date(
         new Date().getTime() + Number(shippingDay) * 24 * 60 * 60 * 1000

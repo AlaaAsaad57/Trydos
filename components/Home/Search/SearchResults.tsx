@@ -126,19 +126,22 @@ function SearchResults() {
       return true;
     else return false;
   };
+  useEffect(() => {
+    console.log(searchResults);
+  }, [searchResults]);
   return (
     <div
       className="search-results-container flex-col"
       data-cy="searchResults_body"
     >
       <>
-        {(searchResults?.products?.length > 0 || partialLoading) && (
+        {searchResults?.products?.length > 0 && (
           <div className="products-results flex-col max-h-[60%] overflow-auto">
             <div className="result-label flex-row">
               {translateFunction("Find Products", languageVariable)}{" "}
               {loading_search && <Spinner className="ml-3" no />}
             </div>
-            {value?.length > 0 &&
+            {!loading_search &&
               searchResults?.products?.map((product, index) => {
                 return (
                   <ProductItem
@@ -207,7 +210,9 @@ function SearchResults() {
           >
             <div className="result-label flex-row">
               {translateFunction("Find Categories", languageVariable)}{" "}
-              {partialLoading && <Spinner className="ml-3" no />}
+              {(partialLoading || loading_search) && (
+                <Spinner className="ml-3" no />
+              )}
             </div>
             <div className="brands-results-row flex-row overflow-auto">
               {searchResults?.categories?.map((category, index) => (
@@ -247,7 +252,9 @@ function SearchResults() {
           >
             <div className="result-label flex-row">
               {translateFunction("Find Boutiques", languageVariable)}{" "}
-              {partialLoading && <Spinner className="ml-3" no />}
+              {(partialLoading || loading_search) && (
+                <Spinner className="ml-3" no />
+              )}
             </div>
             <div className="brands-results-row flex-row overflow-auto">
               {searchResults?.boutiques?.map((boutique, index) => (

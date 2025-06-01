@@ -2,6 +2,7 @@ const translations = {
   en: {},
   ar: {
     "Total Products:": "إجمالي المنتجات:",
+    "Shipping Cost": "تكلفة الشحن",
     "Syncing contacts...": "جاري مزامنة جهات الاتصال...",
     "Failed to sync contacts": "فشل مزامنة جهات الاتصال",
     "Add Contacts": "إضافة جهات الاتصال",
@@ -526,6 +527,7 @@ const translations = {
   },
   tr: {
     "Syncing contacts...": "İletişim bilgileriniz eşitleniyor...",
+    "Shipping Cost": "Kargo Ücreti",
     "Failed to sync contacts": "İletişim bilgileriniz eşitlenemedi",
     "Add Contacts": "İletişim bilgilerini ekle",
     "The Purchase Was Completed Successfully":
