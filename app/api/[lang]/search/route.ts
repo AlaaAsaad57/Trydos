@@ -54,7 +54,7 @@ export async function GET(
     );
   }
   let data = await response.json();
-  console.log(configured_url, data);
+
   return NextResponse.json(
     {
       data: {
