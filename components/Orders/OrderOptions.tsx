@@ -3,7 +3,11 @@ import React, { useState } from "react";
 import { translateFunction } from "utils/functions";
 import ChangeAddressIcon from "public/svg/ChangeAddressIcon.svg";
 import ModifyOrderIcon from "public/svg/ModifyOrderIcon.svg";
+import { toast } from "react-toastify";
+import ChangeAddressWidget from "./ChangeAddressWidget";
+import { useAppStore } from "store";
 function OrderOptions({ closeOptions }) {
+  const { selectedOrder } = useAppStore();
   const [screen, setScreen] = useState<
     "options" | "changeAddress" | "modifyOrder"
   >("options");
@@ -17,6 +21,10 @@ function OrderOptions({ closeOptions }) {
             <span className="medium text-[#1D1D1D] text-[14px] mt-[5px] ">
               {translateFunction("Manage Your Order")}
             </span>
+            <div
+              className="w-full h-[1px] mt-[22px]"
+              style={{ borderTop: "1px solid #C4C2C280" }}
+            />
           </div>
           <div
             className="flex-row w-full min-h-[50px] mt-[33px] bg-[#F8F8F8] rounded-[20px] px-[12px] items-center justify-between"
@@ -66,8 +74,26 @@ function OrderOptions({ closeOptions }) {
               {translateFunction("You Can Cancel & Back Your Money")}
             </span>
           </div>
-          {canceled && <OrderCanceltionOptions />}
+          {canceled && (
+            <OrderCanceltionOptions
+              close={() => {
+                setCanceled(false);
+                setScreen("options");
+                closeOptions();
+              }}
+            />
+          )}
         </div>
+      );
+    }
+    if (screen === "changeAddress") {
+      return (
+        <ChangeAddressWidget
+          close={() => {
+            setScreen("options");
+          }}
+          address_id={selectedOrder?.shipping_address}
+        />
       );
     }
   };
@@ -86,7 +112,7 @@ function OrderOptions({ closeOptions }) {
 }
 
 export default OrderOptions;
-const OrderCanceltionOptions = () => {
+const OrderCanceltionOptions = ({ close }) => {
   let options = [
     "I Changed My Mind",
     "I Fear Quality",
@@ -143,6 +169,10 @@ const OrderCanceltionOptions = () => {
           className={`${
             selectedOptions?.length > 0 ? "bg-[#FF5F61]" : "bg-[#D3D3D3]"
           } rounded-[20px] text-white text-[14px] medium h-[50px] flex-row w-full items-center justify-center mt-[20px]`}
+          onClick={() => {
+            if (selectedOptions) close();
+            else toast.info("Please select a reason for canceling this order");
+          }}
         >
           {translateFunction("Cancel Order")}
         </div>

@@ -8,6 +8,7 @@ import order from "services/order";
 import { DeleteModalComponent } from "components/Cart/OrdersPage";
 import { useAppStore } from "store";
 import { useParams } from "next/navigation";
+import { GetAddressString } from "utils/tinyUtils";
 function PersonalInfoAddress({
   swipeToScreen,
   goBack,
@@ -37,40 +38,6 @@ function PersonalInfoAddress({
     getAdditionData();
   }, []);
   const [deleteModal, setDeleteModal] = useState<any>(false);
-  const GetAddressString = (location) => {
-    let str = "";
-    if (
-      location?.province &&
-      location?.province.length > 0 &&
-      location?.province !== "null"
-    )
-      str += `${location?.province}`;
-    if (
-      location?.city &&
-      location?.city.length > 0 &&
-      location?.city !== "null"
-    )
-      str += ` | ${location?.city}`;
-    if (
-      location?.town &&
-      location?.town.length > 0 &&
-      location?.town !== "null"
-    )
-      str += ` | ${location?.town}`;
-    if (
-      location?.street &&
-      location?.street?.length > 0 &&
-      location?.street !== "null"
-    )
-      str += ` | ${location.street}`;
-    if (
-      location?.building &&
-      location?.building?.length > 0 &&
-      location?.building !== "null"
-    )
-      str += ` | ${location?.building}`;
-    return str;
-  };
 
   const { initAddressForm, setAddressDetails } = useAppStore();
   return (
@@ -375,7 +342,7 @@ function PersonalInfoAddress({
 }
 
 export default PersonalInfoAddress;
-const MiniAddressInfo = () => {
+export const MiniAddressInfo = () => {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -422,7 +389,7 @@ const MiniAddressInfo = () => {
     </svg>
   );
 };
-const EditIcon = ({ address, onClick }) => {
+export const EditIcon = ({ address, onClick }) => {
   const { startUpdateAddress } = useAppStore();
   return (
     <span
@@ -499,7 +466,7 @@ const EditIcon = ({ address, onClick }) => {
     </span>
   );
 };
-const DeleteIcon = ({ address, onClick }) => {
+export const DeleteIcon = ({ address, onClick }) => {
   return (
     <span
       onClick={() => {

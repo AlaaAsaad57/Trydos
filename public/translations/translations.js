@@ -3,8 +3,12 @@ const translations = {
   ar: {
     "Total Products:": "إجمالي المنتجات:",
     "Modify Order": "تعديل الطلب",
+    "Please select a reason for canceling this order":
+      "الرجاء اختيار سبب لالغاء الطلب",
     "Manage Your Order": "إدارة الطلب",
     "Change Delivery Address & Note": "تعديل عنوان التوصيل والملاحظات",
+    "You Can Easily Change Your Shipping Address And Delivery Notes":
+      "يمكنك بسهولة تغيير عنوان الشحن وملاحظات التسليم",
     "Cancel Order": "إلغاء الطلب",
     "You Can Cancel & Back Your Money": "يمكنك إلغاء الطلب واسترجاع المبلغ",
     "Information About Your Order Modify Or Cancel":
@@ -543,6 +547,10 @@ const translations = {
   },
   tr: {
     "Syncing contacts...": "İletişim bilgileriniz eşitleniyor...",
+    "Please select a reason for canceling this order":
+      "Lütfen bu siparişi iptal etmek için bir neden seçin",
+    "You Can Easily Change Your Shipping Address And Delivery Notes":
+      "Teslimat Adresinizi ve Teslimat Notlarınızı Kolayca Değiştirebilirsiniz",
     "Shipping Cost": "Kargo Ücreti",
     "Failed to sync contacts": "İletişim bilgileriniz eşitlenemedi",
     "Modify Order": "Siparişi Düzenle",
