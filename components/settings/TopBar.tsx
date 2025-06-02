@@ -4,6 +4,7 @@ import OptionsIcon from "public/svg/OptionsIcon.svg";
 import { translateFunction } from "utils/functions";
 
 import ChatWidget from "components/Chat/ChatWidget";
+import OrderOptions from "components/Orders/OrderOptions";
 
 function SettingTopBar({
   Save,
@@ -21,6 +22,7 @@ function SettingTopBar({
   DataCy?: string;
   hasChat?: any;
 }) {
+  const [showOptions, setShowOptions] = useState(false);
   return (
     <>
       <div className="flex-row w-full min-h-[50px] h-[50px] items-center px-[12px] justify-between">
@@ -52,7 +54,40 @@ function SettingTopBar({
         >
           {Save && translateFunction("Save")}
 
-          {hasOptions && <OptionsIcon />}
+          {hasOptions && (
+            <>
+              <OptionsIcon
+                onClick={() => {
+                  document.documentElement.style.overflow = "hidden";
+                  document.documentElement.scrollTop = 0;
+                  document.querySelector("#OrderDetails").scrollTop = 0;
+                  document
+                    .querySelector("#OrderDetails")
+                    .classList.add("overflow-hidden");
+                  document
+                    .querySelector("#OrderDetails")
+                    .classList.remove("overflow-auto");
+                  setShowOptions(true);
+                }}
+              />
+              {showOptions && (
+                <OrderOptions
+                  closeOptions={() => {
+                    document.documentElement.style.overflow = "auto";
+                    document.documentElement.scrollTop = 0;
+                    document.querySelector("#OrderDetails").scrollTop = 0;
+                    document
+                      .querySelector("#OrderDetails")
+                      .classList.remove("overflow-hidden");
+                    document
+                      .querySelector("#OrderDetails")
+                      .classList.add("overflow-auto");
+                    setShowOptions(false);
+                  }}
+                />
+              )}
+            </>
+          )}
         </span>
       </div>
     </>
