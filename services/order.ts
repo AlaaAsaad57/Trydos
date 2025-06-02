@@ -226,5 +226,15 @@ class OrderService {
       setOrderLoading(false);
     }
   }
+  async getOrderDetails(id) {
+    let data = await AxiosGet({
+      url:
+        process.env.NEXT_PUBLIC_BACKEND_URL +
+        `/customer/order/getOrdersByOrderGroupID?order_group_id=${id}`,
+      title: "getOrderByOrderGroupID request",
+    });
+
+    return data;
+  }
 }
 export default new OrderService();

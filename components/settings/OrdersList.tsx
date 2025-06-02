@@ -68,6 +68,7 @@ function OrdersList({
                 ...curr.details.map((s) => ({
                   ...s,
                   order_status: existingOrder?.order_status?.label,
+                  order_id: existingOrder?.id,
                 })),
               ];
               existingOrder.order_amount =

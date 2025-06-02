@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { OrdersIcon } from "./OrdersList";
 import SettingTopBar from "./TopBar";
 
@@ -12,10 +12,14 @@ import { OrderDetail, OrderItem } from "types/orders";
 import { RoundPrice, translateFunction } from "utils/functions";
 import { useAppStore } from "store";
 import NextLink from "components/global/NextLink";
-import { useParams } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import OrderStatusCartsIcon from "./cards/OrderStatusCartsIcon";
 import OrderStatusIcon from "./cards/OrderStatusIcon";
 import RateOrderButton from "./cards/RateOrderButton";
+import Spinner from "components/global/Spinner";
+import order from "services/order";
+import OrderChatIcon from "./OrderChatIcon";
+import { usePathname } from "next/navigation";
 
 function OrderDetails({
   resetOrderDetails,
@@ -24,14 +28,58 @@ function OrderDetails({
   resetOrderDetails: () => void;
   goBack: () => void;
 }) {
+  const [loading, setLoading] = useState(false);
+  const totalAmount = (arr) => {
+    let total = 0;
+    arr?.map((s) => {
+      total += s.order_amount;
+    });
+    return total;
+  };
+  const totalItems = (arr) => {
+    let arr_of_products = [];
+    arr.map((s) => {
+      s.details.map((d) => {
+        arr_of_products.push({ ...d, order_status: s.order_status?.label });
+      });
+    });
+
+    return arr_of_products;
+  };
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+  const getOrderDetails = async () => {
+    setLoading(true);
+    let data = await order.getOrderDetails(selectedOrder.order_group_id);
+
+    let orderData = {
+      ...data?.[0],
+      order_amount: totalAmount(data),
+      details: totalItems(data),
+    };
+
+    setOrderDetails(orderData);
+    let params = new URLSearchParams(searchParams);
+    params.delete("id");
+    // @ts-expect-error 'shallow' does not exist in type 'NavigateOptions'
+    router.push(`${pathname}?${params.toString()}`, { shallow: true });
+    setLoading(false);
+  };
   const { setOrderDetails, selectedOrder } = useAppStore();
 
   const resetOrder = () => {
     setOrderDetails(null);
     goBack();
+    let params = new URLSearchParams(searchParams);
+    params.delete("id");
+    // @ts-expect-error 'shallow' does not exist in type 'NavigateOptions'
+    router.push(`${pathname}?${params.toString()}`, { shallow: true });
   };
   const [isExpanded, setIsExpanded] = useState(false);
-
+  useEffect(() => {
+    if (selectedOrder?.id) getOrderDetails();
+  }, [selectedOrder?.id]);
   if (!selectedOrder?.id) return null;
   const shouldShowChatIcon = () => {
     // Out for Delivery
@@ -43,8 +91,24 @@ function OrderDetails({
       return selectedOrder.order_group_id;
     return false;
   };
+  const ShowChats = () => {
+    if (shouldShowChatIcon()) {
+      let arr = [];
+      selectedOrder.details.map((s) => {
+        if (s.order_status === "Out for Delivery") {
+          if (!arr.includes(s.order_id)) {
+            arr.push(s.order_id);
+          }
+        }
+      });
+
+      return arr.map((s) => {
+        return <OrderChatIcon id={s} />;
+      });
+    }
+  };
   return (
-    <div className="flex-col h-[calc(100vh)]">
+    <div className="flex-col h-[calc(128vh)]">
       <SettingTopBar
         goBack={() => {
           resetOrder();
@@ -62,35 +126,49 @@ function OrderDetails({
         hasChat={shouldShowChatIcon()}
       />
 
-      <div
-        className={`pt-[12px] px-[12px] ${
-          isExpanded && "h-0 pt-0 overflow-hidden"
-        } flex-col justify-start  w-full bg-[#F8F8F8] `}
-      >
-        <div className="flex-row justify-between items-center w-full">
-          <OrderNumberCard number={selectedOrder.order_group_id} />
-          <OrderDateCard time={selectedOrder.created_at} />
-          <OrderInvoiceCard
-            amount={selectedOrder.order_amount}
-            payments={selectedOrder.payment_method}
-          />
+      {loading ? (
+        <div className="flex w-full pt-8 justify-center items-center">
+          <span className="scale-[4]">
+            <Spinner />
+          </span>
         </div>
-        <div className="flex-row justify-between items-center w-full mt-[8px]">
-          <OrderExpectedDeliveryCard time={selectedOrder.created_at} />
-          <OrderStatusCard status={selectedOrder.order_group_status.label} />
-        </div>
-        <OrderAddressCard address={selectedOrder.shipping_address_data} />
-      </div>
-      <RateOrderButton />
-      <div className="flex flex-col justify-start  w-full bg-[#F8F8F8] px-[12px] h-full">
-        <OrderItemsList
-          order_group_status={selectedOrder.order_status.label}
-          setExpanded={setIsExpanded}
-          isExpanded={isExpanded}
-          items={selectedOrder.details}
-        />
-        {isExpanded && <OrderExpandedDetails order={selectedOrder} />}
-      </div>
+      ) : (
+        <>
+          <div
+            className={`pt-[12px] px-[12px] ${
+              isExpanded && "h-0 pt-0 overflow-hidden"
+            } flex-col justify-start  w-full bg-[#F8F8F8] `}
+          >
+            <div className="flex-row justify-between items-center w-full">
+              <OrderNumberCard number={selectedOrder.order_group_id} />
+              <OrderDateCard time={selectedOrder.created_at} />
+              <OrderInvoiceCard
+                amount={selectedOrder.order_amount}
+                payments={selectedOrder.payment_method}
+              />
+            </div>
+            <div className="flex-row justify-between items-center w-full mt-[8px]">
+              <OrderExpectedDeliveryCard time={selectedOrder.created_at} />
+              <OrderStatusCard
+                status={selectedOrder.order_group_status.label}
+              />
+            </div>
+            <OrderAddressCard address={selectedOrder.shipping_address_data} />
+          </div>
+          <RateOrderButton />
+          <div className="flex flex-col justify-start  w-full bg-[#F8F8F8] px-[12px] h-full relative">
+            <OrderItemsList
+              shouldShowChat={shouldShowChatIcon}
+              showChats={() => ShowChats()}
+              order_group_status={selectedOrder.order_status.label}
+              setExpanded={setIsExpanded}
+              isExpanded={isExpanded}
+              items={selectedOrder.details}
+            />
+            {isExpanded && <OrderExpandedDetails order={selectedOrder} />}
+          </div>
+        </>
+      )}
     </div>
   );
 }
@@ -442,13 +520,13 @@ const ProductCard = ({
         </div>
       </div>
       <div className="flex-row absolute left-[116px] bottom-[24px] items-center">
-        {product.product_details.offer_price && (
+        {product.price_after_discount && (
           <div className="line-through text-[#C4C2C2] regular text-[12px]  line-through-[#C4C2C2]">
-            {RoundPrice({ num: product.product_details.price })}
+            {RoundPrice({ num: product.price })}
           </div>
         )}
         <div className="text-[#1D1D1D] text-[12px] ml-[4px] bold">
-          {RoundPrice({ num: product.product_details.offer_price })}
+          {RoundPrice({ num: product.price_after_discount })}
         </div>
         <span className="text-[#1D1D1D] light text-[10px] ml-[4px]">
           {currency?.symbol}

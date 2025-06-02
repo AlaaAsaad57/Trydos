@@ -3,8 +3,19 @@ export const GA_EVENT_NAMES = {
   PROGRAMMING_EVENT: "programming_event",
   VIEW_PRODUCT_EVENT: "view_product_event",
   VIEW_BOUTIQUE_EVENT: "view_boutique_event",
-  LOGIN: "login",
-  SIGN_UP: "sign_up",
+  LOGIN: "login", //params:method,success,timestamp
+  SIGN_UP: "sign_up", //params:method,success,timestamp
+  SCREEN_VIEW: "screen_view", //params:screen_name,platform,timestamp
+  LOGIN_START: "login_start", //params:method,timestamp
+  CONFIRM_PHONE_NUMBER: "confirm_phone_number", //params:input_valid,timestamp
+  VERIFY_OTP_LOGIN: "verify_otp_login", //params:status,attempt,method,timestamp
+  RESEND_OTP: "resend_otp", //params:attempt,method
+  EXCEPTION: "exception", //params:description,context,timestamp
+  CANCEL_LOGIN: "cancel_login", //params:context,timestamp
+  SIGNUP_START: "sign_up_start", //params:method,timestamp
+  CREATE_ACCOUNT_CONTINUE: "create_account_continue", //params:entered_name,timestamp
+  CANCEL_SIGNUP: "cancel_signup", //params:method,timestamp
+  LATER_TAKE_LOOK_CLICKED: "later_take_look_clicked", //params:screen
 };
 export const GA_CLICK_EVENT_VALUES = {
   CART_ICON: "cart_nav_bar_button",
