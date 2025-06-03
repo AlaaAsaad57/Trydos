@@ -1,7 +1,11 @@
 import React, { useEffect, useState, useRef } from "react";
 import SettingTopBar from "./TopBar";
 import SearchHistoryIcon from "public/svg/SearchHistoryIcon.svg";
-import { OrderItem as OrderItemType, OrdersResponse } from "../../types/orders";
+import {
+  OrderItem as OrderItemType,
+  OrderDetail,
+  OrdersResponse,
+} from "../../types/orders";
 import { fetchOrders } from "../../services/orders";
 import OrderItem from "../Orders/OrderItem"; // Assuming OrderItem component exists and can be reused
 import { translateFunction } from "utils/functions"; // Assuming translateFunction exists
@@ -45,7 +49,7 @@ function OrdersList({
       // TODO: Modify fetchOrders or backend to accept selectedStatus for filtering
       const response: OrdersResponse = await fetchOrders(
         currentPage,
-        8,
+        20,
         status === "all" ? null : status
       );
       if (
@@ -53,36 +57,76 @@ function OrdersList({
         response.hasContent &&
         response.data.orders.length > 0
       ) {
-        // Merge details for items with same order_group_id
-        const mergedOrders = response.data.orders.reduce(
-          (acc: OrderItemType[], curr: OrderItemType) => {
-            const existingOrder = acc.find(
-              (order) => order.order_group_id === curr.order_group_id
-            );
-            if (existingOrder) {
-              existingOrder.details = [
-                ...existingOrder.details?.map((s) => ({
-                  ...s,
-                  order_status: existingOrder?.order_status?.label,
-                })),
-                ...curr.details.map((s) => ({
-                  ...s,
-                  order_status: existingOrder?.order_status?.label,
-                  order_id: existingOrder?.id,
-                })),
-              ];
-              existingOrder.order_amount =
-                existingOrder.order_amount + curr.order_amount;
-              return acc;
+        // Group orders by order_group_id - only use the new response data
+        const groupedOrders = response.data.orders.reduce(
+          (acc: { [key: string]: OrderItemType[] }, curr: OrderItemType) => {
+            const groupId = curr.order_group_id;
+            if (!acc[groupId]) {
+              acc[groupId] = [];
             }
-            return [...acc, curr];
+            acc[groupId].push(curr);
+            return acc;
           },
-          []
+          {}
         );
-        response.data.orders = mergedOrders;
-        setOrders((prev) =>
-          reset ? response.data.orders : [...prev, ...response.data.orders]
+
+        // Merge orders with the same order_group_id
+        const mergedResponseOrders = Object.values(groupedOrders).map(
+          (groupOrders: OrderItemType[]) => {
+            if (groupOrders.length === 1) {
+              return groupOrders[0];
+            }
+
+            // Use the first order as the base
+            const baseOrder = { ...groupOrders[0] };
+
+            // Merge details and sum order_amount for all orders in the group
+            baseOrder.details = groupOrders.reduce(
+              (allDetails: OrderDetail[], order: OrderItemType) => [
+                ...allDetails,
+                ...order.details.map((detail) => ({
+                  ...detail,
+                  order_status: baseOrder.order_status?.label,
+                  order_id: baseOrder.id,
+                })),
+              ],
+              []
+            );
+
+            // Sum order_amount from all orders in the group
+            baseOrder.order_amount = groupOrders.reduce(
+              (sum, order) => sum + order.order_amount,
+              0
+            );
+
+            return baseOrder;
+          }
         );
+
+        // Merge with existing orders without duplicating by order_group_id
+        const existingOrdersMap = orders.reduce(
+          (acc: { [key: string]: OrderItemType }, order) => {
+            acc[order.order_group_id] = order;
+            return acc;
+          },
+          {}
+        );
+
+        const newOrdersMap = mergedResponseOrders.reduce(
+          (acc: { [key: string]: OrderItemType }, order) => {
+            acc[order.order_group_id] = order;
+            return acc;
+          },
+          {}
+        );
+
+        // Combine maps, with new orders taking precedence
+        const combinedOrdersMap = { ...existingOrdersMap, ...newOrdersMap };
+
+        // Convert back to array for state update
+        const finalOrders = Object.values(combinedOrdersMap);
+
+        setOrders((prev) => (reset ? finalOrders : finalOrders));
         setHasMore(response.data.orders.length > 0); // Check if more orders were fetched
         setPage(currentPage + 1);
       } else {

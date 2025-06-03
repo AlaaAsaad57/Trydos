@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useRef, useState } from "react";
 import { AxiosGet } from "utils/AxiosApi";
-import { toast, ToastContainer } from "react-toastify";
+import { toast } from "react-toastify";
 import BackIcon from "public/svg/listing/backIcon.svg";
 import {
   getConfiguredImage,

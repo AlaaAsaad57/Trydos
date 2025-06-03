@@ -6,84 +6,99 @@ import ModifyOrderIcon from "public/svg/ModifyOrderIcon.svg";
 import { toast } from "react-toastify";
 import ChangeAddressWidget from "./ChangeAddressWidget";
 import { useAppStore } from "store";
-function OrderOptions({ closeOptions }) {
+import ModifyOrderWidget from "./ModifyOrderWidget";
+import CancelOrderConfirmation from "./CancelOrderConfirmation";
+function OrderOptions({ closeOptions, CancelOrder }) {
   const { selectedOrder } = useAppStore();
   const [screen, setScreen] = useState<
     "options" | "changeAddress" | "modifyOrder"
   >("options");
   const [canceled, setCanceled] = useState(false);
+  const [shouldConfirmCancel, setShouldConfirmCancel] = useState(false);
   const renderScreen = () => {
     if (screen === "options") {
       return (
-        <div className="flex-col max-h-[calc(100vh-150px)] overflow-auto w-full pt-[14px] px-[24px] z-[999999999] pb-[27px] absolute bottom-[100px]  left-0 rounded-t-[30px] bg-white">
-          <div className="flex-col  items-center w-full justify-center">
-            <OrdersIcon />
-            <span className="medium text-[#1D1D1D] text-[14px] mt-[5px] ">
-              {translateFunction("Manage Your Order")}
-            </span>
-            <div
-              className="w-full h-[1px] mt-[22px]"
-              style={{ borderTop: "1px solid #C4C2C280" }}
-            />
-          </div>
-          <div
-            className="flex-row w-full min-h-[50px] mt-[33px] bg-[#F8F8F8] rounded-[20px] px-[12px] items-center justify-between"
-            onClick={() => {
-              setScreen("changeAddress");
-            }}
-          >
-            <ChangeAddressIcon />
-            <span className="regular text-[#8D8D8D] text-[14px]">
-              {translateFunction("Change Delivery Address & Note")}
-            </span>
-            <span />
-          </div>
-          <div
-            className="flex-row w-full min-h-[50px] mt-[8px] bg-[#F8F8F8] rounded-[20px] px-[12px] items-center justify-between"
-            onClick={() => {}}
-          >
-            <ModifyOrderIcon />
-            <span className="regular text-[#8D8D8D] text-[14px]">
-              {translateFunction("Modify Order")}
-            </span>
-            <span />
-          </div>
-          <div
-            className="flex-row w-full min-h-[50px] mt-[8px] bg-[#F8F8F8] rounded-[20px] px-[12px] items-center justify-center"
-            onClick={() => {
-              setScreen("modifyOrder");
-            }}
-          >
-            <span className="regular text-[#8D8D8D] text-[14px]">
-              {translateFunction(
-                "Information About Your Order Modify Or Cancel"
-              )}
-            </span>
-          </div>
-          <div
-            style={{ border: "1px solid #FF5F6180" }}
-            className={`flex-col meduim 
-             mt-[20px]
-             text-[#FF5F61] text-[14px] w-full h-[50px]  bg-[#F8F8F8] rounded-[20px] px-[12px] items-center justify-center`}
-            onClick={() => {
-              setCanceled(true);
-            }}
-          >
-            <span>{translateFunction("Cancel Order")}</span>
-            <span className="regular text-[12px] text-[#FF5F61]">
-              {translateFunction("You Can Cancel & Back Your Money")}
-            </span>
-          </div>
-          {canceled && (
-            <OrderCanceltionOptions
+        <>
+          {shouldConfirmCancel && (
+            <CancelOrderConfirmation
               close={() => {
-                setCanceled(false);
-                setScreen("options");
                 closeOptions();
+                CancelOrder();
               }}
+              setShouldConfirmCancel={setShouldConfirmCancel}
             />
           )}
-        </div>
+          <div className="flex-col max-h-[calc(100vh-150px)] overflow-auto w-full pt-[14px] px-[24px] z-[999999999] pb-[27px] absolute bottom-[100px]  left-0 rounded-t-[30px] bg-white">
+            <div className="flex-col  items-center w-full justify-center">
+              <OrdersIcon />
+              <span className="medium text-[#1D1D1D] text-[14px] mt-[5px] ">
+                {translateFunction("Manage Your Order")}
+              </span>
+              <div
+                className="w-full h-[1px] mt-[22px]"
+                style={{ borderTop: "1px solid #C4C2C280" }}
+              />
+            </div>
+            <div
+              className="flex-row w-full min-h-[50px] mt-[33px] bg-[#F8F8F8] rounded-[20px] px-[12px] items-center justify-between"
+              onClick={() => {
+                setScreen("changeAddress");
+              }}
+            >
+              <ChangeAddressIcon />
+              <span className="regular text-[#8D8D8D] text-[14px]">
+                {translateFunction("Change Delivery Address & Note")}
+              </span>
+              <span />
+            </div>
+            <div
+              className="flex-row w-full min-h-[50px] mt-[8px] bg-[#F8F8F8] rounded-[20px] px-[12px] items-center justify-between"
+              onClick={() => {
+                setScreen("modifyOrder");
+              }}
+            >
+              <ModifyOrderIcon />
+              <span className="regular text-[#8D8D8D] text-[14px]">
+                {translateFunction("Modify Order")}
+              </span>
+              <span />
+            </div>
+            <div
+              className="flex-row w-full min-h-[50px] mt-[8px] bg-[#F8F8F8] rounded-[20px] px-[12px] items-center justify-center"
+              onClick={() => {}}
+            >
+              <span className="regular text-[#8D8D8D] text-[14px]">
+                {translateFunction(
+                  "Information About Your Order Modify Or Cancel"
+                )}
+              </span>
+            </div>
+            <div
+              style={{ border: "1px solid #FF5F6180" }}
+              className={`flex-col meduim 
+             mt-[20px]
+             text-[#FF5F61] text-[14px] w-full h-[50px]  bg-[#F8F8F8] rounded-[20px] px-[12px] items-center justify-center`}
+              onClick={() => {
+                setCanceled(true);
+              }}
+            >
+              <span>{translateFunction("Cancel Order")}</span>
+              <span className="regular text-[12px] text-[#FF5F61]">
+                {translateFunction("You Can Cancel & Back Your Money")}
+              </span>
+            </div>
+            {canceled && (
+              <OrderCanceltionOptions
+                setShouldConfirmCancel={setShouldConfirmCancel}
+                close={() => {
+                  setCanceled(false);
+                  setScreen("options");
+                  closeOptions();
+                }}
+              />
+            )}
+          </div>
+        </>
       );
     }
     if (screen === "changeAddress") {
@@ -93,6 +108,16 @@ function OrderOptions({ closeOptions }) {
             setScreen("options");
           }}
           address_id={selectedOrder?.shipping_address}
+        />
+      );
+    }
+    if (screen === "modifyOrder") {
+      return (
+        <ModifyOrderWidget
+          close={() => {
+            setScreen("options");
+          }}
+          order_items={selectedOrder?.details}
         />
       );
     }
@@ -112,7 +137,7 @@ function OrderOptions({ closeOptions }) {
 }
 
 export default OrderOptions;
-const OrderCanceltionOptions = ({ close }) => {
+const OrderCanceltionOptions = ({ close, setShouldConfirmCancel }) => {
   let options = [
     "I Changed My Mind",
     "I Fear Quality",
@@ -170,8 +195,10 @@ const OrderCanceltionOptions = ({ close }) => {
             selectedOptions?.length > 0 ? "bg-[#FF5F61]" : "bg-[#D3D3D3]"
           } rounded-[20px] text-white text-[14px] medium h-[50px] flex-row w-full items-center justify-center mt-[20px]`}
           onClick={() => {
-            if (selectedOptions) close();
-            else toast.info("Please select a reason for canceling this order");
+            if (selectedOptions) {
+              setShouldConfirmCancel(true);
+            } else
+              toast.info("Please select a reason for canceling this order");
           }}
         >
           {translateFunction("Cancel Order")}

@@ -72,6 +72,9 @@ function SettingTopBar({
               />
               {showOptions && (
                 <OrderOptions
+                  CancelOrder={() => {
+                    goBack();
+                  }}
                   closeOptions={() => {
                     document.documentElement.style.overflow = "auto";
                     document.documentElement.scrollTop = 0;

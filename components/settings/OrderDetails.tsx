@@ -520,7 +520,7 @@ const ProductCard = ({
         </div>
       </div>
       <div className="flex-row absolute left-[116px] bottom-[24px] items-center">
-        {product.price_after_discount && (
+        {product.price_after_discount >= 0 && (
           <div className="line-through text-[#C4C2C2] regular text-[12px]  line-through-[#C4C2C2]">
             {RoundPrice({ num: product.price })}
           </div>
