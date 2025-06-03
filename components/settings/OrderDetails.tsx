@@ -103,7 +103,7 @@ function OrderDetails({
       });
 
       return arr.map((s) => {
-        return <OrderChatIcon id={s} />;
+        return <OrderChatIcon key={s} id={s} />;
       });
     }
   };
