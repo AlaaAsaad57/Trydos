@@ -24,7 +24,7 @@
   display: flex;
   position: absolute;
   z-index: 14;
-  right: 20px;
+  right: 50px;
   top: 19px;
 }
 .active-chat-icon path {
