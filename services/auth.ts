@@ -82,23 +82,25 @@ class AuthService {
   ) {
     const { setTempUser, setWrongNumber, loginFailed } = useAppStore.getState();
     try {
-      // const response = await fetch(
-      //   process.env.NEXT_PUBLIC_BACKEND_URL +
-      //     "/auth/phone/verify_otp_from_guest" +
-      //     `?verificationId=${verficationID}&otp=${code}${
-      //       Username.length > 0 ? `&name=${Username}` : ""
-      //     }`,
-      //   getHeader()
-      // );
-      let response = await AxiosGet({
-        url:
-          process.env.NEXT_PUBLIC_BACKEND_URL +
+      let response = await fetch(
+        process.env.NEXT_PUBLIC_BACKEND_URL +
           "/auth/phone/verify_otp_from_guest" +
           `?verificationId=${verficationID}&otp=${code}${
             Username.length > 0 ? `&name=${Username}` : ""
           }`,
-      });
-      console.log(response);
+        getHeader()
+      );
+      if (response.status === 401) {
+        await home.registerForExpire();
+        response = await fetch(
+          process.env.NEXT_PUBLIC_BACKEND_URL +
+            "/auth/phone/verify_otp_from_guest" +
+            `?verificationId=${verficationID}&otp=${code}${
+              Username.length > 0 ? `&name=${Username}` : ""
+            }`,
+          getHeader()
+        );
+      }
       let repo: {
         data: {
           already_exists: boolean;
@@ -122,6 +124,7 @@ class AuthService {
       if (repo?.data?.message === "user not found") {
         throw new Error("user not found");
       }
+
       if (repo?.isSuccessful === false) {
         throw new Error("Wrong Code");
       }
@@ -156,6 +159,7 @@ class AuthService {
       }, 2000);
       return [repo.data.already_exists, repo.data.user.name];
     } catch (e) {
+      console.log(e);
       if (e.message === "user not found") {
         setWrongNumber("user not found");
       } else {
