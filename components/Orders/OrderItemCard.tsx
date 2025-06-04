@@ -396,6 +396,7 @@ const ColorList = ({ colors, setColor, currentColor, newColor }) => {
     >
       {colors?.map((s) => (
         <div
+          key={s.color_name}
           className="w-auto h-[98px] flex-col items-center justify-center"
           onClick={() => {
             setColor(s?.color_name);

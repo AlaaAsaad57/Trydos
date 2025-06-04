@@ -82,14 +82,23 @@ class AuthService {
   ) {
     const { setTempUser, setWrongNumber, loginFailed } = useAppStore.getState();
     try {
-      const response = await fetch(
-        process.env.NEXT_PUBLIC_BACKEND_URL +
+      // const response = await fetch(
+      //   process.env.NEXT_PUBLIC_BACKEND_URL +
+      //     "/auth/phone/verify_otp_from_guest" +
+      //     `?verificationId=${verficationID}&otp=${code}${
+      //       Username.length > 0 ? `&name=${Username}` : ""
+      //     }`,
+      //   getHeader()
+      // );
+      let response = await AxiosGet({
+        url:
+          process.env.NEXT_PUBLIC_BACKEND_URL +
           "/auth/phone/verify_otp_from_guest" +
           `?verificationId=${verficationID}&otp=${code}${
             Username.length > 0 ? `&name=${Username}` : ""
           }`,
-        getHeader()
-      );
+      });
+      console.log(response);
       let repo: {
         data: {
           already_exists: boolean;

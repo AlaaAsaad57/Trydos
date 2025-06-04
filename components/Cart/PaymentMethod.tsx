@@ -38,7 +38,6 @@ function PaymentMethod() {
   // @ts-ignore
   const language = lang.split("-")[1];
   const getWalletInUSD = () => {
-    console.log(wallet, currency);
     if (wallet?.wallet_balance > 0)
       return wallet?.wallet_balance / currency?.exchange_rate;
     else return 0;

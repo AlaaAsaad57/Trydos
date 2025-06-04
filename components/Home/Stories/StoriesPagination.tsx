@@ -10,7 +10,6 @@ function StoriesPagination({ next_page_url }: { next_page_url: string }) {
   const { storiesData, setStoryData } = useAppStore();
   const [loading, setLoading] = useState(false);
   const [next_page, setNextPage] = useState(next_page_url ? 2 : null);
-  const [data, setData] = useState([]);
   if (!next_page_url) return <></>;
   if (loading)
     return (
@@ -26,7 +25,7 @@ function StoriesPagination({ next_page_url }: { next_page_url: string }) {
       return null;
     }
     const res = await story.getStories(next_page);
-    setStoryData([...storiesData, ...res.data]);
+
     if (res.next_page_url) {
       setNextPage(next_page + 1);
     } else {

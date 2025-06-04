@@ -53,7 +53,7 @@ export default function NextLink({
     if (pathname !== href) {
       document.body.style.overflow = "hidden";
       document.body.scrollTop = 0;
-      console.log(data);
+
       dispatchRouteChangeEvent("start", {
         ...data,
       });

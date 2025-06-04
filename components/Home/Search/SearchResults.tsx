@@ -126,9 +126,6 @@ function SearchResults() {
       return true;
     else return false;
   };
-  useEffect(() => {
-    console.log(searchResults);
-  }, [searchResults]);
   return (
     <div
       className="search-results-container flex-col"
