@@ -38,7 +38,6 @@ function StoryHolder({ story, active, isPaused }: Props) {
             isPaused={!active}
             preloadCount={0}
             onStoryStart={(e) => {
-              console.log(selectedStory?.id, selectedStory?.stories[e].id);
               StoryServiceClass.WatchStory(
                 selectedStory?.stories[e].id,
                 selectedStory?.id
