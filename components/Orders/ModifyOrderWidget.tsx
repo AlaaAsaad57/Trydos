@@ -4,8 +4,10 @@ import ModifyOrderIcon from "public/svg/ModifyOrderIcon.svg";
 import { translateFunction } from "utils/functions";
 
 import OrderItemCard from "./OrderItemCard";
+import { ModifyOrderItemModal } from "./ModifyOrderItemModal";
+import { AxiosGet } from "utils/AxiosApi";
+import { toast } from "react-toastify";
 function ModifyOrderWidget({ order_items, close }) {
-  const { selectedOrder, currency } = useAppStore();
   const [orderItemData, setOrderItemData] = useState(order_items);
   const isChanged = () => {
     let bool = false;
@@ -27,9 +29,65 @@ function ModifyOrderWidget({ order_items, close }) {
 
     return bool;
   };
+  const [ConfirmationData, setConfirmationData] = useState({
+    enable: false,
+    loading: false,
+    currentColor: null,
+    newColor: null,
+    currentSize: null,
+    newSize: null,
+    productDetails: null,
+    type: null,
+    item: null,
+  });
+
+  const getProductDetails = async () => {
+    try {
+      setConfirmationData({ ...ConfirmationData, loading: true });
+      let [data1, data2] = await Promise.all([
+        AxiosGet({
+          url:
+            process.env.NEXT_PUBLIC_BACKEND_URL +
+            `/web/product/qtyPriceDetails/${ConfirmationData.item?.product_slug}`,
+          title: "Get Product Vriantes",
+        }),
+        AxiosGet({
+          url:
+            process.env.NEXT_PUBLIC_BACKEND_URL +
+            `/web/product/globalDetails/${ConfirmationData.item?.product_slug}`,
+          title: "GEt Product Global Details",
+        }),
+      ]);
+
+      setConfirmationData({
+        ...ConfirmationData,
+        productDetails: { ...data1, ...data2 },
+        loading: false,
+      });
+    } catch (e) {
+      toast.error(translateFunction("Failed to Load Product Data"));
+      setConfirmationData({
+        ...ConfirmationData,
+
+        loading: false,
+        enable: false,
+      });
+    }
+  };
   return (
     <>
-      <div className="flex-col max-h-[calc(100vh-150px)] overflow-auto w-full pt-[14px] px-[24px] z-[999999999] pb-[27px] absolute bottom-[100px]  left-0 rounded-t-[30px] bg-white">
+      {ConfirmationData?.enable && (
+        <ModifyOrderItemModal
+          orderItemData={orderItemData}
+          editOrderItem={(e) => setOrderItemData(e)}
+          orderItem={ConfirmationData.item}
+          setConfirmationData={setConfirmationData}
+          type={ConfirmationData.type}
+          confirmationData={ConfirmationData}
+          getProductDetails={getProductDetails}
+        />
+      )}
+      <div className="flex-col max-h-[calc(100vh)] overflow-auto w-full pt-[14px] px-[24px] z-[999999999] pb-[27px] absolute bottom-[0px]  left-0 rounded-t-[30px] bg-white">
         <div className="flex-col  items-center w-full justify-center">
           <ModifyOrderIcon />
           <span className="medium text-[#402CDD] text-[14px] mt-[5px] ">
@@ -45,11 +103,13 @@ function ModifyOrderWidget({ order_items, close }) {
             style={{ borderTop: "1px solid #C4C2C280" }}
           />
         </div>
-        <div className="flex-col items-center mt-[20px]  bg-[#fff] h-[481px] w-full max-h-[calc(100vh-200px)] overflow-auto">
+        <div className="flex-col items-center mt-[20px]  bg-[#fff] h-[481px] w-full max-h-[calc(100vh)] overflow-auto">
           {orderItemData.map((item) => {
             return (
               <>
                 <OrderItemCard
+                  ConfirmationData={ConfirmationData}
+                  setConfirmationData={setConfirmationData}
                   item={item}
                   editOrderItem={(e) => setOrderItemData(e)}
                   orderItemData={orderItemData}

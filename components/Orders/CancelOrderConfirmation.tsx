@@ -5,7 +5,7 @@ import { translateFunction } from "utils/functions";
 function CancelOrderConfirmation({ setShouldConfirmCancel, close }) {
   return (
     <div
-      className={`z-[9999999999999] px-[24px]  w-full flex-col ${"justify-end"} items-center h-[calc(100vh-100px)] overflow-auto max-h-[calc(100vh-100px)] fixed top-0 left-0 bg-[#0000006c]  backdrop-blur-[10px]`}
+      className={`z-[9999999999999] px-[24px]  w-full flex-col ${"justify-end"} items-center h-[calc(100vh)] overflow-auto max-h-[calc(100vh)] fixed top-0 left-0 bg-[#0000006c]  backdrop-blur-[10px]`}
     >
       <div className="w-full overflow-auto flex-col items-center">
         <ClarificationIcon className="mt-[100px]" />

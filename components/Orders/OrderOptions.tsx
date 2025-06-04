@@ -28,7 +28,7 @@ function OrderOptions({ closeOptions, CancelOrder }) {
               setShouldConfirmCancel={setShouldConfirmCancel}
             />
           )}
-          <div className="flex-col max-h-[calc(100vh-150px)] overflow-auto w-full pt-[14px] px-[24px] z-[999999999] pb-[27px] absolute bottom-[100px]  left-0 rounded-t-[30px] bg-white">
+          <div className="flex-col max-h-[calc(100vh-100px)] overflow-auto w-full pt-[14px] px-[24px] z-[999999999] pb-[27px] absolute bottom-[0px]  left-0 rounded-t-[30px] bg-white">
             <div className="flex-col  items-center w-full justify-center">
               <OrdersIcon />
               <span className="medium text-[#1D1D1D] text-[14px] mt-[5px] ">
@@ -125,7 +125,7 @@ function OrderOptions({ closeOptions, CancelOrder }) {
   return (
     <>
       <div
-        className="absolute top-[50px]   left-0 min-w-[100vw] z-[999999998] min-h-[100vh] opacity-40 bg-[black]"
+        className="absolute top-[0px]   left-0 min-w-[100vw] z-[999999998] min-h-[100vh] opacity-40 bg-[black]"
         onClick={() => {
           closeOptions();
           setScreen("options");

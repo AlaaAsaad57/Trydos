@@ -27,7 +27,7 @@ function ChangeAddressWidget({ address_id, close }) {
   });
   return (
     <>
-      <div className="flex-col max-h-[calc(100vh-150px)] overflow-auto w-full pt-[14px] px-[24px] z-[999999999] pb-[27px] absolute bottom-[100px]  left-0 rounded-t-[30px] bg-white">
+      <div className="flex-col max-h-[calc(100vh-50px)] overflow-auto w-full pt-[14px] px-[24px] z-[999999999] pb-[27px] absolute bottom-[0px]  left-0 rounded-t-[30px] bg-white">
         <div className="flex-col  items-center w-full justify-center">
           <ChangeAddressIcon />
           <span className="medium text-[#402CDD] text-[14px] mt-[5px] ">
@@ -278,6 +278,7 @@ function ChangeAddressWidget({ address_id, close }) {
               onClick={() => {
                 initAddressForm();
                 setOpenModal(true);
+                setIsActiveAddress(true);
                 //   closeSelect();
                 //   slideNext();
               }}
@@ -377,7 +378,7 @@ export const AddressModal = ({
       )}
       {isActiveAddress && (
         <AddAddressForm
-          isInSettings={true}
+          isInSettings={false}
           activeIndex={true}
           setOpenSelect={() => {
             setOpenSelect(true);
