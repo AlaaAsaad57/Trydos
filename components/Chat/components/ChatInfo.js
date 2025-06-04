@@ -18,6 +18,7 @@ import Spinner from "components/global/Spinner";
 
 import MediaContainer from "./MediaContainer";
 import { useAppStore } from "store";
+import ChatPhoto from "./ChatPhoto";
 function ChatInfo({
   activeChat,
   cancel,
@@ -86,24 +87,15 @@ function ChatInfo({
             {activeChat?.channel_members?.filter(
               (user) => user.user_id !== getUser()?.id
             )[0]?.user?.photo_path ? (
-              <Image
-                loading="eager"
-                width={150}
-                height={150}
-                alt="user-photo"
-                src={
-                  process.env.REACT_APP_BASE_FILE_URL +
-                  activeChat?.channel_members
-                    .filter((user) => user.user_id !== getUser()?.id)[0]
-                    ?.user?.photo_path?.includes("http")
-                    ? activeChat?.channel_members.filter(
-                        (user) => user.user_id !== getUser()?.id
-                      )[0]?.user?.photo_path
-                    : process.env.NEXT_PUBLIC_CLOUDINARY_URL +
-                      activeChat?.channel_members.filter(
-                        (user) => user.user_id !== getUser()?.id
-                      )[0]?.user?.photo_path
+              <ChatPhoto
+                user={
+                  activeChat?.channel_members.filter(
+                    (user) => user.user_id !== getUser()?.id
+                  )[0]?.user
                 }
+                className="w-full h-full"
+                height={150}
+                width={150}
               />
             ) : (
               <div className="text-avatar">
