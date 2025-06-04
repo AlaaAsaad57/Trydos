@@ -121,31 +121,38 @@ class ChatService {
     user?: { access_token: string; id: number };
     token: string;
   }) {
-    const { setFirebaseToken } = useAppStore.getState();
-    const response = await fetch(
-      process.env.NEXT_PUBLIC_CHAT_BACKEND_URL + "/api/v1/firebase_tokens",
-      {
-        method: "POST",
-        headers: {
-          Authorization:
-            "Bearer " +
-            (JSON.parse(localStorage.getItem("USER-CHAT"))?.access_token ||
-              localStorage.getItem("DEVICE-TOKEN")),
-        },
-        body: JSON.stringify({
-          token: payload.token,
-        }),
+    try {
+      const { setFirebaseToken } = useAppStore.getState();
+      const response = await fetch(
+        process.env.NEXT_PUBLIC_CHAT_BACKEND_URL + "/api/v1/firebase_tokens",
+        {
+          method: "POST",
+          headers: {
+            Authorization:
+              "Bearer " +
+              (JSON.parse(localStorage.getItem("USER-CHAT"))?.access_token ||
+                localStorage.getItem("DEVICE-TOKEN")),
+          },
+          body: JSON.stringify({
+            token: payload.token,
+          }),
+        }
+      );
+      if (response.status === 200) {
+        let repo = await response.json();
+
+        if (typeof window !== "undefined") {
+          _isStoreLastJson() &&
+            localStorage.setItem("LAST_JSON", JSON.stringify(repo));
+        }
+        setFirebaseToken(payload.token);
+        localStorage.setItem("firebase_id", repo.data.id);
+      } else {
+        throw new Error();
       }
-    );
-
-    let repo = await response.json();
-
-    if (typeof window !== "undefined") {
-      _isStoreLastJson() &&
-        localStorage.setItem("LAST_JSON", JSON.stringify(repo));
+    } catch (error) {
+      console.log(error);
     }
-    setFirebaseToken(payload.token);
-    localStorage.setItem("firebase_id", repo.data.id);
   }
   async getChats(payload) {
     const {

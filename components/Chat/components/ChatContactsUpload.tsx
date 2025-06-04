@@ -60,10 +60,11 @@ function ChatContactsUpload() {
         map.set(contact.mobile_phone, contact.name);
       });
       // Upload contacts with progress tracking
+      alert(JSON.stringify(map.values()));
       let res = await axios.post(
         process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
           "/api/v1/users/save_contacts",
-        { contacts: formattedContacts },
+        { contacts: [...ContactsData, ...formattedContacts] },
         {
           onUploadProgress: (progressEvent) => {
             const progress = Math.round(
@@ -129,7 +130,7 @@ function ChatContactsUpload() {
       await axios.post(
         process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
           "/api/v1/users/save_contacts",
-        { contacts: [...formattedContact] },
+        { contacts: [...ContactsData, ...formattedContact] },
         {
           onUploadProgress: (progressEvent) => {
             const progress = Math.round(
