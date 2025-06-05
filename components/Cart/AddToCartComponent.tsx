@@ -141,7 +141,7 @@ function AddToCartComponent({
     if (ProductData?.variation?.length > 0) {
       let selected_variant;
       if (
-        ProductData?.colors?.length > 0 &&
+        ProductData?.sync_color_images?.length > 0 &&
         ProductData?.choice_options?.length > 0
       ) {
         selected_variant = ProductData?.variation.find(
@@ -153,7 +153,7 @@ function AddToCartComponent({
         );
       }
       if (
-        ProductData?.colors?.length > 0 &&
+        ProductData?.sync_color_images?.length > 0 &&
         (!ProductData?.choice_options ||
           ProductData?.choice_options?.length === 0)
       ) {
@@ -162,7 +162,8 @@ function AddToCartComponent({
         );
       }
       if (
-        (!ProductData?.colors || ProductData?.colors?.length === 0) &&
+        (!ProductData?.sync_color_images ||
+          ProductData?.sync_color_images?.length === 0) &&
         ProductData?.choice_options?.length > 0
       ) {
         selected_variant = ProductData?.variation.find((s) =>
