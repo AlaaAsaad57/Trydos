@@ -101,7 +101,12 @@ export default async function Page({
       boutiques: searchParams?.boutiques,
     };
   }
-
+  if (searchParams.tags_names) {
+    EditedSearchParams = {
+      ...EditedSearchParams,
+      tags_names: searchParams?.tags_names,
+    };
+  }
   const GetProductsData = async () => {
     let response;
     try {
@@ -133,6 +138,7 @@ export default async function Page({
         }
       );
       let data = await response.json();
+
       return data.data;
     } catch (error) {
       console.log(error, "getProductsData", response);

@@ -90,7 +90,7 @@ function ActiveSearchFilterBar() {
                   (s) => s.slug === category.slug
                 )[0]?.name ||
                 getCategory(category.slug)?.name) && (
-                <>
+                <div className="flex-row" key={category.slug}>
                   <div
                     className="main-category-icon flex-row min-w-[15px] min-h-[15px]"
                     key={category.slug}
@@ -140,7 +140,7 @@ function ActiveSearchFilterBar() {
                       getCategory(category.slug)?.name}
                   </div>
                   {category?.categories_sub?.map((s) => (
-                    <>
+                    <div className="flex-row" key={s.slug}>
                       <div
                         className="sub-category-icon flex-row min-h-[10px] min-w-[10px]"
                         key={s.slug}
@@ -183,9 +183,9 @@ function ActiveSearchFilterBar() {
                             (sub) => sub.slug === s.slug
                           )[0]?.name}
                       </div>
-                    </>
+                    </div>
                   ))}
-                </>
+                </div>
               )
           )}
         </>
@@ -196,7 +196,7 @@ function ActiveSearchFilterBar() {
           {searchFilters?.boutiques?.map(
             (category) =>
               category.name && (
-                <>
+                <div className="flex-row" key={category.slug}>
                   <div
                     className="main-category-icon flex-row min-w-[15px] min-h-[15px]"
                     key={category.slug}
@@ -232,7 +232,7 @@ function ActiveSearchFilterBar() {
                   >
                     {category?.name}
                   </div>
-                </>
+                </div>
               )
           )}
         </>
@@ -245,7 +245,7 @@ function ActiveSearchFilterBar() {
               (brand.name ||
                 searchFilters.brands.filter((s) => s.slug === brand.slug)[0]
                   ?.name) && (
-                <>
+                <div className="flex-row" key={brand.slug}>
                   <div
                     className="main-category-icon flex-row min-w-[15px] min-h-[15px]"
                     key={brand.slug}
@@ -290,7 +290,7 @@ function ActiveSearchFilterBar() {
                         (sub) => sub.slug === brand.slug
                       )[0]?.name}
                   </div>
-                </>
+                </div>
               )
           )}
         </>

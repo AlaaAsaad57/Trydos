@@ -2,6 +2,27 @@ const translations = {
   en: {},
   ar: {
     "Total Products:": "إجمالي المنتجات:",
+    "Modify Order": "تعديل الطلب",
+    "Please select a reason for canceling this order":
+      "الرجاء اختيار سبب لالغاء الطلب",
+    "Manage Your Order": "إدارة الطلب",
+    "Change Delivery Address & Note": "تعديل عنوان التوصيل والملاحظات",
+    "You Can Easily Change Your Shipping Address And Delivery Notes":
+      "يمكنك بسهولة تغيير عنوان الشحن وملاحظات التسليم",
+    "Cancel Order": "إلغاء الطلب",
+    "You Can Cancel & Back Your Money": "يمكنك إلغاء الطلب واسترجاع المبلغ",
+    "Information About Your Order Modify Or Cancel":
+      "معلومات عن طلبك تعديل أو إلغاء",
+    "We Have Other Solutions Instead Of Cancellation.":
+      "لدينا حلول أخرى بدلاً من إلغاء الطلب",
+    "Learn More Tips.": "تعلم المزيد من النصائح",
+    "Why Was The Order Cancelled?": "لماذا تم إلغاء الطلب؟",
+    "I Changed My Mind": "غيرت رأيي",
+    "I Fear Quality": "أخشى جودة المنتج",
+    "I Fear The Delivery Time": "أخشى زمن التوصيل",
+    "I’m Afraid Of Sizes": "أخشى الأحجام",
+    "I Saw A Better Price": "رأيت سعراً أفضل",
+    "Shipping Cost": "تكلفة الشحن",
     "Syncing contacts...": "جاري مزامنة جهات الاتصال...",
     "Failed to sync contacts": "فشل مزامنة جهات الاتصال",
     "Add Contacts": "إضافة جهات الاتصال",
@@ -526,7 +547,29 @@ const translations = {
   },
   tr: {
     "Syncing contacts...": "İletişim bilgileriniz eşitleniyor...",
+    "Please select a reason for canceling this order":
+      "Lütfen bu siparişi iptal etmek için bir neden seçin",
+    "You Can Easily Change Your Shipping Address And Delivery Notes":
+      "Teslimat Adresinizi ve Teslimat Notlarınızı Kolayca Değiştirebilirsiniz",
+    "Shipping Cost": "Kargo Ücreti",
     "Failed to sync contacts": "İletişim bilgileriniz eşitlenemedi",
+    "Modify Order": "Siparişi Düzenle",
+    "Manage Your Order": "Siparişinizi Yönetin",
+    "Change Delivery Address & Note": "Teslimat Adresini ve Notu Değiştirin",
+    "Cancel Order": "Siparişi İptal Et",
+    "You Can Cancel & Back Your Money":
+      "Siparişi İptal Edip Para İade Edilebilir",
+    "We Have Other Solutions Instead Of Cancellation.":
+      "Diğer Çözümlerimiz İptal Etmekten Farklıdır.",
+    "Learn More Tips.": "Daha Fazla İpucu Öğrenin",
+    "Why Was The Order Cancelled?": "Sipariş Neden İptal Edildi?",
+    "I Changed My Mind": "Siparişi İptal Etmek İstemedim",
+    "I Fear Quality": "Ürünün Kalitesi İptal Etmek İstemedim",
+    "I Fear The Delivery Time": "Teslimat Süresi İptal Etmek İstemedim",
+    "I’m Afraid Of Sizes": "Boyutlar İptal Etmek İstemedim",
+    "I Saw A Better Price": "Daha Uygun Fiyat İptal Etmek İstemedim",
+    "Information About Your Order Modify Or Cancel":
+      "Siparişinizin Düzenlenmesi veya İptal Edilmesi Hakkında Bilgiler",
     "Add Contacts": "İletişim bilgilerini ekle",
     "The Purchase Was Completed Successfully":
       "Satın Alma Başarıyla Tamamlandı",

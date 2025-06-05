@@ -6,6 +6,7 @@ import StoriesPagination from "components/Home/Stories/StoriesPagination";
 import StoryElement from "components/Home/Stories/StoryElement";
 import StoriesSkeleton from "components/skeleton/StoriesSkeleton";
 import React, { useEffect, useState } from "react";
+import StoryServiceClass from "services/story";
 import { useAppStore } from "store";
 import { getStoriesServer } from "store/homepage/cachedActions";
 
@@ -15,7 +16,8 @@ function StoriesBarServer() {
   const [loading, setLoading] = useState(true);
   const getData = async () => {
     setLoading(true);
-    let { data, next_page_url } = await getStoriesServer();
+
+    let { data, next_page_url } = await StoryServiceClass.getStories();
     setStoryData(data);
     setNextPageUrl(next_page_url);
     setLoading(false);

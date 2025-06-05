@@ -86,9 +86,9 @@ function AddAddressForm({
   return (
     <>
       <div
-        className={`${
-          orderLoading ? "opacity-50 scale-[.99]" : ""
-        } flex-col h-full max-h-full overflow-auto w-full relative pb-[160px]`}
+        className={`${orderLoading ? "opacity-50 scale-[.99]" : ""}${
+          isInSettings ? "max-h-[calc(100vh-200px)]" : "max-h-full"
+        } flex-col h-full  overflow-auto w-full relative pb-[160px]`}
         data-cy="add-address-form" // Added data-cy
       >
         <div
@@ -581,9 +581,7 @@ export const AddAddressButtons = ({ valid, slidePrev, isInSettings }) => {
       style={{
         boxShadow: "0px -3px 20px #0000001a",
       }}
-      className={`${
-        isInSettings ? "add-address-button-m" : "add-address-button"
-      } ${
+      className={`${"add-address-button"} ${
         orderLoading && "opacity-55"
       } absolute text-center  left-0 w-full h-[100px] bg-[#fff] px-[20px] pt-[12px]`}
       data-cy="add-address-buttons-container" // Added data-cy

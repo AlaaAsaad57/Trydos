@@ -29,6 +29,8 @@ export default function NextLink({
   const searchParams = useSearchParams();
   const { setEnableSearch, setFilterEnabled } = useAppStore();
   const handleClick = (e) => {
+    const { setEnableSearch } = useAppStore.getState();
+
     if (props["data-cy"] === "category-Link") {
       Sendevent({
         event: GA_EVENT_NAMES.CLICK,
@@ -53,14 +55,14 @@ export default function NextLink({
     if (pathname !== href) {
       document.body.style.overflow = "hidden";
       document.body.scrollTop = 0;
-      console.log(data);
+
       dispatchRouteChangeEvent("start", {
         ...data,
       });
-      if (data.is_home || data.is_full_home) {
-        setEnableSearch(false);
-        setFilterEnabled(false);
-      }
+    }
+    if (data.is_home || data.is_full_home) {
+      setEnableSearch(false);
+      setFilterEnabled(false);
     }
   };
   const IsPrefetched = () => {

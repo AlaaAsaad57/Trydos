@@ -17,11 +17,15 @@ function OrderItemsList({
   isExpanded,
   setExpanded,
   order_group_status,
+  shouldShowChat,
+  showChats,
 }: {
   items: any;
   isExpanded: boolean;
   setExpanded: (s: boolean) => void;
   order_group_status: any;
+  shouldShowChat: () => boolean;
+  showChats: () => any;
 }) {
   const getStatusIcon = (status) => {
     if (status === "pending") return <PendingStatus />;
@@ -31,12 +35,13 @@ function OrderItemsList({
     return <PendingStatus />;
   };
   const { lang } = useParams();
-
+  console.log(showChats());
   return (
     <div className="w-full flex-col">
       <div
-        onClick={() => {
-          setExpanded(!isExpanded);
+        onClick={(e) => {
+          // @ts-ignore
+          if (!e.target.closest(".chat-holder")) setExpanded(!isExpanded);
         }}
         className="bg-[#F4F4F4] mt-[8px] ml-[8px] w-full min-h-[74px] h-auto  rounded-[15px] py-[7px] px-[12px] flex-col"
         style={{
@@ -51,6 +56,11 @@ function OrderItemsList({
           <span className="bold"> {items.length}</span>{" "}
           {translateFunction("Items")}
         </span>
+        {shouldShowChat() && (
+          <div className="chat-holder flex-row absolute right-[10px] top-[30px]">
+            {showChats()}
+          </div>
+        )}
       </div>
       <div
         className={` ${

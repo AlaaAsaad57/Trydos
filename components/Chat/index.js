@@ -60,6 +60,7 @@ function Chat(props) {
               setSearch={(e) => setSearch(e)}
               activeChat={activeChat}
               ViewedScreen={ViewedScreen}
+              close={props.close}
             />
             {SSRDetect() && (
               <ConversationContainer

@@ -67,7 +67,6 @@ class AuthService {
         setWrongNumber(msg);
         throw new Error(msg);
       }
-      return repo.data.verificationId;
     } catch (e) {
       errorCallback();
       setWrongNumber(msg);
@@ -83,7 +82,7 @@ class AuthService {
   ) {
     const { setTempUser, setWrongNumber, loginFailed } = useAppStore.getState();
     try {
-      const response = await fetch(
+      let response = await fetch(
         process.env.NEXT_PUBLIC_BACKEND_URL +
           "/auth/phone/verify_otp_from_guest" +
           `?verificationId=${verficationID}&otp=${code}${
@@ -91,6 +90,17 @@ class AuthService {
           }`,
         getHeader()
       );
+      if (response.status === 401) {
+        await home.registerForExpire();
+        response = await fetch(
+          process.env.NEXT_PUBLIC_BACKEND_URL +
+            "/auth/phone/verify_otp_from_guest" +
+            `?verificationId=${verficationID}&otp=${code}${
+              Username.length > 0 ? `&name=${Username}` : ""
+            }`,
+          getHeader()
+        );
+      }
       let repo: {
         data: {
           already_exists: boolean;
@@ -114,6 +124,7 @@ class AuthService {
       if (repo?.data?.message === "user not found") {
         throw new Error("user not found");
       }
+
       if (repo?.isSuccessful === false) {
         throw new Error("Wrong Code");
       }
@@ -148,6 +159,7 @@ class AuthService {
       }, 2000);
       return [repo.data.already_exists, repo.data.user.name];
     } catch (e) {
+      console.log(e);
       if (e.message === "user not found") {
         setWrongNumber("user not found");
       } else {
@@ -279,6 +291,7 @@ class AuthService {
     }
     await StoryService.loginStories();
     await ChatService.loginChat();
+    await this.CheckUserName();
   }
   async cancelAuth() {
     if (!localStorage.getItem("guest-user")) {
@@ -505,6 +518,39 @@ class AuthService {
       title: "Update Profile Image",
     });
     return res;
+  }
+  async CheckUserName() {
+    let isChatUserExist = JSON.parse(localStorage.getItem("USER-CHAT"));
+    let isStoriesUserExist = JSON.parse(localStorage.getItem("USER-STORIES"));
+    let username_stories = JSON.parse(
+      localStorage.getItem("USER-STORIES")
+    )?.name;
+    let username_chat = JSON.parse(localStorage.getItem("USER-CHAT"))?.name;
+    let username_market = JSON.parse(localStorage.getItem("USER-CHAT"))?.name;
+    if (Boolean(isChatUserExist) && Boolean(isStoriesUserExist))
+      if (
+        username_chat !== username_market ||
+        username_stories !== username_market
+      ) {
+        localStorage.setItem(
+          "USER-CHAT",
+          JSON.stringify({
+            ...isChatUserExist,
+            name: username_market,
+          })
+        );
+        localStorage.setItem(
+          "USER-STORIES",
+          JSON.stringify({
+            ...isChatUserExist,
+            name: username_market,
+          })
+        );
+        await this.UpdateProfile(
+          { name: username_market },
+          { name: username_market }
+        );
+      }
   }
 }
 export default new AuthService();

@@ -2,8 +2,10 @@ import React, { useState } from "react";
 import BackIcon from "public/svg/listing/backIcon.svg";
 import OptionsIcon from "public/svg/OptionsIcon.svg";
 import { translateFunction } from "utils/functions";
-import ChatIcon from "public/svg/ChatIcon.svg";
+
 import ChatWidget from "components/Chat/ChatWidget";
+import OrderOptions from "components/Orders/OrderOptions";
+import { useAppStore } from "store";
 
 function SettingTopBar({
   Save,
@@ -12,7 +14,6 @@ function SettingTopBar({
   goBack,
   Icon,
   DataCy,
-  hasChat = false,
 }: {
   Save?: () => void;
   hasOptions?: boolean;
@@ -20,9 +21,9 @@ function SettingTopBar({
   goBack: () => void;
   Icon?: React.ReactNode;
   DataCy?: string;
-  hasChat?: boolean;
+  hasChat?: any;
 }) {
-  const [isChatOpen, setIsChatOpen] = useState(false);
+  const { setOrderOptions } = useAppStore();
 
   return (
     <>
@@ -54,40 +55,27 @@ function SettingTopBar({
           }}
         >
           {Save && translateFunction("Save")}
-          {hasChat && (
-            <ChatIcon
-              className="mx-[10px] cursor-pointer"
-              onClick={() => {
-                document.documentElement.style.overflow = "hidden";
-                document.documentElement.scrollTop = 0;
-                document.querySelector("#OrderDetails").scrollTop = 0;
-                document
-                  .querySelector("#OrderDetails")
-                  .classList.add("overflow-hidden");
-                document
-                  .querySelector("#OrderDetails")
-                  .classList.remove("overflow-auto");
-                setIsChatOpen(true);
-              }}
-            />
+
+          {hasOptions && (
+            <>
+              <OptionsIcon
+                onClick={() => {
+                  document.documentElement.style.overflow = "hidden";
+                  document.documentElement.scrollTop = 0;
+                  document.querySelector("#OrderDetails").scrollTop = 0;
+                  document
+                    .querySelector("#OrderDetails")
+                    .classList.add("overflow-hidden");
+                  document
+                    .querySelector("#OrderDetails")
+                    .classList.remove("overflow-auto");
+                  setOrderOptions(true);
+                }}
+              />
+            </>
           )}
-          {hasOptions && <OptionsIcon />}
         </span>
       </div>
-      <ChatWidget
-        isOpen={isChatOpen}
-        onClose={() => {
-          document.documentElement.style.overflow = "auto";
-
-          document
-            .querySelector("#OrderDetails")
-            .classList.remove("overflow-hidden");
-          document
-            .querySelector("#OrderDetails")
-            .classList.add("overflow-auto");
-          setIsChatOpen(false);
-        }}
-      />
     </>
   );
 }

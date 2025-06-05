@@ -13,7 +13,9 @@ function StoryElement({ index, story }) {
         avatar={
           typeof story.photo_path === "string"
             ? getConfiguredImage({
-                src: process.env.NEXT_PUBLIC_CLOUDINARY_URL + story.photo_path,
+                src: story.photo_path?.includes("http")
+                  ? story.photo_path
+                  : process.env.NEXT_PUBLIC_CLOUDINARY_URL + story.photo_path,
                 width: 20,
                 height: 20,
               })

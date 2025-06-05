@@ -3,6 +3,7 @@ import { RoundPrice, translateFunction } from "utils/functions";
 import WalletIcon from "assets/svg/cart/WalletIcon.svg";
 import CreditIcon from "assets/svg/cart/CreditIcon.svg";
 import CryptoIcon from "assets/svg/cart/CryptoIcon.svg";
+import { useAppStore } from "store";
 
 interface OrderInvoiceCardProps {
   amount: number;
@@ -16,14 +17,7 @@ const OrderInvoiceCard: React.FC<OrderInvoiceCardProps> = ({
   amount,
   payments,
 }) => {
-  // Format the amount to currency
-  // const formatCurrency = (value: number) => {
-  //   return new Intl.NumberFormat("en-US", {
-  //     style: "currency",
-  //     currency: "USD",
-  //     minimumFractionDigits: 2,
-  //     maximumFractionDigits: 2,
-  //   }).format(value);
+  const { currency } = useAppStore();
   // };
 
   return (
@@ -136,7 +130,7 @@ const OrderInvoiceCard: React.FC<OrderInvoiceCardProps> = ({
         {translateFunction("Order Invoice")}
       </span>
       <span className="text-[#1D1D1D] text-[12px] regular mt-[3px]">
-        {RoundPrice({ num: amount })}
+        {RoundPrice({ num: amount })} {currency?.symbol}
       </span>
     </div>
   );

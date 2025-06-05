@@ -14,7 +14,7 @@ function ChatPhoto({
   width?: number;
   height?: number;
 }) {
-  if (user.photo_path)
+  if (user?.photo_path)
     return (
       <Image
         src={

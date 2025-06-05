@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useRef, useState } from "react";
 import { AxiosGet } from "utils/AxiosApi";
-import { toast, ToastContainer } from "react-toastify";
+import { toast } from "react-toastify";
 import BackIcon from "public/svg/listing/backIcon.svg";
 import {
   getConfiguredImage,
@@ -139,13 +139,36 @@ function AddToCartComponent({
   const SizesRef = useRef<SwiperRef>();
   const getSelectedVariantQty = () => {
     if (ProductData?.variation?.length > 0) {
-      let selected_variant = ProductData?.variation.find(
-        (s) =>
-          s.type.startsWith(selectedColor?.color_name ?? "") &&
-          s.type.endsWith(
-            (selectedSize?.name && `-${selectedSize?.name}`) ?? ""
-          )
-      );
+      let selected_variant;
+      if (
+        ProductData?.colors?.length > 0 &&
+        ProductData?.choice_options?.length > 0
+      ) {
+        selected_variant = ProductData?.variation.find(
+          (s) =>
+            s.type.startsWith(selectedColor?.color_name ?? "") &&
+            s.type.endsWith(
+              (selectedSize?.name && `-${selectedSize?.name}`) ?? ""
+            )
+        );
+      }
+      if (
+        ProductData?.colors?.length > 0 &&
+        (!ProductData?.choice_options ||
+          ProductData?.choice_options?.length === 0)
+      ) {
+        selected_variant = ProductData?.variation.find((s) =>
+          s.type.startsWith(selectedColor?.color_name ?? "")
+        );
+      }
+      if (
+        (!ProductData?.colors || ProductData?.colors?.length === 0) &&
+        ProductData?.choice_options?.length > 0
+      ) {
+        selected_variant = ProductData?.variation.find((s) =>
+          s.type.endsWith((selectedSize?.name && `${selectedSize?.name}`) ?? "")
+        );
+      }
       return selected_variant;
     } else {
       // no variants
@@ -157,6 +180,7 @@ function AddToCartComponent({
       };
     }
   };
+  console.log(getSelectedVariantQty(), ProductData, "ProductData");
   useEffect(() => {
     if (
       document.querySelector<HTMLElement>(".alternate-product-details-footer")

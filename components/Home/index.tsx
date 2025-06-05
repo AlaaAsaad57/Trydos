@@ -25,7 +25,7 @@ export default function Home() {
     dispatchRouteChangeEvent("completed");
     document.documentElement.style.overflow = "initial";
     document.documentElement.scrollTop = 0;
-    StoryServiceClass.getStories();
+
     try {
       initFB();
     } catch (e) {}

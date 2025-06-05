@@ -587,11 +587,10 @@ img {
 }
 .chat-input-container {
   width: 100%;
-  left: 0px;
+
   border-bottom-left-radius: 10px;
   border-bottom-right-radius: 10px;
-  position: absolute;
-  bottom: 0px;
+
   height: 50px;
   background-color: #fafafa;
   padding: 5px;
@@ -1192,6 +1191,12 @@ svg.redwave g g path {
   top: 0px;
   z-index: 1000 !important;
   transition: all 0.4s ease;
+  background-color: #f7f7f7;
+}
+@media screen and (max-width: 780px) {
+  .chat-screen {
+    padding-bottom: 50px;
+  }
 }
 .active-wid {
   z-index: 99999;
@@ -1261,6 +1266,7 @@ svg.redwave g g path {
 .forward-text {
   font-family: var(--SF-Pro-Rounded-Light);
   margin-left: 20px;
+  color: #1d1d1d;
 }
 #text-copy {
   position: fixed;

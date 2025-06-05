@@ -11,6 +11,7 @@ import { useParams } from "next/navigation";
 import { GA_CLICK_EVENT_VALUES, GA_EVENT_NAMES } from "utils/GAEvents";
 import Spinner from "components/global/Spinner";
 import { formatTime } from "utils/tinyUtils";
+import { useAppStore } from "store";
 function ProductShippingOption({ days }) {
   const [countriesData, setCountries] = useState([]);
   const getCountries = async () => {
@@ -40,6 +41,7 @@ function ProductShippingOption({ days }) {
     getCountries();
   }, []);
   const [extended, setExtended] = useState(false);
+  const { settings } = useAppStore();
   return (
     <div
       className={`product-shipping product-colors product-sizes flex-col align-start relative ${
@@ -78,7 +80,10 @@ function ProductShippingOption({ days }) {
             )}
           </span>
           {translate("Expected Within")}
-          <span>{days}</span>
+          <span>
+            {(settings?.["starting-setting"]?.shipping_duration_days || 0) +
+              days}
+          </span>
           <span>{translate("Days")}</span>
         </div>
       </div>

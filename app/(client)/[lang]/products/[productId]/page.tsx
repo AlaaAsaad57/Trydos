@@ -119,7 +119,7 @@ async function Page({ params, searchParams }: Props) {
       "@type": "Offer",
       url:
         process.env.NEXT_PUBLIC_REMOTE_FRONT +
-        `/${params.lang}/product/short-sleeve-woven-blouse-4`,
+        `/${params.lang}/product/${params.productId}`,
       priceCurrency: currency?.name,
       price: product.offer_price * currency.exchange_rate,
       priceValidUntil: "2025-12-31",

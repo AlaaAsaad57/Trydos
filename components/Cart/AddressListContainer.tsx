@@ -413,7 +413,7 @@ const DeleteIcon = ({ address, onClick }) => {
   );
 };
 
-const MiniDeliveryIcon = () => {
+export const MiniDeliveryIcon = () => {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"

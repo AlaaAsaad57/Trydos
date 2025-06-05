@@ -38,7 +38,6 @@ function PaymentMethod() {
   // @ts-ignore
   const language = lang.split("-")[1];
   const getWalletInUSD = () => {
-    console.log(wallet, currency);
     if (wallet?.wallet_balance > 0)
       return wallet?.wallet_balance / currency?.exchange_rate;
     else return 0;
@@ -530,7 +529,7 @@ const CODInput = ({ active, setActive, total }) => {
           data-cy="total-container-span"
           className="text-[#D3D3D3] regular text-[12px]"
         >
-          {translateFunction("Total")}
+          {translateFunction("Shipping Cost")}
         </span>
         {currency && (
           <span className="text-[#1D1D1D] semibold text-[12px] ml-1">

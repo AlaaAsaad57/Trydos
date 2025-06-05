@@ -13,64 +13,6 @@ const getCountry = () => {
   }
 };
 
-const initialState = {
-  orderLoading: false,
-  cart: [],
-  provinces: [],
-  selectedOrder: null,
-  addressLists: [],
-  center: null,
-  addressDetails: {
-    location: { latitude: null, longitude: null },
-    Country: getCountry(),
-    address_detail: "",
-    address: "",
-    contact_info: {
-      contact_person_name: "",
-      phone: "",
-      alternative_phone: "",
-    },
-    region: "",
-    region_details: {
-      city: "",
-      province: "",
-      town: "",
-      street: "",
-      building: "",
-    },
-  },
-  orderData: {
-    payment: [],
-    coupon: false,
-    agree: false,
-    coupon_number: "",
-    loading: false,
-    success: false,
-  },
-  cart_enable: false,
-  AddToCartOption: {
-    enable: false,
-    selectedSize: null,
-    selectedColor: {},
-    quantity: 0,
-    price: null,
-    UID: "",
-    selectedOptions: [],
-  },
-  SelectedProduct: null,
-  variants: [],
-  cart_loading: true,
-  localCart: [],
-  loaded: false,
-  oldCart: null,
-  wallet: null,
-  balance: 0,
-  crypto: 0,
-  credit: 0,
-  openPayIframe: false,
-  payIframeURL: "",
-};
-
 const showLocationText = (location) => {
   let str = "";
   if (location.province) str += ` | ${location.province}`;
@@ -101,6 +43,7 @@ export const useCartStore = (set, get) => ({
   cart: [],
   coupon_discount: null,
   total_discount: null,
+  showOrderOptions: false,
   total_shipping_cost: null,
   provinces: [],
   total_cash: null,
@@ -166,6 +109,7 @@ export const useCartStore = (set, get) => ({
 
   // Actions
   setOrderDetails: (order) => set({ selectedOrder: order }),
+  setOrderOptions: (bool) => set({ showOrderOptions: bool }),
   setProvinces: (provinces) => set({ provinces }),
   setCryptoCardPayment: (url) =>
     set({

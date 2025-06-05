@@ -334,6 +334,9 @@ const configureSearchParams = ({
   if (filters_offset) {
     params.set("filters_offset", `${filters_offset}`);
   }
+  if (searchParams.tags_names) {
+    params.set("tags_names", decodeURI(searchParams.tags_names));
+  }
   // console.log(
   //   `params: ${decodeURIComponent(params.toString())} ${JSON.stringify(
   //     searchParams
