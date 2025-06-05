@@ -158,7 +158,7 @@ export async function getBoutiqueMetadata({ params, searchParams }) {
     .filter(Boolean)
     .join(", ");
 
-  const canonicalUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL}/boutique/${boutique.slug}`;
+  const canonicalUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL}/boutique/${params.boutiqueId}`;
 
   return {
     title: pageTitle,

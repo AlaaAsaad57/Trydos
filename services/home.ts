@@ -108,6 +108,10 @@ class HomeService {
 
       if (repo.data) {
         updateUserInfo(repo.data?.customer_info);
+
+        if (repo.data.customer_info?.is_phone_verified !== 1) {
+          await auth.ExpiredUser();
+        }
         // localStorage.setItem(
         //   "customer-info",
         //   JSON.stringify(repo.data.customer_info)
