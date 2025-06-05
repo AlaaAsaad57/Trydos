@@ -18,7 +18,6 @@ const CouponElement = ({ active, setActive, close }) => {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    console.log(coupon_discount, "coupon_discount");
     if (coupon_discount && coupon_discount > 0 && !active) {
       setCoupon(coupon_discount);
       setActive(true);
@@ -54,8 +53,8 @@ const CouponElement = ({ active, setActive, close }) => {
         },
       });
       localStorage.removeItem("coupon-number");
-      console.log(response.discount, "response.discount");
-      setCoupon(response.discount);
+
+      setCoupon(response?.data?.discount);
     } catch (err) {
       setError(err.message);
     } finally {
