@@ -158,17 +158,6 @@ function AddAddressForm({
             expanded={expanded}
             setExpanded={(e) => {
               setExpanded(e);
-              if (e) {
-                document.documentElement.style.overflow = "hidden";
-                document.querySelector<HTMLDivElement>(
-                  ".add-address-form-container"
-                ).style.overflowY = "hidden";
-              } else {
-                document.documentElement.style.overflow = "auto";
-                document.querySelector<HTMLDivElement>(
-                  ".add-address-form-container"
-                ).style.overflowY = "auto";
-              }
             }}
             center={
               (addressDetails.location.latitude && {

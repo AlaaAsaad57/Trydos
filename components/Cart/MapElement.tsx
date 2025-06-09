@@ -204,6 +204,7 @@ export const MapElement: React.FC<MapProps> = memo(
               zoom={6}
               options={{
                 streetViewControl: false,
+                gestureHandling: "greedy",
                 fullscreenControl: false,
                 mapTypeControl: false,
                 zoomControl: true,
