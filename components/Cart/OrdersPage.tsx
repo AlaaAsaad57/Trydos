@@ -1,11 +1,6 @@
 import { useRef, useState } from "react";
 import BackIcon from "public/svg/listing/backIcon.svg";
-import {
-  getCart,
-  RoundPrice,
-  Sendevent,
-  translateFunction,
-} from "utils/functions";
+import { getCart, RoundPrice, translateFunction } from "utils/functions";
 import { useParams } from "next/navigation";
 import { Swiper, SwiperSlide } from "swiper/react";
 import ShippingAddressContainer from "./ShippingAddressContainer";
@@ -24,7 +19,7 @@ import { toast } from "react-toastify";
 import Spinner from "components/global/Spinner";
 import LocalizationServiceClass from "services/localization";
 import { useAppStore } from "store";
-import { GA_CLICK_EVENT_VALUES, GA_EVENT_NAMES } from "utils/GAEvents";
+import { GA_EVENT_NAMES } from "utils/GAEvents";
 
 const DeleteIcon = () => {
   return (
@@ -276,10 +271,10 @@ function OrdersPage({
                 data-cy="swiperSlide-backIcon"
                 className="cursor-pointer z-50"
                 onClick={() => {
-                  Sendevent({
-                    event: GA_EVENT_NAMES.CLICK,
-                    value: GA_CLICK_EVENT_VALUES.APPBAR_BACKICON_BUTTON,
-                  });
+                  // Sendevent({
+                  //   event: GA_EVENT_NAMES.CLICK,
+                  //   value: GA_CLICK_EVENT_VALUES.APPBAR_BACKICON_BUTTON,
+                  // });
                   setStep(0);
                   setOrderStep(0);
                 }}
@@ -435,11 +430,11 @@ function OrdersPage({
                         <BackIcon
                           className="cursor-pointer z-50"
                           onClick={() => {
-                            Sendevent({
-                              event: GA_EVENT_NAMES.CLICK,
-                              value:
-                                GA_CLICK_EVENT_VALUES.APPBAR_BACKICON_BUTTON,
-                            });
+                            // Sendevent({
+                            //   event: GA_EVENT_NAMES.CLICK,
+                            //   value:
+                            //     GA_CLICK_EVENT_VALUES.APPBAR_BACKICON_BUTTON,
+                            // });
                             ref.current.slidePrev();
                             setNextStep(false);
                           }}
@@ -453,11 +448,11 @@ function OrdersPage({
                         <span
                           onClick={() => {
                             if (addressDetails.id) {
-                              Sendevent({
-                                event: GA_EVENT_NAMES.CLICK,
-                                value:
-                                  GA_CLICK_EVENT_VALUES.OPEN_DELETE_ADDRESS_MODAL,
-                              });
+                              // Sendevent({
+                              //   event: GA_EVENT_NAMES.CLICK,
+                              //   value:
+                              //     GA_CLICK_EVENT_VALUES.OPEN_DELETE_ADDRESS_MODAL,
+                              // });
                               openAddressList(false);
                               setDeleteModal(addressDetails);
                             }
@@ -493,10 +488,10 @@ function OrdersPage({
                         className="cursor-pointer z-50"
                         data-cy="back-icon-addadresspage" // Added data-cy
                         onClick={() => {
-                          Sendevent({
-                            event: GA_EVENT_NAMES.CLICK,
-                            value: GA_CLICK_EVENT_VALUES.APPBAR_BACKICON_BUTTON,
-                          });
+                          // Sendevent({
+                          //   event: GA_EVENT_NAMES.CLICK,
+                          //   value: GA_CLICK_EVENT_VALUES.APPBAR_BACKICON_BUTTON,
+                          // });
                           ref.current.slidePrev();
                           setNextStep(false);
                         }}
@@ -518,11 +513,11 @@ function OrdersPage({
                         data-cy="delete-icon-container" // Added data-cy
                         onClick={() => {
                           if (addressDetails.id) {
-                            Sendevent({
-                              event: GA_EVENT_NAMES.CLICK,
-                              value:
-                                GA_CLICK_EVENT_VALUES.OPEN_DELETE_ADDRESS_MODAL,
-                            });
+                            // Sendevent({
+                            //   event: GA_EVENT_NAMES.CLICK,
+                            //   value:
+                            //     GA_CLICK_EVENT_VALUES.OPEN_DELETE_ADDRESS_MODAL,
+                            // });
                             openAddressList(false);
                             setDeleteModal(addressDetails);
                           }
@@ -602,10 +597,10 @@ export const DeleteModalComponent = ({
       <div
         className="absolute top-0 left-0 min-w-[100vw] z-[999999998] min-h-[100vh] opacity-60 bg-[black]"
         onClick={() => {
-          Sendevent({
-            event: GA_EVENT_NAMES.CLICK,
-            value: GA_CLICK_EVENT_VALUES.CLOSE_DELETE_ADDRESS_MODAL,
-          });
+          // Sendevent({
+          //   event: GA_EVENT_NAMES.CLICK,
+          //   value: GA_CLICK_EVENT_VALUES.CLOSE_DELETE_ADDRESS_MODAL,
+          // });
           closeModal();
         }}
       />
@@ -755,10 +750,10 @@ export const DeleteModalComponent = ({
         <div className="flex-col w-full  delete-button-address">
           <div
             onClick={() => {
-              Sendevent({
-                event: GA_EVENT_NAMES.CLICK,
-                value: GA_CLICK_EVENT_VALUES.DELETE_ADDRESS_BUTTON,
-              });
+              // Sendevent({
+              //   event: GA_EVENT_NAMES.CLICK,
+              //   value: GA_CLICK_EVENT_VALUES.DELETE_ADDRESS_BUTTON,
+              // });
               slidePrev();
               closeModal();
               order.DeleteAddressList({ address: deletedAddress.id });
@@ -774,10 +769,10 @@ export const DeleteModalComponent = ({
           </div>
           <div
             onClick={() => {
-              Sendevent({
-                event: GA_EVENT_NAMES.CLICK,
-                value: GA_CLICK_EVENT_VALUES.CLOSE_DELETE_ADDRESS_MODAL,
-              });
+              // Sendevent({
+              //   event: GA_EVENT_NAMES.CLICK,
+              //   value: GA_CLICK_EVENT_VALUES.CLOSE_DELETE_ADDRESS_MODAL,
+              // });
               closeModal();
             }}
             className="w-full flex justify-center items-center cursor-pointer  rounded-[15px] h-[50px] bg-transparent regular text-[16px] text-[#fff]"
@@ -902,11 +897,11 @@ const OrderButtons = ({ orderLoading, setNext, setPrev }) => {
           onClick={() => {
             Validate();
             if (isValid() && !orderLoading) {
-              Sendevent({
-                event: GA_EVENT_NAMES.CLICK,
-                value:
-                  GA_CLICK_EVENT_VALUES.CONFIRM_SHIPPING_AND_PAYMENT_BUTTON,
-              });
+              // Sendevent({
+              //   event: GA_EVENT_NAMES.CLICK,
+              //   value:
+              //     GA_CLICK_EVENT_VALUES.CONFIRM_SHIPPING_AND_PAYMENT_BUTTON,
+              // });
               VerifyCart();
             }
           }}

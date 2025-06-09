@@ -10,14 +10,20 @@ import LoginIcon from "public/svg/LoginIcon.svg";
 import BlueCall from "public/svg/BlueCall.svg";
 import PrivacyIcon from "public/svg/privacyicon.svg";
 import useDetectKeyboardOpen from "use-detect-keyboard-open";
-import { Sendevent, translateFunction } from "utils/functions";
+import { translateFunction } from "utils/functions";
 
 const { flag } = require("country-emoji");
 
 import { AnimatedComponent } from "components/global/AnimatedComponent";
 import { useParams } from "next/navigation";
 import { useAppStore } from "store";
-import { GA_CLICK_EVENT_VALUES, GA_EVENT_NAMES } from "utils/GAEvents";
+import {
+  GA_AUTH_SCREEN,
+  GA_BUTTONS_NAMES,
+  GA_EVENT_NAMES,
+  GA_GLOBAL_PLATFORM,
+} from "utils/GAEvents";
+import { GAevent } from "utils/gtag";
 
 function PhoneInput({
   stepIndicator,
@@ -484,10 +490,10 @@ function PhoneInput({
                 // @ts-ignore
                 e.target.blur();
                 if (validNumber && stepIndicator <= 3) {
-                  Sendevent({
-                    event: GA_EVENT_NAMES.CLICK,
-                    value: GA_CLICK_EVENT_VALUES.CONFIRM_PHONE_NUMBER_BUTTON,
-                  });
+                  // Sendevent({
+                  //   event: GA_EVENT_NAMES.CLICK,
+                  //   value: GA_CLICK_EVENT_VALUES.CONFIRM_PHONE_NUMBER_BUTTON,
+                  // });
                   setStepIndicator(4);
                 }
               }
@@ -504,9 +510,18 @@ function PhoneInput({
               data-testid="phone-arrow"
               className="phone-arrow"
               onClick={() => {
-                Sendevent({
-                  event: GA_EVENT_NAMES.CLICK,
-                  value: GA_CLICK_EVENT_VALUES.CONFIRM_PHONE_NUMBER_BUTTON,
+                // Sendevent({
+                //   event: GA_EVENT_NAMES.CLICK,
+                //   value: GA_CLICK_EVENT_VALUES.CONFIRM_PHONE_NUMBER_BUTTON,
+                // });
+                GAevent({
+                  action: GA_EVENT_NAMES.CONFIRM_PHONE_NUMBER,
+                  params: {
+                    input_valid: true,
+                    mission_name: operation,
+                    timestamp: new Date().toISOString(),
+                    button_name: GA_BUTTONS_NAMES.CONFIRM_PHONE_NUMBER_BUTTON,
+                  },
                 });
                 setStepIndicator(4);
               }}

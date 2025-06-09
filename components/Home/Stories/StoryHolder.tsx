@@ -4,9 +4,9 @@ import Loader from "components/global/Loader";
 import { setNextStory, setPreviousStory } from "store/homepage/actions";
 import { StoryType } from "models/story";
 import ReactInstaStories from "utils/react-insta-stories-master/src";
-import { Sendevent } from "utils/functions";
+
 import { useAppStore } from "store";
-import { GA_CLICK_EVENT_VALUES, GA_EVENT_NAMES } from "utils/GAEvents";
+
 import StoryServiceClass from "services/story";
 
 interface Props {
@@ -46,10 +46,10 @@ function StoryHolder({ story, active, isPaused }: Props) {
             loader={<Loader style={{}} />}
             currentIndex={0}
             onPrevious={() => {
-              Sendevent({
-                event: GA_EVENT_NAMES.CLICK,
-                value: GA_CLICK_EVENT_VALUES.CHANGE_STORY_IN_STORYSCREEN_EVENT,
-              });
+              // Sendevent({
+              //   event: GA_EVENT_NAMES.CLICK,
+              //   value: GA_CLICK_EVENT_VALUES.CHANGE_STORY_IN_STORYSCREEN_EVENT,
+              // });
               if (active) {
                 if (currentStoryId > 0) {
                   setCurrentStoryId(currentStoryId - 1);
@@ -59,10 +59,10 @@ function StoryHolder({ story, active, isPaused }: Props) {
               }
             }}
             onNext={() => {
-              Sendevent({
-                event: GA_EVENT_NAMES.CLICK,
-                value: GA_CLICK_EVENT_VALUES.CHANGE_STORY_IN_STORYSCREEN_EVENT,
-              });
+              // Sendevent({
+              //   event: GA_EVENT_NAMES.CLICK,
+              //   value: GA_CLICK_EVENT_VALUES.CHANGE_STORY_IN_STORYSCREEN_EVENT,
+              // });
               if (active) {
                 if (currentStoryId < story.stories.length - 1) {
                   setCurrentStoryId(currentStoryId + 1);

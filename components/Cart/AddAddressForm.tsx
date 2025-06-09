@@ -88,7 +88,7 @@ function AddAddressForm({
       <div
         className={`${orderLoading ? "opacity-50 scale-[.99]" : ""}${
           isInSettings ? "max-h-[calc(100vh-200px)]" : "max-h-full"
-        } flex-col h-full  overflow-auto w-full relative pb-[160px]`}
+        } flex-col h-full  overflow-auto w-full relative pb-[160px] add-address-form-container`}
         data-cy="add-address-form" // Added data-cy
       >
         <div
@@ -156,7 +156,20 @@ function AddAddressForm({
         {activeIndex && countries.length > 0 && (
           <Map
             expanded={expanded}
-            setExpanded={(e) => setExpanded(e)}
+            setExpanded={(e) => {
+              setExpanded(e);
+              if (e) {
+                document.documentElement.style.overflow = "hidden";
+                document.querySelector<HTMLDivElement>(
+                  ".add-address-form-container"
+                ).style.overflowY = "hidden";
+              } else {
+                document.documentElement.style.overflow = "auto";
+                document.querySelector<HTMLDivElement>(
+                  ".add-address-form-container"
+                ).style.overflowY = "auto";
+              }
+            }}
             center={
               (addressDetails.location.latitude && {
                 lat: addressDetails.location.latitude,

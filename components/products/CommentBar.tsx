@@ -2,10 +2,10 @@ import { AddComment } from "models/Api";
 import React, { useState } from "react";
 
 import { AxiosPost } from "utils/AxiosApi";
-import { Sendevent } from "utils/functions";
+
 import CommentPost from "public/svg/CommentPost.svg";
 import auth from "services/auth";
-import { GA_CLICK_EVENT_VALUES, GA_EVENT_NAMES } from "utils/GAEvents";
+
 function CommentBar({
   product,
   setComments,
@@ -74,10 +74,10 @@ function CommentBar({
             // @ts-ignore
             addComment(e.target.value);
             e.currentTarget.style.height = "auto";
-            Sendevent({
-              event: GA_EVENT_NAMES.CLICK,
-              value: GA_CLICK_EVENT_VALUES.CONFIRM_COMMENT_BUTTON,
-            });
+            // Sendevent({
+            //   event: GA_EVENT_NAMES.CLICK,
+            //   value: GA_CLICK_EVENT_VALUES.CONFIRM_COMMENT_BUTTON,
+            // });
           }
         }}
         onInput={(e) => {
@@ -96,10 +96,10 @@ function CommentBar({
             // @ts-ignore
             addComment(val);
             document.querySelector("textarea").style.height = "auto";
-            Sendevent({
-              event: GA_EVENT_NAMES.CLICK,
-              value: GA_CLICK_EVENT_VALUES.CONFIRM_COMMENT_BUTTON,
-            });
+            // Sendevent({
+            //   event: GA_EVENT_NAMES.CLICK,
+            //   value: GA_CLICK_EVENT_VALUES.CONFIRM_COMMENT_BUTTON,
+            // });
           }}
         >
           <CommentPost />

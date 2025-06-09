@@ -17,7 +17,6 @@ import {
 import auth from "services/auth";
 import LocalizationServiceClass from "services/localization";
 import { CielNumber } from "./tinyUtils";
-import { event } from "./gtag";
 export const SSRDetect = () => {
   return typeof window !== "undefined";
 };
@@ -53,33 +52,6 @@ export const getUserChat = () => {
 
 export const _isStoreLastJson = () => {
   return !!process.env.NEXT_PUBLIC_IS_STORE_LAST_JSON;
-};
-export const Sendevent = async (params: {
-  event: string;
-  value?: string;
-  extra?: any;
-  category?: any;
-}) => {
-  let { session_id, previous_event_button_name, setGAEvent } =
-    useAppStore.getState();
-  try {
-    // @ts-ignore
-    if (typeof window !== "undefined") {
-      // @ts-ignore
-
-      // @ts-ignore
-      event({
-        action: params.event,
-        params: {
-          value: params.value,
-        },
-      });
-    }
-
-    setGAEvent(params.value);
-  } catch (e) {
-    console.error(e);
-  }
 };
 
 export function encode_utf8(params: {

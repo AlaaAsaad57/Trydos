@@ -4,9 +4,6 @@ import React, { ComponentProps } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { dispatchRouteChangeEvent } from "utils/events";
 import { useAppStore } from "store";
-import { GA_CLICK_EVENT_VALUES } from "utils/GAEvents";
-import { GA_EVENT_NAMES } from "utils/GAEvents";
-import { Sendevent } from "utils/functions";
 
 export interface INextLinkProps
   extends Omit<ComponentProps<typeof Link>, "href"> {
@@ -32,20 +29,20 @@ export default function NextLink({
     const { setEnableSearch } = useAppStore.getState();
 
     if (props["data-cy"] === "category-Link") {
-      Sendevent({
-        event: GA_EVENT_NAMES.CLICK,
-        value: GA_CLICK_EVENT_VALUES.CATEGORY_LINK,
-      });
+      // Sendevent({
+      //   event: GA_EVENT_NAMES.CLICK,
+      //   value: GA_CLICK_EVENT_VALUES.CATEGORY_LINK,
+      // });
     } else if (props["data-cy"] === "boutique_link") {
-      Sendevent({
-        event: GA_EVENT_NAMES.CLICK,
-        value: GA_CLICK_EVENT_VALUES.BOUTIQUE_LINK,
-      });
+      // Sendevent({
+      //   event: GA_EVENT_NAMES.CLICK,
+      //   value: GA_CLICK_EVENT_VALUES.BOUTIQUE_LINK,
+      // });
     } else if (props["data-cy"] === "product_link") {
-      Sendevent({
-        event: GA_EVENT_NAMES.CLICK,
-        value: GA_CLICK_EVENT_VALUES.CHOOSE_PRODUCT_BUTTON,
-      });
+      // Sendevent({
+      //   event: GA_EVENT_NAMES.CLICK,
+      //   value: GA_CLICK_EVENT_VALUES.CHOOSE_PRODUCT_BUTTON,
+      // });
     }
     onClick?.(e);
     // @ts-ignore

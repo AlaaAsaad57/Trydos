@@ -20,6 +20,12 @@ import { useAppStore } from "store";
 import SettingsLoader from "components/skeleton/loaders/SettingsLoader";
 import LanguageSetting from "./LanguageSetting";
 import OrderOptions from "components/Orders/OrderOptions";
+import {
+  GA_EVENT_NAMES,
+  GA_GLOBAL_PLATFORM,
+  GA_GLOBAL_SCREEN,
+} from "utils/GAEvents";
+import { GAevent } from "utils/gtag";
 
 interface SettingOption {
   id: string;
@@ -199,6 +205,15 @@ function Settings({ lang }: { lang: string }) {
         shallow: true,
       });
     }
+    GAevent({
+      action: GA_EVENT_NAMES.SCREEN_VIEW,
+      params: {
+        screen_name: GA_GLOBAL_SCREEN.SETTINGS_SCREEN,
+        platform: GA_GLOBAL_PLATFORM.WEB,
+        timestamp: new Date().toISOString(),
+        screen_path: window.location.pathname,
+      },
+    });
   }, []);
   const router = useRouter();
   const pathname = usePathname();

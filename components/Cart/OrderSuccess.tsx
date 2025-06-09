@@ -3,6 +3,12 @@ import { useEffect } from "react";
 import OrderSuccessIcon from "public/svg/cart/OrderSuccess.svg";
 import { translateFunction } from "utils/functions";
 import { useAppStore } from "store";
+import {
+  GA_EVENT_NAMES,
+  GA_GLOBAL_PLATFORM,
+  GA_GLOBAL_SCREEN,
+} from "utils/GAEvents";
+import { GAevent } from "utils/gtag";
 function OrderSuccess() {
   const { orderData } = useAppStore();
 
@@ -11,6 +17,15 @@ function OrderSuccess() {
       setTimeout(() => {
         document.querySelector(".order-sucess").scrollIntoView();
       }, 200);
+      GAevent({
+        action: GA_EVENT_NAMES.SCREEN_VIEW,
+        params: {
+          screen_name: GA_GLOBAL_SCREEN.ORDER_SUCCESS_SCREEN,
+          platform: GA_GLOBAL_PLATFORM.WEB,
+          timestamp: new Date().toISOString(),
+          screen_path: window.location.pathname,
+        },
+      });
     }
   }, [orderData.success]);
   return (

@@ -69,8 +69,6 @@ export const MapElement: React.FC<MapProps> = memo(
         toast.info(
           translateFunction("Please Be Accurate and select your Location")
         );
-        map.setZoom(20);
-        map.setCenter(e.latLng);
         return;
       }
       if (e.latLng) {

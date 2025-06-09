@@ -1,9 +1,7 @@
 import StoryService from "services/story";
 import Cookies from "js-cookie";
-import { Sendevent } from "utils/functions";
 import { changeAppLanguageServer, changeToken } from "./cachedActions";
 import { useAppStore } from "store";
-import { GA_CLICK_EVENT_VALUES, GA_EVENT_NAMES } from "utils/GAEvents";
 export const changeAppLanguage = (language) => {
   const { setAppLanguage } = useAppStore.getState();
   Cookies.set("language", language, {
@@ -32,10 +30,10 @@ export const SelectStory = (e) => {
     window.history.pushState({ isPopup: true }, "open Cart");
   }
   if (e) {
-    Sendevent({
-      event: GA_EVENT_NAMES.CLICK,
-      value: GA_CLICK_EVENT_VALUES.VIEW_STORY_BUTTON,
-    });
+    // Sendevent({
+    //   event: GA_EVENT_NAMES.CLICK,
+    //   value: GA_CLICK_EVENT_VALUES.VIEW_STORY_BUTTON,
+    // });
     StoryService.WatchStory(e.stories[0].id, e.id);
   }
   setSelectedStory(e);

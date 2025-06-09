@@ -340,7 +340,11 @@ class AuthService {
   }
   getUser() {
     return (
-      localStorage.getItem("USER") && JSON.parse(localStorage.getItem("USER"))
+      (localStorage.getItem("USER") &&
+        JSON.parse(localStorage.getItem("USER"))) ||
+      (localStorage.getItem("guest-user") &&
+        JSON.parse(localStorage.getItem("guest-user"))) ||
+      false
     );
   }
   UserToken() {
@@ -371,7 +375,7 @@ class AuthService {
   async ExpiredUser() {
     if (this.getUser()?.phone)
       localStorage.setItem("has-phone", this.getUser()?.phone);
-    await home.registerForExpire(this.getUser().id);
+    await home.registerForExpire(this.UserID());
     this.cancelAuth();
     localStorage.removeItem("MARKET-TOKEN");
     localStorage.removeItem("USER");

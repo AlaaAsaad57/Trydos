@@ -4,11 +4,10 @@ import Search from "public/svg/SearchIcon.svg";
 import "styles/search.css";
 import SearchComponent from "../SearchComponent";
 
-import { normalizeView, Sendevent } from "utils/functions";
+import { normalizeView } from "utils/functions";
 import { useAppStore } from "store";
 import { useParams } from "next/navigation";
 import search from "services/search";
-import { GA_CLICK_EVENT_VALUES, GA_EVENT_NAMES } from "utils/GAEvents";
 
 function SearchIcon() {
   const { setEnableSearch, enable_search, setSearchLoading, loading_search } =
@@ -42,10 +41,10 @@ function SearchIcon() {
         data-cy="searchIcon_mainPage"
         onClick={() => {
           if (!enable_search) {
-            Sendevent({
-              event: GA_EVENT_NAMES.CLICK,
-              value: GA_CLICK_EVENT_VALUES.HOME_SEARCH_BUTTON,
-            });
+            // Sendevent({
+            //   event: GA_EVENT_NAMES.CLICK,
+            //   value: GA_CLICK_EVENT_VALUES.HOME_SEARCH_BUTTON,
+            // });
             normalizeView();
             document.documentElement.scrollTo({ top: 0 });
             EnableSearch(true);

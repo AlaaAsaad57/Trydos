@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import PinInput from "react-pin-input";
-import { Sendevent, translateFunction } from "utils/functions";
+import { translateFunction } from "utils/functions";
 import Timer from "./Timer";
 import useDetectKeyboardOpen from "use-detect-keyboard-open";
 import { AnimatedComponent } from "components/global/AnimatedComponent";
@@ -8,10 +8,13 @@ import { useParams } from "next/navigation";
 import Spinner from "components/global/Spinner";
 import { useAppStore } from "store";
 import {
-  GA_CLICK_EVENT_VALUES,
+  GA_AUTH_SCREEN,
+  GA_BUTTONS_NAMES,
   GA_EVENT_NAMES,
-  GA_PROGRAMMING_EVENT_VALUES,
+  GA_GLOBAL_PLATFORM,
 } from "utils/GAEvents";
+import { method } from "node_modules/cypress/types/bluebird";
+import { GAevent } from "utils/gtag";
 
 function LogInPins({
   setPin,
@@ -32,6 +35,7 @@ function LogInPins({
   init,
   loadingPin,
   forChanging,
+  operation = "login",
 }: {
   inputValue: string;
   rendere: boolean;
@@ -51,6 +55,7 @@ function LogInPins({
   disabled: boolean;
   loadingPin: boolean;
   forChanging?: boolean;
+  operation?: string;
 }) {
   const { language, Tempuser } = useAppStore();
 
@@ -157,13 +162,21 @@ function LogInPins({
       }, 300);
     }
   }, [stepIndicator]);
+  const [attempts, setAttempts] = useState(1);
   const ResendFunction = async () => {
     if (loading) return;
-    Sendevent({
-      event: GA_EVENT_NAMES.CLICK,
-      value: GA_CLICK_EVENT_VALUES.RESEND_OTP_BUTTON,
-    });
+
+    setAttempts(attempts + 1);
     setLoading(true);
+    GAevent({
+      action: GA_EVENT_NAMES.RESEND_OTP,
+      params: {
+        method: MessageMethod === "WA" ? "whatsapp" : "sms",
+        attempts: attempts,
+        mission_name: operation,
+        button_name: GA_BUTTONS_NAMES.RESEND_OTP_BUTTON,
+      },
+    });
     await resend();
     setLoading(false);
   };
@@ -439,10 +452,17 @@ function LogInPins({
                   <Timer
                     onResume={() => setDisabled(false)}
                     onFinish={() => {
-                      Sendevent({
-                        event: GA_EVENT_NAMES.PROGRAMMING_EVENT,
-                        value:
-                          GA_PROGRAMMING_EVENT_VALUES.TIMER_HAS_EXPIRED_EVENT,
+                      // Sendevent({
+                      //   event: GA_EVENT_NAMES.PROGRAMMING_EVENT,
+                      //   value:
+                      //     GA_PROGRAMMING_EVENT_VALUES.TIMER_HAS_EXPIRED_EVENT,
+                      // });
+                      GAevent({
+                        action: GA_EVENT_NAMES.TIMER_EXPIRED,
+                        params: {
+                          method: MessageMethod === "WA" ? "whatsapp" : "sms",
+                          mission_name: operation,
+                        },
                       });
                       setDisabled(true);
                     }}
@@ -467,10 +487,10 @@ function LogInPins({
                     id="text-wrap-element"
                     style={{ cursor: "pointer" }}
                     onClick={() => {
-                      Sendevent({
-                        event: GA_EVENT_NAMES.CLICK,
-                        value: GA_CLICK_EVENT_VALUES.CHANGE_WAY_BUTTON,
-                      });
+                      // Sendevent({
+                      //   event: GA_EVENT_NAMES.CLICK,
+                      //   value: GA_CLICK_EVENT_VALUES.CHANGE_WAY_BUTTON,
+                      // });
                       if (loading) return;
                       init();
                       setStepIndactor(4);
@@ -483,10 +503,10 @@ function LogInPins({
                     id="text-wrap-element"
                     style={{ cursor: "pointer" }}
                     onClick={() => {
-                      Sendevent({
-                        event: GA_EVENT_NAMES.CLICK,
-                        value: GA_CLICK_EVENT_VALUES.CHANGE_WAY_BUTTON,
-                      });
+                      // Sendevent({
+                      //   event: GA_EVENT_NAMES.CLICK,
+                      //   value: GA_CLICK_EVENT_VALUES.CHANGE_WAY_BUTTON,
+                      // });
                       if (loading) return;
                       init();
                       setStepIndactor(4);

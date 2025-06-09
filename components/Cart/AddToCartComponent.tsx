@@ -6,7 +6,6 @@ import BackIcon from "public/svg/listing/backIcon.svg";
 import {
   getConfiguredImage,
   RoundPrice,
-  Sendevent,
   translateFunction,
 } from "utils/functions";
 import { useAppStore } from "store";
@@ -24,7 +23,7 @@ import cart from "services/cart";
 import auth from "services/auth";
 import home from "services/home";
 import { SliderRuler } from "./SliderRuler";
-import { GA_CLICK_EVENT_VALUES, GA_EVENT_NAMES } from "utils/GAEvents";
+import { GA_EVENT_NAMES } from "utils/GAEvents";
 
 function AddToCartComponent({
   color,
@@ -250,10 +249,10 @@ function AddToCartComponent({
           className="back-icon p-0"
           data-cy="Back-Icon-AddToCart"
           onClick={() => {
-            Sendevent({
-              event: GA_EVENT_NAMES.CLICK,
-              value: GA_CLICK_EVENT_VALUES.BACK_ICON_IN_ADD_TO_CART_WIDGET,
-            });
+            // Sendevent({
+            //   event: GA_EVENT_NAMES.CLICK,
+            //   value: GA_CLICK_EVENT_VALUES.BACK_ICON_IN_ADD_TO_CART_WIDGET,
+            // });
             setSelectedProductForCart(null);
             document.documentElement.style.overflow = "initial";
             document.documentElement.scrollTop = 0;
@@ -265,10 +264,10 @@ function AddToCartComponent({
         <span
           className="relative"
           onClick={() => {
-            Sendevent({
-              event: GA_EVENT_NAMES.CLICK,
-              value: GA_CLICK_EVENT_VALUES.CART_ICON,
-            });
+            // Sendevent({
+            //   event: GA_EVENT_NAMES.CLICK,
+            //   value: GA_CLICK_EVENT_VALUES.CART_ICON,
+            // });
             enableCartAction(true);
             document.documentElement.style.overflow = "initial";
             document.documentElement.scrollTop = 0;
@@ -374,16 +373,16 @@ function AddToCartComponent({
                 <SwiperSlide
                   data-cy="color_slide"
                   onChange={() => {
-                    Sendevent({
-                      event: GA_EVENT_NAMES.CLICK,
-                      value: GA_CLICK_EVENT_VALUES.COLOR_SLIDE,
-                    });
+                    // Sendevent({
+                    //   event: GA_EVENT_NAMES.CLICK,
+                    //   value: GA_CLICK_EVENT_VALUES.COLOR_SLIDE,
+                    // });
                   }}
                   onClick={() => {
-                    Sendevent({
-                      event: GA_EVENT_NAMES.CLICK,
-                      value: GA_CLICK_EVENT_VALUES.COLOR_SLIDE,
-                    });
+                    // Sendevent({
+                    //   event: GA_EVENT_NAMES.CLICK,
+                    //   value: GA_CLICK_EVENT_VALUES.COLOR_SLIDE,
+                    // });
                     colorsSliderRef.current.swiper.slideTo(i, 400, false);
                     setSelectedColor(color);
                   }}
@@ -704,10 +703,10 @@ function AddToCartComponent({
                           e.activeIndex
                         ]
                       );
-                      Sendevent({
-                        event: GA_EVENT_NAMES.CLICK,
-                        value: GA_CLICK_EVENT_VALUES.SIZE_SLIDE,
-                      });
+                      // Sendevent({
+                      //   event: GA_EVENT_NAMES.CLICK,
+                      //   value: GA_CLICK_EVENT_VALUES.SIZE_SLIDE,
+                      // });
                     }}
                     slidesPerView={7}
                     threshold={1}
@@ -724,10 +723,10 @@ function AddToCartComponent({
                             // @ts-ignore
                             SizesRef.current.swiper.slideTo(i, 400, false);
                             setSelectedSize(size);
-                            Sendevent({
-                              event: GA_EVENT_NAMES.CLICK,
-                              value: GA_CLICK_EVENT_VALUES.SIZE_SLIDE,
-                            });
+                            // Sendevent({
+                            //   event: GA_EVENT_NAMES.CLICK,
+                            //   value: GA_CLICK_EVENT_VALUES.SIZE_SLIDE,
+                            // });
                           }}
                           style={{
                             overflow: "visible",
@@ -1574,20 +1573,20 @@ const AddToCartButton = ({
       setLoading(true);
 
       if (isVariantInCart({ exact: false })) {
-        Sendevent({
-          event: GA_EVENT_NAMES.CLICK,
-          value: GA_CLICK_EVENT_VALUES.INCREASE_QTY_IN_ADD_TO_CART_WIDGET,
-        });
+        // Sendevent({
+        //   event: GA_EVENT_NAMES.CLICK,
+        //   value: GA_CLICK_EVENT_VALUES.INCREASE_QTY_IN_ADD_TO_CART_WIDGET,
+        // });
         await cart.UpdateCart({
           cart_id: isVariantInCart({ exact: false })?.item_id,
           qty: (isVariantInCart({ exact: false })?.quantity ?? 0) + 1,
         });
         await updateQuantity();
       } else {
-        Sendevent({
-          event: GA_EVENT_NAMES.CLICK,
-          value: GA_CLICK_EVENT_VALUES.ADD_TO_CART_BUTTON,
-        });
+        // Sendevent({
+        //   event: GA_EVENT_NAMES.CLICK,
+        //   value: GA_CLICK_EVENT_VALUES.ADD_TO_CART_BUTTON,
+        // });
         await cart.AddToCart({
           product_id: id,
           color: product?.colors?.find((s) => s.name === color?.color_name)
@@ -1661,10 +1660,10 @@ const AddToCartButton = ({
             data-cy="minus_icon_container"
             className="absolute minuse-qty-icon top-0 left-0 rounded-2xl bg-white flex justify-center items-center p-2 plus-icon-button"
             onClick={() => {
-              Sendevent({
-                event: GA_EVENT_NAMES.CLICK,
-                value: GA_CLICK_EVENT_VALUES.DECREASE_QTY_IN_ADD_TO_CART_WIDGET,
-              });
+              // Sendevent({
+              //   event: GA_EVENT_NAMES.CLICK,
+              //   value: GA_CLICK_EVENT_VALUES.DECREASE_QTY_IN_ADD_TO_CART_WIDGET,
+              // });
               decreaseHandler();
             }}
           >
@@ -1727,10 +1726,10 @@ const NotifyCartButton = ({ isNotified, setNotify, selected_variant, id }) => {
   const NotifyAction = async () => {
     const permission = await Notification.requestPermission();
     if (!isNotified) {
-      Sendevent({
-        event: GA_EVENT_NAMES.CLICK,
-        value: GA_CLICK_EVENT_VALUES.NOTIFY_ME_BUTTON,
-      });
+      // Sendevent({
+      //   event: GA_EVENT_NAMES.CLICK,
+      //   value: GA_CLICK_EVENT_VALUES.NOTIFY_ME_BUTTON,
+      // });
       setNotify();
       await auth.NotifyForProducts({
         id: id,

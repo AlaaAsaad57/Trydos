@@ -1,13 +1,13 @@
 import { useEffect, useState } from "react";
 import Qr from "public/svg/qr.svg";
 import LoginCall from "public/svg/loginCall.svg";
-import { Sendevent, translateFunction } from "utils/functions";
+import { translateFunction } from "utils/functions";
 
 import Border from "./Border";
 import "styles/methods.css";
 import { useParams } from "next/navigation";
 import { useAppStore } from "store";
-import { GA_CLICK_EVENT_VALUES, GA_EVENT_NAMES } from "utils/GAEvents";
+import { GA_EVENT_NAMES } from "utils/GAEvents";
 
 const LoginMethods = ({ confirm }) => {
   const { language } = useAppStore();
@@ -33,10 +33,10 @@ const LoginMethods = ({ confirm }) => {
         data-testid="login-method-qr"
         className={`${showQr ? "qr-extended" : ""} login-method-qr`}
         onClick={(e) => {
-          Sendevent({
-            event: GA_EVENT_NAMES.CLICK,
-            value: GA_CLICK_EVENT_VALUES.LOGIN_METHOD_QR_BUTTON,
-          });
+          // Sendevent({
+          //   event: GA_EVENT_NAMES.CLICK,
+          //   value: GA_CLICK_EVENT_VALUES.LOGIN_METHOD_QR_BUTTON,
+          // });
           e.preventDefault();
           setShowQr(!showQr);
         }}
@@ -4683,10 +4683,10 @@ const LoginMethods = ({ confirm }) => {
           data-cy="login-method-phone"
           className="login-method-phone"
           onClick={() => {
-            Sendevent({
-              event: GA_EVENT_NAMES.CLICK,
-              value: GA_CLICK_EVENT_VALUES.LOGIN_METHOD_PHONE_BUTTON,
-            });
+            // Sendevent({
+            //   event: GA_EVENT_NAMES.CLICK,
+            //   value: GA_CLICK_EVENT_VALUES.LOGIN_METHOD_PHONE_BUTTON,
+            // });
             confirm();
           }}
         >

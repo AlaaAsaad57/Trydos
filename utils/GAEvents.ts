@@ -5,10 +5,12 @@ export const GA_EVENT_NAMES = {
   VIEW_BOUTIQUE_EVENT: "view_boutique_event",
   LOGIN: "login", //params:method,success,timestamp
   SIGN_UP: "sign_up", //params:method,success,timestamp
-  SCREEN_VIEW: "screen_view", //params:screen_name,platform,timestamp
-  LOGIN_START: "login_start", //params:method,timestamp
+  SCREEN_VIEW: "screen_view", //params:screen_name,platform,timestamp,screen_path
+  LOGIN_START: "login_start", //params:method,timestamp,button_name
   CONFIRM_PHONE_NUMBER: "confirm_phone_number", //params:input_valid,timestamp
-  VERIFY_OTP_LOGIN: "verify_otp_login", //params:status,attempt,method,timestamp
+  VERIFY_OTP: "verify_otp", //params:status,attempt,method,timestamp
+  TIMER_EXPIRED: "timer_expired", //params:mission_name,method,timestamp
+  SEND_OTP: "send_otp", //method,timestamp,mission,button_name
   RESEND_OTP: "resend_otp", //params:attempt,method
   EXCEPTION: "exception", //params:description,context,timestamp
   CANCEL_LOGIN: "cancel_login", //params:context,timestamp
@@ -16,8 +18,40 @@ export const GA_EVENT_NAMES = {
   CREATE_ACCOUNT_CONTINUE: "create_account_continue", //params:entered_name,timestamp
   CANCEL_SIGNUP: "cancel_signup", //params:method,timestamp
   LATER_TAKE_LOOK_CLICKED: "later_take_look_clicked", //params:screen
+  TERMS_SERVICES: "terms_services",
 };
-export const GA_CLICK_EVENT_VALUES = {
+
+export const GA_AUTH_SCREEN = {
+  SELECT_AUTHINTCTION_METHOD_SCREEN: "authintaction_method_screen",
+  AGREE_TERMS_SCREEN: "agree_terms_screen",
+  PHONE_NUMBER_INPUT_SCREEN: "phone_number_input_screen",
+  OTP_RECEIVING_METHOD_SCREEN: "otp_receiving_method_screen",
+  OTP_INPUT_SCREEN: "otp_input_screen",
+  WELCOME_SCREEN: "welcome_screen",
+  USER_NOT_FOUND_SCREEN: "user_not_found_screen",
+  USER_ALREADY_EXISTS_SCREEN: "user_already_exists_screen",
+  USER_NAME_INPUT_SCREEN: "user_name_input_screen",
+};
+export const GA_GLOBAL_SCREEN = {
+  HOME_SCREEN: "home_screen",
+  HOME_CATEGORY_SCREEN: "home_category_screen",
+  SEARCH_SCREEN: "search_screen",
+  PRODUCT_SCREEN: "product_screen",
+  CART_SCREEN: "cart_screen",
+  CHECKOUT_SCREEN: "checkout_screen",
+  ORDER_SUCCESS_SCREEN: "order_success_screen",
+  SETTINGS_SCREEN: "settings_screen",
+  NOTIFICATIONS_SCREEN: "notifications_screen",
+  BOUTIQUE_SCREEN: "boutique_screen",
+  STORY_SCREEN: "story_screen",
+  CHAT_SCREEN: "chat_screen",
+};
+export const GA_GLOBAL_PLATFORM = {
+  WEB: "web",
+  MOBILE: "mobile",
+};
+export const GA_BUTTONS_NAMES = {
+  I_HAVE_ALREADY_ACCOUNT_BUTTON: "i_have_already_account_button",
   CART_ICON: "cart_nav_bar_button",
   INCREASE_QTY_IN_ADD_TO_CART_WIDGET: "increase_qty_button",
   DECREASE_QTY_IN_ADD_TO_CART_WIDGET: "decrease_qty_button",
@@ -115,20 +149,6 @@ export const GA_CLICK_EVENT_VALUES = {
   SEARCH_TRENDING_OPTION: "search_trending_option_button",
   SEARCH_HISTORY_OPTION: "search_history_option_button",
 };
-export const GA_PROGRAMMING_EVENT_VALUES = {
-  OTP_FAILED_EVENT: "otp_failed_event",
-  PHONE_NUMBER_NOT_REGISTERED_EVENT: "phone_number_not_registered_event",
-  OTP_SUCCESS_EVENT: "otp_success_event",
-  OTP_VERIFICATION_EVENT: "otp_verification_event",
-  OTP_VERIFICATION_FAILED_EVENT: "otp_verification_failed_event",
-  OTP_VERIFICATION_SUCCESS_EVENT: "otp_verification_success_event",
-  UPLOAD_STORY_SUCCESS: "upload_story_success",
-  UPLOAD_STORY_FAILED: "upload_story_failed",
-  ADD_LINK_TO_STORY: "add_link_to_story",
-  SCROLL_STORIES_IN_HOME_EVENT: "scroll_stories_in_home_event",
-  TIMER_HAS_EXPIRED_EVENT: "timer_has_expired_event",
-  VERIFY_OTP_SIGNUP_SUCCESS_EVENT: "verify_otp_signup_success_event",
-  USER_ALREADY_EXISTS_EVENT: "user_already_exists_event",
-  VERIFY_OTP_SIGNIN_SUCCESS_EVENT: "verify_otp_signin_success_event",
-  I_HAVE_ALREADY_ACCOUNT_BUTTON: "i_have_already_account_button",
+export const GA_EXCEPTIONS_DESCRIPTIONS = {
+  OTP_INCORRECT: "otp_incorrect",
 };

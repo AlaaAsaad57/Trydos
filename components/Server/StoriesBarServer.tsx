@@ -8,7 +8,6 @@ import StoriesSkeleton from "components/skeleton/StoriesSkeleton";
 import React, { useEffect, useState } from "react";
 import StoryServiceClass from "services/story";
 import { useAppStore } from "store";
-import { getStoriesServer } from "store/homepage/cachedActions";
 
 function StoriesBarServer() {
   const { storiesData, setStoryData } = useAppStore();

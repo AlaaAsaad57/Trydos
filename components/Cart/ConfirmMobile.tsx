@@ -3,15 +3,11 @@ import PhoneInput from "components/Login/PhoneInput";
 import SendMethod from "components/Login/SendMethod";
 import React, { useEffect, useState } from "react";
 import AuthService from "services/auth";
-import { Sendevent } from "utils/functions";
+
 import "public/styles/newLogin.css";
 import "public/styles/login.css";
 import { useAppStore } from "store";
-import {
-  GA_CLICK_EVENT_VALUES,
-  GA_EVENT_NAMES,
-  GA_PROGRAMMING_EVENT_VALUES,
-} from "utils/GAEvents";
+import { GA_EVENT_NAMES } from "utils/GAEvents";
 
 function ConfirmMobile({ closeWindow, hasMobile, goToOrders }) {
   const { setWrongNumber, verficationID, wrongNumber } = useAppStore();
@@ -78,10 +74,10 @@ function ConfirmMobile({ closeWindow, hasMobile, goToOrders }) {
       Username: "",
       verificationID: verficationID,
       errorCallback: (e) => {
-        Sendevent({
-          event: GA_EVENT_NAMES.PROGRAMMING_EVENT,
-          value: GA_PROGRAMMING_EVENT_VALUES.OTP_FAILED_EVENT,
-        });
+        // Sendevent({
+        //   event: GA_EVENT_NAMES.PROGRAMMING_EVENT,
+        //   value: GA_PROGRAMMING_EVENT_VALUES.OTP_FAILED_EVENT,
+        // });
         setFailed(true);
         setTimeout(() => {
           setPins("");
@@ -92,23 +88,23 @@ function ConfirmMobile({ closeWindow, hasMobile, goToOrders }) {
           }, 300);
         }, 1000);
         if (e.message === "user not found") {
-          Sendevent({
-            event: GA_EVENT_NAMES.PROGRAMMING_EVENT,
+          // Sendevent({
+          //   event: GA_EVENT_NAMES.PROGRAMMING_EVENT,
 
-            value:
-              GA_PROGRAMMING_EVENT_VALUES.PHONE_NUMBER_NOT_REGISTERED_EVENT,
-          });
+          //   value:
+          //     GA_PROGRAMMING_EVENT_VALUES.PHONE_NUMBER_NOT_REGISTERED_EVENT,
+          // });
 
           setStepIndicator(6);
         }
         setLoadingPin(false);
       },
       successCallback: async (exists, name) => {
-        Sendevent({
-          event: GA_EVENT_NAMES.PROGRAMMING_EVENT,
+        // Sendevent({
+        //   event: GA_EVENT_NAMES.PROGRAMMING_EVENT,
 
-          value: GA_PROGRAMMING_EVENT_VALUES.OTP_SUCCESS_EVENT,
-        });
+        //   value: GA_PROGRAMMING_EVENT_VALUES.OTP_SUCCESS_EVENT,
+        // });
 
         await FinaliseLogin();
 
