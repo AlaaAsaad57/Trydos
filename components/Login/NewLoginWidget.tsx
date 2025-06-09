@@ -329,8 +329,18 @@ function NewLoginWidget() {
       setStepIndicator(0);
     } else setStepIndicator(stepIndicator - 1);
   };
+  useEffect(() => {
+    GAevent({
+      action: GA_EVENT_NAMES.SCREEN_VIEW,
+      params: {
+        screen_name: GetScreenName(stepIndicator),
+        platform: GA_GLOBAL_PLATFORM.WEB,
+        timestamp: new Date().toISOString(),
+        screen_path: window.location.pathname,
+      },
+    });
+  }, [stepIndicator]);
 
-  if (!loginOpen) return <></>;
   const GetScreenName = (index) => {
     switch (index) {
       case 0: {
@@ -359,17 +369,7 @@ function NewLoginWidget() {
         return "";
     }
   };
-  useEffect(() => {
-    GAevent({
-      action: GA_EVENT_NAMES.SCREEN_VIEW,
-      params: {
-        screen_name: GetScreenName(stepIndicator),
-        platform: GA_GLOBAL_PLATFORM.WEB,
-        timestamp: new Date().toISOString(),
-        screen_path: window.location.pathname,
-      },
-    });
-  }, [stepIndicator]);
+
   return (
     <>
       <div
