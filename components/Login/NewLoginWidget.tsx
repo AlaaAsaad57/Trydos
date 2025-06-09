@@ -330,7 +330,6 @@ function NewLoginWidget() {
     } else setStepIndicator(stepIndicator - 1);
   };
 
-  if (!loginOpen) return <></>;
   const GetScreenName = (index) => {
     switch (index) {
       case 0: {
