@@ -1,7 +1,7 @@
 "use server";
 import { SearchResponse } from "models/API/elastic/Search";
 import { CurrencyApi } from "models/API/market/CurrencyApi";
-import {CountriesApi} from 'models/API/Countries';
+import {CountriesApi} from 'models/API/market/Countries';
 export const getCOlorsAndSizes = async () => {
   const response = await fetch(
     process.env.NEXT_PUBLIC_BACKEND_URL + "/web/get-colors-and-sizes",
