@@ -1,4 +1,4 @@
-import { AddComment } from "models/Api";
+import { AddComment } from "models/API/market/AddComment";
 import React, { useState } from "react";
 
 import { AxiosPost } from "utils/AxiosApi";

@@ -10,7 +10,7 @@ import ChatService from "services/chat";
 import StoryService from "services/story";
 import home from "./home";
 import { AxiosGet, AxiosPost } from "utils/AxiosApi";
-import { LikesSharesCommentsApi } from "models/Api";
+import { ProductSocialInfo } from "models/API/market/ProductSocialInfo";
 import { changeToken } from "store/homepage/cachedActions";
 import axios from "axios";
 import { SetGAUser } from "utils/gtag";
@@ -327,7 +327,7 @@ class AuthService {
   async getProductNotify({ id }) {
     try {
       if (!localStorage.getItem("DEVICE-TOKEN")) await home.RegisterDevice();
-      let data: LikesSharesCommentsApi = await AxiosGet({
+      let data: ProductSocialInfo = await AxiosGet({
         url:
           process.env.NEXT_PUBLIC_BACKEND_URL +
           "/web/product/likesCommentsSharesDetails/" +

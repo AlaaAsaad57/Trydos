@@ -10,7 +10,9 @@ import { toast } from "react-toastify";
 import chat from "services/chat";
 import { AxiosGet, AxiosPost } from "utils/AxiosApi";
 import { useParams, useSearchParams } from "next/navigation";
-import { LikesSharesCommentsApi, ProductViews, SharesCount } from "models/Api";
+import { ProductSocialInfo } from "models/API/market/ProductSocialInfo";
+import { ProductViews} from "models/API/elastic/ProductViews";
+import { SharesCount} from "models/API/market/ProductSharesCount";
 import auth from "services/auth";
 import LocalizationServiceClass from "services/localization";
 import { useAppStore } from "store";
@@ -107,7 +109,7 @@ function ProductFooterSection({ product, currency }) {
   };
   const [option, setOption] = useState("");
   const getComments = async () => {
-    let req: LikesSharesCommentsApi = await AxiosGet({
+    let req: ProductSocialInfo = await AxiosGet({
       url:
         process.env.NEXT_PUBLIC_BACKEND_URL +
         "/web/product/likesCommentsSharesDetails/" +
@@ -129,7 +131,7 @@ function ProductFooterSection({ product, currency }) {
   const getData = async () => {
     // await home.CheckLogin();
     try {
-      let req: LikesSharesCommentsApi = await AxiosGet({
+      let req: ProductSocialInfo = await AxiosGet({
         url:
           process.env.NEXT_PUBLIC_BACKEND_URL +
           "/web/product/likesCommentsSharesDetails/" +

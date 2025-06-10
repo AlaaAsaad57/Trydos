@@ -5,7 +5,7 @@ import { useParams } from "next/navigation";
 import { allCountries } from "country-telephone-data";
 import { DebounceInput } from "react-debounce-input";
 import Spinner from "components/global/Spinner";
-import { GetAddressByTextApi } from "models/Api";
+import { GetAddressByTextApi } from "models/API/market/GetAddressByText";
 import Cookies from "js-cookie";
 import { useAppStore } from "store";
 import SyFlage from "public/svg/sy.svg";

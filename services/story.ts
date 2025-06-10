@@ -10,7 +10,9 @@ import {
 
 import Cookies from "js-cookie";
 import axios from "axios";
-import { GetStoriesApi, LoginStoreisApi, UploadStoryApi } from "models/Api";
+import { GetStoriesApi, } from "models/API/stories/GetStories";
+import { LoginStoreisApi } from "models/API/stories/Login";
+import { UploadStoryApi } from "models/API/stories/UploadStory";
 import profilePicture from "public/images/profileNo.png";
 import { useAppStore } from "store";
 import { AxiosGet } from "utils/AxiosApi";
