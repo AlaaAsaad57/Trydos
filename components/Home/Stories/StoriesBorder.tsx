@@ -1,7 +1,5 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { Sendevent } from "utils/functions";
-import { GA_EVENT_NAMES, GA_PROGRAMMING_EVENT_VALUES } from "utils/GAEvents";
 
 function StoriesBorder() {
   const [show, setShow] = useState(false);
@@ -39,10 +37,10 @@ function StoriesBorder() {
       const x = e.pageX - slider.offsetLeft;
       const walk = (x - startX) * 3; //scroll-fast
       slider.scrollLeft = scrollLeft - walk;
-      Sendevent({
-        event: GA_EVENT_NAMES.PROGRAMMING_EVENT,
-        value: GA_PROGRAMMING_EVENT_VALUES.SCROLL_STORIES_IN_HOME_EVENT,
-      });
+      // Sendevent({
+      //   event: GA_EVENT_NAMES.PROGRAMMING_EVENT,
+      //   value: GA_PROGRAMMING_EVENT_VALUES.SCROLL_STORIES_IN_HOME_EVENT,
+      // });
     });
   }
   useEffect(() => {

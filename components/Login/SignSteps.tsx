@@ -1,7 +1,7 @@
 import AlreadyRegistered from "./AlreadyRegistered";
 import AccountNotFound from "./AccountNotFound";
 import WelcomingWidget from "./WelcomingWidget";
-import { UserInterface } from "models/User";
+import { UserInterface } from "models/Genaral/User";
 import WelcomeSignup from "./WelcomeSignup";
 
 function SignSteps({

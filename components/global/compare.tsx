@@ -1,7 +1,7 @@
 "use client";
 import React, { useCallback, useEffect, useState } from "react";
 import { useParams, useSearchParams } from "next/navigation";
-import { ProductInterface } from "models/product";
+
 import { filterProducts, translateFunction, RoundPrice } from "utils/functions";
 import AsyncSelectCustom from "./AsyncSelectCustom";
 import Link from "next/link";
@@ -83,7 +83,7 @@ const ComparePage: React.FC = ({
 
   const handleSearchChange = (
     selectedOption: { label: string; value: string } | null,
-    setProduct: (product: ProductInterface | null) => void,
+    setProduct: (product: any | null) => void,
     setLoading: (loading: boolean) => void,
     isFirstProduct: boolean
   ) => {
@@ -192,7 +192,7 @@ const ComparePage: React.FC = ({
 
   const handleProductSelect = async (
     slug: string,
-    setProduct: (product: ProductInterface | null) => void,
+    setProduct: (product: any | null) => void,
     setLoading: (loading: boolean) => void,
     isFirstProduct: boolean
   ) => {
@@ -310,7 +310,7 @@ const ComparePage: React.FC = ({
     {
       key: "name",
       label: translateFunction("Name"),
-      render: (product: ProductInterface) => (
+      render: (product: any) => (
         <NextLink
           data={{
             is_product: true,
@@ -328,7 +328,7 @@ const ComparePage: React.FC = ({
     {
       key: "image",
       label: translateFunction("Image"),
-      render: (product: ProductInterface) => (
+      render: (product: any) => (
         <Link href={`/${lang}/products/${product.slug}`}>
           <img
             // @ts-ignore
@@ -342,7 +342,7 @@ const ComparePage: React.FC = ({
     {
       key: "colors",
       label: translateFunction("Colors"),
-      render: (product: ProductInterface) => (
+      render: (product: any) => (
         <div className="flex gap-2">
           {product.colors?.map((colorObj) => (
             <div
@@ -358,7 +358,7 @@ const ComparePage: React.FC = ({
     {
       key: "sizes",
       label: translateFunction("Sizes"),
-      render: (product: ProductInterface) => (
+      render: (product: any) => (
         <div className="flex gap-2">
           {product.choice_options
             ?.find((opt) => opt.title === "Size")
@@ -373,7 +373,7 @@ const ComparePage: React.FC = ({
     {
       key: "price",
       label: translateFunction("Price"),
-      render: (product: ProductInterface) => (
+      render: (product: any) => (
         <span className="font-semibold">
           {currency?.symbol || "$"}
           {RoundPrice({ num: product.price })}
@@ -383,7 +383,7 @@ const ComparePage: React.FC = ({
     {
       key: "offer_price",
       label: translateFunction("Offer Price"),
-      render: (product: ProductInterface) =>
+      render: (product: any) =>
         product.offer_price ? (
           <span className="text-green-600 font-semibold">
             {currency?.symbol || "$"}
@@ -396,7 +396,7 @@ const ComparePage: React.FC = ({
     {
       key: "details",
       label: translateFunction("Details"),
-      render: (product: ProductInterface) => {
+      render: (product: any) => {
         if (!product.details) return "-";
 
         if (typeof product.details === "string") {

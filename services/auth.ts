@@ -10,7 +10,7 @@ import ChatService from "services/chat";
 import StoryService from "services/story";
 import home from "./home";
 import { AxiosGet, AxiosPost } from "utils/AxiosApi";
-import { LikesSharesCommentsApi } from "models/Api";
+import { ProductSocialInfo } from "models/API/market/ProductSocialInfo";
 import { changeToken } from "store/homepage/cachedActions";
 import axios from "axios";
 import { SetGAUser } from "utils/gtag";
@@ -327,7 +327,7 @@ class AuthService {
   async getProductNotify({ id }) {
     try {
       if (!localStorage.getItem("DEVICE-TOKEN")) await home.RegisterDevice();
-      let data: LikesSharesCommentsApi = await AxiosGet({
+      let data: ProductSocialInfo = await AxiosGet({
         url:
           process.env.NEXT_PUBLIC_BACKEND_URL +
           "/web/product/likesCommentsSharesDetails/" +
@@ -340,7 +340,11 @@ class AuthService {
   }
   getUser() {
     return (
-      localStorage.getItem("USER") && JSON.parse(localStorage.getItem("USER"))
+      (localStorage.getItem("USER") &&
+        JSON.parse(localStorage.getItem("USER"))) ||
+      (localStorage.getItem("guest-user") &&
+        JSON.parse(localStorage.getItem("guest-user"))) ||
+      false
     );
   }
   UserToken() {
@@ -371,7 +375,7 @@ class AuthService {
   async ExpiredUser() {
     if (this.getUser()?.phone)
       localStorage.setItem("has-phone", this.getUser()?.phone);
-    await home.registerForExpire(this.getUser().id);
+    await home.registerForExpire(this.UserID());
     this.cancelAuth();
     localStorage.removeItem("MARKET-TOKEN");
     localStorage.removeItem("USER");

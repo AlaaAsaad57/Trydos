@@ -6,12 +6,12 @@ import { useEffect, useState } from "react";
 import { useParams, usePathname, useSearchParams } from "next/navigation";
 import "styles/popup.css";
 
-import { Sendevent, translateFunction } from "./functions";
+import { translateFunction } from "./functions";
 import Cookies from "js-cookie";
 import { useRouter } from "next/navigation";
 import Spinner from "components/global/Spinner";
 import { changeAppCountryServer } from "store/homepage/cachedActions";
-import { GA_CLICK_EVENT_VALUES, GA_EVENT_NAMES } from "./GAEvents";
+import { GA_EVENT_NAMES } from "./GAEvents";
 import Link from "node_modules/next/link";
 
 const PopupCountry = ({ options, countries, forChanged, noCountry }) => {
@@ -135,11 +135,11 @@ const PopupCountry = ({ options, countries, forChanged, noCountry }) => {
                     className="text-blue-600 cursor-pointer"
                     data-cy="countain-with"
                     onClick={() => {
-                      Sendevent({
-                        event: GA_EVENT_NAMES.CLICK,
-                        value:
-                          GA_CLICK_EVENT_VALUES.CONTINUE_WITH_COUNTRY_BUTTON,
-                      });
+                      // Sendevent({
+                      //   event: GA_EVENT_NAMES.CLICK,
+                      //   value:
+                      //     GA_CLICK_EVENT_VALUES.CONTINUE_WITH_COUNTRY_BUTTON,
+                      // });
                       setLoadingWidget(true);
                       // @ts-ignore
                       let langFromUrl = lang.split("-")[1];
@@ -180,11 +180,11 @@ const PopupCountry = ({ options, countries, forChanged, noCountry }) => {
                     )}
                     className="text-blue-600 cursor-pointer"
                     onClick={() => {
-                      Sendevent({
-                        event: GA_EVENT_NAMES.CLICK,
-                        value:
-                          GA_CLICK_EVENT_VALUES.CHOOSE_COUNTRY_AND_CONTINUE_BUTTON,
-                      });
+                      // Sendevent({
+                      //   event: GA_EVENT_NAMES.CLICK,
+                      //   value:
+                      //     GA_CLICK_EVENT_VALUES.CHOOSE_COUNTRY_AND_CONTINUE_BUTTON,
+                      // });
                       setLoadingWidget(true);
                       // @ts-ignore
                       let langFromUrl = lang.split("-")[1];
@@ -228,11 +228,11 @@ const PopupCountry = ({ options, countries, forChanged, noCountry }) => {
                   value={selectedCountry}
                   onChange={(e) => {
                     setLoadingWidget(true);
-                    Sendevent({
-                      event: GA_EVENT_NAMES.CLICK,
-                      value:
-                        GA_CLICK_EVENT_VALUES.CHOOSE_COUNTRY_AND_CONTINUE_BUTTON,
-                    });
+                    // Sendevent({
+                    //   event: GA_EVENT_NAMES.CLICK,
+                    //   value:
+                    //     GA_CLICK_EVENT_VALUES.CHOOSE_COUNTRY_AND_CONTINUE_BUTTON,
+                    // });
                     setSelectedCountry(e.target.value);
                     let a = new URLSearchParams(window.location.search);
                     a.delete("no-country");

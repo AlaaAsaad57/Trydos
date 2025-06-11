@@ -7,6 +7,12 @@ import auth from "services/auth";
 
 import NextLink from "components/global/NextLink";
 import { useParams } from "next/navigation";
+import {
+  GA_EVENT_NAMES,
+  GA_GLOBAL_PLATFORM,
+  GA_GLOBAL_SCREEN,
+} from "utils/GAEvents";
+import { GAevent } from "utils/gtag";
 
 interface NotificationsPanelProps {
   onClose: () => void;
@@ -36,7 +42,15 @@ const NotificationsPanel: React.FC<NotificationsPanelProps> = ({
     document.body.style.position = "fixed";
     document.body.style.top = `-${window.scrollY}px`;
     document.body.style.width = "100%";
-
+    GAevent({
+      action: GA_EVENT_NAMES.SCREEN_VIEW,
+      params: {
+        screen_name: GA_GLOBAL_SCREEN.NOTIFICATIONS_SCREEN,
+        platform: GA_GLOBAL_PLATFORM.WEB,
+        timestamp: new Date().toISOString(),
+        screen_path: window.location.pathname,
+      },
+    });
     return () => {
       document.body.style.overflow = originalStyle;
       document.body.style.position = originalPosition;

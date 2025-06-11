@@ -1,4 +1,4 @@
-export type ProductInterface = {
+export interface ProductInterface {
   id: number;
   name: string;
   slug: string;
@@ -97,4 +97,4 @@ export type ProductInterface = {
       value: string;
     }>;
   }>;
-};
+}

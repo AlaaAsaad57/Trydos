@@ -5,11 +5,7 @@ import ProductItem from "./Results/ProductItem";
 import BrandItem from "./Results/BrandItem";
 import CategoryItem from "./Results/CategoryItem";
 import BoutiqueItem from "./Results/BoutiqueItem";
-import {
-  onClickSearchHistory,
-  Sendevent,
-  translateFunction,
-} from "utils/functions";
+import { onClickSearchHistory, translateFunction } from "utils/functions";
 import { useParams, useSearchParams } from "next/navigation";
 import { useRouter } from "next/navigation";
 
@@ -20,7 +16,7 @@ import search from "services/search";
 import ActiveSearchFilterBar from "./ActiveSearchFilterBar";
 import NextLink from "components/global/NextLink";
 import InfiniteScrollFiltersSearch from "components/ListingPage/filterComponents/InfiniteScrollFilterSearch";
-import { GA_CLICK_EVENT_VALUES, GA_EVENT_NAMES } from "utils/GAEvents";
+import { GA_EVENT_NAMES } from "utils/GAEvents";
 
 function SearchResults() {
   const {
@@ -53,10 +49,10 @@ function SearchResults() {
   let languageVariable = lang.split("-")[1];
 
   const apply = () => {
-    Sendevent({
-      event: GA_EVENT_NAMES.CLICK,
-      value: GA_CLICK_EVENT_VALUES.APPLY_HOME_SEARCH_RESULT_BUTTON,
-    });
+    // Sendevent({
+    //   event: GA_EVENT_NAMES.CLICK,
+    //   value: GA_CLICK_EVENT_VALUES.APPLY_HOME_SEARCH_RESULT_BUTTON,
+    // });
     onClickSearchHistory(value || "");
   };
   useEffect(() => {
@@ -93,10 +89,10 @@ function SearchResults() {
     }
   }, [searchResults]);
   const reset = () => {
-    Sendevent({
-      event: GA_EVENT_NAMES.CLICK,
-      value: GA_CLICK_EVENT_VALUES.RESET_HOME_SEARCH_RESULT_BUTTON,
-    });
+    // Sendevent({
+    //   event: GA_EVENT_NAMES.CLICK,
+    //   value: GA_CLICK_EVENT_VALUES.RESET_HOME_SEARCH_RESULT_BUTTON,
+    // });
     resetSearchFilter();
     setSearchPartialLoading(true);
     setSearchWord("");
@@ -145,13 +141,13 @@ function SearchResults() {
                     product={product}
                     key={index}
                     onClick={(e) => {
-                      Sendevent({
-                        event: GA_EVENT_NAMES.CLICK,
-                        value: GA_CLICK_EVENT_VALUES.CHOOSE_PRODUCT_BUTTON,
-                        extra: {
-                          product: product.id,
-                        },
-                      });
+                      // Sendevent({
+                      //   event: GA_EVENT_NAMES.CLICK,
+                      //   value: GA_CLICK_EVENT_VALUES.CHOOSE_PRODUCT_BUTTON,
+                      //   extra: {
+                      //     product: product.id,
+                      //   },
+                      // });
                       onClickSearchHistory(e);
                     }}
                   />
@@ -174,14 +170,14 @@ function SearchResults() {
                   brand={brand}
                   key={brand?.slug}
                   onClick={() => {
-                    Sendevent({
-                      event: GA_EVENT_NAMES.CLICK,
-                      value: GA_CLICK_EVENT_VALUES.ADD_FILTER_ITEM,
-                      extra: {
-                        filter: "brand",
-                        value: brand.name,
-                      },
-                    });
+                    // Sendevent({
+                    //   event: GA_EVENT_NAMES.CLICK,
+                    //   value: GA_CLICK_EVENT_VALUES.ADD_FILTER_ITEM,
+                    //   extra: {
+                    //     filter: "brand",
+                    //     value: brand.name,
+                    //   },
+                    // });
                     setSearchBrand(brand);
                     updateFiltersApi();
                   }}
@@ -217,14 +213,14 @@ function SearchResults() {
                   category={category}
                   key={category?.slug}
                   onClick={(e) => {
-                    Sendevent({
-                      event: GA_EVENT_NAMES.CLICK,
-                      value: GA_CLICK_EVENT_VALUES.ADD_FILTER_ITEM,
-                      extra: {
-                        filter: "category",
-                        value: category.name,
-                      },
-                    });
+                    // Sendevent({
+                    //   event: GA_EVENT_NAMES.CLICK,
+                    //   value: GA_CLICK_EVENT_VALUES.ADD_FILTER_ITEM,
+                    //   extra: {
+                    //     filter: "category",
+                    //     value: category.name,
+                    //   },
+                    // });
                     setSearchCategory(e);
                     updateFiltersApi();
                   }}
@@ -259,14 +255,14 @@ function SearchResults() {
                   boutique={boutique}
                   key={boutique?.slug}
                   onClick={() => {
-                    Sendevent({
-                      event: GA_EVENT_NAMES.CLICK,
-                      value: GA_CLICK_EVENT_VALUES.ADD_FILTER_ITEM,
-                      extra: {
-                        filter: "boutique",
-                        value: boutique.name,
-                      },
-                    });
+                    // Sendevent({
+                    //   event: GA_EVENT_NAMES.CLICK,
+                    //   value: GA_CLICK_EVENT_VALUES.ADD_FILTER_ITEM,
+                    //   extra: {
+                    //     filter: "boutique",
+                    //     value: boutique.name,
+                    //   },
+                    // });
                     setSearchBoutique(boutique);
                     updateFiltersApi();
                   }}

@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
 import Animated from "react-mount-animation";
 
-import { Sendevent, translateFunction } from "utils/functions";
+import { translateFunction } from "utils/functions";
 import AuthService from "services/auth";
 import { useParams } from "next/navigation";
 import { useAppStore } from "store";
-import { GA_CLICK_EVENT_VALUES } from "utils/GAEvents";
+import { GA_AUTH_SCREEN, GA_GLOBAL_PLATFORM } from "utils/GAEvents";
 import { GA_EVENT_NAMES } from "utils/GAEvents";
+import { GAevent } from "utils/gtag";
 
 function AlreadyRegistered({
   inputValue,
@@ -49,6 +50,15 @@ function AlreadyRegistered({
       setTimeout(() => {
         setActive(true);
       }, 50);
+      GAevent({
+        action: GA_EVENT_NAMES.SCREEN_VIEW,
+        params: {
+          screen_name: GA_AUTH_SCREEN.USER_ALREADY_EXISTS_SCREEN,
+          platform: GA_GLOBAL_PLATFORM.WEB,
+          timestamp: new Date().toISOString(),
+          screen_path: window.location.pathname,
+        },
+      });
     } else {
       setTimeout(() => {
         setActive(false);
@@ -177,10 +187,10 @@ function AlreadyRegistered({
           data-cy="Login-Countinue"
           onClick={() => {
             if (Tempuser.name?.length > 1) {
-              Sendevent({
-                event: GA_EVENT_NAMES.CLICK,
-                value: GA_CLICK_EVENT_VALUES.LOGIN_CONTINUE_BUTTON,
-              });
+              // Sendevent({
+              //   event: GA_EVENT_NAMES.CLICK,
+              //   value: GA_CLICK_EVENT_VALUES.LOGIN_CONTINUE_BUTTON,
+              // });
               setStepSign("welcomeLogin");
               setStepIndicator(6);
               FinaliseLogin();

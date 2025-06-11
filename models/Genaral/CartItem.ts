@@ -1,38 +1,17 @@
-export type CartInterface = {
-  sub_total: number;
-  sub_total_formated: string;
-  total_tax: number;
-  total_tax_formated: string;
-  total_discount_on_product: number;
-  total_discount_on_product_formated: string;
-  total_shipping_cost: number;
-  total_shipping_cost_formated: string;
-  coupon_discount: number;
-  coupon_discount_formated: string;
-  cod_cost: number;
-  cod_cost_formated: string;
-  has_cod: boolean;
-  limitFree: number;
-  limitFree_formated: string;
-  estimated_tax: number;
-  estimated_tax_formated: string;
-  total: number;
-  total_formated: string;
-  rest_for_free_shipping: number;
-  rest_for_free_shipping_formatted: string;
-  show_message_reset_for_shipping_free: boolean;
-  available_payment_method: Array<string>;
-  total_cash: number;
-  total_cash_formated: string;
-  cart: Array<{
+export interface CartItem{
     id: number;
+    check_availability: boolean;
     customer_id: number;
+    is_active: boolean;
+    collected_after_ordering?: boolean;
+    is_country_restricted: boolean;
     cart_group_id: string;
     product_id: number;
     choices: Array<{
       choice_1: string;
     }>;
     variations: Array<{
+      color: string;
       Size: string;
     }>;
     variant: string;
@@ -46,6 +25,7 @@ export type CartInterface = {
     tax: number;
     slug: string;
     name: string;
+    count_of_pieces: number;
     shop: {
       image: string;
       name: string;
@@ -69,5 +49,9 @@ export type CartInterface = {
     created_at: string;
     flash_deal_details: any;
     flash_deal_max_allowed_quantity: any;
-  }>;
-};
+    shipping_days: number;
+    have_hurry_up_notify_time_left: boolean;
+    have_hurry_up_notify_qty: boolean;
+    qty_left: number;
+    time_left_in_minutes: number;
+  }

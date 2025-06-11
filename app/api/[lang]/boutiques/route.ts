@@ -1,5 +1,4 @@
-import { GetBoutiqueApi } from "models/Api";
-import { fetchWithRetry } from "utils/functions";
+
 import { NextRequest, NextResponse } from "next/server";
 export async function OPTIONS(req: NextRequest) {
   const corsHeaders = {

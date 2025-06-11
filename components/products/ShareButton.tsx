@@ -3,7 +3,7 @@ import { useParams } from "next/navigation";
 import React from "react";
 import { useAppStore } from "store";
 
-import { Sendevent, translateFunction } from "utils/functions";
+import { translateFunction } from "utils/functions";
 
 function ShareButton({ onClick }: { onClick: () => void }) {
   const { shareLoading, language } = useAppStore();
@@ -17,10 +17,10 @@ function ShareButton({ onClick }: { onClick: () => void }) {
     <div
       onClick={() => {
         if (!shareLoading) {
-          Sendevent({
-            event: "button_clicked",
-            value: "share_with_chat_button",
-          });
+          // Sendevent({
+          //   event: "button_clicked",
+          //   value: "share_with_chat_button",
+          // });
           onClick();
         }
       }}

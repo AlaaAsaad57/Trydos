@@ -6,8 +6,6 @@ import { useParams, useSearchParams } from "next/navigation";
 import Search from "public/svg/SearchIcon.svg";
 import { useAppStore } from "store";
 import search from "services/search";
-import { Sendevent } from "utils/functions";
-import { GA_CLICK_EVENT_VALUES, GA_EVENT_NAMES } from "utils/GAEvents";
 
 function ActiveSearchFilterBar() {
   const { value, searchFilters, resetSearchFilter, setSearchWord } =
@@ -67,10 +65,10 @@ function ActiveSearchFilterBar() {
         data-cy="closeIcon"
         className="mr-2 ml-2"
         onClick={() => {
-          Sendevent({
-            event: GA_EVENT_NAMES.CLICK,
-            value: GA_CLICK_EVENT_VALUES.RESET_HOME_SEARCH_BUTTON,
-          });
+          // Sendevent({
+          //   event: GA_EVENT_NAMES.CLICK,
+          //   value: GA_CLICK_EVENT_VALUES.RESET_HOME_SEARCH_BUTTON,
+          // });
           resetSearchFilter();
           setSearchWord("");
           search.getSearchOptions({

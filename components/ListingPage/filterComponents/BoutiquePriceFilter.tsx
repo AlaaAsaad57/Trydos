@@ -5,9 +5,8 @@ import PriceCancel from "public/svg/listing/PriceCancel.svg";
 import PriceSlider from "./PriceSlider";
 import { useParams } from "next/navigation";
 import dynamic from "next/dynamic";
-import { RoundPrice, Sendevent, UpdateFilter } from "utils/functions";
+import { RoundPrice, UpdateFilter } from "utils/functions";
 import { useAppStore } from "store";
-import { GA_CLICK_EVENT_VALUES, GA_EVENT_NAMES } from "utils/GAEvents";
 
 const PriceChart = dynamic(() => import("./PriceChart"), {
   ssr: false,
@@ -35,16 +34,16 @@ function BoutiquePriceFilter() {
       return;
     } else if (e.min < e.max) {
       setFilterLoading(true);
-      Sendevent({
-        event: GA_EVENT_NAMES.CLICK,
-        value: GA_CLICK_EVENT_VALUES.ADD_FILTER_ITEM,
-        extra: {
-          type: "price",
-          name: `${e.min / currency?.exchange_rate} - ${
-            e.max / currency?.exchange_rate
-          }`,
-        },
-      });
+      // Sendevent({
+      //   event: GA_EVENT_NAMES.CLICK,
+      //   value: GA_CLICK_EVENT_VALUES.ADD_FILTER_ITEM,
+      //   extra: {
+      //     type: "price",
+      //     name: `${e.min / currency?.exchange_rate} - ${
+      //       e.max / currency?.exchange_rate
+      //     }`,
+      //   },
+      // });
       filterPrice({
         min: e.min / currency?.exchange_rate,
         max: e.max / currency?.exchange_rate,

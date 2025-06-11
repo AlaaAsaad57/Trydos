@@ -6,9 +6,8 @@ import FastIcon from "public/svg/product/FastIcon.svg";
 import PlaneIcon from "public/svg/product/PlaneIcon.svg";
 import PackingIcon from "public/svg/product/PackingIcon.svg";
 import MarkerIcon from "public/svg/product/MarkerIcon.svg";
-import { Sendevent, translateFunction } from "utils/functions";
+import { translateFunction } from "utils/functions";
 import { useParams } from "next/navigation";
-import { GA_CLICK_EVENT_VALUES, GA_EVENT_NAMES } from "utils/GAEvents";
 import Spinner from "components/global/Spinner";
 import { formatTime } from "utils/tinyUtils";
 import { useAppStore } from "store";
@@ -49,10 +48,10 @@ function ProductShippingOption({ days }) {
       }`}
       data-cy="ProductShiping"
       onClick={() => {
-        Sendevent({
-          event: GA_EVENT_NAMES.CLICK,
-          value: GA_CLICK_EVENT_VALUES.AT_YOUR_ADDRESS_BUTTON,
-        });
+        // Sendevent({
+        //   event: GA_EVENT_NAMES.CLICK,
+        //   value: GA_CLICK_EVENT_VALUES.AT_YOUR_ADDRESS_BUTTON,
+        // });
         setExtended(!extended);
       }}
     >

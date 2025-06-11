@@ -1,12 +1,12 @@
 "use client";
 import React, { useEffect } from "react";
 import SearchIcon from "public/svg/listing/searchIcon.svg";
-import { Sendevent } from "utils/functions";
+
 import { useAppStore } from "store";
 import { DebounceInput } from "react-debounce-input/src";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { dispatchRouteChangeEvent } from "utils/events";
-import { GA_CLICK_EVENT_VALUES, GA_EVENT_NAMES } from "utils/GAEvents";
+import { GA_EVENT_NAMES } from "utils/GAEvents";
 function SearchBoutiquePage({ search_text, boutique }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -23,14 +23,14 @@ function SearchBoutiquePage({ search_text, boutique }) {
     search,
   } = useAppStore();
   const onChange = (e) => {
-    Sendevent({
-      event: GA_EVENT_NAMES.CLICK,
-      value: GA_CLICK_EVENT_VALUES.ADD_FILTER_ITEM,
-      extra: {
-        filter: "search_text",
-        value: e?.target.value,
-      },
-    });
+    // Sendevent({
+    //   event: GA_EVENT_NAMES.CLICK,
+    //   value: GA_CLICK_EVENT_VALUES.ADD_FILTER_ITEM,
+    //   extra: {
+    //     filter: "search_text",
+    //     value: e?.target.value,
+    //   },
+    // });
     setFilterLoading(true);
     searchFilter(e.target.value);
     // UpdateFilter({
@@ -89,10 +89,10 @@ function SearchBoutiquePage({ search_text, boutique }) {
         "w-[75%] [&>input]:w-full [&>input]:bg-[#f8f8f8] [&>input]:h-[40px]"
       }`}
       onClick={() => {
-        Sendevent({
-          event: GA_EVENT_NAMES.CLICK,
-          value: GA_CLICK_EVENT_VALUES.OPEN_SEARCH_FIELD_BUTTON,
-        });
+        // Sendevent({
+        //   event: GA_EVENT_NAMES.CLICK,
+        //   value: GA_CLICK_EVENT_VALUES.OPEN_SEARCH_FIELD_BUTTON,
+        // });
         document.querySelector<HTMLInputElement>("#filter-search")?.focus();
         if (
           document.querySelector<HTMLInputElement>(".boutique-logo-container")

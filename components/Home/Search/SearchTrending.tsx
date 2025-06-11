@@ -4,9 +4,6 @@ import SearchMiniIcon from "public/svg/SearchMiniIcon.svg";
 import { useAppStore } from "store";
 import search from "services/search";
 import { useParams } from "next/navigation";
-import { Sendevent } from "utils/functions";
-import { GA_CLICK_EVENT_VALUES, GA_EVENT_NAMES } from "utils/GAEvents";
-
 function SearchTrending() {
   const {
     setSearchPartialLoading,
@@ -124,10 +121,10 @@ function SearchTrending() {
               className="option-row-search flex-row"
               data-cy="search-trending-option"
               onClick={(e) => {
-                Sendevent({
-                  event: GA_EVENT_NAMES.CLICK,
-                  value: GA_CLICK_EVENT_VALUES.SEARCH_TRENDING_OPTION,
-                });
+                // Sendevent({
+                //   event: GA_EVENT_NAMES.CLICK,
+                //   value: GA_CLICK_EVENT_VALUES.SEARCH_TRENDING_OPTION,
+                // });
                 setSearchWord(s.term);
                 setSearchPartialLoading(true);
                 setSearchLoading(true);

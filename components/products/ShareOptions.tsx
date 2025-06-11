@@ -13,13 +13,13 @@ import {
   WhatsappShareButton,
 } from "react-share";
 
-import { ProductInterface } from "models/product";
-import { getUserChat, Sendevent } from "utils/functions";
+import { ProductInterface } from "models/Genaral/Product";
+import { getUserChat } from "utils/functions";
 import { AxiosPost } from "utils/AxiosApi";
 import { useAppStore } from "store";
 import { toast } from "react-toastify";
 import CopyIcon from "public/svg/copyIcon.svg";
-import { GA_CLICK_EVENT_VALUES, GA_EVENT_NAMES } from "utils/GAEvents";
+import { GA_EVENT_NAMES } from "utils/GAEvents";
 function ShareOptions({
   setShareContacts,
   sharedContacts,
@@ -55,10 +55,10 @@ function ShareOptions({
             data-cy="Facebook"
             url={window.location.href}
             beforeOnClick={() => {
-              Sendevent({
-                event: GA_EVENT_NAMES.CLICK,
-                value: GA_CLICK_EVENT_VALUES.SHARE_WITH_FACEBOOK_BUTTON,
-              });
+              // Sendevent({
+              //   event: GA_EVENT_NAMES.CLICK,
+              //   value: GA_CLICK_EVENT_VALUES.SHARE_WITH_FACEBOOK_BUTTON,
+              // });
               shareSocial("Facebook");
             }}
           >
@@ -71,10 +71,10 @@ function ShareOptions({
         <div className="share-image social shadow-none">
           <TwitterShareButton
             beforeOnClick={() => {
-              Sendevent({
-                event: GA_EVENT_NAMES.CLICK,
-                value: GA_CLICK_EVENT_VALUES.SHARE_WITH_TWITTER_BUTTON,
-              });
+              // Sendevent({
+              //   event: GA_EVENT_NAMES.CLICK,
+              //   value: GA_CLICK_EVENT_VALUES.SHARE_WITH_TWITTER_BUTTON,
+              // });
               shareSocial("Twitter");
             }}
             url={window.location.href}
@@ -89,10 +89,10 @@ function ShareOptions({
         <div className="share-image social shadow-none">
           <WhatsappShareButton
             beforeOnClick={() => {
-              Sendevent({
-                event: GA_EVENT_NAMES.CLICK,
-                value: GA_CLICK_EVENT_VALUES.SHARE_WITH_WHATSAPP_BUTTON,
-              });
+              // Sendevent({
+              //   event: GA_EVENT_NAMES.CLICK,
+              //   value: GA_CLICK_EVENT_VALUES.SHARE_WITH_WHATSAPP_BUTTON,
+              // });
               shareSocial("WhatsApp");
             }}
             url={window.location.href}
@@ -106,10 +106,10 @@ function ShareOptions({
         <div className="share-image social shadow-none">
           <TelegramShareButton
             beforeOnClick={() => {
-              Sendevent({
-                event: GA_EVENT_NAMES.CLICK,
-                value: GA_CLICK_EVENT_VALUES.SHARE_WITH_TELEGRAM_BUTTON,
-              });
+              // Sendevent({
+              //   event: GA_EVENT_NAMES.CLICK,
+              //   value: GA_CLICK_EVENT_VALUES.SHARE_WITH_TELEGRAM_BUTTON,
+              // });
               shareSocial("Telegram");
             }}
             url={window.location.href}
@@ -123,10 +123,10 @@ function ShareOptions({
         <div className="share-image social shadow-none">
           <a
             onClick={() => {
-              Sendevent({
-                event: GA_EVENT_NAMES.CLICK,
-                value: GA_CLICK_EVENT_VALUES.SHARE_WITH_EMAIL_BUTTON,
-              });
+              // Sendevent({
+              //   event: GA_EVENT_NAMES.CLICK,
+              //   value: GA_CLICK_EVENT_VALUES.SHARE_WITH_EMAIL_BUTTON,
+              // });
               shareSocial("email");
             }}
             href={`https://mail.google.com/mail/?view=cm&fs=1&su=Check%20this%20out&body=${product?.name} %0A ${window.location.href}`}
@@ -142,10 +142,10 @@ function ShareOptions({
           data-cy="copy_link_button"
           className="share-image social shadow-none flex justify-center items-center bg-[#f8f8e4]"
           onClick={() => {
-            Sendevent({
-              event: GA_EVENT_NAMES.CLICK,
-              value: GA_CLICK_EVENT_VALUES.SHARE_WITH_COPY_LINK_BUTTON,
-            });
+            // Sendevent({
+            //   event: GA_EVENT_NAMES.CLICK,
+            //   value: GA_CLICK_EVENT_VALUES.SHARE_WITH_COPY_LINK_BUTTON,
+            // });
             navigator.clipboard.writeText(window.location.href).then(() => {
               toast.success("Link Copied to Clipboard");
             });
