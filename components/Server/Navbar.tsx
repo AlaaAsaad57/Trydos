@@ -2,6 +2,7 @@ import MobileNavigationSkeleton from "components/skeleton/MobileNavigation";
 import SearchIcon from "../Home/Search/SearchIcon";
 import CategoryNavMobile from "components/Home/CategoryNavMobile";
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
+import { CategoriesApi } from "models/API/elastic/MainCategories";
 
 async function NavbarServer({
   lang,
@@ -20,7 +21,7 @@ async function NavbarServer({
         },
       }
     );
-    const data = await res.json();
+    const data: CategoriesApi = await res.json();
     const { mainCategories: categories } = data;
 
     categories.sort((a, b) => (a.slug === mainCategory ? -1 : 1));
