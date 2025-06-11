@@ -2,7 +2,7 @@ import React from "react";
 import { translateFunction } from "utils/functions";
 import ShareOptions from "./ShareOptions";
 
-import { ProductInterface } from "models/product";
+import { ProductInterface } from "models/Genaral/Product";
 import { useParams } from "next/navigation";
 
 function ShareSection({

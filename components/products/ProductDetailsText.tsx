@@ -1,5 +1,5 @@
 "use client";
-import { ProductInterface } from "models/product";
+import { ProductInterface } from "models/Genaral/Product";
 import { useParams, useSearchParams } from "next/navigation";
 import { useEffect, useState, useMemo } from "react";
 import { useAppStore } from "store";

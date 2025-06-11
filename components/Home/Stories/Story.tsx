@@ -3,7 +3,7 @@
 import { errorPNG } from "utils/AxiosApi";
 import Image from "next/image";
 import StoryServiceClass from "services/story";
-import { Story as StoryType } from "models/story";
+import { FixedStory as StoryType } from "models/Genaral/Story";
 import { SelectStory } from "store/homepage/actions";
 
 function Story({

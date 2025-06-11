@@ -13,7 +13,7 @@ import {
   WhatsappShareButton,
 } from "react-share";
 
-import { ProductInterface } from "models/product";
+import { ProductInterface } from "models/Genaral/Product";
 import { getUserChat } from "utils/functions";
 import { AxiosPost } from "utils/AxiosApi";
 import { useAppStore } from "store";

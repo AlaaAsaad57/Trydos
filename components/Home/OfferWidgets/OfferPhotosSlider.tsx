@@ -1,6 +1,6 @@
 "use client";
 import OfferSlideItem from "./OfferSlideItem";
-import { Boutique } from "models/offer";
+import { Boutique } from "models/Genaral/Boutique";
 import useEmblaCarousel from "embla-carousel-react";
 import Autoplay from "embla-carousel-autoplay";
 interface OfferPhotosSliderProps {

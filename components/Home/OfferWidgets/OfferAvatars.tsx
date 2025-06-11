@@ -1,7 +1,7 @@
 "use client";
 import { useRef } from "react";
 import OfferAvatar from "./OfferAvatar";
-import { Boutique } from "models/offer";
+import { Boutique } from "models/Genaral/Boutique";
 import { useParams } from "next/navigation";
 import MoreOfferAvatar from "./MoreOfferAvatar";
 import search from "services/search";
