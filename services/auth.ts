@@ -101,6 +101,7 @@ class AuthService {
           getHeader()
         );
       }
+
       let repo: {
         data: {
           already_exists: boolean;
@@ -120,7 +121,7 @@ class AuthService {
         };
         isSuccessful: boolean;
       } = await response.json();
-
+      console.log(repo);
       if (repo?.data?.message === "user not found") {
         throw new Error("user not found");
       }
