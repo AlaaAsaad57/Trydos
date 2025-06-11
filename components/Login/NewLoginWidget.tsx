@@ -20,6 +20,7 @@ import {
   GA_AUTH_SCREEN,
   GA_BUTTONS_NAMES,
   GA_EVENT_NAMES,
+  GA_EXCEPTIONS_DESCRIPTIONS,
   GA_GLOBAL_PLATFORM,
 } from "utils/GAEvents";
 import { GAevent } from "utils/gtag";
@@ -71,6 +72,14 @@ function NewLoginWidget() {
       );
       successCallback();
     } catch (error) {
+      GAevent({
+        action: GA_EVENT_NAMES.EXCEPTION,
+        params: {
+          description: GA_EXCEPTIONS_DESCRIPTIONS.OTP_SEND_FAILED,
+          context: operation === "login" ? operation : "sign_up",
+          mission_name: operation === "login" ? operation : "sign_up",
+        },
+      });
       console.log(error);
       errorCallback();
       console.error("SendOtp failed:", error);
