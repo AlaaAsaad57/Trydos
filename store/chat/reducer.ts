@@ -837,8 +837,8 @@ export const useChatStore = (set, get) => ({
         id: payload?.channel_id,
       };
       let mar = [];
-      console.log({ payload, ac });
-      ac.messages.forEach((m) => {
+
+      act.messages.forEach((m) => {
         if (
           m.mid &&
           m.mid === payload.mid &&
@@ -853,9 +853,10 @@ export const useChatStore = (set, get) => ({
           mar.push(m);
         }
       });
-      ac.messages = mar;
+      act.messages = mar;
+
       set({
-        activeChat: ac,
+        activeChat: act,
       });
       return;
     }
@@ -1020,7 +1021,30 @@ export const useChatStore = (set, get) => ({
     const state = get();
     let arr = [];
     let active = state.activeChat;
-
+    if (!state.data.find((s) => s.id === payload.ch)) {
+      let mrr = [];
+      payload.mes.forEach((m) => {
+        if (mrr.filter((s) => s.id === m.id).length === 0) {
+          mrr = [m, ...mrr];
+        }
+      });
+      active.messages.forEach((m) => {
+        if (mrr.filter((s) => s.id === m.id).length === 0) {
+          mrr.push(m);
+        }
+      });
+      set({
+        activeChat: active,
+        fetch: true,
+        searchChat: {
+          ...state.searchChat,
+          loading: false,
+        },
+        first: false,
+        mid: payload.mes.length === 0 ? null : state.mid,
+      });
+      return;
+    }
     state.data.forEach((ch) => {
       if (parseInt(ch.id) === parseInt(payload.ch)) {
         let mrr = [];
