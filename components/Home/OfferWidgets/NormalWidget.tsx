@@ -1,10 +1,8 @@
 import OfferSlideItem from "./OfferSlideItem";
 import OfferAvatars from "./OfferAvatars";
 import Image from "next/image";
-import { Boutique } from "models/Genaral/Boutique";
 import OfferPhotosSlider from "./OfferPhotosSlider";
 import NextLink from "components/global/NextLink";
-import { Suspense } from "react";
 import search from "services/search";
 
 interface NormalWidgetProps {

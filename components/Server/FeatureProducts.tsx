@@ -1,9 +1,8 @@
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 import NextLink from "components/global/NextLink";
-import {
-  BuyButtonProduct,
-  ProductPhotosSlider,
-} from "components/ListingPage/Product";
+import { BuyButtonProduct } from "components/ListingPage/Product";
+import { SearchResponse } from "models/API/elastic/Search";
+import { CurrencyApi } from "models/API/market/CurrencyApi";
 import Image from "next/image";
 import React, { Suspense } from "react";
 import {
@@ -13,7 +12,7 @@ import {
 } from "utils/functions";
 
 async function FeatureProducts({ lang }) {
-  const getFeaturedProducts = async () => {
+  const getFeaturedProducts = async (): Promise<SearchResponse["data"]> => {
     try {
       const featuredProducts = await fetch(
         process.env.NEXT_PUBLIC_API_BASE_URL +
@@ -25,14 +24,34 @@ async function FeatureProducts({ lang }) {
           },
         }
       );
-      let data = await featuredProducts.json();
+      let data: SearchResponse["data"] = await featuredProducts.json();
       return data;
     } catch (e) {
       console.log(e);
-      return { data: { products: [] } };
+      return {
+        products: [],
+        offset: null,
+        total_size: 0,
+        limit: 0,
+        brands: [],
+        categories: [],
+        colors: [],
+        attributes: [],
+        boutiques: [],
+        prices: {
+          max_price: null,
+          min_price: null,
+          priceRanges: [],
+        },
+        search_time: null,
+        search_text: null,
+        process_time: "",
+      };
     }
   };
-  const GetCurrencyData = async () => {
+  const GetCurrencyData = async (): Promise<
+    CurrencyApi["data"]["currency"]
+  > => {
     let response;
     try {
       response = await fetch(
@@ -49,7 +68,13 @@ async function FeatureProducts({ lang }) {
       return data.data.currency;
     } catch (error) {
       console.log(error, "getCurrencyData", response);
-      return {};
+      return {
+        code: "",
+        exchange_rate: 1,
+        id: 1,
+        name: "",
+        symbol: "",
+      };
     }
   };
   const [featuredProducts, currency] = await Promise.all([

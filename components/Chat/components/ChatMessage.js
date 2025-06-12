@@ -640,16 +640,18 @@ function ChatMessage(props) {
               )}
             </div>
 
-            <OptionsMenu
-              DeleteModal={DeleteModal}
-              setDelete={(e) => setDelete(e)}
-              deleteMessage={(e) =>
-                DeleteMessage(activeChat.id, props.message.id, e)
-              }
-              copy={() => copyText()}
-              forward={() => setForwardMessage(props.message)}
-              click={() => setReplyMessage(props.message)}
-            />
+            {!props.isPrivate && (
+              <OptionsMenu
+                DeleteModal={DeleteModal}
+                setDelete={(e) => setDelete(e)}
+                deleteMessage={(e) =>
+                  DeleteMessage(activeChat.id, props.message.id, e)
+                }
+                copy={() => copyText()}
+                forward={() => setForwardMessage(props.message)}
+                click={() => setReplyMessage(props.message)}
+              />
+            )}
           </div>
         );
       }
@@ -793,16 +795,18 @@ function ChatMessage(props) {
               )}
             </div>
 
-            <OptionsMenu
-              DeleteModal={DeleteModal}
-              setDelete={(e) => setDelete(e)}
-              deleteMessage={(e) =>
-                DeleteMessage(activeChat.id, props.message.id, e)
-              }
-              copy={() => copyText()}
-              forward={() => setForwardMessage(props.message)}
-              click={() => setReplyMessage(props.message)}
-            />
+            {!props.isPrivate && (
+              <OptionsMenu
+                DeleteModal={DeleteModal}
+                setDelete={(e) => setDelete(e)}
+                deleteMessage={(e) =>
+                  DeleteMessage(activeChat.id, props.message.id, e)
+                }
+                copy={() => copyText()}
+                forward={() => setForwardMessage(props.message)}
+                click={() => setReplyMessage(props.message)}
+              />
+            )}
           </div>
         );
       }
@@ -1001,16 +1005,18 @@ function ChatMessage(props) {
                 </div>
               )}
             </div>
-            <OptionsMenu
-              DeleteModal={DeleteModal}
-              setDelete={(e) => setDelete(e)}
-              deleteMessage={(e) =>
-                DeleteMessage(activeChat.id, props.message.id, e)
-              }
-              copy={() => copyText()}
-              forward={() => setForwardMessage(props.message)}
-              click={() => setReplyMessage(props.message)}
-            />
+            {!props.isPrivate && (
+              <OptionsMenu
+                DeleteModal={DeleteModal}
+                setDelete={(e) => setDelete(e)}
+                deleteMessage={(e) =>
+                  DeleteMessage(activeChat.id, props.message.id, e)
+                }
+                copy={() => copyText()}
+                forward={() => setForwardMessage(props.message)}
+                click={() => setReplyMessage(props.message)}
+              />
+            )}
           </div>
         );
       }
@@ -1138,16 +1144,18 @@ function ChatMessage(props) {
                 </div>
               )}
             </div>
-            <OptionsMenu
-              DeleteModal={DeleteModal}
-              setDelete={(e) => setDelete(e)}
-              deleteMessage={(e) =>
-                DeleteMessage(activeChat.id, props.message.id, e)
-              }
-              copy={() => copyText()}
-              forward={() => setForwardMessage(props.message)}
-              click={() => setReplyMessage(props.message)}
-            />
+            {!props.isPrivate && (
+              <OptionsMenu
+                DeleteModal={DeleteModal}
+                setDelete={(e) => setDelete(e)}
+                deleteMessage={(e) =>
+                  DeleteMessage(activeChat.id, props.message.id, e)
+                }
+                copy={() => copyText()}
+                forward={() => setForwardMessage(props.message)}
+                click={() => setReplyMessage(props.message)}
+              />
+            )}
           </div>
         );
       }
@@ -1300,16 +1308,18 @@ function ChatMessage(props) {
               </div>
               <div className="message-date">{getMessageStatus()}</div>
             </div>
-            <OptionsMenu
-              DeleteModal={DeleteModal}
-              setDelete={(e) => setDelete(e)}
-              deleteMessage={(e) =>
-                DeleteMessage(activeChat.id, props.message.id, e)
-              }
-              copy={() => copyText()}
-              forward={() => setForwardMessage(props.message)}
-              click={() => setReplyMessage(props.message)}
-            />
+            {!props.isPrivate && (
+              <OptionsMenu
+                DeleteModal={DeleteModal}
+                setDelete={(e) => setDelete(e)}
+                deleteMessage={(e) =>
+                  DeleteMessage(activeChat.id, props.message.id, e)
+                }
+                copy={() => copyText()}
+                forward={() => setForwardMessage(props.message)}
+                click={() => setReplyMessage(props.message)}
+              />
+            )}
           </div>
         );
       }
@@ -1627,16 +1637,18 @@ function ChatMessage(props) {
                 {getMessageTime(props.message.created_at, true)}
               </div>
             </div>
-            <OptionsMenu
-              DeleteModal={DeleteModal}
-              setDelete={(e) => setDelete(e)}
-              deleteMessage={(e) =>
-                DeleteMessage(activeChat.id, props.message.id, e)
-              }
-              copy={() => copyText()}
-              forward={() => setForwardMessage(props.message)}
-              click={() => setReplyMessage(props.message)}
-            />
+            {!props.isPrivate && (
+              <OptionsMenu
+                DeleteModal={DeleteModal}
+                setDelete={(e) => setDelete(e)}
+                deleteMessage={(e) =>
+                  DeleteMessage(activeChat.id, props.message.id, e)
+                }
+                copy={() => copyText()}
+                forward={() => setForwardMessage(props.message)}
+                click={() => setReplyMessage(props.message)}
+              />
+            )}
           </div>
         );
       }
@@ -1740,16 +1752,18 @@ function ChatMessage(props) {
                 {getMessageTime(props.message.created_at, true)}
               </div>
             </div>
-            <OptionsMenu
-              DeleteModal={DeleteModal}
-              setDelete={(e) => setDelete(e)}
-              deleteMessage={(e) =>
-                DeleteMessage(activeChat.id, props.message.id, e)
-              }
-              copy={() => copyText()}
-              forward={() => setForwardMessage(props.message)}
-              click={() => setReplyMessage(props.message)}
-            />
+            {!props.isPrivate && (
+              <OptionsMenu
+                DeleteModal={DeleteModal}
+                setDelete={(e) => setDelete(e)}
+                deleteMessage={(e) =>
+                  DeleteMessage(activeChat.id, props.message.id, e)
+                }
+                copy={() => copyText()}
+                forward={() => setForwardMessage(props.message)}
+                click={() => setReplyMessage(props.message)}
+              />
+            )}
           </div>
         );
       }
@@ -1923,16 +1937,18 @@ function ChatMessage(props) {
                   </div>
                 </div>
               )}
-            <OptionsMenu
-              DeleteModal={DeleteModal}
-              setDelete={(e) => setDelete(e)}
-              deleteMessage={(e) =>
-                DeleteMessage(activeChat.id, props.message.id, e)
-              }
-              copy={() => copyText()}
-              forward={() => setForwardMessage(props.message)}
-              click={() => setReplyMessage(props.message)}
-            />
+            {!props.isPrivate && (
+              <OptionsMenu
+                DeleteModal={DeleteModal}
+                setDelete={(e) => setDelete(e)}
+                deleteMessage={(e) =>
+                  DeleteMessage(activeChat.id, props.message.id, e)
+                }
+                copy={() => copyText()}
+                forward={() => setForwardMessage(props.message)}
+                click={() => setReplyMessage(props.message)}
+              />
+            )}
           </div>
         );
       }
@@ -2024,16 +2040,18 @@ function ChatMessage(props) {
                 {getMessageTime(props.message.created_at, true)}
               </div>
             </div>
-            <OptionsMenu
-              DeleteModal={DeleteModal}
-              setDelete={(e) => setDelete(e)}
-              deleteMessage={(e) =>
-                DeleteMessage(activeChat.id, props.message.id, e)
-              }
-              copy={() => copyText()}
-              forward={() => setForwardMessage(props.message)}
-              click={() => setReplyMessage(props.message)}
-            />
+            {!props.isPrivate && (
+              <OptionsMenu
+                DeleteModal={DeleteModal}
+                setDelete={(e) => setDelete(e)}
+                deleteMessage={(e) =>
+                  DeleteMessage(activeChat.id, props.message.id, e)
+                }
+                copy={() => copyText()}
+                forward={() => setForwardMessage(props.message)}
+                click={() => setReplyMessage(props.message)}
+              />
+            )}
           </div>
         );
       }
@@ -2148,16 +2166,18 @@ function ChatMessage(props) {
                 {getMessageTime(props.message.created_at, true)}
               </div>
             </div>
-            <OptionsMenu
-              DeleteModal={DeleteModal}
-              setDelete={(e) => setDelete(e)}
-              deleteMessage={(e) =>
-                DeleteMessage(activeChat.id, props.message.id, e)
-              }
-              copy={() => copyText()}
-              forward={() => setForwardMessage(props.message)}
-              click={() => setReplyMessage(props.message)}
-            />
+            {!props.isPrivate && (
+              <OptionsMenu
+                DeleteModal={DeleteModal}
+                setDelete={(e) => setDelete(e)}
+                deleteMessage={(e) =>
+                  DeleteMessage(activeChat.id, props.message.id, e)
+                }
+                copy={() => copyText()}
+                forward={() => setForwardMessage(props.message)}
+                click={() => setReplyMessage(props.message)}
+              />
+            )}
           </div>
         );
       }
