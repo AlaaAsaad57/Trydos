@@ -25,16 +25,14 @@ import axios from "axios";
 
 import { AxiosGet, AxiosPost } from "utils/AxiosApi";
 import { changeToken } from "store/homepage/cachedActions";
-import {
-  RegisterGuestApi,
-} from "models/API/market/RegisterGuest";
-import {CustomerInfoResponse} from 'models/API/market/CustomerInfo'
+import { RegisterGuestApi } from "models/API/market/RegisterGuest";
+import { CustomerInfoResponse } from "models/API/market/CustomerInfo";
 import auth from "./auth";
-import {UpdateCartApi} from 'models/API/market/UpdateCart'
+import { UpdateCartApi } from "models/API/market/UpdateCart";
 import LocalizationServiceClass from "./localization";
 import chat from "./chat";
 import { SetGAUser } from "utils/gtag";
-import {starttingSettingApi} from 'models/API/market/StarttingSetting';
+import { starttingSettingApi } from "models/API/market/StarttingSetting";
 const getHeader = () => {
   let [countryUrl, languageUrl] = window.location.pathname
     .split("/")[1]
@@ -79,7 +77,8 @@ class HomeService {
           localStorage.setItem("LAST_JSON", JSON.stringify(repo));
       }
       setTimeout(() => {
-        if (localStorage.getItem("USER")) chat.getChats(false);
+        if (localStorage.getItem("USER") && localStorage.getItem("USER-CHAT"))
+          chat.getChats(false);
       }, 5000);
     } catch (e) {
       console.error(e);

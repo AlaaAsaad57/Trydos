@@ -28,9 +28,9 @@ function WelcomingWidget({
   };
   const [active, setActive] = useState(false);
   useEffect(() => {
-    setTimeout(() => {
-      if (active) setLoginOpen(false);
-    }, 5000);
+    // setTimeout(() => {
+    //   if (active) setLoginOpen(false);
+    // }, 5000);
   }, [active]);
 
   useEffect(() => {

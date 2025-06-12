@@ -24,6 +24,7 @@ import {
   GA_GLOBAL_PLATFORM,
 } from "utils/GAEvents";
 import { GAevent } from "utils/gtag";
+import auth from "services/auth";
 
 function NewLoginWidget() {
   let { lang } = useParams();
@@ -628,6 +629,7 @@ function NewLoginWidget() {
               value={Name}
               setName={(e) => setName(e)}
               submit={async () => {
+                await auth.ConfirmSignIn();
                 await AuthService.UpdateName(Name);
                 if (operation === "login") {
                   if (Tempuser.already_exists) setSignStep("welcomeLogin");
