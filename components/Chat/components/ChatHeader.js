@@ -11,7 +11,13 @@ import { translateFunction } from "../../../utils/functions";
 import { useParams } from "next/navigation";
 import { useAppStore } from "store";
 import ChatPhoto from "./ChatPhoto";
-function ChatHeader({ chats, activeChat, openDetails, isPrivate }) {
+function ChatHeader({
+  chats,
+  activeChat,
+  openDetails,
+  isPrivate,
+  closeWidget,
+}) {
   const {
     callLoading,
     Server_time,
@@ -54,6 +60,9 @@ function ChatHeader({ chats, activeChat, openDetails, isPrivate }) {
           setMain("main");
           openChat(null);
           setReplyMessage(null);
+          if (isPrivate) {
+            closeWidget();
+          }
         }}
       ></ArrowIcon>
       {getNew(chats, activeChat).length > 0 && (

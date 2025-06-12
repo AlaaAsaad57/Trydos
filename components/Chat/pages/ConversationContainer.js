@@ -53,6 +53,7 @@ function ConversationContainer({
   first,
   setSearch,
   isPrivate,
+  closeWidget,
 }) {
   const {
     callLoading,
@@ -1077,6 +1078,7 @@ function ConversationContainer({
             openDetails(true);
             GetChatDetails(activeChat?.id);
           }}
+          closeWidget={closeWidget}
           chats={chats}
           activeChat={activeChat}
           isPrivate={isPrivate}

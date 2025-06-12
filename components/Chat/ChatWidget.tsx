@@ -13,14 +13,16 @@ export default function ChatWidget({
   onClose: () => void;
 }) {
   const { activeChat, openChat, setMain, first } = useAppStore();
-  if (!isOpen) return null;
   useEffect(() => {
     setTimeout(() => {
-      document
-        .querySelector("#scroled")
-        ?.scrollIntoView({ block: "end", inline: "end" });
+      if (document?.querySelector("#scroled"))
+        document
+          ?.querySelector("#scroled")
+          ?.scrollIntoView({ block: "end", inline: "end" });
     }, 1000);
   }, []);
+  if (!isOpen) return null;
+
   return (
     <>
       <div
@@ -36,6 +38,7 @@ export default function ChatWidget({
       <div className="fixed right-0 top-0 max-w-[430px] w-screen h-[calc(100vh-150px)] bg-white z-[999999999999]">
         <ConversationContainer
           isPrivate={true}
+          closeWidget={onClose}
           ViewedScreen={"chat"}
           active={activeChat}
           setSearch={() => {}}
