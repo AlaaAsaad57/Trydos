@@ -408,11 +408,10 @@ const BouqiuePhotoSlider = ({ banners }) => {
                       fetchPriority={"high"}
                       style={{ borderRadius: "15px" }}
                       className="OfferImage object-cover"
-                      src={getConfiguredImage({
-                        src: banner.file_path,
-                        height: 342,
-                        width: 900,
-                      })}
+                      src={banner.file_path?.replace(
+                        "/upload",
+                        `/upload/h_342,c_pad,w_840/f_webp/q_auto`
+                      )}
                       width={380}
                       height={135}
                       alt="offer"

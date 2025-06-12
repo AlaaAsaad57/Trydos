@@ -20,6 +20,8 @@ import Spinner from "components/global/Spinner";
 import order from "services/order";
 import OrderChatIcon from "./OrderChatIcon";
 import { usePathname } from "next/navigation";
+import { Channel } from "models/Genaral/Channel";
+import ChatWidget from "components/Chat/ChatWidget";
 
 function OrderDetails({
   resetOrderDetails,
@@ -77,6 +79,8 @@ function OrderDetails({
     router.push(`${pathname}?${params.toString()}`, { shallow: true });
   };
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [chatInfo, setChatInfo] = useState<Channel | null>(null);
   useEffect(() => {
     if (selectedOrder?.id) getOrderDetails();
   }, [selectedOrder?.id]);
@@ -91,6 +95,7 @@ function OrderDetails({
       return selectedOrder.order_group_id;
     return false;
   };
+
   const ShowChats = () => {
     if (shouldShowChatIcon()) {
       let arr = [];
@@ -103,73 +108,100 @@ function OrderDetails({
       });
 
       return arr.map((s) => {
-        return <OrderChatIcon key={s} id={s} />;
+        return (
+          <OrderChatIcon
+            isChatOpen={isChatOpen}
+            setChatInfo={setChatInfo}
+            setIsChatOpen={setIsChatOpen}
+            key={s}
+            id={s}
+          />
+        );
       });
     }
   };
+
   return (
-    <div className="flex-col h-[calc(128vh)]">
-      <SettingTopBar
-        goBack={() => {
-          resetOrder();
-        }}
-        screenName={
-          <div className="flex-row items-stretch">
-            <OrdersIcon />
-            <span className="text-[#1D1D1D] text-[14px] medium ml-[4px]">
-              {translateFunction("Orders Details")}
+    <>
+      {chatInfo && (
+        <ChatWidget
+          isOpen={isChatOpen}
+          onClose={() => {
+            document.documentElement.style.overflow = "auto";
+            setChatInfo(null);
+            document
+              .querySelector("#OrderDetails")
+              .classList.remove("overflow-hidden");
+            document
+              .querySelector("#OrderDetails")
+              .classList.add("overflow-auto");
+            setIsChatOpen(false);
+          }}
+        />
+      )}
+      <div className="flex-col h-[calc(128vh)]">
+        <SettingTopBar
+          goBack={() => {
+            resetOrder();
+          }}
+          screenName={
+            <div className="flex-row items-stretch">
+              <OrdersIcon />
+              <span className="text-[#1D1D1D] text-[14px] medium ml-[4px]">
+                {translateFunction("Orders Details")}
+              </span>
+            </div>
+          }
+          Save={null}
+          hasOptions={true}
+          hasChat={shouldShowChatIcon()}
+        />
+
+        {loading ? (
+          <div className="flex w-full pt-8 justify-center items-center">
+            <span className="scale-[4]">
+              <Spinner />
             </span>
           </div>
-        }
-        Save={null}
-        hasOptions={true}
-        hasChat={shouldShowChatIcon()}
-      />
-
-      {loading ? (
-        <div className="flex w-full pt-8 justify-center items-center">
-          <span className="scale-[4]">
-            <Spinner />
-          </span>
-        </div>
-      ) : (
-        <>
-          <div
-            className={`pt-[12px] px-[12px] ${
-              isExpanded && "h-0 pt-0 overflow-hidden"
-            } flex-col justify-start  w-full bg-[#F8F8F8] `}
-          >
-            <div className="flex-row justify-between items-center w-full">
-              <OrderNumberCard number={selectedOrder.order_group_id} />
-              <OrderDateCard time={selectedOrder.created_at} />
-              <OrderInvoiceCard
-                amount={selectedOrder.order_amount}
-                payments={selectedOrder.payment_method}
-              />
+        ) : (
+          <>
+            <div
+              className={`pt-[12px] px-[12px] ${
+                isExpanded && "h-0 pt-0 overflow-hidden"
+              } flex-col justify-start  w-full bg-[#F8F8F8] `}
+            >
+              <div className="flex-row justify-between items-center w-full">
+                <OrderNumberCard number={selectedOrder.order_group_id} />
+                <OrderDateCard time={selectedOrder.created_at} />
+                <OrderInvoiceCard
+                  amount={selectedOrder.order_amount}
+                  payments={selectedOrder.payment_method}
+                />
+              </div>
+              <div className="flex-row justify-between items-center w-full mt-[8px]">
+                <OrderExpectedDeliveryCard time={selectedOrder.created_at} />
+                <OrderStatusCard
+                  status={selectedOrder.order_group_status.label}
+                />
+              </div>
+              <OrderAddressCard address={selectedOrder.shipping_address_data} />
             </div>
-            <div className="flex-row justify-between items-center w-full mt-[8px]">
-              <OrderExpectedDeliveryCard time={selectedOrder.created_at} />
-              <OrderStatusCard
-                status={selectedOrder.order_group_status.label}
+            <RateOrderButton />
+            <div className="flex flex-col justify-start  w-full bg-[#F8F8F8] px-[12px] h-full relative">
+              <OrderItemsList
+                shouldShowChat={shouldShowChatIcon}
+                showChats={() => ShowChats()}
+                order_group_status={selectedOrder.order_status.label}
+                setExpanded={setIsExpanded}
+                isExpanded={isExpanded}
+                items={selectedOrder.details}
               />
+              {isExpanded && <OrderExpandedDetails order={selectedOrder} />}
             </div>
-            <OrderAddressCard address={selectedOrder.shipping_address_data} />
-          </div>
-          <RateOrderButton />
-          <div className="flex flex-col justify-start  w-full bg-[#F8F8F8] px-[12px] h-full relative">
-            <OrderItemsList
-              shouldShowChat={shouldShowChatIcon}
-              showChats={() => ShowChats()}
-              order_group_status={selectedOrder.order_status.label}
-              setExpanded={setIsExpanded}
-              isExpanded={isExpanded}
-              items={selectedOrder.details}
-            />
-            {isExpanded && <OrderExpandedDetails order={selectedOrder} />}
-          </div>
-        </>
-      )}
-    </div>
+          </>
+        )}
+      </div>
+    </>
   );
 }
 

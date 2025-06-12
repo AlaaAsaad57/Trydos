@@ -4,10 +4,25 @@ import auth from "services/auth";
 import { AxiosPost } from "utils/AxiosApi";
 import ChatIcon from "public/svg/ChatIcon.svg";
 import ChatWidget from "components/Chat/ChatWidget";
-function OrderChatIcon(id) {
-  const [isChatOpen, setIsChatOpen] = useState(false);
+import { Channel } from "models/Genaral/Channel";
+import { useAppStore } from "store";
+import { getUserChat } from "utils/functions";
+
+function OrderChatIcon({
+  id,
+  setChatInfo,
+  setIsChatOpen,
+  isChatOpen,
+}: {
+  id: number;
+  setChatInfo: (s: Channel) => void;
+  isChatOpen: boolean;
+  setIsChatOpen: (s: boolean) => void;
+}) {
+  const { openChat } = useAppStore();
+
   const [isGettingChat, setIsGettingChat] = useState(false);
-  const [chatInfo, setChatInfo] = useState(null);
+
   const getChatWithShipping = async () => {
     setIsGettingChat(true);
     try {
@@ -17,8 +32,9 @@ function OrderChatIcon(id) {
           "/api/v1/order-chat-participants/get-recipient",
         body: {
           original_user_id: auth.UserID(),
-          order_id: id?.id,
+          order_id: id,
         },
+        token: JSON.parse(localStorage.getItem("USER-CHAT"))?.access_token,
         title: "Get Chat with Deleivery",
       });
       document.documentElement.style.overflow = "hidden";
@@ -26,11 +42,112 @@ function OrderChatIcon(id) {
       document.querySelector("#OrderDetails").scrollTop = 0;
       document.querySelector("#OrderDetails").classList.add("overflow-hidden");
       document.querySelector("#OrderDetails").classList.remove("overflow-auto");
-      console.log(res);
-      setChatInfo(res);
+      if (res.channel) {
+        setChatInfo({
+          ...res.channel,
+          channel_members: [
+            {
+              user: getUserChat(),
+              ...res.channel.channel_members.find(
+                (s) => s.user_id === getUserChat().id
+              ),
+            },
+            {
+              user: {
+                id: res.recipient.id,
+                name: "Deleivery Worker",
+                mobile_phone: "",
+                username: "Deleivery Worker",
+              },
+              ...res.channel.channel_members.find(
+                (s) => s.user_id !== getUserChat().id
+              ),
+            },
+          ],
+        });
+        openChat({
+          ...res.channel,
+          channel_members: [
+            {
+              user: getUserChat(),
+              ...res.channel.channel_members.find(
+                (s) => s.user_id === getUserChat().id
+              ),
+            },
+            {
+              user: {
+                id: res.recipient.id,
+                name: "Deleivery Worker",
+                mobile_phone: "",
+                username: "Deleivery Worker",
+              },
+              ...res.channel.channel_members.find(
+                (s) => s.user_id !== getUserChat().id
+              ),
+            },
+          ],
+        });
+      } else {
+        setChatInfo({
+          channel_members: [
+            {
+              id: getUserChat()?.id,
+              user: getUserChat(),
+              user_id: getUserChat().id,
+            },
+            {
+              id: res.recipient.id,
+              user_id: res.recipient.id,
+              user: {
+                id: res.recipient.id,
+                name: "Deleivery Worker",
+                mobile_phone: "",
+                username: "Deleivery Worker",
+              },
+            },
+          ],
+          channel_name: "Deleivery Worker",
+          photo_path: null,
+          messages: [],
+          id: "ch-" + res.recipient.id,
+          mid: "ch-" + res.recipient.id,
+        });
+        openChat({
+          channel_members: [
+            {
+              id: getUserChat()?.id,
+              user: getUserChat(),
+              user_id: getUserChat().id,
+            },
+            {
+              id: res.recipient.id,
+              user_id: res.recipient.id,
+              user: {
+                id: res.recipient.id,
+                name: "Deleivery Worker",
+                mobile_phone: "",
+                username: "Deleivery Worker",
+              },
+            },
+          ],
+          channel_name: "Deleivery Worker",
+          photo_path: null,
+          messages: [],
+          id: "ch-" + res.recipient.id,
+          mid: "ch-" + res.recipient.id,
+        });
+      }
       setIsChatOpen(true);
       setIsGettingChat(false);
     } catch (error) {
+      document.documentElement.style.overflow = "hidden";
+      document.documentElement.scrollTop = 0;
+      document.querySelector("#OrderDetails").scrollTop = 0;
+      document.querySelector("#OrderDetails").classList.add("overflow-hidden");
+      document.querySelector("#OrderDetails").classList.remove("overflow-auto");
+
+      setIsChatOpen(true);
+      setIsGettingChat(false);
       setIsGettingChat(false);
     }
   };
@@ -49,22 +166,6 @@ function OrderChatIcon(id) {
             }}
           />
         ))}
-      {
-        <ChatWidget
-          isOpen={isChatOpen}
-          onClose={() => {
-            document.documentElement.style.overflow = "auto";
-
-            document
-              .querySelector("#OrderDetails")
-              .classList.remove("overflow-hidden");
-            document
-              .querySelector("#OrderDetails")
-              .classList.add("overflow-auto");
-            setIsChatOpen(false);
-          }}
-        />
-      }
     </>
   );
 }

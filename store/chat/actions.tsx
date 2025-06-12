@@ -124,7 +124,7 @@ export const getCalls = async (id) => {
     console.error(e);
   }
 };
-export const SendMessage = async (payload, isNew) => {
+export const SendMessage = async (payload, isNew, isPrivate?) => {
   const { sendNewMessage, sendRealMessage } = useAppStore.getState();
   let axios = (await import("axios")).default;
   const AxiosInstance = axios.create({
@@ -161,6 +161,7 @@ export const SendMessage = async (payload, isNew) => {
           ...a.data.data,
           mid: payload.mid,
           cid: payload.cid,
+          isPrivate: isPrivate,
         });
       }
     }

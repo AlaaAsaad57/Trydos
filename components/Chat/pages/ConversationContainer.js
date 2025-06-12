@@ -27,6 +27,8 @@ import {
   getMessagesBetweenMessage,
   getPage,
 } from "store/chat/actions";
+import "styles/ChatWindow.css";
+
 import { makeVideoCall, makeVoiceCall } from "store/chat/callActions";
 import { SSRDetect, getUserChat, translateFunction } from "utils/functions";
 import dynamic from "next/dynamic";
@@ -42,6 +44,7 @@ const VoiceCall = dynamic(
   () => import("components/Chat/components/VoiceCall"),
   { ssr: false }
 );
+import "styles/chat.css";
 
 function ConversationContainer({
   ViewedScreen,
@@ -49,6 +52,7 @@ function ConversationContainer({
   loading,
   first,
   setSearch,
+  isPrivate,
 }) {
   const {
     callLoading,
@@ -59,7 +63,7 @@ function ConversationContainer({
     call,
     replyMessage,
     refs,
-    activeChat,
+    activeChat: selectedChat,
     language,
     data: chats,
     setRefs,
@@ -69,6 +73,7 @@ function ConversationContainer({
     setMessagesPage,
     setReplyMessage,
   } = useAppStore();
+  let activeChat = isPrivate ? active : selectedChat;
   const [vid, setVid] = useState(null);
   const imageFile = useRef(null);
   const [imgs, setImgs] = useState(null);
@@ -254,6 +259,7 @@ function ConversationContainer({
             ],
             cid: activeChat.id,
           },
+          isPrivate: isPrivate,
         });
       };
 
@@ -276,7 +282,8 @@ function ConversationContainer({
         },
         typeof activeChat?.id === "string" && activeChat?.id?.includes("ch")
           ? activeChat.id
-          : false
+          : false,
+        isPrivate
       );
     }
   };
@@ -307,7 +314,8 @@ function ConversationContainer({
         },
         typeof activeChat?.id === "string" && activeChat?.id?.includes("ch")
           ? activeChat.id
-          : false
+          : false,
+        isPrivate
       );
       sendMessage({
         isNew:
@@ -346,6 +354,7 @@ function ConversationContainer({
           type: "pending",
           cid: activeChat.id,
         },
+        isPrivate: isPrivate,
       });
       sendStatues(null);
     }
@@ -369,7 +378,8 @@ function ConversationContainer({
         },
         typeof activeChat?.id === "string" && activeChat?.id?.includes("ch")
           ? activeChat.id
-          : false
+          : false,
+        isPrivate
       );
       sendMessage({
         isNew:
@@ -406,6 +416,7 @@ function ConversationContainer({
           message_content: [{ file_path: data }],
           cid: activeChat.id,
         },
+        isPrivate: isPrivate,
       });
     }
     if (type === "VoiceMessage") {
@@ -428,7 +439,8 @@ function ConversationContainer({
         },
         typeof activeChat?.id === "string" && activeChat?.id?.includes("ch")
           ? activeChat.id
-          : false
+          : false,
+        isPrivate
       );
       sendMessage({
         isNew:
@@ -465,6 +477,7 @@ function ConversationContainer({
           message_content: [{ file_path: data }],
           cid: activeChat.id,
         },
+        isPrivate: isPrivate,
       });
     }
     setRefs();
@@ -519,6 +532,7 @@ function ConversationContainer({
             mid: i,
             cid: activeChat.id,
           },
+          isPrivate: isPrivate,
         });
 
         //send_mes(message,"TextMessage");
@@ -560,7 +574,8 @@ function ConversationContainer({
           },
           typeof activeChat?.id === "string" && activeChat?.id?.includes("ch")
             ? activeChat.id
-            : false
+            : false,
+          isPrivate
         );
       }
     };
@@ -613,6 +628,7 @@ function ConversationContainer({
         mid: i,
         cid: activeChat.id,
       },
+      isPrivate: isPrivate,
     });
     var file = dataURLtoFile(imageFile, "image-" + i + ".jpg");
 
@@ -636,7 +652,8 @@ function ConversationContainer({
       },
       typeof activeChat?.id === "string" && activeChat?.id?.includes("ch")
         ? activeChat.id
-        : false
+        : false,
+      isPrivate
     );
   };
   useEffect(() => {}, [blobUrl, blobs]);
@@ -744,9 +761,14 @@ function ConversationContainer({
   }, [openChatRenderer]);
 
   useEffect(() => {
-    document
-      .querySelector("#scroled")
-      .scrollIntoView({ block: "center", inline: "center" });
+    if (isPrivate)
+      document
+        .querySelector("#scroled")
+        ?.scrollIntoView({ block: "end", inline: "end" });
+    else
+      document
+        .querySelector("#scroled")
+        .scrollIntoView({ block: "center", inline: "center" });
     activeChat && activeChat.id && watchChannel(activeChat?.id);
   }, [refs]);
   const [DetailsVar, openDetails] = useState(false);
@@ -773,7 +795,8 @@ function ConversationContainer({
       },
       typeof activeChat?.id === "string" && activeChat?.id?.includes("ch")
         ? activeChat.id
-        : false
+        : false,
+      isPrivate
     );
   };
   const [cameraEnabled, setCameraEnabled] = useState(false);
@@ -827,7 +850,8 @@ function ConversationContainer({
               typeof activeChat?.id === "string" &&
                 activeChat?.id?.includes("ch")
                 ? activeChat.id
-                : false
+                : false,
+              isPrivate
             );
           } else if (e.target.files[0]?.type.includes("audio")) {
             sendVid(e.target.files[0], i, "VoiceMessage");
@@ -1007,7 +1031,7 @@ function ConversationContainer({
         className={"chat-screen"}
         style={{ right: ViewedScreen ? "0px" : "431px" }}
       >
-        {DetailsVar && (
+        {DetailsVar && !isPrivate && (
           <ChatInfo
             callLoading={callLoading}
             makeAudioCall={() => {
@@ -1055,8 +1079,9 @@ function ConversationContainer({
           }}
           chats={chats}
           activeChat={activeChat}
+          isPrivate={isPrivate}
         />
-        {searchEnable && (
+        {searchEnable && !isPrivate && (
           <ChatSearch
             close={() => {
               enableSearch(false);
@@ -1093,6 +1118,7 @@ function ConversationContainer({
                       </div>
                     )}
                     <ChatMessage
+                      isPrivate={isPrivate}
                       AudioRef={AudioRef}
                       setVid={(s) => setVid(s)}
                       setImg={(ds) => setImgs(null)}
@@ -1188,10 +1214,16 @@ function ConversationContainer({
                       send_mes(message, "TextMessage");
                       setMessage("");
                       setTimeout(() => {
-                        document.querySelector("#scroled")?.scrollIntoView({
-                          block: "center",
-                          inline: "center",
-                        });
+                        if (isPrivate) {
+                          document
+                            .querySelector("#scroled")
+                            ?.scrollIntoView({ block: "end", inline: "end" });
+                        } else {
+                          document.querySelector("#scroled").scrollIntoView({
+                            block: "center",
+                            inline: "center",
+                          });
+                        }
                       }, 500);
                     }
                   }}
@@ -1201,9 +1233,15 @@ function ConversationContainer({
                   className={` input-chat ${message.length > 0 && "wid31"}`}
                   value={message}
                   onFocus={() => {
-                    document
-                      .querySelector("#scroled")
-                      .scrollIntoView({ block: "center", inline: "center" });
+                    if (isPrivate) {
+                      document
+                        .querySelector("#scroled")
+                        ?.scrollIntoView({ block: "end", inline: "end" });
+                    } else {
+                      document
+                        .querySelector("#scroled")
+                        .scrollIntoView({ block: "center", inline: "center" });
+                    }
                   }}
                   onChange={(e) => {
                     setMessage(e.target.value);

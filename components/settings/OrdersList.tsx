@@ -44,7 +44,9 @@ function OrdersList({
 
     setLoading(true);
     const currentPage = reset ? 1 : page;
-
+    if (reset) {
+      setOrders([]);
+    }
     try {
       // TODO: Modify fetchOrders or backend to accept selectedStatus for filtering
       const response: OrdersResponse = await fetchOrders(
@@ -277,6 +279,7 @@ function OrdersList({
                     true,
                     status.value === "all" ? null : status.value
                   );
+                  setOrders([]);
                 }}
                 className="flex-row py-[4px] h-[25px] rounded-[10px] bg-[#F8F8F8] px-[11px] ml-[10px] cursor-pointer text-nowrap text-center"
                 style={{
