@@ -148,6 +148,7 @@ export const GA_BUTTONS_NAMES = {
   LOGIN_METHOD_QR_BUTTON: "login_method_qr_button",
   SEARCH_TRENDING_OPTION: "search_trending_option_button",
   SEARCH_HISTORY_OPTION: "search_history_option_button",
+  CLOSE_LOGIN: "close_login",
 };
 export const GA_EXCEPTIONS_DESCRIPTIONS = {
   OTP_INCORRECT: "otp_incorrect",

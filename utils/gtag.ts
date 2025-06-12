@@ -107,6 +107,15 @@ export const GAevent = ({
       );
     }
   }
+  console.log(`window?.gtag?.("event", ${action}, {
+        debug_mode: true,
+        ${Object.entries(params || {})
+          .map(([key, value]) => `${key}: ${JSON.stringify(value)}`)
+          .join(",\n")},
+        country_name: ${country?.name},
+        device_language: ${language?.name},
+        session_id: ${session_id},
+        timestamp: ${new Date().toISOString()},`);
   // @ts-ignore
   window?.gtag?.("event", action, {
     debug_mode: true,

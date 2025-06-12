@@ -357,7 +357,6 @@ class HomeService {
           }
         );
         let repo: RegisterGuestApi = await response.json();
-        console.log(repo);
 
         localStorage.setItem("DEVICE-TOKEN", repo.data.token);
         changeToken({ key: "DEVICE-TOKEN", value: repo.data.token });
