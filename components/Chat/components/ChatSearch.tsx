@@ -7,7 +7,7 @@ import Spinner from "components/global/Spinner";
 import axios from "axios";
 import { getMessagesBetweenMessage } from "store/chat/actions";
 import { getUserChat } from "utils/functions";
-import { GetMessageSearchApi } from "models/Api";
+import { GetMessageSearchApi } from "models/API/chat/GetMessagesForSearch";
 import { useAppStore } from "store";
 
 function ChatSearch({ close }) {

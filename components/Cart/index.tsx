@@ -22,7 +22,7 @@ import { AxiosGet, AxiosPost } from "utils/AxiosApi";
 import { dispatchRouteChangeEvent } from "utils/events";
 import Spinner from "components/global/Spinner";
 import Timer from "components/Login/Timer";
-import { QuantityDetailsProductApi } from "models/Api";
+import { QuantityDetailsProductApi } from "models/API/market/ProductQuantityDetails";
 import LocalizationServiceClass from "services/localization";
 import { useAppStore } from "store";
 import cart from "services/cart";
@@ -388,7 +388,7 @@ function CartContainer({ close, toOrders }) {
                               src={getConfiguredImage({
                                 height: 150,
                                 width: 150,
-                                src: product.brand?.image,
+                                src: product.brand?.icon?.file_path,
                               })}
                               height={10}
                               style={{
@@ -874,7 +874,7 @@ function CartContainer({ close, toOrders }) {
                               src={getConfiguredImage({
                                 height: 150,
                                 width: 150,
-                                src: product.brand?.image,
+                                src: product?.brand?.icon?.file_path,
                               })}
                               height={10}
                               style={{

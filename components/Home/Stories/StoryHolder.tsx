@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 
 import Loader from "components/global/Loader";
 import { setNextStory, setPreviousStory } from "store/homepage/actions";
-import { StoryType } from "models/story";
+import { StoryType } from "models/Genaral/Story";
 import ReactInstaStories from "utils/react-insta-stories-master/src";
 
 import { useAppStore } from "store";

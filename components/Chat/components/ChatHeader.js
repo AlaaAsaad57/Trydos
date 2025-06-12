@@ -11,7 +11,13 @@ import { translateFunction } from "../../../utils/functions";
 import { useParams } from "next/navigation";
 import { useAppStore } from "store";
 import ChatPhoto from "./ChatPhoto";
-function ChatHeader({ chats, activeChat, openDetails }) {
+function ChatHeader({
+  chats,
+  activeChat,
+  openDetails,
+  isPrivate,
+  closeWidget,
+}) {
   const {
     callLoading,
     Server_time,
@@ -54,6 +60,9 @@ function ChatHeader({ chats, activeChat, openDetails }) {
           setMain("main");
           openChat(null);
           setReplyMessage(null);
+          if (isPrivate) {
+            closeWidget();
+          }
         }}
       ></ArrowIcon>
       {getNew(chats, activeChat).length > 0 && (
@@ -95,44 +104,46 @@ function ChatHeader({ chats, activeChat, openDetails }) {
           </div>
         )}
       </div>
-      <div className="chat-top-contact">
-        <VideoIcon
-          className={`${callLoading === "video" && "loading-svg"} vcall`}
-          onClick={() => {
-            !callLoading &&
-              makeVideoCall(
-                activeChat.id,
-                activeChat.channel_members.filter(
-                  (s) => parseInt(s.user_id) !== parseInt(getUserChat()?.id)
-                )[0]?.user.name,
-                activeChat.channel_members.filter(
-                  (s) => parseInt(s.user_id) !== parseInt(getUserChat()?.id)
-                )[0]?.user?.photo_path,
-                activeChat.channel_members.filter(
-                  (s) => parseInt(s.user_id) !== parseInt(getUserChat()?.id)
-                )[0]?.user.mobile_phone
-              );
-          }}
-        ></VideoIcon>
-        <CallIcon
-          className={`${callLoading === "voice" && "loading-svg"} call`}
-          onClick={() => {
-            !callLoading &&
-              makeVoiceCall(
-                activeChat.id,
-                activeChat.channel_members.filter(
-                  (s) => parseInt(s.user_id) !== parseInt(getUserChat()?.id)
-                )[0]?.user.name,
-                activeChat.channel_members.filter(
-                  (s) => parseInt(s.user_id) !== parseInt(getUserChat()?.id)
-                )[0]?.user?.photo_path,
-                activeChat.channel_members.filter(
-                  (s) => parseInt(s.user_id) !== parseInt(getUserChat()?.id)
-                )[0]?.user.mobile_phone
-              );
-          }}
-        ></CallIcon>
-      </div>
+      {!isPrivate && (
+        <div className="chat-top-contact">
+          <VideoIcon
+            className={`${callLoading === "video" && "loading-svg"} vcall`}
+            onClick={() => {
+              !callLoading &&
+                makeVideoCall(
+                  activeChat.id,
+                  activeChat.channel_members.filter(
+                    (s) => parseInt(s.user_id) !== parseInt(getUserChat()?.id)
+                  )[0]?.user.name,
+                  activeChat.channel_members.filter(
+                    (s) => parseInt(s.user_id) !== parseInt(getUserChat()?.id)
+                  )[0]?.user?.photo_path,
+                  activeChat.channel_members.filter(
+                    (s) => parseInt(s.user_id) !== parseInt(getUserChat()?.id)
+                  )[0]?.user.mobile_phone
+                );
+            }}
+          ></VideoIcon>
+          <CallIcon
+            className={`${callLoading === "voice" && "loading-svg"} call`}
+            onClick={() => {
+              !callLoading &&
+                makeVoiceCall(
+                  activeChat.id,
+                  activeChat.channel_members.filter(
+                    (s) => parseInt(s.user_id) !== parseInt(getUserChat()?.id)
+                  )[0]?.user.name,
+                  activeChat.channel_members.filter(
+                    (s) => parseInt(s.user_id) !== parseInt(getUserChat()?.id)
+                  )[0]?.user?.photo_path,
+                  activeChat.channel_members.filter(
+                    (s) => parseInt(s.user_id) !== parseInt(getUserChat()?.id)
+                  )[0]?.user.mobile_phone
+                );
+            }}
+          ></CallIcon>
+        </div>
+      )}
     </div>
   );
 }

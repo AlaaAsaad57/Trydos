@@ -25,17 +25,14 @@ import axios from "axios";
 
 import { AxiosGet, AxiosPost } from "utils/AxiosApi";
 import { changeToken } from "store/homepage/cachedActions";
-import {
-  CustomerInfoApi,
-  GetProductApi,
-  RegisterGuestApi,
-  StarttingSettingApi,
-  UpdateCartApi,
-} from "models/Api";
+import { RegisterGuestApi } from "models/API/market/RegisterGuest";
+import { CustomerInfoResponse } from "models/API/market/CustomerInfo";
 import auth from "./auth";
+import { UpdateCartApi } from "models/API/market/UpdateCart";
 import LocalizationServiceClass from "./localization";
 import chat from "./chat";
 import { SetGAUser } from "utils/gtag";
+import { starttingSettingApi } from "models/API/market/StarttingSetting";
 const getHeader = () => {
   let [countryUrl, languageUrl] = window.location.pathname
     .split("/")[1]
@@ -64,7 +61,7 @@ class HomeService {
         process.env.NEXT_PUBLIC_BACKEND_URL + STARTER_SETTINGS,
         getHeader()
       );
-      let repo: { data: StarttingSettingApi } = await response.json();
+      let repo: { data: starttingSettingApi } = await response.json();
       setSettings(repo.data);
       sessionStorage.setItem("starttingSetting", JSON.stringify(repo.data));
       await this.getCustomerInfo();
@@ -80,7 +77,8 @@ class HomeService {
           localStorage.setItem("LAST_JSON", JSON.stringify(repo));
       }
       setTimeout(() => {
-        if (localStorage.getItem("USER")) chat.getChats(false);
+        if (localStorage.getItem("USER") && localStorage.getItem("USER-CHAT"))
+          chat.getChats(false);
       }, 5000);
     } catch (e) {
       console.error(e);
@@ -103,7 +101,7 @@ class HomeService {
     );
     if (response.status === 200) {
       let repo: {
-        data: CustomerInfoApi;
+        data: CustomerInfoResponse;
       } = await response.json();
 
       if (repo.data) {
@@ -359,7 +357,6 @@ class HomeService {
           }
         );
         let repo: RegisterGuestApi = await response.json();
-        console.log(repo);
 
         localStorage.setItem("DEVICE-TOKEN", repo.data.token);
         changeToken({ key: "DEVICE-TOKEN", value: repo.data.token });

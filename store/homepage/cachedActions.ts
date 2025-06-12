@@ -1,5 +1,7 @@
 "use server";
-import { CountriesApi, CurrencyApi, FilterProductApi } from "models/Api";
+import { SearchResponse } from "models/API/elastic/Search";
+import { CurrencyApi } from "models/API/market/CurrencyApi";
+import {CountriesApi} from 'models/API/market/Countries';
 export const getCOlorsAndSizes = async () => {
   const response = await fetch(
     process.env.NEXT_PUBLIC_BACKEND_URL + "/web/get-colors-and-sizes",
@@ -247,7 +249,7 @@ export const getProductsAndFilters = async ({
         } ${JSON.stringify(errorBody.message)}`
       );
     }
-    let data: FilterProductApi = await response.json();
+    let data: SearchResponse = await response.json();
     return data;
   } catch (error) {
     console.error(

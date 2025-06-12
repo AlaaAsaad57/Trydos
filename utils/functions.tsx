@@ -7,13 +7,11 @@ import { LogData } from "store/homepage/actions";
 import { AxiosCacheApi, AxiosGet } from "./AxiosApi";
 import home from "services/home";
 import axios from "axios";
-import {
-  CartApi,
-  FilterProductApi,
-  OldCartApi,
-  SimpleBoutiqeApi,
-  SimpleDetailsProductApi,
-} from "models/Api";
+import { SimpleDetailsProductApi } from "models/API/market/ProductSimpleDetails";
+import { CartResponse } from "models/API/market/CartShipping";
+import { SimpleBoutiqeApi } from "models/API/market/BoutiqueSimpleDetails";
+import { OldCartApi } from "models/API/market/OldCart";
+import {SearchResponse} from 'models/API/elastic/Search';
 import auth from "services/auth";
 import LocalizationServiceClass from "services/localization";
 import { CielNumber } from "./tinyUtils";
@@ -421,7 +419,7 @@ export const filterProducts = async ({
     let urlParam = urlParams({ filters: filters, noProducts: false });
     str = `/api/products/searchInCatalog?${urlParam}`;
   }
-  let product: FilterProductApi = await AxiosCacheApi({
+  let product: SearchResponse = await AxiosCacheApi({
     url: process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL + str,
     params:
       filters.colors.length === 0
@@ -525,7 +523,7 @@ export const UpdateFilter = async ({
     };
     let urlParam = urlParams({ filters: filters, noProducts: true });
     let str = `/api/products/searchInCatalog?${urlParam}`;
-    let product: FilterProductApi = await AxiosCacheApi({
+    let product: SearchResponse = await AxiosCacheApi({
       url: process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL + str,
       params:
         filters.colors.length === 0
@@ -665,7 +663,7 @@ export const getCart = async ({ callback }) => {
     !localStorage.getItem("MARKET-TOKEN")
   )
     await home.RegisterDevice();
-  let data: CartApi["data"] = await AxiosGet({
+  let data: CartResponse["data"] = await AxiosGet({
     url: process.env.NEXT_PUBLIC_BACKEND_URL + "/cart/cart_shipping",
     title: "Cart Request",
   });

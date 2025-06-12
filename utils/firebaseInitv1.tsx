@@ -20,7 +20,7 @@ import { AxiosGet } from "./AxiosApi";
 import ProductHurryUp from "components/Notifications/ProductHurry";
 import OrderStatusChanged from "components/Notifications/OrderStatusChanged";
 import chat from "services/chat";
-import { Recive } from "store/chat/actions";
+import { Recive, watchChannel as watchChannelAction } from "store/chat/actions";
 const firebaseConfig = {
   // apiKey: "AIzaSyAl53TxLa2CoTBeXtg9K3Lr8G908ajb6kY",
   // authDomain: "trydos-ce234.firebaseapp.com",
@@ -418,6 +418,25 @@ export const onMessageListener = async () => {
             resolve(payload);
           }
         } else if (payload.data.type === "message") {
+          if (JSON.parse(payload.data.data)?.is_private === true) {
+            if (
+              parseInt(activeChat?.id) ===
+              parseInt(JSON.parse(payload?.data.data)?.message?.channel?.id)
+            ) {
+              watchChannelAction(
+                parseInt(JSON.parse(payload.data.data)?.message?.channel?.id)
+              );
+              sendMessage({
+                act: JSON.parse(payload.data.data)?.message?.channel,
+                message: {
+                  ...JSON.parse(payload.data.data).message,
+                  channel: null,
+                },
+                isPrivate: true,
+              });
+              return;
+            }
+          }
           Recive(parseInt(JSON.parse(payload.data.data).message.channel.id));
           if (
             chatData

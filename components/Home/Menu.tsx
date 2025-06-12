@@ -84,12 +84,15 @@ const Menu: React.FC<MenuProps> = ({ user, setMenuOpen }) => {
   const [showWishList, setShowWishList] = useState(false);
   const { lang } = useParams();
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     // Sendevent({
     //   event: GA_EVENT_NAMES.CLICK,
     //   value: GA_CLICK_EVENT_VALUES.LOGOUT_BUTTON,
     // });
     localStorage.clear();
+    const { messaging } = await import("utils/firebaseInitv1");
+    const { deleteToken } = await import("firebase/messaging");
+    await deleteToken(messaging);
     changeToken({ key: "DEVICE-TOKEN", deleteOption: true });
     changeToken({ key: "MARKET-TOKEN", deleteOption: true });
     changeToken({ key: "token", deleteOption: true });

@@ -10,10 +10,11 @@ import ChatService from "services/chat";
 import StoryService from "services/story";
 import home from "./home";
 import { AxiosGet, AxiosPost } from "utils/AxiosApi";
-import { LikesSharesCommentsApi } from "models/Api";
+import { ProductSocialInfo } from "models/API/market/ProductSocialInfo";
 import { changeToken } from "store/homepage/cachedActions";
 import axios from "axios";
 import { SetGAUser } from "utils/gtag";
+import { toast } from "react-toastify";
 const getHeader = () => {
   let [countryUrl, languageUrl] = window.location.pathname
     .split("/")[1]
@@ -101,6 +102,7 @@ class AuthService {
           getHeader()
         );
       }
+
       let repo: {
         data: {
           already_exists: boolean;
@@ -119,8 +121,13 @@ class AuthService {
           };
         };
         isSuccessful: boolean;
+        code: number;
+        message: string;
       } = await response.json();
-
+      if (repo.code === 501) {
+        toast.error(repo?.message);
+        throw new Error("Wrong Code");
+      }
       if (repo?.data?.message === "user not found") {
         throw new Error("user not found");
       }
@@ -327,7 +334,7 @@ class AuthService {
   async getProductNotify({ id }) {
     try {
       if (!localStorage.getItem("DEVICE-TOKEN")) await home.RegisterDevice();
-      let data: LikesSharesCommentsApi = await AxiosGet({
+      let data: ProductSocialInfo = await AxiosGet({
         url:
           process.env.NEXT_PUBLIC_BACKEND_URL +
           "/web/product/likesCommentsSharesDetails/" +

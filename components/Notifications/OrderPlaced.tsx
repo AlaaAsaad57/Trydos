@@ -8,11 +8,11 @@ function OrderPlaced({ data }) {
       data={{
         is_settings: true,
         ...data,
-        href: `/${lang}/setting?tab=Orders&id=${data?.order_id}`,
+        href: `/${lang}/setting?tab=Orders&id=${data?.order_group_id}`,
       }}
-      ariaLabel={`notification Order Placed ${data.order_id} ${lang}`}
+      ariaLabel={`notification Order Placed ${data.order_group_id} ${lang}`}
       className="flex-row"
-      href={`/${lang}/setting?tab=Orders&id=${data?.order_id}`}
+      href={`/${lang}/setting?tab=Orders&id=${data?.order_group_id}`}
       prefetch
     >
       <div className="flex-col m-2">

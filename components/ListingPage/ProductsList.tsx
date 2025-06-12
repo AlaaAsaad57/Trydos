@@ -9,7 +9,7 @@ import { dispatchRouteChangeEvent } from "utils/events";
 
 import { RoundPrice, translateFunction } from "utils/functions";
 import { useParams } from "next/navigation";
-import { CurrencyApi } from "models/Api";
+import { CurrencyApi } from "models/API/market/CurrencyApi";
 import { useAppStore } from "store";
 import { getProductsAndFilters } from "store/homepage/cachedActions";
 import { BuyButtonProduct, ProductPhotosSlider } from "./Product";
