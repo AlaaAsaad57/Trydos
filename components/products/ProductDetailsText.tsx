@@ -1,10 +1,9 @@
 "use client";
-import { ProductInterface } from "models/product";
+import { ProductInterface } from "models/Genaral/Product";
 import { useParams, useSearchParams } from "next/navigation";
 import { useEffect, useState, useMemo } from "react";
 import { useAppStore } from "store";
-import { Sendevent, translateFunction } from "utils/functions";
-import { GA_CLICK_EVENT_VALUES, GA_EVENT_NAMES } from "utils/GAEvents";
+import { translateFunction } from "utils/functions";
 
 function ProductDetailsText({
   details,
@@ -39,12 +38,12 @@ function ProductDetailsText({
   const toggleText = () => {
     const newShowState = !show;
     setShow(newShowState);
-    Sendevent({
-      event: GA_EVENT_NAMES.CLICK,
-      value: newShowState
-        ? GA_CLICK_EVENT_VALUES.READ_MORE_BUTTON
-        : GA_CLICK_EVENT_VALUES.READ_LESS_BUTTON,
-    });
+    // Sendevent({
+    //   event: GA_EVENT_NAMES.CLICK,
+    //   value: newShowState
+    //     ? GA_CLICK_EVENT_VALUES.READ_MORE_BUTTON
+    //     : GA_CLICK_EVENT_VALUES.READ_LESS_BUTTON,
+    // });
   };
 
   return (

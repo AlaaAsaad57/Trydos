@@ -16,7 +16,6 @@ import Smartlook from "smartlook-client";
 import {
   CUSTOMER_INFO_URL,
   FIREBASE_SETTINGS_URL,
-  LISTING_INFO_URL,
   REGISTER_DEVICE_URL,
   STARTER_SETTINGS,
 } from "utils/endpointConfig";
@@ -27,16 +26,15 @@ import axios from "axios";
 import { AxiosGet, AxiosPost } from "utils/AxiosApi";
 import { changeToken } from "store/homepage/cachedActions";
 import {
-  CustomerInfoApi,
-  GetProductApi,
   RegisterGuestApi,
-  StarttingSettingApi,
-  UpdateCartApi,
-} from "models/Api";
+} from "models/API/market/RegisterGuest";
+import {CustomerInfoResponse} from 'models/API/market/CustomerInfo'
 import auth from "./auth";
+import {UpdateCartApi} from 'models/API/market/UpdateCart'
 import LocalizationServiceClass from "./localization";
 import chat from "./chat";
 import { SetGAUser } from "utils/gtag";
+import {starttingSettingApi} from 'models/API/market/StarttingSetting';
 const getHeader = () => {
   let [countryUrl, languageUrl] = window.location.pathname
     .split("/")[1]
@@ -65,7 +63,7 @@ class HomeService {
         process.env.NEXT_PUBLIC_BACKEND_URL + STARTER_SETTINGS,
         getHeader()
       );
-      let repo: { data: StarttingSettingApi } = await response.json();
+      let repo: { data: starttingSettingApi } = await response.json();
       setSettings(repo.data);
       sessionStorage.setItem("starttingSetting", JSON.stringify(repo.data));
       await this.getCustomerInfo();
@@ -100,15 +98,19 @@ class HomeService {
     await WaitForCondition();
     const response = await fetch(
       process.env.NEXT_PUBLIC_BACKEND_URL + CUSTOMER_INFO_URL,
-      getHeader()
+      { ...getHeader(), priority: "high" }
     );
     if (response.status === 200) {
       let repo: {
-        data: CustomerInfoApi;
+        data: CustomerInfoResponse;
       } = await response.json();
 
       if (repo.data) {
         updateUserInfo(repo.data?.customer_info);
+
+        if (repo.data.customer_info?.is_phone_verified !== 1) {
+          await auth.ExpiredUser();
+        }
         // localStorage.setItem(
         //   "customer-info",
         //   JSON.stringify(repo.data.customer_info)
@@ -179,6 +181,7 @@ class HomeService {
           process.env.NEXT_PUBLIC_BACKEND_URL + REGISTER_DEVICE_URL,
           {
             method: "POST",
+            priority: "high",
             body: body.old_guest_user_id
               ? new URLSearchParams({
                   old_guest_user_id: body.old_guest_user_id,
@@ -189,6 +192,22 @@ class HomeService {
           }
         );
         let repo: RegisterGuestApi = await response.json();
+        if (repo.isSuccessful) {
+        } else {
+          if (repo.message === "The user does not exist.") {
+            response = await fetch(
+              process.env.NEXT_PUBLIC_BACKEND_URL + REGISTER_DEVICE_URL,
+              {
+                method: "POST",
+                priority: "high",
+                body: "old_guset_user_id=null",
+                ...getHeader(),
+                cache: "no-cache",
+              }
+            );
+            repo = await response.json();
+          }
+        }
         changeToken({ key: "DEVICE-TOKEN", value: repo.data.token });
         localStorage.setItem("DEVICE-TOKEN", repo.data.token);
         Cookies.set("DEVICE-TOKEN", repo.data.token, {
@@ -329,6 +348,7 @@ class HomeService {
           process.env.NEXT_PUBLIC_BACKEND_URL + REGISTER_DEVICE_URL,
           {
             method: "POST",
+            priority: "high",
             body: body.old_guest_user_id
               ? new URLSearchParams({
                   old_guest_user_id: body.old_guest_user_id,
@@ -338,6 +358,8 @@ class HomeService {
           }
         );
         let repo: RegisterGuestApi = await response.json();
+        console.log(repo);
+
         localStorage.setItem("DEVICE-TOKEN", repo.data.token);
         changeToken({ key: "DEVICE-TOKEN", value: repo.data.token });
 

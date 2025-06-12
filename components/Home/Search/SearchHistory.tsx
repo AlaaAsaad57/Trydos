@@ -4,9 +4,6 @@ import CloseIconOption from "public/svg/CloseIconOption.svg";
 import { useAppStore } from "store";
 import search from "services/search";
 import { useParams } from "next/navigation";
-import { GA_EVENT_NAMES } from "utils/GAEvents";
-import { GA_CLICK_EVENT_VALUES } from "utils/GAEvents";
-import { Sendevent } from "utils/functions";
 
 function SearchHistory({ options, setOptions, deleteOption }) {
   const { setSearchPartialLoading, setSearchLoading } = useAppStore();
@@ -130,10 +127,10 @@ function SearchHistory({ options, setOptions, deleteOption }) {
               key={`${s}-${index}`}
               className="option-row-search flex-row"
               onClick={(e) => {
-                Sendevent({
-                  event: GA_EVENT_NAMES.CLICK,
-                  value: GA_CLICK_EVENT_VALUES.SEARCH_HISTORY_OPTION,
-                });
+                // Sendevent({
+                //   event: GA_EVENT_NAMES.CLICK,
+                //   value: GA_CLICK_EVENT_VALUES.SEARCH_HISTORY_OPTION,
+                // });
                 // @ts-ignore
                 if (!e.target.closest(".close-icon-container")) {
                   setSearchPartialLoading(true);

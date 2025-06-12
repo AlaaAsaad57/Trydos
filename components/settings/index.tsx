@@ -19,6 +19,13 @@ import { useAppStore } from "store";
 
 import SettingsLoader from "components/skeleton/loaders/SettingsLoader";
 import LanguageSetting from "./LanguageSetting";
+import OrderOptions from "components/Orders/OrderOptions";
+import {
+  GA_EVENT_NAMES,
+  GA_GLOBAL_PLATFORM,
+  GA_GLOBAL_SCREEN,
+} from "utils/GAEvents";
+import { GAevent } from "utils/gtag";
 
 interface SettingOption {
   id: string;
@@ -36,6 +43,8 @@ function Settings({ lang }: { lang: string }) {
     userProfile,
     setOrderDetails,
     setAddressDetails,
+    showOrderOptions,
+    setOrderOptions,
   } = useAppStore();
 
   const setSelectedOrder = (order) => {
@@ -196,6 +205,15 @@ function Settings({ lang }: { lang: string }) {
         shallow: true,
       });
     }
+    GAevent({
+      action: GA_EVENT_NAMES.SCREEN_VIEW,
+      params: {
+        screen_name: GA_GLOBAL_SCREEN.SETTINGS_SCREEN,
+        platform: GA_GLOBAL_PLATFORM.WEB,
+        timestamp: new Date().toISOString(),
+        screen_path: window.location.pathname,
+      },
+    });
   }, []);
   const router = useRouter();
   const pathname = usePathname();
@@ -215,6 +233,25 @@ function Settings({ lang }: { lang: string }) {
   if (!userProfile) return <SettingsLoader />;
   return (
     <div className="max-h-full h-full overflow-auto flex w-full max-w-[1365px] justify-center bg-white">
+      {showOrderOptions && (
+        <OrderOptions
+          CancelOrder={() => {
+            swipeToScreen(9);
+          }}
+          closeOptions={() => {
+            document.documentElement.style.overflow = "auto";
+            document.documentElement.scrollTop = 0;
+            document.querySelector("#OrderDetails").scrollTop = 0;
+            document
+              .querySelector("#OrderDetails")
+              .classList.remove("overflow-hidden");
+            document
+              .querySelector("#OrderDetails")
+              .classList.add("overflow-auto");
+            setOrderOptions(false);
+          }}
+        />
+      )}
       {/* Sidebar Navigation */}
 
       {/* Main Content Area */}

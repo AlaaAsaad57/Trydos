@@ -17,22 +17,7 @@ const Map = ({ setAddressDetails, center, expanded, setExpanded }) => {
   const { addressDetails } = useAppStore();
   const [cordinates, setCordinates] = useState(null);
   const [loading, setLoading] = useState(true);
-  // const [locationLoading, setLocationLoading] = useState(false);
-  // const setLocationBasedOnUserLocation = () => {
-  //   if ("geolocation" in navigator) {
-  //     setLocationLoading(true);
-  //     navigator.geolocation.getCurrentPosition(
-  //       function (position) {
 
-  //       },
-  //       function (error) {
-  //         setLocationLoading(false);
-  //         toast.error("Loacation Error: " + error.message);
-  //         console.error("Error occurred. Error code: " + error.message);
-  //       }
-  //     );
-  //   }
-  // };
   const getCountryBoundries = async () => {
     // @ts-ignore
     let country = lang.split("-")[0].toUpperCase();

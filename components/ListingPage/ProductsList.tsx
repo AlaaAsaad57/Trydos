@@ -9,7 +9,7 @@ import { dispatchRouteChangeEvent } from "utils/events";
 
 import { RoundPrice, translateFunction } from "utils/functions";
 import { useParams } from "next/navigation";
-import { CurrencyApi } from "models/Api";
+import { CurrencyApi } from "models/API/market/CurrencyApi";
 import { useAppStore } from "store";
 import { getProductsAndFilters } from "store/homepage/cachedActions";
 import { BuyButtonProduct, ProductPhotosSlider } from "./Product";
@@ -63,7 +63,7 @@ function ProductsInfiniteScroll({
       searchParams: searchParams,
       country: lang?.split("-")[0],
       noProducts: false,
-      noFilters: false,
+      noFilters: true,
       boutiqueId: boutiqueId === "listing" ? null : boutiqueId,
       isFeatured: isFeatured,
     });

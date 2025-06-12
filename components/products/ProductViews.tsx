@@ -1,23 +1,22 @@
 "use client";
 import React, { useEffect } from "react";
-import { Sendevent } from "utils/functions";
+
 import EyeIcon from "public/svg/product/EyeIcon.svg";
 import Skeleton from "react-loading-skeleton";
 import { useAppStore } from "store";
-import { GA_EVENT_NAMES } from "utils/GAEvents";
 
 function ProductViews({ product }) {
   const { SelectedProduct } = useAppStore();
   useEffect(() => {
     setTimeout(() => {
-      Sendevent({
-        event: GA_EVENT_NAMES.VIEW_PRODUCT_EVENT,
-        extra: {
-          product_name: product.name,
-          product_id: product.id,
-          product_categories: product.categories?.map((s) => s.id),
-        },
-      });
+      // Sendevent({
+      //   event: GA_EVENT_NAMES.VIEW_PRODUCT_EVENT,
+      //   extra: {
+      //     product_name: product.name,
+      //     product_id: product.id,
+      //     product_categories: product.categories?.map((s) => s.id),
+      //   },
+      // });
     }, 4000);
   }, []);
   return (

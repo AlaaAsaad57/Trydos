@@ -4,9 +4,10 @@ import Loader from "components/global/Loader";
 import { setNextStory, setPreviousStory } from "store/homepage/actions";
 import { StoryType } from "models/story";
 import ReactInstaStories from "utils/react-insta-stories-master/src";
-import { Sendevent } from "utils/functions";
+
 import { useAppStore } from "store";
-import { GA_CLICK_EVENT_VALUES, GA_EVENT_NAMES } from "utils/GAEvents";
+
+import StoryServiceClass from "services/story";
 
 interface Props {
   story: StoryType;
@@ -25,7 +26,7 @@ function StoryHolder({ story, active, isPaused }: Props) {
       setCurrentStoryId(0);
     }
   }, [selectedStory]);
-  useEffect(() => {}, []);
+
   return (
     <>
       <div className="story-holder">
@@ -35,14 +36,20 @@ function StoryHolder({ story, active, isPaused }: Props) {
             id={story.id}
             key={story.id}
             isPaused={!active}
-            preloadCount={1}
+            preloadCount={0}
+            onStoryStart={(e) => {
+              StoryServiceClass.WatchStory(
+                selectedStory?.stories[e].id,
+                selectedStory?.id
+              );
+            }}
             loader={<Loader style={{}} />}
             currentIndex={0}
             onPrevious={() => {
-              Sendevent({
-                event: GA_EVENT_NAMES.CLICK,
-                value: GA_CLICK_EVENT_VALUES.CHANGE_STORY_IN_STORYSCREEN_EVENT,
-              });
+              // Sendevent({
+              //   event: GA_EVENT_NAMES.CLICK,
+              //   value: GA_CLICK_EVENT_VALUES.CHANGE_STORY_IN_STORYSCREEN_EVENT,
+              // });
               if (active) {
                 if (currentStoryId > 0) {
                   setCurrentStoryId(currentStoryId - 1);
@@ -52,10 +59,10 @@ function StoryHolder({ story, active, isPaused }: Props) {
               }
             }}
             onNext={() => {
-              Sendevent({
-                event: GA_EVENT_NAMES.CLICK,
-                value: GA_CLICK_EVENT_VALUES.CHANGE_STORY_IN_STORYSCREEN_EVENT,
-              });
+              // Sendevent({
+              //   event: GA_EVENT_NAMES.CLICK,
+              //   value: GA_CLICK_EVENT_VALUES.CHANGE_STORY_IN_STORYSCREEN_EVENT,
+              // });
               if (active) {
                 if (currentStoryId < story.stories.length - 1) {
                   setCurrentStoryId(currentStoryId + 1);

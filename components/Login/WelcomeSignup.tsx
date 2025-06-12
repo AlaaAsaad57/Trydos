@@ -6,6 +6,12 @@ import Animated from "react-mount-animation";
 import { translateFunction } from "utils/functions";
 import NextLink from "components/global/NextLink";
 import { useAppStore } from "store";
+import {
+  GA_AUTH_SCREEN,
+  GA_EVENT_NAMES,
+  GA_GLOBAL_PLATFORM,
+} from "utils/GAEvents";
+import { GAevent } from "utils/gtag";
 interface Props {
   stepIndicator: number;
   Name: string | null;
@@ -13,7 +19,7 @@ interface Props {
   close: Function;
 }
 function WelcomeSignup({ stepIndicator, Name, signStep, close }: Props) {
-  const { language } = useAppStore();
+  const { language, setLoginOpen } = useAppStore();
 
   let { lang } = useParams();
   // @ts-ignore
@@ -81,7 +87,7 @@ function WelcomeSignup({ stepIndicator, Name, signStep, close }: Props) {
           className="login-button"
           data-cy="Complate-Close"
           onClick={() => {
-            close();
+            setLoginOpen(false);
           }}
           style={{
             position: "relative",
@@ -100,7 +106,7 @@ function WelcomeSignup({ stepIndicator, Name, signStep, close }: Props) {
         data-cy="skipForNow"
         style={{ fontFamily: `var(--Quicksand-Regular)`, fontSize: "14px" }}
         onClick={() => {
-          close();
+          setLoginOpen(false);
         }}
       >
         {translate("Skip For Now", language)}

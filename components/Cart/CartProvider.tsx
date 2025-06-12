@@ -6,7 +6,7 @@ import {
   useSearchParams,
 } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { expandView, normalizeView, Sendevent } from "utils/functions";
+import { expandView, normalizeView } from "utils/functions";
 import CartContainer from ".";
 import home from "services/home";
 import { Swiper, SwiperSlide } from "swiper/react";
@@ -17,8 +17,10 @@ import { ToastContainer } from "react-toastify";
 import { useAppStore } from "store";
 import { getCurrency } from "utils/tinyUtils";
 import AddToCartComponent from "./AddToCartComponent";
-import { GA_CLICK_EVENT_VALUES } from "utils/GAEvents";
+import { GA_GLOBAL_PLATFORM, GA_GLOBAL_SCREEN } from "utils/GAEvents";
 import { GA_EVENT_NAMES } from "utils/GAEvents";
+import auth from "services/auth";
+import { GAevent } from "utils/gtag";
 const CartProvider = () => {
   const {
     enableCart,
@@ -111,6 +113,7 @@ const CartProvider = () => {
         newParams.delete("selected");
         router.replace(newParams.size ? `${pathname}?${newParams}` : pathname);
       }
+      auth.CheckUserName();
     }, 1000);
   }, []);
   useEffect(() => {
@@ -196,14 +199,23 @@ export const StepSlider = ({ enableCart }) => {
         <SwiperSlide className="w-full h-full cart-widget">
           <CartContainer
             toOrders={() => {
+              GAevent({
+                action: GA_EVENT_NAMES.SCREEN_VIEW,
+                params: {
+                  screen_name: GA_GLOBAL_SCREEN.CHECKOUT_SCREEN,
+                  platform: GA_GLOBAL_PLATFORM.WEB,
+                  timestamp: new Date().toISOString(),
+                  screen_path: window.location.pathname,
+                },
+              });
               ref.current.slideNext();
               setStep(1);
             }}
             close={() => {
-              Sendevent({
-                event: GA_EVENT_NAMES.CLICK,
-                value: GA_CLICK_EVENT_VALUES.APPBAR_BACKICON_BUTTON,
-              });
+              // Sendevent({
+              //   event: GA_EVENT_NAMES.CLICK,
+              //   value: GA_CLICK_EVENT_VALUES.APPBAR_BACKICON_BUTTON,
+              // });
               enableCart(false);
             }}
           />

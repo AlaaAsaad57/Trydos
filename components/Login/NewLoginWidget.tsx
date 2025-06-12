@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import LogoAuth from "public/svg/LogoAuth.svg";
-import { Sendevent, translateFunction } from "utils/functions";
+import { translateFunction } from "utils/functions";
 import "public/styles/newLogin.css";
 import "public/styles/login.css";
 import PrivacyConfirm from "./PrivacyConfirm";
@@ -11,15 +11,16 @@ import LogInPins from "./LogInPins";
 import SignSteps from "./SignSteps";
 import InputName from "./InputName";
 import AuthService from "services/auth";
-import Cookies from "js-cookie";
+
 import LoginMethods from "./LoginMethods";
 import { AnimatedComponent } from "components/global/AnimatedComponent";
 import { useParams } from "next/navigation";
 import { useAppStore } from "store";
 import {
-  GA_CLICK_EVENT_VALUES,
+  GA_AUTH_SCREEN,
+  GA_BUTTONS_NAMES,
   GA_EVENT_NAMES,
-  GA_PROGRAMMING_EVENT_VALUES,
+  GA_GLOBAL_PLATFORM,
 } from "utils/GAEvents";
 import { GAevent } from "utils/gtag";
 
@@ -77,22 +78,46 @@ function NewLoginWidget() {
   };
   useEffect(() => {
     if (loginOpen) {
-      Sendevent({
-        event: GA_EVENT_NAMES.CLICK,
-        value: GA_CLICK_EVENT_VALUES.OPEN_LOGIN_WIDGET,
+      // Sendevent({
+      //   event: GA_EVENT_NAMES.CLICK,
+      //   value: GA_CLICK_EVENT_VALUES.OPEN_LOGIN_WIDGET,
+      // });
+      GAevent({
+        action: GA_EVENT_NAMES.SCREEN_VIEW,
+        params: {
+          screen_name: GA_AUTH_SCREEN.SELECT_AUTHINTCTION_METHOD_SCREEN,
+          platform: GA_GLOBAL_PLATFORM.WEB,
+          timestamp: new Date().toISOString(),
+          screen_path: window.location.pathname,
+        },
       });
     }
     setTimeout(() => {
       setStepIndicator(0);
-      if (!loginOpen) {
-      }
     }, 1500);
   }, [loginOpen]);
   const setLoginOpenAction = (e: boolean) => {
+    if (!e) {
+      GAevent({
+        action:
+          operation === "login"
+            ? GA_EVENT_NAMES.CANCEL_LOGIN
+            : GA_EVENT_NAMES.CANCEL_SIGNUP,
+        params: {
+          context: operation,
+          button_name: GA_BUTTONS_NAMES.LATER_TAKE_LOOK_BUTTON,
+        },
+      });
+    }
     if (e === false && stepIndicator === 7) {
-      localStorage.removeItem("MARKET-TOKEN");
-      localStorage.removeItem("USER");
-      Cookies.remove("MARKET-TOKEN");
+      GAevent({
+        action: GA_EVENT_NAMES.CREATE_ACCOUNT_CONTINUE,
+        params: {
+          method: "phone",
+          name_entered: false,
+          button_name: GA_BUTTONS_NAMES.LATER_TAKE_LOOK_BUTTON,
+        },
+      });
     }
     setLoginOpen(e);
   };
@@ -151,7 +176,9 @@ function NewLoginWidget() {
     }
   };
   const [loadingPin, setLoadingPin] = useState(false);
+  const [attempts, setAttempts] = useState(0);
   const loginFunc = async (e) => {
+    setAttempts(attempts + 1);
     setLoadingPin(true);
     await VerifyOtpHook({
       code: e,
@@ -159,11 +186,31 @@ function NewLoginWidget() {
       Username: "",
       verificationID: verficationID,
       errorCallback: (e) => {
-        Sendevent({
-          event: GA_EVENT_NAMES.PROGRAMMING_EVENT,
-          value: GA_PROGRAMMING_EVENT_VALUES.OTP_FAILED_EVENT,
-        });
         setFailed(true);
+        GAevent({
+          action: GA_EVENT_NAMES.VERIFY_OTP,
+          params: {
+            method: MessageMethod === "WA" ? "whatsapp" : "sms",
+            mission_name: operation,
+            timestamp: new Date().toISOString(),
+            button_name: "N/A",
+            status: "failed",
+            attempts: attempts,
+          },
+        });
+        GAevent({
+          action:
+            operation === "login"
+              ? GA_EVENT_NAMES.LOGIN
+              : GA_EVENT_NAMES.SIGN_UP,
+          params: {
+            method: "phone",
+
+            timestamp: new Date().toISOString(),
+
+            status: "failed",
+          },
+        });
         setTimeout(() => {
           setPins("");
           setRender(false);
@@ -173,29 +220,44 @@ function NewLoginWidget() {
           }, 300);
         }, 1000);
         if (e.message === "user not found") {
-          Sendevent({
-            event: GA_EVENT_NAMES.PROGRAMMING_EVENT,
-            value:
-              GA_PROGRAMMING_EVENT_VALUES.PHONE_NUMBER_NOT_REGISTERED_EVENT,
-          });
+          // Sendevent({
+          //   event: GA_EVENT_NAMES.PROGRAMMING_EVENT,
+          //   value:
+          //     GA_PROGRAMMING_EVENT_VALUES.PHONE_NUMBER_NOT_REGISTERED_EVENT,
+          // });
           setSignStep("notFound");
           setStepIndicator(6);
         }
       },
       successCallback: (exists, name) => {
+        GAevent({
+          action: GA_EVENT_NAMES.VERIFY_OTP,
+          params: {
+            method: MessageMethod === "WA" ? "whatsapp" : "sms",
+            mission_name: operation,
+            timestamp: new Date().toISOString(),
+            button_name: "N/A",
+            status: "success",
+            attempts: attempts,
+          },
+        });
+        GAevent({
+          action:
+            operation === "login"
+              ? GA_EVENT_NAMES.LOGIN
+              : GA_EVENT_NAMES.SIGN_UP,
+          params: {
+            method: "phone",
+
+            timestamp: new Date().toISOString(),
+
+            status: "success",
+          },
+        });
         setTimeout(() => {
           setLoadingPin(false);
           if (operation === "signup") {
-            Sendevent({
-              event: GA_EVENT_NAMES.PROGRAMMING_EVENT,
-              value:
-                GA_PROGRAMMING_EVENT_VALUES.VERIFY_OTP_SIGNUP_SUCCESS_EVENT,
-            });
             if (exists && name?.length > 1) {
-              Sendevent({
-                event: GA_EVENT_NAMES.PROGRAMMING_EVENT,
-                value: GA_PROGRAMMING_EVENT_VALUES.USER_ALREADY_EXISTS_EVENT,
-              });
               setSignStep("alreadyExists");
               setStepIndicator(6);
             } else if (exists && !(name?.length > 1)) {
@@ -208,11 +270,6 @@ function NewLoginWidget() {
             }
           } else {
             if (exists && name?.length > 1) {
-              Sendevent({
-                event: GA_EVENT_NAMES.PROGRAMMING_EVENT,
-                value:
-                  GA_PROGRAMMING_EVENT_VALUES.VERIFY_OTP_SIGNIN_SUCCESS_EVENT,
-              });
               FinaliseLogin();
               setSignStep("welcomeLogin");
               setStepIndicator(6);
@@ -221,11 +278,11 @@ function NewLoginWidget() {
               setStepIndicator(7);
             }
             if (!exists) {
-              Sendevent({
-                event: GA_EVENT_NAMES.PROGRAMMING_EVENT,
-                value:
-                  GA_PROGRAMMING_EVENT_VALUES.PHONE_NUMBER_NOT_REGISTERED_EVENT,
-              });
+              // Sendevent({
+              //   event: GA_EVENT_NAMES.PROGRAMMING_EVENT,
+              //   value:
+              //     GA_PROGRAMMING_EVENT_VALUES.PHONE_NUMBER_NOT_REGISTERED_EVENT,
+              // });
               setSignStep("notFound");
               setStepIndicator(6);
             }
@@ -264,26 +321,63 @@ function NewLoginWidget() {
 100% {transform:translateX(-800px)}
 `;
   const backAction = () => {
-    Sendevent({
-      event: GA_EVENT_NAMES.CLICK,
-      value: GA_CLICK_EVENT_VALUES.LOGIN_WIDGET_BACK_ACTION,
-    });
+    // Sendevent({
+    //   event: GA_EVENT_NAMES.CLICK,
+    //   value: GA_CLICK_EVENT_VALUES.LOGIN_WIDGET_BACK_ACTION,
+    // });
     if (operation === "login" && stepIndicator === 2) {
       setStepIndicator(0);
     } else setStepIndicator(stepIndicator - 1);
   };
 
-  if (!loginOpen) return <></>;
+  const GetScreenName = (index) => {
+    switch (index) {
+      case 0: {
+        return GA_AUTH_SCREEN.SELECT_AUTHINTCTION_METHOD_SCREEN;
+      }
+      case 1:
+        return GA_AUTH_SCREEN.AGREE_TERMS_SCREEN;
+      case 2:
+        return GA_AUTH_SCREEN.PHONE_NUMBER_INPUT_SCREEN;
+      case 3:
+        return GA_AUTH_SCREEN.PHONE_NUMBER_INPUT_SCREEN;
+      case 4:
+        return GA_AUTH_SCREEN.OTP_RECEIVING_METHOD_SCREEN;
+      case 5:
+        return GA_AUTH_SCREEN.OTP_INPUT_SCREEN;
+      case 6:
+        return signStep === "alreadyExists"
+          ? GA_AUTH_SCREEN.USER_ALREADY_EXISTS_SCREEN
+          : signStep === "notFound"
+          ? GA_AUTH_SCREEN.USER_NOT_FOUND_SCREEN
+          : GA_AUTH_SCREEN.WELCOME_SCREEN;
+      case 7:
+        return GA_AUTH_SCREEN.USER_NAME_INPUT_SCREEN;
 
+      default:
+        return "";
+    }
+  };
+  useEffect(() => {
+    GAevent({
+      action: GA_EVENT_NAMES.SCREEN_VIEW,
+      params: {
+        screen_name: GetScreenName(stepIndicator),
+        platform: GA_GLOBAL_PLATFORM.WEB,
+        timestamp: new Date().toISOString(),
+        screen_path: window.location.pathname,
+      },
+    });
+  }, [stepIndicator]);
   return (
     <>
       <div
         data-testid="backdrop-login "
         onClick={() => {
-          Sendevent({
-            event: GA_EVENT_NAMES.CLICK,
-            value: GA_CLICK_EVENT_VALUES.LATER_TAKE_LOOK_BUTTON,
-          });
+          // Sendevent({
+          //   event: GA_EVENT_NAMES.CLICK,
+          //   value: GA_CLICK_EVENT_VALUES.LATER_TAKE_LOOK_BUTTON,
+          // });
           setLoginOpenAction(false);
         }}
         className="backdrop-login z-[9999999999]"
@@ -387,10 +481,18 @@ function NewLoginWidget() {
                 data-testid="have-account-button"
                 className="login-button"
                 onClick={() => {
-                  Sendevent({
-                    event: GA_EVENT_NAMES.CLICK,
-                    value:
-                      GA_PROGRAMMING_EVENT_VALUES.I_HAVE_ALREADY_ACCOUNT_BUTTON,
+                  // Sendevent({
+                  //   event: GA_EVENT_NAMES.CLICK,
+                  //   value:
+                  //     GA_PROGRAMMING_EVENT_VALUES.I_HAVE_ALREADY_ACCOUNT_BUTTON,
+                  // });
+                  GAevent({
+                    action: GA_EVENT_NAMES.LOGIN_START,
+                    params: {
+                      method: "phone",
+                      button_name:
+                        GA_BUTTONS_NAMES.I_HAVE_ALREADY_ACCOUNT_BUTTON,
+                    },
                   });
                   if (window.innerWidth > 912) {
                     setShowMethods(!showMethods);
@@ -415,9 +517,16 @@ function NewLoginWidget() {
                 data-testid="create-account-button"
                 className="login-button"
                 onClick={() => {
-                  Sendevent({
-                    event: GA_EVENT_NAMES.CLICK,
-                    value: GA_CLICK_EVENT_VALUES.CREATE_NEW_ACCOUNT_BUTTON,
+                  // Sendevent({
+                  //   event: GA_EVENT_NAMES.CLICK,
+                  //   value: GA_CLICK_EVENT_VALUES.CREATE_NEW_ACCOUNT_BUTTON,
+                  // });
+                  GAevent({
+                    action: GA_EVENT_NAMES.SIGNUP_START,
+                    params: {
+                      method: "phone",
+                      button_name: GA_BUTTONS_NAMES.CREATE_NEW_ACCOUNT_BUTTON,
+                    },
                   });
                   setStepIndicator(1);
                   setOperation("signup");
@@ -449,6 +558,7 @@ function NewLoginWidget() {
             setWrongNumber={(e) => {
               setWrongNumber(e);
             }}
+            operation={operation}
             hideEdit={false}
             setShowMobile={() => {}}
             setStepIndicator={(e: number) => setStepIndicator(e)}
@@ -539,10 +649,10 @@ function NewLoginWidget() {
             }}
             close={() => {
               setLoginOpenAction(false);
-              Sendevent({
-                event: GA_EVENT_NAMES.CLICK,
-                value: GA_CLICK_EVENT_VALUES.LATER_TAKE_LOOK_BUTTON,
-              });
+              // Sendevent({
+              //   event: GA_EVENT_NAMES.CLICK,
+              //   value: GA_CLICK_EVENT_VALUES.LATER_TAKE_LOOK_BUTTON,
+              // });
             }}
             setStepIndactor={(e) => setStepIndicator(e)}
             inputValue={inputValue}
@@ -564,9 +674,17 @@ function NewLoginWidget() {
             onClick={() => {
               setLoginOpenAction(false);
               AuthService.cancelAuth();
-              Sendevent({
-                event: GA_EVENT_NAMES.CLICK,
-                value: GA_CLICK_EVENT_VALUES.SKIP_LOGIN_WIDGET,
+              // Sendevent({
+              //   event: GA_EVENT_NAMES.CLICK,
+              //   value: GA_CLICK_EVENT_VALUES.SKIP_LOGIN_WIDGET,
+              // });
+              GAevent({
+                action: GA_EVENT_NAMES.LATER_TAKE_LOOK_CLICKED,
+                params: {
+                  screen_name: GetScreenName(stepIndicator),
+                  screen_path: window.location.pathname,
+                  button_name: GA_BUTTONS_NAMES.LATER_TAKE_LOOK_BUTTON,
+                },
               });
             }}
             style={{
@@ -584,10 +702,10 @@ function NewLoginWidget() {
             onClick={() => {
               if (stepIndicator < 6) AuthService.cancelAuth();
               setLoginOpenAction(false);
-              Sendevent({
-                event: GA_EVENT_NAMES.CLICK,
-                value: GA_CLICK_EVENT_VALUES.LATER_TAKE_LOOK_BUTTON,
-              });
+              // Sendevent({
+              //   event: GA_EVENT_NAMES.CLICK,
+              //   value: GA_CLICK_EVENT_VALUES.LATER_TAKE_LOOK_BUTTON,
+              // });
             }}
           >
             {" "}

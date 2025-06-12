@@ -8,14 +8,9 @@ import PlusIcon from "public/svg/chatplus.svg";
 import { AddStoryAction } from "store/homepage/actions";
 import { revalidateStories } from "utils/serverActions";
 import dynamic from "next/dynamic";
-import { Sendevent } from "utils/functions";
+
 import { useAppStore } from "store";
 import AddStoryWidget from "./Stories/AddStoryWidget";
-import {
-  GA_CLICK_EVENT_VALUES,
-  GA_EVENT_NAMES,
-  GA_PROGRAMMING_EVENT_VALUES,
-} from "utils/GAEvents";
 
 function AddStory() {
   const { user, setNameModal, addStoryEnable, setAddStory } = useAppStore();
@@ -56,18 +51,18 @@ function AddStory() {
                   link
                 )
                   .then((data) => {
-                    Sendevent({
-                      event: GA_EVENT_NAMES.PROGRAMMING_EVENT,
-                      value: GA_PROGRAMMING_EVENT_VALUES.UPLOAD_STORY_SUCCESS,
-                    });
+                    // Sendevent({
+                    //   event: GA_EVENT_NAMES.PROGRAMMING_EVENT,
+                    //   value: GA_PROGRAMMING_EVENT_VALUES.UPLOAD_STORY_SUCCESS,
+                    // });
 
                     AddStoryAction(data);
                   })
                   .catch((e) => {
-                    Sendevent({
-                      event: GA_EVENT_NAMES.PROGRAMMING_EVENT,
-                      value: GA_PROGRAMMING_EVENT_VALUES.UPLOAD_STORY_FAILED,
-                    });
+                    // Sendevent({
+                    //   event: GA_EVENT_NAMES.PROGRAMMING_EVENT,
+                    //   value: GA_PROGRAMMING_EVENT_VALUES.UPLOAD_STORY_FAILED,
+                    // });
 
                     setFile(null);
                     setIsSelected(null);
@@ -164,10 +159,10 @@ function AddStory() {
               selectMedia({ imageFile: media, link: link });
             }}
             onClose={() => {
-              Sendevent({
-                event: GA_EVENT_NAMES.CLICK,
-                value: GA_CLICK_EVENT_VALUES.CLOSE_ADD_STORY_WIDGET_BUTTON,
-              });
+              // Sendevent({
+              //   event: GA_EVENT_NAMES.CLICK,
+              //   value: GA_CLICK_EVENT_VALUES.CLOSE_ADD_STORY_WIDGET_BUTTON,
+              // });
               setAddStory(false);
             }}
           />
@@ -185,10 +180,10 @@ function AddStory() {
           }}
           onClick={() => {
             if (JSON.parse(localStorage.getItem("USER"))?.name?.length > 1) {
-              Sendevent({
-                event: GA_EVENT_NAMES.CLICK,
-                value: GA_CLICK_EVENT_VALUES.UPLOAD_STORY_BUTTON,
-              });
+              // Sendevent({
+              //   event: GA_EVENT_NAMES.CLICK,
+              //   value: GA_CLICK_EVENT_VALUES.UPLOAD_STORY_BUTTON,
+              // });
               setAddStory(true);
             } else {
               setNameModal(true);

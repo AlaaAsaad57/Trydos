@@ -1,7 +1,7 @@
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import NextLink from "components/global/NextLink";
-import { Boutique } from "models/offer";
+import { Boutique } from "models/Genaral/Boutique";
 
 interface OfferAvatarProps {
   images: string;

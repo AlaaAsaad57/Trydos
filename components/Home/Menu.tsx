@@ -1,12 +1,11 @@
 import React, { useState } from "react";
 import Cookies from "js-cookie";
 import { changeToken } from "store/homepage/cachedActions";
-import { Sendevent, translateFunction } from "utils/functions";
+import { translateFunction } from "utils/functions";
 import NextLink from "components/global/NextLink";
 import { useParams, usePathname } from "next/navigation";
 import NotificationsPanel from "../Notifications/NotificationsPanel";
 import WishListPanel from "../WishList/WishListPanel";
-import { GA_CLICK_EVENT_VALUES, GA_EVENT_NAMES } from "utils/GAEvents";
 
 interface MenuProps {
   user: any;
@@ -86,10 +85,10 @@ const Menu: React.FC<MenuProps> = ({ user, setMenuOpen }) => {
   const { lang } = useParams();
 
   const handleLogout = () => {
-    Sendevent({
-      event: GA_EVENT_NAMES.CLICK,
-      value: GA_CLICK_EVENT_VALUES.LOGOUT_BUTTON,
-    });
+    // Sendevent({
+    //   event: GA_EVENT_NAMES.CLICK,
+    //   value: GA_CLICK_EVENT_VALUES.LOGOUT_BUTTON,
+    // });
     localStorage.clear();
     changeToken({ key: "DEVICE-TOKEN", deleteOption: true });
     changeToken({ key: "MARKET-TOKEN", deleteOption: true });
@@ -104,10 +103,10 @@ const Menu: React.FC<MenuProps> = ({ user, setMenuOpen }) => {
     <>
       <div
         onClick={() => {
-          Sendevent({
-            event: GA_EVENT_NAMES.CLICK,
-            value: GA_CLICK_EVENT_VALUES.CLSOE_SIDE_MENU,
-          });
+          // Sendevent({
+          //   event: GA_EVENT_NAMES.CLICK,
+          //   value: GA_CLICK_EVENT_VALUES.CLSOE_SIDE_MENU,
+          // });
           setMenuOpen(false);
         }}
         className=" w-full h-full fixed top-0 left-0 z-50"
@@ -129,10 +128,10 @@ const Menu: React.FC<MenuProps> = ({ user, setMenuOpen }) => {
             dataCy="Settings-Icon"
             href={`/${lang}/setting?tab=main`}
             onClick={() => {
-              Sendevent({
-                event: GA_EVENT_NAMES.CLICK,
-                value: GA_CLICK_EVENT_VALUES.PERSONAL_SETTING,
-              });
+              // Sendevent({
+              //   event: GA_EVENT_NAMES.CLICK,
+              //   value: GA_CLICK_EVENT_VALUES.PERSONAL_SETTING,
+              // });
               setMenuOpen(false);
             }}
             icon={
@@ -147,10 +146,10 @@ const Menu: React.FC<MenuProps> = ({ user, setMenuOpen }) => {
           <MenuItem
             dataCy="WishList-Icon"
             onClick={() => {
-              Sendevent({
-                event: GA_EVENT_NAMES.CLICK,
-                value: GA_CLICK_EVENT_VALUES.WISHLIST_BUTTON,
-              });
+              // Sendevent({
+              //   event: GA_EVENT_NAMES.CLICK,
+              //   value: GA_CLICK_EVENT_VALUES.WISHLIST_BUTTON,
+              // });
               setShowWishList(!showWishList);
             }}
             icon={
@@ -164,10 +163,10 @@ const Menu: React.FC<MenuProps> = ({ user, setMenuOpen }) => {
           <MenuItem
             dataCy="Notifications-Icon"
             onClick={() => {
-              Sendevent({
-                event: GA_EVENT_NAMES.CLICK,
-                value: GA_CLICK_EVENT_VALUES.NOTIFICATIONS_BUTTON,
-              });
+              // Sendevent({
+              //   event: GA_EVENT_NAMES.CLICK,
+              //   value: GA_CLICK_EVENT_VALUES.NOTIFICATIONS_BUTTON,
+              // });
               setShowNotifications(!showNotifications);
             }}
             icon={
@@ -193,10 +192,10 @@ const Menu: React.FC<MenuProps> = ({ user, setMenuOpen }) => {
           <MenuItem
             dataCy="Compare-Icon"
             onClick={() => {
-              Sendevent({
-                event: GA_EVENT_NAMES.CLICK,
-                value: GA_CLICK_EVENT_VALUES.COMPARE_BUTTON,
-              });
+              // Sendevent({
+              //   event: GA_EVENT_NAMES.CLICK,
+              //   value: GA_CLICK_EVENT_VALUES.COMPARE_BUTTON,
+              // });
             }}
             href={`/${lang}/compare`}
             icon={

@@ -6,8 +6,6 @@ import { useParams, useSearchParams } from "next/navigation";
 import Search from "public/svg/SearchIcon.svg";
 import { useAppStore } from "store";
 import search from "services/search";
-import { Sendevent } from "utils/functions";
-import { GA_CLICK_EVENT_VALUES, GA_EVENT_NAMES } from "utils/GAEvents";
 
 function ActiveSearchFilterBar() {
   const { value, searchFilters, resetSearchFilter, setSearchWord } =
@@ -67,10 +65,10 @@ function ActiveSearchFilterBar() {
         data-cy="closeIcon"
         className="mr-2 ml-2"
         onClick={() => {
-          Sendevent({
-            event: GA_EVENT_NAMES.CLICK,
-            value: GA_CLICK_EVENT_VALUES.RESET_HOME_SEARCH_BUTTON,
-          });
+          // Sendevent({
+          //   event: GA_EVENT_NAMES.CLICK,
+          //   value: GA_CLICK_EVENT_VALUES.RESET_HOME_SEARCH_BUTTON,
+          // });
           resetSearchFilter();
           setSearchWord("");
           search.getSearchOptions({
@@ -90,7 +88,7 @@ function ActiveSearchFilterBar() {
                   (s) => s.slug === category.slug
                 )[0]?.name ||
                 getCategory(category.slug)?.name) && (
-                <>
+                <div className="flex-row" key={category.slug}>
                   <div
                     className="main-category-icon flex-row min-w-[15px] min-h-[15px]"
                     key={category.slug}
@@ -140,7 +138,7 @@ function ActiveSearchFilterBar() {
                       getCategory(category.slug)?.name}
                   </div>
                   {category?.categories_sub?.map((s) => (
-                    <>
+                    <div className="flex-row" key={s.slug}>
                       <div
                         className="sub-category-icon flex-row min-h-[10px] min-w-[10px]"
                         key={s.slug}
@@ -183,9 +181,9 @@ function ActiveSearchFilterBar() {
                             (sub) => sub.slug === s.slug
                           )[0]?.name}
                       </div>
-                    </>
+                    </div>
                   ))}
-                </>
+                </div>
               )
           )}
         </>
@@ -196,7 +194,7 @@ function ActiveSearchFilterBar() {
           {searchFilters?.boutiques?.map(
             (category) =>
               category.name && (
-                <>
+                <div className="flex-row" key={category.slug}>
                   <div
                     className="main-category-icon flex-row min-w-[15px] min-h-[15px]"
                     key={category.slug}
@@ -232,7 +230,7 @@ function ActiveSearchFilterBar() {
                   >
                     {category?.name}
                   </div>
-                </>
+                </div>
               )
           )}
         </>
@@ -245,7 +243,7 @@ function ActiveSearchFilterBar() {
               (brand.name ||
                 searchFilters.brands.filter((s) => s.slug === brand.slug)[0]
                   ?.name) && (
-                <>
+                <div className="flex-row" key={brand.slug}>
                   <div
                     className="main-category-icon flex-row min-w-[15px] min-h-[15px]"
                     key={brand.slug}
@@ -290,7 +288,7 @@ function ActiveSearchFilterBar() {
                         (sub) => sub.slug === brand.slug
                       )[0]?.name}
                   </div>
-                </>
+                </div>
               )
           )}
         </>

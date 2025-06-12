@@ -1,12 +1,17 @@
 import { useEffect, useState } from "react";
 
-import { Sendevent, translateFunction } from "utils/functions";
+import { translateFunction } from "utils/functions";
 import ConditionIcon from "public/svg/ConditionIcon.svg";
 
 import { useTransition, animated } from "react-spring";
 import { useParams } from "next/navigation";
 import { useAppStore } from "store";
-import { GA_CLICK_EVENT_VALUES, GA_EVENT_NAMES } from "utils/GAEvents";
+import {
+  GA_AUTH_SCREEN,
+  GA_EVENT_NAMES,
+  GA_GLOBAL_PLATFORM,
+} from "utils/GAEvents";
+import { GAevent } from "utils/gtag";
 
 function PrivacyConfirm({ stepIndicator, setStepIndicator }) {
   const { language } = useAppStore();
@@ -84,9 +89,16 @@ function PrivacyConfirm({ stepIndicator, setStepIndicator }) {
                 data-cy="agree-terms"
                 data-testid="Agree Terms"
                 onClick={() => {
-                  Sendevent({
-                    event: GA_EVENT_NAMES.CLICK,
-                    value: GA_CLICK_EVENT_VALUES.AGREE_CONTINUE_BUTTON,
+                  // Sendevent({
+                  //   event: GA_EVENT_NAMES.CLICK,
+                  //   value: GA_CLICK_EVENT_VALUES.AGREE_CONTINUE_BUTTON,
+                  // });
+                  GAevent({
+                    action: GA_EVENT_NAMES.TERMS_SERVICES,
+                    params: {
+                      mission: "signup",
+                      status: "terms_accepted",
+                    },
                   });
                   setStepIndicator(2);
                 }}

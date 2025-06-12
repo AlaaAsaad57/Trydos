@@ -69,8 +69,6 @@ export const MapElement: React.FC<MapProps> = memo(
         toast.info(
           translateFunction("Please Be Accurate and select your Location")
         );
-        map.setZoom(20);
-        map.setCenter(e.latLng);
         return;
       }
       if (e.latLng) {
@@ -206,6 +204,7 @@ export const MapElement: React.FC<MapProps> = memo(
               zoom={6}
               options={{
                 streetViewControl: false,
+                gestureHandling: "greedy",
                 fullscreenControl: false,
                 mapTypeControl: false,
                 zoomControl: true,
@@ -221,7 +220,6 @@ export const MapElement: React.FC<MapProps> = memo(
                   typeof center.lat !== "string" &&
                   typeof center.lng !== "string"
                 ) {
-                  console.log(center);
                   // @ts-ignore
                   const point = new window.google.maps.LatLng(
                     center.lat,

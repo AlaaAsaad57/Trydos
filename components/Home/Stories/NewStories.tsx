@@ -1,6 +1,6 @@
 "use client";
 import "styles/stories.css";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Cube from "react-cube-navigation";
 import { SelectStory } from "store/homepage/actions";
 import { useSwipeable } from "react-swipeable";
@@ -8,6 +8,13 @@ import StoryServiceClass from "services/story";
 import StoryHolder from "./StoryHolder";
 import { useAppStore } from "store";
 import Spinner from "components/global/Spinner";
+import {
+  GA_EVENT_NAMES,
+  GA_GLOBAL_PLATFORM,
+  GA_GLOBAL_SCREEN,
+} from "utils/GAEvents";
+import { GAevent } from "utils/gtag";
+
 function StoriesContainer({
   selectedStory,
   stories,
@@ -73,7 +80,17 @@ function StoriesContainer({
       passive: false,
     },
   });
-  console.log(storiesData, selectedStory);
+  useEffect(() => {
+    GAevent({
+      action: GA_EVENT_NAMES.SCREEN_VIEW,
+      params: {
+        screen_name: GA_GLOBAL_SCREEN.STORY_SCREEN,
+        platform: GA_GLOBAL_PLATFORM.WEB,
+        timestamp: new Date().toISOString(),
+        screen_path: window.location.pathname,
+      },
+    });
+  }, []);
   if (
     !storiesData ||
     storiesData?.length === 0 ||

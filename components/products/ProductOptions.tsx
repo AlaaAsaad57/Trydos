@@ -9,13 +9,12 @@ import ThreePoints from "./ThreePoints";
 import ShareButton from "./ShareButton";
 import Skeleton from "react-loading-skeleton";
 
-import { Sendevent, translateFunction } from "utils/functions";
+import { translateFunction } from "utils/functions";
 import home from "services/home";
 import { AxiosPost } from "utils/AxiosApi";
 import { toast } from "react-toastify";
 import auth from "services/auth";
 import { useAppStore } from "store";
-import { GA_CLICK_EVENT_VALUES, GA_EVENT_NAMES } from "utils/GAEvents";
 
 function ProductOptions({
   activeOption,
@@ -111,10 +110,10 @@ function ProductOptions({
               }`}
               data-cy="LoveSymbol"
               onClick={() => {
-                Sendevent({
-                  event: GA_EVENT_NAMES.CLICK,
-                  value: GA_CLICK_EVENT_VALUES.LIKE_PRODUCT_BUTTON,
-                });
+                // Sendevent({
+                //   event: GA_EVENT_NAMES.CLICK,
+                //   value: GA_CLICK_EVENT_VALUES.LIKE_PRODUCT_BUTTON,
+                // });
                 setOption("Like");
                 setLiked(!isLiked);
                 if (isLiked || SelectedProduct?.is_liked) LikeProduct(false);
@@ -136,10 +135,10 @@ function ProductOptions({
               className="product-option-item"
               data-cy="CommentIcon"
               onClick={() => {
-                Sendevent({
-                  event: GA_EVENT_NAMES.CLICK,
-                  value: GA_CLICK_EVENT_VALUES.SHOW_COMMENTS_BUTTON,
-                });
+                // Sendevent({
+                //   event: GA_EVENT_NAMES.CLICK,
+                //   value: GA_CLICK_EVENT_VALUES.SHOW_COMMENTS_BUTTON,
+                // });
                 setOption("Comment");
               }}
             >
@@ -158,10 +157,10 @@ function ProductOptions({
               }`}
               data-cy="ShareIcon"
               onClick={() => {
-                Sendevent({
-                  event: GA_EVENT_NAMES.CLICK,
-                  value: GA_CLICK_EVENT_VALUES.SHARE_PRODUCT_BUTTON,
-                });
+                // Sendevent({
+                //   event: GA_EVENT_NAMES.CLICK,
+                //   value: GA_CLICK_EVENT_VALUES.SHARE_PRODUCT_BUTTON,
+                // });
                 setOption("Share");
               }}
             >
@@ -179,10 +178,10 @@ function ProductOptions({
               className="product-option-item"
               data-cy="ThreePointsIcon"
               onClick={() => {
-                Sendevent({
-                  event: GA_EVENT_NAMES.CLICK,
-                  value: GA_CLICK_EVENT_VALUES.MORE_OPTIONS_BUTTON,
-                });
+                // Sendevent({
+                //   event: GA_EVENT_NAMES.CLICK,
+                //   value: GA_CLICK_EVENT_VALUES.MORE_OPTIONS_BUTTON,
+                // });
                 setOption("More");
               }}
             >

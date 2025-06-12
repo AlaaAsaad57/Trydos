@@ -50,7 +50,12 @@ function CategoryItem({ category, onClick, isActive }) {
                     className="absolute"
                   />
                 )}
-              <Image alt={category.name} width={30} height={30} src={s.icon} />
+              <Image
+                alt={category.name}
+                width={30}
+                height={30}
+                src={s.most_viewed_product_thumbnail || s.icon}
+              />
               {s.name}
             </div>
           ))}

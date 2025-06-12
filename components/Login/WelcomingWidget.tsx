@@ -18,7 +18,7 @@ function WelcomingWidget({
   Name: string;
   close: Function;
 }) {
-  const { language } = useAppStore();
+  const { language, setLoginOpen } = useAppStore();
 
   let { lang } = useParams();
   // @ts-ignore
@@ -29,17 +29,9 @@ function WelcomingWidget({
   const [active, setActive] = useState(false);
   useEffect(() => {
     setTimeout(() => {
-      if (active) close();
+      if (active) setLoginOpen(false);
     }, 5000);
   }, [active]);
-  const mountAnim = ` 
-  0% {transform:translateX(800px)}
-  100% {transform:translateX(0px)}
-`;
-  const unmountAnim = `
-0% {transform:translateX(0px)}
-100% {transform:translateX(-800px)}
-`;
 
   useEffect(() => {
     if (stepIndicator === 6 && signStep === "welcomeLogin") {

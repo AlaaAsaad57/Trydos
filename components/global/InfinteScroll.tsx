@@ -4,6 +4,13 @@ import Spinner from "./Spinner";
 import { useParams } from "next/navigation";
 import NormalWidget from "components/Home/OfferWidgets/NormalWidget";
 import { dispatchRouteChangeEvent } from "utils/events";
+
+import {
+  GA_EVENT_NAMES,
+  GA_GLOBAL_PLATFORM,
+  GA_GLOBAL_SCREEN,
+} from "utils/GAEvents";
+import { GAevent } from "utils/gtag";
 const useInfiniteScroll = (fetchNextPage) => {
   useEffect(() => {
     // Function to check scroll position
@@ -70,6 +77,17 @@ function InfinteScroll({ offsetVariable }) {
   };
   useInfiniteScroll(getNextBoutique);
   useEffect(() => {
+    GAevent({
+      action: GA_EVENT_NAMES.SCREEN_VIEW,
+      params: {
+        screen_name: window.location.pathname?.includes("categories")
+          ? GA_GLOBAL_SCREEN.HOME_CATEGORY_SCREEN
+          : GA_GLOBAL_SCREEN.HOME_SCREEN,
+        platform: GA_GLOBAL_PLATFORM.WEB,
+        timestamp: new Date().toISOString(),
+        screen_path: window.location.pathname,
+      },
+    });
     dispatchRouteChangeEvent("completed");
   }, []);
   return (

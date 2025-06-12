@@ -1,10 +1,15 @@
 import { useEffect, useState } from "react";
 import Animated from "react-mount-animation";
-import { Sendevent, translateFunction } from "utils/functions";
+import { translateFunction } from "utils/functions";
 import AuthService from "services/auth";
 import { useParams } from "next/navigation";
 import { useAppStore } from "store";
-import { GA_CLICK_EVENT_VALUES, GA_EVENT_NAMES } from "utils/GAEvents";
+import {
+  GA_AUTH_SCREEN,
+  GA_EVENT_NAMES,
+  GA_GLOBAL_PLATFORM,
+} from "utils/GAEvents";
+import { GAevent } from "utils/gtag";
 
 function AccountNotFound({
   inputValue,
@@ -174,10 +179,10 @@ function AccountNotFound({
           className="login-button"
           data-cy="Create-New-Account"
           onClick={() => {
-            Sendevent({
-              event: GA_EVENT_NAMES.CLICK,
-              value: GA_CLICK_EVENT_VALUES.CREATE_NEW_ACCOUNT_CONTINUE_BUTTON,
-            });
+            // Sendevent({
+            //   event: GA_EVENT_NAMES.CLICK,
+            //   value: GA_CLICK_EVENT_VALUES.CREATE_NEW_ACCOUNT_CONTINUE_BUTTON,
+            // });
             setStepIndicator(7);
           }}
           style={{

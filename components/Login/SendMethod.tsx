@@ -1,13 +1,19 @@
 import { useEffect, useState } from "react";
 
-import { Sendevent, translateFunction } from "utils/functions";
+import { translateFunction } from "utils/functions";
 import WAIcon from "public/svg/WAIcon.svg";
 import MessageIcon from "public/svg/MessageIcon.svg";
 import { AnimatedComponent } from "components/global/AnimatedComponent";
 import AuthService from "services/auth";
 import { useParams } from "next/navigation";
 import { useAppStore } from "store";
-import { GA_CLICK_EVENT_VALUES, GA_EVENT_NAMES } from "utils/GAEvents";
+import {
+  GA_AUTH_SCREEN,
+  GA_BUTTONS_NAMES,
+  GA_EVENT_NAMES,
+  GA_GLOBAL_PLATFORM,
+} from "utils/GAEvents";
+import { GAevent } from "utils/gtag";
 
 function SendMethod({
   inputValue,
@@ -17,6 +23,7 @@ function SendMethod({
   stepIndicator,
   setShowMobile,
   hideEdit,
+  operation = "login",
 }: {
   setStepIndicator: Function;
   stepIndicator: number;
@@ -25,6 +32,7 @@ function SendMethod({
   setMessageMethod: Function;
   setShowMobile?: Function;
   hideEdit?: boolean;
+  operation?: string;
 }) {
   const { language, wrongNumber } = useAppStore();
 
@@ -176,10 +184,10 @@ function SendMethod({
               style={{ cursor: "pointer", marginTop: "3px" }}
               onClick={() => {
                 if (setShowMobile && !hideEdit) {
-                  Sendevent({
-                    event: GA_EVENT_NAMES.CLICK,
-                    value: GA_CLICK_EVENT_VALUES.EDIT_PHONE_NUMBER_BUTTON,
-                  });
+                  // Sendevent({
+                  //   event: GA_EVENT_NAMES.CLICK,
+                  //   value: GA_CLICK_EVENT_VALUES.EDIT_PHONE_NUMBER_BUTTON,
+                  // });
                   setShowMobile(true);
                   setStepIndicator(3);
                 }
@@ -312,9 +320,18 @@ function SendMethod({
                 setMessageMethod("WA");
                 SendCodeRequest("1");
 
-                Sendevent({
-                  event: GA_EVENT_NAMES.CLICK,
-                  value: GA_CLICK_EVENT_VALUES.CHOOSE_WHATSAPP_BUTTON,
+                // Sendevent({
+                //   event: GA_EVENT_NAMES.CLICK,
+                //   value: GA_CLICK_EVENT_VALUES.CHOOSE_WHATSAPP_BUTTON,
+                // });
+                GAevent({
+                  action: GA_EVENT_NAMES.SEND_OTP,
+                  params: {
+                    method: "whatsapp",
+                    mission_name: operation,
+                    timestamp: new Date().toISOString(),
+                    button_name: GA_BUTTONS_NAMES.CHOOSE_WHATSAPP_BUTTON,
+                  },
                 });
               }
               // AuthService.SendOtp(inputValue, 1, (e) => {
@@ -370,9 +387,18 @@ function SendMethod({
                 setMessageMethod("SMS");
 
                 SendCodeRequest("0");
-                Sendevent({
-                  event: GA_EVENT_NAMES.CLICK,
-                  value: GA_CLICK_EVENT_VALUES.CHOOSE_SMS_BUTTON,
+                // Sendevent({
+                //   event: GA_EVENT_NAMES.CLICK,
+                //   value: GA_CLICK_EVENT_VALUES.CHOOSE_SMS_BUTTON,
+                // });
+                GAevent({
+                  action: GA_EVENT_NAMES.SEND_OTP,
+                  params: {
+                    method: "sms",
+                    mission_name: operation,
+                    timestamp: new Date().toISOString(),
+                    button_name: GA_BUTTONS_NAMES.CHOOSE_SMS_BUTTON,
+                  },
                 });
               }
               // AuthService.SendOtp(inputValue, 0, (e) => {

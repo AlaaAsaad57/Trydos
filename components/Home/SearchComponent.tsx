@@ -2,11 +2,10 @@
 import CloseIcon from "public/svg/CloseIcon.svg";
 import SearchCloseIcon from "public/svg/SearchCloseIcon.svg";
 
-import { ChangeEvent } from "react";
+import { ChangeEvent, useEffect } from "react";
 import {
   caseCheck,
   onClickSearchHistory,
-  Sendevent,
   translateFunction,
 } from "utils/functions";
 import { DebounceInput } from "react-debounce-input";
@@ -17,7 +16,12 @@ import SearchVoice from "./Search/SearchVoice";
 import SearchImage from "./Search/SearchImage";
 import SearchService from "services/search";
 import { useAppStore } from "store";
-import { GA_CLICK_EVENT_VALUES, GA_EVENT_NAMES } from "utils/GAEvents";
+import {
+  GA_EVENT_NAMES,
+  GA_GLOBAL_PLATFORM,
+  GA_GLOBAL_SCREEN,
+} from "utils/GAEvents";
+import { GAevent } from "utils/gtag";
 interface SearchComponentProps {
   searchEnabled: boolean;
   close: Function;
@@ -98,7 +102,19 @@ function SearchComponent({
   const setLoading = (e) => {
     setSearchPartialLoading(e);
   };
-
+  useEffect(() => {
+    if (searchEnabled) {
+      GAevent({
+        action: GA_EVENT_NAMES.SCREEN_VIEW,
+        params: {
+          screen_name: GA_GLOBAL_SCREEN.SEARCH_SCREEN,
+          platform: GA_GLOBAL_PLATFORM.WEB,
+          timestamp: new Date().toISOString(),
+          screen_path: window.location.pathname,
+        },
+      });
+    }
+  }, [searchEnabled]);
   return (
     <div className="search-component-container flex-row">
       <div className={`search-input-parent ${focus && "focuse"}`}>
@@ -119,14 +135,14 @@ function SearchComponent({
             if (value.length === 0) {
               setFocuse(false);
             } else {
-              Sendevent({
-                event: GA_EVENT_NAMES.CLICK,
-                value: GA_CLICK_EVENT_VALUES.ADD_FILTER_ITEM,
-                extra: {
-                  filter: "search_text",
-                  value: value,
-                },
-              });
+              // Sendevent({
+              //   event: GA_EVENT_NAMES.CLICK,
+              //   value: GA_CLICK_EVENT_VALUES.ADD_FILTER_ITEM,
+              //   extra: {
+              //     filter: "search_text",
+              //     value: value,
+              //   },
+              // });
             }
           }}
           onSubmit={(e) => {
@@ -148,10 +164,10 @@ function SearchComponent({
                 data-cy="SearchInputCloseIcon"
                 onClick={() => {
                   if (value.length > 0) {
-                    Sendevent({
-                      event: GA_EVENT_NAMES.CLICK,
-                      value: GA_CLICK_EVENT_VALUES.RESET_HOME_SEARCH_BUTTON,
-                    });
+                    // Sendevent({
+                    //   event: GA_EVENT_NAMES.CLICK,
+                    //   value: GA_CLICK_EVENT_VALUES.RESET_HOME_SEARCH_BUTTON,
+                    // });
                     setLoading(true);
                     setSearchWord("");
 
@@ -161,10 +177,10 @@ function SearchComponent({
                       lang: lang,
                     });
                   } else {
-                    Sendevent({
-                      event: GA_EVENT_NAMES.CLICK,
-                      value: GA_CLICK_EVENT_VALUES.SEARCH_CLOSE_ICON_BUTTON,
-                    });
+                    // Sendevent({
+                    //   event: GA_EVENT_NAMES.CLICK,
+                    //   value: GA_CLICK_EVENT_VALUES.SEARCH_CLOSE_ICON_BUTTON,
+                    // });
 
                     close();
                     setSearchWord("");
@@ -183,10 +199,10 @@ function SearchComponent({
                 <SearchImage
                   setSearchValue={(e) => {
                     if (e?.length > 0) {
-                      Sendevent({
-                        event: "button_clicked",
-                        value: "search_with_image_button",
-                      });
+                      // Sendevent({
+                      //   event: "button_clicked",
+                      //   value: "search_with_image_button",
+                      // });
 
                       setSearchWord(e);
                       setSearchLoading(true);
@@ -198,10 +214,10 @@ function SearchComponent({
                 <SearchVoice
                   setSearchValue={(e) => {
                     if (e?.length > 0) {
-                      Sendevent({
-                        event: GA_EVENT_NAMES.CLICK,
-                        value: GA_CLICK_EVENT_VALUES.SEARCH_WITH_VOICE_BUTTON,
-                      });
+                      // Sendevent({
+                      //   event: GA_EVENT_NAMES.CLICK,
+                      //   value: GA_CLICK_EVENT_VALUES.SEARCH_WITH_VOICE_BUTTON,
+                      // });
 
                       setSearchWord(e);
                       setSearchLoading(true);
@@ -216,10 +232,10 @@ function SearchComponent({
               <CloseIcon
                 data-cy="closeIcon_searchPage"
                 onClick={() => {
-                  Sendevent({
-                    event: GA_EVENT_NAMES.CLICK,
-                    value: GA_CLICK_EVENT_VALUES.SEARCH_CLOSE_ICON_BUTTON,
-                  });
+                  // Sendevent({
+                  //   event: GA_EVENT_NAMES.CLICK,
+                  //   value: GA_CLICK_EVENT_VALUES.SEARCH_CLOSE_ICON_BUTTON,
+                  // });
                   if (value.length > 0) {
                     setSearchWord("");
                     findProducts([]);

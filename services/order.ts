@@ -1,6 +1,8 @@
 import { AxiosGet, AxiosPost } from "utils/AxiosApi";
 import { useAppStore } from "store";
-import { GetAddressListApi, GetWalletApi, PlaceOrderApi } from "models/Api";
+import {  PlaceOrderApi } from "models/API/market/PlaceOrder";
+import {  GetAddressListApi } from "models/API/market/GetAddresses";
+import {  GetWalletApi } from "models/API/market/GetWallet";
 import { GetCartOreview, toUSD } from "utils/functions";
 import { getCurrency } from "utils/tinyUtils";
 
@@ -225,6 +227,16 @@ class OrderService {
     } catch (error) {
       setOrderLoading(false);
     }
+  }
+  async getOrderDetails(id) {
+    let data = await AxiosGet({
+      url:
+        process.env.NEXT_PUBLIC_BACKEND_URL +
+        `/customer/order/getOrdersByOrderGroupID?order_group_id=${id}`,
+      title: "getOrderByOrderGroupID request",
+    });
+
+    return data;
   }
 }
 export default new OrderService();

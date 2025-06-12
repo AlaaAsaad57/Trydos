@@ -5,12 +5,6 @@ import Image from "next/image";
 import { useAppStore } from "store";
 import NewStoryModal from "./CameraStory";
 import { dataURLtoFile } from "components/Chat/chatsFunctions";
-import {
-  GA_CLICK_EVENT_VALUES,
-  GA_EVENT_NAMES,
-  GA_PROGRAMMING_EVENT_VALUES,
-} from "utils/GAEvents";
-import { Sendevent } from "utils/functions";
 
 // Icons
 const CameraIcon = () => (
@@ -138,28 +132,28 @@ export default function AddStoryWidget({
   };
 
   const handleCameraClick = () => {
-    Sendevent({
-      event: GA_EVENT_NAMES.CLICK,
-      value: GA_CLICK_EVENT_VALUES.CHOOSE_CAMERA_FOR_ADD_STORY,
-    });
+    // Sendevent({
+    //   event: GA_EVENT_NAMES.CLICK,
+    //   value: GA_CLICK_EVENT_VALUES.CHOOSE_CAMERA_FOR_ADD_STORY,
+    // });
     // TODO: Integrate with existing camera component
     setOpenCamera(true);
     // onClose();
   };
 
   const handleFileClick = () => {
-    Sendevent({
-      event: GA_EVENT_NAMES.CLICK,
-      value: GA_CLICK_EVENT_VALUES.CHOOSE_GALLERY_FOR_ADD_STORY,
-    });
+    // Sendevent({
+    //   event: GA_EVENT_NAMES.CLICK,
+    //   value: GA_CLICK_EVENT_VALUES.CHOOSE_GALLERY_FOR_ADD_STORY,
+    // });
     document.querySelector<HTMLInputElement>("#stories-input-holder").click();
   };
 
   const handleClearPreview = () => {
-    Sendevent({
-      event: GA_EVENT_NAMES.CLICK,
-      value: GA_CLICK_EVENT_VALUES.CLEAR_MEDIA_SELECTION_FOR_ADD_STORY,
-    });
+    // Sendevent({
+    //   event: GA_EVENT_NAMES.CLICK,
+    //   value: GA_CLICK_EVENT_VALUES.CLEAR_MEDIA_SELECTION_FOR_ADD_STORY,
+    // });
     setPreview(null);
     setSelectedFile(null);
     // Reset file input value
@@ -196,10 +190,10 @@ export default function AddStoryWidget({
       link && !link.startsWith("http://") && !link.startsWith("https://")
         ? `https://${link}`
         : link;
-    Sendevent({
-      event: GA_EVENT_NAMES.CLICK,
-      value: GA_CLICK_EVENT_VALUES.CONFIRM_UPLOAD_STORY_BUTTON,
-    });
+    // Sendevent({
+    //   event: GA_EVENT_NAMES.CLICK,
+    //   value: GA_CLICK_EVENT_VALUES.CONFIRM_UPLOAD_STORY_BUTTON,
+    // });
     selectMedia({ media: selectedFile, link: finalLink });
     setPreview(null);
     setSelectedFile(null);
@@ -306,10 +300,10 @@ export default function AddStoryWidget({
                   onChange={handleLinkChange}
                   onBlur={() => {
                     if (link?.length > 0) {
-                      Sendevent({
-                        event: GA_EVENT_NAMES.PROGRAMMING_EVENT,
-                        value: GA_PROGRAMMING_EVENT_VALUES.ADD_LINK_TO_STORY,
-                      });
+                      // Sendevent({
+                      //   event: GA_EVENT_NAMES.PROGRAMMING_EVENT,
+                      //   value: GA_PROGRAMMING_EVENT_VALUES.ADD_LINK_TO_STORY,
+                      // });
                     }
                   }}
                   placeholder="Add link..."

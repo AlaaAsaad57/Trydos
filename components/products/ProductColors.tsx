@@ -2,11 +2,7 @@
 import ColorsIcon from "public/svg/product/colors.svg";
 import ColorsInfo from "public/svg/product/colorsInfo.svg";
 import React, { useEffect, useState } from "react";
-import {
-  getConfiguredImage,
-  Sendevent,
-  translateFunction,
-} from "utils/functions";
+import { getConfiguredImage, translateFunction } from "utils/functions";
 import "styles/listing.css";
 import SquareIcon from "public/svg/product/SquareIcon.svg";
 import {
@@ -21,7 +17,6 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import CircleBorder from "public/svg/product/CircleBorder";
 import NormalColorSlider from "./NormalColorSlider";
 import { useAppStore } from "store";
-import { GA_CLICK_EVENT_VALUES, GA_EVENT_NAMES } from "utils/GAEvents";
 
 function ProductColors({ colors, ProductColorsArray }) {
   const { setActiveColorDetails, showInfoMessage, product } = useAppStore();
@@ -66,10 +61,10 @@ function ProductColors({ colors, ProductColorsArray }) {
           data-cy="QuestionMark"
           style={{ marginLeft: "9px" }}
           onClick={() => {
-            Sendevent({
-              event: GA_EVENT_NAMES.CLICK,
-              value: GA_CLICK_EVENT_VALUES.SHOW_AVAILABLE_COLOR_INFO_MESSAGE,
-            });
+            // Sendevent({
+            //   event: GA_EVENT_NAMES.CLICK,
+            //   value: GA_CLICK_EVENT_VALUES.SHOW_AVAILABLE_COLOR_INFO_MESSAGE,
+            // });
             showInfoMessage({
               showInfoMessage: true,
               title: `Available ${colors.length} Color`,
@@ -119,10 +114,10 @@ function ProductColors({ colors, ProductColorsArray }) {
           slidesPerView={"auto"}
           threshold={1}
           onSlideChange={(e) => {
-            Sendevent({
-              event: GA_EVENT_NAMES.CLICK,
-              value: GA_CLICK_EVENT_VALUES.CHOOSE_AVAILABLE_COLOR_BUTTON,
-            });
+            // Sendevent({
+            //   event: GA_EVENT_NAMES.CLICK,
+            //   value: GA_CLICK_EVENT_VALUES.CHOOSE_AVAILABLE_COLOR_BUTTON,
+            // });
             const newParams = new URLSearchParams(searchParams);
             newParams.set("color", colors[e.activeIndex].color_name);
             router.push(pathname + `?${newParams.toString()}`, {

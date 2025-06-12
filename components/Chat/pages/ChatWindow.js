@@ -7,13 +7,13 @@ import CallList from "./CallList";
 import ArrowIcon from "../svg/arrow.svg";
 import ContactIcon from "../svg/contact.svg";
 import StoriesList from "./StoriesList";
-
+import CloseIcon from "../svg/cancel.svg";
 import ContactLists from "./ContactLists";
 import { getUserChat, translateFunction } from "utils/functions";
 import { setLastSeen } from "store/chat/actions";
 import { useAppStore } from "store";
 function ChatWindow(props) {
-  const { language, forwarded_message, setMain, setForwardMessage } =
+  const { language, forwarded_message, setMain, setForwardMessage, openChat } =
     useAppStore();
   const Tabs = ["Chats", "Calls", "Stories"];
   const [SelectedTab, setSelectedTab] = useState("Chats");
@@ -35,6 +35,19 @@ function ChatWindow(props) {
           props.setOpenContacts(true);
         }}
       />
+      <div
+        className="absolute cursor-pointer right-[20px] top-[19px] max-w-[20px] max-h-[20px]"
+        aria-label="close icon"
+        onClick={() => {
+          setForwardMessage(null);
+
+          props.close();
+          setMain("main");
+          openChat(null);
+        }}
+      >
+        <CloseIcon />
+      </div>
       <ChatWindowHeader
         openContact={props.open}
         search={props.search}

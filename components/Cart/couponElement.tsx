@@ -53,7 +53,8 @@ const CouponElement = ({ active, setActive, close }) => {
         },
       });
       localStorage.removeItem("coupon-number");
-      setCoupon(response.discount);
+
+      setCoupon(response?.data?.discount);
     } catch (err) {
       setError(err.message);
     } finally {

@@ -1299,7 +1299,7 @@ input[type="number"] {
   }
 
   .add-address-button {
-    bottom: calc(50px + env(safe-area-inset-bottom));
+    bottom: calc(80px + env(safe-area-inset-bottom));
   }
 
   .delete-button-address {
@@ -1320,7 +1320,7 @@ input[type="number"] {
   }
 
   .add-address-button {
-    bottom: calc(20px + env(safe-area-inset-bottom));
+    bottom: calc(80px + env(safe-area-inset-bottom));
   }
 }
 .add-address-button-m {

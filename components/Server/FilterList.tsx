@@ -107,6 +107,7 @@ const ActiveFiltersBar = ({
             : JSON.parse(decodeURIComponent(searchParams[key])),
       };
   }, {});
+
   const getItemData = ({ value, arr, key }) => {
     try {
       if (key) return arr.find((item) => item[key] === value);
@@ -437,7 +438,7 @@ const ActiveFiltersBar = ({
           <ActiveCategoryIcon style={{ height: "21px" }} />
           {
             <>
-              {activeFilters.prices.map((price, index) => (
+              {activeFilters?.prices.map((price, index) => (
                 <>
                   <div
                     className="category-title filter-bar-main-title"
@@ -479,6 +480,15 @@ const ActiveFiltersBar = ({
           </div>
         </>
       )}
+
+      {activeFilters?.tags_names?.map((tag, index) => (
+        <div
+          className="category-title filter-bar-main-title  text-[#467aff] ml-1 rounded-md bg-[#fafaf8] p-1"
+          key={index}
+        >
+          #{tag}
+        </div>
+      ))}
     </div>
   );
 };
