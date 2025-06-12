@@ -1,18 +1,18 @@
-import { ProductInterface } from "models/product";
+import { ProductInterface } from "models/Genaral/Product";
 
 export interface ComparePageComponentPropsType {
-    showInstantLoading?: boolean;
+  showInstantLoading?: boolean;
 }
 
 export interface SelectedOption {
-    label: string;
-    value: string;
-    images?: { file_path: string };
-    price?: number;
-  }
+  label: string;
+  value: string;
+  images?: { file_path: string };
+  price?: number;
+}
 
-  export interface compareFields {
-    key: string;
-    label: string;
-    render?: (product: ProductInterface) => React.ReactNode;
-  }
+export interface compareFields {
+  key: string;
+  label: string;
+  render?: (product: ProductInterface) => React.ReactNode;
+}

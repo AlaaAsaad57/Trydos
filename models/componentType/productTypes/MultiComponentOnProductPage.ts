@@ -1,29 +1,34 @@
-import { Color , Currency, ProductDataType, SyncColorImage } from "./productPagePropsType"
-import { ProductInterface } from "models/product"
+import {
+  Color,
+  Currency,
+  ProductDataType,
+  SyncColorImage,
+} from "./productPagePropsType";
+import { ProductInterface } from "models/Genaral/Product";
 export interface ProductColorsPropsType {
-    ProductColorsArray: Color[],
-    colors: SyncColorImage[]
+  ProductColorsArray: Color[];
+  colors: SyncColorImage[];
 }
 
 export interface CameraShotsPropsType {
-    images: string[]
+  images: string[];
 }
 
 export interface ProductStoriesPropsType {
-    id: number
+  id: number;
 }
 
 export interface ProductSizesPropsType {
-    sizes: any
+  sizes: any;
 }
 export interface ProductShippingOptionPropsType {
-    days: number
+  days: number;
 }
 
 export interface FreeShippingOptionPropsType {
-    lang: string
+  lang: string;
 }
 export interface ProductFooterSectionPropsType {
-    product: ProductInterface,
-    currency: Currency
+  product: ProductInterface;
+  currency: Currency;
 }
