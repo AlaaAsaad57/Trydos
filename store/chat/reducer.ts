@@ -4,7 +4,7 @@ import {
   PinnChat,
   Recive,
   deleteChat,
-  watchChannel,
+  watchChannel as watchChannelAction,
 } from "./actions";
 import { getMediaReducer } from "./actions";
 
@@ -572,7 +572,7 @@ export const useChatStore = (set, get) => ({
       (typeof payload === "string" && !payload.includes("ch")) ||
       typeof payload === "number"
     ) {
-      watchChannel(payload);
+      watchChannelAction(payload);
     }
 
     let newChats = [];
