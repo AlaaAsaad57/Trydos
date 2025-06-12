@@ -641,7 +641,9 @@ export const useChatStore = (set, get) => ({
       });
 
       set({
-        data: newChats,
+        data: state.data.find((s) => parseInt(s.id) === parseInt(id.toString()))
+          ? newChats
+          : state.data,
         activeChat: active?.id ? active : state.activeChat,
         newChats: state.newChats.filter(
           (a) => parseInt(a.id) !== parseInt(payload.toString())
