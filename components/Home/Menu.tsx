@@ -92,7 +92,9 @@ const Menu: React.FC<MenuProps> = ({ user, setMenuOpen }) => {
     localStorage.clear();
     const { messaging } = await import("utils/firebaseInitv1");
     const { deleteToken } = await import("firebase/messaging");
-    await deleteToken(messaging);
+    try {
+      await deleteToken(messaging);
+    } catch (error) {}
     changeToken({ key: "DEVICE-TOKEN", deleteOption: true });
     changeToken({ key: "MARKET-TOKEN", deleteOption: true });
     changeToken({ key: "token", deleteOption: true });
