@@ -4,6 +4,7 @@ import { AxiosGet } from "utils/AxiosApi";
 import { toast } from "react-toastify";
 import BackIcon from "public/svg/listing/backIcon.svg";
 import {
+  getCart,
   getConfiguredImage,
   RoundPrice,
   translateFunction,
@@ -39,7 +40,8 @@ function AddToCartComponent({
     searchParams.get("size"),
     searchParams.get("color"),
   ];
-  const { localCart, currency, setSelectedProductForCart } = useAppStore();
+  const { localCart, currency, setSelectedProductForCart, initCart } =
+    useAppStore();
   const { lang } = useParams();
   // @ts-ignore
   const [country, languageVariable] = lang?.split("-");
@@ -57,7 +59,7 @@ function AddToCartComponent({
     try {
       setLoading(true);
 
-      let [data1, data2] = await Promise.all([
+      let [data1, data2, data3] = await Promise.all([
         AxiosGet({
           url:
             process.env.NEXT_PUBLIC_BACKEND_URL +
@@ -69,6 +71,11 @@ function AddToCartComponent({
             process.env.NEXT_PUBLIC_BACKEND_URL +
             `/web/product/likesCommentsSharesDetails/${slug}`,
           title: "GEt Product Variants Notifications",
+        }),
+        getCart({
+          callback: ([data]) => {
+            initCart(data ?? { cart: [] });
+          },
         }),
       ]);
       let variants_arr = data1.variation;

@@ -19,6 +19,10 @@ export const GA_EVENT_NAMES = {
   CANCEL_SIGNUP: "cancel_signup",
   LATER_TAKE_LOOK_CLICKED: "later_take_look_clicked",
   TERMS_SERVICES: "terms_services",
+  ADD_TO_CART: "add_to_cart",
+  REMOVE_FROM_CART: "remove_from_cart",
+  VIEW_CART: "view_cart",
+  BEGIN_CHECKOUT: "begin_checkout",
 };
 
 export const GA_AUTH_SCREEN = {
