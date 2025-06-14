@@ -111,7 +111,6 @@ const ActiveFiltersBar = ({
   const getItemData = ({ value, arr, key, isCategory = false }) => {
     let selected_filters_array = arr;
     if (isCategory) {
-      console.log(selected_filters_array);
       selected_filters_array?.map((category) => {
         category?.childes?.map((child_category) => {
           selected_filters_array?.push(child_category);
