@@ -231,7 +231,7 @@ export default async function Page({
     hasOfferCatalog: {
       "@type": "OfferCatalog",
       name: "Product Listing",
-      itemListElement: filtersData.products.map((product) => ({
+      itemListElement: filtersData?.products?.map((product) => ({
         "@type": "Product",
         name: product.name,
         image: product?.images?.[0]?.file_path,
