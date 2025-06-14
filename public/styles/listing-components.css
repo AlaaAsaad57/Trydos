@@ -218,8 +218,7 @@
 }
 .home-navbar,
 .filter-listing-bar,
-.boutique-top-info,
-.boutique-photo-holder .offer-slider-container {
+.boutique-top-info {
   transition: 1s;
 }
 @keyframes move {
