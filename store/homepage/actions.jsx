@@ -58,7 +58,7 @@ export const GetUnviewedStory = (story) => {
       localStorage.getItem("USER-STORIES") &&
       JSON.parse(localStorage.getItem("USER-STORIES"))?.id === story.id
     )
-      return 0;
+      return story.stories.length - 1;
   }
   let index = 0;
   let unseen = [];

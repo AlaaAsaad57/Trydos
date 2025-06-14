@@ -380,7 +380,7 @@ class AuthService {
     );
   }
   async ExpiredUser() {
-    if (this.getUser()?.phone)
+    if (this.getUser()?.phone?.length > 2)
       localStorage.setItem("has-phone", this.getUser()?.phone);
     await home.registerForExpire(this.UserID());
     this.cancelAuth();

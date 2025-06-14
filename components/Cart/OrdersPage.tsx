@@ -20,6 +20,7 @@ import Spinner from "components/global/Spinner";
 import LocalizationServiceClass from "services/localization";
 import { useAppStore } from "store";
 import { GA_EVENT_NAMES } from "utils/GAEvents";
+import home from "services/home";
 
 const DeleteIcon = () => {
   return (
@@ -793,6 +794,7 @@ const OrderButtons = ({ orderLoading, setNext, setPrev }) => {
     total_cash,
     total,
     cart,
+    userProfile,
   } = useAppStore();
   const shake = (v) => {
     if (document.querySelector(`.${v}`)) {
@@ -867,6 +869,13 @@ const OrderButtons = ({ orderLoading, setNext, setPrev }) => {
         },
       })
     ).cart;
+    await home.getCustomerInfo();
+    if (userProfile.is_phone_verified === 0) {
+      setPrev();
+      setLoading(false);
+      toast.info(translateFunction("Please Verify Your Phone Number"));
+      return null;
+    }
     if (a.length === 0) {
       setPrev();
     }
@@ -880,7 +889,9 @@ const OrderButtons = ({ orderLoading, setNext, setPrev }) => {
     ) {
       setNext();
     } else {
-      toast.error("Please Review Your Cart Some Products Not Available");
+      toast.error(
+        translateFunction("Please Review Your Cart Some Products Not Available")
+      );
       setPrev();
     }
     setLoading(false);
