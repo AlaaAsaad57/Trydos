@@ -161,6 +161,7 @@ function ChangeOrderItem({ item, backToMain, setShouldConfirmChange }) {
           if (s.isExist) {
             return (
               <div
+                key={s.name}
                 className="flex-row flex-1 basis-0 text-center rounded-[20px] items-center justify-center h-[50px] text-[14px] medium text-[#1D1D1D]"
                 style={{
                   border: tabs === s.name ? "1px solid #402CDD80" : "none",
