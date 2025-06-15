@@ -194,8 +194,9 @@ const UploadImageComponent = ({ images, setImages }) => {
       >
         {images.length > 0 && (
           <div className="flex-row gap-[3px]">
-            {images.map((s) => (
+            {images.map((s, i) => (
               <div
+                key={i}
                 className="flex-row items-center justify-center relative cursor-pointer order-return-item-image"
                 onClick={(e) => {
                   e.stopPropagation();
