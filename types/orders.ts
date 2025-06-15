@@ -71,6 +71,7 @@ export interface OrderDetail {
   order_id: number;
   product_id: number;
   product_slug: string;
+  is_returned?: boolean;
   image: string;
   order_status: string;
   product_details: {

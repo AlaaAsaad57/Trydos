@@ -6,10 +6,6 @@ import FirebasIcon from "public/svg/FireBase.svg";
 import MailIcon from "public/svg/mail.svg";
 import WhatsIcon from "public/svg/whatsappNotification.svg";
 import CalenderIcon from "public/svg/CalenderIcon.svg";
-import UserIcon from "public/svg/user.svg";
-
-import PhoneIcon from "public/svg/phone.svg";
-
 import home from "services/home";
 import NotificationsTest from "components/global/NotificationsTest";
 
@@ -48,21 +44,12 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, lang }) => {
   const [topics, setTopics] = useState<string[]>([]);
   const [fbSettings, setFBSetting] = useState(null);
   const [unsubscribedTopics, setUnsubscribedTopics] = useState<string[]>([]);
-  const [validationErrors, setValidationErrors] = useState<ValidationErrors>(
-    {}
-  );
-  const [isGuestUser, setIsGuestUser] = useState(false);
-  const [isAuthenticatedUser, setIsAuthenticatedUser] = useState(false);
-  const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
-  const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   // Handle mounting and localStorage access
   useEffect(() => {
     setMounted(true);
     const guestUser = localStorage.getItem("guest-user");
     const authenticatedUser = localStorage.getItem("USER");
-    setIsGuestUser(!!guestUser);
-    setIsAuthenticatedUser(!!authenticatedUser);
 
     // Set initial tab from hash if mounted
     const hash = window.location.hash.slice(1) as
@@ -81,7 +68,6 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, lang }) => {
         email: userData.email || "",
         phone: userData.phone || "",
       });
-      setProfilePhoto(userData.photo || null);
     }
   }, []);
 
@@ -106,104 +92,6 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, lang }) => {
     if (!mounted) return;
     setActiveTab(tab);
     window.location.hash = tab;
-  };
-
-  const validateField = (field: keyof ProfileData, value: string): string => {
-    switch (field) {
-      case "name":
-        if (!value.trim())
-          return translateFunction(
-            "Name is required",
-            Array.isArray(lang) ? lang[0] : lang.split("-")[1]
-          );
-        if (value.length < 2)
-          return translateFunction(
-            "Name must be at least 2 characters",
-            Array.isArray(lang) ? lang[0] : lang.split("-")[1]
-          );
-        if (value.length > 50)
-          return translateFunction(
-            "Name must be less than 50 characters",
-            Array.isArray(lang) ? lang[0] : lang.split("-")[1]
-          );
-        return "";
-
-      case "email":
-        if (!value.trim())
-          return translateFunction(
-            "Email is required",
-            Array.isArray(lang) ? lang[0] : lang.split("-")[1]
-          );
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(value))
-          return translateFunction(
-            "Please enter a valid email address",
-            Array.isArray(lang) ? lang[0] : lang.split("-")[1]
-          );
-        return "";
-
-      case "phone":
-        if (!value.trim())
-          return translateFunction(
-            "Phone number is required",
-            Array.isArray(lang) ? lang[0] : lang.split("-")[1]
-          );
-        const phoneRegex = /^\+?[\d\s-]{10,}$/;
-        if (!phoneRegex.test(value))
-          return translateFunction(
-            "Please enter a valid phone number",
-            Array.isArray(lang) ? lang[0] : lang.split("-")[1]
-          );
-        return "";
-
-      default:
-        return "";
-    }
-  };
-
-  const handleEdit = (field: keyof ProfileData) => {
-    setIsEditing(field);
-    setEditValue(profileData[field]);
-    setValidationErrors({}); // Clear errors when starting to edit
-  };
-
-  const handleSave = async (field: keyof ProfileData) => {
-    const error = validateField(field, editValue);
-    if (error) {
-      setValidationErrors({ [field]: error });
-      return;
-    }
-
-    if (!loading) {
-      setLoading(true);
-      try {
-        const endpoint = "/customer/update-profile";
-        await AxiosPost({
-          url: process.env.NEXT_PUBLIC_BACKEND_URL + `/${endpoint}`,
-          body: { [field]: editValue },
-          title: `Update ${field}`,
-        });
-
-        // Update local storage
-        // @ts-ignore
-        const userData = JSON.parse(isGuestUser || isAuthenticatedUser || "{}");
-        userData[field] = editValue;
-        localStorage.setItem(
-          isGuestUser ? "guest-user" : "USER",
-          JSON.stringify(userData)
-        );
-
-        // Update state
-        setProfileData((prev) => ({ ...prev, [field]: editValue }));
-        setIsEditing(null);
-        setValidationErrors({}); // Clear errors on successful save
-      } catch (error) {
-        console.error(`Error updating ${field}:`, error);
-        setValidationErrors({ [field]: "Failed to update. Please try again." });
-      } finally {
-        setLoading(false);
-      }
-    }
   };
 
   const InitTopics = async () => {
@@ -332,95 +220,6 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, lang }) => {
   const [SelectValue, setSelectValue] = useState(
     fbSettings?.notification_frequency || ""
   );
-
-  const getFieldIcon = (field: keyof ProfileData) => {
-    switch (field) {
-      case "name":
-        return <UserIcon className="h-5 w-5" />;
-      case "email":
-        return <MailIcon className="h-5 w-5" />;
-      case "phone":
-        return <PhoneIcon className="h-5 w-5" />;
-      default:
-        return null;
-    }
-  };
-
-  const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    // Validate file type
-    if (!file.type.startsWith("image/")) {
-      alert(
-        translateFunction(
-          "Please upload an image file",
-          Array.isArray(lang) ? lang[0] : lang.split("-")[1]
-        )
-      );
-      return;
-    }
-
-    // Validate file size (max 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      alert(
-        translateFunction(
-          "File size should be less than 5MB",
-          Array.isArray(lang) ? lang[0] : lang.split("-")[1]
-        )
-      );
-      return;
-    }
-
-    try {
-      setLoading(true);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const base64String = reader.result as string;
-        setProfilePhoto(base64String);
-
-        // Update local storage
-        const userData = JSON.parse(
-          isGuestUser
-            ? localStorage.getItem("guest-user") || "{}"
-            : localStorage.getItem("USER") || "{}"
-        );
-        userData.photo = base64String;
-        localStorage.setItem(
-          isGuestUser ? "guest-user" : "USER",
-          JSON.stringify(userData)
-        );
-      };
-      reader.readAsDataURL(file);
-
-      // Here you would typically upload the file to your server
-      // await uploadPhotoToServer(file);
-    } catch (error) {
-      console.error("Error uploading photo:", error);
-      alert(
-        translateFunction(
-          "Failed to upload photo",
-          Array.isArray(lang) ? lang[0] : lang.split("-")[1]
-        )
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleRemovePhoto = () => {
-    setProfilePhoto(null);
-    const userData = JSON.parse(
-      isGuestUser
-        ? localStorage.getItem("guest-user") || "{}"
-        : localStorage.getItem("USER") || "{}"
-    );
-    delete userData.photo;
-    localStorage.setItem(
-      isGuestUser ? "guest-user" : "USER",
-      JSON.stringify(userData)
-    );
-  };
 
   return (
     <div

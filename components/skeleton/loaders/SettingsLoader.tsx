@@ -19,7 +19,7 @@ const options = [
   { name: "Share App", Icon: <ShareAppIcon /> },
 ];
 function SettingsLoader() {
-  const { userProfile, totalOrders, wallet, currency } = useAppStore();
+  const { userProfile, totalOrders } = useAppStore();
   return (
     <div
       style={{

@@ -8,14 +8,55 @@ import ChangeAddressWidget from "./ChangeAddressWidget";
 import { useAppStore } from "store";
 import ModifyOrderWidget from "./ModifyOrderWidget";
 import CancelOrderConfirmation from "./CancelOrderConfirmation";
+import OrderItemOptionsModal from "./OrderItemOptionsModal";
+import ReturnOrderItemConfirmation from "./ReturnOrderItemConfirmation";
 function OrderOptions({ closeOptions, CancelOrder }) {
-  const { selectedOrder } = useAppStore();
+  const {
+    selectedOrder,
+    SelectedOrderItem,
+    setSelectedOrderItem,
+    setOrderDetails,
+  } = useAppStore();
   const [screen, setScreen] = useState<
     "options" | "changeAddress" | "modifyOrder"
   >("options");
   const [canceled, setCanceled] = useState(false);
+
   const [shouldConfirmCancel, setShouldConfirmCancel] = useState(false);
+  const [shouldConfirmReturn, setShouldConfirmReturn] = useState(false);
   const renderScreen = () => {
+    if (SelectedOrderItem) {
+      return (
+        <>
+          {shouldConfirmReturn && (
+            <ReturnOrderItemConfirmation
+              close={() => {
+                closeOptions();
+                setShouldConfirmReturn(false);
+                let details_arry = [];
+                selectedOrder.details.map((s) => {
+                  if (s.id === SelectedOrderItem.id) {
+                    details_arry.push({ ...s, is_returned: true });
+                  } else {
+                    details_arry.push(s);
+                  }
+                });
+                setOrderDetails({ ...selectedOrder, details: details_arry });
+              }}
+              setShouldConfirmReturn={setShouldConfirmReturn}
+            />
+          )}
+          <OrderItemOptionsModal
+            close={() => {
+              closeOptions();
+              setSelectedOrderItem(null);
+            }}
+            setShouldConfirmReturn={setShouldConfirmReturn}
+            item={SelectedOrderItem}
+          />
+        </>
+      );
+    }
     if (screen === "options") {
       return (
         <>
@@ -129,6 +170,7 @@ function OrderOptions({ closeOptions, CancelOrder }) {
         onClick={() => {
           closeOptions();
           setScreen("options");
+          setSelectedOrderItem(null);
         }}
       />
       {renderScreen()}

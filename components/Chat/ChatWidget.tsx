@@ -1,7 +1,5 @@
 import React, { useEffect } from "react";
 
-import { Channel } from "models/Genaral/Channel";
-
 import ConversationContainer from "./pages/ConversationContainer";
 import { useAppStore } from "store";
 

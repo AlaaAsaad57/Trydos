@@ -9,7 +9,11 @@ import OrderStatusCard from "./cards/OrderStatusCard";
 import OrderAddressCard from "./cards/OrderAddressCard";
 import OrderItemsList from "./cards/OrderItemsList";
 import { OrderDetail, OrderItem } from "types/orders";
-import { RoundPrice, translateFunction } from "utils/functions";
+import {
+  getConfiguredImage,
+  RoundPrice,
+  translateFunction,
+} from "utils/functions";
 import { useAppStore } from "store";
 import NextLink from "components/global/NextLink";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
@@ -21,7 +25,14 @@ import order from "services/order";
 import OrderChatIcon from "./OrderChatIcon";
 import { usePathname } from "next/navigation";
 import { Channel } from "models/Genaral/Channel";
-import ChatWidget from "components/Chat/ChatWidget";
+import dynamic from "next/dynamic";
+
+const ChatWidget = dynamic(() => import("components/Chat/ChatWidget"), {
+  ssr: false,
+});
+import OptionsIcon from "public/svg/OptionsIcon.svg";
+import OrderRetailsReturnInfo from "components/Orders/OrderRetailsReturnInfo";
+import RatingOrderItem from "components/Orders/RatingOrderItem";
 
 function OrderDetails({
   resetOrderDetails,
@@ -79,6 +90,9 @@ function OrderDetails({
     router.push(`${pathname}?${params.toString()}`, { shallow: true });
   };
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isReturnOrderOpen, setIsReturnOrderOpen] = useState<
+    boolean | OrderDetail
+  >(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [chatInfo, setChatInfo] = useState<Channel | null>(null);
   useEffect(() => {
@@ -363,207 +377,237 @@ const ProductCard = ({
   product: OrderDetail;
   status: string;
 }) => {
-  const { currency, settings } = useAppStore();
+  const { currency, setSelectedOrderItem } = useAppStore();
   const { lang } = useParams();
-  return (
-    <NextLink
-      href={`/${lang}/products/${product.product_slug}`}
-      data={{ is_product: true, ...product.product_details }}
-      className="flex-row relative w-full border-t border-[#C4C2C27f] py-[12px]"
-    >
-      <div className="flex-row  relative">
-        <div
-          className="absolute top-0 z-10 right-0 w-full h-full "
-          style={{
-            boxShadow: "inset 0px 3px 6px rgba(255, 255, 255, 0.5)",
-          }}
-        />
-        <img
-          className="w-[104px] h-[144px] rounded-[15px]"
-          src={product.image}
-          alt={product.product_details.name}
-        />
-      </div>
-      <div className="flex  flex-col items-start mt-[10px] ml-[12px] regular text-[12px] text-[#8D8D8D]">
-        <span className="w-[70px] h-[10px] bg-[#C4C2C27f]"></span>
-        <span className="text-[#505050] text-[12px] regular mt-[3px]">
-          {product.product_details.name}
-        </span>
-        <div className="flex-row justify-between w-full">
-          {product?.variation?.color && (
-            <div className="flex-row">
-              <span className="text-[10px] regular">
-                {translateFunction("Color")}:
-              </span>
-              <span className="text-[#505050] text-[10px] medium ml-[2px]">
-                {product.variation?.color}
-              </span>
-            </div>
-          )}
-          {product?.variation?.Size && (
-            <div className="flex-row ml-[40px]">
-              <span className="text-[10px] regular">
-                {translateFunction("Size")}:
-              </span>
-              <span className="text-[#505050] text-[10px] medium ml-[2px]">
-                {product.variation?.Size}
-              </span>
-            </div>
-          )}
-        </div>
-        <div className="flex-row justify-between w-full">
-          <div className="flex-row">
-            <span className="text-[10px] regular">
-              {translateFunction("Composed Of")}:
-            </span>
-            <span className="text-[#505050] text-[10px] medium ml-[2px]">
-              {product?.product_details?.count_of_pieces}{" "}
-              {translateFunction("Pieces")}
-            </span>
-          </div>
 
-          <div className="flex-row ml-[40px]">
-            <span className="text-[10px] regular">
-              {translateFunction("Item")}:
-            </span>
-            <span className="text-[#505050] text-[10px] medium ml-[2px]">
-              {product.qty}
-            </span>
-          </div>
-        </div>
-        <div className="flex-row justify-between w-full">
-          <div className="flex-row">
-            <span className="text-[10px] regular">
-              {translateFunction("Item Status")}:
-            </span>
-            <span className="text-[#505050] text-[10px] medium ml-[2px]">
-              {product?.order_status ?? status}
-            </span>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              xmlnsXlink="http://www.w3.org/1999/xlink"
-              width="13"
-              height="13"
-              className="ml-[12px]"
-              viewBox="0 0 13 13"
-            >
-              <defs>
-                <clipPath id="clip-path927">
-                  <rect
-                    id="Rectangle_6210"
-                    data-name="Rectangle 6210"
-                    width="13"
-                    height="13"
-                    transform="translate(0 0.35)"
-                    fill="none"
-                  />
-                </clipPath>
-              </defs>
-              <g
-                id="Mask_Group_725"
-                data-name="Mask Group 725"
-                transform="translate(0 -0.35)"
-                clipPath="url(#clip-path927)"
-              >
-                <g id="work" transform="translate(0 0.259)">
-                  <path
-                    id="Path_23062"
-                    data-name="Path 23062"
-                    d="M4.739,10.128v4.447H6.813V11.908h3.716v2.667H10.8V11.908h3.183v-1.78Z"
-                    transform="translate(-1.316 -2.383)"
-                    fill="#505050"
-                  />
-                  <path
-                    id="Path_23063"
-                    data-name="Path 23063"
-                    d="M12.173,8.75H14.7v.76h-2.53Z"
-                    transform="translate(-3.381 -2.001)"
-                    fill="#505050"
-                  />
-                  <path
-                    id="Path_23064"
-                    data-name="Path 23064"
-                    d="M12.416,7.484h2.53v.761h-2.53Z"
-                    transform="translate(-3.449 -1.649)"
-                    fill="#505050"
-                  />
-                  <path
-                    id="Path_23065"
-                    data-name="Path 23065"
-                    d="M6.376,4.47l.263.171.255-.1a.436.436,0,0,1,.157-.029.437.437,0,0,1,.385.646l.12.078H8.9l.017-.026L6.791,3.832Z"
-                    transform="translate(-1.771 -0.635)"
-                    fill="#505050"
-                  />
-                  <path
-                    id="Path_23066"
-                    data-name="Path 23066"
-                    d="M11.2,12.868H9.929v1.326l-.144-.1-.131.1-.122-.1-.14.1-.137-.1-.094.1V12.868H7.886v2.759H11.2Z"
-                    transform="translate(-2.19 -3.145)"
-                    fill="#505050"
-                  />
-                  <path
-                    id="Path_23067"
-                    data-name="Path 23067"
-                    d="M13.406,15.627h3.318V12.868H15.448v1.326l-.144-.1-.131.1-.122-.1-.14.1-.137-.1-.094.1V12.868H13.406Z"
-                    transform="translate(-3.724 -3.145)"
-                    fill="#505050"
-                  />
-                  <path
-                    id="Path_23068"
-                    data-name="Path 23068"
-                    d="M1.78,12.284a.5.5,0,0,0,.453.538l.043,0a.5.5,0,0,0,.495-.455l.251-2.91h0a.5.5,0,0,0,0-.059s0-.007,0-.011,0-.032,0-.047,0-.005,0-.008L2.655,7.2a5.553,5.553,0,0,1,.117-1.882L1.912,4.4a.438.438,0,0,1,.319-.738.439.439,0,0,1,.319.138l.811.861.155.124a.323.323,0,0,0,.371.023l.823-.5h0l.539-.83.561.365,0-.007A.323.323,0,0,0,5.673,3.4l-.227-.118a.323.323,0,0,0-.318.011L3.741,4.14,2.648,3.266a.322.322,0,0,0-.093-.052.8.8,0,0,0-1.184.578c-.195.656.466.976-.318,2.686a1.106,1.106,0,0,0-.106.38.494.494,0,0,0,.032.3L2.019,9.5Z"
-                    transform="translate(-0.26 -0.435)"
-                    fill="#505050"
-                  />
-                  <path
-                    id="Path_23069"
-                    data-name="Path 23069"
-                    d="M1.51,1.2a1.189,1.189,0,0,1,.036-.174c-.382.04-.83.239-.9,1.085s-.366.932-.589.9.278.453.86-.035c.448-.376.27-1.325.588-1.56A1.185,1.185,0,0,1,1.51,1.2Z"
-                    transform="translate(0 0.145)"
-                    fill="#505050"
-                  />
-                  <circle
-                    id="Ellipse_544"
-                    data-name="Ellipse 544"
-                    cx="1.069"
-                    cy="1.069"
-                    r="1.069"
-                    transform="translate(1.184 1.303) rotate(-37.523)"
-                    fill="#505050"
-                  />
-                  <path
-                    id="Path_23070"
-                    data-name="Path 23070"
-                    d="M6.954,5.983l-.886.342L5.707,8.063,5.9,8.1l.243-1.17V8.742H9.461V6.934L9.7,8.1l.193-.04-.432-2.08H6.954Z"
-                    transform="translate(-1.585 -1.232)"
-                    fill="#505050"
-                  />
-                  <path
-                    id="Path_23071"
-                    data-name="Path 23071"
-                    d="M6.03,5.308A.323.323,0,1,0,5.8,4.7L4.02,5.391,2.839,4.136a.323.323,0,1,0-.471.443L3.7,5.992a.323.323,0,0,0,.352.08Z"
-                    transform="translate(-0.633 -0.691)"
-                    fill="#505050"
-                  />
-                </g>
-              </g>
-            </svg>
-          </div>
-        </div>
-      </div>
-      <div className="flex-row absolute left-[116px] bottom-[24px] items-center">
-        {product.price_after_discount >= 0 && (
-          <div className="line-through text-[#C4C2C2] regular text-[12px]  line-through-[#C4C2C2]">
-            {RoundPrice({ num: product.price })}
-          </div>
-        )}
-        <div className="text-[#1D1D1D] text-[12px] ml-[4px] bold">
-          {RoundPrice({ num: product.price_after_discount })}
-        </div>
-        <span className="text-[#1D1D1D] light text-[10px] ml-[4px]">
-          {currency?.symbol}
+  return (
+    <>
+      <div className={`relative w-full flex-col`}>
+        <span
+          className="absolute top-[22px] right-[0px]"
+          onClick={() => {
+            document.documentElement.style.overflow = "hidden";
+            document.documentElement.scrollTop = 0;
+            document.querySelector("#OrderDetails").scrollTop = 0;
+            document
+              .querySelector("#OrderDetails")
+              .classList.add("overflow-hidden");
+            document
+              .querySelector("#OrderDetails")
+              .classList.remove("overflow-auto");
+            setSelectedOrderItem(product);
+          }}
+        >
+          <OptionsIcon />
         </span>
+
+        <NextLink
+          href={`/${lang}/products/${product.product_slug}`}
+          data={{ is_product: true, ...product.product_details }}
+          className="flex-row  w-full border-t border-[#C4C2C27f] py-[12px]"
+        >
+          <div className="flex-row  relative">
+            <div
+              className="absolute top-0 z-10 right-0 w-full h-full "
+              style={{
+                boxShadow: "inset 0px 3px 6px rgba(255, 255, 255, 0.5)",
+              }}
+            />
+            <img
+              className="w-[104px] h-[144px] rounded-[15px]"
+              src={getConfiguredImage({
+                src: product.image,
+                width: 104,
+                height: 144,
+                q: 100,
+              })}
+              alt={product.product_details.name}
+            />
+          </div>
+          <div className="flex  flex-col items-start mt-[10px] ml-[12px] regular text-[12px] text-[#8D8D8D]">
+            <span className="w-[70px] h-[10px] bg-[#C4C2C27f]"></span>
+            <span className="text-[#505050] text-[12px] regular mt-[3px]">
+              {product.product_details.name}
+            </span>
+            <div className="flex-row justify-between w-full">
+              {product?.variation?.color && (
+                <div className="flex-row">
+                  <span className="text-[10px] regular">
+                    {translateFunction("Color")}:
+                  </span>
+                  <span className="text-[#505050] text-[10px] medium ml-[2px]">
+                    {product.variation?.color}
+                  </span>
+                </div>
+              )}
+              {product?.variation?.Size && (
+                <div className="flex-row ml-[40px]">
+                  <span className="text-[10px] regular">
+                    {translateFunction("Size")}:
+                  </span>
+                  <span className="text-[#505050] text-[10px] medium ml-[2px]">
+                    {product.variation?.Size}
+                  </span>
+                </div>
+              )}
+            </div>
+            <div className="flex-row justify-between w-full">
+              <div className="flex-row">
+                <span className="text-[10px] regular">
+                  {translateFunction("Composed Of")}:
+                </span>
+                <span className="text-[#505050] text-[10px] medium ml-[2px]">
+                  {product?.product_details?.count_of_pieces}{" "}
+                  {translateFunction("Pieces")}
+                </span>
+              </div>
+
+              <div className="flex-row ml-[40px]">
+                <span className="text-[10px] regular">
+                  {translateFunction("Item")}:
+                </span>
+                <span className="text-[#505050] text-[10px] medium ml-[2px]">
+                  {product.qty}
+                </span>
+              </div>
+            </div>
+            <div className="flex-row justify-between w-full">
+              <div className="flex-row">
+                <span className="text-[10px] regular">
+                  {translateFunction("Item Status")}:
+                </span>
+                <span className="text-[#505050] text-[10px] medium ml-[2px]">
+                  {product?.order_status ?? status}
+                </span>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  xmlnsXlink="http://www.w3.org/1999/xlink"
+                  width="13"
+                  height="13"
+                  className="ml-[12px]"
+                  viewBox="0 0 13 13"
+                >
+                  <defs>
+                    <clipPath id="clip-path927">
+                      <rect
+                        id="Rectangle_6210"
+                        data-name="Rectangle 6210"
+                        width="13"
+                        height="13"
+                        transform="translate(0 0.35)"
+                        fill="none"
+                      />
+                    </clipPath>
+                  </defs>
+                  <g
+                    id="Mask_Group_725"
+                    data-name="Mask Group 725"
+                    transform="translate(0 -0.35)"
+                    clipPath="url(#clip-path927)"
+                  >
+                    <g id="work" transform="translate(0 0.259)">
+                      <path
+                        id="Path_23062"
+                        data-name="Path 23062"
+                        d="M4.739,10.128v4.447H6.813V11.908h3.716v2.667H10.8V11.908h3.183v-1.78Z"
+                        transform="translate(-1.316 -2.383)"
+                        fill="#505050"
+                      />
+                      <path
+                        id="Path_23063"
+                        data-name="Path 23063"
+                        d="M12.173,8.75H14.7v.76h-2.53Z"
+                        transform="translate(-3.381 -2.001)"
+                        fill="#505050"
+                      />
+                      <path
+                        id="Path_23064"
+                        data-name="Path 23064"
+                        d="M12.416,7.484h2.53v.761h-2.53Z"
+                        transform="translate(-3.449 -1.649)"
+                        fill="#505050"
+                      />
+                      <path
+                        id="Path_23065"
+                        data-name="Path 23065"
+                        d="M6.376,4.47l.263.171.255-.1a.436.436,0,0,1,.157-.029.437.437,0,0,1,.385.646l.12.078H8.9l.017-.026L6.791,3.832Z"
+                        transform="translate(-1.771 -0.635)"
+                        fill="#505050"
+                      />
+                      <path
+                        id="Path_23066"
+                        data-name="Path 23066"
+                        d="M11.2,12.868H9.929v1.326l-.144-.1-.131.1-.122-.1-.14.1-.137-.1-.094.1V12.868H7.886v2.759H11.2Z"
+                        transform="translate(-2.19 -3.145)"
+                        fill="#505050"
+                      />
+                      <path
+                        id="Path_23067"
+                        data-name="Path 23067"
+                        d="M13.406,15.627h3.318V12.868H15.448v1.326l-.144-.1-.131.1-.122-.1-.14.1-.137-.1-.094.1V12.868H13.406Z"
+                        transform="translate(-3.724 -3.145)"
+                        fill="#505050"
+                      />
+                      <path
+                        id="Path_23068"
+                        data-name="Path 23068"
+                        d="M1.78,12.284a.5.5,0,0,0,.453.538l.043,0a.5.5,0,0,0,.495-.455l.251-2.91h0a.5.5,0,0,0,0-.059s0-.007,0-.011,0-.032,0-.047,0-.005,0-.008L2.655,7.2a5.553,5.553,0,0,1,.117-1.882L1.912,4.4a.438.438,0,0,1,.319-.738.439.439,0,0,1,.319.138l.811.861.155.124a.323.323,0,0,0,.371.023l.823-.5h0l.539-.83.561.365,0-.007A.323.323,0,0,0,5.673,3.4l-.227-.118a.323.323,0,0,0-.318.011L3.741,4.14,2.648,3.266a.322.322,0,0,0-.093-.052.8.8,0,0,0-1.184.578c-.195.656.466.976-.318,2.686a1.106,1.106,0,0,0-.106.38.494.494,0,0,0,.032.3L2.019,9.5Z"
+                        transform="translate(-0.26 -0.435)"
+                        fill="#505050"
+                      />
+                      <path
+                        id="Path_23069"
+                        data-name="Path 23069"
+                        d="M1.51,1.2a1.189,1.189,0,0,1,.036-.174c-.382.04-.83.239-.9,1.085s-.366.932-.589.9.278.453.86-.035c.448-.376.27-1.325.588-1.56A1.185,1.185,0,0,1,1.51,1.2Z"
+                        transform="translate(0 0.145)"
+                        fill="#505050"
+                      />
+                      <circle
+                        id="Ellipse_544"
+                        data-name="Ellipse 544"
+                        cx="1.069"
+                        cy="1.069"
+                        r="1.069"
+                        transform="translate(1.184 1.303) rotate(-37.523)"
+                        fill="#505050"
+                      />
+                      <path
+                        id="Path_23070"
+                        data-name="Path 23070"
+                        d="M6.954,5.983l-.886.342L5.707,8.063,5.9,8.1l.243-1.17V8.742H9.461V6.934L9.7,8.1l.193-.04-.432-2.08H6.954Z"
+                        transform="translate(-1.585 -1.232)"
+                        fill="#505050"
+                      />
+                      <path
+                        id="Path_23071"
+                        data-name="Path 23071"
+                        d="M6.03,5.308A.323.323,0,1,0,5.8,4.7L4.02,5.391,2.839,4.136a.323.323,0,1,0-.471.443L3.7,5.992a.323.323,0,0,0,.352.08Z"
+                        transform="translate(-0.633 -0.691)"
+                        fill="#505050"
+                      />
+                    </g>
+                  </g>
+                </svg>
+              </div>
+            </div>
+            <div className="flex-row  items-center">
+              {product.price_after_discount >= 0 && (
+                <div className="line-through text-[#C4C2C2] regular text-[12px]  line-through-[#C4C2C2]">
+                  {RoundPrice({ num: product.price })}
+                </div>
+              )}
+              <div className="text-[#1D1D1D] text-[12px] ml-[4px] bold">
+                {RoundPrice({ num: product.price_after_discount })}
+              </div>
+              <span className="text-[#1D1D1D] light text-[10px] ml-[4px]">
+                {currency?.symbol}
+              </span>
+            </div>
+          </div>
+        </NextLink>
+        {!product.is_returned && <RatingOrderItem />}
+        {product.is_returned && <OrderRetailsReturnInfo product={product} />}
       </div>
-    </NextLink>
+    </>
   );
 };
