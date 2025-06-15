@@ -200,7 +200,7 @@ export const ModifyOrderItemModal = ({
     </div>
   );
 };
-const ColorList = ({ colors, setColor, currentColor, newColor }) => {
+export const ColorList = ({ colors, setColor, currentColor, newColor }) => {
   const isActive = (name) => {
     if (!newColor) return name?.toLowerCase() === currentColor?.toLowerCase();
     else if (newColor?.toLowerCase() === name?.toLowerCase()) return true;
@@ -208,7 +208,7 @@ const ColorList = ({ colors, setColor, currentColor, newColor }) => {
   };
   return (
     <HortiznalScrollBar
-      className="w-full h-[98px] flex-row gap-[10px]"
+      className="w-full h-[98px] flex-row gap-[10px] mt-[1px]"
       id="color-list-container"
     >
       {colors?.map((s) => (
@@ -222,16 +222,18 @@ const ColorList = ({ colors, setColor, currentColor, newColor }) => {
           <img
             style={{
               border: isActive(s?.color_name)
-                ? "1px solid #402CDD80"
-                : "1px solid #ffffff80",
+                ? "1px solid #402CDDef"
+                : "1px solid #ffffffef",
             }}
-            className="w-[70px] h-[70px] object-cover rounded-full"
+            className="min-w-[70px] min-h-[70px] object-cover rounded-full"
             src={s?.images[0]}
           />
           <span
             className={`${
-              isActive(s.color_name) ? "text-[#fff]" : "text-[#D3D3D3]"
-            } text-[14px] medium mt-[9px]`}
+              isActive(s.color_name)
+                ? "text-[#402CDD] medium"
+                : "text-[#5D5C5D] regular"
+            } text-[14px]  mt-[9px]`}
           >
             {s?.color_name}
           </span>
@@ -240,8 +242,7 @@ const ColorList = ({ colors, setColor, currentColor, newColor }) => {
     </HortiznalScrollBar>
   );
 };
-const SizeList = ({ sizes, setSize, currentSize, newSize, image }) => {
-  const SizesRef = useRef<SwiperRef>();
+export const SizeList = ({ sizes, setSize, currentSize, newSize, image }) => {
   const isActive = (name) => {
     if (!newSize) return name?.toLowerCase() === currentSize?.toLowerCase();
     else {
@@ -252,63 +253,41 @@ const SizeList = ({ sizes, setSize, currentSize, newSize, image }) => {
   return (
     <div
       data-cy="countainer_ofSize_scroller"
-      className="flex-row h-[96px] max-h-[96px] w-full max-w-[420px] min-w-[420px] relative"
+      className="flex-row h-[96px] max-h-[96px] w-full  relative"
     >
-      <Swiper
-        data-cy="slide_components"
-        modules={[EffectCoverflow]}
-        className=" size-slider-coverflow"
-        speed={100}
-        ref={SizesRef}
-        effect="coverflow"
-        coverflowEffect={{
-          rotate: 0,
-          depth: 100,
-          modifier: 0,
-          scale: 1,
-          stretch: 100,
-          slideShadows: false,
-        }}
-        onSlideChange={(e) => {
-          setSize(sizes[e.activeIndex]?.name);
-          // Sendevent({
-          //   event: GA_EVENT_NAMES.CLICK,
-          //   value: GA_CLICK_EVENT_VALUES.SIZE_SLIDE,
-          // });
-        }}
-        slidesPerView={7}
-        threshold={1}
-        centeredSlides={true}
-        loop={false}
-        initialSlide={sizes?.length / 2}
+      <HortiznalScrollBar
+        className="w-full h-[98px] flex-row gap-[10px] mt-[1px]"
+        id="color-list-container"
       >
-        {sizes?.map((size, i) => (
-          <SwiperSlide
-            data-cy="size_slide"
-            key={i}
+        {sizes?.map((s) => (
+          <div
+            key={s?.name}
+            className="w-auto h-[98px] flex-col items-center justify-center"
             onClick={() => {
-              // @ts-ignore
-              SizesRef.current.swiper.slideTo(i, 400, false);
-              setSize(size?.name);
-              // Sendevent({
-              //   event: GA_EVENT_NAMES.CLICK,
-              //   value: GA_CLICK_EVENT_VALUES.SIZE_SLIDE,
-              // });
+              setSize(s?.name);
             }}
-            style={{
-              overflow: "visible",
-              minWidth: "70px",
-              height: "70px",
-            }}
-            className={`${
-              isActive(size?.name) &&
-              "red-bg shadow-[inset_0px_4px_6px_rgba(255,255,255,0.5)] text-[#f8f8f8]"
-            } flex-row items-center justify-center text-[30px] bold select-none flex text-[#fff]`}
           >
-            {size.name}
-          </SwiperSlide>
+            <img
+              style={{
+                border: isActive(s?.name)
+                  ? "1px solid #402CDDef"
+                  : "1px solid #ffffffef",
+              }}
+              className="min-w-[70px] min-h-[70px] object-cover rounded-full"
+              src={image}
+            />
+            <span
+              className={`${
+                isActive(s?.name)
+                  ? "text-[#402CDD] medium"
+                  : "text-[#5D5C5D] regular"
+              } text-[14px]  mt-[9px]`}
+            >
+              {s?.name}
+            </span>
+          </div>
         ))}
-      </Swiper>
+      </HortiznalScrollBar>
     </div>
   );
 };

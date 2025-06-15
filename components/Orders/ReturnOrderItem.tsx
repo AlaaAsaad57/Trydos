@@ -142,7 +142,7 @@ function ReturnOrderItem({
 }
 
 export default ReturnOrderItem;
-const UploadImageComponent = ({ images, setImages }) => {
+export const UploadImageComponent = ({ images, setImages }) => {
   const [loading, setLoading] = useState(false);
   const UploadImage = async () => {
     const input = document.createElement("input");

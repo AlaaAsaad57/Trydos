@@ -86,7 +86,7 @@ const CartProvider = () => {
     });
     window.addEventListener("scroll", function (e) {
       if (!filterEnabled) {
-        if (window.scrollY > 66) {
+        if (window.scrollY > 80) {
           expandView({ filter: false });
         } else {
           normalizeView();

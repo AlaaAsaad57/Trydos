@@ -6,13 +6,24 @@ import ReturnOrderItemIcon from "public/svg/ReturnOrderItemIcon.svg";
 import ReportOrderItemIcon from "public/svg/ReportOrderItemIcon.svg";
 import HideOrderItemIcon from "public/svg/HideOrderItemIcon.svg";
 import ReturnOrderItem from "./ReturnOrderItem";
+import { useAppStore } from "store";
+import CancelOrderIcon from "public/svg/OrderCancelIcon.svg";
+import CancelOrderItem from "./CancelOrderItem";
+import ChangeOrderItem from "./ChangeOrderItem";
 
-function OrderItemOptionsModal({ close, item, setShouldConfirmReturn }) {
+function OrderItemOptionsModal({
+  close,
+  item,
+  setShouldConfirmReturn,
+  setShouldConfirmCancel,
+  setShouldConfirmChange,
+}) {
   const [activeWidget, setActiveWidget] = useState<
-    "return" | "report" | "hide" | "main"
+    "return" | "report" | "hide" | "main" | "cancel" | "ChangeRequest"
   >("main");
+  const { selectedOrder } = useAppStore();
   const GoToChangeOrderItem = () => {
-    // TODO: Go to change order item
+    setActiveWidget("ChangeRequest");
   };
   const RenderWidget = () => {
     if (activeWidget === "main") {
@@ -76,65 +87,93 @@ function OrderItemOptionsModal({ close, item, setShouldConfirmReturn }) {
                 </span>
               </div>
             </div>
-            <div
-              onClick={() => {
-                setActiveWidget("return");
-              }}
-              className="cursor-pointer mt-[6px] flex-row w-full items-center px-[15px] bg-[#f8f8f8] rounded-[20px] h-[60px]"
-            >
-              <div className="relative flex w-[30px] h-[30px] items-center justify-center">
-                <ReturnOrderItemIcon className="absolute top-0 left-0 right-0 mx-auto my-0" />
-                <Image
-                  alt={item.name}
-                  width={15}
-                  height={15}
-                  className="rounded-full h-[15px] w-[15px] object-cover"
-                  src={getConfiguredImage({
-                    src: item.image,
-                    width: 15,
-                    height: 15,
-                    q: 100,
-                  })}
-                />
-              </div>
-              <div className="flex-col ml-[15px]">
-                <span className="regular text-[14px] text-[#1D1D1D] medium">
-                  {translateFunction("Return This Product")}
-                </span>
-                <p className="regular text-[12px] text-[#8D8D8D]">
-                  {translateFunction("Return This Product In")}
-                  <span className="bold text-[12px] text-[#8D8D8D]  mx-[2px]">
-                    24 {translateFunction("Hours")}
+            {selectedOrder.order_status?.label === "Pending" ||
+            item?.order_status?.label === "Pending" ? (
+              <>
+                <div
+                  onClick={() => {
+                    setActiveWidget("return");
+                  }}
+                  className="cursor-pointer mt-[6px] flex-row w-full items-center px-[15px] bg-[#f8f8f8] rounded-[20px] min-h-[60px] "
+                >
+                  <div className="relative flex w-[30px] h-[30px] items-center justify-center">
+                    <ReturnOrderItemIcon className="absolute top-0 left-0 right-0 mx-auto my-0" />
+                    <Image
+                      alt={item.name}
+                      width={15}
+                      height={15}
+                      className="rounded-full h-[15px] w-[15px] object-cover"
+                      src={getConfiguredImage({
+                        src: item.image,
+                        width: 15,
+                        height: 15,
+                        q: 100,
+                      })}
+                    />
+                  </div>
+                  <div className="flex-col ml-[15px]">
+                    <span className="regular text-[14px] text-[#1D1D1D] medium">
+                      {translateFunction("Return This Product")}
+                    </span>
+                    <p className="regular text-[12px] text-[#8D8D8D]">
+                      {translateFunction("Return This Product In")}
+                      <span className="bold text-[12px] text-[#8D8D8D]  mx-[2px]">
+                        24 {translateFunction("Hours")}
+                      </span>
+                      {translateFunction("And Back Your Money")}
+                    </p>
+                  </div>
+                </div>
+                <div
+                  onClick={() => {
+                    setActiveWidget("report");
+                  }}
+                  className="cursor-pointer mt-[6px] flex-row w-full items-center px-[15px] bg-[#f8f8f8] rounded-[20px] min-h-[60px]"
+                >
+                  <div className="relative flex w-[30px] h-[30px] items-center justify-center">
+                    <ReportOrderItemIcon />
+                  </div>
+                  <div className="flex-col ml-[15px]">
+                    <span className="regular text-[14px] text-[#1D1D1D] medium">
+                      {translateFunction("Report This Product")}
+                    </span>
+                    <span className="regular text-[12px] text-[#8D8D8D]">
+                      {translateFunction(
+                        "Delivery Time, Delivery Man, Delivery Car"
+                      )}
+                    </span>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div
+                onClick={() => {
+                  setActiveWidget("cancel");
+                }}
+                className="cursor-pointer mt-[6px] flex-row w-full items-center px-[15px] bg-[#f8f8f8] rounded-[20px] min-h-[60px]"
+              >
+                <div className="relative flex w-[30px] h-[30px] items-center justify-center">
+                  <CancelOrderIcon />
+                </div>
+                <div className="flex-col ml-[15px]">
+                  <span className="regular text-[14px] text-[#1D1D1D] medium">
+                    {translateFunction("Cancel This Product")}
                   </span>
-                  {translateFunction("And Back Your Money")}
-                </p>
+                  <p className="regular text-[12px] text-[#8D8D8D]">
+                    {translateFunction("Cancel This Product In")}
+                    <span className="bold text-[12px] text-[#8D8D8D]  mx-[4px]">
+                      3 {translateFunction("Hours")}
+                    </span>
+                    {translateFunction("And Back Your Money")}
+                  </p>
+                </div>
               </div>
-            </div>
-            <div
-              onClick={() => {
-                setActiveWidget("report");
-              }}
-              className="cursor-pointer mt-[6px] flex-row w-full items-center px-[15px] bg-[#f8f8f8] rounded-[20px] h-[60px]"
-            >
-              <div className="relative flex w-[30px] h-[30px] items-center justify-center">
-                <ReportOrderItemIcon />
-              </div>
-              <div className="flex-col ml-[15px]">
-                <span className="regular text-[14px] text-[#1D1D1D] medium">
-                  {translateFunction("Report This Product")}
-                </span>
-                <span className="regular text-[12px] text-[#8D8D8D]">
-                  {translateFunction(
-                    "Delivery Time, Delivery Man, Delivery Car"
-                  )}
-                </span>
-              </div>
-            </div>
+            )}
             <div
               onClick={() => {
                 setActiveWidget("hide");
               }}
-              className="cursor-pointer mt-[6px] flex-row w-full items-center px-[15px] bg-[#f8f8f8] rounded-[20px] h-[60px]"
+              className="cursor-pointer mt-[6px] flex-row w-full items-center px-[15px] bg-[#f8f8f8] rounded-[20px] min-h-[60px]"
             >
               <div className="relative flex w-[30px] h-[30px] items-center justify-center">
                 <HideOrderItemIcon />
@@ -160,6 +199,28 @@ function OrderItemOptionsModal({ close, item, setShouldConfirmReturn }) {
           }}
           setShouldConfirmReturn={setShouldConfirmReturn}
           closeOptions={close}
+          item={item}
+        />
+      );
+    }
+    if (activeWidget === "cancel") {
+      return (
+        <CancelOrderItem
+          backToMain={() => {
+            setActiveWidget("main");
+          }}
+          setShouldConfirmCancel={setShouldConfirmCancel}
+          item={item}
+        />
+      );
+    }
+    if (activeWidget === "ChangeRequest") {
+      return (
+        <ChangeOrderItem
+          backToMain={() => {
+            setActiveWidget("main");
+          }}
+          setShouldConfirmChange={setShouldConfirmChange}
           item={item}
         />
       );

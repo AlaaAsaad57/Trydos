@@ -9,7 +9,10 @@ import { OrderItem as OrderItemType } from "../../types/orders";
 import { useParams } from "next/navigation";
 
 import { useAppStore } from "store";
-import OrderStatusIcon from "components/settings/cards/OrderStatusIcon";
+import OrderStatusIcon, {
+  BagStatusIcon,
+} from "components/settings/cards/OrderStatusIcon";
+import Image from "node_modules/next/image";
 
 interface OrderItemProps {
   order: OrderItemType;
@@ -23,7 +26,7 @@ const OrderItem: React.FC<OrderItemProps> = ({ order, showDetails }) => {
       onClick={() => {
         showDetails();
       }}
-      className="bg-[#f8f8f8] cursor-pointer pt-[7px] pb-[12px] pl-[12px] pr-[10px] rounded-[15px] h-[200px] mt-[10px] flex-col"
+      className="bg-[#f8f8f8] w-full cursor-pointer pt-[7px] pb-[12px] pl-[12px] pr-[10px] rounded-[15px] h-[200px] mt-[10px] flex-col"
     >
       <div className="flex-row w-full justify-between items-start">
         <OrderItemTime time={order.created_at} />
@@ -52,8 +55,8 @@ const OrderProductSlider = ({ products }: { products: any[] }) => {
           key={product.id}
           className="flex-row cursor-pointer items-center relative w-[91px] h-[125px] ml-[5px]"
         >
-          <img
-            className="w-full h-full object-contain bg-white rounded-[15px]"
+          <Image
+            className="w-[91px] h-[125px] object-cover   bg-white rounded-[15px]"
             src={getConfiguredImage({
               src: product?.image,
               width: 91,
@@ -81,74 +84,7 @@ const OrderStatus = ({ status }: { status: string }) => {
   const { settings } = useAppStore();
   return (
     <div className="flex-row items-center">
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        xmlnsXlink="http://www.w3.org/1999/xlink"
-        width="15"
-        height="15"
-        viewBox="0 0 15 15"
-      >
-        <defs>
-          <clipPath id="clip-path123">
-            <rect
-              id="Rectangle_6181"
-              data-name="Rectangle 6181"
-              width="15"
-              height="15"
-              transform="translate(0 0)"
-              fill="none"
-            />
-          </clipPath>
-        </defs>
-        <g
-          id="Mask_Group_703"
-          data-name="Mask Group 703"
-          transform="translate(0 0)"
-          clipPath="url(#clip-path123)"
-        >
-          <g
-            id="Group_4033"
-            data-name="Group 4033"
-            transform="translate(1.087 0)"
-          >
-            <g
-              id="Group_4032"
-              data-name="Group 4032"
-              transform="translate(0 0)"
-            >
-              <path
-                id="Path_15859"
-                data-name="Path 15859"
-                d="M-2.085-1.536H6.877L8.571,7.809s-.848,1.3-1.335,1.3a94.473,94.473,0,0,1-9.9-.164c-.811-.1-1.093-1.135-1.093-1.135Z"
-                transform="translate(4.034 5.683)"
-                fill="#ffdbaa"
-              />
-              <g id="bag-5">
-                <g id="Group_2946" data-name="Group 2946">
-                  <path
-                    id="Path_15168"
-                    data-name="Path 15168"
-                    d="M51.8,37.291h9.224a1.8,1.8,0,0,0,1.8-1.8.191.191,0,0,0,0-.034L61.324,27a.993.993,0,0,0-.986-.841H59.26V25.138a2.848,2.848,0,0,0-5.7,0v1.023H52.487A.993.993,0,0,0,51.5,27L50,35.456a.194.194,0,0,0,0,.034A1.8,1.8,0,0,0,51.8,37.291Zm2.157-12.153a2.455,2.455,0,1,1,4.909,0v1.023H53.958ZM51.886,27.07h0a.6.6,0,0,1,.6-.512h1.079v1.554a.2.2,0,1,0,.392,0V26.554h4.909v1.553a.2.2,0,1,0,.393,0V26.554h1.079a.6.6,0,0,1,.6.512h0L62.432,35.5a1.409,1.409,0,0,1-1.407,1.4H51.8a1.409,1.409,0,0,1-1.408-1.391Z"
-                    transform="translate(-49.999 -22.291)"
-                    fill="#3c3c3c"
-                  />
-                </g>
-              </g>
-            </g>
-            <path
-              id="Path_15172"
-              data-name="Path 15172"
-              d="M0,0A5.884,5.884,0,0,0,3.258,1.342,7.058,7.058,0,0,0,6.746,0"
-              transform="translate(3.041 9.801)"
-              fill="none"
-              stroke="#1d1d1d"
-              strokeLinecap="round"
-              strokeWidth="0.5"
-            />
-          </g>
-        </g>
-      </svg>
-
+      <BagStatusIcon status={status} />
       <span className="ml-[4px] text-[#1D1D1D] text-[12px] regular">
         {status}
       </span>

@@ -4,7 +4,7 @@ import LargeAddressChangeIcon from "public/svg/LargeAddressChangeIcon.svg";
 import { GetAddressString } from "utils/tinyUtils";
 function ConfirmAddressModal({ close, confirm, confirmationData }) {
   return (
-    <div className="z-[9999999999999] px-[24px] w-full flex-col justify-end items-center h-[calc(100vh-100px)] overflow-auto max-h-[calc(100vh-100px)] absolute top-0 left-0 bg-[#0000006c]  backdrop-blur-[10px]">
+    <div className="z-[9999999999999] px-[24px] w-full flex-col justify-end items-center h-[calc(100vh)] overflow-auto max-h-[calc(100vh)] absolute top-0 left-0 bg-[#0000006c]  backdrop-blur-[10px]">
       <div className="flex-col justify-end items-center h-auto">
         <LargeAddressChangeIcon />
         <span className="mt-[11px] text-[#D3D3D3] text-[16px] medium">

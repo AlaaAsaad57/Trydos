@@ -11,7 +11,7 @@ import { SimpleDetailsProductApi } from "models/API/market/ProductSimpleDetails"
 import { CartResponse } from "models/API/market/CartShipping";
 import { SimpleBoutiqeApi } from "models/API/market/BoutiqueSimpleDetails";
 import { OldCartApi } from "models/API/market/OldCart";
-import {SearchResponse} from 'models/API/elastic/Search';
+import { SearchResponse } from "models/API/elastic/Search";
 import auth from "services/auth";
 import LocalizationServiceClass from "services/localization";
 import { CielNumber } from "./tinyUtils";
@@ -197,20 +197,6 @@ export const caseCheck = (word, value) => {
     return word;
   else return "";
   //loop through every character in ino
-  for (let i in inp) {
-    //if input character matches with character in word no need to change
-    if (inp[i] == word[i]) {
-      continue;
-    } else if (inp[i].toUpperCase() == word[i]) {
-      //if inp[i] when converted to uppercase matches word[i] it means word[i] needs to be lowercase
-      word.splice(i, 1, word[i].toLowerCase());
-    } else {
-      //word[i] needs to be uppercase
-      word.splice(i, 1, word[i].toUpperCase());
-    }
-  }
-  //array to string
-  return word.join("");
 };
 export const expandView = ({ filter }) => {
   const { filterEnabled } = useAppStore.getState();
