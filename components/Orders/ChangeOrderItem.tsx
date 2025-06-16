@@ -131,7 +131,7 @@ function ChangeOrderItem({ item, backToMain, setShouldConfirmChange }) {
               alt={item.name}
             />
           </div>
-          <div className="relative flex w-[30px] h-[30px] items-center justify-center">
+          <div className="relative flex w-[30px] h-[30px] items-center justify-center mt-[12px]">
             <ChangeOrderItemIcon className="absolute top-0 left-0 right-0 mx-auto my-0" />
             <Image
               alt={item.name}
