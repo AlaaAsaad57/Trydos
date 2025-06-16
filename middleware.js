@@ -4,7 +4,20 @@ import { getCountriesApi } from "./store/homepage/cachedActions";
 
 const languagesString = '["en", "ar", "tr"]' || "[]";
 const languages = JSON.parse(languagesString);
+let cachedCountries;
+let cacheTimestamp = 0;
+const CACHE_TTL = 60 * 60 * 1000 * 24; // 1 day
 
+async function getCachedCountries() {
+  const now = Date.now();
+  if (!cachedCountries || now - cacheTimestamp > CACHE_TTL) {
+    const data = await getCountriesApi();
+    console.log(data);
+    cachedCountries = data;
+    cacheTimestamp = now;
+  }
+  return cachedCountries;
+}
 const CheckLocalaization = ({
   countryFromCookies,
   langFromCookies,
@@ -41,7 +54,7 @@ export async function middleware(request) {
 
   let countryByIp = request?.geo?.country?.toLowerCase();
   let supportedLocales = [];
-  let data = await getCountriesApi();
+  let data = await getCachedCountries();
 
   let countries = data.map((s) => s.iso.toLowerCase());
   let defaultLocale = `${countries[0]}-en`;
@@ -232,7 +245,7 @@ export const config = {
      */
     {
       source:
-        "/((?!api|static|.*\\..*|_next|endCall|call_direct|revalidate|test|callInProg|selectCountry|favicon.ico).*)",
+        "/((?!api|static|.\\..|_next|assets|endCall|svg|call_direct|revalidate|test|callInProg|selectCountry|favicon.ico).*)",
     },
   ],
 };

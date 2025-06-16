@@ -319,6 +319,7 @@ class HomeService {
       useAppStore.getState();
 
     if (isRegisteringReady) {
+      let isNewUser = !localStorage.getItem("guest-user");
       let body = localStorage.getItem("guest-user")
         ? {
             old_guest_user_id: JSON.parse(localStorage.getItem("guest-user"))
@@ -371,10 +372,7 @@ class HomeService {
             expired_at: repo.data.expires_at,
           })
         );
-        SetGAUser({
-          ...repo.data.user,
-          expired_at: repo.data.expires_at,
-        });
+        SetGAUser(repo.data.user, isNewUser);
         localStorage.removeItem("customer-info");
         setIsRegisteringReady(true);
         if (repo.data.user) {

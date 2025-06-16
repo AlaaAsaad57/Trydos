@@ -37,7 +37,7 @@ const firebaseConfig = {
   storageBucket: "trydos-2e2b2.firebasestorage.app",
   messagingSenderId: "817506223106",
   appId: "1:817506223106:web:e9e39c9a34ac2aff82131b",
-  measurementId: "G-NZ5P3EHDH3",
+  // measurementId: process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID,
   databaseURL:
     "https://trydos-2e2b2-default-rtdb.europe-west1.firebasedatabase.app/",
 };

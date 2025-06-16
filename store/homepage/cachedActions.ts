@@ -109,18 +109,21 @@ export const getCountry = (country, cookieCountry) => {
     return null;
   }
 };
-export const getCountriesApi = async () => {
+export const getCountriesApi = async (lang = "tr-en") => {
   let repo;
   try {
-    repo = await fetch(process.env.NEXT_PUBLIC_BACKEND_URL + "/countries", {
-      next: {
-        revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE_COUNTRIES),
-        tags: ["countries"],
-      },
-    });
-    let data: CountriesApi = await repo.json();
-
-    return data.data.countries;
+    repo = await fetch(
+      process.env.NEXT_PUBLIC_API_BASE_URL + `/api/countries`,
+      {
+        next: {
+          revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE_COUNTRIES),
+          tags: ["countries"],
+        },
+      }
+    );
+    let data: CountriesApi["data"] = await repo.json();
+    console.log(data);
+    return data.countries;
   } catch (error) {
     console.log("Countries Request Failed1" + error);
     return [];

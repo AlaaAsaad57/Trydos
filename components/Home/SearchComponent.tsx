@@ -2,13 +2,12 @@
 import CloseIcon from "public/svg/CloseIcon.svg";
 import SearchCloseIcon from "public/svg/SearchCloseIcon.svg";
 
-import { ChangeEvent, useEffect } from "react";
+import { ChangeEvent, useEffect, useRef, useCallback } from "react";
 import {
   caseCheck,
   onClickSearchHistory,
   translateFunction,
 } from "utils/functions";
-import { DebounceInput } from "react-debounce-input";
 import { dispatchRouteChangeEvent } from "utils/events";
 import { useParams } from "next/navigation";
 import { useRouter } from "next/navigation";
@@ -43,53 +42,45 @@ function SearchComponent({
     searchWords,
   } = useAppStore();
 
-  const onChange = async (e: ChangeEvent<HTMLInputElement>) => {
-    setSearchWord(e.target.value);
-    const result = await SearchService.getSearchOptions({
-      noProducts: false,
-      lang: lang,
-    });
-    // Only prefetch if the request wasn't cancelled
-    if (result !== null) {
-      router.prefetch(SearchService.getSearchPageUrl());
-    }
-  };
-  const onInput = (e) => {
-    let suggestion = document.querySelector<HTMLDivElement>(".predicted-word");
-    let arr = [];
-    let regex = new RegExp("^" + e.target.value.toUpperCase(), "i");
-    //loop through words array
-    for (let i in searchWords) {
-      //check if input matches with any word in words array
-      if (regex.test(searchWords[i].toUpperCase()) && e.target.value != "") {
-        //Change case of word in words array according to user input
-        let selectedWord = caseCheck(
-          searchWords[i].toUpperCase(),
-          e.target.value.toUpperCase()
-        );
-        //display suggestion
-        if (selectedWord.length > 0) {
-          arr.push(selectedWord);
-        } else {
-        }
-        break;
-      } else {
-        // @ts-ignore
-        // suggestion.innerText = "";
-      }
-    }
-
-    if (
-      searchWords.filter(
-        (s) =>
-          s.substr(0, e.target.value.length).toUpperCase() ===
-          e.target.value.toUpperCase()
-      ).length > 0
-    ) {
-    }
-  };
   const { lang } = useParams();
   const router = useRouter();
+  const debounceRef = useRef<NodeJS.Timeout | null>(null);
+
+  const debouncedSearch = useCallback(
+    async (searchValue: string) => {
+      const result = await SearchService.getSearchOptions({
+        noProducts: false,
+        lang: lang,
+      });
+      // Only prefetch if the request wasn't cancelled
+      if (result !== null) {
+        router.prefetch(SearchService.getSearchPageUrl());
+      }
+    },
+    [lang, router]
+  );
+
+  const onChange = (e: ChangeEvent<HTMLInputElement>) => {
+    let input = e.target.value;
+    // Remove special characters
+    input = input.replace(/[<>/,:!@#$%^&*()]/g, "");
+    if (input.length > 90) {
+      input = input.slice(0, 90);
+    }
+    console.log(input);
+    setSearchWord(input);
+    e.target.value = input;
+
+    // Clear previous timeout
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+    }
+
+    // Set new timeout for debounced search
+    debounceRef.current = setTimeout(() => {
+      debouncedSearch(input);
+    }, 500);
+  };
   const onKeyDown = (e) => {
     if (e.keyCode == 13 && e.target.value.length > 0) {
       onClickSearchHistory(value);
@@ -118,19 +109,25 @@ function SearchComponent({
       });
     }
   }, [searchEnabled]);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
+      }
+    };
+  }, []);
   return (
     <div className="search-component-container flex-row">
       <div className={`search-input-parent ${focus && "focuse"}`}>
-        <DebounceInput
-          minLength={0}
+        <input
+          maxLength={90}
           data-cy="inputField"
           className="search-input"
           // @ts-ignore
           placeholder={translateFunction("Search", lang?.split("-")[1])}
           onFocus={() => setFocuse(true)}
-          onInput={(e) => {
-            onInput(e);
-          }}
           onKeyUp={(e) => {
             onKeyDown(e);
           }}
@@ -148,14 +145,10 @@ function SearchComponent({
               // });
             }
           }}
-          onSubmit={(e) => {
-            onClickSearchHistory(value);
-          }}
-          value={value}
+          value={value.replace(/[<>/,:!@#$%^&*()]/g, "").slice(0, 90)}
           onChange={(e) => {
             onChange(e);
           }}
-          debounceTimeout={400}
         />
       </div>
 

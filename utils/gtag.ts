@@ -1,6 +1,6 @@
 import auth from "services/auth";
 import { useAppStore } from "store";
-export const GA_MEASUREMENT_ID = "G-NZ5P3EHDH3"; // replace with your ID
+export const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID; // replace with your ID
 let countries = [
   { name: "Syria", iso: "sy" },
   { name: "Turkey", iso: "tr" },
@@ -87,12 +87,14 @@ export const GAevent = ({
     console.log(error);
   }
 };
-export const SetGAUser = (user) => {
+export const SetGAUser = (user, isNewUser = false) => {
   if (process.env.NEXT_PUBLIC_ENABLE_LOG === "true") {
     let bool = confirm(
       `window?.gtag?.("set", {
       user_id: ${user.id},
-      user_type: ${user.phone === "0" ? "guest" : "registered"},
+      user_type: ${
+        user.phone === "0" ? "guest" : isNewUser ? "new" : "registered"
+      },
       user_location: ${country?.name},
       days_age_account: ${getAccountAge(user)},
     gender: ${user?.gender?.name === "Man" ? "male" : "female"},
@@ -103,7 +105,9 @@ export const SetGAUser = (user) => {
       navigator.clipboard.writeText(
         `window?.gtag?.("set", {
         user_id: ${user.id},
-        user_type: ${user.phone === "0" ? "guest" : "registered"},
+        user_type: ${
+          user.phone === "0" ? "guest" : isNewUser ? "new" : "registered"
+        },
         user_location: ${country?.name},
         days_age_account: ${getAccountAge(user)},
     gender: ${user?.gender?.name === "Man" ? "male" : "female"},
@@ -115,7 +119,10 @@ export const SetGAUser = (user) => {
   // @ts-ignore
   window.gtag?.("set", {
     user_id: user.id,
-    user_type: user.phone === "0" ? "guest" : "registered",
+  });
+  // @ts-ignore
+  window?.gtag?.("set", "user_properties", {
+    user_type: user.phone === "0" ? "guest" : isNewUser ? "new" : "registered",
     user_location: country?.name,
     days_age_account: getAccountAge(user),
     gender: user?.gender?.name === "Man" ? "male" : "female",

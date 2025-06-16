@@ -67,13 +67,18 @@ const CartProvider = () => {
   };
   useEffect(() => {
     setTimeout(() => {
-      home.getClientData();
-      getCurrency({
-        callback: (data) => {
-          setCurrency(data.currency);
-        },
-      });
-      home.GetFireBaseSettings();
+      if (
+        !searchParams.get("changed-country") &&
+        !searchParams.get("no-country")
+      ) {
+        home.getClientData();
+        getCurrency({
+          callback: (data) => {
+            setCurrency(data.currency);
+          },
+        });
+        home.GetFireBaseSettings();
+      }
     }, 10);
     window.addEventListener("popstate", (event) => {
       if (event.state?.isPopup) {
