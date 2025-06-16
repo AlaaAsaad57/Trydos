@@ -6,7 +6,12 @@ import { AxiosGet } from "utils/AxiosApi";
 import Spinner from "components/global/Spinner";
 import { ColorList, SizeList } from "./ModifyOrderItemModal";
 
-function ChangeOrderItem({ item, backToMain, setShouldConfirmChange }) {
+function ChangeOrderItem({
+  item,
+  backToMain,
+  setShouldConfirmChange,
+  changeOrderItem,
+}) {
   const [tabs, setTabs] = useState<string>(
     item?.variation?.color
       ? "Change Color"
@@ -185,6 +190,15 @@ function ChangeOrderItem({ item, backToMain, setShouldConfirmChange }) {
           if (!isChanged()) {
             backToMain();
           } else {
+            changeOrderItem({
+              id: item.id,
+              color: color,
+              size: size,
+              qty: qty,
+              image: productData?.sync_color_images.find(
+                (s) => s.color_name?.toLowerCase() === color?.toLowerCase()
+              )?.images?.[0],
+            });
             setShouldConfirmChange(true);
           }
         }}

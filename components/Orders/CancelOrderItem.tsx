@@ -6,9 +6,14 @@ import {
   RoundPrice,
   translateFunction,
 } from "utils/functions";
-import { UploadImageComponent } from "./ReturnOrderItem";
+
 import CancelOrderItemIcon from "public/svg/OrderCancelIcon.svg";
-function CancelOrderItem({ item, backToMain, setShouldConfirmCancel }) {
+function CancelOrderItem({
+  item,
+  backToMain,
+  setShouldConfirmCancel,
+  cancelOrderItem,
+}) {
   const { currency } = useAppStore();
   const [selectedOptions, setSelectedOptions] = useState([]);
   let options = [
@@ -119,6 +124,7 @@ function CancelOrderItem({ item, backToMain, setShouldConfirmCancel }) {
             if (selectedOptions.length === 0) {
               backToMain();
             } else {
+              cancelOrderItem(item.id);
               setShouldConfirmCancel(true);
             }
           }}

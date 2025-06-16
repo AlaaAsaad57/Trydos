@@ -28,6 +28,38 @@ function OrderOptions({ closeOptions, CancelOrder }) {
   const [shouldConfirmCancel, setShouldConfirmCancel] = useState(false);
   const [shouldConfirmReturn, setShouldConfirmReturn] = useState(false);
   const [shouldConfirmChange, setShouldConfirmChange] = useState(false);
+  const [tempOrderDetails, setTempOrderDetails] = useState(
+    selectedOrder.details
+  );
+  const changeOrderItem = ({ id, color, size, qty, image }) => {
+    let details_arry = [];
+    selectedOrder.details.map((s) => {
+      if (s.id === id) {
+        let new_detail = { ...s, image };
+        if (s.variation) {
+          if (s.variation.color !== color) {
+            new_detail = {
+              ...new_detail,
+              variation: { ...new_detail.variation, color },
+            };
+          }
+          if (s.variation.Size !== size) {
+            new_detail = {
+              ...new_detail,
+              variation: { ...new_detail.variation, Size: size },
+            };
+          }
+        }
+        if (qty !== s.qty) {
+          new_detail = { ...new_detail, qty };
+        }
+        details_arry.push(new_detail);
+      } else {
+        details_arry.push(s);
+      }
+    });
+    setTempOrderDetails({ ...selectedOrder, details: details_arry });
+  };
   const renderScreen = () => {
     if (SelectedOrderItem) {
       return (
@@ -36,7 +68,12 @@ function OrderOptions({ closeOptions, CancelOrder }) {
             <CancelOrderConfirmation
               close={() => {
                 closeOptions();
-
+                if (shouldConfirmChange) {
+                  setOrderDetails(tempOrderDetails);
+                }
+                if (shouldConfirmCancel) {
+                  setOrderDetails(tempOrderDetails);
+                }
                 setShouldConfirmCancel(false);
                 setShouldConfirmChange(false);
               }}
@@ -70,6 +107,19 @@ function OrderOptions({ closeOptions, CancelOrder }) {
             />
           )}
           <OrderItemOptionsModal
+            changeOrderItem={changeOrderItem}
+            cancelOrderItem={(id) => {
+              let details_arry = [];
+              selectedOrder.details.map((s) => {
+                if (s.id === id) {
+                  let new_detail = { ...s, is_canceled: true };
+                  details_arry.push(new_detail);
+                } else {
+                  details_arry.push(s);
+                }
+              });
+              setTempOrderDetails({ ...selectedOrder, details: details_arry });
+            }}
             setShouldConfirmChange={setShouldConfirmChange}
             setShouldConfirmCancel={setShouldConfirmCancel}
             close={() => {

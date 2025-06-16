@@ -17,6 +17,8 @@ function OrderItemOptionsModal({
   setShouldConfirmReturn,
   setShouldConfirmCancel,
   setShouldConfirmChange,
+  changeOrderItem,
+  cancelOrderItem,
 }) {
   const [activeWidget, setActiveWidget] = useState<
     "return" | "report" | "hide" | "main" | "cancel" | "ChangeRequest"
@@ -98,18 +100,6 @@ function OrderItemOptionsModal({
                 >
                   <div className="relative flex w-[30px] h-[30px] items-center justify-center">
                     <ReturnOrderItemIcon className="absolute top-0 left-0 right-0 mx-auto my-0" />
-                    <Image
-                      alt={item.name}
-                      width={15}
-                      height={15}
-                      className="rounded-full h-[15px] w-[15px] object-cover"
-                      src={getConfiguredImage({
-                        src: item.image,
-                        width: 15,
-                        height: 15,
-                        q: 100,
-                      })}
-                    />
                   </div>
                   <div className="flex-col ml-[15px]">
                     <span className="regular text-[14px] text-[#1D1D1D] medium">
@@ -206,6 +196,7 @@ function OrderItemOptionsModal({
     if (activeWidget === "cancel") {
       return (
         <CancelOrderItem
+          cancelOrderItem={cancelOrderItem}
           backToMain={() => {
             setActiveWidget("main");
           }}
@@ -217,6 +208,7 @@ function OrderItemOptionsModal({
     if (activeWidget === "ChangeRequest") {
       return (
         <ChangeOrderItem
+          changeOrderItem={changeOrderItem}
           backToMain={() => {
             setActiveWidget("main");
           }}

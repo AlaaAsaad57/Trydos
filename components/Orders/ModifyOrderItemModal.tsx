@@ -208,7 +208,7 @@ export const ColorList = ({ colors, setColor, currentColor, newColor }) => {
   };
   return (
     <HortiznalScrollBar
-      className="w-full h-[98px] flex-row gap-[10px] mt-[1px]"
+      className="w-full h-[98px] flex-row gap-[10px] pt-[1px]"
       id="color-list-container"
     >
       {colors?.map((s) => (
@@ -225,7 +225,7 @@ export const ColorList = ({ colors, setColor, currentColor, newColor }) => {
                 ? "1px solid #402CDDef"
                 : "1px solid #ffffffef",
             }}
-            className="min-w-[70px] min-h-[70px] object-cover rounded-full"
+            className="min-w-[70px] min-h-[70px] object-cover rounded-full max-w-[70px] max-h-[70px]"
             src={s?.images[0]}
           />
           <span
@@ -262,7 +262,7 @@ export const SizeList = ({ sizes, setSize, currentSize, newSize, image }) => {
         {sizes?.map((s) => (
           <div
             key={s?.name}
-            className="w-auto h-[98px] flex-col items-center justify-center"
+            className="w-auto h-[98px] flex-col items-center justify-center pt-[1px]"
             onClick={() => {
               setSize(s?.name);
             }}
@@ -273,7 +273,7 @@ export const SizeList = ({ sizes, setSize, currentSize, newSize, image }) => {
                   ? "1px solid #402CDDef"
                   : "1px solid #ffffffef",
               }}
-              className="min-w-[70px] min-h-[70px] object-cover rounded-full"
+              className="min-w-[70px] min-h-[70px] object-cover rounded-full max-w-[70px] max-h-[70px]"
               src={image}
             />
             <span

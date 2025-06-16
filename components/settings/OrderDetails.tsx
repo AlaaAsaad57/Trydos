@@ -26,14 +26,14 @@ import OrderChatIcon from "./OrderChatIcon";
 import { usePathname } from "next/navigation";
 import { Channel } from "models/Genaral/Channel";
 import dynamic from "next/dynamic";
-
+import ReturnedOrderStatusIcon from "public/svg/ReturnedOrderStatusIcon.svg";
 const ChatWidget = dynamic(() => import("components/Chat/ChatWidget"), {
   ssr: false,
 });
 import OptionsIcon from "public/svg/OptionsIcon.svg";
 import OrderRetailsReturnInfo from "components/Orders/OrderRetailsReturnInfo";
 import RatingOrderItem from "components/Orders/RatingOrderItem";
-
+import CanceledOrderStatusIcon from "public/svg/CanceledOrderStatusIcon.svg";
 function OrderDetails({
   resetOrderDetails,
   goBack,
@@ -414,7 +414,7 @@ const ProductCard = ({
               }}
             />
             <img
-              className="w-[104px] h-[144px] rounded-[15px]"
+              className="w-[104px] h-[144px] rounded-[15px] object-cover object-center"
               src={getConfiguredImage({
                 src: product.image,
                 width: 104,
@@ -484,6 +484,32 @@ const ProductCard = ({
                 </span>
               </div>
             </div>
+            {product.is_returned && (
+              <div className="flex-row justify-between w-full mt-[6px]">
+                <div className="flex-row">
+                  <span className="text-[#FFB16F] text-[10px] medium ">
+                    {translateFunction("Return Requested")}
+                  </span>
+                  <span className="ml-[12px]">
+                    <ReturnedOrderStatusIcon
+                      status={product?.order_status ?? status}
+                    />
+                  </span>
+                </div>
+              </div>
+            )}
+            {product.is_canceled && (
+              <div className="flex-row justify-between w-full mt-[6px]">
+                <div className="flex-row">
+                  <span className="text-[#505050] text-[10px] medium ">
+                    {translateFunction("Canceled")}
+                  </span>
+                  <span className="ml-[12px]">
+                    <CanceledOrderStatusIcon />
+                  </span>
+                </div>
+              </div>
+            )}
             <div className="flex-row  items-center">
               {product.price_after_discount >= 0 && (
                 <div className="line-through text-[#C4C2C2] regular text-[12px]  line-through-[#C4C2C2]">
@@ -496,6 +522,11 @@ const ProductCard = ({
               <span className="text-[#1D1D1D] light text-[10px] ml-[4px]">
                 {currency?.symbol}
               </span>
+              {(product.is_canceled || product.is_returned) && (
+                <div className="text-[#388CFF] text-[10px] ml-[4px] regular ml-[7px]">
+                  {translateFunction("Back to your wallet")}
+                </div>
+              )}
             </div>
           </div>
         </NextLink>
