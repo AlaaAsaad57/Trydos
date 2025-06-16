@@ -187,7 +187,7 @@ function AddToCartComponent({
       };
     }
   };
-  console.log(getSelectedVariantQty(), ProductData, "ProductData");
+
   useEffect(() => {
     if (
       document.querySelector<HTMLElement>(".alternate-product-details-footer")

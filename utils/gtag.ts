@@ -1,6 +1,6 @@
 import auth from "services/auth";
 import { useAppStore } from "store";
-export const GA_MEASUREMENT_ID = "G-N8LNVEWJSJ"; // replace with your ID
+export const GA_MEASUREMENT_ID = "G-NZ5P3EHDH3"; // replace with your ID
 let countries = [
   { name: "Syria", iso: "sy" },
   { name: "Turkey", iso: "tr" },
