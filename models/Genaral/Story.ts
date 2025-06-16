@@ -45,7 +45,7 @@ interface Story {
 
 export interface StoriesInterface {
   readonly id: number;
-  mobile_phone: string;
+  mobile_phone?: string;
   photo_path?: string;
   name?: string;
   username?: string;

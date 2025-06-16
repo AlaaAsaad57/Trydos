@@ -24,6 +24,6 @@ export interface BoutiquePageProps {
     banners: Banner[]
   }
   
- interface Banner {
+export interface Banner {
     file_path: string
   }
