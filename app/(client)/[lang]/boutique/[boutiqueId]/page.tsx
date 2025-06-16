@@ -20,7 +20,7 @@ import ShareBoutiquePageButton from "components/filterPage/ShareBoutiquePageButt
 import FilterBoutiquePageButton from "components/filterPage/FilterBoutiquePageButton";
 import SearchBoutiquePage from "components/filterPage/SearchBoutiquePage";
 import CarouselContainer from "components/filterPage/CarouselContainer";
-import { processStrForSearch } from "store/homepage/cachedActions";
+
 export const dynamicParams = true;
 
 export const runtime = "nodejs";
@@ -51,14 +51,11 @@ export default async function Page({
   searchParams: any;
 }) {
   let EditedSearchParams: any = {};
-  let processedSearchValue = await processStrForSearch(
-    searchParams.search_text
-  );
 
   if (searchParams?.search_text) {
     EditedSearchParams = {
       ...EditedSearchParams,
-      search_text: processedSearchValue?.str,
+      search_text: searchParams.search_text,
     };
   }
   if (searchParams?.categories) {

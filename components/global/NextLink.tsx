@@ -58,6 +58,7 @@ export default function NextLink({
       });
     }
     if (data.is_home || data.is_full_home) {
+      document.documentElement.style.overflow = "auto";
       setEnableSearch(false);
       setFilterEnabled(false);
     }

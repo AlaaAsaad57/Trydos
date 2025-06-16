@@ -2,6 +2,8 @@ import { AxiosGet } from "utils/AxiosApi";
 import { useAppStore } from "store";
 
 class SearchService {
+  private searchAbortController: AbortController | null = null;
+
   async getTrendingSearch() {
     let data = await AxiosGet({
       url:
@@ -20,7 +22,15 @@ class SearchService {
     filters_offset = null,
     replace = true,
   }) {
-    "use server";
+    // Cancel any in-flight request
+    if (this.searchAbortController) {
+      this.searchAbortController.abort();
+    }
+
+    // Create new AbortController for this request
+    this.searchAbortController = new AbortController();
+    const signal = this.searchAbortController.signal;
+
     const {
       setSearchResults,
       searchFilters,
@@ -29,7 +39,7 @@ class SearchService {
       setSearchPartialLoading,
       setSearchLoading,
     } = useAppStore.getState();
-    let processed_search_value = await this.ProcessSearchInput(value);
+
     let params = this.getSearchParamsFromObj(
       searchFilters,
       value.length === 0,
@@ -61,42 +71,22 @@ class SearchService {
         };
       }
 
-      if (
-        (searchFilters?.colors && searchFilters.colors.length > 0) ||
+      if (searchFilters?.colors && searchFilters.colors.length > 0) {
         // @ts-ignore
-        processed_search_value?.colors
-      ) {
-        // @ts-ignore
-        if (processed_search_value.sizes) {
-          searchFiltersEdit = {
-            ...searchFiltersEdit,
-            // @ts-ignore
-            colors: JSON.stringify(processed_search_value.colors.map((s) => s)),
-          };
-        } else
-          searchFiltersEdit = {
-            ...searchFiltersEdit,
-            colors: JSON.stringify(searchFilters.colors.map((s) => s)),
-          };
+
+        searchFiltersEdit = {
+          ...searchFiltersEdit,
+          colors: JSON.stringify(searchFilters.colors.map((s) => s)),
+        };
       }
 
-      if (
-        (searchFilters?.sizes && searchFilters.sizes.length > 0) ||
+      if (searchFilters?.sizes && searchFilters.sizes.length > 0) {
         // @ts-ignore
-        processed_search_value?.sizes
-      ) {
-        // @ts-ignore
-        if (processed_search_value.sizes) {
-          searchFiltersEdit = {
-            ...searchFiltersEdit,
-            // @ts-ignore
-            sizes: JSON.stringify(processed_search_value.sizes.map((s) => s)),
-          };
-        } else
-          searchFiltersEdit = {
-            ...searchFiltersEdit,
-            sizes: JSON.stringify(searchFilters.sizes.map((s) => s)),
-          };
+
+        searchFiltersEdit = {
+          ...searchFiltersEdit,
+          sizes: JSON.stringify(searchFilters.sizes.map((s) => s)),
+        };
       }
       if (
         searchFilters?.prices?.max_price > 0 &&
@@ -109,10 +99,10 @@ class SearchService {
           ]),
         };
       }
-      if (value?.length > 0 && processed_search_value?.str) {
+      if (value?.length > 0) {
         searchFiltersEdit = {
           ...searchFiltersEdit,
-          search_text: processed_search_value.str || value,
+          search_text: value,
         };
       }
 
@@ -127,7 +117,8 @@ class SearchService {
       }
 
       const filtersResponseJson = await fetch(
-        `/api/${lang}/search?${params.toString()}${requestSearchParamsString}`
+        `/api/${lang}/search?${params.toString()}${requestSearchParamsString}`,
+        { signal } // Pass the abort signal to fetch
       );
 
       const filtersResponse = await filtersResponseJson.json();
@@ -161,13 +152,34 @@ class SearchService {
       setSearchLoading(false);
       return filtersResponse;
     } catch (error) {
+      // Check if error is due to abort
+      if (error.name === "AbortError") {
+        console.log("Search request was cancelled");
+        return null;
+      }
       setSearchPartialLoading(false);
+      setSearchLoading(false);
+      throw error;
+    } finally {
+      // Clear the controller reference if this request completed
+      if (this.searchAbortController?.signal === signal) {
+        this.searchAbortController = null;
+      }
     }
   }
+
   async resetSearchFilters({ filter_obj, lang }) {
+    // Cancel any in-flight search request when resetting filters
+    if (this.searchAbortController) {
+      this.searchAbortController.abort();
+    }
+
+    // Create new AbortController for this request
+    this.searchAbortController = new AbortController();
+    const signal = this.searchAbortController.signal;
+
     const { setSearchResults, setTotalSizeOfProducts } = useAppStore.getState();
     try {
-      ("use server");
       let requestSearchParams = new URLSearchParams();
       let requestSearchParamsString = "";
       console.log(filter_obj, "filter_obj");
@@ -176,7 +188,8 @@ class SearchService {
         requestSearchParamsString = `&${requestSearchParams.toString()}`;
       }
       const filtersResponseJson = await fetch(
-        `/api/${lang}/search?noProducts=true&${requestSearchParamsString}`
+        `/api/${lang}/search?noProducts=true&${requestSearchParamsString}`,
+        { signal } // Pass the abort signal to fetch
       );
 
       const filtersResponse = await filtersResponseJson.json();
@@ -209,7 +222,18 @@ class SearchService {
       );
       return filtersResponse.data;
     } catch (error) {
+      // Check if error is due to abort
+      if (error.name === "AbortError") {
+        console.log("Reset filters request was cancelled");
+        return null;
+      }
       console.log(error, "resetSearchFilters");
+      throw error;
+    } finally {
+      // Clear the controller reference if this request completed
+      if (this.searchAbortController?.signal === signal) {
+        this.searchAbortController = null;
+      }
     }
   }
   getSearchParamsFromObj(obj, noProducts, noFilters, filters_offset?) {
@@ -225,62 +249,7 @@ class SearchService {
     }
     return params;
   }
-  async ProcessSearchInput(str: string) {
-    let { colors: colorsData, sizes } = await this.getColorsAndSizes();
-    let colors = colorsData.map((s) => ({
-      translations: [{ name: s.name }],
-      code: s.code,
-    }));
 
-    // Convert input to lowercase for case-insensitive matching
-    const input = str.toLowerCase().split(" ");
-    const result = {
-      str: [],
-      colors: [] as string[],
-      sizes: [] as string[],
-    };
-
-    // Process each word
-    input.forEach((word) => {
-      let matched = false;
-
-      // Check colors
-      for (const color of colors) {
-        const colorNames = color.translations.map((t) => t.name.toLowerCase());
-        if (colorNames.includes(word)) {
-          console.log(colorNames);
-
-          result.colors.push(color.code);
-          matched = true;
-          break;
-        }
-      }
-
-      // Check sizes
-      const sizeMatch = sizes.find((size) => size.toLowerCase() === word);
-      if (sizeMatch) {
-        console.log(sizeMatch);
-        result.sizes.push(sizeMatch);
-        matched = true;
-      }
-
-      // If word didn't match color or size, add to remaining string
-      if (!matched) {
-        result.str.push(word);
-      }
-    });
-
-    // If no matches found, return original string
-    if (result.colors.length === 0 && result.sizes.length === 0) {
-      return { str };
-    }
-
-    // Join remaining words back into string
-    return {
-      ...result,
-      str: result.str.join(" "),
-    };
-  }
   getSearchPageUrl() {
     let { searchFilters, value } = useAppStore.getState();
     if (searchFilters.categories.length > 0) {

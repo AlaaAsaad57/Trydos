@@ -43,13 +43,16 @@ function SearchComponent({
     searchWords,
   } = useAppStore();
 
-  const onChange = (e: ChangeEvent<HTMLInputElement>) => {
+  const onChange = async (e: ChangeEvent<HTMLInputElement>) => {
     setSearchWord(e.target.value);
-    SearchService.getSearchOptions({
+    const result = await SearchService.getSearchOptions({
       noProducts: false,
       lang: lang,
     });
-    router.prefetch(SearchService.getSearchPageUrl());
+    // Only prefetch if the request wasn't cancelled
+    if (result !== null) {
+      router.prefetch(SearchService.getSearchPageUrl());
+    }
   };
   const onInput = (e) => {
     let suggestion = document.querySelector<HTMLDivElement>(".predicted-word");
@@ -175,6 +178,8 @@ function SearchComponent({
                     SearchService.getSearchOptions({
                       noProducts: true,
                       lang: lang,
+                    }).catch(() => {
+                      // Ignore cancelled requests
                     });
                   } else {
                     // Sendevent({
@@ -188,6 +193,8 @@ function SearchComponent({
                     SearchService.getSearchOptions({
                       noProducts: true,
                       lang: lang,
+                    }).catch(() => {
+                      // Ignore cancelled requests
                     });
                   }
                 }}
@@ -243,6 +250,8 @@ function SearchComponent({
                     SearchService.getSearchOptions({
                       noProducts: true,
                       lang: lang,
+                    }).catch(() => {
+                      // Ignore cancelled requests
                     });
                   } else {
                     close();
@@ -250,6 +259,8 @@ function SearchComponent({
                     SearchService.getSearchOptions({
                       noProducts: true,
                       lang: lang,
+                    }).catch(() => {
+                      // Ignore cancelled requests
                     });
                   }
                 }}
