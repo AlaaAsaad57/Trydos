@@ -330,3 +330,7 @@ export const GetAddressString = (location) => {
     str += ` | ${location?.building}`;
   return str;
 };
+export const GetImageUrl = (url) => {
+  if (url.includes("http")) return url;
+  return process.env.NEXT_PUBLIC_BASE_CLOUDINARY_URL + url;
+};

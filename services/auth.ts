@@ -379,10 +379,10 @@ class AuthService {
       false
     );
   }
-  async ExpiredUser() {
+  async ExpiredUser(noReq = false) {
     if (this.getUser()?.phone?.length > 2)
       localStorage.setItem("has-phone", this.getUser()?.phone);
-    await home.registerForExpire(this.UserID());
+    if (!noReq) await home.registerForExpire(this.UserID());
     this.cancelAuth();
     localStorage.removeItem("MARKET-TOKEN");
     localStorage.removeItem("USER");

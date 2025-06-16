@@ -4,6 +4,7 @@ import Qr from "public/svg/Userqr.svg";
 import { translateFunction } from "utils/functions";
 import { ConfirmationModal } from "./PersonalInfo";
 import { useAppStore } from "store";
+import { GetImageUrl } from "utils/tinyUtils";
 function ProfileCard({
   goToProfile,
   goToProfileSize,
@@ -123,7 +124,7 @@ function ProfileCard({
           {userProfile?.image ? (
             <img
               className="w-full h-full rounded-[12px] object-cover"
-              src={userProfile?.image}
+              src={GetImageUrl(userProfile?.image)}
               alt="user"
             />
           ) : (

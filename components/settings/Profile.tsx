@@ -7,6 +7,7 @@ import BankIcon from "public/svg/BankIcon.svg";
 
 import { translateFunction } from "utils/functions";
 import { useAppStore } from "store";
+import { GetImageUrl } from "utils/tinyUtils";
 function Profile({
   swipeToScreen,
   goBack,
@@ -57,7 +58,7 @@ function Profile({
       />
       <div className="flex-row justify-center mt-[12px]">
         <ProfilePicture
-          photo={userProfile.image}
+          photo={GetImageUrl(userProfile.image)}
           GoToProfilePhotoScreen={() => {
             swipeToScreen(2);
           }}
@@ -96,7 +97,7 @@ const ProfilePicture = ({
         </div>
         <img
           width={128}
-          src={photo}
+          src={GetImageUrl(photo)}
           height={128}
           className="rounded-[22px] object-cover h-[128px] w-[128px]"
         />

@@ -1,6 +1,7 @@
 import UserIcon from "public/svg/userIcon.svg";
 import Image from "next/image";
 import { useAppStore } from "store";
+import { GetImageUrl } from "utils/tinyUtils";
 
 interface UserAvatarProps {
   avatar: string | any;
@@ -30,7 +31,7 @@ function UserAvatar({ avatar, onClick }: UserAvatarProps) {
               alt="user-img"
               width={30}
               height={30}
-              src={avatar || userProfile?.image}
+              src={avatar || GetImageUrl(userProfile?.image)}
               quality={100}
               priority={true}
               fetchPriority="auto"
