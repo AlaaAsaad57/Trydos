@@ -167,7 +167,8 @@ class HomeService {
     if (isRegisteringReady) {
       let body = id
         ? { old_guest_user_id: id }
-        : localStorage.getItem("guest-user")
+        : localStorage.getItem("guest-user") &&
+          JSON.parse(localStorage.getItem("guest-user"))?.id
         ? {
             old_guest_user_id: JSON.parse(localStorage.getItem("guest-user"))
               .id,
@@ -320,12 +321,14 @@ class HomeService {
 
     if (isRegisteringReady) {
       let isNewUser = !localStorage.getItem("guest-user");
-      let body = localStorage.getItem("guest-user")
-        ? {
-            old_guest_user_id: JSON.parse(localStorage.getItem("guest-user"))
-              .id,
-          }
-        : { old_guest_user_id: null };
+      let body =
+        localStorage.getItem("guest-user") &&
+        JSON.parse(localStorage.getItem("guest-user"))?.id
+          ? {
+              old_guest_user_id: JSON.parse(localStorage.getItem("guest-user"))
+                ?.id,
+            }
+          : { old_guest_user_id: null };
       if (
         !Cookies.get("DEVICE-TOKEN") &&
         localStorage.getItem("DEVICE-TOKEN")
@@ -365,13 +368,15 @@ class HomeService {
         Cookies.set("DEVICE-TOKEN", repo.data.token, {
           expires: 365,
         });
-        localStorage.setItem(
-          "guest-user",
-          JSON.stringify({
-            ...repo.data.user,
-            expired_at: repo.data.expires_at,
-          })
-        );
+        if (repo?.data?.user) {
+          localStorage.setItem(
+            "guest-user",
+            JSON.stringify({
+              ...repo.data.user,
+              expired_at: repo.data.expires_at,
+            })
+          );
+        }
         SetGAUser(repo.data.user, isNewUser);
         localStorage.removeItem("customer-info");
         setIsRegisteringReady(true);
