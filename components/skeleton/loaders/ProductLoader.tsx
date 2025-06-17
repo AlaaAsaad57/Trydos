@@ -39,6 +39,7 @@ function ProductLoader({ product }) {
   const [emblaRef, emblaApi] = useEmblaCarousel({
     loop: false,
   });
+  console.log(product);
   return (
     <div
       style={{
@@ -136,7 +137,7 @@ function ProductLoader({ product }) {
                   <img
                     width={15}
                     height={15}
-                    src={product?.category?.icon}
+                    src={GetImageUrl(product?.category?.icon)}
                     alt={product?.category?.name}
                   />
                 )}
