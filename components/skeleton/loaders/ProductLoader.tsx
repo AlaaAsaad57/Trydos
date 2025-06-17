@@ -336,7 +336,7 @@ function ProductLoader({ product }) {
               <div className="product-new-price">
                 {(currency?.exchange_rate &&
                   RoundPrice({
-                    num: product?.offer_price,
+                    num: product?.offer_price || product?.price,
                     rate: currency?.exchange_rate,
                     points: 0,
                   })) ?? <Skeleton width={30} height={10} />}

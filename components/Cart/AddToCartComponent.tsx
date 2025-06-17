@@ -446,32 +446,34 @@ function AddToCartComponent({
               data-cy="product_info_price_addtocart"
               className="product-info-price"
             >
-              <div
-                data-cy="product_old_price_addtocart"
-                className="product-old-price"
-              >
-                <svg
-                  data-cy="product_addtocart_svg"
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="100%"
-                  height="2"
+              {getSelectedVariantQty()?.offer_price > 0 && currency?.symbol && (
+                <div
+                  data-cy="product_old_price_addtocart"
+                  className="product-old-price"
                 >
-                  <line
-                    id="Line_1104"
-                    data-name="Line 1104"
-                    x2="100%"
-                    transform="translate(0 1)"
-                    fill="none"
-                    stroke="#C4C2C2"
-                    strokeWidth="2"
-                  />
-                </svg>
-                {getSelectedVariantQty()?.price >= 0 && currency?.symbol ? (
-                  <>{RoundPrice({ num: getSelectedVariantQty()?.price })}</>
-                ) : (
-                  <Skeleton width={30} height={10} />
-                )}
-              </div>
+                  <svg
+                    data-cy="product_addtocart_svg"
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="100%"
+                    height="2"
+                  >
+                    <line
+                      id="Line_1104"
+                      data-name="Line 1104"
+                      x2="100%"
+                      transform="translate(0 1)"
+                      fill="none"
+                      stroke="#C4C2C2"
+                      strokeWidth="2"
+                    />
+                  </svg>
+                  {getSelectedVariantQty()?.price >= 0 && currency?.symbol ? (
+                    <>{RoundPrice({ num: getSelectedVariantQty()?.price })}</>
+                  ) : (
+                    <Skeleton width={30} height={10} />
+                  )}
+                </div>
+              )}
               <div
                 data-cy="product_new-price_addtocart"
                 className="product-new-price"
@@ -479,7 +481,11 @@ function AddToCartComponent({
                 {getSelectedVariantQty()?.offer_price >= 0 &&
                 currency?.symbol ? (
                   <>
-                    {RoundPrice({ num: getSelectedVariantQty()?.offer_price })}
+                    {RoundPrice({
+                      num:
+                        getSelectedVariantQty()?.offer_price ||
+                        getSelectedVariantQty()?.price,
+                    })}
                   </>
                 ) : (
                   <Skeleton width={30} height={10} />
@@ -1083,27 +1089,13 @@ const SizesSkeleton = ({ product }) => {
     <div className="product-details-footer z-[9999] min-h-[100px] h-auto">
       <div className="product-info-container">
         <div className="product-info-price">
-          <div className="product-old-price">
-            <svg xmlns="http://www.w3.org/2000/svg" width="100%" height="2">
-              <line
-                id="Line_1104"
-                data-name="Line 1104"
-                x2="100%"
-                transform="translate(0 1)"
-                fill="none"
-                stroke="#C4C2C2"
-                strokeWidth="2"
-              />
-            </svg>
-            {(product?.price && RoundPrice({ num: product?.price })) ?? (
+          {product?.offer_price > 0 && (
+            <div className="product-old-price">
               <Skeleton width={30} height={10} />
-            )}
-          </div>
+            </div>
+          )}
           <div className="product-new-price">
-            {(product?.offer_price &&
-              RoundPrice({ num: product?.offer_price })) ?? (
-              <Skeleton width={30} height={10} />
-            )}
+            <Skeleton width={30} height={10} />
           </div>
           <div className="product-currency">
             {currency?.symbol ?? (
