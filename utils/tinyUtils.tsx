@@ -331,7 +331,6 @@ export const GetAddressString = (location) => {
   return str;
 };
 export const GetImageUrl = (url) => {
-  if (!url) return errorPNG;
-  if (url.includes("http")) return url;
+  if (url?.includes("http")) return url;
   return process.env.NEXT_PUBLIC_BASE_CLOUDINARY_URL + url;
 };
