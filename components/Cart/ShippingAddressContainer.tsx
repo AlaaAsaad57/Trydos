@@ -8,6 +8,7 @@ import order from "services/order";
 import Spinner from "components/global/Spinner";
 import { useAppStore } from "store";
 import { formatTime } from "utils/tinyUtils";
+import home from "services/home";
 function ShippingAddressContainer({ slideNext, slidePrev, openAddressList }) {
   const { setCountries, cart, user } = useAppStore();
   const { lang } = useParams();
@@ -15,7 +16,7 @@ function ShippingAddressContainer({ slideNext, slidePrev, openAddressList }) {
     order.GetWallet();
     order.GetAddressList();
     const res = await await fetch(
-      process.env.NEXT_PUBLIC_API_BASE_URL + `/api/${lang}/countries`,
+      process.env.NEXT_PUBLIC_API_BASE_URL + `/api/countries`,
       {
         next: {
           revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE_COUNTRIES),
@@ -393,15 +394,25 @@ const ShippingAddressInput = ({ slideNext, slidePrev, openAddressList }) => {
   );
 };
 const AddressContainer = ({ openAddressList }) => {
+  const [loading, setLoading] = useState(false);
+  const getData = async () => {
+    setLoading(true);
+    await home.getClientData();
+    setLoading(false);
+  };
+  useEffect(() => {
+    getData();
+  }, []);
   const { addressLists, cart, settings } = useAppStore();
   const getDeliveryDate = () => {
     let shippingDay = 0;
     cart.forEach((item) => {
-      if (item.shipping_days > shippingDay) {
-        shippingDay = item.shipping_days;
+      if (Number(item.shipping_days) > Number(shippingDay)) {
+        shippingDay = Number(item.shipping_days);
       }
     });
-    shippingDay += settings?.["starting-setting"]?.shipping_duration_days || 0;
+    shippingDay +=
+      Number(settings?.["starting-setting"]?.shipping_duration_days) || 0;
     return formatTime(
       new Date(
         new Date().getTime() + Number(shippingDay) * 24 * 60 * 60 * 1000
@@ -616,7 +627,7 @@ const AddressContainer = ({ openAddressList }) => {
                 {translateFunction("Expected Delivery")}
               </span>
               <span className="text-[#1D1D1D] regular ml-[4px]">
-                {getDeliveryDate()}
+                {loading ? <Spinner /> : getDeliveryDate()}
               </span>
               <span className="text-[#388CFF] regular underline cursor-pointer ml-[4px]">
                 {translateFunction("Delivery Not")}

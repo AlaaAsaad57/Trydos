@@ -5,6 +5,7 @@ import VerificationIcon from "public/svg/listing/VerificationIcon.svg";
 import TopStarIcon from "public/svg/listing/TopStar.svg";
 import Image from "next/image";
 import { getConfiguredImage } from "utils/functions";
+import { GetImageUrl } from "utils/tinyUtils";
 function ListingSkeleton({
   forProducts,
   withBanners,
@@ -47,7 +48,11 @@ function ListingSkeleton({
               <div className="boutique-logo-container flex-row align-center">
                 {boutique?.icon ? (
                   <>
-                    <img width={130} height={20} src={boutique?.icon} />
+                    <img
+                      width={130}
+                      height={20}
+                      src={GetImageUrl(boutique?.icon)}
+                    />
                     <VerificationIcon />
                     <TopStarIcon />
                   </>

@@ -67,13 +67,18 @@ const CartProvider = () => {
   };
   useEffect(() => {
     setTimeout(() => {
-      home.getClientData();
-      getCurrency({
-        callback: (data) => {
-          setCurrency(data.currency);
-        },
-      });
-      home.GetFireBaseSettings();
+      if (
+        !searchParams.get("changed-country") &&
+        !searchParams.get("no-country")
+      ) {
+        home.getClientData();
+        getCurrency({
+          callback: (data) => {
+            setCurrency(data.currency);
+          },
+        });
+        home.GetFireBaseSettings();
+      }
     }, 10);
     window.addEventListener("popstate", (event) => {
       if (event.state?.isPopup) {
@@ -86,7 +91,7 @@ const CartProvider = () => {
     });
     window.addEventListener("scroll", function (e) {
       if (!filterEnabled) {
-        if (window.scrollY > 66) {
+        if (window.scrollY > 80) {
           expandView({ filter: false });
         } else {
           normalizeView();

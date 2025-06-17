@@ -3,6 +3,7 @@ import NextLink from "components/global/NextLink";
 import React from "react";
 import { getConfiguredImage } from "utils/functions";
 import { useParams } from "next/navigation";
+import Image from "next/image";
 
 function ProductItem({ product, onClick }) {
   const { lang } = useParams();
@@ -53,7 +54,12 @@ function ProductItem({ product, onClick }) {
             </g>
           </svg>
 
-          <img
+          <Image
+            alt={product.name}
+            loading="eager"
+            width={100}
+            className="object-cover object-center"
+            height={100}
             src={getConfiguredImage({
               src:
                 product?.sync_color_images?.[0]?.images?.[0]?.file_path ||

@@ -9,6 +9,7 @@ export async function GET(request: NextRequest) {
   if (value === "home") {
     revalidateTag("main-categories-Api");
     revalidateTag("featured-Products-Api");
+    revalidateTag("countries");
     revalidateTag("boutiques");
     revalidateTag("stories");
   } else if (value === "listing") {
@@ -20,6 +21,7 @@ export async function GET(request: NextRequest) {
   } else {
     revalidateTag("main-categories-Api");
     revalidateTag("featured-Products-Api");
+    revalidateTag("countries");
     revalidateTag("boutiques");
     revalidateTag("stories");
     revalidateTag("listing");

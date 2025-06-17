@@ -1,6 +1,5 @@
 "use client";
-import "styles/chatstyles.css";
-import "styles/chatcomponent.css";
+
 import "styles/globals.css";
 import { useEffect, useState } from "react";
 import { useParams, usePathname, useSearchParams } from "next/navigation";
@@ -11,8 +10,7 @@ import Cookies from "js-cookie";
 import { useRouter } from "next/navigation";
 import Spinner from "components/global/Spinner";
 import { changeAppCountryServer } from "store/homepage/cachedActions";
-import { GA_EVENT_NAMES } from "./GAEvents";
-import Link from "node_modules/next/link";
+import Link from "next/link";
 
 const PopupCountry = ({ options, countries, forChanged, noCountry }) => {
   const [loading, setLoading] = useState(true);

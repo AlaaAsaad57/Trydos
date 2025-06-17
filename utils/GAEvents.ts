@@ -5,7 +5,7 @@ export const GA_EVENT_NAMES = {
   VIEW_BOUTIQUE_EVENT: "view_boutique_event",
   LOGIN: "login",
   SIGN_UP: "sign_up",
-  SCREEN_VIEW: "screen_view",
+  SCREEN_VIEW: "screen_view_event",
   LOGIN_START: "login_start",
   CONFIRM_PHONE_NUMBER: "confirm_phone_number",
   VERIFY_OTP: "verify_otp",
@@ -19,6 +19,10 @@ export const GA_EVENT_NAMES = {
   CANCEL_SIGNUP: "cancel_signup",
   LATER_TAKE_LOOK_CLICKED: "later_take_look_clicked",
   TERMS_SERVICES: "terms_services",
+  ADD_TO_CART: "add_to_cart",
+  REMOVE_FROM_CART: "remove_from_cart",
+  VIEW_CART: "view_cart",
+  BEGIN_CHECKOUT: "begin_checkout",
 };
 
 export const GA_AUTH_SCREEN = {

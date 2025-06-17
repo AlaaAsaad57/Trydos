@@ -32,14 +32,14 @@ function Story({
 
       <div className="" style={{ display: "flex" }}>
         <Image
-          className="thumb-img"
+          className="thumb-img object-cover object-center"
           alt="story"
           width={100}
           height={160}
           priority={true}
           loading="eager"
           onError={(e) => {
-            e.currentTarget.src = errorPNG;
+            e.currentTarget.src = errorPNG.src;
             e.currentTarget.onerror = null;
           }}
           src={StoryServiceClass.getThumb(

@@ -23,7 +23,7 @@ function PersonalInfoAddress({
   const getAdditionData = async () => {
     order.GetAddressList();
     const res = await await fetch(
-      process.env.NEXT_PUBLIC_API_BASE_URL + `/api/${lang}/countries`,
+      process.env.NEXT_PUBLIC_API_BASE_URL + `/api/countries`,
       {
         next: {
           revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE_COUNTRIES),

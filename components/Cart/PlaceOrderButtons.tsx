@@ -8,6 +8,7 @@ import { dispatchRouteChangeEvent } from "utils/events";
 import { useParams, useRouter } from "next/navigation";
 import useNextRouter from "hooks/useNextRouter";
 import NextLink from "components/global/NextLink";
+import home from "services/home";
 
 function PlaceOrderButtons({ orderLoading, successOrder, backToCart, close }) {
   const {
@@ -19,6 +20,7 @@ function PlaceOrderButtons({ orderLoading, successOrder, backToCart, close }) {
     total_cash,
     cart,
     setCouponDiscount,
+    userProfile,
   } = useAppStore();
   const router = useNextRouter();
   const { lang } = useParams();
@@ -57,6 +59,11 @@ function PlaceOrderButtons({ orderLoading, successOrder, backToCart, close }) {
           },
         })
       ).cart;
+      if (userProfile.is_phone_verified === 0) {
+        backToCart();
+        setLoading(false);
+        toast.info(translateFunction("Please Verify Your Phone Number"));
+      }
       if (a.length === 0) {
         backToCart();
         setLoading(false);

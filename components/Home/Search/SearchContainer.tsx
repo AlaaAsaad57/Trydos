@@ -8,7 +8,7 @@ import { LogData } from "store/homepage/actions";
 import search from "services/search";
 import { Suspense } from "react";
 import { useAppStore } from "store";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 
 function SearchContainer({ active }) {
   const { setSearchWord, value } = useAppStore();
@@ -30,6 +30,7 @@ function SearchContainer({ active }) {
       setSearchHistory([]);
     }
   }, [value]);
+  const searchParams = useSearchParams();
   const getSearchData = async () => {
     await search.getSearchOptions({
       noProducts: true,
@@ -38,7 +39,8 @@ function SearchContainer({ active }) {
     await search.getTrendingSearch();
   };
   useEffect(() => {
-    getSearchData();
+    if (!searchParams.get("changed-country") && !searchParams.get("no-country"))
+      getSearchData();
   }, []);
   return (
     <Animated.div

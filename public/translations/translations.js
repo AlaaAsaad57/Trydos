@@ -11,6 +11,10 @@ const translations = {
     "Filter By search_text":"تصفية حسب",
     "Filter By prices":"تصفية حسب الأسعار",
     "Total Products:": "إجمالي المنتجات:",
+    "Please Review Your Cart Some Products Not Available":
+      "الرجاء مراجعة السلة بعض المنتجات غير متوفرة",
+    "Please Verify Your Phone Number And Try Again":
+      "الرجاء تاكيد رقم الهاتف والمحاولة مجددا",
     "Modify Order": "تعديل الطلب",
     "Please select a reason for canceling this order":
       "الرجاء اختيار سبب لالغاء الطلب",
@@ -566,6 +570,10 @@ const translations = {
     "Syncing contacts...": "İletişim bilgileriniz eşitleniyor...",
     "Please select a reason for canceling this order":
       "Lütfen bu siparişi iptal etmek için bir neden seçin",
+    "Please Review Your Cart Some Products Not Available":
+      "Lütfen Sepetinizi İnceleyin Bazı Ürünler Mevcut Değil",
+    "Please Verify Your Phone Number And Try Again":
+      "Lütfen Telefon Numaranızı Doğrulayın ve Tekrar Deneyin",
     "You Can Easily Change Your Shipping Address And Delivery Notes":
       "Teslimat Adresinizi ve Teslimat Notlarınızı Kolayca Değiştirebilirsiniz",
     "Shipping Cost": "Kargo Ücreti",
