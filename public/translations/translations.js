@@ -1,6 +1,15 @@
 const translations = {
   en: {},
   ar: {
+    "Invite": "دعوة",
+    "Filter By brands":"تصفية حسب العلامات التجارية",
+    "Filter By categories":"تصفية حسب الفئات",
+    "Filter By colors":"تصفية حسب الألوان",
+    "Filter By sizes":"تصفية حسب الأحجام",
+    "Filter By boutiques":"تصفية حسب المتاجر",
+    "Filter By Prices":"تصفية حسب الأسعار",
+    "Filter By search_text":"تصفية حسب",
+    "Filter By prices":"تصفية حسب الأسعار",
     "Total Products:": "إجمالي المنتجات:",
     "Modify Order": "تعديل الطلب",
     "Please select a reason for canceling this order":
@@ -26,6 +35,11 @@ const translations = {
     "Syncing contacts...": "جاري مزامنة جهات الاتصال...",
     "Failed to sync contacts": "فشل مزامنة جهات الاتصال",
     "Add Contacts": "إضافة جهات الاتصال",
+    "Get from your contacts": "احصل عليه من جهات اتصالك",
+    "Enter name": "أدخل الاسم",
+    "Enter phone number": "أدخل الهاتف",
+    "Contacts API not supported in this browser":
+      "API جهات الاتصال غير مدعومة في هذا المتصفح",
     "Session Expired..please Login again..Reloading...":
       "انتهت صلاحية الجلسة ,الرجاء تسجيل الدخول . إعادة التحميل",
     Reschedule: "تأجيل",
@@ -61,6 +75,8 @@ const translations = {
     "Available Countries": "البلدان المتاحة",
     "Profile | Countries": "الملف الشخصي | البلدان",
     "Profile | Languages": "الملف الشخصي | اللغة",
+    "Languages":"لغات",
+    "Preparing":"تحضير",
     "000 KG": "000 كجم",
     "How Tall Are You?": "كم طولك؟",
     "Your Address Info": "معلومات العنوان",
@@ -116,7 +132,7 @@ const translations = {
     "Please Enter Shipping Address To Receive Your Bag":
       "الرجاء ادخال عنوان التوصيل لاستلام المشتريات",
     "Your Shopping Bag": "سلة التسوق",
-
+    Compare: "مقارنة",
     "Added To Compare! Click To Go To Compare Page":
       "تم إضافة للمقارنة! انقر للذهاب إلى صفحة المقارنة",
     "Already Added To Compare!": "تم إضافة للمقارنة",
@@ -267,7 +283,8 @@ const translations = {
     color: "لون",
     "Add To Bag": "اضافة للسلة",
     "All Inclusive Without Additions": "شامل جميع الإضافات",
-    "Ship To You Accepted ": "تم قبول الشحن إليك في",
+    "Ship To You Accepted": "تم قبول الشحن إليك في",
+    "type a comment":"اكتب تعليقاً",
     "Free Shipping": "شحن مجاني",
     "Shipping Is Completely Free Without Any Extras":
       "الشحن مجاني بالكامل بدون أي إضافات",
@@ -571,6 +588,12 @@ const translations = {
     "Information About Your Order Modify Or Cancel":
       "Siparişinizin Düzenlenmesi veya İptal Edilmesi Hakkında Bilgiler",
     "Add Contacts": "İletişim bilgilerini ekle",
+    "Get from your contacts": "Kişilerinizden alın",
+    "Enter name": "Adı ve Soyadı",
+    "Enter phone number": "Telefon Numarası",
+    "Contacts API not supported in this browser":
+      "Bu tarayıcıda API kişileri desteklenmiyor",
+    "Invite":"Davet",
     "The Purchase Was Completed Successfully":
       "Satın Alma Başarıyla Tamamlandı",
     "Please Select an Address": "Lütfen Bir Adres Seçiniz",
@@ -1068,6 +1091,8 @@ const translations = {
     Wishlist: "İstek Listesi",
     "Your wishlist is empty": "İstek listeniz boş",
     "Compare Products": "Ürünleri Karşılaştır",
+    "Compare": "Karşılaştır",
+    "type a comment":"Yorum yaz",
     "Search for Product 1": "1. Ürünü Ara",
     "Search for Product 2": "2. Ürünü Ara",
     Name: "İsim",
@@ -1077,6 +1102,15 @@ const translations = {
     "Product Comparison": "Ürün Karşılaştırma",
     "Loading your selected products for a detailed side-by-side comparison. This will help you make an informed decision by comparing features, prices, and specifications.":
       "Seçtiğiniz ürünler detaylı bir yan yana karşılaştırma için yükleniyor. Bu, özellikleri, fiyatları ve teknik özellikleri karşılaştırarak bilinçli bir karar vermenize yardımcı olacaktır.",
+      "Filter By brands":"Markalara göre filtrele",
+      "Filter By categories":"Kategorilere göre filtrele",
+      "Filter By colors":"Renklere göre filtrele",
+      "Filter By sizes":"Bedenlere göre filtrele",
+      "Filter By boutiques":"Mağazalara göre filtrele",
+      "Filter By Prices":"Fiyatlara göre filtrele",
+      "Filter By search_text":"Filtrele göre",
+      "Filter By prices":"Fiyatlara göre filtrele",
+      "Preparing":"Hazırlanıyor",
   },
 };
 

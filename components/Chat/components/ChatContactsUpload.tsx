@@ -37,7 +37,9 @@ function ChatContactsUpload() {
 
       // Request permission to access contacts
       if (!("contacts" in navigator && "ContactsManager" in window)) {
-        throw new Error("Contacts API not supported in this browser");
+        throw new Error(
+          translateFunction("Contacts API not supported in this browser")
+        );
       }
       await getContactsData();
       // @ts-ignore - The Contacts API types aren't in the standard lib yet
@@ -263,7 +265,7 @@ function ChatContactsUpload() {
               <path d="M12 5v14M5 12h14" />
             </svg>
             <span className="font-medium text-[#1d1d1d]">
-              {translateFunction("Add contacts")}
+              {translateFunction("Add Contacts")}
             </span>
           </button>
         </div>
@@ -375,7 +377,7 @@ function ChatContactsUpload() {
 
               <span className="font-medium">
                 {translateFunction(
-                  isUploading ? "Adding contact..." : "Add contact"
+                  isUploading ? "Adding contact..." : "Add Contacts"
                 )}
               </span>
 
