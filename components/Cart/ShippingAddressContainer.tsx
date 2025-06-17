@@ -416,7 +416,7 @@ const AddressContainer = ({ openAddressList }) => {
     return formatTime(
       new Date(
         new Date().getTime() + Number(shippingDay) * 24 * 60 * 60 * 1000
-      ).toLocaleDateString()
+      ).toString()
     );
   };
   const GetAddressString = (location) => {

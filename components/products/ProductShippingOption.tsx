@@ -31,7 +31,7 @@ function ProductShippingOption({ days }) {
         formatedTime: formatTime(
           new Date(
             new Date().getTime() + Number(days || 0) * 24 * 60 * 60 * 1000
-          ).toLocaleDateString()
+          ).toString()
         ),
       });
     } catch (error) {
@@ -129,7 +129,7 @@ function ProductShippingOption({ days }) {
                   new Date(
                     new Date().getTime() +
                       Number(days || 0) * 24 * 60 * 60 * 1000
-                  ).toLocaleDateString()
+                  ).toString()
                 )}
                 {","}
                 {countriesData?.length ? (
@@ -160,7 +160,7 @@ function ProductShippingOption({ days }) {
                   new Date(
                     new Date().getTime() +
                       Number(days || 0) * 24 * 60 * 60 * 1000
-                  ).toLocaleDateString()
+                  ).toString()
                 )}{" "}
                 {translate("In Your Address")}
               </span>

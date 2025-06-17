@@ -253,6 +253,7 @@ export const formatTime = (timeString: string) => {
     "December",
   ];
   const date = new Date(timeString + "Z");
+  console.log({ date, timeString });
 
   const today = new Date();
   const yesterday = new Date(today);
