@@ -25,16 +25,14 @@ import axios from "axios";
 
 import { AxiosGet, AxiosPost } from "utils/AxiosApi";
 import { changeToken } from "store/homepage/cachedActions";
-import {
-  RegisterGuestApi,
-} from "models/API/market/RegisterGuest";
-import {CustomerInfoResponse} from 'models/API/market/CustomerInfo'
+import { RegisterGuestApi } from "models/API/market/RegisterGuest";
+import { CustomerInfoResponse } from "models/API/market/CustomerInfo";
 import auth from "./auth";
-import {UpdateCartApi} from 'models/API/market/UpdateCart'
+import { UpdateCartApi } from "models/API/market/UpdateCart";
 import LocalizationServiceClass from "./localization";
 import chat from "./chat";
 import { SetGAUser } from "utils/gtag";
-import {starttingSettingApi} from 'models/API/market/StarttingSetting';
+import { starttingSettingApi } from "models/API/market/StarttingSetting";
 const getHeader = () => {
   let [countryUrl, languageUrl] = window.location.pathname
     .split("/")[1]
@@ -79,7 +77,8 @@ class HomeService {
           localStorage.setItem("LAST_JSON", JSON.stringify(repo));
       }
       setTimeout(() => {
-        if (localStorage.getItem("USER")) chat.getChats(false);
+        if (localStorage.getItem("USER") && localStorage.getItem("USER-CHAT"))
+          chat.getChats(false);
       }, 5000);
     } catch (e) {
       console.error(e);
@@ -109,7 +108,7 @@ class HomeService {
         updateUserInfo(repo.data?.customer_info);
 
         if (repo.data.customer_info?.is_phone_verified !== 1) {
-          await auth.ExpiredUser();
+          await auth.ExpiredUser(true);
         }
         // localStorage.setItem(
         //   "customer-info",
@@ -168,7 +167,8 @@ class HomeService {
     if (isRegisteringReady) {
       let body = id
         ? { old_guest_user_id: id }
-        : localStorage.getItem("guest-user")
+        : localStorage.getItem("guest-user") &&
+          JSON.parse(localStorage.getItem("guest-user"))?.id
         ? {
             old_guest_user_id: JSON.parse(localStorage.getItem("guest-user"))
               .id,
@@ -320,12 +320,15 @@ class HomeService {
       useAppStore.getState();
 
     if (isRegisteringReady) {
-      let body = localStorage.getItem("guest-user")
-        ? {
-            old_guest_user_id: JSON.parse(localStorage.getItem("guest-user"))
-              .id,
-          }
-        : { old_guest_user_id: null };
+      let isNewUser = !localStorage.getItem("guest-user");
+      let body =
+        localStorage.getItem("guest-user") &&
+        JSON.parse(localStorage.getItem("guest-user"))?.id
+          ? {
+              old_guest_user_id: JSON.parse(localStorage.getItem("guest-user"))
+                ?.id,
+            }
+          : { old_guest_user_id: null };
       if (
         !Cookies.get("DEVICE-TOKEN") &&
         localStorage.getItem("DEVICE-TOKEN")
@@ -358,7 +361,6 @@ class HomeService {
           }
         );
         let repo: RegisterGuestApi = await response.json();
-        console.log(repo);
 
         localStorage.setItem("DEVICE-TOKEN", repo.data.token);
         changeToken({ key: "DEVICE-TOKEN", value: repo.data.token });
@@ -366,17 +368,16 @@ class HomeService {
         Cookies.set("DEVICE-TOKEN", repo.data.token, {
           expires: 365,
         });
-        localStorage.setItem(
-          "guest-user",
-          JSON.stringify({
-            ...repo.data.user,
-            expired_at: repo.data.expires_at,
-          })
-        );
-        SetGAUser({
-          ...repo.data.user,
-          expired_at: repo.data.expires_at,
-        });
+        if (repo?.data?.user) {
+          localStorage.setItem(
+            "guest-user",
+            JSON.stringify({
+              ...repo.data.user,
+              expired_at: repo.data.expires_at,
+            })
+          );
+        }
+        SetGAUser(repo.data.user, isNewUser);
         localStorage.removeItem("customer-info");
         setIsRegisteringReady(true);
         if (repo.data.user) {

@@ -44,6 +44,7 @@ function Settings({ lang }: { lang: string }) {
     setOrderDetails,
     setAddressDetails,
     showOrderOptions,
+    setSelectedOrderItem,
     setOrderOptions,
   } = useAppStore();
 

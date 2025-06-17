@@ -20,7 +20,8 @@ import ShareBoutiquePageButton from "components/filterPage/ShareBoutiquePageButt
 import FilterBoutiquePageButton from "components/filterPage/FilterBoutiquePageButton";
 import SearchBoutiquePage from "components/filterPage/SearchBoutiquePage";
 import CarouselContainer from "components/filterPage/CarouselContainer";
-import { processStrForSearch } from "store/homepage/cachedActions";
+import { GetImageUrl } from "utils/tinyUtils";
+
 export const dynamicParams = true;
 
 export const runtime = "nodejs";
@@ -51,14 +52,11 @@ export default async function Page({
   searchParams: any;
 }) {
   let EditedSearchParams: any = {};
-  let processedSearchValue = await processStrForSearch(
-    searchParams.search_text
-  );
 
   if (searchParams?.search_text) {
     EditedSearchParams = {
       ...EditedSearchParams,
-      search_text: processedSearchValue?.str,
+      search_text: searchParams.search_text,
     };
   }
   if (searchParams?.categories) {
@@ -74,11 +72,11 @@ export default async function Page({
     };
   }
   // @ts-ignore
-  if (searchParams?.colors || processedSearchValue?.colors) {
+  if (searchParams?.colors) {
     EditedSearchParams = {
       ...EditedSearchParams,
       // @ts-ignore
-      colors: processedSearchValue?.colors ?? searchParams?.colors,
+      colors: searchParams?.colors,
     };
   }
   if (searchParams?.prices) {
@@ -88,11 +86,11 @@ export default async function Page({
     };
   }
   // @ts-ignore
-  if (searchParams?.sizes || processedSearchValue?.sizes) {
+  if (searchParams?.sizes) {
     EditedSearchParams = {
       ...EditedSearchParams,
       // @ts-ignore
-      sizes: processedSearchValue?.sizes ?? searchParams?.sizes,
+      sizes: searchParams?.sizes,
     };
   }
   if (searchParams?.boutiques) {
@@ -231,7 +229,7 @@ export default async function Page({
     hasOfferCatalog: {
       "@type": "OfferCatalog",
       name: "Product Listing",
-      itemListElement: filtersData.products.map((product) => ({
+      itemListElement: filtersData?.products?.map((product) => ({
         "@type": "Product",
         name: product.name,
         image: product?.images?.[0]?.file_path,
@@ -361,7 +359,7 @@ async function BoutiqueHeader({ boutique }) {
               alt={boutique?.name}
               width={130}
               height={20}
-              src={boutique?.icon}
+              src={GetImageUrl(boutique?.icon)}
             />
             <VerificationIcon />
             <TopStarIcon />
@@ -408,11 +406,10 @@ const BouqiuePhotoSlider = ({ banners }) => {
                       fetchPriority={"high"}
                       style={{ borderRadius: "15px" }}
                       className="OfferImage object-cover"
-                      src={getConfiguredImage({
-                        src: banner.file_path,
-                        height: 342,
-                        width: 900,
-                      })}
+                      src={GetImageUrl(banner.file_path)?.replace(
+                        "/upload",
+                        `/upload/h_342,c_pad,w_840/f_webp/q_auto`
+                      )}
                       width={380}
                       height={135}
                       alt="offer"

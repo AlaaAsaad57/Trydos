@@ -20,7 +20,7 @@ const firebaseConfig = {
   storageBucket: "trydos-2e2b2.firebasestorage.app",
   messagingSenderId: "817506223106",
   appId: "1:817506223106:web:e9e39c9a34ac2aff82131b",
-  measurementId: "G-NZ5P3EHDH3",
+  // measurementId: process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID,
   databaseURL:
     "https://trydos-2e2b2-default-rtdb.europe-west1.firebasedatabase.app/",
 };
@@ -198,25 +198,39 @@ messaging.onBackgroundMessage(async function (payload) {
           notificationOptions
         );
       }
-    } else if (payload.data.message) {
-      const notificationTitle = JSON.parse(payload.data.message).sender_user
-        .name;
+    } else if (payload.data.type === "message") {
+      const notificationTitle = JSON.parse(payload.data.data).message
+        .sender_user.name;
       let notificationOptions = {};
+      if (JSON.parse(payload.data.data)?.is_private) {
+        notificationOptions = {
+          body: "there is new message from Deleivery Worker",
+          data: {
+            url:
+              url +
+              `setting?tab=Orders&id=${
+                JSON.parse(payload?.data.data)?.order_group_id
+              }}`,
+          },
+        };
+      }
       if (
-        JSON.parse(payload.data.message).message_type.name === "VoiceMessage"
+        JSON.parse(payload.data.data).message.message_type.name ===
+        "VoiceMessage"
       ) {
         notificationOptions = {
           body: "Audio",
-          icon: JSON.parse(payload.data.message).icon,
-          image: JSON.parse(payload.data.message).image,
+          icon: JSON.parse(payload.data.data).message?.icon,
+          image: JSON.parse(payload.data.data).message?.image,
         };
       } else if (
-        JSON.parse(payload.data.message).message_type.name === "VideoMessage"
+        JSON.parse(payload.data.data).message.message_type.name ===
+        "VideoMessage"
       ) {
         notificationOptions = {
           body: "Video",
-          icon: JSON.parse(payload.data.message).icon,
-          image: JSON.parse(payload.data.message).image,
+          icon: JSON.parse(payload.data.data).message.icon,
+          image: JSON.parse(payload.data.data).message.image,
         };
       } else if (payload.data.type === "vcard") {
         notificationOptions = {
@@ -225,36 +239,40 @@ messaging.onBackgroundMessage(async function (payload) {
           image: payload.data.image,
         };
       } else if (
-        JSON.parse(payload.data.message).message_type.name === "ImageMessage"
+        JSON.parse(payload.data.data).message.message_type.name ===
+        "ImageMessage"
       ) {
         notificationOptions = {
           body: "Image",
-          icon: JSON.parse(payload.data.message).icon,
-          image: JSON.parse(payload.data.message).image,
+          icon: JSON.parse(payload.data.data).message.icon,
+          image: JSON.parse(payload.data.data).message.image,
         };
       } else if (
-        JSON.parse(payload.data.message).message_type.name === "FileMessage"
+        JSON.parse(payload.data.data).message.message_type.name ===
+        "FileMessage"
       ) {
         notificationOptions = {
           body: "File",
-          icon: JSON.parse(payload?.data.message).icon,
-          image: JSON.parse(payload?.data.message).image,
+          icon: JSON.parse(payload.data.data).message.icon,
+          image: JSON.parse(payload.data.data).message.image,
         };
       } else if (
-        JSON.parse(payload.data.message).message_type.name === "TextMessage"
+        JSON.parse(payload.data.data).message.message_type.name ===
+        "TextMessage"
       ) {
         notificationOptions = {
-          body: JSON.parse(payload.data.message).body,
-          icon: JSON.parse(payload?.data.message).icon,
-          image: JSON.parse(payload?.data.message).image,
+          body: JSON.parse(payload.data.data).message.message_content.content,
+          icon: JSON.parse(payload.data.data).message.icon,
+          image: JSON.parse(payload.data.data).message.image,
         };
       } else if (
-        JSON.parse(payload.data.message).message_type.name === "ShareProduct"
+        JSON.parse(payload.data.data).message.message_type.name ===
+        "ShareProduct"
       ) {
         notificationOptions = {
           body: "Shared Product",
-          icon: JSON.parse(payload?.data.message)?.icon,
-          image: JSON.parse(payload?.data.message).message_content.content
+          icon: JSON.parse(payload.data.data).message?.icon,
+          image: JSON.parse(payload.data.data).message.message_content.content
             .product_image_url,
         };
       } else {

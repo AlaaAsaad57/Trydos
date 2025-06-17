@@ -20,7 +20,7 @@ import { AxiosGet } from "./AxiosApi";
 import ProductHurryUp from "components/Notifications/ProductHurry";
 import OrderStatusChanged from "components/Notifications/OrderStatusChanged";
 import chat from "services/chat";
-import { Recive } from "store/chat/actions";
+import { Recive, watchChannel as watchChannelAction } from "store/chat/actions";
 const firebaseConfig = {
   // apiKey: "AIzaSyAl53TxLa2CoTBeXtg9K3Lr8G908ajb6kY",
   // authDomain: "trydos-ce234.firebaseapp.com",
@@ -37,7 +37,7 @@ const firebaseConfig = {
   storageBucket: "trydos-2e2b2.firebasestorage.app",
   messagingSenderId: "817506223106",
   appId: "1:817506223106:web:e9e39c9a34ac2aff82131b",
-  measurementId: "G-NZ5P3EHDH3",
+  // measurementId: process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID,
   databaseURL:
     "https://trydos-2e2b2-default-rtdb.europe-west1.firebasedatabase.app/",
 };
@@ -418,6 +418,25 @@ export const onMessageListener = async () => {
             resolve(payload);
           }
         } else if (payload.data.type === "message") {
+          if (JSON.parse(payload.data.data)?.is_private === true) {
+            if (
+              parseInt(activeChat?.id) ===
+              parseInt(JSON.parse(payload?.data.data)?.message?.channel?.id)
+            ) {
+              watchChannelAction(
+                parseInt(JSON.parse(payload.data.data)?.message?.channel?.id)
+              );
+              sendMessage({
+                act: JSON.parse(payload.data.data)?.message?.channel,
+                message: {
+                  ...JSON.parse(payload.data.data).message,
+                  channel: null,
+                },
+                isPrivate: true,
+              });
+              return;
+            }
+          }
           Recive(parseInt(JSON.parse(payload.data.data).message.channel.id));
           if (
             chatData

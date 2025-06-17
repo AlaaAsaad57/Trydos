@@ -322,7 +322,7 @@ export const ShippedSatus = () => {
     </svg>
   );
 };
-const NormalStatus = ({ color }) => {
+export const NormalStatus = ({ color }) => {
   let i = parseInt((Math.random() * 1000).toString());
   return (
     <svg

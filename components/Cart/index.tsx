@@ -388,7 +388,7 @@ function CartContainer({ close, toOrders }) {
                               src={getConfiguredImage({
                                 height: 150,
                                 width: 150,
-                                src: product.brand?.image,
+                                src: product.brand?.icon?.file_path,
                               })}
                               height={10}
                               style={{
@@ -874,7 +874,7 @@ function CartContainer({ close, toOrders }) {
                               src={getConfiguredImage({
                                 height: 150,
                                 width: 150,
-                                src: product.brand?.image,
+                                src: product?.brand?.icon?.file_path,
                               })}
                               height={10}
                               style={{

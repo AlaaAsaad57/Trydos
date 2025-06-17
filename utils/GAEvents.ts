@@ -3,22 +3,26 @@ export const GA_EVENT_NAMES = {
   PROGRAMMING_EVENT: "programming_event",
   VIEW_PRODUCT_EVENT: "view_product_event",
   VIEW_BOUTIQUE_EVENT: "view_boutique_event",
-  LOGIN: "login", //params:method,success,timestamp
-  SIGN_UP: "sign_up", //params:method,success,timestamp
-  SCREEN_VIEW: "screen_view", //params:screen_name,platform,timestamp,screen_path
-  LOGIN_START: "login_start", //params:method,timestamp,button_name
-  CONFIRM_PHONE_NUMBER: "confirm_phone_number", //params:input_valid,timestamp
-  VERIFY_OTP: "verify_otp", //params:status,attempt,method,timestamp
-  TIMER_EXPIRED: "timer_expired", //params:mission_name,method,timestamp
-  SEND_OTP: "send_otp", //method,timestamp,mission,button_name
-  RESEND_OTP: "resend_otp", //params:attempt,method
-  EXCEPTION: "exception", //params:description,context,timestamp
-  CANCEL_LOGIN: "cancel_login", //params:context,timestamp
-  SIGNUP_START: "sign_up_start", //params:method,timestamp
-  CREATE_ACCOUNT_CONTINUE: "create_account_continue", //params:entered_name,timestamp
-  CANCEL_SIGNUP: "cancel_signup", //params:method,timestamp
-  LATER_TAKE_LOOK_CLICKED: "later_take_look_clicked", //params:screen
+  LOGIN: "login",
+  SIGN_UP: "sign_up",
+  SCREEN_VIEW: "screen_view_event",
+  LOGIN_START: "login_start",
+  CONFIRM_PHONE_NUMBER: "confirm_phone_number",
+  VERIFY_OTP: "verify_otp",
+  TIMER_EXPIRED: "timer_expired",
+  SEND_OTP: "send_otp",
+  RESEND_OTP: "resend_otp",
+  EXCEPTION: "exception",
+  CANCEL_LOGIN: "cancel_login",
+  SIGNUP_START: "sign_up_start",
+  CREATE_ACCOUNT_CONTINUE: "create_account_continue",
+  CANCEL_SIGNUP: "cancel_signup",
+  LATER_TAKE_LOOK_CLICKED: "later_take_look_clicked",
   TERMS_SERVICES: "terms_services",
+  ADD_TO_CART: "add_to_cart",
+  REMOVE_FROM_CART: "remove_from_cart",
+  VIEW_CART: "view_cart",
+  BEGIN_CHECKOUT: "begin_checkout",
 };
 
 export const GA_AUTH_SCREEN = {
@@ -148,7 +152,9 @@ export const GA_BUTTONS_NAMES = {
   LOGIN_METHOD_QR_BUTTON: "login_method_qr_button",
   SEARCH_TRENDING_OPTION: "search_trending_option_button",
   SEARCH_HISTORY_OPTION: "search_history_option_button",
+  CLOSE_LOGIN: "close_login",
 };
 export const GA_EXCEPTIONS_DESCRIPTIONS = {
   OTP_INCORRECT: "otp_incorrect",
+  OTP_SEND_FAILED: "otp_send_failed",
 };

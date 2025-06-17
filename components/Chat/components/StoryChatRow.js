@@ -24,7 +24,7 @@ function StoryChatRow({ story, index, viewedStory, stories, select }) {
         }}
         onLoad={(e) => {}}
         onError={(e) => {
-          e.currentTarget.src = errorPNG;
+          e.currentTarget.src = errorPNG.src;
           e.currentTarget.onerror = null;
         }}
         src={StoryServiceClass.getThumb(

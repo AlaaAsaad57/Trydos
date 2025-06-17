@@ -1,5 +1,5 @@
 "use client";
-import Revalidate from "../../revalidate";
+import Revalidate from "../../../revalidate";
 import { useEffect } from "react";
 export const runtime = "nodejs";
 

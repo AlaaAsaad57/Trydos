@@ -12,6 +12,7 @@ import auth from "services/auth";
 import LocalizationServiceClass from "services/localization";
 import { useAppStore } from "store";
 import GiftIcon from "public/svg/cart/Gift.svg";
+import home from "services/home";
 function OrderButton({ close, toOrders }) {
   const {
     initCart,
@@ -24,6 +25,7 @@ function OrderButton({ close, toOrders }) {
     total_shipping_cost,
     cart,
     orderData,
+    userProfile,
   } = useAppStore();
   let { lang } = useParams();
   // @ts-ignore
@@ -157,6 +159,7 @@ function OrderButton({ close, toOrders }) {
   const GoToOrders = async (bool?) => {
     try {
       setLoading(true);
+
       let a = (
         await getCart({
           callback: ([data, res]) => {
@@ -164,7 +167,10 @@ function OrderButton({ close, toOrders }) {
           },
         })
       ).cart;
-
+      await home.getCustomerInfo();
+      if (userProfile.is_phone_verified === 0) {
+        throw new Error("");
+      }
       if (
         a?.filter(
           (s) =>
@@ -189,7 +195,7 @@ function OrderButton({ close, toOrders }) {
       }
     } catch (error) {
       setOption(true);
-      toast.error(error);
+      if (error) toast.error(error);
       setLoading(false);
     }
   };
@@ -540,7 +546,7 @@ function OrderButton({ close, toOrders }) {
               if (cart.length === 0) {
                 close();
               } else {
-                if (!auth.getUser()) {
+                if (!auth.getUser() || userProfile?.is_phone_verified === 0) {
                   setOption(true);
                 } else {
                   GoToOrders();
@@ -561,7 +567,7 @@ function OrderButton({ close, toOrders }) {
                 {option ? (
                   <>
                     <ConfirmMobile
-                      hasMobile={localStorage.getItem("has-phone")}
+                      hasMobile={localStorage.getItem("has-phone")?.length > 2}
                       closeWindow={() => {
                         setOption(false);
                       }}

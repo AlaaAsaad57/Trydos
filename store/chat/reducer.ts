@@ -4,7 +4,7 @@ import {
   PinnChat,
   Recive,
   deleteChat,
-  watchChannel,
+  watchChannel as watchChannelAction,
 } from "./actions";
 import { getMediaReducer } from "./actions";
 
@@ -572,7 +572,7 @@ export const useChatStore = (set, get) => ({
       (typeof payload === "string" && !payload.includes("ch")) ||
       typeof payload === "number"
     ) {
-      watchChannel(payload);
+      watchChannelAction(payload);
     }
 
     let newChats = [];
@@ -641,7 +641,9 @@ export const useChatStore = (set, get) => ({
       });
 
       set({
-        data: newChats,
+        data: state.data.find((s) => parseInt(s.id) === parseInt(id.toString()))
+          ? newChats
+          : state.data,
         activeChat: active?.id ? active : state.activeChat,
         newChats: state.newChats.filter(
           (a) => parseInt(a.id) !== parseInt(payload.toString())
@@ -753,15 +755,21 @@ export const useChatStore = (set, get) => ({
     let arr = [];
 
     if (payload.isNew || payload.act?.id?.includes("ch")) {
-      arr.push({
-        ...payload.act,
-        messages: [...ac.messages, payload.message],
-      });
-      arr = [...arr, ...chat];
+      if (!payload.isPrivate) {
+        arr.push({
+          ...payload.act,
+          messages: [...ac.messages, payload.message],
+        });
+        arr = [...arr, ...chat];
+      } else {
+        arr = state.data;
+      }
       set({
         data: arr,
         activeChat:
-          state.activeChat && state.activeChat?.id === ac.id
+          state.activeChat &&
+          state.activeChat?.id === ac.id &&
+          arr.filter((t) => t.id === state.activeChat?.id)[0]
             ? arr.filter((t) => t.id === state.activeChat?.id)[0]
             : state.activeChat,
         ref: !state.ref,
@@ -769,6 +777,18 @@ export const useChatStore = (set, get) => ({
         replyMessage: null,
       });
     } else {
+      let PrivateChannel = null;
+      if (payload.isPrivate) {
+        PrivateChannel = state.activeChat;
+        PrivateChannel.messages.push(payload.message);
+        set({
+          activeChat: PrivateChannel,
+          ref: !state.ref,
+          refs: !state.refs,
+          replyMessage: null,
+        });
+        return;
+      }
       chat.forEach((a) => {
         if (
           parseInt(a.id) === parseInt(ac.id) &&
@@ -779,7 +799,6 @@ export const useChatStore = (set, get) => ({
           a.messages.push(payload.message);
         }
       });
-
       chat.forEach((a) => {
         if (parseInt(a.id) === parseInt(ac.id)) {
           arr.push(a);
@@ -792,7 +811,7 @@ export const useChatStore = (set, get) => ({
       });
 
       set({
-        data: arr,
+        data: payload.isPrivate ? state.data : arr,
         activeChat:
           state.activeChat && parseInt(state.activeChat?.id) === parseInt(ac.id)
             ? arr.filter(
@@ -814,7 +833,35 @@ export const useChatStore = (set, get) => ({
     let chat = state.data;
     let act = null;
     let chatData = [];
+    if (payload.isPrivate) {
+      act = {
+        ...state.activeChat,
+        id: payload?.channel_id,
+      };
+      let mar = [];
 
+      act.messages.forEach((m) => {
+        if (
+          m.mid &&
+          m.mid === payload.mid &&
+          mar.filter((S) => S.id === payload.id).length === 0
+        ) {
+          mar.push({
+            ...payload,
+            message_status: m.message_status,
+            mid: null,
+          });
+        } else {
+          mar.push(m);
+        }
+      });
+      act.messages = mar;
+
+      set({
+        activeChat: act,
+      });
+      return;
+    }
     chat.forEach((a) => {
       if (a.id === ac) {
         let mar = [];
@@ -976,7 +1023,30 @@ export const useChatStore = (set, get) => ({
     const state = get();
     let arr = [];
     let active = state.activeChat;
-
+    if (!state.data.find((s) => s.id === payload.ch)) {
+      let mrr = [];
+      payload.mes.forEach((m) => {
+        if (mrr.filter((s) => s.id === m.id).length === 0) {
+          mrr = [m, ...mrr];
+        }
+      });
+      active.messages.forEach((m) => {
+        if (mrr.filter((s) => s.id === m.id).length === 0) {
+          mrr.push(m);
+        }
+      });
+      set({
+        activeChat: active,
+        fetch: true,
+        searchChat: {
+          ...state.searchChat,
+          loading: false,
+        },
+        first: false,
+        mid: payload.mes.length === 0 ? null : state.mid,
+      });
+      return;
+    }
     state.data.forEach((ch) => {
       if (parseInt(ch.id) === parseInt(payload.ch)) {
         let mrr = [];

@@ -7,15 +7,12 @@ export async function OPTIONS(req: NextRequest) {
   };
   return NextResponse.json({}, { status: 204, headers: corsHeaders });
 }
-export async function GET(req: NextRequest, { params }) {
-  const [country, language] = params.lang?.split("-");
+export async function GET(req: NextRequest) {
   let response = await fetch(
     process.env.NEXT_PUBLIC_BACKEND_URL + `/countries`,
     {
       method: "GET",
       headers: new Headers({
-        lang: language,
-        country: country,
         Accept: "application/json",
         "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
       }),

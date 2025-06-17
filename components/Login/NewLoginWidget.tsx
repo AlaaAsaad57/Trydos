@@ -20,9 +20,11 @@ import {
   GA_AUTH_SCREEN,
   GA_BUTTONS_NAMES,
   GA_EVENT_NAMES,
+  GA_EXCEPTIONS_DESCRIPTIONS,
   GA_GLOBAL_PLATFORM,
 } from "utils/GAEvents";
 import { GAevent } from "utils/gtag";
+import auth from "services/auth";
 
 function NewLoginWidget() {
   let { lang } = useParams();
@@ -71,6 +73,14 @@ function NewLoginWidget() {
       );
       successCallback();
     } catch (error) {
+      GAevent({
+        action: GA_EVENT_NAMES.EXCEPTION,
+        params: {
+          description: GA_EXCEPTIONS_DESCRIPTIONS.OTP_SEND_FAILED,
+          context: operation === "login" ? operation : "signup",
+          mission_name: operation === "login" ? operation : "signup",
+        },
+      });
       console.log(error);
       errorCallback();
       console.error("SendOtp failed:", error);
@@ -87,7 +97,7 @@ function NewLoginWidget() {
         params: {
           screen_name: GA_AUTH_SCREEN.SELECT_AUTHINTCTION_METHOD_SCREEN,
           platform: GA_GLOBAL_PLATFORM.WEB,
-          timestamp: new Date().toISOString(),
+
           screen_path: window.location.pathname,
         },
       });
@@ -97,7 +107,7 @@ function NewLoginWidget() {
     }, 1500);
   }, [loginOpen]);
   const setLoginOpenAction = (e: boolean) => {
-    if (!e) {
+    if (!e && stepIndicator < 6) {
       GAevent({
         action:
           operation === "login"
@@ -105,7 +115,7 @@ function NewLoginWidget() {
             : GA_EVENT_NAMES.CANCEL_SIGNUP,
         params: {
           context: operation,
-          button_name: GA_BUTTONS_NAMES.LATER_TAKE_LOOK_BUTTON,
+          button_name: GA_BUTTONS_NAMES.CLOSE_LOGIN,
         },
       });
     }
@@ -119,6 +129,20 @@ function NewLoginWidget() {
         },
       });
     }
+    setLoginOpen(e);
+  };
+  const laterTakeAlook = (e: boolean) => {
+    if (!e && stepIndicator < 6) {
+      GAevent({
+        action: GA_EVENT_NAMES.LATER_TAKE_LOOK_CLICKED,
+        params: {
+          screen_name: GetScreenName(stepIndicator),
+          screen_path: window.location.pathname,
+          button_name: GA_BUTTONS_NAMES.LATER_TAKE_LOOK_BUTTON,
+        },
+      });
+    }
+
     setLoginOpen(e);
   };
   const VerifyOtpHook = async ({
@@ -137,40 +161,16 @@ function NewLoginWidget() {
         EditPhoneFunc
       );
       successCallback(exists, name);
-      if (operation === "login")
-        GAevent({
-          action: "login",
-          params: {
-            method: "phone",
-            login_status: "success",
-          },
-        });
-      else
-        GAevent({
-          action: "sign_up",
-          params: {
-            method: "phone",
-            signup_status: "success",
-          },
-        });
     } catch (error) {
       setLoadingPin(false);
-      if (operation === "login")
-        GAevent({
-          action: "login",
-          params: {
-            method: "phone",
-            login_status: "failure",
-          },
-        });
-      else
-        GAevent({
-          action: "sign_up",
-          params: {
-            method: "phone",
-            signup_status: "failure",
-          },
-        });
+      GAevent({
+        action: GA_EVENT_NAMES.EXCEPTION,
+        params: {
+          description: GA_EXCEPTIONS_DESCRIPTIONS.OTP_INCORRECT,
+          context: operation === "login" ? operation : "signup",
+          mission_name: operation === "login" ? operation : "signup",
+        },
+      });
       errorCallback(error);
       console.error("VerifyOtp failed:", error);
     }
@@ -191,8 +191,8 @@ function NewLoginWidget() {
           action: GA_EVENT_NAMES.VERIFY_OTP,
           params: {
             method: MessageMethod === "WA" ? "whatsapp" : "sms",
-            mission_name: operation,
-            timestamp: new Date().toISOString(),
+            mission_name: operation === "login" ? operation : "signup",
+
             button_name: "N/A",
             status: "failed",
             attempts: attempts,
@@ -208,7 +208,7 @@ function NewLoginWidget() {
 
             timestamp: new Date().toISOString(),
 
-            status: "failed",
+            success: false,
           },
         });
         setTimeout(() => {
@@ -235,7 +235,7 @@ function NewLoginWidget() {
           params: {
             method: MessageMethod === "WA" ? "whatsapp" : "sms",
             mission_name: operation,
-            timestamp: new Date().toISOString(),
+
             button_name: "N/A",
             status: "success",
             attempts: attempts,
@@ -249,9 +249,7 @@ function NewLoginWidget() {
           params: {
             method: "phone",
 
-            timestamp: new Date().toISOString(),
-
-            status: "success",
+            success: true,
           },
         });
         setTimeout(() => {
@@ -359,15 +357,17 @@ function NewLoginWidget() {
     }
   };
   useEffect(() => {
-    GAevent({
-      action: GA_EVENT_NAMES.SCREEN_VIEW,
-      params: {
-        screen_name: GetScreenName(stepIndicator),
-        platform: GA_GLOBAL_PLATFORM.WEB,
-        timestamp: new Date().toISOString(),
-        screen_path: window.location.pathname,
-      },
-    });
+    if (stepIndicator > 0) {
+      GAevent({
+        action: GA_EVENT_NAMES.SCREEN_VIEW,
+        params: {
+          screen_name: GetScreenName(stepIndicator),
+          platform: GA_GLOBAL_PLATFORM.WEB,
+
+          screen_path: window.location.pathname,
+        },
+      });
+    }
   }, [stepIndicator]);
   return (
     <>
@@ -619,6 +619,7 @@ function NewLoginWidget() {
               value={Name}
               setName={(e) => setName(e)}
               submit={async () => {
+                await auth.ConfirmSignIn();
                 await AuthService.UpdateName(Name);
                 if (operation === "login") {
                   if (Tempuser.already_exists) setSignStep("welcomeLogin");
@@ -672,20 +673,12 @@ function NewLoginWidget() {
             className="take-look-text"
             data-testid="take-look-text"
             onClick={() => {
-              setLoginOpenAction(false);
+              laterTakeAlook(false);
               AuthService.cancelAuth();
               // Sendevent({
               //   event: GA_EVENT_NAMES.CLICK,
               //   value: GA_CLICK_EVENT_VALUES.SKIP_LOGIN_WIDGET,
               // });
-              GAevent({
-                action: GA_EVENT_NAMES.LATER_TAKE_LOOK_CLICKED,
-                params: {
-                  screen_name: GetScreenName(stepIndicator),
-                  screen_path: window.location.pathname,
-                  button_name: GA_BUTTONS_NAMES.LATER_TAKE_LOOK_BUTTON,
-                },
-              });
             }}
             style={{
               opacity: stepIndicator === -1 ? "0" : "1",
@@ -710,10 +703,6 @@ function NewLoginWidget() {
           >
             {" "}
             <svg
-              onClick={() => {
-                if (stepIndicator < 6) AuthService.cancelAuth();
-                setLoginOpenAction(false);
-              }}
               xmlns="http://www.w3.org/2000/svg"
               width="16.411"
               height="16.411"

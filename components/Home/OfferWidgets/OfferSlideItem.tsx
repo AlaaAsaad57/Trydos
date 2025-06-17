@@ -30,7 +30,7 @@ function OfferSlideItem({
             className="OfferImage object-cover"
             src={offerPhoto?.file_path.replace(
               "/upload",
-              `/upload/h_342/f_webp/q_auto`
+              `/upload/h_342,c_pad,w_840/f_webp/q_auto`
             )}
             width={900}
             height={342}

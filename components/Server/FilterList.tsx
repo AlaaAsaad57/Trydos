@@ -108,12 +108,27 @@ const ActiveFiltersBar = ({
       };
   }, {});
 
-  const getItemData = ({ value, arr, key }) => {
+  const getItemData = ({ value, arr, key, isCategory = false }) => {
+    let selected_filters_array = arr;
+    if (isCategory) {
+      console.log(selected_filters_array);
+      selected_filters_array?.map((category) => {
+        category?.childes?.map((child_category) => {
+          selected_filters_array?.push(child_category);
+          child_category?.childes?.map((child_child) => {
+            selected_filters_array?.push(child_child);
+          });
+        });
+      });
+    }
     try {
-      if (key) return arr.find((item) => item[key] === value);
-      else return arr.find((item) => item === value);
+      if (key)
+        return selected_filters_array.find((item) => item[key] === value);
+      else return selected_filters_array.find((item) => item === value);
     } catch (error) {
-      console.log(`getItemData Error: ${error} , ${arr} , ${value} , ${key}`);
+      console.log(
+        `getItemData Error: ${error} , ${selected_filters_array} , ${value} , ${key}`
+      );
       return null;
     }
   };
@@ -145,6 +160,7 @@ const ActiveFiltersBar = ({
                 value: category,
                 arr: filters.categories,
                 key: "slug",
+                isCategory: true,
               }) && (
                 <>
                   <div
@@ -179,16 +195,19 @@ const ActiveFiltersBar = ({
                           value: category,
                           arr: filters.categories,
                           key: "slug",
+                          isCategory: true,
                         })?.icon?.file_path ??
                         getItemData({
                           value: category,
                           arr: filters.categories,
                           key: "slug",
+                          isCategory: true,
                         }).most_viewed_product_thumbnail ??
                         getItemData({
                           value: category,
                           arr: filters.categories,
                           key: "slug",
+                          isCategory: true,
                         }).flat_photo_path?.file_path
                       )?.replace(
                         "/upload",
@@ -205,6 +224,7 @@ const ActiveFiltersBar = ({
                         value: category,
                         arr: filters.categories,
                         key: "slug",
+                        isCategory: true,
                       }).name
                     }
                   </div>
@@ -212,12 +232,14 @@ const ActiveFiltersBar = ({
                     value: category,
                     arr: filters.categories,
                     key: "slug",
+                    isCategory: true,
                   })?.childes?.map((s) => (
                     <>
                       {getItemData({
                         value: s,
                         arr: filters.categories,
                         key: "slug",
+                        isCategory: true,
                       }) && (
                         <>
                           <div
@@ -590,15 +612,15 @@ export const FilterItem = ({
             ?.isFiltered
         ) {
           sub_index++;
-          sub?.childes.map((sub_sub) => {
-            if (
-              getFilterStateForItem(searchParams, sub_sub.slug, "categories")
-                ?.isFiltered
-            ) {
-              sub_index++;
-            }
-          });
         }
+        sub?.childes.map((sub_sub) => {
+          if (
+            getFilterStateForItem(searchParams, sub_sub.slug, "categories")
+              ?.isFiltered
+          ) {
+            sub_index++;
+          }
+        });
       });
       return sub_index > 0;
     };

@@ -51,6 +51,8 @@ export const useCartStore = (set, get) => ({
   total: null,
   available_payment_method: [],
   selectedOrder: null,
+  SelectedOrderItem: null,
+
   addressLists: [],
   center: null,
   addressDetails: {
@@ -109,6 +111,8 @@ export const useCartStore = (set, get) => ({
 
   // Actions
   setOrderDetails: (order) => set({ selectedOrder: order }),
+  setSelectedOrderItem: (item) =>
+    set({ SelectedOrderItem: item, showOrderOptions: Boolean(item) }),
   setOrderOptions: (bool) => set({ showOrderOptions: bool }),
   setProvinces: (provinces) => set({ provinces }),
   setCryptoCardPayment: (url) =>

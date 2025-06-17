@@ -10,6 +10,7 @@ import TermsIcon from "public/svg/TermsIcon.svg";
 import LegalInfoIcon from "public/svg/LegalInfoIcon.svg";
 import AboutIcon from "public/svg/AboutIcon.svg";
 import ShareAppIcon from "public/svg/ShareAppIcon.svg";
+import { GetImageUrl } from "utils/tinyUtils";
 
 const options = [
   { name: "Settings", Icon: <SettingsIcon /> },
@@ -19,7 +20,7 @@ const options = [
   { name: "Share App", Icon: <ShareAppIcon /> },
 ];
 function SettingsLoader() {
-  const { userProfile, totalOrders, wallet, currency } = useAppStore();
+  const { userProfile, totalOrders } = useAppStore();
   return (
     <div
       style={{
@@ -115,7 +116,7 @@ function SettingsLoader() {
               {userProfile?.image ? (
                 <img
                   className="w-full h-full rounded-[12px] object-cover"
-                  src={userProfile?.image}
+                  src={GetImageUrl(userProfile?.image)}
                   alt="user"
                 />
               ) : (

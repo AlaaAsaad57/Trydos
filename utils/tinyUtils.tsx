@@ -1,5 +1,5 @@
 import { useAppStore } from "store";
-import { AxiosGet } from "./AxiosApi";
+import { AxiosGet, errorPNG } from "./AxiosApi";
 import { translateFunction } from "./functions";
 import dynamic from "next/dynamic";
 
@@ -329,4 +329,9 @@ export const GetAddressString = (location) => {
   )
     str += ` | ${location?.building}`;
   return str;
+};
+export const GetImageUrl = (url) => {
+  if (!url || typeof url !== "string") return url;
+  if (url && url?.includes("http")) return url;
+  return process.env.NEXT_PUBLIC_BASE_CLOUDINARY_URL + url;
 };

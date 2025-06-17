@@ -173,7 +173,7 @@ function LogInPins({
       params: {
         method: MessageMethod === "WA" ? "whatsapp" : "sms",
         attempts: attempts,
-        mission_name: operation,
+        mission_name: operation === "login" ? operation : "signup",
         button_name: GA_BUTTONS_NAMES.RESEND_OTP_BUTTON,
       },
     });

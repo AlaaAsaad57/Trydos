@@ -14,6 +14,7 @@ import { ProductSocialInfo } from "models/API/market/ProductSocialInfo";
 import { changeToken } from "store/homepage/cachedActions";
 import axios from "axios";
 import { SetGAUser } from "utils/gtag";
+import { toast } from "react-toastify";
 const getHeader = () => {
   let [countryUrl, languageUrl] = window.location.pathname
     .split("/")[1]
@@ -101,6 +102,7 @@ class AuthService {
           getHeader()
         );
       }
+
       let repo: {
         data: {
           already_exists: boolean;
@@ -119,8 +121,13 @@ class AuthService {
           };
         };
         isSuccessful: boolean;
+        code: number;
+        message: string;
       } = await response.json();
-
+      if (repo.code === 501) {
+        toast.error(repo?.message);
+        throw new Error("Wrong Code");
+      }
       if (repo?.data?.message === "user not found") {
         throw new Error("user not found");
       }
@@ -141,7 +148,7 @@ class AuthService {
           expires_at: repo.data.expires_at,
         })
       );
-      SetGAUser(repo.data.user);
+      SetGAUser(repo.data.user, !repo.data.already_exists);
       localStorage.removeItem("guest-user");
       if (localStorage.getItem("customer-info")) {
         localStorage.removeItem("customer-info");
@@ -211,10 +218,7 @@ class AuthService {
           name: name,
         })
       );
-      SetGAUser({
-        ...JSON.parse(localStorage.getItem("USER")),
-        name: name,
-      });
+
       updateName(name);
       let axios = (await import("axios")).default;
       await AxiosPost({
@@ -282,7 +286,7 @@ class AuthService {
       "USER",
       JSON.stringify({ ...userLocal, is_verified: true })
     );
-    SetGAUser({ ...userLocal, is_verified: true });
+
     if (localStorage.getItem("guest-user")) {
       localStorage.removeItem("guest-user");
     }
@@ -372,10 +376,10 @@ class AuthService {
       false
     );
   }
-  async ExpiredUser() {
-    if (this.getUser()?.phone)
+  async ExpiredUser(noReq = false) {
+    if (this.getUser()?.phone?.length > 2)
       localStorage.setItem("has-phone", this.getUser()?.phone);
-    await home.registerForExpire(this.UserID());
+    if (!noReq) await home.registerForExpire(this.UserID());
     this.cancelAuth();
     localStorage.removeItem("MARKET-TOKEN");
     localStorage.removeItem("USER");
@@ -465,12 +469,7 @@ class AuthService {
           image: userObj?.image ?? userProfile?.image,
         })
       );
-      SetGAUser({
-        ...JSON.parse(localStorage.getItem("USER")),
-        name: userObj?.name ?? userProfile?.name,
-        phone: userObj?.phone ?? userProfile?.phone,
-        image: userObj?.image ?? userProfile?.image,
-      });
+
       return res;
     } catch (error) {
       if (market_done) {
