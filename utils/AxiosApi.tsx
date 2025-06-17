@@ -10,7 +10,7 @@ import { toast } from "react-toastify";
 import auth from "services/auth";
 import { changeToken } from "store/homepage/cachedActions";
 import { UnAuthintacetedAction } from "./tinyUtils";
-export const errorPNG = pngErr.src;
+export const errorPNG = pngErr;
 const getHeader = (token?) => {
   let [countryUrl, languageUrl] = window.location.pathname
     .split("/")[1]

@@ -28,7 +28,7 @@ export default function PageLoadingIndicator() {
           // @ts-ignore
           window.location.href = data?.href;
         }
-      }, 15000);
+      }, 7000);
     });
 
     registerRouteChangeListener("completed", () => {

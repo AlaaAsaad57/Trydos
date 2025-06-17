@@ -14,7 +14,7 @@ import QualityIcon from "public/svg/product/QualityIcon.svg";
 import VerifiedIcon from "public/svg/product/Verified.svg";
 import Flag from "public/svg/product/flag.svg";
 import ProductDescriptors from "components/products/ProductDescriptors";
-import { getPrice } from "utils/tinyUtils";
+import { GetImageUrl, getPrice } from "utils/tinyUtils";
 import { generateProductMetaData } from "./MetaData";
 import ProductImagesSlider from "components/products/ProductImageSlider";
 import ProductDetails from "components/products/ProductDetails";
@@ -132,6 +132,7 @@ async function Page({ params, searchParams }: Props) {
       reviewCount: "15",
     },
   };
+
   return (
     <>
       <script
@@ -195,7 +196,7 @@ async function Page({ params, searchParams }: Props) {
                 <img
                   width={"auto"}
                   height={18}
-                  src={product.brand.icon}
+                  src={GetImageUrl(product.brand.icon)}
                   alt={product.brand.name}
                 />
               )}
@@ -209,7 +210,7 @@ async function Page({ params, searchParams }: Props) {
                   <img
                     width={15}
                     height={15}
-                    src={product.category.icon}
+                    src={GetImageUrl(product.category.icon)}
                     alt={product.category.name}
                   />
                 )}
@@ -272,7 +273,7 @@ async function Page({ params, searchParams }: Props) {
                       <img
                         width={20}
                         height={20}
-                        src={descriptor.descriptor_group.icon}
+                        src={GetImageUrl(descriptor.descriptor_group.icon)}
                       />
                     </div>
                     <div className="descriptor-value flex-col">
@@ -297,7 +298,9 @@ async function Page({ params, searchParams }: Props) {
                                   width={15}
                                   height={15}
                                   alt={sub_descriptor.descriptor.name}
-                                  src={sub_descriptor.descriptor.icon}
+                                  src={GetImageUrl(
+                                    sub_descriptor.descriptor.icon
+                                  )}
                                 />
                               )}
                               {sub_descriptor.descriptor?.name && (

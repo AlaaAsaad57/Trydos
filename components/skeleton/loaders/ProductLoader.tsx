@@ -29,6 +29,7 @@ import ProductSizes from "components/products/ProductSizes";
 import ProductShippingOption from "components/products/ProductShippingOption";
 import FreeShippingOption from "components/products/FreeShippingOption";
 import useEmblaCarousel from "embla-carousel-react";
+import { GetImageUrl } from "utils/tinyUtils";
 function ProductLoader({ product }) {
   const { lang } = useParams();
   const { currency } = useAppStore();
@@ -121,7 +122,7 @@ function ProductLoader({ product }) {
                 <img
                   width={"auto"}
                   height={18}
-                  src={product?.brand?.icon}
+                  src={GetImageUrl(product?.brand?.icon)}
                   alt={product?.brand?.name}
                 />
               )}

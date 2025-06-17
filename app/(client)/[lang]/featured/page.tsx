@@ -69,11 +69,11 @@ export default async function Page({
     };
   }
   // @ts-ignore
-  if (searchParams?.colors || processedSearchValue?.colors) {
+  if (searchParams?.colors) {
     EditedSearchParams = {
       ...EditedSearchParams,
       // @ts-ignore
-      colors: processedSearchValue?.colors ?? searchParams?.colors,
+      colors: searchParams?.colors,
     };
   }
   if (searchParams?.prices) {
@@ -83,11 +83,11 @@ export default async function Page({
     };
   }
   // @ts-ignore
-  if (searchParams?.sizes || processedSearchValue?.sizes) {
+  if (searchParams?.sizes) {
     EditedSearchParams = {
       ...EditedSearchParams,
       // @ts-ignore
-      sizes: processedSearchValue?.sizes ?? searchParams?.sizes,
+      sizes: searchParams?.sizes,
     };
   }
   if (searchParams?.boutiques) {

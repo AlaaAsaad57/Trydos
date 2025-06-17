@@ -2,6 +2,7 @@ import UserIcon from "public/svg/userIcon.svg";
 import Image from "next/image";
 import { useAppStore } from "store";
 import { GetImageUrl } from "utils/tinyUtils";
+import { getConfiguredImage } from "utils/functions";
 
 interface UserAvatarProps {
   avatar: string | any;
@@ -9,9 +10,10 @@ interface UserAvatarProps {
 }
 function UserAvatar({ avatar, onClick }: UserAvatarProps) {
   const { userProfile } = useAppStore();
+
   return (
     <>
-      {avatar || userProfile?.image ? (
+      {avatar ? (
         <>
           <div
             onClick={onClick}
@@ -31,7 +33,12 @@ function UserAvatar({ avatar, onClick }: UserAvatarProps) {
               alt="user-img"
               width={30}
               height={30}
-              src={avatar || GetImageUrl(userProfile?.image)}
+              src={getConfiguredImage({
+                src: GetImageUrl(userProfile?.image),
+                width: 30,
+                height: 30,
+                q: 80,
+              })}
               quality={100}
               priority={true}
               fetchPriority="auto"

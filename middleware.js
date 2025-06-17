@@ -72,7 +72,7 @@ export async function middleware(request) {
     if (url.searchParams.get("selected")) {
       url.searchParams.delete("changed-country");
       url.searchParams.delete("no-country");
-      url.searchParams.delete("selected");
+
       response.cookies.set("country", country.toLowerCase(), {
         path: "/",
         httpOnly: true,

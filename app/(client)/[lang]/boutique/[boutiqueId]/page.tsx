@@ -20,6 +20,7 @@ import ShareBoutiquePageButton from "components/filterPage/ShareBoutiquePageButt
 import FilterBoutiquePageButton from "components/filterPage/FilterBoutiquePageButton";
 import SearchBoutiquePage from "components/filterPage/SearchBoutiquePage";
 import CarouselContainer from "components/filterPage/CarouselContainer";
+import { GetImageUrl } from "utils/tinyUtils";
 
 export const dynamicParams = true;
 
@@ -71,11 +72,11 @@ export default async function Page({
     };
   }
   // @ts-ignore
-  if (searchParams?.colors || processedSearchValue?.colors) {
+  if (searchParams?.colors) {
     EditedSearchParams = {
       ...EditedSearchParams,
       // @ts-ignore
-      colors: processedSearchValue?.colors ?? searchParams?.colors,
+      colors: searchParams?.colors,
     };
   }
   if (searchParams?.prices) {
@@ -85,11 +86,11 @@ export default async function Page({
     };
   }
   // @ts-ignore
-  if (searchParams?.sizes || processedSearchValue?.sizes) {
+  if (searchParams?.sizes) {
     EditedSearchParams = {
       ...EditedSearchParams,
       // @ts-ignore
-      sizes: processedSearchValue?.sizes ?? searchParams?.sizes,
+      sizes: searchParams?.sizes,
     };
   }
   if (searchParams?.boutiques) {
@@ -358,7 +359,7 @@ async function BoutiqueHeader({ boutique }) {
               alt={boutique?.name}
               width={130}
               height={20}
-              src={boutique?.icon}
+              src={GetImageUrl(boutique?.icon)}
             />
             <VerificationIcon />
             <TopStarIcon />
@@ -405,7 +406,7 @@ const BouqiuePhotoSlider = ({ banners }) => {
                       fetchPriority={"high"}
                       style={{ borderRadius: "15px" }}
                       className="OfferImage object-cover"
-                      src={banner.file_path?.replace(
+                      src={GetImageUrl(banner.file_path)?.replace(
                         "/upload",
                         `/upload/h_342,c_pad,w_840/f_webp/q_auto`
                       )}
