@@ -57,7 +57,9 @@ export default function NextLink({
         ...data,
       });
     }
-    if (data.is_home || data.is_full_home) {
+    console.log(data);
+    if (data?.is_home || data?.is_full_home) {
+      document.documentElement.style.overflow = "auto";
       setEnableSearch(false);
       setFilterEnabled(false);
     }

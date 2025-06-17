@@ -128,31 +128,29 @@ function SearchResults() {
       data-cy="searchResults_body"
     >
       <>
-        {searchResults?.products?.length > 0 && (
+        {value?.length > 0 && searchResults?.products?.length > 0 && (
           <div className="products-results flex-col max-h-[60%] overflow-auto">
             <div className="result-label flex-row">
               {translateFunction("Find Products", languageVariable)}{" "}
-              {loading_search && <Spinner className="ml-3" no />}
             </div>
-            {!loading_search &&
-              searchResults?.products?.map((product, index) => {
-                return (
-                  <ProductItem
-                    product={product}
-                    key={index}
-                    onClick={(e) => {
-                      // Sendevent({
-                      //   event: GA_EVENT_NAMES.CLICK,
-                      //   value: GA_CLICK_EVENT_VALUES.CHOOSE_PRODUCT_BUTTON,
-                      //   extra: {
-                      //     product: product.id,
-                      //   },
-                      // });
-                      onClickSearchHistory(e);
-                    }}
-                  />
-                );
-              })}
+            {searchResults?.products?.map((product, index) => {
+              return (
+                <ProductItem
+                  product={product}
+                  key={index}
+                  onClick={(e) => {
+                    // Sendevent({
+                    //   event: GA_EVENT_NAMES.CLICK,
+                    //   value: GA_CLICK_EVENT_VALUES.CHOOSE_PRODUCT_BUTTON,
+                    //   extra: {
+                    //     product: product.id,
+                    //   },
+                    // });
+                    onClickSearchHistory(e);
+                  }}
+                />
+              );
+            })}
           </div>
         )}
         {(searchResults?.brands?.length > 0 || partialLoading) && (

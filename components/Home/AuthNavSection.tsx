@@ -73,7 +73,7 @@ function AuthNavSection({ onClick }: { onClick: () => void }) {
           //   value: GA_CLICK_EVENT_VALUES.OPEN_SIDE_MENU,
           // });
         }}
-        avatar={userProfile?.image || userProfile?.image}
+        avatar={userProfile?.image}
       />
     </>
   );

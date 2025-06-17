@@ -560,6 +560,7 @@ html[lang="ar"] .chat-window-search-holder svg {
   top: 29px !important;
 }
 .text-avatar {
+  white-space: nowrap;
   width: 60px;
   height: 60px;
   display: flex;

@@ -203,7 +203,7 @@ function ProductsInfiniteScroll({
                       languageVariable === "ar" && "dir-rtl"
                     } price-label flex`}
                   >
-                    {product?.offer_price >= 0 && (
+                    {product?.offer_price > 0 && (
                       <span className="old-price relative f-12 color-dark-gray light-text">
                         {getPrice(product.price)}
                         <svg
@@ -225,8 +225,9 @@ function ProductsInfiniteScroll({
                       </span>
                     )}
                     <span className="new-price bold-text color-dark-gray flex f-12">
-                      {product?.offer_price >= 0 &&
-                        getPrice(product?.offer_price)}
+                      {product?.offer_price > 0
+                        ? getPrice(product?.offer_price)
+                        : getPrice(product?.price)}
                     </span>
                     <span className="currency-label light-text color-dark-gray flex f-10">
                       {currency?.symbol}

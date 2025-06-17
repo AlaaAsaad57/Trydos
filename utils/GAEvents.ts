@@ -5,7 +5,7 @@ export const GA_EVENT_NAMES = {
   VIEW_BOUTIQUE_EVENT: "view_boutique_event",
   LOGIN: "login",
   SIGN_UP: "sign_up",
-  SCREEN_VIEW: "screen_view",
+  SCREEN_VIEW: "screen_view_event",
   LOGIN_START: "login_start",
   CONFIRM_PHONE_NUMBER: "confirm_phone_number",
   VERIFY_OTP: "verify_otp",

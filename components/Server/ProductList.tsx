@@ -141,7 +141,7 @@ function ProductListServer({
                     params.lang.split("-")[1] === "ar" && "dir-rtl"
                   } price-label flex`}
                 >
-                  {product?.offer_price >= 0 && (
+                  {product?.offer_price > 0 && (
                     <span className="old-price relative f-12 color-dark-gray light-text">
                       {RoundPrice({
                         num: product?.price,
@@ -167,12 +167,17 @@ function ProductListServer({
                     </span>
                   )}
                   <span className="new-price bold-text color-dark-gray flex f-12">
-                    {product?.offer_price >= 0 &&
-                      RoundPrice({
-                        num: product?.offer_price,
-                        rate: currency?.exchange_rate,
-                        points: 0,
-                      })}
+                    {product?.offer_price > 0
+                      ? RoundPrice({
+                          num: product?.offer_price,
+                          rate: currency?.exchange_rate,
+                          points: 0,
+                        })
+                      : RoundPrice({
+                          num: product?.price,
+                          rate: currency?.exchange_rate,
+                          points: 0,
+                        })}
                   </span>
                   <span className="currency-label light-text color-dark-gray flex f-10">
                     {currency?.symbol}

@@ -4,6 +4,7 @@ import { useParams } from "next/navigation";
 import React, { useState } from "react";
 import { InView } from "react-intersection-observer";
 import search from "services/search";
+import { translateFunction } from "utils/functions";
 
 function InfiniteScrollFiltersSearch({ term, shouldShow }) {
   const { lang } = useParams();
@@ -52,15 +53,14 @@ function InfiniteScrollFiltersSearch({ term, shouldShow }) {
         </>
       ) : (
         !hasEnd[term] && (
-          <InView
-            className="spinner-container min-w-[80px]"
-            as="div"
-            onChange={(inView) => {
-              if (inView && !loading) {
-                getNextFilters();
-              }
+          <div
+            className="category-item brand-item whitespace-nowrap relative pr-4 z-10 text-[#1d1d1d]"
+            onClick={() => {
+              getNextFilters();
             }}
-          ></InView>
+          >
+            {translateFunction("Load More")}
+          </div>
         )
       )}
     </>

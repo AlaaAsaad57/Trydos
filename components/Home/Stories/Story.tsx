@@ -39,7 +39,7 @@ function Story({
           priority={true}
           loading="eager"
           onError={(e) => {
-            e.currentTarget.src = errorPNG;
+            e.currentTarget.src = errorPNG.src;
             e.currentTarget.onerror = null;
           }}
           src={StoryServiceClass.getThumb(

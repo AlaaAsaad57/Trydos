@@ -6,6 +6,7 @@ import { dataURLtoFile } from "components/Chat/chatsFunctions";
 import auth from "services/auth";
 import { translateFunction } from "utils/functions";
 import { useAppStore } from "store";
+import { GetImageUrl } from "utils/tinyUtils";
 
 function UploadProfilePhoto({
   swipeToScreen,
@@ -16,7 +17,7 @@ function UploadProfilePhoto({
 }) {
   const { editUserInfo, userProfile } = useAppStore();
 
-  const [file, setFile] = useState(userProfile.image);
+  const [file, setFile] = useState(GetImageUrl(userProfile.image));
   const [isDragged, setIsDragged] = useState(false);
   const [isUploading, setIsUploading] = useState(null);
   const openCamera = () => {

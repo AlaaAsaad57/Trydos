@@ -5,6 +5,7 @@ import StoriesBorder from "components/Home/Stories/StoriesBorder";
 import StoriesPagination from "components/Home/Stories/StoriesPagination";
 import StoryElement from "components/Home/Stories/StoryElement";
 import StoriesSkeleton from "components/skeleton/StoriesSkeleton";
+import { useSearchParams } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import StoryServiceClass from "services/story";
 import { useAppStore } from "store";
@@ -21,8 +22,10 @@ function StoriesBarServer() {
     setNextPageUrl(next_page_url);
     setLoading(false);
   };
+  const searchParams = useSearchParams();
   useEffect(() => {
-    getData();
+    if (!searchParams.get("changed-country") && !searchParams.get("no-country"))
+      getData();
   }, []);
 
   try {
