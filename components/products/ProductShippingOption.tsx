@@ -26,6 +26,14 @@ function ProductShippingOption({ days }) {
       );
       let data = await res.json();
       setCountries(data.countries);
+      console.log({
+        days,
+        formatedTime: formatTime(
+          new Date(
+            new Date().getTime() + Number(days || 0) * 24 * 60 * 60 * 1000
+          ).toLocaleDateString()
+        ),
+      });
     } catch (error) {
       console.log(error);
     }
@@ -119,7 +127,8 @@ function ProductShippingOption({ days }) {
               <span className="blue-address uppercase">
                 {formatTime(
                   new Date(
-                    new Date().getTime() + Number(days) * 24 * 60 * 60 * 1000
+                    new Date().getTime() +
+                      Number(days || 0) * 24 * 60 * 60 * 1000
                   ).toLocaleDateString()
                 )}
                 {","}
@@ -149,7 +158,8 @@ function ProductShippingOption({ days }) {
               <span className="blue-address">
                 {formatTime(
                   new Date(
-                    new Date().getTime() + Number(days) * 24 * 60 * 60 * 1000
+                    new Date().getTime() +
+                      Number(days || 0) * 24 * 60 * 60 * 1000
                   ).toLocaleDateString()
                 )}{" "}
                 {translate("In Your Address")}

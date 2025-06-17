@@ -33,6 +33,7 @@ let url = "https://trydos-front-git-alaa-dev-trydos-front-team.vercel.app/";
 
 messaging.onBackgroundMessage(async function (payload) {
   try {
+    console.log(payload);
     if (payload.data.title === "market") {
       if (JSON.parse(payload.data.body).type === "boutique created") {
         notificationOptions = {

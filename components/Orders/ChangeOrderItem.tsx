@@ -195,9 +195,10 @@ function ChangeOrderItem({
               color: color,
               size: size,
               qty: qty,
-              image: productData?.sync_color_images.find(
-                (s) => s.color_name?.toLowerCase() === color?.toLowerCase()
-              )?.images?.[0],
+              image:
+                productData?.sync_color_images?.find(
+                  (s) => s.color_name?.toLowerCase() === color?.toLowerCase()
+                )?.images?.[0] || productData?.images[0],
             });
             setShouldConfirmChange(true);
           }
@@ -311,8 +312,9 @@ export const ChangeSizeWidget = ({
           q: 100,
         })}
         sizes={
-          productData?.choice_options?.filter((s) => s.title === "Size")[0]
-            ?.options
+          productData?.choice_options?.filter(
+            (s) => s.title?.toLowerCase() === "size"
+          )[0]?.options
         }
         setSize={setSize}
         currentSize={item?.variation?.Size}

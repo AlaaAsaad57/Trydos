@@ -122,11 +122,11 @@ export const getCountriesApi = async (lang = "tr-en") => {
       }
     );
     let data: CountriesApi["data"] = await repo.json();
-    console.log(data);
+
     return data.countries;
   } catch (error) {
     console.log("Countries Request Failed1" + error);
-    return [];
+    return [{ iso: "tr" }, { iso: "sy" }, { iso: "lb" }, { iso: "iq" }];
   }
 };
 export const getProductsAndFilters = async ({

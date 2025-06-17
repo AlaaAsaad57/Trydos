@@ -2,10 +2,13 @@ import { useAppStore } from "store";
 import { AxiosGet, errorPNG } from "./AxiosApi";
 import { translateFunction } from "./functions";
 import dynamic from "next/dynamic";
+import replaceString from "replace-string";
+import { allCountries } from "country-telephone-data";
 
 import Cookies from "js-cookie";
 import { toast } from "react-toastify";
 import { changeToken } from "store/homepage/cachedActions";
+import { textMarshal } from "node_modules/text-marshal/lib";
 
 export const CielNumber = (price) => {
   return Math.ceil(price * 1000) / 1000;
@@ -334,4 +337,33 @@ export const GetImageUrl = (url) => {
   if (!url || typeof url !== "string") return url;
   if (url && url?.includes("http")) return url;
   return process.env.NEXT_PUBLIC_BASE_CLOUDINARY_URL + url;
+};
+export const formatPhone = (phone) => {
+  let pattern = null;
+  let country = getCountry(phone);
+  if (country) {
+    pattern = replaceString(country.format || "", ".", "x");
+
+    pattern = replaceString(pattern, "-", "");
+    pattern = replaceString(pattern, " ", "");
+    pattern = replaceString(pattern, "+", "");
+  }
+  pattern = pattern || "xxxxxxxxxxxxxxxxx";
+  let data = textMarshal({
+    input: phone,
+    template: pattern,
+    disallowCharacters: [/[a-z]/],
+  });
+  return { data, pattern };
+};
+export const getCountry = (text?: string) => {
+  return allCountries.filter((countryItem) =>
+    text.startsWith(countryItem.dialCode)
+  ).length === 1
+    ? allCountries.filter((countryItem) =>
+        text.startsWith(countryItem.dialCode)
+      )[0]
+    : allCountries.filter((countryItem) =>
+        text.startsWith(countryItem.dialCode)
+      )[0];
 };

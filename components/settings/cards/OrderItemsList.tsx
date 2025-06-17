@@ -35,7 +35,7 @@ function OrderItemsList({
     return <PendingStatus />;
   };
   const { lang } = useParams();
-  console.log(showChats());
+  const showStatus = () => {};
   return (
     <div className="w-full flex-col">
       <div
@@ -68,7 +68,7 @@ function OrderItemsList({
         } flex-row    items-center pl-[12px]  whitespace-nowrap overflow-x-scroll overflow-y-hidden [&::-webkit-scrollbar]:hidden`}
       >
         {items.map((product) => (
-          <div className="relative flex-col" key={product.product_details.id}>
+          <div className="relative flex-col" key={product.id}>
             <NextLink
               key={product.product_details.id}
               href={`/${lang}/products/${product.product_slug}`}

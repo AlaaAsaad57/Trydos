@@ -62,6 +62,8 @@ function OrderDetails({
   const router = useRouter();
   const searchParams = useSearchParams();
   const pathname = usePathname();
+
+  const [ActivePacks, setActivePacks] = useState(null);
   const getOrderDetails = async () => {
     setLoading(true);
     let data = await order.getOrderDetails(selectedOrder.order_group_id);
@@ -69,8 +71,10 @@ function OrderDetails({
     let orderData = {
       ...data?.[0],
       order_amount: totalAmount(data),
-      details: totalItems(data),
+      details: data,
     };
+
+    setActivePacks(data[0]);
 
     setOrderDetails(orderData);
     let params = new URLSearchParams(searchParams);
@@ -83,6 +87,7 @@ function OrderDetails({
 
   const resetOrder = () => {
     setOrderDetails(null);
+    setActivePacks(null);
     goBack();
     let params = new URLSearchParams(searchParams);
     params.delete("id");
@@ -101,26 +106,17 @@ function OrderDetails({
   if (!selectedOrder?.id) return null;
   const shouldShowChatIcon = () => {
     // Out for Delivery
-    if (selectedOrder.order_status.label === "Out for Delivery")
+    if (selectedOrder.order_status?.label === "Out for Delivery")
       return selectedOrder.order_group_id;
-    if (
-      selectedOrder.details?.find((s) => s.order_status === "Out for Delivery")
-    )
-      return selectedOrder.order_group_id;
+    if (ActivePacks?.order_status?.label === "Out for Delivery")
+      return ActivePacks?.order_group_id;
     return false;
   };
 
   const ShowChats = () => {
-    if (shouldShowChatIcon()) {
+    if (shouldShowChatIcon() && ActivePacks?.id) {
       let arr = [];
-      selectedOrder.details.map((s) => {
-        if (s.order_status === "Out for Delivery") {
-          if (!arr.includes(s.order_id)) {
-            arr.push(s.order_id);
-          }
-        }
-      });
-
+      arr.push(ActivePacks.id);
       return arr.map((s) => {
         return (
           <OrderChatIcon
@@ -171,7 +167,7 @@ function OrderDetails({
           hasChat={shouldShowChatIcon()}
         />
 
-        {loading ? (
+        {loading || !ActivePacks?.id ? (
           <div className="flex w-full pt-8 justify-center items-center">
             <span className="scale-[4]">
               <Spinner />
@@ -192,25 +188,69 @@ function OrderDetails({
                   payments={selectedOrder.payment_method}
                 />
               </div>
+              <div className="flex-row justify-center  items-center h-[50px] w-full bg-[#ececec] rounded-[20px]">
+                {selectedOrder.details?.map((s, i) => (
+                  <div
+                    className={`${
+                      s.id === ActivePacks.id
+                        ? "bold border-[1px] border-[#402cdd]"
+                        : "regular"
+                    } text-[#1d1d1d] h-[50px] rounded-[20px]  cursor-pointer text-[12px] flex-1 px-[5px] items-center justify-center flex-row basis-0`}
+                    key={i}
+                    onClick={() => {
+                      setActivePacks(s);
+                    }}
+                  >
+                    {translateFunction("Pack")} {i + 1}
+                  </div>
+                ))}
+              </div>
               <div className="flex-row justify-between items-center w-full mt-[8px]">
-                <OrderExpectedDeliveryCard time={selectedOrder.created_at} />
+                <OrderExpectedDeliveryCard
+                  time={
+                    selectedOrder?.details?.find(
+                      (s) => s.id === ActivePacks?.id
+                    )?.created_at
+                  }
+                />
                 <OrderStatusCard
-                  status={selectedOrder.order_group_status.label}
+                  status={
+                    selectedOrder?.details?.find(
+                      (s) => s.id === ActivePacks?.id
+                    ).order_group_status.label
+                  }
                 />
               </div>
-              <OrderAddressCard address={selectedOrder.shipping_address_data} />
+              <OrderAddressCard
+                address={
+                  selectedOrder?.details?.find((s) => s.id === ActivePacks?.id)
+                    .shipping_address_data
+                }
+              />
             </div>
             <RateOrderButton />
             <div className="flex flex-col justify-start  w-full bg-[#F8F8F8] px-[12px] h-full relative">
               <OrderItemsList
                 shouldShowChat={shouldShowChatIcon}
                 showChats={() => ShowChats()}
-                order_group_status={selectedOrder.order_status.label}
+                order_group_status={
+                  selectedOrder?.details?.find((s) => s.id === ActivePacks?.id)
+                    .order_status.label
+                }
                 setExpanded={setIsExpanded}
                 isExpanded={isExpanded}
-                items={selectedOrder.details}
+                items={
+                  selectedOrder?.details?.find((s) => s.id === ActivePacks?.id)
+                    .details
+                }
               />
-              {isExpanded && <OrderExpandedDetails order={selectedOrder} />}
+              {isExpanded && (
+                <OrderExpandedDetails
+                  order={selectedOrder?.details?.find(
+                    (s) => s.id === ActivePacks?.id
+                  )}
+                />
+              )}
             </div>
           </>
         )}

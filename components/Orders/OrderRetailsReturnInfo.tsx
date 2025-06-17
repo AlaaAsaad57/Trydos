@@ -142,15 +142,19 @@ function OrderRetailsReturnInfo({ product }: { product: OrderDetail }) {
         className="flex-row mt-[11px] items-center justify-center underline text-[##1D1D1D] text-[12px] regular cursor-pointer"
         onClick={() => {
           setExpanded(false);
-          let details_arry = [];
-          selectedOrder.details.map((s) => {
-            if (s.id === SelectedOrderItem.id) {
-              details_arry.push({ ...s, is_returned: false });
-            } else {
-              details_arry.push(s);
-            }
+          let order_details_arry = [];
+          selectedOrder.details.map((order_detail) => {
+            let details_arry = { ...order_detail, details: [] };
+            order_detail.details.map((s) => {
+              if (s.id === SelectedOrderItem.id) {
+                details_arry.details.push({ ...s, is_returned: true });
+              } else {
+                details_arry.details.push(s);
+              }
+            });
+            order_details_arry.push(details_arry);
           });
-          setOrderDetails({ ...selectedOrder, details: details_arry });
+          setOrderDetails({ ...selectedOrder, details: order_details_arry });
         }}
       >
         {translateFunction("Cancel Return Request & Get")}
