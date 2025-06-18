@@ -252,8 +252,10 @@ export const formatTime = (timeString: string) => {
     "November",
     "December",
   ];
-  const date = new Date(timeString + "Z");
-
+  let date = new Date(timeString + "Z");
+  if (isNaN(date.getTime())) {
+    date = new Date(timeString?.replace(" ", "T") + "Z");
+  }
   const today = new Date();
   const yesterday = new Date(today);
   yesterday.setDate(yesterday.getDate() - 1);
