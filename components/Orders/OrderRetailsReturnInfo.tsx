@@ -36,7 +36,7 @@ function OrderRetailsReturnInfo({ product }: { product: OrderDetail }) {
               </div>
               <div className="text-[#1D1D1D] regular text-[10px] flex-row gap-[4px] flex items-center">
                 <span>
-                  <Timer onFinish={() => {}} onResume={() => {}} minutes={3} />
+                  <Timer onFinish={() => {}} minutes={3} />
                 </span>
                 <ClockIcon className="[&>path]:fill-[#1D1D1D]" />
               </div>
@@ -64,11 +64,7 @@ function OrderRetailsReturnInfo({ product }: { product: OrderDetail }) {
                   </div>
                   <div className="text-[#C4C2C2] regular text-[10px] flex-row gap-[4px] flex items-center">
                     <span>
-                      <Timer
-                        onFinish={() => {}}
-                        onResume={() => {}}
-                        minutes={3}
-                      />
+                      <Timer onFinish={() => {}} minutes={3} />
                     </span>
                     <ClockIcon className="[&>path]:fill-[#C4C2C2]" />
                   </div>
@@ -94,11 +90,7 @@ function OrderRetailsReturnInfo({ product }: { product: OrderDetail }) {
                   </div>
                   <div className="text-[#C4C2C2] regular text-[10px] flex-row gap-[4px] flex items-center">
                     <span>
-                      <Timer
-                        onFinish={() => {}}
-                        onResume={() => {}}
-                        minutes={3}
-                      />
+                      <Timer onFinish={() => {}} minutes={3} />
                     </span>
                     <ClockIcon className="[&>path]:fill-[#C4C2C2]" />
                   </div>
@@ -124,11 +116,7 @@ function OrderRetailsReturnInfo({ product }: { product: OrderDetail }) {
                   </div>
                   <div className="text-[#C4C2C2] regular text-[10px] flex-row gap-[4px] flex items-center">
                     <span>
-                      <Timer
-                        onFinish={() => {}}
-                        onResume={() => {}}
-                        minutes={3}
-                      />
+                      <Timer onFinish={() => {}} minutes={3} />
                     </span>
                     <ClockIcon className="[&>path]:fill-[#C4C2C2]" />
                   </div>

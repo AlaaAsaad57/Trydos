@@ -621,7 +621,6 @@ function CartContainer({ close, toOrders }) {
                                   <Timer
                                     minutes={product.time_left_in_minutes}
                                     onFinish={() => {}}
-                                    onResume={() => {}}
                                   />
                                 </span>
                               </>

@@ -154,7 +154,7 @@ Cypress.Commands.add("CheckIfTrySendOtp", () => {
   cy.ChexkExistElement("[data-cy=WaitForTryAgain]").then((exist) => {
     if (exist) {
       cy.get("[data-cy=WaitForTryAgain]").then(($element) => {
-        const waitTime = parseInt($element.text().match(/\d+/)[0]);
+        const waitTime = 60;
         cy.log(`✅✅ Waiting for ${waitTime} seconds before trying again`);
         cy.wait(waitTime * 1000 + 1); // Wait for the specified time in milliseconds
         cy.intercept("GET", "**/api/v1/auth/phone/send_otp?**").as(
