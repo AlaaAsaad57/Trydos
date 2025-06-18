@@ -15,17 +15,25 @@ function ProductShippingOption({ days }) {
   const [countriesData, setCountries] = useState([]);
   const getCountries = async () => {
     try {
-      const res = await fetch(
-        process.env.NEXT_PUBLIC_API_BASE_URL + `/api/countries`,
-        {
-          next: {
-            revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE_COUNTRIES),
-            tags: ["countries"],
-          },
-        }
-      );
-      let data = await res.json();
-      setCountries(data.countries);
+      if (sessionStorage.getItem("countries")) {
+        let data = sessionStorage.getItem("countries");
+        setCountries(JSON.parse(data));
+      } else {
+        const res = await fetch(
+          process.env.NEXT_PUBLIC_API_BASE_URL + `/api/countries`,
+          {
+            next: {
+              revalidate: parseInt(
+                process.env.NEXT_PUBLIC_REVALIDATE_COUNTRIES
+              ),
+              tags: ["countries"],
+            },
+          }
+        );
+        let data = await res.json();
+        sessionStorage.setItem("countries", JSON.stringify(data.countries));
+        setCountries(data.countries);
+      }
     } catch (error) {
       console.log(error);
     }

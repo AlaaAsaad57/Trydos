@@ -385,7 +385,9 @@ class AuthService {
     localStorage.removeItem("USER");
     localStorage.removeItem("USER-CHAT");
     localStorage.removeItem("USER-STORIES");
-
+    localStorage.removeItem("ID-TOKEN");
+    localStorage.removeItem("CHAT-TOKEN");
+    localStorage.removeItem("STORIES-TOKEN");
     Cookies.remove("MARKET-TOKEN");
   }
   async UpdateProfile(userObj, previousUserObj) {

@@ -308,7 +308,7 @@ function ProductLoader({ product }) {
         >
           <div className="product-info-container">
             <div className="product-info-price">
-              {product?.offer_price > 0 && (
+              {product?.offer_price >= 0 && (
                 <div className="product-old-price">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -336,7 +336,7 @@ function ProductLoader({ product }) {
               <div className="product-new-price">
                 {(currency?.exchange_rate &&
                   RoundPrice({
-                    num: product?.offer_price || product?.price,
+                    num: product?.offer_price,
                     rate: currency?.exchange_rate,
                     points: 0,
                   })) ?? <Skeleton width={30} height={10} />}

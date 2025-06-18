@@ -15,17 +15,23 @@ function ShippingAddressContainer({ slideNext, slidePrev, openAddressList }) {
   const getOrderData = async () => {
     order.GetWallet();
     order.GetAddressList();
-    const res = await await fetch(
-      process.env.NEXT_PUBLIC_API_BASE_URL + `/api/countries`,
-      {
-        next: {
-          revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE_COUNTRIES),
-          tags: ["countries"],
-        },
-      }
-    );
-    let data = await res.json();
-    setCountries(data.countries);
+    if (sessionStorage.getItem("countries")) {
+      let data = sessionStorage.getItem("countries");
+      setCountries(JSON.parse(data));
+    } else {
+      const res = await await fetch(
+        process.env.NEXT_PUBLIC_API_BASE_URL + `/api/countries`,
+        {
+          next: {
+            revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE_COUNTRIES),
+            tags: ["countries"],
+          },
+        }
+      );
+      let data = await res.json();
+      sessionStorage.setItem("countries", JSON.stringify(data.countries));
+      setCountries(data.countries);
+    }
   };
   useEffect(() => {
     if (user) {

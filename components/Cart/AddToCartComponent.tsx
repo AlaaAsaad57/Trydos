@@ -446,7 +446,7 @@ function AddToCartComponent({
               data-cy="product_info_price_addtocart"
               className="product-info-price"
             >
-              {getSelectedVariantQty()?.offer_price > 0 && currency?.symbol && (
+              {currency?.symbol && (
                 <div
                   data-cy="product_old_price_addtocart"
                   className="product-old-price"
@@ -482,9 +482,7 @@ function AddToCartComponent({
                 currency?.symbol ? (
                   <>
                     {RoundPrice({
-                      num:
-                        getSelectedVariantQty()?.offer_price ||
-                        getSelectedVariantQty()?.price,
+                      num: getSelectedVariantQty()?.offer_price,
                     })}
                   </>
                 ) : (
@@ -1089,11 +1087,11 @@ const SizesSkeleton = ({ product }) => {
     <div className="product-details-footer z-[9999] min-h-[100px] h-auto">
       <div className="product-info-container">
         <div className="product-info-price">
-          {product?.offer_price > 0 && (
+          {
             <div className="product-old-price">
               <Skeleton width={30} height={10} />
             </div>
-          )}
+          }
           <div className="product-new-price">
             <Skeleton width={30} height={10} />
           </div>

@@ -61,18 +61,23 @@ function Init() {
     // @ts-ignore
   }, []);
   const getCountries = async () => {
-    let res = await fetch(
-      process.env.NEXT_PUBLIC_API_BASE_URL + `/api/countries`,
-      {
-        next: {
-          revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE_COUNTRIES),
-          tags: ["countries"],
-        },
-      }
-    );
-    let data = await res.json();
-
-    setCountriesData(data.countries);
+    if (sessionStorage.getItem("countries")) {
+      let data = sessionStorage.getItem("countries");
+      setCountriesData(JSON.parse(data));
+    } else {
+      let res = await fetch(
+        process.env.NEXT_PUBLIC_API_BASE_URL + `/api/countries`,
+        {
+          next: {
+            revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE_COUNTRIES),
+            tags: ["countries"],
+          },
+        }
+      );
+      let data = await res.json();
+      sessionStorage.setItem("countries", JSON.stringify(data.countries));
+      setCountriesData(data.countries);
+    }
   };
   const shouldShowBluredInfo = () => {
     if (

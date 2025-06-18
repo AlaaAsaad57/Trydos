@@ -196,7 +196,7 @@ async function FeatureProducts({ lang }) {
                     lang.split("-")[1] === "ar" && "dir-rtl"
                   } price-label flex`}
                 >
-                  {product?.offer_price > 0 && (
+                  {product?.offer_price >= 0 && (
                     <span className="old-price relative f-12 color-dark-gray light-text">
                       {RoundPrice({
                         num: product?.price,
@@ -222,7 +222,7 @@ async function FeatureProducts({ lang }) {
                     </span>
                   )}
                   <span className="new-price bold-text color-dark-gray flex f-12">
-                    {product?.offer_price > 0
+                    {product?.offer_price >= 0
                       ? RoundPrice({
                           num: product?.offer_price,
                           rate: currency?.exchange_rate,
