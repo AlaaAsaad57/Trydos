@@ -98,12 +98,28 @@ function ProductShippingOption({ days }) {
       days,
       formatted_time: formatTime(
         new Date(
-          new Date().getTime() + Number(days || 0) * 24 * 60 * 60 * 1000
+          new Date().getTime() +
+            Number(days || 0) * 24 * 60 * 60 * 1000 +
+            Number(
+              settings?.["starting-setting"]?.shipping_duration_days || 0
+            ) *
+              24 *
+              60 *
+              60 *
+              1000
         ).toString()
       ),
       formatted_time_edited: formatTimeEdited(
         new Date(
-          new Date().getTime() + Number(days || 0) * 24 * 60 * 60 * 1000
+          new Date().getTime() +
+            Number(days || 0) * 24 * 60 * 60 * 1000 +
+            Number(
+              settings?.["starting-setting"]?.shipping_duration_days || 0
+            ) *
+              24 *
+              60 *
+              60 *
+              1000
         ).toString()
       ),
     });
@@ -190,7 +206,15 @@ function ProductShippingOption({ days }) {
                 {formatTime(
                   new Date(
                     new Date().getTime() +
-                      Number(days || 0) * 24 * 60 * 60 * 1000
+                      Number(days || 0) * 24 * 60 * 60 * 1000 +
+                      Number(
+                        settings?.["starting-setting"]
+                          ?.shipping_duration_days || 0
+                      ) *
+                        24 *
+                        60 *
+                        60 *
+                        1000
                   ).toString()
                 )}
                 {","}
@@ -221,7 +245,15 @@ function ProductShippingOption({ days }) {
                 {formatTime(
                   new Date(
                     new Date().getTime() +
-                      Number(days || 0) * 24 * 60 * 60 * 1000
+                      Number(days || 0) * 24 * 60 * 60 * 1000 +
+                      Number(
+                        settings?.["starting-setting"]
+                          ?.shipping_duration_days || 0
+                      ) *
+                        24 *
+                        60 *
+                        60 *
+                        1000
                   ).toString()
                 )}{" "}
                 {translate("In Your Address")}

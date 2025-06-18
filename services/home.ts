@@ -57,13 +57,22 @@ class HomeService {
     const { setSettings, initCart } = useAppStore.getState();
 
     try {
-      const response = await fetch(
-        process.env.NEXT_PUBLIC_BACKEND_URL + STARTER_SETTINGS,
-        getHeader()
-      );
-      let repo: { data: starttingSettingApi } = await response.json();
-      setSettings(repo.data);
-      sessionStorage.setItem("starttingSetting", JSON.stringify(repo.data));
+      if (sessionStorage.getItem("starttingSetting")) {
+        let data = sessionStorage.getItem("starttingSetting");
+        setSettings(JSON.parse(data));
+      } else {
+        const response = await fetch(
+          process.env.NEXT_PUBLIC_BACKEND_URL + STARTER_SETTINGS,
+          getHeader()
+        );
+        let repo: { data: starttingSettingApi } = await response.json();
+        setSettings(repo.data);
+        sessionStorage.setItem("starttingSetting", JSON.stringify(repo.data));
+        if (typeof window !== "undefined") {
+          _isStoreLastJson() &&
+            localStorage.setItem("LAST_JSON", JSON.stringify(repo));
+        }
+      }
       await this.getCustomerInfo();
 
       getCart({
@@ -72,10 +81,7 @@ class HomeService {
         },
       });
       // await getOldCart();
-      if (typeof window !== "undefined") {
-        _isStoreLastJson() &&
-          localStorage.setItem("LAST_JSON", JSON.stringify(repo));
-      }
+
       setTimeout(() => {
         if (localStorage.getItem("USER") && localStorage.getItem("USER-CHAT"))
           chat.getChats(false);
