@@ -399,6 +399,7 @@ class AuthService {
     try {
       if (
         localStorage.getItem("USER-STORIES") &&
+        localStorage.getItem("USER") &&
         JSON.parse(localStorage.getItem("USER-STORIES"))?.id
       ) {
         await axios
@@ -434,6 +435,7 @@ class AuthService {
       // let user_id = JSON.parse(localStorage.getItem("USER-CHAT")).id;
       if (
         localStorage.getItem("USER-CHAT") &&
+        localStorage.getItem("USER") &&
         JSON.parse(localStorage.getItem("USER-CHAT"))?.id
       ) {
         let chat_update = await axios
