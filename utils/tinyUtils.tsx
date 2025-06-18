@@ -252,9 +252,11 @@ export const formatTime = (timeString: string) => {
     "November",
     "December",
   ];
-  let date = new Date(timeString + "Z");
-  if (isNaN(date.getTime())) {
-    date = new Date(timeString?.replace(" ", "T") + "Z");
+  let date = !timeString?.includes("Z")
+    ? new Date(timeString + "Z")
+    : new Date(timeString);
+  if (isNaN(date?.getTime())) {
+    date = new Date(timeString + "Z");
   }
   const today = new Date();
   const yesterday = new Date(today);
