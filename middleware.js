@@ -12,7 +12,7 @@ async function getCachedCountries() {
   const now = Date.now();
   if (!cachedCountries || now - cacheTimestamp > CACHE_TTL) {
     const data = await getCountriesApi();
-    console.log(data);
+
     cachedCountries = data;
     cacheTimestamp = now;
   }
