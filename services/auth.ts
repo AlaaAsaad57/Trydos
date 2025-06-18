@@ -4,7 +4,7 @@ import userImage from "public/images/profileNo.png";
 import Cookies from "js-cookie";
 import Smartlook from "smartlook-client";
 
-import { _isStoreLastJson, getLang } from "utils/functions";
+import { _isStoreLastJson, getLang, translateFunction } from "utils/functions";
 import { SEND_OTP } from "utils/endpointConfig";
 import ChatService from "services/chat";
 import StoryService from "services/story";
@@ -383,6 +383,9 @@ class AuthService {
     this.cancelAuth();
     localStorage.removeItem("MARKET-TOKEN");
     localStorage.removeItem("USER");
+    localStorage.removeItem("USER-CHAT");
+    localStorage.removeItem("USER-STORIES");
+
     Cookies.remove("MARKET-TOKEN");
   }
   async UpdateProfile(userObj, previousUserObj) {
@@ -392,7 +395,10 @@ class AuthService {
       stories_done = false;
 
     try {
-      if (localStorage.getItem("USER-STORIES")) {
+      if (
+        localStorage.getItem("USER-STORIES") &&
+        JSON.parse(localStorage.getItem("USER-STORIES"))?.id
+      ) {
         await axios
           .post(
             process.env.NEXT_PUBLIC_STORIES_BACKEND_URL +
@@ -424,7 +430,10 @@ class AuthService {
         );
       }
       // let user_id = JSON.parse(localStorage.getItem("USER-CHAT")).id;
-      if (localStorage.getItem("USER-CHAT")) {
+      if (
+        localStorage.getItem("USER-CHAT") &&
+        JSON.parse(localStorage.getItem("USER-CHAT"))?.id
+      ) {
         let chat_update = await axios
           .put(
             process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
@@ -507,6 +516,7 @@ class AuthService {
           }
         );
       }
+      toast.error(translateFunction("Failed to update profile Info"));
       throw error;
     }
   }
