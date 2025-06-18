@@ -5,6 +5,7 @@ import BorderImage from "./BorderImage";
 
 import { getConfiguredImage } from "utils/functions";
 import Image from "next/image";
+import { GetImageUrl } from "utils/tinyUtils";
 // import { stopProgress } from "next-nprogress-bar";
 function ColorSlider({
   active,
@@ -101,7 +102,7 @@ function ColorSlider({
                     width={400}
                     height={300}
                     src={getConfiguredImage({
-                      src: img.images[0].file_path,
+                      src: GetImageUrl(img.images[0].file_path),
                       width: 400,
                       height: 400,
                     })}

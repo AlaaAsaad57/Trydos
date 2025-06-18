@@ -1,6 +1,7 @@
 import CircleBorder from "public/svg/product/CircleBorder";
 import React, { useEffect } from "react";
 import { getConfiguredImage } from "utils/functions";
+import { GetImageUrl } from "utils/tinyUtils";
 
 function NormalColorSlider({
   active,
@@ -63,7 +64,7 @@ function NormalColorSlider({
             width={70}
             height={70}
             src={getConfiguredImage({
-              src: color.images[0],
+              src: GetImageUrl(color.images[0]),
               width: 70 * 2,
               height: 70 * 2,
             })}

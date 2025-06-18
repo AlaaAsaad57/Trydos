@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import ActiveCategoryIcon from "public/svg/listing/ActiveCategoryIcon.svg";
 import { useAppStore } from "store";
 import Image from "next/image";
+import { GetImageUrl } from "utils/tinyUtils";
 function CategoryItem({ category, onClick, isActive }) {
   const { searchFilters } = useAppStore();
   const [expanded, setExpand] = useState(false);
@@ -26,7 +27,15 @@ function CategoryItem({ category, onClick, isActive }) {
           />
         )}
 
-        <Image alt={category.name} width={30} height={30} src={category.icon} />
+        <Image
+          alt={category.name}
+          width={30}
+          height={30}
+          src={GetImageUrl(category.icon)?.replace(
+            "/upload",
+            "/upload/h_30/f_webp"
+          )}
+        />
 
         {category.name}
       </div>
@@ -54,7 +63,13 @@ function CategoryItem({ category, onClick, isActive }) {
                 alt={category.name}
                 width={30}
                 height={30}
-                src={s.most_viewed_product_thumbnail || s.icon}
+                src={
+                  GetImageUrl(s.most_viewed_product_thumbnail)?.replace(
+                    "/upload",
+                    "/upload/h_30/f_webp"
+                  ) ||
+                  GetImageUrl(s.icon)?.replace("/upload", "/upload/h_30/f_webp")
+                }
               />
               {s.name}
             </div>

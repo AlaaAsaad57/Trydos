@@ -9,6 +9,7 @@ import {
 import OrderStatusIcon from "components/settings/cards/OrderStatusIcon";
 import CancelOrderItemIcon from "public/svg/cancelOrderItemIcon.svg";
 import { AxiosGet } from "utils/AxiosApi";
+import { GetImageUrl } from "utils/tinyUtils";
 
 function OrderItemCard({
   item,
@@ -46,7 +47,7 @@ function OrderItemCard({
     <>
       <div className="flex-row w-full h-[170px] bg-[#fff] py-[6px]">
         <Image
-          src={item.image}
+          src={GetImageUrl(item.image)}
           width={104}
           height={144}
           alt="image"
@@ -60,7 +61,7 @@ function OrderItemCard({
                 src={getConfiguredImage({
                   height: 150,
                   width: 150,
-                  src: item.brand?.image,
+                  src: GetImageUrl(item.brand?.image),
                 })}
                 height={10}
                 style={{

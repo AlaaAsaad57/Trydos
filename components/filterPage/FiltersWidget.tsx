@@ -8,7 +8,7 @@ import React, { useEffect, useState } from "react";
 import { useAppStore } from "store";
 import BackIcon from "public/svg/listing/backIcon.svg";
 import { DebounceInput } from "node_modules/react-debounce-input/src";
-import { translateFunction } from "utils/functions";
+import { RoundPrice, translateFunction } from "utils/functions";
 import { useParams, useSearchParams } from "next/navigation";
 import FilterLabel from "components/ListingPage/filterComponents/FilterLabel";
 import search from "services/search";
@@ -17,7 +17,7 @@ import Image from "node_modules/next/image";
 import Spinner from "components/global/Spinner";
 import PriceSlider from "components/ListingPage/filterComponents/PriceSlider";
 import dynamic from "next/dynamic";
-import { GetFilterUrlParams } from "utils/tinyUtils";
+import { GetFilterUrlParams, GetImageUrl } from "utils/tinyUtils";
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 import {
   GA_EVENT_NAMES,
@@ -370,18 +370,24 @@ function FiltersWidget({ filters, configureActiveFilters }) {
                 {searchFilters?.prices?.min_price >= 0 && (
                   <div className="price-min">
                     Min{" "}
-                    {(searchFilters.prices?.min_price ||
-                      searchResults?.prices?.min_price) *
-                      currency?.exchange_rate}{" "}
+                    {RoundPrice({
+                      num:
+                        searchFilters.prices?.min_price ||
+                        searchResults?.prices?.min_price,
+                      rate: currency?.exchange_rate,
+                    })}{" "}
                     <span>{currency?.symbol}</span>
                   </div>
                 )}
                 {searchFilters?.prices?.max_price >= 0 && (
                   <div className="price-max">
                     Max{" "}
-                    {(searchFilters.prices?.max_price ||
-                      searchResults?.prices?.max_price) *
-                      currency?.exchange_rate}{" "}
+                    {RoundPrice({
+                      num:
+                        searchFilters.prices?.max_price ||
+                        searchResults?.prices?.max_price,
+                      rate: currency?.exchange_rate,
+                    })}{" "}
                     <span>{currency?.symbol}</span>
                   </div>
                 )}
@@ -649,17 +655,17 @@ const ShowFilterRow = ({ term, values }) => {
   };
   const getImage = (value) => {
     if (value.most_viewed_product_thumbnail) {
-      return value.most_viewed_product_thumbnail?.replace(
+      return GetImageUrl(value.most_viewed_product_thumbnail)?.replace(
         "/upload",
         "/upload/w_50,h_50,c_fit/f_webp/q_100"
       );
     } else if (value.flat_photo_path) {
-      return value.flat_photo_path.file_path?.replace(
+      return GetImageUrl(value.flat_photo_path.file_path)?.replace(
         "/upload",
         "/upload/w_50,h_50,c_fit/f_webp/q_100"
       );
     } else if (value.icon) {
-      return value.icon?.replace(
+      return GetImageUrl(value.icon)?.replace(
         "/upload",
         "/upload/w_50,h_50,c_fit/f_webp/q_100"
       );

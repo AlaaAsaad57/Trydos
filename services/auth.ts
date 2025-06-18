@@ -232,7 +232,9 @@ class AuthService {
         { name: name },
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("CHAT-TOKEN")}`,
+            Authorization: `Bearer ${
+              JSON.parse(localStorage.getItem("USER-CHAT"))?.access_token
+            }`,
           },
         }
       );
@@ -244,7 +246,7 @@ class AuthService {
         })
       );
       await home.getCustomerInfo();
-      if (!localStorage.getItem("STORIES-TOKEN")) {
+      if (!localStorage.getItem("USER-STORIES")) {
         await this.ConfirmSignIn();
       }
       await axios.post(
@@ -252,7 +254,9 @@ class AuthService {
         { name: name },
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("STORIES-TOKEN")}`,
+            Authorization: `Bearer ${
+              JSON.parse(localStorage.getItem("USER-STORIES"))?.access_token
+            }`,
           },
         }
       );
@@ -386,8 +390,6 @@ class AuthService {
     localStorage.removeItem("USER-CHAT");
     localStorage.removeItem("USER-STORIES");
     localStorage.removeItem("ID-TOKEN");
-    localStorage.removeItem("CHAT-TOKEN");
-    localStorage.removeItem("STORIES-TOKEN");
     Cookies.remove("MARKET-TOKEN");
   }
   async UpdateProfile(userObj, previousUserObj) {
@@ -413,9 +415,9 @@ class AuthService {
             },
             {
               headers: {
-                Authorization: `Bearer ${localStorage.getItem(
-                  "STORIES-TOKEN"
-                )}`,
+                Authorization: `Bearer ${
+                  JSON.parse(localStorage.getItem("USER-STORIES"))?.access_token
+                }`,
               },
             }
           )
@@ -449,7 +451,9 @@ class AuthService {
             },
             {
               headers: {
-                Authorization: `Bearer ${localStorage.getItem("CHAT-TOKEN")}`,
+                Authorization: `Bearer ${
+                  JSON.parse(localStorage.getItem("USER-CHAT"))?.access_token
+                }`,
               },
             }
           )
@@ -504,7 +508,9 @@ class AuthService {
           },
           {
             headers: {
-              Authorization: `Bearer ${localStorage.getItem("STORIES-TOKEN")}`,
+              Authorization: `Bearer ${
+                JSON.parse(localStorage.getItem("USER-STORIES"))?.access_token
+              }`,
             },
           }
         );

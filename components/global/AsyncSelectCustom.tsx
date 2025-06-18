@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import { GetImageUrl } from "utils/tinyUtils";
 
 interface AsyncSelectProps {
   placeholder: string;
@@ -176,7 +177,7 @@ const AsyncSelectCustom: React.FC<AsyncSelectProps> = ({
               >
                 {option.images.file_path && (
                   <img
-                    src={option.images[0]?.file_path}
+                    src={GetImageUrl(option.images[0]?.file_path)}
                     alt={option.label}
                     className="w-10 h-10 object-cover rounded"
                   />

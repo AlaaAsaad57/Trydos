@@ -4,6 +4,7 @@ import Image from "next/image";
 import OfferPhotosSlider from "./OfferPhotosSlider";
 import NextLink from "components/global/NextLink";
 import search from "services/search";
+import { GetImageUrl } from "utils/tinyUtils";
 
 interface NormalWidgetProps {
   // boutique: Boutique;
@@ -49,7 +50,7 @@ const NormalWidget = ({ boutique, myKey, lang }: NormalWidgetProps) => {
                 }}
                 width={20}
                 height={20}
-                src={boutique?.icon?.replace(
+                src={GetImageUrl(boutique?.icon)?.replace(
                   "/upload",
                   `/upload/h_50/f_webp/q_auto`
                 )}
@@ -119,7 +120,7 @@ const NormalWidget = ({ boutique, myKey, lang }: NormalWidgetProps) => {
                     width={12}
                     height={12}
                     // @ts-ignore
-                    src={category.icon?.replace(
+                    src={GetImageUrl(category.icon)?.replace(
                       "/upload",
                       `/upload/h_50/f_webp/q_auto`
                     )}

@@ -5,6 +5,7 @@ import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 import { Swiper, SwiperRef, SwiperSlide } from "swiper/react";
 import { EffectCoverflow } from "swiper/modules";
 import { translateFunction } from "utils/functions";
+import { GetImageUrl } from "utils/tinyUtils";
 export const ModifyOrderItemModal = ({
   type,
   confirmationData,
@@ -100,13 +101,13 @@ export const ModifyOrderItemModal = ({
             <div className="w-auto h-[98px] flex-col items-center justify-center">
               <img
                 className="w-[70px] h-[70px] object-cover rounded-full"
-                src={
+                src={GetImageUrl(
                   confirmationData?.productDetails?.sync_color_images?.find(
                     (s) =>
                       s.color_name?.toLowerCase() ===
                       confirmationData?.currentColor?.toLowerCase()
                   )?.images[0]
-                }
+                )}
               />
               <span className="text-[#fff] text-[14px] medium mt-[9px]">
                 {type === "Color"
@@ -226,7 +227,7 @@ export const ColorList = ({ colors, setColor, currentColor, newColor }) => {
                 : "1px solid #ffffffef",
             }}
             className="min-w-[70px] min-h-[70px] object-cover rounded-full max-w-[70px] max-h-[70px]"
-            src={s?.images[0]}
+            src={GetImageUrl(s?.images[0])}
           />
           <span
             className={`${
@@ -274,7 +275,7 @@ export const SizeList = ({ sizes, setSize, currentSize, newSize, image }) => {
                   : "1px solid #ffffffef",
               }}
               className="min-w-[70px] min-h-[70px] object-cover rounded-full max-w-[70px] max-h-[70px]"
-              src={image}
+              src={GetImageUrl(image)}
             />
             <span
               className={`${

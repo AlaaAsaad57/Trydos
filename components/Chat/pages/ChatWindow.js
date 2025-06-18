@@ -40,10 +40,8 @@ function ChatWindow(props) {
         aria-label="close icon"
         onClick={() => {
           setForwardMessage(null);
-
           props.close();
           setMain("main");
-          openChat(null);
         }}
       >
         <CloseIcon />

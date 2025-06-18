@@ -78,7 +78,7 @@ function ProductLoader({ product }) {
                         loading={"eager"}
                         alt={product?.name}
                         src={getConfiguredImage({
-                          src: img,
+                          src: GetImageUrl(img),
                           width: 500,
                           height: 700,
                         })}
@@ -191,7 +191,7 @@ function ProductLoader({ product }) {
                       <img
                         width={20}
                         height={20}
-                        src={descriptor.descriptor_group.icon}
+                        src={GetImageUrl(descriptor.descriptor_group.icon)}
                       />
                     </div>
                     <div className="descriptor-value flex-col">
@@ -216,7 +216,9 @@ function ProductLoader({ product }) {
                                   width={15}
                                   height={15}
                                   alt={sub_descriptor.descriptor.name}
-                                  src={sub_descriptor.descriptor.icon}
+                                  src={GetImageUrl(
+                                    sub_descriptor.descriptor.icon
+                                  )}
                                 />
                               )}
                               {sub_descriptor.descriptor?.name && (

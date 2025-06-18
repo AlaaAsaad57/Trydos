@@ -134,6 +134,10 @@ export const useChatStore = (set, get) => ({
   setCallLoadingState: (payload: boolean) => set({ call_loading: payload }),
 
   setChatOpen: (payload: boolean) => {
+    if (payload === false) {
+      set({ chatVar: false, activeChat: null, main: "main" });
+      return;
+    }
     if (JSON.parse(localStorage.getItem("USER"))?.name?.length > 2) {
       set({ chatVar: payload });
     } else {

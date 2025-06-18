@@ -21,6 +21,7 @@ import { GA_GLOBAL_PLATFORM, GA_GLOBAL_SCREEN } from "utils/GAEvents";
 import { GA_EVENT_NAMES } from "utils/GAEvents";
 import auth from "services/auth";
 import { GAevent } from "utils/gtag";
+import ConfirmMobilePhoneWidget from "components/Login/ConfirmMobilePhoneWidget";
 const CartProvider = () => {
   const {
     enableCart,
@@ -28,6 +29,7 @@ const CartProvider = () => {
     setEnableSearch,
     setLoginOpen,
     setSelectedStory,
+    shouldAuthinticated,
     setCurrency,
     setChatOpen,
     filterEnabled,
@@ -143,6 +145,7 @@ const CartProvider = () => {
 
   return (
     <>
+      {shouldAuthinticated && <ConfirmMobilePhoneWidget />}
       {enable ? <StepSlider enableCart={(e) => enableCartAction(e)} /> : <></>}
       {selected_product_for_add_to_cart && (
         <AddToCartComponent

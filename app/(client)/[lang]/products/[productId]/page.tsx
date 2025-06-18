@@ -153,7 +153,7 @@ async function Page({ params, searchParams }: Props) {
                   loading={"eager"}
                   alt={product.name}
                   src={getConfiguredImage({
-                    src: img,
+                    src: GetImageUrl(img),
                     width: 500,
                     height: 700,
                   })}

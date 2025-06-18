@@ -22,6 +22,7 @@ import CryptoIcon from "assets/svg/cart/CryptoIcon.svg";
 import OrderSuccess from "./OrderSuccess";
 import { useParams } from "next/navigation";
 import { useAppStore } from "store";
+import { GetImageUrl } from "utils/tinyUtils";
 function PlaceOrderWidget() {
   const { orderData } = useAppStore();
 
@@ -79,7 +80,7 @@ const OrderCartItem = () => {
                   <img
                     className="w-[91px] h-[125px] rounded-[15px]"
                     src={getConfiguredImage({
-                      src: s.image,
+                      src: GetImageUrl(s.image),
                       width: 91,
                       height: 150,
                     })}
@@ -101,7 +102,9 @@ const OrderCartItem = () => {
                   <img
                     className="w-[91px] h-[125px] rounded-[15px]"
                     src={getConfiguredImage({
-                      src: s?.details[0].product_details?.images[0],
+                      src: GetImageUrl(
+                        s?.details[0].product_details?.images[0]
+                      ),
                       width: 91,
                       height: 150,
                     })}

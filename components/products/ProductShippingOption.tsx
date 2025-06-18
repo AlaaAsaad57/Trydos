@@ -9,7 +9,6 @@ import MarkerIcon from "public/svg/product/MarkerIcon.svg";
 import { translateFunction } from "utils/functions";
 import { useParams } from "next/navigation";
 import Spinner from "components/global/Spinner";
-import { formatTime } from "utils/tinyUtils";
 import { useAppStore } from "store";
 function ProductShippingOption({ days }) {
   const [countriesData, setCountries] = useState([]);
@@ -94,35 +93,6 @@ function ProductShippingOption({ days }) {
     return `${day}/${month}/${year} | ${timeFormat}`;
   };
   useEffect(() => {
-    console.log({
-      days,
-      formatted_time: formatTime(
-        new Date(
-          new Date().getTime() +
-            Number(days || 0) * 24 * 60 * 60 * 1000 +
-            Number(
-              settings?.["starting-setting"]?.shipping_duration_days || 0
-            ) *
-              24 *
-              60 *
-              60 *
-              1000
-        ).toString()
-      ),
-      formatted_time_edited: formatTimeEdited(
-        new Date(
-          new Date().getTime() +
-            Number(days || 0) * 24 * 60 * 60 * 1000 +
-            Number(
-              settings?.["starting-setting"]?.shipping_duration_days || 0
-            ) *
-              24 *
-              60 *
-              60 *
-              1000
-        ).toString()
-      ),
-    });
     getCountries();
   }, []);
   const [extended, setExtended] = useState(false);
@@ -203,7 +173,7 @@ function ProductShippingOption({ days }) {
           <div className="flex-col address-row-desc justify-center">
             <div className="flex-row align-center">
               <span className="blue-address uppercase">
-                {formatTime(
+                {formatTimeEdited(
                   new Date(
                     new Date().getTime() +
                       Number(days || 0) * 24 * 60 * 60 * 1000 +
@@ -242,7 +212,7 @@ function ProductShippingOption({ days }) {
           <div className="flex-col address-row-desc justify-center">
             <div className="flex-row align-center">
               <span className="blue-address">
-                {formatTime(
+                {formatTimeEdited(
                   new Date(
                     new Date().getTime() +
                       Number(days || 0) * 24 * 60 * 60 * 1000 +

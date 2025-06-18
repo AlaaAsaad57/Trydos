@@ -1,4 +1,5 @@
 import { useAppStore } from "store";
+import { GetImageUrl } from "utils/tinyUtils";
 
 function ProductHurryUp({ data }) {
   const { enableCart } = useAppStore();
@@ -10,7 +11,7 @@ function ProductHurryUp({ data }) {
       }}
     >
       <div className="b-icon">
-        <img width={80} height={"auto"} src={data.image} />
+        <img width={80} height={"auto"} src={GetImageUrl(data.image)} />
       </div>
       <div className="flex-col m-2">
         <div className="regular p-2">{data.description}</div>

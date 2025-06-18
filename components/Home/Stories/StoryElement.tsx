@@ -4,6 +4,7 @@ import profilePicture from "public/images/profileNo.png";
 
 import { GetUnviewedStory } from "store/homepage/actions";
 import { getConfiguredImage } from "utils/functions";
+import { GetImageUrl } from "utils/tinyUtils";
 
 function StoryElement({ index, story }) {
   return (
@@ -13,9 +14,9 @@ function StoryElement({ index, story }) {
         avatar={
           typeof story.photo_path === "string"
             ? getConfiguredImage({
-                src: story.photo_path?.includes("http")
-                  ? story.photo_path
-                  : process.env.NEXT_PUBLIC_CLOUDINARY_URL + story.photo_path,
+                src: story.photo_path
+                  ? GetImageUrl(story.photo_path)
+                  : profilePicture.src,
                 width: 20,
                 height: 20,
               })

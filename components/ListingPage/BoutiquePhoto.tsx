@@ -5,6 +5,7 @@ import Image from "next/image";
 import { getConfiguredImage } from "utils/functions";
 import useEmblaCarousel from "embla-carousel-react";
 import Autoplay from "embla-carousel-autoplay";
+import { GetImageUrl } from "utils/tinyUtils";
 
 function BoutiquePhoto({ photo }) {
   const [emblaRef] = useEmblaCarousel({ loop: false }, [
@@ -30,7 +31,7 @@ function BoutiquePhoto({ photo }) {
                       style={{ borderRadius: "15px" }}
                       className="OfferImage object-cover"
                       src={getConfiguredImage({
-                        src: s.file_path,
+                        src: GetImageUrl(s.file_path),
                         height: 342,
                         width: 900,
                       })}

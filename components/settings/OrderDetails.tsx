@@ -34,6 +34,7 @@ import OptionsIcon from "public/svg/OptionsIcon.svg";
 import OrderRetailsReturnInfo from "components/Orders/OrderRetailsReturnInfo";
 import RatingOrderItem from "components/Orders/RatingOrderItem";
 import CanceledOrderStatusIcon from "public/svg/CanceledOrderStatusIcon.svg";
+import { GetImageUrl } from "utils/tinyUtils";
 function OrderDetails({
   resetOrderDetails,
   goBack,
@@ -456,7 +457,7 @@ const ProductCard = ({
             <img
               className="w-[104px] h-[144px] rounded-[15px] object-cover object-center"
               src={getConfiguredImage({
-                src: product.image,
+                src: GetImageUrl(product.image),
                 width: 104,
                 height: 144,
                 q: 100,

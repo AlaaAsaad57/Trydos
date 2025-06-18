@@ -1,6 +1,7 @@
 import React from "react";
 import ActiveCategoryIcon from "public/svg/listing/ActiveCategoryIcon.svg";
 import { getConfiguredImage } from "utils/functions";
+import { GetImageUrl } from "utils/tinyUtils";
 
 function BoutiqueItem({ boutique, onClick, isActive }) {
   return (
@@ -17,7 +18,7 @@ function BoutiqueItem({ boutique, onClick, isActive }) {
       )}
       <img
         src={getConfiguredImage({
-          src: boutique?.banner?.file_path,
+          src: GetImageUrl(boutique?.banner?.file_path),
           width: "80",
           height: "30",
         })}

@@ -4,6 +4,7 @@ import BorderImage from "./BorderImage";
 import Image from "next/image";
 import { EffectCoverflow } from "swiper/modules";
 import { getConfiguredImage } from "utils/functions";
+import { GetImageUrl } from "utils/tinyUtils";
 function ProductSlider({
   activeColor,
   setActiveColor,
@@ -66,7 +67,7 @@ function ProductSlider({
                     // @ts-ignore
                     src={getConfiguredImage({
                       // @ts-ignore
-                      src: img.file_path,
+                      src: GetImageUrl(img.file_path),
                       width: 400,
                       height: 400,
                     })}

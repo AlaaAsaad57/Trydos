@@ -10,6 +10,7 @@ import {
   RoundPrice,
   translateFunction,
 } from "utils/functions";
+import { GetImageUrl } from "utils/tinyUtils";
 
 async function FeatureProducts({ lang }) {
   const getFeaturedProducts = async (): Promise<SearchResponse["data"]> => {
@@ -133,7 +134,7 @@ async function FeatureProducts({ lang }) {
                   height={130}
                   className="rounded w-full flex  max-h-[130px] min-h-[130px]"
                   src={getConfiguredImage({
-                    src: product.images[0]?.file_path,
+                    src: GetImageUrl(product.images[0]?.file_path),
                     width: 150,
                     height: 130,
                   })}
@@ -149,7 +150,7 @@ async function FeatureProducts({ lang }) {
                       <Image
                         alt={product?.brand?.name}
                         loading={"eager"}
-                        src={product?.brand?.icon?.replace(
+                        src={GetImageUrl(product?.brand?.icon)?.replace(
                           "/upload",
                           "/upload/h_50/q_auto"
                         )}
@@ -171,7 +172,7 @@ async function FeatureProducts({ lang }) {
                       {product?.category?.icon?.length > 0 && (
                         <Image
                           loading={"eager"}
-                          src={product?.category?.icon?.replace(
+                          src={GetImageUrl(product?.category?.icon)?.replace(
                             "/upload",
                             "/upload/h_50/f_webp/q_auto"
                           )}

@@ -2,15 +2,8 @@
 import { useState } from "react";
 import Loader from "./Loader";
 import Image from "next/image";
+import { GetImageUrl } from "utils/tinyUtils";
 function ImageLoader(props) {
-  const getImageCld = () => {
-    if (props.src?.includes("cloudinary")) {
-      return props.src.replace(
-        "/upload",
-        `/upload/h_${props.height}/f_webp/q_auto`
-      );
-    } else return props.src;
-  };
   const [loading, setLoading] = useState(true);
   return (
     <div
@@ -47,7 +40,7 @@ function ImageLoader(props) {
           onLoad={() => {
             setLoading(false);
           }}
-          src={getImageCld()}
+          src={GetImageUrl(props.src)}
         />
       </div>
     </div>

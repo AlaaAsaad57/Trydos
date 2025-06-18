@@ -3,6 +3,7 @@ import NextLink from "components/global/NextLink";
 import { useParams } from "next/navigation";
 import { useEffect } from "react";
 import { encode_utf8 } from "utils/functions";
+import { GetImageUrl } from "utils/tinyUtils";
 
 function Boutique({ data }) {
   useEffect(() => {
@@ -30,7 +31,11 @@ function Boutique({ data }) {
       <div className="flex-row items-center">
         <div className="b-icon">
           {data.boutique_icon?.file_path && (
-            <img width={20} height={20} src={data.boutique_icon?.file_path} />
+            <img
+              width={20}
+              height={20}
+              src={GetImageUrl(data.boutique_icon?.file_path)}
+            />
           )}
         </div>
         <div

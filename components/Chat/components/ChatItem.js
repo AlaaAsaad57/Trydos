@@ -11,6 +11,7 @@ import ChatOptions from "./ChatOptions";
 import { useState } from "react";
 import Image from "next/image";
 import { useAppStore } from "store";
+import { GetImageUrl } from "utils/tinyUtils";
 function ChatItem({
   isActive,
   unread,
@@ -186,11 +187,7 @@ function ChatItem({
             height={60}
             alt="user"
             loading="eager"
-            src={
-              photo?.includes("http")
-                ? photo
-                : process.env.NEXT_PUBLIC_CLOUDINARY_URL + photo
-            }
+            src={photo ? GetImageUrl(photo) : ProfilePicture?.src}
           />
         ) : SenderName ? (
           <div className="text-avatar">{getTwoLetters(SenderName)}</div>

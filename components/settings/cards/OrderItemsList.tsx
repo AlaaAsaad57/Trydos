@@ -11,6 +11,7 @@ import {
   PreparingStatus,
   ShippedSatus,
 } from "./OrderStatusCartsIcon";
+import { GetImageUrl } from "utils/tinyUtils";
 
 function OrderItemsList({
   items,
@@ -81,7 +82,7 @@ function OrderItemsList({
             >
               <img
                 className="w-full h-full object-contain bg-white rounded-[15px]"
-                src={product.image}
+                src={GetImageUrl(product.image)}
                 alt={product.product_details.name}
                 width={100}
                 height={100}

@@ -16,7 +16,7 @@ import { UploadStoryApi } from "models/API/stories/UploadStory";
 import profilePicture from "public/images/profileNo.png";
 import { useAppStore } from "store";
 import { AxiosGet } from "utils/AxiosApi";
-import { formatTime } from "utils/tinyUtils";
+import { formatTime, GetImageUrl } from "utils/tinyUtils";
 
 class StoryService {
   /* get stories */
@@ -63,8 +63,6 @@ class StoryService {
     );
     let repo = response.data;
     localStorage.setItem("USER-STORIES", JSON.stringify(repo.data));
-    Cookies.set("stories-token", repo.data?.access_token);
-    localStorage.setItem("STORIES-TOKEN", repo.data?.access_token);
 
     if (typeof window !== "undefined") {
       _isStoreLastJson() &&
@@ -177,9 +175,7 @@ class StoryService {
             heading: story.name ?? story.mobile_phone ?? "Unknown",
             subheading: formatTime(storyItem.created_at),
             profileImage: story.photo_path
-              ? story.photo_path?.includes("http")
-                ? story.photo_path
-                : process.env.NEXT_PUBLIC_CLOUDINARY_URL + story.photo_path
+              ? GetImageUrl(story.photo_path)
               : profilePicture.src,
           },
           duration: storyItem.duration,
@@ -202,9 +198,7 @@ class StoryService {
             heading: story.name ?? story.mobile_phone ?? "Unknown",
             subheading: formatTime(storyItem.created_at),
             profileImage: story.photo_path
-              ? story.photo_path?.includes("http")
-                ? story.photo_path
-                : process.env.NEXT_PUBLIC_CLOUDINARY_URL + story.photo_path
+              ? GetImageUrl(story.photo_path)
               : profilePicture.src,
           },
           preloadResource: true,

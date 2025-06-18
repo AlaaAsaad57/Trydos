@@ -25,6 +25,7 @@ import auth from "services/auth";
 import home from "services/home";
 import { SliderRuler } from "./SliderRuler";
 import { GA_EVENT_NAMES } from "utils/GAEvents";
+import { GetImageUrl } from "utils/tinyUtils";
 
 function AddToCartComponent({
   color,
@@ -333,10 +334,12 @@ function AddToCartComponent({
             id={"added-to-cart"}
             src={getConfiguredImage({
               src:
-                selectedColor?.images?.[0]?.file_path ||
-                selectedColor?.images?.[0] ||
-                ProductData?.images?.[0]?.file_path ||
-                ProductData?.images?.[0],
+                (selectedColor?.images?.[0]?.file_path &&
+                  GetImageUrl(selectedColor?.images?.[0]?.file_path)) ||
+                GetImageUrl(selectedColor?.images?.[0]) ||
+                (ProductData?.images?.[0]?.file_path &&
+                  GetImageUrl(ProductData?.images?.[0]?.file_path)) ||
+                GetImageUrl(ProductData?.images?.[0]),
               width: 400,
               height: 400,
             })}
@@ -409,8 +412,9 @@ function AddToCartComponent({
                         src={getConfiguredImage({
                           src:
                             (typeof color.images[0] === "string" &&
-                              color.images[0]) ||
-                            color.images[0].file_path,
+                              GetImageUrl(color.images[0])) ||
+                            (color.images[0].file_path &&
+                              GetImageUrl(color.images[0].file_path)),
                           width: 400,
                           height: 400,
                         })}
@@ -1528,7 +1532,7 @@ const AddToCartButton = ({
           return (
             <img
               src={getConfiguredImage({
-                src: s.image,
+                src: GetImageUrl(s.image),
                 width: 50,
                 height: 50,
               })}

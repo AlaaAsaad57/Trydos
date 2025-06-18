@@ -6,6 +6,7 @@ import { AxiosPost } from "utils/AxiosApi";
 import { AddComment } from "models/API/market/AddComment";
 import auth from "services/auth";
 import profilePng from "public/images/profileNo.png";
+import { GetImageUrl } from "utils/tinyUtils";
 
 function Comments({
   comments,
@@ -66,7 +67,7 @@ function Comments({
             date={showDate(s?.created_at)}
             name={s?.customer?.name}
             text={s?.comment}
-            photo={s.customer.image ?? profilePng}
+            photo={GetImageUrl(s.customer.image) ?? profilePng}
           />
         ))
       ) : (

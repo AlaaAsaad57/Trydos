@@ -1,5 +1,6 @@
 import ActiveCategoryIcon from "public/svg/listing/ActiveCategoryIcon.svg";
 import { getConfiguredImage } from "utils/functions";
+import { GetImageUrl } from "utils/tinyUtils";
 function BrandItem({ brand, onClick, isActive }) {
   return (
     <div
@@ -15,7 +16,10 @@ function BrandItem({ brand, onClick, isActive }) {
         />
       )}
 
-      <img src={brand.icon} className="h-full max-h-[30px] object-contain" />
+      <img
+        src={GetImageUrl(brand.icon)?.replace("/upload", "/upload/h_30/f_webp")}
+        className="h-full max-h-[30px] object-contain"
+      />
     </div>
   );
 }

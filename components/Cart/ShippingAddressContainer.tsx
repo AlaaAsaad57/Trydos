@@ -7,7 +7,7 @@ import AddAddressIcon from "public/svg/cart/AddAddress.svg";
 import order from "services/order";
 import Spinner from "components/global/Spinner";
 import { useAppStore } from "store";
-import { formatTime } from "utils/tinyUtils";
+import { formatTime, GetImageUrl } from "utils/tinyUtils";
 import home from "services/home";
 function ShippingAddressContainer({ slideNext, slidePrev, openAddressList }) {
   const { setCountries, cart, user } = useAppStore();
@@ -133,7 +133,7 @@ const CartItemSelect = ({ items }) => {
                   data-cy="img-item"
                   className="w-[91px] h-[125px] rounded-[15px]"
                   src={getConfiguredImage({
-                    src: s.image,
+                    src: GetImageUrl(s.image),
                     width: 91,
                     height: 150,
                   })}

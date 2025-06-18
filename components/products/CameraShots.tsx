@@ -11,6 +11,7 @@ import CircleBorder from "public/svg/product/CircleBorder";
 import { useParams } from "next/navigation";
 import { useAppStore } from "store";
 import { GA_EVENT_NAMES } from "utils/GAEvents";
+import { GetImageUrl } from "utils/tinyUtils";
 
 function CameraShots({ images }) {
   const { setActiveCameraGallery, showInfoMessage } = useAppStore();
@@ -112,7 +113,7 @@ function CameraShots({ images }) {
                       width={40}
                       height={40}
                       src={getConfiguredImage({
-                        src: image,
+                        src: GetImageUrl(image),
                         width: 40 * 2,
                         height: 40 * 2,
                       })}

@@ -2,6 +2,7 @@ import React, { useRef, useState } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { getConfiguredImage } from "utils/functions";
 import "styles/listing.css";
+import { GetImageUrl } from "utils/tinyUtils";
 function GalleryItemSlider({ images }) {
   const SliderRef = useRef<any>();
   const [active, setActive] = useState(0);
@@ -72,7 +73,7 @@ function GalleryItemSlider({ images }) {
                 <img
                   className="w-full max-h-[595px] rounded-[30px]"
                   src={getConfiguredImage({
-                    src: img,
+                    src: GetImageUrl(img),
                     width: 400,
                     height: 400,
                   })}

@@ -5,6 +5,7 @@ import ReturnOrderItemIcon from "public/svg/ReturnOrderItemIcon.svg";
 import { useAppStore } from "store";
 import UploadImageOrder from "public/svg/UploadImageOrder.svg";
 import Spinner from "components/global/Spinner";
+import { GetImageUrl } from "utils/tinyUtils";
 
 function ReturnOrderItem({
   backToMain,
@@ -206,7 +207,7 @@ export const UploadImageComponent = ({ images, setImages }) => {
               >
                 <Image
                   className="rounded-[12px] object-cover h-[80px] w-[57px]"
-                  src={s}
+                  src={GetImageUrl(s)}
                   alt="image"
                   width={57}
                   height={80}

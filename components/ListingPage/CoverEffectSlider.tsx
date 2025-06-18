@@ -3,6 +3,7 @@ import ImageAvatar from "./ImageAvatar";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { EffectCoverflow } from "swiper/modules";
 import { dispatchRouteChangeEvent } from "utils/events";
+import { GetImageUrl } from "utils/tinyUtils";
 function CoverEffectSlider({
   images,
   active,
@@ -141,7 +142,7 @@ function CoverEffectSlider({
                 width={getSize(i)}
                 height={getSize(i)}
                 isActive={activeColor.color_name === img.color_name}
-                image={img.images[0]?.file_path?.replace(
+                image={GetImageUrl(img.images[0]?.file_path)?.replace(
                   "/upload",
                   "/upload/h_50,w_50/f_webp/q_60"
                 )}

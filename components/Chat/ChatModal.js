@@ -42,6 +42,7 @@ function ChatModal() {
         <Chat
           open={chatVar}
           close={async () => {
+            ChatConroller(false);
             const { requestFirebaseNotificationPermission } = await import(
               "utils/firebaseInitv1"
             );
@@ -64,7 +65,6 @@ function ChatModal() {
                   }
                 } catch (e) {}
               });
-            ChatConroller(false);
           }}
           callInProgress={callInProgress}
         />

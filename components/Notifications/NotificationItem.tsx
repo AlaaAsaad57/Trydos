@@ -11,7 +11,7 @@ import { translateFunction } from "utils/functions";
 import { useAppStore } from "store";
 import NextLink from "components/global/NextLink";
 import search from "services/search";
-import { formatTime } from "utils/tinyUtils";
+import { formatTime, GetImageUrl } from "utils/tinyUtils";
 
 interface NotificationItemProps {
   notification: NotificationItemType;
@@ -68,10 +68,13 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
         parsedDescription.image ? (
           <img
             src={
-              parsedDescription.boutique_icon?.file_path ||
-              parsedDescription.image?.file_path ||
-              parsedDescription.boutique_icon ||
-              parsedDescription.image
+              (parsedDescription.boutique_icon?.file_path &&
+                GetImageUrl(parsedDescription.boutique_icon?.file_path)) ||
+              (parsedDescription.image?.file_path &&
+                GetImageUrl(parsedDescription.image?.file_path)) ||
+              (parsedDescription.boutique_icon &&
+                GetImageUrl(parsedDescription.boutique_icon)) ||
+              (parsedDescription.image && GetImageUrl(parsedDescription.image))
             }
             alt={notification.title}
             className="w-10 h-10 rounded-full mr-3 object-cover"

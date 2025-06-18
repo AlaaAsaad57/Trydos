@@ -6,6 +6,7 @@ import { useRef } from "react";
 import PointsSlider from "./PointsSlider";
 import { getConfiguredImage } from "utils/functions";
 import Image from "node_modules/next/image";
+import { GetImageUrl } from "utils/tinyUtils";
 
 function ImageSlider({
   renderVar,
@@ -104,7 +105,7 @@ function ImageSlider({
                       fetchPriority="auto"
                       style={{ borderRadius: "15px", zIndex: "3" }}
                       src={getConfiguredImage({
-                        src: img.file_path,
+                        src: GetImageUrl(img.file_path),
                         width: 400,
                         height: 400,
                       })}

@@ -32,6 +32,7 @@ import {
   GA_GLOBAL_SCREEN,
 } from "utils/GAEvents";
 import { GAevent } from "utils/gtag";
+import { GetImageUrl } from "utils/tinyUtils";
 
 function CartContainer({ close, toOrders }) {
   const {
@@ -368,7 +369,7 @@ function CartContainer({ close, toOrders }) {
                             src={getConfiguredImage({
                               height: 150,
                               width: 150,
-                              src: product.image,
+                              src: GetImageUrl(product.image),
                             })}
                             width={110}
                             height={"100%"}
@@ -388,7 +389,9 @@ function CartContainer({ close, toOrders }) {
                               src={getConfiguredImage({
                                 height: 150,
                                 width: 150,
-                                src: product.brand?.icon?.file_path,
+                                src: GetImageUrl(
+                                  product.brand?.icon?.file_path
+                                ),
                               })}
                               height={10}
                               style={{
@@ -860,7 +863,7 @@ function CartContainer({ close, toOrders }) {
                             src={getConfiguredImage({
                               height: 150,
                               width: 150,
-                              src: product.image,
+                              src: GetImageUrl(product.image),
                             })}
                             width={110}
                             height={"100%"}
@@ -873,7 +876,9 @@ function CartContainer({ close, toOrders }) {
                               src={getConfiguredImage({
                                 height: 150,
                                 width: 150,
-                                src: product?.brand?.icon?.file_path,
+                                src: GetImageUrl(
+                                  product?.brand?.icon?.file_path
+                                ),
                               })}
                               height={10}
                               style={{

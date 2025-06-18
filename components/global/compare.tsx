@@ -10,6 +10,7 @@ import { toast } from "react-toastify";
 import SearchService from "services/search";
 import { useAppStore } from "store";
 import NextLink from "./NextLink";
+import { GetImageUrl } from "utils/tinyUtils";
 const ComparePage: React.FC = ({
   showInstantLoading = true,
 }: {
@@ -332,7 +333,7 @@ const ComparePage: React.FC = ({
         <Link href={`/${lang}/products/${product.slug}`}>
           <img
             // @ts-ignore
-            src={product.images}
+            src={GetImageUrl(product.images)}
             alt={product.name}
             className="w-32 h-32 object-contain hover:opacity-80 transition-opacity"
           />

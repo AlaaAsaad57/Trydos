@@ -11,6 +11,7 @@ import ProductsInfiniteScroll from "components/ListingPage/ProductsList";
 import NextLink from "components/global/NextLink";
 import { getActiveFilters } from "./FilterList";
 import Image from "next/image";
+import { GetImageUrl } from "utils/tinyUtils";
 
 function ProductListServer({
   params,
@@ -92,7 +93,7 @@ function ProductListServer({
                     typeof product.brand.icon === "string" && (
                       <Image
                         loading={"eager"}
-                        src={product?.brand?.icon?.replace(
+                        src={GetImageUrl(product?.brand?.icon)?.replace(
                           "/upload",
                           "/upload/h_50/q_auto"
                         )}
@@ -116,10 +117,9 @@ function ProductListServer({
                         0 && (
                         <Image
                           loading={"eager"}
-                          src={product?.category?.flat_photo_path?.file_path?.replace(
-                            "/upload",
-                            "/upload/h_50/f_webp/q_auto"
-                          )}
+                          src={GetImageUrl(
+                            product?.category?.flat_photo_path?.file_path
+                          )?.replace("/upload", "/upload/h_50/f_webp/q_auto")}
                           width={10}
                           height={10}
                           style={{

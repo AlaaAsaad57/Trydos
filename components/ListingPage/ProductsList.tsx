@@ -14,6 +14,7 @@ import { useAppStore } from "store";
 import { getProductsAndFilters } from "store/homepage/cachedActions";
 import { BuyButtonProduct, ProductPhotosSlider } from "./Product";
 import NextLink from "components/global/NextLink";
+import { GetImageUrl } from "utils/tinyUtils";
 
 function ProductsInfiniteScroll({
   offset,
@@ -154,7 +155,7 @@ function ProductsInfiniteScroll({
                       typeof product.brand.icon === "string" && (
                         <img
                           loading={"eager"}
-                          src={product?.brand?.icon?.replace(
+                          src={GetImageUrl(product?.brand?.icon)?.replace(
                             "/upload",
                             "/upload/h_50/q_auto"
                           )}
@@ -178,10 +179,9 @@ function ProductsInfiniteScroll({
                           0 && (
                           <img
                             loading={"eager"}
-                            src={product?.category?.flat_photo_path?.file_path?.replace(
-                              "/upload",
-                              "/upload/h_50/f_webp/q_auto"
-                            )}
+                            src={GetImageUrl(
+                              product?.category?.flat_photo_path?.file_path
+                            )?.replace("/upload", "/upload/h_50/f_webp/q_auto")}
                             width={10}
                             height={10}
                             style={{

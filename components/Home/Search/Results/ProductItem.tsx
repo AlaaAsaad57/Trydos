@@ -4,6 +4,7 @@ import React from "react";
 import { getConfiguredImage } from "utils/functions";
 import { useParams } from "next/navigation";
 import Image from "next/image";
+import { GetImageUrl } from "utils/tinyUtils";
 
 function ProductItem({ product, onClick }) {
   const { lang } = useParams();
@@ -62,8 +63,13 @@ function ProductItem({ product, onClick }) {
             height={100}
             src={getConfiguredImage({
               src:
-                product?.sync_color_images?.[0]?.images?.[0]?.file_path ||
-                (product?.images && product?.images?.[0]?.file_path),
+                (product?.sync_color_images?.[0]?.images?.[0]?.file_path &&
+                  GetImageUrl(
+                    product?.sync_color_images?.[0]?.images?.[0]?.file_path
+                  )) ||
+                (product?.images &&
+                  product?.images?.[0]?.file_path &&
+                  GetImageUrl(product?.images?.[0]?.file_path)),
               width: 100,
               height: 100,
             })}

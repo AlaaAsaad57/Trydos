@@ -291,7 +291,11 @@ export const formatTime = (timeString: string) => {
   return `${day}/${month}/${year} | ${timeFormat}`;
 };
 export const UnAuthintacetedAction = () => {
-  const { setAddStory } = useAppStore.getState();
+  const { setAddStory, setShouldAuthinticated, setChatOpen } =
+    useAppStore.getState();
+  ChatConroller(false);
+  setChatOpen(false);
+  setAddStory(false);
   changeToken({ key: "token", deleteOption: true });
   changeToken({ key: "MARKET-TOKEN", deleteOption: true });
   changeToken({ key: "DEVICE-TOKEN", deleteOption: true });
@@ -301,17 +305,13 @@ export const UnAuthintacetedAction = () => {
     localStorage.setItem("guest-user", localStorage.getItem("USER"));
   }
   localStorage.removeItem("USER");
-  localStorage.removeItem("STORIES-TOKEN");
-  localStorage.removeItem("CHAT-TOKEN");
-  setAddStory(false);
+
   Cookies.remove("token");
-  ChatConroller(false);
+
   toast.info(
-    translateFunction("Session Expired..please Login again..Reloading...")
+    translateFunction("Session Expired..please Verify Your Phone Number")
   );
-  setTimeout(() => {
-    window.location.reload();
-  }, 5000);
+  setShouldAuthinticated(true);
 };
 export const GetAddressString = (location) => {
   let str = "";

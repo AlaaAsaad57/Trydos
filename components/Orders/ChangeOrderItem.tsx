@@ -5,6 +5,7 @@ import ChangeOrderItemIcon from "public/svg/ChangeOrderItemIcon.svg";
 import { AxiosGet } from "utils/AxiosApi";
 import Spinner from "components/global/Spinner";
 import { ColorList, SizeList } from "./ModifyOrderItemModal";
+import { GetImageUrl } from "utils/tinyUtils";
 
 function ChangeOrderItem({
   item,
@@ -126,7 +127,7 @@ function ChangeOrderItem({
                 border: "1px solid #ffffff80",
               }}
               src={getConfiguredImage({
-                src: item.image,
+                src: GetImageUrl(item.image),
                 width: 104,
                 height: 144,
                 q: 100,
@@ -144,7 +145,7 @@ function ChangeOrderItem({
               height={20}
               className="rounded-full h-[20px] w-[20px] object-cover"
               src={getConfiguredImage({
-                src: item.image,
+                src: GetImageUrl(item.image),
                 width: 20,
                 height: 20,
                 q: 100,
@@ -233,7 +234,7 @@ export const ChangeColorWidget = ({
           height={70}
           className="w-[70px] h-[70px] object-cover rounded-full"
           src={getConfiguredImage({
-            src: item.image,
+            src: GetImageUrl(item.image),
             width: 70,
             height: 70,
             q: 100,
@@ -283,7 +284,7 @@ export const ChangeSizeWidget = ({
           height={70}
           className="w-[70px] h-[70px] object-cover rounded-full"
           src={getConfiguredImage({
-            src: item.image,
+            src: GetImageUrl(item.image),
             width: 70,
             height: 70,
             q: 100,
@@ -343,7 +344,7 @@ export const ChangeQtyWidget = ({
           height={70}
           className="w-[70px] h-[70px] object-cover rounded-full"
           src={getConfiguredImage({
-            src: item.image,
+            src: GetImageUrl(item.image),
             width: 70,
             height: 70,
             q: 100,
