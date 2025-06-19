@@ -55,10 +55,7 @@ function OfferAvatars({ priority, boutique }: OfferAvatarsProps) {
               <OfferAvatar
                 boutique={boutique}
                 name={product.most_viewed_product_name}
-                linkUrl={`/boutique/${boutique.slug}${search.getPageUrl({
-                  term: "categories",
-                  value: [product],
-                })}`}
+                linkUrl={`/filters/boutiques/${boutique.slug}/categories/${product.slug}`}
                 key={index}
                 category={product.name}
                 images={product?.photo}
@@ -71,7 +68,7 @@ function OfferAvatars({ priority, boutique }: OfferAvatarsProps) {
       {boutique?.childCategoriesForProductIds?.length > 7 && (
         <MoreOfferAvatar
           priority={false}
-          href={`/${lang}/boutique/${boutique?.slug}`}
+          href={`/${lang}/filters/boutiques/${boutique?.slug}`}
           boutique={boutique}
           images={boutique?.childCategoriesForProductIds[7].photo}
           zIndex={100}

@@ -10,6 +10,43 @@ import { toast } from "react-toastify";
 import { changeToken } from "store/homepage/cachedActions";
 import { textMarshal } from "node_modules/text-marshal/lib";
 
+// TypeScript interfaces for filter system
+export interface FilterParams {
+  boutiques?: string[];
+  categories?: string[];
+  brands?: string[];
+  colors?: string[];
+  sizes?: string[];
+  prices?: string[];
+  search_text?: string[];
+}
+
+export interface FilterItemProps {
+  term: string;
+  item: any;
+  filterParams: FilterParams | any;
+  isUsingParsedFilters: boolean;
+  currency: any;
+  params: any;
+  boutique: any;
+}
+
+export interface FilterState {
+  isFiltered: boolean;
+  href: string;
+}
+
+export interface FilterListProps {
+  parsedFilters?: FilterParams;
+  searchParams?: any;
+  params: any;
+  filters: any;
+  currency: any;
+  boutique: any;
+  isFeatured?: boolean;
+  isFlashDeals?: boolean;
+}
+
 export const CielNumber = (price) => {
   return Math.ceil(price * 1000) / 1000;
 };
@@ -340,6 +377,13 @@ export const GetAddressString = (location) => {
   return str;
 };
 export const GetImageUrl = (url) => {
+  if (url?.file_path) {
+    if (url?.file_path?.includes("cloudinary")) {
+      return url?.file_path;
+    } else {
+      return process.env.NEXT_PUBLIC_BASE_CLOUDINARY_URL + url?.file_path;
+    }
+  }
   if (!url || typeof url !== "string") return url;
   if (url && url?.includes("http")) return url;
   return process.env.NEXT_PUBLIC_BASE_CLOUDINARY_URL + url;
@@ -372,4 +416,221 @@ export const getCountry = (text?: string) => {
     : allCountries.filter((countryItem) =>
         text.startsWith(countryItem.dialCode)
       )[0];
+};
+
+/**
+ * Parse filters from URL path parameters
+ * Expected order: boutiques > categories > brands > colors > sizes > prices > search
+ * @param params - Array of URL path segments
+ * @returns Object with filter arrays
+ */
+export const parseFiltersFromParams = (
+  params: string[] = []
+): Record<string, string[]> => {
+  const filters: Record<string, string[]> = {};
+
+  if (!params || params.length === 0) return filters;
+
+  // Handle potential encoding issues in the entire params array
+  const cleanParams = params.map((param) => {
+    try {
+      // First try to decode in case the entire param is encoded
+      return decodeURIComponent(param);
+    } catch (e) {
+      // If that fails, just return the original
+      return param;
+    }
+  });
+
+  let currentIndex = 0;
+  const filterOrder = [
+    "boutiques",
+    "categories",
+    "brands",
+    "colors",
+    "sizes",
+    "prices",
+    "search",
+  ];
+
+  while (currentIndex < cleanParams.length) {
+    const filterType = cleanParams[currentIndex];
+
+    if (!filterOrder.includes(filterType)) {
+      currentIndex++;
+      continue;
+    }
+
+    // Get the values for this filter (next segment)
+    if (currentIndex + 1 < cleanParams.length) {
+      let values = cleanParams[currentIndex + 1];
+
+      // Handle URL encoded commas (%2C) and other encoded characters
+      try {
+        values = decodeURIComponent(values);
+      } catch (e) {
+        // If decoding fails, use the original value
+        console.warn("Failed to decode URL component:", values, e);
+      }
+
+      if (filterType === "search") {
+        // Search is a single value, not comma-separated
+        filters.search_text = [values];
+      } else if (filterType === "colors") {
+        // Colors are hex values - ensure they have # prefix for internal use
+        filters[filterType] = values.split(",").map((color) => {
+          // Handle potential double encoding
+          let cleanColor = color;
+          try {
+            cleanColor = decodeURIComponent(color);
+          } catch (e) {
+            // If decoding fails, use original
+          }
+          return cleanColor.startsWith("#") ? cleanColor : `#${cleanColor}`;
+        });
+      } else {
+        // Other filters are comma-separated
+        filters[filterType] = values.split(",").map((value) => {
+          // Handle potential double encoding of individual values
+          try {
+            return decodeURIComponent(value);
+          } catch (e) {
+            return value;
+          }
+        });
+      }
+
+      currentIndex += 2; // Skip the filter type and its values
+    } else {
+      currentIndex++;
+    }
+  }
+
+  return filters;
+};
+
+/**
+ * Build URL path parameters from filters object
+ * @param filters - Object with filter arrays
+ * @returns Array of path segments
+ */
+export const buildParamsFromFilters = (
+  filters: Record<string, string[]>
+): string[] => {
+  const params: string[] = [];
+  const filterOrder = [
+    "boutiques",
+    "categories",
+    "brands",
+    "colors",
+    "sizes",
+    "prices",
+    "search",
+  ];
+
+  filterOrder.forEach((filterType) => {
+    const values = filters[filterType];
+    if (values && values.length > 0) {
+      // Add filter type
+      const paramName = filterType === "search" ? "search" : filterType;
+      params.push(paramName);
+
+      // Add values
+      if (filterType === "search") {
+        // Search is a single value
+        params.push(encodeURIComponent(values[0]));
+      } else if (filterType === "colors") {
+        // Colors should be hex without #
+        const colorValues = values.map((color) =>
+          color.startsWith("#") ? color.substring(1) : color
+        );
+        params.push(colorValues.join(","));
+      } else {
+        // Other filters are comma-separated
+        params.push(values.join(","));
+      }
+    }
+  });
+
+  return params;
+};
+
+/**
+ * Convert filters object to the format expected by configureSearchParams
+ * @param filters - Parsed filters from URL params
+ * @returns SearchParams object
+ */
+export const filtersToSearchParams = (filters: Record<string, string[]>) => {
+  const searchParams: any = {};
+
+  Object.keys(filters).forEach((key) => {
+    const values = filters[key];
+    if (values && values.length > 0) {
+      if (key === "search_text") {
+        searchParams[key] = values[0];
+      } else {
+        searchParams[key] = JSON.stringify(values);
+      }
+    }
+  });
+
+  return searchParams;
+};
+
+/**
+ * Get filter URL for navigation
+ * @param currentFilters - Current filters object
+ * @param filterType - Type of filter to modify
+ * @param value - Value to add/remove
+ * @param lang - Language code
+ * @param boutiqueId - Boutique ID (optional)
+ * @returns New URL path
+ */
+export const getFilterUrl = (
+  currentFilters: Record<string, string[]>,
+  filterType: string,
+  value: string,
+  lang: string,
+  boutiqueId?: string
+): string => {
+  const newFilters = { ...currentFilters };
+
+  // Handle special case for prices - only allow one value
+  if (filterType === "prices") {
+    if (newFilters[filterType]?.includes(value)) {
+      newFilters[filterType] = [];
+    } else {
+      newFilters[filterType] = [value];
+    }
+  } else {
+    // For other filters, toggle the value
+    if (!newFilters[filterType]) {
+      newFilters[filterType] = [];
+    }
+
+    if (newFilters[filterType].includes(value)) {
+      newFilters[filterType] = newFilters[filterType].filter(
+        (v) => v !== value
+      );
+    } else {
+      newFilters[filterType] = [...newFilters[filterType], value];
+    }
+  }
+
+  // Clean up empty filters
+  Object.keys(newFilters).forEach((key) => {
+    if (!newFilters[key] || newFilters[key].length === 0) {
+      delete newFilters[key];
+    }
+  });
+
+  const pathParams = buildParamsFromFilters(newFilters);
+  const basePath =
+    boutiqueId && boutiqueId !== "listing"
+      ? `/${lang}/boutique/${boutiqueId}/filters`
+      : `/${lang}/filters`;
+
+  return pathParams.length > 0
+    ? `${basePath}/${pathParams.join("/")}`
+    : basePath;
 };

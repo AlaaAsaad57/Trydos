@@ -1,7 +1,12 @@
-// app/api/products/route.ts
+// app/api/filters/route.ts
 
 import { NextRequest, NextResponse } from "next/server";
-import { configureSearchParams } from "utils/tinyUtils";
+import {
+  configureSearchParams,
+  parseFiltersFromParams,
+  filtersToSearchParams,
+} from "utils/tinyUtils";
+
 export async function OPTIONS(req: NextRequest) {
   const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
@@ -10,22 +15,27 @@ export async function OPTIONS(req: NextRequest) {
   };
   return NextResponse.json({}, { status: 204, headers: corsHeaders });
 }
+
 export async function GET(
   req: NextRequest,
-  { params }: { params: { lang: string } }
+  { params }: { params: { lang: string; filters?: string[] } }
 ) {
   const { searchParams } = req.nextUrl;
   const [country, lang] = params.lang.split("-");
-  const noProducts = searchParams.get("noProducts") ?? "false";
-  const offset = searchParams.get("offset") ?? "false";
 
-  const boutiqueId = searchParams.get("boutiqueId") ?? "listing";
-  const searchParamsVar =
-    searchParams.get("searchParams")?.length > 8
-      ? JSON.parse(searchParams.get("searchParams"))
-      : {};
+  // Parse filters from path parameters instead of search parameters
+  const parsedFilters = params.filters
+    ? parseFiltersFromParams(params.filters)
+    : {};
+
+  // Convert path-based filters to search params format for backend API
+  const searchParamsVar = filtersToSearchParams(parsedFilters);
+
+  // Get additional parameters that might still come from query (for pagination/offset)
+  const noProducts = searchParams.get("noProducts") ?? "false";
+  const noFilters = searchParams.get("noFilters") ?? "false";
+  const offset = searchParams.get("offset") ?? "false";
   const filters_offset = searchParams.get("filters_offset");
-  const noFilters = "false";
 
   let configuredparams = configureSearchParams({
     searchParams: searchParamsVar,
@@ -33,11 +43,17 @@ export async function GET(
     noFilters,
     lang,
     offset,
-    boutiqueId,
+    boutiqueId: "listing", // Always listing for filters route
     filters_offset,
   });
-  configuredparams.set("flash-deal", "true");
+
   let configured_url = `/api/products/searchInCatalog?${configuredparams.toString()}`;
+
+  console.log(
+    process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL + configured_url,
+    "REQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQ"
+  );
+
   let response = await fetch(
     process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL + configured_url,
     {
@@ -50,6 +66,7 @@ export async function GET(
       }),
     }
   );
+
   if (response.status !== 200) {
     const errorBody = await response.json();
     throw new Error(
@@ -58,6 +75,7 @@ export async function GET(
       )}`
     );
   }
+
   let data = await response.json();
 
   return NextResponse.json(
@@ -66,45 +84,44 @@ export async function GET(
         offset: data.data.offset,
         limit: data.data.limit,
         total_size: data.data.total_size,
-        // categories: data.data?.categories?.map((c) => ({
-        //   name: c.name,
-        //   icon: c?.flat_photo_path?.file_path,
-        //   most_viewed_product_thumbnail:
-        //     c?.most_viewed_product_thumbnail?.file_path,
-        //   slug: c.slug,
-        //   childes: c.childes.map((child) => ({
-        //     name: child.name,
-        //     slug: child.slug,
-        //     most_viewed_product_thumbnail:
-        //       child?.most_viewed_product_thumbnail?.file_path,
-        //     childes: child?.childes?.map((c_child) => ({
-        //       name: c_child.name,
-        //       slug: c_child.slug,
-        //       most_viewed_product_thumbnail:
-        //         c_child?.most_viewed_product_thumbnail?.file_path,
-        //     })),
-        //   })),
-        // })),
-        // brands: data.data?.brands?.map((s) => ({
-        //   name: s.name,
-        //   icon: s.icon?.file_path,
-        //   slug: s.slug,
-        // })),
-        // prices: data.data?.prices,
-        // colors: data.data?.colors,
-        // attributes: data.data?.attributes,
-        // boutiques: data.data?.boutiques,
+        categories: data.data.categories.map((c) => ({
+          name: c.name,
+          icon: c?.flat_photo_path?.file_path,
+          most_viewed_product_thumbnail:
+            c?.most_viewed_product_thumbnail?.file_path,
+          slug: c.slug,
+          childes: c.childes.map((child) => ({
+            name: child.name,
+            slug: child.slug,
+            most_viewed_product_thumbnail:
+              child?.most_viewed_product_thumbnail?.file_path,
+            childes: child?.childes?.map((c_child) => ({
+              name: c_child.name,
+              slug: c_child.slug,
+              most_viewed_product_thumbnail:
+                c_child?.most_viewed_product_thumbnail?.file_path,
+            })),
+          })),
+        })),
+        brands: data.data.brands.map((s) => ({
+          name: s.name,
+          icon: s.icon?.file_path,
+          slug: s.slug,
+        })),
+        prices: data.data.prices,
+        colors: data.data.colors,
+        attributes: data.data.attributes,
+        boutiques: data.data?.boutiques,
 
         products: data?.data?.products?.map((s) => ({
           name: s.name,
           slug: s.slug,
           details: s.details,
-          end_date: "/6/30/2025",
           colors: s.colors,
-          images: s?.images?.map((im) => ({ file_path: im.file_path })),
-          sync_color_images: s?.sync_color_images?.map((sync_im) => ({
+          images: s?.images.map((im) => ({ file_path: im.file_path })),
+          sync_color_images: s?.sync_color_images.map((sync_im) => ({
             color_name: sync_im?.color_name,
-            images: sync_im?.images?.map((im) => ({
+            images: sync_im?.images.map((im) => ({
               file_path: im.file_path,
             })),
           })),
@@ -116,13 +133,6 @@ export async function GET(
           },
         })),
       },
-
-      // url: decodeURIComponent(configured_url),
-      // req_inputs: {
-      //   boutiqueId,
-      //   searchParams,
-      //   offset,
-      // },
     },
     {
       status: 200,

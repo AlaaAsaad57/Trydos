@@ -6,25 +6,35 @@ import { FilterItem } from "components/Server/FilterList";
 import React, { useState } from "react";
 
 import { useAppStore } from "store";
-import { getProductsAndFilters } from "store/homepage/cachedActions";
+import {
+  filtersToSearchParams,
+  FilterParams,
+  buildParamsFromFilters,
+} from "utils/tinyUtils";
+
+interface InfiniteScrollFiltersProps {
+  filterParams: FilterParams | any;
+  isUsingParsedFilters: boolean;
+  lang: string;
+  term: string;
+  boutique: any;
+  currency: any;
+  params: any;
+  isFeatured?: boolean;
+  isFlashDeals?: boolean;
+}
 
 function InfiniteScrollFilters({
-  searchParams,
+  filterParams,
+  isUsingParsedFilters,
   lang,
   term,
   boutique,
   currency,
   params,
   isFeatured,
-}: {
-  searchParams: any;
-  lang: any;
-  term: any;
-  boutique: any;
-  currency: any;
-  params: any;
-  isFeatured?: boolean;
-}) {
+  isFlashDeals,
+}: InfiniteScrollFiltersProps) {
   const { partialLoading, setSearchPartialLoading } = useAppStore();
   const [country, language] = params.lang?.split("-");
 
@@ -46,18 +56,38 @@ function InfiniteScrollFilters({
   const getNextFilters = async () => {
     try {
       setSearchPartialLoading(true);
-      const response = await getProductsAndFilters({
-        lang: language,
-        isFeatured: isFeatured,
-        offset: false,
-        searchParams: searchParams,
-        country: country,
-        noProducts: true,
-        noFilters: false,
-        filters_offset: offset + 1,
-        boutiqueId:
-          params?.boutiqueId === "listing" ? null : params?.boutiqueId,
-      });
+
+      // Build the API URL using path parameters instead of search parameters
+      const filterPathSegments = isUsingParsedFilters
+        ? buildParamsFromFilters(filterParams)
+        : buildParamsFromFilters(filtersToSearchParams(filterParams));
+
+      const filterPath =
+        filterPathSegments.length > 0 ? filterPathSegments.join("/") : "";
+      const apiUrl = filterPath
+        ? `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/${params.lang}/filters/${filterPath}`
+        : `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/${params.lang}/filters`;
+
+      const fetchResponse = await fetch(
+        `${apiUrl}?${new URLSearchParams({
+          noProducts: "true",
+          noFilters: "false",
+          filters_offset: (offset + 1).toString(),
+        }).toString()}`,
+        {
+          method: "GET",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (!fetchResponse.ok) {
+        throw new Error(`HTTP error! status: ${fetchResponse.status}`);
+      }
+
+      const response = await fetchResponse.json();
 
       setData({
         categories: [
@@ -96,7 +126,8 @@ function InfiniteScrollFilters({
           currency={currency}
           item={s}
           params={params}
-          searchParams={searchParams}
+          filterParams={filterParams}
+          isUsingParsedFilters={isUsingParsedFilters}
           term={"categories"}
           key={`categories-${i}`}
         />
@@ -108,7 +139,8 @@ function InfiniteScrollFilters({
           currency={currency}
           item={s}
           params={params}
-          searchParams={searchParams}
+          filterParams={filterParams}
+          isUsingParsedFilters={isUsingParsedFilters}
           term={"brands"}
           key={`brands-${i}`}
         />
@@ -120,7 +152,8 @@ function InfiniteScrollFilters({
           currency={currency}
           item={s}
           params={params}
-          searchParams={searchParams}
+          filterParams={filterParams}
+          isUsingParsedFilters={isUsingParsedFilters}
           term={"colors"}
           key={`colors-${i}`}
         />
@@ -132,7 +165,8 @@ function InfiniteScrollFilters({
           currency={currency}
           item={s}
           params={params}
-          searchParams={searchParams}
+          filterParams={filterParams}
+          isUsingParsedFilters={isUsingParsedFilters}
           term={"sizes"}
           key={`sizes-${i}`}
         />
@@ -144,7 +178,8 @@ function InfiniteScrollFilters({
           currency={currency}
           item={s}
           params={params}
-          searchParams={searchParams}
+          filterParams={filterParams}
+          isUsingParsedFilters={isUsingParsedFilters}
           term={"prices"}
           key={`prices-${i}`}
         />

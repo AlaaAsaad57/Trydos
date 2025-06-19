@@ -22,12 +22,10 @@ function FeaturedBanner() {
   );
 
   return (
-    <div className="absolute top-[-3px] right-[2px] z-10 scale-[0.7] origin-bottom-right">
-      <div className="bg-gradient-to-r from-purple-500 to-blue-500 text-white px-3 py-2 rounded-lg shadow-lg">
-        <div className="flex items-center gap-1.5 mb-1">
-          <CrownIcon />
-          <span className="text-xs font-bold">FEATURED</span>
-        </div>
+    <div className="bg-gradient-to-r from-purple-500 to-blue-500 text-white px-3 py-2 rounded-lg shadow-lg">
+      <div className="flex items-center gap-1.5 mb-1">
+        <CrownIcon />
+        <span className="text-xs font-bold">FEATURED</span>
       </div>
     </div>
   );

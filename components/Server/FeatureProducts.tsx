@@ -2,6 +2,7 @@ import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 import NextLink from "components/global/NextLink";
 import { BuyButtonProduct } from "components/ListingPage/Product";
 import FeaturedBanner from "components/products/FeaturedBanner";
+import ProductBanner from "components/products/ProductBanner";
 import { SearchResponse } from "models/API/elastic/Search";
 import { CurrencyApi } from "models/API/market/CurrencyApi";
 import Image from "next/image";
@@ -131,7 +132,10 @@ async function FeatureProducts({ lang }) {
               className="product-container  align-center flex-col relative shadow-sm max-h-[200px] max-w-[150px]"
               data-cy="featured_product_link"
             >
-              <FeaturedBanner />
+              <ProductBanner
+                featured={product.featured}
+                flashDeals={product.end_date}
+              />
               <div className="max-h-[130px] w-full">
                 <Image
                   alt={product.name}

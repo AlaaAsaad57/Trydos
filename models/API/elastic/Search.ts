@@ -5,6 +5,7 @@ export interface SearchResponse {
     limit: number;
     products: Array<{
       id: number;
+      featured?: string;
       name: string;
       slug: string;
       details: string;

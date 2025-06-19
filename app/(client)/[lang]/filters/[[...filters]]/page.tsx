@@ -20,7 +20,7 @@ import ShareBoutiquePageButton from "components/filterPage/ShareBoutiquePageButt
 import FilterBoutiquePageButton from "components/filterPage/FilterBoutiquePageButton";
 import SearchBoutiquePage from "components/filterPage/SearchBoutiquePage";
 import CarouselContainer from "components/filterPage/CarouselContainer";
-import { GetImageUrl } from "utils/tinyUtils";
+import { GetImageUrl, parseFiltersFromParams } from "utils/tinyUtils";
 
 export const dynamicParams = true;
 
@@ -42,7 +42,7 @@ export async function generateMetadata({ params, searchParams }) {
 
 interface ParamsType {
   lang: string;
-  boutiqueId: string;
+  filters?: string[];
 }
 export default async function Page({
   params,
@@ -51,81 +51,28 @@ export default async function Page({
   params: ParamsType;
   searchParams: any;
 }) {
-  let EditedSearchParams: any = {};
+  // Parse filters from URL path parameters
+  const parsedFilters = parseFiltersFromParams(params.filters || []);
 
-  if (searchParams?.search_text) {
-    EditedSearchParams = {
-      ...EditedSearchParams,
-      search_text: searchParams.search_text,
-    };
-  }
-  if (searchParams?.categories) {
-    EditedSearchParams = {
-      ...EditedSearchParams,
-      categories: searchParams?.categories,
-    };
-  }
-  if (searchParams?.brands) {
-    EditedSearchParams = {
-      ...EditedSearchParams,
-      brands: searchParams?.brands,
-    };
-  }
-  // @ts-ignore
-  if (searchParams?.colors) {
-    EditedSearchParams = {
-      ...EditedSearchParams,
-      // @ts-ignore
-      colors: searchParams?.colors,
-    };
-  }
-  if (searchParams?.prices) {
-    EditedSearchParams = {
-      ...EditedSearchParams,
-      prices: searchParams?.prices,
-    };
-  }
-  // @ts-ignore
-  if (searchParams?.sizes) {
-    EditedSearchParams = {
-      ...EditedSearchParams,
-      // @ts-ignore
-      sizes: searchParams?.sizes,
-    };
-  }
-  if (searchParams?.boutiques) {
-    EditedSearchParams = {
-      ...EditedSearchParams,
-      boutiques: searchParams?.boutiques,
-    };
-  }
-  if (searchParams.tags_names) {
-    EditedSearchParams = {
-      ...EditedSearchParams,
-      tags_names: searchParams?.tags_names,
-    };
-  }
   const GetProductsData = async () => {
     let response;
     try {
+      // Build the API URL using path parameters instead of search parameters
+      const filterPath = params.filters ? params.filters.join("/") : "";
+      const apiUrl = filterPath
+        ? `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/${params.lang}/filters/${filterPath}`
+        : `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/${params.lang}/filters`;
+
       response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/${
-          params.lang
-        }/search?${new URLSearchParams({
-          boutiqueId:
-            params.boutiqueId === "listing" ? null : params.boutiqueId,
+        `${apiUrl}?${new URLSearchParams({
           noProducts: "false",
           noFilters: "false",
           offset: "false",
-          searchParams:
-            Object.keys(EditedSearchParams).length > 0
-              ? JSON.stringify(EditedSearchParams)
-              : "{}",
         }).toString()}`,
         {
           method: "GET",
           next: {
-            revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE),
+            revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE) || 60,
             tags: ["listing"],
           },
           headers: {
@@ -135,12 +82,24 @@ export default async function Page({
           },
         }
       );
-      let data = await response.json();
 
-      return data.data;
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      let data = await response.json();
+      return data?.data || {};
     } catch (error) {
-      console.log(error, "getProductsData", response);
-      return {};
+      console.error("GetProductsData error:", error, response?.status);
+      return {
+        products: [],
+        categories: [],
+        brands: [],
+        colors: [],
+        prices: { priceRanges: [] },
+        attributes: [{ options: [] }],
+        boutiques: [],
+      };
     }
   };
   const GetCurrencyData = async () => {
@@ -151,7 +110,8 @@ export default async function Page({
         {
           method: "GET",
           next: {
-            revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE_CURRENCY),
+            revalidate:
+              parseInt(process.env.NEXT_PUBLIC_REVALIDATE_CURRENCY) || 3600,
             tags: ["currency-api"],
           },
           headers: {
@@ -161,29 +121,41 @@ export default async function Page({
           },
         }
       );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
       let data = await response.json();
-      return data.data.currency;
+      return (
+        data?.data?.currency || { name: "USD", exchange_rate: 1, symbol: "$" }
+      );
     } catch (error) {
-      console.log(error, "getCurrencyData", response);
-      return {};
+      console.error("GetCurrencyData error:", error, response?.status);
+      return { name: "USD", exchange_rate: 1, symbol: "$" };
     }
   };
   const GetBoutiqueData = async () => {
+    // Get the first boutique from the boutiques filter parameters
+    let selectedBoutique = parsedFilters?.boutiques?.[0] || null;
+
     let response;
     try {
-      if (params.boutiqueId === "listing") {
+      if (!selectedBoutique) {
         return {
           name: "Search",
           banners: null,
           icon: null,
         };
       }
-      let response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/${params.lang}/boutiques/${params.boutiqueId}`,
+
+      response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/${params.lang}/boutiques/${selectedBoutique}`,
         {
           method: "GET",
           next: {
-            revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE_LISTING),
+            revalidate:
+              parseInt(process.env.NEXT_PUBLIC_REVALIDATE_LISTING) || 60,
             tags: ["listing"],
           },
           headers: {
@@ -193,29 +165,52 @@ export default async function Page({
           },
         }
       );
-      let data = await response.json();
-      if (data.code === 404) {
+
+      if (!response.ok) {
         return "NOT_FOUND";
       }
-      return data.data;
+
+      let data = await response.json();
+      if (data?.code === 404) {
+        return "NOT_FOUND";
+      }
+      return data?.data || "NOT_FOUND";
     } catch (error) {
-      console.log(error, "getBoutiqueData", response);
+      console.error("GetBoutiqueData error:", error, response?.status);
       return "NOT_FOUND";
     }
   };
-  const [filtersData, currency, boutique] = await Promise.all([
-    GetProductsData(),
-    GetCurrencyData(),
-    GetBoutiqueData(),
-  ]);
+  let filtersData, currency, boutique;
+
+  try {
+    [filtersData, currency, boutique] = await Promise.all([
+      GetProductsData(),
+      GetCurrencyData(),
+      GetBoutiqueData(),
+    ]);
+  } catch (error) {
+    console.error("Promise.all error in page:", error);
+    // Provide fallback values
+    filtersData = {
+      products: [],
+      categories: [],
+      brands: [],
+      colors: [],
+      prices: { priceRanges: [] },
+      attributes: [{ options: [] }],
+      boutiques: [],
+    };
+    currency = { name: "USD", exchange_rate: 1, symbol: "$" };
+    boutique = { name: "Search", banners: null, icon: null };
+  }
   let filters = {
-    categories: filtersData?.categories,
-    brands: filtersData?.brands,
-    colors: filtersData?.colors,
-    prices: filtersData?.prices?.priceRanges,
-    sizes: filtersData?.attributes?.[0]?.options,
-    boutiques: params.boutiqueId !== "listing" ? null : filtersData?.boutiques,
-    search_text: EditedSearchParams?.search_text || null,
+    categories: filtersData?.categories || [],
+    brands: filtersData?.brands || [],
+    colors: filtersData?.colors || [],
+    prices: filtersData?.prices?.priceRanges || [],
+    sizes: filtersData?.attributes?.[0]?.options || [],
+    boutiques: filtersData?.boutiques || [],
+    search_text: parsedFilters?.search_text?.[0] || null,
   };
   if (boutique === "NOT_FOUND") {
     redirect(`/${params.lang}?message=boutique_not_found`);
@@ -223,32 +218,33 @@ export default async function Page({
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Store",
-    name: boutique.name,
-    description: boutique.name,
-    image: boutique.banners?.[0]?.file_path,
+    name: boutique?.name || "Store",
+    description: boutique?.name || "Store",
+    image: boutique?.banners?.[0]?.file_path,
     hasOfferCatalog: {
       "@type": "OfferCatalog",
       name: "Product Listing",
-      itemListElement: filtersData?.products?.map((product) => ({
-        "@type": "Product",
-        name: product.name,
-        image: product?.images?.[0]?.file_path,
-        offers: {
-          "@type": "Offer",
-          priceCurrency: currency?.name, // Update currency if necessary
-          price: product?.price * currency?.exchange_rate,
-          availability: "https://schema.org/InStock",
-          url:
-            process.env.NEXT_PUBLIC_REMOTE_FRONT +
-            `${params.lang}/products/${product.slug}`,
-        },
-        color: product.colors?.map((s) => s.name),
-        brand: {
-          "@type": "Brand",
-          name: product.brand?.name,
-        },
-        category: product.category?.name,
-      })),
+      itemListElement:
+        filtersData?.products?.map((product) => ({
+          "@type": "Product",
+          name: product?.name || "Product",
+          image: product?.images?.[0]?.file_path,
+          offers: {
+            "@type": "Offer",
+            priceCurrency: currency?.name || "USD",
+            price: (product?.price || 0) * (currency?.exchange_rate || 1),
+            availability: "https://schema.org/InStock",
+            url:
+              process.env.NEXT_PUBLIC_REMOTE_FRONT +
+              `/${params.lang}/products/${product?.slug}`,
+          },
+          color: product?.colors?.map((s) => s?.name).filter(Boolean) || [],
+          brand: {
+            "@type": "Brand",
+            name: product?.brand?.name || "Brand",
+          },
+          category: product?.category?.name || "Category",
+        })) || [],
     },
   };
   return (
@@ -258,7 +254,7 @@ export default async function Page({
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
-        <FilterWidgetContainer key={JSON.stringify(EditedSearchParams)} />
+        <FilterWidgetContainer key={JSON.stringify(parsedFilters)} />
       </Suspense>
       <div
         data-cy="filter_listing_bar"
@@ -280,12 +276,13 @@ export default async function Page({
         <div
           data-cy="filter_bar_options"
           className={`filter-bar-options flex-row align-center ${
-            EditedSearchParams?.search_text?.length > 0 && "w-full"
+            parsedFilters?.search_text?.length > 0 && "w-full"
           }`}
         >
           <SearchBoutiquePage
+            key={`search-boutique-page-${JSON.stringify(parsedFilters)}`}
             boutique={boutique}
-            search_text={EditedSearchParams?.search_text}
+            search_text={parsedFilters?.search_text?.[0]}
           />
 
           <div
@@ -304,33 +301,30 @@ export default async function Page({
       <div
         data-cy="boutique_header"
         className={`boutique-header ${"flex-col"} align-center`}
-        key={`boutique-header-${params.boutiqueId}-${JSON.stringify(
-          EditedSearchParams
-        )}`}
+        key={`boutique-header-filters-${JSON.stringify(parsedFilters)}`}
       >
-        {params?.boutiqueId !== "listing" && (
+        {boutique.banners && (
           <Suspense
-            key={params.boutiqueId}
+            key={params.filters?.join("/") || "no-filters"}
             fallback={<BoutiqueHeaderSkeleton />}
           >
             <BoutiqueHeader
               boutique={boutique}
-              key={params.boutiqueId}
+              key={params.filters?.join("/") || "no-filters"}
             ></BoutiqueHeader>
           </Suspense>
         )}
-
         <FilterList
           filters={filters}
           boutique={boutique}
           currency={currency}
-          key={`filter-list-${params.boutiqueId}`}
+          key={`filter-list-filters`}
           params={params}
-          searchParams={EditedSearchParams}
+          parsedFilters={parsedFilters}
         />
       </div>
       <Suspense
-        key={`Suspense-product-list-${JSON.stringify(EditedSearchParams)}`}
+        key={`Suspense-product-list-${JSON.stringify(parsedFilters)}`}
         fallback={<ListingSkeleton forProducts={true} />}
       >
         <ProductListServer
@@ -338,8 +332,8 @@ export default async function Page({
           products={filtersData.products ?? []}
           offset={filtersData.offset}
           currency={currency}
-          key={`product-list-${JSON.stringify(EditedSearchParams)}`}
-          searchParams={EditedSearchParams}
+          key={`product-list-${JSON.stringify(parsedFilters)}`}
+          parsedFilters={parsedFilters}
           params={params}
         />
       </Suspense>

@@ -291,10 +291,10 @@ function SearchResults() {
           >
             {(showButton() || partialLoading || loading_search) && (
               <NextLink
-                href={search.getSearchPageUrl()}
+                href={search.getSearchPageUrl({ lang: lang })}
                 data={{
                   is_boutique: true,
-                  href: search.getSearchPageUrl(),
+                  href: search.getSearchPageUrl({ lang: lang }),
                 }}
                 aria-disabled={partialLoading || loading_search}
                 className="w-full h-10 p-2 cursor-pointer flex bg-[#ff5549] text-[#fff] justify-center items-center rounded-xl"

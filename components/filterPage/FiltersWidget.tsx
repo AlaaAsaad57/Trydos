@@ -9,7 +9,7 @@ import { useAppStore } from "store";
 import BackIcon from "public/svg/listing/backIcon.svg";
 import { DebounceInput } from "node_modules/react-debounce-input/src";
 import { RoundPrice, translateFunction } from "utils/functions";
-import { useParams, useSearchParams } from "next/navigation";
+import { useParams } from "next/navigation";
 import FilterLabel from "components/ListingPage/filterComponents/FilterLabel";
 import search from "services/search";
 import { getActiveFilters } from "components/Server/FilterList";
@@ -17,7 +17,7 @@ import Image from "node_modules/next/image";
 import Spinner from "components/global/Spinner";
 import PriceSlider from "components/ListingPage/filterComponents/PriceSlider";
 import dynamic from "next/dynamic";
-import { GetFilterUrlParams, GetImageUrl } from "utils/tinyUtils";
+import { GetImageUrl, parseFiltersFromParams } from "utils/tinyUtils";
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 import {
   GA_EVENT_NAMES,
@@ -43,20 +43,31 @@ function FilterWidgetContainer({}) {
   } = useAppStore();
   const [loading, setLoading] = useState(true);
   const [Initialfilters, setInitialfilters] = useState<any>({});
-  const { boutiqueId, lang } = useParams();
-  const searchParams = useSearchParams();
-  let activeFilters = getActiveFilters(searchParams);
+  const params = useParams();
+  const { lang, filters: filterParams } = params;
+
+  // Parse filters from URL path parameters
+  const parsedFilters = filterParams
+    ? parseFiltersFromParams(filterParams as string[])
+    : {};
+  let activeFilters = getActiveFilters(parsedFilters);
   const getSearchFilters = async () => {
-    const filtersUrl = GetFilterUrlParams({ boutiqueId, searchParams });
-    if (searchParams?.get("search_text")?.length > 0) {
-      let val = decodeURI(searchParams?.get("search_text"));
-      setSearchWord(val);
+    // Get boutique from parsed filters or determine from URL
+    const boutiqueId = parsedFilters?.boutiques?.[0] || "listing";
+
+    if (parsedFilters?.search?.length > 0) {
+      setSearchWord(parsedFilters.search[0]);
     }
+
     setLoading(true);
-    let res = await fetch(
-      process.env.NEXT_PUBLIC_API_BASE_URL +
-        `/api/${lang}/search?${filtersUrl?.toString()}`
-    );
+
+    // Build API URL with path-based filters
+    const filterPath = filterParams ? (filterParams as string[]).join("/") : "";
+    const apiUrl = filterPath
+      ? `/api/${lang}/filters/${filterPath}`
+      : `/api/${lang}/filters`;
+
+    let res = await fetch(process.env.NEXT_PUBLIC_API_BASE_URL + apiUrl);
     let { data: filters } = await res.json();
 
     setSearchResults({
@@ -156,7 +167,8 @@ function FilterWidgetContainer({}) {
       setSearchWord(activeFilters?.search_text);
     }
     if (activeFilters?.["boutiques"] && activeFilters?.boutiques) {
-      if (boutiqueId === "listing") {
+      const currentBoutiqueId = parsedFilters?.boutiques?.[0] || "listing";
+      if (currentBoutiqueId === "listing") {
         activeFilters?.boutiques?.forEach((b) => {
           if (filters?.boutiques?.find((filter) => filter.slug === b)) {
             obj.boutiques.push(
@@ -166,8 +178,9 @@ function FilterWidgetContainer({}) {
         });
       }
     }
-    if (boutiqueId !== "listing") {
-      obj.boutiques.push({ slug: boutiqueId?.toString() });
+    const currentBoutiqueId = parsedFilters?.boutiques?.[0] || "listing";
+    if (currentBoutiqueId !== "listing") {
+      obj.boutiques.push({ slug: currentBoutiqueId?.toString() });
     }
     setSearchFilters(obj);
   };
@@ -220,7 +233,12 @@ export default FilterWidgetContainer;
 function FiltersWidget({ filters, configureActiveFilters }) {
   let priceVariable = null;
 
-  const { lang, boutiqueId } = useParams();
+  const params = useParams();
+  const { lang, filters: filterParams } = params;
+  const parsedFilters = filterParams
+    ? parseFiltersFromParams(filterParams as string[])
+    : {};
+  const boutiqueId = parsedFilters?.boutiques?.[0] || "listing";
   const {
     filterEnabled,
     currency,
@@ -410,10 +428,10 @@ function FiltersWidget({ filters, configureActiveFilters }) {
         {showButton() &&
           (totalProducts !== null && totalProducts > 0 ? (
             <NextLink
-              href={search.getSearchPageUrl()}
+              href={search.getSearchPageUrl({ lang: lang })}
               data={{
                 is_filter: true,
-                href: search.getSearchPageUrl(),
+                href: search.getSearchPageUrl({ lang: lang }),
               }}
               aria-disabled={partialLoading || loading_search}
               className="w-full h-10 p-2 cursor-pointer flex bg-[#ff5549] text-[#fff] justify-center items-center rounded-xl"
@@ -467,7 +485,14 @@ function FiltersWidget({ filters, configureActiveFilters }) {
 }
 
 const FilterTobBar = ({ isSearch, setIsSearch, Goback }) => {
-  const { lang } = useParams();
+  const params = useParams();
+  const { lang, filters: filterParams } = params;
+
+  // Parse current filters from URL path
+  const currentFilters = filterParams
+    ? parseFiltersFromParams(filterParams as string[])
+    : {};
+
   const {
     filterEnabled,
     setFilterEnabled,
@@ -476,26 +501,6 @@ const FilterTobBar = ({ isSearch, setIsSearch, Goback }) => {
     setSearchPartialLoading,
     setSearchLoading,
   } = useAppStore();
-  const handleInputChange = async (e) => {
-    // Sendevent({
-    //   event: GA_EVENT_NAMES.CLICK,
-    //   value: GA_CLICK_EVENT_VALUES.ADD_FILTER_ITEM,
-    //   extra: {
-    //     filter: "search_text",
-    //     value: e?.target.value,
-    //   },
-    // });
-    setSearchWord(e?.target.value);
-    setIsSearch(true);
-    setSearchPartialLoading(true);
-    setSearchLoading(true);
-    await search.getSearchOptions({
-      noProducts: false,
-      lang: lang,
-    });
-    setSearchPartialLoading(false);
-    setSearchLoading(false);
-  };
 
   return (
     <div className="justify-between fil flex-row align-center h-[50px]">
@@ -515,59 +520,8 @@ const FilterTobBar = ({ isSearch, setIsSearch, Goback }) => {
         <BackIcon />
       </div>
       <div
-        className={`filter-bar-options flex-row align-center ${
-          isSearch || value?.length > 0 ? "w-full" : "w-[95px] "
-        }`}
+        className={`filter-bar-options flex-row align-center ${"w-[95px] "}`}
       >
-        <div
-          id="searchIconBoutique"
-          className={`filter-option w-[20px] transition-all filter-search-option relative ${
-            isSearch &&
-            "w-[90%] [&>input]:w-full [&>input]:bg-[#f8f8f8] [&>input]:h-[40px]"
-          }`}
-          data-cy="searchIcon_boutiquePage"
-          onClick={() => {
-            // Sendevent({
-            //   event: GA_EVENT_NAMES.CLICK,
-            //   value: GA_CLICK_EVENT_VALUES.OPEN_SEARCH_FIELD_BUTTON,
-            // });
-            document
-              .querySelector<HTMLInputElement>("#filter-search-input")
-              ?.focus();
-            setIsSearch(true);
-          }}
-        >
-          <DebounceInput
-            data-cy="inputFiled"
-            id="filter-search-input"
-            debounceTimeout={600}
-            onFocus={() => {
-              document
-                .querySelector<HTMLInputElement>(".filter-bar-options")
-                .classList.add("w-full");
-            }}
-            value={value}
-            onBlur={() => {
-              if (value?.length === 0) {
-                setIsSearch(false);
-              }
-            }}
-            onChange={handleInputChange}
-            onKeyDown={(e) => {
-              //@ts-ignore
-              if (e.keyCode == 13) {
-              }
-            }}
-            className={`${
-              isSearch && "pl-[40px]"
-            } rounded-[15px]  w-0 h-full border-0 outline-none text-[#5d5d5d]`}
-          />
-          <SearchIcon
-            className={`absolute z-10 ${
-              isSearch ? "top-[9px] left-[14px]" : "top-0 left-0"
-            }`}
-          />
-        </div>
         <div className="filter-option w-[20px]" data-cy="settingsIcon">
           <FilterIcon className={`${filterEnabled && "filter-icon-enabled"}`} />
         </div>

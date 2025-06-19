@@ -1,67 +1,28 @@
 // components/BoutiqueHead.tsx
 
 import { getConfiguredImage } from "utils/functions";
+import { parseFiltersFromParams, filtersToSearchParams } from "utils/tinyUtils";
 
 export async function getBoutiqueMetadata({ params, searchParams }) {
-  let EditedSearchParams: any = {};
-  if (searchParams?.search_text) {
-    EditedSearchParams = {
-      ...EditedSearchParams,
-      search_text: searchParams?.search_text,
-    };
-  }
-  if (searchParams?.categories) {
-    EditedSearchParams = {
-      ...EditedSearchParams,
-      categories: searchParams?.categories,
-    };
-  }
-  if (searchParams?.brands) {
-    EditedSearchParams = {
-      ...EditedSearchParams,
-      brands: searchParams?.brands,
-    };
-  }
-  if (searchParams?.colors) {
-    EditedSearchParams = {
-      ...EditedSearchParams,
-      colors: searchParams?.colors,
-    };
-  }
-  if (searchParams?.prices) {
-    EditedSearchParams = {
-      ...EditedSearchParams,
-      prices: searchParams?.prices,
-    };
-  }
-  if (searchParams?.sizes) {
-    EditedSearchParams = {
-      ...EditedSearchParams,
-      sizes: searchParams?.sizes,
-    };
-  }
-  if (searchParams?.boutiques) {
-    EditedSearchParams = {
-      ...EditedSearchParams,
-      boutiques: searchParams?.boutiques,
-    };
-  }
+  // Parse filters from path parameters instead of search parameters
+  const parsedFilters = parseFiltersFromParams(params.filters);
+
+  // Convert to the format expected by the API
+  const EditedSearchParams = filtersToSearchParams(parsedFilters);
   const GetProductsData = async () => {
     let response;
     try {
+      // Build the API URL using path parameters instead of search parameters
+      const filterPath = params.filters ? params.filters.join("/") : "";
+      const apiUrl = filterPath
+        ? `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/${params.lang}/filters/${filterPath}`
+        : `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/${params.lang}/filters`;
+
       response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/${
-          params.lang
-        }/search?${new URLSearchParams({
-          boutiqueId:
-            params.boutiqueId === "listing" ? null : params.boutiqueId,
+        `${apiUrl}?${new URLSearchParams({
           noProducts: "false",
           noFilters: "false",
           offset: "false",
-          searchParams:
-            Object.keys(EditedSearchParams).length > 0
-              ? JSON.stringify(EditedSearchParams)
-              : "{}",
         }).toString()}`,
         {
           method: "GET",
@@ -84,9 +45,12 @@ export async function getBoutiqueMetadata({ params, searchParams }) {
     }
   };
   const GetBoutiqueData = async () => {
+    // Get the first boutique from the boutiques filter parameters
+    let selectedBoutique = parsedFilters?.boutiques?.[0] || null;
+
     let response;
     try {
-      if (params.boutiqueId === "listing") {
+      if (!selectedBoutique) {
         return {
           name: "Search",
           banners: null,
@@ -94,7 +58,7 @@ export async function getBoutiqueMetadata({ params, searchParams }) {
         };
       }
       let response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/${params.lang}/boutiques/${params.boutiqueId}`,
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/${params.lang}/boutiques/${selectedBoutique}`,
         {
           method: "GET",
           next: {
@@ -128,8 +92,8 @@ export async function getBoutiqueMetadata({ params, searchParams }) {
     colors: filtersData?.colors,
     prices: filtersData?.prices?.priceRanges,
     sizes: filtersData?.attributes?.[0]?.options,
-    boutiques: params.boutiqueId !== "listing" ? null : filtersData?.boutiques,
-    search_text: EditedSearchParams?.search_text || null,
+    boutiques: filtersData?.boutiques,
+    search_text: parsedFilters?.search_text?.[0] || null,
   };
   const pageTitle = `${boutique.name} | Discover Boutique Products, Brands & More`;
   const pageDescription = `Shop exclusive products from ${
@@ -143,7 +107,7 @@ export async function getBoutiqueMetadata({ params, searchParams }) {
   const defaultOgImage = "/default-og-image.jpg";
 
   const ogImage =
-    boutique.name === "listing"
+    boutique.name === "Search"
       ? filtersData?.products?.[0]?.images?.[0]?.file_path
       : boutique.banners?.[0]?.file_path || boutique.iconUrl || defaultOgImage;
 
@@ -158,7 +122,10 @@ export async function getBoutiqueMetadata({ params, searchParams }) {
     .filter(Boolean)
     .join(", ");
 
-  const canonicalUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL}/boutique/${params.boutiqueId}`;
+  const filterPath = params.filters ? params.filters.join("/") : "";
+  const canonicalUrl = filterPath
+    ? `${process.env.NEXT_PUBLIC_API_BASE_URL}/${params.lang}/filters/${filterPath}`
+    : `${process.env.NEXT_PUBLIC_API_BASE_URL}/${params.lang}/filters`;
 
   return {
     title: pageTitle,
@@ -173,7 +140,7 @@ export async function getBoutiqueMetadata({ params, searchParams }) {
       images: boutique?.banners
         ? boutique?.banners?.map((s) => ({
             url: getConfiguredImage({
-              src: s.file_path,
+              src: process.env.NEXT_PUBLIC_BASE_CLOUDINARY_URL + s.file_path,
               width: 1200,
               height: 630,
               q: 80,
@@ -185,7 +152,7 @@ export async function getBoutiqueMetadata({ params, searchParams }) {
         : [
             {
               url: getConfiguredImage({
-                src: ogImage,
+                src: process.env.NEXT_PUBLIC_BASE_CLOUDINARY_URL + ogImage,
                 width: 1200,
                 height: 630,
                 q: 80,
@@ -201,11 +168,36 @@ export async function getBoutiqueMetadata({ params, searchParams }) {
       title: pageTitle,
       description: pageDescription,
       images: [
-        getConfiguredImage({ src: ogImage, width: 1200, height: 630, q: 80 }),
-        getConfiguredImage({ src: ogImage, width: 800, height: 418, q: 80 }),
-        getConfiguredImage({ src: ogImage, width: 400, height: 209, q: 80 }),
-        getConfiguredImage({ src: ogImage, width: 200, height: 104, q: 80 }),
-        getConfiguredImage({ src: ogImage, width: 100, height: 52, q: 80 }),
+        getConfiguredImage({
+          src: process.env.NEXT_PUBLIC_BASE_CLOUDINARY_URL + ogImage,
+          width: 1200,
+          height: 630,
+          q: 80,
+        }),
+        getConfiguredImage({
+          src: process.env.NEXT_PUBLIC_BASE_CLOUDINARY_URL + ogImage,
+          width: 800,
+          height: 418,
+          q: 80,
+        }),
+        getConfiguredImage({
+          src: process.env.NEXT_PUBLIC_BASE_CLOUDINARY_URL + ogImage,
+          width: 400,
+          height: 209,
+          q: 80,
+        }),
+        getConfiguredImage({
+          src: process.env.NEXT_PUBLIC_BASE_CLOUDINARY_URL + ogImage,
+          width: 200,
+          height: 104,
+          q: 80,
+        }),
+        getConfiguredImage({
+          src: process.env.NEXT_PUBLIC_BASE_CLOUDINARY_URL + ogImage,
+          width: 100,
+          height: 52,
+          q: 80,
+        }),
       ],
     },
     alternates: {

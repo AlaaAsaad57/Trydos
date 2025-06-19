@@ -1,5 +1,6 @@
 import { AxiosGet } from "utils/AxiosApi";
 import { useAppStore } from "store";
+import { buildParamsFromFilters, filtersToSearchParams } from "utils/tinyUtils";
 
 class SearchService {
   private searchAbortController: AbortController | null = null;
@@ -21,6 +22,7 @@ class SearchService {
     noFilters = false,
     filters_offset = null,
     replace = true,
+    searchValue = null,
   }) {
     // Cancel any in-flight request
     if (this.searchAbortController) {
@@ -49,75 +51,54 @@ class SearchService {
     setSearchPartialLoading(true);
     setSearchLoading(true);
     try {
-      let searchFiltersEdit = {};
-      if (searchFilters?.categories && searchFilters.categories.length > 0) {
-        searchFiltersEdit = {
-          ...searchFiltersEdit,
-          categories: JSON.stringify(
-            searchFilters.categories.map((s) => s.slug)
-          ),
-        };
-      }
-      if (searchFilters?.brands && searchFilters.brands.length > 0) {
-        searchFiltersEdit = {
-          ...searchFiltersEdit,
-          brands: JSON.stringify(searchFilters.brands.map((s) => s.slug)),
-        };
-      }
-      if (searchFilters?.boutiques && searchFilters.boutiques.length > 0) {
-        searchFiltersEdit = {
-          ...searchFiltersEdit,
-          boutiques: JSON.stringify(searchFilters.boutiques.map((s) => s.slug)),
-        };
-      }
+      // Build path-based filter URL
+      const filterObj = {
+        boutiques: searchFilters?.boutiques?.map((b) => b.slug) || [],
+        categories: searchFilters?.categories?.map((c) => c.slug) || [],
+        brands: searchFilters?.brands?.map((b) => b.slug) || [],
+        colors:
+          searchFilters?.colors?.map((c) =>
+            typeof c === "string" ? c : c.toString()
+          ) || [],
+        sizes:
+          searchFilters?.sizes?.map((s) =>
+            typeof s === "string" ? s : s.toString()
+          ) || [],
+        prices:
+          searchFilters?.prices &&
+          searchFilters.prices.min_price !== null &&
+          searchFilters.prices.min_price !== undefined &&
+          searchFilters.prices.max_price !== null &&
+          searchFilters.prices.max_price !== undefined &&
+          !isNaN(Number(searchFilters.prices.min_price)) &&
+          !isNaN(Number(searchFilters.prices.max_price)) &&
+          Number(searchFilters.prices.min_price) >= 0 &&
+          Number(searchFilters.prices.max_price) > 0
+            ? [
+                `${searchFilters.prices.min_price}-${searchFilters.prices.max_price}`,
+              ]
+            : [],
+        search:
+          searchValue?.length > 0
+            ? [searchValue]
+            : value?.length > 0
+            ? [value]
+            : [],
+      };
 
-      if (searchFilters?.colors && searchFilters.colors.length > 0) {
-        // @ts-ignore
+      const pathParams = buildParamsFromFilters(filterObj);
+      const filterPath = pathParams.length > 0 ? pathParams.join("/") : "";
+      const apiUrl = filterPath
+        ? `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/${lang}/filters/${filterPath}`
+        : `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/${lang}/filters`;
 
-        searchFiltersEdit = {
-          ...searchFiltersEdit,
-          colors: JSON.stringify(searchFilters.colors.map((s) => s)),
-        };
-      }
-
-      if (searchFilters?.sizes && searchFilters.sizes.length > 0) {
-        // @ts-ignore
-
-        searchFiltersEdit = {
-          ...searchFiltersEdit,
-          sizes: JSON.stringify(searchFilters.sizes.map((s) => s)),
-        };
-      }
-      if (
-        searchFilters?.prices?.max_price > 0 &&
-        searchFilters?.prices?.min_price >= 0
-      ) {
-        searchFiltersEdit = {
-          ...searchFiltersEdit,
-          prices: JSON.stringify([
-            `${searchFilters.prices.min_price}-${searchFilters.prices.max_price}`,
-          ]),
-        };
-      }
-      if (value?.length > 0) {
-        searchFiltersEdit = {
-          ...searchFiltersEdit,
-          search_text: value,
-        };
-      }
-
-      let requestSearchParams = new URLSearchParams();
-      let requestSearchParamsString = "";
-      if (Object.keys(searchFiltersEdit).length > 0) {
-        requestSearchParams.set(
-          "searchParams",
-          JSON.stringify(searchFiltersEdit)
-        );
-        requestSearchParamsString = `&${requestSearchParams.toString()}`;
-      }
+      // Debug logging
+      console.log("Search value used:", searchValue || value);
+      console.log("Filter object:", filterObj);
+      console.log("API URL:", apiUrl);
 
       const filtersResponseJson = await fetch(
-        `/api/${lang}/search?${params.toString()}${requestSearchParamsString}`,
+        `${apiUrl}?${params.toString()}`,
         { signal } // Pass the abort signal to fetch
       );
 
@@ -180,15 +161,17 @@ class SearchService {
 
     const { setSearchResults, setTotalSizeOfProducts } = useAppStore.getState();
     try {
-      let requestSearchParams = new URLSearchParams();
-      let requestSearchParamsString = "";
       console.log(filter_obj, "filter_obj");
-      if (Object.keys(filter_obj).length > 0) {
-        requestSearchParams.set("searchParams", JSON.stringify(filter_obj));
-        requestSearchParamsString = `&${requestSearchParams.toString()}`;
-      }
+
+      // Build path-based filter URL from filter_obj
+      const pathParams = buildParamsFromFilters(filter_obj);
+      const filterPath = pathParams.length > 0 ? pathParams.join("/") : "";
+      const apiUrl = filterPath
+        ? `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/${lang}/filters/${filterPath}`
+        : `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/${lang}/filters`;
+
       const filtersResponseJson = await fetch(
-        `/api/${lang}/search?noProducts=true&${requestSearchParamsString}`,
+        `${apiUrl}?noProducts=true`,
         { signal } // Pass the abort signal to fetch
       );
 
@@ -250,78 +233,77 @@ class SearchService {
     return params;
   }
 
-  getSearchPageUrl() {
+  getSearchPageUrl({ lang }) {
     let { searchFilters, value } = useAppStore.getState();
-    if (searchFilters.categories.length > 0) {
+
+    // Build filter object for path-based URL
+    const filterObj = {
+      boutiques: searchFilters?.boutiques?.map((b) => b.slug) || [],
+      categories: searchFilters?.categories?.map((c) => c.slug) || [],
+      brands: searchFilters?.brands?.map((b) => b.slug) || [],
+      colors:
+        searchFilters?.colors?.map((c) =>
+          typeof c === "string" ? c : c.toString()
+        ) || [],
+      sizes:
+        searchFilters?.sizes?.map((s) =>
+          typeof s === "string" ? s : s.toString()
+        ) || [],
+      prices:
+        searchFilters?.prices &&
+        searchFilters.prices.min_price !== null &&
+        searchFilters.prices.min_price !== undefined &&
+        searchFilters.prices.max_price !== null &&
+        searchFilters.prices.max_price !== undefined &&
+        !isNaN(Number(searchFilters.prices.min_price)) &&
+        !isNaN(Number(searchFilters.prices.max_price)) &&
+        Number(searchFilters.prices.min_price) >= 0 &&
+        Number(searchFilters.prices.max_price) > 0
+          ? [
+              `${searchFilters.prices.min_price}-${searchFilters.prices.max_price}`,
+            ]
+          : [],
+      search: value?.length > 0 ? [value] : [],
+    };
+
+    // Build path-based URL
+    const pathParams = buildParamsFromFilters(filterObj);
+
+    // Get language from current URL or default to 'en-tr'
+
+    if (pathParams.length > 0) {
+      return `/${lang}/filters/${pathParams.join("/")}`;
+    } else {
+      return `/${lang}/filters`;
     }
-    let url = "/boutique/listing";
-    let params = new URLSearchParams();
-    if (searchFilters.categories.length > 0) {
-      params.set(
-        "categories",
-        encodeURIComponent(
-          JSON.stringify(searchFilters.categories.map((s) => s.slug))
-        )
-      );
-    }
-    if (searchFilters.brands.length > 0) {
-      params.set(
-        "brands",
-        encodeURIComponent(
-          JSON.stringify(searchFilters.brands.map((s) => s.slug))
-        )
-      );
-    }
-    if (searchFilters.boutiques.length > 0) {
-      params.set(
-        "boutiques",
-        encodeURIComponent(
-          JSON.stringify(searchFilters.boutiques.map((s) => s.slug))
-        )
-      );
-    }
-    if (value?.length > 0) {
-      params.set("search_text", value);
-    }
-    if (
-      searchFilters.prices.min_price !== null &&
-      searchFilters?.prices?.max_price !== null &&
-      searchFilters?.prices?.max_price > 0 &&
-      searchFilters?.prices?.min_price >= 0
-    ) {
-      params.set(
-        "prices",
-        encodeURIComponent(
-          JSON.stringify([
-            `${searchFilters.prices.min_price}-${searchFilters.prices.max_price}`,
-          ])
-        )
-      );
-    }
-    if (searchFilters.colors.length > 0) {
-      params.set(
-        "colors",
-        encodeURIComponent(JSON.stringify(searchFilters.colors.map((s) => s)))
-      );
-    }
-    if (searchFilters.sizes.length > 0) {
-      params.set(
-        "sizes",
-        encodeURIComponent(JSON.stringify(searchFilters.sizes.map((s) => s)))
-      );
-    }
-    return url + "?" + params.toString();
   }
   getPageUrl({ term, value }) {
-    let params = new URLSearchParams();
     if (term && value) {
-      params.set(
-        term,
-        encodeURIComponent(JSON.stringify(value.map((s) => s.slug)))
-      );
+      // Build filter object for single filter type
+      const filterObj = {
+        [term]: value.map((s) => s.slug),
+      };
+
+      const pathParams = buildParamsFromFilters(filterObj);
+
+      // Get language from current URL or default to 'en-tr'
+      const currentPath =
+        typeof window !== "undefined" ? window.location.pathname : "";
+      const langMatch = currentPath.match(/^\/([^\/]+)\//);
+      const lang = langMatch ? langMatch[1] : "en-tr";
+
+      if (pathParams.length > 0) {
+        return `/${lang}/filters/${pathParams.join("/")}`;
+      }
     }
-    return "?" + params.toString();
-    return;
+
+    // Get language for base filters URL
+    const currentPath =
+      typeof window !== "undefined" ? window.location.pathname : "";
+    const langMatch = currentPath.match(/^\/([^\/]+)\//);
+    const lang = langMatch ? langMatch[1] : "en-tr";
+
+    return `/${lang}/filters`;
   }
   async getColorsAndSizes() {
     const CACHE_KEY = "colors_and_sizes_data";

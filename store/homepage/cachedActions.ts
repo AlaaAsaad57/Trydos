@@ -140,8 +140,9 @@ export const getProductsAndFilters = async ({
   filters_offset,
   isFeatured,
   isFlashDeals,
+  parsedFilters,
 }: {
-  searchParams: URLSearchParams;
+  searchParams?: URLSearchParams;
   lang: string;
   country: string;
   noProducts: boolean;
@@ -151,51 +152,113 @@ export const getProductsAndFilters = async ({
   filters_offset?: number;
   isFeatured?: boolean;
   isFlashDeals?: boolean;
+  parsedFilters?: Record<string, string[]>;
 }) => {
   try {
-    let params = configureSearchParams({
-      searchParams,
-      noProducts,
-      noFilters,
-      lang,
-      offset,
-      boutiqueId,
-      filters_offset,
-    });
-    let configured_url = `/api/products/${
-      isFeatured ? "featured" : isFlashDeals ? "flash" : "searchInCatalog"
-    }?${params.toString()}`;
+    // Determine base API URL based on type
+    let baseApiUrl: string;
 
-    let response = await fetch(
-      process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL + configured_url,
-      {
-        method: "GET",
-        headers: new Headers({
-          lang: lang,
-          country: country,
-          Accept: "application/json",
-          "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
-        }),
-        next: {
-          revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE_LISTING),
-          tags: ["listing"],
-        },
+    if (isFeatured) {
+      baseApiUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/${country}-${lang}/featured`;
+    } else if (isFlashDeals) {
+      baseApiUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/${country}-${lang}/flash`;
+    } else {
+      baseApiUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/${country}-${lang}/filters`;
+    }
+
+    // If we have parsedFilters (path-based filters), use them
+    let apiUrl = baseApiUrl;
+    if (parsedFilters && Object.keys(parsedFilters).length > 0) {
+      // Build URL path from parsedFilters
+      const pathParams: string[] = [];
+      const filterOrder = [
+        "boutiques",
+        "categories",
+        "brands",
+        "colors",
+        "sizes",
+        "prices",
+        "search_text",
+      ];
+
+      filterOrder.forEach((filterType) => {
+        const values = parsedFilters[filterType];
+        if (values && values.length > 0) {
+          const paramName =
+            filterType === "search_text" ? "search" : filterType;
+          pathParams.push(paramName);
+
+          if (filterType === "search_text") {
+            pathParams.push(encodeURIComponent(values[0]));
+          } else if (filterType === "colors") {
+            const colorValues = values.map((color) =>
+              color.startsWith("#") ? color.substring(1) : color
+            );
+            pathParams.push(colorValues.join(","));
+          } else {
+            pathParams.push(values.join(","));
+          }
+        }
+      });
+
+      if (pathParams.length > 0) {
+        apiUrl = `${baseApiUrl}/${pathParams.join("/")}`;
       }
-    );
+    }
+
+    // Build query parameters
+    const queryParams = new URLSearchParams();
+
+    if (noProducts) {
+      queryParams.set("noProducts", "true");
+    }
+    if (noFilters) {
+      queryParams.set("noFilters", "true");
+    }
+    if (offset !== false && offset) {
+      queryParams.set("offset", offset.toString());
+    }
+    if (filters_offset) {
+      queryParams.set("filters_offset", filters_offset.toString());
+    }
+    if (boutiqueId && boutiqueId !== "listing") {
+      queryParams.set("boutiqueId", boutiqueId);
+    }
+
+    const finalUrl = `${apiUrl}?${queryParams.toString()}`;
+
+    let response = await fetch(finalUrl, {
+      method: "GET",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization",
+      },
+      next: {
+        revalidate: parseInt(
+          process.env.NEXT_PUBLIC_REVALIDATE_LISTING || "60"
+        ),
+        tags: ["listing"],
+      },
+    });
+
     if (response.status !== 200) {
       const errorBody = await response.json();
       throw new Error(
-        `Listing Products and Filters Error: ${
-          response.status
-        } ${JSON.stringify(errorBody.message)}`
+        `API Route Error: ${response.status} ${JSON.stringify(
+          errorBody.message
+        )}`
       );
     }
+
     let data: SearchResponse = await response.json();
     return data;
   } catch (error) {
     console.error(
-      `Listing Products and Filters Error: ${error}`,
-      searchParams,
+      `getProductsAndFilters Error: ${error}`,
+      searchParams || parsedFilters,
       offset
     );
     return {

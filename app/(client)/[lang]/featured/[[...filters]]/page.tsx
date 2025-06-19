@@ -15,6 +15,7 @@ import FilterWidgetContainer from "components/filterPage/FiltersWidget";
 import ShareBoutiquePageButton from "components/filterPage/ShareBoutiquePageButton";
 import FilterBoutiquePageButton from "components/filterPage/FilterBoutiquePageButton";
 import SearchBoutiquePage from "components/filterPage/SearchBoutiquePage";
+import { parseFiltersFromParams } from "utils/tinyUtils";
 
 export const dynamicParams = true;
 
@@ -33,13 +34,14 @@ export async function generateMetadata({ params, searchParams }) {
   //     return [];
   //   }
   return {
-    title: "Flash Deals Products",
-    description: "Flash Deals Products",
+    title: "Featured Products",
+    description: "Featured Products",
   };
 }
 
 interface ParamsType {
   lang: string;
+  filters?: string[];
 }
 export default async function Page({
   params,
@@ -48,77 +50,31 @@ export default async function Page({
   params: ParamsType;
   searchParams: any;
 }) {
-  let EditedSearchParams: any = {};
-
-  if (searchParams?.search_text) {
-    EditedSearchParams = {
-      ...EditedSearchParams,
-      search_text: searchParams.search_text,
-    };
-  }
-  if (searchParams?.categories) {
-    EditedSearchParams = {
-      ...EditedSearchParams,
-      categories: searchParams?.categories,
-    };
-  }
-  if (searchParams?.brands) {
-    EditedSearchParams = {
-      ...EditedSearchParams,
-      brands: searchParams?.brands,
-    };
-  }
-  // @ts-ignore
-  if (searchParams?.colors) {
-    EditedSearchParams = {
-      ...EditedSearchParams,
-      // @ts-ignore
-      colors: searchParams?.colors,
-    };
-  }
-  if (searchParams?.prices) {
-    EditedSearchParams = {
-      ...EditedSearchParams,
-      prices: searchParams?.prices,
-    };
-  }
-  // @ts-ignore
-  if (searchParams?.sizes) {
-    EditedSearchParams = {
-      ...EditedSearchParams,
-      // @ts-ignore
-      sizes: searchParams?.sizes,
-    };
-  }
-  if (searchParams?.boutiques) {
-    EditedSearchParams = {
-      ...EditedSearchParams,
-      boutiques: searchParams?.boutiques,
-    };
-  }
+  // Parse filters from URL path parameters
+  const parsedFilters = parseFiltersFromParams(params.filters || []);
 
   const GetProductsData = async () => {
     let response;
     try {
+      // Build the API URL using path parameters instead of search parameters
+      const filterPath = params.filters ? params.filters.join("/") : "";
+      const apiUrl = filterPath
+        ? `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/${params.lang}/featured/${filterPath}`
+        : `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/${params.lang}/featured`;
+
       response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/${
-          params.lang
-        }/flash?${new URLSearchParams({
-          boutiqueId: null,
+        `${apiUrl}?${new URLSearchParams({
+          boutiqueId: "null",
           noProducts: "false",
-          forHome: "false",
+          forHome: "true",
           noFilters: "true",
           offset: "false",
-          searchParams:
-            Object.keys(EditedSearchParams).length > 0
-              ? JSON.stringify(EditedSearchParams)
-              : "{}",
         }).toString()}`,
         {
           method: "GET",
           next: {
             revalidate: parseInt(process.env.NEXT_PUBLIC_HOME_REVALIDATE),
-            tags: ["flash-deals-Products-Api"],
+            tags: ["featured-Products-Api"],
           },
           headers: {
             "Access-Control-Allow-Origin": "*",
@@ -128,10 +84,18 @@ export default async function Page({
         }
       );
       let data = await response.json();
-      return data.data;
+      return data?.data || {};
     } catch (error) {
       console.log(error, "getProductsData", response);
-      return {};
+      return {
+        products: [],
+        categories: [],
+        brands: [],
+        colors: [],
+        prices: { priceRanges: [] },
+        attributes: [{ options: [] }],
+        boutiques: [],
+      };
     }
   };
   const GetCurrencyData = async () => {
@@ -166,19 +130,19 @@ export default async function Page({
     GetCurrencyData(),
   ]);
   let filters = {
-    categories: filtersData?.categories,
-    brands: filtersData?.brands,
-    colors: filtersData?.colors,
-    prices: filtersData?.prices?.priceRanges,
-    sizes: filtersData?.attributes?.[0]?.options,
-    boutiques: filtersData?.boutiques,
-    search_text: EditedSearchParams?.search_text || null,
+    categories: filtersData?.categories || [],
+    brands: filtersData?.brands || [],
+    colors: filtersData?.colors || [],
+    prices: filtersData?.prices?.priceRanges || [],
+    sizes: filtersData?.attributes?.[0]?.options || [],
+    boutiques: filtersData?.boutiques || [],
+    search_text: parsedFilters?.search_text?.[0] || null,
   };
 
   return (
     <>
       <Suspense fallback={<></>}>
-        <FilterWidgetContainer key={JSON.stringify(EditedSearchParams)} />
+        <FilterWidgetContainer key={JSON.stringify(parsedFilters)} />
       </Suspense>
       <div className="filter-listing-bar relative flex-row align-center">
         <NextLink
@@ -196,12 +160,12 @@ export default async function Page({
         {/** TODO: classname edit when serach active w-full */}
         <div
           className={`filter-bar-options flex-row align-center ${
-            EditedSearchParams?.search_text?.length > 0 && "w-full"
+            parsedFilters?.search_text?.length > 0 && "w-full"
           }`}
         >
           <SearchBoutiquePage
             boutique={{}}
-            search_text={EditedSearchParams?.search_text}
+            search_text={parsedFilters?.search_text?.[0]}
           />
 
           <div className="filter-option">
@@ -217,7 +181,7 @@ export default async function Page({
       <div
         className={`boutique-header ${"flex-col"} align-center`}
         data-cy="boutiqueOpen"
-        key={`boutique-header-${JSON.stringify(EditedSearchParams)}`}
+        key={`boutique-header-${JSON.stringify(parsedFilters)}`}
       >
         <FilterList
           filters={filters}
@@ -225,12 +189,12 @@ export default async function Page({
           currency={currency}
           key={`filter-list`}
           params={params}
-          searchParams={EditedSearchParams}
+          parsedFilters={parsedFilters}
           isFeatured={true}
         />
       </div>
       <Suspense
-        key={`Suspense-product-list-${JSON.stringify(EditedSearchParams)}`}
+        key={`Suspense-product-list-${JSON.stringify(parsedFilters)}`}
         fallback={<ListingSkeleton forProducts={true} />}
       >
         <ProductListServer
@@ -238,11 +202,10 @@ export default async function Page({
           products={filtersData.products ?? []}
           offset={filtersData.offset}
           currency={currency}
-          key={`product-list-${JSON.stringify(EditedSearchParams)}`}
-          searchParams={EditedSearchParams}
+          key={`product-list-${JSON.stringify(parsedFilters)}`}
+          parsedFilters={parsedFilters}
           params={params}
-          isFeatured={false}
-          isFlashDeals={true}
+          isFeatured={true}
         />
       </Suspense>
     </>

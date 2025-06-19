@@ -18,11 +18,11 @@ const NormalWidget = ({ boutique, myKey, lang }: NormalWidgetProps) => {
     <div className="w-full flex relative">
       <NextLink
         data-cy="boutique_link"
-        href={`/${lang}/boutique/${boutique.slug}`}
+        href={`/${lang}/filters/boutiques/${boutique.slug}`}
         data={{
           is_boutique: true,
           ...boutique,
-          href: `/${lang}/boutique/${boutique.slug}`,
+          href: `/${lang}/filters/boutiques/${boutique.slug}`,
         }}
         aria-label={`Go To listing ${lang} ${boutique.slug}`}
         className="offer-widget"
@@ -96,18 +96,10 @@ const NormalWidget = ({ boutique, myKey, lang }: NormalWidgetProps) => {
                   data={{
                     is_boutique: true,
                     ...category,
-                    href: `/${lang}/boutique/${
-                      boutique.slug
-                    }${search.getPageUrl({
-                      term: "categories",
-                      value: [category],
-                    })}`,
+                    href: `/${lang}/filters/boutiques/${boutique.slug}/categories/${category.slug}`,
                   }}
                   aria-label={`Go To listing ${lang} ${boutique.slug} ${category.slug}`}
-                  href={`/${lang}/boutique/${boutique.slug}${search.getPageUrl({
-                    term: "categories",
-                    value: [category],
-                  })}`}
+                  href={`/${lang}/filters/boutiques/${boutique.slug}/categories/${category.slug}`}
                   key={key}
                   className={`${key > 0 && "ml-[13px]"}`}
                 >

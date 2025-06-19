@@ -84,11 +84,9 @@ function FlashDealBanner({ end_data }: FlashDealBannerProps) {
 
   if (isExpired) {
     return (
-      <div className="absolute top-3 right-3 z-10">
-        <div className="bg-gradient-to-r from-red-500 to-pink-500 text-white px-3 py-1.5 rounded-full shadow-lg flex items-center gap-1.5 text-xs font-semibold">
-          <FlashIcon />
-          <span>FLASH DEAL</span>
-        </div>
+      <div className="bg-gradient-to-r from-red-500 to-pink-500 text-white px-3 py-1.5 rounded-full shadow-lg flex items-center gap-1.5 text-xs font-semibold">
+        <FlashIcon />
+        <span>FLASH DEAL</span>
       </div>
     );
   }
@@ -96,35 +94,33 @@ function FlashDealBanner({ end_data }: FlashDealBannerProps) {
   if (!timeLeft) return null;
 
   return (
-    <div className="absolute top-[0px] right-[2px] z-10 scale-[0.7] origin-bottom-right">
-      <div className="bg-gradient-to-r from-orange-500 to-red-500 text-white px-3 py-2 rounded-lg shadow-lg">
-        <div className="flex items-center gap-1.5 mb-1">
-          <FlashIcon />
-          <span className="text-xs font-bold">FLASH DEAL</span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <ClockIcon />
-          <div className="flex items-center gap-1 text-xs font-mono">
-            {timeLeft.days > 0 && (
-              <>
-                <span className="bg-white/20 px-1.5 py-0.5 rounded text-xs font-bold">
-                  {timeLeft.days.toString().padStart(2, "0")}
-                </span>
-                <span className="text-xs">d</span>
-              </>
-            )}
-            <span className="bg-white/20 px-1.5 py-0.5 rounded text-xs font-bold">
-              {timeLeft.hours.toString().padStart(2, "0")}
-            </span>
-            <span className="text-xs">:</span>
-            <span className="bg-white/20 px-1.5 py-0.5 rounded text-xs font-bold">
-              {timeLeft.minutes.toString().padStart(2, "0")}
-            </span>
-            <span className="text-xs">:</span>
-            <span className="bg-white/20 px-1.5 py-0.5 rounded text-xs font-bold animate-pulse">
-              {timeLeft.seconds.toString().padStart(2, "0")}
-            </span>
-          </div>
+    <div className="bg-gradient-to-r from-orange-500 to-red-500 text-white px-3 py-2 rounded-lg shadow-lg">
+      <div className="flex items-center gap-1.5 mb-1">
+        <FlashIcon />
+        <span className="text-xs font-bold">FLASH DEAL</span>
+      </div>
+      <div className="flex items-center gap-1.5">
+        <ClockIcon />
+        <div className="flex items-center gap-1 text-xs font-mono">
+          {timeLeft.days > 0 && (
+            <>
+              <span className="bg-white/20 px-1.5 py-0.5 rounded text-xs font-bold">
+                {timeLeft.days.toString().padStart(2, "0")}
+              </span>
+              <span className="text-xs">d</span>
+            </>
+          )}
+          <span className="bg-white/20 px-1.5 py-0.5 rounded text-xs font-bold">
+            {timeLeft.hours.toString().padStart(2, "0")}
+          </span>
+          <span className="text-xs">:</span>
+          <span className="bg-white/20 px-1.5 py-0.5 rounded text-xs font-bold">
+            {timeLeft.minutes.toString().padStart(2, "0")}
+          </span>
+          <span className="text-xs">:</span>
+          <span className="bg-white/20 px-1.5 py-0.5 rounded text-xs font-bold animate-pulse">
+            {timeLeft.seconds.toString().padStart(2, "0")}
+          </span>
         </div>
       </div>
     </div>

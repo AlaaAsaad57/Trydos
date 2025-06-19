@@ -15,12 +15,14 @@ import { getProductsAndFilters } from "store/homepage/cachedActions";
 import { BuyButtonProduct, ProductPhotosSlider } from "./Product";
 import NextLink from "components/global/NextLink";
 import { GetImageUrl } from "utils/tinyUtils";
+import ProductBanner from "components/products/ProductBanner";
 
 function ProductsInfiniteScroll({
   offset,
   boutiqueId,
   currency,
   searchParams,
+  parsedFilters,
   activeColor,
   productIds,
   isFeatured,
@@ -29,7 +31,8 @@ function ProductsInfiniteScroll({
   offset: any;
   currency: CurrencyApi["data"]["currency"];
   boutiqueId: string;
-  searchParams: any;
+  searchParams?: any;
+  parsedFilters?: Record<string, string[]>;
   activeColor: string;
   productIds: string[];
   isFeatured?: boolean;
@@ -64,6 +67,7 @@ function ProductsInfiniteScroll({
       lang: languageVariable,
       offset: offsetValue,
       searchParams: searchParams,
+      parsedFilters: parsedFilters,
       country: lang?.split("-")[0],
       noProducts: false,
       noFilters: true,
@@ -141,6 +145,10 @@ function ProductsInfiniteScroll({
                 //   }
                 // }}
               >
+                <ProductBanner
+                  featured={product.featured}
+                  flashDeals={product.end_date}
+                />
                 <ProductPhotosSlider
                   product={{
                     sync_color_images: product.sync_color_images,
