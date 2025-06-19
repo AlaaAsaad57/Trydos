@@ -10,6 +10,7 @@ export async function GET(request: NextRequest) {
     revalidateTag("main-categories-Api");
     revalidateTag("featured-Products-Api");
     revalidateTag("countries");
+    revalidateTag("flash-deals-Products-Api");
     revalidateTag("boutiques");
     revalidateTag("stories");
   } else if (value === "listing") {
@@ -20,6 +21,7 @@ export async function GET(request: NextRequest) {
     revalidateTag("currency-api");
   } else {
     revalidateTag("main-categories-Api");
+    revalidateTag("flash-deals-Products-Api");
     revalidateTag("featured-Products-Api");
     revalidateTag("countries");
     revalidateTag("boutiques");

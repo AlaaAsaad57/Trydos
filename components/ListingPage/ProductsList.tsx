@@ -24,6 +24,7 @@ function ProductsInfiniteScroll({
   activeColor,
   productIds,
   isFeatured,
+  isFlashDeals,
 }: {
   offset: any;
   currency: CurrencyApi["data"]["currency"];
@@ -32,6 +33,7 @@ function ProductsInfiniteScroll({
   activeColor: string;
   productIds: string[];
   isFeatured?: boolean;
+  isFlashDeals?: boolean;
 }) {
   const { resetBoutique, AddToCartOption, settings } = useAppStore();
   const { lang }: { lang: string } = useParams();
@@ -67,6 +69,7 @@ function ProductsInfiniteScroll({
       noFilters: true,
       boutiqueId: boutiqueId === "listing" ? null : boutiqueId,
       isFeatured: isFeatured,
+      isFlashDeals: isFlashDeals,
     });
     setProducts([
       ...products,

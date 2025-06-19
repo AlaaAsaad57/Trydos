@@ -8,6 +8,7 @@ export interface SearchResponse {
       name: string;
       slug: string;
       details: string;
+      end_date?: string;
       thumbnail: {
         file_path: string;
         original_width: string;

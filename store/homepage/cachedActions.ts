@@ -139,6 +139,7 @@ export const getProductsAndFilters = async ({
   boutiqueId,
   filters_offset,
   isFeatured,
+  isFlashDeals,
 }: {
   searchParams: URLSearchParams;
   lang: string;
@@ -149,6 +150,7 @@ export const getProductsAndFilters = async ({
   boutiqueId?: string;
   filters_offset?: number;
   isFeatured?: boolean;
+  isFlashDeals?: boolean;
 }) => {
   try {
     let params = configureSearchParams({
@@ -161,7 +163,7 @@ export const getProductsAndFilters = async ({
       filters_offset,
     });
     let configured_url = `/api/products/${
-      isFeatured ? "featured" : "searchInCatalog"
+      isFeatured ? "featured" : isFlashDeals ? "flash" : "searchInCatalog"
     }?${params.toString()}`;
 
     let response = await fetch(

@@ -10,6 +10,7 @@ import { Suspense } from "react";
 import Home from "components/Home";
 import FeatureProducts from "components/Server/FeatureProducts";
 import FeaturedProductsSkeleton from "components/skeleton/loaders/FeaturedProductsSkeleton";
+import FlashDealsProducts from "components/Server/FlashDealsProducts";
 export const runtime = "nodejs";
 export const preferredRegion = ["bom1", "sin1"];
 export const revalidate = parseInt(process.env.NEXT_PUBLIC_HOME_REVALIDATE);
@@ -36,6 +37,9 @@ function HomePage({
 
       <Suspense fallback={<FeaturedProductsSkeleton lang={params.lang} />}>
         <FeatureProducts lang={params.lang} />
+      </Suspense>
+      <Suspense fallback={<FeaturedProductsSkeleton lang={params.lang} />}>
+        <FlashDealsProducts lang={params.lang} />
       </Suspense>
       <Suspense
         fallback={
