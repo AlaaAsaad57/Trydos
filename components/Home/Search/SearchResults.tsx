@@ -32,6 +32,7 @@ function SearchResults() {
     loading_search,
     searchFilters,
     setSearchLoading,
+    setEnableSearch,
     value,
   } = useAppStore();
   const searchParams = useSearchParams();
@@ -147,6 +148,7 @@ function SearchResults() {
                     //   },
                     // });
                     onClickSearchHistory(e);
+                    setEnableSearch(false);
                   }}
                 />
               );
@@ -300,6 +302,7 @@ function SearchResults() {
                 className="w-full h-10 p-2 cursor-pointer flex bg-[#ff5549] text-[#fff] justify-center items-center rounded-xl"
                 data-cy="apply-filters-search"
                 onClick={() => {
+                  setEnableSearch(false);
                   apply();
                 }}
               >

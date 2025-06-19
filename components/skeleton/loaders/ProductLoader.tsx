@@ -78,7 +78,7 @@ function ProductLoader({ product }) {
                         loading={"eager"}
                         alt={product?.name}
                         src={getConfiguredImage({
-                          src: GetImageUrl(img),
+                          src: GetImageUrl(img?.file_path || img),
                           width: 500,
                           height: 700,
                         })}

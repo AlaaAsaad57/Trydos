@@ -625,10 +625,9 @@ export const getFilterUrl = (
   });
 
   const pathParams = buildParamsFromFilters(newFilters);
-  const basePath =
-    boutiqueId && boutiqueId !== "listing"
-      ? `/${lang}/boutique/${boutiqueId}/filters`
-      : `/${lang}/filters`;
+  const basePath = boutiqueId
+    ? `/${lang}/filters/boutiques/${boutiqueId}`
+    : `/${lang}/filters`;
 
   return pathParams.length > 0
     ? `${basePath}/${pathParams.join("/")}`

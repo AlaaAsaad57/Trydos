@@ -8,17 +8,11 @@ function Category({ data }) {
       data={{
         is_category: true,
         ...data,
-        href: `/boutique/listing${search.getPageUrl({
-          term: "categories",
-          value: [{ slug: data.category_slug }],
-        })}`,
+        href: `/filters/categories/${data.category_slug}}`,
       }}
       ariaLabel={`notification Category ${data.category_slug}`}
       className="flex-col"
-      href={`/boutique/listing${search.getPageUrl({
-        term: "categories",
-        value: [{ slug: data.category_slug }],
-      })}}`}
+      href={`/filters/categories/${data.category_slug}}`}
       prefetch
     >
       <div className="regular p-2">{data?.showed_type}</div>

@@ -40,6 +40,7 @@ function SearchComponent({
     setSearchWord,
     value,
     searchWords,
+    setEnableSearch,
   } = useAppStore();
 
   const { lang } = useParams();
@@ -85,6 +86,7 @@ function SearchComponent({
   const onKeyDown = (e) => {
     if (e.keyCode == 13 && e.target.value.length > 0) {
       onClickSearchHistory(value);
+      setEnableSearch(false);
       dispatchRouteChangeEvent("start", {
         is_boutique: true,
       });

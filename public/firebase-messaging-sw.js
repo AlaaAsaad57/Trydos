@@ -42,7 +42,10 @@ messaging.onBackgroundMessage(async function (payload) {
           image: JSON.parse(payload?.data.body)?.banner[0]?.file_path,
           data: {
             url:
-              url + `boutique/${JSON.parse(payload?.data.body)?.boutique_slug}`,
+              url +
+              `filters/boutiques/${
+                JSON.parse(payload?.data.body)?.boutique_slug
+              }`,
           }, // The URL which we are going to use later
         };
         self.registration.showNotification(
@@ -58,9 +61,9 @@ messaging.onBackgroundMessage(async function (payload) {
           data: {
             url:
               url +
-              `boutique/listing?categories=['${
+              `filters/categories/${
                 JSON.parse(payload?.data.body).category_slug
-              }']`,
+              }`,
           }, // The URL which we are going to use later
         };
         self.registration.showNotification(
@@ -214,8 +217,7 @@ messaging.onBackgroundMessage(async function (payload) {
               }}`,
           },
         };
-      }
-      if (
+      } else if (
         JSON.parse(payload.data.data).message.message_type.name ===
         "VoiceMessage"
       ) {
