@@ -1,35 +1,6 @@
 import { ImageResponse } from "next/og";
-import LogoAuth from "public/svg/LogoAuth.svg";
 
 // Simple translation function for edge runtime
-function translateFunction(key: string, language?: string) {
-  const translations = {
-    en: {
-      "Premium Shopping": "Premium Shopping",
-      Experience: "Experience",
-      "Featured Products": "Featured Products",
-      "Flash Deals": "Flash Deals",
-      "Premium Brands": "Premium Brands",
-    },
-    ar: {
-      "Premium Shopping": "تسوق مميز",
-      Experience: "تجربة",
-      "Featured Products": "المنتجات المميزة",
-      "Flash Deals": "عروض سريعة",
-      "Premium Brands": "علامات تجارية مميزة",
-    },
-    tr: {
-      "Premium Shopping": "Premium Alışveriş",
-      Experience: "Deneyim",
-      "Featured Products": "Öne Çıkan Ürünler",
-      "Flash Deals": "Hızlı Fırsatlar",
-      "Premium Brands": "Premium Markalar",
-    },
-  };
-
-  const lang = language || "en";
-  return translations[lang]?.[key] || translations["en"]?.[key] || key;
-}
 
 export const runtime = "edge";
 
@@ -45,11 +16,11 @@ export async function GET(
   const language = params.lang.split("-")[1] || "en";
 
   // Translate static text
-  const premiumShopping = translateFunction("Premium Shopping", language);
-  const experience = translateFunction("Experience", language);
-  const featuredProducts = translateFunction("Featured Products", language);
-  const flashDeals = translateFunction("Flash Deals", language);
-  const premiumBrands = translateFunction("Premium Brands", language);
+  const premiumShopping = "Premium Shopping";
+  const experience = "Experience";
+  const featuredProducts = "Featured Products";
+  const flashDeals = "Flash Deals";
+  const premiumBrands = "Premium Brands";
 
   try {
     return new ImageResponse(
@@ -94,7 +65,27 @@ export async function GET(
               zIndex: 2,
             }}
           >
-            <LogoAuth style={{ scale: "1", transform: "scale(1)" }} />
+            {/* TryDos Logo */}
+            <div
+              style={{
+                marginBottom: "40px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <div
+                style={{
+                  fontSize: "64px",
+                  fontWeight: "800",
+                  color: "#212529",
+                  letterSpacing: "-2px",
+                  fontFamily: "system-ui, -apple-system, sans-serif",
+                }}
+              >
+                TryDos
+              </div>
+            </div>
 
             {/* Main Title */}
             <div
@@ -191,6 +182,10 @@ export async function GET(
       {
         width,
         height,
+        headers: {
+          "Cache-Control":
+            "public, max-age=8640000, stale-while-revalidate=86400",
+        },
       }
     );
   } catch (e) {
