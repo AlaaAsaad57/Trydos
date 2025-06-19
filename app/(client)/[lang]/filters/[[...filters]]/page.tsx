@@ -5,8 +5,6 @@ import SortIcon from "public/svg/listing/sortIcon.svg";
 import ListingSkeleton from "components/skeleton/listing";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
-
-import { getConfiguredImage } from "utils/functions";
 import NextLink from "components/global/NextLink";
 import VerificationIcon from "public/svg/listing/VerificationIcon.svg";
 import TopStarIcon from "public/svg/listing/TopStar.svg";

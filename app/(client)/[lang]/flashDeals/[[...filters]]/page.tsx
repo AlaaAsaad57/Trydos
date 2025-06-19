@@ -10,12 +10,12 @@ import NextLink from "components/global/NextLink";
 
 import "styles/listing-components.css";
 import Skeleton from "react-loading-skeleton";
-// import { getBoutiqueMetadata } from "./Metadata";
 import FilterWidgetContainer from "components/filterPage/FiltersWidget";
 import ShareBoutiquePageButton from "components/filterPage/ShareBoutiquePageButton";
 import FilterBoutiquePageButton from "components/filterPage/FilterBoutiquePageButton";
 import SearchBoutiquePage from "components/filterPage/SearchBoutiquePage";
 import { parseFiltersFromParams } from "utils/tinyUtils";
+import { getFlashDealsMetadata } from "../../MetaData";
 
 export const dynamicParams = true;
 
@@ -24,19 +24,17 @@ export const preferredRegion = ["bom1", "sin1"];
 export const revalidate = parseInt(process.env.NEXT_PUBLIC_REVALIDATE);
 export const dynamic = "auto";
 export async function generateMetadata({ params, searchParams }) {
-  // Fetch your main product categories
-  //   try {
-  //     const metadata = await getBoutiqueMetadata({ params, searchParams });
-
-  //     return metadata;
-  //   } catch (error) {
-  //     console.log(error);
-  //     return [];
-  //   }
-  return {
-    title: "Flash Deals Products",
-    description: "Flash Deals Products",
-  };
+  try {
+    const metadata = await getFlashDealsMetadata({ params, searchParams });
+    return metadata;
+  } catch (error) {
+    console.log(error);
+    return {
+      title: "Flash Deals - TryDos",
+      description:
+        "Exclusive flash deals on TryDos - Limited time offers with special discounts.",
+    };
+  }
 }
 
 interface ParamsType {
@@ -139,8 +137,37 @@ export default async function Page({
     search_text: parsedFilters?.search_text?.[0] || null,
   };
 
+  // Server component to render JSON-LD structured data
+  async function StructuredDataScript({ params, searchParams }) {
+    try {
+      const metadataWithStructuredData = await getFlashDealsMetadata({
+        params,
+        searchParams,
+      });
+      const structuredData = metadataWithStructuredData.structuredData;
+
+      if (!structuredData) return null;
+
+      return (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(structuredData),
+          }}
+        />
+      );
+    } catch (error) {
+      console.error("Error generating structured data:", error);
+      return null;
+    }
+  }
+
   return (
     <>
+      <Suspense fallback={null}>
+        <StructuredDataScript params={params} searchParams={searchParams} />
+      </Suspense>
+
       <Suspense fallback={<></>}>
         <FilterWidgetContainer key={JSON.stringify(parsedFilters)} />
       </Suspense>

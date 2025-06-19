@@ -99,7 +99,6 @@ export async function GET(
         colors: data.data?.colors,
         attributes: data.data?.attributes,
         boutiques: data.data?.boutiques,
-
         products: data?.data?.products?.map((s) => ({
           name: s.name,
           slug: s.slug,

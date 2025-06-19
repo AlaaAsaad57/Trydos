@@ -97,6 +97,7 @@ export default function RootLayout({ params, children }) {
             `,
           }}
         />
+
         <link rel="manifest" href="/manifest.json" />
         <link rel="icon" href="/favicon.ico" sizes="any" />
         <meta name="google" content="notranslate" />

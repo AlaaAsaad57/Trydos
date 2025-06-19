@@ -1,6 +1,85 @@
 const translations = {
-  en: {},
+  en: {
+    "Premium Shopping": "Premium Shopping",
+    Experience: "Experience",
+    "Featured Products": "Featured Products",
+    "Flash Deals": "Flash Deals",
+    "Premium Brands": "Premium Brands",
+    "TryDos - Premium Shopping Experience":
+      "TryDos - Premium Shopping Experience",
+    "Discover premium products on TryDos":
+      "Discover premium products on TryDos - Your ultimate shopping destination with featured products, flash deals, and boutique collections.",
+    "Featured Products - TryDos":
+      "Featured Products - TryDos | Premium Curated Collection",
+    "Flash Deals - TryDos": "Flash Deals - TryDos | Limited Time Offers",
+    "Compare Products - TryDos":
+      "Compare Products - TryDos | Product Comparison Tool",
+    "Categories - TryDos": "Categories - TryDos | Browse by Category",
+    "Settings - TryDos": "Settings - TryDos | Account Settings",
+    "Premium Curated Collection": "Premium Curated Collection",
+    "Limited Time Offers": "Limited Time Offers",
+    "Product Comparison Tool": "Product Comparison Tool",
+    "Browse by Category": "Browse by Category",
+    "Account Settings": "Account Settings",
+    "Your ultimate shopping destination": "Your ultimate shopping destination",
+    "Curated selection of premium featured products":
+      "Curated selection of premium featured products",
+    "Limited-time offers with great discounts":
+      "Limited-time offers with great discounts",
+    "Find and compare your favorite products":
+      "Find and compare your favorite products",
+    "Browse products by categories": "Browse products by categories",
+    "Manage your account preferences": "Manage your account preferences",
+    shopping: "shopping",
+    "online shopping": "online shopping",
+    "premium products": "premium products",
+    "best deals": "best deals",
+    "shopping mall": "shopping mall",
+    boutiques: "boutiques",
+    brands: "brands",
+    fashion: "fashion",
+    electronics: "electronics",
+    "home garden": "home garden",
+  },
   ar: {
+    "Premium Shopping": "تسوق مميز",
+    Experience: "تجربة",
+    "Featured Products": "المنتجات المميزة",
+    "Flash Deals": "عروض سريعة",
+    "Premium Brands": "علامات تجارية مميزة",
+    "TryDos - Premium Shopping Experience": "ترايدوس - تجربة تسوق مميزة",
+    "Discover premium products on TryDos":
+      "اكتشف المنتجات المميزة في ترايدوس - وجهتك الأمثل للتسوق مع المنتجات المميزة والعروض السريعة ومجموعات البوتيك.",
+    "Featured Products - TryDos":
+      "المنتجات المميزة - ترايدوس | مجموعة مختارة مميزة",
+    "Flash Deals - TryDos": "العروض السريعة - ترايدوس | عروض لفترة محدودة",
+    "Compare Products - TryDos":
+      "مقارنة المنتجات - ترايدوس | أداة مقارنة المنتجات",
+    "Categories - TryDos": "الفئات - ترايدوس | تصفح حسب الفئة",
+    "Settings - TryDos": "الإعدادات - ترايدوس | إعدادات الحساب",
+    "Premium Curated Collection": "مجموعة مختارة مميزة",
+    "Limited Time Offers": "عروض لفترة محدودة",
+    "Product Comparison Tool": "أداة مقارنة المنتجات",
+    "Browse by Category": "تصفح حسب الفئة",
+    "Account Settings": "إعدادات الحساب",
+    "Your ultimate shopping destination": "وجهتك الأمثل للتسوق",
+    "Curated selection of premium featured products":
+      "مجموعة مختارة من المنتجات المميزة عالية الجودة",
+    "Limited-time offers with great discounts":
+      "عروض لفترة محدودة بخصومات رائعة",
+    "Find and compare your favorite products": "ابحث وقارن منتجاتك المفضلة",
+    "Browse products by categories": "تصفح المنتجات حسب الفئات",
+    "Manage your account preferences": "إدارة تفضيلات حسابك",
+    shopping: "تسوق",
+    "online shopping": "تسوق إلكتروني",
+    "premium products": "منتجات مميزة",
+    "best deals": "أفضل العروض",
+    "shopping mall": "مول تسوق",
+    boutiques: "بوتيكات",
+    brands: "علامات تجارية",
+    fashion: "أزياء",
+    electronics: "إلكترونيات",
+    "home garden": "منزل وحديقة",
     "Total Products:": "إجمالي المنتجات:",
     "Please Review Your Cart Some Products Not Available":
       "الرجاء مراجعة السلة بعض المنتجات غير متوفرة",
@@ -550,6 +629,47 @@ const translations = {
       "موقعك الحالي لا يقع ضمن حدود البلد المختار",
   },
   tr: {
+    "Premium Shopping": "Premium Alışveriş",
+    Experience: "Deneyim",
+    "Featured Products": "Öne Çıkan Ürünler",
+    "Flash Deals": "Hızlı Fırsatlar",
+    "Premium Brands": "Premium Markalar",
+    "TryDos - Premium Shopping Experience":
+      "TryDos - Premium Alışveriş Deneyimi",
+    "Discover premium products on TryDos":
+      "TryDos'ta premium ürünleri keşfedin - Öne çıkan ürünler, hızlı fırsatlar ve butik koleksiyonlarla nihai alışveriş hedefiniz.",
+    "Featured Products - TryDos":
+      "Öne Çıkan Ürünler - TryDos | Premium Seçilmiş Koleksiyon",
+    "Flash Deals - TryDos":
+      "Hızlı Fırsatlar - TryDos | Sınırlı Süreli Teklifler",
+    "Compare Products - TryDos":
+      "Ürün Karşılaştırma - TryDos | Ürün Karşılaştırma Aracı",
+    "Categories - TryDos": "Kategoriler - TryDos | Kategoriye Göre Gözat",
+    "Settings - TryDos": "Ayarlar - TryDos | Hesap Ayarları",
+    "Premium Curated Collection": "Premium Seçilmiş Koleksiyon",
+    "Limited Time Offers": "Sınırlı Süreli Teklifler",
+    "Product Comparison Tool": "Ürün Karşılaştırma Aracı",
+    "Browse by Category": "Kategoriye Göre Gözat",
+    "Account Settings": "Hesap Ayarları",
+    "Your ultimate shopping destination": "Nihai alışveriş hedefiniz",
+    "Curated selection of premium featured products":
+      "Premium öne çıkan ürünlerin seçilmiş koleksiyonu",
+    "Limited-time offers with great discounts":
+      "Harika indirimlerle sınırlı süreli teklifler",
+    "Find and compare your favorite products":
+      "Favori ürünlerinizi bulun ve karşılaştırın",
+    "Browse products by categories": "Ürünleri kategorilere göre gözatın",
+    "Manage your account preferences": "Hesap tercihlerinizi yönetin",
+    shopping: "alışveriş",
+    "online shopping": "online alışveriş",
+    "premium products": "premium ürünler",
+    "best deals": "en iyi fırsatlar",
+    "shopping mall": "alışveriş merkezi",
+    boutiques: "butikler",
+    brands: "markalar",
+    fashion: "moda",
+    electronics: "elektronik",
+    "home garden": "ev bahçe",
     "Syncing contacts...": "İletişim bilgileriniz eşitleniyor...",
     "Please select a reason for canceling this order":
       "Lütfen bu siparişi iptal etmek için bir neden seçin",

@@ -11,19 +11,66 @@ import Home from "components/Home";
 import FeatureProducts from "components/Server/FeatureProducts";
 import FeaturedProductsSkeleton from "components/skeleton/loaders/FeaturedProductsSkeleton";
 import FlashDealsProducts from "components/Server/FlashDealsProducts";
+import { getHomeMetadata } from "./MetaData";
+
 export const runtime = "nodejs";
 export const preferredRegion = ["bom1", "sin1"];
 export const revalidate = parseInt(process.env.NEXT_PUBLIC_HOME_REVALIDATE);
 export const dynamicParams = true;
 export const dynamic = "auto";
 
+export async function generateMetadata({ params, searchParams }) {
+  try {
+    const metadata = await getHomeMetadata({ params, searchParams });
+    return metadata;
+  } catch (error) {
+    console.log(error);
+    return {
+      title: "TryDos - Premium Shopping Experience",
+      description:
+        "Discover premium products on TryDos - Your ultimate shopping destination with featured products, flash deals, and boutique collections.",
+    };
+  }
+}
+
+// Server component to render JSON-LD structured data
+async function StructuredDataScript({ params, searchParams }) {
+  try {
+    const metadataWithStructuredData = await getHomeMetadata({
+      params,
+      searchParams,
+    });
+    const structuredData = metadataWithStructuredData.structuredData;
+
+    if (!structuredData) return null;
+
+    return (
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(structuredData),
+        }}
+      />
+    );
+  } catch (error) {
+    console.error("Error generating structured data:", error);
+    return null;
+  }
+}
+
 function HomePage({
   params,
+  searchParams,
 }: {
   params: { lang: string; mainCategory?: string };
+  searchParams?: any;
 }) {
   return (
     <>
+      <Suspense fallback={null}>
+        <StructuredDataScript params={params} searchParams={searchParams} />
+      </Suspense>
+
       <Suspense
         fallback={<MobileNavigationSkeleton />}
         key={`Navbar ${params.lang}`}
