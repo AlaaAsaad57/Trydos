@@ -81,7 +81,10 @@ export async function fetchBoutiques(
           lang: language,
           country: country,
         },
-        next: { tags: ["boutiques", "home"] },
+        next: {
+          tags: ["boutiques", "home"],
+          revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE_BOUTIQUES),
+        },
       }
     );
 
@@ -151,6 +154,7 @@ export async function fetchBoutiqueDetails(
         },
         next: {
           tags: ["home", "boutiques"],
+          revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE_BOUTIQUES),
         },
       }
     );

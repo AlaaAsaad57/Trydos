@@ -18,7 +18,10 @@ export async function fetchCountries(): Promise<CountriesResponse> {
           Accept: "application/json",
           "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
         },
-        next: { tags: ["countries", "home"] },
+        next: {
+          tags: ["countries", "home"],
+          revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE_COUNTRIES),
+        },
       }
     );
 

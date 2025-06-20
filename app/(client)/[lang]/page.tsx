@@ -79,7 +79,10 @@ function HomePage({
       </Suspense>
 
       <Suspense fallback={<StoriesSkeleton />} key={`Stories ${params.lang}`}>
-        <StoriesBarServer />
+        <StoriesBarServer
+          language={params.lang.split("-")[1]}
+          country={params.lang.split("-")[0]}
+        />
       </Suspense>
 
       <Suspense fallback={<FeaturedProductsSkeleton lang={params.lang} />}>

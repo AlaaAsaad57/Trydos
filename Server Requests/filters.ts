@@ -103,7 +103,10 @@ export async function fetchFilteredProducts(
           Accept: "application/json",
           "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
         },
-        next: { tags: ["listing"] },
+        next: {
+          tags: ["listing"],
+          revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE_LISTING),
+        },
       }
     );
 

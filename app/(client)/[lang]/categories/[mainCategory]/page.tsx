@@ -69,7 +69,10 @@ function page({ params, searchParams }: Props) {
         <NavbarServer lang={params.lang} mainCategory={params?.mainCategory} />
       </Suspense>
       <Suspense fallback={<StoriesSkeleton />}>
-        <StoriesBarServer />
+        <StoriesBarServer
+          language={params.lang.split("-")[1]}
+          country={params.lang.split("-")[0]}
+        />
       </Suspense>
       <Suspense
         fallback={

@@ -32,7 +32,10 @@ export async function fetchMainCategories(
           Accept: "application/json",
           "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
         },
-        next: { tags: ["main-categories-Api", "home"] },
+        next: {
+          tags: ["main-categories-Api", "home"],
+          revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE_CATEGORIES),
+        },
       }
     );
 

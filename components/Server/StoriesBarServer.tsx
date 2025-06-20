@@ -1,65 +1,79 @@
-"use client";
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 import AddStory from "components/Home/AddStory";
 import StoriesBorder from "components/Home/Stories/StoriesBorder";
-import StoriesPagination from "components/Home/Stories/StoriesPagination";
+import StoriesPaginationWrapper from "components/Home/Stories/StoriesPaginationWrapper";
+import StoriesStoreInitializer from "components/Home/Stories/StoriesStoreInitializer";
 import StoryElement from "components/Home/Stories/StoryElement";
 import StoriesSkeleton from "components/skeleton/StoriesSkeleton";
-import { useSearchParams } from "next/navigation";
-import React, { useEffect, useState } from "react";
-import StoryServiceClass from "services/story";
-import { useAppStore } from "store";
+import { fetchStories } from "@/Server Requests";
+import { cookies } from "next/headers";
 
-function StoriesBarServer() {
-  const { storiesData, setStoryData } = useAppStore();
-  const [next_page_url, setNextPageUrl] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const getData = async () => {
-    setLoading(true);
+interface StoriesBarServerProps {
+  language: string;
+  country: string;
+}
 
-    let { data, next_page_url } = await StoryServiceClass.getStories();
-    setStoryData(data);
-    setNextPageUrl(next_page_url);
-    setLoading(false);
-  };
-  const searchParams = useSearchParams();
-  useEffect(() => {
-    if (!searchParams.get("changed-country") && !searchParams.get("no-country"))
-      getData();
-  }, []);
-
+async function StoriesBarServer({ language, country }: StoriesBarServerProps) {
   try {
+    // Get user token from cookies if available
+    const cookieStore = cookies();
+    const userStoriesData = cookieStore.get("USER-STORIES");
+    let userToken: string | undefined;
+
+    if (userStoriesData?.value) {
+      try {
+        const parsedUserData = JSON.parse(userStoriesData.value);
+        userToken = parsedUserData?.access_token;
+      } catch (e) {
+        // Invalid JSON in cookie, ignore
+      }
+    }
+
+    // Fetch stories data
+    const { data: storiesData, next_page_url } = await fetchStories(
+      language,
+      country,
+      1,
+      userToken
+    );
+
     return (
       <>
-        {loading ? (
-          <StoriesSkeleton />
-        ) : (
-          <div className="stories-bar-container">
-            <div id="stories-bar" className="stories-bar">
-              {<AddStory />}
-              {storiesData ? (
-                <HortiznalScrollBar
-                  id="stories-bar-container"
-                  className="flex h-full pl-[10px]"
-                >
-                  {storiesData?.map((story, index) => (
-                    <StoryElement key={index} index={index} story={story} />
-                  ))}
-                  {next_page_url && (
-                    <StoriesPagination next_page_url={next_page_url} />
-                  )}
-                </HortiznalScrollBar>
-              ) : (
-                <StoriesSkeleton />
-              )}
-            </div>
-            <StoriesBorder />
+        <StoriesStoreInitializer initialStories={storiesData} />
+        <div className="stories-bar-container">
+          <div id="stories-bar" className="stories-bar">
+            <AddStory />
+            {storiesData && storiesData.length > 0 ? (
+              <HortiznalScrollBar
+                id="stories-bar-container"
+                className="flex h-full pl-[10px]"
+              >
+                {storiesData.map((story, index) => (
+                  <StoryElement
+                    key={story.id || index}
+                    index={index}
+                    story={story}
+                  />
+                ))}
+                {next_page_url && (
+                  <StoriesPaginationWrapper
+                    next_page_url={next_page_url}
+                    language={language}
+                    country={country}
+                    initialStories={storiesData}
+                  />
+                )}
+              </HortiznalScrollBar>
+            ) : (
+              <StoriesSkeleton />
+            )}
           </div>
-        )}
+          <StoriesBorder />
+        </div>
       </>
     );
   } catch (error) {
-    console.error(error);
+    console.error("Error rendering stories:", error);
     return <StoriesSkeleton />;
   }
 }

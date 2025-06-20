@@ -19,7 +19,10 @@ export async function fetchCurrency(
           Accept: "application/json",
           "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
         },
-        next: { tags: ["currency-api", "home", "listing", "product-details"] },
+        next: {
+          tags: ["currency-api", "home", "listing", "product-details"],
+          revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE_CURRENCY),
+        },
       }
     );
 

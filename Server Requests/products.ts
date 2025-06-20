@@ -40,7 +40,12 @@ async function fetchProductSimpleDetails(
           Accept: "application/json",
           "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
         },
-        next: { tags: ["product-details"] },
+        next: {
+          tags: ["product-details"],
+          revalidate: parseInt(
+            process.env.NEXT_PUBLIC_REVALIDATE_PRODUCT_DETAILS
+          ),
+        },
       }
     );
 
@@ -71,7 +76,12 @@ async function fetchProductExtendedDetails(
           Accept: "application/json",
           "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
         },
-        next: { tags: ["product-details"] },
+        next: {
+          tags: ["product-details"],
+          revalidate: parseInt(
+            process.env.NEXT_PUBLIC_REVALIDATE_PRODUCT_DETAILS
+          ),
+        },
       }
     );
 
