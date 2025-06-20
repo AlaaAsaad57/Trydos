@@ -158,7 +158,7 @@ export async function getHomeMetadata({ params, searchParams }) {
     process.env.NEXT_PUBLIC_REMOTE_FRONT ||
     process.env.VERCEL_URL ||
     "http://localhost:3000";
-  const primaryOgImage = `${baseUrl}/api/${params.lang}/opengraph-image`;
+  const primaryOgImage = `${baseUrl}/api/opengraph-image`;
 
   // Fallback images for additional social media images and structured data
   const featuredImage = featuredData?.products?.[0]?.images?.[0]?.file_path;
