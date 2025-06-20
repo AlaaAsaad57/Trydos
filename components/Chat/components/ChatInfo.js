@@ -169,7 +169,9 @@ function ChatInfo({
               className="chat-user-files-info"
               onClick={() => setMedia(true)}
             >
-              <div className=".chat-user-files-info-text">Media & Files</div>
+              <div className=".chat-user-files-info-text text-[#8d8d8d]">
+                Media & Files
+              </div>
               <div className="chat-user-files-info-content">
                 <div className="chat-user-files-info-content-item">
                   <ImageInfoIcon></ImageInfoIcon>{" "}
@@ -226,7 +228,9 @@ function ChatInfo({
               <InfoGalleryIcon></InfoGalleryIcon>
             </div>
             <div className="chat-user-files-info" style={{ height: "auto" }}>
-              <div className=".chat-user-files-info-text">Save To Gallery</div>
+              <div className=".chat-user-files-info-text text-[#8d8d8d]">
+                Save To Gallery
+              </div>
             </div>
           </div>
           <div className="chat-user-options">

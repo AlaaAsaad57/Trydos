@@ -81,6 +81,7 @@ function ChatLists(props) {
                       lastMessage={chat.messages[chat.messages.length - 1]}
                       id={chat.id}
                       chat={chat}
+                      chat_members={chat?.channel_members}
                     />
                   );
                 })}
@@ -129,6 +130,7 @@ function ChatLists(props) {
                       lastMessage={chat.messages[chat.messages.length - 1]}
                       id={chat.id}
                       chat={chat}
+                      chat_members={chat?.channel_members}
                     />
                   );
                 })}
@@ -183,13 +185,11 @@ function ChatLists(props) {
                       lastMessage={chat.messages[chat.messages.length - 1]}
                       id={chat.id}
                       chat={chat}
+                      chat_members={chat?.channel_members}
                     />
                   );
                 })}
-              {/* {chats.filter((chat)=>chat.channel_members.filter((mem)=>mem.user_id!==getUserChat()?.id && mem?.user?.name.toLowerCase()?.includes(props.search.toLowerCase())).length>0).map((chat)=>{
-        return(
-          <ChatItem isActive={activeChat?.id===chat.id} handleClickChat={()=>handleClick(chat)} status={chat.status} unread={chat.unread} newMessage={isNew(chat.messages)} pinned={parseInt(chat.channel_members.filter((s)=>s.user_id===getUserChat()?.id)?.pin)===1} muted={parseInt(chat.channel_members.filter((s)=>s.user_id===getUserChat()?.id)?.pin)===1} SenderName={chat?.channel_members.filter((member)=>member?.user_id!==getUserChat()?.id)[0]?.user?.name||chat?.channel_members.filter((member)=>member?.user_id!==getUserChat()?.id)[0]?.user?.mobile_phone||'UnKnown User'} photo={chat?.channel_members.filter((member)=>member?.user_id!==getUserChat()?.id)[0]?.user?.photo_path} lastMessage={chat.messages[chat.messages.length-1]} id={chat.id} chat={chat}/>
-      )})} */}
+
               {searchResults
                 .filter((mem) =>
                   mem.name.toLowerCase().includes(props.search.toLowerCase())

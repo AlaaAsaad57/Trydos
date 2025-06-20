@@ -11,12 +11,13 @@ import auth from "services/auth";
 import { changeToken } from "store/homepage/cachedActions";
 import { UnAuthintacetedAction } from "./tinyUtils";
 export const errorPNG = pngErr;
-const getHeader = (token?) => {
+const getHeader = (token?, headers?) => {
   let [countryUrl, languageUrl] = window.location.pathname
     .split("/")[1]
     .split("-");
   return {
     headers: {
+      ...headers,
       lang: languageUrl || Cookies.get("language") || Cookies.get("lang"),
       country: countryUrl || Cookies.get("country"),
       Authorization: `Bearer ${
@@ -34,10 +35,12 @@ export const AxiosGet = async ({
   url,
   title,
   token,
+  headers = {},
 }: {
   url: string;
   title?: string;
   token?: string;
+  headers?: any;
 }) => {
   await WaitForCondition();
   let attempt = 0;
@@ -45,7 +48,7 @@ export const AxiosGet = async ({
   let delay = 2000;
   while (attempt <= retries) {
     try {
-      let res = await axios.get(url, getHeader(token));
+      let res = await axios.get(url, getHeader(token, headers));
       // If the response is successful, return the data
       // if (url.includes("customer/wallet")) {
       //   return res.data;
@@ -114,12 +117,14 @@ export const AxiosPost = async ({
   body,
   hasMessageOnly,
   token,
+  headers = {},
 }: {
   url: string;
   title?: string;
   body: any;
   hasMessageOnly?: boolean;
   token?: string;
+  headers?: any;
 }) => {
   await WaitForCondition();
   let attempt = 0;
@@ -127,7 +132,7 @@ export const AxiosPost = async ({
   let delay = 2000;
   while (attempt <= retries) {
     try {
-      let res = await axios.post(url, body, getHeader(token));
+      let res = await axios.post(url, body, getHeader(token, headers));
       if (url.includes("products/view")) {
         return res.data;
       }

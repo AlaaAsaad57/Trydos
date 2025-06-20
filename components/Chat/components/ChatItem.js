@@ -12,6 +12,7 @@ import { useState } from "react";
 import Image from "next/image";
 import { useAppStore } from "store";
 import { GetImageUrl } from "utils/tinyUtils";
+import { getUserChat } from "utils/functions";
 function ChatItem({
   isActive,
   unread,
@@ -24,6 +25,7 @@ function ChatItem({
   newMessage,
   pinned,
   muted,
+  chat_members,
 }) {
   const { setMain, openChat } = useAppStore();
   const [Moving, setMoving] = useState(false);
@@ -224,7 +226,15 @@ function ChatItem({
           </div>
         )}
       </div>
-      <ChatOptions unread={unread} muted={muted} pinned={pinned} id={id} />
+      <ChatOptions
+        unread={unread}
+        muted={muted}
+        pinned={pinned}
+        id={id}
+        member_id={
+          chat_members?.find((s) => s?.user_id === getUserChat()?.id)?.id
+        }
+      />
     </div>
   );
 }
