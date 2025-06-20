@@ -39,7 +39,7 @@ function ProductLoader({ product }) {
   const [emblaRef, emblaApi] = useEmblaCarousel({
     loop: false,
   });
-  console.log(product);
+
   return (
     <div
       style={{

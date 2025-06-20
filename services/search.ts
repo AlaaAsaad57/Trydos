@@ -1,6 +1,10 @@
 import { AxiosGet } from "utils/AxiosApi";
 import { useAppStore } from "store";
-import { buildParamsFromFilters, filtersToSearchParams } from "utils/tinyUtils";
+import {
+  buildParamsFromFilters,
+  filtersToSearchParams,
+  configureSearchParams,
+} from "utils/tinyUtils";
 
 class SearchService {
   private searchAbortController: AbortController | null = null;
@@ -78,7 +82,7 @@ class SearchService {
                 `${searchFilters.prices.min_price}-${searchFilters.prices.max_price}`,
               ]
             : [],
-        search:
+        search_text:
           searchValue?.length > 0
             ? [searchValue]
             : value?.length > 0
@@ -86,20 +90,34 @@ class SearchService {
             : [],
       };
 
-      const pathParams = buildParamsFromFilters(filterObj);
-      const filterPath = pathParams.length > 0 ? pathParams.join("/") : "";
-      const apiUrl = filterPath
-        ? `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/${lang}/filters/${filterPath}`
-        : `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/${lang}/filters`;
+      // Convert filter object to search params for elastic backend
+      const searchParams = filtersToSearchParams(filterObj);
+
+      const configuredParams = configureSearchParams({
+        searchParams,
+        noProducts: noProducts ? "true" : "false",
+        noFilters: noFilters ? "true" : "false",
+        lang: lang.split("-")[1] || "en",
+        offset: null,
+        boutiqueId: "listing",
+        filters_offset: filters_offset?.toString(),
+      });
+
+      const apiUrl = `${process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL}/api/products/searchInCatalog`;
 
       // Debug logging
-      console.log("Search value used:", searchValue || value);
-      console.log("Filter object:", filterObj);
-      console.log("API URL:", apiUrl);
 
       const filtersResponseJson = await fetch(
-        `${apiUrl}?${params.toString()}`,
-        { signal } // Pass the abort signal to fetch
+        `${apiUrl}?${configuredParams.toString()}`,
+        {
+          signal, // Pass the abort signal to fetch
+          headers: {
+            lang: lang.split("-")[1] || "en",
+            country: lang.split("-")[0] || "tr",
+            Accept: "application/json",
+            "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+          },
+        }
       );
 
       const filtersResponse = await filtersResponseJson.json();
@@ -163,16 +181,31 @@ class SearchService {
     try {
       console.log(filter_obj, "filter_obj");
 
-      // Build path-based filter URL from filter_obj
-      const pathParams = buildParamsFromFilters(filter_obj);
-      const filterPath = pathParams.length > 0 ? pathParams.join("/") : "";
-      const apiUrl = filterPath
-        ? `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/${lang}/filters/${filterPath}`
-        : `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/${lang}/filters`;
+      // Convert filter object to search params for elastic backend
+      const searchParams = filtersToSearchParams(filter_obj);
+
+      const configuredParams = configureSearchParams({
+        searchParams,
+        noProducts: "true",
+        noFilters: "false",
+        lang: lang.split("-")[1] || "en",
+        offset: "0",
+        boutiqueId: "listing",
+      });
+
+      const apiUrl = `${process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL}/api/products/searchInCatalog`;
 
       const filtersResponseJson = await fetch(
-        `${apiUrl}?noProducts=true`,
-        { signal } // Pass the abort signal to fetch
+        `${apiUrl}?${configuredParams.toString()}`,
+        {
+          signal, // Pass the abort signal to fetch
+          headers: {
+            lang: lang.split("-")[1] || "en",
+            country: lang.split("-")[0] || "tr",
+            Accept: "application/json",
+            "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+          },
+        }
       );
 
       const filtersResponse = await filtersResponseJson.json();
@@ -304,41 +337,6 @@ class SearchService {
     const lang = langMatch ? langMatch[1] : "en-tr";
 
     return `/${lang}/filters`;
-  }
-  async getColorsAndSizes() {
-    const CACHE_KEY = "colors_and_sizes_data";
-    const CACHE_DURATION = 24 * 60 * 60 * 1000; // 1 day in milliseconds
-
-    // Check if we have cached data
-    const cachedData = localStorage.getItem(CACHE_KEY);
-    if (cachedData) {
-      const { data, timestamp } = JSON.parse(cachedData);
-      const isCacheValid = Date.now() - timestamp < CACHE_DURATION;
-
-      if (isCacheValid) {
-        return data.data;
-      }
-    }
-
-    try {
-      // Fetch new data from API
-      const response = await fetch(
-        process.env.NEXT_PUBLIC_BACKEND_URL + "/web/get-colors-and-sizes"
-      );
-      const data = await response.json();
-
-      // Store in localStorage with timestamp
-      const cacheData = {
-        data,
-        timestamp: Date.now(),
-      };
-      localStorage.setItem(CACHE_KEY, JSON.stringify(cacheData));
-
-      return data.data;
-    } catch (error) {
-      console.error("Error fetching colors and sizes:", error);
-      throw error;
-    }
   }
 }
 export default new SearchService();

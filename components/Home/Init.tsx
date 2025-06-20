@@ -7,6 +7,7 @@ import HomeService from "services/home";
 import PopupCountry from "utils/PopupCountry";
 import home from "services/home";
 import { toast } from "react-toastify";
+import { fetchCountries } from "Server Requests";
 import Smartlook from "smartlook-client";
 import "react-toastify/dist/ReactToastify.min.css";
 import "react-toastify/dist/ReactToastify.css";
@@ -65,18 +66,13 @@ function Init() {
       let data = sessionStorage.getItem("countries");
       setCountriesData(JSON.parse(data));
     } else {
-      let res = await fetch(
-        process.env.NEXT_PUBLIC_API_BASE_URL + `/api/countries`,
-        {
-          next: {
-            revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE_COUNTRIES),
-            tags: ["countries"],
-          },
-        }
-      );
-      let data = await res.json();
-      sessionStorage.setItem("countries", JSON.stringify(data.countries));
-      setCountriesData(data.countries);
+      try {
+        const data = await fetchCountries();
+        sessionStorage.setItem("countries", JSON.stringify(data.countries));
+        setCountriesData(data.countries);
+      } catch (error) {
+        console.error("Failed to fetch countries:", error);
+      }
     }
   };
   const shouldShowBluredInfo = () => {
@@ -106,7 +102,6 @@ function Init() {
     }
   }, []);
   useEffect(() => {
-    search.getColorsAndSizes();
     window.addEventListener("resize", function () {
       var windowHeight = window.innerHeight;
       var outerHeight = window.outerHeight;

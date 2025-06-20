@@ -10,6 +10,7 @@ import { translateFunction } from "utils/functions";
 import { useParams } from "next/navigation";
 import Spinner from "components/global/Spinner";
 import { useAppStore } from "store";
+import { fetchCountries } from "Server Requests";
 function ProductShippingOption({ days }) {
   const [countriesData, setCountries] = useState([]);
   const getCountries = async () => {
@@ -18,18 +19,7 @@ function ProductShippingOption({ days }) {
         let data = sessionStorage.getItem("countries");
         setCountries(JSON.parse(data));
       } else {
-        const res = await fetch(
-          process.env.NEXT_PUBLIC_API_BASE_URL + `/api/countries`,
-          {
-            next: {
-              revalidate: parseInt(
-                process.env.NEXT_PUBLIC_REVALIDATE_COUNTRIES
-              ),
-              tags: ["countries"],
-            },
-          }
-        );
-        let data = await res.json();
+        const data = await fetchCountries();
         sessionStorage.setItem("countries", JSON.stringify(data.countries));
         setCountries(data.countries);
       }

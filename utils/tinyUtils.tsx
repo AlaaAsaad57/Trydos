@@ -117,7 +117,7 @@ export const configureSearchParams = ({
   if (searchParams.boutiques && searchParams.boutiques !== "null") {
     params.set("boutique_slugs", decodeURIComponent(searchParams.boutiques));
   }
-  if (boutiqueId && boutiqueId !== "listing" && boutiqueId !== "null") {
+  if (boutiqueId && boutiqueId !== "listing" && boutiqueId !== null) {
     params.set("boutique_slugs", `["${decodeURIComponent(boutiqueId)}"]`);
   }
   if (searchParams.tags_names && searchParams.tags_names !== "null") {
@@ -264,7 +264,7 @@ export const getCurrency = async ({ callback }) => {
     url: process.env.NEXT_PUBLIC_BACKEND_URL + "/mobile/home/currency",
     title: "Currency Request",
   });
-  //
+
   callback({ currency: currency?.currency, res: {} });
   return currency?.currency;
 };

@@ -10,6 +10,7 @@ import {
   filtersToSearchParams,
   FilterParams,
   buildParamsFromFilters,
+  configureSearchParams,
 } from "utils/tinyUtils";
 
 interface InfiniteScrollFiltersProps {
@@ -57,28 +58,32 @@ function InfiniteScrollFilters({
     try {
       setSearchPartialLoading(true);
 
-      // Build the API URL using path parameters instead of search parameters
-      const filterPathSegments = isUsingParsedFilters
-        ? buildParamsFromFilters(filterParams)
-        : buildParamsFromFilters(filtersToSearchParams(filterParams));
+      // Convert filter parameters to search params for elastic backend
+      const searchParams = isUsingParsedFilters
+        ? filterParams
+        : filtersToSearchParams(filterParams);
 
-      const filterPath =
-        filterPathSegments.length > 0 ? filterPathSegments.join("/") : "";
-      const apiUrl = filterPath
-        ? `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/${params.lang}/filters/${filterPath}`
-        : `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/${params.lang}/filters`;
+      const configuredParams = configureSearchParams({
+        searchParams,
+        noProducts: "true",
+        noFilters: "false",
+        lang: language || "en",
+        offset: "0",
+        boutiqueId: "listing",
+        filters_offset: (offset + 1).toString(),
+      });
+
+      const apiUrl = `${process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL}/api/products/searchInCatalog`;
 
       const fetchResponse = await fetch(
-        `${apiUrl}?${new URLSearchParams({
-          noProducts: "true",
-          noFilters: "false",
-          filters_offset: (offset + 1).toString(),
-        }).toString()}`,
+        `${apiUrl}?${configuredParams.toString()}`,
         {
           method: "GET",
           headers: {
+            lang: language || "en",
+            country: country || "tr",
             Accept: "application/json",
-            "Content-Type": "application/json",
+            "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
           },
         }
       );

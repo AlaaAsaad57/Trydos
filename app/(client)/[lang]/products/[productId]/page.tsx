@@ -17,6 +17,7 @@ import ProductDescriptors from "components/products/ProductDescriptors";
 import { GetImageUrl, getPrice } from "utils/tinyUtils";
 import { generateProductMetaData } from "./MetaData";
 import ProductImagesSlider from "components/products/ProductImageSlider";
+import { fetchProductDetails, fetchCurrency } from "Server Requests";
 import ProductDetails from "components/products/ProductDetails";
 import ProductFooterSection from "components/products/ProductFooterSection";
 import ProductDetailsSlider from "components/products/ProductDetailsSlider";
@@ -29,6 +30,8 @@ import ProductColors from "components/products/ProductColors";
 import CameraShots from "components/products/CameraShots";
 import ProductBackButton from "components/products/ProductBackButton";
 import DescriptorBorder from "public/svg/product/descriptorBorder.svg";
+import FlashDealBanner from "components/products/FlashDealBanner";
+import FeaturedBanner from "components/products/FeaturedBanner";
 
 export const runtime = "nodejs";
 export const preferredRegion = ["bom1", "sin1"]; // For Middle East users
@@ -62,19 +65,11 @@ async function Page({ params, searchParams }: Props) {
 
   const getProductData = async () => {
     try {
-      let response = await fetch(
-        process.env.NEXT_PUBLIC_API_BASE_URL +
-          `/api/${params.lang}/products/${params.productId}`,
-        {
-          next: {
-            revalidate: parseInt(
-              process.env.NEXT_PUBLIC_REVALIDATE_PRODUCT_DETAILS
-            ),
-            tags: [`product-details`, `product-${params.productId}`],
-          },
-        }
+      const data = await fetchProductDetails(
+        params.productId,
+        languageVariable,
+        countryVariable
       );
-      let data = await response.json();
       return data;
     } catch (error) {
       console.log(error);
@@ -83,17 +78,8 @@ async function Page({ params, searchParams }: Props) {
   };
   const getCurrency = async () => {
     try {
-      let response = await fetch(
-        process.env.NEXT_PUBLIC_API_BASE_URL + `/api/${params.lang}/currency`,
-        {
-          next: {
-            revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE_CURRENCY),
-            tags: ["currency-api"],
-          },
-        }
-      );
-      let data = await response.json();
-      return data.data.currency;
+      const data = await fetchCurrency(languageVariable, countryVariable);
+      return data.data.currency || {};
     } catch (error) {
       console.log(error);
       return {};
@@ -191,7 +177,7 @@ async function Page({ params, searchParams }: Props) {
           </Suspense>
 
           <div className="product-info-section flex-col align-start">
-            <div className="product-brand-logo">
+            <div className="product-brand-logo flex-row items-center">
               {product?.brand?.icon && (
                 <img
                   width={"auto"}
@@ -201,7 +187,7 @@ async function Page({ params, searchParams }: Props) {
                 />
               )}
             </div>
-            <div className="product-text-section flex-row align-center">
+            <div className="product-text-section flex-row align-center h-auto">
               <div className="product-name" data-cy="productName_productPage">
                 {product.name}
               </div>
@@ -220,6 +206,18 @@ async function Page({ params, searchParams }: Props) {
               <div className="product-category-name">
                 {product.category?.name}
               </div>
+              {product?.featured && (
+                <div className="flex-row mx-[5px] h-auto">
+                  <FeaturedBanner />
+                </div>
+              )}
+              {product?.flash_deal_details?.end_date && (
+                <div className="flex-row mx-[5px]">
+                  <FlashDealBanner
+                    end_data={product?.flash_deal_details?.end_date}
+                  />
+                </div>
+              )}
             </div>
             <Suspense
               fallback={

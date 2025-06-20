@@ -13,7 +13,6 @@ function PhoneNumberError({
 }) {
   const [timerValue, setTimerValue] = useState(0);
   const IsTimeError = () => {
-    console.log(wrongNumber);
     if (wrongNumber.includes("seconds before trying again")) {
       setLoading(true);
       return true;

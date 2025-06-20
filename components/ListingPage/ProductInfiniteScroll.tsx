@@ -11,11 +11,11 @@ import { RoundPrice, translateFunction } from "utils/functions";
 import { useParams } from "next/navigation";
 import { CurrencyApi } from "models/API/market/CurrencyApi";
 import { useAppStore } from "store";
-import { getProductsAndFilters } from "store/homepage/cachedActions";
 import { BuyButtonProduct, ProductPhotosSlider } from "./Product";
 import NextLink from "components/global/NextLink";
 import { GetImageUrl } from "utils/tinyUtils";
 import ProductBanner from "components/products/ProductBanner";
+import { fetchFilteredProducts } from "Server Requests";
 
 function ProductsInfiniteScroll({
   offset,
@@ -60,21 +60,21 @@ function ProductsInfiniteScroll({
   const [offsetValue, setOffsetValue] = useState(offset);
   const [loading, setLoading] = useState(false);
   const [isReachEnd, setIsReachEnd] = useState(false);
-
+  const params = useParams();
   const getProductsReq = async () => {
     setLoading(true);
-    const response = await getProductsAndFilters({
-      lang: languageVariable,
-      offset: offsetValue,
-      searchParams: searchParams,
-      parsedFilters: parsedFilters,
-      country: lang?.split("-")[0],
-      noProducts: false,
-      noFilters: true,
-      boutiqueId: boutiqueId === "listing" ? null : boutiqueId,
-      isFeatured: isFeatured,
-      isFlashDeals: isFlashDeals,
-    });
+    const response = await fetchFilteredProducts(
+      languageVariable,
+      lang?.split("-")[0],
+      params.filters as string[],
+      "false",
+      "false",
+      offsetValue?.toString(),
+      null,
+      isFeatured,
+      isFlashDeals
+    );
+
     setProducts([
       ...products,
       ...response.data.products.filter(

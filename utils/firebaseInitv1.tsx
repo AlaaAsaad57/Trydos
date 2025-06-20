@@ -419,15 +419,10 @@ export const onMessageListener = async () => {
           }
         } else if (payload.data.type === "message") {
           if (JSON.parse(payload.data.data)?.is_private === true) {
-            console.log(
-              activeChat,
-              parseInt(JSON.parse(payload?.data.data)?.message?.channel_id)
-            );
             if (
               parseInt(activeChat?.id) ===
               parseInt(JSON.parse(payload?.data.data)?.message?.channel_id)
             ) {
-              console.log(JSON.parse(payload.data.data), "firebase_event2");
               watchChannelAction(
                 parseInt(JSON.parse(payload.data.data)?.message?.channel?.id)
               );
@@ -496,7 +491,6 @@ export const onMessageListener = async () => {
           }
         } else if (payload.data.type === "ShareProductEvent") {
           let data = JSON.parse(payload.data.data);
-          console.log(data);
         }
         if (payload.data.type === "ChannelWatchedEvent") {
           watchChannelEvent(JSON.parse(payload.data.data).channel_id);

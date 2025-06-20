@@ -13,22 +13,25 @@ import {
   translateFunction,
 } from "utils/functions";
 import { GetImageUrl } from "utils/tinyUtils";
+import { fetchCurrency, fetchFilteredProducts } from "Server Requests";
 
 async function FlashDealsProducts({ lang }) {
-  const getFeaturedProducts = async (): Promise<SearchResponse> => {
+  const getFeaturedProducts = async () => {
     try {
-      const featuredProducts = await fetch(
-        process.env.NEXT_PUBLIC_API_BASE_URL +
-          `/api/${lang}/flash?forHome=true`,
-        {
-          next: {
-            revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE),
-            tags: ["flash-deals-Products-Api"],
-          },
-        }
+      const [country, language] = lang.split("-");
+
+      const result = await fetchFilteredProducts(
+        language,
+        country,
+        [],
+        "false",
+        "true",
+        null,
+        null,
+        false,
+        true
       );
-      let data: SearchResponse = await featuredProducts.json();
-      return data;
+      return result;
     } catch (e) {
       console.log(e);
       return {
@@ -57,22 +60,20 @@ async function FlashDealsProducts({ lang }) {
   const GetCurrencyData = async (): Promise<
     CurrencyApi["data"]["currency"]
   > => {
-    let response;
     try {
-      response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/${lang}/currency`,
-        {
-          method: "GET",
-          next: {
-            revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE_CURRENCY),
-            tags: ["currency-api"],
-          },
+      const [country, language] = lang.split("-");
+      const data = await fetchCurrency(language, country);
+      return (
+        data.data.currency || {
+          code: "",
+          exchange_rate: 1,
+          id: 1,
+          name: "",
+          symbol: "",
         }
       );
-      let data = await response.json();
-      return data.data.currency;
     } catch (error) {
-      console.log(error, "getCurrencyData", response);
+      console.log(error, "getCurrencyData");
       return {
         code: "",
         exchange_rate: 1,

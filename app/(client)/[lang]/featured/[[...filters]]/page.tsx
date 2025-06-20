@@ -9,13 +9,14 @@ import { Suspense } from "react";
 import NextLink from "components/global/NextLink";
 
 import "styles/listing-components.css";
-import Skeleton from "react-loading-skeleton";
+
 import FilterWidgetContainer from "components/filterPage/FiltersWidget";
 import ShareBoutiquePageButton from "components/filterPage/ShareBoutiquePageButton";
 import FilterBoutiquePageButton from "components/filterPage/FilterBoutiquePageButton";
 import SearchBoutiquePage from "components/filterPage/SearchBoutiquePage";
 import { parseFiltersFromParams } from "utils/tinyUtils";
 import { getFeaturedMetadata } from "../../MetaData";
+import { fetchCurrency, fetchFilteredProducts } from "Server Requests";
 
 export const dynamicParams = true;
 
@@ -50,41 +51,34 @@ export default async function Page({
 }) {
   // Parse filters from URL path parameters
   const parsedFilters = parseFiltersFromParams(params.filters || []);
-
+  const [country, language] = params.lang.split("-");
   const GetProductsData = async () => {
-    let response;
     try {
-      // Build the API URL using path parameters instead of search parameters
-      const filterPath = params.filters ? params.filters.join("/") : "";
-      const apiUrl = filterPath
-        ? `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/${params.lang}/featured/${filterPath}`
-        : `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/${params.lang}/featured`;
-
-      response = await fetch(
-        `${apiUrl}?${new URLSearchParams({
-          boutiqueId: "null",
-          noProducts: "false",
-          forHome: "true",
-          noFilters: "true",
-          offset: "false",
-        }).toString()}`,
-        {
-          method: "GET",
-          next: {
-            revalidate: parseInt(process.env.NEXT_PUBLIC_HOME_REVALIDATE),
-            tags: ["featured-Products-Api"],
-          },
-          headers: {
-            "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-            "Access-Control-Allow-Headers": "Content-Type, Authorization",
-          },
+      const result = await fetchFilteredProducts(
+        language,
+        country,
+        params.filters,
+        "false",
+        "true",
+        null,
+        null,
+        true,
+        false
+      );
+      return (
+        result?.data || {
+          products: [],
+          categories: [],
+          brands: [],
+          colors: [],
+          prices: { priceRanges: [] },
+          attributes: [{ options: [] }],
+          boutiques: [],
+          offset: 0,
         }
       );
-      let data = await response.json();
-      return data?.data || {};
     } catch (error) {
-      console.log(error, "getProductsData", response);
+      console.log(error, "getProductsData");
       return {
         products: [],
         categories: [],
@@ -93,33 +87,19 @@ export default async function Page({
         prices: { priceRanges: [] },
         attributes: [{ options: [] }],
         boutiques: [],
+        offset: 0,
       };
     }
   };
   const GetCurrencyData = async () => {
-    let response;
     try {
-      response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/${params.lang}/currency`,
-
-        {
-          method: "GET",
-          next: {
-            revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE_CURRENCY),
-            tags: ["currency-api"],
-          },
-          headers: {
-            "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-            "Access-Control-Allow-Headers": "Content-Type, Authorization",
-          },
-        }
+      const data = await fetchCurrency(language, country);
+      return (
+        data.data.currency || { name: "USD", exchange_rate: 1, symbol: "$" }
       );
-      let data = await response.json();
-      return data.data.currency;
     } catch (error) {
-      console.log(error, "getCurrencyData", response);
-      return {};
+      console.log(error, "getCurrencyData");
+      return { name: "USD", exchange_rate: 1, symbol: "$" };
     }
   };
 

@@ -2,7 +2,8 @@ import MobileNavigationSkeleton from "components/skeleton/MobileNavigation";
 import SearchIcon from "../Home/Search/SearchIcon";
 import CategoryNavMobile from "components/Home/CategoryNavMobile";
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
-import { CategoriesApi } from "models/API/elastic/MainCategories";
+
+import { fetchMainCategories } from "Server Requests";
 
 async function NavbarServer({
   lang,
@@ -12,16 +13,8 @@ async function NavbarServer({
   mainCategory: string;
 }) {
   try {
-    const res = await fetch(
-      process.env.NEXT_PUBLIC_API_BASE_URL + `/api/${lang}/categories`,
-      {
-        next: {
-          revalidate: parseInt(process.env.NEXT_PUBLIC_HOME_REVALIDATE),
-          tags: ["main-categories-Api"],
-        },
-      }
-    );
-    const data: CategoriesApi = await res.json();
+    const [country, language] = lang.split("-");
+    const data = await fetchMainCategories(language, country);
     const { mainCategories: categories } = data;
 
     categories.sort((a, b) => (a.slug === mainCategory ? -1 : 1));
@@ -43,7 +36,7 @@ async function NavbarServer({
                 active={mainCategory === category.slug}
                 key={key}
                 myKey={key}
-                icon={category?.icon}
+                icon={category?.flat_photo_path?.file_path}
                 slug={category.slug}
               />
             ))}

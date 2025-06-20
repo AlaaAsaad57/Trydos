@@ -1,10 +1,11 @@
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 import NextLink from "components/global/NextLink";
 import { BuyButtonProduct } from "components/ListingPage/Product";
-import FeaturedBanner from "components/products/FeaturedBanner";
+
 import ProductBanner from "components/products/ProductBanner";
 import { SearchResponse } from "models/API/elastic/Search";
 import { CurrencyApi } from "models/API/market/CurrencyApi";
+import { fetchCurrency, fetchFilteredProducts } from "Server Requests";
 import Image from "next/image";
 import React, { Suspense } from "react";
 import {
@@ -17,18 +18,35 @@ import { GetImageUrl } from "utils/tinyUtils";
 async function FeatureProducts({ lang }) {
   const getFeaturedProducts = async (): Promise<SearchResponse> => {
     try {
-      const featuredProducts = await fetch(
-        process.env.NEXT_PUBLIC_API_BASE_URL +
-          `/api/${lang}/featured?forHome=true`,
-        {
-          next: {
-            revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE),
-            tags: ["featured-Products-Api"],
-          },
-        }
+      const [country, language] = lang.split("-");
+      const result = await fetchFilteredProducts(
+        language,
+        country,
+        [],
+        "false",
+        "true",
+        null,
+        null,
+        true,
+        false
       );
-      let data: SearchResponse = await featuredProducts.json();
-      return data;
+      return {
+        data: {
+          products: result.data.products as any,
+          offset: result.data.offset,
+          total_size: result.data.total_size,
+          limit: result.data.limit,
+          brands: result.data.brands as any,
+          categories: result.data.categories as any,
+          colors: result.data.colors as any,
+          attributes: result.data.attributes as any,
+          boutiques: result.data.boutiques as any,
+          prices: result.data.prices as any,
+          search_time: null,
+          search_text: null,
+          process_time: "",
+        },
+      };
     } catch (e) {
       console.log(e);
       return {
@@ -57,22 +75,12 @@ async function FeatureProducts({ lang }) {
   const GetCurrencyData = async (): Promise<
     CurrencyApi["data"]["currency"]
   > => {
-    let response;
     try {
-      response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/${lang}/currency`,
-        {
-          method: "GET",
-          next: {
-            revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE_CURRENCY),
-            tags: ["currency-api"],
-          },
-        }
-      );
-      let data = await response.json();
+      const [country, language] = lang.split("-");
+      const data = await fetchCurrency(language, country);
       return data.data.currency;
     } catch (error) {
-      console.log(error, "getCurrencyData", response);
+      console.log(error, "getCurrencyData");
       return {
         code: "",
         exchange_rate: 1,

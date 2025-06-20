@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://www.trydos-front-git-alaa-dev-trydos-front-team.vercel.app/sitemap.xml 

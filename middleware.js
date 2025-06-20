@@ -1,7 +1,6 @@
 "use server";
 import { NextResponse } from "next/server";
-import { getCountriesApi } from "./store/homepage/cachedActions";
-
+import { fetchCountries } from "Server Requests";
 const languagesString = '["en", "ar", "tr"]' || "[]";
 const languages = JSON.parse(languagesString);
 let cachedCountries;
@@ -11,9 +10,8 @@ const CACHE_TTL = 60 * 60 * 1000 * 24; // 1 day
 async function getCachedCountries() {
   const now = Date.now();
   if (!cachedCountries || now - cacheTimestamp > CACHE_TTL) {
-    const data = await getCountriesApi();
-
-    cachedCountries = data;
+    const data = await fetchCountries();
+    cachedCountries = data.countries;
     cacheTimestamp = now;
   }
   return cachedCountries;
@@ -245,7 +243,7 @@ export const config = {
      */
     {
       source:
-        "/((?!api|sitemap|static|.\\..|_next|assets|endCall|sitemap.xml|svg|call_direct|revalidate|test|callInProg|selectCountry|favicon.ico).*)",
+        "/((?!api|sitemap|error.png|static|.\\..|_next|assets|endCall|sitemap.xml|svg|call_direct|error.png|revalidate|test|callInProg|selectCountry|favicon.ico).*)",
     },
   ],
 };

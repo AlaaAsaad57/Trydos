@@ -19,6 +19,11 @@ import FilterBoutiquePageButton from "components/filterPage/FilterBoutiquePageBu
 import SearchBoutiquePage from "components/filterPage/SearchBoutiquePage";
 import CarouselContainer from "components/filterPage/CarouselContainer";
 import { GetImageUrl, parseFiltersFromParams } from "utils/tinyUtils";
+import {
+  fetchFilteredProducts,
+  fetchCurrency,
+  fetchBoutiqueDetails,
+} from "Server Requests";
 
 export const dynamicParams = true;
 
@@ -51,44 +56,31 @@ export default async function Page({
 }) {
   // Parse filters from URL path parameters
   const parsedFilters = parseFiltersFromParams(params.filters || []);
-
+  const [country, language] = params.lang.split("-");
   const GetProductsData = async () => {
-    let response;
     try {
-      // Build the API URL using path parameters instead of search parameters
-      const filterPath = params.filters ? params.filters.join("/") : "";
-      const apiUrl = filterPath
-        ? `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/${params.lang}/filters/${filterPath}`
-        : `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/${params.lang}/filters`;
-
-      response = await fetch(
-        `${apiUrl}?${new URLSearchParams({
-          noProducts: "false",
-          noFilters: "false",
-          offset: "false",
-        }).toString()}`,
-        {
-          method: "GET",
-          next: {
-            revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE) || 60,
-            tags: ["listing"],
-          },
-          headers: {
-            "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-            "Access-Control-Allow-Headers": "Content-Type, Authorization",
-          },
-        }
+      const result = await fetchFilteredProducts(
+        language,
+        country, // country from lang
+        params.filters || [], // filters as path parameters
+        "false", // noProducts
+        "false", // noFilters
+        null // offset
       );
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      let data = await response.json();
-      return data?.data || {};
+      return (
+        result?.data || {
+          products: [],
+          categories: [],
+          brands: [],
+          colors: [],
+          prices: { priceRanges: [] },
+          attributes: [{ options: [] }],
+          boutiques: [],
+        }
+      );
     } catch (error) {
-      console.error("GetProductsData error:", error, response?.status);
+      console.error("GetProductsData error:", error);
       return {
         products: [],
         categories: [],
@@ -101,35 +93,13 @@ export default async function Page({
     }
   };
   const GetCurrencyData = async () => {
-    let response;
     try {
-      response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/${params.lang}/currency`,
-        {
-          method: "GET",
-          next: {
-            revalidate:
-              parseInt(process.env.NEXT_PUBLIC_REVALIDATE_CURRENCY) || 3600,
-            tags: ["currency-api"],
-          },
-          headers: {
-            "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-            "Access-Control-Allow-Headers": "Content-Type, Authorization",
-          },
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      let data = await response.json();
+      const data = await fetchCurrency(language, country);
       return (
-        data?.data?.currency || { name: "USD", exchange_rate: 1, symbol: "$" }
+        data.data.currency || { name: "USD", exchange_rate: 1, symbol: "$" }
       );
     } catch (error) {
-      console.error("GetCurrencyData error:", error, response?.status);
+      console.error("GetCurrencyData error:", error);
       return { name: "USD", exchange_rate: 1, symbol: "$" };
     }
   };
@@ -137,7 +107,6 @@ export default async function Page({
     // Get the first boutique from the boutiques filter parameters
     let selectedBoutique = parsedFilters?.boutiques?.[0] || null;
 
-    let response;
     try {
       if (!selectedBoutique) {
         return {
@@ -147,34 +116,14 @@ export default async function Page({
         };
       }
 
-      response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/${params.lang}/boutiques/${selectedBoutique}`,
-        {
-          method: "GET",
-          next: {
-            revalidate:
-              parseInt(process.env.NEXT_PUBLIC_REVALIDATE_LISTING) || 60,
-            tags: ["listing"],
-          },
-          headers: {
-            "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-            "Access-Control-Allow-Headers": "Content-Type, Authorization",
-          },
-        }
+      const data = await fetchBoutiqueDetails(
+        selectedBoutique,
+        language,
+        country
       );
-
-      if (!response.ok) {
-        return "NOT_FOUND";
-      }
-
-      let data = await response.json();
-      if (data?.code === 404) {
-        return "NOT_FOUND";
-      }
-      return data?.data || "NOT_FOUND";
+      return data || "NOT_FOUND";
     } catch (error) {
-      console.error("GetBoutiqueData error:", error, response?.status);
+      console.error("GetBoutiqueData error:", error);
       return "NOT_FOUND";
     }
   };

@@ -818,7 +818,6 @@ export const useChatStore = (set, get) => ({
         openChatRenderer: Math.random(),
       });
     } else {
-      console.log(payload);
       set({
         activeChat: payload,
         newChats: state.newChats,

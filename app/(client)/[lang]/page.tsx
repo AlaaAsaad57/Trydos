@@ -88,14 +88,7 @@ function HomePage({
       <Suspense fallback={<FeaturedProductsSkeleton lang={params.lang} />}>
         <FlashDealsProducts lang={params.lang} />
       </Suspense>
-      <Suspense
-        fallback={
-          <div className="min-h-[60vh] flex items-center justify-center">
-            Loading...
-          </div>
-        }
-        key={`Home ${params.lang}`}
-      >
+      <Suspense fallback={<></>} key={`Home ${params.lang}`}>
         <Home />
       </Suspense>
       <Suspense

@@ -4,6 +4,7 @@ import Spinner from "./Spinner";
 import { useParams } from "next/navigation";
 import NormalWidget from "components/Home/OfferWidgets/NormalWidget";
 import { dispatchRouteChangeEvent } from "utils/events";
+import { fetchBoutiques } from "Server Requests";
 
 import {
   GA_EVENT_NAMES,
@@ -40,38 +41,34 @@ function InfinteScroll({ offsetVariable }) {
   const [isEnd, setEnd] = useState(false);
   const params = useParams();
   const { lang }: { lang?: string } = params;
+  const [country, language] = lang.split("-");
   const getNextBoutique = async () => {
     if (!loading && !isEnd) {
       setLoading(true);
-      let res = await fetch(
-        `/api/${params.lang}/boutiques?offset=${offset}${
-          params.mainCategory?.length > 0 ? `&str=${params.mainCategory}` : ""
-        }`,
-        {
-          headers: {
-            lang: lang.split("-")[1],
-            country: lang.split("-")[0],
-          },
-          next: {
-            revalidate: parseInt(process.env.NEXT_PUBLIC_HOME_REVALIDATE),
-            tags: ["boutiques"],
-          },
+      try {
+        const result = await fetchBoutiques(
+          language,
+          country,
+          params.mainCategory?.toString() || "",
+          offset,
+          10
+        );
+
+        if (offset === result.offset) {
+          setLoading(false);
+          setEnd(true);
+        } else if (result.boutiques.length === 0) {
+          setLoading(false);
+          setEnd(true);
+        } else {
+          setBoutiques(result.boutiques);
+          setLoading(false);
+          setOffset(result.offset);
         }
-      );
-
-      let body = await res.json();
-      let boutiques = body;
-
-      if (offset === boutiques.ofsset) {
+      } catch (error) {
+        console.error("Error fetching boutiques:", error);
         setLoading(false);
         setEnd(true);
-      } else if (boutiques.boutiques.length === 0) {
-        setLoading(false);
-        setEnd(true);
-      } else {
-        setBoutiques(boutiques.boutiques);
-        setLoading(false);
-        setOffset(boutiques.offset);
       }
     }
   };

@@ -63,7 +63,7 @@ function ProductDetailsSlider({
       });
     };
   }, []);
-
+  console.log(product);
   return (
     <>
       {imageShow >= 0 && (

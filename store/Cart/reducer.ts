@@ -272,7 +272,6 @@ export const useCartStore = (set, get) => ({
 
   addProductToCart: (cart_item) =>
     set((state) => {
-      console.log(cart_item);
       return {
         ...state,
         localCart: [...state.localCart, cart_item],
@@ -388,7 +387,6 @@ export const useCartStore = (set, get) => ({
         state.AddToCartOption.enable &&
         state.SelectedProduct.id === product?.temp_id
       ) {
-        console.log("product", product);
         return {
           AddToCartOption: {
             ...state.AddToCartOption,

@@ -7,7 +7,7 @@ import PriceCancel from "public/svg/listing/PriceCancel.svg";
 import React, { useEffect, useState } from "react";
 import { useAppStore } from "store";
 import BackIcon from "public/svg/listing/backIcon.svg";
-import { DebounceInput } from "node_modules/react-debounce-input/src";
+
 import { RoundPrice, translateFunction } from "utils/functions";
 import { useParams } from "next/navigation";
 import FilterLabel from "components/ListingPage/filterComponents/FilterLabel";
@@ -25,7 +25,8 @@ import {
   GA_GLOBAL_SCREEN,
 } from "utils/GAEvents";
 import { GAevent } from "utils/gtag";
-
+import { fetchFilteredProducts } from "Server Requests";
+import { usePathname } from "next/navigation";
 const PriceChart = dynamic(
   () => import("components/ListingPage/filterComponents/PriceChart"),
   {
@@ -44,8 +45,10 @@ function FilterWidgetContainer({}) {
   const [loading, setLoading] = useState(true);
   const [Initialfilters, setInitialfilters] = useState<any>({});
   const params = useParams();
+  const pathname = usePathname();
   const { lang, filters: filterParams } = params;
-
+  // @ts-ignore
+  const [country, language] = lang.split("-");
   // Parse filters from URL path parameters
   const parsedFilters = filterParams
     ? parseFiltersFromParams(filterParams as string[])
@@ -53,8 +56,8 @@ function FilterWidgetContainer({}) {
   let activeFilters = getActiveFilters(parsedFilters);
   const getSearchFilters = async () => {
     // Get boutique from parsed filters or determine from URL
-    const boutiqueId = parsedFilters?.boutiques?.[0] || "listing";
-
+    let isFeatured = pathname.includes("featured");
+    let is_flash = pathname.includes("flashDeals");
     if (parsedFilters?.search?.length > 0) {
       setSearchWord(parsedFilters.search[0]);
     }
@@ -63,12 +66,17 @@ function FilterWidgetContainer({}) {
 
     // Build API URL with path-based filters
     const filterPath = filterParams ? (filterParams as string[]).join("/") : "";
-    const apiUrl = filterPath
-      ? `/api/${lang}/filters/${filterPath}`
-      : `/api/${lang}/filters`;
-
-    let res = await fetch(process.env.NEXT_PUBLIC_API_BASE_URL + apiUrl);
-    let { data: filters } = await res.json();
+    let { data: filters } = await fetchFilteredProducts(
+      language,
+      country,
+      filterParams as string[],
+      "true",
+      "false",
+      null,
+      null,
+      isFeatured,
+      is_flash
+    );
 
     setSearchResults({
       categories: filters.categories,
@@ -80,7 +88,7 @@ function FilterWidgetContainer({}) {
       },
       sizes: filters?.attributes?.[0]?.options,
       boutiques: filters.boutiques,
-      search_text: filters.search_text,
+      search_text: parsedFilters?.search?.[0],
       products: [],
       prices_ranges: filters?.prices?.priceRanges,
     });
@@ -94,7 +102,7 @@ function FilterWidgetContainer({}) {
       },
       sizes: filters?.attributes?.[0]?.options,
       boutiques: filters.boutiques,
-      search_text: filters.search_text,
+      search_text: parsedFilters?.search?.[0],
       products: [],
       prices_ranges: filters?.prices?.priceRanges,
     });
@@ -108,7 +116,7 @@ function FilterWidgetContainer({}) {
       },
       sizes: filters?.attributes?.[0]?.options,
       boutiques: filters.boutiques,
-      search_text: filters.search_text,
+      search_text: parsedFilters?.search?.[0],
       products: [],
       prices_ranges: filters?.prices?.priceRanges,
     });

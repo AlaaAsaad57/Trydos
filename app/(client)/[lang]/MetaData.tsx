@@ -1,32 +1,32 @@
 import { getConfiguredImage, translateFunction } from "utils/functions";
 import type { Metadata } from "next";
+import {
+  fetchBoutiques,
+  fetchCurrency,
+  fetchFilteredProducts,
+  fetchMainCategories,
+} from "Server Requests";
 
 export async function getHomeMetadata({ params, searchParams }) {
-  const [country, lang] = params.lang.split("-");
+  const [country, language] = params.lang.split("-");
 
   // Get language for translations
-  const language = lang || "en";
 
   // Fetch featured products, flash deals, and boutiques data
   const GetFeaturedProductsData = async () => {
     try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/${params.lang}/featured?noProducts=false&noFilters=true&offset=false`,
-        {
-          method: "GET",
-          next: {
-            revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE),
-            tags: ["featured"],
-          },
-          headers: {
-            "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-            "Access-Control-Allow-Headers": "Content-Type, Authorization",
-          },
-        }
+      const result = await fetchFilteredProducts(
+        language,
+        country,
+        [],
+        "false",
+        "false",
+        null,
+        null,
+        true,
+        false
       );
-      const data = await response.json();
-      return data.data;
+      return result.data;
     } catch (error) {
       console.log(error, "getFeaturedProductsData");
       return { products: [], categories: [], brands: [], boutiques: [] };
@@ -35,23 +35,18 @@ export async function getHomeMetadata({ params, searchParams }) {
 
   const GetFlashDealsData = async () => {
     try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/${params.lang}/flash?noProducts=false&noFilters=true&offset=false`,
-        {
-          method: "GET",
-          next: {
-            revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE),
-            tags: ["flash"],
-          },
-          headers: {
-            "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-            "Access-Control-Allow-Headers": "Content-Type, Authorization",
-          },
-        }
+      const result = await fetchFilteredProducts(
+        language,
+        country,
+        [],
+        "false",
+        "false",
+        null,
+        null,
+        false,
+        true
       );
-      const data = await response.json();
-      return data.data;
+      return result.data;
     } catch (error) {
       console.log(error, "getFlashDealsData");
       return { products: [] };
@@ -60,22 +55,7 @@ export async function getHomeMetadata({ params, searchParams }) {
 
   const GetBoutiquesData = async () => {
     try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/${params.lang}/boutiques?str=&offset=0`,
-        {
-          method: "GET",
-          next: {
-            revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE),
-            tags: ["boutiques"],
-          },
-          headers: {
-            "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-            "Access-Control-Allow-Headers": "Content-Type, Authorization",
-          },
-        }
-      );
-      const data = await response.json();
+      const data = await fetchBoutiques(language, country, "", 0, 10);
       return data.boutiques || [];
     } catch (error) {
       console.log(error, "getBoutiquesData");
@@ -85,23 +65,10 @@ export async function getHomeMetadata({ params, searchParams }) {
 
   const GetCurrencyData = async () => {
     try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/${params.lang}/currency`,
-        {
-          method: "GET",
-          next: {
-            revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE),
-            tags: ["currency"],
-          },
-          headers: {
-            "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-            "Access-Control-Allow-Headers": "Content-Type, Authorization",
-          },
-        }
+      const data = await fetchCurrency(language, country);
+      return (
+        data.data.currency || { name: "USD", exchange_rate: 1, symbol: "$" }
       );
-      const data = await response.json();
-      return data.data || { name: "USD", exchange_rate: 1, symbol: "$" };
     } catch (error) {
       console.log(error, "getCurrencyData");
       return { name: "USD", exchange_rate: 1, symbol: "$" };
@@ -188,7 +155,7 @@ export async function getHomeMetadata({ params, searchParams }) {
 
   // Use the dynamic Open Graph image from API route as primary
   const baseUrl =
-    process.env.NEXT_PUBLIC_API_BASE_URL ||
+    process.env.NEXT_PUBLIC_REMOTE_FRONT ||
     process.env.VERCEL_URL ||
     "http://localhost:3000";
   const primaryOgImage = `${baseUrl}/api/${params.lang}/opengraph-image`;
@@ -208,7 +175,7 @@ export async function getHomeMetadata({ params, searchParams }) {
   // Ensure absolute URLs for Open Graph images
   const absolutePrimaryOgImage = primaryOgImage;
 
-  const canonicalUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL}/${params.lang}`;
+  const canonicalUrl = `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${params.lang}`;
 
   // Generate structured data for SEO
   const jsonLd = {
@@ -444,11 +411,6 @@ export async function getHomeMetadata({ params, searchParams }) {
     },
     alternates: {
       canonical: canonicalUrl,
-      languages: {
-        "en-US": `${process.env.NEXT_PUBLIC_API_BASE_URL}/en-us`,
-        "tr-TR": `${process.env.NEXT_PUBLIC_API_BASE_URL}/tr-tr`,
-        "ar-SA": `${process.env.NEXT_PUBLIC_API_BASE_URL}/ar-sa`,
-      },
     },
     robots: {
       index: true,
@@ -474,9 +436,7 @@ export async function getHomeMetadata({ params, searchParams }) {
       address: false,
       telephone: false,
     },
-    metadataBase: new URL(
-      process.env.NEXT_PUBLIC_API_BASE_URL || "https://trydos.com"
-    ),
+    metadataBase: new URL(process.env.NEXT_PUBLIC_REMOTE_FRONT),
     other: {
       "apple-mobile-web-app-capable": "yes",
       "apple-mobile-web-app-status-bar-style": "default",
@@ -497,42 +457,25 @@ export async function getHomeMetadata({ params, searchParams }) {
 }
 
 export async function getFeaturedMetadata({ params, searchParams }) {
-  const [country, lang] = params.lang.split("-");
+  const [country, language] = params.lang.split("-");
 
   // Get language for translations
-  const language = lang || "en";
 
   // Fetch featured products data
   const GetFeaturedProductsData = async () => {
     try {
-      const filterPath = params.filters ? params.filters.join("/") : "";
-      const apiUrl = filterPath
-        ? `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/${params.lang}/featured/${filterPath}`
-        : `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/${params.lang}/featured`;
-
-      const response = await fetch(
-        `${apiUrl}?${new URLSearchParams({
-          boutiqueId: "null",
-          noProducts: "false",
-          forHome: "true",
-          noFilters: "true",
-          offset: "false",
-        }).toString()}`,
-        {
-          method: "GET",
-          next: {
-            revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE),
-            tags: ["featured"],
-          },
-          headers: {
-            "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-            "Access-Control-Allow-Headers": "Content-Type, Authorization",
-          },
-        }
+      const result = await fetchFilteredProducts(
+        language,
+        country,
+        [],
+        "false",
+        "false",
+        null,
+        null,
+        true,
+        false
       );
-      const data = await response.json();
-      return data.data;
+      return result.data;
     } catch (error) {
       console.log(error, "getFeaturedProductsData");
       return { products: [], categories: [], brands: [], boutiques: [] };
@@ -541,23 +484,10 @@ export async function getFeaturedMetadata({ params, searchParams }) {
 
   const GetCurrencyData = async () => {
     try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/${params.lang}/currency`,
-        {
-          method: "GET",
-          next: {
-            revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE),
-            tags: ["currency"],
-          },
-          headers: {
-            "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-            "Access-Control-Allow-Headers": "Content-Type, Authorization",
-          },
-        }
+      const data = await fetchCurrency(language, country);
+      return (
+        data.data.currency || { name: "USD", exchange_rate: 1, symbol: "$" }
       );
-      const data = await response.json();
-      return data.data || { name: "USD", exchange_rate: 1, symbol: "$" };
     } catch (error) {
       console.log(error, "getCurrencyData");
       return { name: "USD", exchange_rate: 1, symbol: "$" };
@@ -609,7 +539,7 @@ export async function getFeaturedMetadata({ params, searchParams }) {
 
   const primaryImage =
     products?.[0]?.images?.[0]?.file_path || "/images/featured-og.jpg";
-  const canonicalUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL}/${params.lang}/featured`;
+  const canonicalUrl = `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${params.lang}/featured`;
 
   // Generate structured data
   const jsonLd = {
@@ -626,7 +556,7 @@ export async function getFeaturedMetadata({ params, searchParams }) {
       description: "Premium curated collection of featured products",
       itemListElement: products.slice(0, 20).map((product, index) => ({
         "@type": "Product",
-        "@id": `${process.env.NEXT_PUBLIC_API_BASE_URL}/${params.lang}/products/${product.slug}`,
+        "@id": `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${params.lang}/products/${product.slug}`,
         name: product.name,
         description: product.details || `Featured product: ${product.name}`,
         image: product.images?.[0]?.file_path
@@ -641,8 +571,8 @@ export async function getFeaturedMetadata({ params, searchParams }) {
           : undefined,
         offers: {
           "@type": "Offer",
-          "@id": `${process.env.NEXT_PUBLIC_API_BASE_URL}/${params.lang}/products/${product.slug}#offer`,
-          url: `${process.env.NEXT_PUBLIC_API_BASE_URL}/${params.lang}/products/${product.slug}`,
+          "@id": `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${params.lang}/products/${product.slug}#offer`,
+          url: `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${params.lang}/products/${product.slug}`,
           priceCurrency: currencyData.name,
           price:
             (product.offer_price || product.price || 0) *
@@ -676,7 +606,7 @@ export async function getFeaturedMetadata({ params, searchParams }) {
           "@type": "ListItem",
           position: 1,
           name: "Home",
-          item: `${process.env.NEXT_PUBLIC_API_BASE_URL}/${params.lang}`,
+          item: `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${params.lang}`,
         },
         {
           "@type": "ListItem",
@@ -742,42 +672,25 @@ export async function getFeaturedMetadata({ params, searchParams }) {
 }
 
 export async function getFlashDealsMetadata({ params, searchParams }) {
-  const [country, lang] = params.lang.split("-");
+  const [country, language] = params.lang.split("-");
 
   // Get language for translations
-  const language = lang || "en";
 
   // Fetch flash deals data
   const GetFlashDealsData = async () => {
     try {
-      const filterPath = params.filters ? params.filters.join("/") : "";
-      const apiUrl = filterPath
-        ? `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/${params.lang}/flash/${filterPath}`
-        : `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/${params.lang}/flash`;
-
-      const response = await fetch(
-        `${apiUrl}?${new URLSearchParams({
-          boutiqueId: "null",
-          noProducts: "false",
-          forHome: "false",
-          noFilters: "true",
-          offset: "false",
-        }).toString()}`,
-        {
-          method: "GET",
-          next: {
-            revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE),
-            tags: ["flash"],
-          },
-          headers: {
-            "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-            "Access-Control-Allow-Headers": "Content-Type, Authorization",
-          },
-        }
+      const result = await fetchFilteredProducts(
+        language,
+        country,
+        [],
+        "false",
+        "false",
+        null,
+        null,
+        false,
+        true
       );
-      const data = await response.json();
-      return data.data;
+      return result.data;
     } catch (error) {
       console.log(error, "getFlashDealsData");
       return { products: [] };
@@ -786,23 +699,10 @@ export async function getFlashDealsMetadata({ params, searchParams }) {
 
   const GetCurrencyData = async () => {
     try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/${params.lang}/currency`,
-        {
-          method: "GET",
-          next: {
-            revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE),
-            tags: ["currency"],
-          },
-          headers: {
-            "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-            "Access-Control-Allow-Headers": "Content-Type, Authorization",
-          },
-        }
+      const data = await fetchCurrency(language, country);
+      return (
+        data.data.currency || { name: "USD", exchange_rate: 1, symbol: "$" }
       );
-      const data = await response.json();
-      return data.data || { name: "USD", exchange_rate: 1, symbol: "$" };
     } catch (error) {
       console.log(error, "getCurrencyData");
       return { name: "USD", exchange_rate: 1, symbol: "$" };
@@ -843,7 +743,7 @@ export async function getFlashDealsMetadata({ params, searchParams }) {
 
   const primaryImage =
     products?.[0]?.images?.[0]?.file_path || "/images/flash-deals-og.jpg";
-  const canonicalUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL}/${params.lang}/flashDeals`;
+  const canonicalUrl = `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${params.lang}/flashDeals`;
 
   // Generate structured data
   const jsonLd = {
@@ -860,7 +760,7 @@ export async function getFlashDealsMetadata({ params, searchParams }) {
       description: "Limited time offers with special discounts",
       itemListElement: products.slice(0, 20).map((product, index) => ({
         "@type": "Product",
-        "@id": `${process.env.NEXT_PUBLIC_API_BASE_URL}/${params.lang}/products/${product.slug}`,
+        "@id": `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${params.lang}/products/${product.slug}`,
         name: product.name,
         description:
           product.details || `Flash deal: ${product.name} - Limited time offer`,
@@ -876,8 +776,8 @@ export async function getFlashDealsMetadata({ params, searchParams }) {
           : undefined,
         offers: {
           "@type": "Offer",
-          "@id": `${process.env.NEXT_PUBLIC_API_BASE_URL}/${params.lang}/products/${product.slug}#flash-offer`,
-          url: `${process.env.NEXT_PUBLIC_API_BASE_URL}/${params.lang}/products/${product.slug}`,
+          "@id": `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${params.lang}/products/${product.slug}#flash-offer`,
+          url: `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${params.lang}/products/${product.slug}`,
           priceCurrency: currencyData.name,
           price:
             (product.offer_price || product.price || 0) *
@@ -912,7 +812,7 @@ export async function getFlashDealsMetadata({ params, searchParams }) {
           "@type": "ListItem",
           position: 1,
           name: "Home",
-          item: `${process.env.NEXT_PUBLIC_API_BASE_URL}/${params.lang}`,
+          item: `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${params.lang}`,
         },
         {
           "@type": "ListItem",
@@ -982,7 +882,7 @@ export async function getCompareMetadata({ params, searchParams }) {
 
   // Get language for translations
   const language = lang || "en";
-  const canonicalUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL}/${params.lang}/compare`;
+  const canonicalUrl = `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${params.lang}/compare`;
 
   const pageTitle = translateFunction("Compare Products - TryDos", language);
   const pageDescription =
@@ -1012,7 +912,7 @@ export async function getCompareMetadata({ params, searchParams }) {
     isPartOf: {
       "@type": "WebSite",
       name: "TryDos",
-      url: `${process.env.NEXT_PUBLIC_API_BASE_URL}/${params.lang}`,
+      url: `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${params.lang}`,
     },
     breadcrumb: {
       "@type": "BreadcrumbList",
@@ -1021,7 +921,7 @@ export async function getCompareMetadata({ params, searchParams }) {
           "@type": "ListItem",
           position: 1,
           name: "Home",
-          item: `${process.env.NEXT_PUBLIC_API_BASE_URL}/${params.lang}`,
+          item: `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${params.lang}`,
         },
         {
           "@type": "ListItem",
@@ -1054,7 +954,7 @@ export async function getCompareMetadata({ params, searchParams }) {
       locale: params.lang,
       images: [
         {
-          url: `${process.env.NEXT_PUBLIC_API_BASE_URL}/images/compare-og.jpg`,
+          url: `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/images/compare-og.jpg`,
           width: 1200,
           height: 630,
           alt: "Compare Products - TryDos",
@@ -1087,28 +987,13 @@ export async function getCategoriesMetadata({ params, searchParams }) {
 
   // Get language for translations
   const language = lang || "en";
-  const canonicalUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL}/${params.lang}/categories/${mainCategory}`;
+  const canonicalUrl = `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${params.lang}/categories/${mainCategory}`;
 
   // Fetch categories data
   const GetCategoriesData = async () => {
     try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/${params.lang}/categories`,
-        {
-          method: "GET",
-          next: {
-            revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE),
-            tags: ["categories"],
-          },
-          headers: {
-            "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-            "Access-Control-Allow-Headers": "Content-Type, Authorization",
-          },
-        }
-      );
-      const data = await response.json();
-      return data.data || [];
+      const result = await fetchMainCategories(language, country);
+      return result.mainCategories || [];
     } catch (error) {
       console.log(error, "getCategoriesData");
       return [];
@@ -1148,7 +1033,8 @@ export async function getCategoriesMetadata({ params, searchParams }) {
     .filter(Boolean)
     .join(", ");
 
-  const primaryImage = currentCategory?.icon || "/images/categories-og.jpg";
+  const primaryImage =
+    currentCategory?.flat_photo_path.file_path || "/api/opengraph-image";
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -1163,11 +1049,11 @@ export async function getCategoriesMetadata({ params, searchParams }) {
         "@id": `${canonicalUrl}#category`,
         name: currentCategory.name,
         description: `${currentCategory.name} products collection`,
-        image: currentCategory.icon
+        image: currentCategory.flat_photo_path.file_path
           ? getConfiguredImage({
               src:
                 process.env.NEXT_PUBLIC_BASE_CLOUDINARY_URL +
-                currentCategory.icon,
+                currentCategory.flat_photo_path.file_path,
               width: 800,
               height: 800,
               q: 80,
@@ -1182,13 +1068,13 @@ export async function getCategoriesMetadata({ params, searchParams }) {
           "@type": "ListItem",
           position: 1,
           name: "Home",
-          item: `${process.env.NEXT_PUBLIC_API_BASE_URL}/${params.lang}`,
+          item: `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${params.lang}`,
         },
         {
           "@type": "ListItem",
           position: 2,
           name: "Categories",
-          item: `${process.env.NEXT_PUBLIC_API_BASE_URL}/${params.lang}/categories`,
+          item: `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${params.lang}/categories`,
         },
         ...(currentCategory
           ? [
@@ -1258,7 +1144,7 @@ export async function getSettingsMetadata({ params, searchParams }) {
 
   // Get language for translations
   const language = lang || "en";
-  const canonicalUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL}/${params.lang}/settings`;
+  const canonicalUrl = `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${params.lang}/settings`;
 
   const pageTitle = translateFunction("Settings - TryDos", language);
   const pageDescription =
@@ -1287,7 +1173,7 @@ export async function getSettingsMetadata({ params, searchParams }) {
     isPartOf: {
       "@type": "WebSite",
       name: "TryDos",
-      url: `${process.env.NEXT_PUBLIC_API_BASE_URL}/${params.lang}`,
+      url: `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${params.lang}`,
     },
     breadcrumb: {
       "@type": "BreadcrumbList",
@@ -1296,7 +1182,7 @@ export async function getSettingsMetadata({ params, searchParams }) {
           "@type": "ListItem",
           position: 1,
           name: "Home",
-          item: `${process.env.NEXT_PUBLIC_API_BASE_URL}/${params.lang}`,
+          item: `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${params.lang}`,
         },
         {
           "@type": "ListItem",
@@ -1321,7 +1207,7 @@ export async function getSettingsMetadata({ params, searchParams }) {
       locale: params.lang,
       images: [
         {
-          url: `${process.env.NEXT_PUBLIC_API_BASE_URL}/images/settings-og.jpg`,
+          url: `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/api/opengraph-image`,
           width: 1200,
           height: 630,
           alt: "Settings - TryDos",

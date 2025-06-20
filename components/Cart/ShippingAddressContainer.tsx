@@ -7,6 +7,7 @@ import AddAddressIcon from "public/svg/cart/AddAddress.svg";
 import order from "services/order";
 import Spinner from "components/global/Spinner";
 import { useAppStore } from "store";
+import { fetchCountries } from "Server Requests";
 import { formatTime, GetImageUrl } from "utils/tinyUtils";
 import home from "services/home";
 function ShippingAddressContainer({ slideNext, slidePrev, openAddressList }) {
@@ -19,18 +20,13 @@ function ShippingAddressContainer({ slideNext, slidePrev, openAddressList }) {
       let data = sessionStorage.getItem("countries");
       setCountries(JSON.parse(data));
     } else {
-      const res = await await fetch(
-        process.env.NEXT_PUBLIC_API_BASE_URL + `/api/countries`,
-        {
-          next: {
-            revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE_COUNTRIES),
-            tags: ["countries"],
-          },
-        }
-      );
-      let data = await res.json();
-      sessionStorage.setItem("countries", JSON.stringify(data.countries));
-      setCountries(data.countries);
+      try {
+        const data = await fetchCountries();
+        sessionStorage.setItem("countries", JSON.stringify(data.countries));
+        setCountries(data.countries);
+      } catch (error) {
+        console.error("Failed to fetch countries:", error);
+      }
     }
   };
   useEffect(() => {

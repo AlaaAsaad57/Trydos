@@ -250,7 +250,7 @@ export const SizeList = ({ sizes, setSize, currentSize, newSize, image }) => {
       return name?.toLowerCase() === newSize?.toLowerCase();
     }
   };
-  console.log(sizes);
+
   return (
     <div
       data-cy="countainer_ofSize_scroller"

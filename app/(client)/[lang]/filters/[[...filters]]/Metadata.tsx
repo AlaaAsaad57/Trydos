@@ -2,6 +2,7 @@
 
 import { getConfiguredImage } from "utils/functions";
 import { parseFiltersFromParams, filtersToSearchParams } from "utils/tinyUtils";
+import { fetchFilteredProducts, fetchBoutiqueDetails } from "Server Requests";
 
 export async function getBoutiqueMetadata({ params, searchParams }) {
   // Parse filters from path parameters instead of search parameters
@@ -9,46 +10,42 @@ export async function getBoutiqueMetadata({ params, searchParams }) {
 
   // Convert to the format expected by the API
   const EditedSearchParams = filtersToSearchParams(parsedFilters);
+  const [country, language] = params.lang.split("-");
   const GetProductsData = async () => {
-    let response;
     try {
-      // Build the API URL using path parameters instead of search parameters
-      const filterPath = params.filters ? params.filters.join("/") : "";
-      const apiUrl = filterPath
-        ? `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/${params.lang}/filters/${filterPath}`
-        : `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/${params.lang}/filters`;
-
-      response = await fetch(
-        `${apiUrl}?${new URLSearchParams({
-          noProducts: "false",
-          noFilters: "false",
-          offset: "false",
-        }).toString()}`,
-        {
-          method: "GET",
-          next: {
-            revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE),
-            tags: ["listing"],
-          },
-          headers: {
-            "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-            "Access-Control-Allow-Headers": "Content-Type, Authorization",
-          },
-        }
+      const result = await fetchFilteredProducts(
+        language,
+        country,
+        params.filters || [],
+        "false",
+        "false",
+        null
       );
-      let data = await response.json();
-      return data.data;
+      return result.data;
     } catch (error) {
-      console.log(error, "getProductsData", response);
-      return {};
+      console.log(error, "getProductsData");
+      return {
+        categories: [],
+        brands: [],
+        colors: [],
+        prices: {
+          priceRanges: [],
+        },
+        attributes: [],
+        boutiques: [],
+        products: [],
+        offset: 0,
+        limit: 0,
+        total_size: 0,
+        search_time: null,
+        search_text: null,
+      };
     }
   };
   const GetBoutiqueData = async () => {
     // Get the first boutique from the boutiques filter parameters
     let selectedBoutique = parsedFilters?.boutiques?.[0] || null;
 
-    let response;
     try {
       if (!selectedBoutique) {
         return {
@@ -57,29 +54,21 @@ export async function getBoutiqueMetadata({ params, searchParams }) {
           icon: null,
         };
       }
-      let response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/${params.lang}/boutiques/${selectedBoutique}`,
-        {
-          method: "GET",
-          next: {
-            revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE_LISTING),
-            tags: ["listing"],
-          },
-          headers: {
-            "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-            "Access-Control-Allow-Headers": "Content-Type, Authorization",
-          },
-        }
+
+      const data = await fetchBoutiqueDetails(
+        selectedBoutique,
+        language,
+        country
       );
-      let data = await response.json();
-      if (data.code === 404) {
-        return "NOT_FOUND";
-      }
-      return data.data;
+      return data;
     } catch (error) {
-      console.log(error, "getBoutiqueData", response);
-      return "NOT_FOUND";
+      console.log(error, "getBoutiqueData");
+      return {
+        name: "Search",
+        banners: null,
+        icon: null,
+        iconUrl: null,
+      };
     }
   };
   const [filtersData, boutique] = await Promise.all([
@@ -109,7 +98,9 @@ export async function getBoutiqueMetadata({ params, searchParams }) {
   const ogImage =
     boutique.name === "Search"
       ? filtersData?.products?.[0]?.images?.[0]?.file_path
-      : boutique.banners?.[0]?.file_path || boutique.iconUrl || defaultOgImage;
+      : boutique.banners?.[0]?.file_path ||
+        boutique?.icon?.file_path ||
+        defaultOgImage;
 
   const keywords = [
     boutique.name,
@@ -124,8 +115,8 @@ export async function getBoutiqueMetadata({ params, searchParams }) {
 
   const filterPath = params.filters ? params.filters.join("/") : "";
   const canonicalUrl = filterPath
-    ? `${process.env.NEXT_PUBLIC_API_BASE_URL}/${params.lang}/filters/${filterPath}`
-    : `${process.env.NEXT_PUBLIC_API_BASE_URL}/${params.lang}/filters`;
+    ? `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/filters/${filterPath}`
+    : `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/filters`;
 
   return {
     title: pageTitle,

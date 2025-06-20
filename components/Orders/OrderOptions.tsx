@@ -31,7 +31,7 @@ function OrderOptions({ closeOptions, CancelOrder }) {
   const [tempOrderDetails, setTempOrderDetails] = useState([]);
   const changeOrderItem = ({ id, color, size, qty, image }) => {
     let order_details_arry = [];
-    console.log({ id, color, size, qty, image, selectedOrder });
+
     selectedOrder.details.map((order_detail) => {
       let details_arry = { ...order_detail, details: [] };
       order_detail.details.map((s) => {

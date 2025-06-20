@@ -31,7 +31,7 @@ function CategoryItem({ category, onClick, isActive }) {
           alt={category.name}
           width={30}
           height={30}
-          src={GetImageUrl(category.icon)?.replace(
+          src={GetImageUrl(category?.flat_photo_path.file_path)?.replace(
             "/upload",
             "/upload/h_30/f_webp"
           )}
