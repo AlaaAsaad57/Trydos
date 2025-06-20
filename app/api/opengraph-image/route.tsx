@@ -4,16 +4,11 @@ import { ImageResponse } from "next/og";
 
 export const runtime = "edge";
 
-export async function GET(
-  request: Request,
-  { params }: { params: { lang: string } }
-) {
-  const { searchParams } = new URL(request.url);
+export async function GET(request: Request) {
   const width = 1200;
   const height = 630;
 
   // Get language for translations
-  const language = params.lang.split("-")[1] || "en";
 
   // Translate static text
   const premiumShopping = "Premium Shopping";
@@ -66,6 +61,12 @@ export async function GET(
             }}
           >
             {/* TryDos Logo */}
+            <img
+              src={process.env.NEXT_PUBLIC_REMOTE_FRONT + "/svg/LogoAuth.svg"}
+              alt="TryDos"
+              width={270}
+              style={{ marginBottom: "10px" }}
+            />
             <div
               style={{
                 marginBottom: "40px",
@@ -174,9 +175,7 @@ export async function GET(
               borderRadius: "20px",
               border: "1px solid #dee2e6",
             }}
-          >
-            {params.lang.toUpperCase()}
-          </div>
+          ></div>
         </div>
       ),
       {
