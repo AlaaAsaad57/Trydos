@@ -5,9 +5,9 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: "*",
       allow: "/",
-      disallow: "/private/",
     },
+
     sitemap:
-      "https://www.trydos-git-development-yasseromranramaazcoms.vercel.app",
+      "https://www.trydos-front-git-alaa-dev-trydos-front-team.vercel.app/sitemap.xml",
   };
 }

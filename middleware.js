@@ -245,7 +245,7 @@ export const config = {
      */
     {
       source:
-        "/((?!api|static|.\\..|_next|assets|endCall|svg|call_direct|revalidate|test|callInProg|selectCountry|favicon.ico).*)",
+        "/((?!api|sitemap|static|.\\..|_next|assets|endCall|sitemap.xml|svg|call_direct|revalidate|test|callInProg|selectCountry|favicon.ico).*)",
     },
   ],
 };
