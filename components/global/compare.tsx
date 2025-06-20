@@ -11,7 +11,7 @@ import SearchService from "services/search";
 import { useAppStore } from "store";
 import NextLink from "./NextLink";
 import { GetImageUrl } from "utils/tinyUtils";
-import { fetchProductsSearch } from "Server Requests";
+import { fetchFilteredProducts } from "Server Requests";
 const ComparePage: React.FC = ({
   showInstantLoading = true,
 }: {
@@ -105,10 +105,10 @@ const ComparePage: React.FC = ({
   const searchFunction = async (inputValue: string) => {
     setSearchLoading(true);
     try {
-      const result = await fetchProductsSearch(
+      const result = await fetchFilteredProducts(
         lang.toString(),
         lang.toString().split("-")[0],
-        { searchText: inputValue },
+        [inputValue],
         "false",
         "true"
       );
