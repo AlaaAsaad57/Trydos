@@ -243,7 +243,7 @@ export const config = {
      */
     {
       source:
-        "/((?!api|sitemap|error.png|static|.\\..|_next|assets|endCall|sitemap.xml|svg|call_direct|error.png|revalidate|test|callInProg|selectCountry|favicon.ico).*)",
+        "/((?!api|sitemap|manifest.json|error.png|static|.\\..|_next|assets|endCall|sitemap.xml|svg|call_direct|error.png|revalidate|test|callInProg|selectCountry|favicon.ico).*)",
     },
   ],
 };
