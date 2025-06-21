@@ -63,11 +63,13 @@ function Init() {
   }, []);
   const getCountries = async () => {
     if (sessionStorage.getItem("countries")) {
+      console.log("countries", sessionStorage.getItem("countries"));
       let data = sessionStorage.getItem("countries");
       setCountriesData(JSON.parse(data));
     } else {
       try {
         const data = await fetchCountries();
+
         sessionStorage.setItem("countries", JSON.stringify(data.countries));
         setCountriesData(data.countries);
       } catch (error) {

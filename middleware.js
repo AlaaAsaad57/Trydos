@@ -16,7 +16,8 @@ async function getCachedCountries() {
   }
   return cachedCountries;
 }
-const CheckLocalaization = ({
+
+const CheckLocalization = ({
   countryFromCookies,
   langFromCookies,
   lang,
@@ -29,48 +30,69 @@ const CheckLocalaization = ({
   }
   return false;
 };
+
 export async function middleware(request) {
   const response = NextResponse.next();
   const url = request.nextUrl.clone();
   const countryLang = url.pathname.split("/")[1]?.toLowerCase();
   const countryUrl = url.pathname.split("/")[1]?.toLowerCase()?.split("-")[0];
+  const langUrl = url.pathname.split("/")[1]?.toLowerCase()?.split("-")[1];
   const cookies = request.cookies;
   const countryFromCookies = cookies.get("country")?.value?.toLowerCase();
   const langFromCookies = cookies.get("lang")?.value?.toLowerCase() || "en";
-  if (
-    countryFromCookies?.length > 0 &&
-    countryUrl?.length > 0 &&
-    countryUrl?.toLowerCase() === countryFromCookies?.toLowerCase() &&
-    countryUrl !== "gb" &&
-    countryFromCookies !== "gb" &&
-    !url.searchParams.get("changed-country")
-  ) {
+
+  // Add comprehensive logging
+  console.log("🔍 MIDDLEWARE DEBUG:", {
+    url: url.toString(),
+    pathname: url.pathname,
+    search: url.search,
+    countryLang,
+    countryUrl,
+    langUrl,
+    countryFromCookies,
+    langFromCookies,
+    userAgent: request.headers.get("user-agent")?.substring(0, 50),
+  });
+
+  // Add redirect protection
+  const redirectCount = parseInt(
+    request.headers.get("x-redirect-count") || "0"
+  );
+  if (redirectCount > 2) {
+    console.error("🚨 TOO MANY REDIRECTS, STOPPING:", redirectCount);
     return response;
   }
 
-  // Define the geolocation API endpoint (you can replace with ipinfo, ipstack, or any other geolocation service)
-
+  // Get supported countries and locales
   let countryByIp = request?.geo?.country?.toLowerCase();
   let supportedLocales = [];
   let data = await getCachedCountries();
-
   let countries = data.map((s) => s.iso.toLowerCase());
   let defaultLocale = `${countries[0]}-en`;
+
   [...countries, "gb"].map((s) => {
     languages.map((l) => {
       supportedLocales.push(`${s}-${l}`);
     });
   });
+
   let [country, lang] = countryLang?.toLowerCase()?.split("-");
-  // 1- for url
+
+  // SCENARIO 1: Valid URL with country-lang format
   if (
-    countryLang?.split("-")?.length > 1 &&
+    countryLang?.split("-")?.length === 2 &&
     supportedLocales?.includes(countryLang)
   ) {
-    if (url.searchParams.get("selected")) {
-      url.searchParams.delete("changed-country");
-      url.searchParams.delete("no-country");
+    // Clean up timestamp parameter if present (used to bypass cache)
+    if (url.searchParams.get("_t")) {
+      url.searchParams.delete("_t");
+    }
 
+    // BYPASS: If coming from popup selection, skip all cookie checks
+    if (url.searchParams.get("_bypass") === "popup-selection") {
+      console.log("🚀 BYPASSING middleware checks for popup selection");
+
+      // Set cookies to match URL
       response.cookies.set("country", country.toLowerCase(), {
         path: "/",
         httpOnly: true,
@@ -92,37 +114,163 @@ export async function middleware(request) {
         sameSite: "Strict",
         maxAge: 360 * 7 * 24 * 60 * 60,
       });
-      response.headers.set("set-cookie", true);
-      request.cookies.set("country", country.toLowerCase(), {
-        path: "/",
-        httpOnly: true,
-        secure: false,
-        sameSite: "Strict",
-        maxAge: 360 * 7 * 24 * 60 * 60,
-      });
-      request.cookies.set("lang", lang.toLowerCase(), {
-        path: "/",
-        httpOnly: true,
-        secure: false,
-        sameSite: "Strict",
-        maxAge: 360 * 7 * 24 * 60 * 60,
-      });
-      request.cookies.set("language", lang.toLowerCase(), {
-        path: "/",
-        httpOnly: true,
-        secure: false,
-        sameSite: "Strict",
-        maxAge: 360 * 7 * 24 * 60 * 60,
-      });
-      return NextResponse.redirect(url);
+
+      // Clean URL and proceed
+      url.searchParams.delete("_bypass");
+      url.searchParams.delete("changed-country");
+      url.searchParams.delete("no-country");
+
+      // ONLY redirect if there are still parameters, otherwise proceed directly
+      if (url.searchParams.toString()) {
+        console.log("🔄 Redirecting to clean URL:", url.toString());
+        const redirectResponse = NextResponse.redirect(url);
+        redirectResponse.headers.set(
+          "x-redirect-count",
+          (redirectCount + 1).toString()
+        );
+        return redirectResponse;
+      }
+
+      console.log("✅ Proceeding with bypass - no redirect needed");
+      return response;
     }
 
-    let isChangedLocalizationByUrl = CheckLocalaization({
+    // CASE 1A: Handle no-country parameter (user needs to select country)
+    if (url.searchParams.get("no-country")) {
+      console.log("🏁 Showing country selection popup");
+      // Set cookies for current URL locale if not already set
+      if (!countryFromCookies) {
+        response.cookies.set("country", country.toLowerCase(), {
+          path: "/",
+          httpOnly: true,
+          secure: false,
+          sameSite: "Strict",
+          maxAge: 360 * 7 * 24 * 60 * 60,
+        });
+      }
+      if (!langFromCookies) {
+        response.cookies.set("lang", lang.toLowerCase(), {
+          path: "/",
+          httpOnly: true,
+          secure: false,
+          sameSite: "Strict",
+          maxAge: 360 * 7 * 24 * 60 * 60,
+        });
+        response.cookies.set("language", lang.toLowerCase(), {
+          path: "/",
+          httpOnly: true,
+          secure: false,
+          sameSite: "Strict",
+          maxAge: 360 * 7 * 24 * 60 * 60,
+        });
+      }
+      return response; // Show the popup
+    }
+
+    // CASE 1B: Same country and lang as cookies - proceed normally
+    if (
+      countryFromCookies?.length > 0 &&
+      langFromCookies?.length > 0 &&
+      countryUrl?.toLowerCase() === countryFromCookies?.toLowerCase() &&
+      langUrl?.toLowerCase() === langFromCookies?.toLowerCase() &&
+      !url.searchParams.get("changed-country")
+    ) {
+      console.log("✅ Cookies match URL, proceeding normally");
+      return response;
+    }
+
+    // CASE 1C: No country cookies - show country selection popup
+    if (!countryFromCookies || countryFromCookies.length === 0) {
+      console.log("🚫 No cookies found, redirecting to show country popup");
+      // Set cookies for current URL locale
+      response.cookies.set("country", country.toLowerCase(), {
+        path: "/",
+        httpOnly: true,
+        secure: false,
+        sameSite: "Strict",
+        maxAge: 360 * 7 * 24 * 60 * 60,
+      });
+      response.cookies.set("lang", lang.toLowerCase(), {
+        path: "/",
+        httpOnly: true,
+        secure: false,
+        sameSite: "Strict",
+        maxAge: 360 * 7 * 24 * 60 * 60,
+      });
+      response.cookies.set("language", lang.toLowerCase(), {
+        path: "/",
+        httpOnly: true,
+        secure: false,
+        sameSite: "Strict",
+        maxAge: 360 * 7 * 24 * 60 * 60,
+      });
+
+      // Add no-country parameter to show popup
+      url.searchParams.set("no-country", "true");
+      const redirectResponse = NextResponse.redirect(url);
+      redirectResponse.headers.set(
+        "x-redirect-count",
+        (redirectCount + 1).toString()
+      );
+      return redirectResponse;
+    }
+
+    // CASE 1D: Different country in cookies vs URL - show country choice popup
+    let isChangedLocalizationByUrl = CheckLocalization({
       countryFromCookies,
       langFromCookies,
       lang,
       country,
     });
+
+    if (
+      isChangedLocalizationByUrl &&
+      !url.searchParams.get("changed-country")
+    ) {
+      console.log("🔄 Country changed, showing choice popup");
+      url.searchParams.delete("cart");
+      url.searchParams.set(
+        "changed-country",
+        `${country},${countryFromCookies}`
+      );
+      const redirectResponse = NextResponse.redirect(url);
+      redirectResponse.headers.set(
+        "x-redirect-count",
+        (redirectCount + 1).toString()
+      );
+      return redirectResponse;
+    }
+
+    // CASE 1E: Handle changed-country parameter (show country choice popup)
+    if (url.searchParams.get("changed-country")) {
+      console.log("🏁 Showing country change popup");
+      // Set cookies for current URL locale
+      response.cookies.set("country", country.toLowerCase(), {
+        path: "/",
+        httpOnly: true,
+        secure: false,
+        sameSite: "Strict",
+        maxAge: 360 * 7 * 24 * 60 * 60,
+      });
+      response.cookies.set("lang", lang.toLowerCase(), {
+        path: "/",
+        httpOnly: true,
+        secure: false,
+        sameSite: "Strict",
+        maxAge: 360 * 7 * 24 * 60 * 60,
+      });
+      response.cookies.set("language", lang.toLowerCase(), {
+        path: "/",
+        httpOnly: true,
+        secure: false,
+        sameSite: "Strict",
+        maxAge: 360 * 7 * 24 * 60 * 60,
+      });
+
+      return response; // Show the popup
+    }
+
+    // Default case - set cookies and proceed
     response.cookies.set("country", country.toLowerCase(), {
       path: "/",
       httpOnly: true,
@@ -144,87 +292,42 @@ export async function middleware(request) {
       sameSite: "Strict",
       maxAge: 360 * 7 * 24 * 60 * 60,
     });
-    response.headers.set("set-cookie", true);
-    request.cookies.set("country", country.toLowerCase(), {
-      path: "/",
-      httpOnly: true,
-      secure: false,
-      sameSite: "Strict",
-      maxAge: 360 * 7 * 24 * 60 * 60,
-    });
-    request.cookies.set("lang", lang.toLowerCase(), {
-      path: "/",
-      httpOnly: true,
-      secure: false,
-      sameSite: "Strict",
-      maxAge: 360 * 7 * 24 * 60 * 60,
-    });
-    request.cookies.set("language", lang.toLowerCase(), {
-      path: "/",
-      httpOnly: true,
-      secure: false,
-      sameSite: "Strict",
-      maxAge: 360 * 7 * 24 * 60 * 60,
-    });
-    if (countryFromCookies === "gb") {
-      return response;
-    }
-    if (url.searchParams.get("changed-country")) {
-      if (isChangedLocalizationByUrl) {
-        return response;
-      } else {
-        url.searchParams.delete("changed-country");
-        return NextResponse.redirect(url);
-      }
-    }
-    if (isChangedLocalizationByUrl) {
-      url.searchParams.delete("cart");
-      url.searchParams.set(
-        "changed-country",
-        `${country},${countryFromCookies}`
-      );
-      return NextResponse.redirect(url);
-    } else {
-      return response;
-    }
-    // If valid, continue with the request
+
+    return response;
   }
-  // 2- for cookies
+
+  // SCENARIO 2: No valid URL format but has cookies - redirect to cookie locale
   else if (countryFromCookies && langFromCookies) {
-    let pahname =
+    let pathname =
       url.pathname.split("/")[1].toLowerCase()?.split("-").length === 2
-        ? url.pathname?.toLowerCase()?.slice(countryLang.length + 1)
+        ? url.pathname?.toLowerCase()?.slice(countryLang?.length + 1)
         : url.pathname;
 
     const countryLangFromCookies = `${countryFromCookies.toLowerCase()}-${langFromCookies}`;
     if (supportedLocales.includes(countryLangFromCookies)) {
-      // If valid, redirect to the appropriate `country-lang` in the URL
-
-      url.pathname = `/${countryLangFromCookies}${pahname}`;
+      url.pathname = `/${countryLangFromCookies}${pathname}`;
       return NextResponse.redirect(url);
     }
   }
-  // 3- for ip
+
+  // SCENARIO 3: No cookies, try IP-based detection
   else if (countryByIp && countries.includes(countryByIp)) {
     defaultLocale = `${countryByIp}-en`;
     url.pathname = `/${defaultLocale}${url.pathname}`;
-  } else {
-    if (url.pathname.split("/")[1].includes("-")) {
-      url.pathname = url.pathname.replace(url.pathname.split("/")[1], "gb-en");
-      url.searchParams.delete("cart");
-      url.searchParams.set("no-country", true);
-      return NextResponse.redirect(url);
-    } else {
-    }
-    url.pathname = `/gb-en/${url.pathname}`;
-    url.searchParams.delete("cart");
-    url.searchParams.set("no-country", true);
+    url.searchParams.set("no-country", "true");
     return NextResponse.redirect(url);
   }
 
-  //4- select country
-  if (url.searchParams.get("no-contry")) {
-    return response;
+  // SCENARIO 4: Fallback to default locale with country selection
+  else {
+    if (url.pathname.split("/")[1]?.includes("-")) {
+      url.pathname = url.pathname.replace(url.pathname.split("/")[1], "gb-en");
+    } else {
+      url.pathname = `/gb-en${url.pathname}`;
+    }
+    url.searchParams.delete("cart");
+    url.searchParams.set("no-country", "true");
+    return NextResponse.redirect(url);
   }
 
   return NextResponse.redirect(url);
