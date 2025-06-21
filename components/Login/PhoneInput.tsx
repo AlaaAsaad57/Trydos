@@ -25,6 +25,7 @@ import {
 } from "utils/GAEvents";
 import { GAevent } from "utils/gtag";
 import { PhoneInputPropsType } from "models/componentType/settingTypes/PhoneInputPropsType";
+import { FlagIcon, formatPhone } from "utils/tinyUtils";
 
 function PhoneInput({
   stepIndicator,
@@ -73,27 +74,24 @@ function PhoneInput({
   const ref = useRef();
   const handleInput = (e) => {
     setWrongNumber(false);
-    let pattern = null;
-    let country = getCountry(e.target.value);
-    if (country) {
-      pattern = replaceString(country.format || "", ".", "x");
+    let { data, pattern, valid } = formatPhone(e.target.value);
 
-      pattern = replaceString(pattern, "-", "");
-      pattern = replaceString(pattern, " ", "");
-      pattern = replaceString(pattern, "+", "");
-    }
-    pattern = pattern || "xxxxxxxxxxxxxxxxx";
-    let data = textMarshal({
-      input: e.target.value,
-      template: pattern,
-      disallowCharacters: [/[a-z]/],
-    });
+    // let data = textMarshal({
+    //   input: e.target.value,
+    //   template: pattern,
+    //   disallowCharacters: [/[a-z]/],
+    // });
     setInputValue(data.plaintext);
 
-    if (
-      data.plaintext.length ===
-      pattern?.split("").filter((letter) => letter === "x").length
-    ) {
+    // if (
+    //   data.plaintext.length ===
+    //   pattern?.split("").filter((letter) => letter === "x").length
+    // ) {
+    //   setValidNumber(true);
+    // } else {
+    //   setValidNumber(false);
+    // }
+    if (valid) {
       setValidNumber(true);
     } else {
       setValidNumber(false);
@@ -422,7 +420,9 @@ function PhoneInput({
               marginLeft: "0px",
             }}
           >
-            {getCountry() && getCountry()?.iso2 && flag(getCountry()?.iso2)}
+            {getCountry() && getCountry()?.iso2 && (
+              <FlagIcon iso={getCountry()?.iso2} />
+            )}
           </span>
           <span data-cy="plus-icon-span" className="plus-icon-phone">
             +

@@ -329,7 +329,7 @@ export const config = {
      */
     {
       source:
-        "/((?!api|sitemap|manifest.json|error.png|static|.\\..|_next|assets|endCall|sitemap.xml|svg|call_direct|error.png|revalidate|test|callInProg|selectCountry|favicon.ico).*)",
+        "/((?!api|sitemap|manifest.json|error.png|assets|svg|fonts|translations|reports|images|styles|endCall|sitemap.xml|svg|call_direct|error.png||static|.\\..|_next|revalidate|callInProg|selectCountry|favicon.ico).*)",
     },
   ],
 };

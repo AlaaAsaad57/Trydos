@@ -1,11 +1,9 @@
 ---
 description: 
 globs: 
-alwaysApply: false
+alwaysApply: true
 ---
 ---
-description: 
-globs: 
 alwaysApply: true
 ---
 

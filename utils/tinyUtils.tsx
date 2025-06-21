@@ -396,7 +396,8 @@ export const GetImageUrl = (url) => {
   return process.env.NEXT_PUBLIC_BASE_CLOUDINARY_URL + url;
 };
 export const formatPhone = (phone) => {
-  let pattern = null;
+  let pattern = null,
+    valid = false;
   let country = getCountry(phone);
   if (country) {
     pattern = replaceString(country.format || "", ".", "x");
@@ -411,7 +412,15 @@ export const formatPhone = (phone) => {
     template: pattern,
     disallowCharacters: [/[a-z]/],
   });
-  return { data, pattern };
+  if (
+    data.plaintext.length ===
+    pattern?.split("").filter((letter) => letter === "x").length
+  ) {
+    valid = true;
+  } else {
+    valid = false;
+  }
+  return { data, pattern, valid };
 };
 export const getCountry = (text?: string) => {
   return allCountries.filter((countryItem) =>

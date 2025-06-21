@@ -12,7 +12,7 @@ import ContactInfoIcon from "public/svg/cart/ContactInfoIcon.svg";
 
 import order from "services/order";
 import { useAppStore } from "store";
-import { FlagIcon } from "utils/tinyUtils";
+import { FlagIcon, formatPhone } from "utils/tinyUtils";
 import { AddAddressFormPropsType } from "models/componentType/settingTypes/PersonalInfoAddressModalPropsType";
 import { AddressSectionPropsType } from "models/componentType/AddressSectionPropsType";
 import { SelectRegionPropsType } from "models/componentType/SelectRegionPropsType";
@@ -49,13 +49,18 @@ function AddAddressForm({
     });
   };
   const isValid = () => {
-    let valid = false;
-
+    let addressValid = false,
+      valid = false,
+      regionValid = false;
+    let { data, valid: phoneValid } = formatPhone(
+      addressDetails.contact_info.phone
+    );
     if (
       (addressDetails.contact_info.contact_person_name?.length > 0 ||
         // @ts-ignore
         addressDetails.contact_info.name?.length > 0) &&
-      addressDetails.contact_info.phone?.length > 0
+      addressDetails.contact_info.phone?.length > 0 &&
+      phoneValid
     ) {
       valid = true;
     } else {
@@ -66,18 +71,18 @@ function AddAddressForm({
       addressDetails?.address_detail?.length > 0 &&
       addressDetails?.address.length > 0
     ) {
-      valid = true;
+      addressValid = true;
     } else {
-      valid = false;
+      addressValid = false;
       return;
     }
     if (addressDetails.region?.length > 0) {
-      valid = true;
+      regionValid = true;
     } else {
-      valid = false;
+      regionValid = false;
       return;
     }
-    return valid;
+    return valid && regionValid && addressValid;
   };
 
   useEffect(() => {
@@ -468,7 +473,6 @@ const ContactInfo = () => {
               data-cy="Contact-Phone-input"
               aria-autocomplete="both"
               aria-haspopup="false"
-              type="number"
               spellCheck="false"
               autoCapitalize="off"
               autoComplete="off"
@@ -477,10 +481,11 @@ const ContactInfo = () => {
               inputMode="numeric"
               value={addressDetails.contact_info.phone}
               onChange={(e) => {
+                let { data, valid, pattern } = formatPhone(e.target.value);
                 setAddressDetails({
                   contact_info: {
                     ...addressDetails.contact_info,
-                    phone: e.target.value,
+                    phone: data.plaintext,
                   },
                 });
               }}
@@ -522,13 +527,13 @@ const ContactInfo = () => {
               autoComplete="off"
               autoCorrect="off"
               inputMode="numeric"
-              type="number"
               value={addressDetails.contact_info.alternative_phone}
               onChange={(e) => {
+                let { data, valid, pattern } = formatPhone(e.target.value);
                 setAddressDetails({
                   contact_info: {
                     ...addressDetails.contact_info,
-                    alternative_phone: e.target.value,
+                    alternative_phone: data.plaintext,
                   },
                 });
               }}
@@ -549,28 +554,40 @@ export const AddAddressButtons = ({ valid, slidePrev, isInSettings }) => {
 
   const shake = (v) => {
     if (document.querySelector(`.${v}`)) {
-      document.querySelector(`.${v}`)?.scrollIntoView({ block: "end" });
-      document.querySelector(`.${v}`)?.classList.add("shake-anim");
+      let index = document.querySelectorAll(`.${v}`).length;
+
+      document
+        .querySelectorAll(`.${v}`)
+        ?.[index - 1]?.scrollIntoView({ block: "end" });
+      document
+        .querySelectorAll(`.${v}`)
+        ?.[index - 1]?.classList.add("shake-anim");
       setTimeout(() => {
-        document.querySelector(`.${v}`)?.classList.remove("shake-anim");
+        document
+          .querySelectorAll(`.${v}`)
+          ?.[index - 1]?.classList.remove("shake-anim");
       }, 1300);
     }
+    return;
   };
   const validate = () => {
+    let { data, valid, pattern } = formatPhone(
+      addressDetails.contact_info.phone
+    );
     if (addressDetails.address_detail?.length === 0) {
-      shake("details-border");
+      return shake("details-border");
     }
     if (addressDetails.address?.length === 0) {
-      shake("title-border");
+      return shake("title-border");
     }
     if (addressDetails.region?.length === 0) {
-      shake("region-border");
+      return shake("region-border");
     }
     if (addressDetails.contact_info?.contact_person_name?.length === 0) {
-      shake("name-border");
+      return shake("name-border");
     }
-    if (addressDetails.contact_info?.phone?.length === 0) {
-      shake("phone-border");
+    if (addressDetails.contact_info?.phone?.length === 0 || !valid) {
+      return shake("phone-border");
     }
   };
 

@@ -9,10 +9,8 @@ import XIcon from "public/svg/Xicon.svg";
 import { useAppStore } from "store";
 import { ConfirmationModalPropsType } from "models/componentType/settingTypes/ConfirmationModalPropsType";
 import { PersonalInfoPropsType } from "models/componentType/settingTypes/PersonalInfoPropsType";
-function PersonalInfo({
-  swipeToScreen,
-  goBack,
-}: PersonalInfoPropsType) {
+import { formatPhone } from "utils/tinyUtils";
+function PersonalInfo({ swipeToScreen, goBack }: PersonalInfoPropsType) {
   const { editUserInfo, userProfile } = useAppStore();
 
   const [userProfileData, setUserProfileData] = useState({
@@ -72,9 +70,12 @@ function PersonalInfo({
   };
   const [isPhoneShouldChange, setIsPhoneShouldChange] = useState(false);
   const isValid = () => {
+    let { data, valid, pattern } = formatPhone(userProfileData.phone);
+
     return (
       userProfileData.name &&
       userProfileData.phone &&
+      valid &&
       userProfileData.email &&
       userProfileData.gender
     );
@@ -302,20 +303,23 @@ function PersonalInfo({
                 data-cy="personal-info-phone-number-input"
                 aria-autocomplete="both"
                 aria-haspopup="false"
-                type="number"
-                value={Number(userProfileData?.phone)}
+                value={userProfileData?.phone}
                 onChange={(e) => {
+                  let { data, valid, pattern } = formatPhone(e.target.value);
+
                   setUserProfileData({
                     ...userProfileData,
-                    phone: e.target.value,
+                    phone: data.plaintext,
                   });
                 }}
                 spellCheck="false"
                 autoCapitalize="off"
                 autoComplete="off"
-                pattern="[0-9]*"
                 autoCorrect="off"
                 inputMode="numeric"
+                disabled={false}
+                autoFocus={false}
+                tabIndex={-1}
                 placeholder={translateFunction("Enter Phone")}
                 className="w-full pr-6  min-h-[21px] h-auto bg-[transparent] text-[#1D1D1D] medium  text-[14px] placeholder-[#D3D3D3]  border-none outline-none resize-none"
               />
@@ -349,11 +353,16 @@ function PersonalInfo({
                 aria-autocomplete="both"
                 aria-haspopup="false"
                 spellCheck="false"
-                value={Number(userProfileData?.alternative_phone)}
+                value={
+                  userProfileData?.alternative_phone === 0
+                    ? ""
+                    : userProfileData.alternative_phone
+                }
                 onChange={(e) => {
+                  let { data, valid, pattern } = formatPhone(e.target.value);
                   setUserProfileData({
                     ...userProfileData,
-                    alternative_phone: e.target.value,
+                    alternative_phone: data.plaintext,
                   });
                 }}
                 autoCapitalize="off"
@@ -361,7 +370,6 @@ function PersonalInfo({
                 autoComplete="off"
                 autoCorrect="off"
                 inputMode="numeric"
-                type="number"
                 placeholder={translateFunction("Enter Alternative Phone")}
                 className="w-full pr-6  min-h-[21px] h-auto bg-[transparent] text-[#1D1D1D] medium  text-[14px] placeholder-[#D3D3D3]  border-none outline-none resize-none"
               />
