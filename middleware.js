@@ -54,6 +54,39 @@ export async function middleware(request) {
     userAgent: request.headers.get("user-agent")?.substring(0, 50),
   });
 
+  // Handle bypass parameter - skip all checks and clean URL
+  if (url.searchParams.get("_bypass") === "popup-selection") {
+    console.log("🚀 BYPASSING middleware checks for popup selection");
+
+    // Set cookies to match URL
+    const cookieOptions = {
+      path: "/",
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "Strict",
+      maxAge: 360 * 7 * 24 * 60 * 60,
+    };
+
+    response.cookies.set("country", countryUrl.toLowerCase(), cookieOptions);
+    response.cookies.set("lang", langUrl.toLowerCase(), cookieOptions);
+    response.cookies.set("language", langUrl.toLowerCase(), cookieOptions);
+
+    // Clean URL by removing all navigation-related params
+    url.searchParams.delete("_bypass");
+    url.searchParams.delete("changed-country");
+    url.searchParams.delete("no-country");
+    url.searchParams.delete("_t");
+
+    // Redirect to clean URL if there are remaining params, otherwise proceed
+    if (url.search) {
+      console.log("🔄 Cleaning URL parameters");
+      return NextResponse.redirect(url);
+    }
+
+    console.log("✅ Proceeding with clean URL");
+    return response;
+  }
+
   // Add redirect protection
   const redirectCount = parseInt(
     request.headers.get("x-redirect-count") || "0"
@@ -86,53 +119,6 @@ export async function middleware(request) {
     // Clean up timestamp parameter if present (used to bypass cache)
     if (url.searchParams.get("_t")) {
       url.searchParams.delete("_t");
-    }
-
-    // BYPASS: If coming from popup selection, skip all cookie checks
-    if (url.searchParams.get("_bypass") === "popup-selection") {
-      console.log("🚀 BYPASSING middleware checks for popup selection");
-
-      // Set cookies to match URL
-      response.cookies.set("country", country.toLowerCase(), {
-        path: "/",
-        httpOnly: true,
-        secure: false,
-        sameSite: "Strict",
-        maxAge: 360 * 7 * 24 * 60 * 60,
-      });
-      response.cookies.set("lang", lang.toLowerCase(), {
-        path: "/",
-        httpOnly: true,
-        secure: false,
-        sameSite: "Strict",
-        maxAge: 360 * 7 * 24 * 60 * 60,
-      });
-      response.cookies.set("language", lang.toLowerCase(), {
-        path: "/",
-        httpOnly: true,
-        secure: false,
-        sameSite: "Strict",
-        maxAge: 360 * 7 * 24 * 60 * 60,
-      });
-
-      // Clean URL and proceed
-      url.searchParams.delete("_bypass");
-      url.searchParams.delete("changed-country");
-      url.searchParams.delete("no-country");
-
-      // ONLY redirect if there are still parameters, otherwise proceed directly
-      if (url.searchParams.toString()) {
-        console.log("🔄 Redirecting to clean URL:", url.toString());
-        const redirectResponse = NextResponse.redirect(url);
-        redirectResponse.headers.set(
-          "x-redirect-count",
-          (redirectCount + 1).toString()
-        );
-        return redirectResponse;
-      }
-
-      console.log("✅ Proceeding with bypass - no redirect needed");
-      return response;
     }
 
     // CASE 1A: Handle no-country parameter (user needs to select country)

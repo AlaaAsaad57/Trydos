@@ -269,10 +269,17 @@ export const getCurrency = async ({ callback }) => {
   return currency?.currency;
 };
 export const FlagIcon = ({ iso }) => {
-  let FlagSy = dynamic(() => import(`public/svg/sy.svg`));
-  if (iso.toLowerCase() === "sy") return <FlagSy />;
+  if (iso.toLowerCase() === "sy")
+    return <img src="/svg/sy.svg" alt="sy" width={15} height={10} />;
 
-  return <img src={`/svg/flag/${iso?.toLowerCase()}.svg`} alt={iso} />;
+  return (
+    <img
+      src={`/svg/flag/${iso?.toLowerCase()}.svg`}
+      alt={iso}
+      width={15}
+      height={10}
+    />
+  );
 };
 export const formatTime = (timeString: string) => {
   const MONTH_NAMES = [

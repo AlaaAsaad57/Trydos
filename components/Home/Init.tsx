@@ -1,7 +1,5 @@
 "use client";
 import { useParams, useSearchParams } from "next/navigation";
-import axios from "axios";
-
 import React, { useEffect, useState } from "react";
 import HomeService from "services/home";
 import PopupCountry from "utils/PopupCountry";
@@ -12,7 +10,7 @@ import Smartlook from "smartlook-client";
 import "react-toastify/dist/ReactToastify.min.css";
 import "react-toastify/dist/ReactToastify.css";
 import "react-toastify/scss/main.scss";
-import search from "services/search";
+
 function Init() {
   useEffect(() => {
     const fallbackImage = "/error.png"; // Replace with your fallback image path
@@ -52,24 +50,18 @@ function Init() {
   const searchParams = useSearchParams();
   const [dataCountries, setCountriesData] = useState([]);
 
-  var bool = true;
+  // Initialize login check once
   useEffect(() => {
-    if (bool) {
-      bool = false;
-
-      HomeService.CheckLogin();
-    }
-    // @ts-ignore
+    HomeService.CheckLogin();
   }, []);
+
   const getCountries = async () => {
     if (sessionStorage.getItem("countries")) {
-      console.log("countries", sessionStorage.getItem("countries"));
-      let data = sessionStorage.getItem("countries");
+      const data = sessionStorage.getItem("countries");
       setCountriesData(JSON.parse(data));
     } else {
       try {
         const data = await fetchCountries();
-
         sessionStorage.setItem("countries", JSON.stringify(data.countries));
         setCountriesData(data.countries);
       } catch (error) {
@@ -77,32 +69,60 @@ function Init() {
       }
     }
   };
+
   const shouldShowBluredInfo = () => {
-    if (
+    // Check if we need to show country popup
+    const needsCountrySelection =
       lang?.includes("gb-") ||
       searchParams.get("changed-country") ||
-      searchParams.get("no-country")
-    ) {
+      searchParams.get("no-country");
+
+    if (needsCountrySelection) {
+      // Clean up cart parameter
       const params = new URLSearchParams(searchParams.toString());
       params.delete("cart");
-      if (typeof window !== "undefined") {
+
+      if (
+        typeof window !== "undefined" &&
+        params.toString() !== searchParams.toString()
+      ) {
         window.history.replaceState(
           {},
           "",
-          `${window.location.pathname}?${params.toString()}`
+          params.toString()
+            ? `${window.location.pathname}?${params.toString()}`
+            : window.location.pathname
         );
       }
-      // it commit
       return true;
-    } else {
-      return false;
     }
+
+    // Clean up navigation parameters if they exist
+    const hasNavigationParams =
+      searchParams.get("_bypass") || searchParams.get("_t");
+    if (hasNavigationParams && typeof window !== "undefined") {
+      const params = new URLSearchParams(searchParams.toString());
+      params.delete("_bypass");
+      params.delete("_t");
+
+      window.history.replaceState(
+        {},
+        "",
+        params.toString()
+          ? `${window.location.pathname}?${params.toString()}`
+          : window.location.pathname
+      );
+    }
+
+    return false;
   };
+
   useEffect(() => {
     if (shouldShowBluredInfo()) {
       getCountries();
     }
   }, []);
+
   useEffect(() => {
     window.addEventListener("resize", function () {
       var windowHeight = window.innerHeight;
