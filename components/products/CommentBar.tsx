@@ -5,6 +5,7 @@ import { AxiosPost } from "utils/AxiosApi";
 
 import CommentPost from "public/svg/CommentPost.svg";
 import auth from "services/auth";
+import { translateFunction } from "utils/functions";
 
 function CommentBar({
   product,
@@ -84,7 +85,7 @@ function CommentBar({
           e.currentTarget.style.height = "auto";
           e.currentTarget.style.height = `${e.currentTarget.scrollHeight}px`;
         }}
-        placeholder="type a comment"
+        placeholder={translateFunction("type a comment")}
         value={val}
         onChange={(e) => setVal(e.target.value)}
       />

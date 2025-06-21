@@ -1,7 +1,6 @@
 import {
   Color,
   Currency,
-  ProductDataType,
   SyncColorImage,
 } from "./productPagePropsType";
 import { ProductInterface } from "models/Genaral/Product";

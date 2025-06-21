@@ -8,7 +8,7 @@ interface SearchFilter {
   search_text: string;
 }
 
-interface SearchResults {
+export interface SearchResults {
   products: any[];
   brands: any[];
   categories: any[];

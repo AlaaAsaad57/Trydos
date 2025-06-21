@@ -594,7 +594,7 @@ function AddToCartComponent({
                   src="/svg/deliveryman.svg"
                 />
                 <span data-cy="free_shipping_text3">
-                  {translateFunction("Ship To You Accepted ")} 2 June
+                  {translateFunction("Ship To You Accepted")} 2 June
                 </span>
               </div>
             </div>
@@ -1179,7 +1179,7 @@ const SizesSkeleton = ({ product }) => {
               alt="deliveryman"
               src="/svg/deliveryman.svg"
             />
-            <span>{translateFunction("Ship To You Accepted ")} 2 June</span>
+            <span>{translateFunction("Ship To You Accepted")} 2 June</span>
           </div>
         </div>
       </div>

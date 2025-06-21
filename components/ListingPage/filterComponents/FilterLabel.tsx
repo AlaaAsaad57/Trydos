@@ -5,6 +5,7 @@ import FilterInfoIcon from "public/svg/listing/FilterInfoIcon.svg";
 
 import Spinner from "components/global/Spinner";
 import { useAppStore } from "store";
+import { translateFunction } from "utils/functions";
 
 function FilterLabel({ text }: { text: string }) {
   const { details_loading, filterEnabled } = useAppStore();
@@ -12,7 +13,7 @@ function FilterLabel({ text }: { text: string }) {
   return (
     <div className="filter-label flex-row justify-start align-center">
       <ActiveCategoryIcon />
-      <div className="filter-label-text">{text}</div>
+      <div className="filter-label-text">{translateFunction(text)}</div>
       <FilterInfoIcon className="filter-info-icon" />
       {details_loading && (
         <span className="ml-2">

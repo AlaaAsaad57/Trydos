@@ -15,6 +15,16 @@ export interface FilterListPropsType {
 }
 
 export interface FilterData {
+  flat_photo_path:{
+    file_path: string
+  }
+    icon: {
+      file_path: string
+    }
+    most_viewed_product_thumbnail: string;
+    name: string;
+    childes: Childe[]
+    id?: number;
     boutiques: any
     brands: Brand[]
     categories: Category[]
@@ -22,6 +32,9 @@ export interface FilterData {
     prices: Price[]
     search_text: any
     sizes: string[]
+    slug: string
+    min_price: number
+    max_price: number
   }
   
   export interface Brand {
@@ -32,7 +45,9 @@ export interface FilterData {
   
   export interface Category {
     childes: Childe[]
-    icon: string
+    icon: {
+      file_path: string
+    }
     most_viewed_product_thumbnail: string
     name: string
     slug: string
@@ -40,6 +55,15 @@ export interface FilterData {
   
   export interface Childe {
     childes: Childe2[]
+    icon: {
+      file_path: string
+    }
+    most_viewed_product_thumbnail: string
+    name: string
+    slug: string
+    flat_photo_path:{
+      file_path: string
+    }
   }
   
   export interface Childe2 {

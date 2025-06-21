@@ -2,7 +2,7 @@ import { useAppStore } from "store";
 import { getTwoLetters, getUser } from "../chatsFunctions";
 import ProfilePicture from "public/images/profileNo.png";
 import { GetImageUrl } from "utils/tinyUtils";
-
+import { translateFunction } from "utils/functions";
 function SearchResult({
   key,
   photo,
@@ -61,7 +61,7 @@ function SearchResult({
               cursor: "pointer",
             }}
           >
-            Invite
+            {translateFunction("Invite")}
           </div>
         )}
         <div

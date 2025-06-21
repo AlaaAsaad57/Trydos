@@ -116,8 +116,8 @@ function OrderOptions({ closeOptions, CancelOrder }) {
               }}
               topic={
                 shouldConfirmChange
-                  ? "About Change Request Product "
-                  : "About Cancel Your Product"
+                  ? translateFunction("About Change Request Product")
+                  : translateFunction("About Cancel Your Product")
               }
             />
           )}
