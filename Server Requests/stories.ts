@@ -31,10 +31,8 @@ export async function fetchStories(
   page: number = 1,
   userToken?: string
 ): Promise<StoriesResponse> {
-  try {
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_STORIES_BACKEND_URL}/api/v1/stories/users_stories?page=${page}`,
-      {
+  let headers = userToken
+    ? {
         method: "GET",
         headers: {
           ...(userToken && { Authorization: `Bearer ${userToken}` }),
@@ -46,11 +44,25 @@ export async function fetchStories(
           Expires: "0",
           "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
         },
-        // next: {
-        //   tags: ["stories", "home"],
-        //   revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE_STORIES),
-        // },
       }
+    : {
+        method: "GET",
+        headers: {
+          ...(userToken && { Authorization: `Bearer ${userToken}` }),
+          language: language,
+          country: country,
+          Accept: "application/json",
+          "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+        },
+        next: {
+          tags: ["stories", "home"],
+          revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE_STORIES),
+        },
+      };
+  try {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_STORIES_BACKEND_URL}/api/v1/stories/users_stories?page=${page}`,
+      headers
     );
 
     if (!response.ok) {
