@@ -5,6 +5,7 @@ import {
   filtersToSearchParams,
   configureSearchParams,
 } from "utils/tinyUtils";
+import auth from "./auth";
 
 class SearchService {
   private searchAbortController: AbortController | null = null;
@@ -116,6 +117,9 @@ class SearchService {
             country: lang.split("-")[0] || "tr",
             Accept: "application/json",
             "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+            ...(auth.UserID() && (searchValue?.length > 0 || value.length > 0)
+              ? { original_user_id: auth.UserID() }
+              : {}),
           },
         }
       );
