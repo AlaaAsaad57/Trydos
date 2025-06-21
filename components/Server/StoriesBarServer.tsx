@@ -17,13 +17,12 @@ async function StoriesBarServer({ language, country }: StoriesBarServerProps) {
   try {
     // Get user token from cookies if available
     const cookieStore = cookies();
-    const userStoriesData = cookieStore.get("USER-STORIES");
+    const userStoriesData = cookieStore.get("token");
     let userToken: string | undefined;
 
     if (userStoriesData?.value) {
       try {
-        const parsedUserData = JSON.parse(userStoriesData.value);
-        userToken = parsedUserData?.access_token;
+        userToken = userStoriesData.value;
       } catch (e) {
         // Invalid JSON in cookie, ignore
       }

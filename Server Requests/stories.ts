@@ -1,5 +1,7 @@
 "use server";
 
+import { data } from "node_modules/cypress/types/jquery";
+
 interface StoryItem {
   id: string | number;
   photo_path?: string;
@@ -39,12 +41,15 @@ export async function fetchStories(
           language: language,
           country: country,
           Accept: "application/json",
+          "Cache-Control": "no-cache, no-store, must-revalidate",
+          Pragma: "no-cache",
+          Expires: "0",
           "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
         },
-        next: {
-          tags: ["stories", "home"],
-          revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE_STORIES),
-        },
+        // next: {
+        //   tags: ["stories", "home"],
+        //   revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE_STORIES),
+        // },
       }
     );
 

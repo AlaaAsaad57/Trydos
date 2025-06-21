@@ -137,20 +137,12 @@ const PopupCountry = ({ options, countries, forChanged, noCountry }) => {
           }, 500);
           return 100;
         }
-        return prev + Math.random() * 8 + 2; // Slower, more realistic progress
+        return prev + Math.random() * 4 + 2; // Slower, more realistic progress
       });
     }, 150);
 
     return () => clearInterval(progressInterval);
   }, [initialLoading]);
-  const getUrl = (localizationVar) => {
-    // Remove the selected parameter to avoid middleware conflicts
-    return pathname.replace(
-      // @ts-ignore
-      lang,
-      localizationVar
-    );
-  };
 
   // Helper function to get country info by value
   const getCountryInfo = (countryValue) => {

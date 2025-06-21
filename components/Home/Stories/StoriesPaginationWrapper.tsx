@@ -4,9 +4,10 @@ import { InView } from "react-intersection-observer";
 import React, { useState } from "react";
 import StoryElement from "./StoryElement";
 import { useAppStore } from "store";
+import { fetchStories } from "Server Requests";
 
 interface StoriesPaginationWrapperProps {
-  next_page_url: string;
+  next_page_url: string | number;
   language: string;
   country: string;
   initialStories: any[];
@@ -20,12 +21,17 @@ function StoriesPaginationWrapper({
 }: StoriesPaginationWrapperProps) {
   const { storiesData, setStoryData } = useAppStore();
   const [loading, setLoading] = useState(false);
-  const [next_page, setNextPage] = useState(next_page_url ? 2 : null);
+  const [next_page, setNextPage] = useState(next_page_url ? 2 : 1);
   const [additionalStories, setAdditionalStories] = useState<any[]>([]);
 
   // Initialize store with server data if not already set
   React.useEffect(() => {
     if (initialStories.length > 0 && storiesData.length === 0) {
+      try {
+      } catch (error) {
+        console.error("Error fetching initial stories:", error);
+      }
+
       setStoryData(initialStories);
     }
   }, [initialStories, storiesData, setStoryData]);
