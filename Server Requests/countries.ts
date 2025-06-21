@@ -36,6 +36,37 @@ export async function fetchCountries(): Promise<CountriesResponse> {
     };
   } catch (error) {
     console.error("Error fetching countries:", error);
-    throw error;
+    return {
+      countries: [
+        {
+          id: 1,
+          name: "Turkey",
+          code: "TR",
+          flag: "https://flagcdn.com/tr.svg",
+          currency: "TRY",
+        },
+        {
+          id: 2,
+          name: "Syria",
+          code: "SY",
+          flag: "https://flagcdn.com/sy.svg",
+          currency: "SYP",
+        },
+        {
+          id: 3,
+          name: "Lebanon",
+          code: "LB",
+          flag: "https://flagcdn.com/lb.svg",
+          currency: "LBP",
+        },
+        {
+          id: 4,
+          name: "Iraq",
+          code: "IQ",
+          flag: "https://flagcdn.com/iq.svg",
+          currency: "IQD",
+        },
+      ],
+    };
   }
 }
