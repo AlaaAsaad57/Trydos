@@ -129,7 +129,7 @@ export async function middleware(request) {
         response.cookies.set("country", country.toLowerCase(), {
           path: "/",
           httpOnly: true,
-          secure: false,
+          secure: process.env.NODE_ENV === "production",
           sameSite: "Strict",
           maxAge: 360 * 7 * 24 * 60 * 60,
         });
@@ -138,14 +138,14 @@ export async function middleware(request) {
         response.cookies.set("lang", lang.toLowerCase(), {
           path: "/",
           httpOnly: true,
-          secure: false,
+          secure: process.env.NODE_ENV === "production",
           sameSite: "Strict",
           maxAge: 360 * 7 * 24 * 60 * 60,
         });
         response.cookies.set("language", lang.toLowerCase(), {
           path: "/",
           httpOnly: true,
-          secure: false,
+          secure: process.env.NODE_ENV === "production",
           sameSite: "Strict",
           maxAge: 360 * 7 * 24 * 60 * 60,
         });
@@ -165,40 +165,37 @@ export async function middleware(request) {
       return response;
     }
 
-    // CASE 1C: No country cookies - show country selection popup
+    // CASE 1C: No country cookies - proceed with URL country (don't show popup)
     if (!countryFromCookies || countryFromCookies.length === 0) {
-      console.log("🚫 No cookies found, redirecting to show country popup");
-      // Set cookies for current URL locale
+      console.log(
+        "🚫 No cookies found, but URL has valid country - setting cookies and proceeding"
+      );
+      // Set cookies for current URL locale and proceed directly
       response.cookies.set("country", country.toLowerCase(), {
         path: "/",
         httpOnly: true,
-        secure: false,
+        secure: process.env.NODE_ENV === "production",
         sameSite: "Strict",
         maxAge: 360 * 7 * 24 * 60 * 60,
       });
       response.cookies.set("lang", lang.toLowerCase(), {
         path: "/",
         httpOnly: true,
-        secure: false,
+        secure: process.env.NODE_ENV === "production",
         sameSite: "Strict",
         maxAge: 360 * 7 * 24 * 60 * 60,
       });
       response.cookies.set("language", lang.toLowerCase(), {
         path: "/",
         httpOnly: true,
-        secure: false,
+        secure: process.env.NODE_ENV === "production",
         sameSite: "Strict",
         maxAge: 360 * 7 * 24 * 60 * 60,
       });
 
-      // Add no-country parameter to show popup
-      url.searchParams.set("no-country", "true");
-      const redirectResponse = NextResponse.redirect(url);
-      redirectResponse.headers.set(
-        "x-redirect-count",
-        (redirectCount + 1).toString()
-      );
-      return redirectResponse;
+      // Proceed directly without showing popup
+      console.log("✅ Cookies set for valid URL country, proceeding normally");
+      return response;
     }
 
     // CASE 1D: Different country in cookies vs URL - show country choice popup
@@ -260,21 +257,21 @@ export async function middleware(request) {
     response.cookies.set("country", country.toLowerCase(), {
       path: "/",
       httpOnly: true,
-      secure: false,
+      secure: process.env.NODE_ENV === "production",
       sameSite: "Strict",
       maxAge: 360 * 7 * 24 * 60 * 60,
     });
     response.cookies.set("lang", lang.toLowerCase(), {
       path: "/",
       httpOnly: true,
-      secure: false,
+      secure: process.env.NODE_ENV === "production",
       sameSite: "Strict",
       maxAge: 360 * 7 * 24 * 60 * 60,
     });
     response.cookies.set("language", lang.toLowerCase(), {
       path: "/",
       httpOnly: true,
-      secure: false,
+      secure: process.env.NODE_ENV === "production",
       sameSite: "Strict",
       maxAge: 360 * 7 * 24 * 60 * 60,
     });
