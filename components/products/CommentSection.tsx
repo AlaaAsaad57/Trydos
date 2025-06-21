@@ -5,6 +5,7 @@ import CommentBar from "./CommentBar";
 import { useParams } from "next/navigation";
 
 import Spinner from "components/global/Spinner";
+import { CommentSectionPropsType } from "models/componentType/CommentSectionPropsType";
 
 function CommentSection({
   comments,
@@ -18,7 +19,7 @@ function CommentSection({
   resendComment,
   verifyCommentAction,
   getComments,
-}) {
+}: CommentSectionPropsType) {
   let { lang } = useParams();
   // @ts-ignore
   let languageVariable = lang.split("-")[1];

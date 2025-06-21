@@ -7,14 +7,12 @@ import auth from "services/auth";
 import { translateFunction } from "utils/functions";
 import { useAppStore } from "store";
 import { GetImageUrl } from "utils/tinyUtils";
+import { UploadProfilePhotoPropsType } from "models/componentType/settingTypes/UploadProfilePhotoPropsType";
 
 function UploadProfilePhoto({
   swipeToScreen,
   goBack,
-}: {
-  swipeToScreen: (index: number) => void;
-  goBack: () => void;
-}) {
+}: UploadProfilePhotoPropsType) {
   const { editUserInfo, userProfile } = useAppStore();
 
   const [file, setFile] = useState(GetImageUrl(userProfile.image));

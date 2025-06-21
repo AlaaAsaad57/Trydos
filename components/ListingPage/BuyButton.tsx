@@ -1,11 +1,12 @@
 "use client";
 
+import { BuyButtonPropsType } from "models/componentType/BuyButtonPropsType";
 import { useParams } from "next/navigation";
 import LocalizationServiceClass from "services/localization";
 import { dispatchRouteChangeEvent } from "utils/events";
 import { translateFunction } from "utils/functions";
 
-function BuyButton({ buy }) {
+function BuyButton({ buy }: BuyButtonPropsType) {
   let { lang } = useParams();
   // @ts-ignore
   let languageVariable = lang.split("-")[1];

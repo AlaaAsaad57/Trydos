@@ -9,8 +9,10 @@ import { useParams, useRouter } from "next/navigation";
 import useNextRouter from "hooks/useNextRouter";
 import NextLink from "components/global/NextLink";
 import home from "services/home";
+import { CheckBoxElementPropsType } from "models/componentType/CheckBoxElementPropsType";
+import { PlaceOrderButtonsPropsType } from "models/componentType/PlaceOrderButtonsPropsType";
 
-function PlaceOrderButtons({ orderLoading, successOrder, backToCart, close }) {
+function PlaceOrderButtons({ orderLoading, successOrder, backToCart, close }: PlaceOrderButtonsPropsType) {
   const {
     setOrderData,
     initCart,
@@ -257,7 +259,7 @@ function PlaceOrderButtons({ orderLoading, successOrder, backToCart, close }) {
 }
 
 export default PlaceOrderButtons;
-const CheckBoxElement = ({ active }) => {
+const CheckBoxElement = ({ active }: CheckBoxElementPropsType) => {
   return (
     <>
       {active ? (

@@ -4,15 +4,11 @@ import Image from "next/image";
 import OfferPhotosSlider from "./OfferPhotosSlider";
 import NextLink from "components/global/NextLink";
 import search from "services/search";
+import { NormalWidgetPropsType } from "models/componentType/NormalWidgetPropsType";
 
-interface NormalWidgetProps {
-  // boutique: Boutique;
-  boutique: any;
-  myKey: number;
-  lang: string;
-}
 
-const NormalWidget = ({ boutique, myKey, lang }: NormalWidgetProps) => {
+
+const NormalWidget = ({ boutique, myKey, lang }: NormalWidgetPropsType) => {
   return (
     <div className="w-full flex relative">
       <NextLink

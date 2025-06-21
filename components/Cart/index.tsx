@@ -32,8 +32,10 @@ import {
   GA_GLOBAL_SCREEN,
 } from "utils/GAEvents";
 import { GAevent } from "utils/gtag";
+import { CartContainerPropsType } from "models/componentType/CartContainerPropsType";
+import { QuantutyInputPropsType } from "models/componentType/QuantutyInputPropsType";
 
-function CartContainer({ close, toOrders }) {
+function CartContainer({ close, toOrders }: CartContainerPropsType) {
   const {
     storeOldCart,
     hideOldCart,
@@ -1795,7 +1797,7 @@ const QuantutyInput = ({
   product,
   maxAllowed,
   isCollectedAfterOrdering,
-}) => {
+}: QuantutyInputPropsType) => {
   const { initCart, settings, currency, removeFromCart } = useAppStore();
   const [inputValue, setInputValue] = useState(parseInt(value));
   const PlusIcon = ({ className }) => {

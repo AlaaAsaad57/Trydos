@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useAppStore } from "store";
 import NewStoryModal from "./CameraStory";
 import { dataURLtoFile } from "components/Chat/chatsFunctions";
+import { AddStoryWidgetPropsType } from "models/componentType/AddStoryWidgetPropsType";
 
 // Icons
 const CameraIcon = () => (
@@ -86,10 +87,6 @@ const PlaceholderIcon = () => (
   </svg>
 );
 
-interface AddStoryWidgetProps {
-  onClose: () => void;
-  selectMedia: ({ media, link }) => void;
-}
 
 const isValidUrl = (urlString: string) => {
   if (!urlString) return true;
@@ -109,7 +106,7 @@ const isValidUrl = (urlString: string) => {
 export default function AddStoryWidget({
   onClose,
   selectMedia,
-}: AddStoryWidgetProps) {
+}: AddStoryWidgetPropsType) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [link, setLink] = useState("");

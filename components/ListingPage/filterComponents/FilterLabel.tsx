@@ -6,8 +6,9 @@ import FilterInfoIcon from "public/svg/listing/FilterInfoIcon.svg";
 import Spinner from "components/global/Spinner";
 import { useAppStore } from "store";
 import { translateFunction } from "utils/functions";
+import { FilterLabelPropsType } from "models/componentType/FilterLabelPropsType";
 
-function FilterLabel({ text }: { text: string }) {
+function FilterLabel({ text }: FilterLabelPropsType) {
   const { details_loading, filterEnabled } = useAppStore();
   if (!filterEnabled) return null;
   return (

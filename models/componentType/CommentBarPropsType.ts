@@ -1,25 +1,26 @@
-import { ProductInterface } from "models/Genaral/Product";
-import { StaticImageData } from "./CommentsPropsType";
+
 
 export interface CommentBarPropsType {
-    CommentsData: CommentsData[],
-    verifyCommentAction: (mid: number) => void,
+    CommentsData: any[],
+    verifyCommentAction: Function,
     Render: boolean,
-    increase_comments: () => void,
-    setComments: (s: CommentsData[]) => void,
-    setRender: (s: boolean) => void,
-    product: ProductInterface,
-    ErrorAccure: (s: Error) => void,
+    increase_comments: Function,
+    setComments: Function,
+    setRender: Function,
+    product: any,
+    ErrorAccure: Function,
 }
-export interface CommentsData {
-    customer: {
-        name: string;
-        image: StaticImageData
-    }
-    created_at: string;
-    comment: string;
-    id: number;
+export interface CommentsData 
+    {id: number;
+    message: string;
+    Left_stock: number;
+    price_formatted: string;
+    offer_price_formatted: string;
     mid: number;
+    name: string;
+    profile_image: string;
+    time: string;
+    type: string;
     user_id: number;
     user_name: string;
     user_type: string;

@@ -18,4 +18,6 @@ export interface LogInPinsPropsType {
     disabled: boolean;
     loadingPin: boolean;
     forChanging?: boolean;
+  operation?: string,
+
 }

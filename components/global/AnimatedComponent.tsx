@@ -1,6 +1,7 @@
+import { AnimatedComponentPropstype } from "models/componentType/AnimatedComponentPropsType";
 import { useTransition, animated } from "react-spring";
 
-export const AnimatedComponent = ({ show, children, ...rest }) => {
+export const AnimatedComponent = ({ show, children, ...rest }: AnimatedComponentPropstype) => {
   const transition = useTransition(show, {
     from: { x: -800 },
     enter: { x: 0 },

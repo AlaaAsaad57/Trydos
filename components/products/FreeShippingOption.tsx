@@ -1,7 +1,8 @@
+import { FreeShippingOptionPropsType } from "models/componentType/productTypes/MultiComponentOnProductPage";
 import FreeShippingIcon from "public/svg/product/FreeShipping.svg";
 
 import { translateFunction } from "utils/functions";
-function FreeShippingOption({ lang }) {
+function FreeShippingOption({ lang }: FreeShippingOptionPropsType) {
   // @ts-ignore
   let languageVariable = lang.split("-")[1];
   const translate = (key, lang?) => {

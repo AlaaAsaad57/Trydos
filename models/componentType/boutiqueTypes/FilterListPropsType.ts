@@ -15,26 +15,28 @@ export interface FilterListPropsType {
 }
 
 export interface FilterData {
-  flat_photo_path:{
+  flat_photo_path?: {
     file_path: string
   }
-    icon: {
-      file_path: string
-    }
-    most_viewed_product_thumbnail: string;
-    name: string;
-    childes: Childe[]
+  
+  icon?: {
+    file_path: string
+    replace?: (searchValue: string | RegExp, replaceValue: string) => string;
+  }
+    most_viewed_product_thumbnail?: string;
+    name?: string;
+    childes?: Childe[]
     id?: number;
     boutiques: any
-    brands: Brand[]
+    brands?: Brand[]
     categories: Category[]
     colors: string[]
     prices: Price[]
     search_text: any
     sizes: string[]
-    slug: string
-    min_price: number
-    max_price: number
+    slug?: string
+    min_price?: number
+    max_price?: number
   }
   
   export interface Brand {

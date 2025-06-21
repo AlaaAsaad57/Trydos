@@ -9,13 +9,14 @@ import "public/styles/newLogin.css";
 import "public/styles/login.css";
 import { useAppStore } from "store";
 import PhoneInput from "components/Login/PhoneInput";
+import { ConfirmMobileChangePropsType } from "models/componentType/settingTypes/ConfirmMobileChangePropsType";
 
 function ConfirmMobileChange({
   closeWindow,
   value,
   successCallbackFunction,
   forVerify,
-}) {
+}: ConfirmMobileChangePropsType) {
   const { setWrongNumber, verficationID, wrongNumber, userProfile } =
     useAppStore();
   const [stepIndicator, setStepIndicator] = useState(3);

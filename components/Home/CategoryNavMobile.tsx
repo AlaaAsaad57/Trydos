@@ -4,15 +4,9 @@ import Image from "next/image";
 import React from "react";
 
 import NextLink from "components/global/NextLink";
+import { CategoryNavMobileProps } from "models/componentType/HomePagePropsType";
 
-interface CategoryNavMobileProps {
-  name: string;
-  icon: string;
-  myKey: number;
-  slug: string;
-  active: boolean;
-  params: any;
-}
+
 function CategoryNavMobile({
   name,
   icon,

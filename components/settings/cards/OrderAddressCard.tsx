@@ -1,8 +1,9 @@
 import { GetAddressString } from "components/Cart/AddressListContainer";
+import { OrderAddressCardPropsType } from "models/componentType/OrderAddressCardPropsType";
 import React from "react";
 import { translateFunction } from "utils/functions";
 
-function OrderAddressCard({ address }: { address: any }) {
+function OrderAddressCard({ address }: OrderAddressCardPropsType) {
   return (
     <div className="bg-[#F4F4F4] mt-[8px] ml-[8px] w-full min-h-[155px] h-auto  rounded-[15px] py-[7px] px-[12px] flex-col">
       <span className="text-[#8D8D8D] text-[10px] regular">

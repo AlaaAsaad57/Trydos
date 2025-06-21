@@ -11,7 +11,8 @@ import { useParams } from "next/navigation";
 import { useAppStore } from "store";
 import { InView } from "node_modules/react-intersection-observer/dist";
 import Spinner from "components/global/Spinner";
-function ProductStories({ id }) {
+import { ProductStoriesPropsType } from "models/componentType/productTypes/MultiComponentOnProductPage";
+function ProductStories({ id }: ProductStoriesPropsType) {
   const {
     selectedStory,
     InfoMessage: showInfoMessageObj,

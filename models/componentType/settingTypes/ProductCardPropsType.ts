@@ -1,5 +1,5 @@
-import { OrderDetail } from "./OrdersListPropsType";
+
 export interface ProductCardPropsType {
-    product: OrderDetail;
+    product: any;
     status: string;
 }

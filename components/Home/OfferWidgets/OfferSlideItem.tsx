@@ -1,17 +1,13 @@
+import { OfferSlideItemPropsType } from "models/componentType/OfferSlideItemPropsType";
 import BorderImage from "./BorderImage";
 import Image from "next/image";
-interface OfferSlideItemProps {
-  isSingle: boolean;
-  priority: boolean;
-  offerPhoto: any;
-  mykey: number;
-}
+
 function OfferSlideItem({
   isSingle,
   priority,
   mykey,
   offerPhoto,
-}: OfferSlideItemProps) {
+}: OfferSlideItemPropsType) {
   return (
     <div data-cy="offer_slide_item_length1" className="offer-slide-item">
       <div data-cy="image_offer_length1" className="image-offer">

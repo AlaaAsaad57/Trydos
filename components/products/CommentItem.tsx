@@ -2,6 +2,7 @@ import Image from "next/image";
 import React from "react";
 import "styles/comment.css";
 import Loading from "public/svg/loading.svg";
+import { CommentItemPropsType } from "models/componentType/CommentItemPropsType";
 
 function CommentItem({
   name,
@@ -11,15 +12,7 @@ function CommentItem({
   isPending,
   isError,
   resendComment,
-}: {
-  name: string;
-  photo: string;
-  date: string;
-  text: string;
-  isPending: any;
-  isError: any;
-  resendComment: Function;
-}) {
+}: CommentItemPropsType) {
   return (
     <div
       className="comment-item"

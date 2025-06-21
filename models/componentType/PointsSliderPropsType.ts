@@ -1,5 +1,5 @@
 export interface PointsSliderPropsType {
-    colors: string[]
+    colors: any,
     isActiveTopSlide: boolean;
     setActiveTopSlide: Function;
     activeIndex: number;

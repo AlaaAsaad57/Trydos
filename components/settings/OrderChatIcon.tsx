@@ -7,18 +7,14 @@ import ChatWidget from "components/Chat/ChatWidget";
 import { Channel } from "models/Genaral/Channel";
 import { useAppStore } from "store";
 import { getUserChat } from "utils/functions";
+import { OrderChatIconPropsType } from "models/componentType/OrderChatIconPropsType";
 
 function OrderChatIcon({
   id,
   setChatInfo,
   setIsChatOpen,
   isChatOpen,
-}: {
-  id: number;
-  setChatInfo: (s: Channel) => void;
-  isChatOpen: boolean;
-  setIsChatOpen: (s: boolean) => void;
-}) {
+}: OrderChatIconPropsType) {
   const { openChat } = useAppStore();
 
   const [isGettingChat, setIsGettingChat] = useState(false);

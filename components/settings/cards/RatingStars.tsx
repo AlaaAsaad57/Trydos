@@ -1,3 +1,4 @@
+import { RatingStarsPropsType } from "models/componentType/settingTypes/RatingStarsPropsType";
 import React, { useState } from "react";
 
 const StarIcon = ({ fill = () => "#402CDD", isHalf = false }) => {
@@ -30,17 +31,12 @@ const StarIcon = ({ fill = () => "#402CDD", isHalf = false }) => {
   );
 };
 
-interface RatingStarsProps {
-  initialRating?: number;
-  onRatingChange?: (rating: number) => void;
-  readOnly?: boolean;
-}
 
 function RatingStars({
   initialRating = 0,
   onRatingChange,
   readOnly = false,
-}: RatingStarsProps) {
+}: RatingStarsPropsType) {
   const [rating, setRating] = useState(initialRating);
 
   const handleClick = (index: number, isHalf: boolean) => {

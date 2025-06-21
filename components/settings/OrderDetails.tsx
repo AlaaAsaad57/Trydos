@@ -34,13 +34,12 @@ import OptionsIcon from "public/svg/OptionsIcon.svg";
 import OrderRetailsReturnInfo from "components/Orders/OrderRetailsReturnInfo";
 import RatingOrderItem from "components/Orders/RatingOrderItem";
 import CanceledOrderStatusIcon from "public/svg/CanceledOrderStatusIcon.svg";
+import { OrderDetailsPropsType } from "models/componentType/settingTypes/OrderDetailsPropsType";
+import { ProductCardPropsType } from "models/componentType/settingTypes/ProductCardPropsType";
 function OrderDetails({
   resetOrderDetails,
   goBack,
-}: {
-  resetOrderDetails: () => void;
-  goBack: () => void;
-}) {
+}: OrderDetailsPropsType) {
   const [loading, setLoading] = useState(false);
   const totalAmount = (arr) => {
     let total = 0;
@@ -373,10 +372,7 @@ const OrderExpandedDetails = ({ order }: { order: OrderItem }) => {
 const ProductCard = ({
   product,
   status,
-}: {
-  product: OrderDetail;
-  status: string;
-}) => {
+}: ProductCardPropsType) => {
   const { currency, setSelectedOrderItem } = useAppStore();
   const { lang } = useParams();
 

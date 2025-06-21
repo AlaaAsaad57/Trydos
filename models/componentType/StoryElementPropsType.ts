@@ -1,5 +1,5 @@
 export interface StoryElementPropsType {
-    story: StoriesInterface,
+    story: any,
     index: number,
 }
 export interface StoriesInterface {

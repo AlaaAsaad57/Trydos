@@ -15,6 +15,7 @@ import FilterWidgetContainer from "components/filterPage/FiltersWidget";
 import ShareBoutiquePageButton from "components/filterPage/ShareBoutiquePageButton";
 import FilterBoutiquePageButton from "components/filterPage/FilterBoutiquePageButton";
 import SearchBoutiquePage from "components/filterPage/SearchBoutiquePage";
+import { featuredPagePropsType } from "models/componentType/featuredTypes/featuredPagePropsType";
 
 export const dynamicParams = true;
 
@@ -44,10 +45,7 @@ interface ParamsType {
 export default async function Page({
   params,
   searchParams,
-}: {
-  params: ParamsType;
-  searchParams: any;
-}) {
+}: featuredPagePropsType) {
   let EditedSearchParams: any = {};
 
   if (searchParams?.search_text) {
@@ -200,7 +198,13 @@ export default async function Page({
           }`}
         >
           <SearchBoutiquePage
-            boutique={{}}
+            boutique={{
+              id: 0,
+              icon: "",
+              name: "",
+              description: "",
+              banners: []
+            }}
             search_text={EditedSearchParams?.search_text}
           />
 
@@ -221,7 +225,13 @@ export default async function Page({
       >
         <FilterList
           filters={filters}
-          boutique={{}}
+          boutique={{
+            id: 0,
+            icon: "",
+            name: "",
+            description: "",
+            banners: []
+          }}
           currency={currency}
           key={`filter-list`}
           params={params}

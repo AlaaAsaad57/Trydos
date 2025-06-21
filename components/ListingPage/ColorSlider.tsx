@@ -5,6 +5,7 @@ import BorderImage from "./BorderImage";
 
 import { getConfiguredImage } from "utils/functions";
 import Image from "next/image";
+import { ColorSliderPropsType } from "models/componentType/ColorSliderPropsType";
 // import { stopProgress } from "next-nprogress-bar";
 function ColorSlider({
   active,
@@ -14,7 +15,7 @@ function ColorSlider({
   colors,
   product_name,
   priority,
-}) {
+}: ColorSliderPropsType) {
   const ImageRef = useRef<any>();
   useEffect(() => {
     if (activeColor && ImageRef) {

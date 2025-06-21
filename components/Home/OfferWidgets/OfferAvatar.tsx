@@ -2,16 +2,9 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import NextLink from "components/global/NextLink";
 import { Boutique } from "models/Genaral/Boutique";
+import { OfferAvatarPropsType } from "models/componentType/OfferAvatarPropsType";
 
-interface OfferAvatarProps {
-  images: string;
-  zIndex: number;
-  name: string;
-  category: string | number;
-  linkUrl: string;
-  priority: boolean;
-  boutique: Boutique;
-}
+
 function OfferAvatar({
   images,
   zIndex,
@@ -20,7 +13,7 @@ function OfferAvatar({
   priority,
   linkUrl,
   boutique,
-}: OfferAvatarProps) {
+}: OfferAvatarPropsType) {
   const router = useRouter();
   const getImageCld = () => {
     if (!images) return "";

@@ -29,6 +29,7 @@ import ProductColors from "components/products/ProductColors";
 import CameraShots from "components/products/CameraShots";
 import ProductBackButton from "components/products/ProductBackButton";
 import DescriptorBorder from "public/svg/product/descriptorBorder.svg";
+import { ProductPagePropsType } from "models/componentType/productTypes/productPagePropsType";
 
 export const runtime = "nodejs";
 export const preferredRegion = ["bom1", "sin1"]; // For Middle East users
@@ -48,16 +49,7 @@ export const dynamicParams = true;
 export const dynamic = "auto";
 export const revalidate = parseInt(process.env.NEXT_PUBLIC_REVALIDATE);
 
-interface Props {
-  params: {
-    lang: string;
-    productId: string;
-  };
-  searchParams: {
-    color: string;
-  };
-}
-async function Page({ params, searchParams }: Props) {
+async function Page({ params, searchParams }: ProductPagePropsType) {
   let [countryVariable, languageVariable] = params.lang.split("-");
 
   const getProductData = async () => {

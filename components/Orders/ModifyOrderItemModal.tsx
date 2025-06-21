@@ -5,6 +5,9 @@ import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 import { Swiper, SwiperRef, SwiperSlide } from "swiper/react";
 import { EffectCoverflow } from "swiper/modules";
 import { translateFunction } from "utils/functions";
+import { ColorListPropsType } from "models/componentType/ColorListPropsType";
+import { ModifyOrderItemModalPropsType } from "models/componentType/ModifyOrderItemModalPropsType";
+import { SizeListPropsType } from "models/componentType/SizeListPropsType";
 export const ModifyOrderItemModal = ({
   type,
   confirmationData,
@@ -13,7 +16,7 @@ export const ModifyOrderItemModal = ({
   orderItem,
   editOrderItem,
   orderItemData,
-}) => {
+}: ModifyOrderItemModalPropsType) => {
   useEffect(() => {
     getProductDetails();
   }, []);
@@ -200,7 +203,7 @@ export const ModifyOrderItemModal = ({
     </div>
   );
 };
-export const ColorList = ({ colors, setColor, currentColor, newColor }) => {
+export const ColorList = ({ colors, setColor, currentColor, newColor }: ColorListPropsType) => {
   const isActive = (name) => {
     if (!newColor) return name?.toLowerCase() === currentColor?.toLowerCase();
     else if (newColor?.toLowerCase() === name?.toLowerCase()) return true;
@@ -242,7 +245,7 @@ export const ColorList = ({ colors, setColor, currentColor, newColor }) => {
     </HortiznalScrollBar>
   );
 };
-export const SizeList = ({ sizes, setSize, currentSize, newSize, image }) => {
+export const SizeList = ({ sizes, setSize, currentSize, newSize, image }: SizeListPropsType) => {
   const isActive = (name) => {
     if (!newSize) return name?.toLowerCase() === currentSize?.toLowerCase();
     else {

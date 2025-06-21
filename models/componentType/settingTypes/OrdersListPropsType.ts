@@ -1,8 +1,8 @@
 
 export interface OrdersListPropsType {
-    swipeToScreen: (index: number) => void;
-    goBack: () => void;
-    setSelectedOrder: (order: OrderItem) => void;
+    swipeToScreen: Function;
+    goBack: Function;
+    setSelectedOrder: Function;
 }
 export interface OrderItem {
     id: number;
@@ -71,7 +71,11 @@ export interface OrderItem {
     order_can_exchange: boolean;
     details: OrderDetail[];
   }
-  export interface OrderDetail {
+  import { ProductType } from "../OrderProductSliderPropsType";
+
+export interface OrderDetail extends ProductType {
+    is_returned?: boolean;
+    is_canceled?: boolean;
     id: number;
     order_id: number;
     product_id: number;

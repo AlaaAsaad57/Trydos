@@ -1,14 +1,14 @@
 export interface CommentsPropsType {
-    comments: CommentsData[],
+    comments: any[],
     Render: boolean,
-    resendComment: (mid: number) => void,
+    resendComment: Function,
     productId: number,
-    ErrorAccure: (s: Error) => void,
-    CommentsData: CommentsData[],
-    setComments: (s: CommentsData[]) => void,
-    increase_comments: () => void,
-    setRender: (s: boolean) => void,
-    verifyCommentAction: (mid: number) => void,
+    ErrorAccure: Function,
+    CommentsData: any[],
+    setComments: Function,
+    increase_comments: Function,
+    setRender: Function,
+    verifyCommentAction: Function,
 }
 export interface CommentsData {
     customer: {

@@ -11,6 +11,7 @@ import {
 } from "store/homepage/cachedActions";
 import { useAppStore } from "store";
 import { FlagIcon } from "utils/tinyUtils";
+import { LanguageFlagPropsType } from "models/componentType/LanguageFlagPropsType";
 
 function LanguageSetting({ goBack }: { goBack: () => void }) {
   const languages = ["ar", "en", "tr"];
@@ -296,7 +297,7 @@ const getLanguage = (iso) => {
   if (iso === "tr") return "Turkish";
 };
 export default LanguageSetting;
-const LanguageFlag = ({ lang }) => {
+const LanguageFlag = ({ lang }: LanguageFlagPropsType) => {
   if (lang === "ar") return <FlagIcon iso={"sa"} />;
   if (lang === "en") return <FlagIcon iso={"gb"} />;
   if (lang === "tr") return <FlagIcon iso="tr" />;

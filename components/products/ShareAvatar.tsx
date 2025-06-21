@@ -1,18 +1,14 @@
 import Image from "next/image";
 import React from "react";
 import profilePng from "public/images/profileNo.png";
+import { ShareAvatarPropsType } from "models/componentType/ShareAvatarPropsType";
 
 function ShareAvatar({
   active,
   setActive,
   contact,
   disable,
-}: {
-  active: boolean;
-  setActive: () => void;
-  contact: any;
-  disable: boolean;
-}) {
+}: ShareAvatarPropsType) {
   return (
     <div
       className={`share-avatar ${active && "selected"} ${

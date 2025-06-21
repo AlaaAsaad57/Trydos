@@ -12,8 +12,10 @@ import ReturnOrderItemConfirmation from "./ReturnOrderItemConfirmation";
 import OrderItem from "./OrderItem";
 import HideOrderItemIcon from "public/svg/HideOrderItemIcon.svg";
 import OrderCancelIcon from "public/svg/OrderCancelIcon.svg";
+import { OrderCanceltionOptionsPropsType } from "models/componentType/OrderCanceltionOptionsPropsType";
+import { OrderOptionsPropsType } from "models/componentType/OrderOptionsPropsType";
 
-function OrderOptions({ closeOptions, CancelOrder }) {
+function OrderOptions({ closeOptions, CancelOrder }: OrderOptionsPropsType) {
   const {
     selectedOrder,
     SelectedOrderItem,
@@ -268,7 +270,7 @@ function OrderOptions({ closeOptions, CancelOrder }) {
 }
 
 export default OrderOptions;
-const OrderCanceltionOptions = ({ close, setShouldConfirmCancel }) => {
+const OrderCanceltionOptions = ({ close, setShouldConfirmCancel }: OrderCanceltionOptionsPropsType) => {
   let options = [
     "I Changed My Mind",
     "I Fear Quality",

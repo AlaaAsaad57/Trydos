@@ -8,26 +8,15 @@ import WhatsIcon from "public/svg/whatsappNotification.svg";
 import CalenderIcon from "public/svg/CalenderIcon.svg";
 import home from "services/home";
 import NotificationsTest from "components/global/NotificationsTest";
+import { ProfileData, SettingsModalPropsType } from "models/componentType/settingsType/SettingsModalPropsType";
 
 interface SettingsModalProps {
   onClose: () => void;
   lang: string | string[];
 }
 
-interface ProfileData {
-  name: string;
-  email: string;
-  phone: string;
-  photo?: string;
-}
 
-interface ValidationErrors {
-  name?: string;
-  email?: string;
-  phone?: string;
-}
-
-const SettingsModal: React.FC<SettingsModalProps> = ({ onClose, lang }) => {
+const SettingsModal: React.FC<SettingsModalPropsType> = ({ onClose, lang }) => {
   const [mounted, setMounted] = useState(false);
   const [activeTab, setActiveTab] = useState<"notifications" | "preferences">(
     "notifications"

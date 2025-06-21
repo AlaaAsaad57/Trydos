@@ -3,20 +3,15 @@ import OfferSlideItem from "./OfferSlideItem";
 import { Boutique } from "models/Genaral/Boutique";
 import useEmblaCarousel from "embla-carousel-react";
 import Autoplay from "embla-carousel-autoplay";
-interface OfferPhotosSliderProps {
-  OfferPhotos: { file_path: string }[];
-  extended: boolean;
-  priority: boolean;
+import { OfferPhotosSliderPropsType } from "models/componentType/OfferPhotosSliderPropsType";
 
-  myKey: number;
-}
 function OfferPhotosSlider({
   OfferPhotos,
 
   myKey,
   extended,
   priority,
-}: OfferPhotosSliderProps) {
+}: OfferPhotosSliderPropsType) {
   const [emblaRef] = useEmblaCarousel({ loop: true }, [
     Autoplay({ delay: 3000 }),
   ]);

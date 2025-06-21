@@ -5,15 +5,12 @@ import { translateFunction } from "utils/functions";
 import { ConfirmationModal } from "./PersonalInfo";
 import { useAppStore } from "store";
 import { GetImageUrl } from "utils/tinyUtils";
+import { ProfileCardPropsType } from "models/componentType/settingTypes/MainSettingPropsType";
 function ProfileCard({
   goToProfile,
   goToProfileSize,
   goToProfilePicture,
-}: {
-  goToProfile: () => void;
-  goToProfileSize: () => void;
-  goToProfilePicture: () => void;
-}) {
+}: ProfileCardPropsType) {
   const { userProfile } = useAppStore();
   const [isModalOpen, setIsModalOpen] = useState(false);
 

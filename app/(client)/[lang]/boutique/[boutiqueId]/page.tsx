@@ -21,6 +21,9 @@ import FilterBoutiquePageButton from "components/filterPage/FilterBoutiquePageBu
 import SearchBoutiquePage from "components/filterPage/SearchBoutiquePage";
 import CarouselContainer from "components/filterPage/CarouselContainer";
 import { GetImageUrl } from "utils/tinyUtils";
+import { BoutiquePageProps } from "models/componentType/boutiqueTypes/boutiquePagePropsType";
+import { FilterData, FilterListPropsType } from "models/componentType/boutiqueTypes/FilterListPropsType";
+import { BoutiqueData } from "models/componentType/BoutiqueLoaderPropsType";
 
 export const dynamicParams = true;
 
@@ -40,17 +43,11 @@ export async function generateMetadata({ params, searchParams }) {
   }
 }
 
-interface ParamsType {
-  lang: string;
-  boutiqueId: string;
-}
+
 export default async function Page({
   params,
   searchParams,
-}: {
-  params: ParamsType;
-  searchParams: any;
-}) {
+}: BoutiquePageProps) {
   let EditedSearchParams: any = {};
 
   if (searchParams?.search_text) {
@@ -346,7 +343,7 @@ export default async function Page({
     </>
   );
 }
-async function BoutiqueHeader({ boutique }) {
+async function BoutiqueHeader({ boutique }: { boutique: BoutiqueData }) {
   return (
     <>
       {boutique?.banners && (

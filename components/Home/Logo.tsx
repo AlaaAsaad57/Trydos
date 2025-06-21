@@ -1,4 +1,6 @@
-function Logo({ animated, style }: { animated: boolean; style: boolean }) {
+import { LogoPropsType } from "models/componentType/LogoPropsType";
+
+function Logo({ animated, style }: LogoPropsType) {
   return (
     <div className="logo-container" data-cy="storeLogo">
       <img

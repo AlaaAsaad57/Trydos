@@ -2,7 +2,8 @@ import React from "react";
 import { translateFunction } from "utils/functions";
 import LargeAddressChangeIcon from "public/svg/LargeAddressChangeIcon.svg";
 import { GetAddressString } from "utils/tinyUtils";
-function ConfirmAddressModal({ close, confirm, confirmationData }) {
+import { ConfirmAddressModalPropsType } from "models/componentType/ConfirmAddressModalPropsType";
+function ConfirmAddressModal({ close, confirm, confirmationData }: ConfirmAddressModalPropsType) {
   return (
     <div className="z-[9999999999999] px-[24px] w-full flex-col justify-end items-center h-[calc(100vh)] overflow-auto max-h-[calc(100vh)] absolute top-0 left-0 bg-[#0000006c]  backdrop-blur-[10px]">
       <div className="flex-col justify-end items-center h-auto">

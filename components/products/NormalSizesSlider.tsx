@@ -1,4 +1,5 @@
 "use client";
+import { NormalSizesSliderPropsType } from "models/componentType/NormalSizesSliderPropsType";
 import React, { useEffect } from "react";
 function NormalSizesSlider({
   active,
@@ -7,7 +8,7 @@ function NormalSizesSlider({
   setActiveColor,
 
   close,
-}) {
+}: NormalSizesSliderPropsType) {
   useEffect(() => {
     if (typeof document !== "undefined") {
       const slider: HTMLDivElement = document?.querySelector(".sizes-slider");

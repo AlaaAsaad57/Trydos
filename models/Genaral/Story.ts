@@ -3,7 +3,7 @@ export interface FixedStory {
   id: number;
   name: string | null;
   photo_path: string | null;
-  media: string[];
+  media?: string[];
   mobile_phone: string;
   stories: {
     url: string;

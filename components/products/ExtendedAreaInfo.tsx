@@ -5,6 +5,7 @@ import ShareSection from "./ShareSection";
 import MoreOptionsSection from "./MoreOptionsSection";
 import { ProductInterface } from "models/Genaral/Product";
 import { getContacts } from "store/chat/actions";
+import { ExtendedAreaInfoPropsType } from "models/componentType/ExtendedAreaInfoPropsType";
 
 function ExtendedAreaInfo({
   option,
@@ -24,25 +25,7 @@ function ExtendedAreaInfo({
   verifyCommentAction,
 
   getComments,
-}: {
-  option: string;
-  getComments: () => void;
-  setOption: (e: string) => void;
-  active: boolean;
-  sharedContacts: Array<number>;
-  setShareContacts: (e: Array<number>) => void;
-  comments: any;
-
-  product: ProductInterface;
-  increase_comments: () => void;
-  CommentsData: any;
-  setComments: Function;
-  ErrorAccure: Function;
-  Render: boolean;
-  setRender: Function;
-  resendComment: Function;
-  verifyCommentAction: Function;
-}) {
+}: ExtendedAreaInfoPropsType) {
   let height = 500;
   const mountAnim = ` 
   0% {max-height:0px}

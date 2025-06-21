@@ -15,6 +15,7 @@ import { SearchResponse } from "models/API/elastic/Search";
 import auth from "services/auth";
 import LocalizationServiceClass from "services/localization";
 import { CielNumber } from "./tinyUtils";
+import { GetConfiguredImagePropsType } from "models/componentType/boutiqueTypes/metaDataPropsType";
 export const SSRDetect = () => {
   return typeof window !== "undefined";
 };
@@ -67,12 +68,7 @@ export const getConfiguredImage = ({
   width,
   height,
   q,
-}: {
-  src: string | any;
-  width?: number | string;
-  height?: number | string;
-  q?: number | string;
-}) => {
+}: GetConfiguredImagePropsType) => {
   if (typeof src === "string") {
     return src.replace(
       "/upload",

@@ -6,15 +6,12 @@ import { getConfiguredImage } from "utils/functions";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import CloseIcon from "components/Home/Stories/CloseIcon";
 import { useAppStore } from "store";
+import { ProductDetailsSliderPropsType } from "models/componentType/productTypes/ProductDetailsSliderPropsType";
 function ProductDetailsSlider({
   product: productObj,
   currency,
   images,
-}: {
-  product: any;
-  currency: any;
-  images: any[];
-}) {
+}: ProductDetailsSliderPropsType) {
   const { editInfo, storeProduct, setCurrency, product } = useAppStore();
   const productData = productObj;
   const [imageShow, showImage] = useState(-1);

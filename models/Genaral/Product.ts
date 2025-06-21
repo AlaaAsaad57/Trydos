@@ -1,4 +1,5 @@
 export interface ProductInterface {
+  
   id: number;
   name: string;
   slug: string;
@@ -97,4 +98,15 @@ export interface ProductInterface {
       value: string;
     }>;
   }>;
+  selectedColor: {
+    color_name: string;
+    images: Array<string>;
+    color_trend: boolean;
+  };
+  selectedSize: string,
+  collected_after_ordering: number,
+  is_country_restricted: boolean,
+  shipping_cost: number,
+  shipping_cost_multiply_with_quantity: number,
+  shipping_days: number,
 }

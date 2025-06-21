@@ -4,8 +4,9 @@ import profilePicture from "public/images/profileNo.png";
 
 import { GetUnviewedStory } from "store/homepage/actions";
 import { getConfiguredImage } from "utils/functions";
+import { StoryElementPropsType } from "models/componentType/StoryElementPropsType";
 
-function StoryElement({ index, story }) {
+function StoryElement({ index, story }: StoryElementPropsType) {
   return (
     <div className="story-element-container">
       <StoryAvatar

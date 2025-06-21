@@ -5,13 +5,10 @@ import { Boutique } from "models/Genaral/Boutique";
 import { useParams } from "next/navigation";
 import MoreOfferAvatar from "./MoreOfferAvatar";
 import search from "services/search";
+import { OfferAvatarsPropsType } from "models/componentType/OfferAvatarsPropsType";
 
-interface OfferAvatarsProps {
-  priority: boolean;
-  boutique: any;
-  // boutique: Boutique;
-}
-function OfferAvatars({ priority, boutique }: OfferAvatarsProps) {
+
+function OfferAvatars({ priority, boutique }: OfferAvatarsPropsType) {
   const ref = useRef<HTMLDivElement>();
   const { lang } = useParams();
   const handleMove = (e: any) => {

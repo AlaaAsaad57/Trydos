@@ -9,7 +9,11 @@ import Spinner from "components/global/Spinner";
 import { useAppStore } from "store";
 import { formatTime } from "utils/tinyUtils";
 import home from "services/home";
-function ShippingAddressContainer({ slideNext, slidePrev, openAddressList }) {
+import { AddAddressButtonPropsType } from "models/componentType/AddAddressButtonPropsType";
+import { AddressContainerPropsType } from "models/componentType/AddressContainerPropsType";
+import { ShippingAddressContainerPropsType } from "models/componentType/ShippingAddressContainerPropsType";
+import { ShippingAddressInputPropsType } from "models/componentType/ShippingAddressInputPropsType";
+function ShippingAddressContainer({ slideNext, slidePrev, openAddressList }: ShippingAddressContainerPropsType) {
   const { setCountries, cart, user } = useAppStore();
   const { lang } = useParams();
   const getOrderData = async () => {
@@ -140,7 +144,7 @@ const CartItemSelect = ({ items }) => {
   );
 };
 
-const ShippingAddressInput = ({ slideNext, slidePrev, openAddressList }) => {
+const ShippingAddressInput = ({ slideNext, slidePrev, openAddressList }: ShippingAddressInputPropsType) => {
   const { initAddressForm, addressLists, orderLoading } = useAppStore();
   const { lang } = useParams();
 
@@ -393,7 +397,7 @@ const ShippingAddressInput = ({ slideNext, slidePrev, openAddressList }) => {
     </div>
   );
 };
-const AddressContainer = ({ openAddressList }) => {
+const AddressContainer = ({ openAddressList }: AddressContainerPropsType) => {
   const [loading, setLoading] = useState(false);
   const getData = async () => {
     setLoading(true);
@@ -698,7 +702,7 @@ const AddressContainer = ({ openAddressList }) => {
     </div>
   );
 };
-const AddAddressButton = ({ onClick }) => {
+const AddAddressButton = ({ onClick }: AddAddressButtonPropsType) => {
   return (
     <div
       data-cy="AddAddres"

@@ -33,6 +33,7 @@ export interface ProductType {
     tax: number
     variant: string
     variation: any
+    
   }
   
   export interface ProductDetails {

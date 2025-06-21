@@ -26,18 +26,10 @@ import {
   GA_GLOBAL_SCREEN,
 } from "utils/GAEvents";
 import { GAevent } from "utils/gtag";
+import { SettingOption, SettingsIndexPropsType } from "models/componentType/settingTypes/SettingsIndexPropsType";
 
-interface SettingOption {
-  id: string;
-  title: string;
-  component: React.ReactNode;
-  parentId?: string;
-  isOption?: boolean;
-  options?: SettingOption[];
-  onBack?: () => void;
-}
 
-function Settings({ lang }: { lang: string }) {
+function Settings({ lang }: SettingsIndexPropsType) {
   const {
     setIsActiveAddress,
     userProfile,

@@ -1,6 +1,7 @@
 import React from "react";
 import GalleryItemSlider from "./GalleryItemSlider";
 import Heart from "public/svg/Heart.svg";
+import { GalleryItemPropsType } from "models/componentType/GalleryItemPropsType";
 
 function GalleryItem({
   image,
@@ -11,7 +12,7 @@ function GalleryItem({
   avatar,
   extended,
   onClick,
-}) {
+}: GalleryItemPropsType) {
   return (
     <div
       className={`${

@@ -13,6 +13,9 @@ import ContactInfoIcon from "public/svg/cart/ContactInfoIcon.svg";
 import order from "services/order";
 import { useAppStore } from "store";
 import { FlagIcon } from "utils/tinyUtils";
+import { AddAddressFormPropsType } from "models/componentType/settingTypes/PersonalInfoAddressModalPropsType";
+import { AddressSectionPropsType } from "models/componentType/AddressSectionPropsType";
+import { SelectRegionPropsType } from "models/componentType/SelectRegionPropsType";
 
 function AddAddressForm({
   setAddressDetails,
@@ -20,7 +23,7 @@ function AddAddressForm({
   setOpenSelect,
   activeIndex,
   isInSettings = false,
-}) {
+}: AddAddressFormPropsType) {
   const { setMapCenter, center, addressDetails, countries, orderLoading } =
     useAppStore();
   const { lang } = useParams();
@@ -193,7 +196,7 @@ function AddAddressForm({
 
 export default AddAddressForm;
 
-const AddressSection = ({ setOpenSelect }) => {
+const AddressSection = ({ setOpenSelect }: AddressSectionPropsType) => {
   return (
     <div
       className="flex-col w-full mt-[30px] px-[12px]"
@@ -271,7 +274,7 @@ const CountryLabel = () => {
   );
 };
 
-const SelectRegion = ({ setOpenSelect }) => {
+const SelectRegion = ({ setOpenSelect }: SelectRegionPropsType) => {
   const { addressDetails } = useAppStore();
 
   return (

@@ -14,6 +14,7 @@ import { useAppStore } from "store";
 import { getProductsAndFilters } from "store/homepage/cachedActions";
 import { BuyButtonProduct, ProductPhotosSlider } from "./Product";
 import NextLink from "components/global/NextLink";
+import { ProductsInfiniteScrollPropsType } from "models/componentType/ProductsInfiniteScrollPropsType";
 
 function ProductsInfiniteScroll({
   offset,
@@ -23,15 +24,7 @@ function ProductsInfiniteScroll({
   activeColor,
   productIds,
   isFeatured,
-}: {
-  offset: any;
-  currency: CurrencyApi["data"]["currency"];
-  boutiqueId: string;
-  searchParams: any;
-  activeColor: string;
-  productIds: string[];
-  isFeatured?: boolean;
-}) {
+}: ProductsInfiniteScrollPropsType) {
   const { resetBoutique, AddToCartOption, settings } = useAppStore();
   const { lang }: { lang: string } = useParams();
   // @ts-ignore

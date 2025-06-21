@@ -1,4 +1,5 @@
 "use client";
+import { HortiznalScrollBarProps } from "models/componentType/HomePagePropsType";
 import React, { useEffect } from "react";
 
 function HortiznalScrollBar({
@@ -6,12 +7,7 @@ function HortiznalScrollBar({
   children,
   id,
   dataCy,
-}: {
-  className: string;
-  children: React.ReactNode;
-  id: string;
-  dataCy?: string;
-}) {
+}: HortiznalScrollBarProps) {
   useEffect(() => {
     if (typeof window !== "undefined") {
       const slider: HTMLDivElement = document?.querySelector(`#${id}`);

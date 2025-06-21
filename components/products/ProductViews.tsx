@@ -4,8 +4,9 @@ import React, { useEffect } from "react";
 import EyeIcon from "public/svg/product/EyeIcon.svg";
 import Skeleton from "react-loading-skeleton";
 import { useAppStore } from "store";
+import { ProductViewsPropsType } from "models/componentType/productTypes/ProductViewsPropsType";
 
-function ProductViews({ product }) {
+function ProductViews({ product }: ProductViewsPropsType) {
   const { SelectedProduct } = useAppStore();
   useEffect(() => {
     setTimeout(() => {

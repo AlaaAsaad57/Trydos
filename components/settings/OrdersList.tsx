@@ -12,6 +12,7 @@ import { translateFunction } from "utils/functions"; // Assuming translateFuncti
 import { useAppStore } from "store";
 import { useRouter, useSearchParams } from "next/navigation";
 import { dispatchRouteChangeEvent } from "utils/events";
+import { OrdersListPropsType } from "models/componentType/settingTypes/OrdersListPropsType";
 
 // Helper function to get status display name (replace with actual logic if needed)
 
@@ -19,11 +20,7 @@ function OrdersList({
   swipeToScreen,
   goBack,
   setSelectedOrder,
-}: {
-  swipeToScreen: (index: number) => void;
-  goBack: () => void;
-  setSelectedOrder: (order: OrderItemType) => void;
-}) {
+}: OrdersListPropsType) {
   const [selectedStatus, setSelectedStatus] = useState(null);
   const [orders, setOrders] = useState<OrderItemType[]>([]);
   const [loading, setLoading] = useState(false);

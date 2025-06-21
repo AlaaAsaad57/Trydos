@@ -8,7 +8,7 @@ export interface ProductListServerPropsType {
       searchParams:any,
     products: ProductData[];
     currency: Currency;
-    offset: number[];
+    offset: number
     colors: string[];
     isFeatured?: boolean;
 }

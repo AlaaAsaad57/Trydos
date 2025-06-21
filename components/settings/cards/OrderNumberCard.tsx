@@ -1,10 +1,9 @@
 import { toast } from "react-toastify";
 import React from "react";
 import { translateFunction } from "utils/functions";
+import { OrderNumberCardProps } from "models/componentType/settingTypes/OrderDetailsPropsType";
 
-interface OrderNumberCardProps {
-  number: string;
-}
+
 
 const OrderNumberCard: React.FC<OrderNumberCardProps> = ({ number }) => {
   return (

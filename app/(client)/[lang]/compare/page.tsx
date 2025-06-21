@@ -2,6 +2,7 @@ import "styles/productDetails.css";
 
 import { notFound } from "next/navigation";
 import ComparePage from "components/global/compare";
+import { ComparePagePropsType } from "models/componentType/compareTypes/comparePagePropsType";
 export const dynamic = "auto";
 export async function generateMetadata({ params, searchParams }) {
   try {
@@ -20,7 +21,7 @@ interface Props {
   };
   searchParams: any;
 }
-async function Page({ params, searchParams }: Props) {
+async function Page({ params, searchParams }: ComparePagePropsType) {
   return (
     <>
       <ComparePage />

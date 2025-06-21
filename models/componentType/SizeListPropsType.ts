@@ -1,8 +1,6 @@
 export interface SizeListPropsType {
-    sizes: {
-        name: string;
-    }[];
-    setSize: (e: string) => void;
+    sizes:any;
+    setSize: Function;
     currentSize: string;
     newSize: string;
     image: string;

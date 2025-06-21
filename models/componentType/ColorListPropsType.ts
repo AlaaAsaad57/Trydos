@@ -1,11 +1,12 @@
-import { ProductDetails } from "./ModifyOrderWidgetPropsType";
-
 export interface ColorListPropsType {
-    colors: {
-        color_name: string;
-        images: string[];
-    }[];
-    setColor: (e: string) => void;
+    colors: SyncColorImage[];
+    setColor: Function;
     currentColor: string;
     newColor: string;
 }
+
+ export interface SyncColorImage {
+    color_name: string
+    images: any,
+    sync_color_images: SyncColorImage[]
+  }

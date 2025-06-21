@@ -11,7 +11,8 @@ import { useParams } from "next/navigation";
 import Spinner from "components/global/Spinner";
 import { formatTime } from "utils/tinyUtils";
 import { useAppStore } from "store";
-function ProductShippingOption({ days }) {
+import { ProductShippingOptionPropsType } from "models/componentType/productTypes/MultiComponentOnProductPage";
+function ProductShippingOption({ days }: ProductShippingOptionPropsType) {
   const [countriesData, setCountries] = useState([]);
   const getCountries = async () => {
     try {

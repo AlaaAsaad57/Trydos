@@ -5,18 +5,14 @@ import Image from "next/image";
 import StoryServiceClass from "services/story";
 import { FixedStory as StoryType } from "models/Genaral/Story";
 import { SelectStory } from "store/homepage/actions";
+import { StoryPropsType } from "models/componentType/StoryPropsType";
 
 function Story({
   media,
   Name,
   index,
   story,
-}: {
-  media: { photo_path: string; full_video_path: string; id: number };
-  Name: string;
-  index: number;
-  story: StoryType;
-}) {
+}: StoryPropsType) {
   const setSelectStory = (e: StoryType) => {
     SelectStory(e);
   };

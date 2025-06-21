@@ -13,13 +13,13 @@ import OrderStatusIcon, {
   BagStatusIcon,
 } from "components/settings/cards/OrderStatusIcon";
 import Image from "node_modules/next/image";
+import { OrderItemIdPropsType } from "models/componentType/OrderItemIdPropsType";
+import { OrderItemTimePropsType } from "models/componentType/OrderItemTimePropsType";
+import { OrderProductSliderPropsType } from "models/componentType/OrderProductSliderPropsType";
+import { OrderItemPropsType } from "models/componentType/OrderItemPropsType";
 
-interface OrderItemProps {
-  order: OrderItemType;
-  showDetails: () => void;
-}
 
-const OrderItem: React.FC<OrderItemProps> = ({ order, showDetails }) => {
+const OrderItem: React.FC<OrderItemPropsType> = ({ order, showDetails }) => {
   const { lang } = useParams();
   return (
     <div
@@ -47,7 +47,7 @@ const OrderItem: React.FC<OrderItemProps> = ({ order, showDetails }) => {
 };
 
 export default OrderItem;
-const OrderProductSlider = ({ products }: { products: any[] }) => {
+const OrderProductSlider = ({ products }) => {
   return (
     <div className="flex-row items-center pl-[12px] mt-[12px] whitespace-nowrap overflow-x-scroll overflow-y-hidden [&::-webkit-scrollbar]:hidden">
       {products.map((product) => (
@@ -218,7 +218,7 @@ const OrderInvoice = ({
     </div>
   );
 };
-const OrderItemTime = ({ time }: { time: string }) => {
+const OrderItemTime = ({ time }: OrderItemTimePropsType) => {
   const formatTime = (timeString: string) => {
     const date = new Date(timeString + "Z");
     const today = new Date();
@@ -325,7 +325,7 @@ const OrderItemTime = ({ time }: { time: string }) => {
     </div>
   );
 };
-const OrderItemId = ({ id }: { id: string }) => {
+const OrderItemId = ({ id }: OrderItemIdPropsType) => {
   return (
     <div className="flex-row items-center">
       <svg

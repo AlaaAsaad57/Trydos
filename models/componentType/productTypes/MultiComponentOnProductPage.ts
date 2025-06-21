@@ -18,14 +18,18 @@ export interface ProductStoriesPropsType {
 }
 
 export interface ProductSizesPropsType {
-  sizes: any;
+  sizes: Size[];
+}
+export interface Size {
+  name: string;
+  option: string;
 }
 export interface ProductShippingOptionPropsType {
   days: number;
 }
 
 export interface FreeShippingOptionPropsType {
-  lang: string;
+  lang: string | string[];
 }
 export interface ProductFooterSectionPropsType {
   product: ProductInterface;

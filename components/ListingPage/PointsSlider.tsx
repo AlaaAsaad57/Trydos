@@ -1,14 +1,11 @@
+import { PointsSliderPropsType } from "models/componentType/PointsSliderPropsType";
+
 function PointsSlider({
   isActiveTopSlide,
   setActiveTopSlide,
   activeIndex,
   colors,
-}: {
-  isActiveTopSlide: boolean;
-  setActiveTopSlide: Function;
-  activeIndex: number;
-  colors: any[];
-}) {
+}: PointsSliderPropsType) {
   const getSize = (i) => {
     if (i === activeIndex || (i === activeIndex && i === 0)) return 6;
     else if (i === activeIndex - 1 || i === activeIndex + 1) return 4;

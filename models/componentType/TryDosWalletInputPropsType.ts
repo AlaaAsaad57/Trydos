@@ -1,3 +1,4 @@
 export interface TryDosWalletInputPropsType {
-    total: number;
+    active: boolean,
+    setActive: Function
 }

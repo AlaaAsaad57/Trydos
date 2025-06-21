@@ -7,7 +7,8 @@ import { DebounceInput } from "react-debounce-input/src";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { dispatchRouteChangeEvent } from "utils/events";
 import { GA_EVENT_NAMES } from "utils/GAEvents";
-function SearchBoutiquePage({ search_text, boutique }) {
+import { SearchBoutiquePageProps } from "models/componentType/boutiqueTypes/SearchBoutiquePageProps";
+function SearchBoutiquePage({ search_text, boutique }: SearchBoutiquePageProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const router = useRouter();

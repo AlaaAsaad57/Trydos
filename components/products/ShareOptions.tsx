@@ -20,15 +20,12 @@ import { useAppStore } from "store";
 import { toast } from "react-toastify";
 import CopyIcon from "public/svg/copyIcon.svg";
 import { GA_EVENT_NAMES } from "utils/GAEvents";
+import { ShareOptionsPropsType } from "models/componentType/ShareOptionsPropsType";
 function ShareOptions({
   setShareContacts,
   sharedContacts,
   product,
-}: {
-  sharedContacts: Array<number>;
-  setShareContacts: (e: Array<number>) => void;
-  product: ProductInterface;
-}) {
+}: ShareOptionsPropsType) {
   const { incrementSharesCount, sharesCount, shareLoading, user, contacts } =
     useAppStore();
 

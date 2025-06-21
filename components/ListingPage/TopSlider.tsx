@@ -2,19 +2,14 @@ import Image from "next/image";
 import { useEffect, memo } from "react";
 import ProductSlider from "./ProductSlider";
 import { getConfiguredImage } from "utils/functions";
+import { TopSliderPropsType } from "models/componentType/TopSliderPropsType";
 function TopSlider({
   active,
   images,
   activeColor,
   setActiveColor,
   product_name,
-}: {
-  active: boolean;
-  images: string[];
-  activeColor: any;
-  setActiveColor: Function;
-  product_name: string;
-}) {
+}: TopSliderPropsType) {
   useEffect(() => {
     if (typeof document !== "undefined") {
       const slider: HTMLDivElement = document?.querySelector(".top-slider");

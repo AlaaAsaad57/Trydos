@@ -14,6 +14,7 @@ import {
   GA_GLOBAL_PLATFORM,
 } from "utils/GAEvents";
 import { GAevent } from "utils/gtag";
+import { SendMethodPropsType } from "models/componentType/settingTypes/SendMethodPropsType";
 
 function SendMethod({
   inputValue,
@@ -24,16 +25,7 @@ function SendMethod({
   setShowMobile,
   hideEdit,
   operation = "login",
-}: {
-  setStepIndicator: Function;
-  stepIndicator: number;
-  inputValue: string;
-  setWrongNumber: Function;
-  setMessageMethod: Function;
-  setShowMobile?: Function;
-  hideEdit?: boolean;
-  operation?: string;
-}) {
+}: SendMethodPropsType) {
   const { language, wrongNumber } = useAppStore();
 
   let { lang } = useParams();

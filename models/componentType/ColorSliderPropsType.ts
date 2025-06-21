@@ -7,12 +7,7 @@ export interface ColorSliderPropsType {
          images: string[];
          }
     setActiveColor: Function,
-    colors: { 
-         index: number;
-         images:{
-            file_path: string;
-         }[];
-         }[],
+    colors:any ,
     getIndex: number,
     setActiveImage?: Function,
 }

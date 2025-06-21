@@ -1,6 +1,7 @@
+import { BorderImagePropsType } from "models/componentType/BorderImagePropsType";
 import React from "react";
 
-function BorderImage({ isBig }: { isBig?: boolean }) {
+function BorderImage({ isBig }: BorderImagePropsType) {
   return (
     <svg
       data-cy="border_imagr_border"

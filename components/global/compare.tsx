@@ -10,11 +10,10 @@ import { toast } from "react-toastify";
 import SearchService from "services/search";
 import { useAppStore } from "store";
 import NextLink from "./NextLink";
+import { ComparePageComponentPropsType } from "models/componentType/compareTypes/ComparePageComponentPropsType";
 const ComparePage: React.FC = ({
   showInstantLoading = true,
-}: {
-  showInstantLoading?: boolean;
-}) => {
+}: ComparePageComponentPropsType) => {
   const { currency } = useAppStore();
   const searchParams = useSearchParams();
   const [product1, setProduct1] = useState<any>(null);

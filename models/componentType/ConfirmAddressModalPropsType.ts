@@ -1,9 +1,24 @@
 export interface ConfirmAddressModalPropsType {
-    close: () => void;
+    close: Function;
     confirmationData: {
-        newAddress: string;
-        currentAddress: string;
+        newAddress: {
+            address: string
+            region_details: string
+            contact_info:{
+                phone: string;
+                name: string;
+            }
+        }
+        currentAddress: {
+            address: string;
+            region_details: any;
+            contact_info:{
+                phone: string;
+                name: string;
+            }
+        }
         enable: boolean;
+        
     };
-    confirm: () => void;
+    confirm: Function;
 }

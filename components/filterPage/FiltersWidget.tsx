@@ -25,6 +25,9 @@ import {
   GA_GLOBAL_SCREEN,
 } from "utils/GAEvents";
 import { GAevent } from "utils/gtag";
+import { FiltersWidgetPropsType } from "models/componentType/FiltersWidgetPrpsType";
+import { FilterTobBarPropsType } from "models/componentType/FilterTobBarPropsType";
+import { ShowFilterRowPropsType } from "models/componentType/ShowFilterRowPropsType";
 
 const PriceChart = dynamic(
   () => import("components/ListingPage/filterComponents/PriceChart"),
@@ -217,7 +220,7 @@ function FilterWidgetContainer({}) {
     );
 }
 export default FilterWidgetContainer;
-function FiltersWidget({ filters, configureActiveFilters }) {
+function FiltersWidget({ filters, configureActiveFilters }: FiltersWidgetPropsType) {
   let priceVariable = null;
 
   const { lang, boutiqueId } = useParams();
@@ -460,7 +463,7 @@ function FiltersWidget({ filters, configureActiveFilters }) {
   );
 }
 
-const FilterTobBar = ({ isSearch, setIsSearch, Goback }) => {
+const FilterTobBar = ({ isSearch, setIsSearch, Goback }: FilterTobBarPropsType) => {
   const { lang } = useParams();
   const {
     filterEnabled,

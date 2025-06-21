@@ -1,7 +1,8 @@
 "use client";
 import React, { useState } from "react";
+import { SwitchFiltersButtonProps } from "models/componentType/SwitchFiltersButtonPropsType";
 
-function SwitchFiltersButton({ length }) {
+function SwitchFiltersButton({ length }: SwitchFiltersButtonProps) {
   let [active, setActive] = useState(0);
   const onClick = () => {
     if (active === length - 1) {

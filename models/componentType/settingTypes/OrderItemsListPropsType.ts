@@ -4,6 +4,8 @@ export interface OrderItemsListPropsType {
     isExpanded: boolean;
     setExpanded: (s: boolean) => void;
     order_group_status: string;
+    shouldShowChat: () => boolean;
+    showChats: Function;
 }
 export interface OrderItem {
     collect_product_after_ordering: boolean

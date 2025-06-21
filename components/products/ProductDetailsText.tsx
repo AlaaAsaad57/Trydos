@@ -1,4 +1,5 @@
 "use client";
+import { ProductDetailsTextProps } from "models/componentType/productTypes/ProductDetailsTextPropsType";
 import { ProductInterface } from "models/Genaral/Product";
 import { useParams, useSearchParams } from "next/navigation";
 import { useEffect, useState, useMemo } from "react";
@@ -8,10 +9,7 @@ import { translateFunction } from "utils/functions";
 function ProductDetailsText({
   details,
   product,
-}: {
-  details: string;
-  product: ProductInterface["sync_color_images"];
-}) {
+}: ProductDetailsTextProps) {
   const { setActiveColorDetails } = useAppStore();
   const { lang } = useParams();
   const searchParams = useSearchParams();

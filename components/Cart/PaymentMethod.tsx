@@ -18,6 +18,7 @@ import CouponElement from "./couponElement";
 import { toast } from "react-toastify";
 import { useAppStore } from "store";
 import { useEffect } from "react";
+import { TryDosWalletInputPropsType } from "models/componentType/TryDosWalletInputPropsType";
 function PaymentMethod() {
   const {
     setWalletBalance,
@@ -541,7 +542,7 @@ const CODInput = ({ active, setActive, total }) => {
     </div>
   );
 };
-const TryDosWalletInput = ({ active, setActive }) => {
+const TryDosWalletInput = ({ active, setActive }: TryDosWalletInputPropsType) => {
   const { orderLoading, wallet, currency, settings } = useAppStore();
   const points = settings["starting-setting"]?.decimal_point_settings || 0;
   return (

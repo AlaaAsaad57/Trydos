@@ -4,14 +4,7 @@ import WalletIcon from "assets/svg/cart/WalletIcon.svg";
 import CreditIcon from "assets/svg/cart/CreditIcon.svg";
 import CryptoIcon from "assets/svg/cart/CryptoIcon.svg";
 import { useAppStore } from "store";
-
-interface OrderInvoiceCardProps {
-  amount: number;
-  payments: {
-    value: string;
-    label: string;
-  };
-}
+import { OrderInvoiceCardProps } from "models/componentType/settingTypes/OrderDetailsPropsType";
 
 const OrderInvoiceCard: React.FC<OrderInvoiceCardProps> = ({
   amount,

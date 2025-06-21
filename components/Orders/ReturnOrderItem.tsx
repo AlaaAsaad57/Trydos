@@ -5,13 +5,14 @@ import ReturnOrderItemIcon from "public/svg/ReturnOrderItemIcon.svg";
 import { useAppStore } from "store";
 import UploadImageOrder from "public/svg/UploadImageOrder.svg";
 import Spinner from "components/global/Spinner";
+import { ReturnOrderItemPropsType } from "models/componentType/ReturnOrderItemPropsType";
 
 function ReturnOrderItem({
   backToMain,
   item,
   closeOptions,
   setShouldConfirmReturn,
-}) {
+}: ReturnOrderItemPropsType) {
   const { currency } = useAppStore();
   const [selectedOptions, setSelectedOptions] = useState([]);
   const options = [

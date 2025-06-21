@@ -9,12 +9,9 @@ import { useAppStore } from "store";
 
 import StoryServiceClass from "services/story";
 
-interface Props {
-  story: StoryType;
-  active: boolean;
-  isPaused: boolean;
-}
-function StoryHolder({ story, active, isPaused }: Props) {
+import { StoryHolderPropsType } from "models/componentType/StoryHolderPropsType";
+
+function StoryHolder({ story, active, isPaused }: StoryHolderPropsType) {
   const { selectedStory } = useAppStore();
 
   const [currentStoryId, setCurrentStoryId] = useState(0);

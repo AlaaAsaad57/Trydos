@@ -12,5 +12,4 @@ export interface InfiniteScrollFiltersPropsType {
       };
     lang: string;
     currency: Currency;
-    key: string;
 }

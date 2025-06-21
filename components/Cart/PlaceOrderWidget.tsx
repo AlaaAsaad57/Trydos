@@ -22,6 +22,10 @@ import CryptoIcon from "assets/svg/cart/CryptoIcon.svg";
 import OrderSuccess from "./OrderSuccess";
 import { useParams } from "next/navigation";
 import { useAppStore } from "store";
+import { AddressOrderPropsType } from "models/componentType/AddressOrderPropsType";
+import { PaymentOrderPropsType } from "models/componentType/PaymentOrderPropsType";
+import { CreditInputPropsType } from "models/componentType/CreditInputPropsType";
+import { CryptoInputPropsType } from "models/componentType/CryptoInputPropsType";
 function PlaceOrderWidget() {
   const { orderData } = useAppStore();
 
@@ -113,7 +117,7 @@ const OrderCartItem = () => {
     </div>
   );
 };
-const AddressOrder = ({ success }) => {
+const AddressOrder = ({ success }: AddressOrderPropsType) => {
   const { addressLists } = useAppStore();
   const GetAddressString = (location) => {
     let str = "";
@@ -395,7 +399,7 @@ const AddressOrder = ({ success }) => {
     </div>
   );
 };
-const PaymentOrder = ({ success }) => {
+const PaymentOrder = ({ success }: PaymentOrderPropsType) => {
   const { orderData, coupon_discount, currency, wallet, total, total_cash } =
     useAppStore();
   const getWalletInUSD = () => {
@@ -635,7 +639,7 @@ const TryDosWalletInput = ({ total }) => {
     </div>
   );
 };
-const CreditInput = ({ total }) => {
+const CreditInput = ({ total }: CreditInputPropsType) => {
   return (
     <div
       style={{
@@ -660,7 +664,7 @@ const CreditInput = ({ total }) => {
     </div>
   );
 };
-const CryptoInput = ({ total }) => {
+const CryptoInput = ({ total }: CryptoInputPropsType) => {
   return (
     <div
       onClick={(e) => {

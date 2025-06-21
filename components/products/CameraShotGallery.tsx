@@ -9,7 +9,8 @@ import GalleryItem from "./GalleryItem";
 import { translateFunction } from "utils/functions";
 import { useParams } from "next/navigation";
 import { useAppStore } from "store";
-function CameraShotGallery({ images, close }) {
+import { CameraShotGalleryPropsType } from "models/componentType/CameraShotGalleryPropsType";
+function CameraShotGallery({ images, close }: CameraShotGalleryPropsType) {
   const { activeCameraGallery, showInfoMessage } = useAppStore();
   let { lang } = useParams();
   // @ts-ignore

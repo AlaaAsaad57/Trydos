@@ -24,6 +24,7 @@ import {
   GA_GLOBAL_PLATFORM,
 } from "utils/GAEvents";
 import { GAevent } from "utils/gtag";
+import { PhoneInputPropsType } from "models/componentType/settingTypes/PhoneInputPropsType";
 
 function PhoneInput({
   stepIndicator,
@@ -34,16 +35,7 @@ function PhoneInput({
   operation,
   inputValue,
   setInputValue,
-}: {
-  stepIndicator: number;
-  isForCart: boolean;
-  setStepIndicator: Function;
-  wrongNumber: boolean | string;
-  setWrongNumber: Function;
-  operation: string;
-  inputValue: string;
-  setInputValue: Function;
-}) {
+}: PhoneInputPropsType) {
   const { language } = useAppStore();
 
   let { lang } = useParams();

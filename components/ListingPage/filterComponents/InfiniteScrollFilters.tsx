@@ -2,6 +2,7 @@
 
 import Spinner from "components/global/Spinner";
 import { FilterItem } from "components/Server/FilterList";
+import { InfiniteScrollFiltersPropsType } from "models/componentType/InfiniteScrollFiltersPropsType";
 
 import React, { useState } from "react";
 
@@ -16,15 +17,7 @@ function InfiniteScrollFilters({
   currency,
   params,
   isFeatured,
-}: {
-  searchParams: any;
-  lang: any;
-  term: any;
-  boutique: any;
-  currency: any;
-  params: any;
-  isFeatured?: boolean;
-}) {
+}: InfiniteScrollFiltersPropsType) {
   const { partialLoading, setSearchPartialLoading } = useAppStore();
   const [country, language] = params.lang?.split("-");
 

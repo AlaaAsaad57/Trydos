@@ -1,10 +1,7 @@
 import "styles/spinner.css";
-interface SpinnerProps {
-  no?: boolean | null;
-  className?: string | null;
-  isMargen?: boolean;
-}
-function Spinner(props: SpinnerProps) {
+import { SpinnerPropsType } from "models/componentType/SpinnerPropsType";
+
+function Spinner(props: SpinnerPropsType) {
   return (
     <div
       data-cy="spinner-container2"

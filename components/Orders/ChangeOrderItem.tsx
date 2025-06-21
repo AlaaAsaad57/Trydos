@@ -5,13 +5,15 @@ import ChangeOrderItemIcon from "public/svg/ChangeOrderItemIcon.svg";
 import { AxiosGet } from "utils/AxiosApi";
 import Spinner from "components/global/Spinner";
 import { ColorList, SizeList } from "./ModifyOrderItemModal";
-
+import { ChangeColorWidgetPropsType } from "models/componentType/ChangeColorWidgetPropsType";
+import { ChangeOrderItemPropsType } from "models/componentType/ChangeOrderItemPropsType";
+import { ChangeSizeWidgetPropsType } from "models/componentType/ChangeSizeWidgetPropsType";
 function ChangeOrderItem({
   item,
   backToMain,
   setShouldConfirmChange,
   changeOrderItem,
-}) {
+}: ChangeOrderItemPropsType) {
   const [tabs, setTabs] = useState<string>(
     item?.variation?.color
       ? "Change Color"
@@ -217,12 +219,7 @@ export const ChangeColorWidget = ({
   setColor,
   item,
   productData,
-}: {
-  color: string;
-  setColor: (color: string) => void;
-  item: any;
-  productData: any;
-}) => {
+}: ChangeColorWidgetPropsType) => {
   return (
     <div className="flex-col w-full items-center  border-[#E6E6E680] border-b-[1px] pb-[12px] px-[24px] mt-[10px]">
       <div className="relative">
@@ -267,12 +264,7 @@ export const ChangeSizeWidget = ({
   setSize,
   item,
   productData,
-}: {
-  size: string;
-  setSize: (size: string) => void;
-  item: any;
-  productData: any;
-}) => {
+}: ChangeSizeWidgetPropsType) => {
   return (
     <div className="flex-col w-full items-center  border-[#E6E6E680] border-b-[1px] pb-[12px] px-[24px] mt-[10px]">
       <div className="relative">

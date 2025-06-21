@@ -5,18 +5,14 @@ import StoriesBarServer from "components/Server/StoriesBarServer";
 import MobileNavigationSkeleton from "components/skeleton/MobileNavigation";
 import OfferListSkeleton from "components/skeleton/OfferList";
 import StoriesSkeleton from "components/skeleton/StoriesSkeleton";
+import { HomePageProps } from "models/componentType/HomePagePropsType";
 import { Suspense } from "react";
 
 export const revalidate = parseInt(process.env.NEXT_PUBLIC_REVALIDATE);
 export const runtime = "nodejs";
 export const preferredRegion = ["bom1", "sin1"];
-interface Props {
-  params: {
-    lang: string;
-    mainCategory: string;
-  };
-}
-function page({ params }: Props) {
+
+function page({ params }: HomePageProps) {
   return (
     <>
       <Suspense fallback={<MobileNavigationSkeleton />}>

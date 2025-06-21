@@ -6,6 +6,7 @@ import { AxiosPost } from "utils/AxiosApi";
 import CommentPost from "public/svg/CommentPost.svg";
 import auth from "services/auth";
 import { translateFunction } from "utils/functions";
+import { CommentBarPropsType } from "models/componentType/CommentBarPropsType";
 
 function CommentBar({
   product,
@@ -16,7 +17,7 @@ function CommentBar({
   increase_comments,
   ErrorAccure,
   verifyCommentAction,
-}) {
+}: CommentBarPropsType) {
   const addCommentAction = (s) => {
     setComments([{ ...s, is_verfied: false }, ...CommentsData]);
     setTimeout(() => {

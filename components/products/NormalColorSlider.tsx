@@ -1,3 +1,4 @@
+import { NormalColorSliderPropsType } from "models/componentType/NormalColorSliderPropsType";
 import CircleBorder from "public/svg/product/CircleBorder";
 import React, { useEffect } from "react";
 import { getConfiguredImage } from "utils/functions";
@@ -9,7 +10,7 @@ function NormalColorSlider({
   setActiveColor,
   ProductColorsArray,
   close,
-}) {
+}: NormalColorSliderPropsType) {
   useEffect(() => {
     if (typeof document !== "undefined") {
       const slider: HTMLDivElement = document?.querySelector(

@@ -3,6 +3,13 @@ export interface ModifyOrderWidgetPropsType {
     order_items: OrderItem[];
 }
 export interface OrderItem {
+    quantity?: number;
+    order_status?: string;
+    brand?: {
+        image: string;
+    };
+    pop?: Function;
+    push?: Function;
     collect_product_after_ordering: boolean
     delivery_status: string
     discount: number

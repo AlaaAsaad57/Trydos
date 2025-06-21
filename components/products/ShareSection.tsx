@@ -4,17 +4,13 @@ import ShareOptions from "./ShareOptions";
 
 import { ProductInterface } from "models/Genaral/Product";
 import { useParams } from "next/navigation";
+import { ShareSectionPropsType } from "models/componentType/ShareSectionPropsType";
 
 function ShareSection({
   setShareContacts,
   sharedContacts,
   product,
-}: {
-  sharedContacts: Array<number>;
-  product: ProductInterface;
-
-  setShareContacts: (e: Array<number>) => void;
-}) {
+}: ShareSectionPropsType) {
   var language = "en";
   let { lang } = useParams();
   // @ts-ignore

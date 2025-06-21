@@ -21,6 +21,8 @@ import LocalizationServiceClass from "services/localization";
 import { useAppStore } from "store";
 import { GA_EVENT_NAMES } from "utils/GAEvents";
 import home from "services/home";
+import { DeleteModalComponentPropsType, OrderButtonsPropsType } from "models/componentType/settingTypes/DeleteModalComponentPropsType";
+import { OrdersPagePropsType } from "models/componentType/OrdersPagePropsType";
 
 const DeleteIcon = () => {
   return (
@@ -106,10 +108,7 @@ const DeleteIcon = () => {
 function OrdersPage({
   setStep,
   close,
-}: {
-  setStep: (e: number) => void;
-  close: () => void;
-}) {
+}: OrdersPagePropsType) {
   const {
     addressDetails,
     orderData,
@@ -557,7 +556,7 @@ export const DeleteModalComponent = ({
   closeModal,
   deletedAddress,
   slidePrev,
-}) => {
+}: DeleteModalComponentPropsType) => {
   const { deleteAddress } = useAppStore();
   const GetAddressString = (location) => {
     let str = "";
@@ -785,7 +784,7 @@ export const DeleteModalComponent = ({
     </>
   );
 };
-const OrderButtons = ({ orderLoading, setNext, setPrev }) => {
+const OrderButtons = ({ orderLoading, setNext, setPrev }: OrderButtonsPropsType) => {
   const {
     initCart,
     currency,

@@ -1,5 +1,5 @@
 export interface StoriesContainerPropsType {
-     stories: StoriesData[],
+     stories?: StoriesData[],
      selectedStory: StoriesData
 }
 export interface StoriesData {

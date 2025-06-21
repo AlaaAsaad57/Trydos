@@ -6,6 +6,7 @@ import { translateFunction } from "utils/functions";
 import ChatWidget from "components/Chat/ChatWidget";
 import OrderOptions from "components/Orders/OrderOptions";
 import { useAppStore } from "store";
+import { SettingTopBarPropsType } from "models/componentType/settingTypes/SettingTopBarPrpsType";
 
 function SettingTopBar({
   Save,
@@ -14,15 +15,7 @@ function SettingTopBar({
   goBack,
   Icon,
   DataCy,
-}: {
-  Save?: () => void;
-  hasOptions?: boolean;
-  screenName: string | React.ReactNode;
-  goBack: () => void;
-  Icon?: React.ReactNode;
-  DataCy?: string;
-  hasChat?: any;
-}) {
+}: SettingTopBarPropsType) {
   const { setOrderOptions } = useAppStore();
 
   return (

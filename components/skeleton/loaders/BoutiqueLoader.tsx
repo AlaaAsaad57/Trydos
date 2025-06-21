@@ -1,13 +1,11 @@
 import React from "react";
 import ListingSkeleton from "../listing";
+import { BoutiqueLoaderPropsType } from "models/componentType/BoutiqueLoaderPropsType";
 
 function BoutiqueLoader({
   boutique,
   isForSearch,
-}: {
-  boutique: any;
-  isForSearch?: boolean;
-}) {
+}: BoutiqueLoaderPropsType) {
   return (
     <div
       style={{

@@ -17,8 +17,9 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import CircleBorder from "public/svg/product/CircleBorder";
 import NormalColorSlider from "./NormalColorSlider";
 import { useAppStore } from "store";
+import { ProductColorsPropsType } from "models/componentType/productTypes/MultiComponentOnProductPage";
 
-function ProductColors({ colors, ProductColorsArray }) {
+function ProductColors({ colors, ProductColorsArray }: ProductColorsPropsType) {
   const { setActiveColorDetails, showInfoMessage, product } = useAppStore();
   let { lang } = useParams();
   // @ts-ignore

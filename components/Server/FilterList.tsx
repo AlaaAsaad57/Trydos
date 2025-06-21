@@ -9,6 +9,7 @@ import InfiniteScrollFilters from "components/ListingPage/filterComponents/Infin
 import SwitchFiltersButton from "components/filterPage/SwitchFiltersButton";
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 import Image from "next/image";
+import { FilterItemsRowPropsType } from "models/componentType/FilterItemsRowPropsType";
 
 function FilterList({
   searchParams,
@@ -523,16 +524,7 @@ const FilterItemsRow = ({
   index,
   boutique,
   isFeatured,
-}: {
-  currency: any;
-  searchParams: any;
-  items: any;
-  term: any;
-  params: any;
-  index: any;
-  boutique: any;
-  isFeatured?: boolean;
-}) => {
+}: FilterItemsRowPropsType) => {
   const getDataCy = () => {
     if (term === "categories") return "categoryBox";
     if (term === "brands") return "BrandBox";
@@ -569,7 +561,7 @@ const FilterItemsRow = ({
             lang={params?.lang}
             currency={currency}
             params={params}
-            key={searchParams}
+            key={searchParams.toString()}
           />
         )}
       </div>

@@ -10,10 +10,7 @@ export interface FilterItemsRowPropsType {
         boutiqueId?: string;
     };
     currency: Currency;
-    searchParams: {
-        [key: string]: string | string[] | undefined;
-    };
+    searchParams: URLSearchParams;
     items: FilterData[];
-    key: string;
     term: string;
 }

@@ -4,8 +4,9 @@ import "styles/productDetails.css";
 import InfinteScroll from "components/global/InfinteScroll";
 import NormalWidget from "components/Home/OfferWidgets/NormalWidget";
 import OfferListSkeleton from "components/skeleton/OfferList";
+import { OfferListServerPropsType } from "models/componentType/OfferListServerPropsType";
 
-async function OfferListServer({ params }) {
+async function OfferListServer({ params }: OfferListServerPropsType) {
   try {
     let newParams = new URLSearchParams();
     if (params.mainCategory) {

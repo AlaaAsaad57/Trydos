@@ -16,8 +16,9 @@ import {
 } from "next/navigation";
 import { useAppStore } from "store";
 import { GA_EVENT_NAMES } from "utils/GAEvents";
+import { ProductSizesPropsType } from "models/componentType/productTypes/MultiComponentOnProductPage";
 
-function ProductSizes({ sizes }) {
+function ProductSizes({ sizes }: ProductSizesPropsType) {
   const { showInfoMessage } = useAppStore();
   let { lang } = useParams();
   // @ts-ignore

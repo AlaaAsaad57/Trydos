@@ -5,8 +5,9 @@ import React, { useState } from "react";
 import StoryElement from "./StoryElement";
 import story from "services/story";
 import { useAppStore } from "store";
+import { StoriesPaginationPropsType } from "models/componentType/StoriesPaginationPropsType";
 
-function StoriesPagination({ next_page_url }: { next_page_url: string }) {
+function StoriesPagination({ next_page_url }: StoriesPaginationPropsType) {
   const { storiesData, setStoryData } = useAppStore();
   const [loading, setLoading] = useState(false);
   const [next_page, setNextPage] = useState(next_page_url ? 2 : null);

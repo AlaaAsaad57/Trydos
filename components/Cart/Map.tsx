@@ -7,12 +7,14 @@ import Spinner from "components/global/Spinner";
 import { useAppStore } from "store";
 import { useParams } from "next/navigation";
 import { AxiosGet } from "utils/AxiosApi";
+import { ConfirmLocationPropsType } from "models/componentType/ConfirmLocationPropsType";
+import { MapPropsType } from "models/componentType/MapPropsType";
 const MapElement = dynamic(
   () => import("./MapElement").then((mod) => mod.MapElement),
   { ssr: false }
 );
 
-const Map = ({ setAddressDetails, center, expanded, setExpanded }) => {
+const Map = ({ setAddressDetails, center, expanded, setExpanded }: MapPropsType) => {
   const { lang } = useParams();
   const { addressDetails } = useAppStore();
   const [cordinates, setCordinates] = useState(null);
@@ -151,7 +153,7 @@ const Map = ({ setAddressDetails, center, expanded, setExpanded }) => {
 
 export default Map;
 
-const ConfirmLocation = ({ locationSelected, selectLocation, closeMap }) => {
+const ConfirmLocation = ({ locationSelected, selectLocation, closeMap }: ConfirmLocationPropsType) => {
   return (
     <div
       data-cy="confirm-location"

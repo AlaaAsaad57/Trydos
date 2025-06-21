@@ -4,7 +4,7 @@ export interface PersonalInfoAddressModalPropsType {
     goBack: () => void;
 }
 export interface AddAddressFormPropsType {
-    isInSettings: boolean;
+    isInSettings?: boolean;
   activeIndex: boolean;
   setOpenSelect: () => void;
   slidePrev: () => void;

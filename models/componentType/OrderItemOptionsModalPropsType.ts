@@ -1,12 +1,13 @@
 export interface OrderItemOptionsModalPropsType {
-    close: Function,
-    setShouldConfirmChange: Function,
-    setShouldConfirmCancel: Function,
-    setShouldConfirmReturn: Function,
+    close?: Function,
+    setShouldConfirmChange?: Function,
+    setShouldConfirmCancel?: Function,
+    setShouldConfirmReturn?: Function,
     item: Item,
-    changeOrderItem: Function,
-    cancelOrderItem: Function,
-    
+    changeOrderItem?: Function,
+    cancelOrderItem?: Function,
+    closeOptions?: Function,
+    backToMain?: Function,
 }
 export interface Item {
     collect_product_after_ordering: boolean
@@ -20,7 +21,9 @@ export interface Item {
     odoo_id: number
     odoo_order_id: number
     order_id: number
-    order_status: string
+    order_status: {
+      label: string
+    }
     payment_status: string
     price: number
     price_after_discount: number
@@ -57,5 +60,6 @@ export interface Item {
   
   export interface Variation {
     color: string
+    Size: string
   }
   

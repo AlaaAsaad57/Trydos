@@ -6,8 +6,13 @@ export interface ProductOptionsPropsType {
     loading: boolean;
     shareAction: () => void;
     productDetails: ProductDetails;
-    product: Product;
+    product: any;
     share: boolean;
+    selectedColor?: {
+      color_name: string;
+    images?: Array<string>;
+    color_trend?: boolean;
+    }
 }
 export interface Product {
     quantity?: number;

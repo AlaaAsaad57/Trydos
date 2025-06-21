@@ -11,6 +11,7 @@ import {
   GA_GLOBAL_SCREEN,
 } from "utils/GAEvents";
 import { GAevent } from "utils/gtag";
+import { InfinteScrollPropsType } from "models/componentType/InfinteScrollPropsType";
 const useInfiniteScroll = (fetchNextPage) => {
   useEffect(() => {
     // Function to check scroll position
@@ -33,7 +34,7 @@ const useInfiniteScroll = (fetchNextPage) => {
     };
   }, [fetchNextPage]);
 };
-function InfinteScroll({ offsetVariable }) {
+function InfinteScroll({ offsetVariable }: InfinteScrollPropsType) {
   const [boutiques, setBoutiques] = useState([]);
   const [offset, setOffset] = useState(offsetVariable);
   const [loading, setLoading] = useState(false);

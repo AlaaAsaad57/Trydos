@@ -8,12 +8,13 @@ import {
 } from "utils/functions";
 
 import CancelOrderItemIcon from "public/svg/OrderCancelIcon.svg";
+import { CancelOrderItemPropsType } from "models/componentType/CancelOrderItemPropsType";
 function CancelOrderItem({
   item,
   backToMain,
   setShouldConfirmCancel,
   cancelOrderItem,
-}) {
+}: CancelOrderItemPropsType) {
   const { currency } = useAppStore();
   const [selectedOptions, setSelectedOptions] = useState([]);
   let options = [
@@ -66,7 +67,7 @@ function CancelOrderItem({
         </span>
         <p className="text-[#8D8D8D] text-[12px] regular text-center">
           {translateFunction(
-            "You Can Cancel The Product Without Any Conditions According To The Cancel Policy And Get A Full Refund "
+            "You Can Cancel The Product Without Any Conditions According To The Cancel Policy And Get A Full Refund"
           )}
           <span className="bold text-[12px] text-[#8D8D8D] ml-[4px]">
             {RoundPrice({

@@ -1,8 +1,9 @@
 "use client";
 import SettingsModal from "components/Home/SettingsModal";
+import { SettingComponentPropsType } from "models/componentType/settingsType/SettingComponentPropsType";
 import React, { useState } from "react";
 
-function Setting({ lang }) {
+function Setting({ lang }: SettingComponentPropsType) {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   return (

@@ -14,14 +14,12 @@ import {
   GA_GLOBAL_SCREEN,
 } from "utils/GAEvents";
 import { GAevent } from "utils/gtag";
+import { StoriesContainerPropsType } from "models/componentType/StoriesContainerPropType";
 
 function StoriesContainer({
   selectedStory,
   stories,
-}: {
-  selectedStory: any;
-  stories?: any;
-}) {
+}: StoriesContainerPropsType) {
   const { storiesData: storiesCache } = useAppStore();
   let storiesData = stories ?? storiesCache;
   var dir = 0;

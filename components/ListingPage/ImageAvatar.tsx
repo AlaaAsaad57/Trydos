@@ -1,3 +1,4 @@
+import { ImageAvatarPropsType } from "models/componentType/ImageAvatarPropsType";
 import Image from "next/image";
 import { getConfiguredImage } from "utils/functions";
 
@@ -9,15 +10,7 @@ function ImageAvatar({
   isActive,
   name,
   priority,
-}: {
-  image: string;
-  width: number;
-  height: number;
-  alt: string;
-  isActive: boolean;
-  name: string;
-  priority: boolean;
-}) {
+}: ImageAvatarPropsType) {
   return (
     <div className="image-avatar overflow-visible w-100 rounded-50 flex relative">
       {isActive ? (

@@ -11,6 +11,7 @@ import ProductsInfiniteScroll from "components/ListingPage/ProductsList";
 import NextLink from "components/global/NextLink";
 import { getActiveFilters } from "./FilterList";
 import Image from "next/image";
+import { ProductListServerPropsType } from "models/componentType/boutiqueTypes/ProductListServerPropsType";
 
 function ProductListServer({
   params,
@@ -20,15 +21,7 @@ function ProductListServer({
   offset,
   colors,
   isFeatured,
-}: {
-  params: any;
-  searchParams: any;
-  products: any;
-  currency: any;
-  offset: any;
-  colors: any;
-  isFeatured?: boolean;
-}) {
+}: ProductListServerPropsType) {
   const activeFilters = getActiveFilters(searchParams)?.colors || [];
 
   let activeColor = colors?.find(

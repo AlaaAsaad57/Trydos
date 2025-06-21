@@ -11,6 +11,7 @@ import {
   PreparingStatus,
   ShippedSatus,
 } from "./OrderStatusCartsIcon";
+import { OrderItemsListPropsType } from "models/componentType/settingTypes/OrderItemsListPropsType";
 
 function OrderItemsList({
   items,
@@ -19,14 +20,7 @@ function OrderItemsList({
   order_group_status,
   shouldShowChat,
   showChats,
-}: {
-  items: any;
-  isExpanded: boolean;
-  setExpanded: (s: boolean) => void;
-  order_group_status: any;
-  shouldShowChat: () => boolean;
-  showChats: () => any;
-}) {
+}: OrderItemsListPropsType) {
   const getStatusIcon = (status) => {
     if (status === "pending") return <PendingStatus />;
     if (status === "preparing") return <PreparingStatus />;

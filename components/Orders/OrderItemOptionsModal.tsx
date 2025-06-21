@@ -10,6 +10,7 @@ import { useAppStore } from "store";
 import CancelOrderIcon from "public/svg/OrderCancelIcon.svg";
 import CancelOrderItem from "./CancelOrderItem";
 import ChangeOrderItem from "./ChangeOrderItem";
+import { OrderItemOptionsModalPropsType } from "models/componentType/OrderItemOptionsModalPropsType";
 
 function OrderItemOptionsModal({
   close,
@@ -19,7 +20,7 @@ function OrderItemOptionsModal({
   setShouldConfirmChange,
   changeOrderItem,
   cancelOrderItem,
-}) {
+}: OrderItemOptionsModalPropsType) {
   const [activeWidget, setActiveWidget] = useState<
     "return" | "report" | "hide" | "main" | "cancel" | "ChangeRequest"
   >("main");
@@ -152,9 +153,9 @@ function OrderItemOptionsModal({
                   <p className="regular text-[12px] text-[#8D8D8D]">
                     {translateFunction("Cancel This Product In")}
                     <span className="bold text-[12px] text-[#8D8D8D]  mx-[4px]">
-                      3 {translateFunction("Hours")}" "
+                      3 {translateFunction("Hours")}
                     </span>
-                    " "{translateFunction("And Back Your Money")}
+                    {translateFunction("And Back Your Money")}
                   </p>
                 </div>
               </div>

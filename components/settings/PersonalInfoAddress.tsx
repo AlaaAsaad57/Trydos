@@ -9,15 +9,12 @@ import { DeleteModalComponent } from "components/Cart/OrdersPage";
 import { useAppStore } from "store";
 import { useParams } from "next/navigation";
 import { GetAddressString } from "utils/tinyUtils";
+import { PersonalInfoAddressPropsType } from "models/componentType/settingTypes/PersonalInfoAddressPropsType";
 function PersonalInfoAddress({
   swipeToScreen,
   goBack,
   setIsActive,
-}: {
-  swipeToScreen: (index: number) => void;
-  goBack: () => void;
-  setIsActive: (isActive: boolean) => void;
-}) {
+}: PersonalInfoAddressPropsType) {
   const { setCountries, addressLists } = useAppStore();
   const { lang } = useParams();
   const getAdditionData = async () => {

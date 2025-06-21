@@ -17,6 +17,7 @@ import auth from "services/auth";
 import LocalizationServiceClass from "services/localization";
 import { useAppStore } from "store";
 import { dispatchRouteChangeEvent } from "utils/events";
+import { ProductFooterSectionPropsType } from "models/componentType/productTypes/MultiComponentOnProductPage";
 
 function ProductReducer(state, { type, payload }) {
   if (type === "setProductData") {
@@ -71,7 +72,7 @@ function ProductReducer(state, { type, payload }) {
     };
   }
 }
-function ProductFooterSection({ product, currency }) {
+function ProductFooterSection({ product, currency }: ProductFooterSectionPropsType) {
   const {
     setLoadedCart,
     getProductVariation,

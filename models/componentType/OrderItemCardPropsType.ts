@@ -2,9 +2,9 @@ import { ProductDetails } from "./ProductOptionsPropsType";
 
 export interface OrderItemCardPropsType {
     ConfirmationData: ConfirmationData;
-    setConfirmationData: (e: ConfirmationData) => void;
+    setConfirmationData: Function;
     item: OrderItem;
-    editOrderItem: (e: OrderItem[]) => void;
+    editOrderItem: Function;   
     orderItemData: OrderItem[];
 }
 export interface OrderItem {
@@ -25,6 +25,8 @@ export interface OrderItem {
     brand: {
         image: string;
     };
+
+
 }
 export interface ConfirmationData {
     enable: boolean;

@@ -1,3 +1,3 @@
 export interface SelectRegionPropsType {
-    setOpenSelect: () => void;
+    setOpenSelect: Function
 }

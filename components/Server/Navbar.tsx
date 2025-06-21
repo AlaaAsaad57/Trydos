@@ -3,14 +3,12 @@ import SearchIcon from "../Home/Search/SearchIcon";
 import CategoryNavMobile from "components/Home/CategoryNavMobile";
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 import { CategoriesApi } from "models/API/elastic/MainCategories";
+import { NavbarServerProps } from "models/componentType/HomePagePropsType";
 
 async function NavbarServer({
   lang,
   mainCategory,
-}: {
-  lang: string;
-  mainCategory: string;
-}) {
+}: NavbarServerProps) {
   try {
     const res = await fetch(
       process.env.NEXT_PUBLIC_API_BASE_URL + `/api/${lang}/categories`,

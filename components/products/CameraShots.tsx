@@ -11,8 +11,9 @@ import CircleBorder from "public/svg/product/CircleBorder";
 import { useParams } from "next/navigation";
 import { useAppStore } from "store";
 import { GA_EVENT_NAMES } from "utils/GAEvents";
+import { CameraShotsPropsType } from "models/componentType/productTypes/MultiComponentOnProductPage";
 
-function CameraShots({ images }) {
+function CameraShots({ images }: CameraShotsPropsType) {
   const { setActiveCameraGallery, showInfoMessage } = useAppStore();
   let { lang } = useParams();
   // @ts-ignore

@@ -6,6 +6,7 @@ import { useRef } from "react";
 import PointsSlider from "./PointsSlider";
 import { getConfiguredImage } from "utils/functions";
 import Image from "node_modules/next/image";
+import { ImageSliderPropsType } from "models/componentType/ImageSliderPropsType";
 
 function ImageSlider({
   renderVar,
@@ -18,18 +19,7 @@ function ImageSlider({
   setActiveTopSlide,
   setColor,
   priority,
-}: {
-  renderVar: boolean;
-  product_name: string;
-  active: boolean;
-  isColorSelected: boolean;
-  setActiveImage: Function;
-  activeColor: any;
-  isActiveTopSlide: boolean;
-  setActiveTopSlide: Function;
-  setColor: Function;
-  priority: boolean;
-}) {
+}: ImageSliderPropsType) {
   var ColorRef = useRef<any>();
   useEffect(() => {
     if (activeColor.index >= 0) {

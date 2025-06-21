@@ -10,6 +10,7 @@ import { Suspense } from "react";
 import Home from "components/Home";
 import FeatureProducts from "components/Server/FeatureProducts";
 import FeaturedProductsSkeleton from "components/skeleton/loaders/FeaturedProductsSkeleton";
+import { HomePageProps } from "models/componentType/HomePagePropsType";
 export const runtime = "nodejs";
 export const preferredRegion = ["bom1", "sin1"];
 export const revalidate = parseInt(process.env.NEXT_PUBLIC_HOME_REVALIDATE);
@@ -18,9 +19,7 @@ export const dynamic = "auto";
 
 function HomePage({
   params,
-}: {
-  params: { lang: string; mainCategory?: string };
-}) {
+}: HomePageProps) {
   return (
     <>
       <Suspense

@@ -7,4 +7,5 @@ export interface SendMethodPropsType {
     setMessageMethod: Function;
     setShowMobile?: Function;
     hideEdit?: boolean;
+    operation?: string;
 }

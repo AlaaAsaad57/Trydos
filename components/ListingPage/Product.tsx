@@ -10,6 +10,8 @@ import TopSlider from "./TopSlider";
 import ColorSlider from "./ColorSlider";
 
 import { useAppStore } from "store";
+import { BuyButtonProductPropsType } from "models/componentType/BuyButtonProductPropsType";
+import { ProductPhotosSliderPropsType } from "models/componentType/ProductPhotosSliderPropsType";
 
 function ProductReducer(state, { type, payload }) {
   if (type === "setActiveTopSlide") {
@@ -65,7 +67,7 @@ export const BuyButtonProduct = ({ product }) => {
     />
   );
 };
-export function ProductPhotosSlider({ product, priority }) {
+export function ProductPhotosSlider({ product, priority }: ProductPhotosSliderPropsType) {
   const [productState, dispatch] = useReducer(ProductReducer, {
     isActiveTopSlide: false,
     activeColor:

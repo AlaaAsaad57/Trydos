@@ -11,12 +11,12 @@ export interface ProductData {
     offer_price: number
     price: number
     slug: string
-    sync_color_images: SyncColorImage[]
+    sync_color_images?: SyncColorImage[]
     brand?: {
       icon?: string
     }
+    choice_options: ChoiceOption[]
   }
-  
   export interface Category {
     icon: string
     name: string
@@ -37,9 +37,14 @@ export interface ProductData {
   export interface SyncColorImage {
     color_name: string
     images: Image2[]
+    sync_color_images: SyncColorImage[]
   }
   
   export interface Image2 {
     file_path: string
+  }
+  export interface ChoiceOption {
+    title: string
+    options: string[]
   }
   

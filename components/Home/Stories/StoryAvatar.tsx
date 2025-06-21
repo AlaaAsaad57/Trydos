@@ -1,11 +1,9 @@
+import { StoryAvatarPropsType } from "models/componentType/StoryAvatarPropsType";
 import Image, { StaticImageData } from "next/image";
 function StoryAvatar({
   avatar,
   isSeen,
-}: {
-  avatar: string | StaticImageData;
-  isSeen: boolean;
-}) {
+}: StoryAvatarPropsType) {
   return (
     <div className={`story-avatar ${isSeen && "is-seen-story"}`}>
       {avatar && (

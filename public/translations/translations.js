@@ -1,6 +1,9 @@
 const translations = {
   en: {},
   ar: {
+    "Why Was The Product Return?": "لماذا تم إرجاع المنتج؟",
+    "To Your Account": "إلى حسابك",
+      "You Can Cancel The Product Without Any Conditions According To The Cancel Policy And Get A Full Refund": "يمكنك إلغاء المنتج دون أي شروط وفقًا لسياسة الإلغاء واسترداد المبلغ بالكامل",
      "Action About Your Order":"اجراءات حول طلبك",
      "Change Delivery Note":"تغيير ملاحظة التوصيل",
      "Add delivery instructions...":"أدخل تعليمات التوصيل...",
@@ -1204,6 +1207,9 @@ const translations = {
     "About Change Request Product": "Ürün Değişim Talebi Hakkında",
     "About Cancel Your Product": "Ürün İptal Talebi Hakkında",
     "Cancel This Product In": "Bu Ürünü İptal Edin", 
+    "You Can Cancel The Product Without Any Conditions According To The Cancel Policy And Get A Full Refund": "İptal politikası kapsamında hiçbir koşul olmaksızın ürünü iptal edebilir ve tam para iadesi alabilirsiniz",
+    "To Your Account": "Hesabınıza",
+    "Why Was The Product Return?": "Ürün neden iade edildi?"
   },
 };
 

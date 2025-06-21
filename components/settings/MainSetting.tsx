@@ -17,6 +17,7 @@ import { formatPrice, translateFunction } from "utils/functions";
 import Spinner from "components/global/Spinner";
 import { useAppStore } from "store";
 import { FlagIcon } from "utils/tinyUtils";
+import { MainSettingOptionPropsType, MainSettingPropsType } from "models/componentType/settingTypes/MainSettingPropsType";
 
 const options = [
   { name: "Settings", Icon: <SettingsIcon /> },
@@ -27,9 +28,7 @@ const options = [
 ];
 function MainSetting({
   swipeToScreen,
-}: {
-  swipeToScreen: (index: number) => void;
-}) {
+}: MainSettingPropsType) {
   const { wallet, currency, totalOrders, settings } = useAppStore();
   const points = settings["starting-setting"]?.decimal_point_settings || 0;
 
@@ -151,10 +150,7 @@ export default MainSetting;
 const SettingOption = ({
   name,
   Icon,
-}: {
-  name: string;
-  Icon: React.ReactNode;
-}) => {
+}: MainSettingOptionPropsType) => {
   return (
     <div className="w-full flex-row cursor-pointer mt-[4px] h-[53px] rounded-[15px] bg-[#f8f8f8] px-[12px] items-center">
       {Icon}

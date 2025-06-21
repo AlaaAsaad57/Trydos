@@ -1,7 +1,8 @@
+import { OrderDateCardProps } from "models/componentType/settingTypes/OrderDetailsPropsType";
 import React from "react";
 import { translateFunction } from "utils/functions";
 
-function OrderExpectedDeliveryCard({ time }: { time: string }) {
+function OrderExpectedDeliveryCard({ time }: OrderDateCardProps) {
   return (
     <div className="bg-[#F4F4F4] relative w-1/2 min-h-[74px] h-auto  rounded-[15px] py-[8px] px-[12px] flex-col">
       <svg

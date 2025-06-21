@@ -1,5 +1,5 @@
 import { BoutiqueData } from "./boutiquePagePropsType";
 export interface SearchBoutiquePageProps {
-    boutique: BoutiqueData;
+    boutique?: BoutiqueData;
     search_text?: string;
   }

@@ -6,6 +6,7 @@ import { AxiosPost } from "utils/AxiosApi";
 import { AddComment } from "models/API/market/AddComment";
 import auth from "services/auth";
 import profilePng from "public/images/profileNo.png";
+import { CommentsPropsType } from "models/componentType/CommentsPropsType";
 
 function Comments({
   comments,
@@ -18,7 +19,7 @@ function Comments({
   increase_comments,
   setRender,
   verifyCommentAction,
-}) {
+}: CommentsPropsType) {
   useEffect(() => {}, [Render, comments]);
   const resendCommentApi = async (mid, s) => {
     try {

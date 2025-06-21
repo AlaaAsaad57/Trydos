@@ -7,7 +7,8 @@ import OrderItemCard from "./OrderItemCard";
 import { ModifyOrderItemModal } from "./ModifyOrderItemModal";
 import { AxiosGet } from "utils/AxiosApi";
 import { toast } from "react-toastify";
-function ModifyOrderWidget({ order_items, close }) {
+import { ModifyOrderWidgetPropsType } from "models/componentType/ModifyOrderWidgetPropsType";
+function ModifyOrderWidget({ order_items, close }: ModifyOrderWidgetPropsType) {
   const [orderItemData, setOrderItemData] = useState(order_items);
   const isChanged = () => {
     let bool = false;

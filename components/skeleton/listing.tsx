@@ -6,18 +6,14 @@ import TopStarIcon from "public/svg/listing/TopStar.svg";
 import Image from "next/image";
 import { getConfiguredImage } from "utils/functions";
 import { GetImageUrl } from "utils/tinyUtils";
+import { ListingSkeletonPropsType } from "models/componentType/ListingSkeletonPropsType";
 function ListingSkeleton({
   forProducts,
   withBanners,
 
   boutique,
   isForSearch,
-}: {
-  forProducts?: boolean;
-  withBanners?: boolean;
-  boutique?: any;
-  isForSearch?: boolean;
-}) {
+}: ListingSkeletonPropsType) {
   return (
     <>
       {forProducts !== true && withBanners && (

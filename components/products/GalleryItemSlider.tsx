@@ -2,7 +2,8 @@ import React, { useRef, useState } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { getConfiguredImage } from "utils/functions";
 import "styles/listing.css";
-function GalleryItemSlider({ images }) {
+import { GalleryItemSliderPropsType } from "models/componentType/GalleryItemSliderPropsType";
+function GalleryItemSlider({ images }: GalleryItemSliderPropsType) {
   const SliderRef = useRef<any>();
   const [active, setActive] = useState(0);
   return (

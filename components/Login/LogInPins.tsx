@@ -15,6 +15,7 @@ import {
 } from "utils/GAEvents";
 import { method } from "node_modules/cypress/types/bluebird";
 import { GAevent } from "utils/gtag";
+import { LogInPinsPropsType } from "models/componentType/settingTypes/LogInPinsPropsType";
 
 function LogInPins({
   setPin,
@@ -36,27 +37,7 @@ function LogInPins({
   loadingPin,
   forChanging,
   operation = "login",
-}: {
-  inputValue: string;
-  rendere: boolean;
-  setStepIndactor: Function;
-  stepIndicator: number;
-  init: any;
-  expired: boolean;
-  resend: Function;
-  setPin: Function;
-  setDisabled: Function;
-  Submit: Function;
-  pin: string;
-  MessageMethod: string;
-  wrongNumber: boolean | string;
-  failedLogin: boolean;
-  successLogin: boolean;
-  disabled: boolean;
-  loadingPin: boolean;
-  forChanging?: boolean;
-  operation?: string;
-}) {
+}: LogInPinsPropsType) {
   const { language, Tempuser } = useAppStore();
 
   let { lang } = useParams();

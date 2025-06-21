@@ -1,7 +1,7 @@
 
 export interface NormalSizesSliderPropsType {
     sizes: Size[];
-    activeColor: string;
+    activeColor: string[];
     setActiveColor: (color: string) => void;
     close?: () => void;
     active?: boolean;

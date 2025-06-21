@@ -10,7 +10,10 @@ import Cookies from "js-cookie";
 import { useAppStore } from "store";
 import SyFlage from "public/svg/sy.svg";
 import { FlagIcon } from "utils/tinyUtils";
-function SelectRegion({ closeSelect }) {
+import { SelectRegionPropsType } from "models/componentType/settingTypes/PersonalInfoAddressModalPropsType";
+import { SearchLocationsPropsType } from "models/componentType/SearchLocationsPropsType";
+import { SearchResultsPropsType } from "models/componentType/SearchResultsPropsType";
+function SelectRegion({ closeSelect }: SelectRegionPropsType) {
   const { addressDetails } = useAppStore();
   const { lang } = useParams();
   // @ts-ignore
@@ -114,7 +117,7 @@ function SelectRegion({ closeSelect }) {
 
 export default SelectRegion;
 
-const SearchLocations = ({ closeSelect, setFocused }) => {
+const SearchLocations = ({ closeSelect, setFocused }: SearchLocationsPropsType) => {
   const { provinces, setProvinces } = useAppStore();
   const { lang } = useParams();
   // @ts-ignore
@@ -247,7 +250,7 @@ const SearchResults = ({
   closeSelect,
   shouldShowProvinces,
   searchAction,
-}) => {
+}: SearchResultsPropsType) => {
   const { setMapCenter, setAddressDetails, provinces } = useAppStore();
   const showLocationText = (location) => {
     let str = "";

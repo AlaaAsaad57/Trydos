@@ -3,8 +3,9 @@ import { translateFunction } from "utils/functions";
 import { useAppStore } from "store";
 import OrderStatusCartsIcon from "./OrderStatusCartsIcon";
 import OrderStatusIcon from "./OrderStatusIcon";
+import { OrderStatusCardPropsType } from "models/componentType/OrderStatusCardPropsType";
 
-function OrderStatusCard({ status }: { status: string }) {
+function OrderStatusCard({ status }: OrderStatusCardPropsType) {
   const { settings } = useAppStore();
   return (
     <div className="bg-[#F4F4F4] ml-[8px] w-1/2 min-h-[74px] h-auto  rounded-[15px] py-[8px] px-[12px] flex-col">

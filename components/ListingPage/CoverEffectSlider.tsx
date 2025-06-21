@@ -3,6 +3,7 @@ import ImageAvatar from "./ImageAvatar";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { EffectCoverflow } from "swiper/modules";
 import { dispatchRouteChangeEvent } from "utils/events";
+import { CoverEffectSliderPropsType } from "models/componentType/CoverEffectSliderPropsType";
 function CoverEffectSlider({
   images,
   active,
@@ -12,7 +13,7 @@ function CoverEffectSlider({
   isColorSelected,
   product_name,
   priority,
-}) {
+}: CoverEffectSliderPropsType) {
   const [activeIndex, setActive] = useState(
     images.findIndex((element) => element.color_name === activeColor.color_name)
   );

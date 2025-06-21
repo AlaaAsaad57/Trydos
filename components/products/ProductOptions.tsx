@@ -15,6 +15,7 @@ import { AxiosPost } from "utils/AxiosApi";
 import { toast } from "react-toastify";
 import auth from "services/auth";
 import { useAppStore } from "store";
+import { ProductOptionsPropsType } from "models/componentType/ProductOptionsPropsType";
 
 function ProductOptions({
   activeOption,
@@ -25,16 +26,7 @@ function ProductOptions({
   product,
   shareAction,
   loading,
-}: {
-  activeOption: string;
-  shareAction: any;
-  setOption: (e: string) => void;
-  clearShare: () => void;
-  share: boolean;
-  productDetails: any;
-  product: any;
-  loading: boolean;
-}) {
+}: ProductOptionsPropsType) {
   const { editInfo, loaded, sharesCount, SelectedProduct } = useAppStore();
   const [isLiked, setLiked] = useState(false);
   const LikeProduct = async (bool) => {
