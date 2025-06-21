@@ -42,21 +42,21 @@ export async function middleware(request) {
   const langFromCookies = cookies.get("lang")?.value?.toLowerCase() || "en";
 
   // Add comprehensive logging
-  console.log("🔍 MIDDLEWARE DEBUG:", {
-    url: url.toString(),
-    pathname: url.pathname,
-    search: url.search,
-    countryLang,
-    countryUrl,
-    langUrl,
-    countryFromCookies,
-    langFromCookies,
-    userAgent: request.headers.get("user-agent")?.substring(0, 50),
-  });
+  // console.log("🔍 MIDDLEWARE DEBUG:", {
+  //   url: url.toString(),
+  //   pathname: url.pathname,
+  //   search: url.search,
+  //   countryLang,
+  //   countryUrl,
+  //   langUrl,
+  //   countryFromCookies,
+  //   langFromCookies,
+  //   userAgent: request.headers.get("user-agent")?.substring(0, 50),
+  // });
 
   // Handle bypass parameter - skip all checks and clean URL
   if (url.searchParams.get("_bypass") === "popup-selection") {
-    console.log("🚀 BYPASSING middleware checks for popup selection");
+    // console.log("🚀 BYPASSING middleware checks for popup selection");
 
     // Set cookies to match URL
     const cookieOptions = {
@@ -79,11 +79,11 @@ export async function middleware(request) {
 
     // Redirect to clean URL if there are remaining params, otherwise proceed
     if (url.search) {
-      console.log("🔄 Cleaning URL parameters");
+      // console.log("🔄 Cleaning URL parameters");
       return NextResponse.redirect(url);
     }
 
-    console.log("✅ Proceeding with clean URL");
+    // console.log("✅ Proceeding with clean URL");
     return response;
   }
 
@@ -92,7 +92,7 @@ export async function middleware(request) {
     request.headers.get("x-redirect-count") || "0"
   );
   if (redirectCount > 2) {
-    console.error("🚨 TOO MANY REDIRECTS, STOPPING:", redirectCount);
+    // console.error("🚨 TOO MANY REDIRECTS, STOPPING:", redirectCount);
     return response;
   }
 
@@ -123,7 +123,7 @@ export async function middleware(request) {
 
     // CASE 1A: Handle no-country parameter (user needs to select country)
     if (url.searchParams.get("no-country")) {
-      console.log("🏁 Showing country selection popup");
+      // console.log("🏁 Showing country selection popup");
       // Set cookies for current URL locale if not already set
       if (!countryFromCookies) {
         response.cookies.set("country", country.toLowerCase(), {
@@ -161,15 +161,15 @@ export async function middleware(request) {
       langUrl?.toLowerCase() === langFromCookies?.toLowerCase() &&
       !url.searchParams.get("changed-country")
     ) {
-      console.log("✅ Cookies match URL, proceeding normally");
+      // console.log("✅ Cookies match URL, proceeding normally");
       return response;
     }
 
     // CASE 1C: No country cookies - proceed with URL country (don't show popup)
     if (!countryFromCookies || countryFromCookies.length === 0) {
-      console.log(
-        "🚫 No cookies found, but URL has valid country - setting cookies and proceeding"
-      );
+      // console.log(
+      //   "🚫 No cookies found, but URL has valid country - setting cookies and proceeding"
+      // );
       // Set cookies for current URL locale and proceed directly
       response.cookies.set("country", country.toLowerCase(), {
         path: "/",
@@ -194,7 +194,7 @@ export async function middleware(request) {
       });
 
       // Proceed directly without showing popup
-      console.log("✅ Cookies set for valid URL country, proceeding normally");
+      // console.log("✅ Cookies set for valid URL country, proceeding normally");
       return response;
     }
 
@@ -210,7 +210,7 @@ export async function middleware(request) {
       isChangedLocalizationByUrl &&
       !url.searchParams.get("changed-country")
     ) {
-      console.log("🔄 Country changed, showing choice popup");
+      // console.log("🔄 Country changed, showing choice popup");
       url.searchParams.delete("cart");
       url.searchParams.set(
         "changed-country",
@@ -226,7 +226,7 @@ export async function middleware(request) {
 
     // CASE 1E: Handle changed-country parameter (show country choice popup)
     if (url.searchParams.get("changed-country")) {
-      console.log("🏁 Showing country change popup");
+      // console.log("🏁 Showing country change popup");
       // Set cookies for current URL locale
       response.cookies.set("country", country.toLowerCase(), {
         path: "/",
