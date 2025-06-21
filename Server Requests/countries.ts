@@ -41,6 +41,7 @@ export async function fetchCountries(): Promise<CountriesResponse> {
         {
           id: 1,
           name: "Turkey",
+          iso: "TR",
           code: "TR",
           flag: "https://flagcdn.com/tr.svg",
           currency: "TRY",
@@ -56,12 +57,14 @@ export async function fetchCountries(): Promise<CountriesResponse> {
           id: 3,
           name: "Lebanon",
           code: "LB",
+          iso: "LB",
           flag: "https://flagcdn.com/lb.svg",
           currency: "LBP",
         },
         {
           id: 4,
           name: "Iraq",
+          iso: "IQ",
           code: "IQ",
           flag: "https://flagcdn.com/iq.svg",
           currency: "IQD",
