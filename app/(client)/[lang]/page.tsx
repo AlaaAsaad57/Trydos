@@ -20,9 +20,9 @@ export const revalidate = parseInt(process.env.NEXT_PUBLIC_HOME_REVALIDATE);
 export const dynamicParams = true;
 export const dynamic = "auto";
 
-export async function generateMetadata({ params, searchParams }) {
+export async function generateMetadata({ params }) {
   try {
-    const metadata = await getHomeMetadata({ params, searchParams });
+    const metadata = await getHomeMetadata({ params });
     return metadata;
   } catch (error) {
     console.log(error);
@@ -35,11 +35,10 @@ export async function generateMetadata({ params, searchParams }) {
 }
 
 // Server component to render JSON-LD structured data
-async function StructuredDataScript({ params, searchParams }) {
+async function StructuredDataScript({ params }) {
   try {
     const metadataWithStructuredData = await getHomeMetadata({
       params,
-      searchParams,
     });
     const structuredData = metadataWithStructuredData.structuredData;
 
@@ -59,14 +58,11 @@ async function StructuredDataScript({ params, searchParams }) {
   }
 }
 
-function HomePage({
-  params,
-  searchParams 
-}: HomePageProps) {
+function HomePage({ params, searchParams }: HomePageProps) {
   return (
     <>
       <Suspense fallback={null}>
-        <StructuredDataScript params={params} searchParams={searchParams} />
+        <StructuredDataScript params={params} />
       </Suspense>
 
       <Suspense

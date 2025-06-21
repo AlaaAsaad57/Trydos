@@ -7,7 +7,7 @@ import {
   fetchMainCategories,
 } from "Server Requests";
 
-export async function getHomeMetadata({ params, searchParams }) {
+export async function getHomeMetadata({ params }) {
   const [country, language] = params.lang.split("-");
 
   // Get language for translations
