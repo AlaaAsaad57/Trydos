@@ -456,7 +456,7 @@ export async function getHomeMetadata({ params }) {
   };
 }
 
-export async function getFeaturedMetadata({ params, searchParams }) {
+export async function getFeaturedMetadata({ params }) {
   const [country, language] = params.lang.split("-");
 
   // Get language for translations
@@ -671,7 +671,7 @@ export async function getFeaturedMetadata({ params, searchParams }) {
   };
 }
 
-export async function getFlashDealsMetadata({ params, searchParams }) {
+export async function getFlashDealsMetadata({ params }) {
   const [country, language] = params.lang.split("-");
 
   // Get language for translations
@@ -877,7 +877,7 @@ export async function getFlashDealsMetadata({ params, searchParams }) {
   };
 }
 
-export async function getCompareMetadata({ params, searchParams }) {
+export async function getCompareMetadata({ params }) {
   const [country, lang] = params.lang.split("-");
 
   // Get language for translations
@@ -981,7 +981,7 @@ export async function getCompareMetadata({ params, searchParams }) {
   };
 }
 
-export async function getCategoriesMetadata({ params, searchParams }) {
+export async function getCategoriesMetadata({ params }) {
   const [country, lang] = params.lang.split("-");
   const mainCategory = params.mainCategory;
 
@@ -1139,7 +1139,7 @@ export async function getCategoriesMetadata({ params, searchParams }) {
   };
 }
 
-export async function getSettingsMetadata({ params, searchParams }) {
+export async function getSettingsMetadata({ params }) {
   const [country, lang] = params.lang.split("-");
 
   // Get language for translations

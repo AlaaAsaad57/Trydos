@@ -58,7 +58,7 @@ async function StructuredDataScript({ params }) {
   }
 }
 
-function HomePage({ params, searchParams }: HomePageProps) {
+function HomePage({ params }: HomePageProps) {
   return (
     <>
       <Suspense fallback={null}>

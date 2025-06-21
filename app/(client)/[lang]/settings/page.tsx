@@ -4,7 +4,7 @@ import { getSettingsMetadata } from "../MetaData";
 import { settingsPagePropsType } from "models/componentType/settingsType/settingsPagePropsType";
 export async function generateMetadata({ params, searchParams }) {
   try {
-    const metadata = await getSettingsMetadata({ params, searchParams });
+    const metadata = await getSettingsMetadata({ params });
     return metadata;
   } catch (error) {
     console.log(error);
@@ -15,13 +15,12 @@ export async function generateMetadata({ params, searchParams }) {
   }
 }
 
-async function page({ params, searchParams }: settingsPagePropsType) {
+async function page({ params }: settingsPagePropsType) {
   // Server component to render JSON-LD structured data
-  async function StructuredDataScript({ params, searchParams }) {
+  async function StructuredDataScript({ params }) {
     try {
       const metadataWithStructuredData = await getSettingsMetadata({
         params,
-        searchParams,
       });
       const structuredData = metadataWithStructuredData.structuredData;
 
@@ -44,7 +43,7 @@ async function page({ params, searchParams }: settingsPagePropsType) {
   return (
     <>
       <Suspense fallback={null}>
-        <StructuredDataScript params={params} searchParams={searchParams} />
+        <StructuredDataScript params={params} />
       </Suspense>
       <Setting lang={params.lang} />
     </>

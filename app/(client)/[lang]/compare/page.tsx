@@ -6,9 +6,9 @@ import { getCompareMetadata } from "../MetaData";
 import { Suspense } from "react";
 
 export const dynamic = "auto";
-export async function generateMetadata({ params, searchParams }) {
+export async function generateMetadata({ params }) {
   try {
-    const metadata = await getCompareMetadata({ params, searchParams });
+    const metadata = await getCompareMetadata({ params });
     return metadata;
   } catch (error) {
     console.log(error);
@@ -28,11 +28,10 @@ interface Props {
 }
 async function Page({ params, searchParams }: ComparePagePropsType) {
   // Server component to render JSON-LD structured data
-  async function StructuredDataScript({ params, searchParams }) {
+  async function StructuredDataScript({ params }) {
     try {
       const metadataWithStructuredData = await getCompareMetadata({
         params,
-        searchParams,
       });
       const structuredData = metadataWithStructuredData.structuredData;
 
@@ -55,7 +54,7 @@ async function Page({ params, searchParams }: ComparePagePropsType) {
   return (
     <>
       <Suspense fallback={null}>
-        <StructuredDataScript params={params} searchParams={searchParams} />
+        <StructuredDataScript params={params} />
       </Suspense>
       <ComparePage />
     </>

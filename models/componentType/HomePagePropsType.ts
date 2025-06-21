@@ -8,24 +8,22 @@ export interface HortiznalScrollBarProps {
 }
 
 export interface CategoryNavMobileProps {
-    name: string;
-    icon: string;
-    myKey: number;
-    slug: string;
-    active: boolean;
-    params: any;
-  }
-  
+  name: string;
+  icon: string;
+  myKey: number;
+  slug: string;
+  active: boolean;
+  params: any;
+}
+
 export interface NavbarServerProps {
-    lang: string;
-    mainCategory: string;
-  }
+  lang: string;
+  mainCategory: string;
+}
 
 export interface HomePageProps {
-    params: {
-        lang: string;
-        mainCategory?: string;
-    }
-    searchParams: URLSearchParams;
-  }
-  
+  params: {
+    lang: string;
+    mainCategory?: string;
+  };
+}

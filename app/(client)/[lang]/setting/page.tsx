@@ -5,9 +5,9 @@ import { settingPagePropsType } from "models/componentType/settingTypes/settingP
 
 export const dynamic = "auto";
 
-export async function generateMetadata({ params, searchParams }: settingPagePropsType) {
+export async function generateMetadata({ params }: settingPagePropsType) {
   try {
-    const metadata = await getSettingsMetadata({ params, searchParams });
+    const metadata = await getSettingsMetadata({ params });
     return metadata;
   } catch (error) {
     console.log(error);
@@ -18,13 +18,12 @@ export async function generateMetadata({ params, searchParams }: settingPageProp
   }
 }
 
-async function page({ params, searchParams }) {
+async function page({ params }) {
   // Server component to render JSON-LD structured data
-  async function StructuredDataScript({ params, searchParams }) {
+  async function StructuredDataScript({ params }) {
     try {
       const metadataWithStructuredData = await getSettingsMetadata({
         params,
-        searchParams,
       });
       const structuredData = metadataWithStructuredData.structuredData;
 
@@ -47,7 +46,7 @@ async function page({ params, searchParams }) {
   return (
     <>
       <Suspense fallback={null}>
-        <StructuredDataScript params={params} searchParams={searchParams} />
+        <StructuredDataScript params={params} />
       </Suspense>
       <Settings lang={params.lang} />
     </>

@@ -24,9 +24,9 @@ export const runtime = "nodejs";
 export const preferredRegion = ["bom1", "sin1"];
 export const revalidate = parseInt(process.env.NEXT_PUBLIC_REVALIDATE);
 export const dynamic = "auto";
-export async function generateMetadata({ params, searchParams }) {
+export async function generateMetadata({ params }) {
   try {
-    const metadata = await getFeaturedMetadata({ params, searchParams });
+    const metadata = await getFeaturedMetadata({ params });
     return metadata;
   } catch (error) {
     console.log(error);
@@ -118,11 +118,10 @@ export default async function Page({
   };
 
   // Server component to render JSON-LD structured data
-  async function StructuredDataScript({ params, searchParams }) {
+  async function StructuredDataScript({ params }) {
     try {
       const metadataWithStructuredData = await getFeaturedMetadata({
         params,
-        searchParams,
       });
       const structuredData = metadataWithStructuredData.structuredData;
 
@@ -145,7 +144,7 @@ export default async function Page({
   return (
     <>
       <Suspense fallback={null}>
-        <StructuredDataScript params={params} searchParams={searchParams} />
+        <StructuredDataScript params={params} />
       </Suspense>
 
       <Suspense fallback={<></>}>
@@ -176,7 +175,7 @@ export default async function Page({
               icon: "",
               name: "",
               description: "",
-              banners: []
+              banners: [],
             }}
             search_text={parsedFilters?.search_text?.[0]}
           />
@@ -203,7 +202,7 @@ export default async function Page({
             icon: "",
             name: "",
             description: "",
-            banners: []
+            banners: [],
           }}
           currency={currency}
           key={`filter-list`}

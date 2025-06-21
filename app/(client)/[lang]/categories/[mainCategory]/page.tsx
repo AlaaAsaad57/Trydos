@@ -13,9 +13,9 @@ export const revalidate = parseInt(process.env.NEXT_PUBLIC_REVALIDATE);
 export const runtime = "nodejs";
 export const preferredRegion = ["bom1", "sin1"];
 
-export async function generateMetadata({ params, searchParams }) {
+export async function generateMetadata({ params }) {
   try {
-    const metadata = await getCategoriesMetadata({ params, searchParams });
+    const metadata = await getCategoriesMetadata({ params });
     return metadata;
   } catch (error) {
     console.log(error);
@@ -27,14 +27,12 @@ export async function generateMetadata({ params, searchParams }) {
   }
 }
 
-
-function page({ params, searchParams }: HomePageProps) {
+function page({ params }: HomePageProps) {
   // Server component to render JSON-LD structured data
-  async function StructuredDataScript({ params, searchParams }) {
+  async function StructuredDataScript({ params }) {
     try {
       const metadataWithStructuredData = await getCategoriesMetadata({
         params,
-        searchParams,
       });
       const structuredData = metadataWithStructuredData.structuredData;
 
@@ -57,7 +55,7 @@ function page({ params, searchParams }: HomePageProps) {
   return (
     <>
       <Suspense fallback={null}>
-        <StructuredDataScript params={params} searchParams={searchParams} />
+        <StructuredDataScript params={params} />
       </Suspense>
 
       <Suspense fallback={<MobileNavigationSkeleton />}>
