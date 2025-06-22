@@ -14,7 +14,10 @@ import ConfirmAddressModal from "./ConfirmAddressModal";
 import OrderItem from "./OrderItem";
 import { AddressModalPropsType } from "models/componentType/AddressModalPropsType";
 import { ChangeAddressWidgetPropsType } from "models/componentType/ChangeAddressWidgetPropsType";
-function ChangeAddressWidget({ address_id, close }: ChangeAddressWidgetPropsType) {
+function ChangeAddressWidget({
+  address_id,
+  close,
+}: ChangeAddressWidgetPropsType) {
   const {
     addressLists,
     setAddressDetails,
@@ -31,6 +34,15 @@ function ChangeAddressWidget({ address_id, close }: ChangeAddressWidgetPropsType
   });
   const [tabs, setTabs] = useState<"address" | "note">("address");
   const [deliveryNote, setDeliveryNote] = useState(selectedOrder?.note || "");
+  const OrderWithDetails = (order) => {
+    let arr = [];
+    order.details.map((order_detail) => {
+      order_detail.details.map((s) => {
+        arr.push(s);
+      });
+    });
+    return { ...order, details: arr };
+  };
   return (
     <>
       <div className="flex-col max-h-[calc(100vh-50px)] items-center overflow-auto w-full pt-[14px] px-[24px] z-[999999999] pb-[27px] absolute bottom-[0px]  left-0 rounded-t-[30px] bg-white">
@@ -38,7 +50,7 @@ function ChangeAddressWidget({ address_id, close }: ChangeAddressWidgetPropsType
         <div className="flex-col  items-center w-full justify-center flex-1">
           <OrderItem
             key={selectedOrder.order_group_id}
-            order={selectedOrder}
+            order={OrderWithDetails(selectedOrder)}
             showDetails={() => {}}
           />
         </div>
@@ -427,10 +439,7 @@ function ChangeAddressWidget({ address_id, close }: ChangeAddressWidgetPropsType
 }
 
 export default ChangeAddressWidget;
-export const AddressModal = ({
-  id,
-  close,
-}: AddressModalPropsType) => {
+export const AddressModal = ({ id, close }: AddressModalPropsType) => {
   const { setAddressDetails, isActiveAddress } = useAppStore();
 
   const [openSelect, setOpenSelect] = useState(false);

@@ -18,7 +18,6 @@ import { OrderItemIdPropsType } from "models/componentType/OrderItemIdPropsType"
 import { OrderItemTimePropsType } from "models/componentType/OrderItemTimePropsType";
 import { OrderItemPropsType } from "models/componentType/OrderItemPropsType";
 
-
 const OrderItem: React.FC<OrderItemPropsType> = ({ order, showDetails }) => {
   const { lang } = useParams();
   return (
@@ -41,7 +40,7 @@ const OrderItem: React.FC<OrderItemPropsType> = ({ order, showDetails }) => {
           }}
         />
       </div>
-      <OrderProductSlider products={order.details} />
+      <OrderProductSlider products={order?.details} />
     </div>
   );
 };

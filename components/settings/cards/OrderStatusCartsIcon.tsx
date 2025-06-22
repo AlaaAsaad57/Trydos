@@ -1,7 +1,16 @@
 import React from "react";
 
 function OrderStatusCartsIcon({ status }) {
-  const statuses = ["pending", "preparing", "shipped", "delivered"];
+  const statuses = [
+    "pending",
+    "preparing",
+    "shipping center",
+    "ready to shipping",
+    "shipped",
+    "out for delivery",
+    "in delivery center",
+    "delivered",
+  ];
   let status_word = status.toLowerCase();
   return (
     <>
@@ -16,7 +25,9 @@ function OrderStatusCartsIcon({ status }) {
           }}
         />
       )}
-      {status_word === "preparing" ? (
+      {status_word === "preparing" ||
+      status_word === "shipping center" ||
+      status_word === "ready to shipping" ? (
         <PreparingStatus />
       ) : (
         <NormalStatus
@@ -27,7 +38,9 @@ function OrderStatusCartsIcon({ status }) {
           }}
         />
       )}
-      {status_word === "shipped" ? (
+      {status_word === "shipped" ||
+      status_word === "out for delivery" ||
+      status_word === "in delivery center" ? (
         <ShippedSatus />
       ) : (
         <NormalStatus
@@ -44,7 +57,7 @@ function OrderStatusCartsIcon({ status }) {
         <NormalStatus
           color={() => {
             let i = statuses.findIndex((s) => s === status_word);
-            if (i === 3) return "#6FE86A";
+            if (i === 7) return "#6FE86A";
             else return false;
           }}
         />

@@ -3,8 +3,6 @@ import BackIcon from "public/svg/listing/backIcon.svg";
 import OptionsIcon from "public/svg/OptionsIcon.svg";
 import { translateFunction } from "utils/functions";
 
-import ChatWidget from "components/Chat/ChatWidget";
-import OrderOptions from "components/Orders/OrderOptions";
 import { useAppStore } from "store";
 import { SettingTopBarPropsType } from "models/componentType/settingTypes/SettingTopBarPrpsType";
 

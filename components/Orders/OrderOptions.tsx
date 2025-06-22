@@ -151,6 +151,7 @@ function OrderOptions({ closeOptions, CancelOrder }: OrderOptionsPropsType) {
       );
     }
     if (screen === "options") {
+      console.log(selectedOrder);
       return (
         <>
           {shouldConfirmCancel && (
@@ -167,7 +168,7 @@ function OrderOptions({ closeOptions, CancelOrder }: OrderOptionsPropsType) {
             <div className="flex-col  items-center w-full justify-center flex-1">
               <OrderItem
                 key={selectedOrder.order_group_id}
-                order={selectedOrder}
+                order={OrderWithDetails(selectedOrder)}
                 showDetails={() => {}}
               />
               <span className="regular text-[12px] mt-[11px] text-[#8D8D8D]">
@@ -270,6 +271,15 @@ function OrderOptions({ closeOptions, CancelOrder }: OrderOptionsPropsType) {
       );
     }
   };
+  const OrderWithDetails = (order) => {
+    let arr = [];
+    order.details.map((order_detail) => {
+      order_detail.details.map((s) => {
+        arr.push(s);
+      });
+    });
+    return { ...order, details: arr };
+  };
   return (
     <>
       <div
@@ -286,7 +296,10 @@ function OrderOptions({ closeOptions, CancelOrder }: OrderOptionsPropsType) {
 }
 
 export default OrderOptions;
-const OrderCanceltionOptions = ({ close, setShouldConfirmCancel }: OrderCanceltionOptionsPropsType) => {
+const OrderCanceltionOptions = ({
+  close,
+  setShouldConfirmCancel,
+}: OrderCanceltionOptionsPropsType) => {
   let options = [
     "I Changed My Mind",
     "I Fear Quality",

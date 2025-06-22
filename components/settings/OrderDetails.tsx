@@ -37,10 +37,7 @@ import CanceledOrderStatusIcon from "public/svg/CanceledOrderStatusIcon.svg";
 import { GetImageUrl } from "utils/tinyUtils";
 import { OrderDetailsPropsType } from "models/componentType/settingTypes/OrderDetailsPropsType";
 import { ProductCardPropsType } from "models/componentType/settingTypes/ProductCardPropsType";
-function OrderDetails({
-  resetOrderDetails,
-  goBack,
-}: OrderDetailsPropsType) {
+function OrderDetails({ resetOrderDetails, goBack }: OrderDetailsPropsType) {
   const [loading, setLoading] = useState(false);
   const totalAmount = (arr) => {
     let total = 0;
@@ -77,10 +74,7 @@ function OrderDetails({
     setActivePacks(data[0]);
 
     setOrderDetails(orderData);
-    let params = new URLSearchParams(searchParams);
-    params.delete("id");
-    // @ts-expect-error 'shallow' does not exist in type 'NavigateOptions'
-    router.push(`${pathname}?${params.toString()}`, { shallow: true });
+
     setLoading(false);
   };
   const { setOrderDetails, selectedOrder } = useAppStore();
@@ -89,8 +83,6 @@ function OrderDetails({
     setOrderDetails(null);
     setActivePacks(null);
     goBack();
-    let params = new URLSearchParams(searchParams);
-    params.delete("id");
     // @ts-expect-error 'shallow' does not exist in type 'NavigateOptions'
     router.push(`${pathname}?${params.toString()}`, { shallow: true });
   };
@@ -152,6 +144,14 @@ function OrderDetails({
       <div className="flex-col h-[calc(128vh)]">
         <SettingTopBar
           goBack={() => {
+            let params = new URLSearchParams(window.location.search);
+            params.delete("id");
+            // @ts-ignore
+            router.replace(`/setting?${params.toString()}`, {
+              scroll: false,
+              // @ts-ignore
+              shallow: true,
+            });
             resetOrder();
           }}
           screenName={
@@ -188,6 +188,16 @@ function OrderDetails({
                   payments={selectedOrder.payment_method}
                 />
               </div>
+              {selectedOrder?.details?.[0]?.order_group_status?.label && (
+                <div className="flex-row justify-between items-center w-full mt-[8px]">
+                  <OrderStatusCard
+                    fullWidth={true}
+                    status={
+                      selectedOrder?.details?.[0]?.order_group_status?.label
+                    }
+                  />
+                </div>
+              )}
               <div className="flex-row justify-center  items-center h-[50px] w-full bg-[#ececec] rounded-[20px]">
                 {selectedOrder.details?.map((s, i) => (
                   <div
@@ -217,7 +227,7 @@ function OrderDetails({
                   status={
                     selectedOrder?.details?.find(
                       (s) => s.id === ActivePacks?.id
-                    ).order_group_status.label
+                    ).order_status.label
                   }
                 />
               </div>
@@ -410,10 +420,7 @@ const OrderExpandedDetails = ({ order }: { order: OrderItem }) => {
     </div>
   );
 };
-const ProductCard = ({
-  product,
-  status,
-}: ProductCardPropsType) => {
+const ProductCard = ({ product, status }: ProductCardPropsType) => {
   const { currency, setSelectedOrderItem } = useAppStore();
   const { lang } = useParams();
 
@@ -458,13 +465,13 @@ const ProductCard = ({
                 height: 144,
                 q: 100,
               })}
-              alt={product.product_details.name}
+              alt={product.product_details?.name}
             />
           </div>
           <div className="flex  flex-col items-start mt-[10px] ml-[12px] regular text-[12px] text-[#8D8D8D]">
             <span className="w-[70px] h-[10px] bg-[#C4C2C27f]"></span>
             <span className="text-[#505050] text-[12px] regular mt-[3px]">
-              {product.product_details.name}
+              {product.product_details?.name}
             </span>
             <div className="flex-row justify-between w-full">
               {product?.variation?.color && (

@@ -305,6 +305,14 @@ function OrdersList({
                 key={order.order_group_id}
                 order={order}
                 showDetails={() => {
+                  let params = new URLSearchParams(window.location.search);
+                  params.set("id", order.order_group_id.toString());
+                  // @ts-ignore
+                  router.replace(`/setting?${params.toString()}`, {
+                    scroll: false,
+                    // @ts-ignore
+                    shallow: true,
+                  });
                   setSelectedOrder({ ...order });
                   swipeToScreen(10);
                 }}

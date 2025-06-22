@@ -5,10 +5,15 @@ import OrderStatusCartsIcon from "./OrderStatusCartsIcon";
 import OrderStatusIcon from "./OrderStatusIcon";
 import { OrderStatusCardPropsType } from "models/componentType/OrderStatusCardPropsType";
 
-function OrderStatusCard({ status }: OrderStatusCardPropsType) {
+function OrderStatusCard({ status, fullWidth }: OrderStatusCardPropsType) {
   const { settings } = useAppStore();
+  console.log(status);
   return (
-    <div className="bg-[#F4F4F4] ml-[8px] w-1/2 min-h-[74px] h-auto  rounded-[15px] py-[8px] px-[12px] flex-col">
+    <div
+      className={`bg-[#F4F4F4] ml-[8px] ${
+        fullWidth ? "w-full" : "w-1/2"
+      } min-h-[74px] h-auto  rounded-[15px] py-[8px] px-[12px] flex-col`}
+    >
       <div className="flex flex-row items-end">
         <OrderStatusCartsIcon status={status} />
       </div>
