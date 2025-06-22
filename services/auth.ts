@@ -449,7 +449,10 @@ class AuthService {
             ...JSON.parse(localStorage.getItem("USER-STORIES")),
             name: userObj?.name ?? userProfile?.name,
             mobile_phone: userObj?.phone ?? userProfile?.phone,
-            photo_path: userObj?.image ?? userProfile?.image,
+            photo_path: this.ConfigurePhoto(
+              userObj?.image ?? userProfile?.image,
+              "story"
+            ),
           })
         );
       }
@@ -488,7 +491,10 @@ class AuthService {
             ...JSON.parse(localStorage.getItem("USER-CHAT")),
             name: userObj?.name ?? userProfile?.name,
             mobile_phone: userObj?.phone ?? userProfile?.phone,
-            photo_path: userObj?.image ?? userProfile?.image,
+            photo_path: this.ConfigurePhoto(
+              userObj?.image ?? userProfile?.image,
+              "chat"
+            ),
           })
         );
       }
