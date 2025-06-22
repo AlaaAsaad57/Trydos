@@ -344,8 +344,8 @@ export const UnAuthintacetedAction = () => {
   changeToken({ key: "token", deleteOption: true });
   changeToken({ key: "MARKET-TOKEN", deleteOption: true });
   changeToken({ key: "DEVICE-TOKEN", deleteOption: true });
-  localStorage.removeItem("USER-STORIES");
-  localStorage.removeItem("USER-CHAT");
+  // localStorage.removeItem("USER-STORIES");
+  // localStorage.removeItem("USER-CHAT");
   if (localStorage.getItem("USER")) {
     localStorage.setItem(
       "guest-user",

@@ -301,7 +301,20 @@ function AddToCartComponent({
       <div
         data-cy="image_when_addtocart"
         style={{ height: "calc(100vh - 461px)" }}
-        className="flex-col mt-[10px] w-full   top-[103px] items-center z-[999999999]"
+        className="flex-col mt-[10px] w-full   top-[103px] items-center z-[999999999] backdrop-container"
+        onClick={(e) => {
+          console.log(e.target);
+          if (
+            (e.target as HTMLDivElement).classList.contains(
+              "backdrop-container"
+            )
+          ) {
+            setSelectedProductForCart(null);
+            document.documentElement.style.overflow = "initial";
+            document.documentElement.scrollTop = 0;
+            close();
+          }
+        }}
       >
         <div
           data-cy="image_when_addtocart_container"
