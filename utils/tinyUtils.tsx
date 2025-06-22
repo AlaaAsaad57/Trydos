@@ -474,6 +474,7 @@ export const parseFiltersFromParams = (
     "sizes",
     "prices",
     "search",
+    "tags_names",
   ];
 
   while (currentIndex < cleanParams.length) {
@@ -543,6 +544,7 @@ export const buildParamsFromFilters = (
   const params: string[] = [];
   const filterOrder = [
     "boutiques",
+    "tags_names",
     "categories",
     "brands",
     "colors",

@@ -617,7 +617,7 @@ const ActiveFiltersBar = ({
 
       {activeFilters?.tags_names?.map((tag, index) => (
         <div
-          className="category-title filter-bar-main-title  text-[#467aff] ml-1 rounded-md bg-[#fafaf8] p-1"
+          className="category-title mx-[4px] filter-bar-main-title  text-[#467aff] ml-1 rounded-md bg-[#fafaf8] p-1"
           key={index}
         >
           #{tag}

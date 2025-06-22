@@ -6,8 +6,8 @@ import {
 
 interface FilteredProductsResponse {
   data: {
-    featured?: any,
-    flashDeals?: any
+    featured?: any;
+    flashDeals?: any;
     offset: number;
     limit: number;
     total_size: number;
