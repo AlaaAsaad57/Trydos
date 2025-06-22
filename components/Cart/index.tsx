@@ -43,6 +43,7 @@ function CartContainer({ close, toOrders }: CartContainerPropsType) {
     initCart,
     removeFromCart,
     setCartLoading,
+    currency,
     getProductDetailsForCart,
     setActiveColorDetails,
     language,
@@ -91,12 +92,33 @@ function CartContainer({ close, toOrders }: CartContainerPropsType) {
     getData();
   }, []);
   const getData = async () => {
-    await getCart({
+    let data = await getCart({
       callback: ([data, res]) => {
         initCart(data ?? { cart: [] });
       },
     });
     setCartLoading(false);
+
+    if (data?.cart?.length > 0) {
+      GAevent({
+        action: GA_EVENT_NAMES.VIEW_CART,
+        params: {
+          items: data.cart.map((item) => ({
+            item_id: item.product_id,
+            item_name: item.name,
+            price: RoundPrice({
+              num: item.offer_price,
+              rate: currency?.exchange_rate,
+              returnNumber: true,
+            }),
+            quantity: item.quantity,
+            item_variant: item.variant ?? "N/A",
+          })),
+          screen_name: GA_GLOBAL_SCREEN.CART_SCREEN,
+          screen_path: window.location.pathname,
+        },
+      });
+    }
     await getOldCart();
   };
   const params = useParams();
@@ -665,6 +687,24 @@ function CartContainer({ close, toOrders }: CartContainerPropsType) {
                         value={product.quantity}
                         deleteFunction={() => {
                           RemoveFromCartAction(product);
+                          GAevent({
+                            action: GA_EVENT_NAMES.REMOVE_FROM_CART,
+                            params: {
+                              items: [
+                                {
+                                  item_id: product.product_id,
+                                  item_name: product.name,
+                                  item_variant: product.variant,
+                                  quantity: 1,
+                                  price: RoundPrice({
+                                    num: product.offer_price,
+                                    rate: currency?.exchange_rate,
+                                    returnNumber: true,
+                                  }),
+                                },
+                              ],
+                            },
+                          });
                         }}
                       />
                     </div>
@@ -1929,6 +1969,35 @@ const QuantutyInput = ({
       // });
       setInputValue(parseInt(i.toString()) + 1);
       setLoading(true);
+      GAevent({
+        action: GA_EVENT_NAMES.ADD_TO_CART,
+        params: {
+          currency: currency?.code,
+          value: RoundPrice({
+            num: product?.offer_price,
+            rate: currency?.exchange_rate,
+            returnNumber: true,
+          }),
+          items: [
+            {
+              item_id: product.product_id,
+              item_name: product?.name,
+              price: RoundPrice({
+                num: product?.offer_price,
+                rate: currency?.exchange_rate,
+              }),
+              quantity: parseInt(i.toString()) + 1,
+              brand: product?.brand?.name,
+              // count_likes: product?.count_of_likes,
+              // review_count: product?.shared_count,
+              item_variant: product.variant,
+            },
+          ],
+          interaction_type: "add_to_cart",
+          screen_name: GA_GLOBAL_SCREEN.CART_SCREEN,
+          screen_path: window.location.pathname,
+        },
+      });
       await updateQuantity(parseInt(i.toString()) + 1, true);
       await getCart({
         callback: ([data, res]) => {

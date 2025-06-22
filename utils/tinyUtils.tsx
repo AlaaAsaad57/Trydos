@@ -9,6 +9,7 @@ import Cookies from "js-cookie";
 import { toast } from "react-toastify";
 import { changeToken } from "store/homepage/cachedActions";
 import { textMarshal } from "node_modules/text-marshal/lib";
+import { GA_GLOBAL_SCREEN } from "./GAEvents";
 
 // TypeScript interfaces for filter system
 export interface FilterParams {
@@ -648,4 +649,18 @@ export const getFilterUrl = (
   return pathParams.length > 0
     ? `${basePath}/${pathParams.join("/")}`
     : basePath;
+};
+export const DetectScreen = () => {
+  let pathname = window.location.pathname;
+  let searchParams = new URLSearchParams(window.location.search);
+  if (searchParams.get("cart") === "true") {
+    return GA_GLOBAL_SCREEN.CART_SCREEN;
+  }
+  if (pathname?.includes("/products")) {
+    return GA_GLOBAL_SCREEN.PRODUCT_SCREEN;
+  } else if (pathname.includes("/filters")) {
+    return GA_GLOBAL_SCREEN.BOUTIQUE_SCREEN;
+  } else {
+    return GA_GLOBAL_SCREEN.HOME_SCREEN;
+  }
 };

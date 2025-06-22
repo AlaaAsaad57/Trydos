@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 
 import OrderSuccessIcon from "public/svg/cart/OrderSuccess.svg";
-import { translateFunction } from "utils/functions";
+import { RoundPrice, translateFunction } from "utils/functions";
 import { useAppStore } from "store";
 import {
   GA_EVENT_NAMES,
@@ -10,8 +10,14 @@ import {
 } from "utils/GAEvents";
 import { GAevent } from "utils/gtag";
 function OrderSuccess() {
-  const { orderData } = useAppStore();
-
+  const { orderData, currency, total_shipping_cost, cart } = useAppStore();
+  const getTotalCash = () => {
+    let total = 0;
+    orderData.data.map((item) => {
+      total += item.order_amount;
+    });
+    return total;
+  };
   useEffect(() => {
     if (orderData.success) {
       setTimeout(() => {
@@ -24,6 +30,35 @@ function OrderSuccess() {
           platform: GA_GLOBAL_PLATFORM.WEB,
           timestamp: new Date().toISOString(),
           screen_path: window.location.pathname,
+        },
+      });
+      GAevent({
+        action: GA_EVENT_NAMES.PURCHASE,
+        params: {
+          transaction_id: orderData?.data[0]?.order_group_id,
+          value: RoundPrice({
+            num: getTotalCash(),
+            rate: currency?.exchange_rate,
+            returnNumber: true,
+          }),
+          currency: currency?.code,
+          shipping: RoundPrice({
+            num: total_shipping_cost,
+            rate: currency?.exchange_rate,
+            returnNumber: true,
+          }),
+          coupon: orderData.coupon_number,
+          items: cart.map((item) => ({
+            item_id: item.product_id,
+            item_name: item.name,
+            quantity: item.quantity,
+            price: RoundPrice({
+              num: item.offer_price,
+              rate: currency?.exchange_rate,
+            }),
+            brand: item.brand?.name,
+            item_variant: item.variant ?? "N/A",
+          })),
         },
       });
     }

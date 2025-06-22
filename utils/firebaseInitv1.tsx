@@ -88,6 +88,7 @@ export const onMessageListener = async () => {
       const {
         setOrderData,
         endCall,
+        orderData,
         watchChannelEvent,
         receiveChannelEvent,
         setVideoCall,
@@ -188,7 +189,9 @@ export const onMessageListener = async () => {
             toaster.info = (myProps, toastProps): Id =>
               toast.info(<OrderPlaced {...myProps} />, { ...toastProps });
             toaster.info({ data: data }, { data: data });
-            setOrderData({ data: dataReq, success: true });
+            if (orderData.agree) {
+              setOrderData({ data: dataReq, success: true });
+            }
           }
         }
         if (

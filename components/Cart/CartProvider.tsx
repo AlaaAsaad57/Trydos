@@ -6,7 +6,7 @@ import {
   useSearchParams,
 } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { expandView, normalizeView } from "utils/functions";
+import { expandView, normalizeView, RoundPrice } from "utils/functions";
 import CartContainer from ".";
 import home from "services/home";
 import { Swiper, SwiperSlide } from "swiper/react";
@@ -17,8 +17,11 @@ import { ToastContainer } from "react-toastify";
 import { useAppStore } from "store";
 import { getCurrency } from "utils/tinyUtils";
 import AddToCartComponent from "./AddToCartComponent";
-import { GA_GLOBAL_PLATFORM, GA_GLOBAL_SCREEN } from "utils/GAEvents";
-import { GA_EVENT_NAMES } from "utils/GAEvents";
+import {
+  GA_GLOBAL_PLATFORM,
+  GA_GLOBAL_SCREEN,
+  GA_EVENT_NAMES,
+} from "utils/GAEvents";
 import auth from "services/auth";
 import { GAevent } from "utils/gtag";
 import ConfirmMobilePhoneWidget from "components/Login/ConfirmMobilePhoneWidget";
@@ -181,7 +184,7 @@ const CartProvider = () => {
 };
 export default CartProvider;
 export const StepSlider = ({ enableCart }) => {
-  const { cart_enable: enable } = useAppStore();
+  const { cart_enable: enable, cart, currency, total_cash } = useAppStore();
   const [step, setStep] = useState(0);
   const ref = useRef<SwiperType | null>();
 
@@ -214,6 +217,27 @@ export const StepSlider = ({ enableCart }) => {
                   platform: GA_GLOBAL_PLATFORM.WEB,
                   timestamp: new Date().toISOString(),
                   screen_path: window.location.pathname,
+                },
+              });
+              GAevent({
+                action: GA_EVENT_NAMES.BEGIN_CHECKOUT,
+                params: {
+                  value: RoundPrice({
+                    num: total_cash,
+                    rate: currency.exchange_rate,
+                    returnNumber: true,
+                  }),
+                  items: cart.map((item) => ({
+                    item_id: item.product_id,
+                    item_name: item.name,
+                    price: RoundPrice({
+                      num: item.offer_price,
+                      rate: currency.exchange_rate,
+                      returnNumber: true,
+                    }),
+                    quantity: item.quantity,
+                    item_variant: item.variant ?? "N/A",
+                  })),
                 },
               });
               ref.current.slideNext();

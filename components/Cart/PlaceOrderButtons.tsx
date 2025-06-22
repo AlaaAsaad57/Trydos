@@ -12,7 +12,12 @@ import home from "services/home";
 import { CheckBoxElementPropsType } from "models/componentType/CheckBoxElementPropsType";
 import { PlaceOrderButtonsPropsType } from "models/componentType/PlaceOrderButtonsPropsType";
 
-function PlaceOrderButtons({ orderLoading, successOrder, backToCart, close }: PlaceOrderButtonsPropsType) {
+function PlaceOrderButtons({
+  orderLoading,
+  successOrder,
+  backToCart,
+  close,
+}: PlaceOrderButtonsPropsType) {
   const {
     setOrderData,
     initCart,
@@ -236,6 +241,8 @@ function PlaceOrderButtons({ orderLoading, successOrder, backToCart, close }: Pl
                 success: false,
                 data: [],
               });
+              initCart({ cart: [] });
+
               setCouponDiscount(null);
               close();
               return;

@@ -25,7 +25,8 @@ import auth from "services/auth";
 import home from "services/home";
 import { SliderRuler } from "./SliderRuler";
 import { GA_EVENT_NAMES } from "utils/GAEvents";
-import { GetImageUrl } from "utils/tinyUtils";
+import { DetectScreen, GetImageUrl } from "utils/tinyUtils";
+import { GAevent } from "utils/gtag";
 
 function AddToCartComponent({
   color,
@@ -59,7 +60,11 @@ function AddToCartComponent({
   const getProductData = async () => {
     try {
       setLoading(true);
-
+      getCart({
+        callback: ([data]) => {
+          initCart(data ?? { cart: [] });
+        },
+      });
       let [data1, data2, data3] = await Promise.all([
         AxiosGet({
           url:
@@ -73,10 +78,11 @@ function AddToCartComponent({
             `/web/product/likesCommentsSharesDetails/${slug}`,
           title: "GEt Product Variants Notifications",
         }),
-        getCart({
-          callback: ([data]) => {
-            initCart(data ?? { cart: [] });
-          },
+        AxiosGet({
+          url:
+            process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
+            `/api/v2/elastic/shared_count/${product.id}`,
+          title: "Share Count Request",
         }),
       ]);
       let variants_arr = data1.variation;
@@ -96,6 +102,7 @@ function AddToCartComponent({
         ...product,
         ...data1,
         ...data2,
+        shared_count: data3.shared_count,
         variation: newVariants,
       };
       setProductData(tempProductData);
@@ -181,6 +188,7 @@ function AddToCartComponent({
     } else {
       // no variants
       return {
+        type: "N/A",
         price: ProductData?.price,
         offer_price: ProductData?.offer_price,
         qty: ProductData?.available_quantity,
@@ -1512,7 +1520,7 @@ const AddToCartButton = ({
   loading,
   setLoading,
 }) => {
-  const { localCart } = useAppStore();
+  const { localCart, currency } = useAppStore();
   const getTotalQuantity = () => {
     let num = 0;
     localCart?.map((s) => {
@@ -1569,7 +1577,7 @@ const AddToCartButton = ({
       );
     if (exact) return localCart?.find((s) => s.id === id);
   };
-  const clickHandler = async () => {
+  const clickHandler = async ({ variant }) => {
     try {
       setLoading(true);
 
@@ -1581,6 +1589,37 @@ const AddToCartButton = ({
         await cart.UpdateCart({
           cart_id: isVariantInCart({ exact: false })?.item_id,
           qty: (isVariantInCart({ exact: false })?.quantity ?? 0) + 1,
+        });
+        GAevent({
+          action: GA_EVENT_NAMES.ADD_TO_CART,
+          params: {
+            currency: currency?.code,
+            value: RoundPrice({
+              num: selectedVariant?.offer_price,
+              rate: currency?.exchange_rate,
+              returnNumber: true,
+            }),
+            items: [
+              {
+                item_id: id,
+                item_name: product?.name,
+                price: RoundPrice({
+                  num: selectedVariant?.offer_price,
+                  rate: currency?.exchange_rate,
+                  returnNumber: true,
+                }),
+                quantity:
+                  (isVariantInCart({ exact: false })?.quantity ?? 0) + 1,
+                brand: product?.brand?.name,
+                count_likes: product?.count_of_likes,
+                review_count: product?.shared_count,
+                item_variant: selectedVariant?.type,
+              },
+            ],
+            interaction_type: "add_to_cart",
+            screen_name: DetectScreen(),
+            screen_path: window.location.pathname,
+          },
         });
         await updateQuantity();
       } else {
@@ -1600,6 +1639,36 @@ const AddToCartButton = ({
             product?.images[0]?.file_path ||
             product?.images[0],
         });
+        GAevent({
+          action: GA_EVENT_NAMES.ADD_TO_CART,
+          params: {
+            currency: currency?.code,
+            value: RoundPrice({
+              num: selectedVariant?.offer_price,
+              rate: currency?.exchange_rate,
+              returnNumber: true,
+            }),
+            items: [
+              {
+                item_id: id,
+                item_name: product?.name,
+                price: RoundPrice({
+                  num: selectedVariant?.offer_price,
+                  rate: currency?.exchange_rate,
+                  returnNumber: true,
+                }),
+                quantity: 1,
+                brand: product?.brand?.name,
+                count_likes: product?.count_of_likes,
+                review_count: product?.shared_count,
+                item_variant: selectedVariant?.type,
+              },
+            ],
+            interaction_type: "add_to_cart",
+            screen_name: DetectScreen(),
+            screen_path: window.location.pathname,
+          },
+        });
         await updateQuantity();
       }
       setLoading(false);
@@ -1607,7 +1676,7 @@ const AddToCartButton = ({
       setLoading(false);
     }
   };
-  const decreaseHandler = async () => {
+  const decreaseHandler = async ({ variant }) => {
     try {
       if (isVariantInCart({ exact: true })?.quantity > 1) {
         setLoading(true);
@@ -1622,6 +1691,24 @@ const AddToCartButton = ({
         setLoading(true);
         await cart.RemoveFromCart({
           cart_item: isVariantInCart({ exact: true }),
+        });
+        GAevent({
+          action: GA_EVENT_NAMES.REMOVE_FROM_CART,
+          params: {
+            items: [
+              {
+                item_id: product.id,
+                item_name: product.name,
+                item_variant: variant?.type,
+                quantity: 1,
+                price: RoundPrice({
+                  num: variant?.offer_price,
+                  rate: currency?.exchange_rate,
+                  returnNumber: true,
+                }),
+              },
+            ],
+          },
         });
         await updateQuantity();
         setLoading(false);
@@ -1644,7 +1731,7 @@ const AddToCartButton = ({
           // @ts-ignore
           if (e.target.closest(".minuse-qty-icon")) return;
           if (!loading) {
-            clickHandler();
+            clickHandler({ variant: selectedVariant });
           }
         }}
       >
@@ -1665,7 +1752,7 @@ const AddToCartButton = ({
               //   event: GA_EVENT_NAMES.CLICK,
               //   value: GA_CLICK_EVENT_VALUES.DECREASE_QTY_IN_ADD_TO_CART_WIDGET,
               // });
-              decreaseHandler();
+              decreaseHandler({ variant: selectedVariant });
             }}
           >
             <svg

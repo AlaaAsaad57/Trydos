@@ -154,8 +154,6 @@ export const useCartStore = (set, get) => ({
   setOrderSuccess: (data) =>
     set((state) => ({
       orderData: { ...state.orderData, ...data },
-      cart: [],
-      localCart: [],
     })),
 
   setOrderData: (data) => {

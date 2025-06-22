@@ -1,4 +1,3 @@
-import auth from "services/auth";
 import { useAppStore } from "store";
 export const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID; // replace with your ID
 let countries = [

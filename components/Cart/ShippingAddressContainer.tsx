@@ -14,7 +14,13 @@ import { AddAddressButtonPropsType } from "models/componentType/AddAddressButton
 import { AddressContainerPropsType } from "models/componentType/AddressContainerPropsType";
 import { ShippingAddressContainerPropsType } from "models/componentType/ShippingAddressContainerPropsType";
 import { ShippingAddressInputPropsType } from "models/componentType/ShippingAddressInputPropsType";
-function ShippingAddressContainer({ slideNext, slidePrev, openAddressList }: ShippingAddressContainerPropsType) {
+import { GAevent } from "utils/gtag";
+import { GA_EVENT_NAMES } from "utils/GAEvents";
+function ShippingAddressContainer({
+  slideNext,
+  slidePrev,
+  openAddressList,
+}: ShippingAddressContainerPropsType) {
   const { setCountries, cart, user } = useAppStore();
   const { lang } = useParams();
   const getOrderData = async () => {
@@ -146,7 +152,11 @@ const CartItemSelect = ({ items }) => {
   );
 };
 
-const ShippingAddressInput = ({ slideNext, slidePrev, openAddressList }: ShippingAddressInputPropsType) => {
+const ShippingAddressInput = ({
+  slideNext,
+  slidePrev,
+  openAddressList,
+}: ShippingAddressInputPropsType) => {
   const { initAddressForm, addressLists, orderLoading } = useAppStore();
   const { lang } = useParams();
 
@@ -409,56 +419,8 @@ const AddressContainer = ({ openAddressList }: AddressContainerPropsType) => {
   useEffect(() => {
     getData();
   }, []);
-  const { addressLists, cart, settings } = useAppStore();
-  const getDeliveryDate = () => {
-    let shippingDay = 0;
-    cart.forEach((item) => {
-      if (Number(item.shipping_days) > Number(shippingDay)) {
-        shippingDay = Number(item.shipping_days);
-      }
-    });
-    shippingDay +=
-      Number(settings?.["starting-setting"]?.shipping_duration_days) || 0;
-    return formatTime(
-      new Date(
-        new Date().getTime() + Number(shippingDay) * 24 * 60 * 60 * 1000
-      ).toString()
-    );
-  };
-  const GetAddressString = (location) => {
-    let str = "";
-    if (
-      location?.province &&
-      location?.province.length > 0 &&
-      location?.province !== "null"
-    )
-      str += `${location?.province}`;
-    if (
-      location?.city &&
-      location?.city.length > 0 &&
-      location?.city !== "null"
-    )
-      str += ` | ${location?.city}`;
-    if (
-      location?.town &&
-      location?.town.length > 0 &&
-      location?.town !== "null"
-    )
-      str += ` | ${location?.town}`;
-    if (
-      location?.street &&
-      location?.street?.length > 0 &&
-      location?.street !== "null"
-    )
-      str += ` | ${location.street}`;
-    if (
-      location?.building &&
-      location?.building?.length > 0 &&
-      location?.building !== "null"
-    )
-      str += ` | ${location?.building}`;
-    return str;
-  };
+  const { addressLists, cart, settings, total_shipping_cost } = useAppStore();
+
   let defaultAddress = addressLists.filter((s) => s.is_default === 1)[0];
 
   return (
@@ -480,166 +442,7 @@ const AddressContainer = ({ openAddressList }: AddressContainerPropsType) => {
     >
       {defaultAddress ? (
         <>
-          <div data-cy="flex-cols" className="flex-col w-full ">
-            <div
-              data-cy="flex-row items-centers"
-              className="flex-row items-center"
-            >
-              <svg
-                data-cy="flex-col-svg"
-                xmlns="http://www.w3.org/2000/svg"
-                width="12"
-                height="12"
-                viewBox="0 0 12 12"
-              >
-                <path
-                  id="home-3"
-                  d="M11.677,5.219h0L6.781.324a1.1,1.1,0,0,0-1.563,0L.325,5.216l0,.005A1.1,1.1,0,0,0,1.056,7.1l.034,0h.2v3.6A1.294,1.294,0,0,0,2.578,12H4.493a.352.352,0,0,0,.352-.352V8.824a.591.591,0,0,1,.59-.59h1.13a.591.591,0,0,1,.59.59v2.824A.352.352,0,0,0,7.506,12H9.421a1.294,1.294,0,0,0,1.293-1.293V7.1H10.9a1.1,1.1,0,0,0,.782-1.885Zm0,0"
-                  transform="translate(0.001)"
-                  fill="#8d8d8d"
-                />
-              </svg>
-
-              <span
-                data-cy="regular-addresses"
-                className="regular ml-[4px] text-[12px] text-[#8D8D8D]"
-              >
-                {defaultAddress?.address}
-              </span>
-            </div>
-            <div
-              data-cy="Address-Added-Last"
-              className="flex-row mt-[5px]  items-center regular text-[12px] text-[#8D8D8D]"
-            >
-              {GetAddressString(defaultAddress?.region_details)}
-            </div>
-            <div
-              data-cy="Address-Added-Last-flex-row"
-              className="flex-row mt-[5px] items-center regular text-[12px] text-[#8D8D8D]"
-            >
-              <svg
-                data-cy="Address-Added-Last-flex-row-svg"
-                xmlns="http://www.w3.org/2000/svg"
-                xmlnsXlink="http://www.w3.org/1999/xlink"
-                width="12"
-                height="12"
-                viewBox="0 0 12 12"
-              >
-                <defs>
-                  <clipPath id="clip-path1213">
-                    <rect
-                      id="Rectangle_6097"
-                      data-name="Rectangle 6097"
-                      width="12"
-                      height="12"
-                      transform="translate(-0.245)"
-                      fill="#8d8d8d"
-                    />
-                  </clipPath>
-                </defs>
-                <g
-                  id="Mask_Group_646"
-                  data-name="Mask Group 646"
-                  transform="translate(0.245)"
-                  clipPath="url(#clip-path1213)"
-                >
-                  <g id="XMLID_7_" transform="translate(0.202 0.583)">
-                    <path
-                      id="XMLID_10_"
-                      d="M10.461,8.411c-.055-.042-.111-.085-.164-.128-.281-.226-.579-.434-.868-.635l-.18-.125a1.791,1.791,0,0,0-1.016-.386,1.317,1.317,0,0,0-1.1.695.583.583,0,0,1-.5.3.993.993,0,0,1-.4-.1A4.848,4.848,0,0,1,3.7,5.568c-.236-.529-.159-.876.255-1.157A1.171,1.171,0,0,0,4.6,3.383,5.865,5.865,0,0,0,2.534.569a1.172,1.172,0,0,0-.8,0A2.306,2.306,0,0,0,.3,1.747,2.194,2.194,0,0,0,.334,3.518,14.288,14.288,0,0,0,3.469,8.291a15.2,15.2,0,0,0,4.756,3.158,2.634,2.634,0,0,0,.47.14c.044.01.081.018.109.026a.183.183,0,0,0,.046.006h.015a2.7,2.7,0,0,0,2.241-1.705C11.388,9.12,10.874,8.727,10.461,8.411Z"
-                      transform="translate(-0.131 -0.498)"
-                      fill="#8d8d8d"
-                    />
-                  </g>
-                </g>
-              </svg>
-
-              <div
-                data-cy="defaultAddress-contactinfo"
-                className="flex-row ml-[4px]   items-center regular text-[12px] text-[#8D8D8D]"
-              >
-                {defaultAddress?.contact_info.phone}
-              </div>
-              <div
-                data-cy="flexs-container"
-                className="flex-row ml-[17px]  items-center"
-              >
-                <svg
-                  data-cy="flexs-container-svg"
-                  xmlns="http://www.w3.org/2000/svg"
-                  xmlnsXlink="http://www.w3.org/1999/xlink"
-                  width="12"
-                  height="12"
-                  viewBox="0 0 12 12"
-                >
-                  <defs>
-                    <clipPath id="clip-path232323">
-                      <rect
-                        id="Rectangle_6098"
-                        data-name="Rectangle 6098"
-                        width="12"
-                        height="12"
-                        fill="none"
-                      />
-                    </clipPath>
-                  </defs>
-                  <g
-                    id="Mask_Group_647"
-                    data-name="Mask Group 647"
-                    clipPath="url(#clip-path232323)"
-                  >
-                    <g
-                      id="Group_13"
-                      data-name="Group 13"
-                      transform="translate(1.162 0)"
-                    >
-                      <path
-                        id="Path_20"
-                        data-name="Path 20"
-                        d="M651.622,148c.318-.068.611-.331.658-.913.04-.476-.083-.722-.264-.846.5-2.042-.88-2.441-.88-2.441a2.072,2.072,0,0,0-3.047-.522,3.6,3.6,0,0,0-.891.765,3.182,3.182,0,0,0-.681,2.132c-.246.092-.44.331-.391.918.05.609.367.868.7.918a2.435,2.435,0,0,0,4.794-.008Zm-2.4,1.5c-1.218,0-2.2-1.653-2.2-3.025,0-.184.005-.362.017-.523a4.18,4.18,0,0,0,3.411-1.257,4,4,0,0,1,.971,1.736v.044c.008,1.371-.973,3.026-2.192,3.026Z"
-                        transform="translate(-644.484 -142.822)"
-                        fill="#8d8d8d"
-                      />
-                      <path
-                        id="Path_21"
-                        data-name="Path 21"
-                        d="M643.18,174.122l.141-.584a.341.341,0,0,1,.1-.169l-.042-.032-1.261-1.044-.768.184a2.785,2.785,0,0,0-2.214,2.662v1.653a.613.613,0,0,0,.635.585h3.247l.495-2.822a.344.344,0,0,1-.333-.432Z"
-                        transform="translate(-639.136 -165.377)"
-                        fill="#8d8d8d"
-                      />
-                      <path
-                        id="Path_22"
-                        data-name="Path 22"
-                        d="M662.939,172.471l-.756-.184-1.259,1.044-.042.032a.341.341,0,0,1,.1.169l.141.584a.344.344,0,0,1-.333.425l.495,2.822h3.246a.59.59,0,0,0,.61-.585v-1.653a2.772,2.772,0,0,0-2.2-2.655Z"
-                        transform="translate(-655.714 -165.376)"
-                        fill="#8d8d8d"
-                      />
-                    </g>
-                  </g>
-                </svg>
-
-                <div
-                  data-cy="defaultAddress-contactpersonname"
-                  className="flex-row  ml-[4px]  items-center regular text-[12px] text-[#8D8D8D]"
-                >
-                  {defaultAddress?.contact_info.contact_person_name ||
-                    // @ts-ignore
-                    defaultAddress?.contact_info.name}
-                </div>
-              </div>
-            </div>
-            <div className="flex-row text-[10px]  bg-[#FFFFFF] rounded-[12px] w-full h-[31px] justify-center items-center">
-              <span className="text-[#8D8D8D] regular ">
-                {translateFunction("Expected Delivery")}
-              </span>
-              <span className="text-[#1D1D1D] regular ml-[4px]">
-                {loading ? <Spinner /> : getDeliveryDate()}
-              </span>
-              <span className="text-[#388CFF] regular underline cursor-pointer ml-[4px]">
-                {translateFunction("Delivery Not")}
-              </span>
-            </div>
-          </div>
+          <DefaultAddress loading={loading} defaultAddress={defaultAddress} />
         </>
       ) : (
         <>
@@ -723,6 +526,239 @@ const AddAddressButton = ({ onClick }: AddAddressButtonPropsType) => {
         className="medium text-[12px] ml-1 text-[#1D1D1D]"
       >
         {translateFunction("Add Shipping Address")}
+      </div>
+    </div>
+  );
+};
+const DefaultAddress = ({
+  defaultAddress,
+  loading,
+}: {
+  defaultAddress: any;
+  loading: boolean;
+}) => {
+  const { cart, settings, total_shipping_cost } = useAppStore();
+  const getDeliveryDate = () => {
+    let shippingDay = 0;
+    cart.forEach((item) => {
+      if (Number(item.shipping_days) > Number(shippingDay)) {
+        shippingDay = Number(item.shipping_days);
+      }
+    });
+    shippingDay +=
+      Number(settings?.["starting-setting"]?.shipping_duration_days) || 0;
+    return formatTime(
+      new Date(
+        new Date().getTime() + Number(shippingDay) * 24 * 60 * 60 * 1000
+      ).toString()
+    );
+  };
+
+  const GetAddressString = (location) => {
+    let str = "";
+    if (
+      location?.province &&
+      location?.province.length > 0 &&
+      location?.province !== "null"
+    )
+      str += `${location?.province}`;
+    if (
+      location?.city &&
+      location?.city.length > 0 &&
+      location?.city !== "null"
+    )
+      str += ` | ${location?.city}`;
+    if (
+      location?.town &&
+      location?.town.length > 0 &&
+      location?.town !== "null"
+    )
+      str += ` | ${location?.town}`;
+    if (
+      location?.street &&
+      location?.street?.length > 0 &&
+      location?.street !== "null"
+    )
+      str += ` | ${location.street}`;
+    if (
+      location?.building &&
+      location?.building?.length > 0 &&
+      location?.building !== "null"
+    )
+      str += ` | ${location?.building}`;
+    return str;
+  };
+  useEffect(() => {
+    if (defaultAddress?.id) {
+      GAevent({
+        action: GA_EVENT_NAMES.ADD_ADDRESS,
+        params: {
+          shipping_tier: total_shipping_cost > 0 ? "Paid" : "Free",
+          items: cart.map((item) => ({
+            item_id: item.product_id,
+            item_name: item.name,
+            quantity: item.quantity,
+          })),
+        },
+      });
+    }
+  }, []);
+  return (
+    <div data-cy="flex-cols" className="flex-col w-full ">
+      <div data-cy="flex-row items-centers" className="flex-row items-center">
+        <svg
+          data-cy="flex-col-svg"
+          xmlns="http://www.w3.org/2000/svg"
+          width="12"
+          height="12"
+          viewBox="0 0 12 12"
+        >
+          <path
+            id="home-3"
+            d="M11.677,5.219h0L6.781.324a1.1,1.1,0,0,0-1.563,0L.325,5.216l0,.005A1.1,1.1,0,0,0,1.056,7.1l.034,0h.2v3.6A1.294,1.294,0,0,0,2.578,12H4.493a.352.352,0,0,0,.352-.352V8.824a.591.591,0,0,1,.59-.59h1.13a.591.591,0,0,1,.59.59v2.824A.352.352,0,0,0,7.506,12H9.421a1.294,1.294,0,0,0,1.293-1.293V7.1H10.9a1.1,1.1,0,0,0,.782-1.885Zm0,0"
+            transform="translate(0.001)"
+            fill="#8d8d8d"
+          />
+        </svg>
+
+        <span
+          data-cy="regular-addresses"
+          className="regular ml-[4px] text-[12px] text-[#8D8D8D]"
+        >
+          {defaultAddress?.address}
+        </span>
+      </div>
+      <div
+        data-cy="Address-Added-Last"
+        className="flex-row mt-[5px]  items-center regular text-[12px] text-[#8D8D8D]"
+      >
+        {GetAddressString(defaultAddress?.region_details)}
+      </div>
+      <div
+        data-cy="Address-Added-Last-flex-row"
+        className="flex-row mt-[5px] items-center regular text-[12px] text-[#8D8D8D]"
+      >
+        <svg
+          data-cy="Address-Added-Last-flex-row-svg"
+          xmlns="http://www.w3.org/2000/svg"
+          xmlnsXlink="http://www.w3.org/1999/xlink"
+          width="12"
+          height="12"
+          viewBox="0 0 12 12"
+        >
+          <defs>
+            <clipPath id="clip-path1213">
+              <rect
+                id="Rectangle_6097"
+                data-name="Rectangle 6097"
+                width="12"
+                height="12"
+                transform="translate(-0.245)"
+                fill="#8d8d8d"
+              />
+            </clipPath>
+          </defs>
+          <g
+            id="Mask_Group_646"
+            data-name="Mask Group 646"
+            transform="translate(0.245)"
+            clipPath="url(#clip-path1213)"
+          >
+            <g id="XMLID_7_" transform="translate(0.202 0.583)">
+              <path
+                id="XMLID_10_"
+                d="M10.461,8.411c-.055-.042-.111-.085-.164-.128-.281-.226-.579-.434-.868-.635l-.18-.125a1.791,1.791,0,0,0-1.016-.386,1.317,1.317,0,0,0-1.1.695.583.583,0,0,1-.5.3.993.993,0,0,1-.4-.1A4.848,4.848,0,0,1,3.7,5.568c-.236-.529-.159-.876.255-1.157A1.171,1.171,0,0,0,4.6,3.383,5.865,5.865,0,0,0,2.534.569a1.172,1.172,0,0,0-.8,0A2.306,2.306,0,0,0,.3,1.747,2.194,2.194,0,0,0,.334,3.518,14.288,14.288,0,0,0,3.469,8.291a15.2,15.2,0,0,0,4.756,3.158,2.634,2.634,0,0,0,.47.14c.044.01.081.018.109.026a.183.183,0,0,0,.046.006h.015a2.7,2.7,0,0,0,2.241-1.705C11.388,9.12,10.874,8.727,10.461,8.411Z"
+                transform="translate(-0.131 -0.498)"
+                fill="#8d8d8d"
+              />
+            </g>
+          </g>
+        </svg>
+
+        <div
+          data-cy="defaultAddress-contactinfo"
+          className="flex-row ml-[4px]   items-center regular text-[12px] text-[#8D8D8D]"
+        >
+          {defaultAddress?.contact_info.phone}
+        </div>
+        <div
+          data-cy="flexs-container"
+          className="flex-row ml-[17px]  items-center"
+        >
+          <svg
+            data-cy="flexs-container-svg"
+            xmlns="http://www.w3.org/2000/svg"
+            xmlnsXlink="http://www.w3.org/1999/xlink"
+            width="12"
+            height="12"
+            viewBox="0 0 12 12"
+          >
+            <defs>
+              <clipPath id="clip-path232323">
+                <rect
+                  id="Rectangle_6098"
+                  data-name="Rectangle 6098"
+                  width="12"
+                  height="12"
+                  fill="none"
+                />
+              </clipPath>
+            </defs>
+            <g
+              id="Mask_Group_647"
+              data-name="Mask Group 647"
+              clipPath="url(#clip-path232323)"
+            >
+              <g
+                id="Group_13"
+                data-name="Group 13"
+                transform="translate(1.162 0)"
+              >
+                <path
+                  id="Path_20"
+                  data-name="Path 20"
+                  d="M651.622,148c.318-.068.611-.331.658-.913.04-.476-.083-.722-.264-.846.5-2.042-.88-2.441-.88-2.441a2.072,2.072,0,0,0-3.047-.522,3.6,3.6,0,0,0-.891.765,3.182,3.182,0,0,0-.681,2.132c-.246.092-.44.331-.391.918.05.609.367.868.7.918a2.435,2.435,0,0,0,4.794-.008Zm-2.4,1.5c-1.218,0-2.2-1.653-2.2-3.025,0-.184.005-.362.017-.523a4.18,4.18,0,0,0,3.411-1.257,4,4,0,0,1,.971,1.736v.044c.008,1.371-.973,3.026-2.192,3.026Z"
+                  transform="translate(-644.484 -142.822)"
+                  fill="#8d8d8d"
+                />
+                <path
+                  id="Path_21"
+                  data-name="Path 21"
+                  d="M643.18,174.122l.141-.584a.341.341,0,0,1,.1-.169l-.042-.032-1.261-1.044-.768.184a2.785,2.785,0,0,0-2.214,2.662v1.653a.613.613,0,0,0,.635.585h3.247l.495-2.822a.344.344,0,0,1-.333-.432Z"
+                  transform="translate(-639.136 -165.377)"
+                  fill="#8d8d8d"
+                />
+                <path
+                  id="Path_22"
+                  data-name="Path 22"
+                  d="M662.939,172.471l-.756-.184-1.259,1.044-.042.032a.341.341,0,0,1,.1.169l.141.584a.344.344,0,0,1-.333.425l.495,2.822h3.246a.59.59,0,0,0,.61-.585v-1.653a2.772,2.772,0,0,0-2.2-2.655Z"
+                  transform="translate(-655.714 -165.376)"
+                  fill="#8d8d8d"
+                />
+              </g>
+            </g>
+          </svg>
+
+          <div
+            data-cy="defaultAddress-contactpersonname"
+            className="flex-row  ml-[4px]  items-center regular text-[12px] text-[#8D8D8D]"
+          >
+            {defaultAddress?.contact_info.contact_person_name ||
+              // @ts-ignore
+              defaultAddress?.contact_info.name}
+          </div>
+        </div>
+      </div>
+      <div className="flex-row text-[10px]  bg-[#FFFFFF] rounded-[12px] w-full h-[31px] justify-center items-center">
+        <span className="text-[#8D8D8D] regular ">
+          {translateFunction("Expected Delivery")}
+        </span>
+        <span className="text-[#1D1D1D] regular ml-[4px]">
+          {loading ? <Spinner /> : getDeliveryDate()}
+        </span>
+        <span className="text-[#388CFF] regular underline cursor-pointer ml-[4px]">
+          {translateFunction("Delivery Not")}
+        </span>
       </div>
     </div>
   );

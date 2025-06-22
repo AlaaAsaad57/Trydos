@@ -23,8 +23,16 @@ export const GA_EVENT_NAMES = {
   REMOVE_FROM_CART: "remove_from_cart",
   VIEW_CART: "view_cart",
   BEGIN_CHECKOUT: "begin_checkout",
+  ADD_PAYMENT: "add_payment_info",
+  ADD_ADDRESS: "add_shipping_info",
+  PURCHASE: "purchase",
 };
-
+export const GA_PAYMENTS = {
+  WALLET: "wallet",
+  CRYPTO: "crypto",
+  CREDIT: "credit",
+  COD: "cash_on_delivery",
+};
 export const GA_AUTH_SCREEN = {
   SELECT_AUTHINTCTION_METHOD_SCREEN: "authintaction_method_screen",
   AGREE_TERMS_SCREEN: "agree_terms_screen",

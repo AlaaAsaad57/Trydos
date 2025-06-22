@@ -19,6 +19,8 @@ import { toast } from "react-toastify";
 import { useAppStore } from "store";
 import { useEffect } from "react";
 import { TryDosWalletInputPropsType } from "models/componentType/TryDosWalletInputPropsType";
+import { GAevent } from "utils/gtag";
+import { GA_EVENT_NAMES, GA_PAYMENTS } from "utils/GAEvents";
 function PaymentMethod() {
   const {
     setWalletBalance,
@@ -33,6 +35,7 @@ function PaymentMethod() {
     total,
     total_cash,
     currency,
+    cart,
     cod_cost,
   } = useAppStore();
   const { lang } = useParams();
@@ -46,6 +49,18 @@ function PaymentMethod() {
   useEffect(() => {
     if (getWalletInUSD() > 0 && getWalletInUSD() < total) {
       setWalletBalance();
+      GAevent({
+        action: GA_EVENT_NAMES.ADD_PAYMENT,
+        params: {
+          payment_type: GA_PAYMENTS.WALLET,
+          items: cart.map((item) => ({
+            item_id: item.product_id,
+            item_name: item.name,
+
+            quantity: item.quantity,
+          })),
+        },
+      });
       setOrderData({
         payment: [
           ...orderData.payment?.filter((s) => s.id !== 1),
@@ -58,6 +73,18 @@ function PaymentMethod() {
     }
     if (getWalletInUSD() >= total) {
       setWalletBalance();
+      GAevent({
+        action: GA_EVENT_NAMES.ADD_PAYMENT,
+        params: {
+          payment_type: GA_PAYMENTS.WALLET,
+          items: cart.map((item) => ({
+            item_id: item.product_id,
+            item_name: item.name,
+
+            quantity: item.quantity,
+          })),
+        },
+      });
       setOrderData({
         payment: [
           ...orderData.payment?.filter((s) => s.id !== 1),
@@ -81,6 +108,18 @@ function PaymentMethod() {
         });
       } else {
         setCodUser();
+        GAevent({
+          action: GA_EVENT_NAMES.ADD_PAYMENT,
+          params: {
+            payment_type: GA_PAYMENTS.COD,
+            items: cart.map((item) => ({
+              item_id: item.product_id,
+              item_name: item.name,
+
+              quantity: item.quantity,
+            })),
+          },
+        });
         setOrderData({
           payment: [
             ...orderData.payment?.filter((s) => s.id === 1),
@@ -113,6 +152,18 @@ function PaymentMethod() {
           payment: orderData?.payment?.filter((s) => s.id !== 3),
         });
       } else {
+        GAevent({
+          action: GA_EVENT_NAMES.ADD_PAYMENT,
+          params: {
+            payment_type: GA_PAYMENTS.CRYPTO,
+            items: cart.map((item) => ({
+              item_id: item.product_id,
+              item_name: item.name,
+
+              quantity: item.quantity,
+            })),
+          },
+        });
         setCryptoUser();
         setOrderData({
           payment: [
@@ -138,6 +189,18 @@ function PaymentMethod() {
         });
       } else {
         setCreditUser();
+        GAevent({
+          action: GA_EVENT_NAMES.ADD_PAYMENT,
+          params: {
+            payment_type: GA_PAYMENTS.CREDIT,
+            items: cart.map((item) => ({
+              item_id: item.product_id,
+              item_name: item.name,
+
+              quantity: item.quantity,
+            })),
+          },
+        });
         setOrderData({
           payment: [
             ...orderData.payment?.filter((s) => s.id === 1),
@@ -542,7 +605,10 @@ const CODInput = ({ active, setActive, total }) => {
     </div>
   );
 };
-const TryDosWalletInput = ({ active, setActive }: TryDosWalletInputPropsType) => {
+const TryDosWalletInput = ({
+  active,
+  setActive,
+}: TryDosWalletInputPropsType) => {
   const { orderLoading, wallet, currency, settings } = useAppStore();
   const points = settings["starting-setting"]?.decimal_point_settings || 0;
   return (
