@@ -560,6 +560,7 @@ html[lang="ar"] .chat-window-search-holder svg {
   top: 29px !important;
 }
 .text-avatar {
+  white-space: nowrap;
   width: 60px;
   height: 60px;
   display: flex;
@@ -960,7 +961,7 @@ html[lang="ar"] .new-chats {
   padding-left: 20px;
   padding-right: 20px;
   position: absolute;
-  bottom: 51px;
+  bottom: 100px;
   left: 0px;
   display: flex;
   align-items: center;
@@ -1176,7 +1177,7 @@ html[lang="ar"] .new-chats {
   position: relative;
 }
 .chat-user-gallery-container .chat-user-info-arrow {
-  top: 17px;
+  top: 7px;
 }
 .chat-user-options {
   width: 100%;

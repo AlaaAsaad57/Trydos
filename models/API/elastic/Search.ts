@@ -1,13 +1,15 @@
 export interface SearchResponse {
   data: {
-    offset: number | null;
-    total_size: number;
-    limit: number;
-    products: Array<{
+    offset?: number | null;
+    total_size?: number;
+    limit?: number;
+    products?: Array<{
       id: number;
+      featured?: string;
       name: string;
       slug: string;
       details: string;
+      end_date?: string;
       thumbnail: {
         file_path: string;
         original_width: string;
@@ -87,7 +89,7 @@ export interface SearchResponse {
       is_active: boolean;
       boutique_id?: number;
     }>;
-    brands: Array<{
+    brands?: Array<{
       id: number;
       name: string;
       slug: string;
@@ -97,13 +99,13 @@ export interface SearchResponse {
         original_height: string;
       };
     }>;
-    attributes: Array<{
+    attributes?: Array<{
       id: number;
       name: string;
       options: Array<string>;
     }>;
-    colors: Array<string>;
-    categories: Array<{
+    colors?: Array<string>;
+    categories?: Array<{
       id: number;
       slug: string;
       name: string;
@@ -220,7 +222,7 @@ export interface SearchResponse {
         }>;
       }>;
     }>;
-    boutiques: Array<{
+    boutiques?: Array<{
       id: number;
       name: string;
       slug: string;
@@ -230,7 +232,7 @@ export interface SearchResponse {
         original_height: string;
       };
     }>;
-    prices: {
+    prices?: {
       min_price: number;
       max_price: number;
       priceRanges?: Array<{
@@ -239,8 +241,8 @@ export interface SearchResponse {
         products_count: number;
       }>;
     };
-    search_time: string | null;
-    search_text: string | null;
-    process_time: string;
+    search_time?: string | null;
+    search_text?: string | null;
+    process_time?: string;
   };
 }

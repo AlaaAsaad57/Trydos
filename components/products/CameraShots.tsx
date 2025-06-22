@@ -11,6 +11,7 @@ import CircleBorder from "public/svg/product/CircleBorder";
 import { useParams } from "next/navigation";
 import { useAppStore } from "store";
 import { GA_EVENT_NAMES } from "utils/GAEvents";
+import { GetImageUrl } from "utils/tinyUtils";
 import { CameraShotsPropsType } from "models/componentType/productTypes/MultiComponentOnProductPage";
 
 function CameraShots({ images }: CameraShotsPropsType) {
@@ -113,7 +114,7 @@ function CameraShots({ images }: CameraShotsPropsType) {
                       width={40}
                       height={40}
                       src={getConfiguredImage({
-                        src: image,
+                        src: GetImageUrl(image),
                         width: 40 * 2,
                         height: 40 * 2,
                       })}

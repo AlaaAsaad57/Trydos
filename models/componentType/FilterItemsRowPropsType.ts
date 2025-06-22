@@ -2,7 +2,10 @@ import { BoutiqueData } from "./boutiqueTypes/boutiquePagePropsType";
 import { Currency } from "./boutiqueTypes/boutiquePagePropsType";
 import { FilterData } from "./boutiqueTypes/FilterListPropsType";
 export interface FilterItemsRowPropsType {
-    index: number;
+    filters?: any,
+    isFlashDeals?: boolean,
+    parsedFilters?: any,
+    index?: number;
     boutique?: BoutiqueData;
     isFeatured?: boolean;
     params: {
@@ -10,7 +13,7 @@ export interface FilterItemsRowPropsType {
         boutiqueId?: string;
     };
     currency: Currency;
-    searchParams: URLSearchParams;
-    items: FilterData[];
-    term: string;
+    searchParams?: URLSearchParams;
+    items?: FilterData[];
+    term?: string;
 }

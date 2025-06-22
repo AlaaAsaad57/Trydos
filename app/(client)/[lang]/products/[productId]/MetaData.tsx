@@ -1,24 +1,18 @@
 // components/BoutiqueHead.tsx
 
 import { getConfiguredImage } from "utils/functions";
+import { fetchProductDetails } from "Server Requests";
 
 export async function generateProductMetaData({ params, searchParams }) {
   try {
+    const [country, language] = params.lang.split("-");
     const getProductData = async () => {
       try {
-        let response = await fetch(
-          process.env.NEXT_PUBLIC_API_BASE_URL +
-            `/api/${params.lang}/products/${params.productId}`,
-          {
-            next: {
-              revalidate: parseInt(
-                process.env.NEXT_PUBLIC_REVALIDATE_PRODUCT_DETAILS
-              ),
-              tags: [`product-details`, `product-${params.productId}`],
-            },
-          }
+        const data = await fetchProductDetails(
+          params.productId,
+          language,
+          country
         );
-        let data = await response.json();
         return data;
       } catch (error) {
         console.log(error);
@@ -52,14 +46,14 @@ export async function generateProductMetaData({ params, searchParams }) {
     //     .filter(Boolean)
     //     .join(", ");
 
-    const canonicalUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL}/products/${product.slug}`;
+    const canonicalUrl = `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/products/${product.slug}`;
     const getImages = () => {
       return (
         (product?.sync_color_images
           ?.find((s) => s.color_name === searchParams?.color)
           ?.images?.map((s) => ({
             url: getConfiguredImage({
-              src: s,
+              src: process.env.NEXT_PUBLIC_BASE_CLOUDINARY_URL + s,
               width: 1200,
               height: 630,
               q: 80,
@@ -72,7 +66,7 @@ export async function generateProductMetaData({ params, searchParams }) {
             ?.find((s) => s.color_name === searchParams?.color)
             ?.images?.map((s) => ({
               url: getConfiguredImage({
-                src: s,
+                src: process.env.NEXT_PUBLIC_BASE_CLOUDINARY_URL + s,
                 width: 1200,
                 height: 630,
                 q: 80,
@@ -83,7 +77,7 @@ export async function generateProductMetaData({ params, searchParams }) {
             }))) ||
         (product.images?.map((s) => ({
           url: getConfiguredImage({
-            src: s,
+            src: process.env.NEXT_PUBLIC_BASE_CLOUDINARY_URL + s,
             width: 1200,
             height: 630,
             q: 80,
@@ -94,7 +88,7 @@ export async function generateProductMetaData({ params, searchParams }) {
         }))?.length > 0 &&
           product.images?.map((s) => ({
             url: getConfiguredImage({
-              src: s,
+              src: process.env.NEXT_PUBLIC_BASE_CLOUDINARY_URL + s,
               width: 1200,
               height: 630,
               q: 80,
@@ -123,11 +117,36 @@ export async function generateProductMetaData({ params, searchParams }) {
         title: pageTitle,
         description: pageDescription,
         images: [
-          getConfiguredImage({ src: ogImage, width: 1200, height: 630, q: 80 }),
-          getConfiguredImage({ src: ogImage, width: 800, height: 418, q: 80 }),
-          getConfiguredImage({ src: ogImage, width: 400, height: 209, q: 80 }),
-          getConfiguredImage({ src: ogImage, width: 200, height: 104, q: 80 }),
-          getConfiguredImage({ src: ogImage, width: 100, height: 52, q: 80 }),
+          getConfiguredImage({
+            src: process.env.NEXT_PUBLIC_BASE_CLOUDINARY_URL + ogImage,
+            width: 1200,
+            height: 630,
+            q: 80,
+          }),
+          getConfiguredImage({
+            src: process.env.NEXT_PUBLIC_BASE_CLOUDINARY_URL + ogImage,
+            width: 800,
+            height: 418,
+            q: 80,
+          }),
+          getConfiguredImage({
+            src: process.env.NEXT_PUBLIC_BASE_CLOUDINARY_URL + ogImage,
+            width: 400,
+            height: 209,
+            q: 80,
+          }),
+          getConfiguredImage({
+            src: process.env.NEXT_PUBLIC_BASE_CLOUDINARY_URL + ogImage,
+            width: 200,
+            height: 104,
+            q: 80,
+          }),
+          getConfiguredImage({
+            src: process.env.NEXT_PUBLIC_BASE_CLOUDINARY_URL + ogImage,
+            width: 100,
+            height: 52,
+            q: 80,
+          }),
         ],
       },
       alternates: {

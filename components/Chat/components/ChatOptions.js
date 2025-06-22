@@ -8,7 +8,7 @@ import ArchiveIcon from "../svg/ArchiveIcon.svg";
 import { translateFunction } from "utils/functions";
 import { useParams } from "next/navigation";
 import { useAppStore } from "store";
-function ChatOptions({ id, unread, pinned, muted }) {
+function ChatOptions({ id, unread, pinned, muted, member_id }) {
   const { language, setUnreadChat, pinChat, muteChat, deleteChat } =
     useAppStore();
   let { lang } = useParams();
@@ -30,7 +30,9 @@ function ChatOptions({ id, unread, pinned, muted }) {
       </div>
       <div
         className="chat-option chat-2"
-        onClick={() => pinChat({ id: id, value: !pinned })}
+        onClick={() =>
+          pinChat({ id: id, value: !pinned, member_id: member_id })
+        }
       >
         <PinIcon></PinIcon>
         <div>
@@ -39,7 +41,9 @@ function ChatOptions({ id, unread, pinned, muted }) {
       </div>
       <div
         className="chat-option chat-3"
-        onClick={() => muteChat({ id: id, value: !muted })}
+        onClick={() =>
+          muteChat({ id: id, value: !muted, member_id: member_id })
+        }
       >
         {!muted ? <MuteIcon></MuteIcon> : <UnmuteIcon></UnmuteIcon>}
         <div>

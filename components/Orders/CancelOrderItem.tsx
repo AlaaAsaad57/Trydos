@@ -8,6 +8,7 @@ import {
 } from "utils/functions";
 
 import CancelOrderItemIcon from "public/svg/OrderCancelIcon.svg";
+import { GetImageUrl } from "utils/tinyUtils";
 import { CancelOrderItemPropsType } from "models/componentType/CancelOrderItemPropsType";
 function CancelOrderItem({
   item,
@@ -49,7 +50,7 @@ function CancelOrderItem({
               border: "1px solid #ffffff80",
             }}
             src={getConfiguredImage({
-              src: item.image,
+              src: GetImageUrl(item.image),
               width: 104,
               height: 144,
               q: 100,

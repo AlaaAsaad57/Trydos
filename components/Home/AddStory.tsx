@@ -11,12 +11,16 @@ import dynamic from "next/dynamic";
 
 import { useAppStore } from "store";
 import AddStoryWidget from "./Stories/AddStoryWidget";
+import { fetchStories } from "Server Requests";
+import { useParams } from "next/navigation";
 
 function AddStory() {
   const { user, setNameModal, addStoryEnable, setAddStory } = useAppStore();
   const [uploaded, setUpload] = useState(0);
   const [isSelected, setIsSelected] = useState(null);
   const [file, setFile] = useState(null);
+  const { lang }: { lang: string } = useParams();
+  const [language, country] = lang.split("-");
   const handleChange = async (e, link) => {
     const { toast } = await import("react-toastify");
     if (e.target.files[0]?.type.includes("video")) {
@@ -76,6 +80,12 @@ function AddStory() {
                 setIsSelected(null);
                 setFile(null);
                 revalidateStories();
+                let stories = await fetchStories(
+                  language,
+                  country,
+                  1,
+                  JSON.parse(localStorage.getItem("USER-STORIES"))?.access_token
+                );
               }
 
               clearInterval(timer);

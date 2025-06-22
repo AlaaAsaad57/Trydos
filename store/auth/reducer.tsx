@@ -17,7 +17,7 @@ interface AuthState {
   failedLogin: boolean;
   attempts: number;
   wrongNumber: string;
-
+  shouldAuthinticated: any
   verficationID: string | null;
   firebaseSettings: FirebaseSettings;
   userProfile: any | null;
@@ -46,6 +46,7 @@ export const useAuthStore = (set, get) => ({
   user: null,
   Tempuser: null,
   failedLogin: false,
+  shouldAuthinticated: false,
   attempts: 4,
   wrongNumber: "",
 
@@ -64,6 +65,7 @@ export const useAuthStore = (set, get) => ({
 
   // Actions
   setIsActiveAddress: (isActive) => set({ isActiveAddress: isActive }),
+  setShouldAuthinticated: (shouldAuthinticated) => set({ shouldAuthinticated }),
   updateUserIsVerified: (user_obj) =>
     set((state) => ({ userProfile: { ...state.userProfile, ...user_obj } })),
   setTotalOrders: (total) => set({ totalOrders: total }),

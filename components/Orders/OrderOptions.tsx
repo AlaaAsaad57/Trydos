@@ -30,37 +30,70 @@ function OrderOptions({ closeOptions, CancelOrder }: OrderOptionsPropsType) {
   const [shouldConfirmCancel, setShouldConfirmCancel] = useState(false);
   const [shouldConfirmReturn, setShouldConfirmReturn] = useState(false);
   const [shouldConfirmChange, setShouldConfirmChange] = useState(false);
-  const [tempOrderDetails, setTempOrderDetails] = useState(
-    selectedOrder.details
-  );
+  const [tempOrderDetails, setTempOrderDetails] = useState([]);
   const changeOrderItem = ({ id, color, size, qty, image }) => {
-    let details_arry = [];
-    selectedOrder.details.map((s) => {
-      if (s.id === id) {
-        let new_detail = { ...s, image };
-        if (s.variation) {
-          if (s.variation.color !== color) {
-            new_detail = {
-              ...new_detail,
-              variation: { ...new_detail.variation, color },
-            };
+    let order_details_arry = [];
+
+    selectedOrder.details.map((order_detail) => {
+      let details_arry = { ...order_detail, details: [] };
+      order_detail.details.map((s) => {
+        if (s.id === id) {
+          let new_detail = { ...s, image };
+          if (s.variation) {
+            if (s.variation.color !== color) {
+              new_detail = {
+                ...new_detail,
+                variation: { ...new_detail.variation, color },
+              };
+            }
+            if (s.variation.Size !== size) {
+              new_detail = {
+                ...new_detail,
+                variation: { ...new_detail.variation, Size: size },
+              };
+            }
           }
-          if (s.variation.Size !== size) {
-            new_detail = {
-              ...new_detail,
-              variation: { ...new_detail.variation, Size: size },
-            };
+          if (qty !== s.qty) {
+            new_detail = { ...new_detail, qty };
           }
+          details_arry.details.push(new_detail);
+        } else {
+          details_arry.details.push(s);
         }
-        if (qty !== s.qty) {
-          new_detail = { ...new_detail, qty };
-        }
-        details_arry.push(new_detail);
-      } else {
-        details_arry.push(s);
-      }
+      });
+      order_details_arry.push(details_arry);
     });
-    setTempOrderDetails({ ...selectedOrder, details: details_arry });
+    setTempOrderDetails({ ...selectedOrder, details: order_details_arry });
+  };
+  const ReturnItem = () => {
+    let order_details_arry = [];
+    selectedOrder.details.map((order_detail) => {
+      let details_arry = { ...order_detail, details: [] };
+      order_detail.details.map((s) => {
+        if (s.id === SelectedOrderItem.id) {
+          details_arry.details.push({ ...s, is_returned: true });
+        } else {
+          details_arry.details.push(s);
+        }
+      });
+      order_details_arry.push(details_arry);
+    });
+    setOrderDetails({ ...selectedOrder, details: order_details_arry });
+  };
+  const CancelItem = (id) => {
+    let order_details_arry = [];
+    selectedOrder.details.map((order_detail) => {
+      let details_arry = { ...order_detail, details: [] };
+      order_detail.details.map((s) => {
+        if (s.id === id) {
+          details_arry.details.push({ ...s, is_canceled: true });
+        } else {
+          details_arry.details.push(s);
+        }
+      });
+      order_details_arry.push(details_arry);
+    });
+    setOrderDetails({ ...selectedOrder, details: order_details_arry });
   };
   const renderScreen = () => {
     if (SelectedOrderItem) {
@@ -95,15 +128,7 @@ function OrderOptions({ closeOptions, CancelOrder }: OrderOptionsPropsType) {
               close={() => {
                 closeOptions();
                 setShouldConfirmReturn(false);
-                let details_arry = [];
-                selectedOrder.details.map((s) => {
-                  if (s.id === SelectedOrderItem.id) {
-                    details_arry.push({ ...s, is_returned: true });
-                  } else {
-                    details_arry.push(s);
-                  }
-                });
-                setOrderDetails({ ...selectedOrder, details: details_arry });
+                ReturnItem();
               }}
               setShouldConfirmReturn={setShouldConfirmReturn}
             />
@@ -111,16 +136,7 @@ function OrderOptions({ closeOptions, CancelOrder }: OrderOptionsPropsType) {
           <OrderItemOptionsModal
             changeOrderItem={changeOrderItem}
             cancelOrderItem={(id) => {
-              let details_arry = [];
-              selectedOrder.details.map((s) => {
-                if (s.id === id) {
-                  let new_detail = { ...s, is_canceled: true };
-                  details_arry.push(new_detail);
-                } else {
-                  details_arry.push(s);
-                }
-              });
-              setTempOrderDetails({ ...selectedOrder, details: details_arry });
+              CancelItem(id);
             }}
             setShouldConfirmChange={setShouldConfirmChange}
             setShouldConfirmCancel={setShouldConfirmCancel}

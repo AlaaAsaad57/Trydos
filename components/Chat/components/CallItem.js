@@ -2,6 +2,7 @@ import ProfilePicture from "public/images/profileNo.png";
 import { getCallType } from "../chatsFunctions";
 import DeleteIcon from "../svg/delt.svg";
 import Image from "next/image";
+import { GetImageUrl } from "utils/tinyUtils";
 function CallItem({ photo, name, date, type, Delete }) {
   return (
     <div className={`call-conversation-item ${type} call-item-row`}>
@@ -13,11 +14,7 @@ function CallItem({ photo, name, date, type, Delete }) {
         width={55}
         height={55}
         alt="user-photo"
-        src={
-          photo && !photo.includes("http")
-            ? process.env.NEXT_PUBLIC_CLOUDINARY_URL + photo
-            : ProfilePicture.src
-        }
+        src={photo ? GetImageUrl(photo) : ProfilePicture.src}
       />
       <div className="call-info chat-info">
         <div className="call-name chat-name">{name}</div>

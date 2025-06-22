@@ -86,7 +86,7 @@ function ListingSkeleton({
                           style={{ borderRadius: "15px" }}
                           className="OfferImage object-cover"
                           src={getConfiguredImage({
-                            src: boutique.banners[0]?.file_path,
+                            src: GetImageUrl(boutique.banners[0]?.file_path),
                             height: 342,
                             width: 900,
                           })}

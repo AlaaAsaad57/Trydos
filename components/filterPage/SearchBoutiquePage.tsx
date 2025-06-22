@@ -4,14 +4,24 @@ import SearchIcon from "public/svg/listing/searchIcon.svg";
 
 import { useAppStore } from "store";
 import { DebounceInput } from "react-debounce-input/src";
-import { useSearchParams, useRouter, usePathname } from "next/navigation";
+import { useParams, useRouter, usePathname } from "next/navigation";
 import { dispatchRouteChangeEvent } from "utils/events";
 import { GA_EVENT_NAMES } from "utils/GAEvents";
+import {
+  parseFiltersFromParams,
+  buildParamsFromFilters,
+} from "utils/tinyUtils";
 import { SearchBoutiquePageProps } from "models/componentType/boutiqueTypes/SearchBoutiquePageProps";
 function SearchBoutiquePage({ search_text, boutique }: SearchBoutiquePageProps) {
   const pathname = usePathname();
-  const searchParams = useSearchParams();
+  const params = useParams();
   const router = useRouter();
+
+  // Parse current filters from URL path
+  const { lang, filters: filterParams } = params;
+  const currentFilters = filterParams
+    ? parseFiltersFromParams(filterParams as string[])
+    : {};
   const {
     setFilterLoading,
     setFilterSearch,
@@ -49,23 +59,28 @@ function SearchBoutiquePage({ search_text, boutique }: SearchBoutiquePageProps) 
 
     if (filterEnabled) {
     } else {
-      const params = new URLSearchParams(searchParams);
-
       setFilterEnabled(false);
+
+      // Update filters with new search text
+      const newFilters = { ...currentFilters };
       if (e.target.value.length > 0) {
-        params.set("search_text", e.target.value);
+        newFilters.search_text = [e.target.value];
       } else {
-        params.delete("search_text");
+        delete newFilters.search_text;
       }
-      try {
-        dispatchRouteChangeEvent("start", {
-          is_filter_search: true,
-          ...boutique,
-        });
-        router.replace(`${pathname}?${params.toString()}`);
-      } catch (error) {
-        console.log(error);
-      }
+
+      // Build new path-based URL
+      const pathParams = buildParamsFromFilters(newFilters);
+      const newPath =
+        pathParams.length > 0
+          ? `/${lang}/filters/${pathParams.join("/")}`
+          : `/${lang}/filters`;
+
+      dispatchRouteChangeEvent("start", {
+        is_filter_search: true,
+        ...boutique,
+      });
+      router.push(newPath); // Navigate to filters page
     }
   };
   useEffect(() => {
@@ -86,7 +101,7 @@ function SearchBoutiquePage({ search_text, boutique }: SearchBoutiquePageProps) 
       className={`filter-option transition-all filter-search-option relative ${
         (search ||
           value?.length > 0 ||
-          searchParams.get("search_text")?.length > 0) &&
+          currentFilters?.search_text?.[0]?.length > 0) &&
         "w-[75%] [&>input]:w-full [&>input]:bg-[#f8f8f8] [&>input]:h-[40px]"
       }`}
       onClick={() => {
@@ -113,12 +128,12 @@ function SearchBoutiquePage({ search_text, boutique }: SearchBoutiquePageProps) 
             .querySelector<HTMLInputElement>(".filter-bar-options")
             .classList.add("w-full");
         }}
-        value={search_text || value}
+        value={search_text}
         onBlur={() => {
           if (
             value.length === 0 &&
-            (!searchParams.get("search_text") ||
-              searchParams.get("search_text")?.length === 0)
+            (!currentFilters?.search_text?.[0] ||
+              currentFilters.search_text[0]?.length === 0)
           ) {
             if (
               document.querySelector<HTMLInputElement>(
@@ -141,17 +156,26 @@ function SearchBoutiquePage({ search_text, boutique }: SearchBoutiquePageProps) 
         onKeyDown={(e) => {
           //@ts-ignore
           if (e.keyCode == 13) {
-            const params = new URLSearchParams(searchParams);
             setSkeleton(true);
             setFilterEnabled(false);
-            if (value.length > 0) {
-              params.set("search_text", value);
-            } else {
-              params.delete("search_text");
-            }
-            router.replace(`${pathname}?${params.toString()}`);
-            // @ts-ignore
 
+            // Update filters with search value
+            const newFilters = { ...currentFilters };
+            if (value.length > 0) {
+              newFilters.search_text = [value];
+            } else {
+              delete newFilters.search_text;
+            }
+
+            // Build new path-based URL
+            const pathParams = buildParamsFromFilters(newFilters);
+            const newPath =
+              pathParams.length > 0
+                ? `/${lang}/filters/${pathParams.join("/")}`
+                : `/${lang}/filters`;
+
+            router.push(newPath); // Navigate to filters page
+            // @ts-ignore
             e.target.blur();
           }
         }}

@@ -1,6 +1,7 @@
 "use client";
 import NextLink from "components/global/NextLink";
 import { useParams } from "next/navigation";
+import { GetImageUrl } from "utils/tinyUtils";
 
 function ProductAvailable({ data }) {
   const { lang } = useParams();
@@ -17,7 +18,7 @@ function ProductAvailable({ data }) {
       prefetch
     >
       <div className="b-icon">
-        <img width={80} height={"auto"} src={data.image} />
+        <img width={80} height={"auto"} src={GetImageUrl(data.image)} />
       </div>
       <div className="flex-col m-2">
         <div className="regular p-2">{data.description}</div>

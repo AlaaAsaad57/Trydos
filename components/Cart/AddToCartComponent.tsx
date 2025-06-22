@@ -25,6 +25,7 @@ import auth from "services/auth";
 import home from "services/home";
 import { SliderRuler } from "./SliderRuler";
 import { GA_EVENT_NAMES } from "utils/GAEvents";
+import { GetImageUrl } from "utils/tinyUtils";
 
 function AddToCartComponent({
   color,
@@ -333,10 +334,12 @@ function AddToCartComponent({
             id={"added-to-cart"}
             src={getConfiguredImage({
               src:
-                selectedColor?.images?.[0]?.file_path ||
-                selectedColor?.images?.[0] ||
-                ProductData?.images?.[0]?.file_path ||
-                ProductData?.images?.[0],
+                (selectedColor?.images?.[0]?.file_path &&
+                  GetImageUrl(selectedColor?.images?.[0]?.file_path)) ||
+                GetImageUrl(selectedColor?.images?.[0]) ||
+                (ProductData?.images?.[0]?.file_path &&
+                  GetImageUrl(ProductData?.images?.[0]?.file_path)) ||
+                GetImageUrl(ProductData?.images?.[0]),
               width: 400,
               height: 400,
             })}
@@ -409,8 +412,9 @@ function AddToCartComponent({
                         src={getConfiguredImage({
                           src:
                             (typeof color.images[0] === "string" &&
-                              color.images[0]) ||
-                            color.images[0].file_path,
+                              GetImageUrl(color.images[0])) ||
+                            (color.images[0].file_path &&
+                              GetImageUrl(color.images[0].file_path)),
                           width: 400,
                           height: 400,
                         })}
@@ -446,32 +450,34 @@ function AddToCartComponent({
               data-cy="product_info_price_addtocart"
               className="product-info-price"
             >
-              <div
-                data-cy="product_old_price_addtocart"
-                className="product-old-price"
-              >
-                <svg
-                  data-cy="product_addtocart_svg"
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="100%"
-                  height="2"
+              {currency?.symbol && (
+                <div
+                  data-cy="product_old_price_addtocart"
+                  className="product-old-price"
                 >
-                  <line
-                    id="Line_1104"
-                    data-name="Line 1104"
-                    x2="100%"
-                    transform="translate(0 1)"
-                    fill="none"
-                    stroke="#C4C2C2"
-                    strokeWidth="2"
-                  />
-                </svg>
-                {getSelectedVariantQty()?.price >= 0 && currency?.symbol ? (
-                  <>{RoundPrice({ num: getSelectedVariantQty()?.price })}</>
-                ) : (
-                  <Skeleton width={30} height={10} />
-                )}
-              </div>
+                  <svg
+                    data-cy="product_addtocart_svg"
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="100%"
+                    height="2"
+                  >
+                    <line
+                      id="Line_1104"
+                      data-name="Line 1104"
+                      x2="100%"
+                      transform="translate(0 1)"
+                      fill="none"
+                      stroke="#C4C2C2"
+                      strokeWidth="2"
+                    />
+                  </svg>
+                  {getSelectedVariantQty()?.price >= 0 && currency?.symbol ? (
+                    <>{RoundPrice({ num: getSelectedVariantQty()?.price })}</>
+                  ) : (
+                    <Skeleton width={30} height={10} />
+                  )}
+                </div>
+              )}
               <div
                 data-cy="product_new-price_addtocart"
                 className="product-new-price"
@@ -479,7 +485,9 @@ function AddToCartComponent({
                 {getSelectedVariantQty()?.offer_price >= 0 &&
                 currency?.symbol ? (
                   <>
-                    {RoundPrice({ num: getSelectedVariantQty()?.offer_price })}
+                    {RoundPrice({
+                      num: getSelectedVariantQty()?.offer_price,
+                    })}
                   </>
                 ) : (
                   <Skeleton width={30} height={10} />
@@ -1083,27 +1091,13 @@ const SizesSkeleton = ({ product }) => {
     <div className="product-details-footer z-[9999] min-h-[100px] h-auto">
       <div className="product-info-container">
         <div className="product-info-price">
-          <div className="product-old-price">
-            <svg xmlns="http://www.w3.org/2000/svg" width="100%" height="2">
-              <line
-                id="Line_1104"
-                data-name="Line 1104"
-                x2="100%"
-                transform="translate(0 1)"
-                fill="none"
-                stroke="#C4C2C2"
-                strokeWidth="2"
-              />
-            </svg>
-            {(product?.price && RoundPrice({ num: product?.price })) ?? (
+          {
+            <div className="product-old-price">
               <Skeleton width={30} height={10} />
-            )}
-          </div>
+            </div>
+          }
           <div className="product-new-price">
-            {(product?.offer_price &&
-              RoundPrice({ num: product?.offer_price })) ?? (
-              <Skeleton width={30} height={10} />
-            )}
+            <Skeleton width={30} height={10} />
           </div>
           <div className="product-currency">
             {currency?.symbol ?? (
@@ -1538,7 +1532,7 @@ const AddToCartButton = ({
           return (
             <img
               src={getConfiguredImage({
-                src: s.image,
+                src: GetImageUrl(s.image),
                 width: 50,
                 height: 50,
               })}

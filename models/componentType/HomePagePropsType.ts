@@ -26,5 +26,6 @@ export interface HomePageProps {
         lang: string;
         mainCategory?: string;
     }
+    searchParams: URLSearchParams;
   }
   

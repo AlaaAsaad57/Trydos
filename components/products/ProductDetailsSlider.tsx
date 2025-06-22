@@ -6,6 +6,7 @@ import { getConfiguredImage } from "utils/functions";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import CloseIcon from "components/Home/Stories/CloseIcon";
 import { useAppStore } from "store";
+import { GetImageUrl } from "utils/tinyUtils";
 import { ProductDetailsSliderPropsType } from "models/componentType/productTypes/ProductDetailsSliderPropsType";
 function ProductDetailsSlider({
   product: productObj,
@@ -59,7 +60,7 @@ function ProductDetailsSlider({
       });
     };
   }, []);
-
+  console.log(product);
   return (
     <>
       {imageShow >= 0 && (
@@ -98,7 +99,7 @@ function ProductDetailsSlider({
                     loading="eager"
                     alt={productData.name}
                     src={getConfiguredImage({
-                      src: img,
+                      src: GetImageUrl(img),
                       width: 500,
                       height: 700,
                     })}

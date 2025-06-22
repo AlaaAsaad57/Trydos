@@ -4,6 +4,7 @@ import Image from "next/image";
 import NextLink from "components/global/NextLink";
 import { useAppStore } from "store";
 import { useParams } from "next/navigation";
+import { GetImageUrl } from "utils/tinyUtils";
 
 interface WishListPanelProps {
   onClose: () => void;
@@ -206,7 +207,7 @@ const WishListPanel: React.FC<WishListPanelProps> = ({ onClose }) => {
               >
                 <Image
                   data-cy="wishlist-img"
-                  src={item.thumbnail}
+                  src={GetImageUrl(item.thumbnail)}
                   alt={item.name}
                   fill
                   className="object-cover rounded-md"

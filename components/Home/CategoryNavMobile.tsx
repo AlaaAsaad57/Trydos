@@ -4,6 +4,7 @@ import Image from "next/image";
 import React from "react";
 
 import NextLink from "components/global/NextLink";
+import { GetImageUrl } from "utils/tinyUtils";
 import { CategoryNavMobileProps } from "models/componentType/HomePagePropsType";
 
 
@@ -55,7 +56,10 @@ function CategoryNavMobile({
             width={25}
             height={25}
             alt={name}
-            src={icon?.replace("/upload", "/upload/h_50/f_webp/q_auto")}
+            src={GetImageUrl(icon)?.replace(
+              "/upload",
+              "/upload/h_50/f_webp/q_auto"
+            )}
             priority
             loading="eager"
           />

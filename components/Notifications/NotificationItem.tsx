@@ -11,7 +11,7 @@ import { translateFunction } from "utils/functions";
 import { useAppStore } from "store";
 import NextLink from "components/global/NextLink";
 import search from "services/search";
-import { formatTime } from "utils/tinyUtils";
+import { formatTime, GetImageUrl } from "utils/tinyUtils";
 
 interface NotificationItemProps {
   notification: NotificationItemType;
@@ -65,13 +65,19 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
         {parsedDescription.boutique_icon?.file_path ||
         parsedDescription.image?.file_path ||
         parsedDescription.boutique_icon ||
-        parsedDescription.image ? (
+        parsedDescription.image ||
+        parsedDescription?.image_svg ? (
           <img
             src={
-              parsedDescription.boutique_icon?.file_path ||
-              parsedDescription.image?.file_path ||
-              parsedDescription.boutique_icon ||
-              parsedDescription.image
+              (parsedDescription.boutique_icon?.file_path &&
+                GetImageUrl(parsedDescription.boutique_icon?.file_path)) ||
+              (parsedDescription.image?.file_path &&
+                GetImageUrl(parsedDescription.image?.file_path)) ||
+              (parsedDescription.boutique_icon &&
+                GetImageUrl(parsedDescription.boutique_icon)) ||
+              (parsedDescription?.image_svg &&
+                GetImageUrl(parsedDescription?.image_svg)) ||
+              (parsedDescription.image && GetImageUrl(parsedDescription.image))
             }
             alt={notification.title}
             className="w-10 h-10 rounded-full mr-3 object-cover"
@@ -115,10 +121,10 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
             data={{
               is_boutique: true,
               ...parsedDescription,
-              href: `/${lang}/boutique/${parsedDescription.boutique_slug}`,
+              href: `/${lang}/filters/boutiques/${parsedDescription.boutique_slug}`,
             }}
             ariaLabel={`notification Boutique ${parsedDescription.boutique_slug} ${lang}`}
-            href={`/${lang}/boutique/${parsedDescription.boutique_slug}`}
+            href={`/${lang}/filters/boutiques/${parsedDescription.boutique_slug}`}
             onClick={() => {
               closeWindow();
               onClose();
@@ -183,29 +189,16 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
               data={{
                 is_category: true,
                 ...parsedDescription,
-                href: `/boutique/listing${search.getPageUrl({
-                  term: "categories",
-                  value: [
-                    {
-                      slug:
-                        parsedDescription.category_slug ||
-                        parsedDescription.slug,
-                    },
-                  ],
-                })}`,
+                href: `/${lang}/filters/categories/${
+                  parsedDescription.category_slug || parsedDescription.slug
+                }`,
               }}
               ariaLabel={`notification Category ${
                 parsedDescription.category_slug || parsedDescription.slug
               } ${lang}`}
-              href={`/${lang}/boutique/listing${search.getPageUrl({
-                term: "categories",
-                value: [
-                  {
-                    slug:
-                      parsedDescription.category_slug || parsedDescription.slug,
-                  },
-                ],
-              })}`}
+              href={`/${lang}/filters/categories/${
+                parsedDescription.category_slug || parsedDescription.slug
+              }`}
               onClick={() => {
                 closeWindow();
                 onClose();
@@ -215,7 +208,7 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
             </NextLink>
           );
         }
-        if (parsedDescription.type.startsWith("order")) {
+        if (parsedDescription?.type?.startsWith("order")) {
           return (
             <NextLink
               data={{

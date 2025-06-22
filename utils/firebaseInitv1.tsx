@@ -82,30 +82,30 @@ export const requestFirebaseNotificationPermission = async () => {
 };
 
 export const onMessageListener = async () => {
-  const {
-    setOrderData,
-    endCall,
-    watchChannelEvent,
-    receiveChannelEvent,
-    setVideoCall,
-    setAudioCall,
-    setIncomingCall,
-    callInProgress,
-    activeChat,
-    setUserAnswerCall,
-    call,
-    data: chatData,
-    setIncomingVoiceCall,
-    setLastNotificationDate,
-    watchChannel,
-    sendMessage,
-    deleteMessage,
-    muteChat,
-    deleteChat,
-  } = useAppStore.getState();
   const { toast } = await import("react-toastify");
   return new Promise((resolve) => {
     onMessage(messaging, async (payload) => {
+      const {
+        setOrderData,
+        endCall,
+        watchChannelEvent,
+        receiveChannelEvent,
+        setVideoCall,
+        setAudioCall,
+        setIncomingCall,
+        callInProgress,
+        activeChat,
+        setUserAnswerCall,
+        call,
+        data: chatData,
+        setIncomingVoiceCall,
+        setLastNotificationDate,
+        watchChannel,
+        sendMessage,
+        deleteMessage,
+        muteChat,
+        deleteChat,
+      } = useAppStore.getState();
       console.log(payload);
       if (payload.data.title === "market") {
         const data = JSON.parse(payload.data.body);
@@ -421,7 +421,7 @@ export const onMessageListener = async () => {
           if (JSON.parse(payload.data.data)?.is_private === true) {
             if (
               parseInt(activeChat?.id) ===
-              parseInt(JSON.parse(payload?.data.data)?.message?.channel?.id)
+              parseInt(JSON.parse(payload?.data.data)?.message?.channel_id)
             ) {
               watchChannelAction(
                 parseInt(JSON.parse(payload.data.data)?.message?.channel?.id)
@@ -491,7 +491,6 @@ export const onMessageListener = async () => {
           }
         } else if (payload.data.type === "ShareProductEvent") {
           let data = JSON.parse(payload.data.data);
-          console.log(data);
         }
         if (payload.data.type === "ChannelWatchedEvent") {
           watchChannelEvent(JSON.parse(payload.data.data).channel_id);

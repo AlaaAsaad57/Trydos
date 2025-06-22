@@ -7,16 +7,35 @@ import { InfiniteScrollFiltersPropsType } from "models/componentType/InfiniteScr
 import React, { useState } from "react";
 
 import { useAppStore } from "store";
-import { getProductsAndFilters } from "store/homepage/cachedActions";
+import {
+  filtersToSearchParams,
+  FilterParams,
+  buildParamsFromFilters,
+  configureSearchParams,
+} from "utils/tinyUtils";
+
+interface InfiniteScrollFiltersProps {
+  filterParams: FilterParams | any;
+  isUsingParsedFilters: boolean;
+  lang: string;
+  term: string;
+  boutique: any;
+  currency: any;
+  params: any;
+  isFeatured?: boolean;
+  isFlashDeals?: boolean;
+}
 
 function InfiniteScrollFilters({
-  searchParams,
+  filterParams,
+  isUsingParsedFilters,
   lang,
   term,
   boutique,
   currency,
   params,
   isFeatured,
+  isFlashDeals,
 }: InfiniteScrollFiltersPropsType) {
   const { partialLoading, setSearchPartialLoading } = useAppStore();
   const [country, language] = params.lang?.split("-");
@@ -39,18 +58,42 @@ function InfiniteScrollFilters({
   const getNextFilters = async () => {
     try {
       setSearchPartialLoading(true);
-      const response = await getProductsAndFilters({
-        lang: language,
-        isFeatured: isFeatured,
-        offset: false,
-        searchParams: searchParams,
-        country: country,
-        noProducts: true,
-        noFilters: false,
-        filters_offset: offset + 1,
-        boutiqueId:
-          params?.boutiqueId === "listing" ? null : params?.boutiqueId,
+
+      // Convert filter parameters to search params for elastic backend
+      const searchParams = isUsingParsedFilters
+        ? filterParams
+        : filtersToSearchParams(filterParams);
+
+      const configuredParams = configureSearchParams({
+        searchParams,
+        noProducts: "true",
+        noFilters: "false",
+        lang: language || "en",
+        offset: "0",
+        boutiqueId: "listing",
+        filters_offset: (offset + 1).toString(),
       });
+
+      const apiUrl = `${process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL}/api/products/searchInCatalog`;
+
+      const fetchResponse = await fetch(
+        `${apiUrl}?${configuredParams.toString()}`,
+        {
+          method: "GET",
+          headers: {
+            lang: language || "en",
+            country: country || "tr",
+            Accept: "application/json",
+            "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+          },
+        }
+      );
+
+      if (!fetchResponse.ok) {
+        throw new Error(`HTTP error! status: ${fetchResponse.status}`);
+      }
+
+      const response = await fetchResponse.json();
 
       setData({
         categories: [
@@ -89,7 +132,8 @@ function InfiniteScrollFilters({
           currency={currency}
           item={s}
           params={params}
-          searchParams={searchParams}
+          filterParams={filterParams}
+          isUsingParsedFilters={isUsingParsedFilters}
           term={"categories"}
           key={`categories-${i}`}
         />
@@ -101,7 +145,8 @@ function InfiniteScrollFilters({
           currency={currency}
           item={s}
           params={params}
-          searchParams={searchParams}
+          filterParams={filterParams}
+          isUsingParsedFilters={isUsingParsedFilters}
           term={"brands"}
           key={`brands-${i}`}
         />
@@ -113,7 +158,8 @@ function InfiniteScrollFilters({
           currency={currency}
           item={s}
           params={params}
-          searchParams={searchParams}
+          filterParams={filterParams}
+          isUsingParsedFilters={isUsingParsedFilters}
           term={"colors"}
           key={`colors-${i}`}
         />
@@ -125,7 +171,8 @@ function InfiniteScrollFilters({
           currency={currency}
           item={s}
           params={params}
-          searchParams={searchParams}
+          filterParams={filterParams}
+          isUsingParsedFilters={isUsingParsedFilters}
           term={"sizes"}
           key={`sizes-${i}`}
         />
@@ -137,7 +184,8 @@ function InfiniteScrollFilters({
           currency={currency}
           item={s}
           params={params}
-          searchParams={searchParams}
+          filterParams={filterParams}
+          isUsingParsedFilters={isUsingParsedFilters}
           term={"prices"}
           key={`prices-${i}`}
         />

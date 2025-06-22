@@ -10,6 +10,8 @@ import { toast } from "react-toastify";
 import SearchService from "services/search";
 import { useAppStore } from "store";
 import NextLink from "./NextLink";
+import { GetImageUrl } from "utils/tinyUtils";
+import { fetchFilteredProducts } from "Server Requests";
 import { ComparePageComponentPropsType } from "models/componentType/compareTypes/ComparePageComponentPropsType";
 const ComparePage: React.FC = ({
   showInstantLoading = true,
@@ -101,19 +103,19 @@ const ComparePage: React.FC = ({
   const [searchLoading, setSearchLoading] = useState(false);
   const searchFunction = async (inputValue: string) => {
     setSearchLoading(true);
-    const productsVar = await fetch(
-      process.env.NEXT_PUBLIC_API_BASE_URL +
-        `/api/${lang}/search?searchText=${inputValue}&noFilters=true`,
-      {
-        headers: {
-          "Access-Control-Allow-Origin": "*",
-          "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-          "Access-Control-Allow-Headers": "Content-Type, Authorization",
-        },
-      }
-    );
-    const productsVarJson = await productsVar.json();
-    return productsVarJson;
+    try {
+      const result = await fetchFilteredProducts(
+        lang.toString(),
+        lang.toString().split("-")[0],
+        [inputValue],
+        "false",
+        "true"
+      );
+      return result.data.products;
+    } catch (error) {
+      console.error("Search error:", error);
+      return [];
+    }
   };
   const search = async (inputValue: string) => {
     setSearchLoading(true);
@@ -331,7 +333,7 @@ const ComparePage: React.FC = ({
         <Link href={`/${lang}/products/${product.slug}`}>
           <img
             // @ts-ignore
-            src={product.images}
+            src={GetImageUrl(product.images)}
             alt={product.name}
             className="w-32 h-32 object-contain hover:opacity-80 transition-opacity"
           />

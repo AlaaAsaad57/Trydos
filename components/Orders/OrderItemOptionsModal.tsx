@@ -10,6 +10,7 @@ import { useAppStore } from "store";
 import CancelOrderIcon from "public/svg/OrderCancelIcon.svg";
 import CancelOrderItem from "./CancelOrderItem";
 import ChangeOrderItem from "./ChangeOrderItem";
+import { GetImageUrl } from "utils/tinyUtils";
 import { OrderItemOptionsModalPropsType } from "models/componentType/OrderItemOptionsModalPropsType";
 
 function OrderItemOptionsModal({
@@ -47,7 +48,7 @@ function OrderItemOptionsModal({
                   border: "1px solid #ffffff80",
                 }}
                 src={getConfiguredImage({
-                  src: item.image,
+                  src: GetImageUrl(item.image),
                   width: 104,
                   height: 144,
                   q: 100,

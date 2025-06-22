@@ -2,6 +2,7 @@ import Image from "next/image";
 import { useEffect, memo } from "react";
 import ProductSlider from "./ProductSlider";
 import { getConfiguredImage } from "utils/functions";
+import { GetImageUrl } from "utils/tinyUtils";
 import { TopSliderPropsType } from "models/componentType/TopSliderPropsType";
 function TopSlider({
   active,
@@ -89,7 +90,7 @@ function TopSlider({
               // @ts-ignore
               src={getConfiguredImage({
                 // @ts-ignore
-                src: img.file_path,
+                src: GetImageUrl(img.file_path),
                 width: 400,
                 height: 400,
               })}

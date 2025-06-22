@@ -32,6 +32,6 @@ export interface FreeShippingOptionPropsType {
   lang: string | string[];
 }
 export interface ProductFooterSectionPropsType {
-  product: ProductInterface;
+  product: any;
   currency: Currency;
 }

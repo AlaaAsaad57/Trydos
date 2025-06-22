@@ -5,19 +5,25 @@ import OfferPhotosSlider from "./OfferPhotosSlider";
 import NextLink from "components/global/NextLink";
 import search from "services/search";
 import { NormalWidgetPropsType } from "models/componentType/NormalWidgetPropsType";
+import { GetImageUrl } from "utils/tinyUtils";
 
-
+interface NormalWidgetProps {
+  // boutique: Boutique;
+  boutique: any;
+  myKey: number;
+  lang: string;
+}
 
 const NormalWidget = ({ boutique, myKey, lang }: NormalWidgetPropsType) => {
   return (
     <div className="w-full flex relative">
       <NextLink
         data-cy="boutique_link"
-        href={`/${lang}/boutique/${boutique.slug}`}
+        href={`/${lang}/filters/boutiques/${boutique.slug}`}
         data={{
           is_boutique: true,
           ...boutique,
-          href: `/${lang}/boutique/${boutique.slug}`,
+          href: `/${lang}/filters/boutiques/${boutique.slug}`,
         }}
         aria-label={`Go To listing ${lang} ${boutique.slug}`}
         className="offer-widget"
@@ -45,7 +51,7 @@ const NormalWidget = ({ boutique, myKey, lang }: NormalWidgetPropsType) => {
                 }}
                 width={20}
                 height={20}
-                src={boutique?.icon?.replace(
+                src={GetImageUrl(boutique?.icon)?.replace(
                   "/upload",
                   `/upload/h_50/f_webp/q_auto`
                 )}
@@ -91,18 +97,10 @@ const NormalWidget = ({ boutique, myKey, lang }: NormalWidgetPropsType) => {
                   data={{
                     is_boutique: true,
                     ...category,
-                    href: `/${lang}/boutique/${
-                      boutique.slug
-                    }${search.getPageUrl({
-                      term: "categories",
-                      value: [category],
-                    })}`,
+                    href: `/${lang}/filters/boutiques/${boutique.slug}/categories/${category.slug}`,
                   }}
                   aria-label={`Go To listing ${lang} ${boutique.slug} ${category.slug}`}
-                  href={`/${lang}/boutique/${boutique.slug}${search.getPageUrl({
-                    term: "categories",
-                    value: [category],
-                  })}`}
+                  href={`/${lang}/filters/boutiques/${boutique.slug}/categories/${category.slug}`}
                   key={key}
                   className={`${key > 0 && "ml-[13px]"}`}
                 >
@@ -115,7 +113,7 @@ const NormalWidget = ({ boutique, myKey, lang }: NormalWidgetPropsType) => {
                     width={12}
                     height={12}
                     // @ts-ignore
-                    src={category.icon?.replace(
+                    src={GetImageUrl(category.icon)?.replace(
                       "/upload",
                       `/upload/h_50/f_webp/q_auto`
                     )}

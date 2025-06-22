@@ -6,6 +6,7 @@ import { useParams, useSearchParams } from "next/navigation";
 import Search from "public/svg/SearchIcon.svg";
 import { useAppStore } from "store";
 import search from "services/search";
+import { GetImageUrl } from "utils/tinyUtils";
 
 function ActiveSearchFilterBar() {
   const { value, searchFilters, resetSearchFilter, setSearchWord } =
@@ -116,14 +117,28 @@ function ActiveSearchFilterBar() {
                       width={20}
                       height={20}
                       src={
-                        category?.icon?.file_path ??
-                        category.most_viewed_product_thumbnail ??
-                        category.flat_photo_path?.file_path ??
-                        searchFilters.categories.filter(
+                        (category?.icon?.file_path &&
+                          GetImageUrl(category?.icon?.file_path)) ??
+                        (category.most_viewed_product_thumbnail &&
+                          GetImageUrl(
+                            category.most_viewed_product_thumbnail
+                          )) ??
+                        (category.flat_photo_path?.file_path &&
+                          GetImageUrl(category.flat_photo_path?.file_path)) ??
+                        (searchFilters.categories.filter(
                           (s) => s.slug === category.slug
-                        )[0]?.most_viewed_product_thumbnail ??
-                        getCategory(category.slug)
-                          ?.most_viewed_product_thumbnail
+                        )[0]?.most_viewed_product_thumbnail &&
+                          GetImageUrl(
+                            searchFilters.categories.filter(
+                              (s) => s.slug === category.slug
+                            )[0]?.most_viewed_product_thumbnail
+                          )) ??
+                        (getCategory(category.slug)
+                          ?.most_viewed_product_thumbnail &&
+                          GetImageUrl(
+                            getCategory(category.slug)
+                              ?.most_viewed_product_thumbnail
+                          ))
                       }
                     />
                   </div>
@@ -163,10 +178,16 @@ function ActiveSearchFilterBar() {
                         </svg>
                         <img
                           src={
-                            s.icon?.file_path ||
-                            searchFilters.categories.filter(
+                            (s.icon?.file_path &&
+                              GetImageUrl(s.icon?.file_path)) ||
+                            (searchFilters.categories.filter(
                               (sub) => sub.slug === s.slug
-                            )[0]?.icon?.file_path
+                            )[0]?.icon?.file_path &&
+                              GetImageUrl(
+                                searchFilters.categories.filter(
+                                  (sub) => sub.slug === s.slug
+                                )[0]?.icon?.file_path
+                              ))
                           }
                           width={10}
                           height={10}
@@ -221,7 +242,7 @@ function ActiveSearchFilterBar() {
                     <img
                       width={20}
                       height={20}
-                      src={category?.banner?.file_path}
+                      src={GetImageUrl(category?.banner?.file_path)}
                     />
                   </div>
                   <div
@@ -271,10 +292,16 @@ function ActiveSearchFilterBar() {
                       width={20}
                       height={20}
                       src={
-                        brand?.icon?.file_path ||
-                        searchFilters.brands.filter(
+                        (brand?.icon?.file_path &&
+                          GetImageUrl(brand?.icon?.file_path)) ||
+                        (searchFilters.brands.filter(
                           (sub) => sub.slug === brand.slug
-                        )[0]?.icon?.file_path
+                        )[0]?.icon?.file_path &&
+                          GetImageUrl(
+                            searchFilters.brands.filter(
+                              (sub) => sub.slug === brand.slug
+                            )[0]?.icon?.file_path
+                          ))
                       }
                     />
                   </div>

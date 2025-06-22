@@ -13,9 +13,9 @@ import OrderStatusIcon, {
   BagStatusIcon,
 } from "components/settings/cards/OrderStatusIcon";
 import Image from "node_modules/next/image";
+import { GetImageUrl } from "utils/tinyUtils";
 import { OrderItemIdPropsType } from "models/componentType/OrderItemIdPropsType";
 import { OrderItemTimePropsType } from "models/componentType/OrderItemTimePropsType";
-import { OrderProductSliderPropsType } from "models/componentType/OrderProductSliderPropsType";
 import { OrderItemPropsType } from "models/componentType/OrderItemPropsType";
 
 
@@ -58,7 +58,7 @@ const OrderProductSlider = ({ products }) => {
           <Image
             className="w-[91px] h-[125px] object-cover   bg-white rounded-[15px]"
             src={getConfiguredImage({
-              src: product?.image,
+              src: GetImageUrl(product?.image),
               width: 91,
               height: 125,
             })}

@@ -7,7 +7,8 @@ import AddAddressIcon from "public/svg/cart/AddAddress.svg";
 import order from "services/order";
 import Spinner from "components/global/Spinner";
 import { useAppStore } from "store";
-import { formatTime } from "utils/tinyUtils";
+import { fetchCountries } from "Server Requests";
+import { formatTime, GetImageUrl } from "utils/tinyUtils";
 import home from "services/home";
 import { AddAddressButtonPropsType } from "models/componentType/AddAddressButtonPropsType";
 import { AddressContainerPropsType } from "models/componentType/AddressContainerPropsType";
@@ -19,17 +20,18 @@ function ShippingAddressContainer({ slideNext, slidePrev, openAddressList }: Shi
   const getOrderData = async () => {
     order.GetWallet();
     order.GetAddressList();
-    const res = await await fetch(
-      process.env.NEXT_PUBLIC_API_BASE_URL + `/api/countries`,
-      {
-        next: {
-          revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE_COUNTRIES),
-          tags: ["countries"],
-        },
+    if (sessionStorage.getItem("countries")) {
+      let data = sessionStorage.getItem("countries");
+      setCountries(JSON.parse(data));
+    } else {
+      try {
+        const data = await fetchCountries();
+        sessionStorage.setItem("countries", JSON.stringify(data.countries));
+        setCountries(data.countries);
+      } catch (error) {
+        console.error("Failed to fetch countries:", error);
       }
-    );
-    let data = await res.json();
-    setCountries(data.countries);
+    }
   };
   useEffect(() => {
     if (user) {
@@ -131,7 +133,7 @@ const CartItemSelect = ({ items }) => {
                   data-cy="img-item"
                   className="w-[91px] h-[125px] rounded-[15px]"
                   src={getConfiguredImage({
-                    src: s.image,
+                    src: GetImageUrl(s.image),
                     width: 91,
                     height: 150,
                   })}
@@ -420,7 +422,7 @@ const AddressContainer = ({ openAddressList }: AddressContainerPropsType) => {
     return formatTime(
       new Date(
         new Date().getTime() + Number(shippingDay) * 24 * 60 * 60 * 1000
-      ).toLocaleDateString()
+      ).toString()
     );
   };
   const GetAddressString = (location) => {

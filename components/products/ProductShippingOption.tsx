@@ -9,24 +9,21 @@ import MarkerIcon from "public/svg/product/MarkerIcon.svg";
 import { translateFunction } from "utils/functions";
 import { useParams } from "next/navigation";
 import Spinner from "components/global/Spinner";
-import { formatTime } from "utils/tinyUtils";
-import { useAppStore } from "store";
 import { ProductShippingOptionPropsType } from "models/componentType/productTypes/MultiComponentOnProductPage";
-function ProductShippingOption({ days }: ProductShippingOptionPropsType) {
+import { useAppStore } from "store";
+import { fetchCountries } from "Server Requests";
+function ProductShippingOption({ days }) {
   const [countriesData, setCountries] = useState([]);
   const getCountries = async () => {
     try {
-      const res = await fetch(
-        process.env.NEXT_PUBLIC_API_BASE_URL + `/api/countries`,
-        {
-          next: {
-            revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE_COUNTRIES),
-            tags: ["countries"],
-          },
-        }
-      );
-      let data = await res.json();
-      setCountries(data.countries);
+      if (sessionStorage.getItem("countries")) {
+        let data = sessionStorage.getItem("countries");
+        setCountries(JSON.parse(data));
+      } else {
+        const data = await fetchCountries();
+        sessionStorage.setItem("countries", JSON.stringify(data.countries));
+        setCountries(data.countries);
+      }
     } catch (error) {
       console.log(error);
     }
@@ -36,6 +33,55 @@ function ProductShippingOption({ days }: ProductShippingOptionPropsType) {
   let [countryIso, languageVariable] = lang.split("-");
   const translate = (key, lang?) => {
     return translateFunction(key, languageVariable);
+  };
+  const formatTimeEdited = (timeString: string) => {
+    const MONTH_NAMES = [
+      "January",
+      "February",
+      "March",
+      "April",
+      "May",
+      "June",
+      "July",
+      "August",
+      "September",
+      "October",
+      "November",
+      "December",
+    ];
+    const date = new Date(timeString);
+
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+
+    const hours = date.getHours().toString().padStart(2, "0");
+    const minutes = date.getMinutes().toString().padStart(2, "0");
+    const seconds = date.getSeconds().toString().padStart(2, "0");
+    const timeFormat = `${hours}:${minutes}:${seconds}`;
+
+    if (date.toDateString() === today.toDateString()) {
+      return `Today | ${timeFormat}`;
+    }
+
+    if (date.toDateString() === yesterday.toDateString()) {
+      return `Yesterday | ${timeFormat}`;
+    }
+
+    const isSameYear = date.getFullYear() === today.getFullYear();
+    const isNewerThanToday = date > today;
+
+    if (isSameYear && isNewerThanToday) {
+      const day = date.getDate();
+      const monthName = MONTH_NAMES[date.getMonth()];
+      return `${day} ${monthName}`;
+    }
+
+    const day = date.getDate().toString().padStart(2, "0");
+    const month = (date.getMonth() + 1).toString().padStart(2, "0");
+    const year = date.getFullYear();
+
+    return `${day}/${month}/${year} | ${timeFormat}`;
   };
   useEffect(() => {
     getCountries();
@@ -118,10 +164,19 @@ function ProductShippingOption({ days }: ProductShippingOptionPropsType) {
           <div className="flex-col address-row-desc justify-center">
             <div className="flex-row align-center">
               <span className="blue-address uppercase">
-                {formatTime(
+                {formatTimeEdited(
                   new Date(
-                    new Date().getTime() + Number(days) * 24 * 60 * 60 * 1000
-                  ).toLocaleDateString()
+                    new Date().getTime() +
+                      Number(days || 0) * 24 * 60 * 60 * 1000 +
+                      Number(
+                        settings?.["starting-setting"]
+                          ?.shipping_duration_days || 0
+                      ) *
+                        24 *
+                        60 *
+                        60 *
+                        1000
+                  ).toString()
                 )}
                 {","}
                 {countriesData?.length ? (
@@ -148,10 +203,19 @@ function ProductShippingOption({ days }: ProductShippingOptionPropsType) {
           <div className="flex-col address-row-desc justify-center">
             <div className="flex-row align-center">
               <span className="blue-address">
-                {formatTime(
+                {formatTimeEdited(
                   new Date(
-                    new Date().getTime() + Number(days) * 24 * 60 * 60 * 1000
-                  ).toLocaleDateString()
+                    new Date().getTime() +
+                      Number(days || 0) * 24 * 60 * 60 * 1000 +
+                      Number(
+                        settings?.["starting-setting"]
+                          ?.shipping_duration_days || 0
+                      ) *
+                        24 *
+                        60 *
+                        60 *
+                        1000
+                  ).toString()
                 )}{" "}
                 {translate("In Your Address")}
               </span>

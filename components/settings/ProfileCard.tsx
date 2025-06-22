@@ -35,7 +35,7 @@ function ProfileCard({
                 {userProfile?.name}
               </span>
               <span className="regular text-[#8D8D8D] text-[12px] mt-[2px]">
-                + {userProfile?.phone}
+                + {userProfile?.phone?.replace("+", "")}
               </span>
             </div>
             <div

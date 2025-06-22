@@ -17,6 +17,7 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import { getCalls } from "store/chat/actions";
 import { AxiosGet, AxiosPost } from "utils/AxiosApi";
+import { UnAuthintacetedAction } from "utils/tinyUtils";
 const ChatHeader = () => {
   return {
     headers: {
@@ -59,7 +60,7 @@ class ChatService {
         };
       } = await response.json();
       localStorage.setItem("USER-CHAT", JSON.stringify(repo.data));
-      localStorage.setItem("CHAT-TOKEN", repo.data.access_token);
+
       if (repo.data?.id) {
         const { requestFirebaseNotificationPermission } = await import(
           "utils/firebaseInitv1"
@@ -147,6 +148,9 @@ class ChatService {
         }
         setFirebaseToken(payload.token);
         localStorage.setItem("firebase_id", repo.data.id);
+      } else if (response.status === 401) {
+        UnAuthintacetedAction();
+        throw new Error();
       } else {
         throw new Error();
       }

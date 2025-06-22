@@ -6,6 +6,7 @@ import NextLink from "components/global/NextLink";
 import { useParams, usePathname } from "next/navigation";
 import NotificationsPanel from "../Notifications/NotificationsPanel";
 import WishListPanel from "../WishList/WishListPanel";
+import Spinner from "components/global/Spinner";
 
 interface MenuProps {
   user: any;
@@ -83,24 +84,26 @@ const Menu: React.FC<MenuProps> = ({ user, setMenuOpen }) => {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showWishList, setShowWishList] = useState(false);
   const { lang } = useParams();
-
+  const [loading, setLoading] = useState(false);
   const handleLogout = async () => {
     // Sendevent({
     //   event: GA_EVENT_NAMES.CLICK,
     //   value: GA_CLICK_EVENT_VALUES.LOGOUT_BUTTON,
     // });
     localStorage.clear();
-    const { messaging } = await import("utils/firebaseInitv1");
-    const { deleteToken } = await import("firebase/messaging");
-    try {
-      await deleteToken(messaging);
-    } catch (error) {}
+
     changeToken({ key: "DEVICE-TOKEN", deleteOption: true });
     changeToken({ key: "MARKET-TOKEN", deleteOption: true });
     changeToken({ key: "token", deleteOption: true });
     Cookies.remove("DEVICE-TOKEN");
     Cookies.remove("MARKET-TOKEN");
     Cookies.remove("token");
+    setLoading(true);
+    const { messaging } = await import("utils/firebaseInitv1");
+    const { deleteToken } = await import("firebase/messaging");
+    try {
+      await deleteToken(messaging);
+    } catch (error) {}
     window.location.reload();
   };
 
@@ -305,7 +308,7 @@ const Menu: React.FC<MenuProps> = ({ user, setMenuOpen }) => {
               </MenuIcon>
             }
           >
-            {translateFunction("Logout")}
+            {loading ? <Spinner /> : translateFunction("Logout")}
           </MenuItem>
         )}
       </div>

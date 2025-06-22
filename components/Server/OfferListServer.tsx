@@ -4,29 +4,22 @@ import "styles/productDetails.css";
 import InfinteScroll from "components/global/InfinteScroll";
 import NormalWidget from "components/Home/OfferWidgets/NormalWidget";
 import OfferListSkeleton from "components/skeleton/OfferList";
+import { fetchBoutiques } from "Server Requests";
 import { OfferListServerPropsType } from "models/componentType/OfferListServerPropsType";
 
 async function OfferListServer({ params }: OfferListServerPropsType) {
   try {
-    let newParams = new URLSearchParams();
-    if (params.mainCategory) {
-      newParams.set("str", params.mainCategory);
-    }
-
-    const data = await fetch(
-      process.env.NEXT_PUBLIC_API_BASE_URL +
-        `/api/${params.lang}/boutiques?${newParams.toString()}`,
-      {
-        next: {
-          revalidate: parseInt(process.env.NEXT_PUBLIC_HOME_REVALIDATE),
-          tags: ["boutiques"],
-        },
-      }
+    const [country, language] = params.lang.split("-");
+    const HomeData = await fetchBoutiques(
+      language,
+      country,
+      params.mainCategory || "",
+      null,
+      10
     );
-    let HomeData = await data.json();
 
     return (
-      <div className={`offers-list pb-[184px]`} data-cy="boutiques">
+      <div className={`offers-list pb-[184px] gap-[10px]`} data-cy="boutiques">
         {HomeData.boutiques.map((boutique, myKey) => {
           return (
             <NormalWidget

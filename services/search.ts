@@ -1,5 +1,10 @@
 import { AxiosGet } from "utils/AxiosApi";
 import { useAppStore } from "store";
+import {
+  buildParamsFromFilters,
+  filtersToSearchParams,
+  configureSearchParams,
+} from "utils/tinyUtils";
 
 class SearchService {
   private searchAbortController: AbortController | null = null;
@@ -21,6 +26,7 @@ class SearchService {
     noFilters = false,
     filters_offset = null,
     replace = true,
+    searchValue = null,
   }) {
     // Cancel any in-flight request
     if (this.searchAbortController) {
@@ -49,76 +55,69 @@ class SearchService {
     setSearchPartialLoading(true);
     setSearchLoading(true);
     try {
-      let searchFiltersEdit = {};
-      if (searchFilters?.categories && searchFilters.categories.length > 0) {
-        searchFiltersEdit = {
-          ...searchFiltersEdit,
-          categories: JSON.stringify(
-            searchFilters.categories.map((s) => s.slug)
-          ),
-        };
-      }
-      if (searchFilters?.brands && searchFilters.brands.length > 0) {
-        searchFiltersEdit = {
-          ...searchFiltersEdit,
-          brands: JSON.stringify(searchFilters.brands.map((s) => s.slug)),
-        };
-      }
-      if (searchFilters?.boutiques && searchFilters.boutiques.length > 0) {
-        searchFiltersEdit = {
-          ...searchFiltersEdit,
-          boutiques: JSON.stringify(searchFilters.boutiques.map((s) => s.slug)),
-        };
-      }
+      // Build path-based filter URL
+      const filterObj = {
+        boutiques: searchFilters?.boutiques?.map((b) => b.slug) || [],
+        categories: searchFilters?.categories?.map((c) => c.slug) || [],
+        brands: searchFilters?.brands?.map((b) => b.slug) || [],
+        colors:
+          searchFilters?.colors?.map((c) =>
+            typeof c === "string" ? c : c.toString()
+          ) || [],
+        sizes:
+          searchFilters?.sizes?.map((s) =>
+            typeof s === "string" ? s : s.toString()
+          ) || [],
+        prices:
+          searchFilters?.prices &&
+          searchFilters.prices.min_price !== null &&
+          searchFilters.prices.min_price !== undefined &&
+          searchFilters.prices.max_price !== null &&
+          searchFilters.prices.max_price !== undefined &&
+          !isNaN(Number(searchFilters.prices.min_price)) &&
+          !isNaN(Number(searchFilters.prices.max_price)) &&
+          Number(searchFilters.prices.min_price) >= 0 &&
+          Number(searchFilters.prices.max_price) > 0
+            ? [
+                `${searchFilters.prices.min_price}-${searchFilters.prices.max_price}`,
+              ]
+            : [],
+        search_text:
+          searchValue?.length > 0
+            ? [searchValue]
+            : value?.length > 0
+            ? [value]
+            : [],
+      };
 
-      if (searchFilters?.colors && searchFilters.colors.length > 0) {
-        // @ts-ignore
+      // Convert filter object to search params for elastic backend
+      const searchParams = filtersToSearchParams(filterObj);
 
-        searchFiltersEdit = {
-          ...searchFiltersEdit,
-          colors: JSON.stringify(searchFilters.colors.map((s) => s)),
-        };
-      }
+      const configuredParams = configureSearchParams({
+        searchParams,
+        noProducts: noProducts ? "true" : "false",
+        noFilters: noFilters ? "true" : "false",
+        lang: lang.split("-")[1] || "en",
+        offset: null,
+        boutiqueId: "listing",
+        filters_offset: filters_offset?.toString(),
+      });
 
-      if (searchFilters?.sizes && searchFilters.sizes.length > 0) {
-        // @ts-ignore
+      const apiUrl = `${process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL}/api/products/searchInCatalog`;
 
-        searchFiltersEdit = {
-          ...searchFiltersEdit,
-          sizes: JSON.stringify(searchFilters.sizes.map((s) => s)),
-        };
-      }
-      if (
-        searchFilters?.prices?.max_price > 0 &&
-        searchFilters?.prices?.min_price >= 0
-      ) {
-        searchFiltersEdit = {
-          ...searchFiltersEdit,
-          prices: JSON.stringify([
-            `${searchFilters.prices.min_price}-${searchFilters.prices.max_price}`,
-          ]),
-        };
-      }
-      if (value?.length > 0) {
-        searchFiltersEdit = {
-          ...searchFiltersEdit,
-          search_text: value,
-        };
-      }
-
-      let requestSearchParams = new URLSearchParams();
-      let requestSearchParamsString = "";
-      if (Object.keys(searchFiltersEdit).length > 0) {
-        requestSearchParams.set(
-          "searchParams",
-          JSON.stringify(searchFiltersEdit)
-        );
-        requestSearchParamsString = `&${requestSearchParams.toString()}`;
-      }
+      // Debug logging
 
       const filtersResponseJson = await fetch(
-        `/api/${lang}/search?${params.toString()}${requestSearchParamsString}`,
-        { signal } // Pass the abort signal to fetch
+        `${apiUrl}?${configuredParams.toString()}`,
+        {
+          signal, // Pass the abort signal to fetch
+          headers: {
+            lang: lang.split("-")[1] || "en",
+            country: lang.split("-")[0] || "tr",
+            Accept: "application/json",
+            "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+          },
+        }
       );
 
       const filtersResponse = await filtersResponseJson.json();
@@ -180,16 +179,33 @@ class SearchService {
 
     const { setSearchResults, setTotalSizeOfProducts } = useAppStore.getState();
     try {
-      let requestSearchParams = new URLSearchParams();
-      let requestSearchParamsString = "";
       console.log(filter_obj, "filter_obj");
-      if (Object.keys(filter_obj).length > 0) {
-        requestSearchParams.set("searchParams", JSON.stringify(filter_obj));
-        requestSearchParamsString = `&${requestSearchParams.toString()}`;
-      }
+
+      // Convert filter object to search params for elastic backend
+      const searchParams = filtersToSearchParams(filter_obj);
+
+      const configuredParams = configureSearchParams({
+        searchParams,
+        noProducts: "true",
+        noFilters: "false",
+        lang: lang.split("-")[1] || "en",
+        offset: "0",
+        boutiqueId: "listing",
+      });
+
+      const apiUrl = `${process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL}/api/products/searchInCatalog`;
+
       const filtersResponseJson = await fetch(
-        `/api/${lang}/search?noProducts=true&${requestSearchParamsString}`,
-        { signal } // Pass the abort signal to fetch
+        `${apiUrl}?${configuredParams.toString()}`,
+        {
+          signal, // Pass the abort signal to fetch
+          headers: {
+            lang: lang.split("-")[1] || "en",
+            country: lang.split("-")[0] || "tr",
+            Accept: "application/json",
+            "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+          },
+        }
       );
 
       const filtersResponse = await filtersResponseJson.json();
@@ -250,113 +266,77 @@ class SearchService {
     return params;
   }
 
-  getSearchPageUrl() {
+  getSearchPageUrl({ lang }) {
     let { searchFilters, value } = useAppStore.getState();
-    if (searchFilters.categories.length > 0) {
+
+    // Build filter object for path-based URL
+    const filterObj = {
+      boutiques: searchFilters?.boutiques?.map((b) => b.slug) || [],
+      categories: searchFilters?.categories?.map((c) => c.slug) || [],
+      brands: searchFilters?.brands?.map((b) => b.slug) || [],
+      colors:
+        searchFilters?.colors?.map((c) =>
+          typeof c === "string" ? c : c.toString()
+        ) || [],
+      sizes:
+        searchFilters?.sizes?.map((s) =>
+          typeof s === "string" ? s : s.toString()
+        ) || [],
+      prices:
+        searchFilters?.prices &&
+        searchFilters.prices.min_price !== null &&
+        searchFilters.prices.min_price !== undefined &&
+        searchFilters.prices.max_price !== null &&
+        searchFilters.prices.max_price !== undefined &&
+        !isNaN(Number(searchFilters.prices.min_price)) &&
+        !isNaN(Number(searchFilters.prices.max_price)) &&
+        Number(searchFilters.prices.min_price) >= 0 &&
+        Number(searchFilters.prices.max_price) > 0
+          ? [
+              `${searchFilters.prices.min_price}-${searchFilters.prices.max_price}`,
+            ]
+          : [],
+      search: value?.length > 0 ? [value] : [],
+    };
+
+    // Build path-based URL
+    const pathParams = buildParamsFromFilters(filterObj);
+
+    // Get language from current URL or default to 'en-tr'
+
+    if (pathParams.length > 0) {
+      return `/${lang}/filters/${pathParams.join("/")}`;
+    } else {
+      return `/${lang}/filters`;
     }
-    let url = "/boutique/listing";
-    let params = new URLSearchParams();
-    if (searchFilters.categories.length > 0) {
-      params.set(
-        "categories",
-        encodeURIComponent(
-          JSON.stringify(searchFilters.categories.map((s) => s.slug))
-        )
-      );
-    }
-    if (searchFilters.brands.length > 0) {
-      params.set(
-        "brands",
-        encodeURIComponent(
-          JSON.stringify(searchFilters.brands.map((s) => s.slug))
-        )
-      );
-    }
-    if (searchFilters.boutiques.length > 0) {
-      params.set(
-        "boutiques",
-        encodeURIComponent(
-          JSON.stringify(searchFilters.boutiques.map((s) => s.slug))
-        )
-      );
-    }
-    if (value?.length > 0) {
-      params.set("search_text", value);
-    }
-    if (
-      searchFilters.prices.min_price !== null &&
-      searchFilters?.prices?.max_price !== null &&
-      searchFilters?.prices?.max_price > 0 &&
-      searchFilters?.prices?.min_price >= 0
-    ) {
-      params.set(
-        "prices",
-        encodeURIComponent(
-          JSON.stringify([
-            `${searchFilters.prices.min_price}-${searchFilters.prices.max_price}`,
-          ])
-        )
-      );
-    }
-    if (searchFilters.colors.length > 0) {
-      params.set(
-        "colors",
-        encodeURIComponent(JSON.stringify(searchFilters.colors.map((s) => s)))
-      );
-    }
-    if (searchFilters.sizes.length > 0) {
-      params.set(
-        "sizes",
-        encodeURIComponent(JSON.stringify(searchFilters.sizes.map((s) => s)))
-      );
-    }
-    return url + "?" + params.toString();
   }
   getPageUrl({ term, value }) {
-    let params = new URLSearchParams();
     if (term && value) {
-      params.set(
-        term,
-        encodeURIComponent(JSON.stringify(value.map((s) => s.slug)))
-      );
-    }
-    return "?" + params.toString();
-    return;
-  }
-  async getColorsAndSizes() {
-    const CACHE_KEY = "colors_and_sizes_data";
-    const CACHE_DURATION = 24 * 60 * 60 * 1000; // 1 day in milliseconds
+      // Build filter object for single filter type
+      const filterObj = {
+        [term]: value.map((s) => s.slug),
+      };
 
-    // Check if we have cached data
-    const cachedData = localStorage.getItem(CACHE_KEY);
-    if (cachedData) {
-      const { data, timestamp } = JSON.parse(cachedData);
-      const isCacheValid = Date.now() - timestamp < CACHE_DURATION;
+      const pathParams = buildParamsFromFilters(filterObj);
 
-      if (isCacheValid) {
-        return data.data;
+      // Get language from current URL or default to 'en-tr'
+      const currentPath =
+        typeof window !== "undefined" ? window.location.pathname : "";
+      const langMatch = currentPath.match(/^\/([^\/]+)\//);
+      const lang = langMatch ? langMatch[1] : "en-tr";
+
+      if (pathParams.length > 0) {
+        return `/${lang}/filters/${pathParams.join("/")}`;
       }
     }
 
-    try {
-      // Fetch new data from API
-      const response = await fetch(
-        process.env.NEXT_PUBLIC_BACKEND_URL + "/web/get-colors-and-sizes"
-      );
-      const data = await response.json();
+    // Get language for base filters URL
+    const currentPath =
+      typeof window !== "undefined" ? window.location.pathname : "";
+    const langMatch = currentPath.match(/^\/([^\/]+)\//);
+    const lang = langMatch ? langMatch[1] : "en-tr";
 
-      // Store in localStorage with timestamp
-      const cacheData = {
-        data,
-        timestamp: Date.now(),
-      };
-      localStorage.setItem(CACHE_KEY, JSON.stringify(cacheData));
-
-      return data.data;
-    } catch (error) {
-      console.error("Error fetching colors and sizes:", error);
-      throw error;
-    }
+    return `/${lang}/filters`;
   }
 }
 export default new SearchService();

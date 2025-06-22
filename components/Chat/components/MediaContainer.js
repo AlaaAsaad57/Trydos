@@ -9,7 +9,7 @@ function MediaContainer({ id, mediaFiles }) {
   }, [media]);
   return (
     <div className="media-container">
-      <div className="media-tabs">
+      <div className="media-tabs text-[#1d1d1d]">
         <div
           onClick={() => setMedia("ImageMessage")}
           className={

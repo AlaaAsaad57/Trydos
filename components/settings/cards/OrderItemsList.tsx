@@ -11,6 +11,7 @@ import {
   PreparingStatus,
   ShippedSatus,
 } from "./OrderStatusCartsIcon";
+import { GetImageUrl } from "utils/tinyUtils";
 import { OrderItemsListPropsType } from "models/componentType/settingTypes/OrderItemsListPropsType";
 
 function OrderItemsList({
@@ -29,7 +30,7 @@ function OrderItemsList({
     return <PendingStatus />;
   };
   const { lang } = useParams();
-  console.log(showChats());
+  const showStatus = () => {};
   return (
     <div className="w-full flex-col">
       <div
@@ -62,7 +63,7 @@ function OrderItemsList({
         } flex-row    items-center pl-[12px]  whitespace-nowrap overflow-x-scroll overflow-y-hidden [&::-webkit-scrollbar]:hidden`}
       >
         {items.map((product) => (
-          <div className="relative flex-col" key={product.product_details.id}>
+          <div className="relative flex-col" key={product.id}>
             <NextLink
               key={product.product_details.id}
               href={`/${lang}/products/${product.product_slug}`}
@@ -75,7 +76,7 @@ function OrderItemsList({
             >
               <img
                 className="w-full h-full object-contain bg-white rounded-[15px]"
-                src={product.image}
+                src={GetImageUrl(product.image)}
                 alt={product.product_details.name}
                 width={100}
                 height={100}

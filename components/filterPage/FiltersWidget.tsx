@@ -7,9 +7,9 @@ import PriceCancel from "public/svg/listing/PriceCancel.svg";
 import React, { useEffect, useState } from "react";
 import { useAppStore } from "store";
 import BackIcon from "public/svg/listing/backIcon.svg";
-import { DebounceInput } from "node_modules/react-debounce-input/src";
-import { translateFunction } from "utils/functions";
-import { useParams, useSearchParams } from "next/navigation";
+
+import { RoundPrice, translateFunction } from "utils/functions";
+import { useParams } from "next/navigation";
 import FilterLabel from "components/ListingPage/filterComponents/FilterLabel";
 import search from "services/search";
 import { getActiveFilters } from "components/Server/FilterList";
@@ -17,7 +17,7 @@ import Image from "node_modules/next/image";
 import Spinner from "components/global/Spinner";
 import PriceSlider from "components/ListingPage/filterComponents/PriceSlider";
 import dynamic from "next/dynamic";
-import { GetFilterUrlParams } from "utils/tinyUtils";
+import { GetImageUrl, parseFiltersFromParams } from "utils/tinyUtils";
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 import {
   GA_EVENT_NAMES,
@@ -25,10 +25,11 @@ import {
   GA_GLOBAL_SCREEN,
 } from "utils/GAEvents";
 import { GAevent } from "utils/gtag";
+import { fetchFilteredProducts } from "Server Requests";
+import { usePathname } from "next/navigation";
 import { FiltersWidgetPropsType } from "models/componentType/FiltersWidgetPrpsType";
 import { FilterTobBarPropsType } from "models/componentType/FilterTobBarPropsType";
 import { ShowFilterRowPropsType } from "models/componentType/ShowFilterRowPropsType";
-
 const PriceChart = dynamic(
   () => import("components/ListingPage/filterComponents/PriceChart"),
   {
@@ -46,21 +47,39 @@ function FilterWidgetContainer({}) {
   } = useAppStore();
   const [loading, setLoading] = useState(true);
   const [Initialfilters, setInitialfilters] = useState<any>({});
-  const { boutiqueId, lang } = useParams();
-  const searchParams = useSearchParams();
-  let activeFilters = getActiveFilters(searchParams);
+  const params = useParams();
+  const pathname = usePathname();
+  const { lang, filters: filterParams } = params;
+  // @ts-ignore
+  const [country, language] = lang.split("-");
+  // Parse filters from URL path parameters
+  const parsedFilters = filterParams
+    ? parseFiltersFromParams(filterParams as string[])
+    : {};
+  let activeFilters = getActiveFilters(parsedFilters);
   const getSearchFilters = async () => {
-    const filtersUrl = GetFilterUrlParams({ boutiqueId, searchParams });
-    if (searchParams?.get("search_text")?.length > 0) {
-      let val = decodeURI(searchParams?.get("search_text"));
-      setSearchWord(val);
+    // Get boutique from parsed filters or determine from URL
+    let isFeatured = pathname.includes("featured");
+    let is_flash = pathname.includes("flashDeals");
+    if (parsedFilters?.search?.length > 0) {
+      setSearchWord(parsedFilters.search[0]);
     }
+
     setLoading(true);
-    let res = await fetch(
-      process.env.NEXT_PUBLIC_API_BASE_URL +
-        `/api/${lang}/search?${filtersUrl?.toString()}`
+
+    // Build API URL with path-based filters
+    const filterPath = filterParams ? (filterParams as string[]).join("/") : "";
+    let { data: filters } = await fetchFilteredProducts(
+      language,
+      country,
+      filterParams as string[],
+      "true",
+      "false",
+      null,
+      null,
+      isFeatured,
+      is_flash
     );
-    let { data: filters } = await res.json();
 
     setSearchResults({
       categories: filters.categories,
@@ -72,7 +91,7 @@ function FilterWidgetContainer({}) {
       },
       sizes: filters?.attributes?.[0]?.options,
       boutiques: filters.boutiques,
-      search_text: filters.search_text,
+      search_text: parsedFilters?.search?.[0],
       products: [],
       prices_ranges: filters?.prices?.priceRanges,
     });
@@ -86,7 +105,7 @@ function FilterWidgetContainer({}) {
       },
       sizes: filters?.attributes?.[0]?.options,
       boutiques: filters.boutiques,
-      search_text: filters.search_text,
+      search_text: parsedFilters?.search?.[0],
       products: [],
       prices_ranges: filters?.prices?.priceRanges,
     });
@@ -100,7 +119,7 @@ function FilterWidgetContainer({}) {
       },
       sizes: filters?.attributes?.[0]?.options,
       boutiques: filters.boutiques,
-      search_text: filters.search_text,
+      search_text: parsedFilters?.search?.[0],
       products: [],
       prices_ranges: filters?.prices?.priceRanges,
     });
@@ -159,7 +178,8 @@ function FilterWidgetContainer({}) {
       setSearchWord(activeFilters?.search_text);
     }
     if (activeFilters?.["boutiques"] && activeFilters?.boutiques) {
-      if (boutiqueId === "listing") {
+      const currentBoutiqueId = parsedFilters?.boutiques?.[0] || "listing";
+      if (currentBoutiqueId === "listing") {
         activeFilters?.boutiques?.forEach((b) => {
           if (filters?.boutiques?.find((filter) => filter.slug === b)) {
             obj.boutiques.push(
@@ -169,8 +189,9 @@ function FilterWidgetContainer({}) {
         });
       }
     }
-    if (boutiqueId !== "listing") {
-      obj.boutiques.push({ slug: boutiqueId?.toString() });
+    const currentBoutiqueId = parsedFilters?.boutiques?.[0] || "listing";
+    if (currentBoutiqueId !== "listing") {
+      obj.boutiques.push({ slug: currentBoutiqueId?.toString() });
     }
     setSearchFilters(obj);
   };
@@ -220,10 +241,15 @@ function FilterWidgetContainer({}) {
     );
 }
 export default FilterWidgetContainer;
-function FiltersWidget({ filters, configureActiveFilters }: FiltersWidgetPropsType) {
+function FiltersWidget({ filters, configureActiveFilters }) {
   let priceVariable = null;
 
-  const { lang, boutiqueId } = useParams();
+  const params = useParams();
+  const { lang, filters: filterParams } = params;
+  const parsedFilters = filterParams
+    ? parseFiltersFromParams(filterParams as string[])
+    : {};
+  const boutiqueId = parsedFilters?.boutiques?.[0] || "listing";
   const {
     filterEnabled,
     currency,
@@ -373,18 +399,24 @@ function FiltersWidget({ filters, configureActiveFilters }: FiltersWidgetPropsTy
                 {searchFilters?.prices?.min_price >= 0 && (
                   <div className="price-min">
                     Min{" "}
-                    {(searchFilters.prices?.min_price ||
-                      searchResults?.prices?.min_price) *
-                      currency?.exchange_rate}{" "}
+                    {RoundPrice({
+                      num:
+                        searchFilters.prices?.min_price ||
+                        searchResults?.prices?.min_price,
+                      rate: currency?.exchange_rate,
+                    })}{" "}
                     <span>{currency?.symbol}</span>
                   </div>
                 )}
                 {searchFilters?.prices?.max_price >= 0 && (
                   <div className="price-max">
                     Max{" "}
-                    {(searchFilters.prices?.max_price ||
-                      searchResults?.prices?.max_price) *
-                      currency?.exchange_rate}{" "}
+                    {RoundPrice({
+                      num:
+                        searchFilters.prices?.max_price ||
+                        searchResults?.prices?.max_price,
+                      rate: currency?.exchange_rate,
+                    })}{" "}
                     <span>{currency?.symbol}</span>
                   </div>
                 )}
@@ -407,10 +439,10 @@ function FiltersWidget({ filters, configureActiveFilters }: FiltersWidgetPropsTy
         {showButton() &&
           (totalProducts !== null && totalProducts > 0 ? (
             <NextLink
-              href={search.getSearchPageUrl()}
+              href={search.getSearchPageUrl({ lang: lang })}
               data={{
                 is_filter: true,
-                href: search.getSearchPageUrl(),
+                href: search.getSearchPageUrl({ lang: lang }),
               }}
               aria-disabled={partialLoading || loading_search}
               className="w-full h-10 p-2 cursor-pointer flex bg-[#ff5549] text-[#fff] justify-center items-center rounded-xl"
@@ -463,8 +495,15 @@ function FiltersWidget({ filters, configureActiveFilters }: FiltersWidgetPropsTy
   );
 }
 
-const FilterTobBar = ({ isSearch, setIsSearch, Goback }: FilterTobBarPropsType) => {
-  const { lang } = useParams();
+const FilterTobBar = ({ isSearch, setIsSearch, Goback }) => {
+  const params = useParams();
+  const { lang, filters: filterParams } = params;
+
+  // Parse current filters from URL path
+  const currentFilters = filterParams
+    ? parseFiltersFromParams(filterParams as string[])
+    : {};
+
   const {
     filterEnabled,
     setFilterEnabled,
@@ -473,26 +512,6 @@ const FilterTobBar = ({ isSearch, setIsSearch, Goback }: FilterTobBarPropsType) 
     setSearchPartialLoading,
     setSearchLoading,
   } = useAppStore();
-  const handleInputChange = async (e) => {
-    // Sendevent({
-    //   event: GA_EVENT_NAMES.CLICK,
-    //   value: GA_CLICK_EVENT_VALUES.ADD_FILTER_ITEM,
-    //   extra: {
-    //     filter: "search_text",
-    //     value: e?.target.value,
-    //   },
-    // });
-    setSearchWord(e?.target.value);
-    setIsSearch(true);
-    setSearchPartialLoading(true);
-    setSearchLoading(true);
-    await search.getSearchOptions({
-      noProducts: false,
-      lang: lang,
-    });
-    setSearchPartialLoading(false);
-    setSearchLoading(false);
-  };
 
   return (
     <div className="justify-between fil flex-row align-center h-[50px]">
@@ -512,59 +531,8 @@ const FilterTobBar = ({ isSearch, setIsSearch, Goback }: FilterTobBarPropsType) 
         <BackIcon />
       </div>
       <div
-        className={`filter-bar-options flex-row align-center ${
-          isSearch || value?.length > 0 ? "w-full" : "w-[95px] "
-        }`}
+        className={`filter-bar-options flex-row align-center ${"w-[95px] "}`}
       >
-        <div
-          id="searchIconBoutique"
-          className={`filter-option w-[20px] transition-all filter-search-option relative ${
-            isSearch &&
-            "w-[90%] [&>input]:w-full [&>input]:bg-[#f8f8f8] [&>input]:h-[40px]"
-          }`}
-          data-cy="searchIcon_boutiquePage"
-          onClick={() => {
-            // Sendevent({
-            //   event: GA_EVENT_NAMES.CLICK,
-            //   value: GA_CLICK_EVENT_VALUES.OPEN_SEARCH_FIELD_BUTTON,
-            // });
-            document
-              .querySelector<HTMLInputElement>("#filter-search-input")
-              ?.focus();
-            setIsSearch(true);
-          }}
-        >
-          <DebounceInput
-            data-cy="inputFiled"
-            id="filter-search-input"
-            debounceTimeout={600}
-            onFocus={() => {
-              document
-                .querySelector<HTMLInputElement>(".filter-bar-options")
-                .classList.add("w-full");
-            }}
-            value={value}
-            onBlur={() => {
-              if (value?.length === 0) {
-                setIsSearch(false);
-              }
-            }}
-            onChange={handleInputChange}
-            onKeyDown={(e) => {
-              //@ts-ignore
-              if (e.keyCode == 13) {
-              }
-            }}
-            className={`${
-              isSearch && "pl-[40px]"
-            } rounded-[15px]  w-0 h-full border-0 outline-none text-[#5d5d5d]`}
-          />
-          <SearchIcon
-            className={`absolute z-10 ${
-              isSearch ? "top-[9px] left-[14px]" : "top-0 left-0"
-            }`}
-          />
-        </div>
         <div className="filter-option w-[20px]" data-cy="settingsIcon">
           <FilterIcon className={`${filterEnabled && "filter-icon-enabled"}`} />
         </div>
@@ -652,17 +620,17 @@ const ShowFilterRow = ({ term, values }) => {
   };
   const getImage = (value) => {
     if (value.most_viewed_product_thumbnail) {
-      return value.most_viewed_product_thumbnail?.replace(
+      return GetImageUrl(value.most_viewed_product_thumbnail)?.replace(
         "/upload",
         "/upload/w_50,h_50,c_fit/f_webp/q_100"
       );
     } else if (value.flat_photo_path) {
-      return value.flat_photo_path.file_path?.replace(
+      return GetImageUrl(value.flat_photo_path.file_path)?.replace(
         "/upload",
         "/upload/w_50,h_50,c_fit/f_webp/q_100"
       );
     } else if (value.icon) {
-      return value.icon?.replace(
+      return GetImageUrl(value.icon)?.replace(
         "/upload",
         "/upload/w_50,h_50,c_fit/f_webp/q_100"
       );

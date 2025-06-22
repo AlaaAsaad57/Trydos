@@ -2,7 +2,7 @@ import { Currency , ProductDataType } from "./productPagePropsType";
 
 
 export interface ProductDetailsSliderPropsType {
-    product: ProductDataType;
+    product: any;
     currency: Currency;
     images: string[];
 }

@@ -4,7 +4,7 @@ import userImage from "public/images/profileNo.png";
 import Cookies from "js-cookie";
 import Smartlook from "smartlook-client";
 
-import { _isStoreLastJson, getLang } from "utils/functions";
+import { _isStoreLastJson, getLang, translateFunction } from "utils/functions";
 import { SEND_OTP } from "utils/endpointConfig";
 import ChatService from "services/chat";
 import StoryService from "services/story";
@@ -232,7 +232,9 @@ class AuthService {
         { name: name },
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("CHAT-TOKEN")}`,
+            Authorization: `Bearer ${
+              JSON.parse(localStorage.getItem("USER-CHAT"))?.access_token
+            }`,
           },
         }
       );
@@ -244,7 +246,7 @@ class AuthService {
         })
       );
       await home.getCustomerInfo();
-      if (!localStorage.getItem("STORIES-TOKEN")) {
+      if (!localStorage.getItem("USER-STORIES")) {
         await this.ConfirmSignIn();
       }
       await axios.post(
@@ -252,7 +254,9 @@ class AuthService {
         { name: name },
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("STORIES-TOKEN")}`,
+            Authorization: `Bearer ${
+              JSON.parse(localStorage.getItem("USER-STORIES"))?.access_token
+            }`,
           },
         }
       );
@@ -383,6 +387,9 @@ class AuthService {
     this.cancelAuth();
     localStorage.removeItem("MARKET-TOKEN");
     localStorage.removeItem("USER");
+    localStorage.removeItem("USER-CHAT");
+    localStorage.removeItem("USER-STORIES");
+    localStorage.removeItem("ID-TOKEN");
     Cookies.remove("MARKET-TOKEN");
   }
   async UpdateProfile(userObj, previousUserObj) {
@@ -392,7 +399,11 @@ class AuthService {
       stories_done = false;
 
     try {
-      if (localStorage.getItem("USER-STORIES")) {
+      if (
+        localStorage.getItem("USER-STORIES") &&
+        localStorage.getItem("USER") &&
+        JSON.parse(localStorage.getItem("USER-STORIES"))?.id
+      ) {
         await axios
           .post(
             process.env.NEXT_PUBLIC_STORIES_BACKEND_URL +
@@ -404,9 +415,9 @@ class AuthService {
             },
             {
               headers: {
-                Authorization: `Bearer ${localStorage.getItem(
-                  "STORIES-TOKEN"
-                )}`,
+                Authorization: `Bearer ${
+                  JSON.parse(localStorage.getItem("USER-STORIES"))?.access_token
+                }`,
               },
             }
           )
@@ -424,7 +435,11 @@ class AuthService {
         );
       }
       // let user_id = JSON.parse(localStorage.getItem("USER-CHAT")).id;
-      if (localStorage.getItem("USER-CHAT")) {
+      if (
+        localStorage.getItem("USER-CHAT") &&
+        localStorage.getItem("USER") &&
+        JSON.parse(localStorage.getItem("USER-CHAT"))?.id
+      ) {
         let chat_update = await axios
           .put(
             process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
@@ -436,7 +451,9 @@ class AuthService {
             },
             {
               headers: {
-                Authorization: `Bearer ${localStorage.getItem("CHAT-TOKEN")}`,
+                Authorization: `Bearer ${
+                  JSON.parse(localStorage.getItem("USER-CHAT"))?.access_token
+                }`,
               },
             }
           )
@@ -491,7 +508,9 @@ class AuthService {
           },
           {
             headers: {
-              Authorization: `Bearer ${localStorage.getItem("STORIES-TOKEN")}`,
+              Authorization: `Bearer ${
+                JSON.parse(localStorage.getItem("USER-STORIES"))?.access_token
+              }`,
             },
           }
         );
@@ -507,6 +526,7 @@ class AuthService {
           }
         );
       }
+      toast.error(translateFunction("Failed to update profile Info"));
       throw error;
     }
   }

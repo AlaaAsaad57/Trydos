@@ -4,12 +4,15 @@ import { useTimer as TimerUtil } from "react-timer-hook";
 
 interface TimerProps {
   onFinish: Function;
-  onResume: Function;
+
   minutes?: number;
+  seconds?: number;
 }
-function Timer({ onFinish, minutes }: TimerProps) {
+function Timer({ onFinish, minutes = 2, seconds = 0 }: TimerProps) {
   const data = TimerUtil({
-    expiryTimestamp: new Date(Date.now() + (minutes || 2) * 60 * 1000),
+    expiryTimestamp: new Date(
+      Date.now() + minutes * 60 * 1000 + seconds * 1000
+    ),
     autoStart: true,
     onExpire() {
       onFinish();

@@ -35,7 +35,6 @@ export const renderer: Renderer = ({
     }
   }, [isPaused]);
   React.useEffect(() => {
-    console.log(activeId, id);
     if (vid.current) {
       if (activeId !== id) {
         vid.current.pause();

@@ -17,6 +17,7 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import CircleBorder from "public/svg/product/CircleBorder";
 import NormalColorSlider from "./NormalColorSlider";
 import { useAppStore } from "store";
+import { GetImageUrl } from "utils/tinyUtils";
 import { ProductColorsPropsType } from "models/componentType/productTypes/MultiComponentOnProductPage";
 
 function ProductColors({ colors, ProductColorsArray }: ProductColorsPropsType) {
@@ -159,7 +160,7 @@ function ProductColors({ colors, ProductColorsArray }: ProductColorsPropsType) {
                     width={getSize(index)}
                     height={getSize(index)}
                     src={getConfiguredImage({
-                      src: color.images[0],
+                      src: GetImageUrl(color.images[0]),
                       width: getSize(index) * 2,
                       height: getSize(index) * 2,
                     })}

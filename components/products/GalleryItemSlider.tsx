@@ -2,6 +2,7 @@ import React, { useRef, useState } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { getConfiguredImage } from "utils/functions";
 import "styles/listing.css";
+import { GetImageUrl } from "utils/tinyUtils";
 import { GalleryItemSliderPropsType } from "models/componentType/GalleryItemSliderPropsType";
 function GalleryItemSlider({ images }: GalleryItemSliderPropsType) {
   const SliderRef = useRef<any>();
@@ -73,7 +74,7 @@ function GalleryItemSlider({ images }: GalleryItemSliderPropsType) {
                 <img
                   className="w-full max-h-[595px] rounded-[30px]"
                   src={getConfiguredImage({
-                    src: img,
+                    src: GetImageUrl(img),
                     width: 400,
                     height: 400,
                   })}

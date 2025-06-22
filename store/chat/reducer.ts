@@ -134,6 +134,10 @@ export const useChatStore = (set, get) => ({
   setCallLoadingState: (payload: boolean) => set({ call_loading: payload }),
 
   setChatOpen: (payload: boolean) => {
+    if (payload === false) {
+      set({ chatVar: false, activeChat: null, main: "main" });
+      return;
+    }
     if (JSON.parse(localStorage.getItem("USER"))?.name?.length > 2) {
       set({ chatVar: payload });
     } else {
@@ -556,7 +560,47 @@ export const useChatStore = (set, get) => ({
         newChats.push(a);
       }
     });
-
+    if (parseInt(state.activeChat.id) === parseInt(payload.toString())) {
+      let m = [];
+      state.activeChat.messages.forEach((mes) => {
+        let newst = [];
+        let st = mes.message_status;
+        if (mes.sender_user_id && !mes.message_type.name.includes("Call")) {
+          st.forEach((sta) => {
+            let newdate = new Date(new Date().getTime() - 3 * 60 * 60 * 1000);
+            if (sta.user_id !== getUserChat()?.id) {
+              newst.push({
+                ...sta,
+                is_watched: true,
+                watched_at: sta.watched_at
+                  ? sta.watched_at
+                  : newdate.toLocaleString().toString(),
+              });
+            } else {
+              if (sta.watched_at) {
+                newst.push({ ...sta, is_watched: true, is_received: 1 });
+              } else {
+                newst.push({
+                  ...sta,
+                  is_watched: true,
+                  is_received: 1,
+                  watched_at: new Date(
+                    new Date().getTime() - 3 * 60 * 60 * 1000
+                  )
+                    .toLocaleString()
+                    .toString(),
+                });
+              }
+            }
+          });
+        }
+        if (mes.sender_user_id !== getUserChat()?.id) {
+          newst = mes.message_status;
+        }
+        m.push({ ...mes, message_status: newst });
+      });
+      active = { ...state.activeChat, messages: m };
+    }
     set({
       data: newChats,
       activeChat: active,
@@ -713,7 +757,43 @@ export const useChatStore = (set, get) => ({
         newChats.push(a);
       }
     });
-
+    if (parseInt(active.id) === parseInt(payload.toString())) {
+      let m = [];
+      active.messages.forEach((mes) => {
+        let newst = [];
+        let st = mes.message_status;
+        if (mes.sender_user_id && !mes.message_type.name.includes("Call")) {
+          st.forEach((sta) => {
+            let newdate = new Date(new Date().getTime() - 3 * 60 * 60 * 1000);
+            if (sta.user_id !== getUserChat()?.id) {
+              newst.push({
+                ...sta,
+                is_received: 1,
+                received_at: sta.received_at
+                  ? sta.received_at
+                  : newdate.toLocaleString().toString(),
+              });
+            } else {
+              if (sta.received_at) {
+                newst.push({ ...sta, is_received: 1 });
+              } else {
+                newst.push({
+                  ...sta,
+                  is_received: 1,
+                  received_at: new Date(
+                    new Date().getTime() - 3 * 60 * 60 * 1000
+                  )
+                    .toLocaleString()
+                    .toString(),
+                });
+              }
+            }
+          });
+        }
+        m.push({ ...mes, message_status: newst });
+      });
+      active = { ...active, messages: m };
+    }
     set({
       data: newChats,
       activeChat: active,
@@ -753,7 +833,7 @@ export const useChatStore = (set, get) => ({
     let ac = payload.act;
     let chat = state.data;
     let arr = [];
-
+    let active = state.activeChat;
     if (payload.isNew || payload.act?.id?.includes("ch")) {
       if (!payload.isPrivate) {
         arr.push({
@@ -762,6 +842,15 @@ export const useChatStore = (set, get) => ({
         });
         arr = [...arr, ...chat];
       } else {
+        if (
+          state.activeChat?.id &&
+          parseInt(state.activeChat?.id) === parseInt(payload?.act.id)
+        ) {
+          active = {
+            ...state?.activeChat,
+            messages: [...ac.messages, payload.message],
+          };
+        }
         arr = state.data;
       }
       set({
@@ -771,7 +860,7 @@ export const useChatStore = (set, get) => ({
           state.activeChat?.id === ac.id &&
           arr.filter((t) => t.id === state.activeChat?.id)[0]
             ? arr.filter((t) => t.id === state.activeChat?.id)[0]
-            : state.activeChat,
+            : active,
         ref: !state.ref,
         refs: !state.refs,
         replyMessage: null,

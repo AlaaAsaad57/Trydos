@@ -1,6 +1,7 @@
 import { useAppStore } from "store";
 import { getTwoLetters, getUser } from "../chatsFunctions";
 import ProfilePicture from "public/images/profileNo.png";
+import { GetImageUrl } from "utils/tinyUtils";
 import { translateFunction } from "utils/functions";
 function SearchResult({
   key,
@@ -74,11 +75,7 @@ function SearchResult({
                 currentTarget.src = ProfilePicture;
               }}
               alt=""
-              src={
-                !photo.includes("http")
-                  ? process.env.NEXT_PUBLIC_CLOUDINARY_URL + photo
-                  : ProfilePicture.src
-              }
+              src={photo ? GetImageUrl(photo) : ProfilePicture.src}
             />
           ) : (
             <div className="text-avatar">{getTwoLetters(SenderName)}</div>

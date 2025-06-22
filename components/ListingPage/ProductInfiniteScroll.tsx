@@ -11,20 +11,33 @@ import { RoundPrice, translateFunction } from "utils/functions";
 import { useParams } from "next/navigation";
 import { CurrencyApi } from "models/API/market/CurrencyApi";
 import { useAppStore } from "store";
-import { getProductsAndFilters } from "store/homepage/cachedActions";
 import { BuyButtonProduct, ProductPhotosSlider } from "./Product";
 import NextLink from "components/global/NextLink";
-import { ProductsInfiniteScrollPropsType } from "models/componentType/ProductsInfiniteScrollPropsType";
+import { GetImageUrl } from "utils/tinyUtils";
+import ProductBanner from "components/products/ProductBanner";
+import { fetchFilteredProducts } from "Server Requests";
 
 function ProductsInfiniteScroll({
   offset,
   boutiqueId,
   currency,
   searchParams,
+  parsedFilters,
   activeColor,
   productIds,
   isFeatured,
-}: ProductsInfiniteScrollPropsType) {
+  isFlashDeals,
+}: {
+  offset: any;
+  currency: CurrencyApi["data"]["currency"];
+  boutiqueId: string;
+  searchParams?: any;
+  parsedFilters?: Record<string, string[]>;
+  activeColor: string;
+  productIds: string[];
+  isFeatured?: boolean;
+  isFlashDeals?: boolean;
+}) {
   const { resetBoutique, AddToCartOption, settings } = useAppStore();
   const { lang }: { lang: string } = useParams();
   // @ts-ignore
@@ -47,19 +60,21 @@ function ProductsInfiniteScroll({
   const [offsetValue, setOffsetValue] = useState(offset);
   const [loading, setLoading] = useState(false);
   const [isReachEnd, setIsReachEnd] = useState(false);
-
+  const params = useParams();
   const getProductsReq = async () => {
     setLoading(true);
-    const response = await getProductsAndFilters({
-      lang: languageVariable,
-      offset: offsetValue,
-      searchParams: searchParams,
-      country: lang?.split("-")[0],
-      noProducts: false,
-      noFilters: true,
-      boutiqueId: boutiqueId === "listing" ? null : boutiqueId,
-      isFeatured: isFeatured,
-    });
+    const response = await fetchFilteredProducts(
+      languageVariable,
+      lang?.split("-")[0],
+      params.filters as string[],
+      "false",
+      "false",
+      offsetValue?.toString(),
+      null,
+      isFeatured,
+      isFlashDeals
+    );
+
     setProducts([
       ...products,
       ...response.data.products.filter(
@@ -130,6 +145,10 @@ function ProductsInfiniteScroll({
                 //   }
                 // }}
               >
+                <ProductBanner
+                  featured={product.featured}
+                  flashDeals={product.end_date}
+                />
                 <ProductPhotosSlider
                   product={{
                     sync_color_images: product.sync_color_images,
@@ -147,7 +166,7 @@ function ProductsInfiniteScroll({
                       typeof product.brand.icon === "string" && (
                         <img
                           loading={"eager"}
-                          src={product?.brand?.icon?.replace(
+                          src={GetImageUrl(product?.brand?.icon)?.replace(
                             "/upload",
                             "/upload/h_50/q_auto"
                           )}
@@ -171,10 +190,9 @@ function ProductsInfiniteScroll({
                           0 && (
                           <img
                             loading={"eager"}
-                            src={product?.category?.flat_photo_path?.file_path?.replace(
-                              "/upload",
-                              "/upload/h_50/f_webp/q_auto"
-                            )}
+                            src={GetImageUrl(
+                              product?.category?.flat_photo_path?.file_path
+                            )?.replace("/upload", "/upload/h_50/f_webp/q_auto")}
                             width={10}
                             height={10}
                             style={{
@@ -218,8 +236,9 @@ function ProductsInfiniteScroll({
                       </span>
                     )}
                     <span className="new-price bold-text color-dark-gray flex f-12">
-                      {product?.offer_price >= 0 &&
-                        getPrice(product?.offer_price)}
+                      {product?.offer_price >= 0
+                        ? getPrice(product?.offer_price)
+                        : getPrice(product?.price)}
                     </span>
                     <span className="currency-label light-text color-dark-gray flex f-10">
                       {currency?.symbol}

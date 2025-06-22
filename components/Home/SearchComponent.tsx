@@ -40,6 +40,7 @@ function SearchComponent({
     setSearchWord,
     value,
     searchWords,
+    setEnableSearch,
   } = useAppStore();
 
   const { lang } = useParams();
@@ -51,13 +52,14 @@ function SearchComponent({
       const result = await SearchService.getSearchOptions({
         noProducts: false,
         lang: lang,
+        searchValue: searchValue,
       });
       // Only prefetch if the request wasn't cancelled
       if (result !== null) {
-        router.prefetch(SearchService.getSearchPageUrl());
+        router.prefetch(SearchService.getSearchPageUrl({ lang: lang }));
       }
     },
-    [lang, router]
+    [lang, router, value]
   );
 
   const onChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -67,7 +69,7 @@ function SearchComponent({
     if (input.length > 90) {
       input = input.slice(0, 90);
     }
-    console.log(input);
+
     setSearchWord(input);
     e.target.value = input;
 
@@ -84,10 +86,11 @@ function SearchComponent({
   const onKeyDown = (e) => {
     if (e.keyCode == 13 && e.target.value.length > 0) {
       onClickSearchHistory(value);
+      setEnableSearch(false);
       dispatchRouteChangeEvent("start", {
         is_boutique: true,
       });
-      router.push(SearchService.getSearchPageUrl());
+      router.push(SearchService.getSearchPageUrl({ lang: lang }));
       //go to listing
     } else {
     }

@@ -14,6 +14,7 @@ import {
   GA_GLOBAL_PLATFORM,
 } from "utils/GAEvents";
 import { GAevent } from "utils/gtag";
+import PhoneNumberError from "./PhoneNumberError";
 import { SendMethodPropsType } from "models/componentType/settingTypes/SendMethodPropsType";
 
 function SendMethod({
@@ -441,13 +442,21 @@ function SendMethod({
           </div>
         </div>
         {wrongNumber && (
-          <div
-            data-cy="WaitForTryAgain"
-            className="blue-text"
-            style={{ color: "#ff5f61", fontSize: "12px", marginTop: "10px" }}
-          >
-            {wrongNumber || translate("Invalid Phone Number", language)}
-          </div>
+          // <div
+          //   data-cy="WaitForTryAgain"
+          //   className="blue-text"
+          //   style={{ color: "#ff5f61", fontSize: "12px", marginTop: "10px" }}
+          // >
+          //   {wrongNumber || translate("Invalid Phone Number", language)}
+          // </div>
+          <PhoneNumberError
+            wrongNumber={wrongNumber}
+            setLoading={setLoading}
+            onTimerFinish={() => {
+              setWrongNumber(false);
+              setLoading(false);
+            }}
+          />
         )}
       </>
     </AnimatedComponent>

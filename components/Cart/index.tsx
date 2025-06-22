@@ -32,6 +32,7 @@ import {
   GA_GLOBAL_SCREEN,
 } from "utils/GAEvents";
 import { GAevent } from "utils/gtag";
+import { GetImageUrl } from "utils/tinyUtils";
 import { CartContainerPropsType } from "models/componentType/CartContainerPropsType";
 import { QuantutyInputPropsType } from "models/componentType/QuantutyInputPropsType";
 
@@ -370,7 +371,7 @@ function CartContainer({ close, toOrders }: CartContainerPropsType) {
                             src={getConfiguredImage({
                               height: 150,
                               width: 150,
-                              src: product.image,
+                              src: GetImageUrl(product.image),
                             })}
                             width={110}
                             height={"100%"}
@@ -390,7 +391,9 @@ function CartContainer({ close, toOrders }: CartContainerPropsType) {
                               src={getConfiguredImage({
                                 height: 150,
                                 width: 150,
-                                src: product.brand?.icon?.file_path,
+                                src: GetImageUrl(
+                                  product.brand?.icon?.file_path
+                                ),
                               })}
                               height={10}
                               style={{
@@ -623,7 +626,6 @@ function CartContainer({ close, toOrders }: CartContainerPropsType) {
                                   <Timer
                                     minutes={product.time_left_in_minutes}
                                     onFinish={() => {}}
-                                    onResume={() => {}}
                                   />
                                 </span>
                               </>
@@ -863,7 +865,7 @@ function CartContainer({ close, toOrders }: CartContainerPropsType) {
                             src={getConfiguredImage({
                               height: 150,
                               width: 150,
-                              src: product.image,
+                              src: GetImageUrl(product.image),
                             })}
                             width={110}
                             height={"100%"}
@@ -876,7 +878,9 @@ function CartContainer({ close, toOrders }: CartContainerPropsType) {
                               src={getConfiguredImage({
                                 height: 150,
                                 width: 150,
-                                src: product?.brand?.icon?.file_path,
+                                src: GetImageUrl(
+                                  product?.brand?.icon?.file_path
+                                ),
                               })}
                               height={10}
                               style={{
@@ -2110,7 +2114,7 @@ const QuantutyInput = ({
 
       <div className={`pl-[30px]`} data-cy="oldNew-price-container">
         <div className="product-info-price" data-cy="oldNew-price-container2">
-          {product?.offer_price ? (
+          {product?.offer_price >= 0 ? (
             <>
               <div className="flex-col" data-cy="Subdivisions">
                 <div className="flex-row" data-cy="newOld-price">

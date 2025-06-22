@@ -1,11 +1,13 @@
 import { Currency } from "./boutiquePagePropsType";
 
 export interface ProductListServerPropsType {
+  isFlashDeals?: boolean,
+  parsedFilters?: any,
     params: {
         lang: string;
         boutiqueId?: string;
       };
-      searchParams:any,
+      searchParams?: URLSearchParams,
     products: ProductData[];
     currency: Currency;
     offset: number

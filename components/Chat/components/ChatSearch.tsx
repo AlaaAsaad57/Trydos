@@ -28,68 +28,78 @@ function ChatSearch({ close }) {
     getMessagesForSearch(e.target.value);
   };
   const getMessagesForSearch = async (value) => {
-    let response: GetMessageSearchApi = await axios.post(
-      process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
-        "/api/v2/elastic/channelSearch",
-      {
-        query: value,
-        channel_id: parseInt(activeChat.id),
-        limit: 100,
-        offset: parseInt(searchChat.offset),
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${getUserChat().access_token}`,
+    if (value?.length > 0) {
+      let response: GetMessageSearchApi = await axios.post(
+        process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
+          "/api/v2/elastic/channelSearch",
+        {
+          query: value,
+          channel_id: parseInt(activeChat.id),
+          limit: 100,
+          offset: parseInt(searchChat.offset),
         },
-      }
-    );
-    let messages = response.data.messages_ids;
-    let newOffset = response.data.offset;
-    setChatSearchRequest({
-      messages,
-      newOffset,
-    });
-    setQouted(
-      response.data.messages_ids[response.data.messages_ids.length - 1]
-    );
-    if (
-      activeChat.messages.filter(
-        (s) =>
-          parseInt(s.id) ===
+        {
+          headers: {
+            Authorization: `Bearer ${getUserChat().access_token}`,
+          },
+        }
+      );
+      let messages = response.data.messages_ids;
+      let newOffset = response.data.offset;
+      if (response.data.messages_ids?.length > 0) {
+        setChatSearchRequest({
+          messages,
+          newOffset,
+        });
+        setQouted(
           response.data.messages_ids[response.data.messages_ids.length - 1]
-      ).length > 0
-    ) {
-    } else
-      await getMessagesBetweenMessage({
-        first: activeChat?.id,
-        second:
-          parseInt(activeChat.messages[activeChat.messages.length - 1]?.id) -
-          parseInt(
-            response.data.messages_ids[
-              response.data.messages_ids.length - 1
-            ].toString()
-          ),
-      });
-    var numb = response.data.messages_ids[response.data.messages_ids.length - 1]
-      ?.toString()
-      ?.match(/\d/g);
-    // @ts-ignore
-    numb = numb?.join("");
-    let el = document.querySelector(
-      `#main-container-${
-        response.data.messages_ids[response.data.messages_ids.length - 1]
-      }`
-    );
+        );
+        if (
+          activeChat.messages.filter(
+            (s) =>
+              parseInt(s.id) ===
+              response.data.messages_ids[response.data.messages_ids.length - 1]
+          ).length > 0
+        ) {
+        } else
+          await getMessagesBetweenMessage({
+            first: activeChat?.id,
+            second:
+              parseInt(
+                activeChat.messages[activeChat.messages.length - 1]?.id
+              ) -
+              parseInt(
+                response.data?.messages_ids?.[
+                  response?.data?.messages_ids?.length - 1
+                ]?.toString()
+              ),
+          });
+        var numb = response.data.messages_ids[
+          response.data.messages_ids.length - 1
+        ]
+          ?.toString()
+          ?.match(/\d/g);
+        // @ts-ignore
+        numb = numb?.join("");
+        let el = document.querySelector(
+          `#main-container-${
+            response.data.messages_ids[response.data.messages_ids.length - 1]
+          }`
+        );
 
-    if (el) {
-      el.scrollIntoView({ block: "center" });
+        if (el) {
+          el.scrollIntoView({ block: "center" });
 
-      setTimeout(() => {
-        el.classList.add("backdrop_msg");
-      }, 300);
-      setTimeout(() => {
-        el.classList.remove("backdrop_msg");
-      }, 3000);
+          setTimeout(() => {
+            el.classList.add("backdrop_msg");
+          }, 300);
+          setTimeout(() => {
+            el.classList.remove("backdrop_msg");
+          }, 3000);
+        }
+      } else {
+        setChatSearchLoading(false);
+      }
     }
   };
   const NextSearch = async () => {
@@ -261,7 +271,7 @@ function ChatSearch({ close }) {
           <Spinner className=" absolute right-2 top-3 z-[99] " />
         )}
         <DebounceInput
-          className="w-full h-full border-none outline-none absolute top-0 left-0 pl-11 z-10 light rounded-[15px] bg-[#fafafa]"
+          className="w-full text-[#1d1d1d] h-full border-none outline-none absolute top-0 left-0 pl-11 z-10 light rounded-[15px] bg-[#fafafa]"
           minLength={1}
           placeholder="Search"
           value={searchChat.searchValue}

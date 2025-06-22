@@ -1,8 +1,11 @@
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 import NextLink from "components/global/NextLink";
 import { BuyButtonProduct } from "components/ListingPage/Product";
+
+import ProductBanner from "components/products/ProductBanner";
 import { SearchResponse } from "models/API/elastic/Search";
 import { CurrencyApi } from "models/API/market/CurrencyApi";
+import { fetchCurrency, fetchFilteredProducts } from "Server Requests";
 import Image from "next/image";
 import React, { Suspense } from "react";
 import {
@@ -10,64 +13,74 @@ import {
   RoundPrice,
   translateFunction,
 } from "utils/functions";
+import { GetImageUrl } from "utils/tinyUtils";
 
 async function FeatureProducts({ lang }) {
-  const getFeaturedProducts = async (): Promise<SearchResponse["data"]> => {
+  const getFeaturedProducts = async (): Promise<SearchResponse> => {
     try {
-      const featuredProducts = await fetch(
-        process.env.NEXT_PUBLIC_API_BASE_URL +
-          `/api/${lang}/featured?forHome=true`,
-        {
-          next: {
-            revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE),
-            tags: ["featured-Products-Api"],
-          },
-        }
+      const [country, language] = lang.split("-");
+      const result = await fetchFilteredProducts(
+        language,
+        country,
+        [],
+        "false",
+        "true",
+        null,
+        null,
+        true,
+        false
       );
-      let data: SearchResponse["data"] = await featuredProducts.json();
-      return data;
+      return {
+        data: {
+          products: result.data.products as any,
+          offset: result.data.offset,
+          total_size: result.data.total_size,
+          limit: result.data.limit,
+          brands: result.data.brands as any,
+          categories: result.data.categories as any,
+          colors: result.data.colors as any,
+          attributes: result.data.attributes as any,
+          boutiques: result.data.boutiques as any,
+          prices: result.data.prices as any,
+          search_time: null,
+          search_text: null,
+          process_time: "",
+        },
+      };
     } catch (e) {
       console.log(e);
       return {
-        products: [],
-        offset: null,
-        total_size: 0,
-        limit: 0,
-        brands: [],
-        categories: [],
-        colors: [],
-        attributes: [],
-        boutiques: [],
-        prices: {
-          max_price: null,
-          min_price: null,
-          priceRanges: [],
+        data: {
+          products: [],
+          offset: null,
+          total_size: 0,
+          limit: 0,
+          brands: [],
+          categories: [],
+          colors: [],
+          attributes: [],
+          boutiques: [],
+          prices: {
+            max_price: null,
+            min_price: null,
+            priceRanges: [],
+          },
+          search_time: null,
+          search_text: null,
+          process_time: "",
         },
-        search_time: null,
-        search_text: null,
-        process_time: "",
       };
     }
   };
   const GetCurrencyData = async (): Promise<
     CurrencyApi["data"]["currency"]
   > => {
-    let response;
     try {
-      response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/${lang}/currency`,
-        {
-          method: "GET",
-          next: {
-            revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE_CURRENCY),
-            tags: ["currency-api"],
-          },
-        }
-      );
-      let data = await response.json();
+      const [country, language] = lang.split("-");
+      const data = await fetchCurrency(language, country);
       return data.data.currency;
     } catch (error) {
-      console.log(error, "getCurrencyData", response);
+      console.log(error, "getCurrencyData");
       return {
         code: "",
         exchange_rate: 1,
@@ -81,7 +94,8 @@ async function FeatureProducts({ lang }) {
     getFeaturedProducts(),
     GetCurrencyData(),
   ]);
-  if (featuredProducts?.products?.length === 0) return <></>;
+
+  if (featuredProducts?.data?.products?.length === 0) return <></>;
   return (
     <div className="flex-col px-[12px] flex items-start max-w-full w-full">
       <NextLink
@@ -109,7 +123,7 @@ async function FeatureProducts({ lang }) {
         id="featured-products-container"
         dataCy="featured-products-container"
       >
-        {featuredProducts?.products?.map((product, key) => (
+        {featuredProducts?.data?.products?.map((product, key) => (
           <div
             className="max-h-[200px] max-w-[150px] relative mx-[10px]"
             data-cy="countProduct"
@@ -126,6 +140,10 @@ async function FeatureProducts({ lang }) {
               className="product-container  align-center flex-col relative shadow-sm max-h-[200px] max-w-[150px]"
               data-cy="featured_product_link"
             >
+              <ProductBanner
+                featured={product.featured}
+                flashDeals={product.end_date}
+              />
               <div className="max-h-[130px] w-full">
                 <Image
                   alt={product.name}
@@ -133,7 +151,7 @@ async function FeatureProducts({ lang }) {
                   height={130}
                   className="rounded w-full flex  max-h-[130px] min-h-[130px]"
                   src={getConfiguredImage({
-                    src: product.images[0]?.file_path,
+                    src: GetImageUrl(product.images[0]?.file_path),
                     width: 150,
                     height: 130,
                   })}
@@ -149,7 +167,7 @@ async function FeatureProducts({ lang }) {
                       <Image
                         alt={product?.brand?.name}
                         loading={"eager"}
-                        src={product?.brand?.icon?.replace(
+                        src={GetImageUrl(product?.brand?.icon)?.replace(
                           "/upload",
                           "/upload/h_50/q_auto"
                         )}
@@ -171,7 +189,7 @@ async function FeatureProducts({ lang }) {
                       {product?.category?.icon?.length > 0 && (
                         <Image
                           loading={"eager"}
-                          src={product?.category?.icon?.replace(
+                          src={GetImageUrl(product?.category?.icon)?.replace(
                             "/upload",
                             "/upload/h_50/f_webp/q_auto"
                           )}
@@ -222,12 +240,17 @@ async function FeatureProducts({ lang }) {
                     </span>
                   )}
                   <span className="new-price bold-text color-dark-gray flex f-12">
-                    {product?.offer_price >= 0 &&
-                      RoundPrice({
-                        num: product?.offer_price,
-                        rate: currency?.exchange_rate,
-                        points: 0,
-                      })}
+                    {product?.offer_price >= 0
+                      ? RoundPrice({
+                          num: product?.offer_price,
+                          rate: currency?.exchange_rate,
+                          points: 0,
+                        })
+                      : RoundPrice({
+                          num: product?.price,
+                          rate: currency?.exchange_rate,
+                          points: 0,
+                        })}
                   </span>
                   <span className="currency-label light-text color-dark-gray flex f-10">
                     {currency?.symbol}

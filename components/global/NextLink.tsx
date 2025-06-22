@@ -24,10 +24,8 @@ export default function NextLink({
 }: INextLinkProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const { setEnableSearch, setFilterEnabled } = useAppStore();
+  const { setEnableSearch, setFilterEnabled, setActiveRoute } = useAppStore();
   const handleClick = (e) => {
-    const { setEnableSearch } = useAppStore.getState();
-
     if (props["data-cy"] === "category-Link") {
       // Sendevent({
       //   event: GA_EVENT_NAMES.CLICK,
@@ -39,10 +37,7 @@ export default function NextLink({
       //   value: GA_CLICK_EVENT_VALUES.BOUTIQUE_LINK,
       // });
     } else if (props["data-cy"] === "product_link") {
-      // Sendevent({
-      //   event: GA_EVENT_NAMES.CLICK,
-      //   value: GA_CLICK_EVENT_VALUES.CHOOSE_PRODUCT_BUTTON,
-      // });
+      setActiveRoute(window.location.pathname);
     }
     onClick?.(e);
     // @ts-ignore
@@ -57,7 +52,7 @@ export default function NextLink({
         ...data,
       });
     }
-    console.log(data);
+
     if (data?.is_home || data?.is_full_home) {
       document.documentElement.style.overflow = "auto";
       setEnableSearch(false);

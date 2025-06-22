@@ -5,9 +5,11 @@ import ChangeOrderItemIcon from "public/svg/ChangeOrderItemIcon.svg";
 import { AxiosGet } from "utils/AxiosApi";
 import Spinner from "components/global/Spinner";
 import { ColorList, SizeList } from "./ModifyOrderItemModal";
+import { GetImageUrl } from "utils/tinyUtils";
 import { ChangeColorWidgetPropsType } from "models/componentType/ChangeColorWidgetPropsType";
 import { ChangeOrderItemPropsType } from "models/componentType/ChangeOrderItemPropsType";
 import { ChangeSizeWidgetPropsType } from "models/componentType/ChangeSizeWidgetPropsType";
+
 function ChangeOrderItem({
   item,
   backToMain,
@@ -128,7 +130,7 @@ function ChangeOrderItem({
                 border: "1px solid #ffffff80",
               }}
               src={getConfiguredImage({
-                src: item.image,
+                src: GetImageUrl(item.image),
                 width: 104,
                 height: 144,
                 q: 100,
@@ -146,7 +148,7 @@ function ChangeOrderItem({
               height={20}
               className="rounded-full h-[20px] w-[20px] object-cover"
               src={getConfiguredImage({
-                src: item.image,
+                src: GetImageUrl(item.image),
                 width: 20,
                 height: 20,
                 q: 100,
@@ -197,9 +199,10 @@ function ChangeOrderItem({
               color: color,
               size: size,
               qty: qty,
-              image: productData?.sync_color_images.find(
-                (s) => s.color_name?.toLowerCase() === color?.toLowerCase()
-              )?.images?.[0],
+              image:
+                productData?.sync_color_images?.find(
+                  (s) => s.color_name?.toLowerCase() === color?.toLowerCase()
+                )?.images?.[0] || productData?.images[0],
             });
             setShouldConfirmChange(true);
           }
@@ -229,7 +232,7 @@ export const ChangeColorWidget = ({
           height={70}
           className="w-[70px] h-[70px] object-cover rounded-full"
           src={getConfiguredImage({
-            src: item.image,
+            src: GetImageUrl(item.image),
             width: 70,
             height: 70,
             q: 100,
@@ -274,7 +277,7 @@ export const ChangeSizeWidget = ({
           height={70}
           className="w-[70px] h-[70px] object-cover rounded-full"
           src={getConfiguredImage({
-            src: item.image,
+            src: GetImageUrl(item.image),
             width: 70,
             height: 70,
             q: 100,
@@ -303,8 +306,9 @@ export const ChangeSizeWidget = ({
           q: 100,
         })}
         sizes={
-          productData?.choice_options?.filter((s) => s.title === "Size")[0]
-            ?.options
+          productData?.choice_options?.filter(
+            (s) => s.title?.toLowerCase() === "size"
+          )[0]?.options
         }
         setSize={setSize}
         currentSize={item?.variation?.Size}
@@ -333,7 +337,7 @@ export const ChangeQtyWidget = ({
           height={70}
           className="w-[70px] h-[70px] object-cover rounded-full"
           src={getConfiguredImage({
-            src: item.image,
+            src: GetImageUrl(item.image),
             width: 70,
             height: 70,
             q: 100,

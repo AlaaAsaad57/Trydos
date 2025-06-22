@@ -2,8 +2,9 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import NextLink from "components/global/NextLink";
 import { Boutique } from "models/Genaral/Boutique";
+import { GetImageUrl } from "utils/tinyUtils";
+import { getConfiguredImage } from "utils/functions";
 import { OfferAvatarPropsType } from "models/componentType/OfferAvatarPropsType";
-
 
 function OfferAvatar({
   images,
@@ -15,12 +16,7 @@ function OfferAvatar({
   boutique,
 }: OfferAvatarPropsType) {
   const router = useRouter();
-  const getImageCld = () => {
-    if (!images) return "";
-    if (images?.includes("cloudinary")) {
-      return images.replace("/upload", "/upload/h_100/f_webp/q_100");
-    } else return images;
-  };
+
   return (
     <NextLink
       data={{
@@ -43,7 +39,11 @@ function OfferAvatar({
       <div className="offer-avatr-inner-s w-full h-full" />
       <Image
         loading="eager"
-        src={getImageCld()}
+        src={getConfiguredImage({
+          src: GetImageUrl(images),
+          width: 40,
+          height: 40,
+        })}
         priority={priority}
         alt="avatar"
         quality={100}

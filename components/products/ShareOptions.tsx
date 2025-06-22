@@ -1,3 +1,4 @@
+"use client";
 import React from "react";
 import ShareAvatar from "./ShareAvatar";
 import "styles/share-options.css";

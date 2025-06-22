@@ -9,6 +9,7 @@ import { DeleteModalComponent } from "components/Cart/OrdersPage";
 import { useAppStore } from "store";
 import { useParams } from "next/navigation";
 import { GetAddressString } from "utils/tinyUtils";
+import { fetchCountries } from "Server Requests";
 import { PersonalInfoAddressPropsType } from "models/componentType/settingTypes/PersonalInfoAddressPropsType";
 function PersonalInfoAddress({
   swipeToScreen,
@@ -19,17 +20,18 @@ function PersonalInfoAddress({
   const { lang } = useParams();
   const getAdditionData = async () => {
     order.GetAddressList();
-    const res = await await fetch(
-      process.env.NEXT_PUBLIC_API_BASE_URL + `/api/countries`,
-      {
-        next: {
-          revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE_COUNTRIES),
-          tags: ["countries"],
-        },
+    if (sessionStorage.getItem("countries")) {
+      let data = sessionStorage.getItem("countries");
+      setCountries(JSON.parse(data));
+    } else {
+      try {
+        const data = await fetchCountries();
+        sessionStorage.setItem("countries", JSON.stringify(data.countries));
+        setCountries(data.countries);
+      } catch (error) {
+        console.error("Failed to fetch countries:", error);
       }
-    );
-    let data = await res.json();
-    setCountries(data.countries);
+    }
   };
   useEffect(() => {
     getAdditionData();
