@@ -2,7 +2,7 @@
 import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
 import { translateFunction } from "utils/functions";
-import { toast } from "react-toastify";
+
 import Spinner from "components/global/Spinner";
 import { useAppStore } from "store";
 import { useParams } from "next/navigation";
@@ -14,7 +14,12 @@ const MapElement = dynamic(
   { ssr: false }
 );
 
-const Map = ({ setAddressDetails, center, expanded, setExpanded }: MapPropsType) => {
+const Map = ({
+  setAddressDetails,
+  center,
+  expanded,
+  setExpanded,
+}: MapPropsType) => {
   const { lang } = useParams();
   const { addressDetails } = useAppStore();
   const [cordinates, setCordinates] = useState(null);
@@ -153,7 +158,11 @@ const Map = ({ setAddressDetails, center, expanded, setExpanded }: MapPropsType)
 
 export default Map;
 
-const ConfirmLocation = ({ locationSelected, selectLocation, closeMap }: ConfirmLocationPropsType) => {
+const ConfirmLocation = ({
+  locationSelected,
+  selectLocation,
+  closeMap,
+}: ConfirmLocationPropsType) => {
   return (
     <div
       data-cy="confirm-location"

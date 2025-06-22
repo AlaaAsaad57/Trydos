@@ -13,7 +13,7 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import OrdersPage from "./OrdersPage";
 import { Swiper as SwiperType } from "swiper/types";
 import ModalIframe from "./ModalIframe";
-import { ToastContainer } from "react-toastify";
+
 import { useAppStore } from "store";
 import { getCurrency } from "utils/tinyUtils";
 import AddToCartComponent from "./AddToCartComponent";
@@ -22,7 +22,7 @@ import {
   GA_GLOBAL_SCREEN,
   GA_EVENT_NAMES,
 } from "utils/GAEvents";
-import auth from "services/auth";
+
 import { GAevent } from "utils/gtag";
 import ConfirmMobilePhoneWidget from "components/Login/ConfirmMobilePhoneWidget";
 const CartProvider = () => {
@@ -189,7 +189,6 @@ export const StepSlider = ({ enableCart }) => {
 
   return (
     <div className="w-full h-[100vh] fixed z-[9999999999] cart-provider">
-      {enable && <ToastContainer position="top-right" />}
       <Swiper
         initialSlide={step}
         navigation={false}

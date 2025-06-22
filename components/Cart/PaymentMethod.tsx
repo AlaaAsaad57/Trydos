@@ -15,12 +15,12 @@ import GooglePayIcon from "assets/svg/cart/Payment/GooglePay.svg";
 import CryptoIcon from "assets/svg/cart/CryptoIcon.svg";
 import Spinner from "components/global/Spinner";
 import CouponElement from "./couponElement";
-import { toast } from "react-toastify";
 import { useAppStore } from "store";
 import { useEffect } from "react";
 import { TryDosWalletInputPropsType } from "models/componentType/TryDosWalletInputPropsType";
 import { GAevent } from "utils/gtag";
 import { GA_EVENT_NAMES, GA_PAYMENTS } from "utils/GAEvents";
+import { showErrorNotification } from "@/store/notifications/reducer";
 function PaymentMethod() {
   const {
     setWalletBalance,
@@ -98,7 +98,7 @@ function PaymentMethod() {
   }, [available_payment_method, wallet]);
   const handleCODPayment = () => {
     if (getWalletInUSD() >= total) {
-      toast.info(
+      showErrorNotification(
         translateFunction("Only Allowed To Pay through TryDos Wallet")
       );
     } else {
@@ -134,16 +134,18 @@ function PaymentMethod() {
   };
   const handleWalletPayment = () => {
     if (orderData?.payment?.find((s) => s.id === 1)) {
-      toast.info(translateFunction("Wallet Already Selected"));
+      showErrorNotification(translateFunction("Wallet Already Selected"));
     } else {
       if (getWalletInUSD() <= 0) {
-        toast.info(translateFunction("your TryDos Wallet balance is empty"));
+        showErrorNotification(
+          translateFunction("your TryDos Wallet balance is empty")
+        );
       }
     }
   };
   const handleCryptoPayment = () => {
     if (getWalletInUSD() >= total) {
-      toast.info(
+      showErrorNotification(
         translateFunction("Only Allowed To Pay through TryDos Wallet")
       );
     } else {
@@ -179,7 +181,7 @@ function PaymentMethod() {
   };
   const handleCardPayment = () => {
     if (getWalletInUSD() >= total) {
-      toast.info(
+      showErrorNotification(
         translateFunction("Only Allowed To Pay through TryDos Wallet")
       );
     } else {

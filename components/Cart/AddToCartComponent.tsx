@@ -1,7 +1,6 @@
 "use client";
 import React, { useEffect, useRef, useState } from "react";
 import { AxiosGet } from "utils/AxiosApi";
-import { toast } from "react-toastify";
 import BackIcon from "public/svg/listing/backIcon.svg";
 import {
   getCart,
@@ -27,6 +26,7 @@ import { SliderRuler } from "./SliderRuler";
 import { GA_EVENT_NAMES } from "utils/GAEvents";
 import { DetectScreen, GetImageUrl } from "utils/tinyUtils";
 import { GAevent } from "utils/gtag";
+import { showSuccessNotification } from "@/store/notifications/reducer";
 
 function AddToCartComponent({
   color,
@@ -254,12 +254,12 @@ function AddToCartComponent({
   };
 
   return (
-    <div className="flex-col h-full w-[100vw] flex top-0 left-0 fixed z-[99999999999999999] justify-start ">
+    <div className="flex-col message-add-to-cart h-full w-[100vw] flex top-0 left-0 fixed z-[99999999999999999] justify-start  ">
       {/* <ToastContainer
         position="top-right"
         style={{ zIndex: "9999999999999999" }}
       /> */}
-      <div className=" bg-[#4f4f4f80]  flex fixed top-0 left-0 h-full w-full z-[99]" />
+      <div className=" bg-[#4f4f4f80]  flex fixed top-0 left-0 h-full w-full z-[99] backdrop-container" />
       <div className="back-bar align-center w-100 flex-row min-h-12 bg-[#fff] p-4 z-[99999999] justify-between">
         <div
           className="back-icon p-0"
@@ -301,7 +301,7 @@ function AddToCartComponent({
       <div
         data-cy="image_when_addtocart"
         style={{ height: "calc(100vh - 461px)" }}
-        className="flex-col mt-[10px] w-full   top-[103px] items-center z-[999999999] backdrop-container"
+        className="flex-col mt-[10px] w-full   top-[103px] items-center z-[999999999]"
         onClick={(e) => {
           console.log(e.target);
           if (
@@ -370,7 +370,7 @@ function AddToCartComponent({
         {ProductData?.sync_color_images && (
           <div
             data-cy="color_option_cyrcle"
-            className="flex w-full max-w-[420px] "
+            className="flex w-full max-w-[420px] color_option_cyrcle "
           >
             <Swiper
               data-cy="swipper_when_addtocart"
@@ -461,7 +461,7 @@ function AddToCartComponent({
       ) : (
         <div
           data-cy="product_details_addtocart"
-          className="product-details-footer z-[9999] min-h-[100px] h-auto"
+          className="product-details-footer product_details_addtocart z-[9999] min-h-[100px] h-auto"
         >
           <div
             data-cy="product_info_container_addtocart"
@@ -1568,6 +1568,7 @@ const AddToCartButton = ({
   const isVariantInCart = ({ exact }) => {
     if (product?.variation?.length === 0)
       return localCart?.find((s) => s.id === id);
+
     if (
       localCart.find(
         (s) =>
@@ -1591,6 +1592,7 @@ const AddToCartButton = ({
     if (exact) return localCart?.find((s) => s.id === id);
   };
   const clickHandler = async ({ variant }) => {
+    console.log(color, size, isVariantInCart({ exact: false }));
     try {
       setLoading(true);
 
@@ -1838,8 +1840,9 @@ const NotifyCartButton = ({ isNotified, setNotify, selected_variant, id }) => {
       });
       await home.GetFireBaseSettings();
     } else {
-      toast.info(
-        translateFunction("You will be notified for this product already")
+      showSuccessNotification(
+        translateFunction("You will be notified for this product already"),
+        5000
       );
     }
   };

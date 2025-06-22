@@ -6,10 +6,18 @@ import { setupCache } from "axios-cache-interceptor";
 import home from "services/home";
 
 import { LogError, translateFunction, WaitForCondition } from "./functions";
-import { toast } from "react-toastify";
+
 import auth from "services/auth";
-import { changeToken } from "store/homepage/cachedActions";
 import { UnAuthintacetedAction } from "./tinyUtils";
+import {
+  showSuccessNotification,
+  showErrorNotification,
+} from "@/store/notifications/reducer";
+import {
+  showSuccessMessage,
+  showErrorMessage,
+} from "@/components/global/AddToCartMessage";
+
 export const errorPNG = pngErr;
 const getHeader = (token?, headers?) => {
   let [countryUrl, languageUrl] = window.location.pathname
@@ -49,13 +57,7 @@ export const AxiosGet = async ({
   while (attempt <= retries) {
     try {
       let res = await axios.get(url, getHeader(token, headers));
-      // If the response is successful, return the data
-      // if (url.includes("customer/wallet")) {
-      //   return res.data;
-      // }
-      // if (res.data.message !== "Data Got!") {
-      //   toast.success(res.data.message);
-      // }
+
       if (
         url.includes("user-notifications/get") ||
         url.includes("/customer/order/list") ||
@@ -76,7 +78,7 @@ export const AxiosGet = async ({
       if (error.status !== 401) {
         attempt = 2;
         if (!url.includes("/api/addresses/CountryBoundaryByIso"))
-          toast.error(`${title} : ${error.message ?? "Failed"}`);
+          showErrorNotification(`${title} : ${error.message ?? "Failed"}`);
         throw new Error(
           `${title} : Max retries reached. Could not fetch the data. ${error.message}`
         );
@@ -99,7 +101,6 @@ export const AxiosGet = async ({
       attempt++;
       console.log(`Attempt ${attempt} failed. Retrying in ${delay}ms...`);
       if (attempt > retries) {
-        // toast.error(`${title} : ${error.message ?? "Failed"}`);
         LogError(error, url, window.location.href);
 
         throw new Error(
@@ -142,11 +143,19 @@ export const AxiosPost = async ({
         }
       }
       if (url.includes("/cart/update") || url.includes("/cart/add")) {
+        // TODO: custome notification
         if (res.data.data.status === 1) {
-          toast.success(res.data.message);
+          if (url.includes("/cart/add"))
+            showSuccessMessage(translateFunction("Add 1 Item To Your Bag"));
+          else
+            showSuccessMessage(translateFunction("Updated 1 Item In Your Bag"));
+          showSuccessNotification(res.data.message);
           return res.data.data;
         } else {
-          toast.error(res.data.message);
+          if (url.includes("/cart/add"))
+            showErrorMessage(translateFunction("Failed To Add"));
+          else showErrorMessage(translateFunction("Failed to Update"));
+          showErrorNotification(res.data.message);
           throw Error("Cart Error");
         }
       }
@@ -158,7 +167,7 @@ export const AxiosPost = async ({
           url.includes("customer/update-name") ||
           hasMessageOnly
         ) {
-          toast.success(res.data.message);
+          showSuccessNotification(res.data.message);
           return res.data.data;
         }
         return res?.data.data;
@@ -174,11 +183,13 @@ export const AxiosPost = async ({
       }
       if (error.status !== 401) {
         if (error?.response?.data?.message) {
-          toast.error(
-            `${title} : ${error?.response?.data?.message ?? "Failed"}`
+          showErrorNotification(
+            `${title ?? ""} : ${error?.response?.data?.message ?? "Failed"}`
           );
         } else {
-          toast.error(`${title} : ${error.message ?? "Failed"}`);
+          showErrorNotification(
+            `${title ?? ""} : ${error.message ?? "Failed"}`
+          );
         }
         attempt = 2;
         throw new Error(
@@ -206,7 +217,6 @@ export const AxiosPost = async ({
       if (attempt > retries) {
         LogError(error, url, window.location.href);
 
-        // toast.error(`${title} : ${error.message ?? "Failed"}`);
         throw new Error(
           `${title} : Max retries reached. Could not fetch the data. ${error.message}`
         );

@@ -1,9 +1,7 @@
-import { toast } from "react-toastify";
 import React from "react";
 import { translateFunction } from "utils/functions";
 import { OrderNumberCardProps } from "models/componentType/settingTypes/OrderDetailsPropsType";
-
-
+import { showSuccessNotification } from "@/store/notifications/reducer";
 
 const OrderNumberCard: React.FC<OrderNumberCardProps> = ({ number }) => {
   return (
@@ -12,7 +10,9 @@ const OrderNumberCard: React.FC<OrderNumberCardProps> = ({ number }) => {
       onClick={() => {
         navigator.clipboard.writeText(number).then(
           function () {
-            toast.success(translateFunction("Order Number has been Copied"));
+            showSuccessNotification(
+              translateFunction("Order Number has been Copied")
+            );
           },
           function () {}
         );

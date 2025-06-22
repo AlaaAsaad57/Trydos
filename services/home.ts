@@ -20,9 +20,7 @@ import {
   STARTER_SETTINGS,
 } from "utils/endpointConfig";
 import { SSRDetect } from "utils/functions";
-import { toast } from "react-toastify";
 import axios from "axios";
-
 import { AxiosGet, AxiosPost } from "utils/AxiosApi";
 import { changeToken } from "store/homepage/cachedActions";
 import { RegisterGuestApi } from "models/API/market/RegisterGuest";
@@ -33,6 +31,7 @@ import LocalizationServiceClass from "./localization";
 import chat from "./chat";
 import { SetGAUser } from "utils/gtag";
 import { starttingSettingApi } from "models/API/market/StarttingSetting";
+import { showErrorNotification } from "@/store/notifications/reducer";
 const getHeader = () => {
   let [countryUrl, languageUrl] = window.location.pathname
     .split("/")[1]
@@ -127,7 +126,7 @@ class HomeService {
       }
     }
     if (response.status === 500 || response.status === 422) {
-      toast.error("Customer Info Error");
+      showErrorNotification("Customer Info Error");
     }
     if (
       response.status === 302 ||
@@ -491,7 +490,7 @@ class HomeService {
       } else {
         errCallback();
 
-        toast.info(res?.message || "Failed");
+        showErrorNotification(res?.message || "Failed");
       }
     }
   }

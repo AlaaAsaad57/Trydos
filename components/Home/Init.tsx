@@ -4,12 +4,12 @@ import React, { useEffect, useState } from "react";
 import HomeService from "services/home";
 import PopupCountry from "utils/PopupCountry";
 import home from "services/home";
-import { toast } from "react-toastify";
+
 import { fetchCountries } from "Server Requests";
 import Smartlook from "smartlook-client";
-import "react-toastify/dist/ReactToastify.min.css";
-import "react-toastify/dist/ReactToastify.css";
-import "react-toastify/scss/main.scss";
+
+import { translateFunction } from "utils/functions";
+import { showErrorNotification } from "@/store/notifications/reducer";
 
 function Init() {
   useEffect(() => {
@@ -134,9 +134,8 @@ function Init() {
         document.body.style.paddingBottom = "0px";
       }
     });
-
     if (!navigator.cookieEnabled) {
-      toast.info("Cookies Is Not Enabled");
+      showErrorNotification(translateFunction("Cookies Is Not Enabled"));
     }
 
     try {

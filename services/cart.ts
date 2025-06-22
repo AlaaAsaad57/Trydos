@@ -46,6 +46,7 @@ class CartService {
       let res = await AxiosPost({
         url: process.env.NEXT_PUBLIC_BACKEND_URL + "/cart/add",
         body: formBody,
+        title: "Add To Cart",
       });
       if (res?.status === 1 && res?.id_cart) {
         home.subscribeToTopic({
@@ -83,6 +84,7 @@ class CartService {
       let res = await AxiosPost({
         url: process.env.NEXT_PUBLIC_BACKEND_URL + "/cart/update",
         body: dataBody,
+        title: "Update Cart Item",
       });
       if (res?.status === 1 && parseInt(res?.qty) >= 0) {
         updateProductQuantityInCart({ id: cart_id, qty: parseInt(res?.qty) });

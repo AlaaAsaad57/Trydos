@@ -6,11 +6,11 @@ import replaceString from "replace-string";
 import { allCountries } from "country-telephone-data";
 
 import Cookies from "js-cookie";
-import { toast } from "react-toastify";
+
 import { changeToken } from "store/homepage/cachedActions";
 import { textMarshal } from "node_modules/text-marshal/lib";
 import { GA_GLOBAL_SCREEN } from "./GAEvents";
-
+import { showErrorNotification } from "@/store/notifications/reducer";
 // TypeScript interfaces for filter system
 export interface FilterParams {
   boutiques?: string[];
@@ -359,7 +359,7 @@ export const UnAuthintacetedAction = () => {
 
   Cookies.remove("token");
 
-  toast.info(
+  showErrorNotification(
     translateFunction("Session Expired..please Verify Your Phone Number")
   );
   setShouldAuthinticated(true);

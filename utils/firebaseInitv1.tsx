@@ -10,15 +10,11 @@ import { useAppStore } from "../store";
 import { getUserChat } from "./functions";
 
 import { InCall } from "store/chat/callActions";
-import Boutique from "components/Notifications/Boutique";
-import { Id } from "react-toastify";
-import ProductToOldCart from "components/Notifications/ProductToOldCart";
-import Category from "components/Notifications/Category";
-import ProductAvailable from "components/Notifications/ProductAvailable";
-import OrderPlaced from "components/Notifications/OrderPlaced";
+import {
+  showSuccessNotification,
+  showErrorNotification,
+} from "@/store/notifications/reducer";
 import { AxiosGet } from "./AxiosApi";
-import ProductHurryUp from "components/Notifications/ProductHurry";
-import OrderStatusChanged from "components/Notifications/OrderStatusChanged";
 import chat from "services/chat";
 import { Recive, watchChannel as watchChannelAction } from "store/chat/actions";
 const firebaseConfig = {
@@ -82,7 +78,7 @@ export const requestFirebaseNotificationPermission = async () => {
 };
 
 export const onMessageListener = async () => {
-  const { toast } = await import("react-toastify");
+  // Removed react-toastify import - using new notification system
   return new Promise((resolve) => {
     onMessage(messaging, async (payload) => {
       const {
@@ -91,8 +87,8 @@ export const onMessageListener = async () => {
         orderData,
         watchChannelEvent,
         receiveChannelEvent,
-        setVideoCall,
-        setAudioCall,
+        language,
+        country,
         setIncomingCall,
         callInProgress,
         activeChat,
@@ -109,68 +105,101 @@ export const onMessageListener = async () => {
       } = useAppStore.getState();
       console.log(payload);
       if (payload.data.title === "market") {
+        let lang = `${country?.toLocaleLowerCase()}-${language?.toLocaleLowerCase()}`;
         const data = JSON.parse(payload.data.body);
         if (data?.type?.startsWith("order status changed")) {
-          const toaster = (myProps, toastProps): Id =>
-            toast(<OrderStatusChanged {...myProps} />, { ...toastProps });
-          toaster.info = (myProps, toastProps): Id =>
-            toast.info(<OrderStatusChanged {...myProps} />, { ...toastProps });
-          toaster.info({ data: data }, { data: data });
+          showSuccessNotification(
+            data.description,
+            5000,
+            `/${lang}/setting?tab=Orders&id=${data?.order_group_id}`,
+            {
+              is_setting: true,
+              href: `/${lang}/setting?tab=Orders&id=${data?.order_group_id}`,
+            },
+            null
+          );
         }
         if (JSON.parse(payload.data.body)?.type?.includes("product hurry up")) {
-          const toaster = (myProps, toastProps): Id =>
-            toast(<ProductHurryUp {...myProps} />, { ...toastProps });
-          toaster.info = (myProps, toastProps): Id =>
-            toast.info(<ProductHurryUp {...myProps} />, { ...toastProps });
-          toaster.info({ data: data }, { data: data });
+          showSuccessNotification(
+            data.description,
+            5000,
+            data?.product_id ? `/products/${data.product_id}` : undefined,
+            { is_product: true },
+            data.image
+          );
         }
         if (JSON.parse(payload.data.body).type === "boutique created") {
-          const toaster = (myProps, toastProps): Id =>
-            toast(<Boutique {...myProps} />, { ...toastProps });
-
-          toaster.info = (myProps, toastProps): Id =>
-            toast.info(<Boutique {...myProps} />, { ...toastProps });
-          toaster.info({ data: data }, { data: data });
+          showSuccessNotification(
+            data.description || "New boutique available!",
+            5000,
+            data?.boutique_id
+              ? `/${lang}/filters/boutiques/${data.boutique_id}`
+              : undefined,
+            { is_boutique: true },
+            data.image
+          );
         }
         if (JSON.parse(payload.data.body).type === "product cart expiration") {
-          const toaster = (myProps, toastProps): Id =>
-            toast(<ProductToOldCart {...myProps} />, { ...toastProps });
-
-          toaster.info = (myProps, toastProps): Id =>
-            toast.info(<ProductToOldCart {...myProps} />, { ...toastProps });
-          toaster.info({ data: data }, { data: data });
+          showSuccessNotification(
+            data.description,
+            5000,
+            "/?cart=true",
+            {},
+            null
+          );
         }
         if (JSON.parse(payload.data.body).type === "category created") {
-          const toaster = (myProps, toastProps): Id =>
-            toast(<Category {...myProps} />, { ...toastProps });
-
-          toaster.info = (myProps, toastProps): Id =>
-            toast.info(<Category {...myProps} />, { ...toastProps });
-          toaster.info({ data: data }, { data: data });
+          showSuccessNotification(
+            data.description,
+            5000,
+            data?.category_slug
+              ? `/${lang}/filters/categories/${data.category_slug}}`
+              : undefined,
+            { is_boutique: true },
+            data.image
+          );
         }
         if (JSON.parse(payload.data.body).type === "product availability") {
-          const toaster = (myProps, toastProps): Id =>
-            toast(<ProductAvailable {...myProps} />, { ...toastProps });
-
-          toaster.info = (myProps, toastProps): Id =>
-            toast.info(<ProductAvailable {...myProps} />, { ...toastProps });
-          toaster.info({ data: data }, { data: data });
+          showSuccessNotification(
+            data?.description,
+            5000,
+            data?.product_id
+              ? `/${lang}/products/${data.product_slug}`
+              : undefined,
+            {
+              is_product: true,
+              href: `/${lang}/products/${data.product_slug}`,
+            },
+            data.image
+          );
         }
         if (JSON.parse(payload.data.body).type === "product discount") {
-          const toaster = (myProps, toastProps): Id =>
-            toast(<ProductAvailable {...myProps} />, { ...toastProps });
-
-          toaster.info = (myProps, toastProps): Id =>
-            toast.info(<ProductAvailable {...myProps} />, { ...toastProps });
-          toaster.info({ data: data }, { data: data });
+          showSuccessNotification(
+            data?.description,
+            5000,
+            data?.product_slug
+              ? `/${lang}/products/${data.product_slug}`
+              : undefined,
+            {
+              is_product: true,
+              href: `/${lang}/products/${data.product_slug}`,
+            },
+            data.image
+          );
         }
         if (JSON.parse(payload.data.body).type === "product comment") {
-          const toaster = (myProps, toastProps): Id =>
-            toast(<ProductAvailable {...myProps} />, { ...toastProps });
-
-          toaster.info = (myProps, toastProps): Id =>
-            toast.info(<ProductAvailable {...myProps} />, { ...toastProps });
-          toaster.info({ data: data }, { data: data });
+          showSuccessNotification(
+            data?.description,
+            5000,
+            data?.product_slug
+              ? `/${lang}/products/${data.product_slug}`
+              : undefined,
+            {
+              is_product: true,
+              href: `/${lang}/products/${data.product_slug}`,
+            },
+            data.image
+          );
         }
         if (JSON.parse(payload.data.body).type === "order placed") {
           let dataReq = await AxiosGet({
@@ -183,12 +212,16 @@ export const onMessageListener = async () => {
           });
 
           if (dataReq && dataReq?.length > 0) {
-            const toaster = (myProps, toastProps): Id =>
-              toast(<OrderPlaced {...myProps} />, { ...toastProps });
-
-            toaster.info = (myProps, toastProps): Id =>
-              toast.info(<OrderPlaced {...myProps} />, { ...toastProps });
-            toaster.info({ data: data }, { data: data });
+            showSuccessNotification(
+              data.description,
+              5000,
+              `/${lang}/setting?tab=Orders&id=${data?.order_group_id}`,
+              {
+                is_setting: true,
+                href: `/${lang}/setting?tab=Orders&id=${data?.order_group_id}`,
+              },
+              null
+            );
             if (orderData.agree) {
               setOrderData({ data: dataReq, success: true });
             }
@@ -197,24 +230,36 @@ export const onMessageListener = async () => {
         if (
           JSON.parse(payload.data.body).type === "product when change in price"
         ) {
-          const toaster = (myProps, toastProps): Id =>
-            toast(<ProductAvailable {...myProps} />, { ...toastProps });
-
-          toaster.info = (myProps, toastProps): Id =>
-            toast.info(<ProductAvailable {...myProps} />, { ...toastProps });
-          toaster.info({ data: data }, { data: data });
+          showSuccessNotification(
+            data?.description,
+            5000,
+            data?.product_slug
+              ? `/${lang}/products/${data.product_slug}`
+              : undefined,
+            {
+              is_product: true,
+              href: `/${lang}/products/${data.product_slug}`,
+            },
+            data.image
+          );
         }
         if (JSON.parse(payload.data.body).type === "product before stock out") {
-          const toaster = (myProps, toastProps): Id =>
-            toast(<ProductAvailable {...myProps} />, { ...toastProps });
-
-          toaster.info = (myProps, toastProps): Id =>
-            toast.info(<ProductAvailable {...myProps} />, { ...toastProps });
-          toaster.info({ data: data }, { data: data });
+          showSuccessNotification(
+            data?.description,
+            5000,
+            data?.product_slug
+              ? `/${lang}/products/${data.product_slug}`
+              : undefined,
+            {
+              is_product: true,
+              href: `/${lang}/products/${data.product_slug}`,
+            },
+            data.image
+          );
         }
       } else {
         if (payload.data.type === "InAnotherCallEvent") {
-          toast.info("User In Another Call");
+          showErrorNotification("User In Another Call", 3000);
         }
         if (payload.data.type === "RefuseCallEvent") {
           // getCalls();

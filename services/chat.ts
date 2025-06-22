@@ -13,11 +13,13 @@ import {
   translateFunction as translate,
 } from "utils/functions";
 import axios from "axios";
-
-import { toast } from "react-toastify";
 import { getCalls } from "store/chat/actions";
 import { AxiosGet, AxiosPost } from "utils/AxiosApi";
 import { UnAuthintacetedAction } from "utils/tinyUtils";
+import {
+  showSuccessNotification,
+  showErrorNotification,
+} from "@/store/notifications/reducer";
 const ChatHeader = () => {
   return {
     headers: {
@@ -111,10 +113,10 @@ class ChatService {
         { ...ChatHeader() }
       );
       await this.getChats("share");
-      toast.success(translate("Shared Successfully", language));
+      showSuccessNotification(translate("Shared Successfully", language));
       callback();
     } catch (e) {
-      toast.error(translate("Product Share error", language));
+      showErrorNotification(translate("Product Share error", language));
     }
   }
   async StoreToken(payload: {

@@ -7,8 +7,6 @@ import SpeechRecognition, {
 import { useAppStore } from "store";
 import search from "services/search";
 import { useParams } from "next/navigation";
-import { toast } from "react-toastify";
-import { translateFunction } from "utils/functions";
 
 function SearchVoice({ setSearchValue }: { setSearchValue: Function }) {
   const { language } = useAppStore();

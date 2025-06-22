@@ -14,7 +14,8 @@ import { ProductSocialInfo } from "models/API/market/ProductSocialInfo";
 import { changeToken } from "store/homepage/cachedActions";
 import axios from "axios";
 import { SetGAUser } from "utils/gtag";
-import { toast } from "react-toastify";
+
+import { showErrorNotification } from "@/store/notifications/reducer";
 const getHeader = () => {
   let [countryUrl, languageUrl] = window.location.pathname
     .split("/")[1]
@@ -125,7 +126,7 @@ class AuthService {
         message: string;
       } = await response.json();
       if (repo.code === 501) {
-        toast.error(repo?.message);
+        showErrorNotification(repo?.message);
         throw new Error("Wrong Code");
       }
       if (repo?.data?.message === "user not found") {
@@ -545,7 +546,7 @@ class AuthService {
           }
         );
       }
-      toast.error(translateFunction("Failed to update profile Info"));
+      showErrorNotification(translateFunction("Failed to update profile Info"));
       throw error;
     }
   }

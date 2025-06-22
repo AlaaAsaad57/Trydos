@@ -1,6 +1,7 @@
 import Init from "components/Home/Init";
 import CartProvider from "components/Cart/CartProvider";
 import { Suspense } from "react";
+import NotificationsContainer from "components/global/NotificationsContainer";
 
 export default function Providers({ children }) {
   return (
@@ -12,7 +13,7 @@ export default function Providers({ children }) {
       <Suspense fallback={<></>}>
         <CartProvider />
       </Suspense>
-
+      <NotificationsContainer />
       {children}
     </>
   );

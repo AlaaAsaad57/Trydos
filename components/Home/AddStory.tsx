@@ -14,6 +14,8 @@ import AddStoryWidget from "./Stories/AddStoryWidget";
 import { fetchStories } from "Server Requests";
 import { useParams } from "next/navigation";
 import { UnAuthintacetedAction } from "utils/tinyUtils";
+import { showErrorNotification } from "@/store/notifications/reducer";
+import { translateFunction } from "utils/functions";
 
 function AddStory() {
   const { user, setNameModal, addStoryEnable, setAddStory } = useAppStore();
@@ -23,7 +25,6 @@ function AddStory() {
   const { lang }: { lang: string } = useParams();
   const [language, country] = lang.split("-");
   const handleChange = async (e, link) => {
-    const { toast } = await import("react-toastify");
     if (e.target.files[0]?.type.includes("video")) {
       new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -37,7 +38,10 @@ function AddStory() {
             if (videoElement.readyState === 4) {
               let getTime = videoElement.duration;
               if (getTime > 59) {
-                toast.error("1 minutes video only");
+                showErrorNotification(
+                  translateFunction("1 minutes video only")
+                );
+
                 setFile(null);
                 setIsSelected(null);
                 clearInterval(timer);
@@ -75,9 +79,10 @@ function AddStory() {
                     if (e?.status === 401) {
                       UnAuthintacetedAction();
                     } else {
-                      toast.error("Upload Failed Try Again");
+                      showErrorNotification(
+                        translateFunction("Upload Failed Try Again")
+                      );
                     }
-                    toast.error("Upload Failed Try Again");
                   });
                 setIsSelected(path);
 
@@ -124,7 +129,9 @@ function AddStory() {
               if (e?.status === 401) {
                 UnAuthintacetedAction();
               } else {
-                toast.error("Upload Failed Try Again");
+                showErrorNotification(
+                  translateFunction("Upload Failed Try Again")
+                );
               }
             });
           setIsSelected(path);

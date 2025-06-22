@@ -6,13 +6,13 @@ import { filterProducts, translateFunction, RoundPrice } from "utils/functions";
 import AsyncSelectCustom from "./AsyncSelectCustom";
 import Link from "next/link";
 import CompareLoadingWidget from "./CompareLoadingWidget";
-import { toast } from "react-toastify";
-import SearchService from "services/search";
+
 import { useAppStore } from "store";
 import NextLink from "./NextLink";
 import { GetImageUrl } from "utils/tinyUtils";
 import { fetchFilteredProducts } from "Server Requests";
 import { ComparePageComponentPropsType } from "models/componentType/compareTypes/ComparePageComponentPropsType";
+import { showErrorNotification } from "@/store/notifications/reducer";
 const ComparePage: React.FC = ({
   showInstantLoading = true,
 }: ComparePageComponentPropsType) => {
@@ -235,7 +235,7 @@ const ComparePage: React.FC = ({
         "",
         `${window.location.pathname}?${currentParams.toString()}`
       );
-      toast.error(
+      showErrorNotification(
         translateFunction(
           "One of the products was not found. Please try searching for a different product."
         )

@@ -13,7 +13,7 @@ import PlusIcon from "../svg/chatplus.svg";
 import CameraIcon from "../svg/camera.svg";
 import SendIcon from "../svg/sendbutton.svg";
 import { dataURLtoFile, upload } from "../chatsFunctions";
-import { toast } from "react-toastify";
+
 import { getUser } from "../chatsFunctions";
 import ReplyMessage from "components/Chat/components/ReplyMessage";
 import ChatInfo from "components/Chat/components/ChatInfo";
@@ -22,7 +22,6 @@ import Observable from "components/Chat/components/ChatHistoryElement";
 import Image from "next/image";
 import {
   GetChatDetails,
-  GetLastSeen,
   SendMessage,
   getMessagesBetweenMessage,
   getPage,
@@ -45,6 +44,7 @@ const VoiceCall = dynamic(
   { ssr: false }
 );
 import "styles/chat.css";
+import { showErrorNotification } from "@/store/notifications/reducer";
 
 function ConversationContainer({
   ViewedScreen,
@@ -811,7 +811,9 @@ function ConversationContainer({
           setCameraEnabled(bool);
         })
         .catch((e) => {
-          toast.error("check camera premmissions and refresh");
+          showErrorNotification(
+            translateFunction("check camera premmissions and refresh")
+          );
         });
     }
   };
@@ -1282,7 +1284,10 @@ function ConversationContainer({
                             setRecording(true);
                           },
                           (e) => {
-                            toast.error("No available Microphone");
+                            showErrorNotification(
+                              translateFunction("No available Microphone")
+                            );
+
                             console.error(e);
                           }
                         );

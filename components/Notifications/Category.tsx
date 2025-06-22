@@ -6,7 +6,7 @@ function Category({ data }) {
   return (
     <NextLink
       data={{
-        is_category: true,
+        is_boutique: true,
         ...data,
         href: `/filters/categories/${data.category_slug}}`,
       }}

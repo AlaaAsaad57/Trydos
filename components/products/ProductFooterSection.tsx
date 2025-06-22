@@ -1,23 +1,20 @@
 "use client";
 import React, { useEffect, useReducer, useState } from "react";
-
 import ExtendedAreaInfo from "./ExtendedAreaInfo";
 import ProductOptions from "./ProductOptions";
-
 import { translateFunction } from "utils/functions";
-
-import { toast } from "react-toastify";
 import chat from "services/chat";
 import { AxiosGet, AxiosPost } from "utils/AxiosApi";
 import { useParams, useSearchParams } from "next/navigation";
 import { ProductSocialInfo } from "models/API/market/ProductSocialInfo";
-import { ProductViews} from "models/API/elastic/ProductViews";
-import { SharesCount} from "models/API/market/ProductSharesCount";
+import { ProductViews } from "models/API/elastic/ProductViews";
+import { SharesCount } from "models/API/market/ProductSharesCount";
 import auth from "services/auth";
 import LocalizationServiceClass from "services/localization";
 import { useAppStore } from "store";
 import { dispatchRouteChangeEvent } from "utils/events";
 import { ProductFooterSectionPropsType } from "models/componentType/productTypes/MultiComponentOnProductPage";
+import { showErrorNotification } from "@/store/notifications/reducer";
 
 function ProductReducer(state, { type, payload }) {
   if (type === "setProductData") {
@@ -72,7 +69,10 @@ function ProductReducer(state, { type, payload }) {
     };
   }
 }
-function ProductFooterSection({ product, currency }: ProductFooterSectionPropsType) {
+function ProductFooterSection({
+  product,
+  currency,
+}: ProductFooterSectionPropsType) {
   const {
     setLoadedCart,
     getProductVariation,
@@ -233,7 +233,7 @@ function ProductFooterSection({ product, currency }: ProductFooterSectionPropsTy
         },
       });
     } else {
-      toast.warn(
+      showErrorNotification(
         translate(
           "please select one contact at least",
           LocalizationServiceClass.GetAppLanguage()

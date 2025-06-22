@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { translateFunction } from "utils/functions";
 import ChangeAddressIcon from "public/svg/ChangeAddressIcon.svg";
 import ModifyOrderIcon from "public/svg/ModifyOrderIcon.svg";
-import { toast } from "react-toastify";
+
 import ChangeAddressWidget from "./ChangeAddressWidget";
 import { useAppStore } from "store";
 import ModifyOrderWidget from "./ModifyOrderWidget";
@@ -14,6 +14,7 @@ import HideOrderItemIcon from "public/svg/HideOrderItemIcon.svg";
 import OrderCancelIcon from "public/svg/OrderCancelIcon.svg";
 import { OrderCanceltionOptionsPropsType } from "models/componentType/OrderCanceltionOptionsPropsType";
 import { OrderOptionsPropsType } from "models/componentType/OrderOptionsPropsType";
+import { showErrorNotification } from "@/store/notifications/reducer";
 
 function OrderOptions({ closeOptions, CancelOrder }: OrderOptionsPropsType) {
   const {
@@ -359,8 +360,13 @@ const OrderCanceltionOptions = ({
           onClick={() => {
             if (selectedOptions) {
               setShouldConfirmCancel(true);
-            } else
-              toast.info("Please select a reason for canceling this order");
+            } else {
+              showErrorNotification(
+                translateFunction(
+                  "Please select a reason for canceling this order"
+                )
+              );
+            }
           }}
         >
           {translateFunction("Cancel Order")}

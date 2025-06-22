@@ -4,7 +4,7 @@ import dynamic from "next/dynamic";
 import { useEffect } from "react";
 
 import ChatService from "services/chat";
-import { getUserChat } from "utils/functions";
+import { getUserChat, translateFunction } from "utils/functions";
 const NameModal = dynamic(() => import("components/global/NameModal"));
 import StoriesContainer from "./Stories/NewStories";
 import StoryServiceClass from "services/story";
@@ -13,8 +13,8 @@ import SearchContainer from "./Search/SearchContainer";
 import auth from "services/auth";
 import { useAppStore } from "store";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { toast } from "react-toastify";
 
+import { showErrorNotification } from "@/store/notifications/reducer";
 export default function Home() {
   const router = useRouter();
   const pathname = usePathname();
@@ -32,10 +32,10 @@ export default function Home() {
     if (searchParams?.get("message")?.length > 0) {
       let message = searchParams.get("message");
       if (message === "product_not_found") {
-        toast.error("Product not found");
+        showErrorNotification(translateFunction("Product not found"));
       }
       if (message === "boutique_not_found") {
-        toast.error("Boutique not found");
+        showErrorNotification(translateFunction("Boutique not found"));
       }
       const newParams = new URLSearchParams(searchParams);
       newParams.delete("message");

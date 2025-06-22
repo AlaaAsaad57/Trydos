@@ -7,8 +7,7 @@ import { useParams } from "next/navigation";
 import { useAppStore } from "store";
 import search from "services/search";
 import { ImageCropWidget } from "components/global/ImageCropWidget";
-import { toast } from "react-toastify";
-
+import { showErrorNotification } from "@/store/notifications/reducer";
 function SearchImage({ setSearchValue }: { setSearchValue: Function }) {
   const { language } = useAppStore();
 
@@ -34,7 +33,11 @@ function SearchImage({ setSearchValue }: { setSearchValue: Function }) {
         image_result,
       ])
       .catch((e) => {
-        toast.error(e?.message || e || "failed to search with image");
+        showErrorNotification(
+          translateFunction(
+            e?.message || e || translateFunction("failed to search with image")
+          )
+        );
         setLoading(false);
       });
     // @ts-ignore

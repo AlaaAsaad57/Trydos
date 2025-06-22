@@ -1,6 +1,6 @@
 "use client";
-import { ToastContainer } from "react-toastify";
-import React, { Suspense, useEffect } from "react";
+
+import React, { Suspense } from "react";
 import InitFunction from "./InitFunction";
 import AuthSections from "./AuthSections";
 import { useAppStore } from "store";
@@ -12,12 +12,6 @@ function NavbarClient() {
 
   return (
     <>
-      {!AddToCartOption.enable && !cart_enable && (
-        <ToastContainer
-          position="top-right"
-          style={{ zIndex: "9999999999999999" }}
-        />
-      )}
       <Suspense fallback={<></>}>
         <InitFunction init={lang} />
       </Suspense>

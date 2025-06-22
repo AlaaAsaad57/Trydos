@@ -7,6 +7,7 @@ import {
   watchChannel as watchChannelAction,
 } from "./actions";
 import { getMediaReducer } from "./actions";
+import { showErrorNotification } from "@/store/notifications/reducer";
 
 interface ChatState {
   chatVar: boolean;
@@ -1241,8 +1242,7 @@ export const useChatStore = (set, get) => ({
       set({ data: arr });
     } else {
       const Toast = async () => {
-        const { toast } = await import("react-toastify");
-        toast.error("only 3 pinned chats allowed");
+        showErrorNotification("only 3 pinned chats allowed");
       };
       Toast();
     }
