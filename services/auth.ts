@@ -427,10 +427,7 @@ class AuthService {
             {
               name: userObj?.name ?? userProfile?.name,
               mobile_phone: userObj?.phone ?? userProfile?.phone,
-              photo_path: this.ConfigurePhoto(
-                userObj?.image ?? userProfile?.image,
-                "story"
-              ),
+              photo_path: this.ConfigurePhoto(userObj?.image, "story"),
             },
             {
               headers: {
@@ -449,10 +446,7 @@ class AuthService {
             ...JSON.parse(localStorage.getItem("USER-STORIES")),
             name: userObj?.name ?? userProfile?.name,
             mobile_phone: userObj?.phone ?? userProfile?.phone,
-            photo_path: this.ConfigurePhoto(
-              userObj?.image ?? userProfile?.image,
-              "story"
-            ),
+            photo_path: this.ConfigurePhoto(userObj?.image, "story"),
           })
         );
       }
@@ -469,10 +463,7 @@ class AuthService {
             {
               name: userObj?.name ?? userProfile?.name,
               mobile_phone: userObj?.phone ?? userProfile?.phone,
-              photo_path: this.ConfigurePhoto(
-                userObj?.image ?? userProfile?.image,
-                "chat"
-              ),
+              photo_path: this.ConfigurePhoto(userObj?.image, "chat"),
             },
             {
               headers: {
@@ -491,10 +482,7 @@ class AuthService {
             ...JSON.parse(localStorage.getItem("USER-CHAT")),
             name: userObj?.name ?? userProfile?.name,
             mobile_phone: userObj?.phone ?? userProfile?.phone,
-            photo_path: this.ConfigurePhoto(
-              userObj?.image ?? userProfile?.image,
-              "chat"
-            ),
+            photo_path: this.ConfigurePhoto(userObj?.image, "chat"),
           })
         );
       }
@@ -502,10 +490,7 @@ class AuthService {
         url: process.env.NEXT_PUBLIC_BACKEND_URL + "/customer/update-profile",
         body: {
           ...userObj,
-          image: this.ConfigurePhoto(
-            userObj?.image ?? userProfile?.image,
-            "market"
-          ),
+          image: this.ConfigurePhoto(userObj?.image, "market"),
         },
         title: "Update Profile",
       }).then((s) => {
@@ -517,7 +502,7 @@ class AuthService {
           ...JSON.parse(localStorage.getItem("USER")),
           name: userObj?.name ?? userProfile?.name,
           phone: userObj?.phone ?? userProfile?.phone,
-          image: userObj?.image ?? userProfile?.image,
+          image: userObj?.image,
         })
       );
 
