@@ -56,7 +56,7 @@ function OrderSuccess() {
               num: item.offer_price,
               rate: currency?.exchange_rate,
             }),
-            brand: item.brand?.name,
+            item_brand: item.brand?.name,
             item_variant: item.variant ?? "N/A",
           })),
         },
