@@ -305,9 +305,13 @@ function AddToCartComponent({
         onClick={(e) => {
           console.log(e.target);
           if (
-            (e.target as HTMLDivElement).classList.contains(
-              "backdrop-container"
-            )
+            !(e.target as HTMLDivElement).classList.contains(
+              "image-cart-container"
+            ) &&
+            !(e.target as HTMLDivElement).classList.contains(
+              "color_option_cyrcle"
+            ) &&
+            !(e.target as HTMLDivElement).classList.contains("swiper-slide")
           ) {
             setSelectedProductForCart(null);
             document.documentElement.style.overflow = "initial";
@@ -1592,7 +1596,6 @@ const AddToCartButton = ({
     if (exact) return localCart?.find((s) => s.id === id);
   };
   const clickHandler = async ({ variant }) => {
-    console.log(color, size, isVariantInCart({ exact: false }));
     try {
       setLoading(true);
 
