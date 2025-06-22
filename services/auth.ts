@@ -380,6 +380,22 @@ class AuthService {
       false
     );
   }
+  ConfigurePhoto(imageVar, serverVar) {
+    if (serverVar === "market") {
+      if (imageVar?.includes("customers")) {
+        return imageVar.replace("/customers/profile/", "");
+      } else {
+        return imageVar;
+      }
+    } else {
+      if (imageVar?.includes("customers")) {
+        return imageVar;
+      } else {
+        if (imageVar) return "/customers/profile/" + imageVar;
+        else return null;
+      }
+    }
+  }
   async ExpiredUser(noReq = false) {
     if (this.getUser()?.phone?.length > 2)
       localStorage.setItem("has-phone", this.getUser()?.phone);
@@ -411,7 +427,10 @@ class AuthService {
             {
               name: userObj?.name ?? userProfile?.name,
               mobile_phone: userObj?.phone ?? userProfile?.phone,
-              photo_path: userObj?.image ?? userProfile?.image,
+              photo_path: this.ConfigurePhoto(
+                userObj?.image ?? userProfile?.image,
+                "story"
+              ),
             },
             {
               headers: {
@@ -447,7 +466,10 @@ class AuthService {
             {
               name: userObj?.name ?? userProfile?.name,
               mobile_phone: userObj?.phone ?? userProfile?.phone,
-              photo_path: userObj?.image ?? userProfile?.image,
+              photo_path: this.ConfigurePhoto(
+                userObj?.image ?? userProfile?.image,
+                "chat"
+              ),
             },
             {
               headers: {
@@ -472,7 +494,13 @@ class AuthService {
       }
       let res = await AxiosPost({
         url: process.env.NEXT_PUBLIC_BACKEND_URL + "/customer/update-profile",
-        body: userObj,
+        body: {
+          ...userObj,
+          image: this.ConfigurePhoto(
+            userObj?.image ?? userProfile?.image,
+            "market"
+          ),
+        },
         title: "Update Profile",
       }).then((s) => {
         market_done = true;
