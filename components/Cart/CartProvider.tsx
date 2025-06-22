@@ -123,7 +123,6 @@ const CartProvider = () => {
         newParams.delete("selected");
         router.replace(newParams.size ? `${pathname}?${newParams}` : pathname);
       }
-      auth.CheckUserName();
     }, 1000);
   }, []);
   useEffect(() => {

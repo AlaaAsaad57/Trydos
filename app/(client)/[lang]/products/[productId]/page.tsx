@@ -197,11 +197,11 @@ async function Page({ params, searchParams }: ProductPagePropsType) {
               <div className="product-category-name">
                 {product.category?.name}
               </div>
-              {product?.featured && (
+              {/* {product?.featured && (
                 <div className="flex-row mx-[5px] h-auto">
                   <FeaturedBanner />
                 </div>
-              )}
+              )} */}
               {product?.flash_deal_details?.end_date && (
                 <div className="flex-row mx-[5px]">
                   <FlashDealBanner

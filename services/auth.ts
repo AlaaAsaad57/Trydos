@@ -550,6 +550,7 @@ class AuthService {
     )?.name;
     let username_chat = JSON.parse(localStorage.getItem("USER-CHAT"))?.name;
     let username_market = JSON.parse(localStorage.getItem("USER-CHAT"))?.name;
+
     if (Boolean(isChatUserExist) && Boolean(isStoriesUserExist))
       if (
         username_chat !== username_market ||
@@ -565,7 +566,7 @@ class AuthService {
         localStorage.setItem(
           "USER-STORIES",
           JSON.stringify({
-            ...isChatUserExist,
+            ...isStoriesUserExist,
             name: username_market,
           })
         );

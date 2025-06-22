@@ -347,7 +347,13 @@ export const UnAuthintacetedAction = () => {
   localStorage.removeItem("USER-STORIES");
   localStorage.removeItem("USER-CHAT");
   if (localStorage.getItem("USER")) {
-    localStorage.setItem("guest-user", localStorage.getItem("USER"));
+    localStorage.setItem(
+      "guest-user",
+      JSON.stringify({
+        ...JSON.parse(localStorage.getItem("USER")),
+        is_phone_verified: 0,
+      })
+    );
   }
   localStorage.removeItem("USER");
 

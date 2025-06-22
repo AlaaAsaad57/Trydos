@@ -109,47 +109,42 @@ class StoryService {
     endUpload: Function,
     link
   ) {
-    try {
-      let axios = (await import("axios")).default;
-      const formData = new FormData();
-      if (link?.length) {
-        formData.append("link", link);
-      }
-      formData.append("file", file);
-      formData.append("is_video", is_video);
-      const response: UploadStoryApi = await axios.post(
-        process.env.NEXT_PUBLIC_STORIES_BACKEND_URL + UPLOAD_STORY_URL,
-        formData,
-        {
-          headers: {
-            Authorization:
-              "Bearer " +
-              (typeof localStorage !== "undefined" &&
-                localStorage.getItem("USER-STORIES") &&
-                JSON.parse(localStorage.getItem("USER-STORIES")).access_token),
-            language: Cookies.get("language"),
-
-            country: Cookies.get("country"),
-          },
-          onUploadProgress: (progressEvent) => {
-            callback(
-              Math.round((progressEvent.loaded * 100) / progressEvent.total)
-            );
-          },
-        }
-      );
-
-      if (typeof window !== "undefined") {
-        _isStoreLastJson() &&
-          localStorage.setItem("LAST_JSON", JSON.stringify(response));
-      }
-      endUpload();
-      return response.data.data;
-    } catch (e) {
-      callback(null);
-      endUpload();
-      throw e;
+    const formData = new FormData();
+    if (link?.length) {
+      formData.append("link", link);
     }
+    formData.append("file", file);
+    formData.append("is_video", is_video);
+    const response: UploadStoryApi = await axios.post(
+      process.env.NEXT_PUBLIC_STORIES_BACKEND_URL + UPLOAD_STORY_URL,
+      formData,
+      {
+        headers: {
+          Authorization:
+            "Bearer " +
+            (typeof localStorage !== "undefined" &&
+              localStorage.getItem("USER-STORIES") &&
+              JSON.parse(localStorage.getItem("USER-STORIES")).access_token),
+          language: Cookies.get("language"),
+
+          country: Cookies.get("country"),
+        },
+        onUploadProgress: (progressEvent) => {
+          callback(
+            Math.round((progressEvent.loaded * 100) / progressEvent.total)
+          );
+        },
+      }
+    );
+
+    if (typeof window !== "undefined") {
+      _isStoreLastJson() &&
+        localStorage.setItem("LAST_JSON", JSON.stringify(response));
+    }
+    endUpload();
+    console.log(response);
+    if (response.data.data) return response.data.data;
+    else throw new Error("Failed");
   }
   getUserStories() {
     return (

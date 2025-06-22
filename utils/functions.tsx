@@ -48,6 +48,13 @@ export const getUserChat = () => {
       JSON.parse(localStorage.getItem("USER-CHAT"))
     );
 };
+export const getUserStories = () => {
+  if (typeof window !== "undefined")
+    return (
+      localStorage.getItem("USER-STORIES") &&
+      JSON.parse(localStorage.getItem("USER-STORIES"))
+    );
+};
 
 export const _isStoreLastJson = () => {
   return !!process.env.NEXT_PUBLIC_IS_STORE_LAST_JSON;

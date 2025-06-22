@@ -319,6 +319,7 @@ class HomeService {
       }
       this.RegisterDevice();
     }
+    auth.CheckUserName();
     await this.RequestFireBase();
   }
   async RegisterDevice() {
