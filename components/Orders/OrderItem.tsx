@@ -32,7 +32,7 @@ const OrderItem: React.FC<OrderItemPropsType> = ({ order, showDetails }) => {
         <OrderItemId id={order.order_group_id.toString()} />
       </div>
       <div className="flex-row w-full justify-between items-start mt-[11px]">
-        <OrderStatus status={order.order_group_status?.label} />
+        <OrderStatus status={order.order_group_status} />
         <OrderInvoice
           invoice={{
             items: order.details.length,
@@ -79,16 +79,20 @@ const OrderProductSlider = ({ products }) => {
     </div>
   );
 };
-const OrderStatus = ({ status }: { status: string }) => {
+const OrderStatus = ({
+  status,
+}: {
+  status: { label: string; value: string };
+}) => {
   const { settings } = useAppStore();
   return (
     <div className="flex-row items-center">
-      <BagStatusIcon status={status} />
+      <BagStatusIcon status={status?.value} />
       <span className="ml-[4px] text-[#1D1D1D] text-[12px] regular">
-        {status}
+        {status.label}
       </span>
       <span className="ml-[7px]">
-        <OrderStatusIcon status={status} />
+        <OrderStatusIcon status={status?.value} />
       </span>
     </div>
   );

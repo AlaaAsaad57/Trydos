@@ -85,7 +85,7 @@ function OrdersList({
                 ...allDetails,
                 ...order.details.map((detail) => ({
                   ...detail,
-                  order_status: baseOrder.order_status?.label,
+                  order_status: baseOrder.order_status?.value,
                   order_id: baseOrder.id,
                 })),
               ],
@@ -102,30 +102,32 @@ function OrdersList({
           }
         );
 
-        // Merge with existing orders without duplicating by order_group_id
-        const existingOrdersMap = orders.reduce(
-          (acc: { [key: string]: OrderItemType }, order) => {
+        if (reset) {
+          // Fresh filter – drop any previously loaded orders
+          setOrders(mergedResponseOrders);
+        } else {
+          // Infinite-scroll / pagination — merge with existing state
+          const existingOrdersMap = orders.reduce<
+            Record<string, OrderItemType>
+          >((acc, order) => {
             acc[order.order_group_id] = order;
             return acc;
-          },
-          {}
-        );
+          }, {} as Record<string, OrderItemType>);
 
-        const newOrdersMap = mergedResponseOrders.reduce(
-          (acc: { [key: string]: OrderItemType }, order) => {
+          const newOrdersMap = mergedResponseOrders.reduce<
+            Record<string, OrderItemType>
+          >((acc, order) => {
             acc[order.order_group_id] = order;
             return acc;
-          },
-          {}
-        );
+          }, {} as Record<string, OrderItemType>);
 
-        // Combine maps, with new orders taking precedence
-        const combinedOrdersMap = { ...existingOrdersMap, ...newOrdersMap };
+          const finalOrders = Object.values({
+            ...existingOrdersMap,
+            ...newOrdersMap,
+          });
 
-        // Convert back to array for state update
-        const finalOrders = Object.values(combinedOrdersMap);
-
-        setOrders((prev) => (reset ? finalOrders : finalOrders));
+          setOrders(finalOrders);
+        }
         setHasMore(response.data.orders.length > 0); // Check if more orders were fetched
         setPage(currentPage + 1);
       } else {
@@ -147,7 +149,7 @@ function OrdersList({
     setOrders([]); // Reset orders when status changes
     setPage(1); // Reset page count
     setHasMore(true); // Assume there are more orders initially
-    loadMoreOrders(true); // Load first page for the new status
+    loadMoreOrders(true, selectedStatus); // Load first page for the new status
   }, [selectedStatus]); // Dependency on selectedStatus
 
   // Scroll handler for infinite loading
@@ -164,13 +166,13 @@ function OrdersList({
         !loading &&
         hasMore
       ) {
-        loadMoreOrders();
+        loadMoreOrders(false, selectedStatus);
       }
     };
 
     scrollContainer.addEventListener("scroll", handleScroll);
     return () => scrollContainer.removeEventListener("scroll", handleScroll);
-  }, [loading, hasMore]); // Dependencies for the scroll listener
+  }, [loading, hasMore, selectedStatus]); // Dependencies for the scroll listener
 
   // Mouse drag effect for status slider
   useEffect(() => {
@@ -226,11 +228,6 @@ function OrdersList({
     };
   }, []); // Run only once on mount
   useEffect(() => {
-    if (orders.find((order) => order.order_group_id === id)) {
-      setSelectedOrder(orders.find((order) => order.order_group_id === id));
-      swipeToScreen(10);
-      router.replace("/setting?tab=Orders");
-    }
     dispatchRouteChangeEvent("completed");
   }, [orders]);
   return (

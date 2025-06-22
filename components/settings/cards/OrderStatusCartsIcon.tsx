@@ -4,14 +4,15 @@ function OrderStatusCartsIcon({ status }) {
   const statuses = [
     "pending",
     "preparing",
-    "shipping center",
-    "ready to shipping",
+    "shipping_center",
+    "ready_to_shipping",
     "shipped",
-    "out for delivery",
-    "in delivery center",
+    "out_for_delivery",
+    "in_delivery_center",
     "delivered",
   ];
   let status_word = status.toLowerCase();
+
   return (
     <>
       {status_word === "pending" ? (
@@ -26,27 +27,27 @@ function OrderStatusCartsIcon({ status }) {
         />
       )}
       {status_word === "preparing" ||
-      status_word === "shipping center" ||
-      status_word === "ready to shipping" ? (
+      status_word === "shipping_center" ||
+      status_word === "ready_to_shipping" ? (
         <PreparingStatus />
       ) : (
         <NormalStatus
           color={() => {
             let i = statuses.findIndex((s) => s === status_word);
-            if (i > 1) return "#FFDBAA";
+            if (i > 1 || i > 2 || i > 3) return "#FFDBAA";
             else return false;
           }}
         />
       )}
       {status_word === "shipped" ||
-      status_word === "out for delivery" ||
-      status_word === "in delivery center" ? (
+      status_word === "out_for_delivery" ||
+      status_word === "in_delivery_center" ? (
         <ShippedSatus />
       ) : (
         <NormalStatus
           color={() => {
             let i = statuses.findIndex((s) => s === status_word);
-            if (i > 2) return "#AADEFF";
+            if (i > 4 || i > 5) return "#AADEFF";
             else return false;
           }}
         />

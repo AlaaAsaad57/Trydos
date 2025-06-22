@@ -1,4 +1,7 @@
 export interface OrderStatusCardPropsType {
-  status: string;
+  status: {
+    label: string;
+    value: string;
+  };
   fullWidth?: boolean;
 }

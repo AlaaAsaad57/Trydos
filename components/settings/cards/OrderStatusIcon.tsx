@@ -48,8 +48,8 @@ function OrderStatusIcon({ status }) {
 
   if (
     status?.toLowerCase() === "preparing" ||
-    status?.toLowerCase() === "shipping center" ||
-    status?.toLowerCase() === "ready to shipping"
+    status?.toLowerCase() === "shipping_center" ||
+    status?.toLowerCase() === "ready_to_shipping"
   )
     return (
       <svg
@@ -151,8 +151,8 @@ function OrderStatusIcon({ status }) {
     );
   if (
     status.toLowerCase() === "shipped" ||
-    status.toLowerCase() === "Out for Delivery" ||
-    status.toLowerCase() === "In Delivery Center"
+    status.toLowerCase() === "out_for_delivery" ||
+    status.toLowerCase() === "in_delivery_center"
   )
     return (
       <svg

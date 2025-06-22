@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { OrdersIcon } from "./OrdersList";
 import SettingTopBar from "./TopBar";
 
@@ -50,7 +50,7 @@ function OrderDetails({ resetOrderDetails, goBack }: OrderDetailsPropsType) {
     let arr_of_products = [];
     arr.map((s) => {
       s.details.map((d) => {
-        arr_of_products.push({ ...d, order_status: s.order_status?.label });
+        arr_of_products.push({ ...d, order_status: s.order_status?.value });
       });
     });
 
@@ -61,30 +61,51 @@ function OrderDetails({ resetOrderDetails, goBack }: OrderDetailsPropsType) {
   const pathname = usePathname();
 
   const [ActivePacks, setActivePacks] = useState(null);
+  const { setOrderDetails, selectedOrder } = useAppStore();
+
+  const fetchedOrderIdRef = useRef<string | number | null>(null);
+
   const getOrderDetails = async () => {
     setLoading(true);
-    let data = await order.getOrderDetails(selectedOrder.order_group_id);
+    try {
+      let data = await order.getOrderDetails(selectedOrder.order_group_id);
 
-    let orderData = {
-      ...data?.[0],
-      order_amount: totalAmount(data),
-      details: data,
-    };
+      let orderData = {
+        ...data?.[0],
+        order_amount: totalAmount(data),
+        details: data,
+      };
 
-    setActivePacks(data[0]);
+      setActivePacks(data[0]);
 
-    setOrderDetails(orderData);
+      setOrderDetails(orderData);
+    } catch (error) {
+      let params = new URLSearchParams(window.location.search);
+      params.delete("id");
+      // @ts-ignore
+      router.replace(`/setting?${params.toString()}`, {
+        scroll: false,
+        // @ts-ignore
+        shallow: true,
+      });
+      resetOrder();
+    }
 
     setLoading(false);
   };
-  const { setOrderDetails, selectedOrder } = useAppStore();
+
+  useEffect(() => {
+    if (!selectedOrder?.order_group_id) return;
+    if (fetchedOrderIdRef.current === selectedOrder.order_group_id) return;
+    fetchedOrderIdRef.current = selectedOrder.order_group_id;
+    getOrderDetails();
+  }, [selectedOrder?.order_group_id]);
 
   const resetOrder = () => {
     setOrderDetails(null);
     setActivePacks(null);
+    fetchedOrderIdRef.current = null;
     goBack();
-    // @ts-expect-error 'shallow' does not exist in type 'NavigateOptions'
-    router.push(`${pathname}?${params.toString()}`, { shallow: true });
   };
   const [isExpanded, setIsExpanded] = useState(false);
   const [isReturnOrderOpen, setIsReturnOrderOpen] = useState<
@@ -92,15 +113,13 @@ function OrderDetails({ resetOrderDetails, goBack }: OrderDetailsPropsType) {
   >(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [chatInfo, setChatInfo] = useState<Channel | null>(null);
-  useEffect(() => {
-    if (selectedOrder?.id) getOrderDetails();
-  }, [selectedOrder?.id]);
+
   if (!selectedOrder?.id) return null;
   const shouldShowChatIcon = () => {
     // Out for Delivery
-    if (selectedOrder.order_status?.label === "Out for Delivery")
+    if (selectedOrder.order_status?.value === "out_for_delivery")
       return selectedOrder.order_group_id;
-    if (ActivePacks?.order_status?.label === "Out for Delivery")
+    if (ActivePacks?.order_status?.value === "out_for_delivery")
       return ActivePacks?.order_group_id;
     return false;
   };
@@ -188,13 +207,11 @@ function OrderDetails({ resetOrderDetails, goBack }: OrderDetailsPropsType) {
                   payments={selectedOrder.payment_method}
                 />
               </div>
-              {selectedOrder?.details?.[0]?.order_group_status?.label && (
+              {selectedOrder?.details?.[0]?.order_group_status && (
                 <div className="flex-row justify-between items-center w-full mt-[8px]">
                   <OrderStatusCard
                     fullWidth={true}
-                    status={
-                      selectedOrder?.details?.[0]?.order_group_status?.label
-                    }
+                    status={selectedOrder?.details?.[0]?.order_group_status}
                   />
                 </div>
               )}
@@ -227,14 +244,14 @@ function OrderDetails({ resetOrderDetails, goBack }: OrderDetailsPropsType) {
                   status={
                     selectedOrder?.details?.find(
                       (s) => s.id === ActivePacks?.id
-                    ).order_status.label
+                    )?.order_status
                   }
                 />
               </div>
               <OrderAddressCard
                 address={
                   selectedOrder?.details?.find((s) => s.id === ActivePacks?.id)
-                    .shipping_address_data
+                    ?.shipping_address_data
                 }
               />
             </div>
@@ -245,13 +262,13 @@ function OrderDetails({ resetOrderDetails, goBack }: OrderDetailsPropsType) {
                 showChats={() => ShowChats()}
                 order_group_status={
                   selectedOrder?.details?.find((s) => s.id === ActivePacks?.id)
-                    .order_status.label
+                    ?.order_status
                 }
                 setExpanded={setIsExpanded}
                 isExpanded={isExpanded}
                 items={
                   selectedOrder?.details?.find((s) => s.id === ActivePacks?.id)
-                    .details
+                    ?.details
                 }
               />
               {isExpanded && (
@@ -395,7 +412,7 @@ const OrderExpandedDetails = ({ order }: { order: OrderItem }) => {
         </div>
         <div className="w-auto min-h-[60px] h-auto  px-[12px] flex-col">
           <div className="flex flex-row items-end">
-            <OrderStatusCartsIcon status={order?.order_group_status?.label} />
+            <OrderStatusCartsIcon status={order?.order_group_status?.value} />
           </div>
           <span className="text-[#8D8D8D] regular text-[10px] mt-[5px]">
             {translateFunction("Order Status")}
@@ -403,7 +420,7 @@ const OrderExpandedDetails = ({ order }: { order: OrderItem }) => {
           <div className="text-[#1D1D1D] flex-row text-[12px] regular mt-[3px]">
             <span>{order?.order_group_status?.label}</span>
             <span className="ml-[11px]">
-              <OrderStatusIcon status={order?.order_group_status?.label} />
+              <OrderStatusIcon status={order?.order_group_status?.value} />
             </span>
           </div>
         </div>
@@ -411,7 +428,7 @@ const OrderExpandedDetails = ({ order }: { order: OrderItem }) => {
       <div className="flex-col w-full mt-[12px] pb-[50px]">
         {order.details.map((Product) => (
           <ProductCard
-            status={order?.order_status?.label}
+            status={order?.order_status}
             product={Product}
             key={Product.id}
           />
@@ -521,10 +538,12 @@ const ProductCard = ({ product, status }: ProductCardPropsType) => {
                   {translateFunction("Item Status")}:
                 </span>
                 <span className="text-[#505050] text-[10px] medium ml-[2px]">
-                  {product?.order_status ?? status}
+                  {product?.order_status ?? status?.label}
                 </span>
                 <span className="ml-[12px]">
-                  <OrderStatusIcon status={product?.order_status ?? status} />
+                  <OrderStatusIcon
+                    status={product?.order_status?.value ?? status?.value}
+                  />
                 </span>
               </div>
             </div>
@@ -567,7 +586,7 @@ const ProductCard = ({ product, status }: ProductCardPropsType) => {
                 {currency?.symbol}
               </span>
               {(product.is_canceled || product.is_returned) && (
-                <div className="text-[#388CFF] text-[10px] ml-[4px] regular ml-[7px]">
+                <div className="text-[#388CFF] text-[10px] regular ml-[7px]">
                   {translateFunction("Back to your wallet")}
                 </div>
               )}
