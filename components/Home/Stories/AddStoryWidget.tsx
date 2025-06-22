@@ -87,7 +87,6 @@ const PlaceholderIcon = () => (
   </svg>
 );
 
-
 const isValidUrl = (urlString: string) => {
   if (!urlString) return true;
   try {
@@ -242,9 +241,9 @@ export default function AddStoryWidget({
           </button>
         </div>
 
-        <div className="flex h-[calc(100vh-250px)]">
+        <div className="flex h-[calc(100vh-250px)] max-w-[1250px]">
           {/* Preview Area */}
-          <div className="flex-1 flex items-center justify-center border-r border-gray-200 pr-4">
+          <div className="flex-1 flex items-center w-1/2 justify-center border-r border-gray-200 pr-4">
             {preview ? (
               <div className="relative w-full h-[300px] rounded-lg overflow-hidden">
                 <Image
@@ -269,7 +268,7 @@ export default function AddStoryWidget({
           </div>
 
           {/* Options Area */}
-          <div className="w-64 pl-4 flex flex-col gap-4 items-start">
+          <div className=" pl-4 w-1/2 flex flex-col gap-4 items-start">
             <button
               onClick={handleCameraClick}
               className="flex items-center gap-3 p-3 hover:bg-gray-100 rounded-lg"
