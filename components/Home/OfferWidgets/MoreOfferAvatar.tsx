@@ -1,6 +1,6 @@
 import Image from "next/image";
 
-import { translateFunction } from "utils/functions";
+import { getConfiguredImage, translateFunction } from "utils/functions";
 import { useParams } from "next/navigation";
 import { useAppStore } from "store";
 import NextLink from "components/global/NextLink";
@@ -47,10 +47,7 @@ function MoreOfferAvatar({
       </span>
       <Image
         loading="eager"
-        src={GetImageUrl(images).replace(
-          "/upload",
-          `/upload/h_40/f_webp/q_auto`
-        )}
+        src={getConfiguredImage({ src: GetImageUrl(images), height: 50 })}
         className="absolute"
         priority={priority}
         fetchPriority="auto"

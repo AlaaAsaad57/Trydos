@@ -7,7 +7,11 @@ import Spinner from "../global/Spinner";
 
 import { dispatchRouteChangeEvent } from "utils/events";
 
-import { RoundPrice, translateFunction } from "utils/functions";
+import {
+  getConfiguredImage,
+  RoundPrice,
+  translateFunction,
+} from "utils/functions";
 import { useParams } from "next/navigation";
 import { CurrencyApi } from "models/API/market/CurrencyApi";
 import { useAppStore } from "store";
@@ -166,10 +170,10 @@ function ProductsInfiniteScroll({
                       typeof product.brand.icon === "string" && (
                         <img
                           loading={"eager"}
-                          src={GetImageUrl(product?.brand?.icon)?.replace(
-                            "/upload",
-                            "/upload/h_50/q_auto"
-                          )}
+                          src={getConfiguredImage({
+                            src: GetImageUrl(product?.brand?.icon),
+                            height: 50,
+                          })}
                           width={16}
                           height={7}
                           alt={product.name}
@@ -190,9 +194,12 @@ function ProductsInfiniteScroll({
                           0 && (
                           <img
                             loading={"eager"}
-                            src={GetImageUrl(
-                              product?.category?.flat_photo_path?.file_path
-                            )?.replace("/upload", "/upload/h_50/f_webp/q_auto")}
+                            src={getConfiguredImage({
+                              src: GetImageUrl(
+                                product?.category?.flat_photo_path?.file_path
+                              ),
+                              height: 50,
+                            })}
                             width={10}
                             height={10}
                             style={{

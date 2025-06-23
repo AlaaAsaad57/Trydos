@@ -75,17 +75,22 @@ export const getConfiguredImage = ({
   width,
   height,
   q,
+  c_pad,
 }: GetConfiguredImagePropsType) => {
   if (typeof src === "string") {
     return src.replace(
       "/upload",
-      `/upload/h_${height}/f_webp/q_${q || "auto"}`
+      `/upload/h_${height},${
+        c_pad ? "w_800,c_pad" : "c_limit"
+      }/f_auto/q_auto:good/fl_lossy/so_0`
     );
   }
   if (src?.file_path?.includes("cloudinary")) {
     return src.file_path.replace(
       "/upload",
-      `/upload/h_${height}/f_webp/q_${q || "auto"}`
+      `/upload/h_${height},${
+        c_pad ? "w_800,c_pad" : "c_limit"
+      }/f_auto/q_auto:good/fl_lossy/so_0`
     );
   } else return src?.file_path || "";
 };

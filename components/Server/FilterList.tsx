@@ -17,7 +17,7 @@ import InfiniteScrollFilters from "components/ListingPage/filterComponents/Infin
 import SwitchFiltersButton from "components/filterPage/SwitchFiltersButton";
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 import Image from "next/image";
-import { RoundPrice } from "utils/functions";
+import { getConfiguredImage, RoundPrice } from "utils/functions";
 import { FilterItemsRowPropsType } from "models/componentType/FilterItemsRowPropsType";
 
 function FilterList({
@@ -259,47 +259,46 @@ const ActiveFiltersBar = ({
                       alt={category?.name}
                       width={20}
                       height={20}
-                      src={(
-                        (getItemData({
-                          value: category,
-                          arr: filters.categories,
-                          key: "slug",
-                          isCategory: true,
-                        })?.icon?.file_path &&
-                          GetImageUrl(
-                            getItemData({
-                              value: category,
-                              arr: filters.categories,
-                              key: "slug",
-                              isCategory: true,
-                            })?.icon?.file_path
-                          )) ??
-                        (getItemData({
-                          value: category,
-                          arr: filters.categories,
-                          key: "slug",
-                          isCategory: true,
-                        }).most_viewed_product_thumbnail &&
-                          GetImageUrl(
-                            getItemData({
-                              value: category,
-                              arr: filters.categories,
-                              key: "slug",
-                              isCategory: true,
-                            }).most_viewed_product_thumbnail
-                          )) ??
-                        GetImageUrl(
-                          getItemData({
+                      src={getConfiguredImage({
+                        src:
+                          (getItemData({
                             value: category,
                             arr: filters.categories,
                             key: "slug",
                             isCategory: true,
-                          }).flat_photo_path?.file_path
-                        )
-                      )?.replace(
-                        "/upload",
-                        "/upload/w_100,h_100,c_fit/f_webp/q_100"
-                      )}
+                          })?.icon?.file_path &&
+                            GetImageUrl(
+                              getItemData({
+                                value: category,
+                                arr: filters.categories,
+                                key: "slug",
+                                isCategory: true,
+                              })?.icon?.file_path
+                            )) ??
+                          (getItemData({
+                            value: category,
+                            arr: filters.categories,
+                            key: "slug",
+                            isCategory: true,
+                          }).most_viewed_product_thumbnail &&
+                            GetImageUrl(
+                              getItemData({
+                                value: category,
+                                arr: filters.categories,
+                                key: "slug",
+                                isCategory: true,
+                              }).most_viewed_product_thumbnail
+                            )) ??
+                          GetImageUrl(
+                            getItemData({
+                              value: category,
+                              arr: filters.categories,
+                              key: "slug",
+                              isCategory: true,
+                            }).flat_photo_path?.file_path
+                          ),
+                        height: 100,
+                      })}
                     />
                   </div>
                   <div
@@ -353,21 +352,20 @@ const ActiveFiltersBar = ({
                             </svg>
                             <Image
                               alt={s?.name}
-                              src={(
-                                (s.icon?.file_path &&
-                                  GetImageUrl(s.icon?.file_path)) ||
-                                (filters.categories.filter(
-                                  (sub) => sub.slug === s.slug
-                                )[0]?.icon?.file_path &&
-                                  GetImageUrl(
-                                    filters.categories.filter(
-                                      (sub) => sub.slug === s.slug
-                                    )[0]?.icon?.file_path
-                                  ))
-                              )?.replace(
-                                "/upload",
-                                "/upload/w_100,h_100,c_fit/f_webp/q_100"
-                              )}
+                              src={getConfiguredImage({
+                                src:
+                                  (s.icon?.file_path &&
+                                    GetImageUrl(s.icon?.file_path)) ||
+                                  (filters.categories.filter(
+                                    (sub) => sub.slug === s.slug
+                                  )[0]?.icon?.file_path &&
+                                    GetImageUrl(
+                                      filters.categories.filter(
+                                        (sub) => sub.slug === s.slug
+                                      )[0]?.icon?.file_path
+                                    )),
+                                height: 100,
+                              })}
                               width={10}
                               height={10}
                             />
@@ -422,16 +420,16 @@ const ActiveFiltersBar = ({
                       alt={category?.name}
                       width={20}
                       height={20}
-                      src={GetImageUrl(
-                        getItemData({
-                          value: category,
-                          arr: filters.boutiques,
-                          key: "slug",
-                        })?.banner?.file_path
-                      )?.replace(
-                        "/upload",
-                        "/upload/w_100,h_100,c_fit/f_webp/q_100"
-                      )}
+                      src={getConfiguredImage({
+                        src: GetImageUrl(
+                          getItemData({
+                            value: category,
+                            arr: filters.boutiques,
+                            key: "slug",
+                          })?.banner?.file_path
+                        ),
+                        height: 100,
+                      })}
                     />
                   </div>
                   <div className="category-title filter-bar-main-title">
@@ -486,16 +484,16 @@ const ActiveFiltersBar = ({
                       alt={brand?.name}
                       width={20}
                       height={20}
-                      src={GetImageUrl(
-                        getItemData({
-                          value: brand,
-                          arr: filters.brands,
-                          key: "slug",
-                        })?.icon
-                      )?.replace(
-                        "/upload",
-                        "/upload/w_100,h_100,c_fit/f_webp/q_100"
-                      )}
+                      src={getConfiguredImage({
+                        src: GetImageUrl(
+                          getItemData({
+                            value: brand,
+                            arr: filters.brands,
+                            key: "slug",
+                          })?.icon
+                        ),
+                        height: 100,
+                      })}
                     />
                   </div>
                   <div
@@ -804,13 +802,15 @@ export const FilterItem = ({
               width={70}
               height={70}
               className="object-center bg-white"
-              src={(
-                (item.most_viewed_product_thumbnail &&
-                  GetImageUrl(item.most_viewed_product_thumbnail)) ??
-                (item.flat_photo_path?.file_path &&
-                  GetImageUrl(item.flat_photo_path?.file_path)) ??
-                (item?.icon?.file_path && GetImageUrl(item?.icon?.file_path))
-              )?.replace("/upload", "/upload/w_100,h_100,c_fit/f_webp/q_100")}
+              src={getConfiguredImage({
+                src:
+                  (item.most_viewed_product_thumbnail &&
+                    GetImageUrl(item.most_viewed_product_thumbnail)) ??
+                  (item.flat_photo_path?.file_path &&
+                    GetImageUrl(item.flat_photo_path?.file_path)) ??
+                  (item?.icon?.file_path && GetImageUrl(item?.icon?.file_path)),
+                height: 100,
+              })}
             />
           </div>
           <div className="category-text-container flex-col align-center max-w-[70px]">
@@ -1064,10 +1064,10 @@ export const FilterItem = ({
             className="brand-photo"
             width={70}
             height={70}
-            src={GetImageUrl(item.icon)?.replace(
-              "/upload",
-              "/upload/w_100,h_100,c_fit/f_webp/q_100"
-            )}
+            src={getConfiguredImage({
+              src: GetImageUrl(item.icon),
+              height: 100,
+            })}
           />
         </div>
 

@@ -2,6 +2,7 @@ import { GetImageUrl } from "utils/tinyUtils";
 import { OfferSlideItemPropsType } from "models/componentType/OfferSlideItemPropsType";
 import BorderImage from "./BorderImage";
 import Image from "next/image";
+import { getConfiguredImage } from "utils/functions";
 
 function OfferSlideItem({
   isSingle,
@@ -25,10 +26,11 @@ function OfferSlideItem({
             priority={mykey < 2}
             style={{ borderRadius: "15px" }}
             className="OfferImage object-cover"
-            src={GetImageUrl(offerPhoto?.file_path).replace(
-              "/upload",
-              `/upload/h_342,c_pad,w_840/f_webp/q_auto`
-            )}
+            src={getConfiguredImage({
+              src: GetImageUrl(offerPhoto?.file_path),
+              height: 400,
+              c_pad: true,
+            })}
             width={900}
             height={342}
             alt="offer"

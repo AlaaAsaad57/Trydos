@@ -17,7 +17,7 @@ function BrandItem({ brand, onClick, isActive }) {
       )}
 
       <img
-        src={GetImageUrl(brand.icon)?.replace("/upload", "/upload/h_30/f_webp")}
+        src={getConfiguredImage({ src: GetImageUrl(brand.icon), height: 40 })}
         className="h-full max-h-[30px] object-contain"
       />
     </div>

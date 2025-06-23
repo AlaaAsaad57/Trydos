@@ -153,7 +153,7 @@ async function FeatureProducts({ lang }) {
                   src={getConfiguredImage({
                     src: GetImageUrl(product.images[0]?.file_path),
                     width: 150,
-                    height: 130,
+                    height: 400,
                   })}
                 />
               </div>
@@ -167,10 +167,10 @@ async function FeatureProducts({ lang }) {
                       <Image
                         alt={product?.brand?.name}
                         loading={"eager"}
-                        src={GetImageUrl(product?.brand?.icon)?.replace(
-                          "/upload",
-                          "/upload/h_50/q_auto"
-                        )}
+                        src={getConfiguredImage({
+                          src: GetImageUrl(product?.brand?.icon),
+                          height: 30,
+                        })}
                         width={16}
                         height={7}
                         className="max-h-[20px] max-w-[40px]"
@@ -189,10 +189,10 @@ async function FeatureProducts({ lang }) {
                       {product?.category?.icon?.length > 0 && (
                         <Image
                           loading={"eager"}
-                          src={GetImageUrl(product?.category?.icon)?.replace(
-                            "/upload",
-                            "/upload/h_50/f_webp/q_auto"
-                          )}
+                          src={getConfiguredImage({
+                            src: GetImageUrl(product?.category?.icon),
+                            height: 30,
+                          })}
                           width={10}
                           height={10}
                           style={{

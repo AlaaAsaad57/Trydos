@@ -8,7 +8,11 @@ import React, { useEffect, useState } from "react";
 import { useAppStore } from "store";
 import BackIcon from "public/svg/listing/backIcon.svg";
 
-import { RoundPrice, translateFunction } from "utils/functions";
+import {
+  getConfiguredImage,
+  RoundPrice,
+  translateFunction,
+} from "utils/functions";
 import { useParams } from "next/navigation";
 import FilterLabel from "components/ListingPage/filterComponents/FilterLabel";
 import search from "services/search";
@@ -620,20 +624,17 @@ const ShowFilterRow = ({ term, values }) => {
   };
   const getImage = (value) => {
     if (value.most_viewed_product_thumbnail) {
-      return GetImageUrl(value.most_viewed_product_thumbnail)?.replace(
-        "/upload",
-        "/upload/w_50,h_50,c_fit/f_webp/q_100"
-      );
+      return getConfiguredImage({
+        src: GetImageUrl(value.most_viewed_product_thumbnail),
+        height: 50,
+      });
     } else if (value.flat_photo_path) {
-      return GetImageUrl(value.flat_photo_path.file_path)?.replace(
-        "/upload",
-        "/upload/w_50,h_50,c_fit/f_webp/q_100"
-      );
+      return getConfiguredImage({
+        src: GetImageUrl(value.flat_photo_path.file_path),
+        height: 50,
+      });
     } else if (value.icon) {
-      return GetImageUrl(value.icon)?.replace(
-        "/upload",
-        "/upload/w_50,h_50,c_fit/f_webp/q_100"
-      );
+      return getConfiguredImage({ src: GetImageUrl(value.icon), height: 50 });
     }
   };
   const isActive = (value) => {

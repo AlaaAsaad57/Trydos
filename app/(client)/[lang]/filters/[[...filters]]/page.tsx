@@ -24,6 +24,7 @@ import {
   fetchCurrency,
   fetchBoutiqueDetails,
 } from "Server Requests";
+import { getConfiguredImage } from "utils/functions";
 
 export const dynamicParams = true;
 
@@ -347,10 +348,11 @@ const BouqiuePhotoSlider = ({ banners }) => {
                       fetchPriority={"high"}
                       style={{ borderRadius: "15px" }}
                       className="OfferImage object-cover"
-                      src={GetImageUrl(banner.file_path)?.replace(
-                        "/upload",
-                        `/upload/h_342,c_pad,w_840/f_webp/q_auto`
-                      )}
+                      src={getConfiguredImage({
+                        src: GetImageUrl(banner.file_path),
+                        height: 400,
+                        c_pad: true,
+                      })}
                       width={380}
                       height={135}
                       alt="offer"
