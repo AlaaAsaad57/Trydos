@@ -149,13 +149,13 @@ export const AxiosPost = async ({
             showSuccessMessage(translateFunction("Add 1 Item To Your Bag"));
           else
             showSuccessMessage(translateFunction("Updated 1 Item In Your Bag"));
-          showSuccessNotification(res.data.message);
+
           return res.data.data;
         } else {
           if (url.includes("/cart/add"))
             showErrorMessage(translateFunction("Failed To Add"));
           else showErrorMessage(translateFunction("Failed to Update"));
-          showErrorNotification(res.data.message);
+
           throw Error("Cart Error");
         }
       }

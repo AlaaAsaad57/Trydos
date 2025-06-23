@@ -79,7 +79,7 @@ const NotificationsContainer = () => {
       <div className="fixed top-4 right-4 z-[999999999999999999] flex flex-col gap-3 pointer-events-none">
         {notifications.map((notification) => {
           const notificationClasses = `
-            relative max-w-sm w-full sm:w-96 px-4 py-3 rounded-[15px] shadow-lg
+            relative w-full max-w-[1200px] px-4 py-3 rounded-[15px] shadow-lg
             transform transition-all duration-300 ease-out
             pointer-events-auto
             min-h-[67px]
@@ -116,7 +116,7 @@ const NotificationsContainer = () => {
               {/* Message */}
               <div className="flex-1 flex-col gap-[4px]">
                 <p className="text-[12px] regular text-[#402CDD]">
-                  {translateFunction("💥 Info Message ")}
+                  {translateFunction("Info Message ")}
                 </p>
                 <p className={`text-[12px] regular text-[#402CDD] `}>
                   {notification.message}
