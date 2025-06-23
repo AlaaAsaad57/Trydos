@@ -915,7 +915,7 @@ const OrderButtons = ({
         <div
           onClick={() => {
             Validate();
-            if (isValid() && !orderLoading) {
+            if (isValid() && !(orderLoading || loading)) {
               // Sendevent({
               //   event: GA_EVENT_NAMES.CLICK,
               //   value:

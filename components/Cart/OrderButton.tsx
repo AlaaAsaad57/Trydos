@@ -556,7 +556,7 @@ function OrderButton({ close, toOrders }) {
                 if (!auth.getUser() || userProfile?.is_phone_verified === 0) {
                   setOption(true);
                 } else {
-                  GoToOrders();
+                  if (!loading) GoToOrders();
                 }
               }
             }}

@@ -112,10 +112,12 @@ const createToastElement = (message: string, type: "success" | "error") => {
   content.appendChild(iconContainer);
   content.appendChild(messageEl);
   toast.appendChild(content);
-  const bottom =
-    (document.querySelector(".product_details_addtocart") as HTMLDivElement)
-      .clientHeight - 5;
-  console.log(bottom);
+  let bottom = 100;
+  if (document.querySelector(".product_details_addtocart"))
+    bottom =
+      (document.querySelector(".product_details_addtocart") as HTMLDivElement)
+        .clientHeight - 5;
+
   // Add styles
   const styles = `
 		.toast-message.show {
@@ -182,7 +184,9 @@ const createToastElement = (message: string, type: "success" | "error") => {
 
 const showToast = (message: string, type: "success" | "error") => {
   const toast = createToastElement(message, type);
-  document.body.querySelector(".message-add-to-cart").appendChild(toast);
+  if (document.body.querySelector(".message-add-to-cart"))
+    document.body.querySelector(".message-add-to-cart").appendChild(toast);
+  else document.body.appendChild(toast);
 
   // Trigger animation
   requestAnimationFrame(() => {

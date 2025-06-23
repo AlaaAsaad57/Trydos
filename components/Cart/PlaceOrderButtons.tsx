@@ -198,7 +198,7 @@ function PlaceOrderButtons({
                 return;
               }
               Validate();
-              if (isValid() && !orderLoading) {
+              if (isValid() && !(orderData.loading || loading)) {
                 VerifyCart();
               }
             }}
