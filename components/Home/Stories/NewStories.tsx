@@ -1,7 +1,7 @@
 "use client";
 import "styles/stories.css";
 import React, { useEffect, useState } from "react";
-import Cube from "react-cube-navigation";
+import Cube from "./CubeCarousel";
 import { SelectStory } from "store/homepage/actions";
 import { useSwipeable } from "react-swipeable";
 import StoryServiceClass from "services/story";
@@ -15,6 +15,7 @@ import {
 } from "utils/GAEvents";
 import { GAevent } from "utils/gtag";
 import { StoriesContainerPropsType } from "models/componentType/StoriesContainerPropType";
+import { useRef } from "react";
 
 function StoriesContainer({
   selectedStory,
@@ -24,6 +25,21 @@ function StoriesContainer({
   let storiesData = stories ?? storiesCache;
   var dir = 0;
   const [isTop, setIsTop] = useState("");
+
+  // Maintain cube index locally to avoid weird jumps coming from
+  // uncontrolled updates of `selectedStory` during animation.
+  const initialIndex =
+    storiesData?.findIndex((s) => s.id === selectedStory?.id) ?? 0;
+  const [cubeIndex, setCubeIndex] = useState<number>(initialIndex);
+
+  // Keep cube index in sync when selectedStory changes externally (e.g. via prev/next from StoryViewer).
+  useEffect(() => {
+    const idx = storiesData?.findIndex((s) => s.id === selectedStory?.id) ?? 0;
+    if (idx !== cubeIndex) {
+      setCubeIndex(idx);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedStory]);
 
   const handlers = useSwipeable({
     onTouchStartOrOnMouseDown: (e) => {
@@ -103,7 +119,7 @@ function StoriesContainer({
     );
   return (
     <div
-      className="fixed-layout justify-start"
+      className="fixed-layout justify-start flex items-start "
       {...handlers}
       onPointerLeave={() => {
         document.querySelector<HTMLDivElement>(
@@ -120,21 +136,17 @@ function StoriesContainer({
       }}
     >
       <Cube
-        index={storiesData?.findIndex((s) => s.id === selectedStory?.id)}
+        index={cubeIndex}
         onChange={(i) => {
-          if (
-            Math.abs(
-              storiesData?.findIndex((s) => s.id === selectedStory?.id) - i
-            ) === 1 &&
-            i > -1
-          ) {
+          if (i > -1 && i < storiesData.length) {
+            setCubeIndex(i);
             SelectStory(storiesData[i]);
           }
         }}
         width={window.innerWidth}
         lockScrolling
         scaleRange={[1, 1]}
-        height={window.innerHeight - 100}
+        height={window.innerHeight}
         hasNext={(i) => i < storiesData.length - 1}
         renderItem={(i, active) => {
           return (
@@ -150,8 +162,8 @@ function StoriesContainer({
                 <>
                   {
                     <StoryHolder
-                      active={selectedStory.id === storiesData[i]?.id}
-                      isPaused={active}
+                      active={i === cubeIndex}
+                      isPaused={i !== cubeIndex}
                       story={StoryServiceClass.configureStory(storiesData[i])}
                     />
                   }

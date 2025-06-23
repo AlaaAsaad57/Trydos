@@ -158,7 +158,7 @@ class StoryService {
       if (storyItem.full_video_path) {
         let vid = storyItem.full_video_path.replace(
           "/upload",
-          "/upload/w_700/f_webm/q_auto"
+          "/upload/w_720,h_1280,c_limit/f_auto/q_auto:good/fl_lossy/so_0"
         );
         returnedData.push({
           url: vid,
@@ -180,11 +180,15 @@ class StoryService {
       } else if (storyItem.photo_path) {
         let img = storyItem.photo_path.replace(
           "/upload",
-          "/upload/w_800/f_webp/q_auto"
+          "/upload/w_720,h_1280,c_limit/f_auto/q_auto:good/fl_progressive:steep/e_sharpen"
         );
         returnedData.push({
           url: img,
           link: storyItem.link,
+          placeholderUrl: storyItem.photo_path.replace(
+            "/upload",
+            "/upload/w_50,h_90,c_limit/f_auto/q_auto:low/e_blur:2000"
+          ),
           FixedUrl: img,
           is_seen: storyItem.is_seen,
           duration: 5000,
