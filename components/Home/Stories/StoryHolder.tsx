@@ -41,7 +41,7 @@ function StoryHolder({ story, active, isPaused }: StoryHolderPropsType) {
             SelectStory(null);
           }}
         >
-          {<Xicon />}
+          {<Xicon className="[&>path]:fill-[#fafafa]" />}
         </span>
       )}
       <StoryViewer
