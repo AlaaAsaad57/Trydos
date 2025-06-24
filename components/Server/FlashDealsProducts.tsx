@@ -125,7 +125,7 @@ async function FlashDealsProducts({ lang }) {
       >
         {flashDealsProducts?.data?.products?.map((product, key) => (
           <div
-            className="max-h-[290px] max-w-[200px] relative mx-[10px]"
+            className="max-h-[290px] max-w-[200px] relative mx-[10px] shadow-sm rounded-md"
             data-cy="countProduct"
             key={product.slug}
           >
@@ -142,7 +142,8 @@ async function FlashDealsProducts({ lang }) {
             >
               <ProductBanner
                 featured={product.featured}
-                flashDeals={product.end_date}
+                flashDeals={product?.flash_deal_end_date}
+                labels={product.label_names}
               />
 
               <div className="max-h-[220px] w-full">
@@ -265,7 +266,7 @@ async function FlashDealsProducts({ lang }) {
           </div>
         ))}
         <NextLink
-          href={`/${lang}/featured`}
+          href={`/${lang}/flashDeals`}
           data={{ is_boutique: true }}
           className="product-container items-center justify-center min-w-[200px] max-h-[290px] bg-[#0002]  align-center flex-col relative"
         >

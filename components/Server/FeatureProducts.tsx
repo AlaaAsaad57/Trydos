@@ -119,13 +119,13 @@ async function FeatureProducts({ lang }) {
         </span>
       </NextLink>
       <HortiznalScrollBar
-        className="featured-products-container w-full mt-[12px] flex-row justify-start items-center max-w-[1365px] h-[200px] pb-[8px] "
+        className="featured-products-container w-full mt-[12px] flex-row justify-start items-center max-w-[1365px] h-[290px] pb-[8px] "
         id="featured-products-container"
         dataCy="featured-products-container"
       >
         {featuredProducts?.data?.products?.map((product, key) => (
           <div
-            className="max-h-[200px] max-w-[150px] relative mx-[10px]"
+            className="max-h-[290px] max-w-[200px] relative mx-[10px] shadow-sm rounded-md"
             data-cy="countProduct"
             key={product.slug}
           >
@@ -137,22 +137,24 @@ async function FeatureProducts({ lang }) {
               ariaLabel={`go to product ${product.slug} ${lang}`}
               suppressHydrationWarning
               href={`/${lang}/products/${product.slug}`}
-              className="product-container  align-center flex-col relative shadow-sm max-h-[200px] max-w-[150px]"
+              className="product-container  align-center flex-col relative shadow-sm max-h-[290px] max-w-[200px]"
               data-cy="featured_product_link"
             >
               <ProductBanner
                 featured={product.featured}
-                flashDeals={product.end_date}
+                flashDeals={product?.flash_deal_end_date}
+                labels={product.label_names}
               />
-              <div className="max-h-[130px] w-full">
+
+              <div className="max-h-[220px] w-full">
                 <Image
                   alt={product.name}
-                  width={150}
+                  width={200}
                   height={130}
-                  className="rounded w-full flex  max-h-[130px] min-h-[130px]"
+                  className="rounded w-full flex  max-h-[220px] min-h-[220px]"
                   src={getConfiguredImage({
                     src: GetImageUrl(product.images[0]?.file_path),
-                    width: 150,
+                    width: 200,
                     height: 400,
                   })}
                 />
@@ -169,7 +171,7 @@ async function FeatureProducts({ lang }) {
                         loading={"eager"}
                         src={getConfiguredImage({
                           src: GetImageUrl(product?.brand?.icon),
-                          height: 30,
+                          height: 100,
                         })}
                         width={16}
                         height={7}
@@ -191,7 +193,7 @@ async function FeatureProducts({ lang }) {
                           loading={"eager"}
                           src={getConfiguredImage({
                             src: GetImageUrl(product?.category?.icon),
-                            height: 30,
+                            height: 100,
                           })}
                           width={10}
                           height={10}

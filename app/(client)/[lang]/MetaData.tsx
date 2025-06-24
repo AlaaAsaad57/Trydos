@@ -246,7 +246,7 @@ export async function getHomeMetadata({ params }) {
                   (product.offer_price || product.price || 0) *
                   (currencyData.exchange_rate || 1),
                 priceValidUntil:
-                  product.end_date ||
+                  product.flash_deal_end_date ||
                   new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
                     .toISOString()
                     .split("T")[0],
@@ -300,7 +300,7 @@ export async function getHomeMetadata({ params }) {
                   (product.offer_price || product.price || 0) *
                   (currencyData.exchange_rate || 1),
                 priceValidUntil:
-                  product.end_date ||
+                  product.flash_deal_end_date ||
                   new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
                     .toISOString()
                     .split("T")[0],
@@ -578,7 +578,7 @@ export async function getFeaturedMetadata({ params }) {
             (product.offer_price || product.price || 0) *
             (currencyData.exchange_rate || 1),
           priceValidUntil:
-            product.end_date ||
+            product.flash_deal_end_date ||
             new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
               .toISOString()
               .split("T")[0],
@@ -783,7 +783,7 @@ export async function getFlashDealsMetadata({ params }) {
             (product.offer_price || product.price || 0) *
             (currencyData.exchange_rate || 1),
           priceValidUntil:
-            product.end_date ||
+            product.flash_deal_end_date ||
             new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
               .toISOString()
               .split("T")[0],

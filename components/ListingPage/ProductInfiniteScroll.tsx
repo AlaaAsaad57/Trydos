@@ -150,8 +150,9 @@ function ProductsInfiniteScroll({
                 // }}
               >
                 <ProductBanner
+                  labels={product.label_names}
                   featured={product.featured}
-                  flashDeals={product.end_date}
+                  flashDeals={product.flash_deal_end_date}
                 />
                 <ProductPhotosSlider
                   product={{

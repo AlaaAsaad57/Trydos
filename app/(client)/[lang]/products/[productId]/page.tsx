@@ -33,6 +33,7 @@ import DescriptorBorder from "public/svg/product/descriptorBorder.svg";
 import FlashDealBanner from "components/products/FlashDealBanner";
 import FeaturedBanner from "components/products/FeaturedBanner";
 import { ProductPagePropsType } from "models/componentType/productTypes/productPagePropsType";
+import ProductsLabels from "components/products/ProductsLabels";
 export const runtime = "nodejs";
 export const preferredRegion = ["bom1", "sin1"]; // For Middle East users
 
@@ -202,13 +203,16 @@ async function Page({ params, searchParams }: ProductPagePropsType) {
                   <FeaturedBanner />
                 </div>
               )} */}
-              {product?.flash_deal_details?.end_date && (
-                <div className="flex-row mx-[5px]">
+              <div className="flex-row mx-[5px]">
+                {product?.flash_deal_details?.end_date && (
                   <FlashDealBanner
                     end_data={product?.flash_deal_details?.end_date}
                   />
-                </div>
-              )}
+                )}
+                {product.label_names && (
+                  <ProductsLabels labels={product.label_names} />
+                )}
+              </div>
             </div>
             <Suspense
               fallback={

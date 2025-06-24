@@ -9,7 +9,8 @@ export interface SearchResponse {
       name: string;
       slug: string;
       details: string;
-      end_date?: string;
+      flash_deal_end_date?: string;
+      label_names: string[];
       thumbnail: {
         file_path: string;
         original_width: string;

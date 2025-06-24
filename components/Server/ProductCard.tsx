@@ -36,7 +36,8 @@ function ProductCard({ product, params, currency, productColor, key }) {
       >
         <ProductBanner
           featured={product.featured}
-          flashDeals={product.end_date}
+          flashDeals={product.flash_deal_end_date}
+          labels={product.label_names}
         />
         <Suspense fallback={<div className="min-w-full min-h-[290px]" />}>
           <ProductPhotosSlider

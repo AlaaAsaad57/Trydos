@@ -154,7 +154,8 @@ export async function fetchFilteredProducts(
         products: data?.data?.products?.map((s: any) => ({
           name: s?.name,
           featured: s?.featured,
-          end_date: s?.end_date,
+          flash_deal_end_date: s?.flash_deal_end_date,
+          label_names: s.label_names ?? [],
           slug: s?.slug,
           id: s?.id,
           details: s?.details,
