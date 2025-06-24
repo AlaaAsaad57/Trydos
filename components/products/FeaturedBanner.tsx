@@ -1,5 +1,5 @@
-import { translateFunction } from "lib/i18n";
 import React from "react";
+import { translateFunction } from "utils/functions";
 
 function FeaturedBanner() {
   const CrownIcon = () => (
