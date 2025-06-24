@@ -168,7 +168,16 @@ function ContactLists(props) {
                           ).length > 0
                       )[0]
                     }
-                    chat_members={chat?.channel_members}
+                    chat_members={
+                      chats.filter(
+                        (chat) =>
+                          chat.channel_members.filter(
+                            (mem) =>
+                              parseInt(mem.user_id) ===
+                              parseInt(contact?.contact_user?.id)
+                          ).length > 0
+                      )[0]?.channel_members
+                    }
                   />
                 );
               } else {

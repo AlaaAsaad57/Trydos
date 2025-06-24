@@ -13,8 +13,9 @@ export default function Providers({ children }) {
       <Suspense fallback={<></>}>
         <CartProvider />
       </Suspense>
-      <NotificationsContainer />
+
       {children}
+      <NotificationsContainer />
     </>
   );
 }

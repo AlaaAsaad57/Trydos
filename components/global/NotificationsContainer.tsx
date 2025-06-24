@@ -76,7 +76,7 @@ const NotificationsContainer = () => {
         `,
         }}
       />
-      <div className="fixed top-4 right-4 z-[999999999999999999] flex flex-col gap-3 pointer-events-none">
+      <div className="fixed top-4 right-4 z-[9999999999999999999] flex flex-col gap-3 pointer-events-none w-[90%]">
         {notifications.map((notification) => {
           const notificationClasses = `
             relative w-full max-w-[1200px] px-4 py-3 rounded-[15px] shadow-lg

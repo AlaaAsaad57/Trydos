@@ -3,6 +3,8 @@ import Webcam from "react-webcam";
 import CameraIcon from "../svg/image.svg";
 import SendIcon from "../svg/sharechat.svg";
 import Image from "next/image";
+import { showErrorNotification } from "store/notifications/reducer";
+import { translateFunction } from "utils/functions";
 
 const WebcamCapture = ({ imgs, send, setImgs, imageFile, close }) => {
   const webcamTypeRef = useRef({
@@ -115,8 +117,13 @@ const WebcamCapture = ({ imgs, send, setImgs, imageFile, close }) => {
           />
           <div className="button-bases">
             <button
-              disabled={hasTwoCameras()}
               onClick={() => {
+                if (hasTwoCameras()) {
+                  showErrorNotification(
+                    translateFunction("this device has only one camera")
+                  );
+                  return;
+                }
                 webcamTypeRef.current = {
                   width: 430,
                   height: 400,
@@ -131,8 +138,8 @@ const WebcamCapture = ({ imgs, send, setImgs, imageFile, close }) => {
                 xmlnsXlink="http://www.w3.org/1999/xlink"
                 x="0px"
                 y="0px"
-                width="122.879px"
-                height="93.242px"
+                width="30px"
+                height="30px"
                 viewBox="0 0 122.879 93.242"
                 enableBackground="new 0 0 122.879 93.242"
                 xmlSpace="preserve"

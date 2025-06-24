@@ -271,7 +271,7 @@ class AuthService {
     let userLocal = JSON.parse(localStorage.getItem("USER"));
     const { loginSuccess } = useAppStore.getState();
     if (userLocal) {
-      if (Smartlook.initialized())
+      if (process.env.NODE_ENV === "production" && Smartlook.initialized())
         Smartlook.identify(userLocal.id, {
           name: userLocal.name,
           phone: userLocal.mobilePhone,

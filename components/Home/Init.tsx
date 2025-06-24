@@ -139,15 +139,19 @@ function Init() {
     }
 
     try {
-      Smartlook.init(process.env.NEXT_PUBLIC_SMARTLOOK_KEY);
+      if (process.env.NODE_ENV === "production") {
+        Smartlook.init(process.env.NEXT_PUBLIC_SMARTLOOK_KEY);
+      }
       if (localStorage.getItem("USER") || localStorage.getItem("guest-user")) {
         let user =
           localStorage.getItem("USER") || localStorage.getItem("guest-user");
-        Smartlook.identify(JSON.parse(user).id, {
-          name: JSON.parse(user)?.name || "Guest",
-          phone: JSON.parse(user)?.mobilePhone || "null",
-          // other custom properties
-        });
+        if (process.env.NODE_ENV === "production") {
+          Smartlook.identify(JSON.parse(user).id, {
+            name: JSON.parse(user)?.name || "Guest",
+            phone: JSON.parse(user)?.mobilePhone || "null",
+            // other custom properties
+          });
+        }
       }
     } catch (error) {
       console.log(error);

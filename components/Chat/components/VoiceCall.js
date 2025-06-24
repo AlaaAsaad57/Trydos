@@ -34,9 +34,14 @@ function VideoCall(props) {
   const [users, setUsers] = useState([]);
   const [startIndicator, setStart] = useState(false);
   const client = useClient(config);
-  storeClient(client);
+
   const [callStatus, setCallStatus] = useState(null);
   useEffect(() => {
+    if (client) {
+      storeClient(client);
+      console.log(client);
+    }
+
     start();
   }, []);
   // ready is a state variable, which returns true when the local tracks are initialized, untill then tracks variable is null

@@ -10,10 +10,7 @@ import RedRecord from "../svg/recordme.svg";
 import ForwardIcon from "../svg/forwarded.svg";
 import MissedIcon from "../svg/misscall.svg";
 import VideoIconMissed from "../svg/VideoMissed.svg";
-import profile from "public/images/profileNo.png";
-
 import OptionsMenu from "./OptionsMenu";
-import { getTwoLetters, getUser } from "../chatsFunctions";
 import RepliedMessage from "./RepliedMessage";
 import SpinIcon from "../svg/spinn.svg";
 import DownIcon from "../svg/down.svg";
@@ -260,6 +257,7 @@ function ChatMessage(props) {
     elem.select();
     document.execCommand("Copy");
   };
+
   const showMessage = () => {
     const { setForwardMessage, setReplyMessage } = useAppStore.getState();
     // if (
@@ -593,10 +591,10 @@ function ChatMessage(props) {
               <img
                 alt="user"
                 onClick={() =>
-                  setImg(props.message.message_files[0]?.file_path)
+                  setImg(props.message.message_files?.[0]?.file_path)
                 }
                 className="message-img"
-                src={props.message.message_files[0]?.file_path}
+                src={props.message.message_files?.[0]?.file_path}
               />
 
               <div className="message-date">{getMessageStatus()}</div>

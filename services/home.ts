@@ -226,7 +226,7 @@ class HomeService {
           })
         );
         if (repo.data.user) {
-          if (Smartlook.initialized())
+          if (process.env.NODE_ENV === "production" && Smartlook.initialized())
             Smartlook.identify(repo.data.user.id, {
               name: repo.data.user.name,
               phone: "guest",
@@ -292,7 +292,7 @@ class HomeService {
         key: "MARKET-TOKEN",
         value: localStorage.getItem("MARKET-TOKEN"),
       });
-      if (Smartlook.initialized())
+      if (process.env.NODE_ENV === "production" && Smartlook.initialized())
         Smartlook.identify(JSON.parse(localStorage.getItem("USER")).id, {
           name: JSON.parse(localStorage.getItem("USER")).name,
           phone: JSON.parse(localStorage.getItem("USER")).mobilePhone,
@@ -306,7 +306,7 @@ class HomeService {
       });
     } else {
       if (localStorage.getItem("guest-user")) {
-        if (Smartlook.initialized())
+        if (process.env.NODE_ENV === "production" && Smartlook.initialized())
           Smartlook.identify(
             JSON.parse(localStorage.getItem("guest-user")).id,
             {
@@ -387,7 +387,7 @@ class HomeService {
         localStorage.removeItem("customer-info");
         setIsRegisteringReady(true);
         if (repo.data.user) {
-          if (Smartlook.initialized())
+          if (process.env.NODE_ENV === "production" && Smartlook.initialized())
             Smartlook.identify(repo.data.user.id, {
               name: repo.data.user.name,
               phone: "guest",
