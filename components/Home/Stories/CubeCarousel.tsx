@@ -1,14 +1,6 @@
 import React from "react";
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore: package includes its own declaration file
-import Cube from "react-cube-navigation";
 
-/**
- * This wrapper simply re-exports the `Cube` component from the
- * `react-cube-navigation` package while maintaining the exact same prop
- * surface that the rest of the codebase expects. This means we can keep the
- * local import path (`./CubeCarousel`) unchanged in existing files.
- */
+import Cube from "react-cube-navigation";
 
 export interface CubeCarouselProps {
   /** Currently active slide index */
