@@ -4,12 +4,13 @@ import React, { useEffect, useState } from "react";
 import "styles/cameraShot.css";
 import CameraShotIcon from "public/svg/product/CameraShotIcon.svg";
 import ColorsInfo from "public/svg/product/colorsInfo.svg";
-import { useSwipeable } from "react-swipeable";
+import { useSwipeToClose } from "utils/useSwipeToClose";
 import GalleryItem from "./GalleryItem";
 import { translateFunction } from "utils/functions";
 import { useParams } from "next/navigation";
 import { useAppStore } from "store";
 import { CameraShotGalleryPropsType } from "models/componentType/CameraShotGalleryPropsType";
+
 function CameraShotGallery({ images, close }: CameraShotGalleryPropsType) {
   const { activeCameraGallery, showInfoMessage } = useAppStore();
   let { lang } = useParams();
@@ -20,16 +21,19 @@ function CameraShotGallery({ images, close }: CameraShotGalleryPropsType) {
   };
   const [extended, setExtended] = useState(false);
 
-  var dir = 0;
-  const swipeToClose = (e) => {
-    let container = document.querySelector(".container-gallery");
+  // Use the improved swipe-to-close hook
+  const {
+    ref: swipeRef,
+    isDragging,
+    isAnimating,
+  } = useSwipeToClose({
+    threshold: 120, // Minimum distance to trigger close
+    velocityThreshold: 0.4, // Minimum velocity to trigger close
+    animationDuration: 300,
+    onClose: close,
+    enabled: activeCameraGallery,
+  });
 
-    if (container.scrollTop === 0 && Math.abs(e.deltaY) > 50) {
-      if (activeCameraGallery === true) {
-        close();
-      }
-    }
-  };
   const scrollToClose = (e) => {
     let container = document.querySelector(".container-gallery");
 
@@ -42,24 +46,16 @@ function CameraShotGallery({ images, close }: CameraShotGalleryPropsType) {
       close();
     }
   };
-  const handlers = useSwipeable({
-    onSwipedDown: (e) => {
-      swipeToClose(e);
-    },
 
-    delta: 10,
-    trackMouse: true,
-    trackTouch: true,
-
-    touchEventOptions: {
-      passive: false,
-    },
-  });
   useEffect(() => {
-    window.addEventListener("wheel", function (e) {
+    const handleWheel = (e) => {
       if (activeCameraGallery) scrollToClose(e);
-    });
-  }, []);
+    };
+
+    window.addEventListener("wheel", handleWheel);
+    return () => window.removeEventListener("wheel", handleWheel);
+  }, [activeCameraGallery]);
+
   return (
     <>
       {activeCameraGallery && (
@@ -69,17 +65,25 @@ function CameraShotGallery({ images, close }: CameraShotGalleryPropsType) {
               activeCameraGallery ? "top-0" : "top-[110vh]"
             } left-0 h-[100vh] min-w-[100vw] z-[9999999999]`}
             onClick={() => {
-              close();
+              if (!isDragging && !isAnimating) {
+                close();
+              }
             }}
           />
           <div
-            {...handlers}
-            className={`flex-col pt-4  rounded-t-[20px] bg-[#FEFEFE] fixed w-full camera-shots-gallery-container z-[999999999999] ${
+            ref={swipeRef}
+            className={`flex-col pt-4 rounded-t-[20px] bg-[#FEFEFE] fixed w-full camera-shots-gallery-container z-[999999999999] ${
               activeCameraGallery ? "top-16" : "top-[110vh]"
-            } left-0`}
+            } left-0 ${isDragging ? "select-none" : ""}`}
             data-cy="ActiveCaneraGallery"
+            data-swipe-container
           >
-            <div className="gallery-label pl-5 pr-5 flex-row items-center justify-start ">
+            {/* Swipe indicator */}
+            <div className="w-full flex justify-center pb-2">
+              <div className="w-10 h-1 bg-gray-300 rounded-full"></div>
+            </div>
+
+            <div className="gallery-label pl-5 pr-5 flex-row items-center justify-start">
               <CameraShotIcon />
               <span className="regular text-[13px] text-[#8D8D8D] ml-1">
                 {translate("Buyers Camera")} 12 {translate("Shot")}

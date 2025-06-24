@@ -3,6 +3,7 @@ export interface ProductCart {
   customer_id: number;
   cart_group_id: string;
   product_id: number;
+  category_name: string;
   choices: Array<{
     choice_1: string;
   }>;

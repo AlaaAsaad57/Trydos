@@ -1,4 +1,124 @@
 const translations = {
+  en: {
+    "Premium Shopping": "Premium Shopping",
+    Experience: "Experience",
+    "Featured Products": "Featured Products",
+    "Flash Deals": "Flash Deals",
+    "Premium Brands": "Premium Brands",
+    "TryDos - Premium Shopping Experience":
+      "TryDos - Premium Shopping Experience",
+    "Discover premium products on TryDos":
+      "Discover premium products on TryDos - Your ultimate shopping destination with featured products, flash deals, and boutique collections.",
+    "Featured Products - TryDos":
+      "Featured Products - TryDos | Premium Curated Collection",
+    "Flash Deals - TryDos": "Flash Deals - TryDos | Limited Time Offers",
+    "Compare Products - TryDos":
+      "Compare Products - TryDos | Product Comparison Tool",
+    "Categories - TryDos": "Categories - TryDos | Browse by Category",
+    "Settings - TryDos": "Settings - TryDos | Account Settings",
+    "Premium Curated Collection": "Premium Curated Collection",
+    "Limited Time Offers": "Limited Time Offers",
+    "Product Comparison Tool": "Product Comparison Tool",
+    "Browse by Category": "Browse by Category",
+    "Account Settings": "Account Settings",
+    "Your ultimate shopping destination": "Your ultimate shopping destination",
+    "Curated selection of premium featured products":
+      "Curated selection of premium featured products",
+    "Limited-time offers with great discounts":
+      "Limited-time offers with great discounts",
+    "Find and compare your favorite products":
+      "Find and compare your favorite products",
+    "Browse products by categories": "Browse products by categories",
+    "Manage your account preferences": "Manage your account preferences",
+    shopping: "shopping",
+    "online shopping": "online shopping",
+    "premium products": "premium products",
+    "best deals": "best deals",
+    "shopping mall": "shopping mall",
+    boutiques: "boutiques",
+    brands: "brands",
+    fashion: "fashion",
+    electronics: "electronics",
+    "home garden": "home garden",
+    // Alt attributes
+    sy: "sy",
+    "info icon": "info icon",
+    login: "login",
+    offer: "offer",
+    avatar: "avatar",
+    story: "story",
+    user: "user",
+    imgs: "imgs",
+    Preview: "Preview",
+    "TryDos Logo": "TryDos Logo",
+    truck: "truck",
+    deliveryman: "deliveryman",
+    Omar: "Omar",
+    image: "image",
+    "buy Button": "buy Button",
+    Upload: "Upload",
+    TryDos: "TryDos",
+    // Console messages
+    "Server cookie API failed:": "Server cookie API failed:",
+    "Navigation blocked - already in progress":
+      "Navigation blocked - already in progress",
+    "Navigating to:": "Navigating to:",
+    "FCM token is older than 1 day. Refreshing...":
+      "FCM token is older than 1 day. Refreshing...",
+    "Notification permission denied or dismissed.":
+      "Notification permission denied or dismissed.",
+    "Do not close this window": "Do not close this window",
+    "Preparing your experience...": "Preparing your experience...",
+    // Date
+    "2 June": "2 June",
+    // Messages
+    "User In Another Call": "User In Another Call",
+    "Initializing...": "Initializing...",
+    "Loading countries...": "Loading countries...",
+    "Preparing options...": "Preparing options...",
+    "Almost ready...": "Almost ready...",
+    "Ready!": "Ready!",
+    "Please wait while we set up your country selection":
+      "Please wait while we set up your country selection",
+    "You previously visited from": "You previously visited from",
+    "but now accessing from": "but now accessing from",
+    "Choose your country to get the best experience":
+      "Choose your country to get the best experience",
+    "Loading...": "Loading...",
+    "No more notifications": "No more notifications",
+    "Currency Request": "Currency Request",
+    January: "January",
+    February: "February",
+    March: "March",
+    April: "April",
+    May: "May",
+    June: "June",
+    July: "July",
+    August: "August",
+    September: "September",
+    October: "October",
+    November: "November",
+    December: "December",
+    M: "M",
+    K: "K",
+    "Info Message": "Info Message",
+    "Entering The Information Below Clearly And Completely Will Ensure That Your Order Arrives Without Problems And Faster.":
+      "Entering The Information Below Clearly And Completely Will Ensure That Your Order Arrives Without Problems And Faster.",
+    "Notification Premission:": "Notification Permission:",
+    Enabled: "Enabled",
+    "Not Enabled": "Not Enabled",
+    "FireBase Supported": "FireBase Supported",
+    Supported: "Supported",
+    "Not Supported": "Not Supported",
+    "User ID:": "User ID:",
+    "FCM Token:": "FCM Token:",
+    "FCM Error:": "FCM Error:",
+    "Notification Settings": "Notification Settings",
+    Product: "Product",
+    "this message was deleted": "this message was deleted",
+    "You will be notified for this product already":
+      "You will be notified for this product already",
+  },
   ar: {
     "Why Was The Product Return?": "لماذا تم إرجاع المنتج؟",
     "To Your Account": "إلى حسابك",
@@ -7,9 +127,7 @@ const translations = {
     "Premium Shopping": "تسوق مميز",
     Experience: "تجربة",
     "Featured Products": "المنتجات المميزة",
-
     "Flash Deals": "عروض سريعة",
-    "Show More": "عرض المزيد",
     "Premium Brands": "علامات تجارية مميزة",
     "TryDos - Premium Shopping Experience": "ترايدوس - تجربة تسوق مميزة",
     "Discover premium products on TryDos":
@@ -740,7 +858,6 @@ const translations = {
     "Featured Products": "Öne Çıkan Ürünler",
     "Flash Deals": "Hızlı Fırsatlar",
     "Premium Brands": "Premium Markalar",
-    "Show More": "Daha Fazla Göster",
     "TryDos - Premium Shopping Experience":
       "TryDos - Premium Alışveriş Deneyimi",
     "Discover premium products on TryDos":

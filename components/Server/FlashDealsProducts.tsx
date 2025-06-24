@@ -115,7 +115,7 @@ async function FlashDealsProducts({ lang }) {
           </svg>
         </span>
         <span className="ml-[12px]">
-          {translateFunction("Flash Deals Products", lang.split("-")[1])}
+          {translateFunction("Flash Deals", lang.split("-")[1])}
         </span>
       </NextLink>
       <HortiznalScrollBar
@@ -271,7 +271,7 @@ async function FlashDealsProducts({ lang }) {
           className="product-container items-center justify-center min-w-[200px] max-h-[290px] bg-[#0002]  align-center flex-col relative"
         >
           <div className="flex regular rounded-md p-3 items-center justify-center bg-[#5d5d5d] text-white shadow-md shadow-[#fff]">
-            Show More
+            {translateFunction("Show More", lang.split("-")[1])}
           </div>
         </NextLink>
       </HortiznalScrollBar>

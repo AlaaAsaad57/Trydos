@@ -1,3 +1,4 @@
+import { translateFunction } from "lib/i18n";
 import React from "react";
 
 function FeaturedBanner() {
@@ -25,7 +26,9 @@ function FeaturedBanner() {
     <div className="bg-gradient-to-r from-purple-500 to-blue-500 text-white px-3 py-2 rounded-lg shadow-lg">
       <div className="flex items-center gap-1.5 mb-1">
         <CrownIcon />
-        <span className="text-xs font-bold">FEATURED</span>
+        <span className="text-xs font-bold">
+          {translateFunction("FEATURED")}
+        </span>
       </div>
     </div>
   );

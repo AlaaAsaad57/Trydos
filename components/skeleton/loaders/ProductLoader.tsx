@@ -436,8 +436,8 @@ function ProductLoader({ product }) {
                   src="/svg/deliveryman.svg"
                 />
                 <span>
-                  {translateFunction("Ship To You Accepted", languageVariable)}{" "}
-                  2 June
+                  {translateFunction("Ship To You Accepted")}{" "}
+                  {translateFunction("2 June")}
                 </span>
               </div>
             </div>

@@ -1998,6 +1998,7 @@ const QuantutyInput = ({
               }),
               quantity: parseInt(i.toString()) + 1,
               brand: product?.brand?.name,
+              category: product?.category_name,
               // count_likes: product?.count_of_likes,
               // review_count: product?.shared_count,
               item_variant: product.variant,

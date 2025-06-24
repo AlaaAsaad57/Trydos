@@ -203,14 +203,17 @@ async function Page({ params, searchParams }: ProductPagePropsType) {
                   <FeaturedBanner />
                 </div>
               )} */}
-              <div className="flex-row mx-[5px]">
+              <div className="flex-row mx-[5px] w-auto">
                 {product?.flash_deal_details?.end_date && (
                   <FlashDealBanner
                     end_data={product?.flash_deal_details?.end_date}
                   />
                 )}
-                {product.label_names && (
-                  <ProductsLabels labels={product.label_names} />
+                {product.labels && (
+                  <ProductsLabels
+                    isProduct={true}
+                    labels={JSON.parse(product.labels)}
+                  />
                 )}
               </div>
             </div>
@@ -476,7 +479,7 @@ async function Page({ params, searchParams }: ProductPagePropsType) {
                   <img
                     width={15}
                     height={15}
-                    alt="truck"
+                    alt={translateFunction("truck", languageVariable)}
                     src="/svg/greentruck.svg"
                   />
                   <span>
@@ -488,7 +491,7 @@ async function Page({ params, searchParams }: ProductPagePropsType) {
                 <img
                   width={15}
                   height={15}
-                  alt="truck"
+                  alt={translateFunction("truck", languageVariable)}
                   src="/svg/redtruck.svg"
                 />
                 <span>
@@ -499,12 +502,12 @@ async function Page({ params, searchParams }: ProductPagePropsType) {
                 <img
                   width={10}
                   height={15}
-                  alt="deliveryman"
+                  alt={translateFunction("deliveryman", languageVariable)}
                   src="/svg/deliveryman.svg"
                 />
                 <span>
                   {translateFunction("Ship To You Accepted", languageVariable)}{" "}
-                  2 June
+                  {translateFunction("2 June", languageVariable)}
                 </span>
               </div>
             </div>

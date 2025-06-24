@@ -271,12 +271,19 @@ export const getCurrency = async ({ callback }) => {
 };
 export const FlagIcon = ({ iso }) => {
   if (iso.toLowerCase() === "sy")
-    return <img src="/svg/sy.svg" alt="sy" width={15} height={10} />;
+    return (
+      <img
+        src="/svg/sy.svg"
+        alt={translateFunction("sy")}
+        width={15}
+        height={10}
+      />
+    );
 
   return (
     <img
       src={`/svg/flag/${iso?.toLowerCase()}.svg`}
-      alt={iso}
+      alt={translateFunction(iso)}
       width={15}
       height={10}
     />
@@ -284,18 +291,18 @@ export const FlagIcon = ({ iso }) => {
 };
 export const formatTime = (timeString: string) => {
   const MONTH_NAMES = [
-    "January",
-    "February",
-    "March",
-    "April",
-    "May",
-    "June",
-    "July",
-    "August",
-    "September",
-    "October",
-    "November",
-    "December",
+    translateFunction("January"),
+    translateFunction("February"),
+    translateFunction("March"),
+    translateFunction("April"),
+    translateFunction("May"),
+    translateFunction("June"),
+    translateFunction("July"),
+    translateFunction("August"),
+    translateFunction("September"),
+    translateFunction("October"),
+    translateFunction("November"),
+    translateFunction("December"),
   ];
   let date = !timeString?.includes("Z")
     ? new Date(timeString + "Z")

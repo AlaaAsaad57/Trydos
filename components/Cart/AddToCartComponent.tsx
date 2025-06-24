@@ -619,7 +619,8 @@ function AddToCartComponent({
                   src="/svg/deliveryman.svg"
                 />
                 <span data-cy="free_shipping_text3">
-                  {translateFunction("Ship To You Accepted")} 2 June
+                  {translateFunction("Ship To You Accepted")}{" "}
+                  {translateFunction("2 June")}
                 </span>
               </div>
             </div>
@@ -986,15 +987,15 @@ function AddToCartComponent({
                                         <path
                                           id="Path_14091"
                                           data-name="Path 14091"
-                                          d="M45,47h.708v3.541H45Z"
-                                          transform="translate(-30.852 -32.665)"
+                                          d="M45,47h.646v3.228H45Z"
+                                          transform="translate(-30.806 -32.164)"
                                           fill="#404040"
                                         />
                                         <path
                                           id="Path_14092"
                                           data-name="Path 14092"
-                                          d="M41,47h.708v3.541H41Z"
-                                          transform="translate(-28.139 -32.665)"
+                                          d="M41,47h.646v3.228H41Z"
+                                          transform="translate(-28.097 -32.164)"
                                           fill="#404040"
                                         />
                                       </g>
@@ -1190,12 +1191,16 @@ const SizesSkeleton = ({ product }) => {
                 alt="truck"
                 src="/svg/greentruck.svg"
               />
-              <span>{translateFunction("Free Shipping")}</span>
+              <span data-cy="free_shipping_text">
+                {translateFunction("Free Shipping")}
+              </span>
             </div>
           )}
           <div className="product-prop-item">
             <img width={15} height={15} alt="truck" src="/svg/redtruck.svg" />
-            <span>{translateFunction("Free Return")}</span>
+            <span data-cy="free_shipping_text2">
+              {translateFunction("Free Return")}
+            </span>
           </div>
           <div className="product-prop-item">
             <img
@@ -1204,7 +1209,10 @@ const SizesSkeleton = ({ product }) => {
               alt="deliveryman"
               src="/svg/deliveryman.svg"
             />
-            <span>{translateFunction("Ship To You Accepted")} 2 June</span>
+            <span data-cy="free_shipping_text3">
+              {translateFunction("Ship To You Accepted")}{" "}
+              {translateFunction("2 June")}
+            </span>
           </div>
         </div>
       </div>
@@ -1629,6 +1637,7 @@ const AddToCartButton = ({
                 quantity:
                   (isVariantInCart({ exact: false })?.quantity ?? 0) + 1,
                 brand: product?.brand?.name,
+                category: product?.category_name,
                 count_likes: product?.count_of_likes,
                 review_count: product?.shared_count,
                 item_variant: selectedVariant?.type,
@@ -1677,6 +1686,7 @@ const AddToCartButton = ({
                 }),
                 quantity: 1,
                 brand: product?.brand?.name,
+                category: product?.category_name,
                 count_likes: product?.count_of_likes,
                 review_count: product?.shared_count,
                 item_variant: selectedVariant?.type,

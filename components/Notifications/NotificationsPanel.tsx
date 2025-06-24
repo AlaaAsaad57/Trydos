@@ -328,21 +328,27 @@ const NotificationInfo = ({ closeWindow }) => {
         }}
       >
         <div className="flex-row w-full justify-between py-2">
-          <span>Notification Premission:</span>
+          <span>{translateFunction("Notification Permission:")}</span>
           <span>
-            {Notification.permission === "granted" ? "Enabled" : "Not Enabled"}
+            {Notification.permission === "granted"
+              ? translateFunction("Enabled")
+              : translateFunction("Not Enabled")}
           </span>
         </div>
         <div className="flex-row w-full justify-between py-2">
-          <span>FireBase Supported</span>
-          <span>{supported ? "Supported" : "Not Supported"}</span>
+          <span>{translateFunction("FireBase Supported")}</span>
+          <span>
+            {supported
+              ? translateFunction("Supported")
+              : translateFunction("Not Supported")}
+          </span>
         </div>
         <div className="flex-row w-full justify-between">
-          <span>User ID:</span>
+          <span>{translateFunction("User ID:")}</span>
           <span>{auth.UserID()}</span>
         </div>
         <div className="flex-row w-full justify-between">
-          <span>FCM Token:</span>
+          <span>{translateFunction("FCM Token:")}</span>
           <span>
             {token && token?.substring(0, 30)}
             ...
@@ -350,7 +356,7 @@ const NotificationInfo = ({ closeWindow }) => {
         </div>
         {error?.message && (
           <div className="flex-row w-full justify-between text-red-500">
-            <span>FCM Error:</span>
+            <span>{translateFunction("FCM Error:")}</span>
             <span>{error?.message}</span>
           </div>
         )}
@@ -364,7 +370,7 @@ const NotificationInfo = ({ closeWindow }) => {
         href={`/${lang}/settings`}
         className="flex-row w-full rounded-md shadow-md h-[50px] bg-[#f8f8f8] text-[#5d5d5d] medium text-[14px] justify-center items-center"
       >
-        <span>Notification Settings</span>
+        <span>{translateFunction("Notification Settings")}</span>
       </NextLink>
     </>
   );

@@ -1,6 +1,12 @@
 import React from "react";
 
-function ProductsLabels({ labels }: { labels?: string[] }) {
+function ProductsLabels({
+  labels,
+  isProduct,
+}: {
+  labels?: string[];
+  isProduct?: boolean;
+}) {
   const classesArray = [
     "bg-gradient-to-r from-orange-500 to-red-500 text-white px-3 py-2 rounded-lg shadow-lg ",
     "bg-gradient-to-r from-purple-500 to-pink-500 text-white px-3 py-2 rounded-lg shadow-lg ",
@@ -29,7 +35,11 @@ function ProductsLabels({ labels }: { labels?: string[] }) {
   );
 
   return (
-    <div className="flex flex-col gap-1 items-end mr-[3px] origin-top-right scale-[1.3]">
+    <div
+      className={`flex ${
+        isProduct ? "flex-row " : "flex-col origin-top-right scale-[1.3]"
+      } gap-1 items-end mr-[3px] `}
+    >
       {labels?.map((label, index) => (
         <div key={index} className={classesArray[index % classesArray.length]}>
           <div className="flex items-center gap-1.5 mb-1">
