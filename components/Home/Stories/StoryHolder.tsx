@@ -1,7 +1,11 @@
 import { useEffect, useState } from "react";
 
 import TransParentLoader from "components/global/TransParentLoader";
-import { setNextStory, setPreviousStory } from "store/homepage/actions";
+import {
+  SelectStory,
+  setNextStory,
+  setPreviousStory,
+} from "store/homepage/actions";
 import StoryViewer from "./StoryViewer";
 
 import { useAppStore } from "store";
@@ -9,7 +13,7 @@ import { useAppStore } from "store";
 import StoryServiceClass from "services/story";
 
 import { StoryHolderPropsType } from "models/componentType/StoryHolderPropsType";
-
+import Xicon from "public/svg/Xicon.svg";
 function StoryHolder({ story, active, isPaused }: StoryHolderPropsType) {
   const { selectedStory } = useAppStore();
 
@@ -30,6 +34,16 @@ function StoryHolder({ story, active, isPaused }: StoryHolderPropsType) {
         position: "relative",
       }}
     >
+      {active && (
+        <span
+          className="z-[99] top-[30px] right-[20px] absolute cursor-pointer"
+          onClick={() => {
+            SelectStory(null);
+          }}
+        >
+          {<Xicon />}
+        </span>
+      )}
       <StoryViewer
         activeId={selectedStory.id}
         id={story.id}

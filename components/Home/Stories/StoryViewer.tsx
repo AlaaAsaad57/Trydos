@@ -197,7 +197,7 @@ const StoryViewer: React.FC<StoryViewerProps> = ({
     >
       {/* Header (user avatar, name, timestamp) */}
       {currentHeader && (
-        <div className="absolute top-[10px] left-2 z-50 flex items-center gap-2 text-white">
+        <div className="absolute top-[10px] justify-start p-2 left-2 z-50 flex items-center gap-2 text-white">
           <Image
             src={currentHeader.profileImage || profilePlaceholder.src}
             alt="avatar"
