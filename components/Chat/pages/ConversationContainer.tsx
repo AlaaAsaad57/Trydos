@@ -155,7 +155,36 @@ function ConversationContainer({
   const [cameraEnabled, setCameraEnabled] = useState<boolean>(false);
   const [searchEnable, enableSearch] = useState<boolean>(false);
   const [DetailsVar, openDetails] = useState<boolean>(false);
+  const GetMessage = async (msgId, quoteId) => {
+    if (activeChat?.messages?.filter((f) => f.id === quoteId)?.length > 0) {
+      var numb = quoteId?.toString()?.match(/\d/g);
+      numb = numb?.join("");
+      let el = document.querySelector(`#main-container-${quoteId}`);
+      if (el) {
+        el.scrollIntoView({ block: "center" });
 
+        setTimeout(() => {
+          el.classList.add("backdrop_msg");
+        }, 300);
+        setTimeout(() => {
+          el.classList.remove("backdrop_msg");
+        }, 1200);
+      }
+    } else {
+      setQouted(qouted);
+
+      await getMessagesBetweenMessage({
+        first: activeChat?.id,
+        second:
+          parseInt(
+            activeChat?.messages?.[activeChat?.messages?.length - 1]?.id
+          ) - parseInt(quoteId),
+      });
+      setTimeout(() => {
+        scrollToMessage(quoteId);
+      }, 800);
+    }
+  };
   /* ------------------------- Scroll Refs ------------------------------- */
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
   const prevScrollHeightRef = useRef<number>(0);
@@ -360,13 +389,32 @@ function ConversationContainer({
 
   /* ------------------------- Scroll & effects --------------------------- */
   useEffect(() => {
-    if (first) setTimeout(scrollToBottom, 1500);
+    if (first) setTimeout(scrollToBottom, 1000);
   }, [first]);
 
   useEffect(() => {
     scrollToBottom();
   }, [openChatRenderer]);
+  const scrollToMessage = (quoteId) => {
+    console.log({ quoteId, mids: activeChat?.messages.map((s) => s.id) });
+    if (quoteId) {
+      if (activeChat?.messages?.filter((f) => f.id === quoteId)?.length > 0) {
+        var numb = quoteId?.toString()?.match(/\d/g);
+        numb = numb?.join("");
+        let el = document.querySelector(`#main-container-${quoteId}`);
+        if (el) {
+          el.scrollIntoView({ block: "center" });
 
+          setTimeout(() => {
+            el.classList.add("backdrop_msg");
+          }, 300);
+          setTimeout(() => {
+            el.classList.remove("backdrop_msg");
+          }, 1200);
+        }
+      }
+    }
+  };
   useEffect(() => {
     if (isPrivate) scrollToBottom();
     else scrollToBottom();
@@ -767,7 +815,7 @@ function ConversationContainer({
                 setImg={() => setImgs(null)}
                 GetMessage={(msgId, qoutedId) => {
                   // TODO migrate GetMessage logic to TS
-                  // @ts-ignore
+
                   GetMessage(msgId, qoutedId);
                 }}
                 type={showRoute(
