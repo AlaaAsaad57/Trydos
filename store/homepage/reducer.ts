@@ -159,7 +159,6 @@ export const useHomeStore = (set, get) => ({
 
   addStory: (payload: any) =>
     set((state) => {
-      console.log(payload);
       if (!state.storiesData) return state;
       let arr = state.storiesData.map((storyItem) => {
         if (storyItem.id === payload.user_id) {
