@@ -133,6 +133,7 @@ function ConversationContainer({
     setRefs,
     sendMessage,
     watchChannel,
+    deleteErrorMessage,
     setQouted,
     setMessagesPage,
     setReplyMessage,
@@ -286,19 +287,28 @@ function ConversationContainer({
 
   /* ---------------------------- File Handlers ---------------------------- */
   const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !activeChat) return;
-
     const midLocal = Math.random();
+    try {
+      const file = e.target.files?.[0];
+      e.target.value = "";
+      e.target.files = null;
 
-    if (file.type.includes("image")) {
-      await handleMediaMessage(file, "ImageMessage", midLocal);
-    } else if (file.type.includes("audio")) {
-      await handleMediaMessage(file, "VoiceMessage", midLocal);
-    } else if (file.type.includes("video")) {
-      await handleMediaMessage(file, "VideoMessage", midLocal);
-    } else {
-      await handleMediaMessage(file, "FileMessage", midLocal);
+      if (!file || !activeChat) return;
+
+      if (file.type.includes("image")) {
+        await handleMediaMessage(file, "ImageMessage", midLocal);
+      } else if (file.type.includes("audio")) {
+        await handleMediaMessage(file, "VoiceMessage", midLocal);
+      } else if (file.type.includes("video")) {
+        await handleMediaMessage(file, "VideoMessage", midLocal);
+      } else {
+        await handleMediaMessage(file, "FileMessage", midLocal);
+      }
+    } catch (error) {
+      console.error("Error sending message:", error);
+      deleteErrorMessage({ msg_id: midLocal, ch_id: activeChat?.id });
+      showErrorNotification(translateFunction("Failed to Upload file"));
+      sendStatus(null);
     }
   };
 
@@ -337,6 +347,7 @@ function ConversationContainer({
       // @ts-ignore – original util returns promise
       SendMessage(sendPayload, false, isPrivate);
     } catch (err) {
+      deleteErrorMessage({ msg_id: midLocal, ch_id: activeChat?.id });
       showErrorNotification(translateFunction("Failed to Upload file"));
     } finally {
       sendStatus(null);
@@ -345,33 +356,39 @@ function ConversationContainer({
 
   /* ------------------------------ Text Send ------------------------------ */
   const sendTextMessage = (text: string) => {
-    if (!text.trim()) return;
     const midLocal = Math.random();
+    try {
+      if (!text.trim()) return;
 
-    const optimistic = {
-      ...baseMessagePayload({}),
-      sender_user_id: senderId,
-      message_type: { name: "TextMessage" },
-      message_content: { content: text },
-      message_files: [{ file_path: text, file_name: "Text" }],
-      created_at: new Date(),
-      type: "pending",
-      mid: midLocal,
-      message_status: buildMessageStatus(receiverId, senderId),
-    };
-    optimisticMessage(optimistic);
-
-    // actual network
-    // @ts-ignore – original util returns promise
-    SendMessage(
-      baseMessagePayload({
-        content: text,
-        message_type: "TextMessage",
+      const optimistic = {
+        ...baseMessagePayload({}),
+        sender_user_id: senderId,
+        message_type: { name: "TextMessage" },
+        message_content: { content: text },
+        message_files: [{ file_path: text, file_name: "Text" }],
+        created_at: new Date(),
+        type: "pending",
         mid: midLocal,
-      }),
-      false,
-      isPrivate
-    );
+        message_status: buildMessageStatus(receiverId, senderId),
+      };
+      optimisticMessage(optimistic);
+
+      // actual network
+      // @ts-ignore – original util returns promise
+      SendMessage(
+        baseMessagePayload({
+          content: text,
+          message_type: "TextMessage",
+          mid: midLocal,
+        }),
+        false,
+        isPrivate
+      );
+    } catch (error) {
+      deleteErrorMessage({ msg_id: midLocal, ch_id: activeChat?.id });
+      showErrorNotification(translateFunction("Failed to send message"));
+      sendStatus(null);
+    }
   };
 
   /* --------------------------- Input handlers --------------------------- */
@@ -549,8 +566,8 @@ function ConversationContainer({
   /* ----------------------- Camera Image Sender -------------------------- */
   const sendCameraImg = useCallback(
     async (imageDataUrl: string) => {
+      const midLocal = Math.random();
       try {
-        const midLocal = Math.random();
         optimisticMessage({
           ...baseMessagePayload({}),
           sender_user_id: senderId,
@@ -577,6 +594,7 @@ function ConversationContainer({
           isPrivate
         );
       } catch (err) {
+        deleteErrorMessage({ msg_id: midLocal, ch_id: activeChat?.id });
         showErrorNotification(translateFunction("Failed to Upload file"));
       } finally {
         sendStatus(null);
@@ -641,6 +659,8 @@ function ConversationContainer({
           isPrivate
         );
       } catch (error) {
+        deleteErrorMessage({ msg_id: midLocal, ch_id: activeChat?.id });
+
         console.error("Error sending audio:", error);
         showErrorNotification(translateFunction("Failed to Upload audio"));
         sendStatus(null);

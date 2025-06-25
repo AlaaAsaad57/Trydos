@@ -591,16 +591,17 @@ export const upload = async (file) => {
   let currentFile = file;
   let a = "",
     b = "";
-  await uploadFile(currentFile.name?.split(".")[0] || "image", file)
-    .then((response) => {
-      a = response.data.data.file_path;
-      b = currentFile.name;
-      return { path: response.data.data.file_path, name: currentFile.name };
-    })
-    .catch((e) => {
-      console.error(e);
-    });
-  return { path: a, name: b };
+  let response = await uploadFile(
+    currentFile.name?.split(".")[0] || "image",
+    file
+  );
+  if (response.status === 200) {
+    a = response.data.data.file_path;
+    b = currentFile.name;
+    return { path: a, name: b };
+  } else {
+    throw new Error(response?.data?.message || "Failed to upload file");
+  }
 };
 export function dataURLtoFile(dataurl, filename) {
   var arr = dataurl.split(","),

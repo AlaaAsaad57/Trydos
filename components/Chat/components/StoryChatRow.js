@@ -32,7 +32,7 @@ function StoryChatRow({ story, index, viewedStory, stories, select }) {
           viewedStory.full_video_path
         )}
       />
-      <div className="story-name" style={{ marginLeft: "5px" }}>
+      <div className="story-name text-[#1d1d1d]" style={{ marginLeft: "5px" }}>
         {story.name ?? story.mobile_phone ?? "Unknown"}
       </div>
     </div>

@@ -1386,7 +1386,60 @@ export const useChatStore = (set, get) => ({
       });
     }
   },
+  deleteErrorMessage: (payload: any) => {
+    const state = get();
+    if (
+      state.data.filter((chat) => parseInt(chat.id) === parseInt(payload.ch_id))
+        .length > 0
+    ) {
+      let arr = [];
 
+      let active = state.activeChat;
+      state.data.forEach((chat) => {
+        if (parseInt(chat.id) === parseInt(payload.ch_id)) {
+          if (
+            state.activeChat?.id &&
+            parseInt(state.activeChat.id) === parseInt(payload.ch_id)
+          ) {
+            active = {
+              ...state.activeChat,
+              messages: active.messages.filter(
+                (msg) => parseInt(msg.mid) !== parseInt(payload.msg_id)
+              ),
+            };
+          }
+          arr.push({
+            ...chat,
+            messages: chat?.messages.filter(
+              (msg) => parseInt(msg.mid) !== parseInt(payload.msg_id)
+            ),
+          });
+        } else {
+          arr.push(chat);
+        }
+      });
+      set({
+        data: arr,
+        activeChat: active,
+      });
+    } else {
+      if (
+        state.activeChat &&
+        parseInt(state?.activeChat?.id) === parseInt(payload?.ch_id)
+      ) {
+        let active = state.activeChat;
+        active = {
+          ...state.activeChat,
+          messages: active.messages.filter(
+            (msg) => parseInt(msg.mid) !== parseInt(payload.msg_id)
+          ),
+        };
+        set({
+          activeChat: active,
+        });
+      }
+    }
+  },
   deleteCall: (payload: number) =>
     set((state) => ({
       calls: state.calls.filter(
