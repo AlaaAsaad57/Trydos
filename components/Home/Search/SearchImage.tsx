@@ -11,8 +11,6 @@ import { showErrorNotification } from "@/store/notifications/reducer";
 function SearchImage({ setSearchValue }: { setSearchValue: Function }) {
   const { language } = useAppStore();
 
-  const genAI = new GoogleGenerativeAI(process.env.NEXT_PUBLIC_GEMINI_API_KEY);
-  const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
   let { lang } = useParams();
   // @ts-ignore
   let languageVariable = lang.split("-")[1];
@@ -22,33 +20,41 @@ function SearchImage({ setSearchValue }: { setSearchValue: Function }) {
   const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(false);
   const GemeniFunc = async (file) => {
-    setLoading(true);
-    let image_result = await fileToGenerativePart(file);
-    const result = await model
-      .generateContent([
-        translate(
-          "Describe the product most clearly shown in this picture with no more than 5 words like: T-shirt black xxl",
-          language
-        ),
-        image_result,
-      ])
-      .catch((e) => {
-        showErrorNotification(
-          translateFunction(
-            e?.message || e || translateFunction("failed to search with image")
-          )
-        );
-        setLoading(false);
+    try {
+      setLoading(true);
+
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("language", languageVariable);
+      formData.append(
+        "prompt",
+        "Describe the product most clearly shown in this picture with no more than 5 words like: T-shirt black xxl"
+      );
+      const result = await fetch("/api/image-search", {
+        method: "POST",
+        body: formData,
       });
-    // @ts-ignore
-    const response = await result.response;
-    const text = response.text();
-    setSearchValue(text);
-    setLoading(false);
-    search.getSearchOptions({
-      noProducts: false,
-      lang: lang,
-    });
+
+      // @ts-ignore
+      const response = await result.json();
+
+      setSearchValue(response.response);
+      setLoading(false);
+      search.getSearchOptions({
+        noProducts: false,
+        lang: lang,
+      });
+    } catch (error) {
+      showErrorNotification(
+        translateFunction(
+          error?.message ||
+            error ||
+            translateFunction("failed to search with image")
+        )
+      );
+      console.log(error);
+      setLoading(false);
+    }
   };
   async function fileToGenerativePart(file) {
     const base64EncodedDataPromise = new Promise((resolve) => {
