@@ -4,7 +4,7 @@ const CallComponent = dynamic(
   () => import("components/Chat/components/CallComponent"),
   { ssr: false }
 );
-const Chat = dynamic(() => import("./index"), { ssr: false });
+const Chat = dynamic(() => import("./ChatWindowModal"), { ssr: false });
 
 import { ChatConroller } from "utils/tinyUtils";
 

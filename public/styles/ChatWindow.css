@@ -1197,6 +1197,9 @@ svg.redwave g g path {
   .chat-screen {
     padding-bottom: 50px;
   }
+  .reply-message-container {
+    bottom: 100px !important;
+  }
 }
 .active-wid {
   z-index: 99999;

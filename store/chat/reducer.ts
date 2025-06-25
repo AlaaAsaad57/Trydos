@@ -561,7 +561,10 @@ export const useChatStore = (set, get) => ({
         newChats.push(a);
       }
     });
-    if (parseInt(state.activeChat.id) === parseInt(payload.toString())) {
+    if (
+      state.activeChat &&
+      parseInt(state.activeChat.id) === parseInt(payload.toString())
+    ) {
       let m = [];
       state.activeChat.messages.forEach((mes) => {
         let newst = [];

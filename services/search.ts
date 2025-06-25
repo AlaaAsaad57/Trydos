@@ -118,7 +118,7 @@ class SearchService {
             Accept: "application/json",
             "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
             ...(auth.UserID() && (searchValue?.length > 0 || value.length > 0)
-              ? { original_user_id: auth.UserID() }
+              ? { "original-user-id": auth.UserID() }
               : {}),
           },
         }

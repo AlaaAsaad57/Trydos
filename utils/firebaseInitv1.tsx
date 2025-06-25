@@ -274,102 +274,107 @@ export const onMessageListener = async () => {
           setUserAnswerCall();
         }
         if (payload.data.type === "VoiceCallEvent") {
-          if (call) {
-            InCall(
-              JSON.parse(payload.data.data).message.channel.id,
-              JSON.parse(payload.data.data).message.id
-            );
-          } else {
-            let data = JSON.parse(payload.data.data).payload;
-            let channel = chatData.filter(
-              (ch) => parseInt(ch.id) === parseInt(data.channelId)
-            )[0]
-              ? chatData.filter(
-                  (ch) => parseInt(ch.id) === parseInt(data.channelId)
-                )[0]
-              : {
-                  id: JSON.parse(payload.data.data).message.channel.id,
-                  messages: [
-                    {
-                      ...JSON.parse(payload.data.data).message,
-                      message_type: { name: "VoiceCall" },
-                    },
-                  ],
-                  channel_members: [
-                    {
-                      user_id: data.user_id,
-                      user: {
-                        id: data.user_id,
-                        name: JSON.parse(payload.data.data).message.channel
-                          .channel_name,
-                        photo_path: JSON.parse(payload.data.data).message
-                          .channel.photo_path,
-                      },
-                      mute: 0,
-                      pin: 0,
-                      archived: 0,
-                    },
-                    {
-                      mute: 0,
-                      pin: 0,
-                      archived: 0,
-                      user_id: getUserChat()?.id,
-                      user: getUserChat(),
-                    },
-                  ],
-                };
-            let caller = { ...JSON.parse(payload.data.data).message.channel };
-
-            if (
-              data.user_id !== getUserChat()?.id &&
-              (!callInProgress || callInProgress === 2)
-            ) {
-              setIncomingVoiceCall({
-                ...data,
-                channelId: JSON.parse(payload.data.data).message.channel.id,
-                callerChannel: channel,
-                caller: caller,
-                message_id: JSON.parse(payload.data.data).message.id,
-              });
-            }
-            setLastNotificationDate(new Date().toLocaleString());
-            receiveChannelEvent(
-              parseInt(JSON.parse(payload.data.data).message.channel.id)
-            );
-
-            if (
-              parseInt(activeChat?.id) ===
-              parseInt(JSON.parse(payload.data.data)?.message.channel?.id)
-            ) {
-              watchChannel(
-                parseInt(JSON.parse(payload.data.data).message?.channel?.id)
+          try {
+            console.log({ call, message: JSON.parse(payload.data.data) });
+            if (call) {
+              InCall(
+                JSON.parse(payload.data.data).message.channel.id,
+                JSON.parse(payload.data.data).message.id
               );
             } else {
-              let active = activeChat;
+              let data = JSON.parse(payload.data.data).payload;
+              let channel = chatData.filter(
+                (ch) => parseInt(ch.id) === parseInt(data.channelId)
+              )[0]
+                ? chatData.filter(
+                    (ch) => parseInt(ch.id) === parseInt(data.channelId)
+                  )[0]
+                : {
+                    id: JSON.parse(payload.data.data).message.channel.id,
+                    messages: [
+                      {
+                        ...JSON.parse(payload.data.data).message,
+                        message_type: { name: "VoiceCall" },
+                      },
+                    ],
+                    channel_members: [
+                      {
+                        user_id: data.user_id,
+                        user: {
+                          id: data.user_id,
+                          name: JSON.parse(payload.data.data).message.channel
+                            .channel_name,
+                          photo_path: JSON.parse(payload.data.data).message
+                            .channel.photo_path,
+                        },
+                        mute: 0,
+                        pin: 0,
+                        archived: 0,
+                      },
+                      {
+                        mute: 0,
+                        pin: 0,
+                        archived: 0,
+                        user_id: getUserChat()?.id,
+                        user: getUserChat(),
+                      },
+                    ],
+                  };
+              let caller = { ...JSON.parse(payload.data.data).message.channel };
+
               if (
-                active?.id &&
-                active?.channel_members.filter(
-                  (mem) =>
-                    mem.user_id === getUserChat()?.id && mem.user.mute === 1
-                ).length > 0
+                data.user_id !== getUserChat()?.id &&
+                (!callInProgress || callInProgress === 2)
               ) {
-              } else {
-                let not = new Audio("/wa.mp3");
-                not.volume = 0.5;
-                not.play();
+                setIncomingVoiceCall({
+                  ...data,
+                  channelId: JSON.parse(payload.data.data).message.channel.id,
+                  callerChannel: channel,
+                  caller: caller,
+                  message_id: JSON.parse(payload.data.data).message.id,
+                });
               }
+              setLastNotificationDate(new Date().toLocaleString());
+              receiveChannelEvent(
+                parseInt(JSON.parse(payload.data.data).message.channel.id)
+              );
+
+              if (
+                parseInt(activeChat?.id) ===
+                parseInt(JSON.parse(payload.data.data)?.message.channel?.id)
+              ) {
+                watchChannel(
+                  parseInt(JSON.parse(payload.data.data).message?.channel?.id)
+                );
+              } else {
+                let active = activeChat;
+                if (
+                  active?.id &&
+                  active?.channel_members.filter(
+                    (mem) =>
+                      mem.user_id === getUserChat()?.id && mem.user.mute === 1
+                  ).length > 0
+                ) {
+                } else {
+                  let not = new Audio("/wa.mp3");
+                  not.volume = 0.5;
+                  not.play();
+                }
+              }
+              sendMessage({
+                act: JSON.parse(payload.data.data).message.channel,
+                message: {
+                  ...JSON.parse(payload.data.data).message,
+                  channel: null,
+                  message_type: { name: "VoiceCall" },
+                  message_status: [],
+                },
+              });
             }
-            sendMessage({
-              act: JSON.parse(payload.data.data).message.channel,
-              message: {
-                ...JSON.parse(payload.data.data).message,
-                channel: null,
-                message_type: { name: "VoiceCall" },
-                message_status: [],
-              },
-            });
+            resolve(payload);
+          } catch (error) {
+            console.error(error);
           }
-          resolve(payload);
         } else if (payload.data.type === "VideoCallEvent") {
           if (call) {
             InCall(
