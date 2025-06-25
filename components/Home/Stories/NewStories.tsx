@@ -15,19 +15,19 @@ import {
 } from "utils/GAEvents";
 import { GAevent } from "utils/gtag";
 import { StoriesContainerPropsType } from "models/componentType/StoriesContainerPropType";
-import { useRef } from "react";
 
 function StoriesContainer({
   selectedStory,
   stories,
 }: StoriesContainerPropsType) {
   const { storiesData: storiesCache } = useAppStore();
-  let storiesData = stories ?? storiesCache;
+  let storiesData = (stories?.length > 0 && stories) || storiesCache || [];
   var dir = 0;
   const [isTop, setIsTop] = useState("");
 
   // Maintain cube index locally to avoid weird jumps coming from
   // uncontrolled updates of `selectedStory` during animation.
+  console.log(storiesData, selectedStory);
   const initialIndex =
     storiesData?.findIndex((s) => s.id === selectedStory?.id) ?? 0;
   const [cubeIndex, setCubeIndex] = useState<number>(initialIndex);
@@ -105,6 +105,7 @@ function StoriesContainer({
       },
     });
   }, []);
+  console.log(storiesData, selectedStory);
   if (
     !storiesData ||
     storiesData?.length === 0 ||
