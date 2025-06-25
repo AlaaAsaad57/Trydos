@@ -1,21 +1,21 @@
-import React from 'react'
+import React from "react";
 import ReactRecord from "react-record";
-import { SSRDetect } from 'utils/functions';
-function Recorder({isRecording,onStop,setblobUrl,blobs}) {
+import { SSRDetect } from "utils/functions";
+function Recorder({ isRecording, onStop, setblobUrl, blobs }) {
   return (
- 
-       <>
-      {SSRDetect()&& <ReactRecord
+    <>
+      {
+        <ReactRecord
           record={isRecording}
           onStop={onStop}
           onData={(blo) => {
             setblobUrl(blo);
             blobs.current = blo;
           }}
-        ></ReactRecord>}
-       </> 
-      
-  )
+        ></ReactRecord>
+      }
+    </>
+  );
 }
 
-export default Recorder
+export default Recorder;

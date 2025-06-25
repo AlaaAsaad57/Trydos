@@ -275,6 +275,7 @@ function ConversationContainer({
   const [blobUrl, setBlobUrl] = useState<string | null>(null);
 
   const onStopRecording = (blob: Blob) => {
+    console.log("onStopRecording", blob);
     sendStatus(null);
     setMic(false);
     setRecording(false);
@@ -591,6 +592,76 @@ function ConversationContainer({
     ]
   );
 
+  /* ------------------------- Audio Sender ------------------------------- */
+  const sendAudio = useCallback(
+    async (midLocal: number) => {
+      console.log("sendAudio", midLocal, blobUrl, blobs.current);
+      try {
+        if (!blobs.current || !activeChat) return;
+
+        setRecording(false);
+        sendStatus(null);
+        setMic(false);
+        reset();
+
+        // Create file from blob
+        const file = new File([blobs.current], `voice-${midLocal}.wav`);
+
+        // Create optimistic message with base64 data
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          const base64data = reader.result as string;
+          optimisticMessage({
+            ...baseMessagePayload({}),
+            sender_user_id: senderId,
+            message_type: { name: "VoiceMessage" },
+            message_content: [{ file_path: base64data }],
+            message_files: [{ file_path: base64data, file_name: "Audio" }],
+            created_at: new Date(),
+            type: "pending",
+            mid: midLocal,
+            message_status: buildMessageStatus(receiverId, senderId),
+          });
+        };
+        reader.readAsDataURL(blobs.current);
+
+        // Upload file and send actual message
+        const { path, name } = await upload(file);
+
+        // @ts-ignore – original send util expects certain shape
+        SendMessage(
+          baseMessagePayload({
+            content: [{ file_path: path, file_name: name }],
+            message_type: "VoiceMessage",
+            mid: midLocal,
+          }),
+          typeof activeChat?.id === "string" && activeChat?.id?.includes("ch")
+            ? activeChat.id
+            : false,
+          isPrivate
+        );
+      } catch (error) {
+        console.error("Error sending audio:", error);
+        showErrorNotification(translateFunction("Failed to Upload audio"));
+        sendStatus(null);
+      }
+    },
+    [
+      blobs,
+      activeChat,
+      blobUrl,
+      setRecording,
+      sendStatus,
+      setMic,
+      reset,
+      optimisticMessage,
+      baseMessagePayload,
+      senderId,
+      receiverId,
+      isPrivate,
+    ]
+  );
+
   /* ------------------------ Fetch Older Helper ------------------------- */
   const fetchOlderMessages = useCallback(() => {
     if (isFetchingOlderRef.current) return;
@@ -623,6 +694,48 @@ function ConversationContainer({
     prevLastMsgIdRef.current = currentLastMsgId;
     prevScrollHeightRef.current = container.scrollHeight;
   }, [activeChat?.messages]);
+
+  /* ------------------------- Native Recording --------------------------- */
+  const [nativeRecorder, setNativeRecorder] = useState<MediaRecorder | null>(
+    null
+  );
+  const [recordedChunks, setRecordedChunks] = useState<Blob[]>([]);
+
+  const startNativeRecording = useCallback(async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const recorder = new MediaRecorder(stream);
+      const chunks: Blob[] = [];
+
+      recorder.ondataavailable = (e) => {
+        if (e.data.size > 0) {
+          chunks.push(e.data);
+        }
+      };
+
+      recorder.onstop = () => {
+        const blob = new Blob(chunks, { type: "audio/wav" });
+        onStopRecording(blob);
+        setRecordedChunks([]);
+        stream.getTracks().forEach((track) => track.stop());
+      };
+
+      setRecordedChunks(chunks);
+      setNativeRecorder(recorder);
+      recorder.start();
+      return true;
+    } catch (error) {
+      console.error("Native recording failed:", error);
+      return false;
+    }
+  }, [onStopRecording]);
+
+  const stopNativeRecording = useCallback(() => {
+    if (nativeRecorder && nativeRecorder.state === "recording") {
+      nativeRecorder.stop();
+      setNativeRecorder(null);
+    }
+  }, [nativeRecorder]);
 
   /* ---------------------------------------------------------------------- */
   /* JSX                                                                    */
@@ -739,7 +852,7 @@ function ConversationContainer({
       )}
 
       {/* Recorder component – client-side only */}
-      {SSRDetect() && (
+      {!nativeRecorder && (
         <Recorder
           blobs={blobs}
           isRecording={isRecording}
@@ -856,20 +969,28 @@ function ConversationContainer({
                 <WaveIcon className="wave-svg" />
                 <div
                   className="cancel-button"
-                  onMouseUp={() => (
-                    sendStatus(null),
-                    setMic(false),
-                    setRecording(false),
-                    reset()
-                  )}
+                  onMouseUp={() => {
+                    if (nativeRecorder) {
+                      stopNativeRecording();
+                    }
+                    sendStatus(null);
+                    setMic(false);
+                    setRecording(false);
+                    reset();
+                  }}
                 >
                   Cancel
                 </div>
               </div>
               <ShareIcon
-                onClick={() => (
-                  setRecording(false), /* TODO send audio */ null
-                )}
+                onClick={() => {
+                  if (nativeRecorder) stopNativeRecording();
+                  const midLocal = Math.random();
+                  setRecording(false);
+                  setTimeout(() => {
+                    sendAudio(midLocal);
+                  }, 1500);
+                }}
               />
             </div>
           </>
@@ -931,19 +1052,29 @@ function ConversationContainer({
                   <RedMicIcon
                     style={{ cursor: "pointer" }}
                     onClick={() => {
-                      navigator.mediaDevices
-                        .getUserMedia({ audio: true })
-                        .then(() => {
+                      // Try native recording first, fallback to react-record
+                      startNativeRecording().then((success) => {
+                        if (success) {
                           setMic(true);
                           sendStatus("Recording...");
                           start();
-                          setRecording(true);
-                        })
-                        .catch(() => {
-                          showErrorNotification(
-                            translateFunction("No available Microphone")
-                          );
-                        });
+                        } else {
+                          // Fallback to react-record (may have lamejs issues)
+                          navigator.mediaDevices
+                            .getUserMedia({ audio: true })
+                            .then(() => {
+                              setMic(true);
+                              sendStatus("Recording...");
+                              start();
+                              setRecording(true);
+                            })
+                            .catch(() => {
+                              showErrorNotification(
+                                translateFunction("No available Microphone")
+                              );
+                            });
+                        }
+                      });
                     }}
                   />
                 </>

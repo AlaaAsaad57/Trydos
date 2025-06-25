@@ -246,10 +246,14 @@ function ChatMessage(props) {
     SSRDetect() && window.requestAnimationFrame(step);
   };
   function step() {
-    let el = document.querySelector(
-      `#wav${props.message.id || props.message.mid}`
-    );
-    el.style.marginLeft = `${width}px`;
+    if (
+      document.querySelector(`#wav${props.message.id || props.message.mid}`)
+    ) {
+      let el = document.querySelector(
+        `#wav${props.message.id || props.message.mid}`
+      );
+      el.style.marginLeft = `${width}px`;
+    }
   }
   const copyText = () => {
     let elem = document.querySelector("#text-copy");
@@ -939,17 +943,19 @@ function ChatMessage(props) {
                     <div className="player-cont">
                       <div className="wave-absolute">
                         {AudioRef.current?.duration !== Infinity &&
-                          AudioRef.current?.duration !== undefined &&
-                          AudioRef.current?.duration !== NaN &&
-                          showTime(AudioRef.current?.duration) !== null &&
-                          showTime(AudioRef.current?.duration) !== NaN &&
-                          showTime(AudioRef.current?.duration) !== "NaN" && (
-                            <div className="player-time">
-                              {AudioRef.current &&
-                                AudioRef.current?.duration &&
-                                showTime(AudioRef.current?.duration)}
-                            </div>
-                          )}
+                        AudioRef.current?.duration !== undefined &&
+                        AudioRef.current?.duration !== NaN &&
+                        showTime(AudioRef.current?.duration) !== null &&
+                        showTime(AudioRef.current?.duration) !== NaN &&
+                        showTime(AudioRef.current?.duration) !== "NaN" ? (
+                          <div className="player-time">
+                            {AudioRef.current &&
+                              AudioRef.current?.duration &&
+                              showTime(AudioRef.current?.duration)}
+                          </div>
+                        ) : (
+                          <div className="player-time border-none h-[22px]"></div>
+                        )}
                         <div
                           className="wave"
                           id={`wav${props.message.id || props.message.mid}`}
@@ -1918,7 +1924,9 @@ function ChatMessage(props) {
                               showTime(AudioRef.current?.duration)}
                           </div>
                         ) : (
-                          <div className="player-time">00:00</div>
+                          <div className="player-time border-none h-[22px]">
+                            00:00
+                          </div>
                         )}
                         <div
                           className="wave"

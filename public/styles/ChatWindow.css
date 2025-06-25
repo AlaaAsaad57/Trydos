@@ -871,7 +871,9 @@ svg.redwave g g path {
 .wave-absolute {
   position: absolute;
   left: 0px;
-  top: -21px;
+  top: -22px;
+  height: 45px;
+  overflow: hidden;
 }
 .audio-message {
   display: flex;

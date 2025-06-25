@@ -31,7 +31,7 @@ import CameraShots from "components/products/CameraShots";
 import ProductBackButton from "components/products/ProductBackButton";
 import DescriptorBorder from "public/svg/product/descriptorBorder.svg";
 import FlashDealBanner from "components/products/FlashDealBanner";
-import FeaturedBanner from "components/products/FeaturedBanner";
+// import FeaturedBanner from "components/products/FeaturedBanner";
 import { ProductPagePropsType } from "models/componentType/productTypes/productPagePropsType";
 import ProductsLabels from "components/products/ProductsLabels";
 export const runtime = "nodejs";
@@ -204,15 +204,23 @@ async function Page({ params, searchParams }: ProductPagePropsType) {
                 </div>
               )} */}
               <div className="flex-row mx-[5px] w-auto">
-                {product?.flash_deal_details?.end_date && (
+                {(product?.flash_deal_details?.end_date ||
+                  product?.flash_deal_end_date) && (
                   <FlashDealBanner
-                    end_data={product?.flash_deal_details?.end_date}
+                    end_data={
+                      product?.flash_deal_details?.end_date ||
+                      product?.flash_deal_end_date
+                    }
                   />
                 )}
-                {product.labels && (
+                {(product.labels || product.label_names) && (
                   <ProductsLabels
                     isProduct={true}
-                    labels={JSON.parse(product.labels)}
+                    labels={
+                      product.labels
+                        ? JSON.parse(product.labels)
+                        : product.label_names
+                    }
                   />
                 )}
               </div>
