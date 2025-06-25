@@ -223,6 +223,7 @@ const NotificationsContainer = () => {
 
         return (
           <div
+            key={notification?.id}
             className="fixed  right-4 flex flex-col gap-3 pointer-events-none w-[90%]"
             style={{
               zIndex: `${index + 9999999999999999999}`,
