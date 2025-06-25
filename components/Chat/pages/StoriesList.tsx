@@ -68,7 +68,7 @@ function StoriesList() {
     return (
       <div className="chat-list-items gap-[10px]">
         {[1, 1, 1, 1, 1].map((s, i) => (
-          <div className="chat-conversation-item">
+          <div className="chat-conversation-item" key={i}>
             <div className="w-[50px] h-[50px] bg-gray-200 rounded-full">
               <Skeleton className="w-full h-full" borderRadius={100} />
             </div>
