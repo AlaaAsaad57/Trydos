@@ -45,6 +45,7 @@ function SearchImage({ setSearchValue }: { setSearchValue: Function }) {
         lang: lang,
       });
     } catch (error) {
+      setLoading(false);
       showErrorNotification(
         translateFunction(
           error?.message ||
@@ -80,12 +81,17 @@ function SearchImage({ setSearchValue }: { setSearchValue: Function }) {
         "image/png",
         "image/jpg",
         "image/webp",
+        "image/svg+xml",
+        "image/avif",
       ];
 
       if (fileLocal && allowedTypes.includes(fileLocal.type)) {
         setFile(fileLocal);
       } else {
-        alert("please select supported image");
+        setLoading(false);
+        alert(
+          "please select supported image format (jpeg, png, jpg, webp, svg, avif)"
+        );
         // @ts-ignore
         event.target.value = null;
       }
