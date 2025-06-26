@@ -138,7 +138,7 @@ function OrderItemCard({
               {item?.order_status}
             </span>
             <span className="ml-[12px]">
-              <OrderStatusIcon status={item?.order_status || ""} />
+              <OrderStatusIcon status={item?.order_status?.value || ""} />
             </span>
           </p>
           <div className="flex-row items-center">

@@ -131,7 +131,7 @@ const PopupCountry = ({ options, countries, forChanged, noCountry }) => {
           setTimeout(() => setInitialLoading(false), 500);
           return 100;
         }
-        return Math.min(prev + Math.random() * 4 + 2, 100);
+        return Math.min(prev + Math.random() * 10 + 2, 100);
       });
     }, 150);
 

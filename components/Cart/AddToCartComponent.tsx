@@ -1,7 +1,6 @@
 "use client";
 import React, { useEffect, useRef, useState } from "react";
 import { AxiosGet } from "utils/AxiosApi";
-import { toast } from "react-toastify";
 import BackIcon from "public/svg/listing/backIcon.svg";
 import {
   getCart,
@@ -27,6 +26,7 @@ import { SliderRuler } from "./SliderRuler";
 import { GA_EVENT_NAMES } from "utils/GAEvents";
 import { DetectScreen, GetImageUrl } from "utils/tinyUtils";
 import { GAevent } from "utils/gtag";
+import { showSuccessNotification } from "@/store/notifications/reducer";
 
 function AddToCartComponent({
   color,
@@ -254,12 +254,12 @@ function AddToCartComponent({
   };
 
   return (
-    <div className="flex-col h-full w-[100vw] flex top-0 left-0 fixed z-[99999999999999999] justify-start ">
+    <div className="flex-col message-add-to-cart h-full w-[100vw] flex top-0 left-0 fixed z-[99999999999999999] justify-start  ">
       {/* <ToastContainer
         position="top-right"
         style={{ zIndex: "9999999999999999" }}
       /> */}
-      <div className=" bg-[#4f4f4f80]  flex fixed top-0 left-0 h-full w-full z-[99]" />
+      <div className=" bg-[#4f4f4f80]  flex fixed top-0 left-0 h-full w-full z-[99] backdrop-container" />
       <div className="back-bar align-center w-100 flex-row min-h-12 bg-[#fff] p-4 z-[99999999] justify-between">
         <div
           className="back-icon p-0"
@@ -302,6 +302,23 @@ function AddToCartComponent({
         data-cy="image_when_addtocart"
         style={{ height: "calc(100vh - 461px)" }}
         className="flex-col mt-[10px] w-full   top-[103px] items-center z-[999999999]"
+        onClick={(e) => {
+          console.log(e.target);
+          if (
+            !(e.target as HTMLDivElement).classList.contains(
+              "image-cart-container"
+            ) &&
+            !(e.target as HTMLDivElement).classList.contains(
+              "color_option_cyrcle"
+            ) &&
+            !(e.target as HTMLDivElement).classList.contains("swiper-slide")
+          ) {
+            setSelectedProductForCart(null);
+            document.documentElement.style.overflow = "initial";
+            document.documentElement.scrollTop = 0;
+            close();
+          }
+        }}
       >
         <div
           data-cy="image_when_addtocart_container"
@@ -357,7 +374,7 @@ function AddToCartComponent({
         {ProductData?.sync_color_images && (
           <div
             data-cy="color_option_cyrcle"
-            className="flex w-full max-w-[420px] "
+            className="flex w-full max-w-[420px] color_option_cyrcle "
           >
             <Swiper
               data-cy="swipper_when_addtocart"
@@ -448,7 +465,7 @@ function AddToCartComponent({
       ) : (
         <div
           data-cy="product_details_addtocart"
-          className="product-details-footer z-[9999] min-h-[100px] h-auto"
+          className="product-details-footer product_details_addtocart z-[9999] min-h-[100px] h-auto"
         >
           <div
             data-cy="product_info_container_addtocart"
@@ -602,7 +619,8 @@ function AddToCartComponent({
                   src="/svg/deliveryman.svg"
                 />
                 <span data-cy="free_shipping_text3">
-                  {translateFunction("Ship To You Accepted")} 2 June
+                  {translateFunction("Ship To You Accepted")}{" "}
+                  {translateFunction("2 June")}
                 </span>
               </div>
             </div>
@@ -969,15 +987,15 @@ function AddToCartComponent({
                                         <path
                                           id="Path_14091"
                                           data-name="Path 14091"
-                                          d="M45,47h.708v3.541H45Z"
-                                          transform="translate(-30.852 -32.665)"
+                                          d="M45,47h.646v3.228H45Z"
+                                          transform="translate(-30.806 -32.164)"
                                           fill="#404040"
                                         />
                                         <path
                                           id="Path_14092"
                                           data-name="Path 14092"
-                                          d="M41,47h.708v3.541H41Z"
-                                          transform="translate(-28.139 -32.665)"
+                                          d="M41,47h.646v3.228H41Z"
+                                          transform="translate(-28.097 -32.164)"
                                           fill="#404040"
                                         />
                                       </g>
@@ -1173,12 +1191,16 @@ const SizesSkeleton = ({ product }) => {
                 alt="truck"
                 src="/svg/greentruck.svg"
               />
-              <span>{translateFunction("Free Shipping")}</span>
+              <span data-cy="free_shipping_text">
+                {translateFunction("Free Shipping")}
+              </span>
             </div>
           )}
           <div className="product-prop-item">
             <img width={15} height={15} alt="truck" src="/svg/redtruck.svg" />
-            <span>{translateFunction("Free Return")}</span>
+            <span data-cy="free_shipping_text2">
+              {translateFunction("Free Return")}
+            </span>
           </div>
           <div className="product-prop-item">
             <img
@@ -1187,7 +1209,10 @@ const SizesSkeleton = ({ product }) => {
               alt="deliveryman"
               src="/svg/deliveryman.svg"
             />
-            <span>{translateFunction("Ship To You Accepted")} 2 June</span>
+            <span data-cy="free_shipping_text3">
+              {translateFunction("Ship To You Accepted")}{" "}
+              {translateFunction("2 June")}
+            </span>
           </div>
         </div>
       </div>
@@ -1555,6 +1580,7 @@ const AddToCartButton = ({
   const isVariantInCart = ({ exact }) => {
     if (product?.variation?.length === 0)
       return localCart?.find((s) => s.id === id);
+
     if (
       localCart.find(
         (s) =>
@@ -1611,6 +1637,7 @@ const AddToCartButton = ({
                 quantity:
                   (isVariantInCart({ exact: false })?.quantity ?? 0) + 1,
                 brand: product?.brand?.name,
+                category: product?.category_name,
                 count_likes: product?.count_of_likes,
                 review_count: product?.shared_count,
                 item_variant: selectedVariant?.type,
@@ -1659,6 +1686,7 @@ const AddToCartButton = ({
                 }),
                 quantity: 1,
                 brand: product?.brand?.name,
+                category: product?.category_name,
                 count_likes: product?.count_of_likes,
                 review_count: product?.shared_count,
                 item_variant: selectedVariant?.type,
@@ -1825,8 +1853,9 @@ const NotifyCartButton = ({ isNotified, setNotify, selected_variant, id }) => {
       });
       await home.GetFireBaseSettings();
     } else {
-      toast.info(
-        translateFunction("You will be notified for this product already")
+      showSuccessNotification(
+        translateFunction("You will be notified for this product already"),
+        5000
       );
     }
   };

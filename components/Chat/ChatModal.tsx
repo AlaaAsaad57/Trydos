@@ -4,11 +4,11 @@ const CallComponent = dynamic(
   () => import("components/Chat/components/CallComponent"),
   { ssr: false }
 );
-const Chat = dynamic(() => import("./index"), { ssr: false });
+const Chat = dynamic(() => import("./ChatWindowModal"), { ssr: false });
 
 import { ChatConroller } from "utils/tinyUtils";
 
-import { SSRDetect, getUserChat } from "utils/functions";
+import { SSRDetect, getUserChat, translateFunction } from "utils/functions";
 import ChatService from "services/chat";
 import dynamic from "next/dynamic";
 import { useAppStore } from "store";
@@ -19,6 +19,7 @@ import {
   GA_GLOBAL_SCREEN,
 } from "utils/GAEvents";
 import { GAevent } from "utils/gtag";
+import { showErrorNotification } from "@/store/notifications/reducer";
 function ChatModal() {
   const { isCallIncoming, callInProgress, chatVar } = useAppStore();
   useEffect(() => {
@@ -51,7 +52,11 @@ function ChatModal() {
               requestFirebaseNotificationPermission().then((firebaseToken) => {
                 try {
                   if (!firebaseToken) {
-                    toast.error("Please Check Notifications Premissions");
+                    showErrorNotification(
+                      translateFunction(
+                        "Please Check Notifications Premissions"
+                      )
+                    );
                   } else {
                     localStorage.setItem("firebase_token", firebaseToken);
 

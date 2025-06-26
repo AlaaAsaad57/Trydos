@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { OrdersIcon } from "./OrdersList";
 import SettingTopBar from "./TopBar";
 
@@ -37,10 +37,7 @@ import CanceledOrderStatusIcon from "public/svg/CanceledOrderStatusIcon.svg";
 import { GetImageUrl } from "utils/tinyUtils";
 import { OrderDetailsPropsType } from "models/componentType/settingTypes/OrderDetailsPropsType";
 import { ProductCardPropsType } from "models/componentType/settingTypes/ProductCardPropsType";
-function OrderDetails({
-  resetOrderDetails,
-  goBack,
-}: OrderDetailsPropsType) {
+function OrderDetails({ resetOrderDetails, goBack }: OrderDetailsPropsType) {
   const [loading, setLoading] = useState(false);
   const totalAmount = (arr) => {
     let total = 0;
@@ -53,7 +50,7 @@ function OrderDetails({
     let arr_of_products = [];
     arr.map((s) => {
       s.details.map((d) => {
-        arr_of_products.push({ ...d, order_status: s.order_status?.label });
+        arr_of_products.push({ ...d, order_status: s.order_status?.value });
       });
     });
 
@@ -64,35 +61,51 @@ function OrderDetails({
   const pathname = usePathname();
 
   const [ActivePacks, setActivePacks] = useState(null);
+  const { setOrderDetails, selectedOrder } = useAppStore();
+
+  const fetchedOrderIdRef = useRef<string | number | null>(null);
+
   const getOrderDetails = async () => {
     setLoading(true);
-    let data = await order.getOrderDetails(selectedOrder.order_group_id);
+    try {
+      let data = await order.getOrderDetails(selectedOrder.order_group_id);
 
-    let orderData = {
-      ...data?.[0],
-      order_amount: totalAmount(data),
-      details: data,
-    };
+      let orderData = {
+        ...data?.[0],
+        order_amount: totalAmount(data),
+        details: data,
+      };
 
-    setActivePacks(data[0]);
+      setActivePacks(data[0]);
 
-    setOrderDetails(orderData);
-    let params = new URLSearchParams(searchParams);
-    params.delete("id");
-    // @ts-expect-error 'shallow' does not exist in type 'NavigateOptions'
-    router.push(`${pathname}?${params.toString()}`, { shallow: true });
+      setOrderDetails(orderData);
+    } catch (error) {
+      let params = new URLSearchParams(window.location.search);
+      params.delete("id");
+      // @ts-ignore
+      router.replace(`/setting?${params.toString()}`, {
+        scroll: false,
+        // @ts-ignore
+        shallow: true,
+      });
+      resetOrder();
+    }
+
     setLoading(false);
   };
-  const { setOrderDetails, selectedOrder } = useAppStore();
+
+  useEffect(() => {
+    if (!selectedOrder?.order_group_id) return;
+    if (fetchedOrderIdRef.current === selectedOrder.order_group_id) return;
+    fetchedOrderIdRef.current = selectedOrder.order_group_id;
+    getOrderDetails();
+  }, [selectedOrder?.order_group_id]);
 
   const resetOrder = () => {
     setOrderDetails(null);
     setActivePacks(null);
+    fetchedOrderIdRef.current = null;
     goBack();
-    let params = new URLSearchParams(searchParams);
-    params.delete("id");
-    // @ts-expect-error 'shallow' does not exist in type 'NavigateOptions'
-    router.push(`${pathname}?${params.toString()}`, { shallow: true });
   };
   const [isExpanded, setIsExpanded] = useState(false);
   const [isReturnOrderOpen, setIsReturnOrderOpen] = useState<
@@ -100,15 +113,13 @@ function OrderDetails({
   >(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [chatInfo, setChatInfo] = useState<Channel | null>(null);
-  useEffect(() => {
-    if (selectedOrder?.id) getOrderDetails();
-  }, [selectedOrder?.id]);
+
   if (!selectedOrder?.id) return null;
   const shouldShowChatIcon = () => {
     // Out for Delivery
-    if (selectedOrder.order_status?.label === "Out for Delivery")
+    if (selectedOrder.order_status?.value === "out_for_delivery")
       return selectedOrder.order_group_id;
-    if (ActivePacks?.order_status?.label === "Out for Delivery")
+    if (ActivePacks?.order_status?.value === "out_for_delivery")
       return ActivePacks?.order_group_id;
     return false;
   };
@@ -152,6 +163,14 @@ function OrderDetails({
       <div className="flex-col h-[calc(128vh)]">
         <SettingTopBar
           goBack={() => {
+            let params = new URLSearchParams(window.location.search);
+            params.delete("id");
+            // @ts-ignore
+            router.replace(`/setting?${params.toString()}`, {
+              scroll: false,
+              // @ts-ignore
+              shallow: true,
+            });
             resetOrder();
           }}
           screenName={
@@ -188,6 +207,14 @@ function OrderDetails({
                   payments={selectedOrder.payment_method}
                 />
               </div>
+              {selectedOrder?.details?.[0]?.order_group_status && (
+                <div className="flex-row justify-between items-center w-full mt-[8px]">
+                  <OrderStatusCard
+                    fullWidth={true}
+                    status={selectedOrder?.details?.[0]?.order_group_status}
+                  />
+                </div>
+              )}
               <div className="flex-row justify-center  items-center h-[50px] w-full bg-[#ececec] rounded-[20px]">
                 {selectedOrder.details?.map((s, i) => (
                   <div
@@ -217,14 +244,14 @@ function OrderDetails({
                   status={
                     selectedOrder?.details?.find(
                       (s) => s.id === ActivePacks?.id
-                    ).order_group_status.label
+                    )?.order_status
                   }
                 />
               </div>
               <OrderAddressCard
                 address={
                   selectedOrder?.details?.find((s) => s.id === ActivePacks?.id)
-                    .shipping_address_data
+                    ?.shipping_address_data
                 }
               />
             </div>
@@ -235,13 +262,13 @@ function OrderDetails({
                 showChats={() => ShowChats()}
                 order_group_status={
                   selectedOrder?.details?.find((s) => s.id === ActivePacks?.id)
-                    .order_status.label
+                    ?.order_status
                 }
                 setExpanded={setIsExpanded}
                 isExpanded={isExpanded}
                 items={
                   selectedOrder?.details?.find((s) => s.id === ActivePacks?.id)
-                    .details
+                    ?.details
                 }
               />
               {isExpanded && (
@@ -385,7 +412,7 @@ const OrderExpandedDetails = ({ order }: { order: OrderItem }) => {
         </div>
         <div className="w-auto min-h-[60px] h-auto  px-[12px] flex-col">
           <div className="flex flex-row items-end">
-            <OrderStatusCartsIcon status={order?.order_group_status?.label} />
+            <OrderStatusCartsIcon status={order?.order_group_status?.value} />
           </div>
           <span className="text-[#8D8D8D] regular text-[10px] mt-[5px]">
             {translateFunction("Order Status")}
@@ -393,7 +420,7 @@ const OrderExpandedDetails = ({ order }: { order: OrderItem }) => {
           <div className="text-[#1D1D1D] flex-row text-[12px] regular mt-[3px]">
             <span>{order?.order_group_status?.label}</span>
             <span className="ml-[11px]">
-              <OrderStatusIcon status={order?.order_group_status?.label} />
+              <OrderStatusIcon status={order?.order_group_status?.value} />
             </span>
           </div>
         </div>
@@ -401,7 +428,7 @@ const OrderExpandedDetails = ({ order }: { order: OrderItem }) => {
       <div className="flex-col w-full mt-[12px] pb-[50px]">
         {order.details.map((Product) => (
           <ProductCard
-            status={order?.order_status?.label}
+            status={order?.order_status}
             product={Product}
             key={Product.id}
           />
@@ -410,10 +437,7 @@ const OrderExpandedDetails = ({ order }: { order: OrderItem }) => {
     </div>
   );
 };
-const ProductCard = ({
-  product,
-  status,
-}: ProductCardPropsType) => {
+const ProductCard = ({ product, status }: ProductCardPropsType) => {
   const { currency, setSelectedOrderItem } = useAppStore();
   const { lang } = useParams();
 
@@ -458,13 +482,13 @@ const ProductCard = ({
                 height: 144,
                 q: 100,
               })}
-              alt={product.product_details.name}
+              alt={product.product_details?.name}
             />
           </div>
           <div className="flex  flex-col items-start mt-[10px] ml-[12px] regular text-[12px] text-[#8D8D8D]">
             <span className="w-[70px] h-[10px] bg-[#C4C2C27f]"></span>
             <span className="text-[#505050] text-[12px] regular mt-[3px]">
-              {product.product_details.name}
+              {product.product_details?.name}
             </span>
             <div className="flex-row justify-between w-full">
               {product?.variation?.color && (
@@ -514,10 +538,12 @@ const ProductCard = ({
                   {translateFunction("Item Status")}:
                 </span>
                 <span className="text-[#505050] text-[10px] medium ml-[2px]">
-                  {product?.order_status ?? status}
+                  {product?.order_status ?? status?.label}
                 </span>
                 <span className="ml-[12px]">
-                  <OrderStatusIcon status={product?.order_status ?? status} />
+                  <OrderStatusIcon
+                    status={product?.order_status?.value ?? status?.value}
+                  />
                 </span>
               </div>
             </div>
@@ -560,7 +586,7 @@ const ProductCard = ({
                 {currency?.symbol}
               </span>
               {(product.is_canceled || product.is_returned) && (
-                <div className="text-[#388CFF] text-[10px] ml-[4px] regular ml-[7px]">
+                <div className="text-[#388CFF] text-[10px] regular ml-[7px]">
                   {translateFunction("Back to your wallet")}
                 </div>
               )}

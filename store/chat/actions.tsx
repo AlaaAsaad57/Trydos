@@ -89,7 +89,9 @@ export const getCalls = async (id) => {
     });
 
     setCalls(response);
+    setCallLoading(false);
   } catch (e) {
+    setCallLoading(false);
     console.error(e);
   }
 };

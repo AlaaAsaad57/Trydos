@@ -14,7 +14,8 @@ import { ProductSocialInfo } from "models/API/market/ProductSocialInfo";
 import { changeToken } from "store/homepage/cachedActions";
 import axios from "axios";
 import { SetGAUser } from "utils/gtag";
-import { toast } from "react-toastify";
+
+import { showErrorNotification } from "@/store/notifications/reducer";
 const getHeader = () => {
   let [countryUrl, languageUrl] = window.location.pathname
     .split("/")[1]
@@ -125,7 +126,7 @@ class AuthService {
         message: string;
       } = await response.json();
       if (repo.code === 501) {
-        toast.error(repo?.message);
+        showErrorNotification(repo?.message);
         throw new Error("Wrong Code");
       }
       if (repo?.data?.message === "user not found") {
@@ -270,7 +271,7 @@ class AuthService {
     let userLocal = JSON.parse(localStorage.getItem("USER"));
     const { loginSuccess } = useAppStore.getState();
     if (userLocal) {
-      if (Smartlook.initialized())
+      if (process.env.NODE_ENV === "production" && Smartlook.initialized())
         Smartlook.identify(userLocal.id, {
           name: userLocal.name,
           phone: userLocal.mobilePhone,
@@ -380,6 +381,22 @@ class AuthService {
       false
     );
   }
+  ConfigurePhoto(imageVar, serverVar) {
+    if (serverVar === "market") {
+      if (imageVar?.includes("customers")) {
+        return imageVar.replace("/customers/profile/", "");
+      } else {
+        return imageVar;
+      }
+    } else {
+      if (imageVar?.includes("customers")) {
+        return imageVar;
+      } else {
+        if (imageVar) return "/customers/profile/" + imageVar;
+        else return null;
+      }
+    }
+  }
   async ExpiredUser(noReq = false) {
     if (this.getUser()?.phone?.length > 2)
       localStorage.setItem("has-phone", this.getUser()?.phone);
@@ -411,7 +428,7 @@ class AuthService {
             {
               name: userObj?.name ?? userProfile?.name,
               mobile_phone: userObj?.phone ?? userProfile?.phone,
-              photo_path: userObj?.image ?? userProfile?.image,
+              photo_path: this.ConfigurePhoto(userObj?.image, "story"),
             },
             {
               headers: {
@@ -430,7 +447,7 @@ class AuthService {
             ...JSON.parse(localStorage.getItem("USER-STORIES")),
             name: userObj?.name ?? userProfile?.name,
             mobile_phone: userObj?.phone ?? userProfile?.phone,
-            photo_path: userObj?.image ?? userProfile?.image,
+            photo_path: this.ConfigurePhoto(userObj?.image, "story"),
           })
         );
       }
@@ -447,7 +464,7 @@ class AuthService {
             {
               name: userObj?.name ?? userProfile?.name,
               mobile_phone: userObj?.phone ?? userProfile?.phone,
-              photo_path: userObj?.image ?? userProfile?.image,
+              photo_path: this.ConfigurePhoto(userObj?.image, "chat"),
             },
             {
               headers: {
@@ -466,13 +483,16 @@ class AuthService {
             ...JSON.parse(localStorage.getItem("USER-CHAT")),
             name: userObj?.name ?? userProfile?.name,
             mobile_phone: userObj?.phone ?? userProfile?.phone,
-            photo_path: userObj?.image ?? userProfile?.image,
+            photo_path: this.ConfigurePhoto(userObj?.image, "chat"),
           })
         );
       }
       let res = await AxiosPost({
         url: process.env.NEXT_PUBLIC_BACKEND_URL + "/customer/update-profile",
-        body: userObj,
+        body: {
+          ...userObj,
+          image: this.ConfigurePhoto(userObj?.image, "market"),
+        },
         title: "Update Profile",
       }).then((s) => {
         market_done = true;
@@ -483,7 +503,7 @@ class AuthService {
           ...JSON.parse(localStorage.getItem("USER")),
           name: userObj?.name ?? userProfile?.name,
           phone: userObj?.phone ?? userProfile?.phone,
-          image: userObj?.image ?? userProfile?.image,
+          image: userObj?.image,
         })
       );
 
@@ -526,7 +546,7 @@ class AuthService {
           }
         );
       }
-      toast.error(translateFunction("Failed to update profile Info"));
+      showErrorNotification(translateFunction("Failed to update profile Info"));
       throw error;
     }
   }
@@ -549,7 +569,8 @@ class AuthService {
       localStorage.getItem("USER-STORIES")
     )?.name;
     let username_chat = JSON.parse(localStorage.getItem("USER-CHAT"))?.name;
-    let username_market = JSON.parse(localStorage.getItem("USER-CHAT"))?.name;
+    let username_market = JSON.parse(localStorage.getItem("USER"))?.name;
+
     if (Boolean(isChatUserExist) && Boolean(isStoriesUserExist))
       if (
         username_chat !== username_market ||
@@ -565,7 +586,7 @@ class AuthService {
         localStorage.setItem(
           "USER-STORIES",
           JSON.stringify({
-            ...isChatUserExist,
+            ...isStoriesUserExist,
             name: username_market,
           })
         );

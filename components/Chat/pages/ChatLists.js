@@ -33,12 +33,24 @@ function ChatLists(props) {
       forwardMessage(forwarded_message, e);
     }
   };
+  if (loading) {
+    return (
+      <div className="chat-list-items gap-[10px]">
+        {[1, 1, 1, 1, 1].map((s, i) => (
+          <div className="chat-conversation-item mt-[10px]" key={i}>
+            <div className="w-[60px] h-[60px] rounded-[12px]">
+              <Skeleton className="w-full h-full" borderRadius={100} />
+            </div>
+            <div className="w-[80px] ml-[20px] h-[60px] items-start pt-[3px] ">
+              <Skeleton className="w-full h-[21px]" borderRadius={2} />
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
   return (
     <div className="chat-list-items">
-      {loading &&
-        [1, 1, 1, 1, 1].map((s, i) => (
-          <Skeleton key={i} className="chat-conversation-item" />
-        ))}
       {!loading && (
         <>
           {props.search.length === 0 ? (

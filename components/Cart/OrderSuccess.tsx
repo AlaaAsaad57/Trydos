@@ -57,8 +57,12 @@ function OrderSuccess() {
               rate: currency?.exchange_rate,
             }),
             item_brand: item.brand?.name,
+            item_category: item?.category_name,
             item_variant: item.variant ?? "N/A",
           })),
+          interaction_type: "purchase",
+          screen_name: GA_GLOBAL_SCREEN.ORDER_SUCCESS_SCREEN,
+          screen_path: window.location.pathname,
         },
       });
     }

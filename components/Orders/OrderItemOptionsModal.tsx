@@ -91,8 +91,8 @@ function OrderItemOptionsModal({
                 </span>
               </div>
             </div>
-            {selectedOrder.order_status?.label === "Pending" ||
-            item?.order_status?.label === "Pending" ? (
+            {selectedOrder.order_status?.value === "pending" ||
+            item?.order_status?.value === "pending" ? (
               <>
                 <div
                   onClick={() => {

@@ -5,11 +5,14 @@ import home from "services/home";
 import { addToCompare, translateFunction } from "utils/functions";
 import CheckIcon from "public/svg/CheckIcon.svg";
 import Spinner from "components/global/Spinner";
-import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
 import LocalizationServiceClass from "services/localization";
 import { useAppStore } from "store";
 import { getNotificationsTypes } from "services/notifications";
+import {
+  showSuccessNotification,
+  showErrorNotification,
+} from "@/store/notifications/reducer";
 function MoreOptionsSection() {
   const {
     disableNotification,
@@ -366,21 +369,22 @@ function MoreOptionsSection() {
           data-cy="add-compare"
           onClick={() => {
             if (AddedToCompare()) {
-              toast.info(translate("Already Added To Compare!", language));
+              showErrorNotification(
+                translate("Already Added To Compare!", language)
+              );
+
               return;
             }
             setAddedToCompare(true);
             addToCompare(SelectedProduct.slug);
-            toast.success(
+            showSuccessNotification(
               translate(
                 "Added To Compare! Click To Go To Compare Page",
                 language
               ),
-              {
-                onClick: () => {
-                  router.push(`/compare`);
-                },
-              }
+              5000,
+              "/compare",
+              { is_full_home: true }
             );
           }}
         >

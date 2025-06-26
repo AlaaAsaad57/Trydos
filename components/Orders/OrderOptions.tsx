@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { translateFunction } from "utils/functions";
 import ChangeAddressIcon from "public/svg/ChangeAddressIcon.svg";
 import ModifyOrderIcon from "public/svg/ModifyOrderIcon.svg";
-import { toast } from "react-toastify";
+
 import ChangeAddressWidget from "./ChangeAddressWidget";
 import { useAppStore } from "store";
 import ModifyOrderWidget from "./ModifyOrderWidget";
@@ -14,6 +14,7 @@ import HideOrderItemIcon from "public/svg/HideOrderItemIcon.svg";
 import OrderCancelIcon from "public/svg/OrderCancelIcon.svg";
 import { OrderCanceltionOptionsPropsType } from "models/componentType/OrderCanceltionOptionsPropsType";
 import { OrderOptionsPropsType } from "models/componentType/OrderOptionsPropsType";
+import { showErrorNotification } from "@/store/notifications/reducer";
 
 function OrderOptions({ closeOptions, CancelOrder }: OrderOptionsPropsType) {
   const {
@@ -151,6 +152,7 @@ function OrderOptions({ closeOptions, CancelOrder }: OrderOptionsPropsType) {
       );
     }
     if (screen === "options") {
+      console.log(selectedOrder);
       return (
         <>
           {shouldConfirmCancel && (
@@ -167,7 +169,7 @@ function OrderOptions({ closeOptions, CancelOrder }: OrderOptionsPropsType) {
             <div className="flex-col  items-center w-full justify-center flex-1">
               <OrderItem
                 key={selectedOrder.order_group_id}
-                order={selectedOrder}
+                order={OrderWithDetails(selectedOrder)}
                 showDetails={() => {}}
               />
               <span className="regular text-[12px] mt-[11px] text-[#8D8D8D]">
@@ -270,6 +272,15 @@ function OrderOptions({ closeOptions, CancelOrder }: OrderOptionsPropsType) {
       );
     }
   };
+  const OrderWithDetails = (order) => {
+    let arr = [];
+    order.details.map((order_detail) => {
+      order_detail.details.map((s) => {
+        arr.push(s);
+      });
+    });
+    return { ...order, details: arr };
+  };
   return (
     <>
       <div
@@ -286,7 +297,10 @@ function OrderOptions({ closeOptions, CancelOrder }: OrderOptionsPropsType) {
 }
 
 export default OrderOptions;
-const OrderCanceltionOptions = ({ close, setShouldConfirmCancel }: OrderCanceltionOptionsPropsType) => {
+const OrderCanceltionOptions = ({
+  close,
+  setShouldConfirmCancel,
+}: OrderCanceltionOptionsPropsType) => {
   let options = [
     "I Changed My Mind",
     "I Fear Quality",
@@ -346,8 +360,13 @@ const OrderCanceltionOptions = ({ close, setShouldConfirmCancel }: OrderCancelti
           onClick={() => {
             if (selectedOptions) {
               setShouldConfirmCancel(true);
-            } else
-              toast.info("Please select a reason for canceling this order");
+            } else {
+              showErrorNotification(
+                translateFunction(
+                  "Please select a reason for canceling this order"
+                )
+              );
+            }
           }}
         >
           {translateFunction("Cancel Order")}

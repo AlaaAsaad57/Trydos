@@ -7,12 +7,13 @@ import OrderMarquee from "./OrderMarquee";
 import DiscoutIcon from "public/svg/cart/Disount.svg";
 import ShippingIcon from "public/svg/cart/Shipping.svg";
 import Spinner from "components/global/Spinner";
-import { toast } from "react-toastify";
+
 import auth from "services/auth";
 import LocalizationServiceClass from "services/localization";
 import { useAppStore } from "store";
 import GiftIcon from "public/svg/cart/Gift.svg";
 import home from "services/home";
+import { showErrorNotification } from "@/store/notifications/reducer";
 function OrderButton({ close, toOrders }) {
   const {
     initCart,
@@ -191,11 +192,17 @@ function OrderButton({ close, toOrders }) {
         }, 300);
       } else {
         setLoading(false);
-        toast.error("Please Review Your Cart Some Products Not Available");
+        showErrorNotification(
+          translateFunction(
+            "Please Review Your Cart Some Products Not Available"
+          )
+        );
       }
     } catch (error) {
       setOption(true);
-      if (error) toast.error(error);
+      if (error) {
+        showErrorNotification(error);
+      }
       setLoading(false);
     }
   };
@@ -549,7 +556,7 @@ function OrderButton({ close, toOrders }) {
                 if (!auth.getUser() || userProfile?.is_phone_verified === 0) {
                   setOption(true);
                 } else {
-                  GoToOrders();
+                  if (!loading) GoToOrders();
                 }
               }
             }}

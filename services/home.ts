@@ -20,9 +20,7 @@ import {
   STARTER_SETTINGS,
 } from "utils/endpointConfig";
 import { SSRDetect } from "utils/functions";
-import { toast } from "react-toastify";
 import axios from "axios";
-
 import { AxiosGet, AxiosPost } from "utils/AxiosApi";
 import { changeToken } from "store/homepage/cachedActions";
 import { RegisterGuestApi } from "models/API/market/RegisterGuest";
@@ -33,6 +31,7 @@ import LocalizationServiceClass from "./localization";
 import chat from "./chat";
 import { SetGAUser } from "utils/gtag";
 import { starttingSettingApi } from "models/API/market/StarttingSetting";
+import { showErrorNotification } from "@/store/notifications/reducer";
 const getHeader = () => {
   let [countryUrl, languageUrl] = window.location.pathname
     .split("/")[1]
@@ -127,7 +126,7 @@ class HomeService {
       }
     }
     if (response.status === 500 || response.status === 422) {
-      toast.error("Customer Info Error");
+      showErrorNotification("Customer Info Error");
     }
     if (
       response.status === 302 ||
@@ -227,7 +226,7 @@ class HomeService {
           })
         );
         if (repo.data.user) {
-          if (Smartlook.initialized())
+          if (process.env.NODE_ENV === "production" && Smartlook.initialized())
             Smartlook.identify(repo.data.user.id, {
               name: repo.data.user.name,
               phone: "guest",
@@ -293,7 +292,7 @@ class HomeService {
         key: "MARKET-TOKEN",
         value: localStorage.getItem("MARKET-TOKEN"),
       });
-      if (Smartlook.initialized())
+      if (process.env.NODE_ENV === "production" && Smartlook.initialized())
         Smartlook.identify(JSON.parse(localStorage.getItem("USER")).id, {
           name: JSON.parse(localStorage.getItem("USER")).name,
           phone: JSON.parse(localStorage.getItem("USER")).mobilePhone,
@@ -307,7 +306,7 @@ class HomeService {
       });
     } else {
       if (localStorage.getItem("guest-user")) {
-        if (Smartlook.initialized())
+        if (process.env.NODE_ENV === "production" && Smartlook.initialized())
           Smartlook.identify(
             JSON.parse(localStorage.getItem("guest-user")).id,
             {
@@ -319,6 +318,7 @@ class HomeService {
       }
       this.RegisterDevice();
     }
+    auth.CheckUserName();
     await this.RequestFireBase();
   }
   async RegisterDevice() {
@@ -387,7 +387,7 @@ class HomeService {
         localStorage.removeItem("customer-info");
         setIsRegisteringReady(true);
         if (repo.data.user) {
-          if (Smartlook.initialized())
+          if (process.env.NODE_ENV === "production" && Smartlook.initialized())
             Smartlook.identify(repo.data.user.id, {
               name: repo.data.user.name,
               phone: "guest",
@@ -490,7 +490,7 @@ class HomeService {
       } else {
         errCallback();
 
-        toast.info(res?.message || "Failed");
+        showErrorNotification(res?.message || "Failed");
       }
     }
   }

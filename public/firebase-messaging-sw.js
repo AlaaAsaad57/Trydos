@@ -255,6 +255,9 @@ messaging.onBackgroundMessage(async function (payload) {
           body: "Audio",
           icon: JSON.parse(payload.data.data).message?.icon,
           image: JSON.parse(payload.data.data).message?.image,
+          data: {
+            url: url,
+          },
         };
       } else if (
         JSON.parse(payload.data.data).message.message_type.name ===
@@ -264,6 +267,9 @@ messaging.onBackgroundMessage(async function (payload) {
           body: "Video",
           icon: JSON.parse(payload.data.data).message.icon,
           image: JSON.parse(payload.data.data).message.image,
+          data: {
+            url: url,
+          },
         };
       } else if (payload.data.type === "vcard") {
         notificationOptions = {
@@ -279,6 +285,9 @@ messaging.onBackgroundMessage(async function (payload) {
           body: "Image",
           icon: JSON.parse(payload.data.data).message.icon,
           image: JSON.parse(payload.data.data).message.image,
+          data: {
+            url: url,
+          },
         };
       } else if (
         JSON.parse(payload.data.data).message.message_type.name ===
@@ -288,6 +297,9 @@ messaging.onBackgroundMessage(async function (payload) {
           body: "File",
           icon: JSON.parse(payload.data.data).message.icon,
           image: JSON.parse(payload.data.data).message.image,
+          data: {
+            url: url,
+          },
         };
       } else if (
         JSON.parse(payload.data.data).message.message_type.name ===
@@ -307,12 +319,18 @@ messaging.onBackgroundMessage(async function (payload) {
           icon: JSON.parse(payload.data.data).message?.icon,
           image: JSON.parse(payload.data.data).message.message_content.content
             .product_image_url,
+          data: {
+            url: url,
+          },
         };
       } else {
         notificationOptions = {
           body: "Missed Call",
           icon: JSON.parse(payload?.data.message)?.icon,
           image: JSON.parse(payload?.data.message)?.image,
+          data: {
+            url: url,
+          },
         };
       }
       if (notificationOptions.body)

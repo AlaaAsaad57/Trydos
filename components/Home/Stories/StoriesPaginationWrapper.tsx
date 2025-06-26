@@ -38,14 +38,6 @@ function StoriesPaginationWrapper({
 
   if (!next_page_url) return <></>;
 
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center h-full w-[100px]">
-        <Spinner />
-      </div>
-    );
-  }
-
   const getNextStories = async () => {
     setLoading(true);
 
@@ -110,6 +102,11 @@ function StoriesPaginationWrapper({
           story={story}
         />
       ))}
+      {loading && (
+        <div className="flex justify-center items-center h-full w-[100px]">
+          <Spinner />
+        </div>
+      )}
       {next_page && (
         <div className="flex justify-center items-center w-[100px]">
           <InView

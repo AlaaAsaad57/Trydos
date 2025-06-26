@@ -7,6 +7,7 @@ import { useListingStore } from "./listing/reducer";
 import { useSearchStore } from "./search/reducer";
 import { useChatStore } from "./chat/reducer";
 import useCartStore from "./Cart/reducer";
+import { useNotificationStore } from "./notifications/reducer";
 
 // Create a type that combines all store states
 type AppState = ReturnType<typeof useAuthStore> &

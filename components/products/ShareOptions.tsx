@@ -13,15 +13,12 @@ import {
   WhatsappIcon,
   WhatsappShareButton,
 } from "react-share";
-
-import { ProductInterface } from "models/Genaral/Product";
-import { getUserChat } from "utils/functions";
+import { getUserChat, translateFunction } from "utils/functions";
 import { AxiosPost } from "utils/AxiosApi";
 import { useAppStore } from "store";
-import { toast } from "react-toastify";
 import CopyIcon from "public/svg/copyIcon.svg";
-import { GA_EVENT_NAMES } from "utils/GAEvents";
 import { ShareOptionsPropsType } from "models/componentType/ShareOptionsPropsType";
+import { showSuccessNotification } from "@/store/notifications/reducer";
 function ShareOptions({
   setShareContacts,
   sharedContacts,
@@ -145,7 +142,9 @@ function ShareOptions({
             //   value: GA_CLICK_EVENT_VALUES.SHARE_WITH_COPY_LINK_BUTTON,
             // });
             navigator.clipboard.writeText(window.location.href).then(() => {
-              toast.success("Link Copied to Clipboard");
+              showSuccessNotification(
+                translateFunction("Link Copied to Clipboard")
+              );
             });
           }}
         >

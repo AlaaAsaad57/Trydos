@@ -15,14 +15,17 @@ import PaymentMethod from "./PaymentMethod";
 import PlaceOrderWidget from "./PlaceOrderWidget";
 import PlaceOrderButtons from "./PlaceOrderButtons";
 
-import { toast } from "react-toastify";
 import Spinner from "components/global/Spinner";
 import LocalizationServiceClass from "services/localization";
 import { useAppStore } from "store";
 import { GA_EVENT_NAMES } from "utils/GAEvents";
 import home from "services/home";
-import { DeleteModalComponentPropsType, OrderButtonsPropsType } from "models/componentType/settingTypes/DeleteModalComponentPropsType";
+import {
+  DeleteModalComponentPropsType,
+  OrderButtonsPropsType,
+} from "models/componentType/settingTypes/DeleteModalComponentPropsType";
 import { OrdersPagePropsType } from "models/componentType/OrdersPagePropsType";
+import { showErrorNotification } from "@/store/notifications/reducer";
 
 const DeleteIcon = () => {
   return (
@@ -105,10 +108,7 @@ const DeleteIcon = () => {
     </svg>
   );
 };
-function OrdersPage({
-  setStep,
-  close,
-}: OrdersPagePropsType) {
+function OrdersPage({ setStep, close }: OrdersPagePropsType) {
   const {
     addressDetails,
     orderData,
@@ -784,7 +784,11 @@ export const DeleteModalComponent = ({
     </>
   );
 };
-const OrderButtons = ({ orderLoading, setNext, setPrev }: OrderButtonsPropsType) => {
+const OrderButtons = ({
+  orderLoading,
+  setNext,
+  setPrev,
+}: OrderButtonsPropsType) => {
   const {
     initCart,
     currency,
@@ -843,7 +847,8 @@ const OrderButtons = ({ orderLoading, setNext, setPrev }: OrderButtonsPropsType)
       addressLists.length === 0 ||
       addressLists?.filter((s) => s.is_default === 1)?.length === 0
     ) {
-      toast.info(translateFunction("Please Select an Address"));
+      showErrorNotification(translateFunction("Please Select an Address"));
+
       shake("address-valid-border");
     }
     if (orderData.payment?.length === 0) {
@@ -872,7 +877,10 @@ const OrderButtons = ({ orderLoading, setNext, setPrev }: OrderButtonsPropsType)
     if (userProfile.is_phone_verified === 0) {
       setPrev();
       setLoading(false);
-      toast.info(translateFunction("Please Verify Your Phone Number"));
+      showErrorNotification(
+        translateFunction("Please Verify Your Phone Number")
+      );
+
       return null;
     }
     if (a.length === 0) {
@@ -888,9 +896,10 @@ const OrderButtons = ({ orderLoading, setNext, setPrev }: OrderButtonsPropsType)
     ) {
       setNext();
     } else {
-      toast.error(
+      showErrorNotification(
         translateFunction("Please Review Your Cart Some Products Not Available")
       );
+
       setPrev();
     }
     setLoading(false);
@@ -906,7 +915,7 @@ const OrderButtons = ({ orderLoading, setNext, setPrev }: OrderButtonsPropsType)
         <div
           onClick={() => {
             Validate();
-            if (isValid() && !orderLoading) {
+            if (isValid() && !(orderLoading || loading)) {
               // Sendevent({
               //   event: GA_EVENT_NAMES.CLICK,
               //   value:

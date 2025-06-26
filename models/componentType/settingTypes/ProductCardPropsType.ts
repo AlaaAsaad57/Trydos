@@ -1,5 +1,7 @@
-
 export interface ProductCardPropsType {
-    product: any;
-    status: string;
+  product: any;
+  status: {
+    label: string;
+    value: string;
+  };
 }

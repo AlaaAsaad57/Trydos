@@ -2,20 +2,18 @@ import { useEffect, useState } from "react";
 import AddToCartButton from "./AddToCartButton";
 import Heart from "public/svg/Heart.svg";
 import HeartFill from "public/svg/HeartFill.svg";
-
 import Share from "public/svg/share.svg";
 import CommentIcon from "./CommentIcon";
 import ThreePoints from "./ThreePoints";
 import ShareButton from "./ShareButton";
 import Skeleton from "react-loading-skeleton";
-
 import { translateFunction } from "utils/functions";
 import home from "services/home";
 import { AxiosPost } from "utils/AxiosApi";
-import { toast } from "react-toastify";
 import auth from "services/auth";
 import { useAppStore } from "store";
 import { ProductOptionsPropsType } from "models/componentType/ProductOptionsPropsType";
+import { showErrorNotification } from "@/store/notifications/reducer";
 
 function ProductOptions({
   activeOption,
@@ -77,12 +75,14 @@ function ProductOptions({
   };
   useEffect(() => {
     if (product.is_country_restricted) {
-      toast.error(
+      showErrorNotification(
         translateFunction("Sorry This Product Not Available In Your Country")
       );
     }
     if (product.is_active === false) {
-      toast.error(translateFunction("Sorry This Product Not Available Now"));
+      showErrorNotification(
+        translateFunction("Sorry This Product Not Available Now")
+      );
     }
   }, []);
   return (

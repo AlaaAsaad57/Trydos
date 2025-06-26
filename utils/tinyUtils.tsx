@@ -6,11 +6,11 @@ import replaceString from "replace-string";
 import { allCountries } from "country-telephone-data";
 
 import Cookies from "js-cookie";
-import { toast } from "react-toastify";
+
 import { changeToken } from "store/homepage/cachedActions";
 import { textMarshal } from "node_modules/text-marshal/lib";
 import { GA_GLOBAL_SCREEN } from "./GAEvents";
-
+import { showErrorNotification } from "@/store/notifications/reducer";
 // TypeScript interfaces for filter system
 export interface FilterParams {
   boutiques?: string[];
@@ -271,12 +271,19 @@ export const getCurrency = async ({ callback }) => {
 };
 export const FlagIcon = ({ iso }) => {
   if (iso.toLowerCase() === "sy")
-    return <img src="/svg/sy.svg" alt="sy" width={15} height={10} />;
+    return (
+      <img
+        src="/svg/sy.svg"
+        alt={translateFunction("sy")}
+        width={15}
+        height={10}
+      />
+    );
 
   return (
     <img
       src={`/svg/flag/${iso?.toLowerCase()}.svg`}
-      alt={iso}
+      alt={translateFunction(iso)}
       width={15}
       height={10}
     />
@@ -284,18 +291,18 @@ export const FlagIcon = ({ iso }) => {
 };
 export const formatTime = (timeString: string) => {
   const MONTH_NAMES = [
-    "January",
-    "February",
-    "March",
-    "April",
-    "May",
-    "June",
-    "July",
-    "August",
-    "September",
-    "October",
-    "November",
-    "December",
+    translateFunction("January"),
+    translateFunction("February"),
+    translateFunction("March"),
+    translateFunction("April"),
+    translateFunction("May"),
+    translateFunction("June"),
+    translateFunction("July"),
+    translateFunction("August"),
+    translateFunction("September"),
+    translateFunction("October"),
+    translateFunction("November"),
+    translateFunction("December"),
   ];
   let date = !timeString?.includes("Z")
     ? new Date(timeString + "Z")
@@ -344,16 +351,22 @@ export const UnAuthintacetedAction = () => {
   changeToken({ key: "token", deleteOption: true });
   changeToken({ key: "MARKET-TOKEN", deleteOption: true });
   changeToken({ key: "DEVICE-TOKEN", deleteOption: true });
-  localStorage.removeItem("USER-STORIES");
-  localStorage.removeItem("USER-CHAT");
+  // localStorage.removeItem("USER-STORIES");
+  // localStorage.removeItem("USER-CHAT");
   if (localStorage.getItem("USER")) {
-    localStorage.setItem("guest-user", localStorage.getItem("USER"));
+    localStorage.setItem(
+      "guest-user",
+      JSON.stringify({
+        ...JSON.parse(localStorage.getItem("USER")),
+        is_phone_verified: 0,
+      })
+    );
   }
   localStorage.removeItem("USER");
 
   Cookies.remove("token");
 
-  toast.info(
+  showErrorNotification(
     translateFunction("Session Expired..please Verify Your Phone Number")
   );
   setShouldAuthinticated(true);
@@ -468,6 +481,7 @@ export const parseFiltersFromParams = (
     "sizes",
     "prices",
     "search",
+    "tags_names",
   ];
 
   while (currentIndex < cleanParams.length) {
@@ -537,6 +551,7 @@ export const buildParamsFromFilters = (
   const params: string[] = [];
   const filterOrder = [
     "boutiques",
+    "tags_names",
     "categories",
     "brands",
     "colors",

@@ -1,7 +1,7 @@
 "use client";
 import React from "react";
 
-import { useSwipeable } from "react-swipeable";
+import { useSwipeToClose } from "utils/useSwipeToClose";
 import { useAppStore } from "store";
 
 function InfoWindow() {
@@ -9,38 +9,47 @@ function InfoWindow() {
 
   let { icon, text, title, showInfoMessage, value } = InfoMessage;
 
-  const handlers = useSwipeable({
-    onSwipedDown: (e) => {
-      closeInfoMessage();
-    },
-    delta: 10,
-    trackMouse: true,
-    trackTouch: true,
-
-    touchEventOptions: {
-      passive: false,
-    },
+  // Use the improved swipe-to-close hook
+  const {
+    ref: swipeRef,
+    isDragging,
+    isAnimating,
+  } = useSwipeToClose({
+    threshold: 80, // Lower threshold for info window
+    velocityThreshold: 0.3,
+    animationDuration: 250,
+    onClose: closeInfoMessage,
+    enabled: showInfoMessage,
   });
+
   return (
     <>
       {showInfoMessage && (
         <div
           className="w-[100vw] h-[100vh] bg-[#1D1D1D] opacity-75 fixed top-0 left-0 z-[999999999989]"
           onClick={() => {
-            closeInfoMessage();
+            if (!isDragging && !isAnimating) {
+              closeInfoMessage();
+            }
           }}
         />
       )}
       <div
-        {...handlers}
-        className={`flex rounded-tl-[30px] w-full  p-5 pb-[70px] rounded-tr-[30px] bg-[#F4F4F4] min-h-[200px] left-0 fixed transition-all z-[999999999999] ${
+        ref={swipeRef}
+        className={`flex rounded-tl-[30px] w-full p-5 pb-[70px] rounded-tr-[30px] bg-[#F4F4F4] min-h-[200px] left-0 fixed transition-all z-[999999999999] ${
           showInfoMessage ? "bottom-[0px]" : "bottom-[-100vh]"
-        } `}
+        } ${isDragging ? "select-none" : ""}`}
         data-cy="InfoWindow"
+        data-swipe-container
       >
+        {/* Swipe indicator */}
+        <div className="w-full flex justify-center absolute top-2 left-0">
+          <div className="w-10 h-1 bg-gray-400 rounded-full"></div>
+        </div>
+
         <div className="flex-col w-full pt-[15px] pl-[10px] pb-[10px] pr-[25px] relative">
           <svg
-            className="absolute  top-0 left-0"
+            className="absolute top-0 left-0"
             xmlns="http://www.w3.org/2000/svg"
             width="calc(100%)"
             height="calc(100%)"

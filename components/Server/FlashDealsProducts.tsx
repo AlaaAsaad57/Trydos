@@ -115,7 +115,7 @@ async function FlashDealsProducts({ lang }) {
           </svg>
         </span>
         <span className="ml-[12px]">
-          {translateFunction("Flash Deals Products", lang.split("-")[1])}
+          {translateFunction("Flash Deals", lang.split("-")[1])}
         </span>
       </NextLink>
       <HortiznalScrollBar
@@ -125,7 +125,7 @@ async function FlashDealsProducts({ lang }) {
       >
         {flashDealsProducts?.data?.products?.map((product, key) => (
           <div
-            className="max-h-[290px] max-w-[200px] relative mx-[10px]"
+            className="max-h-[290px] max-w-[200px] relative mx-[10px] shadow-sm rounded-md"
             data-cy="countProduct"
             key={product.slug}
           >
@@ -142,7 +142,8 @@ async function FlashDealsProducts({ lang }) {
             >
               <ProductBanner
                 featured={product.featured}
-                flashDeals={product.end_date}
+                flashDeals={product?.flash_deal_end_date}
+                labels={product.label_names}
               />
 
               <div className="max-h-[220px] w-full">
@@ -154,7 +155,7 @@ async function FlashDealsProducts({ lang }) {
                   src={getConfiguredImage({
                     src: GetImageUrl(product.images[0]?.file_path),
                     width: 200,
-                    height: 270,
+                    height: 400,
                   })}
                 />
               </div>
@@ -168,10 +169,10 @@ async function FlashDealsProducts({ lang }) {
                       <Image
                         alt={product?.brand?.name}
                         loading={"eager"}
-                        src={GetImageUrl(product?.brand?.icon)?.replace(
-                          "/upload",
-                          "/upload/h_50/q_auto"
-                        )}
+                        src={getConfiguredImage({
+                          src: GetImageUrl(product?.brand?.icon),
+                          height: 100,
+                        })}
                         width={16}
                         height={7}
                         className="max-h-[20px] max-w-[40px]"
@@ -190,10 +191,10 @@ async function FlashDealsProducts({ lang }) {
                       {product?.category?.icon?.length > 0 && (
                         <Image
                           loading={"eager"}
-                          src={GetImageUrl(product?.category?.icon)?.replace(
-                            "/upload",
-                            "/upload/h_50/f_webp/q_auto"
-                          )}
+                          src={getConfiguredImage({
+                            src: GetImageUrl(product?.category?.icon),
+                            height: 100,
+                          })}
                           width={10}
                           height={10}
                           style={{
@@ -265,12 +266,12 @@ async function FlashDealsProducts({ lang }) {
           </div>
         ))}
         <NextLink
-          href={`/${lang}/featured`}
+          href={`/${lang}/flashDeals`}
           data={{ is_boutique: true }}
           className="product-container items-center justify-center min-w-[200px] max-h-[290px] bg-[#0002]  align-center flex-col relative"
         >
           <div className="flex regular rounded-md p-3 items-center justify-center bg-[#5d5d5d] text-white shadow-md shadow-[#fff]">
-            Show More
+            {translateFunction("Show More", lang.split("-")[1])}
           </div>
         </NextLink>
       </HortiznalScrollBar>

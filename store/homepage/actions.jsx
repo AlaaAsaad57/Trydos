@@ -27,7 +27,7 @@ export const SelectStory = (e) => {
   const { setSelectedStory } = useAppStore.getState();
 
   if (e) {
-    window.history.pushState({ isPopup: true }, "open Cart");
+    window.history.pushState({ isPopup: true }, "open Stories");
   }
   if (e) {
     // Sendevent({

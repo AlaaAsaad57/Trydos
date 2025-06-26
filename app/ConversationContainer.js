@@ -13,7 +13,7 @@ import PlusIcon from "../svg/chatplus.svg";
 import CameraIcon from "../svg/camera.svg";
 import SendIcon from "../svg/sendbutton.svg";
 import { dataURLtoFile, upload } from "../chatsFunctions";
-import { toast } from "react-toastify";
+
 import { getUser } from "../chatsFunctions";
 import ReplyMessage from "components/Chat/components/ReplyMessage";
 import ChatInfo from "components/Chat/components/ChatInfo";
@@ -22,7 +22,6 @@ import Observable from "components/Chat/components/ChatHistoryElement";
 import Image from "next/image";
 import {
   GetChatDetails,
-  GetLastSeen,
   SendMessage,
   getMessagesBetweenMessage,
   getPage,
@@ -45,6 +44,7 @@ const VoiceCall = dynamic(
   { ssr: false }
 );
 import "styles/chat.css";
+import { showErrorNotification } from "@/store/notifications/reducer";
 
 function ConversationContainer({
   ViewedScreen,
@@ -143,9 +143,10 @@ function ConversationContainer({
   const showRoute = (mes, prev, next) => {
     if (
       prev &&
-      prev.message_content &&
-      prev.message_content.length > 0 &&
-      prev.message_content[0]?.file_path === "false"
+      (prev.message_content || prev.message_files) &&
+      (prev.message_content?.length > 0 || prev.message_files?.length > 0) &&
+      (prev.message_content?.[0]?.file_path === "false" ||
+        prev.message_files?.[0]?.file_path === "false")
     ) {
       return "lonely";
     }
@@ -210,27 +211,67 @@ function ConversationContainer({
     }`;
   };
   const sendAudio = async (i) => {
-    setRefs();
-    if (blobs.current) {
-      setRecording(false);
-      sendStatues(null);
-      setMic(false);
+    try {
+      setRefs();
+      if (blobs.current) {
+        setRecording(false);
+        sendStatues(null);
+        setMic(false);
 
-      reset();
-      var reader = new FileReader();
-      reader.readAsDataURL(blobs.current);
-      var file = new File([blobs.current], "wave-" + i);
+        reset();
+        var reader = new FileReader();
+        reader.readAsDataURL(blobs.current);
+        var file = new File([blobs.current], "wave-" + i);
 
-      reader.onloadend = function () {
-        var base64data = reader.result;
-        sendMessage({
-          isNew:
-            typeof activeChat?.id === "string" && activeChat?.id?.includes("ch")
-              ? activeChat.id
-              : false,
-          act: { ...activeChat, id: activeChat.id || "ch-" },
-          message: {
-            parent_message: replyMessage,
+        reader.onloadend = function () {
+          var base64data = reader.result;
+          sendMessage({
+            isNew:
+              typeof activeChat?.id === "string" &&
+              activeChat?.id?.includes("ch")
+                ? activeChat.id
+                : false,
+            act: { ...activeChat, id: activeChat.id || "ch-" },
+            message: {
+              parent_message: replyMessage,
+              receiver_user_id: activeChat.channel_members.filter(
+                (a) => parseInt(a.user_id) !== parseInt(getUser()?.id)
+              )[0]?.user_id,
+              receiver_role_id: activeChat.channel_members.filter(
+                (a) => parseInt(a.user_id) !== parseInt(getUser()?.id)
+              )[0]?.role_id,
+              sender_role_id: getUser().role_id,
+              sender_user_id: getUser()?.id,
+              message_type: { name: "VoiceMessage" },
+              message_content: [{ file_path: base64data }],
+              message_files: [{ file_path: base64data, file_name: "Audio" }],
+              created_at: new Date(),
+              type: "pending",
+              mid: i,
+              message_status: [
+                {
+                  is_watched: false,
+                  is_received: 0,
+                  user_id: localStorage.getItem("USER-CHAT") && getUser()?.id,
+                },
+                {
+                  is_received: 0,
+                  is_watched: false,
+                  user_id: activeChat.channel_members.filter(
+                    (a) => parseInt(a.user_id) !== parseInt(getUser()?.id)
+                  )[0]?.user_id,
+                },
+              ],
+              cid: activeChat.id,
+            },
+            isPrivate: isPrivate,
+          });
+        };
+
+        let pat = await upload(file);
+
+        SendMessage(
+          {
             receiver_user_id: activeChat.channel_members.filter(
               (a) => parseInt(a.user_id) !== parseInt(getUser()?.id)
             )[0]?.user_id,
@@ -238,54 +279,21 @@ function ConversationContainer({
               (a) => parseInt(a.user_id) !== parseInt(getUser()?.id)
             )[0]?.role_id,
             sender_role_id: getUser().role_id,
-            sender_user_id: getUser()?.id,
-            message_type: { name: "VoiceMessage" },
-            message_content: [{ file_path: base64data }],
-            created_at: new Date(),
-            type: "pending",
+            content: [{ file_path: pat.path, file_name: pat.name }],
+            parent_message_id: replyMessage?.id,
+            message_type: "VoiceMessage",
             mid: i,
-            message_status: [
-              {
-                is_watched: false,
-                is_received: 0,
-                user_id: localStorage.getItem("USER-CHAT") && getUser()?.id,
-              },
-              {
-                is_received: 0,
-                is_watched: false,
-                user_id: activeChat.channel_members.filter(
-                  (a) => parseInt(a.user_id) !== parseInt(getUser()?.id)
-                )[0]?.user_id,
-              },
-            ],
             cid: activeChat.id,
           },
-          isPrivate: isPrivate,
-        });
-      };
-
-      let pat = await upload(file);
-
-      SendMessage(
-        {
-          receiver_user_id: activeChat.channel_members.filter(
-            (a) => parseInt(a.user_id) !== parseInt(getUser()?.id)
-          )[0]?.user_id,
-          receiver_role_id: activeChat.channel_members.filter(
-            (a) => parseInt(a.user_id) !== parseInt(getUser()?.id)
-          )[0]?.role_id,
-          sender_role_id: getUser().role_id,
-          content: [{ file_path: pat.path, file_name: pat.name }],
-          parent_message_id: replyMessage?.id,
-          message_type: "VoiceMessage",
-          mid: i,
-          cid: activeChat.id,
-        },
-        typeof activeChat?.id === "string" && activeChat?.id?.includes("ch")
-          ? activeChat.id
-          : false,
-        isPrivate
-      );
+          typeof activeChat?.id === "string" && activeChat?.id?.includes("ch")
+            ? activeChat.id
+            : false,
+          isPrivate
+        );
+      }
+    } catch (error) {
+      showErrorNotification(translateFunction("Failed to Upload file"));
+      sendStatues(null);
     }
   };
   const sendPhoto = (m, i, type) => {
@@ -336,6 +344,7 @@ function ConversationContainer({
           sender_user_id: getUser()?.id,
           message_type: { name: "TextMessage" },
           message_content: { content: data },
+          message_files: [{ file_path: data, file_name: "Text" }],
           created_at: new Date(),
           mid: i,
           message_status: [
@@ -374,6 +383,7 @@ function ConversationContainer({
           )[0]?.role_id,
           sender_role_id: getUser().role_id,
           content: [{ file_path: data }],
+
           parent_message_id: replyMessage?.id,
           message_type: "ImageMessage",
         },
@@ -415,6 +425,13 @@ function ConversationContainer({
             },
           ],
           message_content: [{ file_path: data }],
+          message_files: [
+            {
+              file_name: "Image",
+              file_path: data,
+              caption: message,
+            },
+          ],
           cid: activeChat.id,
         },
         isPrivate: isPrivate,
@@ -476,6 +493,13 @@ function ConversationContainer({
             },
           ],
           message_content: [{ file_path: data }],
+          message_files: [
+            {
+              file_name: "Image",
+              file_path: data,
+              caption: message,
+            },
+          ],
           cid: activeChat.id,
         },
         isPrivate: isPrivate,
@@ -514,6 +538,7 @@ function ConversationContainer({
             sender_user_id: getUser()?.id,
             message_type: { name: type },
             message_content: [{ file_path: reader.result }],
+            message_files: [{ file_path: reader.result, file_name: "Image" }],
             type: "pending",
             created_at: new Date(),
             message_status: [
@@ -553,31 +578,36 @@ function ConversationContainer({
     Image.onchange = async (e) => {
       let i = Math.random();
       if (e.target.files[0]?.type.includes("image")) {
-        sendPhoto(e.target.files[0], i, "ImageMessage");
+        try {
+          sendPhoto(e.target.files[0], i, "ImageMessage");
 
-        let pat = await upload(e.target.files[0]);
+          let pat = await upload(e.target.files[0]);
 
-        sendStatues(null);
-        SendMessage(
-          {
-            receiver_user_id: activeChat.channel_members.filter(
-              (a) => parseInt(a.user_id) !== parseInt(getUser()?.id)
-            )[0]?.user_id,
-            receiver_role_id: activeChat.channel_members.filter(
-              (a) => parseInt(a.user_id) !== parseInt(getUser()?.id)
-            )[0]?.role_id,
-            sender_role_id: getUser().role_id,
-            content: [{ file_path: pat.path, file_name: pat.name }],
-            parent_message_id: replyMessage?.id,
-            message_type: "ImageMessage",
-            mid: i,
-            cid: activeChat.id,
-          },
-          typeof activeChat?.id === "string" && activeChat?.id?.includes("ch")
-            ? activeChat.id
-            : false,
-          isPrivate
-        );
+          sendStatues(null);
+          SendMessage(
+            {
+              receiver_user_id: activeChat.channel_members.filter(
+                (a) => parseInt(a.user_id) !== parseInt(getUser()?.id)
+              )[0]?.user_id,
+              receiver_role_id: activeChat.channel_members.filter(
+                (a) => parseInt(a.user_id) !== parseInt(getUser()?.id)
+              )[0]?.role_id,
+              sender_role_id: getUser().role_id,
+              content: [{ file_path: pat.path, file_name: pat.name }],
+              parent_message_id: replyMessage?.id,
+              message_type: "ImageMessage",
+              mid: i,
+              cid: activeChat.id,
+            },
+            typeof activeChat?.id === "string" && activeChat?.id?.includes("ch")
+              ? activeChat.id
+              : false,
+            isPrivate
+          );
+        } catch (error) {
+          showErrorNotification("Failed to Upload file");
+          sendStatues(null);
+        }
       }
     };
     setTimeout(() => {
@@ -591,76 +621,82 @@ function ConversationContainer({
     i.click();
   };
   const SendCameraImg = async (imageFile) => {
-    let i = parseInt(Math.random() * 1000);
-    sendMessage({
-      isNew:
+    try {
+      let i = parseInt(Math.random() * 1000);
+      sendMessage({
+        isNew:
+          typeof activeChat?.id === "string" && activeChat?.id?.includes("ch")
+            ? activeChat.id
+            : false,
+        act: activeChat,
+        message: {
+          parent_message: replyMessage,
+          receiver_user_id: activeChat.channel_members.filter(
+            (a) => parseInt(a.user_id) !== parseInt(getUser()?.id)
+          )[0]?.user_id,
+          receiver_role_id: activeChat.channel_members.filter(
+            (a) => parseInt(a.user_id) !== parseInt(getUser()?.id)
+          )[0]?.role_id,
+          sender_role_id: getUser().role_id,
+          sender_user_id: getUser()?.id,
+          message_type: { name: "ImageMessage" },
+          message_content: [{ file_path: imageFile }],
+          message_files: [{ file_path: imageFile, file_name: "Image" }],
+          type: "pending",
+          created_at: new Date(),
+          message_status: [
+            {
+              is_watched: false,
+              is_received: 0,
+              user_id: localStorage.getItem("USER-CHAT") && getUser()?.id,
+            },
+            {
+              is_received: 0,
+              is_watched: false,
+              user_id: activeChat.channel_members.filter(
+                (a) => parseInt(a.user_id) !== parseInt(getUser()?.id)
+              )[0]?.user_id,
+            },
+          ],
+          mid: i,
+          cid: activeChat.id,
+        },
+        isPrivate: isPrivate,
+      });
+      var file = dataURLtoFile(imageFile, "image-" + i + ".jpg");
+
+      let pat = await upload(file);
+
+      sendStatues(null);
+      SendMessage(
+        {
+          receiver_user_id: activeChat.channel_members.filter(
+            (a) => parseInt(a.user_id) !== parseInt(getUser()?.id)
+          )[0]?.user_id,
+          receiver_role_id: activeChat.channel_members.filter(
+            (a) => parseInt(a.user_id) !== parseInt(getUser()?.id)
+          )[0]?.role_id,
+          sender_role_id: getUser().role_id,
+          content: [{ file_path: pat.path, file_name: pat.name }],
+          parent_message_id: replyMessage?.id,
+          message_type: "ImageMessage",
+          mid: i,
+          cid: activeChat.id,
+        },
         typeof activeChat?.id === "string" && activeChat?.id?.includes("ch")
           ? activeChat.id
           : false,
-      act: activeChat,
-      message: {
-        parent_message: replyMessage,
-        receiver_user_id: activeChat.channel_members.filter(
-          (a) => parseInt(a.user_id) !== parseInt(getUser()?.id)
-        )[0]?.user_id,
-        receiver_role_id: activeChat.channel_members.filter(
-          (a) => parseInt(a.user_id) !== parseInt(getUser()?.id)
-        )[0]?.role_id,
-        sender_role_id: getUser().role_id,
-        sender_user_id: getUser()?.id,
-        message_type: { name: "ImageMessage" },
-        message_content: [{ file_path: imageFile }],
-        type: "pending",
-        created_at: new Date(),
-        message_status: [
-          {
-            is_watched: false,
-            is_received: 0,
-            user_id: localStorage.getItem("USER-CHAT") && getUser()?.id,
-          },
-          {
-            is_received: 0,
-            is_watched: false,
-            user_id: activeChat.channel_members.filter(
-              (a) => parseInt(a.user_id) !== parseInt(getUser()?.id)
-            )[0]?.user_id,
-          },
-        ],
-        mid: i,
-        cid: activeChat.id,
-      },
-      isPrivate: isPrivate,
-    });
-    var file = dataURLtoFile(imageFile, "image-" + i + ".jpg");
-
-    let pat = await upload(file);
-
-    sendStatues(null);
-    SendMessage(
-      {
-        receiver_user_id: activeChat.channel_members.filter(
-          (a) => parseInt(a.user_id) !== parseInt(getUser()?.id)
-        )[0]?.user_id,
-        receiver_role_id: activeChat.channel_members.filter(
-          (a) => parseInt(a.user_id) !== parseInt(getUser()?.id)
-        )[0]?.role_id,
-        sender_role_id: getUser().role_id,
-        content: [{ file_path: pat.path, file_name: pat.name }],
-        parent_message_id: replyMessage?.id,
-        message_type: "ImageMessage",
-        mid: i,
-        cid: activeChat.id,
-      },
-      typeof activeChat?.id === "string" && activeChat?.id?.includes("ch")
-        ? activeChat.id
-        : false,
-      isPrivate
-    );
+        isPrivate
+      );
+    } catch (error) {
+      showErrorNotification(translateFunction("Failed to Upload file"));
+      sendStatues(null);
+    }
   };
   useEffect(() => {}, [blobUrl, blobs]);
   const GetMessage = useCallback(
     (msgId, quoteId) => {
-      if (activeChat?.messages.filter((f) => f.id === quoteId).length > 0) {
+      if (activeChat?.messages?.filter((f) => f.id === quoteId)?.length > 0) {
         var numb = quoteId?.toString()?.match(/\d/g);
         numb = numb?.join("");
         let el = document.querySelector(`#main-container-${quoteId}`);
@@ -680,8 +716,9 @@ function ConversationContainer({
         getMessagesBetweenMessage({
           first: activeChat?.id,
           second:
-            parseInt(activeChat.messages[activeChat.messages.length - 1]?.id) -
-            parseInt(quoteId),
+            parseInt(
+              activeChat?.messages?.[activeChat?.messages?.length - 1]?.id
+            ) - parseInt(quoteId),
         });
       }
     },
@@ -775,45 +812,54 @@ function ConversationContainer({
   const [DetailsVar, openDetails] = useState(false);
   useEffect(() => {}, []);
   const sendVid = async (e, i, type) => {
-    sendPhoto(e, i, type);
-    let pat = await upload(e);
-    sendStatues(null);
-    SendMessage(
-      {
-        receiver_user_id: activeChat.channel_members.filter(
-          (a) => parseInt(a.user_id) !== parseInt(getUser()?.id)
-        )[0]?.user_id,
-        receiver_role_id: activeChat.channel_members.filter(
-          (a) => parseInt(a.user_id) !== parseInt(getUser()?.id)
-        )[0]?.role_id,
-        sender_role_id: getUser().role_id,
-        content: [{ file_path: pat.path, file_name: pat.name }],
-        extra_fileds: { name: e.name, type: e.type },
-        parent_message_id: replyMessage?.id,
-        message_type: type,
-        mid: i,
-        cid: activeChat.id,
-      },
-      typeof activeChat?.id === "string" && activeChat?.id?.includes("ch")
-        ? activeChat.id
-        : false,
-      isPrivate
-    );
+    try {
+      sendPhoto(e, i, type);
+      let pat = await upload(e);
+      sendStatues(null);
+      SendMessage(
+        {
+          receiver_user_id: activeChat.channel_members.filter(
+            (a) => parseInt(a.user_id) !== parseInt(getUser()?.id)
+          )[0]?.user_id,
+          receiver_role_id: activeChat.channel_members.filter(
+            (a) => parseInt(a.user_id) !== parseInt(getUser()?.id)
+          )[0]?.role_id,
+          sender_role_id: getUser().role_id,
+          content: [{ file_path: pat.path, file_name: pat.name }],
+          extra_fileds: { name: e.name, type: e.type },
+          parent_message_id: replyMessage?.id,
+          message_type: type,
+          mid: i,
+          cid: activeChat.id,
+        },
+        typeof activeChat?.id === "string" && activeChat?.id?.includes("ch")
+          ? activeChat.id
+          : false,
+        isPrivate
+      );
+    } catch (error) {
+      showErrorNotification(translateFunction("Failed to Upload file"));
+      sendStatues(null);
+    }
   };
   const [cameraEnabled, setCameraEnabled] = useState(false);
   const enableCamera = (bool) => {
     if (!bool) {
+      setCameraEnabled(bool);
+      return;
     }
-    {
-      navigator.mediaDevices
-        .getUserMedia({ video: true })
-        .then((s) => {
-          setCameraEnabled(bool);
-        })
-        .catch((e) => {
-          toast.error("check camera premmissions and refresh");
-        });
-    }
+
+    navigator.mediaDevices
+      .getUserMedia({ video: true })
+      .then((s) => {
+        setCameraEnabled(bool);
+      })
+      .catch((e) => {
+        setCameraEnabled(false);
+        showErrorNotification(
+          translateFunction("check camera premmissions and refresh")
+        );
+      });
   };
   useEffect(() => {
     setSearch("");
@@ -828,32 +874,37 @@ function ConversationContainer({
         onChange={async (e) => {
           let i = Math.random();
           if (e.target.files[0]?.type.includes("image")) {
-            sendPhoto(e.target.files[0], i, "ImageMessage");
+            try {
+              sendPhoto(e.target.files[0], i, "ImageMessage");
 
-            let pat = await upload(e.target.files[0]);
+              let pat = await upload(e.target.files[0]);
 
-            sendStatues(null);
-            SendMessage(
-              {
-                receiver_user_id: activeChat.channel_members.filter(
-                  (a) => parseInt(a.user_id) !== parseInt(getUser()?.id)
-                )[0]?.user_id,
-                receiver_role_id: activeChat.channel_members.filter(
-                  (a) => parseInt(a.user_id) !== parseInt(getUser()?.id)
-                )[0]?.role_id,
-                sender_role_id: getUser().role_id,
-                content: [{ file_path: pat.path, file_name: pat.name }],
-                parent_message_id: replyMessage?.id,
-                message_type: "ImageMessage",
-                mid: i,
-                cid: activeChat.id,
-              },
-              typeof activeChat?.id === "string" &&
-                activeChat?.id?.includes("ch")
-                ? activeChat.id
-                : false,
-              isPrivate
-            );
+              sendStatues(null);
+              SendMessage(
+                {
+                  receiver_user_id: activeChat.channel_members.filter(
+                    (a) => parseInt(a.user_id) !== parseInt(getUser()?.id)
+                  )[0]?.user_id,
+                  receiver_role_id: activeChat.channel_members.filter(
+                    (a) => parseInt(a.user_id) !== parseInt(getUser()?.id)
+                  )[0]?.role_id,
+                  sender_role_id: getUser().role_id,
+                  content: [{ file_path: pat.path, file_name: pat.name }],
+                  parent_message_id: replyMessage?.id,
+                  message_type: "ImageMessage",
+                  mid: i,
+                  cid: activeChat.id,
+                },
+                typeof activeChat?.id === "string" &&
+                  activeChat?.id?.includes("ch")
+                  ? activeChat.id
+                  : false,
+                isPrivate
+              );
+            } catch (error) {
+              showErrorNotification(translateFunction("Failed to Upload file"));
+              sendStatues(null);
+            }
           } else if (e.target.files[0]?.type.includes("audio")) {
             sendVid(e.target.files[0], i, "VoiceMessage");
           } else if (e.target.files[0]?.type.includes("video")) {
@@ -892,26 +943,24 @@ function ConversationContainer({
           }
         />
       )}
-      {cameraEnabled && window.innerWidth > 800 && (
+
+      {cameraEnabled && (
         <div className="fixed-img-prev">
           <div className="bac-drop" onClick={() => enableCamera(false)}></div>
-          {window.innerWidth > 800 ? (
-            <WebcamCapture
-              imageFile={imageFile}
-              setImgs={(e) => setImgs(e)}
-              imgs={imgs}
-              close={() => enableCamera(false)}
-              save={(d) => {
-                setImgs(d);
-              }}
-              send={(d) => {
-                SendCameraImg(d);
-                enableCamera(false);
-              }}
-            />
-          ) : (
-            <></>
-          )}
+
+          <WebcamCapture
+            imageFile={imageFile}
+            setImgs={(e) => setImgs(e)}
+            imgs={imgs}
+            close={() => enableCamera(false)}
+            save={(d) => {
+              setImgs(d);
+            }}
+            send={(d) => {
+              SendCameraImg(d);
+              enableCamera(false);
+            }}
+          />
         </div>
       )}
       {(imgs || vid) && (
@@ -1232,7 +1281,7 @@ function ConversationContainer({
                   onBlur={() => {
                     sendStatues(null);
                   }}
-                  className={` input-chat ${message.length > 0 && "wid31"}`}
+                  className={` input-chat ${message?.length > 0 && "wid31"}`}
                   value={message}
                   onFocus={() => {
                     if (isPrivate) {
@@ -1251,7 +1300,7 @@ function ConversationContainer({
                   }}
                 />
               </div>
-              {message.length > 0 ? (
+              {message?.length > 0 ? (
                 <SendIcon
                   style={{ minWidth: "50px", cursor: "pointer" }}
                   onClick={() => {
@@ -1265,8 +1314,11 @@ function ConversationContainer({
                     style={{ minWidth: "50px", cursor: "pointer" }}
                     className="camer-icon"
                     onClick={() => {
-                      enableCamera(true);
-                      if (window.innerWidth < 800) openCameraMobile();
+                      if (window.innerWidth < 800) {
+                        openCameraMobile();
+                      } else {
+                        enableCamera(true);
+                      }
                     }}
                   ></CameraIcon>
                   <RedMicIcon
@@ -1282,7 +1334,10 @@ function ConversationContainer({
                             setRecording(true);
                           },
                           (e) => {
-                            toast.error("No available Microphone");
+                            showErrorNotification(
+                              translateFunction("No available Microphone")
+                            );
+
                             console.error(e);
                           }
                         );

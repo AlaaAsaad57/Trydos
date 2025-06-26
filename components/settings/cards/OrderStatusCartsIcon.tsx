@@ -1,8 +1,18 @@
 import React from "react";
 
 function OrderStatusCartsIcon({ status }) {
-  const statuses = ["pending", "preparing", "shipped", "delivered"];
+  const statuses = [
+    "pending",
+    "preparing",
+    "shipping_center",
+    "ready_to_shipping",
+    "shipped",
+    "out_for_delivery",
+    "in_delivery_center",
+    "delivered",
+  ];
   let status_word = status.toLowerCase();
+
   return (
     <>
       {status_word === "pending" ? (
@@ -16,24 +26,28 @@ function OrderStatusCartsIcon({ status }) {
           }}
         />
       )}
-      {status_word === "preparing" ? (
+      {status_word === "preparing" ||
+      status_word === "shipping_center" ||
+      status_word === "ready_to_shipping" ? (
         <PreparingStatus />
       ) : (
         <NormalStatus
           color={() => {
             let i = statuses.findIndex((s) => s === status_word);
-            if (i > 1) return "#FFDBAA";
+            if (i > 1 || i > 2 || i > 3) return "#FFDBAA";
             else return false;
           }}
         />
       )}
-      {status_word === "shipped" ? (
+      {status_word === "shipped" ||
+      status_word === "out_for_delivery" ||
+      status_word === "in_delivery_center" ? (
         <ShippedSatus />
       ) : (
         <NormalStatus
           color={() => {
             let i = statuses.findIndex((s) => s === status_word);
-            if (i > 2) return "#AADEFF";
+            if (i > 4 || i > 5) return "#AADEFF";
             else return false;
           }}
         />
@@ -44,7 +58,7 @@ function OrderStatusCartsIcon({ status }) {
         <NormalStatus
           color={() => {
             let i = statuses.findIndex((s) => s === status_word);
-            if (i === 3) return "#6FE86A";
+            if (i === 7) return "#6FE86A";
             else return false;
           }}
         />

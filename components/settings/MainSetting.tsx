@@ -1,4 +1,4 @@
-import React, { DOMElement, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import ProfileCard from "./ProfileCard";
 import TryDosWalletIcon from "public/svg/TryDosWalletIcon.svg";
 import OrdersIcon from "public/svg/OrdersIcon.svg";
@@ -8,16 +8,19 @@ import LegalInfoIcon from "public/svg/LegalInfoIcon.svg";
 import AboutIcon from "public/svg/AboutIcon.svg";
 import ShareAppIcon from "public/svg/ShareAppIcon.svg";
 import LanguageIcon from "public/svg/LanguageIcon.svg";
-import SyFlage from "public/svg/sy.svg";
 import { useParams } from "next/navigation";
 import { allCountries } from "country-telephone-data";
 import order from "services/order";
 
-import { formatPrice, translateFunction } from "utils/functions";
+import { translateFunction } from "utils/functions";
 import Spinner from "components/global/Spinner";
 import { useAppStore } from "store";
 import { FlagIcon } from "utils/tinyUtils";
-import { MainSettingOptionPropsType, MainSettingPropsType } from "models/componentType/settingTypes/MainSettingPropsType";
+import {
+  MainSettingOptionPropsType,
+  MainSettingPropsType,
+} from "models/componentType/settingTypes/MainSettingPropsType";
+import { fetchOrders } from "services/orders";
 
 const options = [
   { name: "Settings", Icon: <SettingsIcon /> },
@@ -26,9 +29,7 @@ const options = [
   { name: "About Us", Icon: <AboutIcon /> },
   { name: "Share App", Icon: <ShareAppIcon /> },
 ];
-function MainSetting({
-  swipeToScreen,
-}: MainSettingPropsType) {
+function MainSetting({ swipeToScreen }: MainSettingPropsType) {
   const { wallet, currency, totalOrders, settings } = useAppStore();
   const points = settings["starting-setting"]?.decimal_point_settings || 0;
 
@@ -69,27 +70,7 @@ function MainSetting({
         goToProfileSize={() => swipeToScreen(4)}
       />
       <div className="flex-row mt-[18px]">
-        <div
-          className="flex-col w-1/2 h-[94px] bg-[#F8F8F8] rounded-[12px] p-[12px] cursor-pointer"
-          data-cy="orders-page-button"
-          onClick={() => {
-            swipeToScreen(9);
-          }}
-        >
-          <OrdersIcon />
-          <span className="text-[#1D1D1D] text-[14px] regular mt-[4px]">
-            {translateFunction("Orders")}
-          </span>
-          {totalOrders === -1 ? (
-            <span>
-              <Spinner />
-            </span>
-          ) : (
-            <span className="text-[#8D8D8D] text-[12px] regular">
-              {totalOrders} {translateFunction("Action")}
-            </span>
-          )}
-        </div>
+        <OrdersCard swipeToScreen={swipeToScreen} />
         <div className="flex-col w-1/2 h-[94px] bg-[#F8F8F8] rounded-[12px] p-[12px] ml-[12px] cursor-pointer">
           <TryDosWalletIcon />
           <span className="text-[#1D1D1D] text-[14px] regular mt-[4px]">
@@ -147,16 +128,49 @@ function MainSetting({
 }
 
 export default MainSetting;
-const SettingOption = ({
-  name,
-  Icon,
-}: MainSettingOptionPropsType) => {
+const SettingOption = ({ name, Icon }: MainSettingOptionPropsType) => {
   return (
     <div className="w-full flex-row cursor-pointer mt-[4px] h-[53px] rounded-[15px] bg-[#f8f8f8] px-[12px] items-center">
       {Icon}
       <span className="text-[14px] regular text-[#1d1d1d] ml-[12px] ">
         {translateFunction(name)}
       </span>
+    </div>
+  );
+};
+const OrdersCard = ({
+  swipeToScreen,
+}: {
+  swipeToScreen: (screen: number) => void;
+}) => {
+  const { totalOrders } = useAppStore();
+  useEffect(() => {
+    getOrders();
+  }, []);
+  const getOrders = async () => {
+    const res = await fetchOrders(0, 10);
+  };
+  return (
+    <div
+      className="flex-col w-1/2 h-[94px] bg-[#F8F8F8] rounded-[12px] p-[12px] cursor-pointer"
+      data-cy="orders-page-button"
+      onClick={() => {
+        swipeToScreen(9);
+      }}
+    >
+      <OrdersIcon />
+      <span className="text-[#1D1D1D] text-[14px] regular mt-[4px]">
+        {translateFunction("Orders")}
+      </span>
+      {totalOrders === -1 ? (
+        <span>
+          <Spinner />
+        </span>
+      ) : (
+        <span className="text-[#8D8D8D] text-[12px] regular">
+          {totalOrders} {translateFunction("Action")}
+        </span>
+      )}
     </div>
   );
 };

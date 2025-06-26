@@ -6,8 +6,9 @@ import { translateFunction } from "utils/functions";
 import OrderItemCard from "./OrderItemCard";
 import { ModifyOrderItemModal } from "./ModifyOrderItemModal";
 import { AxiosGet } from "utils/AxiosApi";
-import { toast } from "react-toastify";
+
 import { ModifyOrderWidgetPropsType } from "models/componentType/ModifyOrderWidgetPropsType";
+import { showErrorNotification } from "@/store/notifications/reducer";
 function ModifyOrderWidget({ order_items, close }: ModifyOrderWidgetPropsType) {
   const [orderItemData, setOrderItemData] = useState(order_items);
   const isChanged = () => {
@@ -66,7 +67,7 @@ function ModifyOrderWidget({ order_items, close }: ModifyOrderWidgetPropsType) {
         loading: false,
       });
     } catch (e) {
-      toast.error(translateFunction("Failed to Load Product Data"));
+      showErrorNotification(translateFunction("Failed to Load Product Data"));
       setConfirmationData({
         ...ConfirmationData,
 

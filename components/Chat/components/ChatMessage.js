@@ -10,10 +10,7 @@ import RedRecord from "../svg/recordme.svg";
 import ForwardIcon from "../svg/forwarded.svg";
 import MissedIcon from "../svg/misscall.svg";
 import VideoIconMissed from "../svg/VideoMissed.svg";
-import profile from "public/images/profileNo.png";
-
 import OptionsMenu from "./OptionsMenu";
-import { getTwoLetters, getUser } from "../chatsFunctions";
 import RepliedMessage from "./RepliedMessage";
 import SpinIcon from "../svg/spinn.svg";
 import DownIcon from "../svg/down.svg";
@@ -55,7 +52,7 @@ function ChatMessage(props) {
     }
   };
   const getMessageStatus = () => {
-    if (props.message.mid) {
+    if (props.message?.mid) {
       return (
         <>
           {
@@ -72,6 +69,7 @@ function ChatMessage(props) {
                     height="800px"
                     viewBox="0 0 473.068 473.068"
                     xmlSpace="preserve"
+                    className="animate-spin"
                   >
                     <g>
                       <g id="Layer_2_31_">
@@ -89,16 +87,19 @@ function ChatMessage(props) {
 				c-1.992-3.156-2.968-9.626-2.968-19.767V54.835h237.918v71.77c0,19.5-9.718,26.288-16.814,31.235
 				c-5.546,3.872-54.391,33.395-85.869,52.295c-4.427,2.658-7.134,7.442-7.134,12.601v37.563
 				C245.675,265.431,248.346,270.188,252.726,272.859z"
+                            fill="#fafafa"
                           />
                           <path
                             d="M331.065,154.234c0,0,5.291-4.619-2.801-3.299c-19.178,3.115-53.079,15.133-92.079,15.133s-57-11-82.507-11.303
 				c-5.569-0.066-5.456,3.629,0.937,7.391c6.386,3.758,63.772,35.681,71.671,40.08c7.896,4.389,12.417,4.05,20.786,0
 				C259.246,196.334,331.065,154.234,331.065,154.234z"
+                            fill="#fafafa"
                           />
                           <path
                             d="M154.311,397.564c-6.748,6.209-9.978,10.713,5.536,10.713c12.656,0,139.332,0,155.442,0
 				c16.099,0,9.856-5.453,2.311-12.643c-14.576-13.883-45.416-23.566-82.414-23.566
 				C196.432,372.068,169.342,383.723,154.311,397.564z"
+                            fill="#fafafa"
                           />
                         </g>
                       </g>
@@ -249,10 +250,14 @@ function ChatMessage(props) {
     SSRDetect() && window.requestAnimationFrame(step);
   };
   function step() {
-    let el = document.querySelector(
-      `#wav${props.message.id || props.message.mid}`
-    );
-    el.style.marginLeft = `${width}px`;
+    if (
+      document.querySelector(`#wav${props.message.id || props.message.mid}`)
+    ) {
+      let el = document.querySelector(
+        `#wav${props.message.id || props.message.mid}`
+      );
+      el.style.marginLeft = `${width}px`;
+    }
   }
   const copyText = () => {
     let elem = document.querySelector("#text-copy");
@@ -260,6 +265,7 @@ function ChatMessage(props) {
     elem.select();
     document.execCommand("Copy");
   };
+
   const showMessage = () => {
     const { setForwardMessage, setReplyMessage } = useAppStore.getState();
     // if (
@@ -593,10 +599,10 @@ function ChatMessage(props) {
               <img
                 alt="user"
                 onClick={() =>
-                  setImg(props.message.message_files[0]?.file_path)
+                  setImg(props.message.message_files?.[0]?.file_path)
                 }
                 className="message-img"
-                src={props.message.message_files[0]?.file_path}
+                src={props.message.message_files?.[0]?.file_path}
               />
 
               <div className="message-date">{getMessageStatus()}</div>
@@ -941,17 +947,19 @@ function ChatMessage(props) {
                     <div className="player-cont">
                       <div className="wave-absolute">
                         {AudioRef.current?.duration !== Infinity &&
-                          AudioRef.current?.duration !== undefined &&
-                          AudioRef.current?.duration !== NaN &&
-                          showTime(AudioRef.current?.duration) !== null &&
-                          showTime(AudioRef.current?.duration) !== NaN &&
-                          showTime(AudioRef.current?.duration) !== "NaN" && (
-                            <div className="player-time">
-                              {AudioRef.current &&
-                                AudioRef.current?.duration &&
-                                showTime(AudioRef.current?.duration)}
-                            </div>
-                          )}
+                        AudioRef.current?.duration !== undefined &&
+                        AudioRef.current?.duration !== NaN &&
+                        showTime(AudioRef.current?.duration) !== null &&
+                        showTime(AudioRef.current?.duration) !== NaN &&
+                        showTime(AudioRef.current?.duration) !== "NaN" ? (
+                          <div className="player-time">
+                            {AudioRef.current &&
+                              AudioRef.current?.duration &&
+                              showTime(AudioRef.current?.duration)}
+                          </div>
+                        ) : (
+                          <div className="player-time border-none h-[22px]"></div>
+                        )}
                         <div
                           className="wave"
                           id={`wav${props.message.id || props.message.mid}`}
@@ -1920,7 +1928,9 @@ function ChatMessage(props) {
                               showTime(AudioRef.current?.duration)}
                           </div>
                         ) : (
-                          <div className="player-time">00:00</div>
+                          <div className="player-time border-none h-[22px]">
+                            00:00
+                          </div>
                         )}
                         <div
                           className="wave"

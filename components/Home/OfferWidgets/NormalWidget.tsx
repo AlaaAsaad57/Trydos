@@ -6,6 +6,7 @@ import NextLink from "components/global/NextLink";
 import search from "services/search";
 import { NormalWidgetPropsType } from "models/componentType/NormalWidgetPropsType";
 import { GetImageUrl } from "utils/tinyUtils";
+import { getConfiguredImage } from "utils/functions";
 
 interface NormalWidgetProps {
   // boutique: Boutique;
@@ -51,10 +52,10 @@ const NormalWidget = ({ boutique, myKey, lang }: NormalWidgetPropsType) => {
                 }}
                 width={20}
                 height={20}
-                src={GetImageUrl(boutique?.icon)?.replace(
-                  "/upload",
-                  `/upload/h_50/f_webp/q_auto`
-                )}
+                src={getConfiguredImage({
+                  src: GetImageUrl(boutique?.icon),
+                  height: 50,
+                })}
               />
             )}
           </div>
@@ -113,10 +114,10 @@ const NormalWidget = ({ boutique, myKey, lang }: NormalWidgetPropsType) => {
                     width={12}
                     height={12}
                     // @ts-ignore
-                    src={GetImageUrl(category.icon)?.replace(
-                      "/upload",
-                      `/upload/h_50/f_webp/q_auto`
-                    )}
+                    src={getConfiguredImage({
+                      src: GetImageUrl(category.icon),
+                      height: 50,
+                    })}
                   />
                 </NextLink>
               );

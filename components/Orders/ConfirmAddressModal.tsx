@@ -3,9 +3,13 @@ import { translateFunction } from "utils/functions";
 import LargeAddressChangeIcon from "public/svg/LargeAddressChangeIcon.svg";
 import { GetAddressString } from "utils/tinyUtils";
 import { ConfirmAddressModalPropsType } from "models/componentType/ConfirmAddressModalPropsType";
-function ConfirmAddressModal({ close, confirm, confirmationData }: ConfirmAddressModalPropsType) {
+function ConfirmAddressModal({
+  close,
+  confirm,
+  confirmationData,
+}: ConfirmAddressModalPropsType) {
   return (
-    <div className="z-[9999999999999] px-[24px] w-full flex-col justify-end items-center h-[calc(100vh)] overflow-auto max-h-[calc(100vh)] absolute top-0 left-0 bg-[#0000006c]  backdrop-blur-[10px]">
+    <div className="z-[9999999999999] px-[24px] pb-[70px] w-full flex-col justify-end items-center h-[calc(100vh)] overflow-auto max-h-[calc(100vh)] absolute top-0 left-0 bg-[#0000006c]  backdrop-blur-[10px]">
       <div className="flex-col justify-end items-center h-auto">
         <LargeAddressChangeIcon />
         <span className="mt-[11px] text-[#D3D3D3] text-[16px] medium">

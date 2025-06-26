@@ -2,17 +2,17 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 
-import { filterProducts, translateFunction, RoundPrice } from "utils/functions";
+import { translateFunction, RoundPrice } from "utils/functions";
 import AsyncSelectCustom from "./AsyncSelectCustom";
 import Link from "next/link";
 import CompareLoadingWidget from "./CompareLoadingWidget";
-import { toast } from "react-toastify";
-import SearchService from "services/search";
+
 import { useAppStore } from "store";
 import NextLink from "./NextLink";
 import { GetImageUrl } from "utils/tinyUtils";
 import { fetchFilteredProducts } from "Server Requests";
 import { ComparePageComponentPropsType } from "models/componentType/compareTypes/ComparePageComponentPropsType";
+import { showErrorNotification } from "@/store/notifications/reducer";
 const ComparePage: React.FC = ({
   showInstantLoading = true,
 }: ComparePageComponentPropsType) => {
@@ -140,21 +140,21 @@ const ComparePage: React.FC = ({
     setProduct1(productData1);
     setProduct2(productData2);
   };
-
+  const [language, country] = (lang as string)?.split("-");
   const fetchProductData = async (slug: string) => {
     // Implement your fetch logic here, e.g., using filterProducts
-    const products = await filterProducts({
-      boutiqueId: null,
-      lang: "en",
-      offset: 0,
-      callback: () => {},
-      newFiltersCallback: () => {},
-      sizesAttr: {},
-      reset: true,
-      storeCallback: () => {},
-      searchText: slug,
-    });
-    return products[0]; // Assuming the first product matches the slug
+    const results = await fetchFilteredProducts(
+      language,
+      country,
+      ["Search", slug],
+      "false",
+      "true",
+      undefined,
+      undefined,
+      false,
+      false
+    );
+    return results?.data?.products?.[0]; // Assuming the first product matches the slug
   };
 
   const GetProductData = async (slug: string) => {
@@ -235,7 +235,7 @@ const ComparePage: React.FC = ({
         "",
         `${window.location.pathname}?${currentParams.toString()}`
       );
-      toast.error(
+      showErrorNotification(
         translateFunction(
           "One of the products was not found. Please try searching for a different product."
         )

@@ -4,12 +4,6 @@ import { translateFunction } from "utils/functions";
 import AuthService from "services/auth";
 import { useParams } from "next/navigation";
 import { useAppStore } from "store";
-import {
-  GA_AUTH_SCREEN,
-  GA_EVENT_NAMES,
-  GA_GLOBAL_PLATFORM,
-} from "utils/GAEvents";
-import { GAevent } from "utils/gtag";
 
 function AccountNotFound({
   inputValue,

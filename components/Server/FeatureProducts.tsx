@@ -119,13 +119,13 @@ async function FeatureProducts({ lang }) {
         </span>
       </NextLink>
       <HortiznalScrollBar
-        className="featured-products-container w-full mt-[12px] flex-row justify-start items-center max-w-[1365px] h-[200px] pb-[8px] "
+        className="featured-products-container w-full mt-[12px] flex-row justify-start items-center max-w-[1365px] h-[290px] pb-[8px] "
         id="featured-products-container"
         dataCy="featured-products-container"
       >
         {featuredProducts?.data?.products?.map((product, key) => (
           <div
-            className="max-h-[200px] max-w-[150px] relative mx-[10px]"
+            className="max-h-[290px] max-w-[200px] relative mx-[10px] shadow-sm rounded-md"
             data-cy="countProduct"
             key={product.slug}
           >
@@ -137,23 +137,25 @@ async function FeatureProducts({ lang }) {
               ariaLabel={`go to product ${product.slug} ${lang}`}
               suppressHydrationWarning
               href={`/${lang}/products/${product.slug}`}
-              className="product-container  align-center flex-col relative shadow-sm max-h-[200px] max-w-[150px]"
+              className="product-container  align-center flex-col relative shadow-sm max-h-[290px] max-w-[200px]"
               data-cy="featured_product_link"
             >
               <ProductBanner
                 featured={product.featured}
-                flashDeals={product.end_date}
+                flashDeals={product?.flash_deal_end_date}
+                labels={product.label_names}
               />
-              <div className="max-h-[130px] w-full">
+
+              <div className="max-h-[220px] w-full">
                 <Image
                   alt={product.name}
-                  width={150}
+                  width={200}
                   height={130}
-                  className="rounded w-full flex  max-h-[130px] min-h-[130px]"
+                  className="rounded w-full flex  max-h-[220px] min-h-[220px]"
                   src={getConfiguredImage({
                     src: GetImageUrl(product.images[0]?.file_path),
-                    width: 150,
-                    height: 130,
+                    width: 200,
+                    height: 400,
                   })}
                 />
               </div>
@@ -167,10 +169,10 @@ async function FeatureProducts({ lang }) {
                       <Image
                         alt={product?.brand?.name}
                         loading={"eager"}
-                        src={GetImageUrl(product?.brand?.icon)?.replace(
-                          "/upload",
-                          "/upload/h_50/q_auto"
-                        )}
+                        src={getConfiguredImage({
+                          src: GetImageUrl(product?.brand?.icon),
+                          height: 100,
+                        })}
                         width={16}
                         height={7}
                         className="max-h-[20px] max-w-[40px]"
@@ -189,10 +191,10 @@ async function FeatureProducts({ lang }) {
                       {product?.category?.icon?.length > 0 && (
                         <Image
                           loading={"eager"}
-                          src={GetImageUrl(product?.category?.icon)?.replace(
-                            "/upload",
-                            "/upload/h_50/f_webp/q_auto"
-                          )}
+                          src={getConfiguredImage({
+                            src: GetImageUrl(product?.category?.icon),
+                            height: 100,
+                          })}
                           width={10}
                           height={10}
                           style={{
@@ -269,7 +271,7 @@ async function FeatureProducts({ lang }) {
           className="product-container items-center justify-center min-w-[150px] max-h-[200px] bg-[#0002]  align-center flex-col relative"
         >
           <div className="flex regular rounded-md p-3 items-center justify-center bg-[#5d5d5d] text-white shadow-md shadow-[#fff]">
-            Show More
+            {translateFunction("Show More", lang.split("-")[1])}
           </div>
         </NextLink>
       </HortiznalScrollBar>

@@ -30,7 +30,7 @@ function OrderItemsList({
     return <PendingStatus />;
   };
   const { lang } = useParams();
-  const showStatus = () => {};
+
   return (
     <div className="w-full flex-col">
       <div
@@ -95,9 +95,9 @@ function OrderItemsList({
             <div className="flex-col text-[10px] regular text-[#1d1d1d] absolute bottom-[-69px] items-center left-0 right-0 mx-[0_auto]">
               <div className="flex flex-row">
                 <span className="origin-top-left scale-[0.75]">
-                  {getStatusIcon(order_group_status?.toLowerCase())}
+                  {getStatusIcon(order_group_status?.value?.toLowerCase())}
                 </span>
-                <OrderStatusIcon status={order_group_status} />
+                <OrderStatusIcon status={order_group_status?.value} />
               </div>
               <span className=" regular">{product?.variation?.color}</span>
               <span>{product?.variation?.Size}</span>

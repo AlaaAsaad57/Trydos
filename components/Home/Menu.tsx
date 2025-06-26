@@ -1,7 +1,11 @@
 import React, { useState } from "react";
 import Cookies from "js-cookie";
 import { changeToken } from "store/homepage/cachedActions";
-import { translateFunction } from "utils/functions";
+import {
+  getUserChat,
+  getUserStories,
+  translateFunction,
+} from "utils/functions";
 import NextLink from "components/global/NextLink";
 import { useParams, usePathname } from "next/navigation";
 import NotificationsPanel from "../Notifications/NotificationsPanel";
@@ -309,6 +313,30 @@ const Menu: React.FC<MenuProps> = ({ user, setMenuOpen }) => {
             }
           >
             {loading ? <Spinner /> : translateFunction("Logout")}
+          </MenuItem>
+        )}
+        {getUserChat()?.id && (
+          <MenuItem
+            dataCy="change-chat-token"
+            icon={<></>}
+            onClick={() => {
+              let user = { ...getUserChat(), access_token: "skajdklajsd" };
+              localStorage.setItem("USER-CHAT", JSON.stringify(user));
+            }}
+          >
+            Make Chat Token Expired
+          </MenuItem>
+        )}
+        {getUserStories()?.id && (
+          <MenuItem
+            dataCy="change-chat-token"
+            icon={<></>}
+            onClick={() => {
+              let user = { ...getUserStories(), access_token: "skajdklajsd" };
+              localStorage.setItem("USER-STORIES", JSON.stringify(user));
+            }}
+          >
+            Make Stories Token Expired
           </MenuItem>
         )}
       </div>

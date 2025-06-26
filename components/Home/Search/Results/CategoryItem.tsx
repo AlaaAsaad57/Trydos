@@ -3,6 +3,7 @@ import ActiveCategoryIcon from "public/svg/listing/ActiveCategoryIcon.svg";
 import { useAppStore } from "store";
 import Image from "next/image";
 import { GetImageUrl } from "utils/tinyUtils";
+import { getConfiguredImage } from "utils/functions";
 function CategoryItem({ category, onClick, isActive }) {
   const { searchFilters } = useAppStore();
   const [expanded, setExpand] = useState(false);
@@ -31,10 +32,10 @@ function CategoryItem({ category, onClick, isActive }) {
           alt={category.name}
           width={30}
           height={30}
-          src={GetImageUrl(category?.flat_photo_path.file_path)?.replace(
-            "/upload",
-            "/upload/h_30/f_webp"
-          )}
+          src={getConfiguredImage({
+            src: GetImageUrl(category?.flat_photo_path.file_path),
+            height: 40,
+          })}
         />
 
         {category.name}
@@ -63,13 +64,12 @@ function CategoryItem({ category, onClick, isActive }) {
                 alt={category.name}
                 width={30}
                 height={30}
-                src={
-                  GetImageUrl(s.most_viewed_product_thumbnail)?.replace(
-                    "/upload",
-                    "/upload/h_30/f_webp"
-                  ) ||
-                  GetImageUrl(s.icon)?.replace("/upload", "/upload/h_30/f_webp")
-                }
+                src={getConfiguredImage({
+                  src:
+                    GetImageUrl(s.most_viewed_product_thumbnail) ??
+                    GetImageUrl(s.icon),
+                  height: 40,
+                })}
               />
               {s.name}
             </div>

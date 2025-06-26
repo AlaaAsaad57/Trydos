@@ -109,47 +109,42 @@ class StoryService {
     endUpload: Function,
     link
   ) {
-    try {
-      let axios = (await import("axios")).default;
-      const formData = new FormData();
-      if (link?.length) {
-        formData.append("link", link);
-      }
-      formData.append("file", file);
-      formData.append("is_video", is_video);
-      const response: UploadStoryApi = await axios.post(
-        process.env.NEXT_PUBLIC_STORIES_BACKEND_URL + UPLOAD_STORY_URL,
-        formData,
-        {
-          headers: {
-            Authorization:
-              "Bearer " +
-              (typeof localStorage !== "undefined" &&
-                localStorage.getItem("USER-STORIES") &&
-                JSON.parse(localStorage.getItem("USER-STORIES")).access_token),
-            language: Cookies.get("language"),
-
-            country: Cookies.get("country"),
-          },
-          onUploadProgress: (progressEvent) => {
-            callback(
-              Math.round((progressEvent.loaded * 100) / progressEvent.total)
-            );
-          },
-        }
-      );
-
-      if (typeof window !== "undefined") {
-        _isStoreLastJson() &&
-          localStorage.setItem("LAST_JSON", JSON.stringify(response));
-      }
-      endUpload();
-      return response.data.data;
-    } catch (e) {
-      callback(null);
-      endUpload();
-      throw e;
+    const formData = new FormData();
+    if (link?.length) {
+      formData.append("link", link);
     }
+    formData.append("file", file);
+    formData.append("is_video", is_video);
+    const response: UploadStoryApi = await axios.post(
+      process.env.NEXT_PUBLIC_STORIES_BACKEND_URL + UPLOAD_STORY_URL,
+      formData,
+      {
+        headers: {
+          Authorization:
+            "Bearer " +
+            (typeof localStorage !== "undefined" &&
+              localStorage.getItem("USER-STORIES") &&
+              JSON.parse(localStorage.getItem("USER-STORIES")).access_token),
+          language: Cookies.get("language"),
+
+          country: Cookies.get("country"),
+        },
+        onUploadProgress: (progressEvent) => {
+          callback(
+            Math.round((progressEvent.loaded * 100) / progressEvent.total)
+          );
+        },
+      }
+    );
+
+    if (typeof window !== "undefined") {
+      _isStoreLastJson() &&
+        localStorage.setItem("LAST_JSON", JSON.stringify(response));
+    }
+    endUpload();
+    console.log(response);
+    if (response.data.data) return response.data.data;
+    else throw new Error("Failed");
   }
   getUserStories() {
     return (
@@ -163,7 +158,7 @@ class StoryService {
       if (storyItem.full_video_path) {
         let vid = storyItem.full_video_path.replace(
           "/upload",
-          "/upload/w_700/f_webm/q_auto"
+          "/upload/w_720,h_1280,c_limit/f_auto/q_auto:good/fl_lossy/so_0"
         );
         returnedData.push({
           url: vid,
@@ -185,11 +180,15 @@ class StoryService {
       } else if (storyItem.photo_path) {
         let img = storyItem.photo_path.replace(
           "/upload",
-          "/upload/w_800/f_webp/q_auto"
+          "/upload/w_720,h_1280,c_limit/f_auto/q_auto:good/fl_progressive:steep/e_sharpen"
         );
         returnedData.push({
           url: img,
           link: storyItem.link,
+          placeholderUrl: storyItem.photo_path.replace(
+            "/upload",
+            "/upload/w_50,h_90,c_limit/f_auto/q_auto:low/e_blur:2000"
+          ),
           FixedUrl: img,
           is_seen: storyItem.is_seen,
           duration: 5000,

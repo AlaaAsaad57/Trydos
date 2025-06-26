@@ -22,7 +22,7 @@ function OrderMarquee({ shippingCost }) {
         >
           {translate("Delivery")}
           <span data-cy="text-name" className="bold ml-1">
-            2 June
+            {translate("2 June")}
           </span>
         </div>
       </div>

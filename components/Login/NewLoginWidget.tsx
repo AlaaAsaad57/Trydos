@@ -252,6 +252,7 @@ function NewLoginWidget() {
             success: true,
           },
         });
+        localStorage.setItem("has-phone", inputValue);
         setTimeout(() => {
           setLoadingPin(false);
           if (operation === "signup") {

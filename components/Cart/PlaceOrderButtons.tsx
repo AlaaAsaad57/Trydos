@@ -1,16 +1,16 @@
-import { toast } from "react-toastify";
 import { useState } from "react";
 import { getCart, RoundPrice, translateFunction } from "utils/functions";
 import Spinner from "components/global/Spinner";
 import LocalizationServiceClass from "services/localization";
 import { useAppStore } from "store";
-import { dispatchRouteChangeEvent } from "utils/events";
-import { useParams, useRouter } from "next/navigation";
+
+import { useParams } from "next/navigation";
 import useNextRouter from "hooks/useNextRouter";
 import NextLink from "components/global/NextLink";
-import home from "services/home";
+
 import { CheckBoxElementPropsType } from "models/componentType/CheckBoxElementPropsType";
 import { PlaceOrderButtonsPropsType } from "models/componentType/PlaceOrderButtonsPropsType";
+import { showErrorNotification } from "@/store/notifications/reducer";
 
 function PlaceOrderButtons({
   orderLoading,
@@ -69,7 +69,9 @@ function PlaceOrderButtons({
       if (userProfile.is_phone_verified === 0) {
         backToCart();
         setLoading(false);
-        toast.info(translateFunction("Please Verify Your Phone Number"));
+        showErrorNotification(
+          translateFunction("Please Verify Your Phone Number")
+        );
       }
       if (a.length === 0) {
         backToCart();
@@ -89,7 +91,10 @@ function PlaceOrderButtons({
         throw Error("Please Review Your Cart Info");
       }
     } catch (error) {
-      toast.error("Please Review Your Cart Some Products Not Available");
+      showErrorNotification(
+        translateFunction("Please Review Your Cart Some Products Not Available")
+      );
+
       backToCart();
       setLoading(false);
     }
@@ -193,7 +198,7 @@ function PlaceOrderButtons({
                 return;
               }
               Validate();
-              if (isValid() && !orderLoading) {
+              if (isValid() && !(orderData.loading || loading)) {
                 VerifyCart();
               }
             }}

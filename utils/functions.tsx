@@ -48,6 +48,13 @@ export const getUserChat = () => {
       JSON.parse(localStorage.getItem("USER-CHAT"))
     );
 };
+export const getUserStories = () => {
+  if (typeof window !== "undefined")
+    return (
+      localStorage.getItem("USER-STORIES") &&
+      JSON.parse(localStorage.getItem("USER-STORIES"))
+    );
+};
 
 export const _isStoreLastJson = () => {
   return !!process.env.NEXT_PUBLIC_IS_STORE_LAST_JSON;
@@ -68,17 +75,22 @@ export const getConfiguredImage = ({
   width,
   height,
   q,
+  c_pad,
 }: GetConfiguredImagePropsType) => {
   if (typeof src === "string") {
     return src.replace(
       "/upload",
-      `/upload/h_${height}/f_webp/q_${q || "auto"}`
+      `/upload/h_${height},${
+        c_pad ? "w_800,c_pad" : "c_limit"
+      }/f_auto/q_auto:good/fl_lossy/so_0`
     );
   }
   if (src?.file_path?.includes("cloudinary")) {
     return src.file_path.replace(
       "/upload",
-      `/upload/h_${height}/f_webp/q_${q || "auto"}`
+      `/upload/h_${height},${
+        c_pad ? "w_800,c_pad" : "c_limit"
+      }/f_auto/q_auto:good/fl_lossy/so_0`
     );
   } else return src?.file_path || "";
 };
@@ -346,88 +358,7 @@ export const normalizeView = () => {
       "auto";
   }
 };
-export const filterProducts = async ({
-  boutiqueId,
-  lang,
-  offset,
-  callback,
-  newFiltersCallback,
-  sizesAttr,
-  reset,
-  storeCallback,
-  searchText,
-  serachTrigger,
-}: {
-  reset?: boolean;
-  lang: any;
-  offset: number;
-  callback: Function;
-  newFiltersCallback: Function;
-  sizesAttr: any;
-  boutiqueId: any;
-  storeCallback?: any;
-  searchText?: string;
-  serachTrigger?: boolean;
-}) => {
-  const { selectedFilter } = useAppStore.getState();
 
-  const filterObj = selectedFilter;
-
-  storeCallback(filterObj);
-
-  let filters = {
-    categories: filterObj.categories.map((s) => s.slug),
-    prices: filterObj.prices?.pricesWord
-      ? [
-          `${filterObj.prices.min.toString()}-${filterObj.prices.max.toString()}`,
-        ]
-      : null,
-    brands: filterObj.brands.map((brand) => brand.slug),
-    attributes: { ...sizesAttr, options: filterObj.sizes },
-    boutique_slug: boutiqueId,
-    lang: lang.split("-")[1],
-    country: lang.split("-")[0],
-    searchText: searchText || filterObj.searchText,
-    colors: filterObj.colors.map((s) => s),
-  };
-  let str = "";
-  if (reset) {
-    str = `/api/products/searchInCatalog?limit=10&${
-      boutiqueId !== "listing" &&
-      boutiqueId &&
-      `boutique_slugs=${JSON.stringify([boutiqueId])}`
-    }`;
-  } else {
-    let urlParam = urlParams({ filters: filters, noProducts: false });
-    str = `/api/products/searchInCatalog?${urlParam}`;
-  }
-  let product: SearchResponse = await AxiosCacheApi({
-    url: process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL + str,
-    params:
-      filters.colors.length === 0
-        ? null
-        : { colors: `${JSON.stringify(filters.colors)}` },
-  });
-
-  // if (!serachTrigger)
-  // newFiltersCallback({
-  //   filtersVar: {
-  //     categories: product.data.categories,
-  //     brands: product.data.brands,
-  //     sizes:
-  //       product.data.attributes.filter((s) => s.name === "Size")[0]
-  //         ?.options || [],
-  //     prices: product.data.prices || null,
-  //     offers:
-  //       product.data.attributes.filter((s) => s.name === "Offer")[0]
-  //         ?.options || [],
-  //     reset: reset,
-  //     colors: product.data.colors || [],
-  //   },
-  // });
-  callback(product.data.products);
-  return product.data.products;
-};
 export const urlParams = ({ filters, noProducts, noFilter = false }) => {
   const { PriceFiltered } = useAppStore.getState();
 

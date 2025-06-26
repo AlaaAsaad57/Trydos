@@ -47,7 +47,20 @@ const OrderCartItem = () => {
   const { lang } = useParams();
   // @ts-ignore
   const language = lang.split("-")[1];
-
+  const getProductsOfOrder = () => {
+    console.log(orderData.data);
+    if (orderData.data?.length > 0) {
+      let arr = [];
+      orderData?.data?.map((s) => {
+        s.details.map((p) => {
+          arr.push(p);
+        });
+      });
+      return arr;
+    } else {
+      return cart;
+    }
+  };
   return (
     <div
       style={{
@@ -60,8 +73,7 @@ const OrderCartItem = () => {
         <div className="regular text-[#1D1D1D] text-[14px] ml-2">
           {translateFunction("Your Shopping Bag", language)}
           <span className={language === "ar" ? "mr-1 bold" : "ml-1 bold"}>
-            {/* @ts-ignore */}
-            {cart.length || orderData?.data?.length}
+            {getProductsOfOrder()?.length}
             <span className={"ml-1"}>
               {translateFunction("items", language)}
             </span>
@@ -71,51 +83,26 @@ const OrderCartItem = () => {
       <div
         className={`${`pl-[11px] pb-[12px] pt-[11px] `} transition flex-row `}
       >
-        {cart.length
-          ? cart.map((s, i) => {
-              return (
-                <div className="flex relative h-[125px]" key={i}>
-                  <span
-                    className="absolute w-[91px] h-full z-10 rounded-[15px]"
-                    style={{
-                      boxShadow: "#ffffff80 0px 3px 6px inset",
-                    }}
-                  />
-                  <img
-                    className="w-[91px] h-[125px] rounded-[15px]"
-                    src={getConfiguredImage({
-                      src: GetImageUrl(s.image),
-                      width: 91,
-                      height: 150,
-                    })}
-                  />
-                </div>
-              );
-            })
-          : orderData &&
-            // @ts-ignore
-            orderData?.data?.map((s, i) => {
-              return (
-                <div className="flex relative h-[125px]" key={i}>
-                  <span
-                    className="absolute w-[91px] h-full z-10 rounded-[15px]"
-                    style={{
-                      boxShadow: "#ffffff80 0px 3px 6px inset",
-                    }}
-                  />
-                  <img
-                    className="w-[91px] h-[125px] rounded-[15px]"
-                    src={getConfiguredImage({
-                      src: GetImageUrl(
-                        s?.details[0].product_details?.images[0]
-                      ),
-                      width: 91,
-                      height: 150,
-                    })}
-                  />
-                </div>
-              );
-            })}
+        {getProductsOfOrder()?.map((s, i) => {
+          return (
+            <div className="flex relative h-[125px]" key={i}>
+              <span
+                className="absolute w-[91px] h-full z-10 rounded-[15px]"
+                style={{
+                  boxShadow: "#ffffff80 0px 3px 6px inset",
+                }}
+              />
+              <img
+                className="w-[91px] h-[125px] rounded-[15px]"
+                src={getConfiguredImage({
+                  src: GetImageUrl(s.image),
+                  width: 91,
+                  height: 150,
+                })}
+              />
+            </div>
+          );
+        })}
       </div>
     </div>
   );

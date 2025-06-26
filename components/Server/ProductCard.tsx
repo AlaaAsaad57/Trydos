@@ -1,6 +1,6 @@
 import NextLink from "components/global/NextLink";
 import React, { Suspense } from "react";
-import { RoundPrice } from "utils/functions";
+import { getConfiguredImage, RoundPrice } from "utils/functions";
 import { BuyButtonProduct, ProductPhotosSlider } from "../ListingPage/Product";
 import Image from "next/image";
 import { GetImageUrl } from "utils/tinyUtils";
@@ -36,7 +36,8 @@ function ProductCard({ product, params, currency, productColor, key }) {
       >
         <ProductBanner
           featured={product.featured}
-          flashDeals={product.end_date}
+          flashDeals={product.flash_deal_end_date}
+          labels={product.label_names}
         />
         <Suspense fallback={<div className="min-w-full min-h-[290px]" />}>
           <ProductPhotosSlider
@@ -55,10 +56,10 @@ function ProductCard({ product, params, currency, productColor, key }) {
             {product?.brand?.icon && typeof product.brand.icon === "string" && (
               <Image
                 loading={"eager"}
-                src={GetImageUrl(product?.brand?.icon)?.replace(
-                  "/upload",
-                  "/upload/h_50/q_auto"
-                )}
+                src={getConfiguredImage({
+                  src: GetImageUrl(product?.brand?.icon),
+                  height: 60,
+                })}
                 width={16}
                 height={7}
                 alt={product.name}
@@ -78,9 +79,12 @@ function ProductCard({ product, params, currency, productColor, key }) {
                 {product?.category?.flat_photo_path?.file_path?.length > 0 && (
                   <Image
                     loading={"eager"}
-                    src={GetImageUrl(
-                      product?.category?.flat_photo_path?.file_path
-                    )?.replace("/upload", "/upload/h_50/f_webp/q_auto")}
+                    src={getConfiguredImage({
+                      src: GetImageUrl(
+                        product?.category?.flat_photo_path?.file_path
+                      ),
+                      height: 70,
+                    })}
                     width={10}
                     height={10}
                     style={{

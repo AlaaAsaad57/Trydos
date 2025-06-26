@@ -46,7 +46,11 @@ function OrderStatusIcon({ status }) {
       </svg>
     );
 
-  if (status?.toLowerCase() === "preparing")
+  if (
+    status?.toLowerCase() === "preparing" ||
+    status?.toLowerCase() === "shipping_center" ||
+    status?.toLowerCase() === "ready_to_shipping"
+  )
     return (
       <svg
         className="ml-[7px]"
@@ -145,7 +149,11 @@ function OrderStatusIcon({ status }) {
         </g>
       </svg>
     );
-  if (status.toLowerCase() === "shipped")
+  if (
+    status.toLowerCase() === "shipped" ||
+    status.toLowerCase() === "out_for_delivery" ||
+    status.toLowerCase() === "in_delivery_center"
+  )
     return (
       <svg
         id="_15x15_photo_back"

@@ -43,6 +43,7 @@ function CartContainer({ close, toOrders }: CartContainerPropsType) {
     initCart,
     removeFromCart,
     setCartLoading,
+    setOrderData,
     currency,
     getProductDetailsForCart,
     setActiveColorDetails,
@@ -90,6 +91,15 @@ function CartContainer({ close, toOrders }: CartContainerPropsType) {
     });
     setCartLoading(true);
     getData();
+    setOrderData({
+      payment: [],
+      coupon: false,
+      agree: false,
+      coupon_number: "",
+      loading: false,
+      success: false,
+      data: [],
+    });
   }, []);
   const getData = async () => {
     let data = await getCart({
@@ -1988,6 +1998,7 @@ const QuantutyInput = ({
               }),
               quantity: parseInt(i.toString()) + 1,
               brand: product?.brand?.name,
+              category: product?.category_name,
               // count_likes: product?.count_of_likes,
               // review_count: product?.shared_count,
               item_variant: product.variant,

@@ -26,8 +26,10 @@ import {
   GA_GLOBAL_SCREEN,
 } from "utils/GAEvents";
 import { GAevent } from "utils/gtag";
-import { SettingOption, SettingsIndexPropsType } from "models/componentType/settingTypes/SettingsIndexPropsType";
-
+import {
+  SettingOption,
+  SettingsIndexPropsType,
+} from "models/componentType/settingTypes/SettingsIndexPropsType";
 
 function Settings({ lang }: SettingsIndexPropsType) {
   const {
@@ -38,8 +40,9 @@ function Settings({ lang }: SettingsIndexPropsType) {
     showOrderOptions,
     setSelectedOrderItem,
     setOrderOptions,
+    selectedOrder,
   } = useAppStore();
-
+  let language = lang.split("-")[1];
   const setSelectedOrder = (order) => {
     setOrderDetails(order);
   };
@@ -50,7 +53,7 @@ function Settings({ lang }: SettingsIndexPropsType) {
     {
       id: "main",
       title: "main setting",
-      component: (
+      component: () => (
         <MainSetting swipeToScreen={(index: number) => swipeToScreen(index)} />
       ),
       parentId: null,
@@ -58,7 +61,7 @@ function Settings({ lang }: SettingsIndexPropsType) {
     {
       id: "Profile",
       title: "Profile",
-      component: (
+      component: () => (
         <Profile
           goBack={() => swipeToScreen(0)}
           swipeToScreen={(index) => swipeToScreen(index)}
@@ -69,7 +72,7 @@ function Settings({ lang }: SettingsIndexPropsType) {
     {
       id: "Upload Profile Photo",
       title: "Upload Profile Photo",
-      component: (
+      component: () => (
         <UploadProfilePhoto
           goBack={() => swipeToScreen(1)}
           swipeToScreen={(index) => swipeToScreen(index)}
@@ -80,7 +83,7 @@ function Settings({ lang }: SettingsIndexPropsType) {
     {
       id: "Personal Info",
       title: "Personal Info",
-      component: (
+      component: () => (
         <PersonalInfo
           goBack={() => swipeToScreen(1)}
           swipeToScreen={(index) => swipeToScreen(index)}
@@ -91,7 +94,7 @@ function Settings({ lang }: SettingsIndexPropsType) {
     {
       id: "Personal Size",
       title: "Size",
-      component: (
+      component: () => (
         <ProfileSizeInfo
           goBack={() => swipeToScreen(1)}
           swipeToScreen={(index) => swipeToScreen(index)}
@@ -102,7 +105,7 @@ function Settings({ lang }: SettingsIndexPropsType) {
     {
       id: "Personal Address",
       title: "Address",
-      component: (
+      component: () => (
         <PersonalInfoAddress
           setIsActive={(e) => setIsActive(true)}
           goBack={() => swipeToScreen(1)}
@@ -114,7 +117,7 @@ function Settings({ lang }: SettingsIndexPropsType) {
     {
       id: "Personal Address Modal",
       title: "Address Details",
-      component: (
+      component: () => (
         <>
           {
             <PersonalInfoAddressModal
@@ -132,7 +135,7 @@ function Settings({ lang }: SettingsIndexPropsType) {
     {
       id: "Personal Bank cards",
       title: "Bank Cards",
-      component: (
+      component: () => (
         <PersonalBankCards
           goBack={() => swipeToScreen(1)}
           swipeToScreen={(index) => swipeToScreen(index)}
@@ -143,7 +146,7 @@ function Settings({ lang }: SettingsIndexPropsType) {
     {
       id: "Personal Countries",
       title: "Countries",
-      component: (
+      component: () => (
         <PersonalInfoCountries
           goBack={() => swipeToScreen(0)}
           swipeToScreen={(index) => swipeToScreen(index)}
@@ -154,7 +157,7 @@ function Settings({ lang }: SettingsIndexPropsType) {
     {
       id: "Orders",
       title: "Orders",
-      component: (
+      component: () => (
         <OrdersList
           goBack={() => swipeToScreen(0)}
           swipeToScreen={(index) => swipeToScreen(index)}
@@ -166,7 +169,7 @@ function Settings({ lang }: SettingsIndexPropsType) {
     {
       id: "Order Details",
       title: "Details",
-      component: (
+      component: () => (
         <OrderDetails
           resetOrderDetails={() => setSelectedOrder(null)}
           goBack={() => swipeToScreen(9)}
@@ -177,13 +180,20 @@ function Settings({ lang }: SettingsIndexPropsType) {
     {
       id: "Language",
       title: "Language",
-      component: <LanguageSetting goBack={() => swipeToScreen(0)} />,
+      component: () => <LanguageSetting goBack={() => swipeToScreen(0)} />,
     },
   ]);
-  let searchParams = useSearchParams();
+  const searchParams = useSearchParams();
   let activeTab = searchParams.get("tab");
-  const [currentScreen, setCurrentScreen] = useState(
-    activeTab && activeTab !== "Order Details"
+  const orderIdParam = searchParams.get("id");
+
+  const orderDetailsIndexRef = NavigationOptions.findIndex(
+    (opt) => opt.id === "Order Details"
+  );
+  const [currentScreen, setCurrentScreen] = useState(() =>
+    orderIdParam
+      ? orderDetailsIndexRef
+      : activeTab && activeTab !== "Order Details"
       ? // @ts-ignore
         NavigationOptions.findIndex((option) => option.id === activeTab)
       : 0
@@ -208,6 +218,16 @@ function Settings({ lang }: SettingsIndexPropsType) {
       },
     });
   }, []);
+
+  useEffect(() => {
+    if (orderIdParam) {
+      if (!selectedOrder?.id) {
+        setOrderDetails({ id: orderIdParam, order_group_id: orderIdParam });
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [orderIdParam]);
+
   const router = useRouter();
   const pathname = usePathname();
   const swipeToScreen = (index: number) => {
@@ -216,6 +236,7 @@ function Settings({ lang }: SettingsIndexPropsType) {
     setCurrentScreen(index);
     if (NavigationOptions[index].id !== "Order Details") {
       let newParams = new URLSearchParams(searchParams);
+      newParams.delete("id");
       newParams.set("tab", NavigationOptions[index].id);
       // @ts-ignore
       router.push(`${pathname}?${newParams.toString()}`, { shallow: true });
@@ -255,22 +276,25 @@ function Settings({ lang }: SettingsIndexPropsType) {
             transform: `translateX(-${currentScreen * 100}%)`,
           }}
         >
-          {NavigationOptions.map((option, index) => (
-            <div
-              key={option.id}
-              id={option.id.split(" ").join("")}
-              className={`${
-                [currentScreen - 1, currentScreen, currentScreen + 1].includes(
-                  index
-                )
-                  ? "opacity-1"
-                  : "opacity-0"
-              } absolute top-0 left-0 w-full h-full text-black overflow-auto pb-[100px]`}
-              style={{ transform: `translateX(${index * 100}%)` }}
-            >
-              {option.component}
-            </div>
-          ))}
+          {NavigationOptions.map((option, index) => {
+            if (
+              ![currentScreen - 1, currentScreen, currentScreen + 1].includes(
+                index
+              )
+            ) {
+              return null;
+            }
+            return (
+              <div
+                key={option.id}
+                id={option.id.split(" ").join("")}
+                className="absolute top-0 left-0 w-full h-full text-black overflow-auto pb-[100px]"
+                style={{ transform: `translateX(${index * 100}%)` }}
+              >
+                {option.component()}
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>

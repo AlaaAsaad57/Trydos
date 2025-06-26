@@ -5,6 +5,7 @@ import { EffectCoverflow } from "swiper/modules";
 import { dispatchRouteChangeEvent } from "utils/events";
 import { GetImageUrl } from "utils/tinyUtils";
 import { CoverEffectSliderPropsType } from "models/componentType/CoverEffectSliderPropsType";
+import { getConfiguredImage } from "utils/functions";
 function CoverEffectSlider({
   images,
   active,
@@ -143,10 +144,10 @@ function CoverEffectSlider({
                 width={getSize(i)}
                 height={getSize(i)}
                 isActive={activeColor.color_name === img.color_name}
-                image={GetImageUrl(img.images[0]?.file_path)?.replace(
-                  "/upload",
-                  "/upload/h_50,w_50/f_webp/q_60"
-                )}
+                image={getConfiguredImage({
+                  src: GetImageUrl(img.images[0]?.file_path),
+                  height: 60,
+                })}
                 name={img.color_name}
                 alt={product_name}
                 priority={priority}

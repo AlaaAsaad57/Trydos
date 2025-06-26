@@ -7,10 +7,13 @@ import {
 } from "@react-google-maps/api";
 
 import { useAppStore } from "store";
-import { toast } from "react-toastify";
+
 import { translateFunction } from "utils/functions";
 import Spinner from "components/global/Spinner";
-
+import {
+  showSuccessNotification,
+  showErrorNotification,
+} from "@/store/notifications/reducer";
 type MapProps = {
   center: {
     lat: number | string;
@@ -66,9 +69,10 @@ export const MapElement: React.FC<MapProps> = memo(
 
     const handleMapClick = (e: google.maps.MapMouseEvent) => {
       if (map.getZoom() < 10) {
-        toast.info(
+        showSuccessNotification(
           translateFunction("Please Be Accurate and select your Location")
         );
+
         return;
       }
       if (e.latLng) {
@@ -87,7 +91,7 @@ export const MapElement: React.FC<MapProps> = memo(
             map.panTo({ lat, lng });
           }
         } else {
-          toast.error(
+          showErrorNotification(
             translateFunction(
               "Pick Your Deleivery Location Inside Your Country"
             )
@@ -118,7 +122,7 @@ export const MapElement: React.FC<MapProps> = memo(
                 });
               }
             } else {
-              toast.error(
+              showErrorNotification(
                 translateFunction(
                   "Your Current Location is Not belong to Country Bounds"
                 )
@@ -131,12 +135,14 @@ export const MapElement: React.FC<MapProps> = memo(
           (error) => {
             setLocationLoading(false);
             console.error("Error getting location:", error);
-            toast.error(translateFunction("Error getting your location"));
+            showErrorNotification(
+              translateFunction("Error getting your location")
+            );
           }
         );
       } else {
         setLocationLoading(false);
-        toast.error(
+        showErrorNotification(
           translateFunction("Geolocation is not supported by your browser")
         );
       }

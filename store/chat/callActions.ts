@@ -1,13 +1,16 @@
 import { useAppStore } from "store";
 import { getUserChat, translateFunction } from "utils/functions";
-
+import {
+  showSuccessNotification,
+  showErrorNotification,
+} from "@/store/notifications/reducer";
+import axios from "axios";
 export const makeVideoCall = async (
   channelId,
   callerName,
   callerPhoto,
   mobilePhone
 ) => {
-  let axios = (await import("axios")).default;
   const { setCallLoading, setVideoCall, endCall, setAudioCall, editCall } =
     useAppStore.getState();
   try {
@@ -46,9 +49,7 @@ export const makeVideoCall = async (
         setCallLoading(null);
       });
   } catch (e) {
-    const { toast } = await import("react-toastify");
-
-    toast.info("User in Another Call");
+    showErrorNotification(translateFunction("User in Another Call"));
     endCall(-1);
     console.error(e);
   }
@@ -61,9 +62,8 @@ export const makeVoiceCall = async (
 ) => {
   const { setCallLoading, setAudioCall, editCall, language } =
     useAppStore.getState();
-
+  console.log(channelId, callerName, callerPhoto, mobilePhone);
   try {
-    let axios = (await import("axios")).default;
     let obj =
       typeof channelId === "string" && channelId.includes("ch")
         ? { receiver_user_id: parseInt(channelId.split("ch-")[1]) }
@@ -99,9 +99,7 @@ export const makeVoiceCall = async (
       });
   } catch (e) {
     console.error(e);
-
-    const { toast } = await import("react-toastify");
-    toast.info("User in Another Call");
+    showErrorNotification(translateFunction("User in Another Call"));
     setCallLoading(null);
   }
 };
@@ -110,12 +108,12 @@ export const AnswerCall = async (channelId, messageId) => {
     useAppStore.getState();
 
   try {
-    let axios = (await import("axios")).default;
     setCallLoading("call");
     let status = null;
 
-    const { toast } = await import("react-toastify");
-    toast.info(translateFunction("Initialize Call please wait..", language));
+    showSuccessNotification(
+      translateFunction("Initialize Call please wait..", language)
+    );
     await axios
       .get(
         process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
@@ -159,8 +157,7 @@ export const AnswerCall = async (channelId, messageId) => {
           answerCall(data.data.data);
         });
     } else {
-      const { toast } = await import("react-toastify");
-      toast.info(
+      showErrorNotification(
         translateFunction("Call Answered from another account", language)
       );
       endCall(messageId);
@@ -173,7 +170,6 @@ export const AnswerCall = async (channelId, messageId) => {
 };
 export const InCall = async (channelId, messageId) => {
   try {
-    let axios = (await import("axios")).default;
     if (messageId) {
       let obj =
         typeof channelId === "string" && channelId.includes("ch")
@@ -199,7 +195,6 @@ export const InCall = async (channelId, messageId) => {
 export const RefuseCall = async (channelId, messageId, duration) => {
   const { endCall } = useAppStore.getState();
   try {
-    let axios = (await import("axios")).default;
     if (messageId) {
       let obj =
         typeof channelId === "string" && channelId.includes("ch")
@@ -232,7 +227,6 @@ export const RefuseCall = async (channelId, messageId, duration) => {
 };
 export const Answer = async (channelId, messageId) => {
   try {
-    let axios = (await import("axios")).default;
     let obj =
       typeof channelId === "string" && channelId.includes("ch")
         ? { receiver_user_id: parseInt(channelId.split("ch-")[1]) }

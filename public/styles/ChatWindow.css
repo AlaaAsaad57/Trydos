@@ -779,6 +779,20 @@ img {
   height: auto;
   object-fit: cover;
   border-radius: 12px;
+  min-height: 200px;
+}
+.message-img-body::after {
+  display: inline-block;
+  content: "";
+  box-shadow: inset 0px -16px 20px 0px #0000008f;
+  z-index: 9999;
+  position: absolute;
+  width: 100%;
+  max-width: 355px;
+  height: 100%;
+  bottom: 2px;
+  left: 2px;
+  border-radius: 20px;
 }
 .message-img-body {
   padding: 3px !important;
@@ -871,7 +885,9 @@ svg.redwave g g path {
 .wave-absolute {
   position: absolute;
   left: 0px;
-  top: -21px;
+  top: -22px;
+  height: 45px;
+  overflow: hidden;
 }
 .audio-message {
   display: flex;
@@ -1196,6 +1212,9 @@ svg.redwave g g path {
 @media screen and (max-width: 780px) {
   .chat-screen {
     padding-bottom: 50px;
+  }
+  .reply-message-container {
+    bottom: 100px !important;
   }
 }
 .active-wid {

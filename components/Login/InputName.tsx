@@ -7,6 +7,7 @@ import Spinner from "components/global/Spinner";
 import { useAppStore } from "store";
 import { GAevent } from "utils/gtag";
 import { GA_BUTTONS_NAMES, GA_EVENT_NAMES } from "utils/GAEvents";
+import { resolve } from "path";
 
 function InputName({
   value,
@@ -47,6 +48,10 @@ function InputName({
       },
     });
     setLoading(true);
+    let localUser = localStorage.getItem("USER");
+    let parsedUser = { ...JSON.parse(localUser), name: value };
+    localStorage.setItem("USER", JSON.stringify(parsedUser));
+    await new Promise((resolve) => setTimeout(resolve, 1000));
     await submit();
     setLoading(false);
   };

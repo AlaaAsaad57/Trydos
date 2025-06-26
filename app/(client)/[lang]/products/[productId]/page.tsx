@@ -31,8 +31,9 @@ import CameraShots from "components/products/CameraShots";
 import ProductBackButton from "components/products/ProductBackButton";
 import DescriptorBorder from "public/svg/product/descriptorBorder.svg";
 import FlashDealBanner from "components/products/FlashDealBanner";
-import FeaturedBanner from "components/products/FeaturedBanner";
+// import FeaturedBanner from "components/products/FeaturedBanner";
 import { ProductPagePropsType } from "models/componentType/productTypes/productPagePropsType";
+import ProductsLabels from "components/products/ProductsLabels";
 export const runtime = "nodejs";
 export const preferredRegion = ["bom1", "sin1"]; // For Middle East users
 
@@ -197,18 +198,31 @@ async function Page({ params, searchParams }: ProductPagePropsType) {
               <div className="product-category-name">
                 {product.category?.name}
               </div>
-              {product?.featured && (
+              {/* {product?.featured && (
                 <div className="flex-row mx-[5px] h-auto">
                   <FeaturedBanner />
                 </div>
-              )}
-              {product?.flash_deal_details?.end_date && (
-                <div className="flex-row mx-[5px]">
+              )} */}
+              <div className="flex-row mx-[5px] w-auto">
+                {(product?.flash_deal_details?.end_date ||
+                  product?.flash_deal_end_date) && (
                   <FlashDealBanner
-                    end_data={product?.flash_deal_details?.end_date}
+                    end_data={
+                      product?.flash_deal_details?.end_date ||
+                      product?.flash_deal_end_date
+                    }
                   />
-                </div>
-              )}
+                )}
+                {product.label_names && (
+                  <ProductsLabels
+                    isProduct={true}
+                    labels={
+                      typeof product.label_names === "string" &&
+                      JSON.parse(product.label_names)
+                    }
+                  />
+                )}
+              </div>
             </div>
             <Suspense
               fallback={
@@ -472,7 +486,7 @@ async function Page({ params, searchParams }: ProductPagePropsType) {
                   <img
                     width={15}
                     height={15}
-                    alt="truck"
+                    alt={translateFunction("truck", languageVariable)}
                     src="/svg/greentruck.svg"
                   />
                   <span>
@@ -484,7 +498,7 @@ async function Page({ params, searchParams }: ProductPagePropsType) {
                 <img
                   width={15}
                   height={15}
-                  alt="truck"
+                  alt={translateFunction("truck", languageVariable)}
                   src="/svg/redtruck.svg"
                 />
                 <span>
@@ -495,12 +509,12 @@ async function Page({ params, searchParams }: ProductPagePropsType) {
                 <img
                   width={10}
                   height={15}
-                  alt="deliveryman"
+                  alt={translateFunction("deliveryman", languageVariable)}
                   src="/svg/deliveryman.svg"
                 />
                 <span>
                   {translateFunction("Ship To You Accepted", languageVariable)}{" "}
-                  2 June
+                  {translateFunction("2 June", languageVariable)}
                 </span>
               </div>
             </div>
