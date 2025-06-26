@@ -721,12 +721,13 @@ export const AddToCartAnimation = () => {
   );
 };
 
-export const LogError = (error, url, href) => {
+export const LogError = (error) => {
   axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/mobile_error_log/store`, {
     error_description: JSON.stringify(error),
-    token: auth.UserToken(),
-    url: href,
-    backend_url: url,
+    // token: auth.UserToken(),
+    // url: href,
+    // backend_url: url,
+    // user_id: user_id,
   });
 };
 

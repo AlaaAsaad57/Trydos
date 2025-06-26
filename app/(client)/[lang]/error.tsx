@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import Logo from "components/Home/Logo";
 import { LogError } from "utils/functions";
 import { dispatchRouteChangeEvent } from "utils/events";
-
+import AuthService from "services/auth";
 export default function Error({
   error,
   reset,
@@ -20,16 +20,23 @@ export default function Error({
     const userAgent = await _getUserAgent();
     let last_json;
     let token;
+    let user_id;
     if (typeof window !== "undefined") {
       last_json = (await localStorage.getItem("LAST_JSON"))
         ? JSON.parse(localStorage.getItem("LAST_JSON"))
         : null;
-      token = (await localStorage.getItem("USER-CHAT"))
-        ? JSON.parse(localStorage.getItem("USER-CHAT"))?.access_token
-        : null;
+      token = AuthService.UserToken();
+      user_id = AuthService.UserID();
     }
-
-    LogError(error.message, null, location.href);
+    let errorObj = {
+      type: "front-end-exception",
+      message: error.message,
+      url: window.location.href,
+      user_id: user_id,
+      token: token,
+      user_agent: userAgent,
+    };
+    LogError(errorObj);
   };
   useEffect(() => {
     dispatchRouteChangeEvent("completed");

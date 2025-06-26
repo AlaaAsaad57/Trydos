@@ -100,7 +100,23 @@ export const AxiosGet = async ({
       console.log(`Attempt ${attempt} failed. Retrying in ${delay}ms...`);
       if (attempt > retries) {
         // toast.error(`${title} : ${error.message ?? "Failed"}`);
-        LogError(error, url, window.location.href);
+        let errorObj = {
+          type: "api-call-back-end-exception",
+          message: error?.message,
+          url: url,
+          user_id: auth.UserID(),
+          token: auth.UserToken(),
+          user_agent: navigator.userAgent,
+          backend_url: url,
+          req_method: "get",
+          req_body: null,
+          req_headers: getHeader(token, headers),
+          req_params: null,
+          req_query: null,
+          req_status: error?.status,
+          req_status_text: error?.statusText,
+        };
+        LogError(errorObj);
 
         throw new Error(
           `${title} : Max retries reached. Could not fetch the data. ${error.message}`
@@ -204,7 +220,23 @@ export const AxiosPost = async ({
       attempt++;
       console.log(`Attempt ${attempt} failed. Retrying in ${delay}ms...`);
       if (attempt > retries) {
-        LogError(error, url, window.location.href);
+        let errorObj = {
+          type: "api-call-back-end-exception",
+          message: error?.message,
+          url: url,
+          user_id: auth.UserID(),
+          token: auth.UserToken(),
+          user_agent: navigator.userAgent,
+          backend_url: url,
+          req_method: "post",
+          req_body: body,
+          req_headers: getHeader(token, headers),
+          req_params: null,
+          req_query: null,
+          req_status: error?.status,
+          req_status_text: error?.statusText,
+        };
+        LogError(errorObj);
 
         // toast.error(`${title} : ${error.message ?? "Failed"}`);
         throw new Error(

@@ -1,8 +1,8 @@
 "use client";
 import { useEffect } from "react";
 import Logo from "../components/Home/Logo";
-import { LogError } from "./../utils/functions";
-
+import { LogError } from "../utils/functions";
+import AuthService from "../services/auth";
 import * as Sentry from "@sentry/nextjs";
 export default function GlobalError({ error, reset }) {
   const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
@@ -12,21 +12,28 @@ export default function GlobalError({ error, reset }) {
   const sendError = async () => {
     const userAgent = await _getUserAgent();
     let last_json;
-    let token;
+    let token, user_id;
     if (typeof window !== "undefined") {
       last_json = (await localStorage.getItem("LAST_JSON"))
         ? JSON.parse(localStorage.getItem("LAST_JSON"))
         : null;
-      token = (await localStorage.getItem("USER-CHAT"))
-        ? JSON.parse(localStorage.getItem("USER-CHAT")).access_token
-        : null;
+      token = AuthService.UserToken();
+      user_id = AuthService.UserID();
     }
     Sentry.captureException(error);
 
-    LogError(error.message, null, location.href);
+    let errorObj = {
+      type: "front-end-exception",
+      message: error.message,
+      url: window.location.href,
+      user_id: user_id,
+      token: token,
+      user_agent: userAgent,
+    };
+    LogError(errorObj);
   };
   useEffect(() => {
-    sendError(error);
+    sendError();
   }, [error]);
   if (
     error.message?.includes("Connection") ||
@@ -37,7 +44,7 @@ export default function GlobalError({ error, reset }) {
         <body>
           <div className="flex justify-start flex-col items-center p-[50px] min-h-screen">
             <div>
-              <Logo style={true} />
+              <Logo animated={false} style={true} />
             </div>
             <div className="flex flex-row items-center;">
               <h1 className="text-[red]">Error:</h1>
@@ -65,7 +72,7 @@ export default function GlobalError({ error, reset }) {
       <body>
         <div className="flex justify-start flex-col items-center p-[50px] min-h-screen">
           <div>
-            <Logo style={true} />
+            <Logo animated={false} style={true} />
           </div>
           <div className="flex flex-row items-center;">
             <h1 className="text-[red]">Error:</h1>
