@@ -213,13 +213,12 @@ async function Page({ params, searchParams }: ProductPagePropsType) {
                     }
                   />
                 )}
-                {(product.labels || product.label_names) && (
+                {product.label_names && (
                   <ProductsLabels
                     isProduct={true}
                     labels={
-                      product.labels
-                        ? JSON.parse(product.labels)
-                        : product.label_names
+                      typeof product.label_names === "string" &&
+                      JSON.parse(product.label_names)
                     }
                   />
                 )}
