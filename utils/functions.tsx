@@ -654,7 +654,7 @@ export const AddToCartAnimation = () => {
 
 export const LogError = (error) => {
   axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/mobile_error_log/store`, {
-    error_description: JSON.stringify(error),
+    error_description: JSON.stringify({ ...error, platform: "web" }),
     // token: auth.UserToken(),
     // url: href,
     // backend_url: url,
