@@ -175,7 +175,15 @@ export const AxiosPost = async ({
         throw new Error(res.data.message);
       }
     } catch (error) {
-      if (error?.message === "Cart Error") {
+      if (
+        error?.message === "Cart Error" ||
+        url.includes("cart/add") ||
+        url.includes("cart/update") ||
+        url.includes("cart/remove")
+      ) {
+        if (url.includes("cart/add"))
+          showErrorMessage(translateFunction("Failed To Add"));
+        else showErrorMessage(translateFunction("Failed to Update"));
         attempt = 2;
         throw new Error(
           `${title} : Max retries reached. Could not fetch the data. ${error.message}`

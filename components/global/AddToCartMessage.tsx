@@ -1,4 +1,8 @@
 import React from "react";
+import {
+  showErrorNotification,
+  showSuccessNotification,
+} from "store/notifications/reducer";
 
 const SuccessIcon = (
   <svg
@@ -231,9 +235,13 @@ const dismissToast = (toast: HTMLElement) => {
 };
 
 export const showSuccessMessage = (message: string) => {
-  showToast(message, "success");
+  if (document.querySelector(".message-add-to-cart "))
+    showToast(message, "success");
+  else showSuccessNotification(message);
 };
 
 export const showErrorMessage = (message: string) => {
-  showToast(message, "error");
+  if (document.querySelector(".message-add-to-cart "))
+    showToast(message, "error");
+  else showErrorNotification(message);
 };

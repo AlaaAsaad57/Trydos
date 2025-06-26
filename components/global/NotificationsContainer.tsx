@@ -30,7 +30,7 @@ const NotificationsContainer = () => {
       if (!timers[notification.id] && !dismissingIds.has(notification.id)) {
         timers[notification.id] = setTimeout(() => {
           handleDismiss(notification.id);
-        }, 50000);
+        }, 5000);
       }
     });
 
