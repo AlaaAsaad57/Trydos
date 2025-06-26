@@ -33,10 +33,7 @@ function ProductsLabels({
       />
     </svg>
   );
-  console.log(
-    labels,
-    "LABELS LABESLLA DJSDSJDHJ SSVDBSVDBSDBBSDCVBSCDFVCSVDCVDSDGSDHGSHGDSHDJ"
-  );
+
   return (
     <div
       className={`flex ${
