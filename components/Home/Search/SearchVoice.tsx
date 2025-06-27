@@ -1,9 +1,5 @@
-import React, { useEffect, useState } from "react";
-import "regenerator-runtime/runtime";
+import React, { useEffect, useState, useRef } from "react";
 import SearchMicIcon from "public/svg/SearchMicIcon.svg";
-import SpeechRecognition, {
-  useSpeechRecognition,
-} from "react-speech-recognition";
 import { useAppStore } from "store";
 import search from "services/search";
 import { useParams } from "next/navigation";
@@ -11,73 +7,177 @@ import { showErrorNotification } from "store/notifications/reducer";
 
 function SearchVoice({ setSearchValue }: { setSearchValue: Function }) {
   const { language } = useAppStore();
-  const { finalTranscript, listening, browserSupportsSpeechRecognition } =
-    useSpeechRecognition();
-  const [showError, setShowError] = useState(false);
-  const [wasListening, setWasListening] = useState(false);
-
-  function handleOnRecord() {
-    setShowError(false); // Clear any previous errors
-
-    if (listening) {
-      // If currently listening, stop and process the transcript
-      SpeechRecognition.stopListening();
-    } else {
-      // If not listening, start listening
-      SpeechRecognition.startListening({
-        language: language === "ar" ? "ar-SA" : "en-US",
-      });
-    }
-  }
+  const [isRecording, setIsRecording] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(
+    null
+  );
+  const [audioChunks, setAudioChunks] = useState<Blob[]>([]);
+  const streamRef = useRef<MediaStream | null>(null);
 
   const { lang } = useParams();
 
-  // Track when listening starts
-  useEffect(() => {
-    if (listening) {
-      setWasListening(true);
-    }
-  }, [listening]);
-
-  // Handle when recording stops
-  useEffect(() => {
-    if (wasListening && !listening) {
-      // Recording just stopped, wait a moment for finalTranscript to update
-      setTimeout(() => {
-        if (!finalTranscript || finalTranscript.trim().length === 0) {
-          console.log("finalTranscript", finalTranscript);
-          showErrorNotification("Try again ..could not transcribe your voice"); // Hide error after 3 seconds
-        }
-        setWasListening(false);
-      }, 500);
-    }
-  }, [listening, wasListening, finalTranscript]);
-
-  useEffect(() => {
-    if (finalTranscript?.length > 0) {
-      setSearchValue(finalTranscript);
-      search.getSearchOptions({
-        noProducts: false,
-        lang: lang,
+  // Initialize media recorder
+  const initializeMediaRecorder = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          sampleRate: 16000,
+          channelCount: 1,
+          echoCancellation: true,
+          noiseSuppression: true,
+        },
       });
+
+      streamRef.current = stream;
+
+      // Try different audio formats based on browser support
+      let mimeType = "audio/webm;codecs=opus";
+      if (!MediaRecorder.isTypeSupported(mimeType)) {
+        mimeType = "audio/webm";
+      }
+      if (!MediaRecorder.isTypeSupported(mimeType)) {
+        mimeType = "audio/mp4";
+      }
+      if (!MediaRecorder.isTypeSupported(mimeType)) {
+        mimeType = "audio/ogg;codecs=opus";
+      }
+
+      console.log("Using audio format:", mimeType);
+
+      const recorder = new MediaRecorder(stream, {
+        mimeType: mimeType,
+      });
+
+      const chunks: Blob[] = [];
+
+      recorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          chunks.push(event.data);
+        }
+      };
+
+      recorder.onstop = async () => {
+        const audioBlob = new Blob(chunks, { type: "audio/webm" });
+        await processAudio(audioBlob);
+        chunks.length = 0; // Clear chunks
+      };
+
+      setMediaRecorder(recorder);
+      setAudioChunks(chunks);
+
+      // Start recording immediately after initialization
+      recorder.start();
+      setIsRecording(true);
+    } catch (error) {
+      console.error("Error accessing microphone:", error);
+      showErrorNotification("Microphone access denied");
     }
-  }, [finalTranscript]);
+  };
+
+  // Process audio with AssemblyAI API
+  const processAudio = async (audioBlob: Blob) => {
+    setIsProcessing(true);
+
+    try {
+      const formData = new FormData();
+      formData.append("audio", audioBlob, "recording.webm");
+      formData.append("language", language);
+
+      const response = await fetch("/api/speech-recognition", {
+        method: "POST",
+        body: formData,
+      });
+
+      const result = await response.json();
+
+      if (
+        result.success &&
+        result.transcription &&
+        result.transcription.trim().length > 0
+      ) {
+        console.log("Transcription:", result.transcription);
+        setSearchValue(result.transcription);
+        search.getSearchOptions({
+          noProducts: false,
+          lang: lang,
+        });
+      } else {
+        console.log("Empty transcription");
+        showErrorNotification("Try again with clear voice");
+      }
+    } catch (error) {
+      console.error("Error processing audio:", error);
+      showErrorNotification("Failed to process audio");
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  // Handle record button click
+  const handleOnRecord = async () => {
+    if (isProcessing) return;
+
+    if (isRecording) {
+      // Stop recording
+      if (mediaRecorder) {
+        mediaRecorder.stop();
+      }
+      setIsRecording(false);
+
+      // Clear media stream and stop all tracks
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((track) => {
+          track.stop();
+        });
+        streamRef.current = null;
+      }
+
+      // Clear media recorder
+      setMediaRecorder(null);
+    } else {
+      // Start recording
+      await initializeMediaRecorder();
+    }
+  };
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((track) => track.stop());
+      }
+    };
+  }, []);
+
+  // Check browser support
+  const browserSupportsMediaRecorder =
+    typeof MediaRecorder !== "undefined" &&
+    navigator.mediaDevices &&
+    navigator.mediaDevices.getUserMedia;
 
   return (
     <>
-      {browserSupportsSpeechRecognition && (
+      {browserSupportsMediaRecorder ? (
         <div className="relative">
-          <SearchMicIcon
-            data-cy="searchVoiceIcon"
-            onTouchStart={handleOnRecord}
-            onMouseDown={handleOnRecord}
-            className={`${
-              listening ? "listening-icon-mic" : "ggg"
-            } cursor-pointer`}
-          />
+          {/* Show spinner instead of mic when processing */}
+          {isProcessing ? (
+            <div className="w-6 h-6 flex items-center justify-center cursor-wait">
+              <div className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+            </div>
+          ) : (
+            <SearchMicIcon
+              data-cy="searchVoiceIcon"
+              onTouchStart={handleOnRecord}
+              onMouseDown={handleOnRecord}
+              className={`${
+                isRecording ? "listening-icon-mic" : "ggg"
+              } cursor-pointer`}
+            />
+          )}
 
           {/* Recording Indicator */}
-          {listening && (
+          {isRecording && (
             <div className="absolute -top-2 -right-2">
               <div className="flex items-center justify-center">
                 <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
@@ -87,30 +187,22 @@ function SearchVoice({ setSearchValue }: { setSearchValue: Function }) {
           )}
 
           {/* Recording Animation Ripple Effect */}
-          {listening && (
+          {isRecording && (
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
               <div className="w-8 h-8 border-2 border-red-500 rounded-full animate-pulse opacity-75"></div>
               <div className="absolute w-12 h-12 border-2 border-red-400 rounded-full animate-ping opacity-50"></div>
             </div>
           )}
         </div>
-      )}
-
-      {/* Error Message */}
-      {showError && (
-        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 animate-fade-in">
-          <div className="bg-red-500 text-white px-4 py-2 rounded-lg shadow-lg flex items-center gap-2 animate-shake">
-            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-              <path
-                fillRule="evenodd"
-                d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                clipRule="evenodd"
-              />
-            </svg>
-            <span className="text-sm font-medium">
-              Couldn't transcribe your voice
-            </span>
-          </div>
+      ) : (
+        <div className="relative">
+          <SearchMicIcon
+            data-cy="searchVoiceIcon"
+            onClick={() => {
+              showErrorNotification("Browser does not support this feature");
+            }}
+            className={`opacity-50 cursor-pointer`}
+          />
         </div>
       )}
     </>

@@ -74,7 +74,9 @@ const ImagePreloader: React.FC<ImagePreloaderProps> = ({
         document.head.appendChild(link);
 
         return () => {
-          document.head.removeChild(link);
+          if (document.head.contains(link)) {
+            document.head.removeChild(link);
+          }
         };
       }
     }

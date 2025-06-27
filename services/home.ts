@@ -279,6 +279,9 @@ class HomeService {
   }
   async CheckLogin() {
     const { loginSuccess } = useAppStore.getState();
+    if (auth.getUser()) {
+      SetGAUser(auth.getUser(), false);
+    }
     if (!localStorage.getItem("FB-DEVICE-TOKEN")) await this.RegisterDevice();
     if (
       SSRDetect() &&

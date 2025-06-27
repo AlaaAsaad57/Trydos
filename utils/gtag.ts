@@ -1,3 +1,4 @@
+import auth from "services/auth";
 import { useAppStore } from "store";
 export const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID; // replace with your ID
 let countries = [
@@ -33,7 +34,9 @@ export const GAevent = ({
 }) => {
   try {
     const { session_id, previous_event_button_name } = useAppStore.getState();
-
+    if (auth.getUser()) {
+      SetGAUser(auth.getUser(), false);
+    }
     // @ts-ignore
     window.gtag?.("event", action, {
       debug_mode: true,
@@ -116,9 +119,18 @@ export const SetGAUser = (user, isNewUser = false) => {
     }
   }
   // @ts-ignore
+  window.gtag?.("config", GA_MEASUREMENT_ID, {
+    user_id: user.id,
+    user_type: user.phone === "0" ? "guest" : isNewUser ? "new" : "registered",
+    user_location: country?.name,
+    days_age_account: getAccountAge(user),
+    gender: user?.gender?.name === "Man" ? "male" : "female",
+  });
+  // @ts-ignore
   window.gtag?.("set", {
     user_id: user.id,
   });
+
   // @ts-ignore
   window?.gtag?.("set", "user_properties", {
     user_type: user.phone === "0" ? "guest" : isNewUser ? "new" : "registered",
