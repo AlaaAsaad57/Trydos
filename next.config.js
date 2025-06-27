@@ -158,7 +158,7 @@ if (process.env.NODE_ENV === "production") {
     nextConfig,
     { sentryWebpackPluginOptions },
     {
-      hideSourceMaps: false,
+      hideSourceMaps: true,
     }
   );
 }
