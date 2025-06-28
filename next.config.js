@@ -2,7 +2,8 @@
 
 const path = require("path");
 let nextConfig = {
-  swcMinify: true,
+  swcMinify: false,
+  productionBrowserSourceMaps: true,
   reactStrictMode: false,
   compress: true,
   async headers() {

@@ -32,39 +32,45 @@ function SelectRegion({ closeSelect }: SelectRegionPropsType) {
           {country.name}
         </div>
 
-        <div
-          className={`flex ${
-            !addressDetails.region_details?.province
-              ? "text-[#D3D3D3]"
-              : "text-[#1D1D1D]"
-          }  text-[14px] regular`}
-          data-cy="Province-extend"
-        >
-          <span className="px-1">|</span>
-          {addressDetails.region_details?.province || "Province"}
-        </div>
-        <div
-          className={`flex ${
-            !addressDetails.region_details?.city
-              ? "text-[#D3D3D3]"
-              : "text-[#1D1D1D]"
-          }  text-[14px] regular`}
-          data-cy="Town-extend"
-        >
-          <span className="px-1">|</span>
-          {addressDetails.region_details?.city || "Town"}
-        </div>
-        <div
-          className={`flex ${
-            !addressDetails.region_details?.town
-              ? "text-[#D3D3D3]"
-              : "text-[#1D1D1D]"
-          }  text-[14px] regular`}
-          data-cy="Suburb-extend"
-        >
-          <span className="px-1">|</span>
-          {addressDetails.region_details?.town || "Suburb"}
-        </div>
+        {addressDetails.region_details?.province && (
+          <div
+            className={`flex ${
+              !addressDetails.region_details?.province
+                ? "text-[#D3D3D3]"
+                : "text-[#1D1D1D]"
+            }  text-[14px] regular`}
+            data-cy="Province-extend"
+          >
+            <span className="px-1">|</span>
+            {addressDetails.region_details?.province || "Province"}
+          </div>
+        )}
+        {addressDetails.region_details?.city && (
+          <div
+            className={`flex ${
+              !addressDetails.region_details?.city
+                ? "text-[#D3D3D3]"
+                : "text-[#1D1D1D]"
+            }  text-[14px] regular`}
+            data-cy="Town-extend"
+          >
+            <span className="px-1">|</span>
+            {addressDetails.region_details?.city || "Town"}
+          </div>
+        )}
+        {addressDetails.region_details?.town && (
+          <div
+            className={`flex ${
+              !addressDetails.region_details?.town
+                ? "text-[#D3D3D3]"
+                : "text-[#1D1D1D]"
+            }  text-[14px] regular`}
+            data-cy="Suburb-extend"
+          >
+            <span className="px-1">|</span>
+            {addressDetails.region_details?.town || "Suburb"}
+          </div>
+        )}
       </>
     );
   };
@@ -117,7 +123,10 @@ function SelectRegion({ closeSelect }: SelectRegionPropsType) {
 
 export default SelectRegion;
 
-const SearchLocations = ({ closeSelect, setFocused }: SearchLocationsPropsType) => {
+const SearchLocations = ({
+  closeSelect,
+  setFocused,
+}: SearchLocationsPropsType) => {
   const { provinces, setProvinces } = useAppStore();
   const { lang } = useParams();
   // @ts-ignore
