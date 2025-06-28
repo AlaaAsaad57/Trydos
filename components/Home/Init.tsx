@@ -12,40 +12,6 @@ import { translateFunction } from "utils/functions";
 import { showErrorNotification } from "@/store/notifications/reducer";
 
 function Init() {
-  useEffect(() => {
-    const fallbackImage = "/error.png"; // Replace with your fallback image path
-
-    // Function to handle broken images
-    const handleImageError = (event) => {
-      const img = event.target;
-      if (!img.dataset.errorHandled) {
-        // Avoid infinite loop
-        img.dataset.errorHandled = "true";
-        img.src = fallbackImage;
-      }
-    };
-
-    // Add error listeners to all current and future images
-    const addErrorListeners = () => {
-      const images = document.querySelectorAll("img");
-      images.forEach((img) => {
-        img.addEventListener("error", handleImageError);
-      });
-    };
-
-    // Initial setup
-    addErrorListeners();
-
-    // Observe DOM changes for dynamically added images
-    const observer = new MutationObserver(() => addErrorListeners());
-    observer.observe(document.body, { childList: true, subtree: true });
-
-    return () => {
-      // Cleanup
-      observer.disconnect();
-    };
-  }, []);
-
   const { lang } = useParams();
   const searchParams = useSearchParams();
   const [dataCountries, setCountriesData] = useState([]);

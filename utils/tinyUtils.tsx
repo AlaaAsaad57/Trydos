@@ -1,5 +1,5 @@
 import { useAppStore } from "store";
-import { AxiosGet, errorPNG } from "./AxiosApi";
+import { AxiosGet } from "./AxiosApi";
 import { translateFunction } from "./functions";
 import dynamic from "next/dynamic";
 import replaceString from "replace-string";

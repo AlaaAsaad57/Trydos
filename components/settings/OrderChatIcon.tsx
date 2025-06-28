@@ -82,6 +82,12 @@ function OrderChatIcon({
               ),
             },
           ],
+          messages:
+            res.channel.messages?.sort(
+              (a, b) =>
+                new Date(a.created_at).getTime() -
+                new Date(b.created_at).getTime()
+            ) || [],
         });
       } else {
         setChatInfo({

@@ -940,6 +940,13 @@ function ConversationContainer({
 
           {activeChat?.messages?.map((mes: any, i: number) => (
             <React.Fragment key={mes.id || i}>
+              {(showDate(mes.created_at) !==
+                showDate(activeChat.messages[i - 1]?.created_at) ||
+                !activeChat.messages[i - 1]) && (
+                <div className="last-date-value">
+                  {showDate(mes.created_at)}
+                </div>
+              )}
               {/* date separators here – omitted for brevity */}
               <ChatMessage
                 isPrivate={isPrivate}

@@ -1,7 +1,10 @@
 import React, { useEffect } from "react";
 import ConversationContainer from "./pages/ConversationContainer";
 import { useAppStore } from "store";
-
+import "styles/chatcomponent.css";
+import "styles/chat.css";
+import "styles/ChatWindow.css";
+import "styles/chatstyles.css";
 export default function ChatWidget({
   isOpen,
   onClose,

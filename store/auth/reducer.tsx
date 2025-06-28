@@ -17,7 +17,7 @@ interface AuthState {
   failedLogin: boolean;
   attempts: number;
   wrongNumber: string;
-  shouldAuthinticated: any
+  shouldAuthinticated: any;
   verficationID: string | null;
   firebaseSettings: FirebaseSettings;
   userProfile: any | null;
@@ -67,12 +67,14 @@ export const useAuthStore = (set, get) => ({
   setIsActiveAddress: (isActive) => set({ isActiveAddress: isActive }),
   setShouldAuthinticated: (shouldAuthinticated) => set({ shouldAuthinticated }),
   updateUserIsVerified: (user_obj) =>
-    set((state) => ({ userProfile: { ...state.userProfile, ...user_obj } })),
+    set((state) => ({
+      userProfile: { ...(state.userProfile ?? {}), ...user_obj },
+    })),
   setTotalOrders: (total) => set({ totalOrders: total }),
   setNotificationsType: (type) => set({ NotificationsType: type }),
   editUserInfo: (info) =>
     set((state) => ({
-      userProfile: { ...state.userProfile, ...info },
+      userProfile: { ...(state.userProfile ?? {}), ...info },
     })),
 
   cancelAuth: () =>

@@ -100,45 +100,39 @@ class HomeService {
   async getCustomerInfo() {
     const { updateUserInfo } = useAppStore.getState();
     await WaitForCondition();
-    const response = await fetch(
-      process.env.NEXT_PUBLIC_BACKEND_URL + CUSTOMER_INFO_URL,
-      { ...getHeader(), priority: "high" }
-    );
-    if (response.status === 200) {
-      let repo: {
-        data: CustomerInfoResponse;
-      } = await response.json();
+    // const response = await fetch(
+    //   process.env.NEXT_PUBLIC_BACKEND_URL + CUSTOMER_INFO_URL,
+    //   { ...getHeader(), priority: "high" }
+    // );
+    let response: CustomerInfoResponse = await AxiosGet({
+      url: process.env.NEXT_PUBLIC_BACKEND_URL + CUSTOMER_INFO_URL,
+      title: "get customer info",
+      token: auth.UserToken() as string,
+      headers: getHeader().headers,
+    });
 
-      if (repo.data) {
-        updateUserInfo(repo.data?.customer_info);
+    try {
+      if (response.customer_info) {
+        if (response.customer_info) {
+          updateUserInfo(response.customer_info);
 
-        if (repo.data.customer_info?.is_phone_verified !== 1) {
-          await auth.ExpiredUser(true);
+          if (response.customer_info?.is_phone_verified !== 1) {
+            await auth.ExpiredUser(true);
+          }
+          // localStorage.setItem(
+          //   "customer-info",
+          //   JSON.stringify(repo.data.customer_info)
+          // );
+          if (typeof window !== "undefined") {
+            _isStoreLastJson() &&
+              localStorage.setItem("LAST_JSON", JSON.stringify(response));
+          }
         }
-        // localStorage.setItem(
-        //   "customer-info",
-        //   JSON.stringify(repo.data.customer_info)
-        // );
-        if (typeof window !== "undefined") {
-          _isStoreLastJson() &&
-            localStorage.setItem("LAST_JSON", JSON.stringify(repo));
-        }
-      }
-    }
-    if (response.status === 500 || response.status === 422) {
-      showErrorNotification("Customer Info Error");
-    }
-    if (
-      response.status === 302 ||
-      response.status === 401 ||
-      response.status === 403
-    ) {
-      if (auth.getUser()) {
-        await auth.ExpiredUser();
       } else {
-        await this.registerForExpire();
-        await this.getCustomerInfo();
+        throw new Error("Customer Info Error");
       }
+    } catch (error) {
+      showErrorNotification("Customer Info Error");
     }
   }
   async checkExpiration(bool) {

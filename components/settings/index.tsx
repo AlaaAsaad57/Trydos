@@ -30,6 +30,8 @@ import {
   SettingOption,
   SettingsIndexPropsType,
 } from "models/componentType/settingTypes/SettingsIndexPropsType";
+import home from "services/home";
+import { dispatchRouteChangeEvent } from "utils/events";
 
 function Settings({ lang }: SettingsIndexPropsType) {
   const {
@@ -49,6 +51,17 @@ function Settings({ lang }: SettingsIndexPropsType) {
   const setIsActive = (e) => {
     setIsActiveAddress(e);
   };
+  const getCustomerInfo = async () => {
+    await home.getCustomerInfo();
+    dispatchRouteChangeEvent("completed");
+  };
+  useEffect(() => {
+    if (!userProfile?.name) {
+      getCustomerInfo();
+    } else {
+      dispatchRouteChangeEvent("completed");
+    }
+  }, []);
   const [NavigationOptions, setNavigationOptions] = useState<SettingOption[]>([
     {
       id: "main",
