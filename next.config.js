@@ -142,7 +142,7 @@ const sentryWebpackPluginOptions = {
     ".next/server/chunks", // Optional: Ignore server-side chunks
   ],
   sentry: {
-    disableSourceMaps: true, // Disables uploading of source maps to Sentry
+    disableSourceMaps: false, // Disables uploading of source maps to Sentry
   },
   // For all available options, see:
   // https://github.com/getsentry/sentry-webpack-plugin#options.
@@ -158,7 +158,7 @@ if (process.env.NODE_ENV === "production") {
     nextConfig,
     { sentryWebpackPluginOptions },
     {
-      hideSourceMaps: true,
+      hideSourceMaps: false,
     }
   );
 }
