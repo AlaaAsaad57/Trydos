@@ -223,8 +223,7 @@ function SearchVoice({ setSearchValue }: { setSearchValue: Function }) {
             <div className="relative">
               <SearchMicIcon
                 data-cy="searchVoiceIcon"
-                onTouchStart={handleOnRecord}
-                onMouseDown={handleOnRecord}
+                onClick={handleOnRecord}
                 className={`${
                   isRecording ? "listening-icon-mic" : "ggg"
                 } cursor-pointer relative z-10`}

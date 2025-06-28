@@ -34,7 +34,10 @@ function SearchImage({ setSearchValue }: { setSearchValue: Function }) {
         method: "POST",
         body: formData,
       });
-
+      if (!result.ok) {
+        const response = await result.json();
+        throw new Error(response.error || "Failed to search with image");
+      }
       // @ts-ignore
       const response = await result.json();
 

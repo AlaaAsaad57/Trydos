@@ -65,21 +65,16 @@ export async function POST(request: NextRequest) {
     const fileGenerativePart = await fileToGenerativePart(file);
 
     // Create language-specific prompt
+    const basePrompt =
+      prompt ||
+      "Describe the product most clearly shown in this picture with no more than 5 words like: T-shirt black xxl";
+
     const languagePrompt =
       language.toLowerCase() === "ar"
-        ? `${
-            prompt ||
-            "Describe the product most clearly shown in this picture with no more than 5 words like: T-shirt black xxl"
-          } (Please respond in Arabic)`
+        ? `${basePrompt}. If you cannot identify any clear product in the image, respond exactly with "NO_PRODUCT_FOUND". (Please respond in Arabic)`
         : language.toLowerCase() === "en"
-        ? `${
-            prompt ||
-            "Describe the product most clearly shown in this picture with no more than 5 words like: T-shirt black xxl"
-          } (Please respond in English)`
-        : `${
-            prompt ||
-            "Describe the product most clearly shown in this picture with no more than 5 words like: T-shirt black xxl"
-          } (Please respond in Turkish)`;
+        ? `${basePrompt}. If you cannot identify any clear product in the image, respond exactly with "NO_PRODUCT_FOUND". (Please respond in English)`
+        : `${basePrompt}. If you cannot identify any clear product in the image, respond exactly with "NO_PRODUCT_FOUND". (Please respond in Turkish)`;
 
     // Generate content using Google AI
     const result = await model.generateContent([
@@ -88,7 +83,25 @@ export async function POST(request: NextRequest) {
     ]);
 
     const response = await result.response;
-    const text = response.text();
+    const text = response.text().trim();
+
+    // Check if no product was found
+    if (
+      text === "NO_PRODUCT_FOUND" ||
+      text.toLowerCase().includes("no product") ||
+      text.toLowerCase().includes("cannot identify") ||
+      text.toLowerCase().includes("not a product") ||
+      text.toLowerCase().includes("no clear product")
+    ) {
+      return NextResponse.json(
+        {
+          error: "No product detected",
+          details: "No clear product could be identified in the uploaded image",
+          success: false,
+        },
+        { status: 400 }
+      );
+    }
 
     return NextResponse.json({
       success: true,
