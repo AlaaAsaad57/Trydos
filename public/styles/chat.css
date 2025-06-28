@@ -1,5 +1,6 @@
 @import url("./chatcomponent.css");
 @import url("./chatstyles.css");
+@import url("./ChatWindow.css");
 .app {
   max-width: 430px;
   overflow: hidden;
