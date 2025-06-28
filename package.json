@@ -78,6 +78,7 @@
     "style-loader": "^4.0.0",
     "swiper": "^11.0.0",
     "swr": "^2.2.5",
+    "tailwindcss": "^3.4.3",
     "text-marshal": "^0.0.2",
     "typescript": "^5.4.5",
     "use-detect-keyboard-open": "^0.4.0",
@@ -105,7 +106,6 @@
     "nyc": "^17.1.0",
     "postcss": "^8.4.38",
     "start-server-and-test": "^2.0.10",
-    "swc-plugin-coverage-instrument": "0.0.20",
-    "tailwindcss": "^3.4.3"
+    "swc-plugin-coverage-instrument": "0.0.20"
   }
 }
