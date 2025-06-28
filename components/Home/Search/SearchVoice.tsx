@@ -157,7 +157,6 @@ function SearchVoice({ setSearchValue }: { setSearchValue: Function }) {
         result.transcription &&
         result.transcription.trim().length > 0
       ) {
-        console.log("Transcription:", result.transcription);
         setSearchValue(result.transcription);
         search.getSearchOptions({
           noProducts: false,
@@ -212,88 +211,90 @@ function SearchVoice({ setSearchValue }: { setSearchValue: Function }) {
 
   return (
     <>
-      {browserSupportsMediaRecorder ? (
-        <div className="relative">
-          {/* Show spinner instead of mic when processing */}
-          {isProcessing ? (
-            <div className="w-6 h-6 flex items-center justify-center cursor-wait">
-              <div className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-            </div>
-          ) : (
-            <div className="relative">
-              <SearchMicIcon
-                data-cy="searchVoiceIcon"
-                onClick={handleOnRecord}
-                className={`${
-                  isRecording ? "listening-icon-mic" : "ggg"
-                } cursor-pointer relative z-10`}
-              />
-
-              {/* Circular Progress Bar */}
-              {isRecording && (
-                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                  <svg
-                    className="w-8 h-8 transform -rotate-90"
-                    viewBox="0 0 32 32"
-                  >
-                    {/* Background circle */}
-                    <circle
-                      cx="16"
-                      cy="16"
-                      r="14"
-                      stroke="rgba(239, 68, 68, 0.2)"
-                      strokeWidth="2"
-                      fill="none"
-                    />
-                    {/* Progress circle */}
-                    <circle
-                      cx="16"
-                      cy="16"
-                      r="14"
-                      stroke="#ef4444"
-                      strokeWidth="2"
-                      fill="none"
-                      strokeLinecap="round"
-                      strokeDasharray={`${2 * Math.PI * 14}`}
-                      strokeDashoffset={`${
-                        2 * Math.PI * 14 * (1 - timeLeft / 8)
-                      }`}
-                      className="transition-all duration-1000 ease-linear"
-                    />
-                  </svg>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Recording Indicator */}
-          {isRecording && (
-            <div className="absolute -top-2 -right-2">
-              <div className="flex items-center justify-center">
-                <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
-                <div className="absolute w-3 h-3 bg-red-500 rounded-full animate-ping"></div>
+      <div className="input-icon h-full">
+        {browserSupportsMediaRecorder ? (
+          <div className="relative">
+            {/* Show spinner instead of mic when processing */}
+            {isProcessing ? (
+              <div className="w-6 h-6 flex items-center justify-center cursor-wait">
+                <div className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
               </div>
-            </div>
-          )}
+            ) : (
+              <div className="relative">
+                <SearchMicIcon
+                  data-cy="searchVoiceIcon"
+                  onClick={handleOnRecord}
+                  className={`${
+                    isRecording ? "listening-icon-mic" : "ggg"
+                  } cursor-pointer relative z-10`}
+                />
 
-          {/* Recording Animation Ripple Effect */}
-          {isRecording && (
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <div className="w-12 h-12 border-2 border-red-400 rounded-full animate-ping opacity-30"></div>
-            </div>
-          )}
-        </div>
-      ) : (
-        <div className="relative">
-          <SearchMicIcon
-            data-cy="searchVoiceIcon"
-            onClick={() => {
-              showErrorNotification("Browser does not support this feature");
-            }}
-            className={`opacity-50 cursor-pointer`}
-          />
-        </div>
-      )}
+                {/* Circular Progress Bar */}
+                {isRecording && (
+                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                    <svg
+                      className="w-8 h-8 transform -rotate-90"
+                      viewBox="0 0 32 32"
+                    >
+                      {/* Background circle */}
+                      <circle
+                        cx="16"
+                        cy="16"
+                        r="14"
+                        stroke="rgba(239, 68, 68, 0.2)"
+                        strokeWidth="2"
+                        fill="none"
+                      />
+                      {/* Progress circle */}
+                      <circle
+                        cx="16"
+                        cy="16"
+                        r="14"
+                        stroke="#ef4444"
+                        strokeWidth="2"
+                        fill="none"
+                        strokeLinecap="round"
+                        strokeDasharray={`${2 * Math.PI * 14}`}
+                        strokeDashoffset={`${
+                          2 * Math.PI * 14 * (1 - timeLeft / 8)
+                        }`}
+                        className="transition-all duration-1000 ease-linear"
+                      />
+                    </svg>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Recording Indicator */}
+            {isRecording && (
+              <div className="absolute -top-2 -right-2">
+                <div className="flex items-center justify-center">
+                  <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
+                  <div className="absolute w-3 h-3 bg-red-500 rounded-full animate-ping"></div>
+                </div>
+              </div>
+            )}
+
+            {/* Recording Animation Ripple Effect */}
+            {isRecording && (
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <div className="w-12 h-12 border-2 border-red-400 rounded-full animate-ping opacity-30"></div>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="relative">
+            <SearchMicIcon
+              data-cy="searchVoiceIcon"
+              onClick={() => {
+                showErrorNotification("Browser does not support this feature");
+              }}
+              className={`opacity-50 cursor-pointer`}
+            />
+          </div>
+        )}
+      </div>
     </>
   );
 }

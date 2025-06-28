@@ -197,37 +197,34 @@ function SearchComponent({
               />
             </div>
           ) : (
-            <div className="input-icons flex-row">
-              <div className="input-icon">
-                <SearchImage
-                  setSearchValue={(e) => {
-                    if (e?.length > 0) {
-                      // Sendevent({
-                      //   event: "button_clicked",
-                      //   value: "search_with_image_button",
-                      // });
+            <div className="input-icons flex-row h-full">
+              <SearchImage
+                setSearchValue={(e) => {
+                  if (e?.length > 0) {
+                    // Sendevent({
+                    //   event: "button_clicked",
+                    //   value: "search_with_image_button",
+                    // });
 
-                      setSearchWord(e);
-                      setSearchLoading(true);
-                    }
-                  }}
-                />
-              </div>
-              <div className="input-icon">
-                <SearchVoice
-                  setSearchValue={(e) => {
-                    if (e?.length > 0) {
-                      // Sendevent({
-                      //   event: GA_EVENT_NAMES.CLICK,
-                      //   value: GA_CLICK_EVENT_VALUES.SEARCH_WITH_VOICE_BUTTON,
-                      // });
+                    setSearchWord(e);
+                    setSearchLoading(true);
+                  }
+                }}
+              />
 
-                      setSearchWord(e);
-                      setSearchLoading(true);
-                    }
-                  }}
-                />
-              </div>
+              <SearchVoice
+                setSearchValue={(e) => {
+                  if (e?.length > 0) {
+                    // Sendevent({
+                    //   event: GA_EVENT_NAMES.CLICK,
+                    //   value: GA_CLICK_EVENT_VALUES.SEARCH_WITH_VOICE_BUTTON,
+                    // });
+
+                    setSearchWord(e);
+                    setSearchLoading(true);
+                  }
+                }}
+              />
             </div>
           )}
           {!focus && (

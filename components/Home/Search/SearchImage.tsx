@@ -110,7 +110,7 @@ function SearchImage({ setSearchValue }: { setSearchValue: Function }) {
     i.click();
   };
   return (
-    <>
+    <div className="input-icon h-full">
       {file && (
         <ImageCropWidget
           image={file}
@@ -127,7 +127,7 @@ function SearchImage({ setSearchValue }: { setSearchValue: Function }) {
       <div className="relative " data-cy="searchImageIcon">
         {loading ? <Spinner /> : <SearchCamIcon onClick={OpenMenu} />}
       </div>
-    </>
+    </div>
   );
 }
 
