@@ -38,8 +38,6 @@ let nextConfig = {
   // },
   images: {
     unoptimized: false,
-    formats: ["image/avif"],
-    qualities: [90, 100],
     domains: [
       "res.cloudinary.com",
       "eu.ui-avatars.com",
