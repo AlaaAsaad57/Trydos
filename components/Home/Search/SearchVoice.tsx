@@ -13,9 +13,61 @@ function SearchVoice({ setSearchValue }: { setSearchValue: Function }) {
     null
   );
   const [audioChunks, setAudioChunks] = useState<Blob[]>([]);
+  const [timeLeft, setTimeLeft] = useState(8);
   const streamRef = useRef<MediaStream | null>(null);
+  const recordingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const countdownIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const { lang } = useParams();
+
+  // Start countdown timer
+  const startCountdown = () => {
+    setTimeLeft(8);
+    countdownIntervalRef.current = setInterval(() => {
+      setTimeLeft((prev) => {
+        if (prev <= 1) {
+          clearInterval(countdownIntervalRef.current!);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  };
+
+  // Stop countdown timer
+  const stopCountdown = () => {
+    if (countdownIntervalRef.current) {
+      clearInterval(countdownIntervalRef.current);
+      countdownIntervalRef.current = null;
+    }
+    setTimeLeft(8);
+  };
+
+  // Stop recording function
+  const stopRecording = () => {
+    if (mediaRecorder && mediaRecorder.state === "recording") {
+      mediaRecorder.stop();
+    }
+    setIsRecording(false);
+
+    // Clear timers
+    if (recordingTimeoutRef.current) {
+      clearTimeout(recordingTimeoutRef.current);
+      recordingTimeoutRef.current = null;
+    }
+    stopCountdown();
+
+    // Clear media stream and stop all tracks
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((track) => {
+        track.stop();
+      });
+      streamRef.current = null;
+    }
+
+    // Clear media recorder
+    setMediaRecorder(null);
+  };
 
   // Initialize media recorder
   const initializeMediaRecorder = async () => {
@@ -69,6 +121,15 @@ function SearchVoice({ setSearchValue }: { setSearchValue: Function }) {
       // Start recording immediately after initialization
       recorder.start();
       setIsRecording(true);
+
+      // Start countdown
+      startCountdown();
+
+      // Set maximum recording duration of 8 seconds
+      recordingTimeoutRef.current = setTimeout(() => {
+        console.log("Maximum recording time reached (8 seconds)");
+        stopRecording();
+      }, 8000);
     } catch (error) {
       console.error("Error accessing microphone:", error);
       showErrorNotification("Microphone access denied");
@@ -120,21 +181,7 @@ function SearchVoice({ setSearchValue }: { setSearchValue: Function }) {
 
     if (isRecording) {
       // Stop recording
-      if (mediaRecorder) {
-        mediaRecorder.stop();
-      }
-      setIsRecording(false);
-
-      // Clear media stream and stop all tracks
-      if (streamRef.current) {
-        streamRef.current.getTracks().forEach((track) => {
-          track.stop();
-        });
-        streamRef.current = null;
-      }
-
-      // Clear media recorder
-      setMediaRecorder(null);
+      stopRecording();
     } else {
       // Start recording
       await initializeMediaRecorder();
@@ -146,6 +193,13 @@ function SearchVoice({ setSearchValue }: { setSearchValue: Function }) {
     return () => {
       if (streamRef.current) {
         streamRef.current.getTracks().forEach((track) => track.stop());
+      }
+      // Clear all timers on unmount
+      if (recordingTimeoutRef.current) {
+        clearTimeout(recordingTimeoutRef.current);
+      }
+      if (countdownIntervalRef.current) {
+        clearInterval(countdownIntervalRef.current);
       }
     };
   }, []);
@@ -166,14 +220,51 @@ function SearchVoice({ setSearchValue }: { setSearchValue: Function }) {
               <div className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
             </div>
           ) : (
-            <SearchMicIcon
-              data-cy="searchVoiceIcon"
-              onTouchStart={handleOnRecord}
-              onMouseDown={handleOnRecord}
-              className={`${
-                isRecording ? "listening-icon-mic" : "ggg"
-              } cursor-pointer`}
-            />
+            <div className="relative">
+              <SearchMicIcon
+                data-cy="searchVoiceIcon"
+                onTouchStart={handleOnRecord}
+                onMouseDown={handleOnRecord}
+                className={`${
+                  isRecording ? "listening-icon-mic" : "ggg"
+                } cursor-pointer relative z-10`}
+              />
+
+              {/* Circular Progress Bar */}
+              {isRecording && (
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                  <svg
+                    className="w-8 h-8 transform -rotate-90"
+                    viewBox="0 0 32 32"
+                  >
+                    {/* Background circle */}
+                    <circle
+                      cx="16"
+                      cy="16"
+                      r="14"
+                      stroke="rgba(239, 68, 68, 0.2)"
+                      strokeWidth="2"
+                      fill="none"
+                    />
+                    {/* Progress circle */}
+                    <circle
+                      cx="16"
+                      cy="16"
+                      r="14"
+                      stroke="#ef4444"
+                      strokeWidth="2"
+                      fill="none"
+                      strokeLinecap="round"
+                      strokeDasharray={`${2 * Math.PI * 14}`}
+                      strokeDashoffset={`${
+                        2 * Math.PI * 14 * (1 - timeLeft / 8)
+                      }`}
+                      className="transition-all duration-1000 ease-linear"
+                    />
+                  </svg>
+                </div>
+              )}
+            </div>
           )}
 
           {/* Recording Indicator */}
@@ -189,8 +280,7 @@ function SearchVoice({ setSearchValue }: { setSearchValue: Function }) {
           {/* Recording Animation Ripple Effect */}
           {isRecording && (
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <div className="w-8 h-8 border-2 border-red-500 rounded-full animate-pulse opacity-75"></div>
-              <div className="absolute w-12 h-12 border-2 border-red-400 rounded-full animate-ping opacity-50"></div>
+              <div className="w-12 h-12 border-2 border-red-400 rounded-full animate-ping opacity-30"></div>
             </div>
           )}
         </div>
