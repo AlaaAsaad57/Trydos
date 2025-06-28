@@ -9,7 +9,7 @@ import XIcon from "public/svg/Xicon.svg";
 import { useAppStore } from "store";
 import { ConfirmationModalPropsType } from "models/componentType/settingTypes/ConfirmationModalPropsType";
 import { PersonalInfoPropsType } from "models/componentType/settingTypes/PersonalInfoPropsType";
-import { formatPhone } from "utils/tinyUtils";
+
 function PersonalInfo({ swipeToScreen, goBack }: PersonalInfoPropsType) {
   const { editUserInfo, userProfile } = useAppStore();
 
@@ -70,12 +70,9 @@ function PersonalInfo({ swipeToScreen, goBack }: PersonalInfoPropsType) {
   };
   const [isPhoneShouldChange, setIsPhoneShouldChange] = useState(false);
   const isValid = () => {
-    let { data, valid, pattern } = formatPhone(userProfileData.phone);
-
     return (
       userProfileData.name &&
       userProfileData.phone &&
-      valid &&
       userProfileData.email &&
       userProfileData.gender
     );
@@ -305,11 +302,9 @@ function PersonalInfo({ swipeToScreen, goBack }: PersonalInfoPropsType) {
                 aria-haspopup="false"
                 value={userProfileData?.phone}
                 onChange={(e) => {
-                  let { data, valid, pattern } = formatPhone(e.target.value);
-
                   setUserProfileData({
                     ...userProfileData,
-                    phone: data.plaintext,
+                    phone: e.target.value,
                   });
                 }}
                 spellCheck="false"
@@ -359,10 +354,9 @@ function PersonalInfo({ swipeToScreen, goBack }: PersonalInfoPropsType) {
                     : userProfileData.alternative_phone
                 }
                 onChange={(e) => {
-                  let { data, valid, pattern } = formatPhone(e.target.value);
                   setUserProfileData({
                     ...userProfileData,
-                    alternative_phone: data.plaintext,
+                    alternative_phone: e.target.value,
                   });
                 }}
                 autoCapitalize="off"

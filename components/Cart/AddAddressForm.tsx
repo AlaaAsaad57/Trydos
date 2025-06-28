@@ -12,7 +12,7 @@ import ContactInfoIcon from "public/svg/cart/ContactInfoIcon.svg";
 
 import order from "services/order";
 import { useAppStore } from "store";
-import { FlagIcon, formatPhone } from "utils/tinyUtils";
+import { FlagIcon } from "utils/tinyUtils";
 import { AddAddressFormPropsType } from "models/componentType/settingTypes/PersonalInfoAddressModalPropsType";
 import { AddressSectionPropsType } from "models/componentType/AddressSectionPropsType";
 import { SelectRegionPropsType } from "models/componentType/SelectRegionPropsType";
@@ -52,15 +52,12 @@ function AddAddressForm({
     let addressValid = false,
       valid = false,
       regionValid = false;
-    let { data, valid: phoneValid } = formatPhone(
-      addressDetails.contact_info.phone
-    );
+
     if (
       (addressDetails.contact_info.contact_person_name?.length > 0 ||
         // @ts-ignore
         addressDetails.contact_info.name?.length > 0) &&
-      addressDetails.contact_info.phone?.length > 0 &&
-      phoneValid
+      addressDetails.contact_info.phone?.length > 0
     ) {
       valid = true;
     } else {
@@ -479,13 +476,13 @@ const ContactInfo = () => {
               pattern="[0-9]*"
               autoCorrect="off"
               inputMode="numeric"
+              type="number"
               value={addressDetails.contact_info.phone}
               onChange={(e) => {
-                let { data, valid, pattern } = formatPhone(e.target.value);
                 setAddressDetails({
                   contact_info: {
                     ...addressDetails.contact_info,
-                    phone: data.plaintext,
+                    phone: e.target.value,
                   },
                 });
               }}
@@ -529,11 +526,10 @@ const ContactInfo = () => {
               inputMode="numeric"
               value={addressDetails.contact_info.alternative_phone}
               onChange={(e) => {
-                let { data, valid, pattern } = formatPhone(e.target.value);
                 setAddressDetails({
                   contact_info: {
                     ...addressDetails.contact_info,
-                    alternative_phone: data.plaintext,
+                    alternative_phone: e.target.value,
                   },
                 });
               }}
@@ -571,9 +567,6 @@ export const AddAddressButtons = ({ valid, slidePrev, isInSettings }) => {
     return;
   };
   const validate = () => {
-    let { data, valid, pattern } = formatPhone(
-      addressDetails.contact_info.phone
-    );
     if (addressDetails.address_detail?.length === 0) {
       return shake("details-border");
     }
@@ -586,7 +579,7 @@ export const AddAddressButtons = ({ valid, slidePrev, isInSettings }) => {
     if (addressDetails.contact_info?.contact_person_name?.length === 0) {
       return shake("name-border");
     }
-    if (addressDetails.contact_info?.phone?.length === 0 || !valid) {
+    if (addressDetails.contact_info?.phone?.length === 0) {
       return shake("phone-border");
     }
   };
