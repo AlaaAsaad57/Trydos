@@ -21,14 +21,13 @@ export async function POST(request: NextRequest) {
     const formData = await request.formData();
     const file = formData.get("file") as File;
     const language = formData.get("language") as string;
-    const prompt = formData.get("prompt") as string;
-
+    console.log(file, language, "debug inputs");
     // Validate required fields
-    if (!file || !language || !prompt) {
+    if (!file || !language) {
       return NextResponse.json(
         {
           error: "Missing required fields",
-          details: "file, language, and prompt are required",
+          details: "file, language  are required",
         },
         { status: 400 }
       );
@@ -66,7 +65,6 @@ export async function POST(request: NextRequest) {
 
     // Create language-specific prompt
     const basePrompt =
-      prompt ||
       "Describe the product most clearly shown in this picture with no more than 5 words like: T-shirt black xxl";
 
     const languagePrompt =
@@ -106,8 +104,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       response: text,
-      language: language,
-      originalPrompt: prompt,
     });
   } catch (error) {
     console.error("Google AI API Error:", error);
