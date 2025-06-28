@@ -5,6 +5,7 @@ import Logo from "components/Home/Logo";
 import { LogError } from "utils/functions";
 import { dispatchRouteChangeEvent } from "utils/events";
 import AuthService from "services/auth";
+import * as Sentry from "@sentry/nextjs";
 export default function Error({
   error,
   reset,
@@ -17,6 +18,7 @@ export default function Error({
     return navigator.userAgent || "";
   };
   const sendError = async (error: Error & { digest?: string }) => {
+    Sentry.captureException(error);
     const userAgent = await _getUserAgent();
     let last_json;
     let token;
