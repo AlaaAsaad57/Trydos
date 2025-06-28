@@ -15,10 +15,12 @@ const getCountry = () => {
 
 const showLocationText = (location) => {
   let str = "";
-  if (location.province) str += ` | ${location.province}`;
-  if (location.city) str += ` | ${location.city}`;
-  if (location.town) str += ` | ${location.town}`;
-  if (location.street) str += ` | ${location.street}`;
+  if (location.province && location.province !== "null")
+    str += ` | ${location.province}`;
+  if (location.city && location.city !== "null") str += ` | ${location.city}`;
+  if (location.town && location.town !== "null") str += ` | ${location.town}`;
+  if (location.street && location.street !== "null")
+    str += ` | ${location.street}`;
   if (location.building) str += ` | ${location.building}`;
   return str;
 };
