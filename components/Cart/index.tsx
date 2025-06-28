@@ -2019,13 +2019,14 @@ const QuantutyInput = ({
     }
   };
   const shouldDisablePlus = () => {
-    if (isCollectedAfterOrdering) {
-      return false;
-    }
+    // if (isCollectedAfterOrdering) {
+    //   return false;
+    // }
 
-    if (inputValue >= product.available_quantity) {
-      return true;
-    }
+    // if (inputValue >= product.available_quantity) {
+    //   return true;
+    // }
+    // return false;
     return false;
   };
   const ConvertToOldCart = async () => {

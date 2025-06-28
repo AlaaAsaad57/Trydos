@@ -13,6 +13,7 @@ function SettingTopBar({
   goBack,
   Icon,
   DataCy,
+  validateFunction,
 }: SettingTopBarPropsType) {
   const { setOrderOptions } = useAppStore();
 
@@ -39,13 +40,16 @@ function SettingTopBar({
           </span>
         </div>
         <span
-          className="cursor-pointer medium text-[#402CDD] text-[14px] flex-row"
+          className={
+            "cursor-pointer medium text-[#402CDD] text-[14px] flex-row"
+          }
           data-cy={DataCy || "save-button"}
           onClick={() => {
+            if (validateFunction && !validateFunction()) return;
             if (Save) Save();
           }}
         >
-          {Save && translateFunction("Save")}
+          {Save ? translateFunction("Save") : <></>}
 
           {hasOptions && (
             <>

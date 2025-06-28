@@ -8,11 +8,12 @@ import BankIcon from "public/svg/BankIcon.svg";
 import { translateFunction } from "utils/functions";
 import { useAppStore } from "store";
 import { GetImageUrl } from "utils/tinyUtils";
-import { ProfilePicturePropsType, ProfilePropsType, SettingOptionsProfileType } from "models/componentType/settingTypes/ProfilePropsType";
-function Profile({
-  swipeToScreen,
-  goBack,
-}: ProfilePropsType) {
+import {
+  ProfilePicturePropsType,
+  ProfilePropsType,
+  SettingOptionsProfileType,
+} from "models/componentType/settingTypes/ProfilePropsType";
+function Profile({ swipeToScreen, goBack }: ProfilePropsType) {
   const { userProfile } = useAppStore();
 
   const options = [
@@ -52,6 +53,7 @@ function Profile({
       <SettingTopBar
         goBack={() => goBack()}
         screenName="Profile"
+        Save={null}
         DataCy="profile"
       />
       <div className="flex-row justify-center mt-[12px]">

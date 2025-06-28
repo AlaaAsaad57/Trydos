@@ -6,15 +6,18 @@ import auth from "services/auth";
 import { useAppStore } from "store";
 import { ProfileSizeInfoPropsType } from "models/componentType/settingTypes/ProfileSizeInfoPropsType";
 
-function ProfileSizeInfo({
-  swipeToScreen,
-  goBack,
-}: ProfileSizeInfoPropsType) {
+function ProfileSizeInfo({ swipeToScreen, goBack }: ProfileSizeInfoPropsType) {
   const { editUserInfo, userProfile } = useAppStore();
   const [userProfileData, setUserProfileData] = useState({
     tall: userProfile?.tall,
     weight: userProfile?.weight,
   });
+  const [validationErrors, setValidationErrors] = useState({
+    tall: "",
+    weight: "",
+  });
+  const [showValidation, setShowValidation] = useState(false);
+
   const isEdited = () => {
     return (
       userProfileData.tall !== userProfile?.tall ||
@@ -39,6 +42,31 @@ function ProfileSizeInfo({
   const isValid = () => {
     return userProfileData.tall && userProfileData.weight;
   };
+
+  const validateFunction = () => {
+    const errors = {
+      tall: "",
+      weight: "",
+    };
+
+    if (!userProfileData.tall) {
+      errors.tall = translateFunction("Height is required");
+    }
+    if (!userProfileData.weight) {
+      errors.weight = translateFunction("Weight is required");
+    }
+
+    setValidationErrors(errors);
+    setShowValidation(true);
+
+    return !errors.tall && !errors.weight;
+  };
+
+  const handleSave = () => {
+    if (!validateFunction()) return;
+    updateUserProfile(userProfileData);
+  };
+
   return (
     <div className={`flex-col ${loading ? "opacity-50 scale-95" : ""}`}>
       <SettingTopBar
@@ -51,13 +79,7 @@ function ProfileSizeInfo({
         }}
         DataCy="personal-size-save-button"
         screenName="Profile | Size Info"
-        Save={
-          isEdited() && isValid()
-            ? () => {
-                updateUserProfile(userProfileData);
-              }
-            : null
-        }
+        Save={handleSave}
       />
       <div className="flex-row justify-center mt-[12px] w-full">
         <div
@@ -320,7 +342,10 @@ function ProfileSizeInfo({
         <div
           className="flex-col name-border cursor-pointer rounded-[15px] w-full mt-[8px] py-[7px] px-[12px] items-start justify-center"
           style={{
-            border: "#d3d3d3a3 1px solid",
+            border:
+              showValidation && validationErrors.tall
+                ? "#ff0000a3 1px solid"
+                : "#d3d3d3a3 1px solid",
           }}
         >
           <div className="flex-row regular text-[#505050] text-[12px]">
@@ -341,16 +366,31 @@ function ProfileSizeInfo({
                     ...userProfileData,
                     tall: parseInt(e.target.value),
                   });
+                  // Clear validation error when user starts typing
+                  if (showValidation && validationErrors.tall) {
+                    setValidationErrors({
+                      ...validationErrors,
+                      tall: "",
+                    });
+                  }
                 }}
                 className="w-full pr-6  min-h-[21px] h-auto bg-[transparent] text-[#1D1D1D] medium  text-[14px] placeholder-[#D3D3D3]  border-none outline-none resize-none"
               />
             </div>
           </div>
+          {showValidation && validationErrors.tall && (
+            <div className="text-red-500 text-[10px] mt-1 px-2">
+              {validationErrors.tall}
+            </div>
+          )}
         </div>
         <div
           className="flex-col name-border cursor-pointer rounded-[15px] w-full mt-[8px] py-[7px] px-[12px] items-start justify-center"
           style={{
-            border: "#d3d3d3a3 1px solid",
+            border:
+              showValidation && validationErrors.weight
+                ? "#ff0000a3 1px solid"
+                : "#d3d3d3a3 1px solid",
           }}
         >
           <div className="flex-row regular text-[#505050] text-[12px]">
@@ -371,11 +411,23 @@ function ProfileSizeInfo({
                     ...userProfileData,
                     weight: parseInt(e.target.value),
                   });
+                  // Clear validation error when user starts typing
+                  if (showValidation && validationErrors.weight) {
+                    setValidationErrors({
+                      ...validationErrors,
+                      weight: "",
+                    });
+                  }
                 }}
                 className="w-full pr-6  min-h-[21px] h-auto bg-[transparent] text-[#1D1D1D] medium  text-[14px] placeholder-[#D3D3D3]  border-none outline-none resize-none"
               />
             </div>
           </div>
+          {showValidation && validationErrors.weight && (
+            <div className="text-red-500 text-[10px] mt-1 px-2">
+              {validationErrors.weight}
+            </div>
+          )}
         </div>
       </div>
     </div>

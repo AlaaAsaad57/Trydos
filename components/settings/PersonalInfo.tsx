@@ -20,6 +20,13 @@ function PersonalInfo({ swipeToScreen, goBack }: PersonalInfoPropsType) {
     gender: userProfile?.gender?.value || userProfile?.gender,
     alternative_phone: userProfile?.alternative_phone,
   });
+  const [validationErrors, setValidationErrors] = useState({
+    name: "",
+    phone: "",
+    email: "",
+    gender: "",
+  });
+  const [showValidation, setShowValidation] = useState(false);
   const [loading, setLoading] = useState(false);
   const updateUserProfile = async (payload) => {
     try {
@@ -78,6 +85,45 @@ function PersonalInfo({ swipeToScreen, goBack }: PersonalInfoPropsType) {
     );
   };
 
+  const validateFunction = () => {
+    const errors = {
+      name: "",
+      phone: "",
+      email: "",
+      gender: "",
+    };
+
+    if (!userProfileData.name?.trim()) {
+      errors.name = translateFunction("Full name is required");
+    }
+    if (!userProfileData.phone?.trim()) {
+      errors.phone = translateFunction("Phone number is required");
+    }
+    if (!userProfileData.email?.trim()) {
+      errors.email = translateFunction("Email address is required");
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(userProfileData.email)) {
+      errors.email = translateFunction("Please enter a valid email address");
+    }
+    if (!userProfileData.gender) {
+      errors.gender = translateFunction("Please select your gender");
+    }
+
+    setValidationErrors(errors);
+    setShowValidation(true);
+
+    return !errors.name && !errors.phone && !errors.email && !errors.gender;
+  };
+
+  const handleSave = () => {
+    if (!validateFunction()) return;
+
+    if (isPhoneEdited()) {
+      setIsPhoneShouldChange(true);
+    } else {
+      updateUserProfile(userProfileData);
+    }
+  };
+
   return (
     <div
       className={`flex-col relative ${loading ? "opacity-50 scale-95" : ""}`}
@@ -114,17 +160,7 @@ function PersonalInfo({ swipeToScreen, goBack }: PersonalInfoPropsType) {
           goBack();
         }}
         screenName="Profile | Personal Info"
-        Save={
-          isEdited() && isValid()
-            ? () => {
-                if (isPhoneEdited()) {
-                  setIsPhoneShouldChange(true);
-                } else {
-                  updateUserProfile(userProfileData);
-                }
-              }
-            : null
-        }
+        Save={handleSave}
         DataCy="personal-info-save-button"
       />
       <div className="flex-row justify-center mt-[12px] w-full">
@@ -248,7 +284,10 @@ function PersonalInfo({ swipeToScreen, goBack }: PersonalInfoPropsType) {
           className="flex-col name-border cursor-pointer rounded-[15px] w-full mt-[8px] py-[7px] px-[12px] items-start justify-center"
           data-cy="name-container"
           style={{
-            border: "#d3d3d3a3 1px solid",
+            border:
+              showValidation && validationErrors.name
+                ? "#ff0000a3 1px solid"
+                : "#d3d3d3a3 1px solid",
           }}
         >
           <div
@@ -269,6 +308,13 @@ function PersonalInfo({ swipeToScreen, goBack }: PersonalInfoPropsType) {
                     ...userProfileData,
                     name: e.target.value,
                   });
+                  // Clear validation error when user starts typing
+                  if (showValidation && validationErrors.name) {
+                    setValidationErrors({
+                      ...validationErrors,
+                      name: "",
+                    });
+                  }
                 }}
                 data-cy="personal-info-recipient-name-input"
                 placeholder={translateFunction("Enter Full Name")}
@@ -276,13 +322,21 @@ function PersonalInfo({ swipeToScreen, goBack }: PersonalInfoPropsType) {
               />
             </div>
           </div>
+          {showValidation && validationErrors.name && (
+            <div className="text-red-500 text-[10px] mt-1 px-2">
+              {validationErrors.name}
+            </div>
+          )}
         </div>
         {/*  */}
         <div
           className="flex-col phone-border cursor-pointer rounded-[15px] w-full mt-[8px] py-[7px] px-[12px] items-start justify-center"
           data-cy="phone-container"
           style={{
-            border: "#d3d3d3a3 1px solid",
+            border:
+              showValidation && validationErrors.phone
+                ? "#ff0000a3 1px solid"
+                : "#d3d3d3a3 1px solid",
           }}
         >
           <div
@@ -306,6 +360,13 @@ function PersonalInfo({ swipeToScreen, goBack }: PersonalInfoPropsType) {
                     ...userProfileData,
                     phone: e.target.value,
                   });
+                  // Clear validation error when user starts typing
+                  if (showValidation && validationErrors.phone) {
+                    setValidationErrors({
+                      ...validationErrors,
+                      phone: "",
+                    });
+                  }
                 }}
                 spellCheck="false"
                 autoCapitalize="off"
@@ -320,6 +381,11 @@ function PersonalInfo({ swipeToScreen, goBack }: PersonalInfoPropsType) {
               />
             </div>
           </div>
+          {showValidation && validationErrors.phone && (
+            <div className="text-red-500 text-[10px] mt-1 px-2">
+              {validationErrors.phone}
+            </div>
+          )}
         </div>
         {/*  */}
         <div
@@ -374,7 +440,10 @@ function PersonalInfo({ swipeToScreen, goBack }: PersonalInfoPropsType) {
           className="flex-col phone-border cursor-pointer rounded-[15px] w-full mt-[8px] py-[7px] px-[12px] items-start justify-center"
           data-cy="phone-container"
           style={{
-            border: "#d3d3d3a3 1px solid",
+            border:
+              showValidation && validationErrors.email
+                ? "#ff0000a3 1px solid"
+                : "#d3d3d3a3 1px solid",
           }}
         >
           <div
@@ -400,6 +469,13 @@ function PersonalInfo({ swipeToScreen, goBack }: PersonalInfoPropsType) {
                     ...userProfileData,
                     email: e.target.value,
                   });
+                  // Clear validation error when user starts typing
+                  if (showValidation && validationErrors.email) {
+                    setValidationErrors({
+                      ...validationErrors,
+                      email: "",
+                    });
+                  }
                 }}
                 autoCapitalize="off"
                 autoComplete="off"
@@ -411,11 +487,19 @@ function PersonalInfo({ swipeToScreen, goBack }: PersonalInfoPropsType) {
               />
             </div>
           </div>
+          {showValidation && validationErrors.email && (
+            <div className="text-red-500 text-[10px] mt-1 px-2">
+              {validationErrors.email}
+            </div>
+          )}
         </div>
         <div
           className="flex-col phone-border h-[85px] cursor-pointer rounded-[15px] w-full mt-[8px] py-[7px] px-[12px] items-start justify-center"
           style={{
-            border: "#d3d3d3a3 1px solid",
+            border:
+              showValidation && validationErrors.gender
+                ? "#ff0000a3 1px solid"
+                : "#d3d3d3a3 1px solid",
           }}
         >
           <div
@@ -429,6 +513,13 @@ function PersonalInfo({ swipeToScreen, goBack }: PersonalInfoPropsType) {
               <div
                 onClick={() => {
                   setUserProfileData({ ...userProfileData, gender: 1 });
+                  // Clear validation error when user selects gender
+                  if (showValidation && validationErrors.gender) {
+                    setValidationErrors({
+                      ...validationErrors,
+                      gender: "",
+                    });
+                  }
                 }}
                 className={`flex ${
                   userProfileData.gender === 1 ? "text-[#1D1D1D]" : ""
@@ -447,6 +538,13 @@ function PersonalInfo({ swipeToScreen, goBack }: PersonalInfoPropsType) {
               <div
                 onClick={() => {
                   setUserProfileData({ ...userProfileData, gender: 2 });
+                  // Clear validation error when user selects gender
+                  if (showValidation && validationErrors.gender) {
+                    setValidationErrors({
+                      ...validationErrors,
+                      gender: "",
+                    });
+                  }
                 }}
                 className={`flex ml-[11px] ${
                   userProfileData.gender === 2 ? "text-[#1D1D1D]" : ""
@@ -465,6 +563,13 @@ function PersonalInfo({ swipeToScreen, goBack }: PersonalInfoPropsType) {
               <div
                 onClick={() => {
                   setUserProfileData({ ...userProfileData, gender: 3 });
+                  // Clear validation error when user selects gender
+                  if (showValidation && validationErrors.gender) {
+                    setValidationErrors({
+                      ...validationErrors,
+                      gender: "",
+                    });
+                  }
                 }}
                 className={`flex ml-[11px] ${
                   userProfileData.gender === 3 ? "text-[#1D1D1D]" : ""
@@ -482,6 +587,11 @@ function PersonalInfo({ swipeToScreen, goBack }: PersonalInfoPropsType) {
               </div>
             </div>
           </div>
+          {showValidation && validationErrors.gender && (
+            <div className="text-red-500 text-[10px] mt-1 px-2">
+              {validationErrors.gender}
+            </div>
+          )}
         </div>
       </div>
     </div>
