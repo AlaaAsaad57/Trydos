@@ -8,7 +8,7 @@ import order from "services/order";
 import Spinner from "components/global/Spinner";
 import { useAppStore } from "store";
 import { fetchCountries } from "Server Requests";
-import { formatTime, GetImageUrl } from "utils/tinyUtils";
+import { formatTimeForAddress, GetImageUrl } from "utils/tinyUtils";
 import home from "services/home";
 import { AddAddressButtonPropsType } from "models/componentType/AddAddressButtonPropsType";
 import { AddressContainerPropsType } from "models/componentType/AddressContainerPropsType";
@@ -547,7 +547,7 @@ const DefaultAddress = ({
     });
     shippingDay +=
       Number(settings?.["starting-setting"]?.shipping_duration_days) || 0;
-    return formatTime(
+    return formatTimeForAddress(
       new Date(
         new Date().getTime() + Number(shippingDay) * 24 * 60 * 60 * 1000
       ).toString()
