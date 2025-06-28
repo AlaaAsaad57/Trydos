@@ -3,40 +3,39 @@
 const path = require("path");
 let nextConfig = {
   swcMinify: true,
-  productionBrowserSourceMaps: true,
   reactStrictMode: false,
   compress: true,
-  async headers() {
-    return [
-      {
-        source: "/:lang",
-        headers: [
-          {
-            key: "Cache-Control",
-            value: "s-maxage=86400, stale-while-revalidate=86400",
-          },
-        ],
-      },
-      {
-        source: "/:lang/filters/:filters",
-        headers: [
-          {
-            key: "Cache-Control",
-            value: "s-maxage=86400, stale-while-revalidate=86400",
-          },
-        ],
-      },
-      {
-        source: "/:lang/products/:productId",
-        headers: [
-          {
-            key: "Cache-Control",
-            value: "s-maxage=86400, stale-while-revalidate=86400",
-          },
-        ],
-      },
-    ];
-  },
+  // async headers() {
+  //   return [
+  //     {
+  //       source: "/:lang",
+  //       headers: [
+  //         {
+  //           key: "Cache-Control",
+  //           value: "s-maxage=86400, stale-while-revalidate=86400",
+  //         },
+  //       ],
+  //     },
+  //     {
+  //       source: "/:lang/filters/:filters",
+  //       headers: [
+  //         {
+  //           key: "Cache-Control",
+  //           value: "s-maxage=86400, stale-while-revalidate=86400",
+  //         },
+  //       ],
+  //     },
+  //     {
+  //       source: "/:lang/products/:productId",
+  //       headers: [
+  //         {
+  //           key: "Cache-Control",
+  //           value: "s-maxage=86400, stale-while-revalidate=86400",
+  //         },
+  //       ],
+  //     },
+  //   ];
+  // },
   images: {
     unoptimized: false,
     formats: ["image/avif"],
@@ -144,7 +143,7 @@ const sentryWebpackPluginOptions = {
     ".next/server/chunks", // Optional: Ignore server-side chunks
   ],
   sentry: {
-    disableSourceMaps: false,
+    disableSourceMaps: true,
 
     // Disables uploading of source maps to Sentry
   },
@@ -158,7 +157,11 @@ if (process.env.NODE_ENV === "production") {
   module.exports = nextConfig;
 } else {
   const { withSentryConfig } = require("@sentry/nextjs");
-  module.exports = withSentryConfig(nextConfig, sentryWebpackPluginOptions, {
-    hideSourceMaps: false,
-  });
+  module.exports = withSentryConfig(
+    nextConfig,
+    { sentryWebpackPluginOptions },
+    {
+      hideSourceMaps: true,
+    }
+  );
 }
