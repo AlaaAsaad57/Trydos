@@ -5,6 +5,7 @@ import {
   showErrorNotification,
 } from "@/store/notifications/reducer";
 import axios from "axios";
+import { AxiosPost } from "utils/AxiosApi";
 export const makeVideoCall = async (
   channelId,
   callerName,
@@ -195,6 +196,14 @@ export const InCall = async (channelId, messageId) => {
 export const RefuseCall = async (channelId, messageId, duration) => {
   const { endCall } = useAppStore.getState();
   try {
+    // Clear user's call state
+    await AxiosPost({
+      url: process.env.NEXT_PUBLIC_CHAT_BACKEND_URL + `/api/v1/end_call`,
+      title: 'End Call',
+      body: { user_id: getUserChat()?.id },
+      hasMessageOnly: false
+    });
+
     if (messageId) {
       let obj =
         typeof channelId === "string" && channelId.includes("ch")

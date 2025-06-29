@@ -522,20 +522,17 @@ function ChatMessage(props) {
               )}
             </div>
 
-            {/* <OptionsMenu
+            <OptionsMenu
+              message={props?.message}
               DeleteModal={DeleteModal}
               setDelete={(e) => setDelete(e)}
               deleteMessage={(e) =>
                 DeleteMessage(activeChat.id, props.message.id, e)
               }
               copy={() => copyText()}
-               forward={() =>
-                setForwardMessage(props.message)
-              }
-              click={() =>
-                setReplyMessage(props.message)
-              }
-            /> */}
+              forward={() => setForwardMessage(props.message)}
+              click={() => setReplyMessage(props.message)}
+            />
           </div>
         );
       }
@@ -675,6 +672,7 @@ function ChatMessage(props) {
 
             {!props.isPrivate && (
               <OptionsMenu
+                message={props?.message}
                 DeleteModal={DeleteModal}
                 setDelete={(e) => setDelete(e)}
                 deleteMessage={(e) =>
@@ -830,6 +828,7 @@ function ChatMessage(props) {
 
             {!props.isPrivate && (
               <OptionsMenu
+                message={props?.message}
                 DeleteModal={DeleteModal}
                 setDelete={(e) => setDelete(e)}
                 deleteMessage={(e) =>
@@ -1042,6 +1041,7 @@ function ChatMessage(props) {
             </div>
             {!props.isPrivate && (
               <OptionsMenu
+                message={props?.message}
                 DeleteModal={DeleteModal}
                 setDelete={(e) => setDelete(e)}
                 deleteMessage={(e) =>
@@ -1181,6 +1181,7 @@ function ChatMessage(props) {
             </div>
             {!props.isPrivate && (
               <OptionsMenu
+                message={props?.message}
                 DeleteModal={DeleteModal}
                 setDelete={(e) => setDelete(e)}
                 deleteMessage={(e) =>
@@ -1345,6 +1346,7 @@ function ChatMessage(props) {
             </div>
             {!props.isPrivate && (
               <OptionsMenu
+                message={props?.message}
                 DeleteModal={DeleteModal}
                 setDelete={(e) => setDelete(e)}
                 deleteMessage={(e) =>
@@ -1561,20 +1563,17 @@ function ChatMessage(props) {
                 {getMessageTime(props.message.created_at, true)}
               </div>
             </NextLink>
-            {/* <OptionsMenu
+            <OptionsMenu
+              message={props?.message}
               DeleteModal={DeleteModal}
               setDelete={(e) => setDelete(e)}
               deleteMessage={(e) =>
                 DeleteMessage(activeChat.id, props.message.id, e)
               }
               copy={() => copyText()}
-              forward={() =>
-                setForwardMessage(props.message)
-              }
-              click={() =>
-                setReplyMessage(props.message)
-              }
-            /> */}
+              forward={() => setForwardMessage(props.message)}
+              click={() => setReplyMessage(props.message)}
+            />
           </div>
         );
       }
@@ -1674,6 +1673,7 @@ function ChatMessage(props) {
             </div>
             {!props.isPrivate && (
               <OptionsMenu
+                message={props?.message}
                 DeleteModal={DeleteModal}
                 setDelete={(e) => setDelete(e)}
                 deleteMessage={(e) =>
@@ -1789,6 +1789,7 @@ function ChatMessage(props) {
             </div>
             {!props.isPrivate && (
               <OptionsMenu
+                message={props?.message}
                 DeleteModal={DeleteModal}
                 setDelete={(e) => setDelete(e)}
                 deleteMessage={(e) =>
@@ -1976,6 +1977,7 @@ function ChatMessage(props) {
               )}
             {!props.isPrivate && (
               <OptionsMenu
+                message={props?.message}
                 DeleteModal={DeleteModal}
                 setDelete={(e) => setDelete(e)}
                 deleteMessage={(e) =>
@@ -2079,6 +2081,7 @@ function ChatMessage(props) {
             </div>
             {!props.isPrivate && (
               <OptionsMenu
+                message={props?.message}
                 DeleteModal={DeleteModal}
                 setDelete={(e) => setDelete(e)}
                 deleteMessage={(e) =>
@@ -2205,6 +2208,7 @@ function ChatMessage(props) {
             </div>
             {!props.isPrivate && (
               <OptionsMenu
+                message={props?.message}
                 DeleteModal={DeleteModal}
                 setDelete={(e) => setDelete(e)}
                 deleteMessage={(e) =>

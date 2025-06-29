@@ -16,6 +16,7 @@ import axios from "axios";
 
 import { getUserChat, translateFunction } from "utils/functions";
 import { useAppStore } from "store";
+import { AxiosPost } from "utils/AxiosApi";
 const config = {
   mode: "rtc",
   codec: "h264",
@@ -114,6 +115,13 @@ function VideoCall(props) {
   const [joined, setJoined] = useState(false);
   const userEndCall = async (durationVal) => {
     try {
+      await AxiosPost({
+        url: process.env.NEXT_PUBLIC_CHAT_BACKEND_URL + `/api/v1/end_call`,
+        title: "End Call",
+        body: { user_id: getUserChat()?.id },
+        hasMessageOnly: false,
+      });
+
       if (ready) {
         if (joined) {
           await client.unpublish(tracks);
@@ -141,7 +149,9 @@ function VideoCall(props) {
           dispatch({ type: "END-CALL", payload: MessageActiveCall });
         });
       pause();
-    } catch (e) {}
+    } catch (e) {
+      console.error("Error ending call:", e);
+    }
   };
 
   const [trackState, setTrackState] = useState({ video: true, audio: true });

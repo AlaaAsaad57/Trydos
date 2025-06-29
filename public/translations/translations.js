@@ -1,5 +1,12 @@
 const translations = {
   ar: {
+    Cancel: "الغاء",
+    "For All": "للكل",
+    "For Me": "لي",
+    Imagee: "صورة",
+    Video: "فيديو",
+    Audio: "تسجيل صوت",
+    File: "ملف",
     "Why Was The Product Return?": "لماذا تم إرجاع المنتج؟",
     "To Your Account": "إلى حسابك",
     "You Can Cancel The Product Without Any Conditions According To The Cancel Policy And Get A Full Refund":
@@ -1459,6 +1466,13 @@ const translations = {
       "Bu ürün için zaten bildirim almayı etkinleştirdiniz",
     "Session Expired..please Verify Your Phone Number":
       "Oturum süresi doldu.. Lütfen telefon numaranızı doğrulayın",
+    Cancel: "İptal",
+    "For All": "Hepsi İçin",
+    "For Me": "Benim İçin",
+    Imagee: "Resim",
+    Video: "Video",
+    Audio: "Ses Kaydı",
+    File: "Dosya",
   },
 };
 
