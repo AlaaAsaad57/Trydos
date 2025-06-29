@@ -33,7 +33,7 @@ function MoreOptionsSection() {
     if (NotificationsType?.length === 0) {
       const response = await getNotificationsTypes();
 
-      setNotificationsType(response?.notification_types);
+      setNotificationsType(response?.data?.notification_types);
     } else {
       setNotificationsType(NotificationsType);
     }

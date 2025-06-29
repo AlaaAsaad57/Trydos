@@ -1,6 +1,5 @@
 import { fetchData } from "utils/fetchData";
 import { NotificationResponse } from "../types/notifications";
-import { AxiosGet } from "utils/AxiosApi";
 
 export const fetchNotifications = async (
   page: number,

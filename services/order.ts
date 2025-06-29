@@ -1,10 +1,11 @@
 import { AxiosGet, AxiosPost } from "utils/AxiosApi";
 import { useAppStore } from "store";
-import {  PlaceOrderApi } from "models/API/market/PlaceOrder";
-import {  GetAddressListApi } from "models/API/market/GetAddresses";
-import {  GetWalletApi } from "models/API/market/GetWallet";
+import { PlaceOrderApi } from "models/API/market/PlaceOrder";
+import { GetAddressListApi } from "models/API/market/GetAddresses";
+import { GetWalletApi } from "models/API/market/GetWallet";
 import { GetCartOreview, toUSD } from "utils/functions";
 import { getCurrency } from "utils/tinyUtils";
+import { fetchData } from "utils/fetchData";
 
 class OrderService {
   async PlaceOrder({ payment_method, pay_by_wallet }) {
@@ -50,15 +51,15 @@ class OrderService {
           setCurrency(data.currency);
         },
       });
-      let data: GetWalletApi = await AxiosGet({
-        url:
-          process.env.NEXT_PUBLIC_BACKEND_URL +
-          "/customer/wallet/list?limit=10&offset=1",
-        title: "Get Wallet",
+      let response: { data: GetWalletApi } = await fetchData({
+        url: "/customer/wallet/list?limit=10&offset=1",
+        reqTitle: "Get Wallet",
+        method: "GET",
+        server: "market",
       });
       setWalletUser({
-        ...data,
-        wallet_balance: data.wallet_balance || 0,
+        ...response.data,
+        wallet_balance: response.data.wallet_balance || 0,
       });
       setOrderLoading(false);
     } catch (error) {
@@ -70,11 +71,13 @@ class OrderService {
     this.GetProvinces();
     try {
       setOrderLoading(true);
-      let data: GetAddressListApi = await AxiosGet({
-        url: process.env.NEXT_PUBLIC_BACKEND_URL + "/customer/address/list",
-        title: "Get Address List",
+      let response: { data: GetAddressListApi } = await fetchData({
+        url: "/customer/address/list",
+        reqTitle: "Get Address List",
+        method: "GET",
+        server: "market",
       });
-      setAddressList(data);
+      setAddressList(response.data);
       setOrderLoading(false);
     } catch (error) {
       setOrderLoading(false);

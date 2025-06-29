@@ -180,6 +180,7 @@ export const fetchData = async <T = any>(
     console.log(
       reqTitle ? `[${reqTitle}] Returning cached data` : "Returning cached data"
     );
+    console.log({ isCached: true, data: cachedData, url, method });
     return cachedData;
   }
 
@@ -237,7 +238,7 @@ export const fetchData = async <T = any>(
       if (useCached) {
         requestCache.set(cacheKey, responseData);
       }
-
+      console.log({ isCached: true, data: responseData, url, method });
       return responseData;
     } catch (err) {
       // Network error - retry logic
