@@ -238,7 +238,7 @@ export const fetchData = async <T = any>(
       if (useCached) {
         requestCache.set(cacheKey, responseData);
       }
-      console.log({ isCached: true, data: responseData, url, method });
+      console.log({ isCached: false, data: responseData, url, method });
       return responseData;
     } catch (err) {
       // Network error - retry logic

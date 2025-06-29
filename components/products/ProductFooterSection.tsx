@@ -188,7 +188,7 @@ function ProductFooterSection({
       });
       setSharesCount(response_shares.data.shared_count);
       const viewsReq: ProductViews = await AxiosPost({
-        url: `/api/products/view`,
+        url: process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL + `/api/products/view`,
         title: "get Views For Product",
         body: {
           user_id: auth.UserID(),
