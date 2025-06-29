@@ -394,9 +394,7 @@ export const formatTimeForAddress = (timeString: string) => {
 export const UnAuthintacetedAction = () => {
   const { setAddStory, setShouldAuthinticated, setChatOpen } =
     useAppStore.getState();
-  ChatConroller(false);
-  setChatOpen(false);
-  setAddStory(false);
+
   changeToken({ key: "token", deleteOption: true });
   changeToken({ key: "MARKET-TOKEN", deleteOption: true });
   changeToken({ key: "DEVICE-TOKEN", deleteOption: true });
