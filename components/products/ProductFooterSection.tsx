@@ -183,7 +183,7 @@ function ProductFooterSection({
       let response_shares: { data: SharesCount } = await fetchData({
         url: `/api/v2/elastic/shared_count/${product.id}`,
         reqTitle: "Share Count Request",
-        server: "elastic",
+        server: "chat",
         method: "GET",
       });
       setSharesCount(response_shares.data.shared_count);
