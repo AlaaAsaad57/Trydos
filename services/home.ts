@@ -32,6 +32,7 @@ import chat from "./chat";
 import { SetGAUser } from "utils/gtag";
 import { starttingSettingApi } from "models/API/market/StarttingSetting";
 import { showErrorNotification } from "@/store/notifications/reducer";
+import { fetchData } from "utils/fetchData";
 const getHeader = () => {
   let [countryUrl, languageUrl] = window.location.pathname
     .split("/")[1]
@@ -90,12 +91,14 @@ class HomeService {
     }
   }
   async GetFireBaseSettings() {
-    const response2 = await AxiosGet({
-      url: process.env.NEXT_PUBLIC_BACKEND_URL + FIREBASE_SETTINGS_URL,
-      title: "get firebase settings request",
+    const response = await fetchData({
+      url: FIREBASE_SETTINGS_URL,
+      reqTitle: "get firebase settings request",
+      method: "GET",
+      server: "market",
     });
     const { getFirebaseSettings } = useAppStore.getState();
-    getFirebaseSettings(response2?.firebase_settings);
+    getFirebaseSettings(response.data?.firebase_settings);
   }
   async getCustomerInfo() {
     const { updateUserInfo } = useAppStore.getState();
@@ -104,28 +107,23 @@ class HomeService {
     //   process.env.NEXT_PUBLIC_BACKEND_URL + CUSTOMER_INFO_URL,
     //   { ...getHeader(), priority: "high" }
     // );
-    let response: CustomerInfoResponse = await AxiosGet({
-      url: process.env.NEXT_PUBLIC_BACKEND_URL + CUSTOMER_INFO_URL,
-      title: "get customer info",
-      token: auth.UserToken() as string,
-      headers: getHeader().headers,
-    });
+    let response_customer_Info: { data: CustomerInfoResponse } =
+      await fetchData({
+        url: CUSTOMER_INFO_URL,
+        reqTitle: "get customer info",
+        method: "GET",
+        server: "market",
+      });
 
     try {
-      if (response.customer_info) {
-        if (response.customer_info) {
-          updateUserInfo(response.customer_info);
+      if (response_customer_Info.data.customer_info) {
+        if (response_customer_Info.data.customer_info) {
+          updateUserInfo(response_customer_Info.data.customer_info);
 
-          if (response.customer_info?.is_phone_verified !== 1) {
+          if (
+            response_customer_Info.data.customer_info?.is_phone_verified !== 1
+          ) {
             await auth.ExpiredUser(true);
-          }
-          // localStorage.setItem(
-          //   "customer-info",
-          //   JSON.stringify(repo.data.customer_info)
-          // );
-          if (typeof window !== "undefined") {
-            _isStoreLastJson() &&
-              localStorage.setItem("LAST_JSON", JSON.stringify(response));
           }
         }
       } else {

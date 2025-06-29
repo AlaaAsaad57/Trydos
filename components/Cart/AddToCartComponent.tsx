@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect, useRef, useState } from "react";
-import { AxiosGet } from "utils/AxiosApi";
+
 import BackIcon from "public/svg/listing/backIcon.svg";
 import {
   getCart,
@@ -27,6 +27,7 @@ import { GA_EVENT_NAMES } from "utils/GAEvents";
 import { DetectScreen, GetImageUrl } from "utils/tinyUtils";
 import { GAevent } from "utils/gtag";
 import { showSuccessNotification } from "@/store/notifications/reducer";
+import { fetchData } from "utils/fetchData";
 
 function AddToCartComponent({
   color,
@@ -66,27 +67,29 @@ function AddToCartComponent({
         },
       });
       let [data1, data2, data3] = await Promise.all([
-        AxiosGet({
-          url:
-            process.env.NEXT_PUBLIC_BACKEND_URL +
-            `/web/product/qtyPriceDetails/${slug}`,
-          title: "Get Product Vriantes",
+        fetchData({
+          url: `/web/product/qtyPriceDetails/${slug}`,
+          reqTitle: "Get Product Vriantes",
+          method: "GET",
+          server: "market",
         }),
-        AxiosGet({
-          url:
-            process.env.NEXT_PUBLIC_BACKEND_URL +
-            `/web/product/likesCommentsSharesDetails/${slug}`,
-          title: "GEt Product Variants Notifications",
+        fetchData({
+          url: `/web/product/likesCommentsSharesDetails/${slug}`,
+          reqTitle: "GEt Product Variants Notifications",
+          method: "GET",
+          server: "market",
         }),
-        AxiosGet({
-          url:
-            process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
-            `/api/v2/elastic/shared_count/${product.id}`,
-          title: "Share Count Request",
+        fetchData({
+          url: `/api/v2/elastic/shared_count/${product.id}`,
+          reqTitle: "Share Count Request",
+          method: "GET",
+          server: "chat",
+          useCached: true,
         }),
       ]);
-      let variants_arr = data1.variation;
-      let newVariants = data2.variation.map((item) => {
+
+      let variants_arr = data1.data.variation;
+      let newVariants = data2.data.variation.map((item) => {
         let d = variants_arr.find((s) => s.type === item.type);
 
         if (d)
@@ -100,9 +103,9 @@ function AddToCartComponent({
       });
       let tempProductData = {
         ...product,
-        ...data1,
-        ...data2,
-        shared_count: data3.shared_count,
+        ...data1.data,
+        ...data2.data,
+        shared_count: data3.data.shared_count,
         variation: newVariants,
       };
       setProductData(tempProductData);
@@ -233,16 +236,17 @@ function AddToCartComponent({
     return bool;
   };
   const updateQuantity = async (type, qty) => {
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    const res = await AxiosGet({
-      url:
-        process.env.NEXT_PUBLIC_BACKEND_URL +
-        `/web/product/qtyPriceDetails/${slug}`,
-      title: "Get Product Vriantes",
+    let response = await fetchData({
+      method: "GET",
+      server: "market",
+      url: `/web/product/qtyPriceDetails/${slug}`,
+      useCached: false,
+      reqTitle: "Get Product Variants",
     });
+
     setProductData({
       ...ProductData,
-      variation: res.variation.map((s) => {
+      variation: response.data.variation.map((s) => {
         return {
           ...s,
           qty: s.qty,

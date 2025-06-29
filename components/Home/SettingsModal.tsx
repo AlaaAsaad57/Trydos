@@ -8,13 +8,16 @@ import WhatsIcon from "public/svg/whatsappNotification.svg";
 import CalenderIcon from "public/svg/CalenderIcon.svg";
 import home from "services/home";
 import NotificationsTest from "components/global/NotificationsTest";
-import { ProfileData, SettingsModalPropsType } from "models/componentType/settingsType/SettingsModalPropsType";
+import {
+  ProfileData,
+  SettingsModalPropsType,
+} from "models/componentType/settingsType/SettingsModalPropsType";
+import { fetchData } from "utils/fetchData";
 
 interface SettingsModalProps {
   onClose: () => void;
   lang: string | string[];
 }
-
 
 const SettingsModal: React.FC<SettingsModalPropsType> = ({ onClose, lang }) => {
   const [mounted, setMounted] = useState(false);
@@ -86,10 +89,13 @@ const SettingsModal: React.FC<SettingsModalPropsType> = ({ onClose, lang }) => {
   const InitTopics = async () => {
     setLoading(true);
     setLoadingTopics(true);
-    let { firebase_settings } = await AxiosGet({
-      url: process.env.NEXT_PUBLIC_BACKEND_URL + FIREBASE_SETTINGS_URL,
-      title: "get firebase settings request",
+    let response = await fetchData({
+      url: FIREBASE_SETTINGS_URL,
+      reqTitle: "get firebase settings request",
+      server: "market",
+      method: "GET",
     });
+    let firebase_settings = response?.data?.firebase_settings;
     setFBSetting(firebase_settings);
     setSelectValue(firebase_settings?.notification_frequency || "");
     if (firebase_settings.subscribed_topics) {

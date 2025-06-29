@@ -147,7 +147,7 @@ const CartProvider = () => {
 
   return (
     <>
-      {true && <ConfirmMobilePhoneWidget />}
+      {shouldAuthinticated && <ConfirmMobilePhoneWidget />}
       {enable ? <StepSlider enableCart={(e) => enableCartAction(e)} /> : <></>}
       {selected_product_for_add_to_cart && (
         <AddToCartComponent

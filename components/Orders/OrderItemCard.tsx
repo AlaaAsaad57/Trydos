@@ -10,6 +10,7 @@ import OrderStatusIcon from "components/settings/cards/OrderStatusIcon";
 import CancelOrderItemIcon from "public/svg/cancelOrderItemIcon.svg";
 import { AxiosGet } from "utils/AxiosApi";
 import { GetImageUrl } from "utils/tinyUtils";
+import { fetchData } from "utils/fetchData";
 
 function OrderItemCard({
   item,
@@ -23,23 +24,25 @@ function OrderItemCard({
   const getProductDetails = async () => {
     setConfirmationData({ ...ConfirmationData, loading: true });
     let [data1, data2] = await Promise.all([
-      AxiosGet({
-        url:
-          process.env.NEXT_PUBLIC_BACKEND_URL +
-          `/web/product/qtyPriceDetails/${item?.product_slug}`,
-        title: "Get Product Vriantes",
+      fetchData({
+        url: `/web/product/qtyPriceDetails/${item?.product_slug}`,
+        reqTitle: "Get Product Vriantes",
+        method: "GET",
+        server: "market",
       }),
-      AxiosGet({
+      fetchData({
         url:
           process.env.NEXT_PUBLIC_BACKEND_URL +
           `/web/product/globalDetails/${item?.product_slug}`,
-        title: "GEt Product Global Details",
+        reqTitle: "GEt Product Global Details",
+        method: "GET",
+        server: "market",
       }),
     ]);
 
     setConfirmationData({
       ...ConfirmationData,
-      productDetails: { ...data1, ...data2 },
+      productDetails: { ...data1.data, ...data2.data },
       loading: false,
     });
   };

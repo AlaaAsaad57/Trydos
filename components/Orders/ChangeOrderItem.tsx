@@ -9,6 +9,7 @@ import { GetImageUrl } from "utils/tinyUtils";
 import { ChangeColorWidgetPropsType } from "models/componentType/ChangeColorWidgetPropsType";
 import { ChangeOrderItemPropsType } from "models/componentType/ChangeOrderItemPropsType";
 import { ChangeSizeWidgetPropsType } from "models/componentType/ChangeSizeWidgetPropsType";
+import { fetchData } from "utils/fetchData";
 
 function ChangeOrderItem({
   item,
@@ -46,20 +47,21 @@ function ChangeOrderItem({
   }, []);
   const getProductDetails = async () => {
     let [data1, data2] = await Promise.all([
-      AxiosGet({
-        url:
-          process.env.NEXT_PUBLIC_BACKEND_URL +
-          `/web/product/qtyPriceDetails/${item?.product_slug}`,
-        title: "Get Product Vriantes",
+      fetchData({
+        url: `/web/product/qtyPriceDetails/${item?.product_slug}`,
+        reqTitle: "Get Product Vriantes",
+        method: "GET",
+        server: "market",
       }),
-      AxiosGet({
-        url:
-          process.env.NEXT_PUBLIC_BACKEND_URL +
-          `/web/product/globalDetails/${item?.product_slug}`,
-        title: "GEt Product Global Details",
+      fetchData({
+        url: `/web/product/globalDetails/${item?.product_slug}`,
+        reqTitle: "GEt Product Global Details",
+        method: "GET",
+        server: "market",
       }),
     ]);
-    setProductData({ ...data1, ...data2 });
+
+    setProductData({ ...data1.data, ...data2.data });
   };
 
   const isChanged = () => {

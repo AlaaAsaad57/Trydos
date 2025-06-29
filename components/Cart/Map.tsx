@@ -9,6 +9,7 @@ import { useParams } from "next/navigation";
 import { AxiosGet } from "utils/AxiosApi";
 import { ConfirmLocationPropsType } from "models/componentType/ConfirmLocationPropsType";
 import { MapPropsType } from "models/componentType/MapPropsType";
+import { fetchData } from "utils/fetchData";
 const MapElement = dynamic(
   () => import("./MapElement").then((mod) => mod.MapElement),
   { ssr: false }
@@ -31,11 +32,13 @@ const Map = ({
 
     try {
       setLoading(true);
-      let res = await AxiosGet({
-        url:
-          process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL +
-          `/api/addresses/CountryBoundaryByIso/${country}`,
+      let res = await fetchData({
+        url: `/api/addresses/CountryBoundaryByIso/${country}`,
+        reqTitle: "Country Map Boundaries",
+        server: "elastic",
+        method: "GET",
       });
+
       setCordinates(res.country.boundary.coordinates);
       setLoading(false);
     } catch (e) {

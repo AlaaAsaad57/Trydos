@@ -15,6 +15,7 @@ import { useAppStore } from "store";
 import { dispatchRouteChangeEvent } from "utils/events";
 import { ProductFooterSectionPropsType } from "models/componentType/productTypes/MultiComponentOnProductPage";
 import { showErrorNotification } from "@/store/notifications/reducer";
+import { fetchData } from "utils/fetchData";
 
 function ProductReducer(state, { type, payload }) {
   if (type === "setProductData") {
@@ -110,19 +111,18 @@ function ProductFooterSection({
   };
   const [option, setOption] = useState("");
   const getComments = async () => {
-    let req: ProductSocialInfo = await AxiosGet({
-      url:
-        process.env.NEXT_PUBLIC_BACKEND_URL +
-        "/web/product/likesCommentsSharesDetails/" +
-        product.slug,
-      title: "Like & Comments Data Request",
+    let response: { data: ProductSocialInfo } = await fetchData({
+      url: "/web/product/likesCommentsSharesDetails/" + product.slug,
+      reqTitle: "Social Info Request",
+      method: "GET",
+      server: "market",
     });
     setProductData({
       ...productState.productDetails,
       // @ts-ignore
-      comment_count: req?.comments_count || 0,
+      comment_count: response.data?.comments_count || 0,
       // @ts-ignore
-      comments: req?.comments || [],
+      comments: response.data?.comments || [],
     });
   };
 
@@ -132,34 +132,33 @@ function ProductFooterSection({
   const getData = async () => {
     // await home.CheckLogin();
     try {
-      let req: ProductSocialInfo = await AxiosGet({
-        url:
-          process.env.NEXT_PUBLIC_BACKEND_URL +
-          "/web/product/likesCommentsSharesDetails/" +
-          product.slug,
-        title: "Like & Comments Data Request",
+      let response: { data: ProductSocialInfo } = await fetchData({
+        url: "/web/product/likesCommentsSharesDetails/" + product.slug,
+        reqTitle: "Like & Comments Data Request",
+        method: "GET",
+        server: "market",
       });
       storeVariants({
         // @ts-ignore
-        variation: req?.variation,
+        variation: response.data?.variation,
         // @ts-ignore
-        slug_en_topic: req?.slug_en_topic,
+        slug_en_topic: response.data?.slug_en_topic,
       });
       // @ts-ignore
-      let likesNum = req?.count_of_likes || 0;
+      let likesNum = response.data?.count_of_likes || 0;
       // @ts-ignore
-      let isLiked = req?.is_liked || 0;
+      let isLiked = response.data?.is_liked || 0;
       setProductData({
         ...productState.productDetails,
         // @ts-ignore
-        comment_count: req?.comments_count || 0,
+        comment_count: response.data?.comments_count || 0,
         // @ts-ignore
-        comments: req?.comments || [],
+        comments: response.data?.comments || [],
       });
       let arr = [];
       // @ts-ignore
-      if (req?.variation?.length) {
-        req.variation.map((s) => {
+      if (response.data?.variation?.length) {
+        response.data.variation.map((s) => {
           let d = product.variation.filter((w) => w.type === s.type)[0];
           arr.push({ ...s, ...d });
         });
@@ -172,7 +171,7 @@ function ProductFooterSection({
       getProductVariation({
         ...product,
         // @ts-ignore
-        is_product_notify_for_user: req?.is_product_notify_for_user,
+        is_product_notify_for_user: response.data?.is_product_notify_for_user,
         variation: arr,
         likes: likesNum,
         is_liked: isLiked,
@@ -181,15 +180,15 @@ function ProductFooterSection({
       });
       setLoading(false);
       // @ts-ignore
-      let reqShares: SharesCount = await AxiosGet({
-        url:
-          process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
-          `/api/v2/elastic/shared_count/${product.id}`,
-        title: "Share Count Request",
+      let response_shares: { data: SharesCount } = await fetchData({
+        url: `/api/v2/elastic/shared_count/${product.id}`,
+        reqTitle: "Share Count Request",
+        server: "elastic",
+        method: "GET",
       });
-      setSharesCount(reqShares.shared_count);
+      setSharesCount(response_shares.data.shared_count);
       const viewsReq: ProductViews = await AxiosPost({
-        url: process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL + `/api/products/view`,
+        url: `/api/products/view`,
         title: "get Views For Product",
         body: {
           user_id: auth.UserID(),

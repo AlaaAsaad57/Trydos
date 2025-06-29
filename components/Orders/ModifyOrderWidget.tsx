@@ -9,6 +9,7 @@ import { AxiosGet } from "utils/AxiosApi";
 
 import { ModifyOrderWidgetPropsType } from "models/componentType/ModifyOrderWidgetPropsType";
 import { showErrorNotification } from "@/store/notifications/reducer";
+import { fetchData } from "utils/fetchData";
 function ModifyOrderWidget({ order_items, close }: ModifyOrderWidgetPropsType) {
   const [orderItemData, setOrderItemData] = useState(order_items);
   const isChanged = () => {
@@ -47,23 +48,25 @@ function ModifyOrderWidget({ order_items, close }: ModifyOrderWidgetPropsType) {
     try {
       setConfirmationData({ ...ConfirmationData, loading: true });
       let [data1, data2] = await Promise.all([
-        AxiosGet({
-          url:
-            process.env.NEXT_PUBLIC_BACKEND_URL +
-            `/web/product/qtyPriceDetails/${ConfirmationData.item?.product_slug}`,
-          title: "Get Product Vriantes",
+        fetchData({
+          url: `/web/product/qtyPriceDetails/${ConfirmationData.item?.product_slug}`,
+          reqTitle: "Get Product Vriantes",
+          method: "GET",
+          server: "market",
         }),
-        AxiosGet({
+        fetchData({
           url:
             process.env.NEXT_PUBLIC_BACKEND_URL +
             `/web/product/globalDetails/${ConfirmationData.item?.product_slug}`,
-          title: "GEt Product Global Details",
+          reqTitle: "GEt Product Global Details",
+          method: "GET",
+          server: "market",
         }),
       ]);
 
       setConfirmationData({
         ...ConfirmationData,
-        productDetails: { ...data1, ...data2 },
+        productDetails: { ...data1.data, ...data2.data },
         loading: false,
       });
     } catch (e) {

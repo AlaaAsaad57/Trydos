@@ -1,5 +1,5 @@
 import ConfirmMobile from "components/Cart/ConfirmMobile";
-import CloseIcon from "components/Home/Stories/CloseIcon";
+
 import React, { useEffect } from "react";
 import { useAppStore } from "store";
 
@@ -65,6 +65,7 @@ function ConfirmMobilePhoneWidget() {
           }}
           hasMobile={localStorage.getItem("has-phone")?.length > 2}
           goToOrders={() => {
+            // equal to success flag when goToOrders trigrred then it means the verification success
             setShouldAuthinticated(false);
           }}
         />

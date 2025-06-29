@@ -1,3 +1,4 @@
+import { fetchData } from "utils/fetchData";
 import { NotificationResponse } from "../types/notifications";
 import { AxiosGet } from "utils/AxiosApi";
 
@@ -6,11 +7,11 @@ export const fetchNotifications = async (
   pageSize: number = 10
 ): Promise<NotificationResponse> => {
   try {
-    const response = await AxiosGet({
-      url:
-        process.env.NEXT_PUBLIC_BACKEND_URL +
-        `/user-notifications/get?page=${page}`,
-      title: "Fetch Notifications",
+    const response = await fetchData({
+      url: `/user-notifications/get?page=${page}`,
+      reqTitle: "Fetch Notifications",
+      method: "GET",
+      server: "market",
     });
     return response;
   } catch (error) {
@@ -20,11 +21,11 @@ export const fetchNotifications = async (
 };
 export const getNotificationsTypes = async () => {
   try {
-    const response = await AxiosGet({
-      url:
-        process.env.NEXT_PUBLIC_BACKEND_URL +
-        "/web/notification_types/customer-notification-to-choose",
-      title: "Fetch Notifications Types",
+    const response = await fetchData({
+      url: "/web/notification_types/customer-notification-to-choose",
+      reqTitle: "Fetch Notifications Types",
+      method: "GET",
+      server: "market",
     });
     return response;
   } catch (error) {

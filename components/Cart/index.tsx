@@ -35,6 +35,7 @@ import { GAevent } from "utils/gtag";
 import { GetImageUrl } from "utils/tinyUtils";
 import { CartContainerPropsType } from "models/componentType/CartContainerPropsType";
 import { QuantutyInputPropsType } from "models/componentType/QuantutyInputPropsType";
+import { fetchData } from "utils/fetchData";
 
 function CartContainer({ close, toOrders }: CartContainerPropsType) {
   const {
@@ -138,14 +139,14 @@ function CartContainer({ close, toOrders }: CartContainerPropsType) {
   const ProductDetails = product;
   const updateDataForProduct = async (slug) => {
     if (params?.productId === slug) {
-      let data: QuantityDetailsProductApi["data"] = await AxiosGet({
-        url:
-          process.env.NEXT_PUBLIC_BACKEND_URL +
-          "/web/product/qtyPriceDetails" +
-          `/${slug}`,
-        title: "Get Product",
+      let response: QuantityDetailsProductApi = await fetchData({
+        url: "/web/product/qtyPriceDetails" + `/${slug}`,
+        reqTitle: "Get Product",
+        method: "GET",
+        server: "market",
       });
-      getProductDetailsForCart(data);
+
+      getProductDetailsForCart(response.data);
     }
   };
   const RemoveFromCartAction = async (product) => {

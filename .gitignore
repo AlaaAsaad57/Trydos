@@ -5,6 +5,7 @@
 /.pnp
 .pnp.js
 .cursor
+req.json
 # testing
 /coverage/*
 /site/*

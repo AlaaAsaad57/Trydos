@@ -20,6 +20,7 @@ import {
   showSuccessNotification,
   showErrorNotification,
 } from "@/store/notifications/reducer";
+import { fetchData } from "utils/fetchData";
 const ChatHeader = () => {
   return {
     headers: {
@@ -219,13 +220,14 @@ class ChatService {
       if (payload !== "share") {
         getCalls(null);
 
-        let response = await AxiosGet({
-          url: process.env.NEXT_PUBLIC_CHAT_BACKEND_URL + GET_CONTATCS_URL,
-          title: "Get Contacts",
-          token: JSON.parse(localStorage.getItem("USER-CHAT"))?.access_token,
+        let response = await fetchData({
+          url: GET_CONTATCS_URL,
+          reqTitle: "Get Contacts",
+          server: "chat",
+          method: "GET",
         });
 
-        setContacts(response);
+        setContacts(response.data);
       }
     } catch (e) {
       console.error(e);

@@ -333,20 +333,7 @@ class AuthService {
       variant: variant,
     });
   }
-  async getProductNotify({ id }) {
-    try {
-      if (!localStorage.getItem("DEVICE-TOKEN")) await home.RegisterDevice();
-      let data: ProductSocialInfo = await AxiosGet({
-        url:
-          process.env.NEXT_PUBLIC_BACKEND_URL +
-          "/web/product/likesCommentsSharesDetails/" +
-          id,
-        title: "Get Notify Data for product",
-      });
 
-      return data;
-    } catch (error) {}
-  }
   getUser() {
     return (
       (localStorage.getItem("USER") &&
