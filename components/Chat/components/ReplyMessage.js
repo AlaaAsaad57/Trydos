@@ -4,7 +4,7 @@ import CancelIcon from "../svg/cancel.svg";
 import VideoIcon from "../svg/video.svg";
 import AudioIcon from "../svg/audio.svg";
 import out from "../svg/output.png";
-
+import { translateFunction } from "utils/functions";
 import Image from "next/image";
 function ReplyMessage({ message, cancel }) {
   const showContent = () => {
@@ -14,28 +14,28 @@ function ReplyMessage({ message, cancel }) {
     if (message.message_type.name === "ImageMessage") {
       return (
         <>
-          <img
-            src={
-              message.type
-                ? message.message_content[0]?.file_path
-                : message.message_content[0]?.file_path
-            }
-          />{" "}
-          Image
+          <Image
+            src={message?.message_files[0]?.file_path}
+            width={26}
+            height={20}
+          />
+          {translateFunction("Image")}
         </>
       );
     }
     if (message.message_type.name === "VideoMessage") {
       return (
         <>
-          <VideoIcon className="message-type-icon"></VideoIcon> Video
+          <VideoIcon className="message-type-icon"></VideoIcon>
+          {translateFunction("Video")}
         </>
       );
     }
     if (message.message_type.name === "VoiceMessage") {
       return (
         <>
-          <AudioIcon className="message-type-icon"></AudioIcon> Audio
+          <AudioIcon className="message-type-icon"></AudioIcon>
+          {translateFunction("Audio")}
         </>
       );
     }
@@ -49,7 +49,7 @@ function ReplyMessage({ message, cancel }) {
             src={out.src}
             style={{ width: "15px", height: "18px", borderRadius: "0px" }}
           />{" "}
-          File
+          {translateFunction("File")}
         </>
       );
     }

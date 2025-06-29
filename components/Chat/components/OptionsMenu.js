@@ -5,7 +5,7 @@ import DeleteIcon from "../svg/delt.svg";
 import EditIcon from "../svg/edit.svg";
 import ForwardIcon from "../svg/forward.svg";
 import RemindIcon from "../svg/remind.svg";
-import { translateFunction } from "utils/functions";
+import { translateFunction, getUserChat } from "utils/functions";
 
 import { useParams } from "next/navigation";
 import { useAppStore } from "store";
@@ -18,6 +18,8 @@ function OptionsMenu(props) {
     return translateFunction(key, languageVariable);
   };
   const { DeleteModal, setDelete } = props;
+  const isSender =
+    parseInt(props.message.sender_user_id) === parseInt(getUserChat()?.id);
   return (
     <div className="abs-menu">
       {DeleteModal ? (
@@ -28,7 +30,7 @@ function OptionsMenu(props) {
               style={{ width: "90px", height: "35px" }}
               onClick={() => props.deleteMessage(false)}
             >
-              For Me
+              {translateFunction("For Me")}
             </div>
             <span
               style={{
@@ -37,27 +39,31 @@ function OptionsMenu(props) {
                 marginLeft: "5px",
               }}
             />
-            <div
-              className="message-opt"
-              data-cy="DELETE-OPTION"
-              style={{ width: "90px", height: "35px" }}
-              onClick={() => props.deleteMessage(true)}
-            >
-              For All
-            </div>
-            <span
-              style={{
-                minHeight: "30px",
-                borderRight: "1px solid #5d5d5da2",
-                marginLeft: "3px",
-              }}
-            />
+            {isSender && (
+              <>
+                <div
+                  className="message-opt"
+                  data-cy="DELETE-OPTION"
+                  style={{ width: "90px", height: "35px" }}
+                  onClick={() => props.deleteMessage(true)}
+                >
+                  {translateFunction("For All")}
+                </div>
+                <span
+                  style={{
+                    minHeight: "30px",
+                    borderRight: "1px solid #5d5d5da2",
+                    marginLeft: "3px",
+                  }}
+                />
+              </>
+            )}
             <div
               className="message-opt"
               style={{ width: "90px", height: "35px", marginLeft: "3px" }}
               onClick={() => setDelete(false)}
             >
-              Cancel
+              {translateFunction("Cancel")}
             </div>
           </div>
         </>
