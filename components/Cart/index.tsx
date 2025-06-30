@@ -25,7 +25,7 @@ import Timer from "components/Login/Timer";
 import { QuantityDetailsProductApi } from "models/API/market/ProductQuantityDetails";
 import LocalizationServiceClass from "services/localization";
 import { useAppStore } from "store";
-import cart from "services/cart";
+import cartService from "services/cart";
 import {
   GA_EVENT_NAMES,
   GA_GLOBAL_PLATFORM,
@@ -36,6 +36,8 @@ import { GetImageUrl } from "utils/tinyUtils";
 import { CartContainerPropsType } from "models/componentType/CartContainerPropsType";
 import { QuantutyInputPropsType } from "models/componentType/QuantutyInputPropsType";
 import { fetchData } from "utils/fetchData";
+import { useRouter } from "next/navigation";
+import FlashDealBanner from "components/products/FlashDealBanner";
 
 function CartContainer({ close, toOrders }: CartContainerPropsType) {
   const {
@@ -149,11 +151,45 @@ function CartContainer({ close, toOrders }: CartContainerPropsType) {
       getProductDetailsForCart(response.data);
     }
   };
+  const router = useRouter();
   const RemoveFromCartAction = async (product) => {
     removeFromCart(product.id);
-    await home.RemoveFromCart({ key: product.id });
+    await cartService.RemoveFromCart({
+      cart_item: { ...product, item_id: product.id },
+    });
     await GetCartOreview();
     await updateDataForProduct(product.slug);
+  };
+  const getProductCartUrl = (product) => {
+    let data,
+      href = null;
+    if (params?.productId === product.slug) {
+      if (product.variations[0]?.color === sarchParams.get("color")) {
+        data = null;
+        return { href: "#", data };
+      } else {
+        let newParams = new URLSearchParams();
+        if (product.variations[0]?.color) {
+          newParams.set("color", product.variations[0]?.color);
+        }
+        if (product.variations[0]?.Size) {
+          newParams.set("size", product.variations[0]?.Size);
+        }
+        return {
+          href: `/${lang}/products/${product.slug}?${newParams.toString()}`,
+          data,
+        };
+      }
+    }
+    return {
+      href: getURLOfProduct({ product }),
+      data: {
+        is_product: true,
+        active_color: product.variations[0]?.color ?? null,
+        ...product,
+        href: getURLOfProduct({ product }),
+      },
+    };
   };
   return (
     <div
@@ -340,30 +376,8 @@ function CartContainer({ close, toOrders }: CartContainerPropsType) {
                             ? "no-navigate"
                             : ""
                         }
-                        href={
-                          params?.productId === product.slug &&
-                          product?.variations[0]?.color ===
-                            sarchParams.get("color")
-                            ? "#"
-                            : getURLOfProduct({ product })
-                        }
-                        data={
-                          params?.productId === product.slug &&
-                          product?.variations[0]?.color ===
-                            sarchParams.get("color")
-                            ? null
-                            : {
-                                is_product: true,
-                                active_color: sarchParams.get("color"),
-                                ...product,
-                                href:
-                                  params?.productId === product.slug &&
-                                  product?.variations[0]?.color ===
-                                    sarchParams.get("color")
-                                    ? "#"
-                                    : getURLOfProduct({ product }),
-                              }
-                        }
+                        href={getProductCartUrl(product).href}
+                        data={getProductCartUrl(product).data}
                         ariaLabel={`Cart Product ${product.slug} ${params.lang}`}
                         className={`flex-row mt-2 w-full relative  ${
                           product.have_hurry_up_notify || true
@@ -372,26 +386,7 @@ function CartContainer({ close, toOrders }: CartContainerPropsType) {
                         } bg-[#FEFEFE] rounded-2xl overflow-hidden shadow-[0px_3px_10px_rgba(0,0,0,0.1)]`}
                         key={key}
                         onClick={(e) => {
-                          // @ts-ignore
-                          // Sendevent({
-                          //   event: GA_EVENT_NAMES.CLICK,
-                          //   value:
-                          //     GA_CLICK_EVENT_VALUES.PRODUCT_IN_CART_CLICKED,
-                          // });
-                          if (params?.productId === product.slug) {
-                            if (product.variations[0].color) {
-                              setActiveColorDetails(
-                                ProductDetails.sync_color_images[
-                                  ProductDetails.sync_color_images.findIndex(
-                                    (s) =>
-                                      s.color_name ===
-                                      product?.variations[0]?.color
-                                  )
-                                ]
-                              );
-                            }
-                          } else {
-                          }
+                          document.documentElement.style.overflow = "auto";
                           close();
                         }}
                       >
@@ -860,23 +855,8 @@ function CartContainer({ close, toOrders }: CartContainerPropsType) {
                             ? "no-navigate"
                             : ""
                         }
-                        data={{
-                          is_product: true,
-                          ...product,
-                          href:
-                            params?.productId === product.slug &&
-                            product?.variations[0]?.color ===
-                              sarchParams.get("color")
-                              ? "#"
-                              : getURLOfProduct({ product }),
-                        }}
-                        href={
-                          params?.productId === product.slug &&
-                          product?.variations[0]?.color ===
-                            sarchParams.get("color")
-                            ? "#"
-                            : getURLOfProduct({ product })
-                        }
+                        data={getProductCartUrl(product).data}
+                        href={getProductCartUrl(product).href}
                         ariaLabel={`old Cart Product ${product.slug} ${params.lang}`}
                         className="flex-row mt-2 w-full relative  min-h-[230px] bg-[#FEFEFE] rounded-2xl overflow-hidden shadow-[0px_3px_10px_rgba(0,0,0,0.1)]"
                         key={key}
@@ -889,25 +869,7 @@ function CartContainer({ close, toOrders }: CartContainerPropsType) {
                             }, 1500);
                             return false;
                           }
-                          // Sendevent({
-                          //   event: GA_EVENT_NAMES.CLICK,
-                          //   value:
-                          //     GA_CLICK_EVENT_VALUES.PRODUCT_IN_OLD_CART_CLICKED,
-                          // });
-                          if (params?.productId === product.slug) {
-                            if (product.variations[0].color) {
-                              setActiveColorDetails(
-                                ProductDetails.sync_color_images[
-                                  ProductDetails.sync_color_images.findIndex(
-                                    (s) =>
-                                      s.color_name ===
-                                      product?.variations[0]?.color
-                                  )
-                                ]
-                              );
-                            }
-                          } else {
-                          }
+                          document.documentElement.style.overflow = "auto";
                           close();
                         }}
                       >
@@ -2024,7 +1986,7 @@ const QuantutyInput = ({
   const ConvertToOldCart = async () => {
     try {
       setLoading(true);
-      await cart.ConvertToOldCart({ cart_item: id });
+      await cartService.ConvertToOldCart({ cart_item: id });
       setLoading(false);
       removeFromCart(id);
       await getOldCart();
@@ -2185,99 +2147,106 @@ const QuantutyInput = ({
         )}
       </div>
 
-      <div className={`pl-[30px]`} data-cy="oldNew-price-container">
-        <div className="product-info-price" data-cy="oldNew-price-container2">
-          {product?.offer_price >= 0 ? (
-            <>
-              <div className="flex-col" data-cy="Subdivisions">
-                <div className="flex-row" data-cy="newOld-price">
-                  <div
-                    className="product-old-price text-[18px] text-[#C4C2C2] regular"
-                    data-cy="oldPrice-container"
-                  >
-                    {RoundPrice({
-                      num: product.price * product.quantity,
-                      rate: currency?.exchange_rate,
-                      points:
-                        (settings &&
-                          settings["starting-setting"]
-                            ?.decimal_point_settings) ||
-                        0,
-                    })}
-                    <svg
-                      data-cy="oldPrice-svg"
-                      className="bottom-3"
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="100%"
-                      height="2"
+      <div className="flex-col">
+        {product.flash_deal_details?.end_date && (
+          <div className="flex-row scale-[0.8] origin-top-right">
+            <FlashDealBanner end_data={product.flash_deal_details?.end_date} />
+          </div>
+        )}
+        <div className={`pl-[30px]`} data-cy="oldNew-price-container">
+          <div className="product-info-price" data-cy="oldNew-price-container2">
+            {product?.offer_price >= 0 ? (
+              <>
+                <div className="flex-col" data-cy="Subdivisions">
+                  <div className="flex-row" data-cy="newOld-price">
+                    <div
+                      className="product-old-price text-[18px] text-[#C4C2C2] regular"
+                      data-cy="oldPrice-container"
                     >
-                      <line
-                        id="Line_1104"
-                        data-name="Line 1104"
-                        x2="100%"
-                        transform="translate(0 1)"
-                        fill="none"
-                        stroke="#C4C2C2"
-                        strokeWidth="2"
-                      />
-                    </svg>
+                      {RoundPrice({
+                        num: product.price * product.quantity,
+                        rate: currency?.exchange_rate,
+                        points:
+                          (settings &&
+                            settings["starting-setting"]
+                              ?.decimal_point_settings) ||
+                          0,
+                      })}
+                      <svg
+                        data-cy="oldPrice-svg"
+                        className="bottom-3"
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="100%"
+                        height="2"
+                      >
+                        <line
+                          id="Line_1104"
+                          data-name="Line 1104"
+                          x2="100%"
+                          transform="translate(0 1)"
+                          fill="none"
+                          stroke="#C4C2C2"
+                          strokeWidth="2"
+                        />
+                      </svg>
+                    </div>
+                    <div
+                      className="product-new-price text-[18px] bold"
+                      data-cy="new-price"
+                    >
+                      {RoundPrice({
+                        num: product?.offer_price * product.quantity,
+                        rate: currency?.exchange_rate,
+                        points:
+                          (settings &&
+                            settings["starting-setting"]
+                              ?.decimal_point_settings) ||
+                          0,
+                      })}
+                    </div>
+                    <div
+                      className="product-currency text-[8px] light text-[#1D1D1D]"
+                      data-cy="currency-symbol"
+                    >
+                      {currency?.symbol}
+                    </div>
                   </div>
-                  <div
-                    className="product-new-price text-[18px] bold"
-                    data-cy="new-price"
-                  >
-                    {RoundPrice({
-                      num: product?.offer_price * product.quantity,
-                      rate: currency?.exchange_rate,
-                      points:
-                        (settings &&
-                          settings["starting-setting"]
-                            ?.decimal_point_settings) ||
-                        0,
-                    })}
-                  </div>
-                  <div
-                    className="product-currency text-[8px] light text-[#1D1D1D]"
-                    data-cy="currency-symbol"
-                  >
-                    {currency?.symbol}
-                  </div>
-                </div>
-                <div className="flex-row" data-cy="below-subdivisions">
-                  <SavedIcon data-cy="saved-svg" />
-                  <span
-                    className="text-[8px] text-[#388CFF]  need-row-rev mx-[4px]"
-                    data-cy="saved-text"
-                  >
-                    {translate("Saved")}{" "}
-                    <span className="bold" data-cy="rate">
-                      {parseInt(
-                        (
-                          ((product.price - product?.offer_price) /
-                            product.price) *
-                          100
-                        ).toString()
-                      )}
-                      %
+                  <div className="flex-row" data-cy="below-subdivisions">
+                    <SavedIcon data-cy="saved-svg" />
+                    <span
+                      className="text-[8px] text-[#388CFF]  need-row-rev mx-[4px]"
+                      data-cy="saved-text"
+                    >
+                      {translate("Saved")}{" "}
+                      <span className="bold" data-cy="rate">
+                        {parseInt(
+                          (
+                            ((product.price - product?.offer_price) /
+                              product.price) *
+                            100
+                          ).toString()
+                        )}
+                        %
+                      </span>
                     </span>
-                  </span>
+                  </div>
                 </div>
-              </div>
-            </>
-          ) : (
-            <>
-              <div className="product-new-price text-[14px] light text-[#1D1D1D]">
-                {RoundPrice({
-                  num: product.price * product.quantity,
-                  rate: currency?.exchange_rate,
-                  points:
-                    (settings &&
-                      settings["starting-setting"]?.decimal_point_settings) ||
-                    0,
-                })}
-              </div>
-            </>
-          )}
+              </>
+            ) : (
+              <>
+                <div className="product-new-price text-[14px] light text-[#1D1D1D]">
+                  {RoundPrice({
+                    num: product.price * product.quantity,
+                    rate: currency?.exchange_rate,
+                    points:
+                      (settings &&
+                        settings["starting-setting"]?.decimal_point_settings) ||
+                      0,
+                  })}
+                </div>
+              </>
+            )}
+          </div>
         </div>
       </div>
     </div>

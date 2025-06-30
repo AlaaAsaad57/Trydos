@@ -177,15 +177,17 @@ class ChatService {
         setChatLoading();
       }
 
-      let resp = await AxiosPost({
-        url: process.env.NEXT_PUBLIC_CHAT_BACKEND_URL + GET_CHATS_URL,
-        body: { role_id: 16 },
-        token: JSON.parse(localStorage.getItem("USER-CHAT"))?.access_token,
+      let response = await fetchData({
+        url: GET_CHATS_URL,
+        body: JSON.stringify({ role_id: 16 }),
+        reqTitle: "Get Chats",
+        method: "POST",
+        server: "chat",
       });
 
-      setChats(resp.channels, resp.pinned_channels);
+      setChats(response.data.channels, response.data.pinned_channels);
       const { db } = await import("../utils/firebaseInitv1");
-      let chats = [...resp.channels, ...resp.pinned_channels];
+      let chats = [...response.data.channels, ...response.data.pinned_channels];
       chats.map((chat) => {
         let friendID = chat.channel_members.filter(
           (member) => parseInt(member.user_id) !== parseInt(getUserChat().id)
@@ -217,19 +219,38 @@ class ChatService {
 
       setLastNotificationDate(new Date().toLocaleString());
       setChatDone();
-      if (payload !== "share") {
-        getCalls(null);
-
-        let response = await fetchData({
-          url: GET_CONTATCS_URL,
-          reqTitle: "Get Contacts",
-          server: "chat",
-          method: "GET",
-        });
-
-        setContacts(response.data);
-      }
     } catch (e) {
+      console.error(e);
+    }
+  }
+  async getContacts() {
+    const { setContacts } = useAppStore.getState();
+
+    let response = await fetchData({
+      url: GET_CONTATCS_URL,
+      reqTitle: "Get Contacts",
+      server: "chat",
+      method: "GET",
+    });
+
+    setContacts(response.data);
+  }
+  async getCalls(id?: number) {
+    const { setCallLoading, setCalls } = useAppStore.getState();
+    try {
+      setCallLoading(true);
+      let response = await fetchData({
+        url: "/api/v1/channels/my_calls",
+        body: JSON.stringify({ limit: "20", last_message_id: id }),
+        method: "POST",
+        reqTitle: "Get Calls",
+        server: "chat",
+      });
+
+      setCalls(response.data);
+      setCallLoading(false);
+    } catch (e) {
+      setCallLoading(false);
       console.error(e);
     }
   }

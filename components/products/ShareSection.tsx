@@ -1,10 +1,11 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { translateFunction } from "utils/functions";
 import ShareOptions from "./ShareOptions";
-
-import { ProductInterface } from "models/Genaral/Product";
 import { useParams } from "next/navigation";
 import { ShareSectionPropsType } from "models/componentType/ShareSectionPropsType";
+
+import chat from "services/chat";
+import Spinner from "components/global/Spinner";
 
 function ShareSection({
   setShareContacts,
@@ -13,10 +14,21 @@ function ShareSection({
 }: ShareSectionPropsType) {
   var language = "en";
   let { lang } = useParams();
+  const [contactsLoading, setContactsLoading] = useState(false);
   // @ts-ignore
   let languageVariable = lang.split("-")[1];
   const translate = (key, lang?) => {
     return translateFunction(key, languageVariable);
+  };
+  useEffect(() => {
+    if (localStorage.getItem("USER-CHAT")) {
+      getContactsData();
+    }
+  }, []);
+  const getContactsData = async () => {
+    setContactsLoading(true);
+    await chat.getContacts();
+    setContactsLoading(false);
   };
   return (
     <div className="extended-section" data-cy="ExtendShareSection">
@@ -43,8 +55,12 @@ function ShareSection({
         </svg>
 
         <span>{translate("Share This Product With", language)}</span>
+        {contactsLoading && (
+          <div className="ml-[10px] items-center justify-center">
+            <Spinner />
+          </div>
+        )}
       </div>
-      {/* {sharedContacts.length > 0 && <SearchContact />} */}
 
       <div className="content-extended">
         <ShareOptions

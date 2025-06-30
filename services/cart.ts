@@ -1,25 +1,8 @@
 import { useAppStore } from "store";
-import Cookies from "js-cookie";
 import { _isStoreLastJson, AddToCartAnimation, getLang } from "utils/functions";
 import home from "./home";
-import { AxiosPost } from "utils/AxiosApi";
+import { fetchData } from "utils/fetchData";
 
-const getHeader = () => {
-  let [countryUrl, languageUrl] = window.location.pathname
-    .split("/")[1]
-    .split("-");
-  return {
-    headers: {
-      "ssr-req": "true",
-      Authorization: `Bearer ${
-        localStorage.getItem("MARKET-TOKEN") ||
-        localStorage.getItem("DEVICE-TOKEN")
-      }`,
-      lang: getLang(languageUrl, Cookies.get("language")),
-      country: countryUrl || Cookies.get("country"),
-    },
-  };
-};
 class CartService {
   async AddToCart({ product_id, color, choice_1, qty, image }) {
     const { addProductToCart } = useAppStore.getState();
@@ -43,18 +26,22 @@ class CartService {
     formBody = formBody.join("&");
     AddToCartAnimation();
     try {
-      let res = await AxiosPost({
-        url: process.env.NEXT_PUBLIC_BACKEND_URL + "/cart/add",
-        body: formBody,
-        title: "Add To Cart",
+      let response = await fetchData({
+        url: "/cart/add",
+        body: JSON.stringify({
+          ...details,
+        }),
+        reqTitle: "Add To Cart",
+        method: "POST",
+        server: "market",
       });
-      if (res?.status === 1 && res?.id_cart) {
+      if (response?.data?.status === 1 && response?.data?.id_cart) {
         home.subscribeToTopic({
           topic: `product_availability_${product_id}`,
         });
         addProductToCart({
           id: product_id,
-          item_id: res?.id_cart,
+          item_id: response?.data?.id_cart,
           color,
           size: choice_1,
           image,
@@ -81,13 +68,21 @@ class CartService {
     }
     dataBody = dataBody.join("&");
     try {
-      let res = await AxiosPost({
-        url: process.env.NEXT_PUBLIC_BACKEND_URL + "/cart/update",
-        body: dataBody,
-        title: "Update Cart Item",
+      let response = await fetchData({
+        url: "/cart/update",
+        body: JSON.stringify({
+          key: cart_id,
+          quantity: qty,
+        }),
+        reqTitle: "Update Cart Item",
+        method: "POST",
+        server: "market",
       });
-      if (res?.status === 1 && parseInt(res?.qty) >= 0) {
-        updateProductQuantityInCart({ id: cart_id, qty: parseInt(res?.qty) });
+      if (response?.data?.status === 1 && parseInt(response?.data?.qty) >= 0) {
+        updateProductQuantityInCart({
+          id: cart_id,
+          qty: parseInt(response?.data?.qty),
+        });
         return true;
       }
       return false;
@@ -98,10 +93,12 @@ class CartService {
   async RemoveFromCart({ cart_item }) {
     const { errRemoveFromCart, removeFromCart } = useAppStore.getState();
     try {
-      let res = await AxiosPost({
-        url: process.env.NEXT_PUBLIC_BACKEND_URL + "/cart/remove",
-        body: { key: cart_item?.item_id },
-        title: "Remove From Cart",
+      let response = await fetchData({
+        url: "/cart/remove",
+        body: JSON.stringify({ key: cart_item?.item_id }),
+        reqTitle: "Remove From Cart",
+        method: "POST",
+        server: "market",
       });
 
       removeFromCart(cart_item?.item_id);
@@ -124,10 +121,12 @@ class CartService {
     // @ts-ignore
     dataBody = dataBody.join("&");
 
-    await AxiosPost({
-      url: process.env.NEXT_PUBLIC_BACKEND_URL + "/cart/convert_to_old",
-      body: dataBody,
-      title: "Convert to Old Cart",
+    await fetchData({
+      url: "/cart/convert_to_old",
+      body: JSON.stringify({ key: cart_item }),
+      reqTitle: "Convert to Old Cart",
+      method: "POST",
+      server: "market",
     });
   }
 }

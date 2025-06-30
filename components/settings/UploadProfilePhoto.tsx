@@ -117,7 +117,7 @@ function UploadProfilePhoto({
       const image = editorRef.current.getImage();
       const canvasScaled = editorRef.current.getImageScaledToCanvas();
 
-      return canvasScaled.toDataURL();
+      return canvasScaled.toDataURL("image/jpeg", 0.9);
     }
   };
 
@@ -133,6 +133,7 @@ function UploadProfilePhoto({
         const editedCanvas = getImage();
         const UploadedFile = dataURLtoFile(editedCanvas, "photo.jpg");
         // TODO: Upload file to server
+
         res = await auth.UpdateProfileImage(UploadedFile);
       } else {
         res = { sub_path: userProfile.image };

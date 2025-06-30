@@ -1,9 +1,8 @@
-import { AxiosPost } from "utils/AxiosApi";
 import { useAppStore } from "store";
 import { PlaceOrderApi } from "models/API/market/PlaceOrder";
 import { GetAddressListApi } from "models/API/market/GetAddresses";
 import { GetWalletApi } from "models/API/market/GetWallet";
-import { GetCartOreview, toUSD } from "utils/functions";
+import { GetCartOreview } from "utils/functions";
 import { getCurrency } from "utils/tinyUtils";
 import { fetchData } from "utils/fetchData";
 
@@ -19,21 +18,21 @@ class OrderService {
     let addressId = addressLists.filter((s) => s.is_default === 1)[0]?.id;
     try {
       setOrderLoading(true);
-      let data: PlaceOrderApi = await AxiosPost({
-        url:
-          process.env.NEXT_PUBLIC_BACKEND_URL +
-          `/customer/order/checkout/${payment_method}?order_note=order note&address_id=${addressId}&pay_by_wallet=${
-            pay_by_wallet ? 1 : 0
-          }`,
-        title: "pay Order",
+      let response: { data: PlaceOrderApi } = await fetchData({
+        url: `/customer/order/checkout/${payment_method}?order_note=order note&address_id=${addressId}&pay_by_wallet=${
+          pay_by_wallet ? 1 : 0
+        }`,
+        reqTitle: "pay Order",
         body: "",
+        method: "POST",
+        server: "market",
       });
 
-      if (!data[0]?.url) {
-        setOrderSuccess({ data });
-        setOrderData({ data, success: true });
+      if (!response.data[0]?.url) {
+        setOrderSuccess({ data: response.data });
+        setOrderData({ data: response.data, success: true });
       } else {
-        setCryptoCardPayment(data[0]);
+        setCryptoCardPayment(response.data[0]);
       }
 
       setOrderLoading(false);
@@ -89,20 +88,15 @@ class OrderService {
     let details = {
       address_id: id,
     };
-    var formBody: any = [];
-    for (var property in details) {
-      var encodedKey = encodeURIComponent(property);
-      var encodedValue = encodeURIComponent(details[property]);
-      formBody.push(encodedKey + "=" + encodedValue);
-    }
-    formBody = formBody.join("&");
+
     try {
       setOrderLoading(true);
-      let data = await AxiosPost({
-        url:
-          process.env.NEXT_PUBLIC_BACKEND_URL + "/customer/address/set-default",
-        title: "set default Address",
-        body: formBody,
+      await fetchData({
+        url: "/customer/address/set-default",
+        reqTitle: "set default Address",
+        body: JSON.stringify(details),
+        method: "POST",
+        server: "market",
       });
       await GetCartOreview();
       setOrderLoading(false);
@@ -130,19 +124,15 @@ class OrderService {
       phone: address.contact_info?.phone,
       alternative_phone: address.contact_info?.alternative_phone,
     };
-    var formBody: any = [];
-    for (var property in body) {
-      var encodedKey = encodeURIComponent(property);
-      var encodedValue = encodeURIComponent(body[property]);
-      formBody.push(encodedKey + "=" + encodedValue);
-    }
-    formBody = formBody.join("&");
+
     try {
       setOrderLoading(true);
-      let data = await AxiosPost({
-        url: process.env.NEXT_PUBLIC_BACKEND_URL + "/customer/address/add",
-        title: "Add Address",
-        body: formBody,
+      await fetchData({
+        url: "/customer/address/add",
+        reqTitle: "Add Address",
+        body: JSON.stringify(body),
+        method: "POST",
+        server: "market",
       });
       await this.GetAddressList();
       await GetCartOreview();
@@ -174,19 +164,15 @@ class OrderService {
       phone: address.contact_info?.phone,
       alternative_phone: address.contact_info?.alternative_phone,
     };
-    var formBody: any = [];
-    for (var property in body) {
-      var encodedKey = encodeURIComponent(property);
-      var encodedValue = encodeURIComponent(body[property]);
-      formBody.push(encodedKey + "=" + encodedValue);
-    }
-    formBody = formBody.join("&");
+
     try {
       setOrderLoading(true);
-      let data = await AxiosPost({
-        url: process.env.NEXT_PUBLIC_BACKEND_URL + "/customer/address/update",
-        title: "Update Address",
-        body: formBody,
+      let data = await fetchData({
+        url: "/customer/address/update",
+        reqTitle: "Update Address",
+        body: JSON.stringify(body),
+        method: "POST",
+        server: "market",
       });
       callback();
 
@@ -200,13 +186,12 @@ class OrderService {
 
     try {
       setOrderLoading(true);
-      let data = await AxiosPost({
-        url:
-          process.env.NEXT_PUBLIC_BACKEND_URL +
-          `/customer/address/delete?address_id=${address}`,
-        title: "Delete Address",
+      let data = await fetchData({
+        url: `/customer/address/delete?address_id=${address}`,
+        reqTitle: "Delete Address",
         body: "",
-        hasMessageOnly: true,
+        method: "POST",
+        server: "market",
       });
 
       setOrderLoading(false);

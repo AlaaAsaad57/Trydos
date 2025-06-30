@@ -35,11 +35,6 @@ function ExtendedAreaInfo({
 0% {max-height:${height}px}
 100% {max-height:0px}
 `;
-  useEffect(() => {
-    setTimeout(() => {
-      if (localStorage.getItem("USER-CHAT")) getContacts();
-    }, 6000);
-  }, []);
 
   return (
     <>

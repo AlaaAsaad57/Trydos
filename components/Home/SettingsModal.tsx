@@ -129,9 +129,9 @@ const SettingsModal: React.FC<SettingsModalPropsType> = ({ onClose, lang }) => {
         if (token) {
           await fetchData({
             url: "/firebase_device_tokens/unsubscribe_topic",
-            body: {
+            body: JSON.stringify({
               topic: topic.replace(/_[a-z]{2}_[a-z]{2}$/, ""),
-            },
+            }),
             reqTitle: "store firebase unsubscribe topic",
             method: "POST",
             server: "market",
@@ -161,9 +161,9 @@ const SettingsModal: React.FC<SettingsModalPropsType> = ({ onClose, lang }) => {
         if (token) {
           await fetchData({
             url: "/firebase_device_tokens/subscribe_topic",
-            body: {
+            body: JSON.stringify({
               topic: topic.replace(/_[a-z]{2}_[a-z]{2}$/, ""),
-            },
+            }),
             reqTitle: "store firebase topic",
             method: "POST",
             server: "market",

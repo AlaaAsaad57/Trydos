@@ -26,6 +26,10 @@ export default function NextLink({
   const searchParams = useSearchParams();
   const { setEnableSearch, setFilterEnabled, setActiveRoute } = useAppStore();
   const handleClick = (e) => {
+    if (!data) {
+      onClick?.(e);
+      return;
+    }
     if (props["data-cy"] === "category-Link") {
       // Sendevent({
       //   event: GA_EVENT_NAMES.CLICK,

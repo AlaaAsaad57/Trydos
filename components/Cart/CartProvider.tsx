@@ -82,7 +82,6 @@ const CartProvider = () => {
             setCurrency(data.currency);
           },
         });
-        home.GetFireBaseSettings();
       }
     }, 10);
     window.addEventListener("popstate", (event) => {

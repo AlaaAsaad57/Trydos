@@ -304,24 +304,6 @@ class AuthService {
     cancelAuth();
   }
   async NotifyForProducts({ id, variant }) {
-    // const details = {
-    //   product_id: id,
-    //   variant,
-    //   user_id: UserID(),
-    //   notification_type_id: 1,
-    // };
-    // var formBody: any = [];
-    // for (var property in details) {
-    //   var encodedKey = encodeURIComponent(property);
-    //   var encodedValue = encodeURIComponent(details[property]);
-    //   formBody.push(encodedKey + "=" + encodedValue);
-    // }
-    // formBody = formBody.join("&");
-    // await AxiosPost({
-    //   url: process.env.NEXT_PUBLIC_BACKEND_URL + "/product_notification/store",
-    //   body: formBody,
-    //   title: "store Notification For Product",
-    // });
     await home.subscribeToTopic({
       topic: `product_availability_${id}`,
       variant: variant,
@@ -453,7 +435,7 @@ class AuthService {
         );
       }
       let res = await fetchData({
-        url: process.env.NEXT_PUBLIC_BACKEND_URL + "/customer/update-profile",
+        url: "/customer/update-profile",
         body: JSON.stringify({
           ...userObj,
           image: this.ConfigurePhoto(userObj?.image, "market"),

@@ -117,7 +117,27 @@ async function Page({ params, searchParams }: ProductPagePropsType) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(JsonLd) }}
       />
-      <div className="product-details-container w-full">
+      <div className="product-details-container w-full relative">
+        <div className="flex-col gap-[20px] mx-[5px] w-auto absolute top-[66px] right-[20px] z-[999999999]">
+          {(product?.flash_deal_details?.end_date ||
+            product?.flash_deal_end_date) && (
+            <FlashDealBanner
+              end_data={
+                product?.flash_deal_details?.end_date ||
+                product?.flash_deal_end_date
+              }
+            />
+          )}
+          {product.label_names && (
+            <ProductsLabels
+              isProduct={true}
+              labels={
+                typeof product.label_names === "string" &&
+                JSON.parse(product.label_names)
+              }
+            />
+          )}
+        </div>
         <ProductBackButton />
 
         <div className="product-details-slider" key={`key-${color}`}>
@@ -203,26 +223,6 @@ async function Page({ params, searchParams }: ProductPagePropsType) {
                   <FeaturedBanner />
                 </div>
               )} */}
-              <div className="flex-row mx-[5px] w-auto">
-                {(product?.flash_deal_details?.end_date ||
-                  product?.flash_deal_end_date) && (
-                  <FlashDealBanner
-                    end_data={
-                      product?.flash_deal_details?.end_date ||
-                      product?.flash_deal_end_date
-                    }
-                  />
-                )}
-                {product.label_names && (
-                  <ProductsLabels
-                    isProduct={true}
-                    labels={
-                      typeof product.label_names === "string" &&
-                      JSON.parse(product.label_names)
-                    }
-                  />
-                )}
-              </div>
             </div>
             <Suspense
               fallback={
@@ -324,10 +324,12 @@ async function Page({ params, searchParams }: ProductPagePropsType) {
               <ProductDescriptors />
             </Suspense>
             <Suspense fallback={<></>}>
-              <ProductColors
-                colors={product.sync_color_images || []}
-                ProductColorsArray={product.colors}
-              />
+              {product.sync_color_images?.length > 0 && (
+                <ProductColors
+                  colors={product.sync_color_images || []}
+                  ProductColorsArray={product.colors}
+                />
+              )}
             </Suspense>
             <Suspense fallback={<></>}>
               <CameraShots images={product?.images || []} />
@@ -338,8 +340,9 @@ async function Page({ params, searchParams }: ProductPagePropsType) {
             <Suspense fallback={<></>}>
               <ProductSizes
                 sizes={
-                  product?.choice_options?.filter((s) => s.title == "Size")[0]
-                    ?.options || []
+                  product?.choice_options?.filter(
+                    (s) => s.title?.toLowerCase() === "size"
+                  )[0]?.options || []
                 }
               />
             </Suspense>

@@ -12,6 +12,7 @@ import { useAppStore } from "store";
 import { InView } from "node_modules/react-intersection-observer/dist";
 import Spinner from "components/global/Spinner";
 import { ProductStoriesPropsType } from "models/componentType/productTypes/MultiComponentOnProductPage";
+import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 function ProductStories({ id }: ProductStoriesPropsType) {
   const {
     selectedStory,
@@ -23,6 +24,7 @@ function ProductStories({ id }: ProductStoriesPropsType) {
   const [next_page, set_next_page] = useState(true);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
   // @ts-ignore
   let languageVariable = lang.split("-")[1];
   const translate = (key, lang?) => {
@@ -44,37 +46,28 @@ function ProductStories({ id }: ProductStoriesPropsType) {
     setLoading(false);
   };
   useEffect(() => {
-    GetData();
-    if (typeof document !== "undefined") {
-      const slider: HTMLDivElement = document?.querySelector(".stories-row");
-      let isDown = false;
-      let startX: number;
-      let scrollLeft: number;
-
-      slider?.addEventListener("mousedown", (e: MouseEvent) => {
-        isDown = true;
-        slider.classList.add("active");
-        startX = e.pageX - slider.offsetLeft;
-        scrollLeft = slider.scrollLeft;
-      });
-      slider?.addEventListener("mouseleave", () => {
-        isDown = false;
-        slider.classList.remove("active");
-      });
-      slider?.addEventListener("mouseup", () => {
-        isDown = false;
-        slider.classList.remove("active");
-      });
-      slider?.addEventListener("mousemove", (e) => {
-        if (!isDown) return;
-        e.preventDefault();
-        const x = e.pageX - slider.offsetLeft;
-        const walk = (x - startX) * 3; //scroll-fast
-        slider.scrollLeft = scrollLeft - walk;
-      });
-    }
+    GetInitailData();
   }, []);
-
+  const GetInitailData = async () => {
+    setInitialLoading(true);
+    const data = await StoryServiceClass.getStoriesForProducts({
+      id: id,
+      page: 1,
+    });
+    setPage(page + 1);
+    set_next_page(data.next_page_url);
+    setStories([...stories, ...data.data]);
+    setInitialLoading(false);
+  };
+  if (initialLoading)
+    return (
+      <div
+        className={`product-colors product-stories justify-center items-center flex-col  align-start relative`}
+      >
+        <Spinner />
+      </div>
+    );
+  if (stories.length === 0) return <></>;
   return (
     <div
       className={`product-colors product-stories flex-col  align-start relative`}
@@ -102,30 +95,36 @@ function ProductStories({ id }: ProductStoriesPropsType) {
       </div>
 
       <div className={`stories-row flex-row w-100`} onClick={() => {}}>
-        {stories?.map((story, index) => (
-          <div
-            key={index}
-            className="product-story relative"
-            data-cy="Story"
-            onClick={() =>
-              setSelectStory(StoryServiceClass.configureStory(story))
-            }
-          >
-            <img
-              width={135}
-              height={194}
-              src={StoryServiceClass.getThumb(
-                // @ts-ignore
-                story.stories[0]?.full_video_path ||
+        <HortiznalScrollBar
+          id="product-stories-scroll-bar"
+          className="w-full flex-row"
+          dataCy="product-stories-scroll-bar"
+        >
+          {stories?.map((story, index) => (
+            <div
+              key={index}
+              className="product-story relative"
+              data-cy="Story"
+              onClick={() =>
+                setSelectStory(StoryServiceClass.configureStory(story))
+              }
+            >
+              <img
+                width={135}
+                height={194}
+                src={StoryServiceClass.getThumb(
                   // @ts-ignore
-                  story.stories[0]?.photo_path,
-                // @ts-ignore
-                Boolean(story.stories[0]?.full_video_path)
-              )}
-            />
-            <div className="inset-story-shadow absolute" />
-          </div>
-        ))}
+                  story.stories[0]?.full_video_path ||
+                    // @ts-ignore
+                    story.stories[0]?.photo_path,
+                  // @ts-ignore
+                  Boolean(story.stories[0]?.full_video_path)
+                )}
+              />
+              <div className="inset-story-shadow absolute" />
+            </div>
+          ))}
+        </HortiznalScrollBar>
         {next_page && (
           <InView
             className="spinner-container min-w-[80px] flex justify-center items-center h-[194px]"

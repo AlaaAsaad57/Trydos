@@ -207,10 +207,17 @@ export const fetchData = async <T = any>(
         method,
         headers: {
           Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
           ...getHeader(),
         },
       };
+
+      // Add Content-Type header only if body is not FormData
+      if (body && !(body instanceof FormData)) {
+        requestOptions.headers = {
+          ...requestOptions.headers,
+          "Content-Type": "application/json",
+        };
+      }
 
       // Add body for non-GET requests
       if (body && method !== "GET") {

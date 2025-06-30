@@ -246,15 +246,16 @@ class HomeService {
         localStorage.setItem("FB-DEVICE-TOKEN", token);
         setTimeout(async () => {
           if (auth.UserToken() && auth.UserID()) {
-            await AxiosPost({
-              url:
-                process.env.NEXT_PUBLIC_BACKEND_URL + "/firebase_device_tokens",
-              body: {
+            await fetchData({
+              url: "/firebase_device_tokens",
+              body: JSON.stringify({
                 device_token: token,
                 user_id: auth.UserID(),
                 auth_token: auth.UserToken(),
-              },
-              title: "register firebase token",
+              }),
+              reqTitle: "register firebase token",
+              method: "POST",
+              server: "market",
             });
           }
         }, 2000);
@@ -398,97 +399,6 @@ class HomeService {
       }
     }
   }
-  async AddToCart({
-    id,
-    size,
-    color,
-    image,
-    quantity,
-    callback,
-    alreadyExist,
-    errCallback,
-    slug,
-  }: {
-    id: number;
-    size: string;
-    color: string;
-    image: string;
-    quantity: number;
-    callback: Function;
-    alreadyExist: boolean | number;
-    errCallback?: Function;
-    slug: string;
-  }) {
-    let language_code = window.location.pathname.split("/")[1].split("-")[1];
-    let country_code = window.location.pathname.split("/")[1].split("-")[0];
-    const { setLoadedCart, disableAddToCartOption } = useAppStore.getState();
-
-    if (alreadyExist) {
-      let dataBody = [];
-      let dataObj = { key: alreadyExist, quantity: quantity + 1 || 0 };
-      for (var property in dataObj) {
-        if (dataObj[property] || dataObj[property] === 0) {
-          var encodedKey = encodeURIComponent(property);
-          var encodedValue = encodeURIComponent(dataObj[property]);
-          dataBody.push(encodedKey + "=" + encodedValue);
-        }
-      }
-      // request
-      // @ts-ignore
-      dataBody = dataBody.join("&");
-
-      let res: UpdateCartApi;
-
-      res = await AxiosPost({
-        url: process.env.NEXT_PUBLIC_BACKEND_URL + "/cart/update",
-        body: dataBody,
-        title: "Update  Quantity For Product in Cart",
-      });
-
-      setLoadedCart(true);
-      if (res?.qty >= 0 && res?.status !== 0) {
-        callback({ id: alreadyExist });
-      } else {
-        errCallback();
-        disableAddToCartOption();
-      }
-    } else {
-      const imageVar = image.split("/")[image.split("/").length - 1];
-      let details = { id, color, image: imageVar, quantity, choice_1: size };
-      let formBody = [];
-      for (var property in details) {
-        if (details[property]) {
-          var encodedKey = encodeURIComponent(property);
-          var encodedValue = encodeURIComponent(details[property]);
-          formBody.push(encodedKey + "=" + encodedValue);
-        }
-      }
-      // @ts-ignore
-      formBody = formBody.join("&");
-      let res: UpdateCartApi;
-      try {
-        res = await AxiosPost({
-          url: process.env.NEXT_PUBLIC_BACKEND_URL + "/cart/add",
-          body: formBody,
-          title: "Add  Product to Cart",
-        });
-      } catch (error) {
-        setLoadedCart(true);
-        return;
-      }
-      setLoadedCart(true);
-      if (res?.id_cart) {
-        callback({ id: res?.id_cart });
-        await this.subscribeToTopic({
-          topic: `product_availability_${id}`,
-        });
-      } else {
-        errCallback();
-
-        showErrorNotification(res?.message || "Failed");
-      }
-    }
-  }
 
   async subscribeToTopic({
     topic,
@@ -501,33 +411,33 @@ class HomeService {
     let token = localStorage.getItem("FB-DEVICE-TOKEN");
 
     if (token) {
-      let response = await AxiosPost({
-        url:
-          process.env.NEXT_PUBLIC_BACKEND_URL +
-          "/firebase_device_tokens/subscribe_topic",
-        body: {
+      let response = await fetchData({
+        url: "/firebase_device_tokens/subscribe_topic",
+        body: JSON.stringify({
           topic,
           variant,
-        },
-        title: "store firebase tsubscribe opic",
+        }),
+        reqTitle: "store firebase subscribe topic",
+        method: "POST",
+        server: "market",
       });
 
-      getFirebaseSettings(response.firebase_settings);
+      getFirebaseSettings(response.data.firebase_settings);
     }
   }
   async UnsubscripeFromTopic({ topic }) {
     const { getFirebaseSettings } = useAppStore.getState();
 
-    let response = await AxiosPost({
-      url:
-        process.env.NEXT_PUBLIC_BACKEND_URL +
-        "/firebase_device_tokens/unsubscribe_topic",
-      body: {
+    let response = await fetchData({
+      url: "/firebase_device_tokens/unsubscribe_topic",
+      body: JSON.stringify({
         topic,
-      },
-      title: "store firebase unsubscribe topic",
+      }),
+      reqTitle: "store firebase unsubscribe topic",
+      method: "POST",
+      server: "market",
     });
-    getFirebaseSettings(response.firebase_settings);
+    getFirebaseSettings(response.data.firebase_settings);
   }
   async handleTopicsOnPageRefresh(token: string) {
     // Extract country and language from the URL
@@ -543,28 +453,29 @@ class HomeService {
     if (!token) return;
 
     if (lastPair !== countryCode + languageCode) {
-      AxiosPost({
-        url:
-          process.env.NEXT_PUBLIC_BACKEND_URL +
-          "/firebase_device_tokens/change_country_language",
-        body: {
+      let response = await fetchData({
+        url: "/firebase_device_tokens/change_country_language",
+        body: JSON.stringify({
           country: countryCode,
           language_code: languageCode,
-        },
-        title: "change firebase country-language pair",
-      }).then((firebase_settings) => {
-        getFirebaseSettings(firebase_settings);
+        }),
+        reqTitle: "change firebase country-language pair",
+        method: "POST",
+        server: "market",
       });
+      getFirebaseSettings(response?.data?.firebase_settings);
       localStorage.setItem("lastPair", countryCode + languageCode);
     }
   }
 
   async hideOldCart({ id }: { id?: number }) {
     try {
-      await AxiosPost({
-        url: process.env.NEXT_PUBLIC_BACKEND_URL + "/old-cart/hide",
-        body: { id: id },
-        title: "Hide Old Cart",
+      await fetchData({
+        url: "/old-cart/hide",
+        body: JSON.stringify({ id: id }),
+        reqTitle: "Hide Old Cart",
+        method: "POST",
+        server: "market",
       });
     } catch (error) {}
   }
@@ -695,17 +606,6 @@ class HomeService {
       { ...getHeader() }
     );
   }
-  async RemoveFromCart({ key }) {
-    try {
-      AxiosPost({
-        url: process.env.NEXT_PUBLIC_BACKEND_URL + "/cart/remove",
-        body: { key: key },
-        title: "Remove From Cart",
-      });
-    } catch (error) {
-      throw error;
-    }
-  }
   async StoreNotificationProduct({ type_id, variant, product_id }) {
     let detail = {
       user_id: auth.UserID(),
@@ -730,12 +630,12 @@ class HomeService {
   }
   async EditNotificationSettings({ url, body }) {
     try {
-      await AxiosPost({
-        url:
-          process.env.NEXT_PUBLIC_BACKEND_URL +
-          `/firebase_device_tokens/${url}`,
-        body: body,
-        title: "Remove From Cart",
+      await fetchData({
+        url: `/firebase_device_tokens/${url}`,
+        body: JSON.stringify(body),
+        reqTitle: "Remove From Cart",
+        method: "POST",
+        server: "market",
       });
     } catch (error) {}
   }

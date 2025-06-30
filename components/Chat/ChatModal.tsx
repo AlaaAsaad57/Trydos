@@ -25,6 +25,8 @@ function ChatModal() {
   useEffect(() => {
     if (chatVar) {
       chat.getChats(false);
+      chat.getContacts();
+      chat.getCalls();
     }
     GAevent({
       action: GA_EVENT_NAMES.SCREEN_VIEW,
