@@ -274,13 +274,6 @@ export async function batchRequests(requests: Promise<any>[]) {
 
 ```typescript
 // utils/api.ts
-export const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL,
-  timeout: 10000,
-  headers: {
-    "Cache-Control": "max-age=3600",
-  },
-});
 ```
 
 ## Rendering Optimization

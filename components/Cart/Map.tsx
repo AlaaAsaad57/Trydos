@@ -6,7 +6,6 @@ import { translateFunction } from "utils/functions";
 import Spinner from "components/global/Spinner";
 import { useAppStore } from "store";
 import { useParams } from "next/navigation";
-import { AxiosGet } from "utils/AxiosApi";
 import { ConfirmLocationPropsType } from "models/componentType/ConfirmLocationPropsType";
 import { MapPropsType } from "models/componentType/MapPropsType";
 import { fetchData } from "utils/fetchData";

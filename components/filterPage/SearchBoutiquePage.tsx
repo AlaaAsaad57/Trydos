@@ -12,7 +12,10 @@ import {
   buildParamsFromFilters,
 } from "utils/tinyUtils";
 import { SearchBoutiquePageProps } from "models/componentType/boutiqueTypes/SearchBoutiquePageProps";
-function SearchBoutiquePage({ search_text, boutique }: SearchBoutiquePageProps) {
+function SearchBoutiquePage({
+  search_text,
+  boutique,
+}: SearchBoutiquePageProps) {
   const pathname = usePathname();
   const params = useParams();
   const router = useRouter();
@@ -44,18 +47,6 @@ function SearchBoutiquePage({ search_text, boutique }: SearchBoutiquePageProps) 
     // });
     setFilterLoading(true);
     searchFilter(e.target.value);
-    // UpdateFilter({
-    //   sizesAttr: sizesAttr,
-    //   boutiqueId: UrlParams.boutiqueId,
-    //   lang: UrlParams.lang,
-    //   done: () => {
-    //     setFilterLoading(false);
-    //   },
-    //   newFiltersCallback: ({ filtersVar }) => {
-    //     editFilter({ ...filtersVar });
-    //   },
-    //   searchText: e.target.value,
-    // });
 
     if (filterEnabled) {
     } else {

@@ -18,7 +18,6 @@ import NextLink from "components/global/NextLink";
 import { useParams, useSearchParams } from "next/navigation";
 import home from "services/home";
 import OrderButton from "./OrderButton";
-import { AxiosGet, AxiosPost } from "utils/AxiosApi";
 import { dispatchRouteChangeEvent } from "utils/events";
 import Spinner from "components/global/Spinner";
 import Timer from "components/Login/Timer";

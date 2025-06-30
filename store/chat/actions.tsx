@@ -4,10 +4,8 @@ import {
   SEND_MESSAGE_URL,
   SET_CHANNEL_OPT_UTL,
 } from "utils/endpointConfig";
-import { getUserChat } from "utils/functions";
 import { useAppStore } from "store";
 import chat from "services/chat";
-import { AxiosGet, AxiosPost } from "utils/AxiosApi";
 import { fetchData } from "utils/fetchData";
 
 export const GetLastSeen = async (chatId, friendID) => {
@@ -81,12 +79,12 @@ export const getCalls = async (id) => {
   const { setCallLoading, setCalls } = useAppStore.getState();
   try {
     setCallLoading(true);
-    let response = await AxiosPost({
-      url:
-        process.env.NEXT_PUBLIC_CHAT_BACKEND_URL + "/api/v1/channels/my_calls",
-      body: { limit: "20", last_message_id: id },
-      title: "Get Calls",
-      token: JSON.parse(localStorage.getItem("USER-CHAT"))?.access_token,
+    let response = await fetchData({
+      url: "/api/v1/channels/my_calls",
+      reqTitle: "Get Calls",
+      method: "POST",
+      server: "chat",
+      body: JSON.stringify({ limit: "20", last_message_id: id }),
     });
 
     setCalls(response);
@@ -97,33 +95,29 @@ export const getCalls = async (id) => {
   }
 };
 export const SendMessage = async (payload, isNew, isPrivate?) => {
+  // should test this
   const { sendNewMessage, sendRealMessage } = useAppStore.getState();
   let message = payload;
   try {
-    let response = await AxiosPost({
-      url: process.env.NEXT_PUBLIC_CHAT_BACKEND_URL + SEND_MESSAGE_URL,
+    let response = await fetchData({
+      url: SEND_MESSAGE_URL,
       body: JSON.stringify(message),
-      title: "Send Message",
-      token: localStorage.getItem("USER-CHAT") && getUserChat().access_token,
-      headers: {
-        current_role_id:
-          localStorage.getItem("USER-CHAT") && getUserChat().role_id
-            ? localStorage.getItem("USER-CHAT") && getUserChat().role_id
-            : "-1",
-      },
+      reqTitle: "Send Message",
+      method: "POST",
+      server: "chat",
     });
-    if (response?.id) {
+    if (response?.data?.id) {
       if (isNew) {
         sendNewMessage({
           channel: {
-            id: response.channel_id,
-            messages: [{ ...response }],
+            id: response.data.channel_id,
+            messages: [{ ...response.data }],
             mid: isNew,
           },
         });
       } else {
         sendRealMessage({
-          ...response,
+          ...response.data,
           mid: payload.mid,
           cid: payload.cid,
           isPrivate: isPrivate,
@@ -146,32 +140,22 @@ export async function watchChannel(payload) {
 }
 
 export async function DeleteMessageApi(msg_id, bool) {
-  let response = await AxiosPost({
-    url: process.env.NEXT_PUBLIC_CHAT_BACKEND_URL + "/api/v1/messages/destroy",
+  await fetchData({
+    url: "/api/v1/messages/destroy",
     body: JSON.stringify({ id: msg_id, delete_for_all: bool ? 1 : 0 }),
-    title: "Delete Message",
-    token: localStorage.getItem("USER-CHAT") && getUserChat().access_token,
-    headers: {
-      current_role_id:
-        localStorage.getItem("USER-CHAT") && getUserChat().role_id
-          ? localStorage.getItem("USER-CHAT") && getUserChat().role_id
-          : "-1",
-    },
+    reqTitle: "Delete Message",
+    method: "POST",
+    server: "chat",
   });
 }
 export async function deleteChat(payload) {
   try {
-    let response = await AxiosPost({
-      url: process.env.NEXT_PUBLIC_CHAT_BACKEND_URL + DELETE_CHAT_URL,
+    await fetchData({
+      url: DELETE_CHAT_URL,
       body: JSON.stringify({ id: payload }),
-      title: "Delete Channel",
-      token: localStorage.getItem("USER-CHAT") && getUserChat().access_token,
-      headers: {
-        current_role_id:
-          localStorage.getItem("USER-CHAT") && getUserChat().role_id
-            ? localStorage.getItem("USER-CHAT") && getUserChat().role_id
-            : "-1",
-      },
+      reqTitle: "Delete Channel",
+      method: "POST",
+      server: "chat",
     });
   } catch (e) {
     console.error(e);
@@ -189,26 +173,19 @@ export async function Recive(payload) {
 }
 export async function getPage(channel, mid) {
   const { setPageData } = useAppStore.getState();
-
+  // should test this
   try {
     let channel_id = channel;
 
-    let response = await AxiosPost({
-      url:
-        process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
-        `/api/v1/messages/messages_of_channel/${channel_id}?message_id=${mid}&limit=10`,
+    let response = await fetchData({
+      url: `/api/v1/messages/messages_of_channel/${channel_id}?message_id=${mid}&limit=10`,
+      reqTitle: "Get Messages Of Channel",
+      method: "GET",
+      server: "chat",
       body: {},
-      title: "Get Messages Of Channel",
-      token: localStorage.getItem("USER-CHAT") && getUserChat().access_token,
-      headers: {
-        current_role_id:
-          localStorage.getItem("USER-CHAT") && getUserChat().role_id
-            ? localStorage.getItem("USER-CHAT") && getUserChat().role_id
-            : "-1",
-      },
     });
 
-    setPageData({ mes: response, ch: channel_id });
+    setPageData({ mes: response.data, ch: channel_id });
   } catch (e) {}
 }
 export async function SearchContact(payload) {
@@ -229,21 +206,16 @@ export async function SearchContact(payload) {
 }
 export async function PinnChat(payload) {
   try {
-    let response = await AxiosPost({
-      url: process.env.NEXT_PUBLIC_CHAT_BACKEND_URL + SET_CHANNEL_OPT_UTL,
+    await fetchData({
+      url: SET_CHANNEL_OPT_UTL,
       body: JSON.stringify({
         channel_id: payload.id,
         id: payload?.member_id,
         pin: payload.value ? 1 : 0,
       }),
-      title: "Pin Channel",
-      token: localStorage.getItem("USER-CHAT") && getUserChat().access_token,
-      headers: {
-        current_role_id:
-          localStorage.getItem("USER-CHAT") && getUserChat().role_id
-            ? localStorage.getItem("USER-CHAT") && getUserChat().role_id
-            : "-1",
-      },
+      reqTitle: "Pin Channel",
+      method: "POST",
+      server: "chat",
     });
   } catch (e) {}
 
@@ -251,43 +223,31 @@ export async function PinnChat(payload) {
 }
 export async function MuteChat(payload) {
   try {
-    let response = await AxiosPost({
-      url: process.env.NEXT_PUBLIC_CHAT_BACKEND_URL + SET_CHANNEL_OPT_UTL,
+    await fetchData({
+      url: SET_CHANNEL_OPT_UTL,
       body: JSON.stringify({
         channel_id: payload.id,
         id: payload?.member_id,
         mute: payload.value ? 1 : 0,
       }),
-      title: "Mute Channel",
-      token: localStorage.getItem("USER-CHAT") && getUserChat().access_token,
-      headers: {
-        current_role_id:
-          localStorage.getItem("USER-CHAT") && getUserChat().role_id
-            ? localStorage.getItem("USER-CHAT") && getUserChat().role_id
-            : "-1",
-      },
+      reqTitle: "Mute Channel",
+      method: "POST",
+      server: "chat",
     });
   } catch (e) {}
 }
 export async function getMessagesBetweenMessage(payload) {
   const { setPageData } = useAppStore.getState();
-
-  let response = await AxiosPost({
-    url:
-      process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
-      `/api/v1/messages/messages_of_channel/${payload.first}`,
+  // should test this
+  let response = await fetchData({
+    url: `/api/v1/messages/messages_of_channel/${payload.first}`,
+    reqTitle: "Get Messages of Channel",
+    method: "POST",
+    server: "chat",
     body: JSON.stringify({ limit: payload.second + 1 }),
-    title: "Get Messages of Channel",
-    token: localStorage.getItem("USER-CHAT") && getUserChat().access_token,
-    headers: {
-      current_role_id:
-        localStorage.getItem("USER-CHAT") && getUserChat().role_id
-          ? localStorage.getItem("USER-CHAT") && getUserChat().role_id
-          : "-1",
-    },
   });
-
-  setPageData({ mes: response, ch: payload.first });
+  console.log(response);
+  setPageData({ mes: response.data, ch: payload.first });
 }
 
 export async function getContacts() {
@@ -303,23 +263,19 @@ export async function getContacts() {
   setContacts(response.data);
 }
 export const getMedia = async (id, media) => {
+  // should test this
   const { editChatInfoMedia } = useAppStore.getState();
   try {
-    let response = await AxiosPost({
+    let response = await fetchData({
       url:
         process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
         `/api/v1/messages/messages_of_channel/${id}?limit=10&message_type=${media}`,
+      reqTitle: "get Media for a Channel",
+      method: "POST",
+      server: "chat",
       body: {},
-      title: "get Media for a Channel",
-      token: localStorage.getItem("USER-CHAT") && getUserChat().access_token,
-      headers: {
-        current_role_id:
-          localStorage.getItem("USER-CHAT") && getUserChat().role_id
-            ? localStorage.getItem("USER-CHAT") && getUserChat().role_id
-            : "-1",
-      },
     });
-
+    console.log(response);
     editChatInfoMedia({ id: id, data: response.data.data, media: media });
   } catch (e) {}
 };

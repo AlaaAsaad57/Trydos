@@ -577,14 +577,17 @@ export const forwardMessage = (m, activeChat) => {
 };
 
 const uploadFile = async (file_name, file, onUploadProgress) => {
+  // should test this
   let formData = new FormData();
   formData.append("file", file);
   formData.append("file_name", file_name);
-  let axios = (await import("axios")).default;
-  return axios.post(
-    process.env.NEXT_PUBLIC_CHAT_BACKEND_URL + "/api/v1/upload_file",
-    formData
-  );
+
+  return fetchData({
+    url: "/api/v1/upload_file",
+    server: "chat",
+    method: "POST",
+    body: formData,
+  });
 };
 
 export const upload = async (file) => {

@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import { getConfiguredImage, translateFunction } from "utils/functions";
 import Image from "next/image";
 import ChangeOrderItemIcon from "public/svg/ChangeOrderItemIcon.svg";
-import { AxiosGet } from "utils/AxiosApi";
 import Spinner from "components/global/Spinner";
 import { ColorList, SizeList } from "./ModifyOrderItemModal";
 import { GetImageUrl } from "utils/tinyUtils";

@@ -10,15 +10,12 @@ import AgoraRTC, {
   createClient,
   createMicrophoneAndCameraTracks,
 } from "agora-rtc-react";
-
 import { useStopwatch } from "react-timer-hook";
 import { RefuseCall } from "store/chat/callActions";
 import { getTwoLetters } from "../chatsFunctions";
-import axios from "axios";
-
 import { getUserChat, translateFunction } from "utils/functions";
 import { useAppStore } from "store";
-import { AxiosPost } from "utils/AxiosApi";
+import { fetchData } from "utils/fetchData";
 const config = {
   mode: "rtc",
   codec: "h264",
@@ -58,23 +55,15 @@ function VideoCall(props) {
   const { ready, tracks, error } = useMicrophoneAndCameraTracks();
   const getToken = async (channelName) => {
     let token;
-    let data = await axios
-      .post(
-        process.env.NEXT_PUBLIC_CHAT_BACKEND_URL + "/api/v1/agora/token",
-        {
-          channel_name: channelName,
-        },
-        {
-          headers: {
-            Authorization:
-              "Bearer " +
-              JSON.parse(localStorage.getItem("USER-CHAT"))?.access_token,
-          },
-        }
-      )
-      .then((datas) => {
-        token = datas.data.data;
-      });
+    let response = await fetchData({
+      url: "/api/v1/agora/token",
+      server: "chat",
+      method: "POST",
+      body: JSON.stringify({
+        channel_name: channelName,
+      }),
+    });
+    token = response.data.data;
 
     return token;
   };
@@ -83,17 +72,12 @@ function VideoCall(props) {
     let init = async (name) => {
       client.on("user-joined", (user) => {
         reset();
-        axios
-          .get(
-            process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
-              `/api/v1/messages/start_talking/${MessageActiveCall}`,
-            {
-              headers: {
-                Authorization: "Bearer " + getUserChat().access_token,
-              },
-            }
-          )
-          .then((data) => {});
+        fetchData({
+          url: `/api/v1/messages/start_talking/${MessageActiveCall}`,
+          server: "chat",
+          method: "GET",
+          reqTitle: "Start Talking",
+        });
         start();
         setUsers((prevUsers) => {
           return [...prevUsers, user];
@@ -147,11 +131,12 @@ function VideoCall(props) {
   const userEndCall = async (durationVal) => {
     try {
       // Clear user's call state before closing modal
-      await AxiosPost({
-        url: process.env.NEXT_PUBLIC_CHAT_BACKEND_URL + `/api/v1/end_call`,
-        title: "End Call",
-        body: { user_id: getUserChat()?.id },
-        hasMessageOnly: false,
+      await fetchData({
+        url: `/api/v1/end_call`,
+        reqTitle: "End Call",
+        method: "POST",
+        server: "chat",
+        body: JSON.stringify({ user_id: getUserChat()?.id }),
       });
 
       if (ready) {

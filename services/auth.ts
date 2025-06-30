@@ -9,10 +9,7 @@ import { SEND_OTP } from "utils/endpointConfig";
 import ChatService from "services/chat";
 import StoryService from "services/story";
 import home from "./home";
-import { AxiosGet, AxiosPost } from "utils/AxiosApi";
-import { ProductSocialInfo } from "models/API/market/ProductSocialInfo";
 import { changeToken } from "store/homepage/cachedActions";
-import axios from "axios";
 import { SetGAUser } from "utils/gtag";
 
 import { showErrorNotification } from "@/store/notifications/reducer";

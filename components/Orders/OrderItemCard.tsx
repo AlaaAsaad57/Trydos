@@ -8,7 +8,7 @@ import {
 } from "utils/functions";
 import OrderStatusIcon from "components/settings/cards/OrderStatusIcon";
 import CancelOrderItemIcon from "public/svg/cancelOrderItemIcon.svg";
-import { AxiosGet } from "utils/AxiosApi";
+
 import { GetImageUrl } from "utils/tinyUtils";
 import { fetchData } from "utils/fetchData";
 

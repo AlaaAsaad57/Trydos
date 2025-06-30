@@ -182,10 +182,6 @@ const fetchData = createAsyncThunk("feature/fetchData", async () => {
 
 ```typescript
 // API client
-const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL,
-  timeout: 10000,
-});
 
 // Service class
 class ApiService {

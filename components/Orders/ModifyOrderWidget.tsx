@@ -5,7 +5,6 @@ import { translateFunction } from "utils/functions";
 
 import OrderItemCard from "./OrderItemCard";
 import { ModifyOrderItemModal } from "./ModifyOrderItemModal";
-import { AxiosGet } from "utils/AxiosApi";
 
 import { ModifyOrderWidgetPropsType } from "models/componentType/ModifyOrderWidgetPropsType";
 import { showErrorNotification } from "@/store/notifications/reducer";

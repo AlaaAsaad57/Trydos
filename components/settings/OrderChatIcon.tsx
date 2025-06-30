@@ -1,7 +1,6 @@
 import Spinner from "components/global/Spinner";
 import React, { useState } from "react";
 import auth from "services/auth";
-import { AxiosPost } from "utils/AxiosApi";
 import ChatIcon from "public/svg/ChatIcon.svg";
 import ChatWidget from "components/Chat/ChatWidget";
 import { Channel } from "models/Genaral/Channel";

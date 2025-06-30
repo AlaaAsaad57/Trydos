@@ -4,11 +4,12 @@ import UpArrow from "public/svg/arrow-up.svg";
 import XIcon from "public/svg/Xicon.svg";
 import { DebounceInput } from "react-debounce-input";
 import Spinner from "components/global/Spinner";
-import axios from "axios";
+
 import { getMessagesBetweenMessage } from "store/chat/actions";
 import { getUserChat } from "utils/functions";
 import { GetMessageSearchApi } from "models/API/chat/GetMessagesForSearch";
 import { useAppStore } from "store";
+import { fetchData } from "utils/fetchData";
 
 function ChatSearch({ close }) {
   const {
@@ -29,21 +30,17 @@ function ChatSearch({ close }) {
   };
   const getMessagesForSearch = async (value) => {
     if (value?.length > 0) {
-      let response: GetMessageSearchApi = await axios.post(
-        process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
-          "/api/v2/elastic/channelSearch",
-        {
+      let response: GetMessageSearchApi = await fetchData({
+        url: "/api/v2/elastic/channelSearch",
+        server: "chat",
+        method: "POST",
+        body: JSON.stringify({
           query: value,
           channel_id: parseInt(activeChat.id),
           limit: 100,
           offset: parseInt(searchChat.offset),
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${getUserChat().access_token}`,
-          },
-        }
-      );
+        }),
+      });
       let messages = response.data.messages_ids;
       let newOffset = response.data.offset;
       if (response.data.messages_ids?.length > 0) {

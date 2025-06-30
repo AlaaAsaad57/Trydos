@@ -4,7 +4,6 @@ import ExtendedAreaInfo from "./ExtendedAreaInfo";
 import ProductOptions from "./ProductOptions";
 import { translateFunction } from "utils/functions";
 import chat from "services/chat";
-import { AxiosGet, AxiosPost } from "utils/AxiosApi";
 import { useParams, useSearchParams } from "next/navigation";
 import { ProductSocialInfo } from "models/API/market/ProductSocialInfo";
 import { ProductViews } from "models/API/elastic/ProductViews";

@@ -35,7 +35,7 @@ function AddAddressForm({
 
   const getCenter = async () => {
     // to do
-    // let ipData: IpDataApi = await axios.get("http://ip-api.com/json");
+    // let ipData: IpDataApi = await fetchData("http://ip-api.com/json");
     // @ts-ignore
     let UserCountries = countries.filter(
       // @ts-ignore

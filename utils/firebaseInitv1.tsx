@@ -14,7 +14,6 @@ import {
   showSuccessNotification,
   showErrorNotification,
 } from "@/store/notifications/reducer";
-import { AxiosGet } from "./AxiosApi";
 import chat from "services/chat";
 import { Recive, watchChannel as watchChannelAction } from "store/chat/actions";
 import { fetchData } from "./fetchData";

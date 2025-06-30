@@ -14,7 +14,6 @@ import {
   WhatsappShareButton,
 } from "react-share";
 import { getUserChat, translateFunction } from "utils/functions";
-import { AxiosPost } from "utils/AxiosApi";
 import { useAppStore } from "store";
 import CopyIcon from "public/svg/copyIcon.svg";
 import { ShareOptionsPropsType } from "models/componentType/ShareOptionsPropsType";

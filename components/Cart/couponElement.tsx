@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 
 import { useAppStore } from "store";
-import { AxiosGet } from "utils/AxiosApi";
 import { fetchData } from "utils/fetchData";
 import { getCart, RoundPrice, translateFunction } from "utils/functions";
 

@@ -9,7 +9,6 @@ import ShareButton from "./ShareButton";
 import Skeleton from "react-loading-skeleton";
 import { translateFunction } from "utils/functions";
 import home from "services/home";
-import { AxiosPost } from "utils/AxiosApi";
 import auth from "services/auth";
 import { useAppStore } from "store";
 import { ProductOptionsPropsType } from "models/componentType/ProductOptionsPropsType";

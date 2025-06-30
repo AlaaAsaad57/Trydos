@@ -12,9 +12,7 @@ import {
   getUserChat,
   translateFunction as translate,
 } from "utils/functions";
-import axios from "axios";
-import { getCalls } from "store/chat/actions";
-import { AxiosGet, AxiosPost } from "utils/AxiosApi";
+
 import { UnAuthintacetedAction } from "utils/tinyUtils";
 import {
   showSuccessNotification,
@@ -102,17 +100,18 @@ class ChatService {
   async ShareProduct({ userId, product, callback }) {
     const { language } = useAppStore.getState();
     try {
-      let response = await axios.post(
-        process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
-          "/api/v1/messages/share_product",
-        JSON.stringify({
+      await fetchData({
+        url: "/api/v1/messages/share_product",
+        body: JSON.stringify({
           receiver_ids: userId,
           content: [
             { ...product, product_image_width: 400, product_image_height: 400 },
           ],
         }),
-        { ...ChatHeader() }
-      );
+        method: "POST",
+        server: "chat",
+        reqTitle: "Share Product",
+      });
       await this.getChats("share");
       showSuccessNotification(translate("Shared Successfully", language));
       callback();

@@ -4,8 +4,7 @@ import {
   showSuccessNotification,
   showErrorNotification,
 } from "@/store/notifications/reducer";
-import axios from "axios";
-import { AxiosPost } from "utils/AxiosApi";
+import { fetchData } from "utils/fetchData";
 export const makeVideoCall = async (
   channelId,
   callerName,
@@ -20,35 +19,26 @@ export const makeVideoCall = async (
       typeof channelId === "string" && channelId.includes("ch")
         ? { receiver_user_id: parseInt(channelId.split("ch-")[1]) }
         : { channel_id: channelId };
-    await axios
-      .post(
-        process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
-          `/api/v1/messages/video_call`,
-        {
-          ...obj,
-          payload: {
-            user_id: getUserChat()?.id,
-            type: "video",
-            channelId: channelId,
-            callerName: callerName,
-            callerPhoto: callerPhoto,
-            mobilePhone: mobilePhone,
-          },
+    let response = await fetchData({
+      url: `/api/v1/messages/video_call`,
+      body: JSON.stringify({
+        ...obj,
+        payload: {
+          user_id: getUserChat()?.id,
+          type: "video",
+          channelId: channelId,
+          callerName: callerName,
+          callerPhoto: callerPhoto,
+          mobilePhone: mobilePhone,
         },
-        {
-          headers: {
-            Authorization:
-              `Bearer ` +
-              JSON.parse(localStorage.getItem("USER-CHAT"))?.access_token,
-          },
-        }
-      )
-      .then((data) => {
-        setVideoCall(data.data.data.token, data.data.data.message);
-        editCall(data.data.data.message);
-
-        setCallLoading(null);
-      });
+      }),
+      method: "POST",
+      server: "chat",
+      reqTitle: "Video Call",
+    });
+    setVideoCall(response.data.data.token, response.data.data.message);
+    editCall(response.data.data.message);
+    setCallLoading(null);
   } catch (e) {
     showErrorNotification(translateFunction("User in Another Call"));
     endCall(-1);
@@ -70,11 +60,11 @@ export const makeVoiceCall = async (
         ? { receiver_user_id: parseInt(channelId.split("ch-")[1]) }
         : { channel_id: channelId };
     setCallLoading("voice");
-    await axios
-      .post(
-        process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
-          `/api/v1/messages/voice_call`,
-        {
+    let response = await fetchData({
+      url: `/api/v1/messages/voice_call`,
+      body: JSON.stringify({
+        ...obj,
+        payload: {
           ...obj,
           payload: {
             user_id: getUserChat()?.id,
@@ -85,19 +75,14 @@ export const makeVoiceCall = async (
             mobilePhone: mobilePhone,
           },
         },
-        {
-          headers: {
-            Authorization:
-              `Bearer ` +
-              JSON.parse(localStorage.getItem("USER-CHAT"))?.access_token,
-          },
-        }
-      )
-      .then((data) => {
-        setAudioCall(data.data.data.token, data.data.data.message);
-        editCall(data.data.data.message);
-        setCallLoading(null);
-      });
+      }),
+      method: "POST",
+      server: "chat",
+      reqTitle: "Voice Call",
+    });
+    setAudioCall(response.data.data.token, response.data.data.message);
+    editCall(response.data.data.message);
+    setCallLoading(null);
   } catch (e) {
     console.error(e);
     showErrorNotification(translateFunction("User in Another Call"));
@@ -115,48 +100,30 @@ export const AnswerCall = async (channelId, messageId) => {
     showSuccessNotification(
       translateFunction("Initialize Call please wait..", language)
     );
-    await axios
-      .get(
-        process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
-          `/api/v1/messages/${messageId}/users`,
-        {
-          headers: {
-            Authorization:
-              "Bearer " +
-              JSON.parse(localStorage.getItem("USER-CHAT"))?.access_token,
-          },
-        }
-      )
-      .then((data) => {
-        if (
-          data.data.data.filter(
-            (user) => parseInt(user.user.id) === parseInt(getUserChat().id)
-          )[0].status === "active"
-        )
-          status = true;
-        else {
-          status = false;
-        }
-      });
-
+    let response = await fetchData({
+      url: `/api/v1/messages/${messageId}/users`,
+      method: "GET",
+      server: "chat",
+      reqTitle: "Answer Call",
+    });
+    if (
+      response.data.data.filter(
+        (user) => parseInt(user.user.id) === parseInt(getUserChat().id)
+      )[0].status === "active"
+    )
+      status = true;
+    else {
+      status = false;
+    }
     if (status === false) {
-      await axios
-        .post(
-          process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
-            `/api/v1/channels/${channelId}/agora_token`,
-          {},
-          {
-            headers: {
-              Authorization:
-                `Bearer ` +
-                JSON.parse(localStorage.getItem("USER-CHAT"))?.access_token,
-            },
-          }
-        )
-        .then((data) => {
-          Answer(channelId, messageId);
-          answerCall(data.data.data);
-        });
+      let response2 = await fetchData({
+        url: `/api/v1/channels/${channelId}/agora_token`,
+        method: "POST",
+        server: "chat",
+        reqTitle: "Agora Token",
+      });
+      Answer(channelId, messageId);
+      answerCall(response2.data.data);
     } else {
       showErrorNotification(
         translateFunction("Call Answered from another account", language)
@@ -176,20 +143,13 @@ export const InCall = async (channelId, messageId) => {
         typeof channelId === "string" && channelId.includes("ch")
           ? { receiver_user_id: parseInt(channelId.split("ch-")[1]) }
           : { channel_id: channelId };
-      await axios
-        .post(
-          process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
-            `/api/v1/messages/in_another_call/${messageId}`,
-          { ...obj },
-          {
-            headers: {
-              Authorization:
-                `Bearer ` +
-                JSON.parse(localStorage.getItem("USER-CHAT"))?.access_token,
-            },
-          }
-        )
-        .then(() => {});
+      await fetchData({
+        url: `/api/v1/messages/in_another_call/${messageId}`,
+        body: JSON.stringify({ ...obj }),
+        method: "POST",
+        server: "chat",
+        reqTitle: "In Another Call",
+      });
     }
   } catch (error) {}
 };
@@ -197,11 +157,12 @@ export const RefuseCall = async (channelId, messageId, duration) => {
   const { endCall } = useAppStore.getState();
   try {
     // Clear user's call state
-    await AxiosPost({
-      url: process.env.NEXT_PUBLIC_CHAT_BACKEND_URL + `/api/v1/end_call`,
-      title: 'End Call',
-      body: { user_id: getUserChat()?.id },
-      hasMessageOnly: false
+    await fetchData({
+      url: `/api/v1/end_call`,
+      reqTitle: "End Call",
+      method: "POST",
+      server: "chat",
+      body: JSON.stringify({ user_id: getUserChat()?.id }),
     });
 
     if (messageId) {
@@ -213,22 +174,14 @@ export const RefuseCall = async (channelId, messageId, duration) => {
             }
           : { channel_id: channelId, duration_in_seconds: duration || 0 };
 
-      await axios
-        .post(
-          process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
-            `/api/v1/messages/refuse_call/${messageId}`,
-          { ...obj, payload: { target: "web" } },
-          {
-            headers: {
-              Authorization:
-                `Bearer ` +
-                JSON.parse(localStorage.getItem("USER-CHAT"))?.access_token,
-            },
-          }
-        )
-        .then(() => {
-          endCall(messageId);
-        });
+      await fetchData({
+        url: `/api/v1/messages/refuse_call/${messageId}`,
+        body: JSON.stringify({ ...obj, payload: { target: "web" } }),
+        method: "POST",
+        server: "chat",
+        reqTitle: "Refuse Call",
+      });
+      endCall(messageId);
     }
   } catch (e) {
     console.error(e);
@@ -240,19 +193,12 @@ export const Answer = async (channelId, messageId) => {
       typeof channelId === "string" && channelId.includes("ch")
         ? { receiver_user_id: parseInt(channelId.split("ch-")[1]) }
         : { channel_id: channelId };
-    await axios
-      .post(
-        process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
-          `/api/v1/messages/answer_call/${messageId}`,
-        { ...obj },
-        {
-          headers: {
-            Authorization:
-              `Bearer ` +
-              JSON.parse(localStorage.getItem("USER-CHAT"))?.access_token,
-          },
-        }
-      )
-      .then(() => {});
+    await fetchData({
+      url: `/api/v1/messages/answer_call/${messageId}`,
+      body: JSON.stringify({ ...obj }),
+      method: "POST",
+      server: "chat",
+      reqTitle: "Answer Call",
+    });
   } catch (e) {}
 };

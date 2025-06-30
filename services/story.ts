@@ -9,13 +9,12 @@ import {
 } from "utils/endpointConfig";
 
 import Cookies from "js-cookie";
-import axios from "axios";
 import { GetStoriesApi } from "models/API/stories/GetStories";
 import { LoginStoreisApi } from "models/API/stories/Login";
 import { UploadStoryApi } from "models/API/stories/UploadStory";
 import profilePicture from "public/images/profileNo.png";
 import { useAppStore } from "store";
-import { AxiosGet } from "utils/AxiosApi";
+
 import { formatTime, GetImageUrl } from "utils/tinyUtils";
 import { fetchData } from "utils/fetchData";
 
@@ -55,13 +54,17 @@ class StoryService {
     return { data, next_page_url: repo.data.next_page_url };
   }
   async loginStories() {
-    const response: LoginStoreisApi = await axios.post(
-      process.env.NEXT_PUBLIC_STORIES_BACKEND_URL + LOG_IN_STORIES,
-      {
+    // should test this
+    const response: LoginStoreisApi = await fetchData({
+      url: LOG_IN_STORIES,
+      reqTitle: "Login Stories",
+      method: "POST",
+      server: "stories",
+      body: JSON.stringify({
         otp_id_token: localStorage.getItem("ID-TOKEN"),
         mobile_phone: JSON.parse(localStorage.getItem("USER")).phone,
-      }
-    );
+      }),
+    });
     let repo = response.data;
     localStorage.setItem("USER-STORIES", JSON.stringify(repo.data));
 
@@ -110,33 +113,20 @@ class StoryService {
     endUpload: Function,
     link
   ) {
+    // should test this
     const formData = new FormData();
     if (link?.length) {
       formData.append("link", link);
     }
     formData.append("file", file);
     formData.append("is_video", is_video);
-    const response: UploadStoryApi = await axios.post(
-      process.env.NEXT_PUBLIC_STORIES_BACKEND_URL + UPLOAD_STORY_URL,
-      formData,
-      {
-        headers: {
-          Authorization:
-            "Bearer " +
-            (typeof localStorage !== "undefined" &&
-              localStorage.getItem("USER-STORIES") &&
-              JSON.parse(localStorage.getItem("USER-STORIES")).access_token),
-          language: Cookies.get("language"),
-
-          country: Cookies.get("country"),
-        },
-        onUploadProgress: (progressEvent) => {
-          callback(
-            Math.round((progressEvent.loaded * 100) / progressEvent.total)
-          );
-        },
-      }
-    );
+    const response: UploadStoryApi = await fetchData({
+      url: UPLOAD_STORY_URL,
+      reqTitle: "Upload Story",
+      method: "POST",
+      server: "stories",
+      body: formData,
+    });
 
     if (typeof window !== "undefined") {
       _isStoreLastJson() &&

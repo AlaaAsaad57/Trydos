@@ -20,8 +20,6 @@ import {
   STARTER_SETTINGS,
 } from "utils/endpointConfig";
 import { SSRDetect } from "utils/functions";
-import axios from "axios";
-import { AxiosGet, AxiosPost } from "utils/AxiosApi";
 import { changeToken } from "store/homepage/cachedActions";
 import { RegisterGuestApi } from "models/API/market/RegisterGuest";
 import { CustomerInfoResponse } from "models/API/market/CustomerInfo";
@@ -481,29 +479,31 @@ class HomeService {
   }
   async TestNotificationBoutique({ boutique_id }) {
     await this.subscribeToTopic({ topic: "boutique_created" });
-    await axios.post(
-      process.env.NEXT_PUBLIC_BACKEND_URL +
-        "/firebase_device_tokens/send_boutique_created",
-      {
+    await fetchData({
+      url: "/firebase_device_tokens/send_boutique_created",
+      body: JSON.stringify({
         boutique_id: 144,
         topic: "boutique_created",
         language_code: LocalizationServiceClass.GetAppLanguage(),
         country_iso: LocalizationServiceClass.GetAppCountry(),
-      },
-      { ...getHeader() }
-    );
+      }),
+      reqTitle: "send boutique created",
+      method: "POST",
+      server: "market",
+    });
   }
   async TestNotificationProductToOldCart() {
-    await axios.post(
-      process.env.NEXT_PUBLIC_BACKEND_URL +
-        "/firebase_device_tokens/send_product_cart_expiration",
-      {
+    await fetchData({
+      url: "/firebase_device_tokens/send_product_cart_expiration",
+      body: JSON.stringify({
         product_id: 7681,
         language_code: LocalizationServiceClass.GetAppLanguage(),
         country_iso: LocalizationServiceClass.GetAppCountry(),
-      },
-      { ...getHeader() }
-    );
+      }),
+      reqTitle: "send product cart expiration",
+      method: "POST",
+      server: "market",
+    });
   }
   async TestNotificationProductAvailable() {
     await this.subscribeToTopic({
@@ -511,100 +511,102 @@ class HomeService {
       variant: "Blue-XXL",
     });
 
-    await axios
-      .post(
-        process.env.NEXT_PUBLIC_BACKEND_URL +
-          "/firebase_device_tokens/send_product_availability",
-        {
-          product_id: 7681,
-          variant: "Blue-XXL",
-          topic: "product_availability_7681",
-          language_code: LocalizationServiceClass.GetAppLanguage(),
-          country_iso: LocalizationServiceClass.GetAppCountry(),
-        },
-        { ...getHeader() }
-      )
-      .catch((s) => {
-        console.error(s);
-      });
+    await fetchData({
+      url: "/firebase_device_tokens/send_product_availability",
+      body: JSON.stringify({
+        product_id: 7681,
+        variant: "Blue-XXL",
+        topic: "product_availability_7681",
+        language_code: LocalizationServiceClass.GetAppLanguage(),
+        country_iso: LocalizationServiceClass.GetAppCountry(),
+      }),
+      reqTitle: "send product availability",
+      method: "POST",
+      server: "market",
+    });
   }
 
   async TestNotificationProductComment() {
     await this.subscribeToTopic({ topic: "product_comment_7681" });
-    await axios.post(
-      process.env.NEXT_PUBLIC_BACKEND_URL +
-        "/firebase_device_tokens/send_product_comment",
-      {
+    await fetchData({
+      url: "/firebase_device_tokens/send_product_comment",
+      body: JSON.stringify({
         product_id: 7681,
         topic: "product_comment_7681",
         language_code: LocalizationServiceClass.GetAppLanguage(),
         country_iso: LocalizationServiceClass.GetAppCountry(),
-      },
-      { ...getHeader() }
-    );
+      }),
+      reqTitle: "send product comment",
+      method: "POST",
+      server: "market",
+    });
   }
   async TestNotificationProductDiscount() {
     await this.subscribeToTopic({ topic: "product_discount_7681" });
 
-    await axios.post(
-      process.env.NEXT_PUBLIC_BACKEND_URL +
-        "/firebase_device_tokens/send_product_discount",
-      {
+    await fetchData({
+      url: "/firebase_device_tokens/send_product_discount",
+      body: JSON.stringify({
         product_id: 7681,
         topic: "product_discount_7681",
         language_code: LocalizationServiceClass.GetAppLanguage(),
         country_iso: LocalizationServiceClass.GetAppCountry(),
-      },
-      { ...getHeader() }
-    );
+      }),
+      reqTitle: "send product discount",
+      method: "POST",
+      server: "market",
+    });
   }
   async TestNotificationCategoryCreated() {
     await this.subscribeToTopic({ topic: "category_created" });
 
-    await axios.post(
-      process.env.NEXT_PUBLIC_BACKEND_URL +
-        "/firebase_device_tokens/send_category_created",
-      {
+    await fetchData({
+      url: "/firebase_device_tokens/send_category_created",
+      body: JSON.stringify({
         category_id: 392,
         topic: "category_created",
         language_code: LocalizationServiceClass.GetAppLanguage(),
         country_iso: LocalizationServiceClass.GetAppCountry(),
-      },
-      { ...getHeader() }
-    );
+      }),
+      reqTitle: "send category created",
+      method: "POST",
+      server: "market",
+    });
   }
   //before stock out and change in price
   async TestNotificationBeforeStockOut() {
     await this.subscribeToTopic({ topic: "product_before_stock_out_7681" });
 
-    await axios.post(
-      process.env.NEXT_PUBLIC_BACKEND_URL +
-        "/firebase_device_tokens/send_product_before_stock_out",
-      {
+    await fetchData({
+      url: "/firebase_device_tokens/send_product_before_stock_out",
+      body: JSON.stringify({
         user_id: auth.UserID(),
         product_id: 7681,
         topic: "product_before_stock_out_7681",
         language_code: LocalizationServiceClass.GetAppLanguage(),
         country_iso: LocalizationServiceClass.GetAppCountry(),
-      },
-      { ...getHeader() }
-    );
+      }),
+      reqTitle: "send product before stock out",
+      method: "POST",
+      server: "market",
+    });
   }
   async TestNotificationChangeInPrice() {
     await this.subscribeToTopic({ topic: "product_when_change_in_price_7681" });
 
-    await axios.post(
-      process.env.NEXT_PUBLIC_BACKEND_URL +
-        "/firebase_device_tokens/send_product_when_change_in_price",
-      {
+    await fetchData({
+      url: "/firebase_device_tokens/send_product_when_change_in_price",
+      body: JSON.stringify({
         user_id: auth.UserID(),
         product_id: 7681,
         topic: "product_when_change_in_price_7681",
         language_code: LocalizationServiceClass.GetAppLanguage(),
         country_iso: LocalizationServiceClass.GetAppCountry(),
-      },
-      { ...getHeader() }
-    );
+      }),
+      reqTitle: "send product when change in price",
+      method: "POST",
+      server: "market",
+    });
   }
   async StoreNotificationProduct({ type_id, variant, product_id }) {
     let detail = {
@@ -613,20 +615,20 @@ class HomeService {
       notification_type_id: type_id,
       variant: variant,
     };
-    var formBody: any = [];
-    for (var property in detail) {
-      var encodedKey = encodeURIComponent(property);
-      var encodedValue = encodeURIComponent(detail[property]);
-      formBody.push(encodedKey + "=" + encodedValue);
-    }
-    formBody = formBody.join("&");
-    await axios
-      .post(
-        process.env.NEXT_PUBLIC_BACKEND_URL + "/product_notification/store",
-        formBody,
-        { ...getHeader() }
-      )
-      .catch((e) => {});
+    // var formBody: any = [];
+    // for (var property in detail) {
+    //   var encodedKey = encodeURIComponent(property);
+    //   var encodedValue = encodeURIComponent(detail[property]);
+    //   formBody.push(encodedKey + "=" + encodedValue);
+    // }
+    // formBody = formBody.join("&");
+    await fetchData({
+      url: "/product_notification/store",
+      body: JSON.stringify(detail),
+      reqTitle: "store product notification",
+      method: "POST",
+      server: "market",
+    });
   }
   async EditNotificationSettings({ url, body }) {
     try {

@@ -2,7 +2,6 @@ import React, { useEffect } from "react";
 import CommentItem from "./CommentItem";
 import { showDate } from "components/Chat/chatsFunctions";
 import Skeleton from "react-loading-skeleton";
-import { AxiosPost } from "utils/AxiosApi";
 import { AddComment } from "models/API/market/AddComment";
 import auth from "services/auth";
 import profilePng from "public/images/profileNo.png";

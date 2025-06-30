@@ -1,6 +1,4 @@
 import { useEffect, useRef } from "react";
-import { AxiosGet } from "utils/AxiosApi";
-
 import { useAppStore } from "store";
 import { fetchData } from "utils/fetchData";
 

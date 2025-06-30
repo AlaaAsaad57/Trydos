@@ -1,8 +1,5 @@
 import { AddComment } from "models/API/market/AddComment";
 import React, { useState } from "react";
-
-import { AxiosPost } from "utils/AxiosApi";
-
 import CommentPost from "public/svg/CommentPost.svg";
 import auth from "services/auth";
 import { translateFunction } from "utils/functions";

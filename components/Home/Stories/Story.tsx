@@ -1,18 +1,13 @@
 "use client";
 
-import { errorPNG } from "utils/AxiosApi";
+import pngErr from "public/images/error.png";
 import Image from "next/image";
 import StoryServiceClass from "services/story";
 import { FixedStory as StoryType } from "models/Genaral/Story";
 import { SelectStory } from "store/homepage/actions";
 import { StoryPropsType } from "models/componentType/StoryPropsType";
 
-function Story({
-  media,
-  Name,
-  index,
-  story,
-}: StoryPropsType) {
+function Story({ media, Name, index, story }: StoryPropsType) {
   const setSelectStory = (e: StoryType) => {
     SelectStory(e);
   };
@@ -35,7 +30,7 @@ function Story({
           priority={true}
           loading="eager"
           onError={(e) => {
-            e.currentTarget.src = errorPNG.src;
+            e.currentTarget.src = pngErr.src;
             e.currentTarget.onerror = null;
           }}
           src={StoryServiceClass.getThumb(

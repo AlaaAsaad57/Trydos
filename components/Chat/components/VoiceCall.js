@@ -12,11 +12,10 @@ import AgoraRTC, {
 import { useStopwatch } from "react-timer-hook";
 import { RefuseCall } from "store/chat/callActions";
 import { getTwoLetters } from "../chatsFunctions";
-import axios from "axios";
-
 import { getUserChat, translateFunction } from "utils/functions";
 import { useAppStore } from "store";
-import { AxiosPost } from "utils/AxiosApi";
+import { fetchData } from "utils/fetchData";
+
 const config = {
   mode: "rtc",
   codec: "h264",
@@ -60,21 +59,16 @@ function VideoCall(props) {
   useEffect(() => {
     // function to initialise the SDK
     let init = async (name) => {
-      client.on("user-joined", (user) => {
+      client.on("user-joined", async (user) => {
         reset();
         start();
 
-        axios
-          .get(
-            process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
-              `/api/v1/messages/start_talking/${MessageActiveCall}`,
-            {
-              headers: {
-                Authorization: "Bearer " + getUserChat().access_token,
-              },
-            }
-          )
-          .then((data) => {});
+        await fetchData({
+          url: `/api/v1/messages/start_talking/${MessageActiveCall}`,
+          server: "chat",
+          method: "GET",
+          reqTitle: "Start Talking",
+        });
       });
       client.on("user-published", async (user, mediaType) => {
         await client.subscribe(user, mediaType);
@@ -115,11 +109,12 @@ function VideoCall(props) {
   const [joined, setJoined] = useState(false);
   const userEndCall = async (durationVal) => {
     try {
-      await AxiosPost({
-        url: process.env.NEXT_PUBLIC_CHAT_BACKEND_URL + `/api/v1/end_call`,
-        title: "End Call",
-        body: { user_id: getUserChat()?.id },
-        hasMessageOnly: false,
+      await fetchData({
+        url: `/api/v1/end_call`,
+        reqTitle: "End Call",
+        method: "POST",
+        server: "chat",
+        body: JSON.stringify({ user_id: getUserChat()?.id }),
       });
 
       if (ready) {

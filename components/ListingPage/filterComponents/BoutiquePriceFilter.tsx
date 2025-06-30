@@ -3,9 +3,8 @@ import FilterLabel from "./FilterLabel";
 
 import PriceCancel from "public/svg/listing/PriceCancel.svg";
 import PriceSlider from "./PriceSlider";
-import { useParams } from "next/navigation";
 import dynamic from "next/dynamic";
-import { RoundPrice, UpdateFilter } from "utils/functions";
+import { RoundPrice } from "utils/functions";
 import { useAppStore } from "store";
 
 const PriceChart = dynamic(() => import("./PriceChart"), {
@@ -22,46 +21,6 @@ function BoutiquePriceFilter() {
     currency,
     settings,
   } = useAppStore();
-
-  const pathName = useParams();
-
-  const set_Value = (e) => {
-    if (
-      (e.min === selectedFilter.prices.min &&
-        e.max === selectedFilter.prices.max) ||
-      (e.min === filters.prices.min_price && e.max === filters.prices.max_price)
-    ) {
-      return;
-    } else if (e.min < e.max) {
-      setFilterLoading(true);
-      // Sendevent({
-      //   event: GA_EVENT_NAMES.CLICK,
-      //   value: GA_CLICK_EVENT_VALUES.ADD_FILTER_ITEM,
-      //   extra: {
-      //     type: "price",
-      //     name: `${e.min / currency?.exchange_rate} - ${
-      //       e.max / currency?.exchange_rate
-      //     }`,
-      //   },
-      // });
-      filterPrice({
-        min: e.min / currency?.exchange_rate,
-        max: e.max / currency?.exchange_rate,
-      });
-      UpdateFilter({
-        boutiqueId: pathName.productCategory,
-        lang: pathName.lang,
-        sizesAttr: filters.sizesAttr,
-        newFiltersCallback: ({ filtersVar }) => {
-          editFilter(filtersVar);
-        },
-        searchText: "",
-        done: () => {
-          setFilterLoading(false);
-        },
-      });
-    }
-  };
 
   const getPrice = (num) => {
     return RoundPrice({

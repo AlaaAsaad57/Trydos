@@ -1,18 +1,12 @@
 import translations from "public/translations/translations.js";
 import { useAppStore } from "store";
-import Cookies from "js-cookie";
-
 import { notFound } from "next/navigation";
 import { LogData } from "store/homepage/actions";
-import { AxiosCacheApi, AxiosGet } from "./AxiosApi";
 import home from "services/home";
-import axios from "axios";
 import { SimpleDetailsProductApi } from "models/API/market/ProductSimpleDetails";
 import { CartResponse } from "models/API/market/CartShipping";
 import { SimpleBoutiqeApi } from "models/API/market/BoutiqueSimpleDetails";
 import { OldCartApi } from "models/API/market/OldCart";
-import { SearchResponse } from "models/API/elastic/Search";
-import auth from "services/auth";
 import LocalizationServiceClass from "services/localization";
 import { CielNumber } from "./tinyUtils";
 import { GetConfiguredImagePropsType } from "models/componentType/boutiqueTypes/metaDataPropsType";
@@ -397,77 +391,6 @@ export const urlParams = ({ filters, noProducts, noFilter = false }) => {
 
   return urlParams.toString();
 };
-export const UpdateFilter = async ({
-  sizesAttr,
-  boutiqueId,
-  searchText,
-  lang,
-  newFiltersCallback,
-  done,
-  filtersVar,
-}: {
-  sizesAttr: any;
-  boutiqueId: any;
-  searchText: any;
-  lang: any;
-  newFiltersCallback: any;
-  done: any;
-  filtersVar?: any;
-}) => {
-  try {
-    const { selectedFilter } = useAppStore.getState();
-
-    const filterObj = filtersVar || selectedFilter;
-
-    let filters = {
-      categories: filterObj.categories.map((s) => s.slug),
-      prices:
-        filterObj.prices?.min >= 0
-          ? [
-              `${filterObj.prices.min.toString()}-${filterObj.prices.max.toString()}`,
-            ]
-          : null,
-      brands: filterObj.brands.map((brand) => brand.slug),
-      attributes: { ...sizesAttr, options: filterObj.sizes },
-      boutique_slug: boutiqueId,
-      lang: lang.split("-")[1],
-      country: lang.split("-")[0],
-      searchText: searchText || filterObj.searchText,
-      colors: filterObj.colors.map((s) => s),
-    };
-    let urlParam = urlParams({ filters: filters, noProducts: true });
-    let str = `/api/products/searchInCatalog?${urlParam}`;
-    let product: SearchResponse = await AxiosCacheApi({
-      url: process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL + str,
-      params:
-        filters.colors.length === 0
-          ? null
-          : { colors: `${JSON.stringify(filters.colors)}` },
-    });
-
-    newFiltersCallback({
-      filtersVar: {
-        categories: product.data?.categories || [],
-        brands: product.data.brands || [],
-        sizes:
-          product.data.attributes?.filter((s) => s.name === "Size")[0]
-            ?.options || [],
-        prices: product.data.prices || null,
-        offers:
-          product.data.attributes.filter((s) => s.name === "Offer")[0]
-            ?.options || [],
-        reset: false,
-        colors: product.data.colors || [],
-        total_size: product.data.total_size,
-        searchText: searchText,
-      },
-    });
-    done();
-  } catch (error) {
-    done();
-    console.log(error);
-  }
-};
 
 export function formatPrice(price) {
   const { currency } = useAppStore.getState();
@@ -659,13 +582,15 @@ export const AddToCartAnimation = () => {
   );
 };
 
-export const LogError = (error) => {
-  axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/mobile_error_log/store`, {
-    error_description: JSON.stringify({ ...error, platform: "web" }),
-    // token: auth.UserToken(),
-    // url: href,
-    // backend_url: url,
-    // user_id: user_id,
+export const LogError = async (error) => {
+  await fetchData({
+    url: "/mobile_error_log/store",
+    reqTitle: "Log Error",
+    method: "POST",
+    server: "market",
+    body: JSON.stringify({
+      error_description: { ...error, platform: "web" },
+    }),
   });
 };
 

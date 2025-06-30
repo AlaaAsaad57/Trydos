@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import { AxiosGet, AxiosPost } from "utils/AxiosApi";
 import { FIREBASE_SETTINGS_URL } from "utils/endpointConfig";
 import { translateFunction } from "utils/functions";
 import FirebasIcon from "public/svg/FireBase.svg";

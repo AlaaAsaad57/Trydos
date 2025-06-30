@@ -1,8 +1,9 @@
 import React, { useState } from "react";
-import axios from "axios";
+
 import { translateFunction } from "utils/functions";
 import { getContacts } from "store/chat/actions";
 import { useAppStore } from "store";
+import { fetchData } from "utils/fetchData";
 
 declare global {
   interface Navigator {
@@ -62,26 +63,12 @@ function ChatContactsUpload() {
         map.set(contact.mobile_phone, contact.name);
       });
       // Upload contacts with progress tracking
-      alert(JSON.stringify(map.values()));
-      let res = await axios.post(
-        process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
-          "/api/v1/users/save_contacts",
-        { contacts: [...ContactsData, ...formattedContacts] },
-        {
-          onUploadProgress: (progressEvent) => {
-            const progress = Math.round(
-              (progressEvent.loaded * 100) / (progressEvent.total || 1)
-            );
-            setUploadProgress(progress);
-          },
-          headers: {
-            Authorization: `Bearer ${
-              JSON.parse(localStorage.getItem("USER-CHAT") || "{}")
-                ?.access_token
-            }`,
-          },
-        }
-      );
+      await fetchData({
+        url: "/api/v1/users/save_contacts",
+        server: "chat",
+        method: "POST",
+        body: { contacts: [...ContactsData, ...formattedContacts] },
+      });
       await getContacts();
       setUploadProgress(100);
       setTimeout(() => {
@@ -129,25 +116,12 @@ function ChatContactsUpload() {
       ];
 
       // Upload contact with progress tracking
-      await axios.post(
-        process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
-          "/api/v1/users/save_contacts",
-        { contacts: [...ContactsData, ...formattedContact] },
-        {
-          onUploadProgress: (progressEvent) => {
-            const progress = Math.round(
-              (progressEvent.loaded * 100) / (progressEvent.total || 1)
-            );
-            setUploadProgress(progress);
-          },
-          headers: {
-            Authorization: `Bearer ${
-              JSON.parse(localStorage.getItem("USER-CHAT") || "{}")
-                ?.access_token
-            }`,
-          },
-        }
-      );
+      await fetchData({
+        url: "/api/v1/users/save_contacts",
+        server: "chat",
+        method: "POST",
+        body: { contacts: [...ContactsData, ...formattedContact] },
+      });
 
       await getContacts();
       setUploadProgress(100);

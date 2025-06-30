@@ -1,4 +1,4 @@
-import { errorPNG } from "utils/AxiosApi";
+import pngErr from "public/images/error.png";
 import Image from "next/image";
 import StoryServiceClass from "services/story";
 function StoryChatRow({ story, index, viewedStory, stories, select }) {
@@ -24,7 +24,7 @@ function StoryChatRow({ story, index, viewedStory, stories, select }) {
         }}
         onLoad={(e) => {}}
         onError={(e) => {
-          e.currentTarget.src = errorPNG.src;
+          e.currentTarget.src = pngErr.src;
           e.currentTarget.onerror = null;
         }}
         src={StoryServiceClass.getThumb(
