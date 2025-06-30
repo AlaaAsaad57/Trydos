@@ -11,6 +11,7 @@ import { changeToken } from "store/homepage/cachedActions";
 import { textMarshal } from "node_modules/text-marshal/lib";
 import { GA_GLOBAL_SCREEN } from "./GAEvents";
 import { showErrorNotification } from "@/store/notifications/reducer";
+import { fetchData } from "./fetchData";
 // TypeScript interfaces for filter system
 export interface FilterParams {
   boutiques?: string[];
@@ -261,13 +262,15 @@ export const ChatConroller = (payload) => {
   setChatOpen(payload);
 };
 export const getCurrency = async ({ callback }) => {
-  let currency = await AxiosGet({
-    url: process.env.NEXT_PUBLIC_BACKEND_URL + "/mobile/home/currency",
-    title: "Currency Request",
+  let response = await fetchData({
+    url: "/mobile/home/currency",
+    reqTitle: "Currency Request",
+    method: "GET",
+    server: "market",
   });
 
-  callback({ currency: currency?.currency, res: {} });
-  return currency?.currency;
+  callback({ currency: response.data?.currency, res: {} });
+  return response.data?.currency;
 };
 export const FlagIcon = ({ iso }) => {
   if (iso.toLowerCase() === "sy")

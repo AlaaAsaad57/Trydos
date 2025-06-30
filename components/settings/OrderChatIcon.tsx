@@ -8,6 +8,7 @@ import { Channel } from "models/Genaral/Channel";
 import { useAppStore } from "store";
 import { getUserChat } from "utils/functions";
 import { OrderChatIconPropsType } from "models/componentType/OrderChatIconPropsType";
+import { fetchData } from "utils/fetchData";
 
 function OrderChatIcon({
   id,
@@ -22,68 +23,67 @@ function OrderChatIcon({
   const getChatWithShipping = async () => {
     setIsGettingChat(true);
     try {
-      let res = await AxiosPost({
-        url:
-          process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
-          "/api/v1/order-chat-participants/get-recipient",
+      let response = await fetchData({
+        url: "/api/v1/order-chat-participants/get-recipient",
+        reqTitle: "Get Chat with Deleivery",
+        method: "POST",
+        server: "chat",
         body: {
           original_user_id: auth.UserID(),
           order_id: id,
         },
-        token: JSON.parse(localStorage.getItem("USER-CHAT"))?.access_token,
-        title: "Get Chat with Deleivery",
       });
       document.documentElement.style.overflow = "hidden";
       document.documentElement.scrollTop = 0;
       document.querySelector("#OrderDetails").scrollTop = 0;
       document.querySelector("#OrderDetails").classList.add("overflow-hidden");
       document.querySelector("#OrderDetails").classList.remove("overflow-auto");
-      if (res.channel) {
+      if (response.data.channel) {
         setChatInfo({
-          ...res.channel,
+          ...response.data.channel,
           channel_members: [
             {
               user: getUserChat(),
-              ...res.channel.channel_members.find(
+              ...response.data.channel.channel_members.find(
                 (s) => s.user_id === getUserChat().id
               ),
             },
             {
               user: {
-                id: res.recipient.id,
+                id: response.data.recipient.id,
                 name: "Deleivery Worker",
                 mobile_phone: "",
                 username: "Deleivery Worker",
               },
-              ...res.channel.channel_members.find(
+              ...response.data.channel.channel_members.find(
                 (s) => s.user_id !== getUserChat().id
               ),
             },
           ],
         });
         openChat({
-          ...res.channel,
+          ...response.data.channel,
           channel_members: [
             {
               user: getUserChat(),
-              ...res.channel.channel_members.find(
+              ...response.data.channel.channel_members.find(
                 (s) => s.user_id === getUserChat().id
               ),
             },
             {
               user: {
-                id: res.recipient.id,
+                id: response.data.recipient.id,
                 name: "Deleivery Worker",
                 mobile_phone: "",
                 username: "Deleivery Worker",
               },
-              ...res.channel.channel_members.find(
+              ...response.data.channel.channel_members.find(
                 (s) => s.user_id !== getUserChat().id
               ),
             },
           ],
           messages:
-            res.channel.messages?.sort(
+            response.data.channel.messages?.sort(
               (a, b) =>
                 new Date(a.created_at).getTime() -
                 new Date(b.created_at).getTime()
@@ -98,10 +98,10 @@ function OrderChatIcon({
               user_id: getUserChat().id,
             },
             {
-              id: res.recipient.id,
-              user_id: res.recipient.id,
+              id: response.data.recipient.id,
+              user_id: response.data.recipient.id,
               user: {
-                id: res.recipient.id,
+                id: response.data.recipient.id,
                 name: "Deleivery Worker",
                 mobile_phone: "",
                 username: "Deleivery Worker",
@@ -111,8 +111,8 @@ function OrderChatIcon({
           channel_name: "Deleivery Worker",
           photo_path: null,
           messages: [],
-          id: "ch-" + res.recipient.id,
-          mid: "ch-" + res.recipient.id,
+          id: "ch-" + response.data.recipient.id,
+          mid: "ch-" + response.data.recipient.id,
         });
         openChat({
           channel_members: [
@@ -122,10 +122,10 @@ function OrderChatIcon({
               user_id: getUserChat().id,
             },
             {
-              id: res.recipient.id,
-              user_id: res.recipient.id,
+              id: response.data.recipient.id,
+              user_id: response.data.recipient.id,
               user: {
-                id: res.recipient.id,
+                id: response.data.recipient.id,
                 name: "Deleivery Worker",
                 mobile_phone: "",
                 username: "Deleivery Worker",
@@ -135,8 +135,8 @@ function OrderChatIcon({
           channel_name: "Deleivery Worker",
           photo_path: null,
           messages: [],
-          id: "ch-" + res.recipient.id,
-          mid: "ch-" + res.recipient.id,
+          id: "ch-" + response.data.recipient.id,
+          mid: "ch-" + response.data.recipient.id,
         });
       }
       setIsChatOpen(true);

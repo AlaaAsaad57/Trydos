@@ -17,6 +17,7 @@ import {
 import { AxiosGet } from "./AxiosApi";
 import chat from "services/chat";
 import { Recive, watchChannel as watchChannelAction } from "store/chat/actions";
+import { fetchData } from "./fetchData";
 const firebaseConfig = {
   // apiKey: "AIzaSyAl53TxLa2CoTBeXtg9K3Lr8G908ajb6kY",
   // authDomain: "trydos-ce234.firebaseapp.com",
@@ -202,16 +203,16 @@ export const onMessageListener = async () => {
           );
         }
         if (JSON.parse(payload.data.body).type === "order placed") {
-          let dataReq = await AxiosGet({
-            url:
-              process.env.NEXT_PUBLIC_BACKEND_URL +
-              `/customer/order/getOrdersByOrderGroupID?order_group_id=${
-                JSON.parse(payload.data.body).order_group_id
-              }`,
-            title: "getOrderByOrderGroupID request",
+          let response = await fetchData({
+            url: `/customer/order/getOrdersByOrderGroupID?order_group_id=${
+              JSON.parse(payload.data.body).order_group_id
+            }`,
+            reqTitle: "getOrderByOrderGroupID request",
+            method: "GET",
+            server: "market",
           });
 
-          if (dataReq && dataReq?.length > 0) {
+          if (response.data && response.data?.length > 0) {
             showSuccessNotification(
               data.description,
               5000,
@@ -223,7 +224,7 @@ export const onMessageListener = async () => {
               null
             );
             if (orderData.agree) {
-              setOrderData({ data: dataReq, success: true });
+              setOrderData({ data: response.data, success: true });
             }
           }
         }

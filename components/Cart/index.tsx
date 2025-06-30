@@ -1915,22 +1915,13 @@ const QuantutyInput = ({
   };
 
   const updateQuantity = async (quantity, bool) => {
-    let dataBody = [];
-    let dataObj = { key: id, quantity: quantity };
-    for (var property in dataObj) {
-      if (dataObj[property] || dataObj[property] === 0) {
-        var encodedKey = encodeURIComponent(property);
-        var encodedValue = encodeURIComponent(dataObj[property]);
-        dataBody.push(encodedKey + "=" + encodedValue);
-      }
-    }
-    // @ts-ignore
-    dataBody = dataBody.join("&");
     try {
-      await AxiosPost({
-        url: process.env.NEXT_PUBLIC_BACKEND_URL + "/cart/update",
-        title: "Update Quantity For Product In cart",
-        body: dataBody,
+      await fetchData({
+        url: "/cart/update",
+        reqTitle: "Update Quantity For Product In cart",
+        method: "POST",
+        server: "market",
+        body: JSON.stringify({ key: id, quantity: quantity }),
       });
       // dispatch({
       //   type: "UPDATE-CART-QUANTITY",

@@ -14,6 +14,7 @@ import auth from "services/auth";
 import { useAppStore } from "store";
 import { ProductOptionsPropsType } from "models/componentType/ProductOptionsPropsType";
 import { showErrorNotification } from "@/store/notifications/reducer";
+import { fetchData } from "utils/fetchData";
 
 function ProductOptions({
   activeOption,
@@ -33,9 +34,11 @@ function ProductOptions({
     if (bool) {
       editInfo({ likes: SelectedProduct?.likes + 1, is_liked: true });
       try {
-        await AxiosPost({
-          url: process.env.NEXT_PUBLIC_BACKEND_URL + `/product_likes/store`,
-          title: "like For Product",
+        await fetchData({
+          url: "/product_likes/store",
+          reqTitle: "like For Product",
+          method: "POST",
+          server: "market",
           body: { product_id: product.id, user_id: auth.UserID() },
         });
         // home.subscribeToTopic({
@@ -54,9 +57,11 @@ function ProductOptions({
       setLiked(false);
       editInfo({ likes: SelectedProduct?.likes - 1, is_liked: false });
       try {
-        AxiosPost({
-          url: process.env.NEXT_PUBLIC_BACKEND_URL + `/product_likes/delete`,
-          title: "unlike For Product",
+        await fetchData({
+          url: "/product_likes/delete",
+          reqTitle: "unlike For Product",
+          method: "POST",
+          server: "market",
           body: { product_id: product.id, user_id: auth.UserID() },
         });
         home.UnsubscripeFromTopic({

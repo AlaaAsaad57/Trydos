@@ -1,6 +1,6 @@
 import { useAppStore } from "store";
 import { OrdersResponse } from "../types/orders";
-import { AxiosGet } from "utils/AxiosApi";
+import { fetchData } from "utils/fetchData";
 
 export const fetchOrders = async (
   page: number,
@@ -8,13 +8,13 @@ export const fetchOrders = async (
   selectedStatus: string = ""
 ): Promise<OrdersResponse> => {
   try {
-    const response = await AxiosGet({
-      url:
-        process.env.NEXT_PUBLIC_BACKEND_URL +
-        `/customer/order/list?offset=${page}&limit=${pageSize}${
-          selectedStatus ? `&order_group_status=${selectedStatus}` : ""
-        }`,
-      title: "Fetch Orders",
+    const response = await fetchData({
+      url: `/customer/order/list?offset=${page}&limit=${pageSize}${
+        selectedStatus ? `&order_group_status=${selectedStatus}` : ""
+      }`,
+      reqTitle: "Fetch Orders",
+      method: "GET",
+      server: "market",
     });
     const { setTotalOrders } = useAppStore.getState();
     setTotalOrders(response.data.total);

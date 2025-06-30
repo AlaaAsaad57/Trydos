@@ -17,6 +17,7 @@ import profilePicture from "public/images/profileNo.png";
 import { useAppStore } from "store";
 import { AxiosGet } from "utils/AxiosApi";
 import { formatTime, GetImageUrl } from "utils/tinyUtils";
+import { fetchData } from "utils/fetchData";
 
 class StoryService {
   /* get stories */
@@ -216,12 +217,14 @@ class StoryService {
   }
   async getStoriesForProducts({ id, page }) {
     try {
-      let data = await AxiosGet({
-        url:
-          process.env.NEXT_PUBLIC_STORIES_BACKEND_URL +
-          `/api/v1/stories/product_stories/${id}?page=${page}`,
+      // should test this
+      let data = await fetchData({
+        url: `/api/v1/stories/product_stories/${id}?page=${page}`,
+        reqTitle: "Get Stories for Products",
+        method: "GET",
+        server: "stories",
       });
-      return data;
+      return data.data;
     } catch (error) {
       console.log(error);
       return [];

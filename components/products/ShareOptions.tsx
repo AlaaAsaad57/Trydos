@@ -19,6 +19,7 @@ import { useAppStore } from "store";
 import CopyIcon from "public/svg/copyIcon.svg";
 import { ShareOptionsPropsType } from "models/componentType/ShareOptionsPropsType";
 import { showSuccessNotification } from "@/store/notifications/reducer";
+import { fetchData } from "utils/fetchData";
 function ShareOptions({
   setShareContacts,
   sharedContacts,
@@ -28,16 +29,16 @@ function ShareOptions({
     useAppStore();
 
   const shareSocial = async (appName) => {
-    await AxiosPost({
-      url:
-        process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
-        "/api/v2/elastic/share_product_on_apps",
+    await fetchData({
+      url: "/api/v2/elastic/share_product_on_apps",
+      reqTitle: "Share Product on Social",
+      method: "POST",
+      server: "chat",
       body: {
         app_name: appName,
         product_id: product.id,
         shared_count: 1,
       },
-      title: "Share Product on Social",
     });
 
     incrementSharesCount();

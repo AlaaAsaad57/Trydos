@@ -16,6 +16,7 @@ import axios from "axios";
 import { SetGAUser } from "utils/gtag";
 
 import { showErrorNotification } from "@/store/notifications/reducer";
+import { fetchData } from "utils/fetchData";
 const getHeader = () => {
   let [countryUrl, languageUrl] = window.location.pathname
     .split("/")[1]
@@ -221,24 +222,21 @@ class AuthService {
       );
 
       updateName(name);
-      let axios = (await import("axios")).default;
-      await AxiosPost({
-        url: process.env.NEXT_PUBLIC_BACKEND_URL + "/customer/update-name",
-        body: { name: name },
-        title: "Update Name",
+      await fetchData({
+        url: "/customer/update-name",
+        body: JSON.stringify({ name: name }),
+        reqTitle: "Update Name in market",
+        method: "POST",
+        server: "market",
       });
-      let chat_update = await axios.put(
-        process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
-          `/api/v1/users/${this.UserID()}`,
-        { name: name },
-        {
-          headers: {
-            Authorization: `Bearer ${
-              JSON.parse(localStorage.getItem("USER-CHAT"))?.access_token
-            }`,
-          },
-        }
-      );
+      let chat_update = await fetchData({
+        url: `/api/v1/users/${this.UserID()}`,
+        reqTitle: "Update Name in chat",
+        method: "PUT",
+        server: "chat",
+        body: JSON.stringify({ name: name }),
+      });
+
       localStorage.setItem(
         "USER-CHAT",
         JSON.stringify({
@@ -250,17 +248,13 @@ class AuthService {
       if (!localStorage.getItem("USER-STORIES")) {
         await this.ConfirmSignIn();
       }
-      await axios.post(
-        process.env.NEXT_PUBLIC_STORIES_BACKEND_URL + "/api/v1/users/update",
-        { name: name },
-        {
-          headers: {
-            Authorization: `Bearer ${
-              JSON.parse(localStorage.getItem("USER-STORIES"))?.access_token
-            }`,
-          },
-        }
-      );
+      await fetchData({
+        url: "/api/v1/users/update",
+        reqTitle: "Update Name in stories",
+        method: "POST",
+        server: "stories",
+        body: JSON.stringify({ name: name }),
+      });
 
       StoryService.getStories();
     } catch (e) {
@@ -408,26 +402,18 @@ class AuthService {
         localStorage.getItem("USER") &&
         JSON.parse(localStorage.getItem("USER-STORIES"))?.id
       ) {
-        await axios
-          .post(
-            process.env.NEXT_PUBLIC_STORIES_BACKEND_URL +
-              "/api/v1/users/update",
-            {
-              name: userObj?.name ?? userProfile?.name,
-              mobile_phone: userObj?.phone ?? userProfile?.phone,
-              photo_path: this.ConfigurePhoto(userObj?.image, "story"),
-            },
-            {
-              headers: {
-                Authorization: `Bearer ${
-                  JSON.parse(localStorage.getItem("USER-STORIES"))?.access_token
-                }`,
-              },
-            }
-          )
-          .then((s) => {
-            stories_done = true;
-          });
+        await fetchData({
+          url: "/api/v1/users/update",
+          reqTitle: "Update Name in stories",
+          method: "POST",
+          server: "stories",
+          body: JSON.stringify({
+            name: userObj?.name ?? userProfile?.name,
+            mobile_phone: userObj?.phone ?? userProfile?.phone,
+            photo_path: this.ConfigurePhoto(userObj?.image, "story"),
+          }),
+        });
+        stories_done = true;
         localStorage.setItem(
           "USER-STORIES",
           JSON.stringify({
@@ -444,26 +430,18 @@ class AuthService {
         localStorage.getItem("USER") &&
         JSON.parse(localStorage.getItem("USER-CHAT"))?.id
       ) {
-        let chat_update = await axios
-          .put(
-            process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
-              `/api/v1/users/${this.UserID()}`,
-            {
-              name: userObj?.name ?? userProfile?.name,
-              mobile_phone: userObj?.phone ?? userProfile?.phone,
-              photo_path: this.ConfigurePhoto(userObj?.image, "chat"),
-            },
-            {
-              headers: {
-                Authorization: `Bearer ${
-                  JSON.parse(localStorage.getItem("USER-CHAT"))?.access_token
-                }`,
-              },
-            }
-          )
-          .then((s) => {
-            chat_done = true;
-          });
+        let chat_update = await fetchData({
+          url: `/api/v1/users/${this.UserID()}`,
+          reqTitle: "Update Name in chat",
+          method: "PUT",
+          server: "chat",
+          body: JSON.stringify({
+            name: userObj?.name ?? userProfile?.name,
+            mobile_phone: userObj?.phone ?? userProfile?.phone,
+            photo_path: this.ConfigurePhoto(userObj?.image, "chat"),
+          }),
+        });
+        chat_done = true;
         localStorage.setItem(
           "USER-CHAT",
           JSON.stringify({
@@ -474,16 +452,17 @@ class AuthService {
           })
         );
       }
-      let res = await AxiosPost({
+      let res = await fetchData({
         url: process.env.NEXT_PUBLIC_BACKEND_URL + "/customer/update-profile",
-        body: {
+        body: JSON.stringify({
           ...userObj,
           image: this.ConfigurePhoto(userObj?.image, "market"),
-        },
-        title: "Update Profile",
-      }).then((s) => {
-        market_done = true;
+        }),
+        reqTitle: "Update Profile",
+        method: "POST",
+        server: "market",
       });
+      market_done = true;
       localStorage.setItem(
         "USER",
         JSON.stringify({
@@ -497,41 +476,40 @@ class AuthService {
       return res;
     } catch (error) {
       if (market_done) {
-        await AxiosPost({
+        await fetchData({
           url: process.env.NEXT_PUBLIC_BACKEND_URL + "/customer/update-profile",
           body: userProfile,
-          title: "Update Profile",
-        }).then((s) => {
-          market_done = true;
+          reqTitle: "Update Profile",
+          method: "POST",
+          server: "market",
         });
+        market_done = true;
       }
       if (stories_done) {
-        await axios.post(
-          process.env.NEXT_PUBLIC_STORIES_BACKEND_URL + "/api/v1/users/update",
-          {
+        await fetchData({
+          url: "/api/v1/users/update",
+          reqTitle: "Update Name in stories",
+          method: "POST",
+          server: "stories",
+          body: JSON.stringify({
             name: userProfile?.name,
             mobile_phone: userProfile?.phone,
             photo_path: userProfile?.image,
-          },
-          {
-            headers: {
-              Authorization: `Bearer ${
-                JSON.parse(localStorage.getItem("USER-STORIES"))?.access_token
-              }`,
-            },
-          }
-        );
+          }),
+        });
       }
       if (chat_done) {
-        await axios.put(
-          process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
-            `/api/v1/users/${this.UserID()}`,
-          {
+        await fetchData({
+          url: `/api/v1/users/${this.UserID()}`,
+          reqTitle: "Update Name in chat",
+          method: "PUT",
+          server: "chat",
+          body: JSON.stringify({
             name: userProfile?.name,
             mobile_phone: userProfile?.phone,
             photo_path: userProfile?.image,
-          }
-        );
+          }),
+        });
       }
       showErrorNotification(translateFunction("Failed to update profile Info"));
       throw error;
@@ -542,12 +520,14 @@ class AuthService {
     formData.append("image", image);
     formData.append("path", "customers/profile");
 
-    let res = await AxiosPost({
-      url: process.env.NEXT_PUBLIC_BACKEND_URL + "/storage/storage-upload",
+    let response = await fetchData({
+      url: "/storage/storage-upload",
       body: formData,
-      title: "Update Profile Image",
+      reqTitle: "Update Profile Image",
+      method: "POST",
+      server: "market",
     });
-    return res;
+    return response.data;
   }
   async CheckUserName() {
     let isChatUserExist = JSON.parse(localStorage.getItem("USER-CHAT"));

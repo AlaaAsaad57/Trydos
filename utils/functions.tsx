@@ -16,6 +16,7 @@ import auth from "services/auth";
 import LocalizationServiceClass from "services/localization";
 import { CielNumber } from "./tinyUtils";
 import { GetConfiguredImagePropsType } from "models/componentType/boutiqueTypes/metaDataPropsType";
+import { fetchData } from "./fetchData";
 export const SSRDetect = () => {
   return typeof window !== "undefined";
 };
@@ -562,12 +563,14 @@ export const getOldCart = async () => {
     !localStorage.getItem("MARKET-TOKEN")
   )
     await home.RegisterDevice();
-  let oldCartData: OldCartApi["data"] = await AxiosGet({
-    url: process.env.NEXT_PUBLIC_BACKEND_URL + "/old-cart/get_old_cart",
-    title: "Old Cart Request",
+  let response: OldCartApi = await fetchData({
+    url: "/old-cart/get_old_cart",
+    reqTitle: "Old Cart Request",
+    method: "GET",
+    server: "market",
   });
   const { storeOldCart } = useAppStore.getState();
-  storeOldCart(oldCartData?.original?.data);
+  storeOldCart(response.data?.original?.data);
 };
 export const getCart = async ({ callback }) => {
   const { initCart } = useAppStore.getState();
@@ -576,20 +579,24 @@ export const getCart = async ({ callback }) => {
     !localStorage.getItem("MARKET-TOKEN")
   )
     await home.RegisterDevice();
-  let data: CartResponse["data"] = await AxiosGet({
-    url: process.env.NEXT_PUBLIC_BACKEND_URL + "/cart/cart_shipping",
-    title: "Cart Request",
+  let response: CartResponse = await fetchData({
+    url: "/cart/cart_shipping",
+    reqTitle: "Cart Request",
+    method: "GET",
+    server: "market",
   });
-  initCart(data);
-  return data;
+  initCart(response.data);
+  return response.data;
 };
 export const GetCartOreview = async () => {
   const { setCartPreview } = useAppStore.getState();
-  let data = await AxiosGet({
-    url: process.env.NEXT_PUBLIC_BACKEND_URL + "/cart/cart_overview",
-    title: "Cart Oreview",
+  let response = await fetchData({
+    url: "/cart/cart_overview",
+    reqTitle: "Cart Oreview",
+    method: "GET",
+    server: "market",
   });
-  setCartPreview(data);
+  setCartPreview(response.data);
 };
 export const AddToCartAnimation = () => {
   let productImage = document.getElementById("added-to-cart");

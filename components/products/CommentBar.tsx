@@ -7,6 +7,7 @@ import CommentPost from "public/svg/CommentPost.svg";
 import auth from "services/auth";
 import { translateFunction } from "utils/functions";
 import { CommentBarPropsType } from "models/componentType/CommentBarPropsType";
+import { fetchData } from "utils/fetchData";
 
 function CommentBar({
   product,
@@ -45,17 +46,19 @@ function CommentBar({
         mid: mid,
       });
       setVal("");
-      let req: AddComment = await AxiosPost({
-        url: process.env.NEXT_PUBLIC_BACKEND_URL + "/customer/product_comment",
-        title: "add comment For Product",
+      let response: { data: AddComment } = await fetchData({
+        url: "/customer/product_comment",
+        reqTitle: "add comment For Product",
+        method: "POST",
+        server: "market",
         body: {
           customer_id: auth.UserID(),
           product_id: product?.id,
           comment: s,
         },
       });
-      if (req?.comment) {
-        let newComment = req.comment;
+      if (response.data?.comment) {
+        let newComment = response.data.comment;
         verifyComment(mid, newComment);
       } else {
         isError(mid);

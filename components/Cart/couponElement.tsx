@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 
 import { useAppStore } from "store";
 import { AxiosGet } from "utils/AxiosApi";
+import { fetchData } from "utils/fetchData";
 import { getCart, RoundPrice, translateFunction } from "utils/functions";
 
 const CouponElement = ({ active, setActive, close }) => {
@@ -35,13 +36,13 @@ const CouponElement = ({ active, setActive, close }) => {
     setError("");
 
     try {
-      const response = await AxiosGet({
-        url:
-          process.env.NEXT_PUBLIC_BACKEND_URL +
-          `/coupon/apply?code=${e ?? orderData.coupon_number}`,
-        title: "apply coupon request",
+      const response = await fetchData({
+        url: `/coupon/apply?code=${e ?? orderData.coupon_number}`,
+        reqTitle: "apply coupon request",
+        method: "GET",
+        server: "market",
       });
-
+      console.log(response, "response");
       if (!response.data.status) {
         localStorage.removeItem("coupon-number");
         throw new Error(response.message);

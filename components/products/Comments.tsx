@@ -8,6 +8,7 @@ import auth from "services/auth";
 import profilePng from "public/images/profileNo.png";
 import { GetImageUrl } from "utils/tinyUtils";
 import { CommentsPropsType } from "models/componentType/CommentsPropsType";
+import { fetchData } from "utils/fetchData";
 
 function Comments({
   comments,
@@ -24,16 +25,18 @@ function Comments({
   useEffect(() => {}, [Render, comments]);
   const resendCommentApi = async (mid, s) => {
     try {
-      let req: AddComment = await AxiosPost({
-        url: process.env.NEXT_PUBLIC_BACKEND_URL + "/customer/product_comment",
-        title: "resend add Comment For Product",
+      let response: { data: AddComment } = await fetchData({
+        url: "/customer/product_comment",
+        reqTitle: "resend add Comment For Product",
+        method: "POST",
+        server: "market",
         body: {
           customer_id: auth.UserID(),
           product_id: productId,
           comment: s,
         },
       });
-      if (req?.comment) {
+      if (response.data?.comment) {
         let s = CommentsData.filter((m) => m.mid === mid)[0];
         verifyCommentAction(mid);
         increase_comments();

@@ -8,6 +8,7 @@ import { getUserChat } from "utils/functions";
 import { useAppStore } from "store";
 import chat from "services/chat";
 import { AxiosGet, AxiosPost } from "utils/AxiosApi";
+import { fetchData } from "utils/fetchData";
 
 export const GetLastSeen = async (chatId, friendID) => {
   const { setServerTime, setIsTyping } = useAppStore.getState();
@@ -16,15 +17,15 @@ export const GetLastSeen = async (chatId, friendID) => {
     const { db } = await import("../../utils/firebaseInitv1");
     let server_time;
 
-    let response = await AxiosGet({
-      url:
-        process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
-        "/api/v1/channels/get_date_time",
-      token: JSON.parse(localStorage.getItem("USER-CHAT"))?.access_token,
-      title: "Get Last Seen",
+    let response = await fetchData({
+      url: "/api/v1/channels/get_date_time",
+      reqTitle: "Get Last Seen",
+      method: "GET",
+      server: "chat",
     });
-    server_time = response;
-    setServerTime(response);
+
+    server_time = response.data;
+    setServerTime(response.data);
     const dbRef = ref(db, `ConnectStatus/${friendID.toString()}`);
     onValue(dbRef, async (snapshot) => {
       const desc = snapshot.val();
@@ -56,15 +57,15 @@ export const setLastSeen = async (MyId) => {
   try {
     const { push, ref, set } = await import("firebase/database");
     let server_time;
-    let response = await AxiosGet({
-      url:
-        process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
-        "/api/v1/channels/get_date_time",
-      token: JSON.parse(localStorage.getItem("USER-CHAT"))?.access_token,
-      title: "Get Last Seen",
+    let response = await fetchData({
+      url: "/api/v1/channels/get_date_time",
+      reqTitle: "Get Last Seen",
+      method: "GET",
+      server: "chat",
     });
-    server_time = response;
-    setServerTime(response);
+
+    server_time = response.data;
+    setServerTime(response.data);
     const { db } = await import("../../utils/firebaseInitv1");
     push(ref(db, `ConnectStatus/${MyId.toString()}`));
     set(ref(db, `ConnectStatus/${MyId.toString()}`), server_time)
@@ -135,19 +136,11 @@ export const SendMessage = async (payload, isNew, isPrivate?) => {
 };
 export async function watchChannel(payload) {
   try {
-    let response = await AxiosGet({
-      url:
-        process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
-        `/api/v1/channels/${payload}/watched`,
-
-      title: "Watch Channel",
-      token: localStorage.getItem("USER-CHAT") && getUserChat().access_token,
-      headers: {
-        current_role_id:
-          localStorage.getItem("USER-CHAT") && getUserChat().role_id
-            ? localStorage.getItem("USER-CHAT") && getUserChat().role_id
-            : "-1",
-      },
+    let response = await fetchData({
+      url: `/api/v1/channels/${payload}/watched`,
+      reqTitle: "Watch Channel",
+      method: "GET",
+      server: "chat",
     });
   } catch (e) {}
 }
@@ -186,18 +179,11 @@ export async function deleteChat(payload) {
 }
 export async function Recive(payload) {
   try {
-    let response = await AxiosGet({
-      url:
-        process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
-        `/api/v1/channels/${payload}/received`,
-      token: localStorage.getItem("USER-CHAT") && getUserChat().access_token,
-      title: "Recieve Channel",
-      headers: {
-        current_role_id:
-          localStorage.getItem("USER-CHAT") && getUserChat().role_id
-            ? localStorage.getItem("USER-CHAT") && getUserChat().role_id
-            : "-1",
-      },
+    let response = await fetchData({
+      url: `/api/v1/channels/${payload}/received`,
+      reqTitle: "Recieve Channel",
+      method: "GET",
+      server: "chat",
     });
   } catch (e) {}
 }
@@ -230,22 +216,14 @@ export async function SearchContact(payload) {
 
   try {
     if (payload?.length > 0) {
-      let response = await AxiosGet({
-        url:
-          process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
-          SEARCH_CONTACTS_URL +
-          payload,
-        title: "Search Message",
-        token: localStorage.getItem("USER-CHAT") && getUserChat().access_token,
-        headers: {
-          current_role_id:
-            localStorage.getItem("USER-CHAT") && getUserChat().role_id
-              ? localStorage.getItem("USER-CHAT") && getUserChat().role_id
-              : "-1",
-        },
+      let response = await fetchData({
+        url: SEARCH_CONTACTS_URL + payload,
+        reqTitle: "Search Message",
+        method: "GET",
+        server: "chat",
       });
 
-      setChatSearchResults(response);
+      setChatSearchResults(response.data);
     }
   } catch (e) {}
 }
@@ -315,19 +293,14 @@ export async function getMessagesBetweenMessage(payload) {
 export async function getContacts() {
   const { setContacts } = useAppStore.getState();
 
-  let response = await AxiosGet({
-    url: process.env.NEXT_PUBLIC_CHAT_BACKEND_URL + "/api/v1/users/my_contacts",
-    title: "Get Contacts",
-    token: localStorage.getItem("USER-CHAT") && getUserChat().access_token,
-    headers: {
-      current_role_id:
-        localStorage.getItem("USER-CHAT") && getUserChat().role_id
-          ? localStorage.getItem("USER-CHAT") && getUserChat().role_id
-          : "-1",
-    },
+  let response = await fetchData({
+    url: "/api/v1/users/my_contacts",
+    reqTitle: "Get Contacts",
+    method: "GET",
+    server: "chat",
   });
 
-  setContacts(response);
+  setContacts(response.data);
 }
 export const getMedia = async (id, media) => {
   const { editChatInfoMedia } = useAppStore.getState();
@@ -365,20 +338,15 @@ export const getMediaReducer = (media, data) => {
 export const GetChatDetails = async (id) => {
   const { editChatInfo } = useAppStore.getState();
   try {
-    let response = await AxiosGet({
+    let response = await fetchData({
       url:
         process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
         `/api/v2/channels/${id}/media`,
-      title: "Get Channel Data",
-      token: localStorage.getItem("USER-CHAT") && getUserChat().access_token,
-      headers: {
-        current_role_id:
-          localStorage.getItem("USER-CHAT") && getUserChat().role_id
-            ? localStorage.getItem("USER-CHAT") && getUserChat().role_id
-            : "-1",
-      },
+      reqTitle: "Get Channel Data",
+      method: "GET",
+      server: "chat",
     });
 
-    editChatInfo({ id: id, data: response });
+    editChatInfo({ id: id, data: response.data });
   } catch (e) {}
 };

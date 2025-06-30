@@ -1,5 +1,6 @@
 import { showErrorMessage } from "components/global/AddToCartMessage";
 import Cookies from "js-cookie";
+import { getUserChat } from "./functions";
 // Types
 export type ServerType = "chat" | "market" | "stories" | "elastic";
 
@@ -8,7 +9,7 @@ export type FetchMethod = "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
 export interface FetchDataParams {
   url: string;
   method: FetchMethod;
-  body?: object | null;
+  body?: object | string | null;
   useCached?: boolean;
   reqTitle?: string;
   server: ServerType;
@@ -47,6 +48,10 @@ const getHeader = () => {
   return {
     lang: Cookies.get("lang") || Cookies.get("language"),
     country: Cookies.get("country"),
+    current_role_id:
+      localStorage.getItem("USER-CHAT") && getUserChat().role_id
+        ? localStorage.getItem("USER-CHAT") && getUserChat().role_id
+        : "-1",
   };
 };
 const getMarketToken = async (): Promise<string> => {
@@ -209,7 +214,7 @@ export const fetchData = async <T = any>(
 
       // Add body for non-GET requests
       if (body && method !== "GET") {
-        requestOptions.body = JSON.stringify(body);
+        requestOptions.body = body as BodyInit;
       }
 
       // Log request if title provided

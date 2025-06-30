@@ -127,14 +127,14 @@ const SettingsModal: React.FC<SettingsModalPropsType> = ({ onClose, lang }) => {
         let token = localStorage.getItem("FB-DEVICE-TOKEN");
 
         if (token) {
-          await AxiosPost({
-            url:
-              process.env.NEXT_PUBLIC_BACKEND_URL +
-              "/firebase_device_tokens/unsubscribe_topic",
+          await fetchData({
+            url: "/firebase_device_tokens/unsubscribe_topic",
             body: {
               topic: topic.replace(/_[a-z]{2}_[a-z]{2}$/, ""),
             },
-            title: "store firebase unsubscribe topic",
+            reqTitle: "store firebase unsubscribe topic",
+            method: "POST",
+            server: "market",
           });
           const updatedTopics = topics.filter((t) => t !== topic);
           const updatedUnsubscribedTopics = [...unsubscribedTopics, topic];
@@ -159,14 +159,14 @@ const SettingsModal: React.FC<SettingsModalPropsType> = ({ onClose, lang }) => {
         let token = localStorage.getItem("FB-DEVICE-TOKEN");
 
         if (token) {
-          await AxiosPost({
-            url:
-              process.env.NEXT_PUBLIC_BACKEND_URL +
-              "/firebase_device_tokens/subscribe_topic",
+          await fetchData({
+            url: "/firebase_device_tokens/subscribe_topic",
             body: {
               topic: topic.replace(/_[a-z]{2}_[a-z]{2}$/, ""),
             },
-            title: "store firebase topic",
+            reqTitle: "store firebase topic",
+            method: "POST",
+            server: "market",
           });
           const updatedTopics = [...topics, topic];
           const updatedUnsubscribedTopics = unsubscribedTopics.filter(

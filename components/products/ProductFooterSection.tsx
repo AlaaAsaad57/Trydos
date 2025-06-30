@@ -187,16 +187,18 @@ function ProductFooterSection({
         method: "GET",
       });
       setSharesCount(response_shares.data.shared_count);
-      const viewsReq: ProductViews = await AxiosPost({
-        url: process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL + `/api/products/view`,
-        title: "get Views For Product",
+      const response_views: ProductViews = await fetchData({
+        url: `/api/products/view`,
+        reqTitle: "get Views For Product",
+        method: "POST",
+        server: "elastic",
         body: {
           user_id: auth.UserID(),
           product_id: product.id,
         },
       });
       setViewsProducts({
-        views_count: viewsReq?.view_count || 0,
+        views_count: response_views?.view_count || 0,
       });
       setLoading(false);
     } catch (error) {

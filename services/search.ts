@@ -6,19 +6,21 @@ import {
   configureSearchParams,
 } from "utils/tinyUtils";
 import auth from "./auth";
+import { fetchData } from "utils/fetchData";
 
 class SearchService {
   private searchAbortController: AbortController | null = null;
 
   async getTrendingSearch() {
-    let data = await AxiosGet({
-      url:
-        process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL +
-        "/api/products/popular-search",
-      title: "Get Trending Search",
+    let response = await fetchData({
+      url: "/api/products/popular-search",
+      reqTitle: "Get Trending Search",
+      method: "GET",
+      server: "elastic",
     });
+
     const { setTrendingSearch } = useAppStore.getState();
-    setTrendingSearch(data);
+    setTrendingSearch(response.popular_search_terms);
   }
 
   async getSearchOptions({

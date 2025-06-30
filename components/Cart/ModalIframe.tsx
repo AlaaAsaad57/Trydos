@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import { AxiosGet } from "utils/AxiosApi";
 
 import { useAppStore } from "store";
+import { fetchData } from "utils/fetchData";
 
 const LoadingColorSvg = ({ w = "14", h = "14", loading = false }) => {
   return (
@@ -62,13 +63,14 @@ const ModalIframe = ({
       if (event.data === "close-iframe") {
         if (iframeRef.current) {
           _closeIframe();
-          let data = await AxiosGet({
-            url:
-              process.env.NEXT_PUBLIC_BACKEND_URL +
-              `/customer/order/getOrdersByCartGroupID?cart_group_id=${cart[0].cart_group_id}`,
+          let response = await fetchData({
+            url: `/customer/order/getOrdersByCartGroupID?cart_group_id=${cart[0].cart_group_id}`,
+            method: "GET",
+            server: "market",
+            reqTitle: "getOrdersByCartGroupID",
           });
-          if (data && data?.length > 0) {
-            setOrderData({ data, success: true });
+          if (response.data && response.data?.length > 0) {
+            setOrderData({ data: response.data, success: true });
           }
         }
       }
@@ -88,13 +90,14 @@ const ModalIframe = ({
             onClick={async () => {
               if (iframeRef.current) {
                 _closeIframe();
-                let data = await AxiosGet({
-                  url:
-                    process.env.NEXT_PUBLIC_BACKEND_URL +
-                    `/customer/order/getOrdersByCartGroupID?cart_group_id=${cart[0].cart_group_id}`,
+                let response = await fetchData({
+                  url: `/customer/order/getOrdersByCartGroupID?cart_group_id=${cart[0].cart_group_id}`,
+                  method: "GET",
+                  server: "market",
+                  reqTitle: "getOrdersByCartGroupID",
                 });
-                if (data && data?.length > 0) {
-                  setOrderData({ data, success: true });
+                if (response.data && response.data?.length > 0) {
+                  setOrderData({ data: response.data, success: true });
                 }
               }
             }}
