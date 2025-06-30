@@ -1,4 +1,4 @@
-import { AxiosGet, AxiosPost } from "utils/AxiosApi";
+import { AxiosPost } from "utils/AxiosApi";
 import { useAppStore } from "store";
 import { PlaceOrderApi } from "models/API/market/PlaceOrder";
 import { GetAddressListApi } from "models/API/market/GetAddresses";
@@ -218,28 +218,28 @@ class OrderService {
     const { setOrderLoading, setProvinces } = useAppStore.getState();
     try {
       setOrderLoading(true);
-      let data = await AxiosGet({
-        url:
-          process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL +
-          "/api/addresses/get-provinces-by-iso",
-        title: "Get Provinces",
+      let response = await fetchData({
+        url: "/api/addresses/get-provinces-by-iso",
+        reqTitle: "Get Provinces",
+        method: "GET",
+        server: "elastic",
       });
 
-      setProvinces(data);
+      setProvinces(response.data);
       setOrderLoading(false);
     } catch (error) {
       setOrderLoading(false);
     }
   }
   async getOrderDetails(id) {
-    let data = await AxiosGet({
-      url:
-        process.env.NEXT_PUBLIC_BACKEND_URL +
-        `/customer/order/getOrdersByOrderGroupID?order_group_id=${id}`,
-      title: "getOrderByOrderGroupID request",
+    let response = await fetchData({
+      url: `/customer/order/getOrdersByOrderGroupID?order_group_id=${id}`,
+      reqTitle: "getOrderByOrderGroupID request",
+      method: "GET",
+      server: "market",
     });
 
-    return data;
+    return response.data;
   }
 }
 export default new OrderService();

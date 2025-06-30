@@ -31,7 +31,7 @@ const options = [
 ];
 function MainSetting({ swipeToScreen }: MainSettingPropsType) {
   const { wallet, currency, totalOrders, settings } = useAppStore();
-  const points = settings["starting-setting"]?.decimal_point_settings || 0;
+  const points = settings?.["starting-setting"]?.decimal_point_settings || 0;
 
   const { lang } = useParams();
   // @ts-ignore

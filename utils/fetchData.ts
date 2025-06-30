@@ -1,5 +1,5 @@
 import { showErrorMessage } from "components/global/AddToCartMessage";
-
+import Cookies from "js-cookie";
 // Types
 export type ServerType = "chat" | "market" | "stories" | "elastic";
 
@@ -43,7 +43,12 @@ const getChatToken = async (): Promise<string> => {
   }
   throw new Error("Chat token not found");
 };
-
+const getHeader = () => {
+  return {
+    lang: Cookies.get("lang") || Cookies.get("language"),
+    country: Cookies.get("country"),
+  };
+};
 const getMarketToken = async (): Promise<string> => {
   const marketToken =
     localStorage.getItem("MARKET-TOKEN") ||
@@ -198,6 +203,7 @@ export const fetchData = async <T = any>(
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
+          ...getHeader(),
         },
       };
 
