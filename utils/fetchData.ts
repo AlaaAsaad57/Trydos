@@ -191,6 +191,7 @@ export const fetchData = async <T = any>(
     "Country and language updated successfully",
     "Product created and view count initialized",
     "View count updated",
+    "Subscribed successfully",
   ];
   const {
     url,

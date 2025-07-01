@@ -38,7 +38,6 @@ function AddToCartComponent({
 
   enableCartAction,
 }) {
-  console.log(product);
   const searchParams = useSearchParams();
   const [sizeFromUrl, colorFromUrl] = [
     searchParams.get("size"),
