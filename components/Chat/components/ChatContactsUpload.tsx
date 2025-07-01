@@ -67,7 +67,9 @@ function ChatContactsUpload() {
         url: "/api/v1/users/save_contacts",
         server: "chat",
         method: "POST",
-        body: { contacts: [...ContactsData, ...formattedContacts] },
+        body: JSON.stringify({
+          contacts: [...ContactsData, ...formattedContacts],
+        }),
       });
       await getContacts();
       setUploadProgress(100);
@@ -120,7 +122,9 @@ function ChatContactsUpload() {
         url: "/api/v1/users/save_contacts",
         server: "chat",
         method: "POST",
-        body: { contacts: [...ContactsData, ...formattedContact] },
+        body: JSON.stringify({
+          contacts: [...ContactsData, ...formattedContact],
+        }),
       });
 
       await getContacts();
