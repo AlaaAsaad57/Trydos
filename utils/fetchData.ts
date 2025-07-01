@@ -3,11 +3,12 @@ import {
   showSuccessMessage,
 } from "components/global/AddToCartMessage";
 import Cookies from "js-cookie";
-import { _isStoreLastJson, getUserChat } from "./functions";
+import { _isStoreLastJson, getUserChat, LogError } from "./functions";
 import {
   showErrorNotification,
   showSuccessNotification,
 } from "store/notifications/reducer";
+import auth from "../services/auth";
 // Types
 export type ServerType = "chat" | "market" | "stories" | "elastic";
 
@@ -317,6 +318,18 @@ export const fetchData = async <T = any>(
       if (reqTitle.includes("Add to cart widget")) {
         showErrorMessage(`${err?.message || "Falied"}`);
       } else showErrorNotification(`${err?.message || "Falied"}`);
+      let errorObj = {
+        type: "backend-exception",
+        message: err?.message || "Falied",
+        url: window.location.href,
+        user_id: auth.UserID(),
+        request_url: url,
+        request_method: method,
+        request_body: body,
+        request_server: server,
+        request_token: await getToken(server),
+      };
+      LogError(errorObj);
       return responseData;
     }
   };
