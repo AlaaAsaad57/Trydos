@@ -541,11 +541,8 @@ export const AddToCartAnimation = () => {
 };
 
 export const LogError = async (error) => {
-  await fetchData({
-    url: "/mobile_error_log/store",
-    reqTitle: "Log Error",
+  await fetch(process.env.NEXT_PUBLIC_BACKEND_URL + "/mobile_error_log/store", {
     method: "POST",
-    server: "market",
     body: JSON.stringify({
       error_description: { ...error, platform: "web" },
     }),
