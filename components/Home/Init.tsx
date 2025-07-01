@@ -139,7 +139,10 @@ function Init() {
     });
   }, []);
   const initPageLoad = async () => {
-    const permission = await Notification.requestPermission();
+    const permission =
+      typeof Notification !== "undefined"
+        ? await Notification.requestPermission()
+        : null;
 
     if (permission !== "granted") {
       console.log("Notification permission denied or dismissed.");

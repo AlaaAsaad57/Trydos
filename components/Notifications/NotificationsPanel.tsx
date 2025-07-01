@@ -288,7 +288,10 @@ const NotificationInfo = ({ closeWindow }) => {
   const [token, setToken] = useState(null);
   const [error, setError] = useState(null);
   const supportedFunction = async () => {
-    const permission = await Notification.requestPermission();
+    const permission =
+      typeof Notification !== "undefined"
+        ? await Notification.requestPermission()
+        : null;
 
     if (permission !== "granted") {
       console.log("Notification permission denied or dismissed.");
