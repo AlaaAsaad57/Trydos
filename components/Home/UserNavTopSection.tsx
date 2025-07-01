@@ -1,6 +1,6 @@
 "use client";
-import { translateFunction } from "utils/functions";
-import { useState } from "react";
+import { getConfiguredImage, translateFunction } from "utils/functions";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import AuthNavSection from "./AuthNavSection";
 import CartIcon from "public/svg/CartIcon.svg";
@@ -12,8 +12,116 @@ import {
 } from "next/navigation";
 import Menu from "./Menu";
 import { useAppStore } from "store";
+import auth from "services/auth";
+import Spinner from "components/global/Spinner";
+import { GetImageUrl } from "utils/tinyUtils";
 
 function UserNavTopSection() {
+  const [showAuthSection, setShowAuthSection] = useState(false);
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setShowAuthSection(true);
+    }
+  }, []);
+  const getUserType = () => {
+    if (typeof window === "undefined") {
+      return "NEW_USER";
+    }
+    if (auth.getUser()) {
+      if (auth.getUser().phone === "0" || !auth.getUser().phone) {
+        return "NEW_USER";
+      } else {
+        return "Verfied User";
+      }
+    } else {
+      return "NEW_USER";
+    }
+  };
+  const UserActiveIcon = () => {
+    const userType = getUserType();
+    if (userType === "NEW_USER") {
+      return (
+        <>
+          <img src="/svg/login.svg" width={15} height={15} alt="login" />
+          <span
+            className={`regular`}
+            style={{
+              display: "flex",
+              color: "#707070",
+              fontSize: "14px",
+              marginLeft: "5px",
+              cursor: "pointer",
+              left: "-8px",
+            }}
+          >
+            {translate("Login", language)}
+          </span>
+        </>
+      );
+    } else {
+      return (
+        <>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="16.413"
+            height="16.412"
+            viewBox="0 0 16.413 16.412"
+          >
+            <g
+              id="Group_3290"
+              data-name="Group 3290"
+              transform="translate(-37.223 -62.334)"
+            >
+              <g
+                id="Group_3166"
+                data-name="Group 3166"
+                transform="translate(42.657 68.141)"
+              >
+                <g
+                  id="Group_3165"
+                  data-name="Group 3165"
+                  transform="translate(0 0)"
+                >
+                  <path
+                    id="Path_15412"
+                    data-name="Path 15412"
+                    d="M34.744,30.414a.684.684,0,0,0-.968,0l-2.939,2.939-1.228-1.228a.685.685,0,1,0-.968.968l1.71,1.712a.684.684,0,0,0,.968,0l3.425-3.423a.684.684,0,0,0,0-.968Z"
+                    transform="translate(-28.418 -30.213)"
+                    fill="#707070"
+                    stroke="#3c3c3c"
+                    strokeWidth="0.111"
+                  />
+                </g>
+              </g>
+              <path
+                id="Path_15413"
+                data-name="Path 15413"
+                d="M15.332,7.332A.667.667,0,0,0,14.665,8a6.668,6.668,0,1,1-1.936-4.7.667.667,0,1,0,.945-.94A8,8,0,1,0,16,8a.667.667,0,0,0-.667-.667Z"
+                transform="translate(37.438 62.538)"
+                fill={"none"}
+                stroke="#707070"
+                strokeWidth="0.4"
+              />
+            </g>
+          </svg>
+          <span
+            className={`regular`}
+            style={{
+              display: "flex",
+              color: "#707070",
+              fontSize: "14px",
+              marginLeft: "5px",
+              cursor: "pointer",
+              left: "-8px",
+            }}
+          >
+            {translate("Verify", language)}
+          </span>
+        </>
+      );
+    }
+  };
+
   const {
     enableCart,
     disableAddToCartOption,
@@ -23,6 +131,7 @@ function UserNavTopSection() {
     localCart,
     loginOpen,
     setLoginOpen: openLogin,
+    userProfile,
   } = useAppStore();
   let { lang } = useParams();
   // @ts-ignore
@@ -53,7 +162,13 @@ function UserNavTopSection() {
       router.push(`${pathname}?${newParams.toString()}`, { shallow: true });
     }
   };
-
+  if (!showAuthSection) {
+    return (
+      <div className="h-[50px] user-nav-container flex-row items-center justify-end px-[20px]">
+        <Spinner />
+      </div>
+    );
+  }
   return (
     <div
       className={`${enable_search && "hidden"} user-nav-container`}
@@ -124,20 +239,7 @@ function UserNavTopSection() {
               window.history.pushState({ isPopup: true }, "open Login");
             }}
           >
-            <img src="/svg/login.svg" width={15} height={15} alt="login" />
-            <span
-              className={`regular`}
-              style={{
-                display: "flex",
-                color: "#707070",
-                fontSize: "14px",
-                marginLeft: "5px",
-                cursor: "pointer",
-                left: "-8px",
-              }}
-            >
-              {translate("Login", language)}
-            </span>
+            <UserActiveIcon />
           </div>
         </>
       )}
@@ -150,10 +252,20 @@ function UserNavTopSection() {
         ) : (
           <div className="nav-question-item">
             <Image
-              src="/svg/userIcon.svg"
+              src={
+                userProfile?.image
+                  ? getConfiguredImage({
+                      src: GetImageUrl(userProfile?.image),
+                      width: 30,
+                      height: 30,
+                      q: 80,
+                    })
+                  : "/svg/userIcon.svg"
+              }
               quality={90}
               width={30}
               data-cy="avatar-options"
+              className="avatar-user-image object-cover object-center"
               onClick={() => setMenuOpen(!menuOpen)}
               height={30}
               alt="user-icon"

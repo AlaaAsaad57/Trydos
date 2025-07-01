@@ -11,6 +11,7 @@ import { useParams, usePathname } from "next/navigation";
 import NotificationsPanel from "../Notifications/NotificationsPanel";
 import WishListPanel from "../WishList/WishListPanel";
 import Spinner from "components/global/Spinner";
+import auth from "services/auth";
 
 interface MenuProps {
   user: any;
@@ -95,7 +96,6 @@ const Menu: React.FC<MenuProps> = ({ user, setMenuOpen }) => {
     //   value: GA_CLICK_EVENT_VALUES.LOGOUT_BUTTON,
     // });
     localStorage.clear();
-
     changeToken({ key: "DEVICE-TOKEN", deleteOption: true });
     changeToken({ key: "MARKET-TOKEN", deleteOption: true });
     changeToken({ key: "token", deleteOption: true });
@@ -110,7 +110,19 @@ const Menu: React.FC<MenuProps> = ({ user, setMenuOpen }) => {
     } catch (error) {}
     window.location.reload();
   };
-
+  const shouldShowLogout = () => {
+    if (user) {
+      return true;
+    }
+    if (auth.getUser()) {
+      if (auth.getUser().phone === "0" || !auth.getUser().phone) {
+        return false;
+      } else {
+        return true;
+      }
+    }
+    return false;
+  };
   return (
     <>
       <div
@@ -300,7 +312,7 @@ const Menu: React.FC<MenuProps> = ({ user, setMenuOpen }) => {
             {translateFunction("Compare")}
           </MenuItem>
         </>
-        {user && (
+        {shouldShowLogout() && (
           <MenuItem
             dataCy="logout"
             onClick={handleLogout}
