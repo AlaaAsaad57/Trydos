@@ -85,7 +85,7 @@ function ProductColors({ colors, ProductColorsArray }: ProductColorsPropsType) {
         active={extended}
         setActiveColor={(e) => {
           const newParams = new URLSearchParams(searchParams);
-          newParams.set("color", e.color_name);
+          newParams.set("color", e.color_option);
           // @ts-expect-error 'shallow' does not exist in type 'NavigateOptions'
           router.push(pathname + `?${newParams.toString()}`, { shallow: true });
           setActiveColor(e);
@@ -121,7 +121,7 @@ function ProductColors({ colors, ProductColorsArray }: ProductColorsPropsType) {
             //   value: GA_CLICK_EVENT_VALUES.CHOOSE_AVAILABLE_COLOR_BUTTON,
             // });
             const newParams = new URLSearchParams(searchParams);
-            newParams.set("color", colors[e.activeIndex].color_name);
+            newParams.set("color", colors[e.activeIndex].color_option);
             router.push(pathname + `?${newParams.toString()}`, {
               scroll: false,
               // @ts-expect-error 'shallow' does not exist in type 'NavigateOptions'
@@ -133,7 +133,7 @@ function ProductColors({ colors, ProductColorsArray }: ProductColorsPropsType) {
           initialSlide={
             (searchParams.get("color") &&
               colors.findIndex(
-                (s) => s.color_name === searchParams.get("color")
+                (s) => s.color_option === searchParams.get("color")
               )) ??
             0
           }
@@ -170,7 +170,7 @@ function ProductColors({ colors, ProductColorsArray }: ProductColorsPropsType) {
                     color={
                       isActive
                         ? ProductColorsArray?.filter(
-                            (s) => s.name === color.color_name
+                            (s) => s.option === color.color_option
                           )?.[0]?.color
                         : "#fff"
                     }

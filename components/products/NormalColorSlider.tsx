@@ -53,7 +53,7 @@ function NormalColorSlider({
         <div
           key={index}
           className={`color-circle relative ${
-            activeColor?.color_name === color?.color_name &&
+            activeColor?.color_option === color?.color_option &&
             "active-color-circle"
           }`}
           data-cy="AfterClickOnSwipperPhoto"
@@ -73,9 +73,9 @@ function NormalColorSlider({
           <div className="circel-inset absolute" />
           <CircleBorder
             color={
-              activeColor?.color_name === color.color_name
+              activeColor?.color_option === color.color_option
                 ? ProductColorsArray?.filter(
-                    (s) => s.name === color.color_name
+                    (s) => s.option === color.color_option
                   )?.[0]?.color
                 : "#fff"
             }

@@ -1,6 +1,13 @@
-import { showErrorMessage } from "components/global/AddToCartMessage";
+import {
+  showErrorMessage,
+  showSuccessMessage,
+} from "components/global/AddToCartMessage";
 import Cookies from "js-cookie";
-import { getUserChat } from "./functions";
+import { _isStoreLastJson, getUserChat } from "./functions";
+import {
+  showErrorNotification,
+  showSuccessNotification,
+} from "store/notifications/reducer";
 // Types
 export type ServerType = "chat" | "market" | "stories" | "elastic";
 
@@ -45,9 +52,11 @@ const getChatToken = async (): Promise<string> => {
   return "";
 };
 const getHeader = () => {
+  let local = window.location.pathname.split("/")[1];
+  const [country, lang] = local.split("-");
   return {
-    lang: Cookies.get("lang") || Cookies.get("language"),
-    country: Cookies.get("country"),
+    lang: Cookies.get("lang") || Cookies.get("language") || lang,
+    country: Cookies.get("country") || country,
     current_role_id:
       localStorage.getItem("USER-CHAT") && getUserChat().role_id
         ? localStorage.getItem("USER-CHAT") && getUserChat().role_id
@@ -174,6 +183,15 @@ export const fetchData = async <T = any>(
   params: FetchDataParams,
   isRetryAfterUnauthorized = false
 ): Promise<T> => {
+  const ignoredMessages = [
+    "Data Got!",
+    "تم الحصول على البيانات!",
+    "Veri Alındı!",
+    "Success",
+    "Country and language updated successfully",
+    "Product created and view count initialized",
+    "View count updated",
+  ];
   const {
     url,
     method,
@@ -249,11 +267,28 @@ export const fetchData = async <T = any>(
 
       // Parse response
       responseData = await response.json();
+      if (_isStoreLastJson()) {
+        localStorage.setItem("LAST_JSON", JSON.stringify(responseData));
+      }
+      if (reqTitle.includes("Add to cart widget")) {
+        showSuccessMessage(
+          responseData?.message ?? responseData?.data?.message ?? ""
+        );
+      } else {
+        if (
+          !ignoredMessages.includes(
+            responseData?.message ?? responseData?.data?.message
+          ) &&
+          (responseData?.message ?? responseData?.data?.message)?.length > 0
+        )
+          showSuccessNotification(
+            responseData?.message ?? responseData?.data?.message ?? ""
+          );
+      }
+
       if (!response.ok) {
         throw new Error(
-          `HTTP error! status: ${response.status}-${
-            responseData?.message ?? responseData?.data?.message ?? ""
-          }`
+          `${responseData?.message ?? responseData?.data?.message ?? ""}`
         );
       }
       // Cache the result
@@ -278,7 +313,9 @@ export const fetchData = async <T = any>(
         }
       }
       // Re-throw the error for the caller to handle
-      showErrorMessage(`${reqTitle}-${err?.message || "Falied"}`);
+      if (reqTitle.includes("Add to cart widget")) {
+        showErrorMessage(`${err?.message || "Falied"}`);
+      } else showErrorNotification(`${err?.message || "Falied"}`);
       return responseData;
     }
   };

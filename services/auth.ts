@@ -53,10 +53,6 @@ class AuthService {
 
       if (response.data?.verificationId) {
         setVerificationId(response.data.verificationId);
-        if (typeof window !== "undefined") {
-          _isStoreLastJson() &&
-            localStorage.setItem("LAST_JSON", JSON.stringify(response));
-        }
         return response.data.verificationId;
       } else {
         setWrongNumber(msg);

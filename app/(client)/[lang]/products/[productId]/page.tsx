@@ -536,7 +536,7 @@ export default Page;
 const getImages = (productData, color): { images: any[] } => {
   if (color && color.length > 0 && productData?.sync_color_images) {
     return productData?.sync_color_images?.filter(
-      (s) => s.color_name === color
+      (s) => s.color_option === color
     )[0];
   } else if (
     productData?.sync_color_images &&

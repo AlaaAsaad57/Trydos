@@ -213,19 +213,30 @@ const NotificationsContainer = () => {
 
         if (notification.href) {
           return (
-            <Link
-              key={notification.id}
-              href={notification.href}
-              className={notificationClasses}
+            <div
+              key={notification?.id}
+              className="fixed  right-4 flex flex-col gap-3 pointer-events-none w-[90%]"
+              style={{
+                zIndex: `${index + 9999999999999999999}`,
+                top: `16px`,
+              }}
             >
-              {notificationContent}
-            </Link>
+              <Link
+                key={notification.id}
+                href={notification.href}
+                className={notificationClasses}
+                onClick={() => handleDismiss(notification.id)}
+              >
+                {notificationContent}
+              </Link>
+            </div>
           );
         }
 
         return (
           <div
             key={notification?.id}
+            onClick={() => handleDismiss(notification.id)}
             className="fixed  right-4 flex flex-col gap-3 pointer-events-none w-[90%]"
             style={{
               zIndex: `${index + 9999999999999999999}`,

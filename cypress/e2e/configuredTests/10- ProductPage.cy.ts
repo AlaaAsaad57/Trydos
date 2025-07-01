@@ -23,10 +23,9 @@ describe("10-1 should visit product page", () => {
       .first()
       .click({ force: true, scrollBehavior: false });
     cy.intercept("POST", "**/api/products/view").as("ViewsReq");
-    cy.intercept(
-      "GET",
-      "**/api/v1/web/product/likesCommentsSharesDetails/**"
-    ).as("SocialDataReq");
+    cy.intercept("GET", "**/api/v1/web/product/likesDetails/**").as(
+      "SocialDataReq"
+    );
     cy.wait(["@ViewsReq", "@SocialDataReq"]).then((interceptions) => {
       expect(interceptions[0].response.statusCode).to.equal(200);
       expect(interceptions[1].response.statusCode).to.equal(200);
@@ -82,10 +81,9 @@ describe("10-2 should test product Actions", () => {
     cy.get('[data-cy="close_extended_area"]').should("not.exist");
   });
   it("should comment on product", () => {
-    cy.intercept(
-      "GET",
-      "**/api/v1/web/product/likesCommentsSharesDetails/**"
-    ).as("SocialDataReq");
+    cy.intercept("GET", "**/api/v1/web/product/likesDetails/**").as(
+      "SocialDataReq"
+    );
     cy.get('[data-cy="CommentIcon"]').click({
       force: true,
       scrollBehavior: false,

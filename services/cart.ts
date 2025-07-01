@@ -4,7 +4,14 @@ import home from "./home";
 import { fetchData } from "utils/fetchData";
 
 class CartService {
-  async AddToCart({ product_id, color, choice_1, qty, image }) {
+  async AddToCart({
+    product_id,
+    color,
+    choice_1,
+    qty,
+    image,
+    isFromAddWidget = false,
+  }) {
     const { addProductToCart } = useAppStore.getState();
     const imageVar = image.split("/")[image.split("/").length - 1];
     let details = {
@@ -31,7 +38,7 @@ class CartService {
         body: JSON.stringify({
           ...details,
         }),
-        reqTitle: "Add To Cart",
+        reqTitle: isFromAddWidget ? "Add to cart widget" : "Add To Cart",
         method: "POST",
         server: "market",
       });
@@ -54,7 +61,7 @@ class CartService {
       return false;
     }
   }
-  async UpdateCart({ cart_id, qty }) {
+  async UpdateCart({ cart_id, qty, isFromAddWidget = false }) {
     const { updateProductQuantityInCart } = useAppStore.getState();
 
     let dataBody: any = [];
@@ -74,7 +81,7 @@ class CartService {
           key: cart_id,
           quantity: qty,
         }),
-        reqTitle: "Update Cart Item",
+        reqTitle: isFromAddWidget ? "Add to cart widget" : "Update Cart Item",
         method: "POST",
         server: "market",
       });
@@ -90,13 +97,13 @@ class CartService {
       return false;
     }
   }
-  async RemoveFromCart({ cart_item }) {
+  async RemoveFromCart({ cart_item, isFromAddWidget = false }) {
     const { errRemoveFromCart, removeFromCart } = useAppStore.getState();
     try {
       let response = await fetchData({
         url: "/cart/remove",
         body: JSON.stringify({ key: cart_item?.item_id }),
-        reqTitle: "Remove From Cart",
+        reqTitle: isFromAddWidget ? "Add to cart widget" : "Remove From Cart",
         method: "POST",
         server: "market",
       });

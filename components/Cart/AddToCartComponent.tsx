@@ -38,6 +38,7 @@ function AddToCartComponent({
 
   enableCartAction,
 }) {
+  console.log(product);
   const searchParams = useSearchParams();
   const [sizeFromUrl, colorFromUrl] = [
     searchParams.get("size"),
@@ -51,7 +52,7 @@ function AddToCartComponent({
   const [ProductData, setProductData] = useState(product);
   const [selectedColor, setSelectedColor] = useState(
     ProductData?.sync_color_images?.find(
-      (s) => s.color_name?.toLowerCase() === colorFromUrl?.toLowerCase()
+      (s) => s.color_option?.toLowerCase() === colorFromUrl?.toLowerCase()
     ) || ProductData?.sync_color_images?.[0]
   );
   const [selectedSize, setSelectedSize] = useState(null);
@@ -74,7 +75,7 @@ function AddToCartComponent({
           server: "market",
         }),
         fetchData({
-          url: `/web/product/likesCommentsSharesDetails/${slug}`,
+          url: `/web/product/likesDetails/${slug}`,
           reqTitle: "GEt Product Variants Notifications",
           method: "GET",
           server: "market",
@@ -113,7 +114,7 @@ function AddToCartComponent({
         if (sizeFromUrl?.length > 0) {
           setSelectedSize(
             tempProductData?.choice_options?.[0]?.options.find(
-              (s) => s.name?.toLowerCase() === sizeFromUrl?.toLowerCase()
+              (s) => s.option?.toLowerCase() === sizeFromUrl?.toLowerCase()
             )
           );
         } else {
@@ -130,7 +131,7 @@ function AddToCartComponent({
   const getInitialColorSlide = () => {
     let index = 0;
     ProductData?.sync_color_images.map((s, i) => {
-      if (s.color_name === colorFromUrl) index = i;
+      if (s.color_option === colorFromUrl) index = i;
     });
     return index;
   };
@@ -138,7 +139,7 @@ function AddToCartComponent({
     if (ProductData?.variation?.length > 0) {
       let selected_variant = ProductData?.variation.find(
         (s) =>
-          s.type.startsWith(selectedColor?.color_name ?? "") &&
+          s.type.startsWith(selectedColor?.color_option ?? "") &&
           s.type.endsWith((size && `-${size}`) ?? "")
       );
       return selected_variant?.qty;
@@ -149,7 +150,7 @@ function AddToCartComponent({
   const getInitialSizeSlider = () => {
     let index = 0;
     ProductData?.choice_options?.[0]?.options.map((s, i) => {
-      if (s.name === sizeFromUrl) index = i;
+      if (s.option === sizeFromUrl) index = i;
     });
     return index;
   };
@@ -163,9 +164,9 @@ function AddToCartComponent({
       ) {
         selected_variant = ProductData?.variation.find(
           (s) =>
-            s.type.startsWith(selectedColor?.color_name ?? "") &&
+            s.type.startsWith(selectedColor?.color_option ?? "") &&
             s.type.endsWith(
-              (selectedSize?.name && `-${selectedSize?.name}`) ?? ""
+              (selectedSize?.option && `-${selectedSize?.option}`) ?? ""
             )
         );
       }
@@ -175,7 +176,7 @@ function AddToCartComponent({
           ProductData?.choice_options?.length === 0)
       ) {
         selected_variant = ProductData?.variation.find((s) =>
-          s.type.startsWith(selectedColor?.color_name ?? "")
+          s.type.startsWith(selectedColor?.color_option ?? "")
         );
       }
       if (
@@ -184,7 +185,9 @@ function AddToCartComponent({
         ProductData?.choice_options?.length > 0
       ) {
         selected_variant = ProductData?.variation.find((s) =>
-          s.type.endsWith((selectedSize?.name && `${selectedSize?.name}`) ?? "")
+          s.type.endsWith(
+            (selectedSize?.option && `${selectedSize?.option}`) ?? ""
+          )
         );
       }
       return selected_variant;
@@ -779,9 +782,9 @@ function AddToCartComponent({
                             height: "70px",
                           }}
                           className={`${
-                            getVariantSizeQty(size.name) === 0
+                            getVariantSizeQty(size.option) === 0
                               ? "red-bg"
-                              : getVariantSizeQty(size.name) < 10
+                              : getVariantSizeQty(size.option) < 10
                               ? "yellow-bg"
                               : ""
                           } flex-row items-center justify-center text-[30px] bold select-none flex`}
@@ -792,7 +795,7 @@ function AddToCartComponent({
                     )}
                   </Swiper>
                 </div>
-                {getVariantSizeQty(selectedSize?.name) === 0 ? (
+                {getVariantSizeQty(selectedSize?.option) === 0 ? (
                   <div
                     data-cy="not_available_now"
                     className="flex-row items-center text-[12px] text-[#FF5F61] mt-[9px] medium [&>span]:ml-1"
@@ -829,7 +832,7 @@ function AddToCartComponent({
                           {" "}
                           {translateFunction("For You")}{" "}
                         </span>
-                        {getVariantSizeQty(selectedSize?.name) < 10 && (
+                        {getVariantSizeQty(selectedSize?.option) < 10 && (
                           <>
                             <span
                               data-cy="Last_text"
@@ -841,7 +844,7 @@ function AddToCartComponent({
                               data-cy="Last_text_number"
                               className="text-[#FFAF5F] meduim"
                             >
-                              {getVariantSizeQty(selectedSize?.name)}
+                              {getVariantSizeQty(selectedSize?.option)}
                             </span>
                           </>
                         )}
@@ -1589,21 +1592,21 @@ const AddToCartButton = ({
       localCart.find(
         (s) =>
           s.id === id &&
-          (s.color === color?.color_name ||
+          (s.color === color?.color_option ||
             s.color ===
-              product?.colors?.find((cl) => cl.name === color?.color_name)
+              product?.colors?.find((cl) => cl.option === color?.color_option)
                 ?.color) &&
-          s.size === size?.name
+          s.size === size?.option
       )
     )
       return localCart.find(
         (s) =>
           s.id === id &&
-          (s.color === color?.color_name ||
+          (s.color === color?.color_option ||
             s.color ===
-              product?.colors?.find((cl) => cl.name === color?.color_name)
+              product?.colors?.find((cl) => cl.option === color?.color_option)
                 ?.color) &&
-          s.size === size?.name
+          s.size === size?.option
       );
     if (exact) return localCart?.find((s) => s.id === id);
   };
@@ -1619,6 +1622,7 @@ const AddToCartButton = ({
         await cart.UpdateCart({
           cart_id: isVariantInCart({ exact: false })?.item_id,
           qty: (isVariantInCart({ exact: false })?.quantity ?? 0) + 1,
+          isFromAddWidget: true,
         });
         GAevent({
           action: GA_EVENT_NAMES.ADD_TO_CART,
@@ -1660,15 +1664,16 @@ const AddToCartButton = ({
         // });
         await cart.AddToCart({
           product_id: id,
-          color: product?.colors?.find((s) => s.name === color?.color_name)
+          color: product?.colors?.find((s) => s.option === color?.color_option)
             ?.color,
-          choice_1: size?.name,
+          choice_1: size?.option,
           qty: 1,
           image:
             color?.images[0]?.file_path ||
             color?.images[0] ||
             product?.images[0]?.file_path ||
             product?.images[0],
+          isFromAddWidget: true,
         });
         GAevent({
           action: GA_EVENT_NAMES.ADD_TO_CART,
@@ -1715,6 +1720,7 @@ const AddToCartButton = ({
         await cart.UpdateCart({
           cart_id: isVariantInCart({ exact: true })?.item_id,
           qty: isVariantInCart({ exact: true })?.quantity - 1,
+          isFromAddWidget: true,
         });
         await updateQuantity();
         setLoading(false);
@@ -1723,6 +1729,7 @@ const AddToCartButton = ({
         setLoading(true);
         await cart.RemoveFromCart({
           cart_item: isVariantInCart({ exact: true }),
+          isFromAddWidget: true,
         });
         GAevent({
           action: GA_EVENT_NAMES.REMOVE_FROM_CART,
@@ -1747,6 +1754,20 @@ const AddToCartButton = ({
       }
     } catch (error) {
       setLoading(false);
+    }
+  };
+  const { lang } = useParams();
+  // @ts-ignore
+  const [country, languageVariable] = lang?.split("-");
+  const showAddToCartText = () => {
+    if (languageVariable === "ar") {
+      return `${translateFunction("Add To Bag")} ${
+        color ? `${translateFunction("color")} ${color?.color_name}  ` : ""
+      }  ${size ? `${translateFunction("Size")} ${size?.name}  ` : ""}`;
+    } else {
+      return `${translateFunction("Add To Bag")} ${
+        color ? `${translateFunction("color")} ${color?.color_name}  ` : ""
+      }  ${size ? `${translateFunction("Size")} ${size?.name}  ` : ""}`;
     }
   };
   return (
@@ -1829,13 +1850,11 @@ const AddToCartButton = ({
             <AddCartIcon />
             {loading && <Spinner isMargen={true} />}
           </div>
-          <span data-cy="cart_statment" className="mt-1">
-            {translateFunction("Add To Bag")}
-            {` ${
-              color
-                ? ` ${color?.color_name} ${translateFunction("color")} `
-                : ""
-            }  ${size ? ` ${size?.name} ${translateFunction("size")} ` : ""}`}
+          <span
+            data-cy="cart_statment"
+            className={`${languageVariable === "ar" ? "dir-rtl" : ""} mt-1`}
+          >
+            {showAddToCartText()}
           </span>
         </div>
       </div>

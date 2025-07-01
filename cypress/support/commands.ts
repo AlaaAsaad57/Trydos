@@ -274,7 +274,7 @@ Cypress.Commands.add("clickElement", (selector: string) => {
   cy.get(selector).click({ scrollBehavior: false, force: true });
 });
 Cypress.Commands.add("AddProductToCartFromBoutiquePage", () => {
-  cy.intercept("GET", "**/api/v1/web/product/likesCommentsSharesDetails/**").as(
+  cy.intercept("GET", "**/api/v1/web/product/likesDetails/**").as(
     "SocialDataReq"
   );
   cy.intercept("GET", "**/api/v1/web/product/qtyPriceDetails/**").as(
@@ -634,7 +634,7 @@ Cypress.Commands.add(
               "✅✅ Product Name Obtained & The Product Name Is:",
               productName
             );
-            cy.intercept("Get", "**/product/likesCommentsSharesDetails/**").as(
+            cy.intercept("Get", "**/product/likesDetails/**").as(
               "getProductData2"
             );
             cy.clickElement(`[data-cy=on_mouse_over_product]:eq(${index})`);
@@ -705,9 +705,7 @@ Cypress.Commands.add(
     cy.log("✅✅ LoadallProducts Request Arrived");
     cy.verifyBoxsInBoutiquePage();
     cy.verifyComponentsInProductCard();
-    cy.intercept("Get", "**/product/likesCommentsSharesDetails/**").as(
-      "getProductData2"
-    );
+    cy.intercept("Get", "**/product/likesDetails/**").as("getProductData2");
     cy.clickElement("[data-cy=on_mouse_over_product]:eq(0)");
     cy.wait("@getProductData2").then((interception) => {
       expect(interception.response.statusCode).to.be.eq(200);

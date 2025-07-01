@@ -24,10 +24,9 @@ describe("3-2 Should Add Product To Cart From Any Product Page", () => {
     cy.get('[data-cy="product_link"]').first().click({ force: true });
   });
   it("should click on add to cart Button and wait to load data", () => {
-    cy.intercept(
-      "GET",
-      "**/api/v1/web/product/likesCommentsSharesDetails/**"
-    ).as("SocialDataReq");
+    cy.intercept("GET", "**/api/v1/web/product/likesDetails/**").as(
+      "SocialDataReq"
+    );
     cy.intercept("GET", "**/api/v1/web/product/qtyPriceDetails/**").as(
       "QtyPriceReq"
     );

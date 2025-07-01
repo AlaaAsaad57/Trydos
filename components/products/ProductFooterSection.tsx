@@ -111,7 +111,7 @@ function ProductFooterSection({
   const [option, setOption] = useState("");
   const getComments = async () => {
     let response: { data: ProductSocialInfo } = await fetchData({
-      url: "/web/product/likesCommentsSharesDetails/" + product.slug,
+      url: "/web/product/likesDetails/" + product.slug,
       reqTitle: "Social Info Request",
       method: "GET",
       server: "market",
@@ -131,33 +131,58 @@ function ProductFooterSection({
   const getData = async () => {
     // await home.CheckLogin();
     try {
-      let response: { data: ProductSocialInfo } = await fetchData({
-        url: "/web/product/likesCommentsSharesDetails/" + product.slug,
-        reqTitle: "Like & Comments Data Request",
-        method: "GET",
-        server: "market",
-      });
+      let [likesResponse, commentsResponse, response_shares, response_views] =
+        await Promise.all([
+          fetchData({
+            url: "/web/product/likesDetails/" + product.slug,
+            reqTitle: "Like & Comments Data Request",
+            method: "GET",
+            server: "market",
+          }),
+          fetchData({
+            url: "/web/product/CommentsSharesDetails/" + product.slug,
+            reqTitle: "Comments Data Request",
+            method: "GET",
+            server: "market",
+          }),
+          fetchData({
+            url: `/api/v2/elastic/shared_count/${product.id}`,
+            reqTitle: "Share Count Request",
+            server: "chat",
+            method: "GET",
+          }),
+          fetchData({
+            url: `/api/products/view`,
+            reqTitle: "get Views For Product",
+            method: "POST",
+            server: "elastic",
+            body: JSON.stringify({
+              user_id: auth.UserID(),
+              product_id: product.id,
+            }),
+          }),
+        ]);
       storeVariants({
         // @ts-ignore
-        variation: response.data?.variation,
+        variation: likesResponse.data?.variation,
         // @ts-ignore
-        slug_en_topic: response.data?.slug_en_topic,
+        slug_en_topic: likesResponse.data?.slug_en_topic,
       });
       // @ts-ignore
-      let likesNum = response.data?.count_of_likes || 0;
+      let likesNum = likesResponse.data?.count_of_likes || 0;
       // @ts-ignore
-      let isLiked = response.data?.is_liked || 0;
+      let isLiked = likesResponse.data?.is_liked || 0;
       setProductData({
         ...productState.productDetails,
         // @ts-ignore
-        comment_count: response.data?.comments_count || 0,
+        comment_count: commentsResponse.data?.comments_count || 0,
         // @ts-ignore
-        comments: response.data?.comments || [],
+        comments: commentsResponse.data?.comments || [],
       });
       let arr = [];
       // @ts-ignore
-      if (response.data?.variation?.length) {
-        response.data.variation.map((s) => {
+      if (likesResponse.data?.variation?.length) {
+        likesResponse.data.variation.map((s) => {
           let d = product.variation.filter((w) => w.type === s.type)[0];
           arr.push({ ...s, ...d });
         });
@@ -170,7 +195,8 @@ function ProductFooterSection({
       getProductVariation({
         ...product,
         // @ts-ignore
-        is_product_notify_for_user: response.data?.is_product_notify_for_user,
+        is_product_notify_for_user:
+          likesResponse.data?.is_product_notify_for_user,
         variation: arr,
         likes: likesNum,
         is_liked: isLiked,
@@ -179,23 +205,9 @@ function ProductFooterSection({
       });
       setLoading(false);
       // @ts-ignore
-      let response_shares: { data: SharesCount } = await fetchData({
-        url: `/api/v2/elastic/shared_count/${product.id}`,
-        reqTitle: "Share Count Request",
-        server: "chat",
-        method: "GET",
-      });
+
       setSharesCount(response_shares.data.shared_count);
-      const response_views: ProductViews = await fetchData({
-        url: `/api/products/view`,
-        reqTitle: "get Views For Product",
-        method: "POST",
-        server: "elastic",
-        body: {
-          user_id: auth.UserID(),
-          product_id: product.id,
-        },
-      });
+
       setViewsProducts({
         views_count: response_views?.view_count || 0,
       });

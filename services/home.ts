@@ -369,11 +369,6 @@ class HomeService {
             });
           await this.RequestFireBase();
         }
-
-        if (typeof window !== "undefined") {
-          _isStoreLastJson() &&
-            localStorage.setItem("LAST_JSON", JSON.stringify(repo));
-        }
       }
     }
   }
