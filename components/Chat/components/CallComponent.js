@@ -1,10 +1,8 @@
 import { useEffect, useRef } from "react";
 import { AnswerCall, RefuseCall } from "store/chat/callActions";
-import profilePng from "public/images/profileNo.png";
-import { getTwoLetters } from "../chatsFunctions";
 import { translateFunction } from "utils/functions";
 import "styles/chat.css";
-import Image from "next/image";
+
 import { useParams } from "next/navigation";
 import { useAppStore } from "store";
 import ChatPhoto from "./ChatPhoto";

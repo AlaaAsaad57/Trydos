@@ -618,6 +618,7 @@ img {
   width: auto;
   z-index: 11;
   height: auto;
+  flex: 1;
 }
 .input-chat-container svg {
   position: absolute;
@@ -627,7 +628,7 @@ img {
   cursor: text;
 }
 .wid31 {
-  width: 301px;
+  width: 100%;
 }
 .message-container {
   position: relative;

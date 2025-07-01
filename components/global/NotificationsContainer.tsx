@@ -7,10 +7,11 @@ import NotificationIcon from "public/svg/NotificationIcon.svg";
 import { GetImageUrl } from "utils/tinyUtils";
 import Image from "next/image";
 import { translateFunction } from "utils/functions";
+import { useNotifications } from "hooks/useNotifications";
 const NotificationsContainer = () => {
   const { notifications, removeNotification } = useNotificationStore();
   const [dismissingIds, setDismissingIds] = useState<Set<string>>(new Set());
-
+  const { notificationHandler } = useNotifications();
   const handleDismiss = (id: string) => {
     setDismissingIds((prev) => new Set(prev).add(id));
     setTimeout(() => {

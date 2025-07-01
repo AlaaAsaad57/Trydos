@@ -1019,7 +1019,7 @@ function ConversationContainer({
                 </label>
                 <input
                   id="type"
-                  className={`input-chat ${message.length > 0 ? "wid31" : ""}`}
+                  className={`input-chat wid31`}
                   value={message}
                   onChange={onChangeInput}
                   onKeyDown={onKeyDown}

@@ -25,6 +25,7 @@ import { fetchData } from "utils/fetchData";
 // SVG Icons
 import EndCallIcon from "../svg/endCall.svg";
 import MicIcon from "../svg/micIcon.svg";
+import VideoIcon from "../svg/vidIcon.svg";
 import CallingIcon from "../svg/calling.svg";
 import AddUserIcon from "../svg/addUser.svg";
 import LeftArrowIcon from "../svg/leftArrow.svg";
@@ -100,31 +101,6 @@ const useMicrophoneAndCameraTracks = createMicrophoneAndCameraTracks(
 );
 
 // Ringtone Component
-interface RingtoneProps {
-  shouldPlay: boolean;
-}
-
-const Ringtone: React.FC<RingtoneProps> = ({ shouldPlay }) => {
-  const audioRef = useRef<HTMLAudioElement>(null);
-
-  useEffect(() => {
-    if (shouldPlay && audioRef.current) {
-      audioRef.current.volume = AUDIO_VOLUME;
-      audioRef.current.play().catch(console.warn);
-    } else if (!shouldPlay && audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.currentTime = 0;
-    }
-  }, [shouldPlay]);
-
-  if (!shouldPlay) return null;
-
-  return (
-    <audio ref={audioRef} loop autoPlay src="/default.mp3">
-      <source src="/default.mp3" type="audio/mpeg" />
-    </audio>
-  );
-};
 
 // Timer Display Component
 interface TimerDisplayProps {
@@ -145,7 +121,7 @@ const TimerDisplay: React.FC<TimerDisplayProps> = ({
   ).padStart(2, "0")}`;
 
   return (
-    <div className="call-status">
+    <div className="call-status top-[initial] bottom-[190px] absolute">
       {isActive ? (
         <>
           <CallingIcon />
@@ -361,9 +337,9 @@ const VideoCall: React.FC<VideoCallProps> = ({
   ) => {
     const weak = uplinkNetworkQuality >= 5 || downlinkNetworkQuality >= 5;
     if (weak) {
-      tracks[1]?.setEnabled(false); // Stop video to save bandwidth
+      // tracks[1]?.setEnabled(false); // Stop video to save bandwidth
     } else {
-      tracks[1]?.setEnabled(true); // Restore video if network improves
+      // tracks[1]?.setEnabled(true); // Restore video if network improves
     }
   };
 
@@ -604,8 +580,6 @@ const VideoCall: React.FC<VideoCallProps> = ({
   }, [client, tracks]);
 
   // Determine if ringtone should play
-  const shouldPlayRingtone =
-    audio && remoteUsers.length === 0 && !callError && !isCallActive;
 
   return (
     <div className="video-call flex flex-col items-center justify-center gap-[20px]">
@@ -620,36 +594,21 @@ const VideoCall: React.FC<VideoCallProps> = ({
       )}
 
       {/* Ringtone */}
-      <Ringtone shouldPlay={shouldPlayRingtone} />
 
       {/* User photo */}
-      {otherUser && <ChatPhoto user={otherUser} height={200} width={200} />}
 
       {/* Caller name */}
-      <span className="caller-name">{name}</span>
-      {isEndingCall && (
-        <span className="text-white text-sm">
-          {translateFunction("Ending call...", language)}
-        </span>
-      )}
+
       {/* Timer */}
-      {ready && !isEndingCall && (
-        <TimerDisplay
-          minutes={minutes}
-          seconds={seconds}
-          isActive={remoteUsers.length > 0 && isCallActive}
-          language={language}
-        />
-      )}
 
       {/* Main video area */}
-      <div className="relative w-full h-full">
+      <div className="relative w-full h-full flex flex-col items-center justify-center">
         {remoteVideoUser ? (
           // Show remote user's video
           <VideoPlayer user={remoteVideoUser} />
         ) : (
           // Show user photo if no video
-          <div className="flex flex-col items-center justify-center h-full">
+          <>
             {otherUser && (
               <ChatPhoto user={otherUser} height={200} width={200} />
             )}
@@ -659,9 +618,16 @@ const VideoCall: React.FC<VideoCallProps> = ({
                 {translateFunction("Ending call...", language)}
               </span>
             )}
-          </div>
+          </>
         )}
-
+        {ready && !isEndingCall && (
+          <TimerDisplay
+            minutes={minutes}
+            seconds={seconds}
+            isActive={remoteUsers.length > 0 && isCallActive}
+            language={language}
+          />
+        )}
         {/* Local video preview (100px x 100px on top right) */}
         {tracks?.[1] && !isCameraOff && <LocalVideo track={tracks[1]} />}
       </div>
@@ -669,42 +635,59 @@ const VideoCall: React.FC<VideoCallProps> = ({
       {/* Control buttons */}
       {!isEndingCall && (
         <>
-          <button
-            type="button"
-            className="end-icon"
-            onClick={() => endCall()}
-            style={{ zIndex: 3 }}
-            aria-label={translateFunction("End Call", language)}
-          >
-            <EndCallIcon />
-            <span>{translateFunction("End Call", language)}</span>
-          </button>
+          <>
+            <button
+              type="button"
+              className="cancel-call-icon"
+              onClick={() => endCall()}
+              aria-label="Cancel call"
+            >
+              <LeftArrowIcon />
+            </button>
 
-          {/* Cancel call button */}
-          <button
-            type="button"
-            className="cancel-call-icon"
-            onClick={() => endCall()}
-            aria-label="Cancel call"
-          >
-            <LeftArrowIcon />
-          </button>
+            {/* Add caller button */}
+            <div className="add-caller-icon" role="button" tabIndex={0}>
+              <AddUserIcon />
+            </div>
+          </>
+          <div className="flex-row justify-between px-[30px] w-full absolute bottom-[100px] z-50">
+            <>
+              <button
+                type="button"
+                className={`static toggle-mic ${
+                  !isMuted ? "active-mic-svg" : ""
+                }`}
+                onClick={toggleMute}
+                disabled={!ready || !tracks}
+                aria-label={isMuted ? "Unmute microphone" : "Mute microphone"}
+              >
+                <MicIcon />
+              </button>
+              <button
+                type="button"
+                className="static end-icon m-0"
+                onClick={() => endCall()}
+                style={{ zIndex: 3 }}
+                aria-label={translateFunction("End Call", language)}
+              >
+                <EndCallIcon />
+                <span>{translateFunction("End Call", language)}</span>
+              </button>
 
-          {/* Add caller button */}
-          <div className="add-caller-icon" role="button" tabIndex={0}>
-            <AddUserIcon />
+              {/* Microphone toggle */}
+
+              <button
+                className={
+                  "static toggle-vid " + (isCameraOff && "active-mic-svg")
+                }
+                onClick={toggleCamera}
+                disabled={!ready || !tracks}
+                aria-label={isCameraOff ? "Unmute Camera" : "Mute Camera"}
+              >
+                <VideoIcon />
+              </button>
+            </>
           </div>
-
-          {/* Microphone toggle */}
-          <button
-            type="button"
-            className={`toggle-mic ${!isMuted ? "active-mic-svg" : ""}`}
-            onClick={toggleMute}
-            disabled={!ready || !tracks}
-            aria-label={isMuted ? "Unmute microphone" : "Mute microphone"}
-          >
-            <MicIcon />
-          </button>
         </>
       )}
     </div>

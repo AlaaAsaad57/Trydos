@@ -61,9 +61,55 @@ const messaging = firebase.messaging();
 // let url = `${'http://localhost:3006'}`;
 let url = "https://trydos-front-git-new-backend-trydos-front-team.vercel.app/";
 
+// Function to check if any client tabs are open
+async function checkIfClientIsOpen() {
+  const clients = await self.clients.matchAll({
+    type: "window",
+    includeUncontrolled: true,
+  });
+
+  return clients.length > 0;
+}
+
+// Function to send notification to foreground clients
+async function sendToForeground(payload) {
+  const clients = await self.clients.matchAll({
+    type: "window",
+    includeUncontrolled: true,
+  });
+
+  if (clients.length > 0) {
+    // Send to all open tabs
+    clients.forEach((client) => {
+      client.postMessage({
+        type: "FCM_NOTIFICATION",
+        payload: payload,
+        timestamp: Date.now(),
+      });
+    });
+    return true; // Notification sent to foreground
+  }
+
+  return false; // No open tabs, show background notification
+}
+
 messaging.onBackgroundMessage(async function (payload) {
   try {
-    console.log(payload);
+    console.log("📱 FCM payload received:", payload);
+
+    // Check if any tabs are open
+    const sentToForeground = await sendToForeground(payload);
+
+    if (sentToForeground) {
+      console.log(
+        "✅ Notification sent to foreground, skipping background notification"
+      );
+      return; // Don't show background notification
+    }
+
+    // If no tabs are open, proceed with background notifications
+    console.log("📋 No open tabs, showing background notification");
+
     if (payload.data.title === "market") {
       if (JSON.parse(payload.data.body).type === "boutique created") {
         notificationOptions = {
@@ -344,11 +390,9 @@ messaging.onBackgroundMessage(async function (payload) {
   }
 });
 
-async function checkClientIsVisible() {
-  return true;
-}
+// Notification click handler - works for background notifications only
 self.addEventListener("notificationclick", function (event) {
-  let url = `${"https://trydos-front.vercel.app/"}`;
+  let url = `https://trydos-front-git-alaa-dev-trydos-front-team.vercel.app`;
   event.notification.close();
   clients.openWindow(event.notification.data.url); // Android needs explicit close.
   switch (event.action) {

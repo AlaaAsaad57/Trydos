@@ -26,10 +26,7 @@ function AuthSections() {
       {chatOpen && <ChatModal />}
       {loginOpen && <NewLoginWidget />}
       {isCallIncoming && (
-        <CallComponent
-          reply={() => ChatConroller(true)}
-          isCallIncoming={isCallIncoming}
-        />
+        <CallComponent reply={() => {}} isCallIncoming={isCallIncoming} />
       )}
       {call && <CallContainer />}
     </>

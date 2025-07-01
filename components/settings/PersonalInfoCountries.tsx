@@ -8,6 +8,8 @@ import { changeAppCountry } from "store/homepage/actions";
 import { changeAppCountryServer } from "store/homepage/cachedActions";
 import { useAppStore } from "store";
 import { FlagIcon } from "utils/tinyUtils";
+import { fetchCountries } from "Server Requests";
+import Spinner from "components/global/Spinner";
 
 function PersonalInfoCountries({
   swipeToScreen,
@@ -16,9 +18,32 @@ function PersonalInfoCountries({
   swipeToScreen: (index: number) => void;
   goBack: () => void;
 }) {
-  const { countries } = useAppStore();
-
+  const [countries, setCountries] = useState([]);
+  const [loading, setLoading] = useState(false);
   const { lang } = useParams();
+  // @ts-ignore
+  const [country, language] = lang?.split("-");
+  const getCountries = async () => {
+    try {
+      setLoading(true);
+      if (sessionStorage.getItem(`countries-${country}-${language}`)) {
+        let data = sessionStorage.getItem(`countries-${country}-${language}`);
+        setCountries(JSON.parse(data));
+      } else {
+        const data = await fetchCountries(country, language);
+        sessionStorage.setItem(
+          `countries-${country}-${language}`,
+          JSON.stringify(data.countries)
+        );
+        setCountries(data.countries);
+      }
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const [selectedCountry, setSelectedCountry] = useState(
     countries.find(
       // @ts-ignore
@@ -56,6 +81,9 @@ function PersonalInfoCountries({
     setSelectedCountry(country);
     setIsSettingCountry(false);
   };
+  useEffect(() => {
+    getCountries();
+  }, []);
   return (
     <div className="flex-col max-h-[calc(100vh-200px)]">
       <SettingTopBar
@@ -257,34 +285,40 @@ function PersonalInfoCountries({
               isSettingCountry ? "opacity-50" : ""
             }`}
           >
-            {countries.map((country) => {
-              return (
-                <div
-                  key={country.iso}
-                  data-cy={`personal-info-countries-${country.iso}`}
-                  onClick={() => {
-                    if (!isSettingCountry) {
-                      changeCountry(country);
-                    }
-                  }}
-                  style={{
-                    border:
-                      selectedCountry?.id === country?.id
-                        ? "1px solid #402CDD7f"
-                        : "1px solid #D3D3D37f",
-                  }}
-                  className={`w-full flex-row cursor-pointer mt-[12px] h-[53px] rounded-[15px] bg-[#f8f8f8] px-[12px] items-center`}
-                >
-                  <span className="w-[30px] h-[20px]">
-                    <FlagIcon iso={country.iso} />
-                  </span>
+            {loading ? (
+              <div className="flex-row justify-center items-center w-full h-[53px]">
+                <Spinner />
+              </div>
+            ) : (
+              countries.map((country) => {
+                return (
+                  <div
+                    key={country.iso}
+                    data-cy={`personal-info-countries-${country.iso}`}
+                    onClick={() => {
+                      if (!isSettingCountry) {
+                        changeCountry(country);
+                      }
+                    }}
+                    style={{
+                      border:
+                        selectedCountry?.id === country?.id
+                          ? "1px solid #402CDD7f"
+                          : "1px solid #D3D3D37f",
+                    }}
+                    className={`w-full flex-row cursor-pointer mt-[12px] h-[53px] rounded-[15px] bg-[#f8f8f8] px-[12px] items-center`}
+                  >
+                    <span className="w-[30px] h-[20px]">
+                      <FlagIcon iso={country.iso} />
+                    </span>
 
-                  <span className="text-[14px] regular text-[#1d1d1d] ml-[12px] ">
-                    {country.name}
-                  </span>
-                </div>
-              );
-            })}
+                    <span className="text-[14px] regular text-[#1d1d1d] ml-[12px] ">
+                      {country.name}
+                    </span>
+                  </div>
+                );
+              })
+            )}
           </div>
         </div>
       </div>

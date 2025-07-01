@@ -9,9 +9,6 @@ import { useStopwatch } from "react-timer-hook";
 import AgoraRTC, {
   createClient,
   createMicrophoneAndCameraTracks,
-  IAgoraRTCClient,
-  IMicrophoneAudioTrack,
-  ICameraVideoTrack,
   IAgoraRTCRemoteUser,
   UID,
 } from "agora-rtc-react";
@@ -102,31 +99,6 @@ const useMicrophoneAndCameraTracks = createMicrophoneAndCameraTracks(
 );
 
 // Ringtone Component
-interface RingtoneProps {
-  shouldPlay: boolean;
-}
-
-const Ringtone: React.FC<RingtoneProps> = ({ shouldPlay }) => {
-  const audioRef = useRef<HTMLAudioElement>(null);
-
-  useEffect(() => {
-    if (shouldPlay && audioRef.current) {
-      audioRef.current.volume = AUDIO_VOLUME;
-      audioRef.current.play().catch(console.warn);
-    } else if (!shouldPlay && audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.currentTime = 0;
-    }
-  }, [shouldPlay]);
-
-  if (!shouldPlay) return null;
-
-  return (
-    <audio ref={audioRef} loop autoPlay src="/default.mp3">
-      <source src="/default.mp3" type="audio/mpeg" />
-    </audio>
-  );
-};
 
 // Timer Display Component
 interface TimerDisplayProps {
@@ -512,8 +484,6 @@ const VoiceCall: React.FC<VoiceCallProps> = ({
   }, [client, tracks]);
 
   // Determine if ringtone should play
-  const shouldPlayRingtone =
-    audio && remoteUsers.length === 0 && !callError && !isCallActive;
 
   return (
     <div className="video-call flex flex-col items-center justify-center gap-[20px]">
@@ -526,9 +496,6 @@ const VoiceCall: React.FC<VoiceCallProps> = ({
       {callError && (
         <div className="call-error text-red-500 text-sm">{callError}</div>
       )}
-
-      {/* Ringtone */}
-      <Ringtone shouldPlay={shouldPlayRingtone} />
 
       {/* User photo */}
       {otherUser && <ChatPhoto user={otherUser} height={200} width={200} />}
@@ -553,42 +520,50 @@ const VoiceCall: React.FC<VoiceCallProps> = ({
       {/* End call button */}
       {!isEndingCall && (
         <>
-          <button
-            type="button"
-            className="end-icon"
-            onClick={() => endCall()}
-            style={{ zIndex: 3 }}
-            aria-label={translateFunction("End Call", language)}
-          >
-            <EndCallIcon />
-            <span>{translateFunction("End Call", language)}</span>
-          </button>
+          <>
+            <button
+              type="button"
+              className="cancel-call-icon"
+              onClick={() => endCall()}
+              aria-label="Cancel call"
+            >
+              <LeftArrowIcon />
+            </button>
 
-          {/* Cancel call button */}
-          <button
-            type="button"
-            className="cancel-call-icon"
-            onClick={() => endCall()}
-            aria-label="Cancel call"
-          >
-            <LeftArrowIcon />
-          </button>
+            {/* Add caller button */}
+            <div className="add-caller-icon" role="button" tabIndex={0}>
+              <AddUserIcon />
+            </div>
+          </>
+          <div className="flex-row justify-between px-[30px] w-full absolute bottom-[100px] z-50">
+            <>
+              <button
+                type="button"
+                className={`static toggle-mic ${
+                  !isMuted ? "active-mic-svg" : ""
+                }`}
+                onClick={toggleMute}
+                disabled={!ready || !tracks}
+                aria-label={isMuted ? "Unmute microphone" : "Mute microphone"}
+              >
+                <MicIcon />
+              </button>
+              <button
+                type="button"
+                className="static end-icon m-0"
+                onClick={() => endCall()}
+                style={{ zIndex: 3 }}
+                aria-label={translateFunction("End Call", language)}
+              >
+                <EndCallIcon />
+                <span>{translateFunction("End Call", language)}</span>
+              </button>
 
-          {/* Add caller button */}
-          <div className="add-caller-icon" role="button" tabIndex={0}>
-            <AddUserIcon />
+              {/* Microphone toggle */}
+
+              <span></span>
+            </>
           </div>
-
-          {/* Microphone toggle */}
-          <button
-            type="button"
-            className={`toggle-mic ${!isMuted ? "active-mic-svg" : ""}`}
-            onClick={toggleMute}
-            disabled={!ready || !tracks}
-            aria-label={isMuted ? "Unmute microphone" : "Mute microphone"}
-          >
-            <MicIcon />
-          </button>
         </>
       )}
     </div>
