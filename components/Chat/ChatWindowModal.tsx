@@ -51,7 +51,9 @@ function Chat(props) {
       ></div>
       <div className={`app ${language}-app`}>
         <textarea id="text-copy"></textarea>
-        {Notification.permission === "granted" && NotificationPremission ? (
+        {typeof Notification !== "undefined" &&
+        Notification.permission === "granted" &&
+        NotificationPremission ? (
           <>
             <ChatWindow
               open={contactOpen}

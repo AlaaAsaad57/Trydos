@@ -330,7 +330,8 @@ const NotificationInfo = ({ closeWindow }) => {
         <div className="flex-row w-full justify-between py-2">
           <span>{translateFunction("Notification Permission:")}</span>
           <span>
-            {Notification.permission === "granted"
+            {typeof Notification !== "undefined" &&
+            Notification.permission === "granted"
               ? translateFunction("Enabled")
               : translateFunction("Not Enabled")}
           </span>
