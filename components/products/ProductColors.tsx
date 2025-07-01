@@ -133,7 +133,9 @@ function ProductColors({ colors, ProductColorsArray }: ProductColorsPropsType) {
           initialSlide={
             (searchParams.get("color") &&
               colors.findIndex(
-                (s) => s.color_option === searchParams.get("color")
+                (s) =>
+                  s.color_option === searchParams.get("color") ||
+                  s.color_name === searchParams.get("color")
               )) ??
             0
           }
@@ -170,7 +172,9 @@ function ProductColors({ colors, ProductColorsArray }: ProductColorsPropsType) {
                     color={
                       isActive
                         ? ProductColorsArray?.filter(
-                            (s) => s.option === color.color_option
+                            (s) =>
+                              s.option === color.color_option ||
+                              s.option === color.color_name
                           )?.[0]?.color
                         : "#fff"
                     }

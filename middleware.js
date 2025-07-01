@@ -329,7 +329,7 @@ export const config = {
      */
     {
       source:
-        "/((?!api|firebase-messaging-sw.js|default.mp3|wa.mp3|api-test|sitemap|manifest.json|error.png|assets|svg|fonts|translations|reports|images|styles|endCall|sitemap.xml|svg|call_direct|error.png|static|.\\..|_next|revalidate|callInProg|selectCountry|favicon.ico).*)",
+        "/((?!api|noposter|firebase-messaging-sw.js|default.mp3|wa.mp3|api-test|sitemap|manifest.json|error.png|assets|svg|fonts|translations|reports|images|styles|endCall|sitemap.xml|svg|call_direct|error.png|static|.\\..|_next|revalidate|callInProg|selectCountry|favicon.ico).*)",
     },
   ],
 };

@@ -1,7 +1,7 @@
 import { NormalColorSliderPropsType } from "models/componentType/NormalColorSliderPropsType";
 import CircleBorder from "public/svg/product/CircleBorder";
 import React, { useEffect } from "react";
-import { getConfiguredImage } from "utils/functions";
+import { getConfiguredImage, translateFunction } from "utils/functions";
 import { GetImageUrl } from "utils/tinyUtils";
 
 function NormalColorSlider({
@@ -75,13 +75,17 @@ function NormalColorSlider({
             color={
               activeColor?.color_option === color.color_option
                 ? ProductColorsArray?.filter(
-                    (s) => s.option === color.color_option
+                    (s) =>
+                      s.option === color.color_option ||
+                      s.option === color.color_name
                   )?.[0]?.color
                 : "#fff"
             }
           />
           <span className="color-name-span ">{color.color_name}</span>
-          {color.color_trend && <span className="color-trend">Trend</span>}
+          {color.color_trend && (
+            <span className="color-trend">{translateFunction("Trend")}</span>
+          )}
         </div>
       ))}
     </div>

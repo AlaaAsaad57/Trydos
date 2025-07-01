@@ -7,6 +7,7 @@ import "styles/chat.css";
 import Image from "next/image";
 import { useParams } from "next/navigation";
 import { useAppStore } from "store";
+import ChatPhoto from "./ChatPhoto";
 function CallComponent(props) {
   const {
     caller,
@@ -27,6 +28,13 @@ function CallComponent(props) {
   var RefAudio;
   useEffect(() => {
     RefAudio = ref;
+    console.log({
+      caller,
+      incomeCallData,
+      MessageActiveCall,
+      language,
+      incomeCallType,
+    });
     return () => {
       RefAudio?.current?.pause();
     };
@@ -37,29 +45,7 @@ function CallComponent(props) {
       <audio ref={ref} loop autoPlay src={"/default.mp3"}>
         <source src={"/default.mp3"}></source>
       </audio>
-      {caller?.photo_path ? (
-        <Image
-          width={40}
-          height={40}
-          alt="user-photo"
-          loading="eager"
-          src={caller?.photo_path}
-        />
-      ) : caller.channel_name ? (
-        <>
-          <div className="text-avatar caller-avatar-text">
-            {getTwoLetters(caller.channel_name || caller.mobile_phone)}
-          </div>
-        </>
-      ) : (
-        <Image
-          loading="eager"
-          width={40}
-          height={40}
-          alt="user-photo"
-          src={profilePng}
-        />
-      )}
+      <ChatPhoto width={40} height={40} user={caller} />
       <div className="call-s">
         <span className="incomin">
           {" "}

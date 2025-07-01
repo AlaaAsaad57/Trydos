@@ -321,7 +321,7 @@ export const onMessageListener = async () => {
                     ],
                   };
               let caller = { ...JSON.parse(payload.data.data).message.channel };
-
+              console.log(JSON.parse(payload.data.data).message.channel);
               if (
                 data.user_id !== getUserChat()?.id &&
                 (!callInProgress || callInProgress === 2)

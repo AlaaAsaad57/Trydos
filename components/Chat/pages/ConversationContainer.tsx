@@ -49,18 +49,6 @@ import { db } from "utils/firebaseInitv1";
 import { useAppStore } from "store";
 
 /* -------------------------- Dynamic Components --------------------------- */
-const VideoCall = dynamic(
-  () => import("components/Chat/components/VideoCall"),
-  {
-    ssr: false,
-  }
-);
-const VoiceCall = dynamic(
-  () => import("components/Chat/components/VoiceCall"),
-  {
-    ssr: false,
-  }
-);
 
 /* --------------------------------------------------------------------------
  * Types
@@ -775,27 +763,6 @@ function ConversationContainer({
         onChange={handleFileChange}
       />
 
-      {/* Conditional Calls render */}
-      {activeChat?.id && call?.includes("vid") && AgoraToken && (
-        <VideoCall
-          audio={call.includes("outgoing")}
-          token={AgoraToken}
-          name={activeChat?.channel_name || activeChat?.mobile_phone}
-          active={activeChat?.photo_path ?? null}
-          user_id={receiverId}
-        />
-      )}
-
-      {activeChat?.id && call?.includes("aud") && AgoraToken && (
-        <VoiceCall
-          audio={call.includes("outgoing")}
-          token={AgoraToken}
-          name={activeChat?.channel_name || activeChat?.mobile_phone}
-          active={activeChat?.photo_path ?? null}
-          user_id={receiverId}
-        />
-      )}
-
       {/* Camera overlay */}
       {cameraEnabled && (
         <div className="fixed-img-prev">
@@ -1031,7 +998,11 @@ function ConversationContainer({
                 cancel={() => setReplyMessage(null)}
               />
             )}
-            <div className="chat-input-container">
+            <div
+              className={`${
+                message.length > 0 && "pr-[23px]"
+              } chat-input-container`}
+            >
               <PlusIcon
                 style={{ minWidth: 43, cursor: "pointer" }}
                 className="chatplus"

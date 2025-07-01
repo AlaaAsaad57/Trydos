@@ -3,6 +3,12 @@ import LandingPage from "./LandingPage";
 import { useAppStore } from "store";
 import CallComponent from "components/Chat/components/CallComponent";
 import { ChatConroller } from "utils/tinyUtils";
+const CallContainer = dynamic(
+  () => import("components/Chat/pages/CallContainer"),
+  {
+    loading: () => <LandingPage afterLoad={true} />,
+  }
+);
 const ChatModal = dynamic(() => import("components/Chat/ChatModal"), {
   loading: () => <LandingPage afterLoad={true} />,
 });
@@ -13,13 +19,19 @@ const NewLoginWidget = dynamic(
   }
 );
 function AuthSections() {
-  const { loginOpen, chatVar: chatOpen , isCallIncoming } = useAppStore();
+  const { loginOpen, chatVar: chatOpen, isCallIncoming, call } = useAppStore();
 
   return (
     <>
-      {isCallIncoming && <CallComponent reply={() => ChatConroller(true)} isCallIncoming={isCallIncoming}/>}
       {chatOpen && <ChatModal />}
       {loginOpen && <NewLoginWidget />}
+      {isCallIncoming && (
+        <CallComponent
+          reply={() => ChatConroller(true)}
+          isCallIncoming={isCallIncoming}
+        />
+      )}
+      {call && <CallContainer />}
     </>
   );
 }
