@@ -18,15 +18,20 @@ function PersonalInfoAddress({
 }: PersonalInfoAddressPropsType) {
   const { setCountries, addressLists } = useAppStore();
   const { lang } = useParams();
+  // @ts-ignore
+  const [country, language] = lang?.split("-");
   const getAdditionData = async () => {
     order.GetAddressList();
-    if (sessionStorage.getItem("countries")) {
-      let data = sessionStorage.getItem("countries");
+    if (sessionStorage.getItem(`countries-${country}-${language}`)) {
+      let data = sessionStorage.getItem(`countries-${country}-${language}`);
       setCountries(JSON.parse(data));
     } else {
       try {
-        const data = await fetchCountries();
-        sessionStorage.setItem("countries", JSON.stringify(data.countries));
+        const data = await fetchCountries(country, language);
+        sessionStorage.setItem(
+          `countries-${country}-${language}`,
+          JSON.stringify(data.countries)
+        );
         setCountries(data.countries);
       } catch (error) {
         console.error("Failed to fetch countries:", error);

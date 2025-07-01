@@ -13,6 +13,8 @@ import { showErrorNotification } from "@/store/notifications/reducer";
 
 function Init() {
   const { lang } = useParams();
+  // @ts-ignore
+  const [country, language] = lang?.split("-");
   const searchParams = useSearchParams();
   const [dataCountries, setCountriesData] = useState([]);
 
@@ -22,13 +24,16 @@ function Init() {
   }, []);
 
   const getCountries = async () => {
-    if (sessionStorage.getItem("countries")) {
-      const data = sessionStorage.getItem("countries");
+    if (sessionStorage.getItem(`countries-${country}-${language}`)) {
+      const data = sessionStorage.getItem(`countries-${country}-${language}`);
       setCountriesData(JSON.parse(data));
     } else {
       try {
-        const data = await fetchCountries();
-        sessionStorage.setItem("countries", JSON.stringify(data.countries));
+        const data = await fetchCountries(country, language);
+        sessionStorage.setItem(
+          `countries-${country}-${language}`,
+          JSON.stringify(data.countries)
+        );
         setCountriesData(data.countries);
       } catch (error) {
         console.error("Failed to fetch countries:", error);

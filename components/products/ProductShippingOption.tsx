@@ -15,21 +15,27 @@ import { fetchCountries } from "Server Requests";
 import { formatTimeForAddress } from "utils/tinyUtils";
 function ProductShippingOption({ days }) {
   const [countriesData, setCountries] = useState([]);
+  const { lang } = useParams();
+  // @ts-ignore
+  const [country, language] = lang?.split("-");
   const getCountries = async () => {
     try {
-      if (sessionStorage.getItem("countries")) {
-        let data = sessionStorage.getItem("countries");
+      if (sessionStorage.getItem(`countries-${country}-${language}`)) {
+        let data = sessionStorage.getItem(`countries-${country}-${language}`);
         setCountries(JSON.parse(data));
       } else {
-        const data = await fetchCountries();
-        sessionStorage.setItem("countries", JSON.stringify(data.countries));
+        const data = await fetchCountries(country, language);
+        sessionStorage.setItem(
+          `countries-${country}-${language}`,
+          JSON.stringify(data.countries)
+        );
         setCountries(data.countries);
       }
     } catch (error) {
       console.log(error);
     }
   };
-  let { lang } = useParams();
+
   // @ts-ignore
   let [countryIso, languageVariable] = lang.split("-");
   const translate = (key, lang?) => {

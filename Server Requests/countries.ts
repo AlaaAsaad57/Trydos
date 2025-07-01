@@ -8,15 +8,20 @@ interface CountriesResponse {
   countries: Country[];
 }
 
-export async function fetchCountries(): Promise<CountriesResponse> {
+export async function fetchCountries(
+  country = "tr",
+  language = "en"
+): Promise<CountriesResponse> {
   try {
     const response = await fetch(
-      `${process.env.NEXT_PUBLIC_BACKEND_URL}/countries`,
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/countries?lang=${language}&country=${country}`,
       {
         method: "GET",
         headers: {
           Accept: "application/json",
           "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+          country: country,
+          lang: language,
         },
         next: {
           tags: ["countries", "home"],

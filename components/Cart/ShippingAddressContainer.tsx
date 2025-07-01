@@ -23,16 +23,22 @@ function ShippingAddressContainer({
 }: ShippingAddressContainerPropsType) {
   const { setCountries, cart, user } = useAppStore();
   const { lang } = useParams();
+  // @ts-ignore
+  const [country, language] = lang?.split("-");
+  console.log(country, language);
   const getOrderData = async () => {
     order.GetWallet();
     order.GetAddressList();
-    if (sessionStorage.getItem("countries")) {
-      let data = sessionStorage.getItem("countries");
+    if (sessionStorage.getItem(`countries-${country}-${language}`)) {
+      let data = sessionStorage.getItem(`countries-${country}-${language}`);
       setCountries(JSON.parse(data));
     } else {
       try {
-        const data = await fetchCountries();
-        sessionStorage.setItem("countries", JSON.stringify(data.countries));
+        const data = await fetchCountries(country, language);
+        sessionStorage.setItem(
+          `countries-${country}-${language}`,
+          JSON.stringify(data.countries)
+        );
         setCountries(data.countries);
       } catch (error) {
         console.error("Failed to fetch countries:", error);
