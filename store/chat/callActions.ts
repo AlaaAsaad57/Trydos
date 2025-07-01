@@ -36,8 +36,8 @@ export const makeVideoCall = async (
       server: "chat",
       reqTitle: "Video Call",
     });
-    setVideoCall(response.data.data.token, response.data.data.message);
-    editCall(response.data.data.message);
+    setVideoCall(response.data.token, response.data.message);
+    editCall(response.data.message);
     setCallLoading(null);
   } catch (e) {
     showErrorNotification(translateFunction("User in Another Call"));
@@ -80,8 +80,8 @@ export const makeVoiceCall = async (
       server: "chat",
       reqTitle: "Voice Call",
     });
-    setAudioCall(response.data.data.token, response.data.data.message);
-    editCall(response.data.data.message);
+    setAudioCall(response.data.token, response.data.message);
+    editCall(response.data.message);
     setCallLoading(null);
   } catch (e) {
     console.error(e);
@@ -107,7 +107,7 @@ export const AnswerCall = async (channelId, messageId) => {
       reqTitle: "Answer Call",
     });
     if (
-      response.data.data.filter(
+      response.data.filter(
         (user) => parseInt(user.user.id) === parseInt(getUserChat().id)
       )[0].status === "active"
     )
@@ -123,7 +123,7 @@ export const AnswerCall = async (channelId, messageId) => {
         reqTitle: "Agora Token",
       });
       Answer(channelId, messageId);
-      answerCall(response2.data.data);
+      answerCall(response2.data);
     } else {
       showErrorNotification(
         translateFunction("Call Answered from another account", language)

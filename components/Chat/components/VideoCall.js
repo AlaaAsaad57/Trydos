@@ -164,12 +164,12 @@ function VideoCall(props) {
       if (duration > 3 && users.length > 0)
         await RefuseCall(activeChat.id, MessageActiveCall, duration).then(
           () => {
-            dispatch({ type: "END-CALL", payload: MessageActiveCall });
+            endCall(MessageActiveCall);
           }
         );
       else
         await RefuseCall(activeChat.id, MessageActiveCall).then(() => {
-          dispatch({ type: "END-CALL", payload: MessageActiveCall });
+          endCall(MessageActiveCall);
         });
     } catch (e) {
       console.error("Error ending call:", e);
