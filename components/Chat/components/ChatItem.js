@@ -92,7 +92,9 @@ function ChatItem({
       }
     });
     setMoving(id);
-    a.previousElementSibling.style.display = "none";
+    if (a.previousElementSibling) {
+      a.previousElementSibling.style.display = "none";
+    }
 
     isMove = true;
     var yUp, xUp;
