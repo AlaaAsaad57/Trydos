@@ -320,7 +320,7 @@ export const fetchData = async <T = any>(
       } else showErrorNotification(`${err?.message || "Falied"}`);
       let errorObj = {
         type: "backend-exception",
-        message: err?.message || "Falied",
+        message: err?.message?.substring(0, 200) || "Falied",
         url: window.location.href,
         user_id: auth.UserID(),
         request_url: url,
