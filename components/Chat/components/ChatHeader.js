@@ -1,8 +1,9 @@
 import ArrowIcon from "../svg/arrow.svg";
 import VideoIcon from "../svg/vcall.svg";
 import CallIcon from "../svg/call.svg";
+import CancelCallIcon from "../svg/cancel-call.svg";
 import profile from "public/images/profileNo.png";
-
+import { AxiosPost } from "utils/AxiosApi";
 import { getNew, getTwoLetters, showDate } from "../chatsFunctions";
 import Image from "next/image";
 import { getUserChat } from "utils/functions";
@@ -142,6 +143,23 @@ function ChatHeader({
                 );
             }}
           ></CallIcon>
+          <CancelCallIcon
+            className="cancel-call pl-4"
+            onClick={async () => {
+              try {
+                await AxiosPost({
+                  url:
+                    process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
+                    "/api/v1/end_call",
+                  title: "End Call",
+                  body: { user_id: getUserChat()?.id },
+                  hasMessageOnly: false,
+                });
+              } catch (err) {
+                console.error("End call failed", err);
+              }
+            }}
+          ></CancelCallIcon>
         </div>
       )}
     </div>

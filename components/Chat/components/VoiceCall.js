@@ -27,8 +27,14 @@ const useMicrophoneAndCameraTracks = createMicrophoneAndCameraTracks();
 
 const appId = "0af959943ff542df8f2cb1b925ec0cc1";
 function VideoCall(props) {
-  const { storeClient, language, activeChat, MessageActiveCall, call } =
-    useAppStore();
+  const {
+    storeClient,
+    language,
+    activeChat,
+    MessageActiveCall,
+    call,
+    endCall,
+  } = useAppStore();
 
   const { seconds, minutes, hours, days, isRunning, start, pause, reset } =
     useStopwatch({ autoStart: false });
@@ -61,6 +67,8 @@ function VideoCall(props) {
     // function to initialise the SDK
     let init = async (name) => {
       client.on("user-joined", (user) => {
+        // stop ringtone when call is answered
+        ref.current?.pause();
         reset();
         start();
 
@@ -93,6 +101,8 @@ function VideoCall(props) {
       });
 
       client.on("user-left", (user) => {
+        // stop ringtone when remote user leaves
+        ref.current?.pause();
         userEndCall();
         setUsers((prevUsers) => {
           return prevUsers.filter((User) => User.uid !== user.uid);
@@ -115,13 +125,7 @@ function VideoCall(props) {
   const [joined, setJoined] = useState(false);
   const userEndCall = async (durationVal) => {
     try {
-      await AxiosPost({
-        url: process.env.NEXT_PUBLIC_CHAT_BACKEND_URL + `/api/v1/end_call`,
-        title: "End Call",
-        body: { user_id: getUserChat()?.id },
-        hasMessageOnly: false,
-      });
-
+      ref.current?.pause();
       if (ready) {
         if (joined) {
           await client.unpublish(tracks);
@@ -141,12 +145,12 @@ function VideoCall(props) {
       if (duration > 3 && users.length > 0)
         await RefuseCall(activeChat.id, MessageActiveCall, duration).then(
           () => {
-            dispatch({ type: "END-CALL", payload: MessageActiveCall });
+            endCall(MessageActiveCall);
           }
         );
       else
         await RefuseCall(activeChat.id, MessageActiveCall).then(() => {
-          dispatch({ type: "END-CALL", payload: MessageActiveCall });
+          endCall(MessageActiveCall);
         });
       pause();
     } catch (e) {

@@ -28,8 +28,14 @@ const useClient = createClient(config);
 const useMicrophoneAndCameraTracks = createMicrophoneAndCameraTracks();
 const appId = "0af959943ff542df8f2cb1b925ec0cc1";
 function VideoCall(props) {
-  const { storeClient, language, activeChat, MessageActiveCall, call } =
-    useAppStore();
+  const {
+    storeClient,
+    language,
+    activeChat,
+    MessageActiveCall,
+    call,
+    endCall,
+  } = useAppStore();
   const { seconds, minutes, hours, days, isRunning, start, pause, reset } =
     useStopwatch({ autoStart: false });
   const [callStatus, setCallStatus] = useState(null);
@@ -82,6 +88,7 @@ function VideoCall(props) {
     // function to initialise the SDK
     let init = async (name) => {
       client.on("user-joined", (user) => {
+        ref.current?.pause();
         reset();
         axios
           .get(
@@ -119,6 +126,7 @@ function VideoCall(props) {
       });
 
       client.on("user-left", (user) => {
+        ref.current?.pause();
         userEndCall();
         setUsers((prevUsers) => {
           return prevUsers.filter((User) => User.uid !== user.uid);
@@ -145,42 +153,28 @@ function VideoCall(props) {
 
   const [joined, setJoined] = useState(false);
   const userEndCall = async (durationVal) => {
-    try {
-      // Clear user's call state before closing modal
-      await AxiosPost({
-        url: process.env.NEXT_PUBLIC_CHAT_BACKEND_URL + `/api/v1/end_call`,
-        title: "End Call",
-        body: { user_id: getUserChat()?.id },
-        hasMessageOnly: false,
-      });
-
-      if (ready) {
-        await client.unpublish(tracks);
-        if (joined && ready) await client.leave();
-        client.removeAllListeners();
-        if (tracks) {
-          tracks[0]?.getMediaStreamTrack().stop();
-          tracks[1]?.getMediaStreamTrack().stop();
-          tracks[0]?.close();
-          tracks[1].close();
-        }
+    ref.current?.pause();
+    if (ready) {
+      await client.unpublish(tracks);
+      if (joined && ready) await client.leave();
+      client.removeAllListeners();
+      if (tracks) {
+        tracks[0]?.getMediaStreamTrack().stop();
+        tracks[1]?.getMediaStreamTrack().stop();
+        tracks[0]?.close();
+        tracks[1].close();
       }
-      pause();
-      let duration =
-        durationVal !== null ? durationVal : minutes * 60 + seconds;
-      if (duration > 3 && users.length > 0)
-        await RefuseCall(activeChat.id, MessageActiveCall, duration).then(
-          () => {
-            dispatch({ type: "END-CALL", payload: MessageActiveCall });
-          }
-        );
-      else
-        await RefuseCall(activeChat.id, MessageActiveCall).then(() => {
-          dispatch({ type: "END-CALL", payload: MessageActiveCall });
-        });
-    } catch (e) {
-      console.error("Error ending call:", e);
     }
+    pause();
+    let duration = durationVal !== null ? durationVal : minutes * 60 + seconds;
+    if (duration > 3 && users.length > 0)
+      await RefuseCall(activeChat.id, MessageActiveCall, duration).then(() => {
+        endCall(MessageActiveCall);
+      });
+    else
+      await RefuseCall(activeChat.id, MessageActiveCall).then(() => {
+        endCall(MessageActiveCall);
+      });
   };
   const [trackState, setTrackState] = useState({ video: true, audio: true });
   const mute = async (type) => {
