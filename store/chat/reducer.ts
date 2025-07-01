@@ -128,7 +128,13 @@ export const useChatStore = (set, get) => ({
 
   setServerTime: (payload: any) => set({ Server_time: payload }),
 
-  storeClient: (payload: any) => set({ client: payload }),
+  storeClient: (payload: any) => {
+    const current = get().client;
+    // only update if the payload is different
+    if (current !== payload) {
+      set({ client: payload });
+    }
+  },
 
   setCallLoading: (payload: any) => set({ callLoading: payload }),
 

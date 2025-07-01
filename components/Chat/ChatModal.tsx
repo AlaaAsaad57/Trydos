@@ -1,9 +1,5 @@
 "use client";
 import { useEffect } from "react";
-const CallComponent = dynamic(
-  () => import("components/Chat/components/CallComponent"),
-  { ssr: false }
-);
 const Chat = dynamic(() => import("./ChatWindowModal"), { ssr: false });
 
 import { ChatConroller } from "utils/tinyUtils";
@@ -40,7 +36,6 @@ function ChatModal() {
   }, []);
   return (
     <>
-      {isCallIncoming && <CallComponent reply={() => ChatConroller(true)} />}
       {chatVar && SSRDetect() && (
         <Chat
           open={chatVar}

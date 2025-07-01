@@ -1,5 +1,7 @@
 const translations = {
   ar: {
+    "The number was copied successfully": "تم نسخ الرقم بنجاح",
+    "Number copy failed": "فشل نسخ الرقم",
     Cancel: "الغاء",
     "For All": "للكل",
     "For Me": "لي",
@@ -1473,6 +1475,8 @@ const translations = {
     Video: "Video",
     Audio: "Ses Kaydı",
     File: "Dosya",
+    "The number was copied successfully": "Numara başarıyla kopyalandı",
+    "Number copy failed": "Numara kopyalanamadı",
   },
 };
 

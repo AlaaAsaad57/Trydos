@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import ArrowIcon from "../svg/arrow.svg";
 import InfoCallIcon from "../svg/InfoCall.svg";
 import InfoVideoIcon from "../svg/InfoVideo.svg";
@@ -15,10 +15,15 @@ import BlockInfoIcon from "../svg/BlockInfo.svg";
 import { getTwoLetters, getUser } from "../chatsFunctions";
 import Image from "next/image";
 import Spinner from "components/global/Spinner";
+import {
+  showSuccessNotification,
+  showErrorNotification,
+} from "@/store/notifications/reducer";
 
 import MediaContainer from "./MediaContainer";
 import { useAppStore } from "store";
 import ChatPhoto from "./ChatPhoto";
+import { translateFunction } from "utils/functions";
 function ChatInfo({
   activeChat,
   cancel,
@@ -29,6 +34,16 @@ function ChatInfo({
 }) {
   const { deleteChat } = useAppStore();
   const ref = useRef();
+  const handleCopyPhone = async (phoneNumber) => {
+    try {
+      await navigator.clipboard.writeText(phoneNumber);
+      showSuccessNotification(
+        translateFunction("The number was copied successfully")
+      );
+    } catch (error) {
+      showErrorNotification("Number copy failed");
+    }
+  };
   const [showMedia, setMedia] = useState(false);
 
   useEffect(() => {
@@ -120,11 +135,22 @@ function ChatInfo({
                 )[0]?.user?.username}
             </div>
             <div className="chaat-info-user-phone">
-              {
-                activeChat?.channel_members.filter(
-                  (user) => user.user_id !== getUser()?.id
-                )[0]?.user?.mobile_phone
-              }
+              <span
+                className="cursor-pointer text-[#388cff]"
+                onClick={() =>
+                  handleCopyPhone(
+                    activeChat?.channel_members.filter(
+                      (user) => user.user_id !== getUser()?.id
+                    )[0]?.user?.mobile_phone
+                  )
+                }
+              >
+                {
+                  activeChat?.channel_members.filter(
+                    (user) => user.user_id !== getUser()?.id
+                  )[0]?.user?.mobile_phone
+                }
+              </span>
             </div>
           </div>
           <div className="chat-user-info-options">

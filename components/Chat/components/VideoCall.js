@@ -25,8 +25,14 @@ const useClient = createClient(config);
 const useMicrophoneAndCameraTracks = createMicrophoneAndCameraTracks();
 const appId = "0af959943ff542df8f2cb1b925ec0cc1";
 function VideoCall(props) {
-  const { storeClient, language, activeChat, MessageActiveCall, call } =
-    useAppStore();
+  const {
+    storeClient,
+    language,
+    activeChat,
+    MessageActiveCall,
+    call,
+    endCall,
+  } = useAppStore();
   const { seconds, minutes, hours, days, isRunning, start, pause, reset } =
     useStopwatch({ autoStart: false });
   const [callStatus, setCallStatus] = useState(null);
@@ -71,6 +77,7 @@ function VideoCall(props) {
     // function to initialise the SDK
     let init = async (name) => {
       client.on("user-joined", (user) => {
+        ref.current?.pause();
         reset();
         fetchData({
           url: `/api/v1/messages/start_talking/${MessageActiveCall}`,
@@ -103,6 +110,7 @@ function VideoCall(props) {
       });
 
       client.on("user-left", (user) => {
+        ref.current?.pause();
         userEndCall();
         setUsers((prevUsers) => {
           return prevUsers.filter((User) => User.uid !== user.uid);
