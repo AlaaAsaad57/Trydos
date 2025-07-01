@@ -23,39 +23,24 @@ class StoryService {
 
   async getStories(page: number = 1) {
     const { setStoryData, storiesData } = useAppStore.getState();
-    const res = await fetch(
-      process.env.NEXT_PUBLIC_STORIES_BACKEND_URL +
-        GET_USERS_STORIES +
-        `?page=${page}`,
-      {
-        headers: {
-          Authorization:
-            "Bearer " +
-            (typeof localStorage !== "undefined" &&
-              localStorage.getItem("USER-STORIES") &&
-              JSON.parse(localStorage.getItem("USER-STORIES"))?.access_token),
-          language: Cookies.get("language"),
-
-          country: Cookies.get("country"),
-        },
-      }
-    );
-    let repo: GetStoriesApi = await res.json();
+    const response = await fetchData({
+      url: GET_USERS_STORIES + `?page=${page}`,
+      server: "stories",
+      reqTitle: "Get Stories",
+      method: "GET",
+    });
+    let repo: GetStoriesApi = response;
     const data: StoriesInterface[] = repo.data.data;
     if (page == 1) {
       setStoryData(data);
     } else {
       setStoryData([...storiesData, ...data]);
     }
-    if (typeof window !== "undefined") {
-      _isStoreLastJson() &&
-        localStorage.setItem("LAST_JSON", JSON.stringify(res));
-    }
+
     return { data, next_page_url: repo.data.next_page_url };
   }
   async loginStories() {
-    // should test this
-    const response: LoginStoreisApi = await fetchData({
+    const response = await fetchData({
       url: LOG_IN_STORIES,
       reqTitle: "Login Stories",
       method: "POST",
@@ -65,13 +50,9 @@ class StoryService {
         mobile_phone: JSON.parse(localStorage.getItem("USER")).phone,
       }),
     });
-    let repo = response.data;
-    localStorage.setItem("USER-STORIES", JSON.stringify(repo.data));
 
-    if (typeof window !== "undefined") {
-      _isStoreLastJson() &&
-        localStorage.setItem("LAST_JSON", JSON.stringify(response));
-    }
+    localStorage.setItem("USER-STORIES", JSON.stringify(response.data));
+
     await this.getStories();
   }
   async WatchStory(pid: number | string, id: number | string) {
@@ -79,30 +60,12 @@ class StoryService {
     try {
       if (this.getUserStories()?.id) {
         watchStory({ pid: pid, id: id });
-
-        const response = await fetch(
-          process.env.NEXT_PUBLIC_STORIES_BACKEND_URL +
-            "/api/v1/stories/increase_viewers/" +
-            pid,
-          {
-            headers: {
-              Authorization:
-                "Bearer " +
-                (typeof localStorage !== "undefined" &&
-                  localStorage.getItem("USER-STORIES") &&
-                  JSON.parse(localStorage.getItem("USER-STORIES"))
-                    .access_token),
-              language: Cookies.get("language"),
-
-              country: Cookies.get("country"),
-            },
-          }
-        );
-        let repo = await response.json();
-        if (typeof window !== "undefined") {
-          _isStoreLastJson() &&
-            localStorage.setItem("LAST_JSON", JSON.stringify(repo));
-        }
+        await fetchData({
+          url: "/api/v1/stories/increase_viewers/" + pid,
+          server: "stories",
+          reqTitle: "Increase Viewers",
+          method: "GET",
+        });
       }
     } catch (e) {}
   }
@@ -113,7 +76,6 @@ class StoryService {
     endUpload: Function,
     link
   ) {
-    // should test this
     const formData = new FormData();
     if (link?.length) {
       formData.append("link", link);
@@ -127,14 +89,9 @@ class StoryService {
       server: "stories",
       body: formData,
     });
-
-    if (typeof window !== "undefined") {
-      _isStoreLastJson() &&
-        localStorage.setItem("LAST_JSON", JSON.stringify(response));
-    }
     endUpload();
-    console.log(response);
-    if (response.data.data) return response.data.data;
+
+    if (response.data) return response.data;
     else throw new Error("Failed");
   }
   getUserStories() {
@@ -207,7 +164,6 @@ class StoryService {
   }
   async getStoriesForProducts({ id, page }) {
     try {
-      // should test this
       let data = await fetchData({
         url: `/api/v1/stories/product_stories/${id}?page=${page}`,
         reqTitle: "Get Stories for Products",

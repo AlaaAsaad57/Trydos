@@ -13,7 +13,6 @@ export default function Error({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
-  const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
   const _getUserAgent = async () => {
     return navigator.userAgent || "";
   };

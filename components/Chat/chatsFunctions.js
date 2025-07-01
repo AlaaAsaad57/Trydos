@@ -8,6 +8,7 @@ import { useAppStore } from "store";
 
 import { SendMessage } from "store/chat/actions";
 import { getUserChat, translateFunction } from "utils/functions";
+import { fetchData } from "utils/fetchData";
 export const FILE_SERVER = process.env.NEXT_PUBLIC_CHAT_BACKEND_URL;
 export const getUser = () => {
   return (
@@ -577,7 +578,6 @@ export const forwardMessage = (m, activeChat) => {
 };
 
 const uploadFile = async (file_name, file, onUploadProgress) => {
-  // should test this
   let formData = new FormData();
   formData.append("file", file);
   formData.append("file_name", file_name);
@@ -598,12 +598,12 @@ export const upload = async (file) => {
     currentFile.name?.split(".")[0] || "image",
     file
   );
-  if (response.status === 200) {
-    a = response.data.data.file_path;
+  if (response.code === 200) {
+    a = response.data.file_path;
     b = currentFile.name;
     return { path: a, name: b };
   } else {
-    throw new Error(response?.data?.message || "Failed to upload file");
+    throw new Error(response?.message || "Failed to upload file");
   }
 };
 export function dataURLtoFile(dataurl, filename) {

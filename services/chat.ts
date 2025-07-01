@@ -36,33 +36,22 @@ const ChatHeader = () => {
 class ChatService {
   async loginChat() {
     try {
-      const response = await fetch(
-        process.env.NEXT_PUBLIC_CHAT_BACKEND_URL + LOG_IN_CHAT,
-        {
-          method: "POST",
-          body: JSON.stringify({
-            otp_id_token: localStorage.getItem("ID-TOKEN"),
-            mobile_phone: JSON.parse(localStorage.getItem("USER")).phone,
-            name: JSON.parse(localStorage.getItem("USER"))?.name,
-            original_user_id: JSON.parse(localStorage.getItem("USER")).id,
-          }),
-        }
-      );
-      let repo: {
-        data: {
-          id: number;
-          name: string;
-          username: any;
-          mobile_phone: string;
-          photo_path: any;
-          created_at: string;
-          access_token: string;
-          contact_user: any;
-        };
-      } = await response.json();
-      localStorage.setItem("USER-CHAT", JSON.stringify(repo.data));
+      const response = await fetchData({
+        url: LOG_IN_CHAT,
+        body: JSON.stringify({
+          otp_id_token: localStorage.getItem("ID-TOKEN"),
+          mobile_phone: JSON.parse(localStorage.getItem("USER")).phone,
+          name: JSON.parse(localStorage.getItem("USER"))?.name,
+          original_user_id: JSON.parse(localStorage.getItem("USER")).id,
+        }),
+        method: "POST",
+        server: "chat",
+        reqTitle: "Login Chat",
+      });
 
-      if (repo.data?.id) {
+      localStorage.setItem("USER-CHAT", JSON.stringify(response.data));
+
+      if (response.data?.id) {
         const { requestFirebaseNotificationPermission } = await import(
           "utils/firebaseInitv1"
         );
@@ -71,21 +60,16 @@ class ChatService {
           requestFirebaseNotificationPermission().then(
             (firebaseToken: string) => {
               localStorage.setItem("firebase_token", firebaseToken);
-              if (repo.data) {
+              if (response.data) {
                 try {
                   if (!firebaseToken) {
                   } else {
                     localStorage.setItem("firebase_token", firebaseToken);
                     this.StoreToken({
-                      id: repo.data.id,
+                      id: response.data.id,
                       token: firebaseToken,
-                      user: repo.data,
+                      user: response.data,
                     });
-                  }
-
-                  if (typeof window !== "undefined") {
-                    _isStoreLastJson() &&
-                      localStorage.setItem("LAST_JSON", JSON.stringify(repo));
                   }
                 } catch (e) {}
               }
@@ -126,36 +110,17 @@ class ChatService {
   }) {
     try {
       const { setFirebaseToken } = useAppStore.getState();
-      const response = await fetch(
-        process.env.NEXT_PUBLIC_CHAT_BACKEND_URL + "/api/v1/firebase_tokens",
-        {
-          method: "POST",
-          headers: {
-            Authorization:
-              "Bearer " +
-              (JSON.parse(localStorage.getItem("USER-CHAT"))?.access_token ||
-                localStorage.getItem("DEVICE-TOKEN")),
-          },
-          body: JSON.stringify({
-            token: payload.token,
-          }),
-        }
-      );
-      if (response.status === 200) {
-        let repo = await response.json();
-
-        if (typeof window !== "undefined") {
-          _isStoreLastJson() &&
-            localStorage.setItem("LAST_JSON", JSON.stringify(repo));
-        }
-        setFirebaseToken(payload.token);
-        localStorage.setItem("firebase_id", repo.data.id);
-      } else if (response.status === 401) {
-        UnAuthintacetedAction();
-        throw new Error();
-      } else {
-        throw new Error();
-      }
+      const response = await fetchData({
+        url: "/api/v1/firebase_tokens",
+        method: "POST",
+        server: "chat",
+        reqTitle: "Store Token",
+        body: JSON.stringify({
+          token: payload.token,
+        }),
+      });
+      setFirebaseToken(payload.token);
+      localStorage.setItem("firebase_id", response.data.id);
     } catch (error) {
       console.log(error);
     }

@@ -168,8 +168,9 @@ function OrderButton({ close, toOrders }) {
           },
         })
       ).cart;
-      await home.getCustomerInfo();
-      if (userProfile.is_phone_verified === 0) {
+      let profileData = await home.getCustomerInfo();
+
+      if (profileData.is_phone_verified === 0) {
         throw new Error("");
       }
       if (
@@ -203,6 +204,7 @@ function OrderButton({ close, toOrders }) {
       if (error) {
         showErrorNotification(error);
       }
+      console.log(error);
       setLoading(false);
     }
   };

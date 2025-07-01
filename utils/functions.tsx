@@ -109,48 +109,6 @@ export const getLang = (lang, cookieLang) => {
   }
 };
 
-export const getProductMeta = async ({ productId, lang, color }) => {
-  let start = new Date();
-  let [country, language] = lang.split("-");
-
-  let data: SimpleDetailsProductApi = await fetchWithRetry(
-    process.env.NEXT_PUBLIC_BACKEND_URL +
-      `/web/product/simpleDetails/${productId}${
-        color ? `?color=${color}` : ""
-      }`,
-    {
-      next: {
-        revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE),
-      },
-      headers: new Headers({
-        Accept: "application/json",
-        "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
-        lang: language,
-        country: country,
-      }),
-    },
-    "Product SimpleDetails"
-  );
-
-  let end = new Date();
-  LogData({
-    request: "Get Product meta info",
-    url:
-      process.env.NEXT_PUBLIC_BACKEND_URL +
-      `/web/product/simpleDetails/${productId}`,
-    headers: {
-      lang: language,
-      country: country,
-    },
-    response: data,
-    time: end.getTime() - start.getTime(),
-  });
-  if (data.message === "Product Not Found") {
-    notFound();
-  }
-
-  return data.data;
-};
 export const getBoutiqueMeta = async ({ boutiqueId, lang }) => {
   if (boutiqueId === "listing")
     return { name: "Search", banners: null, icon: null };

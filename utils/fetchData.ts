@@ -42,7 +42,7 @@ const getChatToken = async (): Promise<string> => {
       return parsedUser.access_token;
     }
   }
-  throw new Error("Chat token not found");
+  return "";
 };
 const getHeader = () => {
   return {
@@ -61,7 +61,7 @@ const getMarketToken = async (): Promise<string> => {
   if (marketToken) {
     return marketToken;
   }
-  throw new Error("Market token not found");
+  return "";
 };
 
 const getStoriesToken = async (): Promise<string> => {
@@ -72,7 +72,7 @@ const getStoriesToken = async (): Promise<string> => {
       return parsedUser.access_token;
     }
   }
-  throw new Error("Stories token not found");
+  return "";
 };
 
 // Get token based on server type
@@ -198,6 +198,7 @@ export const fetchData = async <T = any>(
   const maxRetries = 3;
 
   const attemptFetch = async (): Promise<T> => {
+    let responseData;
     try {
       // Get token
       const token = await getToken(server);
@@ -245,13 +246,16 @@ export const fetchData = async <T = any>(
       }
 
       // Check if response is ok
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
 
       // Parse response
-      const responseData = await response.json();
-
+      responseData = await response.json();
+      if (!response.ok) {
+        throw new Error(
+          `HTTP error! status: ${response.status}-${
+            responseData?.message ?? responseData?.data?.message ?? ""
+          }`
+        );
+      }
       // Cache the result
       if (useCached) {
         requestCache.set(cacheKey, responseData);
@@ -273,10 +277,9 @@ export const fetchData = async <T = any>(
           return attemptFetch();
         }
       }
-
       // Re-throw the error for the caller to handle
       showErrorMessage(`${reqTitle}-${err?.message || "Falied"}`);
-      throw err instanceof Error ? err : new Error("Unknown error occurred");
+      return responseData;
     }
   };
 

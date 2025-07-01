@@ -54,9 +54,7 @@ function ModifyOrderWidget({ order_items, close }: ModifyOrderWidgetPropsType) {
           server: "market",
         }),
         fetchData({
-          url:
-            process.env.NEXT_PUBLIC_BACKEND_URL +
-            `/web/product/globalDetails/${ConfirmationData.item?.product_slug}`,
+          url: `/web/product/globalDetails/${ConfirmationData.item?.product_slug}`,
           reqTitle: "GEt Product Global Details",
           method: "GET",
           server: "market",

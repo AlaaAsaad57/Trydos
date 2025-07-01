@@ -5,9 +5,10 @@ import InitFunction from "./InitFunction";
 import AuthSections from "./AuthSections";
 import { useAppStore } from "store";
 import { useParams } from "next/navigation";
+import ConfirmMobilePhoneWidget from "components/Login/ConfirmMobilePhoneWidget";
 
 function NavbarClient() {
-  const { AddToCartOption, cart_enable } = useAppStore();
+  const { shouldAuthinticated } = useAppStore();
   const { lang } = useParams();
 
   return (
@@ -16,6 +17,7 @@ function NavbarClient() {
         <InitFunction init={lang} />
       </Suspense>
       <AuthSections />
+      {shouldAuthinticated && <ConfirmMobilePhoneWidget />}
     </>
   );
 }

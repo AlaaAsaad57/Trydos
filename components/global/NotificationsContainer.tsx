@@ -119,7 +119,9 @@ const NotificationsContainer = () => {
                 {translateFunction("Info Message")}
               </p>
               <p className={`text-[12px] regular text-[#402CDD]`}>
-                {notification.message}
+                {typeof notification.message === "string"
+                  ? notification.message
+                  : JSON.stringify(notification.message)}
               </p>
             </div>
 

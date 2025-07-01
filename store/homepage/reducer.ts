@@ -162,7 +162,7 @@ export const useHomeStore = (set, get) => ({
       if (!state.storiesData) return state;
       let arr = state.storiesData.map((storyItem) => {
         if (storyItem.id === payload.user_id) {
-          return { ...storyItem, stories: [payload, ...storyItem.stories] };
+          return { ...storyItem, stories: [...storyItem.stories, payload] };
         }
         return storyItem;
       });

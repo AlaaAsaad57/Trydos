@@ -40,29 +40,24 @@ class AuthService {
     let msg = "";
     const { setVerificationId, setWrongNumber } = useAppStore.getState();
     try {
-      let response = await fetch(
-        process.env.NEXT_PUBLIC_BACKEND_URL +
+      let response = await fetchData({
+        url:
           SEND_OTP +
           `?phone=+${mobilePhone}&is_via_whatsapp=${is_via_whatsapp}`,
-        getHeader()
-      );
+        method: "GET",
+        server: "market",
+        reqTitle: "Send OTP",
+      });
 
-      let repo: {
-        message: string;
-        data: {
-          verificationId: string;
-        };
-      } = await response.json();
+      msg = response.message;
 
-      msg = repo.message;
-
-      if (repo.data?.verificationId) {
-        setVerificationId(repo.data.verificationId);
+      if (response.data?.verificationId) {
+        setVerificationId(response.data.verificationId);
         if (typeof window !== "undefined") {
           _isStoreLastJson() &&
-            localStorage.setItem("LAST_JSON", JSON.stringify(repo));
+            localStorage.setItem("LAST_JSON", JSON.stringify(response));
         }
-        return repo.data.verificationId;
+        return response.data.verificationId;
       } else {
         setWrongNumber(msg);
         throw new Error(msg);
@@ -82,88 +77,56 @@ class AuthService {
   ) {
     const { setTempUser, setWrongNumber, loginFailed } = useAppStore.getState();
     try {
-      let response = await fetch(
-        process.env.NEXT_PUBLIC_BACKEND_URL +
+      let response = await fetchData({
+        url:
           "/auth/phone/verify_otp_from_guest" +
           `?verificationId=${verficationID}&otp=${code}${
             Username.length > 0 ? `&name=${Username}` : ""
           }`,
-        getHeader()
-      );
-      if (response.status === 401) {
-        await home.registerForExpire();
-        response = await fetch(
-          process.env.NEXT_PUBLIC_BACKEND_URL +
-            "/auth/phone/verify_otp_from_guest" +
-            `?verificationId=${verficationID}&otp=${code}${
-              Username.length > 0 ? `&name=${Username}` : ""
-            }`,
-          getHeader()
-        );
-      }
+        method: "GET",
+        server: "market",
+        reqTitle: "Verify OTP",
+      });
 
-      let repo: {
-        data: {
-          already_exists: boolean;
-          message: string;
-          Logged_in_from_another_device: boolean;
-          id_token: string;
-          user_type: number;
-          token: string;
-          expires_at: string;
-          user: {
-            id: number;
-            name: string;
-            phone: string;
-            is_phone_verified: number;
-            last_otp_id_token: string;
-          };
-        };
-        isSuccessful: boolean;
-        code: number;
-        message: string;
-      } = await response.json();
-      if (repo.code === 501) {
-        showErrorNotification(repo?.message);
+      if (response.code === 501) {
+        showErrorNotification(response?.message);
         throw new Error("Wrong Code");
       }
-      if (repo?.data?.message === "user not found") {
+      if (response?.data?.message === "user not found") {
         throw new Error("user not found");
       }
 
-      if (repo?.isSuccessful === false) {
+      if (response?.isSuccessful === false) {
         throw new Error("Wrong Code");
       }
-      localStorage.setItem("ID-TOKEN", repo.data.id_token);
-      Cookies.set("MARKET-TOKEN", repo.data.token);
-      localStorage.setItem("MARKET-TOKEN", repo.data.token);
-      changeToken({ key: "MARKET-TOKEN", value: repo.data.token });
+      localStorage.setItem("ID-TOKEN", response.data.id_token);
+      Cookies.set("MARKET-TOKEN", response.data.token);
+      localStorage.setItem("MARKET-TOKEN", response.data.token);
+      changeToken({ key: "MARKET-TOKEN", value: response.data.token });
       localStorage.setItem(
         "USER",
         JSON.stringify({
-          ...repo.data.user,
-          already_exists: repo.data.already_exists,
+          ...response.data.user,
+          already_exists: response.data.already_exists,
           is_verified: false,
-          expires_at: repo.data.expires_at,
+          expires_at: response.data.expires_at,
         })
       );
-      SetGAUser(repo.data.user, !repo.data.already_exists);
+      SetGAUser(response.data.user, !response.data.already_exists);
       localStorage.removeItem("guest-user");
       if (localStorage.getItem("customer-info")) {
         localStorage.removeItem("customer-info");
       }
       setTempUser({
-        ...repo.data.user,
-        already_exists: repo.data.already_exists,
+        ...response.data.user,
+        already_exists: response.data.already_exists,
         is_verified: false,
       });
-      if (typeof window !== "undefined") {
-        localStorage.setItem("LAST_JSON", JSON.stringify(repo));
-      }
+
       setTimeout(() => {
         home.getClientData();
       }, 2000);
-      return [repo.data.already_exists, repo.data.user.name];
+      return [response.data.already_exists, response.data.user.name];
     } catch (e) {
       console.log(e);
       if (e.message === "user not found") {
@@ -177,24 +140,25 @@ class AuthService {
   async VerifyOtpForUpdatePhone(code: string, verficationID: string) {
     const { updateUserIsVerified, setWrongNumber } = useAppStore.getState();
     try {
-      let response = await fetch(
-        process.env.NEXT_PUBLIC_BACKEND_URL +
+      let response = await fetchData({
+        url:
           "/auth/phone/verify_otp" +
           `?verificationId=${verficationID}&otp=${code}`,
-        getHeader()
-      );
+        method: "GET",
+        server: "market",
+        reqTitle: "Verify OTP",
+      });
 
-      let data = await response.json();
-      if (data?.data?.message === "user not found") {
+      if (response?.data?.message === "user not found") {
         throw new Error("user not found");
       }
 
-      if (data?.isSuccessful === false) {
+      if (response?.isSuccessful === false) {
         throw new Error("Wrong Code");
       }
-      localStorage.setItem("ID-TOKEN", data.data.id_token);
+      localStorage.setItem("ID-TOKEN", response.data.id_token);
       updateUserIsVerified({ is_phone_verified: 1 });
-      return data.data.id_token;
+      return response.data.id_token;
     } catch (error) {
       setWrongNumber(error.message);
       throw error;
@@ -456,7 +420,7 @@ class AuthService {
     } catch (error) {
       if (market_done) {
         await fetchData({
-          url: process.env.NEXT_PUBLIC_BACKEND_URL + "/customer/update-profile",
+          url: "/customer/update-profile",
           body: userProfile,
           reqTitle: "Update Profile",
           method: "POST",

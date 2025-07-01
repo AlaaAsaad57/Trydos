@@ -31,25 +31,6 @@ import { SetGAUser } from "utils/gtag";
 import { starttingSettingApi } from "models/API/market/StarttingSetting";
 import { showErrorNotification } from "@/store/notifications/reducer";
 import { fetchData } from "utils/fetchData";
-const getHeader = () => {
-  let [countryUrl, languageUrl] = window.location.pathname
-    .split("/")[1]
-    .split("-");
-  return {
-    next: {
-      revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE),
-    },
-    headers: {
-      Authorization: `Bearer ${
-        localStorage.getItem("MARKET-TOKEN") ||
-        localStorage.getItem("DEVICE-TOKEN")
-      }`,
-      lang: getLang(languageUrl, Cookies.get("language")),
-      country: countryUrl || Cookies.get("country"),
-      accept: "application/json",
-    },
-  };
-};
 class HomeService {
   async getClientData() {
     const { setSettings, initCart } = useAppStore.getState();
@@ -59,17 +40,18 @@ class HomeService {
         let data = sessionStorage.getItem("starttingSetting");
         setSettings(JSON.parse(data));
       } else {
-        const response = await fetch(
-          process.env.NEXT_PUBLIC_BACKEND_URL + STARTER_SETTINGS,
-          getHeader()
+        const response = await fetchData({
+          url: STARTER_SETTINGS,
+          reqTitle: "get starter settings",
+          method: "GET",
+          server: "market",
+          useCached: true,
+        });
+        setSettings(response.data);
+        sessionStorage.setItem(
+          "starttingSetting",
+          JSON.stringify(response.data)
         );
-        let repo: { data: starttingSettingApi } = await response.json();
-        setSettings(repo.data);
-        sessionStorage.setItem("starttingSetting", JSON.stringify(repo.data));
-        if (typeof window !== "undefined") {
-          _isStoreLastJson() &&
-            localStorage.setItem("LAST_JSON", JSON.stringify(repo));
-        }
       }
       await this.getCustomerInfo();
 
@@ -101,10 +83,7 @@ class HomeService {
   async getCustomerInfo() {
     const { updateUserInfo } = useAppStore.getState();
     await WaitForCondition();
-    // const response = await fetch(
-    //   process.env.NEXT_PUBLIC_BACKEND_URL + CUSTOMER_INFO_URL,
-    //   { ...getHeader(), priority: "high" }
-    // );
+
     let response_customer_Info: { data: CustomerInfoResponse } =
       await fetchData({
         url: CUSTOMER_INFO_URL,
@@ -124,6 +103,7 @@ class HomeService {
             await auth.ExpiredUser(true);
           }
         }
+        return response_customer_Info.data.customer_info;
       } else {
         throw new Error("Customer Info Error");
       }
@@ -155,12 +135,13 @@ class HomeService {
       }
     }
   }
+
   async registerForExpire(id?: number) {
     const { isRegisteringReady, setIsRegisteringReady } =
       useAppStore.getState();
 
     if (isRegisteringReady) {
-      let body = id
+      let requestBody = id
         ? { old_guest_user_id: id }
         : localStorage.getItem("guest-user") &&
           JSON.parse(localStorage.getItem("guest-user"))?.id
@@ -172,37 +153,28 @@ class HomeService {
 
       try {
         setIsRegisteringReady(false);
-        let response = await fetch(
-          process.env.NEXT_PUBLIC_BACKEND_URL + REGISTER_DEVICE_URL,
-          {
+
+        let response = await fetchData({
+          url: REGISTER_DEVICE_URL,
+          body: JSON.stringify(requestBody),
+          reqTitle: "register device for expired user",
+          method: "POST",
+          server: "market",
+        });
+
+        let repo: RegisterGuestApi = response;
+
+        if (repo.message === "The user does not exist.") {
+          response = await fetchData({
+            url: REGISTER_DEVICE_URL,
+            body: JSON.stringify({ old_guest_user_id: null }),
+            reqTitle: "register device for expired user - retry",
             method: "POST",
-            priority: "high",
-            body: body.old_guest_user_id
-              ? new URLSearchParams({
-                  old_guest_user_id: body.old_guest_user_id,
-                })
-              : "old_guset_user_id=null",
-            ...getHeader(),
-            cache: "no-cache",
-          }
-        );
-        let repo: RegisterGuestApi = await response.json();
-        if (repo.isSuccessful) {
-        } else {
-          if (repo.message === "The user does not exist.") {
-            response = await fetch(
-              process.env.NEXT_PUBLIC_BACKEND_URL + REGISTER_DEVICE_URL,
-              {
-                method: "POST",
-                priority: "high",
-                body: "old_guset_user_id=null",
-                ...getHeader(),
-                cache: "no-cache",
-              }
-            );
-            repo = await response.json();
-          }
+            server: "market",
+          });
+          repo = response;
         }
+
         changeToken({ key: "DEVICE-TOKEN", value: repo.data.token });
         localStorage.setItem("DEVICE-TOKEN", repo.data.token);
         Cookies.set("DEVICE-TOKEN", repo.data.token, {
@@ -315,13 +287,14 @@ class HomeService {
     auth.CheckUserName();
     await this.RequestFireBase();
   }
+
   async RegisterDevice() {
     const { isRegisteringReady, setIsRegisteringReady } =
       useAppStore.getState();
 
     if (isRegisteringReady) {
       let isNewUser = !localStorage.getItem("guest-user");
-      let body =
+      let requestBody =
         localStorage.getItem("guest-user") &&
         JSON.parse(localStorage.getItem("guest-user"))?.id
           ? {
@@ -329,6 +302,7 @@ class HomeService {
                 ?.id,
             }
           : { old_guest_user_id: null };
+
       if (
         !Cookies.get("DEVICE-TOKEN") &&
         localStorage.getItem("DEVICE-TOKEN")
@@ -341,27 +315,33 @@ class HomeService {
           expires: 365,
         });
       }
+
       if (
         SSRDetect() &&
         !localStorage.getItem("DEVICE-TOKEN") &&
         !localStorage.getItem("USER")
       ) {
         setIsRegisteringReady(false);
-        let response = await fetch(
-          process.env.NEXT_PUBLIC_BACKEND_URL + REGISTER_DEVICE_URL,
-          {
-            method: "POST",
-            priority: "high",
-            body: body.old_guest_user_id
-              ? new URLSearchParams({
-                  old_guest_user_id: body.old_guest_user_id,
-                })
-              : "old_guset_user_id=null",
-            ...getHeader(),
-          }
-        );
-        let repo: RegisterGuestApi = await response.json();
 
+        let response = await fetchData({
+          url: REGISTER_DEVICE_URL,
+          body: JSON.stringify(requestBody),
+          reqTitle: "register device",
+          method: "POST",
+          server: "market",
+        });
+
+        let repo: RegisterGuestApi = response;
+        if (repo.message === "The user does not exist.") {
+          response = await fetchData({
+            url: REGISTER_DEVICE_URL,
+            body: JSON.stringify({ old_guest_user_id: null }),
+            reqTitle: "register device for expired user - retry",
+            method: "POST",
+            server: "market",
+          });
+          repo = response;
+        }
         localStorage.setItem("DEVICE-TOKEN", repo.data.token);
         changeToken({ key: "DEVICE-TOKEN", value: repo.data.token });
 
@@ -477,12 +457,13 @@ class HomeService {
       });
     } catch (error) {}
   }
+
   async TestNotificationBoutique({ boutique_id }) {
     await this.subscribeToTopic({ topic: "boutique_created" });
     await fetchData({
       url: "/firebase_device_tokens/send_boutique_created",
       body: JSON.stringify({
-        boutique_id: 144,
+        boutique_id: boutique_id,
         topic: "boutique_created",
         language_code: LocalizationServiceClass.GetAppLanguage(),
         country_iso: LocalizationServiceClass.GetAppCountry(),
@@ -492,6 +473,7 @@ class HomeService {
       server: "market",
     });
   }
+
   async TestNotificationProductToOldCart() {
     await fetchData({
       url: "/firebase_device_tokens/send_product_cart_expiration",
@@ -505,6 +487,7 @@ class HomeService {
       server: "market",
     });
   }
+
   async TestNotificationProductAvailable() {
     await this.subscribeToTopic({
       topic: "product_availability_7681",
@@ -541,6 +524,7 @@ class HomeService {
       server: "market",
     });
   }
+
   async TestNotificationProductDiscount() {
     await this.subscribeToTopic({ topic: "product_discount_7681" });
 
@@ -557,6 +541,7 @@ class HomeService {
       server: "market",
     });
   }
+
   async TestNotificationCategoryCreated() {
     await this.subscribeToTopic({ topic: "category_created" });
 
@@ -573,6 +558,7 @@ class HomeService {
       server: "market",
     });
   }
+
   //before stock out and change in price
   async TestNotificationBeforeStockOut() {
     await this.subscribeToTopic({ topic: "product_before_stock_out_7681" });
@@ -591,6 +577,7 @@ class HomeService {
       server: "market",
     });
   }
+
   async TestNotificationChangeInPrice() {
     await this.subscribeToTopic({ topic: "product_when_change_in_price_7681" });
 
@@ -608,34 +595,13 @@ class HomeService {
       server: "market",
     });
   }
-  async StoreNotificationProduct({ type_id, variant, product_id }) {
-    let detail = {
-      user_id: auth.UserID(),
-      product_id: product_id,
-      notification_type_id: type_id,
-      variant: variant,
-    };
-    // var formBody: any = [];
-    // for (var property in detail) {
-    //   var encodedKey = encodeURIComponent(property);
-    //   var encodedValue = encodeURIComponent(detail[property]);
-    //   formBody.push(encodedKey + "=" + encodedValue);
-    // }
-    // formBody = formBody.join("&");
-    await fetchData({
-      url: "/product_notification/store",
-      body: JSON.stringify(detail),
-      reqTitle: "store product notification",
-      method: "POST",
-      server: "market",
-    });
-  }
+
   async EditNotificationSettings({ url, body }) {
     try {
       await fetchData({
         url: `/firebase_device_tokens/${url}`,
         body: JSON.stringify(body),
-        reqTitle: "Remove From Cart",
+        reqTitle: "edit notification settings",
         method: "POST",
         server: "market",
       });

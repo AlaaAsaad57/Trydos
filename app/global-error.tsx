@@ -5,7 +5,6 @@ import { LogError } from "../utils/functions";
 import AuthService from "../services/auth";
 import * as Sentry from "@sentry/nextjs";
 export default function GlobalError({ error, reset }) {
-  const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
   const _getUserAgent = async () => {
     return navigator.userAgent || "";
   };

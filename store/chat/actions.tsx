@@ -95,7 +95,6 @@ export const getCalls = async (id) => {
   }
 };
 export const SendMessage = async (payload, isNew, isPrivate?) => {
-  // should test this
   const { sendNewMessage, sendRealMessage } = useAppStore.getState();
   let message = payload;
   try {
@@ -173,14 +172,13 @@ export async function Recive(payload) {
 }
 export async function getPage(channel, mid) {
   const { setPageData } = useAppStore.getState();
-  // should test this
   try {
     let channel_id = channel;
 
     let response = await fetchData({
       url: `/api/v1/messages/messages_of_channel/${channel_id}?message_id=${mid}&limit=10`,
       reqTitle: "Get Messages Of Channel",
-      method: "GET",
+      method: "POST",
       server: "chat",
       body: {},
     });
@@ -238,7 +236,7 @@ export async function MuteChat(payload) {
 }
 export async function getMessagesBetweenMessage(payload) {
   const { setPageData } = useAppStore.getState();
-  // should test this
+
   let response = await fetchData({
     url: `/api/v1/messages/messages_of_channel/${payload.first}`,
     reqTitle: "Get Messages of Channel",
@@ -263,20 +261,17 @@ export async function getContacts() {
   setContacts(response.data);
 }
 export const getMedia = async (id, media) => {
-  // should test this
   const { editChatInfoMedia } = useAppStore.getState();
   try {
     let response = await fetchData({
-      url:
-        process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
-        `/api/v1/messages/messages_of_channel/${id}?limit=10&message_type=${media}`,
+      url: `/api/v1/messages/messages_of_channel/${id}?limit=10&message_type=${media}`,
       reqTitle: "get Media for a Channel",
       method: "POST",
       server: "chat",
       body: {},
     });
-    console.log(response);
-    editChatInfoMedia({ id: id, data: response.data.data, media: media });
+
+    editChatInfoMedia({ id: id, data: response.data, media: media });
   } catch (e) {}
 };
 export const getMediaReducer = (media, data) => {
@@ -295,9 +290,7 @@ export const GetChatDetails = async (id) => {
   const { editChatInfo } = useAppStore.getState();
   try {
     let response = await fetchData({
-      url:
-        process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
-        `/api/v2/channels/${id}/media`,
+      url: `/api/v2/channels/${id}/media`,
       reqTitle: "Get Channel Data",
       method: "GET",
       server: "chat",

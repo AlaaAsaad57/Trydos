@@ -13,6 +13,7 @@ import { FlagIcon } from "utils/tinyUtils";
 import { SelectRegionPropsType } from "models/componentType/settingTypes/PersonalInfoAddressModalPropsType";
 import { SearchLocationsPropsType } from "models/componentType/SearchLocationsPropsType";
 import { SearchResultsPropsType } from "models/componentType/SearchResultsPropsType";
+import { fetchData } from "utils/fetchData";
 function SelectRegion({ closeSelect }: SelectRegionPropsType) {
   const { addressDetails } = useAppStore();
   const { lang } = useParams();
@@ -156,22 +157,16 @@ const SearchLocations = ({
   const searchAction = async (val) => {
     setLoading(true);
 
-    await fetch(
-      process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL +
-        `/api/addresses/get-address-by-text`,
-      {
-        method: "POST",
-        headers: {
-          ...getHeader().headers,
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
-        body: JSON.stringify({ query: val }),
-      }
-    ).then(async (data) => {
-      let repo: GetAddressByTextApi = await data.json();
-      setSearchResults(repo.results || []);
+    let response = await fetchData({
+      url: `/api/addresses/get-address-by-text`,
+      method: "POST",
+      body: JSON.stringify({ query: val }),
+      server: "elastic",
+      reqTitle: "Get Address By Text",
     });
+
+    setSearchResults(response.results || []);
+
     setLoading(false);
   };
   return (

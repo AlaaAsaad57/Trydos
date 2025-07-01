@@ -31,9 +31,7 @@ function OrderItemCard({
         server: "market",
       }),
       fetchData({
-        url:
-          process.env.NEXT_PUBLIC_BACKEND_URL +
-          `/web/product/globalDetails/${item?.product_slug}`,
+        url: `/web/product/globalDetails/${item?.product_slug}`,
         reqTitle: "GEt Product Global Details",
         method: "GET",
         server: "market",

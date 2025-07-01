@@ -32,7 +32,7 @@ function SearchContainer({ active }) {
   }, [value]);
   const searchParams = useSearchParams();
   const getSearchData = async () => {
-    await search.getSearchOptions({
+    search.getSearchOptions({
       noProducts: true,
       lang: lang,
     });
@@ -40,8 +40,8 @@ function SearchContainer({ active }) {
   };
   useEffect(() => {
     if (!searchParams.get("changed-country") && !searchParams.get("no-country"))
-      getSearchData();
-  }, []);
+      if (active) getSearchData();
+  }, [active]);
   return (
     <Animated.div
       unmountTime={0.4}

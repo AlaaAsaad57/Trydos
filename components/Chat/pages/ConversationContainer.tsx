@@ -347,6 +347,7 @@ function ConversationContainer({
       // @ts-ignore – original util returns promise
       SendMessage(sendPayload, false, isPrivate);
     } catch (err) {
+      console.log(err);
       deleteErrorMessage({ msg_id: midLocal, ch_id: activeChat?.id });
       showErrorNotification(translateFunction("Failed to Upload file"));
     } finally {
@@ -594,6 +595,7 @@ function ConversationContainer({
           isPrivate
         );
       } catch (err) {
+        console.log(err);
         deleteErrorMessage({ msg_id: midLocal, ch_id: activeChat?.id });
         showErrorNotification(translateFunction("Failed to Upload file"));
       } finally {
@@ -660,7 +662,7 @@ function ConversationContainer({
         );
       } catch (error) {
         deleteErrorMessage({ msg_id: midLocal, ch_id: activeChat?.id });
-
+        console.log(error);
         console.error("Error sending audio:", error);
         showErrorNotification(translateFunction("Failed to Upload audio"));
         sendStatus(null);

@@ -5,6 +5,7 @@ import React, { useState } from "react";
 import StoryElement from "./StoryElement";
 import { useAppStore } from "store";
 import { fetchStories } from "Server Requests";
+import { fetchData } from "utils/fetchData";
 
 interface StoriesPaginationWrapperProps {
   next_page_url: string | number;
@@ -55,32 +56,18 @@ function StoriesPaginationWrapper({
           }
         }
       }
-
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_STORIES_BACKEND_URL}/api/v1/stories/users_stories?page=${next_page}`,
-        {
-          headers: {
-            ...(userToken && { Authorization: `Bearer ${userToken}` }),
-            language: language,
-            country: country,
-            Accept: "application/json",
-            "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
-          },
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error(`Stories Error: ${response.status}`);
-      }
-
-      const result = await response.json();
-      const newStories = result.data?.data || [];
-
+      const response = await fetchData({
+        url: `/api/v1/stories/users_stories?page=${next_page}`,
+        method: "GET",
+        server: "stories",
+        reqTitle: "Get User Stories",
+      });
+      const newStories = response.data?.data || [];
       // Add new stories to the existing ones
       setAdditionalStories((prev) => [...prev, ...newStories]);
       setStoryData([...storiesData, ...newStories]);
 
-      if (result.data?.next_page_url) {
+      if (response.data?.next_page_url) {
         setNextPage(next_page + 1);
       } else {
         setNextPage(null);
