@@ -41,7 +41,15 @@ function UserNavTopSection() {
     const userType = getUserType();
     if (userType === "NEW_USER") {
       return (
-        <>
+        <div
+          data-testid="login-text"
+          data-cy="login-icon"
+          className="nav-question-item"
+          onClick={() => {
+            openLogin(true);
+            window.history.pushState({ isPopup: true }, "open Login");
+          }}
+        >
           <img src="/svg/login.svg" width={15} height={15} alt="login" />
           <span
             className={`regular`}
@@ -56,11 +64,19 @@ function UserNavTopSection() {
           >
             {translate("Login", language)}
           </span>
-        </>
+        </div>
       );
     } else {
       return (
-        <>
+        <div
+          data-testid="login-text"
+          data-cy="login-icon"
+          className="nav-question-item"
+          onClick={() => {
+            setShouldAuthinticated(true);
+            window.history.pushState({ isPopup: true }, "open Login");
+          }}
+        >
           <svg
             xmlns="http://www.w3.org/2000/svg"
             width="16.413"
@@ -117,7 +133,7 @@ function UserNavTopSection() {
           >
             {translate("Verify", language)}
           </span>
-        </>
+        </div>
       );
     }
   };
@@ -132,6 +148,7 @@ function UserNavTopSection() {
     loginOpen,
     setLoginOpen: openLogin,
     userProfile,
+    setShouldAuthinticated,
   } = useAppStore();
   let { lang } = useParams();
   // @ts-ignore

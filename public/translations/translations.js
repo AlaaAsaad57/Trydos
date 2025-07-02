@@ -2,6 +2,8 @@ const translations = {
   ar: {
     "The number was copied successfully": "تم نسخ الرقم بنجاح",
     "Number copy failed": "فشل نسخ الرقم",
+    "You Have New Messages From Deleivery Worker":
+      "لديك رسالة جديدة من عامل التوصيل..انقر للمزيد",
     Cancel: "الغاء",
     "For All": "للكل",
     "For Me": "لي",
@@ -747,6 +749,8 @@ const translations = {
     "Premium Shopping": "Premium Alışveriş",
     Experience: "Deneyim",
     "Featured Products": "Öne Çıkan Ürünler",
+    "You Have New Messages From Deleivery Worker..click for more":
+      "Teslimat Elemanından Yeni Mesajlarınız Var..daha fazlası için tıklayın",
     "Flash Deals": "Hızlı Fırsatlar",
     "Premium Brands": "Premium Markalar",
     "Show More": "Daha Fazla Göster",

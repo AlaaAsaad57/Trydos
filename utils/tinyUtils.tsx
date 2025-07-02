@@ -413,9 +413,7 @@ export const UnAuthintacetedAction = () => {
     );
   }
   localStorage.removeItem("USER");
-
   Cookies.remove("token");
-
   showErrorNotification(
     translateFunction("Session Expired..please Verify Your Phone Number")
   );

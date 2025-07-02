@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import { AnswerCall, RefuseCall } from "store/chat/callActions";
 import { translateFunction } from "utils/functions";
 import "styles/chat.css";
+import "styles/chatstyles.css";
 
 import { useParams } from "next/navigation";
 import { useAppStore } from "store";

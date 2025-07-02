@@ -11,6 +11,7 @@ import OrderItemsList from "./cards/OrderItemsList";
 import { OrderDetail, OrderItem } from "types/orders";
 import {
   getConfiguredImage,
+  getUserChat,
   RoundPrice,
   translateFunction,
 } from "utils/functions";
@@ -37,6 +38,8 @@ import CanceledOrderStatusIcon from "public/svg/CanceledOrderStatusIcon.svg";
 import { GetImageUrl } from "utils/tinyUtils";
 import { OrderDetailsPropsType } from "models/componentType/settingTypes/OrderDetailsPropsType";
 import { ProductCardPropsType } from "models/componentType/settingTypes/ProductCardPropsType";
+import { fetchData } from "utils/fetchData";
+import auth from "services/auth";
 function OrderDetails({ resetOrderDetails, goBack }: OrderDetailsPropsType) {
   const [loading, setLoading] = useState(false);
   const totalAmount = (arr) => {
@@ -58,10 +61,18 @@ function OrderDetails({ resetOrderDetails, goBack }: OrderDetailsPropsType) {
   };
   const router = useRouter();
   const searchParams = useSearchParams();
-  const pathname = usePathname();
+  useEffect(() => {
+    if (searchParams.get("order_id_chat")) {
+      let order_id = searchParams.get("order_id_chat");
+      let selected_pack = selectedOrder.details?.find(
+        (det) => det.id === parseInt(order_id)
+      );
+      getChatWithShipping(parseInt(order_id));
+    }
+  }, []);
 
   const [ActivePacks, setActivePacks] = useState(null);
-  const { setOrderDetails, selectedOrder } = useAppStore();
+  const { setOrderDetails, selectedOrder, openChat } = useAppStore();
 
   const fetchedOrderIdRef = useRef<string | number | null>(null);
 
@@ -82,6 +93,7 @@ function OrderDetails({ resetOrderDetails, goBack }: OrderDetailsPropsType) {
     } catch (error) {
       let params = new URLSearchParams(window.location.search);
       params.delete("id");
+      params.delete("order_id_chat");
       // @ts-ignore
       router.replace(`/setting?${params.toString()}`, {
         scroll: false,
@@ -123,7 +135,141 @@ function OrderDetails({ resetOrderDetails, goBack }: OrderDetailsPropsType) {
       return ActivePacks?.order_group_id;
     return false;
   };
+  const [isGettingChat, setIsGettingChat] = useState(false);
 
+  const getChatWithShipping = async (id) => {
+    setIsGettingChat(true);
+    try {
+      let response = await fetchData({
+        url: "/api/v1/order-chat-participants/get-recipient",
+        reqTitle: "Get Chat with Deleivery",
+        method: "POST",
+        server: "chat",
+        body: JSON.stringify({
+          original_user_id: auth.UserID(),
+          order_id: id,
+        }),
+      });
+      document.documentElement.style.overflow = "hidden";
+      document.documentElement.scrollTop = 0;
+      document.querySelector("#OrderDetails").scrollTop = 0;
+      document.querySelector("#OrderDetails").classList.add("overflow-hidden");
+      document.querySelector("#OrderDetails").classList.remove("overflow-auto");
+      if (response.data.channel) {
+        setChatInfo({
+          ...response.data.channel,
+          channel_members: [
+            {
+              user: getUserChat(),
+              ...response.data.channel.channel_members.find(
+                (s) => s.user_id === getUserChat().id
+              ),
+            },
+            {
+              user: {
+                id: response.data.recipient.id,
+                name: "Deleivery Worker",
+                mobile_phone: "",
+                username: "Deleivery Worker",
+              },
+              ...response.data.channel.channel_members.find(
+                (s) => s.user_id !== getUserChat().id
+              ),
+            },
+          ],
+        });
+        openChat({
+          ...response.data.channel,
+          channel_members: [
+            {
+              user: getUserChat(),
+              ...response.data.channel.channel_members.find(
+                (s) => s.user_id === getUserChat().id
+              ),
+            },
+            {
+              user: {
+                id: response.data.recipient.id,
+                name: "Deleivery Worker",
+                mobile_phone: "",
+                username: "Deleivery Worker",
+              },
+              ...response.data.channel.channel_members.find(
+                (s) => s.user_id !== getUserChat().id
+              ),
+            },
+          ],
+          messages:
+            response.data.channel.messages?.sort(
+              (a, b) =>
+                new Date(a.created_at).getTime() -
+                new Date(b.created_at).getTime()
+            ) || [],
+        });
+      } else {
+        setChatInfo({
+          channel_members: [
+            {
+              id: getUserChat()?.id,
+              user: getUserChat(),
+              user_id: getUserChat().id,
+            },
+            {
+              id: response.data.recipient.id,
+              user_id: response.data.recipient.id,
+              user: {
+                id: response.data.recipient.id,
+                name: "Deleivery Worker",
+                mobile_phone: "",
+                username: "Deleivery Worker",
+              },
+            },
+          ],
+          channel_name: "Deleivery Worker",
+          photo_path: null,
+          messages: [],
+          id: "ch-" + response.data.recipient.id,
+          mid: "ch-" + response.data.recipient.id,
+        });
+        openChat({
+          channel_members: [
+            {
+              id: getUserChat()?.id,
+              user: getUserChat(),
+              user_id: getUserChat().id,
+            },
+            {
+              id: response.data.recipient.id,
+              user_id: response.data.recipient.id,
+              user: {
+                id: response.data.recipient.id,
+                name: "Deleivery Worker",
+                mobile_phone: "",
+                username: "Deleivery Worker",
+              },
+            },
+          ],
+          channel_name: "Deleivery Worker",
+          photo_path: null,
+          messages: [],
+          id: "ch-" + response.data.recipient.id,
+          mid: "ch-" + response.data.recipient.id,
+        });
+      }
+      setIsChatOpen(true);
+      setIsGettingChat(false);
+    } catch (error) {
+      document.documentElement.style.overflow = "hidden";
+      document.documentElement.scrollTop = 0;
+      document.querySelector("#OrderDetails").scrollTop = 0;
+      document.querySelector("#OrderDetails").classList.add("overflow-hidden");
+      document.querySelector("#OrderDetails").classList.remove("overflow-auto");
+
+      setIsChatOpen(true);
+      setIsGettingChat(false);
+      setIsGettingChat(false);
+    }
+  };
   const ShowChats = () => {
     if (shouldShowChatIcon() && ActivePacks?.id) {
       let arr = [];
@@ -131,32 +277,37 @@ function OrderDetails({ resetOrderDetails, goBack }: OrderDetailsPropsType) {
       return arr.map((s) => {
         return (
           <OrderChatIcon
-            isChatOpen={isChatOpen}
-            setChatInfo={setChatInfo}
-            setIsChatOpen={setIsChatOpen}
             key={s}
+            isGettingChat={isGettingChat}
+            setIsGettingChat={setIsGettingChat}
+            getChatWithShipping={() => getChatWithShipping(s)}
             id={s}
           />
         );
       });
     }
   };
-
+  const closeChat = () => {
+    let params = new URLSearchParams(window.location.search);
+    params.delete("order_id_chat");
+    router.replace(`/setting?${params.toString()}`, {
+      scroll: false,
+      // @ts-ignore
+      shallow: true,
+    });
+    document.documentElement.style.overflow = "auto";
+    setChatInfo(null);
+    document.querySelector("#OrderDetails").classList.remove("overflow-hidden");
+    document.querySelector("#OrderDetails").classList.add("overflow-auto");
+    setIsChatOpen(false);
+  };
   return (
     <>
       {chatInfo && (
         <ChatWidget
           isOpen={isChatOpen}
           onClose={() => {
-            document.documentElement.style.overflow = "auto";
-            setChatInfo(null);
-            document
-              .querySelector("#OrderDetails")
-              .classList.remove("overflow-hidden");
-            document
-              .querySelector("#OrderDetails")
-              .classList.add("overflow-auto");
-            setIsChatOpen(false);
+            closeChat();
           }}
         />
       )}
@@ -165,6 +316,7 @@ function OrderDetails({ resetOrderDetails, goBack }: OrderDetailsPropsType) {
           goBack={() => {
             let params = new URLSearchParams(window.location.search);
             params.delete("id");
+            params.delete("order_id_chat");
             // @ts-ignore
             router.replace(`/setting?${params.toString()}`, {
               scroll: false,

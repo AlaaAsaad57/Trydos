@@ -678,7 +678,7 @@ const VideoCall: React.FC<VideoCallProps> = ({
 
               <button
                 className={
-                  "static toggle-vid " + (isCameraOff && "active-mic-svg")
+                  "static toggle-vid " + (!isCameraOff && "active-mic-svg")
                 }
                 onClick={toggleCamera}
                 disabled={!ready || !tracks}

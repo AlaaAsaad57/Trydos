@@ -8,7 +8,7 @@ import {
 } from "store/notifications/reducer";
 import { fetchData } from "./fetchData";
 import { InCall } from "store/chat/callActions";
-import { getUserChat } from "./functions";
+import { getUserChat, translateFunction } from "./functions";
 import chat from "services/chat";
 import { Recive, watchChannel as watchChannelAction } from "store/chat/actions";
 interface NotificationData {
@@ -52,7 +52,6 @@ class ForegroundNotificationHandler {
     const message: ServiceWorkerMessage = event.data;
 
     if (message.type === "FCM_NOTIFICATION") {
-      console.log(message.payload);
       this.handleNotification(() => {}, message.payload);
       // this.processNotification(message.payload);
     }
@@ -456,6 +455,15 @@ class ForegroundNotificationHandler {
           }
         } else if (payload.data.type === "message") {
           if (JSON.parse(payload.data.data)?.is_private === true) {
+            showSuccessNotification(
+              translateFunction(
+                "You Have New Messages From Deleivery Worker..click for more"
+              ),
+              6000,
+              `/${country}-${language}/setting?tab=Orders&id=${
+                JSON.parse(payload.data.data).order_group_id
+              }&order_id_chat=${JSON.parse(payload.data.data).order_id}`
+            );
             if (
               parseInt(activeChat?.id) ===
               parseInt(JSON.parse(payload?.data.data)?.message?.channel_id)
