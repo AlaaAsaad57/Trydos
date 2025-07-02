@@ -6,8 +6,6 @@ import { translateFunction } from "utils/functions";
 import chat from "services/chat";
 import { useParams, useSearchParams } from "next/navigation";
 import { ProductSocialInfo } from "models/API/market/ProductSocialInfo";
-import { ProductViews } from "models/API/elastic/ProductViews";
-import { SharesCount } from "models/API/market/ProductSharesCount";
 import auth from "services/auth";
 import LocalizationServiceClass from "services/localization";
 import { useAppStore } from "store";
