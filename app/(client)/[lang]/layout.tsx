@@ -118,9 +118,6 @@ export default function RootLayout({ params, children }) {
             className="site-container items-center"
             key={`${JSON.stringify(params)}`}
           >
-            <Suspense fallback={<></>}>
-              <NavbarClient />
-            </Suspense>
             <div className="home-navbar max-h-[1365px]">
               <NextLink
                 data={{
@@ -154,6 +151,9 @@ export default function RootLayout({ params, children }) {
 
             {children}
           </div>
+          <Suspense fallback={<></>}>
+            <NavbarClient />
+          </Suspense>
         </Providers>
       </body>
     </html>

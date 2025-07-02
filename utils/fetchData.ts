@@ -58,6 +58,7 @@ const getHeader = () => {
   const [country, lang] = local.split("-");
   return {
     lang: Cookies.get("lang") || Cookies.get("language") || lang,
+    accept: "application/json",
     country: Cookies.get("country") || country,
     current_role_id:
       localStorage.getItem("USER-CHAT") && getUserChat().role_id
