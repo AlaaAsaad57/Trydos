@@ -66,7 +66,7 @@ function AddToCartComponent({
           initCart(data ?? { cart: [] });
         },
       });
-      let [data1, data2, data3] = await Promise.all([
+      let [data1, data2, data3, data4] = await Promise.all([
         fetchData({
           url: `/web/product/qtyPriceDetails/${slug}`,
           reqTitle: "Get Product Vriantes",
@@ -86,12 +86,17 @@ function AddToCartComponent({
           server: "chat",
           useCached: true,
         }),
+        fetchData({
+          url: `/web/product/globalDetails/${slug}`,
+          reqTitle: "GEt Product Global Details",
+          method: "GET",
+          server: "market",
+        }),
       ]);
 
       let variants_arr = data1.data.variation;
       let newVariants = data2.data.variation.map((item) => {
         let d = variants_arr.find((s) => s.type === item.type);
-
         if (d)
           return {
             ...item,
@@ -105,6 +110,7 @@ function AddToCartComponent({
         ...product,
         ...data1.data,
         ...data2.data,
+        ...data4.data,
         shared_count: data3.data.shared_count,
         variation: newVariants,
       };

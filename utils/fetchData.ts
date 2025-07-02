@@ -21,6 +21,7 @@ export interface FetchDataParams {
   useCached?: boolean;
   reqTitle?: string;
   server: ServerType;
+  retryActionIfUnAuth?: () => void | null;
 }
 
 // Cache structure
@@ -201,6 +202,7 @@ export const fetchData = async <T = any>(
     useCached = false,
     reqTitle,
     server,
+    retryActionIfUnAuth,
   } = params;
 
   // Check cache first
@@ -259,6 +261,9 @@ export const fetchData = async <T = any>(
         const shouldRetry = await handleUnauthorized(server);
         // Only retry if handleUnauthorized indicates success
         if (shouldRetry) {
+          if (retryActionIfUnAuth) {
+            retryActionIfUnAuth();
+          }
           return fetchData<T>(params, true);
         }
         // If shouldRetry is false, throw error

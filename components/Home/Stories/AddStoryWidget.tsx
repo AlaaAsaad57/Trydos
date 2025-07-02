@@ -6,6 +6,18 @@ import { useAppStore } from "store";
 import NewStoryModal from "./CameraStory";
 import { dataURLtoFile } from "components/Chat/chatsFunctions";
 import { AddStoryWidgetPropsType } from "models/componentType/AddStoryWidgetPropsType";
+import { useParams } from "next/navigation";
+import {
+  showErrorNotification,
+  showSuccessNotification,
+} from "store/notifications/reducer";
+import { translateFunction } from "utils/functions";
+import StoryServiceClass from "services/story";
+import { AddStoryAction } from "store/homepage/actions";
+import { revalidateStories } from "utils/serverActions";
+import { fetchStoriesData } from "utils/fetchData";
+import { fetchStories } from "Server Requests";
+import Spinner from "components/global/Spinner";
 
 // Icons
 const CameraIcon = () => (
@@ -102,15 +114,183 @@ const isValidUrl = (urlString: string) => {
   }
 };
 
-export default function AddStoryWidget({
-  onClose,
-  selectMedia,
-}: AddStoryWidgetPropsType) {
+export default function AddStoryWidget({ onClose }: AddStoryWidgetPropsType) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [link, setLink] = useState("");
   const [linkError, setLinkError] = useState("");
   const { setOpenCamera, OpenCamera } = useAppStore();
+  const [uploaded, setUpload] = useState(-1);
+  const [isSelected, setIsSelected] = useState(null);
+  const [file, setFile] = useState(null);
+  const { lang }: { lang: string } = useParams();
+  const [country, language] = lang.split("-");
+  const [loading, setLoading] = useState(false);
+  const handleChange = async (e, link) => {
+    setLoading(true);
+    try {
+      if (e.target.files[0]?.type.includes("video")) {
+        await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.readAsDataURL(e.target.files[0]);
+          reader.onload = async () => {
+            setFile(e.target.files[0]);
+            setIsSelected(reader.result);
+            var videoElement: HTMLVideoElement =
+              document.createElement("video");
+            videoElement.src = reader.result.toString();
+            var timer = setInterval(async function () {
+              if (videoElement.readyState === 4) {
+                let getTime = videoElement.duration;
+                if (getTime > 59) {
+                  showErrorNotification(
+                    translateFunction("1 minutes video only")
+                  );
+
+                  setFile(null);
+                  setIsSelected(null);
+                  clearInterval(timer);
+                  return;
+                } else {
+                  clearInterval(timer);
+
+                  let path = await StoryServiceClass.upload(
+                    e.target.files[0],
+                    (e) => setUpload(e),
+                    1,
+                    () => {
+                      setIsSelected(null);
+                      setFile(null);
+                    },
+                    link
+                  )
+                    .then((data) => {
+                      // Sendevent({
+                      //   event: GA_EVENT_NAMES.PROGRAMMING_EVENT,
+                      //   value: GA_PROGRAMMING_EVENT_VALUES.UPLOAD_STORY_SUCCESS,
+                      // });
+                      AddStoryAction(data);
+                      resolve(true);
+                    })
+                    .catch((e) => {
+                      // Sendevent({
+                      //   event: GA_EVENT_NAMES.PROGRAMMING_EVENT,
+                      //   value: GA_PROGRAMMING_EVENT_VALUES.UPLOAD_STORY_FAILED,
+                      // });
+                      setUpload(0);
+                      setLoading(false);
+                      showErrorNotification(
+                        translateFunction("Upload Failed Try Again")
+                      );
+                    });
+                  setIsSelected(path);
+
+                  setFile(e.target.files[0]);
+
+                  setIsSelected(null);
+                  setFile(null);
+                  revalidateStories();
+                  let stories = await fetchStories(
+                    language,
+                    country,
+                    1,
+                    JSON.parse(localStorage.getItem("USER-STORIES"))
+                      ?.access_token
+                  );
+                  setUpload(0);
+                }
+
+                clearInterval(timer);
+              }
+            }, 500);
+          };
+        });
+        showSuccessNotification("Story Uploaded");
+      } else if (e.target.files[0]?.type.includes("image")) {
+        await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.readAsDataURL(e.target.files[0]);
+          reader.onload = async () => {
+            setIsSelected(reader.result);
+            let path = await StoryServiceClass.upload(
+              e.target.files[0],
+              (e) => setUpload(e),
+              0,
+              () => {},
+              link
+            )
+              .then((data) => {
+                resolve(true);
+                AddStoryAction(data);
+              })
+              .catch((e) => {
+                setUpload(0);
+                setLoading(false);
+                showErrorNotification(
+                  translateFunction("Upload Failed Try Again")
+                );
+              });
+            setIsSelected(path);
+            setFile(e.target.files[0]);
+
+            setIsSelected(null);
+            setFile(null);
+            revalidateStories();
+            setUpload(0);
+          };
+        });
+        showSuccessNotification("Story Uploaded");
+        setPreview(null);
+        setFile(null);
+        setSelectedFile(null);
+        setLoading(false);
+        setLink("");
+        onClose();
+      }
+    } catch (error) {
+      showErrorNotification("Error Uploading Story");
+    }
+  };
+  // const HandleUploadedVideo = async (e) => {
+  //   if (e.target.files[0]?.type.includes("video")) {
+  //     new Promise((resolve, reject) => {
+  //       const reader = new FileReader();
+  //       reader.readAsDataURL(e.target.files[0]);
+  //       reader.onload = async () => {
+  //         setFile(e.target.files[0]);
+  //         setIsSelected(reader.result);
+  //         let path = await StoryService.upload(
+  //           e.target.files[0],
+  //           (e: any) => setUpload(e),
+  //           1,
+
+  //           () => {
+  //             setIsSelected(null);
+  //             setFile(null);
+  //           }
+  //         )
+  //           .then((data) => {
+  //             AddStoryAction(data);
+  //           })
+  //           .catch((e) => {
+  //             setFile(null);
+  //             setIsSelected(null);
+
+  //             toast.error("Upload Failed Try Again");
+  //           });
+  //         setIsSelected(path);
+  //         setFile(e.target.files[0]);
+
+  //         setIsSelected(null);
+  //         setFile(null);
+  //         revalidateStories();
+  //       };
+  //     });
+  //   }
+  // };
+  const selectMedia = async ({ imageFile, link }) => {
+    handleChange({ target: { files: [imageFile] } }, link);
+  };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -190,10 +370,7 @@ export default function AddStoryWidget({
     //   event: GA_EVENT_NAMES.CLICK,
     //   value: GA_CLICK_EVENT_VALUES.CONFIRM_UPLOAD_STORY_BUTTON,
     // });
-    selectMedia({ media: selectedFile, link: finalLink });
-    setPreview(null);
-    setSelectedFile(null);
-    onClose();
+    selectMedia({ imageFile: selectedFile, link: finalLink });
   };
 
   useEffect(() => {
@@ -241,7 +418,11 @@ export default function AddStoryWidget({
           </button>
         </div>
 
-        <div className="flex h-[calc(100vh-250px)] max-w-[1250px]">
+        <div
+          className={`${
+            loading && "opacity-70 scale-90 origin-center"
+          } flex h-[calc(100vh-250px)] max-w-[1250px]`}
+        >
           {/* Preview Area */}
           <div className="flex-1 flex items-center w-1/2 justify-center border-r border-gray-200 pr-4">
             {preview ? (
@@ -317,10 +498,10 @@ export default function AddStoryWidget({
               <button
                 onClick={handleShareStory}
                 data-cy="share-story-button"
-                className="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 mt-auto disabled:bg-blue-200"
-                disabled={link && !isValidUrl(link)}
+                className="w-full bg-blue-500 text-white flex justify-center items-center py-2 rounded-lg hover:bg-blue-600 mt-auto disabled:bg-blue-200"
+                disabled={(link && !isValidUrl(link)) || loading}
               >
-                Share Story
+                {loading ? <Spinner /> : translateFunction("Share Story")}
               </button>
             )}
           </div>

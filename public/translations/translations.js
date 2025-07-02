@@ -4,6 +4,7 @@ const translations = {
     "Number copy failed": "فشل نسخ الرقم",
     "You Have New Messages From Deleivery Worker":
       "لديك رسالة جديدة من عامل التوصيل..انقر للمزيد",
+    "Share Story": "مشاركة القصة",
     Cancel: "الغاء",
     "For All": "للكل",
     "For Me": "لي",
@@ -749,6 +750,7 @@ const translations = {
     "Premium Shopping": "Premium Alışveriş",
     Experience: "Deneyim",
     "Featured Products": "Öne Çıkan Ürünler",
+    "Share Story": "Hikayeyi Paylaş",
     "You Have New Messages From Deleivery Worker..click for more":
       "Teslimat Elemanından Yeni Mesajlarınız Var..daha fazlası için tıklayın",
     "Flash Deals": "Hızlı Fırsatlar",
