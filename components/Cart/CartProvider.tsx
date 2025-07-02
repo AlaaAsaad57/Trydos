@@ -111,7 +111,7 @@ const CartProvider = () => {
     let couponUrlVar = searchParams.get("coupon");
     let selectedUrlVar = searchParams.get("selected");
     setTimeout(() => {
-      if (couponUrlVar) {
+      if (couponUrlVar?.length > 0) {
         localStorage.setItem("coupon-number", couponUrlVar);
         const newParams = new URLSearchParams(searchParams);
         newParams.delete("coupon");

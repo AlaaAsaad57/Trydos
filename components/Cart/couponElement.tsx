@@ -41,7 +41,7 @@ const CouponElement = ({ active, setActive, close }) => {
         method: "GET",
         server: "market",
       });
-      console.log(response, "response");
+
       if (!response.data.status) {
         localStorage.removeItem("coupon-number");
         throw new Error(response.message);
