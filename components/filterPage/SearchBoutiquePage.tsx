@@ -45,33 +45,39 @@ function SearchBoutiquePage({
     //     value: e?.target.value,
     //   },
     // });
-    setFilterLoading(true);
-    searchFilter(e.target.value);
+    try {
+      setFilterLoading(true);
+      searchFilter(e.target.value);
 
-    if (filterEnabled) {
-    } else {
-      setFilterEnabled(false);
-
-      // Update filters with new search text
-      const newFilters = { ...currentFilters };
-      if (e.target.value.length > 0) {
-        newFilters.search_text = [e.target.value];
+      if (filterEnabled) {
       } else {
-        delete newFilters.search_text;
+        setFilterEnabled(false);
+
+        // Update filters with new search text
+        const newFilters = { ...currentFilters };
+        if (e.target.value.length > 0) {
+          newFilters.search = [e.target.value];
+        } else {
+          delete newFilters.search;
+        }
+
+        // Build new path-based URL
+        const pathParams = buildParamsFromFilters(newFilters);
+        const newPath =
+          pathParams.length > 0
+            ? `/${lang}/filters/${pathParams.join("/")}`
+            : `/${lang}/filters`;
+
+        dispatchRouteChangeEvent("start", {
+          is_filter_search: true,
+          href: newPath,
+          ...boutique,
+        });
+        console.log(newPath);
+        router.push(newPath); // Navigate to filters page
       }
-
-      // Build new path-based URL
-      const pathParams = buildParamsFromFilters(newFilters);
-      const newPath =
-        pathParams.length > 0
-          ? `/${lang}/filters/${pathParams.join("/")}`
-          : `/${lang}/filters`;
-
-      dispatchRouteChangeEvent("start", {
-        is_filter_search: true,
-        ...boutique,
-      });
-      router.push(newPath); // Navigate to filters page
+    } catch (error) {
+      console.error(error);
     }
   };
   useEffect(() => {

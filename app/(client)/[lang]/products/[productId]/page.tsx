@@ -29,7 +29,7 @@ import FreeShippingOption from "components/products/FreeShippingOption";
 import ProductColors from "components/products/ProductColors";
 import CameraShots from "components/products/CameraShots";
 import ProductBackButton from "components/products/ProductBackButton";
-import DescriptorBorder from "public/svg/product/descriptorBorder.svg";
+
 import FlashDealBanner from "components/products/FlashDealBanner";
 // import FeaturedBanner from "components/products/FeaturedBanner";
 import { ProductPagePropsType } from "models/componentType/productTypes/productPagePropsType";
@@ -263,65 +263,9 @@ async function Page({ params, searchParams }: ProductPagePropsType) {
                 </span>
               </div>
             </div>
-            <div className="flex-row product-descriptors-row">
-              {product?.descriptors?.map((descriptor, key) => {
-                return (
-                  <div
-                    key={key}
-                    className="flex-row product-descriptor relative align-center"
-                  >
-                    <DescriptorBorder className="descriptor-border absolute" />
 
-                    <div className="descriptor-icon">
-                      <img
-                        width={20}
-                        height={20}
-                        src={GetImageUrl(descriptor.descriptor_group.icon)}
-                      />
-                    </div>
-                    <div className="descriptor-value flex-col">
-                      <div className="descriptor-name">
-                        {descriptor.descriptor_group.name}
-                      </div>
-                      <div className="descriptor-values flex-row">
-                        {descriptor?.descriptors?.map(
-                          (sub_descriptor, index) => (
-                            <div
-                              className="sub-descriptor align-center flex-row"
-                              key={index}
-                            >
-                              {index !== 0 && (
-                                <span className="descriptor-separtor">|</span>
-                              )}
-                              <span className="desc-value">
-                                {sub_descriptor.value}
-                              </span>
-                              {sub_descriptor.descriptor?.icon && (
-                                <img
-                                  width={15}
-                                  height={15}
-                                  alt={sub_descriptor.descriptor.name}
-                                  src={GetImageUrl(
-                                    sub_descriptor.descriptor.icon
-                                  )}
-                                />
-                              )}
-                              {sub_descriptor.descriptor?.name && (
-                                <span className="sub-descriptor-name">
-                                  {sub_descriptor.descriptor?.name}
-                                </span>
-                              )}
-                            </div>
-                          )
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
             <Suspense>
-              <ProductDescriptors />
+              <ProductDescriptors descriptors={product.descriptors} />
             </Suspense>
             <Suspense fallback={<></>}>
               {product.sync_color_images?.length > 0 && (
