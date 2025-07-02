@@ -46,7 +46,6 @@ function SearchBoutiquePage({
     //   },
     // });
     try {
-      setFilterLoading(true);
       searchFilter(e.target.value);
 
       if (filterEnabled) {
@@ -54,28 +53,39 @@ function SearchBoutiquePage({
         setFilterEnabled(false);
 
         // Update filters with new search text
-        const newFilters = { ...currentFilters };
-        if (e.target.value.length > 0) {
-          newFilters.search = [e.target.value];
-        } else {
-          delete newFilters.search;
-        }
 
         // Build new path-based URL
-        const pathParams = buildParamsFromFilters(newFilters);
-        const newPath =
-          pathParams.length > 0
-            ? `/${lang}/filters/${pathParams.join("/")}`
-            : `/${lang}/filters`;
-
-        dispatchRouteChangeEvent("start", {
-          is_filter_search: true,
-          href: newPath,
-          ...boutique,
-        });
-        console.log(newPath);
-        router.push(newPath); // Navigate to filters page
+        // Navigate to filters page
       }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+  const onKeyDown = (e) => {
+    try {
+      if (filterEnabled) return;
+      setSkeleton(true);
+      setFilterEnabled(false);
+      setFilterLoading(true);
+      const newFilters = { ...currentFilters };
+      if (e.target.value.length > 0) {
+        newFilters.search = [e.target.value];
+      } else {
+        delete newFilters.search;
+      }
+      const pathParams = buildParamsFromFilters(newFilters);
+      const newPath =
+        pathParams.length > 0
+          ? `/${lang}/filters/${pathParams.join("/")}`
+          : `/${lang}/filters`;
+
+      dispatchRouteChangeEvent("start", {
+        is_filter_search: true,
+        href: newPath,
+        ...boutique,
+      });
+      console.log(newPath);
+      router.push(newPath);
     } catch (error) {
       console.error(error);
     }
@@ -150,29 +160,10 @@ function SearchBoutiquePage({
         onChange={(e) => {
           onChange(e);
         }}
-        onKeyDown={(e) => {
+        onKeyDown={(e: any) => {
           //@ts-ignore
           if (e.keyCode == 13) {
-            setSkeleton(true);
-            setFilterEnabled(false);
-
-            // Update filters with search value
-            const newFilters = { ...currentFilters };
-            if (value.length > 0) {
-              newFilters.search_text = [value];
-            } else {
-              delete newFilters.search_text;
-            }
-
-            // Build new path-based URL
-            const pathParams = buildParamsFromFilters(newFilters);
-            const newPath =
-              pathParams.length > 0
-                ? `/${lang}/filters/${pathParams.join("/")}`
-                : `/${lang}/filters`;
-
-            router.push(newPath); // Navigate to filters page
-            // @ts-ignore
+            onKeyDown(e);
             e.target.blur();
           }
         }}

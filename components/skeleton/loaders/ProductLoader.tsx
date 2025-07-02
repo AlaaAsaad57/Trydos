@@ -22,11 +22,11 @@ import Skeleton from "react-loading-skeleton";
 import { useAppStore } from "store";
 import ProductViews from "components/products/ProductViews";
 import ProductColors from "components/products/ProductColors";
-import ProductDescriptors from "components/products/ProductDescriptors";
+
 import CameraShots from "components/products/CameraShots";
-import ProductStories from "components/products/ProductStories";
+
 import ProductSizes from "components/products/ProductSizes";
-import ProductShippingOption from "components/products/ProductShippingOption";
+
 import FreeShippingOption from "components/products/FreeShippingOption";
 import useEmblaCarousel from "embla-carousel-react";
 import { GetImageUrl } from "utils/tinyUtils";
@@ -235,9 +235,7 @@ function ProductLoader({ product }) {
                 );
               })}
             </div>
-            <Suspense>
-              <ProductDescriptors />
-            </Suspense>
+
             <Suspense fallback={<></>}>
               <ProductColors
                 colors={product?.sync_color_images || []}
