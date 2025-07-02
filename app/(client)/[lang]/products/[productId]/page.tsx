@@ -264,9 +264,10 @@ async function Page({ params, searchParams }: ProductPagePropsType) {
               </div>
             </div>
 
-            <Suspense>
+            {product?.descriptors && product?.descriptors?.length > 0 && (
               <ProductDescriptors descriptors={product.descriptors} />
-            </Suspense>
+            )}
+
             <Suspense fallback={<></>}>
               {product.sync_color_images?.length > 0 && (
                 <ProductColors
