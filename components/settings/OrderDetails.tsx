@@ -125,8 +125,6 @@ function OrderDetails({ resetOrderDetails, goBack }: OrderDetailsPropsType) {
   >(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [chatInfo, setChatInfo] = useState<Channel | null>(null);
-
-  if (!selectedOrder?.id) return null;
   const shouldShowChatIcon = () => {
     // Out for Delivery
     if (selectedOrder.order_status?.value === "out_for_delivery")
@@ -301,6 +299,8 @@ function OrderDetails({ resetOrderDetails, goBack }: OrderDetailsPropsType) {
     document.querySelector("#OrderDetails").classList.add("overflow-auto");
     setIsChatOpen(false);
   };
+  if (!selectedOrder?.id) return null;
+
   return (
     <>
       {chatInfo && (
