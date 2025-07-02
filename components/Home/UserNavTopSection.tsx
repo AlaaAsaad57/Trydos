@@ -247,17 +247,8 @@ function UserNavTopSection() {
               )}
             </span>
           </div>
-          <div
-            data-testid="login-text"
-            data-cy="login-icon"
-            className="nav-question-item"
-            onClick={() => {
-              openLogin(true);
-              window.history.pushState({ isPopup: true }, "open Login");
-            }}
-          >
-            <UserActiveIcon />
-          </div>
+
+          <UserActiveIcon />
         </>
       )}
       <div
