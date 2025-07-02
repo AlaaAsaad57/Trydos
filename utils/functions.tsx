@@ -350,13 +350,11 @@ export const urlParams = ({ filters, noProducts, noFilter = false }) => {
   return urlParams.toString();
 };
 
-export function formatPrice(price) {
-  const { currency } = useAppStore.getState();
-
+export function formatPrice(price, language = "en") {
   if (price >= 1000000) {
-    return CielNumber(price / 1000000) + translateFunction("M"); // For millions
+    return CielNumber(price / 1000000) + translateFunction("M", language); // For millions
   } else if (price >= 100000) {
-    return CielNumber(price / 1000) + translateFunction("K"); // For thousands
+    return CielNumber(price / 1000) + translateFunction("K", language); // For thousands
   } else {
     return price; // For prices under 1000
   }
@@ -371,11 +369,13 @@ export const RoundPrice = ({
   rate,
   points,
   returnNumber,
+  language = "en",
 }: {
   num?: any;
   rate?: any;
   points?: any;
   returnNumber?: boolean;
+  language?: string;
 }): number => {
   const { currency, settings } = useAppStore.getState();
 
@@ -392,7 +392,7 @@ export const RoundPrice = ({
   }
   a = Number(a.toFixed(pointsVariable));
 
-  return formatPrice(a);
+  return formatPrice(a, language);
 };
 export const onClickSearchHistory = (searchValue) => {
   if (localStorage.getItem("search-history")) {

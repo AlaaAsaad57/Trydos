@@ -6,7 +6,14 @@ import Image from "next/image";
 import { GetImageUrl } from "utils/tinyUtils";
 import ProductBanner from "components/products/ProductBanner";
 
-function ProductCard({ product, params, currency, productColor, key }) {
+function ProductCard({
+  product,
+  params,
+  currency,
+  productColor,
+  key,
+  language = "en",
+}) {
   return (
     <div
       className="max-h-[362px] relative"
@@ -106,42 +113,46 @@ function ProductCard({ product, params, currency, productColor, key }) {
               params.lang.split("-")[1] === "ar" && "dir-rtl"
             } price-label flex`}
           >
-            {product?.offer_price >= 0 && (
-              <span className="old-price relative f-12 color-dark-gray light-text">
-                {RoundPrice({
-                  num: product?.price,
-                  rate: currency?.exchange_rate,
-                  points: 0,
-                })}
-                <svg
-                  className="absolute w-100"
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="100%"
-                  height="1"
-                >
-                  <line
-                    id="Line_1"
-                    data-name="Line 1"
-                    x2="100%"
-                    transform="translate(0 0.5)"
-                    fill="none"
-                    stroke="#3c3c3c"
-                    strokeWidth="1"
-                  />
-                </svg>
-              </span>
-            )}
+            {product?.offer_price >= 0 &&
+              product?.offer_price !== product.price && (
+                <span className="old-price relative f-12 color-dark-gray light-text">
+                  {RoundPrice({
+                    num: product?.price,
+                    rate: currency?.exchange_rate,
+                    points: 0,
+                    language: language,
+                  })}
+                  <svg
+                    className="absolute w-100"
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="100%"
+                    height="1"
+                  >
+                    <line
+                      id="Line_1"
+                      data-name="Line 1"
+                      x2="100%"
+                      transform="translate(0 0.5)"
+                      fill="none"
+                      stroke="#3c3c3c"
+                      strokeWidth="1"
+                    />
+                  </svg>
+                </span>
+              )}
             <span className="new-price bold-text color-dark-gray flex f-12">
               {product?.offer_price >= 0
                 ? RoundPrice({
                     num: product?.offer_price,
                     rate: currency?.exchange_rate,
                     points: 0,
+                    language: language,
                   })
                 : RoundPrice({
                     num: product?.price,
                     rate: currency?.exchange_rate,
                     points: 0,
+                    language: language,
                   })}
             </span>
             <span className="currency-label light-text color-dark-gray flex f-10">

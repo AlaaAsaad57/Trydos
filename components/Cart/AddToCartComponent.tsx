@@ -115,6 +115,11 @@ function AddToCartComponent({
         variation: newVariants,
       };
       setProductData(tempProductData);
+      setSelectedColor(
+        tempProductData?.sync_color_images?.find(
+          (s) => s.color_option?.toLowerCase() === colorFromUrl?.toLowerCase()
+        ) || tempProductData?.sync_color_images?.[0]
+      );
       if (tempProductData?.choice_options?.[0]?.options?.length > 0) {
         if (sizeFromUrl?.length > 0) {
           setSelectedSize(
@@ -487,34 +492,41 @@ function AddToCartComponent({
               data-cy="product_info_price_addtocart"
               className="product-info-price"
             >
-              {currency?.symbol && (
-                <div
-                  data-cy="product_old_price_addtocart"
-                  className="product-old-price"
-                >
-                  <svg
-                    data-cy="product_addtocart_svg"
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="100%"
-                    height="2"
+              {currency?.symbol &&
+                getSelectedVariantQty()?.offer_price !==
+                  getSelectedVariantQty()?.price && (
+                  <div
+                    data-cy="product_old_price_addtocart"
+                    className="product-old-price"
                   >
-                    <line
-                      id="Line_1104"
-                      data-name="Line 1104"
-                      x2="100%"
-                      transform="translate(0 1)"
-                      fill="none"
-                      stroke="#C4C2C2"
-                      strokeWidth="2"
-                    />
-                  </svg>
-                  {getSelectedVariantQty()?.price >= 0 && currency?.symbol ? (
-                    <>{RoundPrice({ num: getSelectedVariantQty()?.price })}</>
-                  ) : (
-                    <Skeleton width={30} height={10} />
-                  )}
-                </div>
-              )}
+                    <svg
+                      data-cy="product_addtocart_svg"
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="100%"
+                      height="2"
+                    >
+                      <line
+                        id="Line_1104"
+                        data-name="Line 1104"
+                        x2="100%"
+                        transform="translate(0 1)"
+                        fill="none"
+                        stroke="#C4C2C2"
+                        strokeWidth="2"
+                      />
+                    </svg>
+                    {getSelectedVariantQty()?.price >= 0 && currency?.symbol ? (
+                      <>
+                        {RoundPrice({
+                          num: getSelectedVariantQty()?.price,
+                          language: languageVariable,
+                        })}
+                      </>
+                    ) : (
+                      <Skeleton width={30} height={10} />
+                    )}
+                  </div>
+                )}
               <div
                 data-cy="product_new-price_addtocart"
                 className="product-new-price"
@@ -524,6 +536,7 @@ function AddToCartComponent({
                   <>
                     {RoundPrice({
                       num: getSelectedVariantQty()?.offer_price,
+                      language: languageVariable,
                     })}
                   </>
                 ) : (
@@ -1637,6 +1650,7 @@ const AddToCartButton = ({
               num: selectedVariant?.offer_price,
               rate: currency?.exchange_rate,
               returnNumber: true,
+              language: languageVariable,
             }),
             items: [
               {
@@ -1646,6 +1660,7 @@ const AddToCartButton = ({
                   num: selectedVariant?.offer_price,
                   rate: currency?.exchange_rate,
                   returnNumber: true,
+                  language: languageVariable,
                 }),
                 quantity:
                   (isVariantInCart({ exact: false })?.quantity ?? 0) + 1,
@@ -1688,6 +1703,7 @@ const AddToCartButton = ({
               num: selectedVariant?.offer_price,
               rate: currency?.exchange_rate,
               returnNumber: true,
+              language: languageVariable,
             }),
             items: [
               {
@@ -1697,6 +1713,7 @@ const AddToCartButton = ({
                   num: selectedVariant?.offer_price,
                   rate: currency?.exchange_rate,
                   returnNumber: true,
+                  language: languageVariable,
                 }),
                 quantity: 1,
                 brand: product?.brand?.name,
@@ -1749,6 +1766,7 @@ const AddToCartButton = ({
                   num: variant?.offer_price,
                   rate: currency?.exchange_rate,
                   returnNumber: true,
+                  language: languageVariable,
                 }),
               },
             ],

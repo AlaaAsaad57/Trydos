@@ -1,7 +1,6 @@
 "use client";
 import CloseIcon from "public/svg/CloseIcon.svg";
 import SearchCloseIcon from "public/svg/SearchCloseIcon.svg";
-
 import { ChangeEvent, useEffect, useRef, useCallback } from "react";
 import {
   caseCheck,
@@ -85,12 +84,13 @@ function SearchComponent({
   };
   const onKeyDown = (e) => {
     if (e.keyCode == 13 && e.target.value.length > 0) {
-      onClickSearchHistory(value);
-      setEnableSearch(false);
       dispatchRouteChangeEvent("start", {
         is_boutique: true,
+        href: SearchService.getSearchPageUrl({ lang: lang }),
       });
       router.push(SearchService.getSearchPageUrl({ lang: lang }));
+      onClickSearchHistory(value);
+      setEnableSearch(false);
       //go to listing
     } else {
     }

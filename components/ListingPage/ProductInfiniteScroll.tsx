@@ -104,6 +104,7 @@ function ProductsInfiniteScroll({
       rate: currency?.exchange_rate || 1,
       points:
         (settings && settings["starting-setting"]?.decimal_point_settings) || 0,
+      language: languageVariable,
     });
   };
 
@@ -222,27 +223,28 @@ function ProductsInfiniteScroll({
                       languageVariable === "ar" && "dir-rtl"
                     } price-label flex`}
                   >
-                    {product?.offer_price >= 0 && (
-                      <span className="old-price relative f-12 color-dark-gray light-text">
-                        {getPrice(product.price)}
-                        <svg
-                          className="absolute w-100"
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="100%"
-                          height="1"
-                        >
-                          <line
-                            id="Line_1"
-                            data-name="Line 1"
-                            x2="100%"
-                            transform="translate(0 0.5)"
-                            fill="none"
-                            stroke="#3c3c3c"
-                            strokeWidth="1"
-                          />
-                        </svg>
-                      </span>
-                    )}
+                    {product?.offer_price >= 0 &&
+                      product?.offer_price !== product.price && (
+                        <span className="old-price relative f-12 color-dark-gray light-text">
+                          {getPrice(product.price)}
+                          <svg
+                            className="absolute w-100"
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="100%"
+                            height="1"
+                          >
+                            <line
+                              id="Line_1"
+                              data-name="Line 1"
+                              x2="100%"
+                              transform="translate(0 0.5)"
+                              fill="none"
+                              stroke="#3c3c3c"
+                              strokeWidth="1"
+                            />
+                          </svg>
+                        </span>
+                      )}
                     <span className="new-price bold-text color-dark-gray flex f-12">
                       {product?.offer_price >= 0
                         ? getPrice(product?.offer_price)

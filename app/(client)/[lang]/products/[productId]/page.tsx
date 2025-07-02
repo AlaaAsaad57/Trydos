@@ -396,7 +396,7 @@ async function Page({ params, searchParams }: ProductPagePropsType) {
         <div className="product-details-footer alternate-product-details-footer z-[999999999]">
           <div className="product-info-container">
             <div className="product-info-price">
-              {
+              {product?.offer_price !== product.price && (
                 <div className="product-old-price">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -417,7 +417,7 @@ async function Page({ params, searchParams }: ProductPagePropsType) {
                     <Skeleton width={30} height={10} />
                   )}
                 </div>
-              }
+              )}
               <div className="product-new-price">
                 {getPrice(product?.offer_price, languageVariable, currency) ?? (
                   <Skeleton width={30} height={10} />

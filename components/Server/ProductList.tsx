@@ -24,7 +24,7 @@ function ProductListServer({
   let activeColor = colors?.find(
     (s) => s === activeFilters[activeFilters.length - 1]
   );
-
+  let language = params.lang.split("-")[1];
   return (
     <div
       className={"listing-container relative flex pb-[350px] max-w-[1310px]"}
@@ -39,6 +39,7 @@ function ProductListServer({
 
         return (
           <ProductCard
+            language={language}
             product={product}
             params={params}
             currency={currency}

@@ -2154,7 +2154,8 @@ const QuantutyInput = ({
         )}
         <div className={`pl-[30px]`} data-cy="oldNew-price-container">
           <div className="product-info-price" data-cy="oldNew-price-container2">
-            {product?.offer_price >= 0 ? (
+            {product?.offer_price >= 0 &&
+            product.price !== product.offer_price ? (
               <>
                 <div className="flex-col" data-cy="Subdivisions">
                   <div className="flex-row" data-cy="newOld-price">
