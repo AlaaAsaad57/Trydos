@@ -1868,7 +1868,9 @@ const AddToCartButton = ({
 };
 const NotifyCartButton = ({ isNotified, setNotify, selected_variant, id }) => {
   const NotifyAction = async () => {
-    const permission = await Notification.requestPermission();
+    if (typeof Notification !== "undefined") {
+      const permission = await Notification.requestPermission();
+    }
     if (!isNotified) {
       // Sendevent({
       //   event: GA_EVENT_NAMES.CLICK,

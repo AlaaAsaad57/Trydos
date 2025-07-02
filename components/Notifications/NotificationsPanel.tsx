@@ -325,7 +325,11 @@ const NotificationInfo = ({ closeWindow }) => {
         user_id:${auth.UserID()},
         fcm_token:${token},
         fcm_error:  ${error},
-        notification_permission:${Notification.permission},
+        notification_permission:${
+          typeof Notification !== "undefined"
+            ? Notification.permission
+            : "not supported"
+        },
         firebase_supported:${supported},
         `);
         }}

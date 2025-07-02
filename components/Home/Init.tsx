@@ -166,7 +166,7 @@ function Init() {
     }
   };
   useEffect(() => {
-    initPageLoad();
+    if (typeof Notification !== "undefined") initPageLoad();
   }, []); // Runs once when the app initializes
 
   return (
