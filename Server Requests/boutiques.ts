@@ -123,6 +123,7 @@ export async function fetchBoutiques(
     };
   } catch (error) {
     console.error("Error fetching boutiques:", error);
+
     throw error;
   }
 }

@@ -44,12 +44,12 @@ export async function fetchMainCategories(
     }
 
     const { data } = await response.json();
-
-    return {
-      mainCategories: data.mainCategories,
-    };
+    return data;
   } catch (error) {
     console.error("Error fetching main categories:", error);
+    return {
+      mainCategories: [],
+    };
     throw error;
   }
 }

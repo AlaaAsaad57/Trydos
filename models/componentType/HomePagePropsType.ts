@@ -19,6 +19,7 @@ export interface CategoryNavMobileProps {
 export interface NavbarServerProps {
   lang: string;
   mainCategory: string;
+  categoriesData: any;
 }
 
 export interface HomePageProps {

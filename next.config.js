@@ -5,37 +5,23 @@ let nextConfig = {
   swcMinify: true,
   reactStrictMode: false,
   compress: true,
-  // async headers() {
-  //   return [
-  //     {
-  //       source: "/:lang",
-  //       headers: [
-  //         {
-  //           key: "Cache-Control",
-  //           value: "s-maxage=86400, stale-while-revalidate=86400",
-  //         },
-  //       ],
-  //     },
-  //     {
-  //       source: "/:lang/filters/:filters",
-  //       headers: [
-  //         {
-  //           key: "Cache-Control",
-  //           value: "s-maxage=86400, stale-while-revalidate=86400",
-  //         },
-  //       ],
-  //     },
-  //     {
-  //       source: "/:lang/products/:productId",
-  //       headers: [
-  //         {
-  //           key: "Cache-Control",
-  //           value: "s-maxage=86400, stale-while-revalidate=86400",
-  //         },
-  //       ],
-  //     },
-  //   ];
-  // },
+  async headers() {
+    return [
+      {
+        source: "/(.*)",
+        headers: [
+          {
+            key: "X-Robots-Tag",
+            value: "index, follow",
+          },
+          {
+            key: "Cache-Control",
+            value: "s-maxage=86400, stale-while-revalidate=86400",
+          },
+        ],
+      },
+    ];
+  },
   images: {
     unoptimized: false,
     domains: [

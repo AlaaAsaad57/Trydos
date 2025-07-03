@@ -6,94 +6,42 @@ import {
   fetchFilteredProducts,
   fetchMainCategories,
 } from "Server Requests";
-
-export async function getHomeMetadata({ params }) {
+import { GetHomeData } from "utils/pagesDataRequests/HomePageData";
+import { cache } from "react";
+const generateCodeCurrency = (code: string) => {
+  if (code?.toLowerCase() === "sp") {
+    return "SYP";
+  } else {
+    return code.toUpperCase();
+  }
+};
+export const getHomeMetadata = cache(async ({ params }) => {
   const [country, language] = params.lang.split("-");
 
   // Get language for translations
 
   // Fetch featured products, flash deals, and boutiques data
-  const GetFeaturedProductsData = async () => {
-    try {
-      const result = await fetchFilteredProducts(
-        language,
-        country,
-        [],
-        "false",
-        "false",
-        null,
-        null,
-        true,
-        false
-      );
-      return result.data;
-    } catch (error) {
-      console.log(error, "getFeaturedProductsData");
-      return { products: [], categories: [], brands: [], boutiques: [] };
-    }
-  };
-
-  const GetFlashDealsData = async () => {
-    try {
-      const result = await fetchFilteredProducts(
-        language,
-        country,
-        [],
-        "false",
-        "false",
-        null,
-        null,
-        false,
-        true
-      );
-      return result.data;
-    } catch (error) {
-      console.log(error, "getFlashDealsData");
-      return { products: [] };
-    }
-  };
-
-  const GetBoutiquesData = async () => {
-    try {
-      const data = await fetchBoutiques(language, country, "", 0, 10);
-      return data.boutiques || [];
-    } catch (error) {
-      console.log(error, "getBoutiquesData");
-      return [];
-    }
-  };
-
-  const GetCurrencyData = async () => {
-    try {
-      const data = await fetchCurrency(language, country);
-      return (
-        data.data.currency || { name: "USD", exchange_rate: 1, symbol: "$" }
-      );
-    } catch (error) {
-      console.log(error, "getCurrencyData");
-      return { name: "USD", exchange_rate: 1, symbol: "$" };
-    }
-  };
-
-  // Fetch all data in parallel
-  const [featuredData, flashDealsData, boutiquesData, currencyData] =
-    await Promise.all([
-      GetFeaturedProductsData(),
-      GetFlashDealsData(),
-      GetBoutiquesData(),
-      GetCurrencyData(),
-    ]);
+  let {
+    boutiqueData: boutiquesData,
+    categoriesData,
+    featuredData,
+    flashDealsData,
+    currencyData,
+  } = await GetHomeData(params);
 
   // Combine all products
   const allProducts = [
-    ...(featuredData?.products || []),
-    ...(flashDealsData?.products || []),
+    ...(featuredData?.data.products || []),
+    ...(flashDealsData?.data.products || []),
   ];
-
+  currencyData = {
+    ...currencyData,
+    code: generateCodeCurrency(currencyData.code.toUpperCase()),
+  };
   // Extract unique categories and brands
-  const categories = featuredData?.categories || [];
-  const brands = featuredData?.brands || [];
-  const boutiques = boutiquesData || [];
+  const categories = categoriesData.mainCategories || [];
+  const brands = featuredData?.data?.brands || [];
+  const boutiques = boutiquesData.boutiques || [];
 
   // Generate comprehensive metadata with translations
   const pageTitle = translateFunction(
@@ -122,9 +70,9 @@ export async function getHomeMetadata({ params }) {
     "Your ultimate shopping destination",
     language
   )}. ${translateFunction("Featured Products", language)}: ${
-    featuredData?.products?.length || 0
+    featuredData?.data?.products?.length || 0
   }, ${translateFunction("Flash Deals", language)}: ${
-    flashDealsData?.products?.length || 0
+    flashDealsData?.data?.products?.length || 0
   } ${categories.length > 0 ? `across ${categories.length} categories` : ""}. ${
     topBrands ? `Top brands: ${topBrands}. ` : ""
   }${featuredCategories ? `Featured categories: ${featuredCategories}. ` : ""}${
@@ -161,8 +109,10 @@ export async function getHomeMetadata({ params }) {
   const primaryOgImage = `${baseUrl}/api/opengraph-image`;
 
   // Fallback images for additional social media images and structured data
-  const featuredImage = featuredData?.products?.[0]?.images?.[0]?.file_path;
-  const flashDealImage = flashDealsData?.products?.[0]?.images?.[0]?.file_path;
+  const featuredImage =
+    featuredData?.data?.products?.[0]?.images?.[0]?.file_path;
+  const flashDealImage =
+    flashDealsData?.data?.products?.[0]?.images?.[0]?.file_path;
   const boutiqueImage =
     boutiques?.[0]?.banners?.[0]?.file_path || boutiques?.[0]?.icon;
 
@@ -221,51 +171,52 @@ export async function getHomeMetadata({ params }) {
           name: "Featured Products",
           description: "Curated selection of premium featured products",
           itemListElement:
-            featuredData?.products?.slice(0, 20).map((product, index) => ({
-              "@type": "Product",
-              "@id": `${canonicalUrl}/products/${product.slug}`,
-              name: product.name,
-              description:
-                product.details || `Premium ${product.name} from TryDos`,
-              image: product.images?.[0]?.file_path
-                ? getConfiguredImage({
-                    src:
-                      process.env.NEXT_PUBLIC_BASE_CLOUDINARY_URL +
-                      product.images[0].file_path,
-                    width: 800,
-                    height: 800,
-                    q: 80,
-                  })
-                : undefined,
-              offers: {
-                "@type": "Offer",
-                "@id": `${canonicalUrl}/products/${product.slug}#offer`,
-                url: `${canonicalUrl}/products/${product.slug}`,
-                priceCurrency: currencyData.name,
-                price:
-                  (product.offer_price || product.price || 0) *
-                  (currencyData.exchange_rate || 1),
-                priceValidUntil:
-                  product.flash_deal_end_date ||
-                  new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
-                    .toISOString()
-                    .split("T")[0],
-                availability: "https://schema.org/InStock",
-                seller: {
-                  "@type": "Organization",
-                  name: "TryDos",
+            featuredData?.data?.products
+              ?.slice(0, 20)
+              .map((product, index) => ({
+                "@type": "Product",
+                "@id": `${canonicalUrl}/products/${product.slug}`,
+                name: product.name,
+                description:
+                  product.details || `Premium ${product.name} from TryDos`,
+                image: product.images?.[0]?.file_path
+                  ? getConfiguredImage({
+                      src:
+                        process.env.NEXT_PUBLIC_BASE_CLOUDINARY_URL +
+                        product.images[0].file_path,
+                      width: 800,
+                      height: 800,
+                      q: 80,
+                    })
+                  : undefined,
+                offers: {
+                  "@type": "Offer",
+                  "@id": `${canonicalUrl}/products/${product.slug}#offer`,
+                  url: `${canonicalUrl}/products/${product.slug}`,
+                  priceCurrency: currencyData.code,
+                  price:
+                    (product.offer_price || product.price || 0) *
+                    (currencyData.exchange_rate || 1),
+                  priceValidUntil:
+                    product.flash_deal_end_date ||
+                    new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+                      .toISOString()
+                      .split("T")[0],
+                  availability: "https://schema.org/InStock",
+                  seller: {
+                    "@type": "Organization",
+                    name: "TryDos",
+                  },
                 },
-              },
-              brand: product.category?.name
-                ? {
-                    "@type": "Brand",
-                    name: product.category.name,
-                  }
-                : undefined,
-              category: product.category?.name,
-              color: product.colors?.map((c) => c.name).filter(Boolean),
-              position: index + 1,
-            })) || [],
+                brand: product.category?.name
+                  ? {
+                      "@type": "Brand",
+                      name: product.category.name,
+                    }
+                  : undefined,
+                category: product.category?.name,
+                color: product.colors?.map((c) => c.name).filter(Boolean),
+              })) || [],
         },
         // Flash Deals Catalog
         {
@@ -274,53 +225,54 @@ export async function getHomeMetadata({ params }) {
           name: "Flash Deals",
           description: "Limited time offers with special discounts",
           itemListElement:
-            flashDealsData?.products?.slice(0, 15).map((product, index) => ({
-              "@type": "Product",
-              "@id": `${canonicalUrl}/products/${product.slug}`,
-              name: product.name,
-              description:
-                product.details ||
-                `Flash deal: ${product.name} - Limited time offer`,
-              image: product.images?.[0]?.file_path
-                ? getConfiguredImage({
-                    src:
-                      process.env.NEXT_PUBLIC_BASE_CLOUDINARY_URL +
-                      product.images[0].file_path,
-                    width: 800,
-                    height: 800,
-                    q: 80,
-                  })
-                : undefined,
-              offers: {
-                "@type": "Offer",
-                "@id": `${canonicalUrl}/products/${product.slug}#flash-offer`,
-                url: `${canonicalUrl}/products/${product.slug}`,
-                priceCurrency: currencyData.name,
-                price:
-                  (product.offer_price || product.price || 0) *
-                  (currencyData.exchange_rate || 1),
-                priceValidUntil:
-                  product.flash_deal_end_date ||
-                  new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
-                    .toISOString()
-                    .split("T")[0],
-                availability: "https://schema.org/LimitedAvailability",
-                validFrom: new Date().toISOString().split("T")[0],
-                seller: {
-                  "@type": "Organization",
-                  name: "TryDos",
+            flashDealsData?.data?.products
+              ?.slice(0, 15)
+              .map((product, index) => ({
+                "@type": "Product",
+                "@id": `${canonicalUrl}/products/${product.slug}`,
+                name: product.name,
+                description:
+                  product.details ||
+                  `Flash deal: ${product.name} - Limited time offer`,
+                image: product.images?.[0]?.file_path
+                  ? getConfiguredImage({
+                      src:
+                        process.env.NEXT_PUBLIC_BASE_CLOUDINARY_URL +
+                        product.images[0].file_path,
+                      width: 800,
+                      height: 800,
+                      q: 80,
+                    })
+                  : undefined,
+                offers: {
+                  "@type": "Offer",
+                  "@id": `${canonicalUrl}/products/${product.slug}#flash-offer`,
+                  url: `${canonicalUrl}/products/${product.slug}`,
+                  priceCurrency: currencyData.code,
+                  price:
+                    (product.offer_price || product.price || 0) *
+                    (currencyData.exchange_rate || 1),
+                  priceValidUntil:
+                    product.flash_deal_end_date ||
+                    new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+                      .toISOString()
+                      .split("T")[0],
+                  availability: "https://schema.org/LimitedAvailability",
+                  validFrom: new Date().toISOString().split("T")[0],
+                  seller: {
+                    "@type": "Organization",
+                    name: "TryDos",
+                  },
                 },
-              },
-              brand: product.category?.name
-                ? {
-                    "@type": "Brand",
-                    name: product.category.name,
-                  }
-                : undefined,
-              category: product.category?.name,
-              color: product.colors?.map((c) => c.name).filter(Boolean),
-              position: index + 1,
-            })) || [],
+                brand: product.category?.name
+                  ? {
+                      "@type": "Brand",
+                      name: product.category.name,
+                    }
+                  : undefined,
+                category: product.category?.name,
+                color: product.colors?.map((c) => c.name).filter(Boolean),
+              })) || [],
         },
       ],
       // Store departments/categories
@@ -329,17 +281,27 @@ export async function getHomeMetadata({ params }) {
         "@id": `${canonicalUrl}/categories/${category.slug}`,
         name: category.name,
         url: `${canonicalUrl}/filters/categories/${category.slug}`,
-        image: category.icon
+        image: category.flat_photo_path
           ? getConfiguredImage({
-              src: process.env.NEXT_PUBLIC_BASE_CLOUDINARY_URL + category.icon,
+              src:
+                process.env.NEXT_PUBLIC_BASE_CLOUDINARY_URL +
+                category.flat_photo_path.file_path,
               width: 400,
               height: 400,
               q: 80,
             })
           : undefined,
+        address: {
+          "@type": "PostalAddress",
+          addressCountry: country.toUpperCase(),
+        },
         parentOrganization: {
           "@type": "Store",
           name: "TryDos",
+          address: {
+            "@type": "PostalAddress",
+            addressCountry: country.toUpperCase(),
+          },
         },
       })),
     },
@@ -359,9 +321,17 @@ export async function getHomeMetadata({ params }) {
             q: 80,
           })
         : undefined,
+      address: {
+        "@type": "PostalAddress",
+        addressCountry: country.toUpperCase(),
+      },
       parentOrganization: {
         "@type": "Store",
         name: "TryDos",
+        address: {
+          "@type": "PostalAddress",
+          addressCountry: country.toUpperCase(),
+        },
       },
     })),
   };
@@ -380,7 +350,7 @@ export async function getHomeMetadata({ params }) {
       locale: params.lang,
       images: [
         // Additional featured product images
-        ...(featuredData?.products?.slice(0, 5).map((product) => ({
+        ...(featuredData?.data?.products?.slice(0, 5).map((product) => ({
           url: getConfiguredImage({
             src:
               process.env.NEXT_PUBLIC_BASE_CLOUDINARY_URL +
@@ -454,7 +424,7 @@ export async function getHomeMetadata({ params }) {
     // Add structured data as a separate property for the page to render
     structuredData: jsonLd,
   };
-}
+});
 
 export async function getFeaturedMetadata({ params }) {
   const [country, language] = params.lang.split("-");
@@ -573,7 +543,7 @@ export async function getFeaturedMetadata({ params }) {
           "@type": "Offer",
           "@id": `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${params.lang}/products/${product.slug}#offer`,
           url: `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${params.lang}/products/${product.slug}`,
-          priceCurrency: currencyData.name,
+          priceCurrency: currencyData.code,
           price:
             (product.offer_price || product.price || 0) *
             (currencyData.exchange_rate || 1),
@@ -596,7 +566,6 @@ export async function getFeaturedMetadata({ params }) {
           : undefined,
         category: product.category?.name,
         color: product.colors?.map((c) => c.name).filter(Boolean),
-        position: index + 1,
       })),
     },
     breadcrumb: {
@@ -778,7 +747,7 @@ export async function getFlashDealsMetadata({ params }) {
           "@type": "Offer",
           "@id": `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${params.lang}/products/${product.slug}#flash-offer`,
           url: `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${params.lang}/products/${product.slug}`,
-          priceCurrency: currencyData.name,
+          priceCurrency: currencyData.code,
           price:
             (product.offer_price || product.price || 0) *
             (currencyData.exchange_rate || 1),
@@ -802,7 +771,6 @@ export async function getFlashDealsMetadata({ params }) {
           : undefined,
         category: product.category?.name,
         color: product.colors?.map((c) => c.name).filter(Boolean),
-        position: index + 1,
       })),
     },
     breadcrumb: {
@@ -990,18 +958,21 @@ export async function getCategoriesMetadata({ params }) {
   const canonicalUrl = `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${params.lang}/categories/${mainCategory}`;
 
   // Fetch categories data
-  const GetCategoriesData = async () => {
-    try {
-      const result = await fetchMainCategories(language, country);
-      return result.mainCategories || [];
-    } catch (error) {
-      console.log(error, "getCategoriesData");
-      return [];
-    }
-  };
-
-  const categoriesData = await GetCategoriesData();
-  const currentCategory = categoriesData.find(
+  const {
+    boutiqueData: boutiquesData,
+    categoriesData,
+    featuredData,
+    flashDealsData,
+    currencyData,
+  } = await GetHomeData(params);
+  const categories = categoriesData.mainCategories || [];
+  const brands = featuredData?.data?.brands || [];
+  const boutiques = boutiquesData.boutiques || [];
+  const allProducts = [
+    ...(featuredData?.data.products || []),
+    ...(flashDealsData?.data.products || []),
+  ];
+  const currentCategory = categoriesData.mainCategories.find(
     (cat) => cat.slug === mainCategory
   );
 
@@ -1028,7 +999,23 @@ export async function getCategoriesMetadata({ params }) {
           `shop ${currentCategory.name}`,
         ]
       : []),
-    ...categoriesData.slice(0, 10).map((cat) => cat.name),
+    ...categoriesData.mainCategories.slice(0, 10).map((cat) => cat.name),
+    "TryDos",
+    "online shopping",
+    "premium products",
+    "featured products",
+    "flash deals",
+    "best deals",
+    "shopping mall",
+    "boutiques",
+    "brands",
+    "fashion",
+    "electronics",
+    "home garden",
+    ...categories.map((c) => c.name),
+    ...brands.map((b) => b.name),
+    ...boutiques.map((b) => b.name),
+    ...allProducts.slice(0, 20).map((p) => p.name),
   ]
     .filter(Boolean)
     .join(", ");

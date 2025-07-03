@@ -14,6 +14,7 @@ import FlashDealsProducts from "components/Server/FlashDealsProducts";
 import { getHomeMetadata } from "./MetaData";
 
 import { HomePageProps } from "models/componentType/HomePagePropsType";
+import { GetHomeData } from "utils/pagesDataRequests/HomePageData";
 export const runtime = "nodejs";
 export const preferredRegion = ["bom1", "sin1"];
 export const revalidate = parseInt(process.env.NEXT_PUBLIC_HOME_REVALIDATE);
@@ -23,6 +24,7 @@ export const dynamic = "auto";
 export async function generateMetadata({ params }) {
   try {
     const metadata = await getHomeMetadata({ params });
+    console.log("**********metadata***********", JSON.stringify(metadata));
     return metadata;
   } catch (error) {
     console.log(error);
@@ -41,6 +43,10 @@ async function StructuredDataScript({ params }) {
       params,
     });
     const structuredData = metadataWithStructuredData.structuredData;
+    console.log(
+      "**********structuredData***********",
+      JSON.stringify(structuredData)
+    );
 
     if (!structuredData) return null;
 
@@ -58,7 +64,14 @@ async function StructuredDataScript({ params }) {
   }
 }
 
-function HomePage({ params }: HomePageProps) {
+async function HomePage({ params }: HomePageProps) {
+  const {
+    boutiqueData,
+    categoriesData,
+    currencyData,
+    featuredData,
+    flashDealsData,
+  } = await GetHomeData(params);
   return (
     <>
       <Suspense fallback={null}>
@@ -69,7 +82,11 @@ function HomePage({ params }: HomePageProps) {
         fallback={<MobileNavigationSkeleton />}
         key={`Navbar ${params.lang}`}
       >
-        <NavbarServer lang={params.lang} mainCategory={params?.mainCategory} />
+        <NavbarServer
+          lang={params.lang}
+          mainCategory={params?.mainCategory}
+          categoriesData={categoriesData}
+        />
       </Suspense>
 
       <Suspense fallback={<StoriesSkeleton />} key={`Stories ${params.lang}`}>
@@ -80,10 +97,18 @@ function HomePage({ params }: HomePageProps) {
       </Suspense>
 
       <Suspense fallback={<FeaturedProductsSkeleton lang={params.lang} />}>
-        <FeatureProducts lang={params.lang} />
+        <FeatureProducts
+          currencyData={currencyData}
+          fetauredProductsData={featuredData}
+          lang={params.lang}
+        />
       </Suspense>
       <Suspense fallback={<FeaturedProductsSkeleton lang={params.lang} />}>
-        <FlashDealsProducts lang={params.lang} />
+        <FlashDealsProducts
+          currencyData={currencyData}
+          flashDealsProducts={flashDealsData}
+          lang={params.lang}
+        />
       </Suspense>
       <Suspense fallback={<></>} key={`Home ${params.lang}`}>
         <Home />
@@ -92,7 +117,7 @@ function HomePage({ params }: HomePageProps) {
         fallback={<OfferListSkeleton />}
         key={`OfferList ${params.lang}`}
       >
-        <OfferListServer params={params} />
+        <OfferListServer boutiquesData={boutiqueData} params={params} />
       </Suspense>
     </>
   );

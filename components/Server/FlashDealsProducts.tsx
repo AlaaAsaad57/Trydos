@@ -15,78 +15,9 @@ import {
 import { GetImageUrl } from "utils/tinyUtils";
 import { fetchCurrency, fetchFilteredProducts } from "Server Requests";
 
-async function FlashDealsProducts({ lang }) {
+async function FlashDealsProducts({ lang, currencyData, flashDealsProducts }) {
   const [country, language] = lang.split("-");
-  const getFeaturedProducts = async () => {
-    try {
-      const result = await fetchFilteredProducts(
-        language,
-        country,
-        [],
-        "false",
-        "true",
-        null,
-        null,
-        false,
-        true
-      );
-      return result;
-    } catch (e) {
-      console.log(e);
-      return {
-        data: {
-          products: [],
-          offset: null,
-          total_size: 0,
-          limit: 0,
-          brands: [],
-          categories: [],
-          colors: [],
-          attributes: [],
-          boutiques: [],
-          prices: {
-            max_price: null,
-            min_price: null,
-            priceRanges: [],
-          },
-          search_time: null,
-          search_text: null,
-          process_time: "",
-        },
-      };
-    }
-  };
-  const GetCurrencyData = async (): Promise<
-    CurrencyApi["data"]["currency"]
-  > => {
-    try {
-      const [country, language] = lang.split("-");
-      const data = await fetchCurrency(language, country);
-      return (
-        data.data.currency || {
-          code: "",
-          exchange_rate: 1,
-          id: 1,
-          name: "",
-          symbol: "",
-        }
-      );
-    } catch (error) {
-      console.log(error, "getCurrencyData");
-      return {
-        code: "",
-        exchange_rate: 1,
-        id: 1,
-        name: "",
-        symbol: "",
-      };
-    }
-  };
-  const [flashDealsProducts, currency] = await Promise.all([
-    getFeaturedProducts(),
-    GetCurrencyData(),
-  ]);
-
+  const currency = currencyData;
   if (flashDealsProducts?.data?.products?.length === 0) return <></>;
   return (
     <div className="flex-col px-[12px] flex items-start max-w-full w-full">

@@ -7,16 +7,13 @@ import OfferListSkeleton from "components/skeleton/OfferList";
 import { fetchBoutiques } from "Server Requests";
 import { OfferListServerPropsType } from "models/componentType/OfferListServerPropsType";
 
-async function OfferListServer({ params }: OfferListServerPropsType) {
+async function OfferListServer({
+  boutiquesData,
+  params,
+}: OfferListServerPropsType) {
   try {
     const [country, language] = params.lang.split("-");
-    const HomeData = await fetchBoutiques(
-      language,
-      country,
-      params.mainCategory || "",
-      null,
-      10
-    );
+    const HomeData = boutiquesData;
 
     return (
       <div className={`offers-list pb-[184px] gap-[10px]`} data-cy="boutiques">

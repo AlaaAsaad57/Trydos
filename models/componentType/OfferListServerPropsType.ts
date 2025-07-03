@@ -1,6 +1,7 @@
 export interface OfferListServerPropsType {
-    params:{
-        lang: string;
-        mainCategory?: string;
-    }
+  params: {
+    lang: string;
+    mainCategory?: string;
+  };
+  boutiquesData: any;
 }

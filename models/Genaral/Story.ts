@@ -1,4 +1,3 @@
-import { Story as StoryInstaType } from "utils/react-insta-stories-master/src/interfaces";
 export interface FixedStory {
   id: number;
   name: string | null;
@@ -23,7 +22,7 @@ export interface StoryType {
   photo_path: string | null;
   name: string;
   username: string | null;
-  stories: StoryInstaType[];
+  stories: any[];
 }
 
 interface Story {
