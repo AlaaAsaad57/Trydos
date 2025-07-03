@@ -1,6 +1,6 @@
 "use client";
 import { useAppStore } from "store";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 interface StoriesStoreInitializerProps {
   initialStories: any[];
@@ -9,14 +9,21 @@ interface StoriesStoreInitializerProps {
 function StoriesStoreInitializer({
   initialStories,
 }: StoriesStoreInitializerProps) {
-  const { setStoryData, storiesData } = useAppStore();
+  const { setStoryData, storiesData, _hasHydrated } = useAppStore();
+  const [hasInitialized, setHasInitialized] = useState(false);
 
   useEffect(() => {
-    // Only initialize if store is empty and we have initial data
-    if (initialStories.length > 0 && storiesData.length === 0) {
+    // Only initialize after hydration and if we haven't already initialized
+    if (
+      _hasHydrated &&
+      !hasInitialized &&
+      initialStories?.length > 0 &&
+      (!storiesData || storiesData.length === 0)
+    ) {
       setStoryData(initialStories);
+      setHasInitialized(true);
     }
-  }, [initialStories, storiesData, setStoryData]);
+  }, [initialStories, storiesData, setStoryData, _hasHydrated, hasInitialized]);
 
   return null; // This component doesn't render anything
 }

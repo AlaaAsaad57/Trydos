@@ -16,15 +16,50 @@ type AppState = ReturnType<typeof useAuthStore> &
   ReturnType<typeof useDetailsStore> &
   ReturnType<typeof useHomeStore> &
   ReturnType<typeof useListingStore> &
-  ReturnType<typeof useSearchStore>;
+  ReturnType<typeof useSearchStore> & {
+    _hasHydrated: boolean;
+    setHasHydrated: (hasHydrated: boolean) => void;
+  };
 
-// Create the combined store
-export const useAppStore = create<AppState>()((set, get) => ({
-  ...useAuthStore(set, get),
-  ...useChatStore(set, get),
-  ...useDetailsStore(set, get),
-  ...useHomeStore(set, get),
-  ...useListingStore(set, get),
-  ...useSearchStore(set, get),
-  ...useCartStore(set, get),
-}));
+// Create the combined store with hydration support
+export const useAppStore = create<AppState>()(
+  devtools(
+    (set, get) => ({
+      ...useAuthStore(set, get),
+      ...useChatStore(set, get),
+      ...useDetailsStore(set, get),
+      ...useHomeStore(set, get),
+      ...useListingStore(set, get),
+      ...useSearchStore(set, get),
+      ...useCartStore(set, get),
+      _hasHydrated: false,
+      setHasHydrated: (hasHydrated: boolean) => {
+        set({
+          _hasHydrated: hasHydrated,
+        });
+      },
+    }),
+    {
+      name: "app-store", // for devtools
+    }
+  )
+);
+
+// Hydration helper
+export const useHydratedStore = () => {
+  const hasHydrated = useAppStore((state) => state._hasHydrated);
+  const store = useAppStore();
+
+  // Return store methods only after hydration
+  if (!hasHydrated) {
+    // Return safe defaults during SSR/before hydration
+    return {
+      ...store,
+      storiesData: [],
+      setStoryData: () => {},
+      // Add other methods that need safe defaults
+    };
+  }
+
+  return store;
+};

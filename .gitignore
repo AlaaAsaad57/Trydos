@@ -18,6 +18,8 @@ req.json
 /cypress/screenshots
 /public/reports/videos/*
 /public/reports/*
+.env.development
+.env.production
 # next.js
 /.next/
 /out/

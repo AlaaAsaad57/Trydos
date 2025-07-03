@@ -14,6 +14,9 @@ import PageLoadingIndicator from "hooks/PageLoadingIndicator";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import Script from "next/script";
 import { GA_MEASUREMENT_ID } from "utils/gtag";
+import { ErrorReporterInit } from "components/global/ErrorReporterInit";
+import { ErrorTester } from "components/dev/ErrorTester";
+import { HydrationProvider } from "components/global/HydrationProvider";
 export const metadata = {
   title: "TryDos",
   description: "TryDos E-Commerce Website",
@@ -114,46 +117,50 @@ export default function RootLayout({ params, children }) {
         </Suspense>
 
         <Providers>
-          <div
-            className="site-container items-center"
-            key={`${JSON.stringify(params)}`}
-          >
-            <div className="home-navbar max-h-[1365px]">
-              <NextLink
-                data={{
-                  is_full_home: true,
-                  href: `/${params.lang}`,
-                }}
-                href={`/${params.lang}`}
-                aria-label="TryDos Home"
-                data-cy="NavLogo"
-              >
-                <Logo animated={false} style={false} key={1} />
-              </NextLink>
-              <Suspense
-                fallback={
-                  <div className="user-nav-container">
-                    <div className="nav-question-item">
-                      <Skeleton className="w-[30px] h-[30px] rounded-sm" />
+          <HydrationProvider>
+            <ErrorReporterInit />
+            <ErrorTester />
+            <div
+              className="site-container items-center"
+              key={`${JSON.stringify(params)}`}
+            >
+              <div className="home-navbar max-h-[1365px]">
+                <NextLink
+                  data={{
+                    is_full_home: true,
+                    href: `/${params.lang}`,
+                  }}
+                  href={`/${params.lang}`}
+                  aria-label="TryDos Home"
+                  data-cy="NavLogo"
+                >
+                  <Logo animated={false} style={false} key={1} />
+                </NextLink>
+                <Suspense
+                  fallback={
+                    <div className="user-nav-container">
+                      <div className="nav-question-item">
+                        <Skeleton className="w-[30px] h-[30px] rounded-sm" />
+                      </div>
+                      <div className="nav-question-item ml-2">
+                        <Skeleton className="w-[30px] h-[30px] rounded-sm" />
+                      </div>
+                      <div className="nav-question-item ml-2">
+                        <Skeleton className="w-[30px] h-[30px] rounded-sm" />
+                      </div>
                     </div>
-                    <div className="nav-question-item ml-2">
-                      <Skeleton className="w-[30px] h-[30px] rounded-sm" />
-                    </div>
-                    <div className="nav-question-item ml-2">
-                      <Skeleton className="w-[30px] h-[30px] rounded-sm" />
-                    </div>
-                  </div>
-                }
-              >
-                <UserNavTopSection />
-              </Suspense>
-            </div>
+                  }
+                >
+                  <UserNavTopSection />
+                </Suspense>
+              </div>
 
-            {children}
-          </div>
-          <Suspense fallback={<></>}>
-            <NavbarClient />
-          </Suspense>
+              {children}
+            </div>
+            <Suspense fallback={<></>}>
+              <NavbarClient />
+            </Suspense>
+          </HydrationProvider>
         </Providers>
       </body>
     </html>

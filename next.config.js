@@ -12,11 +12,59 @@ let nextConfig = {
         headers: [
           {
             key: "X-Robots-Tag",
-            value: "index, follow",
+            value:
+              "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1",
           },
           {
             key: "Cache-Control",
             value: "s-maxage=86400, stale-while-revalidate=86400",
+          },
+          {
+            key: "X-Content-Type-Options",
+            value: "nosniff",
+          },
+          {
+            key: "X-Frame-Options",
+            value: "DENY",
+          },
+          {
+            key: "X-XSS-Protection",
+            value: "1; mode=block",
+          },
+          {
+            key: "Referrer-Policy",
+            value: "origin-when-cross-origin",
+          },
+          {
+            key: "Permissions-Policy",
+            value:
+              "camera=(), microphone=(), geolocation=(), browsing-topics=()",
+          },
+        ],
+      },
+      {
+        source: "/sitemap.xml",
+        headers: [
+          {
+            key: "Content-Type",
+            value: "application/xml",
+          },
+          {
+            key: "Cache-Control",
+            value: "public, max-age=36000, stale-while-revalidate=7200",
+          },
+        ],
+      },
+      {
+        source: "/robots.txt",
+        headers: [
+          {
+            key: "Content-Type",
+            value: "text/plain",
+          },
+          {
+            key: "Cache-Control",
+            value: "public, max-age=86400, stale-while-revalidate=86400",
           },
         ],
       },
@@ -36,11 +84,16 @@ let nextConfig = {
   experimental: {
     externalDir: true,
     webVitalsAttribution: ["CLS", "LCP", "FCP", "FID", "TTFB", "INP"],
-
+    optimizeCss: true, // Disabled due to critters module error
+    optimizeServerReact: true,
     staleTimes: {
       dynamic: 86400,
       static: 86400,
     },
+  },
+  // Alternative CSS optimization
+  compiler: {
+    removeConsole: process.env.NODE_ENV === "production",
   },
   webpack(config, { dev, isServer }) {
     const fileLoaderRule = config.module.rules.find((rule) =>
@@ -109,31 +162,32 @@ let nextConfig = {
   // your config for other plugins or the general next.js here...
 };
 
-const sentryWebpackPluginOptions = {
-  // Additional config options for the Sentry webpack plugin. Keep in mind that
-  // the following options are set automatically, and overriding them is not
-  // recommended:
-  //   release, url, configFile, stripPrefix, urlPrefix, include, ignore
-  org: process.env.SENTRY_ORG,
-  project: process.env.SENTRY_PROJECT,
+// const sentryWebpackPluginOptions = {
+//   // Additional config options for the Sentry webpack plugin. Keep in mind that
+//   // the following options are set automatically, and overriding them is not
+//   // recommended:
+//   //   release, url, configFile, stripPrefix, urlPrefix, include, ignore
+//   org: process.env.SENTRY_ORG,
+//   project: process.env.SENTRY_PROJECT,
 
-  // // An auth token is required for uploading source maps.
-  // authToken: process.env.SENTRY_AUTH_TOKEN,
-  silent: true,
-  disableLogger: true,
-  ignore: [
-    "node_modules", // Ignore node_modules
-    ".next/cache", // Explicitly ignore the cache folder
-    ".next/server/chunks", // Optional: Ignore server-side chunks
-  ],
-  sentry: {
-    disableSourceMaps: true,
+//   // // An auth token is required for uploading source maps.
+//   // authToken: process.env.SENTRY_AUTH_TOKEN,
+//   silent: true,
+//   disableLogger: true,
 
-    // Disables uploading of source maps to Sentry
-  },
-  // For all available options, see:
-  // https://github.com/getsentry/sentry-webpack-plugin#options.
-};
+//   ignore: [
+//     "node_modules", // Ignore node_modules
+//     ".next/cache", // Explicitly ignore the cache folder
+//     ".next/server/chunks", // Optional: Ignore server-side chunks
+//   ],
+//   sentry: {
+//     disableSourceMaps: true,
+
+//     // Disables uploading of source maps to Sentry
+//   },
+//   // For all available options, see:
+//   // https://github.com/getsentry/sentry-webpack-plugin#options.
+// };
 
 // Make sure adding Sentry options is the last code to run before exporting
 // module.exports = ;
@@ -144,12 +198,8 @@ if (process.env.NODE_ENV !== "production") {
   // const finalConfig = withBundleAnalyzer(nextConfig);
   module.exports = nextConfig;
 } else {
-  const { withSentryConfig } = require("@sentry/nextjs");
-  module.exports = withSentryConfig(
-    nextConfig,
-    { sentryWebpackPluginOptions },
-    {
-      hideSourceMaps: true,
-    }
-  );
+  // We'll keep Sentry webpack plugin for server-side source maps
+  // but disable client-side by renaming sentry.client.config.js
+
+  module.exports = nextConfig;
 }
