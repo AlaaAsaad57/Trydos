@@ -10,6 +10,11 @@ import Smartlook from "smartlook-client";
 
 import { translateFunction } from "utils/functions";
 import { showErrorNotification } from "@/store/notifications/reducer";
+import {
+  COOKIE_NAMES,
+  getCookie,
+  UserData,
+} from "utils/cookies/cookie-manager";
 
 function Init() {
   const { lang } = useParams();
@@ -113,13 +118,13 @@ function Init() {
       if (process.env.NODE_ENV === "production") {
         Smartlook.init(process.env.NEXT_PUBLIC_SMARTLOOK_KEY);
       }
-      if (localStorage.getItem("USER") || localStorage.getItem("guest-user")) {
-        let user =
-          localStorage.getItem("USER") || localStorage.getItem("guest-user");
+      const user = getCookie<UserData>(COOKIE_NAMES.USER_DATA);
+
+      if (user) {
         if (process.env.NODE_ENV === "production") {
-          Smartlook.identify(JSON.parse(user).id, {
-            name: JSON.parse(user)?.name || "Guest",
-            phone: JSON.parse(user)?.mobilePhone || "null",
+          Smartlook.identify(user.id, {
+            name: user?.name || "Guest",
+            phone: user?.mobilePhone || "null",
             // other custom properties
           });
         }

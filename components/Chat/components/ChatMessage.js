@@ -27,15 +27,17 @@ import ChatPhoto from "./ChatPhoto";
 
 // Add a helper to sanitize IDs
 const getSafeId = (id) => {
-  if (!id) return '';
+  if (!id) return "";
   let str = String(id);
   // Remove all non-alphanumeric characters and ensure it starts with a letter
-  str = str.replace(/[^a-zA-Z0-9_-]/g, '');
-  if (!/^[a-zA-Z]/.test(str)) str = 'm' + str;
+  str = str.replace(/[^a-zA-Z0-9_-]/g, "");
+  if (!/^[a-zA-Z]/.test(str)) str = "m" + str;
   return str;
 };
 
+import { getUser } from "../chatsFunctions";
 function ChatMessage(props) {
+  const user = getUser();
   const { language, activeChat, deleteMessage } = useAppStore();
   let { lang } = useParams();
   // @ts-ignore
@@ -146,9 +148,7 @@ function ChatMessage(props) {
                   </svg>
                   {getMessageTime(
                     props.message.message_status.filter(
-                      (a) =>
-                        a.user_id !==
-                        (localStorage.getItem("USER-CHAT") && getUserChat()?.id)
+                      (a) => a.user_id !== user?.id
                     )[0]?.watched_at,
                     false
                   )}
@@ -160,18 +160,12 @@ function ChatMessage(props) {
       );
     }
     if (
-      props.message.message_status.filter(
-        (a) =>
-          a.user_id !== (localStorage.getItem("USER-CHAT") && getUserChat()?.id)
-      ).length > 0 &&
-      props.message.message_status.filter(
-        (a) =>
-          a.user_id !== (localStorage.getItem("USER-CHAT") && getUserChat()?.id)
-      )[0]?.is_watched === true &&
-      props.message.message_status.filter(
-        (a) =>
-          a.user_id !== (localStorage.getItem("USER-CHAT") && getUserChat()?.id)
-      )[0]?.watched_at
+      props.message.message_status.filter((a) => a.user_id !== user?.id)
+        .length > 0 &&
+      props.message.message_status.filter((a) => a.user_id !== user?.id)[0]
+        ?.is_watched === true &&
+      props.message.message_status.filter((a) => a.user_id !== user?.id)[0]
+        ?.watched_at
     ) {
       return (
         <>
@@ -188,18 +182,12 @@ function ChatMessage(props) {
         </>
       );
     } else if (
-      props.message.message_status.filter(
-        (a) =>
-          a.user_id !== (localStorage.getItem("USER-CHAT") && getUserChat()?.id)
-      ).length > 0 &&
-      props.message.message_status.filter(
-        (a) =>
-          a.user_id !== (localStorage.getItem("USER-CHAT") && getUserChat()?.id)
-      )[0]?.is_received === 1 &&
-      props.message.message_status.filter(
-        (a) =>
-          a.user_id !== (localStorage.getItem("USER-CHAT") && getUserChat()?.id)
-      )[0]?.received_at
+      props.message.message_status.filter((a) => a.user_id !== user?.id)
+        .length > 0 &&
+      props.message.message_status.filter((a) => a.user_id !== user?.id)[0]
+        ?.is_received === 1 &&
+      props.message.message_status.filter((a) => a.user_id !== user?.id)[0]
+        ?.received_at
     ) {
       return (
         <>
@@ -290,7 +278,9 @@ function ChatMessage(props) {
   };
   function step() {
     if (
-      document.querySelector(`#wav${getSafeId(props.message.id || props.message.mid)}`)
+      document.querySelector(
+        `#wav${getSafeId(props.message.id || props.message.mid)}`
+      )
     ) {
       let el = document.querySelector(
         `#wav${getSafeId(props.message.id || props.message.mid)}`
@@ -511,9 +501,7 @@ function ChatMessage(props) {
                   <ReceiveIcon></ReceiveIcon>
                   {getMessageTime(
                     props.message.message_status.filter(
-                      (a) =>
-                        a.user_id !==
-                        (localStorage.getItem("USER-CHAT") && getUserChat()?.id)
+                      (a) => a.user_id !== user?.id
                     )[0]?.received_at,
                     false
                   )}
@@ -524,9 +512,7 @@ function ChatMessage(props) {
                   <ReadIcon></ReadIcon>
                   {getMessageTime(
                     props.message.message_status.filter(
-                      (a) =>
-                        a.user_id !==
-                        (localStorage.getItem("USER-CHAT") && getUserChat()?.id)
+                      (a) => a.user_id !== user?.id
                     )[0]?.watched_at,
                     false
                   )}
@@ -659,9 +645,7 @@ function ChatMessage(props) {
                   <ReceiveIcon></ReceiveIcon>
                   {getMessageTime(
                     props.message.message_status.filter(
-                      (a) =>
-                        a.user_id !==
-                        (localStorage.getItem("USER-CHAT") && getUserChat()?.id)
+                      (a) => a.user_id !== user?.id
                     )[0]?.received_at,
                     false
                   )}
@@ -672,9 +656,7 @@ function ChatMessage(props) {
                   <ReadIcon></ReadIcon>
                   {getMessageTime(
                     props.message.message_status.filter(
-                      (a) =>
-                        a.user_id !==
-                        (localStorage.getItem("USER-CHAT") && getUserChat()?.id)
+                      (a) => a.user_id !== user?.id
                     )[0]?.watched_at,
                     false
                   )}
@@ -815,9 +797,7 @@ function ChatMessage(props) {
                   <ReceiveIcon></ReceiveIcon>
                   {getMessageTime(
                     props.message.message_status.filter(
-                      (a) =>
-                        a.user_id !==
-                        (localStorage.getItem("USER-CHAT") && getUserChat()?.id)
+                      (a) => a.user_id !== user?.id
                     )[0]?.received_at,
                     false
                   )}
@@ -828,9 +808,7 @@ function ChatMessage(props) {
                   <ReadIcon></ReadIcon>
                   {getMessageTime(
                     props.message.message_status.filter(
-                      (a) =>
-                        a.user_id !==
-                        (localStorage.getItem("USER-CHAT") && getUserChat()?.id)
+                      (a) => a.user_id !== user?.id
                     )[0]?.watched_at,
                     false
                   )}
@@ -1000,7 +978,9 @@ function ChatMessage(props) {
                         )}
                         <div
                           className="wave"
-                          id={`wav${getSafeId(props.message.id || props.message.mid)}`}
+                          id={`wav${getSafeId(
+                            props.message.id || props.message.mid
+                          )}`}
                         >
                           <WaveIcon></WaveIcon>
                         </div>
@@ -1029,9 +1009,7 @@ function ChatMessage(props) {
                   <ReceiveIcon></ReceiveIcon>
                   {getMessageTime(
                     props.message.message_status.filter(
-                      (a) =>
-                        a.user_id !==
-                        (localStorage.getItem("USER-CHAT") && getUserChat()?.id)
+                      (a) => a.user_id !== user?.id
                     )[0]?.received_at,
                     false
                   )}
@@ -1042,9 +1020,7 @@ function ChatMessage(props) {
                   <ReadIcon></ReadIcon>
                   {getMessageTime(
                     props.message.message_status.filter(
-                      (a) =>
-                        a.user_id !==
-                        (localStorage.getItem("USER-CHAT") && getUserChat()?.id)
+                      (a) => a.user_id !== user?.id
                     )[0]?.watched_at,
                     false
                   )}
@@ -1169,9 +1145,7 @@ function ChatMessage(props) {
                   <ReceiveIcon></ReceiveIcon>
                   {getMessageTime(
                     props.message.message_status.filter(
-                      (a) =>
-                        a.user_id !==
-                        (localStorage.getItem("USER-CHAT") && getUserChat()?.id)
+                      (a) => a.user_id !== user?.id
                     )[0]?.received_at,
                     false
                   )}
@@ -1182,9 +1156,7 @@ function ChatMessage(props) {
                   <ReadIcon></ReadIcon>
                   {getMessageTime(
                     props.message.message_status.filter(
-                      (a) =>
-                        a.user_id !==
-                        (localStorage.getItem("USER-CHAT") && getUserChat()?.id)
+                      (a) => a.user_id !== user?.id
                     )[0]?.watched_at,
                     false
                   )}
@@ -1330,10 +1302,7 @@ function ChatMessage(props) {
                     <ReceiveIcon></ReceiveIcon>
                     {getMessageTime(
                       props.message.message_status.filter(
-                        (a) =>
-                          a.user_id !==
-                          (localStorage.getItem("USER-CHAT") &&
-                            getUserChat()?.id)
+                        (a) => a.user_id !== user?.id
                       )[0]?.received_at,
                       false
                     )}
@@ -1344,10 +1313,7 @@ function ChatMessage(props) {
                     <ReadIcon></ReadIcon>
                     {getMessageTime(
                       props.message.message_status.filter(
-                        (a) =>
-                          a.user_id !==
-                          (localStorage.getItem("USER-CHAT") &&
-                            getUserChat()?.id)
+                        (a) => a.user_id !== user?.id
                       )[0]?.watched_at,
                       false
                     )}
@@ -1974,7 +1940,9 @@ function ChatMessage(props) {
                         )}
                         <div
                           className="wave"
-                          id={`wav${getSafeId(props.message.id || props.message.mid)}`}
+                          id={`wav${getSafeId(
+                            props.message.id || props.message.mid
+                          )}`}
                         >
                           <WaveIcon></WaveIcon>
                         </div>

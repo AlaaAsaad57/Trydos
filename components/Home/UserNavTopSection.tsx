@@ -1,6 +1,6 @@
 "use client";
 import { getConfiguredImage, translateFunction } from "utils/functions";
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import AuthNavSection from "./AuthNavSection";
 import CartIcon from "public/svg/CartIcon.svg";
@@ -12,34 +12,40 @@ import {
 } from "next/navigation";
 import Menu from "./Menu";
 import { useAppStore } from "store";
-import auth from "services/auth";
-import Spinner from "components/global/Spinner";
 import { GetImageUrl } from "utils/tinyUtils";
 
+import Spinner from "components/global/Spinner";
+import {
+  COOKIE_NAMES,
+  getCookie,
+  UserData,
+} from "utils/cookies/cookie-manager";
+import Skeleton from "node_modules/react-loading-skeleton/dist";
+
 function UserNavTopSection() {
-  const [showAuthSection, setShowAuthSection] = useState(false);
+  // State to track if component is mounted (client-side)
+  const [isMounted, setIsMounted] = useState(false);
+
+  // Handle mounting and cookie access
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      setShowAuthSection(true);
-    }
+    setIsMounted(true);
   }, []);
   const getUserType = () => {
-    if (typeof window === "undefined") {
-      return "NEW_USER";
-    }
-    if (auth.getUser()) {
-      if (auth.getUser().phone === "0" || !auth.getUser().phone) {
+    const { user: userData } = useAppStore.getState();
+
+    if (userData) {
+      if (userData.phone === "0" || !userData.phone) {
         return "NEW_USER";
       } else {
-        return "Verfied User";
+        if (userData.is_phone_verified === 1) return "authed-user";
+        else return "Verified User";
       }
     } else {
       return "NEW_USER";
     }
   };
   const UserActiveIcon = () => {
-    const userType = getUserType();
-    if (userType === "NEW_USER") {
+    if (getUserType() === "NEW_USER") {
       return (
         <div
           data-testid="login-text"
@@ -66,7 +72,7 @@ function UserNavTopSection() {
           </span>
         </div>
       );
-    } else {
+    } else if (getUserType() === "Verified User") {
       return (
         <div
           data-testid="login-text"
@@ -135,6 +141,8 @@ function UserNavTopSection() {
           </span>
         </div>
       );
+    } else {
+      return <></>;
     }
   };
 
@@ -142,13 +150,14 @@ function UserNavTopSection() {
     enableCart,
     disableAddToCartOption,
     language,
-    user,
     enable_search,
+    user,
     localCart,
     loginOpen,
     setLoginOpen: openLogin,
     userProfile,
     setShouldAuthinticated,
+    userChat,
   } = useAppStore();
   let { lang } = useParams();
   // @ts-ignore
@@ -160,6 +169,7 @@ function UserNavTopSection() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [menuOpen, setMenuOpen] = useState(false);
+
   const enableCartAction = (s) => {
     disableAddToCartOption();
     if (typeof window !== "undefined")
@@ -179,26 +189,60 @@ function UserNavTopSection() {
       router.push(`${pathname}?${newParams.toString()}`, { shallow: true });
     }
   };
-  if (!showAuthSection) {
+
+  // Show loading/skeleton until mounted to prevent hydration mismatch
+  if (!isMounted) {
     return (
-      <div className="h-[50px] user-nav-container flex-row items-center justify-end px-[20px]">
-        <Spinner />
+      <div className="h-[50px] opacity-50 user-nav-container flex-row items-center justify-end px-[20px]">
+        <div
+          className="nav-question-item cart-icon-selector cursor-pointer relative"
+          data-cy="cart_icon_button"
+          style={{ marginRight: "30px", marginLeft: "0px" }}
+        >
+          <CartIcon data-cy="cartIcon_mainPage" />
+        </div>
+        <div className="nav-question-item">
+          <img
+            src="/svg/questionIcon.svg"
+            width={15}
+            height={15}
+            alt="info icon"
+          />
+          <span
+            className={`${language + "-light"}`}
+            style={{
+              display: "flex",
+              color: "rgba(248, 85, 85, 1)",
+              fontSize: "14px",
+              marginLeft: "5px",
+              cursor: "pointer",
+            }}
+          >
+            {translate(
+              `${loginOpen ? "Can We Know You ?" : "Why We Know You ?"}`,
+              language
+            )}
+          </span>
+        </div>
+        <div className="nav-question-item">
+          <Skeleton
+            width={30}
+            className=""
+            height={30}
+            borderRadius={12}
+            baseColor="#e0e0e0"
+            highlightColor="#f0f0f0"
+          />
+        </div>
       </div>
     );
   }
+
   return (
     <div
       className={`${enable_search && "hidden"} user-nav-container`}
       data-cy="Nav_CartIcon_LogIn"
     >
-      {/* {user && (
-        <div
-          className="nav-question-item"
-          style={{ marginRight: "30px", marginLeft: "0px" }}
-        >
-          <NotificationsTest />
-        </div>
-      )} */}
       <div
         className="nav-question-item cart-icon-selector cursor-pointer relative"
         data-cy="cart_icon_button"
@@ -212,7 +256,8 @@ function UserNavTopSection() {
         )}
         <CartIcon data-cy="cartIcon_mainPage" />
       </div>
-      {!user && (
+
+      {(!user || getUserType() === "NEW_USER") && (
         <>
           <div className={`welcome-user ${language + "-medium"}`}>
             <span className={`${language + "-medium"}`}>
@@ -247,23 +292,22 @@ function UserNavTopSection() {
               )}
             </span>
           </div>
-
-          <UserActiveIcon />
         </>
       )}
+      {<UserActiveIcon />}
       <div
         className="flex flex-row"
         style={{ marginLeft: "10px", cursor: "pointer" }}
       >
-        {user ? (
+        {userChat ? (
           <AuthNavSection onClick={() => setMenuOpen(!menuOpen)} />
         ) : (
           <div className="nav-question-item">
             <Image
               src={
-                userProfile?.image
+                user?.image || userProfile?.image
                   ? getConfiguredImage({
-                      src: GetImageUrl(userProfile?.image),
+                      src: GetImageUrl(user?.image || userProfile?.image),
                       width: 30,
                       height: 30,
                       q: 80,

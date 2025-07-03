@@ -31,6 +31,12 @@ import { SetGAUser } from "utils/gtag";
 import { starttingSettingApi } from "models/API/market/StarttingSetting";
 import { showErrorNotification } from "@/store/notifications/reducer";
 import { fetchData } from "utils/fetchData";
+import {
+  COOKIE_NAMES,
+  getCookie,
+  setCookie,
+  UserData,
+} from "utils/cookies/cookie-manager";
 class HomeService {
   async getClientData() {
     const { setSettings, initCart } = useAppStore.getState();
@@ -63,8 +69,8 @@ class HomeService {
       // await getOldCart();
 
       setTimeout(() => {
-        if (localStorage.getItem("USER") && localStorage.getItem("USER-CHAT"))
-          chat.getChats(false);
+        const chatUser = getCookie<UserData>(COOKIE_NAMES.USER_CHAT);
+        if (chatUser) chat.getChats(false);
       }, 5000);
     } catch (e) {
       console.error(e);
@@ -111,43 +117,18 @@ class HomeService {
       showErrorNotification("Customer Info Error");
     }
   }
-  async checkExpiration(bool) {
-    const { setLoginOpen } = useAppStore.getState();
-    if (localStorage.getItem("USER")) {
-      if (bool) {
-        const { cancelAuth } = useAppStore.getState();
-        cancelAuth();
-        Cookies.remove("MARKET-TOKEN");
-        localStorage.clear();
-        setLoginOpen(true);
-      }
-    } else if (localStorage.getItem("guest-user") || bool) {
-      Cookies.remove("MARKET-TOKEN");
-      // Split the date into day, month, year
-
-      if (bool) {
-        Cookies.remove("DEVICE-TOKEN");
-
-        // localStorage.clear();
-        setTimeout(async () => {
-          await this.registerForExpire();
-        }, 2000);
-      }
-    }
-  }
 
   async registerForExpire(id?: number) {
     const { isRegisteringReady, setIsRegisteringReady } =
       useAppStore.getState();
 
     if (isRegisteringReady) {
+      const user = getCookie<UserData>(COOKIE_NAMES.USER_DATA);
       let requestBody = id
         ? { old_guest_user_id: id }
-        : localStorage.getItem("guest-user") &&
-          JSON.parse(localStorage.getItem("guest-user"))?.id
+        : user?.id
         ? {
-            old_guest_user_id: JSON.parse(localStorage.getItem("guest-user"))
-              .id,
+            old_guest_user_id: user.id,
           }
         : { old_guest_user_id: null };
 
@@ -175,18 +156,12 @@ class HomeService {
           repo = response;
         }
 
-        changeToken({ key: "DEVICE-TOKEN", value: repo.data.token });
-        localStorage.setItem("DEVICE-TOKEN", repo.data.token);
-        Cookies.set("DEVICE-TOKEN", repo.data.token, {
-          expires: 365,
+        setCookie(COOKIE_NAMES.DEVICE_TOKEN, repo.data.token);
+
+        setCookie(COOKIE_NAMES.USER_DATA, {
+          ...repo.data.user,
+          expired_at: repo.data.expires_at,
         });
-        localStorage.setItem(
-          "guest-user",
-          JSON.stringify({
-            ...repo.data.user,
-            expired_at: repo.data.expires_at,
-          })
-        );
         if (repo.data.user) {
           if (process.env.NODE_ENV === "production" && Smartlook.initialized())
             Smartlook.identify(repo.data.user.id, {
@@ -244,88 +219,80 @@ class HomeService {
         });
   }
   async CheckLogin() {
-    const { loginSuccess } = useAppStore.getState();
-    if (auth.getUser()) {
-      SetGAUser(auth.getUser(), false);
+    const marketToken = getCookie(COOKIE_NAMES.MARKET_TOKEN);
+    const deviceToken = getCookie(COOKIE_NAMES.DEVICE_TOKEN);
+    const userData = getCookie<UserData>(COOKIE_NAMES.USER_DATA);
+    const userChat = getCookie<UserData>(COOKIE_NAMES.USER_CHAT);
+    const userStories = getCookie<UserData>(COOKIE_NAMES.USER_STORIES);
+    const { loginSuccess, loginSuccessChat, loginSuccessStories } =
+      useAppStore.getState();
+    if (userData) {
+      SetGAUser(userData, false);
     }
-    if (!localStorage.getItem("FB-DEVICE-TOKEN")) await this.RegisterDevice();
-    if (
-      SSRDetect() &&
-      localStorage.getItem("USER") &&
-      JSON.parse(localStorage.getItem("USER"))?.is_verified &&
-      localStorage.getItem("ID-TOKEN") &&
-      localStorage.getItem("MARKET-TOKEN")
-    ) {
-      Cookies.set("MARKET-TOKEN", localStorage.getItem("MARKET-TOKEN"));
-      changeToken({
-        key: "MARKET-TOKEN",
-        value: localStorage.getItem("MARKET-TOKEN"),
-      });
+    if (!deviceToken) await this.RegisterDevice();
+    if (userData && userData?.is_phone_verified === 1 && marketToken) {
+      setCookie(COOKIE_NAMES.MARKET_TOKEN, marketToken);
       if (process.env.NODE_ENV === "production" && Smartlook.initialized())
-        Smartlook.identify(JSON.parse(localStorage.getItem("USER")).id, {
-          name: JSON.parse(localStorage.getItem("USER")).name,
-          phone: JSON.parse(localStorage.getItem("USER")).mobilePhone,
+        Smartlook.identify(userData.id, {
+          name: userData.name,
+          phone: userData.mobilePhone,
           // other custom properties
         });
       loginSuccess({
-        id: JSON.parse(localStorage.getItem("USER")).id,
+        ...userData,
         idToken: localStorage.getItem("ID-TOKEN"),
-        name: JSON.parse(localStorage.getItem("USER")).name,
-        avatar: JSON.parse(localStorage.getItem("USER")).avatar || userImage,
+        name: userData.name,
+        image: userData.image,
       });
-    } else {
-      if (localStorage.getItem("guest-user")) {
-        if (process.env.NODE_ENV === "production" && Smartlook.initialized())
-          Smartlook.identify(
-            JSON.parse(localStorage.getItem("guest-user")).id,
-            {
-              name: JSON.parse(localStorage.getItem("guest-user")).name,
-              phone: JSON.parse(localStorage.getItem("guest-user")).mobilePhone,
-              // other custom properties
-            }
-          );
+      if (userChat) {
+        loginSuccessChat({
+          ...userChat,
+        });
       }
-      this.RegisterDevice();
+      if (userStories) {
+        loginSuccessStories({
+          ...userStories,
+        });
+      }
+    } else {
+      if (userData) {
+        if (process.env.NODE_ENV === "production" && Smartlook.initialized())
+          Smartlook.identify(userData.id, {
+            name: userData.name,
+            phone: userData.mobilePhone,
+            // other custom properties
+          });
+        loginSuccess({
+          ...userData,
+          idToken: localStorage.getItem("ID-TOKEN"),
+          name: userData.name,
+          image: userData.image,
+        });
+      } else {
+        this.RegisterDevice();
+      }
     }
     auth.CheckUserName();
     await this.RequestFireBase();
   }
 
   async RegisterDevice() {
+    const deviceToken = getCookie(COOKIE_NAMES.DEVICE_TOKEN);
+    const userData = getCookie<UserData>(COOKIE_NAMES.USER_DATA);
+    console.log({ deviceToken, userData });
     const { isRegisteringReady, setIsRegisteringReady } =
       useAppStore.getState();
 
     if (isRegisteringReady) {
-      let isNewUser = !localStorage.getItem("guest-user");
-      let requestBody =
-        localStorage.getItem("guest-user") &&
-        JSON.parse(localStorage.getItem("guest-user"))?.id
-          ? {
-              old_guest_user_id: JSON.parse(localStorage.getItem("guest-user"))
-                ?.id,
-            }
-          : { old_guest_user_id: null };
+      let isNewUser = !userData;
+      let requestBody = userData?.id
+        ? {
+            old_guest_user_id: userData?.id,
+          }
+        : { old_guest_user_id: null };
 
-      if (
-        !Cookies.get("DEVICE-TOKEN") &&
-        localStorage.getItem("DEVICE-TOKEN")
-      ) {
-        changeToken({
-          key: "DEVICE-TOKEN",
-          value: localStorage.getItem("DEVICE-TOKEN"),
-        });
-        Cookies.set("DEVICE-TOKEN", localStorage.getItem("DEVICE-TOKEN"), {
-          expires: 365,
-        });
-      }
-
-      if (
-        SSRDetect() &&
-        !localStorage.getItem("DEVICE-TOKEN") &&
-        !localStorage.getItem("USER")
-      ) {
+      if (!deviceToken) {
         setIsRegisteringReady(false);
-
         let response = await fetchData({
           url: REGISTER_DEVICE_URL,
           body: JSON.stringify(requestBody),
@@ -345,23 +312,15 @@ class HomeService {
           });
           repo = response;
         }
-        localStorage.setItem("DEVICE-TOKEN", repo.data.token);
-        changeToken({ key: "DEVICE-TOKEN", value: repo.data.token });
+        setCookie(COOKIE_NAMES.DEVICE_TOKEN, repo.data.token);
 
-        Cookies.set("DEVICE-TOKEN", repo.data.token, {
-          expires: 365,
-        });
         if (repo?.data?.user) {
-          localStorage.setItem(
-            "guest-user",
-            JSON.stringify({
-              ...repo.data.user,
-              expired_at: repo.data.expires_at,
-            })
-          );
+          setCookie(COOKIE_NAMES.USER_DATA, {
+            ...repo.data.user,
+            expired_at: repo.data.expires_at,
+          });
         }
         SetGAUser(repo.data.user, isNewUser);
-        localStorage.removeItem("customer-info");
         setIsRegisteringReady(true);
         if (repo.data.user) {
           if (process.env.NODE_ENV === "production" && Smartlook.initialized())

@@ -26,9 +26,9 @@ export default function Error({
       last_json = (await localStorage.getItem("LAST_JSON"))
         ? JSON.parse(localStorage.getItem("LAST_JSON"))
         : null;
-      token = AuthService.UserToken();
-      user_id = AuthService.UserID();
     }
+    token = AuthService.UserToken();
+    user_id = AuthService.UserID();
     let errorObj = {
       type: "front-end-exception",
       message: error.message,

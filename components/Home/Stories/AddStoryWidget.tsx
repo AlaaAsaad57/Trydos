@@ -11,7 +11,7 @@ import {
   showErrorNotification,
   showSuccessNotification,
 } from "store/notifications/reducer";
-import { translateFunction } from "utils/functions";
+import { getUserStories, translateFunction } from "utils/functions";
 import StoryServiceClass from "services/story";
 import { AddStoryAction } from "store/homepage/actions";
 import { revalidateStories } from "utils/serverActions";
@@ -115,6 +115,11 @@ const isValidUrl = (urlString: string) => {
 };
 
 export default function AddStoryWidget({ onClose }: AddStoryWidgetPropsType) {
+  const [user, setUser] = useState(null);
+  useEffect(() => {
+    getUserStories();
+  }, []);
+
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [link, setLink] = useState("");
@@ -194,8 +199,7 @@ export default function AddStoryWidget({ onClose }: AddStoryWidgetPropsType) {
                     language,
                     country,
                     1,
-                    JSON.parse(localStorage.getItem("USER-STORIES"))
-                      ?.access_token
+                    user?.access_token
                   );
                   setUpload(0);
                 }

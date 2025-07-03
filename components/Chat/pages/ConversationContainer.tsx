@@ -130,9 +130,9 @@ function ConversationContainer({
   /* --------------------------- Derived values --------------------------- */
   const activeChat = isPrivate ? active : selectedChat;
   const receiver = activeChat?.channel_members?.find(
-    (m: any) => +m.user_id !== +getUser()?.id
+    (m: any) => +m.user_id !== +(getUser() as any)?.id
   );
-  const senderId = getUser()?.id;
+  const senderId = (getUser() as any)?.id;
   const receiverId = receiver?.user_id;
   const receiverRoleId = receiver?.role_id;
 
@@ -144,9 +144,11 @@ function ConversationContainer({
   const [cameraEnabled, setCameraEnabled] = useState<boolean>(false);
   const [searchEnable, enableSearch] = useState<boolean>(false);
   const [DetailsVar, openDetails] = useState<boolean>(false);
-  const [pendingScrollToMessageId, setPendingScrollToMessageId] = useState<string | null>(null);
-    /* ----------------------------- scroll function ----------------------------- */
-     const scrollToMessage = (quoteId) => {
+  const [pendingScrollToMessageId, setPendingScrollToMessageId] = useState<
+    string | null
+  >(null);
+  /* ----------------------------- scroll function ----------------------------- */
+  const scrollToMessage = (quoteId) => {
     console.log({ quoteId, mids: activeChat?.messages.map((s) => s.id) });
     if (quoteId) {
       if (activeChat?.messages?.filter((f) => f.id === quoteId)?.length > 0) {
@@ -168,7 +170,9 @@ function ConversationContainer({
 
   const GetMessage = useCallback(
     async (msgId, quoteId) => {
-      const found = activeChat?.messages?.some(m => `${m.id}` === `${quoteId}`);
+      const found = activeChat?.messages?.some(
+        (m) => `${m.id}` === `${quoteId}`
+      );
       if (found) {
         requestAnimationFrame(() => scrollToMessage(quoteId));
       } else {
@@ -219,7 +223,10 @@ function ConversationContainer({
       const friendID = receiverId;
       if (!friendID) return;
 
-      const baseRef = ref(db, `Transaction/${getUser()?.id}/${friendID}`);
+      const baseRef = ref(
+        db,
+        `Transaction/${(getUser() as any)?.id}/${friendID}`
+      );
 
       const promise = desc ? push(baseRef, desc) : set(baseRef, null);
       promise.catch(console.error);
@@ -235,7 +242,7 @@ function ConversationContainer({
       const friendID = receiverId;
       if (!friendID) return;
 
-      const path = `Transaction/${getUser()?.id}/${friendID}`;
+      const path = `Transaction/${(getUser() as any)?.id}/${friendID}`;
       push(ref(db, path), "Typing...").catch(console.error);
 
       timer = setTimeout(() => {
@@ -250,7 +257,7 @@ function ConversationContainer({
       const base = {
         receiver_user_id: receiverId,
         receiver_role_id: receiverRoleId,
-        sender_role_id: getUser().role_id,
+        sender_role_id: (getUser() as any).role_id,
         parent_message_id: replyMessage?.id,
         cid: activeChat.id,
       };
@@ -428,7 +435,9 @@ function ConversationContainer({
 
   useEffect(() => {
     if (pendingScrollToMessageId) {
-      const exists = activeChat?.messages?.some(m => `${m.id}` === `${pendingScrollToMessageId}`);
+      const exists = activeChat?.messages?.some(
+        (m) => `${m.id}` === `${pendingScrollToMessageId}`
+      );
       if (exists) {
         requestAnimationFrame(() => {
           scrollToMessage(pendingScrollToMessageId);

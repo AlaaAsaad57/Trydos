@@ -11,6 +11,7 @@ import LocalizationServiceClass from "services/localization";
 import { CielNumber } from "./tinyUtils";
 import { GetConfiguredImagePropsType } from "models/componentType/boutiqueTypes/metaDataPropsType";
 import { fetchData } from "./fetchData";
+import { COOKIE_NAMES, UserData, getCookie } from "./cookies/cookie-manager";
 export const SSRDetect = () => {
   return typeof window !== "undefined";
 };
@@ -36,19 +37,13 @@ export function translateFunction(key: string, language?: string | string[]) {
   return translations[languageUrl]?.[key] || key;
 }
 
-export const getUserChat = () => {
-  if (typeof window !== "undefined")
-    return (
-      localStorage.getItem("USER-CHAT") &&
-      JSON.parse(localStorage.getItem("USER-CHAT"))
-    );
+export const getUserChat = (): any => {
+  const userChat = getCookie<UserData>(COOKIE_NAMES.USER_CHAT);
+  return userChat;
 };
-export const getUserStories = () => {
-  if (typeof window !== "undefined")
-    return (
-      localStorage.getItem("USER-STORIES") &&
-      JSON.parse(localStorage.getItem("USER-STORIES"))
-    );
+export const getUserStories = (): any => {
+  const userStories = getCookie<UserData>(COOKIE_NAMES.USER_STORIES);
+  return userStories;
 };
 
 export const _isStoreLastJson = () => {
@@ -439,11 +434,9 @@ export async function fetchWithRetry(url, options, title) {
 }
 
 export const getOldCart = async () => {
-  if (
-    !localStorage.getItem("DEVICE-TOKEN") &&
-    !localStorage.getItem("MARKET-TOKEN")
-  )
-    await home.RegisterDevice();
+  const deviceToken = getCookie<string>(COOKIE_NAMES.DEVICE_TOKEN);
+  const marketToken = getCookie<string>(COOKIE_NAMES.MARKET_TOKEN);
+  if (!deviceToken && !marketToken) return [];
   let response: OldCartApi = await fetchData({
     url: "/old-cart/get_old_cart",
     reqTitle: "Old Cart Request",
@@ -455,11 +448,9 @@ export const getOldCart = async () => {
 };
 export const getCart = async ({ callback }) => {
   const { initCart } = useAppStore.getState();
-  if (
-    !localStorage.getItem("DEVICE-TOKEN") &&
-    !localStorage.getItem("MARKET-TOKEN")
-  )
-    await home.RegisterDevice();
+  const deviceToken = getCookie<string>(COOKIE_NAMES.DEVICE_TOKEN);
+  const marketToken = getCookie<string>(COOKIE_NAMES.MARKET_TOKEN);
+  if (!deviceToken && !marketToken) return { cart: [] };
   let response: CartResponse = await fetchData({
     url: "/cart/cart_shipping",
     reqTitle: "Cart Request",

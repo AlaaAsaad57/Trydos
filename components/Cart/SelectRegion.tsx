@@ -128,31 +128,9 @@ const SearchLocations = ({
   closeSelect,
   setFocused,
 }: SearchLocationsPropsType) => {
-  const { provinces, setProvinces } = useAppStore();
-  const { lang } = useParams();
-  // @ts-ignore
-  const [country, language] = lang.split("-");
   const [loading, setLoading] = useState(false);
   const [searchResults, setSearchResults] = useState([]);
-  const getHeader = () => {
-    let [countryUrl, languageUrl] = window.location.pathname
-      .split("/")[1]
-      .split("-");
-    return {
-      next: {
-        revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE),
-      },
-      headers: {
-        Authorization: `Bearer ${
-          localStorage.getItem("MARKET-TOKEN") ||
-          localStorage.getItem("DEVICE-TOKEN")
-        }`,
-        lang: getLang(languageUrl, Cookies.get("language")),
-        country: countryUrl || Cookies.get("country"),
-        accept: "application/json",
-      },
-    };
-  };
+
   const [search, setSearch] = useState("");
   const searchAction = async (val) => {
     setLoading(true);

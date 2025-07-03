@@ -12,45 +12,39 @@ import {
   getUserChat,
   translateFunction as translate,
 } from "utils/functions";
-
-import { UnAuthintacetedAction } from "utils/tinyUtils";
 import {
   showSuccessNotification,
   showErrorNotification,
 } from "@/store/notifications/reducer";
 import { fetchData } from "utils/fetchData";
-const ChatHeader = () => {
-  return {
-    headers: {
-      Authorization:
-        "Bearer " +
-        JSON.parse(
-          typeof localStorage !== "undefined" &&
-            localStorage.getItem("USER-CHAT")
-        )?.access_token,
-      lang: getLang(null, Cookies.get("language")),
-      country: Cookies.get("country"),
-    },
-  };
-};
+import {
+  COOKIE_NAMES,
+  getCookie,
+  setCookie,
+  UserData,
+} from "utils/cookies/cookie-manager";
+
 class ChatService {
   async loginChat() {
     try {
+      const { loginSuccessChat } = useAppStore.getState();
+      const user = getCookie<UserData>(COOKIE_NAMES.USER_DATA);
       const response = await fetchData({
         url: LOG_IN_CHAT,
         body: JSON.stringify({
           otp_id_token: localStorage.getItem("ID-TOKEN"),
-          mobile_phone: JSON.parse(localStorage.getItem("USER")).phone,
-          name: JSON.parse(localStorage.getItem("USER"))?.name,
-          original_user_id: JSON.parse(localStorage.getItem("USER")).id,
+          mobile_phone: user?.phone,
+          name: user?.name,
+          original_user_id: user?.id,
         }),
         method: "POST",
         server: "chat",
         reqTitle: "Login Chat",
       });
-
-      localStorage.setItem("USER-CHAT", JSON.stringify(response.data));
-
+      setCookie(COOKIE_NAMES.USER_CHAT, response.data);
+      loginSuccessChat({
+        ...response.data,
+      });
       if (response.data?.id) {
         const { requestFirebaseNotificationPermission } = await import(
           "utils/firebaseInitv1"
@@ -105,7 +99,7 @@ class ChatService {
   }
   async StoreToken(payload: {
     id?: string | number;
-    user?: { access_token: string; id: number };
+    user?: { access_token?: string; id: number };
     token: string;
   }) {
     try {
@@ -152,11 +146,13 @@ class ChatService {
       setChats(response.data.channels, response.data.pinned_channels);
       const { db } = await import("../utils/firebaseInitv1");
       let chats = [...response.data.channels, ...response.data.pinned_channels];
+      const userChat = await getUserChat();
       chats.map((chat) => {
         let friendID = chat.channel_members.filter(
-          (member) => parseInt(member.user_id) !== parseInt(getUserChat().id)
+          (member) =>
+            parseInt(member.user_id) !== parseInt(userChat.id?.toString())
         )[0]?.user_id;
-        let MyId = getUserChat().id;
+        let MyId = userChat.id;
         //wew
 
         const dbRef = ref(db, `Transaction/${friendID}/${MyId}`);

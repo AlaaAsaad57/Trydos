@@ -1,9 +1,9 @@
-import ProfilePicture from "public/images/profileNo.png";
-import { getTwoLetters, getUser } from "../chatsFunctions";
 import { getUserChat } from "utils/functions";
-import Image from "next/image";
+
 import ChatPhoto from "./ChatPhoto";
+import { getUser } from "../chatsFunctions";
 function UserInfoHeader() {
+  const user = getUser();
   return (
     <div className="chat-window-header-user">
       <ChatPhoto
@@ -13,11 +13,7 @@ function UserInfoHeader() {
         height={40}
       />
 
-      <span>
-        {(localStorage.getItem("USER-CHAT") && getUserChat().name) ||
-          (localStorage.getItem("USER-CHAT") && getUserChat().name) ||
-          "User"}
-      </span>
+      <span>{user?.name || "User"}</span>
     </div>
   );
 }

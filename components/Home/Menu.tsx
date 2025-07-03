@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Cookies from "js-cookie";
 import { changeToken } from "store/homepage/cachedActions";
 import {
@@ -12,6 +12,14 @@ import NotificationsPanel from "../Notifications/NotificationsPanel";
 import WishListPanel from "../WishList/WishListPanel";
 import Spinner from "components/global/Spinner";
 import auth from "services/auth";
+import {
+  COOKIE_NAMES,
+  deleteCookie,
+  deleteCookieServer,
+  getCookie,
+  setCookie,
+  UserData,
+} from "utils/cookies/cookie-manager";
 
 interface MenuProps {
   user: any;
@@ -86,6 +94,8 @@ const MenuItem: React.FC<{
 };
 
 const Menu: React.FC<MenuProps> = ({ user, setMenuOpen }) => {
+  const userChat = getCookie<UserData>(COOKIE_NAMES.USER_CHAT);
+  const userStories = getCookie<UserData>(COOKIE_NAMES.USER_STORIES);
   const [showNotifications, setShowNotifications] = useState(false);
   const [showWishList, setShowWishList] = useState(false);
   const { lang } = useParams();
@@ -95,14 +105,17 @@ const Menu: React.FC<MenuProps> = ({ user, setMenuOpen }) => {
     //   event: GA_EVENT_NAMES.CLICK,
     //   value: GA_CLICK_EVENT_VALUES.LOGOUT_BUTTON,
     // });
-    localStorage.clear();
-    changeToken({ key: "DEVICE-TOKEN", deleteOption: true });
-    changeToken({ key: "MARKET-TOKEN", deleteOption: true });
-    changeToken({ key: "token", deleteOption: true });
-    Cookies.remove("DEVICE-TOKEN");
-    Cookies.remove("MARKET-TOKEN");
-    Cookies.remove("token");
+    // localStorage.clear();
+
     setLoading(true);
+
+    deleteCookie(COOKIE_NAMES.USER_DATA);
+    deleteCookie(COOKIE_NAMES.USER_CHAT);
+    deleteCookie(COOKIE_NAMES.USER_STORIES);
+    deleteCookie(COOKIE_NAMES.CHAT_TOKEN);
+    deleteCookie(COOKIE_NAMES.STORIES_TOKEN);
+    deleteCookie(COOKIE_NAMES.MARKET_TOKEN);
+    deleteCookie(COOKIE_NAMES.DEVICE_TOKEN);
     const { messaging } = await import("utils/firebaseInitv1");
     const { deleteToken } = await import("firebase/messaging");
     try {
@@ -327,25 +340,25 @@ const Menu: React.FC<MenuProps> = ({ user, setMenuOpen }) => {
             {loading ? <Spinner /> : translateFunction("Logout")}
           </MenuItem>
         )}
-        {getUserChat()?.id && (
+        {userChat?.id && (
           <MenuItem
             dataCy="change-chat-token"
             icon={<></>}
             onClick={() => {
-              let user = { ...getUserChat(), access_token: "skajdklajsd" };
-              localStorage.setItem("USER-CHAT", JSON.stringify(user));
+              let user = { ...userChat, access_token: "skajdklajsd" };
+              setCookie(COOKIE_NAMES.USER_CHAT, user);
             }}
           >
             Make Chat Token Expired
           </MenuItem>
         )}
-        {getUserStories()?.id && (
+        {userStories?.id && (
           <MenuItem
             dataCy="change-chat-token"
             icon={<></>}
             onClick={() => {
-              let user = { ...getUserStories(), access_token: "skajdklajsd" };
-              localStorage.setItem("USER-STORIES", JSON.stringify(user));
+              let user = { ...userStories, access_token: "skajdklajsd" };
+              setCookie(COOKIE_NAMES.USER_STORIES, user);
             }}
           >
             Make Stories Token Expired

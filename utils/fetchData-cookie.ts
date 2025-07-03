@@ -2,22 +2,16 @@ import {
   showErrorMessage,
   showSuccessMessage,
 } from "components/global/AddToCartMessage";
-import Cookies from "js-cookie";
-import { _isStoreLastJson, getUserChat, LogError } from "./functions";
+import { _isStoreLastJson, LogError } from "./functions";
 import {
   showErrorNotification,
   showSuccessNotification,
 } from "store/notifications/reducer";
 import auth from "../services/auth";
-import {
-  COOKIE_NAMES,
-  UserData,
-  deleteCookie,
-  getCookie,
-} from "./cookies/cookie-manager";
+import { getCookie, COOKIE_NAMES, UserData } from "./cookies/cookie-manager";
+
 // Types
 export type ServerType = "chat" | "market" | "stories" | "elastic";
-
 export type FetchMethod = "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
 
 export interface FetchDataParams {
@@ -32,8 +26,9 @@ export interface FetchDataParams {
 
 // Cache structure
 const requestCache = new Map<string, any>();
-// get base url
-const getUrl = (server) => {
+
+// Get base URL
+const getUrl = (server: ServerType) => {
   switch (server) {
     case "market":
       return process.env.NEXT_PUBLIC_BACKEND_URL;
@@ -43,13 +38,18 @@ const getUrl = (server) => {
       return process.env.NEXT_PUBLIC_CHAT_BACKEND_URL;
     case "stories":
       return process.env.NEXT_PUBLIC_STORIES_BACKEND_URL;
-
     default:
-      break;
+      throw new Error(`Unknown server type: ${server}`);
   }
 };
+
 // Token fetching functions based on server type
 const getChatToken = async (): Promise<string> => {
+  // Check cookies first
+  const chatToken = getCookie<string>("CHAT-TOKEN");
+  if (chatToken) return chatToken;
+
+  // Fallback to localStorage for backward compatibility
   const userChat = getCookie<UserData>(COOKIE_NAMES.USER_CHAT);
   if (userChat) {
     const parsedUser = userChat;
@@ -59,27 +59,23 @@ const getChatToken = async (): Promise<string> => {
   }
   return "";
 };
-const getHeader = async () => {
-  let local = window.location.pathname.split("/")[1];
-  const userChat = getCookie<UserData>(COOKIE_NAMES.USER_CHAT);
-  const [country, lang] = local.split("-");
-  return {
-    lang: Cookies.get("lang") || Cookies.get("language") || lang,
-    accept: "application/json",
-    country: Cookies.get("country") || country,
-    current_role_id: userChat?.role_id ? userChat.role_id : "-1",
-  };
-};
+
 const getMarketToken = async (): Promise<string> => {
+  // Check cookies first
   const marketToken = getCookie<string>(COOKIE_NAMES.MARKET_TOKEN);
+  if (marketToken) return marketToken;
+
   const deviceToken = getCookie<string>(COOKIE_NAMES.DEVICE_TOKEN);
-  if (marketToken || deviceToken) {
-    return marketToken || deviceToken;
-  }
+  if (deviceToken) return deviceToken;
   return "";
 };
 
 const getStoriesToken = async (): Promise<string> => {
+  // Check cookies first
+  const storiesToken = getCookie<string>("STORIES-TOKEN");
+  if (storiesToken) return storiesToken;
+
+  // Fallback to localStorage for backward compatibility
   const userStories = getCookie<UserData>(COOKIE_NAMES.USER_STORIES);
   if (userStories) {
     if (userStories?.access_token) {
@@ -105,6 +101,43 @@ const getToken = async (server: ServerType): Promise<string> => {
   }
 };
 
+// Get headers
+const getHeader = () => {
+  // Use cookies for country and lang
+  const country = getCookie<string>(COOKIE_NAMES.COUNTRY);
+  const lang = getCookie<string>(COOKIE_NAMES.LANG);
+
+  // Fallback to URL parsing if cookies not available
+  let finalCountry = country;
+  let finalLang = lang;
+
+  if (!finalCountry || !finalLang) {
+    const local = window.location.pathname.split("/")[1];
+    const [urlCountry, urlLang] = local.split("-");
+    finalCountry = urlCountry || finalCountry;
+    finalLang = urlLang || finalLang;
+  }
+
+  // Get chat role from localStorage (for backward compatibility)
+  let currentRoleId = "-1";
+  const userChat = getCookie<UserData>(COOKIE_NAMES.USER_CHAT);
+  if (userChat) {
+    try {
+      const parsed = userChat;
+      if (parsed?.role_id) {
+        currentRoleId = parsed.role_id;
+      }
+    } catch {}
+  }
+
+  return {
+    lang: finalLang,
+    accept: "application/json",
+    country: finalCountry,
+    current_role_id: currentRoleId,
+  };
+};
+
 // Handle unauthorized - refresh tokens based on server type
 const handleUnauthorized = async (server: ServerType): Promise<boolean> => {
   console.log(`Handling 401 Unauthorized for ${server} server...`);
@@ -126,10 +159,7 @@ const handleUnauthorized = async (server: ServerType): Promise<boolean> => {
         // For chat/stories servers, show the phone verification widget
         const { useAppStore } = await import("../store");
         const { setShouldAuthinticated } = useAppStore.getState();
-        deleteCookie(COOKIE_NAMES.USER_CHAT);
-        deleteCookie(COOKIE_NAMES.USER_STORIES);
-        deleteCookie(COOKIE_NAMES.CHAT_TOKEN);
-        deleteCookie(COOKIE_NAMES.STORIES_TOKEN);
+
         // Show the verification widget
         setShouldAuthinticated(true);
 
@@ -137,16 +167,8 @@ const handleUnauthorized = async (server: ServerType): Promise<boolean> => {
         // We'll use a promise that resolves when verification is complete
         return new Promise((resolve) => {
           // Poll to check if the widget is still open
-          const checkInterval = setInterval(async () => {
+          const checkInterval = setInterval(() => {
             const currentState = useAppStore.getState();
-            const hasNewToken =
-              server === "chat"
-                ? getCookie<UserData>(COOKIE_NAMES.USER_CHAT)?.access_token
-                : getCookie<UserData>(COOKIE_NAMES.USER_STORIES)?.access_token;
-            console.log({
-              shouldAuthintacted: currentState.shouldAuthinticated,
-              hasNewToken,
-            });
             // Check if widget was closed (shouldAuthinticated is false)
             if (!currentState.shouldAuthinticated) {
               clearInterval(checkInterval);
@@ -154,8 +176,11 @@ const handleUnauthorized = async (server: ServerType): Promise<boolean> => {
               // as configured in ConfirmMobilePhoneWidget
               resolve(false);
             }
-
             // Check if verification was successful by looking for updated tokens
+            const hasNewToken =
+              server === "chat"
+                ? getCookie<string>("CHAT-TOKEN")
+                : getCookie<string>("STORIES-TOKEN");
 
             if (hasNewToken) {
               clearInterval(checkInterval);
@@ -232,12 +257,11 @@ export const fetchData = async <T = any>(
       const token = await getToken(server);
       let FULL_URL = getUrl(server) + url;
       // Prepare request options
-      const editedHeader = await getHeader();
       const requestOptions: RequestInit = {
         method,
         headers: {
           Authorization: `Bearer ${token}`,
-          ...editedHeader,
+          ...getHeader(),
         },
       };
 
@@ -260,7 +284,6 @@ export const fetchData = async <T = any>(
       }
 
       // Make the request
-
       const response = await fetch(FULL_URL, requestOptions);
 
       // Handle 401 Unauthorized
@@ -284,7 +307,7 @@ export const fetchData = async <T = any>(
       if (_isStoreLastJson()) {
         localStorage.setItem("LAST_JSON", JSON.stringify(responseData));
       }
-      if (typeof reqTitle === "string" && reqTitle.includes("Add to cart widget")) {
+      if (reqTitle?.includes("Add to cart widget")) {
         showSuccessMessage(
           responseData?.message ?? responseData?.data?.message ?? ""
         );
@@ -327,12 +350,13 @@ export const fetchData = async <T = any>(
         }
       }
       // Re-throw the error for the caller to handle
-      if (typeof reqTitle === "string" && reqTitle.includes("Add to cart widget")) {
-        showErrorMessage(`${err?.message || "Falied"}`);
-      } else showErrorNotification(`${err?.message || "Falied"}`);
+      if (reqTitle?.includes("Add to cart widget")) {
+        showErrorMessage(`${err?.message || "Failed"}`);
+      } else showErrorNotification(`${err?.message || "Failed"}`);
+
       let errorObj = {
         type: "backend-exception",
-        message: err?.message?.substring(0, 200) || "Falied",
+        message: err?.message?.substring(0, 200) || "Failed",
         url: window.location.href,
         user_id: auth.UserID(),
         request_url: url,
@@ -367,7 +391,7 @@ export const fetchMarketData = async <T = any>(
   options?: Partial<FetchDataParams>
 ): Promise<T> => {
   return fetchData<T>({
-    url: process.env.NEXT_PUBLIC_BACKEND_URL + url,
+    url,
     method,
     body,
     server: "market",
@@ -382,7 +406,7 @@ export const fetchChatData = async <T = any>(
   options?: Partial<FetchDataParams>
 ): Promise<T> => {
   return fetchData<T>({
-    url: process.env.NEXT_PUBLIC_CHAT_BACKEND_URL + url,
+    url,
     method,
     body,
     server: "chat",
@@ -397,7 +421,7 @@ export const fetchStoriesData = async <T = any>(
   options?: Partial<FetchDataParams>
 ): Promise<T> => {
   return fetchData<T>({
-    url: process.env.NEXT_PUBLIC_STORIES_BACKEND_URL + url,
+    url,
     method,
     body,
     server: "stories",

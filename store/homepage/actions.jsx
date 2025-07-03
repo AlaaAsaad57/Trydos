@@ -2,6 +2,7 @@ import StoryService from "services/story";
 import Cookies from "js-cookie";
 import { changeAppLanguageServer, changeToken } from "./cachedActions";
 import { useAppStore } from "store";
+import { COOKIE_NAMES, getCookie } from "utils/cookies/cookie-manager";
 export const changeAppLanguage = (language) => {
   const { setAppLanguage } = useAppStore.getState();
   Cookies.set("language", language, {
@@ -54,10 +55,8 @@ export const AddStoryAction = (story) => {
 };
 export const GetUnviewedStory = (story) => {
   if (typeof window !== "undefined") {
-    if (
-      localStorage.getItem("USER-STORIES") &&
-      JSON.parse(localStorage.getItem("USER-STORIES"))?.id === story.id
-    )
+    const userStories = getCookie(COOKIE_NAMES.USER_STORIES);
+    if (userStories && userStories?.id === story.id)
       return story.stories.length - 1;
   }
   let index = 0;

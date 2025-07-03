@@ -5,6 +5,7 @@ import {
   getMessaging,
   getToken,
   onMessage,
+  isSupported,
 } from "firebase/messaging";
 import { useAppStore } from "../store";
 

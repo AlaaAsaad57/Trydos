@@ -8,6 +8,11 @@ import {
 } from "./actions";
 import { getMediaReducer } from "./actions";
 import { showErrorNotification } from "@/store/notifications/reducer";
+import {
+  COOKIE_NAMES,
+  getCookie,
+  UserData,
+} from "utils/cookies/cookie-manager";
 
 interface ChatState {
   chatVar: boolean;
@@ -145,7 +150,8 @@ export const useChatStore = (set, get) => ({
       set({ chatVar: false, activeChat: null, main: "main" });
       return;
     }
-    if (JSON.parse(localStorage.getItem("USER"))?.name?.length > 2) {
+    const user = getCookie<UserData>(COOKIE_NAMES.USER_DATA);
+    if (user?.name?.length > 2) {
       set({ chatVar: payload });
     } else {
       set({ nameModal: true });

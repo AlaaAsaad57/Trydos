@@ -8,9 +8,9 @@ import Spinner from "components/global/Spinner";
 function CallContainer() {
   const { activeChat, call, AgoraToken } = useAppStore();
   const receiver = activeChat?.channel_members?.find(
-    (m: any) => +m.user_id !== +getUser()?.id
+    (m: any) => +m.user_id !== +(getUser() as any)?.id
   );
-  const senderId = getUser()?.id;
+  const senderId = (getUser() as any)?.id;
   const receiverId = receiver?.user_id;
   return (
     <div className="fixed right-0 top-0 min-w-[330px] w-screen h-[calc(100vh)] pb-[100px] bg-black z-[9999999999999999]">

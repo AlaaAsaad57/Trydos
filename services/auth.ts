@@ -14,22 +14,14 @@ import { SetGAUser } from "utils/gtag";
 
 import { showErrorNotification } from "@/store/notifications/reducer";
 import { fetchData } from "utils/fetchData";
-const getHeader = () => {
-  let [countryUrl, languageUrl] = window.location.pathname
-    .split("/")[1]
-    .split("-");
-  return {
-    headers: {
-      "ssr-req": "true",
-      Authorization: `Bearer ${
-        localStorage.getItem("MARKET-TOKEN") ||
-        localStorage.getItem("DEVICE-TOKEN")
-      }`,
-      lang: getLang(languageUrl, Cookies.get("language")),
-      country: countryUrl || Cookies.get("country"),
-    },
-  };
-};
+import {
+  COOKIE_NAMES,
+  deleteCookie,
+  getCookie,
+  setCookie,
+  UserData,
+} from "utils/cookies/cookie-manager";
+
 class AuthService {
   async SendOtp(
     mobilePhone: string,
@@ -96,23 +88,14 @@ class AuthService {
         throw new Error("Wrong Code");
       }
       localStorage.setItem("ID-TOKEN", response.data.id_token);
-      Cookies.set("MARKET-TOKEN", response.data.token);
-      localStorage.setItem("MARKET-TOKEN", response.data.token);
-      changeToken({ key: "MARKET-TOKEN", value: response.data.token });
-      localStorage.setItem(
-        "USER",
-        JSON.stringify({
-          ...response.data.user,
-          already_exists: response.data.already_exists,
-          is_verified: false,
-          expires_at: response.data.expires_at,
-        })
-      );
+      setCookie(COOKIE_NAMES.MARKET_TOKEN, response.data.token);
+      setCookie(COOKIE_NAMES.USER_DATA, {
+        ...response.data.user,
+        already_exists: response.data.already_exists,
+        is_verified: false,
+        expires_at: response.data.expires_at,
+      });
       SetGAUser(response.data.user, !response.data.already_exists);
-      localStorage.removeItem("guest-user");
-      if (localStorage.getItem("customer-info")) {
-        localStorage.removeItem("customer-info");
-      }
       setTempUser({
         ...response.data.user,
         already_exists: response.data.already_exists,
@@ -124,7 +107,6 @@ class AuthService {
       }, 2000);
       return [response.data.already_exists, response.data.user.name];
     } catch (e) {
-      console.log(e);
       if (e.message === "user not found") {
         setWrongNumber("user not found");
       } else {
@@ -162,22 +144,22 @@ class AuthService {
   }
   async UpdateName(name: string) {
     const { updateName } = useAppStore.getState();
+    const userStories = getCookie<UserData>(COOKIE_NAMES.USER_STORIES);
+    const user = getCookie<UserData>(COOKIE_NAMES.USER_DATA);
+    const userChat = getCookie<UserData>(COOKIE_NAMES.USER_CHAT);
     try {
-      localStorage.setItem(
-        "USER-STORIES",
-        JSON.stringify({
-          ...JSON.parse(localStorage.getItem("USER-STORIES")),
-          name: name,
-        })
-      );
-      localStorage.setItem(
-        "USER",
-        JSON.stringify({
-          ...JSON.parse(localStorage.getItem("USER")),
-          name: name,
-        })
-      );
-
+      setCookie(COOKIE_NAMES.USER_STORIES, {
+        ...userStories,
+        name: name,
+      });
+      setCookie(COOKIE_NAMES.USER_DATA, {
+        ...user,
+        name: name,
+      });
+      setCookie(COOKIE_NAMES.USER_DATA, {
+        ...user,
+        name: name,
+      });
       updateName(name);
       await fetchData({
         url: "/customer/update-name",
@@ -193,16 +175,16 @@ class AuthService {
         server: "chat",
         body: JSON.stringify({ name: name }),
       });
-
-      localStorage.setItem(
-        "USER-CHAT",
-        JSON.stringify({
-          ...JSON.parse(localStorage.getItem("USER-STORIES")),
-          name: name,
-        })
-      );
+      setCookie(COOKIE_NAMES.USER_CHAT, {
+        ...userChat,
+        name: name,
+      });
+      setCookie(COOKIE_NAMES.USER_STORIES, {
+        ...userStories,
+        name: name,
+      });
       await home.getCustomerInfo();
-      if (!localStorage.getItem("USER-STORIES")) {
+      if (!userStories) {
         await this.ConfirmSignIn();
       }
       await fetchData({
@@ -219,8 +201,11 @@ class AuthService {
     }
   }
   async ConfirmSignIn() {
-    let userLocal = JSON.parse(localStorage.getItem("USER"));
-    const { loginSuccess } = useAppStore.getState();
+    let userLocal = getCookie<UserData>(COOKIE_NAMES.USER_DATA);
+    let userChat = getCookie<UserData>(COOKIE_NAMES.USER_CHAT);
+    let userStories = getCookie<UserData>(COOKIE_NAMES.USER_STORIES);
+    const { loginSuccess, loginSuccessChat, loginSuccessStories } =
+      useAppStore.getState();
     if (userLocal) {
       if (process.env.NODE_ENV === "production" && Smartlook.initialized())
         Smartlook.identify(userLocal.id, {
@@ -233,32 +218,42 @@ class AuthService {
       id: userLocal.id,
       idToken: userLocal.id_token,
       name: userLocal.name,
-      avatar: userImage,
+      image: userLocal,
       already_exists: userLocal.already_exists,
-      is_verified: true,
+      is_verified: 1,
+      is_phone_verified: 1,
     });
-
-    localStorage.setItem(
-      "USER",
-      JSON.stringify({ ...userLocal, is_verified: true })
-    );
-
-    if (localStorage.getItem("guest-user")) {
-      localStorage.removeItem("guest-user");
+    if (userChat) {
+      loginSuccessChat({
+        ...userChat,
+        is_verified: 1,
+        is_phone_verified: 1,
+      });
     }
-    if (localStorage.getItem("customer-info")) {
-      localStorage.removeItem("customer-info");
+    if (userStories) {
+      loginSuccessStories({
+        ...userStories,
+        is_verified: 1,
+        is_phone_verified: 1,
+      });
     }
+    setCookie(COOKIE_NAMES.USER_DATA, {
+      ...userLocal,
+      is_verified: 1,
+      is_phone_verified: 1,
+    });
     await StoryService.loginStories();
     await ChatService.loginChat();
     await this.CheckUserName();
   }
-  async cancelAuth() {
-    if (!localStorage.getItem("guest-user")) {
+  async cancelAuth(isForExpired?) {
+    const user = getCookie<UserData>(COOKIE_NAMES.USER_DATA);
+    if (!user) {
       home.registerForExpire();
     }
+
     const { cancelAuth } = useAppStore.getState();
-    cancelAuth();
+    cancelAuth(isForExpired);
   }
   async NotifyForProducts({ id, variant }) {
     await home.subscribeToTopic({
@@ -268,38 +263,19 @@ class AuthService {
   }
 
   getUser() {
-    return (
-      (localStorage.getItem("USER") &&
-        JSON.parse(localStorage.getItem("USER"))) ||
-      (localStorage.getItem("guest-user") &&
-        JSON.parse(localStorage.getItem("guest-user"))) ||
-      false
-    );
+    return getCookie<UserData>(COOKIE_NAMES.USER_DATA);
   }
   UserToken() {
     return (
-      localStorage.getItem("MARKET-TOKEN") ||
-      localStorage.getItem("DEVICE-TOKEN") ||
-      false
+      getCookie(COOKIE_NAMES.MARKET_TOKEN) ||
+      getCookie(COOKIE_NAMES.DEVICE_TOKEN)
     );
   }
   UserID() {
-    return (
-      (localStorage.getItem("USER") &&
-        JSON.parse(localStorage.getItem("USER"))?.id) ||
-      (localStorage.getItem("guest-user") &&
-        JSON.parse(localStorage.getItem("guest-user"))?.id) ||
-      false
-    );
+    return getCookie<UserData>(COOKIE_NAMES.USER_DATA)?.id;
   }
   User() {
-    return (
-      (localStorage.getItem("USER") &&
-        JSON.parse(localStorage.getItem("USER"))) ||
-      (localStorage.getItem("guest-user") &&
-        JSON.parse(localStorage.getItem("guest-user"))) ||
-      false
-    );
+    return getCookie<UserData>(COOKIE_NAMES.USER_DATA);
   }
   ConfigurePhoto(imageVar, serverVar) {
     if (serverVar === "market") {
@@ -321,26 +297,24 @@ class AuthService {
     if (this.getUser()?.phone?.length > 2)
       localStorage.setItem("has-phone", this.getUser()?.phone);
     if (!noReq) await home.registerForExpire(this.UserID());
-    this.cancelAuth();
-    localStorage.removeItem("MARKET-TOKEN");
-    localStorage.removeItem("USER");
-    localStorage.removeItem("USER-CHAT");
-    localStorage.removeItem("USER-STORIES");
-    localStorage.removeItem("ID-TOKEN");
-    Cookies.remove("MARKET-TOKEN");
+    this.cancelAuth(true);
+    deleteCookie(COOKIE_NAMES.MARKET_TOKEN);
+    deleteCookie(COOKIE_NAMES.USER_CHAT);
+    deleteCookie(COOKIE_NAMES.USER_STORIES);
+    deleteCookie(COOKIE_NAMES.CHAT_TOKEN);
+    deleteCookie(COOKIE_NAMES.STORIES_TOKEN);
   }
   async UpdateProfile(userObj, previousUserObj) {
     const { userProfile } = useAppStore.getState();
+    const userChat = getCookie<UserData>(COOKIE_NAMES.USER_CHAT);
+    const userStories = getCookie<UserData>(COOKIE_NAMES.USER_STORIES);
+    const user = getCookie<UserData>(COOKIE_NAMES.USER_DATA);
     let market_done = false,
       chat_done = false,
       stories_done = false;
 
     try {
-      if (
-        localStorage.getItem("USER-STORIES") &&
-        localStorage.getItem("USER") &&
-        JSON.parse(localStorage.getItem("USER-STORIES"))?.id
-      ) {
+      if (userStories && user && userStories?.id) {
         await fetchData({
           url: "/api/v1/users/update",
           reqTitle: "Update Name in stories",
@@ -353,22 +327,14 @@ class AuthService {
           }),
         });
         stories_done = true;
-        localStorage.setItem(
-          "USER-STORIES",
-          JSON.stringify({
-            ...JSON.parse(localStorage.getItem("USER-STORIES")),
-            name: userObj?.name ?? userProfile?.name,
-            mobile_phone: userObj?.phone ?? userProfile?.phone,
-            photo_path: this.ConfigurePhoto(userObj?.image, "story"),
-          })
-        );
+        setCookie(COOKIE_NAMES.USER_STORIES, {
+          ...userStories,
+          name: userObj?.name ?? userProfile?.name,
+          mobile_phone: userObj?.phone ?? userProfile?.phone,
+          photo_path: this.ConfigurePhoto(userObj?.image, "story"),
+        });
       }
-      // let user_id = JSON.parse(localStorage.getItem("USER-CHAT")).id;
-      if (
-        localStorage.getItem("USER-CHAT") &&
-        localStorage.getItem("USER") &&
-        JSON.parse(localStorage.getItem("USER-CHAT"))?.id
-      ) {
+      if (userChat && user && userChat?.id) {
         let chat_update = await fetchData({
           url: `/api/v1/users/${this.UserID()}`,
           reqTitle: "Update Name in chat",
@@ -381,15 +347,12 @@ class AuthService {
           }),
         });
         chat_done = true;
-        localStorage.setItem(
-          "USER-CHAT",
-          JSON.stringify({
-            ...JSON.parse(localStorage.getItem("USER-CHAT")),
-            name: userObj?.name ?? userProfile?.name,
-            mobile_phone: userObj?.phone ?? userProfile?.phone,
-            photo_path: this.ConfigurePhoto(userObj?.image, "chat"),
-          })
-        );
+        setCookie(COOKIE_NAMES.USER_CHAT, {
+          ...userChat,
+          name: userObj?.name ?? userProfile?.name,
+          mobile_phone: userObj?.phone ?? userProfile?.phone,
+          photo_path: this.ConfigurePhoto(userObj?.image, "chat"),
+        });
       }
       let res = await fetchData({
         url: "/customer/update-profile",
@@ -402,15 +365,12 @@ class AuthService {
         server: "market",
       });
       market_done = true;
-      localStorage.setItem(
-        "USER",
-        JSON.stringify({
-          ...JSON.parse(localStorage.getItem("USER")),
-          name: userObj?.name ?? userProfile?.name,
-          phone: userObj?.phone ?? userProfile?.phone,
-          image: userObj?.image,
-        })
-      );
+      setCookie(COOKIE_NAMES.USER_DATA, {
+        ...user,
+        name: userObj?.name ?? userProfile?.name,
+        phone: userObj?.phone ?? userProfile?.phone,
+        image: userObj?.image,
+      });
 
       return res;
     } catch (error) {
@@ -469,33 +429,26 @@ class AuthService {
     return response.data;
   }
   async CheckUserName() {
-    let isChatUserExist = JSON.parse(localStorage.getItem("USER-CHAT"));
-    let isStoriesUserExist = JSON.parse(localStorage.getItem("USER-STORIES"));
-    let username_stories = JSON.parse(
-      localStorage.getItem("USER-STORIES")
-    )?.name;
-    let username_chat = JSON.parse(localStorage.getItem("USER-CHAT"))?.name;
-    let username_market = JSON.parse(localStorage.getItem("USER"))?.name;
+    const userChat = getCookie<UserData>(COOKIE_NAMES.USER_CHAT);
+    const userStories = getCookie<UserData>(COOKIE_NAMES.USER_STORIES);
+    const user = getCookie<UserData>(COOKIE_NAMES.USER_DATA);
+    let username_stories = userStories?.name;
+    let username_chat = userChat?.name;
+    let username_market = user?.name;
 
-    if (Boolean(isChatUserExist) && Boolean(isStoriesUserExist))
+    if (Boolean(userChat) && Boolean(userStories))
       if (
         username_chat !== username_market ||
         username_stories !== username_market
       ) {
-        localStorage.setItem(
-          "USER-CHAT",
-          JSON.stringify({
-            ...isChatUserExist,
-            name: username_market,
-          })
-        );
-        localStorage.setItem(
-          "USER-STORIES",
-          JSON.stringify({
-            ...isStoriesUserExist,
-            name: username_market,
-          })
-        );
+        setCookie(COOKIE_NAMES.USER_CHAT, {
+          ...userChat,
+          name: username_market,
+        });
+        setCookie(COOKIE_NAMES.USER_STORIES, {
+          ...userStories,
+          name: username_market,
+        });
         await this.UpdateProfile(
           { name: username_market },
           { name: username_market }

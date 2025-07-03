@@ -12,6 +12,11 @@ import {
   SettingsModalPropsType,
 } from "models/componentType/settingsType/SettingsModalPropsType";
 import { fetchData } from "utils/fetchData";
+import {
+  COOKIE_NAMES,
+  getCookie,
+  UserData,
+} from "utils/cookies/cookie-manager";
 
 interface SettingsModalProps {
   onClose: () => void;
@@ -39,9 +44,7 @@ const SettingsModal: React.FC<SettingsModalPropsType> = ({ onClose, lang }) => {
   // Handle mounting and localStorage access
   useEffect(() => {
     setMounted(true);
-    const guestUser = localStorage.getItem("guest-user");
-    const authenticatedUser = localStorage.getItem("USER");
-
+    const User = getCookie<UserData>(COOKIE_NAMES.USER_DATA);
     // Set initial tab from hash if mounted
     const hash = window.location.hash.slice(1) as
       | "notifications"
@@ -51,9 +54,8 @@ const SettingsModal: React.FC<SettingsModalPropsType> = ({ onClose, lang }) => {
     }
 
     // Set profile data if user is authenticated
-    if (guestUser || authenticatedUser) {
-      const userDataString = guestUser || authenticatedUser || "{}";
-      const userData = JSON.parse(userDataString) as ProfileData;
+    if (User) {
+      const userData = User;
       setProfileData({
         name: userData.name || "",
         email: userData.email || "",
