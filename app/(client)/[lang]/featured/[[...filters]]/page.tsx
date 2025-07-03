@@ -17,6 +17,7 @@ import SearchBoutiquePage from "components/filterPage/SearchBoutiquePage";
 import { parseFiltersFromParams } from "utils/tinyUtils";
 import { getFeaturedMetadata } from "../../MetaData";
 import { fetchCurrency, fetchFilteredProducts } from "Server Requests";
+import { GetFiltersData } from "utils/pagesDataRequests/FiltersPageData";
 
 export const dynamicParams = true;
 
@@ -52,61 +53,15 @@ export default async function Page({
   // Parse filters from URL path parameters
   const parsedFilters = parseFiltersFromParams(params.filters || []);
   const [country, language] = params.lang.split("-");
-  const GetProductsData = async () => {
-    try {
-      const result = await fetchFilteredProducts(
-        language,
-        country,
-        params.filters,
-        "false",
-        "true",
-        null,
-        null,
-        true,
-        false
-      );
-      return (
-        result?.data || {
-          products: [],
-          categories: [],
-          brands: [],
-          colors: [],
-          prices: { priceRanges: [] },
-          attributes: [{ options: [] }],
-          boutiques: [],
-          offset: 0,
-        }
-      );
-    } catch (error) {
-      console.log(error, "getProductsData");
-      return {
-        products: [],
-        categories: [],
-        brands: [],
-        colors: [],
-        prices: { priceRanges: [] },
-        attributes: [{ options: [] }],
-        boutiques: [],
-        offset: 0,
-      };
-    }
-  };
-  const GetCurrencyData = async () => {
-    try {
-      const data = await fetchCurrency(language, country);
-      return (
-        data.data.currency || { name: "USD", exchange_rate: 1, symbol: "$" }
-      );
-    } catch (error) {
-      console.log(error, "getCurrencyData");
-      return { name: "USD", exchange_rate: 1, symbol: "$" };
-    }
-  };
 
-  const [filtersData, currency] = await Promise.all([
-    GetProductsData(),
-    GetCurrencyData(),
-  ]);
+  let boutiqueItem = parsedFilters?.boutiques?.[0] || null;
+  let { products: filtersData, currency } = await GetFiltersData(
+    { lang: params.lang, filters: params.filters },
+    null,
+    false,
+    false,
+    true
+  );
   let filters = {
     categories: filtersData?.categories || [],
     brands: filtersData?.brands || [],

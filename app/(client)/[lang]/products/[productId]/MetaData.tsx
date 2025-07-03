@@ -1,26 +1,11 @@
 // components/BoutiqueHead.tsx
 
 import { getConfiguredImage } from "utils/functions";
-import { fetchProductDetails } from "Server Requests";
+import { GetProductData } from "utils/pagesDataRequests/ProductPageData";
 
 export async function generateProductMetaData({ params, searchParams }) {
   try {
-    const [country, language] = params.lang.split("-");
-    const getProductData = async () => {
-      try {
-        const data = await fetchProductDetails(
-          params.productId,
-          language,
-          country
-        );
-        return data;
-      } catch (error) {
-        console.log(error);
-        return {};
-      }
-    };
-    let product = await getProductData();
-
+    let { product } = await GetProductData(params);
     let pageTitle = `${product.name}`;
     if (searchParams?.color) {
       pageTitle += ` |  ${searchParams?.color}`;
@@ -47,6 +32,18 @@ export async function generateProductMetaData({ params, searchParams }) {
     //     .join(", ");
 
     const canonicalUrl = `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/products/${product.slug}`;
+    const keywords = [
+      product.name,
+      product.brand?.name,
+      product.category?.name,
+      ...(product.sync_color_images?.map((s) => s.color_name) || []),
+      ...(product.categories.map((s) => s.name) || []),
+      ...(product?.descriptors?.map((desc) => {
+        return desc.descriptors?.map(
+          (s) => `${s.value} - ${s?.descriptor?.name}`
+        );
+      }) || []),
+    ];
     const getImages = () => {
       return (
         (product?.sync_color_images
@@ -103,7 +100,7 @@ export async function generateProductMetaData({ params, searchParams }) {
     return {
       title: pageTitle,
       description: pageDescription,
-      // keywords,
+      keywords: keywords,
       openGraph: {
         type: "website",
         title: pageTitle,

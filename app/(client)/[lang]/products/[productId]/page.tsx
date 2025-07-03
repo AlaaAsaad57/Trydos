@@ -34,12 +34,15 @@ import FlashDealBanner from "components/products/FlashDealBanner";
 // import FeaturedBanner from "components/products/FeaturedBanner";
 import { ProductPagePropsType } from "models/componentType/productTypes/productPagePropsType";
 import ProductsLabels from "components/products/ProductsLabels";
+import { GetProductData } from "utils/pagesDataRequests/ProductPageData";
+import { generateCodeCurrency } from "../../MetaData";
 export const runtime = "nodejs";
 export const preferredRegion = ["bom1", "sin1"]; // For Middle East users
 
 export async function generateMetadata({ params, searchParams }) {
   try {
     const metaData = await generateProductMetaData({ params, searchParams });
+    // console.log("**********metaData***********", metaData);
     if (metaData.error) {
       redirect(`/${params.lang}?message=product_not_found`);
     }
@@ -55,39 +58,14 @@ export const revalidate = parseInt(process.env.NEXT_PUBLIC_REVALIDATE);
 async function Page({ params, searchParams }: ProductPagePropsType) {
   let [countryVariable, languageVariable] = params.lang.split("-");
 
-  const getProductData = async () => {
-    try {
-      const data = await fetchProductDetails(
-        params.productId,
-        languageVariable,
-        countryVariable
-      );
-      return data;
-    } catch (error) {
-      console.log(error);
-      return {};
-    }
-  };
-  const getCurrency = async () => {
-    try {
-      const data = await fetchCurrency(languageVariable, countryVariable);
-      return data.data.currency || {};
-    } catch (error) {
-      console.log(error);
-      return {};
-    }
-  };
-  let [product, currency] = await Promise.all([
-    getProductData(),
-    getCurrency(),
-  ]);
+  const { product, currency } = await GetProductData(params);
   const color = searchParams.color;
   const JsonLd = {
     "@context": "https://schema.org",
     "@type": "Product",
     name: product.name,
     image: product?.images,
-    description: product.detail,
+    description: product.details,
     sku: product.sku,
     brand: {
       "@type": "Brand",
@@ -98,7 +76,7 @@ async function Page({ params, searchParams }: ProductPagePropsType) {
       url:
         process.env.NEXT_PUBLIC_REMOTE_FRONT +
         `/${params.lang}/product/${params.productId}`,
-      priceCurrency: currency?.name,
+      priceCurrency: generateCodeCurrency(currency?.code),
       price: product.offer_price * currency.exchange_rate,
       priceValidUntil: "2025-12-31",
       availability: "https://schema.org/InStock",

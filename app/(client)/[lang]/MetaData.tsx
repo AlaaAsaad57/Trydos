@@ -8,7 +8,8 @@ import {
 } from "Server Requests";
 import { GetHomeData } from "utils/pagesDataRequests/HomePageData";
 import { cache } from "react";
-const generateCodeCurrency = (code: string) => {
+import { GetFiltersData } from "utils/pagesDataRequests/FiltersPageData";
+export const generateCodeCurrency = (code: string) => {
   if (code?.toLowerCase() === "sp") {
     return "SYP";
   } else {
@@ -193,7 +194,7 @@ export const getHomeMetadata = cache(async ({ params }) => {
                   "@type": "Offer",
                   "@id": `${canonicalUrl}/products/${product.slug}#offer`,
                   url: `${canonicalUrl}/products/${product.slug}`,
-                  priceCurrency: currencyData.code,
+                  priceCurrency: generateCodeCurrency(currencyData.code),
                   price:
                     (product.offer_price || product.price || 0) *
                     (currencyData.exchange_rate || 1),
@@ -248,7 +249,7 @@ export const getHomeMetadata = cache(async ({ params }) => {
                   "@type": "Offer",
                   "@id": `${canonicalUrl}/products/${product.slug}#flash-offer`,
                   url: `${canonicalUrl}/products/${product.slug}`,
-                  priceCurrency: currencyData.code,
+                  priceCurrency: generateCodeCurrency(currencyData.code),
                   price:
                     (product.offer_price || product.price || 0) *
                     (currencyData.exchange_rate || 1),
@@ -432,44 +433,18 @@ export async function getFeaturedMetadata({ params }) {
   // Get language for translations
 
   // Fetch featured products data
-  const GetFeaturedProductsData = async () => {
-    try {
-      const result = await fetchFilteredProducts(
-        language,
-        country,
-        [],
-        "false",
-        "false",
-        null,
-        null,
-        true,
-        false
-      );
-      return result.data;
-    } catch (error) {
-      console.log(error, "getFeaturedProductsData");
-      return { products: [], categories: [], brands: [], boutiques: [] };
-    }
-  };
 
-  const GetCurrencyData = async () => {
-    try {
-      const data = await fetchCurrency(language, country);
-      return (
-        data.data.currency || { name: "USD", exchange_rate: 1, symbol: "$" }
-      );
-    } catch (error) {
-      console.log(error, "getCurrencyData");
-      return { name: "USD", exchange_rate: 1, symbol: "$" };
-    }
-  };
-
-  // Fetch data in parallel
-  const [featuredData, currencyData] = await Promise.all([
-    GetFeaturedProductsData(),
-    GetCurrencyData(),
-  ]);
-
+  let {
+    products: featuredData,
+    currency: currencyData,
+    boutique: boutique,
+  } = await GetFiltersData(
+    { lang: params.lang, filters: params.filters },
+    null,
+    true,
+    false,
+    false
+  );
   const categories = featuredData?.categories || [];
   const brands = featuredData?.brands || [];
   const products = featuredData?.products || [];
@@ -543,7 +518,7 @@ export async function getFeaturedMetadata({ params }) {
           "@type": "Offer",
           "@id": `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${params.lang}/products/${product.slug}#offer`,
           url: `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${params.lang}/products/${product.slug}`,
-          priceCurrency: currencyData.code,
+          priceCurrency: generateCodeCurrency(currencyData.code),
           price:
             (product.offer_price || product.price || 0) *
             (currencyData.exchange_rate || 1),
@@ -643,47 +618,14 @@ export async function getFeaturedMetadata({ params }) {
 export async function getFlashDealsMetadata({ params }) {
   const [country, language] = params.lang.split("-");
 
-  // Get language for translations
-
-  // Fetch flash deals data
-  const GetFlashDealsData = async () => {
-    try {
-      const result = await fetchFilteredProducts(
-        language,
-        country,
-        [],
-        "false",
-        "false",
-        null,
-        null,
-        false,
-        true
-      );
-      return result.data;
-    } catch (error) {
-      console.log(error, "getFlashDealsData");
-      return { products: [] };
-    }
-  };
-
-  const GetCurrencyData = async () => {
-    try {
-      const data = await fetchCurrency(language, country);
-      return (
-        data.data.currency || { name: "USD", exchange_rate: 1, symbol: "$" }
-      );
-    } catch (error) {
-      console.log(error, "getCurrencyData");
-      return { name: "USD", exchange_rate: 1, symbol: "$" };
-    }
-  };
-
-  // Fetch data in parallel
-  const [flashDealsData, currencyData] = await Promise.all([
-    GetFlashDealsData(),
-    GetCurrencyData(),
-  ]);
-
+  let { products: flashDealsData, currency: currencyData } =
+    await GetFiltersData(
+      { lang: params.lang, filters: params.filters },
+      null,
+      false,
+      true,
+      false
+    );
   const products = flashDealsData?.products || [];
 
   // Generate metadata with translations
@@ -747,7 +689,7 @@ export async function getFlashDealsMetadata({ params }) {
           "@type": "Offer",
           "@id": `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${params.lang}/products/${product.slug}#flash-offer`,
           url: `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${params.lang}/products/${product.slug}`,
-          priceCurrency: currencyData.code,
+          priceCurrency: generateCodeCurrency(currencyData.code),
           price:
             (product.offer_price || product.price || 0) *
             (currencyData.exchange_rate || 1),

@@ -50,6 +50,10 @@ interface FilteredProductsResponse {
       }>;
       price: number;
       offer_price?: number;
+      brand: {
+        name: string;
+        icon?: string;
+      };
       category: {
         name: string;
         icon?: string;

@@ -1,12 +1,8 @@
 "use client";
-
 import { useEffect, useState } from "react";
-
 import { InView } from "react-intersection-observer";
 import Spinner from "../global/Spinner";
-
 import { dispatchRouteChangeEvent } from "utils/events";
-
 import {
   getConfiguredImage,
   RoundPrice,
