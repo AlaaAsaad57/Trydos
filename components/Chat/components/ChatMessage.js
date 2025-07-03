@@ -25,6 +25,7 @@ import { useParams } from "next/navigation";
 import { useAppStore } from "store";
 import ChatPhoto from "./ChatPhoto";
 
+import { getUser } from "../chatsFunctions";
 // Add a helper to sanitize IDs
 const getSafeId = (id) => {
   if (!id) return "";
@@ -35,7 +36,6 @@ const getSafeId = (id) => {
   return str;
 };
 
-import { getUser } from "../chatsFunctions";
 function ChatMessage(props) {
   const user = getUser();
   const { language, activeChat, deleteMessage } = useAppStore();
