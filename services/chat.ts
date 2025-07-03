@@ -4,7 +4,6 @@ import {
   LOG_IN_CHAT,
 } from "utils/endpointConfig";
 import HomeService from "services/home";
-import Cookies from "js-cookie";
 import { useAppStore } from "store";
 import {
   _isStoreLastJson,

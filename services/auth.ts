@@ -1,10 +1,6 @@
 import { useAppStore } from "store";
-
-import userImage from "public/images/profileNo.png";
-import Cookies from "js-cookie";
 import Smartlook from "smartlook-client";
-
-import { _isStoreLastJson, getLang, translateFunction } from "utils/functions";
+import { _isStoreLastJson, translateFunction } from "utils/functions";
 import { SEND_OTP } from "utils/endpointConfig";
 import ChatService from "services/chat";
 import StoryService from "services/story";

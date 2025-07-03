@@ -200,6 +200,9 @@ if (process.env.NODE_ENV !== "production") {
 } else {
   // We'll keep Sentry webpack plugin for server-side source maps
   // but disable client-side by renaming sentry.client.config.js
-
+  // const withBundleAnalyzer = require("@next/bundle-analyzer")({
+  //   enabled: true,
+  // });
+  // const finalConfig = withBundleAnalyzer(nextConfig);
   module.exports = nextConfig;
 }
