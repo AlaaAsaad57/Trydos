@@ -8,7 +8,6 @@ export const FIREBASE_SETTINGS_URL =
   "/firebase_device_tokens/my_firebase_settings";
 
 export const SEND_OTP = "/auth/phone/send_otp";
-export const HOME_DATA_URL = "/api/home/boutiques";
 
 export const HOME_DATA_CATEGORIES_URL = "/api/home/mainCategories";
 export const STARTER_SETTINGS = "/web/home/startingSettings";

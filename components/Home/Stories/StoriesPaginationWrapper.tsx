@@ -6,6 +6,11 @@ import StoryElement from "./StoryElement";
 import { useAppStore } from "store";
 import { fetchStories } from "Server Requests";
 import { fetchData } from "utils/fetchData";
+import {
+  COOKIE_NAMES,
+  getCookie,
+  UserData,
+} from "utils/cookies/cookie-manager";
 
 interface StoriesPaginationWrapperProps {
   next_page_url: string | number;
@@ -46,11 +51,10 @@ function StoriesPaginationWrapper({
       // Get user token from localStorage if available
       let userToken: string | undefined;
       if (typeof window !== "undefined") {
-        const userStoriesData = localStorage.getItem("USER-STORIES");
+        const userStoriesData = getCookie<UserData>(COOKIE_NAMES.USER_STORIES);
         if (userStoriesData) {
           try {
-            const parsedUserData = JSON.parse(userStoriesData);
-            userToken = parsedUserData?.access_token;
+            userToken = userStoriesData?.access_token;
           } catch (e) {
             // Invalid JSON, ignore
           }

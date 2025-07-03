@@ -24,7 +24,9 @@ import NextLink from "components/global/NextLink";
 import { useParams } from "next/navigation";
 import { useAppStore } from "store";
 import ChatPhoto from "./ChatPhoto";
+import { getUser } from "../chatsFunctions";
 function ChatMessage(props) {
+  const user = getUser();
   const { language, activeChat, deleteMessage } = useAppStore();
   let { lang } = useParams();
   // @ts-ignore
@@ -134,9 +136,7 @@ function ChatMessage(props) {
                   </svg>
                   {getMessageTime(
                     props.message.message_status.filter(
-                      (a) =>
-                        a.user_id !==
-                        (localStorage.getItem("USER-CHAT") && getUserChat()?.id)
+                      (a) => a.user_id !== user?.id
                     )[0]?.watched_at,
                     false
                   )}
@@ -148,18 +148,12 @@ function ChatMessage(props) {
       );
     }
     if (
-      props.message.message_status.filter(
-        (a) =>
-          a.user_id !== (localStorage.getItem("USER-CHAT") && getUserChat()?.id)
-      ).length > 0 &&
-      props.message.message_status.filter(
-        (a) =>
-          a.user_id !== (localStorage.getItem("USER-CHAT") && getUserChat()?.id)
-      )[0]?.is_watched === true &&
-      props.message.message_status.filter(
-        (a) =>
-          a.user_id !== (localStorage.getItem("USER-CHAT") && getUserChat()?.id)
-      )[0]?.watched_at
+      props.message.message_status.filter((a) => a.user_id !== user?.id)
+        .length > 0 &&
+      props.message.message_status.filter((a) => a.user_id !== user?.id)[0]
+        ?.is_watched === true &&
+      props.message.message_status.filter((a) => a.user_id !== user?.id)[0]
+        ?.watched_at
     ) {
       return (
         <>
@@ -176,18 +170,12 @@ function ChatMessage(props) {
         </>
       );
     } else if (
-      props.message.message_status.filter(
-        (a) =>
-          a.user_id !== (localStorage.getItem("USER-CHAT") && getUserChat()?.id)
-      ).length > 0 &&
-      props.message.message_status.filter(
-        (a) =>
-          a.user_id !== (localStorage.getItem("USER-CHAT") && getUserChat()?.id)
-      )[0]?.is_received === 1 &&
-      props.message.message_status.filter(
-        (a) =>
-          a.user_id !== (localStorage.getItem("USER-CHAT") && getUserChat()?.id)
-      )[0]?.received_at
+      props.message.message_status.filter((a) => a.user_id !== user?.id)
+        .length > 0 &&
+      props.message.message_status.filter((a) => a.user_id !== user?.id)[0]
+        ?.is_received === 1 &&
+      props.message.message_status.filter((a) => a.user_id !== user?.id)[0]
+        ?.received_at
     ) {
       return (
         <>
@@ -499,9 +487,7 @@ function ChatMessage(props) {
                   <ReceiveIcon></ReceiveIcon>
                   {getMessageTime(
                     props.message.message_status.filter(
-                      (a) =>
-                        a.user_id !==
-                        (localStorage.getItem("USER-CHAT") && getUserChat()?.id)
+                      (a) => a.user_id !== user?.id
                     )[0]?.received_at,
                     false
                   )}
@@ -512,9 +498,7 @@ function ChatMessage(props) {
                   <ReadIcon></ReadIcon>
                   {getMessageTime(
                     props.message.message_status.filter(
-                      (a) =>
-                        a.user_id !==
-                        (localStorage.getItem("USER-CHAT") && getUserChat()?.id)
+                      (a) => a.user_id !== user?.id
                     )[0]?.watched_at,
                     false
                   )}
@@ -647,9 +631,7 @@ function ChatMessage(props) {
                   <ReceiveIcon></ReceiveIcon>
                   {getMessageTime(
                     props.message.message_status.filter(
-                      (a) =>
-                        a.user_id !==
-                        (localStorage.getItem("USER-CHAT") && getUserChat()?.id)
+                      (a) => a.user_id !== user?.id
                     )[0]?.received_at,
                     false
                   )}
@@ -660,9 +642,7 @@ function ChatMessage(props) {
                   <ReadIcon></ReadIcon>
                   {getMessageTime(
                     props.message.message_status.filter(
-                      (a) =>
-                        a.user_id !==
-                        (localStorage.getItem("USER-CHAT") && getUserChat()?.id)
+                      (a) => a.user_id !== user?.id
                     )[0]?.watched_at,
                     false
                   )}
@@ -803,9 +783,7 @@ function ChatMessage(props) {
                   <ReceiveIcon></ReceiveIcon>
                   {getMessageTime(
                     props.message.message_status.filter(
-                      (a) =>
-                        a.user_id !==
-                        (localStorage.getItem("USER-CHAT") && getUserChat()?.id)
+                      (a) => a.user_id !== user?.id
                     )[0]?.received_at,
                     false
                   )}
@@ -816,9 +794,7 @@ function ChatMessage(props) {
                   <ReadIcon></ReadIcon>
                   {getMessageTime(
                     props.message.message_status.filter(
-                      (a) =>
-                        a.user_id !==
-                        (localStorage.getItem("USER-CHAT") && getUserChat()?.id)
+                      (a) => a.user_id !== user?.id
                     )[0]?.watched_at,
                     false
                   )}
@@ -1017,9 +993,7 @@ function ChatMessage(props) {
                   <ReceiveIcon></ReceiveIcon>
                   {getMessageTime(
                     props.message.message_status.filter(
-                      (a) =>
-                        a.user_id !==
-                        (localStorage.getItem("USER-CHAT") && getUserChat()?.id)
+                      (a) => a.user_id !== user?.id
                     )[0]?.received_at,
                     false
                   )}
@@ -1030,9 +1004,7 @@ function ChatMessage(props) {
                   <ReadIcon></ReadIcon>
                   {getMessageTime(
                     props.message.message_status.filter(
-                      (a) =>
-                        a.user_id !==
-                        (localStorage.getItem("USER-CHAT") && getUserChat()?.id)
+                      (a) => a.user_id !== user?.id
                     )[0]?.watched_at,
                     false
                   )}
@@ -1157,9 +1129,7 @@ function ChatMessage(props) {
                   <ReceiveIcon></ReceiveIcon>
                   {getMessageTime(
                     props.message.message_status.filter(
-                      (a) =>
-                        a.user_id !==
-                        (localStorage.getItem("USER-CHAT") && getUserChat()?.id)
+                      (a) => a.user_id !== user?.id
                     )[0]?.received_at,
                     false
                   )}
@@ -1170,9 +1140,7 @@ function ChatMessage(props) {
                   <ReadIcon></ReadIcon>
                   {getMessageTime(
                     props.message.message_status.filter(
-                      (a) =>
-                        a.user_id !==
-                        (localStorage.getItem("USER-CHAT") && getUserChat()?.id)
+                      (a) => a.user_id !== user?.id
                     )[0]?.watched_at,
                     false
                   )}
@@ -1318,10 +1286,7 @@ function ChatMessage(props) {
                     <ReceiveIcon></ReceiveIcon>
                     {getMessageTime(
                       props.message.message_status.filter(
-                        (a) =>
-                          a.user_id !==
-                          (localStorage.getItem("USER-CHAT") &&
-                            getUserChat()?.id)
+                        (a) => a.user_id !== user?.id
                       )[0]?.received_at,
                       false
                     )}
@@ -1332,10 +1297,7 @@ function ChatMessage(props) {
                     <ReadIcon></ReadIcon>
                     {getMessageTime(
                       props.message.message_status.filter(
-                        (a) =>
-                          a.user_id !==
-                          (localStorage.getItem("USER-CHAT") &&
-                            getUserChat()?.id)
+                        (a) => a.user_id !== user?.id
                       )[0]?.watched_at,
                       false
                     )}

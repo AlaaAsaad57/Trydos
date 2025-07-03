@@ -1,9 +1,16 @@
 "use server";
-import { NextResponse } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 import { fetchCountries } from "Server Requests";
-const languagesString = '["en", "ar", "tr"]' || "[]";
-const languages = JSON.parse(languagesString);
-let cachedCountries;
+import { shouldBlockRegistration } from "@/utils/bot-detector";
+import { AuthServerService } from "@/services/auth-server";
+import {
+  COOKIE_NAMES,
+  getCookieMiddleware,
+  UserData,
+} from "utils/cookies/cookie-manager";
+
+const languages = ["en", "ar", "tr"];
+let cachedCountries: any;
 let cacheTimestamp = 0;
 const CACHE_TTL = 60 * 60 * 1000 * 24; // 1 day
 
@@ -22,6 +29,11 @@ const CheckLocalization = ({
   langFromCookies,
   lang,
   country,
+}: {
+  countryFromCookies: string | undefined;
+  langFromCookies: string | undefined;
+  lang: string;
+  country: string;
 }) => {
   if (countryFromCookies && langFromCookies) {
     if (countryFromCookies.toLowerCase() !== country.toLowerCase()) {
@@ -31,9 +43,92 @@ const CheckLocalization = ({
   return false;
 };
 
-export async function middleware(request) {
+// Paths that should skip guest registration
+const SKIP_REGISTRATION_PATHS = [
+  "/api",
+  "/_next",
+  "/static",
+  "/favicon.ico",
+  "/robots.txt",
+  "/sitemap.xml",
+  "/manifest.json",
+  "/firebase-messaging-sw.js",
+  "/api-test",
+  "/sitemap",
+  "/manifest.json",
+  "/error.png",
+  "/assets",
+  "/svg",
+  "/fonts",
+  "/translations",
+  "/reports",
+  "/images",
+  "/styles",
+  "/endCall",
+  "/sitemap.xml",
+  "/svg",
+  "/call_direct",
+  "/error.png",
+  "/static",
+  "/noposter",
+  "/revalidate",
+  "/callInProg",
+  "/selectCountry",
+  "/.well-known/appspecific/com.chrome.devtools.json",
+  "/.well-known/appspecific/com.chrome.devtools.json",
+  "/appspecific/com.chrome.devtools.json",
+];
+
+function shouldSkipRegistration(pathname: string): boolean {
+  return SKIP_REGISTRATION_PATHS.some((path) => pathname.startsWith(path));
+}
+
+export async function middleware(request: NextRequest) {
+  const userData = getCookieMiddleware<UserData>(
+    request,
+    COOKIE_NAMES.USER_DATA
+  );
   const response = NextResponse.next();
+  if (
+    request.method === "POST" ||
+    !request.headers.get("accept")?.includes("text/html")
+  ) {
+    return response;
+  }
   const url = request.nextUrl.clone();
+  const pathname = url.pathname;
+
+  // ===== GUEST REGISTRATION LOGIC =====
+  // Only run for HTML pages, not API routes or static assets
+  if (!shouldSkipRegistration(pathname) && !userData) {
+    try {
+      // Check if request is from a bot
+      const isBot = shouldBlockRegistration(request);
+
+      if (!isBot) {
+        // Not a bot - ensure guest session exists
+        const registrationResult =
+          await AuthServerService.ensureGuestSessionMiddleware(
+            request,
+            response
+          );
+
+        if (!registrationResult.success) {
+          console.error("Guest registration failed:", registrationResult.error);
+        }
+      } else {
+        console.log(
+          "Bot detected, skipping guest registration:",
+          request.headers.get("user-agent")
+        );
+      }
+    } catch (error) {
+      // Don't block the request if registration fails
+      console.error("Middleware guest registration error:", error);
+    }
+  }
+
+  // ===== EXISTING LOCALIZATION LOGIC =====
   const countryLang = url.pathname.split("/")[1]?.toLowerCase();
   const countryUrl = url.pathname.split("/")[1]?.toLowerCase()?.split("-")[0];
   const langUrl = url.pathname.split("/")[1]?.toLowerCase()?.split("-")[1];
@@ -41,29 +136,14 @@ export async function middleware(request) {
   const countryFromCookies = cookies.get("country")?.value?.toLowerCase();
   const langFromCookies = cookies.get("lang")?.value?.toLowerCase() || "en";
 
-  // Add comprehensive logging
-  // console.log("🔍 MIDDLEWARE DEBUG:", {
-  //   url: url.toString(),
-  //   pathname: url.pathname,
-  //   search: url.search,
-  //   countryLang,
-  //   countryUrl,
-  //   langUrl,
-  //   countryFromCookies,
-  //   langFromCookies,
-  //   userAgent: request.headers.get("user-agent")?.substring(0, 50),
-  // });
-
   // Handle bypass parameter - skip all checks and clean URL
   if (url.searchParams.get("_bypass") === "popup-selection") {
-    // console.log("🚀 BYPASSING middleware checks for popup selection");
-
     // Set cookies to match URL
     const cookieOptions = {
       path: "/",
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "Strict",
+      sameSite: "strict" as const,
       maxAge: 360 * 7 * 24 * 60 * 60,
     };
 
@@ -79,11 +159,9 @@ export async function middleware(request) {
 
     // Redirect to clean URL if there are remaining params, otherwise proceed
     if (url.search) {
-      // console.log("🔄 Cleaning URL parameters");
       return NextResponse.redirect(url);
     }
 
-    // console.log("✅ Proceeding with clean URL");
     return response;
   }
 
@@ -92,24 +170,23 @@ export async function middleware(request) {
     request.headers.get("x-redirect-count") || "0"
   );
   if (redirectCount > 2) {
-    // console.error("🚨 TOO MANY REDIRECTS, STOPPING:", redirectCount);
     return response;
   }
 
   // Get supported countries and locales
   let countryByIp = request?.geo?.country?.toLowerCase();
-  let supportedLocales = [];
+  let supportedLocales: string[] = [];
   let data = await getCachedCountries();
-  let countries = data.map((s) => s.iso.toLowerCase());
+  let countries = data.map((s: any) => s.iso.toLowerCase());
   let defaultLocale = `${countries[0]}-en`;
 
-  [...countries, "gb"].map((s) => {
-    languages.map((l) => {
+  [...countries, "gb"].forEach((s) => {
+    languages.forEach((l: string) => {
       supportedLocales.push(`${s}-${l}`);
     });
   });
 
-  let [country, lang] = countryLang?.toLowerCase()?.split("-");
+  let [country, lang] = countryLang?.toLowerCase()?.split("-") || [];
 
   // SCENARIO 1: Valid URL with country-lang format
   if (
@@ -123,14 +200,13 @@ export async function middleware(request) {
 
     // CASE 1A: Handle no-country parameter (user needs to select country)
     if (url.searchParams.get("no-country")) {
-      // console.log("🏁 Showing country selection popup");
       // Set cookies for current URL locale if not already set
       if (!countryFromCookies) {
         response.cookies.set("country", country.toLowerCase(), {
           path: "/",
           httpOnly: true,
           secure: process.env.NODE_ENV === "production",
-          sameSite: "Strict",
+          sameSite: "strict",
           maxAge: 360 * 7 * 24 * 60 * 60,
         });
       }
@@ -139,14 +215,14 @@ export async function middleware(request) {
           path: "/",
           httpOnly: true,
           secure: process.env.NODE_ENV === "production",
-          sameSite: "Strict",
+          sameSite: "strict",
           maxAge: 360 * 7 * 24 * 60 * 60,
         });
         response.cookies.set("language", lang.toLowerCase(), {
           path: "/",
           httpOnly: true,
           secure: process.env.NODE_ENV === "production",
-          sameSite: "Strict",
+          sameSite: "strict",
           maxAge: 360 * 7 * 24 * 60 * 60,
         });
       }
@@ -161,40 +237,34 @@ export async function middleware(request) {
       langUrl?.toLowerCase() === langFromCookies?.toLowerCase() &&
       !url.searchParams.get("changed-country")
     ) {
-      // console.log("✅ Cookies match URL, proceeding normally");
       return response;
     }
 
     // CASE 1C: No country cookies - proceed with URL country (don't show popup)
     if (!countryFromCookies || countryFromCookies.length === 0) {
-      // console.log(
-      //   "🚫 No cookies found, but URL has valid country - setting cookies and proceeding"
-      // );
       // Set cookies for current URL locale and proceed directly
       response.cookies.set("country", country.toLowerCase(), {
         path: "/",
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
-        sameSite: "Strict",
+        sameSite: "strict",
         maxAge: 360 * 7 * 24 * 60 * 60,
       });
       response.cookies.set("lang", lang.toLowerCase(), {
         path: "/",
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
-        sameSite: "Strict",
+        sameSite: "strict",
         maxAge: 360 * 7 * 24 * 60 * 60,
       });
       response.cookies.set("language", lang.toLowerCase(), {
         path: "/",
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
-        sameSite: "Strict",
+        sameSite: "strict",
         maxAge: 360 * 7 * 24 * 60 * 60,
       });
 
-      // Proceed directly without showing popup
-      // console.log("✅ Cookies set for valid URL country, proceeding normally");
       return response;
     }
 
@@ -210,7 +280,6 @@ export async function middleware(request) {
       isChangedLocalizationByUrl &&
       !url.searchParams.get("changed-country")
     ) {
-      // console.log("🔄 Country changed, showing choice popup");
       url.searchParams.delete("cart");
       url.searchParams.set(
         "changed-country",
@@ -226,27 +295,26 @@ export async function middleware(request) {
 
     // CASE 1E: Handle changed-country parameter (show country choice popup)
     if (url.searchParams.get("changed-country")) {
-      // console.log("🏁 Showing country change popup");
       // Set cookies for current URL locale
       response.cookies.set("country", country.toLowerCase(), {
         path: "/",
         httpOnly: true,
         secure: false,
-        sameSite: "Strict",
+        sameSite: "strict",
         maxAge: 360 * 7 * 24 * 60 * 60,
       });
       response.cookies.set("lang", lang.toLowerCase(), {
         path: "/",
         httpOnly: true,
         secure: false,
-        sameSite: "Strict",
+        sameSite: "strict",
         maxAge: 360 * 7 * 24 * 60 * 60,
       });
       response.cookies.set("language", lang.toLowerCase(), {
         path: "/",
         httpOnly: true,
         secure: false,
-        sameSite: "Strict",
+        sameSite: "strict",
         maxAge: 360 * 7 * 24 * 60 * 60,
       });
 
@@ -258,27 +326,26 @@ export async function middleware(request) {
       path: "/",
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "Strict",
+      sameSite: "strict",
       maxAge: 360 * 7 * 24 * 60 * 60,
     });
     response.cookies.set("lang", lang.toLowerCase(), {
       path: "/",
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "Strict",
+      sameSite: "strict",
       maxAge: 360 * 7 * 24 * 60 * 60,
     });
     response.cookies.set("language", lang.toLowerCase(), {
       path: "/",
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "Strict",
+      sameSite: "strict",
       maxAge: 360 * 7 * 24 * 60 * 60,
     });
 
     return response;
   }
-
   // SCENARIO 2: No valid URL format but has cookies - redirect to cookie locale
   else if (countryFromCookies && langFromCookies) {
     let pathname =
@@ -292,7 +359,6 @@ export async function middleware(request) {
       return NextResponse.redirect(url);
     }
   }
-
   // SCENARIO 3: No cookies, try IP-based detection
   else if (countryByIp && countries.includes(countryByIp)) {
     defaultLocale = `${countryByIp}-en`;
@@ -300,7 +366,6 @@ export async function middleware(request) {
     url.searchParams.set("no-country", "true");
     return NextResponse.redirect(url);
   }
-
   // SCENARIO 4: Fallback to default locale with country selection
   else {
     if (url.pathname.split("/")[1]?.includes("-")) {

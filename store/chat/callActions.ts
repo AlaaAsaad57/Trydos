@@ -108,7 +108,7 @@ export const AnswerCall = async (channelId, messageId) => {
     });
     if (
       response.data.filter(
-        (user) => parseInt(user.user.id) === parseInt(getUserChat().id)
+        (user) => parseInt(user.user.id) === parseInt(getUserChat().id as any)
       )[0].status === "active"
     )
       status = true;

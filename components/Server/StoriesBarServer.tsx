@@ -6,7 +6,11 @@ import StoriesStoreInitializer from "components/Home/Stories/StoriesStoreInitial
 import StoryElement from "components/Home/Stories/StoryElement";
 import StoriesSkeleton from "components/skeleton/StoriesSkeleton";
 import { fetchStories } from "@/Server Requests";
-import { cookies } from "next/headers";
+import {
+  COOKIE_NAMES,
+  getCookieServer,
+  UserData,
+} from "utils/cookies/cookie-manager";
 
 interface StoriesBarServerProps {
   language: string;
@@ -16,24 +20,16 @@ interface StoriesBarServerProps {
 async function StoriesBarServer({ language, country }: StoriesBarServerProps) {
   try {
     // Get user token from cookies if available
-    const cookieStore = cookies();
-    const userStoriesData = cookieStore.get("token");
-    let userToken: string | undefined;
-
-    if (userStoriesData?.value) {
-      try {
-        userToken = userStoriesData.value;
-      } catch (e) {
-        // Invalid JSON in cookie, ignore
-      }
-    }
+    const STORIES_TOKEN = await getCookieServer<UserData>(
+      COOKIE_NAMES.USER_STORIES
+    );
 
     // Fetch stories data
     const { data: storiesData, next_page_url } = await fetchStories(
       language,
       country,
       1,
-      userToken
+      STORIES_TOKEN?.access_token
     );
 
     return (

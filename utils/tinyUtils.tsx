@@ -1,16 +1,9 @@
 import { useAppStore } from "store";
-
 import { translateFunction } from "./functions";
-import dynamic from "next/dynamic";
 import replaceString from "replace-string";
 import { allCountries } from "country-telephone-data";
-
-import Cookies from "js-cookie";
-
-import { changeToken } from "store/homepage/cachedActions";
 import { textMarshal } from "node_modules/text-marshal/lib";
 import { GA_GLOBAL_SCREEN } from "./GAEvents";
-import { showErrorNotification } from "@/store/notifications/reducer";
 import { fetchData } from "./fetchData";
 // TypeScript interfaces for filter system
 export interface FilterParams {
@@ -393,31 +386,6 @@ export const formatTimeForAddress = (timeString: string) => {
   const year = date.getFullYear();
 
   return `${day}/${month}/${year} | ${timeFormat}`;
-};
-export const UnAuthintacetedAction = () => {
-  const { setAddStory, setShouldAuthinticated, setChatOpen } =
-    useAppStore.getState();
-
-  changeToken({ key: "token", deleteOption: true });
-  changeToken({ key: "MARKET-TOKEN", deleteOption: true });
-  changeToken({ key: "DEVICE-TOKEN", deleteOption: true });
-  // localStorage.removeItem("USER-STORIES");
-  // localStorage.removeItem("USER-CHAT");
-  if (localStorage.getItem("USER")) {
-    localStorage.setItem(
-      "guest-user",
-      JSON.stringify({
-        ...JSON.parse(localStorage.getItem("USER")),
-        is_phone_verified: 0,
-      })
-    );
-  }
-  localStorage.removeItem("USER");
-  Cookies.remove("token");
-  showErrorNotification(
-    translateFunction("Session Expired..please Verify Your Phone Number")
-  );
-  setShouldAuthinticated(true);
 };
 export const GetAddressString = (location) => {
   let str = "";

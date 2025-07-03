@@ -16,9 +16,9 @@ export default function GlobalError({ error, reset }) {
       last_json = (await localStorage.getItem("LAST_JSON"))
         ? JSON.parse(localStorage.getItem("LAST_JSON"))
         : null;
-      token = AuthService.UserToken();
-      user_id = AuthService.UserID();
     }
+    token = AuthService.UserToken();
+    user_id = AuthService.UserID();
     Sentry.captureException(error);
 
     let errorObj = {

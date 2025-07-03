@@ -44,6 +44,8 @@ interface AuthState {
 export const useAuthStore = (set, get) => ({
   // Initial state
   user: null,
+  userChat: null,
+  userStories: null,
   Tempuser: null,
   failedLogin: false,
   shouldAuthinticated: false,
@@ -77,17 +79,30 @@ export const useAuthStore = (set, get) => ({
       userProfile: { ...(state.userProfile ?? {}), ...info },
     })),
 
-  cancelAuth: () =>
-    set({
-      user: null,
+  cancelAuth: (isForzexpired?) =>
+    set((state) => ({
+      user: isForzexpired
+        ? state.user && { ...state.user, is_phone_verified: 0, is_verified: 0 }
+        : null,
       Tempuser: null,
+      userChat: null,
+      userStories: null,
       failedLogin: false,
       attempts: 4,
       wrongNumber: "",
 
       verficationID: null,
-    }),
-
+    })),
+  loginSuccessChat: (userData) =>
+    set((state) => ({
+      userChat: state.userChat ? { ...state.userChat, ...userData } : userData,
+    })),
+  loginSuccessStories: (userData) =>
+    set((state) => ({
+      userStories: state.userStories
+        ? { ...state.userStories, ...userData }
+        : userData,
+    })),
   loginSuccess: (userData) =>
     set((state) => ({
       user: state.user ? { ...state.user, ...userData } : userData,

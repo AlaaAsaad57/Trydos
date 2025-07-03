@@ -6,6 +6,11 @@ import { ShareSectionPropsType } from "models/componentType/ShareSectionPropsTyp
 
 import chat from "services/chat";
 import Spinner from "components/global/Spinner";
+import {
+  COOKIE_NAMES,
+  getCookie,
+  UserData,
+} from "utils/cookies/cookie-manager";
 
 function ShareSection({
   setShareContacts,
@@ -21,7 +26,8 @@ function ShareSection({
     return translateFunction(key, languageVariable);
   };
   useEffect(() => {
-    if (localStorage.getItem("USER-CHAT")) {
+    const userChat = getCookie<UserData>(COOKIE_NAMES.USER_CHAT);
+    if (userChat) {
       getContactsData();
     }
   }, []);

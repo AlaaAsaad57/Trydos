@@ -112,7 +112,8 @@ class SearchService {
       const filtersResponseJson = await fetch(
         `${apiUrl}?${configuredParams.toString()}`,
         {
-          signal, // Pass the abort signal to fetch
+          signal,
+          // @ts-ignore
           headers: {
             lang: lang.split("-")[1] || "en",
             country: lang.split("-")[0] || "tr",

@@ -1,9 +1,9 @@
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 import NextLink from "components/global/NextLink";
 import { BuyButtonProduct } from "components/ListingPage/Product";
-import FlashDealBanner from "components/products/FlashDealBanner";
+
 import ProductBanner from "components/products/ProductBanner";
-import { SearchResponse } from "models/API/elastic/Search";
+
 import { CurrencyApi } from "models/API/market/CurrencyApi";
 import Image from "next/image";
 import React, { Suspense } from "react";

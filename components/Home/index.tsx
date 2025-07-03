@@ -15,6 +15,11 @@ import { useAppStore } from "store";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import { showErrorNotification } from "@/store/notifications/reducer";
+import {
+  COOKIE_NAMES,
+  getCookie,
+  UserData,
+} from "utils/cookies/cookie-manager";
 export default function Home() {
   const router = useRouter();
   const pathname = usePathname();
@@ -68,15 +73,18 @@ export default function Home() {
   };
 
   const getNameModalOpen = () => {
-    let name =
-      typeof window !== "undefined" &&
-      JSON.parse(localStorage.getItem("USER") || "{}")?.name;
-    return (
-      getUserChat()?.id &&
-      auth.getUser()?.id &&
-      (!name || name?.length === 0) &&
-      nameModal
-    );
+    if (typeof window === "undefined") {
+      return false;
+    } else {
+      const user = getCookie<UserData>(COOKIE_NAMES.USER_DATA);
+      let name = user?.name;
+      return (
+        getUserChat()?.id &&
+        auth.getUser()?.id &&
+        (!name || name?.length === 0) &&
+        nameModal
+      );
+    }
   };
   return (
     <>

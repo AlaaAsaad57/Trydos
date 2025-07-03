@@ -17,6 +17,12 @@ import { useAppStore } from "store";
 
 import { formatTime, GetImageUrl } from "utils/tinyUtils";
 import { fetchData } from "utils/fetchData";
+import {
+  COOKIE_NAMES,
+  getCookie,
+  UserData,
+  setCookie,
+} from "utils/cookies/cookie-manager";
 
 class StoryService {
   /* get stories */
@@ -40,6 +46,8 @@ class StoryService {
     return { data, next_page_url: repo.data.next_page_url };
   }
   async loginStories() {
+    const { loginSuccessStories } = useAppStore.getState();
+    const user = getCookie<UserData>(COOKIE_NAMES.USER_DATA);
     const response = await fetchData({
       url: LOG_IN_STORIES,
       reqTitle: "Login Stories",
@@ -47,12 +55,13 @@ class StoryService {
       server: "stories",
       body: JSON.stringify({
         otp_id_token: localStorage.getItem("ID-TOKEN"),
-        mobile_phone: JSON.parse(localStorage.getItem("USER")).phone,
+        mobile_phone: user?.phone,
       }),
     });
-
-    localStorage.setItem("USER-STORIES", JSON.stringify(response.data));
-
+    setCookie(COOKIE_NAMES.USER_STORIES, response.data);
+    loginSuccessStories({
+      ...response.data,
+    });
     await this.getStories();
   }
   async WatchStory(pid: number | string, id: number | string) {
@@ -95,10 +104,7 @@ class StoryService {
     else throw new Error("Failed");
   }
   getUserStories() {
-    return (
-      localStorage.getItem("USER-STORIES") &&
-      JSON.parse(localStorage.getItem("USER-STORIES"))
-    );
+    return getCookie<UserData>(COOKIE_NAMES.USER_STORIES);
   }
   configureStory(story) {
     let returnedData = [];
