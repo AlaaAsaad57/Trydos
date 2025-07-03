@@ -107,6 +107,7 @@ export async function middleware(request: NextRequest) {
 
       if (!isBot) {
         // Not a bot - ensure guest session exists
+        console.warn("ensureGuestSessionMiddleware", JSON.stringify(request));
         const registrationResult =
           await AuthServerService.ensureGuestSessionMiddleware(
             request,
