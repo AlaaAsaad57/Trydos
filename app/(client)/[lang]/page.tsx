@@ -24,7 +24,7 @@ export const dynamic = "auto";
 export async function generateMetadata({ params }) {
   try {
     const metadata = await getHomeMetadata({ params });
-    console.log("**********metadata***********", JSON.stringify(metadata));
+    // console.log("**********metadata***********", JSON.stringify(metadata));
     return metadata;
   } catch (error) {
     console.log(error);
@@ -43,10 +43,10 @@ async function StructuredDataScript({ params }) {
       params,
     });
     const structuredData = metadataWithStructuredData.structuredData;
-    console.log(
-      "**********structuredData***********",
-      JSON.stringify(structuredData)
-    );
+    // console.log(
+    //   "**********structuredData***********",
+    //   JSON.stringify(structuredData)
+    // );
 
     if (!structuredData) return null;
 
