@@ -365,7 +365,7 @@ class AuthService {
         ...user,
         name: userObj?.name ?? userProfile?.name,
         phone: userObj?.phone ?? userProfile?.phone,
-        image: userObj?.image,
+        image: this.getImageForCookie(userObj?.image),
       });
 
       return res;
@@ -379,6 +379,12 @@ class AuthService {
           server: "market",
         });
         market_done = true;
+        setCookie(COOKIE_NAMES.USER_DATA, {
+          ...user,
+          name: userObj?.name ?? userProfile?.name,
+          phone: userObj?.phone ?? userProfile?.phone,
+          image: this.getImageForCookie(userProfile?.image),
+        });
       }
       if (stories_done) {
         await fetchData({
@@ -391,6 +397,12 @@ class AuthService {
             mobile_phone: userProfile?.phone,
             photo_path: userProfile?.image,
           }),
+        });
+        setCookie(COOKIE_NAMES.USER_STORIES, {
+          ...userStories,
+          name: userProfile?.name,
+          mobile_phone: userProfile?.phone,
+          photo_path: this.ConfigurePhoto(userProfile?.image, "story"),
         });
       }
       if (chat_done) {
@@ -405,9 +417,22 @@ class AuthService {
             photo_path: userProfile?.image,
           }),
         });
+        setCookie(COOKIE_NAMES.USER_CHAT, {
+          ...userChat,
+          name: userObj?.name ?? userProfile?.name,
+          mobile_phone: userObj?.phone ?? userProfile?.phone,
+          photo_path: this.ConfigurePhoto(userProfile?.image, "chat"),
+        });
       }
       showErrorNotification(translateFunction("Failed to update profile Info"));
       throw error;
+    }
+  }
+  getImageForCookie(image) {
+    if (!image?.includes("customers") && image?.length) {
+      return "/customers/profile/" + image;
+    } else {
+      return image;
     }
   }
   async UpdateProfileImage(image) {

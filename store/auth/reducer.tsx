@@ -77,6 +77,7 @@ export const useAuthStore = (set, get) => ({
   editUserInfo: (info) =>
     set((state) => ({
       userProfile: { ...(state.userProfile ?? {}), ...info },
+      user: { ...(state.user ?? {}), ...info },
     })),
 
   cancelAuth: (isForzexpired?) =>
@@ -120,7 +121,11 @@ export const useAuthStore = (set, get) => ({
 
   setVerificationId: (id) => set({ verficationID: id }),
 
-  updateUserInfo: (profile) => set({ userProfile: profile }),
+  updateUserInfo: (profile) =>
+    set((state) => ({
+      userProfile: profile,
+      user: { ...(state.user ?? {}), ...profile },
+    })),
 
   getFirebaseSettings: (settings) => set({ firebaseSettings: settings }),
 

@@ -1,5 +1,4 @@
 import "styles/globals.css";
-
 import "styles/home.css";
 import "styles/unused-onload.css";
 import Providers from "store/provider";
@@ -7,7 +6,6 @@ import localFont from "next/font/local";
 import { Suspense } from "react";
 import NextLink from "components/global/NextLink";
 import Logo from "components/Home/Logo";
-import UserNavTopSection from "components/Home/UserNavTopSection";
 import Skeleton from "react-loading-skeleton";
 import NavbarClient from "components/Home/NavbarClient";
 import PageLoadingIndicator from "hooks/PageLoadingIndicator";
@@ -17,6 +15,7 @@ import { GA_MEASUREMENT_ID } from "utils/gtag";
 import { ErrorReporterInit } from "components/global/ErrorReporterInit";
 import { ErrorTester } from "components/dev/ErrorTester";
 import { HydrationProvider } from "components/global/HydrationProvider";
+import AuthNavContainer from "components/Home/AuthNavContainer";
 export const metadata = {
   title: "TryDos",
   description: "TryDos E-Commerce Website",
@@ -151,7 +150,7 @@ export default function RootLayout({ params, children }) {
                     </div>
                   }
                 >
-                  <UserNavTopSection />
+                  <AuthNavContainer />
                 </Suspense>
               </div>
 

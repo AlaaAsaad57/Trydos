@@ -97,7 +97,9 @@ class HomeService {
         method: "GET",
         server: "market",
       });
-
+    setCookie(COOKIE_NAMES.USER_DATA, {
+      ...response_customer_Info.data.customer_info,
+    });
     try {
       if (response_customer_Info.data.customer_info) {
         if (response_customer_Info.data.customer_info) {
