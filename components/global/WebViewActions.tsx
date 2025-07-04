@@ -1,141 +1,124 @@
-import axios from "axios";
-
 export const AnswerCall = async (token, mid, chid) => {
-  let req = await axios
-    .post(
-      process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
-        `/api/v1/messages/answer_call/${mid}`,
-      {},
-      {
-        headers: {
-          Authorization: "Bearer " + token,
-        },
-      }
-    )
-    .then((data) => {});
+  await fetch(
+    process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
+      `/api/v1/messages/answer_call/${mid}`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: "Bearer " + token,
+      },
+    }
+  );
 };
 export const getAgoraToken = async (channel_id, token, mid, uid) => {
   let tok, status, req;
-  req = await axios
-    .post(
-      process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
-        `/api/v1/channels/${channel_id}/agora_token`,
-      {},
-      {
-        headers: {
-          Authorization: "Bearer " + token,
-        },
-      }
-    )
-    .then((data) => {
-      tok = data.data.data;
-    });
-  await axios
-    .get(
-      process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
-        `/api/v1/messages/${mid}/users`,
-      {
-        headers: {
-          Authorization: "Bearer " + token,
-        },
-      }
-    )
-    .then((data) => {
-      if (
-        data.data.data.filter(
-          (user) => parseInt(user.user.id) === parseInt(uid)
-        )[0]?.status === "active"
-      )
-        status = true;
-      else {
-        status = false;
-      }
-      //    alert(JSON.stringify(data.data.data))
-    });
+  let AgoraTokenResponse = await fetch(
+    process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
+      `/api/v1/channels/${channel_id}/agora_token`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: "Bearer " + token,
+      },
+    }
+  );
+  let AgoraTokenData = await AgoraTokenResponse.json();
+  tok = AgoraTokenData.data;
+  let UserResponse = await fetch(
+    process.env.NEXT_PUBLIC_CHAT_BACKEND_URL + `/api/v1/messages/${mid}/users`,
+    {
+      method: "GET",
+      headers: {
+        Authorization: "Bearer " + token,
+      },
+    }
+  );
+  let UserData = await UserResponse.json();
+  if (
+    UserData.data.filter((user) => parseInt(user.user.id) === parseInt(uid))[0]
+      ?.status === "active"
+  ) {
+    status = true;
+  } else {
+    status = false;
+  }
   if (!status) await AnswerWebView(token, mid);
   return [tok, status];
 };
 export const getAgoraTokenForInit = async (channel_id, token, mid) => {
-  let tok, req;
-  req = await axios
-    .post(
-      process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
-        `/api/v1/channels/${channel_id}/agora_token`,
-      {},
-      {
-        headers: {
-          Authorization: "Bearer " + token,
-        },
-      }
-    )
-    .then((data) => {
-      tok = data.data.data;
-    })
-    .catch((e) => {
-      alert(e.message);
-    });
+  let AgoraTokenResponse = await fetch(
+    process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
+      `/api/v1/channels/${channel_id}/agora_token`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: "Bearer " + token,
+      },
+    }
+  );
+  let AgoraTokenData = await AgoraTokenResponse.json();
+  let tok = AgoraTokenData.data;
+
   return tok;
 };
 export const getUserInfo = async (token, channel) => {
   let datas = [];
-  await axios
-    .get(
-      process.env.NEXT_PUBLIC_CHAT_BACKEND_URL + "/api/v1/channels/" + channel,
-      {
-        headers: {
-          Authorization: "Bearer " + token,
-        },
-      }
-    )
-    .then((data) => {
-      datas = [
-        data.data.data.channel_name,
-        data.data.data.mobile_phone,
-        data.data.data.photo_path,
-      ];
-    });
+  let UserResponse = await fetch(
+    process.env.NEXT_PUBLIC_CHAT_BACKEND_URL + `/api/v1/channels/${channel}`,
+    {
+      method: "GET",
+      headers: {
+        Authorization: "Bearer " + token,
+      },
+    }
+  );
+  let UserData = await UserResponse.json();
+  datas = [
+    UserData.data.channel_name,
+    UserData.data.mobile_phone,
+    UserData.data.photo_path,
+  ];
   return datas;
 };
 export const Decline = async (token, mid, duration) => {
-  let req = await axios
-    .post(
-      process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
-        `/api/v1/messages/refuse_call/${mid}`,
-      { duration_in_seconds: duration || 0, payload: { target: "webview" } },
-      {
-        headers: {
-          Authorization: "Bearer " + token,
-        },
-      }
-    )
-    .then((data) => {});
+  await fetch(
+    process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
+      `/api/v1/messages/refuse_call/${mid}`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: "Bearer " + token,
+      },
+      body: JSON.stringify({
+        duration_in_seconds: duration || 0,
+        payload: { target: "webview" },
+      }),
+    }
+  );
 };
 export const StartTalking = async (token, mid) => {
-  let req = await axios
-    .post(
-      process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
-        `/api/v1/messages/start_talking/${mid}`,
-      {
-        headers: {
-          Authorization: "Bearer " + token,
-        },
-      }
-    )
-    .then((data) => {});
+  await fetch(
+    process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
+      `/api/v1/messages/start_talking/${mid}`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: "Bearer " + token,
+      },
+    }
+  );
 };
 export const AnswerWebView = async (token, messageId) => {
   try {
-    await axios
-      .post(
-        process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
-          `/api/v1/messages/answer_call/${messageId}`,
-        {},
-        {
-          headers: {
-            Authorization: `Bearer ` + token,
-          },
-        }
-      )
-      .then(() => {});
+    await fetch(
+      process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
+        `/api/v1/messages/answer_call/${messageId}`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: "Bearer " + token,
+        },
+      }
+    );
   } catch (e) {}
 };
