@@ -104,7 +104,6 @@ messaging.onBackgroundMessage(async function (payload) {
       console.log(
         "✅ Notification sent to foreground, skipping background notification"
       );
-      return; // Don't show background notification
     }
 
     // If no tabs are open, proceed with background notifications

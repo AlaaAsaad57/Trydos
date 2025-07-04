@@ -278,7 +278,7 @@ export const fetchData = async <T = any>(
       if (_isStoreLastJson()) {
         localStorage.setItem("LAST_JSON", JSON.stringify(responseData));
       }
-      if (reqTitle.includes("Add to cart widget")) {
+      if (typeof reqTitle === "string" && reqTitle.includes("Add to cart widget")) {
         showSuccessMessage(
           responseData?.message ?? responseData?.data?.message ?? ""
         );
@@ -321,7 +321,7 @@ export const fetchData = async <T = any>(
         }
       }
       // Re-throw the error for the caller to handle
-      if (reqTitle.includes("Add to cart widget")) {
+      if (typeof reqTitle === "string" && reqTitle.includes("Add to cart widget")) {
         showErrorMessage(`${err?.message || "Falied"}`);
       } else showErrorNotification(`${err?.message || "Falied"}`);
       let errorObj = {

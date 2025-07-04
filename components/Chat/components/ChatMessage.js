@@ -24,6 +24,17 @@ import NextLink from "components/global/NextLink";
 import { useParams } from "next/navigation";
 import { useAppStore } from "store";
 import ChatPhoto from "./ChatPhoto";
+
+// Add a helper to sanitize IDs
+const getSafeId = (id) => {
+  if (!id) return '';
+  let str = String(id);
+  // Remove all non-alphanumeric characters and ensure it starts with a letter
+  str = str.replace(/[^a-zA-Z0-9_-]/g, '');
+  if (!/^[a-zA-Z]/.test(str)) str = 'm' + str;
+  return str;
+};
+
 function ChatMessage(props) {
   const { language, activeChat, deleteMessage } = useAppStore();
   let { lang } = useParams();
@@ -41,6 +52,7 @@ function ChatMessage(props) {
 
   const [playing, setPlay] = useState(false);
   const [DeleteModal, setDelete] = useState(false);
+
   const getStatues = () => {
     let a = props.message.message_status.filter(
       (a) => a.user_id !== getUserChat()?.id
@@ -278,10 +290,10 @@ function ChatMessage(props) {
   };
   function step() {
     if (
-      document.querySelector(`#wav${props.message.id || props.message.mid}`)
+      document.querySelector(`#wav${getSafeId(props.message.id || props.message.mid)}`)
     ) {
       let el = document.querySelector(
-        `#wav${props.message.id || props.message.mid}`
+        `#wav${getSafeId(props.message.id || props.message.mid)}`
       );
       el.style.marginLeft = `${width}px`;
     }
@@ -988,7 +1000,7 @@ function ChatMessage(props) {
                         )}
                         <div
                           className="wave"
-                          id={`wav${props.message.id || props.message.mid}`}
+                          id={`wav${getSafeId(props.message.id || props.message.mid)}`}
                         >
                           <WaveIcon></WaveIcon>
                         </div>
@@ -1962,7 +1974,7 @@ function ChatMessage(props) {
                         )}
                         <div
                           className="wave"
-                          id={`wav${props.message.id || props.message.mid}`}
+                          id={`wav${getSafeId(props.message.id || props.message.mid)}`}
                         >
                           <WaveIcon></WaveIcon>
                         </div>

@@ -18,6 +18,7 @@ function OptionsMenu(props) {
     return translateFunction(key, languageVariable);
   };
   const { DeleteModal, setDelete } = props;
+  const messageType = props.message?.message_type?.name;
   const isSender =
     parseInt(props.message.sender_user_id) === parseInt(getUserChat()?.id);
   return (
@@ -85,10 +86,18 @@ function OptionsMenu(props) {
               <ForwardIcon></ForwardIcon>
               <div className="rep-descs">{translate("Forward", language)}</div>
             </div>
-            <div className="message-opt" onClick={() => props.copy()}>
-              <CopyIcon></CopyIcon>
-              <div className="rep-descs">{translate("Copy", language)}</div>
-            </div>
+            {messageType === "TextMessage" && (
+              <div
+                className="message-opt"
+                tabIndex={0}
+                aria-label="Copy message text"
+                onClick={() => props.copy()}
+                onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') props.copy(); }}
+              >
+                <CopyIcon></CopyIcon>
+                <div className="rep-descs">{translate("Copy", language)}</div>
+              </div>
+            )}
             <div className="message-opt">
               <CategoryIcon></CategoryIcon>
               <div className="rep-descs">
