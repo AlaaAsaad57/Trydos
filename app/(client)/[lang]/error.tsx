@@ -19,7 +19,8 @@ export default function Error({
   reset: () => void;
 }) {
   const sendError = async (error: Error & { digest?: string }) => {
-    const userAgent = navigator.userAgent || "";
+    const userAgent =
+      typeof navigator !== "undefined" ? navigator.userAgent || "" : "";
     let last_json;
     let token;
     let user_id;

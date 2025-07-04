@@ -11,7 +11,8 @@ import {
 
 export default function GlobalError({ error, reset }) {
   const sendError = async () => {
-    const userAgent = navigator.userAgent || "";
+    const userAgent =
+      typeof navigator !== "undefined" ? navigator.userAgent || "" : "";
     let last_json;
     let token, user_id;
     if (typeof window !== "undefined") {
