@@ -216,7 +216,7 @@ function Settings({ lang }: SettingsIndexPropsType) {
   useEffect(() => {
     if (!activeTab) {
       // @ts-ignore
-      router.push(`${pathname}?tab=${NavigationOptions[0].id}`, {
+      router.push(`/${lang}/setting?tab=${NavigationOptions[0].id}`, {
         // @ts-ignore
         shallow: true,
       });
@@ -252,7 +252,10 @@ function Settings({ lang }: SettingsIndexPropsType) {
       newParams.delete("id");
       newParams.set("tab", NavigationOptions[index].id);
       // @ts-ignore
-      router.push(`${pathname}?${newParams.toString()}`, { shallow: true });
+      router.push(`/${lang}/setting?${newParams.toString()}`, {
+        // @ts-ignore
+        shallow: true,
+      });
     }
     // @ts-ignore
     setTimeout(() => setIsAnimating(false), 300); // Match transition duration

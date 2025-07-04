@@ -9,38 +9,23 @@ import {
   UserData,
 } from "utils/cookies/cookie-manager";
 
-const languages = ["en", "ar", "tr"];
-let cachedCountries: any;
-let cacheTimestamp = 0;
+// Constants
+const SUPPORTED_LANGUAGES = ["en", "ar", "tr"];
+const DEFAULT_LANGUAGE = "en";
+const DEFAULT_COUNTRY = "gb";
 const CACHE_TTL = 60 * 60 * 1000 * 24; // 1 day
 
-async function getCachedCountries() {
-  const now = Date.now();
-  if (!cachedCountries || now - cacheTimestamp > CACHE_TTL) {
-    const data = await fetchCountries();
-    cachedCountries = data.countries;
-    cacheTimestamp = now;
-  }
-  return cachedCountries;
-}
+// Cache for countries
+let cachedCountries: any;
+let cacheTimestamp = 0;
 
-const CheckLocalization = ({
-  countryFromCookies,
-  langFromCookies,
-  lang,
-  country,
-}: {
-  countryFromCookies: string | undefined;
-  langFromCookies: string | undefined;
-  lang: string;
-  country: string;
-}) => {
-  if (countryFromCookies && langFromCookies) {
-    if (countryFromCookies.toLowerCase() !== country.toLowerCase()) {
-      return true;
-    }
-  }
-  return false;
+// Cookie options
+const COOKIE_OPTIONS = {
+  path: "/",
+  httpOnly: true,
+  secure: process.env.NODE_ENV === "production",
+  sameSite: "strict" as const,
+  maxAge: 360 * 7 * 24 * 60 * 60,
 };
 
 // Paths that should skip guest registration
@@ -79,34 +64,141 @@ const SKIP_REGISTRATION_PATHS = [
   "/appspecific/com.chrome.devtools.json",
 ];
 
+// Types
+interface LocaleInfo {
+  country: string;
+  language: string;
+  locale: string;
+}
+
+interface ValidationResult {
+  isValid: boolean;
+  country?: string;
+  language?: string;
+}
+
+// Helper functions
+async function getCachedCountries(): Promise<string[]> {
+  const now = Date.now();
+  if (!cachedCountries || now - cacheTimestamp > CACHE_TTL) {
+    const data = await fetchCountries();
+    cachedCountries = data.countries.map((s: any) => s.iso.toLowerCase());
+    cacheTimestamp = now;
+  }
+  return cachedCountries;
+}
+
 function shouldSkipRegistration(pathname: string): boolean {
   return SKIP_REGISTRATION_PATHS.some((path) => pathname.startsWith(path));
 }
 
+// Validation functions
+function isValidCountry(
+  country: string | undefined,
+  supportedCountries: string[]
+): boolean {
+  if (!country) return false;
+  return (
+    supportedCountries.includes(country.toLowerCase()) ||
+    country.toLowerCase() === "gb"
+  );
+}
+
+function isValidLanguage(language: string | undefined): boolean {
+  if (!language) return false;
+  return SUPPORTED_LANGUAGES.includes(language.toLowerCase());
+}
+
+function validateCookieValues(
+  countryFromCookies: string | undefined,
+  langFromCookies: string | undefined,
+  supportedCountries: string[]
+): ValidationResult {
+  const validCountry = isValidCountry(countryFromCookies, supportedCountries);
+  const validLanguage = isValidLanguage(langFromCookies);
+
+  return {
+    isValid: validCountry && validLanguage,
+    country: validCountry ? countryFromCookies!.toLowerCase() : undefined,
+    language: validLanguage ? langFromCookies!.toLowerCase() : undefined,
+  };
+}
+
+// Parse locale from URL
+function parseUrlLocale(pathname: string): LocaleInfo | null {
+  const parts = pathname.split("/")[1]?.toLowerCase()?.split("-");
+  if (parts?.length === 2) {
+    return {
+      country: parts[0],
+      language: parts[1],
+      locale: `${parts[0]}-${parts[1]}`,
+    };
+  }
+  return null;
+}
+
+// Get preferred language from Accept-Language header
+function getPreferredLanguage(request: NextRequest): string {
+  const acceptLanguage = request.headers.get("accept-language");
+  if (!acceptLanguage) return DEFAULT_LANGUAGE;
+
+  // Parse Accept-Language header
+  const languages = acceptLanguage.split(",").map((lang) => {
+    const [code] = lang.trim().split(";")[0].split("-");
+    return code.toLowerCase();
+  });
+
+  // Find first supported language
+  for (const lang of languages) {
+    if (SUPPORTED_LANGUAGES.includes(lang)) {
+      return lang;
+    }
+  }
+
+  return DEFAULT_LANGUAGE;
+}
+
+// Build locale string
+function buildLocale(country: string, language: string): string {
+  return `${country.toLowerCase()}-${language.toLowerCase()}`;
+}
+
+// Set locale cookies
+function setLocaleCookies(
+  response: NextResponse,
+  country: string,
+  language: string
+): void {
+  response.cookies.set("country", country.toLowerCase(), COOKIE_OPTIONS);
+  response.cookies.set("lang", language.toLowerCase(), COOKIE_OPTIONS);
+  response.cookies.set("language", language.toLowerCase(), COOKIE_OPTIONS);
+}
+
+// Main middleware function
 export async function middleware(request: NextRequest) {
   const userData = getCookieMiddleware<UserData>(
     request,
     COOKIE_NAMES.USER_DATA
   );
   const response = NextResponse.next();
+
+  // Skip non-HTML requests
   if (
     request.method === "POST" ||
     !request.headers.get("accept")?.includes("text/html")
   ) {
     return response;
   }
+
   const url = request.nextUrl.clone();
   const pathname = url.pathname;
 
   // ===== GUEST REGISTRATION LOGIC =====
-  // Only run for HTML pages, not API routes or static assets
   if (!shouldSkipRegistration(pathname) && !userData) {
     try {
-      // Check if request is from a bot
       const isBot = shouldBlockRegistration(request);
 
       if (!isBot) {
-        // Not a bot - ensure guest session exists
         console.warn("ensureGuestSessionMiddleware", JSON.stringify(request));
         const registrationResult =
           await AuthServerService.ensureGuestSessionMiddleware(
@@ -124,33 +216,43 @@ export async function middleware(request: NextRequest) {
         );
       }
     } catch (error) {
-      // Don't block the request if registration fails
       console.error("Middleware guest registration error:", error);
     }
   }
 
-  // ===== EXISTING LOCALIZATION LOGIC =====
-  const countryLang = url.pathname.split("/")[1]?.toLowerCase();
-  const countryUrl = url.pathname.split("/")[1]?.toLowerCase()?.split("-")[0];
-  const langUrl = url.pathname.split("/")[1]?.toLowerCase()?.split("-")[1];
-  const cookies = request.cookies;
-  const countryFromCookies = cookies.get("country")?.value?.toLowerCase();
-  const langFromCookies = cookies.get("lang")?.value?.toLowerCase() || "en";
+  // ===== LOCALIZATION LOGIC =====
+
+  // Get supported countries
+  const supportedCountries = await getCachedCountries();
+  const allSupportedCountries = [...supportedCountries, "gb"];
+
+  // Build supported locales
+  const supportedLocales = new Set<string>();
+  allSupportedCountries.forEach((country) => {
+    SUPPORTED_LANGUAGES.forEach((lang) => {
+      supportedLocales.add(buildLocale(country, lang));
+    });
+  });
+
+  // Parse URL locale
+  const urlLocale = parseUrlLocale(pathname);
+
+  // Get and validate cookies
+  const countryFromCookies = request.cookies.get("country")?.value;
+  const langFromCookies =
+    request.cookies.get("lang")?.value ||
+    request.cookies.get("language")?.value;
+  const cookieValidation = validateCookieValues(
+    countryFromCookies,
+    langFromCookies,
+    allSupportedCountries
+  );
 
   // Handle bypass parameter - skip all checks and clean URL
   if (url.searchParams.get("_bypass") === "popup-selection") {
-    // Set cookies to match URL
-    const cookieOptions = {
-      path: "/",
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict" as const,
-      maxAge: 360 * 7 * 24 * 60 * 60,
-    };
-
-    response.cookies.set("country", countryUrl.toLowerCase(), cookieOptions);
-    response.cookies.set("lang", langUrl.toLowerCase(), cookieOptions);
-    response.cookies.set("language", langUrl.toLowerCase(), cookieOptions);
+    if (urlLocale && supportedLocales.has(urlLocale.locale)) {
+      setLocaleCookies(response, urlLocale.country, urlLocale.language);
+    }
 
     // Clean URL by removing all navigation-related params
     url.searchParams.delete("_bypass");
@@ -158,11 +260,9 @@ export async function middleware(request: NextRequest) {
     url.searchParams.delete("no-country");
     url.searchParams.delete("_t");
 
-    // Redirect to clean URL if there are remaining params, otherwise proceed
     if (url.search) {
       return NextResponse.redirect(url);
     }
-
     return response;
   }
 
@@ -174,211 +274,105 @@ export async function middleware(request: NextRequest) {
     return response;
   }
 
-  // Get supported countries and locales
-  let countryByIp = request?.geo?.country?.toLowerCase();
-  let supportedLocales: string[] = [];
-  let data = await getCachedCountries();
-  let countries = data.map((s: any) => s.iso.toLowerCase());
-  let defaultLocale = `${countries[0]}-en`;
-
-  [...countries, "gb"].forEach((s) => {
-    languages.forEach((l: string) => {
-      supportedLocales.push(`${s}-${l}`);
-    });
-  });
-
-  let [country, lang] = countryLang?.toLowerCase()?.split("-") || [];
-
-  // SCENARIO 1: Valid URL with country-lang format
-  if (
-    countryLang?.split("-")?.length === 2 &&
-    supportedLocales?.includes(countryLang)
-  ) {
-    // Clean up timestamp parameter if present (used to bypass cache)
+  // SCENARIO 1: Valid URL locale
+  if (urlLocale && supportedLocales.has(urlLocale.locale)) {
+    // Clean up timestamp parameter if present
     if (url.searchParams.get("_t")) {
       url.searchParams.delete("_t");
     }
 
-    // CASE 1A: Handle no-country parameter (user needs to select country)
+    // CASE 1A: Handle no-country parameter
     if (url.searchParams.get("no-country")) {
-      // Set cookies for current URL locale if not already set
-      if (!countryFromCookies) {
-        response.cookies.set("country", country.toLowerCase(), {
-          path: "/",
-          httpOnly: true,
-          secure: process.env.NODE_ENV === "production",
-          sameSite: "strict",
-          maxAge: 360 * 7 * 24 * 60 * 60,
-        });
-      }
-      if (!langFromCookies) {
-        response.cookies.set("lang", lang.toLowerCase(), {
-          path: "/",
-          httpOnly: true,
-          secure: process.env.NODE_ENV === "production",
-          sameSite: "strict",
-          maxAge: 360 * 7 * 24 * 60 * 60,
-        });
-        response.cookies.set("language", lang.toLowerCase(), {
-          path: "/",
-          httpOnly: true,
-          secure: process.env.NODE_ENV === "production",
-          sameSite: "strict",
-          maxAge: 360 * 7 * 24 * 60 * 60,
-        });
-      }
+      setLocaleCookies(response, urlLocale.country, urlLocale.language);
       return response; // Show the popup
     }
 
-    // CASE 1B: Same country and lang as cookies - proceed normally
-    if (
-      countryFromCookies?.length > 0 &&
-      langFromCookies?.length > 0 &&
-      countryUrl?.toLowerCase() === countryFromCookies?.toLowerCase() &&
-      langUrl?.toLowerCase() === langFromCookies?.toLowerCase() &&
-      !url.searchParams.get("changed-country")
-    ) {
+    // CASE 1B: Check if cookies match URL (only if cookies are valid)
+    if (cookieValidation.isValid) {
+      const cookieCountry = cookieValidation.country!;
+      const cookieLanguage = cookieValidation.language!;
+
+      // Same country and language - proceed normally
+      if (
+        urlLocale.country === cookieCountry &&
+        urlLocale.language === cookieLanguage &&
+        !url.searchParams.get("changed-country")
+      ) {
+        return response;
+      }
+
+      // Different country - show popup
+      if (
+        urlLocale.country !== cookieCountry &&
+        !url.searchParams.get("changed-country")
+      ) {
+        url.searchParams.delete("cart");
+        url.searchParams.set(
+          "changed-country",
+          `${urlLocale.country},${cookieCountry}`
+        );
+        const redirectResponse = NextResponse.redirect(url);
+        redirectResponse.headers.set(
+          "x-redirect-count",
+          (redirectCount + 1).toString()
+        );
+        return redirectResponse;
+      }
+    }
+
+    // CASE 1C: No valid cookies - set from URL
+    if (!cookieValidation.isValid) {
+      setLocaleCookies(response, urlLocale.country, urlLocale.language);
       return response;
     }
 
-    // CASE 1C: No country cookies - proceed with URL country (don't show popup)
-    if (!countryFromCookies || countryFromCookies.length === 0) {
-      // Set cookies for current URL locale and proceed directly
-      response.cookies.set("country", country.toLowerCase(), {
-        path: "/",
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "strict",
-        maxAge: 360 * 7 * 24 * 60 * 60,
-      });
-      response.cookies.set("lang", lang.toLowerCase(), {
-        path: "/",
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "strict",
-        maxAge: 360 * 7 * 24 * 60 * 60,
-      });
-      response.cookies.set("language", lang.toLowerCase(), {
-        path: "/",
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "strict",
-        maxAge: 360 * 7 * 24 * 60 * 60,
-      });
-
-      return response;
-    }
-
-    // CASE 1D: Different country in cookies vs URL - show country choice popup
-    let isChangedLocalizationByUrl = CheckLocalization({
-      countryFromCookies,
-      langFromCookies,
-      lang,
-      country,
-    });
-
-    if (
-      isChangedLocalizationByUrl &&
-      !url.searchParams.get("changed-country")
-    ) {
-      url.searchParams.delete("cart");
-      url.searchParams.set(
-        "changed-country",
-        `${country},${countryFromCookies}`
-      );
-      const redirectResponse = NextResponse.redirect(url);
-      redirectResponse.headers.set(
-        "x-redirect-count",
-        (redirectCount + 1).toString()
-      );
-      return redirectResponse;
-    }
-
-    // CASE 1E: Handle changed-country parameter (show country choice popup)
+    // CASE 1D: Handle changed-country parameter
     if (url.searchParams.get("changed-country")) {
-      // Set cookies for current URL locale
-      response.cookies.set("country", country.toLowerCase(), {
-        path: "/",
-        httpOnly: true,
-        secure: false,
-        sameSite: "strict",
-        maxAge: 360 * 7 * 24 * 60 * 60,
-      });
-      response.cookies.set("lang", lang.toLowerCase(), {
-        path: "/",
-        httpOnly: true,
-        secure: false,
-        sameSite: "strict",
-        maxAge: 360 * 7 * 24 * 60 * 60,
-      });
-      response.cookies.set("language", lang.toLowerCase(), {
-        path: "/",
-        httpOnly: true,
-        secure: false,
-        sameSite: "strict",
-        maxAge: 360 * 7 * 24 * 60 * 60,
-      });
-
+      setLocaleCookies(response, urlLocale.country, urlLocale.language);
       return response; // Show the popup
     }
 
-    // Default case - set cookies and proceed
-    response.cookies.set("country", country.toLowerCase(), {
-      path: "/",
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-      maxAge: 360 * 7 * 24 * 60 * 60,
-    });
-    response.cookies.set("lang", lang.toLowerCase(), {
-      path: "/",
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-      maxAge: 360 * 7 * 24 * 60 * 60,
-    });
-    response.cookies.set("language", lang.toLowerCase(), {
-      path: "/",
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-      maxAge: 360 * 7 * 24 * 60 * 60,
-    });
-
+    // Default: set cookies and proceed
+    setLocaleCookies(response, urlLocale.country, urlLocale.language);
     return response;
   }
-  // SCENARIO 2: No valid URL format but has cookies - redirect to cookie locale
-  else if (countryFromCookies && langFromCookies) {
-    let pathname =
-      url.pathname.split("/")[1].toLowerCase()?.split("-").length === 2
-        ? url.pathname?.toLowerCase()?.slice(countryLang?.length + 1)
-        : url.pathname;
 
-    const countryLangFromCookies = `${countryFromCookies.toLowerCase()}-${langFromCookies}`;
-    if (supportedLocales.includes(countryLangFromCookies)) {
-      url.pathname = `/${countryLangFromCookies}${pathname}`;
-      return NextResponse.redirect(url);
-    }
-  }
-  // SCENARIO 3: No cookies, try IP-based detection
-  else if (countryByIp && countries.includes(countryByIp)) {
-    defaultLocale = `${countryByIp}-en`;
-    url.pathname = `/${defaultLocale}${url.pathname}`;
-    url.searchParams.set("no-country", "true");
+  // SCENARIO 2: No valid URL locale - determine redirect
+
+  // Try valid cookies first
+  if (cookieValidation.isValid) {
+    const locale = buildLocale(
+      cookieValidation.country!,
+      cookieValidation.language!
+    );
+    const cleanPathname = urlLocale
+      ? pathname.slice(urlLocale.locale.length + 1)
+      : pathname;
+
+    url.pathname = `/${locale}${cleanPathname}`;
     return NextResponse.redirect(url);
   }
-  // SCENARIO 4: Fallback to default locale with country selection
-  else {
-    if (url.pathname.split("/")[1]?.includes("-")) {
-      url.pathname = url.pathname.replace(url.pathname.split("/")[1], "gb-en");
-    } else {
-      url.pathname = `/gb-en${url.pathname}`;
-    }
-    url.searchParams.delete("cart");
+
+  // Try Geo IP detection (first visit)
+  const geoCountry = request.geo?.country?.toLowerCase();
+  const preferredLanguage = getPreferredLanguage(request);
+
+  if (geoCountry && isValidCountry(geoCountry, allSupportedCountries)) {
+    const locale = buildLocale(geoCountry, preferredLanguage);
+    url.pathname = `/${locale}${pathname}`;
     url.searchParams.set("no-country", "true");
     return NextResponse.redirect(url);
   }
 
+  // Fallback to default locale
+  const defaultLocale = buildLocale(DEFAULT_COUNTRY, preferredLanguage);
+  const cleanPathname = urlLocale
+    ? pathname.replace(urlLocale.locale, defaultLocale)
+    : `/${defaultLocale}${pathname}`;
+
+  url.pathname = cleanPathname;
+  url.searchParams.delete("cart");
+  url.searchParams.set("no-country", "true");
   return NextResponse.redirect(url);
 }
 

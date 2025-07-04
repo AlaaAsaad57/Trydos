@@ -75,6 +75,7 @@ function OrderDetails({ resetOrderDetails, goBack }: OrderDetailsPropsType) {
   const { setOrderDetails, selectedOrder, openChat } = useAppStore();
 
   const fetchedOrderIdRef = useRef<string | number | null>(null);
+  const { lang } = useParams();
 
   const getOrderDetails = async () => {
     setLoading(true);
@@ -95,7 +96,7 @@ function OrderDetails({ resetOrderDetails, goBack }: OrderDetailsPropsType) {
       params.delete("id");
       params.delete("order_id_chat");
       // @ts-ignore
-      router.replace(`/setting?${params.toString()}`, {
+      router.replace(`/${lang}/setting?${params.toString()}`, {
         scroll: false,
         // @ts-ignore
         shallow: true,
@@ -288,7 +289,7 @@ function OrderDetails({ resetOrderDetails, goBack }: OrderDetailsPropsType) {
   const closeChat = () => {
     let params = new URLSearchParams(window.location.search);
     params.delete("order_id_chat");
-    router.replace(`/setting?${params.toString()}`, {
+    router.replace(`/${lang}/setting?${params.toString()}`, {
       scroll: false,
       // @ts-ignore
       shallow: true,
@@ -318,7 +319,7 @@ function OrderDetails({ resetOrderDetails, goBack }: OrderDetailsPropsType) {
             params.delete("id");
             params.delete("order_id_chat");
             // @ts-ignore
-            router.replace(`/setting?${params.toString()}`, {
+            router.replace(`/${lang}/setting?${params.toString()}`, {
               scroll: false,
               // @ts-ignore
               shallow: true,
