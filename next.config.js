@@ -124,7 +124,7 @@ let nextConfig = {
         loader: "file-loader",
       },
     });
-    if (!isServer && !dev) {
+    if (!isServer && !dev && process.env.NODE_ENV !== "production") {
       config.module.rules.push({
         test: /\.(js|jsx|ts|tsx)$/,
         enforce: "post",
