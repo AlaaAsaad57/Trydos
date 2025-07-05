@@ -15,6 +15,7 @@ import {
   deleteCookie,
   getCookie,
 } from "./cookies/cookie-manager";
+import { reportError } from "./error-reporter";
 // Types
 export type ServerType = "chat" | "market" | "stories" | "elastic";
 
@@ -349,6 +350,16 @@ export const fetchData = async <T = any>(
         request_token: await getToken(server),
       };
       if (!err?.message?.includes("signal is aborted without reason")) {
+        reportError(err, {
+          source: "fetchData",
+          userId: auth.UserID()?.toString(),
+          token: await getToken(server),
+          lastJson: responseData,
+          page: window.location.href,
+          url: url,
+          method: method,
+          body: body,
+        });
         LogError(errorObj);
       }
       return responseData;
