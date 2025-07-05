@@ -33,7 +33,7 @@ async function fetchImageAsBase64(url: string): Promise<ImageData | null> {
   } else {
     valid_url = `${process.env.NEXT_PUBLIC_BASE_CLOUDINARY_URL}${url}`.replace(
       "upload",
-      "upload/h_120,w_120,c_fill,q_60/f_auto/fl_lossy/so_0"
+      "upload/h_120,w_180,c_pad,q_60/f_auto/fl_lossy/so_0"
     );
   }
   try {
@@ -128,30 +128,9 @@ export async function GET(request: NextRequest) {
             fontFamily:
               "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
             position: "relative",
-            overflow: "hidden",
+            overflow: "visible",
           }}
         >
-          {/* Type indicator */}
-          <div
-            style={{
-              position: "absolute",
-              top: "24px",
-              left: "40px",
-              background: "#dc2626",
-              color: "#ffffff",
-              padding: "8px 16px",
-              borderRadius: "12px",
-              fontSize: "14px",
-              fontWeight: "700",
-              textTransform: "uppercase",
-              letterSpacing: "0.05em",
-              boxShadow: "0 4px 12px rgba(220, 38, 38, 0.3)",
-              display: "flex",
-            }}
-          >
-            {ogData.type}
-          </div>
-
           {/* Main Images Container - Horizontal Layout */}
           {hasImages && (
             <div
@@ -159,8 +138,8 @@ export async function GET(request: NextRequest) {
                 display: "flex",
                 flexDirection: "row",
                 gap: "20px",
-                padding: "40px",
-                alignItems: "center",
+                padding: "20px",
+                alignItems: "flex-start",
                 justifyContent: "center",
                 height: "100%",
                 zIndex: "1",
@@ -176,7 +155,7 @@ export async function GET(request: NextRequest) {
                     borderRadius: "16px",
                     overflow: "hidden",
                     boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
-                    border: "1px solid #e2e8f0",
+                    backgroundColor: "#ffffff",
                     display: "flex",
                     flexDirection: "column",
                   }}
@@ -197,7 +176,7 @@ export async function GET(request: NextRequest) {
                       style={{
                         width: "100%",
                         height: "100%",
-                        objectFit: "cover",
+                        objectFit: "contain",
                       }}
                     />
 
@@ -232,9 +211,9 @@ export async function GET(request: NextRequest) {
             <div
               style={{
                 position: "absolute",
-                top: "50%",
+                bottom: "0px",
                 left: "50%",
-                transform: "translate(-50%,-50%)",
+                transform: "translate(-50%,0%)",
                 display: "flex",
                 flexDirection: "column",
                 alignItems: "center",
@@ -242,8 +221,9 @@ export async function GET(request: NextRequest) {
                 textAlign: "center",
                 backgroundColor: "rgba(255, 255, 255, 0.9)",
                 borderRadius: "16px",
-                padding: "30px 40px",
-                maxWidth: "85%",
+                paddingInline: "20px",
+                width: "100%",
+                maxWidth: "98%",
                 border: "1px solid #e5e7eb",
                 boxShadow: "0 8px 16px rgba(0, 0, 0, 0.1)",
               }}
@@ -253,7 +233,6 @@ export async function GET(request: NextRequest) {
                 src={process.env.NEXT_PUBLIC_REMOTE_FRONT + "/svg/LogoAuth.svg"}
                 alt="TryDos"
                 width={120}
-                style={{ marginBottom: "16px" }}
               />
 
               {/* Title */}
@@ -263,7 +242,7 @@ export async function GET(request: NextRequest) {
                     fontSize: "28px",
                     fontWeight: "700",
                     color: "#1f2937",
-                    marginBottom: "12px",
+                    marginTop: "12px",
                     lineHeight: "1.2",
                     display: "flex",
                   }}
