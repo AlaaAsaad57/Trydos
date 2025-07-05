@@ -297,7 +297,7 @@ function ConversationContainer({
 
   /* ---------------------------- File Handlers ---------------------------- */
   const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
-    const midLocal = Math.random();
+    const midLocal = 'm' + Math.random().toString().replace('.', '');
     try {
       const file = e.target.files?.[0];
       e.target.value = "";
@@ -325,7 +325,7 @@ function ConversationContainer({
   const handleMediaMessage = async (
     file: File,
     type: string,
-    midLocal: number
+    midLocal: string
   ) => {
     try {
       // optimistic UI update (uses base64 for img preview)
@@ -345,7 +345,6 @@ function ConversationContainer({
         });
       };
       reader.readAsDataURL(file);
-
       // real upload call
       const { path, name } = await upload(file);
 
@@ -357,7 +356,7 @@ function ConversationContainer({
       // @ts-ignore – original util returns promise
       SendMessage(sendPayload, false, isPrivate);
     } catch (err) {
-      console.log(err);
+      console.log("the error is: ", err);
       deleteErrorMessage({ msg_id: midLocal, ch_id: activeChat?.id });
       showErrorNotification(translateFunction("Failed to Upload file"));
     } finally {
@@ -367,7 +366,7 @@ function ConversationContainer({
 
   /* ------------------------------ Text Send ------------------------------ */
   const sendTextMessage = (text: string) => {
-    const midLocal = Math.random();
+    const midLocal = 'm' + Math.random().toString().replace('.', '');
     try {
       if (!text.trim()) return;
 
@@ -571,7 +570,7 @@ function ConversationContainer({
   /* ----------------------- Camera Image Sender -------------------------- */
   const sendCameraImg = useCallback(
     async (imageDataUrl: string) => {
-      const midLocal = Math.random();
+      const midLocal = 'm' + Math.random().toString().replace('.', '');
       try {
         optimisticMessage({
           ...baseMessagePayload({}),
@@ -618,7 +617,7 @@ function ConversationContainer({
 
   /* ------------------------- Audio Sender ------------------------------- */
   const sendAudio = useCallback(
-    async (midLocal: number) => {
+    async (midLocal: string) => {
       console.log("sendAudio", midLocal, blobUrl, blobs.current);
       try {
         if (!blobs.current || !activeChat) return;
@@ -997,7 +996,7 @@ function ConversationContainer({
               <ShareIcon
                 onClick={() => {
                   if (nativeRecorder) stopNativeRecording();
-                  const midLocal = Math.random();
+                  const midLocal = 'm' + Math.random().toString().replace('.', '');
                   setRecording(false);
                   setTimeout(() => {
                     sendAudio(midLocal);

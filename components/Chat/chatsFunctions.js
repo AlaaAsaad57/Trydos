@@ -524,7 +524,7 @@ export const upload = async (file) => {
     currentFile.name?.split(".")[0] || "image",
     file
   );
-  if (response.code === 200) {
+  if (response && response.code === 200 && response.data?.file_path) {
     a = response.data.file_path;
     b = currentFile.name;
     return { path: a, name: b };

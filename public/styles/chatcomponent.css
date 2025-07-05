@@ -1051,6 +1051,7 @@ html[lang="ar"] .new-chats {
   flex-direction: column;
   margin-top: 17px;
   min-width: 137px;
+  padding-left: 12px;
 }
 .chat-info-user-name {
   font-size: 20px;
@@ -1058,6 +1059,7 @@ html[lang="ar"] .new-chats {
   color: #5d5c5d;
   font-family: var(--SF-Pro-Rounded-Regular);
   letter-spacing: 0.01em;
+  padding-left: 35px;
 }
 .chat-info-user-phone {
   font-size: 14px;
