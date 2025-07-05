@@ -33,7 +33,7 @@ async function fetchImageAsBase64(url: string): Promise<ImageData | null> {
   } else {
     valid_url = `${process.env.NEXT_PUBLIC_BASE_CLOUDINARY_URL}${url}`.replace(
       "upload",
-      "upload/h_150,c_limit/f_auto/q_auto/fl_lossy/so_0"
+      "upload/h_120,w_120,c_fill,q_60/f_auto/fl_lossy/so_0"
     );
   }
   try {
@@ -108,12 +108,13 @@ export async function GET(request: NextRequest) {
       return new Response("No valid content provided", { status: 400 });
     }
 
-    // Calculate dimensions for horizontal layout
+    // Calculate dimensions for horizontal layout - optimized for smaller file size
     const containerWidth = OG_WIDTH - 80; // 80px for padding
+    const maxImages = Math.min(validImages.length, 3); // Limit to 3 images max for file size
     const imageWidth = hasImages
-      ? Math.floor(containerWidth / validImages.length) - 20
+      ? Math.floor(containerWidth / maxImages) - 20
       : 0;
-    const imageHeight = 450; // Fixed height for consistency
+    const imageHeight = 380; // Reduced height for smaller file size
 
     return new ImageResponse(
       (
@@ -123,37 +124,20 @@ export async function GET(request: NextRequest) {
             height: "100%",
             display: "flex",
             flexDirection: "column",
-            backgroundColor: "#ffffff",
-            backgroundImage:
-              "linear-gradient(135deg, #f8f9fa 0%, #e9ecef 50%, #dee2e6 100%)",
+            backgroundColor: "#f8f9fa",
             fontFamily:
               "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
             position: "relative",
             overflow: "hidden",
           }}
         >
-          {/* Background Pattern */}
-          <div
-            style={{
-              position: "absolute",
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              backgroundImage:
-                "radial-gradient(circle at 25% 25%, #00000008 1px, transparent 1px), radial-gradient(circle at 75% 75%, #00000008 1px, transparent 1px)",
-              backgroundSize: "50px 50px",
-              display: "flex",
-            }}
-          />
-
           {/* Type indicator */}
           <div
             style={{
               position: "absolute",
               top: "24px",
               left: "40px",
-              background: `linear-gradient(135deg, ${"#dc2626, #ef4444"})`,
+              background: "#dc2626",
               color: "#ffffff",
               padding: "8px 16px",
               borderRadius: "12px",
@@ -182,17 +166,16 @@ export async function GET(request: NextRequest) {
                 zIndex: "1",
               }}
             >
-              {validImages.map((image, index) => (
+              {validImages.slice(0, maxImages).map((image, index) => (
                 <div
                   key={index}
                   style={{
                     position: "relative",
                     width: `${imageWidth}px`,
                     height: `${imageHeight}px`,
-                    borderRadius: "24px",
+                    borderRadius: "16px",
                     overflow: "hidden",
-                    boxShadow:
-                      "0 10px 25px rgba(0, 0, 0, 0.1), 0 4px 10px rgba(0, 0, 0, 0.1)",
+                    boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
                     border: "1px solid #e2e8f0",
                     display: "flex",
                     flexDirection: "column",
@@ -225,14 +208,13 @@ export async function GET(request: NextRequest) {
                           position: "absolute",
                           top: "20px",
                           left: "20px",
-                          background:
-                            "linear-gradient(135deg, #dc2626, #ef4444)",
+                          background: "#dc2626",
                           color: "#ffffff",
                           padding: "8px 16px",
                           borderRadius: "12px",
                           fontSize: "14px",
                           fontWeight: "700",
-                          boxShadow: "0 4px 12px rgba(220, 38, 38, 0.4)",
+                          boxShadow: "0 2px 4px rgba(220, 38, 38, 0.3)",
                           display: "flex",
                         }}
                       >
@@ -258,32 +240,30 @@ export async function GET(request: NextRequest) {
                 alignItems: "center",
                 justifyContent: "center",
                 textAlign: "center",
-                backgroundColor: "rgba(255, 255, 255, 0.8)",
-                backdropFilter: "blur(10px)",
-                borderRadius: "24px",
-                padding: "40px 60px",
-                paddingInline: "40px",
-                maxWidth: "90%",
-                border: "1px solid rgba(255, 255, 255, 0.2)",
-                boxShadow: "0 20px 40px rgba(0, 0, 0, 0.1)",
+                backgroundColor: "rgba(255, 255, 255, 0.9)",
+                borderRadius: "16px",
+                padding: "30px 40px",
+                maxWidth: "85%",
+                border: "1px solid #e5e7eb",
+                boxShadow: "0 8px 16px rgba(0, 0, 0, 0.1)",
               }}
             >
               {/* TryDos Logo */}
               <img
                 src={process.env.NEXT_PUBLIC_REMOTE_FRONT + "/svg/LogoAuth.svg"}
                 alt="TryDos"
-                width={180}
-                style={{ marginBottom: "20px" }}
+                width={120}
+                style={{ marginBottom: "16px" }}
               />
 
               {/* Title */}
               {ogData.title && (
                 <div
                   style={{
-                    fontSize: "32px",
-                    fontWeight: "800",
+                    fontSize: "28px",
+                    fontWeight: "700",
                     color: "#1f2937",
-                    marginBottom: "16px",
+                    marginBottom: "12px",
                     lineHeight: "1.2",
                     display: "flex",
                   }}
@@ -352,8 +332,7 @@ export async function GET(request: NextRequest) {
                     {ogData.discount && (
                       <div
                         style={{
-                          background:
-                            "linear-gradient(135deg, #dc2626, #ef4444)",
+                          background: "#dc2626",
                           color: "#ffffff",
                           padding: "4px 12px",
                           borderRadius: "8px",
@@ -462,8 +441,8 @@ export async function GET(request: NextRequest) {
               <img
                 src={process.env.NEXT_PUBLIC_REMOTE_FRONT + "/svg/LogoAuth.svg"}
                 alt="TryDos"
-                width={200}
-                style={{ marginBottom: "30px" }}
+                width={140}
+                style={{ marginBottom: "20px" }}
               />
 
               <div
@@ -526,7 +505,7 @@ export async function GET(request: NextRequest) {
               style={{
                 width: "6px",
                 height: "6px",
-                background: "linear-gradient(135deg, #10b981, #059669)",
+                background: "#10b981",
                 borderRadius: "50%",
                 display: "flex",
               }}
@@ -539,7 +518,7 @@ export async function GET(request: NextRequest) {
         height: OG_HEIGHT,
         headers: {
           "Cache-Control":
-            "public, max-age=172800 , stale-while-revalidate=172800",
+            "public, max-age=172800, stale-while-revalidate=172800",
         },
       }
     );
