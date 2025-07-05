@@ -1,9 +1,5 @@
 "use client";
-import StoryService from "services/story";
-import { useState } from "react";
-const CircularProgressbarComponent = dynamic(() => import("./Progress"), {
-  ssr: false,
-});
+
 import PlusIcon from "public/svg/chatplus.svg";
 import { AddStoryAction } from "store/homepage/actions";
 import { revalidateStories } from "utils/serverActions";

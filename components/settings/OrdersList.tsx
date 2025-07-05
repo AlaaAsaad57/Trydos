@@ -10,7 +10,7 @@ import { fetchOrders } from "../../services/orders";
 import OrderItem from "../Orders/OrderItem"; // Assuming OrderItem component exists and can be reused
 import { translateFunction } from "utils/functions"; // Assuming translateFunction exists
 import { useAppStore } from "store";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { dispatchRouteChangeEvent } from "utils/events";
 import { OrdersListPropsType } from "models/componentType/settingTypes/OrdersListPropsType";
 
@@ -227,6 +227,7 @@ function OrdersList({
       slider.removeEventListener("mousemove", handleMouseMove);
     };
   }, []); // Run only once on mount
+  const { lang } = useParams();
   useEffect(() => {
     dispatchRouteChangeEvent("completed");
   }, [orders]);
@@ -234,7 +235,7 @@ function OrdersList({
     <div className="flex-col max-h-[calc(100vh-200px)]">
       <SettingTopBar
         goBack={() => {
-          router.replace("/setting?tab=Orders");
+          router.replace(`/${lang}/setting?tab=Orders`);
           goBack();
         }}
         screenName={
@@ -305,7 +306,7 @@ function OrdersList({
                   let params = new URLSearchParams(window.location.search);
                   params.set("id", order.order_group_id.toString());
                   // @ts-ignore
-                  router.replace(`/setting?${params.toString()}`, {
+                  router.replace(`/${lang}/setting?${params.toString()}`, {
                     scroll: false,
                     // @ts-ignore
                     shallow: true,

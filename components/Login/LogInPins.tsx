@@ -13,7 +13,6 @@ import {
   GA_EVENT_NAMES,
   GA_GLOBAL_PLATFORM,
 } from "utils/GAEvents";
-import { method } from "node_modules/cypress/types/bluebird";
 import { GAevent } from "utils/gtag";
 import { LogInPinsPropsType } from "models/componentType/settingTypes/LogInPinsPropsType";
 

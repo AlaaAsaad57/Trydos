@@ -1,5 +1,4 @@
 import "styles/globals.css";
-
 import "styles/home.css";
 import "styles/unused-onload.css";
 import Providers from "store/provider";
@@ -7,13 +6,16 @@ import localFont from "next/font/local";
 import { Suspense } from "react";
 import NextLink from "components/global/NextLink";
 import Logo from "components/Home/Logo";
-import UserNavTopSection from "components/Home/UserNavTopSection";
 import Skeleton from "react-loading-skeleton";
 import NavbarClient from "components/Home/NavbarClient";
 import PageLoadingIndicator from "hooks/PageLoadingIndicator";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import Script from "next/script";
 import { GA_MEASUREMENT_ID } from "utils/gtag";
+import { ErrorReporterInit } from "components/global/ErrorReporterInit";
+import { ErrorTester } from "components/dev/ErrorTester";
+import { HydrationProvider } from "components/global/HydrationProvider";
+import AuthNavContainer from "components/Home/AuthNavContainer";
 export const metadata = {
   title: "TryDos",
   description: "TryDos E-Commerce Website",
@@ -114,46 +116,50 @@ export default function RootLayout({ params, children }) {
         </Suspense>
 
         <Providers>
-          <div
-            className="site-container items-center"
-            key={`${JSON.stringify(params)}`}
-          >
-            <div className="home-navbar max-h-[1365px]">
-              <NextLink
-                data={{
-                  is_full_home: true,
-                  href: `/${params.lang}`,
-                }}
-                href={`/${params.lang}`}
-                aria-label="TryDos Home"
-                data-cy="NavLogo"
-              >
-                <Logo animated={false} style={false} key={1} />
-              </NextLink>
-              <Suspense
-                fallback={
-                  <div className="user-nav-container">
-                    <div className="nav-question-item">
-                      <Skeleton className="w-[30px] h-[30px] rounded-sm" />
+          <HydrationProvider>
+            <ErrorReporterInit />
+            <ErrorTester />
+            <div
+              className="site-container items-center"
+              key={`${JSON.stringify(params)}`}
+            >
+              <div className="home-navbar max-h-[1365px]">
+                <NextLink
+                  data={{
+                    is_full_home: true,
+                    href: `/${params.lang}`,
+                  }}
+                  href={`/${params.lang}`}
+                  aria-label="TryDos Home"
+                  data-cy="NavLogo"
+                >
+                  <Logo animated={false} style={false} key={1} />
+                </NextLink>
+                <Suspense
+                  fallback={
+                    <div className="user-nav-container">
+                      <div className="nav-question-item">
+                        <Skeleton className="w-[30px] h-[30px] rounded-sm" />
+                      </div>
+                      <div className="nav-question-item ml-2">
+                        <Skeleton className="w-[30px] h-[30px] rounded-sm" />
+                      </div>
+                      <div className="nav-question-item ml-2">
+                        <Skeleton className="w-[30px] h-[30px] rounded-sm" />
+                      </div>
                     </div>
-                    <div className="nav-question-item ml-2">
-                      <Skeleton className="w-[30px] h-[30px] rounded-sm" />
-                    </div>
-                    <div className="nav-question-item ml-2">
-                      <Skeleton className="w-[30px] h-[30px] rounded-sm" />
-                    </div>
-                  </div>
-                }
-              >
-                <UserNavTopSection />
-              </Suspense>
-            </div>
+                  }
+                >
+                  <AuthNavContainer />
+                </Suspense>
+              </div>
 
-            {children}
-          </div>
-          <Suspense fallback={<></>}>
-            <NavbarClient />
-          </Suspense>
+              {children}
+            </div>
+            <Suspense fallback={<></>}>
+              <NavbarClient />
+            </Suspense>
+          </HydrationProvider>
         </Providers>
       </body>
     </html>

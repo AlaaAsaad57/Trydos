@@ -40,6 +40,7 @@ interface FilteredProductsResponse {
       name: string;
       id?: string;
       slug: string;
+      flash_deal_end_date: string;
       details: string;
       colors: any[];
       images: Array<{ file_path: string }>;
@@ -49,6 +50,10 @@ interface FilteredProductsResponse {
       }>;
       price: number;
       offer_price?: number;
+      brand: {
+        name: string;
+        icon?: string;
+      };
       category: {
         name: string;
         icon?: string;

@@ -1,6 +1,5 @@
-import React, { useEffect, useState } from "react";
-import Cookies from "js-cookie";
-import { changeToken } from "store/homepage/cachedActions";
+import React, { useState } from "react";
+
 import {
   getUserChat,
   getUserStories,

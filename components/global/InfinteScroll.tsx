@@ -81,8 +81,6 @@ function InfinteScroll({ offsetVariable }: InfinteScrollPropsType) {
         screen_name: window.location.pathname?.includes("categories")
           ? GA_GLOBAL_SCREEN.HOME_CATEGORY_SCREEN
           : GA_GLOBAL_SCREEN.HOME_SCREEN,
-        platform: GA_GLOBAL_PLATFORM.WEB,
-        timestamp: new Date().toISOString(),
         screen_path: window.location.pathname,
       },
     });

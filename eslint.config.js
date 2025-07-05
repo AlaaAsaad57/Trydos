@@ -24,6 +24,8 @@ module.exports = [
       "@next/next/no-img-element": "off",
       "react-hooks/exhaustive-deps": "off",
       "jsx-a11y/alt-text": "off",
+      "react/no-unescaped-entities": "off",
+      "@next/next/no-html-link-for-pages": "off",
     },
   },
   eslintConfigNext, // Add Next.js-specific config

@@ -25,6 +25,7 @@ import {
   fetchBoutiqueDetails,
 } from "Server Requests";
 import { getConfiguredImage } from "utils/functions";
+import { GetFiltersData } from "utils/pagesDataRequests/FiltersPageData";
 
 export const dynamicParams = true;
 
@@ -57,100 +58,20 @@ export default async function Page({
 }) {
   // Parse filters from URL path parameters
   const parsedFilters = parseFiltersFromParams(params.filters || []);
-  const [country, language] = params.lang.split("-");
-  const GetProductsData = async () => {
-    try {
-      const result = await fetchFilteredProducts(
-        language,
-        country, // country from lang
-        params.filters || [], // filters as path parameters
-        "false", // noProducts
-        "false", // noFilters
-        null // offset
-      );
 
-      return (
-        result?.data || {
-          products: [],
-          categories: [],
-          brands: [],
-          colors: [],
-          prices: { priceRanges: [] },
-          attributes: [{ options: [] }],
-          boutiques: [],
-        }
-      );
-    } catch (error) {
-      console.error("GetProductsData error:", error);
-      return {
-        products: [],
-        categories: [],
-        brands: [],
-        colors: [],
-        prices: { priceRanges: [] },
-        attributes: [{ options: [] }],
-        boutiques: [],
-      };
-    }
-  };
-  const GetCurrencyData = async () => {
-    try {
-      const data = await fetchCurrency(language, country);
-      return (
-        data.data.currency || { name: "USD", exchange_rate: 1, symbol: "$" }
-      );
-    } catch (error) {
-      console.error("GetCurrencyData error:", error);
-      return { name: "USD", exchange_rate: 1, symbol: "$" };
-    }
-  };
-  const GetBoutiqueData = async () => {
-    // Get the first boutique from the boutiques filter parameters
-    let selectedBoutique = parsedFilters?.boutiques?.[0] || null;
+  let boutiqueItem = parsedFilters?.boutiques?.[0] || null;
+  let {
+    products: filtersData,
+    currency,
+    boutique: boutique,
+  } = await GetFiltersData(
+    { lang: params.lang, filters: params.filters },
+    boutiqueItem,
+    false,
+    false,
+    true
+  );
 
-    try {
-      if (!selectedBoutique) {
-        return {
-          name: "Search",
-          banners: null,
-          icon: null,
-        };
-      }
-
-      const data = await fetchBoutiqueDetails(
-        selectedBoutique,
-        language,
-        country
-      );
-      return data || "NOT_FOUND";
-    } catch (error) {
-      console.error("GetBoutiqueData error:", error);
-      return "NOT_FOUND";
-    }
-  };
-  let filtersData, currency, boutique;
-
-  try {
-    [filtersData, currency, boutique] = await Promise.all([
-      GetProductsData(),
-      GetCurrencyData(),
-      GetBoutiqueData(),
-    ]);
-  } catch (error) {
-    console.error("Promise.all error in page:", error);
-    // Provide fallback values
-    filtersData = {
-      products: [],
-      categories: [],
-      brands: [],
-      colors: [],
-      prices: { priceRanges: [] },
-      attributes: [{ options: [] }],
-      boutiques: [],
-    };
-    currency = { name: "USD", exchange_rate: 1, symbol: "$" };
-    boutique = { name: "Search", banners: null, icon: null };
-  }
   let filters = {
     categories: filtersData?.categories || [],
     brands: filtersData?.brands || [],

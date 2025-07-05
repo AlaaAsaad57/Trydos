@@ -1,16 +1,12 @@
 import { useAppStore } from "store";
-
-import userImage from "public/images/profileNo.png";
-import Cookies from "js-cookie";
 import Smartlook from "smartlook-client";
-
-import { _isStoreLastJson, getLang, translateFunction } from "utils/functions";
+import { _isStoreLastJson, translateFunction } from "utils/functions";
 import { SEND_OTP } from "utils/endpointConfig";
 import ChatService from "services/chat";
 import StoryService from "services/story";
 import home from "./home";
 import { changeToken } from "store/homepage/cachedActions";
-import { SetGAUser } from "utils/gtag";
+import { GAevent, SetGAUser } from "utils/gtag";
 
 import { showErrorNotification } from "@/store/notifications/reducer";
 import { fetchData } from "utils/fetchData";
@@ -21,6 +17,7 @@ import {
   setCookie,
   UserData,
 } from "utils/cookies/cookie-manager";
+import { GA_EVENT_NAMES } from "utils/GAEvents";
 
 class AuthService {
   async SendOtp(
@@ -63,6 +60,8 @@ class AuthService {
     Username: string,
     EditPhoneFunc: Function
   ) {
+    const userData = getCookie<UserData>(COOKIE_NAMES.USER_DATA);
+    let old_geust_id = userData?.id;
     const { setTempUser, setWrongNumber, loginFailed } = useAppStore.getState();
     try {
       let response = await fetchData({
@@ -95,6 +94,15 @@ class AuthService {
         is_verified: false,
         expires_at: response.data.expires_at,
       });
+      if (old_geust_id !== response.data.user.id) {
+        GAevent({
+          action: GA_EVENT_NAMES.CUSTOM_USER_MAPPING,
+          params: {
+            user_id_guest: old_geust_id,
+            user_id_verify: response.data.user.id,
+          },
+        });
+      }
       SetGAUser(response.data.user, !response.data.already_exists);
       setTempUser({
         ...response.data.user,
@@ -369,7 +377,7 @@ class AuthService {
         ...user,
         name: userObj?.name ?? userProfile?.name,
         phone: userObj?.phone ?? userProfile?.phone,
-        image: userObj?.image,
+        image: this.getImageForCookie(userObj?.image),
       });
 
       return res;
@@ -383,6 +391,12 @@ class AuthService {
           server: "market",
         });
         market_done = true;
+        setCookie(COOKIE_NAMES.USER_DATA, {
+          ...user,
+          name: userObj?.name ?? userProfile?.name,
+          phone: userObj?.phone ?? userProfile?.phone,
+          image: this.getImageForCookie(userProfile?.image),
+        });
       }
       if (stories_done) {
         await fetchData({
@@ -395,6 +409,12 @@ class AuthService {
             mobile_phone: userProfile?.phone,
             photo_path: userProfile?.image,
           }),
+        });
+        setCookie(COOKIE_NAMES.USER_STORIES, {
+          ...userStories,
+          name: userProfile?.name,
+          mobile_phone: userProfile?.phone,
+          photo_path: this.ConfigurePhoto(userProfile?.image, "story"),
         });
       }
       if (chat_done) {
@@ -409,9 +429,22 @@ class AuthService {
             photo_path: userProfile?.image,
           }),
         });
+        setCookie(COOKIE_NAMES.USER_CHAT, {
+          ...userChat,
+          name: userObj?.name ?? userProfile?.name,
+          mobile_phone: userObj?.phone ?? userProfile?.phone,
+          photo_path: this.ConfigurePhoto(userProfile?.image, "chat"),
+        });
       }
       showErrorNotification(translateFunction("Failed to update profile Info"));
       throw error;
+    }
+  }
+  getImageForCookie(image) {
+    if (!image?.includes("customers") && image?.length) {
+      return "/customers/profile/" + image;
+    } else {
+      return image;
     }
   }
   async UpdateProfileImage(image) {

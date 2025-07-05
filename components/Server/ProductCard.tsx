@@ -11,7 +11,6 @@ function ProductCard({
   params,
   currency,
   productColor,
-  key,
   language = "en",
 }) {
   return (
@@ -52,7 +51,7 @@ function ProductCard({
               sync_color_images: product.sync_color_images,
               images: product.images,
             }}
-            priority={key < 3}
+            priority={true}
           />
         </Suspense>
         <div className="product-body w-100 flex-col align-start justify-start max-h-[30px] min-h-[30px]">

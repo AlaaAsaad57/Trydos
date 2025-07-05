@@ -52,7 +52,7 @@ const OrderProductSlider = ({ products }) => {
       {products.map((product) => (
         <div
           key={product.id}
-          className="flex-row cursor-pointer items-center relative w-[91px] h-[125px] ml-[5px]"
+          className="flex-row cursor-pointer items-center relative min-w-[91px] w-[91px] h-[125px] ml-[5px]"
         >
           <Image
             className="w-[91px] h-[125px] object-cover   bg-white rounded-[15px]"

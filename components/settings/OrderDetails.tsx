@@ -75,11 +75,24 @@ function OrderDetails({ resetOrderDetails, goBack }: OrderDetailsPropsType) {
   const { setOrderDetails, selectedOrder, openChat } = useAppStore();
 
   const fetchedOrderIdRef = useRef<string | number | null>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
+  const { lang } = useParams();
 
   const getOrderDetails = async () => {
+    // Abort any previous request
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+
+    // Create new AbortController
+    abortControllerRef.current = new AbortController();
+
     setLoading(true);
     try {
-      let data = await order.getOrderDetails(selectedOrder.order_group_id);
+      let data = await order.getOrderDetails(
+        selectedOrder.order_group_id,
+        abortControllerRef.current.signal
+      );
 
       let orderData = {
         ...data?.[0],
@@ -91,11 +104,16 @@ function OrderDetails({ resetOrderDetails, goBack }: OrderDetailsPropsType) {
 
       setOrderDetails(orderData);
     } catch (error) {
+      // Don't handle error if it's an abort error
+      if (error.name === "AbortError") {
+        return;
+      }
+
       let params = new URLSearchParams(window.location.search);
       params.delete("id");
       params.delete("order_id_chat");
       // @ts-ignore
-      router.replace(`/setting?${params.toString()}`, {
+      router.replace(`/${lang}/setting?${params.toString()}`, {
         scroll: false,
         // @ts-ignore
         shallow: true,
@@ -105,15 +123,18 @@ function OrderDetails({ resetOrderDetails, goBack }: OrderDetailsPropsType) {
 
     setLoading(false);
   };
-
-  useEffect(() => {
-    if (!selectedOrder?.order_group_id) return;
-    if (fetchedOrderIdRef.current === selectedOrder.order_group_id) return;
-    fetchedOrderIdRef.current = selectedOrder.order_group_id;
-    getOrderDetails();
-  }, [selectedOrder?.order_group_id]);
-
   const resetOrder = () => {
+    // Abort any ongoing requests
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+
+    if (chatAbortControllerRef.current) {
+      chatAbortControllerRef.current.abort();
+      chatAbortControllerRef.current = null;
+    }
+
     setOrderDetails(null);
     setActivePacks(null);
     fetchedOrderIdRef.current = null;
@@ -134,8 +155,17 @@ function OrderDetails({ resetOrderDetails, goBack }: OrderDetailsPropsType) {
     return false;
   };
   const [isGettingChat, setIsGettingChat] = useState(false);
+  const chatAbortControllerRef = useRef<AbortController | null>(null);
 
   const getChatWithShipping = async (id) => {
+    // Abort any previous chat request
+    if (chatAbortControllerRef.current) {
+      chatAbortControllerRef.current.abort();
+    }
+
+    // Create new AbortController for chat
+    chatAbortControllerRef.current = new AbortController();
+
     setIsGettingChat(true);
     try {
       let response = await fetchData({
@@ -147,6 +177,7 @@ function OrderDetails({ resetOrderDetails, goBack }: OrderDetailsPropsType) {
           original_user_id: auth.UserID(),
           order_id: id,
         }),
+        signal: chatAbortControllerRef.current.signal,
       });
       document.documentElement.style.overflow = "hidden";
       document.documentElement.scrollTop = 0;
@@ -257,13 +288,19 @@ function OrderDetails({ resetOrderDetails, goBack }: OrderDetailsPropsType) {
       setIsChatOpen(true);
       setIsGettingChat(false);
     } catch (error) {
-      document.documentElement.style.overflow = "hidden";
+      // Don't handle error if it's an abort error
+      if (error.name === "AbortError") {
+        return;
+      }
+
+      document.documentElement.style.overflow = "auto";
       document.documentElement.scrollTop = 0;
       document.querySelector("#OrderDetails").scrollTop = 0;
-      document.querySelector("#OrderDetails").classList.add("overflow-hidden");
-      document.querySelector("#OrderDetails").classList.remove("overflow-auto");
-
-      setIsChatOpen(true);
+      document.querySelector("#OrderDetails").classList.add("overflow-auto");
+      document
+        .querySelector("#OrderDetails")
+        .classList.remove("overflow-hidden");
+      setIsChatOpen(false);
       setIsGettingChat(false);
       setIsGettingChat(false);
     }
@@ -286,9 +323,15 @@ function OrderDetails({ resetOrderDetails, goBack }: OrderDetailsPropsType) {
     }
   };
   const closeChat = () => {
+    // Abort any ongoing chat request
+    if (chatAbortControllerRef.current) {
+      chatAbortControllerRef.current.abort();
+      chatAbortControllerRef.current = null;
+    }
+
     let params = new URLSearchParams(window.location.search);
     params.delete("order_id_chat");
-    router.replace(`/setting?${params.toString()}`, {
+    router.replace(`/${lang}/setting?${params.toString()}`, {
       scroll: false,
       // @ts-ignore
       shallow: true,
@@ -299,6 +342,25 @@ function OrderDetails({ resetOrderDetails, goBack }: OrderDetailsPropsType) {
     document.querySelector("#OrderDetails").classList.add("overflow-auto");
     setIsChatOpen(false);
   };
+  useEffect(() => {
+    if (!selectedOrder?.order_group_id) return;
+    if (fetchedOrderIdRef.current === selectedOrder.order_group_id) return;
+    fetchedOrderIdRef.current = selectedOrder.order_group_id;
+    getOrderDetails();
+  }, [selectedOrder?.order_group_id]);
+
+  // Cleanup: abort any ongoing requests when component unmounts
+  useEffect(() => {
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+      if (chatAbortControllerRef.current) {
+        chatAbortControllerRef.current.abort();
+      }
+    };
+  }, []);
+
   if (!selectedOrder?.id) return null;
 
   return (
@@ -318,7 +380,7 @@ function OrderDetails({ resetOrderDetails, goBack }: OrderDetailsPropsType) {
             params.delete("id");
             params.delete("order_id_chat");
             // @ts-ignore
-            router.replace(`/setting?${params.toString()}`, {
+            router.replace(`/${lang}/setting?${params.toString()}`, {
               scroll: false,
               // @ts-ignore
               shallow: true,

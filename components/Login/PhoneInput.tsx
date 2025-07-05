@@ -511,7 +511,6 @@ function PhoneInput({
                   params: {
                     input_valid: true,
                     mission_name: operation,
-                    timestamp: new Date().toISOString(),
                     button_name: GA_BUTTONS_NAMES.CONFIRM_PHONE_NUMBER_BUTTON,
                   },
                 });

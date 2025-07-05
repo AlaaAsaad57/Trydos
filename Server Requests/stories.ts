@@ -1,7 +1,4 @@
 "use server";
-
-import { data } from "node_modules/cypress/types/jquery";
-
 interface StoryItem {
   id: string | number;
   photo_path?: string;

@@ -91,8 +91,6 @@ function FlashDealBanner({ end_data }: FlashDealBannerProps) {
     );
   }
 
-  if (!timeLeft) return null;
-
   return (
     <div className="bg-gradient-to-r from-orange-500 to-red-500 text-white px-3 py-2 rounded-lg shadow-lg">
       <div className="flex items-center gap-1.5 mb-1">

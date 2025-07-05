@@ -7,8 +7,6 @@ import {
   LOG_IN_STORIES,
   UPLOAD_STORY_URL,
 } from "utils/endpointConfig";
-
-import Cookies from "js-cookie";
 import { GetStoriesApi } from "models/API/stories/GetStories";
 import { LoginStoreisApi } from "models/API/stories/Login";
 import { UploadStoryApi } from "models/API/stories/UploadStory";

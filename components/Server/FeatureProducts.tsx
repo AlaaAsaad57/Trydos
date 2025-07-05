@@ -15,85 +15,10 @@ import {
 } from "utils/functions";
 import { GetImageUrl } from "utils/tinyUtils";
 
-async function FeatureProducts({ lang }) {
+async function FeatureProducts({ lang, fetauredProductsData, currencyData }) {
   const [country, language] = lang.split("-");
-  const getFeaturedProducts = async (): Promise<SearchResponse> => {
-    try {
-      const result = await fetchFilteredProducts(
-        language,
-        country,
-        [],
-        "false",
-        "true",
-        null,
-        null,
-        true,
-        false
-      );
-      return {
-        data: {
-          products: result.data.products as any,
-          offset: result.data.offset,
-          total_size: result.data.total_size,
-          limit: result.data.limit,
-          brands: result.data.brands as any,
-          categories: result.data.categories as any,
-          colors: result.data.colors as any,
-          attributes: result.data.attributes as any,
-          boutiques: result.data.boutiques as any,
-          prices: result.data.prices as any,
-          search_time: null,
-          search_text: null,
-          process_time: "",
-        },
-      };
-    } catch (e) {
-      console.log(e);
-      return {
-        data: {
-          products: [],
-          offset: null,
-          total_size: 0,
-          limit: 0,
-          brands: [],
-          categories: [],
-          colors: [],
-          attributes: [],
-          boutiques: [],
-          prices: {
-            max_price: null,
-            min_price: null,
-            priceRanges: [],
-          },
-          search_time: null,
-          search_text: null,
-          process_time: "",
-        },
-      };
-    }
-  };
-  const GetCurrencyData = async (): Promise<
-    CurrencyApi["data"]["currency"]
-  > => {
-    try {
-      const [country, language] = lang.split("-");
-      const data = await fetchCurrency(language, country);
-      return data.data.currency;
-    } catch (error) {
-      console.log(error, "getCurrencyData");
-      return {
-        code: "",
-        exchange_rate: 1,
-        id: 1,
-        name: "",
-        symbol: "",
-      };
-    }
-  };
-  const [featuredProducts, currency] = await Promise.all([
-    getFeaturedProducts(),
-    GetCurrencyData(),
-  ]);
+  let featuredProducts = fetauredProductsData;
+  let currency = currencyData;
 
   if (featuredProducts?.data?.products?.length === 0) return <></>;
   return (

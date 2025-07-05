@@ -223,9 +223,9 @@ const ActiveFiltersBar = ({
         <>
           <ActiveCategoryIcon style={{ height: "21px" }} />
 
-          {activeFilters?.categories.map(
-            (category) =>
-              getItemData({
+          {activeFilters?.categories.map((category) => (
+            <React.Fragment key={category}>
+              {getItemData({
                 value: category,
                 arr: filters.categories,
                 key: "slug",
@@ -378,16 +378,17 @@ const ActiveFiltersBar = ({
                     </>
                   ))}
                 </>
-              )
-          )}
+              )}
+            </React.Fragment>
+          ))}
         </>
       )}
       {activeFilters?.boutiques?.length > 0 && !shouldHideBoutiques && (
         <>
           <ActiveCategoryIcon style={{ height: "21px" }} />
-          {activeFilters?.boutiques?.map(
-            (category) =>
-              getItemData({
+          {activeFilters?.boutiques?.map((category) => (
+            <React.Fragment key={category}>
+              {getItemData({
                 value: category,
                 arr: filters.boutiques,
                 key: "slug",
@@ -442,16 +443,17 @@ const ActiveFiltersBar = ({
                     }
                   </div>
                 </>
-              )
-          )}
+              )}
+            </React.Fragment>
+          ))}
         </>
       )}
       {activeFilters?.brands?.length > 0 && (
         <>
           <ActiveCategoryIcon style={{ height: "21px" }} />
-          {activeFilters?.brands?.map(
-            (brand) =>
-              getItemData({
+          {activeFilters?.brands?.map((brand) => (
+            <React.Fragment key={brand}>
+              {getItemData({
                 value: brand,
                 arr: filters.brands,
                 key: "slug",
@@ -509,8 +511,9 @@ const ActiveFiltersBar = ({
                     }
                   </div>
                 </>
-              )
-          )}
+              )}
+            </React.Fragment>
+          ))}
         </>
       )}
       {activeFilters?.colors?.length > 0 && (
@@ -558,27 +561,25 @@ const ActiveFiltersBar = ({
           {
             <>
               {activeFilters?.prices.map((price, index) => (
-                <>
-                  <div
-                    className="category-title filter-bar-main-title flex-row gap-1"
-                    key={price}
-                  >
-                    <span>
-                      {RoundPrice({
-                        num: price?.split("-")[0],
-                        rate: currency?.exchange_rate,
-                      })}
-                    </span>
-                    <span>{currency?.symbol}</span>-
-                    <span>
-                      {RoundPrice({
-                        num: price?.split("-")[1],
-                        rate: currency?.exchange_rate,
-                      })}
-                    </span>
-                    <span>{currency?.symbol}</span>
-                  </div>
-                </>
+                <div
+                  className="category-title filter-bar-main-title flex-row gap-1"
+                  key={price}
+                >
+                  <span>
+                    {RoundPrice({
+                      num: price?.split("-")[0],
+                      rate: currency?.exchange_rate,
+                    })}
+                  </span>
+                  <span>{currency?.symbol}</span>-
+                  <span>
+                    {RoundPrice({
+                      num: price?.split("-")[1],
+                      rate: currency?.exchange_rate,
+                    })}
+                  </span>
+                  <span>{currency?.symbol}</span>
+                </div>
               ))}
             </>
           }
@@ -588,7 +589,7 @@ const ActiveFiltersBar = ({
         <>
           <ActiveCategoryIcon style={{ height: "21px" }} />
           {activeFilters?.sizes.map((size, index) => (
-            <>
+            <React.Fragment key={size}>
               <div
                 className="category-title filter-bar-main-title uppercase"
                 data-cy="sizeFilterTitle"
@@ -597,7 +598,7 @@ const ActiveFiltersBar = ({
                 {size}
               </div>
               {index < activeFilters?.sizes.length - 1 && " - "}
-            </>
+            </React.Fragment>
           ))}
         </>
       )}
@@ -616,7 +617,7 @@ const ActiveFiltersBar = ({
       {activeFilters?.tags_names?.map((tag, index) => (
         <div
           className="category-title mx-[4px] filter-bar-main-title  text-[#467aff] ml-1 rounded-md bg-[#fafaf8] p-1"
-          key={index}
+          key={tag}
         >
           #{tag}
         </div>
@@ -834,7 +835,7 @@ export const FilterItem = ({
           >
             {item.childes.map((s, index) => {
               return (
-                <>
+                <React.Fragment key={s.slug}>
                   <NextLink
                     data={{
                       is_filter: true,
@@ -1011,7 +1012,7 @@ export const FilterItem = ({
                         })}
                     </div>
                   )}
-                </>
+                </React.Fragment>
               );
             })}
           </div>

@@ -1,6 +1,6 @@
 "use client";
 import { getConfiguredImage, translateFunction } from "utils/functions";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Image from "next/image";
 import AuthNavSection from "./AuthNavSection";
 import CartIcon from "public/svg/CartIcon.svg";
@@ -13,26 +13,23 @@ import {
 import Menu from "./Menu";
 import { useAppStore } from "store";
 import { GetImageUrl } from "utils/tinyUtils";
+import { UserData } from "utils/cookies/cookie-manager";
+import { useUserData } from "hooks/useUserData";
 
-import Spinner from "components/global/Spinner";
-import {
-  COOKIE_NAMES,
-  getCookie,
-  UserData,
-} from "utils/cookies/cookie-manager";
-import Skeleton from "node_modules/react-loading-skeleton/dist";
-
-function UserNavTopSection() {
+function UserNavTopSection({
+  initialUserData,
+}: {
+  initialUserData: {
+    userData: UserData | null;
+    userChat: UserData | null;
+    userStories: UserData | null;
+  };
+}) {
   // State to track if component is mounted (client-side)
-  const [isMounted, setIsMounted] = useState(false);
 
+  const { userData, userChat } = useUserData({ initialUserData });
   // Handle mounting and cookie access
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
   const getUserType = () => {
-    const { user: userData } = useAppStore.getState();
-
     if (userData) {
       if (userData.phone === "0" || !userData.phone) {
         return "NEW_USER";
@@ -151,13 +148,10 @@ function UserNavTopSection() {
     disableAddToCartOption,
     language,
     enable_search,
-    user,
     localCart,
     loginOpen,
     setLoginOpen: openLogin,
-    userProfile,
     setShouldAuthinticated,
-    userChat,
   } = useAppStore();
   let { lang } = useParams();
   // @ts-ignore
@@ -191,52 +185,6 @@ function UserNavTopSection() {
   };
 
   // Show loading/skeleton until mounted to prevent hydration mismatch
-  if (!isMounted) {
-    return (
-      <div className="h-[50px] opacity-50 user-nav-container flex-row items-center justify-end px-[20px]">
-        <div
-          className="nav-question-item cart-icon-selector cursor-pointer relative"
-          data-cy="cart_icon_button"
-          style={{ marginRight: "30px", marginLeft: "0px" }}
-        >
-          <CartIcon data-cy="cartIcon_mainPage" />
-        </div>
-        <div className="nav-question-item">
-          <img
-            src="/svg/questionIcon.svg"
-            width={15}
-            height={15}
-            alt="info icon"
-          />
-          <span
-            className={`${language + "-light"}`}
-            style={{
-              display: "flex",
-              color: "rgba(248, 85, 85, 1)",
-              fontSize: "14px",
-              marginLeft: "5px",
-              cursor: "pointer",
-            }}
-          >
-            {translate(
-              `${loginOpen ? "Can We Know You ?" : "Why We Know You ?"}`,
-              language
-            )}
-          </span>
-        </div>
-        <div className="nav-question-item">
-          <Skeleton
-            width={30}
-            className=""
-            height={30}
-            borderRadius={12}
-            baseColor="#e0e0e0"
-            highlightColor="#f0f0f0"
-          />
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div
@@ -257,7 +205,7 @@ function UserNavTopSection() {
         <CartIcon data-cy="cartIcon_mainPage" />
       </div>
 
-      {(!user || getUserType() === "NEW_USER") && (
+      {(!userData || getUserType() === "NEW_USER") && (
         <>
           <div className={`welcome-user ${language + "-medium"}`}>
             <span className={`${language + "-medium"}`}>
@@ -300,14 +248,17 @@ function UserNavTopSection() {
         style={{ marginLeft: "10px", cursor: "pointer" }}
       >
         {userChat ? (
-          <AuthNavSection onClick={() => setMenuOpen(!menuOpen)} />
+          <AuthNavSection
+            userData={userData}
+            onClick={() => setMenuOpen(!menuOpen)}
+          />
         ) : (
           <div className="nav-question-item">
             <Image
               src={
-                user?.image || userProfile?.image
+                userData?.image || userData?.image
                   ? getConfiguredImage({
-                      src: GetImageUrl(user?.image || userProfile?.image),
+                      src: GetImageUrl(userData?.image || userData?.image),
                       width: 30,
                       height: 30,
                       q: 80,
@@ -325,7 +276,7 @@ function UserNavTopSection() {
           </div>
         )}
       </div>
-      {menuOpen && <Menu user={user} setMenuOpen={setMenuOpen} />}
+      {menuOpen && <Menu user={userData} setMenuOpen={setMenuOpen} />}
     </div>
   );
 }

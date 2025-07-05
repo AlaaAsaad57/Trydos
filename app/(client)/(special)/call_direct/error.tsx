@@ -12,7 +12,7 @@ export default function Error({
   reset: () => void;
 }) {
   const _getUserAgent = async () => {
-    return navigator.userAgent || "";
+    return typeof navigator !== "undefined" ? navigator.userAgent || "" : "";
   };
   const sendError = async (error: Error & { digest?: string }) => {
     const userAgent = await _getUserAgent();

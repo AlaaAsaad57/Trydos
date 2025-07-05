@@ -1,13 +1,8 @@
 import Spinner from "components/global/Spinner";
-import React, { useState } from "react";
-import auth from "services/auth";
+import React from "react";
 import ChatIcon from "public/svg/ChatIcon.svg";
-import ChatWidget from "components/Chat/ChatWidget";
-import { Channel } from "models/Genaral/Channel";
-import { useAppStore } from "store";
-import { getUserChat } from "utils/functions";
+
 import { OrderChatIconPropsType } from "models/componentType/OrderChatIconPropsType";
-import { fetchData } from "utils/fetchData";
 
 function OrderChatIcon({
   id,

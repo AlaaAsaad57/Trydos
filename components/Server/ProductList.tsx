@@ -1,10 +1,7 @@
 import "styles/listing.css";
 import "styles/globals.css";
-
-import React, { Suspense } from "react";
-import { RoundPrice } from "utils/functions";
+import React from "react";
 import ProductsInfiniteScroll from "components/ListingPage/ProductInfiniteScroll";
-
 import { getActiveFilters } from "./FilterList";
 import { ProductListServerPropsType } from "models/componentType/boutiqueTypes/ProductListServerPropsType";
 import ProductCard from "./ProductCard";

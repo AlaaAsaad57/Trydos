@@ -15,6 +15,7 @@ import {
   deleteCookie,
   getCookie,
 } from "./cookies/cookie-manager";
+import { reportError } from "./error-reporter";
 // Types
 export type ServerType = "chat" | "market" | "stories" | "elastic";
 
@@ -28,6 +29,7 @@ export interface FetchDataParams {
   reqTitle?: string;
   server: ServerType;
   retryActionIfUnAuth?: () => void | null;
+  signal?: AbortSignal;
 }
 
 // Cache structure
@@ -200,6 +202,7 @@ export const fetchData = async <T = any>(
     "Product created and view count initialized",
     "View count updated",
     "Subscribed successfully",
+    "signal is aborted without reason",
   ];
   const {
     url,
@@ -239,6 +242,7 @@ export const fetchData = async <T = any>(
           Authorization: `Bearer ${token}`,
           ...editedHeader,
         },
+        signal: params.signal,
       };
 
       // Add Content-Type header only if body is not FormData
@@ -329,7 +333,11 @@ export const fetchData = async <T = any>(
       // Re-throw the error for the caller to handle
       if (typeof reqTitle === "string" && reqTitle.includes("Add to cart widget")) {
         showErrorMessage(`${err?.message || "Falied"}`);
-      } else showErrorNotification(`${err?.message || "Falied"}`);
+      } else {
+        console.log({ err });
+        if (!ignoredMessages.includes(err?.message))
+          showErrorNotification(`${err?.message || "Falied"}`);
+      }
       let errorObj = {
         type: "backend-exception",
         message: err?.message?.substring(0, 200) || "Falied",
@@ -341,7 +349,19 @@ export const fetchData = async <T = any>(
         request_server: server,
         request_token: await getToken(server),
       };
-      LogError(errorObj);
+      if (!err?.message?.includes("signal is aborted without reason")) {
+        reportError(err, {
+          source: "fetchData",
+          userId: auth.UserID()?.toString(),
+          token: await getToken(server),
+          lastJson: responseData,
+          page: window.location.href,
+          url: url,
+          method: method,
+          body: body,
+        });
+        LogError(errorObj);
+      }
       return responseData;
     }
   };

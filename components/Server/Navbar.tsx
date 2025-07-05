@@ -9,11 +9,10 @@ import { NavbarServerProps } from "models/componentType/HomePagePropsType";
 async function NavbarServer({
   lang,
   mainCategory,
+  categoriesData,
 }: NavbarServerProps) {
   try {
-    const [country, language] = lang.split("-");
-    const data = await fetchMainCategories(language, country);
-    const { mainCategories: categories } = data;
+    const { mainCategories: categories } = categoriesData;
 
     categories.sort((a, b) => (a.slug === mainCategory ? -1 : 1));
 
