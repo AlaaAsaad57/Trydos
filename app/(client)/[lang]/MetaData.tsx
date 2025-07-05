@@ -1073,7 +1073,7 @@ export async function getSettingsMetadata({ params }) {
 
   // Get language for translations
   const language = lang || "en";
-  const canonicalUrl = `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${params.lang}/settings`;
+  const canonicalUrl = `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${params.lang}/setting`;
 
   const pageTitle = translateFunction("Settings - TryDos", language);
   const pageDescription =

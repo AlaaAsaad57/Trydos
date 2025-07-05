@@ -216,12 +216,13 @@ class OrderService {
       setOrderLoading(false);
     }
   }
-  async getOrderDetails(id) {
+  async getOrderDetails(id, signal?: AbortSignal) {
     let response = await fetchData({
       url: `/customer/order/getOrdersByOrderGroupID?order_group_id=${id}`,
       reqTitle: "getOrderByOrderGroupID request",
       method: "GET",
       server: "market",
+      signal,
     });
 
     return response.data;

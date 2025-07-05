@@ -96,8 +96,6 @@ function NewLoginWidget() {
         action: GA_EVENT_NAMES.SCREEN_VIEW,
         params: {
           screen_name: GA_AUTH_SCREEN.SELECT_AUTHINTCTION_METHOD_SCREEN,
-          platform: GA_GLOBAL_PLATFORM.WEB,
-
           screen_path: window.location.pathname,
         },
       });
@@ -205,9 +203,6 @@ function NewLoginWidget() {
               : GA_EVENT_NAMES.SIGN_UP,
           params: {
             method: "phone",
-
-            timestamp: new Date().toISOString(),
-
             success: false,
           },
         });
@@ -363,8 +358,6 @@ function NewLoginWidget() {
         action: GA_EVENT_NAMES.SCREEN_VIEW,
         params: {
           screen_name: GetScreenName(stepIndicator),
-          platform: GA_GLOBAL_PLATFORM.WEB,
-
           screen_path: window.location.pathname,
         },
       });

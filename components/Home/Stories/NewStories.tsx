@@ -99,8 +99,6 @@ function StoriesContainer({
       action: GA_EVENT_NAMES.SCREEN_VIEW,
       params: {
         screen_name: GA_GLOBAL_SCREEN.STORY_SCREEN,
-        platform: GA_GLOBAL_PLATFORM.WEB,
-        timestamp: new Date().toISOString(),
         screen_path: window.location.pathname,
       },
     });

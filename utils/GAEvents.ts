@@ -2,6 +2,7 @@ export const GA_EVENT_NAMES = {
   CLICK: "button_clicked",
   PROGRAMMING_EVENT: "programming_event",
   VIEW_PRODUCT_EVENT: "view_product_event",
+  CUSTOM_USER_MAPPING: "custom_user_mapping",
   VIEW_BOUTIQUE_EVENT: "view_boutique_event",
   LOGIN: "login",
   SIGN_UP: "sign_up",

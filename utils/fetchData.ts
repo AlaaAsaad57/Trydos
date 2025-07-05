@@ -28,6 +28,7 @@ export interface FetchDataParams {
   reqTitle?: string;
   server: ServerType;
   retryActionIfUnAuth?: () => void | null;
+  signal?: AbortSignal;
 }
 
 // Cache structure
@@ -200,6 +201,7 @@ export const fetchData = async <T = any>(
     "Product created and view count initialized",
     "View count updated",
     "Subscribed successfully",
+    "signal is aborted without reason",
   ];
   const {
     url,
@@ -239,6 +241,7 @@ export const fetchData = async <T = any>(
           Authorization: `Bearer ${token}`,
           ...editedHeader,
         },
+        signal: params.signal,
       };
 
       // Add Content-Type header only if body is not FormData
@@ -329,7 +332,11 @@ export const fetchData = async <T = any>(
       // Re-throw the error for the caller to handle
       if (reqTitle.includes("Add to cart widget")) {
         showErrorMessage(`${err?.message || "Falied"}`);
-      } else showErrorNotification(`${err?.message || "Falied"}`);
+      } else {
+        console.log({ err });
+        if (!ignoredMessages.includes(err?.message))
+          showErrorNotification(`${err?.message || "Falied"}`);
+      }
       let errorObj = {
         type: "backend-exception",
         message: err?.message?.substring(0, 200) || "Falied",

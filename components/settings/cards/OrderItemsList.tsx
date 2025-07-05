@@ -72,7 +72,7 @@ function OrderItemsList({
                 ...product.product_details,
                 href: `/${lang}/products/${product.product_slug}`,
               }}
-              className="flex-row cursor-pointer items-center relative w-[91px] h-[125px] ml-[5px]"
+              className="flex-row cursor-pointer items-center relative min-w-[91px] w-[91px] h-[125px] ml-[5px]"
             >
               <img
                 className="w-full h-full object-contain bg-white rounded-[15px]"

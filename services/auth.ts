@@ -6,7 +6,7 @@ import ChatService from "services/chat";
 import StoryService from "services/story";
 import home from "./home";
 import { changeToken } from "store/homepage/cachedActions";
-import { SetGAUser } from "utils/gtag";
+import { GAevent, SetGAUser } from "utils/gtag";
 
 import { showErrorNotification } from "@/store/notifications/reducer";
 import { fetchData } from "utils/fetchData";
@@ -17,6 +17,7 @@ import {
   setCookie,
   UserData,
 } from "utils/cookies/cookie-manager";
+import { GA_EVENT_NAMES } from "utils/GAEvents";
 
 class AuthService {
   async SendOtp(
@@ -59,6 +60,8 @@ class AuthService {
     Username: string,
     EditPhoneFunc: Function
   ) {
+    const userData = getCookie<UserData>(COOKIE_NAMES.USER_DATA);
+    let old_geust_id = userData?.id;
     const { setTempUser, setWrongNumber, loginFailed } = useAppStore.getState();
     try {
       let response = await fetchData({
@@ -91,6 +94,15 @@ class AuthService {
         is_verified: false,
         expires_at: response.data.expires_at,
       });
+      if (old_geust_id !== response.data.user.id) {
+        GAevent({
+          action: GA_EVENT_NAMES.CUSTOM_USER_MAPPING,
+          params: {
+            user_id_guest: old_geust_id,
+            user_id_verify: response.data.user.id,
+          },
+        });
+      }
       SetGAUser(response.data.user, !response.data.already_exists);
       setTempUser({
         ...response.data.user,

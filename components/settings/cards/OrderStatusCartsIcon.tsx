@@ -11,7 +11,7 @@ function OrderStatusCartsIcon({ status }) {
     "in_delivery_center",
     "delivered",
   ];
-  let status_word = status.toLowerCase();
+  let status_word = status?.toLowerCase();
 
   return (
     <>

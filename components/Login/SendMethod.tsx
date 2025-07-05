@@ -322,7 +322,6 @@ function SendMethod({
                   params: {
                     method: "whatsapp",
                     mission_name: operation,
-                    timestamp: new Date().toISOString(),
                     button_name: GA_BUTTONS_NAMES.CHOOSE_WHATSAPP_BUTTON,
                   },
                 });
@@ -389,7 +388,6 @@ function SendMethod({
                   params: {
                     method: "sms",
                     mission_name: operation,
-                    timestamp: new Date().toISOString(),
                     button_name: GA_BUTTONS_NAMES.CHOOSE_SMS_BUTTON,
                   },
                 });
