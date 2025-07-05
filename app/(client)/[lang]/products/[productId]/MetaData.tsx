@@ -14,11 +14,23 @@ export async function generateProductMetaData({ params, searchParams }) {
       pageTitle += ` |  ${searchParams?.size}`;
     }
     const pageDescription = `${product.details}`;
+    let imagesArray = searchParams.color
+      ? product?.sync_color_images?.find(
+          (s) =>
+            s.color_name === searchParams?.color ||
+            s.color_option === searchParams?.color
+        )?.images
+      : product.sync_color_images
+      ? product.sync_color_images?.map((s) => s.images[0])
+      : product.images;
 
-    const ogImage =
-      product?.sync_color_images?.find(
-        (s) => s.color_name === searchParams?.color
-      )?.images?.[0]?.file_path ?? product.images[0].file_path;
+    const baseUrl =
+      process.env.NEXT_PUBLIC_REMOTE_FRONT ||
+      process.env.VERCEL_URL ||
+      "http://localhost:3000";
+    const primaryOgImage = `${baseUrl}/api/generate-og-images?title=${pageTitle}&description=${pageDescription}&images=${imagesArray?.join(
+      ","
+    )}&type=product`;
 
     //   const keywords = [
     //     boutique.name,
@@ -44,58 +56,6 @@ export async function generateProductMetaData({ params, searchParams }) {
         );
       }) || []),
     ];
-    const getImages = () => {
-      return (
-        (product?.sync_color_images
-          ?.find((s) => s.color_name === searchParams?.color)
-          ?.images?.map((s) => ({
-            url: getConfiguredImage({
-              src: process.env.NEXT_PUBLIC_BASE_CLOUDINARY_URL + s,
-              width: 1200,
-              height: 630,
-              q: 80,
-            }),
-            width: 1200,
-            height: 630,
-            alt: product.name,
-          }))?.length > 0 &&
-          product?.sync_color_images
-            ?.find((s) => s.color_name === searchParams?.color)
-            ?.images?.map((s) => ({
-              url: getConfiguredImage({
-                src: process.env.NEXT_PUBLIC_BASE_CLOUDINARY_URL + s,
-                width: 1200,
-                height: 630,
-                q: 80,
-              }),
-              width: 1200,
-              height: 630,
-              alt: product.name,
-            }))) ||
-        (product.images?.map((s) => ({
-          url: getConfiguredImage({
-            src: process.env.NEXT_PUBLIC_BASE_CLOUDINARY_URL + s,
-            width: 1200,
-            height: 630,
-            q: 80,
-          }),
-          width: 1200,
-          height: 630,
-          alt: product.name,
-        }))?.length > 0 &&
-          product.images?.map((s) => ({
-            url: getConfiguredImage({
-              src: process.env.NEXT_PUBLIC_BASE_CLOUDINARY_URL + s,
-              width: 1200,
-              height: 630,
-              q: 80,
-            }),
-            width: 1200,
-            height: 630,
-            alt: product.name,
-          })))
-      );
-    };
 
     return {
       title: pageTitle,
@@ -107,44 +67,13 @@ export async function generateProductMetaData({ params, searchParams }) {
         description: pageDescription,
         url: canonicalUrl,
         siteName: "TryDos",
-        images: getImages(),
+        images: [primaryOgImage],
       },
       twitter: {
         card: "summary_large_image",
         title: pageTitle,
         description: pageDescription,
-        images: [
-          getConfiguredImage({
-            src: process.env.NEXT_PUBLIC_BASE_CLOUDINARY_URL + ogImage,
-            width: 1200,
-            height: 630,
-            q: 80,
-          }),
-          getConfiguredImage({
-            src: process.env.NEXT_PUBLIC_BASE_CLOUDINARY_URL + ogImage,
-            width: 800,
-            height: 418,
-            q: 80,
-          }),
-          getConfiguredImage({
-            src: process.env.NEXT_PUBLIC_BASE_CLOUDINARY_URL + ogImage,
-            width: 400,
-            height: 209,
-            q: 80,
-          }),
-          getConfiguredImage({
-            src: process.env.NEXT_PUBLIC_BASE_CLOUDINARY_URL + ogImage,
-            width: 200,
-            height: 104,
-            q: 80,
-          }),
-          getConfiguredImage({
-            src: process.env.NEXT_PUBLIC_BASE_CLOUDINARY_URL + ogImage,
-            width: 100,
-            height: 52,
-            q: 80,
-          }),
-        ],
+        images: [primaryOgImage],
       },
       alternates: {
         canonical: canonicalUrl,

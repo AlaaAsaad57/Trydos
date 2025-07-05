@@ -3,6 +3,7 @@
 import { getConfiguredImage } from "utils/functions";
 import { parseFiltersFromParams, filtersToSearchParams } from "utils/tinyUtils";
 import { fetchFilteredProducts, fetchBoutiqueDetails } from "Server Requests";
+import { GetFiltersData } from "utils/pagesDataRequests/FiltersPageData";
 
 export async function getBoutiqueMetadata({ params, searchParams }) {
   // Parse filters from path parameters instead of search parameters
@@ -11,70 +12,18 @@ export async function getBoutiqueMetadata({ params, searchParams }) {
   // Convert to the format expected by the API
   const EditedSearchParams = filtersToSearchParams(parsedFilters);
   const [country, language] = params.lang.split("-");
-  const GetProductsData = async () => {
-    try {
-      const result = await fetchFilteredProducts(
-        language,
-        country,
-        params.filters || [],
-        "false",
-        "false",
-        null
-      );
-      return result.data;
-    } catch (error) {
-      console.log(error, "getProductsData");
-      return {
-        categories: [],
-        brands: [],
-        colors: [],
-        prices: {
-          priceRanges: [],
-        },
-        attributes: [],
-        boutiques: [],
-        products: [],
-        offset: 0,
-        limit: 0,
-        total_size: 0,
-        search_time: null,
-        search_text: null,
-      };
-    }
-  };
-  const GetBoutiqueData = async () => {
-    // Get the first boutique from the boutiques filter parameters
-    let selectedBoutique = parsedFilters?.boutiques?.[0] || null;
-
-    try {
-      if (!selectedBoutique) {
-        return {
-          name: "Search",
-          banners: null,
-          icon: null,
-        };
-      }
-
-      const data = await fetchBoutiqueDetails(
-        selectedBoutique,
-        language,
-        country
-      );
-      return data;
-    } catch (error) {
-      console.log(error, "getBoutiqueData");
-      return {
-        name: "Search",
-        banners: null,
-        icon: null,
-        iconUrl: null,
-      };
-    }
-  };
-  const [filtersData, boutique] = await Promise.all([
-    GetProductsData(),
-    GetBoutiqueData(),
-  ]);
+  let boutiqueItem = parsedFilters?.boutiques?.[0] || null;
+  let {
+    products: filtersData,
+    currency,
+    boutique: boutique,
+  } = await GetFiltersData(
+    { lang: params.lang, filters: params.filters },
+    boutiqueItem,
+    false,
+    false,
+    true
+  );
   let filters = {
     categories: filtersData?.categories,
     brands: filtersData?.brands,
@@ -92,15 +41,13 @@ export async function getBoutiqueMetadata({ params, searchParams }) {
     ?.join(", ")}. Top brands: ${filters?.brands
     ?.map((s) => s.name)
     ?.join(", ")}.`;
-
-  const defaultOgImage = "/default-og-image.jpg";
-
-  const ogImage =
-    boutique.name === "Search"
-      ? filtersData?.products?.[0]?.images?.[0]?.file_path
-      : boutique.banners?.[0]?.file_path ||
-        boutique?.icon?.file_path ||
-        defaultOgImage;
+  const baseUrl =
+    process.env.NEXT_PUBLIC_REMOTE_FRONT ||
+    process.env.VERCEL_URL ||
+    "http://localhost:3000";
+  const primaryOgImage = `${baseUrl}/api/generate-og-images?title=${pageTitle}&description=${pageDescription}&images=${filtersData?.products
+    ?.map((p) => p.images?.[0]?.file_path)
+    .join(",")}&type=collection`;
 
   const keywords = [
     boutique.name,
@@ -142,12 +89,7 @@ export async function getBoutiqueMetadata({ params, searchParams }) {
           }))
         : [
             {
-              url: getConfiguredImage({
-                src: process.env.NEXT_PUBLIC_BASE_CLOUDINARY_URL + ogImage,
-                width: 1200,
-                height: 630,
-                q: 80,
-              }),
+              url: primaryOgImage,
               width: 1200,
               height: 630,
               alt: boutique.name,
@@ -159,36 +101,11 @@ export async function getBoutiqueMetadata({ params, searchParams }) {
       title: pageTitle,
       description: pageDescription,
       images: [
-        getConfiguredImage({
-          src: process.env.NEXT_PUBLIC_BASE_CLOUDINARY_URL + ogImage,
-          width: 1200,
-          height: 630,
-          q: 80,
-        }),
-        getConfiguredImage({
-          src: process.env.NEXT_PUBLIC_BASE_CLOUDINARY_URL + ogImage,
-          width: 800,
-          height: 418,
-          q: 80,
-        }),
-        getConfiguredImage({
-          src: process.env.NEXT_PUBLIC_BASE_CLOUDINARY_URL + ogImage,
-          width: 400,
-          height: 209,
-          q: 80,
-        }),
-        getConfiguredImage({
-          src: process.env.NEXT_PUBLIC_BASE_CLOUDINARY_URL + ogImage,
-          width: 200,
-          height: 104,
-          q: 80,
-        }),
-        getConfiguredImage({
-          src: process.env.NEXT_PUBLIC_BASE_CLOUDINARY_URL + ogImage,
-          width: 100,
-          height: 52,
-          q: 80,
-        }),
+        primaryOgImage,
+        primaryOgImage,
+        primaryOgImage,
+        primaryOgImage,
+        primaryOgImage,
       ],
     },
     alternates: {

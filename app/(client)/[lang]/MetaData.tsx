@@ -1,11 +1,5 @@
 import { getConfiguredImage, translateFunction } from "utils/functions";
 import type { Metadata } from "next";
-import {
-  fetchBoutiques,
-  fetchCurrency,
-  fetchFilteredProducts,
-  fetchMainCategories,
-} from "Server Requests";
 import { GetHomeData } from "utils/pagesDataRequests/HomePageData";
 import { cache } from "react";
 import { GetFiltersData } from "utils/pagesDataRequests/FiltersPageData";
@@ -481,9 +475,13 @@ export async function getFeaturedMetadata({ params }) {
   ]
     .filter(Boolean)
     .join(", ");
-
-  const primaryImage =
-    products?.[0]?.images?.[0]?.file_path || "/images/featured-og.jpg";
+  const baseUrl =
+    process.env.NEXT_PUBLIC_REMOTE_FRONT ||
+    process.env.VERCEL_URL ||
+    "http://localhost:3000";
+  const primaryOgImage = `${baseUrl}/api/generate-og-images?title=${pageTitle}&description=${pageDescription}&images=${products
+    ?.map((p) => p.images?.[0]?.file_path)
+    .join(",")}&type=collection`;
   const canonicalUrl = `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${params.lang}/featured`;
 
   // Generate structured data
@@ -575,12 +573,7 @@ export async function getFeaturedMetadata({ params }) {
       locale: params.lang,
       images: [
         {
-          url: getConfiguredImage({
-            src: process.env.NEXT_PUBLIC_BASE_CLOUDINARY_URL + primaryImage,
-            width: 1200,
-            height: 630,
-            q: 80,
-          }),
+          url: primaryOgImage,
           width: 1200,
           height: 630,
           alt: "Featured Products - TryDos",
@@ -591,14 +584,7 @@ export async function getFeaturedMetadata({ params }) {
       card: "summary_large_image",
       title: pageTitle,
       description: pageDescription,
-      images: [
-        getConfiguredImage({
-          src: process.env.NEXT_PUBLIC_BASE_CLOUDINARY_URL + primaryImage,
-          width: 1200,
-          height: 630,
-          q: 80,
-        }),
-      ],
+      images: [primaryOgImage],
     },
     alternates: {
       canonical: canonicalUrl,
@@ -651,9 +637,13 @@ export async function getFlashDealsMetadata({ params }) {
   ]
     .filter(Boolean)
     .join(", ");
-
-  const primaryImage =
-    products?.[0]?.images?.[0]?.file_path || "/images/flash-deals-og.jpg";
+  const baseUrl =
+    process.env.NEXT_PUBLIC_REMOTE_FRONT ||
+    process.env.VERCEL_URL ||
+    "http://localhost:3000";
+  const primaryOgImage = `${baseUrl}/api/generate-og-images?title=${pageTitle}&description=${pageDescription}&images=${products
+    ?.map((p) => p.images?.[0]?.file_path)
+    .join(",")}&type=collection`;
   const canonicalUrl = `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${params.lang}/flashDeals`;
 
   // Generate structured data
@@ -747,12 +737,7 @@ export async function getFlashDealsMetadata({ params }) {
       locale: params.lang,
       images: [
         {
-          url: getConfiguredImage({
-            src: process.env.NEXT_PUBLIC_BASE_CLOUDINARY_URL + primaryImage,
-            width: 1200,
-            height: 630,
-            q: 80,
-          }),
+          url: primaryOgImage,
           width: 1200,
           height: 630,
           alt: "Flash Deals - TryDos",
@@ -765,7 +750,7 @@ export async function getFlashDealsMetadata({ params }) {
       description: pageDescription,
       images: [
         getConfiguredImage({
-          src: process.env.NEXT_PUBLIC_BASE_CLOUDINARY_URL + primaryImage,
+          src: primaryOgImage,
           width: 1200,
           height: 630,
           q: 80,
