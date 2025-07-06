@@ -34,7 +34,6 @@ import {
   dataURLtoFile,
   upload,
   getUser,
-  getUser as getUserChat,
 } from "../chatsFunctions";
 import {
   GetChatDetails,
@@ -44,7 +43,7 @@ import {
 } from "store/chat/actions";
 import { makeVideoCall, makeVoiceCall } from "store/chat/callActions";
 import { showErrorNotification } from "@/store/notifications/reducer";
-import { SSRDetect, translateFunction } from "utils/functions";
+import { SSRDetect, translateFunction , getUserChat} from "utils/functions";
 import { db } from "utils/firebaseInitv1";
 import { useAppStore } from "store";
 
@@ -132,7 +131,7 @@ function ConversationContainer({
   const receiver = activeChat?.channel_members?.find(
     (m: any) => +m.user_id !== +(getUser() as any)?.id
   );
-  const senderId = (getUser() as any)?.id;
+  const senderId = (getUserChat() as any)?.id;
   const receiverId = receiver?.user_id;
   const receiverRoleId = receiver?.role_id;
 
