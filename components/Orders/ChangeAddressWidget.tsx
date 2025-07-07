@@ -233,7 +233,7 @@ function ChangeAddressWidget({
                               : "text-[#8D8D8D]"
                           }`}
                         >
-                          {s.contact_info.phone}
+                          {s?.contact_info?.phone}
                         </div>
                         <div className="flex-row ml-[17px]  items-center">
                           <svg
@@ -310,7 +310,7 @@ function ChangeAddressWidget({
                           >
                             {s.contact_info.contact_person_name ||
                               // @ts-ignore
-                              s.contact_info?.name}
+                              s?.contact_info?.name}
                           </div>
                         </div>
                       </div>

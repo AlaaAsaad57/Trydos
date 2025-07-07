@@ -683,7 +683,7 @@ export const DeleteModalComponent = ({
                 </svg>
 
                 <div className="flex-row ml-[4px]   items-center regular text-[12px] text-[#D3D3D3]">
-                  {deletedAddress.contact_info.phone}
+                  {deletedAddress?.contact_info?.phone}
                 </div>
                 <div className="flex-row ml-[17px]  items-center">
                   <svg
@@ -740,7 +740,7 @@ export const DeleteModalComponent = ({
                   </svg>
 
                   <div className="flex-row  ml-[4px]  items-center regular text-[12px] text-[#D3D3D3]">
-                    {deletedAddress.contact_info.name}
+                    {deletedAddress?.contact_info?.name}
                   </div>
                 </div>
               </div>

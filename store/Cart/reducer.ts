@@ -215,7 +215,7 @@ export const useCartStore = (set, get) => ({
         region: showLocationText(address.region_details),
         contact_info: {
           ...address.contact_info,
-          contact_person_name: address.contact_info.name,
+          contact_person_name: address?.contact_info?.name,
         },
       };
       return {
