@@ -1,5 +1,7 @@
 "use server";
 
+import { reportError } from "utils/error-reporter";
+
 interface Country {
   [key: string]: any;
 }
@@ -31,7 +33,17 @@ export async function fetchCountries(
     );
 
     if (!response.ok) {
-      throw new Error(`Countries Error: ${response.status}`);
+      console.error(`Countries Error: ${response.status}`);
+      reportError(new Error(`Countries Error: ${response.status}`), {
+        source: "countries",
+        page: "countries",
+        country: country,
+        language: language,
+        response: JSON.stringify(response),
+      });
+      return {
+        countries: [],
+      };
     }
 
     const data = await response.json();

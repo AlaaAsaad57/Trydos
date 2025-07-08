@@ -1,5 +1,7 @@
 "use server";
 
+import { reportError } from "utils/error-reporter";
+
 interface ProductDetailsResponse {
   [key: string]: any;
 }
@@ -50,7 +52,18 @@ async function fetchProductSimpleDetails(
     );
 
     if (!response.ok) {
-      throw new Error(`Product Simple Details Error: ${response.status}`);
+      console.error(`Product Simple Details Error: ${response.status}`);
+      reportError(
+        new Error(`Product Simple Details Error: ${response.status}`),
+        {
+          source: "products",
+          page: "product-simple-details",
+          language: language,
+          country: country,
+          response: JSON.stringify(response),
+        }
+      );
+      return { data: {} };
     }
 
     return await response.json();
@@ -86,7 +99,17 @@ async function fetchProductExtendedDetails(
     );
 
     if (!response.ok) {
-      throw new Error(`Product Extended Details Error: ${response.status}`);
+      console.error(`Product Extended Details Error: ${response.status}`);
+      reportError(
+        new Error(`Product Extended Details Error: ${response.status}`),
+        {
+          source: "products",
+          page: "product-extended-details",
+          language: language,
+          country: country,
+        }
+      );
+      return { data: {} };
     }
 
     return await response.json();

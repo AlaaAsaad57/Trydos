@@ -1,4 +1,7 @@
 "use server";
+
+import { reportError } from "utils/error-reporter";
+
 interface Boutique {
   name: string;
   slug: string;
@@ -89,7 +92,23 @@ export async function fetchBoutiques(
     );
 
     if (!response.ok) {
-      throw new Error(`Boutiques Error: ${response.status}`);
+      console.error(`Boutiques Error: ${response.status}`);
+      reportError(new Error(`Boutiques Error: ${response.status}`), {
+        source: "boutiques",
+        page: "boutiques",
+        language: language,
+        response: JSON.stringify(response),
+        country: country,
+        categorySlug: categorySlug,
+        offset: offset,
+        limit: limit,
+      });
+      return {
+        total: 0,
+        limit: 0,
+        offset: 0,
+        boutiques: [],
+      };
     }
 
     const { data } = await response.json();
@@ -161,7 +180,21 @@ export async function fetchBoutiqueDetails(
     );
 
     if (!response.ok) {
-      throw new Error(`Boutique Details Error: ${response.status}`);
+      console.error(`Boutique Details Error: ${response.status}`);
+      reportError(new Error(`Boutique Details Error: ${response.status}`), {
+        source: "boutiques",
+        page: "boutique-details",
+        language: language,
+        country: country,
+        slug: slug,
+        response: JSON.stringify(response),
+      });
+      return {
+        name: "listing",
+        banners: null,
+        icon: null,
+        slug: "listing",
+      };
     }
     let { data } = await response.json();
     return data;

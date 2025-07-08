@@ -1,5 +1,7 @@
 "use server";
 
+import { reportError } from "utils/error-reporter";
+
 interface MainCategory {
   name: string;
   slug: string;
@@ -40,7 +42,17 @@ export async function fetchMainCategories(
     );
 
     if (!response.ok) {
-      throw new Error(`Main Categories Error: ${response.status}`);
+      console.error(`Main Categories Error: ${response.status}`);
+      reportError(new Error(`Main Categories Error: ${response.status}`), {
+        source: "categories",
+        page: "main-categories",
+        language: language,
+        country: country,
+        response: JSON.stringify(response),
+      });
+      return {
+        mainCategories: [],
+      };
     }
 
     const { data } = await response.json();
