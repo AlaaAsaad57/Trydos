@@ -38,7 +38,10 @@ function ProductOptions({
           reqTitle: "like For Product",
           method: "POST",
           server: "market",
-          body: { product_id: product.id, user_id: auth.UserID() },
+          body: JSON.stringify({
+            product_id: product.id,
+            user_id: auth.UserID()
+          }),
         });
         // home.subscribeToTopic({
         //   topic: `product_availability_${SelectedProduct?.id}`,
@@ -61,7 +64,10 @@ function ProductOptions({
           reqTitle: "unlike For Product",
           method: "POST",
           server: "market",
-          body: { product_id: product.id, user_id: auth.UserID() },
+          body: JSON.stringify({
+            product_id: product.id,
+            user_id: auth.UserID()
+          }),
         });
         home.UnsubscripeFromTopic({
           topic: `product_availability_${SelectedProduct?.id}`,

@@ -4,6 +4,7 @@ import Spinner from "components/global/Spinner";
 import profilePlaceholder from "public/images/profileNo.png";
 import VideoPreloader from "./VideoPreloader";
 import ImagePreloader from "./ImagePreloader";
+import Link from "next/link";
 
 // Using a generic story media type to keep the component independent from
 // the previous `react-insta-stories` definitions.
@@ -85,6 +86,7 @@ const StoryViewer: React.FC<StoryViewerProps> = ({
       }
     | undefined;
   const isImage = currentStory?.type !== "video"; // default to image
+  const link = currentStory?.link;
 
   /* --------------------------- Helper functions -------------------------- */
   const clearTimers = () => {
@@ -247,7 +249,7 @@ const StoryViewer: React.FC<StoryViewerProps> = ({
       {/* Content */}
       {!isPaused && (
         <div
-          className="flex items-center justify-center mt-[50px]"
+          className="flex flex-col items-center justify-center mt-[50px] w-full h-full"
           style={{
             width: "100%",
             height: "100%",
@@ -298,6 +300,30 @@ const StoryViewer: React.FC<StoryViewerProps> = ({
                 handleNext();
               }}
             />
+          )}
+          {/* Story Link Below Image/Video */}
+          {link && (
+            <div className="mt-6 flex justify-center w-full">
+              <Link
+                href={link}
+                passHref
+                legacyBehavior
+              >
+                <a
+                  className="text-blue-400 underline break-all text-center text-base hover:text-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400 px-2 py-1 rounded"
+                  tabIndex={0}
+                  aria-label="Story link"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    zIndex:99999999999999,
+                  }}
+                  onClick={e => e.stopPropagation()}
+                >
+                  {link}
+                </a>
+              </Link>
+            </div>
           )}
         </div>
       )}

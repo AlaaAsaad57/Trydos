@@ -1,6 +1,19 @@
 // Force update - increment this version when you want to force update
 const CACHE_VERSION = "v2.0.0";
-
+const BASE_CLOUDINARY_URL = "https://res.cloudinary.com/dtcmozf4d/image/upload/v1";
+// Get image url function 
+const GetImageUrl = (url) => {
+  if (url?.file_path) {
+    if (url?.file_path?.includes("cloudinary")) {
+      return url?.file_path;
+    } else {
+      return BASE_CLOUDINARY_URL + url?.file_path;
+    }
+  }
+  if (!url || typeof url !== "string") return url;
+  if (url && url?.includes("http")) return url;
+  return BASE_CLOUDINARY_URL + url;
+};
 // Skip waiting and claim clients immediately
 self.addEventListener("install", (event) => {
   console.log("Service worker installing...");
@@ -277,6 +290,30 @@ messaging.onBackgroundMessage(async function (payload) {
           notificationOptions
         );
       }
+    } else if (payload.data.type === "VoiceCallEvent" || payload.data.type === "VideoCallEvent") {
+      // Parse the nested JSON
+      const parsed = JSON.parse(payload.data.data);
+      const callInfo = parsed.payload.payload;
+      const user = parsed.user;
+      const photo = user.photo_path;
+      const notificationTitle = `${user.name} is calling you… ${callInfo.type === 'video' ? '🎥' : '📞'}`;
+      const notificationOptions = {
+        body: `Incoming ${callInfo.type === 'audio' ? 'voice' : 'video'} call from ${user.name}`,
+        image: GetImageUrl(photo) || '/profile.png',
+        requireInteraction: true,
+        vibrate: [200, 100, 200],
+        actions: [
+          { action: 'reply',  title: 'Reply'  },
+          { action: 'reject', title: 'Reject' }
+        ],
+        data: {
+          call_id: callInfo.channelId,
+          receiverId: callInfo.user_id,
+          callType: callInfo.type === 'audio' ? 'voice' : 'video',
+          url: url,
+        }
+      };
+      self.registration.showNotification(notificationTitle, notificationOptions);
     } else if (payload.data.type === "message") {
       const notificationTitle = JSON.parse(payload.data.data).message
         .sender_user.name;
@@ -393,7 +430,10 @@ messaging.onBackgroundMessage(async function (payload) {
 self.addEventListener("notificationclick", function (event) {
   let url = `https://trydos-front-git-alaa-dev-trydos-front-team.vercel.app`;
   event.notification.close();
-  clients.openWindow(event.notification.data.url); // Android needs explicit close.
+  // Only open the link by default if this is NOT a call notification
+  if (!event.notification.data || !event.notification.data.callType) {
+    clients.openWindow(event.notification.data.url); // Android needs explicit close.
+  }
   switch (event.action) {
     case "open_url":
       clients.openWindow(event.notification.data.url); // Which we got from above
@@ -415,6 +455,30 @@ self.addEventListener("notificationclick", function (event) {
           }
         })
       ); // Default URL (if any)
+      break;
+    case "reply":
+      // Try to focus an existing tab with the URL, or open a new one if not found
+      event.waitUntil(
+        clients.matchAll({ type: "window", includeUncontrolled: true }).then((windowClients) => {
+          const targetUrl = event.notification.data.url;
+          for (let i = 0; i < windowClients.length; i++) {
+            const client = windowClients[i];
+            // Use startsWith to match the base URL and query params
+            if (client.url === targetUrl && "focus" in client) {
+              return client.focus();
+            }
+          }
+          // If not found, open a new window
+          if (clients.openWindow) {
+            return clients.openWindow(targetUrl);
+          }
+        })
+      );
+      event.notification.close();
+      break;
+    case "reject":
+      // Only close the notification, do not open any window
+      event.notification.close();
       break;
   }
 });

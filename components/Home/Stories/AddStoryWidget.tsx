@@ -114,6 +114,31 @@ const isValidUrl = (urlString: string) => {
   }
 };
 
+// New: Validate link for host and coupon
+const validateLink = (urlString: string) => {
+  if (!urlString) return { valid: true, error: "" };
+  if (!isValidUrl(urlString)) {
+    return { valid: false, error: "Please enter a valid URL (e.g., example.com or www.example.com)" };
+  }
+  try {
+    const url =
+      urlString.startsWith("http://") || urlString.startsWith("https://")
+        ? urlString
+        : `https://${urlString}`;
+    const parsed = new URL(url);
+    const currentHost = typeof window !== 'undefined' ? window.location.host : '';
+    if (parsed.host !== currentHost) {
+      return { valid: false, error: `Only links from ${currentHost} are allowed.` };
+    }
+    if (/coupon/i.test(urlString)) {
+      return { valid: false, error: `Links containing 'coupon' are not allowed: ${urlString}` };
+    }
+    return { valid: true, error: "" };
+  } catch {
+    return { valid: false, error: "Please enter a valid URL (e.g., example.com or www.example.com)" };
+  }
+};
+
 export default function AddStoryWidget({ onClose }: AddStoryWidgetPropsType) {
   const [user, setUser] = useState(null);
   useEffect(() => {
@@ -348,21 +373,14 @@ export default function AddStoryWidget({ onClose }: AddStoryWidgetPropsType) {
   const handleLinkChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setLink(value);
-
-    if (value && !isValidUrl(value)) {
-      setLinkError(
-        "Please enter a valid URL (e.g., example.com or www.example.com)"
-      );
-    } else {
-      setLinkError("");
-    }
+    const { valid, error } = validateLink(value);
+    setLinkError(error);
   };
 
   const handleShareStory = () => {
-    if (link && !isValidUrl(link)) {
-      setLinkError(
-        "Please enter a valid URL (e.g., example.com or www.example.com)"
-      );
+    const { valid, error } = validateLink(link);
+    if (!valid) {
+      setLinkError(error);
       return;
     }
     // Add https:// if no protocol is specified
@@ -503,7 +521,7 @@ export default function AddStoryWidget({ onClose }: AddStoryWidgetPropsType) {
                 onClick={handleShareStory}
                 data-cy="share-story-button"
                 className="w-full bg-blue-500 text-white flex justify-center items-center py-2 rounded-lg hover:bg-blue-600 mt-auto disabled:bg-blue-200"
-                disabled={(link && !isValidUrl(link)) || loading}
+                disabled={!!linkError || (link && !isValidUrl(link)) || loading}
               >
                 {loading ? <Spinner /> : translateFunction("Share Story")}
               </button>
