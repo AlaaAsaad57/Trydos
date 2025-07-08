@@ -67,8 +67,8 @@ export const getConfiguredImage = ({
 }: GetConfiguredImagePropsType) => {
   if (typeof src === "string") {
     return src.replace(
-      "/upload/v1",
-      `/upload/v1/h_${height},${
+      "/upload",
+      `/upload/h_${height},${
         c_pad ? "w_800,c_pad" : "c_limit"
       }/f_auto/q_auto:good/fl_lossy/so_0`
     );

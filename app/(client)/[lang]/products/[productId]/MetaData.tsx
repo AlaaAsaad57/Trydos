@@ -1,84 +1,66 @@
 // components/BoutiqueHead.tsx
 
-import { getConfiguredImage } from "utils/functions";
-import { GetProductData } from "utils/pagesDataRequests/ProductPageData";
+import { generateCloudinaryUrl } from "utils/tinyUtils";
 
 export async function generateProductMetaData({ params, searchParams }) {
-  try {
-    let { product } = await GetProductData(params);
-    let pageTitle = `${product.name}`;
-    if (searchParams?.color) {
-      pageTitle += ` |  ${searchParams?.color}`;
-    }
-    if (searchParams?.size) {
-      pageTitle += ` |  ${searchParams?.size}`;
-    }
-    const pageDescription = `${product.details}`;
-    let imagesArray = searchParams.color
-      ? product?.sync_color_images?.find(
-          (s) =>
-            s.color_name === searchParams?.color ||
-            s.color_option === searchParams?.color
-        )?.images
-      : product.sync_color_images
-      ? product.sync_color_images?.map((s) => s.images[0])
-      : product.images;
-
-    const baseUrl =
-      process.env.NEXT_PUBLIC_REMOTE_FRONT ||
-      process.env.VERCEL_URL ||
-      "http://localhost:3000";
-    const primaryOgImage = `${baseUrl}/api/generate-og-images?title=${pageTitle}&description=${pageDescription}&images=${imagesArray?.join(
-      ","
-    )}&type=product`;
-
-    //   const keywords = [
-    //     boutique.name,
-    //     ...(filters?.categories?.map((s) => s.name) || []),
-    //     ...(filters?.brands?.map((s) => s.name) || []),
-    //     ...(filters?.colors?.map((s) => s) || []),
-    //     ...(filters?.sizes?.map((s) => s.name) || []),
-    //     ...(filtersData?.products?.map((s) => s.name) || []),
-    //   ]
-    //     .filter(Boolean)
-    //     .join(", ");
-
-    const canonicalUrl = `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/products/${product.slug}`;
-    const keywords = [
+  const [country, language] = params.lang.split("-");
+  let product;
+  let title = `${product.name}`;
+  if (searchParams.color) {
+    title += ` |  ${searchParams.color}`;
+  }
+  if (searchParams.size) {
+    title += ` |  ${searchParams.size}`;
+  }
+  let image = generateCloudinaryUrl({
+    publicIds: product.images,
+    width: 1200,
+    height: 630,
+    overlayText: title,
+  });
+  let data = {
+    title: title,
+    description: product.details,
+    alternates: {
+      canonical: `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${params.lang}/products/${product.slug}`,
+      languages: {
+        en: `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${country}-en/products/${product.slug}`,
+        tr: `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${country}-tr/products/${product.slug}`,
+        ar: `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${country}-ar/products/${product.slug}`,
+      },
+    },
+    openGraph: {
+      title: title,
+      description: product.details,
+      url: `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${params.lang}/products/${product.slug}`,
+      siteName: "Trydos",
+      images: [
+        {
+          url: image,
+          width: 1200,
+          height: 630,
+          alt: title,
+        },
+      ],
+      type: "product",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: title,
+      description: product.details,
+      images: [image],
+    },
+    canonical: `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${params.lang}/products/${product.slug}`,
+    error: false,
+    keywords: [
       product.name,
       product.brand?.name,
       product.category?.name,
-      ...(product.sync_color_images?.map((s) => s.color_name) || []),
-      ...(product.categories.map((s) => s.name) || []),
-      ...(product?.descriptors?.map((desc) => {
-        return desc.descriptors?.map(
-          (s) => `${s.value} - ${s?.descriptor?.name}`
-        );
-      }) || []),
-    ];
-
-    return {
-      title: pageTitle,
-      description: pageDescription,
-      keywords: keywords,
-      openGraph: {
-        type: "website",
-        title: pageTitle,
-        description: pageDescription,
-        url: canonicalUrl,
-        siteName: "TryDos",
-        images: [primaryOgImage],
-      },
-      twitter: {
-        card: "summary_large_image",
-        title: pageTitle,
-        description: pageDescription,
-        images: [primaryOgImage],
-      },
-      alternates: {
-        canonical: canonicalUrl,
-      },
-    };
+      ...(product.similar_words || []),
+    ],
+  };
+  try {
+    return data;
   } catch (error) {
     return {
       title: "TryDos",
@@ -90,3 +72,64 @@ export async function generateProductMetaData({ params, searchParams }) {
     };
   }
 }
+export const GetStructuredData = ({ params, product, color }) => {
+  let imagesArray = product.images;
+  if (color) {
+    imagesArray = product.sync_color_images.find(
+      (s) => s.color.name === color
+    )?.images;
+  }
+  let image = generateCloudinaryUrl({
+    publicIds: imagesArray,
+    width: 1200,
+    height: 630,
+    overlayText: product.name,
+  });
+  return {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: product.name,
+    image: image,
+    description: product.details,
+    sku: product.slug,
+    category: product.category.name,
+    brand: {
+      "@type": "Brand",
+      name: product.brand.name,
+    },
+    manufacturer: {
+      "@type": "Organization",
+      name: product.boutique.name,
+      url: `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${params.lang}/boutiques/${product.boutique.slug}`,
+    },
+    color: product.colors,
+    size: product.sizes,
+    additionalProperty: [
+      {
+        "@type": "PropertyValue",
+        name: "Descriptors",
+        value: product.descriptors
+          .map((s) => s.descriptors.map((s) => s.value))
+          .join(", "),
+      },
+      {
+        "@type": "PropertyValue",
+        name: "Similar Terms",
+        value: product.similar_words.join(", "),
+      },
+      {
+        "@type": "PropertyValue",
+        name: "Labels",
+        value: product.labels.join(", "),
+      },
+    ],
+    offers: {
+      "@type": "Offer",
+      url: `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${params.lang}/products/${product.slug}`,
+      priceCurrency: "USD",
+      price: product.price,
+      availability: "https://schema.org/InStock",
+      itemCondition: "https://schema.org/NewCondition",
+    },
+  };
+};

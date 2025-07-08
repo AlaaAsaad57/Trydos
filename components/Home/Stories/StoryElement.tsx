@@ -8,12 +8,19 @@ import { GetImageUrl } from "utils/tinyUtils";
 import { StoryElementPropsType } from "models/componentType/StoryElementPropsType";
 import {
   COOKIE_NAMES,
+  getCookie,
   getCookieServer,
   UserData,
 } from "utils/cookies/cookie-manager";
 
 async function StoryElement({ index, story }: StoryElementPropsType) {
-  let userData = await getCookieServer<UserData>(COOKIE_NAMES.USER_STORIES);
+  let userData: UserData | null = null;
+  if (typeof window === "undefined") {
+    userData = await getCookieServer<UserData>(COOKIE_NAMES.USER_STORIES);
+  } else {
+    userData = getCookie(COOKIE_NAMES.USER_STORIES);
+  }
+
   if (userData?.id === story?.id)
     return (
       <div className="story-element-container">

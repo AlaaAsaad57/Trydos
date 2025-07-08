@@ -11,7 +11,7 @@ import Home from "components/Home";
 import FeatureProducts from "components/Server/FeatureProducts";
 import FeaturedProductsSkeleton from "components/skeleton/loaders/FeaturedProductsSkeleton";
 import FlashDealsProducts from "components/Server/FlashDealsProducts";
-import { getHomeMetadata } from "./MetaData";
+import { getHomeMetadata, GetStructuredData } from "./MetaData";
 
 import { HomePageProps } from "models/componentType/HomePagePropsType";
 import { GetHomeData } from "utils/pagesDataRequests/HomePageData";
@@ -39,10 +39,7 @@ export async function generateMetadata({ params }) {
 // Server component to render JSON-LD structured data
 async function StructuredDataScript({ params }) {
   try {
-    const metadataWithStructuredData = await getHomeMetadata({
-      params,
-    });
-    const structuredData = metadataWithStructuredData.structuredData;
+    const structuredData = await GetStructuredData({ params });
     // console.log(
     //   "**********structuredData***********",
     //   JSON.stringify(structuredData)

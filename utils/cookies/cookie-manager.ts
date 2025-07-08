@@ -91,7 +91,7 @@ export async function getCookieServer<T = string>(
   name: string
 ): Promise<T | null> {
   if (!isServer()) {
-    throw new Error("getCookieServer can only be used on the server");
+    console.warn("getCookieServer can only be used on the server");
   }
 
   if (!cookies) {

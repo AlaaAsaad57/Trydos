@@ -6,20 +6,25 @@ import MobileNavigationSkeleton from "components/skeleton/MobileNavigation";
 import OfferListSkeleton from "components/skeleton/OfferList";
 import StoriesSkeleton from "components/skeleton/StoriesSkeleton";
 import { Suspense } from "react";
-import { getCategoriesMetadata } from "../../MetaData";
 import { HomePageProps } from "models/componentType/HomePagePropsType";
 import { GetHomeData } from "utils/pagesDataRequests/HomePageData";
 import FeatureProducts from "components/Server/FeatureProducts";
 import FeaturedProductsSkeleton from "components/skeleton/loaders/FeaturedProductsSkeleton";
 import FlashDealsProducts from "components/Server/FlashDealsProducts";
-
 export const revalidate = parseInt(process.env.NEXT_PUBLIC_REVALIDATE);
 export const runtime = "nodejs";
 export const preferredRegion = ["bom1", "sin1"];
 
 export async function generateMetadata({ params }) {
   try {
-    const metadata = await getCategoriesMetadata({ params });
+    const metadata = {
+      title: `Categories - TryDos`,
+      description:
+        "Browse product categories on TryDos - Find exactly what you're looking for.",
+      alternates: {
+        canonical: `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${params.lang}/categories/${params.mainCategory}`,
+      },
+    };
     return metadata;
   } catch (error) {
     console.log(error);
@@ -33,28 +38,6 @@ export async function generateMetadata({ params }) {
 
 async function page({ params }: HomePageProps) {
   // Server component to render JSON-LD structured data
-  async function StructuredDataScript({ params }) {
-    try {
-      const metadataWithStructuredData = await getCategoriesMetadata({
-        params,
-      });
-      const structuredData = metadataWithStructuredData.structuredData;
-
-      if (!structuredData) return null;
-
-      return (
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify(structuredData),
-          }}
-        />
-      );
-    } catch (error) {
-      console.error("Error generating structured data:", error);
-      return null;
-    }
-  }
 
   const {
     boutiqueData,
@@ -65,10 +48,6 @@ async function page({ params }: HomePageProps) {
   } = await GetHomeData(params);
   return (
     <>
-      <Suspense fallback={null}>
-        <StructuredDataScript params={params} />
-      </Suspense>
-
       <Suspense
         fallback={<MobileNavigationSkeleton />}
         key={`Navbar ${params.lang}`}
