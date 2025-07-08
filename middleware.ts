@@ -360,7 +360,6 @@ export async function middleware(request: NextRequest) {
   if (geoCountry && isValidCountry(geoCountry, allSupportedCountries)) {
     const locale = buildLocale(geoCountry, preferredLanguage);
     url.pathname = `/${locale}${pathname}`;
-    url.searchParams.set("no-country", "true");
     return NextResponse.redirect(url);
   }
 

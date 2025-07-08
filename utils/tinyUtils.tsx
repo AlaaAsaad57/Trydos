@@ -695,3 +695,41 @@ export const DetectScreen = () => {
     return GA_GLOBAL_SCREEN.HOME_SCREEN;
   }
 };
+export function generateCloudinaryUrl({
+  width,
+  height,
+  publicIds,
+  overlayText,
+}) {
+  const baseUrl = `https://res.cloudinary.com/dtcmozf4d/image`;
+  const baseTransform = `upload/v1/h_${height},w_${width}/f_auto/q_auto:good/fl_lossy/so_0`;
+
+  // remove leading slash if exists
+  const cleanPublicIds = publicIds.map((id) => id.replace(/^\//, ""));
+  const cleanBackgroundId = "product%2F2025-05-12-6821f4684c309".replace(
+    /^\//,
+    ""
+  );
+  const backgroundId = cleanBackgroundId;
+  const layerWidth = Math.floor(width / publicIds.length);
+
+  const layers = cleanPublicIds.map((id, i) => {
+    const safeId = id.replace(/\//g, ":"); // Cloudinary folder-safe
+    const x = i * layerWidth;
+    return `l_${safeId},w_${layerWidth},h_${height},o_90,c_fill,g_north_west,x_${x},y_0`;
+  });
+
+  const encodedText = encodeURIComponent(
+    `            ${overlayText}            `
+  ).replace(/%20/g, " ");
+  const textLayer = `l_text:arial_90_thin:${encodedText},co_rgb:1d1d1d,g_south,y_20`;
+
+  const allTransforms = [baseTransform, ...layers, textLayer].join("/");
+
+  const bgImage = backgroundId; // Already cleaned
+  console.log(
+    `${baseUrl}/${allTransforms}/${bgImage}.jpg`,
+    "SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS"
+  );
+  return `${baseUrl}/${allTransforms}/${bgImage}.jpg`;
+}
