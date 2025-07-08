@@ -56,8 +56,11 @@ export const AddStoryAction = (story) => {
 export const GetUnviewedStory = (story) => {
   if (typeof window !== "undefined") {
     const userStories = getCookie(COOKIE_NAMES.USER_STORIES);
-    if (userStories && userStories?.id === story.id)
+    console.log(userStories, story.id);
+    if (userStories && userStories?.id === story.id) {
+      console.log(story.stories.length - 1);
       return story.stories.length - 1;
+    }
   }
   let index = 0;
   let unseen = [];

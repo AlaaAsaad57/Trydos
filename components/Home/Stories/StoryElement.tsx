@@ -6,32 +6,64 @@ import { GetUnviewedStory } from "store/homepage/actions";
 import { getConfiguredImage } from "utils/functions";
 import { GetImageUrl } from "utils/tinyUtils";
 import { StoryElementPropsType } from "models/componentType/StoryElementPropsType";
+import {
+  COOKIE_NAMES,
+  getCookieServer,
+  UserData,
+} from "utils/cookies/cookie-manager";
 
-function StoryElement({ index, story }: StoryElementPropsType) {
-  return (
-    <div className="story-element-container">
-      <StoryAvatar
-        isSeen={story.stories.filter((s) => s.is_seen === false).length === 0}
-        avatar={
-          typeof story.photo_path === "string"
-            ? getConfiguredImage({
-                src: story.photo_path
-                  ? GetImageUrl(story.photo_path)
-                  : profilePicture.src,
-                width: 20,
-                height: 20,
-              })
-            : profilePicture
-        }
-      />
-      <Story
-        index={1}
-        media={story.stories[GetUnviewedStory(story)]}
-        Name={story.name ?? story.mobile_phone ?? "Unknown"}
-        story={story}
-      />
-    </div>
-  );
+async function StoryElement({ index, story }: StoryElementPropsType) {
+  let userData = await getCookieServer<UserData>(COOKIE_NAMES.USER_STORIES);
+  if (userData?.id === story?.id)
+    return (
+      <div className="story-element-container">
+        <StoryAvatar
+          isSeen={story.stories.filter((s) => s.is_seen === false).length === 0}
+          avatar={
+            typeof story.photo_path === "string"
+              ? getConfiguredImage({
+                  src: story.photo_path
+                    ? GetImageUrl(story.photo_path)
+                    : profilePicture.src,
+                  width: 20,
+                  height: 20,
+                })
+              : profilePicture
+          }
+        />
+        <Story
+          index={1}
+          media={story.stories[story.stories.length - 1]}
+          Name={story.name ?? story.mobile_phone ?? "Unknown"}
+          story={story}
+        />
+      </div>
+    );
+  else
+    return (
+      <div className="story-element-container">
+        <StoryAvatar
+          isSeen={story.stories.filter((s) => s.is_seen === false).length === 0}
+          avatar={
+            typeof story.photo_path === "string"
+              ? getConfiguredImage({
+                  src: story.photo_path
+                    ? GetImageUrl(story.photo_path)
+                    : profilePicture.src,
+                  width: 20,
+                  height: 20,
+                })
+              : profilePicture
+          }
+        />
+        <Story
+          index={1}
+          media={story.stories[GetUnviewedStory(story)]}
+          Name={story.name ?? story.mobile_phone ?? "Unknown"}
+          story={story}
+        />
+      </div>
+    );
 }
 
 export default StoryElement;
