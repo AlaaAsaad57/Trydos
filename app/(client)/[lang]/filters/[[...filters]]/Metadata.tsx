@@ -1,198 +1,209 @@
 // components/BoutiqueHead.tsx
 
 import { getConfiguredImage } from "utils/functions";
-import { parseFiltersFromParams, filtersToSearchParams } from "utils/tinyUtils";
-import { fetchFilteredProducts, fetchBoutiqueDetails } from "Server Requests";
-
+import {
+  generateCloudinaryUrl,
+  GetImageUrl,
+  parseFiltersFromParams,
+} from "utils/tinyUtils";
+const GenerateTitleBasedOnFilters = (filters: string[]) => {
+  let parsedFilters = parseFiltersFromParams(filters);
+  let { categories, brands, colors, boutiques, sizes, tags_names } =
+    parsedFilters;
+  let title = "Trydos - ";
+  let description = "Discover New ";
+  if (tags_names.length > 0) {
+    title += " Tags: ";
+    description += " Tags: ";
+    tags_names.forEach((tag) => {
+      title += `${tag}`;
+      description += ` ${tag},`;
+    });
+  }
+  if (boutiques.length > 0) {
+    title += " Boutiques: ";
+    description += " Boutiques: ";
+    boutiques.forEach((boutique) => {
+      title += `${boutique}`;
+      description += ` ${boutique},`;
+    });
+  }
+  if (categories.length > 0) {
+    title += " Categories: ";
+    description += " Categories: ";
+    categories.forEach((category) => {
+      title += `${category}`;
+      description += ` ${category},`;
+    });
+  }
+  if (brands.length > 0) {
+    title += " Brands: ";
+    description += " Brands: ";
+    brands.forEach((brand) => {
+      title += ` ${brand}`;
+      description += ` ${brand},`;
+    });
+  }
+  if (colors.length > 0) {
+    title += " Colors: ";
+    description += " Colors: ";
+    colors.forEach((color) => {
+      title += ` ${color}`;
+      description += ` ${color},`;
+    });
+  }
+  if (sizes.length > 0) {
+    title += " Sizes: ";
+    description += " Sizes: ";
+    sizes.forEach((size) => {
+      title += ` ${size}`;
+      description += ` ${size},`;
+    });
+  }
+  description += " Products on Trydos";
+  return {
+    title,
+    description,
+  };
+};
 export async function getBoutiqueMetadata({ params, searchParams }) {
-  // Parse filters from path parameters instead of search parameters
-  const parsedFilters = parseFiltersFromParams(params.filters);
-
-  // Convert to the format expected by the API
-  const EditedSearchParams = filtersToSearchParams(parsedFilters);
-  const [country, language] = params.lang.split("-");
-  const GetProductsData = async () => {
-    try {
-      const result = await fetchFilteredProducts(
-        language,
-        country,
-        params.filters || [],
-        "false",
-        "false",
-        null
-      );
-      return result.data;
-    } catch (error) {
-      console.log(error, "getProductsData");
-      return {
-        categories: [],
-        brands: [],
-        colors: [],
-        prices: {
-          priceRanges: [],
-        },
-        attributes: [],
-        boutiques: [],
-        products: [],
-        offset: 0,
-        limit: 0,
-        total_size: 0,
-        search_time: null,
-        search_text: null,
-      };
-    }
+  let {
+    categories,
+    brands,
+    colors,
+    sizes,
+    products,
+    boutiques,
+    tags_names,
+    search_query,
+  } = {
+    categories: [],
+    brands: [],
+    colors: [],
+    sizes: [],
+    products: [],
+    boutiques: [],
+    tags_names: [],
+    search_query: "",
   };
-  const GetBoutiqueData = async () => {
-    // Get the first boutique from the boutiques filter parameters
-    let selectedBoutique = parsedFilters?.boutiques?.[0] || null;
-
-    try {
-      if (!selectedBoutique) {
-        return {
-          name: "Search",
-          banners: null,
-          icon: null,
-        };
-      }
-
-      const data = await fetchBoutiqueDetails(
-        selectedBoutique,
-        language,
-        country
-      );
-      return data;
-    } catch (error) {
-      console.log(error, "getBoutiqueData");
-      return {
-        name: "Search",
-        banners: null,
-        icon: null,
-        iconUrl: null,
-      };
-    }
-  };
-  const [filtersData, boutique] = await Promise.all([
-    GetProductsData(),
-    GetBoutiqueData(),
-  ]);
-  let filters = {
-    categories: filtersData?.categories,
-    brands: filtersData?.brands,
-    colors: filtersData?.colors,
-    prices: filtersData?.prices?.priceRanges,
-    sizes: filtersData?.attributes?.[0]?.options,
-    boutiques: filtersData?.boutiques,
-    search_text: parsedFilters?.search_text?.[0] || null,
-  };
-  const pageTitle = `${boutique.name} | Discover Boutique Products, Brands & More`;
-  const pageDescription = `Shop exclusive products from ${
-    boutique.name
-  }. Categories: ${filters?.categories
-    ?.map((s) => s.name)
-    ?.join(", ")}. Top brands: ${filters?.brands
-    ?.map((s) => s.name)
-    ?.join(", ")}.`;
-
-  const defaultOgImage = "/default-og-image.jpg";
-
-  const ogImage =
-    boutique.name === "Search"
-      ? filtersData?.products?.[0]?.images?.[0]?.file_path
-      : boutique.banners?.[0]?.file_path ||
-        boutique?.icon?.file_path ||
-        defaultOgImage;
-
   const keywords = [
-    boutique.name,
-    ...(filters?.categories?.map((s) => s.name) || []),
-    ...(filters?.brands?.map((s) => s.name) || []),
-    ...(filters?.colors?.map((s) => s) || []),
-    ...(filters?.sizes?.map((s) => s.name) || []),
-    ...(filtersData?.products?.map((s) => s.name) || []),
+    "TryDos",
+    ...(categories?.map((s) => s.name) || []),
+    ...(brands?.map((s) => s.name) || []),
+    ...(colors?.map((s) => s) || []),
+    ...(sizes?.map((s) => s.name) || []),
+    ...(products?.map((s) => s.name) || []),
+    ...(tags_names?.map((s) => s) || []),
+    ...(search_query?.split(" ") || []),
   ]
     .filter(Boolean)
     .join(", ");
-
-  const filterPath = params.filters ? params.filters.join("/") : "";
-  const canonicalUrl = filterPath
-    ? `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/filters/${filterPath}`
-    : `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/filters`;
-
-  return {
-    title: pageTitle,
-    description: pageDescription,
-    keywords,
+  const [country, language] = params.lang.split("-");
+  let parsedFilters = parseFiltersFromParams(params.filters);
+  let image;
+  if (parsedFilters.boutiques) {
+    image = getConfiguredImage({
+      src: GetImageUrl("/product/2025-06-10-6847bb8b44ea4"),
+      width: 1200,
+      height: 630,
+    });
+  } else {
+    image = generateCloudinaryUrl({
+      width: 1200,
+      height: 630,
+      publicIds: [
+        "/product/2025-06-10-6847bb8b44ea4",
+        "/product/2025-06-10-6847bb8fce155",
+        "/product/2025-06-10-6847bba79170d",
+      ],
+      overlayText: "Test",
+    });
+  }
+  const canonicalUrl = `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${
+    params.lang
+  }/filters/${params.filters.join("/")}`;
+  let data = {
+    title: GenerateTitleBasedOnFilters(params.filters).title,
+    description: GenerateTitleBasedOnFilters(params.filters).description,
+    canonical: canonicalUrl,
+    keywords: keywords,
+    alternates: {
+      canonical: `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${
+        params.lang
+      }/filters/${params.filters.join("/")}`,
+      languages: {
+        en: `${
+          process.env.NEXT_PUBLIC_REMOTE_FRONT
+        }/${country}-en/filters/${params.filters.join("/")}`,
+        tr: `${
+          process.env.NEXT_PUBLIC_REMOTE_FRONT
+        }/${country}-tr/filters/${params.filters.join("/")}`,
+        ar: `${
+          process.env.NEXT_PUBLIC_REMOTE_FRONT
+        }/${country}-ar/filters/${params.filters.join("/")}`,
+      },
+    },
     openGraph: {
+      title: GenerateTitleBasedOnFilters(params.filters).title,
+      description: GenerateTitleBasedOnFilters(params.filters).description,
+      url: `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${
+        params.lang
+      }/filters/${params.filters.join("/")}`,
+      siteName: "Trydos",
+      images: [{ url: image }],
+      locale: params.lang,
       type: "website",
-      title: pageTitle,
-      description: pageDescription,
-      url: canonicalUrl,
-      siteName: "TryDos",
-      images: boutique?.banners
-        ? boutique?.banners?.map((s) => ({
-            url: getConfiguredImage({
-              src: process.env.NEXT_PUBLIC_BASE_CLOUDINARY_URL + s.file_path,
-              width: 1200,
-              height: 630,
-              q: 80,
-            }),
-            width: 1200,
-            height: 630,
-            alt: boutique.name,
-          }))
-        : [
-            {
-              url: getConfiguredImage({
-                src: process.env.NEXT_PUBLIC_BASE_CLOUDINARY_URL + ogImage,
-                width: 1200,
-                height: 630,
-                q: 80,
-              }),
-              width: 1200,
-              height: 630,
-              alt: boutique.name,
-            },
-          ],
     },
     twitter: {
       card: "summary_large_image",
-      title: pageTitle,
-      description: pageDescription,
-      images: [
-        getConfiguredImage({
-          src: process.env.NEXT_PUBLIC_BASE_CLOUDINARY_URL + ogImage,
-          width: 1200,
-          height: 630,
-          q: 80,
-        }),
-        getConfiguredImage({
-          src: process.env.NEXT_PUBLIC_BASE_CLOUDINARY_URL + ogImage,
-          width: 800,
-          height: 418,
-          q: 80,
-        }),
-        getConfiguredImage({
-          src: process.env.NEXT_PUBLIC_BASE_CLOUDINARY_URL + ogImage,
-          width: 400,
-          height: 209,
-          q: 80,
-        }),
-        getConfiguredImage({
-          src: process.env.NEXT_PUBLIC_BASE_CLOUDINARY_URL + ogImage,
-          width: 200,
-          height: 104,
-          q: 80,
-        }),
-        getConfiguredImage({
-          src: process.env.NEXT_PUBLIC_BASE_CLOUDINARY_URL + ogImage,
-          width: 100,
-          height: 52,
-          q: 80,
-        }),
-      ],
-    },
-    alternates: {
-      canonical: canonicalUrl,
+      title: GenerateTitleBasedOnFilters(params.filters).title,
+      description: GenerateTitleBasedOnFilters(params.filters).description,
+      images: [image],
+      creator: "@trydos",
     },
   };
+
+  return data;
 }
+export const GetStructuredData = ({ params, prodcts, boutique }) => {
+  return {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    name: GenerateTitleBasedOnFilters(params.filters).title,
+    url: `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${
+      params.lang
+    }/filters/${params.filters.join("/")}`,
+    description: GenerateTitleBasedOnFilters(params.filters).description,
+    mainEntity: {
+      "@type": "ItemList",
+      itemListElement: prodcts.map((product, index) => {
+        return {
+          "@type": "Product",
+          position: index + 1,
+          name: product.name,
+          image: product.images?.[0]?.file_path ?? product.images?.[0],
+          url: `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${params.lang}/products/${product.slug}`,
+          category: product.category.name,
+          brand: {
+            "@type": "Brand",
+            name: product.brand.name,
+          },
+          manufacturer: {
+            "@type": "Organization",
+            name: product.boutique.name,
+            url: `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${params.lang}/boutiques/${product.boutique.slug}`,
+          },
+          sku: product.slug,
+          description: product.description,
+          offers: {
+            "@type": "Offer",
+            priceCurrency: "USD",
+            price: product.price,
+            availability: "https://schema.org/InStock",
+            url: product.url,
+          },
+        };
+      }),
+    },
+  };
+};

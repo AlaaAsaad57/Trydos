@@ -9,6 +9,9 @@ import { ChangeColorWidgetPropsType } from "models/componentType/ChangeColorWidg
 import { ChangeOrderItemPropsType } from "models/componentType/ChangeOrderItemPropsType";
 import { ChangeSizeWidgetPropsType } from "models/componentType/ChangeSizeWidgetPropsType";
 import { fetchData } from "utils/fetchData";
+import { showErrorNotification } from "store/notifications/reducer";
+import { useAppStore } from "store";
+import { ready } from "node_modules/cypress/types/jquery";
 
 function ChangeOrderItem({
   item,
@@ -16,6 +19,20 @@ function ChangeOrderItem({
   setShouldConfirmChange,
   changeOrderItem,
 }: ChangeOrderItemPropsType) {
+  const [loading, setLoading] = useState(false);
+  const CancelQty = async () => {
+    try {
+      setShouldConfirmChange({
+        order_id: ActivePacks?.id,
+        item_id: item?.id,
+        qty: item.qty - qty,
+        type: "CancelQty",
+      });
+    } catch (error) {
+      setLoading(false);
+    }
+  };
+  const { ActivePacks } = useAppStore();
   const [tabs, setTabs] = useState<string>(
     item?.variation?.color
       ? "Change Color"
@@ -70,6 +87,12 @@ function ChangeOrderItem({
     if (size !== item?.variation?.Size) {
       return true;
     }
+    if (qty !== item?.qty) {
+      return true;
+    }
+    return false;
+  };
+  const isChangedQtyOnly = () => {
     if (qty !== item?.qty) {
       return true;
     }
@@ -192,6 +215,10 @@ function ChangeOrderItem({
           !isChanged() ? "bg-[#D3D3D3] " : "bg-[#402CDD] "
         } rounded-[20px] text-[16px] text-[#fff] medium`}
         onClick={() => {
+          if (isChangedQtyOnly()) {
+            CancelQty();
+            return;
+          }
           if (!isChanged()) {
             backToMain();
           } else {
@@ -359,7 +386,7 @@ export const ChangeQtyWidget = ({
       </span>
       <div className="flex-row items-center justify-center mt-[20px] w-full max-w-[200px]">
         <button
-          onClick={() => setQty(Math.max(1, qty - 1))}
+          onClick={() => setQty(Math.max(0, qty - 1))}
           className="flex items-center justify-center w-[40px] h-[40px] rounded-l-[12px] bg-[#F8F8F8] border border-[#E6E6E680] border-r-0 hover:bg-[#EEEEEE] transition-colors duration-200 active:scale-95"
         >
           <span className="text-[#1D1D1D] text-[18px] light">−</span>
@@ -367,16 +394,20 @@ export const ChangeQtyWidget = ({
         <input
           type="number"
           value={qty}
-          onChange={(e) => setQty(Math.max(1, parseInt(e.target.value) || 1))}
+          onChange={(e) => {
+            if (parseInt(e.target.value) > qty) {
+              showErrorNotification(
+                translateFunction(
+                  "You Can't Change Qty To Higher Than The Current Qty"
+                )
+              );
+            } else {
+              setQty(Math.max(0, parseInt(e.target.value)));
+            }
+          }}
           className="flex-1 h-[40px] text-center text-[16px] font-medium text-[#1D1D1D] bg-white border-t border-b border-[#E6E6E680] focus:outline-none focus:border-[#402CDD] focus:ring-1 focus:ring-[#402CDD80] transition-all duration-200"
           min="1"
         />
-        <button
-          onClick={() => setQty(qty + 1)}
-          className="flex items-center justify-center w-[40px] h-[40px] rounded-r-[12px] bg-[#F8F8F8] border border-[#E6E6E680] border-l-0 hover:bg-[#EEEEEE] transition-colors duration-200 active:scale-95"
-        >
-          <span className="text-[#1D1D1D] text-[18px] light">+</span>
-        </button>
       </div>
       <span className="text-[#8D8D8D] text-[12px] regular mt-[8px] text-center">
         {translateFunction("Select quantity")}

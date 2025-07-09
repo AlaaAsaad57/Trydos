@@ -1,4 +1,7 @@
 "use server";
+
+import { reportError } from "utils/error-reporter";
+
 interface StoryItem {
   id: string | number;
   photo_path?: string;
@@ -63,7 +66,18 @@ export async function fetchStories(
     );
 
     if (!response.ok) {
-      throw new Error(`Stories Error: ${response.status}`);
+      console.error(`Stories Error: ${response.status}`);
+      reportError(new Error(`Stories Error: ${response.status}`), {
+        source: "stories",
+        page: "stories",
+        language: language,
+        country: country,
+        response: JSON.stringify(response),
+      });
+      return {
+        data: [],
+        next_page_url: undefined,
+      };
     }
 
     const result = await response.json();

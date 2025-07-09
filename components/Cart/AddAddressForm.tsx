@@ -54,10 +54,10 @@ function AddAddressForm({
       regionValid = false;
 
     if (
-      (addressDetails.contact_info.contact_person_name?.length > 0 ||
+      (addressDetails?.contact_info?.contact_person_name?.length > 0 ||
         // @ts-ignore
-        addressDetails.contact_info.name?.length > 0) &&
-      addressDetails.contact_info.phone?.length > 0
+        addressDetails?.contact_info?.name?.length > 0) &&
+      addressDetails?.contact_info?.phone?.length > 0
     ) {
       valid = true;
     } else {
@@ -428,9 +428,9 @@ const ContactInfo = () => {
             <input
               data-cy="recipient-name-input"
               value={
-                addressDetails.contact_info.contact_person_name ||
+                addressDetails?.contact_info?.contact_person_name ||
                 // @ts-ignore
-                addressDetails.contact_info.name
+                addressDetails?.contact_info?.name
               }
               onChange={(e) => {
                 setAddressDetails({
@@ -477,7 +477,7 @@ const ContactInfo = () => {
               autoCorrect="off"
               inputMode="numeric"
               type="number"
-              value={addressDetails.contact_info.phone}
+              value={addressDetails?.contact_info?.phone}
               onChange={(e) => {
                 setAddressDetails({
                   contact_info: {
@@ -524,7 +524,7 @@ const ContactInfo = () => {
               autoComplete="off"
               autoCorrect="off"
               inputMode="numeric"
-              value={addressDetails.contact_info.alternative_phone}
+              value={addressDetails?.contact_info?.alternative_phone}
               onChange={(e) => {
                 setAddressDetails({
                   contact_info: {

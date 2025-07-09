@@ -227,5 +227,35 @@ class OrderService {
 
     return response.data;
   }
+  async CancelOrder({ order_id }) {
+    try {
+      console.log({ order_id });
+      let response = await fetchData({
+        url: `/customer/order/cancel`,
+        reqTitle: "Cancel Order",
+        method: "POST",
+        server: "market",
+        // body: JSON.stringify({ order_id }),
+      });
+      if (response.success || response.isSuccessful) return response;
+    } catch (error) {
+      console.log(error);
+    }
+  }
+  async CancelOrderItem({ order_id, item_id, qty }) {
+    try {
+      console.log({ order_id, item_id, qty });
+      let response = await fetchData({
+        url: `/customer/order/cancel-item`,
+        reqTitle: "Cancel Order Item",
+        method: "POST",
+        server: "market",
+        // body: JSON.stringify({ order_id, detail_id: item_id, qty }),
+      });
+      if (response.success || response.isSuccessful) return response;
+    } catch (error) {
+      console.log(error);
+    }
+  }
 }
 export default new OrderService();

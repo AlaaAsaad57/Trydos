@@ -1,3 +1,4 @@
+import { reportError } from "utils/error-reporter";
 import {
   configureSearchParams,
   parseFiltersFromParams,
@@ -118,7 +119,28 @@ export async function fetchFilteredProducts(
     );
 
     if (!response.ok) {
-      throw new Error(`Filtered Products Error: ${response.status}`);
+      console.error(`Filtered Products Error: ${response.status}`);
+      reportError(new Error(`Filtered Products Error: ${response.status}`), {
+        source: "filters",
+        page: "filtered-products",
+        language: language,
+        country: country,
+        response: JSON.stringify(response),
+      });
+      return {
+        data: {
+          offset: 0,
+          limit: 0,
+          total_size: 0,
+          categories: [],
+          brands: [],
+          prices: [],
+          colors: [],
+          attributes: [],
+          boutiques: [],
+          products: [],
+        },
+      };
     }
 
     const data = await response.json();

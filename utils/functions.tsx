@@ -2,8 +2,6 @@ import translations from "public/translations/translations.js";
 import { useAppStore } from "store";
 import { notFound } from "next/navigation";
 import { LogData } from "store/homepage/actions";
-import home from "services/home";
-import { SimpleDetailsProductApi } from "models/API/market/ProductSimpleDetails";
 import { CartResponse } from "models/API/market/CartShipping";
 import { SimpleBoutiqeApi } from "models/API/market/BoutiqueSimpleDetails";
 import { OldCartApi } from "models/API/market/OldCart";
@@ -77,8 +75,8 @@ export const getConfiguredImage = ({
   }
   if (src?.file_path?.includes("cloudinary")) {
     return src.file_path.replace(
-      "/upload",
-      `/upload/h_${height},${
+      "/upload/v1",
+      `/upload/v1/h_${height},${
         c_pad ? "w_800,c_pad" : "c_limit"
       }/f_auto/q_auto:good/fl_lossy/so_0`
     );

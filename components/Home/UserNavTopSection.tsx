@@ -27,14 +27,15 @@ function UserNavTopSection({
 }) {
   // State to track if component is mounted (client-side)
 
-  const { userData, userChat } = useUserData({ initialUserData });
+  const { userData, userChat, userStories } = useUserData({ initialUserData });
   // Handle mounting and cookie access
   const getUserType = () => {
     if (userData) {
       if (userData.phone === "0" || !userData.phone) {
         return "NEW_USER";
       } else {
-        if (userData.is_phone_verified === 1) return "authed-user";
+        if (userData.is_phone_verified === 1 && userChat?.id && userStories?.id)
+          return "authed-user";
         else return "Verified User";
       }
     } else {

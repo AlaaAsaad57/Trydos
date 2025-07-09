@@ -7,6 +7,7 @@ import { AddressListContainerPropsType } from "models/componentType/AddressListC
 import { DeleteIconPropsType } from "models/componentType/DeleteIconPropsType";
 import { EditIconPropsType } from "models/componentType/EditIconPropsType";
 export const GetAddressString = (location) => {
+  if (!location) return "";
   let str = "";
   if (
     location?.province &&
@@ -32,7 +33,11 @@ export const GetAddressString = (location) => {
     str += ` | ${location?.building}`;
   return str;
 };
-function AddressListContainer({ closeSelect, slideNext, Delete }: AddressListContainerPropsType) {
+function AddressListContainer({
+  closeSelect,
+  slideNext,
+  Delete,
+}: AddressListContainerPropsType) {
   const { addressLists, initAddressForm, updateAddress, setDefaultAddress } =
     useAppStore();
 
@@ -156,7 +161,7 @@ function AddressListContainer({ closeSelect, slideNext, Delete }: AddressListCon
                     </svg>
 
                     <div className="flex-row ml-[4px]   items-center regular text-[12px] text-[#8D8D8D]">
-                      {s.contact_info.phone}
+                      {s?.contact_info?.phone}
                     </div>
                     <div className="flex-row ml-[17px]  items-center">
                       <svg
@@ -213,9 +218,9 @@ function AddressListContainer({ closeSelect, slideNext, Delete }: AddressListCon
                       </svg>
 
                       <div className="flex-row  ml-[4px]  items-center regular text-[12px] text-[#8D8D8D]">
-                        {s.contact_info.contact_person_name ||
+                        {s?.contact_info?.contact_person_name ||
                           // @ts-ignore
-                          s.contact_info?.name}
+                          s?.contact_info?.name}
                       </div>
                     </div>
                   </div>

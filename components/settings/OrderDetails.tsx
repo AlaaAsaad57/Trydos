@@ -42,6 +42,7 @@ import { fetchData } from "utils/fetchData";
 import auth from "services/auth";
 function OrderDetails({ resetOrderDetails, goBack }: OrderDetailsPropsType) {
   const [loading, setLoading] = useState(false);
+
   const totalAmount = (arr) => {
     let total = 0;
     arr?.map((s) => {
@@ -71,8 +72,13 @@ function OrderDetails({ resetOrderDetails, goBack }: OrderDetailsPropsType) {
     }
   }, []);
 
-  const [ActivePacks, setActivePacks] = useState(null);
-  const { setOrderDetails, selectedOrder, openChat } = useAppStore();
+  const {
+    setOrderDetails,
+    selectedOrder,
+    openChat,
+    ActivePacks,
+    setActivePacks,
+  } = useAppStore();
 
   const fetchedOrderIdRef = useRef<string | number | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);

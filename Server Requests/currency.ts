@@ -1,5 +1,7 @@
 "use server";
 
+import { reportError } from "utils/error-reporter";
+
 interface CurrencyResponse {
   [key: string]: any;
 }
@@ -27,7 +29,17 @@ export async function fetchCurrency(
     );
 
     if (!response.ok) {
-      throw new Error(`Currency Error: ${response.status}`);
+      console.error(`Currency Error: ${response.status}`);
+      reportError(new Error(`Currency Error: ${response.status}`), {
+        source: "currency",
+        page: "currency",
+        language: language,
+        country: country,
+        response: JSON.stringify(response),
+      });
+      return {
+        currency: { data: null, message: "Currency not found" },
+      };
     }
 
     return await response.json();

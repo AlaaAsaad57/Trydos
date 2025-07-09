@@ -15,8 +15,6 @@ import ShareBoutiquePageButton from "components/filterPage/ShareBoutiquePageButt
 import FilterBoutiquePageButton from "components/filterPage/FilterBoutiquePageButton";
 import SearchBoutiquePage from "components/filterPage/SearchBoutiquePage";
 import { parseFiltersFromParams } from "utils/tinyUtils";
-import { getFlashDealsMetadata } from "../../MetaData";
-import { fetchCurrency, fetchFilteredProducts } from "Server Requests";
 import { GetFiltersData } from "utils/pagesDataRequests/FiltersPageData";
 
 export const dynamicParams = true;
@@ -27,7 +25,14 @@ export const revalidate = parseInt(process.env.NEXT_PUBLIC_REVALIDATE);
 export const dynamic = "auto";
 export async function generateMetadata({ params }) {
   try {
-    const metadata = await getFlashDealsMetadata({ params });
+    const metadata = {
+      title: "Flash Deals - TryDos",
+      description:
+        "Exclusive flash deals on TryDos - Limited time offers with special discounts.",
+      alternates: {
+        canonical: `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${params.lang}/flash-deals`,
+      },
+    };
     return metadata;
   } catch (error) {
     console.log(error);
@@ -72,35 +77,9 @@ export default async function Page({
   };
 
   // Server component to render JSON-LD structured data
-  async function StructuredDataScript({ params }) {
-    try {
-      const metadataWithStructuredData = await getFlashDealsMetadata({
-        params,
-      });
-      const structuredData = metadataWithStructuredData.structuredData;
-
-      if (!structuredData) return null;
-
-      return (
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify(structuredData),
-          }}
-        />
-      );
-    } catch (error) {
-      console.error("Error generating structured data:", error);
-      return null;
-    }
-  }
 
   return (
     <>
-      <Suspense fallback={null}>
-        <StructuredDataScript params={params} />
-      </Suspense>
-
       <Suspense fallback={<></>}>
         <FilterWidgetContainer key={JSON.stringify(parsedFilters)} />
       </Suspense>

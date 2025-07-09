@@ -1,163 +1,169 @@
 // components/BoutiqueHead.tsx
 
-import { getConfiguredImage } from "utils/functions";
-import { GetProductData } from "utils/pagesDataRequests/ProductPageData";
+import { Metadata } from "next";
+import { generateCloudinaryUrl } from "utils/tinyUtils";
 
-export async function generateProductMetaData({ params, searchParams }) {
+export async function generateProductMetaData({
+  params,
+  searchParams,
+}): Promise<Metadata> {
   try {
-    let { product } = await GetProductData(params);
-    let pageTitle = `${product.name}`;
-    if (searchParams?.color) {
-      pageTitle += ` |  ${searchParams?.color}`;
+    const [country, language] = params.lang.split("-");
+    const getProductMetaData = await fetch(
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/web/product/product-meta/${params.productId}`,
+      {
+        headers: {
+          country: country,
+          language: language,
+        },
+        next: {
+          revalidate: 3600,
+          tags: ["product-meta", params.productId],
+        },
+      }
+    );
+
+    const { data: product } = await getProductMetaData.json();
+
+    let title = `${product?.name}`;
+    if (searchParams.color) {
+      title += ` |  ${searchParams.color}`;
     }
-    if (searchParams?.size) {
-      pageTitle += ` |  ${searchParams?.size}`;
+    if (searchParams.size) {
+      title += ` |  ${searchParams.size}`;
     }
-    const pageDescription = `${product.details}`;
-
-    const ogImage =
-      product?.sync_color_images?.find(
-        (s) => s.color_name === searchParams?.color
-      )?.images?.[0]?.file_path ?? product.images[0].file_path;
-
-    //   const keywords = [
-    //     boutique.name,
-    //     ...(filters?.categories?.map((s) => s.name) || []),
-    //     ...(filters?.brands?.map((s) => s.name) || []),
-    //     ...(filters?.colors?.map((s) => s) || []),
-    //     ...(filters?.sizes?.map((s) => s.name) || []),
-    //     ...(filtersData?.products?.map((s) => s.name) || []),
-    //   ]
-    //     .filter(Boolean)
-    //     .join(", ");
-
-    const canonicalUrl = `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/products/${product.slug}`;
-    const keywords = [
-      product.name,
-      product.brand?.name,
-      product.category?.name,
-      ...(product.sync_color_images?.map((s) => s.color_name) || []),
-      ...(product.categories.map((s) => s.name) || []),
-      ...(product?.descriptors?.map((desc) => {
-        return desc.descriptors?.map(
-          (s) => `${s.value} - ${s?.descriptor?.name}`
-        );
-      }) || []),
-    ];
-    const getImages = () => {
-      return (
-        (product?.sync_color_images
-          ?.find((s) => s.color_name === searchParams?.color)
-          ?.images?.map((s) => ({
-            url: getConfiguredImage({
-              src: process.env.NEXT_PUBLIC_BASE_CLOUDINARY_URL + s,
-              width: 1200,
-              height: 630,
-              q: 80,
-            }),
-            width: 1200,
-            height: 630,
-            alt: product.name,
-          }))?.length > 0 &&
-          product?.sync_color_images
-            ?.find((s) => s.color_name === searchParams?.color)
-            ?.images?.map((s) => ({
-              url: getConfiguredImage({
-                src: process.env.NEXT_PUBLIC_BASE_CLOUDINARY_URL + s,
-                width: 1200,
-                height: 630,
-                q: 80,
-              }),
-              width: 1200,
-              height: 630,
-              alt: product.name,
-            }))) ||
-        (product.images?.map((s) => ({
-          url: getConfiguredImage({
-            src: process.env.NEXT_PUBLIC_BASE_CLOUDINARY_URL + s,
-            width: 1200,
-            height: 630,
-            q: 80,
-          }),
+    console.log(
+      "**********product?.images***********",
+      JSON.stringify(product.images),
+      product?.images.map((s) => `/product/${s.images[0]}`.split(".")[0])
+    );
+    let image = product?.images
+      ? generateCloudinaryUrl({
+          publicIds: product?.images.map(
+            (s) => `/product/${s.images[0]}`.split(".")[0]
+          ),
           width: 1200,
           height: 630,
-          alt: product.name,
-        }))?.length > 0 &&
-          product.images?.map((s) => ({
-            url: getConfiguredImage({
-              src: process.env.NEXT_PUBLIC_BASE_CLOUDINARY_URL + s,
-              width: 1200,
-              height: 630,
-              q: 80,
-            }),
+          overlayText: product?.name,
+        })
+      : null;
+    let data: Metadata = {
+      title: title,
+      description: product?.details,
+      alternates: {
+        canonical: `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${params.lang}/products/${params.productId}`,
+        languages: {
+          en: `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${country}-en/products/${params.productId}`,
+          tr: `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${country}-tr/products/${params.productId}`,
+          ar: `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${country}-ar/products/${params.productId}`,
+        },
+      },
+      openGraph: {
+        title: title,
+        description: product?.details,
+        url: `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${params.lang}/products/${params.productId}`,
+        siteName: "Trydos",
+        images: [
+          {
+            url: image,
             width: 1200,
             height: 630,
-            alt: product.name,
-          })))
-      );
-    };
-
-    return {
-      title: pageTitle,
-      description: pageDescription,
-      keywords: keywords,
-      openGraph: {
+            alt: "",
+          },
+        ],
         type: "website",
-        title: pageTitle,
-        description: pageDescription,
-        url: canonicalUrl,
-        siteName: "TryDos",
-        images: getImages(),
       },
       twitter: {
         card: "summary_large_image",
-        title: pageTitle,
-        description: pageDescription,
-        images: [
-          getConfiguredImage({
-            src: process.env.NEXT_PUBLIC_BASE_CLOUDINARY_URL + ogImage,
-            width: 1200,
-            height: 630,
-            q: 80,
-          }),
-          getConfiguredImage({
-            src: process.env.NEXT_PUBLIC_BASE_CLOUDINARY_URL + ogImage,
-            width: 800,
-            height: 418,
-            q: 80,
-          }),
-          getConfiguredImage({
-            src: process.env.NEXT_PUBLIC_BASE_CLOUDINARY_URL + ogImage,
-            width: 400,
-            height: 209,
-            q: 80,
-          }),
-          getConfiguredImage({
-            src: process.env.NEXT_PUBLIC_BASE_CLOUDINARY_URL + ogImage,
-            width: 200,
-            height: 104,
-            q: 80,
-          }),
-          getConfiguredImage({
-            src: process.env.NEXT_PUBLIC_BASE_CLOUDINARY_URL + ogImage,
-            width: 100,
-            height: 52,
-            q: 80,
-          }),
-        ],
+        title: title,
+        description: product?.details,
+        images: [image],
       },
-      alternates: {
-        canonical: canonicalUrl,
-      },
+      keywords: [
+        product?.name,
+        product?.brand,
+        product?.category,
+        product?.boutique,
+        ...(product?.similar_words || []),
+      ],
     };
+
+    return data;
   } catch (error) {
+    console.log(error, "error");
     return {
-      title: "TryDos",
-      error: true,
-      description: "TryDos",
+      title: "!Not Found Product MetaData",
+      // @ts-ignore
+
+      description: "!Not Found Product MetaData",
       openGraph: {
         type: "website",
       },
     };
   }
 }
+export const GetStructuredData = ({ params, product, color }) => {
+  let imagesArray = product?.images;
+  if (color) {
+    imagesArray = product?.sync_color_images.find(
+      (s) => s.color.name === color
+    )?.images;
+  }
+  let image = imagesArray
+    ? generateCloudinaryUrl({
+        publicIds: product?.images.map(
+          (s) => `/product/${s.images[0]}`.split(".")[0]
+        ),
+        width: 1200,
+        height: 630,
+        overlayText: product?.name,
+      })
+    : null;
+  return {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: product?.name,
+    image: image,
+    description: product?.details,
+    sku: product?.slug,
+    category: product?.category?.name,
+    brand: {
+      "@type": "Brand",
+      name: product?.brand?.name,
+    },
+    manufacturer: {
+      "@type": "Organization",
+      name: product?.boutique?.name,
+      url: `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${params.lang}/boutiques/${product?.boutique?.slug}`,
+    },
+    color: product?.colors,
+    size: product?.sizes,
+    additionalProperty: [
+      {
+        "@type": "PropertyValue",
+        name: "Descriptors",
+        value: product?.descriptors
+          ?.map((s) => s?.descriptors?.map((s) => s?.value))
+          .join(", "),
+      },
+      {
+        "@type": "PropertyValue",
+        name: "Similar Terms",
+        value: product?.similar_words?.join(", "),
+      },
+      {
+        "@type": "PropertyValue",
+        name: "Labels",
+        value: product?.labels?.join(", "),
+      },
+    ],
+    offers: {
+      "@type": "Offer",
+      url: `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${params.lang}/products/${product?.slug}`,
+      priceCurrency: "USD",
+      price: product?.price,
+      availability: "https://schema.org/InStock",
+      itemCondition: "https://schema.org/NewCondition",
+    },
+  };
+};

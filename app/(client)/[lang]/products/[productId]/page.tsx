@@ -5,7 +5,6 @@ import ReturnIcon from "public/svg/product/ReturnIcon.svg";
 import FreeReturnIcon from "public/svg/product/FreeReturnIcon.svg";
 
 import { getConfiguredImage, translateFunction } from "utils/functions";
-import { redirect } from "next/navigation";
 import Image from "next/image";
 import { Suspense } from "react";
 import ProductViews from "components/products/ProductViews";
@@ -29,21 +28,25 @@ import FreeShippingOption from "components/products/FreeShippingOption";
 import ProductColors from "components/products/ProductColors";
 import CameraShots from "components/products/CameraShots";
 import ProductBackButton from "components/products/ProductBackButton";
-
 import FlashDealBanner from "components/products/FlashDealBanner";
 // import FeaturedBanner from "components/products/FeaturedBanner";
 import { ProductPagePropsType } from "models/componentType/productTypes/productPagePropsType";
 import ProductsLabels from "components/products/ProductsLabels";
 import { GetProductData } from "utils/pagesDataRequests/ProductPageData";
 import { generateCodeCurrency } from "../../MetaData";
+import { redirect } from "next/navigation";
+export const dynamicParams = true;
+export const dynamic = "force-dynamic";
+// export const revalidate = parseInt(process.env.NEXT_PUBLIC_REVALIDATE);
 export const runtime = "nodejs";
 export const preferredRegion = ["bom1", "sin1"]; // For Middle East users
 
 export async function generateMetadata({ params, searchParams }) {
   try {
     const metaData = await generateProductMetaData({ params, searchParams });
-    // console.log("**********metaData***********", metaData);
-    if (metaData.error) {
+    console.log("**********metaData***********", metaData);
+    // @ts-ignore
+    if (metaData?.error) {
       redirect(`/${params.lang}?message=product_not_found`);
     }
     return metaData;
@@ -51,9 +54,6 @@ export async function generateMetadata({ params, searchParams }) {
     redirect(`/${params.lang}?message=product_not_found`);
   }
 }
-export const dynamicParams = true;
-export const dynamic = "auto";
-export const revalidate = parseInt(process.env.NEXT_PUBLIC_REVALIDATE);
 
 async function Page({ params, searchParams }: ProductPagePropsType) {
   let [countryVariable, languageVariable] = params.lang.split("-");

@@ -320,7 +320,7 @@ const AddressOrder = ({ success }: AddressOrderPropsType) => {
               </svg>
 
               <div className="flex-row ml-[4px]   items-center regular text-[12px] text-[#8D8D8D]">
-                {defaultAddress?.contact_info.phone}
+                {defaultAddress?.contact_info?.phone}
               </div>
               <div className="flex-row ml-[17px]  items-center">
                 <svg
@@ -377,9 +377,9 @@ const AddressOrder = ({ success }: AddressOrderPropsType) => {
                 </svg>
 
                 <div className="flex-row  ml-[4px]  items-center regular text-[12px] text-[#8D8D8D]">
-                  {defaultAddress?.contact_info.contact_person_name ||
+                  {defaultAddress?.contact_info?.contact_person_name ||
                     // @ts-ignore
-                    defaultAddress?.contact_info.name}
+                    defaultAddress?.contact_info?.name}
                 </div>
               </div>
             </div>

@@ -1,10 +1,15 @@
 import Setting from "components/global/Setting";
-import React, { Suspense } from "react";
-import { getSettingsMetadata } from "../MetaData";
+import React from "react";
 import { settingsPagePropsType } from "models/componentType/settingsType/settingsPagePropsType";
 export async function generateMetadata({ params, searchParams }) {
   try {
-    const metadata = await getSettingsMetadata({ params });
+    const metadata = {
+      title: "Settings - TryDos",
+      description: "Manage your TryDos account settings and preferences.",
+      alternates: {
+        canonical: `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${params.lang}/setting`,
+      },
+    };
     return metadata;
   } catch (error) {
     console.log(error);
@@ -17,34 +22,9 @@ export async function generateMetadata({ params, searchParams }) {
 
 async function page({ params }: settingsPagePropsType) {
   // Server component to render JSON-LD structured data
-  async function StructuredDataScript({ params }) {
-    try {
-      const metadataWithStructuredData = await getSettingsMetadata({
-        params,
-      });
-      const structuredData = metadataWithStructuredData.structuredData;
-
-      if (!structuredData) return null;
-
-      return (
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify(structuredData),
-          }}
-        />
-      );
-    } catch (error) {
-      console.error("Error generating structured data:", error);
-      return null;
-    }
-  }
 
   return (
     <>
-      <Suspense fallback={null}>
-        <StructuredDataScript params={params} />
-      </Suspense>
       <Setting lang={params.lang} />
     </>
   );

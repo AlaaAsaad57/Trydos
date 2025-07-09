@@ -24,6 +24,7 @@ function ChangeAddressWidget({
     setIsActiveAddress,
     initAddressForm,
     selectedOrder,
+    ActivePacks,
   } = useAppStore();
   const [openModal, setOpenModal] = useState(false);
   const [selectedAddressId, setAddressId] = useState(address_id);
@@ -50,7 +51,7 @@ function ChangeAddressWidget({
         <div className="flex-col  items-center w-full justify-center flex-1">
           <OrderItem
             key={selectedOrder.order_group_id}
-            order={OrderWithDetails(selectedOrder)}
+            order={ActivePacks}
             showDetails={() => {}}
           />
         </div>
@@ -233,7 +234,7 @@ function ChangeAddressWidget({
                               : "text-[#8D8D8D]"
                           }`}
                         >
-                          {s.contact_info.phone}
+                          {s?.contact_info?.phone}
                         </div>
                         <div className="flex-row ml-[17px]  items-center">
                           <svg
@@ -310,7 +311,7 @@ function ChangeAddressWidget({
                           >
                             {s.contact_info.contact_person_name ||
                               // @ts-ignore
-                              s.contact_info?.name}
+                              s?.contact_info?.name}
                           </div>
                         </div>
                       </div>

@@ -54,6 +54,7 @@ export const useCartStore = (set, get) => ({
   available_payment_method: [],
   selectedOrder: null,
   SelectedOrderItem: null,
+  ActivePacks: null,
 
   addressLists: [],
   center: null,
@@ -112,7 +113,10 @@ export const useCartStore = (set, get) => ({
   payIframeURL: "",
 
   // Actions
-  setOrderDetails: (order) => set({ selectedOrder: order }),
+  setOrderDetails: (order) => {
+    set({ selectedOrder: order });
+  },
+  setActivePacks: (pack) => set({ ActivePacks: pack }),
   setSelectedOrderItem: (item) =>
     set({ SelectedOrderItem: item, showOrderOptions: Boolean(item) }),
   setOrderOptions: (bool) => set({ showOrderOptions: bool }),
@@ -215,7 +219,7 @@ export const useCartStore = (set, get) => ({
         region: showLocationText(address.region_details),
         contact_info: {
           ...address.contact_info,
-          contact_person_name: address.contact_info.name,
+          contact_person_name: address?.contact_info?.name,
         },
       };
       return {

@@ -360,7 +360,6 @@ export async function middleware(request: NextRequest) {
   if (geoCountry && isValidCountry(geoCountry, allSupportedCountries)) {
     const locale = buildLocale(geoCountry, preferredLanguage);
     url.pathname = `/${locale}${pathname}`;
-    url.searchParams.set("no-country", "true");
     return NextResponse.redirect(url);
   }
 
@@ -389,7 +388,7 @@ export const config = {
      */
     {
       source:
-        "/((?!api|noposter|firebase-messaging-sw.js|default.mp3|wa.mp3|api-test|sitemap|manifest.json|error.png|assets|svg|fonts|translations|reports|images|styles|endCall|sitemap.xml|svg|call_direct|error.png|static|.\\..|_next|revalidate|callInProg|selectCountry|favicon.ico).*)",
+        "/((?!api|noposter|firebase-messaging-sw.js|opengraph-image.png|default.mp3|wa.mp3|api-test|sitemap|manifest.json|error.png|assets|svg|fonts|translations|reports|images|styles|endCall|sitemap.xml|svg|call_direct|error.png|static|.\\..|_next|revalidate|callInProg|selectCountry|favicon.ico).*)",
     },
   ],
 };
