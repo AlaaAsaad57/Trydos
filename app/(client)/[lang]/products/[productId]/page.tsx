@@ -39,18 +39,19 @@ import { generateCodeCurrency } from "../../MetaData";
 export const runtime = "nodejs";
 export const preferredRegion = ["bom1", "sin1"]; // For Middle East users
 
-export async function generateMetadata({ params, searchParams }) {
-  try {
-    const metaData = await generateProductMetaData({ params, searchParams });
-    // console.log("**********metaData***********", metaData);
-    if (metaData.error) {
-      redirect(`/${params.lang}?message=product_not_found`);
-    }
-    return metaData;
-  } catch (error) {
-    redirect(`/${params.lang}?message=product_not_found`);
-  }
-}
+// export async function generateMetadata({ params, searchParams }) {
+//   try {
+//     const metaData = await generateProductMetaData({ params, searchParams });
+//     console.log("**********metaData***********", metaData);
+//     // @ts-ignore
+//     if (metaData?.error) {
+//       redirect(`/${params.lang}?message=product_not_found`);
+//     }
+//     return metaData;
+//   } catch (error) {
+//     redirect(`/${params.lang}?message=product_not_found`);
+//   }
+// }
 export const dynamicParams = true;
 export const dynamic = "auto";
 export const revalidate = parseInt(process.env.NEXT_PUBLIC_REVALIDATE);

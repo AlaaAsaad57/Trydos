@@ -9,7 +9,8 @@ import {
 } from "./OrderStatusCartsIcon";
 
 function OrderStatusIcon({ status }) {
-  if (status.toLowerCase() === "pending")
+  if (!status || typeof status !== "string") return <></>;
+  if (status?.toLowerCase() === "pending")
     return (
       <svg
         id="_15x15_photo_back"

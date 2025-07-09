@@ -43,6 +43,7 @@ function Settings({ lang }: SettingsIndexPropsType) {
     setSelectedOrderItem,
     setOrderOptions,
     selectedOrder,
+    setActivePacks,
   } = useAppStore();
   let language = lang.split("-")[1];
   const setSelectedOrder = (order) => {
@@ -264,6 +265,8 @@ function Settings({ lang }: SettingsIndexPropsType) {
       {showOrderOptions && (
         <OrderOptions
           CancelOrder={() => {
+            setOrderDetails(null);
+            setActivePacks(null);
             swipeToScreen(9);
           }}
           closeOptions={() => {

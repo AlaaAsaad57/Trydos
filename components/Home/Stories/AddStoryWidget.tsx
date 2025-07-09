@@ -15,7 +15,6 @@ import { getUserStories, translateFunction } from "utils/functions";
 import StoryServiceClass from "services/story";
 import { AddStoryAction } from "store/homepage/actions";
 import { revalidateStories } from "utils/serverActions";
-import { fetchStoriesData } from "utils/fetchData";
 import { fetchStories } from "Server Requests";
 import Spinner from "components/global/Spinner";
 

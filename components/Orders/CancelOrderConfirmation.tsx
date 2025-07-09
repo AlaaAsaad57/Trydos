@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import ClarificationIcon from "public/svg/OrderCancelConfirm.svg";
 import OrderCancelTermsIcon from "public/svg/OrderCancelTerms.svg";
 import { translateFunction } from "utils/functions";
@@ -8,7 +8,22 @@ function CancelOrderConfirmation({
   setShouldConfirmCancel,
   close,
   topic = "About Cancel Your Order",
+  callback,
+  shouldConfirmCancel,
 }: CancelOrderConfirmationPropsType) {
+  const [loading, setLoading] = useState(false);
+  const ConfirmFunction = async () => {
+    try {
+      setLoading(true);
+      console.log(shouldConfirmCancel, "callback");
+      await callback();
+      setLoading(false);
+      close();
+      setShouldConfirmCancel(false);
+    } catch (error) {
+      setLoading(false);
+    }
+  };
   return (
     <div
       className={`z-[9999999999999] px-[24px]  w-full flex-col ${"justify-end"} items-center h-[calc(100vh)] overflow-auto  pb-[70px] max-h-[calc(100vh)] fixed top-0 left-0 bg-[#0000006c]  backdrop-blur-[10px]`}
@@ -55,7 +70,7 @@ function CancelOrderConfirmation({
               false ? "bg-[#D3D3D3] " : "bg-[#402CDD] "
             } rounded-[15px] text-[16px] text-[#fff] medium`}
             onClick={() => {
-              close();
+              ConfirmFunction();
             }}
           >
             {translateFunction("I Agree & Cancel")}

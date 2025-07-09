@@ -25,7 +25,7 @@ function OrderItemOptionsModal({
   const [activeWidget, setActiveWidget] = useState<
     "return" | "report" | "hide" | "main" | "cancel" | "ChangeRequest"
   >("main");
-  const { selectedOrder } = useAppStore();
+  const { selectedOrder, ActivePacks } = useAppStore();
   const GoToChangeOrderItem = () => {
     setActiveWidget("ChangeRequest");
   };

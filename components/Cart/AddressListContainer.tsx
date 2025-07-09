@@ -7,6 +7,7 @@ import { AddressListContainerPropsType } from "models/componentType/AddressListC
 import { DeleteIconPropsType } from "models/componentType/DeleteIconPropsType";
 import { EditIconPropsType } from "models/componentType/EditIconPropsType";
 export const GetAddressString = (location) => {
+  if (!location) return "";
   let str = "";
   if (
     location?.province &&
