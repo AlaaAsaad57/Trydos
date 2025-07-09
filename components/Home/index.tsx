@@ -77,10 +77,12 @@ export default function Home() {
       return false;
     } else {
       const user = getCookie<UserData>(COOKIE_NAMES.USER_DATA);
+      const userChat = getCookie<UserData>(COOKIE_NAMES.USER_CHAT);
+      const userStories = getCookie<UserData>(COOKIE_NAMES.USER_STORIES);
       let name = user?.name;
       return (
-        getUserChat()?.id &&
-        auth.getUser()?.id &&
+        userChat?.id &&
+        userStories?.id &&
         (!name || name?.length === 0) &&
         nameModal
       );

@@ -135,8 +135,6 @@ function OrderDetails({ resetOrderDetails, goBack }: OrderDetailsPropsType) {
     // Out for Delivery
     if (selectedOrder.order_status?.value === "out_for_delivery")
       return selectedOrder.order_group_id;
-    if (ActivePacks?.order_status?.value === "out_for_delivery")
-      return ActivePacks?.order_group_id;
     return false;
   };
   const [isGettingChat, setIsGettingChat] = useState(false);
@@ -329,7 +327,7 @@ function OrderDetails({ resetOrderDetails, goBack }: OrderDetailsPropsType) {
   };
   useEffect(() => {
     if (!selectedOrder?.order_group_id) return;
-    if (fetchedOrderIdRef.current === selectedOrder.order_group_id) return;
+    // if (fetchedOrderIdRef.current === selectedOrder.order_group_id) return;
     fetchedOrderIdRef.current = selectedOrder.order_group_id;
     getOrderDetails();
   }, [selectedOrder?.order_group_id]);

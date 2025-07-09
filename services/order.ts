@@ -114,11 +114,11 @@ class OrderService {
       address_detail: address?.address_detail,
       country: address?.Country?.name,
       iso: address?.Country?.code,
-      city: address.region_details?.city,
-      province: address.region_details?.province,
-      town: address.region_details?.town,
-      street: address.region_details?.street,
-      building: address.region_details?.building,
+      city: address.region_details?.city ?? "Not Entered",
+      province: address.region_details?.province ?? "Not Entered",
+      town: address.region_details?.town ?? "Not Entered",
+      street: address.region_details?.street ?? "Not Entered",
+      building: address.region_details?.building ?? "Not Entered",
       zip: "123123",
       contact_person_name: address.contact_info?.contact_person_name,
       phone: address.contact_info?.phone,
@@ -154,11 +154,11 @@ class OrderService {
       address_detail: address.address_detail,
       country: address?.Country?.name,
       iso: address?.Country?.code,
-      city: address.region_details?.city,
-      province: address.region_details?.province,
-      town: address.region_details?.town,
-      street: address.region_details?.street,
-      building: address.region_details?.building,
+      city: address.region_details?.city ?? "Not Entered",
+      province: address.region_details?.province ?? "Not Entered",
+      town: address.region_details?.town ?? "Not Entered",
+      street: address.region_details?.street ?? "Not Entered",
+      building: address.region_details?.building ?? "Not Entered",
       zip: "123123",
       contact_person_name: address.contact_info?.contact_person_name,
       phone: address.contact_info?.phone,
@@ -249,6 +249,20 @@ class OrderService {
         method: "POST",
         server: "market",
         body: JSON.stringify({ order_id, detail_id: item_id, qty }),
+      });
+      if (response.success || response.isSuccessful) return response;
+    } catch (error) {
+      console.log(error);
+    }
+  }
+  async changeOrderAddress({ order_id, address_id }) {
+    try {
+      let response = await fetchData({
+        url: `/customer/order/change-address`,
+        reqTitle: "Change Order Address",
+        method: "POST",
+        server: "market",
+        body: JSON.stringify({ order_id, new_shipping_address_id: address_id }),
       });
       if (response.success || response.isSuccessful) return response;
     } catch (error) {

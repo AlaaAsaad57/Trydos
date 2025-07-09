@@ -1,22 +1,22 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import ChangeAddressIcon from "public/svg/ChangeAddressIcon.svg";
 import { translateFunction } from "utils/functions";
 import EditIcon from "public/svg/editAddressIcon.svg";
 import AddAddressIcon from "public/svg/cart/AddAddress.svg";
 import BackIcon from "public/svg/listing/backIcon.svg";
-
 import { useAppStore } from "store";
 import { GetAddressString } from "utils/tinyUtils";
-import { MiniDeliveryIcon } from "components/Cart/AddressListContainer";
 import SelectRegion from "components/Cart/SelectRegion";
 import AddAddressForm from "components/Cart/AddAddressForm";
 import ConfirmAddressModal from "./ConfirmAddressModal";
 import OrderItem from "./OrderItem";
 import { AddressModalPropsType } from "models/componentType/AddressModalPropsType";
 import { ChangeAddressWidgetPropsType } from "models/componentType/ChangeAddressWidgetPropsType";
+import orderService from "services/order";
 function ChangeAddressWidget({
   address_id,
   close,
+  getOrderDetails,
 }: ChangeAddressWidgetPropsType) {
   const {
     addressLists,
@@ -25,8 +25,10 @@ function ChangeAddressWidget({
     initAddressForm,
     selectedOrder,
     ActivePacks,
+    setOrderPageLoading,
   } = useAppStore();
   const [openModal, setOpenModal] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [selectedAddressId, setAddressId] = useState(address_id);
   const [ConfirmationData, setConfirmationData] = useState({
     enable: false,
@@ -35,15 +37,25 @@ function ChangeAddressWidget({
   });
   const [tabs, setTabs] = useState<"address" | "note">("address");
   const [deliveryNote, setDeliveryNote] = useState(selectedOrder?.note || "");
-  const OrderWithDetails = (order) => {
-    let arr = [];
-    order.details.map((order_detail) => {
-      order_detail.details.map((s) => {
-        arr.push(s);
-      });
+  const ChangeAddress = async () => {
+    setOrderPageLoading(true);
+    let response = await orderService.changeOrderAddress({
+      order_id: ActivePacks.id,
+      address_id: selectedAddressId,
     });
-    return { ...order, details: arr };
+    if (response.success || response.isSuccessful) {
+      close();
+      getOrderDetails();
+    }
   };
+  const getAddressList = async () => {
+    setLoading(true);
+    await orderService.GetAddressList();
+    setLoading(false);
+  };
+  useEffect(() => {
+    getAddressList();
+  }, []);
   return (
     <>
       <div className="flex-col max-h-[calc(100vh-50px)] items-center overflow-auto w-full pt-[14px] px-[24px] z-[999999999] pb-[27px] absolute bottom-[0px]  left-0 rounded-t-[30px] bg-white">
@@ -99,6 +111,9 @@ function ChangeAddressWidget({
             <div className="flex-row items-center w-full justify-center">
               <span className="flex medium text-[#1D1D1D] text-[12px]">
                 {translateFunction("Change Selected Address")}
+                <span className="regular text-[12px] text-[#8D8D8D]">
+                  {loading ? "Loading..." : ""}
+                </span>
               </span>
             </div>
             <div className="flex-col justify-start pb-[25px] h-full w-full max-w-[650px]">
@@ -164,7 +179,7 @@ function ChangeAddressWidget({
                               : "text-[#8D8D8D]"
                           }`}
                         >
-                          {s.address}
+                          {s?.address}
                         </span>
                       </div>
                       <div
@@ -174,7 +189,7 @@ function ChangeAddressWidget({
                             : "text-[#8D8D8D]"
                         }`}
                       >
-                        {GetAddressString(s.region_details)}
+                        {GetAddressString(s?.region_details)}
                       </div>
                       <div
                         className={`flex-row mt-[5px] items-center regular text-[12px] ${
@@ -309,7 +324,7 @@ function ChangeAddressWidget({
                                 : "text-[#8D8D8D]"
                             }`}
                           >
-                            {s.contact_info.contact_person_name ||
+                            {s?.contact_info?.contact_person_name ||
                               // @ts-ignore
                               s?.contact_info?.name}
                           </div>
@@ -424,7 +439,7 @@ function ChangeAddressWidget({
               currentAddress: addressLists?.find((s) => s.id === address_id),
               newAddress: addressLists?.find((s) => s.id === selectedAddressId),
             });
-            close();
+            ChangeAddress();
           }}
           close={() => {
             setConfirmationData({

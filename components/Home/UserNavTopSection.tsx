@@ -29,19 +29,6 @@ function UserNavTopSection({
 
   const { userData, userChat, userStories } = useUserData({ initialUserData });
   // Handle mounting and cookie access
-  const getUserType = () => {
-    if (userData) {
-      if (userData.phone === "0" || !userData.phone) {
-        return "NEW_USER";
-      } else {
-        if (userData.is_phone_verified === 1 && userChat?.id && userStories?.id)
-          return "authed-user";
-        else return "Verified User";
-      }
-    } else {
-      return "NEW_USER";
-    }
-  };
   const UserActiveIcon = () => {
     if (getUserType() === "NEW_USER") {
       return (
@@ -186,7 +173,13 @@ function UserNavTopSection({
   };
 
   // Show loading/skeleton until mounted to prevent hydration mismatch
-
+  const getUserType = () => {
+    if (!userData || userData?.phone === "0" || !userData?.phone)
+      return "NEW_USER";
+    if (userData?.is_phone_verified === 1 && userChat?.id && userStories?.id)
+      return "authed-user";
+    else return "Verified User";
+  };
   return (
     <div
       className={`${enable_search && "hidden"} user-nav-container`}
@@ -248,7 +241,7 @@ function UserNavTopSection({
         className="flex flex-row"
         style={{ marginLeft: "10px", cursor: "pointer" }}
       >
-        {userChat ? (
+        {userData?.id ? (
           <AuthNavSection
             userData={userData}
             onClick={() => setMenuOpen(!menuOpen)}

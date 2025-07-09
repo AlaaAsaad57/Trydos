@@ -247,12 +247,14 @@ export const GetFilterUrlParams = ({
   return requestSearchParams;
 };
 export const ChatConroller = (payload) => {
-  const { openChat, setChatOpen } = useAppStore.getState();
-  if (payload) document.documentElement.style.overflow = "hidden";
-  else document.documentElement.style.overflow = "initial";
-  window.history.pushState({ isPopup: true }, "open Chat");
-  openChat(payload);
-  setChatOpen(payload);
+  try {
+    const { openChat, setChatOpen } = useAppStore.getState();
+    if (payload) document.documentElement.style.overflow = "hidden";
+    else document.documentElement.style.overflow = "initial";
+    window.history.pushState({ isPopup: true }, "open Chat");
+    openChat(payload);
+    setChatOpen(payload);
+  } catch (error) {}
 };
 export const getCurrency = async ({ callback }) => {
   let response = await fetchData({

@@ -269,9 +269,8 @@ function Settings({ lang }: SettingsIndexPropsType) {
       {showOrderOptions && (
         <OrderOptions
           CancelOrder={() => {
-            setOrderDetails(null);
-            setActivePacks(null);
-            swipeToScreen(9);
+            // setOrderDetails(null);
+            // setActivePacks(null);
           }}
           closeOptions={() => {
             document.documentElement.style.overflow = "auto";

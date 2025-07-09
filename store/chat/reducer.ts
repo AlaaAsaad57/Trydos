@@ -151,7 +151,7 @@ export const useChatStore = (set, get) => ({
       return;
     }
     const user = getCookie<UserData>(COOKIE_NAMES.USER_DATA);
-    if (user?.name?.length > 2) {
+    if (user?.name?.length > 0) {
       set({ chatVar: payload });
     } else {
       set({ nameModal: true });

@@ -1,3 +1,4 @@
+"use client";
 import ChatIcon from "public/svg/ChatIcon.svg";
 import { translateFunction } from "utils/functions";
 import UserAvatar from "./UserAvatar";
@@ -15,7 +16,15 @@ function AuthNavSection({
   onClick: () => void;
   userData: UserData;
 }) {
-  const { language, chatVar, data: chats } = useAppStore();
+  const {
+    language,
+    chatVar,
+    data: chats,
+    userChat,
+    setShouldAuthinticated,
+    setLoginOpen,
+    setChatOpen,
+  } = useAppStore();
   let { lang } = useParams();
   // @ts-ignore
   let languageVariable = lang.split("-")[1];
@@ -36,11 +45,16 @@ function AuthNavSection({
           transform: !chatVar && getNew(chats).length > 0 && "translateY(-1px)",
         }}
         onClick={() => {
-          // Sendevent({
-          //   event: GA_EVENT_NAMES.CLICK,
-          //   value: GA_CLICK_EVENT_VALUES.CHAT_ICON,
-          // });
-          ChatConroller(true);
+          if (userChat && userChat.id) {
+            setChatOpen(true);
+            ChatConroller(true);
+          } else {
+            if (userData && userData?.phone !== "0") {
+              setShouldAuthinticated(true);
+            } else {
+              setLoginOpen(true);
+            }
+          }
         }}
       >
         {!chatVar && getNew(chats).length === 0 ? (

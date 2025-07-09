@@ -151,6 +151,13 @@ function OrderOptions({ closeOptions, CancelOrder }: OrderOptionsPropsType) {
     getOrderDetails();
     setOrderOptions(false);
   };
+  const shouldShowChangeAddress = () => {
+    let condition = true;
+    selectedOrder?.details?.map((s) => {
+      if (!s.can_update_address) condition = false;
+    });
+    return condition;
+  };
   const renderScreen = () => {
     if (SelectedOrderItem) {
       return (
@@ -255,7 +262,7 @@ function OrderOptions({ closeOptions, CancelOrder }: OrderOptionsPropsType) {
                 style={{ borderTop: "1px solid #C4C2C280" }}
               />
             </div>
-            {selectedOrder && (
+            {shouldShowChangeAddress() && (
               <div
                 onClick={() => {
                   setScreen("changeAddress");
@@ -275,7 +282,7 @@ function OrderOptions({ closeOptions, CancelOrder }: OrderOptionsPropsType) {
                 </div>
               </div>
             )}
-            {ActivePacks.can_update_address && (
+            {
               <div
                 onClick={() => {
                   // setScreen("changeAddress");
@@ -294,7 +301,7 @@ function OrderOptions({ closeOptions, CancelOrder }: OrderOptionsPropsType) {
                   </p>
                 </div>
               </div>
-            )}
+            }
             {ActivePacks.can_cancele_order && (
               <div
                 onClick={() => {
@@ -344,6 +351,7 @@ function OrderOptions({ closeOptions, CancelOrder }: OrderOptionsPropsType) {
     if (screen === "changeAddress") {
       return (
         <ChangeAddressWidget
+          getOrderDetails={getOrderDetails}
           close={() => {
             setScreen("options");
           }}
