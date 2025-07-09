@@ -151,6 +151,7 @@ export const useChatStore = (set, get) => ({
       return;
     }
     const user = getCookie<UserData>(COOKIE_NAMES.USER_DATA);
+    console.log(user);
     if (user?.name?.length > 0) {
       set({ chatVar: payload });
     } else {

@@ -24,7 +24,7 @@ function ChatPhoto({
         height={height}
         className={
           className +
-          " object-cover object-center w-[" +
+          " rounded-[10px] object-cover object-center w-[" +
           width +
           "px] h-[" +
           height +
@@ -38,7 +38,16 @@ function ChatPhoto({
         {getTwoLetters(user.name)}
       </div>
     );
-  else return <Image src={profile} alt="user-photo" />;
+  else
+    return (
+      <Image
+        src={profile}
+        alt="user-photo"
+        width={width}
+        height={height}
+        className="rounded-[10px]"
+      />
+    );
 }
 
 export default ChatPhoto;
