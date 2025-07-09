@@ -1,5 +1,10 @@
 const translations = {
   ar: {
+    "Story deleted successfully.":"تم حذف القصة بنجاح.",
+    "Failed to delete story.":"فشل في حذف القصة.",
+    "Are you sure you want to delete this story?": "هل أنت متأكد أنك تريد حذف هذه القصة؟",
+    "Confirm": "تأكيد",
+    "Delete Story?":"حذف القصة؟",
     "The number was copied successfully": "تم نسخ الرقم بنجاح",
     "Number copy failed": "فشل نسخ الرقم",
     "You Have New Messages From Deleivery Worker":
@@ -1485,6 +1490,11 @@ const translations = {
     File: "Dosya",
     "The number was copied successfully": "Numara başarıyla kopyalandı",
     "Number copy failed": "Numara kopyalanamadı",
+    "Are you sure you want to delete this story?": "Bu hikayeyi silmek istediğinizden emin misiniz?",
+    "Confirm": "Onayla",
+    "Delete Story?":"Hikaye Silinsin mi?",
+    "Failed to delete story.":"Hikaye silinemedi.",
+    "Story deleted successfully.":"Hikaye başarıyla silindi."
   },
 };
 

@@ -103,7 +103,6 @@ function StoriesContainer({
       },
     });
   }, []);
-  console.log(storiesData, selectedStory);
   if (
     !storiesData ||
     storiesData?.length === 0 ||

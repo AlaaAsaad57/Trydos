@@ -101,6 +101,15 @@ class StoryService {
     if (response.data) return response.data;
     else throw new Error("Failed");
   }
+  async deleteStory(storyId: string | number) {
+    return await fetchData({
+      url: "/api/v1/stories/delete_story",
+      method: "POST",
+      body: JSON.stringify({ story_id: storyId }),
+      reqTitle: "Delete Story",
+      server: "stories",
+    });
+  }
   getUserStories() {
     return getCookie<UserData>(COOKIE_NAMES.USER_STORIES);
   }
