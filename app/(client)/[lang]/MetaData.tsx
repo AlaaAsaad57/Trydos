@@ -82,7 +82,7 @@ let {
   ],
 };
 // Home Page Meta Data
-export const getHomeMetadata = cache(async ({ params }) => {
+export const getHomeMetadata = cache(async ({ params }): Promise<Metadata> => {
   const [country, language] = params.lang.split("-");
 
   // Get language for translations
@@ -153,7 +153,7 @@ export const getHomeMetadata = cache(async ({ params }) => {
       title: "Trydos — Flash Deals & Featured Boutique Picks",
       description:
         "Your destination for exclusive bar items, boutique fashion, and daily flash deals.",
-      url: "https://www.trydos.com",
+      url: `${process.env.NEXT_PUBLIC_REMOTE_FRONT}`,
       siteName: "Trydos",
       images: [
         {

@@ -24,6 +24,7 @@ export const dynamic = "auto";
 export async function generateMetadata({ params }) {
   try {
     const metadata = await getHomeMetadata({ params });
+
     // console.log("**********metadata***********", JSON.stringify(metadata));
     return metadata;
   } catch (error) {
