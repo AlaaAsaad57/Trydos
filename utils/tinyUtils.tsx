@@ -733,3 +733,10 @@ export function generateCloudinaryUrl({
   );
   return `${baseUrl}/${allTransforms}/${bgImage}.jpg`;
 }
+export const totalAmount = (arr) => {
+  let total = 0;
+  arr?.map((s) => {
+    total += s.order_amount;
+  });
+  return total;
+};

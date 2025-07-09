@@ -184,10 +184,14 @@ function Settings({ lang }: SettingsIndexPropsType) {
       id: "Order Details",
       title: "Details",
       component: () => (
-        <OrderDetails
-          resetOrderDetails={() => setSelectedOrder(null)}
-          goBack={() => swipeToScreen(9)}
-        />
+        <>
+          {
+            <OrderDetails
+              resetOrderDetails={() => setSelectedOrder(null)}
+              goBack={() => swipeToScreen(9)}
+            />
+          }
+        </>
       ),
       parentId: "Orders",
     },

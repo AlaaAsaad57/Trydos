@@ -24,7 +24,6 @@ import RateOrderButton from "./cards/RateOrderButton";
 import Spinner from "components/global/Spinner";
 import order from "services/order";
 import OrderChatIcon from "./OrderChatIcon";
-import { usePathname } from "next/navigation";
 import { Channel } from "models/Genaral/Channel";
 import dynamic from "next/dynamic";
 import ReturnedOrderStatusIcon from "public/svg/ReturnedOrderStatusIcon.svg";
@@ -35,31 +34,12 @@ import OptionsIcon from "public/svg/OptionsIcon.svg";
 import OrderRetailsReturnInfo from "components/Orders/OrderRetailsReturnInfo";
 import RatingOrderItem from "components/Orders/RatingOrderItem";
 import CanceledOrderStatusIcon from "public/svg/CanceledOrderStatusIcon.svg";
-import { GetImageUrl } from "utils/tinyUtils";
+import { GetImageUrl, totalAmount } from "utils/tinyUtils";
 import { OrderDetailsPropsType } from "models/componentType/settingTypes/OrderDetailsPropsType";
 import { ProductCardPropsType } from "models/componentType/settingTypes/ProductCardPropsType";
 import { fetchData } from "utils/fetchData";
 import auth from "services/auth";
 function OrderDetails({ resetOrderDetails, goBack }: OrderDetailsPropsType) {
-  const [loading, setLoading] = useState(false);
-
-  const totalAmount = (arr) => {
-    let total = 0;
-    arr?.map((s) => {
-      total += s.order_amount;
-    });
-    return total;
-  };
-  const totalItems = (arr) => {
-    let arr_of_products = [];
-    arr.map((s) => {
-      s.details.map((d) => {
-        arr_of_products.push({ ...d, order_status: s.order_status?.value });
-      });
-    });
-
-    return arr_of_products;
-  };
   const router = useRouter();
   const searchParams = useSearchParams();
   useEffect(() => {
@@ -78,6 +58,8 @@ function OrderDetails({ resetOrderDetails, goBack }: OrderDetailsPropsType) {
     openChat,
     ActivePacks,
     setActivePacks,
+    orderPageLoading: loading,
+    setOrderPageLoading: setLoading,
   } = useAppStore();
 
   const fetchedOrderIdRef = useRef<string | number | null>(null);
@@ -147,9 +129,6 @@ function OrderDetails({ resetOrderDetails, goBack }: OrderDetailsPropsType) {
     goBack();
   };
   const [isExpanded, setIsExpanded] = useState(false);
-  const [isReturnOrderOpen, setIsReturnOrderOpen] = useState<
-    boolean | OrderDetail
-  >(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [chatInfo, setChatInfo] = useState<Channel | null>(null);
   const shouldShowChatIcon = () => {

@@ -111,11 +111,13 @@ export const useCartStore = (set, get) => ({
   credit: 0,
   openPayIframe: false,
   payIframeURL: "",
+  orderPageLoading: false,
 
   // Actions
   setOrderDetails: (order) => {
     set({ selectedOrder: order });
   },
+  setOrderPageLoading: (loading) => set({ orderPageLoading: loading }),
   setActivePacks: (pack) => set({ ActivePacks: pack }),
   setSelectedOrderItem: (item) =>
     set({ SelectedOrderItem: item, showOrderOptions: Boolean(item) }),

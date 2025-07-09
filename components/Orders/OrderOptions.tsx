@@ -16,6 +16,9 @@ import { OrderCanceltionOptionsPropsType } from "models/componentType/OrderCance
 import { OrderOptionsPropsType } from "models/componentType/OrderOptionsPropsType";
 import { showErrorNotification } from "@/store/notifications/reducer";
 import orderService from "services/order";
+import order from "services/order";
+import { totalAmount } from "utils/tinyUtils";
+import { useRouter } from "next/navigation";
 
 function OrderOptions({ closeOptions, CancelOrder }: OrderOptionsPropsType) {
   const {
@@ -24,6 +27,9 @@ function OrderOptions({ closeOptions, CancelOrder }: OrderOptionsPropsType) {
     setSelectedOrderItem,
     setOrderDetails,
     ActivePacks,
+    setOrderPageLoading,
+    setActivePacks,
+    setOrderOptions,
   } = useAppStore();
   const [screen, setScreen] = useState<
     "options" | "changeAddress" | "modifyOrder"
@@ -34,7 +40,48 @@ function OrderOptions({ closeOptions, CancelOrder }: OrderOptionsPropsType) {
   const [shouldConfirmReturn, setShouldConfirmReturn] = useState(false);
   const [shouldConfirmChange, setShouldConfirmChange] = useState<any>(false);
   const [tempOrderDetails, setTempOrderDetails] = useState([]);
+  const router = useRouter();
+  const getOrderDetails = async () => {
+    // Abort any previous request
+    setOrderPageLoading(true);
+    try {
+      let data = await order.getOrderDetails(
+        selectedOrder.order_group_id,
+        null
+      );
 
+      let orderData = {
+        ...data?.[0],
+        order_amount: totalAmount(data),
+        details: data,
+      };
+
+      setActivePacks(data[0]);
+
+      setOrderDetails(orderData);
+    } catch (error) {
+      // Don't handle error if it's an abort error
+      if (error.name === "AbortError") {
+        return;
+      }
+
+      let params = new URLSearchParams(window.location.search);
+      params.delete("id");
+      params.delete("order_id_chat");
+      // @ts-ignore
+      router.replace(`/${lang}/setting?${params.toString()}`, {
+        scroll: false,
+        // @ts-ignore
+        shallow: true,
+      });
+      setSelectedOrderItem(false);
+      setOrderDetails(null);
+      setActivePacks(null);
+      setSelectedOrderItem(null);
+    }
+
+    setOrderPageLoading(false);
+  };
   const changeOrderItem = ({ id, color, size, qty, image }) => {
     // let order_details_arry = [];
     // selectedOrder.details.map((order_detail) => {
@@ -83,7 +130,9 @@ function OrderOptions({ closeOptions, CancelOrder }: OrderOptionsPropsType) {
     // });
     // setOrderDetails({ ...selectedOrder, details: order_details_arry });
   };
+
   const CancelItem = async () => {
+    setOrderPageLoading(true);
     if (
       shouldConfirmCancel?.item_id ||
       shouldConfirmChange?.type == "CancelQty"
@@ -98,6 +147,9 @@ function OrderOptions({ closeOptions, CancelOrder }: OrderOptionsPropsType) {
       setShouldConfirmCancel(false);
       setShouldConfirmChange(false);
     }
+
+    getOrderDetails();
+    setOrderOptions(false);
   };
   const renderScreen = () => {
     if (SelectedOrderItem) {
@@ -172,6 +224,10 @@ function OrderOptions({ closeOptions, CancelOrder }: OrderOptionsPropsType) {
             <CancelOrderConfirmation
               close={() => {
                 closeOptions();
+                setSelectedOrderItem(null);
+                setOrderOptions(false);
+                setActivePacks(null);
+                setOrderDetails(null);
                 CancelOrder();
               }}
               setShouldConfirmChange={setShouldConfirmChange}
@@ -199,62 +255,68 @@ function OrderOptions({ closeOptions, CancelOrder }: OrderOptionsPropsType) {
                 style={{ borderTop: "1px solid #C4C2C280" }}
               />
             </div>
-            <div
-              onClick={() => {
-                setScreen("changeAddress");
-              }}
-              className="cursor-pointer mt-[6px] flex-row w-full items-center px-[15px] bg-[#f8f8f8] rounded-[20px] min-h-[60px]"
-            >
-              <div className="relative flex w-[30px] h-[30px] items-center justify-center">
-                <ChangeAddressIcon />
+            {selectedOrder && (
+              <div
+                onClick={() => {
+                  setScreen("changeAddress");
+                }}
+                className="cursor-pointer mt-[6px] flex-row w-full items-center px-[15px] bg-[#f8f8f8] rounded-[20px] min-h-[60px]"
+              >
+                <div className="relative flex w-[30px] h-[30px] items-center justify-center">
+                  <ChangeAddressIcon />
+                </div>
+                <div className="flex-col ml-[15px]">
+                  <span className="regular text-[14px] text-[#1D1D1D] medium">
+                    {translateFunction("Change Delivery Address & Note")}
+                  </span>
+                  <p className="regular text-[12px] text-[#8D8D8D]">
+                    {translateFunction("You Can Change Delivery Address")}
+                  </p>
+                </div>
               </div>
-              <div className="flex-col ml-[15px]">
-                <span className="regular text-[14px] text-[#1D1D1D] medium">
-                  {translateFunction("Change Delivery Address & Note")}
-                </span>
-                <p className="regular text-[12px] text-[#8D8D8D]">
-                  {translateFunction("You Can Change Delivery Address")}
-                </p>
+            )}
+            {ActivePacks.can_update_address && (
+              <div
+                onClick={() => {
+                  // setScreen("changeAddress");
+                }}
+                className="cursor-pointer mt-[6px] flex-row w-full items-center px-[15px] bg-[#f8f8f8] rounded-[20px] min-h-[60px]"
+              >
+                <div className="relative flex w-[30px] h-[30px] items-center justify-center">
+                  <HideOrderItemIcon />
+                </div>
+                <div className="flex-col ml-[15px]">
+                  <span className="regular text-[14px] text-[#1D1D1D] medium">
+                    {translateFunction("Hide This Product")}
+                  </span>
+                  <p className="regular text-[12px] text-[#8D8D8D]">
+                    {translateFunction("Hide This Product From My List")}
+                  </p>
+                </div>
               </div>
-            </div>
-            <div
-              onClick={() => {
-                // setScreen("changeAddress");
-              }}
-              className="cursor-pointer mt-[6px] flex-row w-full items-center px-[15px] bg-[#f8f8f8] rounded-[20px] min-h-[60px]"
-            >
-              <div className="relative flex w-[30px] h-[30px] items-center justify-center">
-                <HideOrderItemIcon />
+            )}
+            {ActivePacks.can_cancele_order && (
+              <div
+                onClick={() => {
+                  setCanceled(true);
+                }}
+                className="cursor-pointer mt-[6px] flex-row w-full items-center px-[15px] bg-[#f8f8f8] rounded-[20px] min-h-[60px]"
+              >
+                <div className="relative flex w-[30px] h-[30px] items-center justify-center">
+                  <OrderCancelIcon />
+                </div>
+                <div className="flex-col ml-[15px]">
+                  <span className="regular text-[14px] text-[#1D1D1D] medium">
+                    {translateFunction("Cancel This Order")}
+                  </span>
+                  <p className="regular text-[12px] text-[#8D8D8D]">
+                    {translateFunction(
+                      "You Can Cancel This Order And Back Your Money"
+                    )}
+                  </p>
+                </div>
               </div>
-              <div className="flex-col ml-[15px]">
-                <span className="regular text-[14px] text-[#1D1D1D] medium">
-                  {translateFunction("Hide This Product")}
-                </span>
-                <p className="regular text-[12px] text-[#8D8D8D]">
-                  {translateFunction("Hide This Product From My List")}
-                </p>
-              </div>
-            </div>
-            <div
-              onClick={() => {
-                setCanceled(true);
-              }}
-              className="cursor-pointer mt-[6px] flex-row w-full items-center px-[15px] bg-[#f8f8f8] rounded-[20px] min-h-[60px]"
-            >
-              <div className="relative flex w-[30px] h-[30px] items-center justify-center">
-                <OrderCancelIcon />
-              </div>
-              <div className="flex-col ml-[15px]">
-                <span className="regular text-[14px] text-[#1D1D1D] medium">
-                  {translateFunction("Cancel This Order")}
-                </span>
-                <p className="regular text-[12px] text-[#8D8D8D]">
-                  {translateFunction(
-                    "You Can Cancel This Order And Back Your Money"
-                  )}
-                </p>
-              </div>
-            </div>
+            )}
 
             {canceled && (
               <OrderCanceltionOptions
@@ -299,15 +361,6 @@ function OrderOptions({ closeOptions, CancelOrder }: OrderOptionsPropsType) {
         />
       );
     }
-  };
-  const OrderWithDetails = (order) => {
-    let arr = [];
-    order.details.map((order_detail) => {
-      order_detail.details.map((s) => {
-        arr.push(s);
-      });
-    });
-    return { ...order, details: arr };
   };
   return (
     <>
