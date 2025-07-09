@@ -1,12 +1,30 @@
 // components/BoutiqueHead.tsx
 
+import { Metadata } from "next";
 import { generateCloudinaryUrl } from "utils/tinyUtils";
 
-export async function generateProductMetaData({ params, searchParams }) {
+export async function generateProductMetaData({
+  params,
+  searchParams,
+}): Promise<Metadata> {
   try {
     const [country, language] = params.lang.split("-");
+    const getProductMetaData = await fetch(
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/web/product/product-meta/${params.productId}`,
+      {
+        headers: {
+          country: country,
+          language: language,
+        },
+        next: {
+          revalidate: 3600,
+          tags: ["product-meta", params.productId],
+        },
+      }
+    );
 
-    let product;
+    const { data: product } = await getProductMetaData.json();
+
     let title = `${product?.name}`;
     if (searchParams.color) {
       title += ` |  ${searchParams.color}`;
@@ -14,39 +32,46 @@ export async function generateProductMetaData({ params, searchParams }) {
     if (searchParams.size) {
       title += ` |  ${searchParams.size}`;
     }
+    console.log(
+      "**********product?.images***********",
+      JSON.stringify(product.images),
+      product?.images.map((s) => `/product/${s.images[0]}`.split(".")[0])
+    );
     let image = product?.images
       ? generateCloudinaryUrl({
-          publicIds: product?.images,
+          publicIds: product?.images.map(
+            (s) => `/product/${s.images[0]}`.split(".")[0]
+          ),
           width: 1200,
           height: 630,
-          overlayText: title,
+          overlayText: product?.name,
         })
       : null;
-    let data = {
+    let data: Metadata = {
       title: title,
       description: product?.details,
       alternates: {
-        canonical: `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${params.lang}/products/${product?.slug}`,
+        canonical: `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${params.lang}/products/${params.productId}`,
         languages: {
-          en: `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${country}-en/products/${product?.slug}`,
-          tr: `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${country}-tr/products/${product?.slug}`,
-          ar: `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${country}-ar/products/${product?.slug}`,
+          en: `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${country}-en/products/${params.productId}`,
+          tr: `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${country}-tr/products/${params.productId}`,
+          ar: `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${country}-ar/products/${params.productId}`,
         },
       },
       openGraph: {
         title: title,
         description: product?.details,
-        url: `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${params.lang}/products/${product?.slug}`,
+        url: `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${params.lang}/products/${params.productId}`,
         siteName: "Trydos",
         images: [
           {
             url: image,
             width: 1200,
             height: 630,
-            alt: title,
+            alt: "",
           },
         ],
-        type: "product",
+        type: "website",
       },
       twitter: {
         card: "summary_large_image",
@@ -54,23 +79,23 @@ export async function generateProductMetaData({ params, searchParams }) {
         description: product?.details,
         images: [image],
       },
-      canonical: `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${params.lang}/products/${product?.slug}`,
-
       keywords: [
         product?.name,
-        product?.brand?.name,
-        product?.category?.name,
+        product?.brand,
+        product?.category,
+        product?.boutique,
         ...(product?.similar_words || []),
       ],
     };
-    console.log(data, "data");
+
     return data;
   } catch (error) {
     console.log(error, "error");
     return {
-      title: "TryDos",
-      error: true,
-      description: "TryDos",
+      title: "!Not Found Product MetaData",
+      // @ts-ignore
+
+      description: "!Not Found Product MetaData",
       openGraph: {
         type: "website",
       },
@@ -86,7 +111,9 @@ export const GetStructuredData = ({ params, product, color }) => {
   }
   let image = imagesArray
     ? generateCloudinaryUrl({
-        publicIds: imagesArray,
+        publicIds: product?.images.map(
+          (s) => `/product/${s.images[0]}`.split(".")[0]
+        ),
         width: 1200,
         height: 630,
         overlayText: product?.name,
