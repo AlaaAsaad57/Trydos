@@ -24,8 +24,9 @@ function ChangeOrderItem({
     try {
       setShouldConfirmChange({
         order_id: ActivePacks?.id,
-        detail_id: item?.id,
+        item_id: item?.id,
         qty: item.qty - qty,
+        type: "CancelQty",
       });
     } catch (error) {
       setLoading(false);

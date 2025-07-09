@@ -9,17 +9,18 @@ function CancelOrderConfirmation({
   close,
   topic = "About Cancel Your Order",
   callback,
-  shouldConfirmCancel,
+  setShouldConfirmChange,
 }: CancelOrderConfirmationPropsType) {
   const [loading, setLoading] = useState(false);
   const ConfirmFunction = async () => {
     try {
       setLoading(true);
-      console.log(shouldConfirmCancel, "callback");
+
       await callback();
       setLoading(false);
       close();
       setShouldConfirmCancel(false);
+      setShouldConfirmChange(false);
     } catch (error) {
       setLoading(false);
     }

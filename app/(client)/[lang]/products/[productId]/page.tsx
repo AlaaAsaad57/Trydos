@@ -29,7 +29,6 @@ import FreeShippingOption from "components/products/FreeShippingOption";
 import ProductColors from "components/products/ProductColors";
 import CameraShots from "components/products/CameraShots";
 import ProductBackButton from "components/products/ProductBackButton";
-
 import FlashDealBanner from "components/products/FlashDealBanner";
 // import FeaturedBanner from "components/products/FeaturedBanner";
 import { ProductPagePropsType } from "models/componentType/productTypes/productPagePropsType";

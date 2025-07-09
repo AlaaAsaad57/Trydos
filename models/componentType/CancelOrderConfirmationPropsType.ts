@@ -3,5 +3,5 @@ export interface CancelOrderConfirmationPropsType {
   setShouldConfirmCancel: (bool: boolean) => void;
   topic?: string;
   callback: any;
-  shouldConfirmCancel: any;
+  setShouldConfirmChange: (bool: boolean) => void;
 }

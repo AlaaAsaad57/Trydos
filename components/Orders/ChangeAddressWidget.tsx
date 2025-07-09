@@ -24,6 +24,7 @@ function ChangeAddressWidget({
     setIsActiveAddress,
     initAddressForm,
     selectedOrder,
+    ActivePacks,
   } = useAppStore();
   const [openModal, setOpenModal] = useState(false);
   const [selectedAddressId, setAddressId] = useState(address_id);
@@ -50,7 +51,7 @@ function ChangeAddressWidget({
         <div className="flex-col  items-center w-full justify-center flex-1">
           <OrderItem
             key={selectedOrder.order_group_id}
-            order={OrderWithDetails(selectedOrder)}
+            order={ActivePacks}
             showDetails={() => {}}
           />
         </div>
