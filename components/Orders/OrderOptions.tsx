@@ -158,6 +158,14 @@ function OrderOptions({ closeOptions, CancelOrder }: OrderOptionsPropsType) {
     });
     return condition;
   };
+  const getOrderToShow = () => {
+    if (screen === "changeAddress") {
+      console.log("selectedOrder", selectedOrder);
+      return selectedOrder;
+    } else {
+      return ActivePacks;
+    }
+  };
   const renderScreen = () => {
     if (SelectedOrderItem) {
       return (
@@ -291,10 +299,10 @@ function OrderOptions({ closeOptions, CancelOrder }: OrderOptionsPropsType) {
                 </div>
                 <div className="flex-col ml-[15px]">
                   <span className="regular text-[14px] text-[#1D1D1D] medium">
-                    {translateFunction("Hide This Product")}
+                    {translateFunction("Hide This Pack")}
                   </span>
                   <p className="regular text-[12px] text-[#8D8D8D]">
-                    {translateFunction("Hide This Product From My List")}
+                    {translateFunction("Hide This Pack From My List")}
                   </p>
                 </div>
               </div>
@@ -311,11 +319,12 @@ function OrderOptions({ closeOptions, CancelOrder }: OrderOptionsPropsType) {
                 </div>
                 <div className="flex-col ml-[15px]">
                   <span className="regular text-[14px] text-[#1D1D1D] medium">
-                    {translateFunction("Cancel This Order")}
+                    {translateFunction("Cancel This Pack")}
+                    <span className="mx-1 bold">{ActivePacks.id}</span>
                   </span>
                   <p className="regular text-[12px] text-[#8D8D8D]">
                     {translateFunction(
-                      "You Can Cancel This Order And Back Your Money"
+                      "You Can Cancel This Pack And Back Your Money"
                     )}
                   </p>
                 </div>

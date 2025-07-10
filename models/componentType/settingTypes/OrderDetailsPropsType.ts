@@ -1,20 +1,19 @@
-
 export interface OrderDetailsPropsType {
-    resetOrderDetails: () => void;
-    goBack: () => void;
+  resetOrderDetails: () => void;
+  goBack: () => void;
 }
 export interface OrderDateCardProps {
-    time: string;
-  }
+  time: string;
+}
 
-export  interface OrderNumberCardProps {
-    number: string;
-  }
+export interface OrderNumberCardProps {
+  number: string;
+}
 
 export interface OrderInvoiceCardProps {
-    amount: number;
-    payments: {
-      value: string;
-      label: string;
-    };
-  }
+  amount: number;
+  payments: {
+    value: string;
+    label: string;
+  };
+}

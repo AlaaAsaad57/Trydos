@@ -11,7 +11,6 @@ import { ChangeSizeWidgetPropsType } from "models/componentType/ChangeSizeWidget
 import { fetchData } from "utils/fetchData";
 import { showErrorNotification } from "store/notifications/reducer";
 import { useAppStore } from "store";
-import { ready } from "node_modules/cypress/types/jquery";
 
 function ChangeOrderItem({
   item,
@@ -135,7 +134,9 @@ function ChangeOrderItem({
         />
       );
   };
-
+  const canNavigateToNextTab = () => {
+    return isChanged();
+  };
   return (
     <>
       <div className="flex-col w-full items-center  pb-[12px] px-[24px]">
@@ -198,9 +199,16 @@ function ChangeOrderItem({
                 className="flex-row flex-1 basis-0 text-center rounded-[20px] items-center justify-center h-[50px] text-[14px] medium text-[#1D1D1D]"
                 style={{
                   border: tabs === s.name ? "1px solid #402CDD80" : "none",
+                  opacity: canNavigateToNextTab() && tabs !== s.name ? 0.5 : 1,
                 }}
                 onClick={() => {
-                  setTabs(s.name);
+                  if (canNavigateToNextTab()) {
+                    showErrorNotification(
+                      translateFunction("Confirm the Changes First")
+                    );
+                  } else {
+                    setTabs(s.name);
+                  }
                 }}
               >
                 {translateFunction(s.name)}

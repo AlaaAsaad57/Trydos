@@ -55,6 +55,15 @@ function ChangeAddressWidget({
   useEffect(() => {
     getAddressList();
   }, []);
+  const getTotalOrder = () => {
+    let arr = [];
+    selectedOrder.details.map((s) => {
+      s.details.map((d) => {
+        arr.push(d);
+      });
+    });
+    return { ...selectedOrder, details: arr };
+  };
   return (
     <>
       <div className="flex-col max-h-[calc(100vh-50px)] items-center overflow-auto w-full pt-[14px] px-[24px] z-[999999999] pb-[27px] absolute bottom-[0px]  left-0 rounded-t-[30px] bg-white">
@@ -62,7 +71,7 @@ function ChangeAddressWidget({
         <div className="flex-col  items-center w-full justify-center flex-1">
           <OrderItem
             key={selectedOrder.order_group_id}
-            order={ActivePacks}
+            order={getTotalOrder()}
             showDetails={() => {}}
           />
         </div>

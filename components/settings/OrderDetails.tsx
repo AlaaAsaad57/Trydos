@@ -127,6 +127,7 @@ function OrderDetails({ resetOrderDetails, goBack }: OrderDetailsPropsType) {
     setActivePacks(null);
     fetchedOrderIdRef.current = null;
     goBack();
+    setIsExpanded(false);
   };
   const [isExpanded, setIsExpanded] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
@@ -326,7 +327,10 @@ function OrderDetails({ resetOrderDetails, goBack }: OrderDetailsPropsType) {
     setIsChatOpen(false);
   };
   useEffect(() => {
-    if (!selectedOrder?.order_group_id) return;
+    if (!selectedOrder?.order_group_id) {
+      setIsExpanded(false);
+      return;
+    }
     // if (fetchedOrderIdRef.current === selectedOrder.order_group_id) return;
     fetchedOrderIdRef.current = selectedOrder.order_group_id;
     getOrderDetails();
@@ -359,6 +363,7 @@ function OrderDetails({ resetOrderDetails, goBack }: OrderDetailsPropsType) {
       <div className="flex-col h-[calc(128vh)]">
         <SettingTopBar
           goBack={() => {
+            setIsExpanded(false);
             let params = new URLSearchParams(window.location.search);
             params.delete("id");
             params.delete("order_id_chat");
@@ -425,7 +430,8 @@ function OrderDetails({ resetOrderDetails, goBack }: OrderDetailsPropsType) {
                       setActivePacks(s);
                     }}
                   >
-                    {translateFunction("Pack")} {i + 1}
+                    {translateFunction("Pack")}{" "}
+                    <span className="mx-1 bold">{s.id}</span>
                   </div>
                 ))}
               </div>

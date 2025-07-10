@@ -10,7 +10,7 @@ import PersonalInfoAddress from "./PersonalInfoAddress";
 import PersonalInfoAddressModal from "./PersonalInfoAddressModal";
 import PersonalBankCards from "./PersonalBankCards";
 import PersonalInfoCountries from "./PersonalInfoCountries";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import OrdersList from "./OrdersList";
 
 import OrderDetails from "./OrderDetails";
@@ -245,7 +245,7 @@ function Settings({ lang }: SettingsIndexPropsType) {
   }, [orderIdParam]);
 
   const router = useRouter();
-  const pathname = usePathname();
+
   const swipeToScreen = (index: number) => {
     if (isAnimating) return;
     setIsAnimating(true);
