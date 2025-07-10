@@ -9,9 +9,7 @@ import {
 import StoryViewer from "./StoryViewer";
 import Spinner from "components/global/Spinner";
 import { useAppStore } from "store";
-import { fetchStories } from "Server Requests";
 import StoryServiceClass from "services/story";
-
 import { StoryHolderPropsType } from "models/componentType/StoryHolderPropsType";
 import Xicon from "public/svg/Xicon.svg";
 import DeleteIcon from "public/svg/DeleteIcon.svg";
@@ -24,16 +22,8 @@ import { revalidateStories } from "utils/serverActions";
 import { fetchStories } from "Server Requests";
 import { DeleteModalPropsType } from "models/componentType/DeleteModalPropsType";
 function StoryHolder({ story, active, isPaused }: StoryHolderPropsType) {
-  const {
-    selectedStory,
-    language,
-    country,
-    setStoryData,
-    language,
-    country,
-    userStories,
-    setStoryData,
-  } = useAppStore();
+  const { selectedStory, language, country, userStories, setStoryData } =
+    useAppStore();
   const [currentStoryId, setCurrentStoryId] = useState(0);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -114,14 +104,6 @@ function StoryHolder({ story, active, isPaused }: StoryHolderPropsType) {
       showSuccessNotification(
         response?.message || translateFunction("Story deleted successfully.")
       );
-      revalidateStories();
-      let stories = await fetchStories(
-        language,
-        country,
-        1,
-        userStories?.access_token
-      );
-      setStoryData(stories.data);
     } catch (err: any) {
       setShowDeleteModal(false);
       setLoading(false);
