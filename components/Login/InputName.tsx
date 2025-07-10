@@ -48,7 +48,7 @@ function InputName({
     GAevent({
       action: GA_EVENT_NAMES.CREATE_ACCOUNT_CONTINUE,
       params: {
-        method: "phone",
+        method_otp: "phone",
         name_entered: true,
         button_name: GA_BUTTONS_NAMES.CONFIRM_NAME_BUTTON,
       },

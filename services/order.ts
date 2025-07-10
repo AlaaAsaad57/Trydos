@@ -262,7 +262,10 @@ class OrderService {
         reqTitle: "Change Order Address",
         method: "POST",
         server: "market",
-        body: JSON.stringify({ order_id, new_shipping_address_id: address_id }),
+        body: JSON.stringify({
+          order_group_id: order_id,
+          new_shipping_address_id: address_id,
+        }),
       });
       if (response.success || response.isSuccessful) return response;
     } catch (error) {

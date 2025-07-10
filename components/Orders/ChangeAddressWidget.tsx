@@ -39,14 +39,13 @@ function ChangeAddressWidget({
   const [deliveryNote, setDeliveryNote] = useState(selectedOrder?.note || "");
   const ChangeAddress = async () => {
     setOrderPageLoading(true);
+    close();
     let response = await orderService.changeOrderAddress({
-      order_id: ActivePacks.id,
+      order_id: ActivePacks.order_group_id,
       address_id: selectedAddressId,
     });
-    if (response.success || response.isSuccessful) {
-      close();
-      getOrderDetails();
-    }
+
+    getOrderDetails();
   };
   const getAddressList = async () => {
     setLoading(true);
@@ -117,7 +116,7 @@ function ChangeAddressWidget({
               </span>
             </div>
             <div className="flex-col justify-start pb-[25px] h-full w-full max-w-[650px]">
-              <div className="flex-col   h-auto max-h-[290px] overflow-auto">
+              <div className="flex-col   h-auto max-h-[200px] overflow-auto">
                 {addressLists.map((s, i) => (
                   <div
                     key={i}

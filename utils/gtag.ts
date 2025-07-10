@@ -84,7 +84,7 @@ const getUserParam = () => {
     userData.is_phone_verified === 0
   ) {
     return {
-      user_guest_id: userData.id,
+      user_id_guest: userData.id,
     };
   } else {
     return {

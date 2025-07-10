@@ -10,11 +10,11 @@ export async function generateProductMetaData({
   try {
     const [country, language] = params.lang.split("-");
     const getProductMetaData = await fetch(
-      `${process.env.NEXT_PUBLIC_BACKEND_URL}/web/product/product-meta/${params.productId}`,
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/web/product/product-meta/${params.productId}?lang=${language}`,
       {
         headers: {
           country: country,
-          language: language,
+          lang: language,
         },
         next: {
           revalidate: 3600,

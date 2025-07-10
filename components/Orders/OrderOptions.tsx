@@ -231,10 +231,7 @@ function OrderOptions({ closeOptions, CancelOrder }: OrderOptionsPropsType) {
             <CancelOrderConfirmation
               close={() => {
                 closeOptions();
-                setSelectedOrderItem(null);
                 setOrderOptions(false);
-                setActivePacks(null);
-                setOrderDetails(null);
                 CancelOrder();
               }}
               setShouldConfirmChange={setShouldConfirmChange}
@@ -353,6 +350,7 @@ function OrderOptions({ closeOptions, CancelOrder }: OrderOptionsPropsType) {
         <ChangeAddressWidget
           getOrderDetails={getOrderDetails}
           close={() => {
+            closeOptions();
             setScreen("options");
           }}
           address_id={selectedOrder?.shipping_address}
