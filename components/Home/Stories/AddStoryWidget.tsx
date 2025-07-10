@@ -13,9 +13,7 @@ import {
 } from "store/notifications/reducer";
 import { getUserStories, translateFunction } from "utils/functions";
 import StoryServiceClass from "services/story";
-import { AddStoryAction } from "store/homepage/actions";
-import { revalidateStories } from "utils/serverActions";
-import { fetchStories } from "Server Requests";
+
 import Spinner from "components/global/Spinner";
 
 // Icons
@@ -117,7 +115,10 @@ const isValidUrl = (urlString: string) => {
 const validateLink = (urlString: string) => {
   if (!urlString) return { valid: true, error: "" };
   if (!isValidUrl(urlString)) {
-    return { valid: false, error: "Please enter a valid URL (e.g., example.com or www.example.com)" };
+    return {
+      valid: false,
+      error: "Please enter a valid URL (e.g., example.com or www.example.com)",
+    };
   }
   try {
     const url =
@@ -125,16 +126,26 @@ const validateLink = (urlString: string) => {
         ? urlString
         : `https://${urlString}`;
     const parsed = new URL(url);
-    const currentHost = typeof window !== 'undefined' ? window.location.host : '';
+    const currentHost =
+      typeof window !== "undefined" ? window.location.host : "";
     if (parsed.host !== currentHost) {
-      return { valid: false, error: `Only links from ${currentHost} are allowed.` };
+      return {
+        valid: false,
+        error: `Only links from ${currentHost} are allowed.`,
+      };
     }
     if (/coupon/i.test(urlString)) {
-      return { valid: false, error: `Links containing 'coupon' are not allowed: ${urlString}` };
+      return {
+        valid: false,
+        error: `Links containing 'coupon' are not allowed: ${urlString}`,
+      };
     }
     return { valid: true, error: "" };
   } catch {
-    return { valid: false, error: "Please enter a valid URL (e.g., example.com or www.example.com)" };
+    return {
+      valid: false,
+      error: "Please enter a valid URL (e.g., example.com or www.example.com)",
+    };
   }
 };
 
@@ -194,11 +205,6 @@ export default function AddStoryWidget({ onClose }: AddStoryWidgetPropsType) {
                     link
                   )
                     .then((data) => {
-                      // Sendevent({
-                      //   event: GA_EVENT_NAMES.PROGRAMMING_EVENT,
-                      //   value: GA_PROGRAMMING_EVENT_VALUES.UPLOAD_STORY_SUCCESS,
-                      // });
-                      AddStoryAction(data);
                       resolve(true);
                     })
                     .catch((e) => {
@@ -212,19 +218,8 @@ export default function AddStoryWidget({ onClose }: AddStoryWidgetPropsType) {
                         translateFunction("Upload Failed Try Again")
                       );
                     });
-                  setIsSelected(path);
-
-                  setFile(e.target.files[0]);
-
                   setIsSelected(null);
                   setFile(null);
-                  revalidateStories();
-                  let stories = await fetchStories(
-                    language,
-                    country,
-                    1,
-                    user?.access_token
-                  );
                   setUpload(0);
                 }
 
@@ -249,7 +244,6 @@ export default function AddStoryWidget({ onClose }: AddStoryWidgetPropsType) {
             )
               .then((data) => {
                 resolve(true);
-                AddStoryAction(data);
               })
               .catch((e) => {
                 setUpload(0);
@@ -258,12 +252,8 @@ export default function AddStoryWidget({ onClose }: AddStoryWidgetPropsType) {
                   translateFunction("Upload Failed Try Again")
                 );
               });
-            setIsSelected(path);
-            setFile(e.target.files[0]);
-
             setIsSelected(null);
             setFile(null);
-            revalidateStories();
             setUpload(0);
           };
         });
