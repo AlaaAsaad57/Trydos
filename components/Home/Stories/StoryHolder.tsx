@@ -14,31 +14,55 @@ import StoryServiceClass from "services/story";
 import { StoryHolderPropsType } from "models/componentType/StoryHolderPropsType";
 import Xicon from "public/svg/Xicon.svg";
 import DeleteIcon from "public/svg/DeleteIcon.svg";
-import { showSuccessNotification, showErrorNotification } from "store/notifications/reducer";
+import {
+  showSuccessNotification,
+  showErrorNotification,
+} from "store/notifications/reducer";
 import { translateFunction } from "utils/functions";
+import { revalidateStories } from "utils/serverActions";
+import { fetchStories } from "Server Requests";
 function StoryHolder({ story, active, isPaused }: StoryHolderPropsType) {
-  const { selectedStory } = useAppStore();
+  const { selectedStory, language, country, userStories, setStoryData } =
+    useAppStore();
   const [currentStoryId, setCurrentStoryId] = useState(0);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [loading, setLoading] = useState(false);
 
   // Modal component
-  const DeleteModal = ({ onCancel, onConfirm, loading }: { onCancel: () => void; onConfirm: () => void; loading: boolean }) => (
-    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40" style={{
-      zIndex: 999999999,
-    }}>
+  const DeleteModal = ({
+    onCancel,
+    onConfirm,
+    loading,
+  }: {
+    onCancel: () => void;
+    onConfirm: () => void;
+    loading: boolean;
+  }) => (
+    <div
+      className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40"
+      style={{
+        zIndex: 999999999,
+      }}
+    >
       <div
         className={
           `fixed top-1/2 left-1/2 -translate-y-1/2 transition-transform duration-500 ease-in-out ` +
-          (showDeleteModal ? '-translate-x-1/2' : '-translate-x-full') +
-          ' bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8 flex flex-col items-center w-[90vw] max-w-[500px]'
+          (showDeleteModal ? "-translate-x-1/2" : "-translate-x-full") +
+          " bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8 flex flex-col items-center w-[90vw] max-w-[500px]"
         }
         role="dialog"
         aria-modal="true"
         aria-labelledby="delete-modal-title"
       >
-        <h2 id="delete-modal-title" className="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100">{translateFunction("Delete Story?")}</h2>
-        <p className="mb-6 text-gray-700 dark:text-gray-300">{translateFunction("Are you sure you want to delete this story?")}</p>
+        <h2
+          id="delete-modal-title"
+          className="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100"
+        >
+          {translateFunction("Delete Story?")}
+        </h2>
+        <p className="mb-6 text-gray-700 dark:text-gray-300">
+          {translateFunction("Are you sure you want to delete this story?")}
+        </p>
         <div className="flex gap-4 w-full justify-center min-h-[40px]">
           {loading ? (
             <Spinner />
@@ -78,6 +102,14 @@ function StoryHolder({ story, active, isPaused }: StoryHolderPropsType) {
       showSuccessNotification(
         response?.message || translateFunction("Story deleted successfully.")
       );
+      revalidateStories();
+      let stories = await fetchStories(
+        language,
+        country,
+        1,
+        userStories?.access_token
+      );
+      setStoryData(stories.data);
     } catch (err: any) {
       setShowDeleteModal(false);
       setLoading(false);
@@ -106,7 +138,7 @@ function StoryHolder({ story, active, isPaused }: StoryHolderPropsType) {
             aria-label="Delete story"
             onClick={() => setShowDeleteModal(true)}
             onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') setShowDeleteModal(true);
+              if (e.key === "Enter" || e.key === " ") setShowDeleteModal(true);
             }}
           >
             <DeleteIcon className="w-[22px] h-[22px] fill-white" />
@@ -119,7 +151,7 @@ function StoryHolder({ story, active, isPaused }: StoryHolderPropsType) {
             tabIndex={0}
             aria-label="Close story viewer"
             onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') SelectStory(null);
+              if (e.key === "Enter" || e.key === " ") SelectStory(null);
             }}
           >
             <Xicon className="[&>path]:fill-[#fafafa]" />
