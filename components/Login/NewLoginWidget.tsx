@@ -121,7 +121,7 @@ function NewLoginWidget() {
       GAevent({
         action: GA_EVENT_NAMES.CREATE_ACCOUNT_CONTINUE,
         params: {
-          method: "phone",
+          method_otp: "phone",
           name_entered: false,
           button_name: GA_BUTTONS_NAMES.LATER_TAKE_LOOK_BUTTON,
         },
@@ -202,7 +202,7 @@ function NewLoginWidget() {
               ? GA_EVENT_NAMES.LOGIN
               : GA_EVENT_NAMES.SIGN_UP,
           params: {
-            method: "phone",
+            method_otp: "phone",
             success: false,
           },
         });
@@ -242,7 +242,7 @@ function NewLoginWidget() {
               ? GA_EVENT_NAMES.LOGIN
               : GA_EVENT_NAMES.SIGN_UP,
           params: {
-            method: "phone",
+            method_otp: "phone",
 
             success: true,
           },
@@ -483,7 +483,7 @@ function NewLoginWidget() {
                   GAevent({
                     action: GA_EVENT_NAMES.LOGIN_START,
                     params: {
-                      method: "phone",
+                      method_otp: "phone",
                       button_name:
                         GA_BUTTONS_NAMES.I_HAVE_ALREADY_ACCOUNT_BUTTON,
                     },
@@ -518,7 +518,7 @@ function NewLoginWidget() {
                   GAevent({
                     action: GA_EVENT_NAMES.SIGNUP_START,
                     params: {
-                      method: "phone",
+                      method_otp: "phone",
                       button_name: GA_BUTTONS_NAMES.CREATE_NEW_ACCOUNT_BUTTON,
                     },
                   });

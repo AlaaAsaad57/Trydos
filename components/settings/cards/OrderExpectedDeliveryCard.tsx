@@ -1,10 +1,16 @@
 import { OrderDateCardProps } from "models/componentType/settingTypes/OrderDetailsPropsType";
 import React from "react";
+import { useAppStore } from "store";
 import { translateFunction } from "utils/functions";
 
 function OrderExpectedDeliveryCard({ time }: OrderDateCardProps) {
+  const { ActivePacks } = useAppStore();
   return (
-    <div className="bg-[#F4F4F4] relative w-1/2 min-h-[74px] h-auto  rounded-[15px] py-[8px] px-[12px] flex-col">
+    <div
+      className={`${
+        ActivePacks.order_status.value === "canceled" && "opacity-55"
+      } bg-[#F4F4F4] relative w-1/2 min-h-[74px] h-auto  rounded-[15px] py-[8px] px-[12px] flex-col`}
+    >
       <svg
         xmlns="http://www.w3.org/2000/svg"
         xmlnsXlink="http://www.w3.org/1999/xlink"
@@ -145,14 +151,20 @@ function OrderExpectedDeliveryCard({ time }: OrderDateCardProps) {
         </g>
       </svg>
 
-      <span className="text-[#8D8D8D] regular text-[10px] mt-[5px]">
-        {translateFunction("Expected Delivery Date")}
-      </span>
-      <span className="text-[#1D1D1D] text-[12px] regular mt-[3px]">
-        Monday{" "}
-        <span className="bold text-[#1D1D1D] text-[12px]  mx-[1px]">2.Jun</span>{" "}
-        | 3 {translateFunction("Work Days")}
-      </span>
+      {ActivePacks.order_status.value !== "canceled" && (
+        <>
+          <span className="text-[#8D8D8D] regular text-[10px] mt-[5px]">
+            {translateFunction("Expected Delivery Date")}
+          </span>
+          <span className="text-[#1D1D1D] text-[12px] regular mt-[3px]">
+            Monday{" "}
+            <span className="bold text-[#1D1D1D] text-[12px]  mx-[1px]">
+              2.Jun
+            </span>{" "}
+            | 3 {translateFunction("Work Days")}
+          </span>
+        </>
+      )}
     </div>
   );
 }

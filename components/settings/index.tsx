@@ -10,7 +10,7 @@ import PersonalInfoAddress from "./PersonalInfoAddress";
 import PersonalInfoAddressModal from "./PersonalInfoAddressModal";
 import PersonalBankCards from "./PersonalBankCards";
 import PersonalInfoCountries from "./PersonalInfoCountries";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import OrdersList from "./OrdersList";
 
 import OrderDetails from "./OrderDetails";
@@ -184,10 +184,14 @@ function Settings({ lang }: SettingsIndexPropsType) {
       id: "Order Details",
       title: "Details",
       component: () => (
-        <OrderDetails
-          resetOrderDetails={() => setSelectedOrder(null)}
-          goBack={() => swipeToScreen(9)}
-        />
+        <>
+          {
+            <OrderDetails
+              resetOrderDetails={() => setSelectedOrder(null)}
+              goBack={() => swipeToScreen(9)}
+            />
+          }
+        </>
       ),
       parentId: "Orders",
     },
@@ -241,7 +245,7 @@ function Settings({ lang }: SettingsIndexPropsType) {
   }, [orderIdParam]);
 
   const router = useRouter();
-  const pathname = usePathname();
+
   const swipeToScreen = (index: number) => {
     if (isAnimating) return;
     setIsAnimating(true);
@@ -265,9 +269,8 @@ function Settings({ lang }: SettingsIndexPropsType) {
       {showOrderOptions && (
         <OrderOptions
           CancelOrder={() => {
-            setOrderDetails(null);
-            setActivePacks(null);
-            swipeToScreen(9);
+            // setOrderDetails(null);
+            // setActivePacks(null);
           }}
           closeOptions={() => {
             document.documentElement.style.overflow = "auto";

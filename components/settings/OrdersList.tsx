@@ -10,7 +10,7 @@ import { fetchOrders } from "../../services/orders";
 import OrderItem from "../Orders/OrderItem"; // Assuming OrderItem component exists and can be reused
 import { translateFunction } from "utils/functions"; // Assuming translateFunction exists
 import { useAppStore } from "store";
-import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { dispatchRouteChangeEvent } from "utils/events";
 import { OrdersListPropsType } from "models/componentType/settingTypes/OrdersListPropsType";
 
@@ -28,9 +28,8 @@ function OrdersList({
   const [page, setPage] = useState(1);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const statusSliderRef = useRef<HTMLDivElement>(null); // Ref for the status slider
-  const searchParams = useSearchParams();
+
   const router = useRouter();
-  const id = searchParams.get("id");
 
   // Function to load orders
   const loadMoreOrders = async (
@@ -142,7 +141,7 @@ function OrdersList({
       setLoading(false);
     }
   };
-  const { settings } = useAppStore();
+  const { settings, selectedOrder } = useAppStore();
 
   // Initial load and load on status change
   useEffect(() => {
@@ -231,6 +230,15 @@ function OrdersList({
   useEffect(() => {
     dispatchRouteChangeEvent("completed");
   }, [orders]);
+  useEffect(() => {
+    console.log("selectedOrder", selectedOrder);
+    if (!selectedOrder) {
+      setOrders([]); // Reset orders when status changes
+      setPage(1); // Reset page count
+      setHasMore(true); // Assume there are more orders initially
+      loadMoreOrders(true, selectedStatus);
+    }
+  }, [selectedOrder]);
   return (
     <div className="flex-col max-h-[calc(100vh-200px)]">
       <SettingTopBar

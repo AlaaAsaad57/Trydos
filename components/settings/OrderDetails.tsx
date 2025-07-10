@@ -24,7 +24,6 @@ import RateOrderButton from "./cards/RateOrderButton";
 import Spinner from "components/global/Spinner";
 import order from "services/order";
 import OrderChatIcon from "./OrderChatIcon";
-import { usePathname } from "next/navigation";
 import { Channel } from "models/Genaral/Channel";
 import dynamic from "next/dynamic";
 import ReturnedOrderStatusIcon from "public/svg/ReturnedOrderStatusIcon.svg";
@@ -35,31 +34,12 @@ import OptionsIcon from "public/svg/OptionsIcon.svg";
 import OrderRetailsReturnInfo from "components/Orders/OrderRetailsReturnInfo";
 import RatingOrderItem from "components/Orders/RatingOrderItem";
 import CanceledOrderStatusIcon from "public/svg/CanceledOrderStatusIcon.svg";
-import { GetImageUrl } from "utils/tinyUtils";
+import { GetImageUrl, totalAmount } from "utils/tinyUtils";
 import { OrderDetailsPropsType } from "models/componentType/settingTypes/OrderDetailsPropsType";
 import { ProductCardPropsType } from "models/componentType/settingTypes/ProductCardPropsType";
 import { fetchData } from "utils/fetchData";
 import auth from "services/auth";
 function OrderDetails({ resetOrderDetails, goBack }: OrderDetailsPropsType) {
-  const [loading, setLoading] = useState(false);
-
-  const totalAmount = (arr) => {
-    let total = 0;
-    arr?.map((s) => {
-      total += s.order_amount;
-    });
-    return total;
-  };
-  const totalItems = (arr) => {
-    let arr_of_products = [];
-    arr.map((s) => {
-      s.details.map((d) => {
-        arr_of_products.push({ ...d, order_status: s.order_status?.value });
-      });
-    });
-
-    return arr_of_products;
-  };
   const router = useRouter();
   const searchParams = useSearchParams();
   useEffect(() => {
@@ -78,6 +58,8 @@ function OrderDetails({ resetOrderDetails, goBack }: OrderDetailsPropsType) {
     openChat,
     ActivePacks,
     setActivePacks,
+    orderPageLoading: loading,
+    setOrderPageLoading: setLoading,
   } = useAppStore();
 
   const fetchedOrderIdRef = useRef<string | number | null>(null);
@@ -145,19 +127,15 @@ function OrderDetails({ resetOrderDetails, goBack }: OrderDetailsPropsType) {
     setActivePacks(null);
     fetchedOrderIdRef.current = null;
     goBack();
+    setIsExpanded(false);
   };
   const [isExpanded, setIsExpanded] = useState(false);
-  const [isReturnOrderOpen, setIsReturnOrderOpen] = useState<
-    boolean | OrderDetail
-  >(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [chatInfo, setChatInfo] = useState<Channel | null>(null);
   const shouldShowChatIcon = () => {
     // Out for Delivery
     if (selectedOrder.order_status?.value === "out_for_delivery")
       return selectedOrder.order_group_id;
-    if (ActivePacks?.order_status?.value === "out_for_delivery")
-      return ActivePacks?.order_group_id;
     return false;
   };
   const [isGettingChat, setIsGettingChat] = useState(false);
@@ -349,8 +327,11 @@ function OrderDetails({ resetOrderDetails, goBack }: OrderDetailsPropsType) {
     setIsChatOpen(false);
   };
   useEffect(() => {
-    if (!selectedOrder?.order_group_id) return;
-    if (fetchedOrderIdRef.current === selectedOrder.order_group_id) return;
+    if (!selectedOrder?.order_group_id) {
+      setIsExpanded(false);
+      return;
+    }
+    // if (fetchedOrderIdRef.current === selectedOrder.order_group_id) return;
     fetchedOrderIdRef.current = selectedOrder.order_group_id;
     getOrderDetails();
   }, [selectedOrder?.order_group_id]);
@@ -382,6 +363,7 @@ function OrderDetails({ resetOrderDetails, goBack }: OrderDetailsPropsType) {
       <div className="flex-col h-[calc(128vh)]">
         <SettingTopBar
           goBack={() => {
+            setIsExpanded(false);
             let params = new URLSearchParams(window.location.search);
             params.delete("id");
             params.delete("order_id_chat");
@@ -448,7 +430,8 @@ function OrderDetails({ resetOrderDetails, goBack }: OrderDetailsPropsType) {
                       setActivePacks(s);
                     }}
                   >
-                    {translateFunction("Pack")} {i + 1}
+                    {translateFunction("Pack")}{" "}
+                    <span className="mx-1 bold">{s.id}</span>
                   </div>
                 ))}
               </div>

@@ -21,6 +21,8 @@ import {
   UserData,
   setCookie,
 } from "utils/cookies/cookie-manager";
+import { revalidateStories } from "utils/serverActions";
+import { fetchStories } from "Server Requests";
 
 class StoryService {
   /* get stories */
@@ -76,6 +78,21 @@ class StoryService {
       }
     } catch (e) {}
   }
+  async UploadToCloudinary(file: File) {
+    const url = "https://api.cloudinary.com/v1_1/djooohujg/upload";
+
+    const formData = new FormData();
+
+    // Fill in your own unsigned upload preset
+    formData.append("file", file);
+    formData.append("upload_preset", "v4h8xqns");
+    let response = await fetch(url, {
+      method: "POST",
+      body: formData,
+    });
+    let data = await response.json();
+    return data.url;
+  }
   async upload(
     file: File,
     callback: Function,
@@ -83,23 +100,33 @@ class StoryService {
     endUpload: Function,
     link
   ) {
-    const formData = new FormData();
-    if (link?.length) {
-      formData.append("link", link);
-    }
-    formData.append("file", file);
-    formData.append("is_video", is_video);
-    const response: UploadStoryApi = await fetchData({
-      url: UPLOAD_STORY_URL,
+    const { language, country, userStories, setStoryData } =
+      useAppStore.getState();
+    let response = await this.UploadToCloudinary(file);
+    const add_story_response: UploadStoryApi = await fetchData({
+      url: `/api/v1/stories/add_story`,
       reqTitle: "Upload Story",
       method: "POST",
       server: "stories",
-      body: formData,
+      body: JSON.stringify({
+        file_path: response,
+        is_video: is_video,
+        link: link,
+      }),
     });
+    revalidateStories();
+    let stories = await fetchStories(
+      language,
+      country,
+      1,
+      userStories?.access_token
+    );
+    setStoryData(stories.data);
     endUpload();
 
-    if (response.data) return response.data;
-    else throw new Error("Failed");
+    if (add_story_response.data) {
+      return add_story_response.data;
+    } else throw new Error("Failed");
   }
   async deleteStory(storyId: string | number) {
     return await fetchData({

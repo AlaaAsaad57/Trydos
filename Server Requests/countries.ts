@@ -124,3 +124,29 @@ export async function fetchCountries(
     };
   }
 }
+export async function fetchLanguages(
+  country = "tr",
+  language = "en"
+): Promise<string[]> {
+  try {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/languages?lang=${language}&country=${country}`
+    );
+    if (!response.ok) {
+      console.error(`Languages Error: ${response.status}`);
+      reportError(new Error(`Languages Error: ${response.status}`), {
+        source: "languages",
+        page: "languages",
+        country: country,
+        language: language,
+        response: JSON.stringify(response),
+      });
+      return [];
+    }
+    const data = await response.json();
+    return data.data.languages;
+  } catch (error) {
+    console.error("Error fetching languages:", error);
+    return [];
+  }
+}

@@ -1,6 +1,6 @@
 "use server";
 import { NextResponse, type NextRequest } from "next/server";
-import { fetchCountries } from "Server Requests";
+import { fetchCountries, fetchLanguages } from "Server Requests";
 import { shouldBlockRegistration } from "@/utils/bot-detector";
 import { AuthServerService } from "@/services/auth-server";
 import {
@@ -18,7 +18,8 @@ const CACHE_TTL = 60 * 60 * 1000 * 24; // 1 day
 // Cache for countries
 let cachedCountries: any;
 let cacheTimestamp = 0;
-
+let cachedLanguages: any;
+let cacheLanguagesTimestamp = 0;
 // Cookie options
 const COOKIE_OPTIONS = {
   path: "/",
@@ -87,6 +88,16 @@ async function getCachedCountries(): Promise<string[]> {
   }
   return cachedCountries;
 }
+
+// async function getCachedLanguages(): Promise<string[]> {
+//   const now = Date.now();
+//   if (!cachedLanguages || now - cacheLanguagesTimestamp > CACHE_TTL) {
+//     const data = await fetchLanguages();
+//     cachedLanguages = data;
+//     cacheLanguagesTimestamp = now;
+//   }
+//   return cachedLanguages;
+// }
 
 function shouldSkipRegistration(pathname: string): boolean {
   return SKIP_REGISTRATION_PATHS.some((path) => pathname.startsWith(path));
@@ -304,6 +315,7 @@ export async function middleware(request: NextRequest) {
       // Different country - show popup
       if (
         urlLocale.country !== cookieCountry &&
+        cookieCountry !== "gb" &&
         !url.searchParams.get("changed-country")
       ) {
         url.searchParams.delete("cart");
