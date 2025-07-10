@@ -32,19 +32,11 @@ export async function generateProductMetaData({
     if (searchParams.size) {
       title += ` |  ${searchParams.size}`;
     }
-    console.log(
-      "**********product?.images***********",
-      JSON.stringify(product.images),
-      product?.images.map((s) => `/product/${s.images[0]}`.split(".")[0])
-    );
     let image = product?.images
       ? generateCloudinaryUrl({
-          publicIds: product?.images.map(
-            (s) => `/product/${s.images[0]}`.split(".")[0]
-          ),
+          publicIds: product?.images.map((s) => `${s.images}`),
           width: 1200,
           height: 630,
-          overlayText: product?.name,
         })
       : null;
     let data: Metadata = {
@@ -111,12 +103,9 @@ export const GetStructuredData = ({ params, product, color }) => {
   }
   let image = imagesArray
     ? generateCloudinaryUrl({
-        publicIds: product?.images.map(
-          (s) => `/product/${s.images[0]}`.split(".")[0]
-        ),
+        publicIds: product?.images.map((s) => `${s.images}`),
         width: 1200,
         height: 630,
-        overlayText: product?.name,
       })
     : null;
   return {

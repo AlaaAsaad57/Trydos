@@ -76,6 +76,42 @@ class StoryService {
       }
     } catch (e) {}
   }
+  async UploadToCloudinary(file: File) {
+    const url = "https://api.cloudinary.com/v1_1/<your-cloud-name>/upload";
+    const xhr = new XMLHttpRequest();
+    const formData = new FormData();
+
+    // Fill in your own unsigned upload preset
+    formData.append("file", file);
+    formData.append("upload_preset", "<your-upload-preset>");
+
+    xhr.open("POST", url);
+
+    xhr.upload.onprogress = (event) => {
+      if (event.lengthComputable) {
+        const percent = (event.loaded / event.total) * 100;
+
+        console.log(`Upload progress: ${percent.toFixed(2)}%`);
+      }
+    };
+
+    xhr.onload = () => {
+      if (xhr.status === 200) {
+        const response = JSON.parse(xhr.responseText);
+        return response;
+      } else {
+        console.error("Upload failed:", xhr.responseText);
+        throw new Error("Upload failed");
+      }
+    };
+
+    xhr.onerror = () => {
+      console.error("Error uploading file");
+      throw new Error("Error uploading file");
+    };
+
+    xhr.send(formData);
+  }
   async upload(
     file: File,
     callback: Function,

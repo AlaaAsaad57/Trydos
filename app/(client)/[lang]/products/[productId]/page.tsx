@@ -44,7 +44,7 @@ export const preferredRegion = ["bom1", "sin1"]; // For Middle East users
 export async function generateMetadata({ params, searchParams }) {
   try {
     const metaData = await generateProductMetaData({ params, searchParams });
-    console.log("**********metaData***********", metaData);
+
     // @ts-ignore
     if (metaData?.error) {
       redirect(`/${params.lang}?message=product_not_found`);
