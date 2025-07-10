@@ -9,22 +9,27 @@ import {
 import StoryViewer from "./StoryViewer";
 import Spinner from "components/global/Spinner";
 import { useAppStore } from "store";
+import { fetchStories } from "Server Requests";
 import StoryServiceClass from "services/story";
 
 import { StoryHolderPropsType } from "models/componentType/StoryHolderPropsType";
 import Xicon from "public/svg/Xicon.svg";
 import DeleteIcon from "public/svg/DeleteIcon.svg";
 import { showSuccessNotification, showErrorNotification } from "store/notifications/reducer";
-import { translateFunction } from "utils/functions";
+import { getUserStories, translateFunction } from "utils/functions";
+import { revalidateStories } from "utils/serverActions";
+import { DeleteModalPropsType } from "models/componentType/DeleteModalPropsType";
 function StoryHolder({ story, active, isPaused }: StoryHolderPropsType) {
-  const { selectedStory } = useAppStore();
+  const { selectedStory, language, country, setStoryData } = useAppStore();
   const [currentStoryId, setCurrentStoryId] = useState(0);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [loading, setLoading] = useState(false);
-
+  const user = getUserStories();
+  // check if the user is the owner of the story
+  const isOwner = user?.id === selectedStory?.id;
   // Modal component
-  const DeleteModal = ({ onCancel, onConfirm, loading }: { onCancel: () => void; onConfirm: () => void; loading: boolean }) => (
-    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40" style={{
+  const DeleteModal = ({ onCancel, onConfirm, loading }: DeleteModalPropsType) => (
+    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-30" style={{
       zIndex: 999999999,
     }}>
       <div
@@ -72,6 +77,10 @@ function StoryHolder({ story, active, isPaused }: StoryHolderPropsType) {
     try {
       const storyId = selectedStory.stories[currentStoryId]?.id;
       const response = await StoryServiceClass.deleteStory(storyId);
+      await revalidateStories();
+      const userToken = user?.access_token;
+      const storiesResult = await fetchStories(language, country, 1, userToken);
+      setStoryData(storiesResult.data);
       setShowDeleteModal(false);
       setLoading(false);
       setNextStory(story.id);
@@ -100,17 +109,19 @@ function StoryHolder({ story, active, isPaused }: StoryHolderPropsType) {
     >
       {active && (
         <div className="z-[99] top-[30px] right-[20px] absolute flex flex-row items-center gap-x-2">
-          <span
-            className="cursor-pointer pr-5"
-            tabIndex={0}
-            aria-label="Delete story"
-            onClick={() => setShowDeleteModal(true)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') setShowDeleteModal(true);
-            }}
-          >
-            <DeleteIcon className="w-[22px] h-[22px] fill-white" />
-          </span>
+          {isOwner && (
+            <span
+              className="cursor-pointer pr-5"
+              tabIndex={0}
+              aria-label="Delete story"
+              onClick={() => setShowDeleteModal(true)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') setShowDeleteModal(true);
+              }}
+            >
+              <DeleteIcon className="w-[22px] h-[22px] fill-white" />
+            </span>
+          )}
           <span
             className="cursor-pointer"
             onClick={() => {
