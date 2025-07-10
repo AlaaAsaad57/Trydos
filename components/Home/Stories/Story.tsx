@@ -34,8 +34,8 @@ function Story({ media, Name, index, story }: StoryPropsType) {
             e.currentTarget.onerror = null;
           }}
           src={StoryServiceClass.getThumb(
-            media.full_video_path || media.photo_path,
-            media.full_video_path
+            media?.full_video_path || media?.photo_path,
+            media?.full_video_path
           )}
         />
       </div>
