@@ -27,7 +27,7 @@ function StoriesContainer({
 
   // Maintain cube index locally to avoid weird jumps coming from
   // uncontrolled updates of `selectedStory` during animation.
-  console.log(storiesData, selectedStory);
+
   const initialIndex =
     storiesData?.findIndex((s) => s.id === selectedStory?.id) ?? 0;
   const [cubeIndex, setCubeIndex] = useState<number>(initialIndex);

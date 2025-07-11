@@ -41,6 +41,11 @@ function ProductReducer(state, { type, payload }) {
   }
   if (type === "VerifyComment") {
     let s = state.CommentsData.filter((m) => m.mid === payload)[0];
+    console.log(
+      s,
+      payload,
+      state.CommentsData.filter((comment) => comment.mid !== payload)
+    );
 
     return {
       ...state,
@@ -109,7 +114,7 @@ function ProductFooterSection({
   const [option, setOption] = useState("");
   const getComments = async () => {
     let response: { data: ProductSocialInfo } = await fetchData({
-      url: "/web/product/likesDetails/" + product.slug,
+      url: "/web/product/CommentsSharesDetails/" + product.slug,
       reqTitle: "Social Info Request",
       method: "GET",
       server: "market",

@@ -45,7 +45,6 @@ Cypress.Commands.add("Visit", function (url: string) {
     // @ts-ignore
     if (ur.includes("-country")) {
       cy.wait("@CountriesApi").then((i) => {
-        console.log("sahsahj", i);
         if (i) {
           cy.Exist("#country").then((exist) => {
             if (exist) {
@@ -309,11 +308,6 @@ Cypress.Commands.add("verifyProductInCart", (productName: string) => {
       // Remove first two and last two characters from both strings
       const trimmedProductName = productName.slice(2, -2);
       const trimmedProductNameInCart = productNameInCart.slice(2, -2);
-
-      console.log("Original Product Name:", productName);
-      console.log("Trimmed Product Name:", trimmedProductName);
-      console.log("Original Product Name In Cart:", productNameInCart);
-      console.log("Trimmed Product Name In Cart:", trimmedProductNameInCart);
 
       if (trimmedProductNameInCart.indexOf(trimmedProductName) !== -1) {
         console.log(

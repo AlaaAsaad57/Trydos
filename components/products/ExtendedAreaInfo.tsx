@@ -3,8 +3,6 @@ import Animated from "react-mount-animation";
 import CommentSection from "./CommentSection";
 import ShareSection from "./ShareSection";
 import MoreOptionsSection from "./MoreOptionsSection";
-import { ProductInterface } from "models/Genaral/Product";
-import { getContacts } from "store/chat/actions";
 import { ExtendedAreaInfoPropsType } from "models/componentType/ExtendedAreaInfoPropsType";
 
 function ExtendedAreaInfo({

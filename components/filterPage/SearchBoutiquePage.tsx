@@ -84,7 +84,7 @@ function SearchBoutiquePage({
         href: newPath,
         ...boutique,
       });
-      console.log(newPath);
+
       router.push(newPath);
     } catch (error) {
       console.error(error);

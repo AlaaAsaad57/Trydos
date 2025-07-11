@@ -160,7 +160,6 @@ function OrderOptions({ closeOptions, CancelOrder }: OrderOptionsPropsType) {
   };
   const getOrderToShow = () => {
     if (screen === "changeAddress") {
-      console.log("selectedOrder", selectedOrder);
       return selectedOrder;
     } else {
       return ActivePacks;
@@ -334,7 +333,6 @@ function OrderOptions({ closeOptions, CancelOrder }: OrderOptionsPropsType) {
             {canceled && (
               <OrderCanceltionOptions
                 setShouldConfirmCancel={(e) => {
-                  console.log(e, "setShouldConfirmCancel");
                   if (e) {
                     setShouldConfirmCancel({
                       order_id: ActivePacks?.id,

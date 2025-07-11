@@ -27,13 +27,7 @@ function CallComponent(props) {
   var RefAudio;
   useEffect(() => {
     RefAudio = ref;
-    console.log({
-      caller,
-      incomeCallData,
-      MessageActiveCall,
-      language,
-      incomeCallType,
-    });
+
     return () => {
       RefAudio?.current?.pause();
     };

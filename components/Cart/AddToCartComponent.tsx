@@ -320,7 +320,6 @@ function AddToCartComponent({
         style={{ height: "calc(100vh - 461px)" }}
         className="flex-col mt-[10px] w-full   top-[103px] items-center z-[999999999]"
         onClick={(e) => {
-          console.log(e.target);
           if (
             !(e.target as HTMLDivElement).classList.contains(
               "image-cart-container"

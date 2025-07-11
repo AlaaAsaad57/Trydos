@@ -5,7 +5,7 @@ import Skeleton from "react-loading-skeleton";
 import { AddComment } from "models/API/market/AddComment";
 import auth from "services/auth";
 import profilePng from "public/images/profileNo.png";
-import { GetImageUrl } from "utils/tinyUtils";
+import { formatTime, GetImageUrl } from "utils/tinyUtils";
 import { CommentsPropsType } from "models/componentType/CommentsPropsType";
 import { fetchData } from "utils/fetchData";
 
@@ -29,11 +29,11 @@ function Comments({
         reqTitle: "resend add Comment For Product",
         method: "POST",
         server: "market",
-        body: {
+        body: JSON.stringify({
           customer_id: auth.UserID(),
           product_id: productId,
           comment: s,
-        },
+        }),
       });
       if (response.data?.comment) {
         let s = CommentsData.filter((m) => m.mid === mid)[0];
@@ -67,7 +67,7 @@ function Comments({
             }}
             isError={s?.isError}
             key={i}
-            date={showDate(s?.created_at)}
+            date={formatTime(s?.created_at)}
             name={s?.customer?.name}
             text={s?.comment}
             photo={GetImageUrl(s.customer.image) ?? profilePng}

@@ -231,7 +231,6 @@ function OrdersList({
     dispatchRouteChangeEvent("completed");
   }, [orders]);
   useEffect(() => {
-    console.log("selectedOrder", selectedOrder);
     if (!selectedOrder) {
       setOrders([]); // Reset orders when status changes
       setPage(1); // Reset page count

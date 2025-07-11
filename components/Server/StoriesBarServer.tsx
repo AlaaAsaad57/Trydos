@@ -31,7 +31,7 @@ async function StoriesBarServer({ language, country }: StoriesBarServerProps) {
       1,
       STORIES_TOKEN?.access_token
     );
-
+    let userData = await getCookieServer<UserData>(COOKIE_NAMES.USER_STORIES);
     return (
       <>
         <StoriesStoreInitializer initialStories={storiesData} />
@@ -48,10 +48,12 @@ async function StoriesBarServer({ language, country }: StoriesBarServerProps) {
                     key={story.id || index}
                     index={index}
                     story={story}
+                    userData={userData}
                   />
                 ))}
                 {next_page_url && (
                   <StoriesPaginationWrapper
+                    userData={null}
                     next_page_url={next_page_url}
                     language={language}
                     country={country}

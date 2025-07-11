@@ -8,18 +8,30 @@ export async function GET(request: NextRequest) {
   }
   if (value === "home") {
     revalidateTag("main-categories-Api");
+    revalidatePath("/");
     revalidateTag("featured-Products-Api");
     revalidateTag("countries");
     revalidateTag("flash-deals-Products-Api");
+    revalidatePath("/categories");
     revalidateTag("boutiques");
     revalidateTag("stories");
   } else if (value === "listing") {
     revalidateTag("listing");
+    revalidatePath("/filters");
+    revalidatePath("/featured");
+    revalidatePath("/flashDeals");
     revalidateTag("currency-api");
   } else if (value === "products") {
     revalidateTag("product-details");
+    revalidatePath("/products");
     revalidateTag("currency-api");
   } else {
+    revalidatePath("/");
+    revalidatePath("/products");
+    revalidatePath("/categories");
+    revalidatePath("/filters");
+    revalidatePath("/featured");
+    revalidatePath("/flashDeals");
     revalidateTag("main-categories-Api");
     revalidateTag("flash-deals-Products-Api");
     revalidateTag("featured-Products-Api");

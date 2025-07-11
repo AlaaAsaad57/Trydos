@@ -25,7 +25,7 @@ function ShippingAddressContainer({
   const { lang } = useParams();
   // @ts-ignore
   const [country, language] = lang?.split("-");
-  console.log(country, language);
+
   const getOrderData = async () => {
     order.GetWallet();
     order.GetAddressList();

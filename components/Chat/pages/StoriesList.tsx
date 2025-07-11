@@ -21,7 +21,6 @@ function StoriesList() {
   }, []);
 
   const setSelectStory = (e) => {
-    console.log(StoryServiceClass.configureStory(e), storiesData);
     SelectStory(StoryServiceClass.configureStory(e));
   };
 

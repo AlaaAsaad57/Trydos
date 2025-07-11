@@ -4,7 +4,7 @@ import { InView } from "react-intersection-observer";
 import React, { useState } from "react";
 import StoryElement from "./StoryElement";
 import { useAppStore } from "store";
-import { fetchStories } from "Server Requests";
+
 import { fetchData } from "utils/fetchData";
 import {
   COOKIE_NAMES,
@@ -17,6 +17,7 @@ interface StoriesPaginationWrapperProps {
   language: string;
   country: string;
   initialStories: any[];
+  userData: UserData | null;
 }
 
 function StoriesPaginationWrapper({
@@ -24,6 +25,7 @@ function StoriesPaginationWrapper({
   language,
   country,
   initialStories,
+  userData,
 }: StoriesPaginationWrapperProps) {
   const { storiesData, setStoryData } = useAppStore();
   const [loading, setLoading] = useState(false);
@@ -91,6 +93,7 @@ function StoriesPaginationWrapper({
           key={story.id || `additional-${index}`}
           index={storiesData.length - additionalStories.length + index}
           story={story}
+          userData={userData}
         />
       ))}
       {loading && (

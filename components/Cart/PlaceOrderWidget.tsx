@@ -48,7 +48,6 @@ const OrderCartItem = () => {
   // @ts-ignore
   const language = lang.split("-")[1];
   const getProductsOfOrder = () => {
-    console.log(orderData.data);
     if (orderData.data?.length > 0) {
       let arr = [];
       orderData?.data?.map((s) => {
