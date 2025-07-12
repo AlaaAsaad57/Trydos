@@ -10,7 +10,7 @@ import {
   GeneralErrorIllustration,
   NetworkErrorIllustration,
 } from "components/global/ErrorIllustrations";
-
+import "../styles/global.css";
 export default function Error({
   error,
   reset,
