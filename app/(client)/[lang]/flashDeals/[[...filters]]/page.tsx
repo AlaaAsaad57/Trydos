@@ -1,15 +1,16 @@
+export const dynamicParams = true;
+export const runtime = "nodejs";
+export const preferredRegion = process.env.PREFERRED_REGION || "bom1";
+export const revalidate = parseInt(process.env.NEXT_PUBLIC_REVALIDATE);
+export const dynamic = "auto";
 import FilterList from "components/Server/FilterList";
 import ProductListServer from "components/Server/ProductList";
 import BackIcon from "public/svg/listing/backIcon.svg";
 import SortIcon from "public/svg/listing/sortIcon.svg";
 import ListingSkeleton from "components/skeleton/listing";
-
 import { Suspense } from "react";
-
 import NextLink from "components/global/NextLink";
-
 import "styles/listing-components.css";
-import Skeleton from "react-loading-skeleton";
 import FilterWidgetContainer from "components/filterPage/FiltersWidget";
 import ShareBoutiquePageButton from "components/filterPage/ShareBoutiquePageButton";
 import FilterBoutiquePageButton from "components/filterPage/FilterBoutiquePageButton";
@@ -17,12 +18,6 @@ import SearchBoutiquePage from "components/filterPage/SearchBoutiquePage";
 import { parseFiltersFromParams } from "utils/tinyUtils";
 import { GetFiltersData } from "utils/pagesDataRequests/FiltersPageData";
 
-export const dynamicParams = true;
-
-export const runtime = "nodejs";
-export const preferredRegion = ["bom1", "sin1"];
-export const revalidate = parseInt(process.env.NEXT_PUBLIC_REVALIDATE);
-export const dynamic = "auto";
 export async function generateMetadata({ params }) {
   try {
     const metadata = {

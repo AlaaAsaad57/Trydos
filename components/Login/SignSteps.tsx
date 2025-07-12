@@ -28,7 +28,7 @@ function SignSteps({
   setStepSign: Function;
 }) {
   return (
-    <>
+    <div className="flex-col items-center w-full pb-[40px]">
       {stepIndicator !== 7 && (
         <>
           <WelcomingWidget
@@ -69,7 +69,7 @@ function SignSteps({
           />
         </>
       )}
-    </>
+    </div>
   );
 }
 

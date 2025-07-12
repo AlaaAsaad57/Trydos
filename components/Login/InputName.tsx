@@ -62,8 +62,11 @@ function InputName({
     setLoading(false);
   };
   return (
-    <>
-      <div className="phone-input-desc" style={{ marginBottom: "28px" }}>
+    <div className="flex-col items-center w-full pb-[40px]">
+      <div
+        className="phone-input-desc flex-col"
+        style={{ marginBottom: "28px" }}
+      >
         <svg
           xmlns="http://www.w3.org/2000/svg"
           width="15.3"
@@ -294,7 +297,7 @@ function InputName({
       <div className="flex light text-[11px] text-[#ff5858] mt-[20px]">
         {translate("Name Should be atleast 8 characters")}
       </div>
-    </>
+    </div>
   );
 }
 

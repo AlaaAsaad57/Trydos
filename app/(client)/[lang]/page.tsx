@@ -1,3 +1,9 @@
+export const runtime = "nodejs";
+export const preferredRegion = process.env.PREFERRED_REGION || "bom1";
+export const revalidate = parseInt(process.env.NEXT_PUBLIC_HOME_REVALIDATE);
+export const dynamicParams = true;
+export const dynamic = "auto";
+
 import NavbarServer from "components/Server/Navbar";
 import OfferListServer from "components/Server/OfferListServer";
 import StoriesBarServer from "components/Server/StoriesBarServer";
@@ -15,11 +21,6 @@ import { getHomeMetadata, GetStructuredData } from "./MetaData";
 
 import { HomePageProps } from "models/componentType/HomePagePropsType";
 import { GetHomeData } from "utils/pagesDataRequests/HomePageData";
-export const runtime = "nodejs";
-export const preferredRegion = ["bom1", "sin1"];
-export const revalidate = parseInt(process.env.NEXT_PUBLIC_HOME_REVALIDATE);
-export const dynamicParams = true;
-export const dynamic = "auto";
 
 export async function generateMetadata({ params }) {
   try {

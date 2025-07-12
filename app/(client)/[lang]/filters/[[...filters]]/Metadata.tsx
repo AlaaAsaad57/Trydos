@@ -116,7 +116,6 @@ export async function getBoutiqueMetadata({ params, searchParams }) {
         "/product/2025-06-10-6847bb8fce155",
         "/product/2025-06-10-6847bba79170d",
       ],
-      overlayText: "Test",
     });
   }
   const canonicalUrl = `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${

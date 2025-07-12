@@ -1,4 +1,3 @@
-"use server";
 import { NextResponse, type NextRequest } from "next/server";
 import { fetchCountries, fetchLanguages } from "Server Requests";
 import { shouldBlockRegistration } from "@/utils/bot-detector";
@@ -8,7 +7,8 @@ import {
   getCookieMiddleware,
   UserData,
 } from "utils/cookies/cookie-manager";
-
+export const runtime = "experimental-edge";
+export const preferredRegion = process.env.PREFERRED_REGION || "bom1";
 // Constants
 const SUPPORTED_LANGUAGES = ["en", "ar", "tr"];
 const DEFAULT_LANGUAGE = "en";
@@ -388,8 +388,6 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  runtime: "nodejs",
-  preferredRegion: ["bom1", "sin1"],
   matcher: [
     /*
      * Match all request paths except for the ones starting with:

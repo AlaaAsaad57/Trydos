@@ -1,7 +1,5 @@
 "use client";
 import React, { useEffect, useRef, useState } from "react";
-import Slider from "rc-slider";
-import "styles/slider.css";
 import { useAppStore } from "store";
 import search from "services/search";
 import { useParams } from "next/navigation";

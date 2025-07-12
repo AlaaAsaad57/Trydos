@@ -1,3 +1,7 @@
+export const dynamicParams = true;
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
+export const preferredRegion = process.env.PREFERRED_REGION || "bom1";
 import "styles/productDetails.css";
 import "styles/product-body.css";
 import EyeIcon from "public/svg/product/EyeIcon.svg";
@@ -35,11 +39,9 @@ import ProductsLabels from "components/products/ProductsLabels";
 import { GetProductData } from "utils/pagesDataRequests/ProductPageData";
 import { generateCodeCurrency } from "../../MetaData";
 import { redirect } from "next/navigation";
-export const dynamicParams = true;
-export const dynamic = "force-dynamic";
+
 // export const revalidate = parseInt(process.env.NEXT_PUBLIC_REVALIDATE);
-export const runtime = "nodejs";
-export const preferredRegion = ["bom1", "sin1"]; // For Middle East users
+// For Middle East users
 
 export async function generateMetadata({ params, searchParams }) {
   try {

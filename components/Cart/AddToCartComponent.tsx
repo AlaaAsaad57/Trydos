@@ -28,6 +28,7 @@ import { DetectScreen, GetImageUrl } from "utils/tinyUtils";
 import { GAevent } from "utils/gtag";
 import { showSuccessNotification } from "@/store/notifications/reducer";
 import { fetchData } from "utils/fetchData";
+import StackedSlider from "utils/Slider";
 
 function AddToCartComponent({
   color,
@@ -747,43 +748,29 @@ function AddToCartComponent({
                   className="flex-row h-[96px] w-full max-w-[420px] min-w-[420px] relative"
                 >
                   <SliderRuler />
-                  <Swiper
-                    data-cy="slide_components"
-                    modules={[EffectCoverflow]}
-                    className=" size-slider-coverflow"
-                    speed={100}
-                    ref={SizesRef}
-                    effect="coverflow"
-                    coverflowEffect={{
-                      rotate: 0,
-                      depth: 100,
-                      modifier: 0,
-                      scale: 1,
-                      stretch: 100,
-                      slideShadows: false,
-                    }}
-                    onSlideChange={(e) => {
+
+                  <StackedSlider
+                    className="mt-[7px]"
+                    initial_index={getInitialSizeSlider()}
+                    slidesArray={ProductData?.choice_options?.[0]?.options}
+                    max_drag={100}
+                    slide_width={70}
+                    onSlideChange={(index) => {
                       setSelectedSize(
-                        ProductData?.choice_options?.[0]?.options?.[
-                          e.activeIndex
-                        ]
+                        ProductData?.choice_options?.[0]?.options?.[index]
                       );
-                      // Sendevent({
-                      //   event: GA_EVENT_NAMES.CLICK,
-                      //   value: GA_CLICK_EVENT_VALUES.SIZE_SLIDE,
-                      // });
                     }}
-                    slidesPerView={7}
-                    threshold={1}
-                    centeredSlides={true}
-                    loop={false}
-                    initialSlide={getInitialSizeSlider()}
-                  >
-                    {ProductData?.choice_options?.[0]?.options.map(
-                      (size, i) => (
-                        <SwiperSlide
+                    max_scale={1}
+                    min_scale={0.7}
+                    overlap_factor={1.1}
+                    threshold={0.3}
+                    renderSlide={({ index, isActive, slide_width }) => {
+                      let size =
+                        ProductData?.choice_options?.[0]?.options?.[index];
+                      return (
+                        <div
                           data-cy="size_slide"
-                          key={i}
+                          key={index}
                           onClick={() => {
                             // @ts-ignore
                             SizesRef.current.swiper.slideTo(i, 400, false);
@@ -797,20 +784,29 @@ function AddToCartComponent({
                             overflow: "visible",
                             minWidth: "70px",
                             height: "70px",
+                            boxShadow:
+                              "inset rgba(255, 255, 255, 0.5) 0px 4px 6px, rgba(0, 0, 0, 0.1) 0px 3px 4px",
+                            border: "#366cb8 1px solid",
                           }}
                           className={`${
                             getVariantSizeQty(size.option) === 0
-                              ? "red-bg"
+                              ? isActive
+                                ? "text-white bg-[#ff5f61]"
+                                : "text-[#ff5f61] !bg-transparent border-none shadow-none"
                               : getVariantSizeQty(size.option) < 10
-                              ? "yellow-bg"
-                              : ""
-                          } flex-row items-center justify-center text-[30px] bold select-none flex`}
+                              ? isActive
+                                ? "text-white bg-[#ffaf5f]"
+                                : "text-[#ffaf5f] !bg-transparent border-none shadow-none"
+                              : isActive
+                              ? ""
+                              : "!bg-transparent !text-[#505050] !border-none !shadow-none"
+                          } bg-[#505050] text-[#f8f8f8] rounded-full flex-row items-center justify-center text-[30px] bold select-none flex`}
                         >
                           {size.name}
-                        </SwiperSlide>
-                      )
-                    )}
-                  </Swiper>
+                        </div>
+                      );
+                    }}
+                  />
                 </div>
                 {getVariantSizeQty(selectedSize?.option) === 0 ? (
                   <div

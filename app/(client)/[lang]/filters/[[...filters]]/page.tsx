@@ -1,3 +1,7 @@
+export const runtime = "nodejs";
+export const preferredRegion = process.env.PREFERRED_REGION || "bom1";
+export const revalidate = parseInt(process.env.NEXT_PUBLIC_REVALIDATE);
+export const dynamic = "auto";
 import FilterList from "components/Server/FilterList";
 import ProductListServer from "components/Server/ProductList";
 import BackIcon from "public/svg/listing/backIcon.svg";
@@ -19,20 +23,12 @@ import FilterBoutiquePageButton from "components/filterPage/FilterBoutiquePageBu
 import SearchBoutiquePage from "components/filterPage/SearchBoutiquePage";
 import CarouselContainer from "components/filterPage/CarouselContainer";
 import { GetImageUrl, parseFiltersFromParams } from "utils/tinyUtils";
-import {
-  fetchFilteredProducts,
-  fetchCurrency,
-  fetchBoutiqueDetails,
-} from "Server Requests";
+
 import { getConfiguredImage } from "utils/functions";
 import { GetFiltersData } from "utils/pagesDataRequests/FiltersPageData";
 
 export const dynamicParams = true;
 
-export const runtime = "nodejs";
-export const preferredRegion = ["bom1", "sin1"];
-export const revalidate = parseInt(process.env.NEXT_PUBLIC_REVALIDATE);
-export const dynamic = "auto";
 export async function generateMetadata({ params, searchParams }) {
   // Fetch your main product categories
   try {

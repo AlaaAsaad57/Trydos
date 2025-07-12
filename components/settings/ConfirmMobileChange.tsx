@@ -107,73 +107,78 @@ function ConfirmMobileChange({
   const [showMobile, setShowMobile] = useState(false);
   return (
     <div>
-      {!userProfile?.phone ||
-        (userProfile.phone === "0" && (
-          <PhoneInput
-            isForCart={true}
-            inputValue={inputValue}
-            wrongNumber={wrongNumber}
-            setWrongNumber={(e) => {
-              setWrongNumber(e);
-            }}
-            setInputValue={(e) => setInputValue(e)}
-            stepIndicator={stepIndicator}
-            setStepIndicator={(e) => setStepIndicator(e)}
-            operation={"login"}
-          />
-        ))}
-      <SendMethod
-        stepIndicator={stepIndicator}
-        setWrongNumber={(e) => {
-          setWrongNumber(e);
-        }}
-        setStepIndicator={(e: number) => setStepIndicator(e)}
-        setShowMobile={setShowMobile}
-        setMessageMethod={(e: string) => setMessageMethod(e)}
-        inputValue={inputValue}
-        hideEdit={true}
-      />
+      {stepIndicator === 3 &&
+        (!userProfile?.phone ||
+          (userProfile.phone === "0" && (
+            <PhoneInput
+              isForCart={true}
+              inputValue={inputValue}
+              wrongNumber={wrongNumber}
+              setWrongNumber={(e) => {
+                setWrongNumber(e);
+              }}
+              setInputValue={(e) => setInputValue(e)}
+              stepIndicator={stepIndicator}
+              setStepIndicator={(e) => setStepIndicator(e)}
+              operation={"login"}
+            />
+          )))}
+      {stepIndicator === 4 && (
+        <SendMethod
+          stepIndicator={stepIndicator}
+          setWrongNumber={(e) => {
+            setWrongNumber(e);
+          }}
+          setStepIndicator={(e: number) => setStepIndicator(e)}
+          setShowMobile={setShowMobile}
+          setMessageMethod={(e: string) => setMessageMethod(e)}
+          inputValue={inputValue}
+          hideEdit={true}
+        />
+      )}
 
-      <LogInPins
-        loadingPin={loadingPin}
-        forChanging={true}
-        expired={expired}
-        init={() => {
-          setDisabled(false);
-          setExpired(false);
-        }}
-        stepIndicator={stepIndicator}
-        setDisabled={(e) => {
-          setDisabled(e);
-          setExpired(e);
-        }}
-        resend={() => {
-          SendOtpHook({
-            mobilePhone: inputValue,
-            is_via_whatsapp: MessageMethod === "WA" ? "1" : "0",
+      {stepIndicator === 5 && (
+        <LogInPins
+          loadingPin={loadingPin}
+          forChanging={true}
+          expired={expired}
+          init={() => {
+            setDisabled(false);
+            setExpired(false);
+          }}
+          stepIndicator={stepIndicator}
+          setDisabled={(e) => {
+            setDisabled(e);
+            setExpired(e);
+          }}
+          resend={() => {
+            SendOtpHook({
+              mobilePhone: inputValue,
+              is_via_whatsapp: MessageMethod === "WA" ? "1" : "0",
 
-            successCallback: function () {
-              //   successCallback();
-            },
-            errorCallback: function (msg) {
-              setStepIndicator(3);
-            },
-          });
-          setDisabled(false);
-          setExpired(false);
-        }}
-        setStepIndactor={(e) => setStepIndicator(e)}
-        rendere={rendere}
-        inputValue={inputValue}
-        disabled={disabled}
-        Submit={(e) => loginFunc(e)}
-        successLogin={success}
-        wrongNumber={wrongNumber}
-        failedLogin={failedLogin}
-        setPin={(e: string) => setPins(e)}
-        pin={pins}
-        MessageMethod={MessageMethod}
-      />
+              successCallback: function () {
+                //   successCallback();
+              },
+              errorCallback: function (msg) {
+                setStepIndicator(3);
+              },
+            });
+            setDisabled(false);
+            setExpired(false);
+          }}
+          setStepIndactor={(e) => setStepIndicator(e)}
+          rendere={rendere}
+          inputValue={inputValue}
+          disabled={disabled}
+          Submit={(e) => loginFunc(e)}
+          successLogin={success}
+          wrongNumber={wrongNumber}
+          failedLogin={failedLogin}
+          setPin={(e: string) => setPins(e)}
+          pin={pins}
+          MessageMethod={MessageMethod}
+        />
+      )}
     </div>
   );
 }
