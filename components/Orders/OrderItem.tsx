@@ -20,6 +20,7 @@ import { OrderItemPropsType } from "models/componentType/OrderItemPropsType";
 
 const OrderItem: React.FC<OrderItemPropsType> = ({ order, showDetails }) => {
   const { lang } = useParams();
+  const { setActivePacks } = useAppStore();
   return (
     <div
       onClick={() => {
@@ -40,18 +41,28 @@ const OrderItem: React.FC<OrderItemPropsType> = ({ order, showDetails }) => {
           }}
         />
       </div>
-      <OrderProductSlider products={order?.details} />
+      <OrderProductSlider
+        products={order?.details}
+        onClickProduct={(index) => {
+          setActivePacks({ id: index });
+        }}
+      />
     </div>
   );
 };
 
 export default OrderItem;
-const OrderProductSlider = ({ products }) => {
+const OrderProductSlider = ({ products, onClickProduct }) => {
   return (
     <div className="flex-row items-center pl-[12px] mt-[12px] whitespace-nowrap overflow-x-scroll overflow-y-hidden [&::-webkit-scrollbar]:hidden">
       {products.map((product) => (
         <div
           key={product.id}
+          onClick={() => {
+            if (product.original_order_id) {
+              onClickProduct(product.original_order_id);
+            }
+          }}
           className="flex-row cursor-pointer items-center relative min-w-[91px] w-[91px] h-[125px] ml-[5px]"
         >
           <Image

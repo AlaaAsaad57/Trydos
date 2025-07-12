@@ -85,7 +85,9 @@ function OrderDetails({ resetOrderDetails, goBack }: OrderDetailsPropsType) {
         details: data,
       };
 
-      setActivePacks(data[0]);
+      if (data.find((s) => s.id === ActivePacks?.id)) {
+        setActivePacks(data.find((s) => s.id === ActivePacks?.id));
+      } else setActivePacks(data[0]);
 
       setOrderDetails(orderData);
     } catch (error) {
@@ -287,7 +289,7 @@ function OrderDetails({ resetOrderDetails, goBack }: OrderDetailsPropsType) {
     }
   };
   const ShowChats = () => {
-    if (shouldShowChatIcon(ActivePacks) && ActivePacks?.id) {
+    if (shouldShowChatIcon(ActivePacks) && ActivePacks?.order_status) {
       let arr = [];
       arr.push(ActivePacks.id);
       return arr.map((s) => {
@@ -385,7 +387,7 @@ function OrderDetails({ resetOrderDetails, goBack }: OrderDetailsPropsType) {
           hasChat={shouldShowChatIcon(ActivePacks)}
         />
 
-        {loading || !ActivePacks?.id ? (
+        {loading || !ActivePacks?.order_status ? (
           <div className="flex w-full pt-8 justify-center items-center">
             <span className="scale-[4]">
               <Spinner />

@@ -86,6 +86,7 @@ function OrdersList({
                   ...detail,
                   order_status: baseOrder.order_status?.value,
                   order_id: baseOrder.id,
+                  original_order_id: detail.order_id,
                 })),
               ],
               []
