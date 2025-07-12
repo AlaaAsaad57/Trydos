@@ -268,7 +268,25 @@ function AddToCartComponent({
       }),
     });
   };
-
+  const getClassName = (size, isActive) => {
+    if (isActive) {
+      if (getVariantSizeQty(size.option) === 0) {
+        return "text-white bg-[#ff5f61]";
+      } else if (getVariantSizeQty(size.option) < 10) {
+        return "text-white bg-[#ffaf5f]";
+      } else {
+        return "!bg-[#505050] !text-[#f8f8f8]";
+      }
+    } else {
+      if (getVariantSizeQty(size.option) === 0) {
+        return "text-[#ff5f61] bg-transparent border-none shadow-none";
+      } else if (getVariantSizeQty(size.option) < 10) {
+        return "text-[#ffaf5f] bg-transparent border-none shadow-none";
+      } else {
+        return "!bg-transparent !text-[#505050] !border-none !shadow-none";
+      }
+    }
+  };
   return (
     <div className="flex-col message-add-to-cart h-full w-[100vw] flex top-0 left-0 fixed z-[99999999999999999] justify-start  ">
       {/* <ToastContainer
@@ -745,19 +763,10 @@ function AddToCartComponent({
                               "inset rgba(255, 255, 255, 0.5) 0px 4px 6px, rgba(0, 0, 0, 0.1) 0px 3px 4px",
                             border: "#366cb8 1px solid",
                           }}
-                          className={`${
-                            getVariantSizeQty(size.option) === 0
-                              ? isActive
-                                ? "text-white bg-[#ff5f61]"
-                                : "text-[#ff5f61] !bg-transparent border-none shadow-none"
-                              : getVariantSizeQty(size.option) < 10
-                              ? isActive
-                                ? "text-white bg-[#ffaf5f]"
-                                : "text-[#ffaf5f] !bg-transparent border-none shadow-none"
-                              : isActive
-                              ? ""
-                              : "!bg-transparent !text-[#505050] !border-none !shadow-none"
-                          } bg-[#505050] text-[#f8f8f8] rounded-full flex-row items-center justify-center text-[30px] bold select-none flex`}
+                          className={`${getClassName(
+                            size,
+                            isActive
+                          )}  rounded-full flex-row items-center justify-center text-[30px] bold select-none flex`}
                         >
                           {size.name}
                         </div>

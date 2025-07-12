@@ -25,11 +25,8 @@ import Spinner from "components/global/Spinner";
 import order from "services/order";
 import OrderChatIcon from "./OrderChatIcon";
 import { Channel } from "models/Genaral/Channel";
-import dynamic from "next/dynamic";
 import ReturnedOrderStatusIcon from "public/svg/ReturnedOrderStatusIcon.svg";
-const ChatWidget = dynamic(() => import("components/Chat/ChatWidget"), {
-  ssr: false,
-});
+import ChatWidget from "components/Chat/ChatWidget";
 import OptionsIcon from "public/svg/OptionsIcon.svg";
 import OrderRetailsReturnInfo from "components/Orders/OrderRetailsReturnInfo";
 import RatingOrderItem from "components/Orders/RatingOrderItem";
@@ -132,9 +129,9 @@ function OrderDetails({ resetOrderDetails, goBack }: OrderDetailsPropsType) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [chatInfo, setChatInfo] = useState<Channel | null>(null);
-  const shouldShowChatIcon = () => {
+  const shouldShowChatIcon = (pack) => {
     // Out for Delivery
-    if (selectedOrder.order_status?.value === "out_for_delivery")
+    if (pack && pack?.order_status?.value === "out_for_delivery")
       return selectedOrder.order_group_id;
     return false;
   };
@@ -290,7 +287,7 @@ function OrderDetails({ resetOrderDetails, goBack }: OrderDetailsPropsType) {
     }
   };
   const ShowChats = () => {
-    if (shouldShowChatIcon() && ActivePacks?.id) {
+    if (shouldShowChatIcon(ActivePacks) && ActivePacks?.id) {
       let arr = [];
       arr.push(ActivePacks.id);
       return arr.map((s) => {
@@ -385,7 +382,7 @@ function OrderDetails({ resetOrderDetails, goBack }: OrderDetailsPropsType) {
           }
           Save={null}
           hasOptions={true}
-          hasChat={shouldShowChatIcon()}
+          hasChat={shouldShowChatIcon(ActivePacks)}
         />
 
         {loading || !ActivePacks?.id ? (
@@ -461,7 +458,7 @@ function OrderDetails({ resetOrderDetails, goBack }: OrderDetailsPropsType) {
             <RateOrderButton />
             <div className="flex flex-col justify-start  w-full bg-[#F8F8F8] px-[12px] h-full relative">
               <OrderItemsList
-                shouldShowChat={shouldShowChatIcon}
+                shouldShowChat={() => shouldShowChatIcon(ActivePacks)}
                 showChats={() => ShowChats()}
                 order_group_status={
                   selectedOrder?.details?.find((s) => s.id === ActivePacks?.id)

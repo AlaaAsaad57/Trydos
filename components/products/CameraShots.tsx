@@ -97,6 +97,7 @@ function CameraShots({ images }: CameraShotsPropsType) {
                   <img
                     width={40}
                     height={40}
+                    className="max-w-[40px] max-h-[40px]"
                     src={getConfiguredImage({
                       src: GetImageUrl(image),
                       width: 40 * 2,

@@ -134,6 +134,7 @@ function ProductColors({ colors, ProductColorsArray }: ProductColorsPropsType) {
               >
                 <img
                   width={getSize(index)}
+                  className="max-w-[40px] max-h-[40px]"
                   height={getSize(index)}
                   src={getConfiguredImage({
                     src: GetImageUrl(color.images[0]),

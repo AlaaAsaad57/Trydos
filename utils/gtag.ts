@@ -79,16 +79,16 @@ export const GAevent = ({
 const getUserParam = () => {
   const userData = getCookie<UserData>(COOKIE_NAMES.USER_DATA);
   if (
-    userData.phone === "0" ||
-    !userData.phone ||
-    userData.is_phone_verified === 0
+    userData?.phone === "0" ||
+    !userData?.phone ||
+    userData?.is_phone_verified === 0
   ) {
     return {
-      user_id_guest: userData.id,
+      user_id_guest: userData?.id,
     };
   } else {
     return {
-      user_id_verify: userData.id,
+      user_id_verify: userData?.id,
     };
   }
 };
