@@ -7,8 +7,7 @@ import {
   getCookieMiddleware,
   UserData,
 } from "utils/cookies/cookie-manager";
-export const runtime = "experimental-edge";
-export const preferredRegion = process.env.PREFERRED_REGION || "bom1";
+
 // Constants
 const SUPPORTED_LANGUAGES = ["en", "ar", "tr"];
 const DEFAULT_LANGUAGE = "en";
