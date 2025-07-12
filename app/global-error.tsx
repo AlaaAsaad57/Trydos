@@ -8,7 +8,7 @@ import {
   GeneralErrorIllustration,
   NetworkErrorIllustration,
 } from "../components/global/ErrorIllustrations";
-import "../styles/global.css";
+import "styles/globals.css";
 export default function GlobalError({ error, reset }) {
   const sendError = async () => {
     const userAgent =
