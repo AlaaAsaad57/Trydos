@@ -1,6 +1,7 @@
 import { useRef, useState, useEffect } from "react";
 function StackedSlider({
   slide_width = 50,
+  slide_height = 0,
   max_scale = 1,
   className = "",
   min_scale = 0.7,
@@ -30,6 +31,7 @@ function StackedSlider({
   },
 }) {
   const SLIDE_WIDTH = slide_width; // Works for 30, 50, 200
+  const SLIDE_HEIGHT = slide_height == 0 ? slide_width : slide_height;
   const MAX_SCALE = max_scale;
   const MIN_SCALE = min_scale;
   const OVERLAP_FACTOR = overlap_factor;
@@ -139,7 +141,7 @@ function StackedSlider({
     <div
       ref={containerRef}
       className={`relative w-full slider_slide h-[${
-        SLIDE_WIDTH + 10
+        SLIDE_HEIGHT + 10
       }px] flex items-center justify-center overflow-visible touch-none select-none ${className}`}
       style={{ cursor: isDragging ? "grabbing" : "grab" }}
     >
@@ -166,3 +168,120 @@ function StackedSlider({
   );
 }
 export default StackedSlider;
+
+export const NormalSlider = ({
+  slideWidth = 100,
+  slideHeight = 100,
+  slidesArray = [1, 1, 1, 1, 1],
+  parentClassName = "",
+  threshold = 50, // Minimum swipe in px to trigger slide change
+  renderSlide = ({ index, slide, isActive }) => {
+    return <div>{index}</div>;
+  },
+  onSlideChange = (index) => {},
+}) => {
+  const containerRef = useRef(null);
+  const trackRef = useRef(null);
+
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [startX, setStartX] = useState(null);
+  const [translateX, setTranslateX] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+
+  const slideCount = slidesArray.length;
+
+  const clampIndex = (index) => Math.max(0, Math.min(slideCount - 1, index));
+
+  // Handle swipe start
+  const handleStart = (x) => {
+    setStartX(x);
+    setIsDragging(true);
+  };
+
+  const handleMove = (x) => {
+    if (!isDragging || startX === null) return;
+    const dx = x - startX;
+    const newTranslate = -currentIndex * slideWidth + dx;
+    setTranslateX(newTranslate);
+  };
+
+  const handleEnd = (x) => {
+    if (!isDragging || startX === null) return;
+
+    const dx = x - startX;
+
+    if (dx > threshold) {
+      onSlideChange(clampIndex(currentIndex - 1));
+      setCurrentIndex((prev) => clampIndex(prev - 1));
+    } else if (dx < -threshold) {
+      onSlideChange(clampIndex(currentIndex + 1));
+      setCurrentIndex((prev) => clampIndex(prev + 1));
+    }
+
+    setStartX(null);
+    setIsDragging(false);
+  };
+
+  // Mouse events
+  const onMouseDown = (e) => handleStart(e.clientX);
+  const onMouseMove = (e) => isDragging && handleMove(e.clientX);
+  const onMouseUp = (e) => handleEnd(e.clientX);
+
+  // Touch events
+  const onTouchStart = (e) => handleStart(e.touches[0].clientX);
+  const onTouchMove = (e) => handleMove(e.touches[0].clientX);
+  const onTouchEnd = (e) => handleEnd(e.changedTouches[0].clientX);
+
+  // Animate to active slide
+  useEffect(() => {
+    if (!isDragging) {
+      setTranslateX(-currentIndex * slideWidth);
+    }
+  }, [currentIndex, isDragging, slideWidth]);
+
+  return (
+    <div
+      ref={containerRef}
+      className={`overflow-hidden relative ${parentClassName}`}
+      style={{
+        width: `${slideWidth}px`,
+        height: `${slideHeight}px`,
+        touchAction: "pan-y",
+      }}
+      onMouseDown={onMouseDown}
+      onMouseMove={onMouseMove}
+      onMouseUp={onMouseUp}
+      onMouseLeave={() => isDragging && setIsDragging(false)}
+      onTouchStart={onTouchStart}
+      onTouchMove={onTouchMove}
+      onTouchEnd={onTouchEnd}
+    >
+      <div
+        ref={trackRef}
+        className="flex transition-transform duration-300 ease-in-out"
+        style={{
+          transform: `translateX(${translateX}px)`,
+          width: `${slideWidth * slideCount}px`,
+          height: "100%",
+        }}
+      >
+        {slidesArray.map((slide, index) => (
+          <div
+            key={index}
+            style={{
+              flex: "0 0 auto",
+              width: `${slideWidth}px`,
+              height: "100%",
+            }}
+          >
+            {renderSlide({
+              index,
+              slide,
+              isActive: index === currentIndex,
+            })}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};

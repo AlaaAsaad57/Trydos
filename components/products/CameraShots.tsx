@@ -73,7 +73,7 @@ function CameraShots({ images }: CameraShotsPropsType) {
         </div>
 
         <div
-          className={`colors-row flex-row justify-end w-[120px] slider_slide`}
+          className={`colors-row flex-row justify-end mr-[20px] w-[120px] slider_slide`}
           onClick={() => {}}
         >
           <StackedSlider

@@ -1,89 +1,78 @@
 import React, { useRef, useState } from "react";
-import { Swiper, SwiperSlide } from "swiper/react";
 import { getConfiguredImage } from "utils/functions";
 import "styles/listing.css";
 import { GetImageUrl } from "utils/tinyUtils";
 import { GalleryItemSliderPropsType } from "models/componentType/GalleryItemSliderPropsType";
-function GalleryItemSlider({ images }: GalleryItemSliderPropsType) {
-  const SliderRef = useRef<any>();
+import { NormalSlider } from "utils/Slider";
+function GalleryItemSlider({ images, extended }: GalleryItemSliderPropsType) {
   const [active, setActive] = useState(0);
   return (
     <div className="relative flex-col ">
       {images.length > 0 && (
         <PointsSlider images={images} activeIndex={active} />
       )}
-      <Swiper
-        effect="coverflow"
-        onSlideChange={(e) => {
-          setActive(e.activeIndex);
-        }}
-        coverflowEffect={{
-          depth: 100,
-          modifier: 1,
-          scale: 0.78,
-          stretch: 135,
-          slideShadows: false,
-        }}
-        ref={SliderRef}
-        threshold={1}
-        onInit={(swiper) => {
-          SliderRef.current = swiper;
-        }}
-        speed={100}
-        slidesPerView={1}
-        centeredSlides={true}
-        initialSlide={0}
-        loop={false}
-      >
-        {images.map((img, i) => (
-          <SwiperSlide
-            key={i}
-            style={{
-              overflow: "visible",
-              position: "relative",
-            }}
-          >
-            {({ isActive }) => (
-              <>
-                <svg
-                  className="absolute top-0 left-0 z-50"
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="calc(100% - 1px)"
-                  height="calc(100%)"
-                >
-                  <g
-                    id="Rectangle_5686"
-                    data-name="Rectangle 5686"
-                    fill="none"
-                    stroke="#fff"
-                    strokeWidth="0.5"
-                  >
-                    <rect width="100%" height="100%" rx="30" stroke="none" />
-                    <rect
-                      x="0.25"
-                      y="0.25"
-                      width="calc(100% - 1px)"
-                      height="calc(100%)"
-                      rx="29.75"
-                      fill="none"
-                    />
-                  </g>
-                </svg>
 
-                <div className="inset-shadow-img w-100 h-100 rounded-[30px] absolute z-40" />
-                <img
-                  className="w-full max-h-[595px] rounded-[30px]"
-                  src={getConfiguredImage({
-                    src: GetImageUrl(img),
-                    width: 400,
-                    height: 400,
-                  })}
-                />
-              </>
-            )}
-          </SwiperSlide>
-        ))}
-      </Swiper>
+      <NormalSlider
+        slideHeight={extended ? 595 : 276}
+        slideWidth={extended ? Math.min(window.innerWidth, 1300) : 185}
+        slidesArray={images.map((img, i) => i)}
+        onSlideChange={(index) => {
+          setActive(index);
+        }}
+        parentClassName={`w-[${
+          extended ? Math.min(window.innerWidth, 1300) : 185
+        }px] h-[${extended ? 595 : 276}px] flex`}
+        renderSlide={({ index, slide, isActive }) => {
+          let img = images[index];
+          return (
+            <>
+              <svg
+                className="absolute top-0 left-0 z-50"
+                xmlns="http://www.w3.org/2000/svg"
+                width="calc(100% - 1px)"
+                height="calc(100%)"
+              >
+                <g
+                  id="Rectangle_5686"
+                  data-name="Rectangle 5686"
+                  fill="none"
+                  stroke="#fff"
+                  strokeWidth="0.5"
+                >
+                  <rect width="100%" height="100%" rx="30" stroke="none" />
+                  <rect
+                    x="0.25"
+                    y="0.25"
+                    width="calc(100% - 1px)"
+                    height="calc(100%)"
+                    rx="29.75"
+                    fill="none"
+                  />
+                </g>
+              </svg>
+
+              <div className="inset-shadow-img w-100 h-100 rounded-[30px] absolute z-40" />
+              <img
+                className="w-full max-h-[595px] rounded-[30px]"
+                src={
+                  extended
+                    ? getConfiguredImage({
+                        src: GetImageUrl(img),
+                        width: 700,
+                        height: 700,
+                      })
+                    : getConfiguredImage({
+                        src: GetImageUrl(img),
+                        width: 400,
+                        height: 400,
+                      })
+                }
+              />
+            </>
+          );
+        }}
+        threshold={0.31}
+      />
     </div>
   );
 }

@@ -1,3 +1,4 @@
 export interface GalleryItemSliderPropsType {
-    images: string[];
+  images: string[];
+  extended?: boolean;
 }

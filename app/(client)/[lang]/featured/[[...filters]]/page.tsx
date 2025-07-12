@@ -20,19 +20,18 @@ import FilterBoutiquePageButton from "components/filterPage/FilterBoutiquePageBu
 import SearchBoutiquePage from "components/filterPage/SearchBoutiquePage";
 import { parseFiltersFromParams } from "utils/tinyUtils";
 import { GetFiltersData } from "utils/pagesDataRequests/FiltersPageData";
+import { getBoutiqueMetadata } from "../../filters/[[...filters]]/Metadata";
 
 export const dynamicParams = true;
 
 export async function generateMetadata({ params }) {
   try {
-    const metadata = {
-      title: "Featured Products - TryDos",
-      description:
-        "Discover premium featured products on TryDos - curated collection of the best products.",
-      alternates: {
-        canonical: `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${params.lang}/featured`,
-      },
-    };
+    const metadata = await getBoutiqueMetadata({
+      params,
+
+      options: { is_fearured: true, is_flashDeals: false },
+    });
+
     return metadata;
   } catch (error) {
     console.log(error);
@@ -48,13 +47,7 @@ interface ParamsType {
   lang: string;
   filters?: string[];
 }
-export default async function Page({
-  params,
-  searchParams,
-}: {
-  params: ParamsType;
-  searchParams: any;
-}) {
+export default async function Page({ params }: { params: ParamsType }) {
   // Parse filters from URL path parameters
   const parsedFilters = parseFiltersFromParams(params.filters || []);
   const [country, language] = params.lang.split("-");

@@ -16,7 +16,7 @@ function GalleryItem({
   return (
     <div
       className={`${
-        extended ? "w-full" : "mr-3"
+        extended ? "w-full" : "mr-3 w-[185px]"
       } transition-all gallery-slider-item mt-3 relative  min-h-[267px] h-auto rounded-[30px] overflow-hidden`}
       data-cy="GalleryChooseItem"
       onClick={() => {
@@ -24,7 +24,7 @@ function GalleryItem({
       }}
     >
       {extended && <GalleryItemFloatingElements />}
-      <GalleryItemSlider images={image} />
+      <GalleryItemSlider images={image} extended={extended} />
       <div
         className={`${
           extended ? "h-[98px] pl-[20px] pr-[30px] pb-[10px] pt-[10px]" : "h-0"

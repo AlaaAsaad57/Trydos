@@ -17,17 +17,14 @@ import FilterBoutiquePageButton from "components/filterPage/FilterBoutiquePageBu
 import SearchBoutiquePage from "components/filterPage/SearchBoutiquePage";
 import { parseFiltersFromParams } from "utils/tinyUtils";
 import { GetFiltersData } from "utils/pagesDataRequests/FiltersPageData";
+import { getBoutiqueMetadata } from "../../filters/[[...filters]]/Metadata";
 
 export async function generateMetadata({ params }) {
   try {
-    const metadata = {
-      title: "Flash Deals - TryDos",
-      description:
-        "Exclusive flash deals on TryDos - Limited time offers with special discounts.",
-      alternates: {
-        canonical: `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${params.lang}/flash-deals`,
-      },
-    };
+    const metadata = await getBoutiqueMetadata({
+      params,
+      options: { is_fearured: false, is_flashDeals: true },
+    });
     return metadata;
   } catch (error) {
     console.log(error);

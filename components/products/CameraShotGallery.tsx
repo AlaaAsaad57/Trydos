@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import "styles/cameraShot.css";
 import CameraShotIcon from "public/svg/product/CameraShotIcon.svg";
 import ColorsInfo from "public/svg/product/colorsInfo.svg";
@@ -28,33 +28,20 @@ function CameraShotGallery({ images, close }: CameraShotGalleryPropsType) {
     isAnimating,
   } = useSwipeToClose({
     threshold: 120, // Minimum distance to trigger close
-    velocityThreshold: 0.4, // Minimum velocity to trigger close
+    velocityThreshold: 0.7, // Minimum velocity to trigger close
     animationDuration: 300,
     onClose: close,
     enabled: activeCameraGallery,
   });
 
-  const scrollToClose = (e) => {
-    let container = document.querySelector(".container-gallery");
+  // useEffect(() => {
+  //   const handleWheel = (e) => {
+  //     if (activeCameraGallery) scrollToClose(e);
+  //   };
 
-    if (
-      container &&
-      container.scrollTop === 0 &&
-      e.deltaY < 0 &&
-      Math.abs(e.deltaY) > 50
-    ) {
-      close();
-    }
-  };
-
-  useEffect(() => {
-    const handleWheel = (e) => {
-      if (activeCameraGallery) scrollToClose(e);
-    };
-
-    window.addEventListener("wheel", handleWheel);
-    return () => window.removeEventListener("wheel", handleWheel);
-  }, [activeCameraGallery]);
+  //   window.addEventListener("wheel", handleWheel);
+  //   return () => window.removeEventListener("wheel", handleWheel);
+  // }, [activeCameraGallery]);
 
   return (
     <>
@@ -71,7 +58,6 @@ function CameraShotGallery({ images, close }: CameraShotGalleryPropsType) {
             }}
           />
           <div
-            ref={swipeRef}
             className={`flex-col pt-4 rounded-t-[20px] bg-[#FEFEFE] fixed w-full camera-shots-gallery-container z-[999999999999] ${
               activeCameraGallery ? "top-16" : "top-[110vh]"
             } left-0 ${isDragging ? "select-none" : ""}`}
@@ -79,7 +65,7 @@ function CameraShotGallery({ images, close }: CameraShotGalleryPropsType) {
             data-swipe-container
           >
             {/* Swipe indicator */}
-            <div className="w-full flex justify-center pb-2">
+            <div className="w-full flex justify-center pb-2" ref={swipeRef}>
               <div className="w-10 h-1 bg-gray-300 rounded-full"></div>
             </div>
 
@@ -118,7 +104,9 @@ function CameraShotGallery({ images, close }: CameraShotGalleryPropsType) {
                 return (
                   <GalleryItem
                     key={index}
-                    onClick={() => setExtended(!extended)}
+                    onClick={() => {
+                      setExtended(!extended);
+                    }}
                     extended={extended}
                     name={"Yxxx Oxxx"}
                     avatar={s}

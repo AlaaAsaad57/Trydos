@@ -29,10 +29,13 @@ import { GetFiltersData } from "utils/pagesDataRequests/FiltersPageData";
 
 export const dynamicParams = true;
 
-export async function generateMetadata({ params, searchParams }) {
+export async function generateMetadata({ params }) {
   // Fetch your main product categories
   try {
-    const metadata = await getBoutiqueMetadata({ params, searchParams });
+    const metadata = await getBoutiqueMetadata({
+      params,
+      options: { is_fearured: false, is_flashDeals: false },
+    });
 
     return metadata;
   } catch (error) {
@@ -45,13 +48,7 @@ interface ParamsType {
   lang: string;
   filters?: string[];
 }
-export default async function Page({
-  params,
-  searchParams,
-}: {
-  params: ParamsType;
-  searchParams: any;
-}) {
+export default async function Page({ params }: { params: ParamsType }) {
   // Parse filters from URL path parameters
   const parsedFilters = parseFiltersFromParams(params.filters || []);
 

@@ -11,6 +11,7 @@ class CartService {
     qty,
     image,
     isFromAddWidget = false,
+    is_redeem = false,
   }) {
     const { addProductToCart } = useAppStore.getState();
     const imageVar = image.split("/")[image.split("/").length - 1];
@@ -20,6 +21,7 @@ class CartService {
       image: imageVar,
       quantity: qty,
       choice_1,
+      is_redeem,
     };
     let formBody = [];
     for (var property in details) {
@@ -61,7 +63,12 @@ class CartService {
       return false;
     }
   }
-  async UpdateCart({ cart_id, qty, isFromAddWidget = false }) {
+  async UpdateCart({
+    cart_id,
+    qty,
+    isFromAddWidget = false,
+    is_redeem = false,
+  }) {
     const { updateProductQuantityInCart } = useAppStore.getState();
 
     let dataBody: any = [];
