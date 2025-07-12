@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 
 import BackIcon from "public/svg/listing/backIcon.svg";
 import {
@@ -10,8 +10,7 @@ import {
 } from "utils/functions";
 import { useAppStore } from "store";
 import CartIcon from "public/svg/CartIcon.svg";
-import { Swiper, SwiperRef, SwiperSlide } from "swiper/react";
-import { EffectCoverflow } from "swiper/modules";
+
 import Skeleton from "react-loading-skeleton";
 import "public/styles/sizeSlider.css";
 import Spinner from "components/global/Spinner";
@@ -58,7 +57,7 @@ function AddToCartComponent({
   const [selectedSize, setSelectedSize] = useState(null);
   const [loading, setLoading] = useState(false);
   const [requestLoading, setRequestLoading] = useState(false);
-  const colorsSliderRef = useRef<SwiperRef>();
+
   const getProductData = async () => {
     try {
       setLoading(true);
@@ -165,7 +164,6 @@ function AddToCartComponent({
     });
     return index;
   };
-  const SizesRef = useRef<SwiperRef>();
   const getSelectedVariantQty = () => {
     if (ProductData?.variation?.length > 0) {
       let selected_variant;
@@ -328,12 +326,12 @@ function AddToCartComponent({
             !(e.target as HTMLDivElement).classList.contains(
               "color_option_cyrcle"
             ) &&
-            !(e.target as HTMLDivElement).classList.contains("swiper-slide")
+            !(e.target as HTMLDivElement).classList.contains("slider_slide")
           ) {
-            setSelectedProductForCart(null);
-            document.documentElement.style.overflow = "initial";
-            document.documentElement.scrollTop = 0;
-            close();
+            // setSelectedProductForCart(null);
+            // document.documentElement.style.overflow = "initial";
+            // document.documentElement.scrollTop = 0;
+            // close();
           }
         }}
       >
@@ -393,87 +391,46 @@ function AddToCartComponent({
             data-cy="color_option_cyrcle"
             className="flex w-full max-w-[420px] color_option_cyrcle "
           >
-            <Swiper
-              data-cy="swipper_when_addtocart"
-              modules={[EffectCoverflow]}
-              speed={100}
-              style={{
-                width: "100%",
-                margin: "0",
+            <StackedSlider
+              initial_index={getInitialColorSlide()}
+              max_drag={100}
+              max_scale={1}
+              min_scale={0.6}
+              onSlideChange={(index) => {
+                setSelectedColor(ProductData?.sync_color_images[index]);
               }}
-              effect="coverflow"
-              className="mt-[10px] "
-              coverflowEffect={{
-                rotate: 0,
-                depth: 120,
-                modifier: 1,
-                scale: 1,
-                stretch: 20,
-                slideShadows: false,
+              slidesArray={ProductData?.sync_color_images?.map((s, i) => i)}
+              slide_width={70}
+              overlap_factor={0.4}
+              renderSlide={({ index, isActive, slide_width }) => {
+                let color = ProductData?.sync_color_images[index];
+                console.log(color);
+                return (
+                  <div className="w-[70px] color_option_cyrcle h-[70px] color-swipe-slide relative rounded-full">
+                    <img
+                      src={getConfiguredImage({
+                        src:
+                          (typeof color.images[0] === "string" &&
+                            GetImageUrl(color.images[0])) ||
+                          (color.images[0].file_path &&
+                            GetImageUrl(color.images[0].file_path)),
+                        height: 70,
+                        width: 70,
+                      })}
+                      className="w-[70px] h-[70px] rounded-full bg-white"
+                    />
+                    {isActive && (
+                      <span
+                        data-cy="color_name"
+                        className="regular text-[#3C3C3C] text-[14px] absolute bottom-[-20px] w-full flex justify-center items-center"
+                      >
+                        {color.color_name}
+                      </span>
+                    )}
+                  </div>
+                );
               }}
-              onSlideChange={(e) => {
-                setSelectedColor(ProductData?.sync_color_images[e.activeIndex]);
-              }}
-              slidesPerView={7}
-              initialSlide={getInitialColorSlide()}
-              threshold={1}
-              centeredSlides={true}
-              loop={false}
-              ref={colorsSliderRef}
-            >
-              {ProductData?.sync_color_images?.map((color, i) => (
-                <SwiperSlide
-                  data-cy="color_slide"
-                  onChange={() => {
-                    // Sendevent({
-                    //   event: GA_EVENT_NAMES.CLICK,
-                    //   value: GA_CLICK_EVENT_VALUES.COLOR_SLIDE,
-                    // });
-                  }}
-                  onClick={() => {
-                    // Sendevent({
-                    //   event: GA_EVENT_NAMES.CLICK,
-                    //   value: GA_CLICK_EVENT_VALUES.COLOR_SLIDE,
-                    // });
-                    colorsSliderRef.current.swiper.slideTo(i, 400, false);
-                    setSelectedColor(color);
-                  }}
-                  key={i}
-                  style={{
-                    overflow: "visible",
-                    minWidth: "70px",
-                    height: "70px",
-                  }}
-                  className="w-[70px] h-[70px] color-swipe-slide relative rounded-full"
-                >
-                  {({ isActive }) => (
-                    <>
-                      <img
-                        data-cy="swipper_slide_when_addtocart_img"
-                        className="w-[70px] h-[70px] rounded-full bg-white"
-                        src={getConfiguredImage({
-                          src:
-                            (typeof color.images[0] === "string" &&
-                              GetImageUrl(color.images[0])) ||
-                            (color.images[0].file_path &&
-                              GetImageUrl(color.images[0].file_path)),
-                          width: 400,
-                          height: 400,
-                        })}
-                      />
-                      {isActive && (
-                        <span
-                          data-cy="color_name"
-                          className="regular text-[#3C3C3C] text-[14px] absolute bottom-[-20px] w-full flex justify-center items-center"
-                        >
-                          {color.color_name}
-                        </span>
-                      )}
-                    </>
-                  )}
-                </SwiperSlide>
-              ))}
-            </Swiper>
+            />
           </div>
         )}
       </div>
@@ -773,7 +730,7 @@ function AddToCartComponent({
                           key={index}
                           onClick={() => {
                             // @ts-ignore
-                            SizesRef.current.swiper.slideTo(i, 400, false);
+
                             setSelectedSize(size);
                             // Sendevent({
                             //   event: GA_EVENT_NAMES.CLICK,

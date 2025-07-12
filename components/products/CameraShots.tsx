@@ -1,18 +1,18 @@
 "use client";
-import React, { useState } from "react";
+import React from "react";
 import CameraShotIcon from "public/svg/product/CameraShotIcon.svg";
 import ColorsInfo from "public/svg/product/colorsInfo.svg";
-import { EffectCoverflow } from "swiper/modules";
-import { Swiper, SwiperSlide } from "swiper/react";
+
 import { getConfiguredImage, translateFunction } from "utils/functions";
 
 import CameraShotGallery from "./CameraShotGallery";
 import CircleBorder from "public/svg/product/CircleBorder";
 import { useParams } from "next/navigation";
 import { useAppStore } from "store";
-import { GA_EVENT_NAMES } from "utils/GAEvents";
+
 import { GetImageUrl } from "utils/tinyUtils";
 import { CameraShotsPropsType } from "models/componentType/productTypes/MultiComponentOnProductPage";
+import StackedSlider from "utils/Slider";
 
 function CameraShots({ images }: CameraShotsPropsType) {
   const { setActiveCameraGallery, showInfoMessage } = useAppStore();
@@ -35,11 +35,14 @@ function CameraShots({ images }: CameraShotsPropsType) {
       <div
         className={`product-colors flex-row align-start relative`}
         data-cy="CameraProduct"
-        onClick={() => {
+        onClick={(e) => {
           // Sendevent({
           //   event: GA_EVENT_NAMES.CLICK,
           //   value: GA_CLICK_EVENT_VALUES.SHOW_BUYERS_CAMERA_BUTTON,
           // });
+          if ((e.target as HTMLDivElement).classList.contains("slider_slide")) {
+            return;
+          }
           setActiveCameraGallery(true);
           window.scrollTo({ top: 0 });
           document.documentElement.style.overflow = "hidden";
@@ -70,62 +73,42 @@ function CameraShots({ images }: CameraShotsPropsType) {
         </div>
 
         <div
-          className={`colors-row flex-row justify-end w-auto`}
+          className={`colors-row flex-row justify-end w-[120px] slider_slide`}
           onClick={() => {}}
         >
-          <Swiper
-            modules={[EffectCoverflow]}
-            speed={100}
-            effect="coverflow"
-            className="max-w-[218px]"
-            slideToClickedSlide={true}
-            coverflowEffect={{
-              depth: 100,
-              modifier: 1.8,
-              scale: 1,
-              stretch: 2.5,
-              rotate: 0,
-              slideShadows: false,
+          <StackedSlider
+            initial_index={Math.round(images?.length / 2) - 1}
+            slidesArray={images?.map((s, i) => i)}
+            max_drag={100}
+            max_scale={1}
+            min_scale={0.6}
+            overlap_factor={0.4}
+            onSlideChange={(index) => {}}
+            slide_width={40}
+            threshold={0.4}
+            renderSlide={({ index, isActive, slide_width }) => {
+              let image = images[index];
+              return (
+                <div
+                  className={`color-circle relative ${
+                    isActive && "active-color-circle"
+                  }`}
+                >
+                  <img
+                    width={40}
+                    height={40}
+                    src={getConfiguredImage({
+                      src: GetImageUrl(image),
+                      width: 40 * 2,
+                      height: 40 * 2,
+                    })}
+                  />
+                  <div className="circel-inset absolute" />
+                  <CircleBorder color={isActive ? "#0048AC" : "#fff"} />
+                </div>
+              );
             }}
-            slidesPerView={"auto"}
-            threshold={1}
-            centeredSlides={true}
-            initialSlide={Math.round(images?.length / 2) - 1}
-            loop={false}
-          >
-            {images?.map((image, index) => (
-              <SwiperSlide
-                data-cy="SwiperPhoto1"
-                key={index}
-                style={{
-                  overflow: "visible",
-                  width: "40px",
-                  height: "40px",
-                  position: "relative",
-                }}
-              >
-                {({ isActive }) => (
-                  <div
-                    className={`color-circle relative ${
-                      isActive && "active-color-circle"
-                    }`}
-                  >
-                    <img
-                      width={40}
-                      height={40}
-                      src={getConfiguredImage({
-                        src: GetImageUrl(image),
-                        width: 40 * 2,
-                        height: 40 * 2,
-                      })}
-                    />
-                    <div className="circel-inset absolute" />
-                    <CircleBorder color={isActive ? "#0048AC" : "#fff"} />
-                  </div>
-                )}
-              </SwiperSlide>
-            ))}
-          </Swiper>
+          />
         </div>
       </div>
     </>

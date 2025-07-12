@@ -11,14 +11,12 @@ import {
   useRouter,
   useSearchParams,
 } from "next/navigation";
-
-import { EffectCoverflow } from "swiper/modules";
-import { Swiper, SwiperSlide } from "swiper/react";
 import CircleBorder from "public/svg/product/CircleBorder";
 import NormalColorSlider from "./NormalColorSlider";
 import { useAppStore } from "store";
 import { GetImageUrl } from "utils/tinyUtils";
 import { ProductColorsPropsType } from "models/componentType/productTypes/MultiComponentOnProductPage";
+import StackedSlider from "utils/Slider";
 
 function ProductColors({ colors, ProductColorsArray }: ProductColorsPropsType) {
   const { setActiveColorDetails, showInfoMessage, product } = useAppStore();
@@ -93,44 +91,14 @@ function ProductColors({ colors, ProductColorsArray }: ProductColorsPropsType) {
       />
       <div
         className={`colors-row flex-row ${
-          extended && "colors-row-extended disable-slider"
+          extended ? "colors-row-extended disable-slider" : "mr-[20px]"
         }`}
-        style={{ width: `${40 * colors.length - 0.5}px` }}
         onClick={() => {
           setExtended(!extended);
         }}
       >
-        <Swiper
-          modules={[EffectCoverflow]}
-          speed={100}
-          effect="coverflow"
-          slideToClickedSlide={true}
-          coverflowEffect={{
-            depth: 100,
-            modifier: 1.8,
-            scale: 1,
-            stretch: 2.5,
-            rotate: 0,
-            slideShadows: false,
-          }}
-          slidesPerView={"auto"}
-          threshold={1}
-          onSlideChange={(e) => {
-            // Sendevent({
-            //   event: GA_EVENT_NAMES.CLICK,
-            //   value: GA_CLICK_EVENT_VALUES.CHOOSE_AVAILABLE_COLOR_BUTTON,
-            // });
-            const newParams = new URLSearchParams(searchParams);
-            newParams.set("color", colors[e.activeIndex].color_option);
-            router.push(pathname + `?${newParams.toString()}`, {
-              scroll: false,
-              // @ts-expect-error 'shallow' does not exist in type 'NavigateOptions'
-              shallow: true,
-            });
-            setActiveColor(colors[e.activeIndex]);
-          }}
-          centeredSlides={true}
-          initialSlide={
+        <StackedSlider
+          initial_index={
             (searchParams.get("color") &&
               colors.findIndex(
                 (s) =>
@@ -139,51 +107,56 @@ function ProductColors({ colors, ProductColorsArray }: ProductColorsPropsType) {
               )) ??
             0
           }
-          loop={false}
-        >
-          {colors?.map((color, index) => (
-            <SwiperSlide
-              data-cy="SwiperPhoto"
-              key={index}
-              style={{
-                overflow: "visible",
-                width: "40px",
-                height: "40px",
-                position: "relative",
-              }}
-            >
-              {({ isActive }) => (
-                <div
-                  className={`color-circle relative ${
-                    isActive && "active-color-circle"
-                  }`}
-                >
-                  <img
-                    width={getSize(index)}
-                    height={getSize(index)}
-                    src={getConfiguredImage({
-                      src: GetImageUrl(color.images[0]),
-                      width: getSize(index) * 2,
-                      height: getSize(index) * 2,
-                    })}
-                  />
-                  <div className="circel-inset absolute" />
-                  <CircleBorder
-                    color={
-                      isActive
-                        ? ProductColorsArray?.filter(
-                            (s) =>
-                              s.option === color.color_option ||
-                              s.option === color.color_name
-                          )?.[0]?.color
-                        : "#fff"
-                    }
-                  />
-                </div>
-              )}
-            </SwiperSlide>
-          ))}
-        </Swiper>
+          slidesArray={colors?.map((s, i) => i)}
+          max_drag={100}
+          max_scale={1}
+          min_scale={0.6}
+          overlap_factor={0.4}
+          onSlideChange={(index) => {
+            const newParams = new URLSearchParams(searchParams);
+            newParams.set("color", colors[index].color_option);
+            router.push(pathname + `?${newParams.toString()}`, {
+              scroll: false,
+              // @ts-expect-error 'shallow' does not exist in type 'NavigateOptions'
+              shallow: true,
+            });
+            setActiveColor(colors[index]);
+          }}
+          slide_width={40}
+          threshold={0.4}
+          renderSlide={({ index, isActive, slide_width }) => {
+            let color = colors[index];
+            return (
+              <div
+                className={`color-circle relative ${
+                  isActive && "active-color-circle"
+                }`}
+              >
+                <img
+                  width={getSize(index)}
+                  height={getSize(index)}
+                  src={getConfiguredImage({
+                    src: GetImageUrl(color.images[0]),
+                    width: getSize(index) * 2,
+                    height: getSize(index) * 2,
+                  })}
+                />
+                <div className="circel-inset absolute" />
+                <CircleBorder
+                  color={
+                    isActive
+                      ? ProductColorsArray?.filter(
+                          (s) =>
+                            s.option === color.color_option ||
+                            s.option === color.color_name
+                        )?.[0]?.color
+                      : "#fff"
+                  }
+                />
+              </div>
+            );
+          }}
+        />
       </div>
     </div>
   );

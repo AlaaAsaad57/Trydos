@@ -138,7 +138,7 @@ function StackedSlider({
   return (
     <div
       ref={containerRef}
-      className={`relative w-full h-[${
+      className={`relative w-full slider_slide h-[${
         SLIDE_WIDTH + 10
       }px] flex items-center justify-center overflow-visible touch-none select-none ${className}`}
       style={{ cursor: isDragging ? "grabbing" : "grab" }}
