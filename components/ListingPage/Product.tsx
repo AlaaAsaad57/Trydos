@@ -1,16 +1,11 @@
 "use client";
 import React, { useReducer } from "react";
 import ImageSlider from "./ImageSlider";
-// import { stopProgress } from "next-nprogress-bar";
-
 import BuyButton from "./BuyButton";
-
 import CoverEffectSlider from "./CoverEffectSlider";
-import TopSlider from "./TopSlider";
+// import TopSlider from "./TopSlider";
 import ColorSlider from "./ColorSlider";
-
 import { useAppStore } from "store";
-import { BuyButtonProductPropsType } from "models/componentType/BuyButtonProductPropsType";
 import { ProductPhotosSliderPropsType } from "models/componentType/ProductPhotosSliderPropsType";
 
 function ProductReducer(state, { type, payload }) {
@@ -67,7 +62,10 @@ export const BuyButtonProduct = ({ product }) => {
     />
   );
 };
-export function ProductPhotosSlider({ product, priority }: ProductPhotosSliderPropsType) {
+export function ProductPhotosSlider({
+  product,
+  priority,
+}: ProductPhotosSliderPropsType) {
   const [productState, dispatch] = useReducer(ProductReducer, {
     isActiveTopSlide: false,
     activeColor:
@@ -103,7 +101,7 @@ export function ProductPhotosSlider({ product, priority }: ProductPhotosSliderPr
 
   return (
     <>
-      {productState?.isActiveTopSlide && (
+      {/* {productState?.isActiveTopSlide && (
         <TopSlider
           product_name={product.name}
           active={productState?.isActiveTopSlide}
@@ -113,7 +111,7 @@ export function ProductPhotosSlider({ product, priority }: ProductPhotosSliderPr
           }
           images={productState?.activeColor?.images}
         />
-      )}
+      )} */}
       <div
         className="product-photos max-h-[290px] overflow-visible w-100 justify-start align-center flex-col"
         onMouseLeave={() => {

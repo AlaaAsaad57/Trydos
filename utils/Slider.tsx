@@ -174,7 +174,8 @@ export const NormalSlider = ({
   slideHeight = 100,
   slidesArray = [1, 1, 1, 1, 1],
   parentClassName = "",
-  threshold = 50, // Minimum swipe in px to trigger slide change
+  threshold = 3, // Minimum swipe in px to trigger slide change
+  initialSlide = 0,
   renderSlide = ({ index, slide, isActive }) => {
     return <div>{index}</div>;
   },
@@ -183,7 +184,7 @@ export const NormalSlider = ({
   const containerRef = useRef(null);
   const trackRef = useRef(null);
 
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const [currentIndex, setCurrentIndex] = useState(initialSlide);
   const [startX, setStartX] = useState(null);
   const [translateX, setTranslateX] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
@@ -193,21 +194,24 @@ export const NormalSlider = ({
   const clampIndex = (index) => Math.max(0, Math.min(slideCount - 1, index));
 
   // Handle swipe start
-  const handleStart = (x) => {
+  const handleStart = (e) => {
+    const x = e.type === "mousedown" ? e.clientX : e.touches[0].clientX;
     setStartX(x);
     setIsDragging(true);
   };
 
-  const handleMove = (x) => {
+  const handleMove = (e) => {
     if (!isDragging || startX === null) return;
+    const x = e.type === "mousemove" ? e.clientX : e.touches[0].clientX;
     const dx = x - startX;
     const newTranslate = -currentIndex * slideWidth + dx;
     setTranslateX(newTranslate);
   };
 
-  const handleEnd = (x) => {
+  const handleEnd = (e) => {
     if (!isDragging || startX === null) return;
 
+    const x = e.type === "mouseup" ? e.clientX : e.changedTouches[0].clientX;
     const dx = x - startX;
 
     if (dx > threshold) {
@@ -222,15 +226,31 @@ export const NormalSlider = ({
     setIsDragging(false);
   };
 
-  // Mouse events
-  const onMouseDown = (e) => handleStart(e.clientX);
-  const onMouseMove = (e) => isDragging && handleMove(e.clientX);
-  const onMouseUp = (e) => handleEnd(e.clientX);
+  // Global event listeners for better mouse handling
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
 
-  // Touch events
-  const onTouchStart = (e) => handleStart(e.touches[0].clientX);
-  const onTouchMove = (e) => handleMove(e.touches[0].clientX);
-  const onTouchEnd = (e) => handleEnd(e.changedTouches[0].clientX);
+    const options = { passive: false };
+
+    el.addEventListener("touchstart", handleStart, options);
+    el.addEventListener("touchmove", handleMove, options);
+    el.addEventListener("touchend", handleEnd);
+
+    el.addEventListener("mousedown", handleStart);
+    window.addEventListener("mousemove", handleMove);
+    window.addEventListener("mouseup", handleEnd);
+
+    return () => {
+      el.removeEventListener("touchstart", handleStart);
+      el.removeEventListener("touchmove", handleMove);
+      el.removeEventListener("touchend", handleEnd);
+
+      el.removeEventListener("mousedown", handleStart);
+      window.removeEventListener("mousemove", handleMove);
+      window.removeEventListener("mouseup", handleEnd);
+    };
+  }, [isDragging, startX, currentIndex, slideWidth, threshold]);
 
   // Animate to active slide
   useEffect(() => {
@@ -247,14 +267,8 @@ export const NormalSlider = ({
         width: `${slideWidth}px`,
         height: `${slideHeight}px`,
         touchAction: "pan-y",
+        cursor: isDragging ? "grabbing" : "grab",
       }}
-      onMouseDown={onMouseDown}
-      onMouseMove={onMouseMove}
-      onMouseUp={onMouseUp}
-      onMouseLeave={() => isDragging && setIsDragging(false)}
-      onTouchStart={onTouchStart}
-      onTouchMove={onTouchMove}
-      onTouchEnd={onTouchEnd}
     >
       <div
         ref={trackRef}
