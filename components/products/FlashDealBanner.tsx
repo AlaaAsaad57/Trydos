@@ -100,24 +100,24 @@ function FlashDealBanner({ end_data }: FlashDealBannerProps) {
       <div className="flex items-center gap-1.5">
         <ClockIcon />
         <div className="flex items-center gap-1 text-xs font-mono">
-          {timeLeft.days > 0 && (
+          {timeLeft?.days > 0 && (
             <>
               <span className="bg-white/20 px-1.5 py-0.5 rounded text-xs font-bold">
-                {timeLeft.days.toString().padStart(2, "0")}
+                {timeLeft?.days.toString().padStart(2, "0")}
               </span>
               <span className="text-xs">d</span>
             </>
           )}
           <span className="bg-white/20 px-1.5 py-0.5 rounded text-xs font-bold">
-            {timeLeft.hours.toString().padStart(2, "0")}
+            {timeLeft?.hours.toString().padStart(2, "0")}
           </span>
           <span className="text-xs">:</span>
           <span className="bg-white/20 px-1.5 py-0.5 rounded text-xs font-bold">
-            {timeLeft.minutes.toString().padStart(2, "0")}
+            {timeLeft?.minutes.toString().padStart(2, "0")}
           </span>
           <span className="text-xs">:</span>
           <span className="bg-white/20 px-1.5 py-0.5 rounded text-xs font-bold animate-pulse">
-            {timeLeft.seconds.toString().padStart(2, "0")}
+            {timeLeft?.seconds.toString().padStart(2, "0")}
           </span>
         </div>
       </div>
