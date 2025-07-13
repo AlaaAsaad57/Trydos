@@ -16,7 +16,7 @@ function PersonalInfo({ swipeToScreen, goBack }: PersonalInfoPropsType) {
   const [userProfileData, setUserProfileData] = useState({
     name: userProfile?.name,
     phone: userProfile?.phone,
-    email: userProfile?.email,
+    email: userProfile?.email?.includes("@guest.com") ? "" : userProfile?.email,
     gender: userProfile?.gender?.value || userProfile?.gender,
     alternative_phone: userProfile?.alternative_phone,
   });
@@ -61,17 +61,6 @@ function PersonalInfo({ swipeToScreen, goBack }: PersonalInfoPropsType) {
       console.log(error);
     }
   };
-
-  const isEdited = () => {
-    return (
-      userProfileData.name !== userProfile?.name ||
-      Number(userProfileData.phone) !== Number(userProfile?.phone) ||
-      userProfileData.email !== userProfile?.email ||
-      userProfileData.gender !== userProfile?.gender?.value ||
-      Number(userProfileData.alternative_phone) !==
-        Number(userProfile?.alternative_phone)
-    );
-  };
   const isPhoneEdited = () => {
     return userProfileData.phone !== userProfile?.phone;
   };
@@ -99,9 +88,10 @@ function PersonalInfo({ swipeToScreen, goBack }: PersonalInfoPropsType) {
     if (!userProfileData.phone?.trim()) {
       errors.phone = translateFunction("Phone number is required");
     }
-    if (!userProfileData.email?.trim()) {
-      errors.email = translateFunction("Email address is required");
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(userProfileData.email)) {
+    if (
+      userProfileData.email &&
+      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(userProfileData.email)
+    ) {
       errors.email = translateFunction("Please enter a valid email address");
     }
     if (!userProfileData.gender) {
