@@ -221,9 +221,9 @@ function generateMetaData(data) {
       : "all standard sizes";
 
     const priceMin =
-      prices.min_price != null ? prices.min_price.toFixed(2) : "0.00";
+      prices?.min_price != null ? prices.min_price.toFixed(2) : "0.00";
     const priceMax =
-      prices.max_price != null ? prices.max_price.toFixed(2) : "9999.99";
+      prices?.max_price != null ? prices.max_price.toFixed(2) : "9999.99";
 
     const productCount = products?.length || 0;
 
