@@ -454,7 +454,7 @@ export default function AddStoryWidget({ onClose }: AddStoryWidgetPropsType) {
             ) : (
               <div className="flex flex-col items-center justify-center text-gray-400">
                 <PlaceholderIcon />
-                <p className="mt-2">No media selected</p>
+                <p className="mt-2">{translateFunction("No media selected")}</p>
               </div>
             )}
           </div>
@@ -466,7 +466,7 @@ export default function AddStoryWidget({ onClose }: AddStoryWidgetPropsType) {
               className="flex items-center gap-3 p-3 hover:bg-gray-100 rounded-lg"
             >
               <CameraIcon />
-              <span>Take Photo</span>
+              <span>{translateFunction("Take Photo")}</span>
             </button>
 
             <button
@@ -475,7 +475,7 @@ export default function AddStoryWidget({ onClose }: AddStoryWidgetPropsType) {
               className="flex items-center gap-3 p-3 hover:bg-gray-100 rounded-lg"
             >
               <FileIcon />
-              <span>Upload Photo/Video</span>
+              <span>{translateFunction("Upload Photo/Video")}</span>
             </button>
 
             <div className="flex items-center gap-3 p-3">
@@ -494,7 +494,7 @@ export default function AddStoryWidget({ onClose }: AddStoryWidgetPropsType) {
                       // });
                     }
                   }}
-                  placeholder="Add link..."
+                  placeholder={translateFunction("Add link...")}
                   className={`w-full outline-none ${
                     linkError ? "border-b border-red-500" : ""
                   }`}

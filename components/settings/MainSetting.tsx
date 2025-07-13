@@ -61,6 +61,7 @@ function MainSetting({ swipeToScreen }: MainSettingPropsType) {
     if (iso === "en") return "English";
     if (iso === "ar") return "العربية";
     if (iso === "tr") return "Turkish";
+    if (iso === "kd") return "کوردی";
   };
   return (
     <div className="flex-col w-full pt-[20px] px-[12px]">

@@ -10,7 +10,7 @@ import {
 } from "utils/cookies/cookie-manager";
 
 // Constants
-const SUPPORTED_LANGUAGES = ["en", "ar", "tr"];
+const SUPPORTED_LANGUAGES = ["en", "ar", "tr", "kd"];
 const DEFAULT_LANGUAGE = "en";
 const DEFAULT_COUNTRY = "gb";
 const CACHE_TTL = 60 * 60 * 1000 * 24; // 1 day
