@@ -349,7 +349,7 @@ function PersonalInfo({ swipeToScreen, goBack }: PersonalInfoPropsType) {
                 onChange={(e) => {
                   setUserProfileData({
                     ...userProfileData,
-                    phone: e.target.value,
+                    phone: e.target.value.replace(/[^0-9+]/g, ""),
                   });
                   // Clear validation error when user starts typing
                   if (showValidation && validationErrors.phone) {
@@ -413,7 +413,7 @@ function PersonalInfo({ swipeToScreen, goBack }: PersonalInfoPropsType) {
                 onChange={(e) => {
                   setUserProfileData({
                     ...userProfileData,
-                    alternative_phone: e.target.value,
+                    alternative_phone: e.target.value.replace(/[^0-9+]/g, ""),
                   });
                 }}
                 autoCapitalize="off"
