@@ -92,9 +92,7 @@ export class AuthServerService {
       console.warn(
         "*********************registerGuestMiddleware*********************",
         JSON.stringify({
-          request,
           id: data.data.user.id,
-          token: data.data.token,
         })
       );
       // Handle "user does not exist" error - retry with null ID

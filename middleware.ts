@@ -1,7 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { fetchCountries, fetchLanguages } from "Server Requests";
-import { shouldBlockRegistration } from "@/utils/bot-detector";
-import { AuthServerService } from "@/services/auth-server";
+
 import {
   COOKIE_NAMES,
   getCookieMiddleware,
@@ -208,31 +207,31 @@ export async function middleware(request: NextRequest) {
   }
 
   // ===== GUEST REGISTRATION LOGIC =====
-  if (!shouldSkipRegistration(pathname) && !userData) {
-    try {
-      const isBot = shouldBlockRegistration(request);
+  // if (!shouldSkipRegistration(pathname) && !userData) {
+  //   try {
+  //     const isBot = shouldBlockRegistration(request);
 
-      if (!isBot) {
-        console.warn("ensureGuestSessionMiddleware", JSON.stringify(request));
-        const registrationResult =
-          await AuthServerService.ensureGuestSessionMiddleware(
-            request,
-            response
-          );
+  //     if (!isBot) {
+  //       console.warn("ensureGuestSessionMiddleware", JSON.stringify(request));
+  //       const registrationResult =
+  //         await AuthServerService.ensureGuestSessionMiddleware(
+  //           request,
+  //           response
+  //         );
 
-        if (!registrationResult.success) {
-          console.error("Guest registration failed:", registrationResult.error);
-        }
-      } else {
-        console.log(
-          "Bot detected, skipping guest registration:",
-          request.headers.get("user-agent")
-        );
-      }
-    } catch (error) {
-      console.error("Middleware guest registration error:", error);
-    }
-  }
+  //       if (!registrationResult.success) {
+  //         console.error("Guest registration failed:", registrationResult.error);
+  //       }
+  //     } else {
+  //       console.log(
+  //         "Bot detected, skipping guest registration:",
+  //         request.headers.get("user-agent")
+  //       );
+  //     }
+  //   } catch (error) {
+  //     console.error("Middleware guest registration error:", error);
+  //   }
+  // }
 
   // ===== LOCALIZATION LOGIC =====
 
@@ -297,7 +296,7 @@ export async function middleware(request: NextRequest) {
     url.pathname = `/${defaultLocale}${cleanPathname}`;
     url.searchParams.delete("cart");
     url.searchParams.set("no-country", "true");
-    return NextResponse.redirect(url);
+    return NextResponse.redirect(url, 308);
   }
 
   // SCENARIO 1: Valid URL locale
@@ -401,7 +400,7 @@ export async function middleware(request: NextRequest) {
   url.pathname = `/${defaultLocale}${cleanPathname}`;
   url.searchParams.delete("cart");
   url.searchParams.set("no-country", "true");
-  return NextResponse.redirect(url);
+  return NextResponse.redirect(url, 308);
 }
 
 export const config = {
