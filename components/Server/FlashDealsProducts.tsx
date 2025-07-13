@@ -3,8 +3,6 @@ import NextLink from "components/global/NextLink";
 import { BuyButtonProduct } from "components/ListingPage/Product";
 
 import ProductBanner from "components/products/ProductBanner";
-
-import { CurrencyApi } from "models/API/market/CurrencyApi";
 import Image from "next/image";
 import React, { Suspense } from "react";
 import {

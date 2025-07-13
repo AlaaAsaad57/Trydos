@@ -39,6 +39,7 @@ import ProductsLabels from "components/products/ProductsLabels";
 import { GetProductData } from "utils/pagesDataRequests/ProductPageData";
 import { generateCodeCurrency } from "../../MetaData";
 import { redirect } from "next/navigation";
+import ProductRedeemPrice from "components/products/ProductRedeemPrice";
 
 // export const revalidate = parseInt(process.env.NEXT_PUBLIC_REVALIDATE);
 // For Middle East users

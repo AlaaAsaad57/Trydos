@@ -18,6 +18,7 @@ function FlashDealBanner({ end_data }: FlashDealBannerProps) {
   useEffect(() => {
     const calculateTimeLeft = () => {
       const endDate = new Date(end_data);
+      endDate.setHours(23, 59, 59, 999);
       const now = new Date();
       const difference = endDate.getTime() - now.getTime();
 
@@ -83,12 +84,7 @@ function FlashDealBanner({ end_data }: FlashDealBannerProps) {
   );
 
   if (isExpired) {
-    return (
-      <div className="bg-gradient-to-r from-red-500 to-pink-500 text-white px-3 py-1.5 rounded-full shadow-lg flex items-center gap-1.5 text-xs font-semibold">
-        <FlashIcon />
-        <span>FLASH DEAL</span>
-      </div>
-    );
+    return <></>;
   }
 
   return (
