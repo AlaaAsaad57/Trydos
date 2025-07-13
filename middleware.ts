@@ -186,6 +186,13 @@ function setLocaleCookies(
 
 // Main middleware function
 export async function middleware(request: NextRequest) {
+  const url = request.nextUrl.clone();
+  const pathname = url.pathname;
+
+  if (pathname?.includes("/robots.txt") || pathname?.includes("/robots")) {
+    // Immediately return NextResponse.next() to serve the static file
+    return NextResponse.redirect(new URL("/robots.txt", request.url));
+  }
   const userData = getCookieMiddleware<UserData>(
     request,
     COOKIE_NAMES.USER_DATA
@@ -199,9 +206,6 @@ export async function middleware(request: NextRequest) {
   ) {
     return response;
   }
-
-  const url = request.nextUrl.clone();
-  const pathname = url.pathname;
 
   // ===== GUEST REGISTRATION LOGIC =====
   if (!shouldSkipRegistration(pathname) && !userData) {
@@ -397,7 +401,7 @@ export const config = {
      */
     {
       source:
-        "/((?!api|noposter|firebase-messaging-sw.js|opengraph-image.png|default.mp3|wa.mp3|api-test|sitemap|manifest.json|error.png|assets|svg|fonts|translations|reports|images|styles|endCall|sitemap.xml|svg|call_direct|error.png|static|.\\..|_next|revalidate|callInProg|selectCountry|favicon.ico).*)",
+        "/((?!api|noposter|firebase-messaging-sw.js|robots.txt|robots.txt|robots|opengraph-image.png|default.mp3|wa.mp3|api-test|sitemap|manifest.json|error.png|assets|svg|fonts|translations|reports|images|styles|endCall|sitemap.xml|svg|call_direct|error.png|static|.\\..|_next|revalidate|callInProg|selectCountry|favicon.ico).*)",
     },
   ],
 };
