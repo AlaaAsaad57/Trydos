@@ -207,11 +207,23 @@ function setLocaleCookies(
 // Main middleware function
 export async function middleware(request: NextRequest) {
   const isBotAgent = isBot(request.headers.get("user-agent"));
-  if (isBotAgent) {
-    let url = request.nextUrl.clone();
-    let pathname = url.pathname;
-    const urlLocale = parseUrlLocale(pathname);
+  const url = request.nextUrl.clone();
+  const pathname = url.pathname;
+  const urlLocale = parseUrlLocale(pathname);
+  const supportedCountries = await getCachedCountries();
+  const allSupportedCountries = [...supportedCountries, "gb"];
 
+  // Build supported locales
+  const supportedLocales = new Set<string>();
+  allSupportedCountries.forEach((country) => {
+    SUPPORTED_LANGUAGES.forEach((lang) => {
+      supportedLocales.add(buildLocale(country, lang));
+    });
+  });
+  if (isBotAgent) {
+    if (urlLocale && supportedLocales.has(urlLocale.locale)) {
+      return NextResponse.next();
+    }
     const preferredLanguage = getPreferredLanguage(request);
     const defaultLocale = urlLocale
       ? buildLocale(urlLocale.country, urlLocale.language)
@@ -225,17 +237,12 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url, 308);
     // return NextResponse.redirect(new URL("/", request.url), 308);
   }
-  const url = request.nextUrl.clone();
-  const pathname = url.pathname;
 
   if (pathname?.includes("/robots.txt") || pathname?.includes("/robots")) {
     // Immediately return NextResponse.next() to serve the static file
     return NextResponse.redirect(new URL("/robots.txt", request.url));
   }
-  const userData = getCookieMiddleware<UserData>(
-    request,
-    COOKIE_NAMES.USER_DATA
-  );
+
   const response = NextResponse.next();
 
   // Skip non-HTML requests
@@ -276,19 +283,8 @@ export async function middleware(request: NextRequest) {
   // ===== LOCALIZATION LOGIC =====
 
   // Get supported countries
-  const supportedCountries = await getCachedCountries();
-  const allSupportedCountries = [...supportedCountries, "gb"];
-
-  // Build supported locales
-  const supportedLocales = new Set<string>();
-  allSupportedCountries.forEach((country) => {
-    SUPPORTED_LANGUAGES.forEach((lang) => {
-      supportedLocales.add(buildLocale(country, lang));
-    });
-  });
 
   // Parse URL locale
-  const urlLocale = parseUrlLocale(pathname);
 
   // Get and validate cookies
   const countryFromCookies = request.cookies.get("country")?.value;
