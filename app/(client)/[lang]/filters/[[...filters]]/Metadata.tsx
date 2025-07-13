@@ -207,6 +207,7 @@ function generateMetaData(data) {
     const normalizedBrands = normalized(brands);
     const normalizedBoutiques = normalized(boutiques);
     const normalizedSizes = normalized(sizes);
+    const normalizedColors = normalized(colors);
 
     const categoryPhrase = normalizedCategories?.length
       ? normalizedCategories?.slice(0, 3)?.join(", ")
@@ -219,19 +220,19 @@ function generateMetaData(data) {
     const sizePhrase = normalizedSizes?.length
       ? normalizedSizes?.slice(0, 4)?.join(", ")
       : "all standard sizes";
-
+    const colorPhrase = normalizedColors?.length
+      ? normalizedColors?.slice(0, 4)?.join(", ")
+      : "all colors";
     const priceMin =
-      prices?.min_price != null ? prices.min_price.toFixed(2) : "0.00";
+      prices?.min_price != null ? prices?.min_price.toFixed(2) : "0.00";
     const priceMax =
-      prices?.max_price != null ? prices.max_price.toFixed(2) : "9999.99";
-
-    const productCount = products?.length || 0;
+      prices?.max_price != null ? prices?.max_price.toFixed(2) : "9999.99";
 
     const title = search_query
-      ? `Search results for "${search_query}" - ${productCount} products | ${siteName}`
+      ? `Search results for "${search_query}" - ${siteName}`
       : `Shop ${categoryPhrase} from ${brandPhrase} | ${siteName}`;
 
-    const description = `Discover a curated selection of ${categoryPhrase.toLowerCase()} on ${siteName}. Featuring ${brandPhrase}, ${sizePhrase}, and prices from $${priceMin} to $${priceMax}.`;
+    const description = `Discover a curated selection of ${categoryPhrase.toLowerCase()} on ${siteName}. Featuring ${brandPhrase}, ${colorPhrase}, ${sizePhrase}, and prices from $${priceMin} to $${priceMax}.`;
 
     const keywordPool = [
       siteName,
@@ -239,6 +240,7 @@ function generateMetaData(data) {
       ...normalizedBrands,
       ...normalizedBoutiques,
       ...normalizedSizes,
+      ...normalizedColors,
     ];
     if (search_query?.length > 0) {
       keywordPool.push(search_query);
@@ -255,7 +257,7 @@ function generateMetaData(data) {
       twitter_description: description,
     };
   } catch (e) {
-    console.log("e", e);
+    console.error("filters generatemetadata error", e);
     throw e;
   }
 }
