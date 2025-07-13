@@ -12,6 +12,15 @@ interface ErrorInfo {
   extra?: Record<string, any>;
 }
 
+// Type for browser error events (only available in browser environment)
+type BrowserErrorEvent = {
+  message: string;
+  filename?: string;
+  lineno?: number;
+  colno?: number;
+  error?: any;
+};
+
 interface ErrorContext {
   userId?: string;
   sessionId?: string;
@@ -28,7 +37,7 @@ class ErrorReporter {
   private retryDelay = 1000;
 
   async report(
-    error: Error | ErrorEvent | string,
+    error: Error | BrowserErrorEvent | string,
     context?: ErrorContext,
     componentStack?: string
   ): Promise<void> {
@@ -49,7 +58,7 @@ class ErrorReporter {
   }
 
   private parseError(
-    error: Error | ErrorEvent | string,
+    error: Error | BrowserErrorEvent | string,
     componentStack?: string
   ): ErrorInfo {
     const baseInfo: ErrorInfo = {
@@ -62,7 +71,10 @@ class ErrorReporter {
 
     if (typeof error === "string") {
       baseInfo.message = error;
-    } else if (error instanceof ErrorEvent) {
+    } else if (
+      typeof ErrorEvent !== "undefined" &&
+      error instanceof ErrorEvent
+    ) {
       baseInfo.message = error.message;
       baseInfo.source = error.filename;
       baseInfo.lineno = error.lineno;
@@ -130,7 +142,7 @@ class ErrorReporter {
     if (typeof window === "undefined") return;
 
     // Handle unhandled errors
-    window.addEventListener("error", (event: ErrorEvent) => {
+    window.addEventListener("error", (event: any) => {
       this.report(event, { source: "window.onerror" });
     });
 
@@ -155,7 +167,7 @@ const errorReporter = new ErrorReporter();
 
 // Export the main function
 export function reportError(
-  error: Error | ErrorEvent | string,
+  error: Error | BrowserErrorEvent | string,
   context?: ErrorContext,
   componentStack?: string
 ): void {

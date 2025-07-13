@@ -21,7 +21,7 @@ req.json
 .env.development
 .env.production
 # next.js
-/.next/
+
 /out/
 .turbo/
 # production
