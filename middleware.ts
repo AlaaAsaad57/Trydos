@@ -62,7 +62,28 @@ const SKIP_REGISTRATION_PATHS = [
   "/.well-known/appspecific/com.chrome.devtools.json",
   "/appspecific/com.chrome.devtools.json",
 ];
+function isBot(userAgent: string | null): boolean {
+  if (!userAgent) return false;
 
+  const bots = [
+    "googlebot",
+    "bingbot",
+    "facebookexternalhit",
+    "facebot",
+    "twitterbot",
+    "whatsapp",
+    "linkedinbot",
+    "instagram",
+    "discordbot",
+    "slackbot-linkexpanding",
+    "vercel",
+    "vercel-og",
+  ];
+
+  userAgent = userAgent.toLowerCase();
+
+  return bots.some((bot) => userAgent.includes(bot));
+}
 // Types
 interface LocaleInfo {
   country: string;
@@ -185,6 +206,21 @@ function setLocaleCookies(
 
 // Main middleware function
 export async function middleware(request: NextRequest) {
+  const isBotAgent = isBot(request.headers.get("user-agent"));
+  if (isBotAgent) {
+    let url = request.nextUrl.clone();
+    let pathname = url.pathname;
+    const preferredLanguage = getPreferredLanguage(request);
+    const defaultLocale = buildLocale(DEFAULT_COUNTRY, preferredLanguage);
+
+    // Preserve full path, prefix with locale
+    // Ensure pathname starts with /
+    const cleanPathname = pathname.startsWith("/") ? pathname : `/${pathname}`;
+
+    url.pathname = `/${defaultLocale}${cleanPathname}`;
+    return NextResponse.redirect(url, 308);
+    // return NextResponse.redirect(new URL("/", request.url), 308);
+  }
   const url = request.nextUrl.clone();
   const pathname = url.pathname;
 
