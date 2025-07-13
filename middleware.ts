@@ -336,7 +336,7 @@ export async function middleware(request: NextRequest) {
     url.pathname = `/${defaultLocale}${cleanPathname}`;
     url.searchParams.delete("cart");
     url.searchParams.set("no-country", "true");
-    return NextResponse.redirect(url, 308);
+    return NextResponse.redirect(url);
   }
 
   // SCENARIO 1: Valid URL locale
@@ -440,7 +440,7 @@ export async function middleware(request: NextRequest) {
   url.pathname = `/${defaultLocale}${cleanPathname}`;
   url.searchParams.delete("cart");
   url.searchParams.set("no-country", "true");
-  return NextResponse.redirect(url, 308);
+  return NextResponse.redirect(url);
 }
 
 export const config = {
