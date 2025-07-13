@@ -15,7 +15,7 @@ function PersonalInfo({ swipeToScreen, goBack }: PersonalInfoPropsType) {
 
   const [userProfileData, setUserProfileData] = useState({
     name: userProfile?.name,
-    phone: userProfile?.phone,
+    phone: userProfile?.phone === "0" ? "" : userProfile?.phone,
     email: userProfile?.email?.includes("@guest.com") ? "" : userProfile?.email,
     gender: userProfile?.gender?.value || userProfile?.gender,
     alternative_phone: userProfile?.alternative_phone,
@@ -53,12 +53,13 @@ function PersonalInfo({ swipeToScreen, goBack }: PersonalInfoPropsType) {
       setLoading(false);
       setUserProfileData({
         name: userProfile?.name,
-        phone: userProfile?.phone,
-        email: userProfile?.email,
+        phone: userProfile?.phone === "0" ? "" : userProfile?.phone,
+        email: userProfile?.email?.includes("@guest.com")
+          ? ""
+          : userProfile?.email,
         gender: userProfile?.gender?.value || userProfile?.gender,
         alternative_phone: userProfile?.alternative_phone,
       });
-      console.log(error);
     }
   };
   const isPhoneEdited = () => {
