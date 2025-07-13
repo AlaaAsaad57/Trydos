@@ -102,7 +102,7 @@ export const MapElement: React.FC<MapProps> = memo(
 
     const handleGetLocation = () => {
       setLocationLoading(true);
-      if (navigator.geolocation) {
+      if (typeof navigator !== "undefined" && navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
           (position) => {
             let point = new window.google.maps.LatLng(

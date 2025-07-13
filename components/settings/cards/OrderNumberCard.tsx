@@ -8,14 +8,16 @@ const OrderNumberCard: React.FC<OrderNumberCardProps> = ({ number }) => {
     <div
       className="bg-[#F4F4F4] cursor-pointer w-1/3 min-h-[74px] h-auto rounded-[15px] py-[8px] px-[12px] flex-col"
       onClick={() => {
-        navigator.clipboard.writeText(number).then(
-          function () {
-            showSuccessNotification(
-              translateFunction("Order Number has been Copied")
-            );
-          },
-          function () {}
-        );
+        if (typeof navigator !== "undefined") {
+          navigator.clipboard.writeText(number).then(
+            function () {
+              showSuccessNotification(
+                translateFunction("Order Number has been Copied")
+              );
+            },
+            function () {}
+          );
+        }
       }}
     >
       <svg

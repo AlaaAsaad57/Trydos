@@ -36,10 +36,12 @@ function ChatInfo({
   const ref = useRef();
   const handleCopyPhone = async (phoneNumber) => {
     try {
-      await navigator.clipboard.writeText(phoneNumber);
-      showSuccessNotification(
-        translateFunction("The number was copied successfully")
-      );
+      if (typeof navigator !== "undefined") {
+        await navigator.clipboard.writeText(phoneNumber);
+        showSuccessNotification(
+          translateFunction("The number was copied successfully")
+        );
+      }
     } catch (error) {
       showErrorNotification("Number copy failed");
     }

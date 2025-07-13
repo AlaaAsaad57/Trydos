@@ -110,7 +110,7 @@ function Init() {
         document.body.style.paddingBottom = "0px";
       }
     });
-    if (!navigator.cookieEnabled) {
+    if (typeof navigator !== "undefined" && !navigator.cookieEnabled) {
       showErrorNotification(translateFunction("Cookies Is Not Enabled"));
     }
 

@@ -106,7 +106,7 @@ export const SetGAUser = (user, isNewUser = false) => {
 
     })`
     );
-    if (bool) {
+    if (bool && typeof navigator !== "undefined") {
       navigator.clipboard.writeText(
         `window?.gtag?.("set", {
         user_id: ${user.id},
@@ -154,6 +154,7 @@ const getAccountAge = (user) => {
   return diffDays;
 };
 const getDeviceCategory = () => {
+  if (typeof navigator === "undefined") return "desktop";
   const userAgent = navigator.userAgent.toLowerCase();
 
   // Check for tablet first (more specific)
@@ -195,6 +196,7 @@ const getDeviceCategory = () => {
 };
 
 const getOperatingSystem = () => {
+  if (typeof navigator === "undefined") return "Unknown";
   const userAgent = navigator.userAgent.toLowerCase();
 
   // Check for mobile operating systems first
