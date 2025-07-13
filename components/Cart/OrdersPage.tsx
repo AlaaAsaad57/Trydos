@@ -2,9 +2,8 @@ import { useRef, useState } from "react";
 import BackIcon from "public/svg/listing/backIcon.svg";
 import { getCart, RoundPrice, translateFunction } from "utils/functions";
 import { useParams } from "next/navigation";
-import { Swiper, SwiperSlide } from "swiper/react";
 import ShippingAddressContainer from "./ShippingAddressContainer";
-import { Swiper as SwiperType } from "swiper/types";
+import { SlideWidget } from "components/global/SlideNavigation";
 import AddAddressIcon from "public/svg/cart/AddAddress.svg";
 import AddAddressForm from "./AddAddressForm";
 import SelectRegion from "./SelectRegion";
@@ -125,7 +124,6 @@ function OrdersPage({ setStep, close }: OrdersPagePropsType) {
 
   const [orderStep, setOrderStep] = useState(0);
   const [AddressListsOpen, openAddressList] = useState(false);
-  const ref = useRef<SwiperType>();
   const [openSelect, setOpenSelect] = useState(false);
   const colseSelect = () => {
     setOpenSelect(false);
@@ -212,7 +210,7 @@ function OrdersPage({ setStep, close }: OrdersPagePropsType) {
       {deleteModal && (
         <DeleteModalComponent
           slidePrev={() => {
-            ref.current.slidePrev();
+            setOrderStep(0);
           }}
           deletedAddress={deleteModal}
           closeModal={() => setDeleteModal(false)}
@@ -225,24 +223,10 @@ function OrdersPage({ setStep, close }: OrdersPagePropsType) {
           }}
         />
       )}
-      <Swiper
-        initialSlide={orderStep}
-        keyboard={{
-          enabled: false,
-        }}
-        navigation={false}
-        onInit={(swiper) => {
-          ref.current = swiper;
-        }}
-        allowTouchMove={false}
-        draggable={false}
-        className="w-full"
-        slidesPerView={1}
-        wrapperClass="flex  h-full"
-      >
-        <SwiperSlide
+      <SlideWidget step={orderStep} duration={400}>
+        <div
           data-cy="swiper-slide"
-          className={` min-w-[100vw] h-[100vh] relative cart-widget`}
+          className={`min-w-[100vw] h-[100vh] relative cart-widget`}
         >
           {AddressListsOpen && (
             <AddressListContainer
@@ -252,7 +236,7 @@ function OrdersPage({ setStep, close }: OrdersPagePropsType) {
                 setDeleteModal(e);
               }}
               slideNext={() => {
-                ref.current.slideNext();
+                setOrderStep(1);
               }}
               closeSelect={(e) => {
                 colseAddressList();
@@ -391,10 +375,10 @@ function OrdersPage({ setStep, close }: OrdersPagePropsType) {
                 openAddressList(e);
               }}
               slideNext={() => {
-                ref.current.slideNext();
+                setOrderStep(1);
               }}
               slidePrev={() => {
-                ref.current.slidePrev();
+                setOrderStep(0);
               }}
             />
             <PaymentMethod />
@@ -403,7 +387,7 @@ function OrdersPage({ setStep, close }: OrdersPagePropsType) {
             setNext={() => {
               setNextStep(true);
               setTimeout(() => {
-                ref.current.slideNext();
+                setOrderStep(1);
               }, 600);
             }}
             setPrev={() => {
@@ -413,140 +397,131 @@ function OrdersPage({ setStep, close }: OrdersPagePropsType) {
                   initCart(data ?? { cart: [] });
                 },
               });
-              ref.current.slidePrev();
+              setOrderStep(0);
               setStep(0);
             }}
             orderLoading={false}
           />
-        </SwiperSlide>
-        <SwiperSlide className="min-w-[100vw] relative max-h-[100vh]  h-[100vh] cart-widget overflow-hidden">
-          {({ isActive }) => (
+        </div>
+        <div className="min-w-[100vw] relative max-h-[100vh] h-[100vh] cart-widget overflow-hidden">
+          {nextStep ? (
             <>
-              {nextStep ? (
-                <>
-                  <div className="flex-col pl-2 pr-2 bg-[#fff] p-1">
-                    {!orderData.success && (
-                      <div className="flex-row  w-full min-h-[50px] pl-1 pr-2  relative justify-between items-center ">
-                        <BackIcon
-                          className="cursor-pointer z-50"
-                          onClick={() => {
-                            // Sendevent({
-                            //   event: GA_EVENT_NAMES.CLICK,
-                            //   value:
-                            //     GA_CLICK_EVENT_VALUES.APPBAR_BACKICON_BUTTON,
-                            // });
-                            ref.current.slidePrev();
-                            setNextStep(false);
-                          }}
-                        />
-                        <span className="text-[13px] text-[#505050] regular flex-row items-center ">
-                          <AddAddressIcon />
-                          <span className="regular ml-[8px]">
-                            <>{translateFunction("Shipping & Payment")}</>
-                          </span>
-                        </span>
-                        <span
-                          onClick={() => {
-                            if (addressDetails.id) {
-                              // Sendevent({
-                              //   event: GA_EVENT_NAMES.CLICK,
-                              //   value:
-                              //     GA_CLICK_EVENT_VALUES.OPEN_DELETE_ADDRESS_MODAL,
-                              // });
-                              openAddressList(false);
-                              setDeleteModal(addressDetails);
-                            }
-                          }}
-                        >
-                          {addressDetails.id && <DeleteIcon />}
-                        </span>
-                      </div>
-                    )}
-                    <PlaceOrderWidget />
-                  </div>
-                  <PlaceOrderButtons
-                    orderLoading={false}
-                    backToCart={() => {
-                      getCart({
-                        callback: ([data, res]) => {
-                          initCart(data ?? { cart: {} });
-                        },
-                      });
-                      setStep(0);
-                    }}
-                    close={() => {
-                      close();
-                    }}
-                    successOrder={() => setOrderSuccess(true)}
-                  />
-                </>
-              ) : (
-                <>
-                  <div className="flex-col pl-2 pr-2 bg-[#fff] p-1">
-                    <div className="flex-row  w-full min-h-[50px] pl-1 pr-2  relative justify-between items-center ">
-                      <BackIcon
-                        className="cursor-pointer z-50"
-                        data-cy="back-icon-addadresspage" // Added data-cy
-                        onClick={() => {
+              <div className="flex-col pl-2 pr-2 bg-[#fff] p-1">
+                {!orderData.success && (
+                  <div className="flex-row  w-full min-h-[50px] pl-1 pr-2  relative justify-between items-center ">
+                    <BackIcon
+                      className="cursor-pointer z-50"
+                      onClick={() => {
+                        // Sendevent({
+                        //   event: GA_EVENT_NAMES.CLICK,
+                        //   value:
+                        //     GA_CLICK_EVENT_VALUES.APPBAR_BACKICON_BUTTON,
+                        // });
+                        setOrderStep(0);
+                        setNextStep(false);
+                      }}
+                    />
+                    <span className="text-[13px] text-[#505050] regular flex-row items-center ">
+                      <AddAddressIcon />
+                      <span className="regular ml-[8px]">
+                        <>{translateFunction("Shipping & Payment")}</>
+                      </span>
+                    </span>
+                    <span
+                      onClick={() => {
+                        if (addressDetails.id) {
                           // Sendevent({
                           //   event: GA_EVENT_NAMES.CLICK,
-                          //   value: GA_CLICK_EVENT_VALUES.APPBAR_BACKICON_BUTTON,
+                          //   value:
+                          //     GA_CLICK_EVENT_VALUES.OPEN_DELETE_ADDRESS_MODAL,
                           // });
-                          ref.current.slidePrev();
-                          setNextStep(false);
-                        }}
-                      />
-                      <span className="text-[13px] text-[#505050] regular flex-row items-center ">
-                        <AddAddressIcon data-cy="add-address-icon" />
-                        <span
-                          className="regular ml-[8px]"
-                          data-cy="address-text"
-                        >
-                          <>
-                            {addressDetails.id
-                              ? translate("Edit Shipping Address")
-                              : translate("Add Shipping Address")}
-                          </>
-                        </span>
-                      </span>
-                      <span
-                        data-cy="delete-icon-container" // Added data-cy
-                        onClick={() => {
-                          if (addressDetails.id) {
-                            // Sendevent({
-                            //   event: GA_EVENT_NAMES.CLICK,
-                            //   value:
-                            //     GA_CLICK_EVENT_VALUES.OPEN_DELETE_ADDRESS_MODAL,
-                            // });
-                            openAddressList(false);
-                            setDeleteModal(addressDetails);
-                          }
-                        }}
-                      >
-                        {addressDetails.id && (
-                          <DeleteIcon data-cy="delete-icon" />
-                        )}
-                      </span>
-                    </div>
+                          openAddressList(false);
+                          setDeleteModal(addressDetails);
+                        }
+                      }}
+                    >
+                      {addressDetails.id && <DeleteIcon />}
+                    </span>
                   </div>
-                  <AddAddressForm
-                    activeIndex={isActive}
-                    setOpenSelect={() => {
-                      setOpenSelect(true);
-                    }}
-                    slidePrev={() => {
-                      ref.current.slidePrev();
-                    }}
-                    setAddressDetails={(e) => {
-                      setAddressDetails(e);
+                )}
+                <PlaceOrderWidget />
+              </div>
+              <PlaceOrderButtons
+                orderLoading={false}
+                backToCart={() => {
+                  getCart({
+                    callback: ([data, res]) => {
+                      initCart(data ?? { cart: {} });
+                    },
+                  });
+                  setStep(0);
+                }}
+                close={() => {
+                  close();
+                }}
+                successOrder={() => setOrderSuccess(true)}
+              />
+            </>
+          ) : (
+            <>
+              <div className="flex-col pl-2 pr-2 bg-[#fff] p-1">
+                <div className="flex-row  w-full min-h-[50px] pl-1 pr-2  relative justify-between items-center ">
+                  <BackIcon
+                    className="cursor-pointer z-50"
+                    data-cy="back-icon-addadresspage" // Added data-cy
+                    onClick={() => {
+                      // Sendevent({
+                      //   event: GA_EVENT_NAMES.CLICK,
+                      //   value: GA_CLICK_EVENT_VALUES.APPBAR_BACKICON_BUTTON,
+                      // });
+                      setOrderStep(0);
+                      setNextStep(false);
                     }}
                   />
-                </>
-              )}
+                  <span className="text-[13px] text-[#505050] regular flex-row items-center ">
+                    <AddAddressIcon data-cy="add-address-icon" />
+                    <span className="regular ml-[8px]" data-cy="address-text">
+                      <>
+                        {addressDetails.id
+                          ? translate("Edit Shipping Address")
+                          : translate("Add Shipping Address")}
+                      </>
+                    </span>
+                  </span>
+                  <span
+                    data-cy="delete-icon-container" // Added data-cy
+                    onClick={() => {
+                      if (addressDetails.id) {
+                        // Sendevent({
+                        //   event: GA_EVENT_NAMES.CLICK,
+                        //   value:
+                        //     GA_CLICK_EVENT_VALUES.OPEN_DELETE_ADDRESS_MODAL,
+                        // });
+                        openAddressList(false);
+                        setDeleteModal(addressDetails);
+                      }
+                    }}
+                  >
+                    {addressDetails.id && <DeleteIcon data-cy="delete-icon" />}
+                  </span>
+                </div>
+              </div>
+              <AddAddressForm
+                activeIndex={orderStep === 1}
+                setOpenSelect={() => {
+                  setOpenSelect(true);
+                }}
+                slidePrev={() => {
+                  setOrderStep(0);
+                }}
+                setAddressDetails={(e) => {
+                  setAddressDetails(e);
+                }}
+              />
             </>
           )}
-        </SwiperSlide>
-      </Swiper>
+        </div>
+      </SlideWidget>
     </div>
   );
 }

@@ -106,7 +106,7 @@ export function SlideWidget({
   };
 
   return (
-    <div className="relative w-full h-full overflow-hidden">
+    <div className="relative w-full h-full overflow-hidden flex-1">
       {Previous && isTransitioning && (
         <div
           key={`prev-${previousStep}`}

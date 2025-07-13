@@ -83,6 +83,10 @@ export async function getBoutiqueMetadata({
         lang: language,
         country,
       },
+      next: {
+        revalidate: 36000,
+        tags: ["listing"],
+      },
     }
   );
   let responseData = await response.json();

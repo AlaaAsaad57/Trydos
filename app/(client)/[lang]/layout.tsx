@@ -19,6 +19,9 @@ import AuthNavContainer from "components/Home/AuthNavContainer";
 export const metadata = {
   title: "TryDos",
   description: "TryDos E-Commerce Website",
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_REMOTE_FRONT || "https://trydos.vercel.app"
+  ),
 };
 export const viewport = {
   width: "device-width",

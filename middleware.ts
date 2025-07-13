@@ -285,7 +285,19 @@ export async function middleware(request: NextRequest) {
     request.headers.get("x-redirect-count") || "0"
   );
   if (redirectCount > 2) {
-    return response;
+    // Even if we hit redirect limit, ensure we have a proper locale
+    const preferredLanguage = getPreferredLanguage(request);
+    const defaultLocale = buildLocale(DEFAULT_COUNTRY, preferredLanguage);
+    const cleanPathname = urlLocale
+      ? pathname.replace(urlLocale.locale, defaultLocale)
+      : pathname.startsWith("/")
+      ? pathname
+      : `/${pathname}`;
+
+    url.pathname = `/${defaultLocale}${cleanPathname}`;
+    url.searchParams.delete("cart");
+    url.searchParams.set("no-country", "true");
+    return NextResponse.redirect(url);
   }
 
   // SCENARIO 1: Valid URL locale
@@ -378,13 +390,15 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // Fallback to default locale
+  // Fallback to default locale - ALWAYS redirect to gb-en
   const defaultLocale = buildLocale(DEFAULT_COUNTRY, preferredLanguage);
   const cleanPathname = urlLocale
     ? pathname.replace(urlLocale.locale, defaultLocale)
-    : `/${defaultLocale}${pathname}`;
+    : pathname.startsWith("/")
+    ? pathname
+    : `/${pathname}`;
 
-  url.pathname = cleanPathname;
+  url.pathname = `/${defaultLocale}${cleanPathname}`;
   url.searchParams.delete("cart");
   url.searchParams.set("no-country", "true");
   return NextResponse.redirect(url);
