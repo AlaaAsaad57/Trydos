@@ -210,8 +210,12 @@ export async function middleware(request: NextRequest) {
   if (isBotAgent) {
     let url = request.nextUrl.clone();
     let pathname = url.pathname;
+    const urlLocale = parseUrlLocale(pathname);
+
     const preferredLanguage = getPreferredLanguage(request);
-    const defaultLocale = buildLocale(DEFAULT_COUNTRY, preferredLanguage);
+    const defaultLocale = urlLocale
+      ? buildLocale(urlLocale.country, urlLocale.language)
+      : buildLocale(DEFAULT_COUNTRY, preferredLanguage);
 
     // Preserve full path, prefix with locale
     // Ensure pathname starts with /
