@@ -16,6 +16,8 @@ import { ErrorReporterInit } from "components/global/ErrorReporterInit";
 import { ErrorTester } from "components/dev/ErrorTester";
 import { HydrationProvider } from "components/global/HydrationProvider";
 import AuthNavContainer from "components/Home/AuthNavContainer";
+import VersionChecker from "components/global/VersionChecker";
+import VersionDebugger from "components/dev/VersionDebugger";
 export const metadata = {
   title: "TryDos",
   description: "TryDos E-Commerce Website",
@@ -120,6 +122,7 @@ export default function RootLayout({ params, children }) {
 
         <Providers>
           <HydrationProvider>
+            <VersionChecker />
             <ErrorReporterInit />
             <ErrorTester />
             <div
