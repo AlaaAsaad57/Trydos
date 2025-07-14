@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { GetHomeData } from "utils/pagesDataRequests/HomePageData";
 import { cache } from "react";
 import { GetFiltersData } from "utils/pagesDataRequests/FiltersPageData";
+import { fetchServerData } from "Server Requests/ServerFetch";
 export const generateCodeCurrency = (code: string) => {
   if (code?.toLowerCase() === "sp") {
     return "SYP";
@@ -10,94 +11,32 @@ export const generateCodeCurrency = (code: string) => {
     return code.toUpperCase();
   }
 };
-let {
-  boutiqueData: boutiquesData,
-  categoriesData,
-  featuredData,
-  flashDealsData,
-  currencyData,
-  brandsData,
-} = {
-  boutiqueData: [
-    { name: "Techno", slug: "techno" },
-    { name: "Boutique", slug: "boutique" },
-  ],
-  categoriesData: [
-    {
-      name: "Electronics",
-      slug: "electronics",
-      image: "https://via.placeholder.com/150",
-    },
-    {
-      name: "Fashion",
-      slug: "fashion",
-      image: "https://via.placeholder.com/150",
-    },
-  ],
-  featuredData: [
-    {
-      name: "Product 1",
-      slug: "product-1",
-      image: "https://via.placeholder.com/150",
-      price: 100,
-    },
-    {
-      name: "Product 2",
-      slug: "product-2",
-      image: "https://via.placeholder.com/150",
-      price: 200,
-    },
-  ],
-  flashDealsData: [
-    {
-      name: "Deal 1",
-      slug: "deal-1",
-      image: "https://via.placeholder.com/150",
-      price: 100,
-    },
-    {
-      name: "Deal 2",
-      slug: "deal-2",
-      image: "https://via.placeholder.com/150",
-      price: 200,
-    },
-  ],
-  currencyData: {
-    exchange_rate: 1,
-    code: "USD",
-    name: "USD",
-    currency_symbol: "$",
-  },
-  brandsData: [
-    {
-      name: "Brand 1",
-      slug: "brand-1",
-      image: "https://via.placeholder.com/150",
-    },
-    {
-      name: "Brand 2",
-      slug: "brand-2",
-      image: "https://via.placeholder.com/150",
-    },
-  ],
-};
+
 // Home Page Meta Data
 export const getHomeMetadata = cache(async ({ params }): Promise<Metadata> => {
   const [country, language] = params.lang.split("-");
-
+  const response = await fetchServerData({
+    url: `${process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL}/api/home/HomePageMetaData?lang=${language}&country=${country}`,
+    method: "GET",
+    tags: ["home"],
+    revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE_HOME),
+    local: `${country}-${language}`,
+  });
   // Get language for translations
 
   // Fetch featured products, flash deals, and boutiques data
-
+  const {
+    mainCategories: categoriesData,
+    featuredProducts: featuredData,
+    flashDeals: flashDealsData,
+    boutiques: boutiquesData,
+  } = response.data.data;
   // Combine all products
   const allProducts = [...(featuredData || []), ...(flashDealsData || [])];
-  currencyData = {
-    ...currencyData,
-    code: generateCodeCurrency(currencyData.code.toUpperCase()),
-  };
+
   // Extract unique categories and brands
   const categories = categoriesData || [];
-  const brands = brandsData || [];
+
   const boutiques = boutiquesData || [];
 
   // Generate comprehensive metadata with translations
@@ -105,10 +44,6 @@ export const getHomeMetadata = cache(async ({ params }): Promise<Metadata> => {
   const featuredCategories = categories
     .slice(0, 8)
     .map((c) => c.name)
-    .join(", ");
-  const topBrands = brands
-    .slice(0, 10)
-    .map((b) => b.name)
     .join(", ");
   const topBoutiques = boutiques
     .slice(0, 8)
@@ -143,7 +78,6 @@ export const getHomeMetadata = cache(async ({ params }): Promise<Metadata> => {
       "electronics",
       "home garden",
       ...categories.map((c) => c.name),
-      ...brands.map((b) => b.name),
       ...boutiques.map((b) => b.name),
       ...allProducts.slice(0, 20).map((p) => p.name),
     ]
@@ -242,6 +176,13 @@ export const getHomeMetadata = cache(async ({ params }): Promise<Metadata> => {
 });
 export const GetStructuredData = cache(async ({ params }) => {
   const [country, language] = params.lang.split("-");
+  const response = await fetchServerData({
+    url: `${process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL}/api/home/HomePageMetaData?lang=${language}&country=${country}`,
+    method: "GET",
+    tags: ["home"],
+    revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE_HOME),
+    local: `${country}-${language}`,
+  });
   return {
     "@context": "https://schema.org",
     "@type": "Store",
@@ -256,64 +197,5 @@ export const GetStructuredData = cache(async ({ params }) => {
       "https://instagram.com/trydos",
       "https://twitter.com/trydos",
     ],
-    "@graph": [
-      {
-        "@type": "ItemList",
-        name: "Categories",
-        itemListElement: categoriesData.map((c, index) => ({
-          "@type": "SiteNavigationElement",
-          position: index + 1,
-          name: c.name,
-          url: `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${params.lang}/categories/${c.slug}`,
-        })),
-      },
-      {
-        "@type": "ItemList",
-        name: "Boutiques",
-        itemListElement: boutiquesData.map((b, index) => ({
-          "@type": "SiteNavigationElement",
-          position: index + 1,
-          name: b.name,
-          url: `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${params.lang}/filters/boutiques/${b.slug}`,
-        })),
-      },
-      {
-        "@type": "ItemList",
-        name: "Flash Deals",
-        itemListElement: flashDealsData.map((fd, index) => ({
-          "@type": "Product",
-          position: index + 1,
-          name: fd.name,
-          url: `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${params.lang}/products/${fd.slug}`,
-        })),
-      },
-      {
-        "@type": "ItemList",
-        name: "Featured Products",
-        itemListElement: featuredData.map((f, index) => ({
-          "@type": "Product",
-          position: index + 1,
-          name: f.name,
-          url: `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${params.lang}/products/${f.slug}`,
-        })),
-      },
-    ],
-    hasOfferCatalog: {
-      "@type": "OfferCatalog",
-      name: "Flash Deals",
-      itemListElement: [...flashDealsData, ...featuredData].map(
-        (fd, index) => ({
-          "@type": "Offer",
-          itemOffered: {
-            "@type": "Product",
-            name: fd.name,
-            url: `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${params.lang}/products/${fd.slug}`,
-          },
-          price: fd.price,
-          priceCurrency: currencyData.code,
-          availability: "https://schema.org/InStock",
-        })
-      ),
-    },
   };
 });
