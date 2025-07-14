@@ -1,12 +1,11 @@
 import { useRef, useEffect } from "react";
-import { EffectCoverflow } from "swiper/modules";
-import { Swiper, SwiperSlide } from "swiper/react";
 import BorderImage from "./BorderImage";
 
 import { getConfiguredImage } from "utils/functions";
 import Image from "next/image";
 import { GetImageUrl } from "utils/tinyUtils";
 import { ColorSliderPropsType } from "models/componentType/ColorSliderPropsType";
+import StackedSlider from "utils/Slider";
 // import { stopProgress } from "next-nprogress-bar";
 function ColorSlider({
   active,
@@ -53,67 +52,52 @@ function ColorSlider({
       className={"active-slider " + (active ? "sl-active" : "sl-deactive")}
       onWheel={throttle(callback, 250)}
     >
-      <Swiper
-        className="color-swiper"
-        modules={[EffectCoverflow]}
-        ref={ImageRef}
-        onInit={(swiper) => {
-          ImageRef.current = swiper;
+      <StackedSlider
+        className="color-swiper h-[256px] w-[200px]"
+        initial_index={getIndex}
+        max_drag={100}
+        min_scale={0.8}
+        max_scale={1}
+        overlap_factor={0.5}
+        active_index={getIndex}
+        onSlideChange={(index) => {
+          setActiveColor({ ...colors[index], index: 0 });
         }}
-        speed={100}
-        effect="coverflow"
-        coverflowEffect={{
-          depth: 100,
-          modifier: 1,
-          scale: 1,
-          stretch: 145,
-          rotate: 10,
-          slideShadows: false,
+        slide_width={170}
+        slide_height={246}
+        slidesArray={colors.map((img, i) => i)}
+        renderSlide={({ index, isActive, slide_width }) => {
+          let img = colors[index];
+          return (
+            <div
+              key={index}
+              style={{
+                overflow: "visible",
+                position: "relative",
+              }}
+              className="bg-white"
+            >
+              <>
+                <BorderImage isBig={false} />
+                <div className="inset-shadow-img rounded-15 absolute w-100 h-100" />
+                <Image
+                  loading="eager"
+                  fetchPriority="auto"
+                  style={{ borderRadius: "15px", zIndex: "3" }}
+                  width={400}
+                  height={300}
+                  src={getConfiguredImage({
+                    src: GetImageUrl(img.images[0].file_path),
+                    width: 400,
+                    height: 400,
+                  })}
+                  alt={product_name || "alt"}
+                />
+              </>
+            </div>
+          );
         }}
-        slidesPerView={1}
-        threshold={1}
-        centeredSlides={true}
-        onSlideChange={(swiper) => {
-          setTimeout(() => {
-            // stopProgress(true);
-          }, 300);
-          setActiveColor({ ...colors[swiper.activeIndex], index: 0 });
-        }}
-        initialSlide={getIndex}
-        loop={false}
-      >
-        {colors.map(
-          (img, i) =>
-            img.images.length > 0 && (
-              <SwiperSlide
-                key={i}
-                style={{
-                  overflow: "visible",
-                  position: "relative",
-                }}
-                className="bg-white"
-              >
-                <>
-                  <BorderImage isBig={false} />
-                  <div className="inset-shadow-img rounded-15 absolute w-100 h-100" />
-                  <Image
-                    loading="eager"
-                    fetchPriority="auto"
-                    style={{ borderRadius: "15px", zIndex: "3" }}
-                    width={400}
-                    height={300}
-                    src={getConfiguredImage({
-                      src: GetImageUrl(img.images[0].file_path),
-                      width: 400,
-                      height: 400,
-                    })}
-                    alt={product_name || "alt"}
-                  />
-                </>
-              </SwiperSlide>
-            )
-        )}
-      </Swiper>
+      />
     </div>
   );
 }

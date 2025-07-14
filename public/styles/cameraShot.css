@@ -2,12 +2,7 @@
   transition: 0.3s;
   min-height: calc(100vh - 65px);
 }
-.swiper {
-  width: 100% !important;
-}
-.flex-col .swiper {
-  overflow: visible;
-}
+
 .gallery-slider-item {
   width: calc(50% - 12px);
   filter: drop-shadow(rgba(0, 0, 0, 0.1) 0px 0px 10px);

@@ -43,6 +43,7 @@ const getIndex = (product, productState) => {
     .map((co, ind) => {
       if (co.color_name === productState?.activeColor.color_name) index = ind;
     });
+
   return index;
 };
 export const BuyButtonProduct = ({ product }) => {
@@ -178,6 +179,7 @@ export function ProductPhotosSlider({
               .length > 0 && (
               <>
                 <CoverEffectSlider
+                  getIndex={getIndex(product, productState)}
                   priority={priority}
                   product_name={product.name}
                   active={!productState?.isActiveTopSlide}

@@ -2,8 +2,6 @@ import { useEffect, useRef } from "react";
 import LargeColorIcon from "public/svg/LargeColorIcon.svg";
 import Spinner from "components/global/Spinner";
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
-import { Swiper, SwiperRef, SwiperSlide } from "swiper/react";
-import { EffectCoverflow } from "swiper/modules";
 import { translateFunction } from "utils/functions";
 import { GetImageUrl } from "utils/tinyUtils";
 import { ColorListPropsType } from "models/componentType/ColorListPropsType";

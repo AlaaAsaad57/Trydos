@@ -10,6 +10,7 @@ function StackedSlider({
   threshold = 0.3,
   slidesArray = [],
   initial_index = 0,
+  active_index = -1,
   onSlideChange = (index) => {},
   renderSlide = ({ index, isActive, slide_width }) => {
     return (
@@ -136,7 +137,13 @@ function StackedSlider({
       marginLeft: -SLIDE_WIDTH / 2,
     };
   };
-
+  useEffect(() => {
+    if (active_index > -1) {
+      console.log("active_index", active_index);
+      onSlideChange(active_index);
+      setActiveIndex(active_index);
+    }
+  }, [active_index]);
   return (
     <div
       ref={containerRef}

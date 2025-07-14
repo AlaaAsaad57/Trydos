@@ -185,7 +185,7 @@
 .CircularProgressbar-background {
   fill: green;
 }
-.fixed-layout div:nth-child(2) > div:first-child:not(.swiper-wrapper) {
+.fixed-layout div:nth-child(2) > div:first-child {
   display: flex;
   align-items: center;
   justify-content: center;

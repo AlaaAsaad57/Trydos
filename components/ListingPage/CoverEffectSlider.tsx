@@ -14,6 +14,7 @@ function CoverEffectSlider({
   isColorSelected,
   product_name,
   priority,
+  getIndex,
 }: CoverEffectSliderPropsType) {
   const [activeIndex, setActive] = useState(
     images.findIndex((element) => element.color_name === activeColor.color_name)
@@ -27,24 +28,6 @@ function CoverEffectSlider({
     else if (i === activeIndex - 4 || i === activeIndex + 4) return 15;
     else return 15;
   };
-  useEffect(() => {}, [isColorSelected]);
-  useEffect(() => {}, [activeColor]);
-  const throttleFunc = (e) => {
-    e.preventDefault();
-  };
-  function throttle(fn, wait) {
-    var time = Date.now();
-
-    return function (event) {
-      // we dismiss every wheel event with deltaY less than 4
-      if (Math.abs(event.deltaX) < 4) return;
-
-      if (time + wait - Date.now() < 0) {
-        fn(event);
-        time = Date.now();
-      }
-    };
-  }
 
   return (
     <div
@@ -59,6 +42,7 @@ function CoverEffectSlider({
       <div className="avatar-slider mx-auto my-0 !w-fit">
         <StackedSlider
           initial_index={0}
+          active_index={getIndex}
           max_drag={100}
           min_scale={0.6}
           max_scale={1}
