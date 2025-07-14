@@ -2,7 +2,12 @@
 
 import { Metadata } from "next";
 import { generateCloudinaryUrl } from "utils/tinyUtils";
-
+const stripHtml = (html: string) => {
+  if (html) {
+    return html.replace(/<[^>]*>/g, "").trim();
+  }
+  return "";
+};
 export async function generateProductMetaData({
   params,
   searchParams,
@@ -41,7 +46,7 @@ export async function generateProductMetaData({
       : null;
     let data: Metadata = {
       title: title,
-      description: product?.details,
+      description: stripHtml(product?.details),
       alternates: {
         canonical: `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${params.lang}/products/${params.productId}`,
         languages: {
@@ -52,7 +57,7 @@ export async function generateProductMetaData({
       },
       openGraph: {
         title: title,
-        description: product?.details,
+        description: stripHtml(product?.details),
         url: `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${params.lang}/products/${params.productId}`,
         siteName: "Trydos",
         images: [
@@ -68,7 +73,7 @@ export async function generateProductMetaData({
       twitter: {
         card: "summary_large_image",
         title: title,
-        description: product?.details,
+        description: stripHtml(product?.details),
         images: [image],
       },
       keywords: [
@@ -86,7 +91,7 @@ export async function generateProductMetaData({
     return {
       title: "!Not Found Product MetaData",
       // @ts-ignore
-
+      error: "!Not Found Product MetaData",
       description: "!Not Found Product MetaData",
       openGraph: {
         type: "website",
@@ -113,7 +118,7 @@ export const GetStructuredData = ({ params, product, color }) => {
     "@type": "Product",
     name: product?.name,
     image: image,
-    description: product?.details,
+    description: stripHtml(product?.details),
     sku: product?.slug,
     category: product?.category?.name,
     brand: {
