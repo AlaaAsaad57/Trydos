@@ -535,7 +535,9 @@ function CartContainer({ close, toOrders }: CartContainerPropsType) {
                             </div>
                           )}
 
-                          {!product.check_availability && (
+                          {(!product.check_availability ||
+                            product.is_country_restricted === true ||
+                            product.is_active === false) && (
                             <div className="flex-row items-center mt-1 text-[12px] light text-[#fd445d]">
                               <ErrorIcon />
                               <div
@@ -546,65 +548,6 @@ function CartContainer({ close, toOrders }: CartContainerPropsType) {
                                 </span>
                                 <span className="regular ml-1">
                                   {translateFunction("Out Of Stock")}
-                                </span>
-                              </div>
-                            </div>
-                          )}
-                          {product.is_country_restricted === true && (
-                            <div className="flex-row items-center text-[12px] mt-1 light text-[#fd445d]">
-                              <svg
-                                width="12"
-                                height="12"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="1.5"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              >
-                                <circle cx="12" cy="12" r="10" />
-                                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
-                                <path d="M2 12h20" />
-                                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
-                              </svg>
-
-                              <div
-                                className={`${language === "ar" && "dir-rtl"}`}
-                              >
-                                <span className="ml-1">
-                                  {translateFunction("Availabilty")}:
-                                </span>
-                                <span className="regular ml-1">
-                                  {translateFunction(
-                                    "Product Restricted in This Country"
-                                  )}
-                                </span>
-                              </div>
-                            </div>
-                          )}
-                          {product.is_active === false && (
-                            <div className="flex-row items-center mt-1 text-[12px] light text-[#fd445d]">
-                              <svg
-                                width="15"
-                                height="15"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="1.5"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              >
-                                <path d="M21 8v13H3V8M1 3h22v5H1V3zM10 12h4" />
-                              </svg>
-
-                              <div
-                                className={`${language === "ar" && "dir-rtl"}`}
-                              >
-                                <span className="ml-1">
-                                  {translateFunction("Availabilty")}:
-                                </span>
-                                <span className="regular ml-1">
-                                  {translateFunction("Product Not available")}
                                 </span>
                               </div>
                             </div>
