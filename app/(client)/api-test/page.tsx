@@ -49,7 +49,7 @@ export default function ApiTestPage() {
     { value: "en", label: "English" },
     { value: "ar", label: "العربية" },
     { value: "tr", label: "Türkçe" },
-    { value: "kd", label: "كوردي" },
+    { value: "kd", label: "کوردی" },
   ];
 
   const countries = [
