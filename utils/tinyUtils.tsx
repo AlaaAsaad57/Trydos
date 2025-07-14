@@ -5,6 +5,7 @@ import { allCountries } from "country-telephone-data";
 import { textMarshal } from "node_modules/text-marshal/lib";
 import { GA_GLOBAL_SCREEN } from "./GAEvents";
 import { fetchData } from "./fetchData";
+import Image from "node_modules/next/image";
 // TypeScript interfaces for filter system
 export interface FilterParams {
   boutiques?: string[];
@@ -270,7 +271,7 @@ export const getCurrency = async ({ callback }) => {
 export const FlagIcon = ({ iso }) => {
   if (iso.toLowerCase() === "sy")
     return (
-      <img
+      <Image
         src="/svg/sy.svg"
         alt={translateFunction("sy")}
         width={15}
@@ -279,7 +280,7 @@ export const FlagIcon = ({ iso }) => {
     );
 
   return (
-    <img
+    <Image
       src={`/svg/flag/${iso?.toLowerCase()}.svg`}
       alt={translateFunction(iso)}
       width={15}
@@ -697,7 +698,7 @@ export const DetectScreen = () => {
     return GA_GLOBAL_SCREEN.HOME_SCREEN;
   }
 };
-export function generateCloudinaryUrl({ width, height, publicIds }) {
+export function generateCloudinaryUrl({ width, height, publicIds , overlayText} : {width: number, height: number , publicIds: string[], overlayText?: string}) {
   const baseUrl = `https://res.cloudinary.com/dtcmozf4d/image`;
 
   // Keep full path including extension

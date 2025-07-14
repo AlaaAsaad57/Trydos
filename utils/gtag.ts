@@ -11,7 +11,8 @@ let countries = [
 let languages = [
   { name: "English", iso: "en" },
   { name: "Turkish", iso: "tr" },
-  { name: "arabic", iso: "ar" },
+  { name: "Arabic" , iso: "ar" },
+  { name: "  "     , iso: "kd"},
 ];
 let countryCode =
   typeof document !== "undefined" &&

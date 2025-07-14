@@ -54,11 +54,11 @@ function StoryHolder({ story, active, isPaused }: StoryHolderPropsType) {
       >
         <h2
           id="delete-modal-title"
-          className="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100"
+          className="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100 regular "
         >
           {translateFunction("Delete Story?")}
         </h2>
-        <p className="mb-6 text-gray-700 dark:text-gray-300">
+        <p className="mb-6 text-gray-700 dark:text-gray-300 regular ">
           {translateFunction("Are you sure you want to delete this story?")}
         </p>
         <div className="flex gap-4 w-full justify-center min-h-[40px]">
@@ -67,7 +67,7 @@ function StoryHolder({ story, active, isPaused }: StoryHolderPropsType) {
           ) : (
             <>
               <button
-                className="px-4 py-2 rounded bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-400"
+                className="px-4 py-2 rounded bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-400 regular "
                 onClick={onCancel}
                 tabIndex={0}
                 aria-label="Cancel delete"
@@ -75,7 +75,7 @@ function StoryHolder({ story, active, isPaused }: StoryHolderPropsType) {
                 {translateFunction("Cancel")}
               </button>
               <button
-                className="px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-400"
+                className="px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-400 regular "
                 onClick={onConfirm}
                 tabIndex={0}
                 aria-label="Confirm delete"

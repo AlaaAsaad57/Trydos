@@ -14,7 +14,7 @@ import { FlagIcon } from "utils/tinyUtils";
 import { LanguageFlagPropsType } from "models/componentType/LanguageFlagPropsType";
 
 function LanguageSetting({ goBack }: { goBack: () => void }) {
-  const languages = ["ar", "en", "tr"];
+  const languages = ["ar", "en", "tr", "kd"];
 
   const { lang } = useParams();
   const [selectedCountry, setSelectedCountry] = useState(
@@ -295,10 +295,12 @@ const getLanguage = (iso) => {
   if (iso === "en") return "English";
   if (iso === "ar") return "العربية";
   if (iso === "tr") return "Turkish";
+  if (iso === "kd") return "کوردی";
 };
 export default LanguageSetting;
 const LanguageFlag = ({ lang }: LanguageFlagPropsType) => {
   if (lang === "ar") return <FlagIcon iso={"sa"} />;
   if (lang === "en") return <FlagIcon iso={"gb"} />;
   if (lang === "tr") return <FlagIcon iso="tr" />;
+  if (lang === "kd") return <FlagIcon iso="krd" />;
 };

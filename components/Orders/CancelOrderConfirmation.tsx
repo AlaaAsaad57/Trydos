@@ -62,7 +62,7 @@ function CancelOrderConfirmation({
               href="#"
               className="ml-[4px] medium text-[14px] text-white underline"
             >
-              {translateFunction(`Cancellation Terms.`)}
+              {" "}{translateFunction(`Cancellation Terms.`)}
             </a>
           </p>
 

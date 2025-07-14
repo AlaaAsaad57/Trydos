@@ -429,8 +429,8 @@ function OrderDetails({ resetOrderDetails, goBack }: OrderDetailsPropsType) {
                       setActivePacks(s);
                     }}
                   >
+                  <span className="mx-1 bold">{s.id}</span>
                     {translateFunction("Pack")}{" "}
-                    <span className="mx-1 bold">{s.id}</span>
                   </div>
                 ))}
               </div>
