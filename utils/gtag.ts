@@ -80,16 +80,16 @@ export const GAevent = ({
 const getUserParam = () => {
   const userData = getCookie<UserData>(COOKIE_NAMES.USER_DATA);
   if (
-    userData.phone === "0" ||
-    !userData.phone ||
-    userData.is_phone_verified === 0
+    userData?.phone === "0" ||
+    !userData?.phone ||
+    userData?.is_phone_verified === 0
   ) {
     return {
-      user_id_guest: userData.id,
+      user_id_guest: userData?.id,
     };
   } else {
     return {
-      user_id_verify: userData.id,
+      user_id_verify: userData?.id,
     };
   }
 };
@@ -107,7 +107,7 @@ export const SetGAUser = (user, isNewUser = false) => {
 
     })`
     );
-    if (bool) {
+    if (bool && typeof navigator !== "undefined") {
       navigator.clipboard.writeText(
         `window?.gtag?.("set", {
         user_id: ${user.id},
@@ -155,6 +155,7 @@ const getAccountAge = (user) => {
   return diffDays;
 };
 const getDeviceCategory = () => {
+  if (typeof navigator === "undefined") return "desktop";
   const userAgent = navigator.userAgent.toLowerCase();
 
   // Check for tablet first (more specific)
@@ -196,6 +197,7 @@ const getDeviceCategory = () => {
 };
 
 const getOperatingSystem = () => {
+  if (typeof navigator === "undefined") return "Unknown";
   const userAgent = navigator.userAgent.toLowerCase();
 
   // Check for mobile operating systems first

@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 
 import BackIcon from "public/svg/listing/backIcon.svg";
 import {
@@ -10,8 +10,7 @@ import {
 } from "utils/functions";
 import { useAppStore } from "store";
 import CartIcon from "public/svg/CartIcon.svg";
-import { Swiper, SwiperRef, SwiperSlide } from "swiper/react";
-import { EffectCoverflow } from "swiper/modules";
+
 import Skeleton from "react-loading-skeleton";
 import "public/styles/sizeSlider.css";
 import Spinner from "components/global/Spinner";
@@ -28,6 +27,8 @@ import { DetectScreen, GetImageUrl } from "utils/tinyUtils";
 import { GAevent } from "utils/gtag";
 import { showSuccessNotification } from "@/store/notifications/reducer";
 import { fetchData } from "utils/fetchData";
+import StackedSlider from "utils/Slider";
+import RedeemIcon from "public/svg/RedeemedFlag.svg";
 
 function AddToCartComponent({
   color,
@@ -49,6 +50,7 @@ function AddToCartComponent({
   // @ts-ignore
   const [country, languageVariable] = lang?.split("-");
   const [ProductData, setProductData] = useState(product);
+
   const [selectedColor, setSelectedColor] = useState(
     ProductData?.sync_color_images?.find(
       (s) => s.color_option?.toLowerCase() === colorFromUrl?.toLowerCase()
@@ -57,7 +59,7 @@ function AddToCartComponent({
   const [selectedSize, setSelectedSize] = useState(null);
   const [loading, setLoading] = useState(false);
   const [requestLoading, setRequestLoading] = useState(false);
-  const colorsSliderRef = useRef<SwiperRef>();
+
   const getProductData = async () => {
     try {
       setLoading(true);
@@ -109,6 +111,8 @@ function AddToCartComponent({
       let tempProductData = {
         ...product,
         ...data1.data,
+        is_redeem: data1.data.is_redeem,
+        // is_redeem: shouldShowRedeem() && true,
         ...data2.data,
         ...data4.data,
         shared_count: data3.data.shared_count,
@@ -164,7 +168,14 @@ function AddToCartComponent({
     });
     return index;
   };
-  const SizesRef = useRef<SwiperRef>();
+  // const shouldShowRedeem = () => {
+  //   let redeemed_products_ids = localStorage.getItem("redemed_ids");
+  //   if (redeemed_products_ids) {
+  //     let parsed_redemed_ids = JSON.parse(redeemed_products_ids);
+  //     return !parsed_redemed_ids.includes(product?.id);
+  //   }
+  //   return true;
+  // };
   const getSelectedVariantQty = () => {
     if (ProductData?.variation?.length > 0) {
       let selected_variant;
@@ -200,13 +211,21 @@ function AddToCartComponent({
           )
         );
       }
-      return selected_variant;
+      return {
+        ...selected_variant,
+        offer_price: ProductData?.showRedeemPrice
+          ? selected_variant?.redeem_price
+          : selected_variant?.offer_price,
+      };
     } else {
       // no variants
       return {
         type: "N/A",
         price: ProductData?.price,
-        offer_price: ProductData?.offer_price,
+        offer_price: ProductData?.showRedeemPrice
+          ? ProductData?.redeem_price
+          : ProductData?.offer_price,
+        redeem_price: ProductData?.redeem_price,
         qty: ProductData?.available_quantity,
         variant_notify_for_user: ProductData?.is_product_notify_for_user,
       };
@@ -267,9 +286,28 @@ function AddToCartComponent({
             ?.notify_for_user,
         };
       }),
+      is_redeem: response.data.is_redeem,
     });
   };
-
+  const getClassName = (size, isActive) => {
+    if (isActive) {
+      if (getVariantSizeQty(size.option) === 0) {
+        return "text-white bg-[#ff5f61]";
+      } else if (getVariantSizeQty(size.option) < 10) {
+        return "text-white bg-[#ffaf5f]";
+      } else {
+        return "!bg-[#505050] !text-[#f8f8f8]";
+      }
+    } else {
+      if (getVariantSizeQty(size.option) === 0) {
+        return "text-[#ff5f61] bg-transparent border-none shadow-none";
+      } else if (getVariantSizeQty(size.option) < 10) {
+        return "text-[#ffaf5f] bg-transparent border-none shadow-none";
+      } else {
+        return "!bg-transparent !text-[#505050] !border-none !shadow-none";
+      }
+    }
+  };
   return (
     <div className="flex-col message-add-to-cart h-full w-[100vw] flex top-0 left-0 fixed z-[99999999999999999] justify-start  ">
       {/* <ToastContainer
@@ -320,7 +358,6 @@ function AddToCartComponent({
         style={{ height: "calc(100vh - 461px)" }}
         className="flex-col mt-[10px] w-full   top-[103px] items-center z-[999999999]"
         onClick={(e) => {
-          console.log(e.target);
           if (
             !(e.target as HTMLDivElement).classList.contains(
               "image-cart-container"
@@ -328,12 +365,12 @@ function AddToCartComponent({
             !(e.target as HTMLDivElement).classList.contains(
               "color_option_cyrcle"
             ) &&
-            !(e.target as HTMLDivElement).classList.contains("swiper-slide")
+            !(e.target as HTMLDivElement).classList.contains("slider_slide")
           ) {
-            setSelectedProductForCart(null);
-            document.documentElement.style.overflow = "initial";
-            document.documentElement.scrollTop = 0;
-            close();
+            // setSelectedProductForCart(null);
+            // document.documentElement.style.overflow = "initial";
+            // document.documentElement.scrollTop = 0;
+            // close();
           }
         }}
       >
@@ -393,87 +430,46 @@ function AddToCartComponent({
             data-cy="color_option_cyrcle"
             className="flex w-full max-w-[420px] color_option_cyrcle "
           >
-            <Swiper
-              data-cy="swipper_when_addtocart"
-              modules={[EffectCoverflow]}
-              speed={100}
-              style={{
-                width: "100%",
-                margin: "0",
+            <StackedSlider
+              initial_index={getInitialColorSlide()}
+              max_drag={100}
+              max_scale={1}
+              min_scale={0.6}
+              onSlideChange={(index) => {
+                setSelectedColor(ProductData?.sync_color_images[index]);
               }}
-              effect="coverflow"
-              className="mt-[10px] "
-              coverflowEffect={{
-                rotate: 0,
-                depth: 120,
-                modifier: 1,
-                scale: 1,
-                stretch: 20,
-                slideShadows: false,
+              slidesArray={ProductData?.sync_color_images?.map((s, i) => i)}
+              slide_width={70}
+              overlap_factor={0.4}
+              renderSlide={({ index, isActive, slide_width }) => {
+                let color = ProductData?.sync_color_images[index];
+                console.log(color);
+                return (
+                  <div className="w-[70px] color_option_cyrcle h-[70px] color-swipe-slide relative rounded-full">
+                    <img
+                      src={getConfiguredImage({
+                        src:
+                          (typeof color.images[0] === "string" &&
+                            GetImageUrl(color.images[0])) ||
+                          (color.images[0].file_path &&
+                            GetImageUrl(color.images[0].file_path)),
+                        height: 70,
+                        width: 70,
+                      })}
+                      className="w-[70px] h-[70px] rounded-full bg-white"
+                    />
+                    {isActive && (
+                      <span
+                        data-cy="color_name"
+                        className="regular text-[#3C3C3C] text-[14px] absolute bottom-[-20px] w-full flex justify-center items-center"
+                      >
+                        {color.color_name}
+                      </span>
+                    )}
+                  </div>
+                );
               }}
-              onSlideChange={(e) => {
-                setSelectedColor(ProductData?.sync_color_images[e.activeIndex]);
-              }}
-              slidesPerView={7}
-              initialSlide={getInitialColorSlide()}
-              threshold={1}
-              centeredSlides={true}
-              loop={false}
-              ref={colorsSliderRef}
-            >
-              {ProductData?.sync_color_images?.map((color, i) => (
-                <SwiperSlide
-                  data-cy="color_slide"
-                  onChange={() => {
-                    // Sendevent({
-                    //   event: GA_EVENT_NAMES.CLICK,
-                    //   value: GA_CLICK_EVENT_VALUES.COLOR_SLIDE,
-                    // });
-                  }}
-                  onClick={() => {
-                    // Sendevent({
-                    //   event: GA_EVENT_NAMES.CLICK,
-                    //   value: GA_CLICK_EVENT_VALUES.COLOR_SLIDE,
-                    // });
-                    colorsSliderRef.current.swiper.slideTo(i, 400, false);
-                    setSelectedColor(color);
-                  }}
-                  key={i}
-                  style={{
-                    overflow: "visible",
-                    minWidth: "70px",
-                    height: "70px",
-                  }}
-                  className="w-[70px] h-[70px] color-swipe-slide relative rounded-full"
-                >
-                  {({ isActive }) => (
-                    <>
-                      <img
-                        data-cy="swipper_slide_when_addtocart_img"
-                        className="w-[70px] h-[70px] rounded-full bg-white"
-                        src={getConfiguredImage({
-                          src:
-                            (typeof color.images[0] === "string" &&
-                              GetImageUrl(color.images[0])) ||
-                            (color.images[0].file_path &&
-                              GetImageUrl(color.images[0].file_path)),
-                          width: 400,
-                          height: 400,
-                        })}
-                      />
-                      {isActive && (
-                        <span
-                          data-cy="color_name"
-                          className="regular text-[#3C3C3C] text-[14px] absolute bottom-[-20px] w-full flex justify-center items-center"
-                        >
-                          {color.color_name}
-                        </span>
-                      )}
-                    </>
-                  )}
-                </SwiperSlide>
-              ))}
-            </Swiper>
+            />
           </div>
         )}
       </div>
@@ -554,6 +550,7 @@ function AddToCartComponent({
                   />
                 )}
               </div>
+
               <div data-cy="product_Skeleton_info_icon" className="info-icon">
                 <svg
                   data-cy="product_Skeleton_info_icon_svg"
@@ -748,46 +745,32 @@ function AddToCartComponent({
                   className="flex-row h-[96px] w-full max-w-[420px] min-w-[420px] relative"
                 >
                   <SliderRuler />
-                  <Swiper
-                    data-cy="slide_components"
-                    modules={[EffectCoverflow]}
-                    className=" size-slider-coverflow"
-                    speed={100}
-                    ref={SizesRef}
-                    effect="coverflow"
-                    coverflowEffect={{
-                      rotate: 0,
-                      depth: 100,
-                      modifier: 0,
-                      scale: 1,
-                      stretch: 100,
-                      slideShadows: false,
-                    }}
-                    onSlideChange={(e) => {
+
+                  <StackedSlider
+                    className="mt-[7px]"
+                    initial_index={getInitialSizeSlider()}
+                    slidesArray={ProductData?.choice_options?.[0]?.options}
+                    max_drag={100}
+                    slide_width={70}
+                    onSlideChange={(index) => {
                       setSelectedSize(
-                        ProductData?.choice_options?.[0]?.options?.[
-                          e.activeIndex
-                        ]
+                        ProductData?.choice_options?.[0]?.options?.[index]
                       );
-                      // Sendevent({
-                      //   event: GA_EVENT_NAMES.CLICK,
-                      //   value: GA_CLICK_EVENT_VALUES.SIZE_SLIDE,
-                      // });
                     }}
-                    slidesPerView={7}
-                    threshold={1}
-                    centeredSlides={true}
-                    loop={false}
-                    initialSlide={getInitialSizeSlider()}
-                  >
-                    {ProductData?.choice_options?.[0]?.options.map(
-                      (size, i) => (
-                        <SwiperSlide
+                    max_scale={1}
+                    min_scale={0.7}
+                    overlap_factor={1.1}
+                    threshold={0.3}
+                    renderSlide={({ index, isActive, slide_width }) => {
+                      let size =
+                        ProductData?.choice_options?.[0]?.options?.[index];
+                      return (
+                        <div
                           data-cy="size_slide"
-                          key={i}
+                          key={index}
                           onClick={() => {
                             // @ts-ignore
-                            SizesRef.current.swiper.slideTo(i, 400, false);
+
                             setSelectedSize(size);
                             // Sendevent({
                             //   event: GA_EVENT_NAMES.CLICK,
@@ -798,20 +781,20 @@ function AddToCartComponent({
                             overflow: "visible",
                             minWidth: "70px",
                             height: "70px",
+                            boxShadow:
+                              "inset rgba(255, 255, 255, 0.5) 0px 4px 6px, rgba(0, 0, 0, 0.1) 0px 3px 4px",
+                            border: "#366cb8 1px solid",
                           }}
-                          className={`${
-                            getVariantSizeQty(size.option) === 0
-                              ? "red-bg"
-                              : getVariantSizeQty(size.option) < 10
-                              ? "yellow-bg"
-                              : ""
-                          } flex-row items-center justify-center text-[30px] bold select-none flex`}
+                          className={`${getClassName(
+                            size,
+                            isActive
+                          )}  rounded-full flex-row items-center justify-center text-[30px] bold select-none flex`}
                         >
                           {size.name}
-                        </SwiperSlide>
-                      )
-                    )}
-                  </Swiper>
+                        </div>
+                      );
+                    }}
+                  />
                 </div>
                 {getVariantSizeQty(selectedSize?.option) === 0 ? (
                   <div
@@ -1127,6 +1110,9 @@ function AddToCartComponent({
               size={selectedSize}
               id={ProductData?.id}
               qty={getSelectedVariantQty()?.qty}
+              onSuccessAddUpdate={() => {
+                setProductData({ ...ProductData, is_redeem: false });
+              }}
             />
           )}
         </div>
@@ -1569,6 +1555,7 @@ const AddToCartButton = ({
   selectedVariant,
   loading,
   setLoading,
+  onSuccessAddUpdate,
 }) => {
   const { localCart, currency } = useAppStore();
   const getTotalQuantity = () => {
@@ -1641,7 +1628,9 @@ const AddToCartButton = ({
           cart_id: isVariantInCart({ exact: false })?.item_id,
           qty: (isVariantInCart({ exact: false })?.quantity ?? 0) + 1,
           isFromAddWidget: true,
+          is_redeem: product?.is_redeem,
         });
+        onSuccessAddUpdate();
         GAevent({
           action: GA_EVENT_NAMES.ADD_TO_CART,
           params: {
@@ -1694,7 +1683,9 @@ const AddToCartButton = ({
             product?.images[0]?.file_path ||
             product?.images[0],
           isFromAddWidget: true,
+          is_redeem: product?.is_redeem,
         });
+        onSuccessAddUpdate();
         GAevent({
           action: GA_EVENT_NAMES.ADD_TO_CART,
           params: {

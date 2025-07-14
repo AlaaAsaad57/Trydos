@@ -141,11 +141,13 @@ function ShareOptions({
             //   event: GA_EVENT_NAMES.CLICK,
             //   value: GA_CLICK_EVENT_VALUES.SHARE_WITH_COPY_LINK_BUTTON,
             // });
-            navigator.clipboard.writeText(window.location.href).then(() => {
-              showSuccessNotification(
-                translateFunction("Link Copied to Clipboard")
-              );
-            });
+            if (typeof navigator !== "undefined") {
+              navigator.clipboard.writeText(window.location.href).then(() => {
+                showSuccessNotification(
+                  translateFunction("Link Copied to Clipboard")
+                );
+              });
+            }
           }}
         >
           <CopyIcon />

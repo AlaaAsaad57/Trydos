@@ -1,9 +1,10 @@
+export const dynamic = "auto";
+export const runtime = "nodejs";
+export const preferredRegion = process.env.PREFERRED_REGION || "bom1";
 import Settings from "components/settings";
 import React from "react";
 
 import { settingPagePropsType } from "models/componentType/settingTypes/settingPagePropsType";
-
-export const dynamic = "auto";
 
 export async function generateMetadata({ params }: settingPagePropsType) {
   try {

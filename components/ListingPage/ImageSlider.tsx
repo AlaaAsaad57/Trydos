@@ -1,13 +1,11 @@
 "use client";
-import { useEffect } from "react";
-import { Swiper, SwiperSlide } from "swiper/react";
-
-import { useRef } from "react";
+import React from "react";
 import PointsSlider from "./PointsSlider";
 import { getConfiguredImage } from "utils/functions";
 import Image from "node_modules/next/image";
 import { GetImageUrl } from "utils/tinyUtils";
 import { ImageSliderPropsType } from "models/componentType/ImageSliderPropsType";
+import { NormalSlider } from "utils/Slider";
 
 function ImageSlider({
   renderVar,
@@ -21,12 +19,6 @@ function ImageSlider({
   setColor,
   priority,
 }: ImageSliderPropsType) {
-  var ColorRef = useRef<any>();
-  useEffect(() => {
-    if (activeColor.index >= 0) {
-      ColorRef.current.slideTo(activeColor.index, 300, false);
-    }
-  }, [activeColor]);
   return (
     <>
       <div
@@ -36,7 +28,7 @@ function ImageSlider({
           <PointsSlider
             key={product_name}
             colors={activeColor.images}
-            activeIndex={ColorRef.current?.activeIndex || 0}
+            activeIndex={activeColor.index >= 0 ? activeColor.index : 0}
             isActiveTopSlide={isActiveTopSlide}
             setActiveTopSlide={() => {
               setActiveTopSlide(!isActiveTopSlide);
@@ -45,69 +37,41 @@ function ImageSlider({
           />
         )}
 
-        <Swiper
-          effect="coverflow"
-          id={product_name}
-          className="overflow-hidden"
-          coverflowEffect={{
-            depth: 100,
-            modifier: 1,
-            scale: 0.78,
-            stretch: 135,
-            slideShadows: false,
-          }}
-          ref={ColorRef}
-          threshold={1}
-          onInit={(swiper) => {
-            ColorRef.current = swiper;
-          }}
-          speed={100}
-          slidesPerView={1}
-          centeredSlides={true}
-          onSlideChange={(swiper) => {
-            setTimeout(() => {
-              // stopProgress(true);
-            }, 300);
-
-            setActiveImage({ ...activeColor, index: swiper.activeIndex });
+        <NormalSlider
+          onSlideChange={(index) => {
+            setActiveImage({ ...activeColor, index: index });
           }}
           initialSlide={activeColor.index}
-          loop={false}
-        >
-          {activeColor?.images?.map((img, i) => (
-            <SwiperSlide
-              key={i}
-              style={{
-                overflow: "visible",
-                position: "relative",
-              }}
-              className="bg-white"
-            >
-              {({ isActive }) => (
-                <>
-                  {/* <BorderImage isBig={true} /> */}
-                  <div className="inset-shadow-img w-100 h-100 rounded-15 absolute" />
-                  {(isActive || i === 0) && (
-                    <Image
-                      width={400}
-                      height={300}
-                      loading="eager"
-                      fetchPriority="auto"
-                      style={{ borderRadius: "15px", zIndex: "3" }}
-                      src={getConfiguredImage({
-                        src: GetImageUrl(img.file_path),
-                        width: 400,
-                        height: 400,
-                      })}
-                      key={`${product_name}-${i}`}
-                      alt={product_name || "alt"}
-                    />
-                  )}
-                </>
-              )}
-            </SwiperSlide>
-          ))}
-        </Swiper>
+          slidesArray={activeColor?.images?.map((img, index) => index)}
+          renderSlide={({ index, isActive, slide }) => {
+            let element = activeColor?.images[index];
+            return (
+              <React.Fragment key={index}>
+                {/* <BorderImage isBig={true} /> */}
+                <div className="inset-shadow-img w-[200px] h-[290px] rounded-15 absolute" />
+
+                <Image
+                  width={400}
+                  height={300}
+                  loading="eager"
+                  fetchPriority="auto"
+                  style={{ borderRadius: "15px", zIndex: "3" }}
+                  src={getConfiguredImage({
+                    src: GetImageUrl(element.file_path),
+                    width: 400,
+                    height: 400,
+                  })}
+                  key={`${product_name}-${index}`}
+                  className="w-[200px] h-[290px]"
+                  alt={product_name || "alt"}
+                />
+              </React.Fragment>
+            );
+          }}
+          slideHeight={290}
+          slideWidth={200}
+          threshold={0}
+        />
       </div>
     </>
   );

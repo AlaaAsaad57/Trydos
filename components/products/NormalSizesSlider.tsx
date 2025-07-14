@@ -57,7 +57,7 @@ function NormalSizesSlider({
           }}
         >
           <div
-            className={`size-circle ${
+            className={`size-circle max-w-[70px] max-h-[70px] ${
               activeColor.includes(size.name) && "active-size-circle"
             }`}
           >

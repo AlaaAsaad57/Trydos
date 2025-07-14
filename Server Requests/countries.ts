@@ -1,6 +1,6 @@
 "use server";
-
 import { reportError } from "utils/error-reporter";
+import { fetchServerData } from "./ServerFetch";
 
 interface Country {
   [key: string]: any;
@@ -15,32 +15,26 @@ export async function fetchCountries(
   language = "en"
 ): Promise<CountriesResponse> {
   try {
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_BACKEND_URL}/countries?lang=${language}&country=${country}`,
-      {
-        method: "GET",
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
-          country: country,
-          lang: language,
-        },
-        next: {
-          tags: ["countries", "home"],
-          revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE_COUNTRIES),
-        },
-      }
-    );
+    const response = await fetchServerData({
+      url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/countries?lang=${language}&country=${country}`,
+      method: "GET",
+      tags: ["countries", "home"],
+      revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE_COUNTRIES),
+      local: `${country}-${language}`,
+    });
 
-    if (!response.ok) {
+    if (response.isError) {
       console.error(`Countries Error: ${response.status}`);
-      reportError(new Error(`Countries Error: ${response.status}`), {
-        source: "countries",
-        page: "countries",
-        country: country,
-        language: language,
-        response: JSON.stringify(response),
-      });
+      reportError(
+        new Error(`Countries Error: ${response.status}-${response.error}`),
+        {
+          source: "countries",
+          page: "countries",
+          country: country,
+          language: language,
+          response: JSON.stringify(response),
+        }
+      );
       return {
         countries: [
           {
@@ -79,10 +73,8 @@ export async function fetchCountries(
       };
     }
 
-    const data = await response.json();
-
     return {
-      countries: data.data.countries,
+      countries: response.data.data.countries,
     };
   } catch (error) {
     console.error("Error fetching countries:", error);
@@ -129,10 +121,14 @@ export async function fetchLanguages(
   language = "en"
 ): Promise<string[]> {
   try {
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_BACKEND_URL}/languages?lang=${language}&country=${country}`
-    );
-    if (!response.ok) {
+    const response = await fetchServerData({
+      url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/languages?lang=${language}&country=${country}`,
+      method: "GET",
+      tags: ["languages", "home"],
+      revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE_LANGUAGES),
+      local: `${country}-${language}`,
+    });
+    if (response.isError) {
       console.error(`Languages Error: ${response.status}`);
       reportError(new Error(`Languages Error: ${response.status}`), {
         source: "languages",
@@ -143,8 +139,7 @@ export async function fetchLanguages(
       });
       return [];
     }
-    const data = await response.json();
-    return data.data.languages;
+    return response.data.languages;
   } catch (error) {
     console.error("Error fetching languages:", error);
     return [];

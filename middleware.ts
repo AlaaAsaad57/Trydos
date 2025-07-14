@@ -1,8 +1,6 @@
-"use server";
 import { NextResponse, type NextRequest } from "next/server";
 import { fetchCountries, fetchLanguages } from "Server Requests";
-import { shouldBlockRegistration } from "@/utils/bot-detector";
-import { AuthServerService } from "@/services/auth-server";
+
 import {
   COOKIE_NAMES,
   getCookieMiddleware,
@@ -64,7 +62,28 @@ const SKIP_REGISTRATION_PATHS = [
   "/.well-known/appspecific/com.chrome.devtools.json",
   "/appspecific/com.chrome.devtools.json",
 ];
+function isBot(userAgent: string | null): boolean {
+  if (!userAgent) return false;
 
+  const bots = [
+    "googlebot",
+    "bingbot",
+    "facebookexternalhit",
+    "facebot",
+    "twitterbot",
+    "whatsapp",
+    "linkedinbot",
+    "instagram",
+    "discordbot",
+    "slackbot-linkexpanding",
+    "vercel",
+    "vercel-og",
+  ];
+
+  userAgent = userAgent.toLowerCase();
+
+  return bots.some((bot) => userAgent.includes(bot));
+}
 // Types
 interface LocaleInfo {
   country: string;
@@ -187,53 +206,10 @@ function setLocaleCookies(
 
 // Main middleware function
 export async function middleware(request: NextRequest) {
-  const userData = getCookieMiddleware<UserData>(
-    request,
-    COOKIE_NAMES.USER_DATA
-  );
-  const response = NextResponse.next();
-
-  // Skip non-HTML requests
-  if (
-    request.method === "POST" ||
-    !request.headers.get("accept")?.includes("text/html")
-  ) {
-    return response;
-  }
-
+  const isBotAgent = isBot(request.headers.get("user-agent"));
   const url = request.nextUrl.clone();
   const pathname = url.pathname;
-
-  // ===== GUEST REGISTRATION LOGIC =====
-  if (!shouldSkipRegistration(pathname) && !userData) {
-    try {
-      const isBot = shouldBlockRegistration(request);
-
-      if (!isBot) {
-        console.warn("ensureGuestSessionMiddleware", JSON.stringify(request));
-        const registrationResult =
-          await AuthServerService.ensureGuestSessionMiddleware(
-            request,
-            response
-          );
-
-        if (!registrationResult.success) {
-          console.error("Guest registration failed:", registrationResult.error);
-        }
-      } else {
-        console.log(
-          "Bot detected, skipping guest registration:",
-          request.headers.get("user-agent")
-        );
-      }
-    } catch (error) {
-      console.error("Middleware guest registration error:", error);
-    }
-  }
-
-  // ===== LOCALIZATION LOGIC =====
-
-  // Get supported countries
+  const urlLocale = parseUrlLocale(pathname);
   const supportedCountries = await getCachedCountries();
   const allSupportedCountries = [...supportedCountries, "gb"];
 
@@ -244,9 +220,71 @@ export async function middleware(request: NextRequest) {
       supportedLocales.add(buildLocale(country, lang));
     });
   });
+  if (isBotAgent) {
+    if (urlLocale && supportedLocales.has(urlLocale.locale)) {
+      return NextResponse.next();
+    }
+    const preferredLanguage = getPreferredLanguage(request);
+    const defaultLocale = urlLocale
+      ? buildLocale(urlLocale.country, urlLocale.language)
+      : buildLocale(DEFAULT_COUNTRY, preferredLanguage);
+
+    // Preserve full path, prefix with locale
+    // Ensure pathname starts with /
+    const cleanPathname = pathname.startsWith("/") ? pathname : `/${pathname}`;
+
+    url.pathname = `/${defaultLocale}${cleanPathname}`;
+    return NextResponse.redirect(url, 308);
+    // return NextResponse.redirect(new URL("/", request.url), 308);
+  }
+
+  if (pathname?.includes("/robots.txt") || pathname?.includes("/robots")) {
+    // Immediately return NextResponse.next() to serve the static file
+    return NextResponse.redirect(new URL("/robots.txt", request.url));
+  }
+
+  const response = NextResponse.next();
+
+  // Skip non-HTML requests
+  if (
+    request.method === "POST" ||
+    !request.headers.get("accept")?.includes("text/html")
+  ) {
+    return response;
+  }
+
+  // ===== GUEST REGISTRATION LOGIC =====
+  // if (!shouldSkipRegistration(pathname) && !userData) {
+  //   try {
+  //     const isBot = shouldBlockRegistration(request);
+
+  //     if (!isBot) {
+  //       console.warn("ensureGuestSessionMiddleware", JSON.stringify(request));
+  //       const registrationResult =
+  //         await AuthServerService.ensureGuestSessionMiddleware(
+  //           request,
+  //           response
+  //         );
+
+  //       if (!registrationResult.success) {
+  //         console.error("Guest registration failed:", registrationResult.error);
+  //       }
+  //     } else {
+  //       console.log(
+  //         "Bot detected, skipping guest registration:",
+  //         request.headers.get("user-agent")
+  //       );
+  //     }
+  //   } catch (error) {
+  //     console.error("Middleware guest registration error:", error);
+  //   }
+  // }
+
+  // ===== LOCALIZATION LOGIC =====
+
+  // Get supported countries
 
   // Parse URL locale
-  const urlLocale = parseUrlLocale(pathname);
 
   // Get and validate cookies
   const countryFromCookies = request.cookies.get("country")?.value;
@@ -282,7 +320,19 @@ export async function middleware(request: NextRequest) {
     request.headers.get("x-redirect-count") || "0"
   );
   if (redirectCount > 2) {
-    return response;
+    // Even if we hit redirect limit, ensure we have a proper locale
+    const preferredLanguage = getPreferredLanguage(request);
+    const defaultLocale = buildLocale(DEFAULT_COUNTRY, preferredLanguage);
+    const cleanPathname = urlLocale
+      ? pathname.replace(urlLocale.locale, defaultLocale)
+      : pathname.startsWith("/")
+      ? pathname
+      : `/${pathname}`;
+
+    url.pathname = `/${defaultLocale}${cleanPathname}`;
+    url.searchParams.delete("cart");
+    url.searchParams.set("no-country", "true");
+    return NextResponse.redirect(url);
   }
 
   // SCENARIO 1: Valid URL locale
@@ -375,21 +425,21 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // Fallback to default locale
+  // Fallback to default locale - ALWAYS redirect to gb-en
   const defaultLocale = buildLocale(DEFAULT_COUNTRY, preferredLanguage);
   const cleanPathname = urlLocale
     ? pathname.replace(urlLocale.locale, defaultLocale)
-    : `/${defaultLocale}${pathname}`;
+    : pathname.startsWith("/")
+    ? pathname
+    : `/${pathname}`;
 
-  url.pathname = cleanPathname;
+  url.pathname = `/${defaultLocale}${cleanPathname}`;
   url.searchParams.delete("cart");
   url.searchParams.set("no-country", "true");
   return NextResponse.redirect(url);
 }
 
 export const config = {
-  runtime: "nodejs",
-  preferredRegion: ["bom1", "sin1"],
   matcher: [
     /*
      * Match all request paths except for the ones starting with:
@@ -400,7 +450,7 @@ export const config = {
      */
     {
       source:
-        "/((?!api|noposter|firebase-messaging-sw.js|opengraph-image.png|default.mp3|wa.mp3|api-test|sitemap|manifest.json|error.png|assets|svg|fonts|translations|reports|images|styles|endCall|sitemap.xml|svg|call_direct|error.png|static|.\\..|_next|revalidate|callInProg|selectCountry|favicon.ico).*)",
+        "/((?!api|noposter|firebase-messaging-sw.js|robots.txt|robots.txt|robots|opengraph-image.png|default.mp3|wa.mp3|api-test|sitemap|manifest.json|error.png|assets|svg|fonts|translations|reports|images|styles|endCall|sitemap.xml|svg|call_direct|error.png|static|.\\..|_next|revalidate|callInProg|selectCountry|favicon.ico).*)",
     },
   ],
 };

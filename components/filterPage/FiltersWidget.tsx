@@ -31,15 +31,7 @@ import {
 import { GAevent } from "utils/gtag";
 import { fetchFilteredProducts } from "Server Requests";
 import { usePathname } from "next/navigation";
-import { FiltersWidgetPropsType } from "models/componentType/FiltersWidgetPrpsType";
-import { FilterTobBarPropsType } from "models/componentType/FilterTobBarPropsType";
-import { ShowFilterRowPropsType } from "models/componentType/ShowFilterRowPropsType";
-const PriceChart = dynamic(
-  () => import("components/ListingPage/filterComponents/PriceChart"),
-  {
-    ssr: false,
-  }
-);
+import SmoothPolygon from "../ListingPage/filterComponents/PriceShape";
 function FilterWidgetContainer({}) {
   const {
     setSearchResults,
@@ -308,15 +300,27 @@ function FiltersWidget({ filters, configureActiveFilters }) {
   };
   const resetFilters = () => {
     resetSearchFilter();
+    console.log(filters);
     setSearchResults({
       categories: filters.categories,
       brands: filters.brands,
       colors: filters.colors,
-      prices: priceVariable,
+      prices: filters.prices,
       sizes: filters.sizes,
       boutiques: filters.boutiques,
       search_text: filters.search_text,
       products: [],
+    });
+    setSearchPrice({
+      min_price: filters?.prices?.min_price,
+      max_price: filters?.prices?.max_price,
+    });
+    setSearchResults({
+      ...searchResults,
+      prices: {
+        min_price: filters?.prices?.min_price,
+        max_price: filters?.prices?.max_price,
+      },
     });
     configureActiveFilters();
     setSearchWord("");
@@ -424,11 +428,13 @@ function FiltersWidget({ filters, configureActiveFilters }) {
                 )}
               </div>
               <PriceSlider />
-              <PriceChart
-                points={
-                  searchResults?.prices_ranges?.map(
-                    (s) => s.products_count
-                  ) || [0]
+              <SmoothPolygon
+                data={
+                  searchResults?.prices_ranges?.map((s) => ({
+                    count: s.products_count,
+                    mon: s.min_price,
+                    max: s.max_price,
+                  })) || []
                 }
               />
             </div>

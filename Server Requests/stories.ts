@@ -1,6 +1,6 @@
 "use server";
-
 import { reportError } from "utils/error-reporter";
+import { fetchServerData } from "./ServerFetch";
 
 interface StoryItem {
   id: string | number;
@@ -31,41 +31,21 @@ export async function fetchStories(
   page: number = 1,
   userToken?: string
 ): Promise<StoriesResponse> {
-  let headers = userToken
-    ? {
-        method: "GET",
-        headers: {
-          ...(userToken && { Authorization: `Bearer ${userToken}` }),
-          language: language,
-          country: country,
-          Accept: "application/json",
-          "Cache-Control": "no-cache, no-store, must-revalidate",
-          Pragma: "no-cache",
-          Expires: "0",
-          "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
-        },
-      }
-    : {
-        method: "GET",
-        headers: {
-          ...(userToken && { Authorization: `Bearer ${userToken}` }),
-          language: language,
-          country: country,
-          Accept: "application/json",
-          "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
-        },
-        next: {
-          tags: ["stories", "home"],
-          revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE_STORIES),
-        },
-      };
+  let headers = {
+    ...(userToken && { Authorization: `Bearer ${userToken}` }),
+    Accept: "application/json",
+  };
   try {
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_STORIES_BACKEND_URL}/api/v1/stories/users_stories?page=${page}`,
-      headers
-    );
+    const response = await fetchServerData({
+      url: `${process.env.NEXT_PUBLIC_STORIES_BACKEND_URL}/api/v1/stories/users_stories?page=${page}`,
+      method: "GET",
+      tags: ["stories", "home"],
+      revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE_STORIES),
+      local: `${country}-${language}`,
+      headers: headers,
+    });
 
-    if (!response.ok) {
+    if (response.isError) {
       console.error(`Stories Error: ${response.status}`);
       reportError(new Error(`Stories Error: ${response.status}`), {
         source: "stories",
@@ -79,12 +59,9 @@ export async function fetchStories(
         next_page_url: undefined,
       };
     }
-
-    const result = await response.json();
-
     return {
-      data: result.data?.data || [],
-      next_page_url: result.data?.next_page_url,
+      data: response.data?.data?.data || [],
+      next_page_url: response.data?.data?.next_page_url,
     };
   } catch (error) {
     console.error("Error fetching stories:", error);

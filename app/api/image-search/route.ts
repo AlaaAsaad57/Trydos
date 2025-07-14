@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
     const formData = await request.formData();
     const file = formData.get("file") as File;
     const language = formData.get("language") as string;
-    console.log(file, language, "debug inputs");
+
     // Validate required fields
     if (!file || !language) {
       return NextResponse.json(

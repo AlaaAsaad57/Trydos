@@ -38,7 +38,7 @@ function CommentBar({
     try {
       addCommentAction({
         comment: s,
-        customer: { id: user.id, name: user.name },
+        customer: { id: user.id, name: user.name, image: user.image },
         created_at: new Date().toISOString(),
         mid: mid,
       });
@@ -48,11 +48,11 @@ function CommentBar({
         reqTitle: "add comment For Product",
         method: "POST",
         server: "market",
-        body: {
+        body: JSON.stringify({
           customer_id: auth.UserID(),
           product_id: product?.id,
           comment: s,
-        },
+        }),
       });
       if (response.data?.comment) {
         let newComment = response.data.comment;

@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useReducer, useState } from "react";
+import React, { Suspense, useEffect, useReducer, useState } from "react";
 import ExtendedAreaInfo from "./ExtendedAreaInfo";
 import ProductOptions from "./ProductOptions";
 import { translateFunction } from "utils/functions";
@@ -13,6 +13,7 @@ import { dispatchRouteChangeEvent } from "utils/events";
 import { ProductFooterSectionPropsType } from "models/componentType/productTypes/MultiComponentOnProductPage";
 import { showErrorNotification } from "@/store/notifications/reducer";
 import { fetchData } from "utils/fetchData";
+import ProductRedeemButton from "./ProductRedeemPrice";
 
 function ProductReducer(state, { type, payload }) {
   if (type === "setProductData") {
@@ -41,6 +42,11 @@ function ProductReducer(state, { type, payload }) {
   }
   if (type === "VerifyComment") {
     let s = state.CommentsData.filter((m) => m.mid === payload)[0];
+    console.log(
+      s,
+      payload,
+      state.CommentsData.filter((comment) => comment.mid !== payload)
+    );
 
     return {
       ...state,
@@ -109,7 +115,7 @@ function ProductFooterSection({
   const [option, setOption] = useState("");
   const getComments = async () => {
     let response: { data: ProductSocialInfo } = await fetchData({
-      url: "/web/product/likesDetails/" + product.slug,
+      url: "/web/product/CommentsSharesDetails/" + product.slug,
       reqTitle: "Social Info Request",
       method: "GET",
       server: "market",
@@ -251,10 +257,12 @@ function ProductFooterSection({
       );
     }
   };
+
   return (
     <>
       {!loginOpen && (
         <>
+          {product?.is_redeem && <ProductRedeemButton product={product} />}
           {
             <ExtendedAreaInfo
               setOption={(e) => {

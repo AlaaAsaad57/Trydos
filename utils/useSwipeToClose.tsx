@@ -24,6 +24,7 @@ export const useSwipeToClose = ({
   enabled = true,
 }: SwipeToCloseOptions) => {
   const elementRef = useRef<HTMLDivElement>(null);
+
   const [swipeState, setSwipeState] = useState<SwipeState>({
     isDragging: false,
     startY: 0,
@@ -127,7 +128,7 @@ export const useSwipeToClose = ({
       // Apply transform immediately for smooth dragging
       setTransform(deltaY);
       if (elementRef.current) {
-        elementRef.current.style.transform = `translateY(${deltaY}px)`;
+        // elementRef.current.style.transform = `translateY(${deltaY}px)`;
       }
     },
     [

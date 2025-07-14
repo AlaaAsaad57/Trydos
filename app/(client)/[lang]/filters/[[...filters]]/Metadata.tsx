@@ -2,6 +2,7 @@
 
 import { getConfiguredImage } from "utils/functions";
 import {
+  filtersToSearchParams,
   generateCloudinaryUrl,
   GetImageUrl,
   parseFiltersFromParams,
@@ -66,99 +67,73 @@ const GenerateTitleBasedOnFilters = (filters: string[]) => {
     description,
   };
 };
-export async function getBoutiqueMetadata({ params, searchParams }) {
-  let {
-    categories,
-    brands,
-    colors,
-    sizes,
-    products,
-    boutiques,
-    tags_names,
-    search_query,
-  } = {
-    categories: [],
-    brands: [],
-    colors: [],
-    sizes: [],
-    products: [],
-    boutiques: [],
-    tags_names: [],
-    search_query: "",
-  };
-  const keywords = [
-    "TryDos",
-    ...(categories?.map((s) => s.name) || []),
-    ...(brands?.map((s) => s.name) || []),
-    ...(colors?.map((s) => s) || []),
-    ...(sizes?.map((s) => s.name) || []),
-    ...(products?.map((s) => s.name) || []),
-    ...(tags_names?.map((s) => s) || []),
-    ...(search_query?.split(" ") || []),
-  ]
-    .filter(Boolean)
-    .join(", ");
+export async function getBoutiqueMetadata({
+  params,
+  options = { is_fearured: false, is_flashDeals: false },
+}) {
   const [country, language] = params.lang.split("-");
-  let parsedFilters = parseFiltersFromParams(params.filters);
-  let image;
-  if (parsedFilters.boutiques) {
-    image = getConfiguredImage({
-      src: GetImageUrl("/product/2025-06-10-6847bb8b44ea4"),
-      width: 1200,
-      height: 630,
-    });
-  } else {
-    image = generateCloudinaryUrl({
-      width: 1200,
-      height: 630,
-      publicIds: [
-        "/product/2025-06-10-6847bb8b44ea4",
-        "/product/2025-06-10-6847bb8fce155",
-        "/product/2025-06-10-6847bba79170d",
-      ],
-      overlayText: "Test",
-    });
-  }
-  const canonicalUrl = `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${
-    params.lang
-  }/filters/${params.filters.join("/")}`;
+  let UrlSearchParams = getUrlSearchForMeta(params, options);
+  UrlSearchParams.set("lang", language);
+  UrlSearchParams.set("country", country);
+  let response = await fetch(
+    process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL +
+      `/api/products/simplified-meta-filters?${UrlSearchParams.toString()}`,
+    {
+      headers: {
+        lang: language,
+        country,
+      },
+      next: {
+        revalidate: 36000,
+        tags: ["listing"],
+      },
+    }
+  );
+  let responseData = await response.json();
+
+  let images_array = responseData?.data?.products?.map(
+    (product) => product.image[0]
+  );
+
+  let og_image =
+    images_array.length > 0
+      ? generateCloudinaryUrl({
+          width: 1200,
+          height: 630,
+          publicIds: images_array,
+        })
+      : `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/opengraph-image.png`;
+  let configuredMetaData = generateMetaData(responseData);
+  let filtersUrl =
+    params?.filters?.length > 0 ? `/${params.filters?.join("/")}` : "/";
+  const canonicalUrl = `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${params.lang}/filters${filtersUrl}`;
   let data = {
-    title: GenerateTitleBasedOnFilters(params.filters).title,
-    description: GenerateTitleBasedOnFilters(params.filters).description,
+    title: configuredMetaData.title,
+    description: configuredMetaData.description,
     canonical: canonicalUrl,
-    keywords: keywords,
+    keywords: configuredMetaData.keywords,
     alternates: {
-      canonical: `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${
-        params.lang
-      }/filters/${params.filters.join("/")}`,
+      canonical: `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${params.lang}/filters${filtersUrl}`,
       languages: {
-        en: `${
-          process.env.NEXT_PUBLIC_REMOTE_FRONT
-        }/${country}-en/filters/${params.filters.join("/")}`,
-        tr: `${
-          process.env.NEXT_PUBLIC_REMOTE_FRONT
-        }/${country}-tr/filters/${params.filters.join("/")}`,
-        ar: `${
-          process.env.NEXT_PUBLIC_REMOTE_FRONT
-        }/${country}-ar/filters/${params.filters.join("/")}`,
+        en: `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${country}-en/filters${filtersUrl}`,
+        tr: `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${country}-tr/filters${filtersUrl}`,
+        ar: `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${country}-ar/filters${filtersUrl}`,
       },
     },
     openGraph: {
-      title: GenerateTitleBasedOnFilters(params.filters).title,
-      description: GenerateTitleBasedOnFilters(params.filters).description,
-      url: `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${
-        params.lang
-      }/filters/${params.filters.join("/")}`,
+      title: configuredMetaData.title,
+      description: configuredMetaData.description,
+      url: `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${params.lang}/filters${filtersUrl}`,
       siteName: "Trydos",
-      images: [{ url: image }],
+      images: [{ url: og_image }],
       locale: params.lang,
       type: "website",
     },
     twitter: {
       card: "summary_large_image",
-      title: GenerateTitleBasedOnFilters(params.filters).title,
-      description: GenerateTitleBasedOnFilters(params.filters).description,
-      images: [image],
+      title: configuredMetaData.title,
+      description: configuredMetaData.description,
+      images: [og_image],
       creator: "@trydos",
     },
   };
@@ -166,13 +141,13 @@ export async function getBoutiqueMetadata({ params, searchParams }) {
   return data;
 }
 export const GetStructuredData = ({ params, prodcts, boutique }) => {
+  let filtersUrl =
+    params?.filters?.length > 0 ? `/${params.filters?.join("/")}` : "/";
   return {
     "@context": "https://schema.org",
     "@type": "CollectionPage",
     name: GenerateTitleBasedOnFilters(params.filters).title,
-    url: `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${
-      params.lang
-    }/filters/${params.filters.join("/")}`,
+    url: `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${params.lang}/filters${filtersUrl}`,
     description: GenerateTitleBasedOnFilters(params.filters).description,
     mainEntity: {
       "@type": "ItemList",
@@ -206,4 +181,151 @@ export const GetStructuredData = ({ params, prodcts, boutique }) => {
       }),
     },
   };
+};
+function generateMetaData(data) {
+  try {
+    if (!data || !data.data) return {};
+
+    const {
+      categories = [],
+      brands = [],
+      colors = [],
+      sizes = [],
+      products = [],
+      boutiques = [],
+      prices = {},
+      search_query = "",
+    } = data.data;
+
+    const siteName = "Trydos";
+
+    const normalized = (arr) => [
+      ...new Set(arr.filter(Boolean).map((item) => item.trim())),
+    ];
+
+    const normalizedCategories = normalized(categories);
+    const normalizedBrands = normalized(brands);
+    const normalizedBoutiques = normalized(boutiques);
+    const normalizedSizes = normalized(sizes);
+    const normalizedColors = normalized(colors);
+
+    const categoryPhrase = normalizedCategories?.length
+      ? normalizedCategories?.slice(0, 3)?.join(", ")
+      : "our top categories";
+
+    const brandPhrase = normalizedBrands?.length
+      ? normalizedBrands?.slice(0, 3)?.join(", ")
+      : "trusted brands";
+
+    const sizePhrase = normalizedSizes?.length
+      ? normalizedSizes?.slice(0, 4)?.join(", ")
+      : "all standard sizes";
+    const colorPhrase = normalizedColors?.length
+      ? normalizedColors?.slice(0, 4)?.join(", ")
+      : "all colors";
+    const priceMin =
+      prices?.min_price != null ? prices?.min_price.toFixed(2) : "0.00";
+    const priceMax =
+      prices?.max_price != null ? prices?.max_price.toFixed(2) : "9999.99";
+
+    const title = search_query
+      ? `Search results for "${search_query}" - ${siteName}`
+      : `Shop ${categoryPhrase} from ${brandPhrase} | ${siteName}`;
+
+    const description = `Discover a curated selection of ${categoryPhrase.toLowerCase()} on ${siteName}. Featuring ${brandPhrase}, ${colorPhrase}, ${sizePhrase}, and prices from $${priceMin} to $${priceMax}.`;
+
+    const keywordPool = [
+      siteName,
+      ...normalizedCategories,
+      ...normalizedBrands,
+      ...normalizedBoutiques,
+      ...normalizedSizes,
+      ...normalizedColors,
+    ];
+    if (search_query?.length > 0) {
+      keywordPool.push(search_query);
+    }
+
+    const keywords = keywordPool?.join(", ");
+    return {
+      title,
+      description,
+      keywords,
+      og_title: title,
+      og_description: description,
+      twitter_title: title,
+      twitter_description: description,
+    };
+  } catch (e) {
+    console.error("filters generatemetadata error", e);
+    throw e;
+  }
+}
+export const getUrlSearchForMeta = (params, options) => {
+  const parsedFilters =
+    params?.filters?.length > 0 ? parseFiltersFromParams(params?.filters) : {};
+  let parsedFiltersSearch = filtersToSearchParams(parsedFilters);
+  let UrlSearchParams = new URLSearchParams();
+  if (parsedFiltersSearch?.search_text) {
+    UrlSearchParams.set("search_text", parsedFiltersSearch?.search_text);
+  }
+  if (parsedFiltersSearch?.categories) {
+    UrlSearchParams.set(
+      "category_slugs",
+      decodeURIComponent(parsedFiltersSearch?.categories)
+    );
+  }
+  if (parsedFiltersSearch?.prices) {
+    UrlSearchParams.set(
+      "price",
+      decodeURIComponent(parsedFiltersSearch?.prices)
+    );
+  }
+  if (parsedFiltersSearch?.sizes) {
+    UrlSearchParams.set(
+      "attributes",
+      JSON.stringify([
+        {
+          id: 1,
+          options: JSON.parse(decodeURIComponent(parsedFiltersSearch?.sizes)),
+          name: "Size",
+        },
+      ])
+    );
+  }
+  if (parsedFiltersSearch?.colors) {
+    UrlSearchParams.set(
+      "colors",
+      decodeURIComponent(parsedFiltersSearch?.colors)
+    );
+  }
+  if (parsedFiltersSearch?.brands) {
+    UrlSearchParams.set("brand_slugs", decodeURI(parsedFiltersSearch?.brands));
+  }
+  if (
+    parsedFiltersSearch?.boutiques &&
+    parsedFiltersSearch?.boutiques !== "null"
+  ) {
+    UrlSearchParams.set(
+      "boutique_slugs",
+      decodeURIComponent(parsedFiltersSearch?.boutiques)
+    );
+  }
+
+  if (
+    parsedFiltersSearch?.tags_names &&
+    parsedFiltersSearch?.tags_names !== "null"
+  ) {
+    UrlSearchParams.set(
+      "tags_names",
+      decodeURIComponent(parsedFiltersSearch?.tags_names)
+    );
+  }
+  if (options.is_fearured) {
+    UrlSearchParams.set("is_featured", "true");
+  }
+  if (options.is_flashDeals) {
+    UrlSearchParams.set("flash-deal", "true");
+  }
+  return UrlSearchParams;
 };

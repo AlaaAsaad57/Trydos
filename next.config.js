@@ -148,6 +148,7 @@ let nextConfig = {
     }
     return config;
   },
+  productionBrowserSourceMaps: true,
   // your config for other plugins or the general next.js here...
 };
 

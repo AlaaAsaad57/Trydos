@@ -323,7 +323,7 @@ class AuthService {
 
     try {
       if (userStories && user && userStories?.id) {
-        await fetchData({
+        let res = await fetchData({
           url: "/api/v1/users/update",
           reqTitle: "Update Name in stories",
           method: "POST",
@@ -334,6 +334,7 @@ class AuthService {
             photo_path: this.ConfigurePhoto(userObj?.image, "story"),
           }),
         });
+        console.log(res);
         stories_done = true;
         setCookie(COOKIE_NAMES.USER_STORIES, {
           ...userStories,
@@ -382,6 +383,7 @@ class AuthService {
 
       return res;
     } catch (error) {
+      console.log(error);
       if (market_done) {
         await fetchData({
           url: "/customer/update-profile",

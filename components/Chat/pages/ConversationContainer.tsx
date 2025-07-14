@@ -30,11 +30,7 @@ import PlusIcon from "../svg/chatplus.svg";
 import CameraIcon from "../svg/camera.svg";
 import SendIcon from "../svg/sendbutton.svg";
 
-import {
-  dataURLtoFile,
-  upload,
-  getUser,
-} from "../chatsFunctions";
+import { dataURLtoFile, upload, getUser } from "../chatsFunctions";
 import {
   GetChatDetails,
   getMessagesBetweenMessage,
@@ -43,7 +39,7 @@ import {
 } from "store/chat/actions";
 import { makeVideoCall, makeVoiceCall } from "store/chat/callActions";
 import { showErrorNotification } from "@/store/notifications/reducer";
-import { SSRDetect, translateFunction , getUserChat} from "utils/functions";
+import { SSRDetect, translateFunction, getUserChat } from "utils/functions";
 import { db } from "utils/firebaseInitv1";
 import { useAppStore } from "store";
 
@@ -148,7 +144,6 @@ function ConversationContainer({
   >(null);
   /* ----------------------------- scroll function ----------------------------- */
   const scrollToMessage = (quoteId) => {
-    console.log({ quoteId, mids: activeChat?.messages.map((s) => s.id) });
     if (quoteId) {
       if (activeChat?.messages?.filter((f) => f.id === quoteId)?.length > 0) {
         var numb = quoteId?.toString()?.match(/\d/g);
@@ -285,7 +280,6 @@ function ConversationContainer({
   const [blobUrl, setBlobUrl] = useState<string | null>(null);
 
   const onStopRecording = (blob: Blob) => {
-    console.log("onStopRecording", blob);
     sendStatus(null);
     setMic(false);
     setRecording(false);
@@ -296,7 +290,7 @@ function ConversationContainer({
 
   /* ---------------------------- File Handlers ---------------------------- */
   const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
-    const midLocal = 'm' + Math.random().toString().replace('.', '');
+    const midLocal = "m" + Math.random().toString().replace(".", "");
     try {
       const file = e.target.files?.[0];
       e.target.value = "";
@@ -365,7 +359,7 @@ function ConversationContainer({
 
   /* ------------------------------ Text Send ------------------------------ */
   const sendTextMessage = (text: string) => {
-    const midLocal = 'm' + Math.random().toString().replace('.', '');
+    const midLocal = "m" + Math.random().toString().replace(".", "");
     try {
       if (!text.trim()) return;
 
@@ -569,7 +563,7 @@ function ConversationContainer({
   /* ----------------------- Camera Image Sender -------------------------- */
   const sendCameraImg = useCallback(
     async (imageDataUrl: string) => {
-      const midLocal = 'm' + Math.random().toString().replace('.', '');
+      const midLocal = "m" + Math.random().toString().replace(".", "");
       try {
         optimisticMessage({
           ...baseMessagePayload({}),
@@ -617,7 +611,6 @@ function ConversationContainer({
   /* ------------------------- Audio Sender ------------------------------- */
   const sendAudio = useCallback(
     async (midLocal: string) => {
-      console.log("sendAudio", midLocal, blobUrl, blobs.current);
       try {
         if (!blobs.current || !activeChat) return;
 
@@ -995,7 +988,8 @@ function ConversationContainer({
               <ShareIcon
                 onClick={() => {
                   if (nativeRecorder) stopNativeRecording();
-                  const midLocal = 'm' + Math.random().toString().replace('.', '');
+                  const midLocal =
+                    "m" + Math.random().toString().replace(".", "");
                   setRecording(false);
                   setTimeout(() => {
                     sendAudio(midLocal);

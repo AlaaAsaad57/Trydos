@@ -90,6 +90,7 @@ const getStoriesToken = async (): Promise<string> => {
   }
   return "";
 };
+const retryableStatusCodes = [502, 503, 504, 429];
 
 // Get token based on server type
 const getToken = async (server: ServerType): Promise<string> => {
@@ -216,6 +217,7 @@ export const fetchData = async <T = any>(
 
   // Check cache first
   const cacheKey = generateCacheKey(params);
+  let status;
   if (useCached && !isRetryAfterUnauthorized && requestCache.has(cacheKey)) {
     const cachedData = requestCache.get(cacheKey);
     console.log(
@@ -266,6 +268,7 @@ export const fetchData = async <T = any>(
       // Make the request
 
       const response = await fetch(FULL_URL, requestOptions);
+      status = response.status;
 
       // Handle 401 Unauthorized
       if (response.status === 401 && !isRetryAfterUnauthorized) {
@@ -288,7 +291,10 @@ export const fetchData = async <T = any>(
       if (_isStoreLastJson()) {
         localStorage.setItem("LAST_JSON", JSON.stringify(responseData));
       }
-      if (typeof reqTitle === "string" && reqTitle.includes("Add to cart widget")) {
+      if (
+        typeof reqTitle === "string" &&
+        reqTitle.includes("Add to cart widget")
+      ) {
         showSuccessMessage(
           responseData?.message ?? responseData?.data?.message ?? ""
         );
@@ -313,11 +319,14 @@ export const fetchData = async <T = any>(
       if (useCached) {
         requestCache.set(cacheKey, responseData);
       }
-      console.log({ isCached: false, data: responseData, url, method });
+      // console.log({ isCached: false, data: responseData, url, method });
       return responseData;
     } catch (err) {
       // Network error - retry logic
-      if (err instanceof TypeError && err.message.includes("fetch")) {
+      if (
+        (err instanceof TypeError && err.message.includes("fetch")) ||
+        retryableStatusCodes.includes(status)
+      ) {
         retryCount++;
         if (retryCount < maxRetries) {
           console.log(
@@ -331,10 +340,12 @@ export const fetchData = async <T = any>(
         }
       }
       // Re-throw the error for the caller to handle
-      if (typeof reqTitle === "string" && reqTitle.includes("Add to cart widget")) {
+      if (
+        typeof reqTitle === "string" &&
+        reqTitle.includes("Add to cart widget")
+      ) {
         showErrorMessage(`${err?.message || "Falied"}`);
       } else {
-        console.log({ err });
         if (!ignoredMessages.includes(err?.message))
           showErrorNotification(`${err?.message || "Falied"}`);
       }
@@ -362,7 +373,8 @@ export const fetchData = async <T = any>(
         });
         LogError(errorObj);
       }
-      return responseData;
+      throw err;
+      // return responseData;
     }
   };
 

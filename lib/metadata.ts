@@ -1248,7 +1248,7 @@ const defaultSEOConfig: SEOConfig = {
 
 export function generateMetadata(config: SEOConfig = {}): Metadata {
   const mergedConfig = { ...defaultSEOConfig, ...config };
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://trydos.com";
+  const baseUrl = process.env.NEXT_PUBLIC_REMOTE_FRONT || "https://trydos.com";
 
   const metadata: Metadata = {
     title: mergedConfig.title || "TryDos - Premium Shopping Experience",
@@ -1378,7 +1378,7 @@ export const generateProductMetadata = (
   },
   customConfig: SEOConfig = {}
 ): Metadata => {
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://trydos.com";
+  const baseUrl = process.env.NEXT_PUBLIC_REMOTE_FRONT || "https://trydos.com";
 
   return generateMetadata({
     title: `${product.title} - TryDos`,

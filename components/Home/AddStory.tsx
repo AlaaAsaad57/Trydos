@@ -21,7 +21,6 @@ function AddStory() {
   } = useAppStore();
   const handleClick = () => {
     if (userStories) {
-      console.log(userStories, userStories.id);
       const user = getCookie<UserData>(COOKIE_NAMES.USER_DATA);
       if (user?.name?.length > 0) {
         // Sendevent({

@@ -1,26 +1,13 @@
+"use client";
 import StoryAvatar from "./StoryAvatar";
 import Story from "./Story";
 import profilePicture from "public/images/profileNo.png";
-
 import { GetUnviewedStory } from "store/homepage/actions";
 import { getConfiguredImage } from "utils/functions";
 import { GetImageUrl } from "utils/tinyUtils";
 import { StoryElementPropsType } from "models/componentType/StoryElementPropsType";
-import {
-  COOKIE_NAMES,
-  getCookie,
-  getCookieServer,
-  UserData,
-} from "utils/cookies/cookie-manager";
 
-async function StoryElement({ index, story }: StoryElementPropsType) {
-  let userData: UserData | null = null;
-  if (typeof window === "undefined") {
-    userData = await getCookieServer<UserData>(COOKIE_NAMES.USER_STORIES);
-  } else {
-    userData = getCookie(COOKIE_NAMES.USER_STORIES);
-  }
-
+function StoryElement({ index, story, userData }: StoryElementPropsType) {
   if (userData?.id === story?.id)
     return (
       <div className="story-element-container">

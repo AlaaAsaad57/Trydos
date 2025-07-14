@@ -123,9 +123,6 @@ const Menu: React.FC<MenuProps> = ({ user, setMenuOpen }) => {
     window.location.reload();
   };
   const shouldShowLogout = () => {
-    if (user) {
-      return true;
-    }
     if (auth.getUser()) {
       if (auth.getUser().phone === "0" || !auth.getUser().phone) {
         return false;

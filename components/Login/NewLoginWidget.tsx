@@ -13,7 +13,7 @@ import InputName from "./InputName";
 import AuthService from "services/auth";
 
 import LoginMethods from "./LoginMethods";
-import { AnimatedComponent } from "components/global/AnimatedComponent";
+import SlideWidget from "components/global/SlideNavigation";
 import { useParams } from "next/navigation";
 import { useAppStore } from "store";
 import {
@@ -21,7 +21,6 @@ import {
   GA_BUTTONS_NAMES,
   GA_EVENT_NAMES,
   GA_EXCEPTIONS_DESCRIPTIONS,
-  GA_GLOBAL_PLATFORM,
 } from "utils/GAEvents";
 import { GAevent } from "utils/gtag";
 import auth from "services/auth";
@@ -306,14 +305,6 @@ function NewLoginWidget() {
   const FinaliseLogin = async () => {
     AuthService.ConfirmSignIn();
   };
-  const mountAnim = ` 
-  0% {transform:translateX(800px)}
-  100% {transform:translateX(0px)}
-`;
-  const unmountAnim = `
-0% {transform:translateX(0px)}
-100% {transform:translateX(-800px)}
-`;
   const backAction = () => {
     // Sendevent({
     //   event: GA_EVENT_NAMES.CLICK,
@@ -435,234 +426,234 @@ function NewLoginWidget() {
 
         <div
           data-testid="login-animated-container"
-          className={`animation-row-container ${
+          className={`animation-row-container h-full ${
             stepIndicator === -1 && "margin-none"
           }`}
         >
-          <AnimatedComponent
-            role="login-animated-container"
-            unmountTime={0.5}
-            className="animated-container"
-            show={stepIndicator === 0}
-            mountAnim={mountAnim}
-            style={{
-              animationFillMode: "forwards",
-            }}
-            unmountAnim={unmountAnim}
-          >
-            <div
-              className="login-privacy-text"
-              style={{ opacity: stepIndicator === -1 ? "0" : "1" }}
-            >
-              {translate(
-                "To Take Advantage Of All The Advantages Of The Application, Please Join Us In Quick And Easy Steps And For Just One Time",
-                language
-              )}
-            </div>
-            <div
-              className="login-privacy-text-2"
-              style={{ opacity: stepIndicator === -1 ? "0" : "1" }}
-            >
-              {translate("Why We Know You ?", language)}
-            </div>
-            <div
-              data-testid="login-button-group"
-              role="login-button-group"
-              className="login-button-group"
-              style={{ opacity: stepIndicator === -1 ? "0" : "1" }}
-            >
-              <div
-                data-testid="have-account-button"
-                className="login-button"
-                onClick={() => {
-                  // Sendevent({
-                  //   event: GA_EVENT_NAMES.CLICK,
-                  //   value:
-                  //     GA_PROGRAMMING_EVENT_VALUES.I_HAVE_ALREADY_ACCOUNT_BUTTON,
-                  // });
-                  GAevent({
-                    action: GA_EVENT_NAMES.LOGIN_START,
-                    params: {
-                      method_otp: "phone",
-                      button_name:
-                        GA_BUTTONS_NAMES.I_HAVE_ALREADY_ACCOUNT_BUTTON,
+          <SlideWidget step={Math.max(0, stepIndicator)} duration={500}>
+            {[
+              // Step 0 - Login/Signup choice
+              <div className="animated-container" key="login-widget-step-0">
+                <div
+                  className="login-privacy-text"
+                  style={{ opacity: stepIndicator === -1 ? 0 : 1 }}
+                >
+                  {translate(
+                    "To Take Advantage Of All The Advantages Of The Application, Please Join Us In Quick And Easy Steps And For Just One Time",
+                    language
+                  )}
+                </div>
+                <div
+                  className="login-privacy-text-2"
+                  style={{ opacity: stepIndicator === -1 ? 0 : 1 }}
+                >
+                  {translate("Why We Know You ?", language)}
+                </div>
+                <div
+                  data-testid="login-button-group"
+                  role="login-button-group"
+                  className="login-button-group"
+                  style={{ opacity: stepIndicator === -1 ? 0 : 1 }}
+                >
+                  <div
+                    data-testid="have-account-button"
+                    className="login-button"
+                    onClick={() => {
+                      // Sendevent({
+                      //   event: GA_EVENT_NAMES.CLICK,
+                      //   value:
+                      //     GA_PROGRAMMING_EVENT_VALUES.I_HAVE_ALREADY_ACCOUNT_BUTTON,
+                      // });
+                      GAevent({
+                        action: GA_EVENT_NAMES.LOGIN_START,
+                        params: {
+                          method_otp: "phone",
+                          button_name:
+                            GA_BUTTONS_NAMES.I_HAVE_ALREADY_ACCOUNT_BUTTON,
+                        },
+                      });
+                      if (window.innerWidth > 912) {
+                        setShowMethods(!showMethods);
+                        setOperation("login");
+                      } else {
+                        setStepIndicator(2);
+                        setOperation("login");
+                      }
+                    }}
+                  >
+                    {translate("I have Already Account", language)}
+                  </div>
+                  {showMethods && (
+                    <LoginMethods
+                      confirm={() => {
+                        setStepIndicator(2);
+                        setShowMethods(!showMethods);
+                      }}
+                    />
+                  )}
+                  <div
+                    data-testid="create-account-button"
+                    className="login-button"
+                    onClick={() => {
+                      // Sendevent({
+                      //   event: GA_EVENT_NAMES.CLICK,
+                      //   value: GA_CLICK_EVENT_VALUES.CREATE_NEW_ACCOUNT_BUTTON,
+                      // });
+                      GAevent({
+                        action: GA_EVENT_NAMES.SIGNUP_START,
+                        params: {
+                          method_otp: "phone",
+                          button_name:
+                            GA_BUTTONS_NAMES.CREATE_NEW_ACCOUNT_BUTTON,
+                        },
+                      });
+                      setStepIndicator(1);
+                      setOperation("signup");
+                    }}
+                  >
+                    {translate("Create New Account", language)}
+                  </div>
+                </div>
+              </div>,
+              // Step 1 - Privacy Confirm
+              <PrivacyConfirm
+                key="login-widget-step-1"
+                stepIndicator={stepIndicator}
+                setStepIndicator={(e) => setStepIndicator(e)}
+              />,
+              // Step 2 - Phone Input
+              <PhoneInput
+                key="login-widget-step-2"
+                isForCart={false}
+                inputValue={inputValue}
+                wrongNumber={wrongNumber}
+                setWrongNumber={(e) => {
+                  setWrongNumber(e);
+                }}
+                setInputValue={(e) => setInputValue(e)}
+                stepIndicator={stepIndicator}
+                setStepIndicator={(e) => setStepIndicator(e)}
+                operation={operation}
+              />,
+              // Step 3 - Phone Input (duplicate for login flow)
+              <PhoneInput
+                key="login-widget-step-3"
+                isForCart={false}
+                inputValue={inputValue}
+                wrongNumber={wrongNumber}
+                setWrongNumber={(e) => {
+                  setWrongNumber(e);
+                }}
+                setInputValue={(e) => setInputValue(e)}
+                stepIndicator={stepIndicator}
+                setStepIndicator={(e) => setStepIndicator(e)}
+                operation={operation}
+              />,
+              // Step 4 - Send Method
+              <SendMethod
+                key="login-widget-step-4"
+                stepIndicator={stepIndicator}
+                setWrongNumber={(e) => {
+                  setWrongNumber(e);
+                }}
+                operation={operation}
+                hideEdit={false}
+                setShowMobile={() => {}}
+                setStepIndicator={(e: number) => setStepIndicator(e)}
+                setMessageMethod={(e: string) => setMessageMethod(e)}
+                inputValue={inputValue}
+              />,
+              // Step 5 - Login Pins
+              <LogInPins
+                key="login-widget-step-5"
+                loadingPin={loadingPin}
+                expired={expired}
+                stepIndicator={stepIndicator}
+                setDisabled={(e) => {
+                  setDisabled(e);
+                  setExpired(e);
+                }}
+                resend={async () => {
+                  await SendOtpHook({
+                    mobilePhone: inputValue,
+                    is_via_whatsapp: MessageMethod === "WA" ? "1" : "0",
+
+                    successCallback: function () {
+                      setDisabled(false);
+                      setExpired(false);
+                    },
+                    errorCallback: function (msg) {
+                      setStepIndicator(3);
+                      setWrongNumber(msg);
                     },
                   });
-                  if (window.innerWidth > 912) {
-                    setShowMethods(!showMethods);
-                    setOperation("login");
-                  } else {
-                    setStepIndicator(2);
-                    setOperation("login");
-                  }
                 }}
-              >
-                {translate("I have Already Account", language)}
-              </div>
-              {showMethods && (
-                <LoginMethods
-                  confirm={() => {
-                    setStepIndicator(2);
-                    setShowMethods(!showMethods);
-                  }}
-                />
-              )}
-              <div
-                data-testid="create-account-button"
-                className="login-button"
-                onClick={() => {
-                  // Sendevent({
-                  //   event: GA_EVENT_NAMES.CLICK,
-                  //   value: GA_CLICK_EVENT_VALUES.CREATE_NEW_ACCOUNT_BUTTON,
-                  // });
-                  GAevent({
-                    action: GA_EVENT_NAMES.SIGNUP_START,
-                    params: {
-                      method_otp: "phone",
-                      button_name: GA_BUTTONS_NAMES.CREATE_NEW_ACCOUNT_BUTTON,
-                    },
-                  });
-                  setStepIndicator(1);
-                  setOperation("signup");
-                }}
-              >
-                {translate("Create New Account", language)}
-              </div>
-            </div>
-          </AnimatedComponent>
-          <PrivacyConfirm
-            stepIndicator={stepIndicator}
-            setStepIndicator={(e) => setStepIndicator(e)}
-          />
-
-          <PhoneInput
-            isForCart={false}
-            inputValue={inputValue}
-            wrongNumber={wrongNumber}
-            setWrongNumber={(e) => {
-              setWrongNumber(e);
-            }}
-            setInputValue={(e) => setInputValue(e)}
-            stepIndicator={stepIndicator}
-            setStepIndicator={(e) => setStepIndicator(e)}
-            operation={operation}
-          />
-          <SendMethod
-            stepIndicator={stepIndicator}
-            setWrongNumber={(e) => {
-              setWrongNumber(e);
-            }}
-            operation={operation}
-            hideEdit={false}
-            setShowMobile={() => {}}
-            setStepIndicator={(e: number) => setStepIndicator(e)}
-            setMessageMethod={(e: string) => setMessageMethod(e)}
-            inputValue={inputValue}
-          />
-
-          <LogInPins
-            loadingPin={loadingPin}
-            expired={expired}
-            stepIndicator={stepIndicator}
-            setDisabled={(e) => {
-              setDisabled(e);
-              setExpired(e);
-            }}
-            resend={async () => {
-              await SendOtpHook({
-                mobilePhone: inputValue,
-                is_via_whatsapp: MessageMethod === "WA" ? "1" : "0",
-
-                successCallback: function () {
+                init={() => {
                   setDisabled(false);
                   setExpired(false);
-                },
-                errorCallback: function (msg) {
-                  setStepIndicator(3);
-                  setWrongNumber(msg);
-                },
-              });
-            }}
-            init={() => {
-              setDisabled(false);
-              setExpired(false);
-            }}
-            setStepIndactor={(e) => setStepIndicator(e)}
-            rendere={rendere}
-            inputValue={inputValue}
-            disabled={disabled}
-            Submit={(e) => loginFunc(e)}
-            successLogin={success}
-            wrongNumber={wrongNumber}
-            failedLogin={failedLogin}
-            setPin={(e: string) => setPins(e)}
-            pin={pins}
-            MessageMethod={MessageMethod}
-          />
-          <AnimatedComponent
-            // unmountTime={0.5}
-            // className="animated-container"
-            show={stepIndicator === 7}
-            // mountAnim={mountAnim}
-            // style={{
-            //   animationFillMode: "forwards",
-            // }}
-            // unmountAnim={unmountAnim}
-          >
-            <InputName
-              value={Name}
-              setName={(e) => setName(e)}
-              submit={async () => {
-                await auth.ConfirmSignIn();
-                await AuthService.UpdateName(Name);
-                if (operation === "login") {
-                  if (Tempuser.already_exists) setSignStep("welcomeLogin");
-                  else setSignStep("welcomeSignup");
-                }
-                if (operation === "signup") {
-                  if (Tempuser.already_exists) {
-                    setSignStep("welcomeLogin");
-                  } else {
-                    setSignStep("welcomeSignup");
+                }}
+                setStepIndactor={(e) => setStepIndicator(e)}
+                rendere={rendere}
+                inputValue={inputValue}
+                disabled={disabled}
+                Submit={(e) => loginFunc(e)}
+                successLogin={success}
+                wrongNumber={wrongNumber}
+                failedLogin={failedLogin}
+                setPin={(e: string) => setPins(e)}
+                pin={pins}
+                MessageMethod={MessageMethod}
+              />,
+              // Step 6 - Sign Steps
+              <SignSteps
+                key="login-widget-step-6"
+                signStep={signStep}
+                stepIndicator={stepIndicator}
+                setStepSign={(e) => {
+                  setSignStep(e);
+                }}
+                Name={Name}
+                user={Tempuser}
+                FinaliseLogin={() => FinaliseLogin()}
+                cancelLogin={() => {
+                  AuthService.cancelAuth();
+                }}
+                close={() => {
+                  setLoginOpenAction(false);
+                  // Sendevent({
+                  //   event: GA_EVENT_NAMES.CLICK,
+                  //   value: GA_CLICK_EVENT_VALUES.LATER_TAKE_LOOK_BUTTON,
+                  // });
+                }}
+                setStepIndactor={(e) => setStepIndicator(e)}
+                inputValue={inputValue}
+              />,
+              // Step 7 - Input Name
+              <InputName
+                key="login-widget-step-7"
+                value={Name}
+                setName={(e) => setName(e)}
+                submit={async () => {
+                  await auth.ConfirmSignIn();
+                  await AuthService.UpdateName(Name);
+                  if (operation === "login") {
+                    if (Tempuser.already_exists) setSignStep("welcomeLogin");
+                    else setSignStep("welcomeSignup");
                   }
-                }
-                setStepIndicator(6);
-              }}
-            />
-          </AnimatedComponent>
-          <SignSteps
-            signStep={signStep}
-            stepIndicator={stepIndicator}
-            setStepSign={(e) => {
-              setSignStep(e);
-            }}
-            Name={Name}
-            user={Tempuser}
-            FinaliseLogin={() => FinaliseLogin()}
-            cancelLogin={() => {
-              AuthService.cancelAuth();
-            }}
-            close={() => {
-              setLoginOpenAction(false);
-              // Sendevent({
-              //   event: GA_EVENT_NAMES.CLICK,
-              //   value: GA_CLICK_EVENT_VALUES.LATER_TAKE_LOOK_BUTTON,
-              // });
-            }}
-            setStepIndactor={(e) => setStepIndicator(e)}
-            inputValue={inputValue}
-          />
+                  if (operation === "signup") {
+                    if (Tempuser.already_exists) {
+                      setSignStep("welcomeLogin");
+                    } else {
+                      setSignStep("welcomeSignup");
+                    }
+                  }
+                  setStepIndicator(6);
+                }}
+              />,
+            ]}
+          </SlideWidget>
         </div>
-        <AnimatedComponent
-          unmountTime={0.5}
-          className="animated-container"
-          show={stepIndicator === 1 || stepIndicator === 0}
-          mountAnim={mountAnim}
-          style={{
-            animationFillMode: "forwards",
-          }}
-          unmountAnim={unmountAnim}
-        >
+        {(stepIndicator === 0 || stepIndicator === 1) && (
           <div
             className="take-look-text"
             data-testid="take-look-text"
@@ -675,13 +666,12 @@ function NewLoginWidget() {
               // });
             }}
             style={{
-              opacity: stepIndicator === -1 ? "0" : "1",
-              marginTop: stepIndicator === 1 && "29px",
+              marginTop: stepIndicator === 1 ? "29px" : "0",
             }}
           >
             {translate("Later, Take A Look At The Site", language)}
           </div>
-        </AnimatedComponent>
+        )}
         {(stepIndicator > 1 || window.innerWidth > 600) && (
           <span
             id="login-close-icon"

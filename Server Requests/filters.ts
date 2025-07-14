@@ -1,9 +1,11 @@
+"use server";
 import { reportError } from "utils/error-reporter";
 import {
   configureSearchParams,
   parseFiltersFromParams,
   filtersToSearchParams,
 } from "utils/tinyUtils";
+import { fetchServerData } from "./ServerFetch";
 
 interface FilteredProductsResponse {
   data: {
@@ -101,24 +103,15 @@ export async function fetchFilteredProducts(
       configuredUrl = `/api/products/searchInCatalog?${configuredParams.toString()}`;
     }
 
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL}${configuredUrl}`,
-      {
-        method: "GET",
-        headers: {
-          lang: language,
-          country: country,
-          Accept: "application/json",
-          "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
-        },
-        next: {
-          tags: ["listing"],
-          revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE_LISTING),
-        },
-      }
-    );
+    const response = await fetchServerData({
+      url: `${process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL}${configuredUrl}`,
+      method: "GET",
+      tags: ["listing"],
+      revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE_LISTING),
+      local: `${country}-${language}`,
+    });
 
-    if (!response.ok) {
+    if (response.isError) {
       console.error(`Filtered Products Error: ${response.status}`);
       reportError(new Error(`Filtered Products Error: ${response.status}`), {
         source: "filters",
@@ -143,7 +136,7 @@ export async function fetchFilteredProducts(
       };
     }
 
-    const data = await response.json();
+    const data = response.data;
 
     return {
       data: {

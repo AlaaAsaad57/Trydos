@@ -86,6 +86,7 @@ function OrdersList({
                   ...detail,
                   order_status: baseOrder.order_status?.value,
                   order_id: baseOrder.id,
+                  original_order_id: detail.order_id,
                 })),
               ],
               []
@@ -231,7 +232,6 @@ function OrdersList({
     dispatchRouteChangeEvent("completed");
   }, [orders]);
   useEffect(() => {
-    console.log("selectedOrder", selectedOrder);
     if (!selectedOrder) {
       setOrders([]); // Reset orders when status changes
       setPage(1); // Reset page count

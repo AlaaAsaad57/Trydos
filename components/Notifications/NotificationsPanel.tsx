@@ -319,7 +319,11 @@ const NotificationInfo = ({ closeWindow }) => {
       <div
         className="flex-col w-full p-2 text-[#5d5d5d] cursor-copy"
         onClick={() => {
-          window.navigator.clipboard.writeText(`
+          if (
+            typeof window !== "undefined" &&
+            typeof navigator !== "undefined"
+          ) {
+            window.navigator.clipboard.writeText(`
         user_id:${auth.UserID()},
         fcm_token:${token},
         fcm_error:  ${error},
@@ -330,6 +334,7 @@ const NotificationInfo = ({ closeWindow }) => {
         },
         firebase_supported:${supported},
         `);
+          }
         }}
       >
         <div className="flex-row w-full justify-between py-2">

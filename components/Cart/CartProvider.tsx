@@ -9,10 +9,9 @@ import { useEffect, useRef, useState } from "react";
 import { expandView, normalizeView, RoundPrice } from "utils/functions";
 import CartContainer from ".";
 import home from "services/home";
-import { Swiper, SwiperSlide } from "swiper/react";
 import OrdersPage from "./OrdersPage";
-import { Swiper as SwiperType } from "swiper/types";
 import ModalIframe from "./ModalIframe";
+import { SlideWidget } from "components/global/SlideNavigation";
 
 import { useAppStore } from "store";
 import { getCurrency } from "utils/tinyUtils";
@@ -183,89 +182,57 @@ export default CartProvider;
 export const StepSlider = ({ enableCart }) => {
   const { cart_enable: enable, cart, currency, total_cash } = useAppStore();
   const [step, setStep] = useState(0);
-  const ref = useRef<SwiperType | null>();
+
+  const handleToOrders = () => {
+    GAevent({
+      action: GA_EVENT_NAMES.SCREEN_VIEW,
+      params: {
+        screen_name: GA_GLOBAL_SCREEN.CHECKOUT_SCREEN,
+        screen_path: window.location.pathname,
+      },
+    });
+    GAevent({
+      action: GA_EVENT_NAMES.BEGIN_CHECKOUT,
+      params: {
+        value: RoundPrice({
+          num: total_cash,
+          rate: currency.exchange_rate,
+          returnNumber: true,
+        }),
+        items: cart.map((item) => ({
+          item_id: item.product_id,
+          item_name: item.name,
+          price: RoundPrice({
+            num: item.offer_price,
+            rate: currency.exchange_rate,
+            returnNumber: true,
+          }),
+          quantity: item.quantity,
+          item_variant: item.variant ?? "N/A",
+        })),
+      },
+    });
+    setStep(1);
+  };
+
+  const handleBackToCart = () => {
+    setStep(0);
+  };
+
+  const handleClose = () => {
+    enableCart(false);
+  };
 
   return (
-    <div className="w-full h-[100vh] fixed z-[9999999999] cart-provider">
-      <Swiper
-        initialSlide={step}
-        navigation={false}
-        keyboard={{
-          enabled: false,
-        }}
-        draggable={false}
-        className="w-full h-full"
-        wrapperClass="flex flex-row items-stretch"
-        noSwiping={false}
-        allowTouchMove={false}
-        slidesPerView={1}
-        onInit={(swiper) => {
-          ref.current = swiper;
-        }}
-      >
-        <SwiperSlide className="w-full h-full cart-widget">
-          <CartContainer
-            toOrders={() => {
-              GAevent({
-                action: GA_EVENT_NAMES.SCREEN_VIEW,
-                params: {
-                  screen_name: GA_GLOBAL_SCREEN.CHECKOUT_SCREEN,
-                  screen_path: window.location.pathname,
-                },
-              });
-              GAevent({
-                action: GA_EVENT_NAMES.BEGIN_CHECKOUT,
-                params: {
-                  value: RoundPrice({
-                    num: total_cash,
-                    rate: currency.exchange_rate,
-                    returnNumber: true,
-                  }),
-                  items: cart.map((item) => ({
-                    item_id: item.product_id,
-                    item_name: item.name,
-                    price: RoundPrice({
-                      num: item.offer_price,
-                      rate: currency.exchange_rate,
-                      returnNumber: true,
-                    }),
-                    quantity: item.quantity,
-                    item_variant: item.variant ?? "N/A",
-                  })),
-                },
-              });
-              ref.current.slideNext();
-              setStep(1);
-            }}
-            close={() => {
-              // Sendevent({
-              //   event: GA_EVENT_NAMES.CLICK,
-              //   value: GA_CLICK_EVENT_VALUES.APPBAR_BACKICON_BUTTON,
-              // });
-              enableCart(false);
-            }}
-          />
-        </SwiperSlide>
-        <SwiperSlide className="w-full h-full cart-widget">
-          {({ isActive }) =>
-            isActive ? (
-              <>
-                <OrdersPage
-                  setStep={(e) => {
-                    setStep(0);
-                    ref.current.slidePrev();
-                  }}
-                  close={() => {
-                    enableCart(false);
-                  }}
-                />
-              </>
-            ) : (
-              <></>
-            )
-          }
-        </SwiperSlide>
-      </Swiper>
+    <div className="w-full h-[100vh] fixed z-[9999999999] cart-provider bg-[#fafafa]">
+      <SlideWidget step={step} duration={400}>
+        <div className="w-full h-full cart-widget">
+          <CartContainer toOrders={handleToOrders} close={handleClose} />
+        </div>
+        <div className="w-full h-full cart-widget">
+          <OrdersPage setStep={handleBackToCart} close={handleClose} />
+        </div>
+      </SlideWidget>
     </div>
   );
 };

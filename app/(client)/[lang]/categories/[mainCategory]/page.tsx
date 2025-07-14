@@ -1,3 +1,6 @@
+export const revalidate = parseInt(process.env.NEXT_PUBLIC_REVALIDATE);
+export const runtime = "nodejs";
+export const preferredRegion = process.env.PREFERRED_REGION || "bom1";
 import Home from "components/Home";
 import NavbarServer from "components/Server/Navbar";
 import OfferListServer from "components/Server/OfferListServer";
@@ -11,9 +14,6 @@ import { GetHomeData } from "utils/pagesDataRequests/HomePageData";
 import FeatureProducts from "components/Server/FeatureProducts";
 import FeaturedProductsSkeleton from "components/skeleton/loaders/FeaturedProductsSkeleton";
 import FlashDealsProducts from "components/Server/FlashDealsProducts";
-export const revalidate = parseInt(process.env.NEXT_PUBLIC_REVALIDATE);
-export const runtime = "nodejs";
-export const preferredRegion = ["bom1", "sin1"];
 
 export async function generateMetadata({ params }) {
   try {

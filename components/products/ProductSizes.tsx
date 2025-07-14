@@ -2,8 +2,6 @@
 import React, { useState } from "react";
 import SizesIcon from "public/svg/product/SizesIcon.svg";
 import ColorsInfo from "public/svg/product/colorsInfo.svg";
-import { EffectCoverflow } from "swiper/modules";
-import { Swiper, SwiperSlide } from "swiper/react";
 import NormalSizesSlider from "./NormalSizesSlider";
 import DashedCircleBorder from "public/svg/product/DashedCircleBorder.svg";
 import SizeInfoBox from "./SizeInfoBox";
@@ -17,6 +15,7 @@ import {
 import { useAppStore } from "store";
 import { GA_EVENT_NAMES } from "utils/GAEvents";
 import { ProductSizesPropsType } from "models/componentType/productTypes/MultiComponentOnProductPage";
+import StackedSlider from "utils/Slider";
 
 function ProductSizes({ sizes }: ProductSizesPropsType) {
   const { showInfoMessage } = useAppStore();
@@ -81,76 +80,48 @@ function ProductSizes({ sizes }: ProductSizesPropsType) {
         }}
       />
       <div
-        className={`colors-row flex-row ${
+        className={`colors-row flex-row mr-[20px] ${
           extended && "colors-row-extended disable-slider"
         }`}
-        style={{ width: `${175}px` }}
+        style={{ width: `${120}px` }}
         onClick={() => {
           setExtended(!extended);
         }}
       >
-        <Swiper
-          data-cy="SizeBoxProductDetail"
-          modules={[EffectCoverflow]}
-          speed={100}
-          effect="coverflow"
-          slideToClickedSlide={true}
-          onChange={() => {
-            // Sendevent({
-            //   event: GA_EVENT_NAMES.CLICK,
-            //   value: GA_CLICK_EVENT_VALUES.CHOOSE_AVAILABLE_SIZE_BUTTON,
-            // });
-          }}
-          onSlideChange={(swiper) => {
+        <StackedSlider
+          initial_index={0}
+          slidesArray={sizes.map((size, index) => index)}
+          slide_width={40}
+          max_drag={100}
+          max_scale={1}
+          min_scale={0.6}
+          onSlideChange={(index) => {
             const newParams = new URLSearchParams(searchParams);
-            newParams.set("size", sizes[swiper.activeIndex].name);
+            newParams.set("size", sizes[index].name);
             router.push(pathname + `?${newParams.toString()}`, {
               scroll: false,
               // @ts-expect-error 'shallow' does not exist in type 'NavigateOptions'
               shallow: true,
             });
           }}
-          coverflowEffect={{
-            depth: 100,
-            modifier: 1.8,
-            scale: 1,
-            stretch: 2.5,
-            rotate: 0,
-            slideShadows: false,
-          }}
-          slidesPerView={"auto"}
-          threshold={1}
-          centeredSlides={true}
-          initialSlide={0}
-          loop={false}
-        >
-          {sizes?.map((size, index) => (
-            <SwiperSlide
-              data-cy="ElementOnSizeBox"
-              key={index}
-              style={{
-                overflow: "visible",
-                width: "40px",
-                height: "40px",
-                position: "relative",
-              }}
-            >
-              {({ isActive }) => (
-                <div
-                  className={`color-circle relative ${
-                    isActive && "active-color-circle"
-                  }`}
-                >
-                  <div className={`size-circle ${isActive && "active-size"}`}>
-                    {size.name}
-                  </div>
-
-                  <DashedCircleBorder />
+          overlap_factor={0.4}
+          renderSlide={({ index, isActive, slide_width }) => {
+            let size = sizes[index];
+            return (
+              <div
+                className={`color-circle relative w-[40px] h-[40px] ${
+                  isActive && "active-color-circle"
+                }`}
+              >
+                <div className={`size-circle ${isActive && "active-size"}`}>
+                  {size.name}
                 </div>
-              )}
-            </SwiperSlide>
-          ))}
-        </Swiper>
+
+                <DashedCircleBorder />
+              </div>
+            );
+          }}
+        />
       </div>
       {extended && <SizeInfoBox />}
     </div>

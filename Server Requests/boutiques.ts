@@ -1,6 +1,7 @@
 "use server";
 
 import { reportError } from "utils/error-reporter";
+import { fetchServerData } from "./ServerFetch";
 
 interface Boutique {
   name: string;
@@ -73,36 +74,31 @@ export async function fetchBoutiques(
         ? `?category_slugs=["${categorySlug}"]&limit=${limit}&offset=${offset}`
         : `?category_slugs=[]&limit=${limit}&offset=${offset}`
     }`;
+    const response = await fetchServerData({
+      url: `${process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL}${boutiqueUrl}`,
+      method: "GET",
+      tags: ["boutiques", "home"],
+      revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE_BOUTIQUES),
+      local: `${country}-${language}`,
+      retryAttempts: 3,
+      retryDelay: 1000,
+    });
 
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL}${boutiqueUrl}`,
-      {
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
-          "Cache-Control": "no-cache",
-          lang: language,
-          country: country,
-        },
-        next: {
-          tags: ["boutiques", "home"],
-          revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE_BOUTIQUES),
-        },
-      }
-    );
-
-    if (!response.ok) {
+    if (response.isError) {
       console.error(`Boutiques Error: ${response.status}`);
-      reportError(new Error(`Boutiques Error: ${response.status}`), {
-        source: "boutiques",
-        page: "boutiques",
-        language: language,
-        response: JSON.stringify(response),
-        country: country,
-        categorySlug: categorySlug,
-        offset: offset,
-        limit: limit,
-      });
+      reportError(
+        new Error(`Boutiques Error: ${response.status}-${response.error}`),
+        {
+          source: "boutiques",
+          page: "boutiques",
+          language: language,
+          response: JSON.stringify(response),
+          country: country,
+          categorySlug: categorySlug,
+          offset: offset,
+          limit: limit,
+        }
+      );
       return {
         total: 0,
         limit: 0,
@@ -111,7 +107,7 @@ export async function fetchBoutiques(
       };
     }
 
-    const { data } = await response.json();
+    const { data } = response.data;
 
     return {
       total: data.total,
@@ -161,34 +157,29 @@ export async function fetchBoutiqueDetails(
         slug: "listing",
       };
     }
+    const response = await fetchServerData({
+      url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/web/boutique/simpleDetails/${slug}?lang=${language}&country=${country}`,
+      method: "GET",
+      tags: ["home", "boutiques"],
+      revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE_BOUTIQUES),
+      local: `${country}-${language}`,
+    });
 
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_BACKEND_URL}/web/boutique/simpleDetails/${slug}?lang=${language}&country=${country}`,
-      {
-        method: "GET",
-        headers: {
-          lang: language,
-          country: country,
-          Accept: "application/json",
-          "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
-        },
-        next: {
-          tags: ["home", "boutiques"],
-          revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE_BOUTIQUES),
-        },
-      }
-    );
-
-    if (!response.ok) {
+    if (response.isError) {
       console.error(`Boutique Details Error: ${response.status}`);
-      reportError(new Error(`Boutique Details Error: ${response.status}`), {
-        source: "boutiques",
-        page: "boutique-details",
-        language: language,
-        country: country,
-        slug: slug,
-        response: JSON.stringify(response),
-      });
+      reportError(
+        new Error(
+          `Boutique Details Error: ${response.status}-${response.error}`
+        ),
+        {
+          source: "boutiques",
+          page: "boutique-details",
+          language: language,
+          country: country,
+          slug: slug,
+          response: JSON.stringify(response),
+        }
+      );
       return {
         name: "listing",
         banners: null,
@@ -196,8 +187,7 @@ export async function fetchBoutiqueDetails(
         slug: "listing",
       };
     }
-    let { data } = await response.json();
-    return data;
+    return response.data.data;
   } catch (error) {
     console.error("Error fetching boutique details:", error);
     throw error;

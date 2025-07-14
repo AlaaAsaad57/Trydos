@@ -38,7 +38,7 @@ class ForegroundNotificationHandler {
   private initializeListener(): void {
     if (this.isListening) return;
 
-    if ("serviceWorker" in navigator) {
+    if (typeof navigator !== "undefined" && "serviceWorker" in navigator) {
       navigator.serviceWorker.addEventListener("message", (event) => {
         this.handleServiceWorkerMessage(event);
       });

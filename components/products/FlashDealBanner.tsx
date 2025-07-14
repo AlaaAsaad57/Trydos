@@ -18,6 +18,7 @@ function FlashDealBanner({ end_data }: FlashDealBannerProps) {
   useEffect(() => {
     const calculateTimeLeft = () => {
       const endDate = new Date(end_data);
+      endDate.setHours(23, 59, 59, 999);
       const now = new Date();
       const difference = endDate.getTime() - now.getTime();
 
@@ -83,12 +84,7 @@ function FlashDealBanner({ end_data }: FlashDealBannerProps) {
   );
 
   if (isExpired) {
-    return (
-      <div className="bg-gradient-to-r from-red-500 to-pink-500 text-white px-3 py-1.5 rounded-full shadow-lg flex items-center gap-1.5 text-xs font-semibold">
-        <FlashIcon />
-        <span>FLASH DEAL</span>
-      </div>
-    );
+    return <></>;
   }
 
   return (
@@ -100,24 +96,24 @@ function FlashDealBanner({ end_data }: FlashDealBannerProps) {
       <div className="flex items-center gap-1.5">
         <ClockIcon />
         <div className="flex items-center gap-1 text-xs font-mono">
-          {timeLeft.days > 0 && (
+          {timeLeft?.days > 0 && (
             <>
               <span className="bg-white/20 px-1.5 py-0.5 rounded text-xs font-bold">
-                {timeLeft.days.toString().padStart(2, "0")}
+                {timeLeft?.days.toString().padStart(2, "0")}
               </span>
               <span className="text-xs">d</span>
             </>
           )}
           <span className="bg-white/20 px-1.5 py-0.5 rounded text-xs font-bold">
-            {timeLeft.hours.toString().padStart(2, "0")}
+            {timeLeft?.hours.toString().padStart(2, "0")}
           </span>
           <span className="text-xs">:</span>
           <span className="bg-white/20 px-1.5 py-0.5 rounded text-xs font-bold">
-            {timeLeft.minutes.toString().padStart(2, "0")}
+            {timeLeft?.minutes.toString().padStart(2, "0")}
           </span>
           <span className="text-xs">:</span>
           <span className="bg-white/20 px-1.5 py-0.5 rounded text-xs font-bold animate-pulse">
-            {timeLeft.seconds.toString().padStart(2, "0")}
+            {timeLeft?.seconds.toString().padStart(2, "0")}
           </span>
         </div>
       </div>

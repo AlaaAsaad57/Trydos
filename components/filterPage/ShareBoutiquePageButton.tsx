@@ -10,10 +10,12 @@ function ShareBoutiquePageButton() {
       onClick={() => {
         let url = document.location.href;
 
-        navigator.clipboard.writeText(url).then(
-          function () {},
-          function () {}
-        );
+        if (typeof navigator !== "undefined") {
+          navigator.clipboard.writeText(url).then(
+            function () {},
+            function () {}
+          );
+        }
       }}
     >
       <ShareIcon data-cy="share_ortion_svg" />

@@ -1,4 +1,3 @@
-// Export all fetch functions
 export * from "./categories";
 export * from "./boutiques";
 export * from "./products";

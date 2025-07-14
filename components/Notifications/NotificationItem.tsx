@@ -1,5 +1,4 @@
 import React from "react";
-import Link from "next/link";
 import {
   useParams,
   usePathname,
@@ -10,7 +9,7 @@ import { NotificationItem as NotificationItemType } from "../../types/notificati
 import { translateFunction } from "utils/functions";
 import { useAppStore } from "store";
 import NextLink from "components/global/NextLink";
-import search from "services/search";
+
 import { formatTime, GetImageUrl } from "utils/tinyUtils";
 
 interface NotificationItemProps {
