@@ -11,7 +11,6 @@ import {
   translateFunction,
 } from "utils/functions";
 import { GetImageUrl } from "utils/tinyUtils";
-import { fetchCurrency, fetchFilteredProducts } from "Server Requests";
 
 async function FlashDealsProducts({ lang, currencyData, flashDealsProducts }) {
   const [country, language] = lang.split("-");

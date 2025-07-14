@@ -6,7 +6,7 @@ import Image from "next/image";
 import { GetImageUrl } from "utils/tinyUtils";
 import { ColorSliderPropsType } from "models/componentType/ColorSliderPropsType";
 import StackedSlider from "utils/Slider";
-// import { stopProgress } from "next-nprogress-bar";
+
 function ColorSlider({
   active,
   activeColor,

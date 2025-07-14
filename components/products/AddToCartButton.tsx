@@ -21,7 +21,7 @@ function AddToCartButton({ product }: { product: any }) {
       onClick={(e) => {
         document.documentElement.style.overflow = "hidden";
         document.documentElement.scrollTop = 0;
-        setSelectedProductForCart(product);
+        setSelectedProductForCart({ ...product, shouldUpdate: 0 });
       }}
     >
       {<img src={"/svg/plusCart.svg"} className="plus-icon-button" />}

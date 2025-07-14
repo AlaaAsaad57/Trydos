@@ -52,7 +52,11 @@ export const BuyButtonProduct = ({ product }) => {
   const addToCart = () => {
     document.documentElement.style.overflow = "hidden";
     document.documentElement.scrollTop = 0;
-    setSelectedProductForCart(product);
+    setSelectedProductForCart({
+      ...product,
+      shouldUpdate: 0,
+      id: product.product_id || product.id,
+    });
   };
   return (
     <BuyButton

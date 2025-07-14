@@ -98,7 +98,11 @@ function ProductRedeemButton({ product }) {
               // Handle redeem action
               document.documentElement.style.overflow = "hidden";
               document.documentElement.scrollTop = 0;
-              setSelectedProductForCart({ ...product, showRedeemPrice: true });
+              setSelectedProductForCart({
+                ...product,
+                showRedeemPrice: true,
+                shouldUpdate: 0,
+              });
               setShouldShow(false);
             }}
             aria-label={translateFunction("Redeem this product")}

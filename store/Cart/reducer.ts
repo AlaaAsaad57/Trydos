@@ -350,13 +350,19 @@ export const useCartStore = (set, get) => ({
           item_id: s.id,
           image: s.image,
           quantity: s.quantity,
-          size: s.choices?.length > 0 ? s.choices[0]?.choice_1 : undefined,
-          color: s?.variations[0]?.color ?? undefined,
+          size: s.variations?.[0]?.size_options
+            ? s.variations?.[0]?.size_options
+            : undefined,
+          color: s?.variations?.[0]?.color_options ?? undefined,
           sku: `${s.product_id}${
-            s.variations?.length > 0 && s?.variations[0]?.color
-              ? `-${s.variations[0].color}`
+            s.variations?.length > 0 && s?.variations[0]?.color_options
+              ? `-${s.variations[0].color_options}`
               : ""
-          }${s.choices?.length > 0 ? `-${s.choices[0].choice_1}` : ""}`,
+          }${
+            s.variations?.[0]?.size_options
+              ? `-${s.variations?.[0]?.size_options}`
+              : ""
+          }`,
         })),
       ],
     })),

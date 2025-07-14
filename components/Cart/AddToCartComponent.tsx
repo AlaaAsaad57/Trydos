@@ -59,7 +59,11 @@ function AddToCartComponent({
   const [selectedSize, setSelectedSize] = useState(null);
   const [loading, setLoading] = useState(false);
   const [requestLoading, setRequestLoading] = useState(false);
-
+  useEffect(() => {
+    if (product.shouldUpdate > 0) {
+      getProductData();
+    }
+  }, [product?.shouldUpdate]);
   const getProductData = async () => {
     try {
       setLoading(true);
@@ -119,6 +123,10 @@ function AddToCartComponent({
         variation: newVariants,
       };
       setProductData(tempProductData);
+      setSelectedProductForCart({
+        ...tempProductData,
+        shouldUpdate: 0,
+      });
       setSelectedColor(
         tempProductData?.sync_color_images?.find(
           (s) => s.color_option?.toLowerCase() === colorFromUrl?.toLowerCase()
@@ -294,7 +302,6 @@ function AddToCartComponent({
     });
   };
   const getClassName = (size, isActive) => {
-    console.log(size, isActive);
     if (isActive) {
       if (getVariantSizeQty(size.option) === 0) {
         return "text-white bg-[#ff5f61]";
@@ -448,7 +455,7 @@ function AddToCartComponent({
               overlap_factor={0.4}
               renderSlide={({ index, isActive, slide_width }) => {
                 let color = ProductData?.sync_color_images[index];
-                console.log(color);
+
                 return (
                   <div className="w-[70px] color_option_cyrcle h-[70px] color-swipe-slide relative rounded-full">
                     <img

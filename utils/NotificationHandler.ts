@@ -144,6 +144,19 @@ class ForegroundNotificationHandler {
           );
         }
         if (JSON.parse(payload.data.body).type === "product availability") {
+          let { setSelectedProductForCart, selected_product_for_add_to_cart } =
+            useAppStore.getState();
+          if (
+            selected_product_for_add_to_cart &&
+            selected_product_for_add_to_cart?.id &&
+            parseInt(selected_product_for_add_to_cart?.id) ===
+              parseInt(data.product_id)
+          ) {
+            setSelectedProductForCart({
+              ...selected_product_for_add_to_cart,
+              shouldUpdate: 1,
+            });
+          }
           showSuccessNotification(
             data?.description,
             5000,
