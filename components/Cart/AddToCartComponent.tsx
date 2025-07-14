@@ -154,7 +154,7 @@ function AddToCartComponent({
       let selected_variant = ProductData?.variation.find(
         (s) =>
           s.type.startsWith(selectedColor?.color_option ?? "") &&
-          s.type.endsWith((size && `-${size}`) ?? "")
+          s.type.endsWith((size && `-${size?.replace(" ", "")}`) ?? "")
       );
       return selected_variant?.qty;
     } else {
@@ -294,6 +294,7 @@ function AddToCartComponent({
     });
   };
   const getClassName = (size, isActive) => {
+    console.log(size, isActive);
     if (isActive) {
       if (getVariantSizeQty(size.option) === 0) {
         return "text-white bg-[#ff5f61]";

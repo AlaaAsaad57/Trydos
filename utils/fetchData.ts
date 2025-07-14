@@ -373,8 +373,8 @@ export const fetchData = async <T = any>(
         });
         LogError(errorObj);
       }
-      throw err;
-      // return responseData;
+      // throw err;
+      return responseData;
     }
   };
 
