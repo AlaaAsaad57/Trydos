@@ -10,9 +10,7 @@ import StoriesBarServer from "components/Server/StoriesBarServer";
 import MobileNavigationSkeleton from "components/skeleton/MobileNavigation";
 import OfferListSkeleton from "components/skeleton/OfferList";
 import StoriesSkeleton from "components/skeleton/StoriesSkeleton";
-
 import { Suspense } from "react";
-
 import Home from "components/Home";
 import FeatureProducts from "components/Server/FeatureProducts";
 import FeaturedProductsSkeleton from "components/skeleton/loaders/FeaturedProductsSkeleton";
