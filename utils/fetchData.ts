@@ -288,6 +288,11 @@ export const fetchData = async <T = any>(
 
       // Parse response
       responseData = await response.json();
+      if (!response.ok) {
+        throw new Error(
+          `${responseData?.message ?? responseData?.data?.message ?? ""}`
+        );
+      }
       if (_isStoreLastJson()) {
         localStorage.setItem("LAST_JSON", JSON.stringify(responseData));
       }
@@ -310,11 +315,6 @@ export const fetchData = async <T = any>(
           );
       }
 
-      if (!response.ok) {
-        throw new Error(
-          `${responseData?.message ?? responseData?.data?.message ?? ""}`
-        );
-      }
       // Cache the result
       if (useCached) {
         requestCache.set(cacheKey, responseData);

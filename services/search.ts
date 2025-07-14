@@ -19,7 +19,8 @@ class SearchService {
     });
 
     const { setTrendingSearch } = useAppStore.getState();
-    setTrendingSearch(response.popular_search_terms);
+    console.log(response, "response");
+    setTrendingSearch(response?.popular_search_terms || []);
   }
 
   async getSearchOptions({
