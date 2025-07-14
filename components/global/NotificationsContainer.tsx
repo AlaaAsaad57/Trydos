@@ -137,6 +137,7 @@ const NotificationsContainer = () => {
               aria-label="Close notification"
             >
               <svg
+                onClick={() => handleDismiss(notification.id)}
                 xmlns="http://www.w3.org/2000/svg"
                 xmlnsXlink="http://www.w3.org/1999/xlink"
                 width="36"

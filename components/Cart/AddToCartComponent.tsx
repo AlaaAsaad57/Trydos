@@ -187,7 +187,9 @@ function AddToCartComponent({
           (s) =>
             s.type.startsWith(selectedColor?.color_option ?? "") &&
             s.type.endsWith(
-              (selectedSize?.option && `-${selectedSize?.option}`) ?? ""
+              (selectedSize?.option &&
+                `-${selectedSize?.option?.replace(" ", "")}`) ??
+                ""
             )
         );
       }
@@ -207,7 +209,9 @@ function AddToCartComponent({
       ) {
         selected_variant = ProductData?.variation.find((s) =>
           s.type.endsWith(
-            (selectedSize?.option && `${selectedSize?.option}`) ?? ""
+            (selectedSize?.option &&
+              `${selectedSize?.option?.replace(" ", "")}`) ??
+              ""
           )
         );
       }

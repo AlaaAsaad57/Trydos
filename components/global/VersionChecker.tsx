@@ -1,6 +1,8 @@
 "use client";
 import React from "react";
 import { checkAndUpdateVersion } from "utils/version-manager";
+import { showSuccessMessage } from "./AddToCartMessage";
+import { showSuccessNotification } from "store/notifications/reducer";
 
 interface VersionCheckerProps {
   children?: React.ReactNode;
