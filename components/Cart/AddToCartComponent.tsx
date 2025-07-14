@@ -788,7 +788,11 @@ function AddToCartComponent({
                           className={`${getClassName(
                             size,
                             isActive
-                          )}  rounded-full flex-row items-center justify-center text-[30px] bold select-none flex`}
+                          )}  rounded-full flex-row items-center justify-center ${
+                            size.name?.length < 6
+                              ? "text-[30px]"
+                              : "text-[13px]"
+                          } bold select-none flex`}
                         >
                           {size.name}
                         </div>
