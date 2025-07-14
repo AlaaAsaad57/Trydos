@@ -90,6 +90,7 @@ const getStoriesToken = async (): Promise<string> => {
   }
   return "";
 };
+const retryableStatusCodes = [502, 503, 504, 429];
 
 // Get token based on server type
 const getToken = async (server: ServerType): Promise<string> => {
@@ -216,6 +217,7 @@ export const fetchData = async <T = any>(
 
   // Check cache first
   const cacheKey = generateCacheKey(params);
+  let status;
   if (useCached && !isRetryAfterUnauthorized && requestCache.has(cacheKey)) {
     const cachedData = requestCache.get(cacheKey);
     console.log(
@@ -266,6 +268,7 @@ export const fetchData = async <T = any>(
       // Make the request
 
       const response = await fetch(FULL_URL, requestOptions);
+      status = response.status;
 
       // Handle 401 Unauthorized
       if (response.status === 401 && !isRetryAfterUnauthorized) {
@@ -316,11 +319,14 @@ export const fetchData = async <T = any>(
       if (useCached) {
         requestCache.set(cacheKey, responseData);
       }
-      console.log({ isCached: false, data: responseData, url, method });
+      // console.log({ isCached: false, data: responseData, url, method });
       return responseData;
     } catch (err) {
       // Network error - retry logic
-      if (err instanceof TypeError && err.message.includes("fetch")) {
+      if (
+        (err instanceof TypeError && err.message.includes("fetch")) ||
+        retryableStatusCodes.includes(status)
+      ) {
         retryCount++;
         if (retryCount < maxRetries) {
           console.log(

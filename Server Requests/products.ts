@@ -1,6 +1,7 @@
 "use server";
 
 import { reportError } from "utils/error-reporter";
+import { fetchServerData } from "./ServerFetch";
 
 interface ProductDetailsResponse {
   [key: string]: any;
@@ -32,26 +33,15 @@ async function fetchProductSimpleDetails(
   country: string
 ) {
   try {
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_BACKEND_URL}/web/product/globalDetails/${slug}?lang=${language}`,
-      {
-        method: "GET",
-        headers: {
-          lang: language,
-          country: country,
-          Accept: "application/json",
-          "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
-        },
-        next: {
-          tags: ["product-details"],
-          revalidate: parseInt(
-            process.env.NEXT_PUBLIC_REVALIDATE_PRODUCT_DETAILS
-          ),
-        },
-      }
-    );
+    const response = await fetchServerData({
+      url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/web/product/globalDetails/${slug}?lang=${language}`,
+      method: "GET",
+      tags: ["product-details"],
+      revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE_PRODUCT_DETAILS),
+      local: `${country}-${language}`,
+    });
 
-    if (!response.ok) {
+    if (response.isError) {
       console.error(`Product Simple Details Error: ${response.status}`);
       reportError(
         new Error(`Product Simple Details Error: ${response.status}`),
@@ -66,7 +56,7 @@ async function fetchProductSimpleDetails(
       return { data: {} };
     }
 
-    return await response.json();
+    return response.data;
   } catch (error) {
     console.error("Error fetching product simple details:", error);
     return { data: {} };
@@ -79,26 +69,15 @@ async function fetchProductExtendedDetails(
   country: string
 ) {
   try {
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_BACKEND_URL}/web/product/qtyPriceDetails/${slug}?lang=${language}`,
-      {
-        method: "GET",
-        headers: {
-          lang: language,
-          country: country,
-          Accept: "application/json",
-          "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
-        },
-        next: {
-          tags: ["product-details"],
-          revalidate: parseInt(
-            process.env.NEXT_PUBLIC_REVALIDATE_PRODUCT_DETAILS
-          ),
-        },
-      }
-    );
+    const response = await fetchServerData({
+      url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/web/product/qtyPriceDetails/${slug}?lang=${language}`,
+      method: "GET",
+      tags: ["product-details"],
+      revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE_PRODUCT_DETAILS),
+      local: `${country}-${language}`,
+    });
 
-    if (!response.ok) {
+    if (response.isError) {
       console.error(`Product Extended Details Error: ${response.status}`);
       reportError(
         new Error(`Product Extended Details Error: ${response.status}`),
@@ -112,7 +91,7 @@ async function fetchProductExtendedDetails(
       return { data: {} };
     }
 
-    return await response.json();
+    return response.data;
   } catch (error) {
     console.error("Error fetching product extended details:", error);
     return { data: {} };

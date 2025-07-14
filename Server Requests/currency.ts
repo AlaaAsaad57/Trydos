@@ -1,6 +1,7 @@
 "use server";
 
 import { reportError } from "utils/error-reporter";
+import { fetchServerData } from "./ServerFetch";
 
 interface CurrencyResponse {
   [key: string]: any;
@@ -11,24 +12,15 @@ export async function fetchCurrency(
   country: string
 ): Promise<CurrencyResponse> {
   try {
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_BACKEND_URL}/mobile/home/currency?lang=${language}&country=${country}`,
-      {
-        method: "GET",
-        headers: {
-          lang: language,
-          country: country,
-          Accept: "application/json",
-          "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
-        },
-        next: {
-          tags: ["currency-api", "home", "listing", "product-details"],
-          revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE_CURRENCY),
-        },
-      }
-    );
+    const response = await fetchServerData({
+      url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/mobile/home/currency?lang=${language}&country=${country}`,
+      method: "GET",
+      tags: ["currency-api", "home", "listing", "product-details"],
+      revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE_CURRENCY),
+      local: `${country}-${language}`,
+    });
 
-    if (!response.ok) {
+    if (response.isError) {
       console.error(`Currency Error: ${response.status}`);
       reportError(new Error(`Currency Error: ${response.status}`), {
         source: "currency",
@@ -42,7 +34,7 @@ export async function fetchCurrency(
       };
     }
 
-    return await response.json();
+    return response.data;
   } catch (error) {
     console.error("Error fetching currency:", error);
     throw error;

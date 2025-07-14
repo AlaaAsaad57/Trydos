@@ -56,7 +56,7 @@ export default async function Page({ params }: { params: ParamsType }) {
   let { products: filtersData, currency } = await GetFiltersData(
     { lang: params.lang, filters: params.filters },
     null,
-    false,
+    true,
     false,
     true
   );
