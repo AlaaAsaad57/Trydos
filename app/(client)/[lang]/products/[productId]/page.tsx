@@ -61,7 +61,16 @@ export async function generateMetadata({ params, searchParams }) {
 async function Page({ params, searchParams }: ProductPagePropsType) {
   let [countryVariable, languageVariable] = params.lang.split("-");
 
-  const { product, currency } = await GetProductData(params);
+  let { product, currency } = await GetProductData(params);
+  product = {
+    ...product,
+    // is_redeem: true,
+    // variation: product?.variation?.map((s) => ({
+    //   ...s,
+    //   qty: 1,
+    // })),
+    // available_quantity: 0,
+  };
   const color = searchParams.color;
   const JsonLd = {
     "@context": "https://schema.org",
@@ -91,7 +100,22 @@ async function Page({ params, searchParams }: ProductPagePropsType) {
       reviewCount: "15",
     },
   };
+  const shouldShowNotifyButton = () => {
+    let bool = false;
+    if (product?.variation?.length > 0) {
+      bool =
+        product?.variation?.filter((s) => s.qty === 0).length ===
+        product?.variation?.length;
+    } else {
+      bool = product.available_quantity === 0;
+    }
 
+    //restricted,status,collect_after_ordering,quantity,allVarIsEmpty
+    if (product?.is_active === false || product.is_country_restricted)
+      return true;
+    if (product.collected_after_ordering === 1) return false;
+    return bool;
+  };
   return (
     <>
       <script
@@ -101,14 +125,15 @@ async function Page({ params, searchParams }: ProductPagePropsType) {
       <div className="product-details-container w-full relative">
         <div className="flex-col gap-[20px] mx-[5px] w-auto absolute top-[66px] right-[20px] z-[999999999]">
           {(product?.flash_deal_details?.end_date ||
-            product?.flash_deal_end_date) && (
-            <FlashDealBanner
-              end_data={
-                product?.flash_deal_details?.end_date ||
-                product?.flash_deal_end_date
-              }
-            />
-          )}
+            product?.flash_deal_end_date) &&
+            !shouldShowNotifyButton() && (
+              <FlashDealBanner
+                end_data={
+                  product?.flash_deal_details?.end_date ||
+                  product?.flash_deal_end_date
+                }
+              />
+            )}
           {product.label_names && (
             <ProductsLabels
               isProduct={true}

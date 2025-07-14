@@ -204,6 +204,8 @@ export const fetchData = async <T = any>(
     "View count updated",
     "Subscribed successfully",
     "signal is aborted without reason",
+    "Failed to fetch",
+    "Too many attempts",
   ];
   const {
     url,
@@ -285,14 +287,15 @@ export const fetchData = async <T = any>(
       }
 
       // Check if response is ok
-
-      // Parse response
-      responseData = await response.json();
       if (!response.ok) {
+        console.log(responseData?.message);
         throw new Error(
           `${responseData?.message ?? responseData?.data?.message ?? ""}`
         );
       }
+      // Parse response
+      responseData = await response.json();
+
       if (_isStoreLastJson()) {
         localStorage.setItem("LAST_JSON", JSON.stringify(responseData));
       }

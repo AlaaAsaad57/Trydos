@@ -19,7 +19,7 @@ class SearchService {
     });
 
     const { setTrendingSearch } = useAppStore.getState();
-    console.log(response, "response");
+
     setTrendingSearch(response?.popular_search_terms || []);
   }
 
@@ -106,28 +106,17 @@ class SearchService {
         filters_offset: filters_offset?.toString(),
       });
 
-      const apiUrl = `${process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL}/api/products/searchInCatalog`;
+      const apiUrl = `/api/products/searchInCatalog`;
 
       // Debug logging
-
-      const filtersResponseJson = await fetch(
-        `${apiUrl}?${configuredParams.toString()}`,
-        {
-          signal,
-          // @ts-ignore
-          headers: {
-            lang: lang.split("-")[1] || "en",
-            country: lang.split("-")[0] || "tr",
-            Accept: "application/json",
-            "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
-            ...(auth.UserID() && (searchValue?.length > 0 || value.length > 0)
-              ? { "original-user-id": auth.UserID() }
-              : {}),
-          },
-        }
-      );
-
-      const filtersResponse = await filtersResponseJson.json();
+      const filtersResponse = await fetchData({
+        method: "GET",
+        url: `${apiUrl}?${configuredParams.toString()}`,
+        server: "elastic",
+        reqTitle: "Get Search Options",
+        signal,
+      });
+      console.log(filtersResponse, "filtersResponse");
       const {
         products,
         categories,
@@ -200,22 +189,15 @@ class SearchService {
         boutiqueId: "listing",
       });
 
-      const apiUrl = `${process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL}/api/products/searchInCatalog`;
+      const apiUrl = `/api/products/searchInCatalog`;
+      const filtersResponse = await fetchData({
+        method: "GET",
+        url: `${apiUrl}?${configuredParams.toString()}`,
+        server: "elastic",
+        reqTitle: "Get Search Options",
+        signal,
+      });
 
-      const filtersResponseJson = await fetch(
-        `${apiUrl}?${configuredParams.toString()}`,
-        {
-          signal, // Pass the abort signal to fetch
-          headers: {
-            lang: lang.split("-")[1] || "en",
-            country: lang.split("-")[0] || "tr",
-            Accept: "application/json",
-            "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
-          },
-        }
-      );
-
-      const filtersResponse = await filtersResponseJson.json();
       const {
         products,
         categories,

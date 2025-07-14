@@ -73,7 +73,7 @@ async function fetchProductExtendedDetails(
       url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/web/product/qtyPriceDetails/${slug}?lang=${language}`,
       method: "GET",
       tags: ["product-details"],
-      revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE_PRODUCT_DETAILS),
+      revalidate: 0,
       local: `${country}-${language}`,
     });
 
