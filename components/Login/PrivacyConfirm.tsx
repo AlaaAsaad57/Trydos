@@ -3,7 +3,6 @@ import { useEffect, useState } from "react";
 import { translateFunction } from "utils/functions";
 import ConditionIcon from "public/svg/ConditionIcon.svg";
 
-import { useTransition, animated } from "react-spring";
 import { useParams } from "next/navigation";
 import { useAppStore } from "store";
 import { GA_EVENT_NAMES } from "utils/GAEvents";
@@ -20,17 +19,7 @@ function PrivacyConfirm({ stepIndicator, setStepIndicator }) {
   };
 
   const [active, setActive] = useState(false);
-  const transition = useTransition(active, {
-    from: { x: -800 },
-    enter: { x: 0 },
-    leave: { x: 800 },
-    config: {
-      bounce: 0,
-      clamp: false,
-      precision: 0,
-      friction: 10,
-    },
-  });
+
   useEffect(() => {
     if (stepIndicator === 1) {
       setTimeout(() => {

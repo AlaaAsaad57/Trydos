@@ -40,15 +40,6 @@ export const getHomeMetadata = cache(async ({ params }): Promise<Metadata> => {
   const boutiques = boutiquesData || [];
 
   // Generate comprehensive metadata with translations
-
-  const featuredCategories = categories
-    .slice(0, 8)
-    .map((c) => c.name)
-    .join(", ");
-  const topBoutiques = boutiques
-    .slice(0, 8)
-    .map((b) => b.name)
-    .join(", ");
   // app/layout.tsx or app/page.tsx
   const data = {
     metadataBase: new URL(process.env.NEXT_PUBLIC_REMOTE_FRONT),
