@@ -310,17 +310,22 @@ export const fetchData = async <T = any>(
         );
       }
       // Parse response
-
-      if (_isStoreLastJson()) {
-        localStorage.setItem("LAST_JSON", JSON.stringify(responseData));
-      }
       if (
         typeof reqTitle === "string" &&
         reqTitle.includes("Add to cart widget")
       ) {
-        showSuccessMessage(
-          responseData?.message ?? responseData?.data?.message ?? ""
-        );
+        if (responseData?.data?.status === 1)
+          showSuccessMessage(
+            responseData?.message ?? responseData?.data?.message ?? ""
+          );
+        else {
+          showErrorMessage(
+            responseData?.message ?? responseData?.data?.message ?? ""
+          );
+          throw new Error(
+            responseData?.message ?? responseData?.data?.message ?? ""
+          );
+        }
       } else {
         if (
           !ignoredMessages.includes(
