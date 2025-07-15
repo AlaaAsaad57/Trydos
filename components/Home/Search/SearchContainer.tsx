@@ -22,11 +22,11 @@ function SearchContainer({ active }) {
   }, [value]);
   const searchParams = useSearchParams();
   const getSearchData = async () => {
-    search.getSearchOptions({
+    await search.getTrendingSearch();
+    await search.getSearchOptions({
       noProducts: true,
       lang: lang,
     });
-    await search.getTrendingSearch();
   };
   useEffect(() => {
     if (!searchParams.get("changed-country") && !searchParams.get("no-country"))

@@ -48,13 +48,6 @@ class SearchService {
       setSearchPartialLoading,
       setSearchLoading,
     } = useAppStore.getState();
-
-    let params = this.getSearchParamsFromObj(
-      searchFilters,
-      value.length === 0,
-      noFilters,
-      filters_offset
-    );
     setSearchPartialLoading(true);
     setSearchLoading(true);
     try {

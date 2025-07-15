@@ -16,6 +16,8 @@ import {
   getCookie,
 } from "./cookies/cookie-manager";
 import { reportError } from "./error-reporter";
+import { logRequest } from "./requestLoggerClient";
+
 // Types
 export type ServerType = "chat" | "market" | "stories" | "elastic";
 
@@ -235,6 +237,7 @@ export const fetchData = async <T = any>(
 
   const attemptFetch = async (): Promise<T> => {
     let responseData;
+    let logObj: Partial<any> = {};
     try {
       // Get token
       const token = await getToken(server);
@@ -272,9 +275,21 @@ export const fetchData = async <T = any>(
 
       const response = await fetch(FULL_URL, requestOptions);
       status = response.status;
-
+      responseData = await response.json();
       // Handle 401 Unauthorized
       if (response.status === 401 && !isRetryAfterUnauthorized) {
+        logObj = {
+          url,
+          title: reqTitle || "",
+          status: status || 0,
+          attempts: retryCount + 1,
+          response: responseData,
+          userId: String(auth.UserID?.() ?? ""),
+          method,
+          body,
+          timestamp: Date.now(),
+        };
+        logRequest(logObj as any);
         const shouldRetry = await handleUnauthorized(server);
         // Only retry if handleUnauthorized indicates success
         if (shouldRetry) {
@@ -295,7 +310,6 @@ export const fetchData = async <T = any>(
         );
       }
       // Parse response
-      responseData = await response.json();
 
       if (_isStoreLastJson()) {
         localStorage.setItem("LAST_JSON", JSON.stringify(responseData));
@@ -323,7 +337,21 @@ export const fetchData = async <T = any>(
       if (useCached) {
         requestCache.set(cacheKey, responseData);
       }
-      // console.log({ isCached: false, data: responseData, url, method });
+      // Log the request (success)
+      if (typeof window !== "undefined") {
+        logObj = {
+          url,
+          title: reqTitle || "",
+          status,
+          attempts: retryCount + 1,
+          response: responseData,
+          userId: String(auth.UserID?.() ?? ""),
+          method,
+          body,
+          timestamp: Date.now(),
+        };
+        logRequest(logObj as any);
+      }
       return responseData;
     } catch (err) {
       // Network error - retry logic
@@ -376,6 +404,21 @@ export const fetchData = async <T = any>(
           method: method,
           body: body,
         });
+      }
+      // Log the request (error)
+      if (typeof window !== "undefined") {
+        logObj = {
+          url,
+          title: reqTitle || "",
+          status: status || 0,
+          attempts: retryCount + 1,
+          response: undefined,
+          userId: String(auth.UserID?.() ?? ""),
+          method,
+          body,
+          timestamp: Date.now(),
+        };
+        logRequest(logObj as any);
       }
       // throw err;
       return responseData;
