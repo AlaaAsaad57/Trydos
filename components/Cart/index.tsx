@@ -12,7 +12,6 @@ import BackIcon from "public/svg/listing/backIcon.svg";
 import ShareIcon from "public/svg/listing/shareIcon.svg";
 import ErrorIcon from "public/svg/cart/Error.svg";
 import Skeleton from "react-loading-skeleton";
-
 import "styles/productDetails.css";
 import NextLink from "components/global/NextLink";
 import { useParams, useSearchParams } from "next/navigation";
@@ -189,6 +188,19 @@ function CartContainer({ close, toOrders }: CartContainerPropsType) {
       },
     };
   };
+  // Retrieve shipping_duration_days from sessionStorage
+  let shippingDurationDays = 0;
+  if (sessionStorage.getItem("starttingSetting")) {
+    const settingsStr = sessionStorage.getItem("starttingSetting");
+    if (settingsStr) {
+      try {
+        const settingsObj = JSON.parse(settingsStr);
+        shippingDurationDays = parseInt(settingsObj?.["starting-setting"]?.shipping_duration_days) || 0;
+      } catch (e) {
+        shippingDurationDays = 0;
+      }
+    }
+  }
   return (
     <div
       className={`flex-col ${
@@ -523,7 +535,7 @@ function CartContainer({ close, toOrders }: CartContainerPropsType) {
                                   className="regular whitespace-nowrap"
                                   data-cy="days-number"
                                 >
-                                  {product.shipping_days} {translate("Days")}{" "}
+                                  {product.shipping_days + shippingDurationDays} {translate("Days")}{" "}
                                   <span
                                     className="ml-1 underline"
                                     data-cy="days-text"
@@ -963,7 +975,7 @@ function CartContainer({ close, toOrders }: CartContainerPropsType) {
                               >
                                 {translate("Shipping")}{" "}
                                 <span className="regular whitespace-nowrap">
-                                  {product.shipping_days} {translate("Days")}{" "}
+                                  {product.shipping_days + shippingDurationDays} {translate("Days")} {" "}
                                   <span className="ml-1 underline">
                                     {translate("Details")}
                                   </span>

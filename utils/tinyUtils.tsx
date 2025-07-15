@@ -457,13 +457,13 @@ export const formatPhone = (phone) => {
 };
 export const getCountry = (text?: string) => {
   return allCountries.filter((countryItem) =>
-    text.startsWith(countryItem.dialCode)
+    text?.startsWith(countryItem.dialCode)
   ).length === 1
-    ? allCountries.filter((countryItem) =>
-        text.startsWith(countryItem.dialCode)
+    ? allCountries?.filter((countryItem) =>
+        text?.startsWith(countryItem.dialCode)
       )[0]
     : allCountries.filter((countryItem) =>
-        text.startsWith(countryItem.dialCode)
+        text?.startsWith(countryItem.dialCode)
       )[0];
 };
 

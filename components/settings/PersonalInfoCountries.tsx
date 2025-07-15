@@ -10,7 +10,8 @@ import { useAppStore } from "store";
 import { FlagIcon } from "utils/tinyUtils";
 import { fetchCountries } from "Server Requests";
 import Spinner from "components/global/Spinner";
-
+import { fetchData } from "utils/fetchData"; // Make sure this is imported
+import { STARTER_SETTINGS } from "utils/endpointConfig";
 function PersonalInfoCountries({
   swipeToScreen,
   goBack,
@@ -18,6 +19,7 @@ function PersonalInfoCountries({
   swipeToScreen: (index: number) => void;
   goBack: () => void;
 }) {
+  const { setSettings } = useAppStore.getState();
   const [countries, setCountries] = useState([]);
   const [loading, setLoading] = useState(false);
   const { lang } = useParams();
@@ -79,6 +81,25 @@ function PersonalInfoCountries({
     await changeAppCountryServer(country.iso.toLowerCase());
 
     setSelectedCountry(country);
+
+    // Fetch and update starter settings for the new country 
+    try {
+      const response = await fetchData({
+        url: STARTER_SETTINGS,
+        reqTitle: "get starter settings",
+        method: "GET",
+        server: "market",
+        useCached: true,
+      });
+      sessionStorage.setItem(
+        "starttingSetting",
+        JSON.stringify(response.data)
+      );
+      setSettings(response.data);
+    } catch (error) {
+      console.error("Failed to update starter settings:", error);
+    }
+
     setIsSettingCountry(false);
   };
   useEffect(() => {
