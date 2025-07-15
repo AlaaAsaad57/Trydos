@@ -206,6 +206,7 @@ export const fetchData = async <T = any>(
     "signal is aborted without reason",
     "Failed to fetch",
     "Too many attempts",
+    "Unauthorized",
   ];
   const {
     url,
