@@ -365,6 +365,7 @@ export const fetchData = async <T = any>(
         request_token: await getToken(server),
       };
       if (!err?.message?.includes("signal is aborted without reason")) {
+        LogError(errorObj);
         reportError(err, {
           source: "fetchData",
           userId: auth.UserID()?.toString(),
@@ -375,7 +376,6 @@ export const fetchData = async <T = any>(
           method: method,
           body: body,
         });
-        LogError(errorObj);
       }
       // throw err;
       return responseData;
