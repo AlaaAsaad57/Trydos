@@ -259,7 +259,8 @@ const StoryViewer: React.FC<StoryViewerProps> = ({
           }}
         >
           {isImage ? (
-            <img
+            <Image
+              fill
               src={currentStory?.url}
               alt="story"
               loading="eager"
@@ -267,12 +268,6 @@ const StoryViewer: React.FC<StoryViewerProps> = ({
               fetchPriority="high"
               onLoad={() => {
                 setResourceLoaded(true);
-              }}
-              style={{
-                width: "auto",
-                height: "auto",
-                maxWidth: "100%",
-                maxHeight: "100%",
               }}
             />
           ) : (
@@ -301,30 +296,25 @@ const StoryViewer: React.FC<StoryViewerProps> = ({
               }}
             />
           )}
-          {/* Story Link Below Image/Video */}
-          {link && (
-            <div className="mt-6 flex justify-center w-full">
-              <Link
-                href={link}
-                passHref
-                legacyBehavior
-              >
-                <a
-                  className="text-blue-400 underline break-all text-center text-base hover:text-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400 px-2 py-1 rounded"
-                  tabIndex={0}
-                  aria-label="Story link"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{
-                    zIndex:99999999999999,
-                  }}
-                  onClick={e => e.stopPropagation()}
-                >
-                  {link}
-                </a>
-              </Link>
-            </div>
-          )}
+        </div>
+      )}
+
+      {/* Story Link absolutely positioned at the bottom */}
+      {link && (
+        <div className="absolute bottom-0 left-0 w-full flex justify-center pb-4 pointer-events-none">
+          <Link href={link} passHref legacyBehavior>
+            <a
+              className="pointer-events-auto text-blue-400 underline break-all text-center text-base hover:text-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400 px-2 py-1 rounded backdrop-blur-sm"
+              tabIndex={0}
+              aria-label="Story link"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ zIndex: 99999999999999 }}
+              onClick={e => e.stopPropagation()}
+            >
+              {link}
+            </a>
+          </Link>
         </div>
       )}
 
