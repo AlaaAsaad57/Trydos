@@ -132,7 +132,7 @@ function ProductRedeemButton({ product }) {
                 RoundPrice({
                   num: getPrice(),
                   rate: currency?.exchange_rate,
-                  returnNumber: true,
+
                   language: languageVariable,
                 })
               ) : (

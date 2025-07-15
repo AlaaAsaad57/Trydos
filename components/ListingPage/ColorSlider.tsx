@@ -49,7 +49,10 @@ function ColorSlider({
   }
   return (
     <div
-      className={"active-slider " + (active ? "sl-active" : "sl-deactive")}
+      className={
+        "active-slider overflow-hidden " +
+        (active ? "sl-active" : "sl-deactive")
+      }
       onWheel={throttle(callback, 250)}
     >
       <StackedSlider

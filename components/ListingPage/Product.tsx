@@ -7,6 +7,7 @@ import CoverEffectSlider from "./CoverEffectSlider";
 import ColorSlider from "./ColorSlider";
 import { useAppStore } from "store";
 import { ProductPhotosSliderPropsType } from "models/componentType/ProductPhotosSliderPropsType";
+import RedeemButton from "./RedeemButton";
 
 function ProductReducer(state, { type, payload }) {
   if (type === "setActiveTopSlide") {
@@ -59,12 +60,22 @@ export const BuyButtonProduct = ({ product }) => {
     });
   };
   return (
-    <BuyButton
-      buy={(e) => {
-        // @ts-ignore
-        addToCart();
-      }}
-    />
+    <>
+      {product.is_redeem && (
+        <RedeemButton
+          id={product.product_id}
+          is_redeem={true}
+          redeem_price={product.redeem_price}
+          product={product}
+        />
+      )}
+      <BuyButton
+        buy={(e) => {
+          // @ts-ignore
+          addToCart();
+        }}
+      />
+    </>
   );
 };
 export function ProductPhotosSlider({
@@ -132,7 +143,7 @@ export function ProductPhotosSlider({
         }}
       >
         <div
-          className={`product-container-slider relative ${
+          className={`product-container-slider w-full relative ${
             productState?.isColorSelected && "selected-color"
           }`}
         >

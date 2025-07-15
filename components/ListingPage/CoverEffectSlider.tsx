@@ -32,7 +32,7 @@ function CoverEffectSlider({
   return (
     <div
       className={
-        "product-photos-slider no-navigate overflow-visible flex absolute align-center justify-center max-h[35px]"
+        "product-photos-slider  no-navigate overflow-hidden flex absolute align-center justify-center max-h[35px]"
       }
       data-cy="productPhotoSlider"
       style={{ opacity: active ? "1" : "0", zIndex: active ? "10" : "1" }}
