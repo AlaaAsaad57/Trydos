@@ -3,10 +3,14 @@
 import Spinner from "components/global/Spinner";
 import { FilterItem } from "components/Server/FilterList";
 import { InfiniteScrollFiltersPropsType } from "models/componentType/InfiniteScrollFiltersPropsType";
+import { useParams } from "node_modules/next/navigation";
 
 import React, { useState } from "react";
+import { fetchFilteredProducts } from "Server Requests";
 
 import { useAppStore } from "store";
+import { showErrorNotification } from "store/notifications/reducer";
+import { translateFunction } from "utils/functions";
 import {
   filtersToSearchParams,
   FilterParams,
@@ -39,7 +43,7 @@ function InfiniteScrollFilters({
 }: InfiniteScrollFiltersPropsType) {
   const { partialLoading, setSearchPartialLoading } = useAppStore();
   const [country, language] = params.lang?.split("-");
-
+  const PageParams = useParams();
   const [offset, setOffset] = useState(1);
   const [hasEnd, setHasEnd] = useState({
     categories: false,
@@ -60,41 +64,25 @@ function InfiniteScrollFilters({
       setSearchPartialLoading(true);
 
       // Convert filter parameters to search params for elastic backend
-      const searchParams = isUsingParsedFilters
-        ? filterParams
-        : filtersToSearchParams(filterParams);
-
-      const configuredParams = configureSearchParams({
-        searchParams,
-        noProducts: "true",
-        noFilters: "false",
-        lang: language || "en",
-        offset: "0",
-        boutiqueId: "listing",
-        filters_offset: (offset + 1).toString(),
-      });
-
-      const apiUrl = `${process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL}/api/products/searchInCatalog`;
-
-      const fetchResponse = await fetch(
-        `${apiUrl}?${configuredParams.toString()}`,
-        {
-          method: "GET",
-          headers: {
-            lang: language || "en",
-            country: country || "tr",
-            Accept: "application/json",
-            "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
-          },
-        }
+      const response = await fetchFilteredProducts(
+        language,
+        country,
+        PageParams.filters as string[],
+        "true",
+        "false",
+        null,
+        (offset + 1)?.toString(),
+        isFeatured,
+        isFlashDeals
       );
-
-      if (!fetchResponse.ok) {
-        throw new Error(`HTTP error! status: ${fetchResponse.status}`);
+      if (response.data.isError) {
+        showErrorNotification(
+          translateFunction("Failed To Load Filters Try Again")
+        );
+        setSearchPartialLoading(false);
+        return;
       }
-
-      const response = await fetchResponse.json();
-
+      console.log(response, "response");
       setData({
         categories: [
           ...(data.categories || []),

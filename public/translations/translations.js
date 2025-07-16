@@ -2,6 +2,8 @@ const translations = {
   ar: {
     "Take Photo": "التقاط صورة",
     "Upload Photo/Video": "تحميل صورة/فيديو",
+    "Failed To Load Filters Try Again":
+      "فشل تحميل الفلترة، يرجى المحاولة مرة أخرى",
     "Failed To Load Products Retring in 3 seconds":
       "فشل تحميل المنتجات، سيتم المحاولة مرة أخرى في 3 ثوان",
     "Failed To Load Products After 3 Attempts":
@@ -784,6 +786,8 @@ const translations = {
   tr: {
     "Take Photo": "Fotoğraf Çek",
     "Upload Photo/Video": "Fotoğraf/Video Yükle",
+    "Failed To Load Filters Try Again":
+      "Filtreler yüklenemedi, lütfen tekrar deneyin",
     "Failed To Load Products Retring in 3 seconds":
       "Ürünler yüklenemedi, 3 saniye sonra tekrar denenecek",
     "Failed To Load Products After 3 Attempts":
@@ -1555,6 +1559,8 @@ const translations = {
   ku: {
     "Take Photo": "وێنە بگرە",
     "Failed To Load Products After 3 Attempts":
+      "بەرهەمەکان لەسەر نەبوون، ٣ سەکەڵەیەک بەردەست بە هەوڵبوون",
+    "Failed To Load Filters Try Again":
       "بەرهەمەکان لەسەر نەبوون، ٣ سەکەڵەیەک بەردەست بە هەوڵبوون",
     "Upload Photo/Video": "وێنە/ڤیدیۆ باربکە",
     "No media selected": "هیچ مێدیایەک هەلبژێردراو نییە",

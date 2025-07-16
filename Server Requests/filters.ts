@@ -9,6 +9,7 @@ import { fetchServerData } from "./ServerFetch";
 
 interface FilteredProductsResponse {
   data: {
+    url?: string;
     isError?: boolean;
     featured?: any;
     flashDeals?: any;
@@ -141,6 +142,7 @@ export async function fetchFilteredProducts(
 
     return {
       data: {
+        url: `${process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL}${configuredUrl}`,
         offset: data?.data?.offset,
         limit: data?.data?.limit,
         total_size: data?.data?.total_size,
