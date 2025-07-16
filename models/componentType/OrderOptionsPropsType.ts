@@ -1,4 +1,5 @@
 export interface OrderOptionsPropsType {
-   closeOptions: () => void;
-   CancelOrder: () => void;
+  closeOptions: () => void;
+  CancelOrder: () => void;
+  productData: any;
 }

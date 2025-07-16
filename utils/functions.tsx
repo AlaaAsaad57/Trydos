@@ -402,34 +402,6 @@ export const onClickSearchHistory = (searchValue) => {
     localStorage.setItem("search-history", JSON.stringify([searchValue]));
   }
 };
-export async function fetchWithRetry(url, options, title) {
-  let attempt = 0;
-  let retries = 2;
-  let delay = 200;
-  while (attempt <= retries) {
-    try {
-      const response = await fetch(url, options);
-
-      // If the response is successful, return the data
-      if (response.ok) {
-        return await response.json();
-      } else {
-        // Handle HTTP error responses (e.g., 4xx or 5xx)
-        throw new Error(`HTTP Error: ${response.status}`);
-      }
-    } catch (error) {
-      attempt++;
-      console.log(`Attempt ${attempt} failed. Retrying in ${delay}ms...`);
-      if (attempt > retries) {
-        throw new Error(
-          `${title} : Max retries reached. Could not fetch the data.`
-        );
-      }
-      // Wait before retrying
-      await new Promise((resolve) => setTimeout(resolve, delay));
-    }
-  }
-}
 
 export const getOldCart = async () => {
   const deviceToken = getCookie<string>(COOKIE_NAMES.DEVICE_TOKEN);

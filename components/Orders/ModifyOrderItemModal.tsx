@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import LargeColorIcon from "public/svg/LargeColorIcon.svg";
 import Spinner from "components/global/Spinner";
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
@@ -7,18 +7,16 @@ import { GetImageUrl } from "utils/tinyUtils";
 import { ColorListPropsType } from "models/componentType/ColorListPropsType";
 import { ModifyOrderItemModalPropsType } from "models/componentType/ModifyOrderItemModalPropsType";
 import { SizeListPropsType } from "models/componentType/SizeListPropsType";
+import order from "services/order";
 export const ModifyOrderItemModal = ({
   type,
   confirmationData,
-  getProductDetails,
   setConfirmationData,
   orderItem,
-  editOrderItem,
-  orderItemData,
+  getOrderDetails,
+  close,
 }: ModifyOrderItemModalPropsType) => {
-  useEffect(() => {
-    getProductDetails();
-  }, []);
+  const [loading, setLoading] = useState(false);
   const isChanged = () => {
     if (
       (type === "Color" &&
@@ -31,52 +29,21 @@ export const ModifyOrderItemModal = ({
       return true;
     else return false;
   };
-  const ConfirmChange = () => {
-    let selectedOrder = orderItemData?.find((s) => s.id === orderItem?.id);
-    if (type === "Color") {
-      selectedOrder = {
-        ...selectedOrder,
-        image: confirmationData?.productDetails?.sync_color_images.find(
-          (s) =>
-            s.color_name?.toLowerCase() ===
-            confirmationData?.newColor?.toLowerCase()
-        )?.images?.[0],
-        variation: {
-          ...selectedOrder?.variation,
-          color: confirmationData.newColor,
-        },
-      };
-      editOrderItem([
-        ...orderItemData?.filter((s) => s.id !== selectedOrder?.id),
-        selectedOrder,
-      ]);
-      setConfirmationData({
-        ...confirmationData,
-        currentColor: confirmationData.newColor,
-        enable: false,
-        type: null,
-      });
-    }
-    if (type === "Size") {
-      selectedOrder = {
-        ...selectedOrder,
-        variation: {
-          ...selectedOrder?.variation,
-          Size: confirmationData.newSize,
-        },
-      };
-      editOrderItem([
-        ...orderItemData?.filter((s) => s.id !== selectedOrder?.id),
-        selectedOrder,
-      ]);
-      setConfirmationData({
-        ...confirmationData,
-        currentSize: confirmationData.newSize,
-        enable: false,
-        type: null,
-      });
-    }
+  const ConfirmChange = async () => {
+    setLoading(true);
+    await order.changeOrderItemVariant({
+      choice_1: confirmationData?.newSize ?? "",
+      color: confirmationData?.productDetails?.colors?.find(
+        (s) => s.option === confirmationData.newColor
+      )?.color,
+      order_detail_id: confirmationData?.detail_id,
+    });
+    setLoading(false);
+    setConfirmationData(false);
+    getOrderDetails();
+    close();
   };
+
   return (
     <div
       className={`z-[9999999999999] pb-[70px] px-[24px] w-full flex-col ${
@@ -188,11 +155,7 @@ export const ModifyOrderItemModal = ({
           <div
             className="cursor-pointer w-full h-[50px] text-[#fff] text-[16px] regular flex items-center justify-center"
             onClick={() => {
-              setConfirmationData({
-                ...confirmationData,
-                enable: false,
-                type: null,
-              });
+              setConfirmationData(false);
             }}
           >
             {translateFunction("Cancel")}

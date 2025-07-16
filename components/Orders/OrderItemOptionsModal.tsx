@@ -19,7 +19,7 @@ function OrderItemOptionsModal({
   setShouldConfirmReturn,
   setShouldConfirmCancel,
   setShouldConfirmChange,
-  changeOrderItem,
+  shouldConfirmChange,
   cancelOrderItem,
 }: OrderItemOptionsModalPropsType) {
   const [activeWidget, setActiveWidget] = useState<
@@ -214,7 +214,10 @@ function OrderItemOptionsModal({
     if (activeWidget === "ChangeRequest") {
       return (
         <ChangeOrderItem
-          changeOrderItem={changeOrderItem}
+          shouldConfirmChange={shouldConfirmChange}
+          close={() => {
+            setActiveWidget("main");
+          }}
           backToMain={() => {
             setActiveWidget("main");
           }}

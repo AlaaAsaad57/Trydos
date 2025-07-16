@@ -68,7 +68,6 @@ function ProductRedeemButton({ product }) {
     configureRedeemedProducts();
   }, []);
   const shouldShowNotifyButton = () => {
-    console.log(product, "product");
     let bool = false;
     if (product?.variation?.length > 0) {
       bool =

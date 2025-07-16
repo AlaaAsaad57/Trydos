@@ -95,8 +95,6 @@ function SearchVoice({ setSearchValue }: { setSearchValue: Function }) {
         mimeType = "audio/ogg;codecs=opus";
       }
 
-      console.log("Using audio format:", mimeType);
-
       const recorder = new MediaRecorder(stream, {
         mimeType: mimeType,
       });
@@ -127,7 +125,6 @@ function SearchVoice({ setSearchValue }: { setSearchValue: Function }) {
 
       // Set maximum recording duration of 8 seconds
       recordingTimeoutRef.current = setTimeout(() => {
-        console.log("Maximum recording time reached (8 seconds)");
         stopRecording();
       }, 8000);
     } catch (error) {
@@ -163,7 +160,6 @@ function SearchVoice({ setSearchValue }: { setSearchValue: Function }) {
           lang: lang,
         });
       } else {
-        console.log("Empty transcription");
         showErrorNotification("Try again with clear voice");
       }
     } catch (error) {

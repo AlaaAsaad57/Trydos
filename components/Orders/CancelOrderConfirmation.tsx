@@ -15,7 +15,6 @@ function CancelOrderConfirmation({
   const ConfirmFunction = async () => {
     try {
       setLoading(true);
-
       await callback();
       setLoading(false);
       close();
@@ -25,6 +24,7 @@ function CancelOrderConfirmation({
       setLoading(false);
     }
   };
+  console.log("confirm");
   return (
     <div
       className={`z-[9999999999999] px-[24px]  w-full flex-col ${"justify-end"} items-center h-[calc(100vh)] overflow-auto  pb-[70px] max-h-[calc(100vh)] fixed top-0 left-0 bg-[#0000006c]  backdrop-blur-[10px]`}
@@ -62,7 +62,8 @@ function CancelOrderConfirmation({
               href="#"
               className="ml-[4px] medium text-[14px] text-white underline"
             >
-              {" "}{translateFunction(`Cancellation Terms.`)}
+              {" "}
+              {translateFunction(`Cancellation Terms.`)}
             </a>
           </p>
 

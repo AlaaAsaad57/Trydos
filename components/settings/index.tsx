@@ -268,6 +268,7 @@ function Settings({ lang }: SettingsIndexPropsType) {
     <div className="max-h-full h-full overflow-auto flex w-full max-w-[1365px] justify-center bg-white">
       {showOrderOptions && (
         <OrderOptions
+          productData={selectedOrder}
           CancelOrder={() => {
             // setOrderDetails(null);
             // setActivePacks(null);

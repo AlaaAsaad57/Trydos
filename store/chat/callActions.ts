@@ -53,7 +53,6 @@ export const makeVoiceCall = async (
 ) => {
   const { setCallLoading, setAudioCall, editCall, language } =
     useAppStore.getState();
-  console.log(channelId, callerName, callerPhoto, mobilePhone);
   try {
     let obj =
       typeof channelId === "string" && channelId.includes("ch")

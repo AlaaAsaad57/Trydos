@@ -244,7 +244,6 @@ export async function getMessagesBetweenMessage(payload) {
     server: "chat",
     body: JSON.stringify({ limit: payload.second + 1 }),
   });
-  console.log(response);
   setPageData({ mes: response.data, ch: payload.first });
 }
 

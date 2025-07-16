@@ -185,7 +185,6 @@ class HomeService {
         : null;
 
     if (permission !== "granted") {
-      console.log("Notification permission denied or dismissed.");
       return null;
     }
     const { requestFirebaseNotificationPermission, onMessageListener } =
@@ -281,7 +280,7 @@ class HomeService {
   async RegisterDevice() {
     const deviceToken = getCookie(COOKIE_NAMES.DEVICE_TOKEN);
     const userData = getCookie<UserData>(COOKIE_NAMES.USER_DATA);
-    console.log({ deviceToken, userData });
+
     const { isRegisteringReady, setIsRegisteringReady } =
       useAppStore.getState();
 

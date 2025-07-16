@@ -272,5 +272,23 @@ class OrderService {
       console.log(error);
     }
   }
+  async changeOrderItemVariant({ color, choice_1, order_detail_id }) {
+    try {
+      let response = await fetchData({
+        url: `/customer/order/change-item-variant`,
+        reqTitle: "Change Order Address",
+        method: "POST",
+        server: "market",
+        body: JSON.stringify({
+          color,
+          choice_1: choice_1 ?? "",
+          order_detail_id,
+        }),
+      });
+      if (response.success || response.isSuccessful) return response;
+    } catch (error) {
+      console.log(error);
+    }
+  }
 }
 export default new OrderService();

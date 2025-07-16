@@ -148,10 +148,7 @@ const handleUnauthorized = async (server: ServerType): Promise<boolean> => {
               server === "chat"
                 ? getCookie<UserData>(COOKIE_NAMES.USER_CHAT)?.access_token
                 : getCookie<UserData>(COOKIE_NAMES.USER_STORIES)?.access_token;
-            console.log({
-              shouldAuthintacted: currentState.shouldAuthinticated,
-              hasNewToken,
-            });
+
             // Check if widget was closed (shouldAuthinticated is false)
             if (!currentState.shouldAuthinticated) {
               clearInterval(checkInterval);
@@ -225,10 +222,7 @@ export const fetchData = async <T = any>(
   let status;
   if (useCached && !isRetryAfterUnauthorized && requestCache.has(cacheKey)) {
     const cachedData = requestCache.get(cacheKey);
-    console.log(
-      reqTitle ? `[${reqTitle}] Returning cached data` : "Returning cached data"
-    );
-    console.log({ isCached: true, data: cachedData, url, method });
+
     return cachedData;
   }
 
@@ -265,13 +259,6 @@ export const fetchData = async <T = any>(
       if (body && method !== "GET") {
         requestOptions.body = body as BodyInit;
       }
-
-      // Log request if title provided
-      if (reqTitle) {
-        console.log(`[${reqTitle}] Fetching ${method} ${url}`);
-      }
-
-      // Make the request
 
       const response = await fetch(FULL_URL, requestOptions);
       status = response.status;

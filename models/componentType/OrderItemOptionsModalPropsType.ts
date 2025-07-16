@@ -4,7 +4,7 @@ export interface OrderItemOptionsModalPropsType {
   setShouldConfirmCancel?: Function;
   setShouldConfirmReturn?: Function;
   item: Item;
-  changeOrderItem?: Function;
+  shouldConfirmChange?: Function;
   cancelOrderItem?: Function;
   closeOptions?: Function;
   backToMain?: Function;
@@ -61,5 +61,5 @@ export interface Rating {
 
 export interface Variation {
   color: string;
-  Size: string;
+  size: string;
 }

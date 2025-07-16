@@ -96,7 +96,6 @@ function PriceSliderComponent({
   // Update range fill
   useEffect(() => {
     if (rangeRef.current) {
-      console.log({ minVal, maxVal, min, max });
       rangeRef.current.style.left = `${percent(minVal)}%`;
       rangeRef.current.style.width = `${percent(maxVal) - percent(minVal)}%`;
     }

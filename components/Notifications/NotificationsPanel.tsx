@@ -292,7 +292,6 @@ const NotificationInfo = ({ closeWindow }) => {
         : null;
 
     if (permission !== "granted") {
-      console.log("Notification permission denied or dismissed.");
       return null;
     }
     const { requestFirebaseNotificationPermission } = await import(

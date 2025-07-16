@@ -19,6 +19,7 @@ import orderService from "services/order";
 import order from "services/order";
 import { totalAmount } from "utils/tinyUtils";
 import { useRouter } from "next/navigation";
+import { ModifyOrderItemModal } from "./ModifyOrderItemModal";
 
 function OrderOptions({ closeOptions, CancelOrder }: OrderOptionsPropsType) {
   const {
@@ -158,18 +159,30 @@ function OrderOptions({ closeOptions, CancelOrder }: OrderOptionsPropsType) {
     });
     return condition;
   };
-  const getOrderToShow = () => {
-    if (screen === "changeAddress") {
-      return selectedOrder;
-    } else {
-      return ActivePacks;
-    }
-  };
+
   const renderScreen = () => {
     if (SelectedOrderItem) {
       return (
         <>
-          {(shouldConfirmCancel || shouldConfirmChange) && (
+          {shouldConfirmChange?.type !== "CancelQty" &&
+            (shouldConfirmChange?.type == "Color" ||
+              shouldConfirmChange?.type == "Size") && (
+              <ModifyOrderItemModal
+                orderItem={SelectedOrderItem}
+                setConfirmationData={(e) => {
+                  setShouldConfirmChange(e);
+                }}
+                getOrderDetails={getOrderDetails}
+                close={() => {
+                  setShouldConfirmChange(false);
+                  closeOptions();
+                }}
+                type={shouldConfirmChange?.type}
+                confirmationData={shouldConfirmChange}
+              />
+            )}
+          {(shouldConfirmCancel ||
+            shouldConfirmChange?.type === "CancelQty") && (
             <CancelOrderConfirmation
               setShouldConfirmChange={setShouldConfirmChange}
               close={() => {
@@ -207,7 +220,7 @@ function OrderOptions({ closeOptions, CancelOrder }: OrderOptionsPropsType) {
             />
           )}
           <OrderItemOptionsModal
-            changeOrderItem={changeOrderItem}
+            shouldConfirmChange={shouldConfirmChange}
             cancelOrderItem={(id) => {}}
             setShouldConfirmChange={setShouldConfirmChange}
             setShouldConfirmCancel={(e) => {

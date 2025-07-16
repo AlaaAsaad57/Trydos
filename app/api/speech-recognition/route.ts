@@ -19,13 +19,6 @@ export async function POST(request: NextRequest) {
     const audioFile = formData.get("audio") as File;
     const language = (formData.get("language") as string) || "en";
 
-    console.log("Audio file:", {
-      name: audioFile?.name,
-      size: audioFile?.size,
-      type: audioFile?.type,
-    });
-    console.log("Language:", language);
-
     if (!audioFile) {
       return NextResponse.json(
         { error: "No audio file provided" },

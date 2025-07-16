@@ -109,7 +109,6 @@ class SearchService {
         reqTitle: "Get Search Options",
         signal,
       });
-      console.log(filtersResponse, "filtersResponse");
       const {
         products,
         categories,
@@ -142,7 +141,6 @@ class SearchService {
     } catch (error) {
       // Check if error is due to abort
       if (error.name === "AbortError") {
-        console.log("Search request was cancelled");
         return null;
       }
       setSearchPartialLoading(false);
@@ -168,8 +166,6 @@ class SearchService {
 
     const { setSearchResults, setTotalSizeOfProducts } = useAppStore.getState();
     try {
-      console.log(filter_obj, "filter_obj");
-
       // Convert filter object to search params for elastic backend
       const searchParams = filtersToSearchParams(filter_obj);
 
@@ -222,10 +218,8 @@ class SearchService {
     } catch (error) {
       // Check if error is due to abort
       if (error.name === "AbortError") {
-        console.log("Reset filters request was cancelled");
         return null;
       }
-      console.log(error, "resetSearchFilters");
       throw error;
     } finally {
       // Clear the controller reference if this request completed
