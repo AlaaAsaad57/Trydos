@@ -180,7 +180,7 @@ export async function fetchFilteredProducts(
           id: s?.id,
           product_id: s?.product_id,
           redeem_price: s?.redeem_price,
-          is_redeem: s?.is_redeem,
+          is_redeem: s?.has_redeem_discount,
           details: s?.details,
           colors: s?.colors,
           images: s?.images?.map((im: any) => ({ file_path: im.file_path })),
