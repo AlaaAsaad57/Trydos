@@ -1,5 +1,6 @@
 const translations = {
   ar: {
+     "Chat with delivery worker": "الدردشة مع عامل التوصيل",
     "Take Photo": "التقاط صورة",
     "Upload Photo/Video": "تحميل صورة/فيديو",
     "No media selected": "لم يتم اختيار أي وسائط",
@@ -773,6 +774,7 @@ const translations = {
       "انتهت صلاحية الجلسة.. يرجى التحقق من رقم هاتفك",
   },
   tr: {
+    "Chat with delivery worker": "Teslimat görevlisiyle sohbet et",
     "Take Photo": "Fotoğraf Çek",
     "Upload Photo/Video": "Fotoğraf/Video Yükle",
     "No media selected": "Medya seçilmedi",
@@ -2248,6 +2250,7 @@ const translations = {
           "this message was deleted": "ئەم پەیامە سڕاوەتەوە",
           "You will be notified for this product already": "پێشوەختە ئاگادارکراوەیتەوە بۆ ئەم بەرهەمە",
           "Session Expired..please Verify Your Phone Number": "دانیشتنەکە بەسەرچووە.. تکایە ژمارەی تەلەفۆنەکەت پشتڕاست بکەوە",
+          "Chat with delivery worker": "چات بکە لەگەڵ کارمەندی گەیاندن",
   },
 };
 
