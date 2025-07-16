@@ -1,8 +1,5 @@
-import { getConfiguredImage, translateFunction } from "utils/functions";
 import type { Metadata } from "next";
-import { GetHomeData } from "utils/pagesDataRequests/HomePageData";
 import { cache } from "react";
-import { GetFiltersData } from "utils/pagesDataRequests/FiltersPageData";
 import { fetchServerData } from "Server Requests/ServerFetch";
 export const generateCodeCurrency = (code: string) => {
   if (code?.toLowerCase() === "sp") {
