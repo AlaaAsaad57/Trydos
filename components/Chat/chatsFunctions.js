@@ -13,8 +13,9 @@ import { COOKIE_NAMES, getCookie } from "utils/cookies/cookie-manager";
 
 export const FILE_SERVER = process.env.NEXT_PUBLIC_CHAT_BACKEND_URL;
 export const getUser = () => {
-  return getCookie(COOKIE_NAMES.USER_DATA);
+  return getCookie(COOKIE_NAMES.USER_CHAT);
 };
+
 export const getMessageStatusIcon = (status_array, mid) => {
   if (mid) {
     return (
