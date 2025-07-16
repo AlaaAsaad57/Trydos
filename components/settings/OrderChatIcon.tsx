@@ -3,6 +3,7 @@ import React from "react";
 import ChatIcon from "public/svg/ChatIcon.svg";
 
 import { OrderChatIconPropsType } from "models/componentType/OrderChatIconPropsType";
+import { translateFunction } from "utils/functions";
 
 function OrderChatIcon({
   id,
@@ -27,7 +28,7 @@ function OrderChatIcon({
             <>
               <ChatIcon className="w-5 h-5" />
               <span className="regular text-[12px]   font-medium">
-                Chat with delivery worker
+               {translateFunction("Chat with delivery worker")}
               </span>
             </>
           )}

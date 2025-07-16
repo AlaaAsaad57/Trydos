@@ -12,7 +12,7 @@ export default function ChatWidget({
   isOpen: boolean;
   onClose: () => void;
 }) {
-  const { activeChat, openChat, setMain, first } = useAppStore();
+  const { activeChat, openChat, setMain, first , fetch: loading} = useAppStore();
   useEffect(() => {
     setTimeout(() => {
       if (document?.querySelector("#scroled"))
@@ -42,7 +42,7 @@ export default function ChatWidget({
           ViewedScreen={"chat"}
           active={activeChat}
           setSearch={() => {}}
-          loading={false}
+          loading={loading}
           first={first}
         />
       </div>

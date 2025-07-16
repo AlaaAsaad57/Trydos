@@ -301,7 +301,7 @@ const StoryViewer: React.FC<StoryViewerProps> = ({
 
       {/* Story Link absolutely positioned at the bottom */}
       {link && (
-        <div className="absolute bottom-0 left-0 w-full flex justify-center pb-4 pointer-events-none">
+        <div className="absolute bottom-0 left-0 w-full flex justify-center z-50 pb-4 pointer-events-none">
           <Link href={link} passHref legacyBehavior>
             <a
               className="pointer-events-auto text-blue-400 underline break-all text-center text-base hover:text-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400 px-2 py-1 rounded backdrop-blur-sm"
