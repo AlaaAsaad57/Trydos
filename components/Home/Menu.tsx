@@ -370,6 +370,15 @@ const Menu: React.FC<MenuProps> = ({ user, setMenuOpen }) => {
               Request Log
             </a>
           </MenuItem>
+          <MenuItem
+            icon={<></>}
+            onClick={() => {
+              setMenuOpen(false);
+              localStorage.removeItem("redemed_ids");
+            }}
+          >
+            Reset Redeemed Products
+          </MenuItem>
         </>
         {shouldShowLogout() && (
           <MenuItem
