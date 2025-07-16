@@ -1,11 +1,8 @@
 import React, { useState } from "react";
 import { translateFunction } from "utils/functions";
 import ChangeAddressIcon from "public/svg/ChangeAddressIcon.svg";
-import ModifyOrderIcon from "public/svg/ModifyOrderIcon.svg";
-
 import ChangeAddressWidget from "./ChangeAddressWidget";
 import { useAppStore } from "store";
-
 import CancelOrderConfirmation from "./CancelOrderConfirmation";
 import OrderItemOptionsModal from "./OrderItemOptionsModal";
 import ReturnOrderItemConfirmation from "./ReturnOrderItemConfirmation";
