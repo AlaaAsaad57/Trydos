@@ -195,7 +195,9 @@ function CartContainer({ close, toOrders }: CartContainerPropsType) {
     if (settingsStr) {
       try {
         const settingsObj = JSON.parse(settingsStr);
-        shippingDurationDays = parseInt(settingsObj?.["starting-setting"]?.shipping_duration_days) || 0;
+        shippingDurationDays =
+          parseInt(settingsObj?.["starting-setting"]?.shipping_duration_days) ||
+          0;
       } catch (e) {
         shippingDurationDays = 0;
       }
@@ -535,7 +537,8 @@ function CartContainer({ close, toOrders }: CartContainerPropsType) {
                                   className="regular whitespace-nowrap"
                                   data-cy="days-number"
                                 >
-                                  {product.shipping_days + shippingDurationDays} {translate("Days")}{" "}
+                                  {product.shipping_days + shippingDurationDays}{" "}
+                                  {translate("Days")}{" "}
                                   <span
                                     className="ml-1 underline"
                                     data-cy="days-text"
@@ -565,7 +568,21 @@ function CartContainer({ close, toOrders }: CartContainerPropsType) {
                             </div>
                           )}
                         </div>
-
+                        {product?.is_redeem && (
+                          <div className="flex absolute origin-center scale-75 top-[30px] right-[-6px] bg-gradient-to-r rounded-[6px] from-[#f64f64] to-[#d73a49] p-[6px] text[12px] text-white items-center justify-center gap-[4px]">
+                            <svg
+                              width="20"
+                              height="20"
+                              viewBox="0 0 24 24"
+                              fill="white"
+                              className="animate-pulse"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path d="M20 7h-2.18A3 3 0 0015 2a3.002 3.002 0 00-2.83 2H11.83A3.002 3.002 0 009 2a3 3 0 00-2.82 5H4a1 1 0 00-1 1v3a1 1 0 001 1h1v9a1 1 0 001 1h12a1 1 0 001-1v-9h1a1 1 0 001-1V8a1 1 0 00-1-1zM15 4a1 1 0 110 2h-2a1 1 0 110-2h2zM9 4a1 1 0 110 2H7a1 1 0 110-2h2zM5 9v-1h14v1H5zm2 2h10v8H7v-8z" />
+                            </svg>
+                            <span>{translateFunction("Redeem")}</span>
+                          </div>
+                        )}
                         <div
                           className="absolute top-1 right-1"
                           data-cy="card-numbering-container"
@@ -918,7 +935,8 @@ function CartContainer({ close, toOrders }: CartContainerPropsType) {
                               >
                                 {translate("Shipping")}{" "}
                                 <span className="regular whitespace-nowrap">
-                                  {product.shipping_days + shippingDurationDays} {translate("Days")} {" "}
+                                  {product.shipping_days + shippingDurationDays}{" "}
+                                  {translate("Days")}{" "}
                                   <span className="ml-1 underline">
                                     {translate("Details")}
                                   </span>
