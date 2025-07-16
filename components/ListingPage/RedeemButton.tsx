@@ -14,6 +14,7 @@ function RedeemButton({ is_redeem, redeem_price, id, product }) {
     if (isConfigured) return;
 
     let redeemed_products_ids = localStorage.getItem("redemed_ids");
+
     if (redeemed_products_ids) {
       let parsed_redeemed_products_ids = redeemed_products_ids
         ? JSON.parse(redeemed_products_ids)
@@ -64,7 +65,7 @@ function RedeemButton({ is_redeem, redeem_price, id, product }) {
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
-          if (entry.isIntersecting && entry.intersectionRatio >= 0.9) {
+          if (entry.isIntersecting && entry.intersectionRatio >= 0.8) {
             configureRedeemedProducts();
             observer.disconnect();
           }
@@ -100,6 +101,7 @@ function RedeemButton({ is_redeem, redeem_price, id, product }) {
               showRedeemPrice: true,
               shouldUpdate: 0,
             });
+            configureRedeemedProducts();
             setShouldShow(false);
           }}
           aria-label={translateFunction("Redeem")}

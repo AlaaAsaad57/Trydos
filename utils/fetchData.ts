@@ -206,6 +206,7 @@ export const fetchData = async <T = any>(
     "Failed to fetch",
     "Too many attempts",
     "Unauthorized",
+    "The user aborted a request.",
   ];
   const {
     url,

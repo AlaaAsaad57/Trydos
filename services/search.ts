@@ -109,6 +109,10 @@ class SearchService {
         reqTitle: "Get Search Options",
         signal,
       });
+
+      if (!filtersResponse) {
+        return null;
+      }
       const {
         products,
         categories,
