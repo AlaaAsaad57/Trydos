@@ -134,12 +134,12 @@ const validateLink = (urlString: string) => {
         error: `Only links from ${currentHost} are allowed.`,
       };
     }
-    if (/coupon/i.test(urlString)) {
-      return {
-        valid: false,
-        error: `Links containing 'coupon' are not allowed: ${urlString}`,
-      };
-    }
+    // if (/coupon/i.test(urlString)) {
+    //   return {
+    //     valid: false,
+    //     error: `Links containing 'coupon' are not allowed: ${urlString}`,
+    //   };
+    // }
     return { valid: true, error: "" };
   } catch {
     return {
