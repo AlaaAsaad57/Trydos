@@ -2,6 +2,10 @@ const translations = {
   ar: {
     "Take Photo": "التقاط صورة",
     "Upload Photo/Video": "تحميل صورة/فيديو",
+    "Failed To Load Products Retring in 3 seconds":
+      "فشل تحميل المنتجات، سيتم المحاولة مرة أخرى في 3 ثوان",
+    "Failed To Load Products After 3 Attempts":
+      "فشل تحميل المنتجات بعد 3 محاولات",
     "No media selected": "لم يتم اختيار أي وسائط",
     "Add link...": "أضف رابط...",
     "I’m Afraid Of Sizes": "أخاف من المقاسات",
@@ -780,6 +784,10 @@ const translations = {
   tr: {
     "Take Photo": "Fotoğraf Çek",
     "Upload Photo/Video": "Fotoğraf/Video Yükle",
+    "Failed To Load Products Retring in 3 seconds":
+      "Ürünler yüklenemedi, 3 saniye sonra tekrar denenecek",
+    "Failed To Load Products After 3 Attempts":
+      "Ürünler yüklenemedi, 3 denemeden sonra tekrar denenecek",
     "No media selected": "Medya seçilmedi",
     "Add link...": "Bağlantı ekle...",
     "Rate & Get Money": "Puan Ver & Para Kazan",
@@ -1546,8 +1554,12 @@ const translations = {
   },
   ku: {
     "Take Photo": "وێنە بگرە",
+    "Failed To Load Products After 3 Attempts":
+      "بەرهەمەکان لەسەر نەبوون، ٣ سەکەڵەیەک بەردەست بە هەوڵبوون",
     "Upload Photo/Video": "وێنە/ڤیدیۆ باربکە",
     "No media selected": "هیچ مێدیایەک هەلبژێردراو نییە",
+    "Failed To Load Products Retring in 3 seconds":
+      "بەرهەمەکان لەسەر نەبوون، ٣ سەکەڵەیەک بەردەست بە هەوڵبوون",
     "Add link...": "بەستەر زیاد بکە...",
     "I’m Afraid Of Sizes": "من له‌قه‌قه‌کان ترسم",
     "Hide This Pack": "ئەم کۆمه‌ڵه‌ پنهان بکە",

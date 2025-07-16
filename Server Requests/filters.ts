@@ -9,6 +9,7 @@ import { fetchServerData } from "./ServerFetch";
 
 interface FilteredProductsResponse {
   data: {
+    isError?: boolean;
     featured?: any;
     flashDeals?: any;
     offset: number;
@@ -112,7 +113,6 @@ export async function fetchFilteredProducts(
     });
 
     if (response.isError) {
-      console.error(`Filtered Products Error: ${response.status}`);
       reportError(new Error(`Filtered Products Error: ${response.status}`), {
         source: "filters",
         page: "filtered-products",
@@ -122,6 +122,7 @@ export async function fetchFilteredProducts(
       });
       return {
         data: {
+          isError: true,
           offset: 0,
           limit: 0,
           total_size: 0,

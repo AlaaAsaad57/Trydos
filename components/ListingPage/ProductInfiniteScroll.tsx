@@ -16,6 +16,7 @@ import NextLink from "components/global/NextLink";
 import { GetImageUrl } from "utils/tinyUtils";
 import ProductBanner from "components/products/ProductBanner";
 import { fetchFilteredProducts } from "Server Requests";
+import { showErrorNotification } from "store/notifications/reducer";
 
 function ProductsInfiniteScroll({
   offset,
@@ -53,7 +54,7 @@ function ProductsInfiniteScroll({
     resetBoutique();
     setTimeout(() => {
       getProductsReq();
-    }, 2000);
+    }, 1000);
   }, []);
 
   const [products, setProducts] = useState([]);
@@ -61,7 +62,9 @@ function ProductsInfiniteScroll({
   const [loading, setLoading] = useState(false);
   const [isReachEnd, setIsReachEnd] = useState(false);
   const params = useParams();
+  const [attempt, setAttempt] = useState(0);
   const getProductsReq = async () => {
+    if (loading || isReachEnd) return;
     setLoading(true);
     const response = await fetchFilteredProducts(
       languageVariable,
@@ -74,7 +77,15 @@ function ProductsInfiniteScroll({
       isFeatured,
       isFlashDeals
     );
-
+    if (response.data.isError) {
+      showErrorNotification(
+        translateFunction("Failed To Load Products Retring in 3 seconds")
+      );
+      setTimeout(() => {
+        getProductsReq();
+      }, 3000);
+      return;
+    }
     setProducts([
       ...products,
       ...response.data.products.filter(
@@ -273,6 +284,7 @@ function ProductsInfiniteScroll({
             <>
               {!loading ? (
                 <InView
+                  threshold={0.5}
                   className="spinner-container"
                   as="div"
                   onChange={(inView) => {
