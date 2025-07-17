@@ -7,7 +7,6 @@ import React, {
   ChangeEvent,
   KeyboardEvent,
 } from "react";
-import dynamic from "next/dynamic";
 import Image from "next/image";
 import { push, ref, set } from "firebase/database";
 import { useStopwatch } from "react-timer-hook";

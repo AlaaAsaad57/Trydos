@@ -38,6 +38,9 @@ export const messaging =
   getMessaging(firebaseApp);
 
 export const requestFirebaseNotificationPermission = async () => {
+  if (!isSupported()) {
+    return;
+  }
   const { setNotificationPermission } = useAppStore.getState();
   const tokenExpiry = localStorage.getItem("FBTokenExpiry");
   const tokenDate = tokenExpiry ? new Date(tokenExpiry) : null;
@@ -71,6 +74,9 @@ export const requestFirebaseNotificationPermission = async () => {
 };
 
 export const onMessageListener = async () => {
+  if (!isSupported()) {
+    return;
+  }
   // Removed react-toastify import - using new notification system
   return new Promise((resolve) => {
     onMessage(messaging, async (payload) => {
