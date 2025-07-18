@@ -125,7 +125,7 @@ function RedeemButton({ is_redeem, redeem_price, id, product }) {
           <span className="text-[12px] medium text-white">
             {currency?.symbol ? (
               RoundPrice({
-                num: product.offer_price,
+                num: product.redeem_price,
                 rate: currency?.exchange_rate,
 
                 language: LocalizationServiceClass.GetAppLanguage(),

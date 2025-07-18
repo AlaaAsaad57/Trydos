@@ -232,6 +232,7 @@ function PlaceOrderButtons({
         {orderData.success && (
           <NextLink
             href={`/${lang}`}
+            data-cy="back-to-home-page"
             data={{
               is_full_home: true,
               href: `/${lang}`,
