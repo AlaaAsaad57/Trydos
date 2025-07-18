@@ -71,6 +71,8 @@ export default function NextLink({
       setSelectedOrderItem(null);
       setActivePacks(null);
       setOrderDetails(null);
+      window.location.href = data?.href;
+      return;
     }
   };
   const IsPrefetched = () => {
