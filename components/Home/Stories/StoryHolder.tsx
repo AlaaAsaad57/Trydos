@@ -21,15 +21,23 @@ import { getUserStories, translateFunction } from "utils/functions";
 import { revalidateStories } from "utils/serverActions";
 import { fetchStories } from "Server Requests";
 import { DeleteModalPropsType } from "models/componentType/DeleteModalPropsType";
+import {
+  COOKIE_NAMES,
+  getCookie,
+  UserData,
+} from "utils/cookies/cookie-manager";
 function StoryHolder({ story, active, isPaused }: StoryHolderPropsType) {
-  const { selectedStory, language, country, userStories, setStoryData } =
-    useAppStore();
-  const [currentStoryId, setCurrentStoryId] = useState(0);
+  const { language, country, setStoryData } = useAppStore();
+  const userStories = getCookie<UserData>(COOKIE_NAMES.USER_STORIES);
+  const [currentStoryId, setCurrentStoryId] = useState(
+    userStories?.id !== story.id ? 0 : story?.stories?.length - 1
+  );
+
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [loading, setLoading] = useState(false);
   const user = getUserStories();
   // check if the user is the owner of the story
-  const isOwner = user?.id === selectedStory?.id;
+  const isOwner = user?.id === story?.id;
   // Modal component
   const DeleteModal = ({
     onCancel,
@@ -92,7 +100,7 @@ function StoryHolder({ story, active, isPaused }: StoryHolderPropsType) {
   const handleDeleteStory = async () => {
     setLoading(true);
     try {
-      const storyId = selectedStory.stories[currentStoryId]?.id;
+      const storyId = story.stories[currentStoryId]?.id;
       const response = await StoryServiceClass.deleteStory(storyId);
       await revalidateStories();
       const userToken = user?.access_token;
@@ -100,6 +108,7 @@ function StoryHolder({ story, active, isPaused }: StoryHolderPropsType) {
       setStoryData(storiesResult.data);
       setShowDeleteModal(false);
       setLoading(false);
+      setCurrentStoryId(0);
       setNextStory(story.id);
       showSuccessNotification(
         response?.message || translateFunction("Story deleted successfully.")
@@ -112,12 +121,6 @@ function StoryHolder({ story, active, isPaused }: StoryHolderPropsType) {
       );
     }
   };
-
-  useEffect(() => {
-    if (!showDeleteModal && selectedStory.id === story.id) {
-      setCurrentStoryId(0);
-    }
-  }, [selectedStory, story.id, showDeleteModal]);
 
   return (
     <div
@@ -163,7 +166,7 @@ function StoryHolder({ story, active, isPaused }: StoryHolderPropsType) {
         />
       )}
       <StoryViewer
-        activeId={selectedStory.id}
+        activeId={story.id}
         id={story.id}
         key={`${story.id}-${currentStoryId}`}
         isPaused={showDeleteModal || !active}
