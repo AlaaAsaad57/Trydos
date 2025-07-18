@@ -24,7 +24,14 @@ export default function NextLink({
 }: INextLinkProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const { setEnableSearch, setFilterEnabled, setActiveRoute } = useAppStore();
+  const {
+    setEnableSearch,
+    setFilterEnabled,
+    setActiveRoute,
+    setSelectedOrderItem,
+    setActivePacks,
+    setOrderDetails,
+  } = useAppStore();
   const handleClick = (e) => {
     if (!data) {
       onClick?.(e);
@@ -61,6 +68,9 @@ export default function NextLink({
       document.documentElement.style.overflow = "auto";
       setEnableSearch(false);
       setFilterEnabled(false);
+      setSelectedOrderItem(null);
+      setActivePacks(null);
+      setOrderDetails(null);
     }
   };
   const IsPrefetched = () => {

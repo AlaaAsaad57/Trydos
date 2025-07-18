@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import LargeColorIcon from "public/svg/LargeColorIcon.svg";
 import Spinner from "components/global/Spinner";
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
-import { translateFunction } from "utils/functions";
+import { getConfiguredImage, translateFunction } from "utils/functions";
 import { GetImageUrl } from "utils/tinyUtils";
 import { ColorListPropsType } from "models/componentType/ColorListPropsType";
 import { ModifyOrderItemModalPropsType } from "models/componentType/ModifyOrderItemModalPropsType";
@@ -69,13 +69,18 @@ export const ModifyOrderItemModal = ({
             <div className="w-auto h-[98px] flex-col items-center justify-center">
               <img
                 className="w-[70px] h-[70px] object-cover rounded-full"
-                src={GetImageUrl(
-                  confirmationData?.productDetails?.sync_color_images?.find(
-                    (s) =>
-                      s.color_name?.toLowerCase() ===
-                      confirmationData?.currentColor?.toLowerCase()
-                  )?.images[0]
-                )}
+                src={getConfiguredImage({
+                  src: GetImageUrl(
+                    confirmationData?.productDetails?.sync_color_images?.find(
+                      (s) =>
+                        s.color_name?.toLowerCase() ===
+                        confirmationData?.currentColor?.toLowerCase()
+                    )?.images[0]
+                  ),
+                  width: 70,
+                  height: 70,
+                  q: 100,
+                })}
               />
               <span className="text-[#fff] text-[14px] medium mt-[9px]">
                 {type === "Color"
@@ -196,7 +201,12 @@ export const ColorList = ({
                 : "1px solid #ffffffef",
             }}
             className="min-w-[70px] min-h-[70px] object-cover rounded-full max-w-[70px] max-h-[70px]"
-            src={GetImageUrl(s?.images[0])}
+            src={getConfiguredImage({
+              src: GetImageUrl(s?.images[0]),
+              width: 70,
+              height: 70,
+              q: 100,
+            })}
           />
           <span
             className={`${
@@ -250,7 +260,12 @@ export const SizeList = ({
                   : "1px solid #ffffffef",
               }}
               className="min-w-[70px] min-h-[70px] object-cover rounded-full max-w-[70px] max-h-[70px]"
-              src={GetImageUrl(image)}
+              src={getConfiguredImage({
+                src: GetImageUrl(image),
+                width: 70,
+                height: 70,
+                q: 100,
+              })}
             />
             <span
               className={`${

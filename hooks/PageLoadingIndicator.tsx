@@ -20,6 +20,14 @@ export default function PageLoadingIndicator() {
       document.documentElement.style.overflow = "hidden";
       document.body.scrollTop = 0;
       document.documentElement.scrollTop = 0;
+      if (isLoading) {
+        if (timeout) {
+          clearTimeout(timeout);
+        }
+        // @ts-ignore
+        window.location.href = data?.href;
+        return;
+      }
       setIsLoading(data);
 
       timeout = setTimeout(() => {
