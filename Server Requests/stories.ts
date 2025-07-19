@@ -60,7 +60,8 @@ export async function fetchStories(
       };
     }
     return {
-      data: response.data?.data?.data || [],
+      data:
+        response.data?.data?.data?.filter((s) => s?.stories?.length > 0) || [],
       next_page_url: response.data?.data?.next_page_url,
     };
   } catch (error) {

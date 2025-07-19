@@ -71,7 +71,12 @@ export default function NextLink({
       setSelectedOrderItem(null);
       setActivePacks(null);
       setOrderDetails(null);
-      window.location.href = data?.href;
+      // if (
+      //   window.location.pathname !== "/" ||
+      //   window.location.href.split("/").length > 2
+      // ) {
+      //   window.location.href = data?.href;
+      // }
       return;
     }
   };
