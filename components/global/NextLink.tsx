@@ -71,6 +71,13 @@ export default function NextLink({
       setSelectedOrderItem(null);
       setActivePacks(null);
       setOrderDetails(null);
+      dispatchRouteChangeEvent("completed");
+      if (
+        window.location.pathname === "/" ||
+        window.location.href.split("/").length < 3
+      ) {
+        dispatchRouteChangeEvent("completed");
+      }
       // if (
       //   window.location.pathname !== "/" ||
       //   window.location.href.split("/").length > 2

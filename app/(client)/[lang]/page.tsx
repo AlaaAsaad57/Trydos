@@ -107,7 +107,7 @@ async function HomePage({ params }: HomePageProps) {
         />
       </Suspense>
       <Suspense fallback={<></>} key={`Home ${params.lang}`}>
-        <Home />
+        <Home key={`Home ${params.lang}`} />
       </Suspense>
       <Suspense
         fallback={<OfferListSkeleton />}

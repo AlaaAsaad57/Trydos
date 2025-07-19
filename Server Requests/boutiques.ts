@@ -83,7 +83,7 @@ export async function fetchBoutiques(
       retryAttempts: 3,
       retryDelay: 1000,
     });
-    console.log("response", { response, url: boutiqueUrl });
+
     if (response.isError) {
       console.error(`Boutiques Error: ${response.status}`);
       reportError(
