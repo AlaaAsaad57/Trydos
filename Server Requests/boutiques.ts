@@ -71,8 +71,8 @@ export async function fetchBoutiques(
   try {
     const boutiqueUrl = `/api/home/boutiques${
       categorySlug?.length > 0
-        ? `?category_slugs=["${categorySlug}"]&limit=${limit}&offset=${offset}`
-        : `?category_slugs=[]&limit=${limit}&offset=${offset}`
+        ? `?category_slugs=["${categorySlug}"]&limit=${limit}&offset=${offset}&lang=${language}&country=${country}`
+        : `?category_slugs=[]&limit=${limit}&offset=${offset}&lang=${language}&country=${country}`
     }`;
     const response = await fetchServerData({
       url: `${process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL}${boutiqueUrl}`,
@@ -83,7 +83,7 @@ export async function fetchBoutiques(
       retryAttempts: 3,
       retryDelay: 1000,
     });
-
+    console.log("response", { response, url: boutiqueUrl });
     if (response.isError) {
       console.error(`Boutiques Error: ${response.status}`);
       reportError(
