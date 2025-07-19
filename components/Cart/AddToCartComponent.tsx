@@ -1699,7 +1699,7 @@ const AddToCartButton = ({
             product?.images[0]?.file_path ||
             product?.images[0],
           isFromAddWidget: true,
-          is_redeem: product?.is_redeem,
+          is_redeem: product?.showRedeemPrice && product?.is_redeem,
         });
         onSuccessAddUpdate();
         GAevent({

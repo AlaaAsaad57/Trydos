@@ -402,7 +402,10 @@ function OrderButton({ close, toOrders }) {
                     </div>
                   </div>
 
-                  <span className="ml-[5px] bold  text-[13px] pr-[13px] text-[#A28E5B]">
+                  <span
+                    data-cy="totalDiscount-text"
+                    className="ml-[5px] bold  text-[13px] pr-[13px] text-[#A28E5B]"
+                  >
                     -{" "}
                     {RoundPrice({
                       num: total_discount,

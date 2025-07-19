@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import LargeColorIcon from "public/svg/LargeColorIcon.svg";
 import Spinner from "components/global/Spinner";
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
-import { translateFunction } from "utils/functions";
+import { getConfiguredImage, translateFunction } from "utils/functions";
 import { GetImageUrl } from "utils/tinyUtils";
 import { ColorListPropsType } from "models/componentType/ColorListPropsType";
 import { ModifyOrderItemModalPropsType } from "models/componentType/ModifyOrderItemModalPropsType";
@@ -60,7 +60,9 @@ export const ModifyOrderItemModal = ({
         <div className="flex-col justify-end items-center h-auto">
           <LargeColorIcon />
           <span className="mt-[11px] text-[#D3D3D3] text-[16px] medium">
-            {type === "Color" ? translateFunction("Change Below Color",language) : translateFunction("Change Below Size",language)}
+            {type === "Color"
+              ? translateFunction("Change Below Color", language)
+              : translateFunction("Change Below Size", language)}
           </span>
           <div
             style={{
@@ -71,14 +73,18 @@ export const ModifyOrderItemModal = ({
             <div className="w-auto h-[98px] flex-col items-center justify-center">
               <img
                 className="w-[70px] h-[70px] object-cover rounded-full"
-                src={GetImageUrl(
-                  confirmationData?.productDetails?.sync_color_images?.find(
-                    (s) =>
-                      s.color_name?.toLowerCase() ===
-                      confirmationData?.currentColor?.toLowerCase()
-                  )?.images[0]
-                )}
-                alt="Image"
+                src={getConfiguredImage({
+                  src: GetImageUrl(
+                    confirmationData?.productDetails?.sync_color_images?.find(
+                      (s) =>
+                        s.color_name?.toLowerCase() ===
+                        confirmationData?.currentColor?.toLowerCase()
+                    )?.images[0]
+                  ),
+                  width: 70,
+                  height: 70,
+                  q: 100,
+                })}
               />
               <span className="text-[#fff] text-[14px] medium mt-[9px]">
                 {type === "Color"
@@ -92,7 +98,9 @@ export const ModifyOrderItemModal = ({
             </div>
           </div>
           <span className="text-[#fff] text-[16px] medium mt-[15px]">
-            {type === "Color" ? translateFunction("To New Color", language) : translateFunction("To New Size",language) }
+            {type === "Color"
+              ? translateFunction("To New Color", language)
+              : translateFunction("To New Size", language)}
           </span>
           <div
             style={{
@@ -124,21 +132,27 @@ export const ModifyOrderItemModal = ({
             )}
           </div>
           <p className="text-[14px] text-white regular mt-[40px]">
-            {translateFunction("I Read And Agree To",language)} {" "}
+            {translateFunction("I Read And Agree To", language)}{" "}
             <a
               target="_blank"
               href="#"
               className="ml-[4px] medium text-[14px] text-white underline"
             >
-              {type === "Color" ? translateFunction("The Change Color Terms.",language) : translateFunction("The Change Size Terms.",language) }
+              {type === "Color"
+                ? translateFunction("The Change Color Terms.", language)
+                : translateFunction("The Change Size Terms.", language)}
             </a>
           </p>
           <p className="text-[14px] text-white medium mt-[40px] text-center ">
-            {type === "Color" ? translateFunction(
-              "We Will Ignore The First Color And Send Your Order To The New Address.",language
-            ) : translateFunction(
-              "We Will Ignore The First Size And Send Your Order To The New Address.",language
-            )}
+            {type === "Color"
+              ? translateFunction(
+                  "We Will Ignore The First Color And Send Your Order To The New Address.",
+                  language
+                )
+              : translateFunction(
+                  "We Will Ignore The First Size And Send Your Order To The New Address.",
+                  language
+                )}
           </p>
           <div
             className={`cursor-pointer mt-[10px] w-full h-[50px] rounded-[15px]  text-[16px] bold flex items-center justify-center ${
@@ -155,7 +169,7 @@ export const ModifyOrderItemModal = ({
               }
             }}
           >
-            {translateFunction("Yes, I Agree",language)}
+            {translateFunction("Yes, I Agree", language)}
           </div>
           <div
             className="cursor-pointer w-full h-[50px] text-[#fff] text-[16px] regular flex items-center justify-center"
@@ -163,7 +177,7 @@ export const ModifyOrderItemModal = ({
               setConfirmationData(false);
             }}
           >
-            {translateFunction("Cancel",language)}
+            {translateFunction("Cancel", language)}
           </div>
         </div>
       )}
@@ -201,8 +215,12 @@ export const ColorList = ({
                 : "1px solid #ffffffef",
             }}
             className="min-w-[70px] min-h-[70px] object-cover rounded-full max-w-[70px] max-h-[70px]"
-            src={GetImageUrl(s?.images[0])}
-            alt="Image"
+            src={getConfiguredImage({
+              src: GetImageUrl(s?.images[0]),
+              width: 70,
+              height: 70,
+              q: 100,
+            })}
           />
           <span
             className={`${
@@ -256,8 +274,12 @@ export const SizeList = ({
                   : "1px solid #ffffffef",
               }}
               className="min-w-[70px] min-h-[70px] object-cover rounded-full max-w-[70px] max-h-[70px]"
-              src={GetImageUrl(image)}
-              alt="Size"
+              src={getConfiguredImage({
+                src: GetImageUrl(image),
+                width: 70,
+                height: 70,
+                q: 100,
+              })}
             />
             <span
               className={`${

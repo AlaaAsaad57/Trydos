@@ -116,7 +116,7 @@ export default function RootLayout({ params, children }) {
       <body className={params.lang.split("-")[1] === "ar" ? "text-rtl" : ""}>
         <SpeedInsights />
 
-        <Suspense>
+        <Suspense key={`${JSON.stringify(params)}`}>
           <PageLoadingIndicator />
         </Suspense>
 

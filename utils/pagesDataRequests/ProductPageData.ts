@@ -1,11 +1,5 @@
 import { cache } from "react";
-import {
-  fetchBoutiques,
-  fetchCurrency,
-  fetchFilteredProducts,
-  fetchMainCategories,
-  fetchProductDetails,
-} from "Server Requests";
+import { fetchCurrency, fetchProductDetails } from "Server Requests";
 
 export const GetProductData = cache(
   async (params: { lang: string; productId: string }) => {

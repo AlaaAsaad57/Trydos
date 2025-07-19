@@ -57,6 +57,7 @@ export const BuyButtonProduct = ({ product }) => {
       ...product,
       shouldUpdate: 0,
       id: product.product_id || product.id,
+      showRedeemPrice: false,
     });
   };
   return (
@@ -65,7 +66,7 @@ export const BuyButtonProduct = ({ product }) => {
         <RedeemButton
           id={product.product_id}
           is_redeem={product.is_redeem}
-          redeem_price={product.redeem_price || product.offer_price}
+          redeem_price={product.redeem_price}
           product={product}
         />
       )}

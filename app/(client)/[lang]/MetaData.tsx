@@ -1,8 +1,5 @@
-import { getConfiguredImage, translateFunction } from "utils/functions";
 import type { Metadata } from "next";
-import { GetHomeData } from "utils/pagesDataRequests/HomePageData";
 import { cache } from "react";
-import { GetFiltersData } from "utils/pagesDataRequests/FiltersPageData";
 import { fetchServerData } from "Server Requests/ServerFetch";
 export const generateCodeCurrency = (code: string) => {
   if (code?.toLowerCase() === "sp") {
@@ -19,7 +16,7 @@ export const getHomeMetadata = cache(async ({ params }): Promise<Metadata> => {
     url: `${process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL}/api/home/HomePageMetaData?lang=${language}&country=${country}`,
     method: "GET",
     tags: ["home"],
-    revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE_HOME),
+    revalidate: parseInt(process.env.NEXT_PUBLIC_HOME_REVALIDATE),
     local: `${country}-${language}`,
   });
   // Get language for translations
@@ -171,7 +168,7 @@ export const GetStructuredData = cache(async ({ params }) => {
     url: `${process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL}/api/home/HomePageMetaData?lang=${language}&country=${country}`,
     method: "GET",
     tags: ["home"],
-    revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE_HOME),
+    revalidate: parseInt(process.env.NEXT_PUBLIC_HOME_REVALIDATE),
     local: `${country}-${language}`,
   });
   return {

@@ -72,5 +72,8 @@ export const showErrorNotification = (
   image?: string
 ) => {
   const { addNotification } = useNotificationStore.getState();
+  if (message?.toLowerCase() === "unauthorized") {
+    return;
+  }
   addNotification({ type: "error", message, duration, href });
 };

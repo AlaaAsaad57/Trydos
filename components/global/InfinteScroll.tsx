@@ -46,6 +46,7 @@ function InfinteScroll({ offsetVariable }: InfinteScrollPropsType) {
   const getNextBoutique = async () => {
     if (!loading && !isEnd) {
       setLoading(true);
+      console.log("fetching boutiques offset", offset);
       try {
         const result = await fetchBoutiques(
           language,

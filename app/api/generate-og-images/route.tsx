@@ -39,8 +39,7 @@ async function fetchImageAsBase64(url: string): Promise<ImageData | null> {
   try {
     const response = await fetch(valid_url, {
       next: {
-        revalidate:
-          parseInt(process.env.NEXT_PUBLIC_REVALIDATE_TIME_METADATA) || 172800,
+        revalidate: 172800,
       },
     });
     if (!response.ok) return null;

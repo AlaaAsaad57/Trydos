@@ -113,36 +113,36 @@ let nextConfig = {
         loader: "file-loader",
       },
     });
-    if (!isServer && !dev && process.env.NODE_ENV !== "production") {
-      config.module.rules.push({
-        test: /\.(js|jsx|ts|tsx)$/,
-        enforce: "post",
-        use: [
-          {
-            loader: "istanbul-instrumenter-loader",
-            options: {
-              esModules: true,
-            },
-          },
-        ],
-        include: [
-          path.resolve(__dirname, "store"),
-          path.resolve(__dirname, "components"),
-          path.resolve(__dirname, "services"),
-          path.resolve(__dirname, "utils"),
-        ],
-        exclude: [
-          // Exclude specific components
-          path.resolve(__dirname, "components/global/webViewActions"),
-          path.resolve(__dirname, "components/global/WebViewVideoCall"),
-          path.resolve(__dirname, "components/global/WebViewVoiceCall"),
-          // Exclude utils/libs
-          path.resolve(__dirname, "utils/libs"),
-          // Exclude specific store actions
-          path.resolve(__dirname, "store/chat/callActions"),
-        ],
-      });
-    }
+    // if (!isServer && !dev && process.env.NODE_ENV !== "production") {
+    //   config.module.rules.push({
+    //     test: /\.(js|jsx|ts|tsx)$/,
+    //     enforce: "post",
+    //     use: [
+    //       {
+    //         loader: "istanbul-instrumenter-loader",
+    //         options: {
+    //           esModules: true,
+    //         },
+    //       },
+    //     ],
+    //     include: [
+    //       path.resolve(__dirname, "store"),
+    //       path.resolve(__dirname, "components"),
+    //       path.resolve(__dirname, "services"),
+    //       path.resolve(__dirname, "utils"),
+    //     ],
+    //     exclude: [
+    //       // Exclude specific components
+    //       path.resolve(__dirname, "components/global/webViewActions"),
+    //       path.resolve(__dirname, "components/global/WebViewVideoCall"),
+    //       path.resolve(__dirname, "components/global/WebViewVoiceCall"),
+    //       // Exclude utils/libs
+    //       path.resolve(__dirname, "utils/libs"),
+    //       // Exclude specific store actions
+    //       path.resolve(__dirname, "store/chat/callActions"),
+    //     ],
+    //   });
+    // }
     if (!dev) {
       config.devtool = false;
     }
