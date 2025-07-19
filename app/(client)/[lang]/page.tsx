@@ -1,6 +1,5 @@
 export const runtime = "nodejs";
 export const preferredRegion = process.env.PREFERRED_REGION || "bom1";
-export const revalidate = parseInt(process.env.NEXT_PUBLIC_HOME_REVALIDATE);
 export const dynamicParams = true;
 export const dynamic = "auto";
 
