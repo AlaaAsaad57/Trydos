@@ -117,7 +117,7 @@ const validateLink = (urlString: string) => {
   if (!isValidUrl(urlString)) {
     return {
       valid: false,
-      error: "Please enter a valid URL (e.g., example.com or www.example.com)",
+      error: translateFunction("Please enter a valid URL (e.g., example.com or www.example.com)")
     };
   }
   try {
@@ -131,7 +131,7 @@ const validateLink = (urlString: string) => {
     if (parsed.host !== currentHost) {
       return {
         valid: false,
-        error: `Only links from ${currentHost} are allowed.`,
+        error: `${translateFunction("Only links from")} ${currentHost} ${translateFunction("are allowed.")}`,
       };
     }
     // if (/coupon/i.test(urlString)) {
@@ -144,7 +144,7 @@ const validateLink = (urlString: string) => {
   } catch {
     return {
       valid: false,
-      error: "Please enter a valid URL (e.g., example.com or www.example.com)",
+      error: translateFunction("Please enter a valid URL (e.g., example.com or www.example.com)")
     };
   }
 };

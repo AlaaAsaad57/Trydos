@@ -18,6 +18,7 @@ function ReplyMessage({ message, cancel }) {
             src={message?.message_files[0]?.file_path}
             width={26}
             height={20}
+            alt="Image"
           />
           {translateFunction("Image")}
         </>

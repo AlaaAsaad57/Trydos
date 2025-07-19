@@ -575,7 +575,7 @@ const FilterTobBar = ({ isSearch, setIsSearch, Goback }) => {
                 fill="none"
                 stroke="#ff5f61"
                 strokeLinecap="round"
-                stroke-width="1"
+                strokeWidth="1"
               />
               <line
                 id="Line_793"
@@ -585,7 +585,7 @@ const FilterTobBar = ({ isSearch, setIsSearch, Goback }) => {
                 fill="none"
                 stroke="#ff5f61"
                 strokeLinecap="round"
-                stroke-width="1"
+                strokeWidth="1"
               />
             </g>
           </svg>
@@ -688,7 +688,7 @@ const ShowFilterRow = ({ term, values }) => {
                   border: isActive(value) ? "1px solid #FF5F61" : "none",
                 }}
                 src={getImage(value)}
-                alt={value.name}
+                alt={value.name || "Image"}
                 width={70}
                 height={70}
               />

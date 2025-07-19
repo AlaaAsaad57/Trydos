@@ -390,7 +390,7 @@ export const OrdersIcon = () => {
             fill="none"
           />
         </clipPath>
-        <clipPath id="clip-path-22">
+        <clipPath id="clipPath-22">
           <rect
             id="Rectangle_4561"
             data-name="Rectangle 4561"
@@ -478,7 +478,7 @@ export const OrdersIcon = () => {
             id="Mask_Group_666"
             data-name="Mask Group 666"
             transform="translate(0)"
-            clipPath="url(#clip-path-22)"
+            clipPath="url(#clipPath-22)"
           >
             <g
               id="Group_4033-2"

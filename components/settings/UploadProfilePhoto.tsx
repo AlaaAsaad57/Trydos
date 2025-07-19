@@ -238,7 +238,7 @@ function UploadProfilePhoto({
                     viewBox="0 0 18 18"
                   >
                     <defs>
-                      <clipPath id="clip-path">
+                      <clipPath id="clipPath">
                         <rect
                           id="Rectangle_4718"
                           data-name="Rectangle 4718"
@@ -257,7 +257,7 @@ function UploadProfilePhoto({
                         id="Mask_Group_493"
                         data-name="Mask Group 493"
                         transform="translate(203 428)"
-                        clipPath="url(#clip-path)"
+                        clipPath="url(#clipPath)"
                       >
                         <g id="image-add" transform="translate(0 1.498)">
                           <path
@@ -333,7 +333,7 @@ function UploadProfilePhoto({
                       viewBox="0 0 18 18"
                     >
                       <defs>
-                        <clipPath id="clip-path">
+                        <clipPath id="clipPath">
                           <rect
                             id="Rectangle_4561"
                             data-name="Rectangle 4561"
@@ -346,7 +346,7 @@ function UploadProfilePhoto({
                       <g
                         id="Mask_Group_733"
                         data-name="Mask Group 733"
-                        clipPath="url(#clip-path)"
+                        clipPath="url(#clipPath)"
                       >
                         <g id="Icons" transform="translate(-2.25 -2.25)">
                           <path
@@ -389,7 +389,7 @@ function UploadProfilePhoto({
                       viewBox="0 0 18 18"
                     >
                       <defs>
-                        <clipPath id="clip-path">
+                        <clipPath id="clipPath">
                           <rect
                             id="Rectangle_4561"
                             data-name="Rectangle 4561"
@@ -402,7 +402,7 @@ function UploadProfilePhoto({
                       <g
                         id="Mask_Group_734"
                         data-name="Mask Group 734"
-                        clipPath="url(#clip-path)"
+                        clipPath="url(#clipPath)"
                       >
                         <g id="image-gallery-2" transform="translate(0 -0.75)">
                           <g id="Group_13684" data-name="Group 13684">

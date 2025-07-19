@@ -47,6 +47,7 @@ function MediaContainer({ id, mediaFiles }) {
                 src={image.message_files[0]?.file_path}
                 width={100}
                 height={130}
+                alt="Image"
               />
             </a>
           ))}
@@ -72,7 +73,7 @@ function MediaContainer({ id, mediaFiles }) {
               href={image.message_files[0]?.file_path}
               target="_blank"
             >
-              <Image src={filePng} width={100} height={130} />
+              <Image src={filePng} width={100} height={130} alt="Image"/>
             </a>
           ))}
       </div>

@@ -423,7 +423,7 @@ const PaymentOrder = ({ success }: PaymentOrderPropsType) => {
             viewBox="0 0 18 18"
           >
             <defs>
-              <clipPath id="clip-path">
+              <clipPath id="clipPath">
                 <rect
                   id="Rectangle_4561"
                   data-name="Rectangle 4561"
@@ -436,7 +436,7 @@ const PaymentOrder = ({ success }: PaymentOrderPropsType) => {
             <g
               id="Mask_Group_658"
               data-name="Mask Group 658"
-              clipPath="url(#clip-path)"
+              clipPath="url(#clipPath)"
             >
               <g id="money-9">
                 <g id="Group_13431" data-name="Group 13431">

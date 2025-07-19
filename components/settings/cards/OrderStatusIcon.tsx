@@ -22,7 +22,7 @@ function OrderStatusIcon({ status }) {
         viewBox="0 0 15 15"
       >
         <defs>
-          <clipPath id="clip-path">
+          <clipPath id="clipPath">
             <rect
               id="Rectangle_4561"
               data-name="Rectangle 4561"
@@ -35,13 +35,13 @@ function OrderStatusIcon({ status }) {
         <g
           id="Mask_Group_760"
           data-name="Mask Group 760"
-          clip-path="url(#clip-path)"
+          clipPath="url(#clipPath)"
         >
           <path
             id="claim"
             d="M1.1,9.718a.217.217,0,0,1-.418.112A7.477,7.477,0,1,1,5.563,15a.217.217,0,1,1,.136-.411A7.043,7.043,0,1,0,1.1,9.718Zm9.3-4.011a.615.615,0,0,1,.852.888L7.635,10.069a.615.615,0,0,1-.848,0l-2.225-2.1a.615.615,0,1,1,.844-.9l1.8,1.7Zm-5.14,5.018a.217.217,0,1,1-.309-.3l.309-.314a.217.217,0,0,1,.309.3Zm-1.3-.474a.217.217,0,0,1-.419-.109l.11-.426a.217.217,0,0,1,.419.109Zm1.6,1.876a.217.217,0,1,1-.115-.417l.424-.117a.217.217,0,1,1,.115.417Zm-3.055,2L1.345,15.288a.155.155,0,0,1-.219,0L.433,14.6a.155.155,0,0,1,0-.219L1.59,13.219l-.734-.4a.155.155,0,0,1,.021-.281l3.34-1.229a.155.155,0,0,1,.2.2l-1.229,3.34a.155.155,0,0,1-.281.021Z"
             transform="translate(-0.388 -0.389)"
-            fill-rule="evenodd"
+            fillRule="evenodd"
           />
         </g>
       </svg>
@@ -166,7 +166,7 @@ function OrderStatusIcon({ status }) {
         viewBox="0 0 15 15"
       >
         <defs>
-          <clipPath id="clip-path">
+          <clipPath id="clipPath">
             <rect
               id="Rectangle_4561"
               data-name="Rectangle 4561"
@@ -179,7 +179,7 @@ function OrderStatusIcon({ status }) {
         <g
           id="Mask_Group_768"
           data-name="Mask Group 768"
-          clip-path="url(#clip-path)"
+          clipPath="url(#clipPath)"
         >
           <g id="rocket-2">
             <path
@@ -247,7 +247,7 @@ function OrderStatusIcon({ status }) {
         viewBox="0 0 15 15"
       >
         <defs>
-          <clipPath id="clip-path">
+          <clipPath id="clipPath">
             <rect
               id="Rectangle_4561"
               data-name="Rectangle 4561"
@@ -266,7 +266,7 @@ function OrderStatusIcon({ status }) {
             id="Mask_Group_688"
             data-name="Mask Group 688"
             transform="translate(94 401)"
-            clip-path="url(#clip-path)"
+            clipPath="url(#clipPath)"
           >
             <g id="shopping-3" transform="translate(0 1.873)">
               <path

@@ -227,7 +227,7 @@ function PersonalInfo({ swipeToScreen, goBack }: PersonalInfoPropsType) {
             viewBox="0 0 15 15"
           >
             <defs>
-              <clipPath id="clip-path">
+              <clipPath id="clipPath">
                 <rect
                   id="Rectangle_4612"
                   data-name="Rectangle 4612"
@@ -240,7 +240,7 @@ function PersonalInfo({ swipeToScreen, goBack }: PersonalInfoPropsType) {
             <g
               id="Mask_Group_732"
               data-name="Mask Group 732"
-              clipPath="url(#clip-path)"
+              clipPath="url(#clipPath)"
             >
               <g id="Outline" transform="translate(1.372)">
                 <g id="Group_13672" data-name="Group 13672">

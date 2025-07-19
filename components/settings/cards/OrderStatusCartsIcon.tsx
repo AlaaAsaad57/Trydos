@@ -93,7 +93,7 @@ export const PendingStatus = () => {
         id="Mask_Group_790"
         data-name="Mask Group 790"
         transform="translate(0 -0.193)"
-        clip-path="url(#clip-path90)"
+        clipPath="url(#clip-path90)"
       >
         <g
           id="Group_4033"
@@ -127,8 +127,8 @@ export const PendingStatus = () => {
             transform="translate(4.086 13.169)"
             fill="none"
             stroke="#1d1d1d"
-            stroke-linecap="round"
-            stroke-width="0.5"
+            strokeLinecap="round"
+            strokeWidth="0.5"
           />
         </g>
       </g>
@@ -227,7 +227,7 @@ export const DeliveredStatus = () => {
         id="Mask_Group_771"
         data-name="Mask Group 771"
         transform="translate(0.041 0.422)"
-        clip-path="url(#clip-path797)"
+        clipPath="url(#clip-path797)"
       >
         <g
           id="Group_4033"
@@ -261,8 +261,8 @@ export const DeliveredStatus = () => {
             transform="translate(3.943 12.709)"
             fill="none"
             stroke="#1d1d1d"
-            stroke-linecap="round"
-            stroke-width="0.5"
+            strokeLinecap="round"
+            strokeWidth="0.5"
           />
         </g>
       </g>
@@ -294,7 +294,7 @@ export const ShippedSatus = () => {
         id="Mask_Group_765"
         data-name="Mask Group 765"
         transform="translate(-0.004 0.377)"
-        clip-path="url(#clip-path767)"
+        clipPath="url(#clip-path767)"
       >
         <g
           id="Group_4033"
@@ -328,8 +328,8 @@ export const ShippedSatus = () => {
             transform="translate(3.952 12.738)"
             fill="none"
             stroke="#3c3c3c"
-            stroke-linecap="round"
-            stroke-width="0.5"
+            strokeLinecap="round"
+            strokeWidth="0.5"
           />
         </g>
       </g>
@@ -348,7 +348,7 @@ export const NormalStatus = ({ color }) => {
       viewBox="0 0 15 15"
     >
       <defs>
-        <clipPath id={`clip-path${i}`}>
+        <clipPath id={`clipPath${i}`}>
           <rect
             id="Rectangle_6184"
             data-name="Rectangle 6184"
@@ -363,7 +363,7 @@ export const NormalStatus = ({ color }) => {
         id="Mask_Group_706"
         data-name="Mask Group 706"
         transform="translate(0 0.381)"
-        clipPath={`url(#clip-path${i})`}
+        clipPath={`url(#clipPath${i})`}
       >
         <g id="Group_4033" data-name="Group 4033" transform="translate(1.06 0)">
           <g id="Group_4032" data-name="Group 4032" transform="translate(0 0)">

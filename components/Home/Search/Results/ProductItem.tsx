@@ -56,7 +56,7 @@ function ProductItem({ product, onClick }) {
           </svg>
 
           <Image
-            alt={product.name}
+            alt={product.name || "Image"}
             loading="eager"
             width={100}
             className="object-cover object-center"

@@ -160,7 +160,7 @@ const SearchLocations = ({
           viewBox="0 0 18 18"
         >
           <defs>
-            <clipPath id="clip-path">
+            <clipPath id="clipPath">
               <rect
                 id="Rectangle_4561"
                 data-name="Rectangle 4561"
@@ -173,7 +173,7 @@ const SearchLocations = ({
           <g
             id="Mask_Group_165"
             data-name="Mask Group 165"
-            clipPath="url(#clip-path)"
+            clipPath="url(#clipPath)"
           >
             <g id="_x32_-Magnifying_Glass">
               <path

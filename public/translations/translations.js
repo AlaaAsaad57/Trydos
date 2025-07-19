@@ -1,5 +1,26 @@
 const translations = {
   ar: {
+    "Reset Redeemed Products": "إعادة تعيين المنتجات المُستردة",
+    "Request Log": "سجل الطلبات",
+    "Make Stories Token Expired": "جعل توكن القصص منتهي الصلاحية",
+    "Make Chat Token Expired": "جعل توكن الدردشة منتهي الصلاحية",
+    "I Read And Agree To": "لقد قرأت وأوافق على",
+    "are allowed.": "مسموح بها.",
+    "Please enter a valid URL (e.g., example.com or www.example.com)":
+      "الرجاء إدخال عنوان URL صالح (مثال: example.com أو www.example.com)",
+    "Only links from": "فقط الروابط من",
+    "Yes, I Agree": "نعم، أوافق",
+    "We Will Ignore The First Size And Send Your Order To The New Address.":
+      "سنتجاهل الحجم الأول وسنرسل طلبك إلى العنوان الجديد.",
+    "We Will Ignore The First Color And Send Your Order To The New Address.":
+      "سنتجاهل اللون الأول وسنرسل طلبك إلى العنوان الجديد.",
+    "The Change Size Terms.": ".شروط تغيير الحجم",
+    "The Change Color Terms.": ".شروط تغيير اللون",
+    "To New Size": "إلى الحجم الجديد",
+    "To New Color": "إلى اللون الجديد",
+    "Change Below Size": "غيّر الحجم أدناه",
+    "Change Below Color": "غيّر اللون أدناه",
+    "Confirm the Changes First": "قم بتأكيد التغييرات أولاً",
     "Chat with delivery worker": "الدردشة مع عامل التوصيل",
     "Take Photo": "التقاط صورة",
     "Upload Photo/Video": "تحميل صورة/فيديو",
@@ -785,6 +806,23 @@ const translations = {
       "انتهت صلاحية الجلسة.. يرجى التحقق من رقم هاتفك",
   },
   tr: {
+    "Reset Redeemed Products": "Kullanılmış Ürünleri Sıfırla",
+    "Request Log": "İstek Kaydı",
+    "Make Stories Token Expired": "Hikayeler Tokenini Süresi Dolmuş Yap",
+    "Make Chat Token Expired": "Sohbet Tokenini Süresi Dolmuş Yap",
+    "I Read And Agree To": "Okudum ve kabul ediyorum",
+    "Confirm the Changes First": "Önce değişiklikleri onaylayın",
+    "Yes, I Agree": "Evet, kabul ediyorum",
+    "We Will Ignore The First Size And Send Your Order To The New Address.":
+      "İlk bedeni dikkate almayacağız ve siparişinizi yeni adrese göndereceğiz.",
+    "We Will Ignore The First Color And Send Your Order To The New Address.":
+      "İlk rengi dikkate almayacağız ve siparişinizi yeni adrese göndereceğiz.",
+    "The Change Size Terms.": "Beden değişikliği koşulları.",
+    "The Change Color Terms.": "Renk değişikliği koşulları.",
+    "To New Size": "Yeni bedene",
+    "To New Color": "Yeni renge",
+    "Change Below Size": "Aşağıdaki bedeni değiştir",
+    "Change Below Color": "Aşağıdaki rengi değiştir",
     "Chat with delivery worker": "Teslimat görevlisiyle sohbet et",
     "Take Photo": "Fotoğraf Çek",
     "Upload Photo/Video": "Fotoğraf/Video Yükle",
@@ -1557,6 +1595,10 @@ const translations = {
       "Bu Paketi İptal Edip Paranızı Geri Alabilirsiniz",
     "Cancel This Pack": "Bu Paketi İptal Et",
     "I’m Afraid Of Sizes": "Bedenlerden Korkarım",
+    "are allowed.": "izin verilir.",
+    "Please enter a valid URL (e.g., example.com or www.example.com)":
+      "Lütfen geçerli bir URL girin (örn. example.com veya www.example.com)",
+    "Only links from": "Yalnızca şu kaynaktan gelen bağlantılar",
   },
   ku: {
     "Take Photo": "وێنە بگرە",
@@ -2385,6 +2427,27 @@ const translations = {
     "Session Expired..please Verify Your Phone Number":
       "دانیشتنەکە بەسەرچووە.. تکایە ژمارەی تەلەفۆنەکەت پشتڕاست بکەوە",
     "Chat with delivery worker": "چات بکە لەگەڵ کارمەندی گەیاندن",
+    "are allowed.": "ڕێگەپێدراون.",
+    "Please enter a valid URL (e.g., example.com or www.example.com)":
+      "تکایە URL دروست بنووسە (نمونە example.com یان www.example.com)",
+    "Only links from": "تەنها بەستەرەکان لە",
+    "Yes, I Agree": "بەڵێ، ڕازی‌م",
+    "We Will Ignore The First Size And Send Your Order To The New Address.":
+      "ئێمه‌ قەبارەی یەکەم لاق دەکەین و داواکاریەکەت نێردرێ بۆ ناونیشانی نوێ.",
+    "We Will Ignore The First Color And Send Your Order To The New Address.":
+      "ئێمه‌ ڕەنگی یەکەم لاق دەکەین و داواکاریەکەت نێردرێ بۆ ناونیشانی نوێ.",
+    "The Change Size Terms.": "مەرجەکانی گۆڕینی قەبارە.",
+    "The Change Color Terms.": "مەرجەکانی گۆڕینی ڕەنگ.",
+    "To New Size": "بۆ قەبارەی نوێ",
+    "To New Color": "بۆ ڕەنگی نوێ",
+    "Change Below Size": "قەبارەی خوارەوە بگۆڕە",
+    "Change Below Color": "ڕەنگی خوارەوە بگۆڕە",
+    "Confirm the Changes First": "سەرەتا گۆڕانکاریەکان دڵنیابکە",
+    "I Read And Agree To": "خوێندم و ڕازی بووم بە",
+    "Reset Redeemed Products": "بەرهەمە وەرگیراوەکان دووبارە ڕێست بکە",
+    "Request Log": "تۆماری داواکاری",
+    "Make Stories Token Expired": "تووکەنی چیرۆکەکان بەسەرچووە بکە",
+    "Make Chat Token Expired": "تووکەنی چات بەسەرچووە بکە",
   },
 };
 

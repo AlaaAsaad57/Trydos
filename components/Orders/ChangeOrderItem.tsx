@@ -162,13 +162,13 @@ function ChangeOrderItem({
               })}
               width={104}
               height={144}
-              alt={item.name}
+              alt={item.name || "Image"}
             />
           </div>
           <div className="relative flex w-[30px] h-[30px] items-center justify-center mt-[12px]">
             <ChangeOrderItemIcon className="absolute top-0 left-0 right-0 mx-auto my-0" />
             <Image
-              alt={item.name}
+              alt={item.name || "Image"}
               width={20}
               height={20}
               className="rounded-full h-[20px] w-[20px] object-cover"
@@ -287,7 +287,7 @@ export const ChangeColorWidget = ({
     <div className="flex-col w-full items-center  border-[#E6E6E680] border-b-[1px] pb-[12px] px-[24px] mt-[10px]">
       <div className="relative">
         <Image
-          alt={item.name}
+          alt={item.name || "Image"}
           width={70}
           height={70}
           className="w-[70px] h-[70px] object-cover rounded-full"
@@ -332,7 +332,7 @@ export const ChangeSizeWidget = ({
     <div className="flex-col w-full items-center  border-[#E6E6E680] border-b-[1px] pb-[12px] px-[24px] mt-[10px]">
       <div className="relative">
         <Image
-          alt={item.name}
+          alt={item.name || "Image"}
           width={70}
           height={70}
           className="w-[70px] h-[70px] object-cover rounded-full"
@@ -392,7 +392,7 @@ export const ChangeQtyWidget = ({
     <div className="flex-col w-full items-center  border-[#E6E6E680] border-b-[1px] pb-[12px] px-[24px] mt-[10px]">
       <div className="relative">
         <Image
-          alt={item.name}
+          alt={item.name || "Image"}
           width={70}
           height={70}
           className="w-[70px] h-[70px] object-cover rounded-full"

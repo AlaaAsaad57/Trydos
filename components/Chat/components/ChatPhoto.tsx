@@ -19,7 +19,7 @@ function ChatPhoto({
     return (
       <Image
         src={GetImageUrl(user.photo_path)}
-        alt=""
+        alt="Iamge"
         width={width}
         height={height}
         className={

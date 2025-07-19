@@ -356,7 +356,7 @@ export const MiniAddressInfo = () => {
       viewBox="0 0 15 15"
     >
       <defs>
-        <clipPath id="clip-path">
+        <clipPath id="clipPath">
           <rect
             id="Rectangle_4601"
             data-name="Rectangle 4601"
@@ -375,7 +375,7 @@ export const MiniAddressInfo = () => {
           id="Mask_Group_730"
           data-name="Mask Group 730"
           transform="translate(24 170)"
-          clipPath="url(#clip-path)"
+          clipPath="url(#clipPath)"
         >
           <g id="Layer_x0020_1" transform="translate(1.165 0)">
             <g id="Group_13671" data-name="Group 13671">

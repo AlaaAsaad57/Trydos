@@ -135,7 +135,7 @@ function LanguageSetting({ goBack }: { goBack: () => void }) {
               viewBox="0 0 15 15"
             >
               <defs>
-                <clipPath id="clip-path">
+                <clipPath id="clipPath">
                   <rect
                     id="Rectangle_4561"
                     data-name="Rectangle 4561"
@@ -144,18 +144,18 @@ function LanguageSetting({ goBack }: { goBack: () => void }) {
                     fill="none"
                   />
                 </clipPath>
-                <clipPath id="clip-path-2">
+                <clipPath id="clipPath-2">
                   <path id="path1173" d="M0-15H15V0H0Z" />
                 </clipPath>
               </defs>
               <g
                 id="Mask_Group_735"
                 data-name="Mask Group 735"
-                clipPath="url(#clip-path)"
+                clipPath="url(#clipPath)"
               >
                 <g id="g1167" transform="translate(0 15)">
                   <g id="g1169">
-                    <g id="g1171" clipPath="url(#clip-path-2)">
+                    <g id="g1171" clipPath="url(#clipPath-2)">
                       <g id="g1177" transform="translate(5.995 -13.273)">
                         <path
                           id="path1179"

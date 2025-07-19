@@ -273,7 +273,7 @@ export const FlagIcon = ({ iso }) => {
     return (
       <Image
         src="/svg/sy.svg"
-        alt={translateFunction("sy")}
+        alt={translateFunction("sy") || "sy"}
         width={15}
         height={10}
       />
@@ -282,7 +282,7 @@ export const FlagIcon = ({ iso }) => {
   return (
     <Image
       src={`/svg/flag/${iso?.toLowerCase()}.svg`}
-      alt={translateFunction(iso)}
+      alt={translateFunction(iso) || "iso"}
       width={15}
       height={10}
     />

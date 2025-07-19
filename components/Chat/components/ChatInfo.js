@@ -242,6 +242,7 @@ function ChatInfo({
                       height={130}
                       objectFit="cover"
                       objectPosition="center"
+                      alt="Image"
                     />
                   </div>
                 )

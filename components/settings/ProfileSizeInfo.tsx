@@ -154,7 +154,7 @@ function ProfileSizeInfo({ swipeToScreen, goBack }: ProfileSizeInfoPropsType) {
             viewBox="0 0 15 15"
           >
             <defs>
-              <clipPath id="clip-path">
+              <clipPath id="clipPath">
                 <rect
                   id="Rectangle_4612"
                   data-name="Rectangle 4612"
@@ -167,7 +167,7 @@ function ProfileSizeInfo({ swipeToScreen, goBack }: ProfileSizeInfoPropsType) {
             <g
               id="Mask_Group_731"
               data-name="Mask Group 731"
-              clipPath="url(#clip-path)"
+              clipPath="url(#clipPath)"
             >
               <g id="measuring-tape-2" transform="translate(0.04 0.692)">
                 <path

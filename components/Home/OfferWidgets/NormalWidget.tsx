@@ -41,7 +41,7 @@ const NormalWidget = ({ boutique, myKey, lang }: NormalWidgetPropsType) => {
                 data-cy="boutique_Image"
                 id={"img-" + boutique.id}
                 className="object-contain"
-                alt={boutique.name}
+                alt={boutique.name || "Image"}
                 loading="eager"
                 fetchPriority="auto"
                 priority={myKey < 2}
@@ -107,7 +107,7 @@ const NormalWidget = ({ boutique, myKey, lang }: NormalWidgetPropsType) => {
                 >
                   <Image
                     id={"img-" + boutique.id}
-                    alt={boutique.name}
+                    alt={boutique.name || "Image"}
                     loading="eager"
                     fetchPriority="auto"
                     priority={myKey < 2}

@@ -29,7 +29,7 @@ function CategoryItem({ category, onClick, isActive }) {
         )}
 
         <Image
-          alt={category.name}
+          alt={category.name || "Image"}
           width={30}
           height={30}
           src={getConfiguredImage({
@@ -61,7 +61,7 @@ function CategoryItem({ category, onClick, isActive }) {
                   />
                 )}
               <Image
-                alt={category.name}
+                alt={category.name || "Image"}
                 width={30}
                 height={30}
                 src={getConfiguredImage({

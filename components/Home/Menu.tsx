@@ -367,7 +367,7 @@ const Menu: React.FC<MenuProps> = ({ user, setMenuOpen }) => {
             }
           >
             <a href="/requests-log" target="_blank" className="text-[12px]">
-              Request Log
+              {translateFunction("Request Log")}
             </a>
           </MenuItem>
           <MenuItem
@@ -377,7 +377,7 @@ const Menu: React.FC<MenuProps> = ({ user, setMenuOpen }) => {
               localStorage.removeItem("redemed_ids");
             }}
           >
-            Reset Redeemed Products
+          {translateFunction("Reset Redeemed Products")}
           </MenuItem>
         </>
         {shouldShowLogout() && (
@@ -404,7 +404,7 @@ const Menu: React.FC<MenuProps> = ({ user, setMenuOpen }) => {
               setCookie(COOKIE_NAMES.USER_CHAT, user);
             }}
           >
-            Make Chat Token Expired
+            {translateFunction("Make Chat Token Expired")}
           </MenuItem>
         )}
         {userStories?.id && (
@@ -416,7 +416,7 @@ const Menu: React.FC<MenuProps> = ({ user, setMenuOpen }) => {
               setCookie(COOKIE_NAMES.USER_STORIES, user);
             }}
           >
-            Make Stories Token Expired
+            {translateFunction("Make Stories Token Expired")}
           </MenuItem>
         )}
       </div>

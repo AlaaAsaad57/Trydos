@@ -55,7 +55,7 @@ function CategoryNavMobile({
           <Image
             width={25}
             height={25}
-            alt={name}
+            alt={name || "Image"}
             src={getConfiguredImage({ src: GetImageUrl(icon), height: 50 })}
             priority
             loading="eager"

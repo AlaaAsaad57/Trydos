@@ -104,7 +104,7 @@ const NotificationsContainer = () => {
               {notification?.image ? (
                 <Image
                   className="object-cover object-center max-w-[40px] max-h-[40px] w-full h-full"
-                  alt={notification.message}
+                  alt={notification.message || "Image"}
                   src={GetImageUrl(notification.image)}
                   width={40}
                   height={40}
@@ -155,7 +155,7 @@ const NotificationsContainer = () => {
                   >
                     <feOffset dy="3" />
                     <feGaussianBlur stdDeviation="3" result="blur" />
-                    <feFlood flood-opacity="0.102" />
+                    <feFlood floodOpacity="0.102" />
                     <feComposite operator="in" in2="blur" />
                     <feComposite in="SourceGraphic" />
                   </filter>
@@ -175,7 +175,7 @@ const NotificationsContainer = () => {
                       transform="translate(9 6)"
                       fill="#fff"
                       stroke="#402cdd"
-                      stroke-width="0.3"
+                      strokeWidth="0.3"
                     >
                       <circle cx="9" cy="9" r="9" stroke="none" />
                       <circle cx="9" cy="9" r="8.85" fill="none" />
@@ -193,8 +193,8 @@ const NotificationsContainer = () => {
                       transform="matrix(0.695, -0.719, 0.719, 0.695, 0.158, 9.244)"
                       fill="none"
                       stroke="#402cdd"
-                      stroke-linecap="round"
-                      stroke-width="1"
+                      strokeLinecap="round"
+                      strokeWidth="1"
                     />
                     <line
                       id="Line_889"
@@ -203,8 +203,8 @@ const NotificationsContainer = () => {
                       transform="matrix(0.719, 0.695, -0.695, 0.719, 0, 0.158)"
                       fill="none"
                       stroke="#402cdd"
-                      stroke-linecap="round"
-                      stroke-width="1"
+                      strokeLinecap="round"
+                      strokeWidth="1"
                     />
                   </g>
                 </g>

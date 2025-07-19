@@ -97,7 +97,7 @@ const RateIcon = () => {
         <g
           id="Mask_Group_800"
           data-name="Mask Group 800"
-          clip-path="url(#clip-path1)"
+          clipPath="url(#clip-path1)"
         >
           <g id="_x32_2_Star" transform="translate(0 1.625)">
             <g

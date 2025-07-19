@@ -89,7 +89,7 @@ function PersonalBankCards({
               viewBox="0 0 15 15"
             >
               <defs>
-                <clipPath id="clip-path">
+                <clipPath id="clipPath">
                   <rect
                     id="Rectangle_4601"
                     data-name="Rectangle 4601"
@@ -102,7 +102,7 @@ function PersonalBankCards({
               <g
                 id="Mask_Group_728"
                 data-name="Mask Group 728"
-                clipPath="url(#clip-path)"
+                clipPath="url(#clipPath)"
               >
                 <g id="credit-card-2" transform="translate(0.04 1.795)">
                   <path

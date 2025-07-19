@@ -55,7 +55,7 @@ function OrderItemOptionsModal({
                 })}
                 width={104}
                 height={144}
-                alt={item.name}
+                alt={item.name || "Image"}
               />
             </div>
             <span className="regular text-[12px] mt-[11px] text-[#8D8D8D]">
@@ -71,7 +71,7 @@ function OrderItemOptionsModal({
                 <div className="relative flex w-[30px] h-[30px] items-center justify-center">
                   <ChangeOrderItemIcon className="absolute top-0 left-0 right-0 mx-auto my-0" />
                   <Image
-                    alt={item.name}
+                    alt={item.name || "Image"}
                     width={15}
                     height={15}
                     className="rounded-full h-[15px] w-[15px] object-cover"
