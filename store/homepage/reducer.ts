@@ -37,6 +37,7 @@ interface HomeState {
   cod_cost: number | null;
   countries: any[];
   isRegisteringReady: boolean;
+  isNavigating: boolean;
 }
 
 const initialState: HomeState = {
@@ -61,6 +62,7 @@ const initialState: HomeState = {
   currency: null,
   countries: [],
   isRegisteringReady: true,
+  isNavigating: false,
 };
 
 export const useHomeStore = (set, get) => ({
@@ -75,7 +77,7 @@ export const useHomeStore = (set, get) => ({
   setCurrency: (currency: any) => set({ currency }),
 
   setActiveRoute: (route: string) => set({ activeRoute: route }),
-
+  setIsNavigating: (bool) => set({ isNavigating: bool }),
   setGAEvent: (eventName: string) =>
     set({ previous_event_button_name: eventName }),
 

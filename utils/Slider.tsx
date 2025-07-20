@@ -11,6 +11,7 @@ function StackedSlider({
   slidesArray = [],
   initial_index = 0,
   active_index = -1,
+  disableSlide = false,
   onSlideChange = (index) => {},
   renderSlide = ({ index, isActive, slide_width }) => {
     return (
@@ -96,7 +97,7 @@ function StackedSlider({
 
   useEffect(() => {
     const el = containerRef.current;
-    if (!el) return;
+    if (!el || disableSlide) return;
 
     const options = { passive: false };
 
@@ -139,7 +140,6 @@ function StackedSlider({
   };
   useEffect(() => {
     if (active_index > -1) {
-      console.log("active_index", active_index);
       onSlideChange(active_index);
       setActiveIndex(active_index);
     }
@@ -147,9 +147,9 @@ function StackedSlider({
   return (
     <div
       ref={containerRef}
-      className={`relative w-full slider_slide h-[${
-        SLIDE_HEIGHT + 10
-      }px] flex items-center justify-center overflow-visible touch-none select-none ${className}`}
+      className={`relative w-full slider_slide h-[${SLIDE_HEIGHT + 10}px]  ${
+        disableSlide ? "pointer-events-none no-navigate" : ""
+      } flex items-center justify-center no-navigate overflow-visible touch-none select-none ${className}`}
       style={{ cursor: isDragging ? "grabbing" : "grab" }}
     >
       {slides.map((slide, index) => {
@@ -157,14 +157,20 @@ function StackedSlider({
         return (
           <div
             key={index}
-            onClick={() => {
+            onClick={(e) => {
+              if (disableSlide) {
+                e.stopPropagation();
+                e.preventDefault();
+              }
               if (dragDistanceRef.current < 5) {
                 onSlideChange(index);
                 setActiveIndex(index);
                 setDragOffset(0);
               }
             }}
-            className="absolute w-auto h-auto flex flex-col items-center justify-center"
+            className={`${
+              disableSlide ? "pointer-events-none no-navigate" : ""
+            } absolute w-auto h-auto flex flex-col items-center justify-center`}
             style={getSlideStyle(index)}
           >
             {renderSlide({ index, isActive, slide_width: SLIDE_WIDTH })}
@@ -220,7 +226,11 @@ export const NormalSlider = ({
 
     const x = e.type === "mouseup" ? e.clientX : e.changedTouches[0].clientX;
     const dx = x - startX;
-
+    console.log(x, startX);
+    if (dx > 0) {
+      e.stopPropagation();
+      e.preventDefault();
+    }
     if (dx > threshold) {
       onSlideChange(clampIndex(currentIndex - 1));
       setCurrentIndex((prev) => clampIndex(prev - 1));
@@ -279,7 +289,7 @@ export const NormalSlider = ({
     >
       <div
         ref={trackRef}
-        className="flex transition-transform duration-300 ease-in-out"
+        className="flex transition-transform duration-300 ease-in-out "
         style={{
           transform: `translateX(${translateX}px)`,
           width: `${slideWidth * slideCount}px`,

@@ -1,11 +1,3 @@
-.product-container {
-  background-position: center center;
-  background-repeat: no-repeat;
-  background-size: cover;
-  width: 200px;
-  height: 362px;
-}
-
 .product-container-slider {
   width: 200px;
   height: 290px;
@@ -42,7 +34,6 @@
   z-index: 10;
   max-width: 175px;
   width: auto;
-  top: 284px;
   left: 0px;
   right: 0px;
   margin: 0;
@@ -74,56 +65,22 @@
   top: 0px;
   left: 0px;
 }
-.wid-35 {
-  width: 20px !important;
 
-  height: 20px !important;
-}
-.wid-30 {
-  width: 15px !important;
-  height: 15px !important;
-}
-.wid-25 {
-  width: 12px !important;
-  height: 12px !important;
-}
-.wid-20 {
-  width: 10px !important;
-  height: 10px !important;
-}
-.wid-15 {
-  width: 8px !important;
-  height: 8px !important;
-}
 .product-container-slider.selected-color .product-photos-slider {
   transform: translateX(0px) translateY(0px);
-  top: 260px;
+  top: 250px !important;
 }
-.product-container-slider.selected-color .product-photos-slider .wid-35 {
+.product-container-slider.selected-color .product-photos-slider {
   width: 35px !important;
-
   height: 35px !important;
 }
 
-.product-container-slider.selected-color .product-photos-slider .wid-30 {
+.product-container-slider.selected-color
+  .product-photos-slider
+  .color-coverflow-item {
   width: 30px !important;
 
   height: 30px !important;
-}
-.product-container-slider.selected-color .product-photos-slider .wid-25 {
-  width: 25px !important;
-
-  height: 25px !important;
-}
-.product-container-slider.selected-color .product-photos-slider .wid-20 {
-  width: 20px !important;
-
-  height: 20px !important;
-}
-.product-container-slider.selected-color .product-photos-slider .wid-15 {
-  width: 15px !important;
-
-  height: 15px !important;
 }
 .image-avatar svg {
   position: absolute;
@@ -171,7 +128,6 @@
   padding-left: 13px;
   padding-right: 15px;
   z-index: 0;
-  margin-top: 11px;
 }
 .prouct-details {
   white-space: normal;
@@ -179,7 +135,6 @@
   margin-top: 2px;
   text-align: left;
   vertical-align: top;
-  max-height: 28px;
 }
 p.product-details-text {
   padding-left: 9px;

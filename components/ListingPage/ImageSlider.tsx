@@ -18,60 +18,35 @@ function ImageSlider({
   setActiveTopSlide,
   setColor,
   priority,
+  flash_deal_end_date,
 }: ImageSliderPropsType) {
   return (
     <>
-      <div
-        className={"active-slider " + (active ? "sl-active" : "sl-deactive")}
-      >
-        {!isColorSelected && (
-          <PointsSlider
-            key={product_name}
-            colors={activeColor.images}
-            activeIndex={activeColor.index >= 0 ? activeColor.index : 0}
-            isActiveTopSlide={isActiveTopSlide}
-            setActiveTopSlide={() => {
-              setActiveTopSlide(!isActiveTopSlide);
-              setColor(true);
+      <div className={`active-slider sl-active`}>
+        <React.Fragment>
+          {/* <BorderImage isBig={true} /> */}
+          <div className="inset-shadow-img w-[200px] h-[290px] rounded-15 absolute" />
+
+          <Image
+            width={400}
+            height={300}
+            loading="eager"
+            fetchPriority="auto"
+            style={{
+              borderRadius: "15px",
+              zIndex: "3",
+              border: flash_deal_end_date && "1px solid #FF6200",
             }}
+            src={getConfiguredImage({
+              src: GetImageUrl(activeColor?.images[0].file_path),
+              width: 400,
+              height: 400,
+            })}
+            key={`${product_name}-${activeColor?.images[0].file_path}`}
+            className="w-[200px] h-[290px]"
+            alt={product_name || "alt"}
           />
-        )}
-
-        <NormalSlider
-          onSlideChange={(index) => {
-            setActiveImage({ ...activeColor, index: index });
-          }}
-          initialSlide={activeColor.index}
-          slidesArray={activeColor?.images?.map((img, index) => index)}
-          renderSlide={({ index, isActive, slide }) => {
-            let element = activeColor?.images[index];
-            return (
-              <React.Fragment key={index}>
-                {/* <BorderImage isBig={true} /> */}
-                <div className="inset-shadow-img w-[200px] h-[290px] rounded-15 absolute" />
-
-                <Image
-                  width={400}
-                  height={300}
-                  loading="eager"
-                  fetchPriority="auto"
-                  style={{ borderRadius: "15px", zIndex: "3" }}
-                  src={getConfiguredImage({
-                    src: GetImageUrl(element.file_path),
-                    width: 400,
-                    height: 400,
-                  })}
-                  key={`${product_name}-${index}`}
-                  className="w-[200px] h-[290px]"
-                  alt={product_name || "alt"}
-                />
-              </React.Fragment>
-            );
-          }}
-          slideHeight={290}
-          slideWidth={200}
-          threshold={0}
-        />
+        </React.Fragment>
       </div>
     </>
   );

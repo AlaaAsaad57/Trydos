@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { translateFunction } from "utils/functions";
 
 interface FlashDealBannerProps {
   end_data: string;
@@ -48,38 +49,35 @@ function FlashDealBanner({ end_data }: FlashDealBannerProps) {
 
   const FlashIcon = () => (
     <svg
-      width="16"
-      height="16"
-      viewBox="0 0 24 24"
-      fill="none"
       xmlns="http://www.w3.org/2000/svg"
-      className="animate-pulse"
+      xmlnsXlink="http://www.w3.org/1999/xlink"
+      width="11"
+      height="11"
+      viewBox="0 0 11 11"
     >
-      <path
-        d="M13 2L3 14H12L11 22L21 10H12L13 2Z"
-        fill="currentColor"
-        stroke="currentColor"
-        strokeWidth="1"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-
-  const ClockIcon = () => (
-    <svg
-      width="14"
-      height="14"
-      viewBox="0 0 24 24"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" />
-      <polyline
-        points="12,6 12,12 16,14"
-        stroke="currentColor"
-        strokeWidth="2"
-      />
+      <defs>
+        <clipPath id="clip-path">
+          <rect
+            id="Rectangle_4644"
+            data-name="Rectangle 4644"
+            width="11"
+            height="11"
+            fill="none"
+          />
+        </clipPath>
+      </defs>
+      <g
+        id="Mask_Group_825"
+        data-name="Mask Group 825"
+        clip-path="url(#clip-path)"
+      >
+        <path
+          id="flash"
+          d="M7.188,4.125H4.342L4.79.512c0-.009,0-.045,0-.054A.464.464,0,0,0,4.313,0a.492.492,0,0,0-.391.194L.1,5.683a.448.448,0,0,0-.1.275.464.464,0,0,0,.479.458H2.848L2.4,10.494c0,.008,0,.039,0,.047A.464.464,0,0,0,2.875,11a.491.491,0,0,0,.389-.191L7.571,4.858a.448.448,0,0,0,.1-.275A.464.464,0,0,0,7.188,4.125Zm0,0"
+          transform="translate(1.666)"
+          fill="#ff6200"
+        />
+      </g>
     </svg>
   );
 
@@ -88,35 +86,24 @@ function FlashDealBanner({ end_data }: FlashDealBannerProps) {
   }
 
   return (
-    <div className="bg-gradient-to-r from-orange-500 to-red-500 text-white px-3 py-2 rounded-lg shadow-lg">
-      <div className="flex items-center gap-1.5 mb-1">
-        <FlashIcon />
-        <span className="text-xs font-bold">FLASH DEAL</span>
-      </div>
-      <div className="flex items-center gap-1.5">
-        <ClockIcon />
-        <div className="flex items-center gap-1 text-xs font-mono">
-          {timeLeft?.days > 0 && (
-            <>
-              <span className="bg-white/20 px-1.5 py-0.5 rounded text-xs font-bold">
-                {timeLeft?.days.toString().padStart(2, "0")}
-              </span>
-              <span className="text-xs">d</span>
-            </>
-          )}
-          <span className="bg-white/20 px-1.5 py-0.5 rounded text-xs font-bold">
-            {timeLeft?.hours.toString().padStart(2, "0")}
-          </span>
-          <span className="text-xs">:</span>
-          <span className="bg-white/20 px-1.5 py-0.5 rounded text-xs font-bold">
-            {timeLeft?.minutes.toString().padStart(2, "0")}
-          </span>
-          <span className="text-xs">:</span>
-          <span className="bg-white/20 px-1.5 py-0.5 rounded text-xs font-bold animate-pulse">
-            {timeLeft?.seconds.toString().padStart(2, "0")}
-          </span>
-        </div>
-      </div>
+    <div
+      className="absolute pr-[5px] pl-[8px] text-nowrap flex-row h-[19px] gap-[2px] items-center  top-[-8px] left-[0px] z-10 rounded-tr-[4px] rounded-tl-[15px] rounded-bl-[4px] rounded-br-[15px] bg-[#FFF3E8] text-[#FF6200] text-[9px] medium min-w-[140px]"
+      style={{
+        border: "1px solid #FF6200",
+      }}
+    >
+      <FlashIcon />
+      <span className="whitespace-nowrap bold">
+        {translateFunction("Flash Deal")}
+      </span>
+      <span className="whitespace-nowrap ">
+        | {timeLeft?.days?.toString()?.padStart(2, "0")} d |
+      </span>
+      <span className="whitespace-nowrap">
+        {timeLeft?.hours?.toString().padStart(2, "0")}:
+        {timeLeft?.minutes?.toString().padStart(2, "0")}:
+        {timeLeft?.seconds?.toString().padStart(2, "0")}
+      </span>
     </div>
   );
 }

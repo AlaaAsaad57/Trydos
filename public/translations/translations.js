@@ -4,6 +4,7 @@ const translations = {
     "Request Log": "سجل الطلبات",
     "Make Stories Token Expired": "جعل توكن القصص منتهي الصلاحية",
     "Make Chat Token Expired": "جعل توكن الدردشة منتهي الصلاحية",
+    s: "ثا",
     "I Read And Agree To": "لقد قرأت وأوافق على",
     "are allowed.": "مسموح بها.",
     "Please enter a valid URL (e.g., example.com or www.example.com)":
@@ -808,6 +809,7 @@ const translations = {
   tr: {
     "Reset Redeemed Products": "Kullanılmış Ürünleri Sıfırla",
     "Request Log": "İstek Kaydı",
+    s: "s",
     "Make Stories Token Expired": "Hikayeler Tokenini Süresi Dolmuş Yap",
     "Make Chat Token Expired": "Sohbet Tokenini Süresi Dolmuş Yap",
     "I Read And Agree To": "Okudum ve kabul ediyorum",
@@ -1606,6 +1608,7 @@ const translations = {
       "بەرهەمەکان لەسەر نەبوون، ٣ سەکەڵەیەک بەردەست بە هەوڵبوون",
     "Failed To Load Filters Try Again":
       "بەرهەمەکان لەسەر نەبوون، ٣ سەکەڵەیەک بەردەست بە هەوڵبوون",
+    seconds: "ثا",
     "Upload Photo/Video": "وێنە/ڤیدیۆ باربکە",
     "No media selected": "هیچ مێدیایەک هەلبژێردراو نییە",
     "Failed To Load Products Retring in 3 seconds":

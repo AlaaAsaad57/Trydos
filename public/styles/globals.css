@@ -250,11 +250,13 @@ span[aria-live="polite"] {
 .product-container {
   background-position: center center;
   background-repeat: no-repeat;
-  background-color: #fafafa;
+  border-radius: 15px;
+  box-shadow: 0 3px 10px 0 rgba(0, 0, 0, 0.1);
+  background-color: #f8f8f8;
   border-radius: 15px;
   background-size: cover;
   width: 200px;
-  height: 362px;
+  height: 377px;
 }
 
 .boutique-border {
@@ -384,7 +386,7 @@ span[aria-live="polite"] {
 
 img {
   -o-object-fit: cover;
-  object-fit: contain !important;
+  object-fit: cover !important;
   -o-object-position: center;
   object-position: center !important;
   display: block;
