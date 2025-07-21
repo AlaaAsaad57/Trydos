@@ -6,28 +6,6 @@ export async function GET(request: NextRequest) {
   try {
     if (value === "stories") {
       revalidateTag("stories");
-    }
-    if (value === "home") {
-      revalidatePath("/", "layout");
-      revalidatePath("/", "page");
-      revalidateTag("main-categories-Api");
-      revalidatePath("/");
-      revalidateTag("featured-Products-Api");
-      revalidateTag("countries");
-      revalidateTag("flash-deals-Products-Api");
-      revalidatePath("/categories");
-      revalidateTag("boutiques");
-      revalidateTag("stories");
-    } else if (value === "listing") {
-      revalidateTag("listing");
-      revalidatePath("/filters");
-      revalidatePath("/featured");
-      revalidatePath("/flashDeals");
-      revalidateTag("currency-api");
-    } else if (value === "products") {
-      revalidateTag("product-details");
-      revalidatePath("/products");
-      revalidateTag("currency-api");
     } else {
       revalidatePath("/", "layout");
       revalidatePath("/", "page");
@@ -48,7 +26,11 @@ export async function GET(request: NextRequest) {
       revalidateTag("listing");
       revalidateTag("currency-api");
       revalidateTag("product-details");
+      revalidateTag("home");
+      revalidateTag("product-meta");
+      revalidateTag("languages");
     }
+
     console.log(
       "*************************************revalidated successfully*********************************"
     );
