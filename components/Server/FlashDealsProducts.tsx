@@ -1,16 +1,8 @@
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 import NextLink from "components/global/NextLink";
-import { BuyButtonProduct } from "components/ListingPage/Product";
-
-import ProductBanner from "components/products/ProductBanner";
-import Image from "next/image";
-import React, { Suspense } from "react";
-import {
-  getConfiguredImage,
-  RoundPrice,
-  translateFunction,
-} from "utils/functions";
-import { GetImageUrl } from "utils/tinyUtils";
+import React from "react";
+import { translateFunction } from "utils/functions";
+import ProductCard from "./ProductCard";
 
 async function FlashDealsProducts({ lang, currencyData, flashDealsProducts }) {
   const [country, language] = lang.split("-");
@@ -46,160 +38,25 @@ async function FlashDealsProducts({ lang, currencyData, flashDealsProducts }) {
         </span>
       </NextLink>
       <HortiznalScrollBar
-        className="featured-products-container w-full mt-[12px] flex-row justify-start items-center max-w-[1365px] h-[290px] pb-[8px] "
+        className="featured-products-container py-[10px] gap-[8px] w-full mt-[12px] flex-row justify-start items-center max-w-[1365px] h-auto pb-[8px] "
         id="featured-products-container"
         dataCy="featured-products-container"
       >
         {flashDealsProducts?.data?.products?.map((product, key) => (
-          <div
-            className="max-h-[290px] max-w-[200px] relative mx-[10px] shadow-sm rounded-md"
-            data-cy="countProduct"
-            key={product.slug}
-          >
-            <NextLink
-              data={{
-                is_product: true,
-                ...product,
-              }}
-              ariaLabel={`go to product ${product.slug} ${lang}`}
-              suppressHydrationWarning
-              href={`/${lang}/products/${product.slug}`}
-              className="product-container  align-center flex-col relative shadow-sm max-h-[290px] max-w-[200px]"
-              data-cy="featured_product_link"
-            >
-              <ProductBanner
-                featured={product.featured}
-                flashDeals={product?.flash_deal_end_date}
-                labels={product.label_names}
-              />
-
-              <div className="max-h-[220px] w-full">
-                <Image
-                  alt={product.name}
-                  width={200}
-                  height={130}
-                  className="rounded w-full flex  max-h-[220px] min-h-[220px]"
-                  src={getConfiguredImage({
-                    src: GetImageUrl(product.images[0]?.file_path),
-                    width: 200,
-                    height: 400,
-                  })}
-                />
-              </div>
-              <div className="product-body w-100 flex-col align-start justify-start max-h-[30px] min-h-[30px]">
-                <p
-                  className="prouct-details overflow-hidden w-100 regular-text color-dark-gray f-10"
-                  data-cy="productName"
-                >
-                  {product?.brand?.icon &&
-                    typeof product.brand.icon === "string" && (
-                      <Image
-                        alt={product?.brand?.name}
-                        loading={"eager"}
-                        src={getConfiguredImage({
-                          src: GetImageUrl(product?.brand?.icon),
-                          height: 100,
-                        })}
-                        width={16}
-                        height={7}
-                        className="max-h-[20px] max-w-[40px]"
-                      />
-                    )}
-                  {product.name.substring(0, 50)}
-
-                  {product.category && (
-                    <span className="product-category-icon align-center">
-                      <span
-                        style={{ display: "inline" }}
-                        className="justify-start quantity flex f-10 align-center med-text"
-                      >
-                        1
-                      </span>
-                      {product?.category?.icon?.length > 0 && (
-                        <Image
-                          loading={"eager"}
-                          src={getConfiguredImage({
-                            src: GetImageUrl(product?.category?.icon),
-                            height: 100,
-                          })}
-                          width={10}
-                          height={10}
-                          style={{
-                            display: "inline",
-                            minWidth: "10px",
-                            minHeight: "10px",
-                          }}
-                          alt={product?.category?.name}
-                          className="max-h-[20px] max-w-[40px]"
-                        />
-                      )}
-                    </span>
-                  )}
-                </p>
-              </div>
-              <div className="product-footer w-100 flex-row align-center max-h-[30px]">
-                <div
-                  className={`${
-                    lang.split("-")[1] === "ar" && "dir-rtl"
-                  } price-label flex`}
-                >
-                  {product?.offer_price >= 0 &&
-                    product?.offer_price !== product.price && (
-                      <span className="old-price relative f-12 color-dark-gray light-text">
-                        {RoundPrice({
-                          num: product?.price,
-                          rate: currency?.exchange_rate,
-                          points: 0,
-                          language: language,
-                        })}
-                        <svg
-                          className="absolute w-100"
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="100%"
-                          height="1"
-                        >
-                          <line
-                            id="Line_1"
-                            data-name="Line 1"
-                            x2="100%"
-                            transform="translate(0 0.5)"
-                            fill="none"
-                            stroke="#3c3c3c"
-                            strokeWidth="1"
-                          />
-                        </svg>
-                      </span>
-                    )}
-                  <span className="new-price bold-text color-dark-gray flex f-12">
-                    {product?.offer_price >= 0
-                      ? RoundPrice({
-                          num: product?.offer_price,
-                          rate: currency?.exchange_rate,
-                          points: 0,
-                          language: language,
-                        })
-                      : RoundPrice({
-                          num: product?.price,
-                          rate: currency?.exchange_rate,
-                          points: 0,
-                          language: language,
-                        })}
-                  </span>
-                  <span className="currency-label light-text color-dark-gray flex f-10">
-                    {currency?.symbol}
-                  </span>
-                </div>
-              </div>
-            </NextLink>
-            <Suspense fallback={<></>}>
-              <BuyButtonProduct product={product} />
-            </Suspense>
-          </div>
+          <ProductCard
+            Sliders={false}
+            key={key}
+            product={product}
+            params={{ lang }}
+            currency={currency}
+            productColor={null}
+            language={language}
+          />
         ))}
         <NextLink
           href={`/${lang}/flashDeals`}
           data={{ is_boutique: true }}
-          className="product-container items-center justify-center min-w-[200px] max-h-[290px] bg-[#0002]  align-center flex-col relative"
+          className="product-container items-center justify-center min-w-[200px] max-h-[377px] bg-[#0002]  align-center flex-col relative"
         >
           <div className="flex regular rounded-md p-3 items-center justify-center bg-[#5d5d5d] text-white shadow-md shadow-[#fff]">
             {translateFunction("Show More", lang.split("-")[1])}

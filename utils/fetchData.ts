@@ -298,24 +298,46 @@ export const fetchData = async <T = any>(
         );
       }
       // Parse response
-      if (
-        typeof reqTitle === "string" &&
-        reqTitle.includes("Add to cart widget")
-      ) {
+      if (typeof reqTitle === "string" && reqTitle.includes("cart widget")) {
         if (responseData?.data?.status === 1)
           showSuccessMessage(
             responseData?.message ?? responseData?.data?.message ?? ""
           );
         else {
-          showErrorMessage(
-            responseData?.message ?? responseData?.data?.message ?? ""
-          );
-          throw new Error(
-            responseData?.message ?? responseData?.data?.message ?? ""
-          );
+          if (
+            !ignoredMessages?.includes(
+              responseData?.message ?? responseData?.data?.message
+            )
+          ) {
+            showErrorMessage(
+              responseData?.message ?? responseData?.data?.message ?? ""
+            );
+            throw new Error(
+              responseData?.message ?? responseData?.data?.message ?? ""
+            );
+          }
         }
       } else {
-        if (
+        if (url?.includes("cart/update") && !reqTitle.includes("cart widget")) {
+          if (responseData?.data?.status === 0) {
+            showErrorMessage(
+              responseData?.message ?? responseData?.data?.message ?? ""
+            );
+            throw new Error(
+              responseData?.message ?? responseData?.data?.message ?? ""
+            );
+          } else {
+            if (
+              !ignoredMessages.includes(
+                responseData?.message ?? responseData?.data?.message
+              ) &&
+              (responseData?.message ?? responseData?.data?.message)?.length > 0
+            )
+              showSuccessNotification(
+                responseData?.message ?? responseData?.data?.message ?? ""
+              );
+          }
+        } else if (
           !ignoredMessages.includes(
             responseData?.message ?? responseData?.data?.message
           ) &&
@@ -345,7 +367,7 @@ export const fetchData = async <T = any>(
         };
         logRequest(logObj as any);
       }
-      return responseData;
+      return { ...(responseData || {}), success: true };
     } catch (err) {
       // Network error - retry logic
       if (
@@ -371,8 +393,9 @@ export const fetchData = async <T = any>(
       ) {
         showErrorMessage(`${err?.message || "Falied"}`);
       } else {
-        if (!ignoredMessages.includes(err?.message))
-          showErrorNotification(`${err?.message || "Falied"}`);
+        console.error(err);
+        if (!ignoredMessages.includes(err?.message || err))
+          showErrorNotification(`${reqTitle} : ${err?.message || "Falied"}`);
       }
       let errorObj = {
         type: "backend-exception",
@@ -414,7 +437,7 @@ export const fetchData = async <T = any>(
         logRequest(logObj as any);
       }
       // throw err;
-      return responseData;
+      return { ...(responseData || {}), success: false };
     }
   };
 

@@ -27,9 +27,11 @@ function ProductOptions({
 }: ProductOptionsPropsType) {
   const { editInfo, loaded, sharesCount, SelectedProduct } = useAppStore();
   const [isLiked, setLiked] = useState(false);
+  const [likeLoading, setLoading] = useState(false);
+  console.log(SelectedProduct);
   const LikeProduct = async (bool) => {
-    let language_code = window.location.pathname.split("/")[1].split("-")[1];
-    let country_code = window.location.pathname.split("/")[1].split("-")[0];
+    if (likeLoading) return;
+    setLoading(true);
     if (bool) {
       editInfo({ likes: SelectedProduct?.likes + 1, is_liked: true });
       try {
@@ -40,7 +42,7 @@ function ProductOptions({
           server: "market",
           body: JSON.stringify({
             product_id: product.id,
-            user_id: auth.UserID()
+            user_id: auth.UserID(),
           }),
         });
         // home.subscribeToTopic({
@@ -53,6 +55,7 @@ function ProductOptions({
         //   topic: `product_comment_${SelectedProduct?.id}`,
         // });
       } catch (error) {
+        setLoading(false);
         editInfo({ likes: SelectedProduct?.likes, is_liked: true });
       }
     } else {
@@ -66,7 +69,7 @@ function ProductOptions({
           server: "market",
           body: JSON.stringify({
             product_id: product.id,
-            user_id: auth.UserID()
+            user_id: auth.UserID(),
           }),
         });
         home.UnsubscripeFromTopic({
@@ -82,6 +85,7 @@ function ProductOptions({
         editInfo({ likes: SelectedProduct?.likes + 1, is_liked: false });
       }
     }
+    setLoading(false);
   };
   useEffect(() => {
     if (product.is_country_restricted) {
@@ -108,8 +112,8 @@ function ProductOptions({
           <div className="options-container" data-cy="InteraCtionBoX">
             <div
               className={`product-option-item ${
-                activeOption === "Like" && "active-option"
-              }`}
+                likeLoading && "opacity-80 scale-9"
+              } transition-all ${activeOption === "Like" && "active-option"}`}
               data-cy="LoveSymbol"
               onClick={() => {
                 // Sendevent({
@@ -169,8 +173,9 @@ function ProductOptions({
               {" "}
               <Share />
               <span data-cy="CountOfShares">
-                {sharesCount !== null && sharesCount >= 0 ? (
-                  sharesCount
+                {SelectedProduct?.sharesCount !== null &&
+                SelectedProduct?.sharesCount >= 0 ? (
+                  SelectedProduct?.sharesCount
                 ) : (
                   <Skeleton width={15} height={14}></Skeleton>
                 )}

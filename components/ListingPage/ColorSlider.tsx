@@ -77,8 +77,9 @@ function ColorSlider({
               style={{
                 overflow: "visible",
                 position: "relative",
+                flex: 1,
               }}
-              className="bg-white"
+              className="bg-white flex "
             >
               <>
                 <BorderImage isBig={false} />
@@ -89,6 +90,7 @@ function ColorSlider({
                   style={{ borderRadius: "15px", zIndex: "3" }}
                   width={400}
                   height={300}
+                  className="flex-1"
                   src={getConfiguredImage({
                     src: GetImageUrl(img.images[0].file_path),
                     width: 400,

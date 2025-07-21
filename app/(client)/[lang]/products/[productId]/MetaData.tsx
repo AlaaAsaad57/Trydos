@@ -1,6 +1,7 @@
 // components/BoutiqueHead.tsx
 
 import { Metadata } from "next";
+import { fetchServerData } from "Server Requests/ServerFetch";
 import { generateCloudinaryUrl } from "utils/tinyUtils";
 const stripHtml = (html: string) => {
   if (html) {
@@ -14,20 +15,17 @@ export async function generateProductMetaData({
 }): Promise<Metadata> {
   try {
     const [country, language] = params.lang.split("-");
-    const getProductMetaData = await fetch(
-      `${process.env.NEXT_PUBLIC_BACKEND_URL}/web/product/product-meta/${params.productId}?lang=${language}`,
-      {
-        headers: {
-          country: country,
-          lang: language,
-        },
-        next: {
-          revalidate: 3600,
-          tags: ["product-meta", params.productId],
-        },
-      }
-    );
-
+    const response = await fetchServerData({
+      url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/web/product/product-meta/${params.productId}?lang=${language}`,
+      method: "GET",
+      local: `${country}-${language}`,
+      revalidate: 3600,
+      tags: ["product-meta", params.productId],
+    });
+    const getProductMetaData = response.data;
+    if (response.error) {
+      throw new Error(response.error);
+    }
     const { data: product } = await getProductMetaData.json();
 
     let title = `${product?.name}`;

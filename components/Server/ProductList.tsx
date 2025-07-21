@@ -5,6 +5,7 @@ import ProductsInfiniteScroll from "components/ListingPage/ProductInfiniteScroll
 import { getActiveFilters } from "./FilterList";
 import { ProductListServerPropsType } from "models/componentType/boutiqueTypes/ProductListServerPropsType";
 import ProductCard from "./ProductCard";
+import ColorBottomSheet from "components/ListingPage/ColorBottomSheet";
 
 function ProductListServer({
   params,
@@ -26,6 +27,7 @@ function ProductListServer({
     <div
       className={"listing-container relative flex pb-[350px] max-w-[1310px]"}
     >
+      <ColorBottomSheet />
       {products.map((product, key) => {
         let color_name = product?.colors?.find(
           (s) => s.color === activeColor

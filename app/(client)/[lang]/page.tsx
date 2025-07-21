@@ -1,7 +1,5 @@
 export const runtime = "nodejs";
 export const preferredRegion = process.env.PREFERRED_REGION || "bom1";
-export const dynamicParams = true;
-export const dynamic = "auto";
 
 import NavbarServer from "components/Server/Navbar";
 import OfferListServer from "components/Server/OfferListServer";

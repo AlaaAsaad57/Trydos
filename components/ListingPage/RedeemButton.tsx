@@ -1,146 +1,75 @@
-import React, { useEffect, useState, useRef, useCallback } from "react";
-import LocalizationServiceClass from "services/localization";
-import { useAppStore } from "store";
-import { RoundPrice, translateFunction } from "utils/functions";
-import Spinner from "components/global/Spinner";
+import React from "react";
+import { translateFunction } from "utils/functions";
 
-function RedeemButton({ is_redeem, redeem_price, id, product }) {
-  const [show, setShouldShow] = useState(false);
-  const [isConfigured, setIsConfigured] = useState(false);
-  const { currency, setSelectedProductForCart } = useAppStore();
-  const buttonRef = useRef(null);
-
-  const configureRedeemedProducts = useCallback(() => {
-    if (isConfigured) return;
-
-    let redeemed_products_ids = localStorage.getItem("redemed_ids");
-
-    if (redeemed_products_ids) {
-      let parsed_redeemed_products_ids = redeemed_products_ids
-        ? JSON.parse(redeemed_products_ids)
-        : [];
-      if (!parsed_redeemed_products_ids?.includes(id)) {
-        let MAX_ARRAY_LENGTH =
-          parseInt(process.env.NEXT_PUBLIC_MAX_ARRAY_LENGTH) || 5;
-        if (parsed_redeemed_products_ids.length < MAX_ARRAY_LENGTH)
-          localStorage.setItem(
-            "redemed_ids",
-            JSON.stringify([...parsed_redeemed_products_ids, id])
-          );
-        else
-          localStorage.setItem(
-            "redemed_ids",
-            JSON.stringify([
-              ...parsed_redeemed_products_ids.slice(1, MAX_ARRAY_LENGTH),
-              id,
-            ])
-          );
-      } else {
-        return;
-      }
-    } else {
-      localStorage.setItem("redemed_ids", JSON.stringify([id]));
-    }
-    setIsConfigured(true);
-  }, [id, isConfigured]);
-
-  const shouldShowRedeem = () => {
-    let redeemed_products_ids = localStorage.getItem("redemed_ids");
-    if (redeemed_products_ids) {
-      let parsed_redemed_ids = JSON.parse(redeemed_products_ids);
-      return !parsed_redemed_ids.includes(id);
-    }
-    return true;
-  };
-
-  useEffect(() => {
-    if (shouldShowRedeem()) {
-      setShouldShow(true);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (!show || !buttonRef.current) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting && entry.intersectionRatio >= 0.8) {
-            configureRedeemedProducts();
-            observer.disconnect();
-          }
-        });
-      },
-      {
-        threshold: 0.5,
-        rootMargin: "0px",
-      }
-    );
-
-    observer.observe(buttonRef.current);
-
-    return () => {
-      observer.disconnect();
-    };
-  }, [show, configureRedeemedProducts]);
-
-  if (show)
-    return (
-      <div
-        ref={buttonRef}
-        className="absolute z-[50] top-0 left-[0px] h-[40px] text-white"
+function RedeemButton() {
+  const ClockIcon = () => (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      xmlnsXlink="http://www.w3.org/1999/xlink"
+      width="11"
+      height="11"
+      viewBox="0 0 11 11"
+    >
+      <defs>
+        <clipPath id="clip-path">
+          <rect
+            id="Rectangle_4644"
+            data-name="Rectangle 4644"
+            width="11"
+            height="11"
+            fill="none"
+          />
+        </clipPath>
+      </defs>
+      <g
+        id="Mask_Group_827"
+        data-name="Mask Group 827"
+        clip-path="url(#clip-path)"
       >
-        <button
-          className="flex-col relative w-full h-full items-center justify-center rounded-tr-[12px] rounded-bl-[12px] px-[6px] py-[2px] bg-gradient-to-r from-[#f64f64] to-[#d73a49] text-white shadow-lg hover:shadow-xl transition-all duration-300 transform border-0 font-medium text-[12px]"
-          onClick={() => {
-            // Handle redeem action
-            document.documentElement.style.overflow = "hidden";
-            document.documentElement.scrollTop = 0;
-            setSelectedProductForCart({
-              ...product,
-              showRedeemPrice: true,
-              shouldUpdate: 0,
-            });
-            configureRedeemedProducts();
-            setShouldShow(false);
-          }}
-          aria-label={translateFunction("Redeem")}
-        >
-          <div className="flex-row items-center gap-2">
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="white"
-              className="animate-pulse"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path d="M20 7h-2.18A3 3 0 0015 2a3.002 3.002 0 00-2.83 2H11.83A3.002 3.002 0 009 2a3 3 0 00-2.82 5H4a1 1 0 00-1 1v3a1 1 0 001 1h1v9a1 1 0 001 1h12a1 1 0 001-1v-9h1a1 1 0 001-1V8a1 1 0 00-1-1zM15 4a1 1 0 110 2h-2a1 1 0 110-2h2zM9 4a1 1 0 110 2H7a1 1 0 110-2h2zM5 9v-1h14v1H5zm2 2h10v8H7v-8z" />
-            </svg>
+        <g id="timer-2">
+          <g id="Group_14275" data-name="Group 14275">
+            <path
+              id="Path_23567"
+              data-name="Path 23567"
+              d="M7.77,1.235,7.4,1.874l1.28.739.369-.639a.37.37,0,0,0-.136-.505L8.275,1.1A.369.369,0,0,0,7.77,1.235Z"
+              fill="#ff6200"
+            />
+            <path
+              id="Path_23568"
+              data-name="Path 23568"
+              d="M5.5,1.664a4.845,4.845,0,0,1,.688.055v-.6l.473,0V.344A.344.344,0,0,0,6.316,0H4.687a.344.344,0,0,0-.344.344v.773l.469,0v.6A4.845,4.845,0,0,1,5.5,1.664Z"
+              fill="#ff6200"
+            />
+            <path
+              id="Path_23569"
+              data-name="Path 23569"
+              d="M5.5,2.063A4.469,4.469,0,1,0,9.969,6.531,4.469,4.469,0,0,0,5.5,2.063ZM7.588,8.632l-2.6-1.8V4.284h.751V6.435l2.28,1.579Z"
+              fill="#ff6200"
+            />
+          </g>
+        </g>
+      </g>
+    </svg>
+  );
 
-            <span className="font-semibold text-[12px] medium">
-              {translateFunction("Redeem")}
-            </span>
-          </div>
-          <span className="text-[12px] medium text-white">
-            {currency?.symbol ? (
-              RoundPrice({
-                num: product.redeem_price,
-                rate: currency?.exchange_rate,
-
-                language: LocalizationServiceClass.GetAppLanguage(),
-              })
-            ) : (
-              <>
-                <Spinner />
-              </>
-            )}
-            {currency?.symbol}
-          </span>
-        </button>
-      </div>
-    );
-  else return <></>;
+  return (
+    <div
+      className="absolute pr-[5px] pl-[8px] text-nowrap flex-row h-[19px] gap-[2px] items-center  top-[-8px] left-[0px] z-[99] rounded-tr-[4px] rounded-tl-[15px] rounded-bl-[4px] rounded-br-[15px] bg-[#FFF3E8] text-[#FF6200] text-[9px] medium min-w-[140px]"
+      style={{
+        border: "1px solid #FF6200",
+      }}
+    >
+      <ClockIcon />
+      <span className="whitespace-nowrap bold">
+        {translateFunction("Luck!")}
+      </span>
+      <span className="whitespace-nowrap ">
+        {translateFunction("Add To Bag Within ")}
+      </span>
+      <span className="whitespace-nowrap bold ">20</span>
+      <span className="whitespace-nowrap ">{translateFunction("seconds")}</span>
+    </div>
+  );
 }
 
 export default RedeemButton;

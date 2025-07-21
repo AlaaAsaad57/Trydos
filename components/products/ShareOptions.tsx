@@ -24,8 +24,14 @@ function ShareOptions({
   sharedContacts,
   product,
 }: ShareOptionsPropsType) {
-  const { incrementSharesCount, sharesCount, shareLoading, user, contacts } =
-    useAppStore();
+  const {
+    editInfo,
+    sharesCount,
+    shareLoading,
+    user,
+    contacts,
+    SelectedProduct,
+  } = useAppStore();
 
   const shareSocial = async (appName) => {
     await fetchData({
@@ -33,14 +39,17 @@ function ShareOptions({
       reqTitle: "Share Product on Social",
       method: "POST",
       server: "chat",
-      body: {
+      body: JSON.stringify({
         app_name: appName,
         product_id: product.id,
         shared_count: 1,
-      },
+      }),
     });
 
-    incrementSharesCount();
+    editInfo({
+      ...SelectedProduct,
+      sharesCount: (SelectedProduct?.sharesCount || 0) + 1,
+    });
   };
   return (
     <div className="share-options">

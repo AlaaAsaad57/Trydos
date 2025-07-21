@@ -2,6 +2,7 @@
 import Spinner from "components/global/Spinner";
 import React, { useEffect, useState } from "react";
 import { useAppStore } from "store";
+import { getCookie, setCookie } from "utils/cookies/cookie-manager";
 import { RoundPrice, translateFunction } from "utils/functions";
 
 function ProductRedeemButton({ product }) {
@@ -23,39 +24,38 @@ function ProductRedeemButton({ product }) {
     return product?.price;
   };
   const configureRedeemedProducts = () => {
-    let redeemed_products_ids = localStorage.getItem("redemed_ids");
+    let redeemed_products_ids = getCookie<any>("redemed_ids");
     if (redeemed_products_ids) {
       let parsed_redeemed_products_ids = redeemed_products_ids
-        ? JSON.parse(redeemed_products_ids)
+        ? redeemed_products_ids
         : [];
-      if (!parsed_redeemed_products_ids?.includes(product?.id)) {
+      if (!parsed_redeemed_products_ids?.find((s) => s.id === product?.id)) {
         let MAX_ARRAY_LENGTH =
           parseInt(process.env.NEXT_PUBLIC_MAX_ARRAY_LENGTH) || 5;
         if (parsed_redeemed_products_ids.length < MAX_ARRAY_LENGTH)
-          localStorage.setItem(
-            "redemed_ids",
-            JSON.stringify([...parsed_redeemed_products_ids, product?.id])
-          );
+          setCookie("redemed_ids", [
+            ...parsed_redeemed_products_ids,
+            { id: product?.id, showingDate: new Date().toISOString() },
+          ]);
         else
-          localStorage.setItem(
-            "redemed_ids",
-            JSON.stringify([
-              ...parsed_redeemed_products_ids.slice(1, MAX_ARRAY_LENGTH),
-              product?.id,
-            ])
-          );
+          setCookie("redemed_ids", [
+            ...parsed_redeemed_products_ids.slice(1, MAX_ARRAY_LENGTH),
+            { id: product?.id, showingDate: new Date().toISOString() },
+          ]);
       } else {
         return;
       }
     } else {
-      localStorage.setItem("redemed_ids", JSON.stringify([product?.id]));
+      setCookie("redemed_ids", [
+        { id: product?.id, showingDate: new Date().toISOString() },
+      ]);
     }
   };
   const shouldShowRedeem = () => {
-    let redeemed_products_ids = localStorage.getItem("redemed_ids");
+    let redeemed_products_ids = getCookie<any>("redemed_ids");
     if (redeemed_products_ids) {
-      let parsed_redemed_ids = JSON.parse(redeemed_products_ids);
-      return !parsed_redemed_ids.includes(product?.id);
+      let parsed_redemed_ids = redeemed_products_ids;
+      return !parsed_redemed_ids.find((s) => s.id === product?.id);
     }
     return true;
   };

@@ -38,13 +38,15 @@ const createServerFetch = async <T = any,>({
           lang: lang,
           ...headers,
         },
-        next: {
-          ...(revalidate && { revalidate }),
-          ...(tags && { tags: tags }),
-        },
       };
 
-      const response = await fetch(url, fetchOptions);
+      const response = await fetch(url, {
+        ...fetchOptions,
+        next: {
+          tags: tags,
+          revalidate: revalidate,
+        },
+      });
 
       // If response is ok and not a retryable status code, return success
       if (response.ok && !retryableStatusCodes.includes(response.status)) {

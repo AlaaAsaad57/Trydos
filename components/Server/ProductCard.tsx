@@ -1,10 +1,12 @@
 import NextLink from "components/global/NextLink";
 import React, { Suspense } from "react";
-import { getConfiguredImage, RoundPrice } from "utils/functions";
 import { BuyButtonProduct, ProductPhotosSlider } from "../ListingPage/Product";
 import Image from "next/image";
-import { GetImageUrl } from "utils/tinyUtils";
+
 import ProductBanner from "components/products/ProductBanner";
+import MangoIcon from "public/svg/listing/MangoIcon.svg";
+import VerifiedIcon from "public/svg/listing/VerifiedIcon.svg";
+import { ProductLabelsAnimated } from "components/products/ProductLabelsAnimated";
 
 function ProductCard({
   product,
@@ -12,10 +14,11 @@ function ProductCard({
   currency,
   productColor,
   language = "en",
+  Sliders = true,
 }) {
   return (
     <div
-      className="max-h-[362px] relative"
+      className="max-h-[377px] relative"
       key={product.slug}
       data-cy="product-card"
     >
@@ -37,8 +40,9 @@ function ProductCard({
         href={`/${params.lang}/products/${product.slug}${
           productColor ? `?color=${productColor.color_name}` : ""
         }`}
-        className="product-container  align-center flex-col relative"
+        className="product-container  align-center flex-col relative pb-[10px]"
         data-cy="product_link"
+        id={product.slug}
       >
         <ProductBanner
           featured={product.featured}
@@ -47,42 +51,31 @@ function ProductCard({
         />
         <Suspense fallback={<div className="min-w-full min-h-[290px]" />}>
           <ProductPhotosSlider
+            Sliders={Sliders}
             product={{
-              sync_color_images: product.sync_color_images,
-              images: product.images,
+              ...product,
+              flash_deal_end_date:
+                product.flash_deal_end_date || product.is_redeem,
             }}
             priority={true}
           />
         </Suspense>
-        <div className="product-body w-100 flex-col align-start justify-start max-h-[30px] min-h-[30px]">
+        <div className="product-body flex-1 mt-[8px] w-100 flex-col align-start justify-start max-h-[60px] min-h-[30px]">
           <p
-            className="prouct-details overflow-hidden w-100 regular-text color-dark-gray f-10"
+            className="prouct-details overflow-hidden w-100 regular-text text-[#3c3c3c] text-[10px] max-h-[25px]"
             data-cy="productName"
           >
-            {product?.brand?.icon && typeof product.brand.icon === "string" && (
-              <Image
-                loading={"eager"}
-                src={getConfiguredImage({
-                  src: GetImageUrl(product?.brand?.icon),
-                  height: 60,
-                })}
-                width={16}
-                height={7}
-                alt={product.name}
-                className="max-h-[20px] max-w-[40px]"
-              />
-            )}
-            {product.name.substring(0, 50)}
+            <span className="flex-row align-center justify-start gap-[4px]">
+              <MangoIcon />
+              <VerifiedIcon />
+            </span>
+            {product.name?.substring(0, 50)}
+            {product?.brand && ` | ${product?.brand?.name}`}
+            {product?.category && ` | ${product?.category?.name}`}
 
-            {product.category && (
-              <span className="product-category-icon align-center">
-                <span
-                  style={{ display: "inline" }}
-                  className="justify-start quantity flex f-10 align-center med-text"
-                >
-                  1
-                </span>
-                {product?.category?.flat_photo_path?.file_path?.length > 0 && (
+            <span className="product-category-icon align-center">
+              {/* {product.category &&
+                product?.category?.flat_photo_path?.file_path?.length > 0 && (
                   <Image
                     loading={"eager"}
                     src={getConfiguredImage({
@@ -101,68 +94,24 @@ function ProductCard({
                     alt={product.name}
                     className="max-h-[20px] max-w-[40px]"
                   />
-                )}
-              </span>
-            )}
+                )} */}
+            </span>
           </p>
-        </div>
-        <div className="product-footer w-100 flex-row align-center max-h-[30px]">
-          <div
-            className={`${
-              params.lang.split("-")[1] === "ar" && "dir-rtl"
-            } price-label flex`}
-          >
-            {product?.offer_price >= 0 &&
-              product?.offer_price !== product.price && (
-                <span className="old-price relative f-12 color-dark-gray light-text">
-                  {RoundPrice({
-                    num: product?.price,
-                    rate: currency?.exchange_rate,
-                    points: 0,
-                    language: language,
-                  })}
-                  <svg
-                    className="absolute w-100"
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="100%"
-                    height="1"
-                  >
-                    <line
-                      id="Line_1"
-                      data-name="Line 1"
-                      x2="100%"
-                      transform="translate(0 0.5)"
-                      fill="none"
-                      stroke="#3c3c3c"
-                      strokeWidth="1"
-                    />
-                  </svg>
-                </span>
-              )}
-            <span className="new-price bold-text color-dark-gray flex f-12">
-              {product?.offer_price >= 0
-                ? RoundPrice({
-                    num: product?.offer_price,
-                    rate: currency?.exchange_rate,
-                    points: 0,
-                    language: language,
-                  })
-                : RoundPrice({
-                    num: product?.price,
-                    rate: currency?.exchange_rate,
-                    points: 0,
-                    language: language,
-                  })}
-            </span>
-            <span className="currency-label light-text color-dark-gray flex f-10">
-              {currency?.symbol}
-            </span>
-          </div>
+          <ProductLabelsAnimated
+            labels={product?.label_names?.map((s) => ({
+              text: s,
+              color: "#388CFF",
+            }))}
+          />
         </div>
       </NextLink>
-      <Suspense fallback={<></>}>
-        <BuyButtonProduct product={product} />
-      </Suspense>
+
+      <BuyButtonProduct
+        product={product}
+        currency={currency}
+        language={language}
+        params={params}
+      />
     </div>
   );
 }

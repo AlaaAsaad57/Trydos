@@ -130,17 +130,13 @@ export default function RootLayout({ params, children }) {
               key={`${JSON.stringify(params)}`}
             >
               <div className="home-navbar max-h-[1365px]">
-                <NextLink
-                  data={{
-                    is_full_home: true,
-                    href: `/${params.lang}`,
-                  }}
+                <a
                   href={`/${params.lang}`}
                   aria-label="TryDos Home"
                   data-cy="NavLogo"
                 >
                   <Logo animated={false} style={false} key={1} />
-                </NextLink>
+                </a>
                 <Suspense
                   fallback={
                     <div className="user-nav-container">

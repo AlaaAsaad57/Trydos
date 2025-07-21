@@ -62,6 +62,7 @@ interface DetailsState {
   details_loading: boolean;
   sharesCount: number | null;
   selected_product_for_add_to_cart: null | any;
+  ColorBottomSheet: boolean | any;
 }
 
 const initialState: DetailsState = {
@@ -129,12 +130,15 @@ const initialState: DetailsState = {
   product: {},
   details_loading: false,
   sharesCount: null,
+  ColorBottomSheet: false,
 };
 
 export const useDetailsStore = (set, get) => ({
   ...initialState,
 
   setShareLoading: (loading: boolean) => set({ shareLoading: loading }),
+  setColorBottomSheet: (colorBottomSheet: boolean | any) =>
+    set({ ColorBottomSheet: colorBottomSheet }),
   setSelectedProductForCart: (product: any) =>
     set({ selected_product_for_add_to_cart: product }),
   storeProduct: (product: any) =>
@@ -158,11 +162,6 @@ export const useDetailsStore = (set, get) => ({
   storeProductBoutique: (product: any) => set({ product }),
 
   setSharesCount: (count: number) => set({ sharesCount: count }),
-
-  incrementSharesCount: () =>
-    set((state) => ({
-      sharesCount: (state.sharesCount || 0) + 1,
-    })),
 
   setActiveColorDetails: (color: any) =>
     set((state) => ({

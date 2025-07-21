@@ -1,3 +1,5 @@
+import { useAppStore } from "store";
+
 // Function to generate event names
 const routeEventName = (event: string) => `route-change-${event}`;
 
@@ -20,6 +22,8 @@ export const dispatchRouteChangeEvent = (
   // } else {
   //   document.documentElement.style.overflow = "initial";
   // }
+  const { setIsNavigating } = useAppStore.getState();
+  if (event === "completed") setIsNavigating(false);
   window.dispatchEvent(
     new CustomEvent(routeEventName(event), {
       bubbles: false,

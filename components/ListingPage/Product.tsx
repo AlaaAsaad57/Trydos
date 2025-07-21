@@ -1,13 +1,16 @@
 "use client";
-import React, { useReducer } from "react";
+import React, { useCallback, useEffect, useReducer, useState } from "react";
 import ImageSlider from "./ImageSlider";
 import BuyButton from "./BuyButton";
 import CoverEffectSlider from "./CoverEffectSlider";
-// import TopSlider from "./TopSlider";
-import ColorSlider from "./ColorSlider";
 import { useAppStore } from "store";
 import { ProductPhotosSliderPropsType } from "models/componentType/ProductPhotosSliderPropsType";
 import RedeemButton from "./RedeemButton";
+import Image from "node_modules/next/image";
+import { getConfiguredImage, RoundPrice } from "utils/functions";
+import { GetImageUrl } from "utils/tinyUtils";
+import { getCookie } from "utils/cookies/cookie-manager";
+import BottomSheet from "components/global/BottomSheet";
 
 function ProductReducer(state, { type, payload }) {
   if (type === "setActiveTopSlide") {
@@ -47,30 +50,238 @@ const getIndex = (product, productState) => {
 
   return index;
 };
-export const BuyButtonProduct = ({ product }) => {
-  const { setSelectedProductForCart } = useAppStore();
+export const BuyButtonProduct = ({
+  product,
+  params,
+  currency,
+  language,
+  isForColor = false,
+}) => {
+  const [isClient, setIsClient] = useState(false);
+  const [shouldShowRedeem, setShouldShowRedeem] = useState(false);
+  const { setSelectedProductForCart, ColorBottomSheet, setColorBottomSheet } =
+    useAppStore();
+  const shouldShowRedeemFunc = useCallback(() => {
+    let redeemed_products_ids = getCookie<any>("redemed_ids");
+
+    if (redeemed_products_ids) {
+      let parsed_redemed_ids = redeemed_products_ids;
+      return !parsed_redemed_ids.find((s) => s.id === product.product_id);
+    }
+    return true;
+  }, []);
+  useEffect(() => {
+    setTimeout(() => {
+      if (!shouldShowRedeem) {
+        setIsClient(true);
+        setShouldShowRedeem(shouldShowRedeemFunc());
+      }
+    }, 1000);
+  }, []);
 
   const addToCart = () => {
     document.documentElement.style.overflow = "hidden";
     document.documentElement.scrollTop = 0;
-    setSelectedProductForCart({
-      ...product,
-      shouldUpdate: 0,
-      id: product.product_id || product.id,
-      showRedeemPrice: false,
-    });
+    if (isForColor) {
+      setSelectedProductForCart({
+        ...product,
+        activeColor: product.sync_color_images[0]?.color_option,
+        shouldUpdate: 0,
+        id: product.product_id || product.id,
+        showRedeemPrice: product.is_redeem && shouldShowRedeem,
+        singleColor: true,
+      });
+    } else
+      setSelectedProductForCart({
+        ...product,
+        shouldUpdate: 0,
+        id: product.product_id || product.id,
+        showRedeemPrice: product.is_redeem && shouldShowRedeem,
+      });
   };
+
+  const RenderPrice = () => {
+    if (product.is_redeem && shouldShowRedeem) {
+      if (product.offer_price >= 0 && product.offer_price !== product.price) {
+        return (
+          <>
+            <span className="old-price relative f-12 text-[#3c3c3c] light-text">
+              {RoundPrice({
+                num: product?.price,
+                rate: currency?.exchange_rate,
+                points: 0,
+                language: language,
+              })}
+              <svg
+                className="absolute w-100"
+                xmlns="http://www.w3.org/2000/svg"
+                width="100%"
+                height="1"
+              >
+                <line
+                  id="Line_1"
+                  data-name="Line 1"
+                  x2="100%"
+                  transform="translate(0 0.5)"
+                  fill="none"
+                  stroke="#3c3c3c"
+                  strokeWidth="1"
+                />
+              </svg>
+            </span>
+            <span className="old-price ml-[3px] relative bold-text color-dark-gray flex f-12">
+              {product?.offer_price >= 0
+                ? RoundPrice({
+                    num: product?.offer_price,
+                    rate: currency?.exchange_rate,
+                    points: 0,
+                    language: language,
+                  })
+                : RoundPrice({
+                    num: product?.price,
+                    rate: currency?.exchange_rate,
+                    points: 0,
+                    language: language,
+                  })}
+              <svg
+                className="absolute w-100"
+                xmlns="http://www.w3.org/2000/svg"
+                width="100%"
+                height="1"
+              >
+                <line
+                  id="Line_1"
+                  data-name="Line 1"
+                  x2="100%"
+                  transform="translate(0 0.5)"
+                  fill="none"
+                  strokeLinecap="round"
+                  stroke="#ff6200"
+                  strokeWidth="1"
+                />
+              </svg>
+            </span>
+          </>
+        );
+      } else {
+        return (
+          <span className="old-price ml-[3px] bold-text color-dark-gray flex f-12">
+            {RoundPrice({
+              num: product?.price,
+              rate: currency?.exchange_rate,
+              points: 0,
+              language: language,
+            })}
+
+            <svg
+              className="absolute w-100"
+              xmlns="http://www.w3.org/2000/svg"
+              width="100%"
+              height="1"
+            >
+              <line
+                id="Line_1"
+                data-name="Line 1"
+                x2="100%"
+                transform="translate(0 0.5)"
+                fill="none"
+                strokeLinecap="round"
+                stroke="#ff6200"
+                strokeWidth="1"
+              />
+            </svg>
+          </span>
+        );
+      }
+    }
+    if (product?.offer_price >= 0 && product.price >= 0) {
+      if (product.offer_price >= 0 && product?.offer_price !== product.price) {
+        return (
+          <>
+            <span className="old-price relative f-12 text-[#3c3c3c] light-text">
+              {RoundPrice({
+                num: product?.price,
+                rate: currency?.exchange_rate,
+                points: 0,
+                language: language,
+              })}
+              <svg
+                className="absolute w-100"
+                xmlns="http://www.w3.org/2000/svg"
+                width="100%"
+                height="1"
+              >
+                <line
+                  id="Line_1"
+                  data-name="Line 1"
+                  x2="100%"
+                  transform="translate(0 0.5)"
+                  fill="none"
+                  stroke="#3c3c3c"
+                  strokeWidth="1"
+                />
+              </svg>
+            </span>
+            <span className="new-price bold-text color-dark-gray flex f-12">
+              {product?.offer_price >= 0
+                ? RoundPrice({
+                    num: product?.offer_price,
+                    rate: currency?.exchange_rate,
+                    points: 0,
+                    language: language,
+                  })
+                : RoundPrice({
+                    num: product?.price,
+                    rate: currency?.exchange_rate,
+                    points: 0,
+                    language: language,
+                  })}
+            </span>
+          </>
+        );
+      } else {
+        return (
+          <span className="old-price relative f-12 bold-text color-dark-gray">
+            {RoundPrice({
+              num: product?.price,
+              rate: currency?.exchange_rate,
+              points: 0,
+              language: language,
+            })}
+          </span>
+        );
+      }
+    }
+  };
+
+  if (!isClient) return <></>;
   return (
     <>
-      {product.is_redeem && (
-        <RedeemButton
-          id={product.product_id}
-          is_redeem={product.is_redeem}
-          redeem_price={product.redeem_price}
-          product={product}
-        />
+      <div className="product-footer absolute w-100 flex-row align-center max-h-[30px]">
+        <div
+          className={`${
+            params.lang.split("-")[1] === "ar" && "dir-rtl"
+          } price-label flex`}
+        >
+          {RenderPrice()}
+          <span className="currency-label light-text color-dark-gray flex f-10">
+            {currency?.symbol}
+          </span>
+        </div>
+      </div>
+      {product.is_redeem && shouldShowRedeem && (
+        <>
+          <RedeemButton />
+        </>
       )}
       <BuyButton
+        onExpire={() => {
+          setShouldShowRedeem(false);
+        }}
+        id={product.product_id}
+        redeem_price={product.redeem_price}
+        currency={currency}
+        shouldShowRedeem={shouldShowRedeem && product?.is_redeem}
         buy={(e) => {
           // @ts-ignore
           addToCart();
@@ -82,6 +293,7 @@ export const BuyButtonProduct = ({ product }) => {
 export function ProductPhotosSlider({
   product,
   priority,
+  Sliders = true,
 }: ProductPhotosSliderPropsType) {
   const [productState, dispatch] = useReducer(ProductReducer, {
     isActiveTopSlide: false,
@@ -103,52 +315,45 @@ export function ProductPhotosSlider({
     activeImageIndex: 0,
     renderVar: false,
   });
-  const isLowEndDevice = () => {
-    if (typeof navigator !== "undefined") {
-      // @ts-ignore
-      const ram = navigator.deviceMemory || 4; // Default to 4GB if unknown
-      const cores = navigator.hardwareConcurrency || 4; // Default to 4 cores
+  const { setColorBottomSheet } = useAppStore();
+  if (!Sliders) {
+    return (
+      <React.Fragment>
+        {/* <BorderImage isBig={true} /> */}
+        <div className="inset-shadow-img w-[200px] h-[290px] rounded-15 absolute" />
 
-      if (ram <= 3 || cores <= 3) {
-        return true;
-      }
-      return false;
-    }
-  };
-
+        <Image
+          width={400}
+          height={300}
+          loading="eager"
+          fetchPriority="auto"
+          src={getConfiguredImage({
+            src: GetImageUrl(product.images[0].file_path),
+            width: 400,
+            height: 400,
+          })}
+          style={{
+            border: product.flash_deal_end_date && "1px solid #FF6200",
+          }}
+          key={`${product.name}-${0}`}
+          className="w-[200px] h-[290px] border-[#d3d3d387] border-[1px] rounded-15 z-10"
+          alt={product.name || "alt"}
+        />
+      </React.Fragment>
+    );
+  }
   return (
     <>
-      {/* {productState?.isActiveTopSlide && (
-        <TopSlider
-          product_name={product.name}
-          active={productState?.isActiveTopSlide}
-          activeColor={productState?.activeColor}
-          setActiveColor={(e) =>
-            dispatch({ type: "setActiveColor", payload: e })
-          }
-          images={productState?.activeColor?.images}
-        />
-      )} */}
       <div
         className="product-photos max-h-[290px] overflow-visible w-100 justify-start align-center flex-col"
-        onMouseLeave={() => {
-          if (productState?.isActiveTopSlide || productState?.isColorSelected) {
-            dispatch({ type: "setActiveTopSlide", payload: false });
-            dispatch({ type: "setColor", payload: false });
-          }
-        }}
         style={{
           position: !productState?.isActiveTopSlide ? "static" : "absolute",
           opacity: !productState?.isActiveTopSlide ? "1" : "0",
           zIndex: !productState?.isActiveTopSlide ? "4" : "1",
         }}
       >
-        <div
-          className={`product-container-slider w-full relative ${
-            productState?.isColorSelected && "selected-color"
-          }`}
-        >
-          {!isLowEndDevice() &&
+        <div className={`product-container-slider w-full relative`}>
+          {/* {
             product.sync_color_images &&
             productState?.isColorSelected &&
             !productState?.isActiveTopSlide && (
@@ -168,11 +373,12 @@ export function ProductPhotosSlider({
                   dispatch({ type: "setActiveImage", payload: e })
                 }
               />
-            )}
+            )} */}
 
           <ImageSlider
             priority={priority}
             product_name={product.name}
+            flash_deal_end_date={product.flash_deal_end_date}
             renderVar={productState?.renderVar}
             active={
               !productState?.isColorSelected && !productState?.isActiveTopSlide
@@ -184,13 +390,13 @@ export function ProductPhotosSlider({
             setColor={(e) => dispatch({ type: "setColor", payload: e })}
             activeColor={productState?.activeColor}
             isColorSelected={productState?.isColorSelected}
+            key={productState?.activeColor?.color_name}
             setActiveImage={(e) =>
               dispatch({ type: "setActiveImage", payload: e })
             }
           />
 
-          {!isLowEndDevice() &&
-            product.sync_color_images?.length > 0 &&
+          {product.sync_color_images?.length > 0 &&
             product.sync_color_images.filter((s) => s.images.length > 0)
               .length > 0 && (
               <>
@@ -200,7 +406,7 @@ export function ProductPhotosSlider({
                   product_name={product.name}
                   active={!productState?.isActiveTopSlide}
                   setColor={(e) => {
-                    dispatch({ type: "setColor", payload: e });
+                    setColorBottomSheet(product);
                   }}
                   isColorSelected={productState?.isColorSelected}
                   activeColor={productState?.activeColor}

@@ -7,8 +7,14 @@ interface TimerProps {
 
   minutes?: number;
   seconds?: number;
+  onlySeconds?: boolean;
 }
-function Timer({ onFinish, minutes = 2, seconds = 0 }: TimerProps) {
+function Timer({
+  onFinish,
+  minutes = 2,
+  seconds = 0,
+  onlySeconds = false,
+}: TimerProps) {
   const data = TimerUtil({
     expiryTimestamp: new Date(
       Date.now() + minutes * 60 * 1000 + seconds * 1000
@@ -25,7 +31,9 @@ function Timer({ onFinish, minutes = 2, seconds = 0 }: TimerProps) {
   const formattedMinutes = String(data.minutes).padStart(2, "0");
   const formattedHours = String(data.hours).padStart(2, "0");
   const formattedSeconds = String(data.seconds).padStart(2, "0");
-
+  if (onlySeconds) {
+    return formattedSeconds;
+  }
   return (
     <>
       {formattedHours}:{formattedMinutes}:{formattedSeconds}
