@@ -9,7 +9,7 @@ function ColorBottomSheet() {
   const params = useParams();
   const { currency } = useAppStore();
   const { ColorBottomSheet, setColorBottomSheet } = useAppStore();
-  console.log(ColorBottomSheet);
+
   return (
     <>
       {ColorBottomSheet && (

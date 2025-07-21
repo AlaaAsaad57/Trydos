@@ -1849,17 +1849,18 @@ const QuantutyInput = ({
 
   const updateQuantity = async (quantity, bool) => {
     try {
-      await fetchData({
+      let a = await fetchData({
         url: "/cart/update",
         reqTitle: "Update Quantity For Product In cart",
         method: "POST",
         server: "market",
         body: JSON.stringify({ key: id, quantity: quantity }),
       });
-      // dispatch({
-      //   type: "UPDATE-CART-QUANTITY",
-      //   payload: { key: id, quantity: quantity },
-      // });
+      if (a.data.status === 0) {
+        throw new Error(a.data.message);
+      } else {
+        updateData();
+      }
       updateData();
     } catch (error) {
       console.error(error);
