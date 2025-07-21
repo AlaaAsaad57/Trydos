@@ -7,7 +7,6 @@ import ProductBanner from "components/products/ProductBanner";
 import MangoIcon from "public/svg/listing/MangoIcon.svg";
 import VerifiedIcon from "public/svg/listing/VerifiedIcon.svg";
 import { ProductLabelsAnimated } from "components/products/ProductLabelsAnimated";
-import { getCookie, setCookie } from "utils/cookies/cookie-manager";
 
 function ProductCard({
   product,
