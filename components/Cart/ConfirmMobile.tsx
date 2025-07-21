@@ -3,13 +3,14 @@ import PhoneInput from "components/Login/PhoneInput";
 import SendMethod from "components/Login/SendMethod";
 import React, { useEffect, useState } from "react";
 import AuthService from "services/auth";
-
 import "public/styles/newLogin.css";
 import "public/styles/login.css";
 import { useAppStore } from "store";
-import { GA_EVENT_NAMES } from "utils/GAEvents";
-import SlideWidget from "components/global/SlideNavigation";
-import { COOKIE_NAMES, getCookie, UserData } from "utils/cookies/cookie-manager";
+import {
+  COOKIE_NAMES,
+  getCookie,
+  UserData,
+} from "utils/cookies/cookie-manager";
 
 function ConfirmMobile({ closeWindow, hasMobile, goToOrders }) {
   const { setWrongNumber, verficationID, wrongNumber } = useAppStore();

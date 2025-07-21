@@ -144,6 +144,8 @@ function AddToCartComponent({
             (s) => s.color_option === colorFromUrl
           )
         );
+      } else {
+        setSelectedColor(tempProductData?.sync_color_images[0]);
       }
       setSelectedProductForCart({
         ...tempProductData,

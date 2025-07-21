@@ -7,7 +7,11 @@ import OrderMarquee from "./OrderMarquee";
 import DiscoutIcon from "public/svg/cart/Disount.svg";
 import ShippingIcon from "public/svg/cart/Shipping.svg";
 import Spinner from "components/global/Spinner";
-import { COOKIE_NAMES, getCookie, UserData } from "utils/cookies/cookie-manager";
+import {
+  COOKIE_NAMES,
+  getCookie,
+  UserData,
+} from "utils/cookies/cookie-manager";
 import auth from "services/auth";
 import LocalizationServiceClass from "services/localization";
 import { useAppStore } from "store";
@@ -195,17 +199,17 @@ function OrderButton({ close, toOrders }) {
         setLoading(false);
         showErrorNotification(
           translateFunction(
-            "Please Review Your Cart Some Products Not Available"
+            "Please Review Your Cart Some Products Not Available",
+            languageVariable
           )
         );
       }
     } catch (error) {
-      setOption(true);
-      if (error) {
-        showErrorNotification(error);
-      }
-      console.log(error);
       setLoading(false);
+      setOption(true);
+      if (error?.message?.length > 0) {
+        showErrorNotification(error?.message);
+      }
     }
   };
   const handlers = useSwipeable({
@@ -580,7 +584,12 @@ function OrderButton({ close, toOrders }) {
                   <>
                     <ConfirmMobile
                       //  @ts-ignore
-                      hasMobile={userData.phone !== null && userData.phone !== 0}
+                      hasMobile={
+                        userData?.phone !== null &&
+                        // @ts-ignore
+                        userData?.phone !== 0 &&
+                        userData?.phone !== "0"
+                      }
                       closeWindow={() => {
                         setOption(false);
                       }}

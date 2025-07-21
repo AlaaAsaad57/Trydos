@@ -5,7 +5,6 @@ import { SEND_OTP } from "utils/endpointConfig";
 import ChatService from "services/chat";
 import StoryService from "services/story";
 import home from "./home";
-import { changeToken } from "store/homepage/cachedActions";
 import { GAevent, SetGAUser } from "utils/gtag";
 
 import { showErrorNotification } from "@/store/notifications/reducer";
@@ -18,6 +17,7 @@ import {
   UserData,
 } from "utils/cookies/cookie-manager";
 import { GA_EVENT_NAMES } from "utils/GAEvents";
+import { getUser } from "components/Chat/chatsFunctions";
 
 class AuthService {
   async SendOtp(
@@ -177,7 +177,7 @@ class AuthService {
         server: "market",
       });
       let chat_update = await fetchData({
-        url: `/api/v1/users/${this.UserID()}`,
+        url: `/api/v1/users/${(getUser() as any)?.id}`,
         reqTitle: "Update Name in chat",
         method: "PUT",
         server: "chat",
@@ -343,7 +343,7 @@ class AuthService {
       }
       if (userChat && user && userChat?.id) {
         let chat_update = await fetchData({
-          url: `/api/v1/users/${this.UserID()}`,
+          url: `/api/v1/users/${(getUser() as any)?.id}`,
           reqTitle: "Update Name in chat",
           method: "PUT",
           server: "chat",
@@ -419,7 +419,7 @@ class AuthService {
       }
       if (chat_done) {
         await fetchData({
-          url: `/api/v1/users/${this.UserID()}`,
+          url: `/api/v1/users/${(getUser() as any)?.id}`,
           reqTitle: "Update Name in chat",
           method: "PUT",
           server: "chat",
