@@ -28,7 +28,6 @@ import { GAevent } from "utils/gtag";
 import { showSuccessNotification } from "@/store/notifications/reducer";
 import { fetchData } from "utils/fetchData";
 import StackedSlider from "utils/Slider";
-import RedeemIcon from "public/svg/RedeemedFlag.svg";
 
 function AddToCartComponent({
   color,
@@ -112,6 +111,7 @@ function AddToCartComponent({
           return item;
         }
       });
+
       let tempProductData = {
         ...product,
         ...data1.data,
@@ -122,6 +122,7 @@ function AddToCartComponent({
         shared_count: data3.data.shared_count,
         variation: newVariants,
       };
+
       setProductData(tempProductData);
       setSelectedProductForCart({
         ...tempProductData,
@@ -129,8 +130,12 @@ function AddToCartComponent({
       });
       setSelectedColor(
         tempProductData?.sync_color_images?.find(
-          (s) => s.color_option?.toLowerCase() === colorFromUrl?.toLowerCase()
-        ) || tempProductData?.sync_color_images?.[0]
+          (s) =>
+            s.color_option?.toLowerCase() ===
+              (selectedColor?.color_name?.toLowerCase() ||
+                selectedColor?.color_option?.toLowerCase()) ||
+            tempProductData?.sync_color_images?.[0]
+        )
       );
       if (tempProductData?.choice_options?.[0]?.options?.length > 0) {
         if (sizeFromUrl?.length > 0) {

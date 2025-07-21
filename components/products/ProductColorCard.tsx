@@ -139,6 +139,7 @@ function ProductColorCard({
         </div>
       </div>
       <BuyButtonProduct
+        isForColor={true}
         product={product}
         currency={currency}
         language={language}

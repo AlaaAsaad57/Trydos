@@ -50,7 +50,13 @@ const getIndex = (product, productState) => {
 
   return index;
 };
-export const BuyButtonProduct = ({ product, params, currency, language }) => {
+export const BuyButtonProduct = ({
+  product,
+  params,
+  currency,
+  language,
+  isForColor = false,
+}) => {
   const [isClient, setIsClient] = useState(false);
   const [shouldShowRedeem, setShouldShowRedeem] = useState(false);
   const { setSelectedProductForCart, ColorBottomSheet, setColorBottomSheet } =
@@ -76,12 +82,21 @@ export const BuyButtonProduct = ({ product, params, currency, language }) => {
   const addToCart = () => {
     document.documentElement.style.overflow = "hidden";
     document.documentElement.scrollTop = 0;
-    setSelectedProductForCart({
-      ...product,
-      shouldUpdate: 0,
-      id: product.product_id || product.id,
-      showRedeemPrice: product.is_redeem && shouldShowRedeem,
-    });
+    if (isForColor) {
+      setSelectedProductForCart({
+        ...product,
+        activeColor: product.sync_color_images[0]?.color_option,
+        shouldUpdate: 0,
+        id: product.product_id || product.id,
+        showRedeemPrice: product.is_redeem && shouldShowRedeem,
+      });
+    } else
+      setSelectedProductForCart({
+        ...product,
+        shouldUpdate: 0,
+        id: product.product_id || product.id,
+        showRedeemPrice: product.is_redeem && shouldShowRedeem,
+      });
   };
 
   const RenderPrice = () => {
