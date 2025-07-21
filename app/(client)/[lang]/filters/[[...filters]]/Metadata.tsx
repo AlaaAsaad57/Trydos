@@ -1,5 +1,6 @@
 // components/BoutiqueHead.tsx
 
+import { fetchServerData } from "Server Requests/ServerFetch";
 import { getConfiguredImage } from "utils/functions";
 import {
   filtersToSearchParams,
@@ -75,21 +76,19 @@ export async function getBoutiqueMetadata({
   let UrlSearchParams = getUrlSearchForMeta(params, options);
   UrlSearchParams.set("lang", language);
   UrlSearchParams.set("country", country);
-  let response = await fetch(
-    process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL +
+  let response = await fetchServerData({
+    url:
+      process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL +
       `/api/products/simplified-meta-filters?${UrlSearchParams.toString()}`,
-    {
-      headers: {
-        lang: language,
-        country,
-      },
-      next: {
-        revalidate: 36000,
-        tags: ["listing"],
-      },
-    }
-  );
-  let responseData = await response.json();
+    local: `${country}-${language}`,
+    method: "GET",
+    revalidate: 36000,
+    tags: ["listing"],
+  });
+  let responseData = response.data;
+  if (response.error) {
+    throw new Error(response.error);
+  }
 
   let images_array = responseData?.data?.products?.map(
     (product) => product.image[0]

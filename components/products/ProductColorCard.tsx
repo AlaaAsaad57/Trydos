@@ -130,11 +130,10 @@ function ProductColorCard({
             {product?.category && ` | ${product?.category?.name}`}
           </p>
           <ProductLabelsAnimated
-            labels={[
-              { text: "new", color: "#388CFF" },
-              { text: "sale", color: "#388CFF" },
-              { text: "hot", color: "#388CFF" },
-            ]}
+            labels={product?.label_names?.map((s) => ({
+              text: s,
+              color: "#388CFF",
+            }))}
           />
         </div>
       </div>

@@ -163,11 +163,6 @@ export const useDetailsStore = (set, get) => ({
 
   setSharesCount: (count: number) => set({ sharesCount: count }),
 
-  incrementSharesCount: () =>
-    set((state) => ({
-      sharesCount: (state.sharesCount || 0) + 1,
-    })),
-
   setActiveColorDetails: (color: any) =>
     set((state) => ({
       product: {

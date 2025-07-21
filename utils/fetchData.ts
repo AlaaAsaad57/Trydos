@@ -304,12 +304,18 @@ export const fetchData = async <T = any>(
             responseData?.message ?? responseData?.data?.message ?? ""
           );
         else {
-          showErrorMessage(
-            responseData?.message ?? responseData?.data?.message ?? ""
-          );
-          throw new Error(
-            responseData?.message ?? responseData?.data?.message ?? ""
-          );
+          if (
+            !ignoredMessages?.includes(
+              responseData?.message ?? responseData?.data?.message
+            )
+          ) {
+            showErrorMessage(
+              responseData?.message ?? responseData?.data?.message ?? ""
+            );
+            throw new Error(
+              responseData?.message ?? responseData?.data?.message ?? ""
+            );
+          }
         }
       } else {
         if (url?.includes("cart/update") && !reqTitle.includes("cart widget")) {
@@ -361,7 +367,7 @@ export const fetchData = async <T = any>(
         };
         logRequest(logObj as any);
       }
-      return responseData;
+      return { ...(responseData || {}), success: true };
     } catch (err) {
       // Network error - retry logic
       if (
@@ -387,7 +393,8 @@ export const fetchData = async <T = any>(
       ) {
         showErrorMessage(`${err?.message || "Falied"}`);
       } else {
-        if (!ignoredMessages.includes(err?.message))
+        console.error(err);
+        if (!ignoredMessages.includes(err?.message || err))
           showErrorNotification(`${reqTitle} : ${err?.message || "Falied"}`);
       }
       let errorObj = {
@@ -430,7 +437,7 @@ export const fetchData = async <T = any>(
         logRequest(logObj as any);
       }
       // throw err;
-      return responseData;
+      return { ...(responseData || {}), success: false };
     }
   };
 

@@ -206,6 +206,7 @@ function ProductFooterSection({
         is_liked: isLiked,
         color,
         size,
+        sharesCount: response_shares.data.shared_count,
       });
       setLoading(false);
       // @ts-ignore

@@ -22,7 +22,6 @@ export const ProductLabelsAnimated = ({
 }: Props) => {
   const ref = useRef<HTMLDivElement | null>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
-  const [isVisible, setIsVisible] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showLabel, setShowLabel] = useState(false);
   const [animateIn, setAnimateIn] = useState(false);
@@ -30,22 +29,9 @@ export const ProductLabelsAnimated = ({
   const currentLabel = labels[currentIndex];
 
   // Intersection Observer
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => setIsVisible(entry.isIntersecting),
-      { threshold: 0.3 }
-    );
-    const el = ref.current;
-    if (el) observer.observe(el);
-    return () => {
-      if (el) observer.unobserve(el);
-    };
-  }, []);
 
   // Animation loop
   useEffect(() => {
-    if (!isVisible || labels.length === 0) return;
-
     let stepTimeout: NodeJS.Timeout;
 
     const startCycle = () => {
@@ -80,12 +66,12 @@ export const ProductLabelsAnimated = ({
       clearTimeout(stepTimeout);
       if (timerRef.current) clearTimeout(timerRef.current);
     };
-  }, [currentIndex, isVisible, labels]);
+  }, [currentIndex, labels]);
 
   return (
     <div
       ref={ref}
-      className="relative h-6 min-w-[70px] overflow-hidden select-none"
+      className="relative h-6 min-w-[150px] overflow-hidden select-none"
       style={{ height: "1.5rem" }}
     >
       {showLabel && (
@@ -93,13 +79,13 @@ export const ProductLabelsAnimated = ({
           key={currentIndex}
           className="absolute will-change-transform transition-all"
           style={{
-            color: currentLabel.color,
+            color: "#388CFF",
             opacity: animateIn ? 1 : 0,
             transform: animateIn ? "translateY(0)" : "translateY(12px)",
             transition: `transform ${transitionDuration}ms ease, opacity ${transitionDuration}ms ease`,
           }}
         >
-          {currentLabel.text}
+          {currentLabel?.text}
         </span>
       )}
     </div>

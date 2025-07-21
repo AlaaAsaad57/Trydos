@@ -136,7 +136,15 @@ function AddToCartComponent({
       };
 
       setProductData(tempProductData);
-      setSelectedColor(tempProductData?.sync_color_images[0]);
+      if (product?.singleColor)
+        setSelectedColor(tempProductData?.sync_color_images[0]);
+      else if (colorFromUrl) {
+        setSelectedColor(
+          tempProductData?.sync_color_images?.find(
+            (s) => s.color_option === colorFromUrl
+          )
+        );
+      }
       setSelectedProductForCart({
         ...tempProductData,
         shouldUpdate: 0,
