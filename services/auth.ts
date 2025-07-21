@@ -302,8 +302,6 @@ class AuthService {
     }
   }
   async ExpiredUser(noReq = false) {
-    if (this.getUser()?.phone?.length > 2)
-      localStorage.setItem("has-phone", this.getUser()?.phone);
     if (!noReq) await home.registerForExpire(this.UserID());
     this.cancelAuth(true);
     deleteCookie(COOKIE_NAMES.MARKET_TOKEN);
