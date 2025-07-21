@@ -76,7 +76,7 @@ export default function NextLink({
     if (e.target.closest(".no-navigate")) {
       return;
     }
-    console.log(e.target);
+
     if (pathname !== href) {
       document.body.style.overflow = "hidden";
       document.body.scrollTop = 0;

@@ -121,22 +121,27 @@ function AddToCartComponent({
         ...data4.data,
         shared_count: data3.data.shared_count,
         variation: newVariants,
+        sync_color_images: !product.singleColor
+          ? data4.data.sync_color_images || []
+          : [
+              data4?.data?.sync_color_images?.find(
+                (s) =>
+                  s?.color_name === product?.sync_color_images?.[0]?.color_name
+              ),
+              ...data4?.data?.sync_color_images?.filter(
+                (s) =>
+                  s?.color_name !== product?.sync_color_images?.[0]?.color_name
+              ),
+            ],
       };
 
       setProductData(tempProductData);
+      setSelectedColor(tempProductData?.sync_color_images[0]);
       setSelectedProductForCart({
         ...tempProductData,
         shouldUpdate: 0,
       });
-      setSelectedColor(
-        tempProductData?.sync_color_images?.find(
-          (s) =>
-            s.color_option?.toLowerCase() ===
-              (selectedColor?.color_name?.toLowerCase() ||
-                selectedColor?.color_option?.toLowerCase()) ||
-            tempProductData?.sync_color_images?.[0]
-        )
-      );
+
       if (tempProductData?.choice_options?.[0]?.options?.length > 0) {
         if (sizeFromUrl?.length > 0) {
           setSelectedSize(
@@ -158,8 +163,16 @@ function AddToCartComponent({
   const getInitialColorSlide = () => {
     let index = 0;
     ProductData?.sync_color_images.map((s, i) => {
-      if (s.color_option === colorFromUrl) index = i;
+      if (s?.color_option && colorFromUrl && s.color_option === colorFromUrl)
+        index = i;
+      else if (
+        s?.color_option &&
+        product?.activeColor &&
+        s?.color_option === product?.activeColor
+      )
+        index = i;
     });
+
     return index;
   };
   const getVariantSizeQty = (size) => {

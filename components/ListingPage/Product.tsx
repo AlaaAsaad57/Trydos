@@ -89,6 +89,7 @@ export const BuyButtonProduct = ({
         shouldUpdate: 0,
         id: product.product_id || product.id,
         showRedeemPrice: product.is_redeem && shouldShowRedeem,
+        singleColor: true,
       });
     } else
       setSelectedProductForCart({

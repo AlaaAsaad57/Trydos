@@ -96,14 +96,20 @@ function FlashDealBanner({ end_data }: FlashDealBannerProps) {
       <span className="whitespace-nowrap bold">
         {translateFunction("Flash Deal")}
       </span>
-      <span className="whitespace-nowrap ">
-        | {timeLeft?.days?.toString()?.padStart(2, "0")} d |
-      </span>
-      <span className="whitespace-nowrap">
-        {timeLeft?.hours?.toString().padStart(2, "0")}:
-        {timeLeft?.minutes?.toString().padStart(2, "0")}:
-        {timeLeft?.seconds?.toString().padStart(2, "0")}
-      </span>
+      {timeLeft?.days >= 0 && (
+        <span className="whitespace-nowrap ">
+          | {timeLeft?.days?.toString()?.padStart(2, "0")} d |
+        </span>
+      )}
+      {(timeLeft?.hours >= 0 ||
+        timeLeft?.minutes >= 0 ||
+        timeLeft?.seconds >= 0) && (
+        <span className="whitespace-nowrap">
+          {timeLeft?.hours?.toString().padStart(2, "0")}:
+          {timeLeft?.minutes?.toString().padStart(2, "0")}:
+          {timeLeft?.seconds?.toString().padStart(2, "0")}
+        </span>
+      )}
     </div>
   );
 }
