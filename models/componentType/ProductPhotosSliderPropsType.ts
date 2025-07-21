@@ -6,8 +6,10 @@ export interface ProductPhotosSliderPropsType {
     flash_deal_end_date?: string;
     offer_price?: number;
     price?: number;
+    slug: string;
   };
   priority?: boolean;
+
   Sliders?: boolean;
 }
 export interface Image {

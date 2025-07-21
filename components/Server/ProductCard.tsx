@@ -43,6 +43,7 @@ function ProductCard({
         }`}
         className="product-container  align-center flex-col relative pb-[10px]"
         data-cy="product_link"
+        id={product.slug}
       >
         <ProductBanner
           featured={product.featured}

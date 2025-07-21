@@ -17,6 +17,12 @@ function ColorBottomSheet() {
           key={ColorBottomSheet?.product_id}
           isOpen={ColorBottomSheet}
           onClose={() => {
+            document
+              .querySelector(`#${ColorBottomSheet?.slug}`)
+              .setAttribute(
+                "href",
+                `/${params.lang}/products/${ColorBottomSheet?.slug}`
+              );
             setColorBottomSheet(false);
           }}
         >
@@ -24,6 +30,7 @@ function ColorBottomSheet() {
             {ColorBottomSheet?.sync_color_images?.map((color) => (
               <ProductColorCard
                 Sliders={false}
+                key={color?.color_name}
                 product={{
                   ...ColorBottomSheet,
                   sync_color_images: [color],

@@ -10,40 +10,42 @@ import { ProductLabelsAnimated } from "components/products/ProductLabelsAnimated
 import { GetImageUrl } from "utils/tinyUtils";
 import { getConfiguredImage } from "utils/functions";
 import { NormalSlider } from "utils/Slider";
-import { useAppStore } from "store";
+
 function ProductColorCard({
   product,
   params,
   currency,
   productColor,
+
   language = "en",
   Sliders = true,
 }) {
   const [activeImageIndex, setActiveImageIndex] = useState(0);
-  const { setColorBottomSheet } = useAppStore();
+
   return (
     <div
       className="max-h-[377px] relative"
       key={product.slug}
       data-cy="product-card"
+      onClick={() => {}}
     >
-      <NextLink
-        data={{
-          is_product: true,
-          ...product,
-          sync_color_images: productColor
-            ? [productColor]
-            : product?.sync_color_images,
-          images: productColor ? productColor.images : product?.images,
-          href: `/${params.lang}/products/${product.slug}${
-            productColor ? `?color=${productColor.color_name}` : ""
-          }`,
-        }}
-        ariaLabel={`go to product ${product.slug} ${params.lang}`}
-        suppressHydrationWarning
-        href={`/${params.lang}/products/${product.slug}${
-          productColor ? `?color=${productColor.color_name}` : ""
-        }`}
+      <div
+        // data={{
+        //   is_product: true,
+        //   ...product,
+        //   sync_color_images: productColor
+        //     ? [productColor]
+        //     : product?.sync_color_images,
+        //   images: productColor ? productColor.images : product?.images,
+        //   href: `/${params.lang}/products/${product.slug}${
+        //     productColor ? `?color=${productColor.color_name}` : ""
+        //   }`,
+        // }}
+        // ariaLabel={`go to product ${product.slug} ${params.lang}`}
+        // suppressHydrationWarning
+        // href={`/${params.lang}/products/${product.slug}${
+        //   productColor ? `?color=${productColor.color_name}` : ""
+        // }`}
         onClick={(e) => {
           // @ts-ignore
           console.log(e, "link clicked");
@@ -135,7 +137,7 @@ function ProductColorCard({
             ]}
           />
         </div>
-      </NextLink>
+      </div>
       <BuyButtonProduct
         product={product}
         currency={currency}

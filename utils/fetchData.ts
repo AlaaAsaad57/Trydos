@@ -298,10 +298,7 @@ export const fetchData = async <T = any>(
         );
       }
       // Parse response
-      if (
-        typeof reqTitle === "string" &&
-        reqTitle.includes("Add to cart widget")
-      ) {
+      if (typeof reqTitle === "string" && reqTitle.includes("cart widget")) {
         if (responseData?.data?.status === 1)
           showSuccessMessage(
             responseData?.message ?? responseData?.data?.message ?? ""
@@ -315,7 +312,26 @@ export const fetchData = async <T = any>(
           );
         }
       } else {
-        if (
+        if (url?.includes("cart/update") && !reqTitle.includes("cart widget")) {
+          if (responseData?.data?.status === 0) {
+            showErrorMessage(
+              responseData?.message ?? responseData?.data?.message ?? ""
+            );
+            throw new Error(
+              responseData?.message ?? responseData?.data?.message ?? ""
+            );
+          } else {
+            if (
+              !ignoredMessages.includes(
+                responseData?.message ?? responseData?.data?.message
+              ) &&
+              (responseData?.message ?? responseData?.data?.message)?.length > 0
+            )
+              showSuccessNotification(
+                responseData?.message ?? responseData?.data?.message ?? ""
+              );
+          }
+        } else if (
           !ignoredMessages.includes(
             responseData?.message ?? responseData?.data?.message
           ) &&
