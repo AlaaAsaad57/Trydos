@@ -50,6 +50,7 @@ export async function GET(request: NextRequest) {
       }
     );
   } catch (error) {
+    console.log("***** revalidated failed *****");
     return NextResponse.json(
       { revalidated: "false", error },
       {
