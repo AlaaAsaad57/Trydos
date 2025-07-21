@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { pollinateInput } from "@/utils/tinyUtils";
 
 interface Header {
   key: string;
@@ -1003,11 +1002,7 @@ export default function ApiTestPage() {
                       type="text"
                       value={header.key}
                       onChange={(e) =>
-                        updateHeader(
-                          header.id,
-                          "key",
-                          pollinateInput(e.target.value)
-                        )
+                        updateHeader(header.id, "key", e.target.value)
                       }
                       placeholder="Header name"
                       disabled={isDefaultHeader}
@@ -1019,11 +1014,7 @@ export default function ApiTestPage() {
                       type="text"
                       value={header.value}
                       onChange={(e) =>
-                        updateHeader(
-                          header.id,
-                          "value",
-                          pollinateInput(e.target.value)
-                        )
+                        updateHeader(header.id, "value", e.target.value)
                       }
                       placeholder="Header value"
                       className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
