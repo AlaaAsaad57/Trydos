@@ -388,7 +388,7 @@ export const fetchData = async <T = any>(
         showErrorMessage(`${err?.message || "Falied"}`);
       } else {
         if (!ignoredMessages.includes(err?.message))
-          showErrorNotification(`${err?.message || "Falied"}`);
+          showErrorNotification(`${reqTitle} : ${err?.message || "Falied"}`);
       }
       let errorObj = {
         type: "backend-exception",

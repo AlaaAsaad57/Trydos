@@ -1862,6 +1862,7 @@ const QuantutyInput = ({
       // });
       updateData();
     } catch (error) {
+      console.error(error);
       setLoading(false);
       if (bool) {
         setInputValue(inputValue);
