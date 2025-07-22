@@ -1,6 +1,7 @@
 import { AsyncSelectProps } from "models/componentType/compareTypes/AsyncSelectCustomPropsType";
 import React, { useEffect, useRef, useState } from "react";
 import { GetImageUrl } from "utils/tinyUtils";
+import { pollinateInput } from "@/utils/tinyUtils";
 
 
 const AsyncSelectCustom: React.FC<AsyncSelectProps> = ({
@@ -49,7 +50,7 @@ const AsyncSelectCustom: React.FC<AsyncSelectProps> = ({
   }, [selectedOption]);
 
   const handleInputChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
+    const value = pollinateInput(e.target.value);
     setSearchTerm(value);
     if (value.length > 0) {
       await onSearch(value);

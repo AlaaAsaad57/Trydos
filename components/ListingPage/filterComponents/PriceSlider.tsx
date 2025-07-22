@@ -3,6 +3,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { useAppStore } from "store";
 import search from "services/search";
 import { useParams } from "next/navigation";
+import { pollinateInput } from "utils/tinyUtils";
 function PriceSlider({}: {}) {
   const { lang } = useParams();
   const {
@@ -105,12 +106,12 @@ function PriceSliderComponent({
     setMaxVal(max);
   }, [min, max]);
   const handleMinChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = Math.min(Number(e.target.value), maxVal - 1);
+    const val = Math.min(Number(pollinateInput(e.target.value)), maxVal - 1);
     setMinVal(val);
   };
 
   const handleMaxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = Math.max(Number(e.target.value), minVal + 1);
+    const val = Math.max(Number(pollinateInput(e.target.value)), minVal + 1);
     setMaxVal(val);
   };
 

@@ -423,7 +423,6 @@ const SettingsModal: React.FC<SettingsModalPropsType> = ({ onClose, lang }) => {
                       id="helper-checkbox"
                       data-cy="checkbox-mail"
                       checked={fbSettings?.email === 1}
-                      defaultChecked={fbSettings?.email === 1}
                       value=""
                       onChange={() => {}}
                       aria-describedby="helper-checkbox-text"

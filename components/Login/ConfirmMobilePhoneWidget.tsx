@@ -1,5 +1,5 @@
 import ConfirmMobile from "components/Cart/ConfirmMobile";
-
+import { COOKIE_NAMES, getCookie, UserData } from "utils/cookies/cookie-manager";
 import React, { useEffect } from "react";
 import { useAppStore } from "store";
 
@@ -13,6 +13,7 @@ function ConfirmMobilePhoneWidget() {
       document.documentElement.scrollTop = 0;
     };
   }, []);
+  const userData = getCookie<UserData>(COOKIE_NAMES.USER_DATA);
   return (
     <>
       <div className="fixed top-0 left-0 w-screen h-screen z-[99999999999998] bg-[#00000080] flex items-center justify-center" />
@@ -63,7 +64,8 @@ function ConfirmMobilePhoneWidget() {
           closeWindow={() => {
             setShouldAuthinticated(false);
           }}
-          hasMobile={localStorage.getItem("has-phone")?.length > 2}
+          // @ts-ignore
+          hasMobile={userData.phone !== null && userData.phone !== 0}
           goToOrders={() => {
             // equal to success flag when goToOrders trigrred then it means the verification success
             setShouldAuthinticated(false);

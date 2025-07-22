@@ -256,7 +256,7 @@ const ActiveFiltersBar = ({
                     </svg>
 
                     <Image
-                      alt={category?.name}
+                      alt={category?.name || "Image"}
                       width={20}
                       height={20}
                       src={getConfiguredImage({
@@ -351,7 +351,7 @@ const ActiveFiltersBar = ({
                               </g>
                             </svg>
                             <Image
-                              alt={s?.name}
+                              alt={s?.name || "Image"}
                               src={getConfiguredImage({
                                 src:
                                   (s.icon?.file_path &&
@@ -418,7 +418,7 @@ const ActiveFiltersBar = ({
                     </svg>
 
                     <Image
-                      alt={category?.name}
+                      alt={category?.name || "Image"}
                       width={20}
                       height={20}
                       src={getConfiguredImage({
@@ -483,7 +483,7 @@ const ActiveFiltersBar = ({
                     </svg>
 
                     <Image
-                      alt={brand?.name}
+                      alt={brand?.name || "Image"}
                       width={20}
                       height={20}
                       src={getConfiguredImage({
@@ -799,7 +799,7 @@ export const FilterItem = ({
             </svg>
             <div className="category-shadow"></div>
             <Image
-              alt={item?.name}
+              alt={item?.name || "Image"}
               width={70}
               height={70}
               className="object-center bg-white"
@@ -896,7 +896,7 @@ export const FilterItem = ({
                     </svg>
 
                     <Image
-                      alt={s?.name}
+                      alt={s?.name || "Image"}
                       width={50}
                       height={50}
                       className="bg-white"
@@ -987,7 +987,7 @@ export const FilterItem = ({
                               </svg>
 
                               <Image
-                                alt={s?.name}
+                                alt={s?.name || "Image"}
                                 className="min-w-[40px] min-h-[40px] w-[40px] h-[40px]"
                                 width={40}
                                 height={40}
@@ -1061,7 +1061,7 @@ export const FilterItem = ({
           </svg>
           <div className="category-shadow"></div>
           <Image
-            alt={item?.name}
+            alt={item?.name || "Image"}
             className="brand-photo"
             width={70}
             height={70}

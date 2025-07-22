@@ -7,6 +7,7 @@ import Border from "./Border";
 import LeftArrowIcon from "public/svg/LeftArrowIcon.svg";
 import "styles/Modal.css";
 import { useAppStore } from "store";
+import { pollinateInput } from "@/utils/tinyUtils";
 
 function NameModal() {
   const { language, nameModal: Open, setNameModal } = useAppStore();
@@ -67,7 +68,7 @@ function NameModal() {
             }}
             value={value}
             onChange={(e) => {
-              setValue(e.target.value);
+              setValue(pollinateInput(e.target.value));
             }}
           />
           {value.length > 1 && (

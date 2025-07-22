@@ -9,6 +9,7 @@ import "public/styles/login.css";
 import { useAppStore } from "store";
 import { GA_EVENT_NAMES } from "utils/GAEvents";
 import SlideWidget from "components/global/SlideNavigation";
+import { COOKIE_NAMES, getCookie, UserData } from "utils/cookies/cookie-manager";
 
 function ConfirmMobile({ closeWindow, hasMobile, goToOrders }) {
   const { setWrongNumber, verficationID, wrongNumber } = useAppStore();
@@ -16,7 +17,7 @@ function ConfirmMobile({ closeWindow, hasMobile, goToOrders }) {
   const [inputValue, setInputValue] = useState("");
   const [MessageMethod, setMessageMethod] = useState("");
   const [pins, setPins] = useState("");
-
+  const userData = getCookie<UserData>(COOKIE_NAMES.USER_DATA);
   const [disabled, setDisabled] = useState(false);
   const [expired, setExpired] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -120,7 +121,7 @@ function ConfirmMobile({ closeWindow, hasMobile, goToOrders }) {
 
   useEffect(() => {
     if (hasMobile) {
-      let phone = localStorage.getItem("has-phone");
+      let phone = userData.phone;
       setInputValue(phone);
       setStepIndicator(4);
     }

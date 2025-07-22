@@ -16,6 +16,7 @@ import { FlagIcon } from "utils/tinyUtils";
 import { AddAddressFormPropsType } from "models/componentType/settingTypes/PersonalInfoAddressModalPropsType";
 import { AddressSectionPropsType } from "models/componentType/AddressSectionPropsType";
 import { SelectRegionPropsType } from "models/componentType/SelectRegionPropsType";
+import { pollinateInput } from "@/utils/tinyUtils";
 
 function AddAddressForm({
   setAddressDetails,
@@ -376,7 +377,7 @@ const AddressTitle = () => {
             data-cy="add-address-input"
             value={addressDetails.address}
             onChange={(e) => {
-              setAddressDetails({ address: e.target.value });
+              setAddressDetails({ address: pollinateInput(e.target.value) });
             }}
             placeholder={translateFunction("Ex: Home, My Office, 2 Home Ect.")}
             className="w-full pr-6  min-h-[21px] h-auto bg-[transparent] text-[#1D1D1D] medium  text-[14px] placeholder-[#D3D3D3]  border-none outline-none resize-none"
@@ -433,11 +434,12 @@ const ContactInfo = () => {
                 addressDetails?.contact_info?.name
               }
               onChange={(e) => {
+                const sanitized = pollinateInput(e.target.value);
                 setAddressDetails({
                   contact_info: {
                     ...addressDetails.contact_info,
-                    contact_person_name: e.target.value,
-                    name: e.target.value,
+                    contact_person_name: sanitized,
+                    name: sanitized,
                   },
                 });
               }}
@@ -482,7 +484,7 @@ const ContactInfo = () => {
                 setAddressDetails({
                   contact_info: {
                     ...addressDetails.contact_info,
-                    phone: e.target.value,
+                    phone: pollinateInput(e.target.value),
                   },
                 });
               }}
@@ -529,7 +531,7 @@ const ContactInfo = () => {
                 setAddressDetails({
                   contact_info: {
                     ...addressDetails.contact_info,
-                    alternative_phone: e.target.value,
+                    alternative_phone: pollinateInput(e.target.value),
                   },
                 });
               }}

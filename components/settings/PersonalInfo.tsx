@@ -9,6 +9,7 @@ import XIcon from "public/svg/Xicon.svg";
 import { useAppStore } from "store";
 import { ConfirmationModalPropsType } from "models/componentType/settingTypes/ConfirmationModalPropsType";
 import { PersonalInfoPropsType } from "models/componentType/settingTypes/PersonalInfoPropsType";
+import { pollinateInput } from "utils/tinyUtils";
 
 function PersonalInfo({ swipeToScreen, goBack }: PersonalInfoPropsType) {
   const { editUserInfo, userProfile } = useAppStore();
@@ -297,7 +298,7 @@ function PersonalInfo({ swipeToScreen, goBack }: PersonalInfoPropsType) {
                 onChange={(e) => {
                   setUserProfileData({
                     ...userProfileData,
-                    name: e.target.value,
+                    name: pollinateInput(e.target.value),
                   });
                   // Clear validation error when user starts typing
                   if (showValidation && validationErrors.name) {
@@ -349,7 +350,7 @@ function PersonalInfo({ swipeToScreen, goBack }: PersonalInfoPropsType) {
                 onChange={(e) => {
                   setUserProfileData({
                     ...userProfileData,
-                    phone: e.target.value.replace(/[^0-9+]/g, ""),
+                    phone: pollinateInput(e.target.value),
                   });
                   // Clear validation error when user starts typing
                   if (showValidation && validationErrors.phone) {
@@ -413,7 +414,7 @@ function PersonalInfo({ swipeToScreen, goBack }: PersonalInfoPropsType) {
                 onChange={(e) => {
                   setUserProfileData({
                     ...userProfileData,
-                    alternative_phone: e.target.value.replace(/[^0-9+]/g, ""),
+                    alternative_phone: pollinateInput(e.target.value),
                   });
                 }}
                 autoCapitalize="off"
@@ -458,7 +459,7 @@ function PersonalInfo({ swipeToScreen, goBack }: PersonalInfoPropsType) {
                 onChange={(e) => {
                   setUserProfileData({
                     ...userProfileData,
-                    email: e.target.value,
+                    email: pollinateInput(e.target.value),
                   });
                   // Clear validation error when user starts typing
                   if (showValidation && validationErrors.email) {

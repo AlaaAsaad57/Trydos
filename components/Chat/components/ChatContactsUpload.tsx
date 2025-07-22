@@ -4,6 +4,7 @@ import { translateFunction } from "utils/functions";
 import { getContacts } from "store/chat/actions";
 import { useAppStore } from "store";
 import { fetchData } from "utils/fetchData";
+import { pollinateInput } from "@/utils/tinyUtils";
 
 declare global {
   interface Navigator {
@@ -143,8 +144,8 @@ function ChatContactsUpload() {
   };
 
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const phone = e.target.value;
-    setNewContact({ ...newContact, phone });
+    const phone = pollinateInput(e.target.value);
+    setNewContact({ ...newContact, phone: phone });
 
     // Normalize phone number for comparison
     const normalizedPhone = normalizePhoneNumber(phone);
@@ -285,7 +286,7 @@ function ChatContactsUpload() {
                 type="text"
                 value={newContact.name}
                 onChange={(e) =>
-                  setNewContact({ ...newContact, name: e.target.value })
+                  setNewContact({ ...newContact, name: pollinateInput(e.target.value) })
                 }
                 className="w-full text-[#1d1d1d] p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder={translateFunction("Enter name")}

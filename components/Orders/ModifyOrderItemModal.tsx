@@ -19,6 +19,7 @@ export const ModifyOrderItemModal = ({
 }: ModifyOrderItemModalPropsType) => {
   const { language } = useAppStore();
   const [loading, setLoading] = useState(false);
+  console.log("confirmationData:",confirmationData)
   const isChanged = () => {
     if (
       (type === "Color" &&
@@ -36,7 +37,7 @@ export const ModifyOrderItemModal = ({
     await order.changeOrderItemVariant({
       choice_1: confirmationData?.newSize ?? "",
       color: confirmationData?.productDetails?.colors?.find(
-        (s) => s.option === confirmationData.newColor
+        (s) => s.name === confirmationData.newColor
       )?.color,
       order_detail_id: confirmationData?.detail_id,
     });
@@ -45,6 +46,10 @@ export const ModifyOrderItemModal = ({
     getOrderDetails();
     close();
   };
+  console.log("choice_1 :",confirmationData?.newSize )
+  console.log("color :",confirmationData?.productDetails?.colors?.find(
+    (s) => s.name === confirmationData.newColor
+  )?.color,)
 
   return (
     <div

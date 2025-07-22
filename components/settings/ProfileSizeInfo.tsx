@@ -5,6 +5,7 @@ import AddressInfo from "public/svg/cart/AddressInfo.svg";
 import auth from "services/auth";
 import { useAppStore } from "store";
 import { ProfileSizeInfoPropsType } from "models/componentType/settingTypes/ProfileSizeInfoPropsType";
+import { pollinateInput } from "utils/tinyUtils";
 
 function ProfileSizeInfo({ swipeToScreen, goBack }: ProfileSizeInfoPropsType) {
   const { editUserInfo, userProfile } = useAppStore();
@@ -364,7 +365,7 @@ function ProfileSizeInfo({ swipeToScreen, goBack }: ProfileSizeInfoPropsType) {
                 onChange={(e) => {
                   setUserProfileData({
                     ...userProfileData,
-                    tall: parseInt(e.target.value),
+                    tall: parseInt(pollinateInput(e.target.value)),
                   });
                   // Clear validation error when user starts typing
                   if (showValidation && validationErrors.tall) {
@@ -409,7 +410,7 @@ function ProfileSizeInfo({ swipeToScreen, goBack }: ProfileSizeInfoPropsType) {
                 onChange={(e) => {
                   setUserProfileData({
                     ...userProfileData,
-                    weight: parseInt(e.target.value),
+                    weight: parseInt(pollinateInput(e.target.value)),
                   });
                   // Clear validation error when user starts typing
                   if (showValidation && validationErrors.weight) {

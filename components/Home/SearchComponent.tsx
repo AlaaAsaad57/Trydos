@@ -20,6 +20,7 @@ import {
   GA_GLOBAL_SCREEN,
 } from "utils/GAEvents";
 import { GAevent } from "utils/gtag";
+import { pollinateInput } from "utils/tinyUtils";
 interface SearchComponentProps {
   searchEnabled: boolean;
   close: Function;
@@ -62,12 +63,7 @@ function SearchComponent({
   );
 
   const onChange = (e: ChangeEvent<HTMLInputElement>) => {
-    let input = e.target.value;
-    // Remove special characters
-    input = input.replace(/[<>/,:!@#$%^&*()]/g, "");
-    if (input.length > 90) {
-      input = input.slice(0, 90);
-    }
+    let input = pollinateInput(e.target.value);
 
     setSearchWord(input);
     e.target.value = input;

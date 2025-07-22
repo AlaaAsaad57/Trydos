@@ -14,6 +14,7 @@ import {
   UserData,
   setCookie,
 } from "utils/cookies/cookie-manager";
+import { pollinateInput } from "utils/tinyUtils";
 
 function InputName({
   value,
@@ -247,7 +248,7 @@ function InputName({
           className="login-button"
           data-cy="InputFiledForName"
           onChange={(e) => {
-            setName(e.target.value);
+            setName(pollinateInput(e.target.value));
           }}
           value={value}
           id="phoneInput"

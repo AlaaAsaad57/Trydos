@@ -41,6 +41,7 @@ import { showErrorNotification } from "@/store/notifications/reducer";
 import { SSRDetect, translateFunction, getUserChat } from "utils/functions";
 import { db } from "utils/firebaseInitv1";
 import { useAppStore } from "store";
+import { pollinateInput } from "@/utils/tinyUtils";
 
 /* -------------------------- Dynamic Components --------------------------- */
 
@@ -403,7 +404,7 @@ function ConversationContainer({
   };
 
   const onChangeInput = (e: ChangeEvent<HTMLInputElement>) => {
-    setMessage(e.target.value);
+    setMessage(pollinateInput(e.target.value));
     handleTyping();
   };
 

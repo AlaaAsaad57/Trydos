@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useAppStore } from "store";
 import { fetchData } from "utils/fetchData";
 import { getCart, RoundPrice, translateFunction } from "utils/functions";
+import { pollinateInput } from "@/utils/tinyUtils";
 
 const CouponElement = ({ active, setActive, close }) => {
   const {
@@ -97,7 +98,7 @@ const CouponElement = ({ active, setActive, close }) => {
                 <input
                   placeholder="Coupon No"
                   value={orderData.coupon_number}
-                  onChange={(e) => onChange(e.target.value)}
+                  onChange={(e) => onChange(pollinateInput(e.target.value))}
                   onBlur={(e) => {
                     if (!e.target.value) close();
                   }}

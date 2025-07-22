@@ -734,3 +734,15 @@ export const totalAmount = (arr) => {
   });
   return total;
 };
+
+/**
+ * Removes special characters and limits input to 90 characters.
+ * Used for input sanitization (pollination).
+ */
+export const pollinateInput = (value: string): string => {
+  let input = value.replace(/[<>,:!@#$%^&*()]/g, "");
+  if (input.length > 90) {
+    input = input.slice(0, 90);
+  }
+  return input;
+};

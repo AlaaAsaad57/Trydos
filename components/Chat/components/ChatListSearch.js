@@ -3,6 +3,7 @@ import Mignifier from "../svg/Mignifier.svg";
 import { SearchContact } from "store/chat/actions";
 import { translateFunction } from "utils/functions";
 import { useAppStore } from "store";
+import { pollinateInput } from "@/utils/tinyUtils";
 function ChatListSearch(props) {
   const { language } = useAppStore();
   let { lang } = useParams();
@@ -30,7 +31,7 @@ function ChatListSearch(props) {
         data-cy="SearchInputChat"
         id="search"
         value={props.search}
-        onChange={(e) => SearchContacts(e.target.value)}
+        onChange={(e) => SearchContacts(pollinateInput(e.target.value))}
         placeholder={translate(
           "Search, Chat, Contact, Start New Chat",
           language

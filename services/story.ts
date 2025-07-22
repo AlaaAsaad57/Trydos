@@ -137,6 +137,15 @@ class StoryService {
       server: "stories",
     });
   }
+  async reportStory(storyId: string | number) {
+    return await fetchData({
+      url: "",
+      method: "POST",
+      body: JSON.stringify({ story_id: storyId }),
+      reqTitle: "Delete Story",
+      server: "stories",
+    });
+  }
   getUserStories() {
     return getCookie<UserData>(COOKIE_NAMES.USER_STORIES);
   }

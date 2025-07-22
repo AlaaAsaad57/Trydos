@@ -7,7 +7,7 @@ import OrderMarquee from "./OrderMarquee";
 import DiscoutIcon from "public/svg/cart/Disount.svg";
 import ShippingIcon from "public/svg/cart/Shipping.svg";
 import Spinner from "components/global/Spinner";
-
+import { COOKIE_NAMES, getCookie, UserData } from "utils/cookies/cookie-manager";
 import auth from "services/auth";
 import LocalizationServiceClass from "services/localization";
 import { useAppStore } from "store";
@@ -36,7 +36,7 @@ function OrderButton({ close, toOrders }) {
   };
   const [expanded, setExpanded] = useState(false);
   const [loading, setLoading] = useState(false);
-
+  const userData = getCookie<UserData>(COOKIE_NAMES.USER_DATA);
   const [option, setOption] = useState(false);
   const getTotaPriceToShow = () => {
     if (orderData?.payment?.find((s) => s.id === 0)) {
@@ -579,7 +579,8 @@ function OrderButton({ close, toOrders }) {
                 {option ? (
                   <>
                     <ConfirmMobile
-                      hasMobile={localStorage.getItem("has-phone")?.length > 2}
+                      //  @ts-ignore
+                      hasMobile={userData.phone !== null && userData.phone !== 0}
                       closeWindow={() => {
                         setOption(false);
                       }}

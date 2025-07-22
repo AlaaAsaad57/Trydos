@@ -1,5 +1,12 @@
 const translations = {
   ar: {
+    "Notification Permission:": "إذن الإشعارات:",
+    "Preparing Your Experience": "جارٍ إعداد تجربتك",
+    "Story hidden successfully.": "تم إخفاء القصة بنجاح",
+    "Failed to report story.": "فشل في الإبلاغ عن القصة",
+    "Story reported successfully.": "تم الإبلاغ عن القصة بنجاح",
+    "Report Story": "الإبلاغ عن القصة",
+    "Are you sure you want to report this story ?": "هل أنت متأكد أنك تريد الإبلاغ عن هذه القصة ؟",
     "Reset Redeemed Products": "إعادة تعيين المنتجات المُستردة",
     "Request Log": "سجل الطلبات",
     "Make Stories Token Expired": "جعل توكن القصص منتهي الصلاحية",
@@ -53,10 +60,10 @@ const translations = {
       "تقييمك الدقيق للمنتجات التي تتسلمها يساعدنا في تحسين الجودة ويساعد العملاء الآخرين على الشراء.",
     "Story deleted successfully.": "تم حذف القصة بنجاح.",
     "Failed to delete story.": "فشل في حذف القصة.",
-    "Are you sure you want to delete this story?":
-      "هل أنت متأكد أنك تريد حذف هذه القصة؟",
+    "Are you sure you want to delete this story ?":
+      "هل أنت متأكد أنك تريد حذف هذه القصة ؟",
     Confirm: "تأكيد",
-    "Delete Story?": "حذف القصة؟",
+    "Delete Story": "حذف القصة",
     "The number was copied successfully": "تم نسخ الرقم بنجاح",
     "Number copy failed": "فشل نسخ الرقم",
     "You Have New Messages From Deleivery Worker":
@@ -806,6 +813,13 @@ const translations = {
       "انتهت صلاحية الجلسة.. يرجى التحقق من رقم هاتفك",
   },
   tr: {
+    "Notification Permission:": "Bildirim İzni:",
+    "Preparing Your Experience": "Deneyiminiz hazırlanıyor",
+    "Story hidden successfully.": "Hikaye başarıyla gizlendi",
+    "Failed to report story.": "Hikayeyi raporlama başarısız oldu",
+    "Story reported successfully.": "Hikaye başarıyla raporlandı",
+    "Report Story": "Hikayeyi Rapor Et",
+    "Are you sure you want to report this story ?": "Bu hikayeyi rapor etmek istediğinizden emin misiniz ?",
     "Reset Redeemed Products": "Kullanılmış Ürünleri Sıfırla",
     "Request Log": "İstek Kaydı",
     "Make Stories Token Expired": "Hikayeler Tokenini Süresi Dolmuş Yap",
@@ -1548,7 +1562,6 @@ const translations = {
     "Info Message": "Bilgi Mesajı",
     "Entering The Information Below Clearly And Completely Will Ensure That Your Order Arrives Without Problems And Faster.":
       "Aşağıdaki bilgileri açık ve eksiksiz olarak girmeniz, siparişinizin sorunsuz ve daha hızlı ulaşmasını sağlayacaktır.",
-    "Notification Permission:": "Bildirim İzni:",
     Enabled: "Etkin",
     "Not Enabled": "Etkin Değil",
     "FireBase Supported": "Firebase Desteği",
@@ -1573,10 +1586,10 @@ const translations = {
     File: "Dosya",
     "The number was copied successfully": "Numara başarıyla kopyalandı",
     "Number copy failed": "Numara kopyalanamadı",
-    "Are you sure you want to delete this story?":
-      "Bu hikayeyi silmek istediğinizden emin misiniz?",
+    "Are you sure you want to delete this story ?":
+      "Bu hikayeyi silmek istediğinizden emin misiniz ?",
     Confirm: "Onayla",
-    "Delete Story?": "Hikaye Silinsin mi?",
+    "Delete Story": "Hikaye Silinsin mi",
     "Failed to delete story.": "Hikaye silinemedi.",
     "Story deleted successfully.": "Hikaye başarıyla silindi.",
     Pack: "Paket",
@@ -1632,10 +1645,10 @@ const translations = {
       "نمره‌کردنی ڕاستەقینەی تۆ لەسەر به‌رهمه‌کان یارمەتیدات بە باشترکردنی کیفیەت و یارمەتیدات بە کڕیارانی دیکە بۆ کڕین.",
     "Story deleted successfully.": "چیرۆکه‌که‌ به‌سه‌رکه‌وتووی سڕایه‌وه‌.",
     "Failed to delete story.": "سڕینه‌وه‌ی چیرۆکه‌که‌ سەرکەوتوو نەبوو.",
-    "Are you sure you want to delete this story?":
-      "دڵنیایت دەتەوێت ئەم چیرۆکە بسڕیتەوە؟",
+    "Are you sure you want to delete this story ?":
+      "دڵنیایت دەتەوێت ئەم چیرۆکە بسڕیتەوە ؟",
     Confirm: "دڵنیاکردنەوە",
-    "Delete Story?": "سڕینی چیرۆک؟",
+    "Delete Story": "سڕینی چیرۆک",
     "The number was copied successfully": "ژمارەکە بەسەرکەوتووی کۆپی کرا",
     "Number copy failed": "کۆپی کردنی ژمارەکە سەرکەوتوو نەبوو",
     "You Have New Messages From Deleivery Worker":
@@ -2448,6 +2461,13 @@ const translations = {
     "Request Log": "تۆماری داواکاری",
     "Make Stories Token Expired": "تووکەنی چیرۆکەکان بەسەرچووە بکە",
     "Make Chat Token Expired": "تووکەنی چات بەسەرچووە بکە",
+    "Story hidden successfully.": "چیرۆکەکە بەسەرکەوتووی پنهانکرا",
+    "Failed to report story.": "ڕاپۆرتکردنی چیرۆکەکە سەرکەوتوو نەبوو",
+    "Story reported successfully.": "چیرۆکەکە بەسەرکەوتووی راپۆرتکرا",
+    "Report Story": "ڕاپۆرتکردنی چیرۆک",
+    "Are you sure you want to report this story ?": "دڵنیایت دەتەوێت ئەم چیرۆکە راپۆرت بکەیت ؟",
+    "Preparing Your Experience": "ئامادەکردنی تاقیکردنەوەکەت",
+    "Notification Permission:": "مۆڵەتی ئاگادارکردنەوە:"
   },
 };
 

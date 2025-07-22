@@ -13,6 +13,7 @@ import {
 } from "store/notifications/reducer";
 import { getUserStories, translateFunction } from "utils/functions";
 import StoryServiceClass from "services/story";
+import { pollinateInput } from "@/utils/tinyUtils";
 
 import Spinner from "components/global/Spinner";
 
@@ -360,9 +361,10 @@ export default function AddStoryWidget({ onClose }: AddStoryWidgetPropsType) {
   };
 
   const handleLinkChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setLink(value);
-    const { valid, error } = validateLink(value);
+    // Always sanitize the value before setting state
+    const sanitized = pollinateInput(e.target.value);
+    setLink(sanitized);
+    const { valid, error } = validateLink(sanitized);
     setLinkError(error);
   };
 
@@ -487,7 +489,10 @@ export default function AddStoryWidget({ onClose }: AddStoryWidgetPropsType) {
                   data-cy="link-story-input"
                   onChange={handleLinkChange}
                   onBlur={() => {
-                    if (link?.length > 0) {
+                    // On blur, re-sanitize and update state in case of paste or autofill
+                    const sanitized = pollinateInput(link);
+                    if (link !== sanitized) setLink(sanitized);
+                    if (sanitized?.length > 0) {
                       // Sendevent({
                       //   event: GA_EVENT_NAMES.PROGRAMMING_EVENT,
                       //   value: GA_PROGRAMMING_EVENT_VALUES.ADD_LINK_TO_STORY,

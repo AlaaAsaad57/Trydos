@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-
+import ReportOrderItemIcon from "public/svg/ReportOrderItemIcon.svg";
 import TransParentLoader from "components/global/TransParentLoader";
 import {
   SelectStory,
@@ -34,15 +34,17 @@ function StoryHolder({ story, active, isPaused }: StoryHolderPropsType) {
   );
 
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showReportModal, setShowReportModal] = useState(false);
   const [loading, setLoading] = useState(false);
   const user = getUserStories();
   // check if the user is the owner of the story
   const isOwner = user?.id === story?.id;
   // Modal component
-  const DeleteModal = ({
+  const ConfirmModal = ({
     onCancel,
     onConfirm,
     loading,
+    type
   }: DeleteModalPropsType) => (
     <div
       className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-30"
@@ -53,7 +55,7 @@ function StoryHolder({ story, active, isPaused }: StoryHolderPropsType) {
       <div
         className={
           `fixed top-1/2 left-1/2 -translate-y-1/2 transition-transform duration-500 ease-in-out ` +
-          (showDeleteModal ? "-translate-x-1/2" : "-translate-x-full") +
+          (showReportModal || showDeleteModal ? "-translate-x-1/2" : "-translate-x-full") +
           " bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8 flex flex-col items-center w-[90vw] max-w-[500px]"
         }
         role="dialog"
@@ -64,10 +66,12 @@ function StoryHolder({ story, active, isPaused }: StoryHolderPropsType) {
           id="delete-modal-title"
           className="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100 regular "
         >
-          {translateFunction("Delete Story?")}
+          {type === "Delete" ?
+          translateFunction("Delete Story") : translateFunction("Report Story")}
         </h2>
         <p className="mb-6 text-gray-700 dark:text-gray-300 regular ">
-          {translateFunction("Are you sure you want to delete this story?")}
+          {type === "Delete" ?
+          translateFunction("Are you sure you want to delete this story ?") : translateFunction("Are you sure you want to report this story ?")}
         </p>
         <div className="flex gap-4 w-full justify-center min-h-[40px]">
           {loading ? (
@@ -78,7 +82,7 @@ function StoryHolder({ story, active, isPaused }: StoryHolderPropsType) {
                 className="px-4 py-2 rounded bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-400 regular "
                 onClick={onCancel}
                 tabIndex={0}
-                aria-label="Cancel delete"
+                aria-label={type === "Delete" ? "Cancel delete" : "Cancel report"}
               >
                 {translateFunction("Cancel")}
               </button>
@@ -86,7 +90,7 @@ function StoryHolder({ story, active, isPaused }: StoryHolderPropsType) {
                 className="px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-400 regular "
                 onClick={onConfirm}
                 tabIndex={0}
-                aria-label="Confirm delete"
+                aria-label={type === "Delete" ? "Confirm delete" : "Confirm report"}
               >
                 {translateFunction("Confirm")}
               </button>
@@ -111,7 +115,7 @@ function StoryHolder({ story, active, isPaused }: StoryHolderPropsType) {
       setCurrentStoryId(0);
       setNextStory(story.id);
       showSuccessNotification(
-        response?.message || translateFunction("Story deleted successfully.")
+        translateFunction(`${response?.message}`) || translateFunction("Story deleted successfully.")
       );
     } catch (err: any) {
       setShowDeleteModal(false);
@@ -121,6 +125,21 @@ function StoryHolder({ story, active, isPaused }: StoryHolderPropsType) {
       );
     }
   };
+  const handleReportStory = async () => {
+    setLoading(true);
+    try {
+      // Placeholder for future API call
+      // const storyId = story.stories[currentStoryId]?.id;
+      // await StoryServiceClass.reportStory(storyId);
+      showSuccessNotification(translateFunction("Story reported successfully."));
+      setShowReportModal(false);
+    } catch (err) {
+      showErrorNotification(translateFunction("Failed to report story."));
+      setShowReportModal(false);
+    } finally {
+      setLoading(false);
+    }
+  }
 
   return (
     <div
@@ -143,6 +162,23 @@ function StoryHolder({ story, active, isPaused }: StoryHolderPropsType) {
               <DeleteIcon className="w-[22px] h-[22px] fill-white" />
             </span>
           )}
+           {!isOwner && (
+            <span
+              className="cursor-pointer pr-5"
+              style={{
+                paddingBottom:"7px"
+              }}
+              tabIndex={0}
+              aria-label="Report story"
+              onClick={() => setShowReportModal(true)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ")
+                  setShowReportModal(true);
+              }}
+            >
+              <ReportOrderItemIcon className="w-[22px] h-[22px] fill-white" />
+            </span>
+          )}
           <span
             className="cursor-pointer"
             onClick={() => {
@@ -159,17 +195,26 @@ function StoryHolder({ story, active, isPaused }: StoryHolderPropsType) {
         </div>
       )}
       {showDeleteModal && (
-        <DeleteModal
+        <ConfirmModal
           onCancel={() => setShowDeleteModal(false)}
           onConfirm={handleDeleteStory}
           loading={loading}
+          type="Delete"
+        />
+      )}
+       {showReportModal && (
+        <ConfirmModal
+          onCancel={() => setShowReportModal(false)}
+          onConfirm={handleReportStory}
+          loading={loading}
+          type="Report"
         />
       )}
       <StoryViewer
         activeId={story.id}
         id={story.id}
         key={`${story.id}-${currentStoryId}`}
-        isPaused={showDeleteModal || !active}
+        isPaused={showDeleteModal || !active || showReportModal}
         preloadCount={0}
         onStoryStart={(e) => {
           if (active && story?.stories?.[e]) {

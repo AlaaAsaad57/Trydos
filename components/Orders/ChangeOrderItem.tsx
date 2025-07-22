@@ -4,7 +4,7 @@ import Image from "next/image";
 import ChangeOrderItemIcon from "public/svg/ChangeOrderItemIcon.svg";
 import Spinner from "components/global/Spinner";
 import { ColorList, SizeList } from "./ModifyOrderItemModal";
-import { GetImageUrl } from "utils/tinyUtils";
+import { GetImageUrl, pollinateInput } from "utils/tinyUtils";
 import { ChangeColorWidgetPropsType } from "models/componentType/ChangeColorWidgetPropsType";
 import { ChangeOrderItemPropsType } from "models/componentType/ChangeOrderItemPropsType";
 import { ChangeSizeWidgetPropsType } from "models/componentType/ChangeSizeWidgetPropsType";
@@ -427,14 +427,14 @@ export const ChangeQtyWidget = ({
           type="number"
           value={qty}
           onChange={(e) => {
-            if (parseInt(e.target.value) > qty) {
+            if (parseInt(pollinateInput(e.target.value)) > qty) {
               showErrorNotification(
                 translateFunction(
                   "You Can't Change Qty To Higher Than The Current Qty"
                 )
               );
             } else {
-              setQty(Math.max(0, parseInt(e.target.value)));
+              setQty(Math.max(0, parseInt(pollinateInput(e.target.value))));
             }
           }}
           className="flex-1 h-[40px] text-center text-[16px] font-medium text-[#1D1D1D] bg-white border-t border-b border-[#E6E6E680] focus:outline-none focus:border-[#402CDD] focus:ring-1 focus:ring-[#402CDD80] transition-all duration-200"
