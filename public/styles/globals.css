@@ -1267,3 +1267,6 @@ input[type="number"] {
 .add-address-button-m {
   bottom: calc(80px + env(safe-area-inset-bottom));
 }
+.orange-border {
+  border: 1px solid #ff6200;
+}

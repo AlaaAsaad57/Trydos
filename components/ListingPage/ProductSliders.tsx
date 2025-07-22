@@ -91,6 +91,7 @@ export function ProductPhotosSlider({
 
           <ImageSlider
             product_name={product.name}
+            slug={product.slug}
             flash_deal_end_date={product.flash_deal_end_date}
             activeColor={showedImages()}
             key={`Color Images Slider`}

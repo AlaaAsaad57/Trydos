@@ -8,6 +8,7 @@ import { ImageSliderPropsType } from "models/componentType/ImageSliderPropsType"
 function ImageSlider({
   product_name,
   activeColor,
+  slug,
   flash_deal_end_date,
 }: ImageSliderPropsType) {
   return (
@@ -20,12 +21,12 @@ function ImageSlider({
           <Image
             width={400}
             height={300}
+            id={`slug-${slug}`}
             loading="eager"
             fetchPriority="auto"
             style={{
               borderRadius: "15px",
               zIndex: "3",
-              border: flash_deal_end_date && "1px solid #FF6200",
             }}
             src={getConfiguredImage({
               src: GetImageUrl(activeColor?.images[0].file_path),

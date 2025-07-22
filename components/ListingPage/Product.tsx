@@ -5,6 +5,7 @@ import { useAppStore } from "store";
 import RedeemButton from "./RedeemButton";
 import { RoundPrice } from "utils/functions";
 import { getCookie } from "utils/cookies/cookie-manager";
+import ProductBanner from "components/products/ProductBanner";
 
 export const BuyButtonProduct = ({
   product,
@@ -207,7 +208,27 @@ export const BuyButtonProduct = ({
       }
     }
   };
-
+  useEffect(() => {
+    if (!product.flash_deal_end_date && !product?.is_redeem) return;
+    if (product?.flash_deal_end_date) {
+      document
+        ?.querySelector(`#slug-${product.slug}`)
+        ?.classList?.add("orange-border");
+      return;
+    }
+    if (product.is_redeem && shouldShowRedeem) {
+      document
+        ?.querySelector(`#slug-${product.slug}`)
+        ?.classList?.add("orange-border");
+      return;
+    }
+    if (!product.flash_deal_end_date && !shouldShowRedeem) {
+      document
+        ?.querySelector(`#slug-${product.slug}`)
+        ?.classList?.remove("orange-border");
+      return;
+    }
+  }, [shouldShowRedeem]);
   if (!isClient)
     return (
       <>
@@ -240,6 +261,11 @@ export const BuyButtonProduct = ({
     );
   return (
     <>
+      <ProductBanner
+        featured={product.featured}
+        flashDeals={product.flash_deal_end_date}
+        labels={product.label_names}
+      />
       <div className="product-footer absolute w-100 flex-row align-center max-h-[30px]">
         <div
           className={`${
