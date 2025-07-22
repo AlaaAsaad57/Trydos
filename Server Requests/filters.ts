@@ -43,6 +43,11 @@ interface FilteredProductsResponse {
     boutiques: any;
     products: Array<{
       name: string;
+      boutique: {
+        name: string;
+        slug: string;
+      };
+      description: string;
       id?: string;
       slug: string;
       flash_deal_end_date: string;

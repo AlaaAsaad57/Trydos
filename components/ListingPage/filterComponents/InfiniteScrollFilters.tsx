@@ -11,12 +11,7 @@ import { fetchFilteredProducts } from "Server Requests";
 import { useAppStore } from "store";
 import { showErrorNotification } from "store/notifications/reducer";
 import { translateFunction } from "utils/functions";
-import {
-  filtersToSearchParams,
-  FilterParams,
-  buildParamsFromFilters,
-  configureSearchParams,
-} from "utils/tinyUtils";
+import { FilterParams } from "utils/tinyUtils";
 
 interface InfiniteScrollFiltersProps {
   filterParams: FilterParams | any;
@@ -116,7 +111,6 @@ function InfiniteScrollFilters({
     if (term === "categories")
       return data?.categories?.map((s, i) => (
         <FilterItem
-          boutique={boutique}
           currency={currency}
           item={s}
           params={params}
@@ -129,7 +123,6 @@ function InfiniteScrollFilters({
     if (term === "brands")
       return data?.brands?.map((s, i) => (
         <FilterItem
-          boutique={boutique}
           currency={currency}
           item={s}
           params={params}
@@ -142,7 +135,6 @@ function InfiniteScrollFilters({
     if (term === "colors")
       return data?.colors?.map((s, i) => (
         <FilterItem
-          boutique={boutique}
           currency={currency}
           item={s}
           params={params}
@@ -155,7 +147,6 @@ function InfiniteScrollFilters({
     if (term === "sizes")
       return data?.sizes?.map((s, i) => (
         <FilterItem
-          boutique={boutique}
           currency={currency}
           item={s}
           params={params}
@@ -168,7 +159,6 @@ function InfiniteScrollFilters({
     if (term === "prices")
       return data?.prices?.map((s, i) => (
         <FilterItem
-          boutique={boutique}
           currency={currency}
           item={s}
           params={params}

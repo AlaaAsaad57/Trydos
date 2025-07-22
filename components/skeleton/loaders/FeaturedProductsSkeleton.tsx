@@ -4,7 +4,7 @@ import { translateFunction } from "utils/functions";
 
 function FeaturedProductsSkeleton({ lang }) {
   return (
-    <div className="flex-col">
+    <div className="flex-col px-[12px] flex items-start max-w-full w-full">
       <div className="flex-row h-[50px] w-full max-w-[1365px] px-[10px] items-center shadow-sm rounded-[15px] bg-[#f3f3f3] regular text-[#5d5d5d]">
         <span>
           <svg
@@ -22,32 +22,21 @@ function FeaturedProductsSkeleton({ lang }) {
         </span>
       </div>
       <div
-        className="featured-products-container mt-[12px] flex-row justify-start items-center max-w-[1365px] h-[150px] py-[5px] "
+        className="featured-products-container py-[10px] gap-[8px] w-full mt-[12px] flex-row justify-start items-center max-w-[1365px] h-auto pb-[8px] "
         id="featured-products-container"
-        data-cy="featured-products-container"
       >
-        {Array.from({ length: 5 })?.map((product, key) => (
+        {Array.from({ length: 6 })?.map((product, key) => (
           <div
-            className="max-h-[200px] max-w-[150px] relative mx-[10px] shadow-md rounded-md"
-            data-cy="countProduct"
+            className="max-h-[377px] relative"
+            data-cy="product-card"
             key={key}
           >
             <div
               suppressHydrationWarning
-              className="product-container max-h-[200px] max-w-[150px] align-center flex-col relative"
+              className="product-container  align-center flex-col relative pb-[10px]"
+              data-cy="product_link"
             >
-              <Skeleton className="min-w-full min-h-[140px] max-h-[140px]" />
-              <div className="product-body w-100 flex-col align-start justify-start max-h-[50px] min-h-[50px]">
-                <p
-                  className="prouct-details overflow-hidden w-100 regular-text color-dark-gray f-10"
-                  data-cy="productName"
-                >
-                  <Skeleton className="" width={50} height={10} />
-                </p>
-              </div>
-              <div className="product-footer w-100 flex-row align-center max-h-[30px]">
-                <div className={`price-label flex`}></div>
-              </div>
+              <Skeleton width={200} height={377} borderRadius={15} />
             </div>
           </div>
         ))}

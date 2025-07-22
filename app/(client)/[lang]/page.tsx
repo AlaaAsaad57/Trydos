@@ -15,7 +15,12 @@ import FlashDealsProducts from "components/Server/FlashDealsProducts";
 import { getHomeMetadata, GetStructuredData } from "./MetaData";
 
 import { HomePageProps } from "models/componentType/HomePagePropsType";
-import { GetHomeData } from "utils/pagesDataRequests/HomePageData";
+import {
+  fetchBoutiques,
+  fetchCurrency,
+  fetchFilteredProducts,
+  fetchMainCategories,
+} from "Server Requests";
 
 export async function generateMetadata({ params }) {
   try {
@@ -59,13 +64,6 @@ async function StructuredDataScript({ params }) {
 }
 
 async function HomePage({ params }: HomePageProps) {
-  const {
-    boutiqueData,
-    categoriesData,
-    currencyData,
-    featuredData,
-    flashDealsData,
-  } = await GetHomeData(params);
   return (
     <>
       <Suspense fallback={null}>
@@ -76,10 +74,9 @@ async function HomePage({ params }: HomePageProps) {
         fallback={<MobileNavigationSkeleton />}
         key={`Navbar ${params.lang}`}
       >
-        <NavbarServer
+        <MainCategoriesNavbar
           lang={params.lang}
-          mainCategory={params?.mainCategory}
-          categoriesData={categoriesData}
+          mainCategory={params.mainCategory}
         />
       </Suspense>
 
@@ -91,18 +88,10 @@ async function HomePage({ params }: HomePageProps) {
       </Suspense>
 
       <Suspense fallback={<FeaturedProductsSkeleton lang={params.lang} />}>
-        <FeatureProducts
-          currencyData={currencyData}
-          fetauredProductsData={featuredData}
-          lang={params.lang}
-        />
+        <FeaturedProductWrapper lang={params.lang} />
       </Suspense>
       <Suspense fallback={<FeaturedProductsSkeleton lang={params.lang} />}>
-        <FlashDealsProducts
-          currencyData={currencyData}
-          flashDealsProducts={flashDealsData}
-          lang={params.lang}
-        />
+        <FlashProductWrapper lang={params.lang} />
       </Suspense>
       <Suspense fallback={<></>} key={`Home ${params.lang}`}>
         <Home />
@@ -111,10 +100,84 @@ async function HomePage({ params }: HomePageProps) {
         fallback={<OfferListSkeleton />}
         key={`OfferList ${params.lang}`}
       >
-        <OfferListServer boutiquesData={boutiqueData} params={params} />
+        <BoutiquesListWrapper params={params} />
       </Suspense>
     </>
   );
 }
 
 export default HomePage;
+// Main Categories Bar
+async function MainCategoriesNavbar({ lang, mainCategory }) {
+  const [country, language] = lang?.split("-");
+  let mainCategories = await fetchMainCategories(language, country);
+  return (
+    <NavbarServer
+      lang={lang}
+      mainCategory={mainCategory}
+      categoriesData={mainCategories}
+    />
+  );
+}
+// Featured Products
+async function FeaturedProductWrapper({ lang }) {
+  const [country, language] = lang?.split("-");
+  let [data, currencyData] = await Promise.all([
+    fetchFilteredProducts(
+      language,
+      country,
+      [],
+      "false",
+      "true",
+      null,
+      null,
+      true,
+      false
+    ),
+    fetchCurrency(language, country),
+  ]);
+  return (
+    <FeatureProducts
+      currencyData={currencyData?.data?.currency}
+      fetauredProductsData={data}
+      lang={lang}
+    />
+  );
+}
+// FlasDeals Products
+async function FlashProductWrapper({ lang }) {
+  const [country, language] = lang?.split("-");
+  let [data, currencyData] = await Promise.all([
+    fetchFilteredProducts(
+      language,
+      country,
+      [],
+      "false",
+      "true",
+      null,
+      null,
+      false,
+      true
+    ),
+    fetchCurrency(language, country),
+  ]);
+  return (
+    <FlashDealsProducts
+      currencyData={currencyData?.data?.currency}
+      flashDealsProducts={data}
+      lang={lang}
+    />
+  );
+}
+
+async function BoutiquesListWrapper({ params }) {
+  const [country, language] = params.lang.split("-");
+  let boutiqueData = await fetchBoutiques(
+    language,
+    country,
+    params.mainCategory || "",
+    null,
+    10
+  );
+  return <OfferListServer boutiquesData={boutiqueData} params={params} />;
+}

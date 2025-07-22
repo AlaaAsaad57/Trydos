@@ -10,10 +10,26 @@ import { ListingSkeletonPropsType } from "models/componentType/ListingSkeletonPr
 function ListingSkeleton({
   forProducts,
   withBanners,
-
+  justFilters,
   boutique,
   isForSearch,
 }: ListingSkeletonPropsType) {
+  if (justFilters) {
+    return (
+      <div className={`w-full flex-row items-center pl-[15px] mt-[20px]`}>
+        {Array.from({ length: 20 }).map((_, index) => (
+          <div key={index} className="filter-option w-[70px] h-[70px]">
+            <Skeleton
+              width={70}
+              height={70}
+              borderRadius={"50%"}
+              className="ml-2"
+            />
+          </div>
+        ))}
+      </div>
+    );
+  }
   return (
     <>
       {forProducts !== true && withBanners && (

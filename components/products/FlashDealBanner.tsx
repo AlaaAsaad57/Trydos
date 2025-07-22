@@ -69,7 +69,7 @@ function FlashDealBanner({ end_data }: FlashDealBannerProps) {
       <g
         id="Mask_Group_825"
         data-name="Mask Group 825"
-        clip-path="url(#clip-path)"
+        clipPath="url(#clip-path)"
       >
         <path
           id="flash"

@@ -9,7 +9,7 @@ export interface ProductListServerPropsType {
   };
   searchParams?: URLSearchParams;
   products: ProductData[];
-  currency: Currency;
+  currency: any;
   offset: number;
   colors: string[];
   isFeatured?: boolean;

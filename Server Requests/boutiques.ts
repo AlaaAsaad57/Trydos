@@ -181,7 +181,7 @@ export async function fetchBoutiqueDetails(
         }
       );
       return {
-        name: "listing",
+        name: "NOT_FOUND",
         banners: null,
         icon: null,
         slug: "listing",
@@ -190,6 +190,11 @@ export async function fetchBoutiqueDetails(
     return response.data.data;
   } catch (error) {
     console.error("Error fetching boutique details:", error);
-    throw error;
+    return {
+      name: "NOT_FOUND",
+      banners: null,
+      icon: null,
+      slug: null,
+    };
   }
 }
