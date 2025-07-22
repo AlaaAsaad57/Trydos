@@ -32,6 +32,7 @@ function BuyButton({
         onClick={(e) => {
           e.preventDefault();
           buy();
+          onExpire();
         }}
       >
         {shouldShowRedeem && (
