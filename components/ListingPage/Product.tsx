@@ -60,7 +60,10 @@ export const BuyButtonProduct = ({
       if (product.offer_price >= 0 && product.offer_price !== product.price) {
         return (
           <>
-            <span className="old-price relative f-12 text-[#3c3c3c] light-text">
+            <span
+              className="old-price relative f-12 text-[#3c3c3c] light-text"
+              data-cy="product-price"
+            >
               {RoundPrice({
                 num: product?.price,
                 rate: currency?.exchange_rate,
@@ -84,7 +87,10 @@ export const BuyButtonProduct = ({
                 />
               </svg>
             </span>
-            <span className="old-price ml-[3px] relative bold-text color-dark-gray flex f-12">
+            <span
+              className="old-price ml-[3px] relative bold-text color-dark-gray flex f-12"
+              data-cy="product-offer-price"
+            >
               {product?.offer_price >= 0
                 ? RoundPrice({
                     num: product?.offer_price,
@@ -120,7 +126,10 @@ export const BuyButtonProduct = ({
         );
       } else {
         return (
-          <span className="old-price ml-[3px] bold-text color-dark-gray flex f-12">
+          <span
+            className="old-price ml-[3px] bold-text color-dark-gray flex f-12"
+            data-cy="product-redeem-price"
+          >
             {RoundPrice({
               num: product?.price,
               rate: currency?.exchange_rate,
@@ -153,7 +162,10 @@ export const BuyButtonProduct = ({
       if (product.offer_price >= 0 && product?.offer_price !== product.price) {
         return (
           <>
-            <span className="old-price relative f-12 text-[#3c3c3c] light-text">
+            <span
+              className="old-price relative f-12 text-[#3c3c3c] light-text"
+              data-cy="product-price"
+            >
               {RoundPrice({
                 num: product?.price,
                 rate: currency?.exchange_rate,
@@ -177,7 +189,10 @@ export const BuyButtonProduct = ({
                 />
               </svg>
             </span>
-            <span className="new-price bold-text color-dark-gray flex f-12">
+            <span
+              className="new-price bold-text color-dark-gray flex f-12"
+              data-cy="product-offer-price"
+            >
               {product?.offer_price >= 0
                 ? RoundPrice({
                     num: product?.offer_price,
@@ -196,7 +211,10 @@ export const BuyButtonProduct = ({
         );
       } else {
         return (
-          <span className="old-price relative f-12 bold-text color-dark-gray">
+          <span
+            className="old-price relative f-12 bold-text color-dark-gray"
+            data-cy="product-price"
+          >
             {RoundPrice({
               num: product?.price,
               rate: currency?.exchange_rate,
