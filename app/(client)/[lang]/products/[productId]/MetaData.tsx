@@ -22,11 +22,12 @@ export async function generateProductMetaData({
       revalidate: 3600,
       tags: ["product-meta", params.productId],
     });
+    console.log(response);
     const getProductMetaData = response.data;
     if (response.error) {
       throw new Error(response.error);
     }
-    const { data: product } = await getProductMetaData.json();
+    let product = response.data;
 
     let title = `${product?.name}`;
     if (searchParams.color) {
