@@ -107,7 +107,7 @@ const LuckyDrawTimer = ({
       <g
         id="Mask_Group_827"
         data-name="Mask Group 827"
-        clip-path="url(#clip-path)"
+        clipPath="url(#clip-path)"
       >
         <g id="timer-2">
           <g id="Group_14275" data-name="Group 14275">

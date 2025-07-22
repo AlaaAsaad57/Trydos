@@ -1,12 +1,13 @@
 import NextLink from "components/global/NextLink";
-import React, { Suspense } from "react";
-import { BuyButtonProduct, ProductPhotosSlider } from "../ListingPage/Product";
-import Image from "next/image";
+import React from "react";
+import { BuyButtonProduct } from "../ListingPage/Product";
 
 import ProductBanner from "components/products/ProductBanner";
 import MangoIcon from "public/svg/listing/MangoIcon.svg";
 import VerifiedIcon from "public/svg/listing/VerifiedIcon.svg";
 import { ProductLabelsAnimated } from "components/products/ProductLabelsAnimated";
+import { getCookie } from "utils/cookies/cookie-manager";
+import { ProductPhotosSlider } from "components/ListingPage/ProductSliders";
 
 function ProductCard({
   product,
@@ -16,6 +17,16 @@ function ProductCard({
   language = "en",
   Sliders = true,
 }) {
+  const shouldShowRedeem = () => {
+    if (typeof window === "undefined") return false;
+    let redeemed_products_ids = getCookie<any>("redemed_ids");
+
+    if (redeemed_products_ids) {
+      let parsed_redemed_ids = redeemed_products_ids;
+      return !parsed_redemed_ids.find((s) => s.id === product.product_id);
+    }
+    return true;
+  };
   return (
     <div
       className="max-h-[377px] relative"
@@ -49,17 +60,17 @@ function ProductCard({
           flashDeals={product.flash_deal_end_date}
           labels={product.label_names}
         />
-        <Suspense fallback={<div className="min-w-full min-h-[290px]" />}>
-          <ProductPhotosSlider
-            Sliders={Sliders}
-            product={{
-              ...product,
-              flash_deal_end_date:
-                product.flash_deal_end_date || product.is_redeem,
-            }}
-            priority={true}
-          />
-        </Suspense>
+        <ProductPhotosSlider
+          Sliders={Sliders}
+          product={{
+            ...product,
+            flash_deal_end_date:
+              product.flash_deal_end_date ||
+              (shouldShowRedeem() && product.is_redeem),
+          }}
+          priority={true}
+        />
+
         <div className="product-body flex-1 mt-[8px] w-100 flex-col align-start justify-start max-h-[60px] min-h-[30px]">
           <p
             className="prouct-details overflow-hidden w-100 regular-text text-[#3c3c3c] text-[10px] max-h-[25px]"

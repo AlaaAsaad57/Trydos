@@ -13,7 +13,7 @@ import NextLink from "components/global/NextLink";
 import VerificationIcon from "public/svg/listing/VerificationIcon.svg";
 import TopStarIcon from "public/svg/listing/TopStar.svg";
 import Image from "next/image";
-import BorderImage from "components/ListingPage/BorderImage";
+
 import "styles/listing-components.css";
 import Skeleton from "react-loading-skeleton";
 import { getBoutiqueMetadata } from "./Metadata";
@@ -235,49 +235,7 @@ const BouqiuePhotoSlider = ({ banners }) => {
           banners?.length > 1 && "justify-start"
         } offer-slider-container`}
       >
-        <CarouselContainer>
-          {banners &&
-            banners?.map((banner, index) => (
-              <div
-                data-cy="embla__slide_embla"
-                className="embla__slide"
-                key={index}
-              >
-                <div
-                  data-cy="offer_slide_item_embla"
-                  className="offer-slide-item"
-                  style={{ width: "100%" }}
-                  key={index}
-                >
-                  <div data-cy="image_offer_image" className="image-offer">
-                    <div
-                      data-cy="image_inner_shadow_image"
-                      className="image-inner-shadow"
-                      style={{ height: "100%" }}
-                    />
-
-                    <Image
-                      data-cy="image_image"
-                      loading={"eager"}
-                      fetchPriority={"high"}
-                      style={{ borderRadius: "15px" }}
-                      className="OfferImage object-cover"
-                      src={getConfiguredImage({
-                        src: GetImageUrl(banner.file_path),
-                        height: 400,
-                        c_pad: true,
-                      })}
-                      width={380}
-                      height={135}
-                      alt="offer"
-                    />
-
-                    <BorderImage />
-                  </div>
-                </div>
-              </div>
-            ))}
-        </CarouselContainer>
+        <CarouselContainer banners={banners}></CarouselContainer>
       </div>
     </div>
   );

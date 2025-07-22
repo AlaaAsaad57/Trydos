@@ -1,23 +1,13 @@
-"use client";
 import React from "react";
-import PointsSlider from "./PointsSlider";
+
 import { getConfiguredImage } from "utils/functions";
 import Image from "node_modules/next/image";
 import { GetImageUrl } from "utils/tinyUtils";
 import { ImageSliderPropsType } from "models/componentType/ImageSliderPropsType";
-import { NormalSlider } from "utils/Slider";
 
 function ImageSlider({
-  renderVar,
   product_name,
-  active,
-  isColorSelected,
-  setActiveImage,
   activeColor,
-  isActiveTopSlide,
-  setActiveTopSlide,
-  setColor,
-  priority,
   flash_deal_end_date,
 }: ImageSliderPropsType) {
   return (

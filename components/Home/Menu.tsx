@@ -105,16 +105,15 @@ const Menu: React.FC<MenuProps> = ({ user, setMenuOpen }) => {
     //   value: GA_CLICK_EVENT_VALUES.LOGOUT_BUTTON,
     // });
     // localStorage.clear();
-
+    if (loading) return;
     setLoading(true);
-
-    deleteCookie(COOKIE_NAMES.USER_DATA);
     deleteCookie(COOKIE_NAMES.USER_CHAT);
     deleteCookie(COOKIE_NAMES.USER_STORIES);
     deleteCookie(COOKIE_NAMES.CHAT_TOKEN);
     deleteCookie(COOKIE_NAMES.STORIES_TOKEN);
     deleteCookie(COOKIE_NAMES.MARKET_TOKEN);
     deleteCookie(COOKIE_NAMES.DEVICE_TOKEN);
+    deleteCookie(COOKIE_NAMES.USER_DATA);
     const { messaging } = await import("utils/firebaseInitv1");
     const { deleteToken } = await import("firebase/messaging");
     try {
@@ -123,6 +122,7 @@ const Menu: React.FC<MenuProps> = ({ user, setMenuOpen }) => {
     window.location.reload();
   };
   const shouldShowLogout = () => {
+    if (loading) return true;
     if (auth.getUser()) {
       if (auth.getUser().phone === "0" || !auth.getUser().phone) {
         return false;
@@ -132,6 +132,7 @@ const Menu: React.FC<MenuProps> = ({ user, setMenuOpen }) => {
     }
     return false;
   };
+
   return (
     <>
       <div

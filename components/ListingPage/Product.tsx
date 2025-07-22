@@ -1,55 +1,11 @@
 "use client";
-import React, { useCallback, useEffect, useReducer, useState } from "react";
-import ImageSlider from "./ImageSlider";
+import React, { useCallback, useEffect, useState } from "react";
 import BuyButton from "./BuyButton";
-import CoverEffectSlider from "./CoverEffectSlider";
 import { useAppStore } from "store";
-import { ProductPhotosSliderPropsType } from "models/componentType/ProductPhotosSliderPropsType";
 import RedeemButton from "./RedeemButton";
-import Image from "node_modules/next/image";
-import { getConfiguredImage, RoundPrice } from "utils/functions";
-import { GetImageUrl } from "utils/tinyUtils";
+import { RoundPrice } from "utils/functions";
 import { getCookie } from "utils/cookies/cookie-manager";
-import BottomSheet from "components/global/BottomSheet";
 
-function ProductReducer(state, { type, payload }) {
-  if (type === "setActiveTopSlide") {
-    return {
-      ...state,
-      isActiveTopSlide: payload,
-    };
-  }
-  if (type === "setActiveColor") {
-    return {
-      ...state,
-      activeColor: { ...payload, index: payload.index || 0 },
-      renderVar: !state.renderVar,
-    };
-  }
-  if (type === "setActiveImage") {
-    return {
-      ...state,
-      activeColor: payload,
-      renderVar: !state.renderVar,
-    };
-  }
-  if (type === "setColor") {
-    return {
-      ...state,
-      isColorSelected: payload,
-    };
-  }
-}
-const getIndex = (product, productState) => {
-  let index = 0;
-  product.sync_color_images
-    .filter((color) => color.images.length > 0)
-    .map((co, ind) => {
-      if (co.color_name === productState?.activeColor.color_name) index = ind;
-    });
-
-  return index;
-};
 export const BuyButtonProduct = ({
   product,
   params,
@@ -71,12 +27,10 @@ export const BuyButtonProduct = ({
     return true;
   }, []);
   useEffect(() => {
-    setTimeout(() => {
-      if (!shouldShowRedeem) {
-        setIsClient(true);
-        setShouldShowRedeem(shouldShowRedeemFunc());
-      }
-    }, 1000);
+    if (!shouldShowRedeem) {
+      setIsClient(true);
+      setShouldShowRedeem(shouldShowRedeemFunc());
+    }
   }, []);
 
   const addToCart = () => {
@@ -254,7 +208,36 @@ export const BuyButtonProduct = ({
     }
   };
 
-  if (!isClient) return <></>;
+  if (!isClient)
+    return (
+      <>
+        <div className="product-footer absolute w-100 flex-row align-center max-h-[30px]">
+          <div
+            className={`${
+              params.lang.split("-")[1] === "ar" && "dir-rtl"
+            } price-label flex`}
+          >
+            {RenderPrice()}
+            <span className="currency-label light-text color-dark-gray flex f-10">
+              {currency?.symbol}
+            </span>
+          </div>
+        </div>
+        <BuyButton
+          onExpire={() => {
+            setShouldShowRedeem(false);
+          }}
+          id={product.product_id}
+          redeem_price={product.redeem_price}
+          currency={currency}
+          shouldShowRedeem={shouldShowRedeem && product?.is_redeem}
+          buy={(e) => {
+            // @ts-ignore
+            addToCart();
+          }}
+        />
+      </>
+    );
   return (
     <>
       <div className="product-footer absolute w-100 flex-row align-center max-h-[30px]">
@@ -290,137 +273,3 @@ export const BuyButtonProduct = ({
     </>
   );
 };
-export function ProductPhotosSlider({
-  product,
-  priority,
-  Sliders = true,
-}: ProductPhotosSliderPropsType) {
-  const [productState, dispatch] = useReducer(ProductReducer, {
-    isActiveTopSlide: false,
-    activeColor:
-      product.sync_color_images &&
-      product.sync_color_images[0]?.images?.length > 0
-        ? product.sync_color_images[0]
-        : {
-            images: product.images,
-          },
-    // @ts-ignore
-    activeImage:
-      product?.sync_color_images &&
-      product?.sync_color_images[0]?.images?.length > 0
-        ? // @ts-ignore
-          product?.sync_color_images[0]?.images[0]?.file_path
-        : product.images?.[0].file_path,
-    isColorSelected: false,
-    activeImageIndex: 0,
-    renderVar: false,
-  });
-  const { setColorBottomSheet } = useAppStore();
-  if (!Sliders) {
-    return (
-      <React.Fragment>
-        {/* <BorderImage isBig={true} /> */}
-        <div className="inset-shadow-img w-[200px] h-[290px] rounded-15 absolute" />
-
-        <Image
-          width={400}
-          height={300}
-          loading="eager"
-          fetchPriority="auto"
-          src={getConfiguredImage({
-            src: GetImageUrl(product.images[0].file_path),
-            width: 400,
-            height: 400,
-          })}
-          style={{
-            border: product.flash_deal_end_date && "1px solid #FF6200",
-          }}
-          key={`${product.name}-${0}`}
-          className="w-[200px] h-[290px] border-[#d3d3d387] border-[1px] rounded-15 z-10"
-          alt={product.name || "alt"}
-        />
-      </React.Fragment>
-    );
-  }
-  return (
-    <>
-      <div
-        className="product-photos max-h-[290px] overflow-visible w-100 justify-start align-center flex-col"
-        style={{
-          position: !productState?.isActiveTopSlide ? "static" : "absolute",
-          opacity: !productState?.isActiveTopSlide ? "1" : "0",
-          zIndex: !productState?.isActiveTopSlide ? "4" : "1",
-        }}
-      >
-        <div className={`product-container-slider w-full relative`}>
-          {/* {
-            product.sync_color_images &&
-            productState?.isColorSelected &&
-            !productState?.isActiveTopSlide && (
-              <ColorSlider
-                product_name={product.name}
-                priority={priority}
-                active={
-                  productState?.isColorSelected &&
-                  !productState?.isActiveTopSlide
-                }
-                activeColor={productState?.activeColor}
-                colors={product.sync_color_images?.filter(
-                  (color) => color.images.length > 0
-                )}
-                getIndex={getIndex(product, productState)}
-                setActiveColor={(e) =>
-                  dispatch({ type: "setActiveImage", payload: e })
-                }
-              />
-            )} */}
-
-          <ImageSlider
-            priority={priority}
-            product_name={product.name}
-            flash_deal_end_date={product.flash_deal_end_date}
-            renderVar={productState?.renderVar}
-            active={
-              !productState?.isColorSelected && !productState?.isActiveTopSlide
-            }
-            isActiveTopSlide={productState?.isActiveTopSlide}
-            setActiveTopSlide={(e) =>
-              dispatch({ type: "setActiveTopSlide", payload: e })
-            }
-            setColor={(e) => dispatch({ type: "setColor", payload: e })}
-            activeColor={productState?.activeColor}
-            isColorSelected={productState?.isColorSelected}
-            key={productState?.activeColor?.color_name}
-            setActiveImage={(e) =>
-              dispatch({ type: "setActiveImage", payload: e })
-            }
-          />
-
-          {product.sync_color_images?.length > 0 &&
-            product.sync_color_images.filter((s) => s.images.length > 0)
-              .length > 0 && (
-              <>
-                <CoverEffectSlider
-                  getIndex={getIndex(product, productState)}
-                  priority={priority}
-                  product_name={product.name}
-                  active={!productState?.isActiveTopSlide}
-                  setColor={(e) => {
-                    setColorBottomSheet(product);
-                  }}
-                  isColorSelected={productState?.isColorSelected}
-                  activeColor={productState?.activeColor}
-                  setActiveColor={(e) =>
-                    dispatch({ type: "setActiveColor", payload: e })
-                  }
-                  images={product.sync_color_images?.filter(
-                    (color) => color.images.length > 0
-                  )}
-                />
-              </>
-            )}
-        </div>
-      </div>
-    </>
-  );
-}

@@ -1,6 +1,5 @@
 export interface CoverEffectSliderPropsType {
-  isColorSelected: boolean;
-  setColor: Function;
+  product: any;
   images: {
     color_name: string;
     images: {
@@ -9,13 +8,4 @@ export interface CoverEffectSliderPropsType {
   }[];
   product_name: string;
   priority: boolean;
-  active: boolean;
-  activeColor: {
-    color_name: string;
-    index: number;
-    images: string[];
-  };
-  setActiveColor: Function;
-  setActiveImage?: Function;
-  getIndex: number;
 }
