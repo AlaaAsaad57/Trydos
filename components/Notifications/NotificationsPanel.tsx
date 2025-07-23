@@ -78,11 +78,13 @@ const NotificationsPanel: React.FC<NotificationsPanelProps> = ({
     setLoading(true);
     try {
       const response = await fetchNotifications(page);
-
-      if (response.isSuccessful && response.hasContent) {
+      // @ts-ignore
+      if (response.isSuccessful && response.hasContent && response.success) {
         setNotifications((prev) => [...prev, ...response.data.data]);
         setHasMore(!!response.data.next_page_url);
         setPage((prev) => prev + 1);
+      } else {
+        throw new Error(response.message);
       }
     } catch (error) {
       console.error("Error loading notifications:", error);

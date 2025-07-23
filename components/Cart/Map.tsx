@@ -37,7 +37,9 @@ const Map = ({
         server: "elastic",
         method: "GET",
       });
-
+      if (!res.success) {
+        throw new Error(res.message);
+      }
       setCordinates(res.country.boundary.coordinates);
       setLoading(false);
     } catch (e) {

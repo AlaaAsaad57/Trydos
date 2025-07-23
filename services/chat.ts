@@ -142,6 +142,11 @@ class ChatService {
         server: "chat",
       });
 
+      // @ts-ignore
+      if (!response.success) {
+        throw new Error(response.message);
+      }
+
       setChats(response.data.channels, response.data.pinned_channels);
       const { db } = await import("../utils/firebaseInitv1");
       let chats = [...response.data.channels, ...response.data.pinned_channels];

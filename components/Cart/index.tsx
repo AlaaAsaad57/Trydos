@@ -138,14 +138,21 @@ function CartContainer({ close, toOrders }: CartContainerPropsType) {
   const ProductDetails = product;
   const updateDataForProduct = async (slug) => {
     if (params?.productId === slug) {
-      let response: QuantityDetailsProductApi = await fetchData({
-        url: "/web/product/qtyPriceDetails" + `/${slug}`,
-        reqTitle: "Get Product",
-        method: "GET",
-        server: "market",
-      });
-
-      getProductDetailsForCart(response.data);
+      try {
+        let response: QuantityDetailsProductApi = await fetchData({
+          url: "/web/product/qtyPriceDetails" + `/${slug}`,
+          reqTitle: "Get Product",
+          method: "GET",
+          server: "market",
+        });
+        // @ts-ignore
+        if (!response.success) {
+          throw new Error(response.message);
+        }
+        getProductDetailsForCart(response.data);
+      } catch (err) {
+        // Handle error as needed
+      }
     }
   };
   const router = useRouter();
@@ -1856,7 +1863,7 @@ const QuantutyInput = ({
         server: "market",
         body: JSON.stringify({ key: id, quantity: quantity }),
       });
-      if (a.data.status === 0) {
+      if (a.data.status === 0 && !a.success) {
         throw new Error(a.data.message);
       } else {
         updateData();

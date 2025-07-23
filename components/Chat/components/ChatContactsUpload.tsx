@@ -64,7 +64,7 @@ function ChatContactsUpload() {
         map.set(contact.mobile_phone, contact.name);
       });
       // Upload contacts with progress tracking
-      await fetchData({
+      let res =   await fetchData({
         url: "/api/v1/users/save_contacts",
         server: "chat",
         method: "POST",
@@ -72,6 +72,9 @@ function ChatContactsUpload() {
           contacts: [...ContactsData, ...formattedContacts],
         }),
       });
+      if (!res.success) {
+        throw new Error(res.message);
+      }
       await getContacts();
       setUploadProgress(100);
       setTimeout(() => {
@@ -119,7 +122,7 @@ function ChatContactsUpload() {
       ];
 
       // Upload contact with progress tracking
-      await fetchData({
+     let res = await fetchData({
         url: "/api/v1/users/save_contacts",
         server: "chat",
         method: "POST",
@@ -127,7 +130,9 @@ function ChatContactsUpload() {
           contacts: [...ContactsData, ...formattedContact],
         }),
       });
-
+      if (!res.success) {
+        throw new Error(res.message);
+      }
       await getContacts();
       setUploadProgress(100);
       setTimeout(() => {

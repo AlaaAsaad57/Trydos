@@ -5,7 +5,7 @@ export const LOG_IN_STORIES = "/api/v1/users/login";
 export const REGISTER_DEVICE_URL = "/auth/register-guest";
 export const CUSTOMER_INFO_URL = "/customer/info";
 export const FIREBASE_SETTINGS_URL =
-  "/firebase_device_tokens/my_firebase_settings";
+  "/firebase_device_tokens/my_firebase_settingsss";
 
 export const SEND_OTP = "/auth/phone/send_otp";
 

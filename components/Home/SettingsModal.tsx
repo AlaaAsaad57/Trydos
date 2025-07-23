@@ -90,26 +90,38 @@ const SettingsModal: React.FC<SettingsModalPropsType> = ({ onClose, lang }) => {
   const InitTopics = async () => {
     setLoading(true);
     setLoadingTopics(true);
-    let response = await fetchData({
-      url: FIREBASE_SETTINGS_URL,
-      reqTitle: "get firebase settings request",
-      server: "market",
-      method: "GET",
-    });
-    let firebase_settings = response?.data?.firebase_settings;
-    setFBSetting(firebase_settings);
-    setSelectValue(firebase_settings?.notification_frequency || "");
-    if (firebase_settings.subscribed_topics) {
-      setTopics(firebase_settings.subscribed_topics.map((s) => s.topic));
-    }
+    try {
+      let response = await fetchData({
+        url: FIREBASE_SETTINGS_URL,
+        reqTitle: "get firebase settings request",
+        server: "market",
+        method: "GET",
+      });
+      // @ts-ignore
+      if (!response.success) {
+        throw new Error(response.message);
+      }
+      let firebase_settings = response?.data?.firebase_settings;
+      setFBSetting(firebase_settings);
+      setSelectValue(firebase_settings?.notification_frequency || "");
+      if (firebase_settings.subscribed_topics) {
+        setTopics(firebase_settings.subscribed_topics.map((s) => s.topic));
+      }
 
-    if (firebase_settings.unsubscribed_topics) {
-      setUnsubscribedTopics(
-        firebase_settings.unsubscribed_topics.map((s) => s.topic)
-      );
+      if (firebase_settings.unsubscribed_topics) {
+        setUnsubscribedTopics(
+          firebase_settings.unsubscribed_topics.map((s) => s.topic)
+        );
+      }
+    } catch (err) {
+      console.error("the error is :", err);
+      setFBSetting(null);
+      setSelectValue("");
+      setTopics([]);
+    } finally {
+      setLoading(false);
+      setLoadingTopics(false);
     }
-    setLoadingTopics(false);
-    setLoading(false);
   };
 
   useEffect(() => {
@@ -128,7 +140,7 @@ const SettingsModal: React.FC<SettingsModalPropsType> = ({ onClose, lang }) => {
         let token = localStorage.getItem("FB-DEVICE-TOKEN");
 
         if (token) {
-          await fetchData({
+          let res = await fetchData({
             url: "/firebase_device_tokens/unsubscribe_topic",
             body: JSON.stringify({
               topic: topic.replace(/_[a-z]{2}_[a-z]{2}$/, ""),
@@ -137,13 +149,16 @@ const SettingsModal: React.FC<SettingsModalPropsType> = ({ onClose, lang }) => {
             method: "POST",
             server: "market",
           });
+          if (!res.success) {
+          throw new Error(res.message);
+          }
           const updatedTopics = topics.filter((t) => t !== topic);
           const updatedUnsubscribedTopics = [...unsubscribedTopics, topic];
 
           setTopics(updatedTopics);
           setUnsubscribedTopics(updatedUnsubscribedTopics);
         } else {
-          console.error("Failed to unsubscribe from topic");
+          console.error("Failed to unsubscribe from topic" );
         }
       } catch (error) {
         console.error("Error unsubscribing from topic:", error);
@@ -160,7 +175,7 @@ const SettingsModal: React.FC<SettingsModalPropsType> = ({ onClose, lang }) => {
         let token = localStorage.getItem("FB-DEVICE-TOKEN");
 
         if (token) {
-          await fetchData({
+          let res = await fetchData({
             url: "/firebase_device_tokens/subscribe_topic",
             body: JSON.stringify({
               topic: topic.replace(/_[a-z]{2}_[a-z]{2}$/, ""),
@@ -169,6 +184,10 @@ const SettingsModal: React.FC<SettingsModalPropsType> = ({ onClose, lang }) => {
             method: "POST",
             server: "market",
           });
+            // @ts-ignore
+          if (!res.success) {
+          throw new Error(res.message);
+          }
           const updatedTopics = [...topics, topic];
           const updatedUnsubscribedTopics = unsubscribedTopics.filter(
             (t: string) => t !== topic

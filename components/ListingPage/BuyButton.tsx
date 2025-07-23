@@ -94,7 +94,7 @@ const LuckyDrawTimer = ({
       viewBox="0 0 11 11"
     >
       <defs>
-        <clipPath id="clip-path">
+        <clipPath id="clipPath">
           <rect
             id="Rectangle_4644"
             data-name="Rectangle 4644"
@@ -107,7 +107,7 @@ const LuckyDrawTimer = ({
       <g
         id="Mask_Group_827"
         data-name="Mask Group 827"
-        clip-path="url(#clip-path)"
+        clipPath="url(#clipPath)"
       >
         <g id="timer-2">
           <g id="Group_14275" data-name="Group 14275">

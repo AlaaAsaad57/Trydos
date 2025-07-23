@@ -421,14 +421,23 @@ export const getCart = async ({ callback }) => {
   const deviceToken = getCookie<string>(COOKIE_NAMES.DEVICE_TOKEN);
   const marketToken = getCookie<string>(COOKIE_NAMES.MARKET_TOKEN);
   if (!deviceToken && !marketToken) return { cart: [] };
-  let response: CartResponse = await fetchData({
-    url: "/cart/cart_shipping",
-    reqTitle: "Cart Request",
-    method: "GET",
-    server: "market",
-  });
-  initCart(response.data);
-  return response.data;
+  try {
+    let response: CartResponse = await fetchData({
+      url: "/cart/cart_shipping",
+      reqTitle: "Cart Request",
+      method: "GET",
+      server: "market",
+    });
+    // @ts-ignore
+    if (!response.success) {
+      throw new Error(response.message);
+    }
+    initCart(response.data);
+    return response.data;
+  } catch (err) {
+    if (callback) callback([{ cart: [] }]);
+    return { cart: [] };
+  }
 };
 export const GetCartOreview = async () => {
   const { setCartPreview } = useAppStore.getState();

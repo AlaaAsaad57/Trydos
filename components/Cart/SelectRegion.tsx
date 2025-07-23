@@ -133,15 +133,22 @@ const SearchLocations = ({
   const searchAction = async (val) => {
     setLoading(true);
 
-    let response = await fetchData({
-      url: `/api/addresses/get-address-by-text`,
-      method: "POST",
-      body: JSON.stringify({ query: val }),
-      server: "elastic",
-      reqTitle: "Get Address By Text",
-    });
-
-    setSearchResults(response.results || []);
+    try {
+      let response = await fetchData({
+        url: `/api/addresses/get-address-by-text`,
+        method: "POST",
+        body: JSON.stringify({ query: val }),
+        server: "elastic",
+        reqTitle: "Get Address By Text",
+      });
+      // @ts-ignore
+      if (!response.success) {
+        throw new Error(response.message);
+      }
+      setSearchResults(response.results || []);
+    } catch (err) {
+      console.error(err)
+    }
 
     setLoading(false);
   };

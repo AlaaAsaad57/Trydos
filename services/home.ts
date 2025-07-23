@@ -77,14 +77,24 @@ class HomeService {
     }
   }
   async GetFireBaseSettings() {
-    const response = await fetchData({
-      url: FIREBASE_SETTINGS_URL,
-      reqTitle: "get firebase settings request",
-      method: "GET",
-      server: "market",
-    });
-    const { getFirebaseSettings } = useAppStore.getState();
-    getFirebaseSettings(response.data?.firebase_settings);
+    try {
+      const response = await fetchData({
+        url: FIREBASE_SETTINGS_URL,
+        reqTitle: "get firebase settings request",
+        method: "GET",
+        server: "market",
+      });
+      // @ts-ignore
+      if (!response.success) {
+        throw new Error(response.message);
+      }
+      const { getFirebaseSettings } = useAppStore.getState();
+      getFirebaseSettings(response.data?.firebase_settings);
+    } catch (err) {
+      // Handle error as needed, e.g., set state or log
+      const { getFirebaseSettings } = useAppStore.getState();
+      getFirebaseSettings(null);
+    }
   }
   async getCustomerInfo() {
     const { updateUserInfo } = useAppStore.getState();
@@ -406,14 +416,20 @@ class HomeService {
 
   async hideOldCart({ id }: { id?: number }) {
     try {
-      await fetchData({
-        url: "/old-cart/hide",
+      let response = await fetchData({
+        url: "/old-cart/hide33",
         body: JSON.stringify({ id: id }),
         reqTitle: "Hide Old Cart",
         method: "POST",
         server: "market",
       });
-    } catch (error) {}
+      // @ts-ignore
+    if (!response.success) {
+      throw new Error(response.message);
+    }
+    } catch (e) {
+      console.error(e);
+    }
   }
 
   async TestNotificationBoutique({ boutique_id }) {

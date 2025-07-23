@@ -72,31 +72,59 @@ function AddToCartComponent({
         },
       });
       let [data1, data2, data3, data4] = await Promise.all([
-        fetchData({
-          url: `/web/product/qtyPriceDetails/${slug}`,
-          reqTitle: "Get Product Vriantes",
-          method: "GET",
-          server: "market",
-        }),
-        fetchData({
-          url: `/web/product/likesDetails/${slug}`,
-          reqTitle: "GEt Product Variants Notifications",
-          method: "GET",
-          server: "market",
-        }),
-        fetchData({
-          url: `/api/v2/elastic/shared_count/${product.id}`,
-          reqTitle: "Share Count Request",
-          method: "GET",
-          server: "chat",
-          useCached: true,
-        }),
-        fetchData({
-          url: `/web/product/globalDetails/${slug}`,
-          reqTitle: "GEt Product Global Details",
-          method: "GET",
-          server: "market",
-        }),
+        (async () => {
+          let response = await fetchData({
+            url: `/web/product/qtyPriceDetails/${slug}`,
+            reqTitle: "Get Product Vriantes",
+            method: "GET",
+            server: "market",
+          });
+          // @ts-ignore
+          if (!response.success) {
+            throw new Error(response.message);
+          }
+          return response;
+        })(),
+        (async () => {
+          let response = await fetchData({
+            url: `/web/product/likesDetails/${slug}`,
+            reqTitle: "GEt Product Variants Notifications",
+            method: "GET",
+            server: "market",
+          });
+          // @ts-ignore
+          if (!response.success) {
+            throw new Error(response.message);
+          }
+          return response;
+        })(),
+        (async () => {
+          let response = await fetchData({
+            url: `/api/v2/elastic/shared_count/${product.id}`,
+            reqTitle: "Share Count Request",
+            method: "GET",
+            server: "chat",
+            useCached: true,
+          });
+          // @ts-ignore
+          if (!response.success) {
+            throw new Error(response.message);
+          }
+          return response;
+        })(),
+        (async () => {
+          let response = await fetchData({
+            url: `/web/product/globalDetails/${slug}`,
+            reqTitle: "GEt Product Global Details",
+            method: "GET",
+            server: "market",
+          });
+          // @ts-ignore
+          if (!response.success) {
+            throw new Error(response.message);
+          }
+          return response;
+        })(),
       ]);
 
       let variants_arr = data1.data.variation;
@@ -165,8 +193,10 @@ function AddToCartComponent({
       }
 
       setLoading(false);
-    } catch (e) {
-      console.log(e);
+    } catch (err) {
+      // Handle error as needed
+      console.error(err);
+      setLoading(false);
     }
   };
 

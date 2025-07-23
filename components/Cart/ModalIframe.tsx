@@ -61,14 +61,22 @@ const ModalIframe = ({
       if (event.data === "close-iframe") {
         if (iframeRef.current) {
           _closeIframe();
-          let response = await fetchData({
-            url: `/customer/order/getOrdersByCartGroupID?cart_group_id=${cart[0].cart_group_id}`,
-            method: "GET",
-            server: "market",
-            reqTitle: "getOrdersByCartGroupID",
-          });
-          if (response.data && response.data?.length > 0) {
-            setOrderData({ data: response.data, success: true });
+          try {
+            let response = await fetchData({
+              url: `/customer/order/getOrdersByCartGroupID?cart_group_id=${cart[0].cart_group_id}`,
+              method: "GET",
+              server: "market",
+              reqTitle: "getOrdersByCartGroupID",
+            });
+            // @ts-ignore
+            if (!response.success) {
+              throw new Error(response.message);
+            }
+            if (response.data && response.data?.length > 0) {
+              setOrderData({ data: response.data, success: true });
+            }
+          } catch (err) {
+            // Handle error as needed
           }
         }
       }
@@ -88,14 +96,22 @@ const ModalIframe = ({
             onClick={async () => {
               if (iframeRef.current) {
                 _closeIframe();
-                let response = await fetchData({
-                  url: `/customer/order/getOrdersByCartGroupID?cart_group_id=${cart[0].cart_group_id}`,
-                  method: "GET",
-                  server: "market",
-                  reqTitle: "getOrdersByCartGroupID",
-                });
-                if (response.data && response.data?.length > 0) {
-                  setOrderData({ data: response.data, success: true });
+                try {
+                  let response = await fetchData({
+                    url: `/customer/order/getOrdersByCartGroupID?cart_group_id=${cart[0].cart_group_id}`,
+                    method: "GET",
+                    server: "market",
+                    reqTitle: "getOrdersByCartGroupID",
+                  });
+                  // @ts-ignore
+                  if (!response.success) {
+                    throw new Error(response.message);
+                  }
+                  if (response.data && response.data?.length > 0) {
+                    setOrderData({ data: response.data, success: true });
+                  }
+                } catch (err) {
+                  // Handle error as needed
                 }
               }
             }}

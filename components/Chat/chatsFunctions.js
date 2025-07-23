@@ -509,12 +509,22 @@ const uploadFile = async (file_name, file, onUploadProgress) => {
   formData.append("file", file);
   formData.append("file_name", file_name);
 
-  return fetchData({
-    url: "/api/v1/upload_file",
-    server: "chat",
-    method: "POST",
-    body: formData,
-  });
+  try {
+    let response = await fetchData({
+      url: "/api/v1/upload_file",
+      server: "chat",
+      method: "POST",
+      body: formData,
+    });
+    // @ts-ignore
+    if (!response.success) {
+      throw new Error(response.message);
+    }
+    return response;
+  } catch (err) {
+    // Handle error as needed
+    return null;
+  }
 };
 
 export const upload = async (file) => {

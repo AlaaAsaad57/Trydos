@@ -258,15 +258,23 @@ export const ChatConroller = (payload) => {
   } catch (error) {}
 };
 export const getCurrency = async ({ callback }) => {
-  let response = await fetchData({
-    url: "/mobile/home/currency",
-    reqTitle: "Currency Request",
-    method: "GET",
-    server: "market",
-  });
-
-  callback({ currency: response.data?.currency, res: {} });
-  return response.data?.currency;
+  try {
+    let response = await fetchData({
+      url: "/mobile/home/currency",
+      reqTitle: "Currency Request",
+      method: "GET",
+      server: "market",
+    });
+    // @ts-ignore
+    if (!response.success) {
+      throw new Error(response.message);
+    }
+    callback({ currency: response.data?.currency, res: {} });
+    return response.data?.currency;
+  } catch (err) {
+    callback({ currency: null, res: {} });
+    return null;
+  }
 };
 export const FlagIcon = ({ iso }) => {
   if (iso.toLowerCase() === "sy")
