@@ -44,7 +44,7 @@ function StoryHolder({ story, active, isPaused }: StoryHolderPropsType) {
     onCancel,
     onConfirm,
     loading,
-    type
+    type,
   }: DeleteModalPropsType) => (
     <div
       className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-30"
@@ -55,7 +55,9 @@ function StoryHolder({ story, active, isPaused }: StoryHolderPropsType) {
       <div
         className={
           `fixed top-1/2 left-1/2 -translate-y-1/2 transition-transform duration-500 ease-in-out ` +
-          (showReportModal || showDeleteModal ? "-translate-x-1/2" : "-translate-x-full") +
+          (showReportModal || showDeleteModal
+            ? "-translate-x-1/2"
+            : "-translate-x-full") +
           " bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8 flex flex-col items-center w-[90vw] max-w-[500px]"
         }
         role="dialog"
@@ -66,12 +68,14 @@ function StoryHolder({ story, active, isPaused }: StoryHolderPropsType) {
           id="delete-modal-title"
           className="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100 regular "
         >
-          {type === "Delete" ?
-          translateFunction("Delete Story") : translateFunction("Report Story")}
+          {type === "Delete"
+            ? translateFunction("Delete Story")
+            : translateFunction("Report Story")}
         </h2>
         <p className="mb-6 text-gray-700 dark:text-gray-300 regular ">
-          {type === "Delete" ?
-          translateFunction("Are you sure you want to delete this story ?") : translateFunction("Are you sure you want to report this story ?")}
+          {type === "Delete"
+            ? translateFunction("Are you sure you want to delete this story ?")
+            : translateFunction("Are you sure you want to report this story ?")}
         </p>
         <div className="flex gap-4 w-full justify-center min-h-[40px]">
           {loading ? (
@@ -82,7 +86,9 @@ function StoryHolder({ story, active, isPaused }: StoryHolderPropsType) {
                 className="px-4 py-2 rounded bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-400 regular "
                 onClick={onCancel}
                 tabIndex={0}
-                aria-label={type === "Delete" ? "Cancel delete" : "Cancel report"}
+                aria-label={
+                  type === "Delete" ? "Cancel delete" : "Cancel report"
+                }
               >
                 {translateFunction("Cancel")}
               </button>
@@ -90,7 +96,9 @@ function StoryHolder({ story, active, isPaused }: StoryHolderPropsType) {
                 className="px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-400 regular "
                 onClick={onConfirm}
                 tabIndex={0}
-                aria-label={type === "Delete" ? "Confirm delete" : "Confirm report"}
+                aria-label={
+                  type === "Delete" ? "Confirm delete" : "Confirm report"
+                }
               >
                 {translateFunction("Confirm")}
               </button>
@@ -115,7 +123,8 @@ function StoryHolder({ story, active, isPaused }: StoryHolderPropsType) {
       setCurrentStoryId(0);
       setNextStory(story.id);
       showSuccessNotification(
-        translateFunction(`${response?.message}`) || translateFunction("Story deleted successfully.")
+        translateFunction(`${response?.message}`) ||
+          translateFunction("Story deleted successfully.")
       );
     } catch (err: any) {
       setShowDeleteModal(false);
@@ -131,7 +140,9 @@ function StoryHolder({ story, active, isPaused }: StoryHolderPropsType) {
       // Placeholder for future API call
       // const storyId = story.stories[currentStoryId]?.id;
       // await StoryServiceClass.reportStory(storyId);
-      showSuccessNotification(translateFunction("Story reported successfully."));
+      showSuccessNotification(
+        translateFunction("Story reported successfully.")
+      );
       setShowReportModal(false);
     } catch (err) {
       showErrorNotification(translateFunction("Failed to report story."));
@@ -139,7 +150,7 @@ function StoryHolder({ story, active, isPaused }: StoryHolderPropsType) {
     } finally {
       setLoading(false);
     }
-  }
+  };
 
   return (
     <div
@@ -162,11 +173,11 @@ function StoryHolder({ story, active, isPaused }: StoryHolderPropsType) {
               <DeleteIcon className="w-[22px] h-[22px] fill-white" />
             </span>
           )}
-           {!isOwner && (
+          {!isOwner && (
             <span
               className="cursor-pointer pr-5"
               style={{
-                paddingBottom:"7px"
+                paddingBottom: "7px",
               }}
               tabIndex={0}
               aria-label="Report story"
@@ -180,7 +191,7 @@ function StoryHolder({ story, active, isPaused }: StoryHolderPropsType) {
             </span>
           )}
           <span
-            className="cursor-pointer"
+            className="cursor-pointer p-2"
             onClick={() => {
               SelectStory(null);
             }}
@@ -202,7 +213,7 @@ function StoryHolder({ story, active, isPaused }: StoryHolderPropsType) {
           type="Delete"
         />
       )}
-       {showReportModal && (
+      {showReportModal && (
         <ConfirmModal
           onCancel={() => setShowReportModal(false)}
           onConfirm={handleReportStory}

@@ -266,6 +266,7 @@ const StoryViewer: React.FC<StoryViewerProps> = ({
               loading="eager"
               decoding="async"
               fetchPriority="high"
+              className="max-h-full p-[65px]"
               onLoad={() => {
                 setResourceLoaded(true);
               }}
@@ -274,7 +275,7 @@ const StoryViewer: React.FC<StoryViewerProps> = ({
             <video
               ref={videoRef}
               src={currentStory?.url}
-              className="max-h-full max-w-full object-contain"
+              className=" max-w-full object-contain  max-h-full p-[65px]"
               playsInline
               muted={activeId !== id}
               autoPlay
@@ -310,7 +311,7 @@ const StoryViewer: React.FC<StoryViewerProps> = ({
               target="_blank"
               rel="noopener noreferrer"
               style={{ zIndex: 99999999999999 }}
-              onClick={e => e.stopPropagation()}
+              onClick={(e) => e.stopPropagation()}
             >
               {link}
             </a>

@@ -24,10 +24,8 @@ export function ProductPhotosSlider({
   const showedImages = () => {
     return product.sync_color_images &&
       product.sync_color_images[0]?.images?.length > 0
-      ? product.sync_color_images[0]
-      : {
-          images: product.images,
-        };
+      ? product.sync_color_images?.[0]?.images?.[0]?.file_path
+      : product.images?.[0]?.file_path;
   };
 
   if (!Sliders) {
@@ -92,8 +90,7 @@ export function ProductPhotosSlider({
           <ImageSlider
             product_name={product.name}
             slug={product.slug}
-            flash_deal_end_date={product.flash_deal_end_date}
-            activeColor={showedImages()}
+            image={showedImages()}
             key={`Color Images Slider`}
           />
 

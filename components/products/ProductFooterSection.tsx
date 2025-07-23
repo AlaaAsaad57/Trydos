@@ -42,11 +42,6 @@ function ProductReducer(state, { type, payload }) {
   }
   if (type === "VerifyComment") {
     let s = state.CommentsData.filter((m) => m.mid === payload)[0];
-    console.log(
-      s,
-      payload,
-      state.CommentsData.filter((comment) => comment.mid !== payload)
-    );
 
     return {
       ...state,

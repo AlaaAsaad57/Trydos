@@ -28,7 +28,7 @@ function ProductOptions({
   const { editInfo, loaded, sharesCount, SelectedProduct } = useAppStore();
   const [isLiked, setLiked] = useState(false);
   const [likeLoading, setLoading] = useState(false);
-  console.log(SelectedProduct);
+
   const LikeProduct = async (bool) => {
     if (likeLoading) return;
     setLoading(true);
