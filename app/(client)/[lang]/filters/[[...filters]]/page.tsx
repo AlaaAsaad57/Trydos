@@ -13,10 +13,9 @@ import NextLink from "components/global/NextLink";
 import VerificationIcon from "public/svg/listing/VerificationIcon.svg";
 import TopStarIcon from "public/svg/listing/TopStar.svg";
 import Image from "next/image";
-import BorderImage from "components/ListingPage/BorderImage";
 import "styles/listing-components.css";
 import Skeleton from "react-loading-skeleton";
-import { getBoutiqueMetadata } from "./Metadata";
+import { getBoutiqueMetadata, GetStructuredData } from "./Metadata";
 import FilterWidgetContainer from "components/filterPage/FiltersWidget";
 import ShareBoutiquePageButton from "components/filterPage/ShareBoutiquePageButton";
 import FilterBoutiquePageButton from "components/filterPage/FilterBoutiquePageButton";
@@ -24,8 +23,11 @@ import SearchBoutiquePage from "components/filterPage/SearchBoutiquePage";
 import CarouselContainer from "components/filterPage/CarouselContainer";
 import { GetImageUrl, parseFiltersFromParams } from "utils/tinyUtils";
 
-import { getConfiguredImage } from "utils/functions";
-import { GetFiltersData } from "utils/pagesDataRequests/FiltersPageData";
+import {
+  fetchBoutiqueDetails,
+  fetchCurrency,
+  fetchFilteredProducts,
+} from "Server Requests";
 
 export const dynamicParams = true;
 
@@ -53,69 +55,38 @@ export default async function Page({ params }: { params: ParamsType }) {
   const parsedFilters = parseFiltersFromParams(params.filters || []);
 
   let boutiqueItem = parsedFilters?.boutiques?.[0] || null;
-  let {
-    products: filtersData,
-    currency,
-    boutique: boutique,
-  } = await GetFiltersData(
-    { lang: params.lang, filters: params.filters },
-    boutiqueItem,
-    false,
-    false,
-    true
-  );
+  // let {
+  //   products: filtersData,
+  //   currency,
+  //   boutique: boutique,
+  // } = await GetFiltersData(
+  //   { lang: params.lang, filters: params.filters },
+  //   boutiqueItem,
+  //   false,
+  //   false,
+  //   true
+  // );
 
-  let filters = {
-    categories: filtersData?.categories || [],
-    brands: filtersData?.brands || [],
-    colors: filtersData?.colors || [],
-    prices: filtersData?.prices?.priceRanges || [],
-    sizes: filtersData?.attributes?.[0]?.options || [],
-    boutiques: filtersData?.boutiques || [],
-    search_text: parsedFilters?.search_text?.[0] || null,
-  };
-  if (boutique === "NOT_FOUND") {
-    redirect(`/${params.lang}?message=boutique_not_found`);
-  }
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "Store",
-    name: boutique?.name || "Store",
-    description: boutique?.name || "Store",
-    image: boutique?.banners?.[0]?.file_path,
-    hasOfferCatalog: {
-      "@type": "OfferCatalog",
-      name: "Product Listing",
-      itemListElement:
-        filtersData?.products?.map((product) => ({
-          "@type": "Product",
-          name: product?.name || "Product",
-          image: product?.images?.[0]?.file_path,
-          offers: {
-            "@type": "Offer",
-            priceCurrency: currency?.name || "USD",
-            price: (product?.price || 0) * (currency?.exchange_rate || 1),
-            availability: "https://schema.org/InStock",
-            url:
-              process.env.NEXT_PUBLIC_REMOTE_FRONT +
-              `/${params.lang}/products/${product?.slug}`,
-          },
-          color: product?.colors?.map((s) => s?.name).filter(Boolean) || [],
-          brand: {
-            "@type": "Brand",
-            name: product?.brand?.name || "Brand",
-          },
-          category: product?.category?.name || "Category",
-        })) || [],
-    },
-  };
+  // let filters = {
+  //   categories: filtersData?.categories || [],
+  //   brands: filtersData?.brands || [],
+  //   colors: filtersData?.colors || [],
+  //   prices: filtersData?.prices?.priceRanges || [],
+  //   sizes: filtersData?.attributes?.[0]?.options || [],
+  //   boutiques: filtersData?.boutiques || [],
+  //   search_text: parsedFilters?.search_text?.[0] || null,
+  // };
+
   return (
     <>
       <Suspense fallback={<></>}>
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        <GetStructuredData
+          is_fearured={false}
+          is_flashDeals={false}
+          params={params}
         />
+      </Suspense>
+      <Suspense>
         <FilterWidgetContainer key={JSON.stringify(parsedFilters)} />
       </Suspense>
       <div
@@ -143,7 +114,6 @@ export default async function Page({ params }: { params: ParamsType }) {
         >
           <SearchBoutiquePage
             key={`search-boutique-page-${JSON.stringify(parsedFilters)}`}
-            boutique={boutique}
             search_text={parsedFilters?.search_text?.[0]}
           />
 
@@ -165,38 +135,29 @@ export default async function Page({ params }: { params: ParamsType }) {
         className={`boutique-header ${"flex-col"} align-center`}
         key={`boutique-header-filters-${JSON.stringify(parsedFilters)}`}
       >
-        {boutique.banners && (
-          <Suspense
-            key={params.filters?.join("/") || "no-filters"}
-            fallback={<BoutiqueHeaderSkeleton />}
-          >
-            <BoutiqueHeader
-              boutique={boutique}
-              key={params.filters?.join("/") || "no-filters"}
-            ></BoutiqueHeader>
-          </Suspense>
-        )}
-        <FilterList
-          filters={filters}
-          boutique={boutique}
-          currency={currency}
-          key={`filter-list-filters`}
-          params={params}
-          parsedFilters={parsedFilters}
-        />
+        <Suspense
+          key={params.filters?.join("/") || "no-filters"}
+          fallback={<BoutiqueHeaderSkeleton />}
+        >
+          <BoutiqueWrapper params={params} />
+        </Suspense>
+
+        <Suspense fallback={<ListingSkeleton justFilters={true} />}>
+          <FiltersWrapper
+            params={params}
+            is_fearured={false}
+            is_flashDeals={false}
+          />
+        </Suspense>
       </div>
       <Suspense
         key={`Suspense-product-list-${JSON.stringify(parsedFilters)}`}
         fallback={<ListingSkeleton forProducts={true} />}
       >
-        <ProductListServer
-          colors={filtersData?.colors}
-          products={filtersData.products ?? []}
-          offset={filtersData.offset}
-          currency={currency}
-          key={`product-list-${JSON.stringify(parsedFilters)}`}
-          parsedFilters={parsedFilters}
+        <ProductListWrapper
           params={params}
+          is_fearured={false}
+          is_flashDeals={false}
         />
       </Suspense>
     </>
@@ -235,49 +196,7 @@ const BouqiuePhotoSlider = ({ banners }) => {
           banners?.length > 1 && "justify-start"
         } offer-slider-container`}
       >
-        <CarouselContainer>
-          {banners &&
-            banners?.map((banner, index) => (
-              <div
-                data-cy="embla__slide_embla"
-                className="embla__slide"
-                key={index}
-              >
-                <div
-                  data-cy="offer_slide_item_embla"
-                  className="offer-slide-item"
-                  style={{ width: "100%" }}
-                  key={index}
-                >
-                  <div data-cy="image_offer_image" className="image-offer">
-                    <div
-                      data-cy="image_inner_shadow_image"
-                      className="image-inner-shadow"
-                      style={{ height: "100%" }}
-                    />
-
-                    <Image
-                      data-cy="image_image"
-                      loading={"eager"}
-                      fetchPriority={"high"}
-                      style={{ borderRadius: "15px" }}
-                      className="OfferImage object-cover"
-                      src={getConfiguredImage({
-                        src: GetImageUrl(banner.file_path),
-                        height: 400,
-                        c_pad: true,
-                      })}
-                      width={380}
-                      height={135}
-                      alt="offer"
-                    />
-
-                    <BorderImage />
-                  </div>
-                </div>
-              </div>
-            ))}
-        </CarouselContainer>
+        <CarouselContainer banners={banners}></CarouselContainer>
       </div>
     </div>
   );
@@ -317,3 +236,92 @@ const BoutiqueHeaderSkeleton = () => {
     </>
   );
 };
+async function BoutiqueWrapper({ params }) {
+  const parsedFilters = parseFiltersFromParams(params.filters || []);
+  const [country, language] = params.lang.split("-");
+  let boutiqueItem = parsedFilters?.boutiques?.[0] || null;
+  let boutique = boutiqueItem
+    ? await fetchBoutiqueDetails(boutiqueItem, language, country)
+    : {
+        banners: null,
+        name: "Search",
+      };
+  if (boutique?.name === "NOT_FOUND") {
+    redirect(`/${params.lang}?message=boutique_not_found`);
+  }
+  if (boutique?.banners)
+    return (
+      <BoutiqueHeader
+        boutique={boutique}
+        key={params.filters?.join("/") || "no-filters"}
+      ></BoutiqueHeader>
+    );
+  else return <></>;
+}
+async function FiltersWrapper({ params, is_fearured, is_flashDeals }) {
+  const [country, language] = params.lang.split("-");
+  const [filtersData, currency] = await Promise.all([
+    fetchFilteredProducts(
+      language,
+      country,
+      params.filters,
+      "false",
+      "false",
+      null,
+      null,
+      is_fearured,
+      is_flashDeals
+    ),
+    fetchCurrency(language, country),
+  ]);
+  const parsedFilters = parseFiltersFromParams(params.filters || []);
+  let filters = {
+    categories: filtersData?.data?.categories || [],
+    brands: filtersData?.data?.brands || [],
+    colors: filtersData?.data?.colors || [],
+    prices: filtersData?.data?.prices?.priceRanges || [],
+    sizes: filtersData?.data?.attributes?.[0]?.options || [],
+    boutiques: filtersData?.data?.boutiques || [],
+    search_text: parsedFilters?.search_text?.[0] || null,
+  };
+
+  return (
+    <FilterList
+      filters={filters}
+      currency={currency?.data?.currency}
+      key={`filter-list-filters`}
+      params={params}
+      parsedFilters={parsedFilters}
+    />
+  );
+}
+
+async function ProductListWrapper({ params, is_fearured, is_flashDeals }) {
+  const [country, language] = params.lang.split("-");
+  const parsedFilters = parseFiltersFromParams(params.filters || []);
+  const [filters, currency] = await Promise.all([
+    fetchFilteredProducts(
+      language,
+      country,
+      params.filters,
+      "false",
+      "false",
+      null,
+      null,
+      is_fearured,
+      is_flashDeals
+    ),
+    fetchCurrency(language, country),
+  ]);
+  return (
+    <ProductListServer
+      colors={filters?.data?.colors}
+      products={filters?.data?.products ?? []}
+      offset={filters?.data?.offset}
+      currency={currency?.data?.currency}
+      key={`product-list-${JSON.stringify(parsedFilters)}`}
+      parsedFilters={parsedFilters}
+      params={params}
+    />
+  );
+}

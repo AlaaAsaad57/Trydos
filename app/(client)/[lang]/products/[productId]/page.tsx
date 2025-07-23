@@ -20,7 +20,6 @@ import ProductDescriptors from "components/products/ProductDescriptors";
 import { GetImageUrl, getPrice } from "utils/tinyUtils";
 import { generateProductMetaData } from "./MetaData";
 import ProductImagesSlider from "components/products/ProductImageSlider";
-import { fetchProductDetails, fetchCurrency } from "Server Requests";
 import ProductDetails from "components/products/ProductDetails";
 import ProductFooterSection from "components/products/ProductFooterSection";
 import ProductDetailsSlider from "components/products/ProductDetailsSlider";
@@ -39,7 +38,6 @@ import ProductsLabels from "components/products/ProductsLabels";
 import { GetProductData } from "utils/pagesDataRequests/ProductPageData";
 import { generateCodeCurrency } from "../../MetaData";
 import { redirect } from "next/navigation";
-import ProductRedeemPrice from "components/products/ProductRedeemPrice";
 
 // export const revalidate = parseInt(process.env.NEXT_PUBLIC_REVALIDATE);
 // For Middle East users

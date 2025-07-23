@@ -3,18 +3,10 @@ import { useEffect, useState } from "react";
 import { InView } from "react-intersection-observer";
 import Spinner from "../global/Spinner";
 import { dispatchRouteChangeEvent } from "utils/events";
-import {
-  getConfiguredImage,
-  RoundPrice,
-  translateFunction,
-} from "utils/functions";
+import { translateFunction } from "utils/functions";
 import { useParams } from "next/navigation";
 import { CurrencyApi } from "models/API/market/CurrencyApi";
 import { useAppStore } from "store";
-import { BuyButtonProduct, ProductPhotosSlider } from "./Product";
-import NextLink from "components/global/NextLink";
-import { GetImageUrl } from "utils/tinyUtils";
-import ProductBanner from "components/products/ProductBanner";
 import { fetchFilteredProducts } from "Server Requests";
 import { showErrorNotification } from "store/notifications/reducer";
 import ProductCard from "components/Server/ProductCard";

@@ -24,7 +24,6 @@ export interface FilterItemProps {
   isUsingParsedFilters: boolean;
   currency: any;
   params: any;
-  boutique: any;
 }
 
 export interface FilterState {
@@ -38,7 +37,7 @@ export interface FilterListProps {
   params: any;
   filters: any;
   currency: any;
-  boutique: any;
+
   isFeatured?: boolean;
   isFlashDeals?: boolean;
 }
@@ -706,7 +705,17 @@ export const DetectScreen = () => {
     return GA_GLOBAL_SCREEN.HOME_SCREEN;
   }
 };
-export function generateCloudinaryUrl({ width, height, publicIds , overlayText} : {width: number, height: number , publicIds: string[], overlayText?: string}) {
+export function generateCloudinaryUrl({
+  width,
+  height,
+  publicIds,
+  overlayText,
+}: {
+  width: number;
+  height: number;
+  publicIds: string[];
+  overlayText?: string;
+}) {
   const baseUrl = `https://res.cloudinary.com/dtcmozf4d/image`;
 
   // Keep full path including extension
@@ -748,6 +757,7 @@ export const totalAmount = (arr) => {
  * Used for input sanitization (pollination).
  */
 export const pollinateInput = (value: string): string => {
+  if (typeof value !== "string") return "";
   let input = value.replace(/[<>,:!@#$%^&*()]/g, "");
   if (input.length > 90) {
     input = input.slice(0, 90);

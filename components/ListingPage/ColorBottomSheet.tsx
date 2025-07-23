@@ -27,10 +27,10 @@ function ColorBottomSheet() {
           }}
         >
           <div className="w-full pb-[40px] max-w-[406px] mx-auto  min-h-[80vh]  bg-white pt-[10px] flex-row flex-wrap gap-[6px] gap-y-[18px]">
-            {ColorBottomSheet?.sync_color_images?.map((color) => (
+            {ColorBottomSheet?.sync_color_images?.map((color, i) => (
               <ProductColorCard
                 Sliders={false}
-                key={color?.color_name}
+                key={`${color?.color_name}:${i}`}
                 product={{
                   ...ColorBottomSheet,
                   sync_color_images: [color],

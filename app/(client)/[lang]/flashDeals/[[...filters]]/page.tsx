@@ -94,16 +94,7 @@ export default async function Page({
             parsedFilters?.search_text?.length > 0 && "w-full"
           }`}
         >
-          <SearchBoutiquePage
-            boutique={{
-              id: 0,
-              icon: "",
-              name: "",
-              description: "",
-              banners: [],
-            }}
-            search_text={parsedFilters?.search_text?.[0]}
-          />
+          <SearchBoutiquePage search_text={parsedFilters?.search_text?.[0]} />
 
           <div className="filter-option">
             <SortIcon data-cy="closeSearchInput" />

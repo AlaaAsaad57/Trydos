@@ -43,7 +43,6 @@ export const GetHomeData = cache(
         true,
         false
       ),
-
       fetchBoutiques(language, country, params.mainCategory || "", null, 10),
       fetchCurrency(language, country),
     ]);

@@ -1,7 +1,7 @@
 // components/BoutiqueHead.tsx
 
+import { fetchFilteredProducts } from "Server Requests";
 import { fetchServerData } from "Server Requests/ServerFetch";
-import { getConfiguredImage } from "utils/functions";
 import {
   filtersToSearchParams,
   generateCloudinaryUrl,
@@ -14,7 +14,7 @@ const GenerateTitleBasedOnFilters = (filters: string[]) => {
     parsedFilters;
   let title = "Trydos - ";
   let description = "Discover New ";
-  if (tags_names.length > 0) {
+  if (tags_names?.length > 0) {
     title += " Tags: ";
     description += " Tags: ";
     tags_names.forEach((tag) => {
@@ -22,7 +22,7 @@ const GenerateTitleBasedOnFilters = (filters: string[]) => {
       description += ` ${tag},`;
     });
   }
-  if (boutiques.length > 0) {
+  if (boutiques?.length > 0) {
     title += " Boutiques: ";
     description += " Boutiques: ";
     boutiques.forEach((boutique) => {
@@ -30,7 +30,7 @@ const GenerateTitleBasedOnFilters = (filters: string[]) => {
       description += ` ${boutique},`;
     });
   }
-  if (categories.length > 0) {
+  if (categories?.length > 0) {
     title += " Categories: ";
     description += " Categories: ";
     categories.forEach((category) => {
@@ -38,7 +38,7 @@ const GenerateTitleBasedOnFilters = (filters: string[]) => {
       description += ` ${category},`;
     });
   }
-  if (brands.length > 0) {
+  if (brands?.length > 0) {
     title += " Brands: ";
     description += " Brands: ";
     brands.forEach((brand) => {
@@ -46,7 +46,7 @@ const GenerateTitleBasedOnFilters = (filters: string[]) => {
       description += ` ${brand},`;
     });
   }
-  if (colors.length > 0) {
+  if (colors?.length > 0) {
     title += " Colors: ";
     description += " Colors: ";
     colors.forEach((color) => {
@@ -54,7 +54,7 @@ const GenerateTitleBasedOnFilters = (filters: string[]) => {
       description += ` ${color},`;
     });
   }
-  if (sizes.length > 0) {
+  if (sizes?.length > 0) {
     title += " Sizes: ";
     description += " Sizes: ";
     sizes.forEach((size) => {
@@ -139,10 +139,28 @@ export async function getBoutiqueMetadata({
 
   return data;
 }
-export const GetStructuredData = ({ params, prodcts, boutique }) => {
+export const GetStructuredData = async ({
+  params,
+  is_flashDeals,
+  is_fearured,
+}) => {
   let filtersUrl =
     params?.filters?.length > 0 ? `/${params.filters?.join("/")}` : "/";
-  return {
+  let [country, language] = params.lang.split("-");
+  let filters = params.filters;
+  let response = await fetchFilteredProducts(
+    language,
+    country,
+    filters,
+    "false",
+    "false",
+    null,
+    null,
+    is_fearured,
+    is_flashDeals
+  );
+
+  let jsonLd = {
     "@context": "https://schema.org",
     "@type": "CollectionPage",
     name: GenerateTitleBasedOnFilters(params.filters).title,
@@ -150,36 +168,44 @@ export const GetStructuredData = ({ params, prodcts, boutique }) => {
     description: GenerateTitleBasedOnFilters(params.filters).description,
     mainEntity: {
       "@type": "ItemList",
-      itemListElement: prodcts.map((product, index) => {
+      itemListElement: response.data.products.map((product, index) => {
         return {
           "@type": "Product",
           position: index + 1,
-          name: product.name,
-          image: product.images?.[0]?.file_path ?? product.images?.[0],
+          name: product?.name,
+          image: product?.images?.[0]?.file_path ?? product.images?.[0],
           url: `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${params.lang}/products/${product.slug}`,
           category: product.category.name,
           brand: {
             "@type": "Brand",
-            name: product.brand.name,
+            name: product?.brand?.name,
           },
           manufacturer: {
             "@type": "Organization",
-            name: product.boutique.name,
-            url: `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${params.lang}/boutiques/${product.boutique.slug}`,
+            name: product?.boutique?.name,
+            url: `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${params.lang}/boutiques/${product?.boutique?.slug}`,
           },
           sku: product.slug,
-          description: product.description,
+          description: product?.description,
           offers: {
             "@type": "Offer",
             priceCurrency: "USD",
-            price: product.price,
+            price: product?.price,
             availability: "https://schema.org/InStock",
-            url: product.url,
+            url:
+              process.env.NEXT_PUBLIC_REMOTE_FRONT +
+              `/products/${product?.slug}`,
           },
         };
       }),
     },
   };
+  return (
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+    />
+  );
 };
 function generateMetaData(data) {
   try {

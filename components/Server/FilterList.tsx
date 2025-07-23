@@ -11,6 +11,7 @@ import {
   FilterListProps,
   FilterItemProps,
   FilterState,
+  pollinateInput,
 } from "utils/tinyUtils";
 import InfiniteScrollFilters from "components/ListingPage/filterComponents/InfiniteScrollFilters";
 
@@ -26,7 +27,6 @@ function FilterList({
   params,
   filters,
   currency,
-  boutique,
   isFeatured,
   isFlashDeals,
 }: FilterItemsRowPropsType) {
@@ -73,7 +73,6 @@ function FilterList({
                 <>
                   <FilterItemsRow
                     index={index}
-                    boutique={boutique}
                     isFeatured={isFeatured}
                     isFlashDeals={isFlashDeals}
                     params={params}
@@ -91,7 +90,6 @@ function FilterList({
       </div>
       <ActiveFiltersBar
         params={params}
-        boutique={boutique}
         currency={currency}
         filterParams={filterParams}
         isUsingParsedFilters={isUsingParsedFilters}
@@ -108,7 +106,6 @@ interface ActiveFiltersBarProps {
   isUsingParsedFilters: boolean;
   filters: any;
   params: any;
-  boutique: any;
 }
 
 const ActiveFiltersBar = ({
@@ -117,7 +114,6 @@ const ActiveFiltersBar = ({
   isUsingParsedFilters,
   filters,
   params,
-  boutique,
 }: ActiveFiltersBarProps) => {
   let activeFilters: any = {};
 
@@ -198,7 +194,7 @@ const ActiveFiltersBar = ({
 
   // Check if we should hide boutiques in active filters
   // Hide if: on boutique page OR (one boutique selected with other filters)
-  const isOnBoutiquePage = boutique?.name && boutique.name !== "Search";
+  const isOnBoutiquePage = activeFilters.boutiques?.length === 1;
   const shouldHideBoutiques =
     isOnBoutiquePage || (hasOnlyOneBoutique && otherFiltersCount > 0);
 
@@ -210,7 +206,7 @@ const ActiveFiltersBar = ({
       <NextLink
         data={{
           is_filter: true,
-          ...boutique,
+
           href: getResetUrl(),
         }}
         href={getResetUrl()}
@@ -609,7 +605,9 @@ const ActiveFiltersBar = ({
             <Search className="scale-75" />
           </span>
           <div className="category-title filter-bar-main-title  text-[#5d5d5d]">
-            {activeFilters?.search_text}
+            {typeof activeFilters?.search_text?.[0] === "string"
+              ? pollinateInput(activeFilters?.search_text?.[0])
+              : ""}
           </div>
         </>
       )}
@@ -633,7 +631,6 @@ interface FilterItemsRowProps {
   term: string;
   params: any;
   index: number;
-  boutique: any;
   isFeatured?: boolean;
   isFlashDeals?: boolean;
 }
@@ -646,7 +643,6 @@ const FilterItemsRow = ({
   term,
   params,
   index,
-  boutique,
   isFeatured,
   isFlashDeals,
 }: FilterItemsRowProps) => {
@@ -668,7 +664,6 @@ const FilterItemsRow = ({
           items?.map((item) => (
             <FilterItem
               params={params}
-              boutique={boutique}
               filterParams={filterParams}
               isUsingParsedFilters={isUsingParsedFilters}
               key={item.id}
@@ -683,7 +678,6 @@ const FilterItemsRow = ({
             term={term}
             isFeatured={isFeatured}
             isFlashDeals={isFlashDeals}
-            boutique={boutique}
             filterParams={filterParams}
             isUsingParsedFilters={isUsingParsedFilters}
             lang={params?.lang}
@@ -703,7 +697,6 @@ export const FilterItem = ({
   isUsingParsedFilters,
   currency,
   params,
-  boutique,
 }: FilterItemProps) => {
   // Helper function to get filter state with proper typing
   const getFilterState = (
@@ -765,7 +758,7 @@ export const FilterItem = ({
         <NextLink
           data={{
             is_filter: true,
-            ...boutique,
+
             href: href,
           }}
           ariaLabel={`filter category ${item.slug} ${params.lang}`}
@@ -839,7 +832,7 @@ export const FilterItem = ({
                   <NextLink
                     data={{
                       is_filter: true,
-                      ...boutique,
+
                       href: getSubCategoryUrl(s.slug)?.href,
                     }}
                     href={getSubCategoryUrl(s.slug)?.href}
@@ -931,7 +924,7 @@ export const FilterItem = ({
                               key={sub_s.slug}
                               data={{
                                 is_filter: true,
-                                ...boutique,
+
                                 href: getSubCategoryUrl(sub_s.slug, s.slug)
                                   ?.href,
                               }}
@@ -1027,7 +1020,7 @@ export const FilterItem = ({
       <NextLink
         data={{
           is_filter: true,
-          ...boutique,
+
           href: href,
         }}
         href={href}
@@ -1090,7 +1083,7 @@ export const FilterItem = ({
       <NextLink
         data={{
           is_filter: true,
-          ...boutique,
+
           href: href,
         }}
         href={href}
@@ -1146,7 +1139,7 @@ export const FilterItem = ({
       <NextLink
         data={{
           is_filter: true,
-          ...boutique,
+
           href: href,
         }}
         href={href}
@@ -1212,7 +1205,7 @@ export const FilterItem = ({
       <NextLink
         data={{
           is_filter: true,
-          ...boutique,
+
           href: href,
         }}
         href={href}

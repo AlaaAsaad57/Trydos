@@ -1,23 +1,14 @@
-"use client";
 import React from "react";
-import PointsSlider from "./PointsSlider";
+
 import { getConfiguredImage } from "utils/functions";
 import Image from "node_modules/next/image";
 import { GetImageUrl } from "utils/tinyUtils";
 import { ImageSliderPropsType } from "models/componentType/ImageSliderPropsType";
-import { NormalSlider } from "utils/Slider";
 
 function ImageSlider({
-  renderVar,
   product_name,
-  active,
-  isColorSelected,
-  setActiveImage,
   activeColor,
-  isActiveTopSlide,
-  setActiveTopSlide,
-  setColor,
-  priority,
+  slug,
   flash_deal_end_date,
 }: ImageSliderPropsType) {
   return (
@@ -30,12 +21,12 @@ function ImageSlider({
           <Image
             width={400}
             height={300}
+            id={`slug-${slug}`}
             loading="eager"
             fetchPriority="auto"
             style={{
               borderRadius: "15px",
               zIndex: "3",
-              border: flash_deal_end_date && "1px solid #FF6200",
             }}
             src={getConfiguredImage({
               src: GetImageUrl(activeColor?.images[0].file_path),

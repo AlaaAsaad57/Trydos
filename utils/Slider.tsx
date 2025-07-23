@@ -1,3 +1,4 @@
+"use client";
 import { useRef, useState, useEffect } from "react";
 function StackedSlider({
   slide_width = 50,

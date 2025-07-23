@@ -283,25 +283,167 @@ function AddToCartComponent({
       }
       return {
         ...selected_variant,
-        offer_price: ProductData?.showRedeemPrice
-          ? selected_variant?.redeem_price
-          : selected_variant?.offer_price,
+        offer_price: selected_variant?.offer_price,
+        ...(product?.showRedeemPrice
+          ? {
+              redeem_price:
+                selected_variant?.redeem_price ?? product?.redeem_price,
+            }
+          : {}),
       };
     } else {
       // no variants
       return {
         type: "N/A",
         price: ProductData?.price,
-        offer_price: ProductData?.showRedeemPrice
-          ? ProductData?.redeem_price
-          : ProductData?.offer_price,
+        offer_price: ProductData?.offer_price,
         redeem_price: ProductData?.redeem_price,
         qty: ProductData?.available_quantity,
         variant_notify_for_user: ProductData?.is_product_notify_for_user,
       };
     }
   };
-
+  const renderPrices = () => {
+    if (product?.showRedeemPrice && product?.redeem_price >= 0) {
+      return (
+        <>
+          {currency?.symbol &&
+            getSelectedVariantQty()?.offer_price !==
+              getSelectedVariantQty()?.price && (
+              <div
+                data-cy="product_old_price_addtocart"
+                className="product-old-price"
+              >
+                <svg
+                  data-cy="product_addtocart_svg"
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="100%"
+                  height="2"
+                >
+                  <line
+                    id="Line_1104"
+                    data-name="Line 1104"
+                    x2="100%"
+                    transform="translate(0 1)"
+                    fill="none"
+                    stroke="#C4C2C2"
+                    strokeWidth="2"
+                  />
+                </svg>
+                {getSelectedVariantQty()?.price >= 0 && currency?.symbol ? (
+                  <>
+                    {RoundPrice({
+                      num: getSelectedVariantQty()?.price,
+                      language: languageVariable,
+                    })}
+                  </>
+                ) : (
+                  <Skeleton width={30} height={10} />
+                )}
+              </div>
+            )}
+          <div
+            data-cy="product_new-price_addtocart"
+            className="product-old-price"
+          >
+            <svg
+              data-cy="product_addtocart_svg"
+              xmlns="http://www.w3.org/2000/svg"
+              width="100%"
+              height="2"
+            >
+              <line
+                id="Line_1104"
+                data-name="Line 1104"
+                x2="100%"
+                transform="translate(0 1)"
+                fill="none"
+                stroke="#FF6200"
+                strokeWidth="2"
+              />
+            </svg>
+            {getSelectedVariantQty()?.offer_price >= 0 && currency?.symbol ? (
+              <>
+                {RoundPrice({
+                  num: getSelectedVariantQty()?.offer_price,
+                  language: languageVariable,
+                })}
+              </>
+            ) : (
+              <Skeleton width={30} height={10} />
+            )}
+          </div>
+          <div className="product-new-price">
+            {getSelectedVariantQty()?.redeem_price >= 0 && currency?.symbol ? (
+              <>
+                {RoundPrice({
+                  num: getSelectedVariantQty()?.redeem_price,
+                  language: languageVariable,
+                })}
+              </>
+            ) : (
+              <Skeleton width={30} height={10} />
+            )}
+          </div>
+        </>
+      );
+    } else {
+      return (
+        <>
+          {currency?.symbol &&
+            getSelectedVariantQty()?.offer_price !==
+              getSelectedVariantQty()?.price && (
+              <div
+                data-cy="product_old_price_addtocart"
+                className="product-old-price"
+              >
+                <svg
+                  data-cy="product_addtocart_svg"
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="100%"
+                  height="2"
+                >
+                  <line
+                    id="Line_1104"
+                    data-name="Line 1104"
+                    x2="100%"
+                    transform="translate(0 1)"
+                    fill="none"
+                    stroke="#C4C2C2"
+                    strokeWidth="2"
+                  />
+                </svg>
+                {getSelectedVariantQty()?.price >= 0 && currency?.symbol ? (
+                  <>
+                    {RoundPrice({
+                      num: getSelectedVariantQty()?.price,
+                      language: languageVariable,
+                    })}
+                  </>
+                ) : (
+                  <Skeleton width={30} height={10} />
+                )}
+              </div>
+            )}
+          <div
+            data-cy="product_new-price_addtocart"
+            className="product-new-price"
+          >
+            {getSelectedVariantQty()?.offer_price >= 0 && currency?.symbol ? (
+              <>
+                {RoundPrice({
+                  num: getSelectedVariantQty()?.offer_price,
+                  language: languageVariable,
+                })}
+              </>
+            ) : (
+              <Skeleton width={30} height={10} />
+            )}
+          </div>
+        </>
+      );
+    }
+  };
   useEffect(() => {
     if (
       document.querySelector<HTMLElement>(".alternate-product-details-footer")
@@ -558,57 +700,7 @@ function AddToCartComponent({
               data-cy="product_info_price_addtocart"
               className="product-info-price"
             >
-              {currency?.symbol &&
-                getSelectedVariantQty()?.offer_price !==
-                  getSelectedVariantQty()?.price && (
-                  <div
-                    data-cy="product_old_price_addtocart"
-                    className="product-old-price"
-                  >
-                    <svg
-                      data-cy="product_addtocart_svg"
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="100%"
-                      height="2"
-                    >
-                      <line
-                        id="Line_1104"
-                        data-name="Line 1104"
-                        x2="100%"
-                        transform="translate(0 1)"
-                        fill="none"
-                        stroke="#C4C2C2"
-                        strokeWidth="2"
-                      />
-                    </svg>
-                    {getSelectedVariantQty()?.price >= 0 && currency?.symbol ? (
-                      <>
-                        {RoundPrice({
-                          num: getSelectedVariantQty()?.price,
-                          language: languageVariable,
-                        })}
-                      </>
-                    ) : (
-                      <Skeleton width={30} height={10} />
-                    )}
-                  </div>
-                )}
-              <div
-                data-cy="product_new-price_addtocart"
-                className="product-new-price"
-              >
-                {getSelectedVariantQty()?.offer_price >= 0 &&
-                currency?.symbol ? (
-                  <>
-                    {RoundPrice({
-                      num: getSelectedVariantQty()?.offer_price,
-                      language: languageVariable,
-                    })}
-                  </>
-                ) : (
-                  <Skeleton width={30} height={10} />
-                )}
-              </div>
+              {renderPrices()}
               <div data-cy="product_currency" className="product-currency">
                 {currency?.symbol ?? (
                   <Skeleton
@@ -1185,7 +1277,7 @@ function AddToCartComponent({
               id={ProductData?.id}
               qty={getSelectedVariantQty()?.qty}
               onSuccessAddUpdate={() => {
-                setProductData({ ...ProductData, is_redeem: false });
+                // setProductData({ ...ProductData, is_redeem: false });
               }}
             />
           )}

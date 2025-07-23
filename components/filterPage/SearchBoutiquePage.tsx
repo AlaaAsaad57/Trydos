@@ -10,12 +10,10 @@ import { GA_EVENT_NAMES } from "utils/GAEvents";
 import {
   parseFiltersFromParams,
   buildParamsFromFilters,
+  pollinateInput,
 } from "utils/tinyUtils";
 import { SearchBoutiquePageProps } from "models/componentType/boutiqueTypes/SearchBoutiquePageProps";
-function SearchBoutiquePage({
-  search_text,
-  boutique,
-}: SearchBoutiquePageProps) {
+function SearchBoutiquePage({ search_text }: SearchBoutiquePageProps) {
   const pathname = usePathname();
   const params = useParams();
   const router = useRouter();
@@ -82,7 +80,6 @@ function SearchBoutiquePage({
       dispatchRouteChangeEvent("start", {
         is_filter_search: true,
         href: newPath,
-        ...boutique,
       });
 
       router.push(newPath);
@@ -135,7 +132,7 @@ function SearchBoutiquePage({
             .querySelector<HTMLInputElement>(".filter-bar-options")
             .classList.add("w-full");
         }}
-        value={search_text}
+        value={pollinateInput(search_text)}
         onBlur={() => {
           if (
             value.length === 0 &&
