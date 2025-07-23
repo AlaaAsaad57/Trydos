@@ -272,7 +272,7 @@ class OrderService {
       console.log(error);
     }
   }
-  async changeOrderItemVariant({ color, choice_1, order_detail_id }) {
+  async changeOrderItemVariant({ color, choice_1, order_detail_id, image }) {
     try {
       let response = await fetchData({
         url: `/customer/order/change-item-variant`,
@@ -283,6 +283,7 @@ class OrderService {
           color,
           choice_1: choice_1 ?? "",
           order_detail_id,
+          image,
         }),
       });
       if (response.success || response.isSuccessful) return response;
