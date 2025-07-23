@@ -93,6 +93,7 @@ function ProductColorCard({
         <div className="flex-row w-full justify-center gap-[1px] mt-[2px]">
           {product?.images?.map((s, i) => (
             <svg
+              key={`product-image-dot-${i}`}
               xmlns="http://www.w3.org/2000/svg"
               width="4"
               height="4"
