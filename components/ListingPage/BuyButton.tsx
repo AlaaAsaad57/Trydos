@@ -50,7 +50,7 @@ function BuyButton({
             </span>
             {shouldShowRedeem && (
               <div className="flex-row flex gap-[2px] items-center">
-                <span className="text-[10px] pt-[2px] flex align-start bold">
+                <span className="text-[10px] pt-[2px] flex align-start bold" data-cy="product-redeem-price">
                   {RoundPrice({
                     num: redeem_price,
                     rate: currency?.rate,
