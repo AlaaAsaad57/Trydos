@@ -1,8 +1,6 @@
 import ActiveCategoryIcon from "public/svg/listing/ActiveCategoryIcon.svg";
 import Image from "next/image";
-
 import React from "react";
-
 import NextLink from "components/global/NextLink";
 import { GetImageUrl } from "utils/tinyUtils";
 import { CategoryNavMobileProps } from "models/componentType/HomePagePropsType";
@@ -17,7 +15,6 @@ function CategoryNavMobile({
   params,
 }: CategoryNavMobileProps) {
   // @ts-ignore
-  let language = params.lang.split("-")[1];
 
   return (
     <NextLink

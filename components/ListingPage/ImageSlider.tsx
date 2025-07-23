@@ -5,7 +5,11 @@ import Image from "node_modules/next/image";
 import { GetImageUrl } from "utils/tinyUtils";
 import { ImageSliderPropsType } from "models/componentType/ImageSliderPropsType";
 
-function ImageSlider({ product_name, image, slug }: ImageSliderPropsType) {
+function ImageSlider({
+  product_name,
+  image,
+  showBorder,
+}: ImageSliderPropsType) {
   return (
     <>
       <div className={`active-slider sl-active`}>
@@ -16,12 +20,12 @@ function ImageSlider({ product_name, image, slug }: ImageSliderPropsType) {
           <Image
             width={400}
             height={300}
-            id={`slug-${slug}`}
             loading="eager"
             fetchPriority="auto"
             style={{
               borderRadius: "15px",
               zIndex: "3",
+              border: showBorder && "1px solid #FF6200",
             }}
             src={getConfiguredImage({
               src: GetImageUrl(image),

@@ -14,6 +14,7 @@ import { ProductFooterSectionPropsType } from "models/componentType/productTypes
 import { showErrorNotification } from "@/store/notifications/reducer";
 import { fetchData } from "utils/fetchData";
 import ProductRedeemButton from "./ProductRedeemPrice";
+import { deleteCookie } from "utils/cookies/cookie-manager";
 
 function ProductReducer(state, { type, payload }) {
   if (type === "setProductData") {
@@ -218,6 +219,7 @@ function ProductFooterSection({
     }
   };
   useEffect(() => {
+    deleteCookie("counter");
     setLoadedCart(false);
     dispatchRouteChangeEvent("completed");
     getData();

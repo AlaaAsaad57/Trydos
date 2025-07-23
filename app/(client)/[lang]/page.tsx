@@ -1,5 +1,5 @@
 export const runtime = "nodejs";
-export const preferredRegion = process.env.PREFERRED_REGION || "bom1";
+export const preferredRegion = "bom1";
 
 import NavbarServer from "components/Server/Navbar";
 import OfferListServer from "components/Server/OfferListServer";
@@ -93,9 +93,7 @@ async function HomePage({ params }: HomePageProps) {
       <Suspense fallback={<FeaturedProductsSkeleton lang={params.lang} />}>
         <FlashProductWrapper lang={params.lang} />
       </Suspense>
-      <Suspense fallback={<></>} key={`Home ${params.lang}`}>
-        <Home />
-      </Suspense>
+      <Home key={`Home ${params.lang}`} />
       <Suspense
         fallback={<OfferListSkeleton />}
         key={`OfferList ${params.lang}`}

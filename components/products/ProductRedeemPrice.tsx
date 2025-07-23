@@ -2,7 +2,11 @@
 import Spinner from "components/global/Spinner";
 import React, { useEffect, useState } from "react";
 import { useAppStore } from "store";
-import { getCookie, setCookie } from "utils/cookies/cookie-manager";
+import {
+  deleteCookie,
+  getCookie,
+  setCookie,
+} from "utils/cookies/cookie-manager";
 import { RoundPrice, translateFunction } from "utils/functions";
 
 function ProductRedeemButton({ product }) {

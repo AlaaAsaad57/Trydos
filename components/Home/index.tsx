@@ -17,6 +17,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { showErrorNotification } from "@/store/notifications/reducer";
 import {
   COOKIE_NAMES,
+  deleteCookie,
   getCookie,
   UserData,
 } from "utils/cookies/cookie-manager";
@@ -27,6 +28,7 @@ export default function Home() {
   const { resetFilters, selectedStory, enable_search, nameModal } =
     useAppStore();
   useEffect(() => {
+    deleteCookie("last-page");
     dispatchRouteChangeEvent("completed");
     document.documentElement.style.overflow = "initial";
     document.documentElement.scrollTop = 0;

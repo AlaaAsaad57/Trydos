@@ -2,6 +2,7 @@
 import { useVisibilityTimer } from "hooks/useVisibilityTimer";
 import { BuyButtonPropsType } from "models/componentType/BuyButtonPropsType";
 import { useParams } from "next/navigation";
+import { useEffect } from "react";
 import LocalizationServiceClass from "services/localization";
 import { useAppStore } from "store";
 import { getCookie, setCookie } from "utils/cookies/cookie-manager";
@@ -50,7 +51,10 @@ function BuyButton({
             </span>
             {shouldShowRedeem && (
               <div className="flex-row flex gap-[2px] items-center">
-                <span className="text-[10px] pt-[2px] flex align-start bold" data-cy="product-redeem-price">
+                <span
+                  className="text-[10px] pt-[2px] flex align-start bold"
+                  data-cy="product-redeem-price"
+                >
                   {RoundPrice({
                     num: redeem_price,
                     rate: currency?.rate,
@@ -177,7 +181,7 @@ const LuckyDrawTimer = ({
     restart,
     timerRef,
   } = useVisibilityTimer({
-    expiryTimestamp: new Date(Date.now() + 20000),
+    expiryTimestamp: new Date(Date.now() + 50000),
     onExpire: () => {
       if (!isNavigating) {
         onFinish();
@@ -189,7 +193,9 @@ const LuckyDrawTimer = ({
     <div className="flex flex-row items-center gap-[2px] w-full justify-end">
       <ClockIcon />
       <div className="flex flex-row text-[#ff6200]" ref={timerRef}>
-        <span className="bold text-[10px]">-{seconds}</span>
+        <span id={`counter-${id}`} className="bold text-[10px]">
+          -{seconds}
+        </span>
         <span>{translateFunction("s", languageVariable)}</span>
       </div>
     </div>
