@@ -35,15 +35,18 @@ export const ModifyOrderItemModal = ({
   const ConfirmChange = async () => {
     if (loading) return;
     setLoading(true);
+    let image =
+      confirmationData?.productDetails?.sync_color_images?.find(
+        (s) => s?.color_option === confirmationData?.newColor
+      )?.images?.[0] || orderItem?.image;
+    const imageVar = image.split("/")[image.split("/").length - 1];
+
     await order.changeOrderItemVariant({
       choice_1: confirmationData?.newSize ?? "",
       color: confirmationData?.productDetails?.colors?.find(
         (s) => s.name === confirmationData.newColor
       )?.color,
-      image:
-        confirmationData?.productDetails?.sync_color_image?.find(
-          (s) => s?.color_option === confirmationData?.newColor
-        )?.images?.[0]?.file_path || orderItem?.image,
+      image: imageVar,
       order_detail_id: confirmationData?.detail_id,
     });
     setLoading(false);
