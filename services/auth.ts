@@ -177,7 +177,7 @@ class AuthService {
         server: "market",
       });
       let chat_update = await fetchData({
-        url: `/api/v1/users/${(getUser() as any)?.id}`,
+        url: `/api/v1/users/${(this.UserID() as any)?.id}`,
         reqTitle: "Update Name in chat",
         method: "PUT",
         server: "chat",
@@ -332,7 +332,7 @@ class AuthService {
             photo_path: this.ConfigurePhoto(userObj?.image, "story"),
           }),
         });
-        console.log(res);
+
         stories_done = true;
         setCookie(COOKIE_NAMES.USER_STORIES, {
           ...userStories,
@@ -343,7 +343,7 @@ class AuthService {
       }
       if (userChat && user && userChat?.id) {
         let chat_update = await fetchData({
-          url: `/api/v1/users/${(getUser() as any)?.id}`,
+          url: `/api/v1/users/${(this.UserID() as any)?.id}`,
           reqTitle: "Update Name in chat",
           method: "PUT",
           server: "chat",
@@ -419,7 +419,7 @@ class AuthService {
       }
       if (chat_done) {
         await fetchData({
-          url: `/api/v1/users/${(getUser() as any)?.id}`,
+          url: `/api/v1/users/${(this.UserID() as any)?.id}`,
           reqTitle: "Update Name in chat",
           method: "PUT",
           server: "chat",
