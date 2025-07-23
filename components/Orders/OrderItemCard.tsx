@@ -122,7 +122,7 @@ function OrderItemCard({
                     enable: true,
                     type: "Size",
                     loading: true,
-                    currentSize: item.variation.Size,
+                    currentSize: item.variation?.Size,
                     item: item,
                   });
                 }}
