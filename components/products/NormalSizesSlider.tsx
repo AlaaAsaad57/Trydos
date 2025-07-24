@@ -49,7 +49,7 @@ function NormalSizesSlider({
         <div
           key={index}
           className={`color-circle relative ${
-            activeColor.includes(size.name) && "active-color-circle"
+            activeColor === size.option && "active-color-circle"
           }`}
           data-cy="SizeCircle"
           onClick={() => {
@@ -58,7 +58,7 @@ function NormalSizesSlider({
         >
           <div
             className={`size-circle max-w-[70px] max-h-[70px] ${
-              activeColor.includes(size.name) && "active-size-circle"
+              activeColor === size?.option && "active-size-circle"
             }`}
           >
             {size.name}

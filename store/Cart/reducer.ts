@@ -415,7 +415,7 @@ export const useCartStore = (set, get) => ({
   getProductVariation: (variation) =>
     set((state) => {
       let temp = {};
-      if (variation.color || variation.size) {
+      if (variation.color || variation?.Size) {
         return {
           SelectedProduct: { ...state.SelectedProduct, ...variation },
           ...temp,

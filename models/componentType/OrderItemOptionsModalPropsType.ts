@@ -61,5 +61,5 @@ export interface Rating {
 
 export interface Variation {
   color: string;
-  size: string;
+  Size: string;
 }

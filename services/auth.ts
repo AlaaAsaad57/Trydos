@@ -41,7 +41,7 @@ class AuthService {
       msg = response.message;
       if (!response.success) {
         throw new Error(response.message);
-       }
+      }
       if (response.data?.verificationId) {
         setVerificationId(response.data.verificationId);
         return response.data.verificationId;
@@ -84,7 +84,7 @@ class AuthService {
       if (response?.data?.message === "user not found") {
         throw new Error("user not found");
       }
-      if (response?.isSuccessful === false  && !response.success) {
+      if (response?.isSuccessful === false && !response.success) {
         throw new Error("Wrong Code", response?.message);
       }
       localStorage.setItem("ID-TOKEN", response.data.id_token);
@@ -178,9 +178,9 @@ class AuthService {
       });
       if (!res.success) {
         throw new Error(res.message);
-       }
+      }
       let chat_update = await fetchData({
-        url: `/api/v1/users/${(getUser() as any)?.id}`,
+        url: `/api/v1/users/${(this.UserID() as any)?.id}`,
         reqTitle: "Update Name in chat",
         method: "PUT",
         server: "chat",
@@ -188,7 +188,7 @@ class AuthService {
       });
       if (!chat_update.success) {
         throw new Error(chat_update.message);
-       }
+      }
       setCookie(COOKIE_NAMES.USER_CHAT, {
         ...userChat,
         name: name,
@@ -201,7 +201,7 @@ class AuthService {
       if (!userStories) {
         await this.ConfirmSignIn();
       }
-     let response = await fetchData({
+      let response = await fetchData({
         url: "/api/v1/users/update",
         reqTitle: "Update Name in stories",
         method: "POST",
@@ -210,7 +210,7 @@ class AuthService {
       });
       if (!response.success) {
         throw new Error(response.message);
-       }
+      }
       StoryService.getStories();
     } catch (e) {
       console.error(e);
@@ -342,8 +342,7 @@ class AuthService {
         });
         if (!res.success) {
           throw new Error(res.message);
-         }
-        console.log(res);
+        }
         stories_done = true;
         setCookie(COOKIE_NAMES.USER_STORIES, {
           ...userStories,
@@ -354,7 +353,7 @@ class AuthService {
       }
       if (userChat && user && userChat?.id) {
         let chat_update = await fetchData({
-          url: `/api/v1/users/${(getUser() as any)?.id}`,
+          url: `/api/v1/users/${(this.UserID() as any)?.id}`,
           reqTitle: "Update Name in chat",
           method: "PUT",
           server: "chat",
@@ -366,7 +365,7 @@ class AuthService {
         });
         if (!chat_update.success) {
           throw new Error(chat_update.message);
-         }
+        }
         chat_done = true;
         setCookie(COOKIE_NAMES.USER_CHAT, {
           ...userChat,
@@ -387,7 +386,7 @@ class AuthService {
       });
       if (!res.success) {
         throw new Error(res.message);
-       }
+      }
       market_done = true;
       setCookie(COOKIE_NAMES.USER_DATA, {
         ...user,
@@ -400,7 +399,7 @@ class AuthService {
     } catch (error) {
       console.log(error);
       if (market_done) {
-       let res = await fetchData({
+        let res = await fetchData({
           url: "/customer/update-profile",
           body: userProfile,
           reqTitle: "Update Profile",
@@ -409,7 +408,7 @@ class AuthService {
         });
         if (!res.success) {
           throw new Error(res.message);
-         }
+        }
         market_done = true;
         setCookie(COOKIE_NAMES.USER_DATA, {
           ...user,
@@ -419,7 +418,7 @@ class AuthService {
         });
       }
       if (stories_done) {
-       let res = await fetchData({
+        let res = await fetchData({
           url: "/api/v1/users/update",
           reqTitle: "Update Name in stories",
           method: "POST",
@@ -432,7 +431,7 @@ class AuthService {
         });
         if (!res.success) {
           throw new Error(res.message);
-         }
+        }
         setCookie(COOKIE_NAMES.USER_STORIES, {
           ...userStories,
           name: userProfile?.name,
@@ -441,8 +440,8 @@ class AuthService {
         });
       }
       if (chat_done) {
-      let res =  await fetchData({
-          url: `/api/v1/users/${(getUser() as any)?.id}`,
+        let res = await fetchData({
+          url: `/api/v1/users/${(this.UserID() as any)?.id}`,
           reqTitle: "Update Name in chat",
           method: "PUT",
           server: "chat",
@@ -454,7 +453,7 @@ class AuthService {
         });
         if (!res.success) {
           throw new Error(res.message);
-         }
+        }
         setCookie(COOKIE_NAMES.USER_CHAT, {
           ...userChat,
           name: userObj?.name ?? userProfile?.name,
@@ -492,7 +491,7 @@ class AuthService {
       }
       return response.data;
     } catch (err) {
-      console.error(err)
+      console.error(err);
       return null;
     }
   }

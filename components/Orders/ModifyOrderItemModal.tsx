@@ -19,7 +19,7 @@ export const ModifyOrderItemModal = ({
 }: ModifyOrderItemModalPropsType) => {
   const { language } = useAppStore();
   const [loading, setLoading] = useState(false);
-  console.log("confirmationData:",confirmationData)
+
   const isChanged = () => {
     if (
       (type === "Color" &&
@@ -33,12 +33,20 @@ export const ModifyOrderItemModal = ({
     else return false;
   };
   const ConfirmChange = async () => {
+    if (loading) return;
     setLoading(true);
+    let image =
+      confirmationData?.productDetails?.sync_color_images?.find(
+        (s) => s?.color_option === confirmationData?.newColor
+      )?.images?.[0] || orderItem?.image;
+    const imageVar = image.split("/")[image.split("/").length - 1];
+
     await order.changeOrderItemVariant({
       choice_1: confirmationData?.newSize ?? "",
       color: confirmationData?.productDetails?.colors?.find(
         (s) => s.name === confirmationData.newColor
       )?.color,
+      image: imageVar,
       order_detail_id: confirmationData?.detail_id,
     });
     setLoading(false);
@@ -46,10 +54,6 @@ export const ModifyOrderItemModal = ({
     getOrderDetails();
     close();
   };
-  console.log("choice_1 :",confirmationData?.newSize )
-  console.log("color :",confirmationData?.productDetails?.colors?.find(
-    (s) => s.name === confirmationData.newColor
-  )?.color,)
 
   return (
     <div
@@ -174,12 +178,16 @@ export const ModifyOrderItemModal = ({
               }
             }}
           >
-            {translateFunction("Yes, I Agree", language)}
+            {loading ? (
+              <Spinner />
+            ) : (
+              translateFunction("Yes, I Agree", language)
+            )}
           </div>
           <div
             className="cursor-pointer w-full h-[50px] text-[#fff] text-[16px] regular flex items-center justify-center"
             onClick={() => {
-              setConfirmationData(false);
+              if (!loading) setConfirmationData(false);
             }}
           >
             {translateFunction("Cancel", language)}

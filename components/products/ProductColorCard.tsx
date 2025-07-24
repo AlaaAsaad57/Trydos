@@ -16,7 +16,7 @@ function ProductColorCard({
   params,
   currency,
   productColor,
-
+  onClick,
   language = "en",
   Sliders = true,
 }) {
@@ -27,7 +27,9 @@ function ProductColorCard({
       className="max-h-[377px] relative"
       key={product.slug}
       data-cy="product-card"
-      onClick={() => {}}
+      onClick={() => {
+        onClick();
+      }}
     >
       <div
         // data={{
@@ -48,7 +50,7 @@ function ProductColorCard({
         // }`}
         onClick={(e) => {
           // @ts-ignore
-          console.log(e, "link clicked");
+          onClick();
         }}
         className="product-container  align-center flex-col relative pb-[10px]"
         data-cy="product_link"

@@ -5,6 +5,7 @@ import { GetWalletApi } from "models/API/market/GetWallet";
 import { GetCartOreview } from "utils/functions";
 import { getCurrency } from "utils/tinyUtils";
 import { fetchData } from "utils/fetchData";
+import auth from "./auth";
 
 class OrderService {
   async PlaceOrder({ payment_method, pay_by_wallet }) {
@@ -321,7 +322,7 @@ class OrderService {
       console.error(error);
     }
   }
-  async changeOrderItemVariant({ color, choice_1, order_detail_id }) {
+  async changeOrderItemVariant({ color, choice_1, order_detail_id, image }) {
     try {
       let response = await fetchData({
         url: `/customer/order/change-item-variant`,
@@ -332,6 +333,7 @@ class OrderService {
           color,
           choice_1: choice_1 ?? "",
           order_detail_id,
+          image,
         }),
       });
       if (response.success || response.isSuccessful) {return response}
@@ -340,6 +342,39 @@ class OrderService {
       };
     } catch (error) {
       console.error(error);
+    }
+  }
+  async RateOrderWithhComment({
+    star_rating,
+    comment,
+    order_detail_id,
+    productId,
+  }) {
+    try {
+      // let res = await fetchData({
+      //   url: `/customer/product_comment/order`,
+      //   server: "market",
+      //   method: "POST",
+      //   body: JSON.stringify({
+      //     customer_id: auth.UserID(),
+      //     order_detail_id,
+      //     comment: comment,
+      //     star_rating: star_rating,
+      //     product_id: productId,
+      //   }),
+      // });
+      // if (!res.success) {
+      //   throw new Error(res?.message);
+      // }
+      console.log({
+        star_rating,
+        comment,
+        order_detail_id,
+        productId,
+      });
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+    } catch (e) {
+      throw new Error(e?.message);
     }
   }
 }

@@ -7,9 +7,10 @@ export interface ProductPhotosSliderPropsType {
     offer_price?: number;
     price?: number;
     slug: string;
+    is_redeem?: boolean;
   };
   priority?: boolean;
-
+  image?: string;
   Sliders?: boolean;
 }
 export interface Image {

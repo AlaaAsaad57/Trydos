@@ -1795,6 +1795,10 @@ const QuantutyInput = ({
 }: QuantutyInputPropsType) => {
   const { initCart, settings, currency, removeFromCart } = useAppStore();
   const [inputValue, setInputValue] = useState(parseInt(value));
+  useEffect(() => {
+    if (parseInt(value) === inputValue) return;
+    setInputValue(parseInt(value));
+  }, [value]);
   const PlusIcon = ({ className }) => {
     return (
       <svg

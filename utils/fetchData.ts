@@ -32,6 +32,7 @@ export interface FetchDataParams {
   server: ServerType;
   retryActionIfUnAuth?: () => void | null;
   signal?: AbortSignal;
+  noMessage?: boolean;
 }
 
 // Cache structure
@@ -216,6 +217,8 @@ export const fetchData = async <T = any>(
     reqTitle,
     server,
     retryActionIfUnAuth,
+    noMessage,
+    signal,
   } = params;
 
   // Check cache first
@@ -394,8 +397,10 @@ export const fetchData = async <T = any>(
         showErrorMessage(`${err?.message || "Falied"}`);
       } else {
         console.error(err);
-        if (!ignoredMessages.includes(err?.message || err))
-          showErrorNotification(`${reqTitle} : ${err?.message || "Falied"}`);
+        if (!ignoredMessages.includes(err?.message || err)) {
+          if (!noMessage)
+            showErrorNotification(`${reqTitle} : ${err?.message || "Falied"}`);
+        }
       }
       let errorObj = {
         type: "backend-exception",

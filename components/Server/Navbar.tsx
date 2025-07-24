@@ -12,7 +12,6 @@ async function NavbarServer({
   categoriesData,
 }: NavbarServerProps) {
   try {
-    console.log(categoriesData);
     const { mainCategories: categories } = categoriesData;
 
     categories.sort((a, b) => (a.slug === mainCategory ? -1 : 1));

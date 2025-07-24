@@ -35,7 +35,7 @@ function ChangeOrderItem({
   const [tabs, setTabs] = useState<string>(
     item?.variation?.color
       ? "Change Color"
-      : item?.variation?.size
+      : item?.variation?.Size
       ? "Change Size"
       : "Change Qty"
   );
@@ -46,7 +46,7 @@ function ChangeOrderItem({
     },
     {
       name: "Change Size",
-      isExist: item?.variation?.size,
+      isExist: item?.variation?.Size,
     },
     {
       name: "Change Qty",
@@ -54,7 +54,7 @@ function ChangeOrderItem({
     },
   ];
   const [color, setColor] = useState<string>(item?.variation?.color);
-  const [size, setSize] = useState<string>(item?.variation?.size);
+  const [size, setSize] = useState<string>(item?.variation?.Size);
   const [qty, setQty] = useState<number>(item?.qty);
   const [productData, setProductData] = useState<any>(null);
   useEffect(() => {
@@ -100,7 +100,7 @@ function ChangeOrderItem({
     if (color !== item?.variation?.color) {
       return true;
     }
-    if (size !== item?.variation?.size) {
+    if (size !== item?.variation?.Size) {
       return true;
     }
     if (qty !== item?.qty) {
@@ -263,7 +263,7 @@ function ChangeOrderItem({
                 ...shouldConfirmChange,
                 type: "Color",
                 currentColor: item?.variation?.color,
-                currentSize: item?.variation?.size,
+                currentSize: item?.variation?.Size,
                 newColor: color,
                 newSize: size,
                 productDetails: productData,
@@ -275,7 +275,7 @@ function ChangeOrderItem({
                 ...shouldConfirmChange,
                 type: "Size",
                 currentColor: item?.variation?.color,
-                currentSize: item?.variation?.size,
+                currentSize: item?.variation?.Size,
                 newColor: color,
                 newSize: size,
                 productDetails: productData,
@@ -370,7 +370,7 @@ export const ChangeSizeWidget = ({
       </div>
       <span className="text-[#1d1d1d] text-[14px] regular mt-[9px] flex-row items-center w-full border-[#E6E6E680] border-b-[1px] pb-[12px] justify-center text-center">
         {translateFunction("Change From")}
-        <span className="mx-[4px]">{item?.variation?.size}</span>
+        <span className="mx-[4px]">{item?.variation?.Size}</span>
       </span>
       <span className="text-[#1d1d1d] text-[14px] regular mt-[9px] flex-row items-center w-full justify-center text-center">
         {translateFunction("To New Size?")}
@@ -388,7 +388,7 @@ export const ChangeSizeWidget = ({
           )[0]?.options
         }
         setSize={setSize}
-        currentSize={item?.variation?.size}
+        currentSize={item?.variation?.Size}
         newSize={size}
       />
     </div>

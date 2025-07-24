@@ -2,7 +2,7 @@
 import React, { Suspense, useEffect, useReducer, useState } from "react";
 import ExtendedAreaInfo from "./ExtendedAreaInfo";
 import ProductOptions from "./ProductOptions";
-import { translateFunction } from "utils/functions";
+import { RoundPrice, translateFunction } from "utils/functions";
 import chat from "services/chat";
 import { useParams, useSearchParams } from "next/navigation";
 import { ProductSocialInfo } from "models/API/market/ProductSocialInfo";
@@ -14,6 +14,9 @@ import { ProductFooterSectionPropsType } from "models/componentType/productTypes
 import { showErrorNotification } from "@/store/notifications/reducer";
 import { fetchData } from "utils/fetchData";
 import ProductRedeemButton from "./ProductRedeemPrice";
+import { deleteCookie, getCookie } from "utils/cookies/cookie-manager";
+import { GAevent } from "utils/gtag";
+import { GA_EVENT_NAMES } from "utils/GAEvents";
 
 function ProductReducer(state, { type, payload }) {
   if (type === "setProductData") {
@@ -42,11 +45,6 @@ function ProductReducer(state, { type, payload }) {
   }
   if (type === "VerifyComment") {
     let s = state.CommentsData.filter((m) => m.mid === payload)[0];
-    console.log(
-      s,
-      payload,
-      state.CommentsData.filter((comment) => comment.mid !== payload)
-    );
 
     return {
       ...state,
@@ -253,12 +251,36 @@ function ProductFooterSection({
       setViewsProducts({
         views_count: response_views?.view_count || 0,
       });
+      GAevent({
+        action: GA_EVENT_NAMES.VIEW_PRODUCT_EVENT,
+        params: {
+          user_ID: auth.UserID(),
+          item_id: product?.sku || product?.slug,
+          item_name: product?.name,
+          price: RoundPrice({
+            num: product.offer_price,
+            rate: currency?.exchange_rate,
+            returnNumber: true,
+          }),
+          brand: product?.brand?.name,
+          brand_id: product?.brand?.id,
+          category: product?.category?.name,
+          category_id: product?.category?.id,
+          count_likes: likesNum,
+          review_counts: response_views?.view_count,
+          interaction_type: "view",
+          screen_name: getCookie<any>("last-page")?.screen || "link",
+          screen_path:
+            getCookie<any>("last-page")?.url || window.location.pathname,
+        },
+      });
       setLoading(false);
     } catch (err) {
       console.error(err)
     }
   };
   useEffect(() => {
+    deleteCookie("counter");
     setLoadedCart(false);
     dispatchRouteChangeEvent("completed");
     getData();

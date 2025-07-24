@@ -5,9 +5,14 @@ import { getConfiguredImage } from "utils/functions";
 import { useParams } from "next/navigation";
 import Image from "next/image";
 import { GetImageUrl } from "utils/tinyUtils";
+import { GAevent } from "utils/gtag";
+import { GA_EVENT_NAMES, GA_GLOBAL_SCREEN } from "utils/GAEvents";
+import auth from "services/auth";
+import { useAppStore } from "store";
 
 function ProductItem({ product, onClick }) {
   const { lang } = useParams();
+  const { value } = useAppStore();
   return (
     <NextLink
       data={{
@@ -21,7 +26,19 @@ function ProductItem({ product, onClick }) {
       onClick={(e, bool = false) => {
         /* @ts-ignore*/
         onClick(product.name);
-
+        GAevent({
+          action: GA_EVENT_NAMES.SEARCH,
+          params: {
+            user_ID: auth.UserID(),
+            search_keyword: value,
+            search_item_select: {
+              item_id: product?.sku || product?.slug,
+              item_name: product?.name,
+            },
+            screen_name: GA_GLOBAL_SCREEN.HOME_SCREEN,
+            screen_path: window.location.pathname,
+          },
+        });
         dispatchRouteChangeEvent("start", { to: "products" });
         document.documentElement.style.overflow = "hidden";
         document.documentElement.scrollTop = 0;

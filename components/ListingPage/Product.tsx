@@ -13,11 +13,11 @@ export const BuyButtonProduct = ({
   currency,
   language,
   isForColor = false,
+  shouldShowRedeem = false,
+  setShouldShowRedeem = (e) => {},
 }) => {
   const [isClient, setIsClient] = useState(false);
-  const [shouldShowRedeem, setShouldShowRedeem] = useState(false);
-  const { setSelectedProductForCart, ColorBottomSheet, setColorBottomSheet } =
-    useAppStore();
+  const { setSelectedProductForCart } = useAppStore();
   const shouldShowRedeemFunc = useCallback(() => {
     let redeemed_products_ids = getCookie<any>("redemed_ids");
 
@@ -226,27 +226,6 @@ export const BuyButtonProduct = ({
       }
     }
   };
-  useEffect(() => {
-    if (!product.flash_deal_end_date && !product?.is_redeem) return;
-    if (product?.flash_deal_end_date) {
-      document
-        ?.querySelector(`#slug-${product.slug}`)
-        ?.classList?.add("orange-border");
-      return;
-    }
-    if (product.is_redeem && shouldShowRedeem) {
-      document
-        ?.querySelector(`#slug-${product.slug}`)
-        ?.classList?.add("orange-border");
-      return;
-    }
-    if (!product.flash_deal_end_date && !shouldShowRedeem) {
-      document
-        ?.querySelector(`#slug-${product.slug}`)
-        ?.classList?.remove("orange-border");
-      return;
-    }
-  }, [shouldShowRedeem]);
   if (!isClient)
     return (
       <>
