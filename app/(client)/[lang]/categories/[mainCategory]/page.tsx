@@ -1,4 +1,3 @@
-export const revalidate = parseInt(process.env.NEXT_PUBLIC_REVALIDATE);
 export const runtime = "nodejs";
 export const preferredRegion = "bom1";
 import Home from "components/Home";

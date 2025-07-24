@@ -84,8 +84,8 @@ function ProductCard({
               let text = document.querySelector(
                 `#counter-${product.product_id}`
               )?.textContent;
-              text = text.match(/\d+/)[0];
-              if (text)
+              if (text) text = text.match(/\d+/)[0];
+              if (text?.length)
                 setCookie(
                   "counter",
                   JSON.stringify({

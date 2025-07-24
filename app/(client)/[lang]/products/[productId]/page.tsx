@@ -1,7 +1,5 @@
-export const dynamicParams = true;
-export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
-export const preferredRegion = process.env.PREFERRED_REGION || "bom1";
+export const preferredRegion = "bom1";
 import "styles/productDetails.css";
 import "styles/product-body.css";
 import EyeIcon from "public/svg/product/EyeIcon.svg";

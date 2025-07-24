@@ -27,7 +27,7 @@ export default function NextLink({
   const {
     setEnableSearch,
     setFilterEnabled,
-    setActiveRoute,
+
     setSelectedOrderItem,
     setActivePacks,
     setOrderDetails,
@@ -51,7 +51,6 @@ export default function NextLink({
       //   value: GA_CLICK_EVENT_VALUES.BOUTIQUE_LINK,
       // });
     } else if (props["data-cy"] === "product_link") {
-      setActiveRoute(window.location.pathname);
       // if (data.is_redeem) {
       //   let redems = getCookie<any>("redemed_ids");
       //   if (redems?.find((s) => s.id === data.product_id)) {

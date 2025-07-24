@@ -1,8 +1,5 @@
-export const dynamicParams = true;
 export const runtime = "nodejs";
-export const preferredRegion = process.env.PREFERRED_REGION || "bom1";
-export const revalidate = parseInt(process.env.NEXT_PUBLIC_REVALIDATE);
-export const dynamic = "auto";
+export const preferredRegion = "bom1";
 import FilterList from "components/Server/FilterList";
 import ProductListServer from "components/Server/ProductList";
 import BackIcon from "public/svg/listing/backIcon.svg";
