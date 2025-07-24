@@ -5,7 +5,6 @@ import ProductsInfiniteScroll from "components/ListingPage/ProductInfiniteScroll
 import { getActiveFilters } from "./FilterList";
 import { ProductListServerPropsType } from "models/componentType/boutiqueTypes/ProductListServerPropsType";
 import ProductCard from "./ProductCard";
-import ColorBottomSheet from "components/ListingPage/ColorBottomSheet";
 
 function ProductListServer({
   params,
@@ -47,12 +46,18 @@ function ProductListServer({
         );
       })}
       <ProductsInfiniteScroll
+        analyticsData={{
+          items: products?.map((s) => ({
+            item_id: s.slug,
+            item_name: s.name,
+            category: s.category?.name,
+            brand: s.brand?.name,
+          })),
+        }}
         productIds={products.map((s) => s.slug)}
         activeColor={activeColor}
         currency={currency}
         offset={offset}
-        parsedFilters={parsedFilters}
-        boutiqueId={params.boutiqueId}
         isFeatured={isFeatured}
         isFlashDeals={isFlashDeals}
       />

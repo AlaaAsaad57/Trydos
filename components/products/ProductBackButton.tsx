@@ -6,16 +6,17 @@ import { useParams } from "next/navigation";
 import { getCookie } from "utils/cookies/cookie-manager";
 
 function ProductBackButton() {
-  const lastPage = getCookie("last-page");
+  const lastPage = getCookie<{ url; screen }>("last-page");
+  let url = lastPage?.url;
   const { lang } = useParams();
   return (
     <div className="back-bar align-center w-100 flex-row">
       <NextLink
         data-cy="backIcon_productPage"
         className={`back-icon flex-row`}
-        href={`${lastPage || `/${lang}`}`}
+        href={`${url || `/${lang}`}`}
         data={
-          (lastPage || `/${lang}`) === `/${lang}`
+          (url || `/${lang}`) === `/${lang}`
             ? { is_full_home: true }
             : {
                 is_boutique: true,

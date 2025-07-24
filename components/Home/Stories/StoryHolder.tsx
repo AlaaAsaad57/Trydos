@@ -26,6 +26,9 @@ import {
   getCookie,
   UserData,
 } from "utils/cookies/cookie-manager";
+import { GAevent } from "utils/gtag";
+import { GA_EVENT_NAMES, GA_GLOBAL_SCREEN } from "utils/GAEvents";
+import auth from "services/auth";
 function StoryHolder({ story, active, isPaused }: StoryHolderPropsType) {
   const { language, country, setStoryData } = useAppStore();
   const userStories = getCookie<UserData>(COOKIE_NAMES.USER_STORIES);
@@ -232,6 +235,23 @@ function StoryHolder({ story, active, isPaused }: StoryHolderPropsType) {
             const s: any = story.stories[e];
             if (s?.id) {
               StoryServiceClass.WatchStory(s.id, story.id as any);
+              let url = window.location.pathname;
+              GAevent({
+                action: GA_EVENT_NAMES.VIEW_STORY,
+                params: {
+                  user_ID: auth.UserID(),
+                  story_id: s.id,
+                  item_id: s.product_id,
+                  item_name: s.product_id,
+                  story_type: s.full_video_path ? "video" : "image",
+                  link: s?.link,
+                  product_link: Boolean(s.product_id),
+                  screen_name: url?.includes("/products")
+                    ? GA_GLOBAL_SCREEN.PRODUCT_SCREEN
+                    : GA_GLOBAL_SCREEN.HOME_SCREEN,
+                  screen_path: url,
+                },
+              });
             }
           }
         }}

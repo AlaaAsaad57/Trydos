@@ -1,6 +1,6 @@
 "use client";
 import NextLink from "components/global/NextLink";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useState } from "react";
 import { BuyButtonProduct } from "../ListingPage/Product";
 import MangoIcon from "public/svg/listing/MangoIcon.svg";
 import VerifiedIcon from "public/svg/listing/VerifiedIcon.svg";
@@ -9,6 +9,7 @@ import { getCookie, setCookie } from "utils/cookies/cookie-manager";
 import { ProductPhotosSlider } from "components/ListingPage/ProductSliders";
 import ColorBottomSheet from "components/ListingPage/ColorBottomSheet";
 import { useAppStore } from "store";
+import { GA_GLOBAL_SCREEN } from "utils/GAEvents";
 
 function ProductCard({
   product,
@@ -45,7 +46,23 @@ function ProductCard({
       return url;
     }
   };
-
+  const storeCookies = () => {
+    let screen_name = "";
+    let url = window.location.pathname;
+    if (url.includes("filters/boutique")) {
+      screen_name = GA_GLOBAL_SCREEN.BOUTIQUE_SCREEN;
+    } else if (url.includes("tags_names")) {
+      screen_name = GA_GLOBAL_SCREEN.TAGS_SCREEN;
+    } else if (url.includes("/filters")) {
+      screen_name = GA_GLOBAL_SCREEN.FILTERS_SCREEN;
+    } else {
+      screen_name = GA_GLOBAL_SCREEN.HOME_SCREEN;
+    }
+    setCookie("last-page", {
+      url: window.location.pathname,
+      screen: screen_name,
+    });
+  };
   return (
     <>
       <ColorBottomSheet
@@ -77,7 +94,7 @@ function ProductCard({
                   })
                 );
             }
-            setCookie("last-page", window.location.pathname);
+            storeCookies();
           }}
           data={{
             is_product: true,
@@ -114,10 +131,13 @@ function ProductCard({
                 <MangoIcon />
                 <VerifiedIcon />
               </span>
-              {product.name?.substring(0, 50)}
-              {product?.brand && ` | ${product?.brand?.name}`}
-              {product?.category && ` | ${product?.category?.name}`}
-
+              {[
+                product.category_hierarchy?.main_category?.name,
+                product.category_hierarchy?.sub_category?.name,
+                product.category_hierarchy?.sub_sub_category?.name,
+              ]
+                ?.filter((s) => typeof s === "string")
+                ?.join(" | ")}
               <span className="product-category-icon align-center">
                 {/* {product.category &&
                 product?.category?.flat_photo_path?.file_path?.length > 0 && (

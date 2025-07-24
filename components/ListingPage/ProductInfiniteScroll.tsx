@@ -10,23 +10,21 @@ import { useAppStore } from "store";
 import { fetchFilteredProducts } from "Server Requests";
 import { showErrorNotification } from "store/notifications/reducer";
 import ProductCard from "components/Server/ProductCard";
+import { GAevent } from "utils/gtag";
+import { GA_EVENT_NAMES, GA_GLOBAL_SCREEN } from "utils/GAEvents";
 
 function ProductsInfiniteScroll({
   offset,
-  boutiqueId,
   currency,
-  searchParams,
-  parsedFilters,
   activeColor,
   productIds,
   isFeatured,
   isFlashDeals,
+  analyticsData,
 }: {
   offset: any;
   currency: CurrencyApi["data"]["currency"];
-  boutiqueId: string;
-  searchParams?: any;
-  parsedFilters?: Record<string, string[]>;
+  analyticsData: any;
   activeColor: string;
   productIds: string[];
   isFeatured?: boolean;
@@ -42,6 +40,14 @@ function ProductsInfiniteScroll({
 
   useEffect(() => {
     dispatchRouteChangeEvent("completed");
+    GAevent({
+      action: GA_EVENT_NAMES.VIEW_ITEMS_LIST,
+      params: {
+        items: analyticsData,
+        screen_name: GA_GLOBAL_SCREEN.FILTERS_SCREEN,
+        screen_path: window.location.pathname,
+      },
+    });
     document.documentElement.style.overflow = "initial";
     document.documentElement.scrollTop = 0;
     resetBoutique();
@@ -79,6 +85,7 @@ function ProductsInfiniteScroll({
       }, 3000);
       return;
     }
+
     setProducts([
       ...products,
       ...response.data.products.filter(
@@ -87,7 +94,21 @@ function ProductsInfiniteScroll({
             .length === 0
       ),
     ]);
-
+    if (response.data.products?.length > 0) {
+      GAevent({
+        action: GA_EVENT_NAMES.VIEW_ITEMS_LIST,
+        params: {
+          items: response.data.products?.map((s) => ({
+            item_id: s?.slug,
+            item_name: s?.name,
+            category: s?.category?.name,
+            brand: s?.brand?.name,
+          })),
+          screen_name: GA_GLOBAL_SCREEN.FILTERS_SCREEN,
+          screen_path: window.location.pathname,
+        },
+      });
+    }
     setOffsetValue(response.data.offset);
     setLoading(false);
     if (
