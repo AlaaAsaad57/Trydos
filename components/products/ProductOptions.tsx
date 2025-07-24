@@ -75,24 +75,6 @@ function ProductOptions({
     } else {
       setLiked(false);
       editInfo({ likes: SelectedProduct?.likes - 1, is_liked: false });
-      GAevent({
-        action: GA_EVENT_NAMES.LIKE_ITEM,
-        params: {
-          user_ID: auth.UserID(),
-          item_id: product?.sku || product?.slug,
-          item_name: product?.name,
-          action: "dislike",
-          category: product?.category?.name,
-          brand: product?.brand?.name,
-          price: RoundPrice({
-            num: product?.offer_price,
-            rate: currency.exchange_rate,
-            returnNumber: true,
-          }),
-          screen_name: GA_GLOBAL_SCREEN.PRODUCT_SCREEN,
-          screen_path: window.location.pathname,
-        },
-      });
       try {
         let res = await fetchData({
           url: "/product_likes/delete",
@@ -107,6 +89,24 @@ function ProductOptions({
         if (!res.success) {
           throw new Error(res.message);
         }
+        GAevent({
+          action: GA_EVENT_NAMES.LIKE_ITEM,
+          params: {
+            user_ID: auth.UserID(),
+            item_id: product?.sku || product?.slug,
+            item_name: product?.name,
+            action: "dislike",
+            category: product?.category?.name,
+            brand: product?.brand?.name,
+            price: RoundPrice({
+              num: product?.offer_price,
+              rate: currency.exchange_rate,
+              returnNumber: true,
+            }),
+            screen_name: GA_GLOBAL_SCREEN.PRODUCT_SCREEN,
+            screen_path: window.location.pathname,
+          },
+        });
         home.UnsubscripeFromTopic({
           topic: `product_availability_${SelectedProduct?.id}`,
         });
