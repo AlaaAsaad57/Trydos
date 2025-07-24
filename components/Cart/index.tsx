@@ -151,7 +151,7 @@ function CartContainer({ close, toOrders }: CartContainerPropsType) {
         }
         getProductDetailsForCart(response.data);
       } catch (err) {
-        // Handle error as needed
+       console.error(err)
       }
     }
   };

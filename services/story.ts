@@ -29,54 +29,75 @@ class StoryService {
 
   async getStories(page: number = 1) {
     const { setStoryData, storiesData } = useAppStore.getState();
-    const response = await fetchData({
-      url: GET_USERS_STORIES + `?page=${page}`,
-      server: "stories",
-      reqTitle: "Get Stories",
-      method: "GET",
-    });
-    let repo: GetStoriesApi = response;
-    const data: StoriesInterface[] = repo.data.data;
-    if (page == 1) {
-      setStoryData(data);
-    } else {
-      setStoryData([...storiesData, ...data]);
+    try {
+      const response = await fetchData({
+        url: GET_USERS_STORIES + `?page=${page}`,
+        server: "stories",
+        reqTitle: "Get Stories",
+        method: "GET",
+      });
+      // @ts-ignore
+      if (!response.success) {
+        throw new Error(response.message);
+      }
+      let repo: GetStoriesApi = response;
+      const data: StoriesInterface[] = repo.data.data;
+      if (page == 1) {
+        setStoryData(data);
+      } else {
+        setStoryData([...storiesData, ...data]);
+      }
+    } catch (error) {
+      console.error(error);
     }
-
+      // @ts-ignore
     return { data, next_page_url: repo.data.next_page_url };
   }
   async loginStories() {
     const { loginSuccessStories } = useAppStore.getState();
     const user = getCookie<UserData>(COOKIE_NAMES.USER_DATA);
-    const response = await fetchData({
-      url: LOG_IN_STORIES,
-      reqTitle: "Login Stories",
-      method: "POST",
-      server: "stories",
-      body: JSON.stringify({
-        otp_id_token: localStorage.getItem("ID-TOKEN"),
-        mobile_phone: user?.phone,
-      }),
-    });
-    setCookie(COOKIE_NAMES.USER_STORIES, response.data);
-    loginSuccessStories({
-      ...response.data,
-    });
-    await this.getStories();
+    try {
+      const response = await fetchData({
+        url: LOG_IN_STORIES,
+        reqTitle: "Login Stories",
+        method: "POST",
+        server: "stories",
+        body: JSON.stringify({
+          otp_id_token: localStorage.getItem("ID-TOKEN"),
+          mobile_phone: user?.phone,
+        }),
+      });
+      // @ts-ignore
+      if (!response.success) {
+        throw new Error(response.message);
+      }
+      setCookie(COOKIE_NAMES.USER_STORIES, response.data);
+      loginSuccessStories({
+        ...response.data,
+      });
+      await this.getStories();
+    } catch (error) {
+      console.error(error);
+    }
   }
   async WatchStory(pid: number | string, id: number | string) {
     const { watchStory } = useAppStore.getState();
     try {
       if (this.getUserStories()?.id) {
         watchStory({ pid: pid, id: id });
-        await fetchData({
+        const res = await fetchData({
           url: "/api/v1/stories/increase_viewers/" + pid,
           server: "stories",
           reqTitle: "Increase Viewers",
           method: "GET",
         });
+        if (!res.success) {
+          throw new Error(res.message);
+        }
       }
-    } catch (e) {}
+    } catch (e) {
+      console.error(e);
+    }
   }
   async UploadToCloudinary(file: File) {
     const url = "https://api.cloudinary.com/v1_1/djooohujg/upload";
@@ -102,49 +123,79 @@ class StoryService {
   ) {
     const { language, country, userStories, setStoryData } =
       useAppStore.getState();
-    let response = await this.UploadToCloudinary(file);
-    const add_story_response: UploadStoryApi = await fetchData({
-      url: `/api/v1/stories/add_story`,
-      reqTitle: "Upload Story",
-      method: "POST",
-      server: "stories",
-      body: JSON.stringify({
-        file_path: response,
-        is_video: is_video,
-        link: link,
-      }),
-    });
-    revalidateStories();
-    let stories = await fetchStories(
-      language,
-      country,
-      1,
-      userStories?.access_token
-    );
-    setStoryData(stories.data);
-    endUpload();
+    try {
+      let response = await this.UploadToCloudinary(file);
+      const add_story_response: UploadStoryApi = await fetchData({
+        url: `/api/v1/stories/add_story`,
+        reqTitle: "Upload Story",
+        method: "POST",
+        server: "stories",
+        body: JSON.stringify({
+          file_path: response,
+          is_video: is_video,
+          link: link,
+        }),
+      });
+      // @ts-ignore
+      if (!add_story_response.success) {
+       // @ts-ignore
+        throw new Error(add_story_response.message);
+      }
 
-    if (add_story_response.data) {
-      return add_story_response.data;
-    } else throw new Error("Failed");
+      revalidateStories();
+      let stories = await fetchStories(
+        language,
+        country,
+        1,
+        userStories?.access_token
+      );
+      setStoryData(stories.data);
+      endUpload();
+
+      if (add_story_response.data) {
+        return add_story_response.data;
+      } else throw new Error("Failed");
+    } catch (error) {
+      console.error(error);
+    }
   }
   async deleteStory(storyId: string | number) {
-    return await fetchData({
-      url: "/api/v1/stories/delete_story",
-      method: "POST",
-      body: JSON.stringify({ story_id: storyId }),
-      reqTitle: "Delete Story",
-      server: "stories",
-    });
+    try {
+      const response = await fetchData({
+        url: "/api/v1/stories/delete_story",
+        method: "POST",
+        body: JSON.stringify({ story_id: storyId }),
+        reqTitle: "Delete Story",
+        server: "stories",
+      });
+      // @ts-ignore
+      if (!response.success) {
+        throw new Error(response.message);
+      }
+      return response.data;
+    } catch (error) {
+      console.error(error);
+      return null;
+    }
   }
   async reportStory(storyId: string | number) {
-    return await fetchData({
-      url: "",
-      method: "POST",
-      body: JSON.stringify({ story_id: storyId }),
-      reqTitle: "Delete Story",
-      server: "stories",
-    });
+    try {
+      const response = await fetchData({
+        url: "",
+        method: "POST",
+        body: JSON.stringify({ story_id: storyId }),
+        reqTitle: "Delete Story",
+        server: "stories",
+      });
+      // @ts-ignore
+      if (!response.success) {
+        throw new Error(response.message);
+      }
+      return response.data;
+    } catch (error) {
+      console.error(error);
+      return null;
+    }
   }
   getUserStories() {
     return getCookie<UserData>(COOKIE_NAMES.USER_STORIES);
@@ -219,7 +270,13 @@ class StoryService {
         method: "GET",
         server: "stories",
       });
-      return data.data;
+
+      if (data.success) {
+        data.data
+      }
+      else {
+        throw new Error(data.message);
+      };
     } catch (error) {
       console.log(error);
       return [];

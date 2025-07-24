@@ -145,13 +145,16 @@ function ChatHeader({
             className="cancel-call pl-4"
             onClick={async () => {
               try {
-                await fetchData({
+                let res = await fetchData({
                   url: "/api/v1/end_call",
                   body: JSON.stringify({ user_id: getUserChat()?.id }),
                   method: "POST",
                   server: "chat",
                   reqTitle: "End Call",
                 });
+               if (!res.success) {
+                 throw new Error(res.message);
+                }
               } catch (err) {
                 console.error("End call failed", err);
               }

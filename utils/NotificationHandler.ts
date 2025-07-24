@@ -199,29 +199,35 @@ class ForegroundNotificationHandler {
           );
         }
         if (JSON.parse(payload.data.body).type === "order placed") {
-          let response = await fetchData({
-            url: `/customer/order/getOrdersByOrderGroupID?order_group_id=${
-              JSON.parse(payload.data.body).order_group_id
-            }`,
-            reqTitle: "getOrderByOrderGroupID request",
-            method: "GET",
-            server: "market",
-          });
-
-          if (response.data && response.data?.length > 0) {
-            showSuccessNotification(
-              data.description,
-              5000,
-              `/${lang}/setting?tab=Orders&id=${data?.order_group_id}`,
-              {
-                is_setting: true,
-                href: `/${lang}/setting?tab=Orders&id=${data?.order_group_id}`,
-              },
-              null
-            );
-            if (orderData.agree) {
-              setOrderData({ data: response.data, success: true });
+          try {
+            let response = await fetchData({
+              url: `/customer/order/getOrdersByOrderGroupID?order_group_id=${
+                JSON.parse(payload.data.body).order_group_id
+              }`,
+              reqTitle: "getOrderByOrderGroupID request",
+              method: "GET",
+              server: "market",
+            });
+            if (!response.success) {
+              throw new Error(response.message);
             }
+            if (response.data && response.data?.length > 0) {
+              showSuccessNotification(
+                data.description,
+                5000,
+                `/${lang}/setting?tab=Orders&id=${data?.order_group_id}`,
+                {
+                  is_setting: true,
+                  href: `/${lang}/setting?tab=Orders&id=${data?.order_group_id}`,
+                },
+                null
+              );
+              if (orderData.agree) {
+                setOrderData({ data: response.data, success: true });
+              }
+            }
+          } catch (error) {
+            console.error(error);
           }
         }
         if (

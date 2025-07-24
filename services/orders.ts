@@ -16,9 +16,11 @@ export const fetchOrders = async (
       method: "GET",
       server: "market",
     });
+    if (!response.success) {
+      throw new Error(response.message);
+    }
     const { setTotalOrders } = useAppStore.getState();
     setTotalOrders(response.data.total);
-
     return response;
   } catch (error) {
     console.error("Error fetching orders:", error);

@@ -12,6 +12,9 @@ export const fetchNotifications = async (
       method: "GET",
       server: "market",
     });
+    if (!response.success) {
+      throw new Error(response.message);
+    }
     return response;
   } catch (error) {
     console.error("Error fetching notifications:", error);
@@ -26,6 +29,9 @@ export const getNotificationsTypes = async () => {
       method: "GET",
       server: "market",
     });
+    if (!response.success) {
+      throw new Error(response.message);
+    }
     return response;
   } catch (error) {
     console.error("Error fetching notifications Types:", error);

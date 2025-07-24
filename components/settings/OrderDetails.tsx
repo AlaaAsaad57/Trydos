@@ -162,6 +162,9 @@ function OrderDetails({ resetOrderDetails, goBack }: OrderDetailsPropsType) {
         }),
         signal: chatAbortControllerRef.current.signal,
       });
+      if (!response.success) {
+        throw new Error(response.message);
+      }
       document.documentElement.style.overflow = "hidden";
       document.documentElement.scrollTop = 0;
       document.querySelector("#OrderDetails").scrollTop = 0;

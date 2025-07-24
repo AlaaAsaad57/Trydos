@@ -63,7 +63,7 @@ function StoriesPaginationWrapper({
         }
       }
       const response = await fetchData({
-        url: `/api/v1/stories/users_storiesss?page=${next_page}`,
+        url: `/api/v1/stories/users_stories?page=${next_page}`,
         method: "GET",
         server: "stories",
         reqTitle: "Get User Stories",

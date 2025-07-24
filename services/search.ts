@@ -11,16 +11,22 @@ class SearchService {
   private searchAbortController: AbortController | null = null;
 
   async getTrendingSearch() {
-    let response = await fetchData({
-      url: "/api/products/popular-search",
-      reqTitle: "Get Trending Search",
-      method: "GET",
-      server: "elastic",
-    });
-
-    const { setTrendingSearch } = useAppStore.getState();
-
-    setTrendingSearch(response?.popular_search_terms || []);
+    try {
+      let response = await fetchData({
+        url: "/api/products/popular-search",
+        reqTitle: "Get Trending Search",
+        method: "GET",
+        server: "elastic",
+      });
+      // @ts-ignore
+      if (!response.success) {
+        throw new Error(response.message);
+      }
+      return response.data;
+    } catch (error) {
+      console.error(error);
+      return null;
+    }
   }
 
   async getSearchOptions({
@@ -109,7 +115,9 @@ class SearchService {
         reqTitle: "Get Search Options",
         signal,
       });
-
+      if (!filtersResponse.success) {
+        throw new Error(filtersResponse.message);
+      }
       if (!filtersResponse) {
         return null;
       }
@@ -190,7 +198,9 @@ class SearchService {
         reqTitle: "Get Search Options",
         signal,
       });
-
+      if (!filtersResponse.success) {
+        throw new Error(filtersResponse.message);
+      }
       const {
         products,
         categories,

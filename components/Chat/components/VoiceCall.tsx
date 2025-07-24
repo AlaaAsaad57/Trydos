@@ -227,13 +227,17 @@ const VoiceCall: React.FC<VoiceCallProps> = ({
 
       // End call API - always call this
       try {
-        await fetchData({
+        let res = await fetchData({
           url: `/api/v1/end_call`,
           reqTitle: "End Call",
           method: "POST",
           server: "chat",
           body: JSON.stringify({ user_id: getUserChat()?.id }),
         });
+
+        if (!res.success) {
+          throw new Error(res.message);
+         }
       } catch (apiError) {
         console.error("End call API error:", apiError);
       }
@@ -324,12 +328,15 @@ const VoiceCall: React.FC<VoiceCallProps> = ({
           start();
 
           try {
-            await fetchData({
+            let res = await fetchData({
               url: `/api/v1/messages/start_talking/${MessageActiveCall}`,
               server: "chat",
               method: "GET",
               reqTitle: "Start Talking",
             });
+            if (!res.success) {
+              throw new Error(res.message);
+             }
           } catch (error) {
             console.error("Failed to start talking:", error);
           }

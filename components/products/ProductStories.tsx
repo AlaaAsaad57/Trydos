@@ -41,7 +41,9 @@ function ProductStories({ id }: ProductStoriesPropsType) {
     });
 
     setPage(page + 1);
+    // @ts-ignore
     set_next_page(data.next_page_url);
+    // @ts-ignore
     setStories([...stories, ...data.data]);
     setLoading(false);
   };
@@ -55,7 +57,9 @@ function ProductStories({ id }: ProductStoriesPropsType) {
       page: 1,
     });
     setPage(page + 1);
+        // @ts-ignore
     set_next_page(data.next_page_url);
+        // @ts-ignore
     setStories([...stories, ...data.data]);
     setInitialLoading(false);
   };

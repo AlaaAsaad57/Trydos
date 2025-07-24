@@ -30,71 +30,81 @@ function ChatSearch({ close }) {
   };
   const getMessagesForSearch = async (value) => {
     if (value?.length > 0) {
-      let response: GetMessageSearchApi = await fetchData({
-        url: "/api/v2/elastic/channelSearch",
-        server: "chat",
-        method: "POST",
-        body: JSON.stringify({
-          query: value,
-          channel_id: parseInt(activeChat.id),
-          limit: 100,
-          offset: parseInt(searchChat.offset),
-        }),
-      });
-      let messages = response.data.messages_ids;
-      let newOffset = response.data.offset;
-      if (response.data.messages_ids?.length > 0) {
-        setChatSearchRequest({
-          messages,
-          newOffset,
+      try {
+        let response: GetMessageSearchApi = await fetchData({
+          url: "/api/v2/elastic/channelSearch",
+          server: "chat",
+          method: "POST",
+          body: JSON.stringify({
+            query: value,
+            channel_id: parseInt(activeChat.id),
+            limit: 100,
+            offset: parseInt(searchChat.offset),
+          }),
         });
-        setQouted(
-          response.data.messages_ids[response.data.messages_ids.length - 1]
-        );
-        if (
-          activeChat.messages.filter(
-            (s) =>
-              parseInt(s.id) ===
-              response.data.messages_ids[response.data.messages_ids.length - 1]
-          ).length > 0
-        ) {
-        } else
-          await getMessagesBetweenMessage({
-            first: activeChat?.id,
-            second:
-              parseInt(
-                activeChat.messages[activeChat.messages.length - 1]?.id
-              ) -
-              parseInt(
-                response.data?.messages_ids?.[
-                  response?.data?.messages_ids?.length - 1
-                ]?.toString()
-              ),
-          });
-        var numb = response.data.messages_ids[
-          response.data.messages_ids.length - 1
-        ]
-          ?.toString()
-          ?.match(/\d/g);
         // @ts-ignore
-        numb = numb?.join("");
-        let el = document.querySelector(
-          `#main-container-${
-            response.data.messages_ids[response.data.messages_ids.length - 1]
-          }`
-        );
-
-        if (el) {
-          el.scrollIntoView({ block: "center" });
-
-          setTimeout(() => {
-            el.classList.add("backdrop_msg");
-          }, 300);
-          setTimeout(() => {
-            el.classList.remove("backdrop_msg");
-          }, 3000);
+        if (!response.success) {
+        // @ts-ignore
+          throw new Error(response.message);
         }
-      } else {
+        let messages = response.data.messages_ids;
+        let newOffset = response.data.offset;
+        if (response.data.messages_ids?.length > 0) {
+          setChatSearchRequest({
+            messages,
+            newOffset,
+          });
+          setQouted(
+            response.data.messages_ids[response.data.messages_ids.length - 1]
+          );
+          if (
+            activeChat.messages.filter(
+              (s) =>
+                parseInt(s.id) ===
+                response.data.messages_ids[response.data.messages_ids.length - 1]
+            ).length > 0
+          ) {
+          } else
+            await getMessagesBetweenMessage({
+              first: activeChat?.id,
+              second:
+                parseInt(
+                  activeChat.messages[activeChat.messages.length - 1]?.id
+                ) -
+                parseInt(
+                  response.data?.messages_ids?.[
+                    response?.data?.messages_ids?.length - 1
+                  ]?.toString()
+                ),
+            });
+          var numb = response.data.messages_ids[
+            response.data.messages_ids.length - 1
+          ]
+            ?.toString()
+            ?.match(/\d/g);
+          // @ts-ignore
+          numb = numb?.join("");
+          let el = document.querySelector(
+            `#main-container-${
+              response.data.messages_ids[response.data.messages_ids.length - 1]
+            }`
+          );
+
+          if (el) {
+            el.scrollIntoView({ block: "center" });
+
+            setTimeout(() => {
+              el.classList.add("backdrop_msg");
+            }, 300);
+            setTimeout(() => {
+              el.classList.remove("backdrop_msg");
+            }, 3000);
+          }
+        } else {
+          setChatSearchLoading(false);
+        }
+      } catch (err) {
+       console.error(err)
         setChatSearchLoading(false);
       }
     }

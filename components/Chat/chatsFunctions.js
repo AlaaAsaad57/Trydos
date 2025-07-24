@@ -522,7 +522,7 @@ const uploadFile = async (file_name, file, onUploadProgress) => {
     }
     return response;
   } catch (err) {
-    // Handle error as needed
+    console.error(err)
     return null;
   }
 };

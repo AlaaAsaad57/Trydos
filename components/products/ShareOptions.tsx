@@ -34,22 +34,30 @@ function ShareOptions({
   } = useAppStore();
 
   const shareSocial = async (appName) => {
-    await fetchData({
-      url: "/api/v2/elastic/share_product_on_apps",
-      reqTitle: "Share Product on Social",
-      method: "POST",
-      server: "chat",
-      body: JSON.stringify({
-        app_name: appName,
-        product_id: product.id,
-        shared_count: 1,
-      }),
-    });
+    try {
+      let response = await fetchData({
+        url: "/api/v2/elastic/share_product_on_apps",
+        reqTitle: "Share Product on Social",
+        method: "POST",
+        server: "chat",
+        body: JSON.stringify({
+          app_name: appName,
+          product_id: product.id,
+          shared_count: 1,
+        }),
+      });
+      // @ts-ignore
+      if (!response.success) {
+        throw new Error(response.message);
+      }
 
-    editInfo({
-      ...SelectedProduct,
-      sharesCount: (SelectedProduct?.sharesCount || 0) + 1,
-    });
+      editInfo({
+        ...SelectedProduct,
+        sharesCount: (SelectedProduct?.sharesCount || 0) + 1,
+      });
+    } catch (err) {
+      console.error(err)
+    }
   };
   return (
     <div className="share-options">

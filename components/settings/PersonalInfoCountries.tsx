@@ -91,6 +91,9 @@ function PersonalInfoCountries({
         server: "market",
         useCached: true,
       });
+      if (!response.success) {
+        throw new Error(response.message);
+      }
       sessionStorage.setItem(
         "starttingSetting",
         JSON.stringify(response.data)

@@ -76,7 +76,7 @@ const ModalIframe = ({
               setOrderData({ data: response.data, success: true });
             }
           } catch (err) {
-            // Handle error as needed
+           console.error(err)
           }
         }
       }
@@ -111,7 +111,7 @@ const ModalIframe = ({
                     setOrderData({ data: response.data, success: true });
                   }
                 } catch (err) {
-                  // Handle error as needed
+                  console.error(err)
                 }
               }
             }}

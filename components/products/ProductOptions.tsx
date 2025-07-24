@@ -35,7 +35,7 @@ function ProductOptions({
     if (bool) {
       editInfo({ likes: SelectedProduct?.likes + 1, is_liked: true });
       try {
-        await fetchData({
+       let res =  await fetchData({
           url: "/product_likes/store",
           reqTitle: "like For Product",
           method: "POST",
@@ -45,6 +45,9 @@ function ProductOptions({
             user_id: auth.UserID(),
           }),
         });
+        if (!res.success) {
+          throw new Error(res.message);
+         }
         // home.subscribeToTopic({
         //   topic: `product_availability_${SelectedProduct?.id}`,
         // });
@@ -62,7 +65,7 @@ function ProductOptions({
       setLiked(false);
       editInfo({ likes: SelectedProduct?.likes - 1, is_liked: false });
       try {
-        await fetchData({
+        let res = await fetchData({
           url: "/product_likes/delete",
           reqTitle: "unlike For Product",
           method: "POST",
@@ -72,6 +75,9 @@ function ProductOptions({
             user_id: auth.UserID(),
           }),
         });
+        if (!res.success) {
+          throw new Error(res.message);
+         }
         home.UnsubscripeFromTopic({
           topic: `product_availability_${SelectedProduct?.id}`,
         });

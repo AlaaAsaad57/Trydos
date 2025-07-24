@@ -27,7 +27,11 @@ class OrderService {
         method: "POST",
         server: "market",
       });
-
+      // @ts-ignore
+      if (!response.success) {
+      // @ts-ignore
+        throw new Error(response.message);
+      }
       if (!response.data[0]?.url) {
         setOrderSuccess({ data: response.data });
         setOrderData({ data: response.data, success: true });
@@ -56,6 +60,11 @@ class OrderService {
         method: "GET",
         server: "market",
       });
+      // @ts-ignore
+      if (!response.success) {
+       // @ts-ignore
+        throw new Error(response.message);
+      }
       setWalletUser({
         ...response.data,
         wallet_balance: response.data.wallet_balance || 0,
@@ -63,6 +72,7 @@ class OrderService {
       setOrderLoading(false);
     } catch (error) {
       setOrderLoading(false);
+      console.error(error);
     }
   }
   async GetAddressList() {
@@ -76,10 +86,16 @@ class OrderService {
         method: "GET",
         server: "market",
       });
+        // @ts-ignore
+      if (!response.success) {
+        // @ts-ignore
+        throw new Error(response.message);
+      }
       setAddressList(response.data);
       setOrderLoading(false);
     } catch (error) {
       setOrderLoading(false);
+      console.error(error)
     }
   }
   async SetDefault({ id }) {
@@ -91,13 +107,16 @@ class OrderService {
 
     try {
       setOrderLoading(true);
-      await fetchData({
+      const response = await fetchData({
         url: "/customer/address/set-default",
         reqTitle: "set default Address",
         body: JSON.stringify(details),
         method: "POST",
         server: "market",
       });
+      if (!response.success) {
+        throw new Error(response.message);
+      }
       await GetCartOreview();
       setOrderLoading(false);
     } catch (error) {
@@ -127,13 +146,16 @@ class OrderService {
 
     try {
       setOrderLoading(true);
-      await fetchData({
+      const response = await fetchData({
         url: "/customer/address/add",
         reqTitle: "Add Address",
         body: JSON.stringify(body),
         method: "POST",
         server: "market",
       });
+      if (!response.success) {
+        throw new Error(response.message);
+      }
       await this.GetAddressList();
       await GetCartOreview();
       callback();
@@ -141,6 +163,7 @@ class OrderService {
       setOrderLoading(false);
     } catch (error) {
       setOrderLoading(false);
+      console.error(error);
     }
   }
   async UpdateAddressList({ address, callback }) {
@@ -175,9 +198,12 @@ class OrderService {
         server: "market",
       });
       callback();
-
+      if (!data.success) {
+        throw new Error(data.message);
+      }
       setOrderLoading(false);
     } catch (error) {
+      console.error(error);
       setOrderLoading(false);
     }
   }
@@ -193,10 +219,13 @@ class OrderService {
         method: "POST",
         server: "market",
       });
-
+      if (!data.success) {
+        throw new Error(data.message);
+      }
       setOrderLoading(false);
     } catch (error) {
       setOrderLoading(false);
+      console.error(error);
     }
   }
   async GetProvinces() {
@@ -209,23 +238,34 @@ class OrderService {
         method: "GET",
         server: "elastic",
       });
-
+      if (!response.success) {
+        throw new Error(response.message);
+      }
       setProvinces(response.data);
       setOrderLoading(false);
     } catch (error) {
+      console.error(error);
       setOrderLoading(false);
     }
   }
   async getOrderDetails(id, signal?: AbortSignal) {
-    let response = await fetchData({
-      url: `/customer/order/getOrdersByOrderGroupID?order_group_id=${id}`,
-      reqTitle: "getOrderByOrderGroupID request",
-      method: "GET",
-      server: "market",
-      signal,
-    });
-
-    return response.data;
+    try {
+      let response = await fetchData({
+        url: `/customer/order/getOrdersByOrderGroupID?order_group_id=${id}`,
+        reqTitle: "getOrderByOrderGroupID request",
+        method: "GET",
+        server: "market",
+        signal,
+      });
+      // @ts-ignore
+      if (!response.success) {
+        throw new Error(response.message);
+      }
+      return response.data;
+    } catch (error) {
+      console.error(error);
+      return null;
+    }
   }
   async CancelOrder({ order_id }) {
     try {
@@ -236,9 +276,12 @@ class OrderService {
         server: "market",
         body: JSON.stringify({ order_id }),
       });
-      if (response.success || response.isSuccessful) return response;
+      if (response.success || response.isSuccessful) {return response}
+      else {
+          throw new Error(response.message);
+      };
     } catch (error) {
-      console.log(error);
+      console.error(error);
     }
   }
   async CancelOrderItem({ order_id, qty, item_id }) {
@@ -250,9 +293,12 @@ class OrderService {
         server: "market",
         body: JSON.stringify({ order_id, detail_id: item_id, qty }),
       });
-      if (response.success || response.isSuccessful) return response;
+      if (response.success || response.isSuccessful) {return response}
+      else {
+          throw new Error(response.message);
+      };
     } catch (error) {
-      console.log(error);
+      console.error(error);
     }
   }
   async changeOrderAddress({ order_id, address_id }) {
@@ -267,9 +313,12 @@ class OrderService {
           new_shipping_address_id: address_id,
         }),
       });
-      if (response.success || response.isSuccessful) return response;
+      if (response.success || response.isSuccessful) {return response}
+      else {
+          throw new Error(response.message);
+      };
     } catch (error) {
-      console.log(error);
+      console.error(error);
     }
   }
   async changeOrderItemVariant({ color, choice_1, order_detail_id }) {
@@ -285,9 +334,12 @@ class OrderService {
           order_detail_id,
         }),
       });
-      if (response.success || response.isSuccessful) return response;
+      if (response.success || response.isSuccessful) {return response}
+      else {
+          throw new Error(response.message);
+      };
     } catch (error) {
-      console.log(error);
+      console.error(error);
     }
   }
 }

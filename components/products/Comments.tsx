@@ -35,6 +35,11 @@ function Comments({
           comment: s,
         }),
       });
+       // @ts-ignore
+      if(!response.success) {
+       // @ts-ignore
+       throw new Error(response.message);
+      }
       if (response.data?.comment) {
         let s = CommentsData.filter((m) => m.mid === mid)[0];
         verifyCommentAction(mid);

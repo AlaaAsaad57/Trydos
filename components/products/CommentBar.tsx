@@ -54,6 +54,11 @@ function CommentBar({
           comment: s,
         }),
       });
+      // @ts-ignore
+      if(!response.success) {
+        // @ts-ignore
+        throw new Error(response.message);
+      }
       if (response.data?.comment) {
         let newComment = response.data.comment;
         verifyComment(mid, newComment);

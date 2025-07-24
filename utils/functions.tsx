@@ -407,14 +407,22 @@ export const getOldCart = async () => {
   const deviceToken = getCookie<string>(COOKIE_NAMES.DEVICE_TOKEN);
   const marketToken = getCookie<string>(COOKIE_NAMES.MARKET_TOKEN);
   if (!deviceToken && !marketToken) return [];
-  let response: OldCartApi = await fetchData({
-    url: "/old-cart/get_old_cart",
-    reqTitle: "Old Cart Request",
-    method: "GET",
-    server: "market",
-  });
-  const { storeOldCart } = useAppStore.getState();
-  storeOldCart(response.data?.original?.data);
+  try {
+    let response: OldCartApi = await fetchData({
+      url: "/old-cart/get_old_cart",
+      reqTitle: "Old Cart Request",
+      method: "GET",
+      server: "market",
+    });
+    // @ts-ignore
+    if (!response.success) {
+      throw new Error(response.message);
+    }
+    const { storeOldCart } = useAppStore.getState();
+    storeOldCart(response.data?.original?.data);
+  } catch (error) {
+    console.error(error);
+  }
 };
 export const getCart = async ({ callback }) => {
   const { initCart } = useAppStore.getState();
@@ -441,13 +449,21 @@ export const getCart = async ({ callback }) => {
 };
 export const GetCartOreview = async () => {
   const { setCartPreview } = useAppStore.getState();
-  let response = await fetchData({
-    url: "/cart/cart_overview",
-    reqTitle: "Cart Oreview",
-    method: "GET",
-    server: "market",
-  });
-  setCartPreview(response.data);
+  try {
+    let response = await fetchData({
+      url: "/cart/cart_overview",
+      reqTitle: "Cart Oreview",
+      method: "GET",
+      server: "market",
+    });
+    // @ts-ignore
+    if (!response.success) {
+      throw new Error(response.message);
+    }
+    setCartPreview(response.data);
+  } catch (error) {
+    console.error(error);
+  }
 };
 export const AddToCartAnimation = () => {
   let productImage = document.getElementById("added-to-cart");

@@ -21,7 +21,9 @@ export const GetLastSeen = async (chatId, friendID) => {
       method: "GET",
       server: "chat",
     });
-
+    if (!response.success) {
+      throw new Error(response.message);
+    }
     server_time = response.data;
     setServerTime(response.data);
     const dbRef = ref(db, `ConnectStatus/${friendID.toString()}`);
@@ -61,7 +63,9 @@ export const setLastSeen = async (MyId) => {
       method: "GET",
       server: "chat",
     });
-
+    if (!response.success) {
+      throw new Error(response.message);
+    }
     server_time = response.data;
     setServerTime(response.data);
     const { db } = await import("../../utils/firebaseInitv1");
@@ -86,7 +90,9 @@ export const getCalls = async (id) => {
       server: "chat",
       body: JSON.stringify({ limit: "20", last_message_id: id }),
     });
-
+    if (!response.success) {
+      throw new Error(response.message);
+    }
     setCalls(response);
     setCallLoading(false);
   } catch (e) {
@@ -105,6 +111,9 @@ export const SendMessage = async (payload, isNew, isPrivate?) => {
       method: "POST",
       server: "chat",
     });
+    if (!response.success) {
+      throw new Error(response.message);
+    }
     if (response?.data?.id) {
       if (isNew) {
         sendNewMessage({
@@ -135,7 +144,12 @@ export async function watchChannel(payload) {
       method: "GET",
       server: "chat",
     });
-  } catch (e) {}
+    if (!response.success) {
+      throw new Error(response.message);
+    }
+  } catch (e) {
+    console.error(e)
+  }
 }
 
 export async function DeleteMessageApi(msg_id, bool) {
@@ -168,7 +182,12 @@ export async function Recive(payload) {
       method: "GET",
       server: "chat",
     });
-  } catch (e) {}
+    if (!response.success) {
+      throw new Error(response.message);
+    }
+  } catch (e) {
+    console.error(e);
+  }
 }
 export async function getPage(channel, mid) {
   const { setPageData } = useAppStore.getState();
@@ -182,9 +201,13 @@ export async function getPage(channel, mid) {
       server: "chat",
       body: {},
     });
-
+    if (!response.success) {
+      throw new Error(response.message);
+    }
     setPageData({ mes: response.data, ch: channel_id });
-  } catch (e) {}
+  } catch (e) {
+    console.error(e);
+  }
 }
 export async function SearchContact(payload) {
   const { setChatSearchResults } = useAppStore.getState();
@@ -197,14 +220,18 @@ export async function SearchContact(payload) {
         method: "GET",
         server: "chat",
       });
-
+      if (!response.success) {
+        throw new Error(response.message);
+      }
       setChatSearchResults(response.data);
     }
-  } catch (e) {}
+  } catch (e) {
+    console.error(e);
+  }
 }
 export async function PinnChat(payload) {
   try {
-    await fetchData({
+    const response =  await fetchData({
       url: SET_CHANNEL_OPT_UTL,
       body: JSON.stringify({
         channel_id: payload.id,
@@ -215,13 +242,18 @@ export async function PinnChat(payload) {
       method: "POST",
       server: "chat",
     });
-  } catch (e) {}
+    if (!response.success) {
+      throw new Error(response.message);
+    }
+  } catch (e) {
+    console.error(e);
+  }
 
   chat.getChats(true);
 }
 export async function MuteChat(payload) {
   try {
-    await fetchData({
+    const response = await fetchData({
       url: SET_CHANNEL_OPT_UTL,
       body: JSON.stringify({
         channel_id: payload.id,
@@ -232,32 +264,50 @@ export async function MuteChat(payload) {
       method: "POST",
       server: "chat",
     });
-  } catch (e) {}
+    if (!response.success) {
+      throw new Error(response.message);
+    }
+  } catch (e) {
+    console.error(e);
+  }
 }
 export async function getMessagesBetweenMessage(payload) {
   const { setPageData } = useAppStore.getState();
-
-  let response = await fetchData({
-    url: `/api/v1/messages/messages_of_channel/${payload.first}`,
-    reqTitle: "Get Messages of Channel",
-    method: "POST",
-    server: "chat",
-    body: JSON.stringify({ limit: payload.second + 1 }),
-  });
-  setPageData({ mes: response.data, ch: payload.first });
+  try {
+    let response = await fetchData({
+      url: `/api/v1/messages/messages_of_channel/${payload.first}`,
+      reqTitle: "Get Messages of Channel",
+      method: "POST",
+      server: "chat",
+      body: JSON.stringify({ limit: payload.second + 1 }),
+    });
+    // @ts-ignore
+    if (!response.success) {
+      throw new Error(response.message);
+    }
+    setPageData({ mes: response.data, ch: payload.first });
+  } catch (error) {
+    console.error(error);
+  }
 }
 
 export async function getContacts() {
   const { setContacts } = useAppStore.getState();
-
-  let response = await fetchData({
-    url: "/api/v1/users/my_contacts",
-    reqTitle: "Get Contacts",
-    method: "GET",
-    server: "chat",
-  });
-
-  setContacts(response.data);
+  try {
+    let response = await fetchData({
+      url: "/api/v1/users/my_contacts",
+      reqTitle: "Get Contacts",
+      method: "GET",
+      server: "chat",
+    });
+    // @ts-ignore
+    if (!response.success) {
+      throw new Error(response.message);
+    }
+    setContacts(response.data);
+  } catch (error) {
+    console.error(error);
+  }
 }
 export const getMedia = async (id, media) => {
   const { editChatInfoMedia } = useAppStore.getState();
@@ -269,9 +319,13 @@ export const getMedia = async (id, media) => {
       server: "chat",
       body: {},
     });
-
+    if (!response.success) {
+      throw new Error(response.message);
+    }
     editChatInfoMedia({ id: id, data: response.data, media: media });
-  } catch (e) {}
+  } catch (e) {
+    console.error(e);
+  }
 };
 export const getMediaReducer = (media, data) => {
   if (media === "ImageMessage") {
@@ -294,7 +348,11 @@ export const GetChatDetails = async (id) => {
       method: "GET",
       server: "chat",
     });
-
+    if (!response.success) {
+      throw new Error(response.message);
+    }
     editChatInfo({ id: id, data: response.data });
-  } catch (e) {}
+  } catch (e) {
+    console.error(e);
+  }
 };

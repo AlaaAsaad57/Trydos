@@ -114,19 +114,28 @@ function ProductFooterSection({
   };
   const [option, setOption] = useState("");
   const getComments = async () => {
-    let response: { data: ProductSocialInfo } = await fetchData({
-      url: "/web/product/CommentsSharesDetails/" + product.slug,
-      reqTitle: "Social Info Request",
-      method: "GET",
-      server: "market",
-    });
-    setProductData({
-      ...productState.productDetails,
+    try {
+      let response: { data: ProductSocialInfo } = await fetchData({
+        url: "/web/product/CommentsSharesDetails/" + product.slug,
+        reqTitle: "Social Info Request",
+        method: "GET",
+        server: "market",
+      });
       // @ts-ignore
-      comment_count: response.data?.comments_count || 0,
+      if (!response.success) {
       // @ts-ignore
-      comments: response.data?.comments || [],
-    });
+        throw new Error(response.message);
+      }
+      setProductData({
+        ...productState.productDetails,
+        // @ts-ignore
+        comment_count: response.data?.comments_count || 0,
+        // @ts-ignore
+        comments: response.data?.comments || [],
+      });
+    } catch (err) {
+      // Handle error as needed
+    }
   };
 
   const [sharedContacts, setShareContacts] = useState([]);
@@ -137,34 +146,62 @@ function ProductFooterSection({
     try {
       let [likesResponse, commentsResponse, response_shares, response_views] =
         await Promise.all([
-          fetchData({
-            url: "/web/product/likesDetails/" + product.slug,
-            reqTitle: "Like & Comments Data Request",
-            method: "GET",
-            server: "market",
-          }),
-          fetchData({
-            url: "/web/product/CommentsSharesDetails/" + product.slug,
-            reqTitle: "Comments Data Request",
-            method: "GET",
-            server: "market",
-          }),
-          fetchData({
-            url: `/api/v2/elastic/shared_count/${product.id}`,
-            reqTitle: "Share Count Request",
-            server: "chat",
-            method: "GET",
-          }),
-          fetchData({
-            url: `/api/products/view`,
-            reqTitle: "get Views For Product",
-            method: "POST",
-            server: "elastic",
-            body: JSON.stringify({
-              user_id: auth.UserID(),
-              product_id: product.id,
-            }),
-          }),
+          (async () => {
+            let response = await fetchData({
+              url: "/web/product/likesDetails/" + product.slug,
+              reqTitle: "Like & Comments Data Request",
+              method: "GET",
+              server: "market",
+            });
+            // @ts-ignore
+            if (!response.success) {
+              throw new Error(response.message);
+            }
+            return response;
+          })(),
+          (async () => {
+            let response = await fetchData({
+              url: "/web/product/CommentsSharesDetails/" + product.slug,
+              reqTitle: "Comments Data Request",
+              method: "GET",
+              server: "market",
+            });
+            // @ts-ignore
+            if (!response.success) {
+              throw new Error(response.message);
+            }
+            return response;
+          })(),
+          (async () => {
+            let response = await fetchData({
+              url: `/api/v2/elastic/shared_count/${product.id}`,
+              reqTitle: "Share Count Request",
+              server: "chat",
+              method: "GET",
+            });
+            // @ts-ignore
+            if (!response.success) {
+              throw new Error(response.message);
+            }
+            return response;
+          })(),
+          (async () => {
+            let response = await fetchData({
+              url: `/api/products/view`,
+              reqTitle: "get Views For Product",
+              method: "POST",
+              server: "elastic",
+              body: JSON.stringify({
+                user_id: auth.UserID(),
+                product_id: product.id,
+              }),
+            });
+            // @ts-ignore
+            if (!response.success) {
+              throw new Error(response.message);
+            }
+            return response;
+          })(),
         ]);
       storeVariants({
         // @ts-ignore
@@ -217,9 +254,8 @@ function ProductFooterSection({
         views_count: response_views?.view_count || 0,
       });
       setLoading(false);
-    } catch (error) {
-      console.log(error);
-      setLoading(false);
+    } catch (err) {
+      console.error(err)
     }
   };
   useEffect(() => {

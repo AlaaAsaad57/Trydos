@@ -44,10 +44,14 @@ class CartService {
         method: "POST",
         server: "market",
       });
+      if (!response.success) {
+        throw new Error(response.message);
+      }
       if (response?.data?.status === 1 && response?.data?.id_cart) {
         home.subscribeToTopic({
           topic: `product_availability_${product_id}`,
         });
+
         addProductToCart({
           id: product_id,
           item_id: response?.data?.id_cart,
@@ -92,6 +96,9 @@ class CartService {
         method: "POST",
         server: "market",
       });
+      if (!response.success) {
+        throw new Error(response.message);
+      }
       if (response?.data?.status === 1 && parseInt(response?.data?.qty) >= 0) {
         updateProductQuantityInCart({
           id: cart_id,
@@ -114,7 +121,9 @@ class CartService {
         method: "POST",
         server: "market",
       });
-
+      if (!response.success) {
+        throw new Error(response.message);
+      }
       removeFromCart(cart_item?.item_id);
       return true;
     } catch (error) {
@@ -135,13 +144,21 @@ class CartService {
     // @ts-ignore
     dataBody = dataBody.join("&");
 
-    await fetchData({
-      url: "/cart/convert_to_old",
-      body: JSON.stringify({ key: cart_item }),
-      reqTitle: "Convert to Old Cart",
-      method: "POST",
-      server: "market",
-    });
+    try {
+      let response = await fetchData({
+        url: "/cart/convert_to_old",
+        body: JSON.stringify({ key: cart_item }),
+        reqTitle: "Convert to Old Cart",
+        method: "POST",
+        server: "market",
+      });
+      // @ts-ignore
+      if (!response.success) {
+        throw new Error(response.message);
+      }
+    } catch (err) {
+      console.error(err)
+    }
   }
 }
 export default new CartService();

@@ -40,6 +40,9 @@ class ChatService {
         server: "chat",
         reqTitle: "Login Chat",
       });
+      if (!response.success) {
+        throw new Error(response.message);
+      }
       setCookie(COOKIE_NAMES.USER_CHAT, response.data);
       loginSuccessChat({
         ...response.data,
@@ -77,7 +80,7 @@ class ChatService {
   async ShareProduct({ userId, product, callback }) {
     const { language } = useAppStore.getState();
     try {
-      await fetchData({
+      let res = await fetchData({
         url: "/api/v1/messages/share_product",
         body: JSON.stringify({
           receiver_ids: userId,
@@ -89,6 +92,9 @@ class ChatService {
         server: "chat",
         reqTitle: "Share Product",
       });
+      if (!res.success) {
+        throw new Error(res.message);
+      }
       await this.getChats("share");
       showSuccessNotification(translate("Shared Successfully", language));
       callback();
@@ -112,6 +118,9 @@ class ChatService {
           token: payload.token,
         }),
       });
+      if (!response.success) {
+        throw new Error(response.message);
+      }
       setFirebaseToken(payload.token);
       localStorage.setItem("firebase_id", response.data.id);
     } catch (error) {
@@ -189,15 +198,20 @@ class ChatService {
   }
   async getContacts() {
     const { setContacts } = useAppStore.getState();
-
-    let response = await fetchData({
-      url: GET_CONTATCS_URL,
-      reqTitle: "Get Contacts",
-      server: "chat",
-      method: "GET",
-    });
-
-    setContacts(response.data);
+    try {
+      let response = await fetchData({
+        url: GET_CONTATCS_URL,
+        reqTitle: "Get Contacts",
+        server: "chat",
+        method: "GET",
+      });
+      if (!response.success) {
+        throw new Error(response.message);
+      }
+      setContacts(response.data);
+    } catch (err) {
+     console.error(err)
+    }
   }
   async getCalls(id?: number) {
     const { setCallLoading, setCalls } = useAppStore.getState();
@@ -210,12 +224,14 @@ class ChatService {
         reqTitle: "Get Calls",
         server: "chat",
       });
-
+      if (!response.success) {
+        throw new Error(response.message);
+      }
       setCalls(response.data);
       setCallLoading(false);
-    } catch (e) {
+    } catch (err) {
       setCallLoading(false);
-      console.error(e);
+      console.error(err);
     }
   }
 }

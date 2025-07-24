@@ -53,6 +53,9 @@ class HomeService {
           server: "market",
           useCached: true,
         });
+        if (!response.success) {
+          throw new Error(response.message);
+        }
         setSettings(response.data);
         sessionStorage.setItem(
           "starttingSetting",
@@ -99,7 +102,7 @@ class HomeService {
   async getCustomerInfo() {
     const { updateUserInfo } = useAppStore.getState();
     await WaitForCondition();
-
+   try {
     let response_customer_Info: { data: CustomerInfoResponse } =
       await fetchData({
         url: CUSTOMER_INFO_URL,
@@ -107,10 +110,14 @@ class HomeService {
         method: "GET",
         server: "market",
       });
-    setCookie(COOKIE_NAMES.USER_DATA, {
+       // @ts-ignore
+      if (!response_customer_Info.success) {
+       // @ts-ignore
+        throw new Error(response_customer_Info.message);
+      }
+     setCookie(COOKIE_NAMES.USER_DATA, {
       ...response_customer_Info.data.customer_info,
-    });
-    try {
+     });
       if (response_customer_Info.data.customer_info) {
         if (response_customer_Info.data.customer_info) {
           updateUserInfo(response_customer_Info.data.customer_info);
@@ -156,7 +163,10 @@ class HomeService {
         });
 
         let repo: RegisterGuestApi = response;
-
+        // @ts-ignore
+        if (!repo.success) {
+          throw new Error(repo.message);
+        }
         if (repo.message === "The user does not exist.") {
           response = await fetchData({
             url: REGISTER_DEVICE_URL,
@@ -166,6 +176,10 @@ class HomeService {
             server: "market",
           });
           repo = response;
+           // @ts-ignore
+          if (!repo.success) {
+            throw new Error(repo.message);
+          }
         }
 
         setCookie(COOKIE_NAMES.DEVICE_TOKEN, repo.data.token);
@@ -184,6 +198,7 @@ class HomeService {
         }
         setIsRegisteringReady(true);
       } catch (error) {
+        console.error(error);
         setIsRegisteringReady(true);
       }
     }
@@ -205,17 +220,24 @@ class HomeService {
         localStorage.setItem("FB-DEVICE-TOKEN", token);
         setTimeout(async () => {
           if (auth.UserToken() && auth.UserID()) {
-            await fetchData({
-              url: "/firebase_device_tokens",
-              body: JSON.stringify({
-                device_token: token,
-                user_id: auth.UserID(),
-                auth_token: auth.UserToken(),
-              }),
-              reqTitle: "register firebase token",
-              method: "POST",
-              server: "market",
-            });
+            try {
+              let response = await fetchData({
+                url: "/firebase_device_tokens",
+                body: JSON.stringify({
+                  device_token: token,
+                  user_id: auth.UserID(),
+                  auth_token: auth.UserToken(),
+                }),
+                reqTitle: "register firebase token",
+                method: "POST",
+                server: "market",
+              });
+              if (!response.success) {
+                throw new Error(response.message);
+              }
+            } catch (err) {
+              console.error(err);
+            }
           }
         }, 2000);
         // ininit
@@ -304,43 +326,54 @@ class HomeService {
 
       if (!deviceToken) {
         setIsRegisteringReady(false);
-        let response = await fetchData({
-          url: REGISTER_DEVICE_URL,
-          body: JSON.stringify(requestBody),
-          reqTitle: "register device",
-          method: "POST",
-          server: "market",
-        });
-
-        let repo: RegisterGuestApi = response;
-        if (repo.message === "The user does not exist.") {
-          response = await fetchData({
+        try {
+          let response = await fetchData({
             url: REGISTER_DEVICE_URL,
-            body: JSON.stringify({ old_guest_user_id: null }),
-            reqTitle: "register device for expired user - retry",
+            body: JSON.stringify(requestBody),
+            reqTitle: "register device",
             method: "POST",
             server: "market",
           });
-          repo = response;
-        }
-        setCookie(COOKIE_NAMES.DEVICE_TOKEN, repo.data.token);
-
-        if (repo?.data?.user) {
-          setCookie(COOKIE_NAMES.USER_DATA, {
-            ...repo.data.user,
-            expired_at: repo.data.expires_at,
-          });
-        }
-        SetGAUser(repo.data.user, isNewUser);
-        setIsRegisteringReady(true);
-        if (repo.data.user) {
-          if (process.env.NODE_ENV === "production" && Smartlook.initialized())
-            Smartlook.identify(repo.data.user.id, {
-              name: repo.data.user.name,
-              phone: "guest",
-              // other custom properties
+          // @ts-ignore
+          if (!response.success) {
+            throw new Error(response.message);
+          }
+          let repo: RegisterGuestApi = response;
+          if (repo.message === "The user does not exist.") {
+            response = await fetchData({
+              url: REGISTER_DEVICE_URL,
+              body: JSON.stringify({ old_guest_user_id: null }),
+              reqTitle: "register device for expired user - retry",
+              method: "POST",
+              server: "market",
             });
-          await this.RequestFireBase();
+            // @ts-ignore
+            if (!response.success) {
+              throw new Error(response.message);
+            }
+            repo = response;
+          }
+          setCookie(COOKIE_NAMES.DEVICE_TOKEN, repo.data.token);
+
+          if (repo?.data?.user) {
+            setCookie(COOKIE_NAMES.USER_DATA, {
+              ...repo.data.user,
+              expired_at: repo.data.expires_at,
+            });
+          }
+          SetGAUser(repo.data.user, isNewUser);
+          setIsRegisteringReady(true);
+          if (repo.data.user) {
+            if (process.env.NODE_ENV === "production" && Smartlook.initialized())
+              Smartlook.identify(repo.data.user.id, {
+                name: repo.data.user.name,
+                phone: "guest",
+                // other custom properties
+              });
+            await this.RequestFireBase();
+          }
+        } catch (err) {
+          console.error(err);
         }
       }
     }
@@ -357,33 +390,47 @@ class HomeService {
     let token = localStorage.getItem("FB-DEVICE-TOKEN");
 
     if (token) {
-      let response = await fetchData({
-        url: "/firebase_device_tokens/subscribe_topic",
-        body: JSON.stringify({
-          topic,
-          variant,
-        }),
-        reqTitle: "store firebase subscribe topic",
-        method: "POST",
-        server: "market",
-      });
-
-      getFirebaseSettings(response.data.firebase_settings);
+      try {
+        let response = await fetchData({
+          url: "/firebase_device_tokens/subscribe_topic",
+          body: JSON.stringify({
+            topic,
+            variant,
+          }),
+          reqTitle: "store firebase subscribe topic",
+          method: "POST",
+          server: "market",
+        });
+        // @ts-ignore
+        if (!response.success) {
+          throw new Error(response.message);
+        }
+        getFirebaseSettings(response.data.firebase_settings);
+      } catch (err) {
+        console.error(err);
+      }
     }
   }
   async UnsubscripeFromTopic({ topic }) {
     const { getFirebaseSettings } = useAppStore.getState();
-
-    let response = await fetchData({
-      url: "/firebase_device_tokens/unsubscribe_topic",
-      body: JSON.stringify({
-        topic,
-      }),
-      reqTitle: "store firebase unsubscribe topic",
-      method: "POST",
-      server: "market",
-    });
-    getFirebaseSettings(response.data.firebase_settings);
+    try {
+      let response = await fetchData({
+        url: "/firebase_device_tokens/unsubscribe_topic",
+        body: JSON.stringify({
+          topic,
+        }),
+        reqTitle: "store firebase unsubscribe topic",
+        method: "POST",
+        server: "market",
+      });
+      // @ts-ignore
+      if (!response.success) {
+        throw new Error(response.message);
+      }
+      getFirebaseSettings(response.data.firebase_settings);
+    } catch (err) {
+      console.error(err);
+    }
   }
   async handleTopicsOnPageRefresh(token: string) {
     // Extract country and language from the URL
@@ -399,25 +446,33 @@ class HomeService {
     if (!token) return;
 
     if (lastPair !== countryCode + languageCode) {
-      let response = await fetchData({
-        url: "/firebase_device_tokens/change_country_language",
-        body: JSON.stringify({
-          country: countryCode,
-          language_code: languageCode,
-        }),
-        reqTitle: "change firebase country-language pair",
-        method: "POST",
-        server: "market",
-      });
-      getFirebaseSettings(response?.data?.firebase_settings);
-      localStorage.setItem("lastPair", countryCode + languageCode);
+      try {
+        let response = await fetchData({
+          url: "/firebase_device_tokens/change_country_language",
+          body: JSON.stringify({
+            country: countryCode,
+            language_code: languageCode,
+          }),
+          reqTitle: "change firebase country-language pair",
+          method: "POST",
+          server: "market",
+        });
+        // @ts-ignore
+        if (!response.success) {
+          throw new Error(response.message);
+        }
+        getFirebaseSettings(response?.data?.firebase_settings);
+        localStorage.setItem("lastPair", countryCode + languageCode);
+      } catch (err) {
+        console.error(err);
+      }
     }
   }
 
   async hideOldCart({ id }: { id?: number }) {
     try {
       let response = await fetchData({
-        url: "/old-cart/hide33",
+        url: "/old-cart/hide",
         body: JSON.stringify({ id: id }),
         reqTitle: "Hide Old Cart",
         method: "POST",
@@ -434,32 +489,48 @@ class HomeService {
 
   async TestNotificationBoutique({ boutique_id }) {
     await this.subscribeToTopic({ topic: "boutique_created" });
-    await fetchData({
-      url: "/firebase_device_tokens/send_boutique_created",
-      body: JSON.stringify({
-        boutique_id: boutique_id,
-        topic: "boutique_created",
-        language_code: LocalizationServiceClass.GetAppLanguage(),
-        country_iso: LocalizationServiceClass.GetAppCountry(),
-      }),
-      reqTitle: "send boutique created",
-      method: "POST",
-      server: "market",
-    });
+    try {
+      let response = await fetchData({
+        url: "/firebase_device_tokens/send_boutique_created",
+        body: JSON.stringify({
+          boutique_id: boutique_id,
+          topic: "boutique_created",
+          language_code: LocalizationServiceClass.GetAppLanguage(),
+          country_iso: LocalizationServiceClass.GetAppCountry(),
+        }),
+        reqTitle: "send boutique created",
+        method: "POST",
+        server: "market",
+      });
+      // @ts-ignore
+      if (!response.success) {
+        throw new Error(response.message);
+      }
+    } catch (err) {
+      console.error(err);
+    }
   }
 
   async TestNotificationProductToOldCart() {
-    await fetchData({
-      url: "/firebase_device_tokens/send_product_cart_expiration",
-      body: JSON.stringify({
-        product_id: 7681,
-        language_code: LocalizationServiceClass.GetAppLanguage(),
-        country_iso: LocalizationServiceClass.GetAppCountry(),
-      }),
-      reqTitle: "send product cart expiration",
-      method: "POST",
-      server: "market",
-    });
+    try {
+      let response = await fetchData({
+        url: "/firebase_device_tokens/send_product_cart_expiration",
+        body: JSON.stringify({
+          product_id: 7681,
+          language_code: LocalizationServiceClass.GetAppLanguage(),
+          country_iso: LocalizationServiceClass.GetAppCountry(),
+        }),
+        reqTitle: "send product cart expiration",
+        method: "POST",
+        server: "market",
+      });
+      // @ts-ignore
+      if (!response.success) {
+        throw new Error(response.message);
+      }
+    } catch (err) {
+      console.error(err);
+    }
   }
 
   async TestNotificationProductAvailable() {
@@ -468,117 +539,164 @@ class HomeService {
       variant: "Blue-XXL",
     });
 
-    await fetchData({
-      url: "/firebase_device_tokens/send_product_availability",
-      body: JSON.stringify({
-        product_id: 7681,
-        variant: "Blue-XXL",
-        topic: "product_availability_7681",
-        language_code: LocalizationServiceClass.GetAppLanguage(),
-        country_iso: LocalizationServiceClass.GetAppCountry(),
-      }),
-      reqTitle: "send product availability",
-      method: "POST",
-      server: "market",
-    });
+    try {
+      let response = await fetchData({
+        url: "/firebase_device_tokens/send_product_availability",
+        body: JSON.stringify({
+          product_id: 7681,
+          variant: "Blue-XXL",
+          topic: "product_availability_7681",
+          language_code: LocalizationServiceClass.GetAppLanguage(),
+          country_iso: LocalizationServiceClass.GetAppCountry(),
+        }),
+        reqTitle: "send product availability",
+        method: "POST",
+        server: "market",
+      });
+      // @ts-ignore
+      if (!response.success) {
+        throw new Error(response.message);
+      }
+    } catch (err) {
+      console.error(err);
+    }
   }
 
   async TestNotificationProductComment() {
     await this.subscribeToTopic({ topic: "product_comment_7681" });
-    await fetchData({
-      url: "/firebase_device_tokens/send_product_comment",
-      body: JSON.stringify({
-        product_id: 7681,
-        topic: "product_comment_7681",
-        language_code: LocalizationServiceClass.GetAppLanguage(),
-        country_iso: LocalizationServiceClass.GetAppCountry(),
-      }),
-      reqTitle: "send product comment",
-      method: "POST",
-      server: "market",
-    });
+    try {
+      let response = await fetchData({
+        url: "/firebase_device_tokens/send_product_comment",
+        body: JSON.stringify({
+          product_id: 7681,
+          topic: "product_comment_7681",
+          language_code: LocalizationServiceClass.GetAppLanguage(),
+          country_iso: LocalizationServiceClass.GetAppCountry(),
+        }),
+        reqTitle: "send product comment",
+        method: "POST",
+        server: "market",
+      });
+      // @ts-ignore
+      if (!response.success) {
+        throw new Error(response.message);
+      }
+    } catch (err) {
+      console.error(err);
+    }
   }
 
   async TestNotificationProductDiscount() {
     await this.subscribeToTopic({ topic: "product_discount_7681" });
-
-    await fetchData({
-      url: "/firebase_device_tokens/send_product_discount",
-      body: JSON.stringify({
-        product_id: 7681,
-        topic: "product_discount_7681",
-        language_code: LocalizationServiceClass.GetAppLanguage(),
-        country_iso: LocalizationServiceClass.GetAppCountry(),
-      }),
-      reqTitle: "send product discount",
-      method: "POST",
-      server: "market",
-    });
+    try {
+      let response = await fetchData({
+        url: "/firebase_device_tokens/send_product_discount",
+        body: JSON.stringify({
+          product_id: 7681,
+          topic: "product_discount_7681",
+          language_code: LocalizationServiceClass.GetAppLanguage(),
+          country_iso: LocalizationServiceClass.GetAppCountry(),
+        }),
+        reqTitle: "send product discount",
+        method: "POST",
+        server: "market",
+      });
+      // @ts-ignore
+      if (!response.success) {
+        throw new Error(response.message);
+      }
+    } catch (err) {
+      console.error(err);
+    }
   }
 
   async TestNotificationCategoryCreated() {
     await this.subscribeToTopic({ topic: "category_created" });
-
-    await fetchData({
-      url: "/firebase_device_tokens/send_category_created",
-      body: JSON.stringify({
-        category_id: 392,
-        topic: "category_created",
-        language_code: LocalizationServiceClass.GetAppLanguage(),
-        country_iso: LocalizationServiceClass.GetAppCountry(),
-      }),
-      reqTitle: "send category created",
-      method: "POST",
-      server: "market",
-    });
+    try {
+      let response = await fetchData({
+        url: "/firebase_device_tokens/send_category_created",
+        body: JSON.stringify({
+          category_id: 392,
+          topic: "category_created",
+          language_code: LocalizationServiceClass.GetAppLanguage(),
+          country_iso: LocalizationServiceClass.GetAppCountry(),
+        }),
+        reqTitle: "send category created",
+        method: "POST",
+        server: "market",
+      });
+      // @ts-ignore
+      if (!response.success) {
+        throw new Error(response.message);
+      }
+    } catch (err) {
+      console.error(err);
+    }
   }
 
   //before stock out and change in price
   async TestNotificationBeforeStockOut() {
     await this.subscribeToTopic({ topic: "product_before_stock_out_7681" });
-
-    await fetchData({
-      url: "/firebase_device_tokens/send_product_before_stock_out",
-      body: JSON.stringify({
-        user_id: auth.UserID(),
-        product_id: 7681,
-        topic: "product_before_stock_out_7681",
-        language_code: LocalizationServiceClass.GetAppLanguage(),
-        country_iso: LocalizationServiceClass.GetAppCountry(),
-      }),
-      reqTitle: "send product before stock out",
-      method: "POST",
-      server: "market",
-    });
+    try {
+      let response = await fetchData({
+        url: "/firebase_device_tokens/send_product_before_stock_out",
+        body: JSON.stringify({
+          user_id: auth.UserID(),
+          product_id: 7681,
+          topic: "product_before_stock_out_7681",
+          language_code: LocalizationServiceClass.GetAppLanguage(),
+          country_iso: LocalizationServiceClass.GetAppCountry(),
+        }),
+        reqTitle: "send product before stock out",
+        method: "POST",
+        server: "market",
+      });
+      // @ts-ignore
+      if (!response.success) {
+        throw new Error(response.message);
+      }
+    } catch (err) {
+      console.error(err);
+    }
   }
 
   async TestNotificationChangeInPrice() {
     await this.subscribeToTopic({ topic: "product_when_change_in_price_7681" });
-
-    await fetchData({
-      url: "/firebase_device_tokens/send_product_when_change_in_price",
-      body: JSON.stringify({
-        user_id: auth.UserID(),
-        product_id: 7681,
-        topic: "product_when_change_in_price_7681",
-        language_code: LocalizationServiceClass.GetAppLanguage(),
-        country_iso: LocalizationServiceClass.GetAppCountry(),
-      }),
-      reqTitle: "send product when change in price",
-      method: "POST",
-      server: "market",
-    });
+    try {
+      let response = await fetchData({
+        url: "/firebase_device_tokens/send_product_when_change_in_price",
+        body: JSON.stringify({
+          user_id: auth.UserID(),
+          product_id: 7681,
+          topic: "product_when_change_in_price_7681",
+          language_code: LocalizationServiceClass.GetAppLanguage(),
+          country_iso: LocalizationServiceClass.GetAppCountry(),
+        }),
+        reqTitle: "send product when change in price",
+        method: "POST",
+        server: "market",
+      });
+      // @ts-ignore
+      if (!response.success) {
+        throw new Error(response.message);
+      }
+    } catch (err) {
+      console.error(err);
+    }
   }
 
   async EditNotificationSettings({ url, body }) {
     try {
-      await fetchData({
+      const response = await fetchData({
         url: `/firebase_device_tokens/${url}`,
         body: JSON.stringify(body),
         reqTitle: "edit notification settings",
         method: "POST",
         server: "market",
       });
+      if (!response.success) {
+        throw new Error(response.message);
+      }
     } catch (error) {}
   }
 }

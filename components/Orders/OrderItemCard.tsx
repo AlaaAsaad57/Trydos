@@ -23,26 +23,44 @@ function OrderItemCard({
 
   const getProductDetails = async () => {
     setConfirmationData({ ...ConfirmationData, loading: true });
-    let [data1, data2] = await Promise.all([
-      fetchData({
-        url: `/web/product/qtyPriceDetails/${item?.product_slug}`,
-        reqTitle: "Get Product Vriantes",
-        method: "GET",
-        server: "market",
-      }),
-      fetchData({
-        url: `/web/product/globalDetails/${item?.product_slug}`,
-        reqTitle: "GEt Product Global Details",
-        method: "GET",
-        server: "market",
-      }),
-    ]);
+    try {
+      let [data1, data2] = await Promise.all([
+        (async () => {
+          let response = await fetchData({
+            url: `/web/product/qtyPriceDetails/${item?.product_slug}`,
+            reqTitle: "Get Product Vriantes",
+            method: "GET",
+            server: "market",
+          });
+          // @ts-ignore
+          if (!response.success) {
+            throw new Error(response.message);
+          }
+          return response;
+        })(),
+        (async () => {
+          let response = await fetchData({
+            url: `/web/product/globalDetails/${item?.product_slug}`,
+            reqTitle: "GEt Product Global Details",
+            method: "GET",
+            server: "market",
+          });
+          // @ts-ignore
+          if (!response.success) {
+            throw new Error(response.message);
+          }
+          return response;
+        })(),
+      ]);
 
-    setConfirmationData({
-      ...ConfirmationData,
-      productDetails: { ...data1.data, ...data2.data },
-      loading: false,
-    });
+      setConfirmationData({
+        ...ConfirmationData,
+        productDetails: { ...data1.data, ...data2.data },
+        loading: false,
+      });
+    } catch (err) {
+      console.error(err)
+    }
   };
   return (
     <>

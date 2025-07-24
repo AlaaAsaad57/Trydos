@@ -1,5 +1,6 @@
 const translations = {
   ar: {
+    "Tap “Agree & Continue” To Accept trydos": "اضغط على \"موافقة ومتابعة\" لقبول trydos",
     "Notification Permission:": "إذن الإشعارات:",
     "Preparing Your Experience": "جارٍ إعداد تجربتك",
     "Story hidden successfully.": "تم إخفاء القصة بنجاح",
@@ -814,6 +815,7 @@ const translations = {
       "انتهت صلاحية الجلسة.. يرجى التحقق من رقم هاتفك",
   },
   tr: {
+    "Tap “Agree & Continue” To Accept trydos": "Trydos'u kabul etmek için “Kabul Et ve Devam Et”e dokunun",
     "Notification Permission:": "Bildirim İzni:",
     "Preparing Your Experience": "Deneyiminiz hazırlanıyor",
     "Story hidden successfully.": "Hikaye başarıyla gizlendi",
@@ -2470,7 +2472,8 @@ const translations = {
     "Report Story": "ڕاپۆرتکردنی چیرۆک",
     "Are you sure you want to report this story ?": "دڵنیایت دەتەوێت ئەم چیرۆکە راپۆرت بکەیت ؟",
     "Preparing Your Experience": "ئامادەکردنی تاقیکردنەوەکەت",
-    "Notification Permission:": "مۆڵەتی ئاگادارکردنەوە:"
+    "Notification Permission:": "مۆڵەتی ئاگادارکردنەوە:",
+    "Tap “Agree & Continue” To Accept trydos": "بچۆ «ڕازی بوون و بەردەوام بە» بۆ قبوڵکردنی trydos"
   },
 };
 

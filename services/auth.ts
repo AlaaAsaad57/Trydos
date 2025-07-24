@@ -39,7 +39,9 @@ class AuthService {
       });
 
       msg = response.message;
-
+      if (!response.success) {
+        throw new Error(response.message);
+       }
       if (response.data?.verificationId) {
         setVerificationId(response.data.verificationId);
         return response.data.verificationId;
@@ -75,16 +77,15 @@ class AuthService {
         reqTitle: "Verify OTP",
       });
 
-      if (response.code === 501) {
+      if (response.code === 501 && !response.success) {
         showErrorNotification(response?.message);
-        throw new Error("Wrong Code");
+        throw new Error("Wrong Code", response?.message);
       }
       if (response?.data?.message === "user not found") {
         throw new Error("user not found");
       }
-
-      if (response?.isSuccessful === false) {
-        throw new Error("Wrong Code");
+      if (response?.isSuccessful === false  && !response.success) {
+        throw new Error("Wrong Code", response?.message);
       }
       localStorage.setItem("ID-TOKEN", response.data.id_token);
       setCookie(COOKIE_NAMES.MARKET_TOKEN, response.data.token);
@@ -138,9 +139,8 @@ class AuthService {
       if (response?.data?.message === "user not found") {
         throw new Error("user not found");
       }
-
-      if (response?.isSuccessful === false) {
-        throw new Error("Wrong Code");
+      if (response?.isSuccessful === false && !response.success) {
+        throw new Error("Wrong Code", response?.message);
       }
       localStorage.setItem("ID-TOKEN", response.data.id_token);
       updateUserIsVerified({ is_phone_verified: 1 });
@@ -169,13 +169,16 @@ class AuthService {
         name: name,
       });
       updateName(name);
-      await fetchData({
+      let res = await fetchData({
         url: "/customer/update-name",
         body: JSON.stringify({ name: name }),
         reqTitle: "Update Name in market",
         method: "POST",
         server: "market",
       });
+      if (!res.success) {
+        throw new Error(res.message);
+       }
       let chat_update = await fetchData({
         url: `/api/v1/users/${(getUser() as any)?.id}`,
         reqTitle: "Update Name in chat",
@@ -183,6 +186,9 @@ class AuthService {
         server: "chat",
         body: JSON.stringify({ name: name }),
       });
+      if (!chat_update.success) {
+        throw new Error(chat_update.message);
+       }
       setCookie(COOKIE_NAMES.USER_CHAT, {
         ...userChat,
         name: name,
@@ -195,14 +201,16 @@ class AuthService {
       if (!userStories) {
         await this.ConfirmSignIn();
       }
-      await fetchData({
+     let response = await fetchData({
         url: "/api/v1/users/update",
         reqTitle: "Update Name in stories",
         method: "POST",
         server: "stories",
         body: JSON.stringify({ name: name }),
       });
-
+      if (!response.success) {
+        throw new Error(response.message);
+       }
       StoryService.getStories();
     } catch (e) {
       console.error(e);
@@ -332,6 +340,9 @@ class AuthService {
             photo_path: this.ConfigurePhoto(userObj?.image, "story"),
           }),
         });
+        if (!res.success) {
+          throw new Error(res.message);
+         }
         console.log(res);
         stories_done = true;
         setCookie(COOKIE_NAMES.USER_STORIES, {
@@ -353,6 +364,9 @@ class AuthService {
             photo_path: this.ConfigurePhoto(userObj?.image, "chat"),
           }),
         });
+        if (!chat_update.success) {
+          throw new Error(chat_update.message);
+         }
         chat_done = true;
         setCookie(COOKIE_NAMES.USER_CHAT, {
           ...userChat,
@@ -371,6 +385,9 @@ class AuthService {
         method: "POST",
         server: "market",
       });
+      if (!res.success) {
+        throw new Error(res.message);
+       }
       market_done = true;
       setCookie(COOKIE_NAMES.USER_DATA, {
         ...user,
@@ -383,13 +400,16 @@ class AuthService {
     } catch (error) {
       console.log(error);
       if (market_done) {
-        await fetchData({
+       let res = await fetchData({
           url: "/customer/update-profile",
           body: userProfile,
           reqTitle: "Update Profile",
           method: "POST",
           server: "market",
         });
+        if (!res.success) {
+          throw new Error(res.message);
+         }
         market_done = true;
         setCookie(COOKIE_NAMES.USER_DATA, {
           ...user,
@@ -399,7 +419,7 @@ class AuthService {
         });
       }
       if (stories_done) {
-        await fetchData({
+       let res = await fetchData({
           url: "/api/v1/users/update",
           reqTitle: "Update Name in stories",
           method: "POST",
@@ -410,6 +430,9 @@ class AuthService {
             photo_path: userProfile?.image,
           }),
         });
+        if (!res.success) {
+          throw new Error(res.message);
+         }
         setCookie(COOKIE_NAMES.USER_STORIES, {
           ...userStories,
           name: userProfile?.name,
@@ -418,7 +441,7 @@ class AuthService {
         });
       }
       if (chat_done) {
-        await fetchData({
+      let res =  await fetchData({
           url: `/api/v1/users/${(getUser() as any)?.id}`,
           reqTitle: "Update Name in chat",
           method: "PUT",
@@ -429,6 +452,9 @@ class AuthService {
             photo_path: userProfile?.image,
           }),
         });
+        if (!res.success) {
+          throw new Error(res.message);
+         }
         setCookie(COOKIE_NAMES.USER_CHAT, {
           ...userChat,
           name: userObj?.name ?? userProfile?.name,
@@ -452,14 +478,23 @@ class AuthService {
     formData.append("image", image);
     formData.append("path", "customers/profile");
 
-    let response = await fetchData({
-      url: "/storage/storage-upload",
-      body: formData,
-      reqTitle: "Update Profile Image",
-      method: "POST",
-      server: "market",
-    });
-    return response.data;
+    try {
+      let response = await fetchData({
+        url: "/storage/storage-upload",
+        body: formData,
+        reqTitle: "Update Profile Image",
+        method: "POST",
+        server: "market",
+      });
+      // @ts-ignore
+      if (!response.success) {
+        throw new Error(response.message);
+      }
+      return response.data;
+    } catch (err) {
+      console.error(err)
+      return null;
+    }
   }
   async CheckUserName() {
     const userChat = getCookie<UserData>(COOKIE_NAMES.USER_CHAT);
