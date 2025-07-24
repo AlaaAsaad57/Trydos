@@ -9,6 +9,7 @@ import { useParams } from "next/navigation";
 import { ConfirmLocationPropsType } from "models/componentType/ConfirmLocationPropsType";
 import { MapPropsType } from "models/componentType/MapPropsType";
 import { fetchData } from "utils/fetchData";
+import { REQUESTS_DATA } from "utils/Requests";
 const MapElement = dynamic(
   () => import("./MapElement").then((mod) => mod.MapElement),
   { ssr: false }
@@ -33,7 +34,7 @@ const Map = ({
       setLoading(true);
       let res = await fetchData({
         url: `/api/addresses/CountryBoundaryByIso/${country}`,
-        reqTitle: "Country Map Boundaries",
+        reqTitle: REQUESTS_DATA.COUNTRY_MAP_BORDERS,
         server: "elastic",
         method: "GET",
       });

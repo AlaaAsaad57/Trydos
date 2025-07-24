@@ -17,6 +17,7 @@ import ProductRedeemButton from "./ProductRedeemPrice";
 import { deleteCookie, getCookie } from "utils/cookies/cookie-manager";
 import { GAevent } from "utils/gtag";
 import { GA_EVENT_NAMES } from "utils/GAEvents";
+import { REQUESTS_DATA } from "utils/Requests";
 
 function ProductReducer(state, { type, payload }) {
   if (type === "setProductData") {
@@ -115,13 +116,13 @@ function ProductFooterSection({
     try {
       let response: { data: ProductSocialInfo } = await fetchData({
         url: "/web/product/CommentsSharesDetails/" + product.slug,
-        reqTitle: "Social Info Request",
+        reqTitle: REQUESTS_DATA.SOCIAL_INFO_REQUEST,
         method: "GET",
         server: "market",
       });
       // @ts-ignore
       if (!response.success) {
-      // @ts-ignore
+        // @ts-ignore
         throw new Error(response.message);
       }
       setProductData({
@@ -147,7 +148,7 @@ function ProductFooterSection({
           (async () => {
             let response = await fetchData({
               url: "/web/product/likesDetails/" + product.slug,
-              reqTitle: "Like & Comments Data Request",
+              reqTitle: REQUESTS_DATA["LIKE_&_COMMENTS_DATA_REQUEST"],
               method: "GET",
               server: "market",
             });
@@ -160,7 +161,7 @@ function ProductFooterSection({
           (async () => {
             let response = await fetchData({
               url: "/web/product/CommentsSharesDetails/" + product.slug,
-              reqTitle: "Comments Data Request",
+              reqTitle: REQUESTS_DATA.COMMENT_DATA_REQUEST,
               method: "GET",
               server: "market",
             });
@@ -173,7 +174,7 @@ function ProductFooterSection({
           (async () => {
             let response = await fetchData({
               url: `/api/v2/elastic/shared_count/${product.id}`,
-              reqTitle: "Share Count Request",
+              reqTitle: REQUESTS_DATA.SHARE_COUNT_REQUEST,
               server: "chat",
               method: "GET",
             });
@@ -186,7 +187,7 @@ function ProductFooterSection({
           (async () => {
             let response = await fetchData({
               url: `/api/products/view`,
-              reqTitle: "get Views For Product",
+              reqTitle: REQUESTS_DATA.GET_VIEW_PRODUCT,
               method: "POST",
               server: "elastic",
               body: JSON.stringify({
@@ -276,7 +277,7 @@ function ProductFooterSection({
       });
       setLoading(false);
     } catch (err) {
-      console.error(err)
+      console.error(err);
     }
   };
   useEffect(() => {

@@ -11,6 +11,7 @@ import CancelOrderItemIcon from "public/svg/cancelOrderItemIcon.svg";
 
 import { GetImageUrl } from "utils/tinyUtils";
 import { fetchData } from "utils/fetchData";
+import { REQUESTS_DATA } from "utils/Requests";
 
 function OrderItemCard({
   item,
@@ -28,7 +29,7 @@ function OrderItemCard({
         (async () => {
           let response = await fetchData({
             url: `/web/product/qtyPriceDetails/${item?.product_slug}`,
-            reqTitle: "Get Product Vriantes",
+            reqTitle: REQUESTS_DATA.GET_PRODUCT_VARIANTS,
             method: "GET",
             server: "market",
           });
@@ -41,7 +42,7 @@ function OrderItemCard({
         (async () => {
           let response = await fetchData({
             url: `/web/product/globalDetails/${item?.product_slug}`,
-            reqTitle: "GEt Product Global Details",
+            reqTitle: REQUESTS_DATA.GET_PRODUCT_GLOBAL_DETAILS,
             method: "GET",
             server: "market",
           });
@@ -59,7 +60,7 @@ function OrderItemCard({
         loading: false,
       });
     } catch (err) {
-      console.error(err)
+      console.error(err);
     }
   };
   return (

@@ -32,6 +32,7 @@ import LeftArrowIcon from "../svg/leftArrow.svg";
 
 // Styles
 import "styles/chat.css";
+import { REQUESTS_DATA } from "utils/Requests";
 
 // Types
 interface User {
@@ -300,7 +301,7 @@ const VideoCall: React.FC<VideoCallProps> = ({
       try {
         let res = await fetchData({
           url: `/api/v1/end_call`,
-          reqTitle: "End Call",
+          reqTitle: REQUESTS_DATA.END_CALL,
           method: "POST",
           server: "chat",
           body: JSON.stringify({ user_id: getUserChat()?.id }),
@@ -414,7 +415,7 @@ const VideoCall: React.FC<VideoCallProps> = ({
               url: `/api/v1/messages/start_talking/${MessageActiveCall}`,
               server: "chat",
               method: "GET",
-              reqTitle: "Start Talking",
+              reqTitle: REQUESTS_DATA.START_TALKING,
             });
             if (!res.success) {
               throw new Error(res.message);

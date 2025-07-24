@@ -18,6 +18,7 @@ import {
 } from "utils/cookies/cookie-manager";
 import { GA_EVENT_NAMES } from "utils/GAEvents";
 import { getUser } from "components/Chat/chatsFunctions";
+import { REQUESTS_DATA } from "utils/Requests";
 
 class AuthService {
   async SendOtp(
@@ -35,7 +36,7 @@ class AuthService {
           `?phone=+${mobilePhone}&is_via_whatsapp=${is_via_whatsapp}`,
         method: "GET",
         server: "market",
-        reqTitle: "Send OTP",
+        reqTitle: REQUESTS_DATA.SEND_OTP,
       });
 
       msg = response.message;
@@ -74,7 +75,7 @@ class AuthService {
           }`,
         method: "GET",
         server: "market",
-        reqTitle: "Verify OTP",
+        reqTitle: REQUESTS_DATA.VERIFY_OTP_FROM_GUEST,
       });
 
       if (response.code === 501 && !response.success) {
@@ -133,7 +134,7 @@ class AuthService {
           `?verificationId=${verficationID}&otp=${code}`,
         method: "GET",
         server: "market",
-        reqTitle: "Verify OTP",
+        reqTitle: REQUESTS_DATA.VERIFY_OTP,
       });
 
       if (response?.data?.message === "user not found") {
@@ -172,7 +173,7 @@ class AuthService {
       let res = await fetchData({
         url: "/customer/update-name",
         body: JSON.stringify({ name: name }),
-        reqTitle: "Update Name in market",
+        reqTitle: REQUESTS_DATA.UPDATE_NAME_IN_MARKET,
         method: "POST",
         server: "market",
       });
@@ -181,7 +182,7 @@ class AuthService {
       }
       let chat_update = await fetchData({
         url: `/api/v1/users/${(this.UserID() as any)?.id}`,
-        reqTitle: "Update Name in chat",
+        reqTitle: REQUESTS_DATA.UPDATE_NAME_IN_CHAT,
         method: "PUT",
         server: "chat",
         body: JSON.stringify({ name: name }),
@@ -203,7 +204,7 @@ class AuthService {
       }
       let response = await fetchData({
         url: "/api/v1/users/update",
-        reqTitle: "Update Name in stories",
+        reqTitle: REQUESTS_DATA.UPDATE_NAME_IN_STORIES,
         method: "POST",
         server: "stories",
         body: JSON.stringify({ name: name }),
@@ -331,7 +332,7 @@ class AuthService {
       if (userStories && user && userStories?.id) {
         let res = await fetchData({
           url: "/api/v1/users/update",
-          reqTitle: "Update Name in stories",
+          reqTitle: REQUESTS_DATA.UPDATE_NAME_IN_STORIES,
           method: "POST",
           server: "stories",
           body: JSON.stringify({
@@ -354,7 +355,7 @@ class AuthService {
       if (userChat && user && userChat?.id) {
         let chat_update = await fetchData({
           url: `/api/v1/users/${(this.UserID() as any)?.id}`,
-          reqTitle: "Update Name in chat",
+          reqTitle: REQUESTS_DATA.UPDATE_NAME_IN_CHAT,
           method: "PUT",
           server: "chat",
           body: JSON.stringify({
@@ -380,7 +381,7 @@ class AuthService {
           ...userObj,
           image: this.ConfigurePhoto(userObj?.image, "market"),
         }),
-        reqTitle: "Update Profile",
+        reqTitle: REQUESTS_DATA.UPDATE_PROFILE,
         method: "POST",
         server: "market",
       });
@@ -402,7 +403,7 @@ class AuthService {
         let res = await fetchData({
           url: "/customer/update-profile",
           body: userProfile,
-          reqTitle: "Update Profile",
+          reqTitle: REQUESTS_DATA.UPDATE_PROFILE,
           method: "POST",
           server: "market",
         });
@@ -420,7 +421,7 @@ class AuthService {
       if (stories_done) {
         let res = await fetchData({
           url: "/api/v1/users/update",
-          reqTitle: "Update Name in stories",
+          reqTitle: REQUESTS_DATA.UPDATE_NAME_IN_STORIES,
           method: "POST",
           server: "stories",
           body: JSON.stringify({
@@ -442,7 +443,7 @@ class AuthService {
       if (chat_done) {
         let res = await fetchData({
           url: `/api/v1/users/${(this.UserID() as any)?.id}`,
-          reqTitle: "Update Name in chat",
+          reqTitle: REQUESTS_DATA.UPDATE_NAME_IN_CHAT,
           method: "PUT",
           server: "chat",
           body: JSON.stringify({
@@ -481,7 +482,7 @@ class AuthService {
       let response = await fetchData({
         url: "/storage/storage-upload",
         body: formData,
-        reqTitle: "Update Profile Image",
+        reqTitle: REQUESTS_DATA.UPDATE_PROFILE_IMAGE,
         method: "POST",
         server: "market",
       });

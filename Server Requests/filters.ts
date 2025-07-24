@@ -213,6 +213,7 @@ export async function fetchFilteredProducts(
             name: s?.name,
             icon: s?.icon?.file_path,
           },
+          ...s,
         })),
       },
     };

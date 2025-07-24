@@ -5,6 +5,7 @@ import auth from "services/auth";
 import { translateFunction } from "utils/functions";
 import { CommentBarPropsType } from "models/componentType/CommentBarPropsType";
 import { fetchData } from "utils/fetchData";
+import { REQUESTS_DATA } from "utils/Requests";
 
 function CommentBar({
   product,
@@ -45,7 +46,7 @@ function CommentBar({
       setVal("");
       let response: { data: AddComment } = await fetchData({
         url: "/customer/product_comment",
-        reqTitle: "add comment For Product",
+        reqTitle: REQUESTS_DATA.ADD_COMMENT_FOR_PRODUCT,
         method: "POST",
         server: "market",
         body: JSON.stringify({
@@ -55,7 +56,7 @@ function CommentBar({
         }),
       });
       // @ts-ignore
-      if(!response.success) {
+      if (!response.success) {
         // @ts-ignore
         throw new Error(response.message);
       }

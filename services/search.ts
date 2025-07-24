@@ -6,6 +6,7 @@ import {
 } from "utils/tinyUtils";
 import auth from "./auth";
 import { fetchData } from "utils/fetchData";
+import { REQUESTS_DATA } from "utils/Requests";
 
 class SearchService {
   private searchAbortController: AbortController | null = null;
@@ -14,7 +15,7 @@ class SearchService {
     try {
       let response = await fetchData({
         url: "/api/products/popular-search",
-        reqTitle: "Get Trending Search",
+        reqTitle: REQUESTS_DATA.GET_TRENDING_SEARCH,
         method: "GET",
         server: "elastic",
       });
@@ -112,7 +113,7 @@ class SearchService {
         method: "GET",
         url: `${apiUrl}?${configuredParams.toString()}`,
         server: "elastic",
-        reqTitle: "Get Search Options",
+        reqTitle: REQUESTS_DATA.GET_SEARCH_OPTIONS,
         signal,
       });
       if (!filtersResponse.success) {
@@ -195,7 +196,7 @@ class SearchService {
         method: "GET",
         url: `${apiUrl}?${configuredParams.toString()}`,
         server: "elastic",
-        reqTitle: "Get Search Options",
+        reqTitle: REQUESTS_DATA.GET_SEARCH_OPTIONS,
         signal,
       });
       if (!filtersResponse.success) {

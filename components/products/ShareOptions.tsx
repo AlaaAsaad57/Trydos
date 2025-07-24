@@ -19,6 +19,7 @@ import CopyIcon from "public/svg/copyIcon.svg";
 import { ShareOptionsPropsType } from "models/componentType/ShareOptionsPropsType";
 import { showSuccessNotification } from "@/store/notifications/reducer";
 import { fetchData } from "utils/fetchData";
+import { REQUESTS_DATA } from "utils/Requests";
 function ShareOptions({
   setShareContacts,
   sharedContacts,
@@ -37,7 +38,7 @@ function ShareOptions({
     try {
       let response = await fetchData({
         url: "/api/v2/elastic/share_product_on_apps",
-        reqTitle: "Share Product on Social",
+        reqTitle: REQUESTS_DATA.SHARE_SOCIAL,
         method: "POST",
         server: "chat",
         body: JSON.stringify({
@@ -56,7 +57,7 @@ function ShareOptions({
         sharesCount: (SelectedProduct?.sharesCount || 0) + 1,
       });
     } catch (err) {
-      console.error(err)
+      console.error(err);
     }
   };
   return (

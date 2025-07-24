@@ -11,6 +11,7 @@ import { ChangeSizeWidgetPropsType } from "models/componentType/ChangeSizeWidget
 import { fetchData } from "utils/fetchData";
 import { showErrorNotification } from "store/notifications/reducer";
 import { useAppStore } from "store";
+import { REQUESTS_DATA } from "utils/Requests";
 
 function ChangeOrderItem({
   item,
@@ -66,7 +67,7 @@ function ChangeOrderItem({
         (async () => {
           let response = await fetchData({
             url: `/web/product/qtyPriceDetails/${item?.product_slug}`,
-            reqTitle: "Get Product Vriantes",
+            reqTitle: REQUESTS_DATA.GET_PRODUCT_VARIANTS,
             method: "GET",
             server: "market",
           });
@@ -79,7 +80,7 @@ function ChangeOrderItem({
         (async () => {
           let response = await fetchData({
             url: `/web/product/globalDetails/${item?.product_slug}`,
-            reqTitle: "GEt Product Global Details",
+            reqTitle: REQUESTS_DATA.GET_PRODUCT_GLOBAL_DETAILS,
             method: "GET",
             server: "market",
           });

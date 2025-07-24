@@ -16,6 +16,7 @@ import { showErrorNotification } from "@/store/notifications/reducer";
 import { fetchData } from "utils/fetchData";
 import { GAevent } from "utils/gtag";
 import { GA_EVENT_NAMES, GA_GLOBAL_SCREEN } from "utils/GAEvents";
+import { REQUESTS_DATA } from "utils/Requests";
 
 function ProductOptions({
   activeOption,
@@ -39,7 +40,7 @@ function ProductOptions({
       try {
         let res = await fetchData({
           url: "/product_likes/store",
-          reqTitle: "like For Product",
+          reqTitle: REQUESTS_DATA.LIKE_FOR_PRODUCT,
           method: "POST",
           server: "market",
           body: JSON.stringify({
@@ -78,7 +79,7 @@ function ProductOptions({
       try {
         let res = await fetchData({
           url: "/product_likes/delete",
-          reqTitle: "unlike For Product",
+          reqTitle: REQUESTS_DATA.UNLIKE_PRODUCT,
           method: "POST",
           server: "market",
           body: JSON.stringify({

@@ -2,7 +2,6 @@
 import { useVisibilityTimer } from "hooks/useVisibilityTimer";
 import { BuyButtonPropsType } from "models/componentType/BuyButtonPropsType";
 import { useParams } from "next/navigation";
-import { useEffect } from "react";
 import LocalizationServiceClass from "services/localization";
 import { useAppStore } from "store";
 import { getCookie, setCookie } from "utils/cookies/cookie-manager";
@@ -14,6 +13,7 @@ function BuyButton({
   redeem_price,
   currency,
   id,
+  flash_deal_price,
   onExpire,
 }: BuyButtonPropsType) {
   let { lang } = useParams();
@@ -49,14 +49,14 @@ function BuyButton({
             <span>
               {translate("Buy", LocalizationServiceClass.GetAppLanguage())}
             </span>
-            {shouldShowRedeem && (
+            {shouldShowRedeem || Boolean(flash_deal_price) ? (
               <div className="flex-row flex gap-[2px] items-center">
                 <span
                   className="text-[10px] pt-[2px] flex align-start bold"
                   data-cy="product-redeem-price"
                 >
                   {RoundPrice({
-                    num: redeem_price,
+                    num: redeem_price || flash_deal_price,
                     rate: currency?.rate,
                     points: currency?.points,
                     language: languageVariable,
@@ -66,6 +66,8 @@ function BuyButton({
                   {currency?.symbol}
                 </span>
               </div>
+            ) : (
+              <></>
             )}
           </div>
           <img

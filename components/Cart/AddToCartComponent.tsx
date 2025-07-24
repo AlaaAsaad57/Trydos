@@ -28,6 +28,7 @@ import { GAevent } from "utils/gtag";
 import { showSuccessNotification } from "@/store/notifications/reducer";
 import { fetchData } from "utils/fetchData";
 import StackedSlider from "utils/Slider";
+import { REQUESTS_DATA } from "utils/Requests";
 
 function AddToCartComponent({
   color,
@@ -75,7 +76,7 @@ function AddToCartComponent({
         (async () => {
           let response = await fetchData({
             url: `/web/product/qtyPriceDetails/${slug}`,
-            reqTitle: "Get Product Vriantes",
+            reqTitle: REQUESTS_DATA.GET_PRODUCT_VRIANTES,
             method: "GET",
             server: "market",
           });
@@ -88,7 +89,7 @@ function AddToCartComponent({
         (async () => {
           let response = await fetchData({
             url: `/web/product/likesDetails/${slug}`,
-            reqTitle: "GEt Product Variants Notifications",
+            reqTitle: REQUESTS_DATA.GET_PRODUCT_VARIANTS_NOTIFICATIONS,
             method: "GET",
             server: "market",
           });
@@ -101,7 +102,7 @@ function AddToCartComponent({
         (async () => {
           let response = await fetchData({
             url: `/api/v2/elastic/shared_count/${product.id}`,
-            reqTitle: "Share Count Request",
+            reqTitle: REQUESTS_DATA.SHARE_COUNT_REQUEST,
             method: "GET",
             server: "chat",
             useCached: true,
@@ -115,7 +116,7 @@ function AddToCartComponent({
         (async () => {
           let response = await fetchData({
             url: `/web/product/globalDetails/${slug}`,
-            reqTitle: "GEt Product Global Details",
+            reqTitle: REQUESTS_DATA.GET_PRODUCT_GLOBAL_DETAILS,
             method: "GET",
             server: "market",
           });
@@ -289,6 +290,10 @@ function AddToCartComponent({
               redeem_price:
                 selected_variant?.redeem_price ?? product?.redeem_price,
             }
+          : product?.flash_deal_price !== null
+          ? {
+              flash_deal_price: product?.flash_deal_price,
+            }
           : {}),
       };
     } else {
@@ -298,6 +303,7 @@ function AddToCartComponent({
         price: ProductData?.price,
         offer_price: ProductData?.offer_price,
         redeem_price: ProductData?.redeem_price,
+        flash_deal_price: ProductData?.flash_deal_price,
         qty: ProductData?.available_quantity,
         variant_notify_for_user: ProductData?.is_product_notify_for_user,
       };
@@ -378,6 +384,92 @@ function AddToCartComponent({
               <>
                 {RoundPrice({
                   num: getSelectedVariantQty()?.redeem_price,
+                  language: languageVariable,
+                })}
+              </>
+            ) : (
+              <Skeleton width={30} height={10} />
+            )}
+          </div>
+        </>
+      );
+    }
+    if (product?.flash_deal_end_date && product?.flash_deal_price !== null) {
+      return (
+        <>
+          {currency?.symbol &&
+            getSelectedVariantQty()?.offer_price !==
+              getSelectedVariantQty()?.price && (
+              <div
+                data-cy="product_old_price_addtocart"
+                className="product-old-price"
+              >
+                <svg
+                  data-cy="product_addtocart_svg"
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="100%"
+                  height="2"
+                >
+                  <line
+                    id="Line_1104"
+                    data-name="Line 1104"
+                    x2="100%"
+                    transform="translate(0 1)"
+                    fill="none"
+                    stroke="#C4C2C2"
+                    strokeWidth="2"
+                  />
+                </svg>
+                {getSelectedVariantQty()?.price >= 0 && currency?.symbol ? (
+                  <>
+                    {RoundPrice({
+                      num: getSelectedVariantQty()?.price,
+                      language: languageVariable,
+                    })}
+                  </>
+                ) : (
+                  <Skeleton width={30} height={10} />
+                )}
+              </div>
+            )}
+          <div
+            data-cy="product_new-price_addtocart"
+            className="product-old-price"
+          >
+            <svg
+              data-cy="product_addtocart_svg"
+              xmlns="http://www.w3.org/2000/svg"
+              width="100%"
+              height="2"
+            >
+              <line
+                id="Line_1104"
+                data-name="Line 1104"
+                x2="100%"
+                transform="translate(0 1)"
+                fill="none"
+                stroke="#FF6200"
+                strokeWidth="2"
+              />
+            </svg>
+            {getSelectedVariantQty()?.offer_price >= 0 && currency?.symbol ? (
+              <>
+                {RoundPrice({
+                  num: getSelectedVariantQty()?.offer_price,
+                  language: languageVariable,
+                })}
+              </>
+            ) : (
+              <Skeleton width={30} height={10} />
+            )}
+          </div>
+          <div className="product-new-price">
+            {getSelectedVariantQty()?.flash_deal_price >= 0 &&
+            getSelectedVariantQty()?.flash_deal_price !== null &&
+            currency?.symbol ? (
+              <>
+                {RoundPrice({
+                  num: getSelectedVariantQty()?.flash_deal_price,
                   language: languageVariable,
                 })}
               </>
@@ -485,7 +577,7 @@ function AddToCartComponent({
       server: "market",
       url: `/web/product/qtyPriceDetails/${slug}`,
       useCached: false,
-      reqTitle: "Get Product Variants",
+      reqTitle: REQUESTS_DATA.GET_PRODUCT_VARIANTS,
     });
 
     setProductData({
@@ -520,6 +612,7 @@ function AddToCartComponent({
       }
     }
   };
+
   return (
     <div className="flex-col message-add-to-cart h-full w-[100vw] flex top-0 left-0 fixed z-[99999999999999999] justify-start  ">
       {/* <ToastContainer
@@ -565,7 +658,10 @@ function AddToCartComponent({
           <CartIcon data-cy="CartIcon" id={"cart-icon"} className="cart-icon" />
         </span>
       </div>
-      <div className="flex flex-col justify-between">
+      <div
+        className="flex flex-col justify-between h-[100dvh]"
+        style={{ height: "100vh" }}
+      >
         <div
           data-cy="image_when_addtocart"
           style={{ height: "calc(100vh - 461px)" }}

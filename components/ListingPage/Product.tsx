@@ -12,6 +12,7 @@ export const BuyButtonProduct = ({
   params,
   currency,
   language,
+
   isForColor = false,
   shouldShowRedeem = false,
   setShouldShowRedeem = (e) => {},
@@ -56,6 +57,108 @@ export const BuyButtonProduct = ({
   };
 
   const RenderPrice = () => {
+    if (product?.flash_deal_price >= 0 && product?.flash_deal_price !== null) {
+      if (product.offer_price >= 0 && product.offer_price !== product.price) {
+        return (
+          <>
+            <span
+              className="old-price relative f-12 text-[#3c3c3c] light-text"
+              data-cy="product-price"
+            >
+              {RoundPrice({
+                num: product?.price,
+                rate: currency?.exchange_rate,
+                points: 0,
+                language: language,
+              })}
+              <svg
+                className="absolute w-100"
+                xmlns="http://www.w3.org/2000/svg"
+                width="100%"
+                height="1"
+              >
+                <line
+                  id="Line_1"
+                  data-name="Line 1"
+                  x2="100%"
+                  transform="translate(0 0.5)"
+                  fill="none"
+                  stroke="#3c3c3c"
+                  strokeWidth="1"
+                />
+              </svg>
+            </span>
+            <span
+              className="old-price ml-[3px] relative bold-text color-dark-gray flex f-12"
+              data-cy="product-offer-price"
+            >
+              {product?.offer_price >= 0
+                ? RoundPrice({
+                    num: product?.offer_price,
+                    rate: currency?.exchange_rate,
+                    points: 0,
+                    language: language,
+                  })
+                : RoundPrice({
+                    num: product?.price,
+                    rate: currency?.exchange_rate,
+                    points: 0,
+                    language: language,
+                  })}
+              <svg
+                className="absolute w-100"
+                xmlns="http://www.w3.org/2000/svg"
+                width="100%"
+                height="1"
+              >
+                <line
+                  id="Line_1"
+                  data-name="Line 1"
+                  x2="100%"
+                  transform="translate(0 0.5)"
+                  fill="none"
+                  strokeLinecap="round"
+                  stroke="#ff6200"
+                  strokeWidth="1"
+                />
+              </svg>
+            </span>
+          </>
+        );
+      } else {
+        return (
+          <span
+            className="old-price ml-[3px] bold-text color-dark-gray flex f-12"
+            data-cy="product-redeem-price"
+          >
+            {RoundPrice({
+              num: product?.price,
+              rate: currency?.exchange_rate,
+              points: 0,
+              language: language,
+            })}
+
+            <svg
+              className="absolute w-100"
+              xmlns="http://www.w3.org/2000/svg"
+              width="100%"
+              height="1"
+            >
+              <line
+                id="Line_1"
+                data-name="Line 1"
+                x2="100%"
+                transform="translate(0 0.5)"
+                fill="none"
+                strokeLinecap="round"
+                stroke="#ff6200"
+                strokeWidth="1"
+              />
+            </svg>
+          </span>
+        );
+      }
+    }
     if (product.is_redeem && shouldShowRedeem) {
       if (product.offer_price >= 0 && product.offer_price !== product.price) {
         return (
@@ -247,6 +350,7 @@ export const BuyButtonProduct = ({
           }}
           id={product.product_id}
           redeem_price={product.redeem_price}
+          flash_deal_price={product?.flash_deal_price}
           currency={currency}
           shouldShowRedeem={shouldShowRedeem && product?.is_redeem}
           buy={(e) => {
@@ -285,6 +389,7 @@ export const BuyButtonProduct = ({
           setShouldShowRedeem(false);
         }}
         id={product.product_id}
+        flash_deal_price={Number(product?.flash_deal_price)}
         redeem_price={product.redeem_price}
         currency={currency}
         shouldShowRedeem={shouldShowRedeem && product?.is_redeem}

@@ -36,6 +36,7 @@ import { QuantutyInputPropsType } from "models/componentType/QuantutyInputPropsT
 import { fetchData } from "utils/fetchData";
 import { useRouter } from "next/navigation";
 import FlashDealBanner from "components/products/FlashDealBanner";
+import { REQUESTS_DATA } from "utils/Requests";
 
 function CartContainer({ close, toOrders }: CartContainerPropsType) {
   const {
@@ -141,7 +142,7 @@ function CartContainer({ close, toOrders }: CartContainerPropsType) {
       try {
         let response: QuantityDetailsProductApi = await fetchData({
           url: "/web/product/qtyPriceDetails" + `/${slug}`,
-          reqTitle: "Get Product",
+          reqTitle: REQUESTS_DATA.GET_PRODUCT_VRIANTES,
           method: "GET",
           server: "market",
         });
@@ -151,7 +152,7 @@ function CartContainer({ close, toOrders }: CartContainerPropsType) {
         }
         getProductDetailsForCart(response.data);
       } catch (err) {
-       console.error(err)
+        console.error(err);
       }
     }
   };
@@ -1862,7 +1863,7 @@ const QuantutyInput = ({
     try {
       let a = await fetchData({
         url: "/cart/update",
-        reqTitle: "Update Quantity For Product In cart",
+        reqTitle: REQUESTS_DATA.UPDATE_CART_ITEM,
         method: "POST",
         server: "market",
         body: JSON.stringify({ key: id, quantity: quantity }),

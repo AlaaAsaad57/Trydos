@@ -1,5 +1,6 @@
 import { fetchData } from "utils/fetchData";
 import { NotificationResponse } from "../types/notifications";
+import { REQUESTS_DATA } from "utils/Requests";
 
 export const fetchNotifications = async (
   page: number,
@@ -8,7 +9,7 @@ export const fetchNotifications = async (
   try {
     const response = await fetchData({
       url: `/user-notifications/get?page=${page}`,
-      reqTitle: "Fetch Notifications",
+      reqTitle: REQUESTS_DATA.FETCH_NOTIFICATIONS,
       method: "GET",
       server: "market",
     });
@@ -25,7 +26,7 @@ export const getNotificationsTypes = async () => {
   try {
     const response = await fetchData({
       url: "/web/notification_types/customer-notification-to-choose",
-      reqTitle: "Fetch Notifications Types",
+      reqTitle: REQUESTS_DATA.FETCH_NOTIFICATIONS_TYPES,
       method: "GET",
       server: "market",
     });

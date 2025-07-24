@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { useAppStore } from "store";
 import { fetchData } from "utils/fetchData";
+import { REQUESTS_DATA } from "utils/Requests";
 
 const LoadingColorSvg = ({ w = "14", h = "14", loading = false }) => {
   return (
@@ -66,7 +67,7 @@ const ModalIframe = ({
               url: `/customer/order/getOrdersByCartGroupID?cart_group_id=${cart[0].cart_group_id}`,
               method: "GET",
               server: "market",
-              reqTitle: "getOrdersByCartGroupID",
+              reqTitle: REQUESTS_DATA.GETORDERSBYCARTGROUPID,
             });
             // @ts-ignore
             if (!response.success) {
@@ -76,7 +77,7 @@ const ModalIframe = ({
               setOrderData({ data: response.data, success: true });
             }
           } catch (err) {
-           console.error(err)
+            console.error(err);
           }
         }
       }
@@ -101,7 +102,7 @@ const ModalIframe = ({
                     url: `/customer/order/getOrdersByCartGroupID?cart_group_id=${cart[0].cart_group_id}`,
                     method: "GET",
                     server: "market",
-                    reqTitle: "getOrdersByCartGroupID",
+                    reqTitle: REQUESTS_DATA.GETORDERSBYCARTGROUPID,
                   });
                   // @ts-ignore
                   if (!response.success) {
@@ -111,7 +112,7 @@ const ModalIframe = ({
                     setOrderData({ data: response.data, success: true });
                   }
                 } catch (err) {
-                  console.error(err)
+                  console.error(err);
                 }
               }
             }}
