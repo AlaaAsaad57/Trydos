@@ -41,7 +41,7 @@ function ProductCard({
       searchParams.set("color", activeColor.color_name);
     }
     if (searchParams.values().toArray().length > 0) {
-      return url + searchParams.toString();
+      return url + `?${searchParams.toString()}`;
     } else {
       return url;
     }
