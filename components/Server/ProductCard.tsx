@@ -162,12 +162,14 @@ function ProductCard({
                 )} */}
               </span>
             </p>
-            <ProductLabelsAnimated
-              labels={product?.label_names?.map((s) => ({
-                text: s,
-                color: "#388CFF",
-              }))}
-            />
+            {product?.label_names?.length > 0 && (
+              <ProductLabelsAnimated
+                labels={product?.label_names?.map((s) => ({
+                  text: s,
+                  color: "#388CFF",
+                }))}
+              />
+            )}
           </div>
         </NextLink>
 
