@@ -36,6 +36,7 @@ import { OrderDetailsPropsType } from "models/componentType/settingTypes/OrderDe
 import { ProductCardPropsType } from "models/componentType/settingTypes/ProductCardPropsType";
 import { fetchData } from "utils/fetchData";
 import auth from "services/auth";
+import { REQUESTS_DATA } from "utils/Requests";
 function OrderDetails({ resetOrderDetails, goBack }: OrderDetailsPropsType) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -153,7 +154,7 @@ function OrderDetails({ resetOrderDetails, goBack }: OrderDetailsPropsType) {
     try {
       let response = await fetchData({
         url: "/api/v1/order-chat-participants/get-recipient",
-        reqTitle: "Get Chat with Deleivery",
+        reqTitle: REQUESTS_DATA.GET_CHAT_WITH_DELEIVERY,
         method: "POST",
         server: "chat",
         body: JSON.stringify({

@@ -31,6 +31,7 @@ import LeftArrowIcon from "../svg/leftArrow.svg";
 
 // Styles
 import "styles/chat.css";
+import { REQUESTS_DATA } from "utils/Requests";
 
 // Types
 interface User {
@@ -229,7 +230,7 @@ const VoiceCall: React.FC<VoiceCallProps> = ({
       try {
         let res = await fetchData({
           url: `/api/v1/end_call`,
-          reqTitle: "End Call",
+          reqTitle: REQUESTS_DATA.END_CALL,
           method: "POST",
           server: "chat",
           body: JSON.stringify({ user_id: getUserChat()?.id }),
@@ -237,7 +238,7 @@ const VoiceCall: React.FC<VoiceCallProps> = ({
 
         if (!res.success) {
           throw new Error(res.message);
-         }
+        }
       } catch (apiError) {
         console.error("End call API error:", apiError);
       }
@@ -332,11 +333,11 @@ const VoiceCall: React.FC<VoiceCallProps> = ({
               url: `/api/v1/messages/start_talking/${MessageActiveCall}`,
               server: "chat",
               method: "GET",
-              reqTitle: "Start Talking",
+              reqTitle: REQUESTS_DATA.START_TALKING,
             });
             if (!res.success) {
               throw new Error(res.message);
-             }
+            }
           } catch (error) {
             console.error("Failed to start talking:", error);
           }

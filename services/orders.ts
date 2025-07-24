@@ -1,6 +1,7 @@
 import { useAppStore } from "store";
 import { OrdersResponse } from "../types/orders";
 import { fetchData } from "utils/fetchData";
+import { REQUESTS_DATA } from "utils/Requests";
 
 export const fetchOrders = async (
   page: number,
@@ -12,7 +13,7 @@ export const fetchOrders = async (
       url: `/customer/order/list?offset=${page}&limit=${pageSize}${
         selectedStatus ? `&order_group_status=${selectedStatus}` : ""
       }`,
-      reqTitle: "Fetch Orders",
+      reqTitle: REQUESTS_DATA.FETCH_ORDERS,
       method: "GET",
       server: "market",
     });

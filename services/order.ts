@@ -6,6 +6,7 @@ import { GetCartOreview } from "utils/functions";
 import { getCurrency } from "utils/tinyUtils";
 import { fetchData } from "utils/fetchData";
 import auth from "./auth";
+import { REQUESTS_DATA } from "utils/Requests";
 
 class OrderService {
   async PlaceOrder({ payment_method, pay_by_wallet }) {
@@ -23,14 +24,14 @@ class OrderService {
         url: `/customer/order/checkout/${payment_method}?order_note=order note&address_id=${addressId}&pay_by_wallet=${
           pay_by_wallet ? 1 : 0
         }`,
-        reqTitle: "pay Order",
+        reqTitle: REQUESTS_DATA.PAY_ORDER,
         body: "",
         method: "POST",
         server: "market",
       });
       // @ts-ignore
       if (!response.success) {
-      // @ts-ignore
+        // @ts-ignore
         throw new Error(response.message);
       }
       if (!response.data[0]?.url) {
@@ -57,13 +58,13 @@ class OrderService {
       });
       let response: { data: GetWalletApi } = await fetchData({
         url: "/customer/wallet/list?limit=10&offset=1",
-        reqTitle: "Get Wallet",
+        reqTitle: REQUESTS_DATA.GET_WALLET,
         method: "GET",
         server: "market",
       });
       // @ts-ignore
       if (!response.success) {
-       // @ts-ignore
+        // @ts-ignore
         throw new Error(response.message);
       }
       setWalletUser({
@@ -83,11 +84,11 @@ class OrderService {
       setOrderLoading(true);
       let response: { data: GetAddressListApi } = await fetchData({
         url: "/customer/address/list",
-        reqTitle: "Get Address List",
+        reqTitle: REQUESTS_DATA.GET_ADDRESS_LIST,
         method: "GET",
         server: "market",
       });
-        // @ts-ignore
+      // @ts-ignore
       if (!response.success) {
         // @ts-ignore
         throw new Error(response.message);
@@ -96,7 +97,7 @@ class OrderService {
       setOrderLoading(false);
     } catch (error) {
       setOrderLoading(false);
-      console.error(error)
+      console.error(error);
     }
   }
   async SetDefault({ id }) {
@@ -110,7 +111,7 @@ class OrderService {
       setOrderLoading(true);
       const response = await fetchData({
         url: "/customer/address/set-default",
-        reqTitle: "set default Address",
+        reqTitle: REQUESTS_DATA.SET_DEFAULT_ADDRESS,
         body: JSON.stringify(details),
         method: "POST",
         server: "market",
@@ -149,7 +150,7 @@ class OrderService {
       setOrderLoading(true);
       const response = await fetchData({
         url: "/customer/address/add",
-        reqTitle: "Add Address",
+        reqTitle: REQUESTS_DATA.ADD_ADDRESS,
         body: JSON.stringify(body),
         method: "POST",
         server: "market",
@@ -193,7 +194,7 @@ class OrderService {
       setOrderLoading(true);
       let data = await fetchData({
         url: "/customer/address/update",
-        reqTitle: "Update Address",
+        reqTitle: REQUESTS_DATA.UPDATE_ADDRESS,
         body: JSON.stringify(body),
         method: "POST",
         server: "market",
@@ -215,7 +216,7 @@ class OrderService {
       setOrderLoading(true);
       let data = await fetchData({
         url: `/customer/address/delete?address_id=${address}`,
-        reqTitle: "Delete Address",
+        reqTitle: REQUESTS_DATA.DELETE_ADDRESS,
         body: "",
         method: "POST",
         server: "market",
@@ -235,7 +236,7 @@ class OrderService {
       setOrderLoading(true);
       let response = await fetchData({
         url: "/api/addresses/get-provinces-by-iso",
-        reqTitle: "Get Provinces",
+        reqTitle: REQUESTS_DATA.GET_PROVINCES,
         method: "GET",
         server: "elastic",
       });
@@ -253,7 +254,7 @@ class OrderService {
     try {
       let response = await fetchData({
         url: `/customer/order/getOrdersByOrderGroupID?order_group_id=${id}`,
-        reqTitle: "getOrderByOrderGroupID request",
+        reqTitle: REQUESTS_DATA.GETORDERBYORDERGROUPID_REQUEST,
         method: "GET",
         server: "market",
         signal,
@@ -272,15 +273,16 @@ class OrderService {
     try {
       let response = await fetchData({
         url: `/customer/order/cancel`,
-        reqTitle: "Cancel Order",
+        reqTitle: REQUESTS_DATA.CANCEL_ORDER,
         method: "POST",
         server: "market",
         body: JSON.stringify({ order_id }),
       });
-      if (response.success || response.isSuccessful) {return response}
-      else {
-          throw new Error(response.message);
-      };
+      if (response.success || response.isSuccessful) {
+        return response;
+      } else {
+        throw new Error(response.message);
+      }
     } catch (error) {
       console.error(error);
     }
@@ -289,15 +291,16 @@ class OrderService {
     try {
       let response = await fetchData({
         url: `/customer/order/cancel-item`,
-        reqTitle: "Cancel Order Item",
+        reqTitle: REQUESTS_DATA.CANCEL_ORDER_ITEM,
         method: "POST",
         server: "market",
         body: JSON.stringify({ order_id, detail_id: item_id, qty }),
       });
-      if (response.success || response.isSuccessful) {return response}
-      else {
-          throw new Error(response.message);
-      };
+      if (response.success || response.isSuccessful) {
+        return response;
+      } else {
+        throw new Error(response.message);
+      }
     } catch (error) {
       console.error(error);
     }
@@ -306,7 +309,7 @@ class OrderService {
     try {
       let response = await fetchData({
         url: `/customer/order/change-address`,
-        reqTitle: "Change Order Address",
+        reqTitle: REQUESTS_DATA.CHANGE_ORDER_ADDRESS,
         method: "POST",
         server: "market",
         body: JSON.stringify({
@@ -314,10 +317,11 @@ class OrderService {
           new_shipping_address_id: address_id,
         }),
       });
-      if (response.success || response.isSuccessful) {return response}
-      else {
-          throw new Error(response.message);
-      };
+      if (response.success || response.isSuccessful) {
+        return response;
+      } else {
+        throw new Error(response.message);
+      }
     } catch (error) {
       console.error(error);
     }
@@ -326,7 +330,7 @@ class OrderService {
     try {
       let response = await fetchData({
         url: `/customer/order/change-item-variant`,
-        reqTitle: "Change Order Address",
+        reqTitle: REQUESTS_DATA.CHANGE_ORDER_VARIANT,
         method: "POST",
         server: "market",
         body: JSON.stringify({
@@ -336,10 +340,11 @@ class OrderService {
           image,
         }),
       });
-      if (response.success || response.isSuccessful) {return response}
-      else {
-          throw new Error(response.message);
-      };
+      if (response.success || response.isSuccessful) {
+        return response;
+      } else {
+        throw new Error(response.message);
+      }
     } catch (error) {
       console.error(error);
     }

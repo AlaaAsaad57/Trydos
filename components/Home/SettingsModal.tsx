@@ -17,6 +17,7 @@ import {
   getCookie,
   UserData,
 } from "utils/cookies/cookie-manager";
+import { REQUESTS_DATA } from "utils/Requests";
 
 interface SettingsModalProps {
   onClose: () => void;
@@ -93,7 +94,7 @@ const SettingsModal: React.FC<SettingsModalPropsType> = ({ onClose, lang }) => {
     try {
       let response = await fetchData({
         url: FIREBASE_SETTINGS_URL,
-        reqTitle: "get firebase settings request",
+        reqTitle: REQUESTS_DATA.GET_FIREBASE_SETTINGS_REQUEST,
         server: "market",
         method: "GET",
       });
@@ -145,12 +146,12 @@ const SettingsModal: React.FC<SettingsModalPropsType> = ({ onClose, lang }) => {
             body: JSON.stringify({
               topic: topic.replace(/_[a-z]{2}_[a-z]{2}$/, ""),
             }),
-            reqTitle: "store firebase unsubscribe topic",
+            reqTitle: REQUESTS_DATA.STORE_FIREBASE_UNSUBSCRIBE_TOPIC,
             method: "POST",
             server: "market",
           });
           if (!res.success) {
-          throw new Error(res.message);
+            throw new Error(res.message);
           }
           const updatedTopics = topics.filter((t) => t !== topic);
           const updatedUnsubscribedTopics = [...unsubscribedTopics, topic];
@@ -158,7 +159,7 @@ const SettingsModal: React.FC<SettingsModalPropsType> = ({ onClose, lang }) => {
           setTopics(updatedTopics);
           setUnsubscribedTopics(updatedUnsubscribedTopics);
         } else {
-          console.error("Failed to unsubscribe from topic" );
+          console.error("Failed to unsubscribe from topic");
         }
       } catch (error) {
         console.error("Error unsubscribing from topic:", error);
@@ -180,13 +181,13 @@ const SettingsModal: React.FC<SettingsModalPropsType> = ({ onClose, lang }) => {
             body: JSON.stringify({
               topic: topic.replace(/_[a-z]{2}_[a-z]{2}$/, ""),
             }),
-            reqTitle: "store firebase topic",
+            reqTitle: REQUESTS_DATA.STORE_FIREBASE_SUBSCRIBE_TOPIC,
             method: "POST",
             server: "market",
           });
-            // @ts-ignore
+          // @ts-ignore
           if (!res.success) {
-          throw new Error(res.message);
+            throw new Error(res.message);
           }
           const updatedTopics = [...topics, topic];
           const updatedUnsubscribedTopics = unsubscribedTopics.filter(

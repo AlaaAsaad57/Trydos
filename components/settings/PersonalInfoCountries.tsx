@@ -12,6 +12,7 @@ import { fetchCountries } from "Server Requests";
 import Spinner from "components/global/Spinner";
 import { fetchData } from "utils/fetchData"; // Make sure this is imported
 import { STARTER_SETTINGS } from "utils/endpointConfig";
+import { REQUESTS_DATA } from "utils/Requests";
 function PersonalInfoCountries({
   swipeToScreen,
   goBack,
@@ -86,7 +87,7 @@ function PersonalInfoCountries({
     try {
       const response = await fetchData({
         url: STARTER_SETTINGS,
-        reqTitle: "get starter settings",
+        reqTitle: REQUESTS_DATA.GET_STARTER_SETTINGS,
         method: "GET",
         server: "market",
         useCached: true,

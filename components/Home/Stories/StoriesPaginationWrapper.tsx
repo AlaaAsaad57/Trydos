@@ -11,6 +11,7 @@ import {
   getCookie,
   UserData,
 } from "utils/cookies/cookie-manager";
+import { REQUESTS_DATA } from "utils/Requests";
 
 interface StoriesPaginationWrapperProps {
   next_page_url: string | number;
@@ -66,7 +67,7 @@ function StoriesPaginationWrapper({
         url: `/api/v1/stories/users_stories?page=${next_page}`,
         method: "GET",
         server: "stories",
-        reqTitle: "Get User Stories",
+        reqTitle: REQUESTS_DATA.GET_USER_STORIES,
       });
       // @ts-ignore
       if (!response.success) {

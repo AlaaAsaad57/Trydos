@@ -4,6 +4,7 @@ import { useAppStore } from "store";
 import { fetchData } from "utils/fetchData";
 import { getCart, RoundPrice, translateFunction } from "utils/functions";
 import { pollinateInput } from "@/utils/tinyUtils";
+import { REQUESTS_DATA } from "utils/Requests";
 
 const CouponElement = ({ active, setActive, close }) => {
   const {
@@ -38,7 +39,7 @@ const CouponElement = ({ active, setActive, close }) => {
     try {
       const response = await fetchData({
         url: `/coupon/apply?code=${e ?? orderData.coupon_number}`,
-        reqTitle: "apply coupon request",
+        reqTitle: REQUESTS_DATA.APPLY_COUPON_REQUEST,
         method: "GET",
         server: "market",
       });

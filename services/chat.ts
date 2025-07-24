@@ -22,6 +22,7 @@ import {
   setCookie,
   UserData,
 } from "utils/cookies/cookie-manager";
+import { REQUESTS_DATA } from "utils/Requests";
 
 class ChatService {
   async loginChat() {
@@ -38,7 +39,7 @@ class ChatService {
         }),
         method: "POST",
         server: "chat",
-        reqTitle: "Login Chat",
+        reqTitle: REQUESTS_DATA.LOGIN_CHAT,
       });
       if (!response.success) {
         throw new Error(response.message);
@@ -90,7 +91,7 @@ class ChatService {
         }),
         method: "POST",
         server: "chat",
-        reqTitle: "Share Product",
+        reqTitle: REQUESTS_DATA.SHARE_PRODUCT,
       });
       if (!res.success) {
         throw new Error(res.message);
@@ -113,7 +114,7 @@ class ChatService {
         url: "/api/v1/firebase_tokens",
         method: "POST",
         server: "chat",
-        reqTitle: "Store Token",
+        reqTitle: REQUESTS_DATA.STORE_TOKEN,
         body: JSON.stringify({
           token: payload.token,
         }),
@@ -146,7 +147,7 @@ class ChatService {
       let response = await fetchData({
         url: GET_CHATS_URL,
         body: JSON.stringify({ role_id: 16 }),
-        reqTitle: "Get Chats",
+        reqTitle: REQUESTS_DATA.GET_CHATS,
         method: "POST",
         server: "chat",
       });
@@ -201,7 +202,7 @@ class ChatService {
     try {
       let response = await fetchData({
         url: GET_CONTATCS_URL,
-        reqTitle: "Get Contacts",
+        reqTitle: REQUESTS_DATA.GET_CONTACTS,
         server: "chat",
         method: "GET",
       });
@@ -210,7 +211,7 @@ class ChatService {
       }
       setContacts(response.data);
     } catch (err) {
-     console.error(err)
+      console.error(err);
     }
   }
   async getCalls(id?: number) {
@@ -221,7 +222,7 @@ class ChatService {
         url: "/api/v1/channels/my_calls",
         body: JSON.stringify({ limit: "20", last_message_id: id }),
         method: "POST",
-        reqTitle: "Get Calls",
+        reqTitle: REQUESTS_DATA.GET_CALLS,
         server: "chat",
       });
       if (!response.success) {

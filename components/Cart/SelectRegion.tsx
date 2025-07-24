@@ -12,6 +12,7 @@ import { SelectRegionPropsType } from "models/componentType/settingTypes/Persona
 import { SearchLocationsPropsType } from "models/componentType/SearchLocationsPropsType";
 import { SearchResultsPropsType } from "models/componentType/SearchResultsPropsType";
 import { fetchData } from "utils/fetchData";
+import { REQUESTS_DATA } from "utils/Requests";
 function SelectRegion({ closeSelect }: SelectRegionPropsType) {
   const { addressDetails } = useAppStore();
   const { lang } = useParams();
@@ -139,7 +140,7 @@ const SearchLocations = ({
         method: "POST",
         body: JSON.stringify({ query: val }),
         server: "elastic",
-        reqTitle: "Get Address By Text",
+        reqTitle: REQUESTS_DATA.GET_ADDRESS_BY_TEXT,
       });
       // @ts-ignore
       if (!response.success) {
@@ -147,7 +148,7 @@ const SearchLocations = ({
       }
       setSearchResults(response.results || []);
     } catch (err) {
-      console.error(err)
+      console.error(err);
     }
 
     setLoading(false);

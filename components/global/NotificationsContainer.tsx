@@ -2,16 +2,14 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { useNotificationStore } from "@/store/notifications/reducer";
-
 import NotificationIcon from "public/svg/NotificationIcon.svg";
 import { GetImageUrl } from "utils/tinyUtils";
 import Image from "next/image";
 import { translateFunction } from "utils/functions";
-import { useNotifications } from "hooks/useNotifications";
 const NotificationsContainer = () => {
   const { notifications, removeNotification } = useNotificationStore();
   const [dismissingIds, setDismissingIds] = useState<Set<string>>(new Set());
-  const { notificationHandler } = useNotifications();
+
   const handleDismiss = (id: string) => {
     setDismissingIds((prev) => new Set(prev).add(id));
     setTimeout(() => {
@@ -118,6 +116,11 @@ const NotificationsContainer = () => {
             <div className="flex-1 flex-col gap-[4px]">
               <p className="text-[12px] regular text-[#402CDD]">
                 {translateFunction("Info Message")}
+                {notification?.error_code && (
+                  <span className="text-[#676767] regular mx-[10px]">
+                    {notification?.error_code}
+                  </span>
+                )}
               </p>
               <p className={`text-[12px] regular text-[#402CDD]`}>
                 {typeof notification.message === "string"

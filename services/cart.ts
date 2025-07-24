@@ -2,6 +2,7 @@ import { useAppStore } from "store";
 import { _isStoreLastJson, AddToCartAnimation, getLang } from "utils/functions";
 import home from "./home";
 import { fetchData } from "utils/fetchData";
+import { REQUESTS_DATA } from "utils/Requests";
 
 class CartService {
   async AddToCart({
@@ -40,7 +41,9 @@ class CartService {
         body: JSON.stringify({
           ...details,
         }),
-        reqTitle: isFromAddWidget ? "Add to cart widget" : "Add To Cart",
+        reqTitle: isFromAddWidget
+          ? REQUESTS_DATA.ADD_TO_CART_WIDGET
+          : REQUESTS_DATA.ADD_TO_CART,
         method: "POST",
         server: "market",
       });
@@ -92,7 +95,9 @@ class CartService {
           key: cart_id,
           quantity: qty,
         }),
-        reqTitle: isFromAddWidget ? "Add to cart widget" : "Update Cart Item",
+        reqTitle: isFromAddWidget
+          ? REQUESTS_DATA.ADD_TO_CART_WIDGET
+          : REQUESTS_DATA.UPDATE_CART_ITEM,
         method: "POST",
         server: "market",
       });
@@ -117,7 +122,9 @@ class CartService {
       let response = await fetchData({
         url: "/cart/remove",
         body: JSON.stringify({ key: cart_item?.item_id }),
-        reqTitle: isFromAddWidget ? "Add to cart widget" : "Remove From Cart",
+        reqTitle: isFromAddWidget
+          ? REQUESTS_DATA.ADD_TO_CART_WIDGET
+          : REQUESTS_DATA.REMOVE_FROM_CART,
         method: "POST",
         server: "market",
       });
@@ -148,7 +155,7 @@ class CartService {
       let response = await fetchData({
         url: "/cart/convert_to_old",
         body: JSON.stringify({ key: cart_item }),
-        reqTitle: "Convert to Old Cart",
+        reqTitle: REQUESTS_DATA.CONVERT_TO_OLD_CART,
         method: "POST",
         server: "market",
       });
@@ -157,7 +164,7 @@ class CartService {
         throw new Error(response.message);
       }
     } catch (err) {
-      console.error(err)
+      console.error(err);
     }
   }
 }

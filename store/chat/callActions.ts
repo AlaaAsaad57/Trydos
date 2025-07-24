@@ -5,6 +5,7 @@ import {
   showErrorNotification,
 } from "@/store/notifications/reducer";
 import { fetchData } from "utils/fetchData";
+import { REQUESTS_DATA } from "utils/Requests";
 export const makeVideoCall = async (
   channelId,
   callerName,
@@ -34,7 +35,7 @@ export const makeVideoCall = async (
       }),
       method: "POST",
       server: "chat",
-      reqTitle: "Video Call",
+      reqTitle: REQUESTS_DATA.VIDEO_CALL,
     });
     if (!response.success) {
       throw new Error(response.message);
@@ -80,7 +81,7 @@ export const makeVoiceCall = async (
       }),
       method: "POST",
       server: "chat",
-      reqTitle: "Voice Call",
+      reqTitle: REQUESTS_DATA.VOICE_CALL,
     });
     if (!response.success) {
       throw new Error(response.message);
@@ -109,7 +110,7 @@ export const AnswerCall = async (channelId, messageId) => {
       url: `/api/v1/messages/${messageId}/users`,
       method: "GET",
       server: "chat",
-      reqTitle: "Answer Call",
+      reqTitle: REQUESTS_DATA.ANSWER_CALL,
     });
     if (!response.success) {
       throw new Error(response.message);
@@ -128,7 +129,7 @@ export const AnswerCall = async (channelId, messageId) => {
         url: `/api/v1/channels/${channelId}/agora_token`,
         method: "POST",
         server: "chat",
-        reqTitle: "Agora Token",
+        reqTitle: REQUESTS_DATA.AGORA_TOKEN,
       });
       if (!response2.success) {
         throw new Error(response2.message);
@@ -159,7 +160,7 @@ export const InCall = async (channelId, messageId) => {
         body: JSON.stringify({ ...obj }),
         method: "POST",
         server: "chat",
-        reqTitle: "In Another Call",
+        reqTitle: REQUESTS_DATA.IN_ANOTHER_CALL,
       });
       if (!response.success) {
         throw new Error(response.message);
@@ -175,7 +176,7 @@ export const RefuseCall = async (channelId, messageId, duration) => {
     // Clear user's call state
     const response = await fetchData({
       url: `/api/v1/end_call`,
-      reqTitle: "End Call",
+      reqTitle: REQUESTS_DATA.END_CALL,
       method: "POST",
       server: "chat",
       body: JSON.stringify({ user_id: getUserChat()?.id }),
@@ -197,7 +198,7 @@ export const RefuseCall = async (channelId, messageId, duration) => {
         body: JSON.stringify({ ...obj, payload: { target: "web" } }),
         method: "POST",
         server: "chat",
-        reqTitle: "Refuse Call",
+        reqTitle: REQUESTS_DATA.REFUSE_CALL,
       });
       if (!response2.success) {
         throw new Error(response2.message);
@@ -214,12 +215,12 @@ export const Answer = async (channelId, messageId) => {
       typeof channelId === "string" && channelId.includes("ch")
         ? { receiver_user_id: parseInt(channelId.split("ch-")[1]) }
         : { channel_id: channelId };
-     const response = await fetchData({
+    const response = await fetchData({
       url: `/api/v1/messages/answer_call/${messageId}`,
       body: JSON.stringify({ ...obj }),
       method: "POST",
       server: "chat",
-      reqTitle: "Answer Call",
+      reqTitle: REQUESTS_DATA.ANSWER_CALL,
     });
     if (!response.success) {
       throw new Error(response.message);

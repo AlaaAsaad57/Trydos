@@ -7,6 +7,7 @@ import {
 import { useAppStore } from "store";
 import chat from "services/chat";
 import { fetchData } from "utils/fetchData";
+import { REQUESTS_DATA } from "utils/Requests";
 
 export const GetLastSeen = async (chatId, friendID) => {
   const { setServerTime, setIsTyping } = useAppStore.getState();
@@ -17,7 +18,7 @@ export const GetLastSeen = async (chatId, friendID) => {
 
     let response = await fetchData({
       url: "/api/v1/channels/get_date_time",
-      reqTitle: "Get Last Seen",
+      reqTitle: REQUESTS_DATA.GET_LAST_SEEN,
       method: "GET",
       server: "chat",
     });
@@ -59,7 +60,7 @@ export const setLastSeen = async (MyId) => {
     let server_time;
     let response = await fetchData({
       url: "/api/v1/channels/get_date_time",
-      reqTitle: "Get Last Seen",
+      reqTitle: REQUESTS_DATA.GET_LAST_SEEN,
       method: "GET",
       server: "chat",
     });
@@ -85,7 +86,7 @@ export const getCalls = async (id) => {
     setCallLoading(true);
     let response = await fetchData({
       url: "/api/v1/channels/my_calls",
-      reqTitle: "Get Calls",
+      reqTitle: REQUESTS_DATA.GET_CALLS,
       method: "POST",
       server: "chat",
       body: JSON.stringify({ limit: "20", last_message_id: id }),
@@ -107,7 +108,7 @@ export const SendMessage = async (payload, isNew, isPrivate?) => {
     let response = await fetchData({
       url: SEND_MESSAGE_URL,
       body: JSON.stringify(message),
-      reqTitle: "Send Message",
+      reqTitle: REQUESTS_DATA.SEND_MESSAGE,
       method: "POST",
       server: "chat",
     });
@@ -140,7 +141,7 @@ export async function watchChannel(payload) {
   try {
     let response = await fetchData({
       url: `/api/v1/channels/${payload}/watched`,
-      reqTitle: "Watch Channel",
+      reqTitle: REQUESTS_DATA.WATCH_CHANNEL,
       method: "GET",
       server: "chat",
     });
@@ -148,7 +149,7 @@ export async function watchChannel(payload) {
       throw new Error(response.message);
     }
   } catch (e) {
-    console.error(e)
+    console.error(e);
   }
 }
 
@@ -156,7 +157,7 @@ export async function DeleteMessageApi(msg_id, bool) {
   await fetchData({
     url: "/api/v1/messages/destroy",
     body: JSON.stringify({ id: msg_id, delete_for_all: bool ? 1 : 0 }),
-    reqTitle: "Delete Message",
+    reqTitle: REQUESTS_DATA.DELETE_MESSAGE,
     method: "POST",
     server: "chat",
   });
@@ -166,7 +167,7 @@ export async function deleteChat(payload) {
     await fetchData({
       url: DELETE_CHAT_URL,
       body: JSON.stringify({ id: payload }),
-      reqTitle: "Delete Channel",
+      reqTitle: REQUESTS_DATA.DELETE_CHANNEL,
       method: "POST",
       server: "chat",
     });
@@ -178,7 +179,7 @@ export async function Recive(payload) {
   try {
     let response = await fetchData({
       url: `/api/v1/channels/${payload}/received`,
-      reqTitle: "Recieve Channel",
+      reqTitle: REQUESTS_DATA.RECIEIVE_CHANNEL,
       method: "GET",
       server: "chat",
     });
@@ -196,7 +197,7 @@ export async function getPage(channel, mid) {
 
     let response = await fetchData({
       url: `/api/v1/messages/messages_of_channel/${channel_id}?message_id=${mid}&limit=10`,
-      reqTitle: "Get Messages Of Channel",
+      reqTitle: REQUESTS_DATA.GET_MESSAGES_OF_CHANNEL,
       method: "POST",
       server: "chat",
       body: {},
@@ -216,7 +217,7 @@ export async function SearchContact(payload) {
     if (payload?.length > 0) {
       let response = await fetchData({
         url: SEARCH_CONTACTS_URL + payload,
-        reqTitle: "Search Message",
+        reqTitle: REQUESTS_DATA.SEARCH_MESSAGE,
         method: "GET",
         server: "chat",
       });
@@ -231,14 +232,14 @@ export async function SearchContact(payload) {
 }
 export async function PinnChat(payload) {
   try {
-    const response =  await fetchData({
+    const response = await fetchData({
       url: SET_CHANNEL_OPT_UTL,
       body: JSON.stringify({
         channel_id: payload.id,
         id: payload?.member_id,
         pin: payload.value ? 1 : 0,
       }),
-      reqTitle: "Pin Channel",
+      reqTitle: REQUESTS_DATA.PIN_CHANNEL,
       method: "POST",
       server: "chat",
     });
@@ -260,7 +261,7 @@ export async function MuteChat(payload) {
         id: payload?.member_id,
         mute: payload.value ? 1 : 0,
       }),
-      reqTitle: "Mute Channel",
+      reqTitle: REQUESTS_DATA.MUTE_CHANNEL,
       method: "POST",
       server: "chat",
     });
@@ -276,7 +277,7 @@ export async function getMessagesBetweenMessage(payload) {
   try {
     let response = await fetchData({
       url: `/api/v1/messages/messages_of_channel/${payload.first}`,
-      reqTitle: "Get Messages of Channel",
+      reqTitle: REQUESTS_DATA.GET_MESSAGES_OF_CHANNEL,
       method: "POST",
       server: "chat",
       body: JSON.stringify({ limit: payload.second + 1 }),
@@ -296,7 +297,7 @@ export async function getContacts() {
   try {
     let response = await fetchData({
       url: "/api/v1/users/my_contacts",
-      reqTitle: "Get Contacts",
+      reqTitle: REQUESTS_DATA.GET_CONTACTS,
       method: "GET",
       server: "chat",
     });
@@ -314,7 +315,7 @@ export const getMedia = async (id, media) => {
   try {
     let response = await fetchData({
       url: `/api/v1/messages/messages_of_channel/${id}?limit=10&message_type=${media}`,
-      reqTitle: "get Media for a Channel",
+      reqTitle: REQUESTS_DATA.GET_MEDIA_FOR_A_CHANNEL,
       method: "POST",
       server: "chat",
       body: {},
@@ -344,7 +345,7 @@ export const GetChatDetails = async (id) => {
   try {
     let response = await fetchData({
       url: `/api/v2/channels/${id}/media`,
-      reqTitle: "Get Channel Data",
+      reqTitle: REQUESTS_DATA.GET_CHANNEL_DATA,
       method: "GET",
       server: "chat",
     });
