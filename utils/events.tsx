@@ -24,6 +24,7 @@ export const dispatchRouteChangeEvent = (
   // }
   const { setIsNavigating } = useAppStore.getState();
   if (event === "completed") setIsNavigating(false);
+  console.log("*********************complete***********************");
   window.dispatchEvent(
     new CustomEvent(routeEventName(event), {
       bubbles: false,

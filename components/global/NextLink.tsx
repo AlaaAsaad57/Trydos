@@ -40,39 +40,10 @@ export default function NextLink({
       return;
     }
     setIsNavigating(true);
-    if (props["data-cy"] === "category-Link") {
-      // Sendevent({
-      //   event: GA_EVENT_NAMES.CLICK,
-      //   value: GA_CLICK_EVENT_VALUES.CATEGORY_LINK,
-      // });
-    } else if (props["data-cy"] === "boutique_link") {
-      // Sendevent({
-      //   event: GA_EVENT_NAMES.CLICK,
-      //   value: GA_CLICK_EVENT_VALUES.BOUTIQUE_LINK,
-      // });
-    } else if (props["data-cy"] === "product_link") {
-      // if (data.is_redeem) {
-      //   let redems = getCookie<any>("redemed_ids");
-      //   if (redems?.find((s) => s.id === data.product_id)) {
-      //     let now = new Date().getTime();
-      //     let showingDate = new Date(
-      //       redems?.find((s) => s.id === data.product_id)?.showingDate
-      //     ).getTime();
-      //     if (now - showingDate < 30000) {
-      //       console.warn(
-      //         "time is less than 30 s between viewing and click so show"
-      //       );
-      //       setCookie(
-      //         "redemed_ids",
-      //         redems?.filter((s) => s.id !== data.product_id)
-      //       );
-      //     }
-      //   }
-      // }
-    }
     onClick?.(e);
     // @ts-ignore
     if (e.target.closest(".no-navigate")) {
+      console.log("no navigate");
       return;
     }
 
@@ -92,7 +63,7 @@ export default function NextLink({
       setSelectedOrderItem(null);
       setActivePacks(null);
       setOrderDetails(null);
-      dispatchRouteChangeEvent("completed");
+      // dispatchRouteChangeEvent("completed");
       if (
         window.location.pathname === "/" ||
         window.location.href.split("/").length < 3
@@ -118,7 +89,7 @@ export default function NextLink({
       aria-label={ariaLabel}
       className={className}
       prefetch={IsPrefetched()}
-      href={IsPrefetched() ? href : "#"}
+      href={href}
       {...props}
       onClick={handleClick}
       data-cy={props["data-cy"]}

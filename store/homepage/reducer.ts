@@ -57,7 +57,7 @@ const initialState: HomeState = {
   boutiques: [],
   session_id: uuidv4(),
   previous_event_button_name: null,
-  activeRoute: "/",
+  activeRoute: null,
   showMessage: false,
   currency: null,
   countries: [],

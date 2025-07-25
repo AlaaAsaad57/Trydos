@@ -58,10 +58,14 @@ function ProductCard({
     } else {
       screen_name = GA_GLOBAL_SCREEN.HOME_SCREEN;
     }
-    setCookie("last-page", {
-      url: window.location.pathname,
-      screen: screen_name,
-    });
+    localStorage.setItem(
+      "last-page",
+      JSON.stringify({
+        url: window.location.pathname,
+        productId: product.slug,
+        screen: screen_name,
+      })
+    );
   };
   return (
     <>
@@ -86,7 +90,7 @@ function ProductCard({
               )?.textContent;
               if (text) text = text.match(/\d+/)[0];
               if (text?.length)
-                setCookie(
+                localStorage.setItem(
                   "counter",
                   JSON.stringify({
                     counter: text,
