@@ -5,7 +5,14 @@ import { fetchData } from "utils/fetchData";
 import { getCart, RoundPrice, translateFunction } from "utils/functions";
 import { pollinateInput } from "@/utils/tinyUtils";
 
-const CouponElement = ({ active, setActive, close }) => {
+type CouponElementProps = {
+  active: any;
+  setActive: any;
+  close: any;
+  language?: string;
+};
+
+const CouponElement = ({ active, setActive, close, language }: CouponElementProps) => {
   const {
     setOrderData,
     initCart,
@@ -80,15 +87,15 @@ const CouponElement = ({ active, setActive, close }) => {
         active ? "h-[111px] bg-[#fff]" : " h-[42px] bg-[#f8f8f8]"
       } rounded-[15px] flex-col items-start px-[12px]`}
     >
-      <div className="flex-row ">
-        <div className="regular text-[#1D1D1D] text-[14px] ml-2">
+      <div className={`flex-row`}>
+        <div className={`regular text-[#1D1D1D] text-[14px] ml-2 ${language === "ar" || language === "ku" ? "text-right" : ""}`}>
           {translateFunction("I Have a Discount Coupon")}
         </div>
       </div>
 
       {active && (
         <>
-          <div className="regular text-[12px] text-[#8D8D8D] ml-[28px]">
+          <div className={`regular text-[12px] text-[#8D8D8D] ml-[28px] ${language === "ar" || language === "ku" ? "text-right" : ""}`}>
             {translateFunction("Please Enter Coupon Information")}
           </div>
           <div className="mt-[10px] w-full items-center justify-between flex rounded-[15px] h-[40px] bg-[#F8F8F8] relative">

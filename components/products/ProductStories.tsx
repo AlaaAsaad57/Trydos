@@ -13,6 +13,7 @@ import { InView } from "node_modules/react-intersection-observer/dist";
 import Spinner from "components/global/Spinner";
 import { ProductStoriesPropsType } from "models/componentType/productTypes/MultiComponentOnProductPage";
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
+import ProductStoriesSkeleton from "../skeleton/loaders/ProductStoriesSkeleton";
 function ProductStories({ id }: ProductStoriesPropsType) {
   const {
     selectedStory,
@@ -68,7 +69,7 @@ function ProductStories({ id }: ProductStoriesPropsType) {
       <div
         className={`product-colors product-stories justify-center items-center flex-col  align-start relative`}
       >
-        <Spinner />
+        <ProductStoriesSkeleton />
       </div>
     );
   if (stories.length === 0) return <></>;

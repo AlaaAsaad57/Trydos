@@ -567,3 +567,19 @@ export const addToCompare = (slug: string) => {
     return `?f_p=${slug}&s_p=${s_p}`;
   }
 };
+
+/**
+ * Compare two cart products by product_id and variations (Size, color, color_options)
+ * Returns true if they are the same product with the same variation
+ */
+export const areProductsEqual = (prodA: any, prodB: any): boolean => {
+  if (!prodA || !prodB) return false;
+  const varA = prodA.variations && prodA.variations[0] ? prodA.variations[0] : {};
+  const varB = prodB.variations && prodB.variations[0] ? prodB.variations[0] : {};
+  return (
+    prodA.product_id === prodB.product_id &&
+    (varA.Size || "") === (varB.Size || "") &&
+    (varA.color || "") === (varB.color || "") &&
+    (varA.color_options || "") === (varB.color_options || "")
+  );
+};

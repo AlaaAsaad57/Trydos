@@ -13,6 +13,7 @@ import { ProductShippingOptionPropsType } from "models/componentType/productType
 import { useAppStore } from "store";
 import { fetchCountries } from "Server Requests";
 import { formatTimeForAddress } from "utils/tinyUtils";
+import Skeleton from "react-loading-skeleton";
 function ProductShippingOption({ days }) {
   const [countriesData, setCountries] = useState([]);
   const { lang } = useParams();
@@ -81,7 +82,7 @@ function ProductShippingOption({ days }) {
               countriesData?.find((s) => s.iso?.toLowerCase() === countryIso)
                 ?.name
             ) : (
-              <Spinner />
+              <Skeleton width="100%" height="100%" borderRadius={16} />
             )}
           </span>
           {translate("Expected Within")}

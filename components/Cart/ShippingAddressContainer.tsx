@@ -178,7 +178,7 @@ const ShippingAddressInput = ({
       }}
       className={`address-valid-border flex-col mt-[11px] pb-[12px] relative pr-[12px] pl-[12px] justify-start pt-[15px] w-full ${" min-h-[203px]"}`}
     >
-      <div className="flex-row " data-cy="ShipingBox">
+      <div className={`flex-row ${language === "ar" || language === "ku" ? "flex-row-reverse" : ""}`} data-cy="ShipingBox">
         <svg
           data-cy="WrapIcon"
           xmlns="http://www.w3.org/2000/svg"
@@ -267,7 +267,7 @@ const ShippingAddressInput = ({
         </svg>
         <div
           data-cy="delivery-address-stexts"
-          className="regular text-[#1D1D1D] text-[14px] ml-2"
+          className={`regular text-[#1D1D1D] text-[14px] ml-2 ${language === "ar" || language === "ku" ? "text-right" : ""}`}
         >
           {translateFunction("Shipping & Delivery Address", language)}
         </div>
@@ -282,7 +282,7 @@ const ShippingAddressInput = ({
       </div>
       <div
         data-cy="please-text"
-        className="regular text-[12px] text-[#8D8D8D] ml-[28px]"
+        className={`regular text-[12px] text-[#8D8D8D] ml-[28px] ${language === "ar" || language === "ku" ? "text-right" : ""}`}
       >
         {translateFunction(
           "Please Enter Shipping Address To Receive Your Bag",
@@ -290,6 +290,7 @@ const ShippingAddressInput = ({
         )}
       </div>
       <AddressContainer
+        lang={language}
         openAddressList={(e) => {
           openAddressList(e);
         }}
@@ -415,7 +416,7 @@ const ShippingAddressInput = ({
     </div>
   );
 };
-const AddressContainer = ({ openAddressList }: AddressContainerPropsType) => {
+const AddressContainer = ({ openAddressList , lang}: AddressContainerPropsType) => {
   const [loading, setLoading] = useState(false);
   const getData = async () => {
     setLoading(true);
@@ -444,11 +445,11 @@ const AddressContainer = ({ openAddressList }: AddressContainerPropsType) => {
         addressLists?.length === 0
           ? "items-center h-[84px]   py-[12px]"
           : "items-start h-[auto] min-h-[90px] px-[24px]  py-[7px]"
-      } mt-[10px] rounded-[15px] bg-[#F8F8F8] w-full `}
+      } mt-[10px] rounded-[15px] bg-[#F8F8F8] w-full ${lang === "ar" || lang === "ku" ? "text-right" : ""} ${lang === "ar" || lang === "ku" ? "flex-row-reverse" : ""}`}
     >
       {defaultAddress ? (
         <>
-          <DefaultAddress loading={loading} defaultAddress={defaultAddress} />
+          <DefaultAddress loading={loading} defaultAddress={defaultAddress} language={lang}/>
         </>
       ) : (
         <>
@@ -539,9 +540,11 @@ const AddAddressButton = ({ onClick }: AddAddressButtonPropsType) => {
 const DefaultAddress = ({
   defaultAddress,
   loading,
+  language
 }: {
   defaultAddress: any;
   loading: boolean;
+  language: string
 }) => {
   const { cart, settings, total_shipping_cost } = useAppStore();
   const getDeliveryDate = () => {
@@ -611,7 +614,7 @@ const DefaultAddress = ({
   }, []);
   return (
     <div data-cy="flex-cols" className="flex-col w-full ">
-      <div data-cy="flex-row items-centers" className="flex-row items-center">
+      <div data-cy="flex-row items-centers" className={`flex-row items-center flex-row ${language === "ar" || language === "ku" ? "flex-row-reverse" : ""}`}>
         <svg
           data-cy="flex-col-svg"
           xmlns="http://www.w3.org/2000/svg"
@@ -629,14 +632,14 @@ const DefaultAddress = ({
 
         <span
           data-cy="regular-addresses"
-          className="regular ml-[4px] text-[12px] text-[#8D8D8D]"
+          className={`regular ml-[4px] text-[12px] text-[#8D8D8D] flex-row ${language === "ar" || language === "ku" ? "flex-row-reverse pl-2" : ""}`}
         >
           {defaultAddress?.address}
         </span>
       </div>
       <div
         data-cy="Address-Added-Last"
-        className="flex-row mt-[5px]  items-center regular text-[12px] text-[#8D8D8D]"
+        className={`flex-row mt-[5px]  items-center regular text-[12px] text-[#8D8D8D] ${language === "ar" || language === "ku" ? "flex-row-reverse pl-2" : ""}`}
       >
         {GetAddressString(defaultAddress?.region_details)}
       </div>
@@ -683,7 +686,7 @@ const DefaultAddress = ({
 
         <div
           data-cy="defaultAddress-contactinfo"
-          className="flex-row ml-[4px]   items-center regular text-[12px] text-[#8D8D8D]"
+          className={`flex-row ml-[4px]   items-center regular text-[12px] text-[#8D8D8D] ${language === "ar" || language === "ku" ? "flex-row-reverse" : ""}`}
         >
           {defaultAddress?.contact_info?.phone}
         </div>
@@ -747,7 +750,7 @@ const DefaultAddress = ({
 
           <div
             data-cy="defaultAddress-contactpersonname"
-            className="flex-row  ml-[4px]  items-center regular text-[12px] text-[#8D8D8D]"
+            className={`flex-row  ml-[4px]  items-center regular text-[12px] text-[#8D8D8D] ${language === "ar" || language === "ku" ? "flex-row-reverse" : ""}`}
           >
             {defaultAddress?.contact_info?.contact_person_name ||
               // @ts-ignore

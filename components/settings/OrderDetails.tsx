@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { OrdersIcon } from "./OrdersList";
 import SettingTopBar from "./TopBar";
-
+import OrderDetailsSkeleton from "components/skeleton/loaders/OrderDetailsSkeleton";
 import { OrderDateCard, OrderInvoiceCard, OrderNumberCard } from "./cards";
 
 import OrderExpectedDeliveryCard from "./cards/OrderExpectedDeliveryCard";
@@ -391,11 +391,7 @@ function OrderDetails({ resetOrderDetails, goBack }: OrderDetailsPropsType) {
         />
 
         {loading || !ActivePacks?.order_status ? (
-          <div className="flex w-full pt-8 justify-center items-center">
-            <span className="scale-[4]">
-              <Spinner />
-            </span>
-          </div>
+              <OrderDetailsSkeleton />
         ) : (
           <>
             <div

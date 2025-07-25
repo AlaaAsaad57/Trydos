@@ -11,6 +11,7 @@ import { ChangeSizeWidgetPropsType } from "models/componentType/ChangeSizeWidget
 import { fetchData } from "utils/fetchData";
 import { showErrorNotification } from "store/notifications/reducer";
 import { useAppStore } from "store";
+import ChangeOrderItemSkeleton from "components/skeleton/loaders/ChangeOrderItemSkeleton";
 
 function ChangeOrderItem({
   item,
@@ -96,6 +97,10 @@ function ChangeOrderItem({
     }
   };
 
+  if (!productData) {
+    return <ChangeOrderItemSkeleton />;
+  }
+
   const isChanged = () => {
     if (color !== item?.variation?.color) {
       return true;
@@ -115,14 +120,6 @@ function ChangeOrderItem({
     return false;
   };
   const renderSection = () => {
-    if (!productData)
-      return (
-        <div className="flex-col w-full items-center  border-[#E6E6E680] h-[100px] border-b-[1px] pt-[40px] px-[24px]">
-          <span className="scale-[4]">
-            <Spinner />
-          </span>
-        </div>
-      );
     if (tabs === "Change Color")
       return (
         <ChangeColorWidget
@@ -188,7 +185,7 @@ function ChangeOrderItem({
               alt={item.name || "Image"}
               width={20}
               height={20}
-              className="rounded-full h-[20px] w-[20px] object-cover"
+              className="rounded-full h-[20px] w-[20px] object-cover ddd"
               src={getConfiguredImage({
                 src: GetImageUrl(item.image),
                 width: 20,

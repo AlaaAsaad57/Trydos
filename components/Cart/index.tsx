@@ -7,6 +7,7 @@ import {
   RoundPrice,
   translateFunction,
   GetCartOreview,
+  areProductsEqual,
 } from "utils/functions";
 import BackIcon from "public/svg/listing/backIcon.svg";
 import ShareIcon from "public/svg/listing/shareIcon.svg";
@@ -210,6 +211,10 @@ function CartContainer({ close, toOrders }: CartContainerPropsType) {
       }
     }
   }
+  // Filter oldCart to exclude products that are in the current cart (with the same variation)
+  const filteredOldCart = oldCart?.oldCart?.filter(
+    (oldProduct) => !cart.some((cartProduct) => areProductsEqual(oldProduct, cartProduct))
+  ) || [];
   return (
     <div
       className={`flex-col ${
@@ -360,7 +365,7 @@ function CartContainer({ close, toOrders }: CartContainerPropsType) {
               </g>
             </svg>
             <span
-              className="regular ml-[8px]"
+              className={`regular ml-[8px] ${language === "ar" || language === "ku" ? "text-right" : ""}`}
               data-cy="textContainer-textOnHeader"
             >
               {translate("Shopping Bag", language)}{" "}
@@ -820,7 +825,7 @@ function CartContainer({ close, toOrders }: CartContainerPropsType) {
             >
               {!cart_loading ? (
                 <>
-                  {oldCart?.oldCart.map((product, key) => (
+                  {filteredOldCart.map((product, key) => (
                     <div
                       className="relative px-[12px]"
                       key={key}
