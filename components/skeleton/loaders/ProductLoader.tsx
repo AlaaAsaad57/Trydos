@@ -22,11 +22,8 @@ import Skeleton from "react-loading-skeleton";
 import { useAppStore } from "store";
 import ProductViews from "components/products/ProductViews";
 import ProductColors from "components/products/ProductColors";
-
 import CameraShots from "components/products/CameraShots";
-
 import ProductSizes from "components/products/ProductSizes";
-
 import FreeShippingOption from "components/products/FreeShippingOption";
 import useEmblaCarousel from "embla-carousel-react";
 import { GetImageUrl } from "utils/tinyUtils";

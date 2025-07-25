@@ -1,14 +1,8 @@
 "use client";
 import React, { useCallback } from "react";
 import BackIcon from "public/svg/listing/backIcon.svg";
-import { useRouter } from "next/navigation";
-import { useAppStore } from "store";
-import { dispatchRouteChangeEvent } from "utils/events";
-import { getCookie } from "utils/cookies/cookie-manager";
 import NextLink from "components/global/NextLink";
 function ProductBackButton({ lang, productId }) {
-  const router = useRouter();
-  const { activeRoute } = useAppStore();
   const getHref = useCallback(() => {
     let lastPage = localStorage.getItem("last-page");
     let href = "",
