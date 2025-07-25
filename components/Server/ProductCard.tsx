@@ -1,6 +1,6 @@
 "use client";
 import NextLink from "components/global/NextLink";
-import React, { useState } from "react";
+import React, { memo, useState } from "react";
 import { BuyButtonProduct } from "../ListingPage/Product";
 import MangoIcon from "public/svg/listing/MangoIcon.svg";
 import VerifiedIcon from "public/svg/listing/VerifiedIcon.svg";
@@ -186,4 +186,4 @@ function ProductCard({
   );
 }
 
-export default ProductCard;
+export default memo(ProductCard);
