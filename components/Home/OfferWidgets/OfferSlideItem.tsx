@@ -3,6 +3,7 @@ import { OfferSlideItemPropsType } from "models/componentType/OfferSlideItemProp
 import BorderImage from "./BorderImage";
 import Image from "next/image";
 import { getConfiguredImage } from "utils/functions";
+import { memo } from "react";
 
 function OfferSlideItem({
   isSingle,
@@ -42,4 +43,4 @@ function OfferSlideItem({
   );
 }
 
-export default OfferSlideItem;
+export default memo(OfferSlideItem);

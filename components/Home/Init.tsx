@@ -132,16 +132,16 @@ function Init() {
     } catch (error) {
       console.log(error);
     }
-    let images = document.querySelectorAll("img");
-    images.forEach((img) => {
-      if (img.complete && img.naturalWidth === 0) {
-        img.src = "/error.png";
-      }
-      img.onerror = function () {
-        this.src = "/error.png";
-        this.onerror = null;
-      };
-    });
+    // let images = document.querySelectorAll("img");
+    // images.forEach((img) => {
+    //   if (img.complete && img.naturalWidth === 0) {
+    //     img.src = "/error.png";
+    //   }
+    //   img.onerror = function () {
+    //     this.src = "/error.png";
+    //     this.onerror = null;
+    //   };
+    // });
   }, []);
   const initPageLoad = async () => {
     const permission =

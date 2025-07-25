@@ -9,40 +9,42 @@ function ColorBottomSheet({ id, setActiveColor, activeColor }) {
   const params = useParams();
   const { currency } = useAppStore();
   const { ColorBottomSheet, setColorBottomSheet } = useAppStore();
+
   if (ColorBottomSheet?.product_id !== id) return <></>;
-  return (
-    <>
-      {ColorBottomSheet && (
-        <BottomSheet
-          key={ColorBottomSheet?.product_id}
-          isOpen={ColorBottomSheet}
-          onClose={() => {
-            setColorBottomSheet(false);
-          }}
-        >
-          <div className="w-full pb-[40px] max-w-[406px] mx-auto  min-h-[60vh]  bg-white pt-[10px] flex-row flex-wrap gap-[6px] gap-y-[18px]">
-            {ColorBottomSheet?.sync_color_images?.map((color, i) => (
-              <ProductColorCard
-                onClick={() => {
-                  setActiveColor(color);
-                }}
-                Sliders={false}
-                key={`${color?.color_name}:${i}`}
-                product={{
-                  ...ColorBottomSheet,
-                  sync_color_images: [color],
-                  images: color.images,
-                }}
-                params={params}
-                currency={currency}
-                productColor={color}
-              />
-            ))}
-          </div>
-        </BottomSheet>
-      )}
-    </>
-  );
+  else
+    return (
+      <>
+        {ColorBottomSheet && (
+          <BottomSheet
+            key={ColorBottomSheet?.product_id}
+            isOpen={ColorBottomSheet}
+            onClose={() => {
+              setColorBottomSheet(false);
+            }}
+          >
+            <div className="w-full pb-[40px] max-w-[406px] mx-auto  min-h-[60vh]  bg-white pt-[10px] flex-row flex-wrap gap-[6px] gap-y-[18px]">
+              {ColorBottomSheet?.sync_color_images?.map((color, i) => (
+                <ProductColorCard
+                  onClick={() => {
+                    setActiveColor(color);
+                  }}
+                  Sliders={false}
+                  key={`${color?.color_name}:${i}`}
+                  product={{
+                    ...ColorBottomSheet,
+                    sync_color_images: [color],
+                    images: color.images,
+                  }}
+                  params={params}
+                  currency={currency}
+                  productColor={color}
+                />
+              ))}
+            </div>
+          </BottomSheet>
+        )}
+      </>
+    );
 }
 
 export default ColorBottomSheet;

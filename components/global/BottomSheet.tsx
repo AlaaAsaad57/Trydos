@@ -69,9 +69,11 @@ export default function BottomSheet({ isOpen, onClose, children }) {
   };
 
   const handleTouchMove = (e) => {
-    if (!isDragging) return;
-    e.preventDefault();
-    handleDrag(e.touches[0].clientY);
+    if (isDragging) {
+      if (!isDragging) return;
+      e.preventDefault();
+      handleDrag(e.touches[0].clientY);
+    }
   };
 
   const handleTouchEnd = () => {
@@ -163,7 +165,6 @@ export default function BottomSheet({ isOpen, onClose, children }) {
           ref={sheetRef}
           className="w-full rounded-t-[30px] max-h-[60vh] bg-white p-1 sm:p-4 shadow-2xl overflow-y-auto"
           style={{
-            touchAction: "none",
             willChange: "transform",
           }}
         >
@@ -174,6 +175,9 @@ export default function BottomSheet({ isOpen, onClose, children }) {
             }`}
             onTouchStart={handleTouchStart}
             onMouseDown={handleMouseDown}
+            style={{
+              touchAction: "none",
+            }}
           >
             <div
               className="w-[40px] h-[2px] bg-[#C4C2C2] rounded-[3px]"
