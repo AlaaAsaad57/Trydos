@@ -43,7 +43,6 @@ export default function NextLink({
     onClick?.(e);
     // @ts-ignore
     if (e.target.closest(".no-navigate")) {
-      console.log("no navigate");
       return;
     }
 

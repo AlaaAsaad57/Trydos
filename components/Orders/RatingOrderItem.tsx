@@ -3,12 +3,15 @@ import React, { useState } from "react";
 import { translateFunction } from "utils/functions";
 import CommentIcon from "public/svg/CommentIcon.svg";
 import order from "services/order";
+import Spinner from "components/global/Spinner";
 
 function RatingOrderItem({
   productId,
   order_detail_id,
   isRated,
   initialRating,
+  lastRatingId = null,
+  refresh,
 }) {
   const [rating, setRating] = useState(initialRating);
   const [loading, setLoading] = useState(false);
@@ -25,10 +28,13 @@ function RatingOrderItem({
         star_rating: e || rating,
         order_detail_id: order_detail_id,
         productId: productId,
+        id: lastRatingId,
       });
       setRatedComplete(true);
+      setComment("");
       setLoading(false);
       setShowCommentModal(false);
+      refresh();
     } catch (error) {
       setLoading(false);
     }
@@ -68,9 +74,9 @@ function RatingOrderItem({
     >
       <div className="flex-row items-center justify-center">
         <RatingStars
-          readOnly={loading || ratedComplete}
+          readOnly={loading}
           onRatingChange={(e) => {
-            if (!loading && !ratedComplete) {
+            if (!loading) {
               setRating(e);
               rateOrder(e);
             }
@@ -92,6 +98,7 @@ function RatingOrderItem({
           </span>
           <span>{translateFunction("Add Comment…")}</span>
         </div>
+        <div className="flex-row mx-[4px]">{loading && <Spinner />}</div>
       </div>
       {/* Modal */}
       {showCommentModal && (
@@ -125,33 +132,36 @@ function RatingOrderItem({
                 aria-label="Comment input"
                 disabled={loading}
               />
-              <button
-                type="button"
-                onClick={handleSubmit}
-                className="absolute right-2 top-1/2 -translate-y-1/2 bg-blue-500 hover:bg-blue-600 text-white rounded-full p-2 shadow-md focus:outline-none focus:ring-2 focus:ring-blue-400"
-                aria-label="Submit comment"
-                disabled={loading || !comment.trim()}
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={2}
-                  stroke="currentColor"
-                  className="w-5 h-5"
+              {loading ? (
+                <Spinner />
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleSubmit}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 bg-blue-500 hover:bg-blue-600 text-white rounded-full p-2 shadow-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+                  aria-label="Submit comment"
+                  disabled={loading || !comment.trim()}
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M5 12h14M12 5l7 7-7 7"
-                  />
-                </svg>
-              </button>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth={2}
+                    stroke="currentColor"
+                    className="w-5 h-5"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M5 12h14M12 5l7 7-7 7"
+                    />
+                  </svg>
+                </button>
+              )}
             </div>
           </div>
         </div>
       )}
-      <div className="flex-row"></div>
     </div>
   );
 }

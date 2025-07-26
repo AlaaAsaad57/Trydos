@@ -354,28 +354,51 @@ class OrderService {
     comment,
     order_detail_id,
     productId,
+    id = null,
   }) {
     try {
-      // let res = await fetchData({
-      //   url: `/customer/product_comment/order`,
-      //   server: "market",
-      //   method: "POST",
-      //   body: JSON.stringify({
-      //     customer_id: auth.UserID(),
-      //     order_detail_id,
-      //     comment: comment,
-      //     star_rating: star_rating,
-      //     product_id: productId,
-      //   }),
-      // });
-      // if (!res.success) {
-      //   throw new Error(res?.message);
-      // }
+      if (id) {
+        let res = await fetchData({
+          url: `/customer/product_comment/order/update`,
+          server: "market",
+          method: "POST",
+          body: JSON.stringify({
+            customer_id: auth.UserID(),
+            order_details_id: order_detail_id,
+            comment: comment,
+            star_rating: star_rating,
+            product_id: productId,
+            id: id,
+          }),
+          reqTitle: REQUESTS_DATA.UPDATE_ORDER_RATE,
+        });
+        if (!res.success) {
+          throw new Error(res?.message);
+        }
+      } else {
+        let res = await fetchData({
+          url: `/customer/product_comment/order`,
+          server: "market",
+          method: "POST",
+          body: JSON.stringify({
+            customer_id: auth.UserID(),
+            order_details_id: order_detail_id,
+            comment: comment,
+            star_rating: star_rating,
+            product_id: productId,
+          }),
+          reqTitle: REQUESTS_DATA.RATE_ORDER_DETAILS,
+        });
+        if (!res.success) {
+          throw new Error(res?.message);
+        }
+      }
       console.log({
         star_rating,
         comment,
         order_detail_id,
         productId,
+        id,
       });
       await new Promise((resolve) => setTimeout(resolve, 2000));
     } catch (e) {

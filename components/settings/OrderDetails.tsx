@@ -392,7 +392,7 @@ function OrderDetails({ resetOrderDetails, goBack }: OrderDetailsPropsType) {
         />
 
         {loading || !ActivePacks?.order_status ? (
-              <OrderDetailsSkeleton />
+          <OrderDetailsSkeleton />
         ) : (
           <>
             <div
@@ -477,6 +477,7 @@ function OrderDetails({ resetOrderDetails, goBack }: OrderDetailsPropsType) {
               />
               {isExpanded && (
                 <OrderExpandedDetails
+                  getOrderDetails={() => getOrderDetails()}
                   order={selectedOrder?.details?.find(
                     (s) => s.id === ActivePacks?.id
                   )}
@@ -491,7 +492,13 @@ function OrderDetails({ resetOrderDetails, goBack }: OrderDetailsPropsType) {
 }
 
 export default OrderDetails;
-const OrderExpandedDetails = ({ order }: { order: OrderItem }) => {
+const OrderExpandedDetails = ({
+  order,
+  getOrderDetails,
+}: {
+  order: OrderItem;
+  getOrderDetails: () => void;
+}) => {
   const { currency, settings } = useAppStore();
 
   return (
@@ -633,6 +640,7 @@ const OrderExpandedDetails = ({ order }: { order: OrderItem }) => {
         {order.details.map((Product) => (
           <ProductCard
             status={order?.order_status}
+            getOrderDetails={() => getOrderDetails()}
             product={Product}
             key={Product.id}
           />
@@ -641,7 +649,11 @@ const OrderExpandedDetails = ({ order }: { order: OrderItem }) => {
     </div>
   );
 };
-const ProductCard = ({ product, status }: ProductCardPropsType) => {
+const ProductCard = ({
+  product,
+  status,
+  getOrderDetails,
+}: ProductCardPropsType) => {
   const { currency, setSelectedOrderItem, ActivePacks } = useAppStore();
   const { lang } = useParams();
 
@@ -802,10 +814,23 @@ const ProductCard = ({ product, status }: ProductCardPropsType) => {
         {!product.is_returned &&
           ActivePacks?.order_status?.value === "delivered" && (
             <RatingOrderItem
+              refresh={() => {
+                getOrderDetails();
+              }}
               productId={product?.product_details.id}
               order_detail_id={product.id}
-              initialRating={0}
-              isRated={false}
+              initialRating={
+                product.comment &&
+                product.comment?.[product?.comment.length - 1]?.star_rating
+              }
+              isRated={
+                product.comment &&
+                product.comment?.[product?.comment.length - 1]?.star_rating
+              }
+              lastRatingId={
+                product.comment &&
+                product.comment?.[product?.comment.length - 1]?.id
+              }
             />
           )}
         {product.is_returned && <OrderRetailsReturnInfo product={product} />}

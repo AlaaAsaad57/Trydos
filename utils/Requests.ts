@@ -181,4 +181,6 @@ export const REQUESTS_DATA = {
   VERIFY_OTP_FROM_GUEST: { reqTitle: "VERIFY_OTP_FROM_GUEST", code: 121 },
   CHANGE_ORDER_VARIANT: { reqTitle: "CHANGE_ORDER_VARIANT", code: 122 },
   REPORT_STORY: { reqTitle: "REPORT_STORY", code: 123 },
+  RATE_ORDER_DETAILS: { reqTitle: "RATE_ORDER_DETAILS", code: 124 },
+  UPDATE_ORDER_RATE: { reqTitle: "UPDATE_ORDER_RATE", code: 125 },
 };
