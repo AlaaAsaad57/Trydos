@@ -14,7 +14,7 @@ import ModalIframe from "./ModalIframe";
 import { SlideWidget } from "components/global/SlideNavigation";
 
 import { useAppStore } from "store";
-import { getCurrency } from "utils/tinyUtils";
+import { DetectScreen, getCurrency, getReferralSource } from "utils/tinyUtils";
 import AddToCartComponent from "./AddToCartComponent";
 import {
   GA_GLOBAL_PLATFORM,
@@ -23,6 +23,8 @@ import {
 } from "utils/GAEvents";
 
 import { GAevent } from "utils/gtag";
+import auth from "services/auth";
+import { getCookie } from "utils/cookies/cookie-manager";
 
 const CartProvider = () => {
   const {
@@ -111,6 +113,18 @@ const CartProvider = () => {
     let selectedUrlVar = searchParams.get("selected");
     setTimeout(() => {
       if (couponUrlVar?.length > 0) {
+        let reffere = getCookie("referer");
+        GAevent({
+          action: GA_EVENT_NAMES.COUPON_VIEWED,
+          params: {
+            user_ID: auth?.UserID(),
+            coupon_id: couponUrlVar,
+            coupon_code: couponUrlVar,
+            screen_name: DetectScreen(),
+            screen_path: window.location.pathname,
+            referral_source: getReferralSource(reffere),
+          },
+        });
         localStorage.setItem("coupon-number", couponUrlVar);
         const newParams = new URLSearchParams(searchParams);
         newParams.delete("coupon");

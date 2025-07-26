@@ -30,6 +30,7 @@ class StoryService {
 
   async getStories(page: number = 1) {
     const { setStoryData, storiesData } = useAppStore.getState();
+
     try {
       const response = await fetchData({
         url: GET_USERS_STORIES + `?page=${page}`,
@@ -42,17 +43,18 @@ class StoryService {
         throw new Error(response.message);
       }
       let repo: GetStoriesApi = response;
-      const data: StoriesInterface[] = repo.data.data;
+      let data = repo.data.data;
       if (page == 1) {
         setStoryData(data);
       } else {
         setStoryData([...storiesData, ...data]);
       }
+      return { data, next_page_url: repo.data.next_page_url };
     } catch (error) {
       console.error(error);
+      throw new Error("get stories error");
     }
     // @ts-ignore
-    return { data, next_page_url: repo.data.next_page_url };
   }
   async loginStories() {
     const { loginSuccessStories } = useAppStore.getState();

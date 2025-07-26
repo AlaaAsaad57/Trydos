@@ -26,7 +26,10 @@ import order from "services/order";
 import OrderChatIcon from "./OrderChatIcon";
 import { Channel } from "models/Genaral/Channel";
 import ReturnedOrderStatusIcon from "public/svg/ReturnedOrderStatusIcon.svg";
-import ChatWidget from "components/Chat/ChatWidget";
+const ChatWidget = dynamic(() => import("components/Chat/ChatWidget"), {
+  ssr: false,
+  loading: () => <LandingPage afterLoad={true} />,
+});
 import OptionsIcon from "public/svg/OptionsIcon.svg";
 import OrderRetailsReturnInfo from "components/Orders/OrderRetailsReturnInfo";
 import RatingOrderItem from "components/Orders/RatingOrderItem";
@@ -42,6 +45,8 @@ import { ProductCardPropsType } from "models/componentType/settingTypes/ProductC
 import { fetchData } from "utils/fetchData";
 import auth from "services/auth";
 import { REQUESTS_DATA } from "utils/Requests";
+import dynamic from "node_modules/next/dynamic";
+import LandingPage from "components/Home/LandingPage";
 function OrderDetails({ resetOrderDetails, goBack }: OrderDetailsPropsType) {
   const router = useRouter();
   const searchParams = useSearchParams();

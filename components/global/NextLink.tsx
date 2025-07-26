@@ -1,7 +1,6 @@
 "use client";
 import Link from "next/link";
 import React, { ComponentProps } from "react";
-
 import { useAppStore } from "store";
 import { GA_GLOBAL_SCREEN } from "utils/GAEvents";
 import { DisableScroll } from "utils/tinyUtils";
@@ -67,7 +66,11 @@ export default function NextLink({
           localStorage.setItem(
             "last-page",
             JSON.stringify({
-              url: window.location.pathname,
+              url:
+                window.location.pathname +
+                (window.location.search?.includes("cart")
+                  ? ""
+                  : window.location.search),
               productId: data.slug,
               screen: screen_name,
             })

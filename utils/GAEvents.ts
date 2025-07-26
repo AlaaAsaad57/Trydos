@@ -32,6 +32,9 @@ export const GA_EVENT_NAMES = {
   SEARCH: "search",
   VIEW_STORY: "view_story",
   LIKE_ITEM: "like_item",
+  SHARE_CONTENT: "share_content",
+  COUPON_VIEWED: "coupon_page_viewed",
+  COUPON_USED: "coupon_used",
 };
 export const GA_PAYMENTS = {
   WALLET: "wallet",

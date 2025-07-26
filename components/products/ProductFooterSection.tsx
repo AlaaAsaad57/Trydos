@@ -15,7 +15,7 @@ import { fetchData } from "utils/fetchData";
 import ProductRedeemButton from "./ProductRedeemPrice";
 import { deleteCookie, getCookie } from "utils/cookies/cookie-manager";
 import { GAevent } from "utils/gtag";
-import { GA_EVENT_NAMES } from "utils/GAEvents";
+import { GA_EVENT_NAMES, GA_GLOBAL_SCREEN } from "utils/GAEvents";
 import { REQUESTS_DATA } from "utils/Requests";
 
 function ProductReducer(state, { type, payload }) {
@@ -296,7 +296,6 @@ function ProductFooterSection({
     if (sharedContacts.length > 0) {
       const messageShare = {
         product_id: product.id,
-
         product_image_url: product.images[0],
         product_name: product.name,
         product_slug: product.slug,
@@ -310,6 +309,25 @@ function ProductFooterSection({
           setShareLoading(false);
           setShareContacts([]);
           setOption("");
+        },
+      });
+      GAevent({
+        action: GA_EVENT_NAMES.SHARE_CONTENT,
+        params: {
+          user_ID: auth.UserID(),
+          content_id: product?.id,
+          item_id: product?.id,
+          item_name: product?.name,
+          category: product?.category?.name,
+          brand: product?.brand?.name,
+          price: RoundPrice({
+            num: product?.price,
+            rate: currency?.exchange_rate,
+          }),
+          share_context: "internal",
+          screen_name: GA_GLOBAL_SCREEN.PRODUCT_SCREEN,
+          screen_path: window.location.pathname,
+          method_share: "chat_in_share",
         },
       });
     } else {

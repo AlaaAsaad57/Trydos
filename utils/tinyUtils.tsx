@@ -700,8 +700,12 @@ export const DetectScreen = () => {
   }
   if (pathname?.includes("/products")) {
     return GA_GLOBAL_SCREEN.PRODUCT_SCREEN;
-  } else if (pathname.includes("/filters")) {
+  } else if (pathname.includes("tags_names")) {
+    return GA_GLOBAL_SCREEN.TAGS_SCREEN;
+  } else if (pathname.includes("/filters/boutique")) {
     return GA_GLOBAL_SCREEN.BOUTIQUE_SCREEN;
+  } else if (pathname?.includes("/filters")) {
+    return GA_GLOBAL_SCREEN.FILTERS_SCREEN;
   } else {
     return GA_GLOBAL_SCREEN.HOME_SCREEN;
   }
@@ -772,3 +776,19 @@ export const DisableScroll = () => {
 export const EnableScroll = () => {
   document.documentElement.style.overflow = "initial";
 };
+export function getReferralSource(referer: string | null): string {
+  if (!referer) return "direct";
+
+  const url = referer.toLowerCase();
+
+  if (url.includes("facebook.com")) return "facebook";
+  if (url.includes("instagram.com")) return "instagram";
+  if (url.includes("twitter.com") || url.includes("x.com")) return "twitter";
+  if (url.includes("t.co")) return "twitter-shortlink";
+  if (url.includes("whatsapp.com")) return "whatsapp";
+  if (url.includes("linkedin.com")) return "linkedin";
+  if (url.includes("tiktok.com")) return "tiktok";
+  if (url.includes("snapchat.com")) return "snapchat";
+
+  return "other";
+}

@@ -13,13 +13,16 @@ import {
   WhatsappIcon,
   WhatsappShareButton,
 } from "react-share";
-import { getUserChat, translateFunction } from "utils/functions";
+import { getUserChat, RoundPrice, translateFunction } from "utils/functions";
 import { useAppStore } from "store";
 import CopyIcon from "public/svg/copyIcon.svg";
 import { ShareOptionsPropsType } from "models/componentType/ShareOptionsPropsType";
 import { showSuccessNotification } from "@/store/notifications/reducer";
 import { fetchData } from "utils/fetchData";
 import { REQUESTS_DATA } from "utils/Requests";
+import { GAevent } from "utils/gtag";
+import { GA_EVENT_NAMES, GA_GLOBAL_SCREEN } from "utils/GAEvents";
+import auth from "services/auth";
 function ShareOptions({
   setShareContacts,
   sharedContacts,
@@ -32,6 +35,7 @@ function ShareOptions({
     user,
     contacts,
     SelectedProduct,
+    currency,
   } = useAppStore();
 
   const shareSocial = async (appName) => {
@@ -46,6 +50,25 @@ function ShareOptions({
           product_id: product.id,
           shared_count: 1,
         }),
+      });
+      GAevent({
+        action: GA_EVENT_NAMES.SHARE_CONTENT,
+        params: {
+          user_ID: auth.UserID(),
+          content_id: product?.id,
+          item_id: product?.id,
+          item_name: product?.name,
+          category: product?.category?.name,
+          brand: product?.brand?.name,
+          price: RoundPrice({
+            num: product?.price,
+            rate: currency?.exchange_rate,
+          }),
+          share_context: "external",
+          screen_name: GA_GLOBAL_SCREEN.PRODUCT_SCREEN,
+          screen_path: window.location.pathname,
+          method_share: appName,
+        },
       });
       // @ts-ignore
       if (!response.success) {

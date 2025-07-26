@@ -305,7 +305,13 @@ export const fetchData = async <T = any>(
         typeof reqTitle?.reqTitle === "string" &&
         reqTitle?.reqTitle?.includes("cart widget")
       ) {
-        if (responseData?.data?.status === 1)
+        if (url.includes("/cart/remove")) {
+          if (status === 200) {
+            showSuccessMessage(
+              responseData?.message ?? responseData?.data?.message ?? ""
+            );
+          }
+        } else if (responseData?.data?.status === 1)
           showSuccessMessage(
             responseData?.message ?? responseData?.data?.message ?? ""
           );

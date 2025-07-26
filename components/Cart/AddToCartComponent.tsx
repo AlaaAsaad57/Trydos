@@ -1892,6 +1892,7 @@ const AddToCartButton = ({
           is_redeem: product?.is_redeem,
         });
         onSuccessAddUpdate();
+
         GAevent({
           action: GA_EVENT_NAMES.ADD_TO_CART,
           params: {
@@ -1915,7 +1916,9 @@ const AddToCartButton = ({
                 quantity:
                   (isVariantInCart({ exact: false })?.quantity ?? 0) + 1,
                 brand: product?.brand?.name,
-                category: product?.category_name,
+                brand_id: product?.brand?.id,
+                category: product?.category?.name,
+                category_id: product?.category?.id,
                 count_likes: product?.count_of_likes,
                 review_count: product?.shared_count,
                 item_variant: selectedVariant?.type,
@@ -1947,6 +1950,7 @@ const AddToCartButton = ({
           is_redeem: product?.showRedeemPrice && product?.is_redeem,
         });
         onSuccessAddUpdate();
+        console.log(product);
         GAevent({
           action: GA_EVENT_NAMES.ADD_TO_CART,
           params: {
@@ -1969,7 +1973,9 @@ const AddToCartButton = ({
                 }),
                 quantity: 1,
                 brand: product?.brand?.name,
-                category: product?.category_name,
+                brand_id: product?.brand?.id,
+                category: product?.category?.name,
+                category_id: product?.category?.id,
                 count_likes: product?.count_of_likes,
                 review_count: product?.shared_count,
                 item_variant: selectedVariant?.type,

@@ -5,6 +5,9 @@ import { fetchData } from "utils/fetchData";
 import { getCart, RoundPrice, translateFunction } from "utils/functions";
 import { pollinateInput } from "@/utils/tinyUtils";
 import { REQUESTS_DATA } from "utils/Requests";
+import { GAevent } from "utils/gtag";
+import { GA_EVENT_NAMES } from "utils/GAEvents";
+import auth from "services/auth";
 
 type CouponElementProps = {
   active: any;
@@ -13,7 +16,12 @@ type CouponElementProps = {
   language?: string;
 };
 
-const CouponElement = ({ active, setActive, close, language }: CouponElementProps) => {
+const CouponElement = ({
+  active,
+  setActive,
+  close,
+  language,
+}: CouponElementProps) => {
   const {
     setOrderData,
     initCart,
@@ -50,7 +58,10 @@ const CouponElement = ({ active, setActive, close, language }: CouponElementProp
         method: "GET",
         server: "market",
       });
-      if (!response.data.status && !response.success) {
+      if (!response.success) {
+        throw new Error(response.message);
+      }
+      if (!response.data.status) {
         localStorage.removeItem("coupon-number");
         throw new Error(response.message);
       }
@@ -89,14 +100,22 @@ const CouponElement = ({ active, setActive, close, language }: CouponElementProp
       } rounded-[15px] flex-col items-start px-[12px]`}
     >
       <div className={`flex-row`}>
-        <div className={`regular text-[#1D1D1D] text-[14px] ml-2 ${language === "ar" || language === "ku" ? "text-right" : ""}`}>
+        <div
+          className={`regular text-[#1D1D1D] text-[14px] ml-2 ${
+            language === "ar" || language === "ku" ? "text-right" : ""
+          }`}
+        >
           {translateFunction("I Have a Discount Coupon")}
         </div>
       </div>
 
       {active && (
         <>
-          <div className={`regular text-[12px] text-[#8D8D8D] ml-[28px] ${language === "ar" || language === "ku" ? "text-right" : ""}`}>
+          <div
+            className={`regular text-[12px] text-[#8D8D8D] ml-[28px] ${
+              language === "ar" || language === "ku" ? "text-right" : ""
+            }`}
+          >
             {translateFunction("Please Enter Coupon Information")}
           </div>
           <div className="mt-[10px] w-full items-center justify-between flex rounded-[15px] h-[40px] bg-[#F8F8F8] relative">
