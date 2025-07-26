@@ -393,14 +393,6 @@ class OrderService {
           throw new Error(res?.message);
         }
       }
-      console.log({
-        star_rating,
-        comment,
-        order_detail_id,
-        productId,
-        id,
-      });
-      await new Promise((resolve) => setTimeout(resolve, 2000));
     } catch (e) {
       throw new Error(e?.message);
     }

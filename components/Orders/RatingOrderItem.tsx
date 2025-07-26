@@ -75,6 +75,7 @@ function RatingOrderItem({
       <div className="flex-row items-center justify-center">
         <RatingStars
           readOnly={loading}
+          initialRating={initialRating}
           onRatingChange={(e) => {
             if (!loading) {
               setRating(e);

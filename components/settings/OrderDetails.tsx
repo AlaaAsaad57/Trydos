@@ -820,16 +820,16 @@ const ProductCard = ({
               productId={product?.product_details.id}
               order_detail_id={product.id}
               initialRating={
-                product.comment &&
-                product.comment?.[product?.comment.length - 1]?.star_rating
+                product.comments &&
+                product.comments?.[product?.comments.length - 1]?.star_rating
               }
               isRated={
-                product.comment &&
-                product.comment?.[product?.comment.length - 1]?.star_rating
+                product.comments &&
+                product.comments?.[product?.comments.length - 1]?.star_rating
               }
               lastRatingId={
-                product.comment &&
-                product.comment?.[product?.comment.length - 1]?.id
+                product.comments &&
+                product.comments?.[product?.comments.length - 1]?.id
               }
             />
           )}
