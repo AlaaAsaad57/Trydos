@@ -1,6 +1,6 @@
 "use client";
 import NextLink from "components/global/NextLink";
-import React, { useState } from "react";
+import React, { memo, useState } from "react";
 import { BuyButtonProduct } from "../ListingPage/Product";
 import MangoIcon from "public/svg/listing/MangoIcon.svg";
 import VerifiedIcon from "public/svg/listing/VerifiedIcon.svg";
@@ -58,10 +58,14 @@ function ProductCard({
     } else {
       screen_name = GA_GLOBAL_SCREEN.HOME_SCREEN;
     }
-    setCookie("last-page", {
-      url: window.location.pathname,
-      screen: screen_name,
-    });
+    localStorage.setItem(
+      "last-page",
+      JSON.stringify({
+        url: window.location.pathname,
+        productId: product.slug,
+        screen: screen_name,
+      })
+    );
   };
   return (
     <>
@@ -84,9 +88,9 @@ function ProductCard({
               let text = document.querySelector(
                 `#counter-${product.product_id}`
               )?.textContent;
-              text = text.match(/\d+/)[0];
-              if (text)
-                setCookie(
+              if (text) text = text.match(/\d+/)[0];
+              if (text?.length)
+                localStorage.setItem(
                   "counter",
                   JSON.stringify({
                     counter: text,
@@ -162,12 +166,14 @@ function ProductCard({
                 )} */}
               </span>
             </p>
-            <ProductLabelsAnimated
-              labels={product?.label_names?.map((s) => ({
-                text: s,
-                color: "#388CFF",
-              }))}
-            />
+            {product?.label_names?.length > 0 && (
+              <ProductLabelsAnimated
+                labels={product?.label_names?.map((s) => ({
+                  text: s,
+                  color: "#388CFF",
+                }))}
+              />
+            )}
           </div>
         </NextLink>
 
@@ -184,4 +190,4 @@ function ProductCard({
   );
 }
 
-export default ProductCard;
+export default memo(ProductCard);

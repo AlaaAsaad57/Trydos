@@ -52,17 +52,21 @@ function ProductStories({ id }: ProductStoriesPropsType) {
     GetInitailData();
   }, []);
   const GetInitailData = async () => {
-    setInitialLoading(true);
-    const data = await StoryServiceClass.getStoriesForProducts({
-      id: id,
-      page: 1,
-    });
-    setPage(page + 1);
-        // @ts-ignore
-    set_next_page(data.next_page_url);
-        // @ts-ignore
-    setStories([...stories, ...data.data]);
-    setInitialLoading(false);
+    try {
+      setInitialLoading(true);
+      const data = await StoryServiceClass.getStoriesForProducts({
+        id: id,
+        page: 1,
+      });
+      setPage(page + 1);
+      // @ts-ignore
+      set_next_page(data.next_page_url);
+      // @ts-ignore
+      setStories([...stories, ...data.data]);
+      setInitialLoading(false);
+    } catch (e) {
+      setInitialLoading(false);
+    }
   };
   if (initialLoading)
     return (

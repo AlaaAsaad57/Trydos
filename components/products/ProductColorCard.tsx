@@ -1,5 +1,4 @@
-import NextLink from "components/global/NextLink";
-import React, { useState } from "react";
+import React, { memo, useState } from "react";
 import { BuyButtonProduct } from "../ListingPage/Product";
 import Image from "next/image";
 
@@ -132,12 +131,14 @@ function ProductColorCard({
             {product?.brand && ` | ${product?.brand?.name}`}
             {product?.category && ` | ${product?.category?.name}`}
           </p>
-          <ProductLabelsAnimated
-            labels={product?.label_names?.map((s) => ({
-              text: s,
-              color: "#388CFF",
-            }))}
-          />
+          {product?.label_names?.length > 0 && (
+            <ProductLabelsAnimated
+              labels={product?.label_names?.map((s) => ({
+                text: s,
+                color: "#388CFF",
+              }))}
+            />
+          )}
         </div>
       </div>
       <BuyButtonProduct
@@ -151,4 +152,4 @@ function ProductColorCard({
   );
 }
 
-export default ProductColorCard;
+export default memo(ProductColorCard);

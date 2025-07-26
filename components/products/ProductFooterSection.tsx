@@ -252,6 +252,11 @@ function ProductFooterSection({
       setViewsProducts({
         views_count: response_views?.view_count || 0,
       });
+      const lastPage = localStorage.getItem("last-page");
+      let lastPageData;
+      if (lastPage) {
+        lastPageData = JSON.parse(lastPage);
+      }
       GAevent({
         action: GA_EVENT_NAMES.VIEW_PRODUCT_EVENT,
         params: {
@@ -270,9 +275,8 @@ function ProductFooterSection({
           count_likes: likesNum,
           review_counts: response_views?.view_count,
           interaction_type: "view",
-          screen_name: getCookie<any>("last-page")?.screen || "link",
-          screen_path:
-            getCookie<any>("last-page")?.url || window.location.pathname,
+          screen_name: lastPageData?.screen || "link",
+          screen_path: lastPageData?.url || window.location.pathname,
         },
       });
       setLoading(false);

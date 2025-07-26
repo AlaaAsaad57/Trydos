@@ -37,7 +37,7 @@ export default function PageLoadingIndicator() {
           // @ts-ignore
           window.location.href = data?.href;
         }
-      }, 10000);
+      }, 60000);
     });
 
     registerRouteChangeListener("completed", () => {

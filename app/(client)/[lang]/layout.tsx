@@ -1,23 +1,14 @@
+export const dynamic = "force-dynamic";
+
 import "styles/globals.css";
 import "styles/home.css";
 import "styles/unused-onload.css";
-import Providers from "store/provider";
 import localFont from "next/font/local";
-import { Suspense } from "react";
-import NextLink from "components/global/NextLink";
 import Logo from "components/Home/Logo";
-import Skeleton from "react-loading-skeleton";
-import NavbarClient from "components/Home/NavbarClient";
-import PageLoadingIndicator from "hooks/PageLoadingIndicator";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import Script from "next/script";
 import { GA_MEASUREMENT_ID } from "utils/gtag";
-import { ErrorReporterInit } from "components/global/ErrorReporterInit";
-import { ErrorTester } from "components/dev/ErrorTester";
-import { HydrationProvider } from "components/global/HydrationProvider";
-import AuthNavContainer from "components/Home/AuthNavContainer";
-import VersionChecker from "components/global/VersionChecker";
-import VersionDebugger from "components/dev/VersionDebugger";
+
 export const metadata = {
   title: "TryDos",
   description: "TryDos E-Commerce Website",
@@ -66,14 +57,17 @@ const quicksand_semibold = localFont({
   preload: false,
   fallback: ["system-ui", "arial"],
 });
-export const revalidte = parseInt(process.env.NEXT_PUBLIC_REVALIDATE);
 
-export default function RootLayout({ params, children }) {
-  // ${sf_pro_rounded_light.variable}
-  // ${sf_pro_rounded_semibold.variable}
-  // ${sf_pro_rounded_regular.variable}
-  // ${sf_pro_rounded_medium.variable}
-  // ${sf_pro_rounded_bold.variable}
+export default function RootLayout({
+  params,
+  children,
+  loader,
+  cart,
+  nav,
+  init,
+  navauth,
+  notification,
+}) {
   return (
     <html
       className={`
@@ -116,53 +110,29 @@ export default function RootLayout({ params, children }) {
       <body className={params.lang.split("-")[1] === "ar" ? "text-rtl" : ""}>
         <SpeedInsights />
 
-        <Suspense key={`${JSON.stringify(params)}`}>
-          <PageLoadingIndicator />
-        </Suspense>
-
-        <Providers>
-          <HydrationProvider>
-            <VersionChecker />
-            <ErrorReporterInit />
-            <ErrorTester />
-            <div
-              className="site-container items-center"
-              key={`${JSON.stringify(params)}`}
+        <div
+          className="site-container items-center"
+          key={`${JSON.stringify(params)}`}
+        >
+          <div className="home-navbar max-h-[1365px]">
+            <a
+              href={`/${params.lang}`}
+              aria-label="TryDos Home"
+              data-cy="NavLogo"
             >
-              <div className="home-navbar max-h-[1365px]">
-                <a
-                  href={`/${params.lang}`}
-                  aria-label="TryDos Home"
-                  data-cy="NavLogo"
-                >
-                  <Logo animated={false} style={false} key={1} />
-                </a>
-                <Suspense
-                  fallback={
-                    <div className="user-nav-container">
-                      <div className="nav-question-item">
-                        <Skeleton className="w-[30px] h-[30px] rounded-sm" />
-                      </div>
-                      <div className="nav-question-item ml-2">
-                        <Skeleton className="w-[30px] h-[30px] rounded-sm" />
-                      </div>
-                      <div className="nav-question-item ml-2">
-                        <Skeleton className="w-[30px] h-[30px] rounded-sm" />
-                      </div>
-                    </div>
-                  }
-                >
-                  <AuthNavContainer />
-                </Suspense>
-              </div>
+              <Logo animated={false} style={false} key={1} />
+            </a>
 
-              {children}
-            </div>
-            <Suspense fallback={<></>}>
-              <NavbarClient />
-            </Suspense>
-          </HydrationProvider>
-        </Providers>
+            {nav}
+          </div>
+
+          {children}
+          {notification}
+        </div>
+        {init}
+        {loader}
+        {navauth}
+        {cart}
       </body>
     </html>
   );
