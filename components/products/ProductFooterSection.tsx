@@ -9,7 +9,6 @@ import { ProductSocialInfo } from "models/API/market/ProductSocialInfo";
 import auth from "services/auth";
 import LocalizationServiceClass from "services/localization";
 import { useAppStore } from "store";
-import { dispatchRouteChangeEvent } from "utils/events";
 import { ProductFooterSectionPropsType } from "models/componentType/productTypes/MultiComponentOnProductPage";
 import { showErrorNotification } from "@/store/notifications/reducer";
 import { fetchData } from "utils/fetchData";
@@ -287,7 +286,8 @@ function ProductFooterSection({
   useEffect(() => {
     deleteCookie("counter");
     setLoadedCart(false);
-    dispatchRouteChangeEvent("completed");
+    const { setIsNavigating } = useAppStore.getState();
+    setIsNavigating(null);
     getData();
     disableAddToCartOption();
   }, []);

@@ -1,16 +1,20 @@
 import ConfirmMobile from "components/Cart/ConfirmMobile";
-import { COOKIE_NAMES, getCookie, UserData } from "utils/cookies/cookie-manager";
+import {
+  COOKIE_NAMES,
+  getCookie,
+  UserData,
+} from "utils/cookies/cookie-manager";
 import React, { useEffect } from "react";
 import { useAppStore } from "store";
+import { DisableScroll, EnableScroll } from "utils/tinyUtils";
 
 function ConfirmMobilePhoneWidget() {
   const { setShouldAuthinticated } = useAppStore();
   useEffect(() => {
-    document.documentElement.style.overflow = "hidden";
-    document.documentElement.scrollTop = 0;
+    DisableScroll();
+
     return () => {
-      document.documentElement.style.overflow = "auto";
-      document.documentElement.scrollTop = 0;
+      EnableScroll();
     };
   }, []);
   const userData = getCookie<UserData>(COOKIE_NAMES.USER_DATA);

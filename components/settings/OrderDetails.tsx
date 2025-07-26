@@ -31,7 +31,12 @@ import OptionsIcon from "public/svg/OptionsIcon.svg";
 import OrderRetailsReturnInfo from "components/Orders/OrderRetailsReturnInfo";
 import RatingOrderItem from "components/Orders/RatingOrderItem";
 import CanceledOrderStatusIcon from "public/svg/CanceledOrderStatusIcon.svg";
-import { GetImageUrl, totalAmount } from "utils/tinyUtils";
+import {
+  DisableScroll,
+  EnableScroll,
+  GetImageUrl,
+  totalAmount,
+} from "utils/tinyUtils";
 import { OrderDetailsPropsType } from "models/componentType/settingTypes/OrderDetailsPropsType";
 import { ProductCardPropsType } from "models/componentType/settingTypes/ProductCardPropsType";
 import { fetchData } from "utils/fetchData";
@@ -166,8 +171,8 @@ function OrderDetails({ resetOrderDetails, goBack }: OrderDetailsPropsType) {
       if (!response.success) {
         throw new Error(response.message);
       }
-      document.documentElement.style.overflow = "hidden";
-      document.documentElement.scrollTop = 0;
+      DisableScroll();
+
       document.querySelector("#OrderDetails").scrollTop = 0;
       document.querySelector("#OrderDetails").classList.add("overflow-hidden");
       document.querySelector("#OrderDetails").classList.remove("overflow-auto");
@@ -280,7 +285,7 @@ function OrderDetails({ resetOrderDetails, goBack }: OrderDetailsPropsType) {
         return;
       }
 
-      document.documentElement.style.overflow = "auto";
+      EnableScroll();
       document.documentElement.scrollTop = 0;
       document.querySelector("#OrderDetails").scrollTop = 0;
       document.querySelector("#OrderDetails").classList.add("overflow-auto");
@@ -323,7 +328,7 @@ function OrderDetails({ resetOrderDetails, goBack }: OrderDetailsPropsType) {
       // @ts-ignore
       shallow: true,
     });
-    document.documentElement.style.overflow = "auto";
+    EnableScroll();
     setChatInfo(null);
     document.querySelector("#OrderDetails").classList.remove("overflow-hidden");
     document.querySelector("#OrderDetails").classList.add("overflow-auto");
@@ -663,8 +668,8 @@ const ProductCard = ({
         <span
           className="absolute top-[22px] right-[0px]"
           onClick={() => {
-            document.documentElement.style.overflow = "hidden";
-            document.documentElement.scrollTop = 0;
+            DisableScroll();
+
             document.querySelector("#OrderDetails").scrollTop = 0;
             document
               .querySelector("#OrderDetails")

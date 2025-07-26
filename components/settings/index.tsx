@@ -20,18 +20,14 @@ import { useAppStore } from "store";
 import SettingsLoader from "components/skeleton/loaders/SettingsLoader";
 import LanguageSetting from "./LanguageSetting";
 import OrderOptions from "components/Orders/OrderOptions";
-import {
-  GA_EVENT_NAMES,
-  GA_GLOBAL_PLATFORM,
-  GA_GLOBAL_SCREEN,
-} from "utils/GAEvents";
+import { GA_EVENT_NAMES, GA_GLOBAL_SCREEN } from "utils/GAEvents";
 import { GAevent } from "utils/gtag";
 import {
   SettingOption,
   SettingsIndexPropsType,
 } from "models/componentType/settingTypes/SettingsIndexPropsType";
 import home from "services/home";
-import { dispatchRouteChangeEvent } from "utils/events";
+import { EnableScroll } from "utils/tinyUtils";
 
 function Settings({ lang }: SettingsIndexPropsType) {
   const {
@@ -54,13 +50,15 @@ function Settings({ lang }: SettingsIndexPropsType) {
   };
   const getCustomerInfo = async () => {
     await home.getCustomerInfo();
-    dispatchRouteChangeEvent("completed");
+    const { setIsNavigating } = useAppStore.getState();
+    setIsNavigating(null);
   };
   useEffect(() => {
     if (!userProfile?.name) {
       getCustomerInfo();
     } else {
-      dispatchRouteChangeEvent("completed");
+      const { setIsNavigating } = useAppStore.getState();
+      setIsNavigating(null);
     }
   }, []);
   const [NavigationOptions, setNavigationOptions] = useState<SettingOption[]>([
@@ -274,7 +272,7 @@ function Settings({ lang }: SettingsIndexPropsType) {
             // setActivePacks(null);
           }}
           closeOptions={() => {
-            document.documentElement.style.overflow = "auto";
+            EnableScroll();
             document.documentElement.scrollTop = 0;
             document.querySelector("#OrderDetails").scrollTop = 0;
             document

@@ -13,7 +13,7 @@ import {
 } from "store/notifications/reducer";
 import { getUserStories, translateFunction } from "utils/functions";
 import StoryServiceClass from "services/story";
-import { pollinateInput } from "@/utils/tinyUtils";
+import { DisableScroll, EnableScroll, pollinateInput } from "@/utils/tinyUtils";
 
 import Spinner from "components/global/Spinner";
 
@@ -118,7 +118,9 @@ const validateLink = (urlString: string) => {
   if (!isValidUrl(urlString)) {
     return {
       valid: false,
-      error: translateFunction("Please enter a valid URL (e.g., example.com or www.example.com)")
+      error: translateFunction(
+        "Please enter a valid URL (e.g., example.com or www.example.com)"
+      ),
     };
   }
   try {
@@ -132,7 +134,9 @@ const validateLink = (urlString: string) => {
     if (parsed.host !== currentHost) {
       return {
         valid: false,
-        error: `${translateFunction("Only links from")} ${currentHost} ${translateFunction("are allowed.")}`,
+        error: `${translateFunction(
+          "Only links from"
+        )} ${currentHost} ${translateFunction("are allowed.")}`,
       };
     }
     // if (/coupon/i.test(urlString)) {
@@ -145,7 +149,9 @@ const validateLink = (urlString: string) => {
   } catch {
     return {
       valid: false,
-      error: translateFunction("Please enter a valid URL (e.g., example.com or www.example.com)")
+      error: translateFunction(
+        "Please enter a valid URL (e.g., example.com or www.example.com)"
+      ),
     };
   }
 };
@@ -387,12 +393,12 @@ export default function AddStoryWidget({ onClose }: AddStoryWidgetPropsType) {
   };
 
   useEffect(() => {
-    document.documentElement.style.overflow = "hidden";
+    DisableScroll();
     // @ts-ignore
     document.querySelector(".stories-bar-container").style.zIndex =
       "999999999999999";
     return () => {
-      document.documentElement.style.overflow = "auto";
+      EnableScroll();
       // @ts-ignore
       document.querySelector(".stories-bar-container").style.zIndex = "1";
     };

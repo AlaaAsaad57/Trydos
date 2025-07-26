@@ -3,11 +3,8 @@ import { getCart, RoundPrice, translateFunction } from "utils/functions";
 import Spinner from "components/global/Spinner";
 import LocalizationServiceClass from "services/localization";
 import { useAppStore } from "store";
-
 import { useParams } from "next/navigation";
-import useNextRouter from "hooks/useNextRouter";
 import NextLink from "components/global/NextLink";
-
 import { CheckBoxElementPropsType } from "models/componentType/CheckBoxElementPropsType";
 import { PlaceOrderButtonsPropsType } from "models/componentType/PlaceOrderButtonsPropsType";
 import { showErrorNotification } from "@/store/notifications/reducer";
@@ -29,7 +26,7 @@ function PlaceOrderButtons({
     setCouponDiscount,
     userProfile,
   } = useAppStore();
-  const router = useNextRouter();
+
   const { lang } = useParams();
   const shake = (v) => {
     if (document.querySelector(`.${v}`)) {

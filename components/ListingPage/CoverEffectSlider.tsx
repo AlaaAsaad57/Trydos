@@ -22,7 +22,7 @@ function CoverEffectSlider({
 
   return (
     <div
-      className="product-photos-slider top-[276px] no-navigate overflow-hidden flex absolute align-center justify-center"
+      className="product-photos-slider cursor-pointer hover:scale-125 transition-all origin-bottom top-[276px]  overflow-hidden flex absolute align-center justify-center"
       data-cy="productPhotoSlider"
       onClick={handleClick}
       style={{
@@ -61,7 +61,7 @@ function CoverEffectSlider({
                   handleClick(e);
                   // setActiveColor(images[index]);
                 }}
-                className="image-avatar bg-white overflow-visible w-100 rounded-50 flex relative cursor-pointer no-navigate"
+                className="image-avatar bg-white overflow-visible w-100 rounded-50 flex relative cursor-pointer "
                 style={{
                   width: "22px",
                   height: "22px",

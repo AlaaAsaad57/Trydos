@@ -11,7 +11,6 @@ import OrderItem from "../Orders/OrderItem"; // Assuming OrderItem component exi
 import { translateFunction } from "utils/functions"; // Assuming translateFunction exists
 import { useAppStore } from "store";
 import { useParams, useRouter } from "next/navigation";
-import { dispatchRouteChangeEvent } from "utils/events";
 import { OrdersListPropsType } from "models/componentType/settingTypes/OrdersListPropsType";
 import OrderSkeletons from "./OrderSkeletons";
 
@@ -230,7 +229,8 @@ function OrdersList({
   }, []); // Run only once on mount
   const { lang } = useParams();
   useEffect(() => {
-    dispatchRouteChangeEvent("completed");
+    const { setIsNavigating } = useAppStore.getState();
+    setIsNavigating(null);
   }, [orders]);
   useEffect(() => {
     if (!selectedOrder) {

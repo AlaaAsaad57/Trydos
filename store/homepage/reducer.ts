@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 import { v4 as uuidv4 } from "uuid";
 import StoryServiceClass from "services/story";
+import { DisableScroll, EnableScroll } from "utils/tinyUtils";
 
 interface Story {
   id: string | number;
@@ -37,7 +38,7 @@ interface HomeState {
   cod_cost: number | null;
   countries: any[];
   isRegisteringReady: boolean;
-  isNavigating: boolean;
+  isNavigating: any;
 }
 
 const initialState: HomeState = {
@@ -83,11 +84,10 @@ export const useHomeStore = (set, get) => ({
 
   setLoginOpen: (open: boolean) => {
     if (open) {
-      document.documentElement.scrollTo({ top: 0 });
-      document.documentElement.style.overflow = "hidden";
+      DisableScroll();
     } else {
       document.documentElement.scrollTo({ top: 0 });
-      document.documentElement.style.overflow = "initial";
+      EnableScroll();
     }
     set({ loginOpen: open, showMessage: false });
   },

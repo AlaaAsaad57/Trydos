@@ -3,12 +3,11 @@ import React, { useEffect, useState } from "react";
 import Spinner from "./Spinner";
 import { useParams } from "next/navigation";
 import NormalWidget from "components/Home/OfferWidgets/NormalWidget";
-import { dispatchRouteChangeEvent } from "utils/events";
 import { fetchBoutiques } from "Server Requests";
-
 import { GA_EVENT_NAMES, GA_GLOBAL_SCREEN } from "utils/GAEvents";
 import { GAevent } from "utils/gtag";
 import { InfinteScrollPropsType } from "models/componentType/InfinteScrollPropsType";
+import { useAppStore } from "store";
 const useInfiniteScroll = (fetchNextPage) => {
   useEffect(() => {
     // Function to check scroll position
@@ -81,7 +80,8 @@ function InfinteScroll({ offsetVariable }: InfinteScrollPropsType) {
         screen_path: window.location.pathname,
       },
     });
-    dispatchRouteChangeEvent("completed");
+    const { setIsNavigating } = useAppStore.getState();
+    setIsNavigating(null);
   }, []);
   return (
     <>

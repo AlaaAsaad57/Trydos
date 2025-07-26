@@ -117,7 +117,9 @@ class SearchService {
         signal,
       });
       if (!filtersResponse.success) {
-        throw new Error(filtersResponse.message);
+        setSearchPartialLoading(false);
+        setSearchLoading(false);
+        return null;
       }
       if (!filtersResponse) {
         return null;

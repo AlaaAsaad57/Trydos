@@ -250,8 +250,8 @@ export const GetFilterUrlParams = ({
 export const ChatConroller = (payload) => {
   try {
     const { openChat, setChatOpen } = useAppStore.getState();
-    if (payload) document.documentElement.style.overflow = "hidden";
-    else document.documentElement.style.overflow = "initial";
+    if (payload) DisableScroll();
+    else EnableScroll();
     window.history.pushState({ isPopup: true }, "open Chat");
     openChat(payload);
     setChatOpen(payload);
@@ -764,4 +764,11 @@ export const pollinateInput = (value: string): string => {
     input = input.slice(0, 90);
   }
   return input;
+};
+export const DisableScroll = () => {
+  document.documentElement.style.overflow = "hidden";
+  document.documentElement.scrollTop = 0;
+};
+export const EnableScroll = () => {
+  document.documentElement.style.overflow = "initial";
 };

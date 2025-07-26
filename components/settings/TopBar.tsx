@@ -5,6 +5,7 @@ import { translateFunction } from "utils/functions";
 
 import { useAppStore } from "store";
 import { SettingTopBarPropsType } from "models/componentType/settingTypes/SettingTopBarPrpsType";
+import { DisableScroll } from "utils/tinyUtils";
 
 function SettingTopBar({
   Save,
@@ -55,8 +56,8 @@ function SettingTopBar({
             <>
               <OptionsIcon
                 onClick={() => {
-                  document.documentElement.style.overflow = "hidden";
-                  document.documentElement.scrollTop = 0;
+                  DisableScroll();
+
                   document.querySelector("#OrderDetails").scrollTop = 0;
                   document
                     .querySelector("#OrderDetails")

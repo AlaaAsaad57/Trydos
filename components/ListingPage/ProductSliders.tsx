@@ -4,18 +4,7 @@ import Image from "next/image";
 import { getConfiguredImage } from "utils/functions";
 import { GetImageUrl } from "utils/tinyUtils";
 import ImageSlider from "./ImageSlider";
-import CoverEffectSlider from "./CoverEffectSlider";
 
-const getIndex = (product, productState) => {
-  let index = 0;
-  product.sync_color_images
-    .filter((color) => color.images.length > 0)
-    .map((co, ind) => {
-      if (co.color_name === productState?.activeColor.color_name) index = ind;
-    });
-
-  return index;
-};
 export function ProductPhotosSlider({
   product,
   priority,
@@ -91,21 +80,6 @@ export function ProductPhotosSlider({
             image={image}
             key={`Color Images Slider`}
           />
-
-          {product.sync_color_images?.length > 0 &&
-            product.sync_color_images.filter((s) => s.images.length > 0)
-              .length > 0 && (
-              <>
-                <CoverEffectSlider
-                  priority={priority}
-                  product_name={product.name}
-                  product={product}
-                  images={product.sync_color_images?.filter(
-                    (color) => color.images.length > 0
-                  )}
-                />
-              </>
-            )}
         </div>
       </div>
     </>

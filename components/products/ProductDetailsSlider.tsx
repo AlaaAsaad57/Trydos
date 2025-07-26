@@ -6,7 +6,7 @@ import { getConfiguredImage } from "utils/functions";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import CloseIcon from "components/Home/Stories/CloseIcon";
 import { useAppStore } from "store";
-import { GetImageUrl } from "utils/tinyUtils";
+import { DisableScroll, EnableScroll, GetImageUrl } from "utils/tinyUtils";
 import { ProductDetailsSliderPropsType } from "models/componentType/productTypes/ProductDetailsSliderPropsType";
 function ProductDetailsSlider({
   product: productObj,
@@ -50,7 +50,7 @@ function ProductDetailsSlider({
     let elements = document.querySelectorAll(".product-slider-images");
     elements.forEach((elem, index) => {
       elem.addEventListener("click", function (e) {
-        document.documentElement.style.overflow = "hidden";
+        DisableScroll();
         showImage(index);
       });
     });
@@ -69,7 +69,7 @@ function ProductDetailsSlider({
             {" "}
             <CloseIcon
               close={() => {
-                document.documentElement.style.overflow = "initial";
+                EnableScroll();
                 showImage(-1);
               }}
             />

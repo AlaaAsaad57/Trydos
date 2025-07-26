@@ -1,4 +1,5 @@
 import { allCountries } from "country-telephone-data";
+import { DisableScroll, EnableScroll } from "utils/tinyUtils";
 
 const getCountry = () => {
   const countryParam =
@@ -29,12 +30,12 @@ const openCart = (val) => {
   document.documentElement.scrollTop = 0;
   if (val) {
     document.querySelector(".site-container").classList.add("scale-95");
-    document.documentElement.style.overflow = "hidden";
+    DisableScroll();
     return val;
   } else {
     document.querySelector(".cart-provider")?.classList.add("slideDown-cart");
     document.querySelector(".site-container")?.classList.remove("scale-95");
-    document.documentElement.style.overflow = "initial";
+    EnableScroll();
     return val;
   }
 };
@@ -476,7 +477,7 @@ export const useCartStore = (set, get) => ({
 
   enableAddToCartOption: (product) =>
     set((state) => {
-      document.documentElement.style.overflow = "hidden";
+      DisableScroll();
       document.documentElement.scrollTop = 100;
       if (product) {
         return {
@@ -540,7 +541,7 @@ export const useCartStore = (set, get) => ({
     }),
 
   disableAddToCartOption: () => {
-    document.documentElement.style.overflow = "initial";
+    EnableScroll();
     document.documentElement.scrollTop = 0;
     return set((state) => ({
       AddToCartOption: {

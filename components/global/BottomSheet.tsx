@@ -1,5 +1,6 @@
 "use client";
 import React, { useEffect, useRef, useState } from "react";
+import { DisableScroll, EnableScroll } from "utils/tinyUtils";
 
 export default function BottomSheet({ isOpen, onClose, children }) {
   const sheetRef = useRef(null);
@@ -137,10 +138,10 @@ export default function BottomSheet({ isOpen, onClose, children }) {
       if (e.key === "Escape") onClose();
     };
     window.addEventListener("keydown", handleEscape);
-    document.documentElement.style.overflow = "hidden";
+    DisableScroll();
     return () => {
       window.removeEventListener("keydown", handleEscape);
-      document.documentElement.style.overflow = "auto";
+      EnableScroll();
     };
   }, [onClose]);
 

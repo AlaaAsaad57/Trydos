@@ -6,6 +6,7 @@ import RedeemButton from "./RedeemButton";
 import { RoundPrice } from "utils/functions";
 import { getCookie } from "utils/cookies/cookie-manager";
 import ProductBanner from "components/products/ProductBanner";
+import { DisableScroll } from "utils/tinyUtils";
 
 export const BuyButtonProduct = ({
   product,
@@ -36,8 +37,8 @@ export const BuyButtonProduct = ({
   }, []);
 
   const addToCart = () => {
-    document.documentElement.style.overflow = "hidden";
-    document.documentElement.scrollTop = 0;
+    DisableScroll();
+
     if (isForColor) {
       setSelectedProductForCart({
         ...product,

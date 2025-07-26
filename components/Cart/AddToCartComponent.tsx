@@ -23,7 +23,7 @@ import auth from "services/auth";
 import home from "services/home";
 import { SliderRuler } from "./SliderRuler";
 import { GA_EVENT_NAMES } from "utils/GAEvents";
-import { DetectScreen, GetImageUrl } from "utils/tinyUtils";
+import { DetectScreen, EnableScroll, GetImageUrl } from "utils/tinyUtils";
 import { GAevent } from "utils/gtag";
 import { showSuccessNotification } from "@/store/notifications/reducer";
 import { fetchData } from "utils/fetchData";
@@ -630,8 +630,7 @@ function AddToCartComponent({
             //   value: GA_CLICK_EVENT_VALUES.BACK_ICON_IN_ADD_TO_CART_WIDGET,
             // });
             setSelectedProductForCart(null);
-            document.documentElement.style.overflow = "initial";
-            document.documentElement.scrollTop = 0;
+            EnableScroll();
             close();
           }}
         >
@@ -645,8 +644,7 @@ function AddToCartComponent({
             //   value: GA_CLICK_EVENT_VALUES.CART_ICON,
             // });
             enableCartAction(true);
-            document.documentElement.style.overflow = "initial";
-            document.documentElement.scrollTop = 0;
+            EnableScroll();
             close();
           }}
         >
@@ -676,10 +674,6 @@ function AddToCartComponent({
               ) &&
               !(e.target as HTMLDivElement).classList.contains("slider_slide")
             ) {
-              // setSelectedProductForCart(null);
-              // document.documentElement.style.overflow = "initial";
-              // document.documentElement.scrollTop = 0;
-              // close();
             }
           }}
         >
