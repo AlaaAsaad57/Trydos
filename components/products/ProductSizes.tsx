@@ -13,12 +13,14 @@ import {
   useSearchParams,
 } from "next/navigation";
 import { useAppStore } from "store";
-import { GA_EVENT_NAMES } from "utils/GAEvents";
+import { GA_EVENT_NAMES, GA_GLOBAL_SCREEN } from "utils/GAEvents";
 import { ProductSizesPropsType } from "models/componentType/productTypes/MultiComponentOnProductPage";
 import StackedSlider from "utils/Slider";
+import { GAevent } from "utils/gtag";
+import auth from "services/auth";
 
 function ProductSizes({ sizes }: ProductSizesPropsType) {
-  const { showInfoMessage } = useAppStore();
+  const { showInfoMessage, product } = useAppStore();
   let { lang } = useParams();
   // @ts-ignore
   let languageVariable = lang.split("-")[1];
@@ -26,16 +28,30 @@ function ProductSizes({ sizes }: ProductSizesPropsType) {
     return translateFunction(key, languageVariable);
   };
   const [extended, setExtended] = useState(false);
-  const [activeColor, setActiveColorFunc] = useState([]);
+  const [activeColor, setActiveColorFunc] = useState(sizes[0]?.option);
   const searchParams = useSearchParams();
   const pathname = usePathname();
   const router = useRouter();
   const setActiveColor = (e) => {
-    if (activeColor.includes(e)) {
-      setActiveColorFunc(activeColor.filter((s) => s !== e));
-    } else {
-      setActiveColorFunc([...activeColor, e]);
+    setActiveColorFunc(e);
+    let variant = e?.option;
+    let color = searchParams.get("color");
+    if (color?.length) {
+      variant = `${color}-${e?.option}`;
     }
+    GAevent({
+      action: GA_EVENT_NAMES.ITEM_VARIANT_EXCHANGE,
+      params: {
+        user_ID: auth.UserID(),
+        item_id: product?.sku || product?.slug,
+        item_name: product.name,
+        brand: product?.brand?.name,
+        category: product?.category?.name,
+        item_variant: variant,
+        screen_name: GA_GLOBAL_SCREEN.PRODUCT_SCREEN,
+        screen_path: window.location.pathname,
+      },
+    });
   };
   return (
     <div

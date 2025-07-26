@@ -8,6 +8,7 @@ import profilePng from "public/images/profileNo.png";
 import { formatTime, GetImageUrl } from "utils/tinyUtils";
 import { CommentsPropsType } from "models/componentType/CommentsPropsType";
 import { fetchData } from "utils/fetchData";
+import { REQUESTS_DATA } from "utils/Requests";
 
 function Comments({
   comments,
@@ -26,7 +27,7 @@ function Comments({
     try {
       let response: { data: AddComment } = await fetchData({
         url: "/customer/product_comment",
-        reqTitle: "resend add Comment For Product",
+        reqTitle: REQUESTS_DATA.RESEND_COMMENT,
         method: "POST",
         server: "market",
         body: JSON.stringify({
@@ -35,10 +36,10 @@ function Comments({
           comment: s,
         }),
       });
-       // @ts-ignore
-      if(!response.success) {
-       // @ts-ignore
-       throw new Error(response.message);
+      // @ts-ignore
+      if (!response.success) {
+        // @ts-ignore
+        throw new Error(response.message);
       }
       if (response.data?.comment) {
         let s = CommentsData.filter((m) => m.mid === mid)[0];

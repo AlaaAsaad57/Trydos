@@ -3,7 +3,7 @@ import {
   showSuccessMessage,
 } from "components/global/AddToCartMessage";
 import Cookies from "js-cookie";
-import { _isStoreLastJson, getUserChat, LogError } from "./functions";
+import { _isStoreLastJson, LogError } from "./functions";
 import {
   showErrorNotification,
   showSuccessNotification,
@@ -28,10 +28,11 @@ export interface FetchDataParams {
   method: FetchMethod;
   body?: object | string | null;
   useCached?: boolean;
-  reqTitle?: string;
+  reqTitle: { reqTitle: string; code: number };
   server: ServerType;
   retryActionIfUnAuth?: () => void | null;
   signal?: AbortSignal;
+  noMessage?: boolean;
 }
 
 // Cache structure
@@ -216,6 +217,8 @@ export const fetchData = async <T = any>(
     reqTitle,
     server,
     retryActionIfUnAuth,
+    noMessage,
+    signal,
   } = params;
 
   // Check cache first
@@ -224,7 +227,7 @@ export const fetchData = async <T = any>(
   if (useCached && !isRetryAfterUnauthorized && requestCache.has(cacheKey)) {
     const cachedData = requestCache.get(cacheKey);
 
-    return cachedData;
+    return { ...cachedData, success: true };
   }
 
   let retryCount = 0;
@@ -298,7 +301,10 @@ export const fetchData = async <T = any>(
         );
       }
       // Parse response
-      if (typeof reqTitle === "string" && reqTitle.includes("cart widget")) {
+      if (
+        typeof reqTitle?.reqTitle === "string" &&
+        reqTitle?.reqTitle?.includes("cart widget")
+      ) {
         if (responseData?.data?.status === 1)
           showSuccessMessage(
             responseData?.message ?? responseData?.data?.message ?? ""
@@ -318,7 +324,10 @@ export const fetchData = async <T = any>(
           }
         }
       } else {
-        if (url?.includes("cart/update") && !reqTitle.includes("cart widget")) {
+        if (
+          url?.includes("cart/update") &&
+          !reqTitle?.reqTitle?.includes("cart widget")
+        ) {
           if (responseData?.data?.status === 0) {
             showErrorMessage(
               responseData?.message ?? responseData?.data?.message ?? ""
@@ -388,14 +397,23 @@ export const fetchData = async <T = any>(
       }
       // Re-throw the error for the caller to handle
       if (
-        typeof reqTitle === "string" &&
-        reqTitle.includes("Add to cart widget")
+        typeof reqTitle?.reqTitle === "string" &&
+        reqTitle?.reqTitle?.includes("Add to cart widget")
       ) {
         showErrorMessage(`${err?.message || "Falied"}`);
       } else {
         console.error(err);
-        if (!ignoredMessages.includes(err?.message || err))
-          showErrorNotification(`${reqTitle} : ${err?.message || "Falied"}`);
+        if (!ignoredMessages.includes(err?.message || err)) {
+          if (!noMessage && err?.message) {
+            showErrorNotification(
+              `${err?.message}`,
+              5000,
+              null,
+              null,
+              reqTitle.code
+            );
+          }
+        }
       }
       let errorObj = {
         type: "backend-exception",
@@ -455,47 +473,3 @@ export const removeCacheEntry = (params: FetchDataParams) => {
 };
 
 // Helper functions for specific server types
-export const fetchMarketData = async <T = any>(
-  url: string,
-  method: FetchMethod = "GET",
-  body?: object | null,
-  options?: Partial<FetchDataParams>
-): Promise<T> => {
-  return fetchData<T>({
-    url: process.env.NEXT_PUBLIC_BACKEND_URL + url,
-    method,
-    body,
-    server: "market",
-    ...options,
-  });
-};
-
-export const fetchChatData = async <T = any>(
-  url: string,
-  method: FetchMethod = "GET",
-  body?: object | null,
-  options?: Partial<FetchDataParams>
-): Promise<T> => {
-  return fetchData<T>({
-    url: process.env.NEXT_PUBLIC_CHAT_BACKEND_URL + url,
-    method,
-    body,
-    server: "chat",
-    ...options,
-  });
-};
-
-export const fetchStoriesData = async <T = any>(
-  url: string,
-  method: FetchMethod = "GET",
-  body?: object | null,
-  options?: Partial<FetchDataParams>
-): Promise<T> => {
-  return fetchData<T>({
-    url: process.env.NEXT_PUBLIC_STORIES_BACKEND_URL + url,
-    method,
-    body,
-    server: "stories",
-    ...options,
-  });
-};

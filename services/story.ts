@@ -23,6 +23,7 @@ import {
 } from "utils/cookies/cookie-manager";
 import { revalidateStories } from "utils/serverActions";
 import { fetchStories } from "Server Requests";
+import { REQUESTS_DATA } from "utils/Requests";
 
 class StoryService {
   /* get stories */
@@ -33,7 +34,7 @@ class StoryService {
       const response = await fetchData({
         url: GET_USERS_STORIES + `?page=${page}`,
         server: "stories",
-        reqTitle: "Get Stories",
+        reqTitle: REQUESTS_DATA.GET_USER_STORIES,
         method: "GET",
       });
       // @ts-ignore
@@ -50,7 +51,7 @@ class StoryService {
     } catch (error) {
       console.error(error);
     }
-      // @ts-ignore
+    // @ts-ignore
     return { data, next_page_url: repo.data.next_page_url };
   }
   async loginStories() {
@@ -59,7 +60,7 @@ class StoryService {
     try {
       const response = await fetchData({
         url: LOG_IN_STORIES,
-        reqTitle: "Login Stories",
+        reqTitle: REQUESTS_DATA.LOGIN_STORIES,
         method: "POST",
         server: "stories",
         body: JSON.stringify({
@@ -88,7 +89,7 @@ class StoryService {
         const res = await fetchData({
           url: "/api/v1/stories/increase_viewers/" + pid,
           server: "stories",
-          reqTitle: "Increase Viewers",
+          reqTitle: REQUESTS_DATA.INCREASE_VIEWERS,
           method: "GET",
         });
         if (!res.success) {
@@ -127,7 +128,7 @@ class StoryService {
       let response = await this.UploadToCloudinary(file);
       const add_story_response: UploadStoryApi = await fetchData({
         url: `/api/v1/stories/add_story`,
-        reqTitle: "Upload Story",
+        reqTitle: REQUESTS_DATA.UPLOAD_STORY,
         method: "POST",
         server: "stories",
         body: JSON.stringify({
@@ -138,7 +139,7 @@ class StoryService {
       });
       // @ts-ignore
       if (!add_story_response.success) {
-       // @ts-ignore
+        // @ts-ignore
         throw new Error(add_story_response.message);
       }
 
@@ -165,7 +166,7 @@ class StoryService {
         url: "/api/v1/stories/delete_story",
         method: "POST",
         body: JSON.stringify({ story_id: storyId }),
-        reqTitle: "Delete Story",
+        reqTitle: REQUESTS_DATA.DELETE_STORY,
         server: "stories",
       });
       // @ts-ignore
@@ -184,7 +185,7 @@ class StoryService {
         url: "",
         method: "POST",
         body: JSON.stringify({ story_id: storyId }),
-        reqTitle: "Delete Story",
+        reqTitle: REQUESTS_DATA.REPORT_STORY,
         server: "stories",
       });
       // @ts-ignore
@@ -266,17 +267,16 @@ class StoryService {
     try {
       let data = await fetchData({
         url: `/api/v1/stories/product_stories/${id}?page=${page}`,
-        reqTitle: "Get Stories for Products",
+        reqTitle: REQUESTS_DATA.GET_STORIES_FOR_PRODUCTS,
         method: "GET",
         server: "stories",
       });
 
       if (data.success) {
-        data.data
-      }
-      else {
+        data.data;
+      } else {
         throw new Error(data.message);
-      };
+      }
     } catch (error) {
       console.log(error);
       return [];

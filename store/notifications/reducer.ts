@@ -8,6 +8,7 @@ export interface Notification {
   href?: string;
   href_type?: any;
   image?: string;
+  error_code?: number;
 }
 
 export interface NotificationState {
@@ -69,11 +70,17 @@ export const showErrorNotification = (
   duration?: number,
   href?: string,
   href_type?: any,
-  image?: string
+  error_code?: number
 ) => {
   const { addNotification } = useNotificationStore.getState();
-  if (message?.toLowerCase() === "unauthorized") {
+  if (message?.toLowerCase()?.includes("authorized")) {
     return;
   }
-  addNotification({ type: "error", message, duration, href });
+  addNotification({
+    type: "error",
+    message,
+    duration,
+    href,
+    error_code: error_code,
+  });
 };

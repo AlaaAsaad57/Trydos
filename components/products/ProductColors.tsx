@@ -17,6 +17,9 @@ import { useAppStore } from "store";
 import { GetImageUrl } from "utils/tinyUtils";
 import { ProductColorsPropsType } from "models/componentType/productTypes/MultiComponentOnProductPage";
 import StackedSlider from "utils/Slider";
+import { GAevent } from "utils/gtag";
+import { GA_EVENT_NAMES, GA_GLOBAL_SCREEN } from "utils/GAEvents";
+import auth from "services/auth";
 
 function ProductColors({ colors, ProductColorsArray }: ProductColorsPropsType) {
   const { setActiveColorDetails, showInfoMessage, product } = useAppStore();
@@ -31,6 +34,24 @@ function ProductColors({ colors, ProductColorsArray }: ProductColorsPropsType) {
   const activeColor = product.activeColor;
   const setActiveColor = (e) => {
     setActiveColorDetails(e);
+    let variant = e?.color_option;
+    let size = searchParams.get("size");
+    if (size?.length) {
+      variant += `-${size}`;
+    }
+    GAevent({
+      action: GA_EVENT_NAMES.ITEM_VARIANT_EXCHANGE,
+      params: {
+        user_ID: auth.UserID(),
+        item_id: product?.sku || product?.slug,
+        item_name: product.name,
+        brand: product?.brand?.name,
+        category: product?.category?.name,
+        item_variant: variant,
+        screen_name: GA_GLOBAL_SCREEN.PRODUCT_SCREEN,
+        screen_path: window.location.pathname,
+      },
+    });
   };
 
   // const setActiveColor = (e) => {
@@ -42,7 +63,6 @@ function ProductColors({ colors, ProductColorsArray }: ProductColorsPropsType) {
   const getSize: (i: number) => number = (i) => {
     return 40;
   };
-  useEffect(() => {}, []);
 
   return (
     <div

@@ -37,6 +37,7 @@ import {
   setCookie,
   UserData,
 } from "utils/cookies/cookie-manager";
+import { REQUESTS_DATA } from "utils/Requests";
 class HomeService {
   async getClientData() {
     const { setSettings, initCart } = useAppStore.getState();
@@ -48,7 +49,7 @@ class HomeService {
       } else {
         const response = await fetchData({
           url: STARTER_SETTINGS,
-          reqTitle: "get starter settings",
+          reqTitle: REQUESTS_DATA.GET_STARTER_SETTINGS,
           method: "GET",
           server: "market",
           useCached: true,
@@ -83,7 +84,7 @@ class HomeService {
     try {
       const response = await fetchData({
         url: FIREBASE_SETTINGS_URL,
-        reqTitle: "get firebase settings request",
+        reqTitle: REQUESTS_DATA.GET_FIREBASE_SETTINGS_REQUEST,
         method: "GET",
         server: "market",
       });
@@ -102,22 +103,22 @@ class HomeService {
   async getCustomerInfo() {
     const { updateUserInfo } = useAppStore.getState();
     await WaitForCondition();
-   try {
-    let response_customer_Info: { data: CustomerInfoResponse } =
-      await fetchData({
-        url: CUSTOMER_INFO_URL,
-        reqTitle: "get customer info",
-        method: "GET",
-        server: "market",
-      });
-       // @ts-ignore
+    try {
+      let response_customer_Info: { data: CustomerInfoResponse } =
+        await fetchData({
+          url: CUSTOMER_INFO_URL,
+          reqTitle: REQUESTS_DATA.GET_CUSTOMER_INFO,
+          method: "GET",
+          server: "market",
+        });
+      // @ts-ignore
       if (!response_customer_Info.success) {
-       // @ts-ignore
+        // @ts-ignore
         throw new Error(response_customer_Info.message);
       }
-     setCookie(COOKIE_NAMES.USER_DATA, {
-      ...response_customer_Info.data.customer_info,
-     });
+      setCookie(COOKIE_NAMES.USER_DATA, {
+        ...response_customer_Info.data.customer_info,
+      });
       if (response_customer_Info.data.customer_info) {
         if (response_customer_Info.data.customer_info) {
           updateUserInfo(response_customer_Info.data.customer_info);
@@ -157,7 +158,7 @@ class HomeService {
         let response = await fetchData({
           url: REGISTER_DEVICE_URL,
           body: JSON.stringify(requestBody),
-          reqTitle: "register device for expired user",
+          reqTitle: REQUESTS_DATA.REGISTER_DEVICE_FOR_EXPIRED_USER,
           method: "POST",
           server: "market",
         });
@@ -171,12 +172,12 @@ class HomeService {
           response = await fetchData({
             url: REGISTER_DEVICE_URL,
             body: JSON.stringify({ old_guest_user_id: null }),
-            reqTitle: "register device for expired user - retry",
+            reqTitle: REQUESTS_DATA["REGISTER_DEVICE_FOR_EXPIRED_USER_-_RETRY"],
             method: "POST",
             server: "market",
           });
           repo = response;
-           // @ts-ignore
+          // @ts-ignore
           if (!repo.success) {
             throw new Error(repo.message);
           }
@@ -228,7 +229,7 @@ class HomeService {
                   user_id: auth.UserID(),
                   auth_token: auth.UserToken(),
                 }),
-                reqTitle: "register firebase token",
+                reqTitle: REQUESTS_DATA.REGISTER_FIREBASE_TOKEN,
                 method: "POST",
                 server: "market",
               });
@@ -330,7 +331,7 @@ class HomeService {
           let response = await fetchData({
             url: REGISTER_DEVICE_URL,
             body: JSON.stringify(requestBody),
-            reqTitle: "register device",
+            reqTitle: REQUESTS_DATA.REGISTER_DEVICE,
             method: "POST",
             server: "market",
           });
@@ -343,7 +344,8 @@ class HomeService {
             response = await fetchData({
               url: REGISTER_DEVICE_URL,
               body: JSON.stringify({ old_guest_user_id: null }),
-              reqTitle: "register device for expired user - retry",
+              reqTitle:
+                REQUESTS_DATA["REGISTER_DEVICE_FOR_EXPIRED_USER_-_RETRY"],
               method: "POST",
               server: "market",
             });
@@ -364,7 +366,10 @@ class HomeService {
           SetGAUser(repo.data.user, isNewUser);
           setIsRegisteringReady(true);
           if (repo.data.user) {
-            if (process.env.NODE_ENV === "production" && Smartlook.initialized())
+            if (
+              process.env.NODE_ENV === "production" &&
+              Smartlook.initialized()
+            )
               Smartlook.identify(repo.data.user.id, {
                 name: repo.data.user.name,
                 phone: "guest",
@@ -397,7 +402,7 @@ class HomeService {
             topic,
             variant,
           }),
-          reqTitle: "store firebase subscribe topic",
+          reqTitle: REQUESTS_DATA.STORE_FIREBASE_SUBSCRIBE_TOPIC,
           method: "POST",
           server: "market",
         });
@@ -419,7 +424,7 @@ class HomeService {
         body: JSON.stringify({
           topic,
         }),
-        reqTitle: "store firebase unsubscribe topic",
+        reqTitle: REQUESTS_DATA.STORE_FIREBASE_UNSUBSCRIBE_TOPIC,
         method: "POST",
         server: "market",
       });
@@ -453,7 +458,7 @@ class HomeService {
             country: countryCode,
             language_code: languageCode,
           }),
-          reqTitle: "change firebase country-language pair",
+          reqTitle: REQUESTS_DATA["CHANGE_FIREBASE_COUNTRY-LANGUAGE_PAIR"],
           method: "POST",
           server: "market",
         });
@@ -474,14 +479,14 @@ class HomeService {
       let response = await fetchData({
         url: "/old-cart/hide",
         body: JSON.stringify({ id: id }),
-        reqTitle: "Hide Old Cart",
+        reqTitle: REQUESTS_DATA.HIDE_OLD_CART,
         method: "POST",
         server: "market",
       });
       // @ts-ignore
-    if (!response.success) {
-      throw new Error(response.message);
-    }
+      if (!response.success) {
+        throw new Error(response.message);
+      }
     } catch (e) {
       console.error(e);
     }
@@ -498,7 +503,7 @@ class HomeService {
           language_code: LocalizationServiceClass.GetAppLanguage(),
           country_iso: LocalizationServiceClass.GetAppCountry(),
         }),
-        reqTitle: "send boutique created",
+        reqTitle: REQUESTS_DATA.SEND_BOUTIQUE_CREATED,
         method: "POST",
         server: "market",
       });
@@ -520,7 +525,7 @@ class HomeService {
           language_code: LocalizationServiceClass.GetAppLanguage(),
           country_iso: LocalizationServiceClass.GetAppCountry(),
         }),
-        reqTitle: "send product cart expiration",
+        reqTitle: REQUESTS_DATA.SEND_PRODUCT_CART_EXPIRATION,
         method: "POST",
         server: "market",
       });
@@ -549,7 +554,7 @@ class HomeService {
           language_code: LocalizationServiceClass.GetAppLanguage(),
           country_iso: LocalizationServiceClass.GetAppCountry(),
         }),
-        reqTitle: "send product availability",
+        reqTitle: REQUESTS_DATA.SEND_PRODUCT_AVAILABILITY,
         method: "POST",
         server: "market",
       });
@@ -573,7 +578,7 @@ class HomeService {
           language_code: LocalizationServiceClass.GetAppLanguage(),
           country_iso: LocalizationServiceClass.GetAppCountry(),
         }),
-        reqTitle: "send product comment",
+        reqTitle: REQUESTS_DATA.SEND_PRODUCT_COMMENT,
         method: "POST",
         server: "market",
       });
@@ -597,7 +602,7 @@ class HomeService {
           language_code: LocalizationServiceClass.GetAppLanguage(),
           country_iso: LocalizationServiceClass.GetAppCountry(),
         }),
-        reqTitle: "send product discount",
+        reqTitle: REQUESTS_DATA.SEND_PRODUCT_DISCOUNT,
         method: "POST",
         server: "market",
       });
@@ -621,7 +626,7 @@ class HomeService {
           language_code: LocalizationServiceClass.GetAppLanguage(),
           country_iso: LocalizationServiceClass.GetAppCountry(),
         }),
-        reqTitle: "send category created",
+        reqTitle: REQUESTS_DATA.SEND_CATEGORY_CREATED,
         method: "POST",
         server: "market",
       });
@@ -647,7 +652,7 @@ class HomeService {
           language_code: LocalizationServiceClass.GetAppLanguage(),
           country_iso: LocalizationServiceClass.GetAppCountry(),
         }),
-        reqTitle: "send product before stock out",
+        reqTitle: REQUESTS_DATA.SEND_PRODUCT_BEFORE_STOCK_OUT,
         method: "POST",
         server: "market",
       });
@@ -672,7 +677,7 @@ class HomeService {
           language_code: LocalizationServiceClass.GetAppLanguage(),
           country_iso: LocalizationServiceClass.GetAppCountry(),
         }),
-        reqTitle: "send product when change in price",
+        reqTitle: REQUESTS_DATA.SEND_PRODUCT_WHEN_CHANGE_IN_PRICE,
         method: "POST",
         server: "market",
       });
@@ -690,7 +695,7 @@ class HomeService {
       const response = await fetchData({
         url: `/firebase_device_tokens/${url}`,
         body: JSON.stringify(body),
-        reqTitle: "edit notification settings",
+        reqTitle: REQUESTS_DATA.EDIT_NOTIFICATION_SETTINGS,
         method: "POST",
         server: "market",
       });

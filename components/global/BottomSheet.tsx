@@ -161,7 +161,7 @@ export default function BottomSheet({ isOpen, onClose, children }) {
       >
         <div
           ref={sheetRef}
-          className="w-full rounded-t-[30px] max-h-[90vh] bg-white p-4 shadow-2xl overflow-y-auto"
+          className="w-full rounded-t-[30px] max-h-[60vh] bg-white p-1 sm:p-4 shadow-2xl overflow-y-auto"
           style={{
             touchAction: "none",
             willChange: "transform",

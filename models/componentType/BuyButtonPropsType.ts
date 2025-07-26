@@ -5,4 +5,5 @@ export interface BuyButtonPropsType {
   currency: any;
   id: string | number;
   onExpire: () => void;
+  flash_deal_price?: number;
 }

@@ -6,6 +6,7 @@ import { textMarshal } from "node_modules/text-marshal/lib";
 import { GA_GLOBAL_SCREEN } from "./GAEvents";
 import { fetchData } from "./fetchData";
 import Image from "node_modules/next/image";
+import { REQUESTS_DATA } from "./Requests";
 // TypeScript interfaces for filter system
 export interface FilterParams {
   boutiques?: string[];
@@ -260,7 +261,7 @@ export const getCurrency = async ({ callback }) => {
   try {
     let response = await fetchData({
       url: "/mobile/home/currency",
-      reqTitle: "Currency Request",
+      reqTitle: REQUESTS_DATA.CURRENCY_REQUEST,
       method: "GET",
       server: "market",
     });

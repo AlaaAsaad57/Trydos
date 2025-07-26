@@ -1,5 +1,5 @@
 export const runtime = "nodejs";
-export const preferredRegion = process.env.PREFERRED_REGION || "bom1";
+export const preferredRegion = "bom1";
 export const revalidate = parseInt(process.env.NEXT_PUBLIC_REVALIDATE);
 export const dynamic = "auto";
 import FilterList from "components/Server/FilterList";
@@ -112,10 +112,7 @@ export default async function Page({ params }: { params: ParamsType }) {
             parsedFilters?.search_text?.length > 0 && "w-full"
           }`}
         >
-          <SearchBoutiquePage
-            key={`search-boutique-page-${JSON.stringify(parsedFilters)}`}
-            search_text={parsedFilters?.search_text?.[0]}
-          />
+          <SearchBoutiquePage search_text={parsedFilters?.search_text?.[0]} />
 
           <div
             data-cy="filter_option_loseSearchInput"
@@ -133,14 +130,8 @@ export default async function Page({ params }: { params: ParamsType }) {
       <div
         data-cy="boutique_header"
         className={`boutique-header ${"flex-col"} align-center`}
-        key={`boutique-header-filters-${JSON.stringify(parsedFilters)}`}
       >
-        <Suspense
-          key={params.filters?.join("/") || "no-filters"}
-          fallback={<BoutiqueHeaderSkeleton />}
-        >
-          <BoutiqueWrapper params={params} />
-        </Suspense>
+        <BoutiqueWrapper params={params} />
 
         <Suspense fallback={<ListingSkeleton justFilters={true} />}>
           <FiltersWrapper

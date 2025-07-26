@@ -1,7 +1,7 @@
 export const GA_EVENT_NAMES = {
   CLICK: "button_clicked",
   PROGRAMMING_EVENT: "programming_event",
-  VIEW_PRODUCT_EVENT: "view_product_event",
+  VIEW_PRODUCT_EVENT: "view_item",
   CUSTOM_USER_MAPPING: "custom_user_mapping",
   VIEW_BOUTIQUE_EVENT: "view_boutique_event",
   LOGIN: "login",
@@ -27,6 +27,11 @@ export const GA_EVENT_NAMES = {
   ADD_PAYMENT: "add_payment_info",
   ADD_ADDRESS: "add_shipping_info",
   PURCHASE: "purchase",
+  VIEW_ITEMS_LIST: "view_item_list",
+  ITEM_VARIANT_EXCHANGE: "item_variant _exchange",
+  SEARCH: "search",
+  VIEW_STORY: "view_story",
+  LIKE_ITEM: "like_item",
 };
 export const GA_PAYMENTS = {
   WALLET: "wallet",
@@ -56,8 +61,10 @@ export const GA_GLOBAL_SCREEN = {
   SETTINGS_SCREEN: "settings_screen",
   NOTIFICATIONS_SCREEN: "notifications_screen",
   BOUTIQUE_SCREEN: "boutique_screen",
+  FILTERS_SCREEN: "filters_screen",
   STORY_SCREEN: "story_screen",
   CHAT_SCREEN: "chat_screen",
+  TAGS_SCREEN: "screen_filter",
 };
 export const GA_GLOBAL_PLATFORM = {
   WEB: "web",

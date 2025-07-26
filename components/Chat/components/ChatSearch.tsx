@@ -10,6 +10,7 @@ import { getUserChat } from "utils/functions";
 import { GetMessageSearchApi } from "models/API/chat/GetMessagesForSearch";
 import { useAppStore } from "store";
 import { fetchData } from "utils/fetchData";
+import { REQUESTS_DATA } from "utils/Requests";
 
 function ChatSearch({ close }) {
   const {
@@ -41,10 +42,11 @@ function ChatSearch({ close }) {
             limit: 100,
             offset: parseInt(searchChat.offset),
           }),
+          reqTitle: REQUESTS_DATA.CHANNEL_SERACH,
         });
         // @ts-ignore
         if (!response.success) {
-        // @ts-ignore
+          // @ts-ignore
           throw new Error(response.message);
         }
         let messages = response.data.messages_ids;
@@ -61,7 +63,9 @@ function ChatSearch({ close }) {
             activeChat.messages.filter(
               (s) =>
                 parseInt(s.id) ===
-                response.data.messages_ids[response.data.messages_ids.length - 1]
+                response.data.messages_ids[
+                  response.data.messages_ids.length - 1
+                ]
             ).length > 0
           ) {
           } else
@@ -104,7 +108,7 @@ function ChatSearch({ close }) {
           setChatSearchLoading(false);
         }
       } catch (err) {
-       console.error(err)
+        console.error(err);
         setChatSearchLoading(false);
       }
     }

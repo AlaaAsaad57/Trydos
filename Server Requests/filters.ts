@@ -63,10 +63,12 @@ interface FilteredProductsResponse {
       brand: {
         name: string;
         icon?: string;
+        id: string;
       };
       category: {
         name: string;
         icon?: string;
+        id: string;
       };
     }>;
   };
@@ -201,9 +203,17 @@ export async function fetchFilteredProducts(
           price: s?.price,
           offer_price: s?.offer_price,
           category: {
+            id: s?.category?.id,
             name: s?.category?.name,
             icon: s?.category.flat_photo_path?.file_path,
           },
+          category_hierarchy: s?.category_hierarchy,
+          brand: {
+            id: s?.id,
+            name: s?.name,
+            icon: s?.icon?.file_path,
+          },
+          ...s,
         })),
       },
     };

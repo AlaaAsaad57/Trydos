@@ -10,6 +10,7 @@ import { CielNumber } from "./tinyUtils";
 import { GetConfiguredImagePropsType } from "models/componentType/boutiqueTypes/metaDataPropsType";
 import { fetchData } from "./fetchData";
 import { COOKIE_NAMES, UserData, getCookie } from "./cookies/cookie-manager";
+import { REQUESTS_DATA } from "./Requests";
 export const SSRDetect = () => {
   return typeof window !== "undefined";
 };
@@ -410,7 +411,7 @@ export const getOldCart = async () => {
   try {
     let response: OldCartApi = await fetchData({
       url: "/old-cart/get_old_cart",
-      reqTitle: "Old Cart Request",
+      reqTitle: REQUESTS_DATA.OLD_CART_REQUEST,
       method: "GET",
       server: "market",
     });
@@ -432,7 +433,7 @@ export const getCart = async ({ callback }) => {
   try {
     let response: CartResponse = await fetchData({
       url: "/cart/cart_shipping",
-      reqTitle: "Cart Request",
+      reqTitle: REQUESTS_DATA.CART_REQUEST,
       method: "GET",
       server: "market",
     });
@@ -452,7 +453,7 @@ export const GetCartOreview = async () => {
   try {
     let response = await fetchData({
       url: "/cart/cart_overview",
-      reqTitle: "Cart Oreview",
+      reqTitle: REQUESTS_DATA.CART_OVERVIEW,
       method: "GET",
       server: "market",
     });

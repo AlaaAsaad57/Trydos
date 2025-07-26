@@ -11,6 +11,7 @@ import { InCall } from "store/chat/callActions";
 import { getUserChat, translateFunction } from "./functions";
 import chat from "services/chat";
 import { Recive, watchChannel as watchChannelAction } from "store/chat/actions";
+import { REQUESTS_DATA } from "./Requests";
 interface NotificationData {
   title: string;
   body: string;
@@ -204,7 +205,7 @@ class ForegroundNotificationHandler {
               url: `/customer/order/getOrdersByOrderGroupID?order_group_id=${
                 JSON.parse(payload.data.body).order_group_id
               }`,
-              reqTitle: "getOrderByOrderGroupID request",
+              reqTitle: REQUESTS_DATA.GETORDERBYORDERGROUPID_REQUEST,
               method: "GET",
               server: "market",
             });

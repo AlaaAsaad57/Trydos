@@ -36,6 +36,7 @@ import { OrderDetailsPropsType } from "models/componentType/settingTypes/OrderDe
 import { ProductCardPropsType } from "models/componentType/settingTypes/ProductCardPropsType";
 import { fetchData } from "utils/fetchData";
 import auth from "services/auth";
+import { REQUESTS_DATA } from "utils/Requests";
 function OrderDetails({ resetOrderDetails, goBack }: OrderDetailsPropsType) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -153,7 +154,7 @@ function OrderDetails({ resetOrderDetails, goBack }: OrderDetailsPropsType) {
     try {
       let response = await fetchData({
         url: "/api/v1/order-chat-participants/get-recipient",
-        reqTitle: "Get Chat with Deleivery",
+        reqTitle: REQUESTS_DATA.GET_CHAT_WITH_DELEIVERY,
         method: "POST",
         server: "chat",
         body: JSON.stringify({
@@ -428,7 +429,7 @@ function OrderDetails({ resetOrderDetails, goBack }: OrderDetailsPropsType) {
                       setActivePacks(s);
                     }}
                   >
-                  <span className="mx-1 bold">{s.id}</span>
+                    <span className="mx-1 bold">{s.id}</span>
                     {translateFunction("Pack")}{" "}
                   </div>
                 ))}
@@ -456,7 +457,9 @@ function OrderDetails({ resetOrderDetails, goBack }: OrderDetailsPropsType) {
                 }
               />
             </div>
-            <RateOrderButton />
+            {ActivePacks?.order_status?.value === "delivered" && (
+              <RateOrderButton />
+            )}
             <div className="flex flex-col justify-start  w-full bg-[#F8F8F8] px-[12px] h-full relative">
               <OrderItemsList
                 shouldShowChat={() => shouldShowChatIcon(ActivePacks)}
@@ -639,7 +642,7 @@ const OrderExpandedDetails = ({ order }: { order: OrderItem }) => {
   );
 };
 const ProductCard = ({ product, status }: ProductCardPropsType) => {
-  const { currency, setSelectedOrderItem } = useAppStore();
+  const { currency, setSelectedOrderItem, ActivePacks } = useAppStore();
   const { lang } = useParams();
 
   return (
@@ -664,7 +667,9 @@ const ProductCard = ({ product, status }: ProductCardPropsType) => {
         </span>
 
         <NextLink
-          href={`/${lang}/products/${product.product_slug}`}
+          href={`/${lang}/products/${
+            product.product_slug || product?.product_details?.slug
+          }`}
           data={{ is_product: true, ...product.product_details }}
           className="flex-row  w-full border-t border-[#C4C2C27f] py-[12px]"
         >
@@ -794,7 +799,15 @@ const ProductCard = ({ product, status }: ProductCardPropsType) => {
             </div>
           </div>
         </NextLink>
-        {!product.is_returned && <RatingOrderItem />}
+        {!product.is_returned &&
+          ActivePacks?.order_status?.value === "delivered" && (
+            <RatingOrderItem
+              productId={product?.product_details.id}
+              order_detail_id={product.id}
+              initialRating={0}
+              isRated={false}
+            />
+          )}
         {product.is_returned && <OrderRetailsReturnInfo product={product} />}
       </div>
     </>

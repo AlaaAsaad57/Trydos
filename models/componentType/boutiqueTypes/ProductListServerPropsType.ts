@@ -32,10 +32,12 @@ export interface ProductData {
   brand: {
     name: string;
     icon?: string;
+    id: string;
   };
   category: {
     name: string;
     icon?: string;
+    id: string;
   };
 }
 

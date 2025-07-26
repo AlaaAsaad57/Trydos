@@ -20,16 +20,8 @@ export function ProductPhotosSlider({
   product,
   priority,
   Sliders = true,
+  image,
 }: ProductPhotosSliderPropsType) {
-  const showedImages = () => {
-    return product.sync_color_images &&
-      product.sync_color_images[0]?.images?.length > 0
-      ? product.sync_color_images[0]
-      : {
-          images: product.images,
-        };
-  };
-
   if (!Sliders) {
     return (
       <React.Fragment>
@@ -47,7 +39,9 @@ export function ProductPhotosSlider({
             height: 400,
           })}
           style={{
-            border: product.flash_deal_end_date && "1px solid #FF6200",
+            border:
+              (product.flash_deal_end_date || product?.is_redeem) &&
+              "1px solid #FF6200",
           }}
           key={`${product.name}-${0}`}
           className="w-[200px] h-[290px] border-[#d3d3d387] border-[1px] rounded-15 z-10"
@@ -90,10 +84,11 @@ export function ProductPhotosSlider({
               )} */}
 
           <ImageSlider
+            showBorder={Boolean(
+              product.flash_deal_end_date || product?.is_redeem
+            )}
             product_name={product.name}
-            slug={product.slug}
-            flash_deal_end_date={product.flash_deal_end_date}
-            activeColor={showedImages()}
+            image={image}
             key={`Color Images Slider`}
           />
 

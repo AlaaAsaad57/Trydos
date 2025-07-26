@@ -12,6 +12,7 @@ import { fetchCountries } from "Server Requests";
 import Spinner from "components/global/Spinner";
 import { fetchData } from "utils/fetchData"; // Make sure this is imported
 import { STARTER_SETTINGS } from "utils/endpointConfig";
+import { REQUESTS_DATA } from "utils/Requests";
 function PersonalInfoCountries({
   swipeToScreen,
   goBack,
@@ -82,11 +83,11 @@ function PersonalInfoCountries({
 
     setSelectedCountry(country);
 
-    // Fetch and update starter settings for the new country 
+    // Fetch and update starter settings for the new country
     try {
       const response = await fetchData({
         url: STARTER_SETTINGS,
-        reqTitle: "get starter settings",
+        reqTitle: REQUESTS_DATA.GET_STARTER_SETTINGS,
         method: "GET",
         server: "market",
         useCached: true,
@@ -94,10 +95,7 @@ function PersonalInfoCountries({
       if (!response.success) {
         throw new Error(response.message);
       }
-      sessionStorage.setItem(
-        "starttingSetting",
-        JSON.stringify(response.data)
-      );
+      sessionStorage.setItem("starttingSetting", JSON.stringify(response.data));
       setSettings(response.data);
     } catch (error) {
       console.error("Failed to update starter settings:", error);
@@ -105,6 +103,8 @@ function PersonalInfoCountries({
 
     setIsSettingCountry(false);
   };
+  const [showConfirmationModal, setShowConfirmationModal] = useState(false);
+  const [pendingCountry, setPendingCountry] = useState<any>(null);
   useEffect(() => {
     getCountries();
   }, []);
@@ -320,8 +320,12 @@ function PersonalInfoCountries({
                     key={country.iso}
                     data-cy={`personal-info-countries-${country.iso}`}
                     onClick={() => {
-                      if (!isSettingCountry) {
-                        changeCountry(country);
+                      if (
+                        !isSettingCountry &&
+                        selectedCountry?.id !== country?.id
+                      ) {
+                        setPendingCountry(country);
+                        setShowConfirmationModal(true);
                       }
                     }}
                     style={{
@@ -346,6 +350,78 @@ function PersonalInfoCountries({
           </div>
         </div>
       </div>
+      {showConfirmationModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40"
+          role="dialog"
+          aria-modal="true"
+          tabIndex={-1}
+        >
+          <div className="bg-[#E2FFF1] border regular border-[#2CDD926f] text-[#402CDD] rounded-2xl shadow-xl p-6 w-[90vw] max-w-md flex flex-col items-center">
+            <div className="flex flex-col items-center w-full">
+              <span className="text-lg font-semibold mb-2 text-center">
+                {translateFunction("Confirm Country Change")}
+              </span>
+              <span className="text-sm  mb-4 text-center">
+                {translateFunction(
+                  "Are you sure you want to change your country?"
+                )}
+              </span>
+              <div className="flex flex-row items-center justify-between w-full mb-6">
+                <div className="flex flex-col items-center flex-1">
+                  <span className="text-xs  mb-1">
+                    {translateFunction("Current")}
+                  </span>
+                  <div className="flex items-center">
+                    <FlagIcon iso={selectedCountry?.iso} />
+                    <span className="ml-2 text-sm ">
+                      {selectedCountry?.name}
+                    </span>
+                  </div>
+                </div>
+                <span className="mx-4 text-xl ">→</span>
+                <div className="flex flex-col items-center flex-1">
+                  <span className="text-xs  mb-1">
+                    {translateFunction("New")}
+                  </span>
+                  <div className="flex items-center">
+                    <FlagIcon iso={pendingCountry?.iso} />
+                    <span className="ml-2 text-sm ">
+                      {pendingCountry?.name}
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <div className="flex w-full gap-4">
+                <button
+                  className="flex-1 py-2 rounded-lg bg-gray-200  text-gray-700  font-medium focus:outline-none focus:ring-2 focus:ring-gray-400"
+                  onClick={() => {
+                    setShowConfirmationModal(false);
+                    setPendingCountry(null);
+                  }}
+                  aria-label={translateFunction("Cancel")}
+                >
+                  {translateFunction("Cancel")}
+                </button>
+                <button
+                  className="flex-1 py-2 rounded-lg bg-primary text-[#402CDD] font-medium focus:outline-none focus:ring-2 focus:ring-primary"
+                  onClick={async () => {
+                    setShowConfirmationModal(false);
+                    if (pendingCountry) {
+                      await changeCountry(pendingCountry);
+                      setPendingCountry(null);
+                    }
+                  }}
+                  aria-label={translateFunction("Confirm")}
+                  autoFocus
+                >
+                  {translateFunction("Confirm")}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

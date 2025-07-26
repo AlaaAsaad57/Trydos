@@ -7,13 +7,16 @@ import CommentIcon from "./CommentIcon";
 import ThreePoints from "./ThreePoints";
 import ShareButton from "./ShareButton";
 import Skeleton from "react-loading-skeleton";
-import { translateFunction } from "utils/functions";
+import { RoundPrice, translateFunction } from "utils/functions";
 import home from "services/home";
 import auth from "services/auth";
 import { useAppStore } from "store";
 import { ProductOptionsPropsType } from "models/componentType/ProductOptionsPropsType";
 import { showErrorNotification } from "@/store/notifications/reducer";
 import { fetchData } from "utils/fetchData";
+import { GAevent } from "utils/gtag";
+import { GA_EVENT_NAMES, GA_GLOBAL_SCREEN } from "utils/GAEvents";
+import { REQUESTS_DATA } from "utils/Requests";
 
 function ProductOptions({
   activeOption,
@@ -25,19 +28,19 @@ function ProductOptions({
   shareAction,
   loading,
 }: ProductOptionsPropsType) {
-  const { editInfo, loaded, sharesCount, SelectedProduct } = useAppStore();
+  const { editInfo, currency, SelectedProduct } = useAppStore();
   const [isLiked, setLiked] = useState(false);
   const [likeLoading, setLoading] = useState(false);
-  console.log(SelectedProduct);
+
   const LikeProduct = async (bool) => {
     if (likeLoading) return;
     setLoading(true);
     if (bool) {
       editInfo({ likes: SelectedProduct?.likes + 1, is_liked: true });
       try {
-       let res =  await fetchData({
+        let res = await fetchData({
           url: "/product_likes/store",
-          reqTitle: "like For Product",
+          reqTitle: REQUESTS_DATA.LIKE_FOR_PRODUCT,
           method: "POST",
           server: "market",
           body: JSON.stringify({
@@ -47,16 +50,25 @@ function ProductOptions({
         });
         if (!res.success) {
           throw new Error(res.message);
-         }
-        // home.subscribeToTopic({
-        //   topic: `product_availability_${SelectedProduct?.id}`,
-        // });
-        // home.subscribeToTopic({
-        //   topic: `product_discount_${SelectedProduct?.id}`,
-        // });
-        // home.subscribeToTopic({
-        //   topic: `product_comment_${SelectedProduct?.id}`,
-        // });
+        }
+        GAevent({
+          action: GA_EVENT_NAMES.LIKE_ITEM,
+          params: {
+            user_ID: auth.UserID(),
+            item_id: product?.sku || product?.slug,
+            item_name: product?.name,
+            action: "like",
+            category: product?.category?.name,
+            brand: product?.brand?.name,
+            price: RoundPrice({
+              num: product?.offer_price,
+              rate: currency.exchange_rate,
+              returnNumber: true,
+            }),
+            screen_name: GA_GLOBAL_SCREEN.PRODUCT_SCREEN,
+            screen_path: window.location.pathname,
+          },
+        });
       } catch (error) {
         setLoading(false);
         editInfo({ likes: SelectedProduct?.likes, is_liked: true });
@@ -67,7 +79,7 @@ function ProductOptions({
       try {
         let res = await fetchData({
           url: "/product_likes/delete",
-          reqTitle: "unlike For Product",
+          reqTitle: REQUESTS_DATA.UNLIKE_PRODUCT,
           method: "POST",
           server: "market",
           body: JSON.stringify({
@@ -77,7 +89,25 @@ function ProductOptions({
         });
         if (!res.success) {
           throw new Error(res.message);
-         }
+        }
+        GAevent({
+          action: GA_EVENT_NAMES.LIKE_ITEM,
+          params: {
+            user_ID: auth.UserID(),
+            item_id: product?.sku || product?.slug,
+            item_name: product?.name,
+            action: "dislike",
+            category: product?.category?.name,
+            brand: product?.brand?.name,
+            price: RoundPrice({
+              num: product?.offer_price,
+              rate: currency.exchange_rate,
+              returnNumber: true,
+            }),
+            screen_name: GA_GLOBAL_SCREEN.PRODUCT_SCREEN,
+            screen_path: window.location.pathname,
+          },
+        });
         home.UnsubscripeFromTopic({
           topic: `product_availability_${SelectedProduct?.id}`,
         });
@@ -118,7 +148,7 @@ function ProductOptions({
           <div className="options-container" data-cy="InteraCtionBoX">
             <div
               className={`product-option-item ${
-                likeLoading && "opacity-80 scale-9"
+                likeLoading && "opacity-80 scale-90"
               } transition-all ${activeOption === "Like" && "active-option"}`}
               data-cy="LoveSymbol"
               onClick={() => {

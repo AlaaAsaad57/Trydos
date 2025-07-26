@@ -10,6 +10,7 @@ import { SendMessage } from "store/chat/actions";
 import { getUserChat, translateFunction } from "utils/functions";
 import { fetchData } from "utils/fetchData";
 import { COOKIE_NAMES, getCookie } from "utils/cookies/cookie-manager";
+import { REQUESTS_DATA } from "utils/Requests";
 
 export const FILE_SERVER = process.env.NEXT_PUBLIC_CHAT_BACKEND_URL;
 export const getUser = () => {
@@ -515,6 +516,7 @@ const uploadFile = async (file_name, file, onUploadProgress) => {
       server: "chat",
       method: "POST",
       body: formData,
+      reqTitle: REQUESTS_DATA.UPLOAD_CHAT_FILE,
     });
     // @ts-ignore
     if (!response.success) {
@@ -522,7 +524,7 @@ const uploadFile = async (file_name, file, onUploadProgress) => {
     }
     return response;
   } catch (err) {
-    console.error(err)
+    console.error(err);
     return null;
   }
 };

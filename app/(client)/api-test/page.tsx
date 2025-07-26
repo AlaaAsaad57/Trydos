@@ -92,6 +92,12 @@ export default function ApiTestPage() {
       server: "elastic",
     },
     {
+      name: "product meta",
+      url: "/web/product/product-meta/{slug}",
+      method: "GET",
+      server: "market",
+    },
+    {
       name: "Main Categories",
       url: "/api/home/mainCategories",
       method: "GET",

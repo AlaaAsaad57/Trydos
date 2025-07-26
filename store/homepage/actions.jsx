@@ -3,6 +3,9 @@ import Cookies from "js-cookie";
 import { changeAppLanguageServer, changeToken } from "./cachedActions";
 import { useAppStore } from "store";
 import { COOKIE_NAMES, getCookie } from "utils/cookies/cookie-manager";
+import { GAevent } from "utils/gtag";
+import { GA_EVENT_NAMES, GA_GLOBAL_SCREEN } from "utils/GAEvents";
+import auth from "services/auth";
 export const changeAppLanguage = (language) => {
   const { setAppLanguage } = useAppStore.getState();
   Cookies.set("language", language, {
@@ -36,6 +39,24 @@ export const SelectStory = (e) => {
     //   value: GA_CLICK_EVENT_VALUES.VIEW_STORY_BUTTON,
     // });
     StoryService.WatchStory(e.stories[0].id, e.id);
+    let url = window.location.pathname;
+
+    GAevent({
+      action: GA_EVENT_NAMES.VIEW_STORY,
+      params: {
+        user_ID: auth.UserID(),
+        story_id: e.stories[0].id,
+        item_id: e.stories[0].product_id,
+        item_name: e.stories[0].product_id,
+        story_type: e.stories[0].full_video_path ? "video" : "image",
+        link: e.stories[0]?.link,
+        product_link: Boolean(e.stories[0].product_id),
+        screen_name: url?.includes("/products")
+          ? GA_GLOBAL_SCREEN.PRODUCT_SCREEN
+          : GA_GLOBAL_SCREEN.HOME_SCREEN,
+        screen_path: url,
+      },
+    });
   }
   setSelectedStory(e);
 };

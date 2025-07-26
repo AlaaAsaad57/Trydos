@@ -10,6 +10,7 @@ import { useParams } from "next/navigation";
 import { useAppStore } from "store";
 import ChatPhoto from "./ChatPhoto";
 import { fetchData } from "utils/fetchData";
+import { REQUESTS_DATA } from "utils/Requests";
 function ChatHeader({
   chats,
   activeChat,
@@ -150,10 +151,10 @@ function ChatHeader({
                   body: JSON.stringify({ user_id: getUserChat()?.id }),
                   method: "POST",
                   server: "chat",
-                  reqTitle: "End Call",
+                  reqTitle: REQUESTS_DATA.END_CALL,
                 });
-               if (!res.success) {
-                 throw new Error(res.message);
+                if (!res.success) {
+                  throw new Error(res.message);
                 }
               } catch (err) {
                 console.error("End call failed", err);
