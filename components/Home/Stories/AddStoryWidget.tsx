@@ -131,6 +131,7 @@ const validateLink = (urlString: string) => {
     const parsed = new URL(url);
     const currentHost =
       typeof window !== "undefined" ? window.location.host : "";
+    console.log(parsed, currentHost);
     if (parsed.host !== currentHost) {
       return {
         valid: false,
@@ -139,12 +140,6 @@ const validateLink = (urlString: string) => {
         )} ${currentHost} ${translateFunction("are allowed.")}`,
       };
     }
-    // if (/coupon/i.test(urlString)) {
-    //   return {
-    //     valid: false,
-    //     error: `Links containing 'coupon' are not allowed: ${urlString}`,
-    //   };
-    // }
     return { valid: true, error: "" };
   } catch {
     return {

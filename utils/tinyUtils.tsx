@@ -252,7 +252,7 @@ export const ChatConroller = (payload) => {
     const { openChat, setChatOpen } = useAppStore.getState();
     if (payload) DisableScroll();
     else EnableScroll();
-    window.history.pushState({ isPopup: true }, "open Chat");
+    if (payload) window.history.pushState({ isPopup: true }, "open Chat");
     openChat(payload);
     setChatOpen(payload);
   } catch (error) {}
@@ -763,7 +763,7 @@ export const totalAmount = (arr) => {
  */
 export const pollinateInput = (value: string): string => {
   if (typeof value !== "string") return "";
-  let input = value.replace(/[<>,:!@#$%^&*()]/g, "");
+  let input = value.replace(/[<>,!@#$%^&*()]/g, "");
   if (input.length > 90) {
     input = input.slice(0, 90);
   }

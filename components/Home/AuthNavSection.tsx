@@ -50,7 +50,7 @@ function AuthNavSection({
             ChatConroller(true);
           } else {
             if (userData && userData?.phone !== "0") {
-              setShouldAuthinticated(true);
+              setShouldAuthinticated("open chat");
             } else {
               setLoginOpen(true);
             }

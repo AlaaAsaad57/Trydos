@@ -17,7 +17,7 @@ interface AuthState {
   failedLogin: boolean;
   attempts: number;
   wrongNumber: string;
-  shouldAuthinticated: any;
+  shouldAuthinticated: boolean | "open Story" | "open chat";
   verficationID: string | null;
   firebaseSettings: FirebaseSettings;
   userProfile: any | null;
@@ -48,7 +48,7 @@ export const useAuthStore = (set, get) => ({
   userStories: null,
   Tempuser: null,
   failedLogin: false,
-  shouldAuthinticated: false,
+  shouldAuthinticated: null,
   attempts: 4,
   wrongNumber: "",
 

@@ -6,10 +6,11 @@ import {
 } from "utils/cookies/cookie-manager";
 import React, { useEffect } from "react";
 import { useAppStore } from "store";
-import { DisableScroll, EnableScroll } from "utils/tinyUtils";
+import { ChatConroller, DisableScroll, EnableScroll } from "utils/tinyUtils";
 
 function ConfirmMobilePhoneWidget() {
-  const { setShouldAuthinticated } = useAppStore();
+  const { setShouldAuthinticated, shouldAuthinticated, setAddStory, openChat } =
+    useAppStore();
   useEffect(() => {
     DisableScroll();
 
@@ -72,6 +73,13 @@ function ConfirmMobilePhoneWidget() {
           hasMobile={userData.phone !== null && userData.phone !== 0}
           goToOrders={() => {
             // equal to success flag when goToOrders trigrred then it means the verification success
+            console.log(shouldAuthinticated);
+            if (shouldAuthinticated === "open Story") {
+              setAddStory(true);
+            }
+            if (shouldAuthinticated === "open chat") {
+              ChatConroller(true);
+            }
             setShouldAuthinticated(false);
           }}
         />
