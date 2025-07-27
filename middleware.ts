@@ -212,7 +212,9 @@ export async function middleware(request: NextRequest) {
   const response = NextResponse.next();
   if (referer) {
     const hostname = request.nextUrl.origin;
-
+    console.warn(
+      `****************************${referer}**************************************`
+    );
     // ⛔ Skip if referer is from same origin
     if (!referer.startsWith(hostname)) {
       response.cookies.set("referer", referer, {
