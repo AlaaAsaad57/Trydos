@@ -8,6 +8,7 @@ export interface OrderItemsListPropsType {
   };
   shouldShowChat: () => boolean;
   showChats: Function;
+  getOrderDetails: () => void;
 }
 export interface OrderItem {
   collect_product_after_ordering: boolean;
@@ -34,6 +35,8 @@ export interface OrderItem {
   tax: number;
   variant: string;
   variation: any;
+  comments: any;
+  is_returned: any;
 }
 
 export interface ProductDetails {

@@ -13,6 +13,8 @@ import {
 } from "./OrderStatusCartsIcon";
 import { GetImageUrl } from "utils/tinyUtils";
 import { OrderItemsListPropsType } from "models/componentType/settingTypes/OrderItemsListPropsType";
+import { useAppStore } from "store";
+import RatingOrderItem from "components/Orders/RatingOrderItem";
 
 function OrderItemsList({
   items,
@@ -21,7 +23,9 @@ function OrderItemsList({
   order_group_status,
   shouldShowChat,
   showChats,
+  getOrderDetails,
 }: OrderItemsListPropsType) {
+  const { ActivePacks } = useAppStore();
   const getStatusIcon = (status) => {
     if (status === "pending") return <PendingStatus />;
     if (status === "preparing") return <PreparingStatus />;
@@ -101,10 +105,36 @@ function OrderItemsList({
               </div>
               <span className=" regular">{product?.variation?.color}</span>
               <span>{product?.variation?.Size}</span>
-              <div className="flex-row mt-[4px]">
-                <RatingStars initialRating={1.5} onRatingChange={(e) => {}} />
-              </div>
+              <div className="flex-row mt-[4px]"></div>
             </div>
+            {!product.is_returned &&
+              ActivePacks?.order_status?.value === "delivered" && (
+                <RatingOrderItem
+                  refresh={() => {
+                    getOrderDetails();
+                  }}
+                  productId={product?.product_details.id}
+                  order_detail_id={product.id}
+                  initialRating={
+                    product.comments &&
+                    product.comments?.[product?.comments.length - 1]
+                      ?.star_rating
+                  }
+                  lastComment={
+                    product.comments &&
+                    product.comments?.[product?.comments.length - 1]?.comment
+                  }
+                  isRated={
+                    product.comments &&
+                    product.comments?.[product?.comments.length - 1]
+                      ?.star_rating
+                  }
+                  lastRatingId={
+                    product.comments &&
+                    product.comments?.[product?.comments.length - 1]?.id
+                  }
+                />
+              )}
           </div>
         ))}
       </div>

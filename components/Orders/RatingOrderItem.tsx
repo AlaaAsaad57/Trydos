@@ -1,7 +1,7 @@
 import RatingStars from "components/settings/cards/RatingStars";
 import React, { useState } from "react";
 import { translateFunction } from "utils/functions";
-import CommentIcon from "public/svg/CommentIcon.svg";
+
 import order from "services/order";
 import Spinner from "components/global/Spinner";
 
@@ -11,17 +11,19 @@ function RatingOrderItem({
   isRated,
   initialRating,
   lastRatingId = null,
+  lastComment = "",
   refresh,
 }) {
   const [rating, setRating] = useState(initialRating);
   const [loading, setLoading] = useState(false);
-  const [comment, setComment] = useState("");
+  const [comment, setComment] = useState(lastComment || "");
   const [ratedComplete, setRatedComplete] = useState(isRated);
   const [showCommentModal, setShowCommentModal] = useState(false);
   const inputRef = React.useRef(null);
 
   const rateOrder = async (e?) => {
     try {
+      setShowCommentModal(false);
       setLoading(true);
       await order.RateOrderWithhComment({
         comment: comment,
@@ -42,100 +44,66 @@ function RatingOrderItem({
 
   React.useEffect(() => {
     if (showCommentModal && inputRef.current) {
+      if (lastComment?.length > 0) {
+        inputRef.current.value = lastComment;
+      }
       inputRef.current.focus();
     }
   }, [showCommentModal]);
 
-  const handleOpenModal = () => {
-    if (!loading) setShowCommentModal(true);
-  };
-
   const handleCloseModal = () => {
-    if (!loading) setShowCommentModal(false);
+    if (loading) return;
+    setShowCommentModal(false);
+    setRating(initialRating);
   };
 
   const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && comment.trim()) {
-      rateOrder();
+      rateOrder(rating);
     }
   };
 
   const handleSubmit = () => {
     if (comment.trim()) {
-      rateOrder();
+      inputRef.current.focus();
+      rateOrder(rating);
     }
   };
-
+  const blurHandler = async () => {
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+    if (!loading) handleCloseModal();
+  };
   return (
-    <div
-      className={`${
-        loading && "opacity-75 scale-90"
-      } flex-col w-auto items-center justify-center z-40 absolute left-[116px] bottom-[12px]`}
-    >
-      <div className="flex-row items-center justify-center">
-        <RatingStars
-          readOnly={loading}
-          initialRating={initialRating}
-          onRatingChange={(e) => {
-            if (!loading) {
-              setRating(e);
-              rateOrder(e);
-            }
-          }}
-        />
-        <span className="ligth text-[15px] text-[#8D8D8D] mx-[12px] h-[15px] border-l border-[#8D8D8D80]"></span>
+    <>
+      {showCommentModal ? (
         <div
-          className="flex-row gap-[6px] items-center justify-center regular text-[10px] text-[#C4C2C2] cursor-pointer"
-          tabIndex={0}
-          aria-label="Add Comment"
-          onClick={handleOpenModal}
-          onKeyDown={(e) =>
-            (e.key === "Enter" || e.key === " ") && handleOpenModal()
-          }
-          role="button"
-        >
-          <span>
-            <CommentIcon />
-          </span>
-          <span>{translateFunction("Add Comment…")}</span>
-        </div>
-        <div className="flex-row mx-[4px]">{loading && <Spinner />}</div>
-      </div>
-      {/* Modal */}
-      {showCommentModal && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40"
+          className="absolute bottom-[-27px] shake left-0 max-w-[200px] z-50 flex items-center justify-center bg-transparent"
           aria-modal="true"
           role="dialog"
-          tabIndex={-1}
+          tabIndex={10}
           onClick={handleCloseModal}
         >
           <div
-            className="relative bg-white rounded-2xl shadow-xl p-6 w-[90vw] max-w-md flex flex-col gap-4"
+            className="relative bg-transparent rounded-2xl shadow-xl  w-[90vw] max-w-md flex flex-col "
             onClick={(e) => e.stopPropagation()}
           >
-            <label
-              htmlFor="comment-input"
-              className="mb-2 text-sm font-medium text-gray-700"
-            >
-              {translateFunction("Add your comment")}
-            </label>
             <div className="relative flex items-center">
               <input
                 id="comment-input"
                 ref={inputRef}
                 type="text"
                 value={comment}
+                onBlur={() => {
+                  blurHandler();
+                }}
                 onChange={(e) => setComment(e.target.value)}
                 onKeyDown={handleInputKeyDown}
                 className="w-full pr-12 pl-4 py-3 rounded-full border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-400 text-base text-gray-800 bg-gray-50 shadow-sm"
-                placeholder={translateFunction("Type your comment...")}
+                placeholder={translateFunction("Add your comment")}
                 aria-label="Comment input"
                 disabled={loading}
               />
-              {loading ? (
-                <Spinner />
-              ) : (
+              {
                 <button
                   type="button"
                   onClick={handleSubmit}
@@ -158,12 +126,32 @@ function RatingOrderItem({
                     />
                   </svg>
                 </button>
-              )}
+              }
             </div>
           </div>
         </div>
+      ) : (
+        <div className={` flex-col w-auto items-center justify-center z-40`}>
+          <div className="flex-row items-center justify-center">
+            {!loading ? (
+              <RatingStars
+                readOnly={loading}
+                initialRating={initialRating}
+                onRatingChange={(e) => {
+                  if (!loading) {
+                    setRating(e);
+                    setShowCommentModal(true);
+                  }
+                }}
+              />
+            ) : (
+              <Spinner />
+            )}
+          </div>
+          {/* Modal */}
+        </div>
       )}
-    </div>
+    </>
   );
 }
 

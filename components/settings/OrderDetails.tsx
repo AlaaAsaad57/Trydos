@@ -472,6 +472,9 @@ function OrderDetails({ resetOrderDetails, goBack }: OrderDetailsPropsType) {
             )}
             <div className="flex flex-col justify-start  w-full bg-[#F8F8F8] px-[12px] h-full relative">
               <OrderItemsList
+                getOrderDetails={() => {
+                  getOrderDetails();
+                }}
                 shouldShowChat={() => shouldShowChatIcon(ActivePacks)}
                 showChats={() => ShowChats()}
                 order_group_status={
@@ -821,28 +824,7 @@ const ProductCard = ({
             </div>
           </div>
         </NextLink>
-        {!product.is_returned &&
-          ActivePacks?.order_status?.value === "delivered" && (
-            <RatingOrderItem
-              refresh={() => {
-                getOrderDetails();
-              }}
-              productId={product?.product_details.id}
-              order_detail_id={product.id}
-              initialRating={
-                product.comments &&
-                product.comments?.[product?.comments.length - 1]?.star_rating
-              }
-              isRated={
-                product.comments &&
-                product.comments?.[product?.comments.length - 1]?.star_rating
-              }
-              lastRatingId={
-                product.comments &&
-                product.comments?.[product?.comments.length - 1]?.id
-              }
-            />
-          )}
+
         {product.is_returned && <OrderRetailsReturnInfo product={product} />}
       </div>
     </>

@@ -153,8 +153,6 @@ class HomeService {
         : { old_guest_user_id: null };
 
       try {
-        setIsRegisteringReady(false);
-
         let response = await fetchData({
           url: REGISTER_DEVICE_URL,
           body: JSON.stringify(requestBody),
@@ -326,7 +324,6 @@ class HomeService {
         : { old_guest_user_id: null };
 
       if (!deviceToken) {
-        setIsRegisteringReady(false);
         try {
           let response = await fetchData({
             url: REGISTER_DEVICE_URL,
