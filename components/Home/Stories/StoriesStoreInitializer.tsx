@@ -15,7 +15,6 @@ function StoriesStoreInitializer({
   useEffect(() => {
     // Only initialize after hydration and if we haven't already initialized
     if (
-      _hasHydrated &&
       !hasInitialized &&
       initialStories?.length > 0 &&
       (!storiesData || storiesData.length === 0)

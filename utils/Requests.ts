@@ -183,4 +183,5 @@ export const REQUESTS_DATA = {
   REPORT_STORY: { reqTitle: "REPORT_STORY", code: 123 },
   RATE_ORDER_DETAILS: { reqTitle: "RATE_ORDER_DETAILS", code: 124 },
   UPDATE_ORDER_RATE: { reqTitle: "UPDATE_ORDER_RATE", code: 125 },
+  UPLOAD_CLOUDINARY: { reqTitle: "UPLOAD_CLOUDINARY", code: 126 },
 };

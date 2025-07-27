@@ -95,7 +95,7 @@ class StoryService {
           method: "GET",
         });
         if (!res.success) {
-          throw new Error(res.message);
+          throw new Error(res?.message);
         }
       }
     } catch (e) {
@@ -110,12 +110,18 @@ class StoryService {
     // Fill in your own unsigned upload preset
     formData.append("file", file);
     formData.append("upload_preset", "v4h8xqns");
-    let response = await fetch(url, {
+
+    let response = await fetchData({
+      url: url,
       method: "POST",
       body: formData,
+      reqTitle: REQUESTS_DATA.UPLOAD_CLOUDINARY,
+      server: "upload story",
     });
-    let data = await response.json();
-    return data.url;
+    if (!response.success) {
+      throw new Error("");
+    }
+    return response.url;
   }
   async upload(
     file: File,
@@ -139,6 +145,7 @@ class StoryService {
           link: link,
         }),
       });
+
       // @ts-ignore
       if (!add_story_response.success) {
         // @ts-ignore
@@ -159,7 +166,7 @@ class StoryService {
         return add_story_response.data;
       } else throw new Error("Failed");
     } catch (error) {
-      console.error(error);
+      throw new Error(error?.message);
     }
   }
   async deleteStory(storyId: string | number) {

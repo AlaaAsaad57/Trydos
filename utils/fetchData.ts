@@ -19,7 +19,12 @@ import { reportError } from "./error-reporter";
 import { logRequest } from "./requestLoggerClient";
 
 // Types
-export type ServerType = "chat" | "market" | "stories" | "elastic";
+export type ServerType =
+  | "chat"
+  | "market"
+  | "stories"
+  | "elastic"
+  | "upload story";
 
 export type FetchMethod = "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
 
@@ -48,7 +53,8 @@ const getUrl = (server) => {
       return process.env.NEXT_PUBLIC_CHAT_BACKEND_URL;
     case "stories":
       return process.env.NEXT_PUBLIC_STORIES_BACKEND_URL;
-
+    case "upload story":
+      return "";
     default:
       break;
   }
@@ -106,6 +112,8 @@ const getToken = async (server: ServerType): Promise<string> => {
       return getStoriesToken();
     case "elastic":
       return "";
+    case "upload story":
+      return "";
     default:
       throw new Error(`Unknown server type: ${server}`);
   }
@@ -117,6 +125,8 @@ const handleUnauthorized = async (server: ServerType): Promise<boolean> => {
 
   try {
     switch (server) {
+      case "upload story":
+        return true;
       case "elastic":
         return true;
       case "market":
@@ -242,14 +252,17 @@ export const fetchData = async <T = any>(
       let FULL_URL = getUrl(server) + url;
       // Prepare request options
       const editedHeader = await getHeader();
-      const requestOptions: RequestInit = {
-        method,
-        headers: {
-          Authorization: `Bearer ${token}`,
-          ...editedHeader,
-        },
-        signal: params.signal,
-      };
+      const requestOptions: RequestInit =
+        server !== "upload story"
+          ? {
+              method,
+              headers: {
+                Authorization: `Bearer ${token}`,
+                ...editedHeader,
+              },
+              signal: params.signal,
+            }
+          : { method: method };
 
       // Add Content-Type header only if body is not FormData
       if (body && !(body instanceof FormData)) {
@@ -277,7 +290,7 @@ export const fetchData = async <T = any>(
           response: responseData,
           userId: String(auth.UserID?.() ?? ""),
           method,
-          body,
+          body: body?.toString() || "",
           timestamp: Date.now(),
         };
         logRequest(logObj as any);
@@ -377,7 +390,7 @@ export const fetchData = async <T = any>(
           response: responseData,
           userId: String(auth.UserID?.() ?? ""),
           method,
-          body,
+          body: body?.toString() || "",
           timestamp: Date.now(),
         };
         logRequest(logObj as any);
@@ -455,7 +468,7 @@ export const fetchData = async <T = any>(
           response: undefined,
           userId: String(auth.UserID?.() ?? ""),
           method,
-          body,
+          body: body?.toString() || "",
           timestamp: Date.now(),
         };
         logRequest(logObj as any);

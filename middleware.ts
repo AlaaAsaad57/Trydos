@@ -201,14 +201,13 @@ function setLocaleCookies(
 
 // Main middleware function
 export async function middleware(request: NextRequest) {
-  const referer = request.headers.get("referer");
-
   const isBotAgent = isBot(request.headers.get("user-agent"));
   const url = request.nextUrl.clone();
   const pathname = url.pathname;
   const urlLocale = parseUrlLocale(pathname);
   const supportedCountries = await getCachedCountries();
   const allSupportedCountries = [...supportedCountries, "gb"];
+  const referer = request.headers.get("referer");
   const response = NextResponse.next();
   if (referer) {
     const hostname = request.nextUrl.origin;
