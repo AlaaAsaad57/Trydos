@@ -21,7 +21,6 @@ import { useParams, useRouter, useSearchParams } from "next/navigation";
 import OrderStatusCartsIcon from "./cards/OrderStatusCartsIcon";
 import OrderStatusIcon from "./cards/OrderStatusIcon";
 import RateOrderButton from "./cards/RateOrderButton";
-import Spinner from "components/global/Spinner";
 import order from "services/order";
 import OrderChatIcon from "./OrderChatIcon";
 import { Channel } from "models/Genaral/Channel";
@@ -32,7 +31,6 @@ const ChatWidget = dynamic(() => import("components/Chat/ChatWidget"), {
 });
 import OptionsIcon from "public/svg/OptionsIcon.svg";
 import OrderRetailsReturnInfo from "components/Orders/OrderRetailsReturnInfo";
-import RatingOrderItem from "components/Orders/RatingOrderItem";
 import CanceledOrderStatusIcon from "public/svg/CanceledOrderStatusIcon.svg";
 import {
   DisableScroll,

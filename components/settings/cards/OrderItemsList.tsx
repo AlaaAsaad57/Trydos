@@ -96,7 +96,7 @@ function OrderItemsList({
                 }}
               />
             </NextLink>
-            <div className="flex-col text-[10px] regular text-[#1d1d1d] absolute bottom-[-69px] items-center left-0 right-0 mx-[0_auto]">
+            <div className="flex-col text-[10px] regular text-[#1d1d1d]  items-center left-0 right-0 mx-[0_auto]">
               <div className="flex flex-row">
                 <span className="origin-top-left scale-[0.75]">
                   {getStatusIcon(order_group_status?.value?.toLowerCase())}
@@ -108,6 +108,7 @@ function OrderItemsList({
               <div className="flex-row mt-[4px]"></div>
             </div>
             {!product.is_returned &&
+              product.delivery_status === "delivered" &&
               ActivePacks?.order_status?.value === "delivered" && (
                 <RatingOrderItem
                   refresh={() => {

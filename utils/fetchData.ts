@@ -98,7 +98,8 @@ const getToken = async (server: ServerType): Promise<string> => {
   }
 };
 
-const getHeader = async () => {
+const getHeader = async (server = null) => {
+  if (server) return null;
   const [country, lang] = (window.location.pathname.split("/")[1] || "").split(
     "-"
   );
@@ -252,13 +253,13 @@ export const fetchData = async <T = any>(
     }
     try {
       const token = await getToken(server);
-      const headers = await getHeader();
+      const headers = await getHeader(server === "upload story");
       const fullUrl = getServerBaseUrl(server) + url;
 
       const requestOptions: RequestInit = {
         method,
         headers: {
-          Authorization: `Bearer ${token}`,
+          ...(token?.length > 0 ? { Authorization: `Bearer ${token}` } : {}),
           ...headers,
         },
         signal,
@@ -288,7 +289,7 @@ export const fetchData = async <T = any>(
           response: responseData,
           userId: String(auth.UserID?.() ?? ""),
           method,
-          body,
+          body: body?.toString(),
           timestamp: Date.now(),
         });
 
@@ -344,7 +345,7 @@ export const fetchData = async <T = any>(
         response: responseData,
         userId: String(auth.UserID?.() ?? ""),
         method,
-        body,
+        body: body?.toString(),
         timestamp: Date.now(),
       });
 
@@ -402,7 +403,7 @@ export const fetchData = async <T = any>(
         response: undefined,
         userId: String(auth.UserID?.() ?? ""),
         method,
-        body,
+        body: body?.toString(),
         timestamp: Date.now(),
       });
 
