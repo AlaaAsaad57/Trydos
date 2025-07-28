@@ -1,5 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
 import { fetchProductWithoutRelated } from "Server Requests";
+const allowedOrigin = process.env.CORS_ORIGIN || "*"; // fallback for testing
+
+function withCORS(response: NextResponse) {
+  response.headers.set("Access-Control-Allow-Origin", allowedOrigin);
+  response.headers.set(
+    "Access-Control-Allow-Methods",
+    "GET, POST, DELETE, OPTIONS"
+  );
+  response.headers.set(
+    "Access-Control-Allow-Headers",
+    "Content-Type, Authorization"
+  );
+  return response;
+}
+
+// Handle preflight requests
+export async function OPTIONS() {
+  return withCORS(new NextResponse(null, { status: 204 }));
+}
+
 export async function GET(
   request: NextRequest,
   { params }: { params: { slug: string } }
