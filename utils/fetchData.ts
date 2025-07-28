@@ -89,8 +89,10 @@ const getToken = async (server: ServerType): Promise<string> => {
       );
     case "stories":
       return getCookie<UserData>(COOKIE_NAMES.USER_STORIES)?.access_token || "";
+    case "upload story":
     case "elastic":
       return "";
+
     default:
       throw new Error(`Unknown server type: ${server}`);
   }
