@@ -34,7 +34,13 @@ function OrderItemsList({
     return <PendingStatus />;
   };
   const { lang } = useParams();
-
+  const isDelevired = (item) => {
+    return (
+      !item.is_returned &&
+      item.delivery_status === "delivered" &&
+      ActivePacks?.order_status?.value === "delivered"
+    );
+  };
   return (
     <div className="w-full flex-col">
       <div
@@ -96,46 +102,53 @@ function OrderItemsList({
                 }}
               />
             </NextLink>
-            <div className="flex-col text-[10px] regular text-[#1d1d1d]  items-center left-0 right-0 mx-[0_auto]">
+            <div className="flex-col text-[10px] regular text-[#1d1d1d]  items-center left-0 right-0 mx-[0_auto] mt-[4px]">
               <div className="flex flex-row">
                 <span className="origin-top-left scale-[0.75]">
                   {getStatusIcon(order_group_status?.value?.toLowerCase())}
                 </span>
-                <OrderStatusIcon status={order_group_status?.value} />
+
+                {!isDelevired(product) && (
+                  <OrderStatusIcon status={order_group_status?.value} />
+                )}
               </div>
-              <span className=" regular">{product?.variation?.color}</span>
-              <span>{product?.variation?.Size}</span>
+              {!isDelevired(product) ? (
+                <>
+                  <span className=" regular">{product?.variation?.color}</span>
+                  <span>{product?.variation?.Size}</span>
+                </>
+              ) : (
+                <span className="capitalize">
+                  {translateFunction("delivered")}
+                </span>
+              )}
               <div className="flex-row mt-[4px]"></div>
             </div>
-            {!product.is_returned &&
-              product.delivery_status === "delivered" &&
-              ActivePacks?.order_status?.value === "delivered" && (
-                <RatingOrderItem
-                  refresh={() => {
-                    getOrderDetails();
-                  }}
-                  productId={product?.product_details.id}
-                  order_detail_id={product.id}
-                  initialRating={
-                    product.comments &&
-                    product.comments?.[product?.comments.length - 1]
-                      ?.star_rating
-                  }
-                  lastComment={
-                    product.comments &&
-                    product.comments?.[product?.comments.length - 1]?.comment
-                  }
-                  isRated={
-                    product.comments &&
-                    product.comments?.[product?.comments.length - 1]
-                      ?.star_rating
-                  }
-                  lastRatingId={
-                    product.comments &&
-                    product.comments?.[product?.comments.length - 1]?.id
-                  }
-                />
-              )}
+            {isDelevired(product) && (
+              <RatingOrderItem
+                refresh={() => {
+                  getOrderDetails();
+                }}
+                productId={product?.product_details.id}
+                order_detail_id={product.id}
+                initialRating={
+                  product.comments &&
+                  product.comments?.[product?.comments.length - 1]?.star_rating
+                }
+                lastComment={
+                  product.comments &&
+                  product.comments?.[product?.comments.length - 1]?.comment
+                }
+                isRated={
+                  product.comments &&
+                  product.comments?.[product?.comments.length - 1]?.star_rating
+                }
+                lastRatingId={
+                  product.comments &&
+                  product.comments?.[product?.comments.length - 1]?.id
+                }
+              />
+            )}
           </div>
         ))}
       </div>
