@@ -120,6 +120,7 @@ const Menu: React.FC<MenuProps> = ({ user, setMenuOpen }) => {
     try {
       await deleteToken(messaging);
     } catch (error) {}
+    await new Promise((resolve) => setTimeout(resolve, 2000));
     window.location.reload();
   };
   const shouldShowLogout = () => {
