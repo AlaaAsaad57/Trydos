@@ -83,13 +83,20 @@ function ShareOptions({
       console.error(err);
     }
   };
+  const generateUrlForSharing = (app) => {
+    let searchParams = new URLSearchParams(window.location.search);
+    searchParams.set("utm_source", app);
+    return `${window.location.origin}${
+      window.location.pathname
+    }?${searchParams.toString()}`;
+  };
   return (
     <div className="share-options">
       <div className={`share-avatar`}>
         <div className="share-image social shadow-none">
           <FacebookShareButton
             data-cy="Facebook"
-            url={window.location.href}
+            url={generateUrlForSharing("facebook")}
             beforeOnClick={() => {
               // Sendevent({
               //   event: GA_EVENT_NAMES.CLICK,
@@ -113,8 +120,8 @@ function ShareOptions({
               // });
               shareSocial("Twitter");
             }}
-            url={window.location.href}
-            title={window.location.href}
+            url={generateUrlForSharing("X")}
+            title={generateUrlForSharing("X")}
           >
             <TwitterIcon size={70} borderRadius={20} />
           </TwitterShareButton>
@@ -131,7 +138,7 @@ function ShareOptions({
               // });
               shareSocial("WhatsApp");
             }}
-            url={window.location.href}
+            url={generateUrlForSharing("whatsapp")}
           >
             <WhatsappIcon size={70} borderRadius={20} />
           </WhatsappShareButton>
@@ -148,7 +155,7 @@ function ShareOptions({
               // });
               shareSocial("Telegram");
             }}
-            url={window.location.href}
+            url={generateUrlForSharing("Telegram")}
           >
             <TelegramIcon size={70} borderRadius={20} />
           </TelegramShareButton>
@@ -165,7 +172,9 @@ function ShareOptions({
               // });
               shareSocial("email");
             }}
-            href={`https://mail.google.com/mail/?view=cm&fs=1&su=Check%20this%20out&body=${product?.name} %0A ${window.location.href}`}
+            href={`https://mail.google.com/mail/?view=cm&fs=1&su=Check%20this%20out&body=${
+              product?.name
+            } %0A ${generateUrlForSharing("email")}`}
             target="_blank"
           >
             <EmailIcon size={70} borderRadius={20} />

@@ -781,14 +781,14 @@ export function getReferralSource(referer: string | null): string {
 
   const url = referer.toLowerCase();
 
-  if (url.includes("facebook.com")) return "facebook";
-  if (url.includes("instagram.com")) return "instagram";
-  if (url.includes("twitter.com") || url.includes("x.com")) return "twitter";
+  if (url.includes("facebook")) return "facebook";
+  if (url.includes("instagram")) return "instagram";
+  if (url.includes("twitter") || url.includes("x")) return "twitter/X";
   if (url.includes("t.co")) return "twitter-shortlink";
-  if (url.includes("whatsapp.com")) return "whatsapp";
-  if (url.includes("linkedin.com")) return "linkedin";
-  if (url.includes("tiktok.com")) return "tiktok";
-  if (url.includes("snapchat.com")) return "snapchat";
+  if (url.includes("whatsapp")) return "whatsapp";
+  if (url.includes("linkedin")) return "linkedin";
+  if (url.includes("tiktok")) return "tiktok";
+  if (url.includes("snapchat")) return "snapchat";
 
   return "other";
 }

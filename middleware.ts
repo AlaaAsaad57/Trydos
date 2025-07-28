@@ -208,18 +208,24 @@ export async function middleware(request: NextRequest) {
   const supportedCountries = await getCachedCountries();
   const allSupportedCountries = [...supportedCountries, "gb"];
   const referer = request.headers.get("referer");
+  let utm_source = url.searchParams.get("utm_source");
   const response = NextResponse.next();
-  if (referer) {
-    const hostname = request.nextUrl.origin;
-    console.warn(
-      `****************************${referer}**************************************`
-    );
-    // ⛔ Skip if referer is from same origin
-    if (!referer.startsWith(hostname)) {
+  if (referer || utm_source) {
+    if (utm_source) {
       response.cookies.set("referer", referer, {
         ...COOKIE_OPTIONS,
         httpOnly: false,
       });
+      url.searchParams.delete("utm_source");
+    } else {
+      const hostname = request.nextUrl.origin;
+      // ⛔ Skip if referer is from same origin
+      if (!referer.startsWith(hostname)) {
+        response.cookies.set("referer", referer, {
+          ...COOKIE_OPTIONS,
+          httpOnly: false,
+        });
+      }
     }
   }
   // Build supported locales
