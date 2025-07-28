@@ -22,13 +22,20 @@ function BuyButton({
   const translate = (key, lang) => {
     return translateFunction(key, languageVariable);
   };
-
+  const showOrangeFont = () => {
+    if (shouldShowRedeem) return "text-[#FF6200]";
+    if (
+      flash_deal_price >= 0 &&
+      flash_deal_price !== undefined &&
+      flash_deal_price !== null
+    )
+      return "text-[#FF6200]";
+    else return "text-[#414141]";
+  };
   return (
     <>
       <div
-        className={`buy-button pb-[10px]  ${
-          !shouldShowRedeem ? "text-[#414141]" : "text-[#FF6200]"
-        } light-text flex-col align-start justify-end cursor-pointer absolute z-[50] bottom-0 right-[0px] pr-[10px] h-[40px] items-center`}
+        className={`buy-button pb-[10px]  ${showOrangeFont()} light-text flex-col align-start justify-end cursor-pointer absolute z-[50] bottom-0 right-[0px] pr-[10px] h-[40px] items-center`}
         data-cy="buy-button"
         onClick={(e) => {
           e.preventDefault();
@@ -49,7 +56,10 @@ function BuyButton({
             <span>
               {translate("Buy", LocalizationServiceClass.GetAppLanguage())}
             </span>
-            {shouldShowRedeem || Boolean(flash_deal_price) ? (
+            {shouldShowRedeem ||
+            (flash_deal_price >= 0 &&
+              flash_deal_price !== undefined &&
+              flash_deal_price !== null) ? (
               <div className="flex-row flex gap-[2px] items-center">
                 <span
                   className="text-[10px] pt-[2px] flex align-start bold"

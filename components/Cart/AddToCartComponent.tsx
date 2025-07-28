@@ -10,15 +10,12 @@ import {
 } from "utils/functions";
 import { useAppStore } from "store";
 import CartIcon from "public/svg/CartIcon.svg";
-
 import Skeleton from "react-loading-skeleton";
 import "public/styles/sizeSlider.css";
 import Spinner from "components/global/Spinner";
 import { useParams, useSearchParams } from "next/navigation";
-
 import NotifySVG from "public/svg/cart/NotifyCart.svg";
 import cart from "services/cart";
-
 import auth from "services/auth";
 import home from "services/home";
 import { SliderRuler } from "./SliderRuler";
@@ -64,6 +61,7 @@ function AddToCartComponent({
       getProductData();
     }
   }, [product?.shouldUpdate]);
+
   const getProductData = async () => {
     try {
       setLoading(true);
@@ -290,9 +288,9 @@ function AddToCartComponent({
               redeem_price:
                 selected_variant?.redeem_price ?? product?.redeem_price,
             }
-          : product?.flash_deal_price !== null
+          : product?.flash_deal_end_date !== null
           ? {
-              flash_deal_price: product?.flash_deal_price,
+              flash_deal_price: product?.offer_price,
             }
           : {}),
       };
@@ -303,7 +301,7 @@ function AddToCartComponent({
         price: ProductData?.price,
         offer_price: ProductData?.offer_price,
         redeem_price: ProductData?.redeem_price,
-        flash_deal_price: ProductData?.flash_deal_price,
+        flash_deal_price: ProductData?.offer_price,
         qty: ProductData?.available_quantity,
         variant_notify_for_user: ProductData?.is_product_notify_for_user,
       };
@@ -394,7 +392,7 @@ function AddToCartComponent({
         </>
       );
     }
-    if (product?.flash_deal_end_date && product?.flash_deal_price !== null) {
+    if (product?.flash_deal_end_date) {
       return (
         <>
           {currency?.symbol &&
@@ -465,7 +463,6 @@ function AddToCartComponent({
           </div>
           <div className="product-new-price">
             {getSelectedVariantQty()?.flash_deal_price >= 0 &&
-            getSelectedVariantQty()?.flash_deal_price !== null &&
             currency?.symbol ? (
               <>
                 {RoundPrice({
@@ -657,13 +654,13 @@ function AddToCartComponent({
         </span>
       </div>
       <div
-        className="flex flex-col justify-between h-[100dvh]"
+        className="flex flex-col justify-between h-[100dvh] max-w-full"
         style={{ height: "100vh" }}
       >
         <div
           data-cy="image_when_addtocart"
-          style={{ height: "calc(100vh - 461px)" }}
-          className="flex-col mt-[10px] w-full h-[calc(100dvh-461px)]   top-[103px] items-center z-[999999999]"
+          style={{ height: "calc(100dvh - 462px)" }}
+          className="flex-col mt-[10px] w-full h-[calc(100dvh-462px)]   top-[103px] items-center z-[999999999]"
           onClick={(e) => {
             if (
               !(e.target as HTMLDivElement).classList.contains(
@@ -679,7 +676,8 @@ function AddToCartComponent({
         >
           <div
             data-cy="image_when_addtocart_container"
-            className="flex-row w-auto justify-center h-available relative rounded-[15px] inset-select-shadow-image image-cart-container"
+            className="flex-row w-auto justify-center h-[calc(100dvh-518px)]  relative rounded-[15px] inset-select-shadow-image image-cart-container"
+            style={{ height: "calc(100vh - 518px)" }}
           >
             <svg
               data-cy="image_when_addtocart_svg"
