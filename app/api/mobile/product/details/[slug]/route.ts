@@ -1,74 +1,61 @@
 import { NextRequest, NextResponse } from "next/server";
 import { fetchProductDetailsForMobile } from "Server Requests";
-const allowedOrigin = process.env.CORS_ORIGIN || "*"; // fallback for testing
 
-function withCORS(response: NextResponse) {
-  response.headers.set("Access-Control-Allow-Origin", allowedOrigin);
-  response.headers.set(
+// Helper to add CORS + no-cache headers
+function withCORS(res: NextResponse) {
+  res.headers.set("Access-Control-Allow-Origin", "*");
+  res.headers.set(
     "Access-Control-Allow-Methods",
-    "GET, POST, DELETE, OPTIONS"
+    "GET, POST, PUT, DELETE, OPTIONS"
   );
-  response.headers.set(
+  res.headers.set(
     "Access-Control-Allow-Headers",
     "Content-Type, Authorization"
   );
-  return response;
+  res.headers.set(
+    "Cache-Control",
+    "no-store, no-cache, must-revalidate, proxy-revalidate"
+  );
+  res.headers.set("Pragma", "no-cache");
+  res.headers.set("Expires", "0");
+  res.headers.set("Surrogate-Control", "no-store");
+  return res;
 }
 
-// Handle preflight requests
+// Preflight handler
 export async function OPTIONS() {
   return withCORS(new NextResponse(null, { status: 204 }));
 }
 
+// GET handler
 export async function GET(
   request: NextRequest,
   { params }: { params: { slug: string } }
 ) {
-  let language = request.headers.get("lang") || "en";
-  let country = request.headers.get("country") || "tr";
+  const language = request.headers.get("lang") || "en";
+  const country = request.headers.get("country") || "tr";
+
   try {
-    let response = await fetchProductDetailsForMobile(
+    const response = await fetchProductDetailsForMobile(
       params.slug,
       language,
       country
     );
 
-    return NextResponse.json(
-      { ...response },
-      {
-        status: response.code ?? response.status,
-        headers: {
-          "Access-Control-Allow-Origin": "*",
-          "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-          "Access-Control-Allow-Headers": "Content-Type, Authorization",
-
-          // 🚫 No cache headers:
-          "Cache-Control":
-            "no-store, no-cache, must-revalidate, proxy-revalidate",
-          Pragma: "no-cache",
-          Expires: "0",
-          "Surrogate-Control": "no-store",
-        },
-      }
+    return withCORS(
+      NextResponse.json(
+        { ...response },
+        { status: response.code ?? response.status }
+      )
     );
   } catch (error) {
-    return NextResponse.json(
-      { isSuccessful: false, error, code: 500 },
-      {
-        status: 500,
-        headers: {
-          "Access-Control-Allow-Origin": "*",
-          "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-          "Access-Control-Allow-Headers": "Content-Type, Authorization",
+    console.error("***** fetch failed *****", error);
 
-          // 🚫 No cache headers on error too:
-          "Cache-Control":
-            "no-store, no-cache, must-revalidate, proxy-revalidate",
-          Pragma: "no-cache",
-          Expires: "0",
-          "Surrogate-Control": "no-store",
-        },
-      }
+    return withCORS(
+      NextResponse.json(
+        { isSuccessful: false, error, code: 500 },
+        { status: 500 }
+      )
     );
   }
 }
