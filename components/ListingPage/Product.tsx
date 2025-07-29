@@ -58,7 +58,6 @@ export const BuyButtonProduct = ({
   };
 
   const RenderPrice = () => {
-    console.log(product?.flash_deal_price);
     if (product?.flash_deal_price >= 0 && product?.flash_deal_price !== null) {
       if (product.offer_price >= 0 && product.offer_price !== product.price) {
         return (

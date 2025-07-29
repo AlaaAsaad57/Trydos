@@ -128,18 +128,17 @@ const validateLink = (urlString: string) => {
       urlString.startsWith("http://") || urlString.startsWith("https://")
         ? urlString
         : `https://${urlString}`;
-    const parsed = new URL(url);
-    const currentHost =
-      typeof window !== "undefined" ? window.location.host : "";
-    console.log(parsed, currentHost);
-    if (parsed.host !== currentHost) {
+    if (url?.split(".")?.length < 2) {
       return {
         valid: false,
-        error: `${translateFunction(
-          "Only links from"
-        )} ${currentHost} ${translateFunction("are allowed.")}`,
+        error: translateFunction(
+          "Please enter a valid URL (e.g., example.com or www.example.com)"
+        ),
       };
     }
+
+    const parsed = new URL(url);
+    console.log(parsed);
     return { valid: true, error: "" };
   } catch {
     return {
