@@ -399,6 +399,7 @@ class OrderService {
   }
   async getReturnReasons() {
     try {
+      console.log(REQUESTS_DATA.RETURN_REASONS);
       let response = await fetchData({
         url: `/customer/order/return_requests/reasons`,
         reqTitle: REQUESTS_DATA.RETURN_REASONS,
@@ -410,7 +411,43 @@ class OrderService {
       } else {
         throw new Error(response.message);
       }
+    } catch (error) {
+      console.error(error);
+    }
+  }
+  async CreateReturnRequest({ order_id }) {
+    try {
+      let resp = await fetchData({
+        url: `/customer/order/return_requests/store?order_id=${order_id}&is_for_exchange=0&is_draft=1`,
+        reqTitle: REQUESTS_DATA.CREAT_RETURN_REQ,
+        method: "GET",
+        server: "market",
+      });
+      return resp?.data?.return_request_id;
     } catch (error) {}
+  }
+  async UploadImageForOrderReturn({ image }) {
+    let formData = new FormData();
+    formData.append("image", image);
+    formData.append("path", "return_request_products/");
+
+    try {
+      let response = await fetchData({
+        url: "/storage/storage-upload",
+        body: formData,
+        reqTitle: REQUESTS_DATA.UPDATE_PROFILE_IMAGE,
+        method: "POST",
+        server: "market",
+      });
+      // @ts-ignore
+      if (!response.success) {
+        throw new Error(response.message);
+      }
+      return response?.data;
+    } catch (err) {
+      console.error(err);
+      return null;
+    }
   }
   async ReturnProduct({
     product_id,
@@ -418,17 +455,14 @@ class OrderService {
     reason_id,
     quantity,
     images,
+    order_id,
     return_request_reason_id,
   }) {
-    console.log({
-      product_id,
-      order_detail_id,
-      reason_id,
-      quantity,
-      images,
-      return_request_reason_id,
-    });
-    await new Promise((resolve) => setTimeout(resolve, 3000));
+    let return_req = return_request_reason_id;
+    if (!return_request_reason_id) {
+      return_req = await this.CreateReturnRequest({ order_id: order_id });
+    }
+
     try {
       let response = await fetchData({
         url: `/customer/order/return_request_products/store`,
@@ -438,11 +472,11 @@ class OrderService {
         body: JSON.stringify({
           product_id,
           order_detail_id,
-          reason_id,
           quantity,
+          return_request_id: return_req,
           images,
-          return_request_reason_id,
-          is_for_exchange: true,
+          return_request_reason_id: reason_id?.id,
+          is_for_exchange: 0,
           details: "",
         }),
       });
@@ -451,6 +485,7 @@ class OrderService {
       } else {
         throw new Error(response.message);
       }
+      return;
     } catch (error) {}
   }
   async CancelReturn({ return_request_product_id }) {
@@ -467,6 +502,20 @@ class OrderService {
         throw new Error(response.message);
       }
     } catch (error) {}
+  }
+  async getReturnRequestDetails({ order_id }) {
+    try {
+      let req = await this.CreateReturnRequest({ order_id: order_id });
+      let response = await fetchData({
+        url: `/customer/order/return_requests/order_details?return_request_id=${req}`,
+        reqTitle: REQUESTS_DATA.CANCEL_RETURN_PRODUCT,
+        method: "GET",
+        server: "market",
+      });
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
   }
 }
 export default new OrderService();

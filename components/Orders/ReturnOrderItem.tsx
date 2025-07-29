@@ -20,22 +20,14 @@ function ReturnOrderItem({
   setShouldConfirmReturn,
 }: ReturnOrderItemPropsType) {
   const { currency } = useAppStore();
-  const [options, setOptions] = useState([
-    "I Didn't Like",
-    "Bad Quality",
-    "It Arrived Damaged",
-    "I Received A Different Product",
-    "Different Color",
-    "Different Sizes",
-    "Completely Different",
-  ]);
-  const [selectedOptions, setSelectedOptions] = useState([]);
+  const [options, setOptions] = useState([]);
+  const [selectedOptions, setSelectedOptions] = useState(null);
 
   const handleOptionClick = (option) => {
-    if (selectedOptions.includes(option)) {
-      setSelectedOptions(selectedOptions.filter((o) => o !== option));
+    if (selectedOptions?.id === option.id) {
+      setSelectedOptions(null);
     } else {
-      setSelectedOptions([...selectedOptions, option]);
+      setSelectedOptions(option);
     }
   };
   const [images, setImages] = useState<string[]>([]);
@@ -44,8 +36,7 @@ function ReturnOrderItem({
     try {
       setLoading(true);
       let response = await order.getReturnReasons();
-      console.log(response);
-      // setOptions()
+      setOptions(response.data.return_reasons);
       setLoading(false);
     } catch (error) {
       setLoading(false);
@@ -117,26 +108,27 @@ function ReturnOrderItem({
         ) : (
           options.map((option, index) => (
             <div
-              key={option}
+              key={option?.id}
               className={`px-[12px] w-auto regular text-[12px] text-[#5D5C5D] flex-row h-[39px] justify-start items-center rounded-[12px] bg-[#F8F8F8] `}
               style={{
                 flex: "0 1 auto",
-                border: selectedOptions.includes(option)
-                  ? "1px solid #402CDD80"
-                  : "none",
+                border:
+                  selectedOptions?.id === option.id
+                    ? "1px solid #402CDD80"
+                    : "none",
               }}
               onClick={() => {
                 handleOptionClick(option);
               }}
             >
               <span className="regular text-[12px] text-[#8D8D8D]">
-                {translateFunction(option)}
+                {option.reason_ae_en}
               </span>
             </div>
           ))
         )}
       </div>
-      {selectedOptions?.length > 0 && (
+      {selectedOptions && (
         <>
           <span className="border-[#C4C2C280] border-b-[1px] w-full mt-[12px]" />
           <UploadImageComponent images={images} setImages={setImages} />
@@ -145,12 +137,10 @@ function ReturnOrderItem({
       <div className="flex-row px-[24px] w-full mt-[15px]">
         <div
           className={`w-full h-[53px] items-center justify-center  flex cursor-pointer ${
-            selectedOptions.length === 0 || images.length === 0
-              ? "bg-[#D3D3D3] "
-              : "bg-[#402CDD] "
+            !selectedOptions ? "bg-[#D3D3D3] " : "bg-[#402CDD] "
           } rounded-[20px] text-[16px] text-[#fff] medium`}
           onClick={() => {
-            if (selectedOptions.length === 0 || images.length === 0) {
+            if (!selectedOptions) {
               backToMain();
             } else {
               setShouldConfirmReturn({
@@ -168,7 +158,7 @@ function ReturnOrderItem({
             }
           }}
         >
-          {selectedOptions.length === 0 || images.length === 0
+          {!selectedOptions
             ? translateFunction("Close")
             : translateFunction("Return Request")}
         </div>
@@ -195,12 +185,9 @@ export const UploadImageComponent = ({ images, setImages }) => {
         //   body: formData,
         // });
         // const data = await response.json();
-        await new Promise((resolve) => setTimeout(resolve, 2000));
-        const blob = new Blob([file], { type: file.type });
-        const data = {
-          url: URL.createObjectURL(blob),
-        };
-        setImages([...images, data.url]);
+        let data = await order.UploadImageForOrderReturn({ image: file });
+        console.log(data);
+        // setImages([...images, data.url]);
         setLoading(false);
         if (document.body.contains(input)) {
           document.body.removeChild(input);
@@ -281,16 +268,19 @@ const OptionsSkeleton = () => {
   return (
     <>
       {Array.from({ length: 7 }).map((s, i) => (
-        <Skeleton
-          key={i}
-          width={70}
-          height={40}
-          borderRadius={12}
-          className={`px-[12px] w-auto regular text-[12px] text-[#5D5C5D] flex-row h-[39px] justify-start items-center rounded-[12px]  `}
-          style={{
-            flex: "0 1 auto",
-          }}
-        ></Skeleton>
+        <div
+          className={`px-[12px] w-[70px] max-w-[70px] regular text-[12px] text-[#5D5C5D] flex-row h-[39px] justify-start items-center rounded-[12px]  `}
+        >
+          <Skeleton
+            key={i}
+            width={70}
+            height={40}
+            borderRadius={12}
+            style={{
+              flex: "0 1 auto",
+            }}
+          ></Skeleton>
+        </div>
       ))}
     </>
   );

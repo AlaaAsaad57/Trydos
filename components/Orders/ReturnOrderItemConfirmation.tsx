@@ -5,6 +5,7 @@ import OrderCancelTermsIcon from "public/svg/OrderCancelTerms.svg";
 import { ReturnOrderItemConfirmationPropsType } from "models/componentType/ReturnOrderItemConfirmationPropsType";
 import order from "services/order";
 import Spinner from "components/global/Spinner";
+import { useAppStore } from "store";
 
 function ReturnOrderItemConfirmation({
   close,
@@ -12,7 +13,8 @@ function ReturnOrderItemConfirmation({
   confirmationData,
   callback,
 }: ReturnOrderItemConfirmationPropsType) {
-  alert("ReturnOrderItemConfirmation");
+  const { ActivePacks } = useAppStore();
+
   const [loading, setLoading] = useState(false);
   const ReturnRequest = async () => {
     try {
@@ -23,9 +25,12 @@ function ReturnOrderItemConfirmation({
         product_id: confirmationData.item.product_id,
         quantity: confirmationData.item.qty,
         reason_id: confirmationData.reasons,
-        return_request_reason_id: 1,
+        return_request_reason_id: ActivePacks.return_request_reason_id,
+        order_id: ActivePacks.id,
       });
       callback();
+      close();
+      setShouldConfirmReturn(false);
       setLoading(false);
     } catch (error) {
       setLoading(false);

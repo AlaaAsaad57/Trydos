@@ -188,4 +188,5 @@ export const REQUESTS_DATA = {
   RETURN_PRODUCT: { reqTitle: "RETURN_PRODUCT", code: 128 },
   CANCEL_RETURN_PRODUCT: { reqTitle: "CANCEL_RETURN_PRODUCT", code: 129 },
   UPDATE_RETURN_PRODUCT: { reqTitle: "UPDATE_RETURN_PRODUCT", code: 130 },
+  CREAT_RETURN_REQ: { reqTitle: "CREAT_RETURN_REQ", code: 131 },
 };

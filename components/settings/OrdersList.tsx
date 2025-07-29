@@ -269,7 +269,7 @@ function OrdersList({
           >
             {[
               { label: "All", value: "all" },
-              ...settings?.["starting-setting"]?.order_group_statuses,
+              ...(settings?.["starting-setting"]?.order_group_statuses || []),
             ].map((status) => (
               <div
                 onClick={() => {
