@@ -31,11 +31,9 @@ function OrderOptions({ closeOptions, CancelOrder }: OrderOptionsPropsType) {
   } = useAppStore();
   const [screen, setScreen] = useState<"options" | "changeAddress">("options");
   const [canceled, setCanceled] = useState(false);
-
   const [shouldConfirmCancel, setShouldConfirmCancel] = useState<any>(false);
   const [shouldConfirmReturn, setShouldConfirmReturn] = useState(false);
   const [shouldConfirmChange, setShouldConfirmChange] = useState<any>(false);
-  const [tempOrderDetails, setTempOrderDetails] = useState([]);
   const router = useRouter();
   const getOrderDetails = async () => {
     // Abort any previous request
@@ -211,6 +209,10 @@ function OrderOptions({ closeOptions, CancelOrder }: OrderOptionsPropsType) {
                 setShouldConfirmReturn(false);
                 ReturnItem();
               }}
+              callback={() => {
+                getOrderDetails();
+              }}
+              confirmationData={shouldConfirmReturn}
               setShouldConfirmReturn={setShouldConfirmReturn}
             />
           )}

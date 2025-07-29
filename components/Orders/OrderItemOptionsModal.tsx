@@ -194,7 +194,6 @@ function OrderItemOptionsModal({
             setActiveWidget("main");
           }}
           setShouldConfirmReturn={setShouldConfirmReturn}
-          closeOptions={close}
           item={item}
         />
       );

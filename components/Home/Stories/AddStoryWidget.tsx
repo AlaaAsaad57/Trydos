@@ -151,7 +151,6 @@ const validateLink = (urlString: string) => {
 };
 
 export default function AddStoryWidget({ onClose }: AddStoryWidgetPropsType) {
-  const [user, setUser] = useState(null);
   useEffect(() => {
     getUserStories();
   }, []);

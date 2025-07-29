@@ -397,5 +397,76 @@ class OrderService {
       throw new Error(e?.message);
     }
   }
+  async getReturnReasons() {
+    try {
+      let response = await fetchData({
+        url: `/customer/order/return_requests/reasons`,
+        reqTitle: REQUESTS_DATA.RETURN_REASONS,
+        method: "GET",
+        server: "market",
+      });
+      if (response.success || response.isSuccessful) {
+        return response;
+      } else {
+        throw new Error(response.message);
+      }
+    } catch (error) {}
+  }
+  async ReturnProduct({
+    product_id,
+    order_detail_id,
+    reason_id,
+    quantity,
+    images,
+    return_request_reason_id,
+  }) {
+    console.log({
+      product_id,
+      order_detail_id,
+      reason_id,
+      quantity,
+      images,
+      return_request_reason_id,
+    });
+    await new Promise((resolve) => setTimeout(resolve, 3000));
+    try {
+      let response = await fetchData({
+        url: `/customer/order/return_request_products/store`,
+        reqTitle: REQUESTS_DATA.RETURN_PRODUCT,
+        method: "POST",
+        server: "market",
+        body: JSON.stringify({
+          product_id,
+          order_detail_id,
+          reason_id,
+          quantity,
+          images,
+          return_request_reason_id,
+          is_for_exchange: true,
+          details: "",
+        }),
+      });
+      if (response.success || response.isSuccessful) {
+        return response;
+      } else {
+        throw new Error(response.message);
+      }
+    } catch (error) {}
+  }
+  async CancelReturn({ return_request_product_id }) {
+    try {
+      let response = await fetchData({
+        url: `/customer/order/return_request_products/cancel?return_request_product_id?=${return_request_product_id}`,
+        reqTitle: REQUESTS_DATA.CANCEL_RETURN_PRODUCT,
+        method: "GET",
+        server: "market",
+      });
+      if (response.success || response.isSuccessful) {
+        return response;
+      } else {
+        throw new Error(response.message);
+      }
+    } catch (error) {}
+  }
 }
 export default new OrderService();

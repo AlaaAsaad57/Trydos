@@ -1,22 +1,26 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Image from "next/image";
-import { getConfiguredImage, translateFunction } from "utils/functions";
+import {
+  getConfiguredImage,
+  RoundPrice,
+  translateFunction,
+} from "utils/functions";
 import ReturnOrderItemIcon from "public/svg/ReturnOrderItemIcon.svg";
 import { useAppStore } from "store";
 import UploadImageOrder from "public/svg/UploadImageOrder.svg";
 import Spinner from "components/global/Spinner";
 import { GetImageUrl } from "utils/tinyUtils";
 import { ReturnOrderItemPropsType } from "models/componentType/ReturnOrderItemPropsType";
+import order from "services/order";
+import Skeleton from "node_modules/react-loading-skeleton/dist";
 
 function ReturnOrderItem({
   backToMain,
   item,
-  closeOptions,
   setShouldConfirmReturn,
 }: ReturnOrderItemPropsType) {
   const { currency } = useAppStore();
-  const [selectedOptions, setSelectedOptions] = useState([]);
-  const options = [
+  const [options, setOptions] = useState([
     "I Didn't Like",
     "Bad Quality",
     "It Arrived Damaged",
@@ -24,7 +28,9 @@ function ReturnOrderItem({
     "Different Color",
     "Different Sizes",
     "Completely Different",
-  ];
+  ]);
+  const [selectedOptions, setSelectedOptions] = useState([]);
+
   const handleOptionClick = (option) => {
     if (selectedOptions.includes(option)) {
       setSelectedOptions(selectedOptions.filter((o) => o !== option));
@@ -33,6 +39,21 @@ function ReturnOrderItem({
     }
   };
   const [images, setImages] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
+  const getReasons = async () => {
+    try {
+      setLoading(true);
+      let response = await order.getReturnReasons();
+      console.log(response);
+      // setOptions()
+      setLoading(false);
+    } catch (error) {
+      setLoading(false);
+    }
+  };
+  useEffect(() => {
+    getReasons();
+  }, []);
   return (
     <>
       <div className="flex-col w-full items-center pb-[12px] px-[24px]">
@@ -70,7 +91,12 @@ function ReturnOrderItem({
           {translateFunction(
             "You Can Return The Product Without Any Conditions According To The Return Policy And Get A Full Refund"
           )}
-          <span className="bold text-[12px] text-[#8D8D8D] ml-[4px]">140</span>
+          <span className="bold text-[12px] text-[#8D8D8D] ml-[4px]">
+            {RoundPrice({
+              num: item?.price_after_discount || item.offer_price,
+              rate: currency.exchange_rate,
+            })}
+          </span>
           <span className="text-[#8D8D8D] mx-[4px]">{currency?.symbol}</span>
           {translateFunction("To Your Account")}.
         </p>
@@ -86,25 +112,29 @@ function ReturnOrderItem({
         </p>
       </div>
       <div className="flex-row w-full flex-wrap items-center mt-[12px] gap-y-[10px]  gap-x-[12px] pr-[50px]  pl-[24px]">
-        {options.map((option, index) => (
-          <div
-            key={option}
-            className={`px-[12px] w-auto regular text-[12px] text-[#5D5C5D] flex-row h-[39px] justify-start items-center rounded-[12px] bg-[#F8F8F8] `}
-            style={{
-              flex: "0 1 auto",
-              border: selectedOptions.includes(option)
-                ? "1px solid #402CDD80"
-                : "none",
-            }}
-            onClick={() => {
-              handleOptionClick(option);
-            }}
-          >
-            <span className="regular text-[12px] text-[#8D8D8D]">
-              {translateFunction(option)}
-            </span>
-          </div>
-        ))}
+        {loading ? (
+          <OptionsSkeleton />
+        ) : (
+          options.map((option, index) => (
+            <div
+              key={option}
+              className={`px-[12px] w-auto regular text-[12px] text-[#5D5C5D] flex-row h-[39px] justify-start items-center rounded-[12px] bg-[#F8F8F8] `}
+              style={{
+                flex: "0 1 auto",
+                border: selectedOptions.includes(option)
+                  ? "1px solid #402CDD80"
+                  : "none",
+              }}
+              onClick={() => {
+                handleOptionClick(option);
+              }}
+            >
+              <span className="regular text-[12px] text-[#8D8D8D]">
+                {translateFunction(option)}
+              </span>
+            </div>
+          ))
+        )}
       </div>
       {selectedOptions?.length > 0 && (
         <>
@@ -123,7 +153,11 @@ function ReturnOrderItem({
             if (selectedOptions.length === 0 || images.length === 0) {
               backToMain();
             } else {
-              setShouldConfirmReturn(true);
+              setShouldConfirmReturn({
+                item: item,
+                images: images,
+                reasons: selectedOptions,
+              });
               //   setConfirmationData({
               //     enable: true,
               //     currentAddress: addressLists?.find((s) => s.id === address_id),
@@ -241,5 +275,23 @@ export const UploadImageComponent = ({ images, setImages }) => {
         </div>
       )}
     </div>
+  );
+};
+const OptionsSkeleton = () => {
+  return (
+    <>
+      {Array.from({ length: 7 }).map((s, i) => (
+        <Skeleton
+          key={i}
+          width={70}
+          height={40}
+          borderRadius={12}
+          className={`px-[12px] w-auto regular text-[12px] text-[#5D5C5D] flex-row h-[39px] justify-start items-center rounded-[12px]  `}
+          style={{
+            flex: "0 1 auto",
+          }}
+        ></Skeleton>
+      ))}
+    </>
   );
 };

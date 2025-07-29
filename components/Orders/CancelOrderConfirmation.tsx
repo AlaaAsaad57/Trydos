@@ -3,6 +3,7 @@ import ClarificationIcon from "public/svg/OrderCancelConfirm.svg";
 import OrderCancelTermsIcon from "public/svg/OrderCancelTerms.svg";
 import { translateFunction } from "utils/functions";
 import { CancelOrderConfirmationPropsType } from "models/componentType/CancelOrderConfirmationPropsType";
+import Spinner from "components/global/Spinner";
 
 function CancelOrderConfirmation({
   setShouldConfirmCancel,
@@ -24,7 +25,7 @@ function CancelOrderConfirmation({
       setLoading(false);
     }
   };
-  console.log("confirm");
+
   return (
     <div
       className={`z-[9999999999999] px-[24px]  w-full flex-col ${"justify-end"} items-center h-[calc(100vh)] overflow-auto  pb-[70px] max-h-[calc(100vh)] fixed top-0 left-0 bg-[#0000006c]  backdrop-blur-[10px]`}
@@ -75,7 +76,7 @@ function CancelOrderConfirmation({
               ConfirmFunction();
             }}
           >
-            {translateFunction("I Agree & Cancel")}
+            {loading ? <Spinner /> : translateFunction("I Agree & Cancel")}
           </div>
           <div
             onClick={() => {

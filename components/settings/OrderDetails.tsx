@@ -823,7 +823,12 @@ const ProductCard = ({
           </div>
         </NextLink>
 
-        {product.is_returned && <OrderRetailsReturnInfo product={product} />}
+        {product.is_returned && (
+          <OrderRetailsReturnInfo
+            product={product}
+            return_request_id={ActivePacks.return_request_id}
+          />
+        )}
       </div>
     </>
   );
