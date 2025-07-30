@@ -491,7 +491,7 @@ class OrderService {
   async CancelReturn({ return_request_product_id }) {
     try {
       let response = await fetchData({
-        url: `/customer/order/return_request_products/cancel?return_request_product_id?=${return_request_product_id}`,
+        url: `/customer/order/return_request_products/cancel?return_request_product_id=${return_request_product_id}`,
         reqTitle: REQUESTS_DATA.CANCEL_RETURN_PRODUCT,
         method: "GET",
         server: "market",
@@ -508,7 +508,7 @@ class OrderService {
       let req = await this.CreateReturnRequest({ order_id: order_id });
       let response = await fetchData({
         url: `/customer/order/return_requests/order_details?return_request_id=${req}`,
-        reqTitle: REQUESTS_DATA.CANCEL_RETURN_PRODUCT,
+        reqTitle: REQUESTS_DATA.DETAILS_RETURN_PRODUCT,
         method: "GET",
         server: "market",
       });
@@ -522,7 +522,7 @@ class OrderService {
     try {
       let response = await fetchData({
         url: `/customer/order/return_requests/confirm_return_request`,
-        reqTitle: REQUESTS_DATA.CANCEL_RETURN_PRODUCT,
+        reqTitle: REQUESTS_DATA.CONFIRM_RETURN_PRODUCT,
         method: "POST",
         server: "market",
         body: JSON.stringify({
@@ -539,7 +539,7 @@ class OrderService {
     try {
       let response = await fetchData({
         url: `/customer/order/return_requests/view?return_request_id=${return_request_id}`,
-        reqTitle: REQUESTS_DATA.CANCEL_RETURN_PRODUCT,
+        reqTitle: REQUESTS_DATA.VIEW_RETURN_PRODUCT,
         method: "GET",
         server: "market",
       });
