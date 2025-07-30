@@ -654,6 +654,7 @@ const OrderExpandedDetails = ({
             getOrderDetails={() => getOrderDetails()}
             product={Product}
             key={Product.id}
+            order={order}
           />
         ))}
       </div>
@@ -664,6 +665,7 @@ const ProductCard = ({
   product,
   status,
   getOrderDetails,
+  order,
 }: ProductCardPropsType) => {
   const { currency, setSelectedOrderItem, ActivePacks } = useAppStore();
   const { lang } = useParams();
@@ -823,7 +825,7 @@ const ProductCard = ({
           </div>
         </NextLink>
 
-        {product.is_returned && (
+        {order.return_request_id && (
           <OrderRetailsReturnInfo
             product={product}
             return_request_id={ActivePacks.return_request_id}

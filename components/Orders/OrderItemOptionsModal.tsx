@@ -117,7 +117,7 @@ function OrderItemOptionsModal({
                 </div>
               </div>
             )}
-            {!selectedOrder.can_return_order && (
+            {selectedOrder.can_return_order && (
               <div
                 onClick={() => {
                   setActiveWidget("return");

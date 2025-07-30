@@ -512,7 +512,39 @@ class OrderService {
         method: "GET",
         server: "market",
       });
-      return response.data;
+      if (response?.success) return response.data;
+      else throw new Error();
+    } catch (error) {
+      throw error;
+    }
+  }
+  async ConfirmReturnRequest({ return_request_id }) {
+    try {
+      let response = await fetchData({
+        url: `/customer/order/return_requests/confirm_return_request`,
+        reqTitle: REQUESTS_DATA.CANCEL_RETURN_PRODUCT,
+        method: "POST",
+        server: "market",
+        body: JSON.stringify({
+          return_request_id: return_request_id,
+        }),
+      });
+      if (response?.success) return response.data;
+      else throw new Error();
+    } catch (error) {
+      throw error;
+    }
+  }
+  async ViewReturnRequest({ return_request_id }) {
+    try {
+      let response = await fetchData({
+        url: `/customer/order/return_requests/view?return_request_id=${return_request_id}`,
+        reqTitle: REQUESTS_DATA.CANCEL_RETURN_PRODUCT,
+        method: "GET",
+        server: "market",
+      });
+      if (response?.success) return response.data;
+      else throw new Error();
     } catch (error) {
       throw error;
     }

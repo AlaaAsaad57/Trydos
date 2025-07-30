@@ -4,5 +4,6 @@ export interface ProductCardPropsType {
     label: string;
     value: string;
   };
+  order: any;
   getOrderDetails: () => void;
 }
