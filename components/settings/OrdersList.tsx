@@ -269,7 +269,7 @@ function OrdersList({
           >
             {[
               { label: "All", value: "all" },
-              ...settings?.["starting-setting"]?.order_group_statuses,
+              ...(settings?.["starting-setting"]?.order_group_statuses ?? []),
             ].map((status) => (
               <div
                 onClick={() => {
@@ -348,7 +348,8 @@ function OrdersList({
 export default OrdersList;
 
 export const OrdersIcon = () => {
-  return (
+return (
+  <div className={`flex flex-row`}>
     <svg
       xmlns="http://www.w3.org/2000/svg"
       xmlnsXlink="http://www.w3.org/1999/xlink"
@@ -491,5 +492,6 @@ export const OrdersIcon = () => {
         </g>
       </g>
     </svg>
+  </div>
   );
 };

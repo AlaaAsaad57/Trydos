@@ -96,6 +96,10 @@ const OrderStatus = ({
   status: { label: string; value: string };
 }) => {
   const { settings } = useAppStore();
+  const { lang } = useParams();
+  // @ts-ignore
+  let languageVariable = lang.split("-")[1];
+  const isRtl = languageVariable === "ar" || languageVariable === "ku";
   return (
     <div className="flex-row items-center">
       <BagStatusIcon status={status?.value} />
@@ -103,7 +107,7 @@ const OrderStatus = ({
         {status.label}
       </span>
       <span className="ml-[7px]">
-        <OrderStatusIcon status={status?.value} />
+        <OrderStatusIcon status={status?.value} isRtl={isRtl}/>
       </span>
     </div>
   );

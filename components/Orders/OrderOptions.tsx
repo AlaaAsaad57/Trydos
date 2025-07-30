@@ -15,7 +15,7 @@ import { showErrorNotification } from "@/store/notifications/reducer";
 import orderService from "services/order";
 import order from "services/order";
 import { totalAmount } from "utils/tinyUtils";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { ModifyOrderItemModal } from "./ModifyOrderItemModal";
 
 function OrderOptions({ closeOptions, CancelOrder }: OrderOptionsPropsType) {
@@ -31,6 +31,11 @@ function OrderOptions({ closeOptions, CancelOrder }: OrderOptionsPropsType) {
   } = useAppStore();
   const [screen, setScreen] = useState<"options" | "changeAddress">("options");
   const [canceled, setCanceled] = useState(false);
+  const { lang } = useParams();
+  // @ts-ignore
+  const language = lang.split("-")[1];
+  const isRtl = language === "ar" || language === "ku";
+  
 
   const [shouldConfirmCancel, setShouldConfirmCancel] = useState<any>(false);
   const [shouldConfirmReturn, setShouldConfirmReturn] = useState(false);
@@ -279,16 +284,16 @@ function OrderOptions({ closeOptions, CancelOrder }: OrderOptionsPropsType) {
                 onClick={() => {
                   setScreen("changeAddress");
                 }}
-                className="cursor-pointer mt-[6px] flex-row w-full items-center px-[15px] bg-[#f8f8f8] rounded-[20px] min-h-[60px]"
+                className={`cursor-pointer mt-[6px] flex-row w-full items-center px-[15px] bg-[#f8f8f8] rounded-[20px] min-h-[60px] ${ isRtl ? "flex-row-reverse": " "}`}
               >
                 <div className="relative flex w-[30px] h-[30px] items-center justify-center">
                   <ChangeAddressIcon />
                 </div>
                 <div className="flex-col ml-[15px]">
-                  <span className="regular text-[14px] text-[#1D1D1D] medium">
+                  <span className={`regular text-[14px] text-[#1D1D1D] medium ${ isRtl ? " text-right pr-2": " "}`}>
                     {translateFunction("Change Delivery Address & Note")}
                   </span>
-                  <p className="regular text-[12px] text-[#8D8D8D]">
+                  <p className={`regular text-[12px] text-[#8D8D8D] ${ isRtl ? "pr-2 text-right": " "}`}>
                     {translateFunction("You Can Change Delivery Address")}
                   </p>
                 </div>
@@ -299,16 +304,16 @@ function OrderOptions({ closeOptions, CancelOrder }: OrderOptionsPropsType) {
                 onClick={() => {
                   // setScreen("changeAddress");
                 }}
-                className="cursor-pointer mt-[6px] flex-row w-full items-center px-[15px] bg-[#f8f8f8] rounded-[20px] min-h-[60px]"
+                className={`cursor-pointer mt-[6px] flex-row w-full items-center px-[15px] bg-[#f8f8f8] rounded-[20px] min-h-[60px] ${ isRtl ? "flex-row-reverse": " "}`}
               >
                 <div className="relative flex w-[30px] h-[30px] items-center justify-center">
                   <HideOrderItemIcon />
                 </div>
                 <div className="flex-col ml-[15px]">
-                  <span className="regular text-[14px] text-[#1D1D1D] medium">
+                  <span className={`regular text-[14px] text-[#1D1D1D] medium ${ isRtl ? " text-right pr-2": " "}`}>
                     {translateFunction("Hide This Pack")}
                   </span>
-                  <p className="regular text-[12px] text-[#8D8D8D]">
+                  <p className={`regular text-[12px] text-[#8D8D8D] ${ isRtl ? "pr-2 ": " "}`}>
                     {translateFunction("Hide This Pack From My List")}
                   </p>
                 </div>
@@ -319,17 +324,17 @@ function OrderOptions({ closeOptions, CancelOrder }: OrderOptionsPropsType) {
                 onClick={() => {
                   setCanceled(true);
                 }}
-                className="cursor-pointer mt-[6px] flex-row w-full items-center px-[15px] bg-[#f8f8f8] rounded-[20px] min-h-[60px]"
+                className={`cursor-pointer mt-[6px] flex-row w-full items-center px-[15px] bg-[#f8f8f8] rounded-[20px] min-h-[60px] ${ isRtl ? "flex-row-reverse": " "}`}
               >
                 <div className="relative flex w-[30px] h-[30px] items-center justify-center">
                   <OrderCancelIcon />
                 </div>
                 <div className="flex-col ml-[15px]">
-                  <span className="regular text-[14px] text-[#1D1D1D] medium">
+                  <span className={`regular text-[14px] text-[#1D1D1D] medium ${ isRtl ? " text-right pr-2": " "}`}>
                     {translateFunction("Cancel This Pack")}
                     <span className="mx-1 bold">{ActivePacks.id}</span>
                   </span>
-                  <p className="regular text-[12px] text-[#8D8D8D]">
+                  <p className={`regular text-[12px] text-[#8D8D8D] ${ isRtl ? "pr-2 ": " "}`}>
                     {translateFunction(
                       "You Can Cancel This Pack And Back Your Money"
                     )}

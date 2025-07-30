@@ -77,8 +77,8 @@ function StoryHolder({ story, active, isPaused }: StoryHolderPropsType) {
         </h2>
         <p className="mb-6 text-gray-700 dark:text-gray-300 regular ">
           {type === "Delete"
-            ? translateFunction("Are you sure you want to delete this story ?")
-            : translateFunction("Are you sure you want to report this story ?")}
+            ? translateFunction("Are you sure you want to delete this story?")
+            : translateFunction("Are you sure you want to report this story?")}
         </p>
         <div className="flex gap-4 w-full justify-center min-h-[40px]">
           {loading ? (

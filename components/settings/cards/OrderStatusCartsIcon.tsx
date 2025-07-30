@@ -1,6 +1,6 @@
 import React from "react";
 
-function OrderStatusCartsIcon({ status }) {
+function OrderStatusCartsIcon({ status , isRtl} : { status: string , isRtl: boolean}) {
   const statuses = [
     "pending",
     "preparing",

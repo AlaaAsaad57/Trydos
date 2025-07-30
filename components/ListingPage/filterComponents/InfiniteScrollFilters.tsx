@@ -13,17 +13,6 @@ import { showErrorNotification } from "store/notifications/reducer";
 import { translateFunction } from "utils/functions";
 import { FilterParams } from "utils/tinyUtils";
 
-interface InfiniteScrollFiltersProps {
-  filterParams: FilterParams | any;
-  isUsingParsedFilters: boolean;
-  lang: string;
-  term: string;
-  boutique: any;
-  currency: any;
-  params: any;
-  isFeatured?: boolean;
-  isFlashDeals?: boolean;
-}
 
 function InfiniteScrollFilters({
   filterParams,
@@ -77,7 +66,6 @@ function InfiniteScrollFilters({
         setSearchPartialLoading(false);
         return;
       }
-      console.log(response, "response");
       setData({
         categories: [
           ...(data.categories || []),
@@ -181,6 +169,7 @@ function InfiniteScrollFilters({
           </div>
         </>
       ) : (
+        typeof window !== "undefined" && 
         !hasEnd[term] && (
           <div
             onClick={() => {
@@ -188,7 +177,7 @@ function InfiniteScrollFilters({
             }}
             className=" mb-[34px] p-2 text-wrap text-center category-circle h-[70px] flex-col align-center extended-circle text-[#5d5d5d] light shadow-sm bg-[#e8e8e8] rounded-full justify-center items-center"
           >
-            More {term}
+           {translateFunction("More From")} {translateFunction(term)}
           </div>
         )
       )}

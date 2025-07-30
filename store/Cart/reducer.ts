@@ -55,7 +55,7 @@ export const useCartStore = (set, get) => ({
   selectedOrder: null,
   SelectedOrderItem: null,
   ActivePacks: null,
-
+  cartShippingSuccess: null,
   addressLists: [],
   center: null,
   addressDetails: {
@@ -117,6 +117,7 @@ export const useCartStore = (set, get) => ({
   setOrderDetails: (order) => {
     set({ selectedOrder: order });
   },
+  setCartShippingSuccess: (flag: string) => set({cartShippingSuccess: flag}),
   setOrderPageLoading: (loading) => set({ orderPageLoading: loading }),
   setActivePacks: (pack) => set({ ActivePacks: pack }),
   setSelectedOrderItem: (item) =>

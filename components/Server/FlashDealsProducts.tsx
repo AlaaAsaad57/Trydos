@@ -6,14 +6,15 @@ import ProductCard from "./ProductCard";
 
 async function FlashDealsProducts({ lang, currencyData, flashDealsProducts }) {
   const [country, language] = lang.split("-");
+  const isRtl = language === "ar" || language === "ku";
   const currency = currencyData;
   if (flashDealsProducts?.data?.products?.length === 0) return <></>;
   return (
-    <div className="flex-col px-[12px] flex items-start max-w-full w-full">
+    <div className={`flex-col px-[12px] flex items-start max-w-full w-full`}>
       <NextLink
         href={`/${lang}/flashDeals`}
         data={{ is_boutique: true }}
-        className="flex-row h-[50px] w-full max-w-[1365px] px-[10px] items-center shadow-sm rounded-[15px] bg-[#f3f3f3] regular text-[#5d5d5d]"
+        className={`flex-row h-[50px] w-full max-w-[1365px] px-[10px] items-center shadow-sm rounded-[15px] bg-[#f3f3f3] regular text-[#5d5d5d] ${ isRtl ? "flex-row-reverse" : " "}`}
       >
         <span>
           <svg
@@ -33,7 +34,7 @@ async function FlashDealsProducts({ lang, currencyData, flashDealsProducts }) {
             />
           </svg>
         </span>
-        <span className="ml-[12px]">
+        <span className={`ml-[12px] ${ isRtl ? "pr-2" : " "}`}>
           {translateFunction("Flash Deals", lang.split("-")[1])}
         </span>
       </NextLink>

@@ -8,12 +8,6 @@ import { NormalWidgetPropsType } from "models/componentType/NormalWidgetPropsTyp
 import { GetImageUrl } from "utils/tinyUtils";
 import { getConfiguredImage } from "utils/functions";
 
-interface NormalWidgetProps {
-  // boutique: Boutique;
-  boutique: any;
-  myKey: number;
-  lang: string;
-}
 
 const NormalWidget = ({ boutique, myKey, lang }: NormalWidgetPropsType) => {
   return (

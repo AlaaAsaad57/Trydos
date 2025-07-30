@@ -426,7 +426,7 @@ export const getOldCart = async () => {
   }
 };
 export const getCart = async ({ callback }) => {
-  const { initCart } = useAppStore.getState();
+  const { initCart , cart , setCartShippingSuccess} = useAppStore.getState();
   const deviceToken = getCookie<string>(COOKIE_NAMES.DEVICE_TOKEN);
   const marketToken = getCookie<string>(COOKIE_NAMES.MARKET_TOKEN);
   if (!deviceToken && !marketToken) return { cart: [] };
@@ -439,6 +439,8 @@ export const getCart = async ({ callback }) => {
     });
     // @ts-ignore
     if (!response.success) {
+    // @ts-ignore
+      setCartShippingSuccess(response.message);
       throw new Error(response.message);
     }
     initCart(response.data);
