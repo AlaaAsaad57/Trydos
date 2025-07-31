@@ -248,7 +248,7 @@ export const ColorList = ({
           current_size
         );
         let disabled = variation?.qty < item.qty;
-        console.log(variation, item);
+
         return (
           <div
             key={s.color_name}
@@ -324,7 +324,7 @@ export const SizeList = ({
             s?.option
           );
           let disabled = variation?.qty < item.qty;
-          console.log(variation, item);
+
           return (
             <div
               key={s?.name}
