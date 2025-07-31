@@ -792,3 +792,75 @@ export function getReferralSource(referer: string | null): string {
 
   return "other";
 }
+export function findVariation(
+  variations,
+  colors,
+  sizes,
+  selectedColor,
+  selectedSize
+) {
+  // Normalize comparison for flexibility
+  const normalize = (str) => (str ? str.toLowerCase().trim() : "");
+
+  // Find matching color option (can match color_name OR color_option)
+  let color = null;
+  if (selectedColor) {
+    color = colors.find(
+      (c) =>
+        normalize(c.color_name) === normalize(selectedColor) ||
+        normalize(c.color_option) === normalize(selectedColor)
+    );
+  }
+
+  // Find matching size option (can match name OR option)
+  let size = null;
+  if (selectedSize) {
+    size = sizes.find(
+      (s) =>
+        normalize(s.name) === normalize(selectedSize) ||
+        normalize(s.option) === normalize(selectedSize)
+    );
+  }
+
+  // Build variation type based on rules
+  let variationType = null;
+  if (color && size) {
+    variationType = `${color.color_option}-${size.option}`;
+  } else if (color) {
+    variationType = color.color_option;
+  } else if (size) {
+    variationType = size.option;
+  }
+
+  if (!variationType) return null;
+
+  // Find matching variation in the variations array
+  return (
+    variations.find((v) => normalize(v.type) === normalize(variationType)) ||
+    null
+  );
+}
+export function isSameColor(colorA, colorB) {
+  const normalize = (str) => (str ? str.toLowerCase().trim() : "");
+
+  // Convert string into an object-like form
+  const toColorObj = (color) => {
+    if (!color) return null;
+    if (typeof color === "string") {
+      return { color_name: color, color_option: color };
+    }
+    return color;
+  };
+
+  const a = toColorObj(colorA);
+  const b = toColorObj(colorB);
+
+  if (!a || !b) return false;
+
+  return (
+    normalize(a.color_name) === normalize(b.color_name) ||
+    normalize(a.color_name) === normalize(b.color_option) ||
+    normalize(a.color_option) === normalize(b.color_name) ||
+    normalize(a.color_option) === normalize(b.color_option)
+  );
+}
