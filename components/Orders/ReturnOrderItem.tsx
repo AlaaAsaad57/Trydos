@@ -9,7 +9,7 @@ import ReturnOrderItemIcon from "public/svg/ReturnOrderItemIcon.svg";
 import { useAppStore } from "store";
 import UploadImageOrder from "public/svg/UploadImageOrder.svg";
 import Spinner from "components/global/Spinner";
-import { GetImageUrl } from "utils/tinyUtils";
+import { GetImageUrl, pollinateInput } from "utils/tinyUtils";
 import { ReturnOrderItemPropsType } from "models/componentType/ReturnOrderItemPropsType";
 import order from "services/order";
 import Skeleton from "node_modules/react-loading-skeleton/dist";
@@ -45,6 +45,8 @@ function ReturnOrderItem({
   useEffect(() => {
     getReasons();
   }, []);
+  const [loadingImage, setLoadinImage] = useState(false);
+  const [returnedQty, setReturnedQty] = useState(item.qty);
   return (
     <>
       <div className="flex-col w-full items-center pb-[12px] px-[24px]">
@@ -102,6 +104,32 @@ function ReturnOrderItem({
           </span>
         </p>
       </div>
+      <div className="flex-row w-full flex-1 basis-0 text-center rounded-[20px] items-center justify-center h-[50px] text-[14px] medium text-[#1D1D1D]">
+        {translateFunction("Change Qty")}
+      </div>
+      <div className="flex-row items-center justify-center mt-[20px] w-full max-w-[200px]">
+        <button
+          onClick={() => setReturnedQty(Math.max(0, item.qty - 1))}
+          className="flex items-center justify-center w-[40px] h-[40px] rounded-l-[12px] bg-[#F8F8F8] border border-[#E6E6E680] border-r-0 hover:bg-[#EEEEEE] transition-colors duration-200 active:scale-95"
+        >
+          <span className="text-[#1D1D1D] text-[18px] light">−</span>
+        </button>
+        <input
+          type="number"
+          value={returnedQty}
+          onChange={(e) => {
+            if (parseInt(pollinateInput(e.target.value)) > item.qty) {
+              setReturnedQty(returnedQty);
+            } else {
+              setReturnedQty(
+                Math.max(0, parseInt(pollinateInput(e.target.value)))
+              );
+            }
+          }}
+          className="flex-1 h-[40px] text-center text-[16px] font-medium text-[#1D1D1D] bg-white border-t border-b border-[#E6E6E680] focus:outline-none focus:border-[#402CDD] focus:ring-1 focus:ring-[#402CDD80] transition-all duration-200"
+          min="1"
+        />
+      </div>
       <div className="flex-row w-full flex-wrap items-center mt-[12px] gap-y-[10px]  gap-x-[12px] pr-[50px]  pl-[24px]">
         {loading ? (
           <OptionsSkeleton />
@@ -131,7 +159,12 @@ function ReturnOrderItem({
       {selectedOptions && (
         <>
           <span className="border-[#C4C2C280] border-b-[1px] w-full mt-[12px]" />
-          <UploadImageComponent images={images} setImages={setImages} />
+          <UploadImageComponent
+            loading={loadingImage}
+            setLoading={setLoadinImage}
+            images={images}
+            setImages={setImages}
+          />
         </>
       )}
       <div className="flex-row px-[24px] w-full mt-[15px]">
@@ -140,13 +173,15 @@ function ReturnOrderItem({
             !selectedOptions ? "bg-[#D3D3D3] " : "bg-[#402CDD] "
           } rounded-[20px] text-[16px] text-[#fff] medium`}
           onClick={() => {
+            if (loadingImage) return;
             if (!selectedOptions) {
               backToMain();
             } else {
               setShouldConfirmReturn({
-                item: item,
+                item: { ...item, qty: returnedQty },
                 images: images,
                 reasons: selectedOptions,
+                qty: returnedQty,
               });
               //   setConfirmationData({
               //     enable: true,
@@ -158,9 +193,15 @@ function ReturnOrderItem({
             }
           }}
         >
-          {!selectedOptions
-            ? translateFunction("Close")
-            : translateFunction("Return Request")}
+          {loadingImage ? (
+            <Spinner />
+          ) : (
+            <>
+              {!selectedOptions
+                ? translateFunction("Close")
+                : translateFunction("Return Request")}
+            </>
+          )}
         </div>
       </div>
     </>
@@ -168,8 +209,12 @@ function ReturnOrderItem({
 }
 
 export default ReturnOrderItem;
-export const UploadImageComponent = ({ images, setImages }) => {
-  const [loading, setLoading] = useState(false);
+export const UploadImageComponent = ({
+  images,
+  setImages,
+  loading,
+  setLoading,
+}) => {
   const UploadImage = async () => {
     const input = document.createElement("input");
     input.type = "file";
@@ -186,8 +231,13 @@ export const UploadImageComponent = ({ images, setImages }) => {
         // });
         // const data = await response.json();
         let data = await order.UploadImageForOrderReturn({ image: file });
-        console.log(data);
-        // setImages([...images, data.url]);
+
+        setImages([
+          ...images,
+          process.env.NEXT_PUBLIC_BASE_CLOUDINARY_URL +
+            `/return_request_products/` +
+            data.sub_path,
+        ]);
         setLoading(false);
         if (document.body.contains(input)) {
           document.body.removeChild(input);

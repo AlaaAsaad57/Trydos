@@ -45,7 +45,7 @@ export async function fetchProductSimpleDetails(
       revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE_PRODUCT_DETAILS),
       local: `${country}-${language}`,
     });
-    console.log(response, "1");
+
     if (response.isError) {
       console.error(`Product Simple Details Error: ${response.status}`);
       reportError(
@@ -91,7 +91,6 @@ export async function fetchProductExtendedDetails(
       revalidate: 0,
       local: `${country}-${language}`,
     });
-    console.log(response, "2");
 
     if (response.isError) {
       console.error(`Product Extended Details Error: ${response.status}`);

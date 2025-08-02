@@ -21,7 +21,7 @@ import { useParams, useRouter, useSearchParams } from "next/navigation";
 import OrderStatusCartsIcon from "./cards/OrderStatusCartsIcon";
 import OrderStatusIcon from "./cards/OrderStatusIcon";
 import RateOrderButton from "./cards/RateOrderButton";
-import order from "services/order";
+import Order from "services/order";
 import OrderChatIcon from "./OrderChatIcon";
 import { Channel } from "models/Genaral/Channel";
 import ReturnedOrderStatusIcon from "public/svg/ReturnedOrderStatusIcon.svg";
@@ -45,6 +45,7 @@ import auth from "services/auth";
 import { REQUESTS_DATA } from "utils/Requests";
 import dynamic from "node_modules/next/dynamic";
 import LandingPage from "components/Home/LandingPage";
+import Spinner from "components/global/Spinner";
 function OrderDetails({ resetOrderDetails, goBack }: OrderDetailsPropsType) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -67,7 +68,6 @@ function OrderDetails({ resetOrderDetails, goBack }: OrderDetailsPropsType) {
     orderPageLoading: loading,
     setOrderPageLoading: setLoading,
   } = useAppStore();
-
   const fetchedOrderIdRef = useRef<string | number | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
   const { lang } = useParams();
@@ -83,11 +83,35 @@ function OrderDetails({ resetOrderDetails, goBack }: OrderDetailsPropsType) {
 
     setLoading(true);
     try {
-      let data = await order.getOrderDetails(
+      let data = await Order.getOrderDetails(
         selectedOrder.order_group_id,
         abortControllerRef.current.signal
       );
+      let returned_req_ids = data?.map((s) => {
+        if (s.return_request_id) return s.return_request_id;
+      });
 
+      try {
+        const returnRequests = await Promise.all(
+          returned_req_ids.map(async (id) => {
+            const details = await Order.getReturnRequestDetails({
+              return_request_id: id,
+            });
+            return { id, details };
+          })
+        );
+
+        // Update data with the fetched details
+        data = data.map((order) => {
+          const match = returnRequests.find(
+            (req) => req.id === order.return_request_id
+          );
+          return match ? { ...order, return_details: match.details } : order;
+        });
+        console.log(data);
+      } catch (error) {
+        console.error(error);
+      }
       let orderData = {
         ...data?.[0],
         order_amount: totalAmount(data),
@@ -510,8 +534,20 @@ const OrderExpandedDetails = ({
   order: OrderItem;
   getOrderDetails: () => void;
 }) => {
-  const { currency, settings } = useAppStore();
-
+  const { currency, orderReturnObject } = useAppStore();
+  const [cancelling, setCancelling] = useState(false);
+  const CancelReturnRequest = async () => {
+    try {
+      setCancelling(true);
+      await Order.CancelReturnRequest({
+        return_request_id: order.return_request_id,
+      });
+      getOrderDetails();
+      setCancelling(false);
+    } catch (error) {
+      setCancelling(false);
+    }
+  };
   return (
     <div className="bg-[#fff] mt-[20px] rounded-[10px] w-full h-auto p-[12px] flex-col flex items-start">
       <span className="w-[70px] h-[10px] bg-[#C4C2C27f]"></span>
@@ -648,6 +684,32 @@ const OrderExpandedDetails = ({
         </div>
       </div>
       <div className="flex-col w-full mt-[12px] pb-[50px]">
+        {orderReturnObject && (
+          <div
+            className={`w-full h-[50px] mt-[31px] items-center justify-center  flex cursor-pointer ${"bg-[#402CDD] "} rounded-[15px] text-[16px] text-[#fff] medium`}
+            onClick={() => {
+              console.log(orderReturnObject);
+            }}
+          >
+            {translateFunction("Confirm Returning Items")}
+          </div>
+        )}
+        {order.return_request_id && order.edit_return_request && cancelling ? (
+          <div
+            className={`w-full h-[50px] mt-[31px] items-center justify-center  flex cursor-pointer ${"bg-[#fb7070] "} rounded-[15px] text-[16px] text-[#fff] medium`}
+          >
+            <Spinner />
+          </div>
+        ) : (
+          <div
+            className={`w-full h-[50px] mt-[31px] items-center justify-center  flex cursor-pointer ${"bg-[#fb7070] "} rounded-[15px] text-[16px] text-[#fff] medium cursor-pointer`}
+            onClick={() => {
+              CancelReturnRequest();
+            }}
+          >
+            {translateFunction("Cancel Return Request")}
+          </div>
+        )}
         {order.details.map((Product) => (
           <ProductCard
             status={order?.order_status}
@@ -825,12 +887,22 @@ const ProductCard = ({
           </div>
         </NextLink>
 
-        {order.return_request_id && (
-          <OrderRetailsReturnInfo
-            product={product}
-            return_request_id={ActivePacks.return_request_id}
-          />
-        )}
+        {order.return_request_id &&
+          (ActivePacks?.return_details ? (
+            <OrderRetailsReturnInfo
+              product={product}
+              return_request_id={ActivePacks.return_request_id}
+            />
+          ) : (
+            <div
+              className="underline text-[14px] text-[#5d5d5d] medium w-full text-center flex items-center justify-center p-2 cursor-pointer"
+              onClick={() => {
+                getOrderDetails();
+              }}
+            >
+              {translateFunction("Failed To Load Return Details Try again")}
+            </div>
+          ))}
       </div>
     </>
   );

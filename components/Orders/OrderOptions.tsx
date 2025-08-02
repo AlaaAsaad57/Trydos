@@ -28,6 +28,7 @@ function OrderOptions({ closeOptions, CancelOrder }: OrderOptionsPropsType) {
     setOrderPageLoading,
     setActivePacks,
     setOrderOptions,
+    setOrderReturnObject,
   } = useAppStore();
   const [screen, setScreen] = useState<"options" | "changeAddress">("options");
   const [canceled, setCanceled] = useState(false);
@@ -35,6 +36,7 @@ function OrderOptions({ closeOptions, CancelOrder }: OrderOptionsPropsType) {
   const [shouldConfirmReturn, setShouldConfirmReturn] = useState(false);
   const [shouldConfirmChange, setShouldConfirmChange] = useState<any>(false);
   const router = useRouter();
+
   const getOrderDetails = async () => {
     // Abort any previous request
     setOrderPageLoading(true);
@@ -204,6 +206,7 @@ function OrderOptions({ closeOptions, CancelOrder }: OrderOptionsPropsType) {
           )}
           {shouldConfirmReturn && (
             <ReturnOrderItemConfirmation
+              setReturnObj={(e) => setOrderReturnObject(e)}
               close={() => {
                 closeOptions();
                 setShouldConfirmReturn(false);

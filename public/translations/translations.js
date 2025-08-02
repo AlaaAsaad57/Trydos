@@ -2,6 +2,9 @@ const translations = {
   ar: {
     "Tap “Agree & Continue” To Accept trydos":
       'اضغط على "موافقة ومتابعة" لقبول trydos',
+    "Cancel Return Request": "إلغاء طلب الإرجاع",
+    "Failed To Load Return Details Try again":
+      "فشل في تحميل تفاصيل الإرجاع، حاول مرة أخرى",
     "Notification Permission:": "إذن الإشعارات:",
     "this option dosent have enough quantity":
       "هذا الخيار لا يحتوي على كمية كافية",
@@ -821,6 +824,9 @@ const translations = {
   tr: {
     "Tap “Agree & Continue” To Accept trydos":
       "Trydos'u kabul etmek için “Kabul Et ve Devam Et”e dokunun",
+    "Cancel Return Request": " İade talebini iptal et",
+    "Failed To Load Return Details Try again":
+      "İade detayları yüklenemedi, tekrar deneyin",
     "Notification Permission:": "Bildirim İzni:",
     "Preparing Your Experience": "Deneyiminiz hazırlanıyor",
     "this option dosent have enough quantity":
@@ -1627,8 +1633,11 @@ const translations = {
   },
   ku: {
     "Take Photo": "وێنە بگرە",
+    "Cancel Return Request": "داخوازی گەڕاندن بسڕەوە",
     "Failed To Load Products After 3 Attempts":
       "بەرهەمەکان لەسەر نەبوون، ٣ سەکەڵەیەک بەردەست بە هەوڵبوون",
+    "Failed To Load Return Details Try again":
+      "هاتنه‌ ناچاندنی وردەکارییەکانی گەڕاندن، دوبارە هەوڵ بدە",
     "Failed To Load Filters Try Again":
       "بەرهەمەکان لەسەر نەبوون، ٣ سەکەڵەیەک بەردەست بە هەوڵبوون",
     "this option dosent have enough quantity": "ئەم هەڵبژاردنە بڕی پێویست نیە",

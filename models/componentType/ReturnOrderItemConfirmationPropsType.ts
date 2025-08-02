@@ -3,4 +3,5 @@ export interface ReturnOrderItemConfirmationPropsType {
   setShouldConfirmReturn: Function;
   confirmationData: any;
   callback: () => void;
+  setReturnObj: (e: any) => void;
 }

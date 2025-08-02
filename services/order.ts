@@ -449,6 +449,15 @@ class OrderService {
       return null;
     }
   }
+  async UpdateReturnedProduct({
+    product_id,
+    order_detail_id,
+    reason_id,
+    quantity,
+    images,
+    order_id,
+    return_request_id,
+  }) {}
   async ReturnProduct({
     product_id,
     order_detail_id,
@@ -456,10 +465,10 @@ class OrderService {
     quantity,
     images,
     order_id,
-    return_request_reason_id,
+    return_request_id,
   }) {
-    let return_req = return_request_reason_id;
-    if (!return_request_reason_id) {
+    let return_req = return_request_id;
+    if (!return_request_id) {
       return_req = await this.CreateReturnRequest({ order_id: order_id });
     }
 
@@ -481,7 +490,7 @@ class OrderService {
         }),
       });
       if (response.success || response.isSuccessful) {
-        return response;
+        return return_req;
       } else {
         throw new Error(response.message);
       }
@@ -503,9 +512,14 @@ class OrderService {
       }
     } catch (error) {}
   }
-  async getReturnRequestDetails({ order_id }) {
+  async getReturnRequestDetails({ order_id = null, return_request_id = null }) {
     try {
-      let req = await this.CreateReturnRequest({ order_id: order_id });
+      let req;
+      if (!return_request_id) {
+        req = await this.CreateReturnRequest({ order_id: order_id });
+      } else {
+        req = return_request_id;
+      }
       let response = await fetchData({
         url: `/customer/order/return_requests/order_details?return_request_id=${req}`,
         reqTitle: REQUESTS_DATA.DETAILS_RETURN_PRODUCT,
@@ -540,6 +554,20 @@ class OrderService {
       let response = await fetchData({
         url: `/customer/order/return_requests/view?return_request_id=${return_request_id}`,
         reqTitle: REQUESTS_DATA.VIEW_RETURN_PRODUCT,
+        method: "GET",
+        server: "market",
+      });
+      if (response?.success) return response.data;
+      else throw new Error();
+    } catch (error) {
+      throw error;
+    }
+  }
+  async CancelReturnRequest({ return_request_id }) {
+    try {
+      let response = await fetchData({
+        url: `/customer/order/return_requests/cancel?return_request_id=${return_request_id}`,
+        reqTitle: REQUESTS_DATA.CANCEL_RETURN_REQ,
         method: "GET",
         server: "market",
       });

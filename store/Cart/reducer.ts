@@ -113,16 +113,21 @@ export const useCartStore = (set, get) => ({
   openPayIframe: false,
   payIframeURL: "",
   orderPageLoading: false,
+  orderReturnObject: null,
 
   // Actions
   setOrderDetails: (order) => {
-    set({ selectedOrder: order });
+    set((state) => ({
+      selectedOrder: order,
+      orderReturnObject: order ? state.orderReturnObject : null,
+    }));
   },
   setOrderPageLoading: (loading) => set({ orderPageLoading: loading }),
   setActivePacks: (pack) => set({ ActivePacks: pack }),
   setSelectedOrderItem: (item) =>
     set({ SelectedOrderItem: item, showOrderOptions: Boolean(item) }),
   setOrderOptions: (bool) => set({ showOrderOptions: bool }),
+  setOrderReturnObject: (e) => set({ orderReturnObject: e }),
   setProvinces: (provinces) => set({ provinces }),
   setCryptoCardPayment: (url) =>
     set({
