@@ -1,7 +1,7 @@
-"use server";
+export const runtime = "nodejs";
 import { reportError } from "utils/error-reporter";
 import { fetchServerData } from "./ServerFetch";
-import { getRedis, setRedis } from "./radis";
+// import { getProductFromCache, storeProduct } from "./radis";
 interface ProductDetailsResponse {
   [key: string]: any;
 }
@@ -11,14 +11,32 @@ export async function fetchProductDetails(
   country: string
 ): Promise<ProductDetailsResponse> {
   try {
+    // let productCache = await getProductFromCache(slug, language, country);
+    // let time = productCache.timeMs;
+    // console.log(time);
+    // if (productCache?.product?.id) {
+    //   return { ...productCache, redis: true, time: time };
+    // }
     const [simpleDetails, extendedDetails] = await Promise.all([
       fetchProductSimpleDetails(slug, language, country),
       fetchProductExtendedDetails(slug, language, country),
     ]);
-
+    if (simpleDetails?.data?.id && extendedDetails?.data?.id) {
+      // storeProduct(
+      //   {
+      //     ...simpleDetails.data,
+      //     ...extendedDetails.data,
+      //   },
+      //   slug,
+      //   language,
+      //   country
+      // );
+    }
     return {
       ...simpleDetails.data,
       ...extendedDetails.data,
+      redis: false,
+      // time: time,
     };
   } catch (error) {
     console.error("Error fetching product details:", error);
@@ -32,17 +50,11 @@ export async function fetchProductSimpleDetails(
   country: string
 ) {
   try {
-    let response = await getRedis(
-      `/web/product/globalDetails/${slug}?lang=${language}&country=${country}`
-    );
-    if (response?.data) {
-      return response?.data;
-    }
-    response = await fetchServerData({
+    let response = await fetchServerData({
       url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/web/product/globalDetails/${slug}?lang=${language}`,
       method: "GET",
       tags: ["product-details"],
-      revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE_PRODUCT_DETAILS),
+      revalidate: 0,
       local: `${country}-${language}`,
     });
 
@@ -60,10 +72,7 @@ export async function fetchProductSimpleDetails(
       );
       return { data: {} };
     }
-    setRedis(
-      `/web/product/globalDetails/${slug}?lang=${language}&country=${country}`,
-      response
-    );
+
     return response.data;
   } catch (error) {
     console.error("Error fetching product simple details:", error);
@@ -77,14 +86,7 @@ export async function fetchProductExtendedDetails(
   country: string
 ) {
   try {
-    let response = await getRedis(
-      `/web/product/qtyPriceDetails/${slug}?lang=${language}&country=${country}`
-    );
-    if (response?.data) {
-      return response.data;
-    }
-
-    response = await fetchServerData({
+    let response = await fetchServerData({
       url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/web/product/qtyPriceDetails/${slug}?lang=${language}&country=${country}`,
       method: "GET",
       tags: ["product-details"],
@@ -105,10 +107,6 @@ export async function fetchProductExtendedDetails(
       );
       return { data: {} };
     }
-    setRedis(
-      `/web/product/qtyPriceDetails/${slug}?lang=${language}&country=${country}`,
-      response
-    );
     return response.data;
   } catch (error) {
     console.error("Error fetching product extended details:", error);
@@ -122,13 +120,6 @@ export async function fetchProductDetailsForMobile(
 ) {
   let response;
   try {
-    response = await getRedis(
-      `/mobile/product/details/${slug}?lang=${language}&country=${country}`
-    );
-    if (response) {
-      return response;
-    }
-
     response = await fetchServerData({
       url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/mobile/product/details/${slug}?lang=${language}&country=${country}`,
       method: "GET",
@@ -149,10 +140,6 @@ export async function fetchProductDetailsForMobile(
       );
       return response;
     }
-    setRedis(
-      `/mobile/product/details/${slug}?lang=${language}&country=${country}`,
-      response
-    );
     return response.data;
   } catch (error) {
     console.error("Error fetching product extended details:", error);
@@ -167,9 +154,6 @@ export async function fetchProductWithoutRelated(
 ) {
   let response;
   try {
-    response = await getRedis(
-      `/mobile/product/details_without_similar_related_products/${slug}?lang=${language}&country=${country}`
-    );
     if (response) {
       return response;
     }
@@ -199,10 +183,6 @@ export async function fetchProductWithoutRelated(
       );
       return response;
     }
-    setRedis(
-      `/mobile/product/details_without_similar_related_products/${slug}?lang=${language}&country=${country}`,
-      response
-    );
     return response;
   } catch (error) {
     console.error("Error fetching product extended details:", error);

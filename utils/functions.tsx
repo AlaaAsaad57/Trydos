@@ -530,8 +530,11 @@ export const AddToCartAnimation = () => {
 export const LogError = async (error) => {
   await fetch(process.env.NEXT_PUBLIC_BACKEND_URL + "/mobile_error_log/store", {
     method: "POST",
-    body: JSON.stringify({
-      error_description: { ...error, platform: "web" },
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    body: new URLSearchParams({
+      error_description: JSON.stringify({ ...(error ?? {}), platform: "web" }),
     }),
   });
 };
@@ -575,8 +578,10 @@ export const addToCompare = (slug: string) => {
  */
 export const areProductsEqual = (prodA: any, prodB: any): boolean => {
   if (!prodA || !prodB) return false;
-  const varA = prodA.variations && prodA.variations[0] ? prodA.variations[0] : {};
-  const varB = prodB.variations && prodB.variations[0] ? prodB.variations[0] : {};
+  const varA =
+    prodA.variations && prodA.variations[0] ? prodA.variations[0] : {};
+  const varB =
+    prodB.variations && prodB.variations[0] ? prodB.variations[0] : {};
   return (
     prodA.product_id === prodB.product_id &&
     (varA.Size || "") === (varB.Size || "") &&
