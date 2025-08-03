@@ -4,6 +4,9 @@ const translations = {
     "We encountered an error while loading your cart. Don't worry, we'll fix this issue for you.": "حدث خطأ أثناء تحميل سلتك. لا تقلق، سنقوم بحل هذه المشكلة من أجلك.",
     "Try Again": "حاول مرة أخرى",
     "Please log in first": "يرجى تسجيل الدخول أولاً",
+    "Please verify the number first.": "يرجى التحقق من الرقم أولاً.",
+    "Are you sure you want to delete this comment?": "هل أنت متأكد أنك تريد حذف هذا التعليق؟",
+    "Delete Comment": "حذف التعليق",
     "Load More": "تحميل المزيد",
     "brands": "العلامات التجارية",
     "colors": "الألوان",
@@ -1061,6 +1064,8 @@ const translations = {
     "Your Order Number": "Sipariş Numaranız",
     "You Can Track The Status Of Your Order Through ":
       "Siparişinizin Durumunu Takip Edin",
+      "Are you sure you want to delete this comment?": "Bu yorumu silmek istediğinizden emin misiniz?",
+      "Delete Comment": "Yorumu Sil",
     Cancel: "İptal",
     Done: "Tamamlandı",
     "My Account / My Orders": "Hesabım / Siparişlerim",
@@ -1210,6 +1215,7 @@ const translations = {
     "Name Should be atleast 8 characters": "İsim En Az 8 Karakter Olmalıdır",
     Items: "Ürünler",
     "stock is limited": "stok sınırlıdır",
+    "Please verify the number first.": "Lütfen önce numarayı doğrulayın.",
     "your session has expired please login again or continue as guest":
       "oturumunuz sona erdi, lütfen tekrar giriş yapın veya misafir olarak devam edin",
     "Continue as Guest": "Misafir Olarak Devam Et",
@@ -2514,6 +2520,9 @@ const translations = {
       "Cart Loading Error": "هەڵەی بارکردنی سەبەتەکە",
       "We encountered an error while loading your cart. Don't worry, we'll fix this issue for you.": "هەڵەیەک ڕووی دا لە کاتی بارکردنی سەبەتەکەت. نیگەران مەبە، ئەم کێشەیە بۆ تۆ چارەسەر دەکەین.",
       "Try Again": "دووبارە هەوڵ بدە",
+      "Are you sure you want to delete this comment?": "دڵنیایت دەتەوێت ئەم لێدوانە بسڕیتەوە؟",
+      "Delete Comment": "سڕینەوەی لێدوان",
+      "Please verify the number first.": "تکایە سەرجەم ژمارەکە پەسەند بکەوە پێشتر.",
   },
 };
 

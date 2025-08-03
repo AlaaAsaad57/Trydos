@@ -77,6 +77,7 @@ function Comments({
             name={s?.customer?.name}
             text={s?.comment}
             photo={GetImageUrl(s.customer.image) ?? profilePng}
+            custmerId={s?.customer?.id}
           />
         ))
       ) : (
