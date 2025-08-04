@@ -8,6 +8,7 @@ import { GA_EVENT_NAMES, GA_GLOBAL_SCREEN } from "utils/GAEvents";
 import { GAevent } from "utils/gtag";
 import { InfinteScrollPropsType } from "models/componentType/InfinteScrollPropsType";
 import { useAppStore } from "store";
+import { GetBoutiquesElasticPagination } from "services/elastic/utils";
 const useInfiniteScroll = (fetchNextPage) => {
   useEffect(() => {
     // Function to check scroll position
@@ -30,9 +31,9 @@ const useInfiniteScroll = (fetchNextPage) => {
     };
   }, [fetchNextPage]);
 };
-function InfinteScroll({ offsetVariable }: InfinteScrollPropsType) {
+function InfinteScroll({ offsetVariable, temp }: InfinteScrollPropsType) {
   const [boutiques, setBoutiques] = useState([]);
-  const [offset, setOffset] = useState(offsetVariable);
+  const [offset, setOffset] = useState<any>(offsetVariable);
   const [loading, setLoading] = useState(false);
   const [isEnd, setEnd] = useState(false);
   const params = useParams();
@@ -43,15 +44,15 @@ function InfinteScroll({ offsetVariable }: InfinteScrollPropsType) {
       setLoading(true);
 
       try {
-        const result = await fetchBoutiques(
-          language,
+        const result = await GetBoutiquesElasticPagination({
           country,
-          params.mainCategory?.toString() || "",
-          offset,
-          10
-        );
+          language,
+          category: params.mainCategory,
+          offset: offsetVariable,
+        });
 
-        if (offset === result.offset) {
+        // @ts-ignore
+        if (offset?.[0] === result.searchAfter?.[0]) {
           setLoading(false);
           setEnd(true);
         } else if (result.boutiques.length === 0) {
@@ -60,7 +61,8 @@ function InfinteScroll({ offsetVariable }: InfinteScrollPropsType) {
         } else {
           setBoutiques(result.boutiques);
           setLoading(false);
-          setOffset(result.offset);
+
+          setOffset([...result.searchAfter]);
         }
       } catch (error) {
         console.error("Error fetching boutiques:", error);
@@ -71,6 +73,7 @@ function InfinteScroll({ offsetVariable }: InfinteScrollPropsType) {
   };
   useInfiniteScroll(getNextBoutique);
   useEffect(() => {
+    console.log("BOUTIQUE SECTION ELASTIC", temp);
     GAevent({
       action: GA_EVENT_NAMES.SCREEN_VIEW,
       params: {

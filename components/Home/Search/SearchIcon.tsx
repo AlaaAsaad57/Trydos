@@ -14,11 +14,11 @@ function SearchIcon({ time }) {
   const { setEnableSearch, enable_search } = useAppStore();
   const { lang } = useParams();
   const [focuse, setFocus] = useState(false);
-  console.log("MAIN CATEGORIES ELASTIC TIME:", time);
   const EnableSearch = (e: boolean) => {
     setEnableSearch(e);
   };
   useEffect(() => {
+    console.log("MAIN CATEGORIES ELASTIC TIME:", time);
     if (enable_search) {
       search.getSearchOptions({ noProducts: true, lang: lang });
     }

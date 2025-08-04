@@ -39,17 +39,22 @@ export async function generateMetadata({ params }) {
 async function page({ params }: HomePageProps) {
   // Server component to render JSON-LD structured data
   let [country, language] = params.lang.split("-");
-
-  const {
-    boutiqueData,
-
-    currencyData,
-    featuredData,
-    flashDealsData,
-  } = await GetHomeData(params);
+  let category: string = params.mainCategory as string;
+  const { currencyData, featuredData, flashDealsData } = await GetHomeData(
+    params
+  );
   let Reader = new ElasticsearchReader();
   let start = process.hrtime.bigint();
-  let a = await Reader.getCategories({ country: country, size: 4000 });
+
+  let [a, data] = await Promise.all([
+    Reader.getCategories({ country: country, size: 4000 }),
+    Reader.getBoutiques({
+      language,
+      country,
+      limit: 10,
+      category: category as string,
+    }),
+  ]);
   // @ts-ignore
 
   let mainCategories = a.hits.hits.map((s) => {
@@ -104,7 +109,7 @@ async function page({ params }: HomePageProps) {
         fallback={<OfferListSkeleton />}
         key={`OfferList ${params.lang}`}
       >
-        <OfferListServer boutiquesData={boutiqueData} params={params} />
+        <OfferListServer boutiquesData={data} params={params} />
       </Suspense>
     </>
   );

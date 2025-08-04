@@ -187,16 +187,28 @@ async function FlashProductWrapper({ lang }) {
 
 async function BoutiquesListWrapper({ params }) {
   const [country, language] = params.lang.split("-");
-  let boutiqueData = await fetchBoutiques(
+  // let boutiqueData = await fetchBoutiques(
+  //   language,
+  //   country,
+  //   params.mainCategory || "",
+  //   null,
+  //   10
+  // );
+  let start = process.hrtime.bigint();
+
+  let Reader = new ElasticsearchReader();
+  let data = await Reader.getBoutiques({
     language,
     country,
-    params.mainCategory || "",
-    null,
-    10
+    limit: 10,
+    category: params.mainCategory,
+  });
+  // @ts-ignore
+  let end = process.hrtime.bigint();
+  return (
+    <OfferListServer
+      boutiquesData={{ ...data, temp: Number(end - start) / 1_000_000 }}
+      params={params}
+    />
   );
-  // let Reader = new ElasticsearchReader();
-  // // let a = await Reader.getBoutiques({ country: country, size: 40 });
-  // // // @ts-ignore
-  // // console.log(a.hits.hits[0]._source.custom_boutiques[0]);
-  return <OfferListServer boutiquesData={boutiqueData} params={params} />;
 }
