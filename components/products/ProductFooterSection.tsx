@@ -96,7 +96,7 @@ function ProductFooterSection({
     product?.choice_options?.filter((s) => s.title == "Size")[0]?.options || [];
   const [productState, dispatch] = useReducer(ProductReducer, {
     productDetails: {
-      comment_count: null,
+      comments_count: null,
       comments: null,
       shares: null,
       likes: null,
@@ -127,7 +127,7 @@ function ProductFooterSection({
       setProductData({
         ...productState.productDetails,
         // @ts-ignore
-        comment_count: response.data?.comments_count || 0,
+        comments_count: response.data?.comments_count || 0,
         // @ts-ignore
         comments: response.data?.comments || [],
       });
@@ -140,67 +140,47 @@ function ProductFooterSection({
   const [loading, setLoading] = useState(true);
   const searchParams = useSearchParams();
   const getData = async () => {
+    setProductData({
+      ...productState.productDetails,
+      // @ts-ignore
+      comments_count: product?.comments_count || 0,
+      // @ts-ignore
+      comments: product?.comments || [],
+    });
     // await home.CheckLogin();
     try {
-      let [likesResponse, commentsResponse, response_shares, response_views] =
-        await Promise.all([
-          (async () => {
-            let response = await fetchData({
-              url: "/web/product/likesDetails/" + product.slug,
-              reqTitle: REQUESTS_DATA["LIKE_&_COMMENTS_DATA_REQUEST"],
-              method: "GET",
-              server: "market",
-            });
-            // @ts-ignore
-            if (!response.success) {
-              throw new Error(response.message);
-            }
-            return response;
-          })(),
-          (async () => {
-            let response = await fetchData({
-              url: "/web/product/CommentsSharesDetails/" + product.slug,
-              reqTitle: REQUESTS_DATA.COMMENT_DATA_REQUEST,
-              method: "GET",
-              server: "market",
-            });
-            // @ts-ignore
-            if (!response.success) {
-              throw new Error(response.message);
-            }
-            return response;
-          })(),
-          (async () => {
-            let response = await fetchData({
-              url: `/api/v2/elastic/shared_count/${product.id}`,
-              reqTitle: REQUESTS_DATA.SHARE_COUNT_REQUEST,
-              server: "chat",
-              method: "GET",
-            });
-            // @ts-ignore
-            if (!response.success) {
-              throw new Error(response.message);
-            }
-            return response;
-          })(),
-          (async () => {
-            let response = await fetchData({
-              url: `/api/products/view`,
-              reqTitle: REQUESTS_DATA.GET_VIEW_PRODUCT,
-              method: "POST",
-              server: "elastic",
-              body: JSON.stringify({
-                user_id: auth.UserID(),
-                product_id: product.id,
-              }),
-            });
-            // @ts-ignore
-            if (!response.success) {
-              throw new Error(response.message);
-            }
-            return response;
-          })(),
-        ]);
+      let [likesResponse, response_views] = await Promise.all([
+        (async () => {
+          let response = await fetchData({
+            url: "/web/product/likesDetails/" + product.slug,
+            reqTitle: REQUESTS_DATA["LIKE_&_COMMENTS_DATA_REQUEST"],
+            method: "GET",
+            server: "market",
+          });
+          // @ts-ignore
+          if (!response.success) {
+            throw new Error(response.message);
+          }
+          return response;
+        })(),
+        (async () => {
+          let response = await fetchData({
+            url: `/api/products/view`,
+            reqTitle: REQUESTS_DATA.GET_VIEW_PRODUCT,
+            method: "POST",
+            server: "elastic",
+            body: JSON.stringify({
+              user_id: auth.UserID(),
+              product_id: product.id,
+            }),
+          });
+          // @ts-ignore
+          if (!response.success) {
+            throw new Error(response.message);
+          }
+          return response;
+        })(),
+      ]);
       storeVariants({
         // @ts-ignore
         variation: likesResponse.data?.variation,
@@ -214,9 +194,6 @@ function ProductFooterSection({
       setProductData({
         ...productState.productDetails,
         // @ts-ignore
-        comment_count: commentsResponse.data?.comments_count || 0,
-        // @ts-ignore
-        comments: commentsResponse.data?.comments || [],
       });
       let arr = [];
       // @ts-ignore
@@ -241,13 +218,11 @@ function ProductFooterSection({
         is_liked: isLiked,
         color,
         size,
-        sharesCount: response_shares.data.shared_count,
       });
       setLoading(false);
       // @ts-ignore
 
-      setSharesCount(response_shares.data.shared_count);
-
+      setSharesCount(product.shared_count);
       setViewsProducts({
         views_count: response_views?.view_count || 0,
       });
@@ -366,7 +341,8 @@ function ProductFooterSection({
               increase_comments={() =>
                 setProductData({
                   ...productState.productDetails,
-                  comment_count: productState.productDetails.comment_count + 1,
+                  comments_count:
+                    productState.productDetails.comments_count + 1,
                 })
               }
               product={product}

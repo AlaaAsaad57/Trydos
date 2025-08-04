@@ -21,7 +21,7 @@ if (process.env.NEXT_RUNTIME !== "edge") {
 // Store product in Redis
 export async function storeProduct(
   product,
-  // socialDataProduct,
+  socialDataProduct,
   slug,
   lang,
   country
@@ -45,12 +45,12 @@ export async function storeProduct(
   try {
     await redis.set(productKey, JSON.stringify(product), "EX", ttl);
     await redis.set(slugKey, String(product.id), "EX", ttl);
-    // await redis.set(
-    //   `product:${product.id}:social`,
-    //   JSON.stringify(socialDataProduct),
-    //   "EX",
-    //   ttl
-    // );
+    await redis.set(
+      `product:${product.id}:social`,
+      JSON.stringify(socialDataProduct),
+      "EX",
+      ttl
+    );
     const end = process.hrtime.bigint();
     return { success: true, timeMs: Number(end - start) / 1_000_000 };
   } catch (err) {
@@ -81,7 +81,7 @@ export async function getProductFromCache(slug, lang, country) {
     )}`;
 
     const cachedProduct = await redis.get(productKey);
-    // const socialDataProduct = await redis.get(`product:${productId}:social`);
+    const socialDataProduct = await redis.get(`product:${productId}:social`);
     console.debug(
       "Redis get cachedProduct:",
       productKey,
@@ -93,7 +93,7 @@ export async function getProductFromCache(slug, lang, country) {
     let product = cachedProduct ? JSON.parse(cachedProduct) : null;
     product = {
       ...(product ?? {}),
-      // ...(socialDataProduct ? JSON.parse(socialDataProduct) : {}),
+      ...(socialDataProduct ? JSON.parse(socialDataProduct) : {}),
     };
     if (!product?.comments) {
       return { product: null, timeMs: Number(end - start) / 1_000_000 };

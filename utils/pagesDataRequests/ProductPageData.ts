@@ -9,21 +9,22 @@ export const GetProductData = async (params: {
   let [productData, currencyData] = await Promise.all([
     fetchProductDetails(params.productId, language, country),
     fetchCurrency(language, country),
+    GetSocialDataForProduct,
   ]);
-  // let socialData = await GetSocialDataForProduct({
-  //   productId: productData.id,
-  //   lang: params.lang,
-  //   slug: params.productId,
-  // });
+  let socialData = await GetSocialDataForProduct({
+    productId: productData.id,
+    lang: params.lang,
+    slug: params.productId,
+  });
   return {
     product: productData,
-    // socialData: socialData,
+    socialData: socialData,
     currency: currencyData.data.currency,
   };
 };
 export const GetSocialDataForProduct = async ({ productId, slug, lang }) => {
   try {
-    let [commentsRes, sharesRes, likesRes] = await Promise.all([
+    let [commentsRes, sharesRes] = await Promise.all([
       fetchServerData({
         url:
           process.env.NEXT_PUBLIC_BACKEND_URL +
@@ -34,17 +35,11 @@ export const GetSocialDataForProduct = async ({ productId, slug, lang }) => {
       }),
       fetchServerData({
         url:
-          process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL +
-          `api/v2/elastic/shared_count/${productId}`,
+          process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
+          `/api/v2/elastic/shared_count/${productId}`,
         method: "GET",
         local: lang,
         revalidate: 0,
-      }),
-      fetchServerData({
-        url: process.env.NEXT_PUBLIC_BACKEND_URL + "/",
-        method: "GET",
-        revalidate: 0,
-        local: lang,
       }),
     ]);
     if (commentsRes.isError) {
@@ -52,16 +47,14 @@ export const GetSocialDataForProduct = async ({ productId, slug, lang }) => {
         `Comments Requets Error:${commentsRes.status}:${commentsRes.error}`
       );
     }
-    if (sharesRes.isError) {
-      throw new Error(
-        `Shares Requets Error:${sharesRes.status}:${sharesRes.error}`
-      );
-    }
+    // if (sharesRes.isError) {
+    //   throw new Error(
+    //     `Shares Requets Error:${sharesRes.status}:${sharesRes.error}`
+    //   );
+    // }
 
     let commentsData = commentsRes.data.data;
     let sharesData = sharesRes.data.data;
-    let likesData = likesRes.data.data;
-    console.log(commentsData, sharesData, likesData);
     return { ...commentsData, ...sharesData };
   } catch (error) {
     console.error(`Social Data:` + error);

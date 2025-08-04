@@ -186,8 +186,9 @@ function ProductOptions({
             >
               <CommentIcon active={activeOption === "Comment"} />
               <span data-cy="CountOfComment">
-                {productDetails.comment_count !== null ? (
-                  productDetails.comment_count
+                {productDetails.comments_count !== null ||
+                product.comments_count !== null ? (
+                  productDetails.comments_count ?? product.comments_count ?? 0
                 ) : (
                   <Skeleton width={15} height={14}></Skeleton>
                 )}
@@ -209,9 +210,10 @@ function ProductOptions({
               {" "}
               <Share />
               <span data-cy="CountOfShares">
-                {SelectedProduct?.sharesCount !== null &&
-                SelectedProduct?.sharesCount >= 0 ? (
-                  SelectedProduct?.sharesCount
+                {(SelectedProduct?.sharesCount !== null &&
+                  SelectedProduct?.sharesCount >= 0) ||
+                product.shared_count ? (
+                  SelectedProduct?.sharesCount ?? product.shared_count
                 ) : (
                   <Skeleton width={15} height={14}></Skeleton>
                 )}
