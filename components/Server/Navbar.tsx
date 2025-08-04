@@ -3,22 +3,22 @@ import SearchIcon from "../Home/Search/SearchIcon";
 import CategoryNavMobile from "components/Home/CategoryNavMobile";
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 
-import { fetchMainCategories } from "Server Requests";
 import { NavbarServerProps } from "models/componentType/HomePagePropsType";
 
 async function NavbarServer({
   lang,
   mainCategory,
   categoriesData,
+  time,
 }: NavbarServerProps) {
   try {
-    const { mainCategories: categories } = categoriesData;
+    const categories = categoriesData;
 
     categories.sort((a, b) => (a.slug === mainCategory ? -1 : 1));
 
     return (
       <div className="flex-row search-nav-holder">
-        <SearchIcon />
+        <SearchIcon time={time} />
 
         <HortiznalScrollBar
           id="categories-bar-container"

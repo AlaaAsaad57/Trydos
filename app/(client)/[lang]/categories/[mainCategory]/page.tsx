@@ -13,6 +13,7 @@ import { GetHomeData } from "utils/pagesDataRequests/HomePageData";
 import FeatureProducts from "components/Server/FeatureProducts";
 import FeaturedProductsSkeleton from "components/skeleton/loaders/FeaturedProductsSkeleton";
 import FlashDealsProducts from "components/Server/FlashDealsProducts";
+import { ElasticsearchReader } from "services/elastic/elasticsearch-reader.service";
 
 export async function generateMetadata({ params }) {
   try {
@@ -37,14 +38,30 @@ export async function generateMetadata({ params }) {
 
 async function page({ params }: HomePageProps) {
   // Server component to render JSON-LD structured data
+  let [country, language] = params.lang.split("-");
 
   const {
     boutiqueData,
-    categoriesData,
+
     currencyData,
     featuredData,
     flashDealsData,
   } = await GetHomeData(params);
+  let Reader = new ElasticsearchReader();
+  let start = process.hrtime.bigint();
+  let a = await Reader.getCategories({ country: country, size: 4000 });
+  // @ts-ignore
+
+  let mainCategories = a.hits.hits.map((s) => {
+    // @ts-ignore
+    return s._source?.custom_categories?.find(
+      (cat) => cat.language_code?.toLowerCase() === language?.toLowerCase()
+    );
+  });
+  mainCategories = Array.from(
+    new Map(mainCategories.map((c: any) => [c.id, c])).values()
+  );
+  let end = process.hrtime.bigint();
   return (
     <>
       <Suspense
@@ -52,9 +69,10 @@ async function page({ params }: HomePageProps) {
         key={`Navbar ${params.lang}`}
       >
         <NavbarServer
+          time={Number(end - start) / 1_000_000}
           lang={params.lang}
           mainCategory={params?.mainCategory}
-          categoriesData={categoriesData}
+          categoriesData={mainCategories}
         />
       </Suspense>
 

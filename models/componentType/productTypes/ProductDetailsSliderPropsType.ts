@@ -1,8 +1,7 @@
-import { Currency , ProductDataType } from "./productPagePropsType";
-
+import { Currency, ProductDataType } from "./productPagePropsType";
 
 export interface ProductDetailsSliderPropsType {
-    product: any;
-    currency: Currency;
-    images: string[];
+  product: any;
+  currency: Currency;
+  images: string[];
 }

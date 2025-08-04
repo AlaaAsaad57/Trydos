@@ -19,7 +19,13 @@ if (process.env.NEXT_RUNTIME !== "edge") {
   }
 }
 // Store product in Redis
-export async function storeProduct(product, slug, lang, country) {
+export async function storeProduct(
+  product,
+  // socialDataProduct,
+  slug,
+  lang,
+  country
+) {
   if (!redis) {
     throw new Error("Redis is not available in Edge runtime");
   }
@@ -39,7 +45,12 @@ export async function storeProduct(product, slug, lang, country) {
   try {
     await redis.set(productKey, JSON.stringify(product), "EX", ttl);
     await redis.set(slugKey, String(product.id), "EX", ttl);
-
+    // await redis.set(
+    //   `product:${product.id}:social`,
+    //   JSON.stringify(socialDataProduct),
+    //   "EX",
+    //   ttl
+    // );
     const end = process.hrtime.bigint();
     return { success: true, timeMs: Number(end - start) / 1_000_000 };
   } catch (err) {
@@ -70,6 +81,7 @@ export async function getProductFromCache(slug, lang, country) {
     )}`;
 
     const cachedProduct = await redis.get(productKey);
+    // const socialDataProduct = await redis.get(`product:${productId}:social`);
     console.debug(
       "Redis get cachedProduct:",
       productKey,
@@ -78,8 +90,16 @@ export async function getProductFromCache(slug, lang, country) {
     );
 
     const end = process.hrtime.bigint();
+    let product = cachedProduct ? JSON.parse(cachedProduct) : null;
+    product = {
+      ...(product ?? {}),
+      // ...(socialDataProduct ? JSON.parse(socialDataProduct) : {}),
+    };
+    if (!product?.comments) {
+      return { product: null, timeMs: Number(end - start) / 1_000_000 };
+    }
     return {
-      product: cachedProduct ? JSON.parse(cachedProduct) : null,
+      product: product,
       timeMs: Number(end - start) / 1_000_000,
     };
   } catch (err) {

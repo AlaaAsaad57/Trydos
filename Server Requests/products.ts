@@ -21,17 +21,6 @@ export async function fetchProductDetails(
       fetchProductSimpleDetails(slug, language, country),
       fetchProductExtendedDetails(slug, language, country),
     ]);
-    if (simpleDetails?.data?.id && extendedDetails?.data?.id) {
-      // storeProduct(
-      //   {
-      //     ...simpleDetails.data,
-      //     ...extendedDetails.data,
-      //   },
-      //   slug,
-      //   language,
-      //   country
-      // );
-    }
     return {
       ...simpleDetails.data,
       ...extendedDetails.data,

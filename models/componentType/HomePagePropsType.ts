@@ -20,6 +20,7 @@ export interface NavbarServerProps {
   lang: string;
   mainCategory: string;
   categoriesData: any;
+  time: any;
 }
 
 export interface HomePageProps {

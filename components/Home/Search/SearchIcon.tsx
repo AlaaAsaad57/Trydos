@@ -10,7 +10,7 @@ import { useParams } from "next/navigation";
 import search from "services/search";
 import { DisableScroll, EnableScroll } from "utils/tinyUtils";
 
-function SearchIcon() {
+function SearchIcon({ time }) {
   const { setEnableSearch, enable_search, setSearchLoading, loading_search } =
     useAppStore();
   const { lang } = useParams();
@@ -21,6 +21,7 @@ function SearchIcon() {
     setEnableSearch(e);
   };
   useEffect(() => {
+    console.log("MAIN CATEGORIES ELASTIC TIME:", time);
     if (enable_search) {
       search.getSearchOptions({ noProducts: true, lang: lang });
     }

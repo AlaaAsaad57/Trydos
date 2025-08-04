@@ -44,6 +44,7 @@ import {
   storeProduct,
 } from "Server Requests/radis";
 import { fetchCurrency } from "Server Requests";
+import { ElasticsearchReader } from "services/elastic/elasticsearch-reader.service";
 
 // export const revalidate = parseInt(process.env.NEXT_PUBLIC_REVALIDATE);
 // For Middle East users
@@ -89,11 +90,15 @@ async function Page({ params, searchParams }: ProductPagePropsType) {
       currency = currency.data.currency;
     } else {
       let start = process.hrtime.bigint();
-      let { product: productData, currency: currencyData } =
-        await GetProductData(params);
+      let {
+        product: productData,
+        currency: currencyData,
+        // socialData,
+      } = await GetProductData(params);
 
       storeProduct(
         productData,
+        // socialData,
         params.productId,
         languageVariable,
         countryVariable
@@ -152,6 +157,7 @@ async function Page({ params, searchParams }: ProductPagePropsType) {
       if (product.collected_after_ordering === 1) return false;
       return bool;
     };
+
     return (
       <>
         <script
