@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { cache } from "react";
 import { fetchServerData } from "Server Requests/ServerFetch";
 export const generateCodeCurrency = (code: string) => {
   if (code?.toLowerCase() === "sp") {
@@ -10,7 +9,7 @@ export const generateCodeCurrency = (code: string) => {
 };
 
 // Home Page Meta Data
-export const getHomeMetadata = cache(async ({ params }): Promise<Metadata> => {
+export const getHomeMetadata = async ({ params }): Promise<Metadata> => {
   const [country, language] = params.lang.split("-");
   const response = await fetchServerData({
     url: `${process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL}/api/home/HomePageMetaData?lang=${language}&country=${country}`,
@@ -161,8 +160,8 @@ export const getHomeMetadata = cache(async ({ params }): Promise<Metadata> => {
   return {
     ...metadata,
   };
-});
-export const GetStructuredData = cache(async ({ params }) => {
+};
+export const GetStructuredData = async ({ params }) => {
   const [country, language] = params.lang.split("-");
   const response = await fetchServerData({
     url: `${process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL}/api/home/HomePageMetaData?lang=${language}&country=${country}`,
@@ -186,4 +185,4 @@ export const GetStructuredData = cache(async ({ params }) => {
       "https://twitter.com/trydos",
     ],
   };
-});
+};

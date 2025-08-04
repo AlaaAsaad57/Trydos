@@ -11,17 +11,14 @@ import search from "services/search";
 import { DisableScroll, EnableScroll } from "utils/tinyUtils";
 
 function SearchIcon({ time }) {
-  const { setEnableSearch, enable_search, setSearchLoading, loading_search } =
-    useAppStore();
+  const { setEnableSearch, enable_search } = useAppStore();
   const { lang } = useParams();
   const [focuse, setFocus] = useState(false);
-  const [rendered, setRendered] = useState(true);
-
+  console.log("MAIN CATEGORIES ELASTIC TIME:", time);
   const EnableSearch = (e: boolean) => {
     setEnableSearch(e);
   };
   useEffect(() => {
-    console.log("MAIN CATEGORIES ELASTIC TIME:", time);
     if (enable_search) {
       search.getSearchOptions({ noProducts: true, lang: lang });
     }
