@@ -449,15 +449,27 @@ class OrderService {
       return null;
     }
   }
-  async UpdateReturnedProduct({
-    product_id,
-    order_detail_id,
-    reason_id,
-    quantity,
-    images,
-    order_id,
-    return_request_id,
-  }) {}
+  async UpdateReturnedProduct({ reason_id, quantity, images, id }) {
+    try {
+      let response = await fetchData({
+        url: `/customer/order/return_request_products/update`,
+        reqTitle: REQUESTS_DATA.RETURN_PRODUCT,
+        method: "POST",
+        server: "market",
+        body: JSON.stringify({
+          id,
+          quantity,
+          images,
+          return_request_reason_id: reason_id?.id,
+        }),
+      });
+      if (response.success || response.isSuccessful) {
+        return true;
+      } else {
+        throw new Error(response.message);
+      }
+    } catch (error) {}
+  }
   async ReturnProduct({
     product_id,
     order_detail_id,
@@ -494,7 +506,6 @@ class OrderService {
       } else {
         throw new Error(response.message);
       }
-      return;
     } catch (error) {}
   }
   async CancelReturn({ return_request_product_id }) {

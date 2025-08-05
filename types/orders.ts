@@ -1,6 +1,7 @@
 export interface OrderItem {
   id: number;
   customer_id: number;
+  return_details: any;
   payment_status: string;
   order_status: {
     value: string;
@@ -64,6 +65,7 @@ export interface OrderItem {
   show_return_request: boolean;
   edit_return_request: boolean;
   order_can_exchange: boolean;
+  can_cancele_order: boolean;
   details: OrderDetail[];
 }
 

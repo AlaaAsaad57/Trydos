@@ -20,15 +20,26 @@ function ReturnOrderItemConfirmation({
   const ReturnRequest = async (confirm?) => {
     try {
       setLoading(true);
-      let req = await order.ReturnProduct({
-        images: confirmationData.images,
-        order_detail_id: confirmationData.item.id,
-        product_id: confirmationData.item.product_id,
-        quantity: confirmationData.item.qty,
-        reason_id: confirmationData.reasons,
-        return_request_id: ActivePacks.return_request_id,
-        order_id: ActivePacks.id,
-      });
+      let req;
+      if (confirmationData.update) {
+        await order.UpdateReturnedProduct({
+          images: confirmationData.images,
+          quantity: confirmationData.item.qty,
+          reason_id: confirmationData.reasons,
+          id: confirmationData.return_request_product_id,
+        });
+        req = ActivePacks.return_request_id;
+      } else {
+        req = await order.ReturnProduct({
+          images: confirmationData.images,
+          order_detail_id: confirmationData.item.id,
+          product_id: confirmationData.item.product_id,
+          quantity: confirmationData.item.qty,
+          reason_id: confirmationData.reasons,
+          return_request_id: ActivePacks.return_request_id,
+          order_id: ActivePacks.id,
+        });
+      }
       if (confirm) {
         await order.ConfirmReturnRequest({ return_request_id: req });
       } else {

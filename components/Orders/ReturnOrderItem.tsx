@@ -30,13 +30,20 @@ function ReturnOrderItem({
       setSelectedOptions(option);
     }
   };
-  const [images, setImages] = useState<string[]>([]);
+  const [images, setImages] = useState<string[]>(item?.return?.img ?? []);
   const [loading, setLoading] = useState(true);
   const getReasons = async () => {
     try {
       setLoading(true);
       let response = await order.getReturnReasons();
       setOptions(response.data.return_reasons);
+      if (item?.return?.return_request_product_reason_id) {
+        setSelectedOptions(
+          response?.data?.return_reasons?.find(
+            (s) => s.id === item?.return?.return_request_product_reason_id
+          )
+        );
+      }
       setLoading(false);
     } catch (error) {
       setLoading(false);
@@ -46,7 +53,11 @@ function ReturnOrderItem({
     getReasons();
   }, []);
   const [loadingImage, setLoadinImage] = useState(false);
-  const [returnedQty, setReturnedQty] = useState(item.qty);
+  const [returnedQty, setReturnedQty] = useState(
+    (item.return.return_request_product_quantity &&
+      parseInt(item.return.return_request_product_quantity)) ??
+      item.qty
+  );
   return (
     <>
       <div className="flex-col w-full items-center pb-[12px] px-[24px]">
@@ -109,7 +120,7 @@ function ReturnOrderItem({
       </div>
       <div className="flex-row items-center justify-center mt-[20px] w-full max-w-[200px]">
         <button
-          onClick={() => setReturnedQty(Math.max(0, item.qty - 1))}
+          onClick={() => setReturnedQty(Math.max(0, returnedQty - 1))}
           className="flex items-center justify-center w-[40px] h-[40px] rounded-l-[12px] bg-[#F8F8F8] border border-[#E6E6E680] border-r-0 hover:bg-[#EEEEEE] transition-colors duration-200 active:scale-95"
         >
           <span className="text-[#1D1D1D] text-[18px] light">−</span>
@@ -118,12 +129,10 @@ function ReturnOrderItem({
           type="number"
           value={returnedQty}
           onChange={(e) => {
-            if (parseInt(pollinateInput(e.target.value)) > item.qty) {
+            if (parseInt(e.target.value) > item.qty) {
               setReturnedQty(returnedQty);
             } else {
-              setReturnedQty(
-                Math.max(0, parseInt(pollinateInput(e.target.value)))
-              );
+              setReturnedQty(Math.max(0, parseInt(e.target.value)));
             }
           }}
           className="flex-1 h-[40px] text-center text-[16px] font-medium text-[#1D1D1D] bg-white border-t border-b border-[#E6E6E680] focus:outline-none focus:border-[#402CDD] focus:ring-1 focus:ring-[#402CDD80] transition-all duration-200"
@@ -182,6 +191,9 @@ function ReturnOrderItem({
                 images: images,
                 reasons: selectedOptions,
                 qty: returnedQty,
+                update: item?.return?.already_return,
+                return_request_product_id:
+                  item?.return?.return_request_product_id,
               });
               //   setConfirmationData({
               //     enable: true,

@@ -11,16 +11,18 @@ import Spinner from "components/global/Spinner";
 function OrderRetailsReturnInfo({
   product,
   return_request_id,
+  callback,
 }: {
   product: OrderDetail;
-  return_request_id;
+  return_request_id: number;
+  callback: () => void;
 }) {
   const [expanded, setExpanded] = useState(false);
-  const { selectedOrder, setOrderDetails, SelectedOrderItem } = useAppStore();
   const [loading, setLoading] = useState(false);
   const CancelReturn = async () => {
     setLoading(true);
     await order.CancelReturn({ return_request_product_id: return_request_id });
+    callback();
     setLoading(false);
   };
   return (

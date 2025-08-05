@@ -13,7 +13,6 @@ import { OrderCanceltionOptionsPropsType } from "models/componentType/OrderCance
 import { OrderOptionsPropsType } from "models/componentType/OrderOptionsPropsType";
 import { showErrorNotification } from "@/store/notifications/reducer";
 import orderService from "services/order";
-import order from "services/order";
 import { totalAmount } from "utils/tinyUtils";
 import { useRouter } from "next/navigation";
 import { ModifyOrderItemModal } from "./ModifyOrderItemModal";
@@ -41,11 +40,37 @@ function OrderOptions({ closeOptions, CancelOrder }: OrderOptionsPropsType) {
     // Abort any previous request
     setOrderPageLoading(true);
     try {
-      let data = await order.getOrderDetails(
+      let data = await orderService.getOrderDetails(
         selectedOrder.order_group_id,
         null
       );
+      let returned_req_ids = data?.map((s) => {
+        if (s.return_request_id !== null && s.return_request_id !== undefined)
+          return s.return_request_id;
+      });
+      returned_req_ids = returned_req_ids?.filter((s) => s !== undefined);
+      if (returned_req_ids?.length > 0) {
+        try {
+          const returnRequests = await Promise.all(
+            returned_req_ids.map(async (id) => {
+              const details = await orderService.getReturnRequestDetails({
+                return_request_id: id,
+              });
+              return { id, details };
+            })
+          );
 
+          // Update data with the fetched details
+          data = data.map((order) => {
+            const match = returnRequests.find(
+              (req) => req.id === order.return_request_id
+            );
+            return match ? { ...order, return_details: { ...match } } : order;
+          });
+        } catch (error) {
+          console.error(error);
+        }
+      }
       let orderData = {
         ...data?.[0],
         order_amount: totalAmount(data),

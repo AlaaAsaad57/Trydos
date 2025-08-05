@@ -11,6 +11,7 @@ export interface OrderItemOptionsModalPropsType {
 }
 export interface Item {
   collect_product_after_ordering: boolean;
+  return: any;
   delivery_status: string;
   discount: number;
   discount_type: string;

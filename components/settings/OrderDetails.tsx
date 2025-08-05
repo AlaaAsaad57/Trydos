@@ -88,29 +88,31 @@ function OrderDetails({ resetOrderDetails, goBack }: OrderDetailsPropsType) {
         abortControllerRef.current.signal
       );
       let returned_req_ids = data?.map((s) => {
-        if (s.return_request_id) return s.return_request_id;
+        if (s.return_request_id !== null && s.return_request_id !== undefined)
+          return s.return_request_id;
       });
-
-      try {
-        const returnRequests = await Promise.all(
-          returned_req_ids.map(async (id) => {
-            const details = await Order.getReturnRequestDetails({
-              return_request_id: id,
-            });
-            return { id, details };
-          })
-        );
-
-        // Update data with the fetched details
-        data = data.map((order) => {
-          const match = returnRequests.find(
-            (req) => req.id === order.return_request_id
+      returned_req_ids = returned_req_ids?.filter((s) => s !== undefined);
+      if (returned_req_ids?.length > 0) {
+        try {
+          const returnRequests = await Promise.all(
+            returned_req_ids.map(async (id) => {
+              const details = await Order.getReturnRequestDetails({
+                return_request_id: id,
+              });
+              return { id, details };
+            })
           );
-          return match ? { ...order, return_details: match.details } : order;
-        });
-        console.log(data);
-      } catch (error) {
-        console.error(error);
+
+          // Update data with the fetched details
+          data = data.map((order) => {
+            const match = returnRequests.find(
+              (req) => req.id === order.return_request_id
+            );
+            return match ? { ...order, return_details: { ...match } } : order;
+          });
+        } catch (error) {
+          console.error(error);
+        }
       }
       let orderData = {
         ...data?.[0],
@@ -534,7 +536,7 @@ const OrderExpandedDetails = ({
   order: OrderItem;
   getOrderDetails: () => void;
 }) => {
-  const { currency, orderReturnObject } = useAppStore();
+  const { currency } = useAppStore();
   const [cancelling, setCancelling] = useState(false);
   const CancelReturnRequest = async () => {
     try {
@@ -544,6 +546,27 @@ const OrderExpandedDetails = ({
       });
       getOrderDetails();
       setCancelling(false);
+    } catch (error) {
+      setCancelling(false);
+    }
+  };
+  const shouldShowConfirmReturn = () => {
+    return order?.return_details?.details?.status === "draft return request";
+  };
+  const getProductWithReturn = (product) => {
+    let return_item = order?.return_details?.details?.order_details?.find(
+      (s) => s.detail_id === product.id
+    ) ?? { already_return: false };
+    return { ...product, return: return_item };
+  };
+  const confirmOrderReturn = async () => {
+    try {
+      setCancelling(true);
+      await Order.ConfirmReturnRequest({
+        return_request_id: order.return_request_id,
+      });
+      setCancelling(false);
+      getOrderDetails();
     } catch (error) {
       setCancelling(false);
     }
@@ -684,37 +707,44 @@ const OrderExpandedDetails = ({
         </div>
       </div>
       <div className="flex-col w-full mt-[12px] pb-[50px]">
-        {orderReturnObject && (
+        {shouldShowConfirmReturn() && (
           <div
             className={`w-full h-[50px] mt-[31px] items-center justify-center  flex cursor-pointer ${"bg-[#402CDD] "} rounded-[15px] text-[16px] text-[#fff] medium`}
             onClick={() => {
-              console.log(orderReturnObject);
+              confirmOrderReturn();
             }}
           >
-            {translateFunction("Confirm Returning Items")}
+            {cancelling ? (
+              <Spinner />
+            ) : (
+              translateFunction("Confirm Returning Items")
+            )}
           </div>
         )}
-        {order.return_request_id && order.edit_return_request && cancelling ? (
-          <div
-            className={`w-full h-[50px] mt-[31px] items-center justify-center  flex cursor-pointer ${"bg-[#fb7070] "} rounded-[15px] text-[16px] text-[#fff] medium`}
-          >
-            <Spinner />
-          </div>
-        ) : (
-          <div
-            className={`w-full h-[50px] mt-[31px] items-center justify-center  flex cursor-pointer ${"bg-[#fb7070] "} rounded-[15px] text-[16px] text-[#fff] medium cursor-pointer`}
-            onClick={() => {
-              CancelReturnRequest();
-            }}
-          >
-            {translateFunction("Cancel Return Request")}
-          </div>
-        )}
+        {order?.return_details?.details?.status &&
+          (order.return_request_id &&
+          order.edit_return_request &&
+          cancelling ? (
+            <div
+              className={`w-full h-[50px] mt-[31px] items-center justify-center  flex cursor-pointer ${"bg-[#fb7070] "} rounded-[15px] text-[16px] text-[#fff] medium`}
+            >
+              <Spinner />
+            </div>
+          ) : (
+            <div
+              className={`w-full h-[50px] mt-[31px] items-center justify-center  flex cursor-pointer ${"bg-[#fb7070] "} rounded-[15px] text-[16px] text-[#fff] medium cursor-pointer`}
+              onClick={() => {
+                CancelReturnRequest();
+              }}
+            >
+              {translateFunction("Cancel Return Request")}
+            </div>
+          ))}
         {order.details.map((Product) => (
           <ProductCard
             status={order?.order_status}
             getOrderDetails={() => getOrderDetails()}
-            product={Product}
+            product={getProductWithReturn(Product)}
             key={Product.id}
             order={order}
           />
@@ -731,7 +761,6 @@ const ProductCard = ({
 }: ProductCardPropsType) => {
   const { currency, setSelectedOrderItem, ActivePacks } = useAppStore();
   const { lang } = useParams();
-
   return (
     <>
       <div className={`relative w-full flex-col`}>
@@ -887,11 +916,17 @@ const ProductCard = ({
           </div>
         </NextLink>
 
-        {order.return_request_id &&
+        {product.return.already_return &&
           (ActivePacks?.return_details ? (
             <OrderRetailsReturnInfo
-              product={product}
-              return_request_id={ActivePacks.return_request_id}
+              product={{
+                ...product,
+                return_status: ActivePacks.return_details.status,
+              }}
+              callback={() => {
+                getOrderDetails();
+              }}
+              return_request_id={product?.return?.return_request_product_id}
             />
           ) : (
             <div

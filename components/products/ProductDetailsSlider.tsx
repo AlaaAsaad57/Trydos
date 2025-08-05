@@ -13,7 +13,7 @@ function ProductDetailsSlider({
   currency,
   images,
 }: ProductDetailsSliderPropsType) {
-  const { editInfo, storeProduct, setCurrency, product } = useAppStore();
+  const { editInfo, storeProduct, setCurrency } = useAppStore();
   const productData = productObj;
   const [imageShow, showImage] = useState(-1);
   const [emblaRef1, emblaApi] = useEmblaCarousel({
