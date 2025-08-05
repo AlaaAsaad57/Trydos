@@ -37,9 +37,11 @@ import { GetProductData } from "utils/pagesDataRequests/ProductPageData";
 import { generateCodeCurrency } from "../../MetaData";
 import { redirect } from "next/navigation";
 import {
+  getCurrencyFromCache,
   getProductFromCache,
   RedisGet,
   RedisSet,
+  StoreCurrency,
   storeProduct,
 } from "Server Requests/radis";
 import { fetchCurrency } from "Server Requests";
@@ -81,11 +83,16 @@ async function Page({ params, searchParams }: ProductPagePropsType) {
       languageVariable,
       countryVariable
     );
-
+    let currencyCache = await getCurrencyFromCache(countryVariable);
     if (data.product) {
       product = { ...data.product, time: data.timeMs, redis: true };
-      currency = await fetchCurrency(languageVariable, countryVariable);
-      currency = currency.data.currency;
+      if (currencyCache) {
+        currency = currencyCache;
+      } else {
+        currency = await fetchCurrency(languageVariable, countryVariable);
+        currency = currency.data.currency;
+        StoreCurrency(countryVariable, currency);
+      }
     } else {
       let start = process.hrtime.bigint();
       let {
@@ -93,7 +100,7 @@ async function Page({ params, searchParams }: ProductPagePropsType) {
         currency: currencyData,
         socialData,
       } = await GetProductData(params);
-
+      StoreCurrency(countryVariable, currencyData);
       storeProduct(
         productData,
         socialData,

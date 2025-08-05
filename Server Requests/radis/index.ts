@@ -114,7 +114,29 @@ export async function getProductFromCache(slug, lang, country) {
     throw err;
   }
 }
-
+// Get Currency from Redis
+export async function getCurrencyFromCache(country) {
+  try {
+    if (!redis) {
+      throw new Error("Redis is not available in Edge runtime");
+    }
+    const cachedValue = await redis.get(`currency-${country}`);
+    if (!cachedValue) {
+      return null;
+    }
+    return cachedValue ? JSON.parse(cachedValue) : {};
+  } catch (error) {}
+}
+export async function StoreCurrency(country, value) {
+  try {
+    await redis.set(
+      `currency-${country}`,
+      JSON.stringify(value),
+      "EX",
+      Number(process.env.PRODUCT_REDIS_TTL_SECONDS)
+    );
+  } catch (error) {}
+}
 // Remove product from Redis cache
 export async function removeProductFromCache(
   slug: string,

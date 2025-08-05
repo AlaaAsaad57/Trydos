@@ -219,7 +219,11 @@ function PlaceOrderButtons({
                   } `}
                 >
                   {cart.length} {translateFunction("items")}{" "}
-                  {RoundPrice({ num: getTotalPrice(), returnNumber: true })}{" "}
+                  {RoundPrice({
+                    num: getTotalPrice(),
+                    returnNumber: true,
+                    points: 5,
+                  })}{" "}
                   {currency?.symbol}
                 </span>
               </>

@@ -129,12 +129,12 @@ export default function RootLayout({
           </div>
 
           {children}
-          {notification}
         </div>
         {init}
         {loader}
         {navauth}
         {cart}
+        {notification}
       </body>
     </html>
   );
