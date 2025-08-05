@@ -883,7 +883,7 @@ const ProductCard = ({
                 </div>
               </div>
             )}
-            {product.is_canceled && (
+            {product.qty === 0 && (
               <div className="flex-row justify-between w-full mt-[6px]">
                 <div className="flex-row">
                   <span className="text-[#505050] text-[10px] medium ">
