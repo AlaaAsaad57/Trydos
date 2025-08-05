@@ -124,6 +124,11 @@ function ProductOptions({
     setLoading(false);
   };
   useEffect(() => {
+    editInfo({
+      likes: product.count_of_likes,
+      comments: product.comments,
+      shares_count: product.shares_count,
+    });
     if (product.is_country_restricted) {
       showErrorNotification(
         translateFunction("Sorry This Product Not Available In Your Country")
@@ -167,10 +172,12 @@ function ProductOptions({
               ) : (
                 <Heart />
               )}
-              {loading ? (
-                <Skeleton width={15} height={14}></Skeleton>
+              {product.count_of_likes >= 0 || SelectedProduct?.likes >= 0 ? (
+                <span data-cy="CountOfLoves">
+                  {SelectedProduct?.likes || product?.count_of_likes}
+                </span>
               ) : (
-                <span data-cy="CountOfLoves">{SelectedProduct?.likes}</span>
+                <Skeleton width={15} height={14}></Skeleton>
               )}
             </div>
             <div
@@ -212,7 +219,7 @@ function ProductOptions({
               <span data-cy="CountOfShares">
                 {(SelectedProduct?.sharesCount !== null &&
                   SelectedProduct?.sharesCount >= 0) ||
-                product.shared_count ? (
+                product?.shared_count >= 0 ? (
                   SelectedProduct?.sharesCount ?? product.shared_count
                 ) : (
                   <Skeleton width={15} height={14}></Skeleton>
