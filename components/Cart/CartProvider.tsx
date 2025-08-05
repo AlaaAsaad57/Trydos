@@ -117,7 +117,7 @@ const CartProvider = () => {
         GAevent({
           action: GA_EVENT_NAMES.COUPON_VIEWED,
           params: {
-            user_ID: auth?.UserID(),
+            user_id_custom: auth?.UserID(),
             coupon_id: couponUrlVar,
             coupon_code: couponUrlVar,
             screen_name: DetectScreen(),

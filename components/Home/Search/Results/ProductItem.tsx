@@ -28,7 +28,7 @@ function ProductItem({ product, onClick }) {
         GAevent({
           action: GA_EVENT_NAMES.SEARCH,
           params: {
-            user_ID: auth.UserID(),
+            user_id_custom: auth.UserID(),
             search_keyword: value,
             search_item_select: {
               item_id: product?.sku || product?.slug,

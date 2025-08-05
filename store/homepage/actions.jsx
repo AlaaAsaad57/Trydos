@@ -44,7 +44,7 @@ export const SelectStory = (e) => {
     GAevent({
       action: GA_EVENT_NAMES.VIEW_STORY,
       params: {
-        user_ID: auth.UserID(),
+        user_id_custom: auth.UserID(),
         story_id: e.stories[0].id,
         item_id: e.stories[0].product_id,
         item_name: e.stories[0].product_id,

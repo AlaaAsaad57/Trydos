@@ -54,7 +54,7 @@ function ProductOptions({
         GAevent({
           action: GA_EVENT_NAMES.LIKE_ITEM,
           params: {
-            user_ID: auth.UserID(),
+            user_id_custom: auth.UserID(),
             item_id: product?.sku || product?.slug,
             item_name: product?.name,
             action: "like",
@@ -93,7 +93,7 @@ function ProductOptions({
         GAevent({
           action: GA_EVENT_NAMES.LIKE_ITEM,
           params: {
-            user_ID: auth.UserID(),
+            user_id_custom: auth.UserID(),
             item_id: product?.sku || product?.slug,
             item_name: product?.name,
             action: "dislike",

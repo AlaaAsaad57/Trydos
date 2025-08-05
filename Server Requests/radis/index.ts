@@ -12,7 +12,14 @@ let redis: Redis | null = null;
 if (process.env.NEXT_RUNTIME !== "edge") {
   // Only init Redis in Node runtime
   // @ts-ignore
-  redis = global._redis ?? new Redis(process.env.REDIS_URL);
+  redis =
+    global._redis ??
+    new Redis({
+      host: process.env.REDIS_URL,
+      port: 6379,
+      username: process.env.REDIS_USERNAME,
+      password: process.env.REDIS_PASS,
+    });
   if (process.env.NODE_ENV !== "production") {
     // @ts-ignore
     global._redis = redis;

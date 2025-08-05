@@ -71,7 +71,7 @@ function OrderSuccess() {
         GAevent({
           action: GA_EVENT_NAMES.COUPON_USED,
           params: {
-            user_ID: auth.UserID(),
+            user_id_custom: auth.UserID(),
             coupon_id: orderData.coupon_number,
             coupon_code: orderData.coupon_number,
             coupon_discount_rate: orderData.coupon,

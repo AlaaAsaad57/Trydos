@@ -54,7 +54,7 @@ function ShareOptions({
       GAevent({
         action: GA_EVENT_NAMES.SHARE_CONTENT,
         params: {
-          user_ID: auth.UserID(),
+          user_id_custom: auth.UserID(),
           content_id: product?.id,
           item_id: product?.id,
           item_name: product?.name,
