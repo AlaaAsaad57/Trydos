@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { getProductsAndFiltersFromElastic } from "elasticSearch";
 
 interface Header {
   key: string;
@@ -732,7 +733,26 @@ export default function ApiTestPage() {
       headers.map((h) => (h.id === id ? { ...h, [field]: value } : h))
     );
   };
-
+  const test = async () => {
+    try {
+      let data = await getProductsAndFiltersFromElastic({
+        country: "tr",
+        language_code: "ar",
+        filters: {
+          boutiques: ["jiber-22"],
+          categories: ["running-wear-85"],
+        },
+        is_from_browser: true,
+        limit: 10,
+      });
+      console.log(data);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+  useEffect(() => {
+    test();
+  }, []);
   const handleEndpointSelect = (endpointUrl: string) => {
     if (!endpointUrl) {
       setUrl("");
@@ -837,6 +857,69 @@ export default function ApiTestPage() {
   };
 
   const filteredEndpoints = apiEndpoints.filter((ep) => ep.server === server);
+  const [elasticTestParams, setElasticTestParams] = useState({
+    limit: 10,
+    filters_offset: 1,
+    country: "sy",
+    language_code: "en",
+    is_from_browser: true,
+    filters: {
+      boutiques: [] as string[],
+      categories: [] as string[],
+      brands: [] as string[],
+      colors: [] as string[],
+      sizes: [] as string[],
+      search_text: "",
+      priceRange: [0, 1000] as [number, number],
+      tags_names: [] as string[],
+      featured: false,
+      flashdeal: false,
+    },
+  });
+  const [elasticResponse, setElasticResponse] = useState<any>(null);
+  const [elasticLoading, setElasticLoading] = useState(false);
+  const [elasticError, setElasticError] = useState("");
+
+  // Add new function to handle elastic search test
+  const handleElasticTest = async () => {
+    setElasticLoading(true);
+    setElasticError("");
+    setElasticResponse(null);
+
+    try {
+      const result = await getProductsAndFiltersFromElastic(elasticTestParams);
+      setElasticResponse(result);
+    } catch (error) {
+      setElasticError(
+        error instanceof Error ? error.message : "An error occurred"
+      );
+    } finally {
+      setElasticLoading(false);
+    }
+  };
+
+  // Add new function to update elastic test params
+  const updateElasticParams = (
+    field: string,
+    value: any,
+    isFilter: boolean = false
+  ) => {
+    setElasticTestParams((prev) => {
+      if (isFilter) {
+        return {
+          ...prev,
+          filters: {
+            ...prev.filters,
+            [field]: value,
+          },
+        };
+      }
+      return {
+        ...prev,
+        [field]: value,
+      };
+    });
+  };
 
   return (
     <div className="min-h-screen w-full bg-gray-50 p-4 *:text-[#383838]">
@@ -1127,6 +1210,313 @@ export default function ApiTestPage() {
                 ))}
               </div>
             )}
+          </div>
+        )}
+      </div>
+      <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+        <h2 className="text-lg font-semibold mb-4">Elastic Search Test</h2>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Limit
+            </label>
+            <input
+              type="number"
+              value={elasticTestParams.limit}
+              onChange={(e) =>
+                updateElasticParams("limit", parseInt(e.target.value))
+              }
+              className="w-full px-3 py-2 border border-gray-300 rounded-md"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Filters Offset
+            </label>
+            <input
+              type="number"
+              value={elasticTestParams.filters_offset}
+              onChange={(e) =>
+                updateElasticParams("filters_offset", parseInt(e.target.value))
+              }
+              className="w-full px-3 py-2 border border-gray-300 rounded-md"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Country
+            </label>
+            <select
+              value={elasticTestParams.country}
+              onChange={(e) => updateElasticParams("country", e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md"
+            >
+              {countries.map((c) => (
+                <option key={c.value} value={c.value}>
+                  {c.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Language
+            </label>
+            <select
+              value={elasticTestParams.language_code}
+              onChange={(e) =>
+                updateElasticParams("language_code", e.target.value)
+              }
+              className="w-full px-3 py-2 border border-gray-300 rounded-md"
+            >
+              {languages.map((lang) => (
+                <option key={lang.value} value={lang.value}>
+                  {lang.label}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Search Text
+          </label>
+          <input
+            type="text"
+            value={elasticTestParams.filters.search_text}
+            onChange={(e) =>
+              updateElasticParams("search_text", e.target.value, true)
+            }
+            className="w-full px-3 py-2 border border-gray-300 rounded-md"
+            placeholder="Enter search text..."
+          />
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Price Range
+            </label>
+            <div className="flex gap-2">
+              <input
+                type="number"
+                value={elasticTestParams.filters.priceRange[0]}
+                onChange={(e) =>
+                  updateElasticParams(
+                    "priceRange",
+                    [
+                      parseInt(e.target.value),
+                      elasticTestParams.filters.priceRange[1],
+                    ],
+                    true
+                  )
+                }
+                className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                placeholder="Min"
+              />
+              <input
+                type="number"
+                value={elasticTestParams.filters.priceRange[1]}
+                onChange={(e) =>
+                  updateElasticParams(
+                    "priceRange",
+                    [
+                      elasticTestParams.filters.priceRange[0],
+                      parseInt(e.target.value),
+                    ],
+                    true
+                  )
+                }
+                className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                placeholder="Max"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Categories (comma separated)
+            </label>
+            <input
+              type="text"
+              value={elasticTestParams.filters.categories.join(",")}
+              onChange={(e) =>
+                updateElasticParams(
+                  "categories",
+                  e.target.value
+                    .split(",")
+                    .map((item) => item.trim())
+                    .filter(Boolean),
+                  true
+                )
+              }
+              className="w-full px-3 py-2 border border-gray-300 rounded-md"
+              placeholder="e.g. category-1, category-2"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Brands (comma separated)
+            </label>
+            <input
+              type="text"
+              value={elasticTestParams.filters.brands.join(",")}
+              onChange={(e) =>
+                updateElasticParams(
+                  "brands",
+                  e.target.value
+                    .split(",")
+                    .map((item) => item.trim())
+                    .filter(Boolean),
+                  true
+                )
+              }
+              className="w-full px-3 py-2 border border-gray-300 rounded-md"
+              placeholder="e.g. brand-1, brand-2"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Boutiques (comma separated)
+            </label>
+            <input
+              type="text"
+              value={elasticTestParams.filters.boutiques.join(",")}
+              onChange={(e) =>
+                updateElasticParams(
+                  "boutiques",
+                  e.target.value
+                    .split(",")
+                    .map((item) => item.trim())
+                    .filter(Boolean),
+                  true
+                )
+              }
+              className="w-full px-3 py-2 border border-gray-300 rounded-md"
+              placeholder="e.g. boutique-1, boutique-2"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Sizes (comma separated)
+            </label>
+            <input
+              type="text"
+              value={elasticTestParams.filters.sizes.join(",")}
+              onChange={(e) =>
+                updateElasticParams(
+                  "sizes",
+                  e.target.value
+                    .split(",")
+                    .map((item) => item.trim())
+                    .filter(Boolean),
+                  true
+                )
+              }
+              className="w-full px-3 py-2 border border-gray-300 rounded-md"
+              placeholder="e.g. S, M, L, XL"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Tags (comma separated)
+            </label>
+            <input
+              type="text"
+              value={elasticTestParams.filters.tags_names.join(",")}
+              onChange={(e) =>
+                updateElasticParams(
+                  "tags_names",
+                  e.target.value
+                    .split(",")
+                    .map((item) => item.trim())
+                    .filter(Boolean),
+                  true
+                )
+              }
+              className="w-full px-3 py-2 border border-gray-300 rounded-md"
+              placeholder="e.g. tag1, tag2"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Colors (comma separated)
+            </label>
+            <input
+              type="text"
+              value={elasticTestParams.filters.colors.join(",")}
+              onChange={(e) =>
+                updateElasticParams(
+                  "colors",
+                  e.target.value
+                    .split(",")
+                    .map((item) => item.trim())
+                    .filter(Boolean),
+                  true
+                )
+              }
+              className="w-full px-3 py-2 border border-gray-300 rounded-md"
+              placeholder="e.g. tag1, tag2"
+            />
+          </div>
+          <div className="flex items-center gap-4">
+            <label className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={elasticTestParams.filters.featured}
+                onChange={(e) =>
+                  updateElasticParams("featured", e.target.checked, true)
+                }
+                className="rounded border-gray-300"
+              />
+              Featured
+            </label>
+
+            <label className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={elasticTestParams.filters.flashdeal}
+                onChange={(e) =>
+                  updateElasticParams("flashdeal", e.target.checked, true)
+                }
+                className="rounded border-gray-300"
+              />
+              Flash Deal
+            </label>
+          </div>
+        </div>
+
+        <div className="flex justify-end">
+          <button
+            onClick={handleElasticTest}
+            disabled={elasticLoading}
+            className="px-6 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:bg-gray-400 disabled:cursor-not-allowed"
+          >
+            {elasticLoading ? "Testing..." : "Test Elastic Search"}
+          </button>
+        </div>
+
+        {elasticError && (
+          <div className="mt-4 p-4 bg-red-50 text-red-700 rounded-md">
+            {elasticError}
+          </div>
+        )}
+
+        {elasticResponse && (
+          <div className="mt-4">
+            <h3 className="text-lg font-medium mb-2">Response:</h3>
+            <pre className="bg-gray-50 p-4 rounded-md overflow-auto max-h-96 text-sm">
+              {JSON.stringify(elasticResponse, null, 2)}
+            </pre>
           </div>
         )}
       </div>

@@ -12,6 +12,9 @@ import CancelOrderItem from "./CancelOrderItem";
 import ChangeOrderItem from "./ChangeOrderItem";
 import { GetImageUrl } from "utils/tinyUtils";
 import { OrderItemOptionsModalPropsType } from "models/componentType/OrderItemOptionsModalPropsType";
+import order from "services/order";
+import { showErrorNotification } from "store/notifications/reducer";
+import Spinner from "components/global/Spinner";
 
 function OrderItemOptionsModal({
   close,
@@ -25,9 +28,61 @@ function OrderItemOptionsModal({
   const [activeWidget, setActiveWidget] = useState<
     "return" | "report" | "hide" | "main" | "cancel" | "ChangeRequest"
   >("main");
-  const { selectedOrder, ActivePacks } = useAppStore();
+  const { selectedOrder, ActivePacks, setActivePacks } = useAppStore();
+  const [IsInitializing, setIsInitializing] = useState(false);
   const GoToChangeOrderItem = () => {
     setActiveWidget("ChangeRequest");
+  };
+  const shouldShowRetutn = () => {
+    if (selectedOrder.can_return_order) {
+      if (ActivePacks.return_details) {
+        if (
+          ActivePacks.return_details.details?.status === "pending" ||
+          ActivePacks.return_details.details?.status === "draft return request"
+        ) {
+          return true;
+        } else {
+          return false;
+        }
+      } else {
+        return true;
+      }
+    } else {
+      return false;
+    }
+  };
+  const ShouldShowCahngeColor = () => {
+    if (ActivePacks?.order_status?.value === "delivered") return false;
+    if (!ActivePacks.can_change_variant) return false;
+    else return true;
+  };
+  const initializeReturn = async () => {
+    if (ActivePacks.return_request_id) {
+      setActiveWidget("return");
+    }
+    try {
+      setIsInitializing(true);
+      let id = await order.CreateReturnRequest({ order_id: ActivePacks.id });
+      let details = await order.getReturnRequestDetails({
+        order_id: ActivePacks.id,
+        return_request_id: id,
+      });
+      setActivePacks({
+        ...ActivePacks,
+        return_request_id: id,
+        return_details: details,
+      });
+      if (details?.order_details?.find((s) => s.detail_id === item.id)) {
+        setActiveWidget("return");
+      } else {
+        showErrorNotification(
+          translateFunction("return this product is not allowed")
+        );
+      }
+      setIsInitializing(false);
+    } catch (error) {
+      setIsInitializing(false);
+    }
   };
   const RenderWidget = () => {
     if (activeWidget === "main") {
@@ -63,7 +118,7 @@ function OrderItemOptionsModal({
             </span>
           </div>
           <div className="flex-col w-full items-center pb-[12px] px-[24px] mt-[20px]">
-            {selectedOrder && (
+            {selectedOrder && ShouldShowCahngeColor() && (
               <div
                 onClick={GoToChangeOrderItem}
                 className="cursor-pointer flex-row w-full items-center px-[15px] bg-[#f8f8f8] rounded-[20px] h-[60px]"
@@ -117,28 +172,40 @@ function OrderItemOptionsModal({
                 </div>
               </div>
             )}
-            {selectedOrder.can_return_order && (
+            {shouldShowRetutn() && (
               <div
                 onClick={() => {
-                  setActiveWidget("return");
+                  if (IsInitializing) return;
+                  initializeReturn();
                 }}
                 className="cursor-pointer mt-[6px] flex-row w-full items-center px-[15px] bg-[#f8f8f8] rounded-[20px] min-h-[60px] "
               >
                 <div className="relative flex w-[30px] h-[30px] items-center justify-center">
                   <ReturnOrderItemIcon className="absolute top-0 left-0 right-0 mx-auto my-0" />
                 </div>
-                <div className="flex-col ml-[15px]">
-                  <span className="regular text-[14px] text-[#1D1D1D] medium">
-                    {translateFunction("Return This Product")}
-                  </span>
-                  <p className="regular text-[12px] text-[#8D8D8D]">
-                    {translateFunction("Return This Product In")}
-                    <span className="bold text-[12px] text-[#8D8D8D]  mx-[2px]">
-                      24 {translateFunction("Hours")}
+                {IsInitializing ? (
+                  <div className="flex-col ml-[15px] opacity-85">
+                    <span className="regular text-[14px] text-[#1D1D1D] medium">
+                      {translateFunction("Initializing Return")}
                     </span>
-                    {translateFunction("And Back Your Money")}
-                  </p>
-                </div>
+                    <p className="regular text-[12px] text-[#8D8D8D]">
+                      <Spinner />
+                    </p>
+                  </div>
+                ) : (
+                  <div className="flex-col ml-[15px]">
+                    <span className="regular text-[14px] text-[#1D1D1D] medium">
+                      {translateFunction("Return This Product")}
+                    </span>
+                    <p className="regular text-[12px] text-[#8D8D8D]">
+                      {translateFunction("Return This Product In")}
+                      <span className="bold text-[12px] text-[#8D8D8D]  mx-[2px]">
+                        24 {translateFunction("Hours")}
+                      </span>
+                      {translateFunction("And Back Your Money")}
+                    </p>
+                  </div>
+                )}
               </div>
             )}
             {selectedOrder && (

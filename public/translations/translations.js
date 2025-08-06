@@ -5,6 +5,8 @@ const translations = {
     "Cancel Return Request": "إلغاء طلب الإرجاع",
     "Failed To Load Return Details Try again":
       "فشل في تحميل تفاصيل الإرجاع، حاول مرة أخرى",
+    "Initializing Return": "جارٍ تهيئة الإرجاع",
+    "return this product is not allowed": "إعادة هذا المنتج غير مسموحة",
     "Notification Permission:": "إذن الإشعارات:",
     "this option dosent have enough quantity":
       "هذا الخيار لا يحتوي على كمية كافية",
@@ -825,6 +827,8 @@ const translations = {
     "Tap “Agree & Continue” To Accept trydos":
       "Trydos'u kabul etmek için “Kabul Et ve Devam Et”e dokunun",
     "Cancel Return Request": " İade talebini iptal et",
+    "Initializing Return": "İade başlatılıyor",
+    "return this product is not allowed": "Destpêkirina vegerandinê",
     "Failed To Load Return Details Try again":
       "İade detayları yüklenemedi, tekrar deneyin",
     "Notification Permission:": "Bildirim İzni:",
@@ -1638,6 +1642,8 @@ const translations = {
       "بەرهەمەکان لەسەر نەبوون، ٣ سەکەڵەیەک بەردەست بە هەوڵبوون",
     "Failed To Load Return Details Try again":
       "هاتنه‌ ناچاندنی وردەکارییەکانی گەڕاندن، دوبارە هەوڵ بدە",
+    "Initializing Return": "دەستپێکردنی گەڕاندن",
+    "return this product is not allowed": "گەڕاندنەوەی ئەم بەرهەمە ڕێگانەیە",
     "Failed To Load Filters Try Again":
       "بەرهەمەکان لەسەر نەبوون، ٣ سەکەڵەیەک بەردەست بە هەوڵبوون",
     "this option dosent have enough quantity": "ئەم هەڵبژاردنە بڕی پێویست نیە",
