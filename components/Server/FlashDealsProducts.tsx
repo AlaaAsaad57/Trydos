@@ -41,6 +41,7 @@ async function FlashDealsProducts({ lang, currencyData, flashDealsProducts }) {
         className="featured-products-container py-[10px] gap-[8px] w-full mt-[12px] flex-row justify-start items-center max-w-[1365px] h-auto pb-[8px] "
         id="featured-products-container"
         dataCy="featured-products-container"
+        time={`FLASHDEALS ELASTIC TIME: ${flashDealsProducts?.data?.time}ms`}
       >
         {flashDealsProducts?.data?.products?.map((product, key) => (
           <ProductCard

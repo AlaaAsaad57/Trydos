@@ -5,6 +5,7 @@ export interface HortiznalScrollBarProps {
   children: React.ReactNode;
   id: string;
   dataCy?: string;
+  time?: string;
 }
 
 export interface CategoryNavMobileProps {

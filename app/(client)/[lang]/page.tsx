@@ -138,11 +138,11 @@ async function FeaturedProductWrapper({ lang }) {
   let data, currencyData;
   let currencyCache = await getCurrencyFromCache(country);
   if (currencyCache) {
-    data = getProductsAndFiltersFromElastic({
+    data = await getProductsAndFiltersFromElastic({
       country: country,
       language_code: language,
       filters: {
-        flashdeal: true,
+        featured: true,
       },
       limit: 10,
     });
@@ -174,7 +174,7 @@ async function FlashProductWrapper({ lang }) {
   let data, currencyData;
   let currencyCache = await getCurrencyFromCache(country);
   if (currencyCache) {
-    data = getProductsAndFiltersFromElastic({
+    data = await getProductsAndFiltersFromElastic({
       country: country,
       language_code: language,
       filters: {

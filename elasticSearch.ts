@@ -59,6 +59,7 @@ interface CategoryFilter extends FilterResult {
 
 interface SearchResult {
   offset: any[];
+  time: number;
   limit: number;
   total_size: number;
   products: CustomProduct[];
@@ -180,6 +181,7 @@ let client = elasticSearchClient;
 export async function getProductsAndFiltersFromElastic(
   params: SearchParams
 ): Promise<SearchResult> {
+  let start = process.hrtime.bigint();
   const {
     limit = 20,
     search_after = [],
@@ -302,9 +304,11 @@ export async function getProductsAndFiltersFromElastic(
 
     // Normalize products
     const normalizedProducts = normalizeCustomProducts(productsWithFilters);
+    let end = process.hrtime.bigint();
 
     return {
       offset: lastSortValue,
+      time: Number(end - start) / 1_000_000,
       limit: limit,
       total_size: customProducts.length,
       products: params.noProducts ? [] : normalizedProducts.custom_products,
