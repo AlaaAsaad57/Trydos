@@ -23,6 +23,7 @@ import { REQUESTS_DATA } from "utils/Requests";
 import { GAevent } from "utils/gtag";
 import { GA_EVENT_NAMES, GA_GLOBAL_SCREEN } from "utils/GAEvents";
 import auth from "services/auth";
+import { useParams } from "node_modules/next/navigation";
 function ShareOptions({
   setShareContacts,
   sharedContacts,
@@ -37,6 +38,9 @@ function ShareOptions({
     SelectedProduct,
     currency,
   } = useAppStore();
+  const params = useParams();
+
+  const [country, language] = (params.lang as string).split("-");
 
   const shareSocial = async (appName) => {
     try {
@@ -51,6 +55,12 @@ function ShareOptions({
           shared_count: 1,
         }),
       });
+      if (!response.success) {
+        throw new Error("");
+      }
+      fetch(
+        `/api/editSocialProduct?pid=${product.id}&slug=${product.slug}&language=${language}&country=${country}`
+      );
       GAevent({
         action: GA_EVENT_NAMES.SHARE_CONTENT,
         params: {

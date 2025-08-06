@@ -185,8 +185,19 @@ export async function RedisGet(key) {
 }
 export async function RedisSet(key, value, ttl = 86400) {
   try {
-    await redis.set(key, JSON.stringify(value), "EX", ttl);
+    await redis.set(
+      key,
+      JSON.stringify(value),
+      "EX",
+      Number(process.env.PRODUCT_REDIS_TTL_SECONDS)
+    );
+  } catch (error) {}
+}
+export async function removeRedis(key) {
+  try {
+    await redis.del(key);
   } catch (error) {
     console.error(error);
+    return;
   }
 }

@@ -17,6 +17,7 @@ import { fetchData } from "utils/fetchData";
 import { GAevent } from "utils/gtag";
 import { GA_EVENT_NAMES, GA_GLOBAL_SCREEN } from "utils/GAEvents";
 import { REQUESTS_DATA } from "utils/Requests";
+import { useParams } from "node_modules/next/navigation";
 
 function ProductOptions({
   activeOption,
@@ -31,7 +32,9 @@ function ProductOptions({
   const { editInfo, currency, SelectedProduct } = useAppStore();
   const [isLiked, setLiked] = useState(false);
   const [likeLoading, setLoading] = useState(false);
-
+  const params = useParams();
+  // @ts-ignore
+  const [country, language] = params.lang.split("-");
   const LikeProduct = async (bool) => {
     if (likeLoading) return;
     setLoading(true);
@@ -51,6 +54,9 @@ function ProductOptions({
         if (!res.success) {
           throw new Error(res.message);
         }
+        fetch(
+          `/api/editSocialProduct?pid=${product.id}&slug=${product.slug}&language=${language}&country=${country}`
+        );
         GAevent({
           action: GA_EVENT_NAMES.LIKE_ITEM,
           params: {
@@ -90,6 +96,9 @@ function ProductOptions({
         if (!res.success) {
           throw new Error(res.message);
         }
+        fetch(
+          `/api/editSocialProduct?pid=${product.id}&slug=${product.slug}&language=${language}&country=${country}`
+        );
         GAevent({
           action: GA_EVENT_NAMES.LIKE_ITEM,
           params: {

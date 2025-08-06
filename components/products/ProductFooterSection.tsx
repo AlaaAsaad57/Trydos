@@ -88,7 +88,7 @@ function ProductFooterSection({
   let { lang } = useParams();
 
   // @ts-ignore
-  let languageVariable = lang.split("-")[1];
+  let [country, languageVariable] = lang.split("-");
   const translate = (key, lang) => {
     return translateFunction(key, languageVariable);
   };
@@ -286,6 +286,9 @@ function ProductFooterSection({
           setOption("");
         },
       });
+      fetch(
+        `/api/editSocialProduct?pid=${product.id}&slug=${product.slug}&language=${languageVariable}&country=${country}`
+      );
       GAevent({
         action: GA_EVENT_NAMES.SHARE_CONTENT,
         params: {

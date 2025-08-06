@@ -6,6 +6,7 @@ import { translateFunction } from "utils/functions";
 import { CommentBarPropsType } from "models/componentType/CommentBarPropsType";
 import { fetchData } from "utils/fetchData";
 import { REQUESTS_DATA } from "utils/Requests";
+import { useParams } from "node_modules/next/navigation";
 
 function CommentBar({
   product,
@@ -17,6 +18,9 @@ function CommentBar({
   ErrorAccure,
   verifyCommentAction,
 }: CommentBarPropsType) {
+  const params = useParams();
+
+  const [country, language] = (params.lang as string).split("-");
   const addCommentAction = (s) => {
     setComments([{ ...s, is_verfied: false }, ...CommentsData]);
     setTimeout(() => {
@@ -60,6 +64,9 @@ function CommentBar({
         // @ts-ignore
         throw new Error(response.message);
       }
+      fetch(
+        `/api/editSocialProduct?pid=${product.id}&slug=${product.slug}&language=${language}&country=${country}`
+      );
       if (response.data?.comment) {
         let newComment = response.data.comment;
         verifyComment(mid, newComment);
