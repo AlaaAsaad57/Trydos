@@ -1,5 +1,6 @@
 const translations = {
   ar: {
+    "Please enable notification permissions to use camera features": "يرجى تفعيل أذونات الإشعارات لاستخدام ميزات الكاميرا",
     "Cart Loading Error": "خطأ في تحميل السلة",
     "We encountered an error while loading your cart. Don't worry, we'll fix this issue for you.": "حدث خطأ أثناء تحميل سلتك. لا تقلق، سنقوم بحل هذه المشكلة من أجلك.",
     "Try Again": "حاول مرة أخرى",
@@ -1549,6 +1550,7 @@ const translations = {
     deliveryman: "teslimatçı",
     Omar: "Omar",
     image: "resim",
+    "Please enable notification permissions to use camera features": "Kamera özelliklerini kullanmak için lütfen bildirim izinlerini etkinleştirin",
     "buy Button": "satın al butonu",
     Upload: "Yükle",
     TryDos: "TryDos",
@@ -2523,6 +2525,7 @@ const translations = {
       "Are you sure you want to delete this comment?": "دڵنیایت دەتەوێت ئەم لێدوانە بسڕیتەوە؟",
       "Delete Comment": "سڕینەوەی لێدوان",
       "Please verify the number first.": "تکایە سەرجەم ژمارەکە پەسەند بکەوە پێشتر.",
+      "Please enable notification permissions to use camera features": "تکایە دەسەڵاتی ئاگادارکردنەوە چالاک بکە بۆ بەکارهێنانی تایبەتمەندییەکانی کامێرا",
   },
 };
 

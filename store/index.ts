@@ -19,6 +19,9 @@ type AppState = ReturnType<typeof useAuthStore> &
   ReturnType<typeof useSearchStore> & {
     _hasHydrated: boolean;
     setHasHydrated: (hasHydrated: boolean) => void;
+    cameraPermissions: boolean;
+    setCameraPermissions: (value: boolean) => void;
+    checkCameraPermissions: () => Promise<void>;
   };
 
 // Create the combined store with hydration support
@@ -32,6 +35,17 @@ export const useAppStore = create<AppState>()(
       ...useListingStore(set, get),
       ...useSearchStore(set, get),
       ...useCartStore(set, get),
+      cameraPermissions: false,
+      setCameraPermissions: (value: boolean) => set({ cameraPermissions: value }),
+      checkCameraPermissions: async () => {
+        try {
+          // Try to get both camera and microphone permissions
+          await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+          set({ cameraPermissions: true });
+        } catch (e) {
+          set({ cameraPermissions: false });
+        }
+      },
       _hasHydrated: false,
       setHasHydrated: (hasHydrated: boolean) => {
         set({
