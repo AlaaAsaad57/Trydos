@@ -1,22 +1,26 @@
 const translations = {
   ar: {
-    "Please enable notification permissions to use camera features": "يرجى تفعيل أذونات الإشعارات لاستخدام ميزات الكاميرا",
+    "Please enable notification permissions to use camera features":
+      "يرجى تفعيل أذونات الإشعارات لاستخدام ميزات الكاميرا",
     "Cart Loading Error": "خطأ في تحميل السلة",
-    "We encountered an error while loading your cart. Don't worry, we'll fix this issue for you.": "حدث خطأ أثناء تحميل سلتك. لا تقلق، سنقوم بحل هذه المشكلة من أجلك.",
+    "We encountered an error while loading your cart. Don't worry, we'll fix this issue for you.":
+      "حدث خطأ أثناء تحميل سلتك. لا تقلق، سنقوم بحل هذه المشكلة من أجلك.",
     "Try Again": "حاول مرة أخرى",
     "Please log in first": "يرجى تسجيل الدخول أولاً",
     "Please verify the number first.": "يرجى التحقق من الرقم أولاً.",
-    "Are you sure you want to delete this comment?": "هل أنت متأكد أنك تريد حذف هذا التعليق؟",
+    "Are you sure you want to delete this comment?":
+      "هل أنت متأكد أنك تريد حذف هذا التعليق؟",
     "Delete Comment": "حذف التعليق",
     "Load More": "تحميل المزيد",
-    "brands": "العلامات التجارية",
-    "colors": "الألوان",
-    "sizes": "المقاسات",
+    brands: "العلامات التجارية",
+    colors: "الألوان",
+    sizes: "المقاسات",
     "More From": "مزيد من",
     "Confirm Country Change": "تأكيد تغيير البلد",
-    "Are you sure you want to change your country?": "هل أنت متأكد أنك تريد تغيير بلدك؟",
-    "Current": "الحالي",
-    "New": "الجديد",
+    "Are you sure you want to change your country?":
+      "هل أنت متأكد أنك تريد تغيير بلدك؟",
+    Current: "الحالي",
+    New: "الجديد",
     "Tap “Agree & Continue” To Accept trydos":
       'اضغط على "موافقة ومتابعة" لقبول trydos',
     "Cancel Return Request": "إلغاء طلب الإرجاع",
@@ -840,9 +844,10 @@ const translations = {
   },
   tr: {
     "Cart Loading Error": "Sepet Yükleme Hatası",
-    "We encountered an error while loading your cart. Don't worry, we'll fix this issue for you.": "Sepetinizi yüklerken bir hata oluştu. Endişelenmeyin, bu sorunu sizin için çözeceğiz.",
+    "We encountered an error while loading your cart. Don't worry, we'll fix this issue for you.":
+      "Sepetinizi yüklerken bir hata oluştu. Endişelenmeyin, bu sorunu sizin için çözeceğiz.",
     "Try Again": "Tekrar Dene",
-     "More From": "Daha Fazlası",
+    "More From": "Daha Fazlası",
     "Tap “Agree & Continue” To Accept trydos":
       "Trydos'u kabul etmek için “Kabul Et ve Devam Et”e dokunun",
     "Cancel Return Request": " İade talebini iptal et",
@@ -1079,8 +1084,9 @@ const translations = {
     "Your Order Number": "Sipariş Numaranız",
     "You Can Track The Status Of Your Order Through ":
       "Siparişinizin Durumunu Takip Edin",
-      "Are you sure you want to delete this comment?": "Bu yorumu silmek istediğinizden emin misiniz?",
-      "Delete Comment": "Yorumu Sil",
+    "Are you sure you want to delete this comment?":
+      "Bu yorumu silmek istediğinizden emin misiniz?",
+    "Delete Comment": "Yorumu Sil",
     Cancel: "İptal",
     Done: "Tamamlandı",
     "My Account / My Orders": "Hesabım / Siparişlerim",
@@ -1267,13 +1273,14 @@ const translations = {
       "Beklenen Süre, 2 Günden Az veya Fazla Sürebilir",
     Shot: "Çekim",
     Refund: "İade",
-    "brands": "Markalar",
-    "colors": "Renkler",
-    "sizes": "Bedenler",
+    brands: "Markalar",
+    colors: "Renkler",
+    sizes: "Bedenler",
     "Confirm Country Change": "Ülke değişikliğini onayla",
-    "Are you sure you want to change your country?": "Ülkenizi değiştirmek istediğinizden emin misiniz?",
-    "Current": "Mevcut",
-    "New": "Yeni",
+    "Are you sure you want to change your country?":
+      "Ülkenizi değiştirmek istediğinizden emin misiniz?",
+    Current: "Mevcut",
+    New: "Yeni",
     "Specify Your Address To Calculate The Delivery Time":
       "Teslimat Süresini Hesaplamak İçin Adresinizi Belirtin",
     "In Your Address": "Adresinizde",
@@ -1564,7 +1571,8 @@ const translations = {
     deliveryman: "teslimatçı",
     Omar: "Omar",
     image: "resim",
-    "Please enable notification permissions to use camera features": "Kamera özelliklerini kullanmak için lütfen bildirim izinlerini etkinleştirin",
+    "Please enable notification permissions to use camera features":
+      "Kamera özelliklerini kullanmak için lütfen bildirim izinlerini etkinleştirin",
     "buy Button": "satın al butonu",
     Upload: "Yükle",
     TryDos: "TryDos",
@@ -2527,25 +2535,30 @@ const translations = {
     "Preparing Your Experience": "ئامادەکردنی تاقیکردنەوەکەت",
     "Notification Permission:": "مۆڵەتی ئاگادارکردنەوە:",
     "Tap “Agree & Continue” To Accept trydos":
-      "بچۆ «ڕازی بوون و بەردەوام بە» بۆ قبوڵکردنی trydos",,
+      "بچۆ «ڕازی بوون و بەردەوام بە» بۆ قبوڵکردنی trydos",
     "Confirm Country Change": "دڵنیابوون بۆ گۆڕینی وڵات",
-    "Are you sure you want to change your country?": "دڵنیایت دەتەوێت وڵاتت بگۆڕیت؟",
-    "Current": "ئێستا",
-    "New": "نوێ",
+    "Are you sure you want to change your country?":
+      "دڵنیایت دەتەوێت وڵاتت بگۆڕیت؟",
+    Current: "ئێستا",
+    New: "نوێ",
     "Coupon No": "ژمارەی کۆپۆن",
-      "brands": "مارکەکان",
-      "colors": "ڕەنگەکان",
-      "sizes": "قەبارەکان",
-      "More From": "زیاتر له‌",
-      "Load More": "زیاتر باربکە",
-      "Please log in first": "تکایه سەرەتا چوونەژوورەوە بکە",
-      "Cart Loading Error": "هەڵەی بارکردنی سەبەتەکە",
-      "We encountered an error while loading your cart. Don't worry, we'll fix this issue for you.": "هەڵەیەک ڕووی دا لە کاتی بارکردنی سەبەتەکەت. نیگەران مەبە، ئەم کێشەیە بۆ تۆ چارەسەر دەکەین.",
-      "Try Again": "دووبارە هەوڵ بدە",
-      "Are you sure you want to delete this comment?": "دڵنیایت دەتەوێت ئەم لێدوانە بسڕیتەوە؟",
-      "Delete Comment": "سڕینەوەی لێدوان",
-      "Please verify the number first.": "تکایە سەرجەم ژمارەکە پەسەند بکەوە پێشتر.",
-      "Please enable notification permissions to use camera features": "تکایە دەسەڵاتی ئاگادارکردنەوە چالاک بکە بۆ بەکارهێنانی تایبەتمەندییەکانی کامێرا",
+    brands: "مارکەکان",
+    colors: "ڕەنگەکان",
+    sizes: "قەبارەکان",
+    "More From": "زیاتر له‌",
+    "Load More": "زیاتر باربکە",
+    "Please log in first": "تکایه سەرەتا چوونەژوورەوە بکە",
+    "Cart Loading Error": "هەڵەی بارکردنی سەبەتەکە",
+    "We encountered an error while loading your cart. Don't worry, we'll fix this issue for you.":
+      "هەڵەیەک ڕووی دا لە کاتی بارکردنی سەبەتەکەت. نیگەران مەبە، ئەم کێشەیە بۆ تۆ چارەسەر دەکەین.",
+    "Try Again": "دووبارە هەوڵ بدە",
+    "Are you sure you want to delete this comment?":
+      "دڵنیایت دەتەوێت ئەم لێدوانە بسڕیتەوە؟",
+    "Delete Comment": "سڕینەوەی لێدوان",
+    "Please verify the number first.":
+      "تکایە سەرجەم ژمارەکە پەسەند بکەوە پێشتر.",
+    "Please enable notification permissions to use camera features":
+      "تکایە دەسەڵاتی ئاگادارکردنەوە چالاک بکە بۆ بەکارهێنانی تایبەتمەندییەکانی کامێرا",
   },
 };
 
