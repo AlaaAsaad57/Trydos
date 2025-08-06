@@ -18,8 +18,13 @@ import {
 import { reportError } from "./error-reporter";
 import { logRequest } from "./requestLoggerClient";
 
-// Types
-export type ServerType = "chat" | "market" | "stories" | "elastic";
+// ---------- Types ----------
+export type ServerType =
+  | "chat"
+  | "market"
+  | "stories"
+  | "elastic"
+  | "upload story";
 
 export type FetchMethod = "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
 
@@ -35,10 +40,27 @@ export interface FetchDataParams {
   noMessage?: boolean;
 }
 
-// Cache structure
+// ---------- Internal State ----------
 const requestCache = new Map<string, any>();
-// get base url
-const getUrl = (server) => {
+const retryableStatusCodes = [502, 503, 504, 429];
+const ignoredMessages = [
+  "Data Got!",
+  "تم الحصول على البيانات!",
+  "Veri Alındı!",
+  "Success",
+  "Country and language updated successfully",
+  "Product created and view count initialized",
+  "View count updated",
+  "Subscribed successfully",
+  "signal is aborted without reason",
+  "Failed to fetch",
+  "Too many attempts",
+  "Unauthorized",
+  "The user aborted a request.",
+];
+
+// ---------- Helper Functions ----------
+const getServerBaseUrl = (server: ServerType) => {
   switch (server) {
     case "market":
       return process.env.NEXT_PUBLIC_BACKEND_URL;
@@ -48,167 +70,157 @@ const getUrl = (server) => {
       return process.env.NEXT_PUBLIC_CHAT_BACKEND_URL;
     case "stories":
       return process.env.NEXT_PUBLIC_STORIES_BACKEND_URL;
-
-    default:
-      break;
-  }
-};
-// Token fetching functions based on server type
-const getChatToken = async (): Promise<string> => {
-  const userChat = getCookie<UserData>(COOKIE_NAMES.USER_CHAT);
-  if (userChat) {
-    const parsedUser = userChat;
-    if (parsedUser?.access_token) {
-      return parsedUser.access_token;
-    }
-  }
-  return "";
-};
-const getHeader = async () => {
-  let local = window.location.pathname.split("/")[1];
-  const userChat = getCookie<UserData>(COOKIE_NAMES.USER_CHAT);
-  const [country, lang] = local.split("-");
-  return {
-    lang: Cookies.get("lang") || Cookies.get("language") || lang,
-    accept: "application/json",
-    country: Cookies.get("country") || country,
-    current_role_id: userChat?.role_id ? userChat.role_id : "-1",
-  };
-};
-const getMarketToken = async (): Promise<string> => {
-  const marketToken = getCookie<string>(COOKIE_NAMES.MARKET_TOKEN);
-  const deviceToken = getCookie<string>(COOKIE_NAMES.DEVICE_TOKEN);
-  if (marketToken || deviceToken) {
-    return marketToken || deviceToken;
-  }
-  return "";
-};
-
-const getStoriesToken = async (): Promise<string> => {
-  const userStories = getCookie<UserData>(COOKIE_NAMES.USER_STORIES);
-  if (userStories) {
-    if (userStories?.access_token) {
-      return userStories.access_token;
-    }
-  }
-  return "";
-};
-const retryableStatusCodes = [502, 503, 504, 429];
-
-// Get token based on server type
-const getToken = async (server: ServerType): Promise<string> => {
-  switch (server) {
-    case "chat":
-      return getChatToken();
-    case "market":
-      return getMarketToken();
-    case "stories":
-      return getStoriesToken();
-    case "elastic":
+    case "upload story":
       return "";
     default:
       throw new Error(`Unknown server type: ${server}`);
   }
 };
 
-// Handle unauthorized - refresh tokens based on server type
-const handleUnauthorized = async (server: ServerType): Promise<boolean> => {
-  console.log(`Handling 401 Unauthorized for ${server} server...`);
+const getToken = async (server: ServerType): Promise<string> => {
+  switch (server) {
+    case "chat":
+      return getCookie<UserData>(COOKIE_NAMES.USER_CHAT)?.access_token || "";
+    case "market":
+      return (
+        getCookie<string>(COOKIE_NAMES.MARKET_TOKEN) ||
+        getCookie<string>(COOKIE_NAMES.DEVICE_TOKEN) ||
+        ""
+      );
+    case "stories":
+      return getCookie<UserData>(COOKIE_NAMES.USER_STORIES)?.access_token || "";
+    case "upload story":
+    case "elastic":
+      return "";
 
+    default:
+      throw new Error(`Unknown server type: ${server}`);
+  }
+};
+
+const getHeader = async (server = null) => {
+  if (server) return null;
+  const [country, lang] = (window.location.pathname.split("/")[1] || "").split(
+    "-"
+  );
+  const userChat = getCookie<UserData>(COOKIE_NAMES.USER_CHAT);
+
+  return {
+    lang: Cookies.get("lang") || Cookies.get("language") || lang,
+    accept: "application/json",
+    country: Cookies.get("country") || country,
+    current_role_id: userChat?.role_id || "-1",
+  };
+};
+
+// const waitForOnline = (): Promise<void> => {
+//   if (typeof window === "undefined" || navigator.onLine) {
+//     return Promise.resolve();
+//   }
+
+//   return new Promise((resolve) => {
+//     const checkOnline = () => {
+//       if (navigator.onLine) {
+//         cleanup();
+//         resolve();
+//       }
+//     };
+
+//     const onOnline = () => {
+//       cleanup();
+//       resolve();
+//     };
+
+//     const interval = setInterval(checkOnline, 3000);
+//     window.addEventListener("online", onOnline);
+
+//     const cleanup = () => {
+//       clearInterval(interval);
+//       window.removeEventListener("online", onOnline);
+//     };
+//   });
+// };
+
+const waitUntilRegisteringComplete = async (): Promise<void> => {
+  try {
+    const { useAppStore } = await import("../store");
+    const check = () => useAppStore.getState().isRegisteringReady;
+    if (check()) return;
+
+    return new Promise((resolve) => {
+      const interval = setInterval(() => {
+        if (check()) {
+          clearInterval(interval);
+          resolve();
+        }
+      }, 300);
+      setTimeout(() => clearInterval(interval), 300000); // 5 minutes timeout
+    });
+  } catch (err) {
+    console.error("Failed to wait for registration to complete:", err);
+  }
+};
+
+const handleUnauthorized = async (server: ServerType): Promise<boolean> => {
   try {
     switch (server) {
       case "elastic":
         return true;
       case "market":
-        // For market server, call ExpiredUser to get new token
         const authService = await import("../services/auth");
         await authService.default.ExpiredUser();
-        // After ExpiredUser, a new token should be available
-        // Return true to indicate retry should happen
         return true;
-
       case "chat":
       case "stories":
-        // For chat/stories servers, show the phone verification widget
         const { useAppStore } = await import("../store");
         const { setShouldAuthinticated } = useAppStore.getState();
         deleteCookie(COOKIE_NAMES.USER_CHAT);
         deleteCookie(COOKIE_NAMES.USER_STORIES);
         deleteCookie(COOKIE_NAMES.CHAT_TOKEN);
         deleteCookie(COOKIE_NAMES.STORIES_TOKEN);
-        // Show the verification widget
         setShouldAuthinticated(true);
 
-        // Wait for user to complete verification or close the widget
-        // We'll use a promise that resolves when verification is complete
         return new Promise((resolve) => {
-          // Poll to check if the widget is still open
-          const checkInterval = setInterval(async () => {
-            const currentState = useAppStore.getState();
+          const interval = setInterval(() => {
             const hasNewToken =
               server === "chat"
                 ? getCookie<UserData>(COOKIE_NAMES.USER_CHAT)?.access_token
                 : getCookie<UserData>(COOKIE_NAMES.USER_STORIES)?.access_token;
 
-            // Check if widget was closed (shouldAuthinticated is false)
+            const currentState = useAppStore.getState();
             if (!currentState.shouldAuthinticated) {
-              clearInterval(checkInterval);
-              // If user closed the widget, the page will reload automatically
-              // as configured in ConfirmMobilePhoneWidget
+              clearInterval(interval);
               resolve(false);
-            }
-
-            // Check if verification was successful by looking for updated tokens
-
-            if (hasNewToken) {
-              clearInterval(checkInterval);
-              // Verification successful, allow retry
+            } else if (hasNewToken) {
+              clearInterval(interval);
               resolve(true);
             }
-          }, 500); // Check every 500ms
+          }, 500);
 
-          // Set a timeout to prevent infinite waiting
           setTimeout(() => {
-            clearInterval(checkInterval);
+            clearInterval(interval);
             resolve(false);
           }, 300000); // 5 minutes timeout
         });
-
       default:
-        throw new Error(`Unknown server type: ${server}`);
+        return false;
     }
-  } catch (error) {
-    console.error(`Failed to handle unauthorized for ${server}:`, error);
+  } catch (err) {
+    console.error("Error in handleUnauthorized:", err);
     return false;
   }
 };
 
-// Generate cache key from request configuration
 const generateCacheKey = (params: FetchDataParams): string => {
   const { url, method, body, server } = params;
   return JSON.stringify({ url, method, body, server });
 };
 
-// Main fetch function
+// ---------- Main Function ----------
 export const fetchData = async <T = any>(
   params: FetchDataParams,
   isRetryAfterUnauthorized = false
 ): Promise<T> => {
-  const ignoredMessages = [
-    "Data Got!",
-    "تم الحصول على البيانات!",
-    "Veri Alındı!",
-    "Success",
-    "Country and language updated successfully",
-    "Product created and view count initialized",
-    "View count updated",
-    "Subscribed successfully",
-    "signal is aborted without reason",
-    "Failed to fetch",
-    "Too many attempts",
-    "Unauthorized",
-    "The user aborted a request.",
-  ];
   const {
     url,
     method,
@@ -221,37 +233,38 @@ export const fetchData = async <T = any>(
     signal,
   } = params;
 
-  // Check cache first
   const cacheKey = generateCacheKey(params);
-  let status;
-  if (useCached && !isRetryAfterUnauthorized && requestCache.has(cacheKey)) {
-    const cachedData = requestCache.get(cacheKey);
+  let retryCount = 0;
+  let status: number;
+  let responseData: any;
+  let logObj: Partial<any> = {};
 
-    return { ...cachedData, success: true };
+  if (useCached && !isRetryAfterUnauthorized && requestCache.has(cacheKey)) {
+    return { ...requestCache.get(cacheKey), success: true };
   }
 
-  let retryCount = 0;
-  const maxRetries = 3;
+  const doFetchWithRetry = async (): Promise<T> => {
+    await waitUntilRegisteringComplete();
 
-  const attemptFetch = async (): Promise<T> => {
-    let responseData;
-    let logObj: Partial<any> = {};
+    if (url === "/auth/register-guest") {
+      const { useAppStore } = await import("../store");
+      let { setIsRegisteringReady } = useAppStore.getState();
+      setIsRegisteringReady(false);
+    }
     try {
-      // Get token
       const token = await getToken(server);
-      let FULL_URL = getUrl(server) + url;
-      // Prepare request options
-      const editedHeader = await getHeader();
+      const headers = await getHeader(server === "upload story");
+      const fullUrl = getServerBaseUrl(server) + url;
+
       const requestOptions: RequestInit = {
         method,
         headers: {
-          Authorization: `Bearer ${token}`,
-          ...editedHeader,
+          ...(token?.length > 0 ? { Authorization: `Bearer ${token}` } : {}),
+          ...headers,
         },
-        signal: params.signal,
+        signal,
       };
 
-      // Add Content-Type header only if body is not FormData
       if (body && !(body instanceof FormData)) {
         requestOptions.headers = {
           ...requestOptions.headers,
@@ -259,165 +272,106 @@ export const fetchData = async <T = any>(
         };
       }
 
-      // Add body for non-GET requests
       if (body && method !== "GET") {
         requestOptions.body = body as BodyInit;
       }
 
-      const response = await fetch(FULL_URL, requestOptions);
-      status = response.status;
-      responseData = await response.json();
-      // Handle 401 Unauthorized
-      if (response.status === 401 && !isRetryAfterUnauthorized) {
-        logObj = {
-          url,
-          title: reqTitle || "",
-          status: status || 0,
-          attempts: retryCount + 1,
-          response: responseData,
-          userId: String(auth.UserID?.() ?? ""),
-          method,
-          body,
-          timestamp: Date.now(),
-        };
-        logRequest(logObj as any);
-        const shouldRetry = await handleUnauthorized(server);
-        // Only retry if handleUnauthorized indicates success
-        if (shouldRetry) {
-          if (retryActionIfUnAuth) {
-            retryActionIfUnAuth();
-          }
-          return fetchData<T>(params, true);
-        }
-        // If shouldRetry is false, throw error
-        throw new Error("Authentication required");
-      }
+      const res = await fetch(fullUrl, requestOptions);
+      status = res.status;
+      responseData = await res.json();
 
-      // Check if response is ok
-      if (!response.ok) {
-        console.log(responseData?.message);
-        throw new Error(
-          `${responseData?.message ?? responseData?.data?.message ?? ""}`
-        );
-      }
-      // Parse response
-      if (
-        typeof reqTitle?.reqTitle === "string" &&
-        reqTitle?.reqTitle?.includes("cart widget")
-      ) {
-        if (responseData?.data?.status === 1)
-          showSuccessMessage(
-            responseData?.message ?? responseData?.data?.message ?? ""
-          );
-        else {
-          if (
-            !ignoredMessages?.includes(
-              responseData?.message ?? responseData?.data?.message
-            )
-          ) {
-            showErrorMessage(
-              responseData?.message ?? responseData?.data?.message ?? ""
-            );
-            throw new Error(
-              responseData?.message ?? responseData?.data?.message ?? ""
-            );
-          }
-        }
-      } else {
-        if (
-          url?.includes("cart/update") &&
-          !reqTitle?.reqTitle?.includes("cart widget")
-        ) {
-          if (responseData?.data?.status === 0) {
-            showErrorMessage(
-              responseData?.message ?? responseData?.data?.message ?? ""
-            );
-            throw new Error(
-              responseData?.message ?? responseData?.data?.message ?? ""
-            );
-          } else {
-            if (
-              !ignoredMessages.includes(
-                responseData?.message ?? responseData?.data?.message
-              ) &&
-              (responseData?.message ?? responseData?.data?.message)?.length > 0
-            )
-              showSuccessNotification(
-                responseData?.message ?? responseData?.data?.message ?? ""
-              );
-          }
-        } else if (
-          !ignoredMessages.includes(
-            responseData?.message ?? responseData?.data?.message
-          ) &&
-          (responseData?.message ?? responseData?.data?.message)?.length > 0
-        )
-          showSuccessNotification(
-            responseData?.message ?? responseData?.data?.message ?? ""
-          );
-      }
-
-      // Cache the result
-      if (useCached) {
-        requestCache.set(cacheKey, responseData);
-      }
-      // Log the request (success)
-      if (typeof window !== "undefined") {
-        logObj = {
+      if (status === 401 && !isRetryAfterUnauthorized) {
+        logRequest({
           url,
-          title: reqTitle || "",
+          title: reqTitle.reqTitle,
           status,
           attempts: retryCount + 1,
           response: responseData,
           userId: String(auth.UserID?.() ?? ""),
           method,
-          body,
+          body: body?.toString(),
           timestamp: Date.now(),
-        };
-        logRequest(logObj as any);
+        });
+
+        const shouldRetry = await handleUnauthorized(server);
+        if (shouldRetry) {
+          retryActionIfUnAuth?.();
+          return fetchData<T>(params, true);
+        }
+
+        throw new Error("Authentication required");
       }
+
+      if (!res.ok) {
+        throw new Error(
+          responseData?.message ??
+            responseData?.data?.message ??
+            "Unknown error"
+        );
+      }
+
+      const msg = responseData?.message ?? responseData?.data?.message ?? "";
+      const statusVal = responseData?.data?.status;
+
+      if (reqTitle.reqTitle.includes("cart widget")) {
+        if (url.includes("/cart/remove") && status === 200) {
+          showSuccessMessage(msg);
+        } else if (statusVal === 1) {
+          showSuccessMessage(msg);
+        } else if (!ignoredMessages.includes(msg)) {
+          showErrorMessage(msg);
+          throw new Error(msg);
+        }
+      } else if (url.includes("cart/update")) {
+        if (statusVal === 0) {
+          showErrorMessage(msg);
+          throw new Error(msg);
+        } else if (!ignoredMessages.includes(msg) && msg.length > 0) {
+          showSuccessNotification(msg);
+        }
+      } else if (!ignoredMessages.includes(msg) && msg.length > 0) {
+        showSuccessNotification(msg);
+      }
+
+      if (useCached) {
+        requestCache.set(cacheKey, responseData);
+      }
+
+      logRequest({
+        url,
+        title: reqTitle.reqTitle,
+        status,
+        attempts: retryCount + 1,
+        response: responseData,
+        userId: String(auth.UserID?.() ?? ""),
+        method,
+        body: body?.toString(),
+        timestamp: Date.now(),
+      });
+
       return { ...(responseData || {}), success: true };
-    } catch (err) {
-      // Network error - retry logic
+    } catch (err: any) {
+      retryCount++;
       if (
         (err instanceof TypeError && err.message.includes("fetch")) ||
         retryableStatusCodes.includes(status)
       ) {
-        retryCount++;
-        if (retryCount < maxRetries) {
-          console.log(
-            `Network error, retrying... (${retryCount}/${maxRetries})`
-          );
-          // Wait a bit before retrying
-          await new Promise((resolve) =>
-            setTimeout(resolve, 1000 * retryCount)
-          );
-          return attemptFetch();
+        if (retryCount < 3) {
+          await new Promise((r) => setTimeout(r, 1000 * retryCount));
+          return doFetchWithRetry();
         }
       }
-      // Re-throw the error for the caller to handle
-      if (
-        typeof reqTitle?.reqTitle === "string" &&
-        reqTitle?.reqTitle?.includes("Add to cart widget")
-      ) {
-        showErrorMessage(`${err?.message || "Falied"}`);
-      } else {
-        console.error(err);
-        if (!ignoredMessages.includes(err?.message || err)) {
-          if (!noMessage && err?.message) {
-            showErrorNotification(
-              `${err?.message}`,
-              5000,
-              null,
-              null,
-              reqTitle.code
-            );
-          }
-        }
+
+      const message = err?.message || "";
+      if (reqTitle.reqTitle.includes("Add to cart widget")) {
+        showErrorMessage(message);
+      } else if (!ignoredMessages.includes(message) && !noMessage) {
+        showErrorNotification(message, 5000, null, null, reqTitle.code);
       }
-      let errorObj = {
+
+      const errorObj = {
         type: "backend-exception",
-        message: err?.message?.substring(0, 200) || "Falied",
+        message: message.substring(0, 200),
         url: window.location.href,
         user_id: auth.UserID(),
         request_url: url,
@@ -426,7 +380,8 @@ export const fetchData = async <T = any>(
         request_server: server,
         request_token: await getToken(server),
       };
-      if (!err?.message?.includes("signal is aborted without reason")) {
+
+      if (!message.includes("signal is aborted without reason")) {
         LogError(errorObj);
         reportError(err, {
           source: "fetchData",
@@ -434,42 +389,35 @@ export const fetchData = async <T = any>(
           token: await getToken(server),
           lastJson: responseData,
           page: window.location.href,
-          url: url,
-          method: method,
-          body: body,
-        });
-      }
-      // Log the request (error)
-      if (typeof window !== "undefined") {
-        logObj = {
           url,
-          title: reqTitle || "",
-          status: status || 0,
-          attempts: retryCount + 1,
-          response: undefined,
-          userId: String(auth.UserID?.() ?? ""),
           method,
           body,
-          timestamp: Date.now(),
-        };
-        logRequest(logObj as any);
+        });
       }
-      // throw err;
+
+      logRequest({
+        url,
+        title: reqTitle.reqTitle,
+        status: status || 0,
+        attempts: retryCount,
+        response: undefined,
+        userId: String(auth.UserID?.() ?? ""),
+        method,
+        body: body?.toString(),
+        timestamp: Date.now(),
+      });
+
       return { ...(responseData || {}), success: false };
     }
   };
 
-  return attemptFetch();
+  return doFetchWithRetry();
 };
 
-// Utility functions for cache management
-export const clearFetchCache = () => {
-  requestCache.clear();
-};
+// ---------- Cache Utilities ----------
+export const clearFetchCache = () => requestCache.clear();
 
 export const removeCacheEntry = (params: FetchDataParams) => {
   const cacheKey = generateCacheKey(params);
   requestCache.delete(cacheKey);
 };
-
-// Helper functions for specific server types

@@ -175,7 +175,7 @@ function StoryHolder({ story, active, isPaused }: StoryHolderPropsType) {
               GAevent({
                 action: GA_EVENT_NAMES.VIEW_STORY,
                 params: {
-                  user_ID: auth.UserID(),
+                  user_id_custom: auth.UserID(),
                   story_id: s.id,
                   item_id: s.product_id,
                   item_name: s.product_id,

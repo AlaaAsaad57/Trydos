@@ -4,7 +4,7 @@ import Image from "next/image";
 import ChangeOrderItemIcon from "public/svg/ChangeOrderItemIcon.svg";
 import Spinner from "components/global/Spinner";
 import { ColorList, SizeList } from "./ModifyOrderItemModal";
-import { GetImageUrl, pollinateInput } from "utils/tinyUtils";
+import { GetImageUrl, isSameColor, pollinateInput } from "utils/tinyUtils";
 import { ChangeColorWidgetPropsType } from "models/componentType/ChangeColorWidgetPropsType";
 import { ChangeOrderItemPropsType } from "models/componentType/ChangeOrderItemPropsType";
 import { ChangeSizeWidgetPropsType } from "models/componentType/ChangeSizeWidgetPropsType";
@@ -103,7 +103,21 @@ function ChangeOrderItem({
   }
 
   const isChanged = () => {
-    if (color !== item?.variation?.color) {
+    let selectedColor = productData?.sync_color_images
+      .map((s) => {
+        return { color_name: s.color_name, color_option: s.color_option };
+      })
+      .filter((s) => color === s.color_name || color === s.color_option)[0];
+    let previousColor = productData?.sync_color_images
+      .map((s) => {
+        return { color_name: s.color_name, color_option: s.color_option };
+      })
+      .filter(
+        (s) =>
+          item?.variation?.color === s.color_name ||
+          item?.variation?.color === s.color_option
+      )[0];
+    if (!isSameColor(selectedColor, previousColor)) {
       return true;
     }
     if (size !== item?.variation?.Size) {
@@ -329,8 +343,12 @@ export const ChangeColorWidget = ({
         {translateFunction("To New Color?")}
       </span>
       <ColorList
+        item={item}
+        variations={productData?.variation}
         colors={productData?.sync_color_images}
         setColor={setColor}
+        sizes={productData?.choice_options?.[0]?.options || []}
+        current_size={item.variation?.Size}
         currentColor={item?.variation?.color}
         newColor={color}
       />
@@ -374,12 +392,16 @@ export const ChangeSizeWidget = ({
         {translateFunction("To New Size?")}
       </span>
       <SizeList
+        item={item}
+        variations={productData?.variation}
         image={getConfiguredImage({
           src: item.image,
           width: 70,
           height: 70,
           q: 100,
         })}
+        currentColor={item?.variation?.color}
+        colors={productData?.sync_color_images}
         sizes={
           productData?.choice_options?.filter(
             (s) => s.title?.toLowerCase() === "size"

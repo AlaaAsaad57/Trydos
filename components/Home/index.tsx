@@ -8,9 +8,7 @@ import { getUserChat, translateFunction } from "utils/functions";
 const NameModal = dynamic(() => import("components/global/NameModal"));
 import StoriesContainer from "./Stories/NewStories";
 import StoryServiceClass from "services/story";
-import { dispatchRouteChangeEvent } from "utils/events";
 import SearchContainer from "./Search/SearchContainer";
-import auth from "services/auth";
 import { useAppStore } from "store";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
@@ -21,6 +19,7 @@ import {
   getCookie,
   UserData,
 } from "utils/cookies/cookie-manager";
+import { EnableScroll } from "utils/tinyUtils";
 export default function Home() {
   const router = useRouter();
   const pathname = usePathname();
@@ -29,10 +28,9 @@ export default function Home() {
     useAppStore();
   useEffect(() => {
     deleteCookie("last-page");
-    dispatchRouteChangeEvent("completed");
-    document.documentElement.style.overflow = "initial";
-    document.documentElement.scrollTop = 0;
-
+    const { setIsNavigating } = useAppStore.getState();
+    setIsNavigating(null);
+    EnableScroll();
     try {
       initFB();
     } catch (e) {}

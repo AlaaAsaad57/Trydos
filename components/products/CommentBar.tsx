@@ -6,7 +6,12 @@ import { translateFunction } from "utils/functions";
 import { CommentBarPropsType } from "models/componentType/CommentBarPropsType";
 import { fetchData } from "utils/fetchData";
 import { REQUESTS_DATA } from "utils/Requests";
-import { COOKIE_NAMES, getCookie, UserData } from "utils/cookies/cookie-manager";
+import { useParams } from "node_modules/next/navigation";
+import {
+  COOKIE_NAMES,
+  getCookie,
+  UserData,
+} from "utils/cookies/cookie-manager";
 import { showErrorNotification } from "store/notifications/reducer";
 function CommentBar({
   product,
@@ -18,6 +23,9 @@ function CommentBar({
   ErrorAccure,
   verifyCommentAction,
 }: CommentBarPropsType) {
+  const params = useParams();
+
+  const [country, language] = (params.lang as string).split("-");
   const addCommentAction = (s) => {
     setComments([{ ...s, is_verfied: false }, ...CommentsData]);
     setTimeout(() => {
@@ -61,6 +69,9 @@ function CommentBar({
         // @ts-ignore
         throw new Error(response.message);
       }
+      fetch(
+        `/api/editSocialProduct?pid=${product.id}&slug=${product.slug}&language=${language}&country=${country}`
+      );
       if (response.data?.comment) {
         let newComment = response.data.comment;
         verifyComment(mid, newComment);
@@ -79,20 +90,24 @@ function CommentBar({
         data-cy="CommentField"
         tabIndex={0}
         aria-label={translateFunction("Comment input")}
-        className={`w-full resize-none outline-none p-2 rounded border border-gray-300 min-h-[40px] max-h-[120px] transition-all duration-200${!isLoggedIn ? " bg-gray-100 cursor-not-allowed text-gray-400" : " bg-white"}`}
+        className={`w-full resize-none outline-none p-2 rounded border border-gray-300 min-h-[40px] max-h-[120px] transition-all duration-200${
+          !isLoggedIn
+            ? " bg-gray-100 cursor-not-allowed text-gray-400"
+            : " bg-white"
+        }`}
         readOnly={!isLoggedIn}
         onClick={() => {
           if (!isLoggedIn) {
             showErrorNotification(translateFunction("Please log in first"));
           }
         }}
-        onFocus={e => {
+        onFocus={(e) => {
           if (!isLoggedIn) {
             e.target.blur();
             showErrorNotification(translateFunction("Please log in first"));
           }
         }}
-        onKeyDown={e => {
+        onKeyDown={(e) => {
           if (!isLoggedIn) {
             e.preventDefault();
             showErrorNotification(translateFunction("Please log in first"));
@@ -110,14 +125,14 @@ function CommentBar({
             // });
           }
         }}
-        onInput={e => {
+        onInput={(e) => {
           if (!isLoggedIn) return;
           e.currentTarget.style.height = "auto";
           e.currentTarget.style.height = `${e.currentTarget.scrollHeight}px`;
         }}
         placeholder={translateFunction("type a comment")}
         value={val}
-        onChange={e => {
+        onChange={(e) => {
           if (!isLoggedIn) return;
           setVal(e.target.value);
         }}

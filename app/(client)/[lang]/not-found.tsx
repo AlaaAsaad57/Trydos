@@ -1,8 +1,8 @@
 "use client";
 import Link from "next/link";
 import { useEffect } from "react";
-import { dispatchRouteChangeEvent } from "utils/events";
 import { useParams, useRouter } from "next/navigation";
+import { useAppStore } from "store";
 
 export default function NotFound() {
   const params = useParams();
@@ -11,7 +11,8 @@ export default function NotFound() {
   const isArabic = lang?.split("-")[1] === "ar";
 
   useEffect(() => {
-    dispatchRouteChangeEvent("completed");
+    const { setIsNavigating } = useAppStore.getState();
+    setIsNavigating(null);
 
     // If no lang param, redirect to default
     if (!params?.lang) {

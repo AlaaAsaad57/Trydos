@@ -1,4 +1,3 @@
-import { dispatchRouteChangeEvent } from "utils/events";
 import NextLink from "components/global/NextLink";
 import React from "react";
 import { getConfiguredImage } from "utils/functions";
@@ -32,7 +31,7 @@ function ProductItem({ product, onClick }) {
         GAevent({
           action: GA_EVENT_NAMES.SEARCH,
           params: {
-            user_ID: auth.UserID(),
+            user_id_custom: auth.UserID(),
             search_keyword: value,
             search_item_select: {
               item_id: product?.sku || product?.slug,
@@ -42,9 +41,6 @@ function ProductItem({ product, onClick }) {
             screen_path: window.location.pathname,
           },
         });
-        dispatchRouteChangeEvent("start", { to: "products" });
-        document.documentElement.style.overflow = "hidden";
-        document.documentElement.scrollTop = 0;
       }}
       href={`/${lang}/products/${product.slug}`}
       data-cy="product-result-link"

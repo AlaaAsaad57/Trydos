@@ -2,7 +2,6 @@
 import { useEffect, useState } from "react";
 import { InView } from "react-intersection-observer";
 import Spinner from "../global/Spinner";
-import { dispatchRouteChangeEvent } from "utils/events";
 import { translateFunction } from "utils/functions";
 import { useParams } from "next/navigation";
 import { CurrencyApi } from "models/API/market/CurrencyApi";
@@ -12,6 +11,7 @@ import { showErrorNotification } from "store/notifications/reducer";
 import ProductCard from "components/Server/ProductCard";
 import { GAevent } from "utils/gtag";
 import { GA_EVENT_NAMES, GA_GLOBAL_SCREEN } from "utils/GAEvents";
+import { EnableScroll } from "utils/tinyUtils";
 
 function ProductsInfiniteScroll({
   offset,
@@ -39,7 +39,8 @@ function ProductsInfiniteScroll({
   };
 
   useEffect(() => {
-    dispatchRouteChangeEvent("completed");
+    const { setIsNavigating } = useAppStore.getState();
+    setIsNavigating(null);
     GAevent({
       action: GA_EVENT_NAMES.VIEW_ITEMS_LIST,
       params: {
@@ -48,8 +49,7 @@ function ProductsInfiniteScroll({
         screen_path: window.location.pathname,
       },
     });
-    document.documentElement.style.overflow = "initial";
-    document.documentElement.scrollTop = 0;
+    EnableScroll();
     resetBoutique();
     setTimeout(() => {
       getProductsReq();

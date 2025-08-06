@@ -250,9 +250,9 @@ export const GetFilterUrlParams = ({
 export const ChatConroller = (payload) => {
   try {
     const { openChat, setChatOpen } = useAppStore.getState();
-    if (payload) document.documentElement.style.overflow = "hidden";
-    else document.documentElement.style.overflow = "initial";
-    window.history.pushState({ isPopup: true }, "open Chat");
+    if (payload) DisableScroll();
+    else EnableScroll();
+    if (payload) window.history.pushState({ isPopup: true }, "open Chat");
     openChat(payload);
     setChatOpen(payload);
   } catch (error) {}
@@ -700,8 +700,12 @@ export const DetectScreen = () => {
   }
   if (pathname?.includes("/products")) {
     return GA_GLOBAL_SCREEN.PRODUCT_SCREEN;
-  } else if (pathname.includes("/filters")) {
+  } else if (pathname.includes("tags_names")) {
+    return GA_GLOBAL_SCREEN.TAGS_SCREEN;
+  } else if (pathname.includes("/filters/boutique")) {
     return GA_GLOBAL_SCREEN.BOUTIQUE_SCREEN;
+  } else if (pathname?.includes("/filters")) {
+    return GA_GLOBAL_SCREEN.FILTERS_SCREEN;
   } else {
     return GA_GLOBAL_SCREEN.HOME_SCREEN;
   }
@@ -759,9 +763,104 @@ export const totalAmount = (arr) => {
  */
 export const pollinateInput = (value: string): string => {
   if (typeof value !== "string") return "";
-  let input = value.replace(/[<>,:!@#$%^&*()]/g, "");
+  let input = value.replace(/[<>,!@#$%^&*()]/g, "");
   if (input.length > 90) {
     input = input.slice(0, 90);
   }
   return input;
 };
+export const DisableScroll = () => {
+  document.documentElement.style.overflow = "hidden";
+  document.documentElement.scrollTop = 0;
+};
+export const EnableScroll = () => {
+  document.documentElement.style.overflow = "initial";
+};
+export function getReferralSource(referer: string | null): string {
+  if (!referer) return "direct";
+
+  const url = referer.toLowerCase();
+
+  if (url.includes("facebook")) return "facebook";
+  if (url.includes("instagram")) return "instagram";
+  if (url.includes("twitter") || url.includes("x")) return "twitter/X";
+  if (url.includes("t.co")) return "twitter-shortlink";
+  if (url.includes("whatsapp")) return "whatsapp";
+  if (url.includes("linkedin")) return "linkedin";
+  if (url.includes("tiktok")) return "tiktok";
+  if (url.includes("snapchat")) return "snapchat";
+
+  return "other";
+}
+export function findVariation(
+  variations,
+  colors,
+  sizes,
+  selectedColor,
+  selectedSize
+) {
+  // Normalize comparison for flexibility
+  const normalize = (str) => (str ? str.toLowerCase().trim() : "");
+
+  // Find matching color option (can match color_name OR color_option)
+  let color = null;
+  if (selectedColor) {
+    color = colors.find(
+      (c) =>
+        normalize(c.color_name) === normalize(selectedColor) ||
+        normalize(c.color_option) === normalize(selectedColor)
+    );
+  }
+
+  // Find matching size option (can match name OR option)
+  let size = null;
+  if (selectedSize) {
+    size = sizes.find(
+      (s) =>
+        normalize(s.name) === normalize(selectedSize) ||
+        normalize(s.option) === normalize(selectedSize)
+    );
+  }
+
+  // Build variation type based on rules
+  let variationType = null;
+  if (color && size) {
+    variationType = `${color.color_option}-${size.option}`;
+  } else if (color) {
+    variationType = color.color_option;
+  } else if (size) {
+    variationType = size.option;
+  }
+
+  if (!variationType) return null;
+
+  // Find matching variation in the variations array
+  return (
+    variations.find((v) => normalize(v.type) === normalize(variationType)) ||
+    null
+  );
+}
+export function isSameColor(colorA, colorB) {
+  const normalize = (str) => (str ? str.toLowerCase().trim() : "");
+
+  // Convert string into an object-like form
+  const toColorObj = (color) => {
+    if (!color) return null;
+    if (typeof color === "string") {
+      return { color_name: color, color_option: color };
+    }
+    return color;
+  };
+
+  const a = toColorObj(colorA);
+  const b = toColorObj(colorB);
+
+  if (!a || !b) return false;
+
+  return (
+    normalize(a.color_name) === normalize(b.color_name) ||
+    normalize(a.color_name) === normalize(b.color_option) ||
+    normalize(a.color_option) === normalize(b.color_name) ||
+    normalize(a.color_option) === normalize(b.color_option)
+  );
+}

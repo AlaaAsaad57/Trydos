@@ -1,12 +1,11 @@
 "use client";
-import { dispatchRouteChangeEvent } from "utils/events";
 import React, { useEffect } from "react";
+import { useAppStore } from "store";
 
 export default function ProductDetails() {
   useEffect(() => {
-    dispatchRouteChangeEvent("completed");
-    document.documentElement.style.overflow = "initial";
-    document.documentElement.scrollTop = 0;
+    const { setIsNavigating } = useAppStore.getState();
+    setIsNavigating(null);
   }, []);
   return <></>;
 }

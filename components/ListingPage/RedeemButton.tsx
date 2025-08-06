@@ -66,7 +66,7 @@ function RedeemButton() {
       <span className="whitespace-nowrap ">
         {translateFunction("Add To Bag Within ")}
       </span>
-      <span className="whitespace-nowrap bold ">20</span>
+      <span className="whitespace-nowrap bold ">50</span>
       <span className="whitespace-nowrap ">{translateFunction("seconds")}</span>
     </div>
   );

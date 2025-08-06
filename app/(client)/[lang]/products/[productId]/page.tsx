@@ -36,19 +36,34 @@ import ProductsLabels from "components/products/ProductsLabels";
 import { GetProductData } from "utils/pagesDataRequests/ProductPageData";
 import { generateCodeCurrency } from "../../MetaData";
 import { redirect } from "next/navigation";
+import {
+  getCurrencyFromCache,
+  getProductFromCache,
+  RedisGet,
+  RedisSet,
+  StoreCurrency,
+  storeProduct,
+} from "Server Requests/radis";
+import { fetchCurrency } from "Server Requests";
 
 // export const revalidate = parseInt(process.env.NEXT_PUBLIC_REVALIDATE);
 // For Middle East users
 
 export async function generateMetadata({ params, searchParams }) {
   try {
-    const metaData = await generateProductMetaData({ params, searchParams });
+    let cachedData = await RedisGet(`${params.productId}-${params.lang}`);
+    if (cachedData) {
+      return typeof cachedData === "string" ? JSON.parse(cachedData) : {};
+    } else {
+      const metaData = await generateProductMetaData({ params, searchParams });
 
-    // @ts-ignore
-    if (metaData?.error) {
-      redirect(`/${params.lang}?message=product_not_found`);
+      // @ts-ignore
+      if (metaData?.error) {
+        redirect(`/${params.lang}?message=product_not_found`);
+      }
+      RedisSet(`${params.productId}-${params.lang}`, JSON.stringify(metaData));
+      return metaData;
     }
-    return metaData;
   } catch (error) {
     redirect(`/${params.lang}?message=product_not_found`);
   }
@@ -56,18 +71,53 @@ export async function generateMetadata({ params, searchParams }) {
 
 async function Page({ params, searchParams }: ProductPagePropsType) {
   try {
+    let currency, product;
     let [countryVariable, languageVariable] = params.lang.split("-");
+    // let rem = await removeProductFromCache(
+    //   params.productId,
+    //   languageVariable,
+    //   countryVariable
+    // );
+    let data = await getProductFromCache(
+      params.productId,
+      languageVariable,
+      countryVariable
+    );
+    let currencyCache = await getCurrencyFromCache(countryVariable);
+    if (data.product) {
+      product = { ...data.product, time: data.timeMs, redis: true };
+      if (currencyCache) {
+        currency = currencyCache;
+      } else {
+        currency = await fetchCurrency(languageVariable, countryVariable);
+        currency = currency.data.currency;
+        StoreCurrency(countryVariable, currency);
+      }
+    } else {
+      let start = process.hrtime.bigint();
+      let {
+        product: productData,
+        currency: currencyData,
+        socialData,
+      } = await GetProductData(params);
+      StoreCurrency(countryVariable, currencyData);
+      storeProduct(
+        productData,
+        socialData,
+        params.productId,
+        languageVariable,
+        countryVariable
+      );
+      let end = process.hrtime.bigint();
+      product = {
+        ...productData,
+        ...socialData,
+        redis: false,
+        time: Number(end - start) / 1_000_000,
+      };
+      currency = currencyData;
+    }
 
-    let { product, currency } = await GetProductData(params);
-    product = {
-      ...product,
-      // is_redeem: true,
-      // variation: product?.variation?.map((s) => ({
-      //   ...s,
-      //   qty: 1,
-      // })),
-      // available_quantity: 0,
-    };
     const color = searchParams.color;
     const JsonLd = {
       "@context": "https://schema.org",
@@ -113,6 +163,7 @@ async function Page({ params, searchParams }: ProductPagePropsType) {
       if (product.collected_after_ordering === 1) return false;
       return bool;
     };
+
     return (
       <>
         <script

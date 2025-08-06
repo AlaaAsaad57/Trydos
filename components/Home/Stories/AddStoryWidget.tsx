@@ -13,7 +13,7 @@ import {
 } from "store/notifications/reducer";
 import { getUserStories, translateFunction } from "utils/functions";
 import StoryServiceClass from "services/story";
-import { pollinateInput } from "@/utils/tinyUtils";
+import { DisableScroll, EnableScroll, pollinateInput } from "@/utils/tinyUtils";
 import Spinner from "components/global/Spinner";
 
 // Icons
@@ -117,7 +117,9 @@ const validateLink = (urlString: string) => {
   if (!isValidUrl(urlString)) {
     return {
       valid: false,
-      error: translateFunction("Please enter a valid URL (e.g., example.com or www.example.com)")
+      error: translateFunction(
+        "Please enter a valid URL (e.g., example.com or www.example.com)"
+      ),
     };
   }
   try {
@@ -125,32 +127,29 @@ const validateLink = (urlString: string) => {
       urlString.startsWith("http://") || urlString.startsWith("https://")
         ? urlString
         : `https://${urlString}`;
-    const parsed = new URL(url);
-    const currentHost =
-      typeof window !== "undefined" ? window.location.host : "";
-    if (parsed.host !== currentHost) {
+    if (url?.split(".")?.length < 2) {
       return {
         valid: false,
-        error: `${translateFunction("Only links from")} ${currentHost} ${translateFunction("are allowed.")}`,
+        error: translateFunction(
+          "Please enter a valid URL (e.g., example.com or www.example.com)"
+        ),
       };
     }
-    // if (/coupon/i.test(urlString)) {
-    //   return {
-    //     valid: false,
-    //     error: `Links containing 'coupon' are not allowed: ${urlString}`,
-    //   };
-    // }
+
+    const parsed = new URL(url);
+    console.log(parsed);
     return { valid: true, error: "" };
   } catch {
     return {
       valid: false,
-      error: translateFunction("Please enter a valid URL (e.g., example.com or www.example.com)")
+      error: translateFunction(
+        "Please enter a valid URL (e.g., example.com or www.example.com)"
+      ),
     };
   }
 };
 
 export default function AddStoryWidget({ onClose }: AddStoryWidgetPropsType) {
-  const [user, setUser] = useState(null);
   useEffect(() => {
     getUserStories();
   }, []);
@@ -159,7 +158,12 @@ export default function AddStoryWidget({ onClose }: AddStoryWidgetPropsType) {
   const [preview, setPreview] = useState<string | null>(null);
   const [link, setLink] = useState("");
   const [linkError, setLinkError] = useState("");
-  const { setOpenCamera, OpenCamera, cameraPermissions, checkCameraPermissions } = useAppStore();
+  const {
+    setOpenCamera,
+    OpenCamera,
+    cameraPermissions,
+    checkCameraPermissions,
+  } = useAppStore();
   const [uploaded, setUpload] = useState(-1);
   const [isSelected, setIsSelected] = useState(null);
   const [file, setFile] = useState(null);
@@ -328,7 +332,9 @@ export default function AddStoryWidget({ onClose }: AddStoryWidgetPropsType) {
   const handleCameraClick = () => {
     if (!cameraPermissions) {
       showErrorNotification(
-        translateFunction("Please enable notification permissions to use camera features")
+        translateFunction(
+          "Please enable notification permissions to use camera features"
+        )
       );
       return;
     }
@@ -336,13 +342,12 @@ export default function AddStoryWidget({ onClose }: AddStoryWidgetPropsType) {
     //   event: GA_EVENT_NAMES.CLICK,
     //   value: GA_CLICK_EVENT_VALUES.CHOOSE_CAMERA_FOR_ADD_STORY,
     // });
-    
+
     // TODO: Integrate with existing camera component
     setOpenCamera(true);
     // onClose();
   };
 
-  
   const handleFileClick = () => {
     // Sendevent({
     //   event: GA_EVENT_NAMES.CLICK,
@@ -395,12 +400,12 @@ export default function AddStoryWidget({ onClose }: AddStoryWidgetPropsType) {
 
   useEffect(() => {
     checkCameraPermissions();
-    document.documentElement.style.overflow = "hidden";
+    DisableScroll();
     // @ts-ignore
     document.querySelector(".stories-bar-container").style.zIndex =
       "999999999999999";
     return () => {
-      document.documentElement.style.overflow = "auto";
+      EnableScroll();
       // @ts-ignore
       document.querySelector(".stories-bar-container").style.zIndex = "1";
     };

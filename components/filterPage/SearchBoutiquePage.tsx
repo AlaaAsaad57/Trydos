@@ -5,8 +5,7 @@ import SearchIcon from "public/svg/listing/searchIcon.svg";
 import { useAppStore } from "store";
 import { DebounceInput } from "react-debounce-input/src";
 import { useParams, useRouter, usePathname } from "next/navigation";
-import { dispatchRouteChangeEvent } from "utils/events";
-import { GA_EVENT_NAMES } from "utils/GAEvents";
+
 import {
   parseFiltersFromParams,
   buildParamsFromFilters,
@@ -76,12 +75,11 @@ function SearchBoutiquePage({ search_text }: SearchBoutiquePageProps) {
         pathParams.length > 0
           ? `/${lang}/filters/${pathParams.join("/")}`
           : `/${lang}/filters`;
-
-      dispatchRouteChangeEvent("start", {
+      const { setIsNavigating } = useAppStore.getState();
+      setIsNavigating({
         is_filter_search: true,
         href: newPath,
       });
-
       router.push(newPath);
     } catch (error) {
       console.error(error);

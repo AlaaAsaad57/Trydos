@@ -5,10 +5,26 @@ import MiniReturnIcon from "public/svg/MiniReturnIcon.svg";
 import ClockIcon from "public/svg/ClockIcon.svg";
 import Timer from "components/Login/Timer";
 import { useAppStore } from "store";
+import order from "services/order";
+import Spinner from "components/global/Spinner";
 
-function OrderRetailsReturnInfo({ product }: { product: OrderDetail }) {
+function OrderRetailsReturnInfo({
+  product,
+  return_request_id,
+  callback,
+}: {
+  product: OrderDetail;
+  return_request_id: number;
+  callback: () => void;
+}) {
   const [expanded, setExpanded] = useState(false);
-  const { selectedOrder, setOrderDetails, SelectedOrderItem } = useAppStore();
+  const [loading, setLoading] = useState(false);
+  const CancelReturn = async () => {
+    setLoading(true);
+    await order.CancelReturn({ return_request_product_id: return_request_id });
+    callback();
+    setLoading(false);
+  };
   return (
     <div className="w-full flex-col items-center h-auto mt-[12px]">
       <div
@@ -129,24 +145,18 @@ function OrderRetailsReturnInfo({ product }: { product: OrderDetail }) {
       <p
         className="flex-row mt-[11px] items-center justify-center underline text-[##1D1D1D] text-[12px] regular cursor-pointer"
         onClick={() => {
-          setExpanded(false);
-          let order_details_arry = [];
-          selectedOrder.details.map((order_detail) => {
-            let details_arry = { ...order_detail, details: [] };
-            order_detail.details.map((s) => {
-              if (s.id === SelectedOrderItem.id) {
-                details_arry.details.push({ ...s, is_returned: true });
-              } else {
-                details_arry.details.push(s);
-              }
-            });
-            order_details_arry.push(details_arry);
-          });
-          setOrderDetails({ ...selectedOrder, details: order_details_arry });
+          if (loading) return;
+          CancelReturn();
         }}
       >
-        {translateFunction("Cancel Return Request & Get")}
-        <span className="bold mx-[4px]">{translateFunction("3 USD")}</span>
+        {loading ? (
+          <Spinner />
+        ) : (
+          <>
+            {translateFunction("Cancel Return Request & Get")}
+            <span className="bold mx-[4px]">{translateFunction("3 USD")}</span>
+          </>
+        )}
       </p>
     </div>
   );

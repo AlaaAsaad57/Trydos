@@ -354,32 +354,238 @@ class OrderService {
     comment,
     order_detail_id,
     productId,
+    id = null,
   }) {
     try {
-      // let res = await fetchData({
-      //   url: `/customer/product_comment/order`,
-      //   server: "market",
-      //   method: "POST",
-      //   body: JSON.stringify({
-      //     customer_id: auth.UserID(),
-      //     order_detail_id,
-      //     comment: comment,
-      //     star_rating: star_rating,
-      //     product_id: productId,
-      //   }),
-      // });
-      // if (!res.success) {
-      //   throw new Error(res?.message);
-      // }
-      console.log({
-        star_rating,
-        comment,
-        order_detail_id,
-        productId,
-      });
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      if (id) {
+        let res = await fetchData({
+          url: `/customer/product_comment/order/update`,
+          server: "market",
+          method: "POST",
+          body: JSON.stringify({
+            customer_id: auth.UserID(),
+            order_details_id: order_detail_id,
+            comment: comment,
+            star_rating: star_rating,
+            product_id: productId,
+            id: id,
+          }),
+          reqTitle: REQUESTS_DATA.UPDATE_ORDER_RATE,
+        });
+        if (!res.success) {
+          throw new Error(res?.message);
+        }
+      } else {
+        let res = await fetchData({
+          url: `/customer/product_comment/order`,
+          server: "market",
+          method: "POST",
+          body: JSON.stringify({
+            customer_id: auth.UserID(),
+            order_details_id: order_detail_id,
+            comment: comment,
+            star_rating: star_rating,
+            product_id: productId,
+          }),
+          reqTitle: REQUESTS_DATA.RATE_ORDER_DETAILS,
+        });
+        if (!res.success) {
+          throw new Error(res?.message);
+        }
+      }
     } catch (e) {
       throw new Error(e?.message);
+    }
+  }
+  async getReturnReasons() {
+    try {
+      console.log(REQUESTS_DATA.RETURN_REASONS);
+      let response = await fetchData({
+        url: `/customer/order/return_requests/reasons`,
+        reqTitle: REQUESTS_DATA.RETURN_REASONS,
+        method: "GET",
+        server: "market",
+      });
+      if (response.success || response.isSuccessful) {
+        return response;
+      } else {
+        throw new Error(response.message);
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  }
+  async CreateReturnRequest({ order_id }) {
+    try {
+      let resp = await fetchData({
+        url: `/customer/order/return_requests/store?order_id=${order_id}&is_for_exchange=0&is_draft=1`,
+        reqTitle: REQUESTS_DATA.CREAT_RETURN_REQ,
+        method: "GET",
+        server: "market",
+      });
+      return resp?.data?.return_request_id;
+    } catch (error) {}
+  }
+  async UploadImageForOrderReturn({ image }) {
+    let formData = new FormData();
+    formData.append("image", image);
+    formData.append("path", "return_request_products/");
+
+    try {
+      let response = await fetchData({
+        url: "/storage/storage-upload",
+        body: formData,
+        reqTitle: REQUESTS_DATA.UPDATE_PROFILE_IMAGE,
+        method: "POST",
+        server: "market",
+      });
+      // @ts-ignore
+      if (!response.success) {
+        throw new Error(response.message);
+      }
+      return response?.data;
+    } catch (err) {
+      console.error(err);
+      return null;
+    }
+  }
+  async UpdateReturnedProduct({ reason_id, quantity, images, id }) {
+    try {
+      let response = await fetchData({
+        url: `/customer/order/return_request_products/update`,
+        reqTitle: REQUESTS_DATA.RETURN_PRODUCT,
+        method: "POST",
+        server: "market",
+        body: JSON.stringify({
+          id,
+          quantity,
+          images,
+          return_request_reason_id: reason_id?.id,
+        }),
+      });
+      if (response.success || response.isSuccessful) {
+        return true;
+      } else {
+        throw new Error(response.message);
+      }
+    } catch (error) {}
+  }
+  async ReturnProduct({
+    product_id,
+    order_detail_id,
+    reason_id,
+    quantity,
+    images,
+    order_id,
+    return_request_id,
+  }) {
+    let return_req = return_request_id;
+    if (!return_request_id) {
+      return_req = await this.CreateReturnRequest({ order_id: order_id });
+    }
+
+    try {
+      let response = await fetchData({
+        url: `/customer/order/return_request_products/store`,
+        reqTitle: REQUESTS_DATA.RETURN_PRODUCT,
+        method: "POST",
+        server: "market",
+        body: JSON.stringify({
+          product_id,
+          order_detail_id,
+          quantity,
+          return_request_id: return_req,
+          images,
+          return_request_reason_id: reason_id?.id,
+          is_for_exchange: 0,
+          details: "",
+        }),
+      });
+      if (response.success || response.isSuccessful) {
+        return return_req;
+      } else {
+        throw new Error(response.message);
+      }
+    } catch (error) {}
+  }
+  async CancelReturn({ return_request_product_id }) {
+    try {
+      let response = await fetchData({
+        url: `/customer/order/return_request_products/cancel?return_request_product_id=${return_request_product_id}`,
+        reqTitle: REQUESTS_DATA.CANCEL_RETURN_PRODUCT,
+        method: "GET",
+        server: "market",
+      });
+      if (response.success || response.isSuccessful) {
+        return response;
+      } else {
+        throw new Error(response.message);
+      }
+    } catch (error) {}
+  }
+  async getReturnRequestDetails({ order_id = null, return_request_id = null }) {
+    try {
+      let req;
+      if (!return_request_id) {
+        req = await this.CreateReturnRequest({ order_id: order_id });
+      } else {
+        req = return_request_id;
+      }
+      let response = await fetchData({
+        url: `/customer/order/return_requests/order_details?return_request_id=${req}`,
+        reqTitle: REQUESTS_DATA.DETAILS_RETURN_PRODUCT,
+        method: "GET",
+        server: "market",
+      });
+      if (response?.success) return response.data;
+      else throw new Error();
+    } catch (error) {
+      throw error;
+    }
+  }
+  async ConfirmReturnRequest({ return_request_id }) {
+    try {
+      let response = await fetchData({
+        url: `/customer/order/return_requests/confirm_return_request`,
+        reqTitle: REQUESTS_DATA.CONFIRM_RETURN_PRODUCT,
+        method: "POST",
+        server: "market",
+        body: JSON.stringify({
+          return_request_id: return_request_id,
+        }),
+      });
+      if (response?.success) return response.data;
+      else throw new Error();
+    } catch (error) {
+      throw error;
+    }
+  }
+  async ViewReturnRequest({ return_request_id }) {
+    try {
+      let response = await fetchData({
+        url: `/customer/order/return_requests/view?return_request_id=${return_request_id}`,
+        reqTitle: REQUESTS_DATA.VIEW_RETURN_PRODUCT,
+        method: "GET",
+        server: "market",
+      });
+      if (response?.success) return response.data;
+      else throw new Error();
+    } catch (error) {
+      throw error;
+    }
+  }
+  async CancelReturnRequest({ return_request_id }) {
+    try {
+      let response = await fetchData({
+        url: `/customer/order/return_requests/cancel?return_request_id=${return_request_id}`,
+        reqTitle: REQUESTS_DATA.CANCEL_RETURN_REQ,
+        method: "GET",
+        server: "market",
+      });
+      if (response?.success) return response.data;
+      else throw new Error();
+    } catch (error) {
+      throw error;
     }
   }
 }

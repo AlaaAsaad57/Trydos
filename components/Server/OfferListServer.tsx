@@ -27,7 +27,10 @@ async function OfferListServer({
             />
           );
         })}
-        <InfinteScroll offsetVariable={HomeData.offset} />
+        <InfinteScroll
+          offsetVariable={HomeData.searchAfter}
+          temp={HomeData.temp}
+        />
       </div>
     );
   } catch (error) {

@@ -18,7 +18,6 @@ import NextLink from "components/global/NextLink";
 import { useParams, useSearchParams } from "next/navigation";
 import home from "services/home";
 import OrderButton from "./OrderButton";
-import { dispatchRouteChangeEvent } from "utils/events";
 import Spinner from "components/global/Spinner";
 import Timer from "components/Login/Timer";
 import { QuantityDetailsProductApi } from "models/API/market/ProductQuantityDetails";
@@ -31,7 +30,7 @@ import {
   GA_GLOBAL_SCREEN,
 } from "utils/GAEvents";
 import { GAevent } from "utils/gtag";
-import { GetImageUrl } from "utils/tinyUtils";
+import { EnableScroll, GetImageUrl } from "utils/tinyUtils";
 import { CartContainerPropsType } from "models/componentType/CartContainerPropsType";
 import { QuantutyInputPropsType } from "models/componentType/QuantutyInputPropsType";
 import { fetchData } from "utils/fetchData";
@@ -219,9 +218,11 @@ function CartContainer({ close, toOrders }: CartContainerPropsType) {
     }
   }
   // Filter oldCart to exclude products that are in the current cart (with the same variation)
-  const filteredOldCart = oldCart?.oldCart?.filter(
-    (oldProduct) => !cart.some((cartProduct) => areProductsEqual(oldProduct, cartProduct))
-  ) || [];
+  const filteredOldCart =
+    oldCart?.oldCart?.filter(
+      (oldProduct) =>
+        !cart.some((cartProduct) => areProductsEqual(oldProduct, cartProduct))
+    ) || [];
   return (
     <div
       className={`flex-col ${
@@ -245,7 +246,7 @@ function CartContainer({ close, toOrders }: CartContainerPropsType) {
               //   event: GA_EVENT_NAMES.CLICK,
               //   value: GA_CLICK_EVENT_VALUES.APPBAR_BACKICON_BUTTON,
               // });
-              document.documentElement.style.overflow = "auto";
+              EnableScroll();
               close();
             }}
           />
@@ -372,7 +373,9 @@ function CartContainer({ close, toOrders }: CartContainerPropsType) {
               </g>
             </svg>
             <span
-              className={`regular ml-[8px] ${language === "ar" || language === "ku" ? "text-right" : ""}`}
+              className={`regular ml-[8px] ${
+                language === "ar" || language === "ku" ? "text-right" : ""
+              }`}
               data-cy="textContainer-textOnHeader"
             >
               {translate("Shopping Bag", language)}{" "}
@@ -422,7 +425,7 @@ function CartContainer({ close, toOrders }: CartContainerPropsType) {
                         } bg-[#FEFEFE] rounded-2xl overflow-hidden shadow-[0px_3px_10px_rgba(0,0,0,0.1)]`}
                         key={key}
                         onClick={(e) => {
-                          document.documentElement.style.overflow = "auto";
+                          EnableScroll();
                           close();
                         }}
                       >
@@ -859,11 +862,13 @@ function CartContainer({ close, toOrders }: CartContainerPropsType) {
                           // @ts-ignore
                           if (e.target.closest(".hide-btn")) {
                             setTimeout(() => {
-                              dispatchRouteChangeEvent("completed");
+                              const { setIsNavigating } =
+                                useAppStore.getState();
+                              setIsNavigating(null);
                             }, 1500);
                             return false;
                           }
-                          document.documentElement.style.overflow = "auto";
+                          EnableScroll();
                           close();
                         }}
                       >

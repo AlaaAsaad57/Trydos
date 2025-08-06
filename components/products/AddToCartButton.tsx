@@ -4,6 +4,7 @@ import { translateFunction } from "utils/functions";
 
 import { useParams } from "next/navigation";
 import { useAppStore } from "store";
+import { DisableScroll } from "utils/tinyUtils";
 
 function AddToCartButton({ product }: { product: any }) {
   const { AddToCartOption, setSelectedProductForCart } = useAppStore();
@@ -19,8 +20,8 @@ function AddToCartButton({ product }: { product: any }) {
       className={`add-cart-button`}
       data-cy="addToCartButton"
       onClick={(e) => {
-        document.documentElement.style.overflow = "hidden";
-        document.documentElement.scrollTop = 0;
+        DisableScroll();
+
         setSelectedProductForCart({ ...product, shouldUpdate: 0 });
       }}
     >

@@ -19,6 +19,7 @@ import {
   setCookie,
   UserData,
 } from "utils/cookies/cookie-manager";
+import { getReferralSource } from "utils/tinyUtils";
 
 interface MenuProps {
   user: any;
@@ -119,6 +120,7 @@ const Menu: React.FC<MenuProps> = ({ user, setMenuOpen }) => {
     try {
       await deleteToken(messaging);
     } catch (error) {}
+    await new Promise((resolve) => setTimeout(resolve, 2000));
     window.location.reload();
   };
   const shouldShowLogout = () => {
@@ -420,6 +422,9 @@ const Menu: React.FC<MenuProps> = ({ user, setMenuOpen }) => {
             {translateFunction("Make Stories Token Expired")}
           </MenuItem>
         )}
+        <MenuItem icon={<></>}>
+          <Reffer />
+        </MenuItem>
       </div>
 
       {showNotifications && (
@@ -435,3 +440,13 @@ const Menu: React.FC<MenuProps> = ({ user, setMenuOpen }) => {
 };
 
 export default Menu;
+const Reffer = () => {
+  if (typeof window === "undefined") return <></>;
+  let reffere = getCookie("referer");
+
+  return (
+    <div>
+      Reffere: {reffere?.toString()} - {getReferralSource(reffere)}
+    </div>
+  );
+};

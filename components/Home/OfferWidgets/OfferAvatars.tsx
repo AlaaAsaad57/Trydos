@@ -1,13 +1,9 @@
 "use client";
 import { useRef } from "react";
 import OfferAvatar from "./OfferAvatar";
-import { Boutique } from "models/Genaral/Boutique";
 import { useParams } from "next/navigation";
 import MoreOfferAvatar from "./MoreOfferAvatar";
-import search from "services/search";
 import { OfferAvatarsPropsType } from "models/componentType/OfferAvatarsPropsType";
-
-
 function OfferAvatars({ priority, boutique }: OfferAvatarsPropsType) {
   const ref = useRef<HTMLDivElement>();
   const { lang } = useParams();
@@ -47,7 +43,7 @@ function OfferAvatars({ priority, boutique }: OfferAvatarsPropsType) {
     >
       {boutique?.childCategoriesForProductIds.map((product, index) => {
         if (index < 7) {
-          if (product?.photo)
+          if (product?.most_viewed_product_thumbnail)
             return (
               <OfferAvatar
                 boutique={boutique}
@@ -55,7 +51,7 @@ function OfferAvatars({ priority, boutique }: OfferAvatarsPropsType) {
                 linkUrl={`/filters/boutiques/${boutique.slug}/categories/${product.slug}`}
                 key={index}
                 category={product.name}
-                images={product?.photo}
+                images={product?.most_viewed_product_thumbnail}
                 zIndex={index + 1}
                 priority={priority}
               />
@@ -67,7 +63,10 @@ function OfferAvatars({ priority, boutique }: OfferAvatarsPropsType) {
           priority={false}
           href={`/${lang}/filters/boutiques/${boutique?.slug}`}
           boutique={boutique}
-          images={boutique?.childCategoriesForProductIds[7].photo}
+          images={
+            boutique?.childCategoriesForProductIds[7]
+              .most_viewed_product_thumbnail
+          }
           zIndex={100}
           viewed={6}
         />

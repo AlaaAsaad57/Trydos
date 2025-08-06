@@ -21,22 +21,31 @@ import { useParams, useRouter, useSearchParams } from "next/navigation";
 import OrderStatusCartsIcon from "./cards/OrderStatusCartsIcon";
 import OrderStatusIcon from "./cards/OrderStatusIcon";
 import RateOrderButton from "./cards/RateOrderButton";
-import Spinner from "components/global/Spinner";
-import order from "services/order";
+import Order from "services/order";
 import OrderChatIcon from "./OrderChatIcon";
 import { Channel } from "models/Genaral/Channel";
 import ReturnedOrderStatusIcon from "public/svg/ReturnedOrderStatusIcon.svg";
-import ChatWidget from "components/Chat/ChatWidget";
+const ChatWidget = dynamic(() => import("components/Chat/ChatWidget"), {
+  ssr: false,
+  loading: () => <LandingPage afterLoad={true} />,
+});
 import OptionsIcon from "public/svg/OptionsIcon.svg";
 import OrderRetailsReturnInfo from "components/Orders/OrderRetailsReturnInfo";
-import RatingOrderItem from "components/Orders/RatingOrderItem";
 import CanceledOrderStatusIcon from "public/svg/CanceledOrderStatusIcon.svg";
-import { GetImageUrl, totalAmount } from "utils/tinyUtils";
+import {
+  DisableScroll,
+  EnableScroll,
+  GetImageUrl,
+  totalAmount,
+} from "utils/tinyUtils";
 import { OrderDetailsPropsType } from "models/componentType/settingTypes/OrderDetailsPropsType";
 import { ProductCardPropsType } from "models/componentType/settingTypes/ProductCardPropsType";
 import { fetchData } from "utils/fetchData";
 import auth from "services/auth";
 import { REQUESTS_DATA } from "utils/Requests";
+import dynamic from "node_modules/next/dynamic";
+import LandingPage from "components/Home/LandingPage";
+import Spinner from "components/global/Spinner";
 function OrderDetails({ resetOrderDetails, goBack }: OrderDetailsPropsType) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -59,7 +68,6 @@ function OrderDetails({ resetOrderDetails, goBack }: OrderDetailsPropsType) {
     orderPageLoading: loading,
     setOrderPageLoading: setLoading,
   } = useAppStore();
-
   const fetchedOrderIdRef = useRef<string | number | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
   const { lang } = useParams();
@@ -75,11 +83,37 @@ function OrderDetails({ resetOrderDetails, goBack }: OrderDetailsPropsType) {
 
     setLoading(true);
     try {
-      let data = await order.getOrderDetails(
+      let data = await Order.getOrderDetails(
         selectedOrder.order_group_id,
         abortControllerRef.current.signal
       );
+      let returned_req_ids = data?.map((s) => {
+        if (s.return_request_id !== null && s.return_request_id !== undefined)
+          return s.return_request_id;
+      });
+      returned_req_ids = returned_req_ids?.filter((s) => s !== undefined);
+      if (returned_req_ids?.length > 0) {
+        try {
+          const returnRequests = await Promise.all(
+            returned_req_ids.map(async (id) => {
+              const details = await Order.getReturnRequestDetails({
+                return_request_id: id,
+              });
+              return { id, details };
+            })
+          );
 
+          // Update data with the fetched details
+          data = data.map((order) => {
+            const match = returnRequests.find(
+              (req) => req.id === order.return_request_id
+            );
+            return match ? { ...order, return_details: { ...match } } : order;
+          });
+        } catch (error) {
+          console.error(error);
+        }
+      }
       let orderData = {
         ...data?.[0],
         order_amount: totalAmount(data),
@@ -166,8 +200,8 @@ function OrderDetails({ resetOrderDetails, goBack }: OrderDetailsPropsType) {
       if (!response.success) {
         throw new Error(response.message);
       }
-      document.documentElement.style.overflow = "hidden";
-      document.documentElement.scrollTop = 0;
+      DisableScroll();
+
       document.querySelector("#OrderDetails").scrollTop = 0;
       document.querySelector("#OrderDetails").classList.add("overflow-hidden");
       document.querySelector("#OrderDetails").classList.remove("overflow-auto");
@@ -280,7 +314,7 @@ function OrderDetails({ resetOrderDetails, goBack }: OrderDetailsPropsType) {
         return;
       }
 
-      document.documentElement.style.overflow = "auto";
+      EnableScroll();
       document.documentElement.scrollTop = 0;
       document.querySelector("#OrderDetails").scrollTop = 0;
       document.querySelector("#OrderDetails").classList.add("overflow-auto");
@@ -323,7 +357,7 @@ function OrderDetails({ resetOrderDetails, goBack }: OrderDetailsPropsType) {
       // @ts-ignore
       shallow: true,
     });
-    document.documentElement.style.overflow = "auto";
+    EnableScroll();
     setChatInfo(null);
     document.querySelector("#OrderDetails").classList.remove("overflow-hidden");
     document.querySelector("#OrderDetails").classList.add("overflow-auto");
@@ -392,7 +426,7 @@ function OrderDetails({ resetOrderDetails, goBack }: OrderDetailsPropsType) {
         />
 
         {loading || !ActivePacks?.order_status ? (
-              <OrderDetailsSkeleton />
+          <OrderDetailsSkeleton />
         ) : (
           <>
             <div
@@ -462,6 +496,9 @@ function OrderDetails({ resetOrderDetails, goBack }: OrderDetailsPropsType) {
             )}
             <div className="flex flex-col justify-start  w-full bg-[#F8F8F8] px-[12px] h-full relative">
               <OrderItemsList
+                getOrderDetails={() => {
+                  getOrderDetails();
+                }}
                 shouldShowChat={() => shouldShowChatIcon(ActivePacks)}
                 showChats={() => ShowChats()}
                 order_group_status={
@@ -477,6 +514,7 @@ function OrderDetails({ resetOrderDetails, goBack }: OrderDetailsPropsType) {
               />
               {isExpanded && (
                 <OrderExpandedDetails
+                  getOrderDetails={() => getOrderDetails()}
                   order={selectedOrder?.details?.find(
                     (s) => s.id === ActivePacks?.id
                   )}
@@ -491,8 +529,48 @@ function OrderDetails({ resetOrderDetails, goBack }: OrderDetailsPropsType) {
 }
 
 export default OrderDetails;
-const OrderExpandedDetails = ({ order }: { order: OrderItem }) => {
-  const { currency, settings } = useAppStore();
+const OrderExpandedDetails = ({
+  order,
+  getOrderDetails,
+}: {
+  order: OrderItem;
+  getOrderDetails: () => void;
+}) => {
+  const { currency } = useAppStore();
+  const [cancelling, setCancelling] = useState(false);
+  const CancelReturnRequest = async () => {
+    try {
+      setCancelling(true);
+      await Order.CancelReturnRequest({
+        return_request_id: order.return_request_id,
+      });
+      getOrderDetails();
+      setCancelling(false);
+    } catch (error) {
+      setCancelling(false);
+    }
+  };
+  const shouldShowConfirmReturn = () => {
+    return order?.return_details?.details?.status === "draft return request";
+  };
+  const getProductWithReturn = (product) => {
+    let return_item = order?.return_details?.details?.order_details?.find(
+      (s) => s.detail_id === product.id
+    ) ?? { already_return: false };
+    return { ...product, return: return_item };
+  };
+  const confirmOrderReturn = async () => {
+    try {
+      setCancelling(true);
+      await Order.ConfirmReturnRequest({
+        return_request_id: order.return_request_id,
+      });
+      setCancelling(false);
+      getOrderDetails();
+    } catch (error) {
+      setCancelling(false);
+    }
+  };
   const { lang } = useParams();
   // @ts-ignore
   const language = lang.split("-")[1];
@@ -618,8 +696,15 @@ const OrderExpandedDetails = ({ order }: { order: OrderItem }) => {
           </span>
         </div>
         <div className="w-auto min-h-[60px] h-auto  px-[12px] flex-col">
-          <div className={`flex flex-row items-end ${ isRtl ? "flex-row-reverse" : " "}`}>
-            <OrderStatusCartsIcon status={order?.order_group_status?.value} isRtl={isRtl}/>
+          <div
+            className={`flex flex-row items-end ${
+              isRtl ? "flex-row-reverse" : " "
+            }`}
+          >
+            <OrderStatusCartsIcon
+              status={order?.order_group_status?.value}
+              isRtl={isRtl}
+            />
           </div>
           <span className="text-[#8D8D8D] regular text-[10px] mt-[5px] text-right">
             {translateFunction("Order Status")}
@@ -627,24 +712,67 @@ const OrderExpandedDetails = ({ order }: { order: OrderItem }) => {
           <div className="text-[#1D1D1D] flex-row text-[12px] regular mt-[3px]">
             <span>{order?.order_group_status?.label}</span>
             <span className="ml-[11px]">
-              <OrderStatusIcon status={order?.order_group_status?.value} isRtl={ isRtl}/>
+              <OrderStatusIcon
+                status={order?.order_group_status?.value}
+                isRtl={isRtl}
+              />
             </span>
           </div>
         </div>
       </div>
       <div className="flex-col w-full mt-[12px] pb-[50px]">
+        {shouldShowConfirmReturn() && (
+          <div
+            className={`w-full h-[50px] mt-[31px] items-center justify-center  flex cursor-pointer ${"bg-[#402CDD] "} rounded-[15px] text-[16px] text-[#fff] medium`}
+            onClick={() => {
+              confirmOrderReturn();
+            }}
+          >
+            {cancelling ? (
+              <Spinner />
+            ) : (
+              translateFunction("Confirm Returning Items")
+            )}
+          </div>
+        )}
+        {order?.return_details?.details?.status &&
+          (order.return_request_id &&
+          order.edit_return_request &&
+          cancelling ? (
+            <div
+              className={`w-full h-[50px] mt-[31px] items-center justify-center  flex cursor-pointer ${"bg-[#fb7070] "} rounded-[15px] text-[16px] text-[#fff] medium`}
+            >
+              <Spinner />
+            </div>
+          ) : (
+            <div
+              className={`w-full h-[50px] mt-[31px] items-center justify-center  flex cursor-pointer ${"bg-[#fb7070] "} rounded-[15px] text-[16px] text-[#fff] medium cursor-pointer`}
+              onClick={() => {
+                CancelReturnRequest();
+              }}
+            >
+              {translateFunction("Cancel Return Request")}
+            </div>
+          ))}
         {order.details.map((Product) => (
           <ProductCard
             status={order?.order_status}
-            product={Product}
+            getOrderDetails={() => getOrderDetails()}
+            product={getProductWithReturn(Product)}
             key={Product.id}
+            order={order}
           />
         ))}
       </div>
     </div>
   );
 };
-const ProductCard = ({ product, status }: ProductCardPropsType) => {
+const ProductCard = ({
+  product,
+  status,
+  getOrderDetails,
+  order,
+}: ProductCardPropsType) => {
   const { currency, setSelectedOrderItem, ActivePacks } = useAppStore();
   const { lang } = useParams();
   // @ts-ignore
@@ -656,8 +784,8 @@ const ProductCard = ({ product, status }: ProductCardPropsType) => {
         <span
           className="absolute top-[22px] right-[0px]"
           onClick={() => {
-            document.documentElement.style.overflow = "hidden";
-            document.documentElement.scrollTop = 0;
+            DisableScroll();
+
             document.querySelector("#OrderDetails").scrollTop = 0;
             document
               .querySelector("#OrderDetails")
@@ -773,7 +901,7 @@ const ProductCard = ({ product, status }: ProductCardPropsType) => {
                 </div>
               </div>
             )}
-            {product.is_canceled && (
+            {product.qty === 0 && (
               <div className="flex-row justify-between w-full mt-[6px]">
                 <div className="flex-row">
                   <span className="text-[#505050] text-[10px] medium ">
@@ -805,16 +933,29 @@ const ProductCard = ({ product, status }: ProductCardPropsType) => {
             </div>
           </div>
         </NextLink>
-        {!product.is_returned &&
-          ActivePacks?.order_status?.value === "delivered" && (
-            <RatingOrderItem
-              productId={product?.product_details.id}
-              order_detail_id={product.id}
-              initialRating={0}
-              isRated={false}
+
+        {product.return.already_return &&
+          (ActivePacks?.return_details ? (
+            <OrderRetailsReturnInfo
+              product={{
+                ...product,
+                return_status: ActivePacks.return_details.status,
+              }}
+              callback={() => {
+                getOrderDetails();
+              }}
+              return_request_id={product?.return?.return_request_product_id}
             />
-          )}
-        {product.is_returned && <OrderRetailsReturnInfo product={product} />}
+          ) : (
+            <div
+              className="underline text-[14px] text-[#5d5d5d] medium w-full text-center flex items-center justify-center p-2 cursor-pointer"
+              onClick={() => {
+                getOrderDetails();
+              }}
+            >
+              {translateFunction("Failed To Load Return Details Try again")}
+            </div>
+          ))}
       </div>
     </>
   );

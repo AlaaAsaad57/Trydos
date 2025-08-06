@@ -13,13 +13,17 @@ import {
   WhatsappIcon,
   WhatsappShareButton,
 } from "react-share";
-import { getUserChat, translateFunction } from "utils/functions";
+import { getUserChat, RoundPrice, translateFunction } from "utils/functions";
 import { useAppStore } from "store";
 import CopyIcon from "public/svg/copyIcon.svg";
 import { ShareOptionsPropsType } from "models/componentType/ShareOptionsPropsType";
 import { showSuccessNotification } from "@/store/notifications/reducer";
 import { fetchData } from "utils/fetchData";
 import { REQUESTS_DATA } from "utils/Requests";
+import { GAevent } from "utils/gtag";
+import { GA_EVENT_NAMES, GA_GLOBAL_SCREEN } from "utils/GAEvents";
+import auth from "services/auth";
+import { useParams } from "node_modules/next/navigation";
 function ShareOptions({
   setShareContacts,
   sharedContacts,
@@ -32,7 +36,11 @@ function ShareOptions({
     user,
     contacts,
     SelectedProduct,
+    currency,
   } = useAppStore();
+  const params = useParams();
+
+  const [country, language] = (params.lang as string).split("-");
 
   const shareSocial = async (appName) => {
     try {
@@ -47,6 +55,31 @@ function ShareOptions({
           shared_count: 1,
         }),
       });
+      if (!response.success) {
+        throw new Error("");
+      }
+      fetch(
+        `/api/editSocialProduct?pid=${product.id}&slug=${product.slug}&language=${language}&country=${country}`
+      );
+      GAevent({
+        action: GA_EVENT_NAMES.SHARE_CONTENT,
+        params: {
+          user_id_custom: auth.UserID(),
+          content_id: product?.id,
+          item_id: product?.id,
+          item_name: product?.name,
+          category: product?.category?.name,
+          brand: product?.brand?.name,
+          price: RoundPrice({
+            num: product?.price,
+            rate: currency?.exchange_rate,
+          }),
+          share_context: "external",
+          screen_name: GA_GLOBAL_SCREEN.PRODUCT_SCREEN,
+          screen_path: window.location.pathname,
+          method_share: appName,
+        },
+      });
       // @ts-ignore
       if (!response.success) {
         throw new Error(response.message);
@@ -60,13 +93,20 @@ function ShareOptions({
       console.error(err);
     }
   };
+  const generateUrlForSharing = (app) => {
+    let searchParams = new URLSearchParams(window.location.search);
+    searchParams.set("utm_source", app);
+    return `${window.location.origin}${
+      window.location.pathname
+    }?${searchParams.toString()}`;
+  };
   return (
     <div className="share-options">
       <div className={`share-avatar`}>
         <div className="share-image social shadow-none">
           <FacebookShareButton
             data-cy="Facebook"
-            url={window.location.href}
+            url={generateUrlForSharing("facebook")}
             beforeOnClick={() => {
               // Sendevent({
               //   event: GA_EVENT_NAMES.CLICK,
@@ -90,8 +130,8 @@ function ShareOptions({
               // });
               shareSocial("Twitter");
             }}
-            url={window.location.href}
-            title={window.location.href}
+            url={generateUrlForSharing("X")}
+            title={generateUrlForSharing("X")}
           >
             <TwitterIcon size={70} borderRadius={20} />
           </TwitterShareButton>
@@ -108,7 +148,7 @@ function ShareOptions({
               // });
               shareSocial("WhatsApp");
             }}
-            url={window.location.href}
+            url={generateUrlForSharing("whatsapp")}
           >
             <WhatsappIcon size={70} borderRadius={20} />
           </WhatsappShareButton>
@@ -125,7 +165,7 @@ function ShareOptions({
               // });
               shareSocial("Telegram");
             }}
-            url={window.location.href}
+            url={generateUrlForSharing("Telegram")}
           >
             <TelegramIcon size={70} borderRadius={20} />
           </TelegramShareButton>
@@ -142,7 +182,9 @@ function ShareOptions({
               // });
               shareSocial("email");
             }}
-            href={`https://mail.google.com/mail/?view=cm&fs=1&su=Check%20this%20out&body=${product?.name} %0A ${window.location.href}`}
+            href={`https://mail.google.com/mail/?view=cm&fs=1&su=Check%20this%20out&body=${
+              product?.name
+            } %0A ${generateUrlForSharing("email")}`}
             target="_blank"
           >
             <EmailIcon size={70} borderRadius={20} />

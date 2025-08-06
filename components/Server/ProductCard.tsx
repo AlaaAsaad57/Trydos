@@ -10,6 +10,7 @@ import ColorBottomSheet from "components/ListingPage/ColorBottomSheet";
 import { useAppStore } from "store";
 import { GA_GLOBAL_SCREEN } from "utils/GAEvents";
 import { GetImageUrl } from "utils/tinyUtils";
+import CoverEffectSlider from "components/ListingPage/CoverEffectSlider";
 
 function ProductCard({
   product,
@@ -40,7 +41,7 @@ function ProductCard({
     if (activeColor?.color_name) {
       searchParams.set("color", activeColor.color_name);
     }
-    if (searchParams.values().toArray().length > 0) {
+    if ([...searchParams].length > 0) {
       return url + `?${searchParams.toString()}`;
     } else {
       return url;
@@ -68,7 +69,7 @@ function ProductCard({
     );
   };
   return (
-    <>
+    <div className="relative flex">
       <ColorBottomSheet
         id={product.product_id}
         setActiveColor={(e) => {
@@ -77,6 +78,18 @@ function ProductCard({
         }}
         activeColor={activeColor}
       />
+      {product.sync_color_images?.length > 0 &&
+        product.sync_color_images.filter((s) => s.images.length > 0).length >
+          0 && (
+          <CoverEffectSlider
+            priority={true}
+            product_name={product.name}
+            product={product}
+            images={product.sync_color_images?.filter(
+              (color) => color.images.length > 0
+            )}
+          />
+        )}
       <div
         className="max-h-[377px] relative"
         key={product.slug}
@@ -196,7 +209,7 @@ function ProductCard({
           params={params}
         />
       </div>
-    </>
+    </div>
   );
 }
 

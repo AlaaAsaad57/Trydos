@@ -1,3 +1,4 @@
 export interface InfinteScrollPropsType {
-    offsetVariable: number;
+  offsetVariable: number;
+  temp: any;
 }

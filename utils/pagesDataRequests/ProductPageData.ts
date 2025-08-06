@@ -1,21 +1,62 @@
-import { cache } from "react";
 import { fetchCurrency, fetchProductDetails } from "Server Requests";
+import { fetchServerData } from "Server Requests/ServerFetch";
 
-export const GetProductData = cache(
-  async (params: { lang: string; productId: string }) => {
-    const key = JSON.stringify(params);
-
-    let [country, language] = params.lang.split("-");
-    let productId = params.productId;
-
-    let [productData, currencyData] = await Promise.all([
-      fetchProductDetails(params.productId, language, country),
-      fetchCurrency(language, country),
+export const GetProductData = async (params: {
+  lang: string;
+  productId: string;
+}) => {
+  let [country, language] = params.lang.split("-");
+  let [productData, currencyData] = await Promise.all([
+    fetchProductDetails(params.productId, language, country),
+    fetchCurrency(language, country),
+    GetSocialDataForProduct,
+  ]);
+  let socialData = await GetSocialDataForProduct({
+    productId: productData.id,
+    lang: params.lang,
+    slug: params.productId,
+  });
+  return {
+    product: productData,
+    socialData: socialData,
+    currency: currencyData.data.currency,
+  };
+};
+export const GetSocialDataForProduct = async ({ productId, slug, lang }) => {
+  try {
+    let [commentsRes, sharesRes] = await Promise.all([
+      fetchServerData({
+        url:
+          process.env.NEXT_PUBLIC_BACKEND_URL +
+          `/web/product/CommentsSharesDetails/${slug}`,
+        method: "GET",
+        revalidate: 0,
+        local: lang,
+      }),
+      fetchServerData({
+        url:
+          process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
+          `/api/v2/elastic/shared_count/${productId}`,
+        method: "GET",
+        local: lang,
+        revalidate: 0,
+      }),
     ]);
+    if (commentsRes.isError) {
+      throw new Error(
+        `Comments Requets Error:${commentsRes.status}:${commentsRes.error}`
+      );
+    }
+    // if (sharesRes.isError) {
+    //   throw new Error(
+    //     `Shares Requets Error:${sharesRes.status}:${sharesRes.error}`
+    //   );
+    // }
 
-    return {
-      product: productData,
-      currency: currencyData.data.currency,
-    };
+    let commentsData = commentsRes.data.data;
+    let sharesData = sharesRes.data.data;
+    return { ...commentsData, ...sharesData };
+  } catch (error) {
+    console.error(`Social Data:` + error);
   }
-);
+};

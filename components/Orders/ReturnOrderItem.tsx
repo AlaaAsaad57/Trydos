@@ -1,38 +1,63 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Image from "next/image";
-import { getConfiguredImage, translateFunction } from "utils/functions";
+import {
+  getConfiguredImage,
+  RoundPrice,
+  translateFunction,
+} from "utils/functions";
 import ReturnOrderItemIcon from "public/svg/ReturnOrderItemIcon.svg";
 import { useAppStore } from "store";
 import UploadImageOrder from "public/svg/UploadImageOrder.svg";
 import Spinner from "components/global/Spinner";
-import { GetImageUrl } from "utils/tinyUtils";
+import { GetImageUrl, pollinateInput } from "utils/tinyUtils";
 import { ReturnOrderItemPropsType } from "models/componentType/ReturnOrderItemPropsType";
+import order from "services/order";
+import Skeleton from "node_modules/react-loading-skeleton/dist";
 
 function ReturnOrderItem({
   backToMain,
   item,
-  closeOptions,
   setShouldConfirmReturn,
 }: ReturnOrderItemPropsType) {
   const { currency } = useAppStore();
-  const [selectedOptions, setSelectedOptions] = useState([]);
-  const options = [
-    "I Didn't Like",
-    "Bad Quality",
-    "It Arrived Damaged",
-    "I Received A Different Product",
-    "Different Color",
-    "Different Sizes",
-    "Completely Different",
-  ];
+  const [options, setOptions] = useState([]);
+  const [selectedOptions, setSelectedOptions] = useState(null);
+
   const handleOptionClick = (option) => {
-    if (selectedOptions.includes(option)) {
-      setSelectedOptions(selectedOptions.filter((o) => o !== option));
+    if (selectedOptions?.id === option.id) {
+      setSelectedOptions(null);
     } else {
-      setSelectedOptions([...selectedOptions, option]);
+      setSelectedOptions(option);
     }
   };
-  const [images, setImages] = useState<string[]>([]);
+  const [images, setImages] = useState<string[]>(item?.return?.img ?? []);
+  const [loading, setLoading] = useState(true);
+  const getReasons = async () => {
+    try {
+      setLoading(true);
+      let response = await order.getReturnReasons();
+      setOptions(response.data.return_reasons);
+      if (item?.return?.return_request_product_reason_id) {
+        setSelectedOptions(
+          response?.data?.return_reasons?.find(
+            (s) => s.id === item?.return?.return_request_product_reason_id
+          )
+        );
+      }
+      setLoading(false);
+    } catch (error) {
+      setLoading(false);
+    }
+  };
+  useEffect(() => {
+    getReasons();
+  }, []);
+  const [loadingImage, setLoadinImage] = useState(false);
+  const [returnedQty, setReturnedQty] = useState(
+    (item.return.return_request_product_quantity &&
+      parseInt(item.return.return_request_product_quantity)) ??
+      item.qty
+  );
   return (
     <>
       <div className="flex-col w-full items-center pb-[12px] px-[24px]">
@@ -70,7 +95,12 @@ function ReturnOrderItem({
           {translateFunction(
             "You Can Return The Product Without Any Conditions According To The Return Policy And Get A Full Refund"
           )}
-          <span className="bold text-[12px] text-[#8D8D8D] ml-[4px]">140</span>
+          <span className="bold text-[12px] text-[#8D8D8D] ml-[4px]">
+            {RoundPrice({
+              num: item?.price_after_discount || item.offer_price,
+              rate: currency.exchange_rate,
+            })}
+          </span>
           <span className="text-[#8D8D8D] mx-[4px]">{currency?.symbol}</span>
           {translateFunction("To Your Account")}.
         </p>
@@ -85,45 +115,86 @@ function ReturnOrderItem({
           </span>
         </p>
       </div>
-      <div className="flex-row w-full flex-wrap items-center mt-[12px] gap-y-[10px]  gap-x-[12px] pr-[50px]  pl-[24px]">
-        {options.map((option, index) => (
-          <div
-            key={option}
-            className={`px-[12px] w-auto regular text-[12px] text-[#5D5C5D] flex-row h-[39px] justify-start items-center rounded-[12px] bg-[#F8F8F8] `}
-            style={{
-              flex: "0 1 auto",
-              border: selectedOptions.includes(option)
-                ? "1px solid #402CDD80"
-                : "none",
-            }}
-            onClick={() => {
-              handleOptionClick(option);
-            }}
-          >
-            <span className="regular text-[12px] text-[#8D8D8D]">
-              {translateFunction(option)}
-            </span>
-          </div>
-        ))}
+      <div className="flex-row w-full flex-1 basis-0 text-center rounded-[20px] items-center justify-center h-[50px] text-[14px] medium text-[#1D1D1D]">
+        {translateFunction("Change Qty")}
       </div>
-      {selectedOptions?.length > 0 && (
+      <div className="flex-row items-center justify-center mt-[20px] w-full max-w-[200px]">
+        <button
+          onClick={() => setReturnedQty(Math.max(0, returnedQty - 1))}
+          className="flex items-center justify-center w-[40px] h-[40px] rounded-l-[12px] bg-[#F8F8F8] border border-[#E6E6E680] border-r-0 hover:bg-[#EEEEEE] transition-colors duration-200 active:scale-95"
+        >
+          <span className="text-[#1D1D1D] text-[18px] light">−</span>
+        </button>
+        <input
+          type="number"
+          value={returnedQty}
+          onChange={(e) => {
+            if (parseInt(e.target.value) > item.qty) {
+              setReturnedQty(returnedQty);
+            } else {
+              setReturnedQty(Math.max(0, parseInt(e.target.value)));
+            }
+          }}
+          className="flex-1 h-[40px] text-center text-[16px] font-medium text-[#1D1D1D] bg-white border-t border-b border-[#E6E6E680] focus:outline-none focus:border-[#402CDD] focus:ring-1 focus:ring-[#402CDD80] transition-all duration-200"
+          min="1"
+        />
+      </div>
+      <div className="flex-row w-full flex-wrap items-center mt-[12px] gap-y-[10px]  gap-x-[12px] pr-[50px]  pl-[24px]">
+        {loading ? (
+          <OptionsSkeleton />
+        ) : (
+          options.map((option, index) => (
+            <div
+              key={option?.id}
+              className={`px-[12px] w-auto regular text-[12px] text-[#5D5C5D] flex-row h-[39px] justify-start items-center rounded-[12px] bg-[#F8F8F8] `}
+              style={{
+                flex: "0 1 auto",
+                border:
+                  selectedOptions?.id === option.id
+                    ? "1px solid #402CDD80"
+                    : "none",
+              }}
+              onClick={() => {
+                handleOptionClick(option);
+              }}
+            >
+              <span className="regular text-[12px] text-[#8D8D8D]">
+                {option.reason_ae_en}
+              </span>
+            </div>
+          ))
+        )}
+      </div>
+      {selectedOptions && (
         <>
           <span className="border-[#C4C2C280] border-b-[1px] w-full mt-[12px]" />
-          <UploadImageComponent images={images} setImages={setImages} />
+          <UploadImageComponent
+            loading={loadingImage}
+            setLoading={setLoadinImage}
+            images={images}
+            setImages={setImages}
+          />
         </>
       )}
       <div className="flex-row px-[24px] w-full mt-[15px]">
         <div
           className={`w-full h-[53px] items-center justify-center  flex cursor-pointer ${
-            selectedOptions.length === 0 || images.length === 0
-              ? "bg-[#D3D3D3] "
-              : "bg-[#402CDD] "
+            !selectedOptions ? "bg-[#D3D3D3] " : "bg-[#402CDD] "
           } rounded-[20px] text-[16px] text-[#fff] medium`}
           onClick={() => {
-            if (selectedOptions.length === 0 || images.length === 0) {
+            if (loadingImage) return;
+            if (!selectedOptions) {
               backToMain();
             } else {
-              setShouldConfirmReturn(true);
+              setShouldConfirmReturn({
+                item: { ...item, qty: returnedQty },
+                images: images,
+                reasons: selectedOptions,
+                qty: returnedQty,
+                update: item?.return?.already_return,
+                return_request_product_id:
+                  item?.return?.return_request_product_id,
+              });
               //   setConfirmationData({
               //     enable: true,
               //     currentAddress: addressLists?.find((s) => s.id === address_id),
@@ -134,9 +205,15 @@ function ReturnOrderItem({
             }
           }}
         >
-          {selectedOptions.length === 0 || images.length === 0
-            ? translateFunction("Close")
-            : translateFunction("Return Request")}
+          {loadingImage ? (
+            <Spinner />
+          ) : (
+            <>
+              {!selectedOptions
+                ? translateFunction("Close")
+                : translateFunction("Return Request")}
+            </>
+          )}
         </div>
       </div>
     </>
@@ -144,8 +221,12 @@ function ReturnOrderItem({
 }
 
 export default ReturnOrderItem;
-export const UploadImageComponent = ({ images, setImages }) => {
-  const [loading, setLoading] = useState(false);
+export const UploadImageComponent = ({
+  images,
+  setImages,
+  loading,
+  setLoading,
+}) => {
   const UploadImage = async () => {
     const input = document.createElement("input");
     input.type = "file";
@@ -161,12 +242,14 @@ export const UploadImageComponent = ({ images, setImages }) => {
         //   body: formData,
         // });
         // const data = await response.json();
-        await new Promise((resolve) => setTimeout(resolve, 2000));
-        const blob = new Blob([file], { type: file.type });
-        const data = {
-          url: URL.createObjectURL(blob),
-        };
-        setImages([...images, data.url]);
+        let data = await order.UploadImageForOrderReturn({ image: file });
+
+        setImages([
+          ...images,
+          process.env.NEXT_PUBLIC_BASE_CLOUDINARY_URL +
+            `/return_request_products/` +
+            data.sub_path,
+        ]);
         setLoading(false);
         if (document.body.contains(input)) {
           document.body.removeChild(input);
@@ -241,5 +324,26 @@ export const UploadImageComponent = ({ images, setImages }) => {
         </div>
       )}
     </div>
+  );
+};
+const OptionsSkeleton = () => {
+  return (
+    <>
+      {Array.from({ length: 7 }).map((s, i) => (
+        <div
+          className={`px-[12px] w-[70px] max-w-[70px] regular text-[12px] text-[#5D5C5D] flex-row h-[39px] justify-start items-center rounded-[12px]  `}
+        >
+          <Skeleton
+            key={i}
+            width={70}
+            height={40}
+            borderRadius={12}
+            style={{
+              flex: "0 1 auto",
+            }}
+          ></Skeleton>
+        </div>
+      ))}
+    </>
   );
 };

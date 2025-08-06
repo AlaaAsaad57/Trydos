@@ -207,7 +207,27 @@ export async function middleware(request: NextRequest) {
   const urlLocale = parseUrlLocale(pathname);
   const supportedCountries = await getCachedCountries();
   const allSupportedCountries = [...supportedCountries, "gb"];
-
+  const referer = request.headers.get("referer");
+  let utm_source = url.searchParams.get("utm_source");
+  const response = NextResponse.next();
+  if (referer || utm_source) {
+    if (utm_source) {
+      response.cookies.set("referer", referer, {
+        ...COOKIE_OPTIONS,
+        httpOnly: false,
+      });
+      url.searchParams.delete("utm_source");
+    } else {
+      const hostname = request.nextUrl.origin;
+      // ⛔ Skip if referer is from same origin
+      if (!referer.startsWith(hostname)) {
+        response.cookies.set("referer", referer, {
+          ...COOKIE_OPTIONS,
+          httpOnly: false,
+        });
+      }
+    }
+  }
   // Build supported locales
   const supportedLocales = new Set<string>();
   allSupportedCountries.forEach((country) => {
@@ -217,7 +237,7 @@ export async function middleware(request: NextRequest) {
   });
   if (isBotAgent) {
     if (urlLocale && supportedLocales.has(urlLocale.locale)) {
-      return NextResponse.next();
+      return response;
     }
     const preferredLanguage = getPreferredLanguage(request);
     const defaultLocale = urlLocale
@@ -237,8 +257,6 @@ export async function middleware(request: NextRequest) {
     // Immediately return NextResponse.next() to serve the static file
     return NextResponse.redirect(new URL("/robots.txt", request.url));
   }
-
-  const response = NextResponse.next();
 
   // Skip non-HTML requests
   if (

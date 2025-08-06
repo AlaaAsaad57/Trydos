@@ -793,10 +793,7 @@ const OrderButtons = ({
   };
 
   const isBalanceEnough = () => {
-    return (
-      RoundPrice({ num: totalBalance(), returnNumber: true }) >=
-      RoundPrice({ num: getTotalPrice(), returnNumber: true })
-    );
+    return totalBalance() >= getTotalPrice();
   };
   const isValid = () => {
     let defaultAddress =
@@ -816,14 +813,15 @@ const OrderButtons = ({
   const Validate = () => {
     if (!isBalanceEnough()) {
       shake("payment-valid-border");
-      // alert(translateFunction("Your Balance Not meet purchase value"));
+      showErrorNotification(
+        translateFunction("Your Balance Not meet purchase value")
+      );
     }
     if (
       addressLists.length === 0 ||
       addressLists?.filter((s) => s.is_default === 1)?.length === 0
     ) {
       showErrorNotification(translateFunction("Please Select an Address"));
-
       shake("address-valid-border");
     }
     if (orderData.payment?.length === 0) {
@@ -919,7 +917,11 @@ const OrderButtons = ({
                 data-cy="Number-Of-Products-Required"
               >
                 {cart.length} {translateFunction("items")}{" "}
-                {RoundPrice({ num: getTotalPrice(), returnNumber: true })}{" "}
+                {RoundPrice({
+                  num: getTotalPrice(),
+                  returnNumber: true,
+                  points: 5,
+                })}{" "}
                 {currency?.symbol}
               </span>
             </>

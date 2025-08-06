@@ -1,16 +1,21 @@
 import ConfirmMobile from "components/Cart/ConfirmMobile";
-import { COOKIE_NAMES, getCookie, UserData } from "utils/cookies/cookie-manager";
+import {
+  COOKIE_NAMES,
+  getCookie,
+  UserData,
+} from "utils/cookies/cookie-manager";
 import React, { useEffect } from "react";
 import { useAppStore } from "store";
+import { ChatConroller, DisableScroll, EnableScroll } from "utils/tinyUtils";
 
 function ConfirmMobilePhoneWidget() {
-  const { setShouldAuthinticated } = useAppStore();
+  const { setShouldAuthinticated, shouldAuthinticated, setAddStory, openChat } =
+    useAppStore();
   useEffect(() => {
-    document.documentElement.style.overflow = "hidden";
-    document.documentElement.scrollTop = 0;
+    DisableScroll();
+
     return () => {
-      document.documentElement.style.overflow = "auto";
-      document.documentElement.scrollTop = 0;
+      EnableScroll();
     };
   }, []);
   const userData = getCookie<UserData>(COOKIE_NAMES.USER_DATA);
@@ -68,6 +73,13 @@ function ConfirmMobilePhoneWidget() {
           hasMobile={userData.phone !== null && userData.phone !== 0}
           goToOrders={() => {
             // equal to success flag when goToOrders trigrred then it means the verification success
+            console.log(shouldAuthinticated);
+            if (shouldAuthinticated === "open Story") {
+              setAddStory(true);
+            }
+            if (shouldAuthinticated === "open chat") {
+              ChatConroller(true);
+            }
             setShouldAuthinticated(false);
           }}
         />

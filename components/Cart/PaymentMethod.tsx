@@ -42,6 +42,11 @@ function PaymentMethod() {
   // @ts-ignore
   const language = lang.split("-")[1];
   const getWalletInUSD = () => {
+    console.log(
+      wallet?.wallet_balance / currency?.exchange_rate,
+      total,
+      total_cash
+    );
     if (wallet?.wallet_balance > 0)
       return wallet?.wallet_balance / currency?.exchange_rate;
     else return 0;
@@ -232,7 +237,12 @@ function PaymentMethod() {
           }}
           className={`flex-col payment-valid-border ${"mt-[30px] min-h-[203px]"} pb-[12px] relative pr-[12px] pl-[12px] justify-start pt-[15px] w-full  `}
         >
-          <div data-cy="first-bay-way" className={`flex-row ${language === "ar" || language === "ku" ? "flex-row-reverse" : ""}`}>
+          <div
+            data-cy="first-bay-way"
+            className={`flex-row ${
+              language === "ar" || language === "ku" ? "flex-row-reverse" : ""
+            }`}
+          >
             <svg
               data-cy="payment-viewer-svg"
               id="_15x15_photo_back"
@@ -306,14 +316,18 @@ function PaymentMethod() {
 
             <div
               data-cy="payment-viewer-text"
-              className={`regular text-[#1D1D1D] text-[14px] ml-2 ${language === "ar" || language === "ku" ? "text-right pr-2" : ""}`}
+              className={`regular text-[#1D1D1D] text-[14px] ml-2 ${
+                language === "ar" || language === "ku" ? "text-right pr-2" : ""
+              }`}
             >
               {translateFunction("Payment Method", language)}
             </div>
           </div>
           <div
             data-cy="payment-viewer-text2"
-            className={`regular text-[12px] text-[#8D8D8D] ml-[28px] ${language === "ar" || language === "ku" ? "text-right" : ""}`}
+            className={`regular text-[12px] text-[#8D8D8D] ml-[28px] ${
+              language === "ar" || language === "ku" ? "text-right" : ""
+            }`}
           >
             {translateFunction(
               "Please Choose Your Payment Method About Your Bag",

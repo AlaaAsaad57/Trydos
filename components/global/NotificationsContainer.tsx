@@ -29,7 +29,7 @@ const NotificationsContainer = () => {
       if (!timers[notification.id] && !dismissingIds.has(notification.id)) {
         timers[notification.id] = setTimeout(() => {
           handleDismiss(notification.id);
-        }, 5000);
+        }, 8000);
       }
     });
 
@@ -222,7 +222,7 @@ const NotificationsContainer = () => {
               key={notification?.id}
               className="fixed  right-4 flex flex-col gap-3 pointer-events-none w-[90%]"
               style={{
-                zIndex: `${index + 9999999999999999999}`,
+                zIndex: `${index + 9999999999}`,
                 top: `16px`,
               }}
             >
@@ -244,7 +244,7 @@ const NotificationsContainer = () => {
             onClick={() => handleDismiss(notification.id)}
             className="fixed  right-4 flex flex-col gap-3 pointer-events-none w-[90%]"
             style={{
-              zIndex: `${index + 9999999999999999999}`,
+              zIndex: `${index + 9999999999}`,
               top: `16px`,
             }}
           >

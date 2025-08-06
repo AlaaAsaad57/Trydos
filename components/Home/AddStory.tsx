@@ -32,7 +32,7 @@ function AddStory() {
         setNameModal(true);
       }
     } else {
-      if (user && user?.phone !== "0") setShouldAuthinticated(true);
+      if (user && user?.phone !== "0") setShouldAuthinticated("open Story");
       else setLoginOpen(true);
     }
   };

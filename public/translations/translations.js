@@ -17,14 +17,21 @@ const translations = {
     "Are you sure you want to change your country?": "هل أنت متأكد أنك تريد تغيير بلدك؟",
     "Current": "الحالي",
     "New": "الجديد",
-    "Tap “Agree & Continue” To Accept trydos": "اضغط على \"موافقة ومتابعة\" لقبول trydos",
+    "Tap “Agree & Continue” To Accept trydos":
+      'اضغط على "موافقة ومتابعة" لقبول trydos',
+    "Cancel Return Request": "إلغاء طلب الإرجاع",
+    "Failed To Load Return Details Try again":
+      "فشل في تحميل تفاصيل الإرجاع، حاول مرة أخرى",
     "Notification Permission:": "إذن الإشعارات:",
+    "this option dosent have enough quantity":
+      "هذا الخيار لا يحتوي على كمية كافية",
     "Preparing Your Experience": "جارٍ إعداد تجربتك",
     "Story hidden successfully.": "تم إخفاء القصة بنجاح",
     "Failed to report story.": "فشل في الإبلاغ عن القصة",
     "Story reported successfully.": "تم الإبلاغ عن القصة بنجاح",
     "Report Story": "الإبلاغ عن القصة",
-    "Are you sure you want to report this story?": "هل أنت متأكد أنك تريد الإبلاغ عن هذه القصة؟",
+    "Are you sure you want to report this story?":
+      "هل أنت متأكد أنك تريد الإبلاغ عن هذه القصة؟",
     "Reset Redeemed Products": "إعادة تعيين المنتجات المُستردة",
     "Request Log": "سجل الطلبات",
     "Make Stories Token Expired": "جعل توكن القصص منتهي الصلاحية",
@@ -836,14 +843,21 @@ const translations = {
     "We encountered an error while loading your cart. Don't worry, we'll fix this issue for you.": "Sepetinizi yüklerken bir hata oluştu. Endişelenmeyin, bu sorunu sizin için çözeceğiz.",
     "Try Again": "Tekrar Dene",
      "More From": "Daha Fazlası",
-    "Tap “Agree & Continue” To Accept trydos": "Trydos'u kabul etmek için “Kabul Et ve Devam Et”e dokunun",
+    "Tap “Agree & Continue” To Accept trydos":
+      "Trydos'u kabul etmek için “Kabul Et ve Devam Et”e dokunun",
+    "Cancel Return Request": " İade talebini iptal et",
+    "Failed To Load Return Details Try again":
+      "İade detayları yüklenemedi, tekrar deneyin",
     "Notification Permission:": "Bildirim İzni:",
     "Preparing Your Experience": "Deneyiminiz hazırlanıyor",
+    "this option dosent have enough quantity":
+      "Bu seçenek yeterli miktara sahip değil.",
     "Story hidden successfully.": "Hikaye başarıyla gizlendi",
     "Failed to report story.": "Hikayeyi raporlama başarısız oldu",
     "Story reported successfully.": "Hikaye başarıyla raporlandı",
     "Report Story": "Hikayeyi Rapor Et",
-    "Are you sure you want to report this story?": "Bu hikayeyi rapor etmek istediğinizden emin misiniz ?",
+    "Are you sure you want to report this story?":
+      "Bu hikayeyi rapor etmek istediğinizden emin misiniz ?",
     "Reset Redeemed Products": "Kullanılmış Ürünleri Sıfırla",
     "Request Log": "İstek Kaydı",
     s: "s",
@@ -1653,10 +1667,14 @@ const translations = {
   },
   ku: {
     "Take Photo": "وێنە بگرە",
+    "Cancel Return Request": "داخوازی گەڕاندن بسڕەوە",
     "Failed To Load Products After 3 Attempts":
       "بەرهەمەکان لەسەر نەبوون، ٣ سەکەڵەیەک بەردەست بە هەوڵبوون",
+    "Failed To Load Return Details Try again":
+      "هاتنه‌ ناچاندنی وردەکارییەکانی گەڕاندن، دوبارە هەوڵ بدە",
     "Failed To Load Filters Try Again":
       "بەرهەمەکان لەسەر نەبوون، ٣ سەکەڵەیەک بەردەست بە هەوڵبوون",
+    "this option dosent have enough quantity": "ئەم هەڵبژاردنە بڕی پێویست نیە",
     seconds: "ثا",
     "Upload Photo/Video": "وێنە/ڤیدیۆ باربکە",
     "No media selected": "هیچ مێدیایەک هەلبژێردراو نییە",
@@ -2504,10 +2522,12 @@ const translations = {
     "Failed to report story.": "ڕاپۆرتکردنی چیرۆکەکە سەرکەوتوو نەبوو",
     "Story reported successfully.": "چیرۆکەکە بەسەرکەوتووی راپۆرتکرا",
     "Report Story": "ڕاپۆرتکردنی چیرۆک",
-    "Are you sure you want to report this story?": "دڵنیایت دەتەوێت ئەم چیرۆکە راپۆرت بکەیت ؟",
+    "Are you sure you want to report this story?":
+      "دڵنیایت دەتەوێت ئەم چیرۆکە راپۆرت بکەیت ؟",
     "Preparing Your Experience": "ئامادەکردنی تاقیکردنەوەکەت",
     "Notification Permission:": "مۆڵەتی ئاگادارکردنەوە:",
-    "Tap “Agree & Continue” To Accept trydos": "بچۆ «ڕازی بوون و بەردەوام بە» بۆ قبوڵکردنی trydos",
+    "Tap “Agree & Continue” To Accept trydos":
+      "بچۆ «ڕازی بوون و بەردەوام بە» بۆ قبوڵکردنی trydos",,
     "Confirm Country Change": "دڵنیابوون بۆ گۆڕینی وڵات",
     "Are you sure you want to change your country?": "دڵنیایت دەتەوێت وڵاتت بگۆڕیت؟",
     "Current": "ئێستا",

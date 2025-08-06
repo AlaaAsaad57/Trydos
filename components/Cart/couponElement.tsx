@@ -5,6 +5,9 @@ import { fetchData } from "utils/fetchData";
 import { getCart, RoundPrice, translateFunction } from "utils/functions";
 import { pollinateInput } from "@/utils/tinyUtils";
 import { REQUESTS_DATA } from "utils/Requests";
+import { GAevent } from "utils/gtag";
+import { GA_EVENT_NAMES } from "utils/GAEvents";
+import auth from "services/auth";
 
 type CouponElementProps = {
   active: any;
@@ -13,7 +16,12 @@ type CouponElementProps = {
   language?: string;
 };
 
-const CouponElement = ({ active, setActive, close, language }: CouponElementProps) => {
+const CouponElement = ({
+  active,
+  setActive,
+  close,
+  language,
+}: CouponElementProps) => {
   const {
     setOrderData,
     initCart,
@@ -22,7 +30,7 @@ const CouponElement = ({ active, setActive, close, language }: CouponElementProp
     coupon_discount,
     setCouponDiscount,
   } = useAppStore();
-  const isRtl = language === "ar" || language === "ku" ;
+  const isRtl = language === "ar" || language === "ku";
   const [coupon, setCoupon] = useState<number | false | string>(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -51,7 +59,10 @@ const CouponElement = ({ active, setActive, close, language }: CouponElementProp
         method: "GET",
         server: "market",
       });
-      if (!response.data.status && !response.success) {
+      if (!response.success) {
+        throw new Error(response.message);
+      }
+      if (!response.data.status) {
         localStorage.removeItem("coupon-number");
         throw new Error(response.message);
       }
@@ -87,24 +98,38 @@ const CouponElement = ({ active, setActive, close, language }: CouponElementProp
       style={{ border: active ? "1px solid rgb(56 144 255 / 51%)" : undefined }}
       className={`w-full cursor-pointer pt-[12px] mt-[30px] ${
         active ? "h-[111px] bg-[#fff]" : " h-[42px] bg-[#f8f8f8]"
-      } rounded-[15px] items-start px-[12px] ${ isRtl ? "flex-row-reverse": " flex-col"}`}
+      } rounded-[15px] items-start px-[12px] ${
+        isRtl ? "flex-row-reverse" : " flex-col"
+      }`}
     >
-      <div className={`${ isRtl ? "flex-row-reverse": " flex-row"}`}>
-        <div className={`regular text-[#1D1D1D] text-[14px] ml-2 ${ isRtl ? "text-right" : ""}`}>
+      <div className={`${isRtl ? "flex-row-reverse" : " flex-row"}`}>
+        <div
+          className={`regular text-[#1D1D1D] text-[14px] ml-2 ${
+            isRtl ? "text-right" : ""
+          }`}
+        >
           {translateFunction("I Have a Discount Coupon")}
         </div>
       </div>
 
       {active && (
         <>
-          <div className={`regular text-[12px] text-[#8D8D8D] ml-[28px] ${ isRtl ? "text-right pr-2" : ""}`}>
+          <div
+            className={`regular text-[12px] text-[#8D8D8D] ml-[28px] ${
+              isRtl ? "text-right pr-2" : ""
+            }`}
+          >
             {translateFunction("Please Enter Coupon Information")}
           </div>
           <div className="mt-[10px] w-full items-center justify-between flex rounded-[15px] h-[40px] bg-[#F8F8F8] relative">
-            <div className={`flex-row items-center w-full ${ isRtl ? "flex-row-reverse": " "}`}>
+            <div
+              className={`flex-row items-center w-full ${
+                isRtl ? "flex-row-reverse" : " "
+              }`}
+            >
               {!coupon && (
                 <input
-                  placeholder={translateFunction("Coupon No",language)}
+                  placeholder={translateFunction("Coupon No", language)}
                   value={orderData.coupon_number}
                   onChange={(e) => onChange(pollinateInput(e.target.value))}
                   onBlur={(e) => {

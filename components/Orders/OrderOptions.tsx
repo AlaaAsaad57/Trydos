@@ -13,7 +13,6 @@ import { OrderCanceltionOptionsPropsType } from "models/componentType/OrderCance
 import { OrderOptionsPropsType } from "models/componentType/OrderOptionsPropsType";
 import { showErrorNotification } from "@/store/notifications/reducer";
 import orderService from "services/order";
-import order from "services/order";
 import { totalAmount } from "utils/tinyUtils";
 import { useParams, useRouter } from "next/navigation";
 import { ModifyOrderItemModal } from "./ModifyOrderItemModal";
@@ -28,6 +27,7 @@ function OrderOptions({ closeOptions, CancelOrder }: OrderOptionsPropsType) {
     setOrderPageLoading,
     setActivePacks,
     setOrderOptions,
+    setOrderReturnObject,
   } = useAppStore();
   const [screen, setScreen] = useState<"options" | "changeAddress">("options");
   const [canceled, setCanceled] = useState(false);
@@ -35,22 +35,47 @@ function OrderOptions({ closeOptions, CancelOrder }: OrderOptionsPropsType) {
   // @ts-ignore
   const language = lang.split("-")[1];
   const isRtl = language === "ar" || language === "ku";
-  
 
   const [shouldConfirmCancel, setShouldConfirmCancel] = useState<any>(false);
   const [shouldConfirmReturn, setShouldConfirmReturn] = useState(false);
   const [shouldConfirmChange, setShouldConfirmChange] = useState<any>(false);
-  const [tempOrderDetails, setTempOrderDetails] = useState([]);
   const router = useRouter();
+
   const getOrderDetails = async () => {
     // Abort any previous request
     setOrderPageLoading(true);
     try {
-      let data = await order.getOrderDetails(
+      let data = await orderService.getOrderDetails(
         selectedOrder.order_group_id,
         null
       );
+      let returned_req_ids = data?.map((s) => {
+        if (s.return_request_id !== null && s.return_request_id !== undefined)
+          return s.return_request_id;
+      });
+      returned_req_ids = returned_req_ids?.filter((s) => s !== undefined);
+      if (returned_req_ids?.length > 0) {
+        try {
+          const returnRequests = await Promise.all(
+            returned_req_ids.map(async (id) => {
+              const details = await orderService.getReturnRequestDetails({
+                return_request_id: id,
+              });
+              return { id, details };
+            })
+          );
 
+          // Update data with the fetched details
+          data = data.map((order) => {
+            const match = returnRequests.find(
+              (req) => req.id === order.return_request_id
+            );
+            return match ? { ...order, return_details: { ...match } } : order;
+          });
+        } catch (error) {
+          console.error(error);
+        }
+      }
       let orderData = {
         ...data?.[0],
         order_amount: totalAmount(data),
@@ -211,11 +236,16 @@ function OrderOptions({ closeOptions, CancelOrder }: OrderOptionsPropsType) {
           )}
           {shouldConfirmReturn && (
             <ReturnOrderItemConfirmation
+              setReturnObj={(e) => setOrderReturnObject(e)}
               close={() => {
                 closeOptions();
                 setShouldConfirmReturn(false);
                 ReturnItem();
               }}
+              callback={() => {
+                getOrderDetails();
+              }}
+              confirmationData={shouldConfirmReturn}
               setShouldConfirmReturn={setShouldConfirmReturn}
             />
           )}
@@ -284,16 +314,26 @@ function OrderOptions({ closeOptions, CancelOrder }: OrderOptionsPropsType) {
                 onClick={() => {
                   setScreen("changeAddress");
                 }}
-                className={`cursor-pointer mt-[6px] flex-row w-full items-center px-[15px] bg-[#f8f8f8] rounded-[20px] min-h-[60px] ${ isRtl ? "flex-row-reverse": " "}`}
+                className={`cursor-pointer mt-[6px] flex-row w-full items-center px-[15px] bg-[#f8f8f8] rounded-[20px] min-h-[60px] ${
+                  isRtl ? "flex-row-reverse" : " "
+                }`}
               >
                 <div className="relative flex w-[30px] h-[30px] items-center justify-center">
                   <ChangeAddressIcon />
                 </div>
                 <div className="flex-col ml-[15px]">
-                  <span className={`regular text-[14px] text-[#1D1D1D] medium ${ isRtl ? " text-right pr-2": " "}`}>
+                  <span
+                    className={`regular text-[14px] text-[#1D1D1D] medium ${
+                      isRtl ? " text-right pr-2" : " "
+                    }`}
+                  >
                     {translateFunction("Change Delivery Address & Note")}
                   </span>
-                  <p className={`regular text-[12px] text-[#8D8D8D] ${ isRtl ? "pr-2 text-right": " "}`}>
+                  <p
+                    className={`regular text-[12px] text-[#8D8D8D] ${
+                      isRtl ? "pr-2 text-right" : " "
+                    }`}
+                  >
                     {translateFunction("You Can Change Delivery Address")}
                   </p>
                 </div>
@@ -304,16 +344,26 @@ function OrderOptions({ closeOptions, CancelOrder }: OrderOptionsPropsType) {
                 onClick={() => {
                   // setScreen("changeAddress");
                 }}
-                className={`cursor-pointer mt-[6px] flex-row w-full items-center px-[15px] bg-[#f8f8f8] rounded-[20px] min-h-[60px] ${ isRtl ? "flex-row-reverse": " "}`}
+                className={`cursor-pointer mt-[6px] flex-row w-full items-center px-[15px] bg-[#f8f8f8] rounded-[20px] min-h-[60px] ${
+                  isRtl ? "flex-row-reverse" : " "
+                }`}
               >
                 <div className="relative flex w-[30px] h-[30px] items-center justify-center">
                   <HideOrderItemIcon />
                 </div>
                 <div className="flex-col ml-[15px]">
-                  <span className={`regular text-[14px] text-[#1D1D1D] medium ${ isRtl ? " text-right pr-2": " "}`}>
+                  <span
+                    className={`regular text-[14px] text-[#1D1D1D] medium ${
+                      isRtl ? " text-right pr-2" : " "
+                    }`}
+                  >
                     {translateFunction("Hide This Pack")}
                   </span>
-                  <p className={`regular text-[12px] text-[#8D8D8D] ${ isRtl ? "pr-2 ": " "}`}>
+                  <p
+                    className={`regular text-[12px] text-[#8D8D8D] ${
+                      isRtl ? "pr-2 " : " "
+                    }`}
+                  >
                     {translateFunction("Hide This Pack From My List")}
                   </p>
                 </div>
@@ -324,17 +374,27 @@ function OrderOptions({ closeOptions, CancelOrder }: OrderOptionsPropsType) {
                 onClick={() => {
                   setCanceled(true);
                 }}
-                className={`cursor-pointer mt-[6px] flex-row w-full items-center px-[15px] bg-[#f8f8f8] rounded-[20px] min-h-[60px] ${ isRtl ? "flex-row-reverse": " "}`}
+                className={`cursor-pointer mt-[6px] flex-row w-full items-center px-[15px] bg-[#f8f8f8] rounded-[20px] min-h-[60px] ${
+                  isRtl ? "flex-row-reverse" : " "
+                }`}
               >
                 <div className="relative flex w-[30px] h-[30px] items-center justify-center">
                   <OrderCancelIcon />
                 </div>
                 <div className="flex-col ml-[15px]">
-                  <span className={`regular text-[14px] text-[#1D1D1D] medium ${ isRtl ? " text-right pr-2": " "}`}>
+                  <span
+                    className={`regular text-[14px] text-[#1D1D1D] medium ${
+                      isRtl ? " text-right pr-2" : " "
+                    }`}
+                  >
                     {translateFunction("Cancel This Pack")}
                     <span className="mx-1 bold">{ActivePacks.id}</span>
                   </span>
-                  <p className={`regular text-[12px] text-[#8D8D8D] ${ isRtl ? "pr-2 ": " "}`}>
+                  <p
+                    className={`regular text-[12px] text-[#8D8D8D] ${
+                      isRtl ? "pr-2 " : " "
+                    }`}
+                  >
                     {translateFunction(
                       "You Can Cancel This Pack And Back Your Money"
                     )}

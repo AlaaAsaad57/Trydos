@@ -13,6 +13,8 @@ import {
 } from "./OrderStatusCartsIcon";
 import { GetImageUrl } from "utils/tinyUtils";
 import { OrderItemsListPropsType } from "models/componentType/settingTypes/OrderItemsListPropsType";
+import { useAppStore } from "store";
+import RatingOrderItem from "components/Orders/RatingOrderItem";
 
 function OrderItemsList({
   items,
@@ -21,7 +23,9 @@ function OrderItemsList({
   order_group_status,
   shouldShowChat,
   showChats,
+  getOrderDetails,
 }: OrderItemsListPropsType) {
+  const { ActivePacks } = useAppStore();
   const getStatusIcon = (status) => {
     if (status === "pending") return <PendingStatus />;
     if (status === "preparing") return <PreparingStatus />;
@@ -33,6 +37,13 @@ function OrderItemsList({
   // @ts-ignore
   const language = lang.split("-")[1];
   const isRtl = language === "ar" || language === "ku";
+  const isDelevired = (item) => {
+    return (
+      !item.is_returned &&
+      item.delivery_status === "delivered" &&
+      ActivePacks?.order_status?.value === "delivered"
+    );
+  };
   return (
     <div className="w-full flex-col">
       <div
@@ -50,7 +61,10 @@ function OrderItemsList({
           {translateFunction("Order Details")}
         </span>
         <span className={`text-[#1D1D1D] text-[12px] regular`}>
-          <span className={`bold ${ isRtl ? " text-right ": " "}`}> {items.length}</span>{" "}
+          <span className={`bold ${isRtl ? " text-right " : " "}`}>
+            {" "}
+            {items.length}
+          </span>{" "}
           {translateFunction("Items")}
         </span>
         {shouldShowChat() && (
@@ -94,19 +108,56 @@ function OrderItemsList({
                 }}
               />
             </NextLink>
-            <div className="flex-col text-[10px] regular text-[#1d1d1d] absolute bottom-[-69px] items-center left-0 right-0 mx-[0_auto]">
+            <div className="flex-col text-[10px] regular text-[#1d1d1d]  items-center left-0 right-0 mx-[0_auto] mt-[4px]">
               <div className="flex flex-row">
                 <span className={`origin-top-left scale-[0.75]`}>
                   {getStatusIcon(order_group_status?.value?.toLowerCase())}
                 </span>
-                <OrderStatusIcon status={order_group_status?.value} isRtl={isRtl}/>
+
+                {!isDelevired(product) && (
+                  <OrderStatusIcon
+                    status={order_group_status?.value}
+                    isRtl={isRtl}
+                  />
+                )}
               </div>
-              <span className=" regular">{product?.variation?.color}</span>
-              <span>{product?.variation?.Size}</span>
-              <div className="flex-row mt-[4px]">
-                <RatingStars initialRating={1.5} onRatingChange={(e) => {}} />
-              </div>
+              {!isDelevired(product) ? (
+                <>
+                  <span className=" regular">{product?.variation?.color}</span>
+                  <span>{product?.variation?.Size}</span>
+                </>
+              ) : (
+                <span className="capitalize">
+                  {translateFunction("delivered")}
+                </span>
+              )}
+              <div className="flex-row mt-[4px]"></div>
             </div>
+            {isDelevired(product) && (
+              <RatingOrderItem
+                refresh={() => {
+                  getOrderDetails();
+                }}
+                productId={product?.product_details.id}
+                order_detail_id={product.id}
+                initialRating={
+                  product.comments &&
+                  product.comments?.[product?.comments.length - 1]?.star_rating
+                }
+                lastComment={
+                  product.comments &&
+                  product.comments?.[product?.comments.length - 1]?.comment
+                }
+                isRated={
+                  product.comments &&
+                  product.comments?.[product?.comments.length - 1]?.star_rating
+                }
+                lastRatingId={
+                  product.comments &&
+                  product.comments?.[product?.comments.length - 1]?.id
+                }
+              />
+            )}
           </div>
         ))}
       </div>

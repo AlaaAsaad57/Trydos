@@ -8,6 +8,7 @@ import {
   setCookie,
 } from "utils/cookies/cookie-manager";
 import { RoundPrice, translateFunction } from "utils/functions";
+import { DisableScroll } from "utils/tinyUtils";
 
 function ProductRedeemButton({ product }) {
   const {
@@ -99,8 +100,8 @@ function ProductRedeemButton({ product }) {
             className="flex-col relative w-full h-full items-center  justify-center gap-2 px-4 py-2 bg-gradient-to-r from-[#f64f64] to-[#d73a49] text-white rounded-[20px] shadow-lg hover:shadow-xl transition-all duration-300 transform  border-0 font-medium text-sm"
             onClick={() => {
               // Handle redeem action
-              document.documentElement.style.overflow = "hidden";
-              document.documentElement.scrollTop = 0;
+              DisableScroll();
+
               setSelectedProductForCart({
                 ...product,
                 showRedeemPrice: true,

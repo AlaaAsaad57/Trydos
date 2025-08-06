@@ -9,6 +9,7 @@ import {
   GA_GLOBAL_SCREEN,
 } from "utils/GAEvents";
 import { GAevent } from "utils/gtag";
+import auth from "services/auth";
 function OrderSuccess() {
   const { orderData, currency, total_shipping_cost, cart } = useAppStore();
   const getTotalCash = () => {
@@ -56,7 +57,9 @@ function OrderSuccess() {
               rate: currency?.exchange_rate,
             }),
             brand: item.brand?.name ?? "N/A",
+            brand_id: item.brand?.id ?? "N/A",
             category: item?.category_name ?? "N/A",
+            category_id: item?.category?.id ?? "N/A",
             item_variant: item.variant ?? "N/A",
           })),
           interaction_type: "purchase",
@@ -64,6 +67,18 @@ function OrderSuccess() {
           screen_path: window.location.pathname,
         },
       });
+      if (orderData?.coupon_number?.length > 0) {
+        GAevent({
+          action: GA_EVENT_NAMES.COUPON_USED,
+          params: {
+            user_id_custom: auth.UserID(),
+            coupon_id: orderData.coupon_number,
+            coupon_code: orderData.coupon_number,
+            coupon_discount_rate: orderData.coupon,
+            transaction_id: orderData?.data[0]?.order_group_id,
+          },
+        });
+      }
     }
   }, [orderData.success]);
   return (

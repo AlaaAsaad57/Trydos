@@ -6,14 +6,14 @@ import { getConfiguredImage } from "utils/functions";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import CloseIcon from "components/Home/Stories/CloseIcon";
 import { useAppStore } from "store";
-import { GetImageUrl } from "utils/tinyUtils";
+import { DisableScroll, EnableScroll, GetImageUrl } from "utils/tinyUtils";
 import { ProductDetailsSliderPropsType } from "models/componentType/productTypes/ProductDetailsSliderPropsType";
 function ProductDetailsSlider({
   product: productObj,
   currency,
   images,
 }: ProductDetailsSliderPropsType) {
-  const { editInfo, storeProduct, setCurrency, product } = useAppStore();
+  const { editInfo, storeProduct, setCurrency } = useAppStore();
   const productData = productObj;
   const [imageShow, showImage] = useState(-1);
   const [emblaRef1, emblaApi] = useEmblaCarousel({
@@ -24,6 +24,10 @@ function ProductDetailsSlider({
   const router = useRouter();
   const pathname = usePathname();
   useEffect(() => {
+    console.log(
+      { time: productObj.time, FromRedis: productObj.redis },
+      "product page response"
+    );
     const newParams = new URLSearchParams(searchParams);
 
     if (!searchParams.get("color") && productData?.sync_color_images) {
@@ -50,7 +54,7 @@ function ProductDetailsSlider({
     let elements = document.querySelectorAll(".product-slider-images");
     elements.forEach((elem, index) => {
       elem.addEventListener("click", function (e) {
-        document.documentElement.style.overflow = "hidden";
+        DisableScroll();
         showImage(index);
       });
     });
@@ -69,7 +73,7 @@ function ProductDetailsSlider({
             {" "}
             <CloseIcon
               close={() => {
-                document.documentElement.style.overflow = "initial";
+                EnableScroll();
                 showImage(-1);
               }}
             />

@@ -10,7 +10,7 @@ import CircleBorder from "public/svg/product/CircleBorder";
 import { useParams } from "next/navigation";
 import { useAppStore } from "store";
 
-import { GetImageUrl } from "utils/tinyUtils";
+import { DisableScroll, EnableScroll, GetImageUrl } from "utils/tinyUtils";
 import { CameraShotsPropsType } from "models/componentType/productTypes/MultiComponentOnProductPage";
 import StackedSlider from "utils/Slider";
 
@@ -28,7 +28,7 @@ function CameraShots({ images }: CameraShotsPropsType) {
       <CameraShotGallery
         close={() => {
           setActiveCameraGallery(false);
-          document.documentElement.style.overflow = "initial";
+          EnableScroll();
         }}
         images={images}
       />
@@ -45,7 +45,7 @@ function CameraShots({ images }: CameraShotsPropsType) {
           }
           setActiveCameraGallery(true);
           window.scrollTo({ top: 0 });
-          document.documentElement.style.overflow = "hidden";
+          DisableScroll();
         }}
       >
         <div className="colors-label flex-row align-center">

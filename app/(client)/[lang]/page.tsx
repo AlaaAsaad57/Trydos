@@ -19,8 +19,8 @@ import {
   fetchBoutiques,
   fetchCurrency,
   fetchFilteredProducts,
-  fetchMainCategories,
 } from "Server Requests";
+import { ElasticsearchReader } from "services/elastic/elasticsearch-reader.service";
 
 export async function generateMetadata({ params }) {
   try {
@@ -108,10 +108,27 @@ export default HomePage;
 // Main Categories Bar
 async function MainCategoriesNavbar({ lang, mainCategory }) {
   const [country, language] = lang?.split("-");
-  let mainCategories = await fetchMainCategories(language, country);
+  // let mainCategories = await fetchMainCategories(language, country);
+  let Reader = new ElasticsearchReader();
+  let start = process.hrtime.bigint();
+  let a = await Reader.getCategories({ country: country, size: 4000 });
+  // @ts-ignore
+
+  let mainCategories = a.hits.hits.map((s) => {
+    // @ts-ignore
+    return s._source?.custom_categories?.find(
+      (cat) => cat.language_code?.toLowerCase() === language?.toLowerCase()
+    );
+  });
+  mainCategories = Array.from(
+    new Map(mainCategories.map((c: any) => [c.id, c])).values()
+  );
+  let end = process.hrtime.bigint();
+
   return (
     <NavbarServer
       lang={lang}
+      time={Number(end - start) / 1_000_000}
       mainCategory={mainCategory}
       categoriesData={mainCategories}
     />
@@ -170,12 +187,28 @@ async function FlashProductWrapper({ lang }) {
 
 async function BoutiquesListWrapper({ params }) {
   const [country, language] = params.lang.split("-");
-  let boutiqueData = await fetchBoutiques(
+  // let boutiqueData = await fetchBoutiques(
+  //   language,
+  //   country,
+  //   params.mainCategory || "",
+  //   null,
+  //   10
+  // );
+  let start = process.hrtime.bigint();
+
+  let Reader = new ElasticsearchReader();
+  let data = await Reader.getBoutiques({
     language,
     country,
-    params.mainCategory || "",
-    null,
-    10
+    limit: 10,
+    category: params.mainCategory,
+  });
+  // @ts-ignore
+  let end = process.hrtime.bigint();
+  return (
+    <OfferListServer
+      boutiquesData={{ ...data, temp: Number(end - start) / 1_000_000 }}
+      params={params}
+    />
   );
-  return <OfferListServer boutiquesData={boutiqueData} params={params} />;
 }

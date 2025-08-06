@@ -2,12 +2,7 @@
 import CloseIcon from "public/svg/CloseIcon.svg";
 import SearchCloseIcon from "public/svg/SearchCloseIcon.svg";
 import { ChangeEvent, useEffect, useRef, useCallback } from "react";
-import {
-  caseCheck,
-  onClickSearchHistory,
-  translateFunction,
-} from "utils/functions";
-import { dispatchRouteChangeEvent } from "utils/events";
+import { onClickSearchHistory, translateFunction } from "utils/functions";
 import { useParams } from "next/navigation";
 import { useRouter } from "next/navigation";
 import SearchVoice from "./Search/SearchVoice";
@@ -80,7 +75,8 @@ function SearchComponent({
   };
   const onKeyDown = (e) => {
     if (e.keyCode == 13 && e.target.value.length > 0) {
-      dispatchRouteChangeEvent("start", {
+      const { setIsNavigating } = useAppStore.getState();
+      setIsNavigating({
         is_boutique: true,
         href: SearchService.getSearchPageUrl({ lang: lang }),
       });

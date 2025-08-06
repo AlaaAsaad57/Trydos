@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import Logo from "components/Home/Logo";
 import { LogError } from "utils/functions";
-import { dispatchRouteChangeEvent } from "utils/events";
+
 import AuthService from "services/auth";
 import { reportError } from "utils/error-reporter";
 import {
@@ -11,6 +11,7 @@ import {
   NetworkErrorIllustration,
 } from "components/global/ErrorIllustrations";
 import "styles/globals.css";
+import { useAppStore } from "store";
 export default function Error({
   error,
   reset,
@@ -53,7 +54,8 @@ export default function Error({
     LogError(errorObj);
   };
   useEffect(() => {
-    dispatchRouteChangeEvent("completed");
+    const { setIsNavigating } = useAppStore.getState();
+    setIsNavigating(null);
     sendError(error);
   }, [error]);
   if (

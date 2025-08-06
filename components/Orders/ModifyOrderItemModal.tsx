@@ -3,12 +3,13 @@ import LargeColorIcon from "public/svg/LargeColorIcon.svg";
 import Spinner from "components/global/Spinner";
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 import { getConfiguredImage, translateFunction } from "utils/functions";
-import { GetImageUrl } from "utils/tinyUtils";
+import { findVariation, GetImageUrl } from "utils/tinyUtils";
 import { ColorListPropsType } from "models/componentType/ColorListPropsType";
 import { ModifyOrderItemModalPropsType } from "models/componentType/ModifyOrderItemModalPropsType";
 import { SizeListPropsType } from "models/componentType/SizeListPropsType";
 import order from "services/order";
 import { useAppStore } from "store";
+import { showErrorNotification } from "store/notifications/reducer";
 export const ModifyOrderItemModal = ({
   type,
   confirmationData,
@@ -100,7 +101,9 @@ export const ModifyOrderItemModal = ({
                   ? confirmationData?.productDetails?.sync_color_images?.find(
                       (s) =>
                         s.color_name?.toLowerCase() ===
-                        confirmationData?.currentColor?.toLowerCase()
+                          confirmationData?.currentColor?.toLowerCase() ||
+                        s.color_option?.toLowerCase() ===
+                          confirmationData?.currentColor?.toLowerCase()
                     )?.color_name
                   : confirmationData?.currentSize}
               </span>
@@ -119,17 +122,31 @@ export const ModifyOrderItemModal = ({
           >
             {type === "Color" ? (
               <ColorList
+                item={orderItem}
+                variations={confirmationData?.productDetails?.variation}
                 currentColor={confirmationData?.currentColor}
                 newColor={confirmationData?.newColor}
-                colors={confirmationData?.productDetails?.sync_color_images}
+                colors={confirmationData?.productDetails?.sync_color_images?.filter(
+                  (s) =>
+                    s.color_name !== confirmationData?.currentColor &&
+                    s.color_option !== confirmationData?.currentColor
+                )}
+                sizes={
+                  confirmationData?.productDetails?.choice_options?.[0]?.options
+                }
+                current_size={confirmationData?.currentSize}
                 setColor={(e) => {
                   setConfirmationData({ ...confirmationData, newColor: e });
                 }}
               />
             ) : (
               <SizeList
+                item={orderItem}
+                variations={confirmationData?.productDetails?.variation}
                 currentSize={confirmationData?.currentSize}
                 newSize={confirmationData?.newSize}
+                colors={confirmationData?.productDetails?.sync_color_images}
+                currentColor={confirmationData?.currentColor}
                 setSize={(e) => {
                   setConfirmationData({ ...confirmationData, newSize: e });
                 }}
@@ -202,10 +219,19 @@ export const ColorList = ({
   setColor,
   currentColor,
   newColor,
+  sizes,
+  current_size,
+  item,
+  variations,
 }: ColorListPropsType) => {
-  const isActive = (name) => {
-    if (!newColor) return name?.toLowerCase() === currentColor?.toLowerCase();
-    else if (newColor?.toLowerCase() === name?.toLowerCase()) return true;
+  const isActive = (color) => {
+    if (!newColor)
+      return color?.color_name?.toLowerCase() === currentColor?.toLowerCase();
+    else if (
+      newColor?.toLowerCase() === color?.color_name?.toLowerCase() ||
+      newColor?.toLowerCase() === color?.color_option?.toLowerCase()
+    )
+      return true;
     else return false;
   };
   return (
@@ -213,39 +239,52 @@ export const ColorList = ({
       className="w-full h-[98px] flex-row gap-[10px] pt-[1px]"
       id="color-list-container"
     >
-      {colors?.map((s) => (
-        <div
-          key={s.color_name}
-          className="w-auto h-[98px] flex-col items-center justify-center"
-          onClick={() => {
-            setColor(s?.color_name);
-          }}
-        >
-          <img
-            style={{
-              border: isActive(s?.color_name)
-                ? "1px solid #402CDDef"
-                : "1px solid #ffffffef",
+      {colors?.map((s) => {
+        let variation = findVariation(
+          variations,
+          colors,
+          sizes,
+          s?.color_name,
+          current_size
+        );
+        let disabled = variation?.qty < item.qty;
+
+        return (
+          <div
+            key={s.color_name}
+            className={`${disabled} w-auto h-[98px] flex-col items-center justify-center`}
+            onClick={() => {
+              if (!disabled) setColor(s?.color_name);
+              else
+                showErrorNotification(
+                  translateFunction("this option dosent have enough quantity")
+                );
             }}
-            className="min-w-[70px] min-h-[70px] object-cover rounded-full max-w-[70px] max-h-[70px]"
-            src={getConfiguredImage({
-              src: GetImageUrl(s?.images[0]),
-              width: 70,
-              height: 70,
-              q: 100,
-            })}
-          />
-          <span
-            className={`${
-              isActive(s.color_name)
-                ? "text-[#402CDD] medium"
-                : "text-[#5D5C5D] regular"
-            } text-[14px]  mt-[9px]`}
           >
-            {s?.color_name}
-          </span>
-        </div>
-      ))}
+            <img
+              style={{
+                border: isActive(s)
+                  ? "1px solid #402CDDef"
+                  : "1px solid #ffffffef",
+              }}
+              className="min-w-[70px] min-h-[70px] object-cover rounded-full max-w-[70px] max-h-[70px]"
+              src={getConfiguredImage({
+                src: GetImageUrl(s?.images[0]),
+                width: 70,
+                height: 70,
+                q: 100,
+              })}
+            />
+            <span
+              className={`${
+                isActive(s) ? "text-[#402CDD] medium" : "text-[#5D5C5D] regular"
+              } text-[14px]  mt-[9px]`}
+            >
+              {s?.color_name}
+            </span>
+          </div>
+        );
+      })}
     </HortiznalScrollBar>
   );
 };
@@ -255,6 +294,10 @@ export const SizeList = ({
   currentSize,
   newSize,
   image,
+  colors,
+  currentColor,
+  item,
+  variations,
 }: SizeListPropsType) => {
   const isActive = (name) => {
     if (!newSize) return name?.toLowerCase() === currentSize?.toLowerCase();
@@ -272,39 +315,56 @@ export const SizeList = ({
         className="w-full h-[98px] flex-row gap-[10px] mt-[1px]"
         id="color-list-container"
       >
-        {sizes?.map((s) => (
-          <div
-            key={s?.name}
-            className="w-auto h-[98px] flex-col items-center justify-center pt-[1px]"
-            onClick={() => {
-              setSize(s?.name);
-            }}
-          >
-            <img
-              style={{
-                border: isActive(s?.name)
-                  ? "1px solid #402CDDef"
-                  : "1px solid #ffffffef",
-              }}
-              className="min-w-[70px] min-h-[70px] object-cover rounded-full max-w-[70px] max-h-[70px]"
-              src={getConfiguredImage({
-                src: GetImageUrl(image),
-                width: 70,
-                height: 70,
-                q: 100,
-              })}
-            />
-            <span
+        {sizes?.map((s) => {
+          let variation = findVariation(
+            variations,
+            colors,
+            sizes,
+            currentColor,
+            s?.option
+          );
+          let disabled = variation?.qty < item.qty;
+
+          return (
+            <div
+              key={s?.name}
               className={`${
-                isActive(s?.name)
-                  ? "text-[#402CDD] medium"
-                  : "text-[#5D5C5D] regular"
-              } text-[14px]  mt-[9px]`}
+                disabled && "opacity-75"
+              } w-auto h-[98px] flex-col items-center justify-center pt-[1px]`}
+              onClick={() => {
+                if (!disabled) setSize(s?.name);
+                else
+                  showErrorNotification(
+                    translateFunction("this option dosent have enough quantity")
+                  );
+              }}
             >
-              {s?.name}
-            </span>
-          </div>
-        ))}
+              <img
+                style={{
+                  border: isActive(s?.name)
+                    ? "1px solid #402CDDef"
+                    : "1px solid #ffffffef",
+                }}
+                className="min-w-[70px] min-h-[70px] object-cover rounded-full max-w-[70px] max-h-[70px]"
+                src={getConfiguredImage({
+                  src: GetImageUrl(image),
+                  width: 70,
+                  height: 70,
+                  q: 100,
+                })}
+              />
+              <span
+                className={`${
+                  isActive(s?.name)
+                    ? "text-[#402CDD] medium"
+                    : "text-[#5D5C5D] regular"
+                } text-[14px]  mt-[9px]`}
+              >
+                {s?.name}
+              </span>
+            </div>
+          );
+        })}
       </HortiznalScrollBar>
     </div>
   );

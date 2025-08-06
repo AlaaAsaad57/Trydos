@@ -3,7 +3,7 @@ import React, { useCallback } from "react";
 import BackIcon from "public/svg/listing/backIcon.svg";
 import NextLink from "components/global/NextLink";
 function ProductBackButton({ lang, productId }) {
-  const getHref = useCallback(() => {
+  const getHref = () => {
     let lastPage = localStorage.getItem("last-page");
     let href = "",
       data = {};
@@ -24,7 +24,21 @@ function ProductBackButton({ lang, productId }) {
       data = { is_full_home: true, href };
     }
     return { href, data };
-  }, []);
+  };
+  if (typeof localStorage === "undefined")
+    return (
+      <div className="back-bar align-center w-100 flex-row">
+        <div
+          data-cy="backIcon_productPage"
+          className={`back-icon flex-row`}
+          onClick={() => {
+            localStorage.removeItem("last-page");
+          }}
+        >
+          <BackIcon />
+        </div>
+      </div>
+    );
   return (
     <div className="back-bar align-center w-100 flex-row">
       <NextLink

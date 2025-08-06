@@ -3,7 +3,6 @@ import OfferAvatars from "./OfferAvatars";
 import Image from "next/image";
 import OfferPhotosSlider from "./OfferPhotosSlider";
 import NextLink from "components/global/NextLink";
-import search from "services/search";
 import { NormalWidgetPropsType } from "models/componentType/NormalWidgetPropsType";
 import { GetImageUrl } from "utils/tinyUtils";
 import { getConfiguredImage } from "utils/functions";
@@ -86,7 +85,7 @@ const NormalWidget = ({ boutique, myKey, lang }: NormalWidgetPropsType) => {
           .slice(0, 5)
           .map((category, key) => {
             // @ts-ignore
-            if (category?.icon) {
+            if (category?.flat_photo_path) {
               return (
                 <NextLink
                   data={{
@@ -109,7 +108,7 @@ const NormalWidget = ({ boutique, myKey, lang }: NormalWidgetPropsType) => {
                     height={12}
                     // @ts-ignore
                     src={getConfiguredImage({
-                      src: GetImageUrl(category.icon),
+                      src: GetImageUrl(category.flat_photo_path),
                       height: 50,
                     })}
                   />

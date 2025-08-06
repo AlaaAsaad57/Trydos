@@ -1,9 +1,9 @@
 "use client";
 import Link from "next/link";
 import React, { ComponentProps } from "react";
-import { usePathname, useSearchParams } from "next/navigation";
-import { dispatchRouteChangeEvent } from "utils/events";
 import { useAppStore } from "store";
+import { GA_GLOBAL_SCREEN } from "utils/GAEvents";
+import { DisableScroll } from "utils/tinyUtils";
 
 export interface INextLinkProps
   extends Omit<ComponentProps<typeof Link>, "href"> {
@@ -18,86 +18,73 @@ export default function NextLink({
   children,
   onClick,
   ariaLabel,
+  style,
   exportparts,
   data,
   ...props
 }: INextLinkProps) {
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
-  const {
-    setEnableSearch,
-    setFilterEnabled,
-
-    setSelectedOrderItem,
-    setActivePacks,
-    setOrderDetails,
-    setIsNavigating,
-    isNavigating,
-  } = useAppStore();
-  const handleClick = (e) => {
-    if (!data) {
-      onClick?.(e);
-      return;
-    }
-    setIsNavigating(true);
-    onClick?.(e);
-    // @ts-ignore
-    if (e.target.closest(".no-navigate")) {
-      console.log("no navigate");
-      return;
-    }
-
-    if (pathname !== href) {
-      document.body.style.overflow = "hidden";
-      document.body.scrollTop = 0;
-
-      dispatchRouteChangeEvent("start", {
-        ...data,
-      });
-    }
-
-    if (data?.is_home || data?.is_full_home) {
-      document.documentElement.style.overflow = "auto";
-      setEnableSearch(false);
-      setFilterEnabled(false);
-      setSelectedOrderItem(null);
-      setActivePacks(null);
-      setOrderDetails(null);
-      // dispatchRouteChangeEvent("completed");
-      if (
-        window.location.pathname === "/" ||
-        window.location.href.split("/").length < 3
-      ) {
-        dispatchRouteChangeEvent("completed");
-      }
-      // if (
-      //   window.location.pathname !== "/" ||
-      //   window.location.href.split("/").length > 2
-      // ) {
-      //   window.location.href = data?.href;
-      // }
-      return;
-    }
-  };
-  const IsPrefetched = () => {
-    return !(
-      searchParams.get("changed-country") || searchParams.get("no-country")
-    );
-  };
   return (
     <Link
-      aria-label={ariaLabel}
       className={className}
-      prefetch={IsPrefetched()}
+      style={style}
+      prefetch={true}
       href={href}
-      {...props}
-      onClick={handleClick}
-      data-cy={props["data-cy"]}
+      data-cy={props["data-cy"] ?? ""}
+      onClick={(e) => {
+        onClick?.(e);
+        if (data?.is_full_home) {
+          const {
+            setEnableSearch,
+            setFilterEnabled,
+            setSelectedOrderItem,
+            setActivePacks,
+            setOrderDetails,
+            setIsNavigating,
+          } = useAppStore.getState();
+          setEnableSearch(false);
+          setFilterEnabled(false);
+          setSelectedOrderItem(null);
+          setActivePacks(null);
+          setOrderDetails(null);
+          if (window.location.pathname === href) {
+            setIsNavigating(null);
+            return;
+          }
+        }
+        if (data?.is_product) {
+          let screen_name = "";
+          let url = window.location.pathname;
+          if (url.includes("filters/boutique")) {
+            screen_name = GA_GLOBAL_SCREEN.BOUTIQUE_SCREEN;
+          } else if (url.includes("tags_names")) {
+            screen_name = GA_GLOBAL_SCREEN.TAGS_SCREEN;
+          } else if (url.includes("/filters")) {
+            screen_name = GA_GLOBAL_SCREEN.FILTERS_SCREEN;
+          } else {
+            screen_name = GA_GLOBAL_SCREEN.HOME_SCREEN;
+          }
+          localStorage.setItem(
+            "last-page",
+            JSON.stringify({
+              url:
+                window.location.pathname +
+                (window.location.search?.includes("cart")
+                  ? ""
+                  : window.location.search),
+              productId: data.slug,
+              screen: screen_name,
+            })
+          );
+        }
+        const { setIsNavigating } = useAppStore.getState();
+        DisableScroll();
+        setIsNavigating({ ...data, href });
+      }}
       // onClick={(e) => {
       //   if (onClick) onClick(e);
       // }}
     >
-      <>{children}</>
+      {children}
     </Link>
   );
 }

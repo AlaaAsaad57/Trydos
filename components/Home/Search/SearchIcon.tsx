@@ -8,27 +8,17 @@ import { normalizeView } from "utils/functions";
 import { useAppStore } from "store";
 import { useParams } from "next/navigation";
 import search from "services/search";
+import { DisableScroll, EnableScroll } from "utils/tinyUtils";
 
-function SearchIcon() {
-  const { setEnableSearch, enable_search, setSearchLoading, loading_search } =
-    useAppStore();
+function SearchIcon({ time }) {
+  const { setEnableSearch, enable_search } = useAppStore();
   const { lang } = useParams();
   const [focuse, setFocus] = useState(false);
-  const [rendered, setRendered] = useState(true);
-
   const EnableSearch = (e: boolean) => {
-    if (e) document.documentElement.style.overflow = "hidden";
-    else document.documentElement.style.overflow = "auto";
     setEnableSearch(e);
   };
   useEffect(() => {
-    if (enable_search) {
-      setTimeout(() => {
-        document.documentElement.style.overflow = "hidden";
-      }, 1000);
-    }
-  }, []);
-  useEffect(() => {
+    console.log("MAIN CATEGORIES ELASTIC TIME:", time);
     if (enable_search) {
       search.getSearchOptions({ noProducts: true, lang: lang });
     }
@@ -41,22 +31,22 @@ function SearchIcon() {
         data-cy="searchIcon_mainPage"
         onClick={() => {
           if (!enable_search) {
+            DisableScroll();
             // Sendevent({
             //   event: GA_EVENT_NAMES.CLICK,
             //   value: GA_CLICK_EVENT_VALUES.HOME_SEARCH_BUTTON,
             // });
             normalizeView();
-            document.documentElement.scrollTo({ top: 0 });
+
             EnableSearch(true);
-            document.documentElement.style.overflow = "hidden";
           }
         }}
       >
         <Search id="search-icon" className={`${focuse && "black-fill"}`} />
         <SearchComponent
           close={() => {
+            EnableScroll();
             EnableSearch(false);
-            document.documentElement.style.overflow = "initial";
           }}
           searchEnabled={enable_search}
           focus={focuse}

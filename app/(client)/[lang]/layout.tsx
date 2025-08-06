@@ -8,6 +8,7 @@ import Logo from "components/Home/Logo";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import Script from "next/script";
 import { GA_MEASUREMENT_ID } from "utils/gtag";
+import NextLink from "components/global/NextLink";
 
 export const metadata = {
   title: "TryDos",
@@ -115,24 +116,25 @@ export default function RootLayout({
           key={`${JSON.stringify(params)}`}
         >
           <div className="home-navbar max-h-[1365px]">
-            <a
+            <NextLink
               href={`/${params.lang}`}
+              data={{ is_full_home: true }}
               aria-label="TryDos Home"
               data-cy="NavLogo"
             >
               <Logo animated={false} style={false} key={1} />
-            </a>
+            </NextLink>
 
             {nav}
           </div>
 
           {children}
-          {notification}
         </div>
         {init}
         {loader}
         {navauth}
         {cart}
+        {notification}
       </body>
     </html>
   );

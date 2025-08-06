@@ -17,6 +17,7 @@ import { fetchData } from "utils/fetchData";
 import { GAevent } from "utils/gtag";
 import { GA_EVENT_NAMES, GA_GLOBAL_SCREEN } from "utils/GAEvents";
 import { REQUESTS_DATA } from "utils/Requests";
+import { useParams } from "node_modules/next/navigation";
 
 function ProductOptions({
   activeOption,
@@ -31,7 +32,9 @@ function ProductOptions({
   const { editInfo, currency, SelectedProduct } = useAppStore();
   const [isLiked, setLiked] = useState(false);
   const [likeLoading, setLoading] = useState(false);
-
+  const params = useParams();
+  // @ts-ignore
+  const [country, language] = params.lang.split("-");
   const LikeProduct = async (bool) => {
     if (likeLoading) return;
     setLoading(true);
@@ -51,10 +54,13 @@ function ProductOptions({
         if (!res.success) {
           throw new Error(res.message);
         }
+        fetch(
+          `/api/editSocialProduct?pid=${product.id}&slug=${product.slug}&language=${language}&country=${country}`
+        );
         GAevent({
           action: GA_EVENT_NAMES.LIKE_ITEM,
           params: {
-            user_ID: auth.UserID(),
+            user_id_custom: auth.UserID(),
             item_id: product?.sku || product?.slug,
             item_name: product?.name,
             action: "like",
@@ -90,10 +96,13 @@ function ProductOptions({
         if (!res.success) {
           throw new Error(res.message);
         }
+        fetch(
+          `/api/editSocialProduct?pid=${product.id}&slug=${product.slug}&language=${language}&country=${country}`
+        );
         GAevent({
           action: GA_EVENT_NAMES.LIKE_ITEM,
           params: {
-            user_ID: auth.UserID(),
+            user_id_custom: auth.UserID(),
             item_id: product?.sku || product?.slug,
             item_name: product?.name,
             action: "dislike",
@@ -124,6 +133,11 @@ function ProductOptions({
     setLoading(false);
   };
   useEffect(() => {
+    editInfo({
+      likes: product.count_of_likes,
+      comments: product.comments,
+      shares_count: product.shares_count,
+    });
     if (product.is_country_restricted) {
       showErrorNotification(
         translateFunction("Sorry This Product Not Available In Your Country")
@@ -167,10 +181,12 @@ function ProductOptions({
               ) : (
                 <Heart />
               )}
-              {loading ? (
-                <Skeleton width={15} height={14}></Skeleton>
+              {product.count_of_likes >= 0 || SelectedProduct?.likes >= 0 ? (
+                <span data-cy="CountOfLoves">
+                  {SelectedProduct?.likes || product?.count_of_likes}
+                </span>
               ) : (
-                <span data-cy="CountOfLoves">{SelectedProduct?.likes}</span>
+                <Skeleton width={15} height={14}></Skeleton>
               )}
             </div>
             <div
@@ -186,8 +202,9 @@ function ProductOptions({
             >
               <CommentIcon active={activeOption === "Comment"} />
               <span data-cy="CountOfComment">
-                {productDetails.comment_count !== null ? (
-                  productDetails.comment_count
+                {productDetails.comments_count !== null ||
+                product.comments_count !== null ? (
+                  productDetails.comments_count ?? product.comments_count ?? 0
                 ) : (
                   <Skeleton width={15} height={14}></Skeleton>
                 )}
@@ -209,9 +226,10 @@ function ProductOptions({
               {" "}
               <Share />
               <span data-cy="CountOfShares">
-                {SelectedProduct?.sharesCount !== null &&
-                SelectedProduct?.sharesCount >= 0 ? (
-                  SelectedProduct?.sharesCount
+                {(SelectedProduct?.sharesCount !== null &&
+                  SelectedProduct?.sharesCount >= 0) ||
+                product?.shared_count >= 0 ? (
+                  SelectedProduct?.sharesCount ?? product.shared_count
                 ) : (
                   <Skeleton width={15} height={14}></Skeleton>
                 )}
