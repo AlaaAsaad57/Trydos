@@ -12,6 +12,7 @@ import ProductCard from "components/Server/ProductCard";
 import { GAevent } from "utils/gtag";
 import { GA_EVENT_NAMES, GA_GLOBAL_SCREEN } from "utils/GAEvents";
 import { EnableScroll } from "utils/tinyUtils";
+import auth from "services/auth";
 
 function ProductsInfiniteScroll({
   offset,
@@ -47,6 +48,7 @@ function ProductsInfiniteScroll({
         items: analyticsData,
         screen_name: GA_GLOBAL_SCREEN.FILTERS_SCREEN,
         screen_path: window.location.pathname,
+        user_id_custom: auth.UserID(),
       },
     });
     EnableScroll();
@@ -104,6 +106,7 @@ function ProductsInfiniteScroll({
             category: s?.category?.name,
             brand: s?.brand?.name,
           })),
+          user_id_custom: auth.UserID(),
           screen_name: GA_GLOBAL_SCREEN.FILTERS_SCREEN,
           screen_path: window.location.pathname,
         },

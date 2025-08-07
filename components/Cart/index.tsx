@@ -37,6 +37,7 @@ import { fetchData } from "utils/fetchData";
 import { useRouter } from "next/navigation";
 import FlashDealBanner from "components/products/FlashDealBanner";
 import { REQUESTS_DATA } from "utils/Requests";
+import auth from "services/auth";
 
 function CartContainer({ close, toOrders }: CartContainerPropsType) {
   const {
@@ -1953,6 +1954,7 @@ const QuantutyInput = ({
               item_variant: product.variant,
             },
           ],
+          user_id_custom: auth.UserID(),
           interaction_type: "add_to_cart",
           screen_name: GA_GLOBAL_SCREEN.CART_SCREEN,
           screen_path: window.location.pathname,

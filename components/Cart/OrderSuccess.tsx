@@ -62,6 +62,7 @@ function OrderSuccess() {
             category_id: item?.category?.id ?? "N/A",
             item_variant: item.variant ?? "N/A",
           })),
+          user_id_custom: auth.UserID(),
           interaction_type: "purchase",
           screen_name: GA_GLOBAL_SCREEN.ORDER_SUCCESS_SCREEN,
           screen_path: window.location.pathname,
