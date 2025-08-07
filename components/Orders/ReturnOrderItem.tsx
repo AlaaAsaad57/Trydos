@@ -98,7 +98,10 @@ function ReturnOrderItem({
           <span className="bold text-[12px] text-[#8D8D8D] ml-[4px]">
             {RoundPrice({
               num:
-                (item?.price_after_discount || item.offer_price) * returnedQty,
+                (item?.price_after_discount || item.offer_price) * returnedQty -
+                (selectedOptions?.is_cost_by_system === 0
+                  ? selectedOptions.cost
+                  : 0),
               rate: currency.exchange_rate,
             })}
           </span>
@@ -276,7 +279,15 @@ export const UploadImageComponent = ({
     };
     input.click();
   };
-
+  const GetImageUrl = (img) => {
+    if (img.includes(process.env.NEXT_PUBLIC_BASE_CLOUDINARY_URL)) return img;
+    else
+      return (
+        process.env.NEXT_PUBLIC_BASE_CLOUDINARY_URL +
+        `/return_request_products/` +
+        img
+      );
+  };
   return (
     <div
       className="flex-col w-full items-center mt-[12px] px-[24px] cursor-pointer"
@@ -309,11 +320,7 @@ export const UploadImageComponent = ({
               >
                 <Image
                   className="rounded-[12px] object-cover h-[80px] w-[57px]"
-                  src={GetImageUrl(
-                    process.env.NEXT_PUBLIC_BASE_CLOUDINARY_URL +
-                      `/return_request_products/` +
-                      s
-                  )}
+                  src={GetImageUrl(GetImageUrl(s))}
                   alt="image"
                   width={57}
                   height={80}
