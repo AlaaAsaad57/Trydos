@@ -34,6 +34,7 @@ function OrderItemOptionsModal({
     setActiveWidget("ChangeRequest");
   };
   const shouldShowRetutn = () => {
+    if (item.qty === 0) return false;
     if (selectedOrder.can_return_order) {
       if (ActivePacks.return_details) {
         if (
@@ -54,6 +55,7 @@ function OrderItemOptionsModal({
   const ShouldShowCahngeColor = () => {
     if (ActivePacks?.order_status?.value === "delivered") return false;
     if (!ActivePacks.can_change_variant) return false;
+    if (item.qty === 0) return false;
     else return true;
   };
   const initializeReturn = async () => {
@@ -70,7 +72,7 @@ function OrderItemOptionsModal({
       setActivePacks({
         ...ActivePacks,
         return_request_id: id,
-        return_details: details,
+        return_details: { details },
       });
       if (details?.order_details?.find((s) => s.detail_id === item.id)) {
         setActiveWidget("return");
@@ -297,7 +299,10 @@ function OrderItemOptionsModal({
   return (
     <>
       <div
-        onClick={() => close(false)}
+        onClick={() => {
+          close(false);
+          console.log(ActivePacks);
+        }}
         className="absolute top-[0px]   left-0 min-w-[100vw] z-[999999998] min-h-[100vh] opacity-40 bg-[black]"
       />
       <div className="flex-col items-center max-h-[calc(100vh-100px)] overflow-auto w-full pt-[12px]  z-[999999999] pb-[27px] absolute bottom-[0px]  left-0 rounded-t-[30px] bg-white">

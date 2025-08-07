@@ -5,6 +5,8 @@ const translations = {
     "Cancel Return Request": "إلغاء طلب الإرجاع",
     "Failed To Load Return Details Try again":
       "فشل في تحميل تفاصيل الإرجاع، حاول مرة أخرى",
+    "You Need To Confirm Your Request": "تحتاج إلى تأكيد طلبك",
+    "Product Return Needs Confirm": "يحتاج إرجاع المنتج إلى تأكيد",
     "Initializing Return": "جارٍ تهيئة الإرجاع",
     "return this product is not allowed": "إعادة هذا المنتج غير مسموحة",
     "Notification Permission:": "إذن الإشعارات:",
@@ -828,6 +830,8 @@ const translations = {
       "Trydos'u kabul etmek için “Kabul Et ve Devam Et”e dokunun",
     "Cancel Return Request": " İade talebini iptal et",
     "Initializing Return": "İade başlatılıyor",
+    "You Need To Confirm Your Request": "Talebinizi onaylamanız gerekiyor",
+    "Product Return Needs Confirm": "Ürün iadesi onay gerektiriyor",
     "return this product is not allowed": "Destpêkirina vegerandinê",
     "Failed To Load Return Details Try again":
       "İade detayları yüklenemedi, tekrar deneyin",
@@ -1640,6 +1644,9 @@ const translations = {
     "Cancel Return Request": "داخوازی گەڕاندن بسڕەوە",
     "Failed To Load Products After 3 Attempts":
       "بەرهەمەکان لەسەر نەبوون، ٣ سەکەڵەیەک بەردەست بە هەوڵبوون",
+    "You Need To Confirm Your Request": "پێویستە داواکارییەکەت پشتڕاست بکەیت",
+    "Product Return Needs Confirm":
+      "گەڕاندنەوەی کاڵا پێویستی بە پشتڕاستکردنەوە هەیە",
     "Failed To Load Return Details Try again":
       "هاتنه‌ ناچاندنی وردەکارییەکانی گەڕاندن، دوبارە هەوڵ بدە",
     "Initializing Return": "دەستپێکردنی گەڕاندن",

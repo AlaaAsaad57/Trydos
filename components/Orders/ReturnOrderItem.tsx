@@ -97,7 +97,8 @@ function ReturnOrderItem({
           )}
           <span className="bold text-[12px] text-[#8D8D8D] ml-[4px]">
             {RoundPrice({
-              num: item?.price_after_discount || item.offer_price,
+              num:
+                (item?.price_after_discount || item.offer_price) * returnedQty,
               rate: currency.exchange_rate,
             })}
           </span>
@@ -120,7 +121,7 @@ function ReturnOrderItem({
       </div>
       <div className="flex-row items-center justify-center mt-[20px] w-full max-w-[200px]">
         <button
-          onClick={() => setReturnedQty(Math.max(0, returnedQty - 1))}
+          onClick={() => setReturnedQty(Math.max(1, returnedQty - 1))}
           className="flex items-center justify-center w-[40px] h-[40px] rounded-l-[12px] bg-[#F8F8F8] border border-[#E6E6E680] border-r-0 hover:bg-[#EEEEEE] transition-colors duration-200 active:scale-95"
         >
           <span className="text-[#1D1D1D] text-[18px] light">−</span>
@@ -132,12 +133,22 @@ function ReturnOrderItem({
             if (parseInt(e.target.value) > item.qty) {
               setReturnedQty(returnedQty);
             } else {
-              setReturnedQty(Math.max(0, parseInt(e.target.value)));
+              setReturnedQty(Math.max(1, parseInt(e.target.value)));
             }
           }}
           className="flex-1 h-[40px] text-center text-[16px] font-medium text-[#1D1D1D] bg-white border-t border-b border-[#E6E6E680] focus:outline-none focus:border-[#402CDD] focus:ring-1 focus:ring-[#402CDD80] transition-all duration-200"
           min="1"
         />
+        {item.qty > returnedQty && (
+          <button
+            onClick={() => {
+              setReturnedQty(Math.max(1, returnedQty + 1));
+            }}
+            className="flex items-center justify-center w-[40px] h-[40px] rounded-r-[12px] bg-[#F8F8F8] border border-[#E6E6E680] border-r-0 hover:bg-[#EEEEEE] transition-colors duration-200 active:scale-95"
+          >
+            <span className="text-[#1D1D1D] text-[18px] light">+</span>
+          </button>
+        )}
       </div>
       <div className="flex-row w-full flex-wrap items-center mt-[12px] gap-y-[10px]  gap-x-[12px] pr-[50px]  pl-[24px]">
         {loading ? (
@@ -158,9 +169,21 @@ function ReturnOrderItem({
                 handleOptionClick(option);
               }}
             >
-              <span className="regular text-[12px] text-[#8D8D8D]">
-                {option.reason_ae_en}
-              </span>
+              <div className="flex gap-[3px]">
+                <span className="regular text-[12px] text-[#8D8D8D]">
+                  {option.reason_ae_en}
+                </span>
+                {option.is_cost_by_system === 0 && (
+                  <span>
+                    (
+                    {RoundPrice({
+                      num: option.cost,
+                      rate: currency.exchange_rate,
+                    })}{" "}
+                    {currency.symbol})
+                  </span>
+                )}
+              </div>
             </div>
           ))
         )}
@@ -244,12 +267,7 @@ export const UploadImageComponent = ({
         // const data = await response.json();
         let data = await order.UploadImageForOrderReturn({ image: file });
 
-        setImages([
-          ...images,
-          process.env.NEXT_PUBLIC_BASE_CLOUDINARY_URL +
-            `/return_request_products/` +
-            data.sub_path,
-        ]);
+        setImages([...images, data.sub_path]);
         setLoading(false);
         if (document.body.contains(input)) {
           document.body.removeChild(input);
@@ -291,7 +309,11 @@ export const UploadImageComponent = ({
               >
                 <Image
                   className="rounded-[12px] object-cover h-[80px] w-[57px]"
-                  src={GetImageUrl(s)}
+                  src={GetImageUrl(
+                    process.env.NEXT_PUBLIC_BASE_CLOUDINARY_URL +
+                      `/return_request_products/` +
+                      s
+                  )}
                   alt="image"
                   width={57}
                   height={80}
