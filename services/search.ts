@@ -82,9 +82,7 @@ class SearchService {
           !isNaN(Number(searchFilters.prices.max_price)) &&
           Number(searchFilters.prices.min_price) >= 0 &&
           Number(searchFilters.prices.max_price) > 0
-            ? [
-                `${searchFilters.prices.min_price}-${searchFilters.prices.max_price}`,
-              ]
+            ? [searchFilters.prices.min_price, searchFilters.prices.max_price]
             : [],
         search_text:
           searchValue?.length > 0
@@ -93,38 +91,6 @@ class SearchService {
             ? value
             : null,
       };
-
-      // Convert filter object to search params for elastic backend
-      // const searchParams = filtersToSearchParams(filterObj);
-
-      // const configuredParams = configureSearchParams({
-      //   searchParams,
-      //   noProducts: noProducts ? "true" : "false",
-      //   noFilters: noFilters ? "true" : "false",
-      //   lang: lang.split("-")[1] || "en",
-      //   offset: null,
-      //   boutiqueId: "listing",
-      //   filters_offset: filters_offset?.toString(),
-      // });
-
-      // const apiUrl = `/api/products/searchInCatalog`;
-
-      // Debug logging
-      // const filtersResponse = await fetchData({
-      //   method: "GET",
-      //   url: `${apiUrl}?${configuredParams.toString()}`,
-      //   server: "elastic",
-      //   reqTitle: REQUESTS_DATA.GET_SEARCH_OPTIONS,
-      //   signal,
-      // });
-      // if (!filtersResponse.success) {
-      //   setSearchPartialLoading(false);
-      //   setSearchLoading(false);
-      //   return null;
-      // }
-      // if (!filtersResponse) {
-      //   return null;
-      // }
       console.log(filterObj);
       const filtersResponse = await getProductsAndFiltersFromElastic({
         country: country,

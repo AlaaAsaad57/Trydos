@@ -1,5 +1,4 @@
 "use client";
-import SearchIcon from "public/svg/listing/searchIcon.svg";
 import NextLink from "components/global/NextLink";
 import FilterIcon from "public/svg/listing/filterIcon.svg";
 import ActiveCategoryIcon from "public/svg/listing/ActiveCategoryIcon.svg";
@@ -20,18 +19,13 @@ import { getActiveFilters } from "components/Server/FilterList";
 import Image from "node_modules/next/image";
 import Spinner from "components/global/Spinner";
 import PriceSlider from "components/ListingPage/filterComponents/PriceSlider";
-import dynamic from "next/dynamic";
 import { GetImageUrl, parseFiltersFromParams } from "utils/tinyUtils";
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
-import {
-  GA_EVENT_NAMES,
-  GA_GLOBAL_PLATFORM,
-  GA_GLOBAL_SCREEN,
-} from "utils/GAEvents";
+import { GA_EVENT_NAMES, GA_GLOBAL_SCREEN } from "utils/GAEvents";
 import { GAevent } from "utils/gtag";
-import { fetchFilteredProducts } from "Server Requests";
 import { usePathname } from "next/navigation";
 import SmoothPolygon from "../ListingPage/filterComponents/PriceShape";
+import { getProductsAndFiltersFromElastic } from "services/elastic/elasticSearch";
 function FilterWidgetContainer({}) {
   const {
     setSearchResults,
@@ -49,7 +43,7 @@ function FilterWidgetContainer({}) {
   // @ts-ignore
   const [country, language] = lang.split("-");
   // Parse filters from URL path parameters
-  const parsedFilters = filterParams
+  let parsedFilters = filterParams
     ? parseFiltersFromParams(filterParams as string[])
     : {};
   let activeFilters = getActiveFilters(parsedFilters);
@@ -57,26 +51,38 @@ function FilterWidgetContainer({}) {
     // Get boutique from parsed filters or determine from URL
     let isFeatured = pathname.includes("featured");
     let is_flash = pathname.includes("flashDeals");
-    if (parsedFilters?.search?.length > 0) {
-      setSearchWord(parsedFilters.search[0]);
+    if (parsedFilters?.search_text?.length > 0) {
+      setSearchWord(
+        Array.isArray(parsedFilters.search_text)
+          ? parsedFilters?.search_text?.[0]
+          : parsedFilters.search_text
+      );
     }
 
     setLoading(true);
 
     // Build API URL with path-based filters
-    const filterPath = filterParams ? (filterParams as string[]).join("/") : "";
-    let { data: filters } = await fetchFilteredProducts(
-      language,
-      country,
-      filterParams as string[],
-      "true",
-      "false",
-      null,
-      null,
-      isFeatured,
-      is_flash
-    );
-
+    if (parsedFilters.prices) {
+      parsedFilters = {
+        ...parsedFilters,
+        prices: parsedFilters.prices?.map((s) =>
+          s.split("-").map((d) => Number(d))
+        )?.[0],
+      };
+    }
+    let filters = await getProductsAndFiltersFromElastic({
+      country: country,
+      language_code: language,
+      filters: {
+        ...parsedFilters,
+        featured: isFeatured,
+        flashdeal: is_flash,
+        search_text: parsedFilters?.search_text?.[0],
+      },
+      filters_offset: 1,
+      limit: 10,
+      noProducts: true,
+    });
     setSearchResults({
       categories: filters.categories,
       brands: filters.brands,
@@ -87,7 +93,9 @@ function FilterWidgetContainer({}) {
       },
       sizes: filters?.attributes?.[0]?.options,
       boutiques: filters.boutiques,
-      search_text: parsedFilters?.search?.[0],
+      search_text: Array.isArray(parsedFilters.search_text)
+        ? parsedFilters?.search_text?.[0]
+        : parsedFilters.search_text,
       products: [],
       prices_ranges: filters?.prices?.priceRanges,
     });
@@ -101,7 +109,7 @@ function FilterWidgetContainer({}) {
       },
       sizes: filters?.attributes?.[0]?.options,
       boutiques: filters.boutiques,
-      search_text: parsedFilters?.search?.[0],
+      search_text: parsedFilters?.search_text,
       products: [],
       prices_ranges: filters?.prices?.priceRanges,
     });
@@ -115,7 +123,9 @@ function FilterWidgetContainer({}) {
       },
       sizes: filters?.attributes?.[0]?.options,
       boutiques: filters.boutiques,
-      search_text: parsedFilters?.search?.[0],
+      search_text: Array.isArray(parsedFilters.search_text)
+        ? parsedFilters?.search_text?.[0]
+        : parsedFilters.search_text,
       products: [],
       prices_ranges: filters?.prices?.priceRanges,
     });

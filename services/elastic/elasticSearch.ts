@@ -194,9 +194,10 @@ export async function getProductsAndFiltersFromElastic(
     is_from_browser = false,
     filters_offset = 1,
   } = params;
-  if (filters.prices) {
+  if (filters?.prices) {
     filters = { ...filters, priceRange: filters.prices };
   }
+
   if (filters.search_text && filters.search_text?.split(" ")?.length > 2) {
     let CleanSearchText = await AnalyzeSearchText(filters.search_text);
     if (CleanSearchText?.name) {
@@ -303,10 +304,11 @@ export async function getProductsAndFiltersFromElastic(
 
     // Sort products by filtered colors if color filter is applied
     if (filters.colors?.length) {
-      sortSyncColorImagesByFilteredColor(
+      productsWithFilters.custom_products = sortSyncColorImagesByFilteredColor(
         productsWithFilters.custom_products,
         filters
       );
+
       sortColorsByFilteredColor(productsWithFilters.custom_products, filters);
     }
 
@@ -1584,15 +1586,16 @@ function extractFilters(
 function sortSyncColorImagesByFilteredColor(
   products: CustomProduct[],
   filters: SearchFilters
-): void {
+): any {
   if (!filters.colors || filters.colors.length === 0) {
     return;
   }
 
   const filteredColorCode = filters.colors[0];
-
+  let productsArr = [];
   products.forEach((product) => {
     if (!product.colors || !product.sync_color_images) {
+      productsArr.push(product);
       return;
     }
 
@@ -1609,6 +1612,7 @@ function sortSyncColorImagesByFilteredColor(
     }
 
     if (!colorName) {
+      productsArr.push(product);
       return;
     }
     let arr = Array.isArray(product.sync_color_images)
@@ -1617,10 +1621,14 @@ function sortSyncColorImagesByFilteredColor(
     // Sort sync_color_images to show matching color first
     arr.sort((a: any, b: any) => {
       if (a.color_name === colorName) return -1;
-      if (b.color_name === colorName) return 1;
+      if (b.color_name !== colorName) return 1;
       return 0;
     });
+    product = { ...product, sync_color_images: arr };
+    // @ts-ignore
+    productsArr.push(product);
   });
+  return productsArr;
 }
 
 /**

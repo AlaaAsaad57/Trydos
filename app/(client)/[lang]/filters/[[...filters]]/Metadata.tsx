@@ -81,17 +81,6 @@ export async function getBoutiqueMetadata({
       )?.[0],
     };
   }
-  // UrlSearchParams.set("lang", language);
-  // UrlSearchParams.set("country", country);
-  // let response = await fetchServerData({
-  //   url:
-  //     process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL +
-  //     `/api/products/simplified-meta-filters?${UrlSearchParams.toString()}`,
-  //   local: `${country}-${language}`,
-  //   method: "GET",
-  //   revalidate: 36000,
-  //   tags: ["listing"],
-  // });
   let responseData = await getProductsAndFiltersFromElastic({
     country,
     language_code: language,
