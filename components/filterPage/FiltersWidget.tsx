@@ -52,13 +52,6 @@ function FilterWidgetContainer({}) {
     // Get boutique from parsed filters or determine from URL
     let isFeatured = pathname.includes("featured");
     let is_flash = pathname.includes("flashDeals");
-    if (parsedFilters?.search_text?.length > 0) {
-      setSearchWord(
-        Array.isArray(parsedFilters.search_text)
-          ? parsedFilters?.search_text?.[0]
-          : parsedFilters.search_text
-      );
-    }
 
     setLoading(true);
 
@@ -70,6 +63,13 @@ function FilterWidgetContainer({}) {
           s.split("-").map((d) => Number(d))
         )?.[0],
       };
+    }
+    if (parsedFilters?.search_text?.length > 0) {
+      setSearchWord(
+        Array.isArray(parsedFilters.search_text)
+          ? parsedFilters?.search_text?.[0]
+          : parsedFilters.search_text
+      );
     }
     let filters = await getProductsAndFiltersFromElastic({
       country: country,

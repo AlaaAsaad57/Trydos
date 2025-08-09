@@ -18,7 +18,7 @@ import { HomePageProps } from "models/componentType/HomePagePropsType";
 import { fetchCurrency } from "Server Requests";
 import { ElasticsearchReader } from "services/elastic/elasticsearch-reader.service";
 import { getProductsAndFiltersFromElastic } from "services/elastic/elasticSearch";
-import { getCurrencyFromCache } from "Server Requests/radis";
+import { getCurrencyFromCache, StoreCurrency } from "Server Requests/radis";
 
 export async function generateMetadata({ params }) {
   try {
@@ -60,7 +60,24 @@ async function StructuredDataScript({ params }) {
     return null;
   }
 }
+async function getCurrency(country, language) {
+  try {
+    let cachedCurrency = await getCurrencyFromCache(country);
 
+    if (typeof cachedCurrency === "string") {
+      return JSON.parse(cachedCurrency);
+    }
+    if (cachedCurrency?.exchange_rate) {
+      return cachedCurrency;
+    } else {
+      let currencyData = await fetchCurrency(language, country);
+      let currency = currencyData.data.currency;
+
+      StoreCurrency(country, currency);
+      return currency;
+    }
+  } catch (error) {}
+}
 async function HomePage({ params }: HomePageProps) {
   return (
     <>
@@ -135,34 +152,19 @@ async function MainCategoriesNavbar({ lang, mainCategory }) {
 // Featured Products
 async function FeaturedProductWrapper({ lang }) {
   const [country, language] = lang?.split("-");
-  let data, currencyData;
-  let currencyCache = await getCurrencyFromCache(country);
-  if (currencyCache) {
-    data = await getProductsAndFiltersFromElastic({
-      country: country,
-      language_code: language,
-      filters: {
-        featured: true,
-      },
-      limit: 10,
-    });
-    currencyData = currencyCache;
-  } else {
-    [data, currencyData] = await Promise.all([
-      getProductsAndFiltersFromElastic({
-        country: country,
-        language_code: language,
-        filters: {
-          featured: true,
-        },
-        limit: 10,
-      }),
-      fetchCurrency(language, country),
-    ]);
-  }
+
+  let currencyData = await getCurrency(country, language);
+  let data = await getProductsAndFiltersFromElastic({
+    country: country,
+    language_code: language,
+    filters: {
+      featured: true,
+    },
+    limit: 10,
+  });
   return (
     <FeatureProducts
-      currencyData={currencyData?.data?.currency}
+      currencyData={currencyData}
       fetauredProductsData={{ data: data }}
       lang={lang}
     />
@@ -171,34 +173,19 @@ async function FeaturedProductWrapper({ lang }) {
 // FlasDeals Products
 async function FlashProductWrapper({ lang }) {
   const [country, language] = lang?.split("-");
-  let data, currencyData;
-  let currencyCache = await getCurrencyFromCache(country);
-  if (currencyCache) {
-    data = await getProductsAndFiltersFromElastic({
-      country: country,
-      language_code: language,
-      filters: {
-        flashdeal: true,
-      },
-      limit: 10,
-    });
-    currencyData = currencyCache;
-  } else {
-    [data, currencyData] = await Promise.all([
-      getProductsAndFiltersFromElastic({
-        country: country,
-        language_code: language,
-        filters: {
-          flashdeal: true,
-        },
-        limit: 10,
-      }),
-      fetchCurrency(language, country),
-    ]);
-  }
+
+  let currencyData = await getCurrency(country, language);
+  let data = await getProductsAndFiltersFromElastic({
+    country: country,
+    language_code: language,
+    filters: {
+      flashdeal: true,
+    },
+    limit: 10,
+  });
   return (
     <FlashDealsProducts
-      currencyData={currencyData?.data?.currency}
+      currencyData={currencyData}
       flashDealsProducts={{ data: data }}
       lang={lang}
     />
@@ -207,13 +194,7 @@ async function FlashProductWrapper({ lang }) {
 
 async function BoutiquesListWrapper({ params }) {
   const [country, language] = params.lang.split("-");
-  // let boutiqueData = await fetchBoutiques(
-  //   language,
-  //   country,
-  //   params.mainCategory || "",
-  //   null,
-  //   10
-  // );
+
   let start = process.hrtime.bigint();
 
   let Reader = new ElasticsearchReader();

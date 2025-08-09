@@ -91,13 +91,14 @@ class SearchService {
             ? value
             : null,
       };
-      console.log(filterObj);
+
       const filtersResponse = await getProductsAndFiltersFromElastic({
         country: country,
         language_code: language,
         filters: filterObj,
         filters_offset: filters_offset ?? 1,
         limit: 10,
+        noProducts: noProducts,
       });
       const {
         products,

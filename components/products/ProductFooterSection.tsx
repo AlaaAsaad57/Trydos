@@ -235,7 +235,7 @@ function ProductFooterSection({
         action: GA_EVENT_NAMES.VIEW_PRODUCT_EVENT,
         params: {
           user_id_custom: auth.UserID(),
-          item_id: product?.sku || product?.slug,
+          item_id: product?.id,
           item_name: product?.name,
           price: RoundPrice({
             num: product.offer_price,

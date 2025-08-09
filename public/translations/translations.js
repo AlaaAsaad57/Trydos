@@ -3,6 +3,8 @@ const translations = {
     "Please enable notification permissions to use camera features":
       "يرجى تفعيل أذونات الإشعارات لاستخدام ميزات الكاميرا",
     "Cart Loading Error": "خطأ في تحميل السلة",
+    "Failed To Retrive Results Please Try Again":
+      "فشل في جلب النتائج، يرجى المحاولة مرة أخرى",
     "We encountered an error while loading your cart. Don't worry, we'll fix this issue for you.":
       "حدث خطأ أثناء تحميل سلتك. لا تقلق، سنقوم بحل هذه المشكلة من أجلك.",
     "Try Again": "حاول مرة أخرى",
@@ -848,6 +850,8 @@ const translations = {
   },
   tr: {
     "Cart Loading Error": "Sepet Yükleme Hatası",
+    "Failed To Retrive Results Please Try Again":
+      "Sonuçlar alınamadı, lütfen tekrar deneyin",
     "We encountered an error while loading your cart. Don't worry, we'll fix this issue for you.":
       "Sepetinizi yüklerken bir hata oluştu. Endişelenmeyin, bu sorunu sizin için çözeceğiz.",
     "Try Again": "Tekrar Dene",
@@ -1683,6 +1687,8 @@ const translations = {
   },
   ku: {
     "Take Photo": "وێنە بگرە",
+    "Failed To Retrive Results Please Try Again":
+      "نەیتوانرا ئەنجامەکان به‌دەستهێنرێت، تکایە دووبارە هەوڵ بدە",
     "Cancel Return Request": "داخوازی گەڕاندن بسڕەوە",
     "Failed To Load Products After 3 Attempts":
       "بەرهەمەکان لەسەر نەبوون، ٣ سەکەڵەیەک بەردەست بە هەوڵبوون",

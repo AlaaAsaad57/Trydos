@@ -221,6 +221,7 @@ export async function getProductsAndFiltersFromElastic(
 
   try {
     const filtersSize = filters_offset * 10;
+
     const baseConditions = buildBaseConditions(filters, country);
     const { must: mustConditions, must_not: mustNotConditions } =
       baseConditions;

@@ -5,14 +5,14 @@ import { FilterItem } from "components/Server/FilterList";
 import { InfiniteScrollFiltersPropsType } from "models/componentType/InfiniteScrollFiltersPropsType";
 import { useParams } from "node_modules/next/navigation";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { fetchFilteredProducts } from "Server Requests";
+import { getProductsAndFiltersFromElastic } from "services/elastic/elasticSearch";
 
 import { useAppStore } from "store";
 import { showErrorNotification } from "store/notifications/reducer";
 import { translateFunction } from "utils/functions";
-import { FilterParams } from "utils/tinyUtils";
-
+import { parseFiltersFromParams } from "utils/tinyUtils";
 
 function InfiniteScrollFilters({
   filterParams,
@@ -25,6 +25,7 @@ function InfiniteScrollFilters({
   isFeatured,
   isFlashDeals,
 }: InfiniteScrollFiltersPropsType) {
+  const [shouldShow, setShouldShow] = useState(false);
   const { partialLoading, setSearchPartialLoading } = useAppStore();
   const [country, language] = params.lang?.split("-");
   const PageParams = useParams();
@@ -43,23 +44,39 @@ function InfiniteScrollFilters({
     sizes: [],
     prices: [],
   });
+
+  const { filters: filterParamsVar } = PageParams;
   const getNextFilters = async () => {
     try {
       setSearchPartialLoading(true);
+      let parsedFilters = filterParams
+        ? parseFiltersFromParams(filterParamsVar as string[])
+        : {};
+      if (parsedFilters.prices) {
+        parsedFilters = {
+          ...parsedFilters,
+          prices: parsedFilters.prices?.map((s) =>
+            s.split("-").map((d) => Number(d))
+          )?.[0],
+        };
+      }
 
+      let response = await getProductsAndFiltersFromElastic({
+        country: country,
+        language_code: language,
+        filters: {
+          ...parsedFilters,
+          featured: isFeatured,
+          flashdeal: isFlashDeals,
+          search_text: parsedFilters?.search_text?.[0],
+        },
+        filters_offset: offset + 1,
+        limit: 10,
+        noProducts: true,
+      });
       // Convert filter parameters to search params for elastic backend
-      const response = await fetchFilteredProducts(
-        language,
-        country,
-        PageParams.filters as string[],
-        "true",
-        "false",
-        null,
-        (offset + 1)?.toString(),
-        isFeatured,
-        isFlashDeals
-      );
-      if (response.data.isError) {
+
+      if (!response) {
         showErrorNotification(
           translateFunction("Failed To Load Filters Try Again")
         );
@@ -69,29 +86,30 @@ function InfiniteScrollFilters({
       setData({
         categories: [
           ...(data.categories || []),
-          ...(response?.data?.categories || []),
+          ...(response?.categories || []),
         ],
-        brands: [...(data?.brands || []), ...(response?.data?.brands || [])],
-        colors: [...(data?.colors || []), ...(response?.data?.colors || [])],
+        brands: [...(data?.brands || []), ...(response?.brands || [])],
+        colors: [...(data?.colors || []), ...(response?.colors || [])],
         sizes: [
           ...(data?.sizes || []),
-          ...(response?.data?.attributes?.[0]?.options || []),
+          ...(response?.attributes?.[0]?.options || []),
         ],
         prices: [],
       });
       setOffset(offset + 1);
       setHasEnd({
-        categories: response?.data?.categories?.length === 0,
-        brands: response?.data?.brands?.length === 0,
-        colors: response?.data?.colors?.length === 0,
+        categories: response?.categories?.length === 0,
+        brands: response?.brands?.length === 0,
+        colors: response?.colors?.length === 0,
         sizes:
-          response?.data?.attributes?.length === 0 ||
-          response?.data?.attributes?.[0]?.options?.length === 0,
-        prices: response?.data?.prices?.priceRanges?.length === 0,
+          response?.attributes?.length === 0 ||
+          response?.attributes?.[0]?.options?.length === 0,
+        prices: response?.prices?.priceRanges?.length === 0,
       });
 
       setSearchPartialLoading(false);
     } catch (error) {
+      console.error(error);
       setSearchPartialLoading(false);
     }
   };
@@ -157,6 +175,10 @@ function InfiniteScrollFilters({
         />
       ));
   };
+  useEffect(() => {
+    setShouldShow(true);
+  }, []);
+  if (!shouldShow) return <></>;
   return (
     <>
       {showFilters()}
@@ -169,7 +191,7 @@ function InfiniteScrollFilters({
           </div>
         </>
       ) : (
-        typeof window !== "undefined" && 
+        typeof window !== "undefined" &&
         !hasEnd[term] && (
           <div
             onClick={() => {
@@ -177,7 +199,7 @@ function InfiniteScrollFilters({
             }}
             className=" mb-[34px] p-2 text-wrap text-center category-circle h-[70px] flex-col align-center extended-circle text-[#5d5d5d] light shadow-sm bg-[#e8e8e8] rounded-full justify-center items-center"
           >
-           {translateFunction("More From")} {translateFunction(term)}
+            {translateFunction("More From")} {translateFunction(term)}
           </div>
         )
       )}

@@ -11,7 +11,8 @@ import { useAppStore } from "store";
 
 function ProductItem({ product, onClick }) {
   const { lang } = useParams();
-  const { value } = useAppStore();
+  const { value, searchResults } = useAppStore();
+
   // @ts-ignore
   let languageVariable = lang.split("-")[1];
   const isRtl = languageVariable === "ar" || languageVariable === "ku";
@@ -34,9 +35,17 @@ function ProductItem({ product, onClick }) {
             user_id_custom: auth.UserID(),
             search_keyword: value,
             search_item_select: {
-              item_id: product?.sku || product?.slug,
+              item_id: product?.product_id,
               item_name: product?.name,
             },
+            items: searchResults.products
+              ?.filter((s) => s.product_id !== product.product_id)
+              ?.map((s) => ({
+                item_id: s?.product_id,
+                item_name: s?.name,
+                brand_id: s?.brand?.id,
+                category_id: s?.category?.id,
+              })),
             screen_name: GA_GLOBAL_SCREEN.HOME_SCREEN,
             screen_path: window.location.pathname,
           },
@@ -45,7 +54,11 @@ function ProductItem({ product, onClick }) {
       href={`/${lang}/products/${product.slug}`}
       data-cy="product-result-link"
     >
-      <div className={`result-product flex-row ${ isRtl ? "flex-row-reverse": " "}`}>
+      <div
+        className={`result-product flex-row ${
+          isRtl ? "flex-row-reverse" : " "
+        }`}
+      >
         <div className="image-result">
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -91,7 +104,9 @@ function ProductItem({ product, onClick }) {
             })}
           />
         </div>
-        <div className={`result-product-text ${ isRtl ? " pr-2": " "}`}>{product.name}</div>
+        <div className={`result-product-text ${isRtl ? " pr-2" : " "}`}>
+          {product.name}
+        </div>
       </div>
     </NextLink>
   );

@@ -6,7 +6,6 @@ import { translateFunction } from "utils/functions";
 import { useParams } from "next/navigation";
 import { CurrencyApi } from "models/API/market/CurrencyApi";
 import { useAppStore } from "store";
-import { fetchFilteredProducts } from "Server Requests";
 import { showErrorNotification } from "store/notifications/reducer";
 import ProductCard from "components/Server/ProductCard";
 import { GAevent } from "utils/gtag";
@@ -101,7 +100,7 @@ function ProductsInfiniteScroll({
           action: GA_EVENT_NAMES.VIEW_ITEMS_LIST,
           params: {
             items: response.products?.map((s) => ({
-              item_id: s?.slug,
+              item_id: s?.product_id,
               item_name: s?.name,
               category: s?.category?.name,
               brand: s?.brand?.name,

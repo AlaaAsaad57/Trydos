@@ -61,7 +61,7 @@ function ProductOptions({
           action: GA_EVENT_NAMES.LIKE_ITEM,
           params: {
             user_id_custom: auth.UserID(),
-            item_id: product?.sku || product?.slug,
+            item_id: product?.id,
             item_name: product?.name,
             action: "like",
             category: product?.category?.name,
@@ -103,7 +103,7 @@ function ProductOptions({
           action: GA_EVENT_NAMES.LIKE_ITEM,
           params: {
             user_id_custom: auth.UserID(),
-            item_id: product?.sku || product?.slug,
+            item_id: product?.id,
             item_name: product?.name,
             action: "dislike",
             category: product?.category?.name,
@@ -150,10 +150,7 @@ function ProductOptions({
     }
   }, []);
   return (
-    <div
-      className="product-options-container"
-      style={{ zIndex: "999999999" }}
-    >
+    <div className="product-options-container" style={{ zIndex: "999999999" }}>
       {share ? (
         <ShareButton onClick={() => shareAction()} />
       ) : (
