@@ -350,7 +350,7 @@ export function formatPrice(price, language = "en") {
   } else if (price >= 100000) {
     return CielNumber(price / 1000) + translateFunction("K", language); // For thousands
   } else {
-    return price; // For prices under 1000
+    return CielNumber(price); // For prices under 1000
   }
 }
 export const toUSD = (price) => {

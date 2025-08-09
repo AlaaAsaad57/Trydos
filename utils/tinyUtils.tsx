@@ -44,12 +44,12 @@ export interface FilterListProps {
 }
 
 export const CielNumber = (price) => {
-  return Math.ceil(price * 1000) / 1000;
+  return Math.ceil(price * 10) / 10;
 };
 export const getPrice = (num, lang, currency, decimal = 0) => {
   let rateVariable = currency?.exchange_rate;
   let price = parseFloat(num);
-  price = parseFloat((price * rateVariable).toFixed(decimal));
+  price = price * rateVariable;
 
   if (price >= 1000000) {
     return CielNumber(price / 1000000) + translateFunction("M", lang); // For millions
