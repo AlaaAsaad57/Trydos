@@ -217,7 +217,7 @@ export async function getProductsAndFiltersFromElastic(
       };
     }
   }
-  console.log(filters);
+
   try {
     const filtersSize = filters_offset * 10;
     const baseConditions = buildBaseConditions(filters, country);
@@ -319,7 +319,12 @@ export async function getProductsAndFiltersFromElastic(
       time: Number(end - start) / 1_000_000,
       limit: limit,
       total_size: customProducts.length,
-      products: params.noProducts ? [] : normalizedProducts.custom_products,
+      products: params.noProducts
+        ? []
+        : normalizedProducts.custom_products?.map((s) => ({
+            ...s,
+            is_redeem: s.has_redeem_discount,
+          })),
       brands: brandsFilter,
       boutiques: boutiquesFilter,
       categories: categoriesFilter,
