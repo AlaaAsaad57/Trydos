@@ -71,7 +71,7 @@ export async function generateMetadata({ params, searchParams }) {
 async function getCurrency(country, language) {
   try {
     let cachedCurrency = await getCurrencyFromCache(country);
-    console.log(cachedCurrency, "cached");
+
     if (typeof cachedCurrency === "string") {
       return JSON.parse(cachedCurrency);
     }
@@ -80,7 +80,7 @@ async function getCurrency(country, language) {
     } else {
       let currencyData = await fetchCurrency(language, country);
       let currency = currencyData.data.currency;
-      console.log(currency, "not cahced");
+
       StoreCurrency(country, currency);
       return currency;
     }
