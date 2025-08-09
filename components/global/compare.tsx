@@ -24,6 +24,9 @@ const ComparePage: React.FC = ({
   const [loading2, setLoading2] = useState(false);
   const [initialLoading, setInitialLoading] = useState(showInstantLoading);
   const { lang } = useParams();
+  // @ts-ignore
+  let languageVariable = lang.split("-")[1];
+  const isRtl = languageVariable === "ar" || languageVariable === "ku";
   useEffect(() => {
     const { f_p, s_p } = {
       f_p: searchParams.get("f_p"),
@@ -306,7 +309,6 @@ const ComparePage: React.FC = ({
       );
     }
   };
-
   const compareFields = [
     {
       key: "name",
@@ -348,7 +350,7 @@ const ComparePage: React.FC = ({
           {product.colors?.map((colorObj) => (
             <div
               key={colorObj.color}
-              className="w-6 h-6 rounded-full border"
+              className="w-6 h-6 rounded-full border regular"
               style={{ backgroundColor: colorObj.color }}
               title={colorObj.name}
             />
@@ -364,7 +366,7 @@ const ComparePage: React.FC = ({
           {product.choice_options
             ?.find((opt) => opt.title === "Size")
             ?.options?.map((size) => (
-              <span key={size.name} className="px-2 py-1 bg-gray-100 rounded">
+              <span key={size.name} className="px-2 py-1 bg-gray-100 rounded regular">
                 {size.name}
               </span>
             )) || "-"}
@@ -375,7 +377,7 @@ const ComparePage: React.FC = ({
       key: "price",
       label: translateFunction("Price"),
       render: (product: any) => (
-        <span className="font-semibold">
+        <span className="font-semibold regular">
           {currency?.symbol || "$"}
           {RoundPrice({ num: product.price })}
         </span>
@@ -386,7 +388,7 @@ const ComparePage: React.FC = ({
       label: translateFunction("Offer Price"),
       render: (product: any) =>
         product.offer_price ? (
-          <span className="text-green-600 font-semibold">
+          <span className="text-green-600 font-semibold regular">
             {currency?.symbol || "$"}
             {RoundPrice({ num: product.offer_price })}
           </span>
@@ -413,10 +415,10 @@ const ComparePage: React.FC = ({
           <div className="space-y-2">
             {product.details.map((detail, index) => (
               <div key={index} className="flex items-start gap-2">
-                <span className="font-medium text-gray-700 min-w-[100px]">
+                <span className="font-medium text-gray-700 min-w-[100px] regular">
                   {detail.title}:
                 </span>
-                <span className="text-gray-600">{detail.value}</span>
+                <span className="text-gray-600 regular">{detail.value}</span>
               </div>
             ))}
           </div>
@@ -431,7 +433,7 @@ const ComparePage: React.FC = ({
         <CompareLoadingWidget />
       ) : (
         <div className="container mx-auto p-4 max-w-7xl pb-[200px]">
-          <div className="flex items-center gap-3 mb-8">
+          <div className={`flex items-center gap-3 mb-8 flex-row ${ isRtl ? "flex-row-reverse": " "}`}>
             <svg
               xmlns="http://www.w3.org/2000/svg"
               xmlnsXlink="http://www.w3.org/1999/xlink"
@@ -512,7 +514,7 @@ const ComparePage: React.FC = ({
                 </g>
               </g>
             </svg>
-            <h1 className="text-3xl  text-gray-900">
+            <h1 className="text-3xl  text-gray-900 regular">
               {translateFunction("Compare Products")}
             </h1>
           </div>
@@ -527,7 +529,10 @@ const ComparePage: React.FC = ({
                   }
                   onClear={() => handleClear(true)}
                   onSearch={debouncedChangeHandler}
-                  options={products}
+                  options={products.map(p => ({
+                    ...p,
+                    images: typeof p.images === 'string' ? { file_path: p.images } : p.images
+                  }) )}
                   isLoading={searchLoading || loading1}
                   className="w-full"
                   selectedOption={
@@ -535,7 +540,7 @@ const ComparePage: React.FC = ({
                       ? {
                           label: product1.name,
                           value: product1.slug,
-                          images: product1.images[0],
+                          images: product1.images && product1.images[0] ? { file_path: product1.images[0].file_path } : undefined,
                           price: product1.price,
                         }
                       : null
@@ -550,7 +555,10 @@ const ComparePage: React.FC = ({
                   }
                   onClear={() => handleClear(false)}
                   onSearch={debouncedChangeHandler}
-                  options={products}
+                  options={products.map(p => ({
+                    ...p,
+                    images: typeof p.images === 'string' ? { file_path: p.images } : p.images
+                  }) )}
                   isLoading={searchLoading || loading2}
                   className="w-full"
                   selectedOption={
@@ -558,7 +566,7 @@ const ComparePage: React.FC = ({
                       ? {
                           label: product2.name,
                           value: product2.slug,
-                          images: product2.images[0],
+                          images: product2.images && product2.images[0] ? { file_path: product2.images[0].file_path } : undefined,
                           price: product2.price,
                         }
                       : null
@@ -567,17 +575,17 @@ const ComparePage: React.FC = ({
               </div>
             </div>
 
-            <div className="mt-8 overflow-x-auto rounded-lg border border-gray-200">
+            <div className="mt-8 overflow-x-auto rounded-xl border border-gray-200 bg-gray-50 shadow-md">
               <div className="min-w-full">
                 <div className="overflow-x-auto">
-                  <table className="w-full border-collapse">
+                  <table className="w-full border-collapse text-gray-800 regular">
                     <tbody>
                       {compareFields.map(({ key, label, render }) => (
-                        <tr key={key} className="border-b last:border-b-0">
-                          <th className="p-4 text-left bg-gray-50 w-1/4 font-medium text-gray-700 whitespace-nowrap">
+                        <tr key={key} className="border-b last:border-b-0 hover:bg-blue-50 transition-colors">
+                          <th className="p-4 text-left bg-blue-100 w-1/4 font-semibold text-blue-900 whitespace-nowrap border-r border-gray-200 regular">
                             {label}
                           </th>
-                          <td className="p-4 w-[37.5%] bg-white">
+                          <td className="p-4 w-[37.5%] bg-white border-r border-gray-100">
                             <div className="flex flex-col gap-2">
                               {loading1 ? (
                                 <LoadingCell />

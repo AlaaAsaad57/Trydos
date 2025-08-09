@@ -16,6 +16,7 @@ interface ListingState {
   skeleton: boolean;
   showedFilter: string;
   limit: number;
+  cameraPermissions: boolean;
 }
 
 const initialState: ListingState = {
@@ -27,6 +28,7 @@ const initialState: ListingState = {
   skeleton: false,
   showedFilter: "Categories",
   limit: 4,
+  cameraPermissions: false,
 };
 
 export const useListingStore = (set, get) => ({

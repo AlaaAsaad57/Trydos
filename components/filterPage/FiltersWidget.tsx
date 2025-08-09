@@ -43,6 +43,7 @@ function FilterWidgetContainer({}) {
   // @ts-ignore
   const [country, language] = lang.split("-");
   // Parse filters from URL path parameters
+  const isRtl = language === "ar" || language === "ku";
   let parsedFilters = filterParams
     ? parseFiltersFromParams(filterParams as string[])
     : {};
@@ -237,7 +238,7 @@ function FilterWidgetContainer({}) {
         />
         {Object.keys(searchFilters).map((s) => (
           <div className="flex-col mt-[20px] relative max-w-full" key={s}>
-            <div className="flex">
+            <div className={`flex ${isRtl ? "flex-row-reverse" : " "}`}>
               {" "}
               <FilterLabel text={`Filter By ${s}`} />
               <span className="ml-[10px]">
@@ -293,7 +294,9 @@ function FiltersWidget({ filters, configureActiveFilters }) {
       document?.documentElement?.style?.setProperty("overflow", "auto");
     }
   }, [filterEnabled]);
-
+  // @ts-ignore
+  const language = lang.split("-")[1];
+  const isRtl = language === "ar" || language === "ku";
   useEffect(() => {
     if (
       boutiqueId !== "listing" &&
@@ -384,7 +387,7 @@ function FiltersWidget({ filters, configureActiveFilters }) {
           )
             return (
               <div className="flex-col mt-[20px] relative max-w-full" key={key}>
-                <div className="flex">
+                <div className={`flex ${isRtl ? "flex-row-reverse" : " "}`}>
                   {" "}
                   <FilterLabel text={`Filter By ${key}`} />
                   {loading_search && (
@@ -415,7 +418,7 @@ function FiltersWidget({ filters, configureActiveFilters }) {
                   resetPrice();
                 }}
               />
-              <div className="flex">
+              <div className={`flex ${isRtl ? "flex-row-reverse" : " "}`}>
                 {" "}
                 <FilterLabel text={`Filter By Prices`} />
                 {loading_search && (
@@ -619,6 +622,9 @@ const FilterTobBar = ({ isSearch, setIsSearch, Goback }) => {
 };
 const ShowFilterRow = ({ term, values }) => {
   const { lang } = useParams();
+  // @ts-ignore
+  const [country, language] = lang.split("-");
+  const isRtl = language === "ar" || language === "ku";
   const {
     setSearchPartialLoading,
     setSearchLoading,
@@ -678,7 +684,9 @@ const ShowFilterRow = ({ term, values }) => {
 
   return (
     <HortiznalScrollBar
-      className="flex-row align-center justify-start mt-[10px]"
+      className={`flex-row align-center justify-start mt-[10px]  ${
+        isRtl ? "flex-row-reverse" : " "
+      }`}
       id={`filter-${term}-row`}
     >
       {values.map((value, index) => {
@@ -719,7 +727,9 @@ const ShowFilterRow = ({ term, values }) => {
               <div
                 className={`w-[70px] h-[70px]  min-w-[70px] min-h-[70px] ${
                   term === "colors" ? `` : "bg-[#fff]"
-                } rounded-full flex-row align-center justify-center`}
+                } rounded-full flex-row align-center justify-center  ${
+                  isRtl ? "flex-row-reverse" : " "
+                }`}
                 style={{
                   backgroundColor: term === "colors" ? value : "",
                   boxShadow: "0px 3px 3px #0000001A",

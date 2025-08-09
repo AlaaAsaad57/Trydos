@@ -8,4 +8,5 @@ export interface CommentItemPropsType {
     isPending: boolean;
     isError: boolean;
     resendComment: Function;
+    custmerId: number,
 }

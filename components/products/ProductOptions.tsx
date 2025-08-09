@@ -152,7 +152,7 @@ function ProductOptions({
   return (
     <div
       className="product-options-container"
-      style={{ zIndex: "99999999999999" }}
+      style={{ zIndex: "999999999" }}
     >
       {share ? (
         <ShareButton onClick={() => shareAction()} />

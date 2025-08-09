@@ -1,4 +1,5 @@
 "use client";
+import "styles/listing.css";
 import BottomSheet from "components/global/BottomSheet";
 import ProductColorCard from "components/products/ProductColorCard";
 import { useParams } from "node_modules/next/navigation";
@@ -22,7 +23,7 @@ function ColorBottomSheet({ id, setActiveColor, activeColor }) {
               setColorBottomSheet(false);
             }}
           >
-            <div className="w-full pb-[40px] max-w-[406px] mx-auto  min-h-[60vh]  bg-white pt-[10px] flex-row flex-wrap gap-[6px] gap-y-[18px]">
+            <div className="w-full pb-[40px] max-w-[1310px] min-h-[60vh] bg-white pt-[10px] flex flex-wrap gap-y-[18px] justify-center items-center">
               {ColorBottomSheet?.sync_color_images?.map((color, i) => (
                 <ProductColorCard
                   onClick={() => {

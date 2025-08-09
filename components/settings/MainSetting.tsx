@@ -130,10 +130,14 @@ function MainSetting({ swipeToScreen }: MainSettingPropsType) {
 
 export default MainSetting;
 const SettingOption = ({ name, Icon }: MainSettingOptionPropsType) => {
+  const { lang } = useParams();
+  // @ts-ignore
+  const language = lang.split("-")[1];
+  const isRtl = language === "ar" || language === "ku";
   return (
-    <div className="w-full flex-row cursor-pointer mt-[4px] h-[53px] rounded-[15px] bg-[#f8f8f8] px-[12px] items-center">
+    <div className={`w-full flex-row cursor-pointer mt-[4px] h-[53px] rounded-[15px] bg-[#f8f8f8] px-[12px] items-center ${ isRtl ? "flex-row-reverse": " "}`}>
       {Icon}
-      <span className="text-[14px] regular text-[#1d1d1d] ml-[12px] ">
+      <span className={`text-[14px] regular text-[#1d1d1d] ml-[12px] ${ isRtl ? "pr-2": " "}`}>
         {translateFunction(name)}
       </span>
     </div>

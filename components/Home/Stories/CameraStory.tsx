@@ -79,7 +79,6 @@ function NewStoryModal({ close, send, HandleUploadedVideo }: NewStoryModalPropsT
       setVideo,
       stop,
     ]);
-
     const handleDownload = useCallback(() => {
       if (recordedChunks.length || vidUrl) {
         const blob = new Blob(recordedChunks, {

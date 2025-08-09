@@ -99,7 +99,7 @@ const AsyncSelectCustom: React.FC<AsyncSelectProps> = ({
       <div className="relative">
         <input
           type="text"
-          className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 bg-gray-50 text-gray-900 placeholder-gray-400 transition-colors"
           placeholder={placeholder}
           value={searchTerm}
           onChange={handleInputChange}
@@ -113,7 +113,7 @@ const AsyncSelectCustom: React.FC<AsyncSelectProps> = ({
           {searchTerm && (
             <button
               onClick={handleClear}
-              className="text-gray-400 hover:text-gray-600"
+              className="text-gray-400 hover:text-blue-500 focus:text-blue-600 transition-colors"
               type="button"
             >
               <svg
@@ -135,30 +135,30 @@ const AsyncSelectCustom: React.FC<AsyncSelectProps> = ({
             </button>
           )}
           {isLoading && (
-            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-gray-900"></div>
+            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-500"></div>
           )}
         </div>
       </div>
 
       {isOpen && (
-        <div className="absolute z-10 w-full mt-1 bg-white border rounded-lg shadow-lg max-h-60 overflow-auto">
+        <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-auto">
           {options.length > 0 ? (
-            options.map((option) => (
+            options?.map((option) => (
               <div
-                key={option.value}
-                className="px-4 py-2 cursor-pointer hover:bg-gray-100 flex items-center gap-3"
+                key={option?.value}
+                className="px-4 py-2 cursor-pointer hover:bg-blue-50 flex items-center gap-3 transition-colors"
                 onClick={() => handleOptionClick(option)}
               >
-                {option.images.file_path && (
+                {option.images?.file_path && (
                   <img
-                    src={GetImageUrl(option.images[0]?.file_path)}
+                    src={GetImageUrl(option.images?.file_path)}
                     alt={option.label}
                     className="w-10 h-10 object-cover rounded"
                   />
                 )}
                 <div className="flex-1">
-                  <div className="font-medium">{option.label}</div>
-                  {option.price && (
+                  <div className="font-medium text-gray-900">{option.label}</div>
+                  {option?.price && (
                     <div className="text-sm text-gray-600">
                       ${option.price.toFixed(2)}
                     </div>
@@ -167,7 +167,7 @@ const AsyncSelectCustom: React.FC<AsyncSelectProps> = ({
               </div>
             ))
           ) : (
-            <div className="px-4 py-2 text-gray-500">
+            <div className="px-4 py-2 text-gray-500 regular">
               {isLoading ? "Loading..." : "No options found"}
             </div>
           )}

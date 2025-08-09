@@ -30,6 +30,7 @@ const CouponElement = ({
     coupon_discount,
     setCouponDiscount,
   } = useAppStore();
+  const isRtl = language === "ar" || language === "ku";
   const [coupon, setCoupon] = useState<number | false | string>(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -97,12 +98,14 @@ const CouponElement = ({
       style={{ border: active ? "1px solid rgb(56 144 255 / 51%)" : undefined }}
       className={`w-full cursor-pointer pt-[12px] mt-[30px] ${
         active ? "h-[111px] bg-[#fff]" : " h-[42px] bg-[#f8f8f8]"
-      } rounded-[15px] flex-col items-start px-[12px]`}
+      } rounded-[15px] items-start px-[12px] ${
+        isRtl ? "flex-row-reverse" : " flex-col"
+      }`}
     >
-      <div className={`flex-row`}>
+      <div className={`${isRtl ? "flex-row-reverse" : " flex-row"}`}>
         <div
           className={`regular text-[#1D1D1D] text-[14px] ml-2 ${
-            language === "ar" || language === "ku" ? "text-right" : ""
+            isRtl ? "text-right" : ""
           }`}
         >
           {translateFunction("I Have a Discount Coupon")}
@@ -113,16 +116,20 @@ const CouponElement = ({
         <>
           <div
             className={`regular text-[12px] text-[#8D8D8D] ml-[28px] ${
-              language === "ar" || language === "ku" ? "text-right" : ""
+              isRtl ? "text-right pr-2" : ""
             }`}
           >
             {translateFunction("Please Enter Coupon Information")}
           </div>
           <div className="mt-[10px] w-full items-center justify-between flex rounded-[15px] h-[40px] bg-[#F8F8F8] relative">
-            <div className="flex-row items-center w-full">
+            <div
+              className={`flex-row items-center w-full ${
+                isRtl ? "flex-row-reverse" : " "
+              }`}
+            >
               {!coupon && (
                 <input
-                  placeholder="Coupon No"
+                  placeholder={translateFunction("Coupon No", language)}
                   value={orderData.coupon_number}
                   onChange={(e) => onChange(pollinateInput(e.target.value))}
                   onBlur={(e) => {

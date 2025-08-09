@@ -13,6 +13,10 @@ function SearchTrending() {
     trending,
   } = useAppStore();
   const [openMenu, setOpen] = useState(false);
+  const { lang } = useParams();
+  // @ts-ignore
+  let languageVariable = lang.split("-")[1];
+  const isRtl = languageVariable === "ar" || languageVariable === "ku";
   useEffect(() => {
     if (typeof document !== "undefined") {
       const slider: HTMLDivElement = document?.querySelector(
@@ -46,13 +50,12 @@ function SearchTrending() {
     }
   }, []);
 
-  const { lang } = useParams();
 
   return (
     <div
       className={` ${
         openMenu ? "flex-col" : "align-center flex-row"
-      } search-filter-container`}
+      } search-filter-container ${ isRtl ? "flex-row-reverse pr-2": " "}`}
     >
       <div
         className="flex-row align-center cursor-pointer"

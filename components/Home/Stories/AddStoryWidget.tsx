@@ -14,7 +14,6 @@ import {
 import { getUserStories, translateFunction } from "utils/functions";
 import StoryServiceClass from "services/story";
 import { DisableScroll, EnableScroll, pollinateInput } from "@/utils/tinyUtils";
-
 import Spinner from "components/global/Spinner";
 
 // Icons
@@ -159,7 +158,12 @@ export default function AddStoryWidget({ onClose }: AddStoryWidgetPropsType) {
   const [preview, setPreview] = useState<string | null>(null);
   const [link, setLink] = useState("");
   const [linkError, setLinkError] = useState("");
-  const { setOpenCamera, OpenCamera } = useAppStore();
+  const {
+    setOpenCamera,
+    OpenCamera,
+    cameraPermissions,
+    checkCameraPermissions,
+  } = useAppStore();
   const [uploaded, setUpload] = useState(-1);
   const [isSelected, setIsSelected] = useState(null);
   const [file, setFile] = useState(null);
@@ -326,10 +330,19 @@ export default function AddStoryWidget({ onClose }: AddStoryWidgetPropsType) {
   };
 
   const handleCameraClick = () => {
+    if (!cameraPermissions) {
+      showErrorNotification(
+        translateFunction(
+          "Please enable notification permissions to use camera features"
+        )
+      );
+      return;
+    }
     // Sendevent({
     //   event: GA_EVENT_NAMES.CLICK,
     //   value: GA_CLICK_EVENT_VALUES.CHOOSE_CAMERA_FOR_ADD_STORY,
     // });
+
     // TODO: Integrate with existing camera component
     setOpenCamera(true);
     // onClose();
@@ -386,6 +399,7 @@ export default function AddStoryWidget({ onClose }: AddStoryWidgetPropsType) {
   };
 
   useEffect(() => {
+    checkCameraPermissions();
     DisableScroll();
     // @ts-ignore
     document.querySelector(".stories-bar-container").style.zIndex =
@@ -395,8 +409,7 @@ export default function AddStoryWidget({ onClose }: AddStoryWidgetPropsType) {
       // @ts-ignore
       document.querySelector(".stories-bar-container").style.zIndex = "1";
     };
-  }, []);
-
+  }, [checkCameraPermissions]);
   return (
     <>
       {OpenCamera && (
@@ -464,7 +477,11 @@ export default function AddStoryWidget({ onClose }: AddStoryWidgetPropsType) {
           <div className=" pl-4 w-1/2 flex flex-col gap-4 items-start">
             <button
               onClick={handleCameraClick}
-              className="flex items-center gap-3 p-3 hover:bg-gray-100 rounded-lg"
+              className={`flex items-center gap-3 p-3 rounded-lg ${
+                cameraPermissions
+                  ? "hover:bg-gray-100 cursor-pointer"
+                  : "opacity-50 cursor-not-allowed bg-gray-50"
+              }`}
             >
               <CameraIcon />
               <span>{translateFunction("Take Photo")}</span>

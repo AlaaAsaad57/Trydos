@@ -8,7 +8,7 @@ import {
   ShippedSatus,
 } from "./OrderStatusCartsIcon";
 
-function OrderStatusIcon({ status }) {
+function OrderStatusIcon({ status , isRtl} : {status : string , isRtl?: boolean}) {
   if (!status || typeof status !== "string") return <></>;
   if (status?.toLowerCase() === "pending")
     return (

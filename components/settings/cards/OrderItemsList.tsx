@@ -34,6 +34,9 @@ function OrderItemsList({
     return <PendingStatus />;
   };
   const { lang } = useParams();
+  // @ts-ignore
+  const language = lang.split("-")[1];
+  const isRtl = language === "ar" || language === "ku";
   const isDelevired = (item) => {
     return (
       !item.is_returned &&
@@ -54,11 +57,14 @@ function OrderItemsList({
         }}
       >
         <OrdersIcon />
-        <span className="text-[#8D8D8D] text-[10px] regular mt-[5px]">
+        <span className={`text-[#8D8D8D] text-[10px] regular mt-[5px]`}>
           {translateFunction("Order Details")}
         </span>
-        <span className="text-[#1D1D1D] text-[12px] regular ">
-          <span className="bold"> {items.length}</span>{" "}
+        <span className={`text-[#1D1D1D] text-[12px] regular`}>
+          <span className={`bold ${isRtl ? " text-right " : " "}`}>
+            {" "}
+            {items.length}
+          </span>{" "}
           {translateFunction("Items")}
         </span>
         {shouldShowChat() && (
@@ -104,12 +110,15 @@ function OrderItemsList({
             </NextLink>
             <div className="flex-col text-[10px] regular text-[#1d1d1d]  items-center left-0 right-0 mx-[0_auto] mt-[4px]">
               <div className="flex flex-row">
-                <span className="origin-top-left scale-[0.75]">
+                <span className={`origin-top-left scale-[0.75]`}>
                   {getStatusIcon(order_group_status?.value?.toLowerCase())}
                 </span>
 
                 {!isDelevired(product) && (
-                  <OrderStatusIcon status={order_group_status?.value} />
+                  <OrderStatusIcon
+                    status={order_group_status?.value}
+                    isRtl={isRtl}
+                  />
                 )}
               </div>
               {!isDelevired(product) ? (

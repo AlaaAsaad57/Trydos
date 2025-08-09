@@ -2,7 +2,6 @@
 import NextLink from "components/global/NextLink";
 import React, { memo, useState } from "react";
 import { BuyButtonProduct } from "../ListingPage/Product";
-import MangoIcon from "public/svg/listing/MangoIcon.svg";
 import VerifiedIcon from "public/svg/listing/VerifiedIcon.svg";
 import { ProductLabelsAnimated } from "components/products/ProductLabelsAnimated";
 import { getCookie, setCookie } from "utils/cookies/cookie-manager";
@@ -10,6 +9,7 @@ import { ProductPhotosSlider } from "components/ListingPage/ProductSliders";
 import ColorBottomSheet from "components/ListingPage/ColorBottomSheet";
 import { useAppStore } from "store";
 import { GA_GLOBAL_SCREEN } from "utils/GAEvents";
+import { GetImageUrl } from "utils/tinyUtils";
 import CoverEffectSlider from "components/ListingPage/CoverEffectSlider";
 
 function ProductCard({
@@ -146,7 +146,17 @@ function ProductCard({
               data-cy="productName"
             >
               <span className="flex-row align-center justify-start gap-[4px]">
-                <MangoIcon />
+                {product?.brand?.icon?.file_path ? (
+                  <img
+                    src={GetImageUrl(product.brand.icon)}
+                    alt={product.brand.name || "Brand"}
+                    className="h-[8px] w-auto object-contain"
+                    loading="eager"
+                    draggable="false"
+                  />
+                ) : (
+                  <div className="h-[8px] w-[49.358px] bg-gray-200 rounded" />
+                )}
                 <VerifiedIcon />
               </span>
               {[

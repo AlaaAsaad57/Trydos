@@ -571,6 +571,10 @@ const OrderExpandedDetails = ({
       setCancelling(false);
     }
   };
+  const { lang } = useParams();
+  // @ts-ignore
+  const language = lang.split("-")[1];
+  const isRtl = language === "ar" || language === "ku";
   return (
     <div className="bg-[#fff] mt-[20px] rounded-[10px] w-full h-auto p-[12px] flex-col flex items-start">
       <span className="w-[70px] h-[10px] bg-[#C4C2C27f]"></span>
@@ -692,16 +696,26 @@ const OrderExpandedDetails = ({
           </span>
         </div>
         <div className="w-auto min-h-[60px] h-auto  px-[12px] flex-col">
-          <div className="flex flex-row items-end">
-            <OrderStatusCartsIcon status={order?.order_group_status?.value} />
+          <div
+            className={`flex flex-row items-end ${
+              isRtl ? "flex-row-reverse" : " "
+            }`}
+          >
+            <OrderStatusCartsIcon
+              status={order?.order_group_status?.value}
+              isRtl={isRtl}
+            />
           </div>
-          <span className="text-[#8D8D8D] regular text-[10px] mt-[5px]">
+          <span className="text-[#8D8D8D] regular text-[10px] mt-[5px] text-right">
             {translateFunction("Order Status")}
           </span>
           <div className="text-[#1D1D1D] flex-row text-[12px] regular mt-[3px]">
             <span>{order?.order_group_status?.label}</span>
             <span className="ml-[11px]">
-              <OrderStatusIcon status={order?.order_group_status?.value} />
+              <OrderStatusIcon
+                status={order?.order_group_status?.value}
+                isRtl={isRtl}
+              />
             </span>
           </div>
         </div>
@@ -761,6 +775,9 @@ const ProductCard = ({
 }: ProductCardPropsType) => {
   const { currency, setSelectedOrderItem, ActivePacks } = useAppStore();
   const { lang } = useParams();
+  // @ts-ignore
+  const language = lang.split("-")[1];
+  const isRtl = language === "ar" || language === "ku";
   return (
     <>
       <div className={`relative w-full flex-col`}>
@@ -865,6 +882,7 @@ const ProductCard = ({
                 <span className="ml-[12px]">
                   <OrderStatusIcon
                     status={product?.order_status?.value ?? status?.value}
+                    isRtl={isRtl}
                   />
                 </span>
               </div>

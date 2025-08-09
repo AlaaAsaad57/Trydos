@@ -38,6 +38,7 @@ import { useRouter } from "next/navigation";
 import FlashDealBanner from "components/products/FlashDealBanner";
 import { REQUESTS_DATA } from "utils/Requests";
 import auth from "services/auth";
+import CartErrorComponent from "./CartErrorComponent";
 
 function CartContainer({ close, toOrders }: CartContainerPropsType) {
   const {
@@ -55,6 +56,7 @@ function CartContainer({ close, toOrders }: CartContainerPropsType) {
     cart_loading,
     product,
     cart,
+    cartShippingSuccess,
   } = useAppStore();
   let { lang } = useParams();
   // @ts-ignore
@@ -62,7 +64,6 @@ function CartContainer({ close, toOrders }: CartContainerPropsType) {
   const translate = (key: string, lang?: string) => {
     return translateFunction(key, languageVariable);
   };
-
   const getURLOfProduct = ({ product }) => {
     let productUrl;
     if (product.variations[0]?.color && !product.variations[0]?.Size)
@@ -132,6 +133,11 @@ function CartContainer({ close, toOrders }: CartContainerPropsType) {
       });
     }
     await getOldCart();
+  };
+
+  const handleRetry = async () => {
+    setCartLoading(true);
+    await getData();
   };
   const params = useParams();
 
@@ -388,7 +394,12 @@ function CartContainer({ close, toOrders }: CartContainerPropsType) {
 
       <div className="flex-col overflow-auto max-h-screen">
         <div className="flex-col  w-full h-auto mt-10 pb-[20px]">
-          {!cart_loading ? (
+          {!cart_loading && cartShippingSuccess !== null ? (
+            <CartErrorComponent
+              errorMessage={cartShippingSuccess}
+              onRetry={handleRetry}
+            />
+          ) : !cart_loading && cartShippingSuccess === null ? (
             <>
               {cart.length > 0 ? (
                 <>
@@ -828,7 +839,7 @@ function CartContainer({ close, toOrders }: CartContainerPropsType) {
               className="flex-col  w-full h-auto mt-3 pb-[200px]"
               data-cy="Product_Non_Available_In_Cart"
             >
-              {!cart_loading ? (
+              {!cart_loading && cartShippingSuccess === null ? (
                 <>
                   {filteredOldCart.map((product, key) => (
                     <div
@@ -1169,7 +1180,7 @@ function CartContainer({ close, toOrders }: CartContainerPropsType) {
         )}
       </div>
 
-      {!cart_loading && (
+      {!cart_loading && cartShippingSuccess === null && (
         <OrderButton toOrders={() => toOrders()} close={() => close()} />
       )}
     </div>

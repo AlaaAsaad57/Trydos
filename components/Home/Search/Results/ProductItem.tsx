@@ -12,6 +12,9 @@ import { useAppStore } from "store";
 function ProductItem({ product, onClick }) {
   const { lang } = useParams();
   const { value } = useAppStore();
+  // @ts-ignore
+  let languageVariable = lang.split("-")[1];
+  const isRtl = languageVariable === "ar" || languageVariable === "ku";
   return (
     <NextLink
       data={{
@@ -42,7 +45,7 @@ function ProductItem({ product, onClick }) {
       href={`/${lang}/products/${product.slug}`}
       data-cy="product-result-link"
     >
-      <div className="result-product flex-row">
+      <div className={`result-product flex-row ${ isRtl ? "flex-row-reverse": " "}`}>
         <div className="image-result">
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -88,7 +91,7 @@ function ProductItem({ product, onClick }) {
             })}
           />
         </div>
-        <div className="result-product-text">{product.name}</div>
+        <div className={`result-product-text ${ isRtl ? " pr-2": " "}`}>{product.name}</div>
       </div>
     </NextLink>
   );

@@ -11,6 +11,8 @@ import { useAppStore } from "store";
 import ChatPhoto from "./ChatPhoto";
 import { fetchData } from "utils/fetchData";
 import { REQUESTS_DATA } from "utils/Requests";
+import { showErrorNotification } from "store/notifications/reducer";
+import { useEffect }  from "react";
 function ChatHeader({
   chats,
   activeChat,
@@ -25,6 +27,8 @@ function ChatHeader({
     setMain,
     openChat,
     setReplyMessage,
+    cameraPermissions,
+    checkCameraPermissions,
   } = useAppStore();
   let { lang } = useParams();
   // @ts-ignore
@@ -53,6 +57,9 @@ function ChatHeader({
       }
     }
   };
+  useEffect(() => {
+    checkCameraPermissions();
+  }, [checkCameraPermissions]);
   return (
     <div className="chat-screen-top">
       <ArrowIcon
@@ -109,6 +116,12 @@ function ChatHeader({
           <VideoIcon
             className={`${callLoading === "video" && "loading-svg"} vcall`}
             onClick={() => {
+              if (!cameraPermissions) {
+                showErrorNotification(
+                  translateFunction("Please enable notification permissions to use camera features")
+                );
+                return;
+              }
               !callLoading &&
                 makeVideoCall(
                   activeChat.id,
@@ -127,6 +140,12 @@ function ChatHeader({
           <CallIcon
             className={`${callLoading === "voice" && "loading-svg"} call`}
             onClick={() => {
+              if (!cameraPermissions) {
+                showErrorNotification(
+                  translateFunction("Please enable notification permissions to use camera features")
+                );
+                return;
+              }
               !callLoading &&
                 makeVoiceCall(
                   activeChat.id,

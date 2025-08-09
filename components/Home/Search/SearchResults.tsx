@@ -48,6 +48,7 @@ function SearchResults() {
   const { lang } = useParams();
   // @ts-ignore
   let languageVariable = lang.split("-")[1];
+  const isRtl = languageVariable === "ar" || languageVariable === "ku";
 
   const apply = () => {
     // Sendevent({
@@ -131,7 +132,7 @@ function SearchResults() {
       <>
         {value?.length > 0 && searchResults?.products?.length > 0 && (
           <div className="products-results flex-col max-h-[60%] overflow-auto">
-            <div className="result-label flex-row">
+            <div className={`result-label flex-row  ${ isRtl ? "flex-row-reverse pr-2": " "}`}>
               {translateFunction("Find Products", languageVariable)}{" "}
             </div>
             {searchResults?.products?.map((product, index) => {
@@ -160,11 +161,11 @@ function SearchResults() {
             className="products-results brand-results"
             data-cy="ContainerOfBrands"
           >
-            <div className="result-label flex-row">
+            <div className={`result-label flex-row  ${ isRtl ? "flex-row-reverse pr-2": " "}`}>
               {translateFunction("Find Brands", languageVariable)}{" "}
               {partialLoading && <Spinner className="ml-3" no />}
             </div>
-            <div className="brands-results-row flex-row overflow-auto">
+            <div className={`brands-results-row flex-row overflow-auto ${ isRtl ? "flex-row-reverse": " "}`}>
               {searchResults?.brands?.map((brand, index) => (
                 <BrandItem
                   brand={brand}
@@ -201,13 +202,13 @@ function SearchResults() {
             className="products-results brand-results"
             data-cy="ContainerOfCategories"
           >
-            <div className="result-label flex-row">
+            <div className={`result-label flex-row  ${ isRtl ? "flex-row-reverse pr-2": " "}`}>
               {translateFunction("Find Categories", languageVariable)}{" "}
               {(partialLoading || loading_search) && (
                 <Spinner className="ml-3" no />
               )}
             </div>
-            <div className="brands-results-row flex-row overflow-auto">
+            <div className={`brands-results-row flex-row overflow-auto ${ isRtl ? "flex-row-reverse": " "}`}>
               {searchResults?.categories?.map((category, index) => (
                 <CategoryItem
                   category={category}
@@ -243,13 +244,13 @@ function SearchResults() {
             className="products-results brand-results"
             data-cy="ContainerOfBoutiques"
           >
-            <div className="result-label flex-row">
+            <div className={`result-label flex-row  ${ isRtl ? "flex-row-reverse pr-2": " "}`}>
               {translateFunction("Find Boutiques", languageVariable)}{" "}
               {(partialLoading || loading_search) && (
                 <Spinner className="ml-3" no />
               )}
             </div>
-            <div className="brands-results-row flex-row overflow-auto">
+            <div className={`brands-results-row flex-row overflow-auto ${ isRtl ? "flex-row-reverse": " "}`}>
               {searchResults?.boutiques?.map((boutique, index) => (
                 <BoutiqueItem
                   boutique={boutique}

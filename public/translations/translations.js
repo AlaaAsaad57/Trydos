@@ -1,5 +1,26 @@
 const translations = {
   ar: {
+    "Please enable notification permissions to use camera features":
+      "يرجى تفعيل أذونات الإشعارات لاستخدام ميزات الكاميرا",
+    "Cart Loading Error": "خطأ في تحميل السلة",
+    "We encountered an error while loading your cart. Don't worry, we'll fix this issue for you.":
+      "حدث خطأ أثناء تحميل سلتك. لا تقلق، سنقوم بحل هذه المشكلة من أجلك.",
+    "Try Again": "حاول مرة أخرى",
+    "Please log in first": "يرجى تسجيل الدخول أولاً",
+    "Please verify the number first.": "يرجى التحقق من الرقم أولاً.",
+    "Are you sure you want to delete this comment?":
+      "هل أنت متأكد أنك تريد حذف هذا التعليق؟",
+    "Delete Comment": "حذف التعليق",
+    "Load More": "تحميل المزيد",
+    brands: "العلامات التجارية",
+    colors: "الألوان",
+    sizes: "المقاسات",
+    "More From": "مزيد من",
+    "Confirm Country Change": "تأكيد تغيير البلد",
+    "Are you sure you want to change your country?":
+      "هل أنت متأكد أنك تريد تغيير بلدك؟",
+    Current: "الحالي",
+    New: "الجديد",
     "Tap “Agree & Continue” To Accept trydos":
       'اضغط على "موافقة ومتابعة" لقبول trydos',
     "Cancel Return Request": "إلغاء طلب الإرجاع",
@@ -17,8 +38,8 @@ const translations = {
     "Failed to report story.": "فشل في الإبلاغ عن القصة",
     "Story reported successfully.": "تم الإبلاغ عن القصة بنجاح",
     "Report Story": "الإبلاغ عن القصة",
-    "Are you sure you want to report this story ?":
-      "هل أنت متأكد أنك تريد الإبلاغ عن هذه القصة ؟",
+    "Are you sure you want to report this story?":
+      "هل أنت متأكد أنك تريد الإبلاغ عن هذه القصة؟",
     "Reset Redeemed Products": "إعادة تعيين المنتجات المُستردة",
     "Request Log": "سجل الطلبات",
     "Make Stories Token Expired": "جعل توكن القصص منتهي الصلاحية",
@@ -73,7 +94,7 @@ const translations = {
       "تقييمك الدقيق للمنتجات التي تتسلمها يساعدنا في تحسين الجودة ويساعد العملاء الآخرين على الشراء.",
     "Story deleted successfully.": "تم حذف القصة بنجاح.",
     "Failed to delete story.": "فشل في حذف القصة.",
-    "Are you sure you want to delete this story ?":
+    "Are you sure you want to delete this story?":
       "هل أنت متأكد أنك تريد حذف هذه القصة ؟",
     Confirm: "تأكيد",
     "Delete Story": "حذف القصة",
@@ -826,6 +847,11 @@ const translations = {
       "انتهت صلاحية الجلسة.. يرجى التحقق من رقم هاتفك",
   },
   tr: {
+    "Cart Loading Error": "Sepet Yükleme Hatası",
+    "We encountered an error while loading your cart. Don't worry, we'll fix this issue for you.":
+      "Sepetinizi yüklerken bir hata oluştu. Endişelenmeyin, bu sorunu sizin için çözeceğiz.",
+    "Try Again": "Tekrar Dene",
+    "More From": "Daha Fazlası",
     "Tap “Agree & Continue” To Accept trydos":
       "Trydos'u kabul etmek için “Kabul Et ve Devam Et”e dokunun",
     "Cancel Return Request": " İade talebini iptal et",
@@ -843,7 +869,7 @@ const translations = {
     "Failed to report story.": "Hikayeyi raporlama başarısız oldu",
     "Story reported successfully.": "Hikaye başarıyla raporlandı",
     "Report Story": "Hikayeyi Rapor Et",
-    "Are you sure you want to report this story ?":
+    "Are you sure you want to report this story?":
       "Bu hikayeyi rapor etmek istediğinizden emin misiniz ?",
     "Reset Redeemed Products": "Kullanılmış Ürünleri Sıfırla",
     "Request Log": "İstek Kaydı",
@@ -1066,6 +1092,9 @@ const translations = {
     "Your Order Number": "Sipariş Numaranız",
     "You Can Track The Status Of Your Order Through ":
       "Siparişinizin Durumunu Takip Edin",
+    "Are you sure you want to delete this comment?":
+      "Bu yorumu silmek istediğinizden emin misiniz?",
+    "Delete Comment": "Yorumu Sil",
     Cancel: "İptal",
     Done: "Tamamlandı",
     "My Account / My Orders": "Hesabım / Siparişlerim",
@@ -1167,6 +1196,8 @@ const translations = {
     "Confirm And Continue": "Onayla ve Devam Et",
     Saved: "Kaydedildi",
     Shipping: "Kargo",
+    "Please log in first": "Lütfen önce giriş yapın",
+    "Load More": "Daha Fazla Yükle",
     "Shipping Address": "Kargo Adresi",
     "Back To HomePage": "Ana Sayfaya Geri Dön",
     "Composed Of:": "İçerisinde:",
@@ -1213,6 +1244,7 @@ const translations = {
     "Name Should be atleast 8 characters": "İsim En Az 8 Karakter Olmalıdır",
     Items: "Ürünler",
     "stock is limited": "stok sınırlıdır",
+    "Please verify the number first.": "Lütfen önce numarayı doğrulayın.",
     "your session has expired please login again or continue as guest":
       "oturumunuz sona erdi, lütfen tekrar giriş yapın veya misafir olarak devam edin",
     "Continue as Guest": "Misafir Olarak Devam Et",
@@ -1249,6 +1281,14 @@ const translations = {
       "Beklenen Süre, 2 Günden Az veya Fazla Sürebilir",
     Shot: "Çekim",
     Refund: "İade",
+    brands: "Markalar",
+    colors: "Renkler",
+    sizes: "Bedenler",
+    "Confirm Country Change": "Ülke değişikliğini onayla",
+    "Are you sure you want to change your country?":
+      "Ülkenizi değiştirmek istediğinizden emin misiniz?",
+    Current: "Mevcut",
+    New: "Yeni",
     "Specify Your Address To Calculate The Delivery Time":
       "Teslimat Süresini Hesaplamak İçin Adresinizi Belirtin",
     "In Your Address": "Adresinizde",
@@ -1539,6 +1579,8 @@ const translations = {
     deliveryman: "teslimatçı",
     Omar: "Omar",
     image: "resim",
+    "Please enable notification permissions to use camera features":
+      "Kamera özelliklerini kullanmak için lütfen bildirim izinlerini etkinleştirin",
     "buy Button": "satın al butonu",
     Upload: "Yükle",
     TryDos: "TryDos",
@@ -1612,7 +1654,7 @@ const translations = {
     File: "Dosya",
     "The number was copied successfully": "Numara başarıyla kopyalandı",
     "Number copy failed": "Numara kopyalanamadı",
-    "Are you sure you want to delete this story ?":
+    "Are you sure you want to delete this story?":
       "Bu hikayeyi silmek istediğinizden emin misiniz ?",
     Confirm: "Onayla",
     "Delete Story": "Hikaye Silinsin mi",
@@ -1681,7 +1723,7 @@ const translations = {
       "نمره‌کردنی ڕاستەقینەی تۆ لەسەر به‌رهمه‌کان یارمەتیدات بە باشترکردنی کیفیەت و یارمەتیدات بە کڕیارانی دیکە بۆ کڕین.",
     "Story deleted successfully.": "چیرۆکه‌که‌ به‌سه‌رکه‌وتووی سڕایه‌وه‌.",
     "Failed to delete story.": "سڕینه‌وه‌ی چیرۆکه‌که‌ سەرکەوتوو نەبوو.",
-    "Are you sure you want to delete this story ?":
+    "Are you sure you want to delete this story?":
       "دڵنیایت دەتەوێت ئەم چیرۆکە بسڕیتەوە ؟",
     Confirm: "دڵنیاکردنەوە",
     "Delete Story": "سڕینی چیرۆک",
@@ -2501,12 +2543,35 @@ const translations = {
     "Failed to report story.": "ڕاپۆرتکردنی چیرۆکەکە سەرکەوتوو نەبوو",
     "Story reported successfully.": "چیرۆکەکە بەسەرکەوتووی راپۆرتکرا",
     "Report Story": "ڕاپۆرتکردنی چیرۆک",
-    "Are you sure you want to report this story ?":
+    "Are you sure you want to report this story?":
       "دڵنیایت دەتەوێت ئەم چیرۆکە راپۆرت بکەیت ؟",
     "Preparing Your Experience": "ئامادەکردنی تاقیکردنەوەکەت",
     "Notification Permission:": "مۆڵەتی ئاگادارکردنەوە:",
     "Tap “Agree & Continue” To Accept trydos":
       "بچۆ «ڕازی بوون و بەردەوام بە» بۆ قبوڵکردنی trydos",
+    "Confirm Country Change": "دڵنیابوون بۆ گۆڕینی وڵات",
+    "Are you sure you want to change your country?":
+      "دڵنیایت دەتەوێت وڵاتت بگۆڕیت؟",
+    Current: "ئێستا",
+    New: "نوێ",
+    "Coupon No": "ژمارەی کۆپۆن",
+    brands: "مارکەکان",
+    colors: "ڕەنگەکان",
+    sizes: "قەبارەکان",
+    "More From": "زیاتر له‌",
+    "Load More": "زیاتر باربکە",
+    "Please log in first": "تکایه سەرەتا چوونەژوورەوە بکە",
+    "Cart Loading Error": "هەڵەی بارکردنی سەبەتەکە",
+    "We encountered an error while loading your cart. Don't worry, we'll fix this issue for you.":
+      "هەڵەیەک ڕووی دا لە کاتی بارکردنی سەبەتەکەت. نیگەران مەبە، ئەم کێشەیە بۆ تۆ چارەسەر دەکەین.",
+    "Try Again": "دووبارە هەوڵ بدە",
+    "Are you sure you want to delete this comment?":
+      "دڵنیایت دەتەوێت ئەم لێدوانە بسڕیتەوە؟",
+    "Delete Comment": "سڕینەوەی لێدوان",
+    "Please verify the number first.":
+      "تکایە سەرجەم ژمارەکە پەسەند بکەوە پێشتر.",
+    "Please enable notification permissions to use camera features":
+      "تکایە دەسەڵاتی ئاگادارکردنەوە چالاک بکە بۆ بەکارهێنانی تایبەتمەندییەکانی کامێرا",
   },
 };
 
