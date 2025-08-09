@@ -225,7 +225,7 @@ export async function getProductsAndFiltersFromElastic(
   } catch (error) {
     console.log("failed to analyze");
   }
-  console.log(filters, params);
+
   try {
     const filtersSize = filters_offset * 10;
 
