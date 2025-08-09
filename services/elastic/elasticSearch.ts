@@ -198,27 +198,34 @@ export async function getProductsAndFiltersFromElastic(
     filters = { ...filters, priceRange: filters.prices };
   }
 
-  if (filters.search_text && filters.search_text?.split(" ")?.length > 2) {
-    let CleanSearchText = await AnalyzeSearchText(filters.search_text);
-    if (CleanSearchText?.name) {
-      filters = { ...filters, search_text: CleanSearchText?.name };
+  try {
+    if (filters.search_text && filters.search_text?.split(" ")?.length > 2) {
+      let CleanSearchText = await AnalyzeSearchText(filters.search_text);
+      if (CleanSearchText.error) {
+        throw new Error();
+      }
+      if (CleanSearchText?.name) {
+        filters = { ...filters, search_text: CleanSearchText?.name };
+      }
+      if (CleanSearchText?.color) {
+        filters = {
+          ...filters,
+          colors: [
+            ...new Set([...(filters.colors || []), ...CleanSearchText.color]),
+          ],
+        };
+      }
+      if (CleanSearchText?.size) {
+        filters = {
+          ...filters,
+          sizes: [...new Set([...(filters.sizes || []), CleanSearchText.size])],
+        };
+      }
     }
-    if (CleanSearchText?.color) {
-      filters = {
-        ...filters,
-        colors: [
-          ...new Set([...(filters.colors || []), ...CleanSearchText.color]),
-        ],
-      };
-    }
-    if (CleanSearchText?.size) {
-      filters = {
-        ...filters,
-        sizes: [...new Set([...(filters.sizes || []), CleanSearchText.size])],
-      };
-    }
+  } catch (error) {
+    console.log("failed to analyze");
   }
-
+  console.log(filters, params);
   try {
     const filtersSize = filters_offset * 10;
 

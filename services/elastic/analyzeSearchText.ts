@@ -60,7 +60,6 @@ export default async function AnalyzeSearchText(query) {
 
     return filtered;
   } catch (error: any) {
-    console.log(error);
     return {
       error: "API call to Gemini failed",
       details: error?.response?.data || error.message,
