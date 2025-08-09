@@ -7,7 +7,7 @@ import {
 import auth from "./auth";
 import { fetchData } from "utils/fetchData";
 import { REQUESTS_DATA } from "utils/Requests";
-import { getProductsAndFiltersFromElastic } from "elasticSearch";
+import { getProductsAndFiltersFromElastic } from "services/elastic/elasticSearch";
 
 class SearchService {
   private searchAbortController: AbortController | null = null;

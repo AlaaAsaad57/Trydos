@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { getProductsAndFiltersFromElastic } from "elasticSearch";
+import { getProductsAndFiltersFromElastic } from "services/elastic/elasticSearch";
 
 interface Header {
   key: string;
@@ -863,6 +863,7 @@ export default function ApiTestPage() {
     country: "sy",
     language_code: "en",
     is_from_browser: true,
+    search_after: [],
     filters: {
       boutiques: [] as string[],
       categories: [] as string[],
@@ -873,6 +874,7 @@ export default function ApiTestPage() {
       priceRange: [0, 1000] as [number, number],
       tags_names: [] as string[],
       featured: false,
+
       flashdeal: false,
     },
   });
@@ -1425,7 +1427,27 @@ export default function ApiTestPage() {
               placeholder="e.g. S, M, L, XL"
             />
           </div>
-
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Offset (comma separated)
+            </label>
+            <input
+              type="text"
+              value={elasticTestParams.search_after.join(",")}
+              onChange={(e) =>
+                updateElasticParams(
+                  "search_after",
+                  e.target.value
+                    .split(",")
+                    .map((item) => item.trim())
+                    .filter(Boolean),
+                  false
+                )
+              }
+              className="w-full px-3 py-2 border border-gray-300 rounded-md"
+              placeholder="e.g. S, M, L, XL"
+            />
+          </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Tags (comma separated)

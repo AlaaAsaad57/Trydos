@@ -17,7 +17,7 @@ import { getHomeMetadata, GetStructuredData } from "./MetaData";
 import { HomePageProps } from "models/componentType/HomePagePropsType";
 import { fetchCurrency } from "Server Requests";
 import { ElasticsearchReader } from "services/elastic/elasticsearch-reader.service";
-import { getProductsAndFiltersFromElastic } from "elasticSearch";
+import { getProductsAndFiltersFromElastic } from "services/elastic/elasticSearch";
 import { getCurrencyFromCache } from "Server Requests/radis";
 
 export async function generateMetadata({ params }) {

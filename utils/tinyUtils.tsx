@@ -474,7 +474,16 @@ export const getCountry = (text?: string) => {
         text?.startsWith(countryItem.dialCode)
       )[0];
 };
-
+type parsedFilters = {
+  boutiques?: string[];
+  brands?: string[];
+  categories?: string[];
+  colors?: string[];
+  tags_names?: string[];
+  sizes?: string[];
+  search_text?: string[];
+  prices?: any[];
+};
 /**
  * Parse filters from URL path parameters
  * Expected order: boutiques > categories > brands > colors > sizes > prices > search
@@ -483,7 +492,7 @@ export const getCountry = (text?: string) => {
  */
 export const parseFiltersFromParams = (
   params: string[] = []
-): Record<string, string[]> => {
+): parsedFilters => {
   const filters: Record<string, string[]> = {};
 
   if (!params || params.length === 0) return filters;

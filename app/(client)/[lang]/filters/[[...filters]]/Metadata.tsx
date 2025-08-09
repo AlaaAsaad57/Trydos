@@ -1,7 +1,6 @@
 // components/BoutiqueHead.tsx
 
-import { fetchFilteredProducts } from "Server Requests";
-import { fetchServerData } from "Server Requests/ServerFetch";
+import { getProductsAndFiltersFromElastic } from "services/elastic/elasticSearch";
 import {
   filtersToSearchParams,
   generateCloudinaryUrl,
@@ -73,25 +72,43 @@ export async function getBoutiqueMetadata({
   options = { is_fearured: false, is_flashDeals: false },
 }) {
   const [country, language] = params.lang.split("-");
-  let UrlSearchParams = getUrlSearchForMeta(params, options);
-  UrlSearchParams.set("lang", language);
-  UrlSearchParams.set("country", country);
-  let response = await fetchServerData({
-    url:
-      process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL +
-      `/api/products/simplified-meta-filters?${UrlSearchParams.toString()}`,
-    local: `${country}-${language}`,
-    method: "GET",
-    revalidate: 36000,
-    tags: ["listing"],
-  });
-  let responseData = response.data;
-  if (response.error) {
-    throw new Error(response.error);
+  let parsedFilters = parseFiltersFromParams(params.filters || []);
+  if (parsedFilters.prices) {
+    parsedFilters = {
+      ...parsedFilters,
+      prices: parsedFilters.prices?.map((s) =>
+        s.split("-").map((d) => Number(d))
+      )?.[0],
+    };
   }
+  // UrlSearchParams.set("lang", language);
+  // UrlSearchParams.set("country", country);
+  // let response = await fetchServerData({
+  //   url:
+  //     process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL +
+  //     `/api/products/simplified-meta-filters?${UrlSearchParams.toString()}`,
+  //   local: `${country}-${language}`,
+  //   method: "GET",
+  //   revalidate: 36000,
+  //   tags: ["listing"],
+  // });
+  let responseData = await getProductsAndFiltersFromElastic({
+    country,
+    language_code: language,
+    filters: {
+      ...parsedFilters,
+      featured: options.is_fearured,
+      flashdeal: options.is_flashDeals,
+      search_text: parsedFilters?.search_text?.[0],
+    },
+    limit: 10,
+  });
 
-  let images_array = responseData?.data?.products?.map(
-    (product) => product.image[0]
+  if (!responseData.products) {
+    throw new Error(`Elastic FIlters Page Meta Error`);
+  }
+  let images_array = responseData?.products?.map(
+    (product) => product?.images?.[0].file_path
   );
 
   let og_image =
@@ -99,7 +116,7 @@ export async function getBoutiqueMetadata({
       ? generateCloudinaryUrl({
           width: 1200,
           height: 630,
-          publicIds: images_array,
+          publicIds: images_array.slice(0, 3),
         })
       : `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/opengraph-image.png`;
   let configuredMetaData = generateMetaData(responseData);
@@ -143,22 +160,24 @@ export const GetStructuredData = async ({
   params,
   is_flashDeals,
   is_fearured,
+  response,
 }) => {
   let filtersUrl =
     params?.filters?.length > 0 ? `/${params.filters?.join("/")}` : "/";
   let [country, language] = params.lang.split("-");
   let filters = params.filters;
-  let response = await fetchFilteredProducts(
-    language,
-    country,
-    filters,
-    "false",
-    "false",
-    null,
-    null,
-    is_fearured,
-    is_flashDeals
-  );
+  const parsedFilters = parseFiltersFromParams(params.filters || []);
+  // UrlSearchParams.set("lang", language);
+  // UrlSearchParams.set("country", country);
+  // let response = await fetchServerData({
+  //   url:
+  //     process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL +
+  //     `/api/products/simplified-meta-filters?${UrlSearchParams.toString()}`,
+  //   local: `${country}-${language}`,
+  //   method: "GET",
+  //   revalidate: 36000,
+  //   tags: ["listing"],
+  // });
 
   let jsonLd = {
     "@context": "https://schema.org",
@@ -168,7 +187,7 @@ export const GetStructuredData = async ({
     description: GenerateTitleBasedOnFilters(params.filters).description,
     mainEntity: {
       "@type": "ItemList",
-      itemListElement: response.data.products.map((product, index) => {
+      itemListElement: response.products.map((product, index) => {
         return {
           "@type": "Product",
           position: index + 1,
@@ -209,7 +228,7 @@ export const GetStructuredData = async ({
 };
 function generateMetaData(data) {
   try {
-    if (!data || !data.data) return {};
+    if (!data) return {};
 
     const {
       categories = [],
@@ -220,12 +239,17 @@ function generateMetaData(data) {
       boutiques = [],
       prices = {},
       search_query = "",
-    } = data.data;
+    } = data;
 
     const siteName = "Trydos";
 
     const normalized = (arr) => [
-      ...new Set(arr.filter(Boolean).map((item) => item.trim())),
+      ...new Set(
+        arr.filter(Boolean).map((item) => {
+          if (typeof item === "string") return item.trim();
+          else if (item?.name) return item.name.trim();
+        })
+      ),
     ];
 
     const normalizedCategories = normalized(categories);

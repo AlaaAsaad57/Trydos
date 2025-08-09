@@ -24,12 +24,7 @@ function ProductDetailsSlider({
   const router = useRouter();
   const pathname = usePathname();
   useEffect(() => {
-    console.log(
-      { time: productObj.time, FromRedis: productObj.redis },
-      "product page response"
-    );
     const newParams = new URLSearchParams(searchParams);
-
     if (!searchParams.get("color") && productData?.sync_color_images) {
       // newParams.set("color", productData?.sync_color_images[0].color_name);
     }

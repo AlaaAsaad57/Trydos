@@ -7,6 +7,7 @@ import {
   AggregationsAggregationContainer,
 } from "@elastic/elasticsearch/lib/api/types";
 import { elasticSearchClient } from "services/elastic/elasticsearch.config";
+import AnalyzeSearchText from "./analyzeSearchText";
 
 // Types and Interfaces
 interface SearchFilters {
@@ -16,7 +17,7 @@ interface SearchFilters {
   colors?: string[];
   sizes?: string[];
   search_text?: string;
-  priceRange?: [number, number];
+  priceRange?: number[];
   tags_names?: string[];
   featured?: boolean;
   flashdeal?: boolean;
@@ -75,6 +76,7 @@ interface SearchResult {
   prices: {
     min_price: number;
     max_price: number;
+    priceRanges?: any[];
   };
 }
 
@@ -89,7 +91,8 @@ interface SearchFilters {
   colors?: string[];
   sizes?: string[];
   search_text?: string;
-  priceRange?: [number, number];
+  priceRange?: number[];
+  prices?: number[];
   tags_names?: string[];
   featured?: boolean;
   flashdeal?: boolean;
@@ -182,8 +185,8 @@ export async function getProductsAndFiltersFromElastic(
   params: SearchParams
 ): Promise<SearchResult> {
   let start = process.hrtime.bigint();
-  const {
-    limit = 20,
+  let {
+    limit = 10,
     search_after = [],
     filters = {},
     language_code = "en",
@@ -191,7 +194,30 @@ export async function getProductsAndFiltersFromElastic(
     is_from_browser = false,
     filters_offset = 1,
   } = params;
-
+  if (filters.prices) {
+    filters = { ...filters, priceRange: filters.prices };
+  }
+  if (filters.search_text && filters.search_text?.split(" ")?.length > 2) {
+    let CleanSearchText = await AnalyzeSearchText(filters.search_text);
+    if (CleanSearchText?.name) {
+      filters = { ...filters, search_text: CleanSearchText?.name };
+    }
+    if (CleanSearchText?.color) {
+      filters = {
+        ...filters,
+        colors: [
+          ...new Set([...(filters.colors || []), ...CleanSearchText.color]),
+        ],
+      };
+    }
+    if (CleanSearchText?.size) {
+      filters = {
+        ...filters,
+        sizes: [...new Set([...(filters.sizes || []), CleanSearchText.size])],
+      };
+    }
+  }
+  console.log(filters);
   try {
     const filtersSize = filters_offset * 10;
     const baseConditions = buildBaseConditions(filters, country);
@@ -228,30 +254,12 @@ export async function getProductsAndFiltersFromElastic(
     let lastSortValue: any[] = search_after;
     let response: SearchResponse;
 
-    while (true) {
-      if (lastSortValue.length > 0) {
-        searchQuery.search_after = lastSortValue;
-      }
-
-      response = await client.search(searchQuery);
-      const hits = response.hits.hits as ElasticsearchHit[];
-
-      if (hits.length === 0) {
-        break;
-      }
-
-      hits.forEach((hit: ElasticsearchHit) => {
-        customProducts.push(hit._source);
-      });
-
-      lastSortValue = hits[hits.length - 1]?.sort || [];
-
-      // Check if we've reached the limit
-      if (customProducts.length >= limit) {
-        break;
-      }
-    }
-
+    response = await client.search(searchQuery);
+    const hits = response.hits.hits as ElasticsearchHit[];
+    hits.forEach((hit: ElasticsearchHit) => {
+      customProducts.push(hit._source);
+    });
+    lastSortValue = hits.length > 0 ? hits[hits.length - 1].sort : [];
     // Process aggregations
     const aggregations = response.aggregations?.filtered_results || {};
 
@@ -1758,6 +1766,7 @@ function processCustomProduct(
 function calculatePriceRange(products: any[]): {
   min_price: number;
   max_price: number;
+  priceRanges: any[];
 } {
   let minPrice = Infinity;
   let maxPrice = -Infinity;
@@ -1771,10 +1780,11 @@ function calculatePriceRange(products: any[]): {
       maxPrice = Math.max(maxPrice, price);
     }
   });
-
+  let priceRanges = calculatePriceFilter(products);
   return {
     min_price: minPrice === Infinity ? 0 : minPrice,
     max_price: maxPrice === -Infinity ? 0 : maxPrice,
+    priceRanges: priceRanges?.priceRanges ?? [],
   };
 }
 
@@ -2414,4 +2424,69 @@ function validateAndCleanProduct(product: any): any {
   product.videos = ensureArray(product.videos);
 
   return product;
+}
+
+interface PriceRange {
+  min_price: number;
+  max_price: number;
+  products_count: number;
+}
+
+interface FinalPrices {
+  min_price: number;
+  max_price: number;
+  priceRanges: PriceRange[];
+}
+function calculatePriceFilter(products: CustomProduct[]): FinalPrices | null {
+  if (products.length === 0) return null;
+
+  const getDiscountedPrice = (product: CustomProduct): number => {
+    const { unit_price, discount, discount_type } = product;
+    if (discount_type === "percent") {
+      return unit_price - (discount / 100) * unit_price;
+    } else if (discount_type === "flat") {
+      return unit_price - discount;
+    } else {
+      return unit_price;
+    }
+  };
+
+  const discountedPrices = products.map(getDiscountedPrice);
+
+  const minOfferPrice = Math.min(...discountedPrices);
+  const maxOfferPrice = Math.max(...discountedPrices);
+
+  if (minOfferPrice >= maxOfferPrice) return null;
+
+  const diff = (maxOfferPrice - minOfferPrice) / 4;
+  const boundaries = [
+    minOfferPrice,
+    minOfferPrice + diff,
+    minOfferPrice + diff * 2,
+    minOfferPrice + diff * 3,
+    maxOfferPrice,
+  ];
+
+  const priceRanges: PriceRange[] = [];
+
+  for (let i = 0; i < 4; i++) {
+    const rangeMin = boundaries[i];
+    const rangeMax = boundaries[i + 1];
+
+    const productsCount = discountedPrices.filter(
+      (price) => price >= rangeMin && price <= rangeMax
+    ).length;
+
+    priceRanges.push({
+      min_price: rangeMin,
+      max_price: rangeMax,
+      products_count: productsCount,
+    });
+  }
+
+  return {
+    min_price: minOfferPrice,
+    max_price: maxOfferPrice,
+    priceRanges,
+  };
 }

@@ -56,6 +56,12 @@ function ProductListServer({
         }}
         productIds={products.map((s) => s.slug)}
         activeColor={activeColor}
+        parsedFilters={{
+          ...parsedFilters,
+          featured: isFeatured,
+          flashdeal: isFlashDeals,
+          search_text: parsedFilters.search_text?.[0],
+        }}
         currency={currency}
         offset={offset}
         isFeatured={isFeatured}

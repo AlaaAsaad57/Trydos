@@ -1,6 +1,5 @@
-import { getProductsAndFiltersFromElastic } from "elasticSearch";
+import { getProductsAndFiltersFromElastic } from "services/elastic/elasticSearch";
 import type { Metadata } from "next";
-import { fetchServerData } from "Server Requests/ServerFetch";
 import { ElasticsearchReader } from "services/elastic/elasticsearch-reader.service";
 export const generateCodeCurrency = (code: string) => {
   if (code?.toLowerCase() === "sp") {

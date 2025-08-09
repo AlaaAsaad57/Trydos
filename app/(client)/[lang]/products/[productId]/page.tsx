@@ -68,56 +68,59 @@ export async function generateMetadata({ params, searchParams }) {
     redirect(`/${params.lang}?message=product_not_found`);
   }
 }
-
-async function Page({ params, searchParams }: ProductPagePropsType) {
+async function getCurrency(country, language) {
   try {
-    let currency, product;
-    let [countryVariable, languageVariable] = params.lang.split("-");
-    // let rem = await removeProductFromCache(
-    //   params.productId,
-    //   languageVariable,
-    //   countryVariable
-    // );
-    let data = await getProductFromCache(
-      params.productId,
-      languageVariable,
-      countryVariable
-    );
-    let currencyCache = await getCurrencyFromCache(countryVariable);
-    if (data.product) {
-      product = { ...data.product, time: data.timeMs, redis: true };
-      if (currencyCache) {
-        currency = currencyCache;
-      } else {
-        currency = await fetchCurrency(languageVariable, countryVariable);
-        currency = currency.data.currency;
-        StoreCurrency(countryVariable, currency);
-      }
+    let cachedCurrency = await getCurrencyFromCache(country);
+    console.log(cachedCurrency, "cached");
+    if (typeof cachedCurrency === "string") {
+      return JSON.parse(cachedCurrency);
+    }
+    if (cachedCurrency?.exchange_rate) {
+      return cachedCurrency;
     } else {
-      let start = process.hrtime.bigint();
+      let currencyData = await fetchCurrency(language, country);
+      let currency = currencyData.data.currency;
+      console.log(currency, "not cahced");
+      StoreCurrency(country, currency);
+      return currency;
+    }
+  } catch (error) {}
+}
+async function GetProductDataFunc(params) {
+  let slug = params.productId;
+  let [country, language] = params.lang.split("-");
+  try {
+    let data = await getProductFromCache(slug, language, country);
+    if (data?.product) {
+      return data.product;
+    } else {
       let {
         product: productData,
-        currency: currencyData,
+
         socialData,
       } = await GetProductData(params);
-      StoreCurrency(countryVariable, currencyData);
       storeProduct(
         productData,
         socialData,
         params.productId,
-        languageVariable,
-        countryVariable
+        language,
+        country
       );
-      let end = process.hrtime.bigint();
-      product = {
+      return {
         ...productData,
         ...socialData,
         redis: false,
-        time: Number(end - start) / 1_000_000,
       };
-      currency = currencyData;
     }
-
+  } catch (error) {}
+}
+async function Page({ params, searchParams }: ProductPagePropsType) {
+  try {
+    let [countryVariable, languageVariable] = params.lang.split("-");
+    let [product, currency] = await Promise.all([
+      GetProductDataFunc(params),
+      getCurrency(countryVariable, languageVariable),
+    ]);
     const color = searchParams.color;
     const JsonLd = {
       "@context": "https://schema.org",

@@ -620,6 +620,87 @@ export class ElasticsearchReader {
 
     return { must, must_not };
   }
+  async getBoutiqueInfo({
+    slug,
+    country,
+    language,
+  }: {
+    slug: string;
+    country?: string;
+    language: string;
+  }) {
+    try {
+      const input: InputInitialized = {
+        categorySlugs: undefined,
+        limit: 1,
+      };
+
+      const { must, must_not } = this.buildBaseConditions(input, country);
+
+      // Add filter for specific boutique slug and language
+      must.push({
+        nested: {
+          path: "custom_boutiques",
+          query: {
+            bool: {
+              must: [
+                { term: { "custom_boutiques.slug.keyword": slug } },
+                { term: { "custom_boutiques.language_code": language } },
+              ],
+            },
+          },
+        },
+      });
+
+      const query = {
+        index: "products_catalog",
+        body: {
+          size: 1,
+          _source: [
+            "custom_boutiques.name",
+            "custom_boutiques.slug",
+            "custom_boutiques.icon",
+            "custom_boutiques.banners",
+            "custom_boutiques.language_code",
+          ],
+          query: {
+            bool: {
+              must,
+              must_not,
+            },
+          },
+          sort: [{ boutique_id: { order: "asc" } }],
+        },
+      };
+
+      const response = await this.client.search(query);
+      const hits = response?.hits?.hits;
+
+      if (!hits?.length) return null;
+
+      const boutique = hits[0]._source as { custom_boutiques: any[] };
+
+      // Get the correct language version
+      const matched = (boutique.custom_boutiques || []).find(
+        (cb: any) => cb.language_code === language && cb.slug === slug
+      );
+
+      if (!matched) return null;
+
+      // Filter out deleted banners
+      const filteredBanners =
+        matched.banners?.filter((b: any) => b.deleted_at === null) || [];
+
+      return {
+        name: matched.name || null,
+        icon: matched.icon || null,
+        banners: filteredBanners,
+      };
+    } catch (error) {
+      console.log("Elastic Get Boutique Data:", error);
+      return null;
+    }
+  }
 }
 
 type InputInitialized = {

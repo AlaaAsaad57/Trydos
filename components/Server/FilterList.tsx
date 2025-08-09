@@ -556,27 +556,27 @@ const ActiveFiltersBar = ({
           <ActiveCategoryIcon style={{ height: "21px" }} />
           {
             <>
-              {activeFilters?.prices.map((price, index) => (
+              {activeFilters?.prices && (
                 <div
                   className="category-title filter-bar-main-title flex-row gap-1"
-                  key={price}
+                  key={activeFilters?.prices[0]}
                 >
                   <span>
                     {RoundPrice({
-                      num: price?.split("-")[0],
+                      num: activeFilters?.prices?.[0],
                       rate: currency?.exchange_rate,
                     })}
                   </span>
                   <span>{currency?.symbol}</span>-
                   <span>
                     {RoundPrice({
-                      num: price?.split("-")[1],
+                      num: activeFilters?.prices?.[1],
                       rate: currency?.exchange_rate,
                     })}
                   </span>
                   <span>{currency?.symbol}</span>
                 </div>
-              ))}
+              )}
             </>
           }
         </>

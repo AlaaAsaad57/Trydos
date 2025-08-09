@@ -1,0 +1,81 @@
+const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${process.env.GL_API_KEY}`;
+
+export default async function AnalyzeSearchText(query) {
+  const prompt = `
+استلم الاستفسار التالي بأي لغة كانت، وحاول تحليل معناه واستخرج منه الحقول التالية فقط:
+- name: اسم المنتج
+- color: اللون ولكن بصيغة HEX فقط مثل "#FF0000". إذا كان هناك أكثر من لون، أرجعهم كمصفوفة JSON مثل: ["#FF0000", "#0000FF"]
+- size: القياس بصيغة موحدة من: XS, S, M, L, XL, XXL فقط
+- type: نوع المادة أو الصنف (مثل قطن، حرير...)
+
+إذا تعذر استخراج أحد الحقول، أرجع "Unknown".
+إذا كان القياس موجودًا ولكن بصيغة مختلفة (كلمات أو أرقام أو وصف)، فحوّله إلى أحد القيم القياسية التالية فقط: XS, S, M, L, XL, XXL.
+
+النص: "${query}"
+
+أرجع النتيجة بصيغة JSON فقط بدون تنسيق Markdown (بدون \`\`\`)
+`;
+
+  const payload = {
+    contents: [
+      {
+        role: "user",
+        parts: [{ text: prompt }],
+      },
+    ],
+  };
+
+  try {
+    const response = await fetch(API_URL, {
+      method: "POST",
+      body: JSON.stringify(payload),
+      headers: { "Content-Type": "application/json" },
+    });
+
+    let data = await response.json();
+
+    const outputText =
+      data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "";
+    const cleanedText = outputText.replace(/^```json|```$/gm, "").trim();
+
+    let parsed;
+    try {
+      parsed = JSON.parse(cleanedText);
+    } catch (e) {
+      return {
+        error: "Failed to parse JSON from Gemini response",
+        raw_output: outputText,
+        exception: e.toString(),
+      };
+    }
+
+    const filtered: Record<string, any> = {};
+    for (const key in parsed) {
+      if (parsed[key] !== "Unknown") {
+        filtered[key] = parsed[key];
+      }
+    }
+
+    // ✅ You can now send filtered to another service here if needed
+
+    return filtered;
+  } catch (error: any) {
+    console.log(error);
+    return {
+      error: "API call to Gemini failed",
+      details: error?.response?.data || error.message,
+    };
+  }
+}
+
+//example usage
+// const result = await fetch('http://localhost:3000/api/analyze', {
+//method: 'POST',
+//    headers: { 'Content-Type': 'application/json' },
+//body: JSON.stringify({ query: "قميص قطني أسود مقاس وسط" }),
+//})
+
+//const data = await result.json()
+
+// You can now use data (parsed Gemini result) with another service
+//console.log('Parsed:', data)
