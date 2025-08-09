@@ -70,7 +70,12 @@ function SearchBoutiquePage({ search_text }: SearchBoutiquePageProps) {
       } else {
         delete newFilters.search_text;
       }
-      const pathParams = buildParamsFromFilters(newFilters);
+
+      const pathParams = buildParamsFromFilters({
+        ...newFilters,
+        search: newFilters.search_text,
+      });
+
       const newPath =
         pathParams.length > 0
           ? `/${lang}/filters/${pathParams.join("/")}`
