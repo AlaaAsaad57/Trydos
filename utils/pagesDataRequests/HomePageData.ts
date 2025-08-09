@@ -1,9 +1,4 @@
-import {
-  fetchBoutiques,
-  fetchCurrency,
-  fetchFilteredProducts,
-  fetchMainCategories,
-} from "Server Requests";
+import { fetchCurrency, fetchFilteredProducts } from "Server Requests";
 
 export const GetHomeData = async (params: {
   lang: string;

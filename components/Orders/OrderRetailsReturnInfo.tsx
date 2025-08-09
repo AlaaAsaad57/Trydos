@@ -25,6 +25,51 @@ function OrderRetailsReturnInfo({
     callback();
     setLoading(false);
   };
+  const showFirstLevelStatus = () => {
+    if (product.return_status === "pending") {
+      return (
+        <>
+          <div className="flex-row justify-between items-center text-[#1D1D1D] text-[12px] regular w-full">
+            {translateFunction("Product Return Has Been Requested")}
+            <div className="text-[#C4C2C2] regular text-[10px] flex-row gap-[4px] flex items-center">
+              <span>3H</span>
+              <ClockIcon />
+            </div>
+          </div>
+          <div className="flex-row justify-between items-center text-[#1D1D1D] text-[10px] regular w-full">
+            <div className="flex-row items-center gap-[4px]">
+              <span className="mr-[4px] text-[#388CFF] ">
+                {translateFunction("Waiting…")}
+              </span>
+              {translateFunction("Product Return Request Approve")}
+            </div>
+            <div className="text-[#1D1D1D] regular text-[10px] flex-row gap-[4px] flex items-center">
+              <span>
+                <Timer onFinish={() => {}} minutes={3} />
+              </span>
+              <ClockIcon className="[&>path]:fill-[#1D1D1D]" />
+            </div>
+          </div>
+        </>
+      );
+    } else if (product.return_status === "draft return request") {
+      return (
+        <>
+          <div className="flex-row justify-between items-center text-[#1D1D1D] text-[12px] regular w-full">
+            {translateFunction("Product Return Needs Confirm")}
+          </div>
+          <div className="flex-row justify-between items-center text-[#1D1D1D] text-[10px] regular w-full">
+            <div className="flex-row items-center gap-[4px]">
+              <span className="mr-[4px] text-[#388CFF] ">
+                {translateFunction("Waiting…")}
+              </span>
+              {translateFunction("You Need To Confirm Your Request")}
+            </div>
+          </div>
+        </>
+      );
+    }
+  };
   return (
     <div className="w-full flex-col items-center h-auto mt-[12px]">
       <div
@@ -36,27 +81,7 @@ function OrderRetailsReturnInfo({
         <div className="flex-row items-start">
           <MiniReturnIcon />
           <div className="flex-col ml-[6px] w-full">
-            <div className="flex-row justify-between items-center text-[#1D1D1D] text-[12px] regular w-full">
-              {translateFunction("Product Return Has Been Requested")}
-              <div className="text-[#C4C2C2] regular text-[10px] flex-row gap-[4px] flex items-center">
-                <span>3H</span>
-                <ClockIcon />
-              </div>
-            </div>
-            <div className="flex-row justify-between items-center text-[#1D1D1D] text-[10px] regular w-full">
-              <div className="flex-row items-center gap-[4px]">
-                <span className="mr-[4px] text-[#388CFF] ">
-                  {translateFunction("Waiting…")}
-                </span>
-                {translateFunction("Product Return Request Approve")}
-              </div>
-              <div className="text-[#1D1D1D] regular text-[10px] flex-row gap-[4px] flex items-center">
-                <span>
-                  <Timer onFinish={() => {}} minutes={3} />
-                </span>
-                <ClockIcon className="[&>path]:fill-[#1D1D1D]" />
-              </div>
-            </div>
+            {showFirstLevelStatus()}
           </div>
         </div>
         {expanded && (

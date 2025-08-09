@@ -6,21 +6,21 @@ import { translateFunction } from "utils/functions";
 import { useParams } from "next/navigation";
 import { CurrencyApi } from "models/API/market/CurrencyApi";
 import { useAppStore } from "store";
-import { fetchFilteredProducts } from "Server Requests";
 import { showErrorNotification } from "store/notifications/reducer";
 import ProductCard from "components/Server/ProductCard";
 import { GAevent } from "utils/gtag";
 import { GA_EVENT_NAMES, GA_GLOBAL_SCREEN } from "utils/GAEvents";
 import { EnableScroll } from "utils/tinyUtils";
+import auth from "services/auth";
+import { getProductsAndFiltersFromElastic } from "services/elastic/elasticSearch";
 
 function ProductsInfiniteScroll({
   offset,
   currency,
   activeColor,
   productIds,
-  isFeatured,
-  isFlashDeals,
   analyticsData,
+  parsedFilters,
 }: {
   offset: any;
   currency: CurrencyApi["data"]["currency"];
@@ -29,8 +29,9 @@ function ProductsInfiniteScroll({
   productIds: string[];
   isFeatured?: boolean;
   isFlashDeals?: boolean;
+  parsedFilters: any;
 }) {
-  const { resetBoutique, AddToCartOption, settings } = useAppStore();
+  const { resetBoutique } = useAppStore();
   const { lang }: { lang: string } = useParams();
   // @ts-ignore
   let languageVariable = lang.split("-")[1];
@@ -47,6 +48,7 @@ function ProductsInfiniteScroll({
         items: analyticsData,
         screen_name: GA_GLOBAL_SCREEN.FILTERS_SCREEN,
         screen_path: window.location.pathname,
+        user_id_custom: auth.UserID(),
       },
     });
     EnableScroll();
@@ -60,23 +62,29 @@ function ProductsInfiniteScroll({
   const [offsetValue, setOffsetValue] = useState(offset);
   const [loading, setLoading] = useState(false);
   const [isReachEnd, setIsReachEnd] = useState(false);
-  const params = useParams();
-  const [attempt, setAttempt] = useState(0);
+  function areArraysEqual(oldArray: number[], newArray: number[]): boolean {
+    if (oldArray.length !== newArray.length) return false;
+
+    for (let i = 0; i < oldArray.length; i++) {
+      if (oldArray[i] !== newArray[i]) {
+        return false;
+      }
+    }
+
+    return true;
+  }
   const getProductsReq = async () => {
     if (loading || isReachEnd) return;
     setLoading(true);
-    const response = await fetchFilteredProducts(
-      languageVariable,
-      lang?.split("-")[0],
-      params.filters as string[],
-      "false",
-      "false",
-      offsetValue?.toString(),
-      null,
-      isFeatured,
-      isFlashDeals
-    );
-    if (response.data.isError) {
+
+    const response = await getProductsAndFiltersFromElastic({
+      country: lang.split("-")[0],
+      language_code: languageVariable,
+      filters: parsedFilters,
+      limit: 10,
+      search_after: offsetValue,
+    });
+    if (!response) {
       showErrorNotification(
         translateFunction("Failed To Load Products Retring in 3 seconds")
       );
@@ -85,35 +93,31 @@ function ProductsInfiniteScroll({
       }, 3000);
       return;
     }
-
-    setProducts([
-      ...products,
-      ...response.data.products.filter(
-        (newproduct) =>
-          products.filter((oldproduct) => oldproduct.id === newproduct.id)
-            .length === 0
-      ),
-    ]);
-    if (response.data.products?.length > 0) {
-      GAevent({
-        action: GA_EVENT_NAMES.VIEW_ITEMS_LIST,
-        params: {
-          items: response.data.products?.map((s) => ({
-            item_id: s?.slug,
-            item_name: s?.name,
-            category: s?.category?.name,
-            brand: s?.brand?.name,
-          })),
-          screen_name: GA_GLOBAL_SCREEN.FILTERS_SCREEN,
-          screen_path: window.location.pathname,
-        },
-      });
+    if (!areArraysEqual(offsetValue, response.offset)) {
+      setProducts([...products, ...response.products]);
+      if (response.products?.length > 0) {
+        GAevent({
+          action: GA_EVENT_NAMES.VIEW_ITEMS_LIST,
+          params: {
+            items: response.products?.map((s) => ({
+              item_id: s?.product_id,
+              item_name: s?.name,
+              category: s?.category?.name,
+              brand: s?.brand?.name,
+            })),
+            user_id_custom: auth.UserID(),
+            screen_name: GA_GLOBAL_SCREEN.FILTERS_SCREEN,
+            screen_path: window.location.pathname,
+          },
+        });
+      }
     }
-    setOffsetValue(response.data.offset);
+    setOffsetValue(response.offset);
     setLoading(false);
+
     if (
-      response.data.products.length === 0 ||
-      offsetValue === response.data.offset
+      response.products.length === 0 ||
+      areArraysEqual(offsetValue, response.offset)
     ) {
       setLoading(false);
       setIsReachEnd(true);
@@ -123,23 +127,21 @@ function ProductsInfiniteScroll({
   return (
     <>
       {products?.map((product, key) => {
-        if (!productIds.includes(product.slug)) {
-          let color_name = product?.colors?.find(
-            (s) => s.color === activeColor
-          )?.name;
-          let productColor = product?.sync_color_images?.find(
-            (s) => s.color_name === color_name
-          );
-          return (
-            <ProductCard
-              key={key}
-              product={product}
-              params={{ lang }}
-              currency={currency}
-              productColor={productColor}
-            />
-          );
-        }
+        let color_name = product?.colors?.find(
+          (s) => s.color === activeColor
+        )?.name;
+        let productColor = product?.sync_color_images?.find(
+          (s) => s.color_name === color_name
+        );
+        return (
+          <ProductCard
+            key={key}
+            product={product}
+            params={{ lang }}
+            currency={currency}
+            productColor={productColor}
+          />
+        );
       })}
 
       {/* {products.length === 0 &&

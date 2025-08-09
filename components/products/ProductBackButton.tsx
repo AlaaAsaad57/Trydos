@@ -1,9 +1,14 @@
 "use client";
-import React, { useCallback } from "react";
+import React from "react";
 import BackIcon from "public/svg/listing/backIcon.svg";
 import NextLink from "components/global/NextLink";
 function ProductBackButton({ lang, productId }) {
   const getHref = () => {
+    if (typeof localStorage === "undefined")
+      return {
+        href: `/${lang}`,
+        data: { is_full_home: true, href: `/${lang}` },
+      };
     let lastPage = localStorage.getItem("last-page");
     let href = "",
       data = {};
@@ -28,15 +33,16 @@ function ProductBackButton({ lang, productId }) {
   if (typeof localStorage === "undefined")
     return (
       <div className="back-bar align-center w-100 flex-row">
-        <div
+        <NextLink
           data-cy="backIcon_productPage"
+          {...getHref()}
           className={`back-icon flex-row`}
           onClick={() => {
             localStorage.removeItem("last-page");
           }}
         >
           <BackIcon />
-        </div>
+        </NextLink>
       </div>
     );
   return (

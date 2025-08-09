@@ -37,6 +37,7 @@ async function FeatureProducts({ lang, fetauredProductsData, currencyData }) {
         className="featured-products-container py-[10px] gap-[8px] w-full mt-[12px] flex-row justify-start items-center max-w-[1365px] h-auto pb-[8px] "
         id="featured-products-container"
         dataCy="featured-products-container"
+        time={`FEATURED ELASTIC TIME: ${featuredProducts?.data?.time} ms`}
       >
         {featuredProducts?.data?.products?.map((product, key) => (
           <ProductCard

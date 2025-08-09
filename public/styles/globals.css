@@ -35,7 +35,7 @@ img {
   }
 
   .active-serach {
-    min-width: min(calc(100vw - 179px), 1096px);
+    min-width: min(calc(100vw - 15px), 1350px);
     max-width: 1096px;
   }
 
@@ -804,7 +804,6 @@ a {
   height: calc((100vw - 50px) * 135 / 380);
   width: 100%;
 }
-
 
 .offer-slide-item,
 .offer-slider-container {

@@ -20,12 +20,10 @@ import FilterBoutiquePageButton from "components/filterPage/FilterBoutiquePageBu
 import SearchBoutiquePage from "components/filterPage/SearchBoutiquePage";
 import CarouselContainer from "components/filterPage/CarouselContainer";
 import { GetImageUrl, parseFiltersFromParams } from "utils/tinyUtils";
-
-import {
-  fetchBoutiqueDetails,
-  fetchCurrency,
-  fetchFilteredProducts,
-} from "Server Requests";
+import { fetchCurrency } from "Server Requests";
+import { getProductsAndFiltersFromElastic } from "services/elastic/elasticSearch";
+import { getCurrencyFromCache, StoreCurrency } from "Server Requests/radis";
+import { ElasticsearchReader } from "services/elastic/elasticsearch-reader.service";
 
 export const dynamicParams = true;
 
@@ -48,38 +46,96 @@ interface ParamsType {
   lang: string;
   filters?: string[];
 }
+async function GetBoutique(boutique, country, language) {
+  try {
+    if (boutique) {
+      let reader = new ElasticsearchReader();
+      let boutiqueData = await reader.getBoutiqueInfo({
+        country,
+        language: language,
+        slug: boutique,
+      });
+      if (!boutiqueData?.banners) {
+        redirect(`/${country}-${language}?message=boutique_not_found`);
+      }
+      return boutiqueData;
+    } else {
+      return {
+        banners: null,
+        name: "Search",
+      };
+    }
+  } catch (error) {
+    return {
+      banners: null,
+      name: "Search",
+    };
+  }
+}
+async function getCurrency(country, language) {
+  try {
+    let cachedCurrency = await getCurrencyFromCache(country);
+
+    if (typeof cachedCurrency === "string") {
+      return JSON.parse(cachedCurrency);
+    }
+    if (cachedCurrency?.exchange_rate) {
+      return cachedCurrency;
+    } else {
+      let currencyData = await fetchCurrency(language, country);
+      let currency = currencyData.data.currency;
+
+      StoreCurrency(country, currency);
+      return currency;
+    }
+  } catch (error) {}
+}
 export default async function Page({ params }: { params: ParamsType }) {
-  // Parse filters from URL path parameters
-  const parsedFilters = parseFiltersFromParams(params.filters || []);
-
+  let parsedFilters = parseFiltersFromParams(params.filters || []);
+  const [country, language] = params.lang.split("-");
   let boutiqueItem = parsedFilters?.boutiques?.[0] || null;
-  // let {
-  //   products: filtersData,
-  //   currency,
-  //   boutique: boutique,
-  // } = await GetFiltersData(
-  //   { lang: params.lang, filters: params.filters },
-  //   boutiqueItem,
-  //   false,
-  //   false,
-  //   true
-  // );
 
-  // let filters = {
-  //   categories: filtersData?.categories || [],
-  //   brands: filtersData?.brands || [],
-  //   colors: filtersData?.colors || [],
-  //   prices: filtersData?.prices?.priceRanges || [],
-  //   sizes: filtersData?.attributes?.[0]?.options || [],
-  //   boutiques: filtersData?.boutiques || [],
-  //   search_text: parsedFilters?.search_text?.[0] || null,
-  // };
+  if (parsedFilters.prices) {
+    parsedFilters = {
+      ...parsedFilters,
+      prices: parsedFilters.prices?.map((s) =>
+        s.split("-").map((d) => Number(d))
+      )?.[0],
+    };
+  }
 
+  let [filtersData, currency, boutique] = await Promise.all([
+    getProductsAndFiltersFromElastic({
+      country,
+      language_code: language,
+      filters: {
+        ...parsedFilters,
+        // priceRange:parsedFilters.prices?.map((s)=>s.split('-').map((d)=>Number(d))),
+        featured: false,
+        flashdeal: false,
+        search_text: parsedFilters.search_text?.[0],
+      },
+    }),
+    getCurrency(country, language),
+    GetBoutique(boutiqueItem, country, language),
+  ]);
+
+  let filters = {
+    categories: filtersData?.categories || [],
+    brands: filtersData?.brands || [],
+    colors: filtersData?.colors || [],
+    // prices: [],
+    prices: filtersData?.prices?.priceRanges || [],
+    sizes: filtersData?.attributes?.[0]?.options || [],
+    boutiques: filtersData?.boutiques || [],
+    search_text: parsedFilters?.search_text?.[0] || null,
+  };
   return (
     <>
       <Suspense fallback={<></>}>
         <GetStructuredData
           is_fearured={false}
+          response={filtersData}
           is_flashDeals={false}
           params={params}
         />
@@ -129,13 +185,20 @@ export default async function Page({ params }: { params: ParamsType }) {
         data-cy="boutique_header"
         className={`boutique-header ${"flex-col"} align-center`}
       >
-        <BoutiqueWrapper params={params} />
+        {
+          <BoutiqueHeader
+            boutique={boutique}
+            key={params.filters?.join("/") || "no-filters"}
+          ></BoutiqueHeader>
+        }
 
         <Suspense fallback={<ListingSkeleton justFilters={true} />}>
-          <FiltersWrapper
+          <FilterList
+            filters={filters}
+            currency={currency}
+            key={`filter-list-filters`}
             params={params}
-            is_fearured={false}
-            is_flashDeals={false}
+            parsedFilters={parsedFilters}
           />
         </Suspense>
       </div>
@@ -143,10 +206,14 @@ export default async function Page({ params }: { params: ParamsType }) {
         key={`Suspense-product-list-${JSON.stringify(parsedFilters)}`}
         fallback={<ListingSkeleton forProducts={true} />}
       >
-        <ProductListWrapper
+        <ProductListServer
+          colors={filtersData?.colors}
+          products={filtersData?.products ?? []}
+          offset={filtersData?.offset}
+          currency={currency}
+          key={`product-list-${JSON.stringify(parsedFilters)}`}
+          parsedFilters={parsedFilters}
           params={params}
-          is_fearured={false}
-          is_flashDeals={false}
         />
       </Suspense>
     </>
@@ -190,127 +257,3 @@ const BouqiuePhotoSlider = ({ banners }) => {
     </div>
   );
 };
-const BoutiqueHeaderSkeleton = () => {
-  return (
-    <>
-      <div className="boutique-top-info flex-col">
-        <div className="boutique-logo-container flex-row align-center">
-          <Skeleton
-            className="w-fu"
-            width={130}
-            height={20}
-            borderRadius={"30"}
-          />
-        </div>
-        <div className="boutique-text">
-          <Skeleton width={200} height={10} />
-        </div>
-      </div>
-      <div className="boutique-photo-holder">
-        <div className="offer-slider-container">
-          <div className="offer-slide-item" style={{ width: "100%" }}>
-            <div className="image-offer">
-              <div className="image-inner-shadow" style={{ height: "100%" }} />
-
-              <Skeleton
-                className="w-full h-full"
-                width={380}
-                height={135}
-                borderRadius={"30"}
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-    </>
-  );
-};
-async function BoutiqueWrapper({ params }) {
-  const parsedFilters = parseFiltersFromParams(params.filters || []);
-  const [country, language] = params.lang.split("-");
-  let boutiqueItem = parsedFilters?.boutiques?.[0] || null;
-  let boutique = boutiqueItem
-    ? await fetchBoutiqueDetails(boutiqueItem, language, country)
-    : {
-        banners: null,
-        name: "Search",
-      };
-  if (boutique?.name === "NOT_FOUND") {
-    redirect(`/${params.lang}?message=boutique_not_found`);
-  }
-  if (boutique?.banners)
-    return (
-      <BoutiqueHeader
-        boutique={boutique}
-        key={params.filters?.join("/") || "no-filters"}
-      ></BoutiqueHeader>
-    );
-  else return <></>;
-}
-async function FiltersWrapper({ params, is_fearured, is_flashDeals }) {
-  const [country, language] = params.lang.split("-");
-  const [filtersData, currency] = await Promise.all([
-    fetchFilteredProducts(
-      language,
-      country,
-      params.filters,
-      "false",
-      "false",
-      null,
-      null,
-      is_fearured,
-      is_flashDeals
-    ),
-    fetchCurrency(language, country),
-  ]);
-  const parsedFilters = parseFiltersFromParams(params.filters || []);
-  let filters = {
-    categories: filtersData?.data?.categories || [],
-    brands: filtersData?.data?.brands || [],
-    colors: filtersData?.data?.colors || [],
-    prices: filtersData?.data?.prices?.priceRanges || [],
-    sizes: filtersData?.data?.attributes?.[0]?.options || [],
-    boutiques: filtersData?.data?.boutiques || [],
-    search_text: parsedFilters?.search_text?.[0] || null,
-  };
-
-  return (
-    <FilterList
-      filters={filters}
-      currency={currency?.data?.currency}
-      key={`filter-list-filters`}
-      params={params}
-      parsedFilters={parsedFilters}
-    />
-  );
-}
-
-async function ProductListWrapper({ params, is_fearured, is_flashDeals }) {
-  const [country, language] = params.lang.split("-");
-  const parsedFilters = parseFiltersFromParams(params.filters || []);
-  const [filters, currency] = await Promise.all([
-    fetchFilteredProducts(
-      language,
-      country,
-      params.filters,
-      "false",
-      "false",
-      null,
-      null,
-      is_fearured,
-      is_flashDeals
-    ),
-    fetchCurrency(language, country),
-  ]);
-  return (
-    <ProductListServer
-      colors={filters?.data?.colors}
-      products={filters?.data?.products ?? []}
-      offset={filters?.data?.offset}
-      currency={currency?.data?.currency}
-      key={`product-list-${JSON.stringify(parsedFilters)}`}
-      parsedFilters={parsedFilters}
-      params={params}
-    />
-  );
-}

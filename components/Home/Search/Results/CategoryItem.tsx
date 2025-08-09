@@ -50,7 +50,7 @@ function CategoryItem({ category, onClick, isActive }) {
           {category.childes.map((s, index) => (
             <div
               key={index}
-              className="category-item brand-item whitespace-nowrap relative pr-4 h-5 w-5"
+              className="category-item brand-item whitespace-nowrap relative pr-4 h-5 w-auto"
               onClick={() => onClick(s)}
             >
               {isActive &&

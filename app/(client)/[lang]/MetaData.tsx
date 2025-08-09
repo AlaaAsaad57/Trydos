@@ -1,5 +1,6 @@
+import { getProductsAndFiltersFromElastic } from "services/elastic/elasticSearch";
 import type { Metadata } from "next";
-import { fetchServerData } from "Server Requests/ServerFetch";
+import { ElasticsearchReader } from "services/elastic/elasticsearch-reader.service";
 export const generateCodeCurrency = (code: string) => {
   if (code?.toLowerCase() === "sp") {
     return "SYP";
@@ -11,29 +12,55 @@ export const generateCodeCurrency = (code: string) => {
 // Home Page Meta Data
 export const getHomeMetadata = async ({ params }): Promise<Metadata> => {
   const [country, language] = params.lang.split("-");
-  const response = await fetchServerData({
-    url: `${process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL}/api/home/HomePageMetaData?lang=${language}&country=${country}`,
-    method: "GET",
-    tags: ["home"],
-    revalidate: parseInt(process.env.NEXT_PUBLIC_HOME_REVALIDATE),
-    local: `${country}-${language}`,
-  });
+  let Reader = new ElasticsearchReader();
+  let [mainCategories, boutiquesData, featuredData, flashDealsData] =
+    await Promise.all([
+      Reader.getCategories({ country: country, size: 4000 }),
+      Reader.getBoutiques({
+        language,
+        country,
+        limit: 10,
+        category: params.mainCategory,
+      }),
+      getProductsAndFiltersFromElastic({
+        country: country,
+        language_code: language,
+        filters: {
+          featured: true,
+        },
+        limit: 10,
+      }),
+      getProductsAndFiltersFromElastic({
+        country: country,
+        language_code: language,
+        filters: {
+          flashdeal: true,
+        },
+        limit: 10,
+      }),
+    ]);
   // Get language for translations
 
   // Fetch featured products, flash deals, and boutiques data
-  const {
-    mainCategories: categoriesData,
-    featuredProducts: featuredData,
-    flashDeals: flashDealsData,
-    boutiques: boutiquesData,
-  } = response.data.data;
-  // Combine all products
-  const allProducts = [...(featuredData || []), ...(flashDealsData || [])];
 
+  // Combine all products
+  const allProducts = [
+    ...(featuredData.products || []),
+    ...(flashDealsData.products || []),
+  ];
+  let categoriesData = mainCategories.hits.hits.map((s) => {
+    // @ts-ignore
+    return s._source?.custom_categories?.find(
+      (cat) => cat.language_code?.toLowerCase() === language?.toLowerCase()
+    );
+  });
+  categoriesData = Array.from(
+    new Map(categoriesData.map((c: any) => [c.id, c])).values()
+  );
   // Extract unique categories and brands
   const categories = categoriesData || [];
 
-  const boutiques = boutiquesData || [];
+  const boutiques = boutiquesData.boutiques || [];
 
   // Generate comprehensive metadata with translations
   // app/layout.tsx or app/page.tsx
@@ -163,13 +190,6 @@ export const getHomeMetadata = async ({ params }): Promise<Metadata> => {
 };
 export const GetStructuredData = async ({ params }) => {
   const [country, language] = params.lang.split("-");
-  const response = await fetchServerData({
-    url: `${process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL}/api/home/HomePageMetaData?lang=${language}&country=${country}`,
-    method: "GET",
-    tags: ["home"],
-    revalidate: parseInt(process.env.NEXT_PUBLIC_HOME_REVALIDATE),
-    local: `${country}-${language}`,
-  });
   return {
     "@context": "https://schema.org",
     "@type": "Store",

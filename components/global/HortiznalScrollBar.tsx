@@ -7,8 +7,12 @@ function HortiznalScrollBar({
   children,
   id,
   dataCy,
+  time,
 }: HortiznalScrollBarProps) {
   useEffect(() => {
+    if (time) {
+      console.log(time);
+    }
     if (typeof window !== "undefined") {
       const slider: HTMLDivElement = document?.querySelector(`#${id}`);
       let isDown = false;

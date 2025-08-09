@@ -16,6 +16,8 @@ import {
 } from "utils/GAEvents";
 import { GAevent } from "utils/gtag";
 import { pollinateInput } from "utils/tinyUtils";
+import { getProductsAndFiltersFromElastic } from "services/elastic/elasticSearch";
+import { showErrorNotification } from "store/notifications/reducer";
 interface SearchComponentProps {
   searchEnabled: boolean;
   close: Function;
@@ -34,29 +36,112 @@ function SearchComponent({
     setSearchLoading,
     setSearchWord,
     value,
-    searchWords,
+    setSearchResults,
+    searchFilters,
+    setTotalSizeOfProducts,
     setEnableSearch,
   } = useAppStore();
 
   const { lang } = useParams();
+  const [country, language] = (lang as string).split("-");
+
   const router = useRouter();
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
 
   const debouncedSearch = useCallback(
     async (searchValue: string) => {
-      const result = await SearchService.getSearchOptions({
-        noProducts: false,
-        lang: lang,
-        searchValue: searchValue,
-      });
-      // Only prefetch if the request wasn't cancelled
-      if (result !== null) {
-        router.prefetch(SearchService.getSearchPageUrl({ lang: lang }));
+      const currentRequestId = ++requestIdRef.current;
+      try {
+        setSearchPartialLoading(true);
+        setSearchLoading(true);
+        const filterObj = {
+          boutiques: searchFilters?.boutiques?.map((b) => b.slug) || [],
+          categories: searchFilters?.categories?.map((c) => c.slug) || [],
+          brands: searchFilters?.brands?.map((b) => b.slug) || [],
+          colors:
+            searchFilters?.colors?.map((c) =>
+              typeof c === "string" ? c : c.toString()
+            ) || [],
+          sizes:
+            searchFilters?.sizes?.map((s) =>
+              typeof s === "string" ? s : s.toString()
+            ) || [],
+          prices:
+            searchFilters?.prices &&
+            searchFilters.prices.min_price !== null &&
+            searchFilters.prices.min_price !== undefined &&
+            searchFilters.prices.max_price !== null &&
+            searchFilters.prices.max_price !== undefined &&
+            !isNaN(Number(searchFilters.prices.min_price)) &&
+            !isNaN(Number(searchFilters.prices.max_price)) &&
+            Number(searchFilters.prices.min_price) >= 0 &&
+            Number(searchFilters.prices.max_price) > 0
+              ? [searchFilters.prices.min_price, searchFilters.prices.max_price]
+              : [],
+          search_text:
+            searchValue?.length > 0
+              ? searchValue
+              : value?.length > 0
+              ? value
+              : null,
+        };
+
+        const filtersResponse = await getProductsAndFiltersFromElastic({
+          country: country,
+          language_code: language,
+          filters: filterObj,
+          filters_offset: 1,
+          limit: 10,
+        });
+        // if (currentRequestId !== requestIdRef.current) {
+        //   return; // Ignore outdated responses
+        // }
+        if (!filtersResponse) {
+          throw new Error("");
+        }
+        const {
+          products,
+          categories,
+          brands,
+          boutiques,
+          colors,
+          attributes: attributes,
+          total_size,
+        } = filtersResponse;
+        setTotalSizeOfProducts({ total_size });
+        setSearchResults(
+          {
+            products,
+            categories,
+            brands,
+            boutiques,
+            colors,
+            sizes: attributes?.[0]?.options || [],
+            prices: {
+              min_price: filtersResponse?.prices?.min_price || null,
+              max_price: filtersResponse?.prices?.max_price || null,
+            },
+            prices_ranges: /*filtersResponse?.prices?.priceRanges*/ [],
+          },
+          true
+        );
+        setSearchPartialLoading(false);
+        setSearchLoading(false);
+        // Only prefetch if the request wasn't cancelled
+        if (filtersResponse !== null) {
+          router.prefetch(SearchService.getSearchPageUrl({ lang: lang }));
+        }
+      } catch (error) {
+        setSearchPartialLoading(false);
+        setSearchLoading(false);
+        showErrorNotification(
+          translateFunction("Failed To Retrive Results Please Try Again")
+        );
       }
     },
     [lang, router, value]
   );
-
+  const requestIdRef = useRef<number>(0);
   const onChange = (e: ChangeEvent<HTMLInputElement>) => {
     let input = pollinateInput(e.target.value);
 
@@ -88,9 +173,6 @@ function SearchComponent({
     }
   };
 
-  const setLoading = (e) => {
-    setSearchPartialLoading(e);
-  };
   useEffect(() => {
     if (searchEnabled) {
       GAevent({
@@ -157,7 +239,7 @@ function SearchComponent({
                     //   event: GA_EVENT_NAMES.CLICK,
                     //   value: GA_CLICK_EVENT_VALUES.RESET_HOME_SEARCH_BUTTON,
                     // });
-                    setLoading(true);
+                    setSearchLoading(true);
                     setSearchWord("");
 
                     findProducts([]);

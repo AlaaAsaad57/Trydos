@@ -1,6 +1,6 @@
 export const runtime = "nodejs";
 export const preferredRegion = "bom1";
-import Home from "components/Home";
+
 import NavbarServer from "components/Server/Navbar";
 import OfferListServer from "components/Server/OfferListServer";
 import StoriesBarServer from "components/Server/StoriesBarServer";
@@ -8,53 +8,125 @@ import MobileNavigationSkeleton from "components/skeleton/MobileNavigation";
 import OfferListSkeleton from "components/skeleton/OfferList";
 import StoriesSkeleton from "components/skeleton/StoriesSkeleton";
 import { Suspense } from "react";
-import { HomePageProps } from "models/componentType/HomePagePropsType";
-import { GetHomeData } from "utils/pagesDataRequests/HomePageData";
+import Home from "components/Home";
 import FeatureProducts from "components/Server/FeatureProducts";
 import FeaturedProductsSkeleton from "components/skeleton/loaders/FeaturedProductsSkeleton";
 import FlashDealsProducts from "components/Server/FlashDealsProducts";
+import { getHomeMetadata, GetStructuredData } from "../../MetaData";
+
+import { HomePageProps } from "models/componentType/HomePagePropsType";
+import { fetchCurrency } from "Server Requests";
 import { ElasticsearchReader } from "services/elastic/elasticsearch-reader.service";
+import { getProductsAndFiltersFromElastic } from "services/elastic/elasticSearch";
+import { getCurrencyFromCache, StoreCurrency } from "Server Requests/radis";
 
 export async function generateMetadata({ params }) {
   try {
-    const metadata = {
-      title: `Categories - TryDos`,
-      description:
-        "Browse product categories on TryDos - Find exactly what you're looking for.",
-      alternates: {
-        canonical: `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${params.lang}/categories/${params.mainCategory}`,
-      },
-    };
-    return metadata;
+    const metadata = await getHomeMetadata({ params });
+
+    // console.log("**********metadata***********", JSON.stringify(metadata));
+    return { ...metadata };
   } catch (error) {
     console.log(error);
     return {
-      title: `Categories - TryDos`,
+      title: "TryDos - Premium Shopping Experience",
       description:
-        "Browse product categories on TryDos - Find exactly what you're looking for.",
+        "Discover premium products on TryDos - Your ultimate shopping destination with featured products, flash deals, and boutique collections.",
     };
   }
 }
 
-async function page({ params }: HomePageProps) {
-  // Server component to render JSON-LD structured data
-  let [country, language] = params.lang.split("-");
-  let category: string = params.mainCategory as string;
-  const { currencyData, featuredData, flashDealsData } = await GetHomeData(
-    params
+// Server component to render JSON-LD structured data
+async function StructuredDataScript({ params }) {
+  try {
+    const structuredData = await GetStructuredData({ params });
+    // console.log(
+    //   "**********structuredData***********",
+    //   JSON.stringify(structuredData)
+    // );
+
+    if (!structuredData) return null;
+
+    return (
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(structuredData),
+        }}
+      />
+    );
+  } catch (error) {
+    console.error("Error generating structured data:", error);
+    return null;
+  }
+}
+async function getCurrency(country, language) {
+  try {
+    let cachedCurrency = await getCurrencyFromCache(country);
+
+    if (typeof cachedCurrency === "string") {
+      return JSON.parse(cachedCurrency);
+    }
+    if (cachedCurrency?.exchange_rate) {
+      return cachedCurrency;
+    } else {
+      let currencyData = await fetchCurrency(language, country);
+      let currency = currencyData.data.currency;
+
+      StoreCurrency(country, currency);
+      return currency;
+    }
+  } catch (error) {}
+}
+async function HomePage({ params }: HomePageProps) {
+  return (
+    <>
+      <Suspense fallback={null}>
+        <StructuredDataScript params={params} />
+      </Suspense>
+
+      <Suspense
+        fallback={<MobileNavigationSkeleton />}
+        key={`Navbar ${params.lang}`}
+      >
+        <MainCategoriesNavbar
+          lang={params.lang}
+          mainCategory={params.mainCategory}
+        />
+      </Suspense>
+
+      <Suspense fallback={<StoriesSkeleton />} key={`Stories ${params.lang}`}>
+        <StoriesBarServer
+          language={params.lang.split("-")[1]}
+          country={params.lang.split("-")[0]}
+        />
+      </Suspense>
+
+      {/* <Suspense fallback={<FeaturedProductsSkeleton lang={params.lang} />}>
+        <FeaturedProductWrapper lang={params.lang} />
+      </Suspense>
+      <Suspense fallback={<FeaturedProductsSkeleton lang={params.lang} />}>
+        <FlashProductWrapper lang={params.lang} />
+      </Suspense> */}
+      <Home key={`Home ${params.lang}`} />
+      <Suspense
+        fallback={<OfferListSkeleton />}
+        key={`OfferList ${params.lang}`}
+      >
+        <BoutiquesListWrapper params={params} />
+      </Suspense>
+    </>
   );
+}
+
+export default HomePage;
+// Main Categories Bar
+async function MainCategoriesNavbar({ lang, mainCategory }) {
+  const [country, language] = lang?.split("-");
+  // let mainCategories = await fetchMainCategories(language, country);
   let Reader = new ElasticsearchReader();
   let start = process.hrtime.bigint();
-
-  let [a, data] = await Promise.all([
-    Reader.getCategories({ country: country, size: 4000 }),
-    Reader.getBoutiques({
-      language,
-      country,
-      limit: 10,
-      category: category as string,
-    }),
-  ]);
+  let a = await Reader.getCategories({ country: country, size: 4000 });
   // @ts-ignore
 
   let mainCategories = a.hits.hits.map((s) => {
@@ -67,52 +139,77 @@ async function page({ params }: HomePageProps) {
     new Map(mainCategories.map((c: any) => [c.id, c])).values()
   );
   let end = process.hrtime.bigint();
+
   return (
-    <>
-      <Suspense
-        fallback={<MobileNavigationSkeleton />}
-        key={`Navbar ${params.lang}`}
-      >
-        <NavbarServer
-          time={Number(end - start) / 1_000_000}
-          lang={params.lang}
-          mainCategory={params?.mainCategory}
-          categoriesData={mainCategories}
-        />
-      </Suspense>
+    <NavbarServer
+      lang={lang}
+      time={Number(end - start) / 1_000_000}
+      mainCategory={mainCategory}
+      categoriesData={mainCategories}
+    />
+  );
+}
+// Featured Products
+async function FeaturedProductWrapper({ lang }) {
+  const [country, language] = lang?.split("-");
 
-      <Suspense fallback={<StoriesSkeleton />} key={`Stories ${params.lang}`}>
-        <StoriesBarServer
-          language={params.lang.split("-")[1]}
-          country={params.lang.split("-")[0]}
-        />
-      </Suspense>
+  let currencyData = await getCurrency(country, language);
+  let data = await getProductsAndFiltersFromElastic({
+    country: country,
+    language_code: language,
+    filters: {
+      featured: true,
+    },
+    limit: 10,
+  });
+  return (
+    <FeatureProducts
+      currencyData={currencyData}
+      fetauredProductsData={{ data: data }}
+      lang={lang}
+    />
+  );
+}
+// FlasDeals Products
+async function FlashProductWrapper({ lang }) {
+  const [country, language] = lang?.split("-");
 
-      <Suspense fallback={<FeaturedProductsSkeleton lang={params.lang} />}>
-        <FeatureProducts
-          currencyData={currencyData}
-          fetauredProductsData={featuredData}
-          lang={params.lang}
-        />
-      </Suspense>
-      <Suspense fallback={<FeaturedProductsSkeleton lang={params.lang} />}>
-        <FlashDealsProducts
-          currencyData={currencyData}
-          flashDealsProducts={flashDealsData}
-          lang={params.lang}
-        />
-      </Suspense>
-      <Suspense fallback={<></>} key={`Home ${params.lang}`}>
-        <Home />
-      </Suspense>
-      <Suspense
-        fallback={<OfferListSkeleton />}
-        key={`OfferList ${params.lang}`}
-      >
-        <OfferListServer boutiquesData={data} params={params} />
-      </Suspense>
-    </>
+  let currencyData = await getCurrency(country, language);
+  let data = await getProductsAndFiltersFromElastic({
+    country: country,
+    language_code: language,
+    filters: {
+      flashdeal: true,
+    },
+    limit: 10,
+  });
+  return (
+    <FlashDealsProducts
+      currencyData={currencyData}
+      flashDealsProducts={{ data: data }}
+      lang={lang}
+    />
   );
 }
 
-export default page;
+async function BoutiquesListWrapper({ params }) {
+  const [country, language] = params.lang.split("-");
+
+  let start = process.hrtime.bigint();
+
+  let Reader = new ElasticsearchReader();
+  let data = await Reader.getBoutiques({
+    language,
+    country,
+    limit: 10,
+    category: params.mainCategory,
+  });
+  // @ts-ignore
+  let end = process.hrtime.bigint();
+  return (
+    <OfferListServer
+      boutiquesData={{ ...data, temp: Number(end - start) / 1_000_000 }}
+      params={params}
+    />
+  );
+}

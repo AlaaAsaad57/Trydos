@@ -43,7 +43,7 @@ function ProductColors({ colors, ProductColorsArray }: ProductColorsPropsType) {
       action: GA_EVENT_NAMES.ITEM_VARIANT_EXCHANGE,
       params: {
         user_id_custom: auth.UserID(),
-        item_id: product?.sku || product?.slug,
+        item_id: product?.id,
         item_name: product.name,
         brand: product?.brand?.name,
         category: product?.category?.name,

@@ -74,6 +74,7 @@ export interface OrderDetail {
   order_id: number;
   product_id: number;
   product_slug: string;
+  return_status?: string;
   is_returned?: boolean;
   is_canceled?: boolean;
   image: string;

@@ -37,6 +37,7 @@ import { fetchData } from "utils/fetchData";
 import { useRouter } from "next/navigation";
 import FlashDealBanner from "components/products/FlashDealBanner";
 import { REQUESTS_DATA } from "utils/Requests";
+import auth from "services/auth";
 import CartErrorComponent from "./CartErrorComponent";
 
 function CartContainer({ close, toOrders }: CartContainerPropsType) {
@@ -55,7 +56,7 @@ function CartContainer({ close, toOrders }: CartContainerPropsType) {
     cart_loading,
     product,
     cart,
-    cartShippingSuccess
+    cartShippingSuccess,
   } = useAppStore();
   let { lang } = useParams();
   // @ts-ignore
@@ -394,8 +395,8 @@ function CartContainer({ close, toOrders }: CartContainerPropsType) {
       <div className="flex-col overflow-auto max-h-screen">
         <div className="flex-col  w-full h-auto mt-10 pb-[20px]">
           {!cart_loading && cartShippingSuccess !== null ? (
-            <CartErrorComponent 
-              errorMessage={cartShippingSuccess} 
+            <CartErrorComponent
+              errorMessage={cartShippingSuccess}
               onRetry={handleRetry}
             />
           ) : !cart_loading && cartShippingSuccess === null ? (
@@ -1964,6 +1965,7 @@ const QuantutyInput = ({
               item_variant: product.variant,
             },
           ],
+          user_id_custom: auth.UserID(),
           interaction_type: "add_to_cart",
           screen_name: GA_GLOBAL_SCREEN.CART_SCREEN,
           screen_path: window.location.pathname,

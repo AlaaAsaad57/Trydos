@@ -66,11 +66,16 @@ function SearchBoutiquePage({ search_text }: SearchBoutiquePageProps) {
       setFilterLoading(true);
       const newFilters = { ...currentFilters };
       if (e.target.value.length > 0) {
-        newFilters.search = [e.target.value];
+        newFilters.search_text = [e.target.value];
       } else {
-        delete newFilters.search;
+        delete newFilters.search_text;
       }
-      const pathParams = buildParamsFromFilters(newFilters);
+
+      const pathParams = buildParamsFromFilters({
+        ...newFilters,
+        search: newFilters.search_text,
+      });
+
       const newPath =
         pathParams.length > 0
           ? `/${lang}/filters/${pathParams.join("/")}`

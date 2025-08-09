@@ -12,6 +12,9 @@ import CancelOrderItem from "./CancelOrderItem";
 import ChangeOrderItem from "./ChangeOrderItem";
 import { GetImageUrl } from "utils/tinyUtils";
 import { OrderItemOptionsModalPropsType } from "models/componentType/OrderItemOptionsModalPropsType";
+import order from "services/order";
+import { showErrorNotification } from "store/notifications/reducer";
+import Spinner from "components/global/Spinner";
 import { useParams } from "node_modules/next/navigation";
 
 function OrderItemOptionsModal({
@@ -26,9 +29,63 @@ function OrderItemOptionsModal({
   const [activeWidget, setActiveWidget] = useState<
     "return" | "report" | "hide" | "main" | "cancel" | "ChangeRequest"
   >("main");
-  const { selectedOrder, ActivePacks } = useAppStore();
+  const { selectedOrder, ActivePacks, setActivePacks } = useAppStore();
+  const [IsInitializing, setIsInitializing] = useState(false);
   const GoToChangeOrderItem = () => {
     setActiveWidget("ChangeRequest");
+  };
+  const shouldShowRetutn = () => {
+    if (item.qty === 0) return false;
+    if (selectedOrder.can_return_order) {
+      if (ActivePacks.return_details) {
+        if (
+          ActivePacks.return_details.details?.status === "pending" ||
+          ActivePacks.return_details.details?.status === "draft return request"
+        ) {
+          return true;
+        } else {
+          return false;
+        }
+      } else {
+        return true;
+      }
+    } else {
+      return false;
+    }
+  };
+  const ShouldShowCahngeColor = () => {
+    if (ActivePacks?.order_status?.value === "delivered") return false;
+    if (!ActivePacks.can_change_variant) return false;
+    if (item.qty === 0) return false;
+    else return true;
+  };
+  const initializeReturn = async () => {
+    if (ActivePacks.return_request_id) {
+      setActiveWidget("return");
+    }
+    try {
+      setIsInitializing(true);
+      let id = await order.CreateReturnRequest({ order_id: ActivePacks.id });
+      let details = await order.getReturnRequestDetails({
+        order_id: ActivePacks.id,
+        return_request_id: id,
+      });
+      setActivePacks({
+        ...ActivePacks,
+        return_request_id: id,
+        return_details: { details },
+      });
+      if (details?.order_details?.find((s) => s.detail_id === item.id)) {
+        setActiveWidget("return");
+      } else {
+        showErrorNotification(
+          translateFunction("return this product is not allowed")
+        );
+      }
+      setIsInitializing(false);
+    } catch (error) {
+      setIsInitializing(false);
+    }
   };
   const { lang } = useParams();
   // @ts-ignore
@@ -68,10 +125,12 @@ function OrderItemOptionsModal({
             </span>
           </div>
           <div className="flex-col w-full items-center pb-[12px] px-[24px] mt-[20px]">
-            {selectedOrder && (
+            {selectedOrder && ShouldShowCahngeColor() && (
               <div
                 onClick={GoToChangeOrderItem}
-                className={`cursor-pointer flex-row w-full items-center px-[15px] bg-[#f8f8f8] rounded-[20px] h-[60px] ${ isRtl ? "flex-row-reverse": " "}`}
+                className={`cursor-pointer flex-row w-full items-center px-[15px] bg-[#f8f8f8] rounded-[20px] h-[60px] ${
+                  isRtl ? "flex-row-reverse" : " "
+                }`}
               >
                 <div className="relative flex w-[30px] h-[30px] items-center justify-center">
                   <ChangeOrderItemIcon className="absolute top-0 left-0 right-0 mx-auto my-0" />
@@ -89,10 +148,18 @@ function OrderItemOptionsModal({
                   />
                 </div>
                 <div className="flex-col ml-[15px]">
-                  <span className={`regular text-[14px] text-[#1D1D1D] medium ${ isRtl ? " text-right pr-2": " "}`}>
+                  <span
+                    className={`regular text-[14px] text-[#1D1D1D] medium ${
+                      isRtl ? " text-right pr-2" : " "
+                    }`}
+                  >
                     {translateFunction("Change Product Request")}
                   </span>
-                  <span className={`regular text-[12px] text-[#8D8D8D] ${ isRtl ? "pr-2 ": " "}`}>
+                  <span
+                    className={`regular text-[12px] text-[#8D8D8D] ${
+                      isRtl ? "pr-2 " : " "
+                    }`}
+                  >
                     {translateFunction("Change Size, Color, Other")}
                   </span>
                 </div>
@@ -103,16 +170,26 @@ function OrderItemOptionsModal({
                 onClick={() => {
                   setActiveWidget("cancel");
                 }}
-                className={`cursor-pointer mt-[6px] flex-row w-full items-center px-[15px] bg-[#f8f8f8] rounded-[20px] min-h-[60px] ${ isRtl ? "flex-row-reverse": " "}`}
+                className={`cursor-pointer mt-[6px] flex-row w-full items-center px-[15px] bg-[#f8f8f8] rounded-[20px] min-h-[60px] ${
+                  isRtl ? "flex-row-reverse" : " "
+                }`}
               >
                 <div className="relative flex w-[30px] h-[30px] items-center justify-center">
                   <CancelOrderIcon />
                 </div>
                 <div className="flex-col ml-[15px]">
-                  <span className={`regular text-[14px] text-[#1D1D1D] medium ${ isRtl ? "text-right pr-2": " "}`}>
+                  <span
+                    className={`regular text-[14px] text-[#1D1D1D] medium ${
+                      isRtl ? "text-right pr-2" : " "
+                    }`}
+                  >
                     {translateFunction("Cancel This Product")}
                   </span>
-                  <p className={`regular text-[12px] text-[#8D8D8D] ${ isRtl ? "pr-2 ": " "}`}>
+                  <p
+                    className={`regular text-[12px] text-[#8D8D8D] ${
+                      isRtl ? "pr-2 " : " "
+                    }`}
+                  >
                     {translateFunction("Cancel This Product In")}
                     <span className="bold text-[12px] text-[#8D8D8D]  mx-[4px]">
                       3 {translateFunction("Hours")}
@@ -122,28 +199,50 @@ function OrderItemOptionsModal({
                 </div>
               </div>
             )}
-            {selectedOrder?.can_return_order && (
+            {shouldShowRetutn() && (
               <div
                 onClick={() => {
-                  setActiveWidget("return");
+                  if (IsInitializing) return;
+                  initializeReturn();
                 }}
-                className={`cursor-pointer mt-[6px] flex-row w-full items-center px-[15px] bg-[#f8f8f8] rounded-[20px] min-h-[60px] ${ isRtl ? "flex-row-reverse": " "}`}
+                className={`cursor-pointer mt-[6px] flex-row w-full items-center px-[15px] bg-[#f8f8f8] rounded-[20px] min-h-[60px] ${
+                  isRtl ? "flex-row-reverse" : " "
+                }`}
               >
                 <div className="relative flex w-[30px] h-[30px] items-center justify-center">
                   <ReturnOrderItemIcon className="absolute top-0 left-0 right-0 mx-auto my-0" />
                 </div>
-                <div className="flex-col ml-[15px]">
-                  <span className={`regular text-[14px] text-[#1D1D1D] medium ${ isRtl ? " text-right pr-2": " "}`}>
-                    {translateFunction("Return This Product")}
-                  </span>
-                  <p className={`regular text-[12px] text-[#8D8D8D] ${ isRtl ? "pr-2 ": " "}`}>
-                    {translateFunction("Return This Product In")}
-                    <span className="bold text-[12px] text-[#8D8D8D]  mx-[2px]">
-                      24 {translateFunction("Hours")}
+                {IsInitializing ? (
+                  <div className="flex-col ml-[15px] opacity-85">
+                    <span className="regular text-[14px] text-[#1D1D1D] medium">
+                      {translateFunction("Initializing Return")}
                     </span>
-                    {translateFunction("And Back Your Money")}
-                  </p>
-                </div>
+                    <p className="regular text-[12px] text-[#8D8D8D]">
+                      <Spinner />
+                    </p>
+                  </div>
+                ) : (
+                  <div className="flex-col ml-[15px]">
+                    <span
+                      className={`regular text-[14px] text-[#1D1D1D] medium ${
+                        isRtl ? " text-right pr-2" : " "
+                      }`}
+                    >
+                      {translateFunction("Return This Product")}
+                    </span>
+                    <p
+                      className={`regular text-[12px] text-[#8D8D8D] ${
+                        isRtl ? "pr-2 " : " "
+                      }`}
+                    >
+                      {translateFunction("Return This Product In")}
+                      <span className="bold text-[12px] text-[#8D8D8D]  mx-[2px]">
+                        24 {translateFunction("Hours")}
+                      </span>
+                      {translateFunction("And Back Your Money")}
+                    </p>
+                  </div>
+                )}
               </div>
             )}
             {selectedOrder && (
@@ -151,16 +250,26 @@ function OrderItemOptionsModal({
                 onClick={() => {
                   setActiveWidget("report");
                 }}
-                className={`cursor-pointer mt-[6px] flex-row w-full items-center px-[15px] bg-[#f8f8f8] rounded-[20px] min-h-[60px] ${ isRtl ? "flex-row-reverse": " "}`}
+                className={`cursor-pointer mt-[6px] flex-row w-full items-center px-[15px] bg-[#f8f8f8] rounded-[20px] min-h-[60px] ${
+                  isRtl ? "flex-row-reverse" : " "
+                }`}
               >
                 <div className="relative flex w-[30px] h-[30px] items-center justify-center">
                   <ReportOrderItemIcon />
                 </div>
                 <div className="flex-col ml-[15px]">
-                  <span className={`regular text-[14px] text-[#1D1D1D] medium ${ isRtl ? " text-right pr-2": " "}`}>
+                  <span
+                    className={`regular text-[14px] text-[#1D1D1D] medium ${
+                      isRtl ? " text-right pr-2" : " "
+                    }`}
+                  >
                     {translateFunction("Report This Product")}
                   </span>
-                  <span className={`regular text-[12px] text-[#8D8D8D] ${ isRtl ? "pr-2 ": " "}`}>
+                  <span
+                    className={`regular text-[12px] text-[#8D8D8D] ${
+                      isRtl ? "pr-2 " : " "
+                    }`}
+                  >
                     {translateFunction(
                       "Delivery Time, Delivery Man, Delivery Car"
                     )}
@@ -173,16 +282,26 @@ function OrderItemOptionsModal({
                 onClick={() => {
                   setActiveWidget("hide");
                 }}
-                className={`cursor-pointer mt-[6px] flex-row w-full items-center px-[15px] bg-[#f8f8f8] rounded-[20px] min-h-[60px] ${ isRtl ? "flex-row-reverse": " "}`}
+                className={`cursor-pointer mt-[6px] flex-row w-full items-center px-[15px] bg-[#f8f8f8] rounded-[20px] min-h-[60px] ${
+                  isRtl ? "flex-row-reverse" : " "
+                }`}
               >
                 <div className="relative flex w-[30px] h-[30px] items-center justify-center">
                   <HideOrderItemIcon />
                 </div>
                 <div className="flex-col ml-[15px]">
-                  <span className={`regular text-[14px] text-[#1D1D1D] medium ${ isRtl ? " text-right pr-2": " "}`}>
+                  <span
+                    className={`regular text-[14px] text-[#1D1D1D] medium ${
+                      isRtl ? " text-right pr-2" : " "
+                    }`}
+                  >
                     {translateFunction("Hide This Product")}
                   </span>
-                  <span className={`regular text-[12px] text-[#8D8D8D] ${ isRtl ? "pr-2 ": " "}`}>
+                  <span
+                    className={`regular text-[12px] text-[#8D8D8D] ${
+                      isRtl ? "pr-2 " : " "
+                    }`}
+                  >
                     {translateFunction("Hide This Product From My List")}
                   </span>
                 </div>
@@ -235,7 +354,10 @@ function OrderItemOptionsModal({
   return (
     <>
       <div
-        onClick={() => close(false)}
+        onClick={() => {
+          close(false);
+          console.log(ActivePacks);
+        }}
         className="absolute top-[0px]   left-0 min-w-[100vw] z-[999999998] min-h-[100vh] opacity-40 bg-[black]"
       />
       <div className="flex-col items-center max-h-[calc(100vh-100px)] overflow-auto w-full pt-[12px]  z-[999999999] pb-[27px] absolute bottom-[0px]  left-0 rounded-t-[30px] bg-white">

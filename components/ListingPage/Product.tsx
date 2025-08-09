@@ -13,7 +13,6 @@ export const BuyButtonProduct = ({
   params,
   currency,
   language,
-
   isForColor = false,
   shouldShowRedeem = false,
   setShouldShowRedeem = (e) => {},

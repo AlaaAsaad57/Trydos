@@ -6,10 +6,8 @@ export const GetProductData = async (params: {
   productId: string;
 }) => {
   let [country, language] = params.lang.split("-");
-  let [productData, currencyData] = await Promise.all([
+  let [productData] = await Promise.all([
     fetchProductDetails(params.productId, language, country),
-    fetchCurrency(language, country),
-    GetSocialDataForProduct,
   ]);
   let socialData = await GetSocialDataForProduct({
     productId: productData.id,
@@ -19,7 +17,6 @@ export const GetProductData = async (params: {
   return {
     product: productData,
     socialData: socialData,
-    currency: currencyData.data.currency,
   };
 };
 export const GetSocialDataForProduct = async ({ productId, slug, lang }) => {

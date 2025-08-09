@@ -939,7 +939,7 @@ const ProductCard = ({
             <OrderRetailsReturnInfo
               product={{
                 ...product,
-                return_status: ActivePacks.return_details.status,
+                return_status: ActivePacks.return_details?.details?.status,
               }}
               callback={() => {
                 getOrderDetails();

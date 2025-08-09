@@ -7,6 +7,7 @@ import {
 import auth from "./auth";
 import { fetchData } from "utils/fetchData";
 import { REQUESTS_DATA } from "utils/Requests";
+import { getProductsAndFiltersFromElastic } from "services/elastic/elasticSearch";
 
 class SearchService {
   private searchAbortController: AbortController | null = null;
@@ -42,7 +43,7 @@ class SearchService {
     if (this.searchAbortController) {
       this.searchAbortController.abort();
     }
-
+    const [country, language] = lang.split("-");
     // Create new AbortController for this request
     this.searchAbortController = new AbortController();
     const signal = this.searchAbortController.signal;
@@ -81,49 +82,24 @@ class SearchService {
           !isNaN(Number(searchFilters.prices.max_price)) &&
           Number(searchFilters.prices.min_price) >= 0 &&
           Number(searchFilters.prices.max_price) > 0
-            ? [
-                `${searchFilters.prices.min_price}-${searchFilters.prices.max_price}`,
-              ]
+            ? [searchFilters.prices.min_price, searchFilters.prices.max_price]
             : [],
         search_text:
           searchValue?.length > 0
-            ? [searchValue]
+            ? searchValue
             : value?.length > 0
-            ? [value]
-            : [],
+            ? value
+            : null,
       };
 
-      // Convert filter object to search params for elastic backend
-      const searchParams = filtersToSearchParams(filterObj);
-
-      const configuredParams = configureSearchParams({
-        searchParams,
-        noProducts: noProducts ? "true" : "false",
-        noFilters: noFilters ? "true" : "false",
-        lang: lang.split("-")[1] || "en",
-        offset: null,
-        boutiqueId: "listing",
-        filters_offset: filters_offset?.toString(),
+      const filtersResponse = await getProductsAndFiltersFromElastic({
+        country: country,
+        language_code: language,
+        filters: filterObj,
+        filters_offset: filters_offset ?? 1,
+        limit: 10,
+        noProducts: noProducts,
       });
-
-      const apiUrl = `/api/products/searchInCatalog`;
-
-      // Debug logging
-      const filtersResponse = await fetchData({
-        method: "GET",
-        url: `${apiUrl}?${configuredParams.toString()}`,
-        server: "elastic",
-        reqTitle: REQUESTS_DATA.GET_SEARCH_OPTIONS,
-        signal,
-      });
-      if (!filtersResponse.success) {
-        setSearchPartialLoading(false);
-        setSearchLoading(false);
-        return null;
-      }
-      if (!filtersResponse) {
-        return null;
-      }
       const {
         products,
         categories,
@@ -132,7 +108,7 @@ class SearchService {
         colors,
         attributes: attributes,
         total_size,
-      } = filtersResponse.data;
+      } = filtersResponse;
       setTotalSizeOfProducts({ total_size });
       setSearchResults(
         {
@@ -143,16 +119,16 @@ class SearchService {
           colors,
           sizes: attributes?.[0]?.options || [],
           prices: {
-            min_price: filtersResponse?.data?.prices?.min_price || null,
-            max_price: filtersResponse?.data?.prices?.max_price || null,
+            min_price: filtersResponse?.prices?.min_price || null,
+            max_price: filtersResponse?.prices?.max_price || null,
           },
-          prices_ranges: filtersResponse?.data?.prices?.priceRanges || [],
+          prices_ranges: /*filtersResponse?.prices?.priceRanges*/ [],
         },
         replace
       );
       setSearchPartialLoading(false);
       setSearchLoading(false);
-      return filtersResponse;
+      return { data: filtersResponse };
     } catch (error) {
       // Check if error is due to abort
       if (error.name === "AbortError") {
@@ -178,32 +154,40 @@ class SearchService {
     // Create new AbortController for this request
     this.searchAbortController = new AbortController();
     const signal = this.searchAbortController.signal;
-
+    const [country, language] = lang.split("-");
     const { setSearchResults, setTotalSizeOfProducts } = useAppStore.getState();
     try {
       // Convert filter object to search params for elastic backend
-      const searchParams = filtersToSearchParams(filter_obj);
+      // const searchParams = filtersToSearchParams(filter_obj);
 
-      const configuredParams = configureSearchParams({
-        searchParams,
-        noProducts: "true",
-        noFilters: "false",
-        lang: lang.split("-")[1] || "en",
-        offset: "0",
-        boutiqueId: "listing",
-      });
+      // const configuredParams = configureSearchParams({
+      //   searchParams,
+      //   noProducts: "true",
+      //   noFilters: "false",
+      //   lang: lang.split("-")[1] || "en",
+      //   offset: "0",
+      //   boutiqueId: "listing",
+      // });
 
-      const apiUrl = `/api/products/searchInCatalog`;
-      const filtersResponse = await fetchData({
-        method: "GET",
-        url: `${apiUrl}?${configuredParams.toString()}`,
-        server: "elastic",
-        reqTitle: REQUESTS_DATA.GET_SEARCH_OPTIONS,
-        signal,
+      // const apiUrl = `/api/products/searchInCatalog`;
+      // const filtersResponse = await fetchData({
+      //   method: "GET",
+      //   url: `${apiUrl}?${configuredParams.toString()}`,
+      //   server: "elastic",
+      //   reqTitle: REQUESTS_DATA.GET_SEARCH_OPTIONS,
+      //   signal,
+      // });
+      const filtersResponse = await getProductsAndFiltersFromElastic({
+        country: country,
+        language_code: language,
+        limit: 10,
+        filters: {},
+        filters_offset: 1,
       });
-      if (!filtersResponse.success) {
-        throw new Error(filtersResponse.message);
-      }
+      console.log(filtersResponse);
+      // if (!filtersResponse.success) {
+      //   throw new Error(filtersResponse.message);
+      // }
       const {
         products,
         categories,
@@ -212,7 +196,7 @@ class SearchService {
         colors,
         attributes: attributes,
         total_size,
-      } = filtersResponse.data;
+      } = filtersResponse;
       setTotalSizeOfProducts({ total_size });
 
       setSearchResults(
@@ -224,14 +208,14 @@ class SearchService {
           colors,
           sizes: attributes?.[0]?.options,
           prices: {
-            min_price: filtersResponse?.data?.prices?.min_price || null,
-            max_price: filtersResponse?.data?.prices?.max_price || null,
+            min_price: filtersResponse?.prices?.min_price || null,
+            max_price: filtersResponse?.prices?.max_price || null,
           },
-          prices_ranges: filtersResponse?.data?.prices?.priceRanges || [],
+          prices_ranges: /*filtersResponse?.prices?.priceRanges*/ [],
         },
         true
       );
-      return filtersResponse.data;
+      return filtersResponse;
     } catch (error) {
       // Check if error is due to abort
       if (error.name === "AbortError") {

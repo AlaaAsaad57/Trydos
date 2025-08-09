@@ -108,54 +108,6 @@ function OrderOptions({ closeOptions, CancelOrder }: OrderOptionsPropsType) {
 
     setOrderPageLoading(false);
   };
-  const changeOrderItem = ({ id, color, size, qty, image }) => {
-    // let order_details_arry = [];
-    // selectedOrder.details.map((order_detail) => {
-    //   let details_arry = { ...order_detail, details: [] };
-    //   order_detail.details.map((s) => {
-    //     if (s.id === id) {
-    //       let new_detail = { ...s, image };
-    //       if (s.variation) {
-    //         if (s.variation.color !== color) {
-    //           new_detail = {
-    //             ...new_detail,
-    //             variation: { ...new_detail.variation, color },
-    //           };
-    //         }
-    //         if (s.variation.Size !== size) {
-    //           new_detail = {
-    //             ...new_detail,
-    //             variation: { ...new_detail.variation, Size: size },
-    //           };
-    //         }
-    //       }
-    //       if (qty !== s.qty) {
-    //         new_detail = { ...new_detail, qty };
-    //       }
-    //       details_arry.details.push(new_detail);
-    //     } else {
-    //       details_arry.details.push(s);
-    //     }
-    //   });
-    //   order_details_arry.push(details_arry);
-    // });
-    // setTempOrderDetails({ ...selectedOrder, details: order_details_arry });
-  };
-  const ReturnItem = () => {
-    // let order_details_arry = [];
-    // selectedOrder.details.map((order_detail) => {
-    //   let details_arry = { ...order_detail, details: [] };
-    //   order_detail.details.map((s) => {
-    //     if (s.id === SelectedOrderItem.id) {
-    //       details_arry.details.push({ ...s, is_returned: true });
-    //     } else {
-    //       details_arry.details.push(s);
-    //     }
-    //   });
-    //   order_details_arry.push(details_arry);
-    // });
-    // setOrderDetails({ ...selectedOrder, details: order_details_arry });
-  };
 
   const CancelItem = async () => {
     setOrderPageLoading(true);
@@ -240,7 +192,6 @@ function OrderOptions({ closeOptions, CancelOrder }: OrderOptionsPropsType) {
               close={() => {
                 closeOptions();
                 setShouldConfirmReturn(false);
-                ReturnItem();
               }}
               callback={() => {
                 getOrderDetails();

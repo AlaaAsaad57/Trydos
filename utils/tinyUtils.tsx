@@ -44,12 +44,12 @@ export interface FilterListProps {
 }
 
 export const CielNumber = (price) => {
-  return Math.ceil(price * 1000) / 1000;
+  return Math.ceil(price * 10) / 10;
 };
 export const getPrice = (num, lang, currency, decimal = 0) => {
   let rateVariable = currency?.exchange_rate;
   let price = parseFloat(num);
-  price = parseFloat((price * rateVariable).toFixed(decimal));
+  price = price * rateVariable;
 
   if (price >= 1000000) {
     return CielNumber(price / 1000000) + translateFunction("M", lang); // For millions
@@ -525,7 +525,16 @@ export const getCountry = (text?: string) => {
         text?.startsWith(countryItem.dialCode)
       )[0];
 };
-
+type parsedFilters = {
+  boutiques?: string[];
+  brands?: string[];
+  categories?: string[];
+  colors?: string[];
+  tags_names?: string[];
+  sizes?: string[];
+  search_text?: string[];
+  prices?: any[];
+};
 /**
  * Parse filters from URL path parameters
  * Expected order: boutiques > categories > brands > colors > sizes > prices > search
@@ -534,7 +543,7 @@ export const getCountry = (text?: string) => {
  */
 export const parseFiltersFromParams = (
   params: string[] = []
-): Record<string, string[]> => {
+): parsedFilters => {
   const filters: Record<string, string[]> = {};
 
   if (!params || params.length === 0) return filters;
