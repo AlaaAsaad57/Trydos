@@ -4,8 +4,8 @@ import { ElasticsearchReader } from "@/services/elastic/elasticsearch-reader.ser
 export async function GET(request: NextRequest) {
   try {
     // Get country and language from headers
-    const country = request.headers.get("country");
-    const language = request.headers.get("language");
+    const country = request.headers.get("country")?.trim() || "sy";
+    const language = request.headers.get("language")?.trim() || "en";
 
     // Validate required headers
     if (!country || !language) {

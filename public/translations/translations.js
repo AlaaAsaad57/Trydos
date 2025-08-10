@@ -847,8 +847,10 @@ const translations = {
       "لقد قمت بالفعل بتفعيل الإشعارات لهذا المنتج",
     "Session Expired..please Verify Your Phone Number":
       "انتهت صلاحية الجلسة.. يرجى التحقق من رقم هاتفك",
+      "Failed to update like status. Please try again.": "فشل تحديث حالة الإعجاب. يرجى المحاولة مرة أخرى",
   },
   tr: {
+    "Failed to update like status. Please try again.": "Beğeni durumu güncellenemedi. Lütfen tekrar deneyin",
     "Cart Loading Error": "Sepet Yükleme Hatası",
     "Failed To Retrive Results Please Try Again":
       "Sonuçlar alınamadı, lütfen tekrar deneyin",
@@ -2578,6 +2580,7 @@ const translations = {
       "تکایە سەرجەم ژمارەکە پەسەند بکەوە پێشتر.",
     "Please enable notification permissions to use camera features":
       "تکایە دەسەڵاتی ئاگادارکردنەوە چالاک بکە بۆ بەکارهێنانی تایبەتمەندییەکانی کامێرا",
+      "Failed to update like status. Please try again.": "سەرکەوتوو نەبوو لە نوێکردنەوەی دۆخی حەزلەکردن. تکایە دووبارە هەوڵ بدە",
   },
 };
 
