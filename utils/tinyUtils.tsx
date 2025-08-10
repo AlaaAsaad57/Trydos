@@ -436,6 +436,57 @@ export const GetImageUrl = (url) => {
   if (url && url?.includes("http")) return url;
   return process.env.NEXT_PUBLIC_BASE_CLOUDINARY_URL + url;
 };
+/**
+ * Get the best Cloudinary video URL with optional clip segment and size.
+ * @param input - Cloudinary video URL or public ID (e.g., 'folder/video.mp4' or full URL)
+ * @param options - Optional: { start?: number (seconds), end?: number (seconds), width?: number, height?: number }
+ * @returns Cloudinary video URL with best quality, size, and optional clip
+ */
+export const getVideoUrl = (
+  input: string,
+  options?: { start?: number | string; end?: number | string; width?: number | string; height?: number | string }
+): string => {
+  // Build transformation string
+  let transformations = [];
+  if (options?.height) {
+    transformations.push(`h_${options.height}`);
+  }
+  const width = options?.width ?? 720;
+  transformations.push(`w_${width}`, "c_limit");
+  transformations.push("f_auto");
+  transformations.push("q_auto:best");
+  transformations.push("vc_auto");
+  // Default to 5s-15s if not provided
+  const start = options?.start ?? 1;
+  const end = options?.end ?? 10;
+
+  transformations.push(`so_${start}`);
+  transformations.push(`eo_${end}`);
+
+  const transformStr = transformations.join(",");
+
+  // If input is a full Cloudinary URL, insert the transformation after '/upload/' and before '/v1/'
+  if (input.startsWith("http") && input.includes("/video/upload/")) {
+    return input.replace(
+      /\/video\/upload\/(v\d+)?/,
+      `/video/upload/${transformStr}/$1`
+    );
+  }
+
+  // Otherwise, treat input as public ID and build the correct format
+  const cloudinaryBase = "https://res.cloudinary.com/dtcmozf4d/video/upload/";
+  const version = "v1";
+  const folder = "product/videos";
+  
+  // Remove any leading slash and ensure .mp4 extension
+  let filename = input.replace(/^\//, "");
+  if (!filename.endsWith('.mp4')) {
+    filename = `${filename}.mp4`;
+  }
+  
+  return `${cloudinaryBase}${transformStr}/${version}/${folder}/${filename}`;
+};
+
 export const formatPhone = (phone) => {
   let pattern = null,
     valid = false;

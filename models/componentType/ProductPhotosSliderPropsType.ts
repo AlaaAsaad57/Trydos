@@ -3,6 +3,7 @@ export interface ProductPhotosSliderPropsType {
     name?: string;
     sync_color_images: SyncColorImage[];
     images: Image[];
+    videos?: string[]; // Optional array of video filenames
     flash_deal_end_date?: string;
     offer_price?: number;
     price?: number;
