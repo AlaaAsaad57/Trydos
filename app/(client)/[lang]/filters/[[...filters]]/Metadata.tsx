@@ -183,7 +183,7 @@ export const GetStructuredData = async ({
           name: product?.name,
           image: product?.images?.[0]?.file_path ?? product.images?.[0],
           url: `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${params.lang}/products/${product.slug}`,
-          category: product.category.name,
+          category: product?.category?.name,
           brand: {
             "@type": "Brand",
             name: product?.brand?.name,
