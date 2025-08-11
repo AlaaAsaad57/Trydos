@@ -46,7 +46,7 @@ export async function GET(request: NextRequest) {
       language,
       limit,
       category: category_slug,
-      searchAfter: [offset],
+      searchAfter: offset ? [offset] : null,
     });
 
     // Check if response exists
