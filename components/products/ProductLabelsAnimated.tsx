@@ -77,7 +77,7 @@ export const ProductLabelsAnimated = ({
       {showLabel && (
         <span
           key={currentIndex}
-          className="absolute will-change-transform transition-all"
+          className="absolute will-change-transform transition-all text-[9px]"
           style={{
             color: "#388CFF",
             opacity: animateIn ? 1 : 0,
