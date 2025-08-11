@@ -124,7 +124,7 @@
   max-width: 1365px;
   width: 100%;
   position: absolute;
-  height: calc(100vh - 146px);
+  height: calc(100dvh - 146px);
   top: 146px;
   background-color: #fff;
   z-index: 99999999;

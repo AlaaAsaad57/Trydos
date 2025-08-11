@@ -238,7 +238,7 @@ class StoryService {
       } else if (storyItem.photo_path) {
         let img = storyItem.photo_path.replace(
           "/upload",
-          "/upload/w_720,h_1280,c_limit/f_auto/q_auto:good/fl_progressive:steep/e_sharpen"
+          "/upload/w_720,h_1280,c_pad/f_auto/q_auto:good/fl_progressive:steep/e_sharpen"
         );
         returnedData.push({
           url: img,

@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { fetchProductWithoutRelated } from "Server Requests";
+import { getProductFromCache, storeProduct } from "Server Requests/radis";
+import { GetProductData } from "utils/pagesDataRequests/ProductPageData";
 
 // Apply CORS headers to any response
 function withCORS(res: NextResponse) {
@@ -34,42 +36,32 @@ export async function GET(
 ) {
   const language = request.headers.get("lang") || "en";
   const country = request.headers.get("country") || "tr";
-  const authorization = request.headers.get("authorization");
-
-  if (!authorization) {
-    return withCORS(
-      NextResponse.json(
-        {
-          data: null,
-          isSuccessful: false,
-          status: 401,
-          message: "UNAUTHORIZED",
-        },
-        { status: 401 }
-      )
-    );
-  }
-
+  let productDataVar;
   try {
-    const response = await fetchProductWithoutRelated(
-      params.slug,
-      language,
-      country,
-      authorization
-    );
+    const response = await getProductFromCache(params.slug, language, country);
+    if (response.product) {
+      productDataVar = { ...response.product, redis: true };
+    } else {
+      let { product: productData, socialData } = await GetProductData({
+        lang: `${country}-${language}`,
+        productId: params.slug,
+      });
 
-    return withCORS(
-      NextResponse.json(
-        { ...response },
-        { status: response.code ?? response.status }
-      )
-    );
+      storeProduct(productData, socialData, params.slug, language, country);
+      productDataVar = {
+        ...productData,
+        ...socialData,
+        redis: false,
+      };
+    }
+
+    return withCORS(NextResponse.json({ ...productDataVar }, { status: 200 }));
   } catch (error) {
     console.error("***** fetch failed *****", error);
 
     return withCORS(
       NextResponse.json(
-        { isSuccessful: false, error, code: 50000 },
+        { isSuccessful: false, error, code: 500 },
         { status: 500 }
       )
     );

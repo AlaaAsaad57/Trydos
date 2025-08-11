@@ -260,13 +260,14 @@ const StoryViewer: React.FC<StoryViewerProps> = ({
         >
           {isImage ? (
             <Image
-              fill
+              width={600}
+              height={1200}
               src={currentStory?.url}
               alt="story"
               loading="eager"
               decoding="async"
               fetchPriority="high"
-              className="max-h-full p-[65px]"
+              className="max-h-full p-[65px] h-full w-auto"
               onLoad={() => {
                 setResourceLoaded(true);
               }}
