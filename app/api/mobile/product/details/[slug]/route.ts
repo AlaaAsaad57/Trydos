@@ -35,8 +35,10 @@ export async function GET(
   request: NextRequest,
   { params }: { params: { slug: string } }
 ) {
-  const language = request.headers.get("lang") || "en";
-  const country = request.headers.get("country") || "tr";
+  const country = request.headers.get("country")?.trim() || "sy";
+  let language = request.headers.get("language")?.trim();
+  const lang = request.headers.get("lang")?.trim();
+  language = language ?? lang ?? "en";
   let productDataVar;
   try {
     const response = await getProductFromCache(params.slug, language, country);
@@ -47,7 +49,9 @@ export async function GET(
         lang: `${country}-${language}`,
         productId: params.slug,
       });
-
+      if (!productData || !socialData) {
+        throw new Error("Not found");
+      }
       storeProduct(productData, socialData, params.slug, language, country);
       productDataVar = {
         ...productData,

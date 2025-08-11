@@ -46,6 +46,7 @@ export async function GET(request: NextRequest) {
       language,
       limit,
       category: category_slug,
+      searchAfter: [offset],
     });
 
     // Check if response exists
@@ -62,7 +63,7 @@ export async function GET(request: NextRequest) {
       data: {
         total: boutiquesResponse.boutiques?.length || 0,
         limit,
-        offset: boutiquesResponse.searchAfter || 0, // Use searchAfter as offset, like home page
+        offset: boutiquesResponse.searchAfter?.[0], // Use searchAfter as offset, like home page
         boutiques: boutiquesResponse.boutiques || [],
       },
     };

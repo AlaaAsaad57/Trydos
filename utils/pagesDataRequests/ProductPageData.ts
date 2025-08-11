@@ -5,19 +5,23 @@ export const GetProductData = async (params: {
   lang: string;
   productId: string;
 }) => {
-  let [country, language] = params.lang.split("-");
-  let [productData] = await Promise.all([
-    fetchProductDetails(params.productId, language, country),
-  ]);
-  let socialData = await GetSocialDataForProduct({
-    productId: productData.id,
-    lang: params.lang,
-    slug: params.productId,
-  });
-  return {
-    product: productData,
-    socialData: socialData,
-  };
+  try {
+    let [country, language] = params.lang.split("-");
+    let [productData] = await Promise.all([
+      fetchProductDetails(params.productId, language, country),
+    ]);
+    let socialData = await GetSocialDataForProduct({
+      productId: productData.id,
+      lang: params.lang,
+      slug: params.productId,
+    });
+    return {
+      product: productData,
+      socialData: socialData,
+    };
+  } catch (error) {
+    return error;
+  }
 };
 export const GetSocialDataForProduct = async ({ productId, slug, lang }) => {
   try {
