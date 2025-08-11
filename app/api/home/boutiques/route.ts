@@ -24,8 +24,13 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const limit = parseInt(searchParams.get("limit") || "10");
     const offset = parseInt(searchParams.get("offset") || "0");
-    const category_slug = searchParams.get("category_slug") || undefined;
-
+    let category_slug = searchParams.get("category_slugs") || undefined;
+    if (typeof category_slug === "string") {
+      let categorySlg = JSON.parse(category_slug);
+      if (Array.isArray(categorySlg) && categorySlg.length > 0) {
+        category_slug = categorySlg?.[0];
+      }
+    }
     // Validate limit
     if (limit < 1 || limit > 100) {
       return NextResponse.json(
@@ -65,6 +70,7 @@ export async function GET(request: NextRequest) {
         limit,
         offset: boutiquesResponse.searchAfter?.[0], // Use searchAfter as offset, like home page
         boutiques: boutiquesResponse.boutiques || [],
+        category_slug,
       },
     };
 
