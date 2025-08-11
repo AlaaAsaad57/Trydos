@@ -5,14 +5,16 @@ export async function GET(request: NextRequest) {
   try {
     // Get country and language from headers
     const country = request.headers.get("country")?.trim() || "sy";
-    const language = request.headers.get("language")?.trim() || "en";
+    let language = request.headers.get("language")?.trim();
+    const lang = request.headers.get("lang")?.trim();
+    language = language ?? lang ?? "en";
 
     // Validate required headers
     if (!country || !language) {
       return NextResponse.json(
-        { 
-          error: "Missing required headers", 
-          message: "Both 'country' and 'language' headers are required" 
+        {
+          error: "Missing required headers",
+          message: "Both 'country' and 'language' headers are required",
         },
         { status: 400 }
       );
@@ -20,17 +22,18 @@ export async function GET(request: NextRequest) {
 
     // Initialize Elasticsearch reader
     const reader = new ElasticsearchReader();
-    
+
     // Fetch categories from Elasticsearch
-    const categoriesResponse = await reader.getCategories({ 
-      country: country, 
-      size: 4000 
+    const categoriesResponse = await reader.getCategories({
+      country: country,
+      size: 4000,
     });
 
     // Process categories similar to home page logic
     let mainCategories = categoriesResponse.hits.hits.map((hit: any) => {
       return hit._source?.custom_categories?.find(
-        (cat: any) => cat.language_code?.toLowerCase() === language?.toLowerCase()
+        (cat: any) =>
+          cat.language_code?.toLowerCase() === language?.toLowerCase()
       );
     });
 
@@ -49,20 +52,19 @@ export async function GET(request: NextRequest) {
           id: category.id,
           name: category.name,
           slug: category.slug,
-          flat_photo_path: category.flat_photo_path
-        }))
-      }
+          flat_photo_path: category.flat_photo_path,
+        })),
+      },
     };
 
     return NextResponse.json(response, { status: 200 });
-
   } catch (error) {
     console.error("Error fetching main categories:", error);
-    
+
     return NextResponse.json(
-      { 
-        error: "Internal server error", 
-        message: "Failed to fetch main categories" 
+      {
+        error: "Internal server error",
+        message: "Failed to fetch main categories",
       },
       { status: 500 }
     );
