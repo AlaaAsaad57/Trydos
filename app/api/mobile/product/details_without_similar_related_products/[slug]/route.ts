@@ -55,7 +55,12 @@ export async function GET(
       };
     }
 
-    return withCORS(NextResponse.json({ ...productDataVar }, { status: 200 }));
+    return withCORS(
+      NextResponse.json(
+        { data: { ...productDataVar }, isSuccessful: true, code: 200 },
+        { status: 200 }
+      )
+    );
   } catch (error) {
     console.error("***** fetch failed *****", error);
 
