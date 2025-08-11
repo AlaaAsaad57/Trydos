@@ -38,12 +38,11 @@ export async function GET(request: NextRequest) {
     // Initialize Elasticsearch reader
     const reader = new ElasticsearchReader();
     
-    // Fetch boutiques from Elasticsearch
+    // Fetch boutiques from Elasticsearch - exactly like home page
     const boutiquesResponse = await reader.getBoutiques({
       country,
       language,
       limit,
-      offset,
       category: category_slug
     });
 
@@ -57,13 +56,11 @@ export async function GET(request: NextRequest) {
         { status: 404 }
       );
     }
-
-    // Format response according to the specified structure
     const response = {
       data: {
         total: boutiquesResponse.boutiques?.length || 0,
         limit,
-        offset,
+        offset: boutiquesResponse.searchAfter || 0, // Use searchAfter as offset, like home page
         boutiques: boutiquesResponse.boutiques || []
       }
     };
