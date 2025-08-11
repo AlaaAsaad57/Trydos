@@ -6,7 +6,11 @@ import EyeIcon from "public/svg/product/EyeIcon.svg";
 import ReturnIcon from "public/svg/product/ReturnIcon.svg";
 import FreeReturnIcon from "public/svg/product/FreeReturnIcon.svg";
 
-import { getConfiguredImage, translateFunction } from "utils/functions";
+import {
+  getConfiguredImage,
+  RoundPrice,
+  translateFunction,
+} from "utils/functions";
 import Image from "next/image";
 import { Suspense } from "react";
 import ProductViews from "components/products/ProductViews";
@@ -423,17 +427,19 @@ async function Page({ params, searchParams }: ProductPagePropsType) {
                         strokeWidth="2"
                       />
                     </svg>
-                    {getPrice(product?.price, languageVariable, currency) ?? (
-                      <Skeleton width={30} height={10} />
-                    )}
+                    {RoundPrice({
+                      num: product?.price,
+                      language: languageVariable,
+                      rate: currency?.exchange_rate,
+                    }) ?? <Skeleton width={30} height={10} />}
                   </div>
                 )}
                 <div className="product-new-price">
-                  {getPrice(
-                    product?.offer_price,
-                    languageVariable,
-                    currency
-                  ) ?? <Skeleton width={30} height={10} />}
+                  {RoundPrice({
+                    num: product?.offer_price,
+                    language: languageVariable,
+                    rate: currency?.exchange_rate,
+                  }) ?? <Skeleton width={30} height={10} />}
                 </div>
                 <div className="product-currency">
                   {currency?.symbol ?? (
