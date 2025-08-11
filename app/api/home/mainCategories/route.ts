@@ -1,0 +1,70 @@
+import { NextRequest, NextResponse } from "next/server";
+import { ElasticsearchReader } from "@/services/elastic/elasticsearch-reader.service";
+
+export async function GET(request: NextRequest) {
+  try {
+    // Get country and language from headers
+    const country = request.headers.get("country")?.trim() || "sy";
+    const language = request.headers.get("language")?.trim() || "en";
+
+    // Validate required headers
+    if (!country || !language) {
+      return NextResponse.json(
+        { 
+          error: "Missing required headers", 
+          message: "Both 'country' and 'language' headers are required" 
+        },
+        { status: 400 }
+      );
+    }
+
+    // Initialize Elasticsearch reader
+    const reader = new ElasticsearchReader();
+    
+    // Fetch categories from Elasticsearch
+    const categoriesResponse = await reader.getCategories({ 
+      country: country, 
+      size: 4000 
+    });
+
+    // Process categories similar to home page logic
+    let mainCategories = categoriesResponse.hits.hits.map((hit: any) => {
+      return hit._source?.custom_categories?.find(
+        (cat: any) => cat.language_code?.toLowerCase() === language?.toLowerCase()
+      );
+    });
+
+    // Remove duplicates by ID
+    mainCategories = Array.from(
+      new Map(mainCategories.map((c: any) => [c.id, c])).values()
+    );
+
+    // Filter out any undefined/null values
+    mainCategories = mainCategories.filter(Boolean);
+
+    // Format response according to the specified structure
+    const response = {
+      data: {
+        mainCategories: mainCategories.map((category: any) => ({
+          id: category.id,
+          name: category.name,
+          slug: category.slug,
+          flat_photo_path: category.flat_photo_path
+        }))
+      }
+    };
+
+    return NextResponse.json(response, { status: 200 });
+
+  } catch (error) {
+    console.error("Error fetching main categories:", error);
+    
+    return NextResponse.json(
+      { 
+        error: "Internal server error", 
+        message: "Failed to fetch main categories" 
+      },
+      { status: 500 }
+    );
+  }
+}

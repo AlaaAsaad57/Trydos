@@ -35,13 +35,19 @@ function ProductOptions({
   const params = useParams();
   // @ts-ignore
   const [country, language] = params.lang.split("-");
+
   const LikeProduct = async (bool) => {
     if (likeLoading) return;
     setLoading(true);
-    if (bool) {
-      editInfo({ likes: SelectedProduct?.likes + 1, is_liked: true });
-      try {
-        let res = await fetchData({
+
+    // Store current state for potential rollback
+    const currentLikes = SelectedProduct?.likes || 0;
+    const currentIsLiked = SelectedProduct?.is_liked || false;
+
+    try {
+      if (bool) {
+        // Like product
+        const res = await fetchData({
           url: "/product_likes/store",
           reqTitle: REQUESTS_DATA.LIKE_FOR_PRODUCT,
           method: "POST",
@@ -51,12 +57,23 @@ function ProductOptions({
             user_id: auth.UserID(),
           }),
         });
+
         if (!res.success) {
           throw new Error(res.message);
         }
+
+        // Only update state after successful API call
+        editInfo({ 
+          likes: Math.max(0, currentLikes + 1), 
+          is_liked: true 
+        });
+
+        // Update social product data
         fetch(
           `/api/editSocialProduct?pid=${product.id}&slug=${product.slug}&language=${language}&country=${country}`
         );
+
+        // Track GA event
         GAevent({
           action: GA_EVENT_NAMES.LIKE_ITEM,
           params: {
@@ -75,15 +92,9 @@ function ProductOptions({
             screen_path: window.location.pathname,
           },
         });
-      } catch (error) {
-        setLoading(false);
-        editInfo({ likes: SelectedProduct?.likes, is_liked: true });
-      }
-    } else {
-      setLiked(false);
-      editInfo({ likes: SelectedProduct?.likes - 1, is_liked: false });
-      try {
-        let res = await fetchData({
+      } else {
+        // Unlike product
+        const res = await fetchData({
           url: "/product_likes/delete",
           reqTitle: REQUESTS_DATA.UNLIKE_PRODUCT,
           method: "POST",
@@ -93,12 +104,23 @@ function ProductOptions({
             user_id: auth.UserID(),
           }),
         });
+
         if (!res.success) {
           throw new Error(res.message);
         }
+
+        // Only update state after successful API call
+        editInfo({ 
+          likes: Math.max(0, currentLikes - 1), 
+          is_liked: false 
+        });
+
+        // Update social product data
         fetch(
           `/api/editSocialProduct?pid=${product.id}&slug=${product.slug}&language=${language}&country=${country}`
         );
+
+        // Track GA event
         GAevent({
           action: GA_EVENT_NAMES.LIKE_ITEM,
           params: {
@@ -117,6 +139,8 @@ function ProductOptions({
             screen_path: window.location.pathname,
           },
         });
+
+        // Unsubscribe from topics
         home.UnsubscripeFromTopic({
           topic: `product_availability_${SelectedProduct?.id}`,
         });
@@ -126,15 +150,28 @@ function ProductOptions({
         home.UnsubscripeFromTopic({
           topic: `product_comment_${SelectedProduct?.id}`,
         });
-      } catch (error) {
-        editInfo({ likes: SelectedProduct?.likes + 1, is_liked: false });
       }
+    } catch (error) {
+      // Rollback to previous state on error
+      editInfo({ 
+        likes: currentLikes, 
+        is_liked: currentIsLiked 
+      });
+      
+      // Show error notification
+      showErrorNotification(
+        translateFunction("Failed to update like status. Please try again.")
+      );
+      
+      console.error("Like/Unlike error:", error);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
+
   useEffect(() => {
     editInfo({
-      likes: product.count_of_likes,
+      likes: Math.max(0, product.count_of_likes || 0),
       comments: product.comments,
       shares_count: product.shares_count,
     });
@@ -149,6 +186,11 @@ function ProductOptions({
       );
     }
   }, []);
+  const getSafeLikeCount = () => {
+    const likes = SelectedProduct?.likes ?? product?.count_of_likes ?? 0;
+    return Math.max(0, likes);
+  };
+
   return (
     <div className="product-options-container" style={{ zIndex: "999999999" }}>
       {share ? (
@@ -169,19 +211,19 @@ function ProductOptions({
                 // });
                 setOption("Like");
                 setLiked(!isLiked);
-                if (isLiked || SelectedProduct?.is_liked) LikeProduct(false);
+                if (SelectedProduct?.is_liked) LikeProduct(false);
                 else LikeProduct(true);
               }}
             >
-              {SelectedProduct?.is_liked || isLiked ? (
+              {SelectedProduct?.is_liked ? (
                 <HeartFill data-cy="LoveClickOnLast" />
               ) : (
                 <Heart />
               )}
               {product.count_of_likes >= 0 || SelectedProduct?.likes >= 0 ? (
                 <span data-cy="CountOfLoves">
-                  {SelectedProduct?.likes || product?.count_of_likes}
-                </span>
+                {getSafeLikeCount()}
+              </span>
               ) : (
                 <Skeleton width={15} height={14}></Skeleton>
               )}
