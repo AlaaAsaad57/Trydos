@@ -40,7 +40,7 @@ export async function fetchProductSimpleDetails(
 ) {
   try {
     let response = await fetchServerData({
-      url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/web/product/globalDetails/${slug}?lang=${language}`,
+      url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/mobile/product/details_without_similar_related_products/${slug}?lang=${language}`,
       method: "GET",
       tags: ["product-details"],
       revalidate: 0,

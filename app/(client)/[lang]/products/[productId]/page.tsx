@@ -193,8 +193,9 @@ async function Page({ params, searchParams }: ProductPagePropsType) {
               <ProductsLabels
                 isProduct={true}
                 labels={
-                  typeof product.label_names === "string" &&
-                  JSON.parse(product.label_names)
+                  typeof product.label_names === "string"
+                    ? JSON.parse(product.label_names)
+                    : product.label_names
                 }
               />
             )}
