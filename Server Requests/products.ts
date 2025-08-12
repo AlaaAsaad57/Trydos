@@ -17,11 +17,13 @@ export async function fetchProductDetails(
     // if (productCache?.product?.id) {
     //   return { ...productCache, redis: true, time: time };
     // }
-    const [simpleDetails, extendedDetails] = await Promise.all([
+    const [generalDetails, simpleDetails, extendedDetails] = await Promise.all([
+      fetchProductGeneralDetails(slug, language, country),
       fetchProductSimpleDetails(slug, language, country),
       fetchProductExtendedDetails(slug, language, country),
     ]);
     return {
+      ...generalDetails,
       ...simpleDetails.data,
       ...extendedDetails.data,
       redis: false,
@@ -40,7 +42,7 @@ export async function fetchProductSimpleDetails(
 ) {
   try {
     let response = await fetchServerData({
-      url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/mobile/product/details_without_similar_related_products/${slug}?lang=${language}`,
+      url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/web/product/globalDetails/${slug}?lang=${language}`,
       method: "GET",
       tags: ["product-details"],
       revalidate: 0,
@@ -48,7 +50,6 @@ export async function fetchProductSimpleDetails(
     });
 
     if (response.isError) {
-      console.error(`Product Simple Details Error: ${response.status}`);
       reportError(
         new Error(`Product Simple Details Error: ${response.status}`),
         {
@@ -59,16 +60,47 @@ export async function fetchProductSimpleDetails(
           response: JSON.stringify(response),
         }
       );
-      return { data: {} };
+      throw response.error;
     }
 
     return response.data;
   } catch (error) {
-    console.error("Error fetching product simple details:", error);
-    return { data: {} };
+    return { globalDetails: true };
   }
 }
+export async function fetchProductGeneralDetails(
+  slug: string,
+  language: string,
+  country: string
+) {
+  try {
+    let response = await fetchServerData({
+      url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/mobile/product/details_without_similar_related_products/${slug}?lang=${language}`,
+      method: "GET",
+      tags: ["product-details"],
+      revalidate: 0,
+      local: `${country}-${language}`,
+    });
 
+    if (response.isError) {
+      reportError(
+        new Error(`Product Simple Details Error: ${response.status}`),
+        {
+          source: "products",
+          page: "product-simple-details",
+          language: language,
+          country: country,
+          response: JSON.stringify(response),
+        }
+      );
+      throw response.error;
+    }
+
+    return response.data;
+  } catch (error) {
+    return { details_without_similar_related_products: true };
+  }
+}
 export async function fetchProductExtendedDetails(
   slug: string,
   language: string,
@@ -84,7 +116,6 @@ export async function fetchProductExtendedDetails(
     });
 
     if (response.isError) {
-      console.error(`Product Extended Details Error: ${response.status}`);
       reportError(
         new Error(`Product Extended Details Error: ${response.status}`),
         {
@@ -94,87 +125,10 @@ export async function fetchProductExtendedDetails(
           country: country,
         }
       );
-      return { data: {} };
+      throw response.error;
     }
     return response.data;
   } catch (error) {
-    console.error("Error fetching product extended details:", error);
-    return { data: {} };
-  }
-}
-export async function fetchProductDetailsForMobile(
-  slug: string,
-  language: string,
-  country: string
-) {
-  let response;
-  try {
-    response = await fetchServerData({
-      url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/mobile/product/details/${slug}?lang=${language}&country=${country}`,
-      method: "GET",
-      tags: ["product-details"],
-      revalidate: 0,
-      local: `${country}-${language}`,
-    });
-    if (response.isError) {
-      console.error(`Product Details for Mobile Error: ${response.status}`);
-      reportError(
-        new Error(`Product Details for Mobile Error: ${response.status}`),
-        {
-          source: "products",
-          page: "product-extended-details",
-          language: language,
-          country: country,
-        }
-      );
-      return response;
-    }
-    return response.data;
-  } catch (error) {
-    console.error("Error fetching product extended details:", error);
-    return { data: {} };
-  }
-}
-export async function fetchProductWithoutRelated(
-  slug: string,
-  language: string,
-  country: string,
-  Authorization?: string
-) {
-  let response;
-  try {
-    if (response) {
-      return response;
-    }
-    response = await fetchServerData({
-      url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/mobile/product/details_without_similar_related_products/${slug}?lang=${language}&country=${country}`,
-      method: "GET",
-      tags: ["product-details"],
-      revalidate: 0,
-      local: `${country}-${language}`,
-      headers: {
-        Authorization: Authorization,
-        lang: language,
-        country: country,
-      },
-    });
-
-    if (response.isError) {
-      console.error(`Product Without Related Error: ${response.status}`);
-      reportError(
-        new Error(`Product Without Related Error: ${response.status}`),
-        {
-          source: "products",
-          page: "product-extended-details",
-          language: language,
-          country: country,
-        }
-      );
-      return response;
-    }
-    return response;
-  } catch (error) {
-    console.error("Error fetching product extended details:", error);
-    return response;
+    return { qtyPriceDetails: true };
   }
 }

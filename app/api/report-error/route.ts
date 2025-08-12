@@ -1,13 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import * as Sentry from "@sentry/node";
+
 import { headers } from "next/headers";
+import Sentry from "sentry.config";
 
 // Initialize Sentry for this API route
-Sentry.init({
-  dsn: process.env.NEXT_PUBLIC_DSN_SENTRY,
-  tracesSampleRate: 1.0,
-  environment: process.env.NODE_ENV,
-});
 
 interface ErrorInfo {
   message: string;
@@ -116,9 +112,7 @@ export async function POST(request: NextRequest) {
     console.error("Failed to process error report:", error);
 
     // Still try to capture this error to Sentry
-    if (process.env.NODE_ENV === "production") {
-      Sentry.captureException(error);
-    }
+    Sentry.captureException(error);
 
     return NextResponse.json(
       { error: "Internal server error" },

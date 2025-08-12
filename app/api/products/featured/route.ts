@@ -24,6 +24,9 @@ export async function GET(req: NextRequest) {
     if (searchParams.get("category_slugs")) {
       filters.categories = parseArrayParam(searchParams.get("category_slugs"));
     }
+    if (searchParams.get("boutique_slugs")) {
+      filters.boutiques = parseArrayParam(searchParams.get("boutique_slugs"));
+    }
     if (searchParams.get("brand_slugs")) {
       filters.brands = parseArrayParam(searchParams.get("brand_slugs"));
     }
@@ -34,7 +37,8 @@ export async function GET(req: NextRequest) {
       filters.tags_names = parseArrayParam(searchParams.get("tags_names"));
     }
     if (searchParams.get("price")) {
-      filters.priceRange = parseNumberArray(searchParams.get("price"));
+      filters.priceRange = parseNumberArrayOfPrices(searchParams.get("price"));
+      filters.prices = parseNumberArrayOfPrices(searchParams.get("price"));
     }
     if (searchParams.get("flash-deal")) {
       filters.flashdeal = searchParams.get("flash-deal") === "true";
@@ -44,12 +48,13 @@ export async function GET(req: NextRequest) {
     }
     if (searchParams.get("attributes")) {
       const decoded = decodeValue(searchParams.get("attributes"));
+
       const clean = stripExtraQuotes(decoded);
-      filters.sizes = JSON.parse(clean)?.options;
+      console.log(clean);
+      filters.sizes = JSON.parse(clean)?.[0]?.options;
     }
-    if (searchParams.get("featured")) {
-      filters.featured = searchParams.get("featured") === "true";
-    }
+
+    filters.featured = true;
 
     const params = {
       limit: Number(searchParams.get("limit") || 20),
@@ -76,7 +81,6 @@ export async function GET(req: NextRequest) {
           "Unknown error",
         appliedFilters: filters,
       },
-
       { status: 500, headers }
     );
   }
@@ -101,9 +105,26 @@ function parseArrayParam(value: string | null): string[] {
     .map((s) => s.replace(/(^"|"$)/g, "").trim())
     .filter(Boolean);
 }
+function parseNumberArrayOfPrices(value: string | null): number[] {
+  const decoded = decodeValue(value);
 
+  console.log(
+    decoded
+      .replace(/^\[|\]$/g, "")
+      .replaceAll('"', "")
+      .split("-")
+      .map((n) => Number(n.trim()))
+  );
+  if (!decoded) return [];
+  return decoded
+    .replace(/^\[|\]$/g, "")
+    .replaceAll('"', "")
+    .split("-")
+    .map((n) => Number(n.trim()));
+}
 function parseNumberArray(value: string | null): number[] {
   const decoded = decodeValue(value);
+
   if (!decoded) return [];
   return decoded
     .replace(/^\[|\]$/g, "")

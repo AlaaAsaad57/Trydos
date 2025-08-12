@@ -1,4 +1,4 @@
-import { fetchCurrency, fetchProductDetails } from "Server Requests";
+import { fetchProductDetails } from "Server Requests";
 import { fetchServerData } from "Server Requests/ServerFetch";
 
 export const GetProductData = async (params: {

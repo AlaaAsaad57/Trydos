@@ -1,6 +1,6 @@
 export const runtime = "nodejs";
 import { NextRequest, NextResponse } from "next/server";
-import { fetchProductDetailsForMobile } from "Server Requests";
+
 import { getProductFromCache, storeProduct } from "Server Requests/radis";
 import { GetProductData } from "utils/pagesDataRequests/ProductPageData";
 

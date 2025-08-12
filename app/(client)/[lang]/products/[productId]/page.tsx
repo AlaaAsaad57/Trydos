@@ -103,13 +103,26 @@ async function GetProductDataFunc(params) {
 
         socialData,
       } = await GetProductData(params);
-      storeProduct(
-        productData,
-        socialData,
-        params.productId,
-        language,
-        country
-      );
+      console.log({
+        globalDetails: productData.globalDetails,
+        details_without_similar_related_products:
+          productData.details_without_similar_related_products,
+        qtyPriceDetails: productData.qtyPriceDetails,
+      });
+      if (
+        !productData.globalDetails &&
+        !productData.details_without_similar_related_products &&
+        !productData.qtyPriceDetails
+      ) {
+        storeProduct(
+          productData,
+          socialData,
+          params.productId,
+          language,
+          country
+        );
+      }
+
       return {
         ...productData,
         ...socialData,
@@ -285,11 +298,6 @@ async function Page({ params, searchParams }: ProductPagePropsType) {
                 <div className="product-category-name">
                   {product.category?.name}
                 </div>
-                {/* {product?.featured && (
-                  <div className="flex-row mx-[5px] h-auto">
-                    <FeaturedBanner />
-                  </div>
-                )} */}
               </div>
               <Suspense
                 fallback={

@@ -201,3 +201,9 @@ export async function removeRedis(key) {
     return;
   }
 }
+export async function getKeys(keyword) {
+  try {
+    let keys = await redis.keys(keyword);
+    return keys;
+  } catch (error) {}
+}

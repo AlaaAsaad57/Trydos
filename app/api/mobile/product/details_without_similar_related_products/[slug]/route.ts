@@ -51,7 +51,14 @@ export async function GET(
       if (!productData || !socialData) {
         throw new Error("Not found");
       }
-      storeProduct(productData, socialData, params.slug, language, country);
+      if (
+        !productData.globalDetails &&
+        !productData.details_without_similar_related_products &&
+        !productData.qtyPriceDetails
+      ) {
+        storeProduct(productData, socialData, params.slug, language, country);
+      }
+
       productDataVar = {
         ...productData,
         ...socialData,
