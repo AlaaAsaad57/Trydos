@@ -119,11 +119,6 @@ export const configureSearchParams = ({
   if (searchParams.tags_names && searchParams.tags_names !== "null") {
     params.set("tags_names", decodeURIComponent(searchParams.tags_names));
   }
-  // console.log(
-  //   `params: ${decodeURIComponent(params.toString())} ${JSON.stringify(
-  //     searchParams
-  //   )}`
-  // );
 
   return params;
 };
@@ -444,7 +439,12 @@ export const GetImageUrl = (url) => {
  */
 export const getVideoUrl = (
   input: string,
-  options?: { start?: number | string; end?: number | string; width?: number | string; height?: number | string }
+  options?: {
+    start?: number | string;
+    end?: number | string;
+    width?: number | string;
+    height?: number | string;
+  }
 ): string => {
   // Build transformation string
   let transformations = [];
@@ -477,13 +477,13 @@ export const getVideoUrl = (
   const cloudinaryBase = "https://res.cloudinary.com/dtcmozf4d/video/upload/";
   const version = "v1";
   const folder = "product/videos";
-  
+
   // Remove any leading slash and ensure .mp4 extension
   let filename = input.replace(/^\//, "");
-  if (!filename.endsWith('.mp4')) {
+  if (!filename.endsWith(".mp4")) {
     filename = `${filename}.mp4`;
   }
-  
+
   return `${cloudinaryBase}${transformStr}/${version}/${folder}/${filename}`;
 };
 
