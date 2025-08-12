@@ -59,15 +59,37 @@ export const ProductLabelsAnimated = ({
         }, transitionDuration);
       }, displayDuration);
     };
-
-    startCycle();
+    if (labels.length > 1) startCycle();
 
     return () => {
-      clearTimeout(stepTimeout);
-      if (timerRef.current) clearTimeout(timerRef.current);
+      if (labels.length > 1) clearTimeout(stepTimeout);
+      if (labels.length > 1) {
+        if (timerRef.current) clearTimeout(timerRef.current);
+      }
     };
   }, [currentIndex, labels]);
-
+  if (labels.length === 1) {
+    return (
+      <div
+        ref={ref}
+        className="relative h-6 min-w-[150px] overflow-hidden select-none"
+        style={{ height: "1.5rem" }}
+      >
+        <span
+          key={currentIndex}
+          className="absolute will-change-transform transition-all text-[9px]"
+          style={{
+            color: "#388CFF",
+            opacity: animateIn ? 1 : 0,
+            transform: animateIn ? "translateY(0)" : "translateY(12px)",
+            transition: `transform ${transitionDuration}ms ease, opacity ${transitionDuration}ms ease`,
+          }}
+        >
+          {labels[0]?.text}
+        </span>
+      </div>
+    );
+  }
   return (
     <div
       ref={ref}

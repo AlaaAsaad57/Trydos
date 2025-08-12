@@ -2039,6 +2039,7 @@ function normalizeCustomProducts(
     product.sync_color_images = cleaned.sync_color_images;
     product.sync_color_images = cleaned.sync_color_images?.map((s) => ({
       ...s,
+      color_trend: Boolean(s.color_trend),
       images: s.images.map((d) => ({ file_path: `/product/${d}` })),
     }));
     product.images = product.images.map((s) => ({
