@@ -63,7 +63,10 @@ export async function GET(req: NextRequest) {
     };
     const result = await getProductsAndFiltersFromElastic(params);
 
-    return NextResponse.json({ data: result }, { headers });
+    return NextResponse.json(
+      { data: result, appliedFilters: filters },
+      { headers }
+    );
   } catch (error: any) {
     let errorDesc = JSON.stringify(filters);
     return NextResponse.json(
@@ -71,7 +74,9 @@ export async function GET(req: NextRequest) {
         error:
           `${error.message || "Unknown error"}----${errorDesc}` ||
           "Unknown error",
+        appliedFilters: filters,
       },
+
       { status: 500, headers }
     );
   }
