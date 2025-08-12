@@ -80,9 +80,7 @@ export const ProductLabelsAnimated = ({
           className="absolute will-change-transform transition-all text-[9px]"
           style={{
             color: "#388CFF",
-            opacity: animateIn ? 1 : 0,
-            transform: animateIn ? "translateY(0)" : "translateY(12px)",
-            transition: `transform ${transitionDuration}ms ease, opacity ${transitionDuration}ms ease`,
+            opacity: 1,
           }}
         >
           {labels[0]?.text}
