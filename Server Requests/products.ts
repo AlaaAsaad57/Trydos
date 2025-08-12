@@ -23,9 +23,9 @@ export async function fetchProductDetails(
       fetchProductExtendedDetails(slug, language, country),
     ]);
     return {
-      ...generalDetails,
       ...simpleDetails.data,
       ...extendedDetails.data,
+      ...generalDetails.data,
       redis: false,
       // time: time,
     };
