@@ -205,11 +205,13 @@ function ReturnOrderItem({
       <div className="flex-row px-[24px] w-full mt-[15px]">
         <div
           className={`w-full h-[53px] items-center justify-center  flex cursor-pointer ${
-            !selectedOptions ? "bg-[#D3D3D3] " : "bg-[#402CDD] "
+            !selectedOptions || images.length === 0
+              ? "bg-[#D3D3D3] "
+              : "bg-[#402CDD] "
           } rounded-[20px] text-[16px] text-[#fff] medium`}
           onClick={() => {
             if (loadingImage) return;
-            if (!selectedOptions) {
+            if (!selectedOptions || images.length === 0) {
               backToMain();
             } else {
               setShouldConfirmReturn({
@@ -235,7 +237,7 @@ function ReturnOrderItem({
             <Spinner />
           ) : (
             <>
-              {!selectedOptions
+              {!selectedOptions || images.length === 0
                 ? translateFunction("Close")
                 : translateFunction("Return Request")}
             </>

@@ -4,7 +4,6 @@ import { translateFunction } from "utils/functions";
 import MiniReturnIcon from "public/svg/MiniReturnIcon.svg";
 import ClockIcon from "public/svg/ClockIcon.svg";
 import Timer from "components/Login/Timer";
-import { useAppStore } from "store";
 import order from "services/order";
 import Spinner from "components/global/Spinner";
 
@@ -17,9 +16,9 @@ function OrderRetailsReturnInfo({
   return_request_id: number;
   callback: () => void;
 }) {
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useState(true);
   const [loading, setLoading] = useState(false);
-  const { currency } = useAppStore();
+
   const CancelReturn = async () => {
     setLoading(true);
     await order.CancelReturn({ return_request_product_id: return_request_id });
@@ -99,7 +98,7 @@ function OrderRetailsReturnInfo({
   return (
     <div className="w-full flex-col items-center h-auto mt-[12px]">
       <div
-        onClick={() => setExpanded(!expanded)}
+        // onClick={() => setExpanded(!expanded)}
         className={`flex-col w-full bg-[#FFFCF0] rounded-[10px] px-[10px] py-[8px]  ${
           expanded ? "h-auto" : "h-[52px]"
         }`}

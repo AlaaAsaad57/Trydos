@@ -78,6 +78,7 @@ interface SearchResult {
     max_price: number;
     priceRanges?: any[];
   };
+  isAnalyzed: any;
 }
 
 interface ElasticsearchHit {
@@ -197,9 +198,9 @@ export async function getProductsAndFiltersFromElastic(
   if (filters?.prices) {
     filters = { ...filters, priceRange: filters.prices };
   }
-
+  let isAnalyzed = false;
   try {
-    if (filters.search_text && filters.search_text?.split(" ")?.length > 2) {
+    if (filters.search_text && filters.search_text?.split(" ")?.length > 1) {
       let CleanSearchText = await AnalyzeSearchText(filters.search_text);
       if (CleanSearchText.error) {
         throw new Error();
@@ -221,8 +222,10 @@ export async function getProductsAndFiltersFromElastic(
           sizes: [...new Set([...(filters.sizes || []), CleanSearchText.size])],
         };
       }
+      isAnalyzed = true;
     }
   } catch (error) {
+    isAnalyzed = error;
     console.log("failed to analyze");
   }
 
@@ -350,6 +353,7 @@ export async function getProductsAndFiltersFromElastic(
           : [],
       colors: colorsFilter,
       prices: productsWithFilters.prices,
+      isAnalyzed: isAnalyzed,
     };
   } catch (error) {
     console.error("Elasticsearch search error:", error);
