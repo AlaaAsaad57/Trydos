@@ -264,7 +264,6 @@ export async function getProductsAndFiltersFromElastic(
     if (search_after.length > 0) {
       searchQuery.search_after = search_after;
     }
-
     // Execute search with pagination
     const customProducts: any[] = [];
     let lastSortValue: any[] = search_after;
@@ -309,14 +308,12 @@ export async function getProductsAndFiltersFromElastic(
         ?.buckets || [],
       filters_offset
     );
-
     // Process products
     const productsWithFilters = extractFilters(
       customProducts,
       language_code,
       is_from_browser
     );
-
     // Sort products by filtered colors if color filter is applied
     if (filters.colors?.length) {
       productsWithFilters.custom_products = sortSyncColorImagesByFilteredColor(
@@ -326,7 +323,6 @@ export async function getProductsAndFiltersFromElastic(
 
       sortColorsByFilteredColor(productsWithFilters.custom_products, filters);
     }
-
     // Normalize products
     const normalizedProducts = normalizeCustomProducts(productsWithFilters);
     let end = process.hrtime.bigint();

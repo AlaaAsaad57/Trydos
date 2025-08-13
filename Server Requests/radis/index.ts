@@ -106,7 +106,7 @@ export async function getProductFromCache(slug, lang, country) {
       return { product: null, timeMs: Number(end - start) / 1_000_000 };
     }
     return {
-      product: product,
+      product: { ...product, redis: true },
       timeMs: Number(end - start) / 1_000_000,
     };
   } catch (err) {

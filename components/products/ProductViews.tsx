@@ -4,22 +4,10 @@ import React, { useEffect } from "react";
 import EyeIcon from "public/svg/product/EyeIcon.svg";
 import Skeleton from "react-loading-skeleton";
 import { useAppStore } from "store";
-import { ProductViewsPropsType } from "models/componentType/productTypes/ProductViewsPropsType";
 
-function ProductViews({ product }: ProductViewsPropsType) {
+function ProductViews() {
   const { SelectedProduct } = useAppStore();
-  useEffect(() => {
-    setTimeout(() => {
-      // Sendevent({
-      //   event: GA_EVENT_NAMES.VIEW_PRODUCT_EVENT,
-      //   extra: {
-      //     product_name: product.name,
-      //     product_id: product.id,
-      //     product_categories: product.categories?.map((s) => s.id),
-      //   },
-      // });
-    }, 4000);
-  }, []);
+  console.log(SelectedProduct);
   return (
     <div className="view-count absolute flex-row align-center">
       <EyeIcon />

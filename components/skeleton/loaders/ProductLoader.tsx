@@ -105,13 +105,7 @@ function ProductLoader({ product }) {
               </div>
             }
           >
-            <ProductViews
-              product={{
-                name: product?.name,
-                id: product?.id,
-                categories: product?.categories,
-              }}
-            />
+            <ProductViews />
           </Suspense>
 
           <div className="product-info-section flex-col align-start">

@@ -95,6 +95,7 @@ async function GetProductDataFunc(params) {
   let [country, language] = params.lang.split("-");
   try {
     let data = await getProductFromCache(slug, language, country);
+
     if (data?.product) {
       return data.product;
     } else {
@@ -103,17 +104,7 @@ async function GetProductDataFunc(params) {
 
         socialData,
       } = await GetProductData(params);
-      console.log({
-        globalDetails: productData.globalDetails,
-        details_without_similar_related_products:
-          productData.details_without_similar_related_products,
-        qtyPriceDetails: productData.qtyPriceDetails,
-      });
-      if (
-        !productData.globalDetails &&
-        !productData.details_without_similar_related_products &&
-        !productData.qtyPriceDetails
-      ) {
+      if (!productData.details_req && !productData.qtyPriceDetails) {
         storeProduct(
           productData,
           socialData,
@@ -218,7 +209,10 @@ async function Page({ params, searchParams }: ProductPagePropsType) {
           <div className="product-details-slider" key={`key-${color}`}>
             <ProductImagesSlider>
               {getImages(product, color)?.images?.map((img, i) => (
-                <div className="embla__slide product-slider-images" key={img}>
+                <div
+                  className="embla__slide product-slider-images"
+                  key={img?.file_path}
+                >
                   <Image
                     width={320}
                     height={464}
@@ -259,13 +253,7 @@ async function Page({ params, searchParams }: ProductPagePropsType) {
                 </div>
               }
             >
-              <ProductViews
-                product={{
-                  name: product.name,
-                  id: product.id,
-                  categories: product.categories,
-                }}
-              />
+              <ProductViews />
             </Suspense>
 
             <div className="product-info-section flex-col align-start">
