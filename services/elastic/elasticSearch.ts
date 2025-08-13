@@ -202,8 +202,12 @@ export async function getProductsAndFiltersFromElastic(
   try {
     if (filters.search_text && filters.search_text?.split(" ")?.length > 1) {
       let CleanSearchText = await AnalyzeSearchText(filters.search_text);
-      if (CleanSearchText.error) {
-        throw new Error(CleanSearchText.error);
+      if (CleanSearchText?.error) {
+        console.error(
+          `##################${CleanSearchText.error}#######################`
+        );
+        isAnalyzed = CleanSearchText?.error;
+        throw new Error(CleanSearchText?.error);
       }
       if (CleanSearchText?.name) {
         filters = { ...filters, search_text: CleanSearchText?.name };
@@ -225,7 +229,7 @@ export async function getProductsAndFiltersFromElastic(
       isAnalyzed = true;
     }
   } catch (error) {
-    isAnalyzed = "failed to Analyze";
+    isAnalyzed?.length > 4 ? isAnalyzed : "failed to Analyze";
     console.log(error);
   }
 
