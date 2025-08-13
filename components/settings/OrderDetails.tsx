@@ -830,23 +830,23 @@ const ProductCard = ({
               {product.product_details?.name}
             </span>
             <div className="flex-row justify-between w-full">
-              {product?.variation?.color && (
+              {product?.variation?.[0]?.color && (
                 <div className="flex-row">
                   <span className="text-[10px] regular">
                     {translateFunction("Color")}:
                   </span>
                   <span className="text-[#505050] text-[10px] medium ml-[2px]">
-                    {product.variation?.color}
+                    {product?.variation?.[0]?.color}
                   </span>
                 </div>
               )}
-              {product?.variation?.Size && (
+              {product?.variation?.[0]?.Size && (
                 <div className="flex-row ml-[40px]">
                   <span className="text-[10px] regular">
                     {translateFunction("Size")}:
                   </span>
                   <span className="text-[#505050] text-[10px] medium ml-[2px]">
-                    {product.variation?.Size}
+                    {product?.variation?.[0]?.Size}
                   </span>
                 </div>
               )}

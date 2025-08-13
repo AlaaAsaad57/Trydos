@@ -98,12 +98,12 @@ function OrderItemCard({
           <span className="text-[12px]  regular text-[#505050]">
             {item?.product_details?.name}
           </span>
-          {item.variation?.color && (
+          {item?.variation?.[0]?.color && (
             <div className="flex-row items-center justify-between">
               <p className="text-[10px]   regular text-[#8D8D8D]">
                 {translateFunction("Color")}:
                 <span className="text-[12px] ml-[3px] medium text-[#505050]">
-                  {item.variation?.color}
+                  {item?.variation?.[0]?.color}
                 </span>
               </p>
               <div
@@ -114,7 +114,7 @@ function OrderItemCard({
                     enable: true,
                     type: "Color",
                     loading: true,
-                    currentColor: item.variation.color,
+                    currentColor: item?.variation?.[0]?.color,
                     item: item,
                   });
                 }}
@@ -125,12 +125,12 @@ function OrderItemCard({
               </div>
             </div>
           )}
-          {item.variation?.Size && (
+          {item?.variation?.[0]?.Size && (
             <div className="flex-row items-center justify-between">
               <p className="text-[10px]   regular text-[#8D8D8D]">
                 {translateFunction("Size")}:
                 <span className="text-[12px] ml-[3px] medium text-[#505050]">
-                  {item.variation?.Size}
+                  {item?.variation?.[0]?.Size}
                 </span>
               </p>
               <div
@@ -141,7 +141,7 @@ function OrderItemCard({
                     enable: true,
                     type: "Size",
                     loading: true,
-                    currentSize: item.variation?.Size,
+                    currentSize: item?.variation?.[0]?.Size,
                     item: item,
                   });
                 }}
