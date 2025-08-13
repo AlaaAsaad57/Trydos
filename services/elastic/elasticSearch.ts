@@ -198,12 +198,12 @@ export async function getProductsAndFiltersFromElastic(
   if (filters?.prices) {
     filters = { ...filters, priceRange: filters.prices };
   }
-  let isAnalyzed = false;
+  let isAnalyzed: any = false;
   try {
     if (filters.search_text && filters.search_text?.split(" ")?.length > 1) {
       let CleanSearchText = await AnalyzeSearchText(filters.search_text);
       if (CleanSearchText.error) {
-        throw new Error();
+        throw new Error(CleanSearchText.error);
       }
       if (CleanSearchText?.name) {
         filters = { ...filters, search_text: CleanSearchText?.name };
@@ -225,8 +225,8 @@ export async function getProductsAndFiltersFromElastic(
       isAnalyzed = true;
     }
   } catch (error) {
-    isAnalyzed = error;
-    console.log("failed to analyze");
+    isAnalyzed = "failed to Analyze";
+    console.log(error);
   }
 
   try {

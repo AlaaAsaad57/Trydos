@@ -50,11 +50,11 @@ export const getPrice = (num, lang, currency, decimal = 0) => {
   let rateVariable = currency?.exchange_rate;
   let price = parseFloat(num);
   price = price * rateVariable;
-
+  price = CielNumber(price);
   if (price >= 1000000) {
-    return CielNumber(price / 1000000) + translateFunction("M", lang); // For millions
+    return price / 1000000 + translateFunction("M", lang); // For millions
   } else if (price >= 100000) {
-    return CielNumber(price / 1000) + translateFunction("K", lang); // For thousands
+    return price / 1000 + translateFunction("K", lang); // For thousands
   } else {
     return price; // For prices under 1000
   }

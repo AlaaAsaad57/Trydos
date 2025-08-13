@@ -346,11 +346,11 @@ export const urlParams = ({ filters, noProducts, noFilter = false }) => {
 
 export function formatPrice(price, language = "en") {
   if (price >= 1000000) {
-    return CielNumber(price / 1000000) + translateFunction("M", language); // For millions
+    return price / 1000000 + translateFunction("M", language); // For millions
   } else if (price >= 100000) {
-    return CielNumber(price / 1000) + translateFunction("K", language); // For thousands
+    return price / 1000 + translateFunction("K", language); // For thousands
   } else {
-    return CielNumber(price); // For prices under 1000
+    return price; // For prices under 1000
   }
 }
 export const toUSD = (price) => {
@@ -385,7 +385,7 @@ export const RoundPrice = ({
     return a;
   }
   a = Number(a.toFixed(pointsVariable));
-
+  a = CielNumber(a);
   return formatPrice(a, language);
 };
 export const onClickSearchHistory = (searchValue) => {
@@ -426,7 +426,7 @@ export const getOldCart = async () => {
   }
 };
 export const getCart = async ({ callback }) => {
-  const { initCart , cart , setCartShippingSuccess} = useAppStore.getState();
+  const { initCart, cart, setCartShippingSuccess } = useAppStore.getState();
   const deviceToken = getCookie<string>(COOKIE_NAMES.DEVICE_TOKEN);
   const marketToken = getCookie<string>(COOKIE_NAMES.MARKET_TOKEN);
   if (!deviceToken && !marketToken) return { cart: [] };
@@ -439,7 +439,7 @@ export const getCart = async ({ callback }) => {
     });
     // @ts-ignore
     if (!response.success) {
-    // @ts-ignore
+      // @ts-ignore
       setCartShippingSuccess(response.message);
       throw new Error(response.message);
     }
