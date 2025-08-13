@@ -32,7 +32,7 @@ function ProductCard({
   const { setColorBottomSheet } = useAppStore();
   const [shouldShowRedeemAction, setShouldShowRedeem] = useState(false);
   const [activeColor, setActiveColor] = useState(
-    productColor || product?.sync_color_images[0] || { images: product?.images }
+    product?.sync_color_images[0] || { images: product?.images }
   );
 
   const getUrlofProduct = () => {

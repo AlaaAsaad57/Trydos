@@ -40,7 +40,7 @@ export function ProductPhotosSlider({
             loading="eager"
             fetchPriority="auto"
             src={getConfiguredImage({
-              src: GetImageUrl(product.images[0].file_path),
+              src: GetImageUrl(image),
               width: 400,
               height: 400,
             })}
@@ -49,7 +49,7 @@ export function ProductPhotosSlider({
                 (product.flash_deal_end_date || product?.is_redeem) &&
                 "1px solid #FF6200",
             }}
-            key={`${product.name}-${0}`}
+            key={image}
             className="w-[200px] h-[290px] border-[#d3d3d387] border-[1px] rounded-15 z-10"
             alt={product.name || "alt"}
           />
