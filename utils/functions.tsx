@@ -383,7 +383,7 @@ export const RoundPrice = ({
   } else if (number < 1e5) {
     return number.toFixed(2);
   } else {
-    let result = (Math.floor((number + 999) / 1000) / 1000).toFixed(2);
+    let result = (Math.floor((number + 999) / 1000) / 1000).toFixed(5);
 
     if (result.endsWith(".000")) {
       result = result.slice(0, -4);
