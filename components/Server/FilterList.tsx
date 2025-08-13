@@ -5,10 +5,8 @@ import Search from "public/svg/SearchIcon.svg";
 import NextLink from "components/global/NextLink";
 import {
   GetImageUrl,
-  getPrice,
   buildParamsFromFilters,
   FilterParams,
-  FilterListProps,
   FilterItemProps,
   FilterState,
   pollinateInput,
@@ -1234,15 +1232,15 @@ export const FilterItem = ({
               minWidth: "140px",
             }}
           >
-            {` ${currency.symbol} ${getPrice(
-              item.min_price,
-              params.lang.split("-")[1],
-              currency
-            )} - ${currency.symbol} ${getPrice(
-              item.max_price,
-              params.lang.split("-")[1],
-              currency
-            )}`}
+            {` ${currency.symbol}  ${RoundPrice({
+              num: item.min_price,
+              language: params.lang.split("-")[1],
+              rate: currency?.exchange_rate,
+            })} - ${currency.symbol} ${RoundPrice({
+              num: item.max_price,
+              language: params.lang.split("-")[1],
+              rate: currency?.exchange_rate,
+            })}`}
           </div>
         </div>
         <div className="category-text-container flex-col align-center">

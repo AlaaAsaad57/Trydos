@@ -6,7 +6,7 @@ import { CartResponse } from "models/API/market/CartShipping";
 import { SimpleBoutiqeApi } from "models/API/market/BoutiqueSimpleDetails";
 import { OldCartApi } from "models/API/market/OldCart";
 import LocalizationServiceClass from "services/localization";
-import { CielNumber } from "./tinyUtils";
+
 import { GetConfiguredImagePropsType } from "models/componentType/boutiqueTypes/metaDataPropsType";
 import { fetchData } from "./fetchData";
 import { COOKIE_NAMES, UserData, getCookie } from "./cookies/cookie-manager";
@@ -344,15 +344,6 @@ export const urlParams = ({ filters, noProducts, noFilter = false }) => {
   return urlParams.toString();
 };
 
-export function formatPrice(price, language = "en") {
-  if (price >= 1000000) {
-    return price / 1000000 + translateFunction("M", language); // For millions
-  } else if (price >= 100000) {
-    return price / 1000 + translateFunction("K", language); // For thousands
-  } else {
-    return price; // For prices under 1000
-  }
-}
 export const toUSD = (price) => {
   const { currency } = useAppStore.getState();
 
@@ -361,33 +352,46 @@ export const toUSD = (price) => {
 export const RoundPrice = ({
   num,
   rate,
-  points,
   returnNumber,
   language = "en",
 }: {
-  num?: any;
-  rate?: any;
-  points?: any;
+  num?: number;
+  rate?: number;
   returnNumber?: boolean;
   language?: string;
-}): number => {
-  const { currency, settings } = useAppStore.getState();
+}): number | string => {
+  const { currency } = useAppStore.getState();
 
+  // Currency conversion at the start
   let rateVariable = rate || currency?.exchange_rate || 1;
-  let pointsVariable =
-    (num * rateVariable < 1 && 2) ||
-    points ||
-    (settings && settings["starting-setting"]?.decimal_point_settings) ||
-    0;
-  let a = num * rateVariable;
+  let number = num * rateVariable;
+
+  // Return raw converted number if requested
   if (returnNumber) {
-    a = Number(a.toFixed(pointsVariable));
-    return a;
+    return number;
   }
-  a = Number(a.toFixed(pointsVariable));
-  a = CielNumber(a);
-  return formatPrice(a, language);
+
+  // Dart's formatNumber logic
+  const thousand = language !== "ar" ? "K" : "الف";
+  const million = language !== "ar" ? "M" : "مليون";
+
+  if (number >= 1e5 && number < 1e6) {
+    const result = Math.floor((number + 999) / 1000).toFixed(2);
+    return `${result}${thousand}`;
+  } else if (number === 0) {
+    return "0.0";
+  } else if (number < 1e5) {
+    return number.toFixed(2);
+  } else {
+    let result = (Math.floor((number + 999) / 1000) / 1000).toFixed(2);
+
+    if (result.endsWith(".000")) {
+      result = result.slice(0, -4);
+    }
+    return `${result}${million}`;
+  }
 };
+
 export const onClickSearchHistory = (searchValue) => {
   if (localStorage.getItem("search-history")) {
     let arr = JSON.parse(localStorage.getItem("search-history"));

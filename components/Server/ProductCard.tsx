@@ -29,11 +29,22 @@ function ProductCard({
     }
     return true;
   };
+  const getImagesOfProducts = () => {
+    if (product.sync_color_images) {
+      if (product.sync_color_images?.[0]?.images) {
+        return product?.sync_color_images[0];
+      } else {
+        return {
+          images: product?.images,
+        };
+      }
+    } else {
+      return { images: product?.images };
+    }
+  };
   const { setColorBottomSheet } = useAppStore();
   const [shouldShowRedeemAction, setShouldShowRedeem] = useState(false);
-  const [activeColor, setActiveColor] = useState(
-    product?.sync_color_images[0] || { images: product?.images }
-  );
+  const [activeColor, setActiveColor] = useState(getImagesOfProducts());
 
   const getUrlofProduct = () => {
     let url = `/${params.lang}/products/${product.slug}`;

@@ -19,7 +19,7 @@ import QualityIcon from "public/svg/product/QualityIcon.svg";
 import VerifiedIcon from "public/svg/product/Verified.svg";
 import Flag from "public/svg/product/flag.svg";
 import ProductDescriptors from "components/products/ProductDescriptors";
-import { GetImageUrl, getPrice } from "utils/tinyUtils";
+import { GetImageUrl } from "utils/tinyUtils";
 import { generateProductMetaData } from "./MetaData";
 import ProductImagesSlider from "components/products/ProductImageSlider";
 import ProductDetails from "components/products/ProductDetails";
