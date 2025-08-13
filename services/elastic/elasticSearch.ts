@@ -226,7 +226,7 @@ export async function getProductsAndFiltersFromElastic(
           sizes: [...new Set([...(filters.sizes || []), CleanSearchText.size])],
         };
       }
-      isAnalyzed = true;
+      isAnalyzed = CleanSearchText;
     }
   } catch (error) {
     isAnalyzed?.length > 4 ? isAnalyzed : "failed to Analyze";
