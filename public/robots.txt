@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+
+# Sitemaps
+Sitemap: https://trydos.vercel.app/sitemap-home.xml
+Sitemap: https://trydos.vercel.app/sitemap-products.xml
+Sitemap: https://trydos.vercel.app/sitemap-static.xml
+Sitemap: https://trydos.vercel.app/sitemap-search.xml
