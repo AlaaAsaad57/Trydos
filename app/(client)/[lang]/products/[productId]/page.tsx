@@ -99,11 +99,7 @@ async function GetProductDataFunc(params) {
     if (data?.product) {
       return data.product;
     } else {
-      let {
-        product: productData,
-
-        socialData,
-      } = await GetProductData(params);
+      let { product: productData, socialData } = await GetProductData(params);
       if (!productData.details_req && !productData.qtyPriceDetails) {
         storeProduct(
           productData,
@@ -116,7 +112,7 @@ async function GetProductDataFunc(params) {
 
       return {
         ...productData,
-        ...socialData,
+        ...(socialData ?? {}),
         redis: false,
       };
     }
