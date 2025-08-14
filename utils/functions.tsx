@@ -356,17 +356,18 @@ export const RoundPrice = ({
   language = "en",
   points,
 }: {
-  num?: number;
+  num?: number | string;
   rate?: number;
   returnNumber?: boolean;
   language?: string;
   points?: any;
 }): number | string => {
+  let price_num = Number(num);
   const { currency } = useAppStore.getState();
 
   // Currency conversion at the start
   let rateVariable = rate || currency?.exchange_rate || 1;
-  let number = num * rateVariable;
+  let number = price_num * rateVariable;
 
   // Return raw converted number if requested
   if (returnNumber) {
