@@ -70,7 +70,7 @@ function AddToCartComponent({
           initCart(data ?? { cart: [] });
         },
       });
-      let [data1, data2, data3, data4] = await Promise.all([
+      let [data1, data2, data4] = await Promise.all([
         (async () => {
           let response = await fetchData({
             url: `/web/product/qtyPriceDetails/${slug}`,
@@ -90,20 +90,6 @@ function AddToCartComponent({
             reqTitle: REQUESTS_DATA.GET_PRODUCT_VARIANTS_NOTIFICATIONS,
             method: "GET",
             server: "market",
-          });
-          // @ts-ignore
-          if (!response.success) {
-            throw new Error(response.message);
-          }
-          return response;
-        })(),
-        (async () => {
-          let response = await fetchData({
-            url: `/api/v2/elastic/shared_count/${product.id}`,
-            reqTitle: REQUESTS_DATA.SHARE_COUNT_REQUEST,
-            method: "GET",
-            server: "chat",
-            useCached: true,
           });
           // @ts-ignore
           if (!response.success) {
@@ -146,7 +132,7 @@ function AddToCartComponent({
         // is_redeem: shouldShowRedeem() && true,
         ...data2.data,
         ...data4.data,
-        shared_count: data3.data.shared_count,
+        shared_count: product?.shared_count || 0,
         variation: newVariants,
         sync_color_images: !product.singleColor
           ? data4.data.sync_color_images || []
