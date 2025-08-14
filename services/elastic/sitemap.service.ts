@@ -42,6 +42,8 @@ interface SearchTerm {
  */
 export async function getHomeSitemapLocales(): Promise<LocaleData> {
   try {
+    console.log('[getHomeSitemapLocales] Starting to fetch locales...');
+    
     // Build base conditions (same as your existing buildBaseConditions but without country filter)
     const baseConditions = buildSitemapBaseConditions();
     const { must: mustConditions, must_not: mustNotConditions } = baseConditions;
@@ -64,7 +66,7 @@ export async function getHomeSitemapLocales(): Promise<LocaleData> {
           aggs: {
             country_codes: {
               terms: {
-                field: "countries_iso.iso",
+                field: "countries_iso.iso.keyword",
                 size: 300, // Adjust based on expected number of countries
               },
             },
@@ -78,7 +80,7 @@ export async function getHomeSitemapLocales(): Promise<LocaleData> {
           aggs: {
             language_codes: {
               terms: {
-                field: "custom_products.language_code",
+                field: "custom_products.language_code.keyword",
                 size: 20, // Should be enough for languages
               },
             },
@@ -87,16 +89,26 @@ export async function getHomeSitemapLocales(): Promise<LocaleData> {
       },
     };
 
+    console.log('[getHomeSitemapLocales] Search query:', JSON.stringify(searchQuery, null, 2));
+    
     const response: SearchResponse = await elasticSearchClient.search(searchQuery);
+    
+    console.log('[getHomeSitemapLocales] Raw response:', JSON.stringify(response, null, 2));
+    
     const aggregations = response.aggregations as any;
 
     // Extract countries
     const countryBuckets = aggregations?.countries?.country_codes?.buckets || [];
+    console.log('[getHomeSitemapLocales] Country buckets:', countryBuckets);
     const countries = countryBuckets.map((bucket: any) => bucket.key.toLowerCase());
 
     // Extract languages
     const languageBuckets = aggregations?.languages?.language_codes?.buckets || [];
+    console.log('[getHomeSitemapLocales] Language buckets:', languageBuckets);
     const languages = languageBuckets.map((bucket: any) => bucket.key.toLowerCase());
+
+    console.log('[getHomeSitemapLocales] Raw countries:', countries);
+    console.log('[getHomeSitemapLocales] Raw languages:', languages);
 
     // Filter to only include supported languages
     const supportedLanguages = ["en", "ar", "tr", "ku"];
@@ -107,8 +119,38 @@ export async function getHomeSitemapLocales(): Promise<LocaleData> {
     // If no languages found in ES, use the supported languages
     const finalLanguages = filteredLanguages.length > 0 ? filteredLanguages : supportedLanguages;
 
+    // If no countries found, try a different approach or use fallback
+    let finalCountries = countries;
+    if (countries.length === 0) {
+      console.log('[getHomeSitemapLocales] No countries found, trying alternative approach...');
+      
+      // Try to get countries from a simple query
+      try {
+        const simpleQuery = {
+          index: "products_catalog",
+          size: 1,
+          _source: ["countries_iso"]
+        };
+        
+        const simpleResponse = await elasticSearchClient.search(simpleQuery);
+        console.log('[getHomeSitemapLocales] Simple query response:', JSON.stringify(simpleResponse, null, 2));
+        
+        // If still no countries, use fallback
+        if (countries.length === 0) {
+          console.log('[getHomeSitemapLocales] Using fallback countries');
+          finalCountries = ["tr", "iq", "lb", "sy"];
+        }
+      } catch (simpleError) {
+        console.error('[getHomeSitemapLocales] Simple query failed:', simpleError);
+        finalCountries = ["tr", "iq", "lb", "sy"];
+      }
+    }
+
+    console.log('[getHomeSitemapLocales] Final countries:', finalCountries);
+    console.log('[getHomeSitemapLocales] Final languages:', finalLanguages);
+
     return {
-      countries: countries,
+      countries: finalCountries,
       languages: finalLanguages,
     };
   } catch (error) {
@@ -135,7 +177,7 @@ export async function generateHomeSitemapUrls(): Promise<SitemapUrl[]> {
   // Generate URLs for all country-language combinations
   for (const country of locales.countries) {
     for (const language of locales.languages) {
-      const url = `${baseUrl}/${country}-${language}/`;
+      const url = `${baseUrl}/${country}-${language}`;
       
       sitemapUrls.push({
         loc: url,
@@ -161,6 +203,7 @@ export async function getProductsForSitemap(batchSize: number = 1000): Promise<P
     // Initial search
     const initialParams = buildProductSearchParams(batchSize, scrollTimeout);
     let response: SearchResponse = await elasticSearchClient.search(initialParams);
+    console.log("the product count is :", response);
     
     scrollId = response._scroll_id || null;
     if (!scrollId) {
@@ -206,35 +249,42 @@ export async function getProductsForSitemap(batchSize: number = 1000): Promise<P
 export async function generateProductSitemapUrls(): Promise<SitemapUrl[]> {
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://trydos.vercel.app";
   const products = await getProductsForSitemap();
+  const locales = await getHomeSitemapLocales();
   const sitemapUrls: SitemapUrl[] = [];
-
+  console.log("Unique products count:", products);
+  console.log("Available countries:", locales.countries.length);
+  console.log("Available languages:", locales.languages.length);
+  console.log("Expected total URLs:", products.length * locales.countries.length * locales.languages.length);
+  
+  // Generate URLs for all country-language combinations for each product
   for (const product of products) {
     // Skip products without valid slug
     if (!product.slug || product.slug.trim() === "") {
       continue;
     }
 
-    // Determine country for URL (use product.country_iso or fallback to 'global')
-    const country = product.country_iso && product.country_iso !== 'global' 
-      ? product.country_iso.toLowerCase() 
-      : 'tr'; // Default fallback
-
-    // Generate URL: {baseUrl}/{country}-{language}/products/{slug}
-    const url = `${baseUrl}/${country}-${product.language_code}/products/${product.slug}`;
-    
     // Parse lastmod date
     const lastmod = product.updated_at 
       ? new Date(product.updated_at).toISOString().split('T')[0]
       : new Date().toISOString().split('T')[0];
 
-    sitemapUrls.push({
-      loc: url,
-      lastmod: lastmod,
-      changefreq: "weekly", // Products change less frequently than home
-      priority: 0.8, // Slightly lower priority than home
-    });
+    // Generate URLs for all country-language combinations
+    for (const country of locales.countries) {
+      for (const language of locales.languages) {
+        // Generate URL: {baseUrl}/{country}-{language}/products/{slug}
+        const url = `${baseUrl}/${country}-${language}/products/${product.slug}`;
+        
+        sitemapUrls.push({
+          loc: url,
+          lastmod: lastmod,
+          changefreq: "weekly", // Products change less frequently than home
+          priority: 0.8, // Slightly lower priority than home
+        });
+      }
+    }
   }
 
+  console.log("Generated URLs count:", sitemapUrls.length);
   return sitemapUrls;
 }
 
@@ -942,4 +992,63 @@ export async function testSearchTermsSitemapGeneration() {
       error: error instanceof Error ? error.message : "Unknown error"
     };
   }
+}
+
+export async function generateSitemapIndexXML(): Promise<string> {
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://trydos.vercel.app";
+  const now = new Date().toISOString();
+
+  const sitemaps = [
+    `${baseUrl}/sitemap-home.xml`,
+    `${baseUrl}/sitemap-products.xml`,
+    `${baseUrl}/sitemap-static.xml`,
+    `${baseUrl}/sitemap-search.xml`,
+  ];
+
+  let xml = '<?xml version="1.0" encoding="UTF-8"?>\n';
+  xml += '<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n';
+
+  for (const loc of sitemaps) {
+    xml += '  <sitemap>\n';
+    xml += `    <loc>${loc}</loc>\n`;
+    xml += `    <lastmod>${now}</lastmod>\n`;
+    xml += '  </sitemap>\n';
+  }
+
+  xml += '</sitemapindex>';
+  return xml;
+}
+
+export async function generateFullSitemapXML(): Promise<string> {
+	// Gather all URLs in parallel
+	const [homeUrls, productUrls, staticUrls, searchUrls] = await Promise.all([
+		generateHomeSitemapUrls(),
+		generateProductSitemapUrls(),
+		generateStaticPagesSitemapUrls(),
+		generateSearchTermsSitemapUrls(),
+	]);
+
+	// Merge and de-duplicate by loc
+	const all = [...homeUrls, ...productUrls, ...staticUrls, ...searchUrls];
+	const seen = new Set<string>();
+	const deduped = all.filter((u) => {
+		if (seen.has(u.loc)) return false;
+		seen.add(u.loc);
+		return true;
+	});
+
+	let xml = '<?xml version="1.0" encoding="UTF-8"?>\n';
+	xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n';
+
+	for (const url of deduped) {
+		xml += '  <url>\n';
+		xml += `    <loc>${url.loc}</loc>\n`;
+		xml += `    <lastmod>${url.lastmod}</lastmod>\n`;
+		xml += `    <changefreq>${url.changefreq}</changefreq>\n`;
+		xml += `    <priority>${url.priority}</priority>\n`;
+		xml += '  </url>\n';
+	}
+
+	xml += '</urlset>';
+	return xml;
 }
