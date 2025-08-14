@@ -8,7 +8,7 @@ import OrderExpectedDeliveryCard from "./cards/OrderExpectedDeliveryCard";
 import OrderStatusCard from "./cards/OrderStatusCard";
 import OrderAddressCard from "./cards/OrderAddressCard";
 import OrderItemsList from "./cards/OrderItemsList";
-import { OrderDetail, OrderItem } from "types/orders";
+import { OrderItem } from "types/orders";
 import {
   getConfiguredImage,
   getUserChat,
@@ -384,7 +384,16 @@ function OrderDetails({ resetOrderDetails, goBack }: OrderDetailsPropsType) {
       }
     };
   }, []);
-
+  const shouldShowRatingBadge = () => {
+    if (
+      ActivePacks.details.filter((s) => !s.comments || s.comments?.length === 0)
+        .length === 0
+    )
+      return false;
+    if (isExpanded) return false;
+    if (ActivePacks?.order_status?.value === "delivered") return true;
+    else return false;
+  };
   if (!selectedOrder?.id) return null;
 
   return (
@@ -491,9 +500,7 @@ function OrderDetails({ resetOrderDetails, goBack }: OrderDetailsPropsType) {
                 }
               />
             </div>
-            {ActivePacks?.order_status?.value === "delivered" && (
-              <RateOrderButton />
-            )}
+            {shouldShowRatingBadge() && <RateOrderButton />}
             <div className="flex flex-col justify-start  w-full bg-[#F8F8F8] px-[12px] h-full relative">
               <OrderItemsList
                 getOrderDetails={() => {

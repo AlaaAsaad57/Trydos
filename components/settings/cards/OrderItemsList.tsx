@@ -39,9 +39,7 @@ function OrderItemsList({
   const isRtl = language === "ar" || language === "ku";
   const isDelevired = (item) => {
     return (
-      !item.is_returned &&
-      item.delivery_status === "delivered" &&
-      ActivePacks?.order_status?.value === "delivered"
+      !item.is_returned && ActivePacks?.order_status?.value === "delivered"
     );
   };
   return (
