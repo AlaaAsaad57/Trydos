@@ -354,11 +354,13 @@ export const RoundPrice = ({
   rate,
   returnNumber,
   language = "en",
+  points,
 }: {
   num?: number;
   rate?: number;
   returnNumber?: boolean;
   language?: string;
+  points?: any;
 }): number | string => {
   const { currency } = useAppStore.getState();
 
