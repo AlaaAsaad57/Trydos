@@ -243,15 +243,7 @@ export class ElasticsearchReader {
             "custom_boutiques.language_code",
           ],
           query: { bool: { must, must_not } },
-          sort: [
-            {
-              "boutique.position": {
-                order: "desc",
-                nested: { path: "boutique" },
-              },
-            },
-            { boutique_id: { order: "asc" } },
-          ],
+          sort: [{ boutique_id: { order: "asc" } }],
         },
       };
 
