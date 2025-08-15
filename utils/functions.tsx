@@ -363,34 +363,32 @@ export const RoundPrice = ({
   points?: any;
 }): number | string => {
   let price_num = Number(num);
-  const { currency } = useAppStore.getState();
+  const { currency, settings } = useAppStore.getState();
 
   // Currency conversion at the start
   let rateVariable = rate || currency?.exchange_rate || 1;
   let number = price_num * rateVariable;
-
+  let deciaml_points =
+    (settings && settings["starting-setting"]?.decimal_point_settings) || 0;
   // Return raw converted number if requested
   if (returnNumber) {
     return number;
   }
-
+  number = Number(number.toFixed(deciaml_points));
   // Dart's formatNumber logic
   const thousand = language !== "ar" ? "K" : "الف";
   const million = language !== "ar" ? "M" : "مليون";
 
   if (number >= 1e5 && number < 1e6) {
-    const result = Math.floor((number + 999) / 1000).toFixed(2);
+    const result = Math.floor((number + 999) / 1000);
     return `${result}${thousand}`;
   } else if (number === 0) {
     return "0.0";
   } else if (number < 1e5) {
-    return number.toFixed(2);
+    return number;
   } else {
-    let result = (Math.floor((number + 999) / 1000) / 1000).toFixed(5);
+    let result = Math.floor((number + 999) / 1000) / 1000;
 
-    if (result.endsWith(".000")) {
-      result = result.slice(0, -4);
-    }
     return `${result}${million}`;
   }
 };
