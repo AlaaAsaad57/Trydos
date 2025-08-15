@@ -35,7 +35,7 @@
   height: 40px;
   position: relative;
   transition: 0.4s;
-  overflow: hidden;
+  overflow: visible;
   width: 0px;
 }
 .active-serach .search-component-container {

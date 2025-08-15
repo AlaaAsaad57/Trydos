@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
     // Get query parameters
     const { searchParams } = new URL(request.url);
     const limit = parseInt(searchParams.get("limit") || "10");
-    const offset = parseInt(searchParams.get("offset") || "0");
+    const offset = searchParams.get("offset") || null;
     let category_slug = searchParams.get("category_slugs") || undefined;
     if (typeof category_slug === "string") {
       let categorySlg = JSON.parse(category_slug);
@@ -51,7 +51,7 @@ export async function GET(request: NextRequest) {
       language,
       limit,
       category: category_slug,
-      searchAfter: offset ? [offset] : null,
+      searchAfter: offset ? JSON.parse(offset.toString()) : null,
     });
 
     // Check if response exists
@@ -68,7 +68,7 @@ export async function GET(request: NextRequest) {
       data: {
         total: boutiquesResponse.boutiques?.length || 0,
         limit,
-        offset: boutiquesResponse.searchAfter?.[0], // Use searchAfter as offset, like home page
+        offset: boutiquesResponse.searchAfter, // Use searchAfter as offset, like home page
         boutiques: boutiquesResponse.boutiques || [],
         category_slug,
       },
