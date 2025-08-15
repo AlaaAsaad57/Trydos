@@ -480,7 +480,7 @@ export class ElasticsearchReader {
       }
 
       // final result
-      const final = customProducts.map((boutique) => {
+      let final = customProducts.map((boutique) => {
         const cb = boutique.custom_boutiques[0] || {};
         return {
           boutique_id: boutique.boutique_id,
@@ -494,7 +494,7 @@ export class ElasticsearchReader {
           childCategoriesForProductIds: boutique.childCategoriesForProductIds,
         };
       });
-
+      final = final.filter((b) => b?.slug !== undefined || b?.slug !== null);
       return { boutiques: final, searchAfter };
     } catch (error) {
       console.error("GET BOUTIQUE ERROR FROM ELASTIC:", error);

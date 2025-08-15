@@ -135,6 +135,7 @@ async function MainCategoriesNavbar({ lang, mainCategory }) {
       (cat) => cat.language_code?.toLowerCase() === language?.toLowerCase()
     );
   });
+  mainCategories = mainCategories.filter((c) => c !== undefined);
   mainCategories = Array.from(
     new Map(mainCategories.map((c: any) => [c.id, c])).values()
   );
@@ -204,6 +205,8 @@ async function BoutiquesListWrapper({ params }) {
     limit: 10,
     category: params.mainCategory,
   });
+  data.boutiques = data.boutiques.filter((b) => b?.slug !== undefined);
+  console.log("**********data***********", data.boutiques);
   // @ts-ignore
   let end = process.hrtime.bigint();
   return (
