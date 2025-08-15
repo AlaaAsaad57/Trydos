@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
           cat.language_code?.toLowerCase() === language?.toLowerCase()
       );
     });
-
+    mainCategories = mainCategories.filter((c) => c !== undefined);
     // Remove duplicates by ID
     mainCategories = Array.from(
       new Map(mainCategories.map((c: any) => [c.id, c])).values()

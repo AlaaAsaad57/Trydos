@@ -205,8 +205,7 @@ async function BoutiquesListWrapper({ params }) {
     limit: 10,
     category: params.mainCategory,
   });
-  data.boutiques = data.boutiques.filter((b) => b?.slug !== undefined);
-  console.log("**********data***********", data.boutiques);
+
   // @ts-ignore
   let end = process.hrtime.bigint();
   return (

@@ -494,7 +494,8 @@ export class ElasticsearchReader {
           childCategoriesForProductIds: boutique.childCategoriesForProductIds,
         };
       });
-      final = final.filter((b) => b?.slug !== undefined || b?.slug !== null);
+      final = final.filter((b) => b?.slug !== undefined && b?.slug !== null);
+
       return { boutiques: final, searchAfter };
     } catch (error) {
       console.error("GET BOUTIQUE ERROR FROM ELASTIC:", error);
