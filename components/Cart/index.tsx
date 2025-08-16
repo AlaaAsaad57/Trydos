@@ -15,7 +15,7 @@ import ErrorIcon from "public/svg/cart/Error.svg";
 import Skeleton from "react-loading-skeleton";
 import "styles/productDetails.css";
 import NextLink from "components/global/NextLink";
-import { useParams, useSearchParams } from "next/navigation";
+import { useParams, usePathname, useSearchParams } from "next/navigation";
 import home from "services/home";
 import OrderButton from "./OrderButton";
 import Spinner from "components/global/Spinner";
@@ -82,7 +82,37 @@ function CartContainer({ close, toOrders }: CartContainerPropsType) {
       }${`?size=${product?.variations[0]?.Size}&color=${product?.variations[0]?.color}`}`;
     return productUrl;
   };
-
+  const getProductCartUrl = (product) => {
+    let data,
+      href = null;
+    if (params?.productId === product.slug) {
+      if (product.variations[0]?.color === sarchParams.get("color")) {
+        data = null;
+        return { href: "#", data };
+      } else {
+        let newParams = new URLSearchParams();
+        if (product.variations[0]?.color) {
+          newParams.set("color", product.variations[0]?.color);
+        }
+        if (product.variations[0]?.Size) {
+          newParams.set("size", product.variations[0]?.Size);
+        }
+        return {
+          href: `/${lang}/products/${product.slug}?${newParams.toString()}`,
+          data,
+        };
+      }
+    }
+    return {
+      href: getURLOfProduct({ product }),
+      data: {
+        is_product: true,
+        active_color: product.variations[0]?.color ?? null,
+        ...product,
+        href: getURLOfProduct({ product }),
+      },
+    };
+  };
   useEffect(() => {
     GAevent({
       action: GA_EVENT_NAMES.SCREEN_VIEW,
@@ -140,10 +170,7 @@ function CartContainer({ close, toOrders }: CartContainerPropsType) {
     await getData();
   };
   const params = useParams();
-
   const sarchParams = useSearchParams();
-
-  const ProductDetails = product;
   const updateDataForProduct = async (slug) => {
     if (params?.productId === slug) {
       try {
@@ -172,37 +199,7 @@ function CartContainer({ close, toOrders }: CartContainerPropsType) {
     await GetCartOreview();
     await updateDataForProduct(product.slug);
   };
-  const getProductCartUrl = (product) => {
-    let data,
-      href = null;
-    if (params?.productId === product.slug) {
-      if (product.variations[0]?.color === sarchParams.get("color")) {
-        data = null;
-        return { href: "#", data };
-      } else {
-        let newParams = new URLSearchParams();
-        if (product.variations[0]?.color) {
-          newParams.set("color", product.variations[0]?.color);
-        }
-        if (product.variations[0]?.Size) {
-          newParams.set("size", product.variations[0]?.Size);
-        }
-        return {
-          href: `/${lang}/products/${product.slug}?${newParams.toString()}`,
-          data,
-        };
-      }
-    }
-    return {
-      href: getURLOfProduct({ product }),
-      data: {
-        is_product: true,
-        active_color: product.variations[0]?.color ?? null,
-        ...product,
-        href: getURLOfProduct({ product }),
-      },
-    };
-  };
+
   // Retrieve shipping_duration_days from sessionStorage
   let shippingDurationDays = 0;
   if (sessionStorage.getItem("starttingSetting")) {
@@ -410,25 +407,13 @@ function CartContainer({ close, toOrders }: CartContainerPropsType) {
                       data-cy="one-product"
                     >
                       {" "}
-                      <NextLink
-                        exportparts={
-                          params?.productId === product.slug
-                            ? "no-navigate"
-                            : ""
-                        }
-                        href={getProductCartUrl(product).href}
-                        data={getProductCartUrl(product).data}
-                        ariaLabel={`Cart Product ${product.slug} ${params.lang}`}
-                        className={`flex-row mt-2 w-full relative  ${
-                          product.have_hurry_up_notify || true
-                            ? "min-h-[230px]"
-                            : "min-h-[161px]"
-                        } bg-[#FEFEFE] rounded-2xl overflow-hidden shadow-[0px_3px_10px_rgba(0,0,0,0.1)]`}
+                      <CartItemLink
+                        product={product}
                         key={key}
-                        onClick={(e) => {
-                          EnableScroll();
-                          close();
-                        }}
+                        // onClick={(e) => {
+                        //   EnableScroll();
+                        //   close();
+                        // }}
                       >
                         <div
                           className="flex-row w-[110px] min-h-[161px] max-h-[161px] relative"
@@ -673,7 +658,7 @@ function CartContainer({ close, toOrders }: CartContainerPropsType) {
                             )}
                           </div>
                         )}
-                      </NextLink>
+                      </CartItemLink>
                       <QuantutyInput
                         id={product.id}
                         updateData={async () => {
@@ -847,31 +832,13 @@ function CartContainer({ close, toOrders }: CartContainerPropsType) {
                       key={key}
                       data-cy="oldProduct-card"
                     >
-                      <NextLink
-                        exportparts={
-                          params?.productId === product.slug
-                            ? "no-navigate"
-                            : ""
-                        }
-                        data={getProductCartUrl(product).data}
-                        href={getProductCartUrl(product).href}
-                        ariaLabel={`old Cart Product ${product.slug} ${params.lang}`}
-                        className="flex-row mt-2 w-full relative  min-h-[230px] bg-[#FEFEFE] rounded-2xl overflow-hidden shadow-[0px_3px_10px_rgba(0,0,0,0.1)]"
+                      <CartItemLink
+                        product={product}
                         key={key}
-                        style={{ border: "1px solid #ff5f617a" }}
-                        onClick={(e) => {
-                          // @ts-ignore
-                          if (e.target.closest(".hide-btn")) {
-                            setTimeout(() => {
-                              const { setIsNavigating } =
-                                useAppStore.getState();
-                              setIsNavigating(null);
-                            }, 1500);
-                            return false;
-                          }
-                          EnableScroll();
-                          close();
-                        }}
+                        // onClick={(e) => {
+                        //   EnableScroll();
+                        //   close();
+                        // }}
                       >
                         <div className="flex-row w-[110px] min-h-[161px] max-h-[161px] relative">
                           <img
@@ -1090,7 +1057,7 @@ function CartContainer({ close, toOrders }: CartContainerPropsType) {
                             </svg>
                           </span>
                         </div>
-                      </NextLink>
+                      </CartItemLink>
                       <QuantutyInput
                         id={product.id}
                         product={product}
@@ -2261,9 +2228,87 @@ const QuantutyInput = ({
     </div>
   );
 };
-const CartItemLink = (product_slug, children) => {
+const CartItemLink = ({ product, children }) => {
   const params = useParams();
-  if (params.productId === product_slug) {
+  const { enableCart } = useAppStore();
+  const router = useRouter();
+  const pathname = usePathname();
+  let lang = params.lang;
+  const getURLOfProduct = ({ product }) => {
+    let productUrl;
+    if (product.variations[0]?.color && !product.variations[0]?.Size)
+      productUrl = `/${lang}/products/${
+        product.slug
+      }${`?color=${product?.variations[0]?.color}`}`;
+    else if (!product.variations[0]?.color && product.variations[0]?.Size)
+      productUrl = `/${lang}/products/${
+        product.slug
+      }${`?size=${product?.variations[0]?.Size}`}`;
+    else if (!product.variations[0]?.color && !product.variations[0]?.Size)
+      productUrl = `/${lang}/products/${product.slug}`;
+    else if (product.variations[0]?.color && product.variations[0]?.Size)
+      productUrl = `/${lang}/products/${
+        product.slug
+      }${`?size=${product?.variations[0]?.Size}&color=${product?.variations[0]?.color}`}`;
+    return productUrl;
+  };
+  const getProductCartUrl = (product) => {
+    return {
+      href: getURLOfProduct({ product }),
+      data: {
+        is_product: true,
+        active_color: product.variations[0]?.color ?? null,
+        ...product,
+        href: getURLOfProduct({ product }),
+      },
+    };
+  };
+  if (params.productId === product?.slug) {
+    return (
+      <div
+        className={`flex-row mt-2 w-full relative  ${
+          product.have_hurry_up_notify || true
+            ? "min-h-[230px]"
+            : "min-h-[161px]"
+        } bg-[#FEFEFE] cursor-pointer rounded-2xl overflow-hidden shadow-[0px_3px_10px_rgba(0,0,0,0.1)]`}
+        onClick={(e) => {
+          const newParams = new URLSearchParams();
+          if (product?.variations[0]?.color) {
+            newParams.set("color", product.variations[0]?.color);
+          }
+          if (product.variations[0]?.Size) {
+            newParams.set("size", product.variations[0]?.Size);
+          }
+          router.push(pathname + `?${newParams.toString()}`, {
+            scroll: false,
+            // @ts-expect-error 'shallow' does not exist in type 'NavigateOptions'
+            shallow: true,
+          });
+          EnableScroll();
+          enableCart(false);
+        }}
+      >
+        {children}
+      </div>
+    );
   } else {
+    return (
+      <NextLink
+        href={getProductCartUrl(product).href}
+        data={getProductCartUrl(product).data}
+        ariaLabel={`Cart Product ${product.slug} ${params.lang}`}
+        className={`flex-row mt-2 w-full relative  ${
+          product.have_hurry_up_notify || true
+            ? "min-h-[230px]"
+            : "min-h-[161px]"
+        } bg-[#FEFEFE] rounded-2xl overflow-hidden shadow-[0px_3px_10px_rgba(0,0,0,0.1)]`}
+        onClick={(e) => {
+          EnableScroll();
+          enableCart(false);
+        }}
+      >
+        {children}
+      </NextLink>
+    );
   }
 };

@@ -46,7 +46,7 @@ function ProductColors({ colors, ProductColorsArray }: ProductColorsPropsType) {
     setActiveColorDetails(e);
     let variant = e?.color_option;
     let size = searchParams.get("size");
-    console.log(SelectedProduct);
+
     if (size?.length) {
       variant += `-${size}`;
     }
