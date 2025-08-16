@@ -4,7 +4,7 @@ import "styles/productDetails.css";
 import InfinteScroll from "components/global/InfinteScroll";
 import NormalWidget from "components/Home/OfferWidgets/NormalWidget";
 import OfferListSkeleton from "components/skeleton/OfferList";
-import { fetchBoutiques } from "Server Requests";
+
 import { OfferListServerPropsType } from "models/componentType/OfferListServerPropsType";
 
 async function OfferListServer({
@@ -17,7 +17,7 @@ async function OfferListServer({
 
     return (
       <div className={`offers-list pb-[184px] gap-[10px]`} data-cy="boutiques">
-        {HomeData.boutiques.map((boutique, myKey) => {
+        {HomeData?.boutiques?.map((boutique, myKey) => {
           return (
             <NormalWidget
               boutique={boutique}

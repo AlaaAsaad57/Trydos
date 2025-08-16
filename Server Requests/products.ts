@@ -17,7 +17,7 @@ export async function fetchProductDetails(
     // if (productCache?.product?.id) {
     //   return { ...productCache, redis: true, time: time };
     // }
-    const [generalDetails, extendedDetails] = await Promise.all([
+    let [generalDetails, extendedDetails] = await Promise.all([
       fetchProductGeneralDetails(slug, language, country),
       fetchProductExtendedDetails(slug, language, country),
     ]);
@@ -63,7 +63,7 @@ export async function fetchProductGeneralDetails(
 
     return response.data;
   } catch (error) {
-    return { details_req: true };
+    return { data: { details_req: true } };
   }
 }
 export async function fetchProductExtendedDetails(
@@ -94,6 +94,6 @@ export async function fetchProductExtendedDetails(
     }
     return response.data;
   } catch (error) {
-    return { qtyPriceDetails: true };
+    return { data: { qtyPriceDetails: true } };
   }
 }
