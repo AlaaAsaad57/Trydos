@@ -18,18 +18,20 @@ function ProductsInfiniteScroll({
   offset,
   currency,
   activeColor,
-  productIds,
   analyticsData,
   parsedFilters,
+  isFeatured,
+  isFlashDeals,
+  boutique,
 }: {
   offset: any;
   currency: CurrencyApi["data"]["currency"];
   analyticsData: any;
   activeColor: string;
-  productIds: string[];
   isFeatured?: boolean;
   isFlashDeals?: boolean;
   parsedFilters: any;
+  boutique?: any;
 }) {
   const { resetBoutique } = useAppStore();
   const { lang }: { lang: string } = useParams();
@@ -46,6 +48,7 @@ function ProductsInfiniteScroll({
       action: GA_EVENT_NAMES.VIEW_ITEMS_LIST,
       params: {
         items: analyticsData,
+        item_list_name: getItemsListName(),
         screen_name: GA_GLOBAL_SCREEN.FILTERS_SCREEN,
         screen_path: window.location.pathname,
         user_id_custom: auth.UserID(),
@@ -105,6 +108,7 @@ function ProductsInfiniteScroll({
               category: s?.category?.name,
               brand: s?.brand?.name,
             })),
+            item_list_name: getItemsListName(),
             user_id_custom: auth.UserID(),
             screen_name: GA_GLOBAL_SCREEN.FILTERS_SCREEN,
             screen_path: window.location.pathname,
@@ -123,7 +127,17 @@ function ProductsInfiniteScroll({
       setIsReachEnd(true);
     }
   };
-
+  const getItemsListName = () => {
+    if (isFeatured) {
+      return "Featured-Products";
+    }
+    if (isFlashDeals) {
+      return "FlashDeals-Products";
+    }
+    if (parsedFilters?.boutiques?.length === 1) {
+      return `${boutique?.name}-Boutique-Page`;
+    } else return "Filters-Page";
+  };
   return (
     <>
       {products?.map((product, key) => {

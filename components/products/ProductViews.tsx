@@ -1,13 +1,12 @@
 "use client";
-import React, { useEffect } from "react";
-
+import React from "react";
 import EyeIcon from "public/svg/product/EyeIcon.svg";
 import Skeleton from "react-loading-skeleton";
 import { useAppStore } from "store";
 
 function ProductViews() {
   const { SelectedProduct } = useAppStore();
-  console.log(SelectedProduct);
+
   return (
     <div className="view-count absolute flex-row align-center">
       <EyeIcon />

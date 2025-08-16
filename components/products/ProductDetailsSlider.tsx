@@ -2,12 +2,15 @@
 import React, { useEffect, useState } from "react";
 import useEmblaCarousel from "embla-carousel-react";
 import Image from "next/image";
-import { getConfiguredImage } from "utils/functions";
+import { getConfiguredImage, RoundPrice } from "utils/functions";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import CloseIcon from "components/Home/Stories/CloseIcon";
 import { useAppStore } from "store";
 import { DisableScroll, EnableScroll, GetImageUrl } from "utils/tinyUtils";
 import { ProductDetailsSliderPropsType } from "models/componentType/productTypes/ProductDetailsSliderPropsType";
+import { GAevent } from "utils/gtag";
+import { GA_EVENT_NAMES } from "utils/GAEvents";
+import auth from "services/auth";
 function ProductDetailsSlider({
   product: productObj,
   currency,
@@ -17,7 +20,10 @@ function ProductDetailsSlider({
   const productData = productObj;
   const [imageShow, showImage] = useState(-1);
   const [emblaRef1, emblaApi] = useEmblaCarousel({
-    startIndex: imageShow || 0,
+    startIndex: 0,
+    dragFree: false,
+    containScroll: "trimSnaps",
+    align: "start",
   });
 
   const searchParams = useSearchParams();
@@ -49,17 +55,81 @@ function ProductDetailsSlider({
     let elements = document.querySelectorAll(".product-slider-images");
     elements.forEach((elem, index) => {
       elem.addEventListener("click", function (e) {
+        GAevent({
+          action: GA_EVENT_NAMES.ZOOM_IMAGE,
+          params: {
+            image_index: index,
+            user_custom_id: auth.UserID(),
+            item_id: productData.id,
+            item_name: productData?.name,
+            brand: productData?.brand?.name,
+            brand_id: productData?.brand?.id,
+            category:
+              productData?.category?.name || productData?.categories?.[0]?.name,
+            category_id:
+              productData?.category?.id || productData?.categories?.[0]?.id,
+            price: RoundPrice({
+              num: productData?.offer_price,
+              rate: currency?.exchange_rate,
+              returnNumber: true,
+              language: "en",
+            }),
+          },
+        });
         DisableScroll();
         showImage(index);
       });
     });
+
     return () => {
       elements.forEach((elem, index) => {
         elem.removeEventListener("click", () => showImage(index));
       });
     };
   }, []);
+  useEffect(() => {
+    if (emblaApi && imageShow >= 0) {
+      emblaApi.scrollTo(imageShow);
 
+      const handleSelect = (e, evt) => {
+        const currentIndex = emblaApi.selectedScrollSnap();
+
+        GAevent({
+          action: GA_EVENT_NAMES.ZOOM_IMAGE,
+          params: {
+            image_index: currentIndex,
+            user_custom_id: auth.UserID(),
+            item_id: productData.id,
+            item_name: productData?.name,
+            brand: productData?.brand?.name,
+            brand_id: productData?.brand?.id,
+            category:
+              productData?.category?.name || productData?.categories?.[0]?.name,
+            category_id:
+              productData?.category?.id || productData?.categories?.[0]?.id,
+            price: RoundPrice({
+              num: productData?.offer_price,
+              rate: currency?.exchange_rate,
+              returnNumber: true,
+              language: "en",
+            }),
+          },
+        });
+      };
+
+      const handleSettle = (e, evt) => {
+        const currentIndex = emblaApi.selectedScrollSnap();
+      };
+
+      emblaApi.on("select", handleSelect);
+      emblaApi.on("settle", handleSettle);
+
+      return () => {
+        emblaApi.off("select", handleSelect);
+        emblaApi.off("settle", handleSettle);
+      };
+    }
+  }, [emblaApi, imageShow]);
   return (
     <>
       {imageShow >= 0 && (
@@ -79,7 +149,7 @@ function ProductDetailsSlider({
               {images?.map((img, i) => (
                 <div
                   className="embla__slide flex justify-center min-w-[98%]"
-                  key={img}
+                  key={img?.file_path}
                   onClick={() => {
                     showImage(i);
                   }}

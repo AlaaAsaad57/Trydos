@@ -218,6 +218,7 @@ function ProductFooterSection({
         is_liked: isLiked,
         color,
         size,
+        views_count: response_views?.view_count || 0,
       });
       setLoading(false);
       // @ts-ignore
@@ -247,7 +248,7 @@ function ProductFooterSection({
           category: product?.categories?.[0]?.name,
           category_id: product?.categories?.[0]?.id,
           count_likes: likesNum,
-          review_counts: response_views?.view_count,
+          review_count: response_views?.view_count,
           interaction_type: "view",
           screen_name: lastPageData?.screen || "link",
           screen_path: lastPageData?.url || window.location.pathname,

@@ -32,6 +32,7 @@ export interface ProductListServerPropsType {
   offset: any[];
   colors: string[];
   isFeatured?: boolean;
+  boutique?: any;
 }
 
 export interface ProductData {

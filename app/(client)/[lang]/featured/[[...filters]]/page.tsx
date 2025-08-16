@@ -213,6 +213,7 @@ export default async function Page({ params }: { params: ParamsType }) {
       >
         <ProductListServer
           isFeatured={true}
+          boutique={boutique?.banners ? boutique : null}
           isFlashDeals={false}
           colors={filtersData?.colors}
           products={filtersData?.products ?? []}

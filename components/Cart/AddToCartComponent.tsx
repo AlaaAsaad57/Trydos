@@ -70,7 +70,7 @@ function AddToCartComponent({
           initCart(data ?? { cart: [] });
         },
       });
-      let [data1, data2, data4] = await Promise.all([
+      let [data1, data2, data3, data4] = await Promise.all([
         (async () => {
           let response = await fetchData({
             url: `/web/product/qtyPriceDetails/${slug}`,
@@ -90,6 +90,23 @@ function AddToCartComponent({
             reqTitle: REQUESTS_DATA.GET_PRODUCT_VARIANTS_NOTIFICATIONS,
             method: "GET",
             server: "market",
+          });
+          // @ts-ignore
+          if (!response.success) {
+            throw new Error(response.message);
+          }
+          return response;
+        })(),
+        (async () => {
+          let response = await fetchData({
+            url: `/api/products/view`,
+            reqTitle: REQUESTS_DATA.GET_VIEW_PRODUCT,
+            method: "POST",
+            server: "elastic",
+            body: JSON.stringify({
+              user_id: auth.UserID(),
+              product_id: product.id,
+            }),
           });
           // @ts-ignore
           if (!response.success) {
@@ -132,6 +149,7 @@ function AddToCartComponent({
         // is_redeem: shouldShowRedeem() && true,
         ...data2.data,
         ...data4.data,
+        ...data3,
         shared_count: product?.shared_count || 0,
         variation: newVariants,
         sync_color_images: !product.singleColor
@@ -1901,10 +1919,12 @@ const AddToCartButton = ({
                   (isVariantInCart({ exact: false })?.quantity ?? 0) + 1,
                 brand: product?.brand?.name,
                 brand_id: product?.brand?.id,
-                category: product?.category?.name,
-                category_id: product?.category?.id,
+                category:
+                  product?.category?.name || product?.categories?.[0]?.name,
+                category_id:
+                  product?.category?.id || product?.categories?.[0]?.id,
                 count_likes: product?.count_of_likes,
-                review_count: product?.shared_count,
+                review_count: product?.views_count ?? product?.view_count,
                 item_variant: selectedVariant?.type,
               },
             ],
@@ -1962,7 +1982,7 @@ const AddToCartButton = ({
                 category: product?.category?.name,
                 category_id: product?.category?.id,
                 count_likes: product?.count_of_likes,
-                review_count: product?.shared_count,
+                review_count: product?.views_count ?? product?.view_count,
                 item_variant: selectedVariant?.type,
               },
             ],

@@ -15,6 +15,7 @@ function ProductListServer({
   colors,
   isFeatured = false,
   isFlashDeals = false,
+  boutique,
 }: ProductListServerPropsType) {
   const activeFilters = getActiveFilters(parsedFilters)?.colors || [];
 
@@ -54,7 +55,7 @@ function ProductListServer({
             brand: s.brand?.name,
           })),
         }}
-        productIds={products.map((s) => s.slug)}
+        boutique={boutique}
         activeColor={activeColor}
         parsedFilters={{
           ...parsedFilters,

@@ -208,6 +208,7 @@ export default async function Page({ params }: { params: ParamsType }) {
       >
         <ProductListServer
           colors={filtersData?.colors}
+          boutique={boutique?.banners ? boutique : null}
           products={filtersData?.products ?? []}
           offset={filtersData?.offset}
           currency={currency}

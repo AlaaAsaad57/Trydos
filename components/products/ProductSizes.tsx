@@ -5,7 +5,7 @@ import ColorsInfo from "public/svg/product/colorsInfo.svg";
 import NormalSizesSlider from "./NormalSizesSlider";
 import DashedCircleBorder from "public/svg/product/DashedCircleBorder.svg";
 import SizeInfoBox from "./SizeInfoBox";
-import { translateFunction } from "utils/functions";
+import { RoundPrice, translateFunction } from "utils/functions";
 import {
   useParams,
   usePathname,
@@ -20,7 +20,7 @@ import { GAevent } from "utils/gtag";
 import auth from "services/auth";
 
 function ProductSizes({ sizes }: ProductSizesPropsType) {
-  const { showInfoMessage, product } = useAppStore();
+  const { showInfoMessage, product, SelectedProduct, currency } = useAppStore();
   let { lang } = useParams();
   // @ts-ignore
   let languageVariable = lang.split("-")[1];
@@ -39,6 +39,29 @@ function ProductSizes({ sizes }: ProductSizesPropsType) {
     if (color?.length) {
       variant = `${color}-${e?.option}`;
     }
+    GAevent({
+      action: GA_EVENT_NAMES.CHANGE_COLOR,
+      params: {
+        user_custom_id: auth.UserID(),
+        item_id: SelectedProduct.id,
+        item_name: SelectedProduct?.name,
+        brand: SelectedProduct?.brand?.name,
+        brand_id: SelectedProduct?.brand?.id,
+        category:
+          SelectedProduct?.category?.name ||
+          SelectedProduct?.categories?.[0]?.name,
+        category_id:
+          SelectedProduct?.category?.id || SelectedProduct?.categories?.[0]?.id,
+        price: RoundPrice({
+          num: SelectedProduct?.offer_price,
+          rate: currency?.exchange_rate,
+          returnNumber: true,
+          language: "en",
+        }),
+        selected_color: color,
+        selected_size: e.option,
+      },
+    });
     GAevent({
       action: GA_EVENT_NAMES.ITEM_VARIANT_EXCHANGE,
       params: {
@@ -101,6 +124,30 @@ function ProductSizes({ sizes }: ProductSizesPropsType) {
         }`}
         style={{ width: `${120}px` }}
         onClick={() => {
+          if (extended === false) {
+            GAevent({
+              action: GA_EVENT_NAMES.VIEW_SIZE_COLOR_CHART,
+              params: {
+                user_custom_id: auth.UserID(),
+                item_id: SelectedProduct.id,
+                item_name: SelectedProduct?.name,
+                brand: SelectedProduct?.brand?.name,
+                brand_id: SelectedProduct?.brand?.id,
+                category:
+                  SelectedProduct?.category?.name ||
+                  SelectedProduct?.categories?.[0]?.name,
+                category_id:
+                  SelectedProduct?.category?.id ||
+                  SelectedProduct?.categories?.[0]?.id,
+                price: RoundPrice({
+                  num: SelectedProduct?.offer_price,
+                  rate: currency?.exchange_rate,
+                  returnNumber: true,
+                  language: "en",
+                }),
+              },
+            });
+          }
           setExtended(!extended);
         }}
       >

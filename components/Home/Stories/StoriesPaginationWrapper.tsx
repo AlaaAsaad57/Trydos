@@ -75,8 +75,8 @@ function StoriesPaginationWrapper({
       }
       const newStories = response.data?.data || [];
       // Add new stories to the existing ones
-      setAdditionalStories((prev) => [...prev, ...newStories]);
-      setStoryData([...storiesData, ...newStories]);
+      setAdditionalStories((prev) => [...(prev || []), ...(newStories ?? [])]);
+      setStoryData([...(storiesData ?? []), ...(newStories ?? [])]);
 
       if (response.data?.next_page_url) {
         setNextPage(next_page + 1);

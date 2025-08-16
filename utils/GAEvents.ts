@@ -35,6 +35,11 @@ export const GA_EVENT_NAMES = {
   SHARE_CONTENT: "share_content",
   COUPON_VIEWED: "coupon_page_viewed",
   COUPON_USED: "coupon_used",
+  VIEW_IMAGE: "view_image",
+  ZOOM_IMAGE: "zoom_image",
+  VIEW_SIZE_COLOR_CHART: "view_size_color_chart",
+  CHANGE_SIZE: "change_size",
+  CHANGE_COLOR: "change_color",
 };
 export const GA_PAYMENTS = {
   WALLET: "wallet",
