@@ -52,7 +52,8 @@ export async function GET(
       if (!productData || !socialData) {
         throw new Error("Not found");
       }
-      storeProduct(productData, socialData, params.slug, language, country);
+      if (!productData.details_req && !productData.qtyPriceDetails)
+        storeProduct(productData, socialData, params.slug, language, country);
       productDataVar = {
         ...productData,
         ...socialData,
