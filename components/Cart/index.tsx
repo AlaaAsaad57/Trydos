@@ -2261,3 +2261,9 @@ const QuantutyInput = ({
     </div>
   );
 };
+const CartItemLink = (product_slug, children) => {
+  const params = useParams();
+  if (params.productId === product_slug) {
+  } else {
+  }
+};

@@ -36,8 +36,8 @@ export async function storeProduct(
   if (!redis) {
     throw new Error("Redis is not available in Edge runtime");
   }
-  if (!product?.id) {
-    throw new Error("Invalid product object, missing ID");
+  if (!product?.id || !product?.name || !product.images || !socialDataProduct) {
+    throw new Error("Invalid product object, missing product data");
   }
 
   const start = process.hrtime.bigint();
@@ -62,7 +62,6 @@ export async function storeProduct(
     return { success: true, timeMs: Number(end - start) / 1_000_000 };
   } catch (err) {
     console.error("Redis SET failed", { productKey, slugKey, err });
-    throw err;
   }
 }
 

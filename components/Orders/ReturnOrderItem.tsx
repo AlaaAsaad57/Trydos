@@ -260,23 +260,27 @@ export const UploadImageComponent = ({
     input.type = "file";
     input.accept = "image/*";
     input.onchange = async (e) => {
-      const file = (e.target as HTMLInputElement).files[0];
-      if (file) {
-        setLoading(true);
-        // const formData = new FormData();
-        // formData.append("image", file);
-        // const response = await fetch("/api/upload", {
-        //   method: "POST",
-        //   body: formData,
-        // });
-        // const data = await response.json();
-        let data = await order.UploadImageForOrderReturn({ image: file });
+      try {
+        const file = (e.target as HTMLInputElement).files[0];
+        if (file) {
+          setLoading(true);
+          // const formData = new FormData();
+          // formData.append("image", file);
+          // const response = await fetch("/api/upload", {
+          //   method: "POST",
+          //   body: formData,
+          // });
+          // const data = await response.json();
+          let data = await order.UploadImageForOrderReturn({ image: file });
 
-        setImages([...images, data.sub_path]);
-        setLoading(false);
-        if (document.body.contains(input)) {
-          document.body.removeChild(input);
+          setImages([...images, data.sub_path]);
+          setLoading(false);
+          if (document.body.contains(input)) {
+            document.body.removeChild(input);
+          }
         }
+      } catch (error) {
+        setLoading(false);
       }
     };
     input.click();
