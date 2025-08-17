@@ -2,6 +2,7 @@ export const GA_EVENT_NAMES = {
   CLICK: "button_clicked",
   PROGRAMMING_EVENT: "programming_event",
   VIEW_PRODUCT_EVENT: "view_item",
+  VIEW_ITEM_PRODUCT: "view_item_product",
   CUSTOM_USER_MAPPING: "custom_user_mapping",
   VIEW_BOUTIQUE_EVENT: "view_boutique_event",
   LOGIN: "login",
@@ -40,6 +41,11 @@ export const GA_EVENT_NAMES = {
   VIEW_SIZE_COLOR_CHART: "view_size_color_chart",
   CHANGE_SIZE: "change_size",
   CHANGE_COLOR: "change_color",
+  APPLY_FILTER: "apply_filter",
+  VIEW_COMMENTS: "view_comments",
+  READ_MORE: "read_more_about_product",
+  ENABLE_PRODUCT_NOTIFICATION: "enable_product_notifications",
+  ADD_TO_FAV: "add_product_to_favorites",
 };
 export const GA_PAYMENTS = {
   WALLET: "wallet",

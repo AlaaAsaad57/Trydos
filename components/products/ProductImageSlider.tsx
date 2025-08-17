@@ -41,7 +41,7 @@ function ProductImagesSlider({ children }) {
             action: GA_EVENT_NAMES.VIEW_IMAGE,
             params: {
               image_index: slideIndex,
-              user_custom_id: auth.UserID(),
+              user_id_custom: auth.UserID(),
               item_id: SelectedProduct.id,
               item_name: SelectedProduct?.name,
               brand: SelectedProduct?.brand?.name,

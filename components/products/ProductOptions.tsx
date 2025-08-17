@@ -63,9 +63,9 @@ function ProductOptions({
         }
 
         // Only update state after successful API call
-        editInfo({ 
-          likes: Math.max(0, currentLikes + 1), 
-          is_liked: true 
+        editInfo({
+          likes: Math.max(0, currentLikes + 1),
+          is_liked: true,
         });
 
         // Update social product data
@@ -110,9 +110,9 @@ function ProductOptions({
         }
 
         // Only update state after successful API call
-        editInfo({ 
-          likes: Math.max(0, currentLikes - 1), 
-          is_liked: false 
+        editInfo({
+          likes: Math.max(0, currentLikes - 1),
+          is_liked: false,
         });
 
         // Update social product data
@@ -128,12 +128,15 @@ function ProductOptions({
             item_id: product?.id,
             item_name: product?.name,
             action: "dislike",
-            category: product?.category?.name,
             brand: product?.brand?.name,
+            brand_id: product?.brand?.id,
+            category: product?.category?.name || product?.categories?.[0]?.name,
+            category_id: product?.category?.id || product?.categories?.[0]?.id,
             price: RoundPrice({
               num: product?.offer_price,
-              rate: currency.exchange_rate,
+              rate: currency?.exchange_rate,
               returnNumber: true,
+              language: "en",
             }),
             screen_name: GA_GLOBAL_SCREEN.PRODUCT_SCREEN,
             screen_path: window.location.pathname,
@@ -153,16 +156,16 @@ function ProductOptions({
       }
     } catch (error) {
       // Rollback to previous state on error
-      editInfo({ 
-        likes: currentLikes, 
-        is_liked: currentIsLiked 
+      editInfo({
+        likes: currentLikes,
+        is_liked: currentIsLiked,
       });
-      
+
       // Show error notification
       showErrorNotification(
         translateFunction("Failed to update like status. Please try again.")
       );
-      
+
       console.error("Like/Unlike error:", error);
     } finally {
       setLoading(false);
@@ -221,9 +224,7 @@ function ProductOptions({
                 <Heart />
               )}
               {product.count_of_likes >= 0 || SelectedProduct?.likes >= 0 ? (
-                <span data-cy="CountOfLoves">
-                {getSafeLikeCount()}
-              </span>
+                <span data-cy="CountOfLoves">{getSafeLikeCount()}</span>
               ) : (
                 <Skeleton width={15} height={14}></Skeleton>
               )}

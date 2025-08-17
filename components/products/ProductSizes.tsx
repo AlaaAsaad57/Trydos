@@ -40,9 +40,9 @@ function ProductSizes({ sizes }: ProductSizesPropsType) {
       variant = `${color}-${e?.option}`;
     }
     GAevent({
-      action: GA_EVENT_NAMES.CHANGE_COLOR,
+      action: GA_EVENT_NAMES.CHANGE_SIZE,
       params: {
-        user_custom_id: auth.UserID(),
+        user_id_custom: auth.UserID(),
         item_id: SelectedProduct.id,
         item_name: SelectedProduct?.name,
         brand: SelectedProduct?.brand?.name,
@@ -128,7 +128,7 @@ function ProductSizes({ sizes }: ProductSizesPropsType) {
             GAevent({
               action: GA_EVENT_NAMES.VIEW_SIZE_COLOR_CHART,
               params: {
-                user_custom_id: auth.UserID(),
+                user_id_custom: auth.UserID(),
                 item_id: SelectedProduct.id,
                 item_name: SelectedProduct?.name,
                 brand: SelectedProduct?.brand?.name,

@@ -3,12 +3,16 @@ import { ProductDetailsTextProps } from "models/componentType/productTypes/Produ
 import { ProductInterface } from "models/Genaral/Product";
 import { useParams, useSearchParams } from "next/navigation";
 import { useEffect, useState, useMemo } from "react";
+import auth from "services/auth";
 import { useAppStore } from "store";
 import { translateFunction } from "utils/functions";
+import { GA_EVENT_NAMES } from "utils/GAEvents";
+import { GAevent } from "utils/gtag";
 
 function ProductDetailsText({
   details,
   product,
+  paramsGA,
 }: ProductDetailsTextProps) {
   const { setActiveColorDetails } = useAppStore();
   const { lang } = useParams();
@@ -35,6 +39,15 @@ function ProductDetailsText({
 
   const toggleText = () => {
     const newShowState = !show;
+    if (newShowState) {
+      GAevent({
+        action: GA_EVENT_NAMES.READ_MORE,
+        params: {
+          user_id_custom: auth.UserID(),
+          ...paramsGA,
+        },
+      });
+    }
     setShow(newShowState);
     // Sendevent({
     //   event: GA_EVENT_NAMES.CLICK,

@@ -49,10 +49,12 @@ function ProductListServer({
       <ProductsInfiniteScroll
         analyticsData={{
           items: products?.map((s) => ({
-            item_id: s.product_id,
-            item_name: s.name,
-            category: s.category?.name,
+            item_id: s?.product_id,
+            item_name: s?.name,
+            category: s?.category?.name,
             brand: s.brand?.name,
+            category_id: s?.category?.id,
+            brand_id: s?.brand?.id,
           })),
         }}
         boutique={boutique}

@@ -22,7 +22,6 @@ import ProductDescriptors from "components/products/ProductDescriptors";
 import { GetImageUrl } from "utils/tinyUtils";
 import { generateProductMetaData } from "./MetaData";
 import ProductImagesSlider from "components/products/ProductImageSlider";
-import ProductDetails from "components/products/ProductDetails";
 import ProductFooterSection from "components/products/ProductFooterSection";
 import ProductDetailsSlider from "components/products/ProductDetailsSlider";
 import ProductDetailsText from "components/products/ProductDetailsText";
@@ -296,10 +295,25 @@ async function Page({ params, searchParams }: ProductPagePropsType) {
                   </div>
                 }
               >
-                <ProductDetails />
                 <ProductDetailsText
                   product={product.sync_color_images}
                   details={product.details}
+                  paramsGA={{
+                    item_id: product.id,
+                    item_name: product?.name,
+                    brand: product?.brand?.name,
+                    brand_id: product?.brand?.id,
+                    category:
+                      product?.category?.name || product?.categories?.[0]?.name,
+                    category_id:
+                      product?.category?.id || product?.categories?.[0]?.id,
+                    price: RoundPrice({
+                      num: product?.offer_price,
+                      rate: currency?.exchange_rate,
+                      returnNumber: true,
+                      language: "en",
+                    }),
+                  }}
                 />
               </Suspense>
               <div className="flex-row product-properties w-100">

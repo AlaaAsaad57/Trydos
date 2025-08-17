@@ -741,6 +741,32 @@ function AddToCartComponent({
                 max_scale={1}
                 min_scale={0.6}
                 onSlideChange={(index) => {
+                  GAevent({
+                    action: GA_EVENT_NAMES.CHANGE_COLOR,
+                    params: {
+                      user_id_custom: auth.UserID(),
+                      item_id: ProductData.id,
+                      item_name: ProductData?.name,
+                      brand: ProductData?.brand?.name,
+                      brand_id: ProductData?.brand?.id,
+                      category:
+                        ProductData?.category?.name ||
+                        ProductData?.categories?.[0]?.name,
+                      category_id:
+                        ProductData?.category?.id ||
+                        ProductData?.categories?.[0]?.id,
+                      price: RoundPrice({
+                        num: ProductData?.offer_price,
+                        rate: currency?.exchange_rate,
+                        returnNumber: true,
+                        language: "en",
+                      }),
+                      selected_color:
+                        ProductData?.sync_color_images[index]?.color_option ||
+                        ProductData?.sync_color_images[index]?.color_name,
+                      selected_size: selectedSize?.option ?? selectedSize?.name,
+                    },
+                  });
                   setSelectedColor(ProductData?.sync_color_images[index]);
                 }}
                 slidesArray={ProductData?.sync_color_images?.map((s, i) => i)}
@@ -1008,6 +1034,39 @@ function AddToCartComponent({
                       max_drag={100}
                       slide_width={70}
                       onSlideChange={(index) => {
+                        GAevent({
+                          action: GA_EVENT_NAMES.CHANGE_SIZE,
+                          params: {
+                            user_id_custom: auth.UserID(),
+                            item_id: ProductData.id,
+                            item_name: ProductData?.name,
+                            brand: ProductData?.brand?.name,
+                            brand_id: ProductData?.brand?.id,
+                            category:
+                              ProductData?.category?.name ||
+                              ProductData?.categories?.[0]?.name,
+                            category_id:
+                              ProductData?.category?.id ||
+                              ProductData?.categories?.[0]?.id,
+                            price: RoundPrice({
+                              num: ProductData?.offer_price,
+                              rate: currency?.exchange_rate,
+                              returnNumber: true,
+                              language: "en",
+                            }),
+                            selected_color:
+                              selectedColor?.color_option ??
+                              selectedColor?.color_name,
+                            selected_size:
+                              ProductData?.choice_options?.[0]?.options?.[index]
+                                ?.option ??
+                              ProductData?.choice_options?.[0]?.options?.[index]
+                                ?.name ??
+                              ProductData?.choice_options?.[0]?.options?.[
+                                index
+                              ],
+                          },
+                        });
                         setSelectedSize(
                           ProductData?.choice_options?.[0]?.options?.[index]
                         );
@@ -1342,6 +1401,7 @@ function AddToCartComponent({
 
             {shouldShowNotifyButton() ? (
               <NotifyCartButton
+                product={ProductData}
                 isNotified={getSelectedVariantQty()?.variant_notify_for_user}
                 setNotify={() => {
                   setProductData({
@@ -2148,16 +2208,38 @@ const AddToCartButton = ({
     </div>
   );
 };
-const NotifyCartButton = ({ isNotified, setNotify, selected_variant, id }) => {
+const NotifyCartButton = ({
+  isNotified,
+  setNotify,
+  selected_variant,
+  id,
+  product,
+}) => {
+  const { currency } = useAppStore();
   const NotifyAction = async () => {
     if (typeof Notification !== "undefined") {
       const permission = await Notification.requestPermission();
     }
     if (!isNotified) {
-      // Sendevent({
-      //   event: GA_EVENT_NAMES.CLICK,
-      //   value: GA_CLICK_EVENT_VALUES.NOTIFY_ME_BUTTON,
-      // });
+      GAevent({
+        action: GA_EVENT_NAMES.ENABLE_PRODUCT_NOTIFICATION,
+        params: {
+          user_id_custom: auth.UserID(),
+          item_id: product.id,
+          type_notification: "product_availablity",
+          item_name: product?.name,
+          brand: product?.brand?.name,
+          brand_id: product?.brand?.id,
+          category: product?.category?.name || product?.categories?.[0]?.name,
+          category_id: product?.category?.id || product?.categories?.[0]?.id,
+          price: RoundPrice({
+            num: product?.offer_price,
+            rate: currency?.exchange_rate,
+            returnNumber: true,
+            language: "en",
+          }),
+        },
+      });
       setNotify();
       await auth.NotifyForProducts({
         id: id,

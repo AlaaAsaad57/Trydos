@@ -293,17 +293,20 @@ function ProductFooterSection({
       GAevent({
         action: GA_EVENT_NAMES.SHARE_CONTENT,
         params: {
-          user_id_custom: auth.UserID(),
           content_id: product?.id,
           item_id: product?.id,
           item_name: product?.name,
-          category: product?.category?.name,
+          user_id_custom: auth.UserID(),
+          brand_id: product?.brand?.id,
+          category: product?.category?.name || product?.categories?.[0]?.name,
+          category_id: product?.category?.id || product?.categories?.[0]?.id,
           brand: product?.brand?.name,
           price: RoundPrice({
             num: product?.price,
             rate: currency?.exchange_rate,
           }),
           share_context: "internal",
+          shared_from_page: window.location.pathname,
           screen_name: GA_GLOBAL_SCREEN.PRODUCT_SCREEN,
           screen_path: window.location.pathname,
           method_share: "chat_in_share",

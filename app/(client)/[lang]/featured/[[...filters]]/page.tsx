@@ -1,5 +1,6 @@
 export const runtime = "nodejs";
 export const preferredRegion = "bom1";
+export const dynamic = "force-dynamic";
 import FilterList from "components/Server/FilterList";
 import ProductListServer from "components/Server/ProductList";
 import BackIcon from "public/svg/listing/backIcon.svg";

@@ -16,7 +16,8 @@ function ProductDetailsSlider({
   currency,
   images,
 }: ProductDetailsSliderPropsType) {
-  const { editInfo, storeProduct, setCurrency } = useAppStore();
+  const { editInfo, storeProduct, setCurrency, setIsNavigating } =
+    useAppStore();
   const productData = productObj;
   const [imageShow, showImage] = useState(-1);
   const [emblaRef1, emblaApi] = useEmblaCarousel({
@@ -30,6 +31,7 @@ function ProductDetailsSlider({
   const router = useRouter();
   const pathname = usePathname();
   useEffect(() => {
+    setIsNavigating(null);
     const newParams = new URLSearchParams(searchParams);
     if (!searchParams.get("color") && productData?.sync_color_images) {
       // newParams.set("color", productData?.sync_color_images[0].color_name);
@@ -59,7 +61,7 @@ function ProductDetailsSlider({
           action: GA_EVENT_NAMES.ZOOM_IMAGE,
           params: {
             image_index: index,
-            user_custom_id: auth.UserID(),
+            user_id_custom: auth.UserID(),
             item_id: productData.id,
             item_name: productData?.name,
             brand: productData?.brand?.name,
@@ -98,7 +100,7 @@ function ProductDetailsSlider({
           action: GA_EVENT_NAMES.ZOOM_IMAGE,
           params: {
             image_index: currentIndex,
-            user_custom_id: auth.UserID(),
+            user_id_custom: auth.UserID(),
             item_id: productData.id,
             item_name: productData?.name,
             brand: productData?.brand?.name,
@@ -130,6 +132,47 @@ function ProductDetailsSlider({
       };
     }
   }, [emblaApi, imageShow]);
+  useEffect(() => {
+    const handleTwentySecondAction = () => {
+      // Add your 20-second action here
+
+      // Example actions you might want to perform:
+      // - Send analytics data
+      // - Show a notification
+      // - Trigger some business logic
+      // - Update component state
+
+      // Example: Track user engagement after 20 seconds
+      GAevent({
+        action: GA_EVENT_NAMES.VIEW_ITEM_PRODUCT,
+        params: {
+          user_id_custom: auth.UserID(),
+          item_id: productData.id,
+          item_name: productData?.name,
+          engagement_time: 20,
+          brand: productData?.brand?.name,
+          brand_id: productData?.brand?.id,
+          category:
+            productData?.category?.name || productData?.categories?.[0]?.name,
+          category_id:
+            productData?.category?.id || productData?.categories?.[0]?.id,
+          price: RoundPrice({
+            num: productData?.offer_price,
+            rate: currency?.exchange_rate,
+            returnNumber: true,
+            language: "en",
+          }),
+        },
+      });
+    };
+
+    // Set up the 20-second timeout
+    const timeoutId = setTimeout(handleTwentySecondAction, 20000);
+    return () => {
+      clearTimeout(timeoutId);
+    };
+  }, []);
+
   return (
     <>
       {imageShow >= 0 && (
