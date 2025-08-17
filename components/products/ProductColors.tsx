@@ -137,9 +137,14 @@ function ProductColors({ colors, ProductColorsArray }: ProductColorsPropsType) {
         active={extended}
         setActiveColor={(e) => {
           const newParams = new URLSearchParams(searchParams);
-          newParams.set("color", e.color_option);
-          // @ts-expect-error 'shallow' does not exist in type 'NavigateOptions'
-          router.push(pathname + `?${newParams.toString()}`, { shallow: true });
+          const colorOption = e?.color_option || e?.color_name;
+          if (colorOption) {
+            newParams.set("color", colorOption);
+            router.push(pathname + `?${newParams.toString()}`, {
+              // @ts-expect-error 'shallow' does not exist in type 'NavigateOptions'
+              shallow: true,
+            });
+          }
           setActiveColor(e);
         }}
       />
@@ -192,12 +197,16 @@ function ProductColors({ colors, ProductColorsArray }: ProductColorsPropsType) {
           overlap_factor={0.4}
           onSlideChange={(index) => {
             const newParams = new URLSearchParams(searchParams);
-            newParams.set("color", colors[index].color_option);
-            router.push(pathname + `?${newParams.toString()}`, {
-              scroll: false,
-              // @ts-expect-error 'shallow' does not exist in type 'NavigateOptions'
-              shallow: true,
-            });
+            const colorOption =
+              colors[index]?.color_option || colors[index]?.color_name;
+            if (colorOption) {
+              newParams.set("color", colorOption);
+              router.push(pathname + `?${newParams.toString()}`, {
+                scroll: false,
+                // @ts-expect-error 'shallow' does not exist in type 'NavigateOptions'
+                shallow: true,
+              });
+            }
             setActiveColor(colors[index]);
           }}
           slide_width={40}

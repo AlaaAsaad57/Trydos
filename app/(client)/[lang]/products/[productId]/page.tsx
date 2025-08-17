@@ -552,15 +552,12 @@ async function Page({ params, searchParams }: ProductPagePropsType) {
 export default Page;
 const getImages = (productData, color): { images: any[] } => {
   if (color && color.length > 0 && productData?.sync_color_images) {
-    if (
-      productData?.sync_color_images?.find(
-        (s) => s.color_option === color || s.color_name === color
-      )
-    )
-      return productData?.sync_color_images?.filter(
-        (s) => s.color_option === color || s.color_name === color
-      )[0];
-    else {
+    const matchingColor = productData?.sync_color_images?.find(
+      (s) => s.color_option === color || s.color_name === color
+    );
+    if (matchingColor) {
+      return matchingColor;
+    } else {
       return productData?.sync_color_images[0];
     }
   } else if (
