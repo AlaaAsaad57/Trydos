@@ -40,7 +40,7 @@ function Settings({ lang }: SettingsIndexPropsType) {
     setOrderOptions,
     selectedOrder,
   } = useAppStore();
-  const [shouldConfirmReturn, setShouldConfirmReturn] = useState(true);
+  const [shouldConfirmReturn, setShouldConfirmReturn] = useState(false);
   const setSelectedOrder = (order) => {
     setOrderDetails(order);
   };
