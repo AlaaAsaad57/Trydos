@@ -69,7 +69,7 @@ function StoriesPaginationWrapper({
       const response = await fetchData({
         url:
           process.env.NEXT_PUBLIC_NEST_STORIES_BACKEND_URL +
-          `/stories/users_stories?page=${next_page}`,
+          `/api/v1/stories/users_stories?page=${next_page}`,
         method: "GET",
         server: "nest-stories",
         reqTitle: REQUESTS_DATA.GET_USER_STORIES,

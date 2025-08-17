@@ -37,7 +37,7 @@ export async function fetchStories(
   };
   try {
     const response = await fetchServerData({
-      url: `${process.env.NEXT_PUBLIC_NEST_STORIES_BACKEND_URL}/stories/users_stories?page=${page}`,
+      url: `${process.env.NEXT_PUBLIC_NEST_STORIES_BACKEND_URL}/api/v1/stories/users_stories?page=${page}`,
       method: "GET",
       tags: ["stories", "home"],
       // revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE_STORIES),

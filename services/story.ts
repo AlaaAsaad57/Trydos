@@ -35,7 +35,7 @@ class StoryService {
       const response = await fetchData({
         url:
           process.env.NEXT_PUBLIC_NEST_STORIES_BACKEND_URL +
-          `/stories/users_stories?page=${page}`,
+          `/api/v1/stories/users_stories?page=${page}`,
         server: "nest-stories",
         reqTitle: REQUESTS_DATA.GET_USER_STORIES,
         method: "GET",
