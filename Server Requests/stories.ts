@@ -46,7 +46,7 @@ export async function fetchStories(
       headers: headers,
     });
     if (response.isError) {
-      console.error(`Stories Error: ${response.status}`);
+      console.error(`Stories Error: ${response.status},${response}`);
       reportError(new Error(`Stories Error: ${response.status}`), {
         source: "stories",
         page: "stories",
