@@ -33,6 +33,7 @@ function ReturnOrderItem({
   const [images, setImages] = useState<string[]>(item?.return?.img ?? []);
   const [loading, setLoading] = useState(true);
   const getReasons = async () => {
+    console.log(item);
     try {
       setLoading(true);
       let response = await order.getReturnReasons();

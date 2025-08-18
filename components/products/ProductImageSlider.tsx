@@ -1,5 +1,5 @@
 "use client";
-import useEmblaCarousel, { UseEmblaCarouselType } from "embla-carousel-react";
+import useEmblaCarousel from "embla-carousel-react";
 import React, { useEffect, useRef } from "react";
 
 import { GA_EVENT_NAMES, GA_GLOBAL_SCREEN } from "utils/GAEvents";

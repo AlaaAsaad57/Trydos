@@ -587,7 +587,7 @@ const OrderExpandedDetails = ({
         }
       });
     });
-    console.log(selectedOrder);
+
     if (arr.length > 0) return arr;
     return false;
   };
