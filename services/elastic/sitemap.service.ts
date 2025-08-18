@@ -1075,7 +1075,7 @@ export async function generateLocaleSpecificSitemapUrls(
   language: string
 ): Promise<SitemapUrl[]> {
   console.log(`language : ${language} and the country : ${country} from the url`);
-  const baseUrl = "http://localhost:3000";
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://trydos.vercel.app";
   const sitemapUrls: SitemapUrl[] = [];
   
   // 1. Home page for this locale
@@ -1185,7 +1185,7 @@ export async function generateLocaleSpecificSitemapXML(
 }
 
 export async function generateLocaleSitemapIndexXML(): Promise<string> {
-  const baseUrl = "http://localhost:3000";
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://trydos.vercel.app" ;
   const now = new Date().toISOString();
   const combinations = await getAllCountryLanguageCombinations();
   
