@@ -168,7 +168,7 @@ export async function getHomeSitemapLocales(): Promise<LocaleData> {
  * Generate home page sitemap URLs for all country-language combinations
  */
 export async function generateHomeSitemapUrls(): Promise<SitemapUrl[]> {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://trydos.vercel.app";
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL;
   const locales = await getHomeSitemapLocales();
   const currentDate = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
 
@@ -247,7 +247,7 @@ export async function getProductsForSitemap(batchSize: number = 1000): Promise<P
  * Generate product sitemap URLs
  */
 export async function generateProductSitemapUrls(): Promise<SitemapUrl[]> {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://trydos.vercel.app";
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL;
   const products = await getProductsForSitemap();
   const locales = await getHomeSitemapLocales();
   const sitemapUrls: SitemapUrl[] = [];
@@ -292,7 +292,7 @@ export async function generateProductSitemapUrls(): Promise<SitemapUrl[]> {
  * Get static pages configuration (following PHP pattern)
  */
 function getStaticPages(): StaticPage[] {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://trydos.vercel.app";
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL;
   
   // Define static pages configuration (similar to PHP config)
   const staticPagesConfig = [
@@ -349,7 +349,7 @@ function getStaticPages(): StaticPage[] {
  * Generate static pages sitemap URLs for all country-language combinations
  */
 export async function generateStaticPagesSitemapUrls(): Promise<SitemapUrl[]> {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://trydos.vercel.app";
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL;
   const locales = await getHomeSitemapLocales();
   const staticPages = getStaticPages();
   const sitemapUrls: SitemapUrl[] = [];
@@ -570,7 +570,7 @@ async function getMostCommonCountryAndLanguageForTerm(term: string): Promise<{ c
  * Generate search terms sitemap URLs
  */
 export async function generateSearchTermsSitemapUrls(): Promise<SitemapUrl[]> {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://trydos.vercel.app";
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL;
   const searchTerms = await getTopSearchTerms(100);
   const sitemapUrls: SitemapUrl[] = [];
   const currentDate = new Date().toISOString().split('T')[0];
@@ -995,7 +995,7 @@ export async function testSearchTermsSitemapGeneration() {
 }
 
 export async function generateSitemapIndexXML(): Promise<string> {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://trydos.vercel.app";
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL;
   const now = new Date().toISOString();
 
   const sitemaps = [
@@ -1075,7 +1075,7 @@ export async function generateLocaleSpecificSitemapUrls(
   language: string
 ): Promise<SitemapUrl[]> {
   console.log(`language : ${language} and the country : ${country} from the url`);
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://trydos.vercel.app";
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL;
   const sitemapUrls: SitemapUrl[] = [];
   
   // 1. Home page for this locale
@@ -1185,7 +1185,7 @@ export async function generateLocaleSpecificSitemapXML(
 }
 
 export async function generateLocaleSitemapIndexXML(): Promise<string> {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://trydos.vercel.app" ;
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL;
   const now = new Date().toISOString();
   const combinations = await getAllCountryLanguageCombinations();
   
