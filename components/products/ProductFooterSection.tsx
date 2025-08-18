@@ -1,5 +1,5 @@
 "use client";
-import React, { Suspense, useEffect, useReducer, useState } from "react";
+import React, { useEffect, useReducer, useState } from "react";
 import ExtendedAreaInfo from "./ExtendedAreaInfo";
 import ProductOptions from "./ProductOptions";
 import { RoundPrice, translateFunction } from "utils/functions";
@@ -84,6 +84,8 @@ function ProductFooterSection({
     setShareLoading,
     setSharesCount,
     loginOpen,
+    editInfo,
+    storeProduct,
   } = useAppStore();
   let { lang } = useParams();
 
@@ -321,7 +323,10 @@ function ProductFooterSection({
       );
     }
   };
-
+  useEffect(() => {
+    editInfo({ ...product });
+    storeProduct({ ...product, colorFrom: searchParams.get("color") });
+  }, []);
   return (
     <>
       {!loginOpen && (

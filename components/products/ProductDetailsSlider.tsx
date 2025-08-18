@@ -12,13 +12,11 @@ import { GAevent } from "utils/gtag";
 import { GA_EVENT_NAMES } from "utils/GAEvents";
 import auth from "services/auth";
 function ProductDetailsSlider({
-  product: productObj,
   currency,
   images,
+  productGA,
 }: ProductDetailsSliderPropsType) {
-  const { editInfo, storeProduct, setCurrency, setIsNavigating } =
-    useAppStore();
-  const productData = productObj;
+  const { setCurrency, setIsNavigating } = useAppStore();
   const [imageShow, showImage] = useState(-1);
   const [emblaRef1, emblaApi] = useEmblaCarousel({
     startIndex: 0,
@@ -27,32 +25,9 @@ function ProductDetailsSlider({
     align: "start",
   });
 
-  const searchParams = useSearchParams();
-  const router = useRouter();
-  const pathname = usePathname();
   useEffect(() => {
     setIsNavigating(null);
-    const newParams = new URLSearchParams(searchParams);
-    if (!searchParams.get("color") && productData?.sync_color_images) {
-      // newParams.set("color", productData?.sync_color_images[0].color_name);
-    }
-    if (
-      !searchParams.get("size") &&
-      productData?.choice_options &&
-      productData?.choice_options?.filter((s) => s.title == "Size").length
-    ) {
-      // newParams.set(
-      //   "size",
-      //   productData?.choice_options?.filter((s) => s.title == "Size")[0]
-      //     ?.options[0]?.name
-      // );
-    }
-    if (newParams.size) {
-      // @ts-expect-error 'shallow' does not exist in type 'NavigateOptions'
-      router.push(pathname + `?${newParams.toString()}`, { shallow: true });
-    }
-    editInfo({ ...productData });
-    storeProduct({ ...productData, colorFrom: searchParams.get("color") });
+
     setCurrency(currency);
     let elements = document.querySelectorAll(".product-slider-images");
     elements.forEach((elem, index) => {
@@ -62,20 +37,7 @@ function ProductDetailsSlider({
           params: {
             image_index: index,
             user_id_custom: auth.UserID(),
-            item_id: productData.id,
-            item_name: productData?.name,
-            brand: productData?.brand?.name,
-            brand_id: productData?.brand?.id,
-            category:
-              productData?.category?.name || productData?.categories?.[0]?.name,
-            category_id:
-              productData?.category?.id || productData?.categories?.[0]?.id,
-            price: RoundPrice({
-              num: productData?.offer_price,
-              rate: currency?.exchange_rate,
-              returnNumber: true,
-              language: "en",
-            }),
+            ...productGA,
           },
         });
         DisableScroll();
@@ -101,20 +63,7 @@ function ProductDetailsSlider({
           params: {
             image_index: currentIndex,
             user_id_custom: auth.UserID(),
-            item_id: productData.id,
-            item_name: productData?.name,
-            brand: productData?.brand?.name,
-            brand_id: productData?.brand?.id,
-            category:
-              productData?.category?.name || productData?.categories?.[0]?.name,
-            category_id:
-              productData?.category?.id || productData?.categories?.[0]?.id,
-            price: RoundPrice({
-              num: productData?.offer_price,
-              rate: currency?.exchange_rate,
-              returnNumber: true,
-              language: "en",
-            }),
+            ...productGA,
           },
         });
       };
@@ -147,21 +96,8 @@ function ProductDetailsSlider({
         action: GA_EVENT_NAMES.VIEW_ITEM_PRODUCT,
         params: {
           user_id_custom: auth.UserID(),
-          item_id: productData.id,
-          item_name: productData?.name,
           engagement_time: 20,
-          brand: productData?.brand?.name,
-          brand_id: productData?.brand?.id,
-          category:
-            productData?.category?.name || productData?.categories?.[0]?.name,
-          category_id:
-            productData?.category?.id || productData?.categories?.[0]?.id,
-          price: RoundPrice({
-            num: productData?.offer_price,
-            rate: currency?.exchange_rate,
-            returnNumber: true,
-            language: "en",
-          }),
+          ...productGA,
         },
       });
     };
@@ -209,7 +145,7 @@ function ProductDetailsSlider({
                     }}
                     priority={i === 0}
                     loading="eager"
-                    alt={productData.name}
+                    alt={productGA.item_name}
                     src={getConfiguredImage({
                       src: GetImageUrl(img),
                       width: 500,

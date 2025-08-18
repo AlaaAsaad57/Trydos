@@ -8,11 +8,7 @@ import StoryServiceClass from "services/story";
 import StoryHolder from "./StoryHolder";
 import { useAppStore } from "store";
 import Spinner from "components/global/Spinner";
-import {
-  GA_EVENT_NAMES,
-  GA_GLOBAL_PLATFORM,
-  GA_GLOBAL_SCREEN,
-} from "utils/GAEvents";
+import { GA_EVENT_NAMES, GA_GLOBAL_SCREEN } from "utils/GAEvents";
 import { GAevent } from "utils/gtag";
 import { StoriesContainerPropsType } from "models/componentType/StoriesContainerPropType";
 

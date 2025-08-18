@@ -1,5 +1,6 @@
 import { useAppStore } from "store";
 import { COOKIE_NAMES, getCookie, UserData } from "./cookies/cookie-manager";
+import { DetectScreen } from "./tinyUtils";
 export const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID; // replace with your ID
 let countries = [
   { name: "Syria", iso: "sy" },
@@ -44,6 +45,8 @@ export const GAevent = ({
     // @ts-ignore
     window.gtag?.("event", action, {
       debug_mode: true,
+      screen_name: DetectScreen(),
+      screen_path: window.location.pathname,
       ...params,
       country_name: country?.name,
       device_language: language?.name,
@@ -55,7 +58,11 @@ export const GAevent = ({
       platform_source: "WEB",
       ...user_param,
     });
-
+    params = {
+      screen_name: DetectScreen(),
+      screen_path: window.location.pathname,
+      ...params,
+    };
     console.log(`window?.gtag?.("event", ${action}, {
         debug_mode: true,
         ${Object.entries(params || {})

@@ -1,12 +1,8 @@
 "use client";
 import useEmblaCarousel, { UseEmblaCarouselType } from "embla-carousel-react";
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 
-import {
-  GA_EVENT_NAMES,
-  GA_GLOBAL_PLATFORM,
-  GA_GLOBAL_SCREEN,
-} from "utils/GAEvents";
+import { GA_EVENT_NAMES, GA_GLOBAL_SCREEN } from "utils/GAEvents";
 import { GAevent } from "utils/gtag";
 import { RoundPrice } from "utils/functions";
 import auth from "services/auth";
@@ -19,7 +15,21 @@ function ProductImagesSlider({ children }) {
     containScroll: "trimSnaps",
     align: "start",
   });
+  // Track which slide indexes have already fired a GA event to avoid duplicates
+  const sentSlidesRef = useRef<Set<number>>(new Set());
+
+  // Reset sent slides when the product changes
   useEffect(() => {
+    sentSlidesRef.current.clear();
+  }, [SelectedProduct?.id]);
+
+  // Guarded screen view event to avoid duplicate fires (e.g., React Strict Mode in dev)
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const pathKey = `__ga_screen_view_sent_${window.location.pathname}`;
+    if ((window as any)[pathKey]) return;
+    (window as any)[pathKey] = true;
+
     GAevent({
       action: GA_EVENT_NAMES.SCREEN_VIEW,
       params: {
@@ -28,15 +38,17 @@ function ProductImagesSlider({ children }) {
       },
     });
   }, []);
+
   useEffect(() => {
     if (emblaApi && SelectedProduct) {
-      // Function to send GA events for visible slides
+      // Function to send GA events for visible slides (deduped per slide)
       const sendGAEventsForVisibleSlides = () => {
-        const currentIndex = emblaApi.selectedScrollSnap();
         const slidesInView = emblaApi.slidesInView();
 
-        // Call GA event for each slide that is in view
         slidesInView.forEach((slideIndex) => {
+          if (sentSlidesRef.current.has(slideIndex)) return;
+          sentSlidesRef.current.add(slideIndex);
+
           GAevent({
             action: GA_EVENT_NAMES.VIEW_IMAGE,
             params: {
@@ -68,27 +80,15 @@ function ProductImagesSlider({ children }) {
         sendGAEventsForVisibleSlides();
       }, 100);
 
-      // Listen for slide changes
-      const handleSlidesChanged = (e, evt) => {
+      // Listen only for selection changes to avoid multiple initial triggers
+      const handleSelect = () => {
         sendGAEventsForVisibleSlides();
       };
 
-      const handleSelect = (e, evt) => {
-        sendGAEventsForVisibleSlides();
-      };
-
-      const handleSettle = (e, evt) => {
-        sendGAEventsForVisibleSlides();
-      };
-
-      emblaApi.on("slidesChanged", handleSlidesChanged);
       emblaApi.on("select", handleSelect);
-      emblaApi.on("settle", handleSettle);
 
       return () => {
-        emblaApi.off("slidesChanged", handleSlidesChanged);
         emblaApi.off("select", handleSelect);
-        emblaApi.off("settle", handleSettle);
       };
     }
   }, [emblaApi, SelectedProduct, currency]);

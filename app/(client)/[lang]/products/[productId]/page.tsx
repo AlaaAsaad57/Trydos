@@ -1,5 +1,6 @@
 export const runtime = "nodejs";
 export const preferredRegion = "bom1";
+export const dynamic = "force-dynamic";
 import "styles/productDetails.css";
 import "styles/product-body.css";
 import EyeIcon from "public/svg/product/EyeIcon.svg";
@@ -87,7 +88,9 @@ async function getCurrency(country, language) {
       StoreCurrency(country, currency);
       return currency;
     }
-  } catch (error) {}
+  } catch (error) {
+    throw error;
+  }
 }
 async function GetProductDataFunc(params) {
   let slug = params.productId;
@@ -115,7 +118,9 @@ async function GetProductDataFunc(params) {
         redis: false,
       };
     }
-  } catch (error) {}
+  } catch (error) {
+    throw error;
+  }
 }
 async function Page({ params, searchParams }: ProductPagePropsType) {
   try {
@@ -155,6 +160,9 @@ async function Page({ params, searchParams }: ProductPagePropsType) {
     };
     const shouldShowNotifyButton = () => {
       let bool = false;
+      if (product.collected_after_ordering === 1) return false;
+      if (product?.is_active === false || product.is_country_restricted)
+        return true;
       if (product?.variation?.length > 0) {
         bool =
           product?.variation?.filter((s) => s.qty === 0).length ===
@@ -162,11 +170,6 @@ async function Page({ params, searchParams }: ProductPagePropsType) {
       } else {
         bool = product.available_quantity === 0;
       }
-
-      //restricted,status,collect_after_ordering,quantity,allVarIsEmpty
-      if (product?.is_active === false || product.is_country_restricted)
-        return true;
-      if (product.collected_after_ordering === 1) return false;
       return bool;
     };
 
@@ -227,8 +230,23 @@ async function Page({ params, searchParams }: ProductPagePropsType) {
           <Suspense key={`${product?.slug}-${color}`} fallback={<></>}>
             <ProductDetailsSlider
               images={getImages(product, color)?.images}
-              product={product}
               currency={currency}
+              productGA={{
+                item_id: product.id,
+                item_name: product?.name,
+                brand: product?.brand?.name,
+                brand_id: product?.brand?.id,
+                category:
+                  product?.category?.name || product?.categories?.[0]?.name,
+                category_id:
+                  product?.category?.id || product?.categories?.[0]?.id,
+                price: RoundPrice({
+                  num: product?.offer_price,
+                  rate: currency?.exchange_rate,
+                  returnNumber: true,
+                  language: "en",
+                }),
+              }}
             />
           </Suspense>
           <div className="product-details-body flex-row relative">
@@ -559,7 +577,7 @@ async function Page({ params, searchParams }: ProductPagePropsType) {
       </>
     );
   } catch (error) {
-    return <>{error}</>;
+    throw error;
   }
 }
 

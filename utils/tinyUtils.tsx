@@ -739,6 +739,9 @@ export const getFilterUrl = (
 export const DetectScreen = () => {
   let pathname = window.location.pathname;
   let searchParams = new URLSearchParams(window.location.search);
+  if (pathname.includes("/setting")) {
+    return GA_GLOBAL_SCREEN.SETTINGS_SCREEN;
+  }
   if (searchParams.get("cart") === "true") {
     return GA_GLOBAL_SCREEN.CART_SCREEN;
   }

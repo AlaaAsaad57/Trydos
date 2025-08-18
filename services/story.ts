@@ -233,6 +233,8 @@ class StoryService {
               ? GetImageUrl(story.photo_path)
               : profilePicture.src,
           },
+          product_id: storyItem.product_id,
+          product_slug: storyItem.product_slug,
           duration: storyItem.duration,
           preloadResource: true,
           type: "video",
@@ -260,6 +262,8 @@ class StoryService {
               ? GetImageUrl(story.photo_path)
               : profilePicture.src,
           },
+          product_id: storyItem.product_id,
+          product_slug: storyItem.product_slug,
           preloadResource: true,
           type: "image",
         });

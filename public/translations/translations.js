@@ -3,6 +3,7 @@ const translations = {
     "Please enable notification permissions to use camera features":
       "يرجى تفعيل أذونات الإشعارات لاستخدام ميزات الكاميرا",
     "Cart Loading Error": "خطأ في تحميل السلة",
+    "View Product": "عرض المنتج",
     "Failed To Retrive Results Please Try Again":
       "فشل في جلب النتائج، يرجى المحاولة مرة أخرى",
     "We encountered an error while loading your cart. Don't worry, we'll fix this issue for you.":
@@ -847,15 +848,18 @@ const translations = {
       "لقد قمت بالفعل بتفعيل الإشعارات لهذا المنتج",
     "Session Expired..please Verify Your Phone Number":
       "انتهت صلاحية الجلسة.. يرجى التحقق من رقم هاتفك",
-      "Failed to update like status. Please try again.": "فشل تحديث حالة الإعجاب. يرجى المحاولة مرة أخرى",
+    "Failed to update like status. Please try again.":
+      "فشل تحديث حالة الإعجاب. يرجى المحاولة مرة أخرى",
   },
   tr: {
-    "Failed to update like status. Please try again.": "Beğeni durumu güncellenemedi. Lütfen tekrar deneyin",
+    "Failed to update like status. Please try again.":
+      "Beğeni durumu güncellenemedi. Lütfen tekrar deneyin",
     "Cart Loading Error": "Sepet Yükleme Hatası",
     "Failed To Retrive Results Please Try Again":
       "Sonuçlar alınamadı, lütfen tekrar deneyin",
     "We encountered an error while loading your cart. Don't worry, we'll fix this issue for you.":
       "Sepetinizi yüklerken bir hata oluştu. Endişelenmeyin, bu sorunu sizin için çözeceğiz.",
+    "View Product": "Ürünü Görüntüle",
     "Try Again": "Tekrar Dene",
     "More From": "Daha Fazlası",
     "Tap “Agree & Continue” To Accept trydos":
@@ -1691,6 +1695,7 @@ const translations = {
     "Take Photo": "وێنە بگرە",
     "Failed To Retrive Results Please Try Again":
       "نەیتوانرا ئەنجامەکان به‌دەستهێنرێت، تکایە دووبارە هەوڵ بدە",
+    "View Product": "بینینی بەرهەم",
     "Cancel Return Request": "داخوازی گەڕاندن بسڕەوە",
     "Failed To Load Products After 3 Attempts":
       "بەرهەمەکان لەسەر نەبوون، ٣ سەکەڵەیەک بەردەست بە هەوڵبوون",
@@ -2580,7 +2585,8 @@ const translations = {
       "تکایە سەرجەم ژمارەکە پەسەند بکەوە پێشتر.",
     "Please enable notification permissions to use camera features":
       "تکایە دەسەڵاتی ئاگادارکردنەوە چالاک بکە بۆ بەکارهێنانی تایبەتمەندییەکانی کامێرا",
-      "Failed to update like status. Please try again.": "سەرکەوتوو نەبوو لە نوێکردنەوەی دۆخی حەزلەکردن. تکایە دووبارە هەوڵ بدە",
+    "Failed to update like status. Please try again.":
+      "سەرکەوتوو نەبوو لە نوێکردنەوەی دۆخی حەزلەکردن. تکایە دووبارە هەوڵ بدە",
   },
 };
 
