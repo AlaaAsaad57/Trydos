@@ -3,7 +3,9 @@ import {
   testSitemapGeneration, 
   testProductSitemapGeneration,
   testStaticPagesSitemapGeneration,
-  testSearchTermsSitemapGeneration
+  testSearchTermsSitemapGeneration,
+  testLocaleSitemapGeneration,
+  testLocaleSitemapIndexGeneration
 } from "services/elastic/sitemap.service";
 
 export async function GET(request: NextRequest) {
@@ -35,6 +37,21 @@ export async function GET(request: NextRequest) {
       console.log("🔍 Testing search terms sitemap...");
       const searchResult = await testSearchTermsSitemapGeneration();
       result.search = searchResult;
+    }
+
+    if (type === 'locale-index' || type === 'all') {
+      console.log("🌍 Testing locale sitemap index...");
+      const localeIndexResult = await testLocaleSitemapIndexGeneration();
+      result.localeIndex = localeIndexResult;
+    }
+
+    if (type === 'locale' || type === 'all') {
+      console.log("🏳️ Testing locale-specific sitemap...");
+      const searchParams = request.nextUrl.searchParams;
+      const country = searchParams.get('country') || 'tr';
+      const language = searchParams.get('language') || 'en';
+      const localeResult = await testLocaleSitemapGeneration(country, language);
+      result.locale = localeResult;
     }
 
     const success = Object.values(result).every((r: any) => r.success !== false);

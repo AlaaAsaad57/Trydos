@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { generateFullSitemapXML } from "services/elastic/sitemap.service";
+import { generateLocaleSitemapIndexXML } from "services/elastic/sitemap.service";
 
 export async function GET(request: NextRequest) {
   try {
-    const xml = await generateFullSitemapXML();
+    const xml = await generateLocaleSitemapIndexXML();
 
     return new NextResponse(xml, {
       status: 200,
@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error("Error generating full sitemap:", error);
+    console.error("Error generating locale sitemap index:", error);
 
     return new NextResponse("Error generating sitemap", {
       status: 500,

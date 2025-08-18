@@ -1052,3 +1052,214 @@ export async function generateFullSitemapXML(): Promise<string> {
 	xml += '</urlset>';
 	return xml;
 }
+
+// New functions for country-language specific sitemaps
+export async function getAllCountryLanguageCombinations(): Promise<Array<{ country: string; language: string }>> {
+  const countries = ['tr', 'iq', 'lb', 'sy'];
+  const languages = ['en', 'ar', 'tr', 'ku'];
+
+  const combinations: Array<{ country: string; language: string }> = [];
+
+  for (const country of countries) {
+    for (const language of languages) {
+      combinations.push({ country, language });
+    }
+  }
+
+  return combinations;
+}
+
+
+export async function generateLocaleSpecificSitemapUrls(
+  country: string, 
+  language: string
+): Promise<SitemapUrl[]> {
+  console.log(`language : ${language} and the country : ${country} from the url`);
+  const baseUrl = "http://localhost:3000";
+  const sitemapUrls: SitemapUrl[] = [];
+  
+  // 1. Home page for this locale
+  const homeUrl = `${baseUrl}/${country}-${language}`;
+  sitemapUrls.push({
+    loc: homeUrl,
+    lastmod: new Date().toISOString().split('T')[0],
+    changefreq: "daily",
+    priority: 1.0,
+  });
+  console.log("1. Home page for this locale :" , sitemapUrls)
+  
+  // 2. Static pages for this locale
+  const staticPages = getStaticPages();
+  for (const page of staticPages) {
+    // Extract path from full URL
+    const urlPath = new URL(page.url).pathname;
+    const staticUrl = `${baseUrl}/${country}-${language}${urlPath}`;
+    sitemapUrls.push({
+      loc: staticUrl,
+      lastmod: page.last_modified,
+      changefreq: page.frequency,
+      priority: page.priority,
+    });
+  }
+  console.log("2. Static pages for this locale:" , sitemapUrls)
+  
+      // 3. Products for this locale
+    try {
+      const products = await getProductsForSitemap();
+      
+      // Filter products by language (since country_iso is 'global' for all products)
+      const localeProducts = products.filter(product => 
+        product.language_code === language
+      );
+      
+      console.log("3. Products for this global :" , products.length);
+      console.log("3. Products for this locale :" , localeProducts.length);
+
+      for (const product of localeProducts) {
+        if (product.slug && product.slug.trim() !== "") {
+          const productUrl = `${baseUrl}/${country}-${language}/products/${product.slug}`;
+          const lastmod = product.updated_at 
+            ? new Date(product.updated_at).toISOString().split('T')[0]
+            : new Date().toISOString().split('T')[0];
+          
+          sitemapUrls.push({
+            loc: productUrl,
+            lastmod: lastmod,
+            changefreq: "weekly",
+            priority: 0.8,
+          });
+        }
+      }
+    } catch (error) {
+      console.error(`Error fetching products for ${country}-${language}:`, error);
+    }
+
+  
+      // 4. Search terms for this locale
+    try {
+      const searchTerms = await getTopSearchTerms(100);
+      
+      // Since all search terms have fallback country/language, include all terms for this locale
+      // This ensures each locale gets relevant search terms
+      console.log("4. Search terms for this global :" , searchTerms.length)
+      
+      for (const term of searchTerms) {
+        const encodedTerm = encodeURIComponent(term.term);
+        const searchUrl = `${baseUrl}/${country}-${language}/filters/search/${encodedTerm}`;
+        
+        sitemapUrls.push({
+          loc: searchUrl,
+          lastmod: new Date().toISOString().split('T')[0],
+          changefreq: "weekly",
+          priority: 0.6,
+        });
+      }
+    } catch (error) {
+      console.error(`Error fetching search terms for ${country}-${language}:`, error);
+    }
+
+  
+  return sitemapUrls;
+}
+
+export async function generateLocaleSpecificSitemapXML(
+  country: string, 
+  language: string
+): Promise<string> {
+  const urls = await generateLocaleSpecificSitemapUrls(country, language);
+  
+  let xml = '<?xml version="1.0" encoding="UTF-8"?>\n';
+  xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n';
+  
+  for (const url of urls) {
+    xml += '  <url>\n';
+    xml += `    <loc>${url.loc}</loc>\n`;
+    xml += `    <lastmod>${url.lastmod}</lastmod>\n`;
+    xml += `    <changefreq>${url.changefreq}</changefreq>\n`;
+    xml += `    <priority>${url.priority}</priority>\n`;
+    xml += '  </url>\n';
+  }
+  
+  xml += '</urlset>';
+  return xml;
+}
+
+export async function generateLocaleSitemapIndexXML(): Promise<string> {
+  const baseUrl = "http://localhost:3000";
+  const now = new Date().toISOString();
+  const combinations = await getAllCountryLanguageCombinations();
+  
+  let xml = '<?xml version="1.0" encoding="UTF-8"?>\n';
+  xml += '<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n';
+  
+  for (const { country, language } of combinations) {
+    const sitemapUrl = `${baseUrl}/${country}-${language}/sitemap.xml`;
+    xml += '  <sitemap>\n';
+    xml += `    <loc>${sitemapUrl}</loc>\n`;
+    xml += `    <lastmod>${now}</lastmod>\n`;
+    xml += '  </sitemap>\n';
+  }
+  
+  xml += '</sitemapindex>';
+  return xml;
+}
+
+export async function testLocaleSitemapGeneration(country: string, language: string) {
+  try {
+    console.log(`[testLocaleSitemapGeneration] Testing sitemap for ${country}-${language}`);
+    
+    const urls = await generateLocaleSpecificSitemapUrls(country, language);
+    const xml = await generateLocaleSpecificSitemapXML(country, language);
+    
+    console.log(`[testLocaleSitemapGeneration] Generated ${urls.length} URLs for ${country}-${language}`);
+    console.log(`[testLocaleSitemapGeneration] Sample URLs:`, urls.slice(0, 3));
+    console.log(`[testLocaleSitemapGeneration] XML length: ${xml.length}`);
+    
+    return {
+      success: true,
+      country,
+      language,
+      urlCount: urls.length,
+      sampleUrls: urls.slice(0, 5),
+      xmlLength: xml.length,
+      timestamp: new Date().toISOString()
+    };
+  } catch (error) {
+    console.error(`[testLocaleSitemapGeneration] Error for ${country}-${language}:`, error);
+    return {
+      success: false,
+      country,
+      language,
+      error: error instanceof Error ? error.message : 'Unknown error',
+      timestamp: new Date().toISOString()
+    };
+  }
+}
+
+export async function testLocaleSitemapIndexGeneration() {
+  try {
+    console.log('[testLocaleSitemapIndexGeneration] Testing locale sitemap index generation');
+    
+    const combinations = await getAllCountryLanguageCombinations();
+    const xml = await generateLocaleSitemapIndexXML();
+    
+    console.log(`[testLocaleSitemapIndexGeneration] Generated ${combinations.length} locale combinations`);
+    console.log(`[testLocaleSitemapIndexGeneration] Sample combinations:`, combinations.slice(0, 5));
+    console.log(`[testLocaleSitemapIndexGeneration] XML length: ${xml.length}`);
+    
+    return {
+      success: true,
+      combinationCount: combinations.length,
+      sampleCombinations: combinations.slice(0, 5),
+      xmlLength: xml.length,
+      timestamp: new Date().toISOString()
+    };
+  } catch (error) {
+    console.error('[testLocaleSitemapIndexGeneration] Error:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error',
+      timestamp: new Date().toISOString()
+    };
+  }
+}
