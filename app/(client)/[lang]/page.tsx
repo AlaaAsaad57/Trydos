@@ -32,6 +32,9 @@ export async function generateMetadata({ params }) {
       title: "TryDos - Premium Shopping Experience",
       description:
         "Discover premium products on TryDos - Your ultimate shopping destination with featured products, flash deals, and boutique collections.",
+      verification: {
+        google: process.env.GOOGLE_VERIFICATION,
+      },
     };
   }
 }
