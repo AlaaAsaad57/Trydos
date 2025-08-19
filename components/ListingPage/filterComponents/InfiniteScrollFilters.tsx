@@ -6,7 +6,6 @@ import { InfiniteScrollFiltersPropsType } from "models/componentType/InfiniteScr
 import { useParams } from "node_modules/next/navigation";
 
 import React, { useEffect, useState } from "react";
-import { fetchFilteredProducts } from "Server Requests";
 import { getProductsAndFiltersFromElastic } from "services/elastic/elasticSearch";
 
 import { useAppStore } from "store";

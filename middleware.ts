@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { fetchCountries, fetchLanguages } from "Server Requests";
+import { fetchCountries } from "utils/tinyUtils";
 
 // Constants
 const SUPPORTED_LANGUAGES = ["en", "ar", "tr", "ku"];

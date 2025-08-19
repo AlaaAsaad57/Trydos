@@ -911,3 +911,91 @@ export function isSameColor(colorA, colorB) {
     normalize(a.color_option) === normalize(b.color_option)
   );
 }
+interface CountriesResponse {
+  countries: Country[];
+}
+interface Country {
+  [key: string]: any;
+}
+
+export async function fetchCountries(
+  country = "tr",
+  language = "en"
+): Promise<CountriesResponse> {
+  try {
+    return {
+      countries: [
+        {
+          id: 103,
+          phonecode: 964,
+          iso: "IQ",
+          name: "Iraq",
+          longitude: "43.6848",
+          latitude: "33.2209",
+        },
+        {
+          id: 119,
+          phonecode: 961,
+          iso: "LB",
+          name: "lebanon",
+          longitude: "35.4954",
+          latitude: "33.8886",
+        },
+        {
+          id: 208,
+          phonecode: 963,
+          iso: "SY",
+          name: "syria",
+          longitude: "36.2783",
+          latitude: "33.5104",
+        },
+        {
+          id: 219,
+          phonecode: 90,
+          iso: "TR",
+          name: "Turkey",
+          longitude: "35.6667",
+          latitude: "39.1667",
+        },
+      ],
+    };
+  } catch (error) {
+    console.error("Error fetching countries:", error);
+    return {
+      countries: [
+        {
+          id: 103,
+          phonecode: 964,
+          iso: "IQ",
+          name: "Iraq",
+          longitude: "43.6848",
+          latitude: "33.2209",
+        },
+        {
+          id: 119,
+          phonecode: 961,
+          iso: "LB",
+          name: "lebanon",
+          longitude: "35.4954",
+          latitude: "33.8886",
+        },
+        {
+          id: 208,
+          phonecode: 963,
+          iso: "SY",
+          name: "syria",
+          longitude: "36.2783",
+          latitude: "33.5104",
+        },
+        {
+          id: 219,
+          phonecode: 90,
+          iso: "TR",
+          name: "Turkey",
+          longitude: "35.6667",
+          latitude: "39.1667",
+        },
+      ],
+    };
+  }
+}

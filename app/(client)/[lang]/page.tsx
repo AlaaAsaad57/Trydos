@@ -124,7 +124,7 @@ export default HomePage;
 // Main Categories Bar
 async function MainCategoriesNavbar({ lang, mainCategory }) {
   const [country, language] = lang?.split("-");
-  // let mainCategories = await fetchMainCategories(language, country);
+
   let Reader = new ElasticsearchReader();
   let start = process.hrtime.bigint();
   let a = await Reader.getCategories({ country: country, size: 4000 });
