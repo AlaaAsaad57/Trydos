@@ -604,24 +604,7 @@ const OrderExpandedDetails = ({
     ) ?? { already_return: false };
     return { ...product, return: return_item };
   };
-  const confirmOrderReturn = async () => {
-    try {
-      setCancelling(true);
-      await Promise.all(
-        // @ts-ignore
-        isThereAReturnedProduct()?.map(async (s) => {
-          await Order.ConfirmReturnRequest({
-            return_request_id: s,
-          });
-        })
-      );
 
-      setCancelling(false);
-      getOrderDetails();
-    } catch (error) {
-      setCancelling(false);
-    }
-  };
   const { lang } = useParams();
   // @ts-ignore
   const language = lang.split("-")[1];
@@ -837,7 +820,6 @@ const ProductCard = ({
           className="absolute top-[22px] right-[0px]"
           onClick={() => {
             DisableScroll();
-
             document.querySelector("#OrderDetails").scrollTop = 0;
             document
               .querySelector("#OrderDetails")

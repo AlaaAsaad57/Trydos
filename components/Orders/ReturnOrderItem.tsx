@@ -9,7 +9,6 @@ import ReturnOrderItemIcon from "public/svg/ReturnOrderItemIcon.svg";
 import { useAppStore } from "store";
 import UploadImageOrder from "public/svg/UploadImageOrder.svg";
 import Spinner from "components/global/Spinner";
-import { GetImageUrl, pollinateInput } from "utils/tinyUtils";
 import { ReturnOrderItemPropsType } from "models/componentType/ReturnOrderItemPropsType";
 import order from "services/order";
 import Skeleton from "node_modules/react-loading-skeleton/dist";
@@ -99,7 +98,7 @@ function ReturnOrderItem({
           <span className="bold text-[12px] text-[#8D8D8D] ml-[4px]">
             {RoundPrice({
               num:
-                (item?.price_after_discount || item.offer_price) * returnedQty -
+                (item?.price_after_discount || item.offer_price) -
                 (selectedOptions?.is_cost_by_system === 0
                   ? selectedOptions.cost
                   : 0),
