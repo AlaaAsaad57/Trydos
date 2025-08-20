@@ -159,7 +159,7 @@ export const getHomeMetadata = async ({ params }): Promise<Metadata> => {
       },
     },
     verification: {
-      google: "msuFSuyNve82GpHnHzl67XWbTCGPccO_gyT0bgEDLcU",
+      google: "iANrHdX9P3YTSLpnXZYxSv3Zlk9s0Vy9Oiympeu25oE",
       yandex: process.env.YANDEX_VERIFICATION,
       yahoo: process.env.YAHOO_VERIFICATION,
     },

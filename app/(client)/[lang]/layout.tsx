@@ -101,7 +101,7 @@ export default function RootLayout({
         />
         <meta
           name="google-site-verification"
-          content="msuFSuyNve82GpHnHzl67XWbTCGPccO_gyT0bgEDLcU"
+          content="iANrHdX9P3YTSLpnXZYxSv3Zlk9s0Vy9Oiympeu25oE"
         />
         <link rel="manifest" href="/manifest.json" />
         <link rel="icon" href="/favicon.ico" sizes="any" />
