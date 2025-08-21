@@ -1055,7 +1055,7 @@ export async function generateFullSitemapXML(): Promise<string> {
 
 // New functions for country-language specific sitemaps
 export async function getAllCountryLanguageCombinations(): Promise<Array<{ country: string; language: string }>> {
-  const countries = ['tr', 'iq', 'lb', 'sy'];
+  const countries = ['tr', 'iq', 'lb', 'sy' , 'gb'];
   const languages = ['en', 'ar', 'tr', 'ku'];
 
   const combinations: Array<{ country: string; language: string }> = [];
@@ -1189,6 +1189,7 @@ export async function generateLocaleSitemapIndexXML(): Promise<string> {
   const baseUrl = "https://trydos-front-git-determine-the-type-of-639e4a-trydos-front-team.vercel.app" ;
   const now = new Date().toISOString();
   const combinations = await getAllCountryLanguageCombinations();
+  console.log("combinations :", combinations)
   
   let xml = '<?xml version="1.0" encoding="UTF-8"?>\n';
   xml += '<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n';
