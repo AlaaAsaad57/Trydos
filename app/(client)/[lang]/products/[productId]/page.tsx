@@ -98,11 +98,16 @@ async function GetProductDataFunc(params) {
   try {
     let data = await getProductFromCache(slug, language, country);
 
-    if (data?.product) {
+    if (data?.product && data?.product?.images) {
       return data.product;
     } else {
       let { product: productData, socialData } = await GetProductData(params);
-      if (!productData.details_req && !productData.qtyPriceDetails) {
+      if (
+        !productData.details_req &&
+        !productData.qtyPriceDetails &&
+        productData?.offer_price &&
+        productData?.images
+      ) {
         storeProduct(
           productData,
           socialData,
