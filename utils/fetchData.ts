@@ -329,10 +329,18 @@ export const fetchData = async <T = any>(
         if (statusVal === 0) {
           showErrorMessage(msg);
           throw new Error(msg);
-        } else if (!ignoredMessages.includes(msg) && msg.length > 0) {
+        } else if (
+          !ignoredMessages.includes(msg) &&
+          msg.length > 0 &&
+          !noMessage
+        ) {
           showSuccessNotification(msg);
         }
-      } else if (!ignoredMessages.includes(msg) && msg.length > 0) {
+      } else if (
+        !ignoredMessages.includes(msg) &&
+        msg.length > 0 &&
+        !noMessage
+      ) {
         showSuccessNotification(msg);
       }
 
