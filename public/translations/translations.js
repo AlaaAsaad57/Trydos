@@ -2,6 +2,13 @@ const translations = {
   ar: {
     "Please enable notification permissions to use camera features":
       "يرجى تفعيل أذونات الإشعارات لاستخدام ميزات الكاميرا",
+    "Add Story": "اضافة قصة",
+    "Add Photo": "أضف صورة",
+    "Failed To Remove Image..Try Again": "فشل حذف الصورة ..حاول مجددا",
+    "Please Add Photos Of The Product You Received So That We Can Provide You With The Best Service To Avoid This Issue.":
+      "يرجى إضافة صور للمنتج الذي استلمته حتى نتمكن من تزويدك بأفضل خدمة وتجنب هذه المشكلة.",
+    "You Can Return The Product Without Any Conditions According To The Return Policy And Get A Full Refund":
+      "يمكنك إرجاع المنتج دون أي شروط وفقًا لسياسة الإرجاع واسترداد المبلغ بالكامل",
     "Cart Loading Error": "خطأ في تحميل السلة",
     "View Product": "عرض المنتج",
     "Failed To Retrive Results Please Try Again":
@@ -852,6 +859,15 @@ const translations = {
       "فشل تحديث حالة الإعجاب. يرجى المحاولة مرة أخرى",
   },
   tr: {
+    "You Can Return The Product Without Any Conditions According To The Return Policy And Get A Full Refund":
+      "Ürünü iade koşulu olmadan iade edebilir ve tam ücret iadesi alabilirsiniz",
+    "Add Photo": "Fotoğraf Ekle",
+    "Add Story": "Hikaye Ekle",
+    "Failed To Remove Image..Try Again":
+      "سڕینەوەی وێنە سەرکەوتوو نەبوو.. دووبارە هەوڵ بدە",
+    "Please Add Photos Of The Product You Received So That We Can Provide You With The Best Service To Avoid This Issue.":
+      "Lütfen aldığınız ürünün fotoğraflarını ekleyin, böylece size en iyi hizmeti sunarak bu sorunun tekrar yaşanmasını önleyebiliriz.",
+
     "Failed to update like status. Please try again.":
       "Beğeni durumu güncellenemedi. Lütfen tekrar deneyin",
     "Cart Loading Error": "Sepet Yükleme Hatası",
@@ -1695,6 +1711,14 @@ const translations = {
     "Take Photo": "وێنە بگرە",
     "Failed To Retrive Results Please Try Again":
       "نەیتوانرا ئەنجامەکان به‌دەستهێنرێت، تکایە دووبارە هەوڵ بدە",
+    "Add Photo": "وێنە زیاد بکە",
+    "Add Story": "چیرۆک زیاد بکە",
+    "Failed To Remove Image..Try Again":
+      "Görüntü kaldırılamadı.. Tekrar deneyin",
+    "Please Add Photos Of The Product You Received So That We Can Provide You With The Best Service To Avoid This Issue.":
+      "تکایە وێنەی بەرهەمەکەی کە وەرگرتووت زیاد بکە بۆ ئەوەی بتوانین باشترین خزمەتگوزاری بۆت دابین بکەین و ئەم کێشەیە دوور بگرین.",
+    "You Can Return The Product Without Any Conditions According To The Return Policy And Get A Full Refund":
+      "دەتوانیت بەرهەمەکە بێ هیچ شەرتێک گەڕێنەوە بەپێی یاسای گەڕاندنەوە و پارەکە بە تەواوی وەربگری",
     "View Product": "بینینی بەرهەم",
     "Cancel Return Request": "داخوازی گەڕاندن بسڕەوە",
     "Failed To Load Products After 3 Attempts":

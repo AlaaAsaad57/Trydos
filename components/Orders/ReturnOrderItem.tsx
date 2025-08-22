@@ -12,13 +12,14 @@ import Spinner from "components/global/Spinner";
 import { ReturnOrderItemPropsType } from "models/componentType/ReturnOrderItemPropsType";
 import order from "services/order";
 import Skeleton from "node_modules/react-loading-skeleton/dist";
+import { showErrorNotification } from "store/notifications/reducer";
 
 function ReturnOrderItem({
   backToMain,
   item,
   setShouldConfirmReturn,
 }: ReturnOrderItemPropsType) {
-  const { currency } = useAppStore();
+  const { currency, language } = useAppStore();
   const [options, setOptions] = useState([]);
   const [selectedOptions, setSelectedOptions] = useState(null);
 
@@ -58,6 +59,7 @@ function ReturnOrderItem({
       parseInt(item.return.return_request_product_quantity)) ??
       item.qty
   );
+  const isRtl = language === "ar" || language === "ku";
   return (
     <>
       <div className="flex-col w-full items-center pb-[12px] px-[24px]">
@@ -91,7 +93,11 @@ function ReturnOrderItem({
         <span className="medium text-[14px] mt-[11px] text-[#402CDD]">
           {translateFunction("Return This Product")}
         </span>
-        <p className="text-[#8D8D8D] text-[12px] regular text-center">
+        <p
+          className={`${
+            isRtl && "dir-rtl"
+          } text-[#8D8D8D] text-[12px] regular text-center`}
+        >
           {translateFunction(
             "You Can Return The Product Without Any Conditions According To The Return Policy And Get A Full Refund"
           )}
@@ -195,6 +201,7 @@ function ReturnOrderItem({
         <>
           <span className="border-[#C4C2C280] border-b-[1px] w-full mt-[12px]" />
           <UploadImageComponent
+            return_request_product_id={item.return.return_request_product_id}
             loading={loadingImage}
             setLoading={setLoadinImage}
             images={images}
@@ -254,6 +261,7 @@ export const UploadImageComponent = ({
   setImages,
   loading,
   setLoading,
+  return_request_product_id,
 }) => {
   const UploadImage = async () => {
     const input = document.createElement("input");
@@ -294,6 +302,27 @@ export const UploadImageComponent = ({
         img
       );
   };
+  const removeImage = async (e, i) => {
+    try {
+      e.stopPropagation();
+      e.preventDefault();
+      if (loading) return;
+      if (return_request_product_id) {
+        setLoading(true);
+        await order.removeImage({
+          return_request_product_id: return_request_product_id,
+          img: i,
+        });
+        setLoading(false);
+      }
+
+      setImages(images.filter((im) => im !== i));
+    } catch (error) {
+      showErrorNotification(
+        translateFunction("Failed To Remove Image..Try Again")
+      );
+    }
+  };
   return (
     <div
       className="flex-col w-full items-center mt-[12px] px-[24px] cursor-pointer"
@@ -319,9 +348,7 @@ export const UploadImageComponent = ({
                 key={i}
                 className="flex-row items-center justify-center relative cursor-pointer order-return-item-image"
                 onClick={(e) => {
-                  e.stopPropagation();
-                  e.preventDefault();
-                  setImages(images.filter((im) => im !== s));
+                  removeImage(e, s);
                 }}
               >
                 <Image

@@ -559,6 +559,7 @@ const OrderExpandedDetails = ({
   setShouldConfirmReturn: (e: any) => void;
 }) => {
   const { currency, selectedOrder, setOrderOptions } = useAppStore();
+  console.log(selectedOrder);
   const [cancelling, setCancelling] = useState(false);
   const CancelReturnRequest = async () => {
     if (Array.isArray(isThereAReturnedProduct()))
@@ -744,7 +745,7 @@ const OrderExpandedDetails = ({
             {translateFunction("Order Status")}
           </span>
           <div className="text-[#1D1D1D] flex-row text-[12px] regular mt-[3px]">
-            <span>{order?.order_group_status?.label}</span>
+            <span>{order?.order_status?.label}</span>
             <span className="ml-[11px]">
               <OrderStatusIcon
                 status={order?.order_group_status?.value}

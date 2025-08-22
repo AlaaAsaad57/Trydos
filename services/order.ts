@@ -588,5 +588,13 @@ class OrderService {
       throw error;
     }
   }
+  async removeImage({ return_request_product_id, img }) {
+    await fetchData({
+      url: `/customer/order/return_request_products/remove_image?return_request_product_id=${return_request_product_id}&image=${img}`,
+      server: "market",
+      method: "GET",
+      reqTitle: REQUESTS_DATA.REMOVE_IMAGE,
+    });
+  }
 }
 export default new OrderService();

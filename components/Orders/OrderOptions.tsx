@@ -45,9 +45,9 @@ function OrderOptions({
   const [shouldConfirmChange, setShouldConfirmChange] = useState<any>(false);
   const router = useRouter();
 
-  const getOrderDetails = async () => {
+  const getOrderDetails = async (noLoading?) => {
     // Abort any previous request
-    setOrderPageLoading(true);
+    if (!noLoading) setOrderPageLoading(true);
     try {
       let data = await orderService.getOrderDetails(
         selectedOrder.order_group_id,
@@ -217,8 +217,8 @@ function OrderOptions({
                 closeOptions();
                 setShouldConfirmReturn(false);
               }}
-              callback={() => {
-                getOrderDetails();
+              callback={async (e?) => {
+                await getOrderDetails(e);
               }}
               confirmationData={shouldConfirmReturn}
               setShouldConfirmReturn={setShouldConfirmReturn}
@@ -259,8 +259,8 @@ function OrderOptions({
                 closeOptions();
                 setShouldConfirmReturn(false);
               }}
-              callback={() => {
-                getOrderDetails();
+              callback={async (e?) => {
+                await getOrderDetails(e);
               }}
               confirmationData={shouldConfirmReturn}
               setShouldConfirmReturn={setShouldConfirmReturn}

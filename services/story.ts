@@ -179,6 +179,7 @@ class StoryService {
         body: JSON.stringify({ story_id: storyId }),
         reqTitle: REQUESTS_DATA.DELETE_STORY,
         server: "stories",
+        noMessage: true,
       });
       // @ts-ignore
       if (!response.success) {

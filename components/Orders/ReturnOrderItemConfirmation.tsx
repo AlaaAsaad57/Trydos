@@ -85,17 +85,35 @@ function ReturnOrderItemConfirmation({
       images_url: Array<string>;
       img: Array<string>;
     }[] = [];
-
+    console.log(selectedOrder.returned_data, confirmationData.item);
     selectedOrder.returned_data?.map((s) => {
       s.details?.order_details?.map((req) => {
-        if (req.already_return) {
-          arr.push(req?.return_request_id);
+        if (req.already_return || req.detail_id === confirmationData.item.id) {
+          if (!arr.find((d) => d === req?.return_request_id))
+            arr.push(req?.return_request_id);
         }
       });
     });
     if (arr.length > 0) return arr;
     return false;
   };
+  const GetUniqueImagesInArrays = (): string[] => {
+    const arr: string[] = confirmationData?.images ?? [];
+    const newArr: string[] =
+      selectedOrder?.returned_data
+        ?.find((s) => s.id === ActivePacks?.return_request_id)
+        ?.details?.order_details?.find(
+          (s) => s.detail_id === confirmationData?.item?.id
+        )?.img ?? [];
+
+    if (!arr.length) return [];
+    if (!newArr.length) return arr;
+
+    const newArrSet = new Set(newArr);
+    const diff = arr.filter((img) => !newArrSet.has(img));
+    return diff;
+  };
+
   const ReturnRequest = async (confirm?) => {
     try {
       setLoading(true);
@@ -103,7 +121,7 @@ function ReturnOrderItemConfirmation({
       if (confirmationData?.item) {
         if (confirmationData.update) {
           await order.UpdateReturnedProduct({
-            images: confirmationData.images,
+            images: GetUniqueImagesInArrays(),
             quantity: confirmationData.item.qty,
             reason_id: confirmationData.reasons,
             id: confirmationData.return_request_product_id,
@@ -121,6 +139,7 @@ function ReturnOrderItemConfirmation({
           });
         }
       }
+      let reqs = [isThereAReturnedProduct() ?? [], req];
       if (confirm) {
         await Promise.all(
           // @ts-ignore
@@ -141,10 +160,11 @@ function ReturnOrderItemConfirmation({
       setShouldConfirmReturn(false);
       setLoading(false);
     } catch (error) {
+      console.log(error);
       setLoading(false);
     }
   };
-  console.log(ReturnedItems());
+  console.log(isThereAReturnedProduct(), selectedOrder);
   return (
     <div
       className={`z-[9999999999999] px-[24px] pb-[70px]  w-full flex-col ${"justify-end"} items-center h-[calc(100vh)] overflow-auto max-h-[calc(100vh)] fixed top-0 left-0 bg-[#0000006c]  backdrop-blur-[10px]`}
