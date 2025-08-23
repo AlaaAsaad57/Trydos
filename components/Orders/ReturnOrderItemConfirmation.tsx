@@ -18,7 +18,6 @@ function ReturnOrderItemConfirmation({
   setShouldConfirmReturn,
   confirmationData,
   callback,
-  setReturnObj,
 }: ReturnOrderItemConfirmationPropsType) {
   const { ActivePacks, selectedOrder, setOrderOptions } = useAppStore();
   const ReturnedItems = () => {
@@ -85,7 +84,7 @@ function ReturnOrderItemConfirmation({
       images_url: Array<string>;
       img: Array<string>;
     }[] = [];
-    console.log(selectedOrder.returned_data, confirmationData.item);
+
     selectedOrder.returned_data?.map((s) => {
       s.details?.order_details?.map((req) => {
         if (req.already_return || req.detail_id === confirmationData.item.id) {
@@ -94,6 +93,10 @@ function ReturnOrderItemConfirmation({
         }
       });
     });
+    arr = [...arr, ActivePacks?.return_request_id];
+    let set = new Set(arr);
+    arr = [...set];
+
     if (arr.length > 0) return arr;
     return false;
   };
@@ -139,7 +142,7 @@ function ReturnOrderItemConfirmation({
           });
         }
       }
-      let reqs = [isThereAReturnedProduct() ?? [], req];
+
       if (confirm) {
         await Promise.all(
           // @ts-ignore
@@ -149,11 +152,6 @@ function ReturnOrderItemConfirmation({
             });
           })
         );
-      } else {
-        if (req)
-          setReturnObj({
-            order_id: { request_id: req, order_id: ActivePacks?.id },
-          });
       }
       callback();
       close();
@@ -164,7 +162,7 @@ function ReturnOrderItemConfirmation({
       setLoading(false);
     }
   };
-  console.log(isThereAReturnedProduct(), selectedOrder);
+
   return (
     <div
       className={`z-[9999999999999] px-[24px] pb-[70px]  w-full flex-col ${"justify-end"} items-center h-[calc(100vh)] overflow-auto max-h-[calc(100vh)] fixed top-0 left-0 bg-[#0000006c]  backdrop-blur-[10px]`}

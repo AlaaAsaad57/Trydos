@@ -36,6 +36,9 @@ function AddToCartComponent({
 
   enableCartAction,
 }) {
+  useEffect(() => {
+    window.history.pushState({ isPopup: true }, "open Cart");
+  }, []);
   const searchParams = useSearchParams();
   const [sizeFromUrl, colorFromUrl] = [
     searchParams.get("size"),

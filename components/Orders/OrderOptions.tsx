@@ -32,7 +32,6 @@ function OrderOptions({
     setOrderPageLoading,
     setActivePacks,
     setOrderOptions,
-    setOrderReturnObject,
   } = useAppStore();
   const [screen, setScreen] = useState<"options" | "changeAddress">("options");
   const [canceled, setCanceled] = useState(false);
@@ -212,7 +211,6 @@ function OrderOptions({
           )}
           {shouldConfirmReturn && (
             <ReturnOrderItemConfirmation
-              setReturnObj={(e) => setOrderReturnObject(e)}
               close={() => {
                 closeOptions();
                 setShouldConfirmReturn(false);
@@ -254,7 +252,6 @@ function OrderOptions({
         <>
           {shouldConfirmReturn && (
             <ReturnOrderItemConfirmation
-              setReturnObj={(e) => setOrderReturnObject(e)}
               close={() => {
                 closeOptions();
                 setShouldConfirmReturn(false);

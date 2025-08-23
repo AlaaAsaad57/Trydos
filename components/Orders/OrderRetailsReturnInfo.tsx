@@ -1,11 +1,12 @@
 import React, { useState } from "react";
 import { OrderDetail } from "types/orders";
-import { translateFunction } from "utils/functions";
+import { RoundPrice, translateFunction } from "utils/functions";
 import MiniReturnIcon from "public/svg/MiniReturnIcon.svg";
 import ClockIcon from "public/svg/ClockIcon.svg";
 import Timer from "components/Login/Timer";
 import order from "services/order";
 import Spinner from "components/global/Spinner";
+import { useAppStore } from "store";
 
 function OrderRetailsReturnInfo({
   product,
@@ -18,7 +19,7 @@ function OrderRetailsReturnInfo({
 }) {
   const [expanded, setExpanded] = useState(true);
   const [loading, setLoading] = useState(false);
-
+  const { language, currency } = useAppStore();
   const CancelReturn = async () => {
     setLoading(true);
     await order.CancelReturn({ return_request_product_id: return_request_id });
@@ -30,8 +31,9 @@ function OrderRetailsReturnInfo({
     { index: 2, label: "pending" },
     { index: 3, label: "approved " },
     { index: 4, label: "returned" },
-    { index: 4, label: "resolved" },
+    { index: 5, label: "resolved" },
   ];
+  const isRtl = language === "ar" || language === "ku";
   const shouldShowStatus = (i) => {
     let currentStatus = status.find(
       (s) => s.label?.toLowerCase() === product.return_status?.toLowerCase()
@@ -173,62 +175,7 @@ function OrderRetailsReturnInfo({
                 </div>
               </div>
             </div>
-            {/* <div className="flex-row items-start mt-[7px]">
-              <MiniReturnIcon
-                className={`${
-                  shouldShowStatus(4)
-                    ? "[&>path]:fill-[#1D1D1D]"
-                    : "[&>path]:fill-[#C4C2C2]"
-                }`}
-              />
-              <div className="flex-col ml-[6px] w-full">
-                <div
-                  className={`flex-row justify-between items-center ${
-                    shouldShowStatus(4) ? "text-[#1D1D1D]" : "text-[#C4C2C2]"
-                  } text-[12px] regular w-full`}
-                >
-                  {translateFunction("Collected")}
-                  <div
-                    className={`${
-                      shouldShowStatus(4) ? "text-[#1D1D1D]" : "text-[#C4C2C2]"
-                    } regular text-[10px] flex-row gap-[4px] flex items-center`}
-                  >
-                    <span>3H</span>
-                    <ClockIcon />
-                  </div>
-                </div>
-                <div
-                  className={`flex-row justify-between items-center ${
-                    shouldShowStatus(4) ? "text-[#1D1D1D]" : "text-[#C4C2C2]"
-                  } text-[10px] regular w-full`}
-                >
-                  <div className="flex-row items-center gap-[4px]">
-                    {!shouldShowStatus(4) && (
-                      <span className="mr-[4px] text-[#C4C2C2] ">
-                        {translateFunction("Waiting…")}
-                      </span>
-                    )}
-                    {translateFunction("Back Your Money")} {currency?.symbol}
-                  </div>
-                  <div
-                    className={`${
-                      shouldShowStatus(4) ? "text-[#1D1D1D]" : "text-[#C4C2C2]"
-                    } regular text-[10px] flex-row gap-[4px] flex items-center`}
-                  >
-                    <span>
-                      <Timer onFinish={() => {}} minutes={3} />
-                    </span>
-                    <ClockIcon
-                      className={`${
-                        shouldShowStatus(4)
-                          ? "[&>path]:fill-[#1D1D1D]"
-                          : "[&>path]:fill-[#C4C2C2]"
-                      }`}
-                    />
-                  </div>
-                </div>
-              </div>
-            </div> */}
+
             <div className="flex-row items-start mt-[7px]">
               <MiniReturnIcon
                 className={`${
@@ -264,13 +211,23 @@ function OrderRetailsReturnInfo({
                     shouldShowStatus(4) ? "text-[#1D1D1D]" : "text-[#C4C2C2]"
                   } text-[10px] regular w-full`}
                 >
-                  <div className="flex-row items-center gap-[4px]">
+                  <div
+                    className={`${
+                      isRtl && "dir-rtl"
+                    } flex-row items-center gap-[4px]`}
+                  >
                     {!shouldShowStatus(4) && (
                       <span className="mr-[4px] text-[#C4C2C2] ">
                         {translateFunction("Waiting…")}
                       </span>
                     )}
-                    {translateFunction("Back To Your Wallet 140 usd")}
+                    {RoundPrice({
+                      num: product?.return?.subtotal,
+                      language: language,
+                      rate: currency?.exchange_rate,
+                    })}
+                    {currency?.symbol}{" "}
+                    {translateFunction("Back To Your Wallet")}
                   </div>
                   <div
                     className={`${
@@ -287,6 +244,77 @@ function OrderRetailsReturnInfo({
                     <ClockIcon
                       className={`${
                         shouldShowStatus(4)
+                          ? "[&>g>path]:fill-[#1D1D1D]"
+                          : "[&>g>path]:fill-[#C4C2C2]"
+                      }`}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="flex-row items-start mt-[7px]">
+              <MiniReturnIcon
+                className={`${
+                  shouldShowStatus(5)
+                    ? "[&>g>path]:fill-[#1D1D1D]"
+                    : "[&>g>path]:fill-[#C4C2C2]"
+                }`}
+              />
+              <div className="flex-col ml-[6px] w-full">
+                <div
+                  className={`flex-row justify-between items-center ${
+                    shouldShowStatus(5) ? "text-[#1D1D1D]" : "text-[#C4C2C2]"
+                  } text-[12px] regular w-full`}
+                >
+                  {translateFunction("Product Has Been Resolved Successfully")}
+                  <div
+                    className={`${
+                      shouldShowStatus(5) ? "text-[#1D1D1D]" : "text-[#C4C2C2]"
+                    } regular text-[10px] flex-row gap-[4px] flex items-center`}
+                  >
+                    <span>3H</span>
+                    <ClockIcon
+                      className={`${
+                        shouldShowStatus(5)
+                          ? "[&>g>path]:fill-[#1D1D1D]"
+                          : "[&>g>path]:fill-[#C4C2C2]"
+                      }`}
+                    />
+                  </div>
+                </div>
+                <div
+                  className={`flex-row justify-between items-center ${
+                    shouldShowStatus(5) ? "text-[#1D1D1D]" : "text-[#C4C2C2]"
+                  } text-[10px] regular w-full`}
+                >
+                  <div
+                    className={`${
+                      isRtl && "dir-rtl"
+                    } flex-row items-center gap-[4px]`}
+                  >
+                    {RoundPrice({
+                      num: product?.return?.subtotal,
+                      language: language,
+                      rate: currency?.exchange_rate,
+                    })}
+                    {currency?.symbol}{" "}
+                    {translateFunction("Back To Your Wallet")}
+                  </div>
+                  <div
+                    className={`${
+                      shouldShowStatus(5) ? "text-[#1D1D1D]" : "text-[#C4C2C2]"
+                    } regular text-[10px] flex-row gap-[4px] flex items-center`}
+                  >
+                    <span>
+                      {activeTimer(5) ? (
+                        <Timer onFinish={() => {}} minutes={60 * 3} />
+                      ) : (
+                        `03:00:00`
+                      )}
+                    </span>
+                    <ClockIcon
+                      className={`${
+                        shouldShowStatus(5)
                           ? "[&>g>path]:fill-[#1D1D1D]"
                           : "[&>g>path]:fill-[#C4C2C2]"
                       }`}

@@ -92,6 +92,7 @@ const CartProvider = () => {
         setLoginOpen(false);
         setChatOpen(false);
         setEnableSearch(false);
+        setSelectedProductForCart(null);
       }
     });
     window.addEventListener("scroll", function (e) {
