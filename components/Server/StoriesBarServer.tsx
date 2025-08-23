@@ -23,7 +23,7 @@ async function StoriesBarServer({ language, country }: StoriesBarServerProps) {
     const STORIES_TOKEN = await getCookieServer<UserData>(
       COOKIE_NAMES.USER_STORIES
     );
-
+    let start = process.hrtime.bigint();
     // Fetch stories data
     const { data: storiesData, next_page_url } = await fetchStories(
       language,
@@ -31,6 +31,7 @@ async function StoriesBarServer({ language, country }: StoriesBarServerProps) {
       1,
       STORIES_TOKEN?.access_token
     );
+    let end = process.hrtime.bigint();
     let userData = await getCookieServer<UserData>(COOKIE_NAMES.USER_STORIES);
     return (
       <>
@@ -55,6 +56,7 @@ async function StoriesBarServer({ language, country }: StoriesBarServerProps) {
                   <StoriesPaginationWrapper
                     userData={null}
                     next_page_url={next_page_url}
+                    time={Number(end - start) / 1_000_000}
                     language={language}
                     country={country}
                     initialStories={storiesData}

@@ -1,5 +1,6 @@
 export const runtime = "nodejs";
 export const preferredRegion = "bom1";
+export const dynamic = "force-dynamic";
 
 import NavbarServer from "components/Server/Navbar";
 import OfferListServer from "components/Server/OfferListServer";
@@ -126,7 +127,7 @@ export default HomePage;
 // Main Categories Bar
 async function MainCategoriesNavbar({ lang, mainCategory }) {
   const [country, language] = lang?.split("-");
-  // let mainCategories = await fetchMainCategories(language, country);
+
   let Reader = new ElasticsearchReader();
   let start = process.hrtime.bigint();
   let a = await Reader.getCategories({ country: country, size: 4000 });
@@ -138,6 +139,7 @@ async function MainCategoriesNavbar({ lang, mainCategory }) {
       (cat) => cat.language_code?.toLowerCase() === language?.toLowerCase()
     );
   });
+  mainCategories = mainCategories.filter((c) => c !== undefined);
   mainCategories = Array.from(
     new Map(mainCategories.map((c: any) => [c.id, c])).values()
   );
@@ -207,6 +209,7 @@ async function BoutiquesListWrapper({ params }) {
     limit: 10,
     category: params.mainCategory,
   });
+
   // @ts-ignore
   let end = process.hrtime.bigint();
   return (

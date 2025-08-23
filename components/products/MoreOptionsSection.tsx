@@ -2,10 +2,9 @@
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import home from "services/home";
-import { addToCompare, translateFunction } from "utils/functions";
+import { addToCompare, RoundPrice, translateFunction } from "utils/functions";
 import CheckIcon from "public/svg/CheckIcon.svg";
 import Spinner from "components/global/Spinner";
-import { useRouter } from "next/navigation";
 import LocalizationServiceClass from "services/localization";
 import { useAppStore } from "store";
 import { getNotificationsTypes } from "services/notifications";
@@ -13,6 +12,9 @@ import {
   showSuccessNotification,
   showErrorNotification,
 } from "@/store/notifications/reducer";
+import { GAevent } from "utils/gtag";
+import { GA_EVENT_NAMES } from "utils/GAEvents";
+import auth from "services/auth";
 function MoreOptionsSection() {
   const {
     disableNotification,
@@ -21,6 +23,7 @@ function MoreOptionsSection() {
     firebaseSettings,
     NotificationsType,
     setNotificationsType,
+    currency,
   } = useAppStore();
 
   let { lang } = useParams();
@@ -32,7 +35,6 @@ function MoreOptionsSection() {
   const getNotificationsType = async () => {
     if (NotificationsType?.length === 0) {
       const response = await getNotificationsTypes();
-
       setNotificationsType(response?.data?.notification_types);
     } else {
       setNotificationsType(NotificationsType);
@@ -71,7 +73,6 @@ function MoreOptionsSection() {
     }
   }, []);
 
-  const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [addedToCompare, setAddedToCompare] = useState(
     localStorage.getItem("f_p") === SelectedProduct.slug ||
@@ -81,7 +82,7 @@ function MoreOptionsSection() {
   const AddedToCompare = () => {
     return addedToCompare;
   };
-  const enableNotificationTopic = async (payload) => {
+  const enableNotificationTopic = async (payload, type) => {
     if (!loading) {
       setLoading(true);
       if (
@@ -90,6 +91,7 @@ function MoreOptionsSection() {
         disableNotification(payload);
         await home.UnsubscripeFromTopic({ topic: payload });
       } else {
+        send_GA_EVENT(type);
         enableNotification(payload);
         await home.subscribeToTopic({ topic: payload });
       }
@@ -110,6 +112,31 @@ function MoreOptionsSection() {
   useEffect(() => {
     getData();
   }, []);
+  const send_GA_EVENT = (notification_type) => {
+    GAevent({
+      action: GA_EVENT_NAMES.ENABLE_PRODUCT_NOTIFICATION,
+      params: {
+        user_id_custom: auth.UserID(),
+        item_id: SelectedProduct.id,
+        type_notification: notification_type,
+        item_name: SelectedProduct?.name,
+
+        brand: SelectedProduct?.brand?.name,
+        brand_id: SelectedProduct?.brand?.id,
+        category:
+          SelectedProduct?.category?.name ||
+          SelectedProduct?.categories?.[0]?.name,
+        category_id:
+          SelectedProduct?.category?.id || SelectedProduct?.categories?.[0]?.id,
+        price: RoundPrice({
+          num: SelectedProduct?.offer_price,
+          rate: currency?.exchange_rate,
+          returnNumber: true,
+          language: "en",
+        }),
+      },
+    });
+  };
   return (
     <div className="extended-section" data-cy="ExtendThreePointsSection">
       <div className="extended-bar-top share-bar-top">
@@ -204,7 +231,8 @@ function MoreOptionsSection() {
                   }`}
                   onClick={async () => {
                     enableNotificationTopic(
-                      `${type.topic}_${SelectedProduct.id}`
+                      `${type.topic}_${SelectedProduct.id}`,
+                      type
                     );
                   }}
                   data-cy={`notify-type`}
@@ -218,7 +246,34 @@ function MoreOptionsSection() {
             )}
           </div>
         </div>
-        <div className="more-options-button" data-cy="add-checkList">
+        <div
+          className="more-options-button"
+          data-cy="add-checkList"
+          onClick={() => {
+            GAevent({
+              action: GA_EVENT_NAMES.ADD_TO_FAV,
+              params: {
+                user_id_custom: auth.UserID(),
+                item_id: SelectedProduct.id,
+                item_name: SelectedProduct?.name,
+                brand: SelectedProduct?.brand?.name,
+                brand_id: SelectedProduct?.brand?.id,
+                category:
+                  SelectedProduct?.category?.name ||
+                  SelectedProduct?.categories?.[0]?.name,
+                category_id:
+                  SelectedProduct?.category?.id ||
+                  SelectedProduct?.categories?.[0]?.id,
+                price: RoundPrice({
+                  num: SelectedProduct?.offer_price,
+                  rate: currency?.exchange_rate,
+                  returnNumber: true,
+                  language: "en",
+                }),
+              },
+            });
+          }}
+        >
           <svg
             data-cy="add-checkList-svg"
             xmlns="http://www.w3.org/2000/svg"

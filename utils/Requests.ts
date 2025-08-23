@@ -193,4 +193,5 @@ export const REQUESTS_DATA = {
   CONFIRM_RETURN_PRODUCT: { reqTitle: "CONFIRM_RETURN_PRODUCT", code: 133 },
   DETAILS_RETURN_PRODUCT: { reqTitle: "DETAILS_RETURN_PRODUCT", code: 134 },
   CANCEL_RETURN_REQ: { reqTitle: "CANCEL_RETURN_REQ", code: 135 },
+  REMOVE_IMAGE: { reqTitle: "REMOVE_IMAGE", code: 136 },
 };

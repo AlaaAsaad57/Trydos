@@ -1,12 +1,17 @@
 export const runtime = "nodejs";
 export const preferredRegion = "bom1";
+export const dynamic = "force-dynamic";
 import "styles/productDetails.css";
 import "styles/product-body.css";
 import EyeIcon from "public/svg/product/EyeIcon.svg";
 import ReturnIcon from "public/svg/product/ReturnIcon.svg";
 import FreeReturnIcon from "public/svg/product/FreeReturnIcon.svg";
 
-import { getConfiguredImage, translateFunction } from "utils/functions";
+import {
+  getConfiguredImage,
+  RoundPrice,
+  translateFunction,
+} from "utils/functions";
 import Image from "next/image";
 import { Suspense } from "react";
 import ProductViews from "components/products/ProductViews";
@@ -15,10 +20,9 @@ import QualityIcon from "public/svg/product/QualityIcon.svg";
 import VerifiedIcon from "public/svg/product/Verified.svg";
 import Flag from "public/svg/product/flag.svg";
 import ProductDescriptors from "components/products/ProductDescriptors";
-import { GetImageUrl, getPrice } from "utils/tinyUtils";
+import { GetImageUrl } from "utils/tinyUtils";
 import { generateProductMetaData } from "./MetaData";
 import ProductImagesSlider from "components/products/ProductImageSlider";
-import ProductDetails from "components/products/ProductDetails";
 import ProductFooterSection from "components/products/ProductFooterSection";
 import ProductDetailsSlider from "components/products/ProductDetailsSlider";
 import ProductDetailsText from "components/products/ProductDetailsText";
@@ -84,35 +88,44 @@ async function getCurrency(country, language) {
       StoreCurrency(country, currency);
       return currency;
     }
-  } catch (error) {}
+  } catch (error) {
+    throw error;
+  }
 }
 async function GetProductDataFunc(params) {
   let slug = params.productId;
   let [country, language] = params.lang.split("-");
   try {
     let data = await getProductFromCache(slug, language, country);
-    if (data?.product) {
+
+    if (data?.product && data?.product?.images) {
       return data.product;
     } else {
-      let {
-        product: productData,
+      let { product: productData, socialData } = await GetProductData(params);
+      if (
+        !productData.details_req &&
+        !productData.qtyPriceDetails &&
+        productData?.offer_price &&
+        productData?.images
+      ) {
+        storeProduct(
+          productData,
+          socialData,
+          params.productId,
+          language,
+          country
+        );
+      }
 
-        socialData,
-      } = await GetProductData(params);
-      storeProduct(
-        productData,
-        socialData,
-        params.productId,
-        language,
-        country
-      );
       return {
         ...productData,
-        ...socialData,
+        ...(socialData ?? {}),
         redis: false,
       };
     }
-  } catch (error) {}
+  } catch (error) {
+    throw error;
+  }
 }
 async function Page({ params, searchParams }: ProductPagePropsType) {
   try {
@@ -152,6 +165,9 @@ async function Page({ params, searchParams }: ProductPagePropsType) {
     };
     const shouldShowNotifyButton = () => {
       let bool = false;
+      if (product.collected_after_ordering === 1) return false;
+      if (product?.is_active === false || product.is_country_restricted)
+        return true;
       if (product?.variation?.length > 0) {
         bool =
           product?.variation?.filter((s) => s.qty === 0).length ===
@@ -159,11 +175,6 @@ async function Page({ params, searchParams }: ProductPagePropsType) {
       } else {
         bool = product.available_quantity === 0;
       }
-
-      //restricted,status,collect_after_ordering,quantity,allVarIsEmpty
-      if (product?.is_active === false || product.is_country_restricted)
-        return true;
-      if (product.collected_after_ordering === 1) return false;
       return bool;
     };
 
@@ -189,8 +200,9 @@ async function Page({ params, searchParams }: ProductPagePropsType) {
               <ProductsLabels
                 isProduct={true}
                 labels={
-                  typeof product.label_names === "string" &&
-                  JSON.parse(product.label_names)
+                  typeof product.label_names === "string"
+                    ? JSON.parse(product.label_names)
+                    : product.label_names
                 }
               />
             )}
@@ -200,7 +212,10 @@ async function Page({ params, searchParams }: ProductPagePropsType) {
           <div className="product-details-slider" key={`key-${color}`}>
             <ProductImagesSlider>
               {getImages(product, color)?.images?.map((img, i) => (
-                <div className="embla__slide product-slider-images" key={img}>
+                <div
+                  className="embla__slide product-slider-images"
+                  key={img?.file_path}
+                >
                   <Image
                     width={320}
                     height={464}
@@ -220,8 +235,23 @@ async function Page({ params, searchParams }: ProductPagePropsType) {
           <Suspense key={`${product?.slug}-${color}`} fallback={<></>}>
             <ProductDetailsSlider
               images={getImages(product, color)?.images}
-              product={product}
               currency={currency}
+              productGA={{
+                item_id: product.id,
+                item_name: product?.name,
+                brand: product?.brand?.name,
+                brand_id: product?.brand?.id,
+                category:
+                  product?.category?.name || product?.categories?.[0]?.name,
+                category_id:
+                  product?.category?.id || product?.categories?.[0]?.id,
+                price: RoundPrice({
+                  num: product?.offer_price,
+                  rate: currency?.exchange_rate,
+                  returnNumber: true,
+                  language: "en",
+                }),
+              }}
             />
           </Suspense>
           <div className="product-details-body flex-row relative">
@@ -241,13 +271,7 @@ async function Page({ params, searchParams }: ProductPagePropsType) {
                 </div>
               }
             >
-              <ProductViews
-                product={{
-                  name: product.name,
-                  id: product.id,
-                  categories: product.categories,
-                }}
-              />
+              <ProductViews />
             </Suspense>
 
             <div className="product-info-section flex-col align-start">
@@ -280,11 +304,6 @@ async function Page({ params, searchParams }: ProductPagePropsType) {
                 <div className="product-category-name">
                   {product.category?.name}
                 </div>
-                {/* {product?.featured && (
-                  <div className="flex-row mx-[5px] h-auto">
-                    <FeaturedBanner />
-                  </div>
-                )} */}
               </div>
               <Suspense
                 fallback={
@@ -299,10 +318,25 @@ async function Page({ params, searchParams }: ProductPagePropsType) {
                   </div>
                 }
               >
-                <ProductDetails />
                 <ProductDetailsText
                   product={product.sync_color_images}
                   details={product.details}
+                  paramsGA={{
+                    item_id: product.id,
+                    item_name: product?.name,
+                    brand: product?.brand?.name,
+                    brand_id: product?.brand?.id,
+                    category:
+                      product?.category?.name || product?.categories?.[0]?.name,
+                    category_id:
+                      product?.category?.id || product?.categories?.[0]?.id,
+                    price: RoundPrice({
+                      num: product?.offer_price,
+                      rate: currency?.exchange_rate,
+                      returnNumber: true,
+                      language: "en",
+                    }),
+                  }}
                 />
               </Suspense>
               <div className="flex-row product-properties w-100">
@@ -423,17 +457,19 @@ async function Page({ params, searchParams }: ProductPagePropsType) {
                         strokeWidth="2"
                       />
                     </svg>
-                    {getPrice(product?.price, languageVariable, currency) ?? (
-                      <Skeleton width={30} height={10} />
-                    )}
+                    {RoundPrice({
+                      num: product?.price,
+                      language: languageVariable,
+                      rate: currency?.exchange_rate,
+                    }) ?? <Skeleton width={30} height={10} />}
                   </div>
                 )}
                 <div className="product-new-price">
-                  {getPrice(
-                    product?.offer_price,
-                    languageVariable,
-                    currency
-                  ) ?? <Skeleton width={30} height={10} />}
+                  {RoundPrice({
+                    num: product?.offer_price,
+                    language: languageVariable,
+                    rate: currency?.exchange_rate,
+                  }) ?? <Skeleton width={30} height={10} />}
                 </div>
                 <div className="product-currency">
                   {currency?.symbol ?? (
@@ -546,22 +582,19 @@ async function Page({ params, searchParams }: ProductPagePropsType) {
       </>
     );
   } catch (error) {
-    return <>{error}</>;
+    throw error;
   }
 }
 
 export default Page;
 const getImages = (productData, color): { images: any[] } => {
   if (color && color.length > 0 && productData?.sync_color_images) {
-    if (
-      productData?.sync_color_images?.find(
-        (s) => s.color_option === color || s.color_name === color
-      )
-    )
-      return productData?.sync_color_images?.filter(
-        (s) => s.color_option === color || s.color_name === color
-      )[0];
-    else {
+    const matchingColor = productData?.sync_color_images?.find(
+      (s) => s.color_option === color || s.color_name === color
+    );
+    if (matchingColor) {
+      return matchingColor;
+    } else {
       return productData?.sync_color_images[0];
     }
   } else if (

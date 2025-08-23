@@ -2,7 +2,15 @@ const translations = {
   ar: {
     "Please enable notification permissions to use camera features":
       "يرجى تفعيل أذونات الإشعارات لاستخدام ميزات الكاميرا",
+    "Add Story": "اضافة قصة",
+    "Add Photo": "أضف صورة",
+    "Failed To Remove Image..Try Again": "فشل حذف الصورة ..حاول مجددا",
+    "Please Add Photos Of The Product You Received So That We Can Provide You With The Best Service To Avoid This Issue.":
+      "يرجى إضافة صور للمنتج الذي استلمته حتى نتمكن من تزويدك بأفضل خدمة وتجنب هذه المشكلة.",
+    "You Can Return The Product Without Any Conditions According To The Return Policy And Get A Full Refund":
+      "يمكنك إرجاع المنتج دون أي شروط وفقًا لسياسة الإرجاع واسترداد المبلغ بالكامل",
     "Cart Loading Error": "خطأ في تحميل السلة",
+    "View Product": "عرض المنتج",
     "Failed To Retrive Results Please Try Again":
       "فشل في جلب النتائج، يرجى المحاولة مرة أخرى",
     "We encountered an error while loading your cart. Don't worry, we'll fix this issue for you.":
@@ -91,7 +99,8 @@ const translations = {
       "وقت التسليم، ساعي التوصيل، سيارة التوصيل",
     "Add Comment…": "أضف تعليق…",
     Pack: "مجموعة",
-    "Please Add Photos Of The Product You Received So That We Can Provide You With The Best Service To Avoid This Issue.": "يرجى إضافة صور للمنتج الذي استلمته حتى نتمكن من تقديم أفضل خدمة لك لتجنب هذه المشكلة",
+    "Please Add Photos Of The Product You Received So That We Can Provide You With The Best Service To Avoid This Issue.":
+      "يرجى إضافة صور للمنتج الذي استلمته حتى نتمكن من تقديم أفضل خدمة لك لتجنب هذه المشكلة",
     "Rate & Get Money": "قيم واحصل على المال",
     "Your Accurate Rating Of The Products You Receive Helps Us Improve Quality And Helps Other Customers Purchase.":
       "تقييمك الدقيق للمنتجات التي تتسلمها يساعدنا في تحسين الجودة ويساعد العملاء الآخرين على الشراء.",
@@ -848,15 +857,27 @@ const translations = {
       "لقد قمت بالفعل بتفعيل الإشعارات لهذا المنتج",
     "Session Expired..please Verify Your Phone Number":
       "انتهت صلاحية الجلسة.. يرجى التحقق من رقم هاتفك",
-      "Failed to update like status. Please try again.": "فشل تحديث حالة الإعجاب. يرجى المحاولة مرة أخرى",
+    "Failed to update like status. Please try again.":
+      "فشل تحديث حالة الإعجاب. يرجى المحاولة مرة أخرى",
   },
   tr: {
-    "Failed to update like status. Please try again.": "Beğeni durumu güncellenemedi. Lütfen tekrar deneyin",
+    "You Can Return The Product Without Any Conditions According To The Return Policy And Get A Full Refund":
+      "Ürünü iade koşulu olmadan iade edebilir ve tam ücret iadesi alabilirsiniz",
+    "Add Photo": "Fotoğraf Ekle",
+    "Add Story": "Hikaye Ekle",
+    "Failed To Remove Image..Try Again":
+      "سڕینەوەی وێنە سەرکەوتوو نەبوو.. دووبارە هەوڵ بدە",
+    "Please Add Photos Of The Product You Received So That We Can Provide You With The Best Service To Avoid This Issue.":
+      "Lütfen aldığınız ürünün fotoğraflarını ekleyin, böylece size en iyi hizmeti sunarak bu sorunun tekrar yaşanmasını önleyebiliriz.",
+
+    "Failed to update like status. Please try again.":
+      "Beğeni durumu güncellenemedi. Lütfen tekrar deneyin",
     "Cart Loading Error": "Sepet Yükleme Hatası",
     "Failed To Retrive Results Please Try Again":
       "Sonuçlar alınamadı, lütfen tekrar deneyin",
     "We encountered an error while loading your cart. Don't worry, we'll fix this issue for you.":
       "Sepetinizi yüklerken bir hata oluştu. Endişelenmeyin, bu sorunu sizin için çözeceğiz.",
+    "View Product": "Ürünü Görüntüle",
     "Try Again": "Tekrar Dene",
     "More From": "Daha Fazlası",
     "Tap “Agree & Continue” To Accept trydos":
@@ -1692,6 +1713,15 @@ const translations = {
     "Take Photo": "وێنە بگرە",
     "Failed To Retrive Results Please Try Again":
       "نەیتوانرا ئەنجامەکان به‌دەستهێنرێت، تکایە دووبارە هەوڵ بدە",
+    "Add Photo": "وێنە زیاد بکە",
+    "Add Story": "چیرۆک زیاد بکە",
+    "Failed To Remove Image..Try Again":
+      "Görüntü kaldırılamadı.. Tekrar deneyin",
+    "Please Add Photos Of The Product You Received So That We Can Provide You With The Best Service To Avoid This Issue.":
+      "تکایە وێنەی بەرهەمەکەی کە وەرگرتووت زیاد بکە بۆ ئەوەی بتوانین باشترین خزمەتگوزاری بۆت دابین بکەین و ئەم کێشەیە دوور بگرین.",
+    "You Can Return The Product Without Any Conditions According To The Return Policy And Get A Full Refund":
+      "دەتوانیت بەرهەمەکە بێ هیچ شەرتێک گەڕێنەوە بەپێی یاسای گەڕاندنەوە و پارەکە بە تەواوی وەربگری",
+    "View Product": "بینینی بەرهەم",
     "Cancel Return Request": "داخوازی گەڕاندن بسڕەوە",
     "Failed To Load Products After 3 Attempts":
       "بەرهەمەکان لەسەر نەبوون، ٣ سەکەڵەیەک بەردەست بە هەوڵبوون",
@@ -1972,7 +2002,8 @@ const translations = {
     "Product Restricted in This Country":
       "بەرهەمەکە لەم وڵاتەدا سەرپەڕشتی کراوە",
     "Product Not available": "بەرهەم بەردەست نییە",
-    "Please Add Photos Of The Product You Received So That We Can Provide You With The Best Service To Avoid This Issue.": "Lütfen aldığınız ürünün fotoğraflarını ekleyin, böylece bu sorunu önlemek için size en iyi hizmeti sunabiliriz",
+    "Please Add Photos Of The Product You Received So That We Can Provide You With The Best Service To Avoid This Issue.":
+      "Lütfen aldığınız ürünün fotoğraflarını ekleyin, böylece bu sorunu önlemek için size en iyi hizmeti sunabiliriz",
     Gender: "ڕەگەز",
     Man: "نێر",
     Woman: "مێ",
@@ -2582,8 +2613,10 @@ const translations = {
       "تکایە سەرجەم ژمارەکە پەسەند بکەوە پێشتر.",
     "Please enable notification permissions to use camera features":
       "تکایە دەسەڵاتی ئاگادارکردنەوە چالاک بکە بۆ بەکارهێنانی تایبەتمەندییەکانی کامێرا",
-      "Failed to update like status. Please try again.": "سەرکەوتوو نەبوو لە نوێکردنەوەی دۆخی حەزلەکردن. تکایە دووبارە هەوڵ بدە",
-      "Please Add Photos Of The Product You Received So That We Can Provide You With The Best Service To Avoid This Issue.": "تکایە وێنەکانی بەرهەمەکەی وەرگیراوە زیاد بکە بۆ ئەوەی بتوانین باشترین خزمەتگوزاری پێشکەش بکەین بۆ ڕێگری لە ئەم کێشەیە",
+    "Failed to update like status. Please try again.":
+      "سەرکەوتوو نەبوو لە نوێکردنەوەی دۆخی حەزلەکردن. تکایە دووبارە هەوڵ بدە",
+    "Please Add Photos Of The Product You Received So That We Can Provide You With The Best Service To Avoid This Issue.":
+      "تکایە وێنەکانی بەرهەمەکەی وەرگیراوە زیاد بکە بۆ ئەوەی بتوانین باشترین خزمەتگوزاری پێشکەش بکەین بۆ ڕێگری لە ئەم کێشەیە",
   },
 };
 

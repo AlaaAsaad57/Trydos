@@ -19,6 +19,7 @@ interface StoriesPaginationWrapperProps {
   country: string;
   initialStories: any[];
   userData: UserData | null;
+  time;
 }
 
 function StoriesPaginationWrapper({
@@ -27,6 +28,7 @@ function StoriesPaginationWrapper({
   country,
   initialStories,
   userData,
+  time,
 }: StoriesPaginationWrapperProps) {
   const { storiesData, setStoryData } = useAppStore();
   const [loading, setLoading] = useState(false);
@@ -35,6 +37,7 @@ function StoriesPaginationWrapper({
 
   // Initialize store with server data if not already set
   React.useEffect(() => {
+    console.log("STORIES NEST TIME", time);
     if (initialStories.length > 0 && storiesData.length === 0) {
       try {
       } catch (error) {
@@ -64,9 +67,11 @@ function StoriesPaginationWrapper({
         }
       }
       const response = await fetchData({
-        url: `/api/v1/stories/users_stories?page=${next_page}`,
+        url:
+          process.env.NEXT_PUBLIC_NEST_STORIES_BACKEND_URL +
+          `/api/v1/stories/users_stories?page=${next_page}`,
         method: "GET",
-        server: "stories",
+        server: "nest-stories",
         reqTitle: REQUESTS_DATA.GET_USER_STORIES,
       });
       // @ts-ignore
@@ -75,8 +80,8 @@ function StoriesPaginationWrapper({
       }
       const newStories = response.data?.data || [];
       // Add new stories to the existing ones
-      setAdditionalStories((prev) => [...prev, ...newStories]);
-      setStoryData([...storiesData, ...newStories]);
+      setAdditionalStories((prev) => [...(prev || []), ...(newStories ?? [])]);
+      setStoryData([...(storiesData ?? []), ...(newStories ?? [])]);
 
       if (response.data?.next_page_url) {
         setNextPage(next_page + 1);

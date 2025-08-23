@@ -1,5 +1,5 @@
 import { useParams } from "next/navigation";
-import { formatPrice, RoundPrice, translateFunction } from "utils/functions";
+import { RoundPrice, translateFunction } from "utils/functions";
 import WalletIcon from "assets/svg/cart/WalletIcon.svg";
 import CreditIcon from "assets/svg/cart/CreditIcon.svg";
 import PaymentIconOne from "assets/svg/cart/Payment/DimondPay.svg";

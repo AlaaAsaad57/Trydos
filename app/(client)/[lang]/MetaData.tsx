@@ -54,6 +54,7 @@ export const getHomeMetadata = async ({ params }): Promise<Metadata> => {
       (cat) => cat.language_code?.toLowerCase() === language?.toLowerCase()
     );
   });
+  categoriesData = categoriesData.filter((c) => c !== undefined);
   categoriesData = Array.from(
     new Map(categoriesData.map((c: any) => [c.id, c])).values()
   );

@@ -2,7 +2,11 @@
 import ColorsIcon from "public/svg/product/colors.svg";
 import ColorsInfo from "public/svg/product/colorsInfo.svg";
 import React, { useEffect, useState } from "react";
-import { getConfiguredImage, translateFunction } from "utils/functions";
+import {
+  getConfiguredImage,
+  RoundPrice,
+  translateFunction,
+} from "utils/functions";
 import "styles/listing.css";
 import SquareIcon from "public/svg/product/SquareIcon.svg";
 import {
@@ -22,7 +26,13 @@ import { GA_EVENT_NAMES, GA_GLOBAL_SCREEN } from "utils/GAEvents";
 import auth from "services/auth";
 
 function ProductColors({ colors, ProductColorsArray }: ProductColorsPropsType) {
-  const { setActiveColorDetails, showInfoMessage, product } = useAppStore();
+  const {
+    setActiveColorDetails,
+    showInfoMessage,
+    product,
+    SelectedProduct,
+    currency,
+  } = useAppStore();
   let { lang } = useParams();
   // @ts-ignore
   let languageVariable = lang.split("-")[1];
@@ -36,9 +46,33 @@ function ProductColors({ colors, ProductColorsArray }: ProductColorsPropsType) {
     setActiveColorDetails(e);
     let variant = e?.color_option;
     let size = searchParams.get("size");
+
     if (size?.length) {
       variant += `-${size}`;
     }
+    GAevent({
+      action: GA_EVENT_NAMES.CHANGE_COLOR,
+      params: {
+        user_id_custom: auth.UserID(),
+        item_id: SelectedProduct.id,
+        item_name: SelectedProduct?.name,
+        brand: SelectedProduct?.brand?.name,
+        brand_id: SelectedProduct?.brand?.id,
+        category:
+          SelectedProduct?.category?.name ||
+          SelectedProduct?.categories?.[0]?.name,
+        category_id:
+          SelectedProduct?.category?.id || SelectedProduct?.categories?.[0]?.id,
+        price: RoundPrice({
+          num: SelectedProduct?.offer_price,
+          rate: currency?.exchange_rate,
+          returnNumber: true,
+          language: "en",
+        }),
+        selected_color: e?.color_option,
+        selected_size: size,
+      },
+    });
     GAevent({
       action: GA_EVENT_NAMES.ITEM_VARIANT_EXCHANGE,
       params: {
@@ -103,9 +137,14 @@ function ProductColors({ colors, ProductColorsArray }: ProductColorsPropsType) {
         active={extended}
         setActiveColor={(e) => {
           const newParams = new URLSearchParams(searchParams);
-          newParams.set("color", e.color_option);
-          // @ts-expect-error 'shallow' does not exist in type 'NavigateOptions'
-          router.push(pathname + `?${newParams.toString()}`, { shallow: true });
+          const colorOption = e?.color_option || e?.color_name;
+          if (colorOption) {
+            newParams.set("color", colorOption);
+            router.push(pathname + `?${newParams.toString()}`, {
+              // @ts-expect-error 'shallow' does not exist in type 'NavigateOptions'
+              shallow: true,
+            });
+          }
           setActiveColor(e);
         }}
       />
@@ -114,6 +153,30 @@ function ProductColors({ colors, ProductColorsArray }: ProductColorsPropsType) {
           extended ? "colors-row-extended disable-slider" : "mr-[20px]"
         }`}
         onClick={() => {
+          if (extended === false) {
+            GAevent({
+              action: GA_EVENT_NAMES.VIEW_SIZE_COLOR_CHART,
+              params: {
+                user_id_custom: auth.UserID(),
+                item_id: SelectedProduct.id,
+                item_name: SelectedProduct?.name,
+                brand: SelectedProduct?.brand?.name,
+                brand_id: SelectedProduct?.brand?.id,
+                category:
+                  SelectedProduct?.category?.name ||
+                  SelectedProduct?.categories?.[0]?.name,
+                category_id:
+                  SelectedProduct?.category?.id ||
+                  SelectedProduct?.categories?.[0]?.id,
+                price: RoundPrice({
+                  num: SelectedProduct?.offer_price,
+                  rate: currency?.exchange_rate,
+                  returnNumber: true,
+                  language: "en",
+                }),
+              },
+            });
+          }
           setExtended(!extended);
         }}
       >
@@ -134,12 +197,16 @@ function ProductColors({ colors, ProductColorsArray }: ProductColorsPropsType) {
           overlap_factor={0.4}
           onSlideChange={(index) => {
             const newParams = new URLSearchParams(searchParams);
-            newParams.set("color", colors[index].color_option);
-            router.push(pathname + `?${newParams.toString()}`, {
-              scroll: false,
-              // @ts-expect-error 'shallow' does not exist in type 'NavigateOptions'
-              shallow: true,
-            });
+            const colorOption =
+              colors[index]?.color_option || colors[index]?.color_name;
+            if (colorOption) {
+              newParams.set("color", colorOption);
+              router.push(pathname + `?${newParams.toString()}`, {
+                scroll: false,
+                // @ts-expect-error 'shallow' does not exist in type 'NavigateOptions'
+                shallow: true,
+              });
+            }
             setActiveColor(colors[index]);
           }}
           slide_width={40}

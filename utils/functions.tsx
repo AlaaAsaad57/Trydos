@@ -6,7 +6,7 @@ import { CartResponse } from "models/API/market/CartShipping";
 import { SimpleBoutiqeApi } from "models/API/market/BoutiqueSimpleDetails";
 import { OldCartApi } from "models/API/market/OldCart";
 import LocalizationServiceClass from "services/localization";
-import { CielNumber } from "./tinyUtils";
+
 import { GetConfiguredImagePropsType } from "models/componentType/boutiqueTypes/metaDataPropsType";
 import { fetchData } from "./fetchData";
 import { COOKIE_NAMES, UserData, getCookie } from "./cookies/cookie-manager";
@@ -344,15 +344,6 @@ export const urlParams = ({ filters, noProducts, noFilter = false }) => {
   return urlParams.toString();
 };
 
-export function formatPrice(price, language = "en") {
-  if (price >= 1000000) {
-    return CielNumber(price / 1000000) + translateFunction("M", language); // For millions
-  } else if (price >= 100000) {
-    return CielNumber(price / 1000) + translateFunction("K", language); // For thousands
-  } else {
-    return CielNumber(price); // For prices under 1000
-  }
-}
 export const toUSD = (price) => {
   const { currency } = useAppStore.getState();
 
@@ -361,33 +352,47 @@ export const toUSD = (price) => {
 export const RoundPrice = ({
   num,
   rate,
-  points,
   returnNumber,
   language = "en",
+  points,
 }: {
-  num?: any;
-  rate?: any;
-  points?: any;
+  num?: number | string;
+  rate?: number;
   returnNumber?: boolean;
   language?: string;
-}): number => {
+  points?: any;
+}): number | string => {
+  let price_num = Number(num);
   const { currency, settings } = useAppStore.getState();
 
+  // Currency conversion at the start
   let rateVariable = rate || currency?.exchange_rate || 1;
-  let pointsVariable =
-    (num * rateVariable < 1 && 2) ||
-    points ||
-    (settings && settings["starting-setting"]?.decimal_point_settings) ||
-    0;
-  let a = num * rateVariable;
+  let number = price_num * rateVariable;
+  let deciaml_points =
+    (settings && settings["starting-setting"]?.decimal_point_settings) || 0;
+  // Return raw converted number if requested
   if (returnNumber) {
-    a = Number(a.toFixed(pointsVariable));
-    return a;
+    return number;
   }
-  a = Number(a.toFixed(pointsVariable));
+  number = Number(number.toFixed(deciaml_points));
+  // Dart's formatNumber logic
+  const thousand = language !== "ar" ? "K" : "الف";
+  const million = language !== "ar" ? "M" : "مليون";
 
-  return formatPrice(a, language);
+  if (number >= 1e5 && number < 1e6) {
+    const result = Math.floor((number + 999) / 1000);
+    return `${result}${thousand}`;
+  } else if (number === 0) {
+    return "0.0";
+  } else if (number < 1e5) {
+    return number;
+  } else {
+    let result = Math.floor((number + 999) / 1000) / 1000;
+
+    return `${result}${million}`;
+  }
 };
+
 export const onClickSearchHistory = (searchValue) => {
   if (localStorage.getItem("search-history")) {
     let arr = JSON.parse(localStorage.getItem("search-history"));
@@ -426,7 +431,7 @@ export const getOldCart = async () => {
   }
 };
 export const getCart = async ({ callback }) => {
-  const { initCart , cart , setCartShippingSuccess} = useAppStore.getState();
+  const { initCart, cart, setCartShippingSuccess } = useAppStore.getState();
   const deviceToken = getCookie<string>(COOKIE_NAMES.DEVICE_TOKEN);
   const marketToken = getCookie<string>(COOKIE_NAMES.MARKET_TOKEN);
   if (!deviceToken && !marketToken) return { cart: [] };
@@ -439,7 +444,7 @@ export const getCart = async ({ callback }) => {
     });
     // @ts-ignore
     if (!response.success) {
-    // @ts-ignore
+      // @ts-ignore
       setCartShippingSuccess(response.message);
       throw new Error(response.message);
     }

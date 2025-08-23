@@ -8,7 +8,7 @@ import OrderExpectedDeliveryCard from "./cards/OrderExpectedDeliveryCard";
 import OrderStatusCard from "./cards/OrderStatusCard";
 import OrderAddressCard from "./cards/OrderAddressCard";
 import OrderItemsList from "./cards/OrderItemsList";
-import { OrderDetail, OrderItem } from "types/orders";
+import { OrderItem } from "types/orders";
 import {
   getConfiguredImage,
   getUserChat,
@@ -46,7 +46,11 @@ import { REQUESTS_DATA } from "utils/Requests";
 import dynamic from "node_modules/next/dynamic";
 import LandingPage from "components/Home/LandingPage";
 import Spinner from "components/global/Spinner";
-function OrderDetails({ resetOrderDetails, goBack }: OrderDetailsPropsType) {
+function OrderDetails({
+  resetOrderDetails,
+  goBack,
+  setShouldConfirmReturn,
+}: OrderDetailsPropsType) {
   const router = useRouter();
   const searchParams = useSearchParams();
   useEffect(() => {
@@ -92,9 +96,10 @@ function OrderDetails({ resetOrderDetails, goBack }: OrderDetailsPropsType) {
           return s.return_request_id;
       });
       returned_req_ids = returned_req_ids?.filter((s) => s !== undefined);
+      let returnRequests = undefined;
       if (returned_req_ids?.length > 0) {
         try {
-          const returnRequests = await Promise.all(
+          returnRequests = await Promise.all(
             returned_req_ids.map(async (id) => {
               const details = await Order.getReturnRequestDetails({
                 return_request_id: id,
@@ -108,7 +113,13 @@ function OrderDetails({ resetOrderDetails, goBack }: OrderDetailsPropsType) {
             const match = returnRequests.find(
               (req) => req.id === order.return_request_id
             );
-            return match ? { ...order, return_details: { ...match } } : order;
+            return match
+              ? {
+                  ...order,
+                  return_details: { ...match },
+                  returned_data: returnRequests,
+                }
+              : { ...order, returned_data: returnRequests };
           });
         } catch (error) {
           console.error(error);
@@ -118,6 +129,7 @@ function OrderDetails({ resetOrderDetails, goBack }: OrderDetailsPropsType) {
         ...data?.[0],
         order_amount: totalAmount(data),
         details: data,
+        returned_data: returnRequests,
       };
 
       if (data.find((s) => s.id === ActivePacks?.id)) {
@@ -384,7 +396,16 @@ function OrderDetails({ resetOrderDetails, goBack }: OrderDetailsPropsType) {
       }
     };
   }, []);
-
+  const shouldShowRatingBadge = () => {
+    if (
+      ActivePacks.details.filter((s) => !s.comments || s.comments?.length === 0)
+        .length === 0
+    )
+      return false;
+    if (isExpanded) return false;
+    if (ActivePacks?.order_status?.value === "delivered") return true;
+    else return false;
+  };
   if (!selectedOrder?.id) return null;
 
   return (
@@ -491,9 +512,7 @@ function OrderDetails({ resetOrderDetails, goBack }: OrderDetailsPropsType) {
                 }
               />
             </div>
-            {ActivePacks?.order_status?.value === "delivered" && (
-              <RateOrderButton />
-            )}
+            {shouldShowRatingBadge() && <RateOrderButton />}
             <div className="flex flex-col justify-start  w-full bg-[#F8F8F8] px-[12px] h-full relative">
               <OrderItemsList
                 getOrderDetails={() => {
@@ -514,6 +533,7 @@ function OrderDetails({ resetOrderDetails, goBack }: OrderDetailsPropsType) {
               />
               {isExpanded && (
                 <OrderExpandedDetails
+                  setShouldConfirmReturn={setShouldConfirmReturn}
                   getOrderDetails={() => getOrderDetails()}
                   order={selectedOrder?.details?.find(
                     (s) => s.id === ActivePacks?.id
@@ -532,26 +552,52 @@ export default OrderDetails;
 const OrderExpandedDetails = ({
   order,
   getOrderDetails,
+  setShouldConfirmReturn,
 }: {
   order: OrderItem;
   getOrderDetails: () => void;
+  setShouldConfirmReturn: (e: any) => void;
 }) => {
-  const { currency } = useAppStore();
+  const { currency, selectedOrder, setOrderOptions } = useAppStore();
+  console.log(selectedOrder);
   const [cancelling, setCancelling] = useState(false);
   const CancelReturnRequest = async () => {
-    try {
-      setCancelling(true);
-      await Order.CancelReturnRequest({
-        return_request_id: order.return_request_id,
+    if (Array.isArray(isThereAReturnedProduct()))
+      try {
+        setCancelling(true);
+        await Promise.all(
+          // @ts-ignore
+          isThereAReturnedProduct()?.map(async (s) => {
+            await Order.CancelReturnRequest({
+              return_request_id: s,
+            });
+          })
+        );
+        getOrderDetails();
+        setCancelling(false);
+      } catch (error) {
+        setCancelling(false);
+      }
+  };
+  const isThereAReturnedProduct = () => {
+    let arr = [];
+    selectedOrder.returned_data?.map((s) => {
+      s.details?.order_details?.map((req) => {
+        if (req.already_return) {
+          arr.push(req?.return_request_id);
+        }
       });
-      getOrderDetails();
-      setCancelling(false);
-    } catch (error) {
-      setCancelling(false);
-    }
+    });
+
+    if (arr.length > 0) return arr;
+    return false;
   };
   const shouldShowConfirmReturn = () => {
-    return order?.return_details?.details?.status === "draft return request";
+    return (
+      selectedOrder?.returned_data?.filter(
+        (s) => s.details?.status === "draft return request"
+      )?.length > 0 && isThereAReturnedProduct()
+    );
   };
   const getProductWithReturn = (product) => {
     let return_item = order?.return_details?.details?.order_details?.find(
@@ -559,18 +605,7 @@ const OrderExpandedDetails = ({
     ) ?? { already_return: false };
     return { ...product, return: return_item };
   };
-  const confirmOrderReturn = async () => {
-    try {
-      setCancelling(true);
-      await Order.ConfirmReturnRequest({
-        return_request_id: order.return_request_id,
-      });
-      setCancelling(false);
-      getOrderDetails();
-    } catch (error) {
-      setCancelling(false);
-    }
-  };
+
   const { lang } = useParams();
   // @ts-ignore
   const language = lang.split("-")[1];
@@ -710,7 +745,7 @@ const OrderExpandedDetails = ({
             {translateFunction("Order Status")}
           </span>
           <div className="text-[#1D1D1D] flex-row text-[12px] regular mt-[3px]">
-            <span>{order?.order_group_status?.label}</span>
+            <span>{order?.order_status?.label}</span>
             <span className="ml-[11px]">
               <OrderStatusIcon
                 status={order?.order_group_status?.value}
@@ -725,7 +760,9 @@ const OrderExpandedDetails = ({
           <div
             className={`w-full h-[50px] mt-[31px] items-center justify-center  flex cursor-pointer ${"bg-[#402CDD] "} rounded-[15px] text-[16px] text-[#fff] medium`}
             onClick={() => {
-              confirmOrderReturn();
+              // confirmOrderReturn();
+              setShouldConfirmReturn(true);
+              setOrderOptions(true);
             }}
           >
             {cancelling ? (
@@ -735,10 +772,9 @@ const OrderExpandedDetails = ({
             )}
           </div>
         )}
-        {order?.return_details?.details?.status &&
-          (order.return_request_id &&
-          order.edit_return_request &&
-          cancelling ? (
+        {isThereAReturnedProduct() &&
+          // order.edit_return_request &&
+          (cancelling ? (
             <div
               className={`w-full h-[50px] mt-[31px] items-center justify-center  flex cursor-pointer ${"bg-[#fb7070] "} rounded-[15px] text-[16px] text-[#fff] medium`}
             >
@@ -785,7 +821,6 @@ const ProductCard = ({
           className="absolute top-[22px] right-[0px]"
           onClick={() => {
             DisableScroll();
-
             document.querySelector("#OrderDetails").scrollTop = 0;
             document
               .querySelector("#OrderDetails")
@@ -830,23 +865,23 @@ const ProductCard = ({
               {product.product_details?.name}
             </span>
             <div className="flex-row justify-between w-full">
-              {product?.variation?.color && (
+              {product?.variation?.[0]?.color && (
                 <div className="flex-row">
                   <span className="text-[10px] regular">
                     {translateFunction("Color")}:
                   </span>
                   <span className="text-[#505050] text-[10px] medium ml-[2px]">
-                    {product.variation?.color}
+                    {product?.variation?.[0]?.color}
                   </span>
                 </div>
               )}
-              {product?.variation?.Size && (
+              {product?.variation?.[0]?.Size && (
                 <div className="flex-row ml-[40px]">
                   <span className="text-[10px] regular">
                     {translateFunction("Size")}:
                   </span>
                   <span className="text-[#505050] text-[10px] medium ml-[2px]">
-                    {product.variation?.Size}
+                    {product?.variation?.[0]?.Size}
                   </span>
                 </div>
               )}

@@ -78,6 +78,7 @@ interface SearchResult {
     max_price: number;
     priceRanges?: any[];
   };
+  isAnalyzed: any;
 }
 
 interface ElasticsearchHit {
@@ -197,12 +198,16 @@ export async function getProductsAndFiltersFromElastic(
   if (filters?.prices) {
     filters = { ...filters, priceRange: filters.prices };
   }
-
+  let isAnalyzed: any = false;
   try {
-    if (filters.search_text && filters.search_text?.split(" ")?.length > 2) {
+    if (filters.search_text && filters.search_text?.split(" ")?.length > 1) {
       let CleanSearchText = await AnalyzeSearchText(filters.search_text);
-      if (CleanSearchText.error) {
-        throw new Error();
+      if (CleanSearchText?.error) {
+        console.error(
+          `##################${CleanSearchText.error}#######################`
+        );
+        isAnalyzed = CleanSearchText?.error;
+        throw new Error(CleanSearchText?.error);
       }
       if (CleanSearchText?.name) {
         filters = { ...filters, search_text: CleanSearchText?.name };
@@ -221,9 +226,11 @@ export async function getProductsAndFiltersFromElastic(
           sizes: [...new Set([...(filters.sizes || []), CleanSearchText.size])],
         };
       }
+      isAnalyzed = CleanSearchText;
     }
   } catch (error) {
-    console.log("failed to analyze");
+    isAnalyzed?.length > 4 ? isAnalyzed : "failed to Analyze";
+    console.log(error);
   }
 
   try {
@@ -257,7 +264,6 @@ export async function getProductsAndFiltersFromElastic(
     if (search_after.length > 0) {
       searchQuery.search_after = search_after;
     }
-
     // Execute search with pagination
     const customProducts: any[] = [];
     let lastSortValue: any[] = search_after;
@@ -302,14 +308,12 @@ export async function getProductsAndFiltersFromElastic(
         ?.buckets || [],
       filters_offset
     );
-
     // Process products
     const productsWithFilters = extractFilters(
       customProducts,
       language_code,
       is_from_browser
     );
-
     // Sort products by filtered colors if color filter is applied
     if (filters.colors?.length) {
       productsWithFilters.custom_products = sortSyncColorImagesByFilteredColor(
@@ -319,7 +323,6 @@ export async function getProductsAndFiltersFromElastic(
 
       sortColorsByFilteredColor(productsWithFilters.custom_products, filters);
     }
-
     // Normalize products
     const normalizedProducts = normalizeCustomProducts(productsWithFilters);
     let end = process.hrtime.bigint();
@@ -350,6 +353,7 @@ export async function getProductsAndFiltersFromElastic(
           : [],
       colors: colorsFilter,
       prices: productsWithFilters.prices,
+      isAnalyzed: isAnalyzed,
     };
   } catch (error) {
     console.error("Elasticsearch search error:", error);
@@ -2039,6 +2043,7 @@ function normalizeCustomProducts(
     product.sync_color_images = cleaned.sync_color_images;
     product.sync_color_images = cleaned.sync_color_images?.map((s) => ({
       ...s,
+      color_trend: Boolean(s.color_trend),
       images: s.images.map((d) => ({ file_path: `/product/${d}` })),
     }));
     product.images = product.images.map((s) => ({

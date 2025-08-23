@@ -5,6 +5,10 @@ import profilePlaceholder from "public/images/profileNo.png";
 import VideoPreloader from "./VideoPreloader";
 import ImagePreloader from "./ImagePreloader";
 import Link from "next/link";
+import NextLink from "components/global/NextLink";
+import { useParams } from "node_modules/next/navigation";
+import { useAppStore } from "store";
+import { translateFunction } from "utils/functions";
 
 // Using a generic story media type to keep the component independent from
 // the previous `react-insta-stories` definitions.
@@ -65,7 +69,6 @@ const StoryViewer: React.FC<StoryViewerProps> = ({
   const currentDurationRef = useRef<number>(DEFAULT_DURATION);
   const videoRef = useRef<HTMLVideoElement>(null);
   const pausedProgressRef = useRef<number>(0);
-  const nextVideoRef = useRef<HTMLVideoElement>(null);
 
   // Sync with parent's currentIndex when it changes
   useEffect(() => {
@@ -77,7 +80,6 @@ const StoryViewer: React.FC<StoryViewerProps> = ({
   }, [currentIndex, index]);
 
   const currentStory = stories[index] as StoryMedia | undefined;
-  const nextStory = stories[index + 1] as StoryMedia | undefined;
   const currentHeader = (currentStory?.header || header) as
     | {
         heading?: string;
@@ -87,13 +89,13 @@ const StoryViewer: React.FC<StoryViewerProps> = ({
     | undefined;
   const isImage = currentStory?.type !== "video"; // default to image
   const link = currentStory?.link;
-
+  const product_slug = currentStory?.product_slug;
   /* --------------------------- Helper functions -------------------------- */
   const clearTimers = () => {
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
     if (rafRef.current) cancelAnimationFrame(rafRef.current);
   };
-
+  const { setSelectedStory } = useAppStore();
   const beginProgress = (duration: number, initialProgress = 0) => {
     clearTimers();
     startTimestampRef.current = Date.now() - duration * initialProgress;
@@ -187,7 +189,7 @@ const StoryViewer: React.FC<StoryViewerProps> = ({
 
   /* ------------------------------ Rendering ------------------------------ */
   const Loader = loader || <Spinner />;
-
+  const { lang } = useParams();
   return (
     <div
       className="relative flex items-center justify-center bg-black"
@@ -260,13 +262,14 @@ const StoryViewer: React.FC<StoryViewerProps> = ({
         >
           {isImage ? (
             <Image
-              fill
+              width={600}
+              height={1200}
               src={currentStory?.url}
               alt="story"
               loading="eager"
               decoding="async"
               fetchPriority="high"
-              className="max-h-full p-[65px]"
+              className="max-h-full p-[65px] h-full w-auto"
               onLoad={() => {
                 setResourceLoaded(true);
               }}
@@ -303,19 +306,36 @@ const StoryViewer: React.FC<StoryViewerProps> = ({
       {/* Story Link absolutely positioned at the bottom */}
       {link && (
         <div className="absolute bottom-0 left-0 w-full flex justify-center z-50 pb-4 pointer-events-none">
-          <Link href={link} passHref legacyBehavior>
-            <a
-              className="pointer-events-auto text-blue-400 underline break-all text-center text-base hover:text-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400 px-2 py-1 rounded backdrop-blur-sm"
-              tabIndex={0}
-              aria-label="Story link"
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{ zIndex: 99999999999999 }}
-              onClick={(e) => e.stopPropagation()}
+          {link && (
+            <Link href={link} passHref legacyBehavior>
+              <a
+                className="pointer-events-auto text-blue-400 underline break-all text-center text-base hover:text-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400 px-2 py-1 rounded backdrop-blur-sm"
+                tabIndex={0}
+                aria-label="Story link"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ zIndex: 99999999999999 }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                {link}
+              </a>
+            </Link>
+          )}
+          {product_slug && (
+            <NextLink
+              className="py-2 px-4 text-center flex justify-center light text-[12px] text-[#1d1d1d] bg-slate-50 rounded-md"
+              data={{
+                is_product: true,
+                href: `/${lang}/products/${product_slug}`,
+              }}
+              href={`/${lang}/products/${product_slug}`}
+              onClick={() => {
+                setSelectedStory(null);
+              }}
             >
-              {link}
-            </a>
-          </Link>
+              {translateFunction("View Product")}
+            </NextLink>
+          )}
         </div>
       )}
 

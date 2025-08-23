@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import { useAppStore } from "store";
 import NewStoryModal from "./CameraStory";
@@ -434,7 +434,9 @@ export default function AddStoryWidget({ onClose }: AddStoryWidgetPropsType) {
       )}
       <div className="fixed top-[-130px] left-0 w-screen h-screen text-[#5d5d5d] regular z-[999999999] bg-white rounded-t-2xl shadow-lg p-4">
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-semibold">Add Story</h3>
+          <h3 className="text-lg font-semibold">
+            {translateFunction("Add Story")}
+          </h3>
           <button
             onClick={onClose}
             className="p-2 hover:bg-gray-100 rounded-full"

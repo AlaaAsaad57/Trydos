@@ -36,12 +36,11 @@ function Settings({ lang }: SettingsIndexPropsType) {
     setOrderDetails,
     setAddressDetails,
     showOrderOptions,
-    setSelectedOrderItem,
+
     setOrderOptions,
     selectedOrder,
-    setActivePacks,
   } = useAppStore();
-  let language = lang.split("-")[1];
+  const [shouldConfirmReturn, setShouldConfirmReturn] = useState(false);
   const setSelectedOrder = (order) => {
     setOrderDetails(order);
   };
@@ -185,8 +184,15 @@ function Settings({ lang }: SettingsIndexPropsType) {
         <>
           {
             <OrderDetails
-              resetOrderDetails={() => setSelectedOrder(null)}
-              goBack={() => swipeToScreen(9)}
+              resetOrderDetails={() => {
+                setShouldConfirmReturn(false);
+                setSelectedOrder(null);
+              }}
+              goBack={() => {
+                setShouldConfirmReturn(false);
+                swipeToScreen(9);
+              }}
+              setShouldConfirmReturn={setShouldConfirmReturn}
             />
           }
         </>
@@ -266,6 +272,8 @@ function Settings({ lang }: SettingsIndexPropsType) {
     <div className="max-h-full h-full overflow-auto flex w-full max-w-[1365px] justify-center bg-white">
       {showOrderOptions && (
         <OrderOptions
+          setShouldConfirmReturn={setShouldConfirmReturn}
+          shouldConfirmReturn={shouldConfirmReturn}
           productData={selectedOrder}
           CancelOrder={() => {
             // setOrderDetails(null);

@@ -1,11 +1,15 @@
 import React, { useEffect, useState } from "react";
-import { translateFunction } from "utils/functions";
+import { RoundPrice, translateFunction } from "utils/functions";
 import Comments from "./Comments";
 import CommentBar from "./CommentBar";
 import { useParams } from "next/navigation";
 
 import Spinner from "components/global/Spinner";
 import { CommentSectionPropsType } from "models/componentType/CommentSectionPropsType";
+import { GAevent } from "utils/gtag";
+import auth from "services/auth";
+import { useAppStore } from "store";
+import { GA_EVENT_NAMES } from "utils/GAEvents";
 
 function CommentSection({
   comments,
@@ -23,12 +27,7 @@ function CommentSection({
   let { lang } = useParams();
   // @ts-ignore
   let languageVariable = lang.split("-")[1];
-  const translate = (key, lang) => {
-    return translateFunction(key, languageVariable);
-  };
-
-  var language = "en";
-
+  const { currency } = useAppStore();
   useEffect(() => {
     if (comments) {
       setComments(
@@ -38,6 +37,24 @@ function CommentSection({
   }, [comments]);
   const [loading, setLoading] = useState(true);
   const Init = async () => {
+    GAevent({
+      action: GA_EVENT_NAMES.VIEW_COMMENTS,
+      params: {
+        user_id_custom: auth.UserID(),
+        item_id: product.id,
+        item_name: product?.name,
+        brand: product?.brand?.name,
+        brand_id: product?.brand?.id,
+        category: product?.category?.name || product?.categories?.[0]?.name,
+        category_id: product?.category?.id || product?.categories?.[0]?.id,
+        price: RoundPrice({
+          num: product?.offer_price,
+          rate: currency?.exchange_rate,
+          returnNumber: true,
+          language: "en",
+        }),
+      },
+    });
     await getComments();
     setLoading(false);
   };
@@ -66,7 +83,9 @@ function CommentSection({
           </g>
         </svg>
 
-        <span>{translate("Comment About This Product", language)}</span>
+        <span>
+          {translateFunction("Comment About This Product", languageVariable)}
+        </span>
         {loading && (
           <span className="ml-2">
             <Spinner />

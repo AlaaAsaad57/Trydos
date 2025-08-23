@@ -1,18 +1,18 @@
 "use client";
 
 import Spinner from "components/global/Spinner";
-import { FilterItem } from "components/Server/FilterList";
+
 import { InfiniteScrollFiltersPropsType } from "models/componentType/InfiniteScrollFiltersPropsType";
 import { useParams } from "node_modules/next/navigation";
 
 import React, { useEffect, useState } from "react";
-import { fetchFilteredProducts } from "Server Requests";
 import { getProductsAndFiltersFromElastic } from "services/elastic/elasticSearch";
 
 import { useAppStore } from "store";
 import { showErrorNotification } from "store/notifications/reducer";
 import { translateFunction } from "utils/functions";
 import { parseFiltersFromParams } from "utils/tinyUtils";
+import FilterItem from "../FilterItem";
 
 function InfiniteScrollFilters({
   filterParams,

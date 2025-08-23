@@ -1,13 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import * as Sentry from "@sentry/node";
+
 import { headers } from "next/headers";
+import Sentry from "sentry.config";
 
 // Initialize Sentry for this API route
-Sentry.init({
-  dsn: process.env.NEXT_PUBLIC_DSN_SENTRY,
-  tracesSampleRate: 1.0,
-  environment: process.env.NODE_ENV,
-});
 
 interface ErrorInfo {
   message: string;
@@ -55,55 +51,53 @@ export async function POST(request: NextRequest) {
       }
 
       // Configure Sentry scope
-      if (process.env.NODE_ENV === "production") {
-        Sentry.withScope((scope) => {
-          // Set error level
-          scope.setLevel("error");
+      Sentry.withScope((scope) => {
+        // Set error level
+        scope.setLevel("error");
 
-          // Set tags
-          scope.setTag("source", "client");
-          scope.setTag("error.source", errorInfo.source || "unknown");
+        // Set tags
+        scope.setTag("source", "client");
+        scope.setTag("error.source", errorInfo.source || "unknown");
 
-          // Set context
-          scope.setContext("error_details", {
-            componentStack: errorInfo.componentStack,
-            source: errorInfo.source,
-            lineno: errorInfo.lineno,
-            colno: errorInfo.colno,
-            timestamp: errorInfo.timestamp,
-            url: errorInfo.url,
-            originalError: errorInfo.error,
-          });
-
-          // Set user context
-          scope.setContext("browser", {
-            userAgent: errorInfo.userAgent || userAgent,
-            ip: ip,
-            referer: referer,
-          });
-
-          // Add extra data
-          if (errorInfo.extra) {
-            Object.entries(errorInfo.extra).forEach(([key, value]) => {
-              scope.setExtra(key, value);
-            });
-          }
-
-          // Add breadcrumb
-          scope.addBreadcrumb({
-            category: "client-error",
-            message: errorInfo.message,
-            level: "error",
-            timestamp: errorInfo.timestamp
-              ? new Date(errorInfo.timestamp).getTime() / 1000
-              : undefined,
-          });
-
-          // Send to Sentry
-          Sentry.captureException(error);
+        // Set context
+        scope.setContext("error_details", {
+          componentStack: errorInfo.componentStack,
+          source: errorInfo.source,
+          lineno: errorInfo.lineno,
+          colno: errorInfo.colno,
+          timestamp: errorInfo.timestamp,
+          url: errorInfo.url,
+          originalError: errorInfo.error,
         });
-        await Sentry.flush(2000);
-      }
+
+        // Set user context
+        scope.setContext("browser", {
+          userAgent: errorInfo.userAgent || userAgent,
+          ip: ip,
+          referer: referer,
+        });
+
+        // Add extra data
+        if (errorInfo.extra) {
+          Object.entries(errorInfo.extra).forEach(([key, value]) => {
+            scope.setExtra(key, value);
+          });
+        }
+
+        // Add breadcrumb
+        scope.addBreadcrumb({
+          category: "client-error",
+          message: errorInfo.message,
+          level: "error",
+          timestamp: errorInfo.timestamp
+            ? new Date(errorInfo.timestamp).getTime() / 1000
+            : undefined,
+        });
+
+        // Send to Sentry
+        Sentry.captureException(error);
+      });
+      await Sentry.flush(2000);
     }
 
     // Flush Sentry to ensure errors are sent
@@ -116,9 +110,7 @@ export async function POST(request: NextRequest) {
     console.error("Failed to process error report:", error);
 
     // Still try to capture this error to Sentry
-    if (process.env.NODE_ENV === "production") {
-      Sentry.captureException(error);
-    }
+    Sentry.captureException(error);
 
     return NextResponse.json(
       { error: "Internal server error" },

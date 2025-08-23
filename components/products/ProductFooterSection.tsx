@@ -1,5 +1,5 @@
 "use client";
-import React, { Suspense, useEffect, useReducer, useState } from "react";
+import React, { useEffect, useReducer, useState } from "react";
 import ExtendedAreaInfo from "./ExtendedAreaInfo";
 import ProductOptions from "./ProductOptions";
 import { RoundPrice, translateFunction } from "utils/functions";
@@ -84,6 +84,8 @@ function ProductFooterSection({
     setShareLoading,
     setSharesCount,
     loginOpen,
+    editInfo,
+    storeProduct,
   } = useAppStore();
   let { lang } = useParams();
 
@@ -218,6 +220,7 @@ function ProductFooterSection({
         is_liked: isLiked,
         color,
         size,
+        views_count: response_views?.view_count || 0,
       });
       setLoading(false);
       // @ts-ignore
@@ -244,10 +247,10 @@ function ProductFooterSection({
           }),
           brand: product?.brand?.name,
           brand_id: product?.brand?.id,
-          category: product?.category?.name,
-          category_id: product?.category?.id,
+          category: product?.categories?.[0]?.name,
+          category_id: product?.categories?.[0]?.id,
           count_likes: likesNum,
-          review_counts: response_views?.view_count,
+          review_count: response_views?.view_count,
           interaction_type: "view",
           screen_name: lastPageData?.screen || "link",
           screen_path: lastPageData?.url || window.location.pathname,
@@ -292,17 +295,20 @@ function ProductFooterSection({
       GAevent({
         action: GA_EVENT_NAMES.SHARE_CONTENT,
         params: {
-          user_id_custom: auth.UserID(),
           content_id: product?.id,
           item_id: product?.id,
           item_name: product?.name,
-          category: product?.category?.name,
+          user_id_custom: auth.UserID(),
+          brand_id: product?.brand?.id,
+          category: product?.category?.name || product?.categories?.[0]?.name,
+          category_id: product?.category?.id || product?.categories?.[0]?.id,
           brand: product?.brand?.name,
           price: RoundPrice({
             num: product?.price,
             rate: currency?.exchange_rate,
           }),
           share_context: "internal",
+          shared_from_page: window.location.pathname,
           screen_name: GA_GLOBAL_SCREEN.PRODUCT_SCREEN,
           screen_path: window.location.pathname,
           method_share: "chat_in_share",
@@ -317,7 +323,10 @@ function ProductFooterSection({
       );
     }
   };
-
+  useEffect(() => {
+    editInfo({ ...product });
+    storeProduct({ ...product, colorFrom: searchParams.get("color") });
+  }, []);
   return (
     <>
       {!loginOpen && (

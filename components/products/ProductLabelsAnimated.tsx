@@ -59,15 +59,35 @@ export const ProductLabelsAnimated = ({
         }, transitionDuration);
       }, displayDuration);
     };
-
-    startCycle();
+    if (labels.length > 1) startCycle();
 
     return () => {
-      clearTimeout(stepTimeout);
-      if (timerRef.current) clearTimeout(timerRef.current);
+      if (labels.length > 1) clearTimeout(stepTimeout);
+      if (labels.length > 1) {
+        if (timerRef.current) clearTimeout(timerRef.current);
+      }
     };
   }, [currentIndex, labels]);
-
+  if (labels.length === 1) {
+    return (
+      <div
+        ref={ref}
+        className="relative h-6 min-w-[150px] overflow-hidden select-none"
+        style={{ height: "1.5rem" }}
+      >
+        <span
+          key={currentIndex}
+          className="absolute will-change-transform transition-all text-[9px]"
+          style={{
+            color: "#388CFF",
+            opacity: 1,
+          }}
+        >
+          {labels[0]?.text}
+        </span>
+      </div>
+    );
+  }
   return (
     <div
       ref={ref}
@@ -77,7 +97,7 @@ export const ProductLabelsAnimated = ({
       {showLabel && (
         <span
           key={currentIndex}
-          className="absolute will-change-transform transition-all"
+          className="absolute will-change-transform transition-all text-[9px]"
           style={{
             color: "#388CFF",
             opacity: animateIn ? 1 : 0,

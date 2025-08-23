@@ -1,5 +1,6 @@
 export const runtime = "nodejs";
 export const preferredRegion = "bom1";
+export const dynamic = "force-dynamic";
 import FilterList from "components/Server/FilterList";
 import ProductListServer from "components/Server/ProductList";
 import BackIcon from "public/svg/listing/backIcon.svg";
@@ -12,7 +13,6 @@ import VerificationIcon from "public/svg/listing/VerificationIcon.svg";
 import TopStarIcon from "public/svg/listing/TopStar.svg";
 import Image from "next/image";
 import "styles/listing-components.css";
-import Skeleton from "react-loading-skeleton";
 import { getBoutiqueMetadata, GetStructuredData } from "./Metadata";
 import FilterWidgetContainer from "components/filterPage/FiltersWidget";
 import ShareBoutiquePageButton from "components/filterPage/ShareBoutiquePageButton";
@@ -208,6 +208,7 @@ export default async function Page({ params }: { params: ParamsType }) {
       >
         <ProductListServer
           colors={filtersData?.colors}
+          boutique={boutique?.banners ? boutique : null}
           products={filtersData?.products ?? []}
           offset={filtersData?.offset}
           currency={currency}

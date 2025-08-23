@@ -9,7 +9,7 @@ import { useAppStore } from "store";
 import { useParams, useSearchParams } from "next/navigation";
 
 function SearchContainer({ active }) {
-  const { setSearchWord, value } = useAppStore();
+  const { setSearchWord, value, setTrendingSearch } = useAppStore();
   const [searchHistoryItems, setSearchHistory] = useState([]);
   const { lang } = useParams();
 
@@ -23,7 +23,9 @@ function SearchContainer({ active }) {
   const searchParams = useSearchParams();
   const getSearchData = async () => {
     try {
-      await search.getTrendingSearch();
+      let data = await search.getTrendingSearch();
+
+      setTrendingSearch(data.popular_search_terms);
       await search.getSearchOptions({
         noProducts: true,
         lang: lang,

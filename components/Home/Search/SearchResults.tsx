@@ -142,7 +142,7 @@ function SearchResults() {
               return (
                 <ProductItem
                   product={product}
-                  key={index}
+                  key={product?.product_id}
                   onClick={(e) => {
                     // Sendevent({
                     //   event: GA_EVENT_NAMES.CLICK,

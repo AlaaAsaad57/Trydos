@@ -47,7 +47,9 @@ function OrderSuccess() {
             rate: currency?.exchange_rate,
             returnNumber: true,
           }),
-          coupon: orderData.coupon_number,
+          coupon_code: orderData.coupon_number,
+          coupon_id: orderData.coupon_number,
+          coupon_discount_rate: orderData.coupon,
           items: cart.map((item) => ({
             item_id: item.product_id,
             item_name: item.name,

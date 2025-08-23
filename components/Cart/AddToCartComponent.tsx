@@ -99,11 +99,14 @@ function AddToCartComponent({
         })(),
         (async () => {
           let response = await fetchData({
-            url: `/api/v2/elastic/shared_count/${product.id}`,
-            reqTitle: REQUESTS_DATA.SHARE_COUNT_REQUEST,
-            method: "GET",
-            server: "chat",
-            useCached: true,
+            url: `/api/products/view`,
+            reqTitle: REQUESTS_DATA.GET_VIEW_PRODUCT,
+            method: "POST",
+            server: "elastic",
+            body: JSON.stringify({
+              user_id: auth.UserID(),
+              product_id: product.id,
+            }),
           });
           // @ts-ignore
           if (!response.success) {
@@ -146,7 +149,8 @@ function AddToCartComponent({
         // is_redeem: shouldShowRedeem() && true,
         ...data2.data,
         ...data4.data,
-        shared_count: data3.data.shared_count,
+        ...data3,
+        shared_count: product?.shared_count || 0,
         variation: newVariants,
         sync_color_images: !product.singleColor
           ? data4.data.sync_color_images || []
@@ -737,6 +741,32 @@ function AddToCartComponent({
                 max_scale={1}
                 min_scale={0.6}
                 onSlideChange={(index) => {
+                  GAevent({
+                    action: GA_EVENT_NAMES.CHANGE_COLOR,
+                    params: {
+                      user_id_custom: auth.UserID(),
+                      item_id: ProductData.id,
+                      item_name: ProductData?.name,
+                      brand: ProductData?.brand?.name,
+                      brand_id: ProductData?.brand?.id,
+                      category:
+                        ProductData?.category?.name ||
+                        ProductData?.categories?.[0]?.name,
+                      category_id:
+                        ProductData?.category?.id ||
+                        ProductData?.categories?.[0]?.id,
+                      price: RoundPrice({
+                        num: ProductData?.offer_price,
+                        rate: currency?.exchange_rate,
+                        returnNumber: true,
+                        language: "en",
+                      }),
+                      selected_color:
+                        ProductData?.sync_color_images[index]?.color_option ||
+                        ProductData?.sync_color_images[index]?.color_name,
+                      selected_size: selectedSize?.option ?? selectedSize?.name,
+                    },
+                  });
                   setSelectedColor(ProductData?.sync_color_images[index]);
                 }}
                 slidesArray={ProductData?.sync_color_images?.map((s, i) => i)}
@@ -1004,6 +1034,39 @@ function AddToCartComponent({
                       max_drag={100}
                       slide_width={70}
                       onSlideChange={(index) => {
+                        GAevent({
+                          action: GA_EVENT_NAMES.CHANGE_SIZE,
+                          params: {
+                            user_id_custom: auth.UserID(),
+                            item_id: ProductData.id,
+                            item_name: ProductData?.name,
+                            brand: ProductData?.brand?.name,
+                            brand_id: ProductData?.brand?.id,
+                            category:
+                              ProductData?.category?.name ||
+                              ProductData?.categories?.[0]?.name,
+                            category_id:
+                              ProductData?.category?.id ||
+                              ProductData?.categories?.[0]?.id,
+                            price: RoundPrice({
+                              num: ProductData?.offer_price,
+                              rate: currency?.exchange_rate,
+                              returnNumber: true,
+                              language: "en",
+                            }),
+                            selected_color:
+                              selectedColor?.color_option ??
+                              selectedColor?.color_name,
+                            selected_size:
+                              ProductData?.choice_options?.[0]?.options?.[index]
+                                ?.option ??
+                              ProductData?.choice_options?.[0]?.options?.[index]
+                                ?.name ??
+                              ProductData?.choice_options?.[0]?.options?.[
+                                index
+                              ],
+                          },
+                        });
                         setSelectedSize(
                           ProductData?.choice_options?.[0]?.options?.[index]
                         );
@@ -1338,6 +1401,7 @@ function AddToCartComponent({
 
             {shouldShowNotifyButton() ? (
               <NotifyCartButton
+                product={ProductData}
                 isNotified={getSelectedVariantQty()?.variant_notify_for_user}
                 setNotify={() => {
                   setProductData({
@@ -1915,10 +1979,12 @@ const AddToCartButton = ({
                   (isVariantInCart({ exact: false })?.quantity ?? 0) + 1,
                 brand: product?.brand?.name,
                 brand_id: product?.brand?.id,
-                category: product?.category?.name,
-                category_id: product?.category?.id,
+                category:
+                  product?.category?.name || product?.categories?.[0]?.name,
+                category_id:
+                  product?.category?.id || product?.categories?.[0]?.id,
                 count_likes: product?.count_of_likes,
-                review_count: product?.shared_count,
+                review_count: product?.views_count ?? product?.view_count,
                 item_variant: selectedVariant?.type,
               },
             ],
@@ -1976,7 +2042,7 @@ const AddToCartButton = ({
                 category: product?.category?.name,
                 category_id: product?.category?.id,
                 count_likes: product?.count_of_likes,
-                review_count: product?.shared_count,
+                review_count: product?.views_count ?? product?.view_count,
                 item_variant: selectedVariant?.type,
               },
             ],
@@ -2142,16 +2208,38 @@ const AddToCartButton = ({
     </div>
   );
 };
-const NotifyCartButton = ({ isNotified, setNotify, selected_variant, id }) => {
+const NotifyCartButton = ({
+  isNotified,
+  setNotify,
+  selected_variant,
+  id,
+  product,
+}) => {
+  const { currency } = useAppStore();
   const NotifyAction = async () => {
     if (typeof Notification !== "undefined") {
       const permission = await Notification.requestPermission();
     }
     if (!isNotified) {
-      // Sendevent({
-      //   event: GA_EVENT_NAMES.CLICK,
-      //   value: GA_CLICK_EVENT_VALUES.NOTIFY_ME_BUTTON,
-      // });
+      GAevent({
+        action: GA_EVENT_NAMES.ENABLE_PRODUCT_NOTIFICATION,
+        params: {
+          user_id_custom: auth.UserID(),
+          item_id: product.id,
+          type_notification: "product_availablity",
+          item_name: product?.name,
+          brand: product?.brand?.name,
+          brand_id: product?.brand?.id,
+          category: product?.category?.name || product?.categories?.[0]?.name,
+          category_id: product?.category?.id || product?.categories?.[0]?.id,
+          price: RoundPrice({
+            num: product?.offer_price,
+            rate: currency?.exchange_rate,
+            returnNumber: true,
+            language: "en",
+          }),
+        },
+      });
       setNotify();
       await auth.NotifyForProducts({
         id: id,

@@ -1,5 +1,6 @@
 export const runtime = "nodejs";
 export const preferredRegion = "bom1";
+export const dynamic = "force-dynamic";
 import FilterList from "components/Server/FilterList";
 import ProductListServer from "components/Server/ProductList";
 import BackIcon from "public/svg/listing/backIcon.svg";
@@ -213,6 +214,7 @@ export default async function Page({ params }: { params: ParamsType }) {
       >
         <ProductListServer
           isFeatured={true}
+          boutique={boutique?.banners ? boutique : null}
           isFlashDeals={false}
           colors={filtersData?.colors}
           products={filtersData?.products ?? []}

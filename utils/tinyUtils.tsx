@@ -43,22 +43,6 @@ export interface FilterListProps {
   isFlashDeals?: boolean;
 }
 
-export const CielNumber = (price) => {
-  return Math.ceil(price * 10) / 10;
-};
-export const getPrice = (num, lang, currency, decimal = 0) => {
-  let rateVariable = currency?.exchange_rate;
-  let price = parseFloat(num);
-  price = price * rateVariable;
-
-  if (price >= 1000000) {
-    return CielNumber(price / 1000000) + translateFunction("M", lang); // For millions
-  } else if (price >= 100000) {
-    return CielNumber(price / 1000) + translateFunction("K", lang); // For thousands
-  } else {
-    return price; // For prices under 1000
-  }
-};
 export const configureSearchParams = ({
   searchParams,
   noFilters,
@@ -119,11 +103,6 @@ export const configureSearchParams = ({
   if (searchParams.tags_names && searchParams.tags_names !== "null") {
     params.set("tags_names", decodeURIComponent(searchParams.tags_names));
   }
-  // console.log(
-  //   `params: ${decodeURIComponent(params.toString())} ${JSON.stringify(
-  //     searchParams
-  //   )}`
-  // );
 
   return params;
 };
@@ -444,7 +423,12 @@ export const GetImageUrl = (url) => {
  */
 export const getVideoUrl = (
   input: string,
-  options?: { start?: number | string; end?: number | string; width?: number | string; height?: number | string }
+  options?: {
+    start?: number | string;
+    end?: number | string;
+    width?: number | string;
+    height?: number | string;
+  }
 ): string => {
   // Build transformation string
   let transformations = [];
@@ -477,13 +461,13 @@ export const getVideoUrl = (
   const cloudinaryBase = "https://res.cloudinary.com/dtcmozf4d/video/upload/";
   const version = "v1";
   const folder = "product/videos";
-  
+
   // Remove any leading slash and ensure .mp4 extension
   let filename = input.replace(/^\//, "");
-  if (!filename.endsWith('.mp4')) {
+  if (!filename.endsWith(".mp4")) {
     filename = `${filename}.mp4`;
   }
-  
+
   return `${cloudinaryBase}${transformStr}/${version}/${folder}/${filename}`;
 };
 
@@ -755,6 +739,9 @@ export const getFilterUrl = (
 export const DetectScreen = () => {
   let pathname = window.location.pathname;
   let searchParams = new URLSearchParams(window.location.search);
+  if (pathname.includes("/setting")) {
+    return GA_GLOBAL_SCREEN.SETTINGS_SCREEN;
+  }
   if (searchParams.get("cart") === "true") {
     return GA_GLOBAL_SCREEN.CART_SCREEN;
   }
@@ -923,4 +910,92 @@ export function isSameColor(colorA, colorB) {
     normalize(a.color_option) === normalize(b.color_name) ||
     normalize(a.color_option) === normalize(b.color_option)
   );
+}
+interface CountriesResponse {
+  countries: Country[];
+}
+interface Country {
+  [key: string]: any;
+}
+
+export async function fetchCountries(
+  country = "tr",
+  language = "en"
+): Promise<CountriesResponse> {
+  try {
+    return {
+      countries: [
+        {
+          id: 103,
+          phonecode: 964,
+          iso: "IQ",
+          name: "Iraq",
+          longitude: "43.6848",
+          latitude: "33.2209",
+        },
+        {
+          id: 119,
+          phonecode: 961,
+          iso: "LB",
+          name: "lebanon",
+          longitude: "35.4954",
+          latitude: "33.8886",
+        },
+        {
+          id: 208,
+          phonecode: 963,
+          iso: "SY",
+          name: "syria",
+          longitude: "36.2783",
+          latitude: "33.5104",
+        },
+        {
+          id: 219,
+          phonecode: 90,
+          iso: "TR",
+          name: "Turkey",
+          longitude: "35.6667",
+          latitude: "39.1667",
+        },
+      ],
+    };
+  } catch (error) {
+    console.error("Error fetching countries:", error);
+    return {
+      countries: [
+        {
+          id: 103,
+          phonecode: 964,
+          iso: "IQ",
+          name: "Iraq",
+          longitude: "43.6848",
+          latitude: "33.2209",
+        },
+        {
+          id: 119,
+          phonecode: 961,
+          iso: "LB",
+          name: "lebanon",
+          longitude: "35.4954",
+          latitude: "33.8886",
+        },
+        {
+          id: 208,
+          phonecode: 963,
+          iso: "SY",
+          name: "syria",
+          longitude: "36.2783",
+          latitude: "33.5104",
+        },
+        {
+          id: 219,
+          phonecode: 90,
+          iso: "TR",
+          name: "Turkey",
+          longitude: "35.6667",
+          latitude: "39.1667",
+        },
+      ],
+    };
+  }
 }

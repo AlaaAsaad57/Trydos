@@ -1,5 +1,7 @@
+export const runtime = "nodejs";
 import { NextRequest, NextResponse } from "next/server";
-import { fetchProductWithoutRelated } from "Server Requests";
+import { getProductFromCache, storeProduct } from "Server Requests/radis";
+import { GetProductData } from "utils/pagesDataRequests/ProductPageData";
 
 // Apply CORS headers to any response
 function withCORS(res: NextResponse) {
@@ -32,36 +34,42 @@ export async function GET(
   request: NextRequest,
   { params }: { params: { slug: string } }
 ) {
-  const language = request.headers.get("lang") || "en";
-  const country = request.headers.get("country") || "tr";
-  const authorization = request.headers.get("authorization");
-
-  if (!authorization) {
-    return withCORS(
-      NextResponse.json(
-        {
-          data: null,
-          isSuccessful: false,
-          status: 401,
-          message: "UNAUTHORIZED",
-        },
-        { status: 401 }
-      )
-    );
-  }
-
+  const country = request.headers.get("country")?.trim() || "sy";
+  let language = request.headers.get("language")?.trim();
+  const lang = request.headers.get("lang")?.trim();
+  language = language ?? lang ?? "en";
+  let productDataVar;
   try {
-    const response = await fetchProductWithoutRelated(
-      params.slug,
-      language,
-      country,
-      authorization
-    );
+    const response = await getProductFromCache(params.slug, language, country);
+    if (response.product) {
+      productDataVar = { ...response.product, redis: true };
+    } else {
+      let { product: productData, socialData } = await GetProductData({
+        lang: `${country}-${language}`,
+        productId: params.slug,
+      });
+      if (!productData || !socialData) {
+        throw new Error("Not found");
+      }
+      if (
+        !productData.globalDetails &&
+        !productData.details_without_similar_related_products &&
+        !productData.qtyPriceDetails
+      ) {
+        storeProduct(productData, socialData, params.slug, language, country);
+      }
+
+      productDataVar = {
+        ...productData,
+        ...socialData,
+        redis: false,
+      };
+    }
 
     return withCORS(
       NextResponse.json(
-        { ...response },
-        { status: response.code ?? response.status }
+        { data: { ...productDataVar }, isSuccessful: true, code: 200 },
+        { status: 200 }
       )
     );
   } catch (error) {
@@ -69,7 +77,7 @@ export async function GET(
 
     return withCORS(
       NextResponse.json(
-        { isSuccessful: false, error, code: 50000 },
+        { isSuccessful: false, error, code: 500 },
         { status: 500 }
       )
     );

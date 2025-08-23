@@ -24,7 +24,7 @@ class SearchService {
       if (!response.success) {
         throw new Error(response.message);
       }
-      return response.data;
+      return response;
     } catch (error) {
       console.error(error);
       return null;

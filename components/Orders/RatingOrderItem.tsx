@@ -131,7 +131,9 @@ function RatingOrderItem({
           </div>
         </div>
       ) : (
-        <div className={` flex-col w-auto items-center justify-center z-40`}>
+        <div
+          className={` flex-col w-auto items-center justify-center z-40 rating-star-container`}
+        >
           <div className="flex-row items-center justify-center">
             {!loading ? (
               <RatingStars

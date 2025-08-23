@@ -1,16 +1,6 @@
 "use client";
 import { useAppStore } from "store";
-
-import Cookies from "js-cookie";
-import userImage from "public/images/profileNo.png";
-import {
-  _isStoreLastJson,
-  AddToCartAnimation,
-  getCart,
-  getLang,
-  urlParams,
-  WaitForCondition,
-} from "utils/functions";
+import { _isStoreLastJson, getCart, WaitForCondition } from "utils/functions";
 import Smartlook from "smartlook-client";
 
 import {
@@ -19,16 +9,13 @@ import {
   REGISTER_DEVICE_URL,
   STARTER_SETTINGS,
 } from "utils/endpointConfig";
-import { SSRDetect } from "utils/functions";
-import { changeToken } from "store/homepage/cachedActions";
+
 import { RegisterGuestApi } from "models/API/market/RegisterGuest";
 import { CustomerInfoResponse } from "models/API/market/CustomerInfo";
 import auth from "./auth";
-import { UpdateCartApi } from "models/API/market/UpdateCart";
 import LocalizationServiceClass from "./localization";
 import chat from "./chat";
 import { SetGAUser } from "utils/gtag";
-import { starttingSettingApi } from "models/API/market/StarttingSetting";
 import { showErrorNotification } from "@/store/notifications/reducer";
 import { fetchData } from "utils/fetchData";
 import {

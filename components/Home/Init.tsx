@@ -5,7 +5,8 @@ import HomeService from "services/home";
 import PopupCountry from "utils/PopupCountry";
 import home from "services/home";
 
-import { fetchCountries } from "Server Requests";
+import { fetchCountries } from "utils/tinyUtils";
+
 import Smartlook from "smartlook-client";
 
 import { translateFunction } from "utils/functions";

@@ -1,23 +1,28 @@
-import { fetchCurrency, fetchProductDetails } from "Server Requests";
+import { fetchProductDetails } from "Server Requests";
 import { fetchServerData } from "Server Requests/ServerFetch";
-
+import { elasticSearchClient } from "services/elastic/elasticsearch.config";
+let client = elasticSearchClient;
 export const GetProductData = async (params: {
   lang: string;
   productId: string;
 }) => {
-  let [country, language] = params.lang.split("-");
-  let [productData] = await Promise.all([
-    fetchProductDetails(params.productId, language, country),
-  ]);
-  let socialData = await GetSocialDataForProduct({
-    productId: productData.id,
-    lang: params.lang,
-    slug: params.productId,
-  });
-  return {
-    product: productData,
-    socialData: socialData,
-  };
+  try {
+    let [country, language] = params.lang.split("-");
+    let [productData] = await Promise.all([
+      fetchProductDetails(params.productId, language, country),
+    ]);
+    let socialData = await GetSocialDataForProduct({
+      productId: productData.id,
+      lang: params.lang,
+      slug: params.productId,
+    });
+    return {
+      product: productData,
+      socialData: socialData,
+    };
+  } catch (error) {
+    return error;
+  }
 };
 export const GetSocialDataForProduct = async ({ productId, slug, lang }) => {
   try {
@@ -30,13 +35,14 @@ export const GetSocialDataForProduct = async ({ productId, slug, lang }) => {
         revalidate: 0,
         local: lang,
       }),
-      fetchServerData({
-        url:
-          process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
-          `/api/v2/elastic/shared_count/${productId}`,
-        method: "GET",
-        local: lang,
-        revalidate: 0,
+      client.search({
+        index: "shared_products",
+        size: 1, // just one document if you expect a single match
+        query: {
+          term: {
+            product_id: productId, // exact match search
+          },
+        },
       }),
     ]);
     if (commentsRes.isError) {
@@ -51,8 +57,13 @@ export const GetSocialDataForProduct = async ({ productId, slug, lang }) => {
     // }
 
     let commentsData = commentsRes.data.data;
-    let sharesData = sharesRes.data.data;
-    return { ...commentsData, ...sharesData };
+    // @ts-ignore
+    let sharesData = sharesRes.hits?.hits?.[0]?._source?.shared_count || 0;
+
+    return {
+      ...commentsData,
+      shared_count: sharesData,
+    };
   } catch (error) {
     console.error(`Social Data:` + error);
   }

@@ -39,9 +39,7 @@ function OrderItemsList({
   const isRtl = language === "ar" || language === "ku";
   const isDelevired = (item) => {
     return (
-      !item.is_returned &&
-      item.delivery_status === "delivered" &&
-      ActivePacks?.order_status?.value === "delivered"
+      !item.is_returned && ActivePacks?.order_status?.value === "delivered"
     );
   };
   return (
@@ -123,8 +121,10 @@ function OrderItemsList({
               </div>
               {!isDelevired(product) ? (
                 <>
-                  <span className=" regular">{product?.variation?.color}</span>
-                  <span>{product?.variation?.Size}</span>
+                  <span className=" regular">
+                    {product?.variation?.[0]?.color}
+                  </span>
+                  <span>{product?.variation?.[0]?.Size}</span>
                 </>
               ) : (
                 <span className="capitalize">
