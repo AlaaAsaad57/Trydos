@@ -818,7 +818,7 @@ const ProductCard = ({
     <>
       <div className={`relative w-full flex-col`}>
         <span
-          className="absolute top-[22px] right-[0px]"
+          className="absolute top-[22px] right-[0px] p-5 cursor-pointer"
           onClick={() => {
             DisableScroll();
             document.querySelector("#OrderDetails").scrollTop = 0;

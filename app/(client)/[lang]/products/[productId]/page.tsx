@@ -178,7 +178,7 @@ async function Page({ params, searchParams }: ProductPagePropsType) {
       }
       return bool;
     };
-    if (product?.id) {
+    if (!product?.id) {
       return <ProductPageError />;
     }
     return (
