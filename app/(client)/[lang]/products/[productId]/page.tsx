@@ -49,6 +49,7 @@ import {
   storeProduct,
 } from "Server Requests/radis";
 import { fetchCurrency } from "Server Requests";
+import ProductPageError from "components/global/ProductPageError";
 
 // export const revalidate = parseInt(process.env.NEXT_PUBLIC_REVALIDATE);
 // For Middle East users
@@ -177,7 +178,9 @@ async function Page({ params, searchParams }: ProductPagePropsType) {
       }
       return bool;
     };
-
+    if (product?.id) {
+      return <ProductPageError />;
+    }
     return (
       <>
         <script

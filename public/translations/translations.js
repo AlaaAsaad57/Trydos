@@ -859,8 +859,24 @@ const translations = {
       "انتهت صلاحية الجلسة.. يرجى التحقق من رقم هاتفك",
     "Failed to update like status. Please try again.":
       "فشل تحديث حالة الإعجاب. يرجى المحاولة مرة أخرى",
+    "Product Not Found": "المنتج غير موجود",
+    "Sorry, we couldn't load this product. It might have been removed or is temporarily unavailable.":
+      "عذراً، لم نتمكن من تحميل هذا المنتج. قد يكون قد تم إزالته أو غير متاح مؤقتاً.",
+    "Don't worry, you can try again or browse our other amazing products.":
+      "لا تقلق، يمكنك المحاولة مرة أخرى أو تصفح منتجاتنا الرائعة الأخرى.",
+    "Back to Home": "العودة إلى الصفحة الرئيسية",
+    "Try Again": "حاول مرة أخرى",
+    "Retrying...": "إعادة المحاولة...",
   },
   tr: {
+    "Product Not Found": "Ürün Bulunamadı",
+    "Sorry, we couldn't load this product. It might have been removed or is temporarily unavailable.":
+      "Üzgünüz, bu ürünü yükleyemedik. Kaldırılmış olabilir veya geçici olarak mevcut değil.",
+    "Don't worry, you can try again or browse our other amazing products.":
+      "Endişelenmeyin, tekrar deneyebilir veya diğer harika ürünlerimizi keşfedebilirsiniz.",
+    "Back to Home": "Ana Sayfaya Dön",
+    "Try Again": "Tekrar Dene",
+    "Retrying...": "Yeniden deneniyor...",
     "You Can Return The Product Without Any Conditions According To The Return Policy And Get A Full Refund":
       "Ürünü iade koşulu olmadan iade edebilir ve tam ücret iadesi alabilirsiniz",
     "Add Photo": "Fotoğraf Ekle",
@@ -1710,6 +1726,14 @@ const translations = {
     "Only links from": "Yalnızca şu kaynaktan gelen bağlantılar",
   },
   ku: {
+    "Product Not Found": "بەرهەم نەدۆزرایەوە",
+    "Sorry, we couldn't load this product. It might have been removed or is temporarily unavailable.":
+      "ببوورە، نەتوانی ئەم بەرهەمە بار بکەین. لەوانەیە لابراوە یان بە کاتیەوە بەردەست نەبێت.",
+    "Don't worry, you can try again or browse our other amazing products.":
+      "نیگەرانی مەبە، دەتوانیت دووبارە هەوڵ بدەیت یان بەرهەمە زۆر جوانەکانی ترمان ببینیت.",
+    "Back to Home": "گەڕانەوە بۆ ماڵەوە",
+    "Try Again": "دووبارە هەوڵ بدە",
+    "Retrying...": "هەوڵدانەوە...",
     "Take Photo": "وێنە بگرە",
     "Failed To Retrive Results Please Try Again":
       "نەیتوانرا ئەنجامەکان به‌دەستهێنرێت، تکایە دووبارە هەوڵ بدە",

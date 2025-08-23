@@ -118,6 +118,15 @@ const translations = {
     "this message was deleted": "this message was deleted",
     "You will be notified for this product already":
       "You will be notified for this product already",
+    // Product Page Error
+    "Product Not Found": "Product Not Found",
+    "Sorry, we couldn't load this product. It might have been removed or is temporarily unavailable.":
+      "Sorry, we couldn't load this product. It might have been removed or is temporarily unavailable.",
+    "Don't worry, you can try again or browse our other amazing products.":
+      "Don't worry, you can try again or browse our other amazing products.",
+    "Back to Home": "Back to Home",
+    "Try Again": "Try Again",
+    "Retrying...": "Retrying...",
   },
   ar: {
     "Why Was The Product Return?": "لماذا تم إرجاع المنتج؟",
@@ -851,6 +860,15 @@ const translations = {
       "لقد قمت بالفعل بتفعيل الإشعارات لهذا المنتج",
     "Session Expired..please Verify Your Phone Number":
       "انتهت صلاحية الجلسة.. يرجى التحقق من رقم هاتفك",
+    // Product Page Error
+    "Product Not Found": "المنتج غير موجود",
+    "Sorry, we couldn't load this product. It might have been removed or is temporarily unavailable.":
+      "عذراً، لم نتمكن من تحميل هذا المنتج. قد يكون قد تم إزالته أو غير متاح مؤقتاً.",
+    "Don't worry, you can try again or browse our other amazing products.":
+      "لا تقلق، يمكنك المحاولة مرة أخرى أو تصفح منتجاتنا الرائعة الأخرى.",
+    "Back to Home": "العودة إلى الصفحة الرئيسية",
+    "Try Again": "حاول مرة أخرى",
+    "Retrying...": "إعادة المحاولة...",
   },
   tr: {
     "Premium Shopping": "Premium Alışveriş",
@@ -1576,6 +1594,15 @@ const translations = {
       "Bu ürün için zaten bildirim almayı etkinleştirdiniz",
     "Session Expired..please Verify Your Phone Number":
       "Oturum süresi doldu.. Lütfen telefon numaranızı doğrulayın",
+    // Product Page Error
+    "Product Not Found": "Ürün Bulunamadı",
+    "Sorry, we couldn't load this product. It might have been removed or is temporarily unavailable.":
+      "Üzgünüz, bu ürünü yükleyemedik. Kaldırılmış olabilir veya geçici olarak mevcut değil.",
+    "Don't worry, you can try again or browse our other amazing products.":
+      "Endişelenmeyin, tekrar deneyebilir veya diğer harika ürünlerimizi keşfedebilirsiniz.",
+    "Back to Home": "Ana Sayfaya Dön",
+    "Try Again": "Tekrar Dene",
+    "Retrying...": "Yeniden deneniyor...",
   },
 };
 
