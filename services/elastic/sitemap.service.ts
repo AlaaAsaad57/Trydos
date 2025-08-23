@@ -1090,19 +1090,19 @@ export async function generateLocaleSpecificSitemapUrls(
   console.log("1.base url  :" , baseUrl);
   
   // 2. Static pages for this locale
-  const staticPages = getStaticPages();
-  for (const page of staticPages) {
-    // Extract path from full URL
-    const urlPath = new URL(page.url).pathname;
-    const staticUrl = `${baseUrl}/${country}-${language}${urlPath}`;
-    sitemapUrls.push({
-      loc: staticUrl,
-      lastmod: page.last_modified,
-      changefreq: page.frequency,
-      priority: page.priority,
-    });
-  }
-  console.log("2. Static pages for this locale:" , sitemapUrls)
+  // const staticPages = getStaticPages();
+  // for (const page of staticPages) {
+  //   // Extract path from full URL
+  //   const urlPath = new URL(page.url).pathname;
+  //   const staticUrl = `${baseUrl}/${country}-${language}${urlPath}`;
+  //   sitemapUrls.push({
+  //     loc: staticUrl,
+  //     lastmod: page.last_modified,
+  //     changefreq: page.frequency,
+  //     priority: page.priority,
+  //   });
+  // }
+  // console.log("2. Static pages for this locale:" , sitemapUrls)
   
       // 3. Products for this locale
     try {
@@ -1112,9 +1112,6 @@ export async function generateLocaleSpecificSitemapUrls(
       const localeProducts = products.filter(product => 
         product.language_code === language
       );
-      
-      console.log("3. Products for this global :" , products.length);
-      console.log("3. Products for this locale :" , localeProducts.length);
 
       for (const product of localeProducts) {
         if (product.slug && product.slug.trim() !== "") {

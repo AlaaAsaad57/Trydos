@@ -91,6 +91,7 @@ const translations = {
       "وقت التسليم، ساعي التوصيل، سيارة التوصيل",
     "Add Comment…": "أضف تعليق…",
     Pack: "مجموعة",
+    "Please Add Photos Of The Product You Received So That We Can Provide You With The Best Service To Avoid This Issue.": "يرجى إضافة صور للمنتج الذي استلمته حتى نتمكن من تقديم أفضل خدمة لك لتجنب هذه المشكلة",
     "Rate & Get Money": "قيم واحصل على المال",
     "Your Accurate Rating Of The Products You Receive Helps Us Improve Quality And Helps Other Customers Purchase.":
       "تقييمك الدقيق للمنتجات التي تتسلمها يساعدنا في تحسين الجودة ويساعد العملاء الآخرين على الشراء.",
@@ -1971,6 +1972,7 @@ const translations = {
     "Product Restricted in This Country":
       "بەرهەمەکە لەم وڵاتەدا سەرپەڕشتی کراوە",
     "Product Not available": "بەرهەم بەردەست نییە",
+    "Please Add Photos Of The Product You Received So That We Can Provide You With The Best Service To Avoid This Issue.": "Lütfen aldığınız ürünün fotoğraflarını ekleyin, böylece bu sorunu önlemek için size en iyi hizmeti sunabiliriz",
     Gender: "ڕەگەز",
     Man: "نێر",
     Woman: "مێ",
@@ -2581,6 +2583,7 @@ const translations = {
     "Please enable notification permissions to use camera features":
       "تکایە دەسەڵاتی ئاگادارکردنەوە چالاک بکە بۆ بەکارهێنانی تایبەتمەندییەکانی کامێرا",
       "Failed to update like status. Please try again.": "سەرکەوتوو نەبوو لە نوێکردنەوەی دۆخی حەزلەکردن. تکایە دووبارە هەوڵ بدە",
+      "Please Add Photos Of The Product You Received So That We Can Provide You With The Best Service To Avoid This Issue.": "تکایە وێنەکانی بەرهەمەکەی وەرگیراوە زیاد بکە بۆ ئەوەی بتوانین باشترین خزمەتگوزاری پێشکەش بکەین بۆ ڕێگری لە ئەم کێشەیە",
   },
 };
 

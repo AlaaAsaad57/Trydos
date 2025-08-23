@@ -22,7 +22,7 @@ export async function GET(
     const [country, language] = parts;
     
     // Validate country and language parameters
-    const validCountries = ['tr', 'iq', 'lb', 'sy'];
+    const validCountries = ['tr', 'iq', 'lb', 'sy' , 'gb'];
     const validLanguages = ['en', 'ar', 'tr', 'ku'];
     
     if (!validCountries.includes(country) || !validLanguages.includes(language)) {
