@@ -47,12 +47,7 @@ function CommentSection({
         brand_id: product?.brand?.id,
         category: product?.category?.name || product?.categories?.[0]?.name,
         category_id: product?.category?.id || product?.categories?.[0]?.id,
-        price: RoundPrice({
-          num: product?.offer_price,
-          rate: currency?.exchange_rate,
-          returnNumber: true,
-          language: "en",
-        }),
+        price: product?.offer_price,
       },
     });
     await getComments();

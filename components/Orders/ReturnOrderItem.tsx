@@ -33,7 +33,6 @@ function ReturnOrderItem({
   const [images, setImages] = useState<string[]>(item?.return?.img ?? []);
   const [loading, setLoading] = useState(true);
   const getReasons = async () => {
-    console.log(item);
     try {
       setLoading(true);
       let response = await order.getReturnReasons();
@@ -166,7 +165,11 @@ function ReturnOrderItem({
           options.map((option, index) => (
             <div
               key={option?.id}
-              className={`px-[12px] w-auto regular text-[12px] text-[#5D5C5D] flex-row h-[39px] justify-start items-center rounded-[12px] bg-[#F8F8F8] `}
+              className={`${
+                option.is_cost_by_system === 0 &&
+                option.cost > item.price_after_discount &&
+                "opacity-65"
+              } px-[12px] w-auto regular text-[12px] text-[#5D5C5D] flex-row h-[39px] justify-start items-center rounded-[12px] bg-[#F8F8F8] `}
               style={{
                 flex: "0 1 auto",
                 border:
@@ -175,6 +178,11 @@ function ReturnOrderItem({
                     : "none",
               }}
               onClick={() => {
+                if (option.is_cost_by_system === 0) {
+                  if (option.cost > item.price_after_discount) {
+                    return;
+                  }
+                }
                 handleOptionClick(option);
               }}
             >

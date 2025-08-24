@@ -52,12 +52,7 @@ function ProductSizes({ sizes }: ProductSizesPropsType) {
           SelectedProduct?.categories?.[0]?.name,
         category_id:
           SelectedProduct?.category?.id || SelectedProduct?.categories?.[0]?.id,
-        price: RoundPrice({
-          num: SelectedProduct?.offer_price,
-          rate: currency?.exchange_rate,
-          returnNumber: true,
-          language: "en",
-        }),
+        price: SelectedProduct?.offer_price,
         selected_color: color,
         selected_size: e.option,
       },
@@ -139,12 +134,7 @@ function ProductSizes({ sizes }: ProductSizesPropsType) {
                 category_id:
                   SelectedProduct?.category?.id ||
                   SelectedProduct?.categories?.[0]?.id,
-                price: RoundPrice({
-                  num: SelectedProduct?.offer_price,
-                  rate: currency?.exchange_rate,
-                  returnNumber: true,
-                  language: "en",
-                }),
+                price: SelectedProduct?.offer_price,
               },
             });
           }

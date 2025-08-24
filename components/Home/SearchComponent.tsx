@@ -9,14 +9,9 @@ import SearchVoice from "./Search/SearchVoice";
 import SearchImage from "./Search/SearchImage";
 import SearchService from "services/search";
 import { useAppStore } from "store";
-import {
-  GA_EVENT_NAMES,
-  GA_GLOBAL_PLATFORM,
-  GA_GLOBAL_SCREEN,
-} from "utils/GAEvents";
+import { GA_EVENT_NAMES, GA_GLOBAL_SCREEN } from "utils/GAEvents";
 import { GAevent } from "utils/gtag";
 import { pollinateInput } from "utils/tinyUtils";
-import { getProductsAndFiltersFromElastic } from "services/elastic/elasticSearch";
 import { showErrorNotification } from "store/notifications/reducer";
 interface SearchComponentProps {
   searchEnabled: boolean;
@@ -244,6 +239,7 @@ function SearchComponent({
         <input
           maxLength={90}
           data-cy="inputField"
+          id="search-element"
           className="search-input"
           // @ts-ignore
           placeholder={translateFunction("Search", lang?.split("-")[1])}

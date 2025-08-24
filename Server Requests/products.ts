@@ -11,12 +11,6 @@ export async function fetchProductDetails(
   country: string
 ): Promise<ProductDetailsResponse> {
   try {
-    // let productCache = await getProductFromCache(slug, language, country);
-    // let time = productCache.timeMs;
-    // console.log(time);
-    // if (productCache?.product?.id) {
-    //   return { ...productCache, redis: true, time: time };
-    // }
     let [generalDetails, extendedDetails] = await Promise.all([
       fetchProductGeneralDetails(slug, language, country),
       fetchProductExtendedDetails(slug, language, country),
@@ -25,7 +19,6 @@ export async function fetchProductDetails(
       ...extendedDetails.data,
       ...generalDetails.data,
       redis: false,
-      // time: time,
     };
   } catch (error) {
     console.error("Error fetching product details:", error);
@@ -42,7 +35,6 @@ export async function fetchProductGeneralDetails(
     let response = await fetchServerData({
       url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/mobile/product/details/${slug}?lang=${language}`,
       method: "GET",
-      tags: ["product-details"],
       revalidate: 0,
       local: `${country}-${language}`,
     });
@@ -63,7 +55,8 @@ export async function fetchProductGeneralDetails(
 
     return response.data;
   } catch (error) {
-    return { data: { details_req: true } };
+    console.log(`Product Simple Details Error`, error);
+    throw error;
   }
 }
 export async function fetchProductExtendedDetails(
@@ -75,7 +68,6 @@ export async function fetchProductExtendedDetails(
     let response = await fetchServerData({
       url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/web/product/qtyPriceDetails/${slug}?lang=${language}&country=${country}`,
       method: "GET",
-      tags: ["product-details"],
       revalidate: 0,
       local: `${country}-${language}`,
     });
@@ -94,6 +86,7 @@ export async function fetchProductExtendedDetails(
     }
     return response.data;
   } catch (error) {
-    return { data: { qtyPriceDetails: true } };
+    console.log(`Product Extended Details  Error`, error);
+    throw error;
   }
 }

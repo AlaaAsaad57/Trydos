@@ -119,16 +119,14 @@ export const useCartStore = (set, get) => ({
   setOrderDetails: (order) => {
     set((state) => ({
       selectedOrder: order,
-      orderReturnObject: order ? state.orderReturnObject : null,
     }));
   },
-  setCartShippingSuccess: (flag: string) => set({cartShippingSuccess: flag}),
+  setCartShippingSuccess: (flag: string) => set({ cartShippingSuccess: flag }),
   setOrderPageLoading: (loading) => set({ orderPageLoading: loading }),
   setActivePacks: (pack) => set({ ActivePacks: pack }),
   setSelectedOrderItem: (item) =>
     set({ SelectedOrderItem: item, showOrderOptions: Boolean(item) }),
   setOrderOptions: (bool) => set({ showOrderOptions: bool }),
-  setOrderReturnObject: (e) => set({ orderReturnObject: e }),
   setProvinces: (provinces) => set({ provinces }),
   setCryptoCardPayment: (url) =>
     set({

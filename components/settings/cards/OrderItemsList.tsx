@@ -47,7 +47,10 @@ function OrderItemsList({
       <div
         onClick={(e) => {
           // @ts-ignore
-          if (!e.target.closest(".chat-holder")) setExpanded(!isExpanded);
+          if (!e.target.closest(".chat-holder")) {
+            setExpanded(!isExpanded);
+            document.querySelector("#OrderDetails").scrollTop = 0;
+          }
         }}
         className="bg-[#F4F4F4] mt-[8px] ml-[8px] w-full min-h-[74px] h-auto  rounded-[15px] py-[7px] px-[12px] flex-col"
         style={{

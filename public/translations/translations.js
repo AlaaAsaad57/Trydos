@@ -2,6 +2,17 @@ const translations = {
   ar: {
     "Please enable notification permissions to use camera features":
       "يرجى تفعيل أذونات الإشعارات لاستخدام ميزات الكاميرا",
+    "Product Return Has Been Requested": "تم طلب إرجاع المنتج",
+    "Waiting…": "جارٍ الانتظار…",
+    "Product Return Request Approve": "الموافقة على طلب إرجاع المنتج",
+    "Product Return Needs Confirm": "طلب إرجاع المنتج يحتاج إلى تأكيد",
+    "You Need To Confirm Your Request": "تحتاج إلى تأكيد طلبك",
+    "Product Return Request Approved": "تمت الموافقة على طلب إرجاع المنتج",
+    "Product Collection Within 1 Day": "سيتم استلام المنتج خلال يوم واحد",
+    "Product Has Been Returned Successfully": "تم إرجاع المنتج بنجاح",
+    "Back To Your Wallet": "سترجع لمحفظتك",
+    "Product Has Been Resolved Successfully": "تم حل مشكلة المنتج بنجاح",
+    "Cancel Return Request & Get": "إلغاء طلب الإرجاع والحصول على",
     "Add Story": "اضافة قصة",
     "Add Photo": "أضف صورة",
     "Failed To Remove Image..Try Again": "فشل حذف الصورة ..حاول مجددا",
@@ -859,8 +870,35 @@ const translations = {
       "انتهت صلاحية الجلسة.. يرجى التحقق من رقم هاتفك",
     "Failed to update like status. Please try again.":
       "فشل تحديث حالة الإعجاب. يرجى المحاولة مرة أخرى",
+    "Product Not Found": "المنتج غير موجود",
+    "Sorry, we couldn't load this product. It might have been removed or is temporarily unavailable.":
+      "عذراً، لم نتمكن من تحميل هذا المنتج. قد يكون قد تم إزالته أو غير متاح مؤقتاً.",
+    "Don't worry, you can try again or browse our other amazing products.":
+      "لا تقلق، يمكنك المحاولة مرة أخرى أو تصفح منتجاتنا الرائعة الأخرى.",
+    "Back to Home": "العودة إلى الصفحة الرئيسية",
+    "Try Again": "حاول مرة أخرى",
+    "Retrying...": "إعادة المحاولة...",
   },
   tr: {
+    "Product Not Found": "Ürün Bulunamadı",
+    "Product Return Has Been Requested": "Ürün iadesi talep edildi",
+    "Waiting…": "Bekleniyor…",
+    "Product Return Request Approve": "Ürün iade talebini onayla",
+    "Product Return Needs Confirm": "Ürün iade talebi onay gerektiriyor",
+    "You Need To Confirm Your Request": "Talebinizi onaylamanız gerekiyor",
+    "Product Return Request Approved": "Ürün iade talebi onaylandı",
+    "Product Collection Within 1 Day": "Ürün 1 gün içinde teslim alınacak",
+    "Product Has Been Returned Successfully": "Ürün başarıyla iade edildi",
+    "Back To Your Wallet": "Cüzdanınıza geri dönecek",
+    "Product Has Been Resolved Successfully": "Ürün sorunu başarıyla çözüldü",
+    "Cancel Return Request & Get": "İade talebini iptal et ve al",
+    "Sorry, we couldn't load this product. It might have been removed or is temporarily unavailable.":
+      "Üzgünüz, bu ürünü yükleyemedik. Kaldırılmış olabilir veya geçici olarak mevcut değil.",
+    "Don't worry, you can try again or browse our other amazing products.":
+      "Endişelenmeyin, tekrar deneyebilir veya diğer harika ürünlerimizi keşfedebilirsiniz.",
+    "Back to Home": "Ana Sayfaya Dön",
+    "Try Again": "Tekrar Dene",
+    "Retrying...": "Yeniden deneniyor...",
     "You Can Return The Product Without Any Conditions According To The Return Policy And Get A Full Refund":
       "Ürünü iade koşulu olmadan iade edebilir ve tam ücret iadesi alabilirsiniz",
     "Add Photo": "Fotoğraf Ekle",
@@ -1710,6 +1748,29 @@ const translations = {
     "Only links from": "Yalnızca şu kaynaktan gelen bağlantılar",
   },
   ku: {
+    "Product Not Found": "بەرهەم نەدۆزرایەوە",
+    "Product Return Has Been Requested": "داوای گەڕاندنەوەی بەرهەم کراوە",
+    "Waiting…": "چاوەڕێکردن…",
+    "Product Return Request Approve": "پەسەندکردنی داوای گەڕاندنەوە",
+    "Product Return Needs Confirm":
+      "داوای گەڕاندنەوە پێویستی بە پشتڕاستکردنەوە هەیە",
+    "You Need To Confirm Your Request": "پێویستە داواکەت پشتڕاست بکەیتەوە",
+    "Product Return Request Approved": "داوای گەڕاندنەوە پەسەند کرا",
+    "Product Collection Within 1 Day":
+      "بەرهەمەکە لە ماوەی یەک ڕۆژدا وەرگیرا دەبێت",
+    "Product Has Been Returned Successfully":
+      "بەرهەمەکە بە سەرکەوتوویی گەڕێندراوەتەوە",
+    "Back To Your Wallet": "دەگەڕێتەوە بۆ جزدانەکەت",
+    "Product Has Been Resolved Successfully":
+      "کێشەی بەرهەمەکە بە سەرکەوتوویی چارەسەر کرا",
+    "Cancel Return Request & Get": "داوای گەڕاندنەوە هەڵبوەشێنەوە و وەرگرە",
+    "Sorry, we couldn't load this product. It might have been removed or is temporarily unavailable.":
+      "ببوورە، نەتوانی ئەم بەرهەمە بار بکەین. لەوانەیە لابراوە یان بە کاتیەوە بەردەست نەبێت.",
+    "Don't worry, you can try again or browse our other amazing products.":
+      "نیگەرانی مەبە، دەتوانیت دووبارە هەوڵ بدەیت یان بەرهەمە زۆر جوانەکانی ترمان ببینیت.",
+    "Back to Home": "گەڕانەوە بۆ ماڵەوە",
+    "Try Again": "دووبارە هەوڵ بدە",
+    "Retrying...": "هەوڵدانەوە...",
     "Take Photo": "وێنە بگرە",
     "Failed To Retrive Results Please Try Again":
       "نەیتوانرا ئەنجامەکان به‌دەستهێنرێت، تکایە دووبارە هەوڵ بدە",

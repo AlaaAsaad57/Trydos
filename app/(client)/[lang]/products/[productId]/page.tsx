@@ -49,6 +49,7 @@ import {
   storeProduct,
 } from "Server Requests/radis";
 import { fetchCurrency } from "Server Requests";
+import ProductPageError from "components/global/ProductPageError";
 
 // export const revalidate = parseInt(process.env.NEXT_PUBLIC_REVALIDATE);
 // For Middle East users
@@ -124,7 +125,7 @@ async function GetProductDataFunc(params) {
       };
     }
   } catch (error) {
-    throw error;
+    return null;
   }
 }
 async function Page({ params, searchParams }: ProductPagePropsType) {
@@ -177,7 +178,9 @@ async function Page({ params, searchParams }: ProductPagePropsType) {
       }
       return bool;
     };
-
+    if (!product?.id) {
+      return <ProductPageError />;
+    }
     return (
       <>
         <script
@@ -185,7 +188,7 @@ async function Page({ params, searchParams }: ProductPagePropsType) {
           dangerouslySetInnerHTML={{ __html: JSON.stringify(JsonLd) }}
         />
         <div className="product-details-container w-full relative">
-          <div className="flex-col gap-[20px] mx-[5px] w-auto absolute top-[66px] right-[20px] z-[999999999]">
+          <div className="flex-col gap-[20px] mx-[5px] w-[150px] h-[19px] absolute top-[66px] right-[20px] z-[999999999]">
             {(product?.flash_deal_details?.end_date ||
               product?.flash_deal_end_date) &&
               !shouldShowNotifyButton() && (
@@ -245,12 +248,7 @@ async function Page({ params, searchParams }: ProductPagePropsType) {
                   product?.category?.name || product?.categories?.[0]?.name,
                 category_id:
                   product?.category?.id || product?.categories?.[0]?.id,
-                price: RoundPrice({
-                  num: product?.offer_price,
-                  rate: currency?.exchange_rate,
-                  returnNumber: true,
-                  language: "en",
-                }),
+                price: product?.offer_price,
               }}
             />
           </Suspense>
@@ -330,12 +328,7 @@ async function Page({ params, searchParams }: ProductPagePropsType) {
                       product?.category?.name || product?.categories?.[0]?.name,
                     category_id:
                       product?.category?.id || product?.categories?.[0]?.id,
-                    price: RoundPrice({
-                      num: product?.offer_price,
-                      rate: currency?.exchange_rate,
-                      returnNumber: true,
-                      language: "en",
-                    }),
+                    price: product?.offer_price,
                   }}
                 />
               </Suspense>

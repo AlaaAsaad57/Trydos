@@ -159,11 +159,7 @@ function CartContainer({ close, toOrders }: CartContainerPropsType) {
           items: data.cart.map((item) => ({
             item_id: item.product_id,
             item_name: item.name,
-            price: RoundPrice({
-              num: item.offer_price,
-              rate: currency?.exchange_rate,
-              returnNumber: true,
-            }),
+            price: item.offer_price,
             quantity: item.quantity,
             item_variant: item.variant ?? "N/A",
           })),
@@ -429,6 +425,13 @@ function CartContainer({ close, toOrders }: CartContainerPropsType) {
                           className="flex-row w-[110px] min-h-[161px] max-h-[161px] relative"
                           data-cy="container-image-onCard"
                         >
+                          {product.flash_deal_details?.end_date && (
+                            <div className="relative top-[8px]">
+                              <FlashDealBanner
+                                end_data={product.flash_deal_details?.end_date}
+                              />
+                            </div>
+                          )}
                           <img
                             data-cy="image-onCard"
                             src={getConfiguredImage({
@@ -695,11 +698,7 @@ function CartContainer({ close, toOrders }: CartContainerPropsType) {
                                   item_name: product.name,
                                   item_variant: product.variant,
                                   quantity: 1,
-                                  price: RoundPrice({
-                                    num: product.offer_price,
-                                    rate: currency?.exchange_rate,
-                                    returnNumber: true,
-                                  }),
+                                  price: product.offer_price,
                                 },
                               ],
                             },
@@ -1921,19 +1920,12 @@ const QuantutyInput = ({
         action: GA_EVENT_NAMES.ADD_TO_CART,
         params: {
           currency: currency?.code,
-          value: RoundPrice({
-            num: product?.offer_price,
-            rate: currency?.exchange_rate,
-            returnNumber: true,
-          }),
+          value: product?.offer_price,
           items: [
             {
               item_id: product.product_id,
               item_name: product?.name,
-              price: RoundPrice({
-                num: product?.offer_price,
-                rate: currency?.exchange_rate,
-              }),
+              price: product?.offer_price,
               quantity: parseInt(i.toString()) + 1,
               brand: product?.brand?.name,
               category: product?.category_name,
@@ -1985,7 +1977,6 @@ const QuantutyInput = ({
       className={`absolute flex-wrap ${"top-[125px]"} left-[137px] flex-row items-center justify-between max-w-[calc(100%-152px)] w-full`}
     >
       <div className="flex-col">
-        {" "}
         <div
           className={`${
             loading && "opacity-40"
@@ -2133,11 +2124,6 @@ const QuantutyInput = ({
       </div>
 
       <div className="flex-col">
-        {product.flash_deal_details?.end_date && (
-          <div className="flex-row scale-[0.8] origin-top-right">
-            <FlashDealBanner end_data={product.flash_deal_details?.end_date} />
-          </div>
-        )}
         <div className={`pl-[30px]`} data-cy="oldNew-price-container">
           <div className="product-info-price" data-cy="oldNew-price-container2">
             {product?.offer_price >= 0 &&

@@ -7,7 +7,7 @@ import {
 } from "next/navigation";
 import { NotificationItem as NotificationItemType } from "../../types/notifications";
 import NextLink from "components/global/NextLink";
-import { translateFunction } from "utils/functions";
+import { getConfiguredImage, translateFunction } from "utils/functions";
 import { formatTime, GetImageUrl } from "utils/tinyUtils";
 import { useAppStore } from "store";
 
@@ -38,16 +38,24 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
 
   const renderContent = () => {
     const src =
-      (parsedDescription.boutique_icon?.file_path && GetImageUrl(parsedDescription.boutique_icon.file_path)) ||
-      (parsedDescription.image?.file_path && GetImageUrl(parsedDescription.image.file_path)) ||
-      (parsedDescription.boutique_icon && GetImageUrl(parsedDescription.boutique_icon)) ||
+      (parsedDescription.boutique_icon?.file_path &&
+        GetImageUrl(parsedDescription.boutique_icon.file_path)) ||
+      (parsedDescription.image?.file_path &&
+        GetImageUrl(parsedDescription.image.file_path)) ||
+      (parsedDescription.image && GetImageUrl(parsedDescription.image)) ||
+      (parsedDescription.boutique_icon &&
+        GetImageUrl(parsedDescription.boutique_icon)) ||
       (parsedDescription.image_svg && GetImageUrl(parsedDescription.image_svg));
 
     return (
       <div className="flex items-start p-4 hover:bg-gray-50 transition-colors relative">
         {src ? (
           <img
-            src={src}
+            src={getConfiguredImage({
+              src: src,
+              width: 50,
+              height: 50,
+            })}
             alt={notification.title || "Image"}
             className="w-10 h-10 rounded-full mr-3 object-cover"
           />
@@ -121,7 +129,8 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
         );
       }
 
-      case parsedDescription.type?.startsWith("product hurry up") && parsedDescription.type: {
+      case parsedDescription.type?.startsWith("product hurry up") &&
+        parsedDescription.type: {
         return (
           <div
             onClick={() => {
@@ -140,7 +149,8 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
         );
       }
 
-      case parsedDescription?.type?.startsWith("product") && parsedDescription.type: {
+      case parsedDescription?.type?.startsWith("product") &&
+        parsedDescription.type: {
         const slug = parsedDescription.product_slug || parsedDescription.slug;
         const href = `/${lang}/products/${slug}`;
         return (
@@ -170,9 +180,12 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
         );
       }
 
-      case parsedDescription.type.startsWith("order") && parsedDescription.type: {
+      case parsedDescription.type.startsWith("order") &&
+        parsedDescription.type: {
         const href = `/${lang}/setting?tab=Orders${
-          parsedDescription.order_group_id ? `&id=${parsedDescription.order_group_id}` : ""
+          parsedDescription.order_group_id
+            ? `&id=${parsedDescription.order_group_id}`
+            : ""
         }`;
         return (
           <NextLink

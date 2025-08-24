@@ -47,7 +47,7 @@ function RatingOrderItem({
       if (lastComment?.length > 0) {
         inputRef.current.value = lastComment;
       }
-      inputRef.current.focus();
+      if (inputRef?.current) inputRef.current?.focus();
     }
   }, [showCommentModal]);
 

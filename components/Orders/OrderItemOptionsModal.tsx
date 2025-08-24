@@ -37,7 +37,7 @@ function OrderItemOptionsModal({
   const shouldShowRetutn = () => {
     if (ActivePacks?.order_status?.value !== "delivered") return false;
     if (item.qty === 0) return false;
-    if (selectedOrder.can_return_order) {
+    if (ActivePacks.can_return_order) {
       if (ActivePacks.return_details) {
         if (
           ActivePacks.return_details.details?.status === "pending" ||

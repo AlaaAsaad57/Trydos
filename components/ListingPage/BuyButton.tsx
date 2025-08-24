@@ -67,8 +67,7 @@ function BuyButton({
                 >
                   {RoundPrice({
                     num: redeem_price || flash_deal_price,
-                    rate: currency?.rate,
-                    points: currency?.points,
+                    rate: currency?.exchange_rate,
                     language: languageVariable,
                   })}
                 </span>

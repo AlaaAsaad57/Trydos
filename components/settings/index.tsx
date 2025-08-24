@@ -254,10 +254,10 @@ function Settings({ lang }: SettingsIndexPropsType) {
     if (isAnimating) return;
     setIsAnimating(true);
     setCurrentScreen(index);
-    if (NavigationOptions[index].id !== "Order Details") {
+    if (NavigationOptions[index]?.id !== "Order Details") {
       let newParams = new URLSearchParams(searchParams);
       newParams.delete("id");
-      newParams.set("tab", NavigationOptions[index].id);
+      newParams.set("tab", NavigationOptions[index]?.id);
       // @ts-ignore
       router.push(`/${lang}/setting?${newParams.toString()}`, {
         // @ts-ignore

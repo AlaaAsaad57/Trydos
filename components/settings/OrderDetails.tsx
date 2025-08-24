@@ -46,6 +46,7 @@ import { REQUESTS_DATA } from "utils/Requests";
 import dynamic from "node_modules/next/dynamic";
 import LandingPage from "components/Home/LandingPage";
 import Spinner from "components/global/Spinner";
+
 function OrderDetails({
   resetOrderDetails,
   goBack,
@@ -421,6 +422,10 @@ function OrderDetails({
       <div className="flex-col h-[calc(128vh)]">
         <SettingTopBar
           goBack={() => {
+            if (isExpanded) {
+              setIsExpanded(false);
+              return;
+            }
             setIsExpanded(false);
             let params = new URLSearchParams(window.location.search);
             params.delete("id");
@@ -533,6 +538,7 @@ function OrderDetails({
               />
               {isExpanded && (
                 <OrderExpandedDetails
+                  setIsExpanded={(e) => setIsExpanded(e)}
                   setShouldConfirmReturn={setShouldConfirmReturn}
                   getOrderDetails={() => getOrderDetails()}
                   order={selectedOrder?.details?.find(
@@ -553,13 +559,15 @@ const OrderExpandedDetails = ({
   order,
   getOrderDetails,
   setShouldConfirmReturn,
+  setIsExpanded,
 }: {
   order: OrderItem;
   getOrderDetails: () => void;
   setShouldConfirmReturn: (e: any) => void;
+  setIsExpanded: (e: boolean) => void;
 }) => {
   const { currency, selectedOrder, setOrderOptions } = useAppStore();
-  console.log(selectedOrder);
+
   const [cancelling, setCancelling] = useState(false);
   const CancelReturnRequest = async () => {
     if (Array.isArray(isThereAReturnedProduct()))
@@ -818,7 +826,7 @@ const ProductCard = ({
     <>
       <div className={`relative w-full flex-col`}>
         <span
-          className="absolute top-[22px] right-[0px]"
+          className="absolute top-[22px] right-[0px] p-5 cursor-pointer"
           onClick={() => {
             DisableScroll();
             document.querySelector("#OrderDetails").scrollTop = 0;

@@ -13,7 +13,12 @@ import CartIcon from "public/svg/CartIcon.svg";
 import Skeleton from "react-loading-skeleton";
 import "public/styles/sizeSlider.css";
 import Spinner from "components/global/Spinner";
-import { useParams, useSearchParams } from "next/navigation";
+import {
+  useParams,
+  usePathname,
+  useRouter,
+  useSearchParams,
+} from "next/navigation";
 import NotifySVG from "public/svg/cart/NotifyCart.svg";
 import cart from "services/cart";
 import auth from "services/auth";
@@ -36,6 +41,16 @@ function AddToCartComponent({
 
   enableCartAction,
 }) {
+  const router = useRouter();
+  const pathname = usePathname();
+  useEffect(() => {
+    window.history.pushState({ isPopup: true }, "add cart");
+    const newParams = new URLSearchParams(searchParams);
+    newParams.set("modal", "true");
+    // Use router.push with pathname and updated query
+    // @ts-expect-error 'shallow' does not exist in type 'NavigateOptions'
+    router.push(`${pathname}?${newParams.toString()}`, { shallow: true });
+  }, []);
   const searchParams = useSearchParams();
   const [sizeFromUrl, colorFromUrl] = [
     searchParams.get("size"),
@@ -755,12 +770,7 @@ function AddToCartComponent({
                       category_id:
                         ProductData?.category?.id ||
                         ProductData?.categories?.[0]?.id,
-                      price: RoundPrice({
-                        num: ProductData?.offer_price,
-                        rate: currency?.exchange_rate,
-                        returnNumber: true,
-                        language: "en",
-                      }),
+                      price: ProductData?.offer_price,
                       selected_color:
                         ProductData?.sync_color_images[index]?.color_option ||
                         ProductData?.sync_color_images[index]?.color_name,
@@ -1048,12 +1058,7 @@ function AddToCartComponent({
                             category_id:
                               ProductData?.category?.id ||
                               ProductData?.categories?.[0]?.id,
-                            price: RoundPrice({
-                              num: ProductData?.offer_price,
-                              rate: currency?.exchange_rate,
-                              returnNumber: true,
-                              language: "en",
-                            }),
+                            price: ProductData?.offer_price,
                             selected_color:
                               selectedColor?.color_option ??
                               selectedColor?.color_name,
@@ -1959,22 +1964,12 @@ const AddToCartButton = ({
           action: GA_EVENT_NAMES.ADD_TO_CART,
           params: {
             currency: currency?.code,
-            value: RoundPrice({
-              num: selectedVariant?.offer_price,
-              rate: currency?.exchange_rate,
-              returnNumber: true,
-              language: languageVariable,
-            }),
+            value: selectedVariant?.offer_price,
             items: [
               {
                 item_id: id,
                 item_name: product?.name,
-                price: RoundPrice({
-                  num: selectedVariant?.offer_price,
-                  rate: currency?.exchange_rate,
-                  returnNumber: true,
-                  language: languageVariable,
-                }),
+                price: selectedVariant?.offer_price,
                 quantity:
                   (isVariantInCart({ exact: false })?.quantity ?? 0) + 1,
                 brand: product?.brand?.name,
@@ -2020,22 +2015,12 @@ const AddToCartButton = ({
           action: GA_EVENT_NAMES.ADD_TO_CART,
           params: {
             currency: currency?.code,
-            value: RoundPrice({
-              num: selectedVariant?.offer_price,
-              rate: currency?.exchange_rate,
-              returnNumber: true,
-              language: languageVariable,
-            }),
+            value: selectedVariant?.offer_price,
             items: [
               {
                 item_id: id,
                 item_name: product?.name,
-                price: RoundPrice({
-                  num: selectedVariant?.offer_price,
-                  rate: currency?.exchange_rate,
-                  returnNumber: true,
-                  language: languageVariable,
-                }),
+                price: selectedVariant?.offer_price,
                 quantity: 1,
                 brand: product?.brand?.name,
                 brand_id: product?.brand?.id,
@@ -2086,12 +2071,7 @@ const AddToCartButton = ({
                 item_name: product.name,
                 item_variant: variant?.type,
                 quantity: 1,
-                price: RoundPrice({
-                  num: variant?.offer_price,
-                  rate: currency?.exchange_rate,
-                  returnNumber: true,
-                  language: languageVariable,
-                }),
+                price: variant?.offer_price,
               },
             ],
           },
@@ -2232,12 +2212,7 @@ const NotifyCartButton = ({
           brand_id: product?.brand?.id,
           category: product?.category?.name || product?.categories?.[0]?.name,
           category_id: product?.category?.id || product?.categories?.[0]?.id,
-          price: RoundPrice({
-            num: product?.offer_price,
-            rate: currency?.exchange_rate,
-            returnNumber: true,
-            language: "en",
-          }),
+          price: product?.offer_price,
         },
       });
       setNotify();

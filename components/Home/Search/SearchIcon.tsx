@@ -37,7 +37,6 @@ function SearchIcon({ time }) {
             //   value: GA_CLICK_EVENT_VALUES.HOME_SEARCH_BUTTON,
             // });
             normalizeView();
-
             EnableSearch(true);
           }
         }}

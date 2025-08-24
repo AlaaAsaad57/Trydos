@@ -75,6 +75,10 @@ export interface OrderDetail {
   product_id: number;
   product_slug: string;
   return_status?: string;
+  return: {
+    [key: string]: any;
+    subtotal: number;
+  };
   is_returned?: boolean;
   is_canceled?: boolean;
   image: string;
