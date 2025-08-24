@@ -41,21 +41,15 @@ export async function GET(
   let productDataVar;
   try {
     const response = await getProductFromCache(params.slug, language, country);
-    if (response.product) {
+    if (response.product?.id) {
       productDataVar = { ...response.product, redis: true };
     } else {
       let { product: productData, socialData } = await GetProductData({
         lang: `${country}-${language}`,
         productId: params.slug,
       });
-      if (!productData || !socialData) {
-        throw new Error("Not found");
-      }
-      if (
-        !productData.globalDetails &&
-        !productData.details_without_similar_related_products &&
-        !productData.qtyPriceDetails
-      ) {
+
+      if (productData?.id && productData?.images && socialData) {
         storeProduct(productData, socialData, params.slug, language, country);
       }
 

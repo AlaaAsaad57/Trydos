@@ -8,9 +8,11 @@ export const GetProductData = async (params: {
 }) => {
   try {
     let [country, language] = params.lang.split("-");
-    let [productData] = await Promise.all([
-      fetchProductDetails(params.productId, language, country),
-    ]);
+    let productData = await fetchProductDetails(
+      params.productId,
+      language,
+      country
+    );
     if (!productData?.id) {
       throw { message: "Couldnt Fetch Product" };
     }
