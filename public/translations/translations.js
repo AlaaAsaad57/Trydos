@@ -2593,7 +2593,7 @@ const translations = {
     "Confirm Country Change": "دڵنیابوون بۆ گۆڕینی وڵات",
     "Are you sure you want to change your country?":
       "دڵنیایت دەتەوێت وڵاتت بگۆڕیت؟",
-    Current: "ئێستا",
+    Current: "ئێستا", 
     New: "نوێ",
     "Coupon No": "ژمارەی کۆپۆن",
     brands: "مارکەکان",
