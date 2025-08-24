@@ -173,10 +173,6 @@ const CartProvider = () => {
           close={() => {
             setSelectedProductForCart(null);
           }}
-          color={selected_product_for_add_to_cart?.colors?.[0]}
-          size={
-            selected_product_for_add_to_cart?.choice_options?.[0]?.options?.[0]
-          }
           product={selected_product_for_add_to_cart}
           slug={selected_product_for_add_to_cart?.slug}
         />

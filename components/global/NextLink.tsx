@@ -23,6 +23,24 @@ export default function NextLink({
   data,
   ...props
 }: INextLinkProps) {
+  if (isSamePage(href)) {
+    return (
+      <div
+        className={className}
+        style={style}
+        data-cy={props["data-cy"] ?? ""}
+        onClick={(e) => {
+          // @ts-ignore
+          onClick?.(e);
+        }}
+        // onClick={(e) => {
+        //   if (onClick) onClick(e);
+        // }}
+      >
+        {children}
+      </div>
+    );
+  }
   return (
     <Link
       className={className}
@@ -87,4 +105,21 @@ export default function NextLink({
       {children}
     </Link>
   );
+}
+function isSamePage(pathname) {
+  // In SSR: no window
+  if (typeof window === "undefined") {
+    return false;
+  }
+
+  // Normalize both current path and input
+  const normalize = (path) => {
+    let p = path.replace(/\/+$/, ""); // strip trailing slashes
+    if (p === "") p = "/"; // root normalization
+    return p;
+  };
+  const current = normalize(window.location.pathname + window.location.search);
+  const target = normalize(pathname);
+
+  return current === target;
 }

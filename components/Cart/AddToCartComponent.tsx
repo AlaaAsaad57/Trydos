@@ -32,15 +32,7 @@ import { fetchData } from "utils/fetchData";
 import StackedSlider from "utils/Slider";
 import { REQUESTS_DATA } from "utils/Requests";
 
-function AddToCartComponent({
-  color,
-  size,
-  product,
-  slug,
-  close,
-
-  enableCartAction,
-}) {
+function AddToCartComponent({ product, slug, close, enableCartAction }) {
   const router = useRouter();
   const pathname = usePathname();
   useEffect(() => {
@@ -65,10 +57,16 @@ function AddToCartComponent({
 
   const [selectedColor, setSelectedColor] = useState(
     ProductData?.sync_color_images?.find(
-      (s) => s.color_option?.toLowerCase() === colorFromUrl?.toLowerCase()
+      (s) =>
+        s.color_option?.toLowerCase() === colorFromUrl?.toLowerCase() ||
+        s.color_name?.toLowerCase() === colorFromUrl?.toLowerCase()
     ) || ProductData?.sync_color_images?.[0]
   );
-  const [selectedSize, setSelectedSize] = useState(null);
+  const [selectedSize, setSelectedSize] = useState(
+    ProductData?.choice_options?.[0]?.options?.find(
+      (option) => option.option === sizeFromUrl || option.name === sizeFromUrl
+    ) || ProductData?.choice_options?.[0]?.options?.[0]
+  );
   const [loading, setLoading] = useState(false);
   const [requestLoading, setRequestLoading] = useState(false);
   useEffect(() => {
@@ -187,8 +185,10 @@ function AddToCartComponent({
       else if (colorFromUrl) {
         setSelectedColor(
           tempProductData?.sync_color_images?.find(
-            (s) => s.color_option === colorFromUrl
-          )
+            (s) =>
+              s.color_option?.toLowerCase() === colorFromUrl?.toLowerCase() ||
+              s.color_name?.toLowerCase() === colorFromUrl?.toLowerCase()
+          ) ?? tempProductData?.sync_color_images?.[0]
         );
       } else {
         setSelectedColor(tempProductData?.sync_color_images[0]);
@@ -202,8 +202,10 @@ function AddToCartComponent({
         if (sizeFromUrl?.length > 0) {
           setSelectedSize(
             tempProductData?.choice_options?.[0]?.options.find(
-              (s) => s.option?.toLowerCase() === sizeFromUrl?.toLowerCase()
-            )
+              (s) =>
+                s.option?.toLowerCase() === sizeFromUrl?.toLowerCase() ||
+                s.name?.toLowerCase() === sizeFromUrl?.toLowerCase()
+            ) ?? tempProductData?.choice_options?.[0]?.options?.[0]
           );
         } else {
           setSelectedSize(tempProductData?.choice_options?.[0]?.options?.[0]);

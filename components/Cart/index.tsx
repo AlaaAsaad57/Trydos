@@ -2233,26 +2233,26 @@ const CartItemLink = ({ product, children }) => {
   const getURLOfProduct = ({ product }) => {
     let productUrl;
     const hasValidColor =
-      product.variations[0]?.color &&
-      product.variations[0]?.color !== "undefined";
+      product.variations[0]?.color_options &&
+      product.variations[0]?.color_options !== "undefined";
     const hasValidSize =
-      product.variations[0]?.Size &&
-      product.variations[0]?.Size !== "undefined";
+      product.variations[0]?.size_options &&
+      product.variations[0]?.size_options !== "undefined";
 
     if (hasValidColor && !hasValidSize)
       productUrl = `/${lang}/products/${
         product.slug
-      }${`?color=${product?.variations[0]?.color}`}`;
+      }${`?color=${product?.variations[0]?.color_options}`}`;
     else if (!hasValidColor && hasValidSize)
       productUrl = `/${lang}/products/${
         product.slug
-      }${`?size=${product?.variations[0]?.Size}`}`;
+      }${`?size=${product?.variations[0]?.size_options}`}`;
     else if (!hasValidColor && !hasValidSize)
       productUrl = `/${lang}/products/${product.slug}`;
     else if (hasValidColor && hasValidSize)
       productUrl = `/${lang}/products/${
         product.slug
-      }${`?size=${product?.variations[0]?.Size}&color=${product?.variations[0]?.color}`}`;
+      }${`?size=${product?.variations[0]?.size_options}&color=${product?.variations[0]?.color_options}`}`;
     return productUrl;
   };
   const getProductCartUrl = (product) => {

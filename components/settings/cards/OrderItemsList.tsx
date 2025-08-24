@@ -3,7 +3,6 @@ import { OrdersIcon } from "../OrdersList";
 import { translateFunction } from "utils/functions";
 import { useParams } from "next/navigation";
 import NextLink from "components/global/NextLink";
-import RatingStars from "./RatingStars";
 import OrderStatusIcon from "./OrderStatusIcon";
 import {
   PendingStatus,
@@ -24,6 +23,7 @@ function OrderItemsList({
   shouldShowChat,
   showChats,
   getOrderDetails,
+  getProductUrl,
 }: OrderItemsListPropsType) {
   const { ActivePacks } = useAppStore();
   const getStatusIcon = (status) => {
@@ -83,11 +83,11 @@ function OrderItemsList({
           <div className="relative flex-col" key={product.id}>
             <NextLink
               key={product.product_details.id}
-              href={`/${lang}/products/${product.product_slug}`}
+              href={getProductUrl(product)}
               data={{
                 is_product: true,
                 ...product.product_details,
-                href: `/${lang}/products/${product.product_slug}`,
+                href: getProductUrl(product),
               }}
               className="flex-row cursor-pointer items-center relative min-w-[91px] w-[91px] h-[125px] ml-[5px]"
             >

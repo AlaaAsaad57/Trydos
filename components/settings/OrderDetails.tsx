@@ -72,11 +72,28 @@ function OrderDetails({
     setActivePacks,
     orderPageLoading: loading,
     setOrderPageLoading: setLoading,
+    setIsNavigating,
   } = useAppStore();
   const fetchedOrderIdRef = useRef<string | number | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
   const { lang } = useParams();
+  const getProductUrl = (product) => {
+    let pathname = `/${lang}/products/${
+      product.product_slug || product?.product_details?.slug
+    }`;
+    if (product.variation?.length > 0) {
+      let newParams = new URLSearchParams();
+      if (product?.variation?.[0]?.color_options) {
+        newParams.set("color", product?.variation?.[0]?.color_options);
+      }
+      if (product?.variation?.[0]?.size_options) {
+        newParams.set("size", product?.variation?.[0]?.size_options);
+      }
 
+      return pathname + `?${newParams?.toString()}`;
+    }
+    return pathname;
+  };
   const getOrderDetails = async () => {
     // Abort any previous request
     if (abortControllerRef.current) {
@@ -138,7 +155,9 @@ function OrderDetails({
       } else setActivePacks(data[0]);
 
       setOrderDetails(orderData);
+      setIsNavigating(false);
     } catch (error) {
+      setIsNavigating(false);
       // Don't handle error if it's an abort error
       if (error.name === "AbortError") {
         return;
@@ -176,6 +195,7 @@ function OrderDetails({
     goBack();
     setIsExpanded(false);
   };
+
   const [isExpanded, setIsExpanded] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [chatInfo, setChatInfo] = useState<Channel | null>(null);
@@ -407,7 +427,7 @@ function OrderDetails({
     if (ActivePacks?.order_status?.value === "delivered") return true;
     else return false;
   };
-  if (!selectedOrder?.id) return null;
+  if (!selectedOrder?.id && !selectedOrder?.order_status) return null;
 
   return (
     <>
@@ -523,6 +543,7 @@ function OrderDetails({
                 getOrderDetails={() => {
                   getOrderDetails();
                 }}
+                getProductUrl={(e) => getProductUrl(e)}
                 shouldShowChat={() => shouldShowChatIcon(ActivePacks)}
                 showChats={() => ShowChats()}
                 order_group_status={
@@ -538,6 +559,7 @@ function OrderDetails({
               />
               {isExpanded && (
                 <OrderExpandedDetails
+                  getProductUrl={(e) => getProductUrl(e)}
                   setIsExpanded={(e) => setIsExpanded(e)}
                   setShouldConfirmReturn={setShouldConfirmReturn}
                   getOrderDetails={() => getOrderDetails()}
@@ -555,16 +577,19 @@ function OrderDetails({
 }
 
 export default OrderDetails;
+
 const OrderExpandedDetails = ({
   order,
   getOrderDetails,
   setShouldConfirmReturn,
   setIsExpanded,
+  getProductUrl,
 }: {
   order: OrderItem;
   getOrderDetails: () => void;
   setShouldConfirmReturn: (e: any) => void;
   setIsExpanded: (e: boolean) => void;
+  getProductUrl;
 }) => {
   const { currency, selectedOrder, setOrderOptions } = useAppStore();
 
@@ -800,6 +825,7 @@ const OrderExpandedDetails = ({
           ))}
         {order.details.map((Product) => (
           <ProductCard
+            getProductUrl={(e) => getProductUrl(e)}
             status={order?.order_status}
             getOrderDetails={() => getOrderDetails()}
             product={getProductWithReturn(Product)}
@@ -816,12 +842,14 @@ const ProductCard = ({
   status,
   getOrderDetails,
   order,
+  getProductUrl,
 }: ProductCardPropsType) => {
   const { currency, setSelectedOrderItem, ActivePacks } = useAppStore();
   const { lang } = useParams();
   // @ts-ignore
   const language = lang.split("-")[1];
   const isRtl = language === "ar" || language === "ku";
+
   return (
     <>
       <div className={`relative w-full flex-col`}>
@@ -843,9 +871,7 @@ const ProductCard = ({
         </span>
 
         <NextLink
-          href={`/${lang}/products/${
-            product.product_slug || product?.product_details?.slug
-          }`}
+          href={getProductUrl(product)}
           data={{ is_product: true, ...product.product_details }}
           className="flex-row  w-full border-t border-[#C4C2C27f] py-[12px]"
         >

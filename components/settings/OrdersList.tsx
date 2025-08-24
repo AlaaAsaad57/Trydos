@@ -30,14 +30,14 @@ function OrdersList({
   const statusSliderRef = useRef<HTMLDivElement>(null); // Ref for the status slider
 
   const router = useRouter();
-
+  const reqRef = useRef(null);
   // Function to load orders
   const loadMoreOrders = async (
     reset = false,
     status: string | null = null
   ) => {
     if (loading || (!hasMore && !reset)) return;
-
+    if (reqRef.current) return;
     setLoading(true);
     const currentPage = reset ? 1 : page;
     if (reset) {
@@ -45,6 +45,7 @@ function OrdersList({
     }
     try {
       // TODO: Modify fetchOrders or backend to accept selectedStatus for filtering
+      reqRef.current = true;
       const response: OrdersResponse = await fetchOrders(
         currentPage,
         20,
@@ -134,7 +135,9 @@ function OrdersList({
         if (reset) setOrders([]); // Clear orders if reset and no data
         setHasMore(false);
       }
+      reqRef.current = null;
     } catch (error) {
+      reqRef.current = null;
       console.error("Error loading orders:", error);
       if (reset) setOrders([]);
       setHasMore(false); // Stop trying if error occurs

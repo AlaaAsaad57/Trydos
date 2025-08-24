@@ -162,7 +162,7 @@ const Menu: React.FC<MenuProps> = ({ user, setMenuOpen }) => {
         <>
           <MenuItem
             dataCy="Settings-Icon"
-            href={`/${lang}/setting`}
+            href={`/${lang}/setting?tab=main`}
             onClick={() => {
               // Sendevent({
               //   event: GA_EVENT_NAMES.CLICK,

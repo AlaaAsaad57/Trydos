@@ -229,15 +229,20 @@ function Settings({ lang }: SettingsIndexPropsType) {
         // @ts-ignore
         shallow: true,
       });
+      GAevent({
+        action: GA_EVENT_NAMES.SCREEN_VIEW,
+        params: {
+          screen_name: GA_GLOBAL_SCREEN.SETTINGS_SCREEN,
+          screen_path: window.location.pathname,
+        },
+      });
     }
-    GAevent({
-      action: GA_EVENT_NAMES.SCREEN_VIEW,
-      params: {
-        screen_name: GA_GLOBAL_SCREEN.SETTINGS_SCREEN,
-        screen_path: window.location.pathname,
-      },
-    });
-  }, []);
+    if (orderIdParam && activeTab === "Orders") {
+      setCurrentScreen(
+        NavigationOptions.findIndex((option) => option.id === "Order Details")
+      );
+    }
+  }, [activeTab, orderIdParam]);
 
   useEffect(() => {
     if (orderIdParam) {
@@ -302,6 +307,7 @@ function Settings({ lang }: SettingsIndexPropsType) {
           style={{
             transform: `translateX(-${currentScreen * 100}%)`,
           }}
+          key={activeTab}
         >
           {NavigationOptions.map((option, index) => {
             if (
