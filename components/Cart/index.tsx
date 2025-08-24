@@ -429,6 +429,13 @@ function CartContainer({ close, toOrders }: CartContainerPropsType) {
                           className="flex-row w-[110px] min-h-[161px] max-h-[161px] relative"
                           data-cy="container-image-onCard"
                         >
+                          {product.flash_deal_details?.end_date && (
+                            <div className="relative top-[8px]">
+                              <FlashDealBanner
+                                end_data={product.flash_deal_details?.end_date}
+                              />
+                            </div>
+                          )}
                           <img
                             data-cy="image-onCard"
                             src={getConfiguredImage({
@@ -1985,7 +1992,6 @@ const QuantutyInput = ({
       className={`absolute flex-wrap ${"top-[125px]"} left-[137px] flex-row items-center justify-between max-w-[calc(100%-152px)] w-full`}
     >
       <div className="flex-col">
-        {" "}
         <div
           className={`${
             loading && "opacity-40"
@@ -2133,11 +2139,6 @@ const QuantutyInput = ({
       </div>
 
       <div className="flex-col">
-        {product.flash_deal_details?.end_date && (
-          <div className="flex-row scale-[0.8] origin-top-right">
-            <FlashDealBanner end_data={product.flash_deal_details?.end_date} />
-          </div>
-        )}
         <div className={`pl-[30px]`} data-cy="oldNew-price-container">
           <div className="product-info-price" data-cy="oldNew-price-container2">
             {product?.offer_price >= 0 &&

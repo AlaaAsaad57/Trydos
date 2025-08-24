@@ -188,7 +188,7 @@ async function Page({ params, searchParams }: ProductPagePropsType) {
           dangerouslySetInnerHTML={{ __html: JSON.stringify(JsonLd) }}
         />
         <div className="product-details-container w-full relative">
-          <div className="flex-col gap-[20px] mx-[5px] w-auto absolute top-[66px] right-[20px] z-[999999999]">
+          <div className="flex-col gap-[20px] mx-[5px] w-[150px] h-[19px] absolute top-[66px] right-[20px] z-[999999999]">
             {(product?.flash_deal_details?.end_date ||
               product?.flash_deal_end_date) &&
               !shouldShowNotifyButton() && (

@@ -370,6 +370,8 @@ export const RoundPrice = ({
   let number = price_num * rateVariable;
   let deciaml_points =
     (settings && settings["starting-setting"]?.decimal_point_settings) || 0;
+  number = Math.ceil(number);
+
   // Return raw converted number if requested
   if (returnNumber) {
     return number;
