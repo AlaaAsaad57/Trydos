@@ -125,7 +125,7 @@ async function GetProductDataFunc(params) {
       };
     }
   } catch (error) {
-    throw error;
+    return null;
   }
 }
 async function Page({ params, searchParams }: ProductPagePropsType) {

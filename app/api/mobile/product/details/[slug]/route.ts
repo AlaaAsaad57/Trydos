@@ -68,7 +68,6 @@ export async function GET(
     );
   } catch (error) {
     console.error("***** fetch failed *****", error);
-
     return withCORS(
       NextResponse.json(
         { isSuccessful: false, error, code: 500 },
