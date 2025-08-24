@@ -47,13 +47,13 @@ const CartProvider = () => {
     cart_enable: enable,
     selected_product_for_add_to_cart,
     setSelectedProductForCart,
+    setAddStory,
   } = useAppStore();
 
   const pathname = usePathname();
   const router = useRouter();
   const { lang } = useParams();
   // @ts-ignore
-  const [country, language] = lang?.split("-");
   const searchParams = useSearchParams();
 
   const enableCartAction = (s) => {
@@ -99,6 +99,7 @@ const CartProvider = () => {
         setEnableSearch(false);
         EnableScroll();
         setSelectedProductForCart(null);
+        setAddStory(null);
         // @ts-ignore
         document.querySelector(`#search-element`)?.blur();
       }
