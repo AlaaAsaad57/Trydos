@@ -14,7 +14,12 @@ import AuthService from "services/auth";
 
 import LoginMethods from "./LoginMethods";
 import SlideWidget from "components/global/SlideNavigation";
-import { useParams } from "next/navigation";
+import {
+  useParams,
+  usePathname,
+  useRouter,
+  useSearchParams,
+} from "next/navigation";
 import { useAppStore } from "store";
 import {
   GA_AUTH_SCREEN,
@@ -26,6 +31,17 @@ import { GAevent } from "utils/gtag";
 import auth from "services/auth";
 
 function NewLoginWidget() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  useEffect(() => {
+    window.history.pushState({ isPopup: true }, "search");
+    const newParams = new URLSearchParams(searchParams);
+    newParams.set("search", "true");
+    // Use router.push with pathname and updated query
+    // @ts-expect-error 'shallow' does not exist in type 'NavigateOptions'
+    router.push(`${pathname}?${newParams.toString()}`, { shallow: true });
+  }, []);
   let { lang } = useParams();
   const {
     setWrongNumber,
@@ -380,7 +396,7 @@ function NewLoginWidget() {
       >
         {stepIndicator >= 1 && stepIndicator < 6 && (
           <div
-            className="absolute top-[64px] left-[12px] cursor-pointer p-2"
+            className="absolute top-[64px] left-[12px] cursor-pointer p-2 z-50"
             onClick={() => {
               backAction();
             }}
@@ -676,6 +692,7 @@ function NewLoginWidget() {
           <span
             id="login-close-icon"
             data-testid="login-close-icon"
+            className="z-50"
             onClick={() => {
               if (stepIndicator < 6) AuthService.cancelAuth();
               setLoginOpenAction(false);

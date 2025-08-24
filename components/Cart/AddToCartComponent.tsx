@@ -13,7 +13,12 @@ import CartIcon from "public/svg/CartIcon.svg";
 import Skeleton from "react-loading-skeleton";
 import "public/styles/sizeSlider.css";
 import Spinner from "components/global/Spinner";
-import { useParams, useSearchParams } from "next/navigation";
+import {
+  useParams,
+  usePathname,
+  useRouter,
+  useSearchParams,
+} from "next/navigation";
 import NotifySVG from "public/svg/cart/NotifyCart.svg";
 import cart from "services/cart";
 import auth from "services/auth";
@@ -36,8 +41,15 @@ function AddToCartComponent({
 
   enableCartAction,
 }) {
+  const router = useRouter();
+  const pathname = usePathname();
   useEffect(() => {
-    window.history.pushState({ isPopup: true }, "open Cart");
+    window.history.pushState({ isPopup: true }, "add cart");
+    const newParams = new URLSearchParams(searchParams);
+    newParams.set("modal", "true");
+    // Use router.push with pathname and updated query
+    // @ts-expect-error 'shallow' does not exist in type 'NavigateOptions'
+    router.push(`${pathname}?${newParams.toString()}`, { shallow: true });
   }, []);
   const searchParams = useSearchParams();
   const [sizeFromUrl, colorFromUrl] = [

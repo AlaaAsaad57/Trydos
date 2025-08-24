@@ -14,7 +14,12 @@ import ModalIframe from "./ModalIframe";
 import { SlideWidget } from "components/global/SlideNavigation";
 
 import { useAppStore } from "store";
-import { DetectScreen, getCurrency, getReferralSource } from "utils/tinyUtils";
+import {
+  DetectScreen,
+  EnableScroll,
+  getCurrency,
+  getReferralSource,
+} from "utils/tinyUtils";
 import AddToCartComponent from "./AddToCartComponent";
 import {
   GA_GLOBAL_PLATFORM,
@@ -92,7 +97,10 @@ const CartProvider = () => {
         setLoginOpen(false);
         setChatOpen(false);
         setEnableSearch(false);
+        EnableScroll();
         setSelectedProductForCart(null);
+        // @ts-ignore
+        document.querySelector(`#search-element`)?.blur();
       }
     });
     window.addEventListener("scroll", function (e) {
