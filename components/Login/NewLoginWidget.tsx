@@ -37,7 +37,7 @@ function NewLoginWidget() {
   useEffect(() => {
     window.history.pushState({ isPopup: true }, "search");
     const newParams = new URLSearchParams(searchParams);
-    newParams.set("search", "true");
+    newParams.set("login", "true");
     // Use router.push with pathname and updated query
     // @ts-expect-error 'shallow' does not exist in type 'NavigateOptions'
     router.push(`${pathname}?${newParams.toString()}`, { shallow: true });

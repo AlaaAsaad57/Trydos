@@ -82,6 +82,13 @@ const CartProvider = () => {
     }, 10);
     window.addEventListener("popstate", (event) => {
       if (event.state?.isPopup) {
+        let params = new URLSearchParams(searchParams);
+        params.delete("cart");
+        params.delete("modal");
+        params.delete("story");
+        params.delete("search");
+        // @ts-expect-error 'shallow' does not exist in type 'NavigateOptions'
+        router.push(`${pathname}?${params.toString()}`, { shallow: true });
         setSelectedStory(null);
         enableCart(false);
         setLoginOpen(false);

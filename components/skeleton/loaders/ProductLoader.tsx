@@ -317,6 +317,7 @@ function ProductLoader({ product }) {
                     />
                   </svg>
                   {(currency?.exchange_rate &&
+                    product?.price &&
                     RoundPrice({
                       num: product?.price,
                       rate: currency?.exchange_rate,
@@ -326,6 +327,7 @@ function ProductLoader({ product }) {
               )}
               <div className="product-new-price">
                 {(currency?.exchange_rate &&
+                  product?.offer_price &&
                   RoundPrice({
                     num: product?.offer_price,
                     rate: currency?.exchange_rate,
