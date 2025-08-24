@@ -159,11 +159,7 @@ function CartContainer({ close, toOrders }: CartContainerPropsType) {
           items: data.cart.map((item) => ({
             item_id: item.product_id,
             item_name: item.name,
-            price: RoundPrice({
-              num: item.offer_price,
-              rate: currency?.exchange_rate,
-              returnNumber: true,
-            }),
+            price: item.offer_price,
             quantity: item.quantity,
             item_variant: item.variant ?? "N/A",
           })),
@@ -702,11 +698,7 @@ function CartContainer({ close, toOrders }: CartContainerPropsType) {
                                   item_name: product.name,
                                   item_variant: product.variant,
                                   quantity: 1,
-                                  price: RoundPrice({
-                                    num: product.offer_price,
-                                    rate: currency?.exchange_rate,
-                                    returnNumber: true,
-                                  }),
+                                  price: product.offer_price,
                                 },
                               ],
                             },
@@ -1928,19 +1920,12 @@ const QuantutyInput = ({
         action: GA_EVENT_NAMES.ADD_TO_CART,
         params: {
           currency: currency?.code,
-          value: RoundPrice({
-            num: product?.offer_price,
-            rate: currency?.exchange_rate,
-            returnNumber: true,
-          }),
+          value: product?.offer_price,
           items: [
             {
               item_id: product.product_id,
               item_name: product?.name,
-              price: RoundPrice({
-                num: product?.offer_price,
-                rate: currency?.exchange_rate,
-              }),
+              price: product?.offer_price,
               quantity: parseInt(i.toString()) + 1,
               brand: product?.brand?.name,
               category: product?.category_name,

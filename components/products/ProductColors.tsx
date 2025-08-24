@@ -63,12 +63,7 @@ function ProductColors({ colors, ProductColorsArray }: ProductColorsPropsType) {
           SelectedProduct?.categories?.[0]?.name,
         category_id:
           SelectedProduct?.category?.id || SelectedProduct?.categories?.[0]?.id,
-        price: RoundPrice({
-          num: SelectedProduct?.offer_price,
-          rate: currency?.exchange_rate,
-          returnNumber: true,
-          language: "en",
-        }),
+        price: SelectedProduct?.offer_price,
         selected_color: e?.color_option,
         selected_size: size,
       },
@@ -168,12 +163,7 @@ function ProductColors({ colors, ProductColorsArray }: ProductColorsPropsType) {
                 category_id:
                   SelectedProduct?.category?.id ||
                   SelectedProduct?.categories?.[0]?.id,
-                price: RoundPrice({
-                  num: SelectedProduct?.offer_price,
-                  rate: currency?.exchange_rate,
-                  returnNumber: true,
-                  language: "en",
-                }),
+                price: SelectedProduct?.offer_price,
               },
             });
           }

@@ -72,10 +72,7 @@ function ShareOptions({
           category: product?.category?.name || product?.categories?.[0]?.name,
           category_id: product?.category?.id || product?.categories?.[0]?.id,
           brand: product?.brand?.name,
-          price: RoundPrice({
-            num: product?.price,
-            rate: currency?.exchange_rate,
-          }),
+          price: product?.offer_price,
           share_context: "external",
           screen_name: GA_GLOBAL_SCREEN.PRODUCT_SCREEN,
           screen_path: window.location.pathname,

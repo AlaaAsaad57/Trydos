@@ -36,17 +36,9 @@ function OrderSuccess() {
         action: GA_EVENT_NAMES.PURCHASE,
         params: {
           transaction_id: orderData?.data[0]?.order_group_id,
-          value: RoundPrice({
-            num: getTotalCash(),
-            rate: currency?.exchange_rate,
-            returnNumber: true,
-          }),
+          value: getTotalCash(),
           currency: currency?.code,
-          shipping: RoundPrice({
-            num: total_shipping_cost,
-            rate: currency?.exchange_rate,
-            returnNumber: true,
-          }),
+          shipping: total_shipping_cost,
           coupon_code: orderData.coupon_number,
           coupon_id: orderData.coupon_number,
           coupon_discount_rate: orderData.coupon,
@@ -54,10 +46,7 @@ function OrderSuccess() {
             item_id: item.product_id,
             item_name: item.name,
             quantity: item.quantity,
-            price: RoundPrice({
-              num: item.offer_price,
-              rate: currency?.exchange_rate,
-            }),
+            price: item.offer_price,
             brand: item.brand?.name ?? "N/A",
             brand_id: item.brand?.id ?? "N/A",
             category: item?.category_name ?? "N/A",

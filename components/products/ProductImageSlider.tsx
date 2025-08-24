@@ -64,12 +64,7 @@ function ProductImagesSlider({ children }) {
               category_id:
                 SelectedProduct?.category?.id ||
                 SelectedProduct?.categories?.[0]?.id,
-              price: RoundPrice({
-                num: SelectedProduct?.offer_price,
-                rate: currency?.exchange_rate,
-                returnNumber: true,
-                language: "en",
-              }),
+              price: SelectedProduct?.offer_price,
             },
           });
         });

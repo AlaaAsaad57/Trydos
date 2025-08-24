@@ -1,10 +1,5 @@
 "use client";
-import {
-  useParams,
-  usePathname,
-  useRouter,
-  useSearchParams,
-} from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { expandView, normalizeView, RoundPrice } from "utils/functions";
 import CartContainer from ".";
@@ -21,11 +16,7 @@ import {
   getReferralSource,
 } from "utils/tinyUtils";
 import AddToCartComponent from "./AddToCartComponent";
-import {
-  GA_GLOBAL_PLATFORM,
-  GA_GLOBAL_SCREEN,
-  GA_EVENT_NAMES,
-} from "utils/GAEvents";
+import { GA_GLOBAL_SCREEN, GA_EVENT_NAMES } from "utils/GAEvents";
 
 import { GAevent } from "utils/gtag";
 import auth from "services/auth";
@@ -52,7 +43,6 @@ const CartProvider = () => {
 
   const pathname = usePathname();
   const router = useRouter();
-  const { lang } = useParams();
   // @ts-ignore
   const searchParams = useSearchParams();
 
@@ -218,19 +208,11 @@ export const StepSlider = ({ enableCart }) => {
     GAevent({
       action: GA_EVENT_NAMES.BEGIN_CHECKOUT,
       params: {
-        value: RoundPrice({
-          num: total_cash,
-          rate: currency.exchange_rate,
-          returnNumber: true,
-        }),
+        value: total_cash,
         items: cart.map((item) => ({
           item_id: item.product_id,
           item_name: item.name,
-          price: RoundPrice({
-            num: item.offer_price,
-            rate: currency.exchange_rate,
-            returnNumber: true,
-          }),
+          price: item.offer_price,
           quantity: item.quantity,
           item_variant: item.variant ?? "N/A",
         })),

@@ -5,9 +5,6 @@ import { fetchData } from "utils/fetchData";
 import { getCart, RoundPrice, translateFunction } from "utils/functions";
 import { pollinateInput } from "@/utils/tinyUtils";
 import { REQUESTS_DATA } from "utils/Requests";
-import { GAevent } from "utils/gtag";
-import { GA_EVENT_NAMES } from "utils/GAEvents";
-import auth from "services/auth";
 
 type CouponElementProps = {
   active: any;
