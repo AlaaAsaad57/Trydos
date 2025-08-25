@@ -31,67 +31,81 @@ export class ElasticsearchReader {
     limit?: number;
   }) {
     // 1. Get userId from cookie
-    // @ts-ignore
-    const userId = (await getCookieServer(COOKIE_NAMES.USER_DATA))?.id;
-    if (!userId) return { products: [], search_after: [] };
-
-    // 2. Get recommended product IDs from "recommended_system"
-    const recResult = await this.client.get({
-      index: "recommended_system",
-      id: userId,
-    });
-
-    const recommendedIds: string[] =
+    try {
       // @ts-ignore
-      recResult._source?.recommended_products?.map((s) => s.product_id) || [];
-    if (!recommendedIds.length) {
+      const userId = (await getCookieServer(COOKIE_NAMES.USER_DATA))?.id;
+      if (!userId) return { products: [], search_after: [] };
+
+      // 2. Get recommended product IDs from "recommended_system"
+      const recResult = await this.client.get({
+        index: "recommended_system",
+        id: userId,
+      });
+
+      // @ts-ignore
+      if (recResult._source?.recommended_products?.length === 0) {
+        return { products: [], search_after: [] };
+      }
+      const recommendedIds: string[] =
+        // @ts-ignore
+        recResult._source?.recommended_products?.map((s) => s?.product_id) ||
+        [];
+      if (!recommendedIds.length) {
+        return { products: [], search_after: [] };
+      }
+      const numericIds = recommendedIds.filter((id) => /^\d+$/.test(id));
+      const baseConditions = buildBaseConditions({}, country);
+      const { must: mustConditions, must_not: mustNotConditions } =
+        baseConditions;
+      mustConditions.push({ terms: { id: numericIds } });
+      // 3. Query products_catalog by IDs
+      const searchQuery: SearchRequest = {
+        index: "products_catalog",
+        _source: getSourceFields(),
+        size: limit,
+        query: {
+          bool: {
+            must: mustConditions,
+            must_not: mustNotConditions,
+          },
+        },
+        sort: [{ _score: { order: "desc" } }, { id: { order: "asc" } }],
+      };
+
+      if (search_after?.length > 0) {
+        searchQuery.search_after = search_after;
+      }
+
+      // 4. Run query
+      const response: SearchResponse = await this.client.search(searchQuery);
+      const hits = response.hits.hits;
+
+      // 5. Extract products
+      const products = hits.map((hit) => ({
+        // @ts-ignore
+        ...hit._source,
+        // @ts-ignore
+        is_redeem: hit._source?.has_redeem_discount,
+      }));
+      const productsWithFilters = extractFilters(products, language, true);
+      const normalizedProducts = normalizeCustomProducts(productsWithFilters);
+      // 6. Get new search_after value
+      const newSearchAfter = hits.length > 0 ? hits[hits.length - 1].sort : [];
+
+      return {
+        products: normalizedProducts.custom_products?.map((s) => ({
+          ...s,
+          is_redeem: s.has_redeem_discount,
+        })),
+        search_after: newSearchAfter,
+      };
+    } catch (error) {
+      console.error(
+        "************************RECOMENDED************************",
+        error
+      );
       return { products: [], search_after: [] };
     }
-    const baseConditions = buildBaseConditions({}, country);
-    const { must: mustConditions, must_not: mustNotConditions } =
-      baseConditions;
-    mustConditions.push({ terms: { id: recommendedIds } });
-    // 3. Query products_catalog by IDs
-    const searchQuery: SearchRequest = {
-      index: "products_catalog",
-      _source: getSourceFields(),
-      size: limit,
-      query: {
-        bool: {
-          must: mustConditions,
-          must_not: mustNotConditions,
-        },
-      },
-      sort: [{ _score: { order: "desc" } }, { id: { order: "asc" } }],
-    };
-
-    if (search_after?.length > 0) {
-      searchQuery.search_after = search_after;
-    }
-
-    // 4. Run query
-    const response: SearchResponse = await this.client.search(searchQuery);
-    const hits = response.hits.hits;
-
-    // 5. Extract products
-    const products = hits.map((hit) => ({
-      // @ts-ignore
-      ...hit._source,
-      // @ts-ignore
-      is_redeem: hit._source?.has_redeem_discount,
-    }));
-    const productsWithFilters = extractFilters(products, language, true);
-    const normalizedProducts = normalizeCustomProducts(productsWithFilters);
-    // 6. Get new search_after value
-    const newSearchAfter = hits.length > 0 ? hits[hits.length - 1].sort : [];
-
-    return {
-      products: normalizedProducts.custom_products?.map((s) => ({
-        ...s,
-        is_redeem: s.has_redeem_discount,
-      })),
-      search_after: newSearchAfter,
-    };
   }
 
   async getCategories<T>(ReqQuery: any): Promise<SearchResponse<T>> {
@@ -125,7 +139,7 @@ export class ElasticsearchReader {
       const result = await this.client.search<T>(searchParams);
       return result;
     } catch (error) {
-      console.error("Elastic::::::", error);
+      console.error("Elastic Categories:", error);
       throw new Error(`Search failed: ${error}`);
     }
   }
