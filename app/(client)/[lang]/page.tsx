@@ -20,6 +20,7 @@ import { fetchCurrency } from "Server Requests";
 import { ElasticsearchReader } from "services/elastic/elasticsearch-reader.service";
 import { getProductsAndFiltersFromElastic } from "services/elastic/elasticSearch";
 import { getCurrencyFromCache, StoreCurrency } from "Server Requests/radis";
+import RecomendedProducts from "components/Server/RecomendedProducts";
 
 export async function generateMetadata({ params }) {
   try {
@@ -105,7 +106,9 @@ async function HomePage({ params }: HomePageProps) {
           country={params.lang.split("-")[0]}
         />
       </Suspense>
-
+      <Suspense fallback={<FeaturedProductsSkeleton lang={params.lang} />}>
+        <RecomendedProductWrapper lang={params.lang} />
+      </Suspense>
       <Suspense fallback={<FeaturedProductsSkeleton lang={params.lang} />}>
         <FeaturedProductWrapper lang={params.lang} />
       </Suspense>
@@ -157,16 +160,17 @@ async function MainCategoriesNavbar({ lang, mainCategory }) {
 // Featured Products
 async function FeaturedProductWrapper({ lang }) {
   const [country, language] = lang?.split("-");
-
-  let currencyData = await getCurrency(country, language);
-  let data = await getProductsAndFiltersFromElastic({
-    country: country,
-    language_code: language,
-    filters: {
-      featured: true,
-    },
-    limit: 10,
-  });
+  let [currencyData, data] = await Promise.all([
+    getCurrency(country, language),
+    getProductsAndFiltersFromElastic({
+      country: country,
+      language_code: language,
+      filters: {
+        featured: true,
+      },
+      limit: 10,
+    }),
+  ]);
   return (
     <FeatureProducts
       currencyData={currencyData}
@@ -178,16 +182,18 @@ async function FeaturedProductWrapper({ lang }) {
 // FlasDeals Products
 async function FlashProductWrapper({ lang }) {
   const [country, language] = lang?.split("-");
+  let [currencyData, data] = await Promise.all([
+    getCurrency(country, language),
+    getProductsAndFiltersFromElastic({
+      country: country,
+      language_code: language,
+      filters: {
+        flashdeal: true,
+      },
+      limit: 10,
+    }),
+  ]);
 
-  let currencyData = await getCurrency(country, language);
-  let data = await getProductsAndFiltersFromElastic({
-    country: country,
-    language_code: language,
-    filters: {
-      flashdeal: true,
-    },
-    limit: 10,
-  });
   return (
     <FlashDealsProducts
       currencyData={currencyData}
@@ -216,6 +222,22 @@ async function BoutiquesListWrapper({ params }) {
     <OfferListServer
       boutiquesData={{ ...data, temp: Number(end - start) / 1_000_000 }}
       params={params}
+    />
+  );
+}
+async function RecomendedProductWrapper({ lang }) {
+  const [country, language] = lang.split("-");
+  let Reader = new ElasticsearchReader();
+  let [currencyData, data] = await Promise.all([
+    getCurrency(country, language),
+    Reader.getRecommendations({ language, country }),
+  ]);
+
+  return (
+    <RecomendedProducts
+      products={{ data }}
+      lang={lang}
+      currencyData={currencyData}
     />
   );
 }

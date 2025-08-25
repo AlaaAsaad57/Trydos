@@ -1,0 +1,1321 @@
+import { QueryDslQueryContainer } from "node_modules/@elastic/elasticsearch/lib/api/types";
+
+export function getSourceFields(): string[] {
+  return [
+    "id",
+    "status",
+    "seller_status",
+    "added_by",
+    "countries_iso",
+    "images",
+    "videos",
+    "thumbnail",
+    "flash_deal_status",
+    "flash_deal_discount",
+    "offered_price",
+    "unit_price",
+    "colors",
+    "text_colors",
+    "sync_color_images",
+    "discount",
+    "discount_type",
+    "redeem_discount_rate",
+    "current_stock",
+    "boutique_id",
+    "available_size",
+    "category_ids",
+    "end_date",
+    "start_date",
+    "boutique.status",
+    "brand.status",
+    "brand.is_verified",
+    "categories.num_available_product",
+    "categories.status",
+    "categories.position",
+    "categories.id",
+    "categories.parent_id",
+    "custom_brands.id",
+    "custom_brands.name",
+    "custom_brands.slug",
+    "custom_brands.icon",
+    "custom_brands.language_code",
+    "custom_boutiques.id",
+    "custom_boutiques.name",
+    "custom_boutiques.slug",
+    "custom_boutiques.banners",
+    "custom_boutiques.language_code",
+    "custom_categories.id",
+    "custom_categories.category_id",
+    "custom_categories.name",
+    "custom_categories.slug",
+    "custom_categories.description",
+    "custom_categories.bio",
+    "custom_categories.language_code",
+    "custom_categories.flat_photo_path",
+    "custom_categories.outline_photo_path",
+    "custom_categories.png_photo_path",
+    "custom_categories.fill_photo_path",
+    "custom_categories.banner_photo_path",
+    "custom_products.id",
+    "custom_products.product_id",
+    "custom_products.name",
+    "custom_products.slug",
+    "custom_products.status",
+    "custom_products.details",
+    "custom_products.language_code",
+    "custom_products.label_names",
+  ];
+}
+export interface ExtractFiltersResult {
+  custom_products: CustomProduct[];
+  prices: {
+    min_price: number;
+    max_price: number;
+  };
+}
+
+export interface CustomProduct {
+  id: string;
+  product_id?: string;
+  name?: string;
+  slug?: string;
+  status?: number;
+  details?: string;
+  language_code?: string;
+  label_names?: string[];
+  videos?: any[];
+  thumbnail?: string;
+  images?: any[];
+  colors?: any[];
+  sync_color_images?: any[];
+  price?: number;
+  offer_price?: number;
+  boutique_id?: string;
+  in_stock?: boolean;
+  [key: string]: any;
+}
+export interface ColorItem {
+  name: string;
+  color?: string;
+  [key: string]: any;
+}
+
+export interface SyncColorImage {
+  color_name: string;
+  [key: string]: any;
+}
+interface PriceRange {
+  min_price: number;
+  max_price: number;
+  products_count: number;
+}
+
+interface FinalPrices {
+  min_price: number;
+  max_price: number;
+  priceRanges: PriceRange[];
+}
+interface SearchFilters {
+  categories?: string[];
+  brands?: string[];
+  boutiques?: string[];
+  colors?: string[];
+  sizes?: string[];
+  search_text?: string;
+  priceRange?: number[];
+  tags_names?: string[];
+  featured?: boolean;
+  flashdeal?: boolean;
+}
+export function normalizeCustomProducts(
+  productsWithFilters: ExtractFiltersResult
+): ExtractFiltersResult {
+  if (
+    !productsWithFilters.custom_products ||
+    productsWithFilters.custom_products.length === 0
+  ) {
+    return productsWithFilters;
+  }
+
+  productsWithFilters.custom_products.forEach((product) => {
+    // Read the lists, whether they are arrays or objects
+    const colorsList = Array.isArray(product.colors)
+      ? product.colors
+      : product.colors || [];
+    const syncList = Array.isArray(product.sync_color_images)
+      ? product.sync_color_images
+      : JSON.parse(product.sync_color_images || "[]") || [];
+
+    // Apply filtering
+    const cleaned = filterColorSyncObj(colorsList, syncList);
+
+    // Reassign the cleaned values
+    product.colors = cleaned.colors;
+    product.sync_color_images = cleaned.sync_color_images;
+    product.sync_color_images = cleaned.sync_color_images?.map((s) => ({
+      ...s,
+      color_trend: Boolean(s.color_trend),
+      images: s.images.map((d) => ({ file_path: `/product/${d}` })),
+    }));
+    product.images = product.images.map((s) => ({
+      file_path: `/product/${s}`,
+    }));
+  });
+
+  return productsWithFilters;
+}
+
+export function filterColorSyncObj(
+  colors: ColorItem[],
+  syncColorImages: SyncColorImage[]
+): {
+  colors: ColorItem[];
+  sync_color_images: SyncColorImage[];
+} {
+  // Extract valid color names from colors array
+  const validNames = colors.map((color) => color.name).filter((name) => name);
+
+  // Filter sync_color_images to only include valid color names
+  const filteredSync = syncColorImages.filter((item) => {
+    return validNames.includes(item.color_name);
+  });
+
+  return {
+    colors: colors,
+    sync_color_images: filteredSync,
+  };
+}
+export function extractFilters(
+  products: any[],
+  languageCode: string,
+  isFromBrowser: boolean
+): ExtractFiltersResult {
+  const customProducts: Record<string, CustomProduct> = {};
+
+  products.forEach((product) => {
+    // Process custom products
+    if (product.custom_products && Array.isArray(product.custom_products)) {
+      product.custom_products.forEach((customProduct: any) => {
+        if (customProduct.language_code === languageCode) {
+          customProducts[customProduct.id] = processCustomProduct(
+            product,
+            customProduct,
+            languageCode,
+            isFromBrowser
+          );
+        }
+      });
+    }
+  });
+
+  // Calculate price range
+  const prices = calculatePriceRange(products);
+
+  return {
+    custom_products: Object.values(customProducts),
+    prices,
+  };
+}
+
+export function processCustomProduct(
+  product: any,
+  customProduct: any,
+  languageCode: string,
+  isFromBrowser: boolean
+): CustomProduct {
+  const result: CustomProduct = { ...customProduct };
+
+  result.videos = product.videos || [];
+  result.thumbnail = product.thumbnail;
+
+  const flashDealEndDate = product.end_date || null;
+  const flashDealStartDate = product.start_date || null;
+  const flashDealStatus = product.flash_deal_status || null;
+  const flashDealDiscount = product.flash_deal_discount || null;
+
+  // Handle flash deal
+  if (flashDealStartDate && flashDealEndDate && flashDealStatus === 1) {
+    result.flash_deal_start_date = flashDealStartDate;
+    result.flash_deal_end_date = flashDealEndDate;
+    result.flash_deal_status = flashDealStatus;
+    result.flash_deal_discount = flashDealDiscount;
+    result.flash_deal_price = calculateDiscountedPrice(
+      product.unit_price,
+      flashDealDiscount,
+      "percent"
+    );
+    result.is_flash_deal_active = false;
+
+    try {
+      const startDate = new Date(flashDealStartDate);
+      const endDate = new Date(flashDealEndDate);
+      const currentDate = new Date();
+
+      if (currentDate >= startDate && currentDate <= endDate) {
+        result.is_flash_deal_active = true;
+      }
+    } catch (error) {
+      // Date parsing failed, keep is_flash_deal_active as false
+    }
+  }
+
+  result.images = parseJsonField(product.images);
+  result.colors = product.colors;
+  result.sync_color_images = product.sync_color_images || [];
+  result.price = product.unit_price;
+  result.offer_price = product.offered_price;
+  result.boutique_id = product.boutique_id;
+  result.in_stock = parseFloat(product.current_stock || "0") > 0;
+
+  // Handle redeem discount
+  const redeemDiscountRate = parseFloat(product.redeem_discount_rate || "0");
+  result.has_redeem_discount =
+    redeemDiscountRate > 0 && redeemDiscountRate < 100;
+
+  if (result.has_redeem_discount) {
+    result.redeem_discount_rate = redeemDiscountRate;
+    result.redeem_price = calculateDiscountedPrice(
+      product.unit_price,
+      redeemDiscountRate,
+      "percent"
+    );
+  }
+
+  // Process categories and brands
+  result.category = getCustomCategoryFromHighestPositionCategory(
+    product,
+    languageCode
+  );
+  result.categories = getAllCustomCategories(product, languageCode);
+  result.category_hierarchy = extractCategoryHierarchy(product, languageCode);
+
+  // Find appropriate brand
+  if (product.custom_brands && Array.isArray(product.custom_brands)) {
+    for (const brand of product.custom_brands) {
+      if (brand.language_code === languageCode) {
+        result.brand = brand;
+        if (product.brand?.is_verified) {
+          result.brand.is_verified = product.brand.is_verified;
+        }
+        break;
+      }
+    }
+  }
+
+  if (isFromBrowser) {
+    delete result.categories;
+    if (result.category) {
+      removeCategoryExtraFields(result.category);
+    }
+  }
+
+  return result;
+}
+function getAllCustomCategories(productData: any, lang: string): any[] {
+  const result: any[] = [];
+
+  if (!productData.category_ids || !Array.isArray(productData.category_ids)) {
+    return result;
+  }
+
+  productData.category_ids.forEach((catIdData: any) => {
+    if (!catIdData.id) return;
+
+    const currentCategoryId = catIdData.id;
+
+    // Find matching category for status check
+    let matchingCategory: any = null;
+    if (productData.categories && Array.isArray(productData.categories)) {
+      matchingCategory = productData.categories.find(
+        (cat: any) => cat.id == currentCategoryId
+      );
+    }
+
+    if (!matchingCategory || matchingCategory.status !== 1) {
+      return;
+    }
+
+    // Find custom category
+    let customCategory: any = null;
+    if (
+      productData.custom_categories &&
+      Array.isArray(productData.custom_categories)
+    ) {
+      customCategory = productData.custom_categories.find(
+        (cat: any) =>
+          cat.category_id == currentCategoryId && cat.language_code === lang
+      );
+    }
+
+    if (customCategory) {
+      result.push({
+        ...customCategory,
+        num_available_product: matchingCategory.num_available_product || null,
+        most_viewed_product_thumbnail: productData.thumbnail || null,
+      });
+    }
+  });
+
+  return result;
+}
+export function calculateDiscountedPrice(
+  originalPrice: number,
+  discount: number,
+  discountType: string
+): number {
+  if (discountType === "percent") {
+    return originalPrice - (originalPrice * discount) / 100;
+  }
+  // For flat discount
+  return Math.max(0, originalPrice - discount);
+}
+function parseJsonField(jsonData: any): any[] {
+  if (!jsonData) return [];
+
+  try {
+    if (typeof jsonData === "string") {
+      const data = JSON.parse(jsonData);
+      return Array.isArray(data) ? data : [];
+    }
+    return Array.isArray(jsonData) ? jsonData : [];
+  } catch {
+    return [];
+  }
+}
+function extractCategoryHierarchy(productData: any, lang: string): any {
+  if (!productData.category_ids || !Array.isArray(productData.category_ids)) {
+    return {};
+  }
+
+  const categoriesByPosition: Record<number, any> = {};
+
+  productData.category_ids.forEach((catIdData: any) => {
+    if (!catIdData.id || typeof catIdData.position !== "number") {
+      return;
+    }
+
+    const categoryId = catIdData.id;
+    const position = catIdData.position;
+
+    // Find custom category
+    let customCategory: any = null;
+    if (
+      productData.custom_categories &&
+      Array.isArray(productData.custom_categories)
+    ) {
+      customCategory = productData.custom_categories.find(
+        (cat: any) =>
+          cat.category_id == categoryId && cat.language_code === lang
+      );
+    }
+
+    if (customCategory) {
+      categoriesByPosition[position] = {
+        id: customCategory.id,
+        name: customCategory.name,
+      };
+    }
+  });
+
+  const sortedCategories = Object.keys(categoriesByPosition)
+    .sort((a, b) => parseInt(a) - parseInt(b))
+    .map((key) => categoriesByPosition[parseInt(key)]);
+
+  return {
+    main_category: sortedCategories[0] || null,
+    sub_category: sortedCategories[1] || null,
+    sub_sub_category: sortedCategories[2] || null,
+  };
+}
+function getCustomCategoryFromHighestPositionCategory(
+  productData: any,
+  lang: string
+): any {
+  if (!productData.category_ids || !Array.isArray(productData.category_ids)) {
+    return null;
+  }
+
+  // Find category with highest position
+  let highestCategory: any = null;
+  productData.category_ids.forEach((catIdData: any) => {
+    if (typeof catIdData.position === "number") {
+      if (!highestCategory || catIdData.position > highestCategory.position) {
+        highestCategory = catIdData;
+      }
+    }
+  });
+
+  if (!highestCategory) return null;
+
+  const highestCategoryId = highestCategory.id;
+
+  // Find matching category to check status
+  let matchingCategory: any = null;
+  if (productData.categories && Array.isArray(productData.categories)) {
+    matchingCategory = productData.categories.find(
+      (cat: any) => cat.id == highestCategoryId
+    );
+  }
+
+  if (!matchingCategory || matchingCategory.status !== 1) {
+    return null;
+  }
+
+  // Find corresponding custom category
+  let customCategory: any = null;
+  if (
+    productData.custom_categories &&
+    Array.isArray(productData.custom_categories)
+  ) {
+    customCategory = productData.custom_categories.find(
+      (cat: any) =>
+        cat.category_id == highestCategoryId && cat.language_code === lang
+    );
+  }
+
+  if (!customCategory) return null;
+
+  return {
+    ...customCategory,
+    num_available_product: matchingCategory.num_available_product || null,
+    most_viewed_product_thumbnail: productData.thumbnail || null,
+  };
+}
+export function removeCategoryExtraFields(category: any): void {
+  const fieldsToRemove = [
+    "description",
+    "bio",
+    "outline_photo_path",
+    "png_photo_path",
+    "fill_photo_path",
+    "banner_photo_path",
+  ];
+
+  fieldsToRemove.forEach((field) => {
+    if (category[field] !== undefined) {
+      delete category[field];
+    }
+  });
+}
+export function calculatePriceRange(products: any[]): {
+  min_price: number;
+  max_price: number;
+  priceRanges: any[];
+} {
+  let minPrice = Infinity;
+  let maxPrice = -Infinity;
+
+  products.forEach((product) => {
+    const price = parseFloat(
+      product.offered_price || product.unit_price || "0"
+    );
+    if (price > 0) {
+      minPrice = Math.min(minPrice, price);
+      maxPrice = Math.max(maxPrice, price);
+    }
+  });
+  let priceRanges = calculatePriceFilter(products);
+  return {
+    min_price: minPrice === Infinity ? 0 : minPrice,
+    max_price: maxPrice === -Infinity ? 0 : maxPrice,
+    priceRanges: priceRanges?.priceRanges ?? [],
+  };
+}
+function calculatePriceFilter(products: CustomProduct[]): FinalPrices | null {
+  if (products.length === 0) return null;
+
+  const getDiscountedPrice = (product: CustomProduct): number => {
+    const { unit_price, discount, discount_type } = product;
+    if (discount_type === "percent") {
+      return unit_price - (discount / 100) * unit_price;
+    } else if (discount_type === "flat") {
+      return unit_price - discount;
+    } else {
+      return unit_price;
+    }
+  };
+
+  const discountedPrices = products.map(getDiscountedPrice);
+
+  const minOfferPrice = Math.min(...discountedPrices);
+  const maxOfferPrice = Math.max(...discountedPrices);
+
+  if (minOfferPrice >= maxOfferPrice) return null;
+
+  const diff = (maxOfferPrice - minOfferPrice) / 4;
+  const boundaries = [
+    minOfferPrice,
+    minOfferPrice + diff,
+    minOfferPrice + diff * 2,
+    minOfferPrice + diff * 3,
+    maxOfferPrice,
+  ];
+
+  const priceRanges: PriceRange[] = [];
+
+  for (let i = 0; i < 4; i++) {
+    const rangeMin = boundaries[i];
+    const rangeMax = boundaries[i + 1];
+
+    const productsCount = discountedPrices.filter(
+      (price) => price >= rangeMin && price <= rangeMax
+    ).length;
+
+    priceRanges.push({
+      min_price: rangeMin,
+      max_price: rangeMax,
+      products_count: productsCount,
+    });
+  }
+
+  return {
+    min_price: minOfferPrice,
+    max_price: maxOfferPrice,
+    priceRanges,
+  };
+}
+export function buildBaseConditions(filters: SearchFilters, country: string) {
+  const fuzziness = calculateFuzziness(filters.search_text);
+  const searchWords = filters.search_text
+    ? filters.search_text
+        .trim()
+        .split(/\s+/)
+        .filter((w) => w !== "")
+    : [];
+  const wordCount = searchWords.length;
+
+  const mustConditions: QueryDslQueryContainer[] = [
+    { term: { status: 1 } },
+    { nested: { path: "boutique", query: { term: { "boutique.status": 1 } } } },
+    { nested: { path: "brand", query: { term: { "brand.status": 1 } } } },
+  ];
+
+  // Add category filter
+  if (filters.categories?.length) {
+    mustConditions.push({
+      bool: {
+        must: [
+          {
+            nested: {
+              path: "categories",
+              query: { term: { "categories.status": 1 } },
+            },
+          },
+          {
+            nested: {
+              path: "custom_categories",
+              query: {
+                terms: { "custom_categories.slug.keyword": filters.categories },
+              },
+            },
+          },
+        ],
+      },
+    });
+  }
+
+  // Add brand filter
+  if (filters.brands?.length) {
+    mustConditions.push({
+      bool: {
+        must: [
+          { nested: { path: "brand", query: { term: { "brand.status": 1 } } } },
+          {
+            nested: {
+              path: "custom_brands",
+              query: {
+                terms: { "custom_brands.slug.keyword": filters.brands },
+              },
+            },
+          },
+        ],
+      },
+    });
+  }
+
+  // Add boutique filter
+  if (filters.boutiques?.length) {
+    mustConditions.push({
+      nested: {
+        path: "custom_boutiques",
+        query: {
+          terms: { "custom_boutiques.slug.keyword": filters.boutiques },
+        },
+      },
+    });
+  }
+
+  // Add color filter
+  if (filters.colors?.length) {
+    mustConditions.push({
+      bool: {
+        should: filters.colors.map((color) => ({
+          match_phrase: { text_colors: color },
+        })),
+      },
+    });
+  }
+
+  // Add size filter
+  if (filters.sizes?.length) {
+    mustConditions.push({
+      bool: {
+        should: filters.sizes.map((size) => ({
+          match_phrase: { available_size: size },
+        })),
+      },
+    });
+  }
+
+  // Add price range filter
+  if (filters.priceRange) {
+    mustConditions.push({
+      range: {
+        offered_price: {
+          gte: filters.priceRange[0],
+          lte: filters.priceRange[1],
+        },
+      },
+    });
+  }
+
+  // Add search text conditions
+  if (filters.search_text) {
+    mustConditions.push(
+      buildSearchTextConditions(
+        filters.search_text,
+        searchWords,
+        wordCount,
+        fuzziness
+      )
+    );
+  }
+
+  // Add seller conditions
+  mustConditions.push({
+    bool: {
+      should: [
+        { term: { added_by: "admin" } },
+        {
+          bool: {
+            must: [
+              { term: { added_by: "seller" } },
+              { term: { seller_status: "approved" } },
+            ],
+          },
+        },
+      ],
+      minimum_should_match: 1,
+    },
+  });
+
+  // Add tags filter
+  if (filters.tags_names?.length) {
+    mustConditions.push({
+      terms: { tags_names: filters.tags_names },
+    });
+  }
+
+  // Add flash deal filter
+  if (filters.flashdeal === true) {
+    const currentDate = new Date().toLocaleDateString("en-US", {
+      month: "2-digit",
+      day: "2-digit",
+      year: "numeric",
+    });
+
+    mustConditions.push({
+      bool: {
+        must: [
+          { term: { flash_deal_status: 1 } },
+          { exists: { field: "start_date" } },
+          { exists: { field: "end_date" } },
+          { range: { start_date: { lte: currentDate } } },
+          { range: { end_date: { gte: currentDate } } },
+        ],
+      },
+    });
+  }
+
+  const mustNotConditions: QueryDslQueryContainer[] = [
+    { exists: { field: "deleted_at" } },
+  ];
+
+  // Add country restrictions
+  if (country) {
+    const upperCountry = country.toUpperCase();
+
+    mustNotConditions.push(
+      {
+        nested: {
+          path: "countries_iso",
+          ignore_unmapped: true,
+          query: { term: { "countries_iso.iso": upperCountry } },
+        },
+      },
+      {
+        nested: {
+          path: "categories",
+          ignore_unmapped: true,
+          query: {
+            nested: {
+              path: "categories.countries_iso",
+              query: { term: { "categories.countries_iso.iso": upperCountry } },
+            },
+          },
+        },
+      },
+      {
+        nested: {
+          path: "brand",
+          ignore_unmapped: true,
+          query: {
+            nested: {
+              path: "brand.countries_iso",
+              query: { term: { "brand.countries_iso.iso": upperCountry } },
+            },
+          },
+        },
+      },
+      {
+        nested: {
+          path: "boutique",
+          ignore_unmapped: true,
+          query: {
+            nested: {
+              path: "boutique.countries_iso",
+              query: { term: { "boutique.countries_iso.iso": upperCountry } },
+            },
+          },
+        },
+      }
+    );
+  }
+
+  // Add category status restriction
+  mustNotConditions.push({
+    nested: {
+      path: "categories",
+      query: {
+        bool: {
+          must: [{ term: { "categories.status": 0 } }],
+        },
+      },
+    },
+  });
+
+  return {
+    must: mustConditions,
+    must_not: mustNotConditions,
+  };
+}
+
+function buildSearchTextConditions(
+  searchText: string,
+  searchWords: string[],
+  wordCount: number,
+  fuzziness: string | number | null
+): QueryDslQueryContainer {
+  const shouldClauses: QueryDslQueryContainer[] = [];
+
+  // Nested product search
+  shouldClauses.push({
+    nested: {
+      path: "custom_products",
+      query: {
+        bool: {
+          should: [
+            // Exact phrase matches
+            {
+              multi_match: {
+                query: searchText,
+                fields: [
+                  "custom_products.name.exact^4",
+                  "custom_products.slug.english^3",
+                  "custom_products.descriptors_names.english^2",
+                  "custom_products.label_names.english^2.5",
+                  "custom_products.label_names.exact^2",
+                  "custom_products.similar_words.english^2",
+                  "custom_products.similar_words.exact^2",
+                ],
+                type: "phrase",
+                analyzer: "english_edge_ngram_analyzer",
+                slop: 0,
+                boost: 10,
+              },
+            },
+            {
+              multi_match: {
+                query: searchText,
+                fields: [
+                  "custom_products.name.exact^4",
+                  "custom_products.slug.english^3",
+                  "custom_products.descriptors_names.english^2",
+                  "custom_products.label_names.english^2.5",
+                  "custom_products.similar_words.english^2",
+                  "custom_products.label_names.exact^2",
+                  "custom_products.similar_words.exact^2",
+                ],
+                type: "phrase",
+                analyzer: "standard",
+                slop: 0,
+                boost: 10,
+              },
+            },
+            {
+              multi_match: {
+                query: searchText,
+                fields: [
+                  "custom_products.name.arabic^4",
+                  "custom_products.slug.arabic^3",
+                  "custom_products.descriptors_names.arabic^2",
+                  "custom_products.label_names.arabic^2.5",
+                  "custom_products.label_names.exact^2",
+                  "custom_products.similar_words.english^2",
+                  "custom_products.similar_words.exact^2",
+                ],
+                type: "phrase",
+                analyzer: "arabic",
+                slop: 0,
+                boost: 10,
+              },
+            },
+            // Fuzzy matches
+            {
+              multi_match: {
+                query: searchText,
+                fields: [
+                  "custom_products.details^1",
+                  "custom_products.name.english^2",
+                  "custom_products.slug.english^1",
+                  "custom_products.descriptors_names.english",
+                  "custom_products.label_names.english^1.5",
+                  "custom_products.similar_words.english^2",
+                ],
+                analyzer: "standard",
+                ...(fuzziness && { fuzziness }),
+                type: "best_fields",
+                boost: 5,
+              },
+            },
+            {
+              multi_match: {
+                query: searchText,
+                fields: [
+                  "custom_products.details.arabic^1",
+                  "custom_products.name.arabic^2",
+                  "custom_products.slug.arabic^1",
+                  "custom_products.descriptors_names.arabic",
+                  "custom_products.label_names.arabic^1.5",
+                  "custom_products.similar_words.arabic^2",
+                ],
+                analyzer: "arabic",
+                ...(fuzziness && { fuzziness }),
+                type: "best_fields",
+                boost: 5,
+              },
+            },
+          ],
+          minimum_should_match: 1,
+        },
+      },
+    },
+  });
+
+  // Nested categories search
+  shouldClauses.push({
+    nested: {
+      path: "custom_categories",
+      query: {
+        bool: {
+          should: [
+            {
+              multi_match: {
+                query: searchText,
+                fields: ["custom_categories.name.english^1"],
+                analyzer: "standard",
+                ...(fuzziness && { fuzziness }),
+                type: "best_fields",
+                boost: 5,
+              },
+            },
+            {
+              multi_match: {
+                query: searchText,
+                fields: ["custom_categories.name.arabic^1"],
+                analyzer: "arabic",
+                ...(fuzziness && { fuzziness }),
+                type: "best_fields",
+                boost: 5,
+              },
+            },
+          ],
+          minimum_should_match: 1,
+        },
+      },
+    },
+  });
+
+  // Nested brands search
+  shouldClauses.push({
+    nested: {
+      path: "custom_brands",
+      query: {
+        bool: {
+          should: [
+            {
+              multi_match: {
+                query: searchText,
+                fields: ["custom_brands.name.english^1"],
+                analyzer: "standard",
+                ...(fuzziness && { fuzziness }),
+                type: "best_fields",
+                boost: 2,
+              },
+            },
+            {
+              multi_match: {
+                query: searchText,
+                fields: ["custom_brands.name.arabic^1"],
+                analyzer: "arabic",
+                ...(fuzziness && { fuzziness }),
+                type: "best_fields",
+                boost: 2,
+              },
+            },
+          ],
+          minimum_should_match: 1,
+        },
+      },
+    },
+  });
+
+  // Colors search
+  shouldClauses.push({
+    multi_match: {
+      query: searchText,
+      fields: [
+        "similar_words_colors^3",
+        "similar_words_colors.arabic^2",
+        "similar_words_colors.english^2",
+      ],
+      type: "best_fields",
+      boost: 2,
+    },
+  });
+
+  // Multi-word search logic
+  if (wordCount > 1 && wordCount < 3) {
+    shouldClauses.push(buildMultiWordSearch(searchWords, fuzziness));
+  }
+
+  if (wordCount > 2) {
+    const atLeastTwoClause = buildAtLeastTwoClause(searchWords, fuzziness);
+    if (atLeastTwoClause) {
+      shouldClauses.push(atLeastTwoClause);
+    }
+  }
+
+  return {
+    bool: {
+      should: shouldClauses,
+      minimum_should_match: 1,
+    },
+  };
+}
+function buildMultiWordSearch(
+  searchWords: string[],
+  fuzziness: string | number | null
+): QueryDslQueryContainer {
+  const mustClauses: QueryDslQueryContainer[] = [];
+
+  searchWords.forEach((word) => {
+    if (!word || word.trim() === "") return;
+
+    const trimmedWord = word.trim();
+    const wordShould: QueryDslQueryContainer[] = [];
+
+    // Search in nested custom_products
+    wordShould.push({
+      nested: {
+        path: "custom_products",
+        query: {
+          bool: {
+            should: [
+              {
+                multi_match: {
+                  query: trimmedWord,
+                  fields: [
+                    "custom_products.details^1",
+                    "custom_products.name.english^2",
+                    "custom_products.label_names.english^2",
+                    "custom_products.label_names.exact^1.5",
+                    "custom_products.similar_words.english^2",
+                  ],
+                  analyzer: "standard",
+                  ...(fuzziness && { fuzziness }),
+                  type: "best_fields",
+                  boost: 5,
+                },
+              },
+              {
+                multi_match: {
+                  query: trimmedWord,
+                  fields: [
+                    "custom_products.details.arabic^1",
+                    "custom_products.name.arabic^2",
+                    "custom_products.label_names.arabic^2",
+                    "custom_products.label_names.exact^1.5",
+                    "custom_products.similar_words.english^2",
+                  ],
+                  analyzer: "arabic",
+                  ...(fuzziness && { fuzziness }),
+                  type: "best_fields",
+                  boost: 5,
+                },
+              },
+            ],
+            minimum_should_match: 1,
+          },
+        },
+      },
+    });
+
+    // Search in nested custom_categories
+    wordShould.push({
+      nested: {
+        path: "custom_categories",
+        query: {
+          bool: {
+            should: [
+              {
+                multi_match: {
+                  query: trimmedWord,
+                  fields: ["custom_categories.name.english^1"],
+                  analyzer: "standard",
+                  ...(fuzziness && { fuzziness }),
+                  type: "best_fields",
+                  boost: 2,
+                },
+              },
+              {
+                multi_match: {
+                  query: trimmedWord,
+                  fields: ["custom_categories.name.arabic^1"],
+                  analyzer: "arabic",
+                  ...(fuzziness && { fuzziness }),
+                  type: "best_fields",
+                  boost: 2,
+                },
+              },
+            ],
+            minimum_should_match: 1,
+          },
+        },
+      },
+    });
+
+    // Search in nested custom_brands
+    wordShould.push({
+      nested: {
+        path: "custom_brands",
+        query: {
+          bool: {
+            should: [
+              {
+                multi_match: {
+                  query: trimmedWord,
+                  fields: ["custom_brands.name.english^1"],
+                  analyzer: "standard",
+                  ...(fuzziness && { fuzziness }),
+                  type: "best_fields",
+                  boost: 4,
+                },
+              },
+              {
+                multi_match: {
+                  query: trimmedWord,
+                  fields: ["custom_brands.name.arabic^1"],
+                  analyzer: "arabic",
+                  ...(fuzziness && { fuzziness }),
+                  type: "best_fields",
+                  boost: 4,
+                },
+              },
+            ],
+            minimum_should_match: 1,
+          },
+        },
+      },
+    });
+
+    mustClauses.push({
+      bool: {
+        should: wordShould,
+        minimum_should_match: 1,
+      },
+    });
+  });
+
+  return {
+    bool: {
+      must: mustClauses,
+    },
+  };
+}
+function buildAtLeastTwoClause(
+  searchWords: string[],
+  fuzziness: string | number | null,
+  boost: number = 1
+): QueryDslQueryContainer | null {
+  if (searchWords.length < 2) {
+    return null;
+  }
+
+  const shouldClausesForEachWord: QueryDslQueryContainer[] = [];
+
+  searchWords.forEach((word) => {
+    if (!word || word.trim() === "") return;
+
+    const trimmedWord = word.trim();
+    const subShould: QueryDslQueryContainer[] = [];
+
+    // Search in nested custom_products
+    subShould.push({
+      nested: {
+        path: "custom_products",
+        query: {
+          bool: {
+            should: [
+              {
+                multi_match: {
+                  query: trimmedWord,
+                  fields: [
+                    "custom_products.details^1",
+                    "custom_products.name.english^2",
+                    "custom_products.similar_words.english^2",
+                  ],
+                  analyzer: "standard",
+                  ...(fuzziness && { fuzziness }),
+                  type: "best_fields",
+                  boost: 5,
+                },
+              },
+              {
+                multi_match: {
+                  query: trimmedWord,
+                  fields: [
+                    "custom_products.details.arabic^1",
+                    "custom_products.name.arabic^2",
+                    "custom_products.similar_words.arabic^2",
+                  ],
+                  analyzer: "arabic",
+                  ...(fuzziness && { fuzziness }),
+                  type: "best_fields",
+                  boost: 5,
+                },
+              },
+            ],
+            minimum_should_match: 1,
+          },
+        },
+      },
+    });
+
+    // Search in nested custom_categories
+    subShould.push({
+      nested: {
+        path: "custom_categories",
+        query: {
+          bool: {
+            should: [
+              {
+                multi_match: {
+                  query: trimmedWord,
+                  fields: ["custom_categories.name.english^1"],
+                  analyzer: "standard",
+                  ...(fuzziness && { fuzziness }),
+                  type: "best_fields",
+                  boost: 2,
+                },
+              },
+              {
+                multi_match: {
+                  query: trimmedWord,
+                  fields: ["custom_categories.name.arabic^1"],
+                  analyzer: "arabic",
+                  ...(fuzziness && { fuzziness }),
+                  type: "best_fields",
+                  boost: 2,
+                },
+              },
+            ],
+            minimum_should_match: 1,
+          },
+        },
+      },
+    });
+
+    // Search in nested custom_brands
+    subShould.push({
+      nested: {
+        path: "custom_brands",
+        query: {
+          bool: {
+            should: [
+              {
+                multi_match: {
+                  query: trimmedWord,
+                  fields: ["custom_brands.name.english^1"],
+                  analyzer: "standard",
+                  ...(fuzziness && { fuzziness }),
+                  type: "best_fields",
+                  boost: 2,
+                },
+              },
+              {
+                multi_match: {
+                  query: trimmedWord,
+                  fields: ["custom_brands.name.arabic^1"],
+                  analyzer: "arabic",
+                  ...(fuzziness && { fuzziness }),
+                  type: "best_fields",
+                  boost: 2,
+                },
+              },
+            ],
+            minimum_should_match: 1,
+          },
+        },
+      },
+    });
+
+    shouldClausesForEachWord.push({
+      bool: {
+        should: subShould,
+        minimum_should_match: 1,
+      },
+    });
+  });
+
+  if (shouldClausesForEachWord.length === 0) {
+    return null;
+  }
+
+  const minimumMatch = searchWords.length < 4 ? 2 : 3;
+  const finalBoost = searchWords.length >= 4 ? boost * 2 : boost;
+
+  return {
+    bool: {
+      should: shouldClausesForEachWord,
+      minimum_should_match: minimumMatch,
+      boost: finalBoost,
+    },
+  };
+}
+
+function calculateFuzziness(searchText?: string): string | number | null {
+  if (!searchText) return null;
+  const length = searchText.length;
+  return length >= 7 && length <= 12 ? 1 : null;
+}
