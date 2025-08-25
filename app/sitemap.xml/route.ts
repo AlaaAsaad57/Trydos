@@ -10,6 +10,7 @@ export async function GET(request: NextRequest) {
       headers: {
         "Content-Type": "application/xml",
         "Cache-Control": "public, max-age=3600, s-maxage=3600",
+        "Content-Encoding": "identity", // Cache for 1 hour
       },
     });
   } catch (error) {

@@ -7,9 +7,9 @@ export async function GET(
 ) {
   try {
     const lang = params.lang;
-    
+
     // Parse country-language from the lang parameter (e.g., "tr-en" -> country: "tr", language: "en")
-    const parts = lang.split('-');
+    const parts = lang.split("-");
     if (parts.length !== 2) {
       return new NextResponse("Invalid lang format", {
         status: 400,
@@ -18,14 +18,17 @@ export async function GET(
         },
       });
     }
-    
+
     const [country, language] = parts;
-    
+
     // Validate country and language parameters
-    const validCountries = ['tr', 'iq', 'lb', 'sy' , 'gb'];
-    const validLanguages = ['en', 'ar', 'tr', 'ku'];
-    
-    if (!validCountries.includes(country) || !validLanguages.includes(language)) {
+    const validCountries = ["tr", "iq", "lb", "sy", "gb"];
+    const validLanguages = ["en", "ar", "tr", "ku"];
+
+    if (
+      !validCountries.includes(country) ||
+      !validLanguages.includes(language)
+    ) {
       return new NextResponse("Invalid country or language", {
         status: 400,
         headers: {
@@ -41,6 +44,7 @@ export async function GET(
       headers: {
         "Content-Type": "application/xml",
         "Cache-Control": "public, max-age=3600, s-maxage=3600",
+        "Content-Encoding": "identity",
       },
     });
   } catch (error) {
