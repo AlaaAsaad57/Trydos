@@ -26,6 +26,7 @@ export default function NextLink({
   if (isSamePage(href)) {
     return (
       <div
+        suppressHydrationWarning
         className={className}
         style={style}
         data-cy={props["data-cy"] ?? ""}
@@ -43,6 +44,7 @@ export default function NextLink({
   }
   return (
     <Link
+      suppressHydrationWarning
       className={className}
       style={style}
       prefetch={true}

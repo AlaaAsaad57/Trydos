@@ -115,15 +115,14 @@ export default function RootLayout({
           className="site-container items-center"
           key={`${JSON.stringify(params)}`}
         >
-          <div className="home-navbar max-h-[1365px]">
-            <NextLink
+          <div className="home-navbar max-h-[1365px]" suppressHydrationWarning>
+            <a
               href={`/${params.lang}`}
-              data={{ is_full_home: true }}
               aria-label="TryDos Home"
               data-cy="NavLogo"
             >
               <Logo animated={false} style={false} key={1} />
-            </NextLink>
+            </a>
 
             {nav}
           </div>

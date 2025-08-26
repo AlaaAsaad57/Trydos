@@ -140,7 +140,11 @@ export class ElasticsearchReader {
       return result;
     } catch (error) {
       console.error("Elastic Categories:", error);
-      throw new Error(`Search failed: ${error}`);
+      return {
+        hits: {
+          hits: [],
+        },
+      };
     }
   }
   // async getBoutiques<T>(ReqQuery: any): Promise<SearchResponse<T>> {

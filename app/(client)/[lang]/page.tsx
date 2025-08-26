@@ -81,7 +81,9 @@ async function getCurrency(country, language) {
       StoreCurrency(country, currency);
       return currency;
     }
-  } catch (error) {}
+  } catch (error) {
+    return {};
+  }
 }
 async function HomePage({ params }: HomePageProps) {
   return (
