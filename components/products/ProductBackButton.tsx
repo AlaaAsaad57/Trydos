@@ -34,6 +34,7 @@ function ProductBackButton({ lang, productId }) {
     return (
       <div className="back-bar align-center w-100 flex-row">
         <NextLink
+          ignoreConditionCase={true}
           data-cy="backIcon_productPage"
           {...getHref()}
           className={`back-icon flex-row`}
@@ -48,6 +49,7 @@ function ProductBackButton({ lang, productId }) {
   return (
     <div className="back-bar align-center w-100 flex-row">
       <NextLink
+        ignoreConditionCase={true}
         data-cy="backIcon_productPage"
         {...getHref()}
         className={`back-icon flex-row`}

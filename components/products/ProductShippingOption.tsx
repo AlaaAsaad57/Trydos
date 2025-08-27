@@ -45,8 +45,9 @@ function ProductShippingOption({ days }) {
   useEffect(() => {
     getCountries();
   }, []);
-  const [extended, setExtended] = useState(false);
   const { settings } = useAppStore();
+  const [extended, setExtended] = useState(false);
+
   return (
     <div
       className={`product-shipping product-colors product-sizes flex-col align-start relative ${

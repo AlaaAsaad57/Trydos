@@ -109,7 +109,7 @@ img {
   scrollbar-width: none;
 }
 .embla__slide:not(:first-child) {
-  margin-left: 10px;
+  margin-left: 4px;
 }
 
 p {

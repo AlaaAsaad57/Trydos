@@ -2,6 +2,9 @@ const translations = {
   ar: {
     "Please enable notification permissions to use camera features":
       "يرجى تفعيل أذونات الإشعارات لاستخدام ميزات الكاميرا",
+    "Buyer Rate": "زبون قام بالتقييم",
+    Buyer: "زبون",
+    "Recommend It By": "نصح به من قبل",
     "Product Return Has Been Requested": "تم طلب إرجاع المنتج",
     "Waiting…": "جارٍ الانتظار…",
     "Product Return Request Approve": "الموافقة على طلب إرجاع المنتج",
@@ -881,6 +884,8 @@ const translations = {
   },
   tr: {
     "Product Not Found": "Ürün Bulunamadı",
+    "Buyer Rate": "",
+    "Recommend It By": "",
     "Product Return Has Been Requested": "Ürün iadesi talep edildi",
     "Waiting…": "Bekleniyor…",
     "Product Return Request Approve": "Ürün iade talebini onayla",
@@ -1749,6 +1754,8 @@ const translations = {
   },
   ku: {
     "Product Not Found": "بەرهەم نەدۆزرایەوە",
+    "Buyer Rate": "",
+    "Recommend It By": "",
     "Product Return Has Been Requested": "داوای گەڕاندنەوەی بەرهەم کراوە",
     "Waiting…": "چاوەڕێکردن…",
     "Product Return Request Approve": "پەسەندکردنی داوای گەڕاندنەوە",
@@ -2654,7 +2661,7 @@ const translations = {
     "Confirm Country Change": "دڵنیابوون بۆ گۆڕینی وڵات",
     "Are you sure you want to change your country?":
       "دڵنیایت دەتەوێت وڵاتت بگۆڕیت؟",
-    Current: "ئێستا", 
+    Current: "ئێستا",
     New: "نوێ",
     "Coupon No": "ژمارەی کۆپۆن",
     brands: "مارکەکان",

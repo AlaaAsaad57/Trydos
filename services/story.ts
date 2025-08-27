@@ -289,7 +289,7 @@ class StoryService {
       });
 
       if (data.success) {
-        data.data;
+        return data.data;
       } else {
         throw new Error(data.message);
       }

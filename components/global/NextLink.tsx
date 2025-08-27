@@ -11,6 +11,7 @@ export interface INextLinkProps
   ariaLabel?: string;
   data?: any;
   exportparts?: string;
+  ignoreConditionCase?: true;
 }
 export default function NextLink({
   href,
@@ -21,8 +22,76 @@ export default function NextLink({
   style,
   exportparts,
   data,
+  ignoreConditionCase,
   ...props
 }: INextLinkProps) {
+  if (ignoreConditionCase) {
+    return (
+      <Link
+        suppressHydrationWarning
+        className={className}
+        style={style}
+        prefetch={true}
+        href={href}
+        data-cy={props["data-cy"] ?? ""}
+        onClick={(e) => {
+          onClick?.(e);
+          if (data?.is_full_home) {
+            const {
+              setEnableSearch,
+              setFilterEnabled,
+              setSelectedOrderItem,
+              setActivePacks,
+              setOrderDetails,
+              setIsNavigating,
+            } = useAppStore.getState();
+            setEnableSearch(false);
+            setFilterEnabled(false);
+            setSelectedOrderItem(null);
+            setActivePacks(null);
+            setOrderDetails(null);
+            if (window.location.pathname === href) {
+              setIsNavigating(null);
+              return;
+            }
+          }
+          if (data?.is_product) {
+            let screen_name = "";
+            let url = window.location.pathname;
+            if (url.includes("filters/boutique")) {
+              screen_name = GA_GLOBAL_SCREEN.BOUTIQUE_SCREEN;
+            } else if (url.includes("tags_names")) {
+              screen_name = GA_GLOBAL_SCREEN.TAGS_SCREEN;
+            } else if (url.includes("/filters")) {
+              screen_name = GA_GLOBAL_SCREEN.FILTERS_SCREEN;
+            } else {
+              screen_name = GA_GLOBAL_SCREEN.HOME_SCREEN;
+            }
+            localStorage.setItem(
+              "last-page",
+              JSON.stringify({
+                url:
+                  window.location.pathname +
+                  (window.location.search?.includes("cart")
+                    ? ""
+                    : window.location.search),
+                productId: data.slug,
+                screen: screen_name,
+              })
+            );
+          }
+          const { setIsNavigating } = useAppStore.getState();
+          DisableScroll();
+          setIsNavigating({ ...data, href });
+        }}
+        // onClick={(e) => {
+        //   if (onClick) onClick(e);
+        // }}
+      >
+        {children}
+      </Link>
+    );
+  }
   if (isSamePage(href)) {
     return (
       <div

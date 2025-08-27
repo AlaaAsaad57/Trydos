@@ -90,6 +90,7 @@ export const FilterItem = ({
     return (
       <>
         <NextLink
+          ignoreConditionCase={true}
           data={{
             is_filter: true,
             href: href,
@@ -166,6 +167,7 @@ export const FilterItem = ({
               return (
                 <React.Fragment key={s.slug}>
                   <NextLink
+                    ignoreConditionCase={true}
                     data={{
                       is_filter: true,
                       href: getSubCategoryUrl(s.slug)?.href,
@@ -259,6 +261,7 @@ export const FilterItem = ({
                         s.childes.map((sub_s, index) => {
                           return (
                             <NextLink
+                              ignoreConditionCase={true}
                               key={sub_s.slug}
                               data={{
                                 is_filter: true,
@@ -362,6 +365,7 @@ export const FilterItem = ({
 
     return (
       <NextLink
+        ignoreConditionCase={true}
         data={{
           is_filter: true,
 
@@ -428,6 +432,7 @@ export const FilterItem = ({
 
     return (
       <NextLink
+        ignoreConditionCase={true}
         data={{
           is_filter: true,
 
@@ -485,6 +490,7 @@ export const FilterItem = ({
     const { href, isFiltered } = getFilterState(item, term);
     return (
       <NextLink
+        ignoreConditionCase={true}
         data={{
           is_filter: true,
 
@@ -552,6 +558,7 @@ export const FilterItem = ({
     );
     return (
       <NextLink
+        ignoreConditionCase={true}
         data={{
           is_filter: true,
 

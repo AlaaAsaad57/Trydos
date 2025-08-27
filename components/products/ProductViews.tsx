@@ -8,7 +8,7 @@ function ProductViews() {
   const { SelectedProduct } = useAppStore();
 
   return (
-    <div className="view-count absolute flex-row align-center">
+    <div className="view-count flex-row align-center">
       <EyeIcon />
       {SelectedProduct?.views_count >= 0 ? (
         <span>{SelectedProduct.views_count ?? "1"}</span>

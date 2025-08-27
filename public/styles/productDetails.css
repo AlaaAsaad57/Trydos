@@ -17,17 +17,15 @@
   height: 464px;
   object-fit: cover;
   object-position: center;
-  border-radius: 30px;
 }
 .product-details-slider .embla__slide {
   flex: 0 0 var(--slide-size);
   min-width: 320px;
-  border-radius: 30px;
+
   position: relative;
   box-shadow: 0px 0px 10px hsla(0, 0%, 0%, 0.1);
 }
 .product-details-slider .embla__slide::after {
-  background-image: url(/svg/BorderImage.svg);
   box-shadow: inset 0px 3px 6px hsla(0, 0%, 100%, 0.5);
   content: "";
   max-width: 100%;

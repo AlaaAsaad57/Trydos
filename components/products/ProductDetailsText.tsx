@@ -25,7 +25,7 @@ function ProductDetailsText({
   );
 
   const isLongText = details?.length > 95;
-  const [show, setShow] = useState(false);
+  const [show, setShow] = useState(true);
 
   useEffect(() => {
     const color = searchParams.get("color");
@@ -37,25 +37,25 @@ function ProductDetailsText({
     }
   }, [searchParams, product]);
 
-  const toggleText = () => {
-    const newShowState = !show;
-    if (newShowState) {
-      GAevent({
-        action: GA_EVENT_NAMES.READ_MORE,
-        params: {
-          user_id_custom: auth.UserID(),
-          ...paramsGA,
-        },
-      });
-    }
-    setShow(newShowState);
-    // Sendevent({
-    //   event: GA_EVENT_NAMES.CLICK,
-    //   value: newShowState
-    //     ? GA_CLICK_EVENT_VALUES.READ_MORE_BUTTON
-    //     : GA_CLICK_EVENT_VALUES.READ_LESS_BUTTON,
-    // });
-  };
+  // const toggleText = () => {
+  //   const newShowState = !show;
+  //   if (newShowState) {
+  //     GAevent({
+  //       action: GA_EVENT_NAMES.READ_MORE,
+  //       params: {
+  //         user_id_custom: auth.UserID(),
+  //         ...paramsGA,
+  //       },
+  //     });
+  //   }
+  //   setShow(newShowState);
+  //   // Sendevent({
+  //   //   event: GA_EVENT_NAMES.CLICK,
+  //   //   value: newShowState
+  //   //     ? GA_CLICK_EVENT_VALUES.READ_MORE_BUTTON
+  //   //     : GA_CLICK_EVENT_VALUES.READ_LESS_BUTTON,
+  //   // });
+  // };
 
   return (
     <div className="product-details-text">
@@ -70,11 +70,11 @@ function ProductDetailsText({
             : "",
         }}
       />
-      {isLongText && (
+      {/* {isLongText && (
         <span className="read-more" onClick={toggleText}>
           {translate(show ? "Read Less" : "Read More")}
         </span>
-      )}
+      )} */}
     </div>
   );
 }

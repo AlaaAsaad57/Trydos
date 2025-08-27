@@ -206,6 +206,7 @@ const ActiveFiltersBar = ({
 
           href: getResetUrl(),
         }}
+        ignoreConditionCase={true}
         href={getResetUrl()}
         data-cy="reset_filter_button"
         ariaLabel={`close filter ${params.lang}`}
