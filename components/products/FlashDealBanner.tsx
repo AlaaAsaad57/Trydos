@@ -5,7 +5,7 @@ import { translateFunction } from "utils/functions";
 
 interface FlashDealBannerProps {
   end_data: string;
-  top: string;
+  top?: string;
 }
 
 function FlashDealBanner({
