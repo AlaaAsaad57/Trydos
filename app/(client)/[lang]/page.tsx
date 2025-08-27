@@ -108,9 +108,9 @@ async function HomePage({ params }: HomePageProps) {
           country={params.lang.split("-")[0]}
         />
       </Suspense>
-      <Suspense fallback={<FeaturedProductsSkeleton lang={params.lang} />}>
+      {/* <Suspense fallback={<FeaturedProductsSkeleton lang={params.lang} />}>
         <RecomendedProductWrapper lang={params.lang} />
-      </Suspense>
+      </Suspense> */}
       <Suspense fallback={<FeaturedProductsSkeleton lang={params.lang} />}>
         <FeaturedProductWrapper lang={params.lang} />
       </Suspense>
