@@ -3,11 +3,10 @@ import React, { useState } from "react";
 import "styles/comment.css";
 import Loading from "public/svg/loading.svg";
 import { CommentItemPropsType } from "models/componentType/CommentItemPropsType";
-import { getCookie , COOKIE_NAMES } from "utils/cookies/cookie-manager";
+import { getCookie, COOKIE_NAMES } from "utils/cookies/cookie-manager";
 import { ConfirmModal } from "components/global/ConfirmModal";
 import DeleteCommentIcon from "public/svg/DeleteCommentIcon.svg";
 import { showErrorNotification } from "store/notifications/reducer";
-import { fetchData } from "utils/fetchData";
 import { useParams } from "node_modules/next/navigation";
 import { translateFunction } from "utils/functions";
 function CommentItem({
@@ -25,13 +24,13 @@ function CommentItem({
   let languageVariable = lang.split("-")[1];
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
-  
+
   const userData = getCookie(COOKIE_NAMES.USER_DATA);
   // @ts-ignore
   const isOwner = userData.id === custmerId;
-    // @ts-ignore
+  // @ts-ignore
   const isVerify = userData.is_phone_verified !== 0;
-  
+
   const handleDeleteComment = async () => {
     setDeleteLoading(true);
     try {
@@ -57,7 +56,9 @@ function CommentItem({
 
   const handleDeleteClick = () => {
     if (!isVerify) {
-      showErrorNotification(translateFunction("Please verify the number first.", languageVariable));
+      showErrorNotification(
+        translateFunction("Please verify the number first.", languageVariable)
+      );
       return;
     }
     setShowDeleteModal(true);
@@ -94,7 +95,7 @@ function CommentItem({
           {date}
         </div>
         {isOwner && (
-          <div 
+          <div
             className="comment-delete-btn"
             style={{
               position: "absolute",
@@ -119,15 +120,15 @@ function CommentItem({
             aria-label="Delete comment"
             role="button"
           >
-             <DeleteCommentIcon 
-               style={{
-                 filter: "drop-shadow(0px 1px 2px rgba(0,0,0,0.1))",
-               }}
-             />
+            <DeleteCommentIcon
+              style={{
+                filter: "drop-shadow(0px 1px 2px rgba(0,0,0,0.1))",
+              }}
+            />
           </div>
         )}
       </div>
-      
+
       {showDeleteModal && (
         <ConfirmModal
           onCancel={() => setShowDeleteModal(false)}

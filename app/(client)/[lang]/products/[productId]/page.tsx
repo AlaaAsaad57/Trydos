@@ -54,6 +54,7 @@ import RatingStars from "components/settings/cards/RatingStars";
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 import RecomendedIcon from "public/svg/Recomended.svg";
 import ExpectedDeleiveryBanner from "components/products/ExpectedDeleiveryBanner";
+import ProductsBuyersComments from "components/products/ProductsBuyersComments";
 // export const revalidate = parseInt(process.env.NEXT_PUBLIC_REVALIDATE);
 // For Middle East users
 
@@ -655,6 +656,10 @@ async function Page({ params, searchParams }: ProductPagePropsType) {
               </div>
 
               <ProductStories id={product.id} />
+              <ProductsBuyersComments
+                comments={product?.comments}
+                lang={params.lang}
+              />
             </div>
           </div>
 
