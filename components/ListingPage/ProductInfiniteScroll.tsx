@@ -47,7 +47,7 @@ function ProductsInfiniteScroll({
     GAevent({
       action: GA_EVENT_NAMES.VIEW_ITEMS_LIST,
       params: {
-        items: analyticsData,
+        items: JSON.stringify(analyticsData),
         item_list_name: getItemsListName(),
         screen_name: GA_GLOBAL_SCREEN.FILTERS_SCREEN,
         screen_path: window.location.pathname,
@@ -102,14 +102,16 @@ function ProductsInfiniteScroll({
         GAevent({
           action: GA_EVENT_NAMES.VIEW_ITEMS_LIST,
           params: {
-            items: response.products?.map((s) => ({
-              item_id: s?.product_id,
-              item_name: s?.name,
-              category: s?.category?.name,
-              category_id: s?.category?.id,
-              brand: s?.brand?.name,
-              brand_id: s?.brand?.id,
-            })),
+            items: JSON.stringify(
+              response?.products?.map((s) => ({
+                item_id: s?.product_id,
+                item_name: s?.name,
+                category: s?.category?.name,
+                category_id: s?.category?.id,
+                brand: s?.brand?.name,
+                brand_id: s?.brand?.id,
+              }))
+            ),
             item_list_name: getItemsListName(),
             user_id_custom: auth.UserID(),
             screen_name: GA_GLOBAL_SCREEN.FILTERS_SCREEN,

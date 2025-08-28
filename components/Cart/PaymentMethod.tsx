@@ -58,12 +58,14 @@ function PaymentMethod() {
         action: GA_EVENT_NAMES.ADD_PAYMENT,
         params: {
           payment_type: GA_PAYMENTS.WALLET,
-          items: cart.map((item) => ({
-            item_id: item.product_id,
-            item_name: item.name,
+          items: JSON.stringify(
+            cart.map((item) => ({
+              item_id: item.product_id,
+              item_name: item.name,
 
-            quantity: item.quantity,
-          })),
+              quantity: item.quantity,
+            }))
+          ),
         },
       });
       setOrderData({
@@ -82,12 +84,14 @@ function PaymentMethod() {
         action: GA_EVENT_NAMES.ADD_PAYMENT,
         params: {
           payment_type: GA_PAYMENTS.WALLET,
-          items: cart.map((item) => ({
-            item_id: item.product_id,
-            item_name: item.name,
+          items: JSON.stringify(
+            cart.map((item) => ({
+              item_id: item.product_id,
+              item_name: item.name,
 
-            quantity: item.quantity,
-          })),
+              quantity: item.quantity,
+            }))
+          ),
         },
       });
       setOrderData({
@@ -117,12 +121,14 @@ function PaymentMethod() {
           action: GA_EVENT_NAMES.ADD_PAYMENT,
           params: {
             payment_type: GA_PAYMENTS.COD,
-            items: cart.map((item) => ({
-              item_id: item.product_id,
-              item_name: item.name,
+            items: JSON.stringify(
+              cart.map((item) => ({
+                item_id: item.product_id,
+                item_name: item.name,
 
-              quantity: item.quantity,
-            })),
+                quantity: item.quantity,
+              }))
+            ),
           },
         });
         setOrderData({
@@ -163,12 +169,14 @@ function PaymentMethod() {
           action: GA_EVENT_NAMES.ADD_PAYMENT,
           params: {
             payment_type: GA_PAYMENTS.CRYPTO,
-            items: cart.map((item) => ({
-              item_id: item.product_id,
-              item_name: item.name,
+            items: JSON.stringify(
+              cart.map((item) => ({
+                item_id: item.product_id,
+                item_name: item.name,
 
-              quantity: item.quantity,
-            })),
+                quantity: item.quantity,
+              }))
+            ),
           },
         });
         setCryptoUser();
@@ -200,12 +208,14 @@ function PaymentMethod() {
           action: GA_EVENT_NAMES.ADD_PAYMENT,
           params: {
             payment_type: GA_PAYMENTS.CREDIT,
-            items: cart.map((item) => ({
-              item_id: item.product_id,
-              item_name: item.name,
+            items: JSON.stringify(
+              cart.map((item) => ({
+                item_id: item.product_id,
+                item_name: item.name,
 
-              quantity: item.quantity,
-            })),
+                quantity: item.quantity,
+              }))
+            ),
           },
         });
         setOrderData({

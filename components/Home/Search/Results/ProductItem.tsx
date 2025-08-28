@@ -34,18 +34,20 @@ function ProductItem({ product, onClick }) {
           params: {
             user_id_custom: auth.UserID(),
             search_keyword: value,
-            search_item_select: {
+            search_item_select: JSON.stringify({
               item_id: product?.product_id,
               item_name: product?.name,
-            },
-            items: searchResults.products
-              ?.filter((s) => s.product_id !== product.product_id)
-              ?.map((s) => ({
-                item_id: s?.product_id,
-                item_name: s?.name,
-                brand_id: s?.brand?.id,
-                category_id: s?.category?.id,
-              })),
+            }),
+            items: JSON.stringify(
+              searchResults.products
+                ?.filter((s) => s.product_id !== product.product_id)
+                ?.map((s) => ({
+                  item_id: s?.product_id,
+                  item_name: s?.name,
+                  brand_id: s?.brand?.id,
+                  category_id: s?.category?.id,
+                }))
+            ),
             screen_name: GA_GLOBAL_SCREEN.HOME_SCREEN,
             screen_path: window.location.pathname,
           },

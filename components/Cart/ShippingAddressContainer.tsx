@@ -622,11 +622,13 @@ const DefaultAddress = ({
         action: GA_EVENT_NAMES.ADD_ADDRESS,
         params: {
           shipping_tier: total_shipping_cost > 0 ? "Paid" : "Free",
-          items: cart.map((item) => ({
-            item_id: item.product_id,
-            item_name: item.name,
-            quantity: item.quantity,
-          })),
+          items: JSON.stringify(
+            cart.map((item) => ({
+              item_id: item.product_id,
+              item_name: item.name,
+              quantity: item.quantity,
+            }))
+          ),
         },
       });
     }

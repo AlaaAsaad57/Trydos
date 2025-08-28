@@ -1967,7 +1967,7 @@ const AddToCartButton = ({
           params: {
             currency: currency?.code,
             value: selectedVariant?.offer_price,
-            items: [
+            items: JSON.stringify([
               {
                 item_id: id,
                 item_name: product?.name,
@@ -1984,7 +1984,7 @@ const AddToCartButton = ({
                 review_count: product?.views_count ?? product?.view_count,
                 item_variant: selectedVariant?.type,
               },
-            ],
+            ]),
             interaction_type: "add_to_cart",
             user_id_custom: auth.UserID(),
             screen_name: DetectScreen(),
@@ -2018,7 +2018,7 @@ const AddToCartButton = ({
           params: {
             currency: currency?.code,
             value: selectedVariant?.offer_price,
-            items: [
+            items: JSON.stringify([
               {
                 item_id: id,
                 item_name: product?.name,
@@ -2032,7 +2032,7 @@ const AddToCartButton = ({
                 review_count: product?.views_count ?? product?.view_count,
                 item_variant: selectedVariant?.type,
               },
-            ],
+            ]),
             user_id_custom: auth.UserID(),
             interaction_type: "add_to_cart",
             screen_name: DetectScreen(),
@@ -2067,7 +2067,7 @@ const AddToCartButton = ({
         GAevent({
           action: GA_EVENT_NAMES.REMOVE_FROM_CART,
           params: {
-            items: [
+            items: JSON.stringify([
               {
                 item_id: product.id,
                 item_name: product.name,
@@ -2075,7 +2075,7 @@ const AddToCartButton = ({
                 quantity: 1,
                 price: variant?.offer_price,
               },
-            ],
+            ]),
           },
         });
         await updateQuantity();

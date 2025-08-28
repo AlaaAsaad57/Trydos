@@ -212,13 +212,15 @@ export const StepSlider = ({ enableCart }) => {
       action: GA_EVENT_NAMES.BEGIN_CHECKOUT,
       params: {
         value: total_cash,
-        items: cart.map((item) => ({
-          item_id: item.product_id,
-          item_name: item.name,
-          price: item.offer_price,
-          quantity: item.quantity,
-          item_variant: item.variant ?? "N/A",
-        })),
+        items: JSON.stringify(
+          cart.map((item) => ({
+            item_id: item.product_id,
+            item_name: item.name,
+            price: item.offer_price,
+            quantity: item.quantity,
+            item_variant: item.variant ?? "N/A",
+          }))
+        ),
       },
     });
     setStep(1);
