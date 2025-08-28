@@ -144,14 +144,9 @@ function ReturnOrderItemConfirmation({
       }
 
       if (confirm) {
-        await Promise.all(
-          // @ts-ignore
-          isThereAReturnedProduct()?.map(async (s) => {
-            await order.ConfirmReturnRequest({
-              return_request_id: s,
-            });
-          })
-        );
+        await order.ConfirmReturnRequest({
+          return_request_id: isThereAReturnedProduct(),
+        });
       }
       callback();
       close();
@@ -219,7 +214,7 @@ function ReturnOrderItemConfirmation({
           >
             {loading ? <Spinner /> : translateFunction("I Agree & Return")}
           </div>
-          {!confirmationData?.update && (
+          {
             <div
               className={`w-full h-[50px] mt-[31px] items-center justify-center  flex cursor-pointer ${"bg-[#a79cfa] "} rounded-[15px] text-[16px] text-[#575757] medium`}
               style={{
@@ -238,7 +233,7 @@ function ReturnOrderItemConfirmation({
                 )
               )}
             </div>
-          )}
+          }
           {!loading && (
             <div
               onClick={() => {

@@ -115,16 +115,12 @@ function OrderDetails({
       });
       returned_req_ids = returned_req_ids?.filter((s) => s !== undefined);
       let returnRequests = undefined;
+
       if (returned_req_ids?.length > 0) {
         try {
-          returnRequests = await Promise.all(
-            returned_req_ids.map(async (id) => {
-              const details = await Order.getReturnRequestDetails({
-                return_request_id: id,
-              });
-              return { id, details };
-            })
-          );
+          returnRequests = await Order.GetReturnDetailsForOrderGroup({
+            order_group_id: selectedOrder.order_group_id,
+          });
 
           // Update data with the fetched details
           data = data.map((order) => {
@@ -143,6 +139,7 @@ function OrderDetails({
           console.error(error);
         }
       }
+
       let orderData = {
         ...data?.[0],
         order_amount: totalAmount(data),
@@ -595,25 +592,22 @@ const OrderExpandedDetails = ({
 
   const [cancelling, setCancelling] = useState(false);
   const CancelReturnRequest = async () => {
-    if (Array.isArray(isThereAReturnedProduct()))
-      try {
+    try {
+      if (Array.isArray(isThereAReturnedProductForCancel())) {
         setCancelling(true);
-        await Promise.all(
-          // @ts-ignore
-          isThereAReturnedProduct()?.map(async (s) => {
-            await Order.CancelReturnRequest({
-              return_request_id: s,
-            });
-          })
-        );
+        await Order.CancelReturnRequest({
+          return_request_id: isThereAReturnedProductForCancel(),
+        });
         getOrderDetails();
         setCancelling(false);
-      } catch (error) {
-        setCancelling(false);
       }
+    } catch (error) {
+      setCancelling(false);
+    }
   };
   const isThereAReturnedProduct = () => {
     let arr = [];
+
     selectedOrder.returned_data?.map((s) => {
       s.details?.order_details?.map((req) => {
         if (req.already_return) {
@@ -621,7 +615,26 @@ const OrderExpandedDetails = ({
         }
       });
     });
+    let set = new Set(arr);
+    arr = [...set];
+    if (arr.length > 0) return arr;
+    return false;
+  };
+  const isThereAReturnedProductForCancel = () => {
+    let arr = [];
 
+    selectedOrder.returned_data?.map((s) => {
+      s.details?.order_details?.map((req) => {
+        if (req.already_return) {
+          arr.push(req?.return_request_id);
+        }
+      });
+    });
+    selectedOrder?.details.map((s) => {
+      if (s.return_request_id) arr.push(s.return_request_id);
+    });
+    let set = new Set(arr);
+    arr = [...set];
     if (arr.length > 0) return arr;
     return false;
   };

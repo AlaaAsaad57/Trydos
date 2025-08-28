@@ -551,7 +551,7 @@ class OrderService {
         method: "POST",
         server: "market",
         body: JSON.stringify({
-          return_request_id: return_request_id,
+          return_request_ids: return_request_id,
         }),
       });
       if (response?.success) return response.data;
@@ -577,10 +577,13 @@ class OrderService {
   async CancelReturnRequest({ return_request_id }) {
     try {
       let response = await fetchData({
-        url: `/customer/order/return_requests/cancel?return_request_id=${return_request_id}`,
+        url: `/customer/order/return_requests/bulk_cancel`,
         reqTitle: REQUESTS_DATA.CANCEL_RETURN_REQ,
-        method: "GET",
+        method: "POST",
         server: "market",
+        body: JSON.stringify({
+          return_request_ids: return_request_id,
+        }),
       });
       if (response?.success) return response.data;
       else throw new Error();
@@ -595,6 +598,20 @@ class OrderService {
       method: "GET",
       reqTitle: REQUESTS_DATA.REMOVE_IMAGE,
     });
+  }
+  async GetReturnDetailsForOrderGroup({ order_group_id }) {
+    let resp = await fetchData({
+      url: `/customer/order/return_requests/order_details_by_group?order_group_id=${order_group_id}`,
+      server: "market",
+      method: "GET",
+      reqTitle: REQUESTS_DATA.DETAILS_RETURN_PRODUCT,
+      noMessage: true,
+    });
+    let arr = resp.data.return_requests_data?.map((s) => ({
+      details: s,
+      id: s.return_request_id,
+    }));
+    return arr;
   }
 }
 export default new OrderService();

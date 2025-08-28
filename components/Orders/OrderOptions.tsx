@@ -58,16 +58,12 @@ function OrderOptions({
           return s.return_request_id;
       });
       returned_req_ids = returned_req_ids?.filter((s) => s !== undefined);
+
       if (returned_req_ids?.length > 0) {
         try {
-          returnRequests = await Promise.all(
-            returned_req_ids.map(async (id) => {
-              const details = await orderService.getReturnRequestDetails({
-                return_request_id: id,
-              });
-              return { id, details };
-            })
-          );
+          returnRequests = await orderService.GetReturnDetailsForOrderGroup({
+            order_group_id: selectedOrder.order_group_id,
+          });
 
           // Update data with the fetched details
           data = data.map((order) => {
@@ -82,18 +78,6 @@ function OrderOptions({
                 }
               : { ...order, returned_data: returnRequests };
           });
-          let orderData = {
-            ...data?.[0],
-            order_amount: totalAmount(data),
-            details: data,
-            returned_data: returnRequests,
-          };
-
-          if (data.find((s) => s.id === ActivePacks?.id)) {
-            setActivePacks(data.find((s) => s.id === ActivePacks?.id));
-          } else setActivePacks(data[0]);
-
-          setOrderDetails(orderData);
         } catch (error) {
           console.error(error);
         }
@@ -103,8 +87,9 @@ function OrderOptions({
         order_amount: totalAmount(data),
         details: data,
       };
-
-      setActivePacks(data[0]);
+      if (ActivePacks?.id && data?.find((s) => s.id === ActivePacks?.id)) {
+        setActivePacks(data?.find((s) => s.id === ActivePacks?.id));
+      } else setActivePacks(data[0]);
 
       setOrderDetails(orderData);
     } catch (error) {
