@@ -21,7 +21,7 @@
 .product-details-slider .embla__slide {
   flex: 0 0 var(--slide-size);
   min-width: 320px;
-
+  max-height: 464px;
   position: relative;
   box-shadow: 0px 0px 10px hsla(0, 0%, 0%, 0.1);
 }

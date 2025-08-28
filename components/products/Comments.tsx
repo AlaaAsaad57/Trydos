@@ -8,6 +8,7 @@ import { formatTime, GetImageUrl } from "utils/tinyUtils";
 import { CommentsPropsType } from "models/componentType/CommentsPropsType";
 import { fetchData } from "utils/fetchData";
 import { REQUESTS_DATA } from "utils/Requests";
+import { useAppStore } from "store";
 
 function Comments({
   comments,
@@ -21,7 +22,6 @@ function Comments({
   setRender,
   verifyCommentAction,
 }: CommentsPropsType) {
-  useEffect(() => {}, [Render, comments]);
   const resendCommentApi = async (mid, s) => {
     try {
       let response: { data: AddComment } = await fetchData({
@@ -40,6 +40,7 @@ function Comments({
         // @ts-ignore
         throw new Error(response.message);
       }
+      fetch(`/api/editSocialProduct?pid=${productId}`);
       if (response.data?.comment) {
         let s = CommentsData.filter((m) => m.mid === mid)[0];
         verifyCommentAction(mid);
@@ -57,7 +58,7 @@ function Comments({
     <div className="content-extended comments-extended" data-cy="CommentArea">
       {/* <CommentItem
         date="18 feb"
-        name="Yxxx Oxxx"
+        name="Yxxx Oxxx"   
         text="Amazing Product I Buy It And I Saw It Is Good Quality Regarding Price"
         photo="https://res.cloudinary.com/dtcmozf4d/image/upload/h_100/f_webp/q_100/v1/product/thumbnail/2024-05-12-663fce81803c3.png"
       /> */}

@@ -4,9 +4,8 @@ export const dynamic = "force-dynamic";
 import "styles/productDetails.css";
 import "styles/product-body.css";
 import EyeIcon from "public/svg/product/EyeIcon.svg";
-import ReturnIcon from "public/svg/product/ReturnIcon.svg";
 import FreeReturnIcon from "public/svg/product/FreeReturnIcon.svg";
-
+import MalicanIcon from "public/svg/MailcanIcon.svg";
 import {
   getConfiguredImage,
   RoundPrice,
@@ -55,6 +54,9 @@ import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 import RecomendedIcon from "public/svg/Recomended.svg";
 import ExpectedDeleiveryBanner from "components/products/ExpectedDeleiveryBanner";
 import ProductsBuyersComments from "components/products/ProductsBuyersComments";
+import FAQSection from "components/products/FAQSection";
+import ProductSizes from "components/products/ProductSizes";
+import ProductSizesReview from "components/products/ProductSizesReview";
 // export const revalidate = parseInt(process.env.NEXT_PUBLIC_REVALIDATE);
 // For Middle East users
 
@@ -352,7 +354,10 @@ async function Page({ params, searchParams }: ProductPagePropsType) {
             )}
           </div>
           <ProductBackButton productId={params.productId} lang={params.lang} />
-          <div className="product-details-slider relative" key={`key-${color}`}>
+          <div
+            className="product-details-slider relative h-[474px] max-h-[474px]"
+            key={`key-${color}`}
+          >
             <ProductImagesSlider>
               {getImages(product, color)?.images?.map((img, i) => (
                 <div
@@ -366,17 +371,7 @@ async function Page({ params, searchParams }: ProductPagePropsType) {
                     <>
                       {product?.categories?.[0]?.icon && (
                         <span className="rounded-[6px] rounded-bl-[15px] bg-[#513AAF] z-50 flex items-center justify-center w-[25px] h-[25px] bottom-0 left-[0px] absolute">
-                          <Image
-                            className="flex max-w-[10px] max-h-[10px]"
-                            alt={product?.categories?.[0]?.name}
-                            src={getConfiguredImage({
-                              src: GetImageUrl(product?.categories?.[0]?.icon),
-                              width: 20,
-                              height: 20,
-                            })}
-                            width={10}
-                            height={10}
-                          />
+                          <MalicanIcon />
                         </span>
                       )}
 
@@ -431,7 +426,7 @@ async function Page({ params, searchParams }: ProductPagePropsType) {
               }}
             />
           </Suspense>
-          <div className="product-details-body bg-[#ffffff] flex-row relative mt-[3px]">
+          <div className="product-details-body bg-[#ffffff] flex-row relative mt-[3px] pb-[50px]">
             <div className="product-info-section bg-[#ffffff] flex-col align-start">
               <div className="flex-col px-[10px] max-w-full">
                 <div className="product-brand-logo flex-row items-center gap-[11px]">
@@ -547,15 +542,6 @@ async function Page({ params, searchParams }: ProductPagePropsType) {
                 <CameraShots images={product?.images || []} />
               </Suspense> */}
 
-              {/* <Suspense fallback={<></>}>
-                <ProductSizes
-                  sizes={
-                    product?.choice_options?.filter(
-                      (s) => s.title?.toLowerCase() === "size"
-                    )[0]?.options || []
-                  }
-                />
-              </Suspense> */}
               {/* <Suspense>
                 <ProductShippingOption days={product.shipping_days} />
               </Suspense> */}
@@ -660,6 +646,23 @@ async function Page({ params, searchParams }: ProductPagePropsType) {
                 comments={product?.comments}
                 lang={params.lang}
               />
+              <FAQSection comments={product?.comments} lang={params.lang} />
+              {product?.choice_options?.filter(
+                (s) => s.title?.toLowerCase() === "size"
+              )[0]?.options?.length > 0 && (
+                <ProductSizes
+                  sizes={
+                    product?.choice_options?.filter(
+                      (s) => s.title?.toLowerCase() === "size"
+                    )[0]?.options || []
+                  }
+                />
+              )}
+              {product?.choice_options?.filter(
+                (s) => s.title?.toLowerCase() === "size"
+              )[0]?.options?.length > 0 && (
+                <ProductSizesReview lang={params.lang} />
+              )}
             </div>
           </div>
 

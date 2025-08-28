@@ -29,10 +29,7 @@ export async function OPTIONS() {
 
 // GET handler
 export async function GET(request: NextRequest) {
-  const language = request.nextUrl.searchParams.get("language") || "en";
-  const country = request.nextUrl.searchParams.get("country") || "tr";
   const product = request.nextUrl.searchParams.get("pid");
-  const slug = request.nextUrl.searchParams.get("slug");
 
   try {
     // let data = await GetSocialDataForProduct({

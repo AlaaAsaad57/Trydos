@@ -1,11 +1,12 @@
 "use client";
 import React, { useState } from "react";
-import SizesIcon from "public/svg/product/SizesIcon.svg";
-import ColorsInfo from "public/svg/product/colorsInfo.svg";
-import NormalSizesSlider from "./NormalSizesSlider";
-import DashedCircleBorder from "public/svg/product/DashedCircleBorder.svg";
-import SizeInfoBox from "./SizeInfoBox";
-import { RoundPrice, translateFunction } from "utils/functions";
+// import SizesIcon from "public/svg/product/SizesIcon.svg";
+import NewSizesIcon from "public/svg/NewSizesIcon.svg";
+// import ColorsInfo from "public/svg/product/colorsInfo.svg";
+// import NormalSizesSlider from "./NormalSizesSlider";
+// import DashedCircleBorder from "public/svg/product/DashedCircleBorder.svg";
+// import SizeInfoBox from "./SizeInfoBox";
+import { translateFunction } from "utils/functions";
 import {
   useParams,
   usePathname,
@@ -15,9 +16,10 @@ import {
 import { useAppStore } from "store";
 import { GA_EVENT_NAMES, GA_GLOBAL_SCREEN } from "utils/GAEvents";
 import { ProductSizesPropsType } from "models/componentType/productTypes/MultiComponentOnProductPage";
-import StackedSlider from "utils/Slider";
+// import StackedSlider from "utils/Slider";
 import { GAevent } from "utils/gtag";
 import auth from "services/auth";
+import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 
 function ProductSizes({ sizes }: ProductSizesPropsType) {
   const { showInfoMessage, product, SelectedProduct, currency } = useAppStore();
@@ -27,9 +29,17 @@ function ProductSizes({ sizes }: ProductSizesPropsType) {
   const translate = (key, lang?) => {
     return translateFunction(key, languageVariable);
   };
-  const [extended, setExtended] = useState(false);
-  const [activeColor, setActiveColorFunc] = useState(sizes[0]?.option);
+  // const [extended, setExtended] = useState(false);
   const searchParams = useSearchParams();
+  let sizeFromUrl = searchParams?.get("size");
+  const [activeColor, setActiveColorFunc] = useState(
+    sizes?.find(
+      (s) =>
+        s.option?.toLowerCase() === sizeFromUrl?.toLowerCase() ||
+        s.name?.toLowerCase() === sizeFromUrl?.toLowerCase()
+    )?.option ?? sizes[0]?.option
+  );
+
   const pathname = usePathname();
   const router = useRouter();
   const setActiveColor = (e) => {
@@ -71,114 +81,191 @@ function ProductSizes({ sizes }: ProductSizesPropsType) {
       },
     });
   };
+  let new_sizes_options = ["Standard", "EU", "IN", "US", "UK"];
   return (
-    <div
-      className={`product-colors product-sizes flex-row align-start relative ${
-        extended && "extended-sizes-container"
-      }`}
-    >
-      <div className="colors-label flex-row align-center">
-        <SizesIcon data-cy="SizeIcon" />
-        <span style={{ marginLeft: "5px" }} data-cy="SizeSpan">
-          {translate("Available ")} {sizes.length} {translate("Sizes")}
-        </span>
-        <ColorsInfo
-          data-cy="QuestionMark"
-          style={{ marginLeft: "9px" }}
-          onClick={() => {
-            // Sendevent({
-            //   event: GA_EVENT_NAMES.CLICK,
-            //   value: GA_CLICK_EVENT_VALUES.SHOW_AVAILABLE_SIZE_INFO_MESSAGE,
-            // });
-            showInfoMessage({
-              showInfoMessage: true,
-              title: ` Available ${sizes.length} Sizes`,
-              text: "According To The Opinions Of Our Fashion Team, The Appropriate Occasions For This Product Have Been Identified Based On Long Experience. We Provide An Opinion Only And Opinions May Differ From One Person To Another. So It Is Suitable For",
-              icon: "/svg/product/SizesIcon.svg",
-              value: [],
-            });
-          }}
-        />
+    <div className="w-full rounded-[15px] mt-[20px] bg-[#FCFCFC] py-[8px] pr-[8px] pl-[10px] h-[131px] flex-col">
+      <div className="w-full flex-row justify-between">
+        <div className="flex-row gap-[20px]">
+          <div className="flex-col text-[#1d1d1d] text-[9px] regular gap-[5px]">
+            <NewSizesIcon />
+            <span>{translate("Sizes")}</span>
+          </div>
+          <div className="flex-row gap-[2px]">
+            <div
+              className="uppercase cursor-pointer flex-col rounded-[6px] bg-[#F4F4F4] text-[#1d1d1d] text-[11px] w-auto h-[20px] items-center px-[6px]"
+              style={{
+                border: "1px solid #D3D3D37f",
+              }}
+            >
+              IN
+            </div>
+            <div
+              className="uppercase cursor-pointer flex-col rounded-[6px] bg-[#fff] text-[#1d1d1d] text-[11px] w-auto h-[20px] items-center px-[6px]"
+              style={{
+                border: "1px solid #D3D3D37f",
+              }}
+            >
+              CM
+            </div>
+          </div>
+        </div>
+        <div className="flex-row gap-[2px] items-start">
+          {new_sizes_options?.map((s) => (
+            <div
+              key={s}
+              className={`uppercase cursor-pointer rounded-[6px] flex-col w-auto h-[20px] items-center px-[6px] ${
+                s === "Standard" ? "bg-[#F4F4F4]" : "bg-[#fff]"
+              } text-[#1d1d1d] text-[11px]`}
+              style={{
+                border: "1px solid #D3D3D37f",
+              }}
+            >
+              {s}
+            </div>
+          ))}
+        </div>
       </div>
-      <NormalSizesSlider
-        close={() => setExtended(false)}
-        sizes={sizes}
-        activeColor={activeColor}
-        active={extended}
-        setActiveColor={(e) => {
-          const newParams = new URLSearchParams(searchParams);
-          newParams.set("size", e);
-          // @ts-expect-error 'shallow' does not exist in type 'NavigateOptions'
-          router.push(pathname + `?${newParams.toString()}`, { shallow: true });
-          setActiveColor(e);
-        }}
-      />
-      <div
-        className={`colors-row flex-row mr-[20px] ${
-          extended && "colors-row-extended disable-slider"
-        }`}
-        style={{ width: `${120}px` }}
-        onClick={() => {
-          if (extended === false) {
-            GAevent({
-              action: GA_EVENT_NAMES.VIEW_SIZE_COLOR_CHART,
-              params: {
-                user_id_custom: auth.UserID(),
-                item_id: SelectedProduct.id,
-                item_name: SelectedProduct?.name,
-                brand: SelectedProduct?.brand?.name,
-                brand_id: SelectedProduct?.brand?.id,
-                category:
-                  SelectedProduct?.category?.name ||
-                  SelectedProduct?.categories?.[0]?.name,
-                category_id:
-                  SelectedProduct?.category?.id ||
-                  SelectedProduct?.categories?.[0]?.id,
-                price: SelectedProduct?.offer_price,
-              },
-            });
-          }
-          setExtended(!extended);
-        }}
+      <span className="flex-row mt-[5px]">
+        {sizes?.length} {translateFunction("Sizes Available")}
+      </span>
+      <HortiznalScrollBar
+        className="w-full h-[] flex-row gap-[2px]"
+        id="sizes-new-bar"
       >
-        <StackedSlider
-          initial_index={0}
-          slidesArray={sizes.map((size, index) => index)}
-          slide_width={40}
-          max_drag={100}
-          max_scale={1}
-          min_scale={0.6}
-          onSlideChange={(index) => {
-            const newParams = new URLSearchParams(searchParams);
-            newParams.set("size", sizes[index].name);
-            router.push(pathname + `?${newParams.toString()}`, {
-              scroll: false,
-              // @ts-expect-error 'shallow' does not exist in type 'NavigateOptions'
-              shallow: true,
-            });
-          }}
-          overlap_factor={0.4}
-          renderSlide={({ index, isActive, slide_width }) => {
-            let size = sizes[index];
-            return (
-              <div
-                className={`color-circle relative w-[40px] h-[40px] ${
-                  isActive && "active-color-circle"
-                }`}
-              >
-                <div className={`size-circle ${isActive && "active-size"}`}>
-                  {size.name}
-                </div>
-
-                <DashedCircleBorder />
-              </div>
-            );
-          }}
-        />
-      </div>
-      {extended && <SizeInfoBox />}
+        {sizes.map((s) => (
+          <div
+            key={s?.option}
+            onClick={() => {
+              const newParams = new URLSearchParams(searchParams);
+              newParams.set("size", s?.option);
+              router.push(pathname + `?${newParams.toString()}`, {
+                // @ts-expect-error 'shallow' does not exist in type 'NavigateOptions'
+                shallow: true,
+              });
+              setActiveColor(s?.option);
+            }}
+            className={`uppercase justify-center cursor-pointer rounded-[6px] flex-col  w-auto h-[46px]  min-w-[50px] items-center px-[6px] ${
+              s?.option === activeColor ? "bg-[#F4F4F4]" : "bg-[#fff]"
+            } text-[#1d1d1d] text-[11px]`}
+            style={{
+              border: "1px solid #D3D3D37f",
+            }}
+          >
+            <span> {s?.name}</span>
+            <span> {s?.option}</span>
+          </div>
+        ))}
+      </HortiznalScrollBar>
     </div>
   );
+  // return (
+  //   <div
+  //     className={`product-colors product-sizes flex-row align-start relative ${
+  //       extended && "extended-sizes-container"
+  //     }`}
+  //   >
+  //     <div className="colors-label flex-row align-center">
+  //       <SizesIcon data-cy="SizeIcon" />
+  //       <span style={{ marginLeft: "5px" }} data-cy="SizeSpan">
+  //         {translate("Available ")} {sizes.length} {translate("Sizes")}
+  //       </span>
+  //       <ColorsInfo
+  //         data-cy="QuestionMark"
+  //         style={{ marginLeft: "9px" }}
+  //         onClick={() => {
+  //           // Sendevent({
+  //           //   event: GA_EVENT_NAMES.CLICK,
+  //           //   value: GA_CLICK_EVENT_VALUES.SHOW_AVAILABLE_SIZE_INFO_MESSAGE,
+  //           // });
+  //           showInfoMessage({
+  //             showInfoMessage: true,
+  //             title: ` Available ${sizes.length} Sizes`,
+  //             text: "According To The Opinions Of Our Fashion Team, The Appropriate Occasions For This Product Have Been Identified Based On Long Experience. We Provide An Opinion Only And Opinions May Differ From One Person To Another. So It Is Suitable For",
+  //             icon: "/svg/product/SizesIcon.svg",
+  //             value: [],
+  //           });
+  //         }}
+  //       />
+  //     </div>
+  //     <NormalSizesSlider
+  //       close={() => setExtended(false)}
+  //       sizes={sizes}
+  //       activeColor={activeColor}
+  //       active={extended}
+  //       setActiveColor={(e) => {
+  //         const newParams = new URLSearchParams(searchParams);
+  //         newParams.set("size", e);
+  //         // @ts-expect-error 'shallow' does not exist in type 'NavigateOptions'
+  //         router.push(pathname + `?${newParams.toString()}`, { shallow: true });
+  //         setActiveColor(e);
+  //       }}
+  //     />
+  //     <div
+  //       className={`colors-row flex-row mr-[20px] ${
+  //         extended && "colors-row-extended disable-slider"
+  //       }`}
+  //       style={{ width: `${120}px` }}
+  //       onClick={() => {
+  //         if (extended === false) {
+  //           GAevent({
+  //             action: GA_EVENT_NAMES.VIEW_SIZE_COLOR_CHART,
+  //             params: {
+  //               user_id_custom: auth.UserID(),
+  //               item_id: SelectedProduct.id,
+  //               item_name: SelectedProduct?.name,
+  //               brand: SelectedProduct?.brand?.name,
+  //               brand_id: SelectedProduct?.brand?.id,
+  //               category:
+  //                 SelectedProduct?.category?.name ||
+  //                 SelectedProduct?.categories?.[0]?.name,
+  //               category_id:
+  //                 SelectedProduct?.category?.id ||
+  //                 SelectedProduct?.categories?.[0]?.id,
+  //               price: SelectedProduct?.offer_price,
+  //             },
+  //           });
+  //         }
+  //         setExtended(!extended);
+  //       }}
+  //     >
+  //       <StackedSlider
+  //         initial_index={0}
+  //         slidesArray={sizes.map((size, index) => index)}
+  //         slide_width={40}
+  //         max_drag={100}
+  //         max_scale={1}
+  //         min_scale={0.6}
+  //         onSlideChange={(index) => {
+  //           const newParams = new URLSearchParams(searchParams);
+  //           newParams.set("size", sizes[index].name);
+  //           router.push(pathname + `?${newParams.toString()}`, {
+  //             scroll: false,
+  //             // @ts-expect-error 'shallow' does not exist in type 'NavigateOptions'
+  //             shallow: true,
+  //           });
+  //         }}
+  //         overlap_factor={0.4}
+  //         renderSlide={({ index, isActive, slide_width }) => {
+  //           let size = sizes[index];
+  //           return (
+  //             <div
+  //               className={`color-circle relative w-[40px] h-[40px] ${
+  //                 isActive && "active-color-circle"
+  //               }`}
+  //             >
+  //               <div className={`size-circle ${isActive && "active-size"}`}>
+  //                 {size.name}
+  //               </div>
+
+  //               <DashedCircleBorder />
+  //             </div>
+  //           );
+  //         }}
+  //       />
+  //     </div>
+  //     {extended && <SizeInfoBox />}
+  //   </div>
+  // );
 }
 
 export default ProductSizes;

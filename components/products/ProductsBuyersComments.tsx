@@ -6,6 +6,8 @@ import Image from "next/image";
 import { formatTime, GetImageUrl } from "utils/tinyUtils";
 import profilePng from "public/images/profileNo.png";
 import RatingStars from "components/settings/cards/RatingStars";
+import RecomendedIcon from "public/svg/RecomendedIcon.svg";
+import NegRecomendedIcon from "public/svg/NegRecomendIcon.svg";
 function ProductsBuyersComments({ lang, comments }) {
   const [country, language] = lang.split("-");
   return (
@@ -47,7 +49,10 @@ function ProductsBuyersComments({ lang, comments }) {
           </svg>
         </div>
       </div>
-      <HortiznalScrollBar id="comments-buyers-bar" className="flex-row w-full">
+      <HortiznalScrollBar
+        id="comments-buyers-bar"
+        className="flex-row w-full gap-[4px]"
+      >
         {comments.map((s) => {
           return (
             <RateCommentItem
@@ -58,6 +63,7 @@ function ProductsBuyersComments({ lang, comments }) {
           );
         })}
       </HortiznalScrollBar>
+      <BuyersRatingBar language={language} />
     </div>
   );
 }
@@ -67,7 +73,7 @@ export default ProductsBuyersComments;
 const RateCommentItem = ({ comment, language }) => {
   return (
     <div
-      className="comment-item flex-col justify-between max-w-[388px] w-full bg-[#F8F8F8] min-h-[111px] py-[8px] px-[10px]"
+      className="comment-item rounded-[15px] flex-col justify-between min-w-[85%] max-w-[90%] w-full bg-[#F8F8F8] min-h-[111px] py-[8px] px-[10px]"
       style={{
         position: "relative",
       }}
@@ -143,6 +149,49 @@ const BuyerCommentRateInfo = ({ language }) => {
           <span>{translateFunction("Good Quality", language)}</span>
           <span>{translateFunction("True Size", language)}</span>
         </div>
+        <div className="flex-row gap-[4px] text-[#1d1d1d] text-[9px]">
+          <RecomendedIcon />
+          <span>{translateFunction("Recommend It", language)}</span>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const BuyersRatingBar = ({ language }) => {
+  let recomended = 123;
+  let not_recomended = 15;
+  let recomendedPRC = (
+    (100 * recomended) /
+    (recomended + not_recomended)
+  ).toFixed(0);
+  return (
+    <div className="flex-col w-full mt-[11px] pl-[10px] pr-[20px]">
+      <div className="flex-row items-center w-full justify-between">
+        <div className="flex-row regular items-center text-[#1d1d1d] text-[9px] gap-[4px]">
+          <RecomendedIcon />
+          <span className="bold ">{recomended}</span>
+          <span>{translateFunction("Buyer", language)}</span>
+          <span className="bold">
+            {translateFunction("Recommend It", language)}
+          </span>
+        </div>
+        <div className="flex-row items-center regular text-[#1d1d1d] text-[9px] gap-[4px]">
+          <NegRecomendedIcon />
+          <span className="bold ">{not_recomended}</span>
+          <span>{translateFunction("Buyer", language)}</span>
+          <span className="bold">
+            {translateFunction("Dont Recommend It", language)}
+          </span>
+        </div>
+      </div>
+      <div className="flex-row rounded-[5px] w-full h-[4px] bg-[#FF6200] mt-[8px]">
+        <div
+          className={`bg-[#068D06] rounded-[5px] h-[4px]`}
+          style={{
+            width: `${recomendedPRC}%`,
+          }}
+        />
       </div>
     </div>
   );

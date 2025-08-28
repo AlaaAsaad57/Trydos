@@ -94,7 +94,7 @@ function CommentItem({
         <div className="comment-date" data-cy="Date-Of-Comment">
           {date}
         </div>
-        {isOwner && (
+        {isOwner && !isError && isPending && (
           <div
             className="comment-delete-btn"
             style={{
