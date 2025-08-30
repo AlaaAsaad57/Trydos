@@ -156,15 +156,13 @@ function CartContainer({ close, toOrders }: CartContainerPropsType) {
       GAevent({
         action: GA_EVENT_NAMES.VIEW_CART,
         params: {
-          items: JSON.stringify(
-            data.cart.map((item) => ({
-              item_id: item.product_id,
-              item_name: item.name,
-              price: item.offer_price,
-              quantity: item.quantity,
-              item_variant: item.variant ?? "N/A",
-            }))
-          ),
+          items: data.cart.map((item) => ({
+            item_id: item.product_id,
+            item_name: item.name,
+            price: item.offer_price,
+            quantity: item.quantity,
+            item_variant: item.variant ?? "N/A",
+          })),
           screen_name: GA_GLOBAL_SCREEN.CART_SCREEN,
           screen_path: window.location.pathname,
         },
@@ -694,7 +692,7 @@ function CartContainer({ close, toOrders }: CartContainerPropsType) {
                           GAevent({
                             action: GA_EVENT_NAMES.REMOVE_FROM_CART,
                             params: {
-                              items: JSON.stringify([
+                              items: [
                                 {
                                   item_id: product.product_id,
                                   item_name: product.name,
@@ -702,7 +700,7 @@ function CartContainer({ close, toOrders }: CartContainerPropsType) {
                                   quantity: 1,
                                   price: product.offer_price,
                                 },
-                              ]),
+                              ],
                             },
                           });
                         }}
@@ -1923,7 +1921,7 @@ const QuantutyInput = ({
         params: {
           currency: currency?.code,
           value: product?.offer_price,
-          items: JSON.stringify([
+          items: [
             {
               item_id: product.product_id,
               item_name: product?.name,
@@ -1935,7 +1933,7 @@ const QuantutyInput = ({
               // review_count: product?.shared_count,
               item_variant: product.variant,
             },
-          ]),
+          ],
           user_id_custom: auth.UserID(),
           interaction_type: "add_to_cart",
           screen_name: GA_GLOBAL_SCREEN.CART_SCREEN,

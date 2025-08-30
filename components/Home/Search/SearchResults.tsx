@@ -142,6 +142,7 @@ function SearchResults() {
               return (
                 <ProductItem
                   product={product}
+                  index={index + 1}
                   key={product?.product_id}
                   onClick={(e) => {
                     // Sendevent({

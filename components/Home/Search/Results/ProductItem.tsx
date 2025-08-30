@@ -9,7 +9,7 @@ import { GA_EVENT_NAMES, GA_GLOBAL_SCREEN } from "utils/GAEvents";
 import auth from "services/auth";
 import { useAppStore } from "store";
 
-function ProductItem({ product, onClick }) {
+function ProductItem({ product, onClick, index }) {
   const { lang } = useParams();
   const { value, searchResults } = useAppStore();
 
@@ -37,8 +37,11 @@ function ProductItem({ product, onClick }) {
             search_item_select: JSON.stringify({
               item_id: product?.product_id,
               item_name: product?.name,
+              brand_id: product?.brand?.id,
+              category_id: product?.category?.id,
+              position: index,
             }),
-            items: JSON.stringify(
+            search_results: JSON.stringify(
               searchResults.products
                 ?.filter((s) => s.product_id !== product.product_id)
                 ?.map((s) => ({
@@ -46,8 +49,12 @@ function ProductItem({ product, onClick }) {
                   item_name: s?.name,
                   brand_id: s?.brand?.id,
                   category_id: s?.category?.id,
+                  price: s?.offer_price,
                 }))
             ),
+            count_results_search: searchResults?.products?.length,
+            limit_results_search: 10,
+            search_results_page: 1,
             screen_name: GA_GLOBAL_SCREEN.HOME_SCREEN,
             screen_path: window.location.pathname,
           },

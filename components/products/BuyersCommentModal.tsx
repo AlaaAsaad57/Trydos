@@ -1,8 +1,8 @@
 import BottomSheet from "components/global/BottomSheet";
-import React, { Suspense } from "react";
+import React, { useState } from "react";
 import { useAppStore } from "store";
 import { translateFunction } from "utils/functions";
-import RateIcon from "public/svg/RateIconProperty.svg";
+import BuyersCommentIcon from "public/svg/product/BuyersCommentsIcon.svg";
 import RatingStars from "components/settings/cards/RatingStars";
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 import ProductViews from "./ProductViews";
@@ -10,126 +10,114 @@ import SolidRecomendIcon from "public/svg/product/SolidRecomendIcon.svg";
 import QualityIcon from "public/svg/product/QualityIcon.svg";
 import RecomendedIcon from "public/svg/RecomendedIcon.svg";
 import NegRecomendedIcon from "public/svg/NegRecomendIcon.svg";
+import { RateCommentItem } from "./ProductsBuyersComments";
+import Skeleton from "node_modules/react-loading-skeleton/dist";
 
-function GeneralPropertiesModal() {
+function BuyersCommentModal({ comments }) {
   const { ColorBottomSheet, setColorBottomSheet, language } = useAppStore();
-  let reviews_arr = [
-    { value: 70, title: "True" },
-    { value: 55, title: "Small" },
-    { value: 24, title: "Large" },
-    { value: 99, title: "Big" },
+
+  const [loading, setLoading] = useState(false);
+  const [active_comment_type, setActiveCommentType] = useState(0);
+  const FilterComments = async (id) => {
+    setLoading(true);
+    if (active_comment_type !== id) setActiveCommentType(id);
+    else setActiveCommentType(0);
+
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+    setLoading(false);
+  };
+  const comments_types = [
+    { id: 1, name: "Size" },
+    { id: 2, name: "Quality" },
+    { id: 3, name: "Color" },
+    { id: 4, name: "Shipping" },
+    { id: 5, name: "Complaint" },
+    { id: 6, name: "Recommendation" },
   ];
-  const rating_arr = [
-    { rating: 1, title: "Very Bad", count: 1 },
-    { rating: 2, title: "Bad", count: 2 },
-    { rating: 3, title: "Normal", count: 65 },
-    { rating: 4, title: "Good", count: 100 },
-    { rating: 5, title: "Very Good", count: 200 },
-  ];
+  const isRtl = language === "ar" || language === "ku";
+
   return (
     <>
-      {ColorBottomSheet && ColorBottomSheet?.is_general_properties && (
+      {ColorBottomSheet && ColorBottomSheet?.is_buyers_comments && (
         <BottomSheet
           height={90}
-          isOpen={ColorBottomSheet?.is_general_properties}
+          isOpen={ColorBottomSheet?.is_buyers_comments}
           onClose={() => {
             setColorBottomSheet(false);
           }}
         >
-          <div className="w-full px-[12px] h-auto pb-[80px] flex-col">
-            <div className="flex-col gap-[6px]">
-              <RateIcon />
+          <div className="w-full h-auto pb-[80px] flex-col">
+            <div className="flex-col px-[12px] gap-[6px]">
+              <BuyersCommentIcon />
               <span className="flex text-[13px] text-[#1d1d1d] regular">
-                {translateFunction("Buyers Product Rate", language)}
+                {translateFunction("Buyers Comment", language)}
               </span>
-              <p className="text-[11px] text-[#1d1d1d] regular gap-[4px] inline">
+              <p
+                className={`${
+                  isRtl && "dir-rtl"
+                } text-[11px] text-[#1d1d1d] regular gap-[4px] inline`}
+              >
                 {translateFunction(
-                  "All Reviews Are Genuine From Customers Who Purchased And Actually Received The Product Through",
+                  "All Comments Are Genuine From Customers Who Purchased And Actually Received The Product Through",
                   language
                 )}
                 <span className="bold px-[4px]">trydos</span>
               </p>
             </div>
-            <div className="w-full bg-[#FFFFFF] py-[11px]">
+            <div className="w-full px-[12px] bg-[#FFFFFF] py-[11px]">
               <hr className="text-[#D3D3D37f] h-[1px] bg-[#D3D3D37f] mt-0 w-full px-[10px]" />
             </div>
             <div className="flex-col gap-[2px]">
-              <RatingStars
-                size={20}
-                color="#1d1d1d"
-                initialRating={3}
-                readOnly
-              />
               <HortiznalScrollBar
                 id="product-properties-general-modal"
-                className="flex-row pr-[90px] product-properties items-center justify-start w-100 text-[#1d1d1d] text-[11px] [&>*]:!text-[11px]"
+                className={`${
+                  loading && "opacity-65"
+                } flex-row  product-properties px-[12px] items-center justify-start w-full gap-[4px]`}
               >
-                <div className="flex-row items-center">
-                  <span className="bold pr-[4px]"> {365}</span>
-                  {translateFunction("Buyer Rate", language)}
-                </div>
-
-                <span className="px-[5px] text-[11px] text-[#1d1d1d]">|</span>
-                <div className="flex-row  items-center product-property-row">
-                  <QualityIcon />
-                  <span className="text-[11px]">
-                    {translateFunction("Overall Good Quality", language)}
-                  </span>
-                </div>
-                <span className="px-[5px] text-[11px] text-[#1d1d1d]">|</span>
-                <ProductViews />
-                <span className="px-[4px] flex">
-                  {translateFunction("Views Product", language)}
-                </span>
-              </HortiznalScrollBar>
-              <div className="flex-col gap-[12px] mt-[10px]">
-                {rating_arr.map((s) => (
-                  <div className="flex-row items-center gap-[12px]">
-                    <RatingStars
-                      size={14}
-                      color="#1d1d1d"
-                      initialRating={s.rating}
-                    />
-                    <div className="regular text-[11px] text-[#1d1d1d] gap-[4px] flex-row items-center">
-                      <span className="bold">{s.count}</span>
-                      <span>{translateFunction(s.title, language)}</span>
-                    </div>
+                {comments_types.map((s) => (
+                  <div
+                    onClick={() => {
+                      if (loading) return;
+                      FilterComments(s.id);
+                    }}
+                    className={`pl-[8px] cursor-pointer pr-[12px] rounded-[15px] h-[31px] ${
+                      active_comment_type === s.id
+                        ? "bg-[#bdd3ff]"
+                        : "bg-[#F8F8F8]"
+                    } flex-row justify-center items-center regular text-[#505050] text-[11px] medium`}
+                  >
+                    {translateFunction(s.name)}
                   </div>
                 ))}
-              </div>
-            </div>
-            <div className="w-full bg-[#FFFFFF] py-[11px]">
-              <hr className="text-[#D3D3D37f] h-[1px] bg-[#D3D3D37f] mt-0 w-full px-[10px]" />
-            </div>
-            <div className="flex-col regular text-[13px] text-[#1d1d1d] gap-[12px]">
-              <div className="flex">
-                {translateFunction(
-                  "Buyers Reviews On Product Sizing",
-                  language
+              </HortiznalScrollBar>
+              <div className="flex-col gap-[12px] mt-[10px]  min-h-[372px]">
+                {!loading && comments?.length === 0 && (
+                  <span className="w-full justify-center items-center flex py-4 light text-[#1d1d1d] ">
+                    {translateFunction("There is No Comments Yet..", language)}
+                  </span>
                 )}
+                {loading &&
+                  Array(6)
+                    .fill("")
+                    .map((s) => (
+                      <div className="w-full h-[122px]">
+                        <Skeleton
+                          className="w-full h-[112px] rounded-[15px]"
+                          width={"100%"}
+                          height={112}
+                          borderRadius={15}
+                        />
+                      </div>
+                    ))}
+                {!loading &&
+                  comments.map((s) => (
+                    <RateCommentItem
+                      comment={s}
+                      language={language}
+                      width={100}
+                    />
+                  ))}
               </div>
-              <div className="flex-col gap-[4px]">
-                {reviews_arr.map((s) => (
-                  <ReviewProgress title={s.title} value={s.value} />
-                ))}
-              </div>
-            </div>
-            <div className="w-full bg-[#FFFFFF] py-[11px]">
-              <hr className="text-[#D3D3D37f] h-[1px] bg-[#D3D3D37f] mt-0 w-full px-[10px]" />
-            </div>
-            <div className="flex-col gap-[7px]">
-              <SolidRecomendIcon />
-              <span className="flex text-[13px] text-[#1d1d1d] regular">
-                {translateFunction("Buyers Product Recommend To Buy", language)}
-              </span>
-              <span className="inline text-[11px] text-[#1d1d1d] regular ">
-                {translateFunction(
-                  "All Recommendations Are Genuine From Customers Who Purchased And Actually Received The Product Through",
-                  language
-                )}
-                <span className="bold px-[4px]">trydos</span>
-              </span>
-              <BuyersRatingBar isFromModal={true} language={language} />
             </div>
           </div>
         </BottomSheet>
@@ -138,7 +126,7 @@ function GeneralPropertiesModal() {
   );
 }
 
-export default GeneralPropertiesModal;
+export default BuyersCommentModal;
 
 const ReviewProgress = ({ value, title }) => {
   return (

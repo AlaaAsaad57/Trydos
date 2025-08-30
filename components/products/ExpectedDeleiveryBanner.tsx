@@ -34,7 +34,9 @@ function ExpectedDeleiveryBanner({ lang, days }) {
   useEffect(() => {
     getCountries();
   }, []);
-  const { settings, ColorBottomSheet, setColorBottomSheet } = useAppStore();
+  const { settings, setColorBottomSheet } = useAppStore();
+  const isRtl = language === "ar" || language === "ku";
+
   return (
     <>
       <ExpectedDeleiveryModal />
@@ -85,7 +87,11 @@ function ExpectedDeleiveryBanner({ lang, days }) {
             />
           </svg>
         </span>
-        <span className="text-[#1D1D1D] text-[12px] regular mt-[3px] items-center ">
+        <span
+          className={`${
+            isRtl && "dir-rtl"
+          } w-max text-[#1D1D1D] text-[12px] regular mt-[3px] items-center flex  `}
+        >
           <span className="pr-[4px]">
             {ShowDayStr(
               new Date(

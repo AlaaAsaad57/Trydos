@@ -22,8 +22,7 @@ import ProductFooterSection from "components/products/ProductFooterSection";
 import ProductDetailsSlider from "components/products/ProductDetailsSlider";
 import ProductDetailsText from "components/products/ProductDetailsText";
 import ProductStories from "components/products/ProductStories";
-// import ProductSizes from "components/products/ProductSizes";
-// import ProductShippingOption from "components/products/ProductShippingOption";
+
 import FreeShippingOption from "components/products/FreeShippingOption";
 import ProductColors from "components/products/ProductColors";
 // import CameraShots from "components/products/CameraShots";
@@ -45,13 +44,13 @@ import {
 } from "Server Requests/radis";
 import { fetchCurrency } from "Server Requests";
 import ProductPageError from "components/global/ProductPageError";
-
 import ExpectedDeleiveryBanner from "components/products/ExpectedDeleiveryBanner";
 import ProductsBuyersComments from "components/products/ProductsBuyersComments";
 import FAQSection from "components/products/FAQSection";
 import ProductSizes from "components/products/ProductSizes";
 import ProductSizesReview from "components/products/ProductSizesReview";
 import ProductGeneralProperties from "components/products/ProductGeneralProperties";
+import ReturnDaysDetails from "components/products/ReturnDays.Details";
 // export const revalidate = parseInt(process.env.NEXT_PUBLIC_REVALIDATE);
 // For Middle East users
 
@@ -565,18 +564,10 @@ async function Page({ params, searchParams }: ProductPagePropsType) {
                             )}
                           </span>
 
-                          <span className="text-[#1d1d1d] regular text-[9px]">
-                            {translateFunction(
-                              "Within 3 Days After Receiving The Product, You Can Return It Without Conditions Or Reasons With Complete Ease And",
-                              languageVariable
-                            )}
-                            <span className="meduim text-[#388CFF] px-[4px]">
-                              {translateFunction(
-                                "get the Amount back",
-                                languageVariable
-                              )}
-                            </span>
-                          </span>
+                          <ReturnDaysDetails
+                            days={product?.shipping_days}
+                            languageVariable={languageVariable}
+                          />
                         </div>
                       </div>
                     </div>

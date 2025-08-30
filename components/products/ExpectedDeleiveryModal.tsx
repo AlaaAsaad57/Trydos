@@ -55,6 +55,7 @@ function ExpectedDeleiveryModal() {
     { value: 1, days: 9 },
     { value: 1, days: 10 },
   ];
+  const isRtl = language === "ar" || language === "ku";
   return (
     <>
       {ColorBottomSheet && ColorBottomSheet?.is_for_deleviery && (
@@ -74,7 +75,11 @@ function ExpectedDeleiveryModal() {
                   language
                 )}
               </span>
-              <span className="text-[#1D1D1D] text-[12px] regular mt-[3px] items-center pr-[4px]">
+              <span
+                className={`text-[#1D1D1D] flex ${
+                  isRtl && "dir-rtl"
+                } text-[12px] regular mt-[3px] items-center pr-[4px]`}
+              >
                 <span className="pr-[4px]">
                   {ShowDayStr(
                     new Date(
@@ -92,7 +97,7 @@ function ExpectedDeleiveryModal() {
                     language
                   )}
                 </span>
-                <span className="bold text-[#1D1D1D] text-[12px]  mx-[1px]">
+                <span className="bold text-[#1D1D1D] text-[12px]  px-[3px]">
                   {formatTimeForAddress(
                     new Date(
                       new Date().getTime() +
@@ -227,7 +232,7 @@ function ExpectedDeleiveryModal() {
                   {translateFunction("Delivery Guarantee", language)}
                 </span>
                 <span>
-                  {translateFunction("Within", language)}
+                  {translateFunction("within", language)}
                   <span className="px-[3px] bold">
                     {(settings?.["starting-setting"]?.shipping_duration_days ||
                       0) + SelectedProduct?.shipping_days}
@@ -243,7 +248,9 @@ function ExpectedDeleiveryModal() {
                   <RefundIcon />
                   <p>
                     <span>{translateFunction("Get a")}</span>
-                    <span className="text-[#388CFF] medium px-[4px]">Full</span>
+                    <span className="text-[#388CFF] medium px-[4px]">
+                      {translateFunction("Full", language)}
+                    </span>
                     {translateFunction("Product Price When Returned")}
                   </p>
                 </span>
