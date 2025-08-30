@@ -149,6 +149,7 @@ export default async function Page({ params }: { params: ParamsType }) {
       >
         <NextLink
           data-cy="BackIcon_boutique"
+          ignoreConditionCase={true}
           data={{
             is_full_home: true,
             href: `/${params.lang}`,
