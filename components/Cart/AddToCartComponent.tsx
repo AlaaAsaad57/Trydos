@@ -757,6 +757,7 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
                 max_drag={100}
                 max_scale={1}
                 min_scale={0.6}
+                child_data_cy="add-to-cart-color"
                 onSlideChange={(index) => {
                   GAevent({
                     action: GA_EVENT_NAMES.CHANGE_COLOR,
@@ -1080,6 +1081,7 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
                       }}
                       max_scale={1}
                       min_scale={0.7}
+                      child_data_cy="add-to-cart-size"
                       overlap_factor={1.1}
                       threshold={0.3}
                       renderSlide={({ index, isActive, slide_width }) => {

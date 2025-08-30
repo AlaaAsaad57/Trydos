@@ -13,6 +13,7 @@ function StackedSlider({
   initial_index = 0,
   active_index = -1,
   disableSlide = false,
+  child_data_cy = "",
   onSlideChange = (index) => {},
   renderSlide = ({ index, isActive, slide_width }) => {
     return (
@@ -173,6 +174,7 @@ function StackedSlider({
               disableSlide ? "pointer-events-none no-navigate" : ""
             } absolute w-auto h-auto flex flex-col items-center justify-center`}
             style={getSlideStyle(index)}
+            data-cy={child_data_cy}
           >
             {renderSlide({ index, isActive, slide_width: SLIDE_WIDTH })}
           </div>

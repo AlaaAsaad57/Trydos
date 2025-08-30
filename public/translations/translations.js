@@ -8,6 +8,10 @@ const translations = {
     "Shipping Company": "شركة الشحن",
     Recommendation: "توصية",
     Complaint: "شكوى",
+    Visitors: "الزوار",
+    "And Not Necessarily From Customers Who Have Purchased The Product Before. These Are Pre-Purchase Questions, And They Are Answered Directly By The Seller":
+      "وليست بالضرورة من عملاء قاموا بشراء المنتج من قبل. هذه أسئلة ما قبل الشراء، ويتم الإجابة عليها مباشرة من البائع",
+    "All The Questions Below Are From": "جميع الأسئلة أدناه من",
     Quality: "الجودة",
     "There is No Comments Yet..": "لا توجد تعليقات بعد..",
     "Buyers Product Recommend To Buy": "توصية المشترين بشراء المنتج",
@@ -952,6 +956,10 @@ const translations = {
     "Shipping Company": "Kargo Şirketi",
     Recommendation: "Tavsiye",
     Complaint: "Şikayet",
+    Visitors: "Ziyaretçiler",
+    "And Not Necessarily From Customers Who Have Purchased The Product Before. These Are Pre-Purchase Questions, And They Are Answered Directly By The Seller":
+      "Ve daha önce ürünü satın almış müşterilerden olması gerekmiyor. Bunlar satın alma öncesi sorulardır ve satıcı tarafından doğrudan cevaplanır",
+    "All The Questions Below Are From": "Aşağıdaki tüm sorular şunlardan",
     Quality: "Kalite",
     "There is No Comments Yet..": "Henüz yorum yok..",
     "Product Price When Returned": "Ürün İade Edildiğinde Fiyatı",
@@ -1885,6 +1893,10 @@ const translations = {
       "هەموو پێشنیارەکان ڕاستەقینە وەردەگرن لە کریاران کە بەرهەم خریدن و بە دروستی وەرگرتن",
     "Recommend It By": "پێشنیاز کراوە لەلایەن",
     "Refund Processing": "ڕەوانینەوە لە پرۆسەدایە",
+    Visitors: "سەردانکەرەکان",
+    "And Not Necessarily From Customers Who Have Purchased The Product Before. These Are Pre-Purchase Questions, And They Are Answered Directly By The Seller":
+      "وە پێویست نییە کە لە کریارانی پێشتر کە بەرهەمەکەیان خرید، بێت. ئەمانە پرسیارەکانی پێش خریدنن کە ڕاستەوخۆ لەلایەن فرۆشیارەوە وەڵام دەدرێن",
+    "All The Questions Below Are From": "هەموو پرسیارە خوارەوەکان لە لایەن",
     "Product Price When Returned": "نرخی بەرهەم کاتێک گەڕێنرایەوە",
     Full: "تەواو",
     "Shipping Company": "کۆمپانیای گواستنەوە",

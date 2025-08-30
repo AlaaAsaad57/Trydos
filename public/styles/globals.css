@@ -6,6 +6,13 @@ img {
   user-select: none;
   -webkit-user-drag: none;
 }
+.horizntal-scroll {
+  scrollbar-width: none; /* Firefox -> hide scrollbar track & thumb */
+  -ms-overflow-style: none;
+}
+.horizntal-scroll::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, new Edge */
+}
 .comments-extended {
   max-height: 200px;
 }

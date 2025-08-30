@@ -89,7 +89,7 @@ export default ProductsBuyersComments;
 export const RateCommentItem = ({ comment, language, width = 90 }) => {
   return (
     <div
-      className={`comment-item rounded-[15px] flex-col justify-between min-w-[${width}%] max-w-[${width}%] w-full bg-[#F8F8F8] min-h-[111px] py-[8px] px-[10px]`}
+      className={`comment-item rounded-[15px] flex-col justify-between min-w-[330px] max-w-[${width}%] w-full bg-[#F8F8F8] min-h-[111px] py-[8px] px-[10px]`}
       style={{
         position: "relative",
       }}
