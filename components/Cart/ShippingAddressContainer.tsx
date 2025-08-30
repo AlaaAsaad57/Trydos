@@ -635,7 +635,7 @@ const DefaultAddress = ({
     <div data-cy="flex-cols" className="flex-col w-full ">
       <div
         data-cy="flex-row items-centers"
-        className={`flex-row items-center flex-row ${
+        className={`flex-row items-center  ${
           language === "ar" || language === "ku" ? "flex-row-reverse" : ""
         }`}
       >

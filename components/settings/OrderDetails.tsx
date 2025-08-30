@@ -901,7 +901,7 @@ const ProductCard = ({
                 src: GetImageUrl(product.image),
                 width: 104,
                 height: 144,
-                q: 100,
+                q: 70,
               })}
               alt={product.product_details?.name}
             />

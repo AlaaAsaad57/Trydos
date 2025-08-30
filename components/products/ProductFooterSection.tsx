@@ -175,6 +175,7 @@ function ProductFooterSection({
               user_id: auth.UserID(),
               product_id: product.id,
             }),
+            noMessage: true,
           });
           // @ts-ignore
           if (!response.success) {

@@ -1,6 +1,6 @@
 import React from "react";
 import { OrdersIcon } from "../OrdersList";
-import { translateFunction } from "utils/functions";
+import { getConfiguredImage, translateFunction } from "utils/functions";
 import { useParams } from "next/navigation";
 import NextLink from "components/global/NextLink";
 import OrderStatusIcon from "./OrderStatusIcon";
@@ -93,7 +93,12 @@ function OrderItemsList({
             >
               <img
                 className="w-full h-full object-contain bg-white rounded-[15px]"
-                src={GetImageUrl(product.image)}
+                src={getConfiguredImage({
+                  src: GetImageUrl(product.image),
+                  width: 100,
+                  height: 100,
+                  q: 75,
+                })}
                 alt={product.product_details.name}
                 width={100}
                 height={100}

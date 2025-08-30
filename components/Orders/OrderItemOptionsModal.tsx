@@ -142,7 +142,7 @@ function OrderItemOptionsModal({
                     height={15}
                     className="rounded-full h-[15px] w-[15px] object-cover"
                     src={getConfiguredImage({
-                      src: item.image,
+                      src: GetImageUrl(item.image),
                       width: 15,
                       height: 15,
                       q: 100,

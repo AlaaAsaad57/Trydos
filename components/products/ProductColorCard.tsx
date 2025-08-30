@@ -53,11 +53,7 @@ function ProductColorCard({
         className="product-container  align-center flex-col relative pb-[10px]"
         data-cy="product_link"
       >
-        <ProductBanner
-          featured={product.featured}
-          flashDeals={product.flash_deal_end_date}
-          labels={product.label_names}
-        />
+        <ProductBanner flashDeals={product.flash_deal_end_date} />
         <NormalSlider
           initialSlide={activeImageIndex}
           slideHeight={290}

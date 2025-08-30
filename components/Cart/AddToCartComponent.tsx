@@ -116,10 +116,11 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
             reqTitle: REQUESTS_DATA.GET_VIEW_PRODUCT,
             method: "POST",
             server: "elastic",
-            body: {
+            body: JSON.stringify({
               user_id: auth.UserID(),
               product_id: product.id,
-            },
+            }),
+            noMessage: true,
           });
           // @ts-ignore
           if (!response.success) {
