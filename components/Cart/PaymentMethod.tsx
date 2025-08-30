@@ -16,11 +16,13 @@ import CryptoIcon from "assets/svg/cart/CryptoIcon.svg";
 import Spinner from "components/global/Spinner";
 import CouponElement from "./couponElement";
 import { useAppStore } from "store";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { TryDosWalletInputPropsType } from "models/componentType/TryDosWalletInputPropsType";
 import { GAevent } from "utils/gtag";
 import { GA_EVENT_NAMES, GA_PAYMENTS } from "utils/GAEvents";
 import { showErrorNotification } from "@/store/notifications/reducer";
+import RefreshIcon from "public/svg/RefreshIcon.svg";
+import order from "services/order";
 function PaymentMethod() {
   const {
     setWalletBalance,
@@ -42,11 +44,6 @@ function PaymentMethod() {
   // @ts-ignore
   const language = lang.split("-")[1];
   const getWalletInUSD = () => {
-    console.log(
-      wallet?.wallet_balance / currency?.exchange_rate,
-      total,
-      total_cash
-    );
     if (wallet?.wallet_balance > 0)
       return wallet?.wallet_balance / currency?.exchange_rate;
     else return 0;
@@ -236,6 +233,17 @@ function PaymentMethod() {
       return total_cash - getWalletInUSD();
     }
   };
+  const [walletLoading, setWalletLoading] = useState(false);
+  const refreshWallet = async () => {
+    if (walletLoading) return;
+    try {
+      setWalletLoading(true);
+      await order.GetWallet();
+      setWalletLoading(false);
+    } catch (error) {
+      setWalletLoading(false);
+    }
+  };
   return (
     <>
       <div data-cy="payment-viewer" className="px-[12px] flex-col">
@@ -365,17 +373,29 @@ function PaymentMethod() {
               }
               if (item?.toLowerCase() === "trydos_wallet".toLowerCase()) {
                 return (
-                  <TryDosWalletInput
-                    key={key}
-                    active={
-                      orderData?.payment?.filter((s) => s.id === 1).length > 0
-                    }
-                    setActive={() => {
-                      if (!orderLoading) {
-                        handleWalletPayment();
+                  <div className="flex-row items-end gap-[8px]">
+                    <TryDosWalletInput
+                      key={key}
+                      active={
+                        orderData?.payment?.filter((s) => s.id === 1).length > 0
                       }
-                    }}
-                  />
+                      setActive={() => {
+                        if (!orderLoading) {
+                          handleWalletPayment();
+                        }
+                      }}
+                    />
+                    <div
+                      className={`rounded-[10px]  justify-center items-center flex h-[40px] min-w-[45px] bg-[#f8f8f8] cursor-pointer`}
+                      onClick={() => {
+                        refreshWallet();
+                      }}
+                    >
+                      <RefreshIcon
+                        className={`${walletLoading && "animate-spin"}`}
+                      />
+                    </div>
+                  </div>
                 );
               }
               if (item?.toLowerCase() === "crypto".toLowerCase()) {
