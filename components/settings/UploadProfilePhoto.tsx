@@ -15,7 +15,7 @@ function UploadProfilePhoto({
 }: UploadProfilePhotoPropsType) {
   const { editUserInfo, userProfile } = useAppStore();
 
-  const [file, setFile] = useState(GetImageUrl(userProfile.image));
+  const [file, setFile] = useState(GetImageUrl(userProfile?.image));
   const [isDragged, setIsDragged] = useState(false);
   const [isUploading, setIsUploading] = useState(null);
   const openCamera = () => {
@@ -136,7 +136,7 @@ function UploadProfilePhoto({
 
         res = await auth.UpdateProfileImage(UploadedFile);
       } else {
-        res = { sub_path: userProfile.image };
+        res = { sub_path: userProfile?.image };
       }
       await auth.UpdateProfile(
         {
@@ -170,13 +170,13 @@ function UploadProfilePhoto({
         DataCy="save-image"
         goBack={() => {
           goBack();
-          setFile(userProfile.image);
+          setFile(userProfile?.image);
           setIsDragged(false);
           setIsUploading(false);
         }}
         screenName="Profile"
         Save={
-          userProfile.image !== file || isDragged
+          userProfile?.image !== file || isDragged
             ? () => {
                 UploadFile();
               }

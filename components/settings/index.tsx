@@ -29,7 +29,7 @@ import {
 import home from "services/home";
 import { EnableScroll } from "utils/tinyUtils";
 
-function Settings({ lang }: SettingsIndexPropsType) {
+function Settings({ lang, order_id, tab }: SettingsIndexPropsType) {
   const {
     setIsActiveAddress,
     userProfile,
@@ -205,9 +205,9 @@ function Settings({ lang }: SettingsIndexPropsType) {
       component: () => <LanguageSetting goBack={() => swipeToScreen(0)} />,
     },
   ]);
-  const searchParams = useSearchParams();
-  let activeTab = searchParams.get("tab");
-  const orderIdParam = searchParams.get("id");
+
+  let activeTab = tab;
+  const orderIdParam = order_id;
 
   const orderDetailsIndexRef = NavigationOptions.findIndex(
     (opt) => opt.id === "Order Details"
@@ -254,7 +254,7 @@ function Settings({ lang }: SettingsIndexPropsType) {
   }, [orderIdParam]);
 
   const router = useRouter();
-
+  const searchParams = useSearchParams();
   const swipeToScreen = (index: number) => {
     if (isAnimating) return;
     setIsAnimating(true);
@@ -272,7 +272,7 @@ function Settings({ lang }: SettingsIndexPropsType) {
     // @ts-ignore
     setTimeout(() => setIsAnimating(false), 300); // Match transition duration
   };
-  if (!userProfile) return <SettingsLoader />;
+
   return (
     <div className="max-h-full h-full overflow-auto flex w-full max-w-[1365px] justify-center bg-white">
       {showOrderOptions && (

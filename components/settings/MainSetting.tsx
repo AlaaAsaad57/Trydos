@@ -21,6 +21,7 @@ import {
   MainSettingPropsType,
 } from "models/componentType/settingTypes/MainSettingPropsType";
 import { fetchOrders } from "services/orders";
+import SettingsLoader from "components/skeleton/loaders/SettingsLoader";
 
 const options = [
   { name: "Settings", Icon: <SettingsIcon /> },
@@ -30,7 +31,7 @@ const options = [
   { name: "Share App", Icon: <ShareAppIcon /> },
 ];
 function MainSetting({ swipeToScreen }: MainSettingPropsType) {
-  const { wallet, currency, totalOrders, settings } = useAppStore();
+  const { wallet, currency, userProfile, settings } = useAppStore();
   const points = settings?.["starting-setting"]?.decimal_point_settings || 0;
 
   const { lang } = useParams();
@@ -63,6 +64,7 @@ function MainSetting({ swipeToScreen }: MainSettingPropsType) {
     if (iso === "tr") return "Turkish";
     if (iso === "ku") return "کوردی";
   };
+  if (!userProfile) return <SettingsLoader />;
   return (
     <div className="flex-col w-full pt-[20px] px-[12px]">
       <ProfileCard
@@ -135,9 +137,17 @@ const SettingOption = ({ name, Icon }: MainSettingOptionPropsType) => {
   const language = lang.split("-")[1];
   const isRtl = language === "ar" || language === "ku";
   return (
-    <div className={`w-full flex-row cursor-pointer mt-[4px] h-[53px] rounded-[15px] bg-[#f8f8f8] px-[12px] items-center ${ isRtl ? "flex-row-reverse": " "}`}>
+    <div
+      className={`w-full flex-row cursor-pointer mt-[4px] h-[53px] rounded-[15px] bg-[#f8f8f8] px-[12px] items-center ${
+        isRtl ? "flex-row-reverse" : " "
+      }`}
+    >
       {Icon}
-      <span className={`text-[14px] regular text-[#1d1d1d] ml-[12px] ${ isRtl ? "pr-2": " "}`}>
+      <span
+        className={`text-[14px] regular text-[#1d1d1d] ml-[12px] ${
+          isRtl ? "pr-2" : " "
+        }`}
+      >
         {translateFunction(name)}
       </span>
     </div>

@@ -109,7 +109,7 @@ function ConfirmMobileChange({
     <div>
       {stepIndicator === 3 &&
         (!userProfile?.phone ||
-          (userProfile.phone === "0" && (
+          (userProfile?.phone === "0" && (
             <PhoneInput
               isForCart={true}
               inputValue={inputValue}

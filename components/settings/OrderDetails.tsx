@@ -641,7 +641,7 @@ const OrderExpandedDetails = ({
   const shouldShowConfirmReturn = () => {
     return (
       selectedOrder?.returned_data?.filter(
-        (s) => s.details?.status === "draft return request"
+        (s) => s.details?.status?.option === "draft_return_request"
       )?.length > 0 && isThereAReturnedProduct()
     );
   };
@@ -908,7 +908,7 @@ const ProductCard = ({
           </div>
           <div className="flex  flex-col items-start mt-[10px] ml-[12px] regular text-[12px] text-[#8D8D8D]">
             <span className="w-[70px] h-[10px] bg-[#C4C2C27f]"></span>
-            <span className="text-[#505050] text-[12px] regular mt-[3px]">
+            <span className="text-[#505050] text-[12px] regular mt-[3px] pr-[20px]">
               {product.product_details?.name}
             </span>
             <div className="flex-row justify-between w-full">

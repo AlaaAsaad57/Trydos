@@ -40,8 +40,9 @@ function OrderItemOptionsModal({
     if (ActivePacks.can_return_order) {
       if (ActivePacks.return_details) {
         if (
-          ActivePacks.return_details.details?.status === "pending" ||
-          ActivePacks.return_details.details?.status === "draft return request"
+          ActivePacks.return_details.details?.status?.value === "pending" ||
+          ActivePacks.return_details.details?.status?.value ===
+            "draft_return_request"
         ) {
           return true;
         } else {
