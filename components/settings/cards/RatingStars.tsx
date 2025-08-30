@@ -2,12 +2,12 @@
 import { RatingStarsPropsType } from "models/componentType/settingTypes/RatingStarsPropsType";
 import React, { useState } from "react";
 
-const StarIcon = ({ fill = () => "#402CDD", isHalf = false, color }) => {
+const StarIcon = ({ fill = () => "#402CDD", isHalf = false, color, size }) => {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
-      width="11.326"
-      height="11.318"
+      width={size}
+      height={size}
       viewBox="0 0 11.326 11.318"
     >
       <defs>
@@ -37,6 +37,7 @@ function RatingStars({
   onRatingChange,
   readOnly = false,
   color = "#402CDD",
+  size = 11.326,
 }: RatingStarsPropsType) {
   const [rating, setRating] = useState(initialRating);
 
@@ -74,6 +75,7 @@ function RatingStars({
           }}
         >
           <StarIcon
+            size={size}
             fill={() => getStarFill(index)}
             isHalf={index === Math.ceil(rating) && rating % 1 !== 0}
             color={color}

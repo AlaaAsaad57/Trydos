@@ -15,7 +15,7 @@ function ColorBottomSheet({ id, setActiveColor, activeColor }) {
   else
     return (
       <>
-        {ColorBottomSheet && (
+        {ColorBottomSheet && ColorBottomSheet?.sync_color_images && (
           <BottomSheet
             key={ColorBottomSheet?.product_id}
             isOpen={ColorBottomSheet}

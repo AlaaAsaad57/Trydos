@@ -3,7 +3,6 @@ export const preferredRegion = "bom1";
 export const dynamic = "force-dynamic";
 import "styles/productDetails.css";
 import "styles/product-body.css";
-import EyeIcon from "public/svg/product/EyeIcon.svg";
 import FreeReturnIcon from "public/svg/product/FreeReturnIcon.svg";
 import MalicanIcon from "public/svg/MailcanIcon.svg";
 import {
@@ -13,11 +12,8 @@ import {
 } from "utils/functions";
 import Image from "next/image";
 import { Suspense } from "react";
-import ProductViews from "components/products/ProductViews";
 import Skeleton from "react-loading-skeleton";
-import QualityIcon from "public/svg/product/QualityIcon.svg";
 import VerifiedIcon from "public/svg/product/Verified.svg";
-import Flag from "public/svg/product/flag.svg";
 import ProductDescriptors from "components/products/ProductDescriptors";
 import { GetImageUrl } from "utils/tinyUtils";
 import { generateProductMetaData } from "./MetaData";
@@ -49,14 +45,13 @@ import {
 } from "Server Requests/radis";
 import { fetchCurrency } from "Server Requests";
 import ProductPageError from "components/global/ProductPageError";
-import RatingStars from "components/settings/cards/RatingStars";
-import HortiznalScrollBar from "components/global/HortiznalScrollBar";
-import RecomendedIcon from "public/svg/Recomended.svg";
+
 import ExpectedDeleiveryBanner from "components/products/ExpectedDeleiveryBanner";
 import ProductsBuyersComments from "components/products/ProductsBuyersComments";
 import FAQSection from "components/products/FAQSection";
 import ProductSizes from "components/products/ProductSizes";
 import ProductSizesReview from "components/products/ProductSizesReview";
+import ProductGeneralProperties from "components/products/ProductGeneralProperties";
 // export const revalidate = parseInt(process.env.NEXT_PUBLIC_REVALIDATE);
 // For Middle East users
 
@@ -465,73 +460,15 @@ async function Page({ params, searchParams }: ProductPagePropsType) {
                     price: product?.offer_price,
                   }}
                 />
-                <HortiznalScrollBar
-                  id="product-properties-general"
-                  className="flex-row pr-[90px] product-properties items-center justify-start w-100 text-[#1d1d1d] text-[9px]"
-                >
-                  <RatingStars
-                    color="#1d1d1d"
-                    initialRating={3.5}
-                    readOnly={true}
-                  />
-                  <div className="flex-row items-center">
-                    <span className="bold px-[4px]"> {365}</span>
-                    {translateFunction("Buyer Rate", languageVariable)}
-                  </div>
-                  <span className="px-[5px] text-[10px] text-[#1d1d1d]">|</span>
-                  <Suspense
-                    fallback={
-                      <div className="view-count flex-row align-center">
-                        <EyeIcon />
-
-                        <span className="m-0">
-                          <Skeleton
-                            className="m-0"
-                            count={1}
-                            width={20}
-                            height={10}
-                          />
-                        </span>
-                      </div>
-                    }
-                  >
-                    <ProductViews />
-                  </Suspense>
-                  <span className="px-[5px] text-[10px] text-[#1d1d1d]">|</span>
-                  <div className="flex-row items-center product-property-row">
-                    <QualityIcon />
-                    <span>
-                      {translateFunction(
-                        "Good Quality Product",
-                        languageVariable
-                      )}
-                    </span>
-                  </div>
-                  <span className="px-[5px] text-[10px] text-[#1d1d1d]">|</span>
-                  <div className="flex-row items-center product-property-row">
-                    <RecomendedIcon />
-                    <span>
-                      {translateFunction("Recommend It By", languageVariable)}
-                      <span className="m-0 px-[3px]">125</span>
-                      <span className="m-0">
-                        {translateFunction("Buyer", languageVariable)}
-                      </span>
-                    </span>
-                  </div>
-                  <span className="px-[5px] text-[10px] text-[#1d1d1d]">|</span>
-                  <div className="flex-row items-center product-property-row">
-                    <Flag />
-                    <span>
-                      {translateFunction("Made In Turkey", languageVariable)}
-                    </span>
-                  </div>
-                </HortiznalScrollBar>
+                <ProductGeneralProperties
+                  languageVariable={params.lang?.split("-")?.[1]}
+                />
               </div>
               {product?.descriptors && product?.descriptors?.length > 0 && (
                 <ProductDescriptors descriptors={product.descriptors} />
               )}
               <Suspense fallback={<></>}>
-                {product.sync_color_images?.length > 0 && (
+                {product.sync_color_images?.length > 1 && (
                   <ProductColors
                     colors={product.sync_color_images || []}
                     ProductColorsArray={product.colors}
@@ -630,9 +567,15 @@ async function Page({ params, searchParams }: ProductPagePropsType) {
 
                           <span className="text-[#1d1d1d] regular text-[9px]">
                             {translateFunction(
-                              "Within 3 Days After Receiving The Product, You Can Return It Without Conditions Or Reasons With Complete Ease And Get The Amount Back",
+                              "Within 3 Days After Receiving The Product, You Can Return It Without Conditions Or Reasons With Complete Ease And",
                               languageVariable
                             )}
+                            <span className="meduim text-[#388CFF] px-[4px]">
+                              {translateFunction(
+                                "get the Amount back",
+                                languageVariable
+                              )}
+                            </span>
                           </span>
                         </div>
                       </div>

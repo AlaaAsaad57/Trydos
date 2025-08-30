@@ -2,7 +2,12 @@
 import React, { useEffect, useRef, useState } from "react";
 import { DisableScroll, EnableScroll } from "utils/tinyUtils";
 
-export default function BottomSheet({ isOpen, onClose, children }) {
+export default function BottomSheet({
+  isOpen,
+  onClose,
+  children,
+  height = 60,
+}) {
   const sheetRef = useRef(null);
   const overlayRef = useRef(null);
   const dragHandleRef = useRef(null);
@@ -149,12 +154,12 @@ export default function BottomSheet({ isOpen, onClose, children }) {
     <>
       {isOpen && (
         <div
-          className="fixed inset-0 m-0 z-[999999998] bg-black/50"
+          className="fixed inset-0 m-0 z-[9999999998] bg-black/50"
           onClick={onClose}
         />
       )}
       <div
-        className={`fixed inset-0 z-[999999999] m-0 flex items-end justify-center transition-opacity duration-300 ${
+        className={`fixed inset-0 z-[9999999999] m-0 flex items-end justify-center transition-opacity duration-300 ${
           isOpen ? "opacity-100 visible" : "opacity-0 invisible"
         }`}
         ref={overlayRef}
@@ -164,7 +169,7 @@ export default function BottomSheet({ isOpen, onClose, children }) {
       >
         <div
           ref={sheetRef}
-          className="w-full rounded-t-[30px] max-h-[60vh] bg-white p-1 sm:p-4 shadow-2xl overflow-y-auto"
+          className={`w-full rounded-t-[30px] max-h-[${height}vh] bg-white p-1 sm:p-4 shadow-2xl overflow-y-auto`}
           style={{
             willChange: "transform",
           }}

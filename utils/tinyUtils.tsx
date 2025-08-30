@@ -999,3 +999,15 @@ export async function fetchCountries(
     };
   }
 }
+export const ShowDayStr = (index, language) => {
+  var days = [
+    translateFunction("Sunday", language),
+    translateFunction("Monday", language),
+    translateFunction("Tuesday", language),
+    translateFunction("Wednesday", language),
+    translateFunction("Thursday", language),
+    translateFunction("Friday", language),
+    translateFunction("Saturday", language),
+  ];
+  return days[index];
+};

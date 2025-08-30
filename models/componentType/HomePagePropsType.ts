@@ -6,6 +6,7 @@ export interface HortiznalScrollBarProps {
   id: string;
   dataCy?: string;
   time?: string;
+  onClick?: () => void;
 }
 
 export interface CategoryNavMobileProps {

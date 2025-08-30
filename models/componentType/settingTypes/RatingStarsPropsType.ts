@@ -3,4 +3,5 @@ export interface RatingStarsPropsType {
   onRatingChange?: (rating: number) => void;
   readOnly?: boolean;
   color?: string;
+  size?: number;
 }
