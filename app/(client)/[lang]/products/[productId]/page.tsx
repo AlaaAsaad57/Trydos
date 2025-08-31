@@ -51,6 +51,7 @@ import ProductSizes from "components/products/ProductSizes";
 import ProductSizesReview from "components/products/ProductSizesReview";
 import ProductGeneralProperties from "components/products/ProductGeneralProperties";
 import ReturnDaysDetails from "components/products/ReturnDays.Details";
+import ProductVideo from "components/products/ProductVideo";
 // export const revalidate = parseInt(process.env.NEXT_PUBLIC_REVALIDATE);
 // For Middle East users
 
@@ -352,6 +353,14 @@ async function Page({ params, searchParams }: ProductPagePropsType) {
             className="product-details-slider relative h-[474px] max-h-[474px]"
             key={`key-${color}`}
           >
+            {product?.videos?.[0] && (
+              <div className="absolute z-[999] bottom-[6px] right-[6px]">
+                <ProductVideo
+                  language={languageVariable}
+                  videos={product?.videos}
+                />
+              </div>
+            )}
             <ProductImagesSlider>
               {getImages(product, color)?.images?.map((img, i) => (
                 <div
