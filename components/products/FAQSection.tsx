@@ -243,38 +243,30 @@ const AskInput = () => {
         xmlns="http://www.w3.org/2000/svg"
         width="100%"
         height="40"
-        viewBox="0 0 410 40"
       >
-        <g
-          id="Rectangle_6484"
-          data-name="Rectangle 6484"
-          fill="none"
+        <rect
+          x="0.25"
+          y="0.25"
+          width="100%"
+          height="39.5"
           stroke="#513aaf"
           stroke-width="0.5"
-        >
-          <rect width="100%" height="40" rx="15" stroke="none" />
-          <rect
-            x="0.25"
-            y="0.25"
-            width="100%"
-            height="39.5"
-            rx="14.75"
-            fill="none"
-          />
-        </g>
+          rx="14.75"
+          fill="none"
+        />
       </svg>
     );
   };
 
   return (
-    <div className="flex w-full relative h-[40px] rounded-[15px] bg-[#FFFFFF]">
+    <div className="flex mt-[9px] w-full relative h-[40px] rounded-[15px] bg-[#FFFFFF]">
       <span className="absolute top-[10px] left-[10px] z-10">
         <FAQInputIcon />
       </span>
       {renderBorderSvg()}
       <input
         placeholder="Ask Seller Your Question About This Product…"
-        className="outline-none bg-transparent z-40 rounded-[15px] text-[#1d1d1d] placeholder:text-[#C4C2C2] placeholder:text-center pl-[40px] flex items-center"
+        className="outline-none w-full bg-transparent z-40 rounded-[15px] text-[#1d1d1d] placeholder:text-[#C4C2C2] placeholder:text-center pl-[40px] flex items-center"
       />
     </div>
   );
