@@ -55,6 +55,7 @@ function ProductListServer({
           category_id: s?.category?.id,
           brand_id: s?.brand?.id,
         }))}
+        prductIds={products?.map((s) => s.id)}
         boutique={boutique}
         activeColor={activeColor}
         parsedFilters={{

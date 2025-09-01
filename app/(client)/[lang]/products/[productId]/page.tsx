@@ -357,7 +357,7 @@ async function Page({ params, searchParams }: ProductPagePropsType) {
               <div className="absolute z-[999] bottom-[6px] right-[6px]">
                 <ProductVideo
                   language={languageVariable}
-                  videos={product?.videos}
+                  videos={product?.videos?.[0]}
                 />
               </div>
             )}

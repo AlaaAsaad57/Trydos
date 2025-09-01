@@ -9,16 +9,13 @@ function ProductVideo({ videos, language }) {
   return (
     <div className="relative">
       <video
-        src={getVideoUrl(
-          "https://res.cloudinary.com/demo/video/upload/rafting_sd",
-          { width: 700, height: 900 }
-        )}
+        src={getVideoUrl(videos, { width: 700, height: 900 })}
         autoPlay
         loop
         muted
         playsInline
         controls={false}
-        className="w-[138px] h-[200px] object-cover  rounded-15 z-10"
+        className="w-[138px] bg-[#f8f8f8] h-[200px] object-cover  rounded-15 z-10"
       />
       <OverlayText language={language} />
       <VideoBorder />

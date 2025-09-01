@@ -23,6 +23,7 @@ function ProductsInfiniteScroll({
   isFeatured,
   isFlashDeals,
   boutique,
+  prductIds,
 }: {
   offset: any;
   currency: CurrencyApi["data"]["currency"];
@@ -32,6 +33,7 @@ function ProductsInfiniteScroll({
   isFlashDeals?: boolean;
   parsedFilters: any;
   boutique?: any;
+  prductIds: string[];
 }) {
   const { resetBoutique } = useAppStore();
   const { lang }: { lang: string } = useParams();
@@ -97,7 +99,12 @@ function ProductsInfiniteScroll({
       return;
     }
     if (!areArraysEqual(offsetValue, response.offset)) {
-      setProducts([...products, ...response.products]);
+      let uniqueArray = [...products, ...(response?.products ?? [])];
+      uniqueArray?.filter((s) => !prductIds?.includes(s.id));
+      let newArray = Array.from(
+        new Map(uniqueArray.map((c: any) => [c.id, c])).values()
+      );
+      setProducts(newArray);
       if (response.products?.length > 0) {
         GAevent({
           action: GA_EVENT_NAMES.VIEW_ITEMS_LIST,
