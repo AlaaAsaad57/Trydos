@@ -30,7 +30,7 @@ export function ProductPhotosSlider({
                 (product.flash_deal_end_date || product?.is_redeem) &&
                 "1px solid #FF6200",
             }}
-            className="w-full h-[290px] border-[#d3d3d387] border-[1px] rounded-15 z-10"
+            className="w-full object-cover h-[290px] border-[#d3d3d387] border-[1px] rounded-15 z-10"
           />
         ) : (
           // Display first image if no video
