@@ -41,7 +41,7 @@ function ProductItem({ product, onClick, index }) {
               category_id: product?.category?.id,
               position: index,
             }),
-            search_results: searchResults.products
+            search_results_ids: searchResults.products
               ?.filter((s) => s.product_id !== product.product_id)
               ?.map((s) => s?.product_id)
               .join(","),
