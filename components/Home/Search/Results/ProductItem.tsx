@@ -41,17 +41,10 @@ function ProductItem({ product, onClick, index }) {
               category_id: product?.category?.id,
               position: index,
             }),
-            search_results: JSON.stringify(
-              searchResults.products
-                ?.filter((s) => s.product_id !== product.product_id)
-                ?.map((s) => ({
-                  item_id: s?.product_id,
-                  item_name: s?.name,
-                  brand_id: s?.brand?.id,
-                  category_id: s?.category?.id,
-                  price: s?.offer_price,
-                }))
-            ),
+            search_results: searchResults.products
+              ?.filter((s) => s.product_id !== product.product_id)
+              ?.map((s) => s?.product_id)
+              .join(","),
             count_results_search: searchResults?.products?.length,
             limit_results_search: 10,
             search_results_page: 1,
