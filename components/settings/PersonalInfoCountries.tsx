@@ -5,7 +5,7 @@ import { translateFunction } from "utils/functions";
 
 import { useParams } from "next/navigation";
 import { changeAppCountry } from "store/homepage/actions";
-import { changeAppCountryServer } from "store/homepage/cachedActions";
+
 import { useAppStore } from "store";
 import { FlagIcon } from "utils/tinyUtils";
 import { fetchCountries } from "utils/tinyUtils";
@@ -79,7 +79,13 @@ function PersonalInfoCountries({
     }
 
     await changeAppCountry(country.iso.toLowerCase());
-    await changeAppCountryServer(country.iso.toLowerCase());
+    await fetch("/api/setLocal", {
+      headers: {
+        country: country.iso.toLowerCase(),
+        lang: language,
+        language: language,
+      },
+    });
 
     setSelectedCountry(country);
 

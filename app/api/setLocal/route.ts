@@ -1,9 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
-
-export async function POST(request: NextRequest) {
+import { cookies } from "next/headers";
+export async function GET(request: NextRequest) {
   try {
-    const { country, lang } = await request.json();
-
+    const country = request.headers.get("country")?.trim() || "sy";
+    let language = request.headers.get("language")?.trim();
+    const lang = request.headers.get("lang")?.trim();
+    const cookieStore = cookies();
+    if (country) cookieStore.set("country", country);
+    if (lang) cookieStore.set("lang", lang);
+    if (language) cookieStore.set("language", language);
     console.log("🍪 Setting server cookies:", { country, lang });
 
     const response = NextResponse.json({ success: true });
@@ -16,12 +21,6 @@ export async function POST(request: NextRequest) {
       sameSite: "strict" as const,
       maxAge: 360 * 7 * 24 * 60 * 60, // 1 week
     };
-
-    response.cookies.set("country", country.toLowerCase(), cookieOptions);
-    response.cookies.set("lang", lang.toLowerCase(), cookieOptions);
-    response.cookies.set("language", lang.toLowerCase(), cookieOptions);
-
-    console.log("✅ Server cookies set successfully");
     return response;
   } catch (error) {
     console.error("❌ Error setting cookies:", error);

@@ -3,15 +3,11 @@ import SettingTopBar from "./TopBar";
 import AddressInfo from "public/svg/cart/AddressInfo.svg";
 import { translateFunction } from "utils/functions";
 
-import { useParams } from "next/navigation";
-import { changeAppCountry, changeAppLanguage } from "store/homepage/actions";
-import {
-  changeAppCountryServer,
-  changeAppLanguageServer,
-} from "store/homepage/cachedActions";
-import { useAppStore } from "store";
+import { useParams, useRouter } from "next/navigation";
+
 import { FlagIcon } from "utils/tinyUtils";
 import { LanguageFlagPropsType } from "models/componentType/LanguageFlagPropsType";
+import { changeAppLanguage } from "store/homepage/actions";
 
 function LanguageSetting({ goBack }: { goBack: () => void }) {
   const languages = ["ar", "en", "tr", "ku"];
@@ -20,7 +16,6 @@ function LanguageSetting({ goBack }: { goBack: () => void }) {
   const [selectedCountry, setSelectedCountry] = useState(
     languages.find(
       // @ts-ignore
-
       (s) => s.toLowerCase() === lang?.split("-")[1].toLowerCase()
     )
   );
@@ -35,24 +30,19 @@ function LanguageSetting({ goBack }: { goBack: () => void }) {
   const [isSettingCountry, setIsSettingCountry] = useState(false);
 
   const changeCountry = async (country: any) => {
-    setIsSettingCountry(true);
-    const current = window.location.pathname;
-    const newPath = current.replace(
-      // @ts-ignore
-      `/${lang}`,
-      //   @ts-ignore
-      `/${lang.split("-")[0]}-${country?.toLowerCase()}`
-    );
+    try {
+      setIsSettingCountry(true);
 
-    if (current !== newPath) {
-      window.history.replaceState(null, "", newPath);
+      await changeAppLanguage(country);
+      setSelectedCountry(country);
+
+      window.location.href = `/${
+        (lang as string)?.split("-")[0]
+      }-${country}/setting?tab=Language`;
+    } catch (error) {
+      setIsSettingCountry(false);
+      console.error(error);
     }
-
-    await changeAppLanguage(country.toLowerCase());
-    await changeAppLanguageServer(country.toLowerCase());
-
-    setSelectedCountry(country);
-    setIsSettingCountry(false);
   };
   return (
     <div className="flex-col max-h-[calc(100vh-200px)]">

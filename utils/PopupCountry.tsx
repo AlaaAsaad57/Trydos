@@ -8,7 +8,6 @@ import "styles/popup.css";
 import { translateFunction } from "./functions";
 import Cookies from "js-cookie";
 import Spinner from "components/global/Spinner";
-import { changeAppCountryServer } from "store/homepage/cachedActions";
 
 import { FlagIcon } from "./tinyUtils";
 
@@ -46,18 +45,14 @@ const PopupCountry = ({ options, countries, forChanged, noCountry }) => {
     Cookies.set("language", langCode.toLowerCase(), cookieOptions);
 
     // Method 3: Server-side API (async but don't wait)
-    fetch("/api/set-country-cookies", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        country: countryCode.toLowerCase(),
-        lang: langCode.toLowerCase(),
-      }),
-    }).catch((err) => console.log("Server cookie API failed:", err));
-
-    // Method 4: Server action
     try {
-      await changeAppCountryServer(countryCode);
+      await fetch("/api/setLocal", {
+        headers: {
+          country: countryCode,
+          lang: langCode,
+          language: langCode,
+        },
+      });
     } catch (error) {
       console.error("Server action failed:", error);
     }

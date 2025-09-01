@@ -1,28 +1,32 @@
 import StoryService from "services/story";
 import Cookies from "js-cookie";
-import { changeAppLanguageServer, changeToken } from "./cachedActions";
+
 import { useAppStore } from "store";
 import { COOKIE_NAMES, getCookie } from "utils/cookies/cookie-manager";
 import { GAevent } from "utils/gtag";
 import { GA_EVENT_NAMES, GA_GLOBAL_SCREEN } from "utils/GAEvents";
 import auth from "services/auth";
-export const changeAppLanguage = (language) => {
+export const changeAppLanguage = async (language) => {
   const { setAppLanguage } = useAppStore.getState();
   Cookies.set("language", language, {
     expires: 365,
   });
-  changeAppLanguageServer(language);
-  changeToken({ key: "language", value: language });
-  changeToken({ key: "lang", value: language });
+  await fetch("/api/setLocal", {
+    headers: {
+      language: language,
+      lang: language,
+    },
+  });
+
   setAppLanguage(language);
 };
 export const changeAppCountry = async (iso) => {
   const { setAppCountry } = useAppStore.getState();
-
-  // Cookies.set("country", iso, {
-  //   expires: 365,
-  // });
-  await changeToken({ key: "country", value: iso });
+  await fetch("/api/setLocal", {
+    headers: {
+      country: iso,
+    },
+  });
   setAppCountry(iso);
 };
 

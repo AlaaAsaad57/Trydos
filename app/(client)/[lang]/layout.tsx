@@ -1,14 +1,11 @@
 export const dynamic = "force-dynamic";
-
 import "styles/globals.css";
 import "styles/home.css";
 import "styles/unused-onload.css";
 import localFont from "next/font/local";
-import Logo from "components/Home/Logo";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import Script from "next/script";
 import { GA_MEASUREMENT_ID } from "utils/gtag";
-import NextLink from "components/global/NextLink";
 
 export const metadata = {
   title: "TryDos",
@@ -111,17 +108,23 @@ export default function RootLayout({
       <body className={params.lang.split("-")[1] === "ar" ? "text-rtl" : ""}>
         <SpeedInsights />
 
-        <div
-          className="site-container items-center"
-          key={`${JSON.stringify(params)}`}
-        >
-          <div className="home-navbar max-h-[1365px]" suppressHydrationWarning>
+        <div className="site-container items-center">
+          <div className="home-navbar max-h-[1365px]">
             <a
               href={`/${params.lang}`}
               aria-label="TryDos Home"
               data-cy="NavLogo"
             >
-              <Logo animated={false} style={false} key={1} />
+              <div className="logo-container" data-cy="storeLogo">
+                <img
+                  fetchPriority="high"
+                  alt="TryDos Logo"
+                  width={130}
+                  height={36}
+                  loading="eager"
+                  src="/svg/Logo.svg"
+                />
+              </div>
             </a>
 
             {nav}

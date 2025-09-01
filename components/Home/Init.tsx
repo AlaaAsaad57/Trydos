@@ -134,15 +134,6 @@ function Init() {
       console.log(error);
     }
     // let images = document.querySelectorAll("img");
-    // images.forEach((img) => {
-    //   if (img.complete && img.naturalWidth === 0) {
-    //     img.src = "/error.png";
-    //   }
-    //   img.onerror = function () {
-    //     this.src = "/error.png";
-    //     this.onerror = null;
-    //   };
-    // });
   }, []);
   const initPageLoad = async () => {
     const permission =
@@ -153,10 +144,11 @@ function Init() {
     if (permission !== "granted") {
       return null;
     }
-    const { requestFirebaseNotificationPermission } = await import(
-      "utils/firebaseInitv1"
-    );
+
     if (!shouldShowBluredInfo()) {
+      const { requestFirebaseNotificationPermission } = await import(
+        "utils/firebaseInitv1"
+      );
       const handlePageRefresh = async () => {
         try {
           requestFirebaseNotificationPermission().then((fbtoken) => {
