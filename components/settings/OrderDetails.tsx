@@ -641,7 +641,7 @@ const OrderExpandedDetails = ({
   const shouldShowConfirmReturn = () => {
     return (
       selectedOrder?.returned_data?.filter(
-        (s) => s.details?.status?.option === "draft_return_request"
+        (s) => s.details?.status?.value === null
       )?.length > 0 && isThereAReturnedProduct()
     );
   };

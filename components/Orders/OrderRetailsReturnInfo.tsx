@@ -31,7 +31,7 @@ function OrderRetailsReturnInfo({
   const status = [
     {
       index: 1,
-      label: "draft_return_request",
+      label: null,
       title: "Product Return Needs Confirm",
       desc: "You Need To Confirm Your Request",
     },
@@ -72,7 +72,9 @@ function OrderRetailsReturnInfo({
   const isRtl = language === "ar" || language === "ku";
 
   const currentStatus = status.find(
-    (s) => s.label.toLowerCase() === product.return_status?.value?.toLowerCase()
+    (s) =>
+      s.label === product?.return_status?.value ||
+      s.label?.toLowerCase() === product?.return_status?.value?.toLowerCase()
   );
 
   const isActive = (i: number) => {
