@@ -65,16 +65,16 @@ async function getCurrency(country, language) {
     let cachedCurrency = await getCurrencyFromCache(country);
 
     if (typeof cachedCurrency === "string") {
-      return JSON.parse(cachedCurrency);
+      return { ...JSON.parse(cachedCurrency), redis: true };
     }
     if (cachedCurrency?.exchange_rate) {
-      return cachedCurrency;
+      return { ...cachedCurrency, redis: true };
     } else {
       let currencyData = await fetchCurrency(language, country);
       let currency = currencyData.data.currency;
 
       StoreCurrency(country, currency);
-      return currency;
+      return { ...currency, redis: false };
     }
   } catch (error) {}
 }
@@ -164,6 +164,7 @@ async function FeaturedProductWrapper({ lang }) {
   });
   return (
     <FeatureProducts
+      dataSourceString={""}
       currencyData={currencyData}
       fetauredProductsData={{ data: data }}
       lang={lang}
@@ -185,6 +186,7 @@ async function FlashProductWrapper({ lang }) {
   });
   return (
     <FlashDealsProducts
+      dataSourceString={""}
       currencyData={currencyData}
       flashDealsProducts={{ data: data }}
       lang={lang}
@@ -208,6 +210,7 @@ async function BoutiquesListWrapper({ params }) {
   let end = process.hrtime.bigint();
   return (
     <OfferListServer
+      dataSourceString=""
       boutiquesData={{ ...data, temp: Number(end - start) / 1_000_000 }}
       params={params}
     />

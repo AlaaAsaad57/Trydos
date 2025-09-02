@@ -81,13 +81,13 @@ async function getCurrency(country, language) {
       return { ...JSON.parse(cachedCurrency), redis: true };
     }
     if (cachedCurrency?.exchange_rate) {
-      return cachedCurrency;
+      return { ...cachedCurrency, redis: true };
     } else {
       let currencyData = await fetchCurrency(language, country);
-      let currency = { ...currencyData.data.currency, redis: false };
+      let currency = { ...currencyData.data.currency };
 
       StoreCurrency(country, currency);
-      return currency;
+      return { ...currency, redis: false };
     }
   } catch (error) {}
 }
