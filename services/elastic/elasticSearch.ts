@@ -89,6 +89,7 @@ interface SearchResult {
     priceRanges?: any[];
   };
   isAnalyzed: any;
+  applied: any;
 }
 
 interface ElasticsearchHit {
@@ -326,6 +327,7 @@ export async function getProductsAndFiltersFromElastic(
       colors: colorsFilter,
       prices: productsWithFilters.prices,
       isAnalyzed: isAnalyzed,
+      applied: filters,
     };
   } catch (error) {
     console.error("Elasticsearch search error:", error);
