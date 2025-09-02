@@ -47,7 +47,7 @@ Query: "${query}"
       parsed = JSON.parse(cleanedText);
     } catch (e) {
       return {
-        error: "Failed to parse JSON from Gemini response",
+        error: `Failed to parse JSON from Gemini response ${outputText}`,
         raw_output: outputText,
         exception: e.toString(),
       };
