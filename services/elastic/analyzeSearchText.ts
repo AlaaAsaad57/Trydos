@@ -7,8 +7,8 @@ export default async function AnalyzeSearchText(query): Promise<any> {
   let data = await GetColorAndSizes();
   const prompt = `Receive the following query in any language, analyze its meaning, and extract only the following fields:
 - name: the full product name (keep the full product name without removing anything, only exclude color and size if present in the query).
-- color: extract the color strictly from the provided list of colors: [${data?.colors}]. The result must be in HEX format such as "#FF0000". If more than one color appears in the text, return them as a JSON array like ["#FF0000", "#0000FF"]. If no matching color is found, return "Unknown".
-- size: extract the size strictly from the provided list of sizes: [${data?.sizes}]. If more than one size appears in the text, return them as a JSON array. If no matching size is found, return "Unknown".
+- color: extract the color strictly from the provided list of colors: [${data?.colors}]. The result must be in HEX format such as "#FF0000". If more than one color appears in the text, return them as a JSON array like ["#FF0000", "#0000FF"] even if only one color extracted always return JSON array. If no matching color is found, return "Unknown".
+- size: extract the size strictly from the provided list of sizes: [${data?.sizes}]. If more than one size appears in the text, return them as a JSON array even if only one color extracted always return JSON array. If no matching size is found, return "Unknown".
 - type: the material (such as cotton, silk, etc.). If it cannot be identified, return "Unknown".
 
 Notes:
