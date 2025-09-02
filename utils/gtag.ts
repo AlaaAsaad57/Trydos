@@ -64,7 +64,7 @@ export const GAevent = ({
       ...params,
     };
     if (process.env.NEXT_PUBLIC_ANALYTICS_LOG === "true") {
-      console.log(`window?.gtag?.("event", ${action}, {
+      console.log(`🟡🟡  window?.gtag?.("event", ${action}, {
         debug_mode: true,
         ${Object.entries(params || {})
           .map(([key, value]) => `${key}: ${JSON.stringify(value)}`)
@@ -79,7 +79,7 @@ export const GAevent = ({
       platform_source: WEB,
       ${Object.entries(user_param || {})
         .map(([key, value]) => `${key}: ${JSON.stringify(value)}`)
-        .join(",\n")},`);
+        .join(",\n")},  🟡🟡`);
     }
   } catch (error) {
     console.log(error);

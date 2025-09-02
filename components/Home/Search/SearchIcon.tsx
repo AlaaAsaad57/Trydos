@@ -9,6 +9,7 @@ import { useAppStore } from "store";
 import { useParams } from "next/navigation";
 import search from "services/search";
 import { DisableScroll, EnableScroll } from "utils/tinyUtils";
+import DataSourceLogger from "components/global/DataSourceLogger";
 
 function SearchIcon({ time }) {
   const { setEnableSearch, enable_search } = useAppStore();
@@ -22,10 +23,6 @@ function SearchIcon({ time }) {
       search.getSearchOptions({ noProducts: true, lang: lang });
     }
   }, [enable_search]);
-  useEffect(() => {
-    if (process.env.NEXT_PUBLIC_DATASOURCE_LOG === "true")
-      console.log(`Main Categories Data Source Elastic in ${time} ms`);
-  }, []);
   return (
     <>
       <div
@@ -43,6 +40,9 @@ function SearchIcon({ time }) {
           }
         }}
       >
+        <DataSourceLogger
+          dataSourceString={`Main Categories Data Source Elastic in ${time} ms`}
+        />
         <Search id="search-icon" className={`${focuse && "black-fill"}`} />
         <SearchComponent
           close={() => {
