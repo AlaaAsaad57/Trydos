@@ -13,7 +13,7 @@ export default async function AnalyzeSearchText(query): Promise<any> {
 
 Notes:
 - Matching does not have to be literal: use reasoning to find the closest match. For example, if the query contains "15 years" or "15_years" and the sizes list includes "14-15-years",  Similarly, handle variations in spelling, numbers, or formatting.
-- Do not remove anything from the product name; only exclude the color and size from the text.
+- Do not remove anything from the product name; only exclude the color and size from the text even of the query only have colors and sizes like Yellow XXL then name will be empty string and if query is like shirt Yellow XXL the name will be shirt only.
 - Do not use any colors or sizes other than those provided in the input lists.
 - If a size exists in a different form (word, number, or description), convert it to one of the standard values: XS, S, M, L, XL, XXL.
 - The final result must be returned strictly in JSON format only, without any Markdown or formatting.
