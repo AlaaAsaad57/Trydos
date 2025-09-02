@@ -1,5 +1,4 @@
 "use client";
-
 import { useEffect, useState } from "react";
 import MainSetting from "./MainSetting";
 import Profile from "./Profile";
@@ -12,12 +11,8 @@ import PersonalBankCards from "./PersonalBankCards";
 import PersonalInfoCountries from "./PersonalInfoCountries";
 import { useRouter, useSearchParams } from "next/navigation";
 import OrdersList from "./OrdersList";
-
 import OrderDetails from "./OrderDetails";
-
 import { useAppStore } from "store";
-
-import SettingsLoader from "components/skeleton/loaders/SettingsLoader";
 import LanguageSetting from "./LanguageSetting";
 import OrderOptions from "components/Orders/OrderOptions";
 import { GA_EVENT_NAMES, GA_GLOBAL_SCREEN } from "utils/GAEvents";

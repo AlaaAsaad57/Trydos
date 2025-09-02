@@ -141,6 +141,7 @@ function ProductSizes({ sizes }: ProductSizesPropsType) {
               router.push(pathname + `?${newParams.toString()}`, {
                 // @ts-expect-error 'shallow' does not exist in type 'NavigateOptions'
                 shallow: true,
+                scroll: false,
               });
               setActiveColor(s?.option);
             }}

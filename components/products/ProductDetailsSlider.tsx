@@ -27,7 +27,6 @@ function ProductDetailsSlider({
 
   useEffect(() => {
     setIsNavigating(null);
-
     setCurrency(currency);
     let elements = document.querySelectorAll(".product-slider-images");
     elements.forEach((elem, index) => {

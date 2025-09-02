@@ -1,12 +1,7 @@
 "use client";
 import ColorsIcon from "public/svg/product/colors.svg";
-import ColorsInfo from "public/svg/product/colorsInfo.svg";
 import React, { useEffect, useState } from "react";
-import {
-  getConfiguredImage,
-  RoundPrice,
-  translateFunction,
-} from "utils/functions";
+import { getConfiguredImage, translateFunction } from "utils/functions";
 import "styles/listing.css";
 import TrendColorIcon from "public/svg/product/TrendColorIcon.svg";
 import {
@@ -15,23 +10,24 @@ import {
   useRouter,
   useSearchParams,
 } from "next/navigation";
-
 import { useAppStore } from "store";
 import { GetImageUrl } from "utils/tinyUtils";
-import { ProductColorsPropsType } from "models/componentType/productTypes/MultiComponentOnProductPage";
-
 import { GAevent } from "utils/gtag";
 import { GA_EVENT_NAMES, GA_GLOBAL_SCREEN } from "utils/GAEvents";
 import auth from "services/auth";
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 import Image from "next/image";
+import ProductColorCard from "./ProductColorCard";
+import BottomSheet from "components/global/BottomSheet";
+import Spinner from "components/global/Spinner";
 
-function ProductColors({ colors, ProductColorsArray }: ProductColorsPropsType) {
+function ProductColors({ product, currency, params }) {
   const {
     setActiveColorDetails,
-
-    product,
+    product: ProductVal,
     SelectedProduct,
+    setColorBottomSheet,
+    ColorBottomSheet,
   } = useAppStore();
   let { lang } = useParams();
   // @ts-ignore
@@ -134,36 +130,48 @@ function ProductColors({ colors, ProductColorsArray }: ProductColorsPropsType) {
         </svg>
       );
   };
+  let [loading, setLoading] = useState(false);
+  const handleSelectColor = (color) => {
+    const newParams = new URLSearchParams(searchParams);
+    const colorOption = color?.color_option || color?.color_name;
+    if (colorOption) {
+      newParams.set("color", colorOption);
+      router.push(pathname + `?${newParams.toString()}`, {
+        // @ts-expect-error 'shallow' does not exist in type 'NavigateOptions'
+        shallow: true,
+      });
+    }
+
+    setActiveColor(color);
+  };
+  const colorFromUrl = searchParams.get("color");
+  useEffect(() => {
+    if (colorFromUrl) {
+      if (ColorBottomSheet) {
+        setLoading(false);
+        setColorBottomSheet(false);
+      }
+    }
+  }, [colorFromUrl]);
   const renderColors = () => {
     let activeColor =
       searchParams.get("color") &&
-      colors.find(
+      product?.sync_color_images.find(
         (s) =>
           s.color_option === searchParams.get("color") ||
           s.color_name === searchParams.get("color")
       );
-    const handleSelectColor = (color) => {
-      const newParams = new URLSearchParams(searchParams);
-      const colorOption = color?.color_option || color?.color_name;
-      if (colorOption) {
-        newParams.set("color", colorOption);
-        router.push(pathname + `?${newParams.toString()}`, {
-          // @ts-expect-error 'shallow' does not exist in type 'NavigateOptions'
-          shallow: true,
-        });
-      }
-      setActiveColor(color);
-    };
+
     return (
       <HortiznalScrollBar
         id="products-colors-slider"
         className="flex-row  w-auto max-w-[50%] gap-[2px] h-[84px] items-center translate-y-[-6px]"
       >
-        {colors.map((color) => (
+        {product?.sync_color_images.map((color) => (
           <div
             className="min-w-[50px] w-[50px] h-[73px] relative select-none cursor-pointer"
             onClick={() => {
-              handleSelectColor(color);
+              // handleSelectColor(color);
             }}
           >
             {color?.color_trend && (
@@ -189,28 +197,97 @@ function ProductColors({ colors, ProductColorsArray }: ProductColorsPropsType) {
     );
   };
   return (
-    <div
-      className={`product-colors mt-[12px] flex-row align-start justify-between relative`}
-      data-cy="AvailableColor"
-    >
-      <div className="colors-label flex-col align-start py-[8px] justify-center gap-[4px]">
-        <ColorsIcon data-cy="ColorsIcon" />
-        <span
-          data-cy="Color-Length"
-          className="regular text-[9px] text-[#1d1d1d] "
-        >
-          {translate("Available ")} {colors?.length || 0} {translate("Color")}
-        </span>
-        <span
-          data-cy="Color-Length"
-          className="regular text-[11px] flex-row gap-[3px] text-[#1d1d1d] "
-        >
-          {colors?.length || 0} {translate("Color")} {translate("Available ")}
-        </span>
+    <>
+      <ProductDetailsColorBottom
+        loading={loading}
+        handleSelectColor={(e) => {
+          handleSelectColor(e);
+          setLoading(true);
+        }}
+        currency={currency}
+        params={params}
+      />
+      <div
+        className={`product-colors mt-[12px] flex-row align-start justify-between relative`}
+        data-cy="AvailableColor"
+        onClick={() => {
+          setColorBottomSheet({ is_for_product_details: true, ...product });
+        }}
+      >
+        <div className="colors-label flex-col align-start py-[8px] justify-center gap-[4px]">
+          <ColorsIcon data-cy="ColorsIcon" />
+          <span
+            data-cy="Color-Length"
+            className="regular text-[9px] text-[#1d1d1d] "
+          >
+            {translate("Available ")} {product?.sync_color_images?.length || 0}{" "}
+            {translate("Color")}
+          </span>
+          <span
+            data-cy="Color-Length"
+            className="regular text-[11px] flex-row gap-[3px] text-[#1d1d1d] "
+          >
+            {product?.sync_color_images?.length || 0} {translate("Color")}{" "}
+            {translate("Available ")}
+          </span>
+        </div>
+        {renderColors()}
       </div>
-      {renderColors()}
-    </div>
+    </>
   );
 }
 
 export default ProductColors;
+
+const ProductDetailsColorBottom = ({
+  params,
+  currency,
+  handleSelectColor,
+  loading,
+}) => {
+  const { ColorBottomSheet, setColorBottomSheet } = useAppStore();
+  const [index, setIndex] = useState(null);
+  if (ColorBottomSheet?.is_for_product_details) {
+    return (
+      <BottomSheet
+        key={ColorBottomSheet?.product_id}
+        isOpen={ColorBottomSheet?.is_for_product_details}
+        onClose={() => {
+          setColorBottomSheet(false);
+        }}
+      >
+        <div className="w-full pb-[40px] max-w-[1310px] min-h-[60vh] bg-white pt-[10px] flex flex-wrap gap-y-[18px] justify-center items-center">
+          {ColorBottomSheet?.sync_color_images?.map((color, i) => (
+            <div className={`relative`}>
+              <ProductColorCard
+                onClick={() => {
+                  setIndex(i);
+                  handleSelectColor(color);
+                }}
+                Sliders={false}
+                key={`${color?.color_name}:${i}`}
+                product={{
+                  ...ColorBottomSheet,
+                  sync_color_images: [color],
+                  images: color.images,
+                  index: i,
+                }}
+                params={params}
+                currency={currency}
+                productColor={color}
+              />
+              {loading && i === index && (
+                <div className="flex-1 absolute z-[999999] left-0 top-0 w-full h-full flex justify-center items-center bg-[#fafafa76] backdrop-blur-[2px] rounded-[15px]">
+                  <span className="scale-[3]">
+                    <Spinner />
+                  </span>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </BottomSheet>
+    );
+  }
+  return <></>;
+};

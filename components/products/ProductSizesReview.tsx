@@ -37,7 +37,6 @@ const ReviewProgress = ({ value, title }) => {
           xmlns="http://www.w3.org/2000/svg"
           width="100%"
           height="5"
-          viewBox="0 0 100% 5"
           className="absolute top-0 left-0"
         >
           <rect

@@ -551,7 +551,6 @@ export const useCartStore = (set, get) => ({
       AddToCartOption: {
         ...state.AddToCartOption,
         enable: false,
-
         quantity: 0,
         price: null,
         UID: "",

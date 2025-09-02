@@ -2,7 +2,7 @@
 import React, { useEffect, useReducer, useState } from "react";
 import ExtendedAreaInfo from "./ExtendedAreaInfo";
 import ProductOptions from "./ProductOptions";
-import { RoundPrice, translateFunction } from "utils/functions";
+import { translateFunction } from "utils/functions";
 import chat from "services/chat";
 import { useParams, useSearchParams } from "next/navigation";
 import { ProductSocialInfo } from "models/API/market/ProductSocialInfo";
@@ -13,7 +13,7 @@ import { ProductFooterSectionPropsType } from "models/componentType/productTypes
 import { showErrorNotification } from "@/store/notifications/reducer";
 import { fetchData } from "utils/fetchData";
 import ProductRedeemButton from "./ProductRedeemPrice";
-import { deleteCookie, getCookie } from "utils/cookies/cookie-manager";
+import { deleteCookie } from "utils/cookies/cookie-manager";
 import { GAevent } from "utils/gtag";
 import { GA_EVENT_NAMES, GA_GLOBAL_SCREEN } from "utils/GAEvents";
 import { REQUESTS_DATA } from "utils/Requests";

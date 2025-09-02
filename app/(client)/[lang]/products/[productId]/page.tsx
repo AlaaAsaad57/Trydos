@@ -22,13 +22,10 @@ import ProductFooterSection from "components/products/ProductFooterSection";
 import ProductDetailsSlider from "components/products/ProductDetailsSlider";
 import ProductDetailsText from "components/products/ProductDetailsText";
 import ProductStories from "components/products/ProductStories";
-
 import FreeShippingOption from "components/products/FreeShippingOption";
 import ProductColors from "components/products/ProductColors";
-// import CameraShots from "components/products/CameraShots";
 import ProductBackButton from "components/products/ProductBackButton";
 import FlashDealBanner from "components/products/FlashDealBanner";
-// import FeaturedBanner from "components/products/FeaturedBanner";
 import { ProductPagePropsType } from "models/componentType/productTypes/productPagePropsType";
 import ProductsLabels from "components/products/ProductsLabels";
 import { GetProductData } from "utils/pagesDataRequests/ProductPageData";
@@ -491,8 +488,9 @@ async function Page({ params, searchParams }: ProductPagePropsType) {
               <Suspense fallback={<></>}>
                 {product.sync_color_images?.length > 1 && (
                   <ProductColors
-                    colors={product.sync_color_images || []}
-                    ProductColorsArray={product.colors}
+                    product={product}
+                    currency={currency}
+                    params={params}
                   />
                 )}
               </Suspense>
