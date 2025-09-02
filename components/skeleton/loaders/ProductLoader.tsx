@@ -228,10 +228,7 @@ function ProductLoader({ product }) {
             </div>
 
             <Suspense fallback={<></>}>
-              <ProductColors
-                colors={product?.sync_color_images || []}
-                ProductColorsArray={product?.colors}
-              />
+              <ProductColors product={product} />
             </Suspense>
             <Suspense fallback={<></>}>
               <CameraShots images={product?.images || []} />

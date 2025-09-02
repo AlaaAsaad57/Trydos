@@ -21,7 +21,15 @@ import ProductColorCard from "./ProductColorCard";
 import BottomSheet from "components/global/BottomSheet";
 import Spinner from "components/global/Spinner";
 
-function ProductColors({ product, currency, params }) {
+function ProductColors({
+  product,
+  currency = null,
+  params = null,
+}: {
+  product: any;
+  currency?: any;
+  params?: any;
+}) {
   const {
     setActiveColorDetails,
     product: ProductVal,
@@ -198,20 +206,26 @@ function ProductColors({ product, currency, params }) {
   };
   return (
     <>
-      <ProductDetailsColorBottom
-        loading={loading}
-        handleSelectColor={(e) => {
-          handleSelectColor(e);
-          setLoading(true);
-        }}
-        currency={currency}
-        params={params}
-      />
+      {currency && params && (
+        <ProductDetailsColorBottom
+          loading={loading}
+          handleSelectColor={(e) => {
+            handleSelectColor(e);
+            setLoading(true);
+          }}
+          currency={currency}
+          params={params}
+        />
+      )}
       <div
         className={`product-colors mt-[12px] flex-row align-start justify-between relative`}
         data-cy="AvailableColor"
         onClick={() => {
-          setColorBottomSheet({ is_for_product_details: true, ...product });
+          if (product)
+            setColorBottomSheet({
+              is_for_product_details: true,
+              ...(product ?? {}),
+            });
         }}
       >
         <div className="colors-label flex-col align-start py-[8px] justify-center gap-[4px]">
