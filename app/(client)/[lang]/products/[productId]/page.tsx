@@ -52,6 +52,7 @@ import ProductSizesReview from "components/products/ProductSizesReview";
 import ProductGeneralProperties from "components/products/ProductGeneralProperties";
 import ReturnDaysDetails from "components/products/ReturnDays.Details";
 import ProductVideo from "components/products/ProductVideo";
+import DataSourceLogger from "components/global/DataSourceLogger";
 // export const revalidate = parseInt(process.env.NEXT_PUBLIC_REVALIDATE);
 // For Middle East users
 
@@ -79,13 +80,13 @@ async function getCurrency(country, language) {
     let cachedCurrency = await getCurrencyFromCache(country);
 
     if (typeof cachedCurrency === "string") {
-      return JSON.parse(cachedCurrency);
+      return { ...JSON.parse(cachedCurrency), redis: true };
     }
     if (cachedCurrency?.exchange_rate) {
       return cachedCurrency;
     } else {
       let currencyData = await fetchCurrency(language, country);
-      let currency = currencyData.data.currency;
+      let currency = { ...currencyData.data.currency, redis: false };
 
       StoreCurrency(country, currency);
       return currency;
@@ -132,10 +133,14 @@ async function GetProductDataFunc(params) {
 async function Page({ params, searchParams }: ProductPagePropsType) {
   try {
     let [countryVariable, languageVariable] = params.lang.split("-");
+    let start = process.hrtime.bigint();
+
     let [product, currency] = await Promise.all([
       GetProductDataFunc(params),
       getCurrency(countryVariable, languageVariable),
     ]);
+    let end = process.hrtime.bigint();
+
     const color = searchParams.color;
     const JsonLd = {
       "@context": "https://schema.org",
@@ -336,6 +341,14 @@ async function Page({ params, searchParams }: ProductPagePropsType) {
           dangerouslySetInnerHTML={{ __html: JSON.stringify(JsonLd) }}
         />
         <div className="product-details-container w-full relative bg-[#ffffff]">
+          <DataSourceLogger
+            dataSourceString={`Product Details DataSource : product details from ${
+              product?.redis ? "redis" : "laravel api"
+            } , currency from ${currency?.redis ? "redis" : "laravel api"} in ${
+              Number(end - start) / 1_000_000
+            } ms`}
+          />
+
           <div className="flex-col gap-[20px] mx-[5px] w-[150px] h-[19px] absolute top-[58px] left-[5px] z-[999999999]">
             {product.label_names && (
               <ProductsLabels

@@ -6,10 +6,12 @@ import NormalWidget from "components/Home/OfferWidgets/NormalWidget";
 import OfferListSkeleton from "components/skeleton/OfferList";
 
 import { OfferListServerPropsType } from "models/componentType/OfferListServerPropsType";
+import DataSourceLogger from "components/global/DataSourceLogger";
 
 async function OfferListServer({
   boutiquesData,
   params,
+  dataSourceString,
 }: OfferListServerPropsType) {
   try {
     const [country, language] = params.lang.split("-");
@@ -17,6 +19,8 @@ async function OfferListServer({
 
     return (
       <div className={`offers-list pb-[184px] gap-[10px]`} data-cy="boutiques">
+        <DataSourceLogger dataSourceString={dataSourceString} />
+
         {HomeData?.boutiques?.map((boutique, myKey) => {
           return (
             <NormalWidget

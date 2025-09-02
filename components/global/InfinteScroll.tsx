@@ -85,7 +85,6 @@ function InfinteScroll({ offsetVariable, temp }: InfinteScrollPropsType) {
   };
   useInfiniteScroll(getNextBoutique);
   useEffect(() => {
-    console.log("BOUTIQUE SECTION ELASTIC", temp);
     GAevent({
       action: GA_EVENT_NAMES.SCREEN_VIEW,
       params: {

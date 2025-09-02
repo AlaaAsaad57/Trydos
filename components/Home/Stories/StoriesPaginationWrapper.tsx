@@ -1,7 +1,7 @@
 "use client";
 import Spinner from "components/global/Spinner";
 import { InView } from "react-intersection-observer";
-import React, { useState } from "react";
+import { useEffect, useState } from "react";
 import StoryElement from "./StoryElement";
 import { useAppStore } from "store";
 
@@ -12,6 +12,7 @@ import {
   UserData,
 } from "utils/cookies/cookie-manager";
 import { REQUESTS_DATA } from "utils/Requests";
+import DataSourceLogger from "components/global/DataSourceLogger";
 
 interface StoriesPaginationWrapperProps {
   next_page_url: string | number;
@@ -36,8 +37,7 @@ function StoriesPaginationWrapper({
   const [additionalStories, setAdditionalStories] = useState<any[]>([]);
 
   // Initialize store with server data if not already set
-  React.useEffect(() => {
-    console.log("STORIES NEST TIME", time);
+  useEffect(() => {
     if (initialStories.length > 0 && storiesData.length === 0) {
       try {
       } catch (error) {
@@ -98,6 +98,9 @@ function StoriesPaginationWrapper({
 
   return (
     <>
+      <DataSourceLogger
+        dataSourceString={`Stories Data Source Laravil Api in ${time} ms`}
+      />
       {additionalStories.map((story, index) => (
         <StoryElement
           key={story.id || `additional-${index}`}

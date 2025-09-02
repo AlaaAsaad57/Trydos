@@ -28,6 +28,7 @@ import {
   getBoutiqueMetadata,
   GetStructuredData,
 } from "../../filters/[[...filters]]/Metadata";
+import DataSourceLogger from "components/global/DataSourceLogger";
 
 export const dynamicParams = true;
 
@@ -107,6 +108,7 @@ export default async function Page({ params }: { params: ParamsType }) {
       )?.[0],
     };
   }
+  let start = process.hrtime.bigint();
 
   let [filtersData, currency, boutique] = await Promise.all([
     getProductsAndFiltersFromElastic({
@@ -123,6 +125,7 @@ export default async function Page({ params }: { params: ParamsType }) {
     getCurrency(country, language),
     GetBoutique(boutiqueItem, country, language),
   ]);
+  let end = process.hrtime.bigint();
 
   let filters = {
     categories: filtersData?.categories || [],
@@ -151,6 +154,12 @@ export default async function Page({ params }: { params: ParamsType }) {
         data-cy="filter_listing_bar"
         className="filter-listing-bar relative flex-row align-center"
       >
+        <DataSourceLogger
+          dataSourceString={`Listing flashdeals DataSource : products and filters from elastic , currency from ${
+            currency?.redis ? "redis" : "laravel api"
+          } in ${Number(end - start) / 1_000_000} ms`}
+        />
+
         <NextLink
           data-cy="BackIcon_boutique"
           ignoreConditionCase={true}

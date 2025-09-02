@@ -9,7 +9,6 @@ export async function GET(request: NextRequest) {
     if (country) cookieStore.set("country", country);
     if (lang) cookieStore.set("lang", lang);
     if (language) cookieStore.set("language", language);
-    console.log("🍪 Setting server cookies:", { country, lang });
 
     const response = NextResponse.json({ success: true });
 

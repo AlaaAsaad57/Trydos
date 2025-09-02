@@ -212,7 +212,7 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
           setSelectedSize(tempProductData?.choice_options?.[0]?.options?.[0]);
         }
       }
-
+      // checkIfVariantEmpty();
       setLoading(false);
     } catch (err) {
       // Handle error as needed
@@ -220,7 +220,49 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
       setLoading(false);
     }
   };
+  const checkIfVariantEmpty = () => {
+    let selectedVariant = getSelectedVariantQty();
 
+    if (selectedVariant?.qty === 0) {
+      if (ProductData?.variation?.filter((s) => s.qty > 0)?.length === 0) {
+        return;
+      } else {
+        if (
+          ProductData?.sync_color_images &&
+          ProductData?.variation?.length > 0
+        ) {
+          let otherVariant = ProductData?.variation?.find((s) => s.qty > 0);
+          let otherColor = otherVariant?.type?.split("-");
+          setSelectedColor(
+            ProductData?.sync_color_images?.find(
+              (s) =>
+                s.color_option?.toLowerCase() === otherColor?.[0]?.toLowerCase()
+            )
+          );
+          if (otherColor?.[1]) {
+            setSelectedSize(
+              ProductData?.choice_options?.[0]?.options.find(
+                (s) =>
+                  s.option?.toLowerCase() === otherColor?.[1]?.toLowerCase()
+              )
+            );
+          }
+
+          return;
+        }
+        if (ProductData?.choice_options?.[0]) {
+          let otherVariant = ProductData?.variation?.find((s) => s.qty > 0);
+          let otherSize = otherVariant?.type?.split("-");
+          setSelectedSize(
+            ProductData?.choice_options?.[0]?.options.find(
+              (s) => s.option?.toLowerCase() === otherSize?.[0]?.toLowerCase()
+            )
+          );
+        }
+      }
+    }
+    return;
+  };
   const getInitialColorSlide = () => {
     let index = 0;
     ProductData?.sync_color_images.map((s, i) => {
@@ -253,6 +295,7 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
     ProductData?.choice_options?.[0]?.options.map((s, i) => {
       if (s.option === sizeFromUrl) index = i;
     });
+
     return index;
   };
   // const shouldShowRedeem = () => {
@@ -454,41 +497,12 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
             )}
           <div
             data-cy="product_new-price_addtocart"
-            className="product-old-price"
+            className="product-new-price"
           >
-            <svg
-              data-cy="product_addtocart_svg"
-              xmlns="http://www.w3.org/2000/svg"
-              width="100%"
-              height="2"
-            >
-              <line
-                id="Line_1104"
-                data-name="Line 1104"
-                x2="100%"
-                transform="translate(0 1)"
-                fill="none"
-                stroke="#FF6200"
-                strokeWidth="2"
-              />
-            </svg>
             {getSelectedVariantQty()?.offer_price >= 0 && currency?.symbol ? (
               <>
                 {RoundPrice({
                   num: getSelectedVariantQty()?.offer_price,
-                  language: languageVariable,
-                })}
-              </>
-            ) : (
-              <Skeleton width={30} height={10} />
-            )}
-          </div>
-          <div className="product-new-price">
-            {getSelectedVariantQty()?.flash_deal_price >= 0 &&
-            currency?.symbol ? (
-              <>
-                {RoundPrice({
-                  num: getSelectedVariantQty()?.flash_deal_price,
                   language: languageVariable,
                 })}
               </>
@@ -2015,7 +2029,7 @@ const AddToCartButton = ({
           is_redeem: product?.showRedeemPrice && product?.is_redeem,
         });
         onSuccessAddUpdate();
-        console.log(product);
+
         GAevent({
           action: GA_EVENT_NAMES.ADD_TO_CART,
           params: {

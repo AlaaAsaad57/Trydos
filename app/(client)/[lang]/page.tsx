@@ -70,13 +70,13 @@ async function getCurrency(country, language) {
     let cachedCurrency = await getCurrencyFromCache(country);
 
     if (typeof cachedCurrency === "string") {
-      return JSON.parse(cachedCurrency);
+      return { ...JSON.parse(cachedCurrency), redis: true };
     }
     if (cachedCurrency?.exchange_rate) {
       return cachedCurrency;
     } else {
       let currencyData = await fetchCurrency(language, country);
-      let currency = currencyData.data.currency;
+      let currency = { ...currencyData.data.currency, redis: false };
 
       StoreCurrency(country, currency);
       return currency;
@@ -162,6 +162,7 @@ async function MainCategoriesNavbar({ lang, mainCategory }) {
 // Featured Products
 async function FeaturedProductWrapper({ lang }) {
   const [country, language] = lang?.split("-");
+  let start = process.hrtime.bigint();
   let [currencyData, data] = await Promise.all([
     getCurrency(country, language),
     getProductsAndFiltersFromElastic({
@@ -173,8 +174,12 @@ async function FeaturedProductWrapper({ lang }) {
       limit: 10,
     }),
   ]);
+  let end = process.hrtime.bigint();
   return (
     <FeatureProducts
+      dataSourceString={`Feature Products Data Source: Products From Elastic, currency from ${
+        currencyData?.redis ? "redis" : "laravel api"
+      } in ${Number(end - start) / 1_000_000} ms`}
       currencyData={currencyData}
       fetauredProductsData={{ data: data }}
       lang={lang}
@@ -184,6 +189,8 @@ async function FeaturedProductWrapper({ lang }) {
 // FlasDeals Products
 async function FlashProductWrapper({ lang }) {
   const [country, language] = lang?.split("-");
+  let start = process.hrtime.bigint();
+
   let [currencyData, data] = await Promise.all([
     getCurrency(country, language),
     getProductsAndFiltersFromElastic({
@@ -195,9 +202,13 @@ async function FlashProductWrapper({ lang }) {
       limit: 10,
     }),
   ]);
+  let end = process.hrtime.bigint();
 
   return (
     <FlashDealsProducts
+      dataSourceString={`FlashDeals Products Data Source: Products From Elastic, currency from ${
+        currencyData?.redis ? "redis" : "laravel api"
+      } in ${Number(end - start) / 1_000_000} ms`}
       currencyData={currencyData}
       flashDealsProducts={{ data: data }}
       lang={lang}
@@ -222,6 +233,9 @@ async function BoutiquesListWrapper({ params }) {
   let end = process.hrtime.bigint();
   return (
     <OfferListServer
+      dataSourceString={`Boutiques Data Source: Products From Elastic in ${
+        Number(end - start) / 1_000_000
+      } ms`}
       boutiquesData={{ ...data, temp: Number(end - start) / 1_000_000 }}
       params={params}
     />

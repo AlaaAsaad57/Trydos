@@ -4,4 +4,5 @@ export interface OfferListServerPropsType {
     mainCategory?: string;
   };
   boutiquesData: any;
+  dataSourceString: string;
 }

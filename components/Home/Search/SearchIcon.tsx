@@ -18,12 +18,14 @@ function SearchIcon({ time }) {
     setEnableSearch(e);
   };
   useEffect(() => {
-    console.log("MAIN CATEGORIES ELASTIC TIME:", time);
     if (enable_search) {
       search.getSearchOptions({ noProducts: true, lang: lang });
     }
   }, [enable_search]);
-
+  useEffect(() => {
+    if (process.env.NEXT_PUBLIC_DATASOURCE_LOG === "true")
+      console.log(`Main Categories Data Source Elastic in ${time} ms`);
+  }, []);
   return (
     <>
       <div
