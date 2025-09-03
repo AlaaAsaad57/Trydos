@@ -175,7 +175,7 @@ function ProductColors({
         id="products-colors-slider"
         className="flex-row  w-auto max-w-[50%] gap-[2px] h-[84px] items-center translate-y-[-6px]"
       >
-        {product?.sync_color_images.map((color) => (
+        {product?.sync_color_images?.map((color) => (
           <div
             className="min-w-[50px] w-[50px] h-[73px] relative select-none cursor-pointer"
             onClick={() => {
