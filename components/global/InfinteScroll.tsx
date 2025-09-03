@@ -60,10 +60,13 @@ function InfinteScroll({ offsetVariable, temp }: InfinteScrollPropsType) {
             lang: language,
             country: country,
           },
+          next: {
+            revalidate: 0,
+          },
         });
         let result = await new_results.json();
         result = result.data;
-        console.log(result);
+
         // @ts-ignore
         if (offset?.[0] === result.offset?.[0]) {
           setLoading(false);
