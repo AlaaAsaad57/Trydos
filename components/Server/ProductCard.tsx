@@ -108,6 +108,7 @@ function ProductCard({
         data-cy="product-card"
       >
         <NextLink
+          ignoreConditionCase={true}
           onClick={() => {
             if (product?.is_redeem && shouldShowRedeem) {
               let text = document.querySelector(

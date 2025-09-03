@@ -7,11 +7,11 @@ import { NormalWidgetPropsType } from "models/componentType/NormalWidgetPropsTyp
 import { GetImageUrl } from "utils/tinyUtils";
 import { getConfiguredImage } from "utils/functions";
 
-
 const NormalWidget = ({ boutique, myKey, lang }: NormalWidgetPropsType) => {
   return (
     <div className="w-full flex relative">
       <NextLink
+        ignoreConditionCase={true}
         data-cy="boutique_link"
         href={`/${lang}/filters/boutiques/${boutique.slug}`}
         data={{

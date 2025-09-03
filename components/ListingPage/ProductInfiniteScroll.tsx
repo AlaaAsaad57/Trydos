@@ -46,6 +46,7 @@ function ProductsInfiniteScroll({
   useEffect(() => {
     const { setIsNavigating } = useAppStore.getState();
     setIsNavigating(null);
+    console.log("**Initial Items IDS**", analyticsData);
     GAevent({
       action: GA_EVENT_NAMES.VIEW_ITEMS_LIST,
       params: {
@@ -106,6 +107,7 @@ function ProductsInfiniteScroll({
       );
       setProducts(newArray);
       if (response.products?.length > 0) {
+        console.log("**Offset Items IDS**", products, response.products);
         GAevent({
           action: GA_EVENT_NAMES.VIEW_ITEMS_LIST,
           params: {
