@@ -116,6 +116,7 @@ export default async function Page({ params }: { params: ParamsType }) {
         flashdeal: false,
         search_text: parsedFilters.search_text?.[0],
       },
+      limit: 10,
     }),
     getCurrency(country, language),
     GetBoutique(boutiqueItem, country, language),

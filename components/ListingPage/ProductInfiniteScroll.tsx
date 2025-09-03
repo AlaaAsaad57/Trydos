@@ -101,13 +101,15 @@ function ProductsInfiniteScroll({
     }
     if (!areArraysEqual(offsetValue, response.offset)) {
       let uniqueArray = [...products, ...(response?.products ?? [])];
-      uniqueArray?.filter((s) => !prductIds?.includes(s.id));
+      uniqueArray = uniqueArray?.filter(
+        (s) => !prductIds?.includes(s.product_id)
+      );
       let newArray = Array.from(
-        new Map(uniqueArray.map((c: any) => [c.id, c])).values()
+        new Map(uniqueArray.map((c: any) => [c.product_id, c])).values()
       );
       setProducts(newArray);
       if (response.products?.length > 0) {
-        console.log("**Offset Items IDS**", products, response.products);
+        console.log("**Offset Items IDS**", response.products, newArray);
         GAevent({
           action: GA_EVENT_NAMES.VIEW_ITEMS_LIST,
           params: {
