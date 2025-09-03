@@ -2145,7 +2145,7 @@ const AddToCartButton = ({
         {productInCart()?.length > 0 && (
           <span
             data-cy="minus_icon_container"
-            className="absolute minuse-qty-icon top-0 left-0 rounded-2xl bg-white flex justify-center items-center p-2 plus-icon-button"
+            className="absolute minuse-qty-icon z-[9999999999] top-0 left-0 rounded-2xl bg-white flex justify-center items-center p-2 plus-icon-button"
             onClick={() => {
               // Sendevent({
               //   event: GA_EVENT_NAMES.CLICK,
