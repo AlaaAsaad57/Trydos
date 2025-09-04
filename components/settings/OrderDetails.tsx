@@ -828,12 +828,12 @@ const OrderExpandedDetails = ({
             </div>
           ) : (
             <div
-              className={`w-full h-[50px] mt-[31px] items-center justify-center  flex cursor-pointer ${"bg-[#fb7070] "} rounded-[15px] text-[16px] text-[#fff] medium cursor-pointer`}
+              className={`flex-row mt-[11px] items-center justify-center underline text-[##1D1D1D] text-[12px] regular cursor-pointer`}
               onClick={() => {
                 CancelReturnRequest();
               }}
             >
-              {translateFunction("Cancel Return Request")}
+              {translateFunction("Cancel All Return Requests")}
             </div>
           ))}
         {order.details.map((Product) => (

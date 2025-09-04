@@ -1,4 +1,4 @@
-import translations from "public/translations/translations.js";
+// import translations from "public/translations/translations.js";
 import { useAppStore } from "store";
 import { notFound } from "next/navigation";
 import { LogData } from "store/homepage/actions";
@@ -17,23 +17,27 @@ export const SSRDetect = () => {
 
 export function translateFunction(key: string, language?: string | string[]) {
   let url, languageUrl;
+  // if (language === "en") return key;
 
   if (typeof window !== "undefined") {
     languageUrl = window.location.pathname.split("/")[1].split("-")[1];
   } else {
     languageUrl = language || LocalizationServiceClass.GetAppLanguage();
   }
-
+  if (!languageUrl) return key;
+  if (languageUrl === "en") return key;
+  let translations =
+    require(`public/translations/translations.${languageUrl}.js`).default;
   // Ensure translations object exists and has the requested language
-  if (!translations || !translations[languageUrl]) {
+  if (!translations) {
     return key;
   }
 
-  if (language) {
-    return translations[language]?.[key] || key;
+  if (languageUrl) {
+    return translations?.[key] || key;
   }
 
-  return translations[languageUrl]?.[key] || key;
+  return translations?.[key] || key;
 }
 
 export const getUserChat = (): any => {

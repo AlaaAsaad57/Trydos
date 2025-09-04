@@ -19,7 +19,7 @@ function ReturnOrderItem({
   item,
   setShouldConfirmReturn,
 }: ReturnOrderItemPropsType) {
-  const { currency, language } = useAppStore();
+  const { currency, language, ActivePacks } = useAppStore();
   const [options, setOptions] = useState([]);
   const [selectedOptions, setSelectedOptions] = useState(null);
 
@@ -90,7 +90,9 @@ function ReturnOrderItem({
           <ReturnOrderItemIcon className="mt-[12px] [&>path]:fill-[#402CDD]" />
         </div>
         <span className="medium text-[14px] mt-[11px] text-[#402CDD]">
-          {translateFunction("Return This Product")}
+          {item?.return?.already_return
+            ? translateFunction("Update Return Request For This Product")
+            : translateFunction("Return This Product")}
         </span>
         <p
           className={`${

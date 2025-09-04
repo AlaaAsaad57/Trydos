@@ -4,9 +4,12 @@ const translations = {
     Full: "كامل",
     "Please enable notification permissions to use camera features":
       "يرجى تفعيل أذونات الإشعارات لاستخدام ميزات الكاميرا",
+    "Update Return Request For This Product": "تحديث طلب الإرجاع لهذا المنتج",
     "Buyer Rate": "زبون قام بالتقييم",
     "Shipping Company": "شركة الشحن",
     Recommendation: "توصية",
+    "Confirm Returning Items": "تأكيد إرجاع العناصر",
+    "Cancel All Return Requests": "إلغاء جميع طلبات الإرجاع",
     Complaint: "شكوى",
     Visitors: "الزوار",
     "And Not Necessarily From Customers Who Have Purchased The Product Before. These Are Pre-Purchase Questions, And They Are Answered Directly By The Seller":
@@ -66,7 +69,7 @@ const translations = {
     "FAQ Buyer & Seller": "الأسئلة الشائعة بين المشتري والبائع",
     Dear: "عزيزي",
     "Sizes Available": "المقاسات المتوفرة",
-    "In Transit": "قيد النقل",
+    "Out For Return": "قيد الارجاع",
     "Buyers Reviews On Product Sizing": "مراجعات المشترين حول مقاسات المنتج",
     "Ask Seller Your Question About This Product…":
       "اسأل البائع سؤالك حول هذا المنتج…",
@@ -955,6 +958,10 @@ const translations = {
     "Buyer Rate": "Alıcı Puanı",
     "Shipping Company": "Kargo Şirketi",
     Recommendation: "Tavsiye",
+    "Confirm Returning Items": "Öğeleri iade etmeyi onayla",
+    "Cancel All Return Requests": "Tüm iade taleplerini iptal et",
+    "Update Return Request For This Product":
+      "Bu ürün için iade talebini güncelle",
     Complaint: "Şikayet",
     Visitors: "Ziyaretçiler",
     "And Not Necessarily From Customers Who Have Purchased The Product Before. These Are Pre-Purchase Questions, And They Are Answered Directly By The Seller":
@@ -1014,7 +1021,7 @@ const translations = {
     December: "Aralık",
     Dear: "Sevgili",
     "Sizes Available": "Mevcut Bedenler",
-    "In Transit": "Yolda",
+    "Out For Return": "Yolda",
     "Buyers Reviews On Product Sizing":
       "Alıcıların Ürün Bedenleri Hakkındaki Yorumları",
     "Ask Seller Your Question About This Product…":
@@ -1888,6 +1895,11 @@ const translations = {
   ku: {
     "Product Not Found": "بەرهەم نەدۆزرایەوە",
     "Buyer Rate": "هەڵسەنگاندنی کریار",
+    "Confirm Returning Items": "دڵنیابوونەوە لە گەڕاندنەوەی شتانەکان",
+    "Update Return Request For This Product":
+      "داوای گەڕاندنەوە بۆ ئەم بەرهەمه نوێ بکەوە",
+    "Cancel All Return Requests":
+      "هەموو داواکارییەکانی گەڕاندنەوە هەڵبوەشێنەوە",
     "Buyers Product Recommend To Buy": "پێشنیازی کریاران بۆ خریدنی بەرهەم",
     "All Recommendations Are Genuine From Customers Who Purchased And Actually Received The Product Through":
       "هەموو پێشنیارەکان ڕاستەقینە وەردەگرن لە کریاران کە بەرهەم خریدن و بە دروستی وەرگرتن",
@@ -1950,7 +1962,7 @@ const translations = {
     "FAQ Buyer & Seller": "پرسیارە دووبارەکراوەکان کریار و فرۆشیار",
     Dear: "ئازیز",
     "Sizes Available": "قەبارەکان بەردەستن",
-    "Product Picked Up / In Transit": "بەرهەمەکە وەرگیرا",
+    "Out For Return": "بەرهەمەکە وەرگیرا",
     "Buyers Reviews On Product Sizing":
       "لێدوانی کریارەکان لەسەر قەبارەی بەرهەم",
     "Ask Seller Your Question About This Product…":
@@ -2886,9 +2898,5 @@ const translations = {
       "تکایە وێنەکانی بەرهەمەکەی وەرگیراوە زیاد بکە بۆ ئەوەی بتوانین باشترین خزمەتگوزاری پێشکەش بکەین بۆ ڕێگری لە ئەم کێشەیە",
   },
 };
-
-if (typeof window !== "undefined") {
-  window.translations = translations;
-}
 
 export default translations;

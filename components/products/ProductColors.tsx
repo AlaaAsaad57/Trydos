@@ -177,6 +177,7 @@ function ProductColors({
       >
         {product?.sync_color_images?.map((color) => (
           <div
+            key={color?.color_name || color?.color_option}
             className="min-w-[50px] w-[50px] h-[73px] relative select-none cursor-pointer"
             onClick={() => {
               // handleSelectColor(color);

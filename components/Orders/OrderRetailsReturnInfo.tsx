@@ -49,13 +49,13 @@ function OrderRetailsReturnInfo({
     },
     {
       index: 4,
-      label: "in_transit",
-      title: "In Transit",
-      desc: "In Transit",
+      label: "out_for_return",
+      title: "Out For Return",
+      desc: "Out For Return",
     },
     {
       index: 5,
-      label: "returned",
+      label: "returned_to_location",
       title: "Product Has Been Returned Successfully",
       desc: "Refund Processing",
     },

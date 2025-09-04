@@ -37,22 +37,7 @@ function OrderItemOptionsModal({
   const shouldShowRetutn = () => {
     if (ActivePacks?.order_status?.value !== "delivered") return false;
     if (item.qty === 0) return false;
-    if (ActivePacks.can_return_order) {
-      if (ActivePacks.return_details) {
-        if (
-          ActivePacks.return_details.details?.status?.value === "pending" ||
-          ActivePacks.return_details.details?.status?.value === null
-        ) {
-          return true;
-        } else {
-          return false;
-        }
-      } else {
-        return true;
-      }
-    } else {
-      return false;
-    }
+    return ActivePacks.can_return_order;
   };
   const ShouldShowCahngeColor = () => {
     if (ActivePacks?.order_status?.value === "delivered") return false;
