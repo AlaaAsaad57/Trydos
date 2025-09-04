@@ -4,9 +4,57 @@ import { useSearchParams } from "next/navigation";
 import dynamic from "next/dynamic";
 const WebViewVideoCall = dynamic(() => import("./WebViewVideoCall"), {
   ssr: false,
+  loading: () => (
+    <div
+      style={{
+        width: "100vw",
+        height: "100vh",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        fontSize: "20px",
+        backgroundColor: "#000",
+        color: "#FFF",
+        flexDirection: "column",
+      }}
+    >
+      <CallingIcon
+        style={{
+          marginBottom: "10px",
+          transform: "scale(1.5)",
+          marginRight: "10px",
+        }}
+      ></CallingIcon>
+      Loading Call Information...
+    </div>
+  ),
 });
 const WebViewVoiceCall = dynamic(() => import("./WebViewVoiceCall"), {
   ssr: false,
+  loading: () => (
+    <div
+      style={{
+        width: "100vw",
+        height: "100vh",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        fontSize: "20px",
+        backgroundColor: "#000",
+        color: "#FFF",
+        flexDirection: "column",
+      }}
+    >
+      <CallingIcon
+        style={{
+          marginBottom: "10px",
+          transform: "scale(1.5)",
+          marginRight: "10px",
+        }}
+      ></CallingIcon>
+      Loading Call Information...
+    </div>
+  ),
 });
 const CallComponentWidget = dynamic(() => import("./CallComponentWidget"), {
   ssr: false,
