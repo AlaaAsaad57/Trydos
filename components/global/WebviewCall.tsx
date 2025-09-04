@@ -207,6 +207,31 @@ function WebviewCall() {
             urlparam={`/call_direct?authToken=${data.authToken}&token=${data.token}&action=sent&type=${data.type}&message_id=${data.msgId}&uid=${data.sender_user_id}&ch_id=${data.channel_id}`}
           />
         )}
+      <button
+        className="top-[10px] right-[10px] p-2 absolute"
+        style={{
+          top: "10px",
+          right: "10px",
+          zIndex: "99999999999999",
+          backgroundColor: "#fafafa",
+          padding: "8px",
+          position: "absolute",
+          color: "#1d1d1d",
+          textTransform: "uppercase",
+          fontSize: "20px",
+          fontWeight: "bold",
+          borderRadius: "10px",
+        }}
+        onClick={() => {
+          navigator.clipboard.writeText(window.location.href).then(
+            function () {},
+            function () {}
+          );
+          alert(window.location.href);
+        }}
+      >
+        debug
+      </button>
     </>
   );
 }
