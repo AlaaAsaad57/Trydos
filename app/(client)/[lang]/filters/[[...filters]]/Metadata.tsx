@@ -1,20 +1,16 @@
 // components/BoutiqueHead.tsx
-
+"use server";
 import { getProductsAndFiltersFromElastic } from "services/elastic/elasticSearch";
-import {
-  filtersToSearchParams,
-  generateCloudinaryUrl,
-  GetImageUrl,
-  parseFiltersFromParams,
-} from "utils/tinyUtils";
-const GenerateTitleBasedOnFilters = (filters: string[]) => {
+import { translateFunction } from "utils/functions";
+import { generateCloudinaryUrl, parseFiltersFromParams } from "utils/tinyUtils";
+const GenerateTitleBasedOnFilters = ({ filters, language }) => {
   let parsedFilters = parseFiltersFromParams(filters);
   let { categories, brands, colors, boutiques, sizes, tags_names } =
     parsedFilters;
-  let title = "Trydos - ";
-  let description = "Discover New ";
+  let title = translateFunction("Trydos - ", language);
+  let description = translateFunction("Discover New ", language);
   if (tags_names?.length > 0) {
-    title += " Tags: ";
+    title += translateFunction(" Tags: ", language);
     description += " Tags: ";
     tags_names.forEach((tag) => {
       title += `${tag}`;
@@ -22,7 +18,7 @@ const GenerateTitleBasedOnFilters = (filters: string[]) => {
     });
   }
   if (boutiques?.length > 0) {
-    title += " Boutiques: ";
+    title += translateFunction(" Boutiques: ", language);
     description += " Boutiques: ";
     boutiques.forEach((boutique) => {
       title += `${boutique}`;
@@ -30,38 +26,38 @@ const GenerateTitleBasedOnFilters = (filters: string[]) => {
     });
   }
   if (categories?.length > 0) {
-    title += " Categories: ";
-    description += " Categories: ";
+    title += translateFunction(" Categories: ", language);
+    description += translateFunction(" Categories: ", language);
     categories.forEach((category) => {
       title += `${category}`;
       description += ` ${category},`;
     });
   }
   if (brands?.length > 0) {
-    title += " Brands: ";
-    description += " Brands: ";
+    title += translateFunction(" Brands: ", language);
+    description += translateFunction(" Brands: ", language);
     brands.forEach((brand) => {
       title += ` ${brand}`;
       description += ` ${brand},`;
     });
   }
   if (colors?.length > 0) {
-    title += " Colors: ";
-    description += " Colors: ";
+    title += translateFunction(" Colors: ", language);
+    description += translateFunction(" Colors: ", language);
     colors.forEach((color) => {
       title += ` ${color}`;
       description += ` ${color},`;
     });
   }
   if (sizes?.length > 0) {
-    title += " Sizes: ";
-    description += " Sizes: ";
+    title += translateFunction(" Sizes: ", language);
+    description += translateFunction(" Sizes: ", language);
     sizes.forEach((size) => {
       title += ` ${size}`;
       description += ` ${size},`;
     });
   }
-  description += " Products on Trydos";
+  description += translateFunction(" Products on Trydos", language);
   return {
     title,
     description,
@@ -108,9 +104,9 @@ export async function getBoutiqueMetadata({
           publicIds: images_array.slice(0, 3),
         })
       : `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/opengraph-image.png`;
-  let configuredMetaData = generateMetaData(responseData);
+  let configuredMetaData = generateMetaData({ data: responseData, language });
   let filtersUrl =
-    params?.filters?.length > 0 ? `/${params.filters?.join("/")}` : "/";
+    params?.filters?.length > 0 ? `/${params.filters?.join("/")}` : "";
   const canonicalUrl = `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${params.lang}/filters${filtersUrl}`;
   let data = {
     title: configuredMetaData.title,
@@ -154,7 +150,7 @@ export const GetStructuredData = async ({
   let filtersUrl =
     params?.filters?.length > 0 ? `/${params.filters?.join("/")}` : "/";
   let [country, language] = params.lang.split("-");
-  let filters = params.filters;
+
   const parsedFilters = parseFiltersFromParams(params.filters || []);
   // UrlSearchParams.set("lang", language);
   // UrlSearchParams.set("country", country);
@@ -171,9 +167,13 @@ export const GetStructuredData = async ({
   let jsonLd = {
     "@context": "https://schema.org",
     "@type": "CollectionPage",
-    name: GenerateTitleBasedOnFilters(params.filters).title,
+    name: GenerateTitleBasedOnFilters({ filters: params.filters, language })
+      .title,
     url: `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${params.lang}/filters${filtersUrl}`,
-    description: GenerateTitleBasedOnFilters(params.filters).description,
+    description: GenerateTitleBasedOnFilters({
+      filters: params.filters,
+      language,
+    }).description,
     mainEntity: {
       "@type": "ItemList",
       itemListElement: response.products.map((product, index) => {
@@ -208,6 +208,7 @@ export const GetStructuredData = async ({
       }),
     },
   };
+  console.log(jsonLd);
   return (
     <script
       type="application/ld+json"
@@ -215,7 +216,7 @@ export const GetStructuredData = async ({
     />
   );
 };
-function generateMetaData(data) {
+function generateMetaData({ data, language }) {
   try {
     if (!data) return {};
 
@@ -230,7 +231,7 @@ function generateMetaData(data) {
       search_query = "",
     } = data;
 
-    const siteName = "Trydos";
+    const siteName = translateFunction("Trydos", language);
 
     const normalized = (arr) => [
       ...new Set(
@@ -249,28 +250,49 @@ function generateMetaData(data) {
 
     const categoryPhrase = normalizedCategories?.length
       ? normalizedCategories?.slice(0, 3)?.join(", ")
-      : "our top categories";
+      : translateFunction("our top categories", language);
 
     const brandPhrase = normalizedBrands?.length
       ? normalizedBrands?.slice(0, 3)?.join(", ")
-      : "trusted brands";
+      : translateFunction("trusted brands", language);
 
     const sizePhrase = normalizedSizes?.length
       ? normalizedSizes?.slice(0, 4)?.join(", ")
-      : "all standard sizes";
+      : translateFunction("all standard sizes", language);
     const colorPhrase = normalizedColors?.length
       ? normalizedColors?.slice(0, 4)?.join(", ")
-      : "all colors";
+      : translateFunction("all colors", language);
     const priceMin =
       prices?.min_price != null ? prices?.min_price.toFixed(2) : "0.00";
     const priceMax =
       prices?.max_price != null ? prices?.max_price.toFixed(2) : "9999.99";
 
     const title = search_query
-      ? `Search results for "${search_query}" - ${siteName}`
-      : `Shop ${categoryPhrase} from ${brandPhrase} | ${siteName}`;
+      ? `${translateFunction(
+          "Search results for",
+          language
+        )} "${search_query}" - ${siteName}`
+      : `${translateFunction(
+          "Shop",
+          language
+        )} ${categoryPhrase} ${translateFunction(
+          "from",
+          language
+        )} ${brandPhrase} | ${siteName}`;
 
-    const description = `Discover a curated selection of ${categoryPhrase.toLowerCase()} on ${siteName}. Featuring ${brandPhrase}, ${colorPhrase}, ${sizePhrase}, and prices from $${priceMin} to $${priceMax}.`;
+    const description = `${translateFunction(
+      "Discover a curated selection of",
+      language
+    )} ${categoryPhrase.toLowerCase()} ${translateFunction(
+      "on",
+      language
+    )} ${siteName}. ${translateFunction(
+      "Featuring",
+      language
+    )} ${brandPhrase}, ${colorPhrase}, ${sizePhrase}, ${translateFunction(
+      "and prices from",
+      language
+    )} $${priceMin} ${translateFunction("to", language)} $${priceMax}.`;
 
     const keywordPool = [
       siteName,
@@ -299,71 +321,3 @@ function generateMetaData(data) {
     throw e;
   }
 }
-export const getUrlSearchForMeta = (params, options) => {
-  const parsedFilters =
-    params?.filters?.length > 0 ? parseFiltersFromParams(params?.filters) : {};
-  let parsedFiltersSearch = filtersToSearchParams(parsedFilters);
-  let UrlSearchParams = new URLSearchParams();
-  if (parsedFiltersSearch?.search_text) {
-    UrlSearchParams.set("search_text", parsedFiltersSearch?.search_text);
-  }
-  if (parsedFiltersSearch?.categories) {
-    UrlSearchParams.set(
-      "category_slugs",
-      decodeURIComponent(parsedFiltersSearch?.categories)
-    );
-  }
-  if (parsedFiltersSearch?.prices) {
-    UrlSearchParams.set(
-      "price",
-      decodeURIComponent(parsedFiltersSearch?.prices)
-    );
-  }
-  if (parsedFiltersSearch?.sizes) {
-    UrlSearchParams.set(
-      "attributes",
-      JSON.stringify([
-        {
-          id: 1,
-          options: JSON.parse(decodeURIComponent(parsedFiltersSearch?.sizes)),
-          name: "Size",
-        },
-      ])
-    );
-  }
-  if (parsedFiltersSearch?.colors) {
-    UrlSearchParams.set(
-      "colors",
-      decodeURIComponent(parsedFiltersSearch?.colors)
-    );
-  }
-  if (parsedFiltersSearch?.brands) {
-    UrlSearchParams.set("brand_slugs", decodeURI(parsedFiltersSearch?.brands));
-  }
-  if (
-    parsedFiltersSearch?.boutiques &&
-    parsedFiltersSearch?.boutiques !== "null"
-  ) {
-    UrlSearchParams.set(
-      "boutique_slugs",
-      decodeURIComponent(parsedFiltersSearch?.boutiques)
-    );
-  }
-
-  if (
-    parsedFiltersSearch?.tags_names &&
-    parsedFiltersSearch?.tags_names !== "null"
-  ) {
-    UrlSearchParams.set(
-      "tags_names",
-      decodeURIComponent(parsedFiltersSearch?.tags_names)
-    );
-  }
-  if (options.is_fearured) {
-    UrlSearchParams.set("is_featured", "true");
-  }
-  if (options.is_flashDeals) {
-    UrlSearchParams.set("flash-deal", "true");
-  }
-  return UrlSearchParams;
-};

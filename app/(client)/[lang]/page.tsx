@@ -21,19 +21,25 @@ import { ElasticsearchReader } from "services/elastic/elasticsearch-reader.servi
 import { getProductsAndFiltersFromElastic } from "services/elastic/elasticSearch";
 import { getCurrencyFromCache, StoreCurrency } from "Server Requests/radis";
 import RecomendedProducts from "components/Server/RecomendedProducts";
+import { translateFunction } from "utils/functions";
 
 export async function generateMetadata({ params }) {
+  let language = params.lang?.split("-")[1];
   try {
     const metadata = await getHomeMetadata({ params });
 
-    // console.log("**********metadata***********", JSON.stringify(metadata));
     return metadata;
   } catch (error) {
     console.log(error);
     return {
-      title: "TryDos - Premium Shopping Experience",
-      description:
+      title: translateFunction(
+        "TryDos - Premium Shopping Experience",
+        language
+      ),
+      description: translateFunction(
         "Discover premium products on TryDos - Your ultimate shopping destination with featured products, flash deals, and boutique collections.",
+        language
+      ),
       verification: {
         google: process.env.GOOGLE_VERIFICATION,
       },
