@@ -255,7 +255,7 @@ function WebviewCall() {
             urlparam={`/call_direct?authToken=${data.authToken}&token=${data.token}&action=sent&type=${data.type}&message_id=${data.msgId}&uid=${data.sender_user_id}&ch_id=${data.channel_id}`}
           />
         )}
-      <button
+      {/* <button
         className="top-[10px] right-[10px] p-2 absolute"
         style={{
           top: "10px",
@@ -279,7 +279,7 @@ function WebviewCall() {
         }}
       >
         debug
-      </button>
+      </button> */}
     </>
   );
 }
