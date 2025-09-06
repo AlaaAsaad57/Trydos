@@ -28,6 +28,18 @@ export const BuyButtonProduct = ({
     }
     return true;
   }, []);
+  const isValid = () => {
+    const endDate = new Date(product.flash_deal_end_date);
+    endDate.setHours(23, 59, 59, 999);
+    const now = new Date();
+    const difference = endDate.getTime() - now.getTime();
+
+    if (difference <= 0) {
+      return false;
+    } else {
+      return true;
+    }
+  };
   useEffect(() => {
     if (!shouldShowRedeem) {
       setIsClient(true);
@@ -57,7 +69,11 @@ export const BuyButtonProduct = ({
   };
 
   const RenderPrice = () => {
-    if (product?.flash_deal_price >= 0 && product?.flash_deal_price !== null) {
+    if (
+      product?.flash_deal_price >= 0 &&
+      product?.flash_deal_price !== null &&
+      isValid()
+    ) {
       if (product.offer_price >= 0 && product.offer_price !== product.price) {
         return (
           <>
@@ -386,7 +402,7 @@ export const BuyButtonProduct = ({
           setShouldShowRedeem(false);
         }}
         id={product.product_id}
-        flash_deal_price={Number(product?.flash_deal_price)}
+        flash_deal_price={isValid() ? Number(product?.flash_deal_price) : null}
         redeem_price={product.redeem_price}
         currency={currency}
         shouldShowRedeem={shouldShowRedeem && product?.is_redeem}

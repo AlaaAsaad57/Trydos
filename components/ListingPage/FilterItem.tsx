@@ -537,6 +537,7 @@ export const FilterItem = ({
               backgroundColor: "#fff",
               minHeight: "70px",
               minWidth: "70px",
+              fontSize: item?.length < 6 ? "15px" : "10px",
             }}
           >
             {item}

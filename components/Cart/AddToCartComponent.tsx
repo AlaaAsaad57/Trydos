@@ -1129,7 +1129,7 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
                             )}  rounded-full flex-row items-center justify-center ${
                               size.name?.length < 6
                                 ? "text-[30px]"
-                                : "text-[13px]"
+                                : "text-[11px]"
                             } bold select-none flex`}
                           >
                             {size.name}
