@@ -309,7 +309,7 @@ const StoryViewer: React.FC<StoryViewerProps> = ({
           {link && (
             <Link href={link} passHref legacyBehavior>
               <a
-                className="pointer-events-auto text-blue-400 underline break-all text-center text-base hover:text-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400 px-2 py-1 rounded backdrop-blur-sm"
+                className="pointer-events-auto  light p-3 rounded-[8px] text-[#1d1d1d] bg-blue-300  break-all text-center text-base   no-underline backdrop-blur-sm"
                 tabIndex={0}
                 aria-label="Story link"
                 target="_blank"
@@ -317,7 +317,7 @@ const StoryViewer: React.FC<StoryViewerProps> = ({
                 style={{ zIndex: 99999999999999 }}
                 onClick={(e) => e.stopPropagation()}
               >
-                {translateFunction("View")}
+                {translateFunction("View More")}
               </a>
             </Link>
           )}
