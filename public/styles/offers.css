@@ -83,9 +83,8 @@
 }
 .offer-avatar:not(.hasMore).active-hover .offer-avatar-info {
   opacity: 1;
-  display: fles;
+  display: flex;
 }
-
 .no-label {
   display: none !important;
 }
