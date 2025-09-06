@@ -317,7 +317,7 @@ const StoryViewer: React.FC<StoryViewerProps> = ({
                 style={{ zIndex: 99999999999999 }}
                 onClick={(e) => e.stopPropagation()}
               >
-                {link}
+                {translateFunction("View")}
               </a>
             </Link>
           )}

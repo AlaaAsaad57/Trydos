@@ -1001,6 +1001,7 @@ const translations = {
   "Sizes: ": "المقاسات: ",
   "Products on Trydos": "المنتجات على تريدوس",
   Trydos: "تريدوس",
+  "View More": "عرض المزيد",
 };
 
 export default translations;

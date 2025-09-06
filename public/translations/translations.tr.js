@@ -985,6 +985,7 @@ const translations = {
   "Sizes: ": "Bedenler: ",
   "Products on Trydos": "Trydos'taki ürünler",
   Trydos: "Trydos",
+  "View More": "Daha Fazla Gör",
 };
 
 export default translations;
