@@ -118,6 +118,19 @@ function CartContainer({ close, toOrders }: CartContainerPropsType) {
       data: {
         is_product: true,
         active_color: product.variations[0]?.color ?? null,
+        ...(product.variations[0]?.color
+          ? {
+              sync_color_images: [
+                {
+                  images: [product?.image],
+                  color_name: product.variations[0]?.color,
+                },
+              ],
+            }
+          : {
+              images: [[product?.image]],
+            }),
+
         ...product,
         href: getURLOfProduct({ product }),
       },
@@ -2262,6 +2275,18 @@ const CartItemLink = ({ product, children }) => {
         is_product: true,
         active_color: product.variations[0]?.color ?? null,
         ...product,
+        ...(product.variations[0]?.color
+          ? {
+              sync_color_images: [
+                {
+                  images: [product?.image],
+                  color_name: product.variations[0]?.color,
+                },
+              ],
+            }
+          : {
+              images: [[product?.image]],
+            }),
         href: getURLOfProduct({ product }),
       },
     };

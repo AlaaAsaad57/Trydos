@@ -37,6 +37,9 @@ function OrderItemOptionsModal({
   const shouldShowRetutn = () => {
     if (ActivePacks?.order_status?.value !== "delivered") return false;
     if (item.qty === 0) return false;
+    if (item?.return?.already_return) {
+      return ActivePacks?.edit_return_request;
+    }
     return ActivePacks.can_return_order;
   };
   const ShouldShowCahngeColor = () => {
@@ -214,7 +217,11 @@ function OrderItemOptionsModal({
                         isRtl ? " text-right pr-2" : " "
                       }`}
                     >
-                      {translateFunction("Return This Product")}
+                      {item?.return?.already_return
+                        ? translateFunction(
+                            "Update Return Request For This Product"
+                          )
+                        : translateFunction("Return This Product")}
                     </span>
                     <p
                       className={`regular text-[12px] text-[#8D8D8D] ${

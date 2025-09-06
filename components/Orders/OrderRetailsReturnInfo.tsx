@@ -19,7 +19,7 @@ function OrderRetailsReturnInfo({
 }) {
   const [expanded, setExpanded] = useState(true);
   const [loading, setLoading] = useState(false);
-  const { language, currency } = useAppStore();
+  const { language, ActivePacks } = useAppStore();
 
   const CancelReturn = async () => {
     setLoading(true);
@@ -57,7 +57,6 @@ function OrderRetailsReturnInfo({
       index: 5,
       label: "returned_to_location",
       title: "Product Has Been Returned Successfully",
-      desc: "Refund Processing",
     },
     {
       index: 6,
@@ -84,7 +83,8 @@ function OrderRetailsReturnInfo({
   // Special case for canceled or rejected
   if (
     currentStatus?.label === "canceled" ||
-    currentStatus?.label === "rejected"
+    currentStatus?.label === "rejected" ||
+    currentStatus?.label === "resolved"
   ) {
     return (
       <div className="w-full flex-col items-center h-auto mt-[12px]">
@@ -94,9 +94,6 @@ function OrderRetailsReturnInfo({
             <div className="flex-col ml-[6px] w-full">
               <div className="text-[#D32F2F] text-[14px] bold">
                 {translateFunction(currentStatus.title)}
-              </div>
-              <div className="text-[#9E9E9E] text-[12px]">
-                {translateFunction("This return request is no longer active.")}
               </div>
             </div>
           </div>
@@ -113,7 +110,7 @@ function OrderRetailsReturnInfo({
         }`}
       >
         {status
-          .filter((s) => s.index <= 6) // process flow statuses only
+          .filter((s) => s.index <= 5) // process flow statuses only
           .map((s, idx) => {
             const completed = s.index < (currentStatus?.index || 0);
             const active = isActive(s.index);
@@ -135,7 +132,7 @@ function OrderRetailsReturnInfo({
                     } text-[12px] regular w-full`}
                   >
                     {translateFunction(s.title)}
-                    {active && (
+                    {active && s.desc && (
                       <div className="regular text-[10px] flex-row gap-[4px] flex items-center">
                         <Timer onFinish={() => {}} minutes={60 * 3} />
                         <ClockIcon className="[&>g>path]:fill-[#1D1D1D]" />
@@ -165,22 +162,26 @@ function OrderRetailsReturnInfo({
       </div>
 
       {/* Cancel return button */}
-      <p
-        className="flex-row mt-[11px] items-center justify-center underline text-[##1D1D1D] text-[12px] regular cursor-pointer"
-        onClick={() => {
-          if (loading) return;
-          CancelReturn();
-        }}
-      >
-        {loading ? (
-          <Spinner />
-        ) : (
-          <>
-            {translateFunction("Cancel Return Request & Get")}
-            <span className="bold mx-[4px]">{translateFunction("3 USD")}</span>
-          </>
-        )}
-      </p>
+      {ActivePacks?.edit_return_request && (
+        <p
+          className="flex-row mt-[11px] items-center justify-center underline text-[##1D1D1D] text-[12px] regular cursor-pointer"
+          onClick={() => {
+            if (loading) return;
+            CancelReturn();
+          }}
+        >
+          {loading ? (
+            <Spinner />
+          ) : (
+            <>
+              {translateFunction("Cancel Return Request & Get")}
+              <span className="bold mx-[4px]">
+                {translateFunction("3 USD")}
+              </span>
+            </>
+          )}
+        </p>
+      )}
     </div>
   );
 }

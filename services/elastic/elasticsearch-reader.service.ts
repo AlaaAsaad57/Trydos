@@ -32,24 +32,35 @@ export class ElasticsearchReader {
   }) {
     // 1. Get userId from cookie
     try {
+      let rec;
+      let start = process.hrtime.bigint();
       // @ts-ignore
       const userId = (await getCookieServer(COOKIE_NAMES.USER_DATA))?.id;
-      if (!userId) return { products: [], search_after: [] };
+      if (!userId) {
+        rec = await this.client.search({
+          index: "cold_start_recommendations",
+        });
+      } else {
+        rec = await this.client.search({
+          index: "recommended_system",
+          query: {
+            term: { user_id: userId },
+          },
+        });
+      }
 
-      // 2. Get recommended product IDs from "recommended_system"
-      const recResult = await this.client.get({
-        index: "recommended_system",
-        id: userId,
-      });
-
-      // @ts-ignore
-      if (recResult._source?.recommended_products?.length === 0) {
+      if (
+        (rec.hits.hits?.[0]?._source as any)?.recommended_products?.length ===
+          0 ||
+        rec.hits.hits?.length === 0
+      ) {
         return { products: [], search_after: [] };
       }
       const recommendedIds: string[] =
         // @ts-ignore
-        recResult._source?.recommended_products?.map((s) => s?.product_id) ||
-        [];
+        (rec.hits.hits?.[0]?._source as any)?.recommended_products?.map(
+          (s) => s?.product_id ?? s?.item_id
+        ) || [];
       if (!recommendedIds.length) {
         return { products: [], search_after: [] };
       }
@@ -58,7 +69,7 @@ export class ElasticsearchReader {
       const { must: mustConditions, must_not: mustNotConditions } =
         baseConditions;
       mustConditions.push({ terms: { id: numericIds } });
-      // 3. Query products_catalog by IDs
+      // // 3. Query products_catalog by IDs
       const searchQuery: SearchRequest = {
         index: "products_catalog",
         _source: getSourceFields(),
@@ -76,11 +87,11 @@ export class ElasticsearchReader {
         searchQuery.search_after = search_after;
       }
 
-      // 4. Run query
+      // // 4. Run query
       const response: SearchResponse = await this.client.search(searchQuery);
       const hits = response.hits.hits;
 
-      // 5. Extract products
+      // // 5. Extract products
       const products = hits.map((hit) => ({
         // @ts-ignore
         ...hit._source,
@@ -89,8 +100,9 @@ export class ElasticsearchReader {
       }));
       const productsWithFilters = extractFilters(products, language, true);
       const normalizedProducts = normalizeCustomProducts(productsWithFilters);
-      // 6. Get new search_after value
+      // // 6. Get new search_after value
       const newSearchAfter = hits.length > 0 ? hits[hits.length - 1].sort : [];
+      let end = process.hrtime.bigint();
 
       return {
         products: normalizedProducts.custom_products?.map((s) => ({
@@ -98,7 +110,9 @@ export class ElasticsearchReader {
           is_redeem: s.has_redeem_discount,
         })),
         search_after: newSearchAfter,
+        time: Number(end - start) / 1_000_000,
       };
+      // return { products: [], search_after: [] };
     } catch (error) {
       console.error(
         "************************RECOMENDED************************",

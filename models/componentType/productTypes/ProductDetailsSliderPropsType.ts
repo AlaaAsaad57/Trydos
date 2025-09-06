@@ -4,4 +4,5 @@ export interface ProductDetailsSliderPropsType {
   currency: Currency;
   images: string[] | { file_path }[];
   productGA: any;
+  resetLoader?: boolean;
 }

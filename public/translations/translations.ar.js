@@ -915,10 +915,10 @@ const translations = {
   October: "أكتوبر",
   November: "نوفمبر",
   December: "ديسمبر",
-  M: "مليون",
-  K: "ألف",
-  m: "مليون",
-  k: "ألف",
+  M: "م",
+  K: "أ",
+  m: "م",
+  k: "أ",
   "Info Message": "رسالة معلومات",
   "Entering The Information Below Clearly And Completely Will Ensure That Your Order Arrives Without Problems And Faster.":
     "إدخال المعلومات أدناه بشكل واضح وكامل يضمن وصول طلبك بشكل أسرع وبدون مشاكل.",
@@ -1002,6 +1002,7 @@ const translations = {
   "Products on Trydos": "المنتجات على تريدوس",
   Trydos: "تريدوس",
   "View More": "عرض المزيد",
+  "Only This Piece": "فقط هذه القطعة",
 };
 
 export default translations;

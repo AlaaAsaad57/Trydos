@@ -1,6 +1,67 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { fetchCountries } from "utils/tinyUtils";
+// const getCountryAndLang = ({ request, supportedCountries }) => {
+//   const url = request.nextUrl.clone();
+//   const pathname = url.pathname;
+//   let obj = { country: null, language: null };
+//   let localUrl = parseUrlLocale(pathname);
+//   // if url has valid data
+//   if (localUrl) {
+//     if (
+//       localUrl.country &&
+//       supportedCountries.find(
+//         (s) => s.toLowerCase() === localUrl.country?.toLowerCase()
+//       )
+//     ) {
+//       obj = { ...obj, country: localUrl.country };
+//     }
+//     if (
+//       localUrl.language &&
+//       SUPPORTED_LANGUAGES.find(
+//         (s) => s.toLowerCase() === localUrl?.language?.toLowerCase()
+//       )
+//     ) {
+//       obj = { ...obj, language: localUrl.language };
+//     }
+//   }
+//   //  if cookies has valid data
+//   const countryFromCookies = request.cookies.get("country")?.value;
+//   const langFromCookies =
+//     request.cookies.get("lang")?.value ||
+//     request.cookies.get("language")?.value;
+//   const cookieValidation = validateCookieValues(
+//     countryFromCookies,
+//     langFromCookies,
+//     supportedCountries
+//   );
+//   if (cookieValidation.country && !obj.country) {
+//     obj = { ...obj, country: cookieValidation.country };
+//   }
+//   if (cookieValidation.language && !obj.language) {
+//     obj = { ...obj, language: cookieValidation.language };
+//   }
+//   // if default geo/lang
+//   const acceptLanguage = request.headers.get("accept-language")?.toLowerCase();
+//   const geoCountry = request.geo?.country?.toLowerCase();
 
+//   if (geoCountry && supportedCountries.includes(geoCountry) && !obj.country) {
+//     obj = { ...obj, country: geoCountry };
+//   }
+//   if (
+//     acceptLanguage &&
+//     SUPPORTED_LANGUAGES.includes(acceptLanguage) &&
+//     !obj.language
+//   ) {
+//     obj = { ...obj, language: acceptLanguage };
+//   }
+//   if (!obj.country) {
+//     obj = { ...obj, country: DEFAULT_COUNTRY };
+//   }
+//   if (!obj.language) {
+//     obj = { ...obj, language: DEFAULT_LANGUAGE };
+//   }
+//   return { ...obj, local: `${obj.country}-${obj.language}` };
+// };
 // Constants
 const SUPPORTED_LANGUAGES = ["en", "ar", "tr", "ku"];
 const DEFAULT_LANGUAGE = "en";

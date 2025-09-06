@@ -1042,6 +1042,7 @@ const translations = {
   "Products on Trydos": "بەرهەمەکان لە تریدۆس",
   Trydos: "تریدۆس",
   "View More": "بینینی زیاتر",
+  "Only This Piece": "تەنها ئەم پارچەیە",
 };
 
 export default translations;

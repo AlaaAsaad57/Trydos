@@ -129,7 +129,12 @@ function ProductCard({
           data={{
             is_product: true,
             ...product,
-            sync_color_images: [activeColor],
+            sync_color_images: [
+              activeColor,
+              ...product?.sync_color_images?.filter(
+                (s) => s?.color_name !== activeColor?.color_name
+              ),
+            ],
             images: product?.images,
             href: getUrlofProduct(),
           }}

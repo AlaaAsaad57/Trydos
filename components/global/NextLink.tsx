@@ -82,6 +82,7 @@ export default function NextLink({
           }
           const { setIsNavigating } = useAppStore.getState();
           DisableScroll();
+
           setIsNavigating({ ...data, href });
         }}
         // onClick={(e) => {

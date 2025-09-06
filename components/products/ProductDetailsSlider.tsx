@@ -15,6 +15,7 @@ function ProductDetailsSlider({
   currency,
   images,
   productGA,
+  resetLoader = true,
 }: ProductDetailsSliderPropsType) {
   const { setCurrency, setIsNavigating } = useAppStore();
   const [imageShow, showImage] = useState(-1);
@@ -26,28 +27,32 @@ function ProductDetailsSlider({
   });
 
   useEffect(() => {
-    setIsNavigating(null);
-    setCurrency(currency);
-    let elements = document.querySelectorAll(".product-slider-images");
-    elements.forEach((elem, index) => {
-      elem.addEventListener("click", function (e) {
-        GAevent({
-          action: GA_EVENT_NAMES.ZOOM_IMAGE,
-          params: {
-            image_index: index,
-            user_id_custom: auth.UserID(),
-            ...productGA,
-          },
+    let elements;
+    if (resetLoader) setIsNavigating(null);
+    if (currency) setCurrency(currency);
+    if (resetLoader) {
+      elements = document.querySelectorAll(".product-slider-images");
+      elements.forEach((elem, index) => {
+        elem.addEventListener("click", function (e) {
+          GAevent({
+            action: GA_EVENT_NAMES.ZOOM_IMAGE,
+            params: {
+              image_index: index,
+              user_id_custom: auth.UserID(),
+              ...productGA,
+            },
+          });
+          DisableScroll();
+          showImage(index);
         });
-        DisableScroll();
-        showImage(index);
       });
-    });
+    }
 
     return () => {
-      elements.forEach((elem, index) => {
-        elem.removeEventListener("click", () => showImage(index));
-      });
+      if (resetLoader)
+        elements.forEach((elem, index) => {
+          elem.removeEventListener("click", () => showImage(index));
+        });
     };
   }, []);
   useEffect(() => {

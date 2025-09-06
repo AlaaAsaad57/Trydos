@@ -605,9 +605,15 @@ const OrderExpandedDetails = ({
       setCancelling(false);
     }
   };
+  const isAllPreventEdit = () => {
+    return (
+      selectedOrder?.details?.filter((s) => s.edit_return_request === false)
+        ?.length === selectedOrder?.details?.length
+    );
+  };
   const isThereAReturnedProduct = () => {
     let arr = [];
-
+    if (isAllPreventEdit()) return false;
     selectedOrder.returned_data?.map((s) => {
       s.details?.order_details?.map((req) => {
         if (req.already_return) {

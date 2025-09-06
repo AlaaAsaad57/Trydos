@@ -11,7 +11,6 @@ import {
   translateFunction,
 } from "utils/functions";
 import Image from "next/image";
-import { Suspense } from "react";
 import Skeleton from "react-loading-skeleton";
 import VerifiedIcon from "public/svg/product/Verified.svg";
 import ProductDescriptors from "components/products/ProductDescriptors";
@@ -50,6 +49,7 @@ import ProductGeneralProperties from "components/products/ProductGeneralProperti
 import ReturnDaysDetails from "components/products/ReturnDays.Details";
 import ProductVideo from "components/products/ProductVideo";
 import DataSourceLogger from "components/global/DataSourceLogger";
+import ProductImageIndicator from "components/products/ProductImageIndicator";
 // export const revalidate = parseInt(process.env.NEXT_PUBLIC_REVALIDATE);
 // For Middle East users
 
@@ -418,27 +418,28 @@ async function Page({ params, searchParams }: ProductPagePropsType) {
                       height: 700,
                     })}
                   />
+                  <ProductImageIndicator language={languageVariable} />
                 </div>
               ))}
             </ProductImagesSlider>
           </div>
-          <Suspense key={`${product?.slug}-${color}`} fallback={<></>}>
-            <ProductDetailsSlider
-              images={getImages(product, color)?.images}
-              currency={currency}
-              productGA={{
-                item_id: product.id,
-                item_name: product?.name,
-                brand: product?.brand?.name,
-                brand_id: product?.brand?.id,
-                category:
-                  product?.category?.name || product?.categories?.[0]?.name,
-                category_id:
-                  product?.category?.id || product?.categories?.[0]?.id,
-                price: product?.offer_price,
-              }}
-            />
-          </Suspense>
+
+          <ProductDetailsSlider
+            images={getImages(product, color)?.images}
+            currency={currency}
+            productGA={{
+              item_id: product.id,
+              item_name: product?.name,
+              brand: product?.brand?.name,
+              brand_id: product?.brand?.id,
+              category:
+                product?.category?.name || product?.categories?.[0]?.name,
+              category_id:
+                product?.category?.id || product?.categories?.[0]?.id,
+              price: product?.offer_price,
+            }}
+          />
+
           <div className="product-details-body bg-[#ffffff] flex-row relative mt-[3px] pb-[50px]">
             <div className="product-info-section bg-[#ffffff] flex-col align-start">
               <div className="flex-col px-[10px] max-w-full">
@@ -485,15 +486,15 @@ async function Page({ params, searchParams }: ProductPagePropsType) {
               {product?.descriptors && product?.descriptors?.length > 0 && (
                 <ProductDescriptors descriptors={product.descriptors} />
               )}
-              <Suspense fallback={<></>}>
-                {product.sync_color_images?.length > 1 && (
-                  <ProductColors
-                    product={product}
-                    currency={currency}
-                    params={params}
-                  />
-                )}
-              </Suspense>
+
+              {product.sync_color_images?.length > 1 && (
+                <ProductColors
+                  product={product}
+                  currency={currency}
+                  params={params}
+                />
+              )}
+
               {/* <Suspense fallback={<></>}>
                 <CameraShots images={product?.images || []} />
               </Suspense> */}

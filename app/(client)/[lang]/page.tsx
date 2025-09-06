@@ -114,9 +114,9 @@ async function HomePage({ params }: HomePageProps) {
           country={params.lang.split("-")[0]}
         />
       </Suspense>
-      {/* <Suspense fallback={<FeaturedProductsSkeleton lang={params.lang} />}>
+      <Suspense fallback={<FeaturedProductsSkeleton lang={params.lang} />}>
         <RecomendedProductWrapper lang={params.lang} />
-      </Suspense> */}
+      </Suspense>
       <Suspense fallback={<FeaturedProductsSkeleton lang={params.lang} />}>
         <FeaturedProductWrapper lang={params.lang} />
       </Suspense>
@@ -250,6 +250,7 @@ async function BoutiquesListWrapper({ params }) {
 async function RecomendedProductWrapper({ lang }) {
   const [country, language] = lang.split("-");
   let Reader = new ElasticsearchReader();
+
   let [currencyData, data] = await Promise.all([
     getCurrency(country, language),
     Reader.getRecommendations({ language, country }),

@@ -986,6 +986,7 @@ const translations = {
   "Products on Trydos": "Trydos'taki ürünler",
   Trydos: "Trydos",
   "View More": "Daha Fazla Gör",
+  "Only This Piece": "Sadece Bu Parça",
 };
 
 export default translations;

@@ -2,6 +2,7 @@ import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 import React from "react";
 import { translateFunction } from "utils/functions";
 import ProductCard from "./ProductCard";
+import DataSourceLogger from "components/global/DataSourceLogger";
 
 async function RecomendedProducts({ lang, products, currencyData }) {
   const [country, language] = lang.split("-");
@@ -12,6 +13,9 @@ async function RecomendedProducts({ lang, products, currencyData }) {
   if (featuredProducts?.data?.products?.length === 0) return <></>;
   return (
     <div className="flex-col px-[12px] flex items-start max-w-full w-full">
+      <DataSourceLogger
+        dataSourceString={`Recomended Products Data Source from elastic ${featuredProducts?.data?.time} ms`}
+      />
       <div
         // href={`/${lang}/featured`}
         // data={{ is_boutique: true }}
