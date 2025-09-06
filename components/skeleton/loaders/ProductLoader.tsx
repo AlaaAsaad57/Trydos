@@ -646,9 +646,10 @@ function ProductLoader({ product }) {
                 id="comments-buyers-bar-loading"
                 className="flex-row w-full gap-[4px]"
               >
-                {Array.from({ length: 5 }).map((s) => {
+                {Array.from({ length: 5 }).map((s, i) => {
                   return (
                     <div
+                      key={i}
                       className={`comment-item rounded-[15px] flex-col justify-between min-w-[330px] max-w-[${90}%] w-full bg-[#F8F8F8] min-h-[111px] py-[8px] px-[10px]`}
                       style={{
                         position: "relative",
