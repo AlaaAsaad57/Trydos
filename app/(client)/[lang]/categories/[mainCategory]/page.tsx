@@ -210,6 +210,7 @@ async function BoutiquesListWrapper({ params }) {
   let end = process.hrtime.bigint();
   return (
     <OfferListServer
+      children={<></>}
       dataSourceString=""
       boutiquesData={{ ...data, temp: Number(end - start) / 1_000_000 }}
       params={params}
