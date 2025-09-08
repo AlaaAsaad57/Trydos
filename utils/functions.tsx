@@ -382,8 +382,8 @@ export const RoundPrice = ({
   }
   number = Number(number.toFixed(deciaml_points));
   // Dart's formatNumber logic
-  const thousand = language !== "ar" ? "K" : "الف";
-  const million = language !== "ar" ? "M" : "مليون";
+  const thousand = language !== "ar" ? "K" : "أ";
+  const million = language !== "ar" ? "M" : "م";
 
   if (number >= 1e5 && number < 1e6) {
     const result = Math.floor((number + 999) / 1000);

@@ -266,12 +266,29 @@ function ProductFooterSection({
     getData();
     disableAddToCartOption();
   }, []);
-
+  const getImageForSharing = () => {
+    const { color, size } = {
+      color: searchParams.get("color"),
+      size: searchParams.get("size"),
+    };
+    if (color && product?.sync_color_images) {
+      return (
+        product?.sync_color_images?.find(
+          (s) => s.color_name === color || s.color_option === color
+        )?.images?.[0]?.file_path ||
+        product?.sync_color_images?.find(
+          (s) => s.color_name === color || s.color_option === color
+        )?.images?.[0]
+      );
+    } else {
+      return product?.images?.[0]?.file_path || product?.images?.[0];
+    }
+  };
   const shareAction = () => {
     if (sharedContacts.length > 0) {
       const messageShare = {
         product_id: product.id,
-        product_image_url: product.images[0],
+        product_image_url: getImageForSharing(),
         product_name: product.name,
         product_slug: product.slug,
         product_description: product?.details,

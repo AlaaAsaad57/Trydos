@@ -39,7 +39,7 @@ async function StoriesBarServer({ language, country }: StoriesBarServerProps) {
         <div className="stories-bar-container">
           <div id="stories-bar" className="stories-bar">
             <AddStory />
-            {storiesData && storiesData.length > 0 ? (
+            {storiesData && storiesData ? (
               <HortiznalScrollBar
                 id="stories-bar-container"
                 className="flex h-full pl-[10px]"

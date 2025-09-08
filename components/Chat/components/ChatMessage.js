@@ -17,7 +17,12 @@ import DownIcon from "../svg/down.svg";
 import fil from "../svg/output.png";
 
 import Spinner from "../../global/Spinner";
-import { SSRDetect, getUserChat, translateFunction } from "utils/functions";
+import {
+  SSRDetect,
+  getConfiguredImage,
+  getUserChat,
+  translateFunction,
+} from "utils/functions";
 import Image from "next/image";
 import { DeleteMessageApi } from "store/chat/actions";
 import NextLink from "components/global/NextLink";
@@ -26,6 +31,7 @@ import { useAppStore } from "store";
 import ChatPhoto from "./ChatPhoto";
 
 import { getUser } from "../chatsFunctions";
+import { GetImageUrl } from "utils/tinyUtils";
 // Add a helper to sanitize IDs
 const getSafeId = (id) => {
   if (!id) return "";
@@ -407,7 +413,7 @@ function ChatMessage(props) {
               onClick={() => setOpen(true)}
               ref={refmessage}
               className={
-                "message-element-body message-body message-img-body product-share-message " +
+                "message-element-body flex-col message-body message-img-body product-share-message " +
                 props.type +
                 " " +
                 ` ${opens && "ac"}`
@@ -467,22 +473,43 @@ function ChatMessage(props) {
                 alt="user"
                 onClick={() =>
                   setImg(
-                    JSON.parse(props.message.message_content.content)[0]
-                      .product_image_url
+                    getConfiguredImage({
+                      src: GetImageUrl(
+                        JSON.parse(props.message.message_content.content)[0]
+                          .product_image_url
+                      ),
+                      width: 315,
+                      height: 521,
+                      q: 80,
+                    })
                   )
                 }
-                className="message-img product-share-image"
-                src={
-                  JSON.parse(props.message.message_content.content)[0]
-                    .product_image_url
-                }
+                className="message-img product-share-image w-full"
+                src={getConfiguredImage({
+                  src: GetImageUrl(
+                    JSON.parse(props.message.message_content.content)[0]
+                      .product_image_url
+                  ),
+                  width: 315,
+                  height: 521,
+                  q: 80,
+                })}
               />
-              <span className="product-share-span">
+              <span className="product-share-span px-[10px]">
                 {
                   JSON.parse(props.message.message_content.content)[0]
                     .product_name
                 }
               </span>
+              <span
+                className="text-[13px] px-[7px]"
+                dangerouslySetInnerHTML={{
+                  __html: JSON.stringify(
+                    JSON.parse(props.message.message_content.content)[0]
+                      ?.product_description
+                  ),
+                }}
+              ></span>
               <div className="message-date">{getMessageStatus()}</div>
             </NextLink>
             <div className="message-date hovers">
@@ -1521,21 +1548,42 @@ function ChatMessage(props) {
                 alt="user"
                 onClick={() =>
                   setImg(
-                    JSON.parse(props.message.message_content.content)[0]
-                      .product_image_url
+                    getConfiguredImage({
+                      src: GetImageUrl(
+                        JSON.parse(props.message.message_content.content)[0]
+                          .product_image_url
+                      ),
+                      width: 315,
+                      height: 521,
+                      q: 80,
+                    })
                   )
                 }
-                className="message-img product-share-image"
-                src={
-                  JSON.parse(props.message.message_content.content)[0]
-                    .product_image_url
-                }
+                className="message-img product-share-image w-full"
+                src={getConfiguredImage({
+                  src: GetImageUrl(
+                    JSON.parse(props.message.message_content.content)[0]
+                      .product_image_url
+                  ),
+                  width: 315,
+                  height: 521,
+                  q: 80,
+                })}
               />
-              <span className="product-share-span">
+              <span className="product-share-span flex-col px-[10px]">
                 {
                   JSON.parse(props.message.message_content.content)[0]
                     .product_name
                 }
+                <span
+                  className="text-[13px] px-[7px]"
+                  dangerouslySetInnerHTML={{
+                    __html: JSON.stringify(
+                      JSON.parse(props.message.message_content.content)[0]
+                        ?.product_description
+                    ),
+                  }}
+                ></span>
               </span>
               <div className="other-date">
                 {getMessageTime(props.message.created_at, true)}
