@@ -7,7 +7,7 @@ import CommentIcon from "./CommentIcon";
 import ThreePoints from "./ThreePoints";
 import ShareButton from "./ShareButton";
 import Skeleton from "react-loading-skeleton";
-import { RoundPrice, translateFunction } from "utils/functions";
+import { translateFunction } from "utils/functions";
 import home from "services/home";
 import auth from "services/auth";
 import { useAppStore } from "store";
@@ -184,15 +184,22 @@ function ProductOptions({
     const likes = SelectedProduct?.likes ?? product?.count_of_likes ?? 0;
     return Math.max(0, likes);
   };
+  const isRtl = language === "ar" || language === "ku";
 
   return (
-    <div className="product-options-container" style={{ zIndex: "999999999" }}>
+    <div
+      className={`product-options-container ${isRtl && "flex-row-reverse"}`}
+      style={{ zIndex: "999999999" }}
+    >
       {share ? (
         <ShareButton onClick={() => shareAction()} />
       ) : (
         <>
           <AddToCartButton product={SelectedProduct} />
-          <div className="options-container" data-cy="InteraCtionBoX">
+          <div
+            className={`options-container ${isRtl && "flex-row-reverse"}`}
+            data-cy="InteraCtionBoX"
+          >
             <div
               className={`product-option-item ${
                 likeLoading && "opacity-80 scale-90"

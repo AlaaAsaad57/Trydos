@@ -331,6 +331,8 @@ async function Page({ params, searchParams }: ProductPagePropsType) {
       }
       return text_info.join(" | ");
     };
+    const isRtl = languageVariable === "ar" || languageVariable === "ku";
+
     return (
       <>
         <script
@@ -623,7 +625,7 @@ async function Page({ params, searchParams }: ProductPagePropsType) {
 
           <div className="product-details-footer alternate-product-details-footer z-[999999999]">
             <div className="product-info-container">
-              <div className="product-info-price">
+              <div className={`${isRtl && "justify-end"} product-info-price`}>
                 {product?.offer_price !== product.price && (
                   <div className="product-old-price">
                     <svg
@@ -709,7 +711,11 @@ async function Page({ params, searchParams }: ProductPagePropsType) {
                   </svg>
                 </div>
               </div>
-              <div className="product-info-properties">
+              <div
+                className={`${
+                  isRtl && "justify-end w-full"
+                } product-info-properties`}
+              >
                 <div className="product-prop-item">
                   {translateFunction(
                     "All Inclusive Without Additions",
