@@ -12,6 +12,7 @@ async function OfferListServer({
   boutiquesData,
   params,
   dataSourceString,
+  children,
 }: OfferListServerPropsType) {
   try {
     const [country, language] = params.lang.split("-");
@@ -23,12 +24,15 @@ async function OfferListServer({
 
         {HomeData?.boutiques?.map((boutique, myKey) => {
           return (
-            <NormalWidget
-              boutique={boutique}
-              myKey={myKey}
-              key={myKey}
-              lang={params.lang}
-            />
+            <>
+              <NormalWidget
+                boutique={boutique}
+                myKey={myKey}
+                key={myKey}
+                lang={params.lang}
+              />
+              {myKey === 1 && children}
+            </>
           );
         })}
         <InfinteScroll

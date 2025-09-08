@@ -114,9 +114,7 @@ async function HomePage({ params }: HomePageProps) {
           country={params.lang.split("-")[0]}
         />
       </Suspense>
-      <Suspense fallback={<FeaturedProductsSkeleton lang={params.lang} />}>
-        <RecomendedProductWrapper lang={params.lang} />
-      </Suspense>
+
       <Suspense fallback={<FeaturedProductsSkeleton lang={params.lang} />}>
         <FeaturedProductWrapper lang={params.lang} />
       </Suspense>
@@ -244,7 +242,11 @@ async function BoutiquesListWrapper({ params }) {
       } ms`}
       boutiquesData={{ ...data, temp: Number(end - start) / 1_000_000 }}
       params={params}
-    />
+    >
+      <Suspense fallback={<FeaturedProductsSkeleton lang={params.lang} />}>
+        <RecomendedProductWrapper lang={params.lang} />
+      </Suspense>
+    </OfferListServer>
   );
 }
 async function RecomendedProductWrapper({ lang }) {

@@ -5,4 +5,5 @@ export interface OfferListServerPropsType {
   };
   boutiquesData: any;
   dataSourceString: string;
+  children: any;
 }

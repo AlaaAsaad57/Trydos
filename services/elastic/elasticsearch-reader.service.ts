@@ -47,6 +47,10 @@ export class ElasticsearchReader {
             term: { user_id: userId },
           },
         });
+        if (rec.hits.hits?.length === 0)
+          rec = await this.client.search({
+            index: "cold_start_recommendations",
+          });
       }
 
       if (

@@ -680,13 +680,14 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
             EnableScroll();
             close();
           }}
+          data-cy="CartIcon"
         >
           {localCart?.length > 0 && (
             <span className="bg-green-500 right-[-8px] top-[-4px] text-white rounded-full min-h-3 min-w-[18px] absolute justify-center flex items-center ">
               {localCart.length}
             </span>
           )}
-          <CartIcon data-cy="CartIcon" id={"cart-icon"} className="cart-icon" />
+          <CartIcon id={"cart-icon"} className="cart-icon" />
         </span>
       </div>
       <div
