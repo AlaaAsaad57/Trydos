@@ -333,17 +333,7 @@ function ProductLoader({ product }) {
               <ProductDetailsText
                 product={product.sync_color_images}
                 details={product.details}
-                paramsGA={{
-                  item_id: product.id,
-                  item_name: product?.name,
-                  brand: product?.brand?.name,
-                  brand_id: product?.brand?.id,
-                  category:
-                    product?.category?.name || product?.categories?.[0]?.name,
-                  category_id:
-                    product?.category?.id || product?.categories?.[0]?.id,
-                  price: product?.offer_price,
-                }}
+                language={(params?.lang as string)?.split("-")?.[1]}
               />
               <ProductGeneralProperties
                 languageVariable={(params?.lang as string)?.split("-")?.[1]}
