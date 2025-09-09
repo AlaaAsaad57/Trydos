@@ -91,7 +91,7 @@ export default function Home() {
   return (
     <>
       {getNameModalOpen() && <NameModal />}
-      {selectedStory?.id && <StoriesContainer selectedStory={selectedStory} />}
+
       {enable_search && <SearchContainer active={enable_search} />}
     </>
   );

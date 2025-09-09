@@ -47,7 +47,7 @@ function ProductBackButton({ lang, productId }) {
       </div>
     );
   return (
-    <div className="back-bar align-center w-100 flex-row">
+    <div className="back-bar align-center w-full flex-row">
       <NextLink
         ignoreConditionCase={true}
         data-cy="backIcon_productPage"
