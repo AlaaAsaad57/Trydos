@@ -2,6 +2,7 @@
 import React from "react";
 import BackIcon from "public/svg/listing/backIcon.svg";
 import NextLink from "components/global/NextLink";
+import ProductCartHeader from "./ProductCartHeader";
 function ProductBackButton({ lang, productId }) {
   const getHref = () => {
     if (typeof localStorage === "undefined")
@@ -32,7 +33,7 @@ function ProductBackButton({ lang, productId }) {
   };
   if (typeof localStorage === "undefined")
     return (
-      <div className="back-bar align-center w-100 flex-row">
+      <div className="back-bar align-center w-100 flex-row h-[50px]">
         <NextLink
           ignoreConditionCase={true}
           data-cy="backIcon_productPage"
@@ -47,7 +48,7 @@ function ProductBackButton({ lang, productId }) {
       </div>
     );
   return (
-    <div className="back-bar align-center w-full flex-row">
+    <div className="back-bar align-center w-full flex-row h-[50px] justify-between pr-[10px]">
       <NextLink
         ignoreConditionCase={true}
         data-cy="backIcon_productPage"
@@ -59,6 +60,7 @@ function ProductBackButton({ lang, productId }) {
       >
         <BackIcon />
       </NextLink>
+      <ProductCartHeader language={lang?.split("-")[1]} />
     </div>
   );
 }

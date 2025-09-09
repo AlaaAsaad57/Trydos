@@ -50,6 +50,7 @@ import ReturnDaysDetails from "components/products/ReturnDays.Details";
 import ProductVideo from "components/products/ProductVideo";
 import DataSourceLogger from "components/global/DataSourceLogger";
 import ProductImageIndicator from "components/products/ProductImageIndicator";
+import ProductFeatures from "components/products/ProductFeatures";
 // export const revalidate = parseInt(process.env.NEXT_PUBLIC_REVALIDATE);
 // For Middle East users
 
@@ -484,7 +485,9 @@ async function Page({ params, searchParams }: ProductPagePropsType) {
                 <ProductGeneralProperties
                   languageVariable={params.lang?.split("-")?.[1]}
                 />
+                <ProductFeatures language={languageVariable} />
               </div>
+
               {product?.descriptors && product?.descriptors?.length > 0 && (
                 <ProductDescriptors descriptors={product.descriptors} />
               )}

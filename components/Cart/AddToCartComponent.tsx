@@ -2060,6 +2060,9 @@ const AddToCartButton = ({
         await updateQuantity();
       }
       setLoading(false);
+      getCart({
+        callback: () => {},
+      });
     } catch (error) {
       setLoading(false);
     }
@@ -2098,6 +2101,9 @@ const AddToCartButton = ({
         });
         await updateQuantity();
         setLoading(false);
+        getCart({
+          callback: () => {},
+        });
       }
     } catch (error) {
       setLoading(false);
