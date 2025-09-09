@@ -21,8 +21,8 @@ import { GAevent } from "utils/gtag";
 import auth from "services/auth";
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 
-function ProductSizes({ sizes }: ProductSizesPropsType) {
-  const { showInfoMessage, product, SelectedProduct, currency } = useAppStore();
+function ProductSizes({ sizes, language }: ProductSizesPropsType) {
+  const { product, SelectedProduct } = useAppStore();
   let { lang } = useParams();
   // @ts-ignore
   let languageVariable = lang.split("-")[1];
@@ -81,16 +81,28 @@ function ProductSizes({ sizes }: ProductSizesPropsType) {
       },
     });
   };
+  const isRtl = language === "ar" || language === "ku";
+
   let new_sizes_options = ["Standard", "EU", "IN", "US", "UK"];
   return (
     <div className="w-full rounded-[15px] mt-[20px] bg-[#FCFCFC] py-[8px] pr-[8px] pl-[10px] h-[131px] flex-col">
-      <div className="w-full flex-row justify-between">
-        <div className="flex-row gap-[20px]">
+      <div
+        className={`${
+          isRtl ? "flex-row-reverse" : "flex-row"
+        } w-full flex-row justify-between`}
+      >
+        <div
+          className={`${isRtl ? "flex-row-reverse" : "flex-row"}  gap-[20px]`}
+        >
           <div className="flex-col text-[#1d1d1d] text-[9px] regular gap-[5px]">
             <NewSizesIcon />
             <span>{translate("Sizes")}</span>
           </div>
-          <div className="flex-row gap-[2px]">
+          <div
+            className={`${
+              isRtl ? "flex-row-reverse" : "flex-row"
+            } flex-row gap-[2px]`}
+          >
             <div
               className="uppercase cursor-pointer flex-col rounded-[6px] bg-[#F4F4F4] text-[#1d1d1d] text-[11px] w-auto h-[20px] items-center px-[6px]"
               style={{
@@ -109,7 +121,11 @@ function ProductSizes({ sizes }: ProductSizesPropsType) {
             </div>
           </div>
         </div>
-        <div className="flex-row gap-[2px] items-start">
+        <div
+          className={`${
+            isRtl ? "flex-row-reverse" : "flex-row"
+          } gap-[2px] items-start`}
+        >
           {new_sizes_options?.map((s) => (
             <div
               key={s}
@@ -126,10 +142,12 @@ function ProductSizes({ sizes }: ProductSizesPropsType) {
         </div>
       </div>
       <span className="flex-row mt-[5px]">
-        {sizes?.length} {translateFunction("Sizes Available")}
+        {sizes?.length} {translateFunction("Sizes Available", language)}
       </span>
       <HortiznalScrollBar
-        className="w-full h-[] flex-row gap-[2px]"
+        className={`w-full ${
+          isRtl ? "flex-row-reverse" : "flex-row"
+        } gap-[2px]`}
         id="sizes-new-bar"
       >
         {sizes.map((s) => (

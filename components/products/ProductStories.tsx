@@ -99,7 +99,7 @@ function ProductStories({ id }: ProductStoriesPropsType) {
             data-name="Rectangle 6484"
             fill="none"
             stroke="#513aaf"
-            stroke-width="0.5"
+            strokeWidth="0.5"
           >
             <rect width="111" height="160" rx="15" stroke="none" />
             <rect
@@ -127,7 +127,7 @@ function ProductStories({ id }: ProductStoriesPropsType) {
             data-name="Rectangle 6484"
             fill="none"
             stroke="#D3D3D3"
-            stroke-width="0.5"
+            strokeWidth="0.5"
           >
             <rect width="111" height="160" rx="15" stroke="none" />
             <rect

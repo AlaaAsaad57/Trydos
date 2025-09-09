@@ -147,7 +147,7 @@ const ReviewProgress = ({ value, title }) => {
             rx="2.25"
             fill="none"
             stroke="#d3d3d3"
-            stroke-width="0.5"
+            strokeWidth="0.5"
           />
         </svg>
         <div
@@ -171,9 +171,15 @@ export const BuyersRatingBar = ({ language, isFromModal = false }) => {
     (100 * recomended) /
     (recomended + not_recomended)
   ).toFixed(0);
+  const isRtl = language === "ar" || language === "ku";
+
   return (
     <div className="flex-col w-full mt-[11px] ">
-      <div className="flex-row items-center w-full justify-between">
+      <div
+        className={`${
+          isRtl ? "flex-row-reverse" : "flex-row"
+        } items-center w-full justify-between`}
+      >
         <div
           className={`flex-col regular  text-[#1d1d1d] text-[9px] gap-[4px]`}
         >
@@ -202,7 +208,11 @@ export const BuyersRatingBar = ({ language, isFromModal = false }) => {
           </span>
         </div>
       </div>
-      <div className="flex-row rounded-[5px] w-full h-[6px] bg-[#FF6200] mt-[6px] relative">
+      <div
+        className={`${
+          isRtl ? "flex-row-reverse" : "flex-row"
+        }  rounded-[5px] w-full h-[6px] bg-[#FF6200] mt-[6px] relative`}
+      >
         <svg
           xmlns="http://www.w3.org/2000/svg"
           width="100%"
@@ -217,7 +227,7 @@ export const BuyersRatingBar = ({ language, isFromModal = false }) => {
             rx="2.75"
             fill="none"
             stroke="#1d1d1d"
-            stroke-width="0.5"
+            strokeWidth="0.5"
           />
         </svg>
 

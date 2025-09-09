@@ -112,7 +112,7 @@ const CloseIcon = ({ clickHandler }) => {
               fill="none"
               stroke="#ff5f61"
               stroke-linecap="round"
-              stroke-width="1"
+              strokeWidth="1"
             />
             <line
               id="Line_889"
@@ -122,7 +122,7 @@ const CloseIcon = ({ clickHandler }) => {
               fill="none"
               stroke="#ff5f61"
               stroke-linecap="round"
-              stroke-width="1"
+              strokeWidth="1"
             />
           </g>
         </g>

@@ -1,19 +1,20 @@
 "use client";
 import useEmblaCarousel from "embla-carousel-react";
 import React, { useEffect, useRef } from "react";
-
 import { GA_EVENT_NAMES, GA_GLOBAL_SCREEN } from "utils/GAEvents";
 import { GAevent } from "utils/gtag";
-import { RoundPrice } from "utils/functions";
 import auth from "services/auth";
 import { useAppStore } from "store";
-function ProductImagesSlider({ children }) {
+function ProductImagesSlider({ children, language }) {
   const { SelectedProduct, currency } = useAppStore();
+  const isRtl = language === "ar" || language === "ku";
+
   const [emblaRef, emblaApi] = useEmblaCarousel({
     loop: false,
     dragFree: false,
     containScroll: "trimSnaps",
     align: "start",
+    direction: isRtl ? "rtl" : "ltr",
   });
   // Track which slide indexes have already fired a GA event to avoid duplicates
   const sentSlidesRef = useRef<Set<number>>(new Set());
@@ -89,7 +90,13 @@ function ProductImagesSlider({ children }) {
   }, [emblaApi, SelectedProduct, currency]);
   return (
     <div className="embla" ref={emblaRef}>
-      <div className="embla__container">{children}</div>
+      <div
+        className={`embla__container ${
+          isRtl ? "flex-row-reverse" : "flex-row"
+        }`}
+      >
+        {children}
+      </div>
     </div>
   );
 }

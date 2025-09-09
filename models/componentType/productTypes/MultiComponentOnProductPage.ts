@@ -11,6 +11,7 @@ export interface ProductStoriesPropsType {
 
 export interface ProductSizesPropsType {
   sizes: Size[];
+  language: string;
 }
 export interface Size {
   name: string;

@@ -9,7 +9,7 @@ function ProductDescriptors({ descriptors, language }) {
       id="product-descriptors"
       className={`${
         isRtl ? "flex-row-reverse" : "flex-row"
-      }  product-descriptors-row h-[44px]`}
+      }  product-descriptors-row h-[44px] w-full`}
     >
       {descriptors?.map((descriptor, key) => {
         return (

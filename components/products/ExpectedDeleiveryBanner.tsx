@@ -122,12 +122,13 @@ function ExpectedDeleiveryBanner({ lang, days }) {
                     60 *
                     60 *
                     1000
-              ).toString()
+              ).toString(),
+              language
             )}
           </span>{" "}
           |{" "}
           {(settings?.["starting-setting"]?.shipping_duration_days || 0) + days}{" "}
-          {translateFunction("Work Days")}{" "}
+          {translateFunction("Work Days", language)}{" "}
           {translateFunction("At Your Address In", language)}
           <span className="capitalize px-[3px]">
             {countriesData?.length ? (

@@ -37,9 +37,13 @@ function ProductBackButton({ lang, productId }) {
 
   if (typeof localStorage === "undefined")
     return (
-      <div className="back-bar align-center w-100 flex-row h-[50px]">
+      <div
+        className="back-bar align-center w-100 flex-row h-[50px]"
+        suppressHydrationWarning
+      >
         <NextLink
           ignoreConditionCase={true}
+          suppressHydrationWarning
           data-cy="backIcon_productPage"
           {...getHref()}
           className={`back-icon flex-row`}
@@ -47,8 +51,9 @@ function ProductBackButton({ lang, productId }) {
             localStorage.removeItem("last-page");
           }}
         >
-          <BackIcon />
+          <BackIcon className={`${isRtl && "rotate-180"}`} />
         </NextLink>
+        <ProductCartHeader language={language} />
       </div>
     );
   return (
@@ -56,10 +61,12 @@ function ProductBackButton({ lang, productId }) {
       className={`${
         isRtl ? "flex-row-reverse" : "flex-row"
       } back-bar align-center w-full  h-[50px] justify-between px-[10px]`}
+      suppressHydrationWarning
     >
       <NextLink
         ignoreConditionCase={true}
         data-cy="backIcon_productPage"
+        suppressHydrationWarning
         {...getHref()}
         className={`back-icon flex-row`}
         onClick={() => {

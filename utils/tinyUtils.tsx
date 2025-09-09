@@ -328,7 +328,10 @@ export const formatTime = (timeString: string) => {
 
   return `${day}/${month}/${year} | ${timeFormat}`;
 };
-export const formatTimeForAddress = (timeString: string) => {
+export const formatTimeForAddress = (
+  timeString: string,
+  languageVar = null
+) => {
   const { language } = useAppStore.getState();
   const MONTH_NAMES = [
     "January",
@@ -369,7 +372,7 @@ export const formatTimeForAddress = (timeString: string) => {
   if (isSameYear && isNewerThanToday) {
     let translated_month = translateFunction(
       MONTH_NAMES[date.getMonth()],
-      language
+      languageVar || language
     );
     const day = date.getDate();
     const monthName = translated_month;

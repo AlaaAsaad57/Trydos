@@ -159,7 +159,7 @@ const ReviewProgress = ({ value, title }) => {
             rx="2.25"
             fill="none"
             stroke="#d3d3d3"
-            stroke-width="0.5"
+            strokeWidth="0.5"
           />
         </svg>
         <div
@@ -229,7 +229,7 @@ export const BuyersRatingBar = ({ language, isFromModal = false }) => {
             rx="2.75"
             fill="none"
             stroke="#1d1d1d"
-            stroke-width="0.5"
+            strokeWidth="0.5"
           />
         </svg>
 

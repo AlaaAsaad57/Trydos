@@ -16,7 +16,7 @@ function ThinSepartor({ className = "", style = {} }) {
         transform="translate(0 0.25)"
         fill="none"
         stroke="#d3d3d3"
-        stroke-width="0.5"
+        strokeWidth="0.5"
       />
     </svg>
   );

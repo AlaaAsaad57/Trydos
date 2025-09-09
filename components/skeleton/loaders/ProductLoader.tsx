@@ -75,7 +75,7 @@ function ProductLoader({ product }) {
               data-name="Rectangle 6484"
               fill="none"
               stroke="#ff6200"
-              stroke-width="0.5"
+              strokeWidth="0.5"
             >
               <rect width="320" height="464" stroke="none" />
               <rect
@@ -103,7 +103,7 @@ function ProductLoader({ product }) {
                 data-name="Rectangle 6484"
                 fill="none"
                 stroke="#ff6200"
-                stroke-width="0.5"
+                strokeWidth="0.5"
               >
                 <path
                   d="M15,0H320a0,0,0,0,1,0,0V464a0,0,0,0,1,0,0H15A15,15,0,0,1,0,449V15A15,15,0,0,1,15,0Z"
@@ -131,7 +131,7 @@ function ProductLoader({ product }) {
                 data-name="Rectangle 6484"
                 fill="none"
                 stroke="#ff6200"
-                stroke-width="0.5"
+                strokeWidth="0.5"
               >
                 <path
                   d="M0,0H305a15,15,0,0,1,15,15V449a15,15,0,0,1-15,15H0a0,0,0,0,1,0,0V0A0,0,0,0,1,0,0Z"
@@ -158,7 +158,7 @@ function ProductLoader({ product }) {
               data-name="Rectangle 6484"
               fill="none"
               stroke="#ff6200"
-              stroke-width="0.5"
+              strokeWidth="0.5"
             >
               <rect width="320" height="464" stroke="none" />
               <rect
@@ -240,7 +240,7 @@ function ProductLoader({ product }) {
               />
             </div>
           )}
-          <ProductImagesSlider>
+          <ProductImagesSlider language={languageVariable}>
             {getImages(product, color)?.images?.map((img, i) => (
               <div
                 className={`${getRoundedClass(

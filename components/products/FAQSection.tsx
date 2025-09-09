@@ -252,26 +252,33 @@ const AskInput = ({ language }) => {
           width="100%"
           height="39.5"
           stroke="#513aaf"
-          stroke-width="0.5"
+          strokeWidth="0.5"
           rx="14.75"
           fill="none"
         />
       </svg>
     );
   };
+  const isRtl = language === "ar" || language === "ku";
 
   return (
     <div className="flex mt-[9px] w-full relative h-[40px] rounded-[15px] bg-[#FFFFFF]">
-      <span className="absolute top-[10px] left-[10px] z-10">
-        <FAQInputIcon />
-      </span>
+      {
+        <span
+          className={`absolute top-[10px] ${
+            isRtl ? "right-[10px]" : "left-[10px]"
+          } z-10`}
+        >
+          <FAQInputIcon />
+        </span>
+      }
       {renderBorderSvg()}
       <input
         placeholder={translateFunction(
-          "Ask Seller Your Question About This Product…",
+          "Ask Seller Your Question About This Product …",
           language
         )}
-        className="outline-none w-full bg-transparent z-40 rounded-[15px] text-[#1d1d1d] placeholder:text-[#C4C2C2] placeholder:text-center pl-[40px] flex items-center"
+        className="outline-none w-full bg-transparent z-40 rounded-[15px] text-[#1d1d1d] placeholder:text-[#C4C2C2] placeholder:text-center px-[40px] flex items-center"
       />
     </div>
   );

@@ -9,12 +9,22 @@ function ProductSizesReview({ lang }) {
     { value: 99, title: "Big" },
   ];
   const [, language] = lang.split("-");
+  const isRtl = language === "ar" || language === "ku";
+
   return (
-    <div className="flex-col mt-[12px] px-[10px] w-full h-[50px]">
+    <div
+      className={`${
+        isRtl && "items-end"
+      } flex-col mt-[12px] px-[10px] w-full h-[50px]`}
+    >
       <div className="text-[#1d1d1d] text-[11px] regular">
-        {translateFunction("Buyers Reviews On Product Sizing")}
+        {translateFunction("Buyers Reviews On Product Sizing", language)}
       </div>
-      <div className="flex-row w-full mt-[12px] flex-wrap gap-y-[8px] gap-x-[15px]">
+      <div
+        className={`${
+          isRtl ? "flex-row-reverse" : "flex-row"
+        } flex-row w-full mt-[12px] flex-wrap gap-y-[8px] gap-x-[15px]`}
+      >
         {reviews_arr.map((r) => (
           <ReviewProgress title={r.title} value={r.value} key={r.title} />
         ))}
@@ -47,7 +57,7 @@ const ReviewProgress = ({ value, title }) => {
             rx="2.25"
             fill="none"
             stroke="#d3d3d3"
-            stroke-width="0.5"
+            strokeWidth="0.5"
           />
         </svg>
         <div

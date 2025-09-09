@@ -189,18 +189,27 @@ async function Page({ params, searchParams }: ProductPagePropsType) {
       if (length === 1) return "rounded-[15px]";
       else {
         if (index === 0) {
-          return "rounded-tl-[15px] rounded-bl-[15px]";
+          return `${
+            isRtl
+              ? "rounded-tr-[15px] rounded-br-[15px]"
+              : "rounded-tl-[15px] rounded-bl-[15px]"
+          } `;
         }
         if (index === length - 1) {
-          return "rounded-tr-[15px] rounded-br-[15px]";
+          return `${
+            isRtl
+              ? "rounded-tl-[15px] rounded-bl-[15px]"
+              : "rounded-tr-[15px] rounded-br-[15px]"
+          }`;
         }
       }
       return "";
     };
     const getImageBorder = (index, length) => {
       if (
-        product?.flash_deal_details?.end_date ||
-        product?.flash_deal_end_date
+        // product?.flash_deal_details?.end_date ||
+        // product?.flash_deal_end_date
+        true
       ) {
         if (length === 1)
           return (
@@ -216,7 +225,7 @@ async function Page({ params, searchParams }: ProductPagePropsType) {
                 data-name="Rectangle 6484"
                 fill="none"
                 stroke="#ff6200"
-                stroke-width="0.5"
+                strokeWidth="0.5"
               >
                 <rect width="320" height="464" stroke="none" />
                 <rect
@@ -231,60 +240,116 @@ async function Page({ params, searchParams }: ProductPagePropsType) {
           );
         else {
           if (index === 0) {
-            return (
-              <svg
-                className="absolute top-0 left-0 z-55"
-                xmlns="http://www.w3.org/2000/svg"
-                width="320"
-                height="464"
-                viewBox="0 0 320 464"
-              >
-                <g
-                  id="Rectangle_6484"
-                  data-name="Rectangle 6484"
-                  fill="none"
-                  stroke="#ff6200"
-                  stroke-width="0.5"
+            if (isRtl)
+              return (
+                <svg
+                  className="absolute top-0 left-0 z-55"
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="320"
+                  height="464"
+                  viewBox="0 0 320 464"
                 >
-                  <path
-                    d="M15,0H320a0,0,0,0,1,0,0V464a0,0,0,0,1,0,0H15A15,15,0,0,1,0,449V15A15,15,0,0,1,15,0Z"
-                    stroke="none"
-                  />
-                  <path
-                    d="M15,.25H319.75a0,0,0,0,1,0,0v463.5a0,0,0,0,1,0,0H15A14.75,14.75,0,0,1,.25,449V15A14.75,14.75,0,0,1,15,.25Z"
+                  <g
+                    id="Rectangle_6484"
+                    data-name="Rectangle 6484"
                     fill="none"
-                  />
-                </g>
-              </svg>
-            );
+                    stroke="#ff6200"
+                    strokeWidth="0.5"
+                  >
+                    <path
+                      d="M0,0H305a15,15,0,0,1,15,15V449a15,15,0,0,1-15,15H0a0,0,0,0,1,0,0V0A0,0,0,0,1,0,0Z"
+                      stroke="none"
+                    />
+                    <path
+                      d="M.25.25H305A14.75,14.75,0,0,1,319.75,15V449A14.75,14.75,0,0,1,305,463.75H.25a0,0,0,0,1,0,0V.25A0,0,0,0,1,.25.25Z"
+                      fill="none"
+                    />
+                  </g>
+                </svg>
+              );
+            else
+              return (
+                <svg
+                  className="absolute top-0 left-0 z-55"
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="320"
+                  height="464"
+                  viewBox="0 0 320 464"
+                >
+                  <g
+                    id="Rectangle_6484"
+                    data-name="Rectangle 6484"
+                    fill="none"
+                    stroke="#ff6200"
+                    strokeWidth="0.5"
+                  >
+                    <path
+                      d="M15,0H320a0,0,0,0,1,0,0V464a0,0,0,0,1,0,0H15A15,15,0,0,1,0,449V15A15,15,0,0,1,15,0Z"
+                      stroke="none"
+                    />
+                    <path
+                      d="M15,.25H319.75a0,0,0,0,1,0,0v463.5a0,0,0,0,1,0,0H15A14.75,14.75,0,0,1,.25,449V15A14.75,14.75,0,0,1,15,.25Z"
+                      fill="none"
+                    />
+                  </g>
+                </svg>
+              );
           }
           if (index === length - 1) {
-            return (
-              <svg
-                className="absolute top-0 left-0 z-55"
-                xmlns="http://www.w3.org/2000/svg"
-                width="320"
-                height="464"
-                viewBox="0 0 320 464"
-              >
-                <g
-                  id="Rectangle_6484"
-                  data-name="Rectangle 6484"
-                  fill="none"
-                  stroke="#ff6200"
-                  stroke-width="0.5"
+            if (isRtl)
+              return (
+                <svg
+                  className="absolute top-0 left-0 z-55"
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="320"
+                  height="464"
+                  viewBox="0 0 320 464"
                 >
-                  <path
-                    d="M0,0H305a15,15,0,0,1,15,15V449a15,15,0,0,1-15,15H0a0,0,0,0,1,0,0V0A0,0,0,0,1,0,0Z"
-                    stroke="none"
-                  />
-                  <path
-                    d="M.25.25H305A14.75,14.75,0,0,1,319.75,15V449A14.75,14.75,0,0,1,305,463.75H.25a0,0,0,0,1,0,0V.25A0,0,0,0,1,.25.25Z"
+                  <g
+                    id="Rectangle_6484"
+                    data-name="Rectangle 6484"
                     fill="none"
-                  />
-                </g>
-              </svg>
-            );
+                    stroke="#ff6200"
+                    strokeWidth="0.5"
+                  >
+                    <path
+                      d="M0,0H305a15,15,0,0,1,15,15V449a15,15,0,0,1-15,15H0a0,0,0,0,1,0,0V0A0,0,0,0,1,0,0Z"
+                      stroke="none"
+                    />
+                    <path
+                      d="M.25.25H305A14.75,14.75,0,0,1,319.75,15V449A14.75,14.75,0,0,1,305,463.75H.25a0,0,0,0,1,0,0V.25A0,0,0,0,1,.25.25Z"
+                      fill="none"
+                    />
+                  </g>
+                </svg>
+              );
+            else
+              return (
+                <svg
+                  className="absolute top-0 left-0 z-55"
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="320"
+                  height="464"
+                  viewBox="0 0 320 464"
+                >
+                  <g
+                    id="Rectangle_6484"
+                    data-name="Rectangle 6484"
+                    fill="none"
+                    stroke="#ff6200"
+                    strokeWidth="0.5"
+                  >
+                    <path
+                      d="M15,0H320a0,0,0,0,1,0,0V464a0,0,0,0,1,0,0H15A15,15,0,0,1,0,449V15A15,15,0,0,1,15,0Z"
+                      stroke="none"
+                    />
+                    <path
+                      d="M15,.25H319.75a0,0,0,0,1,0,0v463.5a0,0,0,0,1,0,0H15A14.75,14.75,0,0,1,.25,449V15A14.75,14.75,0,0,1,15,.25Z"
+                      fill="none"
+                    />
+                  </g>
+                </svg>
+              );
           }
           return (
             <svg
@@ -299,7 +364,7 @@ async function Page({ params, searchParams }: ProductPagePropsType) {
                 data-name="Rectangle 6484"
                 fill="none"
                 stroke="#ff6200"
-                stroke-width="0.5"
+                strokeWidth="0.5"
               >
                 <rect width="320" height="464" stroke="none" />
                 <rect
@@ -374,7 +439,7 @@ async function Page({ params, searchParams }: ProductPagePropsType) {
                 />
               </div>
             )}
-            <ProductImagesSlider>
+            <ProductImagesSlider language={languageVariable}>
               {getImages(product, color)?.images?.map((img, i) => (
                 <div
                   className={`${getRoundedClass(
@@ -386,7 +451,13 @@ async function Page({ params, searchParams }: ProductPagePropsType) {
                   {i === 0 && (
                     <>
                       {product?.categories?.[0]?.icon && (
-                        <span className="rounded-[6px] rounded-bl-[15px] bg-[#513AAF] z-50 flex items-center justify-center w-[25px] h-[25px] bottom-0 left-[0px] absolute">
+                        <span
+                          className={`${
+                            isRtl
+                              ? "rounded-[6px] rounded-br-[15px] right-[0px]"
+                              : "rounded-[6px] rounded-bl-[15px] left-[0px]"
+                          }  bg-[#513AAF] z-50 flex items-center justify-center w-[25px] h-[25px] bottom-0  absolute`}
+                        >
                           <MalicanIcon />
                         </span>
                       )}
@@ -468,7 +539,9 @@ async function Page({ params, searchParams }: ProductPagePropsType) {
                   </span>
                 </div>
                 <div
-                  className={`product-text-section flex-row align-center h-auto`}
+                  className={`${
+                    isRtl ? "flex-row-reverse" : "flex-row"
+                  } product-text-section  align-center h-auto`}
                 >
                   <div
                     className={`${
@@ -524,7 +597,9 @@ async function Page({ params, searchParams }: ProductPagePropsType) {
                   className={`product-shipping h-auto  rounded-none p-0 py-[8px]  justify-start product-colors  flex-col align-start relative`}
                 >
                   <div
-                    className={`${isRtl && "items-end"} colors-label flex-col`}
+                    className={`${
+                      isRtl && "items-end"
+                    } colors-label w-full flex-col`}
                     data-cy="FreeReturn"
                   >
                     <FreeReturnIcon />
@@ -627,6 +702,7 @@ async function Page({ params, searchParams }: ProductPagePropsType) {
                 (s) => s.title?.toLowerCase() === "size"
               )[0]?.options?.length > 0 && (
                 <ProductSizes
+                  language={languageVariable}
                   sizes={
                     product?.choice_options?.filter(
                       (s) => s.title?.toLowerCase() === "size"

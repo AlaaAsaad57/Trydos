@@ -119,6 +119,7 @@
   font-family: var(--Quicksand-Regular);
   font-size: 11px;
   align-items: flex-start;
+  white-space: nowrap;
 }
 
 .product-prop-item:not(:first-child) {
