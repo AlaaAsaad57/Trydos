@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import StoreisIcon from "public/svg/product/StoreisIcon.svg";
-import ColorsInfo from "public/svg/product/colorsInfo.svg";
+
 import { SelectStory } from "store/homepage/actions";
 import { translateFunction } from "utils/functions";
 import StoryServiceClass from "services/story";
