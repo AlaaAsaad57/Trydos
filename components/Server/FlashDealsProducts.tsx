@@ -64,15 +64,17 @@ async function FlashDealsProducts({
             language={language}
           />
         ))}
-        <NextLink
-          href={`/${lang}/flashDeals`}
-          data={{ is_boutique: true }}
-          className="product-container items-center justify-center min-w-[200px] max-h-[377px] bg-[#0002]  align-center flex-col relative"
-        >
-          <div className="flex regular rounded-md p-3 items-center justify-center bg-[#5d5d5d] text-white shadow-md shadow-[#fff]">
-            {translateFunction("Show More", lang.split("-")[1])}
-          </div>
-        </NextLink>
+        {flashDealsProducts?.data?.products?.length > 8 && (
+          <NextLink
+            href={`/${lang}/flashDeals`}
+            data={{ is_boutique: true }}
+            className="product-container items-center justify-center min-w-[200px] max-h-[377px] bg-[#0002]  align-center flex-col relative"
+          >
+            <div className="flex regular rounded-md p-3 items-center justify-center bg-[#5d5d5d] text-white shadow-md shadow-[#fff]">
+              {translateFunction("Show More", lang.split("-")[1])}
+            </div>
+          </NextLink>
+        )}
       </HortiznalScrollBar>
     </div>
   );

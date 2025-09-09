@@ -108,36 +108,12 @@ export const BuyButtonProduct = ({
               className="old-price ml-[3px] relative bold-text color-dark-gray flex f-12"
               data-cy="product-offer-price"
             >
-              {product?.offer_price >= 0
-                ? RoundPrice({
-                    num: product?.offer_price,
-                    rate: currency?.exchange_rate,
-                    points: 0,
-                    language: language,
-                  })
-                : RoundPrice({
-                    num: product?.price,
-                    rate: currency?.exchange_rate,
-                    points: 0,
-                    language: language,
-                  })}
-              <svg
-                className="absolute w-100"
-                xmlns="http://www.w3.org/2000/svg"
-                width="100%"
-                height="1"
-              >
-                <line
-                  id="Line_1"
-                  data-name="Line 1"
-                  x2="100%"
-                  transform="translate(0 0.5)"
-                  fill="none"
-                  strokeLinecap="round"
-                  stroke="#ff6200"
-                  strokeWidth="1"
-                />
-              </svg>
+              {RoundPrice({
+                num: product?.flash_deal_price,
+                rate: currency?.exchange_rate,
+                points: 0,
+                language: language,
+              })}
             </span>
           </>
         );

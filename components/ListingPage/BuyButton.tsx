@@ -24,12 +24,6 @@ function BuyButton({
   };
   const showOrangeFont = () => {
     if (shouldShowRedeem) return "text-[#FF6200]";
-    if (
-      flash_deal_price >= 0 &&
-      flash_deal_price !== undefined &&
-      flash_deal_price !== null
-    )
-      return "text-[#FF6200]";
     else return "text-[#414141]";
   };
   return (
@@ -56,17 +50,14 @@ function BuyButton({
             <span>
               {translate("Buy", LocalizationServiceClass.GetAppLanguage())}
             </span>
-            {shouldShowRedeem ||
-            (flash_deal_price >= 0 &&
-              flash_deal_price !== undefined &&
-              flash_deal_price !== null) ? (
+            {shouldShowRedeem ? (
               <div className="flex-row flex gap-[2px] items-center">
                 <span
                   className="text-[10px] pt-[2px] flex align-start bold"
                   data-cy="product-redeem-price"
                 >
                   {RoundPrice({
-                    num: redeem_price || flash_deal_price,
+                    num: redeem_price,
                     rate: currency?.exchange_rate,
                     language: languageVariable,
                   })}

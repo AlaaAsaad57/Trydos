@@ -18,8 +18,9 @@ function ImageSlider({
           <div className="inset-shadow-img w-[200px] h-[290px] rounded-15 absolute" />
 
           <Image
-            width={400}
-            height={300}
+            width={380}
+            height={580}
+            quality={100}
             loading="eager"
             fetchPriority="auto"
             style={{
@@ -29,8 +30,9 @@ function ImageSlider({
             }}
             src={getConfiguredImage({
               src: GetImageUrl(image),
-              width: 400,
-              height: 400,
+              width: 380,
+              height: 580,
+              q: 100,
             })}
             key={`${product_name}-${image}`}
             className="w-[200px] h-[290px]"

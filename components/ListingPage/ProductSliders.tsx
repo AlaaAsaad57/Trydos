@@ -38,11 +38,13 @@ export function ProductPhotosSlider({
             width={400}
             height={300}
             loading="eager"
+            quality={100}
             fetchPriority="auto"
             src={getConfiguredImage({
               src: GetImageUrl(image),
-              width: 400,
-              height: 400,
+              width: 189,
+              height: 290,
+              q: 100,
             })}
             style={{
               border:
