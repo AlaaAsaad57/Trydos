@@ -1003,6 +1003,16 @@ const translations = {
   Trydos: "تريدوس",
   "View More": "عرض المزيد",
   "Only This Piece": "فقط هذه القطعة",
+  "SVG Images Not Allowed": "الصور بصيغة SVG غير مسموح بها",
+  "Best Price": "أفضل سعر",
+  "Last 3 Days!": "آخر 3 أيام!",
+  Trend: "رائج",
+  "Color !": "اللون!",
+  "Best Sell": "الأكثر مبيعاً",
+  "Last Week !": "الأسبوع الماضي!",
+  "Fast Packing": "تغليف سريع",
+  "& Today Shipping If Buy Before 13:00 Today":
+    "والشحن اليوم إذا تم الشراء قبل الساعة 13:00 اليوم",
 };
 
 export default translations;

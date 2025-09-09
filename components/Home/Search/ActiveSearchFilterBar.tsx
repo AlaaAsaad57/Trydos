@@ -59,7 +59,7 @@ function ActiveSearchFilterBar() {
   const { lang } = useParams();
   return (
     <div
-      className="filter-info-bar flex-row cursor-pointer align-center overflow-x-scroll overflow-y-hidden whitespace-nowrap [&> *]: select-none "
+      className="filter-info-bar w-full mx-[10px] mt-[5px] h-[30px] bg-[#efefef] rounded-[10px] px-[10px] flex-row cursor-pointer align-center overflow-x-scroll overflow-y-hidden whitespace-nowrap [&> *]: select-none "
       data-cy="filterInfo"
     >
       <CloseIcon

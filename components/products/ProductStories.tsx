@@ -143,15 +143,23 @@ function ProductStories({ id }: ProductStoriesPropsType) {
       );
     }
   };
+  const isRtl = languageVariable === "ar" || languageVariable === "ku";
+
   return (
     <div
-      className={`product-colors pr-0 product-stories flex-col  align-start relative mt-[12px] bg-transparent`}
+      className={`product-colors pr-0 product-stories flex-col  align-start relative mt-[12px] bg-transparent ${
+        isRtl && "items-end"
+      }`}
     >
       {showInfoMessageObj.showInfoMessage && <InfoWindow />}
       {selectedStory && selectedStory?.id && (
         <StoriesContainer stories={stories} selectedStory={selectedStory} />
       )}
-      <div className="colors-label flex-col text-[#1d1d1d] regular text-[11px] gap-[4px]">
+      <div
+        className={`colors-label flex-col text-[#1d1d1d] regular text-[11px] gap-[4px] ${
+          isRtl && "items-end"
+        }`}
+      >
         <StoreisIcon data-cy="StoriesIcon" />
         <div className="flex-row gap-[11px] items-baseline">
           <span>{translate("Product Story")}</span>
@@ -192,7 +200,9 @@ function ProductStories({ id }: ProductStoriesPropsType) {
       <div className={`stories-row flex-row w-100`} onClick={() => {}}>
         <HortiznalScrollBar
           id="product-stories-scroll-bar"
-          className="w-full flex-row py-[10px]"
+          className={`${
+            isRtl ? "flex-row-reverse" : "flex-row"
+          } w-full flex-row py-[10px]`}
           dataCy="product-stories-scroll-bar"
         >
           {stories?.map((story, index) => (

@@ -12,12 +12,14 @@ import FAQModal from "./FAQModal";
 function FAQSection({ lang, comments }) {
   const [country, language] = lang.split("-");
   const { setColorBottomSheet } = useAppStore();
+  const isRtl = language === "ar" || language === "ku";
+
   return (
     <>
       <FAQModal comments={comments} />
       <div className="w-full flex-col mt-[12px]">
         <div
-          className="flex-col px-[10px]"
+          className={`flex-col px-[10px] ${isRtl && "items-end"}`}
           onClick={() => {
             setColorBottomSheet({
               is_for_faq: true,
@@ -70,7 +72,7 @@ function FAQSection({ lang, comments }) {
             );
           })}
         </HortiznalScrollBar>
-        <AskInput />
+        <AskInput language={language} />
       </div>
     </>
   );
@@ -235,7 +237,7 @@ const FaqItem = ({ language, comment }) => {
   );
 };
 
-const AskInput = () => {
+const AskInput = ({ language }) => {
   const renderBorderSvg = () => {
     return (
       <svg
@@ -265,7 +267,10 @@ const AskInput = () => {
       </span>
       {renderBorderSvg()}
       <input
-        placeholder="Ask Seller Your Question About This Product…"
+        placeholder={translateFunction(
+          "Ask Seller Your Question About This Product…",
+          language
+        )}
         className="outline-none w-full bg-transparent z-40 rounded-[15px] text-[#1d1d1d] placeholder:text-[#C4C2C2] placeholder:text-center pl-[40px] flex items-center"
       />
     </div>

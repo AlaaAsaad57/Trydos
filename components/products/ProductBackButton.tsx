@@ -31,6 +31,10 @@ function ProductBackButton({ lang, productId }) {
     }
     return { href, data };
   };
+
+  const language = lang.split("-")[1];
+  const isRtl = language === "ar" || language === "ku";
+
   if (typeof localStorage === "undefined")
     return (
       <div className="back-bar align-center w-100 flex-row h-[50px]">
@@ -48,7 +52,11 @@ function ProductBackButton({ lang, productId }) {
       </div>
     );
   return (
-    <div className="back-bar align-center w-full flex-row h-[50px] justify-between pr-[10px]">
+    <div
+      className={`${
+        isRtl ? "flex-row-reverse" : "flex-row"
+      } back-bar align-center w-full  h-[50px] justify-between px-[10px]`}
+    >
       <NextLink
         ignoreConditionCase={true}
         data-cy="backIcon_productPage"
@@ -58,9 +66,9 @@ function ProductBackButton({ lang, productId }) {
           localStorage.removeItem("last-page");
         }}
       >
-        <BackIcon />
+        <BackIcon className={`${isRtl && "rotate-180"}`} />
       </NextLink>
-      <ProductCartHeader language={lang?.split("-")[1]} />
+      <ProductCartHeader language={language} />
     </div>
   );
 }

@@ -28,9 +28,12 @@ function ProductCartHeader({ language }) {
       router.push(`${pathname}?${newParams.toString()}`, { shallow: true });
     }
   };
+  const isRtl = language === "ar" || language === "ku";
   return (
     <div
-      className="flex items-center gap-[4px] cursor-pointer"
+      className={`${
+        isRtl ? "flex-row-reverse" : "flex-row"
+      } items-center gap-[4px] cursor-pointer`}
       onClick={() => {
         enableCart(true);
       }}

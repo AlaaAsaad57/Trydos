@@ -137,6 +137,7 @@ export default async function Page({ params }: { params: ParamsType }) {
     boutiques: filtersData?.boutiques || [],
     search_text: parsedFilters?.search_text?.[0] || null,
   };
+  const isRtl = language === "ar" || language === "ku";
   return (
     <>
       <Suspense fallback={<></>}>
@@ -152,7 +153,9 @@ export default async function Page({ params }: { params: ParamsType }) {
       </Suspense>
       <div
         data-cy="filter_listing_bar"
-        className="filter-listing-bar relative flex-row align-center"
+        className={`filter-listing-bar relative ${
+          isRtl ? "flex-row-reverse" : "flex-row"
+        } align-center w-full h-[50px] pl-[15px] pr-[20px] justify-between bg-white z-10`}
       >
         <DataSourceLogger
           dataSourceString={`Listing flashdeals DataSource : products and filters from elastic , currency from ${
@@ -171,12 +174,17 @@ export default async function Page({ params }: { params: ParamsType }) {
           ariaLabel={`TryDos Home ${params.lang}`}
           className="back-icon"
         >
-          <BackIcon data-cy="back_icon_boutique_page" />
+          <BackIcon
+            data-cy="back_icon_boutique_page"
+            className={`${isRtl && "rotate-180"}`}
+          />
         </NextLink>
         {/** TODO: classname edit when serach active w-full */}
         <div
           data-cy="filter_bar_options"
-          className={`filter-bar-options flex-row align-center ${
+          className={`filter-bar-options w-[170px] justify-between ${
+            isRtl ? "flex-row-reverse" : "flex-row"
+          }  align-center ${
             parsedFilters?.search_text?.length > 0 && "w-full"
           }`}
         >

@@ -987,6 +987,16 @@ const translations = {
   Trydos: "Trydos",
   "View More": "Daha Fazla Gör",
   "Only This Piece": "Sadece Bu Parça",
+  "SVG Images Not Allowed": "SVG resimlerine izin verilmiyor",
+  "Best Price": "En İyi Fiyat",
+  "Last 3 Days!": "Son 3 Gün!",
+  Trend: "Trend",
+  "Color !": "Renk!",
+  "Best Sell": "En Çok Satan",
+  "Last Week !": "Geçen Hafta!",
+  "Fast Packing": "Hızlı Paketleme",
+  "& Today Shipping If Buy Before 13:00 Today":
+    "Bugün 13:00’ten Önce Alırsanız Bugün Kargo",
 };
 
 export default translations;

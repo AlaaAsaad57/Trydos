@@ -11,13 +11,15 @@ function ProfileCard({
   goToProfileSize,
   goToProfilePicture,
 }: ProfileCardPropsType) {
-  const { userProfile } = useAppStore();
+  const { userProfile, language } = useAppStore();
   const [isModalOpen, setIsModalOpen] = useState(false);
-
+  const isRtl = language === "ar" || language === "ku";
   return (
     <>
       <div
-        className="w-full h-[138px] rounded-[15px] bg-[#F8F8F8] p-[12px] flex-row justify-between cursor-pointer"
+        className={`w-full h-[138px] rounded-[15px] bg-[#F8F8F8] p-[12px] ${
+          isRtl ? "flex-row-reverse" : "flex-row"
+        } justify-between cursor-pointer`}
         data-cy="profile-card"
         onClick={(e) => {
           // @ts-ignore
@@ -27,9 +29,13 @@ function ProfileCard({
           }
         }}
       >
-        <div className="flex-col">
+        <div className={`flex-col ${isRtl && "items-end"}`}>
           <Qr />
-          <div className="flex-row items-end">
+          <div
+            className={`${
+              isRtl ? "flex-row-reverse" : "flex-row"
+            } items-end gap-[10px]`}
+          >
             <div className="flex-col mt-[5px]">
               <span className="medium text-[#1D1D1D] text-[14px]">
                 {userProfile?.name}
@@ -39,7 +45,7 @@ function ProfileCard({
               </span>
             </div>
             <div
-              className="flex-col items-center cursor-pointer ml-[10px] justify-center h-full self-navigate"
+              className="flex-col items-center cursor-pointer justify-center h-full self-navigate"
               onClick={() => {
                 if (userProfile?.is_phone_verified === 0) {
                   setIsModalOpen(true);

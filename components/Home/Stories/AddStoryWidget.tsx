@@ -288,50 +288,19 @@ export default function AddStoryWidget({ onClose }: AddStoryWidgetPropsType) {
       showErrorNotification("Error Uploading Story");
     }
   };
-  // const HandleUploadedVideo = async (e) => {
-  //   if (e.target.files[0]?.type.includes("video")) {
-  //     new Promise((resolve, reject) => {
-  //       const reader = new FileReader();
-  //       reader.readAsDataURL(e.target.files[0]);
-  //       reader.onload = async () => {
-  //         setFile(e.target.files[0]);
-  //         setIsSelected(reader.result);
-  //         let path = await StoryService.upload(
-  //           e.target.files[0],
-  //           (e: any) => setUpload(e),
-  //           1,
-
-  //           () => {
-  //             setIsSelected(null);
-  //             setFile(null);
-  //           }
-  //         )
-  //           .then((data) => {
-  //             AddStoryAction(data);
-  //           })
-  //           .catch((e) => {
-  //             setFile(null);
-  //             setIsSelected(null);
-
-  //             toast.error("Upload Failed Try Again");
-  //           });
-  //         setIsSelected(path);
-  //         setFile(e.target.files[0]);
-
-  //         setIsSelected(null);
-  //         setFile(null);
-  //         revalidateStories();
-  //       };
-  //     });
-  //   }
-  // };
   const selectMedia = async ({ imageFile, link }) => {
     handleChange({ target: { files: [imageFile] } }, link);
   };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-
+    if (file && file.type === "image/svg+xml") {
+      showErrorNotification(
+        translateFunction("SVG Images Not Allowed", language)
+      );
+      e.target.value = ""; // reset input
+      return;
+    }
     if (!file) return;
 
     if (file.type.startsWith("image/") || file.type.startsWith("video/")) {
@@ -559,7 +528,7 @@ export default function AddStoryWidget({ onClose }: AddStoryWidgetPropsType) {
         <input
           id="stories-input-holder"
           type="file"
-          accept="image/*,video/*"
+          accept="image/jpg,video/*"
           onChange={(e) => {
             handleFileSelect(e);
           }}

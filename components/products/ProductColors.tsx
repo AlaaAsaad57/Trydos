@@ -161,6 +161,8 @@ function ProductColors({
       }
     }
   }, [colorFromUrl]);
+  const isRtl = languageVariable === "ar" || languageVariable === "ku";
+
   const renderColors = () => {
     let activeColor =
       searchParams.get("color") &&
@@ -173,7 +175,9 @@ function ProductColors({
     return (
       <HortiznalScrollBar
         id="products-colors-slider"
-        className="flex-row  w-auto max-w-[50%] gap-[2px] h-[84px] items-center translate-y-[-6px]"
+        className={`${
+          isRtl ? "flex-row-reverse" : "flex-row"
+        }  w-auto max-w-[50%] gap-[2px] h-[84px] items-center translate-y-[-6px]`}
       >
         {product?.sync_color_images?.map((color) => (
           <div
@@ -219,7 +223,9 @@ function ProductColors({
         />
       )}
       <div
-        className={`product-colors mt-[12px] flex-row align-start justify-between relative`}
+        className={`product-colors ${
+          isRtl ? "flex-row-reverse justify-end" : "flex-row"
+        } mt-[12px]  align-start justify-between relative`}
         data-cy="AvailableColor"
         onClick={() => {
           if (product)
@@ -229,7 +235,11 @@ function ProductColors({
             });
         }}
       >
-        <div className="colors-label flex-col align-start py-[8px] justify-center gap-[4px]">
+        <div
+          className={`${
+            isRtl && "items-end"
+          } colors-label flex-col align-start py-[8px] justify-center gap-[4px]`}
+        >
           <ColorsIcon data-cy="ColorsIcon" />
           <span
             data-cy="Color-Length"

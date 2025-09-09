@@ -35,11 +35,11 @@ function ListingSkeleton({
       {forProducts !== true && withBanners && (
         <>
           {!isForSearch && (
-            <div className="filter-listing-bar relative flex-row align-center">
+            <div className="filter-listing-bar relative flex-row align-center  w-full h-[50px] pl-[15px] pr-[20px] justify-between bg-white z-10">
               <div className="back-icon">
                 <Skeleton width={20} height={20} borderRadius={"50%"} />
               </div>
-              <div className="filter-bar-options flex-row align-center">
+              <div className="filter-bar-options flex-row align-center justify-between w-[170px">
                 <div className="filter-option">
                   <Skeleton width={20} height={20} borderRadius={"50%"} />
                 </div>
@@ -138,7 +138,11 @@ function ListingSkeleton({
           </div>
         </>
       )}
-      <div className="listing-container flex pb-[350px] max-w-[1310px]">
+      <div
+        className={
+          "listing-container justify-around bg-[#f4f4f4] min-w-full min-h-[48vh] relative flex pb-[350px] max-w-[1310px] flex-wrap"
+        }
+      >
         <div className="product-container rounded-15 align-center flex-col relative">
           <Skeleton
             width={"100%"}

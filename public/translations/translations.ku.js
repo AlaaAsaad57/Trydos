@@ -1043,6 +1043,16 @@ const translations = {
   Trydos: "تریدۆس",
   "View More": "بینینی زیاتر",
   "Only This Piece": "تەنها ئەم پارچەیە",
+  "SVG Images Not Allowed": "وێنەی SVG ڕێگە پێنەدراوە",
+  "Best Price": "باشترین نرخ",
+  "Last 3 Days!": "٣ ڕۆژی دوا!",
+  Trend: "ترێند",
+  "Color !": "ڕەنگ!",
+  "Best Sell": "باشترین فرۆشراو",
+  "Last Week !": "هەفتەی ڕابردوو!",
+  "Fast Packing": "پەکێجکردنی خێرا",
+  "& Today Shipping If Buy Before 13:00 Today":
+    "ئەگەر پێش ١٣:٠٠ی ئەمڕۆ بکڕیت، ناردنی ئەمڕۆ",
 };
 
 export default translations;

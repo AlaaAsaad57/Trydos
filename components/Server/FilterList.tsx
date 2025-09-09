@@ -30,6 +30,8 @@ function FilterList({
   // Use parsedFilters if available, otherwise use searchParams for backward compatibility
   const filterParams = parsedFilters || searchParams;
   const isUsingParsedFilters = Boolean(parsedFilters);
+  const language = params.lang.split("-")?.[1];
+  const isRtl = language === "ar" || language === "ku";
 
   return (
     <>
@@ -37,27 +39,24 @@ function FilterList({
         data-cy="boutique_filter_options"
         className={`w-full relative flex-row items-center pl-[15px]`}
       >
-        <Suspense
-          key={`switch-filters-button-${JSON.stringify(filters)}`}
-          fallback={
-            <div className="filter-button flex-row items-center h-[25px]" />
+        <SwitchFiltersButton
+          language={language}
+          length={
+            Object.keys(filters).filter(
+              (s) =>
+                filters[s] &&
+                filters[s]?.length > 0 &&
+                s !== "search_text" &&
+                s !== "boutiques"
+            ).length
           }
-        >
-          <SwitchFiltersButton
-            length={
-              Object.keys(filters).filter(
-                (s) =>
-                  filters[s] &&
-                  filters[s]?.length > 0 &&
-                  s !== "search_text" &&
-                  s !== "boutiques"
-              ).length
-            }
-          />
-        </Suspense>
+        />
+
         <HortiznalScrollBar
           id="filter-list-row-container"
-          className="flex-row items-center pr-[20px] ml-[45px]  justify-start align-start filter-container overflow-auto scroll-smooth"
+          className={`${
+            isRtl ? "flex-row-reverse mr-[45px]" : "flex-row ml-[45px]"
+          }  items-center pr-[20px]   justify-start align-start filter-container overflow-auto scroll-smooth`}
         >
           {Object.keys(filters).map((filter, index) => {
             if (
@@ -194,10 +193,13 @@ const ActiveFiltersBar = ({
   const isOnBoutiquePage = activeFilters.boutiques?.length === 1;
   const shouldHideBoutiques =
     isOnBoutiquePage || (hasOnlyOneBoutique && otherFiltersCount > 0);
-
+  const language = params.lang.split("-")?.[1];
+  const isRtl = language === "ar" || language === "ku";
   return (
     <div
-      className="filter-info-bar flex-row cursor-pointer align-center overflow-x-scroll overflow-y-hidden whitespace-nowrap [&> *]: select-none "
+      className={`filter-info-bar ${
+        isRtl ? "flex-row-reverse" : "flex-row"
+      } w-full mx-[10px] mt-[5px] h-[30px] bg-[#efefef] rounded-[10px] px-[10px] cursor-pointer align-center overflow-x-scroll overflow-y-hidden whitespace-nowrap [&> *]: select-none `}
       data-cy="filterInfo"
     >
       <NextLink

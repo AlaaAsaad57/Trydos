@@ -14,14 +14,16 @@ import BuyersCommentModal from "./BuyersCommentModal";
 function ProductsBuyersComments({ lang, comments }) {
   const [country, language] = lang.split("-");
   const { ColorBottomSheet, setColorBottomSheet } = useAppStore();
+  const isRtl = language === "ar" || language === "ku";
+
   return (
     <>
       {ColorBottomSheet && ColorBottomSheet?.is_buyers_comments && (
         <BuyersCommentModal comments={comments} />
       )}
-      <div className="w-full flex-col">
+      <div className={` w-full flex-col`}>
         <div
-          className="flex-col px-[10px]"
+          className={`${isRtl && "items-end"} flex-col px-[10px]`}
           onClick={() => {
             setColorBottomSheet({
               is_buyers_comments: true,
@@ -29,7 +31,11 @@ function ProductsBuyersComments({ lang, comments }) {
           }}
         >
           <BuyersCommentIcon />
-          <div className="flex-row gap-[11px] items-baseline text-[#1d1d1d] regular text-[11px]">
+          <div
+            className={`${
+              isRtl ? "flex-row-reverse" : "flex-row"
+            } flex-row gap-[11px] items-baseline text-[#1d1d1d] regular text-[11px]`}
+          >
             <span>{translateFunction("Buyers Comment", language)}</span>
             <svg
               id="Group_14553"
@@ -182,7 +188,7 @@ const BuyersRatingBar = ({ language }) => {
     (recomended + not_recomended)
   ).toFixed(0);
   return (
-    <div className="flex-col w-full mt-[11px] pl-[10px] pr-[20px]">
+    <div className="flex-col w-full mt-[11px] pl-[10px] pr-[10px]">
       <div className="flex-row items-center w-full justify-between">
         <div className="flex-row regular items-center text-[#1d1d1d] text-[9px] gap-[4px]">
           <RecomendedIcon />

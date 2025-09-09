@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { SwitchFiltersButtonProps } from "models/componentType/SwitchFiltersButtonPropsType";
 
-function SwitchFiltersButton({ length }: SwitchFiltersButtonProps) {
+function SwitchFiltersButton({ length, language }: SwitchFiltersButtonProps) {
   let [active, setActive] = useState(0);
   const onClick = () => {
     if (active === length - 1) {
@@ -31,9 +31,13 @@ function SwitchFiltersButton({ length }: SwitchFiltersButtonProps) {
       }, 200);
     }
   };
+  const isRtl = language === "ar" || language === "ku";
+
   return (
     <div
-      className="filter-button absolute left-[15px] top-1/3 flex-row items-center h-[25px]"
+      className={`filter-button absolute ${
+        isRtl ? "right-[15px]" : "left-[15px]"
+      } top-1/3 flex-row items-center h-[25px]`}
       data-cy="rightScrool"
       onClick={() => onClick()}
     >

@@ -227,7 +227,7 @@ function FilterWidgetContainer({}) {
   if (!filterEnabled) return <></>;
   if (loading && filterEnabled)
     return (
-      <div className="fixed pt-[20px] overflow-x-hidden bg-white flex-col w-full max-h-[calc(100vh-100px)] h-[calc(100vh-100px)] overflow-y-auto top-[97px] pl-[14px] pr-[20px] left-0 z-[9999999]">
+      <div className="fixed pt-[20px] overflow-x-hidden bg-white flex-col w-full max-h-[calc(100vh-100px)] h-[calc(100vh-100px)] overflow-y-auto top-[97px] pl-[14px] pr-[20px] left-0 z-[9999999999]">
         <FilterTobBar
           isSearch={false}
           setIsSearch={() => {}}
@@ -368,7 +368,7 @@ function FiltersWidget({ filters, configureActiveFilters }) {
   };
   return (
     <>
-      <div className="fixed pb-[100px] pt-[20px] overflow-x-hidden bg-white flex-col w-full max-h-[calc(100vh-100px)] h-[calc(100vh-100px)] overflow-y-auto top-[97px] pl-[14px] pr-[20px] left-0 z-[9999999]">
+      <div className="fixed pb-[100px] pt-[20px] overflow-x-hidden bg-white flex-col w-full max-h-[calc(100vh-100px)] h-[calc(100vh-100px)] overflow-y-auto top-[97px] pl-[14px] pr-[20px] left-0 z-[999999999]">
         <FilterTobBar
           isSearch={isSearch}
           setIsSearch={setIsSearch}
@@ -405,11 +405,13 @@ function FiltersWidget({ filters, configureActiveFilters }) {
           searchResults?.prices?.max_price > 0 &&
           searchResults?.prices?.min_price >= 0 && (
             <div
-              className="flex-col justify-start align-start filter-container relative w-full mt-[10px] pb-6"
-              key={`prices-container}`}
+              className={`flex-col justify-start ${
+                isRtl ? "items-end" : "items-start"
+              } filter-container relative w-full mt-[10px] pb-6`}
+              key={`prices-container`}
             >
               <PriceCancel
-                className="price-cancel-icon"
+                className="absolute top-[30px] right-[32px]"
                 onClick={() => {
                   // Sendevent({
                   //   event: GA_EVENT_NAMES.CLICK,
@@ -538,14 +540,8 @@ const FilterTobBar = ({ isSearch, setIsSearch, Goback }) => {
     ? parseFiltersFromParams(filterParams as string[])
     : {};
 
-  const {
-    filterEnabled,
-    setFilterEnabled,
-    value,
-    setSearchWord,
-    setSearchPartialLoading,
-    setSearchLoading,
-  } = useAppStore();
+  const { filterEnabled, setFilterEnabled, language } = useAppStore();
+  const isRtl = language === "ar" || language === "ku";
 
   return (
     <div className="justify-between fil flex-row align-center h-[50px]">
@@ -565,7 +561,9 @@ const FilterTobBar = ({ isSearch, setIsSearch, Goback }) => {
         <BackIcon />
       </div>
       <div
-        className={`filter-bar-options flex-row align-center ${"w-[95px] "}`}
+        className={`filter-bar-options gap-[10px] justify-between ${
+          isRtl ? "flex-row-reverse" : "flex-row"
+        }  align-center `}
       >
         <div className="filter-option w-[20px]" data-cy="settingsIcon">
           <FilterIcon className={`${filterEnabled && "filter-icon-enabled"}`} />

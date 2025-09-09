@@ -6,11 +6,22 @@ import BestSellIcon from "public/svg/BestSellIcon.svg";
 import TrendIcon from "public/svg/TrendIcon.svg";
 import FastIcon from "public/svg/FastIcon.svg";
 function ProductFeatures({ language }) {
+  const isRtl = language === "ar" || language === "ku";
+
   return (
-    <HortiznalScrollBar id="product-features" className="flex-row gap-[12px]">
-      <div className="flex-row gap-[2px]">
+    <HortiznalScrollBar
+      id="product-features"
+      className={`${
+        isRtl ? "flex-row-reverse" : "flex-row"
+      } flex-row gap-[12px] items-center mt-[11px]`}
+    >
+      <div className={`${isRtl ? "flex-row-reverse" : "flex-row"} gap-[2px]`}>
         <BestPriceIcon />
-        <div className="text-[#388CFF] text-[11px] gap-[3px] flex">
+        <div
+          className={`${
+            isRtl && "dir-rtl"
+          } text-[#388CFF] text-[11px] gap-[3px] flex`}
+        >
           <span className="bold">
             {translateFunction("Best Price", language)}
           </span>
@@ -18,7 +29,7 @@ function ProductFeatures({ language }) {
         </div>
       </div>
 
-      <div className="flex-row gap-[2px]">
+      <div className={`${isRtl ? "flex-row-reverse" : "flex-row"} gap-[2px]`}>
         <TrendIcon />
         <div className="text-[#FF641A] text-[11px] gap-[3px] flex">
           <span className="bold">{translateFunction("Trend", language)}</span>
@@ -26,9 +37,13 @@ function ProductFeatures({ language }) {
         </div>
       </div>
 
-      <div className="flex-row gap-[2px]">
+      <div className={`${isRtl ? "flex-row-reverse" : "flex-row"} gap-[2px]`}>
         <BestSellIcon />
-        <div className="text-[#513AAF] text-[11px] gap-[3px] flex">
+        <div
+          className={`${
+            isRtl && "dir-rtl"
+          } text-[#513AAF] text-[11px] gap-[3px] flex`}
+        >
           <span className="bold">
             {translateFunction("Best Sell", language)}
           </span>
@@ -36,9 +51,13 @@ function ProductFeatures({ language }) {
         </div>
       </div>
 
-      <div className="flex-row gap-[2px]">
+      <div className={`${isRtl ? "flex-row-reverse" : "flex-row"} gap-[2px]`}>
         <FastIcon />
-        <div className="text-[#388CFF] text-[11px] gap-[3px] flex">
+        <div
+          className={`${
+            isRtl && "dir-rtl"
+          } text-[#388CFF] text-[11px] gap-[3px] flex`}
+        >
           <span className="bold">
             {translateFunction("Fast Packing", language)}
           </span>

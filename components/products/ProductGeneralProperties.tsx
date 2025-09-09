@@ -14,6 +14,8 @@ import GeneralPropertiesModal from "./GeneralPropertiesModal";
 
 function ProductGeneralProperties({ languageVariable }) {
   const { setColorBottomSheet } = useAppStore();
+  const isRtl = languageVariable === "ar" || languageVariable === "ku";
+
   return (
     <>
       <GeneralPropertiesModal />
@@ -24,10 +26,12 @@ function ProductGeneralProperties({ languageVariable }) {
           });
         }}
         id="product-properties-general"
-        className="flex-row pr-[90px] product-properties items-center justify-start w-100 text-[#1d1d1d] text-[9px]"
+        className={`${
+          isRtl ? "flex-row-reverse pl-[90px]" : "flex-row pr-[90px]"
+        }  product-properties items-center justify-start w-100 text-[#1d1d1d] text-[9px]`}
       >
         <RatingStars color="#1d1d1d" initialRating={3.5} readOnly={true} />
-        <div className="flex-row items-center">
+        <div className="flex-row items-center px-[4px]">
           <span className="bold px-[4px]"> {365}</span>
           {translateFunction("Buyer Rate", languageVariable)}
         </div>

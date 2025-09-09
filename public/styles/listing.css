@@ -136,9 +136,7 @@
   text-align: left;
   vertical-align: top;
 }
-p.product-details-text {
-  padding-left: 9px;
-}
+
 .prouct-details img {
   display: inline-flex;
   margin-right: 4px;
@@ -223,16 +221,6 @@ svg {
 .sl-deactive {
   opacity: 0;
   z-index: 3;
-}
-
-.listing-container {
-  flex-wrap: wrap;
-  background-color: #f4f4f4;
-  justify-content: space-around;
-  width: 100vw;
-  max-width: 1365px;
-  min-height: 48vh;
-  padding-bottom: 200px;
 }
 g#PNORSSM823IY-BE29_view2 rect {
   width: calc(100% - 0.5px);

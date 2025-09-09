@@ -8,6 +8,8 @@ function FreeShippingOption({ lang }: FreeShippingOptionPropsType) {
   const translate = (key, lang?) => {
     return translateFunction(key, languageVariable);
   };
+  const isRtl = languageVariable === "ar" || languageVariable === "ku";
+
   return (
     <div
       className={`product-colors h-auto p-0 product-sizes flex-col align-start relative py-[8px]  rounded-none`}
@@ -15,14 +17,25 @@ function FreeShippingOption({ lang }: FreeShippingOptionPropsType) {
         borderBottom: "#D3D3D37f 1px solid",
       }}
     >
-      <div className="flex-col" data-cy="FreeShipping">
+      <div
+        className={`${isRtl && "items-end"} w-full flex-col`}
+        data-cy="FreeShipping"
+      >
         <FreeShippingIcon />
-        <div className="flex-col text-[#1d1d1d] medium text-[11px]">
+        <div
+          className={`flex-col text-[#1d1d1d] medium text-[11px] ${
+            isRtl && "items-end"
+          }`}
+        >
           <span>{translate("Free Shipping")}</span>
           <span className="text-[#1d1d1d] regular text-[9px]">
             {translate("Shipping Is Completely Free Without Any Extras")}
           </span>
-          <div className="flex-row gap-[4px] items-start justify-start mt-[8px]">
+          <div
+            className={`flex-row gap-[4px] items-start justify-start mt-[8px] ${
+              isRtl && "dir-rtl"
+            }`}
+          >
             <span>
               <svg
                 data-cy="deleiveryuaranteeIcon"

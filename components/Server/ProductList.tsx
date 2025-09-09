@@ -23,9 +23,12 @@ function ProductListServer({
     (s) => s === activeFilters[activeFilters.length - 1]
   );
   let language = params.lang.split("-")[1];
+  const isRtl = language === "ar" || language === "ku";
   return (
     <div
-      className={"listing-container relative flex pb-[350px] max-w-[1310px]"}
+      className={`${
+        isRtl ? "flex-row-reverse" : "flex-row"
+      } listing-container justify-around bg-[#f4f4f4] min-w-full min-h-[48vh] relative  pb-[350px] max-w-[1310px] flex-wrap`}
     >
       {products.map((product, key) => {
         let color_name = product?.colors?.find(

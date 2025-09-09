@@ -43,8 +43,6 @@ function OrderButton({ close, toOrders }) {
   const userData = getCookie<UserData>(COOKIE_NAMES.USER_DATA);
   const [option, setOption] = useState(false);
   const getTotaPriceToShow = () => {
-    console.log(total, total_cash);
-
     if (orderData?.payment?.find((s) => s.id === 0)) {
       return total_cash;
     } else {
@@ -409,6 +407,7 @@ function OrderButton({ close, toOrders }) {
                     -{" "}
                     {RoundPrice({
                       num: total_discount,
+
                       returnNumber: true,
                       points: 5,
                     })}{" "}

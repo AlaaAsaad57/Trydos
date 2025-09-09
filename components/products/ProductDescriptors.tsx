@@ -1,11 +1,15 @@
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 import React from "react";
 import { GetImageUrl } from "utils/tinyUtils";
-function ProductDescriptors({ descriptors }) {
+function ProductDescriptors({ descriptors, language }) {
+  const isRtl = language === "ar" || language === "ku";
+
   return (
     <HortiznalScrollBar
       id="product-descriptors"
-      className="flex-row product-descriptors-row h-[44px]"
+      className={`${
+        isRtl ? "flex-row-reverse" : "flex-row"
+      }  product-descriptors-row h-[44px]`}
     >
       {descriptors?.map((descriptor, key) => {
         return (

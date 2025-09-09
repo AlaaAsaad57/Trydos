@@ -372,14 +372,15 @@ export const RoundPrice = ({
   // Currency conversion at the start
   let rateVariable = rate || currency?.exchange_rate || 1;
   let number = price_num * rateVariable;
+  if (returnNumber) {
+    return number;
+  }
   let deciaml_points =
     (settings && settings["starting-setting"]?.decimal_point_settings) || 0;
   number = Math.ceil(number);
 
   // Return raw converted number if requested
-  if (returnNumber) {
-    return number;
-  }
+
   number = Number(number.toFixed(deciaml_points));
   // Dart's formatNumber logic
   const thousand = language !== "ar" ? "K" : "أ";

@@ -235,16 +235,6 @@ span[aria-live="polite"] {
   width: 100%;
   height: 100%;
 }
-
-.listing-container {
-  flex-wrap: wrap;
-  background-color: #f4f4f4;
-  justify-content: space-around;
-  min-width: 100%;
-  min-height: 48vh;
-  padding-bottom: 200px;
-}
-
 .listing-container-empty {
   height: 50px;
   min-width: 100vw;
@@ -1314,4 +1304,11 @@ input[type="number"] {
 }
 .orange-border {
   border: 1px solid #ff6200;
+}
+.flex-row-reverse {
+  flex-direction: row-reverse;
+  display: flex;
+}
+.items-end {
+  align-items: end;
 }

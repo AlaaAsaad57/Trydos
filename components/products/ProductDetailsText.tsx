@@ -12,17 +12,12 @@ import { GAevent } from "utils/gtag";
 function ProductDetailsText({
   details,
   product,
-  paramsGA,
+  language,
 }: ProductDetailsTextProps) {
   const { setActiveColorDetails } = useAppStore();
   const { lang } = useParams();
   const searchParams = useSearchParams();
   // @ts-ignore
-  const languageVariable = lang?.split("-")[1];
-  const translate = useMemo(
-    () => (key: string) => translateFunction(key, languageVariable),
-    [languageVariable]
-  );
 
   const isLongText = details?.length > 95;
   const [show, setShow] = useState(true);
@@ -56,9 +51,9 @@ function ProductDetailsText({
   //   //     : GA_CLICK_EVENT_VALUES.READ_LESS_BUTTON,
   //   // });
   // };
-
+  const isRtl = language === "ar" || language === "ku";
   return (
-    <div className="product-details-text">
+    <div className={`${isRtl ? "dir-rtl" : ""} product-details-text`}>
       <div
         id="details"
         className="have-arabic"

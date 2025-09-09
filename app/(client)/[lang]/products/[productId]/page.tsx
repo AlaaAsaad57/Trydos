@@ -444,9 +444,17 @@ async function Page({ params, searchParams }: ProductPagePropsType) {
           />
 
           <div className="product-details-body bg-[#ffffff] flex-row relative mt-[3px] pb-[50px]">
-            <div className="product-info-section bg-[#ffffff] flex-col align-start">
+            <div
+              className={`${
+                isRtl ? "pr-[10px]" : "pl-[10px]"
+              } product-info-section bg-[#ffffff] flex-col align-start`}
+            >
               <div className="flex-col px-[10px] max-w-full">
-                <div className="product-brand-logo flex-row items-center gap-[11px]">
+                <div
+                  className={`${
+                    isRtl ? "flex-row-reverse" : "flex-row"
+                  } product-brand-logo flex-row items-center gap-[11px]`}
+                >
                   {product?.brand?.icon && (
                     <img
                       width={"auto"}
@@ -459,9 +467,13 @@ async function Page({ params, searchParams }: ProductPagePropsType) {
                     <VerifiedIcon />
                   </span>
                 </div>
-                <div className="product-text-section flex-row align-center h-auto">
+                <div
+                  className={`product-text-section flex-row align-center h-auto`}
+                >
                   <div
-                    className="text-[#1D1D1D] regular capitalize text-[13px]"
+                    className={`${
+                      isRtl && "dir-rtl"
+                    } text-[#1D1D1D] regular capitalize text-[13px]`}
                     data-cy="productName_productPage"
                   >
                     {getProductText()}
@@ -470,17 +482,7 @@ async function Page({ params, searchParams }: ProductPagePropsType) {
                 <ProductDetailsText
                   product={product.sync_color_images}
                   details={product.details}
-                  paramsGA={{
-                    item_id: product.id,
-                    item_name: product?.name,
-                    brand: product?.brand?.name,
-                    brand_id: product?.brand?.id,
-                    category:
-                      product?.category?.name || product?.categories?.[0]?.name,
-                    category_id:
-                      product?.category?.id || product?.categories?.[0]?.id,
-                    price: product?.offer_price,
-                  }}
+                  language={languageVariable}
                 />
                 <ProductGeneralProperties
                   languageVariable={params.lang?.split("-")?.[1]}
@@ -489,7 +491,10 @@ async function Page({ params, searchParams }: ProductPagePropsType) {
               </div>
 
               {product?.descriptors && product?.descriptors?.length > 0 && (
-                <ProductDescriptors descriptors={product.descriptors} />
+                <ProductDescriptors
+                  language={languageVariable}
+                  descriptors={product.descriptors}
+                />
               )}
 
               {product.sync_color_images?.length > 1 && (
@@ -518,9 +523,16 @@ async function Page({ params, searchParams }: ProductPagePropsType) {
                 <div
                   className={`product-shipping h-auto  rounded-none p-0 py-[8px]  justify-start product-colors  flex-col align-start relative`}
                 >
-                  <div className="colors-label flex-col" data-cy="FreeReturn">
+                  <div
+                    className={`${isRtl && "items-end"} colors-label flex-col`}
+                    data-cy="FreeReturn"
+                  >
                     <FreeReturnIcon />
-                    <div className="flex-col text-[#1d1d1d] medium text-[11px]">
+                    <div
+                      className={`${
+                        isRtl && "dir-rtl"
+                      } flex-col text-[#1d1d1d] medium text-[11px]`}
+                    >
                       <span>
                         {translateFunction("Free Return", languageVariable)}
                       </span>
@@ -530,7 +542,11 @@ async function Page({ params, searchParams }: ProductPagePropsType) {
                           languageVariable
                         )}
                       </span>
-                      <div className="flex-row gap-[4px] items-start justify-start mt-[8px]">
+                      <div
+                        className={`${
+                          isRtl && "dir-rtl"
+                        } flex-row gap-[4px] items-start justify-start mt-[8px]`}
+                      >
                         <span>
                           <svg
                             xmlns="http://www.w3.org/2000/svg"
