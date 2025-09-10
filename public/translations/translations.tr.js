@@ -996,7 +996,20 @@ const translations = {
   "Last Week !": "Geçen Hafta!",
   "Fast Packing": "Hızlı Paketleme",
   "& Today Shipping If Buy Before 13:00 Today":
-    "Bugün 13:00’ten Önce Alırsanız Bugün Kargo",
+    "Bugün 13:00'ten Önce Alırsanız Bugün Kargo",
+  "Open Try-On": "Sanal Deneme Aç",
+  "Choose how to add your photo": "Fotoğrafınızı nasıl ekleyeceğinizi seçin",
+  "Take a new photo with your camera": "Kameranızla yeni bir fotoğraf çekin",
+  "Select from your gallery": "Galerinizden seçin",
+  "Your photo is ready!": "Fotoğrafınız hazır!",
+  "Click 'Try On' to see how this product looks on you":
+    "Bu ürünün üzerinizde nasıl göründüğünü görmek için 'Dene'ye tıklayın",
+  "Processing your virtual try-on...": "Sanal denemeniz işleniyor...",
+  "This may take a few moments": "Bu birkaç dakika sürebilir",
+  "Try again": "Tekrar dene",
+  "Capture Photo": "Fotoğraf Çek",
+  "Processing…": "İşleniyor…",
+  "Try On": "Dene",
 };
 
 export default translations;

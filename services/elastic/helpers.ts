@@ -303,7 +303,6 @@ export function processCustomProduct(
   }
 
   if (isFromBrowser) {
-    delete result.categories;
     if (result.category) {
       removeCategoryExtraFields(result.category);
     }

@@ -4,7 +4,6 @@ export const dynamic = "force-dynamic";
 import "styles/productDetails.css";
 import "styles/product-body.css";
 import FreeReturnIcon from "public/svg/product/FreeReturnIcon.svg";
-import MalicanIcon from "public/svg/MailcanIcon.svg";
 import {
   getConfiguredImage,
   RoundPrice,
@@ -51,6 +50,8 @@ import ProductVideo from "components/products/ProductVideo";
 import DataSourceLogger from "components/global/DataSourceLogger";
 import ProductImageIndicator from "components/products/ProductImageIndicator";
 import ProductFeatures from "components/products/ProductFeatures";
+import VirtualTryOn from "components/products/VirtualTryOn";
+import VirtualTryOnWrapper from "components/products/VirtualTryOnWrapper";
 // export const revalidate = parseInt(process.env.NEXT_PUBLIC_REVALIDATE);
 // For Middle East users
 
@@ -432,7 +433,11 @@ async function Page({ params, searchParams }: ProductPagePropsType) {
             key={`key-${color}`}
           >
             {product?.videos?.[0] && (
-              <div className="absolute z-[999] bottom-[6px] right-[6px]">
+              <div
+                className={`${
+                  isRtl ? "left-[6px]" : "right-[6px]"
+                } absolute z-[999] bottom-[6px]  product-video`}
+              >
                 <ProductVideo
                   language={languageVariable}
                   videos={product?.videos?.[0]}
@@ -442,24 +447,50 @@ async function Page({ params, searchParams }: ProductPagePropsType) {
             <ProductImagesSlider language={languageVariable}>
               {getImages(product, color)?.images?.map((img, i) => (
                 <div
-                  className={`${getRoundedClass(
-                    i,
-                    getImages(product, color)?.images?.length
-                  )} embla__slide product-slider-images relative`}
-                  key={img?.file_path}
+                  className={`${
+                    i === 0 ? "z-[9999999999]" : "z-[88]"
+                  } relative flex`}
                 >
+                  <div
+                    className={`${getRoundedClass(
+                      i,
+                      getImages(product, color)?.images?.length
+                    )} embla__slide product-slider-images relative`}
+                    key={img?.file_path}
+                  >
+                    {getImageBorder(
+                      i,
+                      getImages(product, color)?.images?.length
+                    )}
+                    <Image
+                      className={`${getRoundedClass(
+                        i,
+                        getImages(product, color)?.images?.length
+                      )} w-[320px] h-[464px]`}
+                      width={320}
+                      height={464}
+                      priority={i === 0}
+                      loading={"eager"}
+                      alt={product.name}
+                      src={getConfiguredImage({
+                        src: GetImageUrl(img),
+                        width: 500,
+                        height: 700,
+                      })}
+                    />
+                    <ProductImageIndicator language={languageVariable} />
+                  </div>
                   {i === 0 && (
                     <>
                       {product?.categories?.[0]?.icon && (
-                        <span
-                          className={`${
-                            isRtl
-                              ? "rounded-[6px] rounded-br-[15px] right-[0px]"
-                              : "rounded-[6px] rounded-bl-[15px] left-[0px]"
-                          }  bg-[#513AAF] z-50 flex items-center justify-center w-[25px] h-[25px] bottom-0  absolute`}
-                        >
-                          <MalicanIcon />
-                        </span>
+                        <VirtualTryOn
+                          language={languageVariable}
+                          product={{
+                            id: product?.id,
+                            slug: product?.slug,
+                            images: getImages(product, color)?.images,
+                          }}
+                        />
                       )}
 
                       {(product?.flash_deal_details?.end_date ||
@@ -475,24 +506,6 @@ async function Page({ params, searchParams }: ProductPagePropsType) {
                         )}
                     </>
                   )}
-                  {getImageBorder(i, getImages(product, color)?.images?.length)}
-                  <Image
-                    className={`${getRoundedClass(
-                      i,
-                      getImages(product, color)?.images?.length
-                    )} w-[320px] h-[464px]`}
-                    width={320}
-                    height={464}
-                    priority={i === 0}
-                    loading={"eager"}
-                    alt={product.name}
-                    src={getConfiguredImage({
-                      src: GetImageUrl(img),
-                      width: 500,
-                      height: 700,
-                    })}
-                  />
-                  <ProductImageIndicator language={languageVariable} />
                 </div>
               ))}
             </ProductImagesSlider>
@@ -520,7 +533,7 @@ async function Page({ params, searchParams }: ProductPagePropsType) {
                 isRtl ? "pr-[10px]" : "pl-[10px]"
               } product-info-section bg-[#ffffff] flex-col align-start`}
             >
-              <div className="flex-col px-[10px] max-w-full">
+              <div className="flex-col px-[10px] max-w-full w-full">
                 <div
                   className={`${
                     isRtl ? "flex-row-reverse" : "flex-row"
@@ -860,6 +873,7 @@ async function Page({ params, searchParams }: ProductPagePropsType) {
             </div>
 
             <ProductFooterSection product={product} currency={currency} />
+            <VirtualTryOnWrapper language={languageVariable} />
           </div>
 
           {/* <ProductFooterSection /> */}

@@ -1013,6 +1013,19 @@ const translations = {
   "Fast Packing": "تغليف سريع",
   "& Today Shipping If Buy Before 13:00 Today":
     "والشحن اليوم إذا تم الشراء قبل الساعة 13:00 اليوم",
+  "Open Try-On": "فتح التجربة الافتراضية",
+  "Choose how to add your photo": "اختر كيفية إضافة صورتك",
+  "Take a new photo with your camera": "التقط صورة جديدة بكاميرتك",
+  "Select from your gallery": "اختر من معرض الصور",
+  "Your photo is ready!": "صورتك جاهزة!",
+  "Click 'Try On' to see how this product looks on you":
+    "انقر على 'جرب' لترى كيف يبدو هذا المنتج عليك",
+  "Processing your virtual try-on...": "جاري معالجة تجربتك الافتراضية...",
+  "This may take a few moments": "قد يستغرق هذا بضع لحظات",
+  "Try again": "حاول مرة أخرى",
+  "Capture Photo": "التقط صورة",
+  "Processing…": "جارٍ المعالجة…",
+  "Try On": "جرّب",
 };
 
 export default translations;

@@ -1053,6 +1053,19 @@ const translations = {
   "Fast Packing": "پەکێجکردنی خێرا",
   "& Today Shipping If Buy Before 13:00 Today":
     "ئەگەر پێش ١٣:٠٠ی ئەمڕۆ بکڕیت، ناردنی ئەمڕۆ",
+  "Open Try-On": "کردنەوەی تاقیکردنەوە",
+  "Choose how to add your photo": "چۆنیەتی زیادکردنی وێنەکەت هەڵبژێرە",
+  "Take a new photo with your camera": "وێنەیەکی نوێ بگرە بە کامێراکەتەوە",
+  "Select from your gallery": "هەڵبژێرە لە گالەری وێنەکانت",
+  "Your photo is ready!": "وێنەکەت ئامادەیە!",
+  "Click 'Try On' to see how this product looks on you":
+    "کرتە بکە لەسەر 'تاقی بکەرەوە' بۆ بینینی چۆنیەتی ئەم بەرهەمە لەسەرت",
+  "Processing your virtual try-on...": "جاری پرۆسەکردنی تاقیکردنەوەکەت...",
+  "This may take a few moments": "لەوانەیە چەند ساتێک بگرێت",
+  "Try again": "دووبارە هەوڵ بدە",
+  "Capture Photo": "وێنە بگرە",
+  "Processing…": "لە کارپێکردندایە…",
+  "Try On": "تاقی بکەوە",
 };
 
 export default translations;
