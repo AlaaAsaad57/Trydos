@@ -349,7 +349,10 @@ function OrderButton({ close, toOrders }) {
                       {translateFunction("Normal Price")}
                     </span>
                   </div>
-                  <span className="ml-[5px] medium text-[#1D1D1D] text-[13px] pr-[13px]">
+                  <span
+                    className="ml-[5px] medium text-[#1D1D1D] text-[13px] pr-[13px]"
+                    data-cy="cart-total-price"
+                  >
                     {RoundPrice({
                       num:
                         getTotaPriceToShow() +
