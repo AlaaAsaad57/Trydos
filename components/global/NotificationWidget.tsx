@@ -142,7 +142,7 @@ export default function NotificationWidget(props: NotificationWidgetProps) {
       tabIndex={0}
       onKeyDown={handleKeyDown}
       className={[
-        "fixed flex justify-center items-center top-0 z-[9999999999999999999999999] w-full backdrop-brightness-75 left-0 right-0 mx-auto h-[100dvh]",
+        "fixed flex justify-center items-center top-0 z-[9999999999] w-full backdrop-brightness-75 left-0 right-0 mx-auto h-[100dvh]",
         "pointer-events-auto",
       ].join(" ")}
     >
