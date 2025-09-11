@@ -281,7 +281,9 @@ export const fetchData = async <T = any>(
 
       const res = await fetch(fullUrl, requestOptions);
       status = res.status;
-      responseData = await res.json();
+      try {
+        responseData = await res.json();
+      } catch (e) {}
 
       if (status === 401 && !isRetryAfterUnauthorized) {
         logRequest({
