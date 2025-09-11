@@ -338,7 +338,107 @@ export async function getProductsAndFiltersFromElastic(
     );
   }
 }
+export async function GetRecomendationsForUser({
+  userId,
+  language,
+  country,
+  search_after = [],
+  limit = 10,
+}) {
+  try {
+    let rec;
+    let start = process.hrtime.bigint();
+    // @ts-ignore
+    if (!userId) {
+      rec = await client.search({
+        index: "cold_start_recommendations",
+      });
+    } else {
+      rec = await client.search({
+        index: "recommended_system",
+        query: {
+          term: { user_id: userId },
+        },
+      });
+      if (rec.hits.hits?.length === 0)
+        rec = await client.search({
+          index: "cold_start_recommendations",
+        });
+    }
 
+    if (
+      (rec.hits.hits?.[0]?._source as any)?.recommended_products?.length ===
+        0 ||
+      rec.hits.hits?.length === 0
+    ) {
+      return { products: [], search_after: [] };
+    }
+    const recommendedIds: string[] =
+      // @ts-ignore
+      (rec.hits.hits?.[0]?._source as any)?.recommended_products?.map(
+        (s) => s?.product_id ?? s?.item_id
+      ) || [];
+    if (!recommendedIds.length) {
+      return { products: [], search_after: [] };
+    }
+    const numericIds = recommendedIds.filter((id) => /^\d+$/.test(id));
+    const baseConditions = buildBaseConditions({}, country);
+    const { must: mustConditions, must_not: mustNotConditions } =
+      baseConditions;
+    mustConditions.push({ terms: { id: numericIds } });
+    // // 3. Query products_catalog by IDs
+    const searchQuery: SearchRequest = {
+      index: "products_catalog",
+      _source: getSourceFields(),
+      size: limit,
+      query: {
+        bool: {
+          must: mustConditions,
+          must_not: mustNotConditions,
+        },
+      },
+      sort: [{ _score: { order: "desc" } }, { id: { order: "asc" } }],
+    };
+
+    if (search_after?.length > 0) {
+      searchQuery.search_after = search_after;
+    }
+
+    // // 4. Run query
+    const response: SearchResponse = await client.search(searchQuery);
+    const hits = response.hits.hits;
+
+    // // 5. Extract products
+    const products = hits.map((hit) => ({
+      // @ts-ignore
+      ...hit._source,
+      // @ts-ignore
+      is_redeem: hit._source?.has_redeem_discount,
+    }));
+    const productsWithFilters = extractFilters(products, language, true);
+    const normalizedProducts = normalizeCustomProducts(productsWithFilters);
+    // // 6. Get new search_after value
+    const newSearchAfter = hits.length > 0 ? hits[hits.length - 1].sort : [];
+    let end = process.hrtime.bigint();
+
+    return {
+      products: normalizedProducts.custom_products?.map((s) => ({
+        ...s,
+        is_redeem: s.has_redeem_discount,
+      })),
+
+      search_after: newSearchAfter,
+      time: Number(end - start) / 1_000_000,
+    };
+    // return { products: [], search_after: [] };
+  } catch (error) {
+    console.error(
+      "************************RECOMENDED************************",
+      error
+    );
+    return { products: [], search_after: [] };
+  }
+}
 /**
  * Build base conditions for the search query
  */

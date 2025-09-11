@@ -125,7 +125,6 @@ export class ElasticsearchReader {
       return { products: [], search_after: [] };
     }
   }
-
   async getCategories<T>(ReqQuery: any): Promise<SearchResponse<T>> {
     let country = ReqQuery.country;
     try {

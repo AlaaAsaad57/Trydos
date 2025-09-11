@@ -222,9 +222,7 @@ async function FlashProductWrapper({ lang }) {
 
 async function BoutiquesListWrapper({ params }) {
   const [country, language] = params.lang.split("-");
-
   let start = process.hrtime.bigint();
-
   let Reader = new ElasticsearchReader();
   let data = await Reader.getBoutiques({
     language,
@@ -253,14 +251,46 @@ async function RecomendedProductWrapper({ lang }) {
   const [country, language] = lang.split("-");
   let Reader = new ElasticsearchReader();
 
-  let [currencyData, data] = await Promise.all([
+  let [currencyData, data, featured, flashdeals] = await Promise.all([
     getCurrency(country, language),
     Reader.getRecommendations({ language, country }),
+    getProductsAndFiltersFromElastic({
+      country: country,
+      language_code: language,
+      filters: {
+        featured: true,
+      },
+      noFilters: true,
+      limit: 10,
+    }),
+    getProductsAndFiltersFromElastic({
+      country: country,
+      language_code: language,
+      filters: {
+        flashdeal: true,
+      },
+      noFilters: true,
+      limit: 10,
+    }),
   ]);
-
+  let unique_products = data.products.filter((product) => {
+    if (
+      featured?.products?.find(
+        (f_product) => f_product?.product_id === product.product_id
+      )
+    )
+      return false;
+    if (
+      flashdeals?.products?.find(
+        (f_product) => f_product?.product_id === product.product_id
+      )
+    )
+      return false;
+    return true;
+  });
   return (
     <RecomendedProducts
-      products={{ data }}
+      products={{ data: { ...data, products: unique_products } }}
       lang={lang}
       currencyData={currencyData}
     />

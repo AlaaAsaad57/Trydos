@@ -287,8 +287,13 @@ export function processCustomProduct(
     languageCode
   );
   result.categories = getAllCustomCategories(product, languageCode);
-  result.category_hierarchy = extractCategoryHierarchy(product, languageCode);
-
+  let categories_data = extractCategoryHierarchy(product, languageCode);
+  result.category_hierarchy = {
+    main_category: categories_data?.main_category || null,
+    sub_category: categories_data?.sub_category || null,
+    sub_sub_category: categories_data?.sub_sub_category || null,
+  };
+  result.categories_tree = categoryNamesString(categories_data.categories_tree);
   // Find appropriate brand
   if (product.custom_brands && Array.isArray(product.custom_brands)) {
     for (const brand of product.custom_brands) {
@@ -309,6 +314,21 @@ export function processCustomProduct(
   }
 
   return result;
+}
+function categoryNamesString(tree) {
+  const names = [];
+
+  function walk(nodes) {
+    nodes.forEach((node) => {
+      names.push(node.name);
+      if (node.children && node.children.length) {
+        walk(node.children);
+      }
+    });
+  }
+
+  walk(tree);
+  return names.join(" | ");
 }
 function getAllCustomCategories(productData: any, lang: string): any[] {
   const result: any[] = [];
@@ -387,7 +407,7 @@ function extractCategoryHierarchy(productData: any, lang: string): any {
   }
 
   const categoriesByPosition: Record<number, any> = {};
-
+  let categories_data = [];
   productData.category_ids.forEach((catIdData: any) => {
     if (!catIdData.id || typeof catIdData.position !== "number") {
       return;
@@ -406,6 +426,15 @@ function extractCategoryHierarchy(productData: any, lang: string): any {
         (cat: any) =>
           cat.category_id == categoryId && cat.language_code === lang
       );
+      categories_data.push({
+        ...productData.custom_categories.find(
+          (cat: any) =>
+            cat.category_id == categoryId && cat.language_code === lang
+        ),
+        parent_id: productData?.categories?.find(
+          (s) => parseInt(s.id) === parseInt(categoryId)
+        )?.parent_id,
+      });
     }
 
     if (customCategory) {
@@ -419,13 +448,48 @@ function extractCategoryHierarchy(productData: any, lang: string): any {
   const sortedCategories = Object.keys(categoriesByPosition)
     .sort((a, b) => parseInt(a) - parseInt(b))
     .map((key) => categoriesByPosition[parseInt(key)]);
+  let arr = buildCategoryTree(categories_data);
 
   return {
     main_category: sortedCategories[0] || null,
     sub_category: sortedCategories[1] || null,
     sub_sub_category: sortedCategories[2] || null,
+    categories_tree: arr,
   };
 }
+/**
+ * Build a tree of categories from a flat array
+ * where `parent_id` points to another item's `category_id`.
+ */
+function buildCategoryTree(categories) {
+  const map = {}; // keyed by category_id
+  const roots = [];
+
+  // 1️⃣ Make a map from category_id → node
+  categories.forEach((cat) => {
+    map[cat.category_id] = {
+      parent_id: cat.parent_id,
+      name: cat.name,
+      category_id: cat.category_id,
+      children: [],
+    };
+  });
+
+  // 2️⃣ Link nodes
+  categories.forEach((cat) => {
+    const node = map[cat.category_id];
+    if (cat.parent_id && map[cat.parent_id]) {
+      map[cat.parent_id].children.push(node);
+    } else if (cat.parent_id === 0) {
+      roots.push(node);
+    } else {
+      roots.push(node);
+    }
+  });
+
+  return roots;
+}
+
 function getCustomCategoryFromHighestPositionCategory(
   productData: any,
   lang: string

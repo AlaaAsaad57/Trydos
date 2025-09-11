@@ -158,7 +158,7 @@ function ProductCard({
           />
 
           <div className="product-body flex-1 mt-[8px] w-100 flex-col align-start justify-start max-h-[60px] min-h-[30px]">
-            <p
+            <div
               className="prouct-details overflow-hidden w-100 regular-text text-[#3c3c3c] text-[10px] max-h-[25px]"
               data-cy="productName"
             >
@@ -176,37 +176,12 @@ function ProductCard({
                 )}
                 <VerifiedIcon />
               </span>
-              {[
-                product.category_hierarchy?.main_category?.name,
-                product.category_hierarchy?.sub_category?.name,
-                product.category_hierarchy?.sub_sub_category?.name,
-              ]
-                ?.filter((s) => typeof s === "string")
-                ?.join(" | ")}
-              <span className="product-category-icon align-center">
-                {/* {product.category &&
-                product?.category?.flat_photo_path?.file_path?.length > 0 && (
-                  <Image
-                    loading={"eager"}
-                    src={getConfiguredImage({
-                      src: GetImageUrl(
-                        product?.category?.flat_photo_path?.file_path
-                      ),
-                      height: 70,
-                    })}
-                    width={10}
-                    height={10}
-                    style={{
-                      display: "inline",
-                      minWidth: "10px",
-                      minHeight: "10px",
-                    }}
-                    alt={product.name}
-                    className="max-h-[20px] max-w-[40px]"
-                  />
-                )} */}
-              </span>
-            </p>
+              <p className="truncate w-full">
+                {[product?.name, product.categories_tree]
+                  ?.filter((s) => typeof s === "string")
+                  ?.join(" | ")}
+              </p>
+            </div>
             {product?.label_names?.length > 0 && (
               <ProductLabelsAnimated
                 labels={product?.label_names?.map((s) => ({
