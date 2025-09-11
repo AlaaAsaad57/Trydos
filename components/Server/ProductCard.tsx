@@ -176,7 +176,7 @@ function ProductCard({
                 )}
                 <VerifiedIcon />
               </span>
-              <p className="truncate w-full">
+              <p className="truncate w-full" data-cy="product-name">
                 {[product?.name, product.categories_tree]
                   ?.filter((s) => typeof s === "string")
                   ?.join(" | ")}
