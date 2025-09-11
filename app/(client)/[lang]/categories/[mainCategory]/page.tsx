@@ -102,12 +102,18 @@ async function HomePage({ params }: HomePageProps) {
         />
       </Suspense>
 
-      {/* <Suspense fallback={<FeaturedProductsSkeleton lang={params.lang} />}>
-        <FeaturedProductWrapper lang={params.lang} />
+      <Suspense fallback={<FeaturedProductsSkeleton lang={params.lang} />}>
+        <FeaturedProductWrapper
+          lang={params.lang}
+          mainCategory={params.mainCategory}
+        />
       </Suspense>
       <Suspense fallback={<FeaturedProductsSkeleton lang={params.lang} />}>
-        <FlashProductWrapper lang={params.lang} />
-      </Suspense> */}
+        <FlashProductWrapper
+          lang={params.lang}
+          mainCategory={params.mainCategory}
+        />
+      </Suspense>
       <Home key={`Home ${params.lang}`} />
       <Suspense
         fallback={<OfferListSkeleton />}
@@ -150,7 +156,7 @@ async function MainCategoriesNavbar({ lang, mainCategory }) {
   );
 }
 // Featured Products
-async function FeaturedProductWrapper({ lang }) {
+async function FeaturedProductWrapper({ lang, mainCategory }) {
   const [country, language] = lang?.split("-");
 
   let currencyData = await getCurrency(country, language);
@@ -159,6 +165,7 @@ async function FeaturedProductWrapper({ lang }) {
     language_code: language,
     filters: {
       featured: true,
+      categories: mainCategory ? [mainCategory] : null,
     },
     limit: 10,
   });
@@ -172,7 +179,7 @@ async function FeaturedProductWrapper({ lang }) {
   );
 }
 // FlasDeals Products
-async function FlashProductWrapper({ lang }) {
+async function FlashProductWrapper({ lang, mainCategory }) {
   const [country, language] = lang?.split("-");
 
   let currencyData = await getCurrency(country, language);
@@ -181,6 +188,7 @@ async function FlashProductWrapper({ lang }) {
     language_code: language,
     filters: {
       flashdeal: true,
+      categories: mainCategory ? [mainCategory] : null,
     },
     limit: 10,
   });

@@ -200,6 +200,11 @@ function OrderDetails({
     // Out for Delivery
     if (pack && pack?.order_status?.value === "out_for_delivery")
       return selectedOrder.order_group_id;
+    if (
+      ActivePacks?.return_details?.details?.status?.value === "out_for_return"
+    ) {
+      return true;
+    }
     return false;
   };
   const [isGettingChat, setIsGettingChat] = useState(false);

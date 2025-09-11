@@ -54,7 +54,6 @@ export default function NotificationWidget(props: NotificationWidgetProps) {
     }
     return Notification.permission === "granted";
   }, []);
-  console.log("notification widget");
 
   useEffect(() => {
     setIsClient(true);

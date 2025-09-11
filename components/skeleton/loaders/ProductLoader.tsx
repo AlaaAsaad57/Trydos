@@ -710,10 +710,10 @@ function ProductLoader({ product }) {
       </div>
 
       <div
-        className="product-details-footer z-[999999999]"
+        className="product-details-footer max-h-[76px] min-h-[76px] z-[999999999]"
         style={{
           bottom: "initial",
-          top: " calc(100vh - 277px)",
+          top: " calc(100vh - 177px)",
         }}
       >
         <div className="product-info-container">
@@ -841,7 +841,6 @@ function ProductLoader({ product }) {
             </div>
           </div>
         </div>
-        <ProductFooterSkeleton />
       </div>
     </div>
   );
