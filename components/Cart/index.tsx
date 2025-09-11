@@ -963,47 +963,7 @@ function CartContainer({ close, toOrders }: CartContainerPropsType) {
                               </span>
                             </div>
                           )}
-
-                          {/* {parseInt(product.quantity) >
-                            product.available_quantity && (
-                            <div className="flex-row items-center text-[12px] light text-[#fd445d]">
-                              <ErrorIcon />
-                              <div
-                                className={`${language === "ar" && "dir-rtl"}`}
-                              >
-                                <span className="ml-1.5">
-                                  {translateFunction("Availabilty")}:
-                                </span>
-                                <span className="regular ml-1">
-                                  {translateFunction("Out Of Stock")}
-                                </span>
-                              </div>
-                            </div>
-                          )} */}
                         </div>
-                        {
-                          <div
-                            className="absolute right-4 top-[35px] hide-btn cursor-pointer z-40"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              // Sendevent({
-                              //   event: GA_EVENT_NAMES.CLICK,
-                              //   value:
-                              //     GA_CLICK_EVENT_VALUES.REMOVE_OLD_PRODUCT_ITEM_BUTTON,
-                              // });
-                              hideOldCart(product.id);
-                              home.hideOldCart({ id: product.id });
-                            }}
-                          >
-                            <span className="hide-btn cursor-pointer border border-solid border-[#69a8ff80] mx-2  rounded-md flex-row items-center justify-center px-3 py-2 text-[#69a8ff]">
-                              {translate(
-                                "Hide",
-                                LocalizationServiceClass.GetAppLanguage()
-                              )}
-                            </span>
-                          </div>
-                        }
-
                         <div className="absolute top-1 right-1">
                           <input
                             defaultValue={key + 1}
@@ -1080,6 +1040,26 @@ function CartContainer({ close, toOrders }: CartContainerPropsType) {
                           </span>
                         </div>
                       </CartItemLink>
+                      <div
+                        className="absolute right-4 top-[35px] hide-btn cursor-pointer z-40"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          // Sendevent({
+                          //   event: GA_EVENT_NAMES.CLICK,
+                          //   value:
+                          //     GA_CLICK_EVENT_VALUES.REMOVE_OLD_PRODUCT_ITEM_BUTTON,
+                          // });
+                          hideOldCart(product.id);
+                          home.hideOldCart({ id: product.id });
+                        }}
+                      >
+                        <span className="hide-btn cursor-pointer border border-solid border-[#69a8ff80] mx-2  rounded-md flex-row items-center justify-center px-3 py-2 text-[#69a8ff]">
+                          {translate(
+                            "Hide",
+                            LocalizationServiceClass.GetAppLanguage()
+                          )}
+                        </span>
+                      </div>
                       <QuantutyInput
                         id={product.id}
                         product={product}
