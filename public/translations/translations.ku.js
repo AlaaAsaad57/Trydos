@@ -1066,6 +1066,15 @@ const translations = {
   "Capture Photo": "وێنە بگرە",
   "Processing…": "لە کارپێکردندایە…",
   "Try On": "تاقی بکەوە",
+  "Not now": "ئێستا نا",
+  Allow: "ڕێدان",
+  "Back-in-stock and quantity alerts": "ئاگادارکردنەوەی داهاتوو و بڕەکان",
+  "New boutiques & categories": "بوتیک و هاوپۆلە نوێکان",
+  "Order updates": "نوێکردنەوەکانی داواکردن",
+  "Chat messages": "پەیامەکانی گەپ",
+  "Enable notifications for a more effortless shopping experience:":
+    "ئاگادارکردنەوەکان چالاک بکە بۆ ئەوەی بازاڕکردنێکی ئاسانتر بەدەست بهێنی:",
+  "Stay in the loop": "له ئاگاداربووندا بمێنە",
 };
 
 export default translations;

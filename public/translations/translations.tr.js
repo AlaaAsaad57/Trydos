@@ -1010,6 +1010,15 @@ const translations = {
   "Capture Photo": "Fotoğraf Çek",
   "Processing…": "İşleniyor…",
   "Try On": "Dene",
+  "Not now": "Şimdi değil",
+  Allow: "İzin ver",
+  "Back-in-stock and quantity alerts": "Stok yenileme ve miktar uyarıları",
+  "New boutiques & categories": "Yeni butik ve kategoriler",
+  "Order updates": "Sipariş güncellemeleri",
+  "Chat messages": "Sohbet mesajları",
+  "Enable notifications for a more effortless shopping experience:":
+    "Daha zahmetsiz bir alışveriş deneyimi için bildirimleri etkinleştirin:",
+  "Stay in the loop": "Güncel kal",
 };
 
 export default translations;

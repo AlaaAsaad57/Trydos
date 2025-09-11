@@ -1026,6 +1026,15 @@ const translations = {
   "Capture Photo": "التقط صورة",
   "Processing…": "جارٍ المعالجة…",
   "Try On": "جرّب",
+  "Not now": "ليس الآن",
+  Allow: "السماح",
+  "Back-in-stock and quantity alerts": "تنبيهات عند إعادة التوفر والكميات",
+  "New boutiques & categories": "بوتيكات جديدة وفئات",
+  "Order updates": "تحديثات الطلب",
+  "Chat messages": "رسائل الدردشة",
+  "Enable notifications for a more effortless shopping experience:":
+    "فعّل الإشعارات لتجربة تسوق أكثر سهولة:",
+  "Stay in the loop": "ابقَ على اطلاع",
 };
 
 export default translations;
