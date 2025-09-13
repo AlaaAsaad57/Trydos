@@ -136,8 +136,10 @@ function OrdersList({
         setHasMore(false);
       }
       reqRef.current = null;
+      setShouldUpdateOrders(0);
     } catch (error) {
       reqRef.current = null;
+      setShouldUpdateOrders(0);
       console.error("Error loading orders:", error);
       if (reset) setOrders([]);
       setHasMore(false); // Stop trying if error occurs
@@ -145,7 +147,8 @@ function OrdersList({
       setLoading(false);
     }
   };
-  const { settings, selectedOrder } = useAppStore();
+  const { settings, selectedOrder, shouldUpdateOrders, setShouldUpdateOrders } =
+    useAppStore();
 
   // Initial load and load on status change
   useEffect(() => {
@@ -154,7 +157,14 @@ function OrdersList({
     setHasMore(true); // Assume there are more orders initially
     loadMoreOrders(true, selectedStatus); // Load first page for the new status
   }, [selectedStatus]); // Dependency on selectedStatus
-
+  useEffect(() => {
+    if (shouldUpdateOrders > 0) {
+      setOrders([]); // Reset orders when status changes
+      setPage(1); // Reset page count
+      setHasMore(true); // Assume there are more orders initially
+      loadMoreOrders(true, selectedStatus); // Load first page for the new status
+    }
+  }, [shouldUpdateOrders]);
   // Scroll handler for infinite loading
   useEffect(() => {
     const scrollContainer = scrollContainerRef.current;

@@ -73,6 +73,8 @@ function OrderDetails({
     orderPageLoading: loading,
     setOrderPageLoading: setLoading,
     setIsNavigating,
+    shouldUpdateOrders,
+    setShouldUpdateOrders,
   } = useAppStore();
   const fetchedOrderIdRef = useRef<string | number | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -153,7 +155,9 @@ function OrderDetails({
 
       setOrderDetails(orderData);
       setIsNavigating(false);
+      setShouldUpdateOrders(0);
     } catch (error) {
+      setShouldUpdateOrders(0);
       setIsNavigating(false);
       // Don't handle error if it's an abort error
       if (error.name === "AbortError") {
@@ -429,6 +433,16 @@ function OrderDetails({
     if (ActivePacks?.order_status?.value === "delivered") return true;
     else return false;
   };
+  useEffect(() => {
+    if (
+      shouldUpdateOrders > 0 &&
+      selectedOrder?.id &&
+      selectedOrder?.order_status
+    ) {
+      fetchedOrderIdRef.current = selectedOrder.order_group_id;
+      getOrderDetails();
+    }
+  }, [shouldUpdateOrders]);
   if (!selectedOrder?.id && !selectedOrder?.order_status) return null;
 
   return (

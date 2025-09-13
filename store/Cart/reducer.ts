@@ -55,6 +55,7 @@ export const useCartStore = (set, get) => ({
   available_payment_method: [],
   selectedOrder: null,
   SelectedOrderItem: null,
+  shouldUpdateOrders: 0,
   ActivePacks: null,
   cartShippingSuccess: null,
   addressLists: [],
@@ -133,7 +134,7 @@ export const useCartStore = (set, get) => ({
       openPayIframe: true,
       payIframeURL: url?.url,
     }),
-
+  setShouldUpdateOrders: (e) => set({ shouldUpdateOrders: e }),
   setWalletBalance: () =>
     set((state) => ({
       balance: state.wallet?.wallet_balance || 0,

@@ -68,6 +68,8 @@ class ForegroundNotificationHandler {
     try {
       const {
         setOrderData,
+        shouldUpdateOrders,
+        setShouldUpdateOrders,
         endCall,
         orderData,
         watchChannelEvent,
@@ -93,6 +95,7 @@ class ForegroundNotificationHandler {
         let lang = `${country?.toLocaleLowerCase()}-${language?.toLocaleLowerCase()}`;
         const data = JSON.parse(payload.data.body);
         if (data?.type?.startsWith("order status changed")) {
+          setShouldUpdateOrders(shouldUpdateOrders + 1);
           showSuccessNotification(
             data.description,
             5000,

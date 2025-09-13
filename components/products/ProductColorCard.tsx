@@ -119,7 +119,15 @@ function ProductColorCard({
             data-cy="productName"
           >
             <span className="flex-row align-center justify-start gap-[4px]">
-              <MangoIcon />
+              {product?.brand?.icon && (
+                <img
+                  src={GetImageUrl(product.brand.icon)}
+                  alt={product.brand.name || "Brand"}
+                  className="h-[8px] w-auto object-contain"
+                  loading="eager"
+                  draggable="false"
+                />
+              )}
               <VerifiedIcon />
             </span>
             {product.name?.substring(0, 50)}
