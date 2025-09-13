@@ -13,6 +13,7 @@ function CategoryNavMobile({
   slug,
   active,
   params,
+  outline,
 }: CategoryNavMobileProps) {
   // @ts-ignore
 
@@ -53,7 +54,13 @@ function CategoryNavMobile({
             width={25}
             height={25}
             alt={name || "Image"}
-            src={getConfiguredImage({ src: GetImageUrl(icon), height: 50 })}
+            src={getConfiguredImage({
+              src: GetImageUrl(active ? outline : icon),
+              height: 50,
+              width: 50,
+            })}
+            unoptimized={false}
+            className="max-h-[25px] max-w-[25px]"
             priority
             loading="eager"
           />
@@ -61,7 +68,11 @@ function CategoryNavMobile({
       }
       {
         <div className="categories-bar-item-description">
-          <div className={`categories-bar-item-name regular `}>{name}</div>
+          <div
+            className={`categories-bar-item-name regular truncate capitalize block`}
+          >
+            {name}
+          </div>
         </div>
       }
     </NextLink>

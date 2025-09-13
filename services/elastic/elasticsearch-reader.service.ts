@@ -140,6 +140,7 @@ export class ElasticsearchReader {
           "custom_categories.position",
           "custom_categories.language_code",
           "custom_categories.flat_photo_path",
+          "custom_categories.outline_photo_path",
         ],
         query: {
           bool: {

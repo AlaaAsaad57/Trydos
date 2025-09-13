@@ -53,6 +53,7 @@ export async function GET(request: NextRequest) {
           name: category.name,
           slug: category.slug,
           flat_photo_path: category.flat_photo_path,
+          outline_photo_path: category.outline_photo_path,
         })),
       },
     };
