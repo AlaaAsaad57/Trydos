@@ -54,6 +54,7 @@ export async function GET(request: NextRequest) {
           slug: category.slug,
           flat_photo_path: category.flat_photo_path,
           outline_photo_path: category.outline_photo_path,
+          fill_photo_path: category.fill_photo_path,
         })),
       },
     };

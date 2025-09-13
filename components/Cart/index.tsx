@@ -7,7 +7,6 @@ import {
   RoundPrice,
   translateFunction,
   GetCartOreview,
-  areProductsEqual,
 } from "utils/functions";
 import BackIcon from "public/svg/listing/backIcon.svg";
 import ShareIcon from "public/svg/listing/shareIcon.svg";
@@ -16,7 +15,6 @@ import Skeleton from "react-loading-skeleton";
 import "styles/productDetails.css";
 import NextLink from "components/global/NextLink";
 import { useParams, usePathname, useSearchParams } from "next/navigation";
-import home from "services/home";
 import OrderButton from "./OrderButton";
 import Spinner from "components/global/Spinner";
 import Timer from "components/Login/Timer";
@@ -24,11 +22,7 @@ import { QuantityDetailsProductApi } from "models/API/market/ProductQuantityDeta
 import LocalizationServiceClass from "services/localization";
 import { useAppStore } from "store";
 import cartService from "services/cart";
-import {
-  GA_EVENT_NAMES,
-  GA_GLOBAL_PLATFORM,
-  GA_GLOBAL_SCREEN,
-} from "utils/GAEvents";
+import { GA_EVENT_NAMES, GA_GLOBAL_SCREEN } from "utils/GAEvents";
 import { GAevent } from "utils/gtag";
 import { EnableScroll, GetImageUrl } from "utils/tinyUtils";
 import { CartContainerPropsType } from "models/componentType/CartContainerPropsType";
@@ -39,6 +33,7 @@ import FlashDealBanner from "components/products/FlashDealBanner";
 import { REQUESTS_DATA } from "utils/Requests";
 import auth from "services/auth";
 import CartErrorComponent from "./CartErrorComponent";
+import OldCartContainer from "./OldCartContainer";
 
 function CartContainer({ close, toOrders }: CartContainerPropsType) {
   const {
@@ -181,7 +176,6 @@ function CartContainer({ close, toOrders }: CartContainerPropsType) {
         },
       });
     }
-    await getOldCart();
   };
 
   const handleRetry = async () => {
@@ -235,11 +229,7 @@ function CartContainer({ close, toOrders }: CartContainerPropsType) {
     }
   }
   // Filter oldCart to exclude products that are in the current cart (with the same variation)
-  const filteredOldCart =
-    oldCart?.oldCart?.filter(
-      (oldProduct) =>
-        !cart.some((cartProduct) => areProductsEqual(oldProduct, cartProduct))
-    ) || [];
+
   return (
     <div
       className={`flex-col ${
@@ -802,351 +792,7 @@ function CartContainer({ close, toOrders }: CartContainerPropsType) {
             </>
           )}
         </div>
-        {oldCart?.oldCart?.length > 0 && (
-          <div
-            className="flex-col bg-[#F8F8F8]  w-full h-auto mt-10"
-            data-cy="oldCart-outOfBag"
-          >
-            <hr className="p-4" data-cy="line" />
-            <div
-              className="flex-row mt-0 min-h-[30px] w-full items-center justify-start bg-[#F8F8F8] rounded-[10px]"
-              data-cy="oldCart-viewer"
-            >
-              <span className="ml-[32px]" data-cy="spanContainer-oldCartIcon">
-                <OldCartIcon data-cy="oldCart-icon" />
-              </span>{" "}
-              <span
-                className="regular text-[#505050] text-[15px] ml-1"
-                data-cy="outOfBag-text"
-              >
-                {translate(
-                  "Out Of Bag!",
-                  LocalizationServiceClass.GetAppLanguage()
-                )}
-              </span>
-              <span
-                data-cy="hideAll"
-                className="cursor-pointer border border-solid border-[#69a8ff80] mx-2  rounded-md flex-row items-center justify-center px-3 py-2 text-[#69a8ff]"
-                onClick={() => {
-                  // Sendevent({
-                  //   event: GA_EVENT_NAMES.CLICK,
-                  //   value: GA_CLICK_EVENT_VALUES.REMOVE_OLD_PRODUCTS_BUTTON,
-                  // });
-                  home.hideOldCart({});
-                  storeOldCart([]);
-                }}
-              >
-                {translate(
-                  "Hide All",
-                  LocalizationServiceClass.GetAppLanguage()
-                )}
-              </span>
-            </div>
-            <div
-              className="flex-col  w-full h-auto mt-3 pb-[200px]"
-              data-cy="Product_Non_Available_In_Cart"
-            >
-              {!cart_loading && cartShippingSuccess === null ? (
-                <>
-                  {filteredOldCart.map((product, key) => (
-                    <div
-                      className="relative px-[12px]"
-                      key={key}
-                      data-cy="oldProduct-card"
-                    >
-                      <CartItemLink
-                        product={product}
-                        key={key}
-                        // onClick={(e) => {
-                        //   EnableScroll();
-                        //   close();
-                        // }}
-                      >
-                        <div className="flex-row w-[110px] min-h-[161px] max-h-[161px] relative">
-                          <img
-                            src={getConfiguredImage({
-                              height: 150,
-                              width: 150,
-                              src: GetImageUrl(product.image),
-                            })}
-                            width={110}
-                            height={"100%"}
-                            className="rounded-2xl opacity-50"
-                          />
-                        </div>
-                        <div className="flex-col mt-4 ml-5">
-                          <div className="h-[10px] overflow-hidden">
-                            <img
-                              src={getConfiguredImage({
-                                height: 150,
-                                width: 150,
-                                src: GetImageUrl(
-                                  product?.brand?.icon?.file_path
-                                ),
-                              })}
-                              height={10}
-                              style={{
-                                top: "0px",
-                                maxHeight: "100%",
-                                display: "flex",
-                              }}
-                              className="object-contain h-4 max-w-[90px] w-auto"
-                            />
-                          </div>
-                          <div className="text-[12px] mt-1 text-[#505050] flex regular">
-                            {product.name.substring(0, 30)}
-                          </div>
-                          <div className="flex-row items-center text-[12px] light text-[#505050] mt-1">
-                            <span className="ml-1.5"></span>
-                          </div>
-                          <div className="flex-row flex-wrap">
-                            {product.variations[0]?.color && (
-                              <div className="flex-row items-center text-[12px] regular text-[#505050] mt-1 mr-3">
-                                <CartColorIcon />
-                                <span
-                                  className={`ml-1.5 ${
-                                    language === "ar" && "dir-rtl"
-                                  }`}
-                                >
-                                  {translateFunction("Color")}:
-                                  <span className="regular">
-                                    {product.variations[0].color}
-                                  </span>
-                                </span>
-                              </div>
-                            )}
-                            {product.variations[0]?.Size && (
-                              <div className="flex-row items-center text-[12px] regular text-[#505050] mt-1">
-                                <CartSizeIcon />
-                                <span
-                                  className={`ml-1.5 ${
-                                    language === "ar" && "dir-rtl"
-                                  }`}
-                                >
-                                  {translateFunction("Size")}:
-                                  <span className="regular">
-                                    {product.variations[0].Size}
-                                  </span>
-                                </span>
-                              </div>
-                            )}
-                          </div>
-                          <div className="flex-row items-center text-[12px] regular text-[#505050] mt-1 mr-3">
-                            <PiecesIcon />
-                            <span
-                              className={`ml-1.5 text-[#8D8D8D] regular ${
-                                language === "ar" && "dir-rtl"
-                              }`}
-                            >
-                              {translate("Composed Of:")}{" "}
-                              <span className="regular">
-                                {product.count_of_pieces} {translate("Piece")}
-                              </span>
-                            </span>
-                          </div>
-                          {product.shipping_days && (
-                            <div className="flex-row whitespace-nowrap items-center text-[12px] regular text-[#505050] mt-1 mr-3">
-                              <DeleiveryIcon />
-                              <span
-                                className={`ml-1.5 whitespace-nowrap text-[#8D8D8D] regular ${
-                                  language === "ar" && "dir-rtl"
-                                }`}
-                              >
-                                {translate("Shipping")}{" "}
-                                <span className="regular whitespace-nowrap">
-                                  {product.shipping_days + shippingDurationDays}{" "}
-                                  {translate("Days")}{" "}
-                                  <span className="ml-1 underline">
-                                    {translate("Details")}
-                                  </span>
-                                </span>
-                              </span>
-                            </div>
-                          )}
-                        </div>
-                        <div className="absolute top-1 right-1">
-                          <input
-                            defaultValue={key + 1}
-                            type="number"
-                            min={1}
-                            disabled
-                            max={product.available_quantity}
-                            className="w-8 h-8 text-center items-center flex justify-center rounded-full border-[#70707079] border-[1px] border-solid outline-none bg-[#F8F8F8] text-[#8D8D8D] text-[14px] medium"
-                          />
-                        </div>
-                        <div className="absolute flex-row cursor-pointer items-center pl-3 pr-3 max-w-[90vw] bottom-[8px] left-[9px] mx-auto right-[0px] w-full h-[32px] rounded-[15px] bg-[#F8F8F8]">
-                          <span
-                            style={{
-                              height: "15px",
-                              scale: "0.8",
-                              transform: "translateY(-3px)",
-                            }}
-                          >
-                            <OldCartIcon />
-                          </span>
-                          <span className="text-[#8D8D8D] bold text-[12px] ml-1">
-                            {translate(
-                              "Out Of Bag!",
-                              LocalizationServiceClass.GetAppLanguage()
-                            )}{" "}
-                            <span className="regular">
-                              {translate("Time Running Out.")}{" "}
-                              <span className="bold">-30:00</span> |{" "}
-                              {translate("Add Again?")}
-                            </span>
-                          </span>
-                          <span className="ml-auto">
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="12"
-                              height="12"
-                              viewBox="0 0 12 12"
-                            >
-                              <g
-                                id="Group_11624"
-                                data-name="Group 11624"
-                                transform="translate(-65 -464)"
-                              >
-                                <g
-                                  id="Group_10756"
-                                  data-name="Group 10756"
-                                  transform="translate(65 464)"
-                                >
-                                  <path
-                                    id="Subtraction_1"
-                                    data-name="Subtraction 1"
-                                    d="M.262,9.636a.258.258,0,0,1-.156-.054.29.29,0,0,1-.1-.3L.675,7.091A4.792,4.792,0,0,1,0,4.636,4.554,4.554,0,0,1,4.458,0,4.554,4.554,0,0,1,8.914,4.636,4.555,4.555,0,0,1,4.458,9.273a4.341,4.341,0,0,1-2.5-.794L.409,9.589A.238.238,0,0,1,.262,9.636ZM4.416,6.982a.571.571,0,1,0,.562.571A.558.558,0,0,0,4.416,6.982Zm.115-4.55a.879.879,0,0,1,.954.88c0,.432-.183.7-.7,1.023a1.433,1.433,0,0,0-.817,1.288v.1c0,.319.171.518.447.518.255,0,.4-.162.426-.469.021-.445.181-.669.714-1a1.684,1.684,0,0,0-.987-3.16A1.8,1.8,0,0,0,2.812,2.6a1.186,1.186,0,0,0-.115.518.386.386,0,0,0,.413.434c.224,0,.349-.108.43-.372A.951.951,0,0,1,4.531,2.432Z"
-                                    transform="translate(0 2.364)"
-                                    fill="#8e8e8e"
-                                  />
-                                  <path
-                                    id="Path_21380"
-                                    data-name="Path 21380"
-                                    d="M10.677,9.661a.259.259,0,0,1-.157.055.237.237,0,0,1-.147-.047L8.824,8.559l-.017.011a5.314,5.314,0,0,0,.4-2.036A5.089,5.089,0,0,0,4.227,1.352a4.724,4.724,0,0,0-1.094.127A4.326,4.326,0,0,1,6.325.079a4.555,4.555,0,0,1,4.457,4.636,4.778,4.778,0,0,1-.675,2.455l.664,2.189a.287.287,0,0,1-.094.3Z"
-                                    transform="translate(0.23 0.466)"
-                                    fill="#8e8e8e"
-                                  />
-                                  <rect
-                                    id="Rectangle_4714"
-                                    data-name="Rectangle 4714"
-                                    width="11.536"
-                                    height="12"
-                                    transform="translate(0.464)"
-                                    fill="none"
-                                  />
-                                </g>
-                              </g>
-                            </svg>
-                          </span>
-                        </div>
-                      </CartItemLink>
-                      <div
-                        className="absolute right-4 top-[35px] hide-btn cursor-pointer z-40"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          // Sendevent({
-                          //   event: GA_EVENT_NAMES.CLICK,
-                          //   value:
-                          //     GA_CLICK_EVENT_VALUES.REMOVE_OLD_PRODUCT_ITEM_BUTTON,
-                          // });
-                          hideOldCart(product.id);
-                          home.hideOldCart({ id: product.id });
-                        }}
-                      >
-                        <span className="hide-btn cursor-pointer border border-solid border-[#69a8ff80] mx-2  rounded-md flex-row items-center justify-center px-3 py-2 text-[#69a8ff]">
-                          {translate(
-                            "Hide",
-                            LocalizationServiceClass.GetAppLanguage()
-                          )}
-                        </span>
-                      </div>
-                      <QuantutyInput
-                        id={product.id}
-                        product={product}
-                        updateData={async () => {}}
-                        isCollectedAfterOrdering={false}
-                        maxAllowed={product.max_allowed_qty}
-                        disabled={true}
-                        isHurry={false}
-                        value={product.quantity}
-                        max={product.available_quantity}
-                        setValue={() => {}}
-                        deleteFunction={() => {}}
-                      />
-                    </div>
-                  ))}
-                </>
-              ) : (
-                <>
-                  {[1, 1].map((s, key) => (
-                    <div
-                      className="flex-col bg-white pb-10 pt-2 pl-2 pr-2"
-                      key={key}
-                    >
-                      <div className="flex-row min-h-[50px] bg-[#f8f8f8] rounded-2xl justify-between items-center pl-5 pr-5">
-                        <Skeleton width={90} height={15} />
-                      </div>
-                      <div className="flex-col w-full">
-                        {[1, 1].map((s, key) => (
-                          <div
-                            className="flex-row w-full relative  min-h-[161px] bg-[#FEFEFE] mt-3 rounded-2xl overflow-hidden shadow-[0px_3px_10px_rgba(0,0,0,0.1)]"
-                            key={key}
-                          >
-                            <div className="flex-row w-[110px] min-h-[161px] relative">
-                              <Skeleton
-                                width={110}
-                                height={"100%"}
-                                borderRadius={15}
-                              />
-                            </div>
-                            <div className="flex-col mt-4 ml-5">
-                              <div className="h-[10px] overflow-hidden">
-                                <Skeleton
-                                  width={"90"}
-                                  height={10}
-                                  style={{
-                                    top: "0px",
-                                    maxHeight: "100%",
-                                    display: "flex",
-                                  }}
-                                />
-                              </div>
-                            </div>
-                            <div className="absolute right-4 bottom-3">
-                              <div className="product-info-price">
-                                <div className="product-old-price text-[18px] text-[#C4C2C2] regular">
-                                  <svg
-                                    className="bottom-3"
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    width="100%"
-                                    height="2"
-                                  >
-                                    <line
-                                      id="Line_1104"
-                                      data-name="Line 1104"
-                                      x2="100%"
-                                      transform="translate(0 1)"
-                                      fill="none"
-                                      stroke="#C4C2C2"
-                                      strokeWidth="2"
-                                    />
-                                  </svg>
-                                </div>
-                                <div className="product-new-price text-[18px] bold"></div>
-                                <div className="product-currency text-[8px] text-[#C4C2C2] regular"></div>
-                              </div>
-                            </div>
-                            <div className="absolute top-1 right-1"></div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                </>
-              )}
-            </div>
-          </div>
-        )}
+        <OldCartContainer />
       </div>
 
       {!cart_loading && cartShippingSuccess === null && (
@@ -1276,7 +922,7 @@ const HurryIcon = () => {
     </svg>
   );
 };
-const OldCartIcon = () => {
+export const OldCartIcon = () => {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -1397,42 +1043,8 @@ const OldCartIcon = () => {
     </svg>
   );
 };
-const CartItemTypeIcon = () => {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      xmlnsXlink="http://www.w3.org/1999/xlink"
-      width="10"
-      height="10"
-      viewBox="0 0 10 10"
-    >
-      <g
-        id="Mask_Group_329"
-        data-name="Mask Group 329"
-        transform="translate(0 0.36)"
-      >
-        <g id="dress" transform="translate(2 0.141)">
-          <path
-            id="Path_14636"
-            data-name="Path 14636"
-            d="M87.731,11.648l.628-.394a2.566,2.566,0,0,0,.993-1.162.184.184,0,0,1,.355.1l-.256,1.632a1.845,1.845,0,0,1-.848,1.283H86.862a1.845,1.845,0,0,1-.848-1.283l-.256-1.632a.184.184,0,1,1,.355-.1,2.566,2.566,0,0,0,.993,1.162l.628.394"
-            transform="translate(-84.342 -9.959)"
-            fill="#8d8d8d"
-          />
-          <path
-            id="Path_14637"
-            data-name="Path 14637"
-            d="M14.242,177.67l2.519,5.751a.958.958,0,0,0-1.356,0,.959.959,0,0,1-1.356,0,.958.958,0,0,0-1.356,0,.959.959,0,0,1-1.356,0,.958.958,0,0,0-1.356,0L12.5,177.67Zm0,0"
-            transform="translate(-9.979 -174.522)"
-            fill="#8d8d8d"
-          />
-        </g>
-      </g>
-    </svg>
-  );
-};
 
-const CartSizeIcon = () => {
+export const CartSizeIcon = () => {
   return (
     <svg
       id="Group_3130"
@@ -1578,7 +1190,7 @@ const CartSizeIcon = () => {
     </svg>
   );
 };
-const CartColorIcon = () => {
+export const CartColorIcon = () => {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -1616,7 +1228,7 @@ const CartColorIcon = () => {
   );
 };
 
-const PiecesIcon = () => {
+export const PiecesIcon = () => {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -1772,7 +1384,7 @@ const SavedIcon = () => {
     </svg>
   );
 };
-const QuantutyInput = ({
+export const QuantutyInput = ({
   value,
   setValue,
   max,
@@ -2217,7 +1829,7 @@ const QuantutyInput = ({
     </div>
   );
 };
-const CartItemLink = ({ product, children }) => {
+export const CartItemLink = ({ product, children }) => {
   const params = useParams();
   const { enableCart } = useAppStore();
   const router = useRouter();

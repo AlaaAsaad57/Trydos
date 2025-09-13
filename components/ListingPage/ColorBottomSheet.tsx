@@ -23,7 +23,7 @@ function ColorBottomSheet({ id, setActiveColor, activeColor }) {
               setColorBottomSheet(false);
             }}
           >
-            <div className="w-full pb-[40px] max-w-[1310px] min-h-[60vh] bg-white pt-[10px] flex flex-wrap gap-y-[18px] justify-center items-center">
+            <div className="w-full pb-[40px] max-w-[1310px] min-h-[60vh] bg-white pt-[10px] flex flex-wrap gap-y-[18px] gap-x-[4px] justify-center items-center">
               {ColorBottomSheet?.sync_color_images?.map((color, i) => (
                 <ProductColorCard
                   onClick={() => {

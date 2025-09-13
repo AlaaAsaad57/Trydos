@@ -313,14 +313,18 @@ export default function AddStoryWidget({ onClose }: AddStoryWidgetPropsType) {
     }
   };
 
-  const handleCameraClick = () => {
-    if (!cameraPermissions) {
+  const handleCameraClick = async () => {
+    if (cameraPermissions === "revoked") {
+      checkCameraPermissions();
       showErrorNotification(
         translateFunction(
-          "Please enable notification permissions to use camera features"
+          "Please enable camera permissions to use camera features"
         )
       );
       return;
+    }
+    if (cameraPermissions === "asked") {
+      await checkCameraPermissions();
     }
     // Sendevent({
     //   event: GA_EVENT_NAMES.CLICK,
@@ -383,7 +387,6 @@ export default function AddStoryWidget({ onClose }: AddStoryWidgetPropsType) {
   };
 
   useEffect(() => {
-    checkCameraPermissions();
     DisableScroll();
     // @ts-ignore
     document.querySelector(".stories-bar-container").style.zIndex =
@@ -393,7 +396,7 @@ export default function AddStoryWidget({ onClose }: AddStoryWidgetPropsType) {
       // @ts-ignore
       document.querySelector(".stories-bar-container").style.zIndex = "1";
     };
-  }, [checkCameraPermissions]);
+  }, []);
   return (
     <>
       {OpenCamera && (
@@ -464,7 +467,7 @@ export default function AddStoryWidget({ onClose }: AddStoryWidgetPropsType) {
             <button
               onClick={handleCameraClick}
               className={`flex items-center gap-3 p-3 rounded-lg ${
-                cameraPermissions
+                cameraPermissions !== "revoked"
                   ? "hover:bg-gray-100 cursor-pointer"
                   : "opacity-50 cursor-not-allowed bg-gray-50"
               }`}

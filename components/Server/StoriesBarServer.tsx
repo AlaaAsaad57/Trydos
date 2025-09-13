@@ -18,6 +18,8 @@ interface StoriesBarServerProps {
 }
 
 async function StoriesBarServer({ language, country }: StoriesBarServerProps) {
+  const isRtl = language === "ar" || language === "ku";
+
   try {
     // Get user token from cookies if available
     const STORIES_TOKEN = await getCookieServer<UserData>(
@@ -36,13 +38,18 @@ async function StoriesBarServer({ language, country }: StoriesBarServerProps) {
     return (
       <>
         <StoriesStoreInitializer initialStories={storiesData} />
-        <div className="stories-bar-container">
-          <div id="stories-bar" className="stories-bar">
+        <div className={` stories-bar-container`}>
+          <div
+            id="stories-bar"
+            className={`stories-bar ${isRtl && "flex-row-reverse"}`}
+          >
             <AddStory />
             {storiesData && storiesData ? (
               <HortiznalScrollBar
                 id="stories-bar-container"
-                className="flex h-full pl-[10px]"
+                className={`${
+                  isRtl && "flex-row-reverse"
+                } flex h-full pl-[10px]`}
               >
                 {storiesData.map((story, index) => (
                   <StoryElement

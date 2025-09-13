@@ -240,6 +240,7 @@ function SearchComponent({
           maxLength={90}
           data-cy="inputField"
           id="search-element"
+          disabled={!searchEnabled}
           className="search-input"
           // @ts-ignore
           placeholder={translateFunction("Search", lang?.split("-")[1])}

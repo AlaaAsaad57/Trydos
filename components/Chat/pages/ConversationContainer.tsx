@@ -490,7 +490,7 @@ function ConversationContainer({
         86400000 * 6
       )
         return day;
-      return language === "ar" ? d.toLocaleString("ar-EG") : dateString;
+      return dateString;
     },
     [language]
   );

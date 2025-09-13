@@ -12,7 +12,7 @@ async function RecomendedProducts({ lang, products, currencyData }) {
 
   if (featuredProducts?.data?.products?.length === 0) return <></>;
   return (
-    <div className="flex-col px-[12px] flex items-start max-w-full w-full">
+    <div className="flex-col px-[12px] flex items-start max-w-full w-full mt-[10px]">
       <DataSourceLogger
         dataSourceString={`Recomended Products Data Source from elastic ${featuredProducts?.data?.time} ms`}
       />

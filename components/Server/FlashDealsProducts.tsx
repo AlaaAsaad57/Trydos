@@ -16,7 +16,9 @@ async function FlashDealsProducts({
   const currency = currencyData;
   if (flashDealsProducts?.data?.products?.length === 0) return <></>;
   return (
-    <div className={`flex-col px-[12px] flex items-start max-w-full w-full`}>
+    <div
+      className={`flex-col px-[12px] flex items-start max-w-full w-full mt-[10px]`}
+    >
       <DataSourceLogger dataSourceString={dataSourceString} />
 
       <NextLink

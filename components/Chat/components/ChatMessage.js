@@ -413,7 +413,7 @@ function ChatMessage(props) {
               onClick={() => setOpen(true)}
               ref={refmessage}
               className={
-                "message-element-body flex-col message-body message-img-body product-share-message " +
+                "message-element-body flex-col message-body message-img-body product-share-message" +
                 props.type +
                 " " +
                 ` ${opens && "ac"}`
@@ -1489,7 +1489,7 @@ function ChatMessage(props) {
               onClick={() => setOpen(true)}
               ref={refmessage}
               className={
-                "message-element-body message-body message-img-body product-share-message " +
+                "message-element-body flex-col message-body message-img-body product-share-message " +
                 props.type
               }
               prefetch

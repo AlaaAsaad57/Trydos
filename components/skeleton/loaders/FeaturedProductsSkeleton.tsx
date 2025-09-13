@@ -4,7 +4,7 @@ import { translateFunction } from "utils/functions";
 
 function FeaturedProductsSkeleton({ lang }) {
   return (
-    <div className="flex-col px-[12px] flex items-start max-w-full w-full">
+    <div className="flex-col px-[12px] flex items-start max-w-full w-full mt-[10px]">
       <div className="flex-row h-[50px] w-full max-w-[1365px] px-[10px] items-center shadow-sm rounded-[15px] bg-[#f3f3f3] regular text-[#5d5d5d]">
         <span>
           <svg
@@ -18,7 +18,7 @@ function FeaturedProductsSkeleton({ lang }) {
           </svg>
         </span>
         <span className="ml-[12px]">
-          {translateFunction("Featured Products", lang.split("-")[1])}
+          <Skeleton height={18} width={38} borderRadius={5} />
         </span>
       </div>
       <div

@@ -6,8 +6,9 @@ import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 
 import { NavbarServerProps } from "models/componentType/HomePagePropsType";
 import { useState } from "react";
+import { useAppStore } from "store";
 
-async function NavbarServer({
+function NavbarServer({
   lang,
   mainCategory,
   categoriesData,
@@ -17,17 +18,25 @@ async function NavbarServer({
     const [activeCategory, setActiveCategory] = useState(mainCategory);
     const [loading, setLoading] = useState(false);
     const categories = categoriesData;
-
+    const { enable_search } = useAppStore();
     categories.sort((a, b) => (a.slug === mainCategory ? -1 : 1));
+    const [, language] = lang.split("-");
+    const isRtl = language === "ar" || language === "ku";
 
     return (
-      <div className="flex-row search-nav-holder">
+      <div
+        className={`${
+          isRtl ? "flex-row-reverse pr-[10px]" : "flex-row pl-[10px]"
+        }  search-nav-holder`}
+      >
         <SearchIcon time={time} />
 
         <HortiznalScrollBar
           id="categories-bar-container"
           className={`categories-bar-container mobile-bar ${
             loading && "scale-90 opacity-75"
+          } ${isRtl ? "flex-row-reverse" : "flex-row"} ${
+            enable_search && "p-0"
           }`}
           dataCy="categoryNavBar"
         >
@@ -35,6 +44,7 @@ async function NavbarServer({
             categories?.map((category, key) => (
               <div
                 className="flex"
+                key={key}
                 onClick={() => {
                   setLoading(true);
                   setActiveCategory(category?.slug);

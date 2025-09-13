@@ -43,7 +43,7 @@ function SearchIcon({ time }) {
         <DataSourceLogger
           dataSourceString={`Main Categories Data Source Elastic in ${time} ms`}
         />
-        <Search id="search-icon" className={`${focuse && "black-fill"}`} />
+        <Search id="search-icon" className={`z-50 ${focuse && "black-fill"}`} />
         <SearchComponent
           close={() => {
             EnableScroll();

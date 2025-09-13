@@ -12,7 +12,7 @@ import ChatPhoto from "./ChatPhoto";
 import { fetchData } from "utils/fetchData";
 import { REQUESTS_DATA } from "utils/Requests";
 import { showErrorNotification } from "store/notifications/reducer";
-import { useEffect }  from "react";
+import { useEffect } from "react";
 function ChatHeader({
   chats,
   activeChat,
@@ -57,9 +57,74 @@ function ChatHeader({
       }
     }
   };
-  useEffect(() => {
-    checkCameraPermissions();
-  }, [checkCameraPermissions]);
+  const audioCallFunction = async () => {
+    try {
+      if (cameraPermissions === "revoked") {
+        showErrorNotification(
+          translateFunction(
+            "Please enable notification permissions to use camera features"
+          )
+        );
+        return;
+      }
+      if (cameraPermissions === "asked") {
+        await checkCameraPermissions();
+      }
+      !callLoading &&
+        makeVoiceCall(
+          activeChat.id,
+          activeChat.channel_members.filter(
+            (s) => parseInt(s.user_id) !== parseInt(getUserChat()?.id)
+          )[0]?.user.name,
+          activeChat.channel_members.filter(
+            (s) => parseInt(s.user_id) !== parseInt(getUserChat()?.id)
+          )[0]?.user?.photo_path,
+          activeChat.channel_members.filter(
+            (s) => parseInt(s.user_id) !== parseInt(getUserChat()?.id)
+          )[0]?.user.mobile_phone
+        );
+    } catch (error) {
+      showErrorNotification(
+        translateFunction(
+          "Please enable notification permissions to use camera features"
+        )
+      );
+    }
+  };
+  const videoCallFunction = async () => {
+    try {
+      if (cameraPermissions === "revoked") {
+        showErrorNotification(
+          translateFunction(
+            "Please enable notification permissions to use camera features"
+          )
+        );
+        return;
+      }
+      if (cameraPermissions === "asked") {
+        await checkCameraPermissions();
+      }
+      !callLoading &&
+        makeVideoCall(
+          activeChat.id,
+          activeChat.channel_members.filter(
+            (s) => parseInt(s.user_id) !== parseInt(getUserChat()?.id)
+          )[0]?.user.name,
+          activeChat.channel_members.filter(
+            (s) => parseInt(s.user_id) !== parseInt(getUserChat()?.id)
+          )[0]?.user?.photo_path,
+          activeChat.channel_members.filter(
+            (s) => parseInt(s.user_id) !== parseInt(getUserChat()?.id)
+          )[0]?.user.mobile_phone
+        );
+    } catch (error) {
+      showErrorNotification(
+        translateFunction(
+          "Please enable notification permissions to use camera features"
+        )
+      );
+    }
+  };
   return (
     <div className="chat-screen-top">
       <ArrowIcon
@@ -116,49 +181,13 @@ function ChatHeader({
           <VideoIcon
             className={`${callLoading === "video" && "loading-svg"} vcall`}
             onClick={() => {
-              if (!cameraPermissions) {
-                showErrorNotification(
-                  translateFunction("Please enable notification permissions to use camera features")
-                );
-                return;
-              }
-              !callLoading &&
-                makeVideoCall(
-                  activeChat.id,
-                  activeChat.channel_members.filter(
-                    (s) => parseInt(s.user_id) !== parseInt(getUserChat()?.id)
-                  )[0]?.user.name,
-                  activeChat.channel_members.filter(
-                    (s) => parseInt(s.user_id) !== parseInt(getUserChat()?.id)
-                  )[0]?.user?.photo_path,
-                  activeChat.channel_members.filter(
-                    (s) => parseInt(s.user_id) !== parseInt(getUserChat()?.id)
-                  )[0]?.user.mobile_phone
-                );
+              videoCallFunction();
             }}
           ></VideoIcon>
           <CallIcon
             className={`${callLoading === "voice" && "loading-svg"} call`}
             onClick={() => {
-              if (!cameraPermissions) {
-                showErrorNotification(
-                  translateFunction("Please enable notification permissions to use camera features")
-                );
-                return;
-              }
-              !callLoading &&
-                makeVoiceCall(
-                  activeChat.id,
-                  activeChat.channel_members.filter(
-                    (s) => parseInt(s.user_id) !== parseInt(getUserChat()?.id)
-                  )[0]?.user.name,
-                  activeChat.channel_members.filter(
-                    (s) => parseInt(s.user_id) !== parseInt(getUserChat()?.id)
-                  )[0]?.user?.photo_path,
-                  activeChat.channel_members.filter(
-                    (s) => parseInt(s.user_id) !== parseInt(getUserChat()?.id)
-                  )[0]?.user.mobile_phone
-                );
+              audioCallFunction();
             }}
           ></CallIcon>
           <CancelCallIcon
