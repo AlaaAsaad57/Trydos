@@ -140,6 +140,7 @@ function OldCartContainer() {
       </div>
     );
   }
+  if (filteredOldCart?.length === 0) return <></>;
   return (
     <div
       className="flex-col bg-[#F8F8F8]  w-full h-auto mt-10"
