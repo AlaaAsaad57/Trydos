@@ -501,15 +501,7 @@ function ChatMessage(props) {
                     .product_name
                 }
               </span>
-              <span
-                className="text-[13px] px-[7px]"
-                dangerouslySetInnerHTML={{
-                  __html: JSON.stringify(
-                    JSON.parse(props.message.message_content.content)[0]
-                      ?.product_description
-                  ),
-                }}
-              ></span>
+
               <div className="message-date">{getMessageStatus()}</div>
             </NextLink>
             <div className="message-date hovers">
@@ -1575,15 +1567,6 @@ function ChatMessage(props) {
                   JSON.parse(props.message.message_content.content)[0]
                     .product_name
                 }
-                <span
-                  className="text-[13px] px-[7px]"
-                  dangerouslySetInnerHTML={{
-                    __html: JSON.stringify(
-                      JSON.parse(props.message.message_content.content)[0]
-                        ?.product_description
-                    ),
-                  }}
-                ></span>
               </span>
               <div className="other-date">
                 {getMessageTime(props.message.created_at, true)}

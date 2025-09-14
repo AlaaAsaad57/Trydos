@@ -187,10 +187,19 @@ const BuyersRatingBar = ({ language }) => {
     (100 * recomended) /
     (recomended + not_recomended)
   ).toFixed(0);
+  const isRtl = language === "ar" || language === "ku";
   return (
     <div className="flex-col w-full mt-[11px] pl-[10px] pr-[10px]">
-      <div className="flex-row items-center w-full justify-between">
-        <div className="flex-row regular items-center text-[#1d1d1d] text-[9px] gap-[4px]">
+      <div
+        className={`${
+          isRtl ? "flex-row-reverse" : "flex-row"
+        }  items-center w-full justify-between`}
+      >
+        <div
+          className={`${
+            isRtl ? "flex-row-reverse" : "flex-row"
+          }  regular items-center text-[#1d1d1d] text-[9px] gap-[4px]`}
+        >
           <RecomendedIcon />
           <span className="bold ">{recomended}</span>
           <span>{translateFunction("Buyer", language)}</span>
@@ -207,7 +216,11 @@ const BuyersRatingBar = ({ language }) => {
           </span>
         </div>
       </div>
-      <div className="flex-row rounded-[5px] w-full h-[4px] bg-[#FF6200] mt-[8px]">
+      <div
+        className={`${
+          isRtl ? "flex-row-reverse" : "flex-row"
+        } rounded-[5px] w-full h-[4px] bg-[#FF6200] mt-[8px]`}
+      >
         <div
           className={`bg-[#068D06] rounded-[5px] h-[4px]`}
           style={{
