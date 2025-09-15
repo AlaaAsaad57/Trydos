@@ -86,7 +86,7 @@ function ProductRedeemButton({ product }) {
   };
   const isRtl = languageVariable === "ar" || languageVariable === "ku";
 
-  // if (!shouldShow) return null;
+  if (!shouldShow) return null;
   return (
     <>
       {!shouldShowNotifyButton() && (
