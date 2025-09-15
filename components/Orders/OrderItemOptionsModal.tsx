@@ -55,6 +55,9 @@ function OrderItemOptionsModal({
     try {
       setIsInitializing(true);
       let id = await order.CreateReturnRequest({ order_id: ActivePacks.id });
+      if (!id) {
+        throw new Error();
+      }
       let details = await order.getReturnRequestDetails({
         order_id: ActivePacks.id,
         return_request_id: id,
