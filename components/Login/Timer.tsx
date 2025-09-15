@@ -4,7 +4,6 @@ import { useTimer as TimerUtil } from "react-timer-hook";
 
 interface TimerProps {
   onFinish: Function;
-
   minutes?: number;
   seconds?: number;
   onlySeconds?: boolean;

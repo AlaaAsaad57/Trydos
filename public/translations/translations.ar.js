@@ -1035,6 +1035,10 @@ const translations = {
   "Enable notifications for a more effortless shopping experience:":
     "فعّل الإشعارات لتجربة تسوق أكثر سهولة:",
   "Stay in the loop": "ابقَ على اطلاع",
+  "Luck!": "حظ!",
+  "Add To Bag Within ": "أضف إلى السلة خلال",
+  seconds: "ثواني",
+  "stroke of luck": "ضربة حظ",
 };
 
 export default translations;

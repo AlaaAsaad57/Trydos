@@ -52,6 +52,7 @@ import ProductImageIndicator from "components/products/ProductImageIndicator";
 import ProductFeatures from "components/products/ProductFeatures";
 import VirtualTryOn from "components/products/VirtualTryOn";
 import VirtualTryOnWrapper from "components/products/VirtualTryOnWrapper";
+import ProductRedeemCounter from "components/products/ProductRedeemCounter";
 // export const revalidate = parseInt(process.env.NEXT_PUBLIC_REVALIDATE);
 // For Middle East users
 
@@ -414,19 +415,6 @@ async function Page({ params, searchParams }: ProductPagePropsType) {
               Number(end - start) / 1_000_000
             } ms`}
           />
-
-          <div className="flex-col gap-[20px] mx-[5px] w-[150px] h-[19px] absolute top-[58px] left-[5px] z-[999999999]">
-            {product.label_names && (
-              <ProductsLabels
-                isProduct={true}
-                labels={
-                  typeof product.label_names === "string"
-                    ? JSON.parse(product.label_names)
-                    : product.label_names
-                }
-              />
-            )}
-          </div>
           <ProductBackButton productId={params.productId} lang={params.lang} />
           <div
             className="product-details-slider relative h-[474px] max-h-[474px]"
@@ -448,7 +436,7 @@ async function Page({ params, searchParams }: ProductPagePropsType) {
               {getImages(product, color)?.images?.map((img, i) => (
                 <div
                   className={`${
-                    i === 0 ? "z-[9999999999]" : "z-[88]"
+                    i === 0 ? "z-[99999999]" : "z-[88]"
                   } relative flex`}
                 >
                   <div
@@ -504,6 +492,12 @@ async function Page({ params, searchParams }: ProductPagePropsType) {
                             }
                           />
                         )}
+                      {product?.is_redeem && (
+                        <ProductRedeemCounter
+                          language={languageVariable}
+                          product_id={product?.id}
+                        />
+                      )}
                     </>
                   )}
                 </div>
@@ -573,7 +567,14 @@ async function Page({ params, searchParams }: ProductPagePropsType) {
                 <ProductGeneralProperties
                   languageVariable={params.lang?.split("-")?.[1]}
                 />
-                <ProductFeatures language={languageVariable} />
+                <ProductFeatures
+                  language={languageVariable}
+                  labels={
+                    typeof product.label_names === "string"
+                      ? JSON.parse(product.label_names)
+                      : product.label_names
+                  }
+                />
               </div>
 
               {product?.descriptors && product?.descriptors?.length > 0 && (

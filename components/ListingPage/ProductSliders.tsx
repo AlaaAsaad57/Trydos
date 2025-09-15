@@ -7,7 +7,7 @@ import ImageSlider from "./ImageSlider";
 
 export function ProductPhotosSlider({
   product,
-  priority,
+  shouldshowRedem,
   Sliders = true,
   image,
 }: ProductPhotosSliderPropsType) {
@@ -27,7 +27,7 @@ export function ProductPhotosSlider({
             controls={false}
             style={{
               border:
-                (product.flash_deal_end_date || product?.is_redeem) &&
+                (product.flash_deal_end_date || shouldshowRedem) &&
                 "1px solid #FF6200",
             }}
             className="w-full object-cover h-[290px] border-[#d3d3d387] border-[1px] rounded-15 z-10"
@@ -48,7 +48,7 @@ export function ProductPhotosSlider({
             })}
             style={{
               border:
-                (product.flash_deal_end_date || product?.is_redeem) &&
+                (product.flash_deal_end_date || shouldshowRedem) &&
                 "1px solid #FF6200",
             }}
             key={image}
@@ -93,9 +93,7 @@ export function ProductPhotosSlider({
               )} */}
 
           <ImageSlider
-            showBorder={Boolean(
-              product.flash_deal_end_date || product?.is_redeem
-            )}
+            showBorder={Boolean(product.flash_deal_end_date || shouldshowRedem)}
             product_name={product.name}
             image={image}
             key={`Color Images Slider`}

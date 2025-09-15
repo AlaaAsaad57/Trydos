@@ -11,6 +11,7 @@ import { useAppStore } from "store";
 import { GA_GLOBAL_SCREEN } from "utils/GAEvents";
 import { GetImageUrl } from "utils/tinyUtils";
 import CoverEffectSlider from "components/ListingPage/CoverEffectSlider";
+import { useVisibilityTimer } from "hooks/useVisibilityTimer";
 
 function ProductCard({
   product,
@@ -42,7 +43,7 @@ function ProductCard({
       return { images: product?.images };
     }
   };
-  const { setColorBottomSheet } = useAppStore();
+  const { setColorBottomSheet, isNavigating } = useAppStore();
   const [shouldShowRedeemAction, setShouldShowRedeem] = useState(false);
   const [activeColor, setActiveColor] = useState(getImagesOfProducts());
 
@@ -79,9 +80,58 @@ function ProductCard({
       })
     );
   };
+  const configureRedeemedProducts = () => {
+    let redeemed_products_ids = getCookie<any>("redemed_ids");
 
+    if (redeemed_products_ids) {
+      let parsed_redeemed_products_ids = redeemed_products_ids
+        ? redeemed_products_ids
+        : [];
+      if (
+        !parsed_redeemed_products_ids?.find((s) => s.id === product?.product_id)
+      ) {
+        let MAX_ARRAY_LENGTH =
+          parseInt(process.env.NEXT_PUBLIC_MAX_ARRAY_LENGTH) || 5;
+        if (parsed_redeemed_products_ids.length < MAX_ARRAY_LENGTH)
+          setCookie("redemed_ids", [
+            ...parsed_redeemed_products_ids,
+            { id: product?.product_id, showingDate: new Date().toISOString() },
+          ]);
+        else
+          setCookie("redemed_ids", [
+            ...parsed_redeemed_products_ids.slice(1, MAX_ARRAY_LENGTH),
+            { id: product?.product_id, showingDate: new Date().toISOString() },
+          ]);
+      } else {
+        return;
+      }
+    } else {
+      setCookie("redemed_ids", [
+        { id: product?.product_id, showingDate: new Date().toISOString() },
+      ]);
+    }
+  };
+  const {
+    seconds,
+    minutes,
+    hours,
+    days,
+    isRunning,
+    start,
+    pause,
+    resume,
+    restart,
+    timerRef,
+  } = useVisibilityTimer({
+    expiryTimestamp: new Date(Date.now() + 50000),
+    onExpire: () => {
+      if (!isNavigating) {
+        configureRedeemedProducts();
+      }
+    },
+  });
   return (
-    <div className="relative flex">
+    <div className="relative flex" ref={timerRef}>
       <ColorBottomSheet
         id={product.product_id}
         setActiveColor={(e) => {
@@ -154,7 +204,7 @@ function ProductCard({
             image={
               activeColor.images?.[0]?.file_path || activeColor?.images?.[0]
             }
-            priority={true}
+            shouldshowRedem={shouldShowRedeem()}
           />
 
           <div className="product-body flex-1 mt-[8px] w-100 flex-col align-start justify-start max-h-[60px] min-h-[30px]">
@@ -194,6 +244,7 @@ function ProductCard({
         </NextLink>
 
         <BuyButtonProduct
+          seconds={seconds}
           setShouldShowRedeem={setShouldShowRedeem}
           shouldShowRedeem={shouldShowRedeemAction}
           product={product}

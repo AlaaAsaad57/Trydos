@@ -12,6 +12,7 @@ export const BuyButtonProduct = ({
   product,
   params,
   currency,
+  seconds,
   language,
   isForColor = false,
   shouldShowRedeem = false,
@@ -343,7 +344,6 @@ export const BuyButtonProduct = ({
           }}
           id={product.product_id}
           redeem_price={product.redeem_price}
-          flash_deal_price={product?.flash_deal_price}
           currency={currency}
           shouldShowRedeem={shouldShowRedeem && product?.is_redeem}
           buy={(e) => {
@@ -370,7 +370,7 @@ export const BuyButtonProduct = ({
       </div>
       {product.is_redeem && shouldShowRedeem && (
         <>
-          <RedeemButton />
+          <RedeemButton seconds={seconds} />
         </>
       )}
       <BuyButton
@@ -378,8 +378,8 @@ export const BuyButtonProduct = ({
           setShouldShowRedeem(false);
         }}
         id={product.product_id}
-        flash_deal_price={isValid() ? Number(product?.flash_deal_price) : null}
         redeem_price={product.redeem_price}
+        seconds={seconds}
         currency={currency}
         shouldShowRedeem={shouldShowRedeem && product?.is_redeem}
         buy={(e) => {

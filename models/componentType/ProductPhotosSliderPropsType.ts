@@ -10,7 +10,7 @@ export interface ProductPhotosSliderPropsType {
     slug: string;
     is_redeem?: boolean;
   };
-  priority?: boolean;
+  shouldshowRedem?: boolean;
   image?: string;
   Sliders?: boolean;
 }

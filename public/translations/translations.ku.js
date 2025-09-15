@@ -1075,6 +1075,10 @@ const translations = {
   "Enable notifications for a more effortless shopping experience:":
     "ئاگادارکردنەوەکان چالاک بکە بۆ ئەوەی بازاڕکردنێکی ئاسانتر بەدەست بهێنی:",
   "Stay in the loop": "له ئاگاداربووندا بمێنە",
+  "Luck!": "بەخت!",
+  "Add To Bag Within ": "زیاد بکە بۆ جانتاکە لە ناو",
+  seconds: "چرکە",
+  "stroke of luck": "لێدانێکی بەخت",
 };
 
 export default translations;
