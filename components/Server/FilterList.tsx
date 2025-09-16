@@ -55,7 +55,9 @@ function FilterList({
         <HortiznalScrollBar
           id="filter-list-row-container"
           className={`${
-            isRtl ? "flex-row-reverse mr-[45px]" : "flex-row ml-[45px]"
+            isRtl
+              ? "flex-row-reverse flex mr-[45px]"
+              : "flex-row flex ml-[45px]"
           }  items-center pr-[20px]   justify-start align-start filter-container overflow-auto scroll-smooth`}
         >
           {Object.keys(filters).map((filter, index) => {

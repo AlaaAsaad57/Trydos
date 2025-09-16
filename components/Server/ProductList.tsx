@@ -27,7 +27,7 @@ function ProductListServer({
   return (
     <div
       className={`${
-        isRtl ? "flex-row-reverse" : "flex-row"
+        isRtl ? "flex-row-reverse flex" : "flex flex-row"
       } listing-container justify-around bg-[#f4f4f4] min-w-full min-h-[48vh] relative  pb-[350px] max-w-[1310px] flex-wrap`}
     >
       {products.map((product, key) => {

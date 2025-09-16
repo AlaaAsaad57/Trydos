@@ -169,7 +169,7 @@ export default function BottomSheet({
       >
         <div
           ref={sheetRef}
-          className={`w-full rounded-t-[30px] max-h-[${height}vh] bg-white p-1 sm:p-4 shadow-2xl overflow-y-auto`}
+          className={`w-full rounded-t-[30px] max-h-[${height}vh] bg-white p-1 sm:p-4 shadow-2xl overflow-y-auto max-w-[1365px]`}
           style={{
             willChange: "transform",
           }}
