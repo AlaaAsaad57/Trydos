@@ -132,7 +132,8 @@ p {
   flex-direction: row;
 }
 
-.flex-row-rev {
+.flex-row-rev,
+.flex-row-reverse {
   display: flex;
   flex-direction: row-reverse;
 }
