@@ -1,7 +1,5 @@
 import React from "react";
-import FeaturedBanner from "./FeaturedBanner";
 import FlashDealBanner from "./FlashDealBanner";
-import ProductsLabels from "./ProductsLabels";
 
 function ProductBanner({ flashDeals }) {
   if (!flashDeals) return <></>;
