@@ -152,7 +152,8 @@ function OrderDetails({
         let selected_pack = selectedOrder?.details?.find(
           (det) => det.id === parseInt(order_id)
         );
-        getChatWithShipping(parseInt(order_id));
+        let chat_id = searchParams.get("chat_id");
+        getChatWithShipping(parseInt(chat_id ?? order_id));
       }
     } catch (error) {
       setShouldUpdateOrders(0);
