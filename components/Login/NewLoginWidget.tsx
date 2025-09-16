@@ -386,7 +386,7 @@ function NewLoginWidget() {
       <div
         data-testid="login-widget-container"
         data-cy="login-widget-container"
-        className={`login-widget-container  z-[99999999999] login-w2-container pb-${stepIndicator} step${stepIndicator}`}
+        className={`login-widget-container  z-[99999999999] login-w2-container lg2:right-5 lg2:top-[82px] pb-${stepIndicator} step${stepIndicator}`}
         id="widget-auth"
         style={{
           backgroundColor: stepIndicator >= 6 && getPageColor(),

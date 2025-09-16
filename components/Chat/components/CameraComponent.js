@@ -26,8 +26,8 @@ const WebcamCapture = ({ imgs, send, setImgs, imageFile, close }) => {
     <>
       {imageFile.current && imageFile.current !== "null" ? (
         <>
-          <div className="button-bases">
-            <button className="opacity-hidden">
+          <div className="fixed bottom-[20px] left-[10px] w-full flex items-center justify-around z-[99999999999]">
+            <button className="w-[50px] opacity-0 h-[50px] cursor-pointer rounded-full bg-[#dddddd] p-[10px] flex items-center justify-center shadow-[0_3px_6px_#0000002a]">
               <svg
                 version="1.1"
                 id="Layer_1"
@@ -53,6 +53,7 @@ const WebcamCapture = ({ imgs, send, setImgs, imageFile, close }) => {
             </button>
 
             <button
+              className="w-[50px] h-[50px] cursor-pointer rounded-full bg-[#dddddd] p-[10px] flex items-center justify-center shadow-[0_3px_6px_#0000002a]"
               onClick={() => {
                 send(imageFile.current);
                 imageFile.current = null;
@@ -60,7 +61,10 @@ const WebcamCapture = ({ imgs, send, setImgs, imageFile, close }) => {
             >
               <SendIcon />
             </button>
-            <button onClick={() => (imageFile.current = null)}>
+            <button
+              className="w-[50px] h-[50px] cursor-pointer rounded-full bg-[#dddddd] p-[10px] flex items-center justify-center shadow-[0_3px_6px_#0000002a]"
+              onClick={() => (imageFile.current = null)}
+            >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="17.828"
@@ -115,8 +119,9 @@ const WebcamCapture = ({ imgs, send, setImgs, imageFile, close }) => {
             width={430}
             videoConstraints={webcamTypeRef.current}
           />
-          <div className="button-bases">
+          <div className="fixed bottom-[20px] left-[10px] w-full flex items-center justify-around z-[99999999999]">
             <button
+              className="w-[50px] h-[50px] cursor-pointer rounded-full bg-[#dddddd] p-[10px] flex items-center justify-center shadow-[0_3px_6px_#0000002a]"
               onClick={() => {
                 if (hasTwoCameras()) {
                   showErrorNotification(
@@ -155,10 +160,14 @@ const WebcamCapture = ({ imgs, send, setImgs, imageFile, close }) => {
               </svg>
             </button>
 
-            <button onClick={capture}>
+            <button
+              className="w-[50px] h-[50px] cursor-pointer rounded-full bg-[#dddddd] p-[10px] flex items-center justify-center shadow-[0_3px_6px_#0000002a]"
+              onClick={capture}
+            >
               <CameraIcon className="scale-150" />
             </button>
             <button
+              className="w-[50px] h-[50px] cursor-pointer rounded-full bg-[#dddddd] p-[10px] flex items-center justify-center shadow-[0_3px_6px_#0000002a]"
               onClick={() => {
                 imageFile.current = null;
                 close();

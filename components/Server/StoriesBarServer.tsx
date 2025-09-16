@@ -49,7 +49,7 @@ async function StoriesBarServer({ language, country }: StoriesBarServerProps) {
                 id="stories-bar-container"
                 className={`${
                   isRtl && "flex-row-reverse"
-                } flex h-full pl-[10px]`}
+                } flex h-full pl-[10px] gap-[15px]`}
               >
                 {storiesData.map((story, index) => (
                   <StoryElement

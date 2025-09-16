@@ -9,9 +9,9 @@ function Index() {
   return (
     <>
       {
-        <div className="stories-bar-container">
+        <div className="stories-bar-container flex h-[200px] items-center justify-start">
           <div id="stories-bar" className="stories-bar">
-            <div className="stories-bars">
+            <div className="stories-bars justify-start flex cursor-pointer items-center gap-[15px]">
               {user?.id && <AddStory />}
 
               {storiesData.map((story, index) => (

@@ -152,7 +152,7 @@ export const BuyButtonProduct = ({
         );
       }
     }
-    if (product.is_redeem && shouldShowRedeem) {
+    if (product.is_redeem && shouldShowRedeem && seconds > 0) {
       if (product.offer_price >= 0 && product.offer_price !== product.price) {
         return (
           <>
@@ -368,7 +368,7 @@ export const BuyButtonProduct = ({
           </span>
         </div>
       </div>
-      {product.is_redeem && shouldShowRedeem && (
+      {product.is_redeem && shouldShowRedeem && seconds > 0 && (
         <>
           <RedeemButton seconds={seconds} />
         </>

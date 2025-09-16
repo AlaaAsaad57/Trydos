@@ -127,6 +127,7 @@ function ProductCard({
     onExpire: () => {
       if (!isNavigating) {
         configureRedeemedProducts();
+        setShouldShowRedeem(false);
       }
     },
   });

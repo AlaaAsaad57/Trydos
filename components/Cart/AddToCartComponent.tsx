@@ -2182,7 +2182,7 @@ const AddToCartButton = ({
         <div data-cy="cart_icon_and_statment" className="button-desc">
           <div
             data-cy="cart_ic0n_container"
-            className={`flex-row justify-end relative image-container-cart pr-[0px] max-w-[30px]`}
+            className={`flex-row justify-end relative w-full pr-[0px] max-w-[30px]`}
           >
             {showImagesOfProductInCart()}
             {getTotalQuantity() > 0 && !loading && (
@@ -2272,7 +2272,7 @@ const NotifyCartButton = ({
         <div data-cy="notify_statement" className="button-desc">
           <div
             data-cy="notify_statement_1"
-            className={`flex-row  justify-end relative image-container-cart pr-0`}
+            className={`flex-row  justify-end relative w-full pr-0`}
           >
             <span data-cy="notify_statement_2" className="mt-1">
               {isNotified

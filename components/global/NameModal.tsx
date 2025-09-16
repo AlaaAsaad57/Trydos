@@ -20,7 +20,9 @@ function NameModal() {
   return (
     <>
       <div
-        className={`lang-modalDisable ${Open && "open"}`}
+        className={`fixed inset-0 w-screen h-screen bg-black/30 z-[9999999999998] ${
+          Open && "open"
+        }`}
         onClick={(e) => {
           close();
         }}

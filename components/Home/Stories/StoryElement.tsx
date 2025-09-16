@@ -10,7 +10,7 @@ import { StoryElementPropsType } from "models/componentType/StoryElementPropsTyp
 function StoryElement({ index, story, userData }: StoryElementPropsType) {
   if (userData?.id === story?.id)
     return (
-      <div className="story-element-container">
+      <div className="min-w-[100px] relative w-[100px] h-[150px] rounded-[20px] flex">
         <StoryAvatar
           isSeen={story.stories.filter((s) => s.is_seen === false).length === 0}
           avatar={
@@ -35,7 +35,7 @@ function StoryElement({ index, story, userData }: StoryElementPropsType) {
     );
   else
     return (
-      <div className="story-element-container">
+      <div className="relative w-[100px] h-[150px] rounded-[20px] flex">
         <StoryAvatar
           isSeen={story.stories.filter((s) => s.is_seen === false).length === 0}
           avatar={

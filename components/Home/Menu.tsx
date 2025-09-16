@@ -1,25 +1,30 @@
 import React, { useState } from "react";
 
-import {
-  getUserChat,
-  getUserStories,
-  translateFunction,
-} from "utils/functions";
+import { translateFunction } from "utils/functions";
 import NextLink from "components/global/NextLink";
+import NotificationSkeleton from "components/skeleton/NotificationSkeleton";
+
 import { useParams, usePathname } from "next/navigation";
-import NotificationsPanel from "../Notifications/NotificationsPanel";
+
+const NotificationsPanel = dynamic(
+  () => import("../Notifications/NotificationsPanel"),
+  {
+    ssr: false,
+    loading: () => <NotificationSkeleton />,
+  }
+);
 import WishListPanel from "../WishList/WishListPanel";
 import Spinner from "components/global/Spinner";
 import auth from "services/auth";
 import {
   COOKIE_NAMES,
   deleteCookie,
-  deleteCookieServer,
   getCookie,
   setCookie,
   UserData,
 } from "utils/cookies/cookie-manager";
 import { getReferralSource } from "utils/tinyUtils";
+import dynamic from "node_modules/next/dynamic";
 
 interface MenuProps {
   user: any;

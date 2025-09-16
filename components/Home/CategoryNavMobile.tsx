@@ -32,7 +32,7 @@ function CategoryNavMobile({
       }}
       ariaLabel={`Category ${slug} ${params?.lang}`}
       data-cy="category-Link"
-      className={`categories-bar-item ${
+      className={`categories-bar-item  cursor-pointer ${
         decodeURI(params.mainCategory) === slug && "active-nav-category"
       }`}
       key={myKey}

@@ -441,12 +441,20 @@ export default function AddStoryWidget({ onClose }: AddStoryWidgetPropsType) {
           <div className="flex-1 flex items-center w-1/2 justify-center border-r border-gray-200 pr-4">
             {preview ? (
               <div className="relative w-full h-[300px] rounded-lg overflow-hidden">
-                <Image
-                  src={preview}
-                  alt="Preview"
-                  fill
-                  className="object-contain"
-                />
+                {preview?.includes("video") ? (
+                  <video
+                    controls={false}
+                    className="object-contain"
+                    src={preview}
+                  ></video>
+                ) : (
+                  <Image
+                    src={preview}
+                    alt="Preview"
+                    fill
+                    className="object-contain"
+                  />
+                )}
                 <button
                   onClick={handleClearPreview}
                   className="absolute top-2 right-2 bg-black/50 text-white p-2 rounded-full"

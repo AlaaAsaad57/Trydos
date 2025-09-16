@@ -19,7 +19,6 @@ import Skeleton from "react-loading-skeleton";
 import { useAppStore } from "store";
 import ProductColors from "components/products/ProductColors";
 import { GetImageUrl } from "utils/tinyUtils";
-import ProductsLabels from "components/products/ProductsLabels";
 import ProductVideo from "components/products/ProductVideo";
 import ProductImagesSlider from "components/products/ProductImageSlider";
 import FlashDealBanner from "components/products/FlashDealBanner";
@@ -215,18 +214,6 @@ function ProductLoader({ product }) {
           overflowX: "hidden",
         }}
       >
-        <div className="flex-col gap-[20px] mx-[5px] w-[150px] h-[19px] absolute top-[58px] left-[5px] z-[999999999]">
-          {product.label_names && (
-            <ProductsLabels
-              isProduct={true}
-              labels={
-                typeof product.label_names === "string"
-                  ? JSON.parse(product.label_names)
-                  : product.label_names
-              }
-            />
-          )}
-        </div>
         {/* <ProductBackButton productId={params.productId} lang={params.lang} /> */}
         <div
           className="product-details-slider mim-h-[464px] relative h-[474px] max-h-[474px]"

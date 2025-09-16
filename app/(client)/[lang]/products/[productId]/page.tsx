@@ -25,7 +25,6 @@ import ProductColors from "components/products/ProductColors";
 import ProductBackButton from "components/products/ProductBackButton";
 import FlashDealBanner from "components/products/FlashDealBanner";
 import { ProductPagePropsType } from "models/componentType/productTypes/productPagePropsType";
-import ProductsLabels from "components/products/ProductsLabels";
 import { GetProductData } from "utils/pagesDataRequests/ProductPageData";
 import { generateCodeCurrency } from "../../MetaData";
 import { redirect } from "next/navigation";

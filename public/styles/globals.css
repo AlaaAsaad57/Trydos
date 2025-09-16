@@ -918,15 +918,6 @@ a {
 .categories-bar-item-name {
   width: auto !important;
 }
-
-.home-navbar {
-  flex-direction: row !important;
-  min-height: 98px;
-  align-items: flex-start !important;
-  padding: 52px 20px 0;
-  background-color: #fff;
-}
-
 .nav-question-item:nth-child(2) {
   margin-left: 0;
 }
@@ -1043,7 +1034,6 @@ svg {
   }
 }
 
-.home-navbar,
 .home-page-container {
   display: flex;
   width: 100%;
@@ -1176,8 +1166,6 @@ input[type="number"] {
     top: 0px;
     opacity: 1;
     z-index: 999999999;
-    padding: 40px 30px;
-
     background: #fafafa;
   }
 }
@@ -1305,10 +1293,6 @@ input[type="number"] {
 .orange-border {
   border: 1px solid #ff6200;
 }
-.flex-row-reverse {
-  flex-direction: row-reverse;
-  display: flex;
-}
-.items-end {
-  align-items: end;
+svg {
+  overflow: visible;
 }

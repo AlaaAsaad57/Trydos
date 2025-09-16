@@ -181,7 +181,7 @@ class AuthService {
         throw new Error(res.message);
       }
       let chat_update = await fetchData({
-        url: `/api/v1/users/${(this.UserID() as any)?.id}`,
+        url: `/api/v1/users/${this.UserID()}`,
         reqTitle: REQUESTS_DATA.UPDATE_NAME_IN_CHAT,
         method: "PUT",
         server: "chat",
@@ -354,7 +354,7 @@ class AuthService {
       }
       if (userChat && user && userChat?.id) {
         let chat_update = await fetchData({
-          url: `/api/v1/users/${(this.UserID() as any)?.id}`,
+          url: `/api/v1/users/${this.UserID()}`,
           reqTitle: REQUESTS_DATA.UPDATE_NAME_IN_CHAT,
           method: "PUT",
           server: "chat",
@@ -442,7 +442,7 @@ class AuthService {
       }
       if (chat_done) {
         let res = await fetchData({
-          url: `/api/v1/users/${(this.UserID() as any)?.id}`,
+          url: `/api/v1/users/${this.UserID()}`,
           reqTitle: REQUESTS_DATA.UPDATE_NAME_IN_CHAT,
           method: "PUT",
           server: "chat",

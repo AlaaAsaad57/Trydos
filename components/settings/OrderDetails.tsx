@@ -54,15 +54,6 @@ function OrderDetails({
 }: OrderDetailsPropsType) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  useEffect(() => {
-    if (searchParams.get("order_id_chat")) {
-      let order_id = searchParams.get("order_id_chat");
-      let selected_pack = selectedOrder.details?.find(
-        (det) => det.id === parseInt(order_id)
-      );
-      getChatWithShipping(parseInt(order_id));
-    }
-  }, []);
 
   const {
     setOrderDetails,
@@ -156,6 +147,13 @@ function OrderDetails({
       setOrderDetails(orderData);
       setIsNavigating(false);
       setShouldUpdateOrders(0);
+      if (searchParams.get("order_id_chat")) {
+        let order_id = searchParams.get("order_id_chat");
+        let selected_pack = selectedOrder?.details?.find(
+          (det) => det.id === parseInt(order_id)
+        );
+        getChatWithShipping(parseInt(order_id));
+      }
     } catch (error) {
       setShouldUpdateOrders(0);
       setIsNavigating(false);
@@ -375,7 +373,14 @@ function OrderDetails({
             key={s}
             isGettingChat={isGettingChat}
             setIsGettingChat={setIsGettingChat}
-            getChatWithShipping={() => getChatWithShipping(s)}
+            getChatWithShipping={() => {
+              if (
+                ActivePacks?.return_details?.details?.status?.value ===
+                "out_for_return"
+              )
+                getChatWithShipping(ActivePacks?.return_request_id);
+              else getChatWithShipping(s);
+            }}
             id={s}
           />
         );

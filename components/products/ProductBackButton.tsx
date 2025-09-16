@@ -38,7 +38,7 @@ function ProductBackButton({ lang, productId }) {
   if (typeof localStorage === "undefined")
     return (
       <div
-        className="back-bar align-center w-100 flex-row h-[50px]"
+        className="back-bar align-center w-100 flex-row h-[50px] justify-between"
         suppressHydrationWarning
       >
         <NextLink

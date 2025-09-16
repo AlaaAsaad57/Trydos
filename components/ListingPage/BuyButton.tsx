@@ -21,7 +21,7 @@ function BuyButton({
     return translateFunction(key, languageVariable);
   };
   const showOrangeFont = () => {
-    if (shouldShowRedeem) return "text-[#FF6200]";
+    if (shouldShowRedeem && seconds > 0) return "text-[#FF6200]";
     else return "text-[#414141]";
   };
   return (
@@ -35,13 +35,15 @@ function BuyButton({
           onExpire();
         }}
       >
-        {shouldShowRedeem && <LuckyDrawTimer id={id} seconds={seconds} />}
+        {shouldShowRedeem && seconds > 0 && (
+          <LuckyDrawTimer id={id} seconds={seconds} />
+        )}
         <div className="flex flex-row items-center">
           <div className="text-[10px] pt-[2px] flex align-start regular items-center gap-[2px]">
             <span>
               {translate("Buy", LocalizationServiceClass.GetAppLanguage())}
             </span>
-            {shouldShowRedeem ? (
+            {shouldShowRedeem && seconds > 0 ? (
               <div className="flex-row flex gap-[2px] items-center">
                 <span
                   className="text-[10px] pt-[2px] flex align-start bold"

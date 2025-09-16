@@ -99,7 +99,7 @@ function ListingSkeleton({
                         <Image
                           loading={"eager"}
                           fetchPriority={"high"}
-                          style={{ borderRadius: "15px" }}
+                          style={{ borderRadius: "15px", height: "auto" }}
                           className="OfferImage object-cover"
                           src={getConfiguredImage({
                             src: GetImageUrl(boutique.banners[0]?.file_path),

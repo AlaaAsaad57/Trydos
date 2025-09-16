@@ -1,78 +1,10 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { fetchCountries } from "utils/tinyUtils";
-// const getCountryAndLang = ({ request, supportedCountries }) => {
-//   const url = request.nextUrl.clone();
-//   const pathname = url.pathname;
-//   let obj = { country: null, language: null };
-//   let localUrl = parseUrlLocale(pathname);
-//   // if url has valid data
-//   if (localUrl) {
-//     if (
-//       localUrl.country &&
-//       supportedCountries.find(
-//         (s) => s.toLowerCase() === localUrl.country?.toLowerCase()
-//       )
-//     ) {
-//       obj = { ...obj, country: localUrl.country };
-//     }
-//     if (
-//       localUrl.language &&
-//       SUPPORTED_LANGUAGES.find(
-//         (s) => s.toLowerCase() === localUrl?.language?.toLowerCase()
-//       )
-//     ) {
-//       obj = { ...obj, language: localUrl.language };
-//     }
-//   }
-//   //  if cookies has valid data
-//   const countryFromCookies = request.cookies.get("country")?.value;
-//   const langFromCookies =
-//     request.cookies.get("lang")?.value ||
-//     request.cookies.get("language")?.value;
-//   const cookieValidation = validateCookieValues(
-//     countryFromCookies,
-//     langFromCookies,
-//     supportedCountries
-//   );
-//   if (cookieValidation.country && !obj.country) {
-//     obj = { ...obj, country: cookieValidation.country };
-//   }
-//   if (cookieValidation.language && !obj.language) {
-//     obj = { ...obj, language: cookieValidation.language };
-//   }
-//   // if default geo/lang
-//   const acceptLanguage = request.headers.get("accept-language")?.toLowerCase();
-//   const geoCountry = request.geo?.country?.toLowerCase();
 
-//   if (geoCountry && supportedCountries.includes(geoCountry) && !obj.country) {
-//     obj = { ...obj, country: geoCountry };
-//   }
-//   if (
-//     acceptLanguage &&
-//     SUPPORTED_LANGUAGES.includes(acceptLanguage) &&
-//     !obj.language
-//   ) {
-//     obj = { ...obj, language: acceptLanguage };
-//   }
-//   if (!obj.country) {
-//     obj = { ...obj, country: DEFAULT_COUNTRY };
-//   }
-//   if (!obj.language) {
-//     obj = { ...obj, language: DEFAULT_LANGUAGE };
-//   }
-//   return { ...obj, local: `${obj.country}-${obj.language}` };
-// };
 // Constants
 const SUPPORTED_LANGUAGES = ["en", "ar", "tr", "ku"];
 const DEFAULT_LANGUAGE = "en";
 const DEFAULT_COUNTRY = "gb";
-const CACHE_TTL = 60 * 60 * 1000 * 24; // 1 day
 
-// Cache for countries
-let cachedCountries: any;
-let cacheTimestamp = 0;
-let cachedLanguages: any;
-let cacheLanguagesTimestamp = 0;
 // Cookie options
 const COOKIE_OPTIONS = {
   path: "/",
@@ -82,42 +14,25 @@ const COOKIE_OPTIONS = {
   maxAge: 360 * 7 * 24 * 60 * 60,
 };
 
-// Paths that should skip guest registration
-const SKIP_REGISTRATION_PATHS = [
-  "/api",
-  "/_next",
-  "/static",
-  "/favicon.ico",
-  "/robots.txt",
-  "/sitemap.xml",
-  "/manifest.json",
-  "/firebase-messaging-sw.js",
-  "/api-test",
-  "/requests-log",
-  "/sitemap",
-  "/manifest.json",
-  "/error.png",
-  "/assets",
-  "/svg",
-  "/fonts",
-  "/translations",
-  "/reports",
-  "/images",
-  "/styles",
-  "/endCall",
-  "/sitemap.xml",
-  "/svg",
-  "/call_direct",
-  "/error.png",
-  "/static",
-  "/noposter",
-  "/revalidate",
-  "/callInProg",
-  "/selectCountry",
-  "/.well-known/appspecific/com.chrome.devtools.json",
-  "/.well-known/appspecific/com.chrome.devtools.json",
-  "/appspecific/com.chrome.devtools.json",
-];
+// Types
+interface LocaleInfo {
+  country: string;
+  language: string;
+  locale: string;
+}
+
+interface ValidationResult {
+  isValid: boolean;
+  country?: string;
+  language?: string;
+}
+
+interface LocalePair {
+  country: string;
+  language: string;
+}
+
+// Bot detection
 function isBot(userAgent: string | null): boolean {
   if (!userAgent) return false;
 
@@ -137,57 +52,26 @@ function isBot(userAgent: string | null): boolean {
   ];
 
   userAgent = userAgent.toLowerCase();
-
   return bots.some((bot) => userAgent.includes(bot));
-}
-// Types
-interface LocaleInfo {
-  country: string;
-  language: string;
-  locale: string;
-}
-
-interface ValidationResult {
-  isValid: boolean;
-  country?: string;
-  language?: string;
 }
 
 // Helper functions
-async function getCachedCountries(): Promise<string[]> {
-  const now = Date.now();
-  if (!cachedCountries || now - cacheTimestamp > CACHE_TTL) {
-    const data = await fetchCountries();
-    cachedCountries = data.countries.map((s: any) => s.iso.toLowerCase());
-    cacheTimestamp = now;
-  }
-  return cachedCountries;
+function getCachedCountries(): string[] {
+  return ["sy", "lb", "tr", "iq"];
 }
 
-// async function getCachedLanguages(): Promise<string[]> {
-//   const now = Date.now();
-//   if (!cachedLanguages || now - cacheLanguagesTimestamp > CACHE_TTL) {
-//     const data = await fetchLanguages();
-//     cachedLanguages = data;
-//     cacheLanguagesTimestamp = now;
-//   }
-//   return cachedLanguages;
-// }
-
-function shouldSkipRegistration(pathname: string): boolean {
-  return SKIP_REGISTRATION_PATHS.some((path) => pathname.startsWith(path));
+function getAllSupportedCountries(): string[] {
+  return [...getCachedCountries(), "gb"];
 }
 
-// Validation functions
+// Validation utilities
 function isValidCountry(
   country: string | undefined,
   supportedCountries: string[]
 ): boolean {
   if (!country) return false;
-  return (
-    supportedCountries.includes(country.toLowerCase()) ||
-    country.toLowerCase() === "gb"
-  );
+  const normalizedCountry = country.toLowerCase();
+  return supportedCountries.includes(normalizedCountry);
 }
 
 function isValidLanguage(language: string | undefined): boolean {
@@ -195,22 +79,34 @@ function isValidLanguage(language: string | undefined): boolean {
   return SUPPORTED_LANGUAGES.includes(language.toLowerCase());
 }
 
+function validateLocalePair(
+  country: string | undefined,
+  language: string | undefined,
+  supportedCountries: string[]
+): ValidationResult {
+  const validCountry = isValidCountry(country, supportedCountries);
+  const validLanguage = isValidLanguage(language);
+
+  return {
+    isValid: validCountry && validLanguage,
+    country: validCountry ? country!.toLowerCase() : undefined,
+    language: validLanguage ? language!.toLowerCase() : undefined,
+  };
+}
+
 function validateCookieValues(
   countryFromCookies: string | undefined,
   langFromCookies: string | undefined,
   supportedCountries: string[]
 ): ValidationResult {
-  const validCountry = isValidCountry(countryFromCookies, supportedCountries);
-  const validLanguage = isValidLanguage(langFromCookies);
-
-  return {
-    isValid: validCountry && validLanguage,
-    country: validCountry ? countryFromCookies!.toLowerCase() : undefined,
-    language: validLanguage ? langFromCookies!.toLowerCase() : undefined,
-  };
+  return validateLocalePair(
+    countryFromCookies,
+    langFromCookies,
+    supportedCountries
+  );
 }
 
-// Parse locale from URL
+// URL parsing utilities
 function parseUrlLocale(pathname: string): LocaleInfo | null {
   const parts = pathname.split("/")[1]?.toLowerCase()?.split("-");
   if (parts?.length === 2) {
@@ -223,7 +119,7 @@ function parseUrlLocale(pathname: string): LocaleInfo | null {
   return null;
 }
 
-// Get preferred language from Accept-Language header
+// Language detection utilities
 function getPreferredLanguage(request: NextRequest): string {
   const acceptLanguage = request.headers.get("accept-language");
   if (!acceptLanguage) return DEFAULT_LANGUAGE;
@@ -244,12 +140,22 @@ function getPreferredLanguage(request: NextRequest): string {
   return DEFAULT_LANGUAGE;
 }
 
-// Build locale string
+// Locale building utilities
 function buildLocale(country: string, language: string): string {
   return `${country.toLowerCase()}-${language.toLowerCase()}`;
 }
 
-// Set locale cookies
+function buildSupportedLocales(supportedCountries: string[]): Set<string> {
+  const supportedLocales = new Set<string>();
+  supportedCountries.forEach((country) => {
+    SUPPORTED_LANGUAGES.forEach((lang) => {
+      supportedLocales.add(buildLocale(country, lang));
+    });
+  });
+  return supportedLocales;
+}
+
+// Cookie utilities
 function setLocaleCookies(
   response: NextResponse,
   country: string,
@@ -260,17 +166,45 @@ function setLocaleCookies(
   response.cookies.set("language", language.toLowerCase(), COOKIE_OPTIONS);
 }
 
+// Geo IP utilities
+function getGeoCountry(request: NextRequest): string | undefined {
+  return request.geo?.country?.toLowerCase();
+}
+
+// Redirect utilities
+function createRedirectResponse(url: URL, redirectCount: number): NextResponse {
+  const redirectResponse = NextResponse.redirect(url);
+  redirectResponse.headers.set(
+    "x-redirect-count",
+    (redirectCount + 1).toString()
+  );
+  return redirectResponse;
+}
+
+function getCleanPathname(
+  pathname: string,
+  urlLocale: LocaleInfo | null
+): string {
+  if (urlLocale) {
+    return pathname.slice(urlLocale.locale.length + 1);
+  }
+  return pathname.startsWith("/") ? pathname : `/${pathname}`;
+}
+
 // Main middleware function
 export async function middleware(request: NextRequest) {
   const isBotAgent = isBot(request.headers.get("user-agent"));
   const url = request.nextUrl.clone();
   const pathname = url.pathname;
   const urlLocale = parseUrlLocale(pathname);
-  const supportedCountries = await getCachedCountries();
-  const allSupportedCountries = [...supportedCountries, "gb"];
-  const referer = request.headers.get("referer");
-  let utm_source = url.searchParams.get("utm_source");
+  const allSupportedCountries = getAllSupportedCountries();
+  const supportedLocales = buildSupportedLocales(allSupportedCountries);
   const response = NextResponse.next();
+
+  // Handle referer and UTM tracking
+  const referer = request.headers.get("referer");
+  const utm_source = url.searchParams.get("utm_source");
+
   if (referer || utm_source) {
     if (utm_source) {
       response.cookies.set("referer", referer, {
@@ -280,8 +214,8 @@ export async function middleware(request: NextRequest) {
       url.searchParams.delete("utm_source");
     } else {
       const hostname = request.nextUrl.origin;
-      // ⛔ Skip if referer is from same origin
-      if (!referer.startsWith(hostname)) {
+      // Skip if referer is from same origin
+      if (!referer?.startsWith(hostname)) {
         response.cookies.set("referer", referer, {
           ...COOKIE_OPTIONS,
           httpOnly: false,
@@ -289,33 +223,25 @@ export async function middleware(request: NextRequest) {
       }
     }
   }
-  // Build supported locales
-  const supportedLocales = new Set<string>();
-  allSupportedCountries.forEach((country) => {
-    SUPPORTED_LANGUAGES.forEach((lang) => {
-      supportedLocales.add(buildLocale(country, lang));
-    });
-  });
+  // Bot handling
   if (isBotAgent) {
     if (urlLocale && supportedLocales.has(urlLocale.locale)) {
       return response;
     }
+
     const preferredLanguage = getPreferredLanguage(request);
     const defaultLocale = urlLocale
       ? buildLocale(urlLocale.country, urlLocale.language)
       : buildLocale(DEFAULT_COUNTRY, preferredLanguage);
 
     // Preserve full path, prefix with locale
-    // Ensure pathname starts with /
     const cleanPathname = pathname.startsWith("/") ? pathname : `/${pathname}`;
-
     url.pathname = `/${defaultLocale}${cleanPathname}`;
     return NextResponse.redirect(url, 308);
-    // return NextResponse.redirect(new URL("/", request.url), 308);
   }
 
+  // Handle robots.txt requests
   if (pathname?.includes("/robots.txt") || pathname?.includes("/robots")) {
-    // Immediately return NextResponse.next() to serve the static file
     return NextResponse.redirect(new URL("/robots.txt", request.url));
   }
 
@@ -326,41 +252,7 @@ export async function middleware(request: NextRequest) {
   ) {
     return response;
   }
-
-  // ===== GUEST REGISTRATION LOGIC =====
-  // if (!shouldSkipRegistration(pathname) && !userData) {
-  //   try {
-  //     const isBot = shouldBlockRegistration(request);
-
-  //     if (!isBot) {
-  //       console.warn("ensureGuestSessionMiddleware", JSON.stringify(request));
-  //       const registrationResult =
-  //         await AuthServerService.ensureGuestSessionMiddleware(
-  //           request,
-  //           response
-  //         );
-
-  //       if (!registrationResult.success) {
-  //         console.error("Guest registration failed:", registrationResult.error);
-  //       }
-  //     } else {
-  //       console.log(
-  //         "Bot detected, skipping guest registration:",
-  //         request.headers.get("user-agent")
-  //       );
-  //     }
-  //   } catch (error) {
-  //     console.error("Middleware guest registration error:", error);
-  //   }
-  // }
-
-  // ===== LOCALIZATION LOGIC =====
-
-  // Get supported countries
-
-  // Parse URL locale
-
-  // Get and validate cookies
+  // Get and validate cookie values
   const countryFromCookies = request.cookies.get("country")?.value;
   const langFromCookies =
     request.cookies.get("lang")?.value ||
@@ -389,7 +281,7 @@ export async function middleware(request: NextRequest) {
     return response;
   }
 
-  // Add redirect protection
+  // Redirect protection
   const redirectCount = parseInt(
     request.headers.get("x-redirect-count") || "0"
   );
@@ -411,66 +303,73 @@ export async function middleware(request: NextRequest) {
 
   // SCENARIO 1: Valid URL locale
   if (urlLocale && supportedLocales.has(urlLocale.locale)) {
-    // Clean up timestamp parameter if present
-    if (url.searchParams.get("_t")) {
-      url.searchParams.delete("_t");
-    }
+    // Validate URL locale against supported countries
+    const urlLocaleValidation = validateLocalePair(
+      urlLocale.country,
+      urlLocale.language,
+      allSupportedCountries
+    );
 
-    // CASE 1A: Handle no-country parameter
-    if (url.searchParams.get("no-country")) {
-      setLocaleCookies(response, urlLocale.country, urlLocale.language);
-      return response; // Show the popup
-    }
+    // If URL locale is not valid, treat as no valid URL locale
+    if (!urlLocaleValidation.isValid) {
+      // Fall through to SCENARIO 2
+    } else {
+      // Clean up timestamp parameter if present
+      if (url.searchParams.get("_t")) {
+        url.searchParams.delete("_t");
+      }
 
-    // CASE 1B: Check if cookies match URL (only if cookies are valid)
-    if (cookieValidation.isValid) {
-      const cookieCountry = cookieValidation.country!;
-      const cookieLanguage = cookieValidation.language!;
+      // CASE 1A: Handle no-country parameter
+      if (url.searchParams.get("no-country")) {
+        setLocaleCookies(response, urlLocale.country, urlLocale.language);
+        return response; // Show the popup
+      }
 
-      // Same country and language - proceed normally
-      if (
-        urlLocale.country === cookieCountry &&
-        urlLocale.language === cookieLanguage &&
-        !url.searchParams.get("changed-country")
-      ) {
+      // CASE 1B: Check if cookies match URL (only if cookies are valid)
+      if (cookieValidation.isValid) {
+        const cookieCountry = cookieValidation.country!;
+        const cookieLanguage = cookieValidation.language!;
+
+        // Same country and language - proceed normally
+        if (
+          urlLocale.country === cookieCountry &&
+          urlLocale.language === cookieLanguage &&
+          !url.searchParams.get("changed-country")
+        ) {
+          return response;
+        }
+
+        // Different country - show popup
+        if (
+          urlLocale.country !== cookieCountry &&
+          cookieCountry !== "gb" &&
+          !url.searchParams.get("changed-country")
+        ) {
+          url.searchParams.delete("cart");
+          url.searchParams.set(
+            "changed-country",
+            `${urlLocale.country},${cookieCountry}`
+          );
+          return createRedirectResponse(url, redirectCount);
+        }
+      }
+
+      // CASE 1C: No valid cookies - set from URL
+      if (!cookieValidation.isValid) {
+        setLocaleCookies(response, urlLocale.country, urlLocale.language);
         return response;
       }
 
-      // Different country - show popup
-      if (
-        urlLocale.country !== cookieCountry &&
-        cookieCountry !== "gb" &&
-        !url.searchParams.get("changed-country")
-      ) {
-        url.searchParams.delete("cart");
-        url.searchParams.set(
-          "changed-country",
-          `${urlLocale.country},${cookieCountry}`
-        );
-        const redirectResponse = NextResponse.redirect(url);
-        redirectResponse.headers.set(
-          "x-redirect-count",
-          (redirectCount + 1).toString()
-        );
-        return redirectResponse;
+      // CASE 1D: Handle changed-country parameter
+      if (url.searchParams.get("changed-country")) {
+        setLocaleCookies(response, urlLocale.country, urlLocale.language);
+        return response; // Show the popup
       }
-    }
 
-    // CASE 1C: No valid cookies - set from URL
-    if (!cookieValidation.isValid) {
+      // Default: set cookies and proceed
       setLocaleCookies(response, urlLocale.country, urlLocale.language);
       return response;
     }
-
-    // CASE 1D: Handle changed-country parameter
-    if (url.searchParams.get("changed-country")) {
-      setLocaleCookies(response, urlLocale.country, urlLocale.language);
-      return response; // Show the popup
-    }
-
-    // Default: set cookies and proceed
-    setLocaleCookies(response, urlLocale.country, urlLocale.language);
-    return response;
   }
 
   // SCENARIO 2: No valid URL locale - determine redirect
@@ -481,20 +380,25 @@ export async function middleware(request: NextRequest) {
       cookieValidation.country!,
       cookieValidation.language!
     );
-    const cleanPathname = urlLocale
-      ? pathname.slice(urlLocale.locale.length + 1)
-      : pathname;
+    const cleanPathname = getCleanPathname(pathname, urlLocale);
 
     url.pathname = `/${locale}${cleanPathname}`;
     return NextResponse.redirect(url);
   }
 
   // Try Geo IP detection (first visit)
-  const geoCountry = request.geo?.country?.toLowerCase();
+  const geoCountry = getGeoCountry(request);
   const preferredLanguage = getPreferredLanguage(request);
 
-  if (geoCountry && isValidCountry(geoCountry, allSupportedCountries)) {
-    const locale = buildLocale(geoCountry, preferredLanguage);
+  // Validate geo country and preferred language combination
+  const geoValidation = validateLocalePair(
+    geoCountry,
+    preferredLanguage,
+    allSupportedCountries
+  );
+
+  if (geoValidation.isValid) {
+    const locale = buildLocale(geoValidation.country!, geoValidation.language!);
     url.pathname = `/${locale}${pathname}`;
     return NextResponse.redirect(url);
   }

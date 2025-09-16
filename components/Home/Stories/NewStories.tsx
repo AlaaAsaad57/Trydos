@@ -113,7 +113,7 @@ function StoriesContainer({
     );
   return (
     <div
-      className="fixed-layout justify-start flex items-start "
+      className="fixed-layout fixed top-0 left-0 w-screen h-full max-w-full max-h-full bg-black flex items-center justify-center z-[999999999999999]"
       {...handlers}
       onPointerLeave={() => {
         document.querySelector<HTMLDivElement>(

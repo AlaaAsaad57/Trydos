@@ -1,7 +1,6 @@
 export const dynamic = "force-dynamic";
 import "styles/globals.css";
 import "styles/home.css";
-import "styles/unused-onload.css";
 import localFont from "next/font/local";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import Script from "next/script";
@@ -109,7 +108,7 @@ export default function RootLayout({
         <SpeedInsights />
 
         <div className="site-container items-center">
-          <div className="home-navbar max-h-[1365px]">
+          <div className="home-navbar z-[999999996] duration-[1s] max-w-[1365px] min-h-[98px]  px-[20px] pt-[52px] bg-white flex-row items-start w-full justify-start">
             <a
               href={`/${params.lang}`}
               aria-label="TryDos Home"

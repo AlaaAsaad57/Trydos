@@ -6,7 +6,7 @@ function MobileNavigationSkeleton() {
     <div className="flex-row search-nav-holder">
       <div className={`categories-bar-container mobile-bar `}>
         {Array.from({ length: 20 }).map((s, key) => (
-          <div className={`categories-bar-item`} key={key}>
+          <div className={`categories-bar-item cursor-pointer`} key={key}>
             <div className="categories-bar-item-icon">
               <Skeleton width={20} height={20} borderRadius={"50%"} />
             </div>

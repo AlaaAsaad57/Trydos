@@ -1,7 +1,8 @@
 // Force update - increment this version when you want to force update
 const CACHE_VERSION = "v2.0.0";
-const BASE_CLOUDINARY_URL = "https://res.cloudinary.com/dtcmozf4d/image/upload/v1";
-// Get image url function 
+const BASE_CLOUDINARY_URL =
+  "https://res.cloudinary.com/dtcmozf4d/image/upload/v1";
+// Get image url function
 const GetImageUrl = (url) => {
   if (url?.file_path) {
     if (url?.file_path?.includes("cloudinary")) {
@@ -71,8 +72,18 @@ firebase.initializeApp(firebaseConfig);
 
 // Retrieve firebase messaging
 const messaging = firebase.messaging();
-// let url = `${'http://localhost:3006'}`;
-let url = "https://trydos-front-git-new-backend-trydos-front-team.vercel.app/";
+// Base origin for this service worker's scope (works per-branch/domain)
+const BASE_ORIGIN = self.location.origin;
+
+// Helper to build absolute URLs on this origin
+const buildUrl = (path) => {
+  if (!path) return BASE_ORIGIN;
+  if (typeof path !== "string") return BASE_ORIGIN;
+  if (/^https?:\/\//i.test(path)) return path; // already absolute
+  if (path.startsWith("/")) return BASE_ORIGIN + path;
+  if (path.startsWith("?")) return BASE_ORIGIN + "/" + path;
+  return BASE_ORIGIN + "/" + path;
+};
 
 // Function to check if any client tabs are open
 async function checkIfClientIsOpen() {
@@ -129,11 +140,11 @@ messaging.onBackgroundMessage(async function (payload) {
           icon: JSON.parse(payload?.data.body)?.boutique_icon?.file_path,
           image: JSON.parse(payload?.data.body)?.banner[0]?.file_path,
           data: {
-            url:
-              url +
+            url: buildUrl(
               `filters/boutiques/${
                 JSON.parse(payload?.data.body)?.boutique_slug
-              }`,
+              }`
+            ),
           }, // The URL which we are going to use later
         };
         self.registration.showNotification(
@@ -147,11 +158,11 @@ messaging.onBackgroundMessage(async function (payload) {
           icon: JSON.parse(payload?.data.body)?.image,
           // image: JSON.parse(payload?.data.body)?.banner[0].file_path,
           data: {
-            url:
-              url +
+            url: buildUrl(
               `filters/categories/${
                 JSON.parse(payload?.data.body).category_slug
-              }`,
+              }`
+            ),
           }, // The URL which we are going to use later
         };
         self.registration.showNotification(
@@ -163,7 +174,7 @@ messaging.onBackgroundMessage(async function (payload) {
         notificationOptions = {
           body: JSON.parse(payload.data.body)?.description,
           data: {
-            url: url + `?cart=true`,
+            url: buildUrl(`?cart=true`),
           }, // The URL which we are going to use later
         };
         self.registration.showNotification(
@@ -177,7 +188,9 @@ messaging.onBackgroundMessage(async function (payload) {
           body: JSON.parse(payload.data.body).description,
           image: JSON.parse(payload.data.body).image,
           data: {
-            url: url + `products/${JSON.parse(payload.data.body).product_slug}`,
+            url: buildUrl(
+              `products/${JSON.parse(payload.data.body).product_slug}`
+            ),
           }, // The URL which we are going to use later
         };
         self.registration.showNotification(
@@ -190,7 +203,7 @@ messaging.onBackgroundMessage(async function (payload) {
           body: JSON.parse(payload.data.body).description,
           image: JSON.parse(payload.data.body).image,
           data: {
-            url: url + `?cart=true`,
+            url: buildUrl(`?cart=true`),
           }, // The URL which we are going to use later
         };
         self.registration.showNotification(
@@ -203,7 +216,9 @@ messaging.onBackgroundMessage(async function (payload) {
           body: JSON.parse(payload.data.body)?.description,
           image: JSON.parse(payload.data.body).image,
           data: {
-            url: url + `products/${JSON.parse(payload.data.body).product_slug}`,
+            url: buildUrl(
+              `products/${JSON.parse(payload.data.body).product_slug}`
+            ),
           }, // The URL which we are going to use later
         };
         self.registration.showNotification(
@@ -217,7 +232,9 @@ messaging.onBackgroundMessage(async function (payload) {
           body: JSON.parse(payload.data.body)?.description,
           image: JSON.parse(payload.data.body).image,
           data: {
-            url: url + `products/${JSON.parse(payload.data.body).product_slug}`,
+            url: buildUrl(
+              `products/${JSON.parse(payload.data.body).product_slug}`
+            ),
           }, // The URL which we are going to use later
         };
         self.registration.showNotification(
@@ -231,7 +248,9 @@ messaging.onBackgroundMessage(async function (payload) {
           body: JSON.parse(payload.data.body)?.description,
           image: JSON.parse(payload.data.body).image,
           data: {
-            url: url + `products/${JSON.parse(payload.data.body).product_slug}`,
+            url: buildUrl(
+              `products/${JSON.parse(payload.data.body).product_slug}`
+            ),
           }, // The URL which we are going to use later
         };
         self.registration.showNotification(
@@ -247,7 +266,9 @@ messaging.onBackgroundMessage(async function (payload) {
           body: JSON.parse(payload.data.body)?.description,
           image: JSON.parse(payload.data.body).image,
           data: {
-            url: url + `products/${JSON.parse(payload.data.body).product_slug}`,
+            url: buildUrl(
+              `products/${JSON.parse(payload.data.body).product_slug}`
+            ),
           }, // The URL which we are going to use later
         };
         self.registration.showNotification(
@@ -261,7 +282,7 @@ messaging.onBackgroundMessage(async function (payload) {
           body: JSON.parse(payload.data.body)?.description,
           // image: JSON.parse(payload.data.body)?.image,
           data: {
-            url: url + `setting?tab=Orders`,
+            url: buildUrl(`setting?tab=Orders`),
           }, // The URL which we are going to use later
         };
         self.registration.showNotification(
@@ -277,11 +298,11 @@ messaging.onBackgroundMessage(async function (payload) {
           body: JSON.parse(payload.data.body)?.description,
           // image: JSON.parse(payload.data.body)?.image,
           data: {
-            url:
-              url +
+            url: buildUrl(
               `setting?tab=Orders&id=${
                 JSON.parse(payload.data.body).order_group_id
-              }`,
+              }`
+            ),
           }, // The URL which we are going to use later
         };
         self.registration.showNotification(
@@ -290,30 +311,40 @@ messaging.onBackgroundMessage(async function (payload) {
           notificationOptions
         );
       }
-    } else if (payload.data.type === "VoiceCallEvent" || payload.data.type === "VideoCallEvent") {
+    } else if (
+      payload.data.type === "VoiceCallEvent" ||
+      payload.data.type === "VideoCallEvent"
+    ) {
       // Parse the nested JSON
       const parsed = JSON.parse(payload.data.data);
       const callInfo = parsed.payload.payload;
       const user = parsed.user;
       const photo = user.photo_path;
-      const notificationTitle = `${user.name} is calling you… ${callInfo.type === 'video' ? '🎥' : '📞'}`;
+      const notificationTitle = `${user.name} is calling you… ${
+        callInfo.type === "video" ? "🎥" : "📞"
+      }`;
       const notificationOptions = {
-        body: `Incoming ${callInfo.type === 'audio' ? 'voice' : 'video'} call from ${user.name}`,
-        image: GetImageUrl(photo) || '/profile.png',
+        body: `Incoming ${
+          callInfo.type === "audio" ? "voice" : "video"
+        } call from ${user.name}`,
+        image: GetImageUrl(photo) || "/profile.png",
         requireInteraction: true,
         vibrate: [200, 100, 200],
         actions: [
-          { action: 'reply',  title: 'Reply'  },
-          { action: 'reject', title: 'Reject' }
+          { action: "reply", title: "Reply" },
+          { action: "reject", title: "Reject" },
         ],
         data: {
           call_id: callInfo.channelId,
           receiverId: callInfo.user_id,
-          callType: callInfo.type === 'audio' ? 'voice' : 'video',
-          url: url,
-        }
+          callType: callInfo.type === "audio" ? "voice" : "video",
+          url: BASE_ORIGIN,
+        },
       };
-      self.registration.showNotification(notificationTitle, notificationOptions);
+      self.registration.showNotification(
+        notificationTitle,
+        notificationOptions
+      );
     } else if (payload.data.type === "message") {
       const notificationTitle = JSON.parse(payload.data.data).message
         .sender_user.name;
@@ -322,11 +353,11 @@ messaging.onBackgroundMessage(async function (payload) {
         notificationOptions = {
           body: "there is new message from Deleivery Worker",
           data: {
-            url:
-              url +
+            url: buildUrl(
               `setting?tab=Orders&id=${
                 JSON.parse(payload?.data.data)?.order_group_id
-              }}`,
+              }`
+            ),
           },
         };
       } else if (
@@ -338,7 +369,7 @@ messaging.onBackgroundMessage(async function (payload) {
           icon: JSON.parse(payload.data.data).message?.icon,
           image: JSON.parse(payload.data.data).message?.image,
           data: {
-            url: url,
+            url: BASE_ORIGIN,
           },
         };
       } else if (
@@ -350,7 +381,7 @@ messaging.onBackgroundMessage(async function (payload) {
           icon: JSON.parse(payload.data.data).message.icon,
           image: JSON.parse(payload.data.data).message.image,
           data: {
-            url: url,
+            url: BASE_ORIGIN,
           },
         };
       } else if (payload.data.type === "vcard") {
@@ -368,7 +399,7 @@ messaging.onBackgroundMessage(async function (payload) {
           icon: JSON.parse(payload.data.data).message.icon,
           image: JSON.parse(payload.data.data).message.image,
           data: {
-            url: url,
+            url: BASE_ORIGIN,
           },
         };
       } else if (
@@ -380,7 +411,7 @@ messaging.onBackgroundMessage(async function (payload) {
           icon: JSON.parse(payload.data.data).message.icon,
           image: JSON.parse(payload.data.data).message.image,
           data: {
-            url: url,
+            url: BASE_ORIGIN,
           },
         };
       } else if (
@@ -402,7 +433,7 @@ messaging.onBackgroundMessage(async function (payload) {
           image: JSON.parse(payload.data.data).message.message_content.content
             .product_image_url,
           data: {
-            url: url,
+            url: BASE_ORIGIN,
           },
         };
       } else {
@@ -411,7 +442,7 @@ messaging.onBackgroundMessage(async function (payload) {
           icon: JSON.parse(payload?.data.message)?.icon,
           image: JSON.parse(payload?.data.message)?.image,
           data: {
-            url: url,
+            url: BASE_ORIGIN,
           },
         };
       }
@@ -428,7 +459,7 @@ messaging.onBackgroundMessage(async function (payload) {
 
 // Notification click handler - works for background notifications only
 self.addEventListener("notificationclick", function (event) {
-  let url = `https://trydos-front-git-alaa-dev-trydos-front-team.vercel.app`;
+  const baseUrl = self.location.origin;
   event.notification.close();
   // Only open the link by default if this is NOT a call notification
   if (!event.notification.data || !event.notification.data.callType) {
@@ -445,13 +476,13 @@ self.addEventListener("notificationclick", function (event) {
           for (var i = 0; i < windowClients.length; i++) {
             var client = windowClients[i];
             // If so, just focus it.
-            if (client.url.contains(url) && "focus" in client) {
+            if (client.url.indexOf(baseUrl) !== -1 && "focus" in client) {
               return client.focus();
             }
           }
           // If not, then open the target URL in a new window/tab.
           if (clients.openWindow) {
-            return clients.openWindow(url);
+            return clients.openWindow(baseUrl);
           }
         })
       ); // Default URL (if any)
@@ -459,20 +490,22 @@ self.addEventListener("notificationclick", function (event) {
     case "reply":
       // Try to focus an existing tab with the URL, or open a new one if not found
       event.waitUntil(
-        clients.matchAll({ type: "window", includeUncontrolled: true }).then((windowClients) => {
-          const targetUrl = event.notification.data.url;
-          for (let i = 0; i < windowClients.length; i++) {
-            const client = windowClients[i];
-            // Use startsWith to match the base URL and query params
-            if (client.url === targetUrl && "focus" in client) {
-              return client.focus();
+        clients
+          .matchAll({ type: "window", includeUncontrolled: true })
+          .then((windowClients) => {
+            const targetUrl = event.notification.data.url;
+            for (let i = 0; i < windowClients.length; i++) {
+              const client = windowClients[i];
+              // Use startsWith to match the base URL and query params
+              if (client.url === targetUrl && "focus" in client) {
+                return client.focus();
+              }
             }
-          }
-          // If not found, open a new window
-          if (clients.openWindow) {
-            return clients.openWindow(targetUrl);
-          }
-        })
+            // If not found, open a new window
+            if (clients.openWindow) {
+              return clients.openWindow(targetUrl);
+            }
+          })
       );
       event.notification.close();
       break;

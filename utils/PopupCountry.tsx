@@ -3,7 +3,6 @@
 import "styles/globals.css";
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useParams, usePathname, useSearchParams } from "next/navigation";
-import "styles/popup.css";
 
 import { translateFunction } from "./functions";
 import Cookies from "js-cookie";

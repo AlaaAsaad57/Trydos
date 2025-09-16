@@ -29,7 +29,7 @@ function AddToCartButton({ product }: { product: any }) {
 
       <div className="button-desc">
         <div
-          className={`flex-row  justify-end relative image-container-cart ${
+          className={`flex-row  justify-end relative w-full pr-[50%] ${
             !AddToCartOption.enable && "pr-0"
           }`}
         >
