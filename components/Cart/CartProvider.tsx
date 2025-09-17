@@ -1,7 +1,7 @@
 "use client";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { expandView, normalizeView, RoundPrice } from "utils/functions";
+import { expandView, normalizeView } from "utils/functions";
 import CartContainer from ".";
 import home from "services/home";
 import OrdersPage from "./OrdersPage";

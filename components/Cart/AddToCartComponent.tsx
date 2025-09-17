@@ -1,6 +1,5 @@
 "use client";
 import React, { useEffect, useState } from "react";
-
 import BackIcon from "public/svg/listing/backIcon.svg";
 import {
   getCart,

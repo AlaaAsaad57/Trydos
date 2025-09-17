@@ -212,10 +212,6 @@ p {
   font-family: var(--Quicksand-Medium);
 }
 
-.bold-text {
-  font-family: var(--Quicksand-Bold);
-}
-
 .w-100 {
   width: 100%;
 }
@@ -260,10 +256,6 @@ span[aria-live="polite"] {
 .boutique-border {
   position: absolute;
   top: 0px;
-}
-
-.no-label {
-  display: none !important;
 }
 
 .justify-between {

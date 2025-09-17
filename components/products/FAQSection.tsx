@@ -66,7 +66,7 @@ function FAQSection({ lang, comments }) {
           id="faq-buyers-bar"
           className="flex-row w-full gap-[4px]"
         >
-          {comments.map((s) => {
+          {comments?.map((s) => {
             return (
               <FaqItem language={language} comment={s} key={s?.comment?.id} />
             );

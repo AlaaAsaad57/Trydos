@@ -24,50 +24,40 @@ function NavbarServer({
     const isRtl = language === "ar" || language === "ku";
 
     return (
-      <div
-        className={`${
-          isRtl ? "flex-row-reverse pr-[10px]" : "flex-row pl-[10px]"
-        }  search-nav-holder`}
+      <HortiznalScrollBar
+        id="categories-bar-container"
+        className={`categories-bar-container mobile-bar ${
+          loading && "scale-90 opacity-75"
+        } ${isRtl ? "flex-row-reverse" : "flex-row"} ${enable_search && "p-0"}`}
+        dataCy="categoryNavBar"
       >
-        <SearchIcon time={time} />
-
-        <HortiznalScrollBar
-          id="categories-bar-container"
-          className={`categories-bar-container mobile-bar ${
-            loading && "scale-90 opacity-75"
-          } ${isRtl ? "flex-row-reverse" : "flex-row"} ${
-            enable_search && "p-0"
-          }`}
-          dataCy="categoryNavBar"
-        >
-          {typeof categories !== "string" &&
-            categories?.map((category, key) => (
-              <div
-                className="flex"
+        {typeof categories !== "string" &&
+          categories?.map((category, key) => (
+            <div
+              className="flex"
+              key={key}
+              onClick={() => {
+                setLoading(true);
+                setActiveCategory(category?.slug);
+              }}
+            >
+              <CategoryNavMobile
+                params={{ lang, mainCategory }}
+                name={category.name}
+                active={
+                  activeCategory === category.slug ||
+                  (mainCategory === category.slug &&
+                    activeCategory === category?.slug)
+                }
                 key={key}
-                onClick={() => {
-                  setLoading(true);
-                  setActiveCategory(category?.slug);
-                }}
-              >
-                <CategoryNavMobile
-                  params={{ lang, mainCategory }}
-                  name={category.name}
-                  active={
-                    activeCategory === category.slug ||
-                    (mainCategory === category.slug &&
-                      activeCategory === category?.slug)
-                  }
-                  key={key}
-                  myKey={key}
-                  icon={category?.flat_photo_path?.file_path}
-                  outline={category?.outline_photo_path?.file_path}
-                  slug={category.slug}
-                />
-              </div>
-            ))}
-        </HortiznalScrollBar>
-      </div>
+                myKey={key}
+                icon={category?.flat_photo_path?.file_path}
+                outline={category?.outline_photo_path?.file_path}
+                slug={category.slug}
+              />
+            </div>
+          ))}
+      </HortiznalScrollBar>
     );
   } catch (error) {
     console.error("Error loading navbar:", error);

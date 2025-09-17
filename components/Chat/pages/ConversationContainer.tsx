@@ -1028,7 +1028,7 @@ function ConversationContainer({
                 height={40}
               />
               <div className="input-chat-container">
-                <label htmlFor="type" className="no-label">
+                <label htmlFor="type" className="hidden">
                   Type
                 </label>
                 <input

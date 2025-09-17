@@ -1,4 +1,3 @@
-"use client";
 import StoryAvatar from "./StoryAvatar";
 import Story from "./Story";
 import profilePicture from "public/images/profileNo.png";

@@ -74,7 +74,7 @@ function ProductsBuyersComments({ lang, comments }) {
           id="comments-buyers-bar"
           className="flex-row w-full gap-[4px]"
         >
-          {comments.map((s) => {
+          {comments?.map((s) => {
             return (
               <RateCommentItem
                 language={language}

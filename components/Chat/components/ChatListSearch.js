@@ -23,7 +23,7 @@ function ChatListSearch(props) {
 
   return (
     <div className="chat-window-search-holder">
-      <label htmlFor="search" className="no-label">
+      <label htmlFor="search" className="hidden">
         Search
       </label>
       <input

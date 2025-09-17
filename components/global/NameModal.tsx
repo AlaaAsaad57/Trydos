@@ -56,7 +56,7 @@ function NameModal() {
         >
           <Border color={"#707070"} height={50} width={250} />
           <ManIcon style={{ width: "20px", position: "absolute" }} />
-          <label htmlFor="phone" className="no-label">
+          <label htmlFor="phone" className="hidden">
             Name
           </label>
           <input

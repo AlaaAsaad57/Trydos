@@ -1,7 +1,5 @@
 import Image from "next/image";
-import { useRouter } from "next/navigation";
 import NextLink from "components/global/NextLink";
-import { Boutique } from "models/Genaral/Boutique";
 import { GetImageUrl } from "utils/tinyUtils";
 import { getConfiguredImage } from "utils/functions";
 import { OfferAvatarPropsType } from "models/componentType/OfferAvatarPropsType";
@@ -15,8 +13,6 @@ function OfferAvatar({
   linkUrl,
   boutique,
 }: OfferAvatarPropsType) {
-  const router = useRouter();
-
   return (
     <NextLink
       data={{

@@ -7,17 +7,10 @@ import {
   getOldCart,
   translateFunction,
 } from "utils/functions";
-import {
-  CartColorIcon,
-  CartItemLink,
-  CartSizeIcon,
-  DeleiveryIcon,
-  OldCartIcon,
-  PiecesIcon,
-  QuantutyInput,
-} from ".";
+import { CartItemLink, QuantutyInput } from ".";
 import { GetImageUrl } from "utils/tinyUtils";
 import Skeleton from "react-loading-skeleton";
+import Image from "next/image";
 
 function OldCartContainer() {
   const { cart, language, storeOldCart, oldCart, hideOldCart } = useAppStore();
@@ -66,7 +59,13 @@ function OldCartContainer() {
           data-cy="oldCart-viewer"
         >
           <span className="ml-[32px]" data-cy="spanContainer-oldCartIcon">
-            <OldCartIcon data-cy="oldCart-icon" />
+            <Image
+              src={"/svg/cart/OldCartIcon.svg"}
+              alt="cart-color"
+              width={20}
+              height={20}
+              data-cy="color-icon"
+            />
           </span>{" "}
           <span
             className="regular text-[#505050] text-[15px] ml-1"
@@ -152,7 +151,13 @@ function OldCartContainer() {
         data-cy="oldCart-viewer"
       >
         <span className="ml-[32px]" data-cy="spanContainer-oldCartIcon">
-          <OldCartIcon data-cy="oldCart-icon" />
+          <Image
+            src={"/svg/cart/OldCartIcon.svg"}
+            alt="cart-color"
+            width={20}
+            height={20}
+            data-cy="color-icon"
+          />
         </span>{" "}
         <span
           className="regular text-[#505050] text-[15px] ml-1"
@@ -231,7 +236,14 @@ function OldCartContainer() {
                 <div className="flex-row flex-wrap">
                   {product.variations[0]?.color && (
                     <div className="flex-row items-center text-[12px] regular text-[#505050] mt-1 mr-3">
-                      <CartColorIcon />
+                      <Image
+                        src={"/svg/cart/CartColorIcon.svg"}
+                        alt="cart-color"
+                        width={10}
+                        height={10}
+                        data-cy="color-icon"
+                      />
+
                       <span
                         className={`ml-1.5 ${language === "ar" && "dir-rtl"}`}
                       >
@@ -244,7 +256,14 @@ function OldCartContainer() {
                   )}
                   {product.variations[0]?.Size && (
                     <div className="flex-row items-center text-[12px] regular text-[#505050] mt-1">
-                      <CartSizeIcon />
+                      <Image
+                        src={"/svg/cart/CartSizeIcon.svg"}
+                        alt="cart-color"
+                        width={10}
+                        height={10}
+                        data-cy="color-icon"
+                      />
+
                       <span
                         className={`ml-1.5 ${language === "ar" && "dir-rtl"}`}
                       >
@@ -257,7 +276,14 @@ function OldCartContainer() {
                   )}
                 </div>
                 <div className="flex-row items-center text-[12px] regular text-[#505050] mt-1 mr-3">
-                  <PiecesIcon />
+                  <Image
+                    src={"/svg/cart/PiecesIcon.svg"}
+                    alt="cart-color"
+                    width={10}
+                    height={10}
+                    data-cy="color-icon"
+                  />
+
                   <span
                     className={`ml-1.5 text-[#8D8D8D] regular ${
                       language === "ar" && "dir-rtl"
@@ -271,7 +297,14 @@ function OldCartContainer() {
                 </div>
                 {product.shipping_days && (
                   <div className="flex-row whitespace-nowrap items-center text-[12px] regular text-[#505050] mt-1 mr-3">
-                    <DeleiveryIcon />
+                    <Image
+                      src={"/svg/cart/DeleiveryIcon.svg"}
+                      alt="cart-color"
+                      width={10}
+                      height={10}
+                      data-cy="color-icon"
+                    />
+
                     <span
                       className={`ml-1.5 whitespace-nowrap text-[#8D8D8D] regular ${
                         language === "ar" && "dir-rtl"
@@ -307,7 +340,13 @@ function OldCartContainer() {
                     transform: "translateY(-3px)",
                   }}
                 >
-                  <OldCartIcon />
+                  <Image
+                    src={"/svg/cart/OldCartIcon.svg"}
+                    alt="cart-color"
+                    width={20}
+                    height={20}
+                    data-cy="color-icon"
+                  />
                 </span>
                 <span className="text-[#8D8D8D] bold text-[12px] ml-1">
                   {translateFunction("Out Of Bag!", language)}{" "}

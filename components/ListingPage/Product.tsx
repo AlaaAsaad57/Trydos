@@ -106,7 +106,7 @@ export const BuyButtonProduct = ({
               </svg>
             </span>
             <span
-              className="old-price ml-[3px] relative bold-text color-dark-gray flex f-12"
+              className="old-price ml-[3px] relative bold color-dark-gray flex f-12"
               data-cy="product-offer-price"
             >
               {RoundPrice({
@@ -121,7 +121,7 @@ export const BuyButtonProduct = ({
       } else {
         return (
           <span
-            className="old-price ml-[3px] bold-text color-dark-gray flex f-12"
+            className="old-price ml-[3px] bold color-dark-gray flex f-12"
             data-cy="product-redeem-price"
           >
             {RoundPrice({
@@ -184,7 +184,7 @@ export const BuyButtonProduct = ({
               </svg>
             </span>
             <span
-              className="old-price ml-[3px] relative bold-text color-dark-gray flex f-12"
+              className="old-price ml-[3px] relative bold color-dark-gray flex f-12"
               data-cy="product-offer-price"
             >
               {product?.offer_price >= 0
@@ -223,7 +223,7 @@ export const BuyButtonProduct = ({
       } else {
         return (
           <span
-            className="old-price ml-[3px] bold-text color-dark-gray flex f-12"
+            className="old-price ml-[3px] bold color-dark-gray flex f-12"
             data-cy="product-redeem-price"
           >
             {RoundPrice({
@@ -286,7 +286,7 @@ export const BuyButtonProduct = ({
               </svg>
             </span>
             <span
-              className="new-price bold-text color-dark-gray flex f-12"
+              className="new-price bold color-dark-gray flex f-12"
               data-cy="product-offer-price"
             >
               {product?.offer_price >= 0
@@ -308,7 +308,7 @@ export const BuyButtonProduct = ({
       } else {
         return (
           <span
-            className="old-price relative f-12 bold-text color-dark-gray"
+            className="old-price relative f-12 bold color-dark-gray"
             data-cy="product-price"
           >
             {RoundPrice({

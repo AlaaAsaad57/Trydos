@@ -22,6 +22,8 @@ import { getProductsAndFiltersFromElastic } from "services/elastic/elasticSearch
 import { getCurrencyFromCache, StoreCurrency } from "Server Requests/radis";
 import RecomendedProducts from "components/Server/RecomendedProducts";
 import { translateFunction } from "utils/functions";
+import SearchIcon from "components/Home/Search/SearchIcon";
+import MainCategoriesNavbar from "components/Server/MainCategories";
 
 export async function generateMetadata({ params }) {
   let language = params.lang?.split("-")[1];
@@ -134,35 +136,7 @@ async function HomePage({ params }: HomePageProps) {
 
 export default HomePage;
 // Main Categories Bar
-async function MainCategoriesNavbar({ lang, mainCategory }) {
-  const [country, language] = lang?.split("-");
 
-  let Reader = new ElasticsearchReader();
-  let start = process.hrtime.bigint();
-  let a = await Reader.getCategories({ country: country, size: 4000 });
-  // @ts-ignore
-
-  let mainCategories = a.hits.hits.map((s) => {
-    // @ts-ignore
-    return s._source?.custom_categories?.find(
-      (cat) => cat.language_code?.toLowerCase() === language?.toLowerCase()
-    );
-  });
-  mainCategories = mainCategories.filter((c) => c !== undefined);
-  mainCategories = Array.from(
-    new Map(mainCategories.map((c: any) => [c.id, c])).values()
-  );
-  let end = process.hrtime.bigint();
-
-  return (
-    <NavbarServer
-      lang={lang}
-      time={Number(end - start) / 1_000_000}
-      mainCategory={mainCategory}
-      categoriesData={mainCategories}
-    />
-  );
-}
 // Featured Products
 async function FeaturedProductWrapper({ lang }) {
   const [country, language] = lang?.split("-");
@@ -185,7 +159,7 @@ async function FeaturedProductWrapper({ lang }) {
         currencyData?.redis ? "redis" : "laravel api"
       } in ${Number(end - start) / 1_000_000} ms`}
       currencyData={currencyData}
-      fetauredProductsData={{ data: data }}
+      fetauredProductsData={{ data: { products: data.products } }}
       lang={lang}
     />
   );
@@ -214,7 +188,7 @@ async function FlashProductWrapper({ lang }) {
         currencyData?.redis ? "redis" : "laravel api"
       } in ${Number(end - start) / 1_000_000} ms`}
       currencyData={currencyData}
-      flashDealsProducts={{ data: data }}
+      flashDealsProducts={{ data: { products: data.products } }}
       lang={lang}
     />
   );
