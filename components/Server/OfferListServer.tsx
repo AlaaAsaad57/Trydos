@@ -19,7 +19,10 @@ async function OfferListServer({
     const HomeData = boutiquesData;
 
     return (
-      <div className={`offers-list pb-[184px] gap-[10px]`} data-cy="boutiques">
+      <div
+        className={`offers-list w-full flex-col items-center justify-start mt-[30px] px-[15px] pb-[184px] gap-[20px]`}
+        data-cy="boutiques"
+      >
         <DataSourceLogger dataSourceString={dataSourceString} />
 
         {HomeData?.boutiques?.map((boutique, myKey) => {

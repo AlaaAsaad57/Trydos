@@ -835,6 +835,7 @@ const translations = {
   "Change Profile Photo": "تغيير صورة الملف الشخصي",
   "Upload Photo": "رفع صورة",
   "From Files": "من الملفات",
+  from: "من",
   "From Camera": "من الكاميرا",
   "Change Photo": "تغيير الصورة",
   "JPG, PNG or GIF (max. 5MB)": "JPG أو PNG أو GIF (الحد الأقصى 5 ميجابايت)",

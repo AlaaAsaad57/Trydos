@@ -62,36 +62,16 @@ export function ProductPhotosSlider({
   return (
     <>
       <div
-        className="product-photos max-h-[290px] overflow-visible w-100 justify-start align-center flex-col"
+        className="product-photos z-10 min-h-[290px]  max-h-[290px] overflow-visible w-100 justify-start align-center flex-col"
         style={{
           position: "static",
           opacity: "1",
           zIndex: "4",
         }}
       >
-        <div className={`product-container-slider w-full relative`}>
-          {/* {
-              product.sync_color_images &&
-              productState?.isColorSelected &&
-              !productState?.isActiveTopSlide && (
-                <ColorSlider
-                  product_name={product.name}
-                  priority={priority}
-                  active={
-                    productState?.isColorSelected &&
-                    !productState?.isActiveTopSlide
-                  }
-                  activeColor={productState?.activeColor}
-                  colors={product.sync_color_images?.filter(
-                    (color) => color.images.length > 0
-                  )}
-                  getIndex={getIndex(product, productState)}
-                  setActiveColor={(e) =>
-                    dispatch({ type: "setActiveImage", payload: e })
-                  }
-                />
-              )} */}
-
+        <div
+          className={`product-container-slider h-[290px] duration-300 w-full relative`}
+        >
           <ImageSlider
             showBorder={Boolean(product.flash_deal_end_date || shouldshowRedem)}
             product_name={product.name}

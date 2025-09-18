@@ -871,7 +871,7 @@ export const QuantutyInput = ({
                       src={"/svg/cart/SavedIcon.svg"}
                     />
                     <span
-                      className="text-[8px] text-[#388CFF]  need-row-rev mx-[4px]"
+                      className="text-[8px] text-[#388CFF] flex-row-reverse flex mx-[4px]"
                       data-cy="saved-text"
                     >
                       {translate("Saved")}{" "}
@@ -918,11 +918,11 @@ export const CartItemLink = ({ product, children }) => {
   const getURLOfProduct = ({ product }) => {
     let productUrl;
     const hasValidColor =
-      product.variations[0]?.color_options &&
-      product.variations[0]?.color_options !== "undefined";
+      product?.variations[0]?.color_options &&
+      product?.variations[0]?.color_options !== "undefined";
     const hasValidSize =
-      product.variations[0]?.size_options &&
-      product.variations[0]?.size_options !== "undefined";
+      product?.variations[0]?.size_options &&
+      product?.variations[0]?.size_options !== "undefined";
 
     if (hasValidColor && !hasValidSize)
       productUrl = `/${lang}/products/${

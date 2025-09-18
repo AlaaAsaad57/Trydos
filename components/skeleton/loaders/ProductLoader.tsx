@@ -209,7 +209,7 @@ function ProductLoader({ product }) {
       <div
         className="product-details-container w-full relative bg-[#ffffff] max-h-[calc(100vh-275px)]"
         style={{
-          maxHeight: "calc(100vh - 275px)",
+          maxHeight: "calc(100vh - 200px)",
           overflowY: "auto",
           overflowX: "hidden",
         }}
@@ -338,13 +338,6 @@ function ProductLoader({ product }) {
               />
             )}
 
-            {/* <Suspense fallback={<></>}>
-                <CameraShots images={product?.images || []} />
-              </Suspense> */}
-
-            {/* <Suspense>
-                <ProductShippingOption days={product.shipping_days} />
-              </Suspense> */}
             <div className="flex-col w-full h-auto rounded-[15px] bg-[#FCFCFC] mt-[12px] px-[10px]">
               <div
                 className="py-[8px] gap-[1px] flex-col  w-full h-auto text-[#1D1D1D] text-[9px] regular rounded-none"

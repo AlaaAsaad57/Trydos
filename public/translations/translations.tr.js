@@ -741,6 +741,7 @@ const translations = {
   "Upload Photo": "Fotoğraf Yükle",
   "Remove Photo": "Fotoğrafı Kaldır",
   "From Files": "Dosyalardan",
+  from: "itibaren",
   "From Camera": "Kameradan",
   "JPG, PNG or GIF (max. 5MB)": "JPG, PNG veya GIF (maks. 5MB)",
   Wishlist: "İstek Listesi",

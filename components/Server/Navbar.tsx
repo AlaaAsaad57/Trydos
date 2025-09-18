@@ -26,8 +26,8 @@ function NavbarServer({
     return (
       <HortiznalScrollBar
         id="categories-bar-container"
-        className={`categories-bar-container mobile-bar ${
-          loading && "scale-90 opacity-75"
+        className={`categories-bar-container m-0 max-w-[900px] pl-2 pr-2 overflow-x-scroll overflow-y-hidden min-h-[47px] bg-white pt-2 z-10 whitespace-nowrap flex  ${
+          loading && "opacity-75"
         } ${isRtl ? "flex-row-reverse" : "flex-row"} ${enable_search && "p-0"}`}
         dataCy="categoryNavBar"
       >

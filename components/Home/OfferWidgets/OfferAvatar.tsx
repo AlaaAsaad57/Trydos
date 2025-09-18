@@ -22,7 +22,7 @@ function OfferAvatar({
       }}
       href={linkUrl}
       aria-label={`Go To listing boutique ${name} ${category}`}
-      className="offer-avatar"
+      className="offer-avatar hover:z-[999] hover:mb-[15px] hover:h-[50px] hover:w-[50px] hover:ml-[10px] hover:mr-[10px] hover:bottom-[30px] w-[40px] h-[40px] rounded-full cursor-pointer duration-300 bg-white bottom-0 relative flex"
       style={{
         zIndex: zIndex,
         transform: `translateX(-${(zIndex - 1) * 5}px)`,
@@ -32,7 +32,7 @@ function OfferAvatar({
         <span>{name}</span>
         <span>{category}</span>
       </div>
-      <div className="offer-avatr-inner-s w-full h-full" />
+      <div className="offer-avatr-inner-s rounded-full  w-full h-full" />
       <Image
         loading="eager"
         src={getConfiguredImage({

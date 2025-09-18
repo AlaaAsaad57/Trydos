@@ -862,8 +862,8 @@ export function findVariation(
   if (selectedColor) {
     color = colors.find(
       (c) =>
-        normalize(c.color_name) === normalize(selectedColor) ||
-        normalize(c.color_option) === normalize(selectedColor)
+        normalize(c?.color_name) === normalize(selectedColor) ||
+        normalize(c?.color_option) === normalize(selectedColor)
     );
   }
 
@@ -880,11 +880,11 @@ export function findVariation(
   // Build variation type based on rules
   let variationType = null;
   if (color && size) {
-    variationType = `${color.color_option}-${size.option}`;
+    variationType = `${color?.color_option}-${size.option}`;
   } else if (color) {
-    variationType = color.color_option;
+    variationType = color?.color_option;
   } else if (size) {
-    variationType = size.option;
+    variationType = size?.option;
   }
 
   if (!variationType) return null;
@@ -913,10 +913,10 @@ export function isSameColor(colorA, colorB) {
   if (!a || !b) return false;
 
   return (
-    normalize(a.color_name) === normalize(b.color_name) ||
-    normalize(a.color_name) === normalize(b.color_option) ||
-    normalize(a.color_option) === normalize(b.color_name) ||
-    normalize(a.color_option) === normalize(b.color_option)
+    normalize(a?.color_name) === normalize(b.color_name) ||
+    normalize(a?.color_name) === normalize(b.color_option) ||
+    normalize(a?.color_option) === normalize(b.color_name) ||
+    normalize(a?.color_option) === normalize(b.color_option)
   );
 }
 interface CountriesResponse {

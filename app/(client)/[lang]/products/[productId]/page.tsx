@@ -590,14 +590,6 @@ async function Page({ params, searchParams }: ProductPagePropsType) {
                   params={params}
                 />
               )}
-
-              {/* <Suspense fallback={<></>}>
-                <CameraShots images={product?.images || []} />
-              </Suspense> */}
-
-              {/* <Suspense>
-                <ProductShippingOption days={product.shipping_days} />
-              </Suspense> */}
               <div className="flex-col w-full h-auto rounded-[15px] bg-[#FCFCFC] mt-[12px] px-[10px]">
                 <ExpectedDeleiveryBanner
                   lang={params.lang}

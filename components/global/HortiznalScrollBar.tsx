@@ -51,7 +51,7 @@ function HortiznalScrollBar({
         }
       }}
       id={id}
-      className={`${className} horizntal-scroll overflow-x-scroll overflow-y-hidden whitespace-nowrap [&> *]: select-none`}
+      className={`${className} horizntal-scroll overflow-x-scroll overflow-y-hidden whitespace-nowrap [&> *]: select-none  [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]`}
       data-cy={dataCy}
     >
       {children}

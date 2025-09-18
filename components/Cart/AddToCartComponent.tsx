@@ -57,8 +57,8 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
   const [selectedColor, setSelectedColor] = useState(
     ProductData?.sync_color_images?.find(
       (s) =>
-        s.color_option?.toLowerCase() === colorFromUrl?.toLowerCase() ||
-        s.color_name?.toLowerCase() === colorFromUrl?.toLowerCase()
+        s?.color_option?.toLowerCase() === colorFromUrl?.toLowerCase() ||
+        s?.color_name?.toLowerCase() === colorFromUrl?.toLowerCase()
     ) || ProductData?.sync_color_images?.[0]
   );
   const [selectedSize, setSelectedSize] = useState(
@@ -186,8 +186,8 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
         setSelectedColor(
           tempProductData?.sync_color_images?.find(
             (s) =>
-              s.color_option?.toLowerCase() === colorFromUrl?.toLowerCase() ||
-              s.color_name?.toLowerCase() === colorFromUrl?.toLowerCase()
+              s?.color_option?.toLowerCase() === colorFromUrl?.toLowerCase() ||
+              s?.color_name?.toLowerCase() === colorFromUrl?.toLowerCase()
           ) ?? tempProductData?.sync_color_images?.[0]
         );
       } else {
@@ -235,7 +235,8 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
           setSelectedColor(
             ProductData?.sync_color_images?.find(
               (s) =>
-                s.color_option?.toLowerCase() === otherColor?.[0]?.toLowerCase()
+                s?.color_option?.toLowerCase() ===
+                otherColor?.[0]?.toLowerCase()
             )
           );
           if (otherColor?.[1]) {

@@ -38,10 +38,14 @@ async function StoriesBarServer({ language, country }: StoriesBarServerProps) {
     return (
       <>
         <StoriesStoreInitializer initialStories={storiesData} />
-        <div className={` stories-bar-container`}>
+        <div
+          className={` stories-bar-container h-[183px] items-center flex w-full z-[99999999] max-w-[1365px] justify-start`}
+        >
           <div
             id="stories-bar"
-            className={`stories-bar ${isRtl && "flex-row-reverse"}`}
+            className={`stories-bar  w-full h-[183px] items-center flex justify-start ${
+              isRtl && "flex-row-reverse"
+            }`}
           >
             <AddStory />
             {storiesData && storiesData ? (

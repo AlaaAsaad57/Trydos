@@ -208,9 +208,9 @@ function ProductCard({
             shouldshowRedem={shouldShowRedeem()}
           />
 
-          <div className="product-body flex-1 mt-[8px] w-100 flex-col align-start justify-start max-h-[60px] min-h-[30px]">
+          <div className="product-body pl-[13px] pr-[15px] z-10 flex-1 mt-[8px] w-100 flex-col align-start justify-start max-h-[60px] min-h-[30px]">
             <div
-              className="prouct-details overflow-hidden w-100 regular-text text-[#3c3c3c] text-[10px] max-h-[25px]"
+              className="prouct-details whitespace-normal inline-block mt-[2px] text-left align-top overflow-hidden  regular-text text-[#3c3c3c] text-[10px] max-h-[25px]"
               data-cy="productName"
             >
               <span className="flex-row align-center justify-start gap-[4px]">
@@ -227,7 +227,7 @@ function ProductCard({
                 )}
                 <VerifiedIcon />
               </span>
-              <p className="truncate w-full" data-cy="product-name">
+              <p className="truncate w-full max-w-[90%]" data-cy="product-name">
                 {[product?.name, product.categories_tree]
                   ?.filter((s) => typeof s === "string")
                   ?.join(" | ")}

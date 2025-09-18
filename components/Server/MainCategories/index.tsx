@@ -27,7 +27,7 @@ export default async function MainCategoriesNavbar({ lang, mainCategory }) {
     <div
       className={`${
         isRtl ? "flex-row-reverse pr-[10px]" : "flex-row pl-[10px]"
-      }  search-nav-holder`}
+      }  bg-white w-full pl-[10px] shadow-[0px_0px_6px_rgb(0,0,0,0.1)] z-[999999995]`}
     >
       <SearchIcon time={Number(end - start) / 1_000_000} />
       <NavbarServer

@@ -229,7 +229,7 @@ export const NormalSlider = ({
 
     const x = e.type === "mouseup" ? e.clientX : e.changedTouches[0].clientX;
     const dx = x - startX;
-    console.log(x, startX);
+
     if (dx > 0) {
       e.stopPropagation();
       e.preventDefault();

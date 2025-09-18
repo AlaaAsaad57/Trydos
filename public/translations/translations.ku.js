@@ -830,6 +830,7 @@ const translations = {
   "Change Profile Photo": "وێنەی پرۆفایل بگۆڕە",
   "Upload Photo": "وێنە بار بکە",
   "From Files": "لە فایلەکانەوە",
+  from: "لە",
   "From Camera": "لە کامێرایەوە",
   "Change Photo": "وێنە بگۆڕە",
   "JPG, PNG or GIF (max. 5MB)": "JPG، PNG یان GIF (زۆرترین ٥ مێگابایت)",

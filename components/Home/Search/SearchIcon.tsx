@@ -26,7 +26,9 @@ function SearchIcon({ time }) {
   return (
     <>
       <div
-        className={`search-icon ${enable_search && "active-serach"}`}
+        className={`search-icon flex items-center h-full cursor-pointer duration-[0.4s] min-w-[50px] ${
+          enable_search && "active-serach min-w-full"
+        }`}
         data-cy="searchIcon_mainPage"
         onClick={() => {
           if (!enable_search) {
@@ -43,7 +45,12 @@ function SearchIcon({ time }) {
         <DataSourceLogger
           dataSourceString={`Main Categories Data Source Elastic in ${time} ms`}
         />
-        <Search id="search-icon" className={`z-50 ${focuse && "black-fill"}`} />
+        <Search
+          id="search-icon"
+          className={`absolute duration-[0.4s] ml-[10px]  z-50 ${
+            focuse && "black-fill"
+          }`}
+        />
         <SearchComponent
           close={() => {
             EnableScroll();
