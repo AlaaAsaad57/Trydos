@@ -37,8 +37,8 @@ function CarouselContainer({ banners }) {
                     data-cy="image_image"
                     loading={"eager"}
                     fetchPriority={"high"}
-                    style={{ borderRadius: "15px" }}
-                    className="OfferImage object-cover"
+                    style={{ borderRadius: "15px", height: "auto" }}
+                    className="OfferImage object-cover max-h-full"
                     src={getConfiguredImage({
                       src: GetImageUrl(banner.file_path),
                       height: 400,

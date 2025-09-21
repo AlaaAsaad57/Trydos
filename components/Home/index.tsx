@@ -3,10 +3,9 @@ import "styles/home.css";
 import dynamic from "next/dynamic";
 import { useEffect } from "react";
 
-import ChatService from "services/chat";
-import { getUserChat, translateFunction } from "utils/functions";
+import { translateFunction } from "utils/functions";
 const NameModal = dynamic(() => import("components/global/NameModal"));
-import StoriesContainer from "./Stories/NewStories";
+
 import StoryServiceClass from "services/story";
 import SearchContainer from "./Search/SearchContainer";
 import { useAppStore } from "store";
@@ -54,22 +53,6 @@ export default function Home() {
       const Cookies = (await import("js-cookie")).default;
       Cookies.set("token", StoryServiceClass.getUserStories()?.access_token);
     }
-
-    if (getUserChat()?.id) {
-      const { requestFirebaseNotificationPermission } = await import(
-        "utils/firebaseInitv1"
-      );
-      requestFirebaseNotificationPermission().then(async (fbtoken) => {
-        if (fbtoken && getUserChat()?.id) {
-          fbtoken &&
-            ChatService.StoreToken({
-              id: getUserChat()?.id,
-              token: fbtoken,
-              user: getUserChat(),
-            });
-        }
-      });
-    }
   };
 
   const getNameModalOpen = () => {
@@ -91,7 +74,7 @@ export default function Home() {
   return (
     <>
       {getNameModalOpen() && <NameModal />}
-      {selectedStory?.id && <StoriesContainer selectedStory={selectedStory} />}
+
       {enable_search && <SearchContainer active={enable_search} />}
     </>
   );

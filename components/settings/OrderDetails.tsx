@@ -8,7 +8,7 @@ import OrderExpectedDeliveryCard from "./cards/OrderExpectedDeliveryCard";
 import OrderStatusCard from "./cards/OrderStatusCard";
 import OrderAddressCard from "./cards/OrderAddressCard";
 import OrderItemsList from "./cards/OrderItemsList";
-import { OrderDetail, OrderItem } from "types/orders";
+import { OrderItem } from "types/orders";
 import {
   getConfiguredImage,
   getUserChat,
@@ -46,18 +46,14 @@ import { REQUESTS_DATA } from "utils/Requests";
 import dynamic from "node_modules/next/dynamic";
 import LandingPage from "components/Home/LandingPage";
 import Spinner from "components/global/Spinner";
-function OrderDetails({ resetOrderDetails, goBack }: OrderDetailsPropsType) {
+
+function OrderDetails({
+  resetOrderDetails,
+  goBack,
+  setShouldConfirmReturn,
+}: OrderDetailsPropsType) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  useEffect(() => {
-    if (searchParams.get("order_id_chat")) {
-      let order_id = searchParams.get("order_id_chat");
-      let selected_pack = selectedOrder.details?.find(
-        (det) => det.id === parseInt(order_id)
-      );
-      getChatWithShipping(parseInt(order_id));
-    }
-  }, []);
 
   const {
     setOrderDetails,
@@ -67,11 +63,30 @@ function OrderDetails({ resetOrderDetails, goBack }: OrderDetailsPropsType) {
     setActivePacks,
     orderPageLoading: loading,
     setOrderPageLoading: setLoading,
+    setIsNavigating,
+    shouldUpdateOrders,
+    setShouldUpdateOrders,
   } = useAppStore();
   const fetchedOrderIdRef = useRef<string | number | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
   const { lang } = useParams();
+  const getProductUrl = (product) => {
+    let pathname = `/${lang}/products/${
+      product.product_slug || product?.product_details?.slug
+    }`;
+    if (product.variation?.length > 0) {
+      let newParams = new URLSearchParams();
+      if (product?.variation?.[0]?.color_options) {
+        newParams.set("color", product?.variation?.[0]?.color_options);
+      }
+      if (product?.variation?.[0]?.size_options) {
+        newParams.set("size", product?.variation?.[0]?.size_options);
+      }
 
+      return pathname + `?${newParams?.toString()}`;
+    }
+    return pathname;
+  };
   const getOrderDetails = async () => {
     // Abort any previous request
     if (abortControllerRef.current) {
@@ -92,32 +107,37 @@ function OrderDetails({ resetOrderDetails, goBack }: OrderDetailsPropsType) {
           return s.return_request_id;
       });
       returned_req_ids = returned_req_ids?.filter((s) => s !== undefined);
+      let returnRequests = undefined;
+
       if (returned_req_ids?.length > 0) {
         try {
-          const returnRequests = await Promise.all(
-            returned_req_ids.map(async (id) => {
-              const details = await Order.getReturnRequestDetails({
-                return_request_id: id,
-              });
-              return { id, details };
-            })
-          );
+          returnRequests = await Order.GetReturnDetailsForOrderGroup({
+            order_group_id: selectedOrder.order_group_id,
+          });
 
           // Update data with the fetched details
           data = data.map((order) => {
             const match = returnRequests.find(
               (req) => req.id === order.return_request_id
             );
-            return match ? { ...order, return_details: { ...match } } : order;
+            return match
+              ? {
+                  ...order,
+                  return_details: { ...match },
+                  returned_data: returnRequests,
+                }
+              : { ...order, returned_data: returnRequests };
           });
         } catch (error) {
           console.error(error);
         }
       }
+
       let orderData = {
         ...data?.[0],
         order_amount: totalAmount(data),
         details: data,
+        returned_data: returnRequests,
       };
 
       if (data.find((s) => s.id === ActivePacks?.id)) {
@@ -125,7 +145,19 @@ function OrderDetails({ resetOrderDetails, goBack }: OrderDetailsPropsType) {
       } else setActivePacks(data[0]);
 
       setOrderDetails(orderData);
+      setIsNavigating(false);
+      setShouldUpdateOrders(0);
+      if (searchParams.get("order_id_chat")) {
+        let order_id = searchParams.get("order_id_chat");
+        let selected_pack = selectedOrder?.details?.find(
+          (det) => det.id === parseInt(order_id)
+        );
+        let chat_id = searchParams.get("chat_id");
+        getChatWithShipping(parseInt(chat_id ?? order_id));
+      }
     } catch (error) {
+      setShouldUpdateOrders(0);
+      setIsNavigating(false);
       // Don't handle error if it's an abort error
       if (error.name === "AbortError") {
         return;
@@ -163,6 +195,7 @@ function OrderDetails({ resetOrderDetails, goBack }: OrderDetailsPropsType) {
     goBack();
     setIsExpanded(false);
   };
+
   const [isExpanded, setIsExpanded] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [chatInfo, setChatInfo] = useState<Channel | null>(null);
@@ -170,6 +203,11 @@ function OrderDetails({ resetOrderDetails, goBack }: OrderDetailsPropsType) {
     // Out for Delivery
     if (pack && pack?.order_status?.value === "out_for_delivery")
       return selectedOrder.order_group_id;
+    if (
+      ActivePacks?.return_details?.details?.status?.value === "out_for_return"
+    ) {
+      return true;
+    }
     return false;
   };
   const [isGettingChat, setIsGettingChat] = useState(false);
@@ -336,7 +374,14 @@ function OrderDetails({ resetOrderDetails, goBack }: OrderDetailsPropsType) {
             key={s}
             isGettingChat={isGettingChat}
             setIsGettingChat={setIsGettingChat}
-            getChatWithShipping={() => getChatWithShipping(s)}
+            getChatWithShipping={() => {
+              if (
+                ActivePacks?.return_details?.details?.status?.value ===
+                "out_for_return"
+              )
+                getChatWithShipping(ActivePacks?.return_request_id);
+              else getChatWithShipping(s);
+            }}
             id={s}
           />
         );
@@ -384,8 +429,27 @@ function OrderDetails({ resetOrderDetails, goBack }: OrderDetailsPropsType) {
       }
     };
   }, []);
-
-  if (!selectedOrder?.id) return null;
+  const shouldShowRatingBadge = () => {
+    if (
+      ActivePacks.details.filter((s) => !s.comments || s.comments?.length === 0)
+        .length === 0
+    )
+      return false;
+    if (isExpanded) return false;
+    if (ActivePacks?.order_status?.value === "delivered") return true;
+    else return false;
+  };
+  useEffect(() => {
+    if (
+      shouldUpdateOrders > 0 &&
+      selectedOrder?.id &&
+      selectedOrder?.order_status
+    ) {
+      fetchedOrderIdRef.current = selectedOrder.order_group_id;
+      getOrderDetails();
+    }
+  }, [shouldUpdateOrders]);
+  if (!selectedOrder?.id && !selectedOrder?.order_status) return null;
 
   return (
     <>
@@ -400,6 +464,10 @@ function OrderDetails({ resetOrderDetails, goBack }: OrderDetailsPropsType) {
       <div className="flex-col h-[calc(128vh)]">
         <SettingTopBar
           goBack={() => {
+            if (isExpanded) {
+              setIsExpanded(false);
+              return;
+            }
             setIsExpanded(false);
             let params = new URLSearchParams(window.location.search);
             params.delete("id");
@@ -491,14 +559,13 @@ function OrderDetails({ resetOrderDetails, goBack }: OrderDetailsPropsType) {
                 }
               />
             </div>
-            {ActivePacks?.order_status?.value === "delivered" && (
-              <RateOrderButton />
-            )}
+            {shouldShowRatingBadge() && <RateOrderButton />}
             <div className="flex flex-col justify-start  w-full bg-[#F8F8F8] px-[12px] h-full relative">
               <OrderItemsList
                 getOrderDetails={() => {
                   getOrderDetails();
                 }}
+                getProductUrl={(e) => getProductUrl(e)}
                 shouldShowChat={() => shouldShowChatIcon(ActivePacks)}
                 showChats={() => ShowChats()}
                 order_group_status={
@@ -514,6 +581,9 @@ function OrderDetails({ resetOrderDetails, goBack }: OrderDetailsPropsType) {
               />
               {isExpanded && (
                 <OrderExpandedDetails
+                  getProductUrl={(e) => getProductUrl(e)}
+                  setIsExpanded={(e) => setIsExpanded(e)}
+                  setShouldConfirmReturn={setShouldConfirmReturn}
                   getOrderDetails={() => getOrderDetails()}
                   order={selectedOrder?.details?.find(
                     (s) => s.id === ActivePacks?.id
@@ -529,29 +599,82 @@ function OrderDetails({ resetOrderDetails, goBack }: OrderDetailsPropsType) {
 }
 
 export default OrderDetails;
+
 const OrderExpandedDetails = ({
   order,
   getOrderDetails,
+  setShouldConfirmReturn,
+  setIsExpanded,
+  getProductUrl,
 }: {
   order: OrderItem;
   getOrderDetails: () => void;
+  setShouldConfirmReturn: (e: any) => void;
+  setIsExpanded: (e: boolean) => void;
+  getProductUrl;
 }) => {
-  const { currency } = useAppStore();
+  const { currency, selectedOrder, setOrderOptions } = useAppStore();
+
   const [cancelling, setCancelling] = useState(false);
   const CancelReturnRequest = async () => {
     try {
-      setCancelling(true);
-      await Order.CancelReturnRequest({
-        return_request_id: order.return_request_id,
-      });
-      getOrderDetails();
-      setCancelling(false);
+      if (Array.isArray(isThereAReturnedProductForCancel())) {
+        setCancelling(true);
+        await Order.CancelReturnRequest({
+          return_request_id: isThereAReturnedProductForCancel(),
+        });
+        getOrderDetails();
+        setCancelling(false);
+      }
     } catch (error) {
       setCancelling(false);
     }
   };
+  const isAllPreventEdit = () => {
+    return (
+      selectedOrder?.details?.filter((s) => s.edit_return_request === false)
+        ?.length === selectedOrder?.details?.length
+    );
+  };
+  const isThereAReturnedProduct = () => {
+    let arr = [];
+    if (isAllPreventEdit()) return false;
+    selectedOrder.returned_data?.map((s) => {
+      s.details?.order_details?.map((req) => {
+        if (req.already_return) {
+          arr.push(req?.return_request_id);
+        }
+      });
+    });
+    let set = new Set(arr);
+    arr = [...set];
+    if (arr.length > 0) return arr;
+    return false;
+  };
+  const isThereAReturnedProductForCancel = () => {
+    let arr = [];
+
+    selectedOrder.returned_data?.map((s) => {
+      s.details?.order_details?.map((req) => {
+        if (req.already_return) {
+          arr.push(req?.return_request_id);
+        }
+      });
+    });
+    selectedOrder?.details.map((s) => {
+      if (s.return_request_id) arr.push(s.return_request_id);
+    });
+    let set = new Set(arr);
+    arr = [...set];
+    if (arr.length > 0) return arr;
+    return false;
+  };
   const shouldShowConfirmReturn = () => {
-    return order?.return_details?.details?.status === "draft return request";
+    return (
+      selectedOrder?.returned_data?.filter(
+        (s) => s.details?.status?.value === null
+      )?.length > 0 && isThereAReturnedProduct()
+    );
   };
   const getProductWithReturn = (product) => {
     let return_item = order?.return_details?.details?.order_details?.find(
@@ -559,18 +682,7 @@ const OrderExpandedDetails = ({
     ) ?? { already_return: false };
     return { ...product, return: return_item };
   };
-  const confirmOrderReturn = async () => {
-    try {
-      setCancelling(true);
-      await Order.ConfirmReturnRequest({
-        return_request_id: order.return_request_id,
-      });
-      setCancelling(false);
-      getOrderDetails();
-    } catch (error) {
-      setCancelling(false);
-    }
-  };
+
   const { lang } = useParams();
   // @ts-ignore
   const language = lang.split("-")[1];
@@ -710,7 +822,7 @@ const OrderExpandedDetails = ({
             {translateFunction("Order Status")}
           </span>
           <div className="text-[#1D1D1D] flex-row text-[12px] regular mt-[3px]">
-            <span>{order?.order_group_status?.label}</span>
+            <span>{order?.order_status?.label}</span>
             <span className="ml-[11px]">
               <OrderStatusIcon
                 status={order?.order_group_status?.value}
@@ -725,7 +837,9 @@ const OrderExpandedDetails = ({
           <div
             className={`w-full h-[50px] mt-[31px] items-center justify-center  flex cursor-pointer ${"bg-[#402CDD] "} rounded-[15px] text-[16px] text-[#fff] medium`}
             onClick={() => {
-              confirmOrderReturn();
+              // confirmOrderReturn();
+              setShouldConfirmReturn(true);
+              setOrderOptions(true);
             }}
           >
             {cancelling ? (
@@ -735,10 +849,9 @@ const OrderExpandedDetails = ({
             )}
           </div>
         )}
-        {order?.return_details?.details?.status &&
-          (order.return_request_id &&
-          order.edit_return_request &&
-          cancelling ? (
+        {isThereAReturnedProduct() &&
+          // order.edit_return_request &&
+          (cancelling ? (
             <div
               className={`w-full h-[50px] mt-[31px] items-center justify-center  flex cursor-pointer ${"bg-[#fb7070] "} rounded-[15px] text-[16px] text-[#fff] medium`}
             >
@@ -746,16 +859,17 @@ const OrderExpandedDetails = ({
             </div>
           ) : (
             <div
-              className={`w-full h-[50px] mt-[31px] items-center justify-center  flex cursor-pointer ${"bg-[#fb7070] "} rounded-[15px] text-[16px] text-[#fff] medium cursor-pointer`}
+              className={`flex-row mt-[11px] items-center justify-center underline text-[##1D1D1D] text-[12px] regular cursor-pointer`}
               onClick={() => {
                 CancelReturnRequest();
               }}
             >
-              {translateFunction("Cancel Return Request")}
+              {translateFunction("Cancel All Return Requests")}
             </div>
           ))}
         {order.details.map((Product) => (
           <ProductCard
+            getProductUrl={(e) => getProductUrl(e)}
             status={order?.order_status}
             getOrderDetails={() => getOrderDetails()}
             product={getProductWithReturn(Product)}
@@ -772,20 +886,21 @@ const ProductCard = ({
   status,
   getOrderDetails,
   order,
+  getProductUrl,
 }: ProductCardPropsType) => {
   const { currency, setSelectedOrderItem, ActivePacks } = useAppStore();
   const { lang } = useParams();
   // @ts-ignore
   const language = lang.split("-")[1];
   const isRtl = language === "ar" || language === "ku";
+
   return (
     <>
       <div className={`relative w-full flex-col`}>
         <span
-          className="absolute top-[22px] right-[0px]"
+          className="absolute top-[22px] right-[0px] p-5 cursor-pointer"
           onClick={() => {
             DisableScroll();
-
             document.querySelector("#OrderDetails").scrollTop = 0;
             document
               .querySelector("#OrderDetails")
@@ -800,9 +915,7 @@ const ProductCard = ({
         </span>
 
         <NextLink
-          href={`/${lang}/products/${
-            product.product_slug || product?.product_details?.slug
-          }`}
+          href={getProductUrl(product)}
           data={{ is_product: true, ...product.product_details }}
           className="flex-row  w-full border-t border-[#C4C2C27f] py-[12px]"
         >
@@ -819,34 +932,34 @@ const ProductCard = ({
                 src: GetImageUrl(product.image),
                 width: 104,
                 height: 144,
-                q: 100,
+                q: 70,
               })}
               alt={product.product_details?.name}
             />
           </div>
           <div className="flex  flex-col items-start mt-[10px] ml-[12px] regular text-[12px] text-[#8D8D8D]">
             <span className="w-[70px] h-[10px] bg-[#C4C2C27f]"></span>
-            <span className="text-[#505050] text-[12px] regular mt-[3px]">
+            <span className="text-[#505050] text-[12px] regular mt-[3px] pr-[20px]">
               {product.product_details?.name}
             </span>
             <div className="flex-row justify-between w-full">
-              {product?.variation?.color && (
+              {product?.variation?.[0]?.color && (
                 <div className="flex-row">
                   <span className="text-[10px] regular">
                     {translateFunction("Color")}:
                   </span>
                   <span className="text-[#505050] text-[10px] medium ml-[2px]">
-                    {product.variation?.color}
+                    {product?.variation?.[0]?.color}
                   </span>
                 </div>
               )}
-              {product?.variation?.Size && (
+              {product?.variation?.[0]?.Size && (
                 <div className="flex-row ml-[40px]">
                   <span className="text-[10px] regular">
                     {translateFunction("Size")}:
                   </span>
                   <span className="text-[#505050] text-[10px] medium ml-[2px]">
-                    {product.variation?.Size}
+                    {product?.variation?.[0]?.Size}
                   </span>
                 </div>
               )}

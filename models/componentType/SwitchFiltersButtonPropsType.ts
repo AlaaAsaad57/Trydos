@@ -1,3 +1,4 @@
 export interface SwitchFiltersButtonProps {
-    length: number
+  length: number;
+  language: string;
 }

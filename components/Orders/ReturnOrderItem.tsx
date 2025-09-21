@@ -9,17 +9,17 @@ import ReturnOrderItemIcon from "public/svg/ReturnOrderItemIcon.svg";
 import { useAppStore } from "store";
 import UploadImageOrder from "public/svg/UploadImageOrder.svg";
 import Spinner from "components/global/Spinner";
-import { GetImageUrl, pollinateInput } from "utils/tinyUtils";
 import { ReturnOrderItemPropsType } from "models/componentType/ReturnOrderItemPropsType";
 import order from "services/order";
 import Skeleton from "node_modules/react-loading-skeleton/dist";
+import { showErrorNotification } from "store/notifications/reducer";
 
 function ReturnOrderItem({
   backToMain,
   item,
   setShouldConfirmReturn,
 }: ReturnOrderItemPropsType) {
-  const { currency } = useAppStore();
+  const { currency, language, ActivePacks } = useAppStore();
   const [options, setOptions] = useState([]);
   const [selectedOptions, setSelectedOptions] = useState(null);
 
@@ -58,6 +58,7 @@ function ReturnOrderItem({
       parseInt(item.return.return_request_product_quantity)) ??
       item.qty
   );
+  const isRtl = language === "ar" || language === "ku";
   return (
     <>
       <div className="flex-col w-full items-center pb-[12px] px-[24px]">
@@ -89,16 +90,22 @@ function ReturnOrderItem({
           <ReturnOrderItemIcon className="mt-[12px] [&>path]:fill-[#402CDD]" />
         </div>
         <span className="medium text-[14px] mt-[11px] text-[#402CDD]">
-          {translateFunction("Return This Product")}
+          {item?.return?.already_return
+            ? translateFunction("Update Return Request For This Product")
+            : translateFunction("Return This Product")}
         </span>
-        <p className="text-[#8D8D8D] text-[12px] regular text-center">
+        <p
+          className={`${
+            isRtl && "dir-rtl"
+          } text-[#8D8D8D] text-[12px] regular text-center`}
+        >
           {translateFunction(
             "You Can Return The Product Without Any Conditions According To The Return Policy And Get A Full Refund"
           )}
           <span className="bold text-[12px] text-[#8D8D8D] ml-[4px]">
             {RoundPrice({
               num:
-                (item?.price_after_discount || item.offer_price) * returnedQty -
+                (item?.price_after_discount || item.offer_price) -
                 (selectedOptions?.is_cost_by_system === 0
                   ? selectedOptions.cost
                   : 0),
@@ -160,7 +167,11 @@ function ReturnOrderItem({
           options.map((option, index) => (
             <div
               key={option?.id}
-              className={`px-[12px] w-auto regular text-[12px] text-[#5D5C5D] flex-row h-[39px] justify-start items-center rounded-[12px] bg-[#F8F8F8] `}
+              className={`${
+                option.is_cost_by_system === 0 &&
+                option.cost > item.price_after_discount &&
+                "opacity-65"
+              } px-[12px] w-auto regular text-[12px] text-[#5D5C5D] flex-row h-[39px] justify-start items-center rounded-[12px] bg-[#F8F8F8] `}
               style={{
                 flex: "0 1 auto",
                 border:
@@ -169,6 +180,11 @@ function ReturnOrderItem({
                     : "none",
               }}
               onClick={() => {
+                if (option.is_cost_by_system === 0) {
+                  if (option.cost > item.price_after_discount) {
+                    return;
+                  }
+                }
                 handleOptionClick(option);
               }}
             >
@@ -195,6 +211,7 @@ function ReturnOrderItem({
         <>
           <span className="border-[#C4C2C280] border-b-[1px] w-full mt-[12px]" />
           <UploadImageComponent
+            return_request_product_id={item.return.return_request_product_id}
             loading={loadingImage}
             setLoading={setLoadinImage}
             images={images}
@@ -205,11 +222,13 @@ function ReturnOrderItem({
       <div className="flex-row px-[24px] w-full mt-[15px]">
         <div
           className={`w-full h-[53px] items-center justify-center  flex cursor-pointer ${
-            !selectedOptions ? "bg-[#D3D3D3] " : "bg-[#402CDD] "
+            !selectedOptions || images.length === 0
+              ? "bg-[#D3D3D3] "
+              : "bg-[#402CDD] "
           } rounded-[20px] text-[16px] text-[#fff] medium`}
           onClick={() => {
             if (loadingImage) return;
-            if (!selectedOptions) {
+            if (!selectedOptions || images.length === 0) {
               backToMain();
             } else {
               setShouldConfirmReturn({
@@ -235,7 +254,7 @@ function ReturnOrderItem({
             <Spinner />
           ) : (
             <>
-              {!selectedOptions
+              {!selectedOptions || images.length === 0
                 ? translateFunction("Close")
                 : translateFunction("Return Request")}
             </>
@@ -252,29 +271,34 @@ export const UploadImageComponent = ({
   setImages,
   loading,
   setLoading,
+  return_request_product_id,
 }) => {
   const UploadImage = async () => {
     const input = document.createElement("input");
     input.type = "file";
     input.accept = "image/*";
     input.onchange = async (e) => {
-      const file = (e.target as HTMLInputElement).files[0];
-      if (file) {
-        setLoading(true);
-        // const formData = new FormData();
-        // formData.append("image", file);
-        // const response = await fetch("/api/upload", {
-        //   method: "POST",
-        //   body: formData,
-        // });
-        // const data = await response.json();
-        let data = await order.UploadImageForOrderReturn({ image: file });
+      try {
+        const file = (e.target as HTMLInputElement).files[0];
+        if (file) {
+          setLoading(true);
+          // const formData = new FormData();
+          // formData.append("image", file);
+          // const response = await fetch("/api/upload", {
+          //   method: "POST",
+          //   body: formData,
+          // });
+          // const data = await response.json();
+          let data = await order.UploadImageForOrderReturn({ image: file });
 
-        setImages([...images, data.sub_path]);
-        setLoading(false);
-        if (document.body.contains(input)) {
-          document.body.removeChild(input);
+          setImages([...images, data.sub_path]);
+          setLoading(false);
+          if (document.body.contains(input)) {
+            document.body.removeChild(input);
+          }
         }
+      } catch (error) {
+        setLoading(false);
       }
     };
     input.click();
@@ -287,6 +311,27 @@ export const UploadImageComponent = ({
         `/return_request_products/` +
         img
       );
+  };
+  const removeImage = async (e, i) => {
+    try {
+      e.stopPropagation();
+      e.preventDefault();
+      if (loading) return;
+      if (return_request_product_id) {
+        setLoading(true);
+        await order.removeImage({
+          return_request_product_id: return_request_product_id,
+          img: i,
+        });
+        setLoading(false);
+      }
+
+      setImages(images.filter((im) => im !== i));
+    } catch (error) {
+      showErrorNotification(
+        translateFunction("Failed To Remove Image..Try Again")
+      );
+    }
   };
   return (
     <div
@@ -313,9 +358,7 @@ export const UploadImageComponent = ({
                 key={i}
                 className="flex-row items-center justify-center relative cursor-pointer order-return-item-image"
                 onClick={(e) => {
-                  e.stopPropagation();
-                  e.preventDefault();
-                  setImages(images.filter((im) => im !== s));
+                  removeImage(e, s);
                 }}
               >
                 <Image

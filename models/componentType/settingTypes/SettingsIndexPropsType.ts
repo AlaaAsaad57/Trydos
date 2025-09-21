@@ -10,4 +10,6 @@ export interface SettingOption {
 
 export interface SettingsIndexPropsType {
   lang: string;
+  order_id?: string;
+  tab?: string;
 }

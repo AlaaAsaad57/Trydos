@@ -43,8 +43,6 @@ function OrderButton({ close, toOrders }) {
   const userData = getCookie<UserData>(COOKIE_NAMES.USER_DATA);
   const [option, setOption] = useState(false);
   const getTotaPriceToShow = () => {
-    console.log(total, total_cash);
-
     if (orderData?.payment?.find((s) => s.id === 0)) {
       return total_cash;
     } else {
@@ -159,7 +157,7 @@ function OrderButton({ close, toOrders }) {
     );
   };
   const getDiscount = () => {
-    var a = parseInt(((total_discount / sub_total) * 100).toString());
+    var a = ((total_discount / sub_total) * 100).toString();
     return a;
   };
 
@@ -226,18 +224,11 @@ function OrderButton({ close, toOrders }) {
       passive: false,
     },
   });
-  const IsNotAvailable = () => {
-    let a = false;
-    cart.map((product) => {
-      if (parseInt(product.quantity) > product.available_quantity) a = true;
-    });
-    return a;
-  };
   return (
     <>
       {expanded && (
         <div
-          className="fixed top-[50px] min-w-[100vw] min-h-screen opacity-40 bg-[black] z-50"
+          className="fixed top-[50px] min-w-[100vw] min-h-screen opacity-40 bg-[black] z-[9999999999999999]"
           onClick={() => {
             setExpanded(false);
           }}
@@ -251,7 +242,7 @@ function OrderButton({ close, toOrders }) {
           boxShadow: "0px -3px 20px #0000001a",
           bottom: "calc(env(safe-area-inset-bottom) + 40px)",
         }}
-        className="order-bottom-button flex-col z-50 fixed  left-0 bg-white min-h-[100px] w-full"
+        className="order-bottom-button flex-col z-[99999999999999999] fixed  left-0 bg-white min-h-[100px] w-full"
       >
         {cart.length > 0 && (
           <div
@@ -358,7 +349,10 @@ function OrderButton({ close, toOrders }) {
                       {translateFunction("Normal Price")}
                     </span>
                   </div>
-                  <span className="ml-[5px] medium text-[#1D1D1D] text-[13px] pr-[13px]">
+                  <span
+                    className="ml-[5px] medium text-[#1D1D1D] text-[13px] pr-[13px]"
+                    data-cy="cart-total-price"
+                  >
                     {RoundPrice({
                       num:
                         getTotaPriceToShow() +
@@ -416,6 +410,7 @@ function OrderButton({ close, toOrders }) {
                     -{" "}
                     {RoundPrice({
                       num: total_discount,
+
                       returnNumber: true,
                       points: 5,
                     })}{" "}

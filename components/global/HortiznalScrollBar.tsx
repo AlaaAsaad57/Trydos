@@ -8,6 +8,7 @@ function HortiznalScrollBar({
   id,
   dataCy,
   time,
+  onClick = () => {},
 }: HortiznalScrollBarProps) {
   useEffect(() => {
     if (time) {
@@ -44,8 +45,13 @@ function HortiznalScrollBar({
   }, []);
   return (
     <div
+      onClick={(e) => {
+        if (onClick) {
+          onClick();
+        }
+      }}
       id={id}
-      className={`${className} overflow-x-scroll overflow-y-hidden whitespace-nowrap [&> *]: select-none`}
+      className={`${className} horizntal-scroll overflow-x-scroll overflow-y-hidden whitespace-nowrap [&> *]: select-none  [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]`}
       data-cy={dataCy}
     >
       {children}

@@ -7,7 +7,7 @@ import ImageSlider from "./ImageSlider";
 
 export function ProductPhotosSlider({
   product,
-  priority,
+  shouldshowRedem,
   Sliders = true,
   image,
 }: ProductPhotosSliderPropsType) {
@@ -27,10 +27,10 @@ export function ProductPhotosSlider({
             controls={false}
             style={{
               border:
-                (product.flash_deal_end_date || product?.is_redeem) &&
+                (product.flash_deal_end_date || shouldshowRedem) &&
                 "1px solid #FF6200",
             }}
-            className="w-full h-[290px] border-[#d3d3d387] border-[1px] rounded-15 z-10"
+            className="w-full object-cover h-[290px] border-[#d3d3d387] border-[1px] rounded-15 z-10"
           />
         ) : (
           // Display first image if no video
@@ -38,18 +38,20 @@ export function ProductPhotosSlider({
             width={400}
             height={300}
             loading="eager"
+            quality={100}
             fetchPriority="auto"
             src={getConfiguredImage({
-              src: GetImageUrl(product.images[0].file_path),
-              width: 400,
-              height: 400,
+              src: GetImageUrl(image),
+              width: 189,
+              height: 290,
+              q: 100,
             })}
             style={{
               border:
-                (product.flash_deal_end_date || product?.is_redeem) &&
+                (product.flash_deal_end_date || shouldshowRedem) &&
                 "1px solid #FF6200",
             }}
-            key={`${product.name}-${0}`}
+            key={image}
             className="w-[200px] h-[290px] border-[#d3d3d387] border-[1px] rounded-15 z-10"
             alt={product.name || "alt"}
           />
@@ -60,40 +62,18 @@ export function ProductPhotosSlider({
   return (
     <>
       <div
-        className="product-photos max-h-[290px] overflow-visible w-100 justify-start align-center flex-col"
+        className="product-photos z-10 min-h-[290px]  max-h-[290px] overflow-visible w-100 justify-start align-center flex-col"
         style={{
           position: "static",
           opacity: "1",
           zIndex: "4",
         }}
       >
-        <div className={`product-container-slider w-full relative`}>
-          {/* {
-              product.sync_color_images &&
-              productState?.isColorSelected &&
-              !productState?.isActiveTopSlide && (
-                <ColorSlider
-                  product_name={product.name}
-                  priority={priority}
-                  active={
-                    productState?.isColorSelected &&
-                    !productState?.isActiveTopSlide
-                  }
-                  activeColor={productState?.activeColor}
-                  colors={product.sync_color_images?.filter(
-                    (color) => color.images.length > 0
-                  )}
-                  getIndex={getIndex(product, productState)}
-                  setActiveColor={(e) =>
-                    dispatch({ type: "setActiveImage", payload: e })
-                  }
-                />
-              )} */}
-
+        <div
+          className={`product-container-slider h-[290px] duration-300 w-full relative`}
+        >
           <ImageSlider
-            showBorder={Boolean(
-              product.flash_deal_end_date || product?.is_redeem
-            )}
+            showBorder={Boolean(product.flash_deal_end_date || shouldshowRedem)}
             product_name={product.name}
             image={image}
             key={`Color Images Slider`}

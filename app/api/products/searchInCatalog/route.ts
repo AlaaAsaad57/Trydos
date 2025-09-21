@@ -50,7 +50,7 @@ export async function GET(req: NextRequest) {
       const decoded = decodeValue(searchParams.get("attributes"));
 
       const clean = stripExtraQuotes(decoded);
-      console.log(clean);
+
       filters.sizes = JSON.parse(clean)?.[0]?.options;
     }
     if (searchParams.get("featured")) {

@@ -4,20 +4,25 @@ import React, { useEffect, useState } from "react";
 import HomeService from "services/home";
 import PopupCountry from "utils/PopupCountry";
 import home from "services/home";
+import ChatService from "services/chat";
 
-import { fetchCountries } from "Server Requests";
+import { fetchCountries } from "utils/tinyUtils";
+
 import Smartlook from "smartlook-client";
 
-import { translateFunction } from "utils/functions";
+import { getUserChat, translateFunction } from "utils/functions";
 import { showErrorNotification } from "@/store/notifications/reducer";
 import {
   COOKIE_NAMES,
   getCookie,
   UserData,
 } from "utils/cookies/cookie-manager";
+import NotificationWidget from "components/global/NotificationWidget";
+import { useAppStore } from "store";
 
 function Init() {
   const { lang } = useParams();
+  const { isNotificationModal, setNotificationModal } = useAppStore();
   // @ts-ignore
   const [country, language] = lang?.split("-");
   const searchParams = useSearchParams();
@@ -133,29 +138,18 @@ function Init() {
       console.log(error);
     }
     // let images = document.querySelectorAll("img");
-    // images.forEach((img) => {
-    //   if (img.complete && img.naturalWidth === 0) {
-    //     img.src = "/error.png";
-    //   }
-    //   img.onerror = function () {
-    //     this.src = "/error.png";
-    //     this.onerror = null;
-    //   };
-    // });
   }, []);
   const initPageLoad = async () => {
-    const permission =
-      typeof Notification !== "undefined"
-        ? await Notification.requestPermission()
-        : null;
+    const permission = Notification.permission;
 
     if (permission !== "granted") {
       return null;
     }
-    const { requestFirebaseNotificationPermission } = await import(
-      "utils/firebaseInitv1"
-    );
-    if (!shouldShowBluredInfo()) {
+
+    if (!shouldShowBluredInfo() && Notification.permission === "granted") {
+      const { requestFirebaseNotificationPermission } = await import(
+        "utils/firebaseInitv1"
+      );
       const handlePageRefresh = async () => {
         try {
           requestFirebaseNotificationPermission().then((fbtoken) => {
@@ -172,7 +166,12 @@ function Init() {
   useEffect(() => {
     if (typeof Notification !== "undefined") initPageLoad();
   }, []); // Runs once when the app initializes
-
+  const onAllow = async () => {
+    home.allowNotifications();
+  };
+  const onDismiss = () => {
+    setNotificationModal(false);
+  };
   return (
     <>
       {shouldShowBluredInfo() && (
@@ -183,6 +182,14 @@ function Init() {
           options={dataCountries.map((s) => {
             return { label: s.name, value: s.iso };
           })}
+        />
+      )}
+      {isNotificationModal && (
+        <NotificationWidget
+          onAllow={onAllow}
+          onDismiss={() => {
+            onDismiss();
+          }}
         />
       )}
       {/* <AppProgressBar

@@ -2,7 +2,6 @@ import React, { memo, useState } from "react";
 import { BuyButtonProduct } from "../ListingPage/Product";
 import Image from "next/image";
 import ProductBanner from "components/products/ProductBanner";
-import MangoIcon from "public/svg/listing/MangoIcon.svg";
 import VerifiedIcon from "public/svg/listing/VerifiedIcon.svg";
 import { ProductLabelsAnimated } from "components/products/ProductLabelsAnimated";
 import { GetImageUrl } from "utils/tinyUtils";
@@ -53,11 +52,7 @@ function ProductColorCard({
         className="product-container  align-center flex-col relative pb-[10px]"
         data-cy="product_link"
       >
-        <ProductBanner
-          featured={product.featured}
-          flashDeals={product.flash_deal_end_date}
-          labels={product.label_names}
-        />
+        <ProductBanner flashDeals={product.flash_deal_end_date} />
         <NormalSlider
           initialSlide={activeImageIndex}
           slideHeight={290}
@@ -117,13 +112,21 @@ function ProductColorCard({
             </svg>
           ))}
         </div>
-        <div className="product-body flex-1 mt-[8px]  flex-col align-start justify-start max-h-[60px] min-h-[30px]">
+        <div className="product-body pl-[13px] pr-[15px] z-10 flex-1 mt-[8px]  flex-col align-start justify-start max-h-[60px] min-h-[30px]">
           <p
-            className="prouct-details overflow-hidden  regular-text text-[#3c3c3c] text-[10px] max-h-[25px]"
+            className="prouct-details whitespace-normal inline-block mt-[2px] text-left align-top overflow-hidden  regular-text text-[#3c3c3c] text-[10px] max-h-[25px]"
             data-cy="productName"
           >
             <span className="flex-row align-center justify-start gap-[4px]">
-              <MangoIcon />
+              {product?.brand?.icon && (
+                <img
+                  src={GetImageUrl(product.brand.icon)}
+                  alt={product.brand.name || "Brand"}
+                  className="h-[8px] w-auto object-contain inline-block ml-[7px]"
+                  loading="eager"
+                  draggable="false"
+                />
+              )}
               <VerifiedIcon />
             </span>
             {product.name?.substring(0, 50)}

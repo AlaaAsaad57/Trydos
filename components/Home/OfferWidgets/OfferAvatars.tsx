@@ -33,7 +33,7 @@ function OfferAvatars({ priority, boutique }: OfferAvatarsPropsType) {
   return (
     <div
       ref={ref}
-      className="offer-avatars-container"
+      className="flex z-[9999] max-h-[40px] items-end mx-auto w-fit"
       onTouchStart={(e) => handleMove(e)}
       onTouchMove={(e) => handleMove(e)}
       onMouseLeave={(e) => handleEnd()}

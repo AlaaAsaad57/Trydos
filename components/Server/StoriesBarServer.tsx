@@ -18,12 +18,14 @@ interface StoriesBarServerProps {
 }
 
 async function StoriesBarServer({ language, country }: StoriesBarServerProps) {
+  const isRtl = language === "ar" || language === "ku";
+
   try {
     // Get user token from cookies if available
     const STORIES_TOKEN = await getCookieServer<UserData>(
       COOKIE_NAMES.USER_STORIES
     );
-
+    let start = process.hrtime.bigint();
     // Fetch stories data
     const { data: storiesData, next_page_url } = await fetchStories(
       language,
@@ -31,17 +33,27 @@ async function StoriesBarServer({ language, country }: StoriesBarServerProps) {
       1,
       STORIES_TOKEN?.access_token
     );
+    let end = process.hrtime.bigint();
     let userData = await getCookieServer<UserData>(COOKIE_NAMES.USER_STORIES);
     return (
       <>
         <StoriesStoreInitializer initialStories={storiesData} />
-        <div className="stories-bar-container">
-          <div id="stories-bar" className="stories-bar">
+        <div
+          className={` stories-bar-container h-[183px] items-center flex w-full z-[99999999] max-w-[1365px] justify-start`}
+        >
+          <div
+            id="stories-bar"
+            className={`stories-bar  w-full h-[183px] items-center flex justify-start ${
+              isRtl && "flex-row-reverse"
+            }`}
+          >
             <AddStory />
-            {storiesData && storiesData.length > 0 ? (
+            {storiesData && storiesData ? (
               <HortiznalScrollBar
                 id="stories-bar-container"
-                className="flex h-full pl-[10px]"
+                className={`${
+                  isRtl && "flex-row-reverse"
+                } flex h-full pl-[10px] gap-[15px]`}
               >
                 {storiesData.map((story, index) => (
                   <StoryElement
@@ -55,6 +67,7 @@ async function StoriesBarServer({ language, country }: StoriesBarServerProps) {
                   <StoriesPaginationWrapper
                     userData={null}
                     next_page_url={next_page_url}
+                    time={Number(end - start) / 1_000_000}
                     language={language}
                     country={country}
                     initialStories={storiesData}

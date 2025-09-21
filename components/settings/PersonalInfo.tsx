@@ -33,15 +33,15 @@ function PersonalInfo({ swipeToScreen, goBack }: PersonalInfoPropsType) {
     try {
       setLoading(true);
       let obj;
-      if (userProfile.phone !== payload.phone)
+      if (userProfile?.phone !== payload.phone)
         obj = { ...obj, phone: payload.phone };
-      if (userProfile.name !== payload.name)
+      if (userProfile?.name !== payload.name)
         obj = { ...obj, name: payload.name };
-      if (userProfile.email !== payload.email)
+      if (userProfile?.email !== payload.email)
         obj = { ...obj, email: payload.email };
-      if (userProfile.gender !== payload.gender)
+      if (userProfile?.gender !== payload.gender)
         obj = { ...obj, gender: payload.gender };
-      if (userProfile.alternative_phone !== payload.alternative_phone)
+      if (userProfile?.alternative_phone !== payload.alternative_phone)
         obj = { ...obj, alternative_phone: payload.alternative_phone };
       if (payload.id_token) {
         obj = { ...obj, id_token: payload.id_token };

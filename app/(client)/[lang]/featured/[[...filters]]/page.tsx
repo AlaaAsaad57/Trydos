@@ -1,5 +1,6 @@
 export const runtime = "nodejs";
 export const preferredRegion = "bom1";
+export const dynamic = "force-dynamic";
 import FilterList from "components/Server/FilterList";
 import ProductListServer from "components/Server/ProductList";
 import BackIcon from "public/svg/listing/backIcon.svg";
@@ -27,6 +28,7 @@ import {
   getBoutiqueMetadata,
   GetStructuredData,
 } from "../../filters/[[...filters]]/Metadata";
+import DataSourceLogger from "components/global/DataSourceLogger";
 
 export const dynamicParams = true;
 
@@ -80,16 +82,16 @@ async function getCurrency(country, language) {
     let cachedCurrency = await getCurrencyFromCache(country);
 
     if (typeof cachedCurrency === "string") {
-      return JSON.parse(cachedCurrency);
+      return { ...JSON.parse(cachedCurrency), redis: true };
     }
     if (cachedCurrency?.exchange_rate) {
-      return cachedCurrency;
+      return { ...cachedCurrency, redis: true };
     } else {
       let currencyData = await fetchCurrency(language, country);
-      let currency = currencyData.data.currency;
+      let currency = { ...currencyData.data.currency };
 
       StoreCurrency(country, currency);
-      return currency;
+      return { ...currency, redis: false };
     }
   } catch (error) {}
 }
@@ -106,6 +108,7 @@ export default async function Page({ params }: { params: ParamsType }) {
       )?.[0],
     };
   }
+  let start = process.hrtime.bigint();
 
   let [filtersData, currency, boutique] = await Promise.all([
     getProductsAndFiltersFromElastic({
@@ -122,6 +125,7 @@ export default async function Page({ params }: { params: ParamsType }) {
     getCurrency(country, language),
     GetBoutique(boutiqueItem, country, language),
   ]);
+  let end = process.hrtime.bigint();
 
   let filters = {
     categories: filtersData?.categories || [],
@@ -133,6 +137,7 @@ export default async function Page({ params }: { params: ParamsType }) {
     boutiques: filtersData?.boutiques || [],
     search_text: parsedFilters?.search_text?.[0] || null,
   };
+  const isRtl = language === "ar" || language === "ku";
   return (
     <>
       <Suspense fallback={<></>}>
@@ -148,10 +153,19 @@ export default async function Page({ params }: { params: ParamsType }) {
       </Suspense>
       <div
         data-cy="filter_listing_bar"
-        className="filter-listing-bar relative flex-row align-center"
+        className={`filter-listing-bar  z-[99999999] relative ${
+          isRtl ? "flex-row-reverse flex" : "flex-row flex"
+        } align-center w-full h-[50px] pl-[15px] pr-[20px] justify-between bg-white z-10`}
       >
+        <DataSourceLogger
+          dataSourceString={`Listing feature DataSource : products and filters from elastic , currency from ${
+            currency?.redis ? "redis" : "laravel api"
+          } in ${Number(end - start) / 1_000_000} ms`}
+        />
+
         <NextLink
           data-cy="BackIcon_boutique"
+          ignoreConditionCase={true}
           data={{
             is_full_home: true,
             href: `/${params.lang}`,
@@ -160,12 +174,17 @@ export default async function Page({ params }: { params: ParamsType }) {
           ariaLabel={`TryDos Home ${params.lang}`}
           className="back-icon"
         >
-          <BackIcon data-cy="back_icon_boutique_page" />
+          <BackIcon
+            data-cy="back_icon_boutique_page"
+            className={`${isRtl && "rotate-180"}`}
+          />
         </NextLink>
         {/** TODO: classname edit when serach active w-full */}
         <div
           data-cy="filter_bar_options"
-          className={`filter-bar-options flex-row align-center ${
+          className={`filter-bar-options w-[170px] justify-between ${
+            isRtl ? "flex-row-reverse flex" : "flex-row flex"
+          }  align-center ${
             parsedFilters?.search_text?.length > 0 && "w-full"
           }`}
         >
@@ -213,6 +232,7 @@ export default async function Page({ params }: { params: ParamsType }) {
       >
         <ProductListServer
           isFeatured={true}
+          boutique={boutique?.banners ? boutique : null}
           isFlashDeals={false}
           colors={filtersData?.colors}
           products={filtersData?.products ?? []}

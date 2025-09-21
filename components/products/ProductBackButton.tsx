@@ -2,6 +2,7 @@
 import React from "react";
 import BackIcon from "public/svg/listing/backIcon.svg";
 import NextLink from "components/global/NextLink";
+import ProductCartHeader from "./ProductCartHeader";
 function ProductBackButton({ lang, productId }) {
   const getHref = () => {
     if (typeof localStorage === "undefined")
@@ -30,10 +31,19 @@ function ProductBackButton({ lang, productId }) {
     }
     return { href, data };
   };
+
+  const language = lang.split("-")[1];
+  const isRtl = language === "ar" || language === "ku";
+
   if (typeof localStorage === "undefined")
     return (
-      <div className="back-bar align-center w-100 flex-row">
+      <div
+        className="back-bar align-center w-100 flex-row h-[50px] justify-between"
+        suppressHydrationWarning
+      >
         <NextLink
+          ignoreConditionCase={true}
+          suppressHydrationWarning
           data-cy="backIcon_productPage"
           {...getHref()}
           className={`back-icon flex-row`}
@@ -41,22 +51,31 @@ function ProductBackButton({ lang, productId }) {
             localStorage.removeItem("last-page");
           }}
         >
-          <BackIcon />
+          <BackIcon className={`${isRtl && "rotate-180"}`} />
         </NextLink>
+        <ProductCartHeader language={language} />
       </div>
     );
   return (
-    <div className="back-bar align-center w-100 flex-row">
+    <div
+      className={`${
+        isRtl ? "flex-row-reverse" : "flex-row"
+      } back-bar align-center w-full  h-[50px] justify-between px-[10px]`}
+      suppressHydrationWarning
+    >
       <NextLink
+        ignoreConditionCase={true}
         data-cy="backIcon_productPage"
+        suppressHydrationWarning
         {...getHref()}
         className={`back-icon flex-row`}
         onClick={() => {
           localStorage.removeItem("last-page");
         }}
       >
-        <BackIcon />
+        <BackIcon className={`${isRtl && "rotate-180"}`} />
       </NextLink>
+      <ProductCartHeader language={language} />
     </div>
   );
 }

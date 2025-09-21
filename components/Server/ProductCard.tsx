@@ -11,6 +11,7 @@ import { useAppStore } from "store";
 import { GA_GLOBAL_SCREEN } from "utils/GAEvents";
 import { GetImageUrl } from "utils/tinyUtils";
 import CoverEffectSlider from "components/ListingPage/CoverEffectSlider";
+import { useVisibilityTimer } from "hooks/useVisibilityTimer";
 
 function ProductCard({
   product,
@@ -29,11 +30,22 @@ function ProductCard({
     }
     return true;
   };
-  const { setColorBottomSheet } = useAppStore();
+  const getImagesOfProducts = () => {
+    if (product.sync_color_images) {
+      if (product.sync_color_images?.[0]?.images) {
+        return product?.sync_color_images[0];
+      } else {
+        return {
+          images: product?.images,
+        };
+      }
+    } else {
+      return { images: product?.images };
+    }
+  };
+  const { setColorBottomSheet, isNavigating } = useAppStore();
   const [shouldShowRedeemAction, setShouldShowRedeem] = useState(false);
-  const [activeColor, setActiveColor] = useState(
-    productColor || product?.sync_color_images[0] || { images: product?.images }
-  );
+  const [activeColor, setActiveColor] = useState(getImagesOfProducts());
 
   const getUrlofProduct = () => {
     let url = `/${params.lang}/products/${product.slug}`;
@@ -68,9 +80,59 @@ function ProductCard({
       })
     );
   };
+  const configureRedeemedProducts = () => {
+    let redeemed_products_ids = getCookie<any>("redemed_ids");
 
+    if (redeemed_products_ids) {
+      let parsed_redeemed_products_ids = redeemed_products_ids
+        ? redeemed_products_ids
+        : [];
+      if (
+        !parsed_redeemed_products_ids?.find((s) => s.id === product?.product_id)
+      ) {
+        let MAX_ARRAY_LENGTH =
+          parseInt(process.env.NEXT_PUBLIC_MAX_ARRAY_LENGTH) || 5;
+        if (parsed_redeemed_products_ids.length < MAX_ARRAY_LENGTH)
+          setCookie("redemed_ids", [
+            ...parsed_redeemed_products_ids,
+            { id: product?.product_id, showingDate: new Date().toISOString() },
+          ]);
+        else
+          setCookie("redemed_ids", [
+            ...parsed_redeemed_products_ids.slice(1, MAX_ARRAY_LENGTH),
+            { id: product?.product_id, showingDate: new Date().toISOString() },
+          ]);
+      } else {
+        return;
+      }
+    } else {
+      setCookie("redemed_ids", [
+        { id: product?.product_id, showingDate: new Date().toISOString() },
+      ]);
+    }
+  };
+  const {
+    seconds,
+    minutes,
+    hours,
+    days,
+    isRunning,
+    start,
+    pause,
+    resume,
+    restart,
+    timerRef,
+  } = useVisibilityTimer({
+    expiryTimestamp: new Date(Date.now() + 50000),
+    onExpire: () => {
+      if (!isNavigating) {
+        configureRedeemedProducts();
+        setShouldShowRedeem(false);
+      }
+    },
+  });
   return (
-    <div className="relative flex">
+    <div className="relative flex" ref={timerRef}>
       <ColorBottomSheet
         id={product.product_id}
         setActiveColor={(e) => {
@@ -97,6 +159,7 @@ function ProductCard({
         data-cy="product-card"
       >
         <NextLink
+          ignoreConditionCase={true}
           onClick={() => {
             if (product?.is_redeem && shouldShowRedeem) {
               let text = document.querySelector(
@@ -117,7 +180,12 @@ function ProductCard({
           data={{
             is_product: true,
             ...product,
-            sync_color_images: [activeColor],
+            sync_color_images: [
+              activeColor,
+              ...product?.sync_color_images?.filter(
+                (s) => s?.color_name !== activeColor?.color_name
+              ),
+            ],
             images: product?.images,
             href: getUrlofProduct(),
           }}
@@ -137,12 +205,12 @@ function ProductCard({
             image={
               activeColor.images?.[0]?.file_path || activeColor?.images?.[0]
             }
-            priority={true}
+            shouldshowRedem={shouldShowRedeem()}
           />
 
-          <div className="product-body flex-1 mt-[8px] w-100 flex-col align-start justify-start max-h-[60px] min-h-[30px]">
-            <p
-              className="prouct-details overflow-hidden w-100 regular-text text-[#3c3c3c] text-[10px] max-h-[25px]"
+          <div className="product-body pl-[13px] pr-[15px] z-10 flex-1 mt-[8px] w-100 flex-col align-start justify-start max-h-[60px] min-h-[30px]">
+            <div
+              className="prouct-details whitespace-normal inline-block mt-[2px] text-left align-top overflow-hidden  regular-text text-[#3c3c3c] text-[10px] max-h-[25px]"
               data-cy="productName"
             >
               <span className="flex-row align-center justify-start gap-[4px]">
@@ -159,37 +227,12 @@ function ProductCard({
                 )}
                 <VerifiedIcon />
               </span>
-              {[
-                product.category_hierarchy?.main_category?.name,
-                product.category_hierarchy?.sub_category?.name,
-                product.category_hierarchy?.sub_sub_category?.name,
-              ]
-                ?.filter((s) => typeof s === "string")
-                ?.join(" | ")}
-              <span className="product-category-icon align-center">
-                {/* {product.category &&
-                product?.category?.flat_photo_path?.file_path?.length > 0 && (
-                  <Image
-                    loading={"eager"}
-                    src={getConfiguredImage({
-                      src: GetImageUrl(
-                        product?.category?.flat_photo_path?.file_path
-                      ),
-                      height: 70,
-                    })}
-                    width={10}
-                    height={10}
-                    style={{
-                      display: "inline",
-                      minWidth: "10px",
-                      minHeight: "10px",
-                    }}
-                    alt={product.name}
-                    className="max-h-[20px] max-w-[40px]"
-                  />
-                )} */}
-              </span>
-            </p>
+              <p className="truncate w-full max-w-[90%]" data-cy="product-name">
+                {[product?.name, product.categories_tree]
+                  ?.filter((s) => typeof s === "string")
+                  ?.join(" | ")}
+              </p>
+            </div>
             {product?.label_names?.length > 0 && (
               <ProductLabelsAnimated
                 labels={product?.label_names?.map((s) => ({
@@ -202,6 +245,7 @@ function ProductCard({
         </NextLink>
 
         <BuyButtonProduct
+          seconds={seconds}
           setShouldShowRedeem={setShouldShowRedeem}
           shouldShowRedeem={shouldShowRedeemAction}
           product={product}

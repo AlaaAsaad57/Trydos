@@ -24,7 +24,8 @@ export type ServerType =
   | "market"
   | "stories"
   | "elastic"
-  | "upload story";
+  | "upload story"
+  | "nest-stories";
 
 export type FetchMethod = "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
 
@@ -71,6 +72,7 @@ const getServerBaseUrl = (server: ServerType) => {
     case "stories":
       return process.env.NEXT_PUBLIC_STORIES_BACKEND_URL;
     case "upload story":
+    case "nest-stories":
       return "";
     default:
       throw new Error(`Unknown server type: ${server}`);
@@ -88,6 +90,7 @@ const getToken = async (server: ServerType): Promise<string> => {
         ""
       );
     case "stories":
+    case "nest-stories":
       return getCookie<UserData>(COOKIE_NAMES.USER_STORIES)?.access_token || "";
     case "upload story":
     case "elastic":
@@ -278,7 +281,9 @@ export const fetchData = async <T = any>(
 
       const res = await fetch(fullUrl, requestOptions);
       status = res.status;
-      responseData = await res.json();
+      try {
+        responseData = await res.json();
+      } catch (e) {}
 
       if (status === 401 && !isRetryAfterUnauthorized) {
         logRequest({
@@ -326,10 +331,18 @@ export const fetchData = async <T = any>(
         if (statusVal === 0) {
           showErrorMessage(msg);
           throw new Error(msg);
-        } else if (!ignoredMessages.includes(msg) && msg.length > 0) {
+        } else if (
+          !ignoredMessages.includes(msg) &&
+          msg.length > 0 &&
+          !noMessage
+        ) {
           showSuccessNotification(msg);
         }
-      } else if (!ignoredMessages.includes(msg) && msg.length > 0) {
+      } else if (
+        !ignoredMessages.includes(msg) &&
+        msg.length > 0 &&
+        !noMessage
+      ) {
         showSuccessNotification(msg);
       }
 

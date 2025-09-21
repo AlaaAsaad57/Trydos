@@ -9,14 +9,9 @@ import SearchVoice from "./Search/SearchVoice";
 import SearchImage from "./Search/SearchImage";
 import SearchService from "services/search";
 import { useAppStore } from "store";
-import {
-  GA_EVENT_NAMES,
-  GA_GLOBAL_PLATFORM,
-  GA_GLOBAL_SCREEN,
-} from "utils/GAEvents";
+import { GA_EVENT_NAMES, GA_GLOBAL_SCREEN } from "utils/GAEvents";
 import { GAevent } from "utils/gtag";
 import { pollinateInput } from "utils/tinyUtils";
-import { getProductsAndFiltersFromElastic } from "services/elastic/elasticSearch";
 import { showErrorNotification } from "store/notifications/reducer";
 interface SearchComponentProps {
   searchEnabled: boolean;
@@ -47,67 +42,105 @@ function SearchComponent({
 
   const router = useRouter();
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
+  const requestIdRef = useRef<number>(0);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   const debouncedSearch = useCallback(
     async (searchValue: string) => {
       const currentRequestId = ++requestIdRef.current;
+
       try {
         setSearchPartialLoading(true);
         setSearchLoading(true);
-        const filterObj = {
-          boutiques: searchFilters?.boutiques?.map((b) => b.slug) || [],
-          categories: searchFilters?.categories?.map((c) => c.slug) || [],
-          brands: searchFilters?.brands?.map((b) => b.slug) || [],
-          colors:
-            searchFilters?.colors?.map((c) =>
-              typeof c === "string" ? c : c.toString()
-            ) || [],
-          sizes:
-            searchFilters?.sizes?.map((s) =>
-              typeof s === "string" ? s : s.toString()
-            ) || [],
-          prices:
-            searchFilters?.prices &&
-            searchFilters.prices.min_price !== null &&
-            searchFilters.prices.min_price !== undefined &&
-            searchFilters.prices.max_price !== null &&
-            searchFilters.prices.max_price !== undefined &&
-            !isNaN(Number(searchFilters.prices.min_price)) &&
-            !isNaN(Number(searchFilters.prices.max_price)) &&
-            Number(searchFilters.prices.min_price) >= 0 &&
-            Number(searchFilters.prices.max_price) > 0
-              ? [searchFilters.prices.min_price, searchFilters.prices.max_price]
-              : [],
-          search_text:
-            searchValue?.length > 0
-              ? searchValue
-              : value?.length > 0
-              ? value
-              : null,
-        };
 
-        const filtersResponse = await getProductsAndFiltersFromElastic({
-          country: country,
-          language_code: language,
-          filters: filterObj,
-          filters_offset: 1,
-          limit: 10,
-        });
-        // if (currentRequestId !== requestIdRef.current) {
-        //   return; // Ignore outdated responses
-        // }
-        if (!filtersResponse) {
-          throw new Error("");
+        if (abortControllerRef.current) {
+          abortControllerRef.current.abort();
         }
+
+        abortControllerRef.current = new AbortController();
+        const signal = abortControllerRef.current.signal;
+
+        // Build query params compatible with your API route
+        const params = new URLSearchParams();
+
+        if (searchFilters?.boutiques?.length) {
+          params.set(
+            "boutique_slugs",
+            JSON.stringify(searchFilters.boutiques.map((b) => b.slug))
+          );
+        }
+        if (searchFilters?.categories?.length) {
+          params.set(
+            "category_slugs",
+            JSON.stringify(searchFilters.categories.map((c) => c.slug))
+          );
+        }
+        if (searchFilters?.brands?.length) {
+          params.set(
+            "brand_slugs",
+            JSON.stringify(searchFilters.brands.map((b) => b.slug))
+          );
+        }
+        if (searchFilters?.colors?.length) {
+          params.set(
+            "colors",
+            JSON.stringify(
+              searchFilters.colors.map((c) =>
+                typeof c === "string" ? c : c.toString()
+              )
+            )
+          );
+        }
+        // Search text
+        const finalSearchValue =
+          searchValue?.length > 0
+            ? searchValue
+            : value?.length > 0
+            ? value
+            : "";
+        if (finalSearchValue) {
+          params.set("search_text", finalSearchValue);
+        }
+        // Pagination / limits
+        params.set("filters_offset", "1");
+        params.set("limit", "10");
+        // Perform GET request to your API route
+        const response = await fetch(
+          `/api/products/searchInCatalog?${params}`,
+          {
+            method: "GET",
+            headers: {
+              country,
+              language: language,
+            },
+            signal,
+          }
+        );
+
+        if (signal.aborted || currentRequestId !== requestIdRef.current) {
+          return;
+        }
+
+        if (!response.ok) {
+          throw new Error("Search request failed");
+        }
+
+        const filtersResponse = await response.json();
+
+        if (currentRequestId !== requestIdRef.current) {
+          return;
+        }
+
         const {
           products,
           categories,
           brands,
           boutiques,
           colors,
-          attributes: attributes,
+          attributes,
           total_size,
-        } = filtersResponse;
+        } = filtersResponse.data;
+
         setTotalSizeOfProducts({ total_size });
         setSearchResults(
           {
@@ -121,27 +154,31 @@ function SearchComponent({
               min_price: filtersResponse?.prices?.min_price || null,
               max_price: filtersResponse?.prices?.max_price || null,
             },
-            prices_ranges: /*filtersResponse?.prices?.priceRanges*/ [],
+            prices_ranges: [],
           },
           true
         );
+
         setSearchPartialLoading(false);
         setSearchLoading(false);
-        // Only prefetch if the request wasn't cancelled
-        if (filtersResponse !== null) {
-          router.prefetch(SearchService.getSearchPageUrl({ lang: lang }));
-        }
+
+        router.prefetch(SearchService.getSearchPageUrl({ lang }));
       } catch (error) {
-        setSearchPartialLoading(false);
-        setSearchLoading(false);
-        showErrorNotification(
-          translateFunction("Failed To Retrive Results Please Try Again")
-        );
+        if (
+          error.name !== "AbortError" &&
+          currentRequestId === requestIdRef.current
+        ) {
+          setSearchPartialLoading(false);
+          setSearchLoading(false);
+          showErrorNotification(
+            translateFunction("Failed To Retrieve Results Please Try Again")
+          );
+        }
       }
     },
     [lang, router, value]
   );
-  const requestIdRef = useRef<number>(0);
+
   const onChange = (e: ChangeEvent<HTMLInputElement>) => {
     let input = pollinateInput(e.target.value);
 
@@ -185,11 +222,14 @@ function SearchComponent({
     }
   }, [searchEnabled]);
 
-  // Cleanup timeout on unmount
+  // Cleanup timeout and abort controller on unmount
   useEffect(() => {
     return () => {
       if (debounceRef.current) {
         clearTimeout(debounceRef.current);
+      }
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
       }
     };
   }, []);
@@ -199,6 +239,8 @@ function SearchComponent({
         <input
           maxLength={90}
           data-cy="inputField"
+          id="search-element"
+          disabled={!searchEnabled}
           className="search-input"
           // @ts-ignore
           placeholder={translateFunction("Search", lang?.split("-")[1])}

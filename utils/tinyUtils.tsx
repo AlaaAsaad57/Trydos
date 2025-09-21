@@ -43,22 +43,6 @@ export interface FilterListProps {
   isFlashDeals?: boolean;
 }
 
-export const CielNumber = (price) => {
-  return Math.ceil(price * 10) / 10;
-};
-export const getPrice = (num, lang, currency, decimal = 0) => {
-  let rateVariable = currency?.exchange_rate;
-  let price = parseFloat(num);
-  price = price * rateVariable;
-
-  if (price >= 1000000) {
-    return CielNumber(price / 1000000) + translateFunction("M", lang); // For millions
-  } else if (price >= 100000) {
-    return CielNumber(price / 1000) + translateFunction("K", lang); // For thousands
-  } else {
-    return price; // For prices under 1000
-  }
-};
 export const configureSearchParams = ({
   searchParams,
   noFilters,
@@ -344,7 +328,11 @@ export const formatTime = (timeString: string) => {
 
   return `${day}/${month}/${year} | ${timeFormat}`;
 };
-export const formatTimeForAddress = (timeString: string) => {
+export const formatTimeForAddress = (
+  timeString: string,
+  languageVar = null
+) => {
+  const { language } = useAppStore.getState();
   const MONTH_NAMES = [
     "January",
     "February",
@@ -382,8 +370,12 @@ export const formatTimeForAddress = (timeString: string) => {
   const isNewerThanToday = date > today;
 
   if (isSameYear && isNewerThanToday) {
+    let translated_month = translateFunction(
+      MONTH_NAMES[date.getMonth()],
+      languageVar || language
+    );
     const day = date.getDate();
-    const monthName = MONTH_NAMES[date.getMonth()];
+    const monthName = translated_month;
     return `${day} ${monthName}`;
   }
 
@@ -755,6 +747,9 @@ export const getFilterUrl = (
 export const DetectScreen = () => {
   let pathname = window.location.pathname;
   let searchParams = new URLSearchParams(window.location.search);
+  if (pathname.includes("/setting")) {
+    return GA_GLOBAL_SCREEN.SETTINGS_SCREEN;
+  }
   if (searchParams.get("cart") === "true") {
     return GA_GLOBAL_SCREEN.CART_SCREEN;
   }
@@ -867,8 +862,8 @@ export function findVariation(
   if (selectedColor) {
     color = colors.find(
       (c) =>
-        normalize(c.color_name) === normalize(selectedColor) ||
-        normalize(c.color_option) === normalize(selectedColor)
+        normalize(c?.color_name) === normalize(selectedColor) ||
+        normalize(c?.color_option) === normalize(selectedColor)
     );
   }
 
@@ -885,11 +880,11 @@ export function findVariation(
   // Build variation type based on rules
   let variationType = null;
   if (color && size) {
-    variationType = `${color.color_option}-${size.option}`;
+    variationType = `${color?.color_option}-${size.option}`;
   } else if (color) {
-    variationType = color.color_option;
+    variationType = color?.color_option;
   } else if (size) {
-    variationType = size.option;
+    variationType = size?.option;
   }
 
   if (!variationType) return null;
@@ -918,9 +913,109 @@ export function isSameColor(colorA, colorB) {
   if (!a || !b) return false;
 
   return (
-    normalize(a.color_name) === normalize(b.color_name) ||
-    normalize(a.color_name) === normalize(b.color_option) ||
-    normalize(a.color_option) === normalize(b.color_name) ||
-    normalize(a.color_option) === normalize(b.color_option)
+    normalize(a?.color_name) === normalize(b.color_name) ||
+    normalize(a?.color_name) === normalize(b.color_option) ||
+    normalize(a?.color_option) === normalize(b.color_name) ||
+    normalize(a?.color_option) === normalize(b.color_option)
   );
 }
+interface CountriesResponse {
+  countries: Country[];
+}
+interface Country {
+  [key: string]: any;
+}
+
+export async function fetchCountries(
+  country = "tr",
+  language = "en"
+): Promise<CountriesResponse> {
+  try {
+    return {
+      countries: [
+        {
+          id: 103,
+          phonecode: 964,
+          iso: "IQ",
+          name: "Iraq",
+          longitude: "43.6848",
+          latitude: "33.2209",
+        },
+        {
+          id: 119,
+          phonecode: 961,
+          iso: "LB",
+          name: "lebanon",
+          longitude: "35.4954",
+          latitude: "33.8886",
+        },
+        {
+          id: 208,
+          phonecode: 963,
+          iso: "SY",
+          name: "syria",
+          longitude: "36.2783",
+          latitude: "33.5104",
+        },
+        {
+          id: 219,
+          phonecode: 90,
+          iso: "TR",
+          name: "Turkey",
+          longitude: "35.6667",
+          latitude: "39.1667",
+        },
+      ],
+    };
+  } catch (error) {
+    console.error("Error fetching countries:", error);
+    return {
+      countries: [
+        {
+          id: 103,
+          phonecode: 964,
+          iso: "IQ",
+          name: "Iraq",
+          longitude: "43.6848",
+          latitude: "33.2209",
+        },
+        {
+          id: 119,
+          phonecode: 961,
+          iso: "LB",
+          name: "lebanon",
+          longitude: "35.4954",
+          latitude: "33.8886",
+        },
+        {
+          id: 208,
+          phonecode: 963,
+          iso: "SY",
+          name: "syria",
+          longitude: "36.2783",
+          latitude: "33.5104",
+        },
+        {
+          id: 219,
+          phonecode: 90,
+          iso: "TR",
+          name: "Turkey",
+          longitude: "35.6667",
+          latitude: "39.1667",
+        },
+      ],
+    };
+  }
+}
+export const ShowDayStr = (index, language) => {
+  var days = [
+    translateFunction("Sunday", language),
+    translateFunction("Monday", language),
+    translateFunction("Tuesday", language),
+    translateFunction("Wednesday", language),
+    translateFunction("Thursday", language),
+    translateFunction("Friday", language),
+    translateFunction("Saturday", language),
+  ];
+  return days[index];
+};

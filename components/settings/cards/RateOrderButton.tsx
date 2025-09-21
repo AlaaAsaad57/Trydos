@@ -2,8 +2,26 @@ import React from "react";
 import { translateFunction } from "utils/functions";
 
 function RateOrderButton() {
+  const handleClick = () => {
+    document.querySelector(".rating-star-container").scrollIntoView({
+      behavior: "smooth",
+      block: "center",
+      inline: "center",
+    });
+    document.querySelectorAll(".rating-star-container").forEach((elem) => {
+      elem.classList.add("shake-anim");
+      setTimeout(() => {
+        elem.classList.remove("shake-anim");
+      }, 1000);
+    });
+  };
   return (
-    <div className="flex px-[12px] mt-[8px]">
+    <div
+      className="flex px-[12px] mt-[8px]"
+      onClick={() => {
+        handleClick();
+      }}
+    >
       <div className="flex-col pt-[8px] ob-[12px] px-[12px] justify-start items-start w-full bg-[#F4F4F4] rounded-[15px] border-[#412cdd8d] border-[1px] h-[155px]">
         <span>
           <svg

@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
           cat.language_code?.toLowerCase() === language?.toLowerCase()
       );
     });
-
+    mainCategories = mainCategories.filter((c) => c !== undefined);
     // Remove duplicates by ID
     mainCategories = Array.from(
       new Map(mainCategories.map((c: any) => [c.id, c])).values()
@@ -53,6 +53,8 @@ export async function GET(request: NextRequest) {
           name: category.name,
           slug: category.slug,
           flat_photo_path: category.flat_photo_path,
+          outline_photo_path: category.outline_photo_path,
+          fill_photo_path: category.fill_photo_path,
         })),
       },
     };

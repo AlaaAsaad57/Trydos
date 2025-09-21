@@ -1,6 +1,5 @@
 "use client";
 import React, { useEffect, useState } from "react";
-
 import BackIcon from "public/svg/listing/backIcon.svg";
 import {
   getCart,
@@ -13,7 +12,12 @@ import CartIcon from "public/svg/CartIcon.svg";
 import Skeleton from "react-loading-skeleton";
 import "public/styles/sizeSlider.css";
 import Spinner from "components/global/Spinner";
-import { useParams, useSearchParams } from "next/navigation";
+import {
+  useParams,
+  usePathname,
+  useRouter,
+  useSearchParams,
+} from "next/navigation";
 import NotifySVG from "public/svg/cart/NotifyCart.svg";
 import cart from "services/cart";
 import auth from "services/auth";
@@ -27,15 +31,17 @@ import { fetchData } from "utils/fetchData";
 import StackedSlider from "utils/Slider";
 import { REQUESTS_DATA } from "utils/Requests";
 
-function AddToCartComponent({
-  color,
-  size,
-  product,
-  slug,
-  close,
-
-  enableCartAction,
-}) {
+function AddToCartComponent({ product, slug, close, enableCartAction }) {
+  const router = useRouter();
+  const pathname = usePathname();
+  useEffect(() => {
+    window.history.pushState({ isPopup: true }, "add cart");
+    const newParams = new URLSearchParams(searchParams);
+    newParams.set("modal", "true");
+    // Use router.push with pathname and updated query
+    // @ts-expect-error 'shallow' does not exist in type 'NavigateOptions'
+    router.push(`${pathname}?${newParams.toString()}`, { shallow: true });
+  }, []);
   const searchParams = useSearchParams();
   const [sizeFromUrl, colorFromUrl] = [
     searchParams.get("size"),
@@ -50,10 +56,16 @@ function AddToCartComponent({
 
   const [selectedColor, setSelectedColor] = useState(
     ProductData?.sync_color_images?.find(
-      (s) => s.color_option?.toLowerCase() === colorFromUrl?.toLowerCase()
+      (s) =>
+        s?.color_option?.toLowerCase() === colorFromUrl?.toLowerCase() ||
+        s?.color_name?.toLowerCase() === colorFromUrl?.toLowerCase()
     ) || ProductData?.sync_color_images?.[0]
   );
-  const [selectedSize, setSelectedSize] = useState(null);
+  const [selectedSize, setSelectedSize] = useState(
+    ProductData?.choice_options?.[0]?.options?.find(
+      (option) => option.option === sizeFromUrl || option.name === sizeFromUrl
+    ) || ProductData?.choice_options?.[0]?.options?.[0]
+  );
   const [loading, setLoading] = useState(false);
   const [requestLoading, setRequestLoading] = useState(false);
   useEffect(() => {
@@ -99,11 +111,15 @@ function AddToCartComponent({
         })(),
         (async () => {
           let response = await fetchData({
-            url: `/api/v2/elastic/shared_count/${product.id}`,
-            reqTitle: REQUESTS_DATA.SHARE_COUNT_REQUEST,
-            method: "GET",
-            server: "chat",
-            useCached: true,
+            url: `/api/products/view`,
+            reqTitle: REQUESTS_DATA.GET_VIEW_PRODUCT,
+            method: "POST",
+            server: "elastic",
+            body: JSON.stringify({
+              user_id: auth.UserID(),
+              product_id: product.id,
+            }),
+            noMessage: true,
           });
           // @ts-ignore
           if (!response.success) {
@@ -146,7 +162,8 @@ function AddToCartComponent({
         // is_redeem: shouldShowRedeem() && true,
         ...data2.data,
         ...data4.data,
-        shared_count: data3.data.shared_count,
+        ...data3,
+        shared_count: product?.shared_count || 0,
         variation: newVariants,
         sync_color_images: !product.singleColor
           ? data4.data.sync_color_images || []
@@ -168,8 +185,10 @@ function AddToCartComponent({
       else if (colorFromUrl) {
         setSelectedColor(
           tempProductData?.sync_color_images?.find(
-            (s) => s.color_option === colorFromUrl
-          )
+            (s) =>
+              s?.color_option?.toLowerCase() === colorFromUrl?.toLowerCase() ||
+              s?.color_name?.toLowerCase() === colorFromUrl?.toLowerCase()
+          ) ?? tempProductData?.sync_color_images?.[0]
         );
       } else {
         setSelectedColor(tempProductData?.sync_color_images[0]);
@@ -183,14 +202,16 @@ function AddToCartComponent({
         if (sizeFromUrl?.length > 0) {
           setSelectedSize(
             tempProductData?.choice_options?.[0]?.options.find(
-              (s) => s.option?.toLowerCase() === sizeFromUrl?.toLowerCase()
-            )
+              (s) =>
+                s.option?.toLowerCase() === sizeFromUrl?.toLowerCase() ||
+                s.name?.toLowerCase() === sizeFromUrl?.toLowerCase()
+            ) ?? tempProductData?.choice_options?.[0]?.options?.[0]
           );
         } else {
           setSelectedSize(tempProductData?.choice_options?.[0]?.options?.[0]);
         }
       }
-
+      // checkIfVariantEmpty();
       setLoading(false);
     } catch (err) {
       // Handle error as needed
@@ -198,7 +219,50 @@ function AddToCartComponent({
       setLoading(false);
     }
   };
+  const checkIfVariantEmpty = () => {
+    let selectedVariant = getSelectedVariantQty();
 
+    if (selectedVariant?.qty === 0) {
+      if (ProductData?.variation?.filter((s) => s.qty > 0)?.length === 0) {
+        return;
+      } else {
+        if (
+          ProductData?.sync_color_images &&
+          ProductData?.variation?.length > 0
+        ) {
+          let otherVariant = ProductData?.variation?.find((s) => s.qty > 0);
+          let otherColor = otherVariant?.type?.split("-");
+          setSelectedColor(
+            ProductData?.sync_color_images?.find(
+              (s) =>
+                s?.color_option?.toLowerCase() ===
+                otherColor?.[0]?.toLowerCase()
+            )
+          );
+          if (otherColor?.[1]) {
+            setSelectedSize(
+              ProductData?.choice_options?.[0]?.options.find(
+                (s) =>
+                  s.option?.toLowerCase() === otherColor?.[1]?.toLowerCase()
+              )
+            );
+          }
+
+          return;
+        }
+        if (ProductData?.choice_options?.[0]) {
+          let otherVariant = ProductData?.variation?.find((s) => s.qty > 0);
+          let otherSize = otherVariant?.type?.split("-");
+          setSelectedSize(
+            ProductData?.choice_options?.[0]?.options.find(
+              (s) => s.option?.toLowerCase() === otherSize?.[0]?.toLowerCase()
+            )
+          );
+        }
+      }
+    }
+    return;
+  };
   const getInitialColorSlide = () => {
     let index = 0;
     ProductData?.sync_color_images.map((s, i) => {
@@ -231,6 +295,7 @@ function AddToCartComponent({
     ProductData?.choice_options?.[0]?.options.map((s, i) => {
       if (s.option === sizeFromUrl) index = i;
     });
+
     return index;
   };
   // const shouldShowRedeem = () => {
@@ -432,41 +497,12 @@ function AddToCartComponent({
             )}
           <div
             data-cy="product_new-price_addtocart"
-            className="product-old-price"
+            className="product-new-price"
           >
-            <svg
-              data-cy="product_addtocart_svg"
-              xmlns="http://www.w3.org/2000/svg"
-              width="100%"
-              height="2"
-            >
-              <line
-                id="Line_1104"
-                data-name="Line 1104"
-                x2="100%"
-                transform="translate(0 1)"
-                fill="none"
-                stroke="#FF6200"
-                strokeWidth="2"
-              />
-            </svg>
             {getSelectedVariantQty()?.offer_price >= 0 && currency?.symbol ? (
               <>
                 {RoundPrice({
                   num: getSelectedVariantQty()?.offer_price,
-                  language: languageVariable,
-                })}
-              </>
-            ) : (
-              <Skeleton width={30} height={10} />
-            )}
-          </div>
-          <div className="product-new-price">
-            {getSelectedVariantQty()?.flash_deal_price >= 0 &&
-            currency?.symbol ? (
-              <>
-                {RoundPrice({
-                  num: getSelectedVariantQty()?.flash_deal_price,
                   language: languageVariable,
                 })}
               </>
@@ -644,13 +680,14 @@ function AddToCartComponent({
             EnableScroll();
             close();
           }}
+          data-cy="CartIcon"
         >
           {localCart?.length > 0 && (
             <span className="bg-green-500 right-[-8px] top-[-4px] text-white rounded-full min-h-3 min-w-[18px] absolute justify-center flex items-center ">
               {localCart.length}
             </span>
           )}
-          <CartIcon data-cy="CartIcon" id={"cart-icon"} className="cart-icon" />
+          <CartIcon id={"cart-icon"} className="cart-icon" />
         </span>
       </div>
       <div
@@ -736,7 +773,29 @@ function AddToCartComponent({
                 max_drag={100}
                 max_scale={1}
                 min_scale={0.6}
+                child_data_cy="add-to-cart-color"
                 onSlideChange={(index) => {
+                  GAevent({
+                    action: GA_EVENT_NAMES.CHANGE_COLOR,
+                    params: {
+                      user_id_custom: auth.UserID(),
+                      item_id: ProductData.id,
+                      item_name: ProductData?.name,
+                      brand: ProductData?.brand?.name,
+                      brand_id: ProductData?.brand?.id,
+                      category:
+                        ProductData?.category?.name ||
+                        ProductData?.categories?.[0]?.name,
+                      category_id:
+                        ProductData?.category?.id ||
+                        ProductData?.categories?.[0]?.id,
+                      price: ProductData?.offer_price,
+                      selected_color:
+                        ProductData?.sync_color_images[index]?.color_option ||
+                        ProductData?.sync_color_images[index]?.color_name,
+                      selected_size: selectedSize?.option ?? selectedSize?.name,
+                    },
+                  });
                   setSelectedColor(ProductData?.sync_color_images[index]);
                 }}
                 slidesArray={ProductData?.sync_color_images?.map((s, i) => i)}
@@ -1004,12 +1063,41 @@ function AddToCartComponent({
                       max_drag={100}
                       slide_width={70}
                       onSlideChange={(index) => {
+                        GAevent({
+                          action: GA_EVENT_NAMES.CHANGE_SIZE,
+                          params: {
+                            user_id_custom: auth.UserID(),
+                            item_id: ProductData.id,
+                            item_name: ProductData?.name,
+                            brand: ProductData?.brand?.name,
+                            brand_id: ProductData?.brand?.id,
+                            category:
+                              ProductData?.category?.name ||
+                              ProductData?.categories?.[0]?.name,
+                            category_id:
+                              ProductData?.category?.id ||
+                              ProductData?.categories?.[0]?.id,
+                            price: ProductData?.offer_price,
+                            selected_color:
+                              selectedColor?.color_option ??
+                              selectedColor?.color_name,
+                            selected_size:
+                              ProductData?.choice_options?.[0]?.options?.[index]
+                                ?.option ??
+                              ProductData?.choice_options?.[0]?.options?.[index]
+                                ?.name ??
+                              ProductData?.choice_options?.[0]?.options?.[
+                                index
+                              ],
+                          },
+                        });
                         setSelectedSize(
                           ProductData?.choice_options?.[0]?.options?.[index]
                         );
                       }}
                       max_scale={1}
                       min_scale={0.7}
+                      child_data_cy="add-to-cart-size"
                       overlap_factor={1.1}
                       threshold={0.3}
                       renderSlide={({ index, isActive, slide_width }) => {
@@ -1042,7 +1130,7 @@ function AddToCartComponent({
                             )}  rounded-full flex-row items-center justify-center ${
                               size.name?.length < 6
                                 ? "text-[30px]"
-                                : "text-[13px]"
+                                : "text-[11px]"
                             } bold select-none flex`}
                           >
                             {size.name}
@@ -1338,6 +1426,7 @@ function AddToCartComponent({
 
             {shouldShowNotifyButton() ? (
               <NotifyCartButton
+                product={ProductData}
                 isNotified={getSelectedVariantQty()?.variant_notify_for_user}
                 setNotify={() => {
                   setProductData({
@@ -1895,30 +1984,22 @@ const AddToCartButton = ({
           action: GA_EVENT_NAMES.ADD_TO_CART,
           params: {
             currency: currency?.code,
-            value: RoundPrice({
-              num: selectedVariant?.offer_price,
-              rate: currency?.exchange_rate,
-              returnNumber: true,
-              language: languageVariable,
-            }),
+            value: selectedVariant?.offer_price,
             items: [
               {
                 item_id: id,
                 item_name: product?.name,
-                price: RoundPrice({
-                  num: selectedVariant?.offer_price,
-                  rate: currency?.exchange_rate,
-                  returnNumber: true,
-                  language: languageVariable,
-                }),
+                price: selectedVariant?.offer_price,
                 quantity:
                   (isVariantInCart({ exact: false })?.quantity ?? 0) + 1,
                 brand: product?.brand?.name,
                 brand_id: product?.brand?.id,
-                category: product?.category?.name,
-                category_id: product?.category?.id,
+                category:
+                  product?.category?.name || product?.categories?.[0]?.name,
+                category_id:
+                  product?.category?.id || product?.categories?.[0]?.id,
                 count_likes: product?.count_of_likes,
-                review_count: product?.shared_count,
+                review_count: product?.views_count ?? product?.view_count,
                 item_variant: selectedVariant?.type,
               },
             ],
@@ -1949,34 +2030,24 @@ const AddToCartButton = ({
           is_redeem: product?.showRedeemPrice && product?.is_redeem,
         });
         onSuccessAddUpdate();
-        console.log(product);
+
         GAevent({
           action: GA_EVENT_NAMES.ADD_TO_CART,
           params: {
             currency: currency?.code,
-            value: RoundPrice({
-              num: selectedVariant?.offer_price,
-              rate: currency?.exchange_rate,
-              returnNumber: true,
-              language: languageVariable,
-            }),
+            value: selectedVariant?.offer_price,
             items: [
               {
                 item_id: id,
                 item_name: product?.name,
-                price: RoundPrice({
-                  num: selectedVariant?.offer_price,
-                  rate: currency?.exchange_rate,
-                  returnNumber: true,
-                  language: languageVariable,
-                }),
+                price: selectedVariant?.offer_price,
                 quantity: 1,
                 brand: product?.brand?.name,
                 brand_id: product?.brand?.id,
                 category: product?.category?.name,
                 category_id: product?.category?.id,
                 count_likes: product?.count_of_likes,
-                review_count: product?.shared_count,
+                review_count: product?.views_count ?? product?.view_count,
                 item_variant: selectedVariant?.type,
               },
             ],
@@ -1989,6 +2060,9 @@ const AddToCartButton = ({
         await updateQuantity();
       }
       setLoading(false);
+      getCart({
+        callback: () => {},
+      });
     } catch (error) {
       setLoading(false);
     }
@@ -2020,18 +2094,16 @@ const AddToCartButton = ({
                 item_name: product.name,
                 item_variant: variant?.type,
                 quantity: 1,
-                price: RoundPrice({
-                  num: variant?.offer_price,
-                  rate: currency?.exchange_rate,
-                  returnNumber: true,
-                  language: languageVariable,
-                }),
+                price: variant?.offer_price,
               },
             ],
           },
         });
         await updateQuantity();
         setLoading(false);
+        getCart({
+          callback: () => {},
+        });
       }
     } catch (error) {
       setLoading(false);
@@ -2080,7 +2152,7 @@ const AddToCartButton = ({
         {productInCart()?.length > 0 && (
           <span
             data-cy="minus_icon_container"
-            className="absolute minuse-qty-icon top-0 left-0 rounded-2xl bg-white flex justify-center items-center p-2 plus-icon-button"
+            className="absolute minuse-qty-icon z-[9999999999] top-0 left-0 rounded-2xl bg-white flex justify-center items-center p-2 plus-icon-button"
             onClick={() => {
               // Sendevent({
               //   event: GA_EVENT_NAMES.CLICK,
@@ -2110,7 +2182,7 @@ const AddToCartButton = ({
         <div data-cy="cart_icon_and_statment" className="button-desc">
           <div
             data-cy="cart_ic0n_container"
-            className={`flex-row justify-end relative image-container-cart pr-[0px] max-w-[30px]`}
+            className={`flex-row justify-end relative w-full pr-[0px] max-w-[30px]`}
           >
             {showImagesOfProductInCart()}
             {getTotalQuantity() > 0 && !loading && (
@@ -2142,16 +2214,33 @@ const AddToCartButton = ({
     </div>
   );
 };
-const NotifyCartButton = ({ isNotified, setNotify, selected_variant, id }) => {
+const NotifyCartButton = ({
+  isNotified,
+  setNotify,
+  selected_variant,
+  id,
+  product,
+}) => {
+  const { currency } = useAppStore();
   const NotifyAction = async () => {
     if (typeof Notification !== "undefined") {
       const permission = await Notification.requestPermission();
     }
     if (!isNotified) {
-      // Sendevent({
-      //   event: GA_EVENT_NAMES.CLICK,
-      //   value: GA_CLICK_EVENT_VALUES.NOTIFY_ME_BUTTON,
-      // });
+      GAevent({
+        action: GA_EVENT_NAMES.ENABLE_PRODUCT_NOTIFICATION,
+        params: {
+          user_id_custom: auth.UserID(),
+          item_id: product.id,
+          type_notification: "product_availablity",
+          item_name: product?.name,
+          brand: product?.brand?.name,
+          brand_id: product?.brand?.id,
+          category: product?.category?.name || product?.categories?.[0]?.name,
+          category_id: product?.category?.id || product?.categories?.[0]?.id,
+          price: product?.offer_price,
+        },
+      });
       setNotify();
       await auth.NotifyForProducts({
         id: id,
@@ -2183,7 +2272,7 @@ const NotifyCartButton = ({ isNotified, setNotify, selected_variant, id }) => {
         <div data-cy="notify_statement" className="button-desc">
           <div
             data-cy="notify_statement_1"
-            className={`flex-row  justify-end relative image-container-cart pr-0`}
+            className={`flex-row  justify-end relative w-full pr-0`}
           >
             <span data-cy="notify_statement_2" className="mt-1">
               {isNotified

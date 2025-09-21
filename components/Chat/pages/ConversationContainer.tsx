@@ -490,7 +490,7 @@ function ConversationContainer({
         86400000 * 6
       )
         return day;
-      return language === "ar" ? d.toLocaleString("ar-EG") : dateString;
+      return dateString;
     },
     [language]
   );
@@ -772,8 +772,11 @@ function ConversationContainer({
 
       {/* Camera overlay */}
       {cameraEnabled && (
-        <div className="fixed-img-prev">
-          <div className="bac-drop" onClick={() => enableCamera(false)} />
+        <div className="fixed top-0 left-0 w-screen h-screen bg-transparent flex flex-col items-center justify-start p-5 z-[9999999999]">
+          <div
+            className="absolute top-0 left-0 w-screen h-screen bg-[#585751] opacity-60 z-[9999]"
+            onClick={() => enableCamera(false)}
+          />
           {(() => {
             const webcamProps = {
               imageFile,
@@ -794,9 +797,12 @@ function ConversationContainer({
 
       {/* Image / video preview modal */}
       {(imgs || vid) && (
-        <div className="fixed-img-prev" style={{ zIndex: 99999999999999 }}>
-          <div className="bac-drop" />
-          <div className="svv" onClick={() => (setImgs(null), setVid(null))}>
+        <div className="fixed top-0 left-0 w-screen h-screen bg-transparent flex flex-col items-center justify-start p-5 z-[99999999999999]">
+          <div className="absolute top-0 left-0 w-screen h-screen bg-[#585751] opacity-60 z-[9999]" />
+          <div
+            className="absolute top-[29px] right-[30px] cursor-pointer z-[9999999999999]"
+            onClick={() => (setImgs(null), setVid(null))}
+          >
             {/* close icon (duplicated) */}
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -1022,7 +1028,7 @@ function ConversationContainer({
                 height={40}
               />
               <div className="input-chat-container">
-                <label htmlFor="type" className="no-label">
+                <label htmlFor="type" className="hidden">
                   Type
                 </label>
                 <input

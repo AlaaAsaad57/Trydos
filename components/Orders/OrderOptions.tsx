@@ -17,7 +17,12 @@ import { totalAmount } from "utils/tinyUtils";
 import { useParams, useRouter } from "next/navigation";
 import { ModifyOrderItemModal } from "./ModifyOrderItemModal";
 
-function OrderOptions({ closeOptions, CancelOrder }: OrderOptionsPropsType) {
+function OrderOptions({
+  closeOptions,
+  CancelOrder,
+  setShouldConfirmReturn,
+  shouldConfirmReturn,
+}: OrderOptionsPropsType) {
   const {
     selectedOrder,
     SelectedOrderItem,
@@ -27,7 +32,6 @@ function OrderOptions({ closeOptions, CancelOrder }: OrderOptionsPropsType) {
     setOrderPageLoading,
     setActivePacks,
     setOrderOptions,
-    setOrderReturnObject,
   } = useAppStore();
   const [screen, setScreen] = useState<"options" | "changeAddress">("options");
   const [canceled, setCanceled] = useState(false);
@@ -37,40 +41,42 @@ function OrderOptions({ closeOptions, CancelOrder }: OrderOptionsPropsType) {
   const isRtl = language === "ar" || language === "ku";
 
   const [shouldConfirmCancel, setShouldConfirmCancel] = useState<any>(false);
-  const [shouldConfirmReturn, setShouldConfirmReturn] = useState(false);
   const [shouldConfirmChange, setShouldConfirmChange] = useState<any>(false);
   const router = useRouter();
 
-  const getOrderDetails = async () => {
+  const getOrderDetails = async (noLoading?) => {
     // Abort any previous request
-    setOrderPageLoading(true);
+    if (!noLoading) setOrderPageLoading(true);
     try {
       let data = await orderService.getOrderDetails(
         selectedOrder.order_group_id,
         null
       );
+      let returnRequests = undefined;
       let returned_req_ids = data?.map((s) => {
         if (s.return_request_id !== null && s.return_request_id !== undefined)
           return s.return_request_id;
       });
       returned_req_ids = returned_req_ids?.filter((s) => s !== undefined);
+
       if (returned_req_ids?.length > 0) {
         try {
-          const returnRequests = await Promise.all(
-            returned_req_ids.map(async (id) => {
-              const details = await orderService.getReturnRequestDetails({
-                return_request_id: id,
-              });
-              return { id, details };
-            })
-          );
+          returnRequests = await orderService.GetReturnDetailsForOrderGroup({
+            order_group_id: selectedOrder.order_group_id,
+          });
 
           // Update data with the fetched details
           data = data.map((order) => {
             const match = returnRequests.find(
               (req) => req.id === order.return_request_id
             );
-            return match ? { ...order, return_details: { ...match } } : order;
+            return match
+              ? {
+                  ...order,
+                  return_details: { ...match },
+                  returned_data: returnRequests,
+                }
+              : { ...order, returned_data: returnRequests };
           });
         } catch (error) {
           console.error(error);
@@ -81,8 +87,9 @@ function OrderOptions({ closeOptions, CancelOrder }: OrderOptionsPropsType) {
         order_amount: totalAmount(data),
         details: data,
       };
-
-      setActivePacks(data[0]);
+      if (ActivePacks?.id && data?.find((s) => s.id === ActivePacks?.id)) {
+        setActivePacks(data?.find((s) => s.id === ActivePacks?.id));
+      } else setActivePacks(data[0]);
 
       setOrderDetails(orderData);
     } catch (error) {
@@ -138,6 +145,7 @@ function OrderOptions({ closeOptions, CancelOrder }: OrderOptionsPropsType) {
   };
 
   const renderScreen = () => {
+    console.log(shouldConfirmReturn);
     if (SelectedOrderItem) {
       return (
         <>
@@ -188,13 +196,12 @@ function OrderOptions({ closeOptions, CancelOrder }: OrderOptionsPropsType) {
           )}
           {shouldConfirmReturn && (
             <ReturnOrderItemConfirmation
-              setReturnObj={(e) => setOrderReturnObject(e)}
               close={() => {
                 closeOptions();
                 setShouldConfirmReturn(false);
               }}
-              callback={() => {
-                getOrderDetails();
+              callback={async (e?) => {
+                await getOrderDetails(e);
               }}
               confirmationData={shouldConfirmReturn}
               setShouldConfirmReturn={setShouldConfirmReturn}
@@ -222,6 +229,25 @@ function OrderOptions({ closeOptions, CancelOrder }: OrderOptionsPropsType) {
             setShouldConfirmReturn={setShouldConfirmReturn}
             item={SelectedOrderItem}
           />
+        </>
+      );
+    }
+    if (shouldConfirmReturn) {
+      return (
+        <>
+          {shouldConfirmReturn && (
+            <ReturnOrderItemConfirmation
+              close={() => {
+                closeOptions();
+                setShouldConfirmReturn(false);
+              }}
+              callback={async (e?) => {
+                await getOrderDetails(e);
+              }}
+              confirmationData={shouldConfirmReturn}
+              setShouldConfirmReturn={setShouldConfirmReturn}
+            />
+          )}
         </>
       );
     }

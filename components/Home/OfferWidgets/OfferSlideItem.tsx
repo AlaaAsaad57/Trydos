@@ -26,7 +26,7 @@ function OfferSlideItem({
             fetchPriority="auto"
             priority={mykey < 2}
             style={{ borderRadius: "15px" }}
-            className="OfferImage object-cover"
+            className="OfferImage object-cover max-h-full h-auto"
             src={getConfiguredImage({
               src: GetImageUrl(offerPhoto?.file_path),
               height: 400,

@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { devtools } from "zustand/middleware";
+
 import { useAuthStore } from "./auth/reducer";
 import { useDetailsStore } from "./Details/reducer";
 import { useHomeStore } from "./homepage/reducer";
@@ -19,45 +19,39 @@ type AppState = ReturnType<typeof useAuthStore> &
   ReturnType<typeof useSearchStore> & {
     _hasHydrated: boolean;
     setHasHydrated: (hasHydrated: boolean) => void;
-    cameraPermissions: boolean;
-    setCameraPermissions: (value: boolean) => void;
+    cameraPermissions: any;
+    setCameraPermissions: (value: any) => void;
     checkCameraPermissions: () => Promise<void>;
   };
 
 // Create the combined store with hydration support
-export const useAppStore = create<AppState>()(
-  devtools(
-    (set, get) => ({
-      ...useAuthStore(set, get),
-      ...useChatStore(set, get),
-      ...useDetailsStore(set, get),
-      ...useHomeStore(set, get),
-      ...useListingStore(set, get),
-      ...useSearchStore(set, get),
-      ...useCartStore(set, get),
-      cameraPermissions: false,
-      setCameraPermissions: (value: boolean) => set({ cameraPermissions: value }),
-      checkCameraPermissions: async () => {
-        try {
-          // Try to get both camera and microphone permissions
-          await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-          set({ cameraPermissions: true });
-        } catch (e) {
-          set({ cameraPermissions: false });
-        }
-      },
-      _hasHydrated: false,
-      setHasHydrated: (hasHydrated: boolean) => {
-        set({
-          _hasHydrated: hasHydrated,
-        });
-      },
-    }),
-    {
-      name: "app-store", // for devtools
+export const useAppStore = create<AppState>()((set, get) => ({
+  ...useAuthStore(set, get),
+  ...useChatStore(set, get),
+  ...useDetailsStore(set, get),
+  ...useHomeStore(set, get),
+  ...useListingStore(set, get),
+  ...useSearchStore(set, get),
+  ...useCartStore(set, get),
+  cameraPermissions: "asked",
+  setCameraPermissions: (value: any) => set({ cameraPermissions: value }),
+  checkCameraPermissions: async () => {
+    try {
+      // Try to get both camera and microphone permissions
+      await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+      set({ cameraPermissions: "granted" });
+    } catch (e) {
+      set({ cameraPermissions: "revoked" });
+      throw new Error("");
     }
-  )
-);
+  },
+  _hasHydrated: false,
+  setHasHydrated: (hasHydrated: boolean) => {
+    set({
+      _hasHydrated: hasHydrated,
+    });
+  },
+}));
 
 // Hydration helper
 export const useHydratedStore = () => {

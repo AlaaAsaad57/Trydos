@@ -1,14 +1,10 @@
 export const dynamic = "force-dynamic";
-
 import "styles/globals.css";
 import "styles/home.css";
-import "styles/unused-onload.css";
 import localFont from "next/font/local";
-import Logo from "components/Home/Logo";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import Script from "next/script";
 import { GA_MEASUREMENT_ID } from "utils/gtag";
-import NextLink from "components/global/NextLink";
 
 export const metadata = {
   title: "TryDos",
@@ -82,12 +78,12 @@ export default function RootLayout({
     >
       <head>
         <Script
-          strategy="afterInteractive"
+          strategy="lazyOnload"
           src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
         />
         <Script
           id="gtag-init"
-          strategy="afterInteractive"
+          strategy="lazyOnload"
           dangerouslySetInnerHTML={{
             __html: `
               window.dataLayer = window.dataLayer || [];
@@ -101,7 +97,7 @@ export default function RootLayout({
         />
         <meta
           name="google-site-verification"
-          content="WZpiE3A-r21DUtk1RagBeYB0g2gGh6uvnaYSajezmT0"
+          content="iANrHdX9P3YTSLpnXZYxSv3Zlk9s0Vy9Oiympeu25oE"
         />
         <link rel="manifest" href="/manifest.json" />
         <link rel="icon" href="/favicon.ico" sizes="any" />
@@ -111,19 +107,20 @@ export default function RootLayout({
       <body className={params.lang.split("-")[1] === "ar" ? "text-rtl" : ""}>
         <SpeedInsights />
 
-        <div
-          className="site-container items-center"
-          key={`${JSON.stringify(params)}`}
-        >
-          <div className="home-navbar max-h-[1365px]">
-            <NextLink
-              href={`/${params.lang}`}
-              data={{ is_full_home: true }}
-              aria-label="TryDos Home"
-              data-cy="NavLogo"
-            >
-              <Logo animated={false} style={false} key={1} />
-            </NextLink>
+        <div className="site-container items-center">
+          <div className="home-navbar z-[999999996] duration-[1s] max-w-[1365px] min-h-[98px]  px-[20px] pt-[52px] bg-white flex-row items-start w-full justify-start">
+            <a href={`/`} aria-label="TryDos Home" data-cy="NavLogo">
+              <div className="logo-container" data-cy="storeLogo">
+                <img
+                  fetchPriority="high"
+                  alt="TryDos Logo"
+                  width={130}
+                  height={36}
+                  loading="eager"
+                  src="/svg/Logo.svg"
+                />
+              </div>
+            </a>
 
             {nav}
           </div>

@@ -12,6 +12,7 @@ export const BuyButtonProduct = ({
   product,
   params,
   currency,
+  seconds = null,
   language,
   isForColor = false,
   shouldShowRedeem = false,
@@ -28,6 +29,18 @@ export const BuyButtonProduct = ({
     }
     return true;
   }, []);
+  const isValid = () => {
+    const endDate = new Date(product.flash_deal_end_date);
+    endDate.setHours(23, 59, 59, 999);
+    const now = new Date();
+    const difference = endDate.getTime() - now.getTime();
+
+    if (difference <= 0) {
+      return false;
+    } else {
+      return true;
+    }
+  };
   useEffect(() => {
     if (!shouldShowRedeem) {
       setIsClient(true);
@@ -57,7 +70,11 @@ export const BuyButtonProduct = ({
   };
 
   const RenderPrice = () => {
-    if (product?.flash_deal_price >= 0 && product?.flash_deal_price !== null) {
+    if (
+      product?.flash_deal_price >= 0 &&
+      product?.flash_deal_price !== null &&
+      isValid()
+    ) {
       if (product.offer_price >= 0 && product.offer_price !== product.price) {
         return (
           <>
@@ -89,46 +106,22 @@ export const BuyButtonProduct = ({
               </svg>
             </span>
             <span
-              className="old-price ml-[3px] relative bold-text color-dark-gray flex f-12"
+              className="old-price ml-[3px] relative bold color-dark-gray flex f-12"
               data-cy="product-offer-price"
             >
-              {product?.offer_price >= 0
-                ? RoundPrice({
-                    num: product?.offer_price,
-                    rate: currency?.exchange_rate,
-                    points: 0,
-                    language: language,
-                  })
-                : RoundPrice({
-                    num: product?.price,
-                    rate: currency?.exchange_rate,
-                    points: 0,
-                    language: language,
-                  })}
-              <svg
-                className="absolute w-100"
-                xmlns="http://www.w3.org/2000/svg"
-                width="100%"
-                height="1"
-              >
-                <line
-                  id="Line_1"
-                  data-name="Line 1"
-                  x2="100%"
-                  transform="translate(0 0.5)"
-                  fill="none"
-                  strokeLinecap="round"
-                  stroke="#ff6200"
-                  strokeWidth="1"
-                />
-              </svg>
+              {RoundPrice({
+                num: product?.flash_deal_price,
+                rate: currency?.exchange_rate,
+                points: 0,
+                language: language,
+              })}
             </span>
           </>
         );
       } else {
         return (
           <span
-            className="old-price ml-[3px] bold-text color-dark-gray flex f-12"
+            className="old-price ml-[3px] bold color-dark-gray flex f-12"
             data-cy="product-redeem-price"
           >
             {RoundPrice({
@@ -159,7 +152,7 @@ export const BuyButtonProduct = ({
         );
       }
     }
-    if (product.is_redeem && shouldShowRedeem) {
+    if (product.is_redeem && shouldShowRedeem && seconds > 0) {
       if (product.offer_price >= 0 && product.offer_price !== product.price) {
         return (
           <>
@@ -191,7 +184,7 @@ export const BuyButtonProduct = ({
               </svg>
             </span>
             <span
-              className="old-price ml-[3px] relative bold-text color-dark-gray flex f-12"
+              className="old-price ml-[3px] relative bold color-dark-gray flex f-12"
               data-cy="product-offer-price"
             >
               {product?.offer_price >= 0
@@ -230,7 +223,7 @@ export const BuyButtonProduct = ({
       } else {
         return (
           <span
-            className="old-price ml-[3px] bold-text color-dark-gray flex f-12"
+            className="old-price ml-[3px] bold color-dark-gray flex f-12"
             data-cy="product-redeem-price"
           >
             {RoundPrice({
@@ -293,7 +286,7 @@ export const BuyButtonProduct = ({
               </svg>
             </span>
             <span
-              className="new-price bold-text color-dark-gray flex f-12"
+              className="new-price bold color-dark-gray flex f-12"
               data-cy="product-offer-price"
             >
               {product?.offer_price >= 0
@@ -315,7 +308,7 @@ export const BuyButtonProduct = ({
       } else {
         return (
           <span
-            className="old-price relative f-12 bold-text color-dark-gray"
+            className="old-price relative f-12 bold color-dark-gray"
             data-cy="product-price"
           >
             {RoundPrice({
@@ -332,7 +325,8 @@ export const BuyButtonProduct = ({
   if (!isClient)
     return (
       <>
-        <div className="product-footer absolute w-100 flex-row align-center max-h-[30px]">
+        <ProductBanner flashDeals={product.flash_deal_end_date} />
+        <div className="product-footer justify-between pl-[17.5px] pr-[15px] left-0 bottom-[10px] absolute w-100 flex-row align-center max-h-[30px]">
           <div
             className={`${
               params.lang.split("-")[1] === "ar" && "dir-rtl"
@@ -350,7 +344,6 @@ export const BuyButtonProduct = ({
           }}
           id={product.product_id}
           redeem_price={product.redeem_price}
-          flash_deal_price={product?.flash_deal_price}
           currency={currency}
           shouldShowRedeem={shouldShowRedeem && product?.is_redeem}
           buy={(e) => {
@@ -362,12 +355,8 @@ export const BuyButtonProduct = ({
     );
   return (
     <>
-      <ProductBanner
-        featured={product.featured}
-        flashDeals={product.flash_deal_end_date}
-        labels={product.label_names}
-      />
-      <div className="product-footer absolute w-100 flex-row align-center max-h-[30px]">
+      <ProductBanner flashDeals={product.flash_deal_end_date} />
+      <div className="product-footer justify-between pl-[17.5px] pr-[15px] left-0 bottom-[10px] absolute w-100 flex-row align-center max-h-[30px]">
         <div
           className={`${
             params.lang.split("-")[1] === "ar" && "dir-rtl"
@@ -379,9 +368,9 @@ export const BuyButtonProduct = ({
           </span>
         </div>
       </div>
-      {product.is_redeem && shouldShowRedeem && (
+      {product.is_redeem && shouldShowRedeem && seconds > 0 && (
         <>
-          <RedeemButton />
+          <RedeemButton seconds={seconds} />
         </>
       )}
       <BuyButton
@@ -389,8 +378,8 @@ export const BuyButtonProduct = ({
           setShouldShowRedeem(false);
         }}
         id={product.product_id}
-        flash_deal_price={Number(product?.flash_deal_price)}
         redeem_price={product.redeem_price}
+        seconds={seconds}
         currency={currency}
         shouldShowRedeem={shouldShowRedeem && product?.is_redeem}
         buy={(e) => {

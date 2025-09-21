@@ -3,25 +3,24 @@ import { ProductDetailsTextProps } from "models/componentType/productTypes/Produ
 import { ProductInterface } from "models/Genaral/Product";
 import { useParams, useSearchParams } from "next/navigation";
 import { useEffect, useState, useMemo } from "react";
+import auth from "services/auth";
 import { useAppStore } from "store";
 import { translateFunction } from "utils/functions";
+import { GA_EVENT_NAMES } from "utils/GAEvents";
+import { GAevent } from "utils/gtag";
 
 function ProductDetailsText({
   details,
   product,
+  language,
 }: ProductDetailsTextProps) {
   const { setActiveColorDetails } = useAppStore();
   const { lang } = useParams();
   const searchParams = useSearchParams();
   // @ts-ignore
-  const languageVariable = lang?.split("-")[1];
-  const translate = useMemo(
-    () => (key: string) => translateFunction(key, languageVariable),
-    [languageVariable]
-  );
 
   const isLongText = details?.length > 95;
-  const [show, setShow] = useState(false);
+  const [show, setShow] = useState(true);
 
   useEffect(() => {
     const color = searchParams.get("color");
@@ -33,19 +32,28 @@ function ProductDetailsText({
     }
   }, [searchParams, product]);
 
-  const toggleText = () => {
-    const newShowState = !show;
-    setShow(newShowState);
-    // Sendevent({
-    //   event: GA_EVENT_NAMES.CLICK,
-    //   value: newShowState
-    //     ? GA_CLICK_EVENT_VALUES.READ_MORE_BUTTON
-    //     : GA_CLICK_EVENT_VALUES.READ_LESS_BUTTON,
-    // });
-  };
-
+  // const toggleText = () => {
+  //   const newShowState = !show;
+  //   if (newShowState) {
+  //     GAevent({
+  //       action: GA_EVENT_NAMES.READ_MORE,
+  //       params: {
+  //         user_id_custom: auth.UserID(),
+  //         ...paramsGA,
+  //       },
+  //     });
+  //   }
+  //   setShow(newShowState);
+  //   // Sendevent({
+  //   //   event: GA_EVENT_NAMES.CLICK,
+  //   //   value: newShowState
+  //   //     ? GA_CLICK_EVENT_VALUES.READ_MORE_BUTTON
+  //   //     : GA_CLICK_EVENT_VALUES.READ_LESS_BUTTON,
+  //   // });
+  // };
+  const isRtl = language === "ar" || language === "ku";
   return (
-    <div className="product-details-text">
+    <div className={`${isRtl ? "dir-rtl" : ""} product-details-text`}>
       <div
         id="details"
         className="have-arabic"
@@ -57,11 +65,11 @@ function ProductDetailsText({
             : "",
         }}
       />
-      {isLongText && (
+      {/* {isLongText && (
         <span className="read-more" onClick={toggleText}>
           {translate(show ? "Read Less" : "Read More")}
         </span>
-      )}
+      )} */}
     </div>
   );
 }

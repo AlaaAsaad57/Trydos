@@ -7,11 +7,11 @@ import { NormalWidgetPropsType } from "models/componentType/NormalWidgetPropsTyp
 import { GetImageUrl } from "utils/tinyUtils";
 import { getConfiguredImage } from "utils/functions";
 
-
 const NormalWidget = ({ boutique, myKey, lang }: NormalWidgetPropsType) => {
   return (
     <div className="w-full flex relative">
       <NextLink
+        ignoreConditionCase={true}
         data-cy="boutique_link"
         href={`/${lang}/filters/boutiques/${boutique.slug}`}
         data={{
@@ -20,15 +20,19 @@ const NormalWidget = ({ boutique, myKey, lang }: NormalWidgetPropsType) => {
           href: `/${lang}/filters/boutiques/${boutique.slug}`,
         }}
         aria-label={`Go To listing ${lang} ${boutique.slug}`}
-        className="offer-widget"
+        className="offer-widget h-[calc((100vw-30px)*235/400)] w-full flex-col flex max-h-[476px] min-h-[235px] relative rounded-[15px] shadow-[0px_3px_10px_rgb(0,0,0,0.1)]"
         id={`boutique-${boutique.slug}`}
         key={boutique.slug}
       >
         <div
-          className="offer-container cursor-pointer"
+          className="offer-container w-full h-full flex flex-col
+          items-start overflow-hidden justify-start z-20 pt-[15px]  cursor-pointer"
           data-cy="offer_container_boutique"
         >
-          <div className="offer-logo" data-cy="boutique_logo">
+          <div
+            className="offer-logo flex cursor-pointer items-center justify-center h-[20px] ml-[25px] bold text-[20px]"
+            data-cy="boutique_logo"
+          >
             {boutique?.icon && (
               <Image
                 data-cy="boutique_Image"
@@ -80,7 +84,7 @@ const NormalWidget = ({ boutique, myKey, lang }: NormalWidgetPropsType) => {
           )}
         </div>
       </NextLink>
-      <div className="offer-category absolute top-[18px] right-[18px] z-20">
+      <div className="offer-category gap-[12px] flex items-center h-[12px] absolute top-[18px] right-[18px] z-20">
         {boutique.mainCategoriesForProductIds
           .slice(0, 5)
           .map((category, key) => {
@@ -96,7 +100,6 @@ const NormalWidget = ({ boutique, myKey, lang }: NormalWidgetPropsType) => {
                   aria-label={`Go To listing ${lang} ${boutique.slug} ${category.slug}`}
                   href={`/${lang}/filters/boutiques/${boutique.slug}/categories/${category.slug}`}
                   key={key}
-                  className={`${key > 0 && "ml-[13px]"}`}
                 >
                   <Image
                     id={"img-" + boutique.id}

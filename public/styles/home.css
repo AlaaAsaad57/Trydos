@@ -1,16 +1,3 @@
-.categories-bar-item:hover .categories-bar-item-description,
-.categories-bar-item.active-nav-category .categories-bar-item-description {
-  opacity: 1;
-}
-.categories-bar-item:hover .categories-bar-item-icon,
-.categories-bar-item.active-nav-category .categories-bar-item-icon {
-  transform: scale(1.25);
-}
-.categories-bar-item.active-nav-category
-  .categories-bar-item-description
-  .categories-bar-item-name {
-  color: #3c3c3c;
-}
 .Toastify {
   z-index: 999999999999999;
 }
@@ -22,40 +9,6 @@
   pointer-events: none;
   z-index: 99999999999;
   transform-origin: top left;
-}
-.image-container-cart {
-  width: 100% !important;
-
-  padding-right: 50%;
-}
-.categories-bar-item:hover .categories-bar-item-icon svg path,
-.categories-bar-item:hover .categories-bar-item-icon svg circle,
-.categories-bar-item:hover .categories-bar-item-icon svg ellipse,
-.categories-bar-item:hover .categories-bar-item-icon svg line,
-.categories-bar-item.active-nav-category .categories-bar-item-icon svg path,
-.categories-bar-item.active-nav-category .categories-bar-item-icon svg circle,
-.categories-bar-item.active-nav-category .categories-bar-item-icon svg ellipse,
-.categories-bar-item.active-nav-category .categories-bar-item-icon svg line {
-  stroke: #3c3c3c !important;
-  fill: #3c3c3c !important;
-}
-.categories-bar-item .categories-bar-item-icon svg path,
-.categories-bar-item .categories-bar-item-icon svg circle,
-.categories-bar-item .categories-bar-item-icon svg path,
-.categories-bar-item .categories-bar-item-icon svg circle,
-.categories-bar-item .categories-bar-item-icon svg ellipse,
-.categories-bar-item .categories-bar-item-icon svg line {
-  stroke: #c4c2c2 !important;
-  fill: #c4c2c2 !important;
-}
-.lang-modalDisable {
-  content: "";
-  position: fixed;
-  z-index: 9999999999998;
-  width: 100vw;
-  height: 100vh;
-  background-color: #0000004f;
-  top: 0px;
 }
 
 .nav-img-item.nav-question-item {
@@ -85,9 +38,7 @@
   border-radius: 10px;
   object-fit: cover;
 }
-.categories-bar-item-name ~ svg {
-  margin-left: 6px;
-}
+
 /* translations button*/
 
 .items.active {
@@ -132,11 +83,6 @@ body {
   stroke: #969696;
 }
 
-.home-navbar {
-  z-index: 999999996;
-  height: 84px;
-  flex-direction: row;
-}
 .app {
   max-width: 430px;
   overflow: hidden;

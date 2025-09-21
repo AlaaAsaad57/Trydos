@@ -1,10 +1,9 @@
 export const runtime = "nodejs";
 import { NextRequest, NextResponse } from "next/server";
-
 import { getProductFromCache, storeProduct } from "Server Requests/radis";
 import { GetProductData } from "utils/pagesDataRequests/ProductPageData";
 
-// Helper to add CORS + no-cache headers
+// Apply CORS headers to any response
 function withCORS(res: NextResponse) {
   res.headers.set("Access-Control-Allow-Origin", "*");
   res.headers.set(
@@ -25,7 +24,7 @@ function withCORS(res: NextResponse) {
   return res;
 }
 
-// Preflight handler
+// Handle preflight (important for browsers)
 export async function OPTIONS() {
   return withCORS(new NextResponse(null, { status: 204 }));
 }
@@ -42,17 +41,18 @@ export async function GET(
   let productDataVar;
   try {
     const response = await getProductFromCache(params.slug, language, country);
-    if (response.product) {
+    if (response.product?.id) {
       productDataVar = { ...response.product, redis: true };
     } else {
       let { product: productData, socialData } = await GetProductData({
         lang: `${country}-${language}`,
         productId: params.slug,
       });
-      if (!productData || !socialData) {
-        throw new Error("Not found");
+
+      if (productData?.id && productData?.images && socialData) {
+        storeProduct(productData, socialData, params.slug, language, country);
       }
-      storeProduct(productData, socialData, params.slug, language, country);
+
       productDataVar = {
         ...productData,
         ...socialData,
@@ -68,7 +68,6 @@ export async function GET(
     );
   } catch (error) {
     console.error("***** fetch failed *****", error);
-
     return withCORS(
       NextResponse.json(
         { isSuccessful: false, error, code: 500 },

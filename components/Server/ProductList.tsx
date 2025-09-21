@@ -15,6 +15,7 @@ function ProductListServer({
   colors,
   isFeatured = false,
   isFlashDeals = false,
+  boutique,
 }: ProductListServerPropsType) {
   const activeFilters = getActiveFilters(parsedFilters)?.colors || [];
 
@@ -22,9 +23,12 @@ function ProductListServer({
     (s) => s === activeFilters[activeFilters.length - 1]
   );
   let language = params.lang.split("-")[1];
+  const isRtl = language === "ar" || language === "ku";
   return (
     <div
-      className={"listing-container relative flex pb-[350px] max-w-[1310px]"}
+      className={`${
+        isRtl ? "flex-row-reverse flex" : "flex flex-row"
+      } listing-container justify-around bg-[#f4f4f4] min-w-full min-h-[48vh] relative  pb-[350px] max-w-[1310px] flex-wrap`}
     >
       {products.map((product, key) => {
         let color_name = product?.colors?.find(
@@ -46,15 +50,16 @@ function ProductListServer({
         );
       })}
       <ProductsInfiniteScroll
-        analyticsData={{
-          items: products?.map((s) => ({
-            item_id: s.product_id,
-            item_name: s.name,
-            category: s.category?.name,
-            brand: s.brand?.name,
-          })),
-        }}
-        productIds={products.map((s) => s.slug)}
+        analyticsData={products?.map((s) => ({
+          item_id: s?.product_id,
+          item_name: s?.name,
+          category: s?.category?.name,
+          brand: s.brand?.name,
+          category_id: s?.category?.id,
+          brand_id: s?.brand?.id,
+        }))}
+        prductIds={products?.map((s) => s.product_id)}
+        boutique={boutique}
         activeColor={activeColor}
         parsedFilters={{
           ...parsedFilters,

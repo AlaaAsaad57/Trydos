@@ -27,7 +27,7 @@ function ChatWindow(props) {
     return () => clearInterval(interval);
   }, []);
   return (
-    <div className="chat-window">
+    <div className="chat-window  xs:h-screen">
       <ContactIcon
         data-cy="ContactsIcon"
         className="contact-icon-header"

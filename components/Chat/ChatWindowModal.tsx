@@ -49,9 +49,13 @@ function Chat(props) {
             openChat(null);
           }
         }}
-        className={`lang-modalDisable ${props.open && "open"}`}
+        className={`fixed inset-0 w-screen h-screen bg-black/30 z-[9999999999998] ${
+          props.open && "open"
+        }`}
       ></div>
-      <div className={`app ${language}-app`}>
+      <div
+        className={`app ${language}-app xs:right-0 xs:left-auto xs:top-0 xs:z-[9999999999999] xs:h-screen`}
+      >
         <textarea id="text-copy"></textarea>
         {typeof Notification !== "undefined" &&
         Notification.permission === "granted" &&

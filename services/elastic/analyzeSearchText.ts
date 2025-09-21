@@ -1,21 +1,24 @@
+import { GetColorAndSizes } from "Server Requests/analyticsUtility";
+
 const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${process.env.GL_API_KEY}`;
 
-export default async function AnalyzeSearchText(query) {
+export default async function AnalyzeSearchText(query): Promise<any> {
+  let start = process.hrtime.bigint();
+  let data = await GetColorAndSizes();
   const prompt = `
 استلم الاستفسار التالي بأي لغة كانت، وحاول تحليل معناه واستخرج منه الحقول التالية فقط:
-- name: اسم المنتج
-- color: اللون ولكن بصيغة HEX فقط مثل "#FF0000". إذا كان هناك أكثر من لون، أرجعهم كمصفوفة JSON مثل: ["#FF0000", "#0000FF"]
-- size: القياس بصيغة موحدة من: XS, S, M, L, XL, XXL فقط
+- name: اسم المنتج (اسم المنتج كاملا بدون اللون والقياس ان وجد في كلمة البحث)
+- color: اللون ولكن بصيغة HEX فقط مثل "#FF0000". إذا كان هناك أكثر من لون، أرجعهم كمصفوفة JSON مثل: ["#FF0000", "#0000FF"] ارجع فقط القيم الموجودة في ( ${data?.colors} )
+- size: القياس بصيغة موحدة من: ( ${data?.sizes} ) فقط
 - type: نوع المادة أو الصنف (مثل قطن، حرير...)
-
+لا تحذف شيء من اسم المنتج فقط أذل اللون والقياس من النص 
 إذا تعذر استخراج أحد الحقول، أرجع "Unknown".
-إذا كان القياس موجودًا ولكن بصيغة مختلفة (كلمات أو أرقام أو وصف)، فحوّله إلى أحد القيم القياسية التالية فقط: XS, S, M, L, XL, XXL.
+إذا كان القياس موجودًا ولكن بصيغة مختلفة (كلمات أو أرقام أو وصف)
 
 النص: "${query}"
 
 أرجع النتيجة بصيغة JSON فقط بدون تنسيق Markdown (بدون \`\`\`)
 `;
-
   const payload = {
     contents: [
       {
@@ -43,7 +46,7 @@ export default async function AnalyzeSearchText(query) {
       parsed = JSON.parse(cleanedText);
     } catch (e) {
       return {
-        error: "Failed to parse JSON from Gemini response",
+        error: `Failed to parse JSON from Gemini response ${outputText}`,
         raw_output: outputText,
         exception: e.toString(),
       };
@@ -57,8 +60,9 @@ export default async function AnalyzeSearchText(query) {
     }
 
     // ✅ You can now send filtered to another service here if needed
+    let end = process.hrtime.bigint();
 
-    return filtered;
+    return { ...filtered, Geminitime: Number(end - start) / 1_000_000 };
   } catch (error: any) {
     return {
       error: "API call to Gemini failed",

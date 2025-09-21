@@ -29,8 +29,8 @@ function AddToCartButton({ product }: { product: any }) {
 
       <div className="button-desc">
         <div
-          className={`flex-row  justify-end relative image-container-cart ${
-            !AddToCartOption.enable && "pr-0"
+          className={`flex-row  justify-end relative w-full ${
+            !AddToCartOption.enable ? "pr-0" : "pr-[50%] "
           }`}
         >
           <svg

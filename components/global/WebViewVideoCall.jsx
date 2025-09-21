@@ -227,7 +227,9 @@ function WebViewVideoCall(props) {
                     className={displayMethod ? "add-caller-icon" : "my-screen"}
                     id="remote-stream"
                     style={
-                      !displayMethod ? { height: "100%", width: "100%" } : {}
+                      !displayMethod
+                        ? { height: "100%", width: "100%", position: "fixed" }
+                        : { position: "fixed" }
                     }
                     videoTrack={user.videoTrack}
                     key={user.uid}
@@ -259,7 +261,7 @@ function WebViewVideoCall(props) {
             <LeftArrowIcon></LeftArrowIcon>
           </div>
           <div
-            style={{ cursor: "pointer" }}
+            style={{ cursor: "pointer", position: "fixed" }}
             onClick={() => {
               if (!displayMethod) setDisplayMethod(!displayMethod);
             }}

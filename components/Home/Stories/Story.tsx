@@ -1,44 +1,26 @@
 "use client";
 
-import pngErr from "public/images/error.png";
-import Image from "next/image";
 import StoryServiceClass from "services/story";
 import { FixedStory as StoryType } from "models/Genaral/Story";
 import { SelectStory } from "store/homepage/actions";
 import { StoryPropsType } from "models/componentType/StoryPropsType";
+import StoryCard from "./StoryCard";
 
 function Story({ media, Name, index, story }: StoryPropsType) {
   const setSelectStory = (e: StoryType) => {
     SelectStory(e);
   };
-
   return (
     <div
-      className="story-element-item"
+      className="shadow-[0_3px_6px_rgba(0,0,0,0.2)] rounded-[20px]"
       onClick={() => setSelectStory(StoryServiceClass.configureStory(story))}
       data-cy="story-element"
     >
-      <div className="linear-g-image" />
-      <div className="story-text overflow-hidden">{Name}</div>
-
-      <div className="" style={{ display: "flex" }}>
-        <Image
-          className="thumb-img object-cover object-center"
-          alt="story"
-          width={100}
-          height={160}
-          priority={true}
-          loading="eager"
-          onError={(e) => {
-            e.currentTarget.src = pngErr.src;
-            e.currentTarget.onerror = null;
-          }}
-          src={StoryServiceClass.getThumb(
-            media?.full_video_path || media?.photo_path,
-            media?.full_video_path
-          )}
-        />
-      </div>
+      <StoryCard
+        Name={Name}
+        media={media?.full_video_path || media?.photo_path}
+        isVideo={media.full_video_path}
+      />
     </div>
   );
 }

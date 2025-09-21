@@ -6,10 +6,25 @@ import SearchResults from "./SearchResults";
 import search from "services/search";
 import { Suspense } from "react";
 import { useAppStore } from "store";
-import { useParams, useSearchParams } from "next/navigation";
+import {
+  useParams,
+  usePathname,
+  useRouter,
+  useSearchParams,
+} from "next/navigation";
 
 function SearchContainer({ active }) {
-  const { setSearchWord, value } = useAppStore();
+  const router = useRouter();
+  const pathname = usePathname();
+  useEffect(() => {
+    window.history.pushState({ isPopup: true }, "search");
+    const newParams = new URLSearchParams(searchParams);
+    newParams.set("search", "true");
+    // Use router.push with pathname and updated query
+    // @ts-expect-error 'shallow' does not exist in type 'NavigateOptions'
+    router.push(`${pathname}?${newParams.toString()}`, { shallow: true });
+  }, []);
+  const { setSearchWord, value, setTrendingSearch } = useAppStore();
   const [searchHistoryItems, setSearchHistory] = useState([]);
   const { lang } = useParams();
 
@@ -23,7 +38,9 @@ function SearchContainer({ active }) {
   const searchParams = useSearchParams();
   const getSearchData = async () => {
     try {
-      await search.getTrendingSearch();
+      let data = await search.getTrendingSearch();
+
+      setTrendingSearch(data.popular_search_terms);
       await search.getSearchOptions({
         noProducts: true,
         lang: lang,

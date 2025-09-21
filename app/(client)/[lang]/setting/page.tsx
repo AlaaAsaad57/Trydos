@@ -25,12 +25,14 @@ export async function generateMetadata({ params }: settingPagePropsType) {
   }
 }
 
-async function page({ params }) {
+async function page({ params, searchParams }) {
   // Server component to render JSON-LD structured data
+  let order_id = searchParams?.id;
+  let tab = searchParams?.tab;
 
   return (
     <>
-      <Settings lang={params.lang} />
+      <Settings order_id={order_id} tab={tab} lang={params.lang} />
     </>
   );
 }

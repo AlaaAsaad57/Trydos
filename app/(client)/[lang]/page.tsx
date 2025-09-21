@@ -1,5 +1,6 @@
 export const runtime = "nodejs";
 export const preferredRegion = "bom1";
+export const dynamic = "force-dynamic";
 
 import NavbarServer from "components/Server/Navbar";
 import OfferListServer from "components/Server/OfferListServer";
@@ -19,19 +20,31 @@ import { fetchCurrency } from "Server Requests";
 import { ElasticsearchReader } from "services/elastic/elasticsearch-reader.service";
 import { getProductsAndFiltersFromElastic } from "services/elastic/elasticSearch";
 import { getCurrencyFromCache, StoreCurrency } from "Server Requests/radis";
+import RecomendedProducts from "components/Server/RecomendedProducts";
+import { translateFunction } from "utils/functions";
+import SearchIcon from "components/Home/Search/SearchIcon";
+import MainCategoriesNavbar from "components/Server/MainCategories";
 
 export async function generateMetadata({ params }) {
+  let language = params.lang?.split("-")[1];
   try {
     const metadata = await getHomeMetadata({ params });
 
-    // console.log("**********metadata***********", JSON.stringify(metadata));
     return metadata;
   } catch (error) {
     console.log(error);
     return {
-      title: "TryDos - Premium Shopping Experience",
-      description:
+      title: translateFunction(
+        "TryDos - Premium Shopping Experience",
+        language
+      ),
+      description: translateFunction(
         "Discover premium products on TryDos - Your ultimate shopping destination with featured products, flash deals, and boutique collections.",
+        language
+      ),
+      verification: {
+        google: process.env.GOOGLE_VERIFICATION,
+      },
     };
   }
 }
@@ -65,18 +78,20 @@ async function getCurrency(country, language) {
     let cachedCurrency = await getCurrencyFromCache(country);
 
     if (typeof cachedCurrency === "string") {
-      return JSON.parse(cachedCurrency);
+      return { ...JSON.parse(cachedCurrency), redis: true };
     }
     if (cachedCurrency?.exchange_rate) {
-      return cachedCurrency;
+      return { ...cachedCurrency, redis: true };
     } else {
       let currencyData = await fetchCurrency(language, country);
-      let currency = currencyData.data.currency;
+      let currency = { ...currencyData.data.currency };
 
       StoreCurrency(country, currency);
-      return currency;
+      return { ...currency, redis: false };
     }
-  } catch (error) {}
+  } catch (error) {
+    return {};
+  }
 }
 async function HomePage({ params }: HomePageProps) {
   return (
@@ -121,51 +136,30 @@ async function HomePage({ params }: HomePageProps) {
 
 export default HomePage;
 // Main Categories Bar
-async function MainCategoriesNavbar({ lang, mainCategory }) {
-  const [country, language] = lang?.split("-");
-  // let mainCategories = await fetchMainCategories(language, country);
-  let Reader = new ElasticsearchReader();
-  let start = process.hrtime.bigint();
-  let a = await Reader.getCategories({ country: country, size: 4000 });
-  // @ts-ignore
 
-  let mainCategories = a.hits.hits.map((s) => {
-    // @ts-ignore
-    return s._source?.custom_categories?.find(
-      (cat) => cat.language_code?.toLowerCase() === language?.toLowerCase()
-    );
-  });
-  mainCategories = Array.from(
-    new Map(mainCategories.map((c: any) => [c.id, c])).values()
-  );
-  let end = process.hrtime.bigint();
-
-  return (
-    <NavbarServer
-      lang={lang}
-      time={Number(end - start) / 1_000_000}
-      mainCategory={mainCategory}
-      categoriesData={mainCategories}
-    />
-  );
-}
 // Featured Products
 async function FeaturedProductWrapper({ lang }) {
   const [country, language] = lang?.split("-");
-
-  let currencyData = await getCurrency(country, language);
-  let data = await getProductsAndFiltersFromElastic({
-    country: country,
-    language_code: language,
-    filters: {
-      featured: true,
-    },
-    limit: 10,
-  });
+  let start = process.hrtime.bigint();
+  let [currencyData, data] = await Promise.all([
+    getCurrency(country, language),
+    getProductsAndFiltersFromElastic({
+      country: country,
+      language_code: language,
+      filters: {
+        featured: true,
+      },
+      limit: 10,
+    }),
+  ]);
+  let end = process.hrtime.bigint();
   return (
     <FeatureProducts
+      dataSourceString={`Feature Products Data Source: Products From Elastic, currency from ${
+        currencyData?.redis ? "redis" : "laravel api"
+      } in ${Number(end - start) / 1_000_000} ms`}
       currencyData={currencyData}
-      fetauredProductsData={{ data: data }}
+      fetauredProductsData={{ data: { products: data.products } }}
       lang={lang}
     />
   );
@@ -173,20 +167,28 @@ async function FeaturedProductWrapper({ lang }) {
 // FlasDeals Products
 async function FlashProductWrapper({ lang }) {
   const [country, language] = lang?.split("-");
+  let start = process.hrtime.bigint();
 
-  let currencyData = await getCurrency(country, language);
-  let data = await getProductsAndFiltersFromElastic({
-    country: country,
-    language_code: language,
-    filters: {
-      flashdeal: true,
-    },
-    limit: 10,
-  });
+  let [currencyData, data] = await Promise.all([
+    getCurrency(country, language),
+    getProductsAndFiltersFromElastic({
+      country: country,
+      language_code: language,
+      filters: {
+        flashdeal: true,
+      },
+      limit: 10,
+    }),
+  ]);
+  let end = process.hrtime.bigint();
+
   return (
     <FlashDealsProducts
+      dataSourceString={`FlashDeals Products Data Source: Products From Elastic, currency from ${
+        currencyData?.redis ? "redis" : "laravel api"
+      } in ${Number(end - start) / 1_000_000} ms`}
       currencyData={currencyData}
-      flashDealsProducts={{ data: data }}
+      flashDealsProducts={{ data: { products: data.products } }}
       lang={lang}
     />
   );
@@ -194,9 +196,7 @@ async function FlashProductWrapper({ lang }) {
 
 async function BoutiquesListWrapper({ params }) {
   const [country, language] = params.lang.split("-");
-
   let start = process.hrtime.bigint();
-
   let Reader = new ElasticsearchReader();
   let data = await Reader.getBoutiques({
     language,
@@ -204,12 +204,69 @@ async function BoutiquesListWrapper({ params }) {
     limit: 10,
     category: params.mainCategory,
   });
+
   // @ts-ignore
   let end = process.hrtime.bigint();
   return (
     <OfferListServer
+      dataSourceString={`Boutiques Data Source: Products From Elastic in ${
+        Number(end - start) / 1_000_000
+      } ms`}
       boutiquesData={{ ...data, temp: Number(end - start) / 1_000_000 }}
       params={params}
+    >
+      <Suspense fallback={<FeaturedProductsSkeleton lang={params.lang} />}>
+        <RecomendedProductWrapper lang={params.lang} />
+      </Suspense>
+    </OfferListServer>
+  );
+}
+async function RecomendedProductWrapper({ lang }) {
+  const [country, language] = lang.split("-");
+  let Reader = new ElasticsearchReader();
+
+  let [currencyData, data, featured, flashdeals] = await Promise.all([
+    getCurrency(country, language),
+    Reader.getRecommendations({ language, country }),
+    getProductsAndFiltersFromElastic({
+      country: country,
+      language_code: language,
+      filters: {
+        featured: true,
+      },
+      noFilters: true,
+      limit: 10,
+    }),
+    getProductsAndFiltersFromElastic({
+      country: country,
+      language_code: language,
+      filters: {
+        flashdeal: true,
+      },
+      noFilters: true,
+      limit: 10,
+    }),
+  ]);
+  let unique_products = data.products.filter((product) => {
+    if (
+      featured?.products?.find(
+        (f_product) => f_product?.product_id === product.product_id
+      )
+    )
+      return false;
+    if (
+      flashdeals?.products?.find(
+        (f_product) => f_product?.product_id === product.product_id
+      )
+    )
+      return false;
+    return true;
+  });
+  return (
+    <RecomendedProducts
+      products={{ data: { ...data, products: unique_products } }}
+      lang={lang}
+      currencyData={currencyData}
     />
   );
 }

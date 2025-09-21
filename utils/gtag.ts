@@ -1,6 +1,6 @@
-import auth from "services/auth";
 import { useAppStore } from "store";
 import { COOKIE_NAMES, getCookie, UserData } from "./cookies/cookie-manager";
+import { DetectScreen } from "./tinyUtils";
 export const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID; // replace with your ID
 let countries = [
   { name: "Syria", iso: "sy" },
@@ -45,6 +45,8 @@ export const GAevent = ({
     // @ts-ignore
     window.gtag?.("event", action, {
       debug_mode: true,
+      screen_name: DetectScreen(),
+      screen_path: window.location.pathname,
       ...params,
       country_name: country?.name,
       device_language: language?.name,
@@ -56,8 +58,13 @@ export const GAevent = ({
       platform_source: "WEB",
       ...user_param,
     });
-
-    console.log(`window?.gtag?.("event", ${action}, {
+    params = {
+      screen_name: DetectScreen(),
+      screen_path: window.location.pathname,
+      ...params,
+    };
+    if (process.env.NEXT_PUBLIC_ANALYTICS_LOG === "true") {
+      console.log(`🟡🟡  window?.gtag?.("event", ${action}, {
         debug_mode: true,
         ${Object.entries(params || {})
           .map(([key, value]) => `${key}: ${JSON.stringify(value)}`)
@@ -72,7 +79,8 @@ export const GAevent = ({
       platform_source: WEB,
       ${Object.entries(user_param || {})
         .map(([key, value]) => `${key}: ${JSON.stringify(value)}`)
-        .join(",\n")},`);
+        .join(",\n")},  🟡🟡`);
+    }
   } catch (error) {
     console.log(error);
   }

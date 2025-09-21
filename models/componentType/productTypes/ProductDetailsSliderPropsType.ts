@@ -1,7 +1,8 @@
 import { Currency, ProductDataType } from "./productPagePropsType";
 
 export interface ProductDetailsSliderPropsType {
-  product: any;
   currency: Currency;
-  images: string[];
+  images: string[] | { file_path }[];
+  productGA: any;
+  resetLoader?: boolean;
 }

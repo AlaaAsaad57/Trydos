@@ -1,5 +1,4 @@
 import {
-  formatPrice,
   getConfiguredImage,
   RoundPrice,
   translateFunction,

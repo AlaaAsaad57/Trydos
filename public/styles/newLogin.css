@@ -104,10 +104,6 @@ input[type="number"] {
     background-color: #fafafa;
     opacity: 1;
   }
-  .hide-offers.offers-list,
-  .home-bar.hide-offers {
-    display: none;
-  }
   .login-w2-container.login-widget-container {
     left: 0px !important;
     top: 0px !important;

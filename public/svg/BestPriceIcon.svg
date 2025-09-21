@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="14" height="14" viewBox="0 0 14 14">
+  <defs>
+    <clipPath id="clip-path">
+      <rect id="Rectangle_4644" data-name="Rectangle 4644" width="14" height="14" fill="none"/>
+    </clipPath>
+    <clipPath id="clip-path-2">
+      <path id="Path_23629" data-name="Path 23629" d="M0,14H14V0H0Z" fill="none"/>
+    </clipPath>
+  </defs>
+  <g id="Mask_Group_845" data-name="Mask Group 845" clip-path="url(#clip-path)">
+    <g id="trend" clip-path="url(#clip-path-2)">
+      <path id="Path_23627" data-name="Path 23627" d="M13.829,10.912a.583.583,0,0,0,0-.825L8.287,4.546a.583.583,0,0,0-.825,0l-2.5,2.5L1,3.088a.583.583,0,1,0-.825.825L4.546,8.287a.583.583,0,0,0,.825,0l2.5-2.5L13,10.912a.583.583,0,0,0,.825,0Z" transform="translate(0 0)" fill="#388cff" fill-rule="evenodd"/>
+      <path id="Path_23628" data-name="Path 23628" d="M9.333,7a.583.583,0,0,0,.583.583h3.5A.583.583,0,0,0,14,7V3.5a.583.583,0,0,0-1.167,0V6.417H9.917A.583.583,0,0,0,9.333,7Z" transform="translate(0 3.5)" fill="#388cff" fill-rule="evenodd"/>
+    </g>
+  </g>
+</svg>

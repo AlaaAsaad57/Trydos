@@ -8,7 +8,11 @@ import UploadVideo from "../UploadVideo";
 import { blobToDataURL } from "components/Chat/chatsFunctions";
 import { useStopwatch } from "react-timer-hook";
 import { NewStoryModalPropsType } from "models/componentType/NewStoryModalPropsType";
-function NewStoryModal({ close, send, HandleUploadedVideo }: NewStoryModalPropsType) {
+function NewStoryModal({
+  close,
+  send,
+  HandleUploadedVideo,
+}: NewStoryModalPropsType) {
   const [imageFile, setImageFile] = useState(null);
   const [vidUrl, setVideo] = useState(null);
   const [SwitchCamera, setSwitch] = useState(null);
@@ -115,9 +119,13 @@ function NewStoryModal({ close, send, HandleUploadedVideo }: NewStoryModalPropsT
             videoConstraints={webcamTypeRef}
           />
         )}
-        <div className="button-bases" style={{ position: "static" }}>
+        <div
+          className="fixed bottom-[20px] left-[10px] w-full flex items-center justify-around z-[99999999999]"
+          style={{ position: "static" }}
+        >
           {!capturing && !vidUrl && !vidUrl && (
             <button
+              className="w-[50px] h-[50px] cursor-pointer rounded-full bg-[#dddddd] p-[10px] flex items-center justify-center shadow-[0_3px_6px_#0000002a]"
               disabled={SwitchCamera}
               onClick={() => {
                 setRef({
@@ -161,25 +169,33 @@ function NewStoryModal({ close, send, HandleUploadedVideo }: NewStoryModalPropsT
             !vidUrl &&
             (capturing ? (
               <button
+                className="w-[50px] h-[50px] cursor-pointer rounded-full bg-[#dddddd] p-[10px] flex items-center justify-center shadow-[0_3px_6px_#0000002a]"
                 onClick={handleStopCaptureClick}
                 style={{ position: "relative" }}
               >
                 <span
                   style={{ position: "absolute", color: "red", top: "-25px" }}
                 >{`00:${seconds > 9 ? seconds : "0" + seconds}`}</span>
-                <span className="stop-icon" />
+                <span className="w-[20px] h-[20px] rounded-[1px] bg-[rgb(141,6,6)]" />
               </button>
             ) : (
-              <button onClick={handleStartCaptureClick}>
-                <span className="capturing-icon" />
+              <button
+                className="w-[50px] h-[50px] cursor-pointer rounded-full bg-[#dddddd] p-[10px] flex items-center justify-center shadow-[0_3px_6px_#0000002a]"
+                onClick={handleStartCaptureClick}
+              >
+                <span className="w-[20px] h-[20px] rounded-full bg-[rgb(141,6,6)]" />
               </button>
             ))}
           {vidUrl && (
-            <button onClick={handleDownload}>
+            <button
+              className="w-[50px] h-[50px] cursor-pointer rounded-full bg-[#dddddd] p-[10px] flex items-center justify-center shadow-[0_3px_6px_#0000002a]"
+              onClick={handleDownload}
+            >
               <SendIcon />
             </button>
           )}
           <button
+            className="w-[50px] h-[50px] cursor-pointer rounded-full bg-[#dddddd] p-[10px] flex items-center justify-center shadow-[0_3px_6px_#0000002a]"
             onClick={() => (!vidUrl && !vidUrl ? close() : setVideo(null))}
           >
             <svg
@@ -222,33 +238,43 @@ function NewStoryModal({ close, send, HandleUploadedVideo }: NewStoryModalPropsT
   };
   return (
     <div
-      className="fixed-img-prev"
+      className="fixed top-0 left-0 w-screen h-screen bg-transparent flex flex-col items-center justify-start p-5 z-[9999999999]"
       style={{
         top: "-180px",
         justifyContent: "flex-end",
         paddingBottom: "60px",
       }}
     >
-      <div className="options-camera">
+      <div className="w-full h-[50px] flex z-[999999999] rounded-md bg-[#fafafa] absolute top-[25px] left-0">
         <div
-          className={`option ${active && "active-option"}`}
+          className={`text-[#1d1d1d] w-1/2 h-[50px] flex text-center items-center justify-center  ${
+            active ? "bg-[#a0a0a0]" : "bg-[#fafafa]"
+          }`}
           onClick={() => setActive(true)}
         >
           Photo
         </div>
         <div
-          className={`option ${!active && "active-option"}`}
+          className={`text-[#1d1d1d] w-1/2 h-[50px] flex text-center items-center justify-center  ${
+            !active ? "bg-[#a0a0a0]" : "bg-[#fafafa]"
+          }`}
           onClick={() => setActive(false)}
         >
           Video
         </div>
       </div>
-      <div className="bac-drop"></div>
+      <div className="absolute top-0 left-0 w-screen h-screen bg-[#585751] opacity-60 z-[9999]"></div>
       {active ? (
         imageFile && imageFile !== "null" ? (
           <>
-            <div className="button-bases" style={{ position: "static" }}>
-              <button style={{ opacity: "0" }}>
+            <div
+              className="fixed bottom-[20px] left-[10px] w-full flex items-center justify-around z-[99999999999]"
+              style={{ position: "static" }}
+            >
+              <button
+                className="w-[50px] h-[50px] cursor-pointer rounded-full bg-[#dddddd] p-[10px] flex items-center justify-center shadow-[0_3px_6px_#0000002a]"
+                style={{ opacity: "0" }}
+              >
                 <svg
                   version="1.1"
                   id="Layer_1"
@@ -274,6 +300,7 @@ function NewStoryModal({ close, send, HandleUploadedVideo }: NewStoryModalPropsT
               </button>
 
               <button
+                className="w-[50px] h-[50px] cursor-pointer rounded-full bg-[#dddddd] p-[10px] flex items-center justify-center shadow-[0_3px_6px_#0000002a]"
                 onClick={() => {
                   send(imageFile);
                   setImageFile(null);
@@ -282,7 +309,10 @@ function NewStoryModal({ close, send, HandleUploadedVideo }: NewStoryModalPropsT
               >
                 <SendIcon />
               </button>
-              <button onClick={() => setImageFile(null)}>
+              <button
+                className="w-[50px] h-[50px] cursor-pointer rounded-full bg-[#dddddd] p-[10px] flex items-center justify-center shadow-[0_3px_6px_#0000002a]"
+                onClick={() => setImageFile(null)}
+              >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   width="17.828"
@@ -319,7 +349,7 @@ function NewStoryModal({ close, send, HandleUploadedVideo }: NewStoryModalPropsT
               </button>
             </div>
             <Image
-              className="image-story-camera"
+              className="h-full absolute w-full inset-0 max-h-[100dvh] text-transparent object-fill  z-[99999999]"
               loading="eager"
               fill
               sizes="100vw"
@@ -330,7 +360,7 @@ function NewStoryModal({ close, send, HandleUploadedVideo }: NewStoryModalPropsT
         ) : (
           <>
             <Webcam
-              className="cameraInput"
+              className="cameraInput h-[100%] w-full inset-0 max-h-[100dvh] text-transparent object-fill static z-[99999999]"
               audio={false}
               height={800}
               ref={webcamRef}
@@ -339,9 +369,13 @@ function NewStoryModal({ close, send, HandleUploadedVideo }: NewStoryModalPropsT
               videoConstraints={webcamTypeRef}
             />
             {!imageFile && (
-              <div className="button-bases" style={{ position: "static" }}>
+              <div
+                className="fixed bottom-[20px] left-[10px] w-full flex items-center justify-around z-[99999999999]"
+                style={{ position: "static" }}
+              >
                 <button
                   disabled={SwitchCamera}
+                  className="w-[50px] h-[50px] cursor-pointer rounded-full bg-[#dddddd] p-[10px] flex items-center justify-center shadow-[0_3px_6px_#0000002a]"
                   onClick={() => {
                     setRef({
                       width: 430,
@@ -368,6 +402,7 @@ function NewStoryModal({ close, send, HandleUploadedVideo }: NewStoryModalPropsT
                     enableBackground="new 0 0 122.879 93.242"
                     xmlSpace="preserve"
                     style={{ cursor: "pointer", width: "100%" }}
+                    fill={SwitchCamera ? "#8e8d92" : "#555"}
                   >
                     <g>
                       <path
@@ -380,6 +415,7 @@ function NewStoryModal({ close, send, HandleUploadedVideo }: NewStoryModalPropsT
                   </svg>
                 </button>
                 <button
+                  className="w-[50px] h-[50px] cursor-pointer rounded-full bg-[#dddddd] p-[10px] flex items-center justify-center shadow-[0_3px_6px_#0000002a]"
                   onClick={() => {
                     capture();
                   }}
@@ -387,6 +423,7 @@ function NewStoryModal({ close, send, HandleUploadedVideo }: NewStoryModalPropsT
                   <CameraIcon style={{ transform: "scale(1.5)" }} />
                 </button>
                 <button
+                  className="w-[50px] h-[50px] cursor-pointer rounded-full bg-[#dddddd] p-[10px] flex items-center justify-center shadow-[0_3px_6px_#0000002a]"
                   onClick={() => {
                     setImageFile(null);
                     close();

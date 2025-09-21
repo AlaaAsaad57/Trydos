@@ -1,5 +1,4 @@
 "use client";
-
 import { useEffect, useState } from "react";
 import MainSetting from "./MainSetting";
 import Profile from "./Profile";
@@ -12,12 +11,8 @@ import PersonalBankCards from "./PersonalBankCards";
 import PersonalInfoCountries from "./PersonalInfoCountries";
 import { useRouter, useSearchParams } from "next/navigation";
 import OrdersList from "./OrdersList";
-
 import OrderDetails from "./OrderDetails";
-
 import { useAppStore } from "store";
-
-import SettingsLoader from "components/skeleton/loaders/SettingsLoader";
 import LanguageSetting from "./LanguageSetting";
 import OrderOptions from "components/Orders/OrderOptions";
 import { GA_EVENT_NAMES, GA_GLOBAL_SCREEN } from "utils/GAEvents";
@@ -29,19 +24,18 @@ import {
 import home from "services/home";
 import { EnableScroll } from "utils/tinyUtils";
 
-function Settings({ lang }: SettingsIndexPropsType) {
+function Settings({ lang, order_id, tab }: SettingsIndexPropsType) {
   const {
     setIsActiveAddress,
     userProfile,
     setOrderDetails,
     setAddressDetails,
     showOrderOptions,
-    setSelectedOrderItem,
+
     setOrderOptions,
     selectedOrder,
-    setActivePacks,
   } = useAppStore();
-  let language = lang.split("-")[1];
+  const [shouldConfirmReturn, setShouldConfirmReturn] = useState(false);
   const setSelectedOrder = (order) => {
     setOrderDetails(order);
   };
@@ -185,8 +179,15 @@ function Settings({ lang }: SettingsIndexPropsType) {
         <>
           {
             <OrderDetails
-              resetOrderDetails={() => setSelectedOrder(null)}
-              goBack={() => swipeToScreen(9)}
+              resetOrderDetails={() => {
+                setShouldConfirmReturn(false);
+                setSelectedOrder(null);
+              }}
+              goBack={() => {
+                setShouldConfirmReturn(false);
+                swipeToScreen(9);
+              }}
+              setShouldConfirmReturn={setShouldConfirmReturn}
             />
           }
         </>
@@ -199,9 +200,9 @@ function Settings({ lang }: SettingsIndexPropsType) {
       component: () => <LanguageSetting goBack={() => swipeToScreen(0)} />,
     },
   ]);
-  const searchParams = useSearchParams();
-  let activeTab = searchParams.get("tab");
-  const orderIdParam = searchParams.get("id");
+
+  let activeTab = tab;
+  const orderIdParam = order_id;
 
   const orderDetailsIndexRef = NavigationOptions.findIndex(
     (opt) => opt.id === "Order Details"
@@ -223,15 +224,20 @@ function Settings({ lang }: SettingsIndexPropsType) {
         // @ts-ignore
         shallow: true,
       });
+      GAevent({
+        action: GA_EVENT_NAMES.SCREEN_VIEW,
+        params: {
+          screen_name: GA_GLOBAL_SCREEN.SETTINGS_SCREEN,
+          screen_path: window.location.pathname,
+        },
+      });
     }
-    GAevent({
-      action: GA_EVENT_NAMES.SCREEN_VIEW,
-      params: {
-        screen_name: GA_GLOBAL_SCREEN.SETTINGS_SCREEN,
-        screen_path: window.location.pathname,
-      },
-    });
-  }, []);
+    if (orderIdParam && activeTab === "Orders") {
+      setCurrentScreen(
+        NavigationOptions.findIndex((option) => option.id === "Order Details")
+      );
+    }
+  }, [activeTab, orderIdParam]);
 
   useEffect(() => {
     if (orderIdParam) {
@@ -243,15 +249,15 @@ function Settings({ lang }: SettingsIndexPropsType) {
   }, [orderIdParam]);
 
   const router = useRouter();
-
+  const searchParams = useSearchParams();
   const swipeToScreen = (index: number) => {
     if (isAnimating) return;
     setIsAnimating(true);
     setCurrentScreen(index);
-    if (NavigationOptions[index].id !== "Order Details") {
+    if (NavigationOptions[index]?.id !== "Order Details") {
       let newParams = new URLSearchParams(searchParams);
       newParams.delete("id");
-      newParams.set("tab", NavigationOptions[index].id);
+      newParams.set("tab", NavigationOptions[index]?.id);
       // @ts-ignore
       router.push(`/${lang}/setting?${newParams.toString()}`, {
         // @ts-ignore
@@ -261,11 +267,13 @@ function Settings({ lang }: SettingsIndexPropsType) {
     // @ts-ignore
     setTimeout(() => setIsAnimating(false), 300); // Match transition duration
   };
-  if (!userProfile) return <SettingsLoader />;
+
   return (
     <div className="max-h-full h-full overflow-auto flex w-full max-w-[1365px] justify-center bg-white">
       {showOrderOptions && (
         <OrderOptions
+          setShouldConfirmReturn={setShouldConfirmReturn}
+          shouldConfirmReturn={shouldConfirmReturn}
           productData={selectedOrder}
           CancelOrder={() => {
             // setOrderDetails(null);
@@ -294,6 +302,7 @@ function Settings({ lang }: SettingsIndexPropsType) {
           style={{
             transform: `translateX(-${currentScreen * 100}%)`,
           }}
+          key={activeTab}
         >
           {NavigationOptions.map((option, index) => {
             if (

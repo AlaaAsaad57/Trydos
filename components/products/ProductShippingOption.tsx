@@ -9,9 +9,8 @@ import MarkerIcon from "public/svg/product/MarkerIcon.svg";
 import { translateFunction } from "utils/functions";
 import { useParams } from "next/navigation";
 import Spinner from "components/global/Spinner";
-import { ProductShippingOptionPropsType } from "models/componentType/productTypes/MultiComponentOnProductPage";
 import { useAppStore } from "store";
-import { fetchCountries } from "Server Requests";
+import { fetchCountries } from "utils/tinyUtils";
 import { formatTimeForAddress } from "utils/tinyUtils";
 import Skeleton from "react-loading-skeleton";
 function ProductShippingOption({ days }) {
@@ -46,8 +45,9 @@ function ProductShippingOption({ days }) {
   useEffect(() => {
     getCountries();
   }, []);
-  const [extended, setExtended] = useState(false);
   const { settings } = useAppStore();
+  const [extended, setExtended] = useState(false);
+
   return (
     <div
       className={`product-shipping product-colors product-sizes flex-col align-start relative ${

@@ -1,17 +1,13 @@
 "use client";
 import { useAppStore } from "store";
-
-import Cookies from "js-cookie";
-import userImage from "public/images/profileNo.png";
 import {
   _isStoreLastJson,
-  AddToCartAnimation,
   getCart,
-  getLang,
-  urlParams,
+  getUserChat,
   WaitForCondition,
 } from "utils/functions";
 import Smartlook from "smartlook-client";
+import ChatService from "services/chat";
 
 import {
   CUSTOMER_INFO_URL,
@@ -19,16 +15,13 @@ import {
   REGISTER_DEVICE_URL,
   STARTER_SETTINGS,
 } from "utils/endpointConfig";
-import { SSRDetect } from "utils/functions";
-import { changeToken } from "store/homepage/cachedActions";
+
 import { RegisterGuestApi } from "models/API/market/RegisterGuest";
 import { CustomerInfoResponse } from "models/API/market/CustomerInfo";
 import auth from "./auth";
-import { UpdateCartApi } from "models/API/market/UpdateCart";
 import LocalizationServiceClass from "./localization";
 import chat from "./chat";
 import { SetGAUser } from "utils/gtag";
-import { starttingSettingApi } from "models/API/market/StarttingSetting";
 import { showErrorNotification } from "@/store/notifications/reducer";
 import { fetchData } from "utils/fetchData";
 import {
@@ -211,6 +204,7 @@ class HomeService {
     if (permission !== "granted") {
       return null;
     }
+
     const { requestFirebaseNotificationPermission, onMessageListener } =
       await import("utils/firebaseInitv1");
     await requestFirebaseNotificationPermission().then(async (token) => {
@@ -249,6 +243,49 @@ class HomeService {
         .catch((err) => {
           console.log(err);
         });
+  }
+  isNoificationGranted() {
+    if (typeof window === "undefined" || typeof Notification === "undefined") {
+      return false;
+    }
+    return Notification.permission === "granted";
+  }
+  async allowNotifications() {
+    const { requestFirebaseNotificationPermission } = await import(
+      "utils/firebaseInitv1"
+    );
+    try {
+      requestFirebaseNotificationPermission().then((fbtoken) => {
+        if (fbtoken) this.handleTopicsOnPageRefresh(fbtoken);
+      });
+      await this.RequestFireBase();
+      if (getUserChat()?.id) {
+        const { requestFirebaseNotificationPermission } = await import(
+          "utils/firebaseInitv1"
+        );
+        requestFirebaseNotificationPermission().then(async (fbtoken) => {
+          if (fbtoken && getUserChat()?.id) {
+            fbtoken &&
+              ChatService.StoreToken({
+                id: getUserChat()?.id,
+                token: fbtoken,
+                user: getUserChat(),
+              });
+          }
+        });
+      }
+    } catch (error) {
+      console.error("Error handling topics on page refresh:", error);
+    }
+  }
+  async RequestNotificationWidget() {
+    const { isNotificationModal, setNotificationModal } =
+      useAppStore.getState();
+    if (this.isNoificationGranted()) {
+      this.allowNotifications();
+      return;
+    }
+    setNotificationModal(true);
   }
   async CheckLogin() {
     const marketToken = getCookie(COOKIE_NAMES.MARKET_TOKEN);
@@ -305,7 +342,7 @@ class HomeService {
       }
     }
     auth.CheckUserName();
-    await this.RequestFireBase();
+    await this.RequestNotificationWidget();
   }
 
   async RegisterDevice() {
@@ -372,7 +409,7 @@ class HomeService {
                 phone: "guest",
                 // other custom properties
               });
-            await this.RequestFireBase();
+            await this.RequestNotificationWidget();
           }
         } catch (err) {
           console.error(err);

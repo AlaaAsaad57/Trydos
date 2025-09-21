@@ -20,7 +20,9 @@ function NameModal() {
   return (
     <>
       <div
-        className={`lang-modalDisable ${Open && "open"}`}
+        className={`fixed inset-0 w-screen h-screen bg-black/30 z-[9999999999998] ${
+          Open && "open"
+        }`}
         onClick={(e) => {
           close();
         }}
@@ -54,7 +56,7 @@ function NameModal() {
         >
           <Border color={"#707070"} height={50} width={250} />
           <ManIcon style={{ width: "20px", position: "absolute" }} />
-          <label htmlFor="phone" className="no-label">
+          <label htmlFor="phone" className="hidden">
             Name
           </label>
           <input

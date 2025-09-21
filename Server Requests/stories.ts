@@ -37,16 +37,18 @@ export async function fetchStories(
   };
   try {
     const response = await fetchServerData({
-      url: `${process.env.NEXT_PUBLIC_STORIES_BACKEND_URL}/api/v1/stories/users_stories?page=${page}`,
+      url: `${process.env.NEXT_PUBLIC_NEST_STORIES_BACKEND_URL}/api/v1/stories/users_stories?page=${page}`,
       method: "GET",
       tags: ["stories", "home"],
-      revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE_STORIES),
+      // revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE_STORIES),
+      revalidate: 0,
       local: `${country}-${language}`,
       headers: headers,
     });
-
     if (response.isError) {
-      console.error(`Stories Error: ${response.status}`);
+      console.error(
+        `Stories Error: ${response.status},${JSON.stringify(response)}`
+      );
       reportError(new Error(`Stories Error: ${response.status}`), {
         source: "stories",
         page: "stories",

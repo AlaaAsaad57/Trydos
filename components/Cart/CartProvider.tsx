@@ -1,12 +1,7 @@
 "use client";
-import {
-  useParams,
-  usePathname,
-  useRouter,
-  useSearchParams,
-} from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { expandView, normalizeView, RoundPrice } from "utils/functions";
+import { expandView, normalizeView } from "utils/functions";
 import CartContainer from ".";
 import home from "services/home";
 import OrdersPage from "./OrdersPage";
@@ -14,13 +9,14 @@ import ModalIframe from "./ModalIframe";
 import { SlideWidget } from "components/global/SlideNavigation";
 
 import { useAppStore } from "store";
-import { DetectScreen, getCurrency, getReferralSource } from "utils/tinyUtils";
-import AddToCartComponent from "./AddToCartComponent";
 import {
-  GA_GLOBAL_PLATFORM,
-  GA_GLOBAL_SCREEN,
-  GA_EVENT_NAMES,
-} from "utils/GAEvents";
+  DetectScreen,
+  EnableScroll,
+  getCurrency,
+  getReferralSource,
+} from "utils/tinyUtils";
+import AddToCartComponent from "./AddToCartComponent";
+import { GA_GLOBAL_SCREEN, GA_EVENT_NAMES } from "utils/GAEvents";
 
 import { GAevent } from "utils/gtag";
 import auth from "services/auth";
@@ -42,13 +38,12 @@ const CartProvider = () => {
     cart_enable: enable,
     selected_product_for_add_to_cart,
     setSelectedProductForCart,
+    setAddStory,
   } = useAppStore();
 
   const pathname = usePathname();
   const router = useRouter();
-  const { lang } = useParams();
   // @ts-ignore
-  const [country, language] = lang?.split("-");
   const searchParams = useSearchParams();
 
   const enableCartAction = (s) => {
@@ -87,11 +82,23 @@ const CartProvider = () => {
     }, 10);
     window.addEventListener("popstate", (event) => {
       if (event.state?.isPopup) {
+        let params = new URLSearchParams(searchParams);
+        params.delete("cart");
+        params.delete("modal");
+        params.delete("story");
+        params.delete("search");
+        // @ts-expect-error 'shallow' does not exist in type 'NavigateOptions'
+        router.push(`${pathname}?${params.toString()}`, { shallow: true });
         setSelectedStory(null);
         enableCart(false);
         setLoginOpen(false);
         setChatOpen(false);
         setEnableSearch(false);
+        EnableScroll();
+        setSelectedProductForCart(null);
+        setAddStory(null);
+        // @ts-ignore
+        document.querySelector(`#search-element`)?.blur();
       }
     });
     window.addEventListener("scroll", function (e) {
@@ -166,10 +173,6 @@ const CartProvider = () => {
           close={() => {
             setSelectedProductForCart(null);
           }}
-          color={selected_product_for_add_to_cart?.colors?.[0]}
-          size={
-            selected_product_for_add_to_cart?.choice_options?.[0]?.options?.[0]
-          }
           product={selected_product_for_add_to_cart}
           slug={selected_product_for_add_to_cart?.slug}
         />
@@ -208,19 +211,11 @@ export const StepSlider = ({ enableCart }) => {
     GAevent({
       action: GA_EVENT_NAMES.BEGIN_CHECKOUT,
       params: {
-        value: RoundPrice({
-          num: total_cash,
-          rate: currency.exchange_rate,
-          returnNumber: true,
-        }),
+        value: total_cash,
         items: cart.map((item) => ({
           item_id: item.product_id,
           item_name: item.name,
-          price: RoundPrice({
-            num: item.offer_price,
-            rate: currency.exchange_rate,
-            returnNumber: true,
-          }),
+          price: item.offer_price,
           quantity: item.quantity,
           item_variant: item.variant ?? "N/A",
         })),

@@ -1,6 +1,7 @@
 import { getProductsAndFiltersFromElastic } from "services/elastic/elasticSearch";
 import type { Metadata } from "next";
 import { ElasticsearchReader } from "services/elastic/elasticsearch-reader.service";
+import { translateFunction } from "utils/functions";
 export const generateCodeCurrency = (code: string) => {
   if (code?.toLowerCase() === "sp") {
     return "SYP";
@@ -54,6 +55,7 @@ export const getHomeMetadata = async ({ params }): Promise<Metadata> => {
       (cat) => cat.language_code?.toLowerCase() === language?.toLowerCase()
     );
   });
+  categoriesData = categoriesData.filter((c) => c !== undefined);
   categoriesData = Array.from(
     new Map(categoriesData.map((c: any) => [c.id, c])).values()
   );
@@ -67,30 +69,34 @@ export const getHomeMetadata = async ({ params }): Promise<Metadata> => {
   const data = {
     metadataBase: new URL(process.env.NEXT_PUBLIC_REMOTE_FRONT),
     title: {
-      default: "Trydos — Flash Deals, Boutique Finds & Featured Products",
+      default: translateFunction(
+        "Trydos — Flash Deals, Boutique Finds & Featured Products",
+        language
+      ),
       template: "%s | Trydos",
     },
-    description:
+    description: translateFunction(
       "Shop flash deals, trending bar essentials, and handpicked boutique products. Discover the latest featured items only on Trydos.",
+      language
+    ),
     keywords: [
-      "Trydos",
-      "Flash Deals",
-      "Bar",
-      "Boutiques",
-      "Featured Products",
-      "Online Shopping",
-      "TryDos",
-      "online shopping",
-      "premium products",
-      "featured products",
-      "flash deals",
-      "best deals",
-      "shopping mall",
-      "boutiques",
-      "brands",
-      "fashion",
-      "electronics",
-      "home garden",
+      translateFunction("Flash Deals", language),
+      translateFunction("Bar", language),
+      translateFunction("Boutiques", language),
+      translateFunction("Featured Products", language),
+      translateFunction("Online Shopping", language),
+      translateFunction("TryDos", language),
+      translateFunction("online shopping", language),
+      translateFunction("premium products", language),
+      translateFunction("featured products", language),
+      translateFunction("flash deals", language),
+      translateFunction("best deals", language),
+      translateFunction("shopping mall", language),
+      translateFunction("boutiques", language),
+      translateFunction("brands", language),
+      translateFunction("fashion", language),
+      translateFunction("electronics", language),
+      translateFunction("home garden", language),
       ...categories.map((c) => c.name),
       ...boutiques.map((b) => b.name),
       ...allProducts.slice(0, 20).map((p) => p.name),
@@ -98,9 +104,14 @@ export const getHomeMetadata = async ({ params }): Promise<Metadata> => {
       .filter(Boolean)
       .join(", "),
     openGraph: {
-      title: "Trydos — Flash Deals & Featured Boutique Picks",
-      description:
+      title: translateFunction(
+        "Trydos — Flash Deals & Featured Boutique Picks",
+        language
+      ),
+      description: translateFunction(
         "Your destination for exclusive bar items, boutique fashion, and daily flash deals.",
+        language
+      ),
       url: `${process.env.NEXT_PUBLIC_REMOTE_FRONT}`,
       siteName: "Trydos",
       images: [
@@ -116,9 +127,14 @@ export const getHomeMetadata = async ({ params }): Promise<Metadata> => {
     },
     twitter: {
       card: "summary_large_image",
-      title: "Trydos — Shop Boutique Products & Flash Deals",
-      description:
+      title: translateFunction(
+        "Trydos — Shop Boutique Products & Flash Deals",
+        language
+      ),
+      description: translateFunction(
         "Explore Trydos for curated categories like Bar, Boutiques, and limited-time Flash Deals.",
+        language
+      ),
       images: [`${process.env.NEXT_PUBLIC_REMOTE_FRONT}/opengraph-image.png`],
       creator: "@trydos",
     },
@@ -159,7 +175,7 @@ export const getHomeMetadata = async ({ params }): Promise<Metadata> => {
       },
     },
     verification: {
-      google: process.env.GOOGLE_VERIFICATION,
+      google: "iANrHdX9P3YTSLpnXZYxSv3Zlk9s0Vy9Oiympeu25oE",
       yandex: process.env.YANDEX_VERIFICATION,
       yahoo: process.env.YAHOO_VERIFICATION,
     },
@@ -193,10 +209,12 @@ export const GetStructuredData = async ({ params }) => {
   return {
     "@context": "https://schema.org",
     "@type": "Store",
-    name: "Trydos",
+    name: translateFunction("Trydos", language),
     url: `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${params.lang}`,
-    description:
+    description: translateFunction(
       "Discover Trydos: your online store for bar items, boutique products, and flash deals.",
+      language
+    ),
     image: `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/opengraph-image.png`,
     logo: `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/assets/logo.png`,
     sameAs: [

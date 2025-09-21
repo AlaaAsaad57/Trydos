@@ -1,13 +1,5 @@
-import {
-  Color,
-  Currency,
-  SyncColorImage,
-} from "./productPagePropsType";
+import { Color, Currency, SyncColorImage } from "./productPagePropsType";
 import { ProductInterface } from "models/Genaral/Product";
-export interface ProductColorsPropsType {
-  ProductColorsArray: Color[];
-  colors: SyncColorImage[];
-}
 
 export interface CameraShotsPropsType {
   images: string[];
@@ -19,6 +11,7 @@ export interface ProductStoriesPropsType {
 
 export interface ProductSizesPropsType {
   sizes: Size[];
+  language: string;
 }
 export interface Size {
   name: string;

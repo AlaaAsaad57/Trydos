@@ -4,9 +4,57 @@ import { useSearchParams } from "next/navigation";
 import dynamic from "next/dynamic";
 const WebViewVideoCall = dynamic(() => import("./WebViewVideoCall"), {
   ssr: false,
+  loading: () => (
+    <div
+      style={{
+        width: "100vw",
+        height: "100vh",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        fontSize: "20px",
+        backgroundColor: "#000",
+        color: "#FFF",
+        flexDirection: "column",
+      }}
+    >
+      <CallingIcon
+        style={{
+          marginBottom: "10px",
+          transform: "scale(1.5)",
+          marginRight: "10px",
+        }}
+      ></CallingIcon>
+      Loading Call Information...
+    </div>
+  ),
 });
 const WebViewVoiceCall = dynamic(() => import("./WebViewVoiceCall"), {
   ssr: false,
+  loading: () => (
+    <div
+      style={{
+        width: "100vw",
+        height: "100vh",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        fontSize: "20px",
+        backgroundColor: "#000",
+        color: "#FFF",
+        flexDirection: "column",
+      }}
+    >
+      <CallingIcon
+        style={{
+          marginBottom: "10px",
+          transform: "scale(1.5)",
+          marginRight: "10px",
+        }}
+      ></CallingIcon>
+      Loading Call Information...
+    </div>
+  ),
 });
 const CallComponentWidget = dynamic(() => import("./CallComponentWidget"), {
   ssr: false,
@@ -18,6 +66,7 @@ import {
   getUserInfo,
 } from "./WebViewActions";
 import CallingIcon from "../Chat/svg/CallInProg.svg";
+import { LogError } from "utils/functions";
 function WebviewCall() {
   const [error, setError] = useState(null);
   const getToken = (tok) => {
@@ -69,29 +118,52 @@ function WebviewCall() {
       }
     } catch (error) {
       console.error(error);
+      let errorObj = {
+        type: "front-end-calls",
+        message: error.message,
+        url: window.location.href,
+        user_id: data.sender_user_id,
+        token: data.authToken,
+        data: data,
+      };
+      LogError(errorObj);
       setData({ ...data, error: error.message });
     }
   };
   const initCall = async () => {
-    if (!data.loading) {
-      setData({
-        ...data,
-        loading: true,
-      });
-      let token = await getAgoraTokenForInit(
-        data.channel_id,
-        data.authToken,
-        data.msgId
-      );
-      if (token) {
-        setData({ ...data, token: token, action: "sent" });
-        window.location.href = `/call_direct?authToken=${data.authToken}&token=${token}&action=sent&type=${data.type}&message_id=${data.msgId}&uid=${data.sender_user_id}&ch_id=${data.channel_id}&ring=true`;
-      } else {
-        setError("failed to initialize call ..Try again");
-        setTimeout(() => {
-          window.location.href = "/endCall";
-        }, 3000);
+    try {
+      if (!data.loading) {
+        setData({
+          ...data,
+          loading: true,
+        });
+        let token = await getAgoraTokenForInit(
+          data.channel_id,
+          data.authToken,
+          data.msgId
+        );
+        if (token) {
+          setData({ ...data, token: token, action: "sent" });
+          window.location.href = `/call_direct?authToken=${data.authToken}&token=${token}&action=sent&type=${data.type}&message_id=${data.msgId}&uid=${data.sender_user_id}&ch_id=${data.channel_id}&ring=true`;
+        } else {
+          setError("failed to initialize call ..Try again");
+          setTimeout(() => {
+            window.location.href = "/endCall";
+          }, 3000);
+        }
       }
+    } catch (error) {
+      console.error(error);
+      let errorObj = {
+        type: "front-end-calls",
+        message: error.message,
+        url: window.location.href,
+        user_id: data.sender_user_id,
+        token: data.authToken,
+        data: data,
+      };
+      LogError(errorObj);
+      setData({ ...data, error: error.message });
     }
   };
   const onDecline = async (duration) => {
@@ -141,10 +213,9 @@ function WebviewCall() {
             padding: "10px",
             flexDirection: "column",
             maxWidth: "100%",
-            zIndex: "99999",
+            zIndex: "9999999999",
             position: "absolute",
             backgroundColor: "white",
-            opacity: "0.6",
           }}
         >
           <span>url:{window.location.href}</span>
@@ -207,6 +278,31 @@ function WebviewCall() {
             urlparam={`/call_direct?authToken=${data.authToken}&token=${data.token}&action=sent&type=${data.type}&message_id=${data.msgId}&uid=${data.sender_user_id}&ch_id=${data.channel_id}`}
           />
         )}
+      <button
+        className="top-[10px] right-[10px] p-2 absolute"
+        style={{
+          top: "10px",
+          right: "10px",
+          zIndex: "99999999999999",
+          backgroundColor: "#fafafa",
+          padding: "8px",
+          position: "absolute",
+          color: "#1d1d1d",
+          textTransform: "uppercase",
+          fontSize: "20px",
+          fontWeight: "bold",
+          borderRadius: "10px",
+        }}
+        onClick={() => {
+          navigator.clipboard.writeText(window.location.href).then(
+            function () {},
+            function () {}
+          );
+          alert(window.location.href);
+        }}
+      >
+        debug
+      </button>
     </>
   );
 }

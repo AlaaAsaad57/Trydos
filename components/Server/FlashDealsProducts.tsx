@@ -3,18 +3,30 @@ import NextLink from "components/global/NextLink";
 import React from "react";
 import { translateFunction } from "utils/functions";
 import ProductCard from "./ProductCard";
+import DataSourceLogger from "components/global/DataSourceLogger";
 
-async function FlashDealsProducts({ lang, currencyData, flashDealsProducts }) {
+async function FlashDealsProducts({
+  lang,
+  currencyData,
+  flashDealsProducts,
+  dataSourceString,
+}) {
   const [country, language] = lang.split("-");
   const isRtl = language === "ar" || language === "ku";
   const currency = currencyData;
   if (flashDealsProducts?.data?.products?.length === 0) return <></>;
   return (
-    <div className={`flex-col px-[12px] flex items-start max-w-full w-full`}>
+    <div
+      className={`flex-col px-[12px] flex items-start max-w-full w-full mt-[10px]`}
+    >
+      <DataSourceLogger dataSourceString={dataSourceString} />
+
       <NextLink
         href={`/${lang}/flashDeals`}
         data={{ is_boutique: true }}
-        className={`flex-row h-[50px] w-full max-w-[1365px] px-[10px] items-center shadow-sm rounded-[15px] bg-[#f3f3f3] regular text-[#5d5d5d] ${ isRtl ? "flex-row-reverse" : " "}`}
+        className={`flex-row h-[50px] w-full max-w-[1365px] px-[10px] items-center shadow-sm rounded-[15px] bg-[#f3f3f3] regular text-[#5d5d5d] ${
+          isRtl ? "flex-row-reverse" : " "
+        }`}
       >
         <span>
           <svg
@@ -34,7 +46,7 @@ async function FlashDealsProducts({ lang, currencyData, flashDealsProducts }) {
             />
           </svg>
         </span>
-        <span className={`ml-[12px] ${ isRtl ? "pr-2" : " "}`}>
+        <span className={`ml-[12px] ${isRtl ? "pr-2" : " "}`}>
           {translateFunction("Flash Deals", lang.split("-")[1])}
         </span>
       </NextLink>
@@ -42,7 +54,6 @@ async function FlashDealsProducts({ lang, currencyData, flashDealsProducts }) {
         className="featured-products-container py-[10px] gap-[8px] w-full mt-[12px] flex-row justify-start items-center max-w-[1365px] h-auto pb-[8px] "
         id="featured-products-container"
         dataCy="featured-products-container"
-        time={`FLASHDEALS ELASTIC TIME: ${flashDealsProducts?.data?.time}ms`}
       >
         {flashDealsProducts?.data?.products?.map((product, key) => (
           <ProductCard
@@ -55,15 +66,17 @@ async function FlashDealsProducts({ lang, currencyData, flashDealsProducts }) {
             language={language}
           />
         ))}
-        <NextLink
-          href={`/${lang}/flashDeals`}
-          data={{ is_boutique: true }}
-          className="product-container items-center justify-center min-w-[200px] max-h-[377px] bg-[#0002]  align-center flex-col relative"
-        >
-          <div className="flex regular rounded-md p-3 items-center justify-center bg-[#5d5d5d] text-white shadow-md shadow-[#fff]">
-            {translateFunction("Show More", lang.split("-")[1])}
-          </div>
-        </NextLink>
+        {flashDealsProducts?.data?.products?.length > 8 && (
+          <NextLink
+            href={`/${lang}/flashDeals`}
+            data={{ is_boutique: true }}
+            className="product-container items-center justify-center min-w-[200px] max-h-[377px] bg-[#0002]  align-center flex-col relative"
+          >
+            <div className="flex regular rounded-md p-3 items-center justify-center bg-[#5d5d5d] text-white shadow-md shadow-[#fff]">
+              {translateFunction("Show More", lang.split("-")[1])}
+            </div>
+          </NextLink>
+        )}
       </HortiznalScrollBar>
     </div>
   );

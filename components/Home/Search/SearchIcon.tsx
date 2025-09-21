@@ -9,6 +9,7 @@ import { useAppStore } from "store";
 import { useParams } from "next/navigation";
 import search from "services/search";
 import { DisableScroll, EnableScroll } from "utils/tinyUtils";
+import DataSourceLogger from "components/global/DataSourceLogger";
 
 function SearchIcon({ time }) {
   const { setEnableSearch, enable_search } = useAppStore();
@@ -18,16 +19,16 @@ function SearchIcon({ time }) {
     setEnableSearch(e);
   };
   useEffect(() => {
-    console.log("MAIN CATEGORIES ELASTIC TIME:", time);
     if (enable_search) {
       search.getSearchOptions({ noProducts: true, lang: lang });
     }
   }, [enable_search]);
-
   return (
     <>
       <div
-        className={`search-icon ${enable_search && "active-serach"}`}
+        className={`search-icon flex items-center h-full cursor-pointer duration-[0.4s] min-w-[50px] ${
+          enable_search && "active-serach min-w-full"
+        }`}
         data-cy="searchIcon_mainPage"
         onClick={() => {
           if (!enable_search) {
@@ -37,12 +38,19 @@ function SearchIcon({ time }) {
             //   value: GA_CLICK_EVENT_VALUES.HOME_SEARCH_BUTTON,
             // });
             normalizeView();
-
             EnableSearch(true);
           }
         }}
       >
-        <Search id="search-icon" className={`${focuse && "black-fill"}`} />
+        <DataSourceLogger
+          dataSourceString={`Main Categories Data Source Elastic in ${time} ms`}
+        />
+        <Search
+          id="search-icon"
+          className={`absolute duration-[0.4s] ml-[10px]  z-50 ${
+            focuse && "black-fill"
+          }`}
+        />
         <SearchComponent
           close={() => {
             EnableScroll();

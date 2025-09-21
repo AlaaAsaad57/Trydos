@@ -33,8 +33,10 @@ class StoryService {
 
     try {
       const response = await fetchData({
-        url: GET_USERS_STORIES + `?page=${page}`,
-        server: "stories",
+        url:
+          process.env.NEXT_PUBLIC_NEST_STORIES_BACKEND_URL +
+          `/api/v1/stories/users_stories?page=${page}`,
+        server: "nest-stories",
         reqTitle: REQUESTS_DATA.GET_USER_STORIES,
         method: "GET",
       });
@@ -177,6 +179,7 @@ class StoryService {
         body: JSON.stringify({ story_id: storyId }),
         reqTitle: REQUESTS_DATA.DELETE_STORY,
         server: "stories",
+        noMessage: true,
       });
       // @ts-ignore
       if (!response.success) {
@@ -231,6 +234,8 @@ class StoryService {
               ? GetImageUrl(story.photo_path)
               : profilePicture.src,
           },
+          product_id: storyItem.product_id,
+          product_slug: storyItem.product_slug,
           duration: storyItem.duration,
           preloadResource: true,
           type: "video",
@@ -258,6 +263,8 @@ class StoryService {
               ? GetImageUrl(story.photo_path)
               : profilePicture.src,
           },
+          product_id: storyItem.product_id,
+          product_slug: storyItem.product_slug,
           preloadResource: true,
           type: "image",
         });
@@ -282,7 +289,7 @@ class StoryService {
       });
 
       if (data.success) {
-        data.data;
+        return data.data;
       } else {
         throw new Error(data.message);
       }

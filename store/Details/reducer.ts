@@ -1,6 +1,3 @@
-import { create } from "zustand";
-import { devtools } from "zustand/middleware";
-
 interface PriceFilter {
   min: number;
   max: number;
@@ -50,6 +47,7 @@ interface DetailsState {
   totalProducts: number | null;
   InfoMessage: InfoMessage;
   PriceFiltered: boolean;
+  isModalOpen: boolean | null | { id: string; slug: string; images: any[] };
   variants: any[];
   filters: Filters;
   selectedFilter: SelectedFilter;
@@ -68,6 +66,7 @@ interface DetailsState {
 const initialState: DetailsState = {
   activeCameraGallery: false,
   shareLoading: false,
+  isModalOpen: null,
   selected_product_for_add_to_cart: null,
   totalProducts: null,
   InfoMessage: {
@@ -135,7 +134,7 @@ const initialState: DetailsState = {
 
 export const useDetailsStore = (set, get) => ({
   ...initialState,
-
+  setIsModalOpen: (e) => set({ isModalOpen: e }),
   setShareLoading: (loading: boolean) => set({ shareLoading: loading }),
   setColorBottomSheet: (colorBottomSheet: boolean | any) =>
     set({ ColorBottomSheet: colorBottomSheet }),

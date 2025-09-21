@@ -21,6 +21,7 @@ import {
   MainSettingPropsType,
 } from "models/componentType/settingTypes/MainSettingPropsType";
 import { fetchOrders } from "services/orders";
+import SettingsLoader from "components/skeleton/loaders/SettingsLoader";
 
 const options = [
   { name: "Settings", Icon: <SettingsIcon /> },
@@ -30,7 +31,7 @@ const options = [
   { name: "Share App", Icon: <ShareAppIcon /> },
 ];
 function MainSetting({ swipeToScreen }: MainSettingPropsType) {
-  const { wallet, currency, totalOrders, settings } = useAppStore();
+  const { wallet, currency, userProfile, settings, language } = useAppStore();
   const points = settings?.["starting-setting"]?.decimal_point_settings || 0;
 
   const { lang } = useParams();
@@ -63,6 +64,9 @@ function MainSetting({ swipeToScreen }: MainSettingPropsType) {
     if (iso === "tr") return "Turkish";
     if (iso === "ku") return "کوردی";
   };
+  const isRtl = language === "ar" || language === "ku";
+
+  if (!userProfile) return <SettingsLoader />;
   return (
     <div className="flex-col w-full pt-[20px] px-[12px]">
       <ProfileCard
@@ -70,9 +74,17 @@ function MainSetting({ swipeToScreen }: MainSettingPropsType) {
         goToProfilePicture={() => swipeToScreen(2)}
         goToProfileSize={() => swipeToScreen(4)}
       />
-      <div className="flex-row mt-[18px]">
+      <div
+        className={`${
+          isRtl ? "flex-row-reverse" : "flex-row"
+        }  mt-[18px] gap-[12px]`}
+      >
         <OrdersCard swipeToScreen={swipeToScreen} />
-        <div className="flex-col w-1/2 h-[94px] bg-[#F8F8F8] rounded-[12px] p-[12px] ml-[12px] cursor-pointer">
+        <div
+          className={` ${
+            isRtl && "items-end"
+          } flex-col w-1/2 h-[94px] bg-[#F8F8F8] rounded-[12px] p-[12px]  cursor-pointer`}
+        >
           <TryDosWalletIcon />
           <span className="text-[#1D1D1D] text-[14px] regular mt-[4px]">
             {translateFunction("Trydos Wallet")}
@@ -93,13 +105,19 @@ function MainSetting({ swipeToScreen }: MainSettingPropsType) {
         {options.map((option) => (
           <SettingOption key={option.name} {...option} />
         ))}
-        <div className="flex-row mt-[12px]">
+        <div
+          className={`${
+            isRtl ? "flex-row-reverse" : "flex-row"
+          } mt-[12px] gap-[12px]`}
+        >
           <div
             onClick={() => {
               swipeToScreen(8);
             }}
             data-cy="country-button"
-            className="flex-row w-1/2 h-[53px] bg-[#F8F8F8] rounded-[15px] px-[12px] items-center cursor-pointer"
+            className={`${
+              isRtl ? "flex-row-reverse" : "flex-row"
+            } w-1/2 h-[53px] bg-[#F8F8F8] gap-[12px] rounded-[15px] px-[12px] items-center cursor-pointer`}
           >
             <span className="w-[30px] h-[20px]">
               {" "}
@@ -111,14 +129,16 @@ function MainSetting({ swipeToScreen }: MainSettingPropsType) {
             </span>
           </div>
           <div
-            className="flex-row w-1/2 h-[53px] bg-[#F8F8F8] rounded-[15px] px-[12px] items-center cursor-pointer ml-[12px]"
+            className={`${
+              isRtl ? "flex-row-reverse" : "flex-row"
+            } w-1/2 h-[53px] bg-[#F8F8F8] rounded-[15px] px-[12px] items-center cursor-pointer gap-[12px]`}
             onClick={() => {
               swipeToScreen(11);
             }}
             data-cy="language-button"
           >
             <LanguageIcon />
-            <span className="text-[#1D1D1D] text-[14px] regular ml-[12px]">
+            <span className="text-[#1D1D1D] text-[14px] regular">
               {getLanguage()}
             </span>
           </div>
@@ -135,9 +155,17 @@ const SettingOption = ({ name, Icon }: MainSettingOptionPropsType) => {
   const language = lang.split("-")[1];
   const isRtl = language === "ar" || language === "ku";
   return (
-    <div className={`w-full flex-row cursor-pointer mt-[4px] h-[53px] rounded-[15px] bg-[#f8f8f8] px-[12px] items-center ${ isRtl ? "flex-row-reverse": " "}`}>
+    <div
+      className={`w-full flex-row cursor-pointer mt-[4px] h-[53px] rounded-[15px] bg-[#f8f8f8] px-[12px] items-center ${
+        isRtl ? "flex-row-reverse" : " "
+      }`}
+    >
       {Icon}
-      <span className={`text-[14px] regular text-[#1d1d1d] ml-[12px] ${ isRtl ? "pr-2": " "}`}>
+      <span
+        className={`text-[14px] regular text-[#1d1d1d] ml-[12px] ${
+          isRtl ? "pr-2" : " "
+        }`}
+      >
         {translateFunction(name)}
       </span>
     </div>
@@ -148,16 +176,20 @@ const OrdersCard = ({
 }: {
   swipeToScreen: (screen: number) => void;
 }) => {
-  const { totalOrders } = useAppStore();
+  const { totalOrders, language } = useAppStore();
   useEffect(() => {
     getOrders();
   }, []);
   const getOrders = async () => {
     const res = await fetchOrders(0, 10);
   };
+  const isRtl = language === "ar" || language === "ku";
+
   return (
     <div
-      className="flex-col w-1/2 h-[94px] bg-[#F8F8F8] rounded-[12px] p-[12px] cursor-pointer"
+      className={`${
+        isRtl && "items-end"
+      } flex-col w-1/2 h-[94px] bg-[#F8F8F8] rounded-[12px] p-[12px] cursor-pointer`}
       data-cy="orders-page-button"
       onClick={() => {
         swipeToScreen(9);

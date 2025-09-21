@@ -1,10 +1,8 @@
 "use client";
-import { useVisibilityTimer } from "hooks/useVisibilityTimer";
 import { BuyButtonPropsType } from "models/componentType/BuyButtonPropsType";
 import { useParams } from "next/navigation";
 import LocalizationServiceClass from "services/localization";
 import { useAppStore } from "store";
-import { getCookie, setCookie } from "utils/cookies/cookie-manager";
 import { RoundPrice, translateFunction } from "utils/functions";
 
 function BuyButton({
@@ -13,7 +11,7 @@ function BuyButton({
   redeem_price,
   currency,
   id,
-  flash_deal_price,
+  seconds,
   onExpire,
 }: BuyButtonPropsType) {
   let { lang } = useParams();
@@ -23,13 +21,7 @@ function BuyButton({
     return translateFunction(key, languageVariable);
   };
   const showOrangeFont = () => {
-    if (shouldShowRedeem) return "text-[#FF6200]";
-    if (
-      flash_deal_price >= 0 &&
-      flash_deal_price !== undefined &&
-      flash_deal_price !== null
-    )
-      return "text-[#FF6200]";
+    if (shouldShowRedeem && seconds > 0) return "text-[#FF6200]";
     else return "text-[#414141]";
   };
   return (
@@ -43,32 +35,23 @@ function BuyButton({
           onExpire();
         }}
       >
-        {shouldShowRedeem && (
-          <LuckyDrawTimer
-            id={id}
-            onFinish={() => {
-              onExpire();
-            }}
-          />
+        {shouldShowRedeem && seconds > 0 && (
+          <LuckyDrawTimer id={id} seconds={seconds} />
         )}
         <div className="flex flex-row items-center">
           <div className="text-[10px] pt-[2px] flex align-start regular items-center gap-[2px]">
             <span>
               {translate("Buy", LocalizationServiceClass.GetAppLanguage())}
             </span>
-            {shouldShowRedeem ||
-            (flash_deal_price >= 0 &&
-              flash_deal_price !== undefined &&
-              flash_deal_price !== null) ? (
+            {shouldShowRedeem && seconds > 0 ? (
               <div className="flex-row flex gap-[2px] items-center">
                 <span
                   className="text-[10px] pt-[2px] flex align-start bold"
                   data-cy="product-redeem-price"
                 >
                   {RoundPrice({
-                    num: redeem_price || flash_deal_price,
-                    rate: currency?.rate,
-                    points: currency?.points,
+                    num: redeem_price,
+                    rate: currency?.exchange_rate,
                     language: languageVariable,
                   })}
                 </span>
@@ -96,10 +79,10 @@ function BuyButton({
 export default BuyButton;
 const LuckyDrawTimer = ({
   id,
-  onFinish,
+  seconds,
 }: {
   id: string | number;
-  onFinish: () => void;
+  seconds: number;
 }) => {
   const { isNavigating } = useAppStore();
   const ClockIcon = () => (
@@ -152,59 +135,14 @@ const LuckyDrawTimer = ({
     </svg>
   );
   let { lang } = useParams();
-  const configureRedeemedProducts = () => {
-    let redeemed_products_ids = getCookie<any>("redemed_ids");
 
-    if (redeemed_products_ids) {
-      let parsed_redeemed_products_ids = redeemed_products_ids
-        ? redeemed_products_ids
-        : [];
-      if (!parsed_redeemed_products_ids?.find((s) => s.id === id)) {
-        let MAX_ARRAY_LENGTH =
-          parseInt(process.env.NEXT_PUBLIC_MAX_ARRAY_LENGTH) || 5;
-        if (parsed_redeemed_products_ids.length < MAX_ARRAY_LENGTH)
-          setCookie("redemed_ids", [
-            ...parsed_redeemed_products_ids,
-            { id, showingDate: new Date().toISOString() },
-          ]);
-        else
-          setCookie("redemed_ids", [
-            ...parsed_redeemed_products_ids.slice(1, MAX_ARRAY_LENGTH),
-            { id, showingDate: new Date().toISOString() },
-          ]);
-      } else {
-        return;
-      }
-    } else {
-      setCookie("redemed_ids", [{ id, showingDate: new Date().toISOString() }]);
-    }
-  };
   // @ts-ignore
   let languageVariable = lang.split("-")[1];
-  const {
-    seconds,
-    minutes,
-    hours,
-    days,
-    isRunning,
-    start,
-    pause,
-    resume,
-    restart,
-    timerRef,
-  } = useVisibilityTimer({
-    expiryTimestamp: new Date(Date.now() + 50000),
-    onExpire: () => {
-      if (!isNavigating) {
-        onFinish();
-        configureRedeemedProducts();
-      }
-    },
-  });
+
   return (
     <div className="flex flex-row items-center gap-[2px] w-full justify-end">
       <ClockIcon />
-      <div className="flex flex-row text-[#ff6200]" ref={timerRef}>
+      <div className="flex flex-row text-[#ff6200]">
         <span id={`counter-${id}`} className="bold text-[10px]">
           -{seconds}
         </span>

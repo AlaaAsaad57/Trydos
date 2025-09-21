@@ -69,6 +69,7 @@ interface ChatState {
   AgoraToken: string | null;
   client: any | null;
   nameModal: boolean;
+  isNotificationModal: boolean;
 }
 
 const initialState: ChatState = {
@@ -126,6 +127,7 @@ const initialState: ChatState = {
   AgoraToken: null,
   client: null,
   nameModal: false,
+  isNotificationModal: false,
 };
 
 export const useChatStore = (set, get) => ({
@@ -211,7 +213,7 @@ export const useChatStore = (set, get) => ({
       });
     }
   },
-
+  setNotificationModal: (e) => set({ isNotificationModal: e }),
   setNotificationPermission: (payload: boolean) =>
     set({ NotificationPremission: payload }),
 

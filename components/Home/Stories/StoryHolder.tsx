@@ -87,7 +87,7 @@ function StoryHolder({ story, active, isPaused }: StoryHolderPropsType) {
 
   return (
     <div
-      className="story-holder"
+      className="story-holder relative w-full h-full flex items-center justify-center"
       style={{ width: "100%", height: "100%", position: "relative" }}
     >
       {active && (

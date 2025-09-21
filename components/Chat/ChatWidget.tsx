@@ -12,7 +12,13 @@ export default function ChatWidget({
   isOpen: boolean;
   onClose: () => void;
 }) {
-  const { activeChat, openChat, setMain, first , fetch: loading} = useAppStore();
+  const {
+    activeChat,
+    openChat,
+    setMain,
+    first,
+    fetch: loading,
+  } = useAppStore();
   useEffect(() => {
     setTimeout(() => {
       if (document?.querySelector("#scroled"))
@@ -33,7 +39,7 @@ export default function ChatWidget({
             openChat(null);
           }
         }}
-        className={`lang-modalDisable ${"open"}`}
+        className={`fixed inset-0 w-screen h-screen bg-black/30 z-[9999999999998] ${"open"}`}
       ></div>
       <div className="fixed right-0 top-0 max-w-[430px] w-screen h-[calc(100vh-150px)] bg-white z-[999999999999]">
         <ConversationContainer

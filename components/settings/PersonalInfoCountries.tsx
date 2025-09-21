@@ -5,10 +5,10 @@ import { translateFunction } from "utils/functions";
 
 import { useParams } from "next/navigation";
 import { changeAppCountry } from "store/homepage/actions";
-import { changeAppCountryServer } from "store/homepage/cachedActions";
+
 import { useAppStore } from "store";
 import { FlagIcon } from "utils/tinyUtils";
-import { fetchCountries } from "Server Requests";
+import { fetchCountries } from "utils/tinyUtils";
 import Spinner from "components/global/Spinner";
 import { fetchData } from "utils/fetchData"; // Make sure this is imported
 import { STARTER_SETTINGS } from "utils/endpointConfig";
@@ -79,7 +79,13 @@ function PersonalInfoCountries({
     }
 
     await changeAppCountry(country.iso.toLowerCase());
-    await changeAppCountryServer(country.iso.toLowerCase());
+    await fetch("/api/setLocal", {
+      headers: {
+        country: country.iso.toLowerCase(),
+        lang: language,
+        language: language,
+      },
+    });
 
     setSelectedCountry(country);
 

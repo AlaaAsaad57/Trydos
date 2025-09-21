@@ -17,7 +17,6 @@ import PlaceOrderButtons from "./PlaceOrderButtons";
 import Spinner from "components/global/Spinner";
 import LocalizationServiceClass from "services/localization";
 import { useAppStore } from "store";
-import { GA_EVENT_NAMES } from "utils/GAEvents";
 import home from "services/home";
 import {
   DeleteModalComponentPropsType,

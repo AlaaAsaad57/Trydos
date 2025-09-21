@@ -2,61 +2,114 @@
 import React, { useEffect, useState } from "react";
 import useEmblaCarousel from "embla-carousel-react";
 import Image from "next/image";
-import { getConfiguredImage } from "utils/functions";
+import { getConfiguredImage, RoundPrice } from "utils/functions";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import CloseIcon from "components/Home/Stories/CloseIcon";
 import { useAppStore } from "store";
 import { DisableScroll, EnableScroll, GetImageUrl } from "utils/tinyUtils";
 import { ProductDetailsSliderPropsType } from "models/componentType/productTypes/ProductDetailsSliderPropsType";
+import { GAevent } from "utils/gtag";
+import { GA_EVENT_NAMES } from "utils/GAEvents";
+import auth from "services/auth";
 function ProductDetailsSlider({
-  product: productObj,
   currency,
   images,
+  productGA,
+  resetLoader = true,
 }: ProductDetailsSliderPropsType) {
-  const { editInfo, storeProduct, setCurrency } = useAppStore();
-  const productData = productObj;
+  const { setCurrency, setIsNavigating } = useAppStore();
   const [imageShow, showImage] = useState(-1);
   const [emblaRef1, emblaApi] = useEmblaCarousel({
-    startIndex: imageShow || 0,
+    startIndex: 0,
+    dragFree: false,
+    containScroll: "trimSnaps",
+    align: "start",
   });
 
-  const searchParams = useSearchParams();
-  const router = useRouter();
-  const pathname = usePathname();
   useEffect(() => {
-    const newParams = new URLSearchParams(searchParams);
-    if (!searchParams.get("color") && productData?.sync_color_images) {
-      // newParams.set("color", productData?.sync_color_images[0].color_name);
-    }
-    if (
-      !searchParams.get("size") &&
-      productData?.choice_options &&
-      productData?.choice_options?.filter((s) => s.title == "Size").length
-    ) {
-      // newParams.set(
-      //   "size",
-      //   productData?.choice_options?.filter((s) => s.title == "Size")[0]
-      //     ?.options[0]?.name
-      // );
-    }
-    if (newParams.size) {
-      // @ts-expect-error 'shallow' does not exist in type 'NavigateOptions'
-      router.push(pathname + `?${newParams.toString()}`, { shallow: true });
-    }
-    editInfo({ ...productData });
-    storeProduct({ ...productData, colorFrom: searchParams.get("color") });
-    setCurrency(currency);
-    let elements = document.querySelectorAll(".product-slider-images");
-    elements.forEach((elem, index) => {
-      elem.addEventListener("click", function (e) {
-        DisableScroll();
-        showImage(index);
-      });
-    });
-    return () => {
+    let elements;
+    if (resetLoader) setIsNavigating(null);
+    if (currency) setCurrency(currency);
+    if (resetLoader) {
+      elements = document.querySelectorAll(".product-slider-images");
       elements.forEach((elem, index) => {
-        elem.removeEventListener("click", () => showImage(index));
+        elem.addEventListener("click", function (e) {
+          GAevent({
+            action: GA_EVENT_NAMES.ZOOM_IMAGE,
+            params: {
+              image_index: index,
+              user_id_custom: auth.UserID(),
+              ...productGA,
+            },
+          });
+          DisableScroll();
+          showImage(index);
+        });
       });
+    }
+
+    return () => {
+      if (resetLoader)
+        elements.forEach((elem, index) => {
+          elem.removeEventListener("click", () => showImage(index));
+        });
+    };
+  }, []);
+  useEffect(() => {
+    if (emblaApi && imageShow >= 0) {
+      emblaApi.scrollTo(imageShow);
+
+      const handleSelect = (e, evt) => {
+        const currentIndex = emblaApi.selectedScrollSnap();
+
+        GAevent({
+          action: GA_EVENT_NAMES.ZOOM_IMAGE,
+          params: {
+            image_index: currentIndex,
+            user_id_custom: auth.UserID(),
+            ...productGA,
+          },
+        });
+      };
+
+      const handleSettle = (e, evt) => {
+        const currentIndex = emblaApi.selectedScrollSnap();
+      };
+
+      emblaApi.on("select", handleSelect);
+      emblaApi.on("settle", handleSettle);
+
+      return () => {
+        emblaApi.off("select", handleSelect);
+        emblaApi.off("settle", handleSettle);
+      };
+    }
+  }, [emblaApi, imageShow]);
+  useEffect(() => {
+    const handleTwentySecondAction = () => {
+      // Add your 20-second action here
+
+      // Example actions you might want to perform:
+      // - Send analytics data
+      // - Show a notification
+      // - Trigger some business logic
+      // - Update component state
+
+      // Example: Track user engagement after 20 seconds
+      GAevent({
+        action: GA_EVENT_NAMES.VIEW_ITEM_PRODUCT,
+        params: {
+          user_id_custom: auth.UserID(),
+          engagement_time: 20,
+          ...productGA,
+        },
+      });
+    };
+
+    // Set up the 20-second timeout
+    const timeoutId = setTimeout(handleTwentySecondAction, 20000);
+    return () => {
+      clearTimeout(timeoutId);
     };
   }, []);
 
@@ -79,7 +132,7 @@ function ProductDetailsSlider({
               {images?.map((img, i) => (
                 <div
                   className="embla__slide flex justify-center min-w-[98%]"
-                  key={img}
+                  key={img?.file_path}
                   onClick={() => {
                     showImage(i);
                   }}
@@ -96,7 +149,7 @@ function ProductDetailsSlider({
                     }}
                     priority={i === 0}
                     loading="eager"
-                    alt={productData.name}
+                    alt={productGA.item_name}
                     src={getConfiguredImage({
                       src: GetImageUrl(img),
                       width: 500,

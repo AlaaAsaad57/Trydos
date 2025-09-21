@@ -9,6 +9,7 @@ export interface OrderItemsListPropsType {
   shouldShowChat: () => boolean;
   showChats: Function;
   getOrderDetails: () => void;
+  getProductUrl: (e: any) => string;
 }
 export interface OrderItem {
   collect_product_after_ordering: boolean;

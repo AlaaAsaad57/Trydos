@@ -37,22 +37,10 @@ function OrderItemOptionsModal({
   const shouldShowRetutn = () => {
     if (ActivePacks?.order_status?.value !== "delivered") return false;
     if (item.qty === 0) return false;
-    if (selectedOrder.can_return_order) {
-      if (ActivePacks.return_details) {
-        if (
-          ActivePacks.return_details.details?.status === "pending" ||
-          ActivePacks.return_details.details?.status === "draft return request"
-        ) {
-          return true;
-        } else {
-          return false;
-        }
-      } else {
-        return true;
-      }
-    } else {
-      return false;
+    if (item?.return?.already_return) {
+      return ActivePacks?.edit_return_request;
     }
+    return ActivePacks.can_return_order;
   };
   const ShouldShowCahngeColor = () => {
     if (ActivePacks?.order_status?.value === "delivered") return false;
@@ -67,6 +55,9 @@ function OrderItemOptionsModal({
     try {
       setIsInitializing(true);
       let id = await order.CreateReturnRequest({ order_id: ActivePacks.id });
+      if (!id) {
+        throw new Error();
+      }
       let details = await order.getReturnRequestDetails({
         order_id: ActivePacks.id,
         return_request_id: id,
@@ -141,7 +132,7 @@ function OrderItemOptionsModal({
                     height={15}
                     className="rounded-full h-[15px] w-[15px] object-cover"
                     src={getConfiguredImage({
-                      src: item.image,
+                      src: GetImageUrl(item.image),
                       width: 15,
                       height: 15,
                       q: 100,
@@ -229,7 +220,11 @@ function OrderItemOptionsModal({
                         isRtl ? " text-right pr-2" : " "
                       }`}
                     >
-                      {translateFunction("Return This Product")}
+                      {item?.return?.already_return
+                        ? translateFunction(
+                            "Update Return Request For This Product"
+                          )
+                        : translateFunction("Return This Product")}
                     </span>
                     <p
                       className={`regular text-[12px] text-[#8D8D8D] ${

@@ -8,11 +8,7 @@ import StoryServiceClass from "services/story";
 import StoryHolder from "./StoryHolder";
 import { useAppStore } from "store";
 import Spinner from "components/global/Spinner";
-import {
-  GA_EVENT_NAMES,
-  GA_GLOBAL_PLATFORM,
-  GA_GLOBAL_SCREEN,
-} from "utils/GAEvents";
+import { GA_EVENT_NAMES, GA_GLOBAL_SCREEN } from "utils/GAEvents";
 import { GAevent } from "utils/gtag";
 import { StoriesContainerPropsType } from "models/componentType/StoriesContainerPropType";
 
@@ -117,7 +113,7 @@ function StoriesContainer({
     );
   return (
     <div
-      className="fixed-layout justify-start flex items-start "
+      className="fixed-layout fixed top-0 left-0 w-screen h-full max-w-full max-h-full bg-black flex items-center justify-center z-[999999999999999]"
       {...handlers}
       onPointerLeave={() => {
         document.querySelector<HTMLDivElement>(

@@ -1,12 +1,17 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import { useAppStore } from "store";
 import NewStoryModal from "./CameraStory";
 import { dataURLtoFile } from "components/Chat/chatsFunctions";
 import { AddStoryWidgetPropsType } from "models/componentType/AddStoryWidgetPropsType";
-import { useParams } from "next/navigation";
+import {
+  useParams,
+  usePathname,
+  useRouter,
+  useSearchParams,
+} from "next/navigation";
 import {
   showErrorNotification,
   showSuccessNotification,
@@ -153,7 +158,17 @@ export default function AddStoryWidget({ onClose }: AddStoryWidgetPropsType) {
   useEffect(() => {
     getUserStories();
   }, []);
-
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  useEffect(() => {
+    window.history.pushState({ isPopup: true }, "add cart");
+    const newParams = new URLSearchParams(searchParams);
+    newParams.set("story", "true");
+    // Use router.push with pathname and updated query
+    // @ts-expect-error 'shallow' does not exist in type 'NavigateOptions'
+    router.push(`${pathname}?${newParams.toString()}`, { shallow: true });
+  }, []);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [link, setLink] = useState("");
@@ -273,50 +288,19 @@ export default function AddStoryWidget({ onClose }: AddStoryWidgetPropsType) {
       showErrorNotification("Error Uploading Story");
     }
   };
-  // const HandleUploadedVideo = async (e) => {
-  //   if (e.target.files[0]?.type.includes("video")) {
-  //     new Promise((resolve, reject) => {
-  //       const reader = new FileReader();
-  //       reader.readAsDataURL(e.target.files[0]);
-  //       reader.onload = async () => {
-  //         setFile(e.target.files[0]);
-  //         setIsSelected(reader.result);
-  //         let path = await StoryService.upload(
-  //           e.target.files[0],
-  //           (e: any) => setUpload(e),
-  //           1,
-
-  //           () => {
-  //             setIsSelected(null);
-  //             setFile(null);
-  //           }
-  //         )
-  //           .then((data) => {
-  //             AddStoryAction(data);
-  //           })
-  //           .catch((e) => {
-  //             setFile(null);
-  //             setIsSelected(null);
-
-  //             toast.error("Upload Failed Try Again");
-  //           });
-  //         setIsSelected(path);
-  //         setFile(e.target.files[0]);
-
-  //         setIsSelected(null);
-  //         setFile(null);
-  //         revalidateStories();
-  //       };
-  //     });
-  //   }
-  // };
   const selectMedia = async ({ imageFile, link }) => {
     handleChange({ target: { files: [imageFile] } }, link);
   };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-
+    if (file && file.type === "image/svg+xml") {
+      showErrorNotification(
+        translateFunction("SVG Images Not Allowed", language)
+      );
+      e.target.value = ""; // reset input
+      return;
+    }
     if (!file) return;
 
     if (file.type.startsWith("image/") || file.type.startsWith("video/")) {
@@ -329,14 +313,18 @@ export default function AddStoryWidget({ onClose }: AddStoryWidgetPropsType) {
     }
   };
 
-  const handleCameraClick = () => {
-    if (!cameraPermissions) {
+  const handleCameraClick = async () => {
+    if (cameraPermissions === "revoked") {
+      checkCameraPermissions();
       showErrorNotification(
         translateFunction(
-          "Please enable notification permissions to use camera features"
+          "Please enable camera permissions to use camera features"
         )
       );
       return;
+    }
+    if (cameraPermissions === "asked") {
+      await checkCameraPermissions();
     }
     // Sendevent({
     //   event: GA_EVENT_NAMES.CLICK,
@@ -399,7 +387,6 @@ export default function AddStoryWidget({ onClose }: AddStoryWidgetPropsType) {
   };
 
   useEffect(() => {
-    checkCameraPermissions();
     DisableScroll();
     // @ts-ignore
     document.querySelector(".stories-bar-container").style.zIndex =
@@ -409,7 +396,7 @@ export default function AddStoryWidget({ onClose }: AddStoryWidgetPropsType) {
       // @ts-ignore
       document.querySelector(".stories-bar-container").style.zIndex = "1";
     };
-  }, [checkCameraPermissions]);
+  }, []);
   return (
     <>
       {OpenCamera && (
@@ -434,7 +421,9 @@ export default function AddStoryWidget({ onClose }: AddStoryWidgetPropsType) {
       )}
       <div className="fixed top-[-130px] left-0 w-screen h-screen text-[#5d5d5d] regular z-[999999999] bg-white rounded-t-2xl shadow-lg p-4">
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-semibold">Add Story</h3>
+          <h3 className="text-lg font-semibold">
+            {translateFunction("Add Story")}
+          </h3>
           <button
             onClick={onClose}
             className="p-2 hover:bg-gray-100 rounded-full"
@@ -452,12 +441,20 @@ export default function AddStoryWidget({ onClose }: AddStoryWidgetPropsType) {
           <div className="flex-1 flex items-center w-1/2 justify-center border-r border-gray-200 pr-4">
             {preview ? (
               <div className="relative w-full h-[300px] rounded-lg overflow-hidden">
-                <Image
-                  src={preview}
-                  alt="Preview"
-                  fill
-                  className="object-contain"
-                />
+                {preview?.includes("video") ? (
+                  <video
+                    controls={false}
+                    className="object-contain"
+                    src={preview}
+                  ></video>
+                ) : (
+                  <Image
+                    src={preview}
+                    alt="Preview"
+                    fill
+                    className="object-contain"
+                  />
+                )}
                 <button
                   onClick={handleClearPreview}
                   className="absolute top-2 right-2 bg-black/50 text-white p-2 rounded-full"
@@ -478,7 +475,7 @@ export default function AddStoryWidget({ onClose }: AddStoryWidgetPropsType) {
             <button
               onClick={handleCameraClick}
               className={`flex items-center gap-3 p-3 rounded-lg ${
-                cameraPermissions
+                cameraPermissions !== "revoked"
                   ? "hover:bg-gray-100 cursor-pointer"
                   : "opacity-50 cursor-not-allowed bg-gray-50"
               }`}
@@ -542,7 +539,7 @@ export default function AddStoryWidget({ onClose }: AddStoryWidgetPropsType) {
         <input
           id="stories-input-holder"
           type="file"
-          accept="image/*,video/*"
+          accept="image/jpg,video/*"
           onChange={(e) => {
             handleFileSelect(e);
           }}

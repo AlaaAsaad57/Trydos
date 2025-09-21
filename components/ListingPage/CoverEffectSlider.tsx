@@ -22,7 +22,7 @@ function CoverEffectSlider({
 
   return (
     <div
-      className="product-photos-slider z-[9999999] cursor-pointer hover:scale-125 transition-all origin-bottom top-[276px]  overflow-hidden flex absolute align-center justify-center"
+      className="product-photos-slider min-w-full h-[35px] bg-transparent translate-x-0 translate-y-[-13px] max-w-[176px] w-auto left-0 right-0 m-0 z-[9999999] cursor-pointer hover:scale-125 transition-all origin-bottom top-[276px]  overflow-hidden flex absolute align-center justify-center"
       data-cy="productPhotoSlider"
       onClick={handleClick}
       style={{

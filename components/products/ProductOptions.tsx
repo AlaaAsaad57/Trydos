@@ -7,7 +7,7 @@ import CommentIcon from "./CommentIcon";
 import ThreePoints from "./ThreePoints";
 import ShareButton from "./ShareButton";
 import Skeleton from "react-loading-skeleton";
-import { RoundPrice, translateFunction } from "utils/functions";
+import { translateFunction } from "utils/functions";
 import home from "services/home";
 import auth from "services/auth";
 import { useAppStore } from "store";
@@ -63,9 +63,9 @@ function ProductOptions({
         }
 
         // Only update state after successful API call
-        editInfo({ 
-          likes: Math.max(0, currentLikes + 1), 
-          is_liked: true 
+        editInfo({
+          likes: Math.max(0, currentLikes + 1),
+          is_liked: true,
         });
 
         // Update social product data
@@ -83,11 +83,7 @@ function ProductOptions({
             action: "like",
             category: product?.category?.name,
             brand: product?.brand?.name,
-            price: RoundPrice({
-              num: product?.offer_price,
-              rate: currency.exchange_rate,
-              returnNumber: true,
-            }),
+            price: product?.offer_price,
             screen_name: GA_GLOBAL_SCREEN.PRODUCT_SCREEN,
             screen_path: window.location.pathname,
           },
@@ -110,9 +106,9 @@ function ProductOptions({
         }
 
         // Only update state after successful API call
-        editInfo({ 
-          likes: Math.max(0, currentLikes - 1), 
-          is_liked: false 
+        editInfo({
+          likes: Math.max(0, currentLikes - 1),
+          is_liked: false,
         });
 
         // Update social product data
@@ -128,13 +124,11 @@ function ProductOptions({
             item_id: product?.id,
             item_name: product?.name,
             action: "dislike",
-            category: product?.category?.name,
             brand: product?.brand?.name,
-            price: RoundPrice({
-              num: product?.offer_price,
-              rate: currency.exchange_rate,
-              returnNumber: true,
-            }),
+            brand_id: product?.brand?.id,
+            category: product?.category?.name || product?.categories?.[0]?.name,
+            category_id: product?.category?.id || product?.categories?.[0]?.id,
+            price: product?.offer_price,
             screen_name: GA_GLOBAL_SCREEN.PRODUCT_SCREEN,
             screen_path: window.location.pathname,
           },
@@ -153,16 +147,16 @@ function ProductOptions({
       }
     } catch (error) {
       // Rollback to previous state on error
-      editInfo({ 
-        likes: currentLikes, 
-        is_liked: currentIsLiked 
+      editInfo({
+        likes: currentLikes,
+        is_liked: currentIsLiked,
       });
-      
+
       // Show error notification
       showErrorNotification(
         translateFunction("Failed to update like status. Please try again.")
       );
-      
+
       console.error("Like/Unlike error:", error);
     } finally {
       setLoading(false);
@@ -190,15 +184,22 @@ function ProductOptions({
     const likes = SelectedProduct?.likes ?? product?.count_of_likes ?? 0;
     return Math.max(0, likes);
   };
+  const isRtl = language === "ar" || language === "ku";
 
   return (
-    <div className="product-options-container" style={{ zIndex: "999999999" }}>
+    <div
+      className={`product-options-container ${isRtl && "flex-row-reverse"}`}
+      style={{ zIndex: "999999999" }}
+    >
       {share ? (
         <ShareButton onClick={() => shareAction()} />
       ) : (
         <>
           <AddToCartButton product={SelectedProduct} />
-          <div className="options-container" data-cy="InteraCtionBoX">
+          <div
+            className={`options-container ${isRtl && "flex-row-reverse"}`}
+            data-cy="InteraCtionBoX"
+          >
             <div
               className={`product-option-item ${
                 likeLoading && "opacity-80 scale-90"
@@ -221,9 +222,7 @@ function ProductOptions({
                 <Heart />
               )}
               {product.count_of_likes >= 0 || SelectedProduct?.likes >= 0 ? (
-                <span data-cy="CountOfLoves">
-                {getSafeLikeCount()}
-              </span>
+                <span data-cy="CountOfLoves">{getSafeLikeCount()}</span>
               ) : (
                 <Skeleton width={15} height={14}></Skeleton>
               )}

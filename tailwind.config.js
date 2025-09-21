@@ -32,5 +32,9 @@ module.exports = {
         shake: "shake 0.5s ease-in-out",
       },
     },
+    screens: {
+      xs: { max: "480px" }, // custom breakpoint
+      lg2: { max: "912px" },
+    },
   },
 };

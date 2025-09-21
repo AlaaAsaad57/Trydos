@@ -19,6 +19,7 @@ import { fetchCurrency } from "Server Requests";
 import { ElasticsearchReader } from "services/elastic/elasticsearch-reader.service";
 import { getProductsAndFiltersFromElastic } from "services/elastic/elasticSearch";
 import { getCurrencyFromCache, StoreCurrency } from "Server Requests/radis";
+import MainCategoriesNavbar from "components/Server/MainCategories";
 
 export async function generateMetadata({ params }) {
   try {
@@ -65,16 +66,16 @@ async function getCurrency(country, language) {
     let cachedCurrency = await getCurrencyFromCache(country);
 
     if (typeof cachedCurrency === "string") {
-      return JSON.parse(cachedCurrency);
+      return { ...JSON.parse(cachedCurrency), redis: true };
     }
     if (cachedCurrency?.exchange_rate) {
-      return cachedCurrency;
+      return { ...cachedCurrency, redis: true };
     } else {
       let currencyData = await fetchCurrency(language, country);
       let currency = currencyData.data.currency;
 
       StoreCurrency(country, currency);
-      return currency;
+      return { ...currency, redis: false };
     }
   } catch (error) {}
 }
@@ -102,12 +103,18 @@ async function HomePage({ params }: HomePageProps) {
         />
       </Suspense>
 
-      {/* <Suspense fallback={<FeaturedProductsSkeleton lang={params.lang} />}>
-        <FeaturedProductWrapper lang={params.lang} />
+      <Suspense fallback={<FeaturedProductsSkeleton lang={params.lang} />}>
+        <FeaturedProductWrapper
+          lang={params.lang}
+          mainCategory={params.mainCategory}
+        />
       </Suspense>
       <Suspense fallback={<FeaturedProductsSkeleton lang={params.lang} />}>
-        <FlashProductWrapper lang={params.lang} />
-      </Suspense> */}
+        <FlashProductWrapper
+          lang={params.lang}
+          mainCategory={params.mainCategory}
+        />
+      </Suspense>
       <Home key={`Home ${params.lang}`} />
       <Suspense
         fallback={<OfferListSkeleton />}
@@ -121,36 +128,9 @@ async function HomePage({ params }: HomePageProps) {
 
 export default HomePage;
 // Main Categories Bar
-async function MainCategoriesNavbar({ lang, mainCategory }) {
-  const [country, language] = lang?.split("-");
-  // let mainCategories = await fetchMainCategories(language, country);
-  let Reader = new ElasticsearchReader();
-  let start = process.hrtime.bigint();
-  let a = await Reader.getCategories({ country: country, size: 4000 });
-  // @ts-ignore
 
-  let mainCategories = a.hits.hits.map((s) => {
-    // @ts-ignore
-    return s._source?.custom_categories?.find(
-      (cat) => cat.language_code?.toLowerCase() === language?.toLowerCase()
-    );
-  });
-  mainCategories = Array.from(
-    new Map(mainCategories.map((c: any) => [c.id, c])).values()
-  );
-  let end = process.hrtime.bigint();
-
-  return (
-    <NavbarServer
-      lang={lang}
-      time={Number(end - start) / 1_000_000}
-      mainCategory={mainCategory}
-      categoriesData={mainCategories}
-    />
-  );
-}
 // Featured Products
-async function FeaturedProductWrapper({ lang }) {
+async function FeaturedProductWrapper({ lang, mainCategory }) {
   const [country, language] = lang?.split("-");
 
   let currencyData = await getCurrency(country, language);
@@ -159,11 +139,13 @@ async function FeaturedProductWrapper({ lang }) {
     language_code: language,
     filters: {
       featured: true,
+      categories: mainCategory ? [mainCategory] : null,
     },
     limit: 10,
   });
   return (
     <FeatureProducts
+      dataSourceString={""}
       currencyData={currencyData}
       fetauredProductsData={{ data: data }}
       lang={lang}
@@ -171,7 +153,7 @@ async function FeaturedProductWrapper({ lang }) {
   );
 }
 // FlasDeals Products
-async function FlashProductWrapper({ lang }) {
+async function FlashProductWrapper({ lang, mainCategory }) {
   const [country, language] = lang?.split("-");
 
   let currencyData = await getCurrency(country, language);
@@ -180,11 +162,13 @@ async function FlashProductWrapper({ lang }) {
     language_code: language,
     filters: {
       flashdeal: true,
+      categories: mainCategory ? [mainCategory] : null,
     },
     limit: 10,
   });
   return (
     <FlashDealsProducts
+      dataSourceString={""}
       currencyData={currencyData}
       flashDealsProducts={{ data: data }}
       lang={lang}
@@ -208,6 +192,8 @@ async function BoutiquesListWrapper({ params }) {
   let end = process.hrtime.bigint();
   return (
     <OfferListServer
+      children={<></>}
+      dataSourceString=""
       boutiquesData={{ ...data, temp: Number(end - start) / 1_000_000 }}
       params={params}
     />

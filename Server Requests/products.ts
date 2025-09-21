@@ -11,23 +11,14 @@ export async function fetchProductDetails(
   country: string
 ): Promise<ProductDetailsResponse> {
   try {
-    // let productCache = await getProductFromCache(slug, language, country);
-    // let time = productCache.timeMs;
-    // console.log(time);
-    // if (productCache?.product?.id) {
-    //   return { ...productCache, redis: true, time: time };
-    // }
-    const [generalDetails, simpleDetails, extendedDetails] = await Promise.all([
+    let [generalDetails, extendedDetails] = await Promise.all([
       fetchProductGeneralDetails(slug, language, country),
-      fetchProductSimpleDetails(slug, language, country),
       fetchProductExtendedDetails(slug, language, country),
     ]);
     return {
-      ...generalDetails,
-      ...simpleDetails.data,
       ...extendedDetails.data,
+      ...generalDetails.data,
       redis: false,
-      // time: time,
     };
   } catch (error) {
     console.error("Error fetching product details:", error);
@@ -35,39 +26,6 @@ export async function fetchProductDetails(
   }
 }
 
-export async function fetchProductSimpleDetails(
-  slug: string,
-  language: string,
-  country: string
-) {
-  try {
-    let response = await fetchServerData({
-      url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/web/product/globalDetails/${slug}?lang=${language}`,
-      method: "GET",
-      tags: ["product-details"],
-      revalidate: 0,
-      local: `${country}-${language}`,
-    });
-
-    if (response.isError) {
-      reportError(
-        new Error(`Product Simple Details Error: ${response.status}`),
-        {
-          source: "products",
-          page: "product-simple-details",
-          language: language,
-          country: country,
-          response: JSON.stringify(response),
-        }
-      );
-      throw response.error;
-    }
-
-    return response.data;
-  } catch (error) {
-    return { globalDetails: true };
-  }
-}
 export async function fetchProductGeneralDetails(
   slug: string,
   language: string,
@@ -75,9 +33,8 @@ export async function fetchProductGeneralDetails(
 ) {
   try {
     let response = await fetchServerData({
-      url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/mobile/product/details_without_similar_related_products/${slug}?lang=${language}`,
+      url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/mobile/product/details/${slug}?lang=${language}`,
       method: "GET",
-      tags: ["product-details"],
       revalidate: 0,
       local: `${country}-${language}`,
     });
@@ -98,7 +55,8 @@ export async function fetchProductGeneralDetails(
 
     return response.data;
   } catch (error) {
-    return { details_without_similar_related_products: true };
+    console.log(`Product Simple Details Error`, error);
+    throw error;
   }
 }
 export async function fetchProductExtendedDetails(
@@ -110,7 +68,6 @@ export async function fetchProductExtendedDetails(
     let response = await fetchServerData({
       url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/web/product/qtyPriceDetails/${slug}?lang=${language}&country=${country}`,
       method: "GET",
-      tags: ["product-details"],
       revalidate: 0,
       local: `${country}-${language}`,
     });
@@ -129,6 +86,7 @@ export async function fetchProductExtendedDetails(
     }
     return response.data;
   } catch (error) {
-    return { qtyPriceDetails: true };
+    console.log(`Product Extended Details  Error`, error);
+    throw error;
   }
 }

@@ -750,23 +750,19 @@ img {
 }
 
 .product-share-span {
-  position: absolute;
-  max-width: 315px;
-  height: 99%;
+  max-width: 100%;
+
   width: 99%;
   display: flex;
-  justify-content: center;
+  justify-content: start;
+  padding-bottom: 5px;
+  padding-top: 5px;
   align-items: center;
-  left: 0;
-  right: 0;
-  margin: 0 auto;
-  backdrop-filter: brightness(0.8);
-  font-size: 20px;
-  color: #fafafa;
+  font-size: 16px;
+  color: #1d1d1d;
   text-wrap: wrap;
   text-align: center;
-  padding: 38px;
-  text-shadow: 0px 3px 3px #0b0b0b7a;
+  text-shadow: 0px 3px 3px #0b0b0b1f;
 }
 
 .product-share-image {
@@ -885,7 +881,7 @@ img {
 .message-img-body::after {
   display: inline-block;
   content: "";
-  box-shadow: inset 0px -16px 20px 0px #0000008f;
+  box-shadow: inset 0px -16px 20px 0px #0000005e;
   z-index: 9999;
   position: absolute;
   width: 100%;
@@ -1508,17 +1504,6 @@ svg.redwave g g path {
   object-fit: fill;
   position: absolute !important;
   z-index: 99999999;
-}
-
-.fixed-img-prev .bac-drop {
-  background-color: #585751;
-  opacity: 0.6;
-  z-index: 9999;
-  width: 100vw;
-  height: 100vh;
-  position: absolute;
-  top: 0px;
-  left: 0px;
 }
 
 .fixed-img-prev img,

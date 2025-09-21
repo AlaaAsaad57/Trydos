@@ -68,6 +68,8 @@ class ForegroundNotificationHandler {
     try {
       const {
         setOrderData,
+        shouldUpdateOrders,
+        setShouldUpdateOrders,
         endCall,
         orderData,
         watchChannelEvent,
@@ -93,6 +95,7 @@ class ForegroundNotificationHandler {
         let lang = `${country?.toLocaleLowerCase()}-${language?.toLocaleLowerCase()}`;
         const data = JSON.parse(payload.data.body);
         if (data?.type?.startsWith("order status changed")) {
+          setShouldUpdateOrders(shouldUpdateOrders + 1);
           showSuccessNotification(
             data.description,
             5000,
@@ -482,7 +485,10 @@ class ForegroundNotificationHandler {
               6000,
               `/${country}-${language}/setting?tab=Orders&id=${
                 JSON.parse(payload.data.data).order_group_id
-              }&order_id_chat=${JSON.parse(payload.data.data).order_id}`
+              }&order_id_chat=${
+                JSON.parse(payload.data.data)?.parent_order_id ??
+                JSON.parse(payload?.data?.data)?.order_id
+              }&chat_id=${JSON.parse(payload?.data?.data)?.order_id}`
             );
             if (
               parseInt(activeChat?.id) ===

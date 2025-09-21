@@ -419,7 +419,7 @@ function PhoneInput({
         <span data-cy="plus-icon-span" className="plus-icon-phone">
           +
         </span>
-        <label htmlFor="phoneInput" className="no-label">
+        <label htmlFor="phoneInput" className="hidden">
           Search
         </label>
         <input

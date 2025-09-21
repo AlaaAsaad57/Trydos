@@ -1,9 +1,8 @@
 import React from "react";
 import { OrdersIcon } from "../OrdersList";
-import { translateFunction } from "utils/functions";
+import { getConfiguredImage, translateFunction } from "utils/functions";
 import { useParams } from "next/navigation";
 import NextLink from "components/global/NextLink";
-import RatingStars from "./RatingStars";
 import OrderStatusIcon from "./OrderStatusIcon";
 import {
   PendingStatus,
@@ -24,6 +23,7 @@ function OrderItemsList({
   shouldShowChat,
   showChats,
   getOrderDetails,
+  getProductUrl,
 }: OrderItemsListPropsType) {
   const { ActivePacks } = useAppStore();
   const getStatusIcon = (status) => {
@@ -39,9 +39,7 @@ function OrderItemsList({
   const isRtl = language === "ar" || language === "ku";
   const isDelevired = (item) => {
     return (
-      !item.is_returned &&
-      item.delivery_status === "delivered" &&
-      ActivePacks?.order_status?.value === "delivered"
+      !item.is_returned && ActivePacks?.order_status?.value === "delivered"
     );
   };
   return (
@@ -49,7 +47,10 @@ function OrderItemsList({
       <div
         onClick={(e) => {
           // @ts-ignore
-          if (!e.target.closest(".chat-holder")) setExpanded(!isExpanded);
+          if (!e.target.closest(".chat-holder")) {
+            setExpanded(!isExpanded);
+            document.querySelector("#OrderDetails").scrollTop = 0;
+          }
         }}
         className="bg-[#F4F4F4] mt-[8px] ml-[8px] w-full min-h-[74px] h-auto  rounded-[15px] py-[7px] px-[12px] flex-col"
         style={{
@@ -82,17 +83,22 @@ function OrderItemsList({
           <div className="relative flex-col" key={product.id}>
             <NextLink
               key={product.product_details.id}
-              href={`/${lang}/products/${product.product_slug}`}
+              href={getProductUrl(product)}
               data={{
                 is_product: true,
                 ...product.product_details,
-                href: `/${lang}/products/${product.product_slug}`,
+                href: getProductUrl(product),
               }}
               className="flex-row cursor-pointer items-center relative min-w-[91px] w-[91px] h-[125px] ml-[5px]"
             >
               <img
                 className="w-full h-full object-contain bg-white rounded-[15px]"
-                src={GetImageUrl(product.image)}
+                src={getConfiguredImage({
+                  src: GetImageUrl(product.image),
+                  width: 100,
+                  height: 100,
+                  q: 75,
+                })}
                 alt={product.product_details.name}
                 width={100}
                 height={100}
@@ -123,8 +129,10 @@ function OrderItemsList({
               </div>
               {!isDelevired(product) ? (
                 <>
-                  <span className=" regular">{product?.variation?.color}</span>
-                  <span>{product?.variation?.Size}</span>
+                  <span className=" regular">
+                    {product?.variation?.[0]?.color}
+                  </span>
+                  <span>{product?.variation?.[0]?.Size}</span>
                 </>
               ) : (
                 <span className="capitalize">

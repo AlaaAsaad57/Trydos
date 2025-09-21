@@ -35,28 +35,28 @@ function ChangeOrderItem({
   };
   const { ActivePacks } = useAppStore();
   const [tabs, setTabs] = useState<string>(
-    item?.variation?.color
+    item?.variation?.[0]?.color
       ? "Change Color"
-      : item?.variation?.Size
+      : item?.variation?.[0]?.Size
       ? "Change Size"
       : "Change Qty"
   );
   let optinsTabs = [
     {
       name: "Change Color",
-      isExist: item?.variation?.color,
+      isExist: item?.variation?.[0]?.color,
     },
     {
       name: "Change Size",
-      isExist: item?.variation?.Size,
+      isExist: item?.variation?.[0]?.Size,
     },
     {
       name: "Change Qty",
       isExist: true,
     },
   ];
-  const [color, setColor] = useState<string>(item?.variation?.color);
-  const [size, setSize] = useState<string>(item?.variation?.Size);
+  const [color, setColor] = useState<string>(item?.variation?.[0]?.color);
+  const [size, setSize] = useState<string>(item?.variation?.[0]?.Size);
   const [qty, setQty] = useState<number>(item?.qty);
   const [productData, setProductData] = useState<any>(null);
   useEffect(() => {
@@ -114,13 +114,13 @@ function ChangeOrderItem({
       })
       .filter(
         (s) =>
-          item?.variation?.color === s.color_name ||
-          item?.variation?.color === s.color_option
+          item?.variation?.[0]?.color === s.color_name ||
+          item?.variation?.[0]?.color === s.color_option
       )[0];
     if (!isSameColor(selectedColor, previousColor)) {
       return true;
     }
-    if (size !== item?.variation?.Size) {
+    if (size !== item?.variation?.[0]?.Size) {
       return true;
     }
     if (qty !== item?.qty) {
@@ -274,8 +274,8 @@ function ChangeOrderItem({
               setShouldConfirmChange({
                 ...shouldConfirmChange,
                 type: "Color",
-                currentColor: item?.variation?.color,
-                currentSize: item?.variation?.Size,
+                currentColor: item?.variation?.[0]?.color,
+                currentSize: item?.variation?.[0]?.Size,
                 newColor: color,
                 newSize: size,
                 productDetails: productData,
@@ -286,8 +286,8 @@ function ChangeOrderItem({
               setShouldConfirmChange({
                 ...shouldConfirmChange,
                 type: "Size",
-                currentColor: item?.variation?.color,
-                currentSize: item?.variation?.Size,
+                currentColor: item?.variation?.[0]?.color,
+                currentSize: item?.variation?.[0]?.Size,
                 newColor: color,
                 newSize: size,
                 productDetails: productData,
@@ -348,8 +348,8 @@ export const ChangeColorWidget = ({
         colors={productData?.sync_color_images}
         setColor={setColor}
         sizes={productData?.choice_options?.[0]?.options || []}
-        current_size={item.variation?.Size}
-        currentColor={item?.variation?.color}
+        current_size={item?.variation?.[0]?.Size}
+        currentColor={item?.variation?.[0]?.color}
         newColor={color}
       />
     </div>
@@ -386,7 +386,7 @@ export const ChangeSizeWidget = ({
       </div>
       <span className="text-[#1d1d1d] text-[14px] regular mt-[9px] flex-row items-center w-full border-[#E6E6E680] border-b-[1px] pb-[12px] justify-center text-center">
         {translateFunction("Change From")}
-        <span className="mx-[4px]">{item?.variation?.Size}</span>
+        <span className="mx-[4px]">{item?.variation?.[0]?.Size}</span>
       </span>
       <span className="text-[#1d1d1d] text-[14px] regular mt-[9px] flex-row items-center w-full justify-center text-center">
         {translateFunction("To New Size?")}
@@ -400,7 +400,7 @@ export const ChangeSizeWidget = ({
           height: 70,
           q: 100,
         })}
-        currentColor={item?.variation?.color}
+        currentColor={item?.variation?.[0]?.color}
         colors={productData?.sync_color_images}
         sizes={
           productData?.choice_options?.filter(
@@ -408,7 +408,7 @@ export const ChangeSizeWidget = ({
           )[0]?.options
         }
         setSize={setSize}
-        currentSize={item?.variation?.Size}
+        currentSize={item?.variation?.[0]?.Size}
         newSize={size}
       />
     </div>

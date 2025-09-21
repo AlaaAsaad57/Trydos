@@ -5,5 +5,6 @@ export interface ProductCardPropsType {
     value: string;
   };
   order: any;
+  getProductUrl: (e: any) => string;
   getOrderDetails: () => void;
 }

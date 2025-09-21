@@ -38,10 +38,10 @@ function MoreOfferAvatar({
         href: href,
         ...boutique,
       }}
-      className="offer-avatar hasMore"
+      className="offer-avatar hasMore w-[40px] h-[40px] rounded-full cursor-pointer duration-300 bg-white bottom-0 relative flex"
       style={{ zIndex: zIndex, transform: `translateX(-${viewed * 5}px)` }}
     >
-      <div className="offer-more-s" />
+      <div className="offer-more-s  w-[40px] h-[40px] rounded-full" />
       <span className="z-40 text-[10px] regular text-white flex items-center justify-center w-full h-full">
         {translate("More", language)}
       </span>

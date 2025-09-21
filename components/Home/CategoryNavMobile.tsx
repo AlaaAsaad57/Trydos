@@ -13,6 +13,7 @@ function CategoryNavMobile({
   slug,
   active,
   params,
+  outline,
 }: CategoryNavMobileProps) {
   // @ts-ignore
 
@@ -31,7 +32,7 @@ function CategoryNavMobile({
       }}
       ariaLabel={`Category ${slug} ${params?.lang}`}
       data-cy="category-Link"
-      className={`categories-bar-item ${
+      className={`categories-bar-item  cursor-pointer flex flex-col relative w-auto max-w-full justify-start mx-[5px] items-center ${
         decodeURI(params.mainCategory) === slug && "active-nav-category"
       }`}
       key={myKey}
@@ -48,20 +49,33 @@ function CategoryNavMobile({
         />
       )}
       {
-        <div className="categories-bar-item-icon" data-cy="categoryIcons">
+        <div
+          className="categories-bar-item-icon flex h-auto w-full justify-center"
+          data-cy="categoryIcons"
+        >
           <Image
             width={25}
             height={25}
             alt={name || "Image"}
-            src={getConfiguredImage({ src: GetImageUrl(icon), height: 50 })}
+            src={getConfiguredImage({
+              src: GetImageUrl(active ? outline : icon),
+              height: 50,
+              width: 50,
+            })}
+            unoptimized={false}
+            className="max-h-[25px] max-w-[25px]"
             priority
             loading="eager"
           />
         </div>
       }
       {
-        <div className="categories-bar-item-description">
-          <div className={`categories-bar-item-name regular `}>{name}</div>
+        <div className="categories-bar-item-description flex-row  items-end  justify-start w-auto mt-[4px] h-auto">
+          <div
+            className={`categories-bar-item-name max-w-[60px] truncate items-center text-[#3c3c3c] text-[10px]  regular  capitalize block`}
+          >
+            {name}
+          </div>
         </div>
       }
     </NextLink>

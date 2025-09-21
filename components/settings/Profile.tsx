@@ -58,7 +58,7 @@ function Profile({ swipeToScreen, goBack }: ProfilePropsType) {
       />
       <div className="flex-row justify-center mt-[12px]">
         <ProfilePicture
-          photo={GetImageUrl(userProfile.image)}
+          photo={GetImageUrl(userProfile?.image)}
           GoToProfilePhotoScreen={() => {
             swipeToScreen(2);
           }}

@@ -1,8 +1,8 @@
 "use client";
-import React, { Suspense, useEffect, useReducer, useState } from "react";
+import React, { useEffect, useReducer, useState } from "react";
 import ExtendedAreaInfo from "./ExtendedAreaInfo";
 import ProductOptions from "./ProductOptions";
-import { RoundPrice, translateFunction } from "utils/functions";
+import { translateFunction } from "utils/functions";
 import chat from "services/chat";
 import { useParams, useSearchParams } from "next/navigation";
 import { ProductSocialInfo } from "models/API/market/ProductSocialInfo";
@@ -13,7 +13,7 @@ import { ProductFooterSectionPropsType } from "models/componentType/productTypes
 import { showErrorNotification } from "@/store/notifications/reducer";
 import { fetchData } from "utils/fetchData";
 import ProductRedeemButton from "./ProductRedeemPrice";
-import { deleteCookie, getCookie } from "utils/cookies/cookie-manager";
+import { deleteCookie } from "utils/cookies/cookie-manager";
 import { GAevent } from "utils/gtag";
 import { GA_EVENT_NAMES, GA_GLOBAL_SCREEN } from "utils/GAEvents";
 import { REQUESTS_DATA } from "utils/Requests";
@@ -84,6 +84,8 @@ function ProductFooterSection({
     setShareLoading,
     setSharesCount,
     loginOpen,
+    editInfo,
+    storeProduct,
   } = useAppStore();
   let { lang } = useParams();
 
@@ -173,6 +175,7 @@ function ProductFooterSection({
               user_id: auth.UserID(),
               product_id: product.id,
             }),
+            noMessage: true,
           });
           // @ts-ignore
           if (!response.success) {
@@ -218,6 +221,7 @@ function ProductFooterSection({
         is_liked: isLiked,
         color,
         size,
+        views_count: response_views?.view_count || 0,
       });
       setLoading(false);
       // @ts-ignore
@@ -237,17 +241,13 @@ function ProductFooterSection({
           user_id_custom: auth.UserID(),
           item_id: product?.id,
           item_name: product?.name,
-          price: RoundPrice({
-            num: product.offer_price,
-            rate: currency?.exchange_rate,
-            returnNumber: true,
-          }),
+          price: product.offer_price,
           brand: product?.brand?.name,
           brand_id: product?.brand?.id,
-          category: product?.category?.name,
-          category_id: product?.category?.id,
+          category: product?.categories?.[0]?.name,
+          category_id: product?.categories?.[0]?.id,
           count_likes: likesNum,
-          review_counts: response_views?.view_count,
+          review_count: response_views?.view_count,
           interaction_type: "view",
           screen_name: lastPageData?.screen || "link",
           screen_path: lastPageData?.url || window.location.pathname,
@@ -266,12 +266,29 @@ function ProductFooterSection({
     getData();
     disableAddToCartOption();
   }, []);
-
+  const getImageForSharing = () => {
+    const { color, size } = {
+      color: searchParams.get("color"),
+      size: searchParams.get("size"),
+    };
+    if (color && product?.sync_color_images) {
+      return (
+        product?.sync_color_images?.find(
+          (s) => s.color_name === color || s.color_option === color
+        )?.images?.[0]?.file_path ||
+        product?.sync_color_images?.find(
+          (s) => s.color_name === color || s.color_option === color
+        )?.images?.[0]
+      );
+    } else {
+      return product?.images?.[0]?.file_path || product?.images?.[0];
+    }
+  };
   const shareAction = () => {
     if (sharedContacts.length > 0) {
       const messageShare = {
         product_id: product.id,
-        product_image_url: product.images[0],
+        product_image_url: getImageForSharing(),
         product_name: product.name,
         product_slug: product.slug,
         product_description: product?.details,
@@ -292,17 +309,17 @@ function ProductFooterSection({
       GAevent({
         action: GA_EVENT_NAMES.SHARE_CONTENT,
         params: {
-          user_id_custom: auth.UserID(),
           content_id: product?.id,
           item_id: product?.id,
           item_name: product?.name,
-          category: product?.category?.name,
+          user_id_custom: auth.UserID(),
+          brand_id: product?.brand?.id,
+          category: product?.category?.name || product?.categories?.[0]?.name,
+          category_id: product?.category?.id || product?.categories?.[0]?.id,
           brand: product?.brand?.name,
-          price: RoundPrice({
-            num: product?.price,
-            rate: currency?.exchange_rate,
-          }),
+          price: product?.offer_price,
           share_context: "internal",
+          shared_from_page: window.location.pathname,
           screen_name: GA_GLOBAL_SCREEN.PRODUCT_SCREEN,
           screen_path: window.location.pathname,
           method_share: "chat_in_share",
@@ -317,7 +334,10 @@ function ProductFooterSection({
       );
     }
   };
-
+  useEffect(() => {
+    editInfo({ ...product });
+    storeProduct({ ...product, colorFrom: searchParams.get("color") });
+  }, []);
   return (
     <>
       {!loginOpen && (

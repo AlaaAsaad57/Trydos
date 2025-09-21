@@ -1,5 +1,6 @@
 export const runtime = "nodejs";
 export const preferredRegion = "bom1";
+export const dynamic = "force-dynamic";
 import FilterList from "components/Server/FilterList";
 import ProductListServer from "components/Server/ProductList";
 import BackIcon from "public/svg/listing/backIcon.svg";
@@ -12,7 +13,6 @@ import VerificationIcon from "public/svg/listing/VerificationIcon.svg";
 import TopStarIcon from "public/svg/listing/TopStar.svg";
 import Image from "next/image";
 import "styles/listing-components.css";
-import Skeleton from "react-loading-skeleton";
 import { getBoutiqueMetadata, GetStructuredData } from "./Metadata";
 import FilterWidgetContainer from "components/filterPage/FiltersWidget";
 import ShareBoutiquePageButton from "components/filterPage/ShareBoutiquePageButton";
@@ -24,6 +24,7 @@ import { fetchCurrency } from "Server Requests";
 import { getProductsAndFiltersFromElastic } from "services/elastic/elasticSearch";
 import { getCurrencyFromCache, StoreCurrency } from "Server Requests/radis";
 import { ElasticsearchReader } from "services/elastic/elasticsearch-reader.service";
+import DataSourceLogger from "components/global/DataSourceLogger";
 
 export const dynamicParams = true;
 
@@ -77,16 +78,16 @@ async function getCurrency(country, language) {
     let cachedCurrency = await getCurrencyFromCache(country);
 
     if (typeof cachedCurrency === "string") {
-      return JSON.parse(cachedCurrency);
+      return { ...JSON.parse(cachedCurrency), redis: true };
     }
     if (cachedCurrency?.exchange_rate) {
-      return cachedCurrency;
+      return { ...cachedCurrency, redis: true };
     } else {
       let currencyData = await fetchCurrency(language, country);
-      let currency = currencyData.data.currency;
+      let currency = { ...currencyData.data.currency };
 
       StoreCurrency(country, currency);
-      return currency;
+      return { ...currency, redis: false };
     }
   } catch (error) {}
 }
@@ -103,7 +104,7 @@ export default async function Page({ params }: { params: ParamsType }) {
       )?.[0],
     };
   }
-
+  let start = process.hrtime.bigint();
   let [filtersData, currency, boutique] = await Promise.all([
     getProductsAndFiltersFromElastic({
       country,
@@ -115,10 +116,12 @@ export default async function Page({ params }: { params: ParamsType }) {
         flashdeal: false,
         search_text: parsedFilters.search_text?.[0],
       },
+      limit: 10,
     }),
     getCurrency(country, language),
     GetBoutique(boutiqueItem, country, language),
   ]);
+  let end = process.hrtime.bigint();
 
   let filters = {
     categories: filtersData?.categories || [],
@@ -130,6 +133,7 @@ export default async function Page({ params }: { params: ParamsType }) {
     boutiques: filtersData?.boutiques || [],
     search_text: parsedFilters?.search_text?.[0] || null,
   };
+  const isRtl = language === "ar" || language === "ku";
   return (
     <>
       <Suspense fallback={<></>}>
@@ -145,10 +149,18 @@ export default async function Page({ params }: { params: ParamsType }) {
       </Suspense>
       <div
         data-cy="filter_listing_bar"
-        className="filter-listing-bar relative flex-row align-center"
+        className={`filter-listing-bar z-[99999999] relative ${
+          isRtl ? "flex-row-reverse flex" : "flex-row flex"
+        } align-center w-full h-[50px] pl-[15px] pr-[20px] justify-between bg-white z-10`}
       >
+        <DataSourceLogger
+          dataSourceString={`Listing DataSource :products and filters from elastic , currency from ${
+            currency?.redis ? "redis" : "laravel api"
+          } in ${Number(end - start) / 1_000_000} ms`}
+        />
         <NextLink
           data-cy="BackIcon_boutique"
+          ignoreConditionCase={true}
           data={{
             is_full_home: true,
             href: `/${params.lang}`,
@@ -157,12 +169,17 @@ export default async function Page({ params }: { params: ParamsType }) {
           ariaLabel={`TryDos Home ${params.lang}`}
           className="back-icon"
         >
-          <BackIcon data-cy="back_icon_boutique_page" />
+          <BackIcon
+            data-cy="back_icon_boutique_page"
+            className={`${isRtl && "rotate-180"}`}
+          />
         </NextLink>
         {/** TODO: classname edit when serach active w-full */}
         <div
           data-cy="filter_bar_options"
-          className={`filter-bar-options flex-row align-center ${
+          className={`filter-bar-options w-[170px] justify-between ${
+            isRtl ? "flex-row-reverse flex" : "flex-row flex"
+          }  align-center ${
             parsedFilters?.search_text?.length > 0 && "w-full"
           }`}
         >
@@ -208,6 +225,7 @@ export default async function Page({ params }: { params: ParamsType }) {
       >
         <ProductListServer
           colors={filtersData?.colors}
+          boutique={boutique?.banners ? boutique : null}
           products={filtersData?.products ?? []}
           offset={filtersData?.offset}
           currency={currency}

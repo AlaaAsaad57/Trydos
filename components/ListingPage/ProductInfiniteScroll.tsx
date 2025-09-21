@@ -18,18 +18,22 @@ function ProductsInfiniteScroll({
   offset,
   currency,
   activeColor,
-  productIds,
   analyticsData,
   parsedFilters,
+  isFeatured,
+  isFlashDeals,
+  boutique,
+  prductIds,
 }: {
   offset: any;
   currency: CurrencyApi["data"]["currency"];
   analyticsData: any;
   activeColor: string;
-  productIds: string[];
   isFeatured?: boolean;
   isFlashDeals?: boolean;
   parsedFilters: any;
+  boutique?: any;
+  prductIds: string[];
 }) {
   const { resetBoutique } = useAppStore();
   const { lang }: { lang: string } = useParams();
@@ -42,10 +46,12 @@ function ProductsInfiniteScroll({
   useEffect(() => {
     const { setIsNavigating } = useAppStore.getState();
     setIsNavigating(null);
+    console.log("**Initial Items IDS**", prductIds);
     GAevent({
       action: GA_EVENT_NAMES.VIEW_ITEMS_LIST,
       params: {
         items: analyticsData,
+        item_list_name: getItemsListName(),
         screen_name: GA_GLOBAL_SCREEN.FILTERS_SCREEN,
         screen_path: window.location.pathname,
         user_id_custom: auth.UserID(),
@@ -94,17 +100,28 @@ function ProductsInfiniteScroll({
       return;
     }
     if (!areArraysEqual(offsetValue, response.offset)) {
-      setProducts([...products, ...response.products]);
+      let uniqueArray = [...products, ...(response?.products ?? [])];
+      uniqueArray = uniqueArray?.filter(
+        (s) => !prductIds?.includes(s.product_id)
+      );
+      let newArray = Array.from(
+        new Map(uniqueArray.map((c: any) => [c.product_id, c])).values()
+      );
+      setProducts(newArray);
       if (response.products?.length > 0) {
+        console.log("**Offset Items IDS**", response.products, newArray);
         GAevent({
           action: GA_EVENT_NAMES.VIEW_ITEMS_LIST,
           params: {
-            items: response.products?.map((s) => ({
+            items: response?.products?.map((s) => ({
               item_id: s?.product_id,
               item_name: s?.name,
               category: s?.category?.name,
+              category_id: s?.category?.id,
               brand: s?.brand?.name,
+              brand_id: s?.brand?.id,
             })),
+            item_list_name: getItemsListName(),
             user_id_custom: auth.UserID(),
             screen_name: GA_GLOBAL_SCREEN.FILTERS_SCREEN,
             screen_path: window.location.pathname,
@@ -123,7 +140,17 @@ function ProductsInfiniteScroll({
       setIsReachEnd(true);
     }
   };
-
+  const getItemsListName = () => {
+    if (isFeatured) {
+      return "Featured-Products";
+    }
+    if (isFlashDeals) {
+      return "FlashDeals-Products";
+    }
+    if (parsedFilters?.boutiques?.length === 1) {
+      return `${boutique?.name}-Boutique-Page`;
+    } else return "Filters-Page";
+  };
   return (
     <>
       {products?.map((product, key) => {
