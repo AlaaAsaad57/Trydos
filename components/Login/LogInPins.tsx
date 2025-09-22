@@ -1,17 +1,11 @@
-import { useEffect, useState } from "react";
-import PinInput from "react-pin-input";
+import { useEffect, useRef, useState } from "react";
 import { translateFunction } from "utils/functions";
 import Timer from "./Timer";
 import useDetectKeyboardOpen from "use-detect-keyboard-open";
 import { useParams } from "next/navigation";
 import Spinner from "components/global/Spinner";
 import { useAppStore } from "store";
-import {
-  GA_AUTH_SCREEN,
-  GA_BUTTONS_NAMES,
-  GA_EVENT_NAMES,
-  GA_GLOBAL_PLATFORM,
-} from "utils/GAEvents";
+import { GA_BUTTONS_NAMES, GA_EVENT_NAMES } from "utils/GAEvents";
 import { GAevent } from "utils/gtag";
 import { LogInPinsPropsType } from "models/componentType/settingTypes/LogInPinsPropsType";
 
@@ -64,10 +58,10 @@ function LogInPins({
           window.ontouchmove = function (e) {
             document
               .querySelector<HTMLInputElement>(".pincode-input-text")
-              .focus();
+              ?.focus();
             document
               .querySelector<HTMLInputElement>(".pincode-input-text")
-              .blur();
+              ?.blur();
           };
 
           // if (
@@ -575,35 +569,16 @@ function LogInPins({
             </div>
 
             {rendere && (
-              <PinInput
-                ariaLabel="pin-input"
+              <PinInputContainer
                 length={6}
                 initialValue={pin}
                 onChange={(value) => {
                   setPin(value);
                 }}
-                type="numeric"
                 disabled={disabled}
-                inputMode="number"
-                placeholder=""
-                aria-label=""
-                style={{ marginTop: 0 }}
                 onComplete={(value) => Submit(value)}
-                inputStyle={{
-                  borderRadius: 15,
-                  backgroundColor: "transparent",
-                  margin: "initial",
-                  color: "transparent",
-
-                  border: "#ddddddc5 0.5px solid",
-                  width: 50,
-                  height: 60,
-                }}
                 // onComplete={(value, index) => setPin(value)}
                 autoSelect={true}
-                regexCriteria={/^[ A-Za-z0-9_@./#&+-]*$/}
-
-                // disabled={disablePin}
               />
             )}
           </>
@@ -627,3 +602,97 @@ function LogInPins({
 }
 
 export default LogInPins;
+
+type PinInputProps = {
+  disabled?: boolean;
+  onComplete?: (value: string) => void;
+  onChange?: (value: string) => void;
+  initialValue?: string;
+  autoSelect?: boolean;
+  gap?: string;
+  length?: number;
+};
+
+const PinInputContainer: React.FC<PinInputProps> = ({
+  disabled = false,
+  onComplete,
+  onChange,
+  initialValue = "",
+  autoSelect = true,
+  gap = "4px",
+  length = 6,
+}) => {
+  const [values, setValues] = useState<string[]>(() =>
+    Array.from({ length }, (_, i) => initialValue[i] || "")
+  );
+  const inputsRef = useRef<Array<HTMLInputElement | null>>([]);
+
+  // keep initialValue in sync
+  useEffect(() => {
+    if (initialValue) {
+      setValues(Array.from({ length }, (_, i) => initialValue[i] || ""));
+    }
+  }, [initialValue, length]);
+
+  const handleChange = (index: number, val: string) => {
+    if (!/^\d*$/.test(val)) return; // allow only digits
+
+    const newVals = [...values];
+    newVals[index] = val.slice(-1);
+    setValues(newVals);
+
+    const joined = newVals.join("");
+    onChange?.(joined);
+
+    if (val && index < length - 1) {
+      inputsRef.current[index + 1]?.focus();
+      if (autoSelect) inputsRef.current[index + 1]?.select();
+    }
+
+    if (newVals.every((v) => v !== "")) {
+      onComplete?.(joined);
+    }
+  };
+
+  const handleKeyDown = (
+    index: number,
+    e: React.KeyboardEvent<HTMLInputElement>
+  ) => {
+    if (e.key === "Backspace" && !values[index] && index > 0) {
+      inputsRef.current[index - 1]?.focus();
+    }
+  };
+
+  const commonStyle: React.CSSProperties = {
+    borderRadius: 15,
+    backgroundColor: "transparent",
+    margin: "initial",
+    color: "transparent",
+    border: "#ddddddc5 0.5px solid",
+    width: 50,
+    height: 60,
+    textAlign: "center",
+    fontSize: 28,
+    caretColor: "#000",
+  };
+
+  return (
+    <div style={{ display: "flex" }} className="w-full justify-between z-10">
+      {Array.from({ length }).map((_, i) => (
+        <input
+          key={i}
+          className="outline-none text-[#707070] text-[20px]  flex items-center justify-center light "
+          ref={(el) => (inputsRef.current[i] = el)}
+          type="text"
+          inputMode="numeric"
+          maxLength={1}
+          value={values[i]}
+          disabled={disabled}
+          onChange={(e) => handleChange(i, e.target.value)}
+          onKeyDown={(e) => handleKeyDown(i, e)}
+          style={commonStyle}
+        />
+      ))}
+    </div>
+  );
+};

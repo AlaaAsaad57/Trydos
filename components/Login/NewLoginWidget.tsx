@@ -424,6 +424,8 @@ function NewLoginWidget() {
         <Image
           src={"/svg/LogoAuth.svg"}
           className="logo-auth"
+          width={210}
+          height={94}
           id="logo-auth"
           style={
             stepIndicator > 0 && window.innerWidth < 601

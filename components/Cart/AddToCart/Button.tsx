@@ -27,16 +27,18 @@ function AddToCartButton({
   const IsValid = () => {
     let color_valid = false,
       size_valid = false;
-    if (!colors) color_valid = true;
+    console.log(sizes, colors);
+    if (!colors || colors?.length === 0) color_valid = true;
     else {
       color_valid = Boolean(selectedColor);
     }
-    if (!sizes) size_valid = true;
+    if (!sizes || sizes?.length === 0) size_valid = true;
     else {
       size_valid = Boolean(selectedSize);
     }
     return color_valid && size_valid;
   };
+
   const Validate = () => {
     if (colors && !selectedColor) {
       shake("#color-select");
