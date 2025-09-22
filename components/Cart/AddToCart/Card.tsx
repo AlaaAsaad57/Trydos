@@ -1,7 +1,9 @@
 import Image from "next/image";
-import React from "react";
+import { useParams } from "node_modules/next/navigation";
+import React, { useEffect, useState } from "react";
 import { useAppStore } from "store";
 import { RoundPrice, translateFunction } from "utils/functions";
+import { fetchCountries } from "utils/tinyUtils";
 
 function Card({
   image,
@@ -13,7 +15,16 @@ function Card({
   price,
   redeem_price,
 }) {
-  const { language } = useAppStore();
+  const [countries, setCountries] = useState([]);
+  const getCountries = async () => {
+    let data = await fetchCountries(country, language);
+    setCountries(data.countries);
+  };
+  let { lang } = useParams();
+  const [country, language] = (lang as string).split("-");
+  useEffect(() => {
+    getCountries();
+  }, []);
   return (
     <div className="flex flex-row justify-start items-start gap-[12px] h-full max-h-[170px] px-[12px]">
       <div className="w-[123px] h-[170px] flex relative">
@@ -53,12 +64,12 @@ function Card({
               />
             </span>
             <span className="text-[#8D8D8D]">
-              {translateFunction("Shipping:", language)}
+              {translateFunction("Shipping", language)}:
             </span>
-            <span className="medium text-[#1d1d1d]">
+            <span className="medium text-[#505050]">
               {shippingDays} {translateFunction("Days", language)}
             </span>
-            <span className="text-[#1d1d1d]">
+            <span className="text-[#505050] underline cursor-pointer">
               {translateFunction("Details", language)}
             </span>
           </div>
@@ -93,8 +104,16 @@ function Card({
                 height={13}
               />
             </span>
-            <span className="text-[#1d1d1d]">
-              {translateFunction("At Your Address In Lebanon", language)}
+            <span className="text-[#1d1d1d] gap-[3px] flex items-center">
+              {translateFunction("At Your Address In", language)}
+              <span>
+                {countries?.length &&
+                  translateFunction(
+                    countries?.find((s) => s.iso?.toLowerCase() === country)
+                      ?.name,
+                    language
+                  )}
+              </span>
             </span>
             <span className="medium text-[#1d1d1d]">
               {translateFunction("Monday", language)}
@@ -104,7 +123,7 @@ function Card({
           </div>
           {/*  */}
           <div className="flex flex-row regular text-[9px] items-center gap-[3px] text-[#1D1D1D]">
-            <span className="">{translateFunction("Get A")}</span>
+            <span className="">{translateFunction("Get a")}</span>
             <span className="text-[#388CFF]">
               25% {translateFunction("Refund")}
             </span>

@@ -167,6 +167,7 @@ const translations = {
   Experience: "تجربە",
   "Featured Products": "بەرهەمە دیاری کراوەکان",
   "Flash Deals": "دیلە فلاش",
+  "Flash Deal": "دیلە فلاش",
   "Show More": "زیاتر نیشان بده",
   "Premium Brands": "نیشانە تایبەتییەکان",
   "TryDos - Premium Shopping Experience": "TryDos - تجربەی کڕینی پێشکەوتوو",
@@ -1080,6 +1081,18 @@ const translations = {
   "Add To Bag Within ": "زیاد بکە بۆ جانتاکە لە ناو",
   seconds: "چرکە",
   "stroke of luck": "لێدانێکی بەخت",
+  "Today Shipping": "ناردنی ئەمڕۆ",
+  "If Buy Before": "ئەگەر پێش ئەوە بکڕیت",
+  Syria: "سوریا",
+  Iraq: "عێراق",
+  Lebanon: "لوبنان",
+  Turkey: "تورکیا",
+  "Selected Color": "ڕەنگی دیاریکراو",
+  "Select Your Required Size": "قەبارەی داواکراوت هەڵبژێرە",
+  "Added To Your Bag": "زیاد کرا بۆ جانتاکەت",
+  "Removed From Your Bag": "لابرا لە جانتاکەت",
+  Added: "زیاد کرا",
+  "To Your Bag": "بۆ جانتاکەت",
 };
 
 export default translations;

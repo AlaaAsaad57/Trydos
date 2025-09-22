@@ -166,6 +166,7 @@ const translations = {
   "You Have New Messages From Deleivery Worker..click for more":
     "Teslimat Elemanından Yeni Mesajlarınız Var..daha fazlası için tıklayın",
   "Flash Deals": "Hızlı Fırsatlar",
+  "Flash Deal": "Hızlı Fırsatlar",
   "Premium Brands": "Premium Markalar",
   "Show More": "Daha Fazla Göster",
   "TryDos - Premium Shopping Experience": "TryDos - Premium Alışveriş Deneyimi",
@@ -1024,6 +1025,18 @@ const translations = {
   "Add To Bag Within ": "Sepete Ekle İçinde",
   seconds: "saniye",
   "stroke of luck": "Şans eseri",
+  "Today Shipping": "Bugün Kargo",
+  "If Buy Before": "Satın alırsanız",
+  Syria: "Suriye",
+  Iraq: "Irak",
+  Lebanon: "Lübnan",
+  Turkey: "Türkiye",
+  "Selected Color": "Seçilen Renk",
+  "Select Your Required Size": "Gerekli Bedeninizi Seçin",
+  "Added To Your Bag": "Sepetinize Eklendi",
+  "Removed From Your Bag": "Sepetinizden Çıkarıldı",
+  Added: "Eklendi",
+  "To Your Bag": "Sepetine",
 };
 
 export default translations;

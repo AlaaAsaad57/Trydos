@@ -210,8 +210,8 @@ const translations = {
   "Premium Shopping": "تسوق مميز",
   Experience: "تجربة",
   "Featured Products": "المنتجات المميزة",
-
   "Flash Deals": "عروض سريعة",
+  "Flash Deal": "عرض سريع",
   "Show More": "عرض المزيد",
   "Premium Brands": "علامات تجارية مميزة",
   "TryDos - Premium Shopping Experience": "ترايدوس - تجربة تسوق مميزة",
@@ -1040,6 +1040,18 @@ const translations = {
   "Add To Bag Within ": "أضف إلى السلة خلال",
   seconds: "ثواني",
   "stroke of luck": "ضربة حظ",
+  "Today Shipping": "شحن اليوم",
+  "If Buy Before": "إذا اشتريت قبل",
+  Syria: "سوريا",
+  Iraq: "العراق",
+  Lebanon: "لبنان",
+  Turkey: "تركيا",
+  "Selected Color": "اللون المختار",
+  "Select Your Required Size": "اختر المقاس المطلوب",
+  "Added To Your Bag": "تمت الإضافة إلى سلتك",
+  "Removed From Your Bag": "تمت الإزالة من سلتك",
+  Added: "تمت الإضافة",
+  "To Your Bag": "إلى سلتك",
 };
 
 export default translations;

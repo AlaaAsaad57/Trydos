@@ -28,7 +28,7 @@ function AddToCartButton({
   const IsValid = () => {
     let color_valid = false,
       size_valid = false;
-    console.log(sizes, colors);
+
     if (!colors || colors?.length === 0) color_valid = true;
     else {
       color_valid = Boolean(selectedColor);
@@ -41,11 +41,11 @@ function AddToCartButton({
   };
 
   const Validate = () => {
-    if (colors && !selectedColor) {
+    if (colors && colors?.length > 0 && !selectedColor) {
       shake("#color-select");
       return false;
     }
-    if (sizes && !selectedSize) {
+    if (sizes && sizes?.length > 0 && !selectedSize) {
       shake("#size-select");
       return false;
     }
@@ -291,6 +291,7 @@ function AddToCartButton({
         onClick={(e) => {
           if ((e.target as any).closest(".minuse-qty-icon")) return false;
           let val = Validate();
+          console.log(val);
           if (!val) return;
           if (!loading && !initialLoading) {
             clickHandler({ variant: selectedVariant });
