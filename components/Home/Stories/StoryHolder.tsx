@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import ReportOrderItemIcon from "public/svg/ReportOrderItemIcon.svg";
 import TransParentLoader from "components/global/TransParentLoader";
 import {
@@ -18,7 +18,7 @@ import {
 } from "store/notifications/reducer";
 import { getUserStories, translateFunction } from "utils/functions";
 import { revalidateStories } from "utils/serverActions";
-import { fetchStories } from "Server Requests";
+import { fetchStories } from "serverRequests";
 import {
   COOKIE_NAMES,
   getCookie,
@@ -165,7 +165,6 @@ function StoryHolder({ story, active, isPaused }: StoryHolderPropsType) {
         id={story.id}
         key={`${story.id}-${currentStoryId}`}
         isPaused={showDeleteModal || !active || showReportModal}
-        preloadCount={0}
         onStoryStart={(e) => {
           if (active && story?.stories?.[e]) {
             const s: any = story.stories[e];

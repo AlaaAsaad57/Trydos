@@ -1,8 +1,5 @@
 import { elasticSearchClient } from "./elasticsearch.config";
-import {
-  SearchRequest,
-  SearchResponse,
-} from "@elastic/elasticsearch/lib/api/types";
+
 import { estypes } from "@elastic/elasticsearch";
 import {
   COOKIE_NAMES,
@@ -74,7 +71,7 @@ export class ElasticsearchReader {
         baseConditions;
       mustConditions.push({ terms: { id: numericIds } });
       // // 3. Query products_catalog by IDs
-      const searchQuery: SearchRequest = {
+      const searchQuery = {
         index: "products_catalog",
         _source: getSourceFields(),
         size: limit,
@@ -88,11 +85,12 @@ export class ElasticsearchReader {
       };
 
       if (search_after?.length > 0) {
+        // @ts-ignore
         searchQuery.search_after = search_after;
       }
 
       // // 4. Run query
-      const response: SearchResponse = await this.client.search(searchQuery);
+      const response = await this.client.search(searchQuery);
       const hits = response.hits.hits;
 
       // // 5. Extract products
@@ -125,7 +123,7 @@ export class ElasticsearchReader {
       return { products: [], search_after: [] };
     }
   }
-  async getCategories<T>(ReqQuery: any): Promise<SearchResponse<T>> {
+  async getCategories<T>(ReqQuery: any) {
     let country = ReqQuery.country;
     try {
       const { mustConditions, mustNotConditions } = this.getRules(country);

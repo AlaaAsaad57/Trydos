@@ -5,7 +5,7 @@ import StoriesPaginationWrapper from "components/Home/Stories/StoriesPaginationW
 import StoriesStoreInitializer from "components/Home/Stories/StoriesStoreInitializer";
 import StoryElement from "components/Home/Stories/StoryElement";
 import StoriesSkeleton from "components/skeleton/StoriesSkeleton";
-import { fetchStories } from "@/Server Requests";
+import { fetchStories } from "@/serverRequests";
 import {
   COOKIE_NAMES,
   getCookieServer,

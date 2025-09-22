@@ -41,7 +41,7 @@ interface StoryViewerProps {
 
 const DEFAULT_DURATION = 5000; // 5s for images if duration not provided
 
-const StoryViewer: React.FC<StoryViewerProps> = ({
+const StoryViewer = ({
   activeId,
   id,
   isPaused,
@@ -57,7 +57,7 @@ const StoryViewer: React.FC<StoryViewerProps> = ({
   height = "100vh",
   onAllStoriesEnd,
   onStoryEnd,
-  header,
+  header = null,
 }) => {
   /* ----------------------------- Local state ---------------------------- */
   const [index, setIndex] = useState(currentIndex);

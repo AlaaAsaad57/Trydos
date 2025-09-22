@@ -24,7 +24,7 @@ interface SettingsModalProps {
   lang: string | string[];
 }
 
-const SettingsModal: React.FC<SettingsModalPropsType> = ({ onClose, lang }) => {
+const SettingsModal = ({ onClose, lang }) => {
   const [mounted, setMounted] = useState(false);
   const [activeTab, setActiveTab] = useState<"notifications" | "preferences">(
     "notifications"

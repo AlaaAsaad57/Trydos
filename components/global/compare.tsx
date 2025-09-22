@@ -10,10 +10,10 @@ import CompareLoadingWidget from "./CompareLoadingWidget";
 import { useAppStore } from "store";
 import NextLink from "./NextLink";
 import { GetImageUrl } from "utils/tinyUtils";
-import { fetchFilteredProducts } from "Server Requests";
+import { fetchFilteredProducts } from "serverRequests";
 import { ComparePageComponentPropsType } from "models/componentType/compareTypes/ComparePageComponentPropsType";
 import { showErrorNotification } from "@/store/notifications/reducer";
-const ComparePage: React.FC = ({
+const ComparePage = ({
   showInstantLoading = true,
 }: ComparePageComponentPropsType) => {
   const { currency } = useAppStore();
@@ -366,7 +366,10 @@ const ComparePage: React.FC = ({
           {product.choice_options
             ?.find((opt) => opt.title === "Size")
             ?.options?.map((size) => (
-              <span key={size.name} className="px-2 py-1 bg-gray-100 rounded regular">
+              <span
+                key={size.name}
+                className="px-2 py-1 bg-gray-100 rounded regular"
+              >
                 {size.name}
               </span>
             )) || "-"}
@@ -433,7 +436,11 @@ const ComparePage: React.FC = ({
         <CompareLoadingWidget />
       ) : (
         <div className="container mx-auto p-4 max-w-7xl pb-[200px]">
-          <div className={`flex items-center gap-3 mb-8 flex-row ${ isRtl ? "flex-row-reverse": " "}`}>
+          <div
+            className={`flex items-center gap-3 mb-8 flex-row ${
+              isRtl ? "flex-row-reverse" : " "
+            }`}
+          >
             <svg
               xmlns="http://www.w3.org/2000/svg"
               xmlnsXlink="http://www.w3.org/1999/xlink"
@@ -529,10 +536,13 @@ const ComparePage: React.FC = ({
                   }
                   onClear={() => handleClear(true)}
                   onSearch={debouncedChangeHandler}
-                  options={products.map(p => ({
+                  options={products.map((p) => ({
                     ...p,
-                    images: typeof p.images === 'string' ? { file_path: p.images } : p.images
-                  }) )}
+                    images:
+                      typeof p.images === "string"
+                        ? { file_path: p.images }
+                        : p.images,
+                  }))}
                   isLoading={searchLoading || loading1}
                   className="w-full"
                   selectedOption={
@@ -540,7 +550,10 @@ const ComparePage: React.FC = ({
                       ? {
                           label: product1.name,
                           value: product1.slug,
-                          images: product1.images && product1.images[0] ? { file_path: product1.images[0].file_path } : undefined,
+                          images:
+                            product1.images && product1.images[0]
+                              ? { file_path: product1.images[0].file_path }
+                              : undefined,
                           price: product1.price,
                         }
                       : null
@@ -555,10 +568,13 @@ const ComparePage: React.FC = ({
                   }
                   onClear={() => handleClear(false)}
                   onSearch={debouncedChangeHandler}
-                  options={products.map(p => ({
+                  options={products.map((p) => ({
                     ...p,
-                    images: typeof p.images === 'string' ? { file_path: p.images } : p.images
-                  }) )}
+                    images:
+                      typeof p.images === "string"
+                        ? { file_path: p.images }
+                        : p.images,
+                  }))}
                   isLoading={searchLoading || loading2}
                   className="w-full"
                   selectedOption={
@@ -566,7 +582,10 @@ const ComparePage: React.FC = ({
                       ? {
                           label: product2.name,
                           value: product2.slug,
-                          images: product2.images && product2.images[0] ? { file_path: product2.images[0].file_path } : undefined,
+                          images:
+                            product2.images && product2.images[0]
+                              ? { file_path: product2.images[0].file_path }
+                              : undefined,
                           price: product2.price,
                         }
                       : null
@@ -581,7 +600,10 @@ const ComparePage: React.FC = ({
                   <table className="w-full border-collapse text-gray-800 regular">
                     <tbody>
                       {compareFields.map(({ key, label, render }) => (
-                        <tr key={key} className="border-b last:border-b-0 hover:bg-blue-50 transition-colors">
+                        <tr
+                          key={key}
+                          className="border-b last:border-b-0 hover:bg-blue-50 transition-colors"
+                        >
                           <th className="p-4 text-left bg-blue-100 w-1/4 font-semibold text-blue-900 whitespace-nowrap border-r border-gray-200 regular">
                             {label}
                           </th>

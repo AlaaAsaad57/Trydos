@@ -106,126 +106,6 @@ export const configureSearchParams = ({
 
   return params;
 };
-export const GetFilterUrlParams = ({
-  boutiqueId,
-  searchParams: filtersSearchParams,
-}) => {
-  let searchFilters, searchFiltersEdit;
-  if (filtersSearchParams?.get("categories")?.length > 0) {
-    searchFilters = {
-      ...searchFilters,
-      categories: JSON.parse(
-        decodeURIComponent(filtersSearchParams?.get("categories"))
-      )?.map((s) => ({ slug: s })),
-    };
-  }
-  if (filtersSearchParams?.get("brands")?.length > 0) {
-    searchFilters = {
-      ...searchFilters,
-      brands: JSON.parse(
-        decodeURIComponent(filtersSearchParams?.get("brands"))
-      ).map((s) => ({ slug: s })),
-    };
-  }
-  if (filtersSearchParams?.get("colors")?.length > 0) {
-    searchFilters = {
-      ...searchFilters,
-      colors: JSON.parse(
-        decodeURIComponent(filtersSearchParams?.get("colors"))
-      ),
-    };
-  }
-  if (filtersSearchParams?.get("sizes")?.length > 0) {
-    searchFilters = {
-      ...searchFilters,
-      sizes: JSON.parse(decodeURIComponent(filtersSearchParams?.get("sizes"))),
-    };
-  }
-  if (filtersSearchParams?.get("prices")?.length > 0) {
-    searchFilters = {
-      ...searchFilters,
-      prices: JSON.parse(
-        decodeURIComponent(filtersSearchParams?.get("prices"))
-      ),
-    };
-  }
-  if (
-    boutiqueId === "listing" &&
-    filtersSearchParams?.get("boutiques")?.length > 0
-  ) {
-    searchFilters = {
-      ...searchFilters,
-      boutiques: JSON.parse(
-        decodeURIComponent(filtersSearchParams?.get("boutiques"))
-      ).map((s) => ({ slug: s })),
-    };
-  }
-  if (boutiqueId !== "listing") {
-    searchFilters = {
-      ...searchFilters,
-      boutiques: JSON.parse(decodeURIComponent(`["${boutiqueId}"]`)).map(
-        (s) => ({
-          slug: s,
-        })
-      ),
-    };
-  }
-  if (filtersSearchParams?.search_text?.length > 0) {
-    searchFilters = {
-      ...searchFilters,
-      search_text: filtersSearchParams?.search_text,
-    };
-  }
-
-  if (searchFilters?.categories && searchFilters.categories.length > 0) {
-    searchFiltersEdit = {
-      ...searchFiltersEdit,
-      categories: JSON.stringify(searchFilters.categories.map((s) => s.slug)),
-    };
-  }
-  if (searchFilters?.brands && searchFilters.brands.length > 0) {
-    searchFiltersEdit = {
-      ...searchFiltersEdit,
-      brands: JSON.stringify(searchFilters.brands.map((s) => s.slug)),
-    };
-  }
-  if (searchFilters?.boutiques && searchFilters.boutiques.length > 0) {
-    searchFiltersEdit = {
-      ...searchFiltersEdit,
-      boutiques: JSON.stringify(searchFilters.boutiques.map((s) => s.slug)),
-    };
-  }
-  if (searchFilters?.colors && searchFilters.colors.length > 0) {
-    searchFiltersEdit = {
-      ...searchFiltersEdit,
-      colors: JSON.stringify(searchFilters.colors.map((s) => s)),
-    };
-  }
-  if (searchFilters?.sizes && searchFilters.sizes.length > 0) {
-    searchFiltersEdit = {
-      ...searchFiltersEdit,
-      sizes: JSON.stringify(searchFilters.sizes.map((s) => s)),
-    };
-  }
-  if (searchFilters?.prices?.length > 0) {
-    searchFiltersEdit = {
-      ...searchFiltersEdit,
-      prices: JSON.stringify(searchFilters?.prices?.map((s) => s)),
-    };
-  }
-  if (searchFilters?.search_text?.length > 0) {
-    searchFiltersEdit = {
-      ...searchFiltersEdit,
-      search_text: searchFilters?.search_text,
-    };
-  }
-  let requestSearchParams = new URLSearchParams();
-  if (searchFiltersEdit && Object.keys(searchFiltersEdit)?.length > 0) {
-    requestSearchParams.set("searchParams", JSON.stringify(searchFiltersEdit));
-  }
-  requestSearchParams.set("noProducts", "true");
-  return requestSearchParams;
-};
 export const ChatConroller = (payload) => {
   try {
     const { openChat, setChatOpen } = useAppStore.getState();
@@ -506,7 +386,7 @@ export const formatPhone = (phone) => {
   }
   return { data, pattern, valid };
 };
-export const getCountry = (text?: string) => {
+const getCountry = (text?: string) => {
   return allCountries.filter((countryItem) =>
     text?.startsWith(countryItem.dialCode)
   ).length === 1
@@ -688,62 +568,6 @@ export const filtersToSearchParams = (filters: Record<string, string[]>) => {
   return searchParams;
 };
 
-/**
- * Get filter URL for navigation
- * @param currentFilters - Current filters object
- * @param filterType - Type of filter to modify
- * @param value - Value to add/remove
- * @param lang - Language code
- * @param boutiqueId - Boutique ID (optional)
- * @returns New URL path
- */
-export const getFilterUrl = (
-  currentFilters: Record<string, string[]>,
-  filterType: string,
-  value: string,
-  lang: string,
-  boutiqueId?: string
-): string => {
-  const newFilters = { ...currentFilters };
-
-  // Handle special case for prices - only allow one value
-  if (filterType === "prices") {
-    if (newFilters[filterType]?.includes(value)) {
-      newFilters[filterType] = [];
-    } else {
-      newFilters[filterType] = [value];
-    }
-  } else {
-    // For other filters, toggle the value
-    if (!newFilters[filterType]) {
-      newFilters[filterType] = [];
-    }
-
-    if (newFilters[filterType].includes(value)) {
-      newFilters[filterType] = newFilters[filterType].filter(
-        (v) => v !== value
-      );
-    } else {
-      newFilters[filterType] = [...newFilters[filterType], value];
-    }
-  }
-
-  // Clean up empty filters
-  Object.keys(newFilters).forEach((key) => {
-    if (!newFilters[key] || newFilters[key].length === 0) {
-      delete newFilters[key];
-    }
-  });
-
-  const pathParams = buildParamsFromFilters(newFilters);
-  const basePath = boutiqueId
-    ? `/${lang}/filters/boutiques/${boutiqueId}`
-    : `/${lang}/filters`;
-
-  return pathParams.length > 0
-    ? `${basePath}/${pathParams.join("/")}`
-    : basePath;
-};
 export const DetectScreen = () => {
   let pathname = window.location.pathname;
   let searchParams = new URLSearchParams(window.location.search);

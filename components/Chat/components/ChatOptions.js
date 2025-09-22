@@ -8,6 +8,7 @@ import ArchiveIcon from "../svg/ArchiveIcon.svg";
 import { translateFunction } from "utils/functions";
 import { useParams } from "next/navigation";
 import { useAppStore } from "store";
+import Image from "next/image";
 function ChatOptions({ id, unread, pinned, muted, member_id }) {
   const { language, setUnreadChat, pinChat, muteChat, deleteChat } =
     useAppStore();
@@ -23,7 +24,7 @@ function ChatOptions({ id, unread, pinned, muted, member_id }) {
         className="chat-option chat-1"
         onClick={() => setUnreadChat({ id: id, value: !unread })}
       >
-        <UnreadIcon></UnreadIcon>
+        <Image src={UnreadIcon} alt="unread-icon" />
         <div>
           {unread ? translate("Read", language) : translate("Unread", language)}
         </div>
@@ -34,7 +35,8 @@ function ChatOptions({ id, unread, pinned, muted, member_id }) {
           pinChat({ id: id, value: !pinned, member_id: member_id })
         }
       >
-        <PinIcon></PinIcon>
+        <Image src={PinIcon} alt="unread-icon" />
+
         <div>
           {pinned ? translate("Unpin", language) : translate("Pin", language)}
         </div>
@@ -45,7 +47,11 @@ function ChatOptions({ id, unread, pinned, muted, member_id }) {
           muteChat({ id: id, value: !muted, member_id: member_id })
         }
       >
-        {!muted ? <MuteIcon></MuteIcon> : <UnmuteIcon></UnmuteIcon>}
+        {!muted ? (
+          <Image src={MuteIcon} alt="unread-icon" />
+        ) : (
+          <Image src={UnmuteIcon} alt="unread-icon" />
+        )}
         <div>
           {muted ? translate("Unmute", language) : translate("Mute", language)}
         </div>
@@ -54,11 +60,12 @@ function ChatOptions({ id, unread, pinned, muted, member_id }) {
         className="chat-option chat-4"
         onClick={() => deleteChat({ id: id })}
       >
-        <DeleteIcon></DeleteIcon>
+        <Image src={DeleteIcon} alt="unread-icon" />
+
         <div>{translate("Delete", language)}</div>
       </div>
       <div className="chat-option chat-5">
-        <ArchiveIcon></ArchiveIcon>
+        <Image src={ArchiveIcon} alt="unread-icon" />
         <div>{translate("Archive", language)}</div>
       </div>
     </div>

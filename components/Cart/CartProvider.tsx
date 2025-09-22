@@ -15,7 +15,7 @@ import {
   getCurrency,
   getReferralSource,
 } from "utils/tinyUtils";
-import AddToCartComponent from "./AddToCartComponent";
+import AddToCartComponent from "./AddToCart/AddToCartComponent";
 import { GA_GLOBAL_SCREEN, GA_EVENT_NAMES } from "utils/GAEvents";
 
 import { GAevent } from "utils/gtag";
@@ -196,7 +196,7 @@ const CartProvider = () => {
   );
 };
 export default CartProvider;
-export const StepSlider = ({ enableCart }) => {
+const StepSlider = ({ enableCart }) => {
   const { cart_enable: enable, cart, currency, total_cash } = useAppStore();
   const [step, setStep] = useState(0);
 

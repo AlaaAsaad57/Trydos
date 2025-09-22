@@ -20,23 +20,25 @@ import FilterBoutiquePageButton from "components/filterPage/FilterBoutiquePageBu
 import SearchBoutiquePage from "components/filterPage/SearchBoutiquePage";
 import CarouselContainer from "components/filterPage/CarouselContainer";
 import { GetImageUrl, parseFiltersFromParams } from "utils/tinyUtils";
-import { fetchCurrency } from "Server Requests";
+import { fetchCurrency } from "serverRequests";
 import { getProductsAndFiltersFromElastic } from "services/elastic/elasticSearch";
-import { getCurrencyFromCache, StoreCurrency } from "Server Requests/radis";
+import { getCurrencyFromCache, StoreCurrency } from "serverRequests/radis";
 import { ElasticsearchReader } from "services/elastic/elasticsearch-reader.service";
 import {
   getBoutiqueMetadata,
   GetStructuredData,
 } from "../../filters/[[...filters]]/Metadata";
 import DataSourceLogger from "components/global/DataSourceLogger";
+import { getCookieServer } from "utils/cookies/cookie-manager";
 
 export const dynamicParams = true;
 
 export async function generateMetadata({ params }) {
   // Fetch your main product categories
+  let Params = await params;
   try {
     const metadata = await getBoutiqueMetadata({
-      params,
+      params: Params,
       options: { is_fearured: true, is_flashDeals: false },
     });
 
@@ -47,10 +49,6 @@ export async function generateMetadata({ params }) {
   }
 }
 
-interface ParamsType {
-  lang: string;
-  filters?: string[];
-}
 async function GetBoutique(boutique, country, language) {
   try {
     if (boutique) {
@@ -95,9 +93,10 @@ async function getCurrency(country, language) {
     }
   } catch (error) {}
 }
-export default async function Page({ params }: { params: ParamsType }) {
-  let parsedFilters = parseFiltersFromParams(params.filters || []);
-  const [country, language] = params.lang.split("-");
+export default async function Page({ params }) {
+  let Params = await params;
+  let parsedFilters = parseFiltersFromParams(Params.filters || []);
+  const [country, language] = Params.lang.split("-");
   let boutiqueItem = parsedFilters?.boutiques?.[0] || null;
 
   if (parsedFilters.prices) {
@@ -138,17 +137,28 @@ export default async function Page({ params }: { params: ParamsType }) {
     search_text: parsedFilters?.search_text?.[0] || null,
   };
   const isRtl = language === "ar" || language === "ku";
+
+  const redeemed_ids = (await getCookieServer<any[]>("redemed_ids")) ?? [];
+  let productsData = filtersData.products.map((product) => {
+    if (product?.is_redeem) {
+      return {
+        ...product,
+        is_redeem: !redeemed_ids.find((s) => s.id === product.product_id),
+      };
+    } else return product;
+  });
   return (
     <>
       <Suspense fallback={<></>}>
+        {/*@ts-expect-error Async Server Component is valid in Next  */}
         <GetStructuredData
           is_fearured={true}
           response={filtersData}
           is_flashDeals={false}
-          params={params}
+          params={Params}
         />
       </Suspense>
-      <Suspense>
+      <Suspense fallback={<></>}>
         <FilterWidgetContainer key={JSON.stringify(parsedFilters)} />
       </Suspense>
       <div
@@ -168,10 +178,10 @@ export default async function Page({ params }: { params: ParamsType }) {
           ignoreConditionCase={true}
           data={{
             is_full_home: true,
-            href: `/${params.lang}`,
+            href: `/${Params.lang}`,
           }}
-          href={`/${params.lang}`}
-          ariaLabel={`TryDos Home ${params.lang}`}
+          href={`/${Params.lang}`}
+          ariaLabel={`TryDos Home ${Params.lang}`}
           className="back-icon"
         >
           <BackIcon
@@ -210,7 +220,7 @@ export default async function Page({ params }: { params: ParamsType }) {
         {
           <BoutiqueHeader
             boutique={boutique}
-            key={params.filters?.join("/") || "no-filters"}
+            key={Params.filters?.join("/") || "no-filters"}
           ></BoutiqueHeader>
         }
 
@@ -219,7 +229,7 @@ export default async function Page({ params }: { params: ParamsType }) {
             filters={filters}
             currency={currency}
             key={`filter-list-filters`}
-            params={params}
+            params={Params}
             parsedFilters={parsedFilters}
             isFeatured={true}
             isFlashDeals={false}
@@ -235,18 +245,18 @@ export default async function Page({ params }: { params: ParamsType }) {
           boutique={boutique?.banners ? boutique : null}
           isFlashDeals={false}
           colors={filtersData?.colors}
-          products={filtersData?.products ?? []}
+          products={productsData ?? []}
           offset={filtersData?.offset}
           currency={currency}
           key={`product-list-${JSON.stringify(parsedFilters)}`}
           parsedFilters={parsedFilters}
-          params={params}
+          params={Params}
         />
       </Suspense>
     </>
   );
 }
-async function BoutiqueHeader({ boutique }) {
+function BoutiqueHeader({ boutique }) {
   return (
     <>
       {boutique?.banners && (

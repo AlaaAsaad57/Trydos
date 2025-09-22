@@ -21,11 +21,10 @@ export interface CubeCarouselProps {
   renderItem: (index: number, active: boolean) => React.ReactNode;
 }
 
-const CubeCarousel: React.FC<CubeCarouselProps> = ({
-  lockScrolling = true,
-  ...rest
-}) => {
-  return <Cube lockScrolling={lockScrolling} {...rest} />;
+const CubeCarousel = ({ lockScrolling = true, ...rest }) => {
+  return (
+    <Cube lockScrolling={lockScrolling} {...(rest as CubeCarouselProps)} />
+  );
 };
 
 export default CubeCarousel;

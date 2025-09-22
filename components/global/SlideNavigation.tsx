@@ -130,5 +130,4 @@ export function SlideWidget({
 
 // --- Function: ExampleUsage ---
 
-export { useSlideTransition };
 export default SlideWidget;

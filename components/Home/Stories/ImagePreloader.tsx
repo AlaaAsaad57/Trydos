@@ -10,11 +10,7 @@ interface ImagePreloaderProps {
  * Preloads images to ensure instant display
  * Uses browser's built-in image preloading with priority hints
  */
-const ImagePreloader: React.FC<ImagePreloaderProps> = ({
-  stories,
-  currentIndex,
-  isPaused,
-}) => {
+const ImagePreloader = ({ stories, currentIndex, isPaused }) => {
   const preloadedImages = useRef<Map<string, HTMLImageElement>>(new Map());
 
   useEffect(() => {

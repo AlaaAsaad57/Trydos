@@ -3,7 +3,7 @@ import { translateFunction } from "utils/functions";
 import { OrderNumberCardProps } from "models/componentType/settingTypes/OrderDetailsPropsType";
 import { showSuccessNotification } from "@/store/notifications/reducer";
 
-const OrderNumberCard: React.FC<OrderNumberCardProps> = ({ number }) => {
+const OrderNumberCard = ({ number }) => {
   return (
     <div
       className="bg-[#F4F4F4] cursor-pointer w-1/3 min-h-[74px] h-auto rounded-[15px] py-[8px] px-[12px] flex-col"

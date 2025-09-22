@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { removeRedis, getKeys } from "Server Requests/radis";
+import { removeRedis, getKeys } from "serverRequests/radis";
 // your helper
 
 export async function GET(req: NextRequest) {

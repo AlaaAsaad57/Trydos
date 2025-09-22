@@ -10,7 +10,7 @@ interface VirtualTryOnProps {
   product: any;
 }
 
-const VirtualTryOn: React.FC<VirtualTryOnProps> = ({ language, product }) => {
+const VirtualTryOn = ({ language, product }) => {
   const isRtl = language === "ar" || language === "ku";
   const { setIsModalOpen } = useAppStore();
   return (

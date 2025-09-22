@@ -5,7 +5,7 @@ interface VersionCheckerProps {
   children?: React.ReactNode;
 }
 
-const VersionChecker: React.FC<VersionCheckerProps> = () => {
+const VersionChecker = () => {
   React.useEffect(() => {
     // Run version check on component mount
     checkAndUpdateVersion();

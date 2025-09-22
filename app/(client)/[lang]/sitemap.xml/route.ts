@@ -1,12 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { generateLocaleSpecificSitemapXML } from "services/elastic/sitemap.service";
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { lang: string } }
-) {
+export async function GET(request: NextRequest, { params }) {
+  const Params = await params;
+
   try {
-    const lang = params.lang;
+    const lang = Params.lang;
 
     // Parse country-language from the lang parameter (e.g., "tr-en" -> country: "tr", language: "en")
     const parts = lang.split("-");
@@ -48,7 +47,7 @@ export async function GET(
       },
     });
   } catch (error) {
-    console.error(`Error generating sitemap for ${params.lang}:`, error);
+    console.error(`Error generating sitemap for ${Params.lang}:`, error);
 
     return new NextResponse("Error generating sitemap", {
       status: 500,

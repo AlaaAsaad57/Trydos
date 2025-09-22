@@ -11,17 +11,7 @@ import { getConfiguredImage, translateFunction } from "utils/functions";
 import { formatTime, GetImageUrl } from "utils/tinyUtils";
 import { useAppStore } from "store";
 
-interface NotificationItemProps {
-  notification: NotificationItemType;
-  onClose: () => void;
-  closeWindow: () => void;
-}
-
-const NotificationItem: React.FC<NotificationItemProps> = ({
-  notification,
-  onClose,
-  closeWindow,
-}) => {
+const NotificationItem = ({ notification, onClose, closeWindow }) => {
   const { lang } = useParams();
   const pathname = usePathname();
   const router = useRouter();
@@ -108,7 +98,7 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
     );
   };
 
-  const getWrapper = (content: React.ReactNode) => {
+  const getWrapper = (content) => {
     const baseOnClick = () => {
       closeWindow();
       onClose();

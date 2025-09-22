@@ -1,11 +1,4 @@
 "use server";
-
-import {
-  SearchRequest,
-  SearchResponse,
-  QueryDslQueryContainer,
-  AggregationsAggregationContainer,
-} from "@elastic/elasticsearch/lib/api/types";
 import { elasticSearchClient } from "services/elastic/elasticsearch.config";
 import AnalyzeSearchText from "./analyzeSearchText";
 import {
@@ -214,7 +207,7 @@ export async function getProductsAndFiltersFromElastic(
       baseConditions;
 
     // Build the main search query
-    const searchQuery: SearchRequest = {
+    const searchQuery = {
       index: "products_catalog",
       _source: getSourceFields(),
       track_scores: true,
@@ -235,12 +228,13 @@ export async function getProductsAndFiltersFromElastic(
     };
     // Add search_after for pagination
     if (search_after.length > 0) {
+      // @ts-ignore
       searchQuery.search_after = search_after;
     }
     // Execute search with pagination
     const customProducts: any[] = [];
     let lastSortValue: any[] = search_after;
-    let response: SearchResponse;
+    let response;
 
     response = await client.search(searchQuery);
     const hits = response.hits.hits as ElasticsearchHit[];
@@ -387,7 +381,7 @@ export async function GetRecomendationsForUser({
       baseConditions;
     mustConditions.push({ terms: { id: numericIds } });
     // // 3. Query products_catalog by IDs
-    const searchQuery: SearchRequest = {
+    const searchQuery = {
       index: "products_catalog",
       _source: getSourceFields(),
       size: limit,
@@ -401,11 +395,12 @@ export async function GetRecomendationsForUser({
     };
 
     if (search_after?.length > 0) {
+      // @ts-ignore
       searchQuery.search_after = search_after;
     }
 
     // // 4. Run query
-    const response: SearchResponse = await client.search(searchQuery);
+    const response = await client.search(searchQuery);
     const hits = response.hits.hits;
 
     // // 5. Extract products
@@ -450,11 +445,11 @@ export async function GetRecomendationsForUser({
 // Helper Functions (These need to be implemented separately)
 
 function buildAggregations(
-  mustConditions: QueryDslQueryContainer[],
-  mustNotConditions: QueryDslQueryContainer[],
+  mustConditions: any[],
+  mustNotConditions: any[],
   languageCode: string,
   filtersSize: number
-): Record<string, AggregationsAggregationContainer> {
+): Record<string, any> {
   const filterCondition = {
     bool: {
       must: mustConditions,

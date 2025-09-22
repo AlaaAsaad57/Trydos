@@ -2,8 +2,7 @@ import { OrderDateCardProps } from "models/componentType/settingTypes/OrderDetai
 import React from "react";
 import { translateFunction } from "utils/functions";
 
-
-const OrderDateCard: React.FC<OrderDateCardProps> = ({ time }) => {
+const OrderDateCard = ({ time }) => {
   // Format the date string to a more readable format
   const formatTime = (timeString: string) => {
     const date = new Date(timeString + "Z");

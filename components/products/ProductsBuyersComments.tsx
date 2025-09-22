@@ -74,14 +74,8 @@ function ProductsBuyersComments({ lang, comments }) {
           id="comments-buyers-bar"
           className="flex-row w-full gap-[4px]"
         >
-          {comments?.map((s) => {
-            return (
-              <RateCommentItem
-                language={language}
-                comment={s}
-                key={s?.comment?.id}
-              />
-            );
+          {comments?.map((s, i) => {
+            return <RateCommentItem language={language} comment={s} key={i} />;
           })}
         </HortiznalScrollBar>
         <BuyersRatingBar language={language} />
@@ -149,7 +143,7 @@ const BuyerCommentRateInfo = ({ language }) => {
             id="Mask_Group_285"
             data-name="Mask Group 285"
             transform="translate(0 -0.251)"
-            clip-path="url(#clip-path)"
+            clipPath="url(#clip-path)"
           >
             <g id="Love" transform="translate(0 0.718)">
               <path

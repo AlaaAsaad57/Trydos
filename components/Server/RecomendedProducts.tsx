@@ -4,7 +4,7 @@ import { translateFunction } from "utils/functions";
 import ProductCard from "./ProductCard";
 import DataSourceLogger from "components/global/DataSourceLogger";
 
-async function RecomendedProducts({ lang, products, currencyData }) {
+function RecomendedProducts({ lang, products, currencyData }) {
   const [country, language] = lang.split("-");
   const isRtl = language === "ar" || language === "ku";
   let featuredProducts = products;

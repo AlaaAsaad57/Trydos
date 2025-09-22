@@ -1,5 +1,5 @@
-import { fetchProductDetails } from "Server Requests";
-import { fetchServerData } from "Server Requests/ServerFetch";
+import { fetchProductDetails } from "serverRequests";
+import { fetchServerData } from "serverRequests/ServerFetch";
 import { elasticSearchClient } from "services/elastic/elasticsearch.config";
 let client = elasticSearchClient;
 export const GetProductData = async (params: {

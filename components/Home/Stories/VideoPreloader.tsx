@@ -13,11 +13,7 @@ interface VideoPreloaderProps {
  * - Uses intersection observer to start preloading when needed
  * - Manages memory by removing far videos from cache
  */
-const VideoPreloader: React.FC<VideoPreloaderProps> = ({
-  stories,
-  currentIndex,
-  isPaused,
-}) => {
+const VideoPreloader = ({ stories, currentIndex, isPaused }) => {
   const preloadedVideos = useRef<Map<string, HTMLVideoElement>>(new Map());
 
   useEffect(() => {

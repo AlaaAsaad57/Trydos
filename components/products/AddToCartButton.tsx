@@ -1,98 +1,78 @@
 "use client";
 
 import { translateFunction } from "utils/functions";
-
 import { useParams } from "next/navigation";
 import { useAppStore } from "store";
 import { DisableScroll } from "utils/tinyUtils";
+import { getCookie } from "utils/cookies/cookie-manager";
 
 function AddToCartButton({ product }: { product: any }) {
-  const { AddToCartOption, setSelectedProductForCart } = useAppStore();
+  const { setSelectedProductForCart } = useAppStore();
   let { lang } = useParams();
   // @ts-ignore
   let languageVariable = lang.split("-")[1];
   const translate = (key, lang?) => {
     return translateFunction(key, languageVariable);
   };
-
+  const shoulShowRedeem = () => {
+    const redeemed_ids = getCookie<any[]>("redemed_ids") ?? [];
+    if (product?.is_redeem) {
+      return !redeemed_ids.find((s) => s.id === product.product_id);
+    }
+    return false;
+  };
   return (
     <div
-      className={`add-cart-button`}
+      className={`${
+        product ? "h-[68px] absolute" : "h-[63px] static"
+      } w-[80px] justify-center bottom-0  left-0 right-0 mx-auto rounded-t-[15px] bg-[#513AAF] text-[13px] medium text-white items-start pt-[11px] shadow-[inset_0px_3px_6px_rgb(255,255,255,0.5)]`}
       data-cy="addToCartButton"
       onClick={(e) => {
-        DisableScroll();
-
-        setSelectedProductForCart({ ...product, shouldUpdate: 0 });
+        if (product) {
+          DisableScroll();
+          setSelectedProductForCart({
+            ...product,
+            shouldUpdate: 0,
+            fromProductPage: true,
+            showRedeemPrice: shoulShowRedeem(),
+          });
+        }
       }}
     >
-      {<img src={"/svg/plusCart.svg"} className="plus-icon-button" />}
-
-      <div className="button-desc">
-        <div
-          className={`flex-row  justify-end relative w-full ${
-            !AddToCartOption.enable ? "pr-0" : "pr-[50%] "
-          }`}
+      <div className="flex-row flex items-center justify-center gap-[4px]">
+        <svg
+          id="Group_14474"
+          data-name="Group 14474"
+          xmlns="http://www.w3.org/2000/svg"
+          width="20.004"
+          height="20.004"
+          viewBox="0 0 20.004 20.004"
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            xmlnsXlink="http://www.w3.org/1999/xlink"
-            width="30"
-            height="30"
-            viewBox="0 0 30 30"
+          <g
+            id="Path_23609"
+            data-name="Path 23609"
+            transform="translate(0 0)"
+            fill="#fff"
           >
-            <g
-              id="Group_335"
-              data-name="Group 335"
-              transform="translate(0.568 -0.194)"
-            >
-              <g
-                id="Group_11014"
-                data-name="Group 11014"
-                transform="translate(1.192 0.364)"
-              >
-                <g
-                  id="Group_4037"
-                  data-name="Group 4037"
-                  transform="translate(0 0)"
-                >
-                  <g id="Group_4033" data-name="Group 4033">
-                    <g id="Group_4032" data-name="Group 4032">
-                      <path
-                        id="Path_15859"
-                        data-name="Path 15859"
-                        d="M1.077-.921H18.9l3.368,18.583s-1.685,2.585-2.655,2.585c-.735,0-13.582.424-19.695-.325-1.612-.2-2.174-2.257-2.174-2.257Z"
-                        transform="translate(2.798 9.169)"
-                        fill="#505050"
-                      />
-                      <g id="bag-5">
-                        <g id="Group_2946" data-name="Group 2946">
-                          <path
-                            id="Path_15168"
-                            data-name="Path 15168"
-                            d="M33.579,43.2H51.922a3.585,3.585,0,0,0,3.58-3.58.38.38,0,0,0-.006-.068L52.519,22.745a1.976,1.976,0,0,0-1.961-1.673H48.413V19.036a5.662,5.662,0,1,0-11.324,0v2.034H34.944a1.976,1.976,0,0,0-1.962,1.674L30.005,39.556a.386.386,0,0,0-.006.068A3.585,3.585,0,0,0,33.579,43.2Zm4.29-24.168a4.881,4.881,0,0,1,9.762,0v2.034H37.87Zm-4.117,3.841v-.006a1.2,1.2,0,0,1,1.193-1.018h2.145v3.089a.391.391,0,1,0,.781,0v-3.09h9.762v3.089a.391.391,0,1,0,.781,0V21.852h2.145A1.2,1.2,0,0,1,51.75,22.87v.008l2.972,16.779a2.8,2.8,0,0,1-2.8,2.766H33.579a2.8,2.8,0,0,1-2.8-2.766Z"
-                            transform="translate(-29.999 -13.374)"
-                            fill="#505050"
-                          />
-                        </g>
-                      </g>
-                    </g>
-                    <path
-                      id="Path_15172"
-                      data-name="Path 15172"
-                      d="M0,0S3.125,2.668,6.479,2.668,13.414,0,13.414,0"
-                      transform="translate(6.044 19.49)"
-                      fill="none"
-                      stroke="#ffe836"
-                      strokeLinecap="round"
-                      strokeWidth="0.3"
-                    />
-                  </g>
-                </g>
-              </g>
-            </g>
-          </svg>
-        </div>
-        <span className="mt-1">{translate("Add To Bag")}</span>
+            <path
+              d="M 10.001953125 19.65390396118164 C 4.679852962493896 19.65390396118164 0.3500031232833862 15.32405281066895 0.3500031232833862 10.001953125 C 0.3500031232833862 4.679852962493896 4.679852962493896 0.3500031232833862 10.001953125 0.3500031232833862 C 15.32405281066895 0.3500031232833862 19.65390396118164 4.679852962493896 19.65390396118164 10.001953125 C 19.65390396118164 15.32405281066895 15.32405281066895 19.65390396118164 10.001953125 19.65390396118164 Z"
+              stroke="none"
+            />
+            <path
+              d="M 10.001953125 0.7000026702880859 C 4.872842788696289 0.7000026702880859 0.7000026702880859 4.872842788696289 0.7000026702880859 10.001953125 C 0.7000026702880859 15.13106346130371 4.872842788696289 19.30390357971191 10.001953125 19.30390357971191 C 15.13106346130371 19.30390357971191 19.30390357971191 15.13106346130371 19.30390357971191 10.001953125 C 19.30390357971191 4.872842788696289 15.13106346130371 0.7000026702880859 10.001953125 0.7000026702880859 M 10.001953125 3.814697265625e-06 C 15.52588272094727 3.814697265625e-06 20.00390243530273 4.478023529052734 20.00390243530273 10.001953125 C 20.00390243530273 15.52588272094727 15.52588272094727 20.00390243530273 10.001953125 20.00390243530273 C 4.478023529052734 20.00390243530273 3.814697265625e-06 15.52588272094727 3.814697265625e-06 10.001953125 C 3.814697265625e-06 4.478023529052734 4.478023529052734 3.814697265625e-06 10.001953125 3.814697265625e-06 Z"
+              stroke="none"
+              fill="#513aaf"
+            />
+          </g>
+          <path
+            id="Path_21462"
+            data-name="Path 21462"
+            d="M1.343-2.2a.836.836,0,0,1-.617-.247A.839.839,0,0,1,.48-3.064a.789.789,0,0,1,.247-.6A.866.866,0,0,1,1.343-3.9H7.618a.85.85,0,0,1,.617.239.814.814,0,0,1,.247.61.814.814,0,0,1-.247.61.85.85,0,0,1-.617.239ZM4.458.814A.985.985,0,0,1,3.741.536a.949.949,0,0,1-.285-.711V-6.2a.937.937,0,0,1,.293-.711,1.012,1.012,0,0,1,.725-.278.953.953,0,0,1,.717.278.978.978,0,0,1,.27.711V-.175a.963.963,0,0,1-.278.711A.979.979,0,0,1,4.458.814Z"
+            transform="translate(5.521 13.189)"
+            fill="#513aaf"
+          />
+        </svg>
+        <span>{translate("Buy")}</span>
       </div>
     </div>
   );

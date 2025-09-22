@@ -13,6 +13,7 @@ import { GA_EVENT_NAMES, GA_GLOBAL_SCREEN } from "utils/GAEvents";
 import { EnableScroll } from "utils/tinyUtils";
 import auth from "services/auth";
 import { getProductsAndFiltersFromElastic } from "services/elastic/elasticSearch";
+import { getCookie } from "utils/cookies/cookie-manager";
 
 function ProductsInfiniteScroll({
   offset,
@@ -107,9 +108,17 @@ function ProductsInfiniteScroll({
       let newArray = Array.from(
         new Map(uniqueArray.map((c: any) => [c.product_id, c])).values()
       );
-      setProducts(newArray);
+      const redeemed_ids = getCookie<any[]>("redemed_ids") ?? [];
+      let productsData = newArray.map((product) => {
+        if (product?.is_redeem) {
+          return {
+            ...product,
+            is_redeem: !redeemed_ids.find((s) => s.id === product.product_id),
+          };
+        } else return product;
+      });
+      setProducts(productsData);
       if (response.products?.length > 0) {
-        console.log("**Offset Items IDS**", response.products, newArray);
         GAevent({
           action: GA_EVENT_NAMES.VIEW_ITEMS_LIST,
           params: {

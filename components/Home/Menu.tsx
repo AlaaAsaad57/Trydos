@@ -24,14 +24,14 @@ import {
   UserData,
 } from "utils/cookies/cookie-manager";
 import { getReferralSource } from "utils/tinyUtils";
-import dynamic from "node_modules/next/dynamic";
+import dynamic from "next/dynamic";
 
 interface MenuProps {
   user: any;
   setMenuOpen: (open: boolean) => void;
 }
 
-const MenuIcon: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+const MenuIcon = ({ children }) => (
   <svg
     width="20"
     height="20"
@@ -47,13 +47,13 @@ const MenuIcon: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   </svg>
 );
 
-const MenuItem: React.FC<{
-  onClick?: () => void;
-  href?: string;
-  children: React.ReactNode;
-  dataCy?: string;
-  icon: React.ReactNode;
-}> = ({ onClick, href, children, dataCy, icon }) => {
+const MenuItem = ({
+  onClick = () => {},
+  href = null,
+  children,
+  dataCy = "",
+  icon,
+}) => {
   const style = {
     padding: "10px 15px",
     cursor: "pointer",
@@ -98,7 +98,7 @@ const MenuItem: React.FC<{
   );
 };
 
-const Menu: React.FC<MenuProps> = ({ user, setMenuOpen }) => {
+const Menu = ({ user, setMenuOpen }) => {
   const userChat = getCookie<UserData>(COOKIE_NAMES.USER_CHAT);
   const userStories = getCookie<UserData>(COOKIE_NAMES.USER_STORIES);
   const [showNotifications, setShowNotifications] = useState(false);

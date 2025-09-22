@@ -19,10 +19,7 @@ interface NotificationsPanelProps {
   closeWindow: () => void;
 }
 
-const NotificationsPanel: React.FC<NotificationsPanelProps> = ({
-  onClose,
-  closeWindow,
-}) => {
+const NotificationsPanel = ({ onClose, closeWindow }) => {
   const notificationsRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [notifications, setNotifications] = useState<NotificationItemType[]>(

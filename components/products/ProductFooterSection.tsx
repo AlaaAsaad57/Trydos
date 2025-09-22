@@ -12,7 +12,6 @@ import { useAppStore } from "store";
 import { ProductFooterSectionPropsType } from "models/componentType/productTypes/MultiComponentOnProductPage";
 import { showErrorNotification } from "@/store/notifications/reducer";
 import { fetchData } from "utils/fetchData";
-import ProductRedeemButton from "./ProductRedeemPrice";
 import { deleteCookie } from "utils/cookies/cookie-manager";
 import { GAevent } from "utils/gtag";
 import { GA_EVENT_NAMES, GA_GLOBAL_SCREEN } from "utils/GAEvents";
@@ -342,7 +341,6 @@ function ProductFooterSection({
     <>
       {!loginOpen && (
         <>
-          {product?.is_redeem && <ProductRedeemButton product={product} />}
           {
             <ExtendedAreaInfo
               setOption={(e) => {

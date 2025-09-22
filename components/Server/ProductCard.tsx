@@ -21,15 +21,6 @@ function ProductCard({
   language = "en",
   Sliders = true,
 }) {
-  const shouldShowRedeem = () => {
-    if (typeof window === "undefined") return false;
-    let redeemed_products_ids = getCookie<any>("redemed_ids");
-    if (redeemed_products_ids) {
-      let parsed_redemed_ids = redeemed_products_ids;
-      return !parsed_redemed_ids.find((s) => s.id === product.product_id);
-    }
-    return true;
-  };
   const getImagesOfProducts = () => {
     if (product.sync_color_images) {
       if (product.sync_color_images?.[0]?.images) {
@@ -46,7 +37,7 @@ function ProductCard({
   const { setColorBottomSheet, isNavigating } = useAppStore();
   const [shouldShowRedeemAction, setShouldShowRedeem] = useState(false);
   const [activeColor, setActiveColor] = useState(getImagesOfProducts());
-
+  const [ProductData, setProductData] = useState(product);
   const getUrlofProduct = () => {
     let url = `/${params.lang}/products/${product.slug}`;
     let searchParams = new URLSearchParams();
@@ -92,6 +83,7 @@ function ProductCard({
       ) {
         let MAX_ARRAY_LENGTH =
           parseInt(process.env.NEXT_PUBLIC_MAX_ARRAY_LENGTH) || 5;
+        setProductData({ ...product, is_redeem: false });
         if (parsed_redeemed_products_ids.length < MAX_ARRAY_LENGTH)
           setCookie("redemed_ids", [
             ...parsed_redeemed_products_ids,
@@ -106,6 +98,7 @@ function ProductCard({
         return;
       }
     } else {
+      setProductData({ ...product, is_redeem: false });
       setCookie("redemed_ids", [
         { id: product?.product_id, showingDate: new Date().toISOString() },
       ]);
@@ -161,7 +154,7 @@ function ProductCard({
         <NextLink
           ignoreConditionCase={true}
           onClick={() => {
-            if (product?.is_redeem && shouldShowRedeem) {
+            if (ProductData?.is_redeem) {
               let text = document.querySelector(
                 `#counter-${product.product_id}`
               )?.textContent;
@@ -199,18 +192,18 @@ function ProductCard({
             Sliders={Sliders}
             product={{
               ...product,
-              flash_deal_end_date: false,
-              is_redeem: shouldShowRedeem && product.is_redeem,
+              flash_deal_end_date: product?.flash_deal_end_date,
+              is_redeem: ProductData.is_redeem,
             }}
             image={
               activeColor.images?.[0]?.file_path || activeColor?.images?.[0]
             }
-            shouldshowRedem={shouldShowRedeem()}
+            shouldshowRedem={ProductData?.is_redeem}
           />
 
           <div className="product-body pl-[13px] pr-[15px] z-10 flex-1 mt-[8px] w-100 flex-col align-start justify-start max-h-[60px] min-h-[30px]">
             <div
-              className="prouct-details whitespace-normal inline-block mt-[2px] text-left align-top overflow-hidden  regular-text text-[#3c3c3c] text-[10px] max-h-[25px]"
+              className="prouct-details max-w-full whitespace-normal inline-block mt-[2px] text-left align-top overflow-hidden  regular-text text-[#3c3c3c] text-[10px] max-h-[25px]"
               data-cy="productName"
             >
               <span className="flex-row align-center justify-start gap-[4px]">
@@ -227,7 +220,7 @@ function ProductCard({
                 )}
                 <VerifiedIcon />
               </span>
-              <p className="truncate w-full max-w-[90%]" data-cy="product-name">
+              <p className="truncate w-full max-w-full" data-cy="product-name">
                 {[product?.name, product.categories_tree]
                   ?.filter((s) => typeof s === "string")
                   ?.join(" | ")}
@@ -248,7 +241,7 @@ function ProductCard({
           seconds={seconds}
           setShouldShowRedeem={setShouldShowRedeem}
           shouldShowRedeem={shouldShowRedeemAction}
-          product={product}
+          product={ProductData}
           currency={currency}
           language={language}
           params={params}

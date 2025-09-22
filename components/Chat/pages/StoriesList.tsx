@@ -3,10 +3,9 @@ import { GetUnviewedStory, SelectStory } from "store/homepage/actions";
 import StoryChatRow from "../components/StoryChatRow";
 import { InView } from "react-intersection-observer";
 import Spinner from "components/global/Spinner";
-
 import { useAppStore } from "store";
-import { fetchStories } from "Server Requests";
-import { getUserChat, getUserStories } from "utils/functions";
+import { fetchStories } from "serverRequests";
+import { getUserStories } from "utils/functions";
 import Skeleton from "node_modules/react-loading-skeleton/dist";
 import StoryServiceClass from "services/story";
 function StoriesList() {

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { removeRedis } from "Server Requests/radis";
+import { removeRedis } from "serverRequests/radis";
 
 // Helper to add CORS + no-cache headers
 function withCORS(res: NextResponse) {

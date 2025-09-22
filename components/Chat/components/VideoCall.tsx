@@ -111,12 +111,7 @@ interface TimerDisplayProps {
   language: string;
 }
 
-const TimerDisplay: React.FC<TimerDisplayProps> = ({
-  minutes,
-  seconds,
-  isActive,
-  language,
-}) => {
+const TimerDisplay = ({ minutes, seconds, isActive, language }) => {
   const formattedTime = `${String(minutes).padStart(2, "0")}:${String(
     seconds
   ).padStart(2, "0")}`;
@@ -141,7 +136,7 @@ interface VideoPlayerProps {
   isLocal?: boolean;
 }
 
-const VideoPlayer: React.FC<VideoPlayerProps> = ({ user, isLocal = false }) => {
+const VideoPlayer = ({ user, isLocal = false }) => {
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -174,7 +169,7 @@ interface LocalVideoProps {
   track: ICameraVideoTrack | null;
 }
 
-const LocalVideo: React.FC<LocalVideoProps> = ({ track }) => {
+const LocalVideo = ({ track }) => {
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -199,13 +194,7 @@ const LocalVideo: React.FC<LocalVideoProps> = ({ track }) => {
 };
 
 // Main VideoCall Component
-const VideoCall: React.FC<VideoCallProps> = ({
-  token,
-  audio = false,
-  name = "",
-  user_id,
-  active,
-}) => {
+const VideoCall = ({ token, audio = false, name = "", user_id, active }) => {
   // Store hooks
   const {
     language,

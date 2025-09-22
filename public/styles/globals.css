@@ -952,3 +952,25 @@ input[type="number"] {
 svg {
   overflow: visible;
 }
+
+@keyframes tilt-n-move-shaking {
+  0% {
+    transform: translate(0, 0);
+  }
+  25% {
+    transform: translate(2px, 2px);
+  }
+  50% {
+    transform: translate(0, 0);
+  }
+  75% {
+    transform: translate(-2px, 2px);
+  }
+  100% {
+    transform: translate(0, 0);
+  }
+}
+.bagIcon.animated {
+  transition: all;
+  animation: tilt-n-move-shaking 0.7s infinite;
+}

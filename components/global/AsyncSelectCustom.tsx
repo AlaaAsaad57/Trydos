@@ -1,10 +1,8 @@
-import { AsyncSelectProps } from "models/componentType/compareTypes/AsyncSelectCustomPropsType";
 import React, { useEffect, useRef, useState } from "react";
 import { GetImageUrl } from "utils/tinyUtils";
 import { pollinateInput } from "@/utils/tinyUtils";
 
-
-const AsyncSelectCustom: React.FC<AsyncSelectProps> = ({
+const AsyncSelectCustom = ({
   placeholder,
   onSearch,
   options,
@@ -157,7 +155,9 @@ const AsyncSelectCustom: React.FC<AsyncSelectProps> = ({
                   />
                 )}
                 <div className="flex-1">
-                  <div className="font-medium text-gray-900">{option.label}</div>
+                  <div className="font-medium text-gray-900">
+                    {option.label}
+                  </div>
                   {option?.price && (
                     <div className="text-sm text-gray-600">
                       ${option.price.toFixed(2)}

@@ -144,20 +144,3 @@ export const forceVersionUpdate = (): void => {
   console.log("Forcing version update...");
   performVersionUpdate();
 };
-
-// Get version information for debugging
-export const getVersionInfo = (): {
-  currentVersion: string;
-  storedVersion: string | null;
-  needsUpdate: boolean;
-} => {
-  const currentVersion = getCurrentVersion();
-  const storedVersion = getStoredVersion();
-  const needsUpdate = checkVersionUpdate();
-
-  return {
-    currentVersion,
-    storedVersion,
-    needsUpdate,
-  };
-};

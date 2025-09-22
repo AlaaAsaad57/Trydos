@@ -16,10 +16,8 @@ import Image from "node_modules/next/image";
 import { GetImageUrl } from "utils/tinyUtils";
 import { OrderItemIdPropsType } from "models/componentType/OrderItemIdPropsType";
 import { OrderItemTimePropsType } from "models/componentType/OrderItemTimePropsType";
-import { OrderItemPropsType } from "models/componentType/OrderItemPropsType";
 
-const OrderItem: React.FC<OrderItemPropsType> = ({ order, showDetails }) => {
-  const { lang } = useParams();
+const OrderItem = ({ order, showDetails }) => {
   const { setActivePacks } = useAppStore();
   return (
     <div
@@ -107,7 +105,7 @@ const OrderStatus = ({
         {status.label}
       </span>
       <span className="ml-[7px]">
-        <OrderStatusIcon status={status?.value} isRtl={isRtl}/>
+        <OrderStatusIcon status={status?.value} isRtl={isRtl} />
       </span>
     </div>
   );

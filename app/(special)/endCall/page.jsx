@@ -1,5 +1,3 @@
-"use client";
-
 function page() {
   return (
     <div className="call-ended-screen">

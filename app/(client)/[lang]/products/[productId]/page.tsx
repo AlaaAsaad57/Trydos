@@ -35,8 +35,8 @@ import {
   RedisSet,
   StoreCurrency,
   storeProduct,
-} from "Server Requests/radis";
-import { fetchCurrency } from "Server Requests";
+} from "serverRequests/radis";
+import { fetchCurrency } from "serverRequests";
 import ProductPageError from "components/global/ProductPageError";
 import ExpectedDeleiveryBanner from "components/products/ExpectedDeleiveryBanner";
 import ProductsBuyersComments from "components/products/ProductsBuyersComments";
@@ -52,26 +52,32 @@ import ProductFeatures from "components/products/ProductFeatures";
 import VirtualTryOn from "components/products/VirtualTryOn";
 import VirtualTryOnWrapper from "components/products/VirtualTryOnWrapper";
 import ProductRedeemCounter from "components/products/ProductRedeemCounter";
+import PricesRow from "components/Cart/AddToCart/PricesRow";
+import { getCookieServer } from "utils/cookies/cookie-manager";
 // export const revalidate = parseInt(process.env.NEXT_PUBLIC_REVALIDATE);
 // For Middle East users
 
 export async function generateMetadata({ params, searchParams }) {
+  let Params = await params;
+  let SearchParams = await searchParams;
   try {
-    let cachedData = await RedisGet(`${params.productId}-${params.lang}`);
+    let cachedData = await RedisGet(`${Params.productId}-${Params.lang}`);
     if (cachedData) {
       return typeof cachedData === "string" ? JSON.parse(cachedData) : {};
     } else {
-      const metaData = await generateProductMetaData({ params, searchParams });
-
+      const metaData = await generateProductMetaData({
+        params: Params,
+        searchParams: SearchParams,
+      });
       // @ts-ignore
       if (metaData?.error) {
-        redirect(`/${params.lang}?message=product_not_found`);
+        redirect(`/${Params.lang}?message=product_not_found`);
       }
-      RedisSet(`${params.productId}-${params.lang}`, JSON.stringify(metaData));
+      RedisSet(`${Params.productId}-${Params.lang}`, JSON.stringify(metaData));
       return metaData;
     }
   } catch (error) {
-    redirect(`/${params.lang}?message=product_not_found`);
+    redirect(`/${Params.lang}?message=product_not_found`);
   }
 }
 async function getCurrency(country, language) {
@@ -129,18 +135,20 @@ async function GetProductDataFunc(params) {
     return null;
   }
 }
-async function Page({ params, searchParams }: ProductPagePropsType) {
+async function Page({ params, searchParams }) {
+  let Params = await params;
+  let SearchParams = await searchParams;
   try {
-    let [countryVariable, languageVariable] = params.lang.split("-");
+    let [countryVariable, languageVariable] = Params.lang.split("-");
     let start = process.hrtime.bigint();
 
     let [product, currency] = await Promise.all([
-      GetProductDataFunc(params),
+      GetProductDataFunc(Params),
       getCurrency(countryVariable, languageVariable),
     ]);
     let end = process.hrtime.bigint();
 
-    const color = searchParams.color;
+    const color = SearchParams.color;
     const JsonLd = {
       "@context": "https://schema.org",
       "@type": "Product",
@@ -156,7 +164,7 @@ async function Page({ params, searchParams }: ProductPagePropsType) {
         "@type": "Offer",
         url:
           process.env.NEXT_PUBLIC_REMOTE_FRONT +
-          `/${params.lang}/product/${params.productId}`,
+          `/${Params.lang}/product/${Params.productId}`,
         priceCurrency: generateCodeCurrency(currency?.code),
         price: product.offer_price * currency.exchange_rate,
         priceValidUntil: "2025-12-31",
@@ -208,9 +216,8 @@ async function Page({ params, searchParams }: ProductPagePropsType) {
     };
     const getImageBorder = (index, length) => {
       if (
-        // product?.flash_deal_details?.end_date ||
-        // product?.flash_deal_end_date
-        true
+        product?.flash_deal_details?.end_date ||
+        product?.flash_deal_end_date
       ) {
         if (length === 1)
           return (
@@ -399,7 +406,13 @@ async function Page({ params, searchParams }: ProductPagePropsType) {
       return text_info.join(" | ");
     };
     const isRtl = languageVariable === "ar" || languageVariable === "ku";
-
+    const redeemed_ids = (await getCookieServer<any[]>("redemed_ids")) ?? [];
+    if (product?.is_redeem) {
+      product = {
+        ...product,
+        is_redeem: !redeemed_ids.find((s) => s.id === product.id),
+      };
+    }
     return (
       <>
         <script
@@ -414,9 +427,9 @@ async function Page({ params, searchParams }: ProductPagePropsType) {
               Number(end - start) / 1_000_000
             } ms`}
           />
-          <ProductBackButton productId={params.productId} lang={params.lang} />
+          <ProductBackButton productId={Params.productId} lang={Params.lang} />
           <div
-            className="product-details-slider relative h-[474px] max-h-[474px]"
+            className="product-details-slider mt-[12px] relative h-[474px] max-h-[474px]"
             key={`key-${color}`}
           >
             {product?.videos?.[0] && (
@@ -434,6 +447,7 @@ async function Page({ params, searchParams }: ProductPagePropsType) {
             <ProductImagesSlider language={languageVariable}>
               {getImages(product, color)?.images?.map((img, i) => (
                 <div
+                  key={i}
                   className={`${
                     i === 0 ? "z-[99999999]" : "z-[88]"
                   } relative flex`}
@@ -564,7 +578,7 @@ async function Page({ params, searchParams }: ProductPagePropsType) {
                   language={languageVariable}
                 />
                 <ProductGeneralProperties
-                  languageVariable={params.lang?.split("-")?.[1]}
+                  languageVariable={Params.lang?.split("-")?.[1]}
                 />
                 <ProductFeatures
                   language={languageVariable}
@@ -587,16 +601,16 @@ async function Page({ params, searchParams }: ProductPagePropsType) {
                 <ProductColors
                   product={product}
                   currency={currency}
-                  params={params}
+                  params={Params}
                 />
               )}
               <div className="flex-col w-full h-auto rounded-[15px] bg-[#FCFCFC] mt-[12px] px-[10px]">
                 <ExpectedDeleiveryBanner
-                  lang={params.lang}
+                  lang={Params.lang}
                   days={product.shipping_days}
                 />
                 {product.shipping_cost === 0 && (
-                  <FreeShippingOption lang={params.lang} />
+                  <FreeShippingOption lang={Params.lang} />
                 )}
                 <div
                   className={`product-shipping h-auto  rounded-none p-0 py-[8px]  justify-start product-colors  flex-col align-start relative`}
@@ -700,9 +714,9 @@ async function Page({ params, searchParams }: ProductPagePropsType) {
               <ProductStories id={product.id} />
               <ProductsBuyersComments
                 comments={product?.comments}
-                lang={params.lang}
+                lang={Params.lang}
               />
-              <FAQSection comments={product?.comments} lang={params.lang} />
+              <FAQSection comments={product?.comments} lang={Params.lang} />
               {product?.choice_options?.filter(
                 (s) => s.title?.toLowerCase() === "size"
               )[0]?.options?.length > 0 && (
@@ -718,150 +732,23 @@ async function Page({ params, searchParams }: ProductPagePropsType) {
               {product?.choice_options?.filter(
                 (s) => s.title?.toLowerCase() === "size"
               )[0]?.options?.length > 0 && (
-                <ProductSizesReview lang={params.lang} />
+                <ProductSizesReview lang={Params.lang} />
               )}
             </div>
           </div>
 
           <div className="product-details-footer alternate-product-details-footer z-[999999999]">
-            <div className="product-info-container">
-              <div className={`${isRtl && "justify-end"} product-info-price`}>
-                {product?.offer_price !== product.price && (
-                  <div className="product-old-price">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="100%"
-                      height="2"
-                    >
-                      <line
-                        id="Line_1104"
-                        data-name="Line 1104"
-                        x2="100%"
-                        transform="translate(0 1)"
-                        fill="none"
-                        stroke="#C4C2C2"
-                        strokeWidth="2"
-                      />
-                    </svg>
-                    {RoundPrice({
-                      num: product?.price,
-                      language: languageVariable,
-                      rate: currency?.exchange_rate,
-                    }) ?? <Skeleton width={30} height={10} />}
-                  </div>
-                )}
-                <div className="product-new-price">
-                  {RoundPrice({
-                    num: product?.offer_price,
-                    language: languageVariable,
-                    rate: currency?.exchange_rate,
-                  }) ?? <Skeleton width={30} height={10} />}
-                </div>
-                <div className="product-currency">
-                  {currency?.symbol ?? (
-                    <Skeleton
-                      containerClassName="flex items-center"
-                      className="flex items-center"
-                      width={20}
-                      height={10}
-                    />
-                  )}
-                </div>
-                <div className="info-icon">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="12"
-                    height="12"
-                    viewBox="0 0 12 12"
-                  >
-                    <g
-                      id="Group_10807"
-                      data-name="Group 10807"
-                      transform="translate(-65 -464)"
-                    >
-                      <g
-                        id="Group_10756"
-                        data-name="Group 10756"
-                        transform="translate(65 464)"
-                      >
-                        <path
-                          id="Subtraction_1"
-                          data-name="Subtraction 1"
-                          d="M.262,9.636a.258.258,0,0,1-.156-.054.29.29,0,0,1-.1-.3L.675,7.091A4.792,4.792,0,0,1,0,4.636,4.554,4.554,0,0,1,4.458,0,4.554,4.554,0,0,1,8.914,4.636,4.555,4.555,0,0,1,4.458,9.273a4.341,4.341,0,0,1-2.5-.794L.409,9.589A.238.238,0,0,1,.262,9.636ZM4.416,6.982a.571.571,0,1,0,.562.571A.558.558,0,0,0,4.416,6.982Zm.115-4.55a.879.879,0,0,1,.954.88c0,.432-.183.7-.7,1.023a1.433,1.433,0,0,0-.817,1.288v.1c0,.319.171.518.447.518.255,0,.4-.162.426-.469.021-.445.181-.669.714-1a1.684,1.684,0,0,0-.987-3.16A1.8,1.8,0,0,0,2.812,2.6a1.186,1.186,0,0,0-.115.518.386.386,0,0,0,.413.434c.224,0,.349-.108.43-.372A.951.951,0,0,1,4.531,2.432Z"
-                          transform="translate(0 2.364)"
-                          fill="#8e8e8e"
-                        />
-                        <path
-                          id="Path_21380"
-                          data-name="Path 21380"
-                          d="M10.677,9.661a.259.259,0,0,1-.157.055.237.237,0,0,1-.147-.047L8.824,8.559l-.017.011a5.314,5.314,0,0,0,.4-2.036A5.089,5.089,0,0,0,4.227,1.352a4.724,4.724,0,0,0-1.094.127A4.326,4.326,0,0,1,6.325.079a4.555,4.555,0,0,1,4.457,4.636,4.778,4.778,0,0,1-.675,2.455l.664,2.189a.287.287,0,0,1-.094.3Z"
-                          transform="translate(0.23 0.466)"
-                          fill="#8e8e8e"
-                        />
-                        <rect
-                          id="Rectangle_4714"
-                          data-name="Rectangle 4714"
-                          width="11.536"
-                          height="12"
-                          transform="translate(0.464)"
-                          fill="none"
-                        />
-                      </g>
-                    </g>
-                  </svg>
-                </div>
-              </div>
-              <div
-                className={`${
-                  isRtl && "justify-end w-full"
-                } product-info-properties`}
-              >
-                <div className="product-prop-item">
-                  {translateFunction(
-                    "All Inclusive Without Additions",
-                    languageVariable
-                  )}
-                </div>
-                {product?.shipping_cost === 0 && (
-                  <div className="product-prop-item">
-                    <img
-                      width={15}
-                      height={15}
-                      alt={translateFunction("truck", languageVariable)}
-                      src="/svg/greentruck.svg"
-                    />
-                    <span>
-                      {translateFunction("Free Shipping", languageVariable)}
-                    </span>
-                  </div>
-                )}
-                <div className="product-prop-item">
-                  <img
-                    width={15}
-                    height={15}
-                    alt={translateFunction("truck", languageVariable)}
-                    src="/svg/redtruck.svg"
-                  />
-                  <span>
-                    {translateFunction("Free Return", languageVariable)}
-                  </span>
-                </div>
-                <div className="product-prop-item">
-                  <img
-                    width={10}
-                    height={15}
-                    alt={translateFunction("deliveryman", languageVariable)}
-                    src="/svg/deliveryman.svg"
-                  />
-                  <span>
-                    {translateFunction(
-                      "Ship To You Accepted",
-                      languageVariable
-                    )}{" "}
-                    {translateFunction("2 June", languageVariable)}
-                  </span>
-                </div>
-              </div>
+            <div className="product-info-container p-0 h-[40px] overflow-hidden">
+              <PricesRow
+                currency={currency}
+                language={languageVariable}
+                id={product.id}
+                offer_price={product.offer_price}
+                price={product.price}
+                redeem_price={product.redeem_price}
+                shipping_cost={product?.shipping_cost}
+                noBorder={true}
+              />
             </div>
 
             <ProductFooterSection product={product} currency={currency} />

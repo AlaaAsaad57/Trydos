@@ -53,16 +53,6 @@ export const _isStoreLastJson = () => {
   return !!process.env.NEXT_PUBLIC_IS_STORE_LAST_JSON;
 };
 
-export function encode_utf8(params: {
-  s: string;
-  element: NodeListOf<Element>;
-}) {
-  params.element.forEach((ele) => {
-    ele.innerHTML = params.s;
-  });
-  return "";
-}
-
 export const getConfiguredImage = ({
   src,
   width,
@@ -105,49 +95,6 @@ export const getLang = (lang, cookieLang) => {
       return "en";
     }
   }
-};
-
-export const getBoutiqueMeta = async ({ boutiqueId, lang }) => {
-  if (boutiqueId === "listing")
-    return { name: "Search", banners: null, icon: null };
-  let [country, language] = lang.split("-");
-  let start = new Date();
-  let resp = await fetch(
-    process.env.NEXT_PUBLIC_BACKEND_URL +
-      `/web/boutique/simpleDetails/${boutiqueId}?lang=${language}`,
-    {
-      next: {
-        revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE),
-      },
-      headers: new Headers({
-        Accept: "application/json",
-        "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
-        lang: language,
-        country: country,
-      }),
-    }
-  );
-  let data: SimpleBoutiqeApi = await resp.json();
-  let end = new Date();
-
-  LogData({
-    request: "Get Product simple info",
-    url:
-      process.env.NEXT_PUBLIC_BACKEND_URL +
-      `/web/boutique/simpleDetails/${boutiqueId}`,
-    headers: {
-      lang: language,
-      country: country,
-    },
-    response: data,
-    time: end.getTime() - start.getTime(),
-  });
-
-  if (data.message === "Boutique not found") {
-    notFound();
-  }
-
-  return { ...data.data, image: data.data?.banners[0]?.file_path };
 };
 
 export const caseCheck = (word, value) => {
@@ -310,44 +257,6 @@ export const normalizeView = () => {
   }
 };
 
-export const urlParams = ({ filters, noProducts, noFilter = false }) => {
-  const { PriceFiltered } = useAppStore.getState();
-
-  let urlParams = new URLSearchParams();
-  if (filters.categories.length > 0) {
-    urlParams.set("category_slugs", JSON.stringify(filters.categories));
-  }
-  if (filters.brands.length > 0) {
-    urlParams.set("brand_slugs", JSON.stringify(filters.brands));
-  }
-  if (
-    filters?.boutique_slug?.length > 0 &&
-    filters.boutique_slug !== "listing"
-  ) {
-    urlParams.set("boutique_slugs", JSON.stringify([filters.boutique_slug]));
-  }
-  if (filters?.attributes?.options?.length > 0) {
-    urlParams.set("attributes", JSON.stringify([filters.attributes]));
-  }
-  if (filters.prices !== null && PriceFiltered) {
-    urlParams.set("price", JSON.stringify(filters.prices));
-  }
-  if (filters?.searchText?.length > 0) {
-    urlParams.set("search_text", filters.searchText);
-  }
-  if (noProducts) {
-    urlParams.set("with_products", "false");
-  }
-  if (noFilter) {
-    urlParams.set("with_filters", "false");
-  }
-  if (filters.colors && filters?.colors.length > 0) {
-    urlParams.set("colors", JSON.stringify(filters.colors));
-  }
-
-  return urlParams.toString();
-};
-
 export const toUSD = (price) => {
   const { currency } = useAppStore.getState();
 
@@ -480,67 +389,6 @@ export const GetCartOreview = async () => {
     console.error(error);
   }
 };
-export const AddToCartAnimation = () => {
-  let productImage = document.getElementById("added-to-cart");
-  let CartIcon = document.getElementById("cart-icon");
-  const cartPosition = CartIcon?.getBoundingClientRect();
-  const productPosition = productImage?.getBoundingClientRect();
-  const clonedImage = productImage?.cloneNode();
-
-  if (clonedImage) {
-    // @ts-ignore
-    clonedImage?.classList.add("moving");
-    // @ts-ignore
-    clonedImage?.classList.remove("h-full");
-    // @ts-ignore
-    document.body.appendChild(clonedImage);
-    // @ts-ignore
-    clonedImage.style.left = `${productPosition.left}px`;
-    // @ts-ignore
-    clonedImage.style.top = `${productPosition.top}px`;
-    // @ts-ignore
-    clonedImage.style.width = `${productPosition.width}px`;
-    // @ts-ignore
-    clonedImage.style.height = `${productPosition.height}px`;
-  }
-  // @ts-ignore
-  document.body?.appendChild(clonedImage);
-  // @ts-ignore
-  CartIcon?.animate(
-    [
-      { scale: "1", transform: "rotate(0deg)" },
-      { scale: "1.2", transform: "rotate(10deg)" },
-      { scale: "1.4", transform: "rotate(-10deg)" },
-      { scale: "1", transform: "rotate(0deg)" },
-    ],
-    {
-      duration: 1500,
-      fill: "forwards",
-    }
-  );
-  // @ts-ignore
-  clonedImage?.animate(
-    [
-      {
-        scale: "1",
-        top: `${productPosition.top}px`,
-        left: `${productPosition.left}px`,
-        opacity: 1,
-      },
-      {
-        scale: "0.1",
-        top: `${cartPosition.top + 50}px`,
-        left: `${cartPosition.left + 100}px`,
-        opacity: 0,
-      },
-    ],
-    {
-      duration: 1200,
-      fill: "forwards",
-    }
-  );
-};
-
 export const LogError = async (error) => {
   await fetch(process.env.NEXT_PUBLIC_BACKEND_URL + "/mobile_error_log/store", {
     method: "POST",

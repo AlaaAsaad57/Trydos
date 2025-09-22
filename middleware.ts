@@ -168,7 +168,8 @@ function setLocaleCookies(
 
 // Geo IP utilities
 function getGeoCountry(request: NextRequest): string | undefined {
-  return request.geo?.country?.toLowerCase();
+  const country = request.headers.get("x-vercel-ip-country");
+  return country?.toLowerCase();
 }
 
 // Redirect utilities

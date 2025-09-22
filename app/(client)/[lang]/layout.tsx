@@ -55,7 +55,7 @@ const quicksand_semibold = localFont({
   fallback: ["system-ui", "arial"],
 });
 
-export default function RootLayout({
+export default async function RootLayout({
   params,
   children,
   loader,
@@ -65,6 +65,7 @@ export default function RootLayout({
   navauth,
   notification,
 }) {
+  const { lang } = await params;
   return (
     <html
       className={`
@@ -74,7 +75,7 @@ export default function RootLayout({
       ${quicksand_bold.variable}
       ${quicksand_semibold.variable}
       font-sans overflow-x-hidden`}
-      lang={params.lang.split("-")[1] === "ar" ? "ar-AE" : "en-US"}
+      lang={lang.split("-")[1] === "ar" ? "ar-AE" : "en-US"}
     >
       <head>
         <Script
@@ -104,7 +105,7 @@ export default function RootLayout({
         <meta name="google" content="notranslate" />
       </head>
 
-      <body className={params.lang.split("-")[1] === "ar" ? "text-rtl" : ""}>
+      <body className={lang.split("-")[1] === "ar" ? "text-rtl" : ""}>
         <SpeedInsights />
 
         <div className="site-container items-center">

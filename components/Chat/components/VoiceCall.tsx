@@ -109,12 +109,7 @@ interface TimerDisplayProps {
   language: string;
 }
 
-const TimerDisplay: React.FC<TimerDisplayProps> = ({
-  minutes,
-  seconds,
-  isActive,
-  language,
-}) => {
+const TimerDisplay = ({ minutes, seconds, isActive, language }) => {
   const formattedTime = `${String(minutes).padStart(2, "0")}:${String(
     seconds
   ).padStart(2, "0")}`;
@@ -134,13 +129,7 @@ const TimerDisplay: React.FC<TimerDisplayProps> = ({
 };
 
 // Main VoiceCall Component
-const VoiceCall: React.FC<VoiceCallProps> = ({
-  token,
-  audio = false,
-  name = "",
-  user_id,
-  active,
-}) => {
+const VoiceCall = ({ token, audio = false, name = "", user_id, active }) => {
   // Store hooks
   const {
     language,

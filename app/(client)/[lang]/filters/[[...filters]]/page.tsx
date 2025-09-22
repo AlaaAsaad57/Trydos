@@ -20,19 +20,22 @@ import FilterBoutiquePageButton from "components/filterPage/FilterBoutiquePageBu
 import SearchBoutiquePage from "components/filterPage/SearchBoutiquePage";
 import CarouselContainer from "components/filterPage/CarouselContainer";
 import { GetImageUrl, parseFiltersFromParams } from "utils/tinyUtils";
-import { fetchCurrency } from "Server Requests";
+import { fetchCurrency } from "serverRequests";
 import { getProductsAndFiltersFromElastic } from "services/elastic/elasticSearch";
-import { getCurrencyFromCache, StoreCurrency } from "Server Requests/radis";
+import { getCurrencyFromCache, StoreCurrency } from "serverRequests/radis";
 import { ElasticsearchReader } from "services/elastic/elasticsearch-reader.service";
 import DataSourceLogger from "components/global/DataSourceLogger";
+import { getCookieServer } from "utils/cookies/cookie-manager";
 
 export const dynamicParams = true;
 
 export async function generateMetadata({ params }) {
+  let Params = await params;
+
   // Fetch your main product categories
   try {
     const metadata = await getBoutiqueMetadata({
-      params,
+      params: Params,
       options: { is_fearured: false, is_flashDeals: false },
     });
 
@@ -41,11 +44,6 @@ export async function generateMetadata({ params }) {
     console.log(error);
     return [];
   }
-}
-
-interface ParamsType {
-  lang: string;
-  filters?: string[];
 }
 async function GetBoutique(boutique, country, language) {
   try {
@@ -91,9 +89,11 @@ async function getCurrency(country, language) {
     }
   } catch (error) {}
 }
-export default async function Page({ params }: { params: ParamsType }) {
-  let parsedFilters = parseFiltersFromParams(params.filters || []);
-  const [country, language] = params.lang.split("-");
+export default async function Page({ params }) {
+  let Params = await params;
+
+  let parsedFilters = parseFiltersFromParams(Params.filters || []);
+  const [country, language] = Params.lang.split("-");
   let boutiqueItem = parsedFilters?.boutiques?.[0] || null;
 
   if (parsedFilters.prices) {
@@ -134,17 +134,27 @@ export default async function Page({ params }: { params: ParamsType }) {
     search_text: parsedFilters?.search_text?.[0] || null,
   };
   const isRtl = language === "ar" || language === "ku";
+  const redeemed_ids = (await getCookieServer<any[]>("redemed_ids")) ?? [];
+  let productsData = filtersData.products.map((product) => {
+    if (product?.is_redeem) {
+      return {
+        ...product,
+        is_redeem: !redeemed_ids.find((s) => s.id === product.product_id),
+      };
+    } else return product;
+  });
   return (
     <>
       <Suspense fallback={<></>}>
+        {/*@ts-expect-error Async Server Component is valid in Next  */}
         <GetStructuredData
           is_fearured={false}
           response={filtersData}
           is_flashDeals={false}
-          params={params}
+          params={Params}
         />
       </Suspense>
-      <Suspense>
+      <Suspense fallback={<></>}>
         <FilterWidgetContainer key={JSON.stringify(parsedFilters)} />
       </Suspense>
       <div
@@ -163,10 +173,10 @@ export default async function Page({ params }: { params: ParamsType }) {
           ignoreConditionCase={true}
           data={{
             is_full_home: true,
-            href: `/${params.lang}`,
+            href: `/${Params.lang}`,
           }}
-          href={`/${params.lang}`}
-          ariaLabel={`TryDos Home ${params.lang}`}
+          href={`/${Params.lang}`}
+          ariaLabel={`TryDos Home ${Params.lang}`}
           className="back-icon"
         >
           <BackIcon
@@ -202,19 +212,18 @@ export default async function Page({ params }: { params: ParamsType }) {
         data-cy="boutique_header"
         className={`boutique-header ${"flex-col"} align-center`}
       >
-        {
-          <BoutiqueHeader
-            boutique={boutique}
-            key={params.filters?.join("/") || "no-filters"}
-          ></BoutiqueHeader>
-        }
+        {/*@ts-expect-error Async Server Component is valid in Next  */}
+        <BoutiqueHeader
+          boutique={boutique}
+          key={Params.filters?.join("/") || "no-filters"}
+        ></BoutiqueHeader>
 
         <Suspense fallback={<ListingSkeleton justFilters={true} />}>
           <FilterList
             filters={filters}
             currency={currency}
             key={`filter-list-filters`}
-            params={params}
+            params={Params}
             parsedFilters={parsedFilters}
           />
         </Suspense>
@@ -226,12 +235,12 @@ export default async function Page({ params }: { params: ParamsType }) {
         <ProductListServer
           colors={filtersData?.colors}
           boutique={boutique?.banners ? boutique : null}
-          products={filtersData?.products ?? []}
+          products={productsData ?? []}
           offset={filtersData?.offset}
           currency={currency}
           key={`product-list-${JSON.stringify(parsedFilters)}`}
           parsedFilters={parsedFilters}
-          params={params}
+          params={Params}
         />
       </Suspense>
     </>

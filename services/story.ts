@@ -1,14 +1,7 @@
 "use client";
-import { StoriesInterface } from "models/Genaral/Story";
-
 import { _isStoreLastJson, getLang } from "utils/functions";
-import {
-  GET_USERS_STORIES,
-  LOG_IN_STORIES,
-  UPLOAD_STORY_URL,
-} from "utils/endpointConfig";
+import { LOG_IN_STORIES } from "utils/endpointConfig";
 import { GetStoriesApi } from "models/API/stories/GetStories";
-import { LoginStoreisApi } from "models/API/stories/Login";
 import { UploadStoryApi } from "models/API/stories/UploadStory";
 import profilePicture from "public/images/profileNo.png";
 import { useAppStore } from "store";
@@ -21,8 +14,7 @@ import {
   UserData,
   setCookie,
 } from "utils/cookies/cookie-manager";
-import { revalidateStories } from "utils/serverActions";
-import { fetchStories } from "Server Requests";
+
 import { REQUESTS_DATA } from "utils/Requests";
 
 class StoryService {
@@ -154,13 +146,15 @@ class StoryService {
         throw new Error(add_story_response.message);
       }
 
-      revalidateStories();
-      let stories = await fetchStories(
-        language,
-        country,
-        1,
-        userStories?.access_token
-      );
+      await fetch("/api/revalidate");
+      let req = await fetch("/api/stories?page=1", {
+        headers: {
+          lang: language,
+          coountry: country,
+          auth: userStories?.access_token,
+        },
+      });
+      let stories = await req.json();
       setStoryData(stories.data);
       endUpload();
 

@@ -346,7 +346,7 @@ function PersonalInfoAddress({
 }
 
 export default PersonalInfoAddress;
-export const MiniAddressInfo = () => {
+const MiniAddressInfo = () => {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -393,7 +393,7 @@ export const MiniAddressInfo = () => {
     </svg>
   );
 };
-export const EditIcon = ({ address, onClick }) => {
+const EditIcon = ({ address, onClick }) => {
   const { startUpdateAddress } = useAppStore();
   return (
     <span
@@ -470,7 +470,7 @@ export const EditIcon = ({ address, onClick }) => {
     </span>
   );
 };
-export const DeleteIcon = ({ address, onClick }) => {
+const DeleteIcon = ({ address, onClick }) => {
   return (
     <span
       onClick={() => {

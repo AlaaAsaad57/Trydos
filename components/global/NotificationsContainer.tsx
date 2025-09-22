@@ -2,7 +2,6 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { useNotificationStore } from "@/store/notifications/reducer";
-import NotificationIcon from "public/svg/NotificationIcon.svg";
 import { GetImageUrl } from "utils/tinyUtils";
 import Image from "next/image";
 import { translateFunction } from "utils/functions";
@@ -108,7 +107,12 @@ const NotificationsContainer = () => {
                   height={40}
                 />
               ) : (
-                <NotificationIcon />
+                <Image
+                  width={25}
+                  height={25}
+                  src={"/svg/NotificationIcon.svg"}
+                  alt="notification-icon"
+                />
               )}
             </div>
 

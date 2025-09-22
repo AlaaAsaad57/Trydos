@@ -60,7 +60,7 @@ function ProductBackButton({ lang, productId }) {
     <div
       className={`${
         isRtl ? "flex-row-reverse" : "flex-row"
-      } back-bar align-center w-full  h-[50px] justify-between px-[10px]`}
+      } back-bar align-center w-full  h-[50px] justify-between px-[10px] shadow-[0px_0px_6px_rgb(0,0,0,0.10)]`}
       suppressHydrationWarning
     >
       <NextLink

@@ -1,5 +1,3 @@
-import { QueryDslQueryContainer } from "node_modules/@elastic/elasticsearch/lib/api/types";
-
 export function getSourceFields(): string[] {
   return [
     "id",
@@ -165,7 +163,7 @@ export function normalizeCustomProducts(
   return productsWithFilters;
 }
 
-export function filterColorSyncObj(
+function filterColorSyncObj(
   colors: ColorItem[],
   syncColorImages: SyncColorImage[]
 ): {
@@ -544,7 +542,7 @@ function getCustomCategoryFromHighestPositionCategory(
     most_viewed_product_thumbnail: productData.thumbnail || null,
   };
 }
-export function removeCategoryExtraFields(category: any): void {
+function removeCategoryExtraFields(category: any): void {
   const fieldsToRemove = [
     "description",
     "bio",
@@ -647,7 +645,7 @@ export function buildBaseConditions(filters: SearchFilters, country: string) {
     : [];
   const wordCount = searchWords.length;
 
-  const mustConditions: QueryDslQueryContainer[] = [
+  const mustConditions: any[] = [
     { term: { status: 1 } },
     { nested: { path: "boutique", query: { term: { "boutique.status": 1 } } } },
     { nested: { path: "brand", query: { term: { "brand.status": 1 } } } },
@@ -800,9 +798,7 @@ export function buildBaseConditions(filters: SearchFilters, country: string) {
     });
   }
 
-  const mustNotConditions: QueryDslQueryContainer[] = [
-    { exists: { field: "deleted_at" } },
-  ];
+  const mustNotConditions: any[] = [{ exists: { field: "deleted_at" } }];
 
   // Add country restrictions
   if (country) {
@@ -878,8 +874,8 @@ function buildSearchTextConditions(
   searchWords: string[],
   wordCount: number,
   fuzziness: string | number | null
-): QueryDslQueryContainer {
-  const shouldClauses: QueryDslQueryContainer[] = [];
+): any {
+  const shouldClauses: any[] = [];
 
   // Nested product search
   shouldClauses.push({
@@ -1089,14 +1085,14 @@ function buildSearchTextConditions(
 function buildMultiWordSearch(
   searchWords: string[],
   fuzziness: string | number | null
-): QueryDslQueryContainer {
-  const mustClauses: QueryDslQueryContainer[] = [];
+): any {
+  const mustClauses: any[] = [];
 
   searchWords.forEach((word) => {
     if (!word || word.trim() === "") return;
 
     const trimmedWord = word.trim();
-    const wordShould: QueryDslQueryContainer[] = [];
+    const wordShould: any[] = [];
 
     // Search in nested custom_products
     wordShould.push({
@@ -1230,18 +1226,18 @@ function buildAtLeastTwoClause(
   searchWords: string[],
   fuzziness: string | number | null,
   boost: number = 1
-): QueryDslQueryContainer | null {
+): any | null {
   if (searchWords.length < 2) {
     return null;
   }
 
-  const shouldClausesForEachWord: QueryDslQueryContainer[] = [];
+  const shouldClausesForEachWord: any[] = [];
 
   searchWords.forEach((word) => {
     if (!word || word.trim() === "") return;
 
     const trimmedWord = word.trim();
-    const subShould: QueryDslQueryContainer[] = [];
+    const subShould: any[] = [];
 
     // Search in nested custom_products
     subShould.push({

@@ -66,10 +66,8 @@ function FAQSection({ lang, comments }) {
           id="faq-buyers-bar"
           className="flex-row w-full gap-[4px]"
         >
-          {comments?.map((s) => {
-            return (
-              <FaqItem language={language} comment={s} key={s?.comment?.id} />
-            );
+          {comments?.map((s, i) => {
+            return <FaqItem language={language} comment={s} key={i} />;
           })}
         </HortiznalScrollBar>
         <AskInput language={language} />
@@ -135,7 +133,7 @@ const FaqItem = ({ language, comment }) => {
                 id="Mask_Group_285"
                 data-name="Mask Group 285"
                 transform="translate(0 -0.251)"
-                clip-path="url(#clip-path)"
+                clipPath="url(#clip-path)"
               >
                 <g id="Love" transform="translate(0 0.718)">
                   <path
@@ -210,7 +208,7 @@ const FaqItem = ({ language, comment }) => {
                     id="Mask_Group_285"
                     data-name="Mask Group 285"
                     transform="translate(0 -0.251)"
-                    clip-path="url(#clip-path)"
+                    clipPath="url(#clip-path)"
                   >
                     <g id="Love" transform="translate(0 0.718)">
                       <path

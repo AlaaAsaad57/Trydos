@@ -266,7 +266,7 @@ function ReturnOrderItem({
 }
 
 export default ReturnOrderItem;
-export const UploadImageComponent = ({
+const UploadImageComponent = ({
   images,
   setImages,
   loading,

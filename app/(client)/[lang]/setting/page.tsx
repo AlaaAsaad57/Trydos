@@ -1,18 +1,16 @@
 export const dynamic = "auto";
 export const runtime = "nodejs";
-export const preferredRegion = process.env.PREFERRED_REGION || "bom1";
+// export const preferredRegion = process.env.PREFERRED_REGION || "bom1";
 import Settings from "components/settings";
 import React from "react";
-
-import { settingPagePropsType } from "models/componentType/settingTypes/settingPagePropsType";
-
-export async function generateMetadata({ params }: settingPagePropsType) {
+export async function generateMetadata({ params }) {
+  let Params = await params;
   try {
     const metadata = {
       title: "Settings - TryDos",
       description: "Manage your TryDos account settings and preferences.",
       alternates: {
-        canonical: `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${params.lang}/setting`,
+        canonical: `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${Params.lang}/setting`,
       },
     };
     return metadata;
@@ -26,13 +24,15 @@ export async function generateMetadata({ params }: settingPagePropsType) {
 }
 
 async function page({ params, searchParams }) {
+  let Params = await params;
+  let SearchParams = await searchParams;
   // Server component to render JSON-LD structured data
-  let order_id = searchParams?.id;
-  let tab = searchParams?.tab;
+  let order_id = SearchParams?.id;
+  let tab = SearchParams?.tab;
 
   return (
     <>
-      <Settings order_id={order_id} tab={tab} lang={params.lang} />
+      <Settings order_id={order_id} tab={tab} lang={Params.lang} />
     </>
   );
 }

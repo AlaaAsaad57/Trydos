@@ -35,15 +35,6 @@ function ProductRedeemCounter({ language, product_id }) {
       ]);
     }
   };
-  const shouldShowRedeem = () => {
-    if (typeof window === "undefined") return false;
-    let redeemed_products_ids = getCookie<any>("redemed_ids");
-    if (redeemed_products_ids) {
-      let parsed_redemed_ids = redeemed_products_ids;
-      return !parsed_redemed_ids.find((s) => s.id === product_id);
-    }
-    return true;
-  };
   const getCounters = () => {
     if (typeof window === "undefined") return 0;
     let counter = localStorage?.getItem("counter");
@@ -126,46 +117,45 @@ function ProductRedeemCounter({ language, product_id }) {
     </svg>
   );
   const isRtl = language === "ar" || language === "ku";
-  if (shouldShowRedeem())
-    return (
-      <div
-        suppressHydrationWarning={true}
-        id="product-redeem-counter"
-        className={`${
-          isRtl
-            ? " flex-row-reverse right-0 rounded-tl-[4px] rounded-tr-[15px] rounded-br-[4px] rounded-bl-[15px]"
-            : "flex-row left-[0px] rounded-tr-[4px] rounded-tl-[15px] rounded-bl-[4px] rounded-br-[15px]"
-        } absolute pr-[5px] pl-[8px] text-nowrap  h-[19px] gap-[2px] items-center  top-[5px]  z-[99999999999]  bg-[#FFF3E8] text-[#FF6200] text-[9px] medium min-w-[140px]`}
-        style={{
-          border: "1px solid #FF6200",
-        }}
-      >
-        <ClockIcon />
-        <span className="whitespace-nowrap bold">
-          {translateFunction("Luck!", language)}
-        </span>
-        <span className="whitespace-nowrap ">
-          {translateFunction("Add To Bag Within ", language)}
-        </span>
-        <span className="whitespace-nowrap bold ">
-          {getCounters() > 0 ? (
-            <Timer
-              seconds={getCounters()}
-              minutes={0}
-              onlySeconds={true}
-              onFinish={() => {
-                finishCounter();
-              }}
-            />
-          ) : (
-            <Spinner />
-          )}
-        </span>
-        <span className="whitespace-nowrap ">
-          {translateFunction("seconds", language)}
-        </span>
-      </div>
-    );
+  return (
+    <div
+      suppressHydrationWarning={true}
+      id="product-redeem-counter"
+      className={`${
+        isRtl
+          ? " flex-row-reverse right-0 rounded-tl-[4px] rounded-tr-[15px] rounded-br-[4px] rounded-bl-[15px]"
+          : "flex-row left-[0px] rounded-tr-[4px] rounded-tl-[15px] rounded-bl-[4px] rounded-br-[15px]"
+      } absolute pr-[5px] pl-[8px] text-nowrap  h-[19px] gap-[2px] items-center  top-[5px]  z-[99999999999]  bg-[#FFF3E8] text-[#FF6200] text-[9px] medium min-w-[140px]`}
+      style={{
+        border: "1px solid #FF6200",
+      }}
+    >
+      <ClockIcon />
+      <span className="whitespace-nowrap bold">
+        {translateFunction("Luck!", language)}
+      </span>
+      <span className="whitespace-nowrap ">
+        {translateFunction("Add To Bag Within ", language)}
+      </span>
+      <span className="whitespace-nowrap bold ">
+        {getCounters() > 0 ? (
+          <Timer
+            seconds={getCounters()}
+            minutes={0}
+            onlySeconds={true}
+            onFinish={() => {
+              finishCounter();
+            }}
+          />
+        ) : (
+          <Spinner />
+        )}
+      </span>
+      <span className="whitespace-nowrap ">
+        {translateFunction("seconds", language)}
+      </span>
+    </div>
+  );
 }
 
 export default ProductRedeemCounter;

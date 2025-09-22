@@ -414,7 +414,7 @@ export const ChangeSizeWidget = ({
     </div>
   );
 };
-export const ChangeQtyWidget = ({
+const ChangeQtyWidget = ({
   qty,
   setQty,
   item,

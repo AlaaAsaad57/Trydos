@@ -6,10 +6,7 @@ import CryptoIcon from "assets/svg/cart/CryptoIcon.svg";
 import { useAppStore } from "store";
 import { OrderInvoiceCardProps } from "models/componentType/settingTypes/OrderDetailsPropsType";
 
-const OrderInvoiceCard: React.FC<OrderInvoiceCardProps> = ({
-  amount,
-  payments,
-}) => {
+const OrderInvoiceCard = ({ amount, payments }) => {
   const { currency } = useAppStore();
   // };
 

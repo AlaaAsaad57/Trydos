@@ -195,97 +195,104 @@ function ProductOptions({
         <ShareButton onClick={() => shareAction()} />
       ) : (
         <>
-          <AddToCartButton product={SelectedProduct} />
           <div
-            className={`options-container ${isRtl && "flex-row-reverse"}`}
+            className={`options-container relative w-full  justify-between flex flex-row pb-[35px] pt-[8px] h-[68px] px-[20px] ${
+              isRtl && "flex-row-reverse"
+            }`}
             data-cy="InteraCtionBoX"
           >
-            <div
-              className={`product-option-item ${
-                likeLoading && "opacity-80 scale-90"
-              } transition-all ${activeOption === "Like" && "active-option"}`}
-              data-cy="LoveSymbol"
-              onClick={() => {
-                // Sendevent({
-                //   event: GA_EVENT_NAMES.CLICK,
-                //   value: GA_CLICK_EVENT_VALUES.LIKE_PRODUCT_BUTTON,
-                // });
-                setOption("Like");
-                setLiked(!isLiked);
-                if (SelectedProduct?.is_liked) LikeProduct(false);
-                else LikeProduct(true);
-              }}
-            >
-              {SelectedProduct?.is_liked ? (
-                <HeartFill data-cy="LoveClickOnLast" />
-              ) : (
-                <Heart />
-              )}
-              {product.count_of_likes >= 0 || SelectedProduct?.likes >= 0 ? (
-                <span data-cy="CountOfLoves">{getSafeLikeCount()}</span>
-              ) : (
-                <Skeleton width={15} height={14}></Skeleton>
-              )}
-            </div>
-            <div
-              className="product-option-item"
-              data-cy="CommentIcon"
-              onClick={() => {
-                // Sendevent({
-                //   event: GA_EVENT_NAMES.CLICK,
-                //   value: GA_CLICK_EVENT_VALUES.SHOW_COMMENTS_BUTTON,
-                // });
-                setOption("Comment");
-              }}
-            >
-              <CommentIcon active={activeOption === "Comment"} />
-              <span data-cy="CountOfComment">
-                {productDetails.comments_count !== null ||
-                product.comments_count !== null ? (
-                  productDetails.comments_count ?? product.comments_count ?? 0
+            <AddToCartButton product={SelectedProduct ?? true} />
+            <div className="flex justify-between w-full">
+              <div
+                className={`product-option-item flex-row ${
+                  likeLoading && "opacity-80 scale-90"
+                } transition-all ${activeOption === "Like" && "active-option"}`}
+                data-cy="LoveSymbol"
+                onClick={() => {
+                  // Sendevent({
+                  //   event: GA_EVENT_NAMES.CLICK,
+                  //   value: GA_CLICK_EVENT_VALUES.LIKE_PRODUCT_BUTTON,
+                  // });
+                  setOption("Like");
+                  setLiked(!isLiked);
+                  if (SelectedProduct?.is_liked) LikeProduct(false);
+                  else LikeProduct(true);
+                }}
+              >
+                {SelectedProduct?.is_liked ? (
+                  <HeartFill data-cy="LoveClickOnLast" />
+                ) : (
+                  <Heart />
+                )}
+                {product.count_of_likes >= 0 || SelectedProduct?.likes >= 0 ? (
+                  <span data-cy="CountOfLoves">{getSafeLikeCount()}</span>
                 ) : (
                   <Skeleton width={15} height={14}></Skeleton>
                 )}
-              </span>
+              </div>
+              <div
+                className="product-option-item flex-row"
+                data-cy="CommentIcon"
+                onClick={() => {
+                  // Sendevent({
+                  //   event: GA_EVENT_NAMES.CLICK,
+                  //   value: GA_CLICK_EVENT_VALUES.SHOW_COMMENTS_BUTTON,
+                  // });
+                  setOption("Comment");
+                }}
+              >
+                <CommentIcon active={activeOption === "Comment"} />
+                <span data-cy="CountOfComment">
+                  {productDetails.comments_count !== null ||
+                  product.comments_count !== null ? (
+                    productDetails.comments_count ?? product.comments_count ?? 0
+                  ) : (
+                    <Skeleton width={15} height={14}></Skeleton>
+                  )}
+                </span>
+              </div>
             </div>
-            <div
-              className={`product-option-item relative ${
-                activeOption === "Share" && "active-option"
-              }`}
-              data-cy="ShareIcon"
-              onClick={() => {
-                // Sendevent({
-                //   event: GA_EVENT_NAMES.CLICK,
-                //   value: GA_CLICK_EVENT_VALUES.SHARE_PRODUCT_BUTTON,
-                // });
-                setOption("Share");
-              }}
-            >
-              {" "}
-              <Share />
-              <span data-cy="CountOfShares">
-                {(SelectedProduct?.sharesCount !== null &&
-                  SelectedProduct?.sharesCount >= 0) ||
-                product?.shared_count >= 0 ? (
-                  SelectedProduct?.sharesCount ?? product.shared_count
-                ) : (
-                  <Skeleton width={15} height={14}></Skeleton>
-                )}
-              </span>
-            </div>
-            <div
-              className="product-option-item"
-              data-cy="ThreePointsIcon"
-              onClick={() => {
-                // Sendevent({
-                //   event: GA_EVENT_NAMES.CLICK,
-                //   value: GA_CLICK_EVENT_VALUES.MORE_OPTIONS_BUTTON,
-                // });
-                setOption("More");
-              }}
-            >
-              <ThreePoints active={activeOption === "More"} />
-              <span></span>
+            <div className="min-w-[130px]" />
+            <div className="flex justify-between w-full">
+              <div
+                className={`product-option-item relative flex-row ${
+                  activeOption === "Share" && "active-option"
+                }`}
+                data-cy="ShareIcon"
+                onClick={() => {
+                  // Sendevent({
+                  //   event: GA_EVENT_NAMES.CLICK,
+                  //   value: GA_CLICK_EVENT_VALUES.SHARE_PRODUCT_BUTTON,
+                  // });
+                  setOption("Share");
+                }}
+              >
+                {" "}
+                <Share />
+                <span data-cy="CountOfShares">
+                  {(SelectedProduct?.sharesCount !== null &&
+                    SelectedProduct?.sharesCount >= 0) ||
+                  product?.shared_count >= 0 ? (
+                    SelectedProduct?.sharesCount ?? product.shared_count
+                  ) : (
+                    <Skeleton width={15} height={14}></Skeleton>
+                  )}
+                </span>
+              </div>
+              <div
+                className="product-option-item flex-row"
+                data-cy="ThreePointsIcon"
+                onClick={() => {
+                  // Sendevent({
+                  //   event: GA_EVENT_NAMES.CLICK,
+                  //   value: GA_CLICK_EVENT_VALUES.MORE_OPTIONS_BUTTON,
+                  // });
+                  setOption("More");
+                }}
+              >
+                <ThreePoints active={activeOption === "More"} />
+                <span></span>
+              </div>
             </div>
           </div>
         </>

@@ -5,7 +5,7 @@ export async function GET(request: NextRequest) {
     const country = request.headers.get("country")?.trim() || "sy";
     let language = request.headers.get("language")?.trim();
     const lang = request.headers.get("lang")?.trim();
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     if (country) cookieStore.set("country", country);
     if (lang) cookieStore.set("lang", lang);
     if (language) cookieStore.set("language", language);

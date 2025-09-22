@@ -63,7 +63,7 @@ export default function Error({
     error.message?.includes("chunks")
   ) {
     return (
-      <div className="site-container">
+      <div className="site-container root-level">
         <div className="flex justify-center flex-col items-center p-8 min-h-screen">
           {/* Logo Section */}
           <div className="mb-8">
@@ -146,7 +146,7 @@ export default function Error({
     );
   }
   return (
-    <div className="site-container min-h-screen bg-gradient-to-br from-red-50 via-white to-pink-50">
+    <div className="site-container root-level min-h-screen bg-gradient-to-br from-red-50 via-white to-pink-50">
       <div className="flex justify-center flex-col items-center p-8 min-h-screen">
         {/* Logo Section */}
         <div className="mb-8">

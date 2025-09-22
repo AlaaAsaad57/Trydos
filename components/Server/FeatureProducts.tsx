@@ -5,7 +5,7 @@ import { translateFunction } from "utils/functions";
 import ProductCard from "./ProductCard";
 import DataSourceLogger from "components/global/DataSourceLogger";
 
-async function FeatureProducts({
+function FeatureProducts({
   lang,
   fetauredProductsData,
   currencyData,

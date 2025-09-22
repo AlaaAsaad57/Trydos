@@ -10,10 +10,7 @@ interface CameraWidgetProps {
   onClose: () => void;
 }
 
-export const CameraWidget: React.FC<CameraWidgetProps> = ({
-  onCapture,
-  onClose,
-}) => {
+export const CameraWidget = ({ onCapture, onClose }) => {
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [hasMultipleCameras, setHasMultipleCameras] = useState(false);
   const [facingMode, setFacingMode] = useState<"user" | "environment">(

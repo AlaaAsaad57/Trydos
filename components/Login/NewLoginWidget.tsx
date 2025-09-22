@@ -1,6 +1,5 @@
 "use client";
 import { useEffect, useState } from "react";
-import LogoAuth from "public/svg/LogoAuth.svg";
 import { translateFunction } from "utils/functions";
 import "public/styles/newLogin.css";
 import "public/styles/login.css";
@@ -29,6 +28,7 @@ import {
 } from "utils/GAEvents";
 import { GAevent } from "utils/gtag";
 import auth from "services/auth";
+import Image from "next/image";
 
 function NewLoginWidget() {
   const router = useRouter();
@@ -421,8 +421,8 @@ function NewLoginWidget() {
             </svg>
           </div>
         )}
-
-        <LogoAuth
+        <Image
+          src={"/svg/LogoAuth.svg"}
           className="logo-auth"
           id="logo-auth"
           style={
@@ -438,6 +438,7 @@ function NewLoginWidget() {
                   marginLeft: "82px",
                 }
           }
+          alt="logo"
         />
 
         <div

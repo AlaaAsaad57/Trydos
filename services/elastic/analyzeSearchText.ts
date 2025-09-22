@@ -1,4 +1,4 @@
-import { GetColorAndSizes } from "Server Requests/analyticsUtility";
+import { GetColorAndSizes } from "serverRequests/analyticsUtility";
 
 const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${process.env.GL_API_KEY}`;
 

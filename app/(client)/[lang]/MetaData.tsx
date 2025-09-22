@@ -204,13 +204,13 @@ export const getHomeMetadata = async ({ params }): Promise<Metadata> => {
     ...metadata,
   };
 };
-export const GetStructuredData = async ({ params }) => {
-  const [country, language] = params.lang.split("-");
+export const GetStructuredData = async ({ lang }) => {
+  const [country, language] = lang.split("-");
   return {
     "@context": "https://schema.org",
     "@type": "Store",
     name: translateFunction("Trydos", language),
-    url: `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${params.lang}`,
+    url: `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${lang}`,
     description: translateFunction(
       "Discover Trydos: your online store for bar items, boutique products, and flash deals.",
       language

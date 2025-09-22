@@ -54,20 +54,3 @@ export const useAppStore = create<AppState>()((set, get) => ({
 }));
 
 // Hydration helper
-export const useHydratedStore = () => {
-  const hasHydrated = useAppStore((state) => state._hasHydrated);
-  const store = useAppStore();
-
-  // Return store methods only after hydration
-  if (!hasHydrated) {
-    // Return safe defaults during SSR/before hydration
-    return {
-      ...store,
-      storiesData: [],
-      setStoryData: () => {},
-      // Add other methods that need safe defaults
-    };
-  }
-
-  return store;
-};

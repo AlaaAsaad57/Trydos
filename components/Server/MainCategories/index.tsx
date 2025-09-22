@@ -1,10 +1,13 @@
 import SearchIcon from "components/Home/Search/SearchIcon";
 import { ElasticsearchReader } from "services/elastic/elasticsearch-reader.service";
 import NavbarServer from "../Navbar";
+import type { JSX } from "react";
 
-export default async function MainCategoriesNavbar({ lang, mainCategory }) {
+export default async function MainCategoriesNavbar({
+  lang,
+  mainCategory,
+}): Promise<JSX.Element> {
   const [country, language] = lang?.split("-");
-
   let Reader = new ElasticsearchReader();
   let start = process.hrtime.bigint();
   let a = await Reader.getCategories({ country: country, size: 4000 });

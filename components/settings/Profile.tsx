@@ -1,7 +1,6 @@
 import React from "react";
 import SettingTopBar from "./TopBar";
 import PersonIcon from "public/svg/PersonIcon.svg";
-import SizeIcon from "public/svg/SizeIcon.svg";
 import AddressIcon from "public/svg/AddressIcon.svg";
 import BankIcon from "public/svg/BankIcon.svg";
 
@@ -13,6 +12,7 @@ import {
   ProfilePropsType,
   SettingOptionsProfileType,
 } from "models/componentType/settingTypes/ProfilePropsType";
+import Image from "next/image";
 function Profile({ swipeToScreen, goBack }: ProfilePropsType) {
   const { userProfile } = useAppStore();
 
@@ -26,7 +26,7 @@ function Profile({ swipeToScreen, goBack }: ProfilePropsType) {
     {
       name: "Size",
       dataCy: "personal-size-button",
-      Icon: <SizeIcon />,
+      Icon: <Image src={"/svg/SizeIcon.svg"} alt="size-icon" />,
       callback: () => {
         swipeToScreen(4);
       },

@@ -176,7 +176,7 @@ const ReviewProgress = ({ value, title }) => {
     </div>
   );
 };
-export const BuyersRatingBar = ({ language, isFromModal = false }) => {
+const BuyersRatingBar = ({ language, isFromModal = false }) => {
   let recomended = 123;
   let not_recomended = 15;
   let recomendedPRC = (

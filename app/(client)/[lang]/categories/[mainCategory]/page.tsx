@@ -13,13 +13,12 @@ import FeatureProducts from "components/Server/FeatureProducts";
 import FeaturedProductsSkeleton from "components/skeleton/loaders/FeaturedProductsSkeleton";
 import FlashDealsProducts from "components/Server/FlashDealsProducts";
 import { getHomeMetadata, GetStructuredData } from "../../MetaData";
-
-import { HomePageProps } from "models/componentType/HomePagePropsType";
-import { fetchCurrency } from "Server Requests";
+import { fetchCurrency } from "serverRequests";
 import { ElasticsearchReader } from "services/elastic/elasticsearch-reader.service";
 import { getProductsAndFiltersFromElastic } from "services/elastic/elasticSearch";
-import { getCurrencyFromCache, StoreCurrency } from "Server Requests/radis";
+import { getCurrencyFromCache, StoreCurrency } from "serverRequests/radis";
 import MainCategoriesNavbar from "components/Server/MainCategories";
+import { getCookieServer } from "utils/cookies/cookie-manager";
 
 export async function generateMetadata({ params }) {
   try {
@@ -40,7 +39,8 @@ export async function generateMetadata({ params }) {
 // Server component to render JSON-LD structured data
 async function StructuredDataScript({ params }) {
   try {
-    const structuredData = await GetStructuredData({ params });
+    let Params = await params;
+    const structuredData = await GetStructuredData({ lang: Params.lang });
     // console.log(
     //   "**********structuredData***********",
     //   JSON.stringify(structuredData)
@@ -79,48 +79,55 @@ async function getCurrency(country, language) {
     }
   } catch (error) {}
 }
-async function HomePage({ params }: HomePageProps) {
+async function HomePage({ params }) {
+  let Params = await params;
   return (
     <>
       <Suspense fallback={null}>
-        <StructuredDataScript params={params} />
+        {/*@ts-expect-error Async Server Component is valid in Next  */}
+        <StructuredDataScript params={Params} />
       </Suspense>
 
       <Suspense
         fallback={<MobileNavigationSkeleton />}
-        key={`Navbar ${params.lang}`}
+        key={`Navbar ${Params.lang}`}
       >
+        {/*@ts-expect-error Async Server Component is valid in Next  */}
         <MainCategoriesNavbar
-          lang={params.lang}
-          mainCategory={params.mainCategory}
+          lang={Params.lang}
+          mainCategory={Params.mainCategory}
         />
       </Suspense>
 
-      <Suspense fallback={<StoriesSkeleton />} key={`Stories ${params.lang}`}>
+      <Suspense fallback={<StoriesSkeleton />} key={`Stories ${Params.lang}`}>
+        {/*@ts-expect-error Async Server Component is valid in Next  */}
         <StoriesBarServer
-          language={params.lang.split("-")[1]}
-          country={params.lang.split("-")[0]}
+          language={Params.lang.split("-")[1]}
+          country={Params.lang.split("-")[0]}
         />
       </Suspense>
 
-      <Suspense fallback={<FeaturedProductsSkeleton lang={params.lang} />}>
+      <Suspense fallback={<FeaturedProductsSkeleton lang={Params.lang} />}>
+        {/*@ts-expect-error Async Server Component is valid in Next  */}
         <FeaturedProductWrapper
-          lang={params.lang}
-          mainCategory={params.mainCategory}
+          lang={Params.lang}
+          mainCategory={Params.mainCategory}
         />
       </Suspense>
-      <Suspense fallback={<FeaturedProductsSkeleton lang={params.lang} />}>
+      <Suspense fallback={<FeaturedProductsSkeleton lang={Params.lang} />}>
+        {/*@ts-expect-error Async Server Component is valid in Next  */}
         <FlashProductWrapper
-          lang={params.lang}
-          mainCategory={params.mainCategory}
+          lang={Params.lang}
+          mainCategory={Params.mainCategory}
         />
       </Suspense>
-      <Home key={`Home ${params.lang}`} />
+      <Home key={`Home ${Params.lang}`} />
       <Suspense
         fallback={<OfferListSkeleton />}
-        key={`OfferList ${params.lang}`}
+        key={`OfferList ${Params.lang}`}
       >
-        <BoutiquesListWrapper params={params} />
+        {/*@ts-expect-error Async Server Component is valid in Next  */}
+        <BoutiquesListWrapper params={Params} />
       </Suspense>
     </>
   );
@@ -143,11 +150,20 @@ async function FeaturedProductWrapper({ lang, mainCategory }) {
     },
     limit: 10,
   });
+  const redeemed_ids = (await getCookieServer<any[]>("redemed_ids")) ?? [];
+  let productsData = data.products.map((product) => {
+    if (product?.is_redeem) {
+      return {
+        ...product,
+        is_redeem: !redeemed_ids.find((s) => s.id === product.product_id),
+      };
+    } else return product;
+  });
   return (
     <FeatureProducts
       dataSourceString={""}
       currencyData={currencyData}
-      fetauredProductsData={{ data: data }}
+      fetauredProductsData={{ data: { ...data, products: productsData } }}
       lang={lang}
     />
   );
@@ -166,11 +182,20 @@ async function FlashProductWrapper({ lang, mainCategory }) {
     },
     limit: 10,
   });
+  const redeemed_ids = (await getCookieServer<any[]>("redemed_ids")) ?? [];
+  let productsData = data.products.map((product) => {
+    if (product?.is_redeem) {
+      return {
+        ...product,
+        is_redeem: !redeemed_ids.find((s) => s.id === product.product_id),
+      };
+    } else return product;
+  });
   return (
     <FlashDealsProducts
       dataSourceString={""}
       currencyData={currencyData}
-      flashDealsProducts={{ data: data }}
+      flashDealsProducts={{ data: { ...data, products: productsData } }}
       lang={lang}
     />
   );

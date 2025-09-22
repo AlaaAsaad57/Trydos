@@ -6,11 +6,7 @@ import { useAppStore } from "store";
 import { useParams } from "next/navigation";
 import { GetImageUrl } from "utils/tinyUtils";
 
-interface WishListPanelProps {
-  onClose: () => void;
-}
-
-const WishListPanel: React.FC<WishListPanelProps> = ({ onClose }) => {
+const WishListPanel = ({ onClose }) => {
   const { currency } = useAppStore();
   const { lang } = useParams();
   const wishListRef = useRef<HTMLDivElement>(null);

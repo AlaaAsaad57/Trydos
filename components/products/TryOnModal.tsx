@@ -1,5 +1,4 @@
 "use client";
-
 import React, { useState, useRef, useEffect } from "react";
 import CloseIcon from "public/svg/close.svg";
 import CameraIcon from "../Chat/svg/image.svg";
@@ -9,17 +8,7 @@ import { DisableScroll, EnableScroll, GetImageUrl } from "utils/tinyUtils";
 import { useAppStore } from "store";
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 
-interface TryOnModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  language: string;
-}
-
-const TryOnModal: React.FC<TryOnModalProps> = ({
-  isOpen,
-  onClose,
-  language,
-}) => {
+const TryOnModal = ({ isOpen, onClose, language }) => {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [showResult, setShowResult] = useState(false);

@@ -1,4 +1,4 @@
-import React, { Suspense } from "react";
+import React from "react";
 import ActiveCategoryIcon from "public/svg/listing/ActiveCategoryIcon.svg";
 import CloseIcon from "public/svg/CloseIcon.svg";
 import Search from "public/svg/SearchIcon.svg";

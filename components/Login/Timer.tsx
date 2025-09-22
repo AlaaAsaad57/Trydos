@@ -31,7 +31,7 @@ function Timer({
   const formattedHours = String(data.hours).padStart(2, "0");
   const formattedSeconds = String(data.seconds).padStart(2, "0");
   if (onlySeconds) {
-    return formattedSeconds;
+    return <>{formattedSeconds}</>;
   }
   return (
     <>

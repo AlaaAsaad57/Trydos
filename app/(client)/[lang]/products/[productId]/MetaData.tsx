@@ -1,7 +1,7 @@
 // components/BoutiqueHead.tsx
 
 import { Metadata } from "next";
-import { fetchServerData } from "Server Requests/ServerFetch";
+import { fetchServerData } from "serverRequests/ServerFetch";
 import { generateCloudinaryUrl } from "utils/tinyUtils";
 const stripHtml = (html: string) => {
   if (html) {

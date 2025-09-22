@@ -1,34 +1,32 @@
 export const runtime = "nodejs";
 export const preferredRegion = "bom1";
 export const dynamic = "force-dynamic";
-
-import NavbarServer from "components/Server/Navbar";
 import OfferListServer from "components/Server/OfferListServer";
 import StoriesBarServer from "components/Server/StoriesBarServer";
 import MobileNavigationSkeleton from "components/skeleton/MobileNavigation";
 import OfferListSkeleton from "components/skeleton/OfferList";
 import StoriesSkeleton from "components/skeleton/StoriesSkeleton";
 import { Suspense } from "react";
+import type { JSX } from "react";
 import Home from "components/Home";
 import FeatureProducts from "components/Server/FeatureProducts";
 import FeaturedProductsSkeleton from "components/skeleton/loaders/FeaturedProductsSkeleton";
 import FlashDealsProducts from "components/Server/FlashDealsProducts";
 import { getHomeMetadata, GetStructuredData } from "./MetaData";
-
-import { HomePageProps } from "models/componentType/HomePagePropsType";
-import { fetchCurrency } from "Server Requests";
+import { fetchCurrency } from "serverRequests";
 import { ElasticsearchReader } from "services/elastic/elasticsearch-reader.service";
 import { getProductsAndFiltersFromElastic } from "services/elastic/elasticSearch";
-import { getCurrencyFromCache, StoreCurrency } from "Server Requests/radis";
+import { getCurrencyFromCache, StoreCurrency } from "serverRequests/radis";
 import RecomendedProducts from "components/Server/RecomendedProducts";
 import { translateFunction } from "utils/functions";
-import SearchIcon from "components/Home/Search/SearchIcon";
 import MainCategoriesNavbar from "components/Server/MainCategories";
+import { getCookieServer } from "utils/cookies/cookie-manager";
 
 export async function generateMetadata({ params }) {
-  let language = params.lang?.split("-")[1];
+  let Params = await params;
+  let language = Params.lang?.split("-")[1];
   try {
-    const metadata = await getHomeMetadata({ params });
+    const metadata = await getHomeMetadata({ params: Params });
 
     return metadata;
   } catch (error) {
@@ -50,9 +48,9 @@ export async function generateMetadata({ params }) {
 }
 
 // Server component to render JSON-LD structured data
-async function StructuredDataScript({ params }) {
+async function StructuredDataScript({ lang }): Promise<JSX.Element | null> {
   try {
-    const structuredData = await GetStructuredData({ params });
+    const structuredData = await GetStructuredData({ lang });
     // console.log(
     //   "**********structuredData***********",
     //   JSON.stringify(structuredData)
@@ -70,7 +68,7 @@ async function StructuredDataScript({ params }) {
     );
   } catch (error) {
     console.error("Error generating structured data:", error);
-    return null;
+    return <></>;
   }
 }
 async function getCurrency(country, language) {
@@ -93,42 +91,41 @@ async function getCurrency(country, language) {
     return {};
   }
 }
-async function HomePage({ params }: HomePageProps) {
+async function HomePage({ params }) {
+  let { lang } = await params;
   return (
     <>
       <Suspense fallback={null}>
-        <StructuredDataScript params={params} />
+        {/*@ts-expect-error Async Server Component is valid in Next  */}
+        <StructuredDataScript lang={lang} />
       </Suspense>
 
-      <Suspense
-        fallback={<MobileNavigationSkeleton />}
-        key={`Navbar ${params.lang}`}
-      >
-        <MainCategoriesNavbar
-          lang={params.lang}
-          mainCategory={params.mainCategory}
-        />
+      <Suspense fallback={<MobileNavigationSkeleton />} key={`Navbar ${lang}`}>
+        {/*@ts-expect-error Async Server Component is valid in Next  */}
+        <MainCategoriesNavbar lang={lang} mainCategory={null} />
       </Suspense>
 
-      <Suspense fallback={<StoriesSkeleton />} key={`Stories ${params.lang}`}>
+      <Suspense fallback={<StoriesSkeleton />} key={`Stories ${lang}`}>
+        {/*@ts-expect-error Async Server Component is valid in Next  */}
         <StoriesBarServer
-          language={params.lang.split("-")[1]}
-          country={params.lang.split("-")[0]}
+          language={lang.split("-")[1]}
+          country={lang.split("-")[0]}
         />
       </Suspense>
 
-      <Suspense fallback={<FeaturedProductsSkeleton lang={params.lang} />}>
-        <FeaturedProductWrapper lang={params.lang} />
+      <Suspense fallback={<FeaturedProductsSkeleton lang={lang} />}>
+        {/*@ts-expect-error Async Server Component is valid in Next  */}
+        <FeaturedProductWrapper lang={lang} />
       </Suspense>
-      <Suspense fallback={<FeaturedProductsSkeleton lang={params.lang} />}>
-        <FlashProductWrapper lang={params.lang} />
+      <Suspense fallback={<FeaturedProductsSkeleton lang={lang} />}>
+        {/*@ts-expect-error Async Server Component is valid in Next  */}
+
+        <FlashProductWrapper lang={lang} />
       </Suspense>
-      <Home key={`Home ${params.lang}`} />
-      <Suspense
-        fallback={<OfferListSkeleton />}
-        key={`OfferList ${params.lang}`}
-      >
-        <BoutiquesListWrapper params={params} />
+      <Home key={`Home ${lang}`} />
+      <Suspense fallback={<OfferListSkeleton />} key={`OfferList ${lang}`}>
+        {/*@ts-expect-error Async Server Component is valid in Next  */}
+        <BoutiquesListWrapper params={{ lang: lang }} />
       </Suspense>
     </>
   );
@@ -153,13 +150,23 @@ async function FeaturedProductWrapper({ lang }) {
     }),
   ]);
   let end = process.hrtime.bigint();
+  const redeemed_ids = (await getCookieServer<any[]>("redemed_ids")) ?? [];
+  let productsData = data.products.map((product) => {
+    if (product?.is_redeem) {
+      return {
+        ...product,
+        is_redeem: !redeemed_ids.find((s) => s.id === product.product_id),
+      };
+    } else return product;
+  });
+
   return (
     <FeatureProducts
       dataSourceString={`Feature Products Data Source: Products From Elastic, currency from ${
         currencyData?.redis ? "redis" : "laravel api"
       } in ${Number(end - start) / 1_000_000} ms`}
       currencyData={currencyData}
-      fetauredProductsData={{ data: { products: data.products } }}
+      fetauredProductsData={{ data: { products: productsData } }}
       lang={lang}
     />
   );
@@ -181,14 +188,22 @@ async function FlashProductWrapper({ lang }) {
     }),
   ]);
   let end = process.hrtime.bigint();
-
+  const redeemed_ids = (await getCookieServer<any[]>("redemed_ids")) ?? [];
+  let productsData = data.products.map((product) => {
+    if (product?.is_redeem) {
+      return {
+        ...product,
+        is_redeem: !redeemed_ids.find((s) => s.id === product.product_id),
+      };
+    } else return product;
+  });
   return (
     <FlashDealsProducts
       dataSourceString={`FlashDeals Products Data Source: Products From Elastic, currency from ${
         currencyData?.redis ? "redis" : "laravel api"
       } in ${Number(end - start) / 1_000_000} ms`}
       currencyData={currencyData}
-      flashDealsProducts={{ data: { products: data.products } }}
+      flashDealsProducts={{ data: { products: productsData } }}
       lang={lang}
     />
   );
@@ -216,12 +231,13 @@ async function BoutiquesListWrapper({ params }) {
       params={params}
     >
       <Suspense fallback={<FeaturedProductsSkeleton lang={params.lang} />}>
+        {/*@ts-expect-error Async Server Component is valid in Next  */}
         <RecomendedProductWrapper lang={params.lang} />
       </Suspense>
     </OfferListServer>
   );
 }
-async function RecomendedProductWrapper({ lang }) {
+async function RecomendedProductWrapper({ lang }): Promise<JSX.Element> {
   const [country, language] = lang.split("-");
   let Reader = new ElasticsearchReader();
 

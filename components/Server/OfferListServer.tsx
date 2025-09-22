@@ -8,14 +8,13 @@ import OfferListSkeleton from "components/skeleton/OfferList";
 import { OfferListServerPropsType } from "models/componentType/OfferListServerPropsType";
 import DataSourceLogger from "components/global/DataSourceLogger";
 
-async function OfferListServer({
+function OfferListServer({
   boutiquesData,
   params,
   dataSourceString,
   children,
 }: OfferListServerPropsType) {
   try {
-    const [country, language] = params.lang.split("-");
     const HomeData = boutiquesData;
 
     return (
@@ -27,15 +26,14 @@ async function OfferListServer({
 
         {HomeData?.boutiques?.map((boutique, myKey) => {
           return (
-            <>
+            <React.Fragment key={myKey}>
               <NormalWidget
                 boutique={boutique}
                 myKey={myKey}
-                key={myKey}
                 lang={params.lang}
               />
               {myKey === 1 && children}
-            </>
+            </React.Fragment>
           );
         })}
         <InfinteScroll

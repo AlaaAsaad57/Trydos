@@ -605,6 +605,3 @@ class ForegroundNotificationHandler {
 // Export singleton instance
 export const foregroundNotificationHandler =
   new ForegroundNotificationHandler();
-
-// Export the class for custom instantiation if needed
-export default ForegroundNotificationHandler;
