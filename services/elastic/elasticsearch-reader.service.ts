@@ -20,7 +20,7 @@ export class ElasticsearchReader {
     language = "en",
     country = "",
     search_after = [],
-    limit = 10,
+    limit = 20,
   }: {
     language: string;
     country: string;

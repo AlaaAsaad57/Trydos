@@ -241,46 +241,51 @@ async function RecomendedProductWrapper({ lang }): Promise<JSX.Element> {
   const [country, language] = lang.split("-");
   let Reader = new ElasticsearchReader();
 
-  let [currencyData, data, featured, flashdeals] = await Promise.all([
+  let [
+    currencyData,
+    data,
+    // featured,
+    // flashdeals
+  ] = await Promise.all([
     getCurrency(country, language),
     Reader.getRecommendations({ language, country }),
-    getProductsAndFiltersFromElastic({
-      country: country,
-      language_code: language,
-      filters: {
-        featured: true,
-      },
-      noFilters: true,
-      limit: 10,
-    }),
-    getProductsAndFiltersFromElastic({
-      country: country,
-      language_code: language,
-      filters: {
-        flashdeal: true,
-      },
-      noFilters: true,
-      limit: 10,
-    }),
+    // getProductsAndFiltersFromElastic({
+    //   country: country,
+    //   language_code: language,
+    //   filters: {
+    //     featured: true,
+    //   },
+    //   noFilters: true,
+    //   limit: 10,
+    // }),
+    // getProductsAndFiltersFromElastic({
+    //   country: country,
+    //   language_code: language,
+    //   filters: {
+    //     flashdeal: true,
+    //   },
+    //   noFilters: true,
+    //   limit: 10,
+    // }),
   ]);
-  let unique_products = data.products.filter((product) => {
-    if (
-      featured?.products?.find(
-        (f_product) => f_product?.product_id === product.product_id
-      )
-    )
-      return false;
-    if (
-      flashdeals?.products?.find(
-        (f_product) => f_product?.product_id === product.product_id
-      )
-    )
-      return false;
-    return true;
-  });
+  // let unique_products = data.products.filter((product) => {
+  //   if (
+  //     featured?.products?.find(
+  //       (f_product) => f_product?.product_id === product.product_id
+  //     )
+  //   )
+  //     return false;
+  //   if (
+  //     flashdeals?.products?.find(
+  //       (f_product) => f_product?.product_id === product.product_id
+  //     )
+  //   )
+  //     return false;
+  //   return true;
+  // });
   return (
     <RecomendedProducts
-      products={{ data: { ...data, products: unique_products } }}
+      products={{ data: { ...data, products: data.products } }}
       lang={lang}
       currencyData={currencyData}
     />
