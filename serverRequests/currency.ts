@@ -15,8 +15,7 @@ export async function fetchCurrency(
     const response = await fetchServerData({
       url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/mobile/home/currency?lang=${language}&country=${country}`,
       method: "GET",
-      tags: ["currency-api", "home", "listing", "product-details"],
-      revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE_CURRENCY),
+      revalidate: 0,
       local: `${country}-${language}`,
     });
 

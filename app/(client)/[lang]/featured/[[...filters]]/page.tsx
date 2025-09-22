@@ -1,6 +1,6 @@
 export const runtime = "nodejs";
-export const preferredRegion = "bom1";
 export const dynamic = "force-dynamic";
+export const revalidate = parseInt(process.env.NEXT_PUBLIC_REVALIDATE);
 import FilterList from "components/Server/FilterList";
 import ProductListServer from "components/Server/ProductList";
 import BackIcon from "public/svg/listing/backIcon.svg";

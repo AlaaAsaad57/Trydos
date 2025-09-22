@@ -1,3 +1,4 @@
+import Spinner from "components/global/Spinner";
 import Image from "next/image";
 import React from "react";
 import auth from "services/auth";
@@ -303,41 +304,47 @@ function AddToCartButton({
         id={"add-to-cart-button-container"}
       >
         <PlusIconHolder isValid={IsValid()} />
-        {getTotalQuantity() > 0 && (
-          <RemoveIconHolder
-            qty={getTotalQuantity()}
-            decreaseHandler={() => {
-              decreaseHandler({ variant: selectedVariant });
-            }}
-          />
+        {initialLoading ? (
+          <Spinner />
+        ) : (
+          <>
+            {getTotalQuantity() > 0 && (
+              <RemoveIconHolder
+                qty={getTotalQuantity()}
+                decreaseHandler={() => {
+                  decreaseHandler({ variant: selectedVariant });
+                }}
+              />
+            )}
+            <div className="flex gap-[4px]">
+              <Image
+                className="bagIcon"
+                src={"/svg/addtocart/CartButtonIcon.svg"}
+                alt={"cart-icon"}
+                width={20}
+                height={20}
+              />
+              {fullQty > 0 && <span>X {fullQty}</span>}
+            </div>
+            <div
+              className="flex flex-col overflow-hidden max-h-[22px] gap-[4px] items-center justify-end transition-all ease-in-out duration-700"
+              id={"button-text-container"}
+            >
+              <span
+                id={"text-request-response"}
+                className="transition-all ease-in-out duration-700"
+              >
+                {translateFunction("Added To Your Bag")}
+              </span>
+              <span
+                id="button-cart-text"
+                className="transition-all ease-in-out duration-700"
+              >
+                {translateFunction("Add To Bag")}
+              </span>
+            </div>
+          </>
         )}
-        <div className="flex gap-[4px]">
-          <Image
-            className="bagIcon"
-            src={"/svg/addtocart/CartButtonIcon.svg"}
-            alt={"cart-icon"}
-            width={20}
-            height={20}
-          />
-          {fullQty > 0 && <span>X {fullQty}</span>}
-        </div>
-        <div
-          className="flex flex-col overflow-hidden max-h-[22px] gap-[4px] items-center justify-end transition-all ease-in-out duration-700"
-          id={"button-text-container"}
-        >
-          <span
-            id={"text-request-response"}
-            className="transition-all ease-in-out duration-700"
-          >
-            {translateFunction("Added To Your Bag")}
-          </span>
-          <span
-            id="button-cart-text"
-            className="transition-all ease-in-out duration-700"
-          >
-            {translateFunction("Add To Bag")}
-          </span>
-        </div>
       </div>
     </div>
   );

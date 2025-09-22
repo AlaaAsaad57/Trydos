@@ -1,7 +1,5 @@
 export const runtime = "nodejs";
-export const preferredRegion = "bom1";
-
-import NavbarServer from "components/Server/Navbar";
+export const revalidate = parseInt(process.env.NEXT_PUBLIC_REVALIDATE);
 import OfferListServer from "components/Server/OfferListServer";
 import StoriesBarServer from "components/Server/StoriesBarServer";
 import MobileNavigationSkeleton from "components/skeleton/MobileNavigation";

@@ -10,7 +10,6 @@ import CompareLoadingWidget from "./CompareLoadingWidget";
 import { useAppStore } from "store";
 import NextLink from "./NextLink";
 import { GetImageUrl } from "utils/tinyUtils";
-import { fetchFilteredProducts } from "serverRequests";
 import { ComparePageComponentPropsType } from "models/componentType/compareTypes/ComparePageComponentPropsType";
 import { showErrorNotification } from "@/store/notifications/reducer";
 const ComparePage = ({
@@ -107,14 +106,14 @@ const ComparePage = ({
   const searchFunction = async (inputValue: string) => {
     setSearchLoading(true);
     try {
-      const result = await fetchFilteredProducts(
-        lang.toString(),
-        lang.toString().split("-")[0],
-        [inputValue],
-        "false",
-        "true"
-      );
-      return result.data.products;
+      // const result = await fetchFilteredProducts(
+      //   lang.toString(),
+      //   lang.toString().split("-")[0],
+      //   [inputValue],
+      //   "false",
+      //   "true"
+      // );
+      // return result.data.products;
     } catch (error) {
       console.error("Search error:", error);
       return [];
@@ -146,18 +145,18 @@ const ComparePage = ({
   const [language, country] = (lang as string)?.split("-");
   const fetchProductData = async (slug: string) => {
     // Implement your fetch logic here, e.g., using filterProducts
-    const results = await fetchFilteredProducts(
-      language,
-      country,
-      ["Search", slug],
-      "false",
-      "true",
-      undefined,
-      undefined,
-      false,
-      false
-    );
-    return results?.data?.products?.[0]; // Assuming the first product matches the slug
+    // const results = await fetchFilteredProducts(
+    //   language,
+    //   country,
+    //   ["Search", slug],
+    //   "false",
+    //   "true",
+    //   undefined,
+    //   undefined,
+    //   false,
+    //   false
+    // );
+    // return results?.data?.products?.[0]; // Assuming the first product matches the slug
   };
 
   const GetProductData = async (slug: string) => {

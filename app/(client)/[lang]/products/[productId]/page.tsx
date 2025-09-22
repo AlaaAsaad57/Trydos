@@ -54,7 +54,7 @@ import VirtualTryOnWrapper from "components/products/VirtualTryOnWrapper";
 import ProductRedeemCounter from "components/products/ProductRedeemCounter";
 import PricesRow from "components/Cart/AddToCart/PricesRow";
 import { getCookieServer } from "utils/cookies/cookie-manager";
-// export const revalidate = parseInt(process.env.NEXT_PUBLIC_REVALIDATE);
+export const revalidate = parseInt(process.env.NEXT_PUBLIC_REVALIDATE);
 // For Middle East users
 
 export async function generateMetadata({ params, searchParams }) {

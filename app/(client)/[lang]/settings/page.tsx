@@ -1,4 +1,5 @@
 import Setting from "components/global/Setting";
+export const revalidate = parseInt(process.env.NEXT_PUBLIC_REVALIDATE);
 import React from "react";
 export async function generateMetadata({ params, searchParams }) {
   let Params = await params;
