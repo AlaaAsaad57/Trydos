@@ -1,6 +1,6 @@
 export const dynamic = "auto";
 export const runtime = "nodejs";
-export const revalidate = parseInt(process.env.NEXT_PUBLIC_REVALIDATE);
+// export const revalidate = parseInt(process.env.NEXT_PUBLIC_REVALIDATE);
 // export const preferredRegion = process.env.PREFERRED_REGION || "bom1";
 import Settings from "components/settings";
 import React from "react";

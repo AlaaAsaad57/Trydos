@@ -1,5 +1,5 @@
 export const runtime = "nodejs";
-export const revalidate = parseInt(process.env.NEXT_PUBLIC_REVALIDATE);
+// export const revalidate = parseInt(process.env.NEXT_PUBLIC_REVALIDATE);
 export const dynamic = "force-dynamic";
 import OfferListServer from "components/Server/OfferListServer";
 import StoriesBarServer from "components/Server/StoriesBarServer";
