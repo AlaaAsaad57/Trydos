@@ -26,7 +26,14 @@ function Profile({ swipeToScreen, goBack }: ProfilePropsType) {
     {
       name: "Size",
       dataCy: "personal-size-button",
-      Icon: <Image src={"/svg/SizeIcon.svg"} alt="size-icon" />,
+      Icon: (
+        <Image
+          src={"/svg/SizeIcon.svg"}
+          width={25}
+          height={25}
+          alt="size-icon"
+        />
+      ),
       callback: () => {
         swipeToScreen(4);
       },

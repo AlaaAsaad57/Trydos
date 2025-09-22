@@ -24,7 +24,7 @@ function ChatOptions({ id, unread, pinned, muted, member_id }) {
         className="chat-option chat-1"
         onClick={() => setUnreadChat({ id: id, value: !unread })}
       >
-        <Image src={UnreadIcon} alt="unread-icon" />
+        <UnreadIcon />
         <div>
           {unread ? translate("Read", language) : translate("Unread", language)}
         </div>
@@ -35,7 +35,7 @@ function ChatOptions({ id, unread, pinned, muted, member_id }) {
           pinChat({ id: id, value: !pinned, member_id: member_id })
         }
       >
-        <Image src={PinIcon} alt="unread-icon" />
+        <PinIcon src={PinIcon} alt="unread-icon" />
 
         <div>
           {pinned ? translate("Unpin", language) : translate("Pin", language)}
@@ -47,11 +47,7 @@ function ChatOptions({ id, unread, pinned, muted, member_id }) {
           muteChat({ id: id, value: !muted, member_id: member_id })
         }
       >
-        {!muted ? (
-          <Image src={MuteIcon} alt="unread-icon" />
-        ) : (
-          <Image src={UnmuteIcon} alt="unread-icon" />
-        )}
+        {!muted ? <MuteIcon /> : <UnmuteIcon />}
         <div>
           {muted ? translate("Unmute", language) : translate("Mute", language)}
         </div>
@@ -60,12 +56,12 @@ function ChatOptions({ id, unread, pinned, muted, member_id }) {
         className="chat-option chat-4"
         onClick={() => deleteChat({ id: id })}
       >
-        <Image src={DeleteIcon} alt="unread-icon" />
+        <DeleteIcon />
 
         <div>{translate("Delete", language)}</div>
       </div>
       <div className="chat-option chat-5">
-        <Image src={ArchiveIcon} alt="unread-icon" />
+        <ArchiveIcon />
         <div>{translate("Archive", language)}</div>
       </div>
     </div>
