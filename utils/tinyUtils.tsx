@@ -360,31 +360,17 @@ export const getVideoUrl = (
 };
 
 export const formatPhone = (phone) => {
-  let pattern = null,
-    valid = false;
+  let valid = false;
   let country = getCountry(phone);
-  if (country) {
-    pattern = replaceString(country.format || "", ".", "x");
+  const data = phone.replace(/\D/g, "")?.slice(0, 12);
 
-    pattern = replaceString(pattern, "-", "");
-    pattern = replaceString(pattern, " ", "");
-    pattern = replaceString(pattern, "+", "");
-  }
-  pattern = pattern || "xxxxxxxxxxxxxxxxx";
-  let data = textMarshal({
-    input: phone,
-    template: pattern,
-    disallowCharacters: [/[a-z]/],
-  });
-  if (
-    data.plaintext.length ===
-    pattern?.split("").filter((letter) => letter === "x").length
-  ) {
+  if (country && data.length > 8 && data.length <= 12) {
     valid = true;
   } else {
     valid = false;
   }
-  return { data, pattern, valid };
+
+  return { data, valid };
 };
 const getCountry = (text?: string) => {
   return allCountries.filter((countryItem) =>

@@ -2,7 +2,6 @@
 
 import PlusIcon from "public/svg/chatplus.svg";
 import { useAppStore } from "store";
-import AddStoryWidget from "./Stories/AddStoryWidget";
 import {
   COOKIE_NAMES,
   UserData,
@@ -38,17 +37,6 @@ function AddStory() {
   };
   return (
     <>
-      {addStoryEnable && (
-        <AddStoryWidget
-          onClose={() => {
-            // Sendevent({
-            //   event: GA_EVENT_NAMES.CLICK,
-            //   value: GA_CLICK_EVENT_VALUES.CLOSE_ADD_STORY_WIDGET_BUTTON,
-            // });
-            setAddStory(false);
-          }}
-        />
-      )}
       <div
         data-cy="Add-Story-Button"
         className="w-[100px] min-w-[100px] add-story-container flex align-center justify-center h-[150px] ml-[20px]"

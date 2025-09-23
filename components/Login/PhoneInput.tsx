@@ -67,42 +67,27 @@ function PhoneInput({
   const ref = useRef();
   const handleInput = (e) => {
     setWrongNumber(false);
-    let { data, pattern, valid } = formatPhone(e.target.value);
-
-    // let data = textMarshal({
-    //   input: e.target.value,
-    //   template: pattern,
-    //   disallowCharacters: [/[a-z]/],
-    // });
-    setInputValue(data.plaintext);
-
-    // if (
-    //   data.plaintext.length ===
-    //   pattern?.split("").filter((letter) => letter === "x").length
-    // ) {
-    //   setValidNumber(true);
-    // } else {
-    //   setValidNumber(false);
-    // }
+    let { data, valid } = formatPhone(e.target.value);
+    setInputValue(data);
     if (valid) {
       setValidNumber(true);
     } else {
       setValidNumber(false);
     }
     // @ts-ignore
-    ref.current.value = data.marshaltext;
-    e.target.value = data.marshaltext;
+    ref.current.value = data;
+    e.target.value = data;
   };
   const [validNumber, setValidNumber] = useState(false);
-  const getCountry = (text?: string) => {
+  const getCountry = () => {
     return allCountries.filter((countryItem) =>
-      (text || inputValue).startsWith(countryItem.dialCode)
+      inputValue?.startsWith(countryItem.dialCode)
     ).length === 1
       ? allCountries.filter((countryItem) =>
-          (text || inputValue).startsWith(countryItem.dialCode)
+          inputValue?.startsWith(countryItem.dialCode)
         )[0]
       : allCountries.filter((countryItem) =>
-          (text || inputValue).startsWith(countryItem.dialCode)
+          inputValue?.startsWith(countryItem.dialCode)
         )[0];
   };
 

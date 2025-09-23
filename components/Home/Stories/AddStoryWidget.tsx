@@ -154,7 +154,7 @@ const validateLink = (urlString: string) => {
   }
 };
 
-export default function AddStoryWidget({ onClose }: AddStoryWidgetPropsType) {
+export default function AddStoryWidget() {
   useEffect(() => {
     getUserStories();
   }, []);
@@ -178,6 +178,8 @@ export default function AddStoryWidget({ onClose }: AddStoryWidgetPropsType) {
     OpenCamera,
     cameraPermissions,
     checkCameraPermissions,
+    setAddStory,
+    addStoryEnable,
   } = useAppStore();
   const [uploaded, setUpload] = useState(-1);
   const [isSelected, setIsSelected] = useState(null);
@@ -312,7 +314,18 @@ export default function AddStoryWidget({ onClose }: AddStoryWidgetPropsType) {
       reader.readAsDataURL(file);
     }
   };
-
+  const onClose = () => {
+    setLoading(false);
+    setIsSelected(null);
+    setFile(null);
+    setUpload(-1);
+    setLink("");
+    setLinkError(null);
+    setOpenCamera(false);
+    setSelectedFile(null);
+    setPreview(null);
+    setAddStory(null);
+  };
   const handleCameraClick = async () => {
     if (cameraPermissions === "revoked") {
       checkCameraPermissions();
@@ -397,6 +410,7 @@ export default function AddStoryWidget({ onClose }: AddStoryWidgetPropsType) {
       document.querySelector(".stories-bar-container").style.zIndex = "1";
     };
   }, []);
+  if (!addStoryEnable) return <></>;
   return (
     <>
       {OpenCamera && (
@@ -419,7 +433,7 @@ export default function AddStoryWidget({ onClose }: AddStoryWidgetPropsType) {
           }}
         />
       )}
-      <div className="fixed top-[-130px] left-0 w-screen h-screen text-[#5d5d5d] regular z-[999999999] bg-white rounded-t-2xl shadow-lg p-4">
+      <div className="fixed top-0 left-0 w-screen h-screen text-[#5d5d5d] regular z-[999999999] bg-white rounded-t-2xl shadow-lg p-4">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-lg font-semibold">
             {translateFunction("Add Story")}
@@ -539,7 +553,7 @@ export default function AddStoryWidget({ onClose }: AddStoryWidgetPropsType) {
         <input
           id="stories-input-holder"
           type="file"
-          accept="image/jpg,video/*"
+          accept="image/*,video/*"
           onChange={(e) => {
             handleFileSelect(e);
           }}

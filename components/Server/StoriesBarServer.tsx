@@ -1,6 +1,5 @@
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 import AddStory from "components/Home/AddStory";
-import StoriesBorder from "components/Home/Stories/StoriesBorder";
 import StoriesPaginationWrapper from "components/Home/Stories/StoriesPaginationWrapper";
 import StoriesStoreInitializer from "components/Home/Stories/StoriesStoreInitializer";
 import StoryElement from "components/Home/Stories/StoryElement";
@@ -11,6 +10,7 @@ import {
   getCookieServer,
   UserData,
 } from "utils/cookies/cookie-manager";
+import AddStoryWidget from "components/Home/Stories/AddStoryWidget";
 
 interface StoriesBarServerProps {
   language: string;
@@ -37,6 +37,8 @@ async function StoriesBarServer({ language, country }: StoriesBarServerProps) {
     let userData = await getCookieServer<UserData>(COOKIE_NAMES.USER_STORIES);
     return (
       <>
+        <AddStoryWidget />
+
         <StoriesStoreInitializer initialStories={storiesData} />
         <div
           className={` stories-bar-container h-[183px] items-center flex w-full z-[99999999] max-w-[1365px] justify-start`}
@@ -78,7 +80,6 @@ async function StoriesBarServer({ language, country }: StoriesBarServerProps) {
               <StoriesSkeleton />
             )}
           </div>
-          <StoriesBorder />
         </div>
       </>
     );
