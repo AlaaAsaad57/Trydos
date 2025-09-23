@@ -58,6 +58,7 @@ const ignoredMessages = [
   "Too many attempts",
   "Unauthorized",
   "The user aborted a request.",
+  "Fetch is aborted",
 ];
 
 // ---------- Helper Functions ----------
@@ -394,7 +395,10 @@ export const fetchData = async <T = any>(
         request_token: await getToken(server),
       };
 
-      if (!message.includes("signal is aborted without reason")) {
+      if (
+        !message.includes("signal is aborted without reason") &&
+        !message.includes("Fetch is aborted")
+      ) {
         LogError(errorObj);
         reportError(err, {
           source: "fetchData",
