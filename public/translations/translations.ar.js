@@ -602,7 +602,7 @@ const translations = {
   Discounts: "يحدث تخفيضات",
   "Follow Comments": "شخص ما يعلق",
   Offers: "تحدث عروض",
-  "Add To My Checklist": "إضافة إلى قائمتي",
+  "Add To My Checklist": "إضافة إلى المفضلة",
   "Add To Compare": "إضافة إلى المقارنة",
   Recommended: "مقترح",
   "For You": "لك",

@@ -284,7 +284,7 @@ const Prices = ({ offer_price, price, redeem_price }) => {
                 strokeWidth="2"
               />
             </svg>
-            {price}
+            {RoundPrice({ num: price, rate: currency?.exchange_rate })}
           </span>
           <span className="relative text-[#1D1D1D] bold">
             {RoundPrice({ num: offer_price, rate: currency?.exchange_rate })}

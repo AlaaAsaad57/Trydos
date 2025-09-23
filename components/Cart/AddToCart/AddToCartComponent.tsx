@@ -36,9 +36,12 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
   const router = useRouter();
   const pathname = usePathname();
   const shouldShowRedeem = () => {
+    if (!product.is_redeem) return false;
     let redeemed_products_ids = getCookie<any[]>("redemed_ids");
     if (redeemed_products_ids) {
-      return !redeemed_products_ids.find((s) => s.id === product?.id);
+      return !redeemed_products_ids.find(
+        (s) => s.id === (product?.product_id ?? product?.id)
+      );
     }
     return true;
   };
@@ -64,14 +67,19 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
     ...product,
     is_redeem: product?.is_redeem && shouldShowRedeem(),
   });
-
-  const [selectedColor, setSelectedColor] = useState(
+  let selected_color =
     ProductData?.sync_color_images?.find(
       (s) =>
         s?.color_option?.toLowerCase() === colorFromUrl?.toLowerCase() ||
         s?.color_name?.toLowerCase() === colorFromUrl?.toLowerCase()
-    ) || null
-  );
+    ) || null;
+  if (selected_color) {
+    selected_color = {
+      ...selected_color,
+      color_option: selected_color?.color_name,
+    };
+  }
+  const [selectedColor, setSelectedColor] = useState(selected_color);
   const [selectedSize, setSelectedSize] = useState(
     ProductData?.choice_options?.[0]?.options?.find(
       (option) => option.option === sizeFromUrl || option.name === sizeFromUrl
@@ -278,18 +286,104 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
 
   const getVariantSizeQty = (size) => {
     if (ProductData?.variation?.length > 0) {
-      let selected_variant = ProductData?.variation.find(
-        (s) =>
-          s.type.startsWith(selectedColor?.color_option ?? "") &&
-          s.type.endsWith((size && `-${size?.replace(" ", "")}`) ?? "")
-      );
-      return selected_variant;
+      let selected_variant;
+      if (
+        ProductData?.sync_color_images?.length > 0 &&
+        ProductData?.choice_options?.length > 0
+      ) {
+        selected_variant = ProductData?.variation.find(
+          (s) =>
+            s.type?.toLowerCase() ===
+            `${selectedColor?.color_option}-${
+              size?.option ?? size
+            }`?.toLowerCase()
+        );
+      }
+      if (
+        ProductData?.sync_color_images?.length > 0 &&
+        (!ProductData?.choice_options ||
+          ProductData?.choice_options?.length === 0)
+      ) {
+        selected_variant = ProductData?.variation.find(
+          (s) =>
+            s.type?.toLowerCase() ===
+            (selectedColor?.color_option ?? "")?.toLowerCase()
+        );
+      }
+      if (
+        (!ProductData?.sync_color_images ||
+          ProductData?.sync_color_images?.length === 0) &&
+        ProductData?.choice_options?.length > 0
+      ) {
+        selected_variant = ProductData?.variation.find(
+          (s) =>
+            s.type?.toLowerCase() ===
+            (
+              selectedSize?.option &&
+              `${selectedSize?.option?.replace(" ", "")}`
+            )?.toLowerCase()
+        );
+      }
+      return {
+        ...selected_variant,
+        offer_price: selected_variant?.offer_price,
+        ...(product?.showRedeemPrice
+          ? {
+              redeem_price:
+                selected_variant?.redeem_price ?? product?.redeem_price,
+            }
+          : product?.flash_deal_end_date !== null
+          ? {
+              flash_deal_price: product?.offer_price,
+            }
+          : {}),
+      };
     } else {
-      return 0;
+      // no variants
+      return {
+        type: "N/A",
+        price: ProductData?.price,
+        offer_price: ProductData?.offer_price,
+        redeem_price: ProductData?.redeem_price,
+        flash_deal_price: ProductData?.offer_price,
+        qty: ProductData?.available_quantity,
+        variant_notify_for_user: ProductData?.is_product_notify_for_user,
+      };
     }
   };
+  const IsValid = () => {
+    let color_valid = false,
+      size_valid = false;
 
+    if (
+      !ProductData?.sync_color_images ||
+      ProductData?.sync_color_images?.length === 0
+    )
+      color_valid = true;
+    else {
+      color_valid = Boolean(selectedColor);
+    }
+    if (
+      !ProductData?.choice_options ||
+      ProductData?.choice_options?.length === 0
+    )
+      size_valid = true;
+    else {
+      size_valid = Boolean(selectedSize);
+    }
+    return color_valid && size_valid;
+  };
   const getSelectedVariantQty = () => {
+    if (!IsValid())
+      return {
+        type: "N/A",
+        price: ProductData?.price,
+        offer_price: ProductData?.offer_price,
+        redeem_price: ProductData?.redeem_price,
+        flash_deal_price: ProductData?.offer_price,
+        qty: ProductData?.available_quantity,
+        variant_notify_for_user: ProductData?.is_product_notify_for_user,
+      };
     if (ProductData?.variation?.length > 0) {
       let selected_variant;
       if (
@@ -298,12 +392,10 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
       ) {
         selected_variant = ProductData?.variation.find(
           (s) =>
-            s.type.startsWith(selectedColor?.color_option ?? "") &&
-            s.type.endsWith(
-              (selectedSize?.option &&
-                `-${selectedSize?.option?.replace(" ", "")}`) ??
-                ""
-            )
+            s.type?.toLowerCase() ===
+            `${selectedColor?.color_option}-${
+              selectedSize?.option ?? selectedSize
+            }`?.toLowerCase()
         );
       }
       if (
@@ -311,8 +403,10 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
         (!ProductData?.choice_options ||
           ProductData?.choice_options?.length === 0)
       ) {
-        selected_variant = ProductData?.variation.find((s) =>
-          s.type.startsWith(selectedColor?.color_option ?? "")
+        selected_variant = ProductData?.variation.find(
+          (s) =>
+            s.type?.toLowerCase() ===
+            (selectedColor?.color_option ?? "")?.toLowerCase()
         );
       }
       if (
@@ -320,12 +414,13 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
           ProductData?.sync_color_images?.length === 0) &&
         ProductData?.choice_options?.length > 0
       ) {
-        selected_variant = ProductData?.variation.find((s) =>
-          s.type.endsWith(
-            (selectedSize?.option &&
-              `${selectedSize?.option?.replace(" ", "")}`) ??
-              ""
-          )
+        selected_variant = ProductData?.variation.find(
+          (s) =>
+            s.type?.toLowerCase() ===
+            (
+              selectedSize?.option &&
+              `${selectedSize?.option?.replace(" ", "")}`
+            )?.toLowerCase()
         );
       }
       return {
@@ -412,6 +507,7 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
       is_redeem: response.data.is_redeem && shouldShowRedeem(),
     });
   };
+
   return (
     <BottomSheet
       fromProductPage={product?.fromProductPage}
@@ -485,7 +581,9 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
               getVariantSizeQty(e)?.variant_notify_for_user
             }
             qty={getSelectedVariantQty()?.qty}
-            sizeQty={(e) => getVariantSizeQty(e)?.qty}
+            sizeQty={(e) => {
+              return getVariantSizeQty(e)?.qty;
+            }}
             selectedSize={selectedSize}
             setSelectedSize={(e) => {
               GAevent({

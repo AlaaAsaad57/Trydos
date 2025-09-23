@@ -12,6 +12,7 @@ function SizeSelect({
   sizeQty,
 }) {
   let new_sizes_options = ["Standard", "EU", "IN", "US", "UK"];
+
   return (
     <div
       className="w-full flex-col mt-[12px] px-[12px] gap-[12px]"
@@ -76,7 +77,7 @@ function SizeSelect({
                 setSelectedSize(s?.option);
               }}
               className={`${
-                sizeQty(s?.option)?.qty === 0
+                sizeQty(s?.option) === 0
                   ? "bg-[#FFF2F2]"
                   : s?.option === selectedSize
                   ? "bg-[#F4F4F4]"
@@ -84,7 +85,7 @@ function SizeSelect({
               } uppercase relative justify-center cursor-pointer rounded-[6px] flex-col  w-auto h-[46px]  min-w-[50px] items-center px-[6px] text-[#1d1d1d] text-[11px]`}
               style={{
                 border:
-                  sizeQty(s?.option)?.qty === 0
+                  sizeQty(s?.option) === 0
                     ? "1px solid #FF5F617f"
                     : "1px solid #D3D3D37f",
               }}
@@ -174,7 +175,7 @@ function SizeSelect({
           ))}
         </HortiznalScrollBar>
       </div>
-      <SizeWarning size={selectedSize} qty={qty} />
+      {selectedSize && <SizeWarning size={selectedSize} qty={qty} />}
     </div>
   );
 }

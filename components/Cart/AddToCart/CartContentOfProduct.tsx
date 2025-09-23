@@ -55,16 +55,23 @@ function CartContentOfProduct() {
     <div className="flex-row flex items-center min-h-[40px] max-h-[85px] w-full px-[20px]">
       <div className="flex flex-col rounded-[10px] justify-start items-center  relative pt-[30px] max-h-[69px]  min-h-[54px] w-full">
         <div className="flex-col flex items-start gap-[3px] z-10 max-h-full  overflow-auto w-fit horizntal-scroll">
-          {localCart.map((s) => (
-            <div className="flex-row flex items-center justify-center gap-[3px]">
-              <ProductImageCircle image={s.image} />
-              <div className="text-[10px] text-[#1D1D1D] items-center regular flex flex-row">
-                <span className="medium px-[2px]"> {s.quantity} </span>{" "}
-                <span>{translateFunction("Item")}</span>
-                {renderVaritionString(s)}
+          {localCart
+            .filter(
+              (s) =>
+                s.id ===
+                (selected_product_for_add_to_cart?.product_id ??
+                  selected_product_for_add_to_cart?.id)
+            )
+            .map((s) => (
+              <div className="flex-row flex items-center justify-center gap-[3px]">
+                <ProductImageCircle image={s.image} />
+                <div className="text-[10px] text-[#1D1D1D] items-center regular flex flex-row">
+                  <span className="medium px-[2px]"> {s.quantity} </span>{" "}
+                  <span>{translateFunction("Item")}</span>
+                  {renderVaritionString(s)}
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
         </div>
 
         <div className="absolute left-0 top-0 z-20 bg-[#513AAF] rounded-[10px] flex items-center justify-center text-[#FCFCFC] text-[10px] medium h-[25px] w-full">

@@ -208,7 +208,7 @@ export const GetStructuredData = async ({
       }),
     },
   };
-  console.log(jsonLd);
+
   return (
     <script
       type="application/ld+json"
