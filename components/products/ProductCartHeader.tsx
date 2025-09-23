@@ -45,6 +45,7 @@ function ProductCartHeader({ language }) {
           {RoundPrice({
             num: total,
             rate: currency?.exchange_rate,
+            language: language,
           })}
         </span>
         <span>{currency?.symbol}</span>

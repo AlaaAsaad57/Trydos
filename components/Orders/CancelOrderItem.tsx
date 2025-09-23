@@ -16,7 +16,7 @@ function CancelOrderItem({
   setShouldConfirmCancel,
   cancelOrderItem,
 }: CancelOrderItemPropsType) {
-  const { currency } = useAppStore();
+  const { currency, language } = useAppStore();
   const [selectedOptions, setSelectedOptions] = useState([]);
   let options = [
     "I Changed My Mind",
@@ -74,6 +74,7 @@ function CancelOrderItem({
             {RoundPrice({
               num: item.price_after_discount || item.price,
               rate: currency?.exchange_rate,
+              language: language,
             })}
           </span>
           <span className="text-[#8D8D8D] mx-[4px]">{currency?.symbol}</span>

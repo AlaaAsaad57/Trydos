@@ -45,10 +45,18 @@ function PricesRow({
                   strokeWidth="2"
                 />
               </svg>
-              {RoundPrice({ num: offer_price, rate: currency?.exchange_rate })}
+              {RoundPrice({
+                num: offer_price,
+                rate: currency?.exchange_rate,
+                language: language,
+              })}
             </span>
             <span className="relative bold text-[#FF6200]">
-              {RoundPrice({ num: redeem_price, rate: currency?.exchange_rate })}
+              {RoundPrice({
+                num: redeem_price,
+                rate: currency?.exchange_rate,
+                language: language,
+              })}
             </span>
             <span>{currency?.sumbol}</span>
           </div>
@@ -74,7 +82,11 @@ function PricesRow({
                   strokeWidth="2"
                 />
               </svg>
-              {RoundPrice({ num: price, rate: currency?.exchange_rate })}
+              {RoundPrice({
+                num: price,
+                rate: currency?.exchange_rate,
+                language: language,
+              })}
             </span>
             <span className="relative text-[#C4C2C2]">
               <svg
@@ -94,10 +106,18 @@ function PricesRow({
                   strokeWidth="2"
                 />
               </svg>
-              {RoundPrice({ num: offer_price, rate: currency?.exchange_rate })}
+              {RoundPrice({
+                num: offer_price,
+                rate: currency?.exchange_rate,
+                language: language,
+              })}
             </span>
             <span className="relative bold text-[#FF6200]">
-              {RoundPrice({ num: redeem_price, rate: currency?.exchange_rate })}
+              {RoundPrice({
+                num: redeem_price,
+                rate: currency?.exchange_rate,
+                language: language,
+              })}
             </span>
             <span>{currency?.sumbol}</span>
           </div>
@@ -108,7 +128,11 @@ function PricesRow({
         return (
           <div className="flex flex-row items-center gap-[4px] regular text-[16px] text-[#1d1d1d] bg-[#fff]">
             <span className="relative text-[#1D1D1D] bold">
-              {RoundPrice({ num: price, rate: currency?.exchange_rate })}
+              {RoundPrice({
+                num: price,
+                rate: currency?.exchange_rate,
+                language: language,
+              })}
             </span>
             <span>{currency?.sumbol}</span>
           </div>
@@ -134,10 +158,18 @@ function PricesRow({
                   strokeWidth="2"
                 />
               </svg>
-              {RoundPrice({ num: price, rate: currency?.exchange_rate })}
+              {RoundPrice({
+                num: price,
+                rate: currency?.exchange_rate,
+                language: language,
+              })}
             </span>
             <span className="relative text-[#1D1D1D] bold">
-              {RoundPrice({ num: offer_price, rate: currency?.exchange_rate })}
+              {RoundPrice({
+                num: offer_price,
+                rate: currency?.exchange_rate,
+                language: language,
+              })}
             </span>
             <span>{currency?.sumbol}</span>
           </div>

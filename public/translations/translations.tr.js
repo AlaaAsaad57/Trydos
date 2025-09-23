@@ -1037,6 +1037,10 @@ const translations = {
   "Removed From Your Bag": "Sepetinizden Çıkarıldı",
   Added: "Eklendi",
   "To Your Bag": "Sepetine",
+  "Take A Look At Other Colors": "Diğer Renkleri İncele",
+  "Notify Me When Size Is Available": "Beden mevcut olduğunda beni bilgilendir",
+  "We Will Inform You When Size Is Available":
+    "Beden mevcut olduğunda sizi bilgilendireceğiz",
 };
 
 export default translations;

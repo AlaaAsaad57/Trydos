@@ -438,6 +438,7 @@ function FiltersWidget({ filters, configureActiveFilters }) {
                         searchFilters.prices?.min_price ||
                         searchResults?.prices?.min_price,
                       rate: currency?.exchange_rate,
+                      language: language,
                     })}{" "}
                     <span>{currency?.symbol}</span>
                   </div>
@@ -450,6 +451,7 @@ function FiltersWidget({ filters, configureActiveFilters }) {
                         searchFilters.prices?.max_price ||
                         searchResults?.prices?.max_price,
                       rate: currency?.exchange_rate,
+                      language: language,
                     })}{" "}
                     <span>{currency?.symbol}</span>
                   </div>

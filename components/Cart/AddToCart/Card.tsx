@@ -172,7 +172,7 @@ const ImageBorder = ({ isOrange = false }) => {
 };
 
 const Prices = ({ offer_price, price, redeem_price }) => {
-  const { currency } = useAppStore();
+  const { currency, language } = useAppStore();
   if (redeem_price && redeem_price > 0) {
     if (price === offer_price) {
       return (
@@ -195,10 +195,18 @@ const Prices = ({ offer_price, price, redeem_price }) => {
                 strokeWidth="2"
               />
             </svg>
-            {RoundPrice({ num: offer_price, rate: currency?.exchange_rate })}
+            {RoundPrice({
+              num: offer_price,
+              rate: currency?.exchange_rate,
+              language: language,
+            })}
           </span>
           <span className="relative bold">
-            {RoundPrice({ num: redeem_price, rate: currency?.exchange_rate })}
+            {RoundPrice({
+              num: redeem_price,
+              rate: currency?.exchange_rate,
+              language: language,
+            })}
           </span>
           <span>{currency?.symbol}</span>
         </div>
@@ -224,7 +232,11 @@ const Prices = ({ offer_price, price, redeem_price }) => {
                 strokeWidth="2"
               />
             </svg>
-            {RoundPrice({ num: price, rate: currency?.exchange_rate })}
+            {RoundPrice({
+              num: price,
+              rate: currency?.exchange_rate,
+              language: language,
+            })}
           </span>
           <span className="relative text-[#C4C2C2]">
             <svg
@@ -244,10 +256,18 @@ const Prices = ({ offer_price, price, redeem_price }) => {
                 strokeWidth="2"
               />
             </svg>
-            {RoundPrice({ num: offer_price, rate: currency?.exchange_rate })}
+            {RoundPrice({
+              num: offer_price,
+              rate: currency?.exchange_rate,
+              language: language,
+            })}
           </span>
           <span className="relative bold">
-            {RoundPrice({ num: redeem_price, rate: currency?.exchange_rate })}
+            {RoundPrice({
+              num: redeem_price,
+              rate: currency?.exchange_rate,
+              language: language,
+            })}
           </span>
           <span>{currency?.symbol}</span>
         </div>
@@ -258,7 +278,11 @@ const Prices = ({ offer_price, price, redeem_price }) => {
       return (
         <div className="flex flex-row items-center gap-[4px] regular text-[13px] text-[#1d1d1d]">
           <span className="relative text-[#1D1D1D] bold">
-            {RoundPrice({ num: price, rate: currency?.exchange_rate })}
+            {RoundPrice({
+              num: price,
+              rate: currency?.exchange_rate,
+              language: language,
+            })}
           </span>
           <span>{currency?.symbol}</span>
         </div>
@@ -284,10 +308,18 @@ const Prices = ({ offer_price, price, redeem_price }) => {
                 strokeWidth="2"
               />
             </svg>
-            {RoundPrice({ num: price, rate: currency?.exchange_rate })}
+            {RoundPrice({
+              num: price,
+              rate: currency?.exchange_rate,
+              language: language,
+            })}
           </span>
           <span className="relative text-[#1D1D1D] bold">
-            {RoundPrice({ num: offer_price, rate: currency?.exchange_rate })}
+            {RoundPrice({
+              num: offer_price,
+              rate: currency?.exchange_rate,
+              language: language,
+            })}
           </span>
           <span>{currency?.symbol}</span>
         </div>

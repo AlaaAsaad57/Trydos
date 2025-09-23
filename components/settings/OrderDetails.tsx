@@ -696,7 +696,8 @@ const OrderExpandedDetails = ({
           <span className="bold mx-[2px]"> {order.details.length}</span>{" "}
           {translateFunction("Items")} .{" "}
           <span className="bold mx-[2px]">
-            {RoundPrice({ num: order.order_amount })} {currency?.symbol}
+            {RoundPrice({ num: order.order_amount, language: language })}{" "}
+            {currency?.symbol}
           </span>
         </div>
       </div>
@@ -1029,11 +1030,14 @@ const ProductCard = ({
             <div className="flex-row  items-center">
               {product.price_after_discount >= 0 && (
                 <div className="line-through text-[#C4C2C2] regular text-[12px]  line-through-[#C4C2C2]">
-                  {RoundPrice({ num: product.price })}
+                  {RoundPrice({ num: product.price, language: language })}
                 </div>
               )}
               <div className="text-[#1D1D1D] text-[12px] ml-[4px] bold">
-                {RoundPrice({ num: product.price_after_discount })}
+                {RoundPrice({
+                  num: product.price_after_discount,
+                  language: language,
+                })}
               </div>
               <span className="text-[#1D1D1D] light text-[10px] ml-[4px]">
                 {currency?.symbol}

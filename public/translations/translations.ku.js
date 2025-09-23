@@ -1093,6 +1093,10 @@ const translations = {
   "Removed From Your Bag": "لابرا لە جانتاکەت",
   Added: "زیاد کرا",
   "To Your Bag": "بۆ جانتاکەت",
+  "Take A Look At Other Colors": "سەیرەکەی ڕەنگەکانی تر بکە",
+  "Notify Me When Size Is Available": "ئاگادارم بکە کاتێک قەبارەکە بەردەست بوو",
+  "We Will Inform You When Size Is Available":
+    "ئاگادارت دەکەین کاتێک قەبارەکە بەردەست ببێت",
 };
 
 export default translations;

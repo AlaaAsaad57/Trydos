@@ -360,6 +360,7 @@ function OrderButton({ close, toOrders }) {
                         total_shipping_cost,
                       returnNumber: true,
                       points: 5,
+                      language: languageVariable,
                     })}{" "}
                     {currency.symbol}
                   </span>
@@ -413,6 +414,7 @@ function OrderButton({ close, toOrders }) {
 
                       returnNumber: true,
                       points: 5,
+                      language: languageVariable,
                     })}{" "}
                     {currency.symbol}
                   </span>
@@ -476,6 +478,7 @@ function OrderButton({ close, toOrders }) {
                         num: total_shipping_cost,
                         returnNumber: true,
                         points: 5,
+                        language: languageVariable,
                       })}{" "}
                       {currency.symbol}
                     </span>
@@ -528,12 +531,14 @@ function OrderButton({ close, toOrders }) {
                     num: getTotaPriceToShow() + total_discount,
                     returnNumber: true,
                     points: 5,
+                    language: languageVariable,
                   })}
                 </span>{" "}
                 {RoundPrice({
                   num: getTotaPriceToShow(),
                   returnNumber: true,
                   points: 5,
+                  language: languageVariable,
                 })}{" "}
                 {currency?.symbol}
                 <span className="ml-2">
@@ -640,6 +645,7 @@ function OrderButton({ close, toOrders }) {
                             num: getTotaPriceToShow(),
                             returnNumber: true,
                             points: 5,
+                            language: languageVariable,
                           })}{" "}
                           {currency?.symbol}
                         </span>

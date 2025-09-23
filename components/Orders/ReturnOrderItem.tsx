@@ -110,6 +110,7 @@ function ReturnOrderItem({
                   ? selectedOptions.cost
                   : 0),
               rate: currency.exchange_rate,
+              language: language,
             })}
           </span>
           <span className="text-[#8D8D8D] mx-[4px]">{currency?.symbol}</span>
@@ -198,6 +199,7 @@ function ReturnOrderItem({
                     {RoundPrice({
                       num: option.cost,
                       rate: currency.exchange_rate,
+                      language: language,
                     })}{" "}
                     {currency.symbol})
                   </span>

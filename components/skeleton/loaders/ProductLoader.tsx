@@ -717,6 +717,7 @@ function ProductLoader({ product }) {
                     num: product?.price,
                     rate: currency?.exchange_rate,
                     points: 0,
+                    language: languageVariable,
                   })) ?? <Skeleton width={30} height={10} />}
               </div>
             )}
@@ -727,6 +728,7 @@ function ProductLoader({ product }) {
                   num: product?.offer_price,
                   rate: currency?.exchange_rate,
                   points: 0,
+                  language: languageVariable,
                 })) ?? <Skeleton width={30} height={10} />}
             </div>
             <div className="product-currency">

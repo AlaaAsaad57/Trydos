@@ -116,7 +116,7 @@ const OrderInvoice = ({
 }: {
   invoice: { items: number; total: number };
 }) => {
-  const { currency } = useAppStore();
+  const { currency, language } = useAppStore();
   return (
     <div className="flex-row items-center">
       <svg
@@ -228,7 +228,7 @@ const OrderInvoice = ({
       </div>
       <div className="regular flex-row text-[12px] text-[#505050]">
         <span className="bold mx-[2px]">.</span>
-        <span>{RoundPrice({ num: invoice.total })}</span>
+        <span>{RoundPrice({ num: invoice.total, language: language })}</span>
         <span className="ml-[2px]">{currency?.symbol}</span>
       </div>
     </div>

@@ -822,6 +822,7 @@ export const QuantutyInput = ({
                             settings["starting-setting"]
                               ?.decimal_point_settings) ||
                           0,
+                        language: languageVariable,
                       })}
                       <svg
                         data-cy="oldPrice-svg"
@@ -853,6 +854,7 @@ export const QuantutyInput = ({
                             settings["starting-setting"]
                               ?.decimal_point_settings) ||
                           0,
+                        language: languageVariable,
                       })}
                     </div>
                     <div
@@ -899,6 +901,7 @@ export const QuantutyInput = ({
                       (settings &&
                         settings["starting-setting"]?.decimal_point_settings) ||
                       0,
+                    language: languageVariable,
                   })}
                 </div>
               </>

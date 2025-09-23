@@ -64,7 +64,7 @@ function ExtraInfoArea({
     }
     return 50;
   };
-  const { currency } = useAppStore();
+  const { currency, language } = useAppStore();
   const ClockIcon = () => (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -188,7 +188,11 @@ function ExtraInfoArea({
             <span className="bold">|</span>
             <span>{translateFunction("Only")}</span>
             <span className="bold">
-              {RoundPrice({ num: redeem_price, rate: currency.exchange_rate })}
+              {RoundPrice({
+                num: redeem_price,
+                rate: currency.exchange_rate,
+                language: language,
+              })}
             </span>
             <span>{currency?.symbol}</span>
 
