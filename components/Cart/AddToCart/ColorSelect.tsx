@@ -29,7 +29,11 @@ function ColorSelect({ colors, setSelectedColor, selectedColor }) {
       >
         {colors.map((color) => {
           return (
-            <div className="flex-col items-center" key={color.color_option}>
+            <div
+              className="flex-col items-center"
+              key={color.color_option}
+              data-cy="add-to-cart-color"
+            >
               <div
                 key={color?.color_name || color?.color_option}
                 className="min-w-[50px] w-[50px] h-[73px] relative select-none cursor-pointer f"

@@ -6,6 +6,7 @@ function NotifyButton({ isNotified, notifyAction, loading }) {
     <div className="w-full duration-75 transition-all px-[20px] flex overflow-hidden">
       <div className="w-full overflow-hidden flex">
         <div
+          data-cy="notify_container_2"
           onClick={(e) => {
             notifyAction();
           }}

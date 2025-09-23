@@ -76,6 +76,7 @@ function SizeSelect({
               onClick={() => {
                 setSelectedSize(s?.option);
               }}
+              data-cy="add-to-cart-size"
               className={`${
                 sizeQty(s?.option) === 0
                   ? "bg-[#FFF2F2]"
