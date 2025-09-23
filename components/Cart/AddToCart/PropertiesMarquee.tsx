@@ -8,11 +8,11 @@ function PropertiesMarquee({ shipping_cost, languageVariable }) {
   const requestRef = useRef(null);
   const directionRef = useRef(-1); // start moving left
   const positionRef = useRef(0);
-
+  const isRtl = languageVariable === "ar" || languageVariable === "ku";
   useEffect(() => {
     const speed = 0.8; // pixels per frame
-    const leftPadding = 20; // px space on left
-    const rightPadding = 50; // px space on right
+    const leftPadding = isRtl ? 50 : 20; // px space on left
+    const rightPadding = isRtl ? 20 : 50; // px space on right
 
     const animate = () => {
       if (!marqueeRef.current) return;
@@ -66,7 +66,9 @@ function PropertiesMarquee({ shipping_cost, languageVariable }) {
           gap: "9px",
           position: "absolute",
           whiteSpace: "nowrap",
-          left: 0,
+          ...(!isRtl
+            ? { left: 0, flexDirection: "row" }
+            : { right: 0, flexDirection: "row-reverse" }),
         }}
       >
         <div className="product-prop-item m-0 flex-none">

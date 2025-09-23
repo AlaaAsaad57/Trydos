@@ -21,6 +21,7 @@ function PricesRow({
     }
     return true;
   };
+  const isRtl = language === "ar" || language === "ku";
   const renderPrice = () => {
     if (shouldShowRedeem() && redeem_price && redeem_price > 0) {
       if (price === offer_price) {
@@ -145,7 +146,11 @@ function PricesRow({
     }
   };
   return (
-    <div className="flex-row flex h-[40px] w-full relative pl-[20px] items-end pb-[8px] overflow-hidden">
+    <div
+      className={`${
+        isRtl ? "flex-row-reverse  pr-[20px]" : "flex-row  pl-[20px]"
+      }  flex h-[40px] w-full relative items-end pb-[8px] overflow-hidden`}
+    >
       {renderPrice()}
 
       <span className="text-[9px] translate-x-[-1px] text-[#C4C2C2] regular">

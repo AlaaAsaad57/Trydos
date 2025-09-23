@@ -202,7 +202,11 @@ function ProductOptions({
             data-cy="InteraCtionBoX"
           >
             <AddToCartButton product={SelectedProduct ?? true} />
-            <div className="flex justify-between w-full">
+            <div
+              className={`flex justify-between w-full ${
+                isRtl && "flex-row-reverse"
+              }`}
+            >
               <div
                 className={`product-option-item flex-row ${
                   likeLoading && "opacity-80 scale-90"
