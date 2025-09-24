@@ -720,10 +720,7 @@ const NotifyCartButton = ({
           },
         });
         setNotify();
-        let fb_var = localStorage.getItem("FB-DEVICE-TOKEN");
-        if (!fb_var) {
-          await home.RequestFireBase();
-        }
+        await home.RequestFireBase();
         await auth.NotifyForProducts({
           id: id,
           variant: selected_variant,
