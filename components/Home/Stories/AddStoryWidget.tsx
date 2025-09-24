@@ -400,16 +400,13 @@ export default function AddStoryWidget() {
   };
 
   useEffect(() => {
-    DisableScroll();
-    // @ts-ignore
-    document.querySelector(".stories-bar-container").style.zIndex =
-      "999999999999999";
+    if (addStoryEnable) {
+      DisableScroll();
+    }
     return () => {
       EnableScroll();
-      // @ts-ignore
-      document.querySelector(".stories-bar-container").style.zIndex = "1";
     };
-  }, []);
+  }, [addStoryEnable]);
   if (!addStoryEnable) return <></>;
   return (
     <>
