@@ -5,7 +5,6 @@ import Image from "next/image";
 import { useAppStore } from "store";
 import NewStoryModal from "./CameraStory";
 import { dataURLtoFile } from "components/Chat/chatsFunctions";
-import { AddStoryWidgetPropsType } from "models/componentType/AddStoryWidgetPropsType";
 import {
   useParams,
   usePathname,
@@ -161,14 +160,7 @@ export default function AddStoryWidget() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  useEffect(() => {
-    window.history.pushState({ isPopup: true }, "add cart");
-    const newParams = new URLSearchParams(searchParams);
-    newParams.set("story", "true");
-    // Use router.push with pathname and updated query
-    // @ts-expect-error 'shallow' does not exist in type 'NavigateOptions'
-    router.push(`${pathname}?${newParams.toString()}`, { shallow: true });
-  }, []);
+
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [link, setLink] = useState("");
@@ -401,6 +393,12 @@ export default function AddStoryWidget() {
 
   useEffect(() => {
     if (addStoryEnable) {
+      window.history.pushState({ isPopup: true }, "add cart");
+      const newParams = new URLSearchParams(searchParams);
+      newParams.set("story", "true");
+      // Use router.push with pathname and updated query
+      // @ts-expect-error 'shallow' does not exist in type 'NavigateOptions'
+      router.push(`${pathname}?${newParams.toString()}`, { shallow: true });
       DisableScroll();
     }
     return () => {
