@@ -700,35 +700,43 @@ const NotifyCartButton = ({
   initialLoading,
 }) => {
   const NotifyAction = async () => {
-    if (typeof Notification !== "undefined") {
-      const permission = await Notification.requestPermission();
-    }
-    if (!isNotified) {
-      GAevent({
-        action: GA_EVENT_NAMES.ENABLE_PRODUCT_NOTIFICATION,
-        params: {
-          user_id_custom: auth.UserID(),
-          item_id: product.id,
-          type_notification: "product_availablity",
-          item_name: product?.name,
-          brand: product?.brand?.name,
-          brand_id: product?.brand?.id,
-          category: product?.category?.name || product?.categories?.[0]?.name,
-          category_id: product?.category?.id || product?.categories?.[0]?.id,
-          price: product?.offer_price,
-        },
-      });
-      setNotify();
-      await auth.NotifyForProducts({
-        id: id,
-        variant: selected_variant,
-      });
-      await home.GetFireBaseSettings();
-    } else {
-      showSuccessNotification(
-        translateFunction("You will be notified for this product already"),
-        5000
-      );
+    try {
+      if (typeof Notification !== "undefined") {
+        const permission = await Notification.requestPermission();
+      }
+      if (!isNotified) {
+        GAevent({
+          action: GA_EVENT_NAMES.ENABLE_PRODUCT_NOTIFICATION,
+          params: {
+            user_id_custom: auth.UserID(),
+            item_id: product.id,
+            type_notification: "product_availablity",
+            item_name: product?.name,
+            brand: product?.brand?.name,
+            brand_id: product?.brand?.id,
+            category: product?.category?.name || product?.categories?.[0]?.name,
+            category_id: product?.category?.id || product?.categories?.[0]?.id,
+            price: product?.offer_price,
+          },
+        });
+        setNotify();
+        let fb_var = localStorage.getItem("FB-DEVICE-TOKEN");
+        if (!fb_var) {
+          await home.RequestFireBase();
+        }
+        await auth.NotifyForProducts({
+          id: id,
+          variant: selected_variant,
+        });
+        await home.GetFireBaseSettings();
+      } else {
+        showSuccessNotification(
+          translateFunction("You will be notified for this product already"),
+          5000
+        );
+      }
+    } catch (error) {
+      console.log(error);
     }
   };
   return (
