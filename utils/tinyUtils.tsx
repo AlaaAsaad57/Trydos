@@ -358,7 +358,20 @@ export const getVideoUrl = (
 
   return `${cloudinaryBase}${transformStr}/${version}/${folder}/${filename}`;
 };
-
+export const ShowNotificationSign = ({
+  order_group_id = null,
+  order_id = null,
+}) => {
+  const { showNotificaionCircle } = useAppStore.getState();
+  if (
+    showNotificaionCircle?.find(
+      (e) => e.order_id === order_id || e.order_group_id === order_group_id
+    )
+  ) {
+    return true;
+  }
+  return false;
+};
 export const formatPhone = (phone) => {
   let valid = false;
   let country = getCountry(phone);

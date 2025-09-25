@@ -70,6 +70,11 @@ interface ChatState {
   client: any | null;
   nameModal: boolean;
   isNotificationModal: boolean;
+  showNotificaionCircle: {
+    order_id: number;
+    chat_id: number;
+    order_group_id: string;
+  }[];
 }
 
 const initialState: ChatState = {
@@ -81,6 +86,7 @@ const initialState: ChatState = {
   chat_loading: true,
   refs: false,
   contacts: [],
+  showNotificaionCircle: [],
   channels: [],
   users: [],
   qouted: null,
@@ -1324,7 +1330,11 @@ export const useChatStore = (set, get) => ({
     }
     set({ data: arr, activeChat: active });
   },
-
+  showNotificationIndicator: (e) => {
+    set((state) => ({
+      showNotificaionCircle: e,
+    }));
+  },
   deleteChat: (payload: any) => {
     deleteChat(payload.id);
     set((state) => ({

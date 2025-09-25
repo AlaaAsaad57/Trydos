@@ -4,20 +4,32 @@ import ChatIcon from "public/svg/ChatIcon.svg";
 
 import { OrderChatIconPropsType } from "models/componentType/OrderChatIconPropsType";
 import { translateFunction } from "utils/functions";
+import { ShowNotificationSign } from "utils/tinyUtils";
+import { useAppStore } from "store";
 
 function OrderChatIcon({
   id,
+  order_group_id,
   isGettingChat,
   getChatWithShipping,
 }: OrderChatIconPropsType) {
+  const { showNotificationIndicator, showNotificaionCircle } = useAppStore();
   return (
     <>
       {id && (
         <button
           type="button"
-          className="flex items-center gap-2 mx-[10px] px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer"
+          className="relative flex items-center gap-2 mx-[10px] px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer"
           onClick={() => {
-            if (!isGettingChat) getChatWithShipping();
+            if (!isGettingChat) {
+              showNotificationIndicator([
+                ...showNotificaionCircle.filter(
+                  (s) =>
+                    s.order_id !== id && s.order_group_id !== order_group_id
+                ),
+              ]);
+              getChatWithShipping();
+            }
           }}
         >
           {isGettingChat ? (
@@ -27,8 +39,13 @@ function OrderChatIcon({
           ) : (
             <>
               <ChatIcon className="w-5 h-5" />
+              {ShowNotificationSign({
+                order_id: id,
+              }) && (
+                <span className="absolute w-[10px] h-[10px] bg-[#f64f64] rounded-full top-[-2px] right-[-2px] animate-pulse left-[initial] z-20"></span>
+              )}
               <span className="regular text-[12px]   font-medium">
-               {translateFunction("Chat with delivery worker")}
+                {translateFunction("Chat with delivery worker")}
               </span>
             </>
           )}

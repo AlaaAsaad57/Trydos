@@ -27,6 +27,7 @@ export default function ChatWidget({
           ?.scrollIntoView({ block: "end", inline: "end" });
     }, 1000);
   }, []);
+  useEffect(() => {}, []);
   if (!isOpen) return null;
 
   return (

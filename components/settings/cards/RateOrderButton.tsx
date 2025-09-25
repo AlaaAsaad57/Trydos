@@ -1,19 +1,22 @@
 import React from "react";
 import { translateFunction } from "utils/functions";
 
-function RateOrderButton() {
+function RateOrderButton({ expand }) {
   const handleClick = () => {
-    document.querySelector(".rating-star-container").scrollIntoView({
-      behavior: "smooth",
-      block: "center",
-      inline: "center",
-    });
-    document.querySelectorAll(".rating-star-container").forEach((elem) => {
-      elem.classList.add("shake-anim");
-      setTimeout(() => {
-        elem.classList.remove("shake-anim");
-      }, 1000);
-    });
+    expand();
+    setTimeout(() => {
+      document.querySelector(".rating-star-container").scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+        inline: "center",
+      });
+      document.querySelectorAll(".rating-star-container").forEach((elem) => {
+        elem.classList.add("shake-anim");
+        setTimeout(() => {
+          elem.classList.remove("shake-anim");
+        }, 1000);
+      });
+    }, 500);
   };
   return (
     <div

@@ -31,7 +31,14 @@ const options = [
   { name: "Share App", Icon: <ShareAppIcon /> },
 ];
 function MainSetting({ swipeToScreen }: MainSettingPropsType) {
-  const { wallet, currency, userProfile, settings, language } = useAppStore();
+  const {
+    wallet,
+    currency,
+    userProfile,
+    settings,
+    language,
+    showNotificaionCircle,
+  } = useAppStore();
   const points = settings?.["starting-setting"]?.decimal_point_settings || 0;
 
   const { lang } = useParams();
@@ -176,7 +183,7 @@ const OrdersCard = ({
 }: {
   swipeToScreen: (screen: number) => void;
 }) => {
-  const { totalOrders, language } = useAppStore();
+  const { totalOrders, language, showNotificaionCircle } = useAppStore();
   useEffect(() => {
     getOrders();
   }, []);
@@ -189,12 +196,15 @@ const OrdersCard = ({
     <div
       className={`${
         isRtl && "items-end"
-      } flex-col w-1/2 h-[94px] bg-[#F8F8F8] rounded-[12px] p-[12px] cursor-pointer`}
+      } flex-col w-1/2 h-[94px] bg-[#F8F8F8] relative rounded-[12px] p-[12px] cursor-pointer`}
       data-cy="orders-page-button"
       onClick={() => {
         swipeToScreen(9);
       }}
     >
+      {showNotificaionCircle.length && (
+        <span className="absolute w-[10px] h-[10px] bg-[#f64f64] rounded-full top-[-2px] right-[-2px] animate-pulse z-20"></span>
+      )}
       <OrdersIcon />
       <span className="text-[#1D1D1D] text-[14px] regular mt-[4px]">
         {translateFunction("Orders")}

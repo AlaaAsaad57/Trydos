@@ -24,6 +24,7 @@ function AuthNavSection({
     setShouldAuthinticated,
     setLoginOpen,
     setChatOpen,
+    showNotificaionCircle,
   } = useAppStore();
   let { lang } = useParams();
   // @ts-ignore
@@ -75,6 +76,7 @@ function AuthNavSection({
         </span>
       </div>
       <UserAvatar
+        showIndicator={Boolean(showNotificaionCircle.length)}
         onClick={() => {
           onClick();
           // Sendevent({

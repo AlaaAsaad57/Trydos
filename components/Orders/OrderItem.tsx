@@ -13,7 +13,7 @@ import OrderStatusIcon, {
   BagStatusIcon,
 } from "components/settings/cards/OrderStatusIcon";
 import Image from "node_modules/next/image";
-import { GetImageUrl } from "utils/tinyUtils";
+import { GetImageUrl, ShowNotificationSign } from "utils/tinyUtils";
 import { OrderItemIdPropsType } from "models/componentType/OrderItemIdPropsType";
 import { OrderItemTimePropsType } from "models/componentType/OrderItemTimePropsType";
 
@@ -24,8 +24,13 @@ const OrderItem = ({ order, showDetails }) => {
       onClick={() => {
         showDetails();
       }}
-      className="bg-[#f8f8f8] w-full cursor-pointer pt-[7px] pb-[12px] pl-[12px] pr-[10px] rounded-[15px] h-[200px] mt-[10px] flex-col"
+      className="bg-[#f8f8f8] relative w-full cursor-pointer pt-[7px] pb-[12px] pl-[12px] pr-[10px] rounded-[15px] h-[200px] mt-[10px] flex-col"
     >
+      {ShowNotificationSign({
+        order_group_id: order.order_group_id.toString(),
+      }) && (
+        <span className="absolute left-[initial] w-[10px] h-[10px] bg-[#f64f64] rounded-full top-[-2px] right-[-2px] animate-pulse z-20"></span>
+      )}
       <div className="flex-row w-full justify-between items-start">
         <OrderItemTime time={order.created_at} />
         <OrderItemId id={order.order_group_id.toString()} />

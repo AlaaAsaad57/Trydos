@@ -202,11 +202,11 @@ function OrderDetails({
   const shouldShowChatIcon = (pack) => {
     // Out for Delivery
     if (pack && pack?.order_status?.value === "out_for_delivery")
-      return selectedOrder.order_group_id;
+      return ActivePacks.id;
     if (
       ActivePacks?.return_details?.details?.status?.value === "out_for_return"
     ) {
-      return true;
+      return ActivePacks.return_request_id;
     }
     return false;
   };
@@ -371,6 +371,7 @@ function OrderDetails({
       return arr.map((s) => {
         return (
           <OrderChatIcon
+            order_group_id={selectedOrder.order_group_id}
             key={s}
             isGettingChat={isGettingChat}
             setIsGettingChat={setIsGettingChat}
@@ -382,12 +383,13 @@ function OrderDetails({
                 getChatWithShipping(ActivePacks?.return_request_id);
               else getChatWithShipping(s);
             }}
-            id={s}
+            id={shouldShowChatIcon(ActivePacks)}
           />
         );
       });
     }
   };
+
   const closeChat = () => {
     // Abort any ongoing chat request
     if (chatAbortControllerRef.current) {
@@ -559,7 +561,13 @@ function OrderDetails({
                 }
               />
             </div>
-            {shouldShowRatingBadge() && <RateOrderButton />}
+            {shouldShowRatingBadge() && (
+              <RateOrderButton
+                expand={() => {
+                  setIsExpanded(true);
+                }}
+              />
+            )}
             <div className="flex flex-col justify-start  w-full bg-[#F8F8F8] px-[12px] h-full relative">
               <OrderItemsList
                 getOrderDetails={() => {
@@ -900,6 +908,7 @@ const ProductCard = ({
       <div className={`relative w-full flex-col`}>
         <span
           className="absolute top-[22px] right-[0px] p-5 cursor-pointer"
+          data-cy="order-item-options"
           onClick={() => {
             DisableScroll();
             document.querySelector("#OrderDetails").scrollTop = 0;
