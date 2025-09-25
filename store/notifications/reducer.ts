@@ -33,7 +33,7 @@ export const useNotificationStore = create<NotificationStore>((set) => ({
         {
           ...notification,
           id: `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
-          duration: notification.duration || 5000,
+          duration: notification.duration || 10000,
         },
       ],
     })),
