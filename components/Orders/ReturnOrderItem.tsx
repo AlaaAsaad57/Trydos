@@ -276,34 +276,31 @@ const UploadImageComponent = ({
   return_request_product_id,
 }) => {
   const UploadImage = async () => {
-    const input = document.createElement("input");
-    input.type = "file";
-    input.accept = "image/*";
-    input.onchange = async (e) => {
-      try {
-        const file = (e.target as HTMLInputElement).files[0];
-        if (file) {
-          setLoading(true);
-          // const formData = new FormData();
-          // formData.append("image", file);
-          // const response = await fetch("/api/upload", {
-          //   method: "POST",
-          //   body: formData,
-          // });
-          // const data = await response.json();
-          let data = await order.UploadImageForOrderReturn({ image: file });
+    const input = document.querySelector<HTMLInputElement>(
+      "#return-modal-file-input"
+    );
+    input.click();
+  };
+  const OnChange = async (e) => {
+    try {
+      const file = (e.target as HTMLInputElement).files[0];
+      if (file) {
+        setLoading(true);
+        // const formData = new FormData();
+        // formData.append("image", file);
+        // const response = await fetch("/api/upload", {
+        //   method: "POST",
+        //   body: formData,
+        // });
+        // const data = await response.json();
+        let data = await order.UploadImageForOrderReturn({ image: file });
 
-          setImages([...images, data.sub_path]);
-          setLoading(false);
-          if (document.body.contains(input)) {
-            document.body.removeChild(input);
-          }
-        }
-      } catch (error) {
+        setImages([...images, data.sub_path]);
         setLoading(false);
       }
-    };
-    input.click();
+    } catch (error) {
+      setLoading(false);
+    }
   };
   const GetImageUrl = (img) => {
     if (img.includes(process.env.NEXT_PUBLIC_BASE_CLOUDINARY_URL)) return img;
@@ -345,6 +342,17 @@ const UploadImageComponent = ({
         UploadImage();
       }}
     >
+      <input
+        accept="image/*"
+        onChange={(e) => {
+          OnChange(e);
+        }}
+        type="file"
+        className="absolute opacity-0 "
+        hidden={true}
+        id="return-modal-file-input"
+        data-cy="return-modal-file-input"
+      />
       <div
         style={{
           border: images.length === 0 ? "1px solid #402CDD80" : "none",
