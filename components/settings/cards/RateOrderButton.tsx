@@ -3,7 +3,6 @@ import { translateFunction } from "utils/functions";
 
 function RateOrderButton({ expand }) {
   const handleClick = () => {
-    expand();
     setTimeout(() => {
       document.querySelector(".rating-star-container").scrollIntoView({
         behavior: "smooth",

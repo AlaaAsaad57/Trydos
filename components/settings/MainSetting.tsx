@@ -202,8 +202,10 @@ const OrdersCard = ({
         swipeToScreen(9);
       }}
     >
-      {showNotificaionCircle.length && (
+      {showNotificaionCircle.length > 0 ? (
         <span className="absolute w-[10px] h-[10px] bg-[#f64f64] rounded-full top-[-2px] right-[-2px] animate-pulse z-20"></span>
+      ) : (
+        <></>
       )}
       <OrdersIcon />
       <span className="text-[#1D1D1D] text-[14px] regular mt-[4px]">

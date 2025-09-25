@@ -269,7 +269,7 @@ function Settings({ lang, order_id, tab }: SettingsIndexPropsType) {
   };
 
   return (
-    <div className="max-h-full h-full overflow-auto flex w-full max-w-[1365px] justify-center bg-white">
+    <div className="h-full overflow-auto flex w-full max-w-[1365px] justify-center bg-white max-h-[calc(100vh-102px)] min-h-[calc(100vh-102px)]">
       {showOrderOptions && (
         <OrderOptions
           setShouldConfirmReturn={setShouldConfirmReturn}
@@ -296,7 +296,7 @@ function Settings({ lang, order_id, tab }: SettingsIndexPropsType) {
       {/* Sidebar Navigation */}
 
       {/* Main Content Area */}
-      <div className="w-full h-full flex-1 relative overflow-hidden min-h-screen">
+      <div className="w-full h-full flex-1 relative overflow-hidden max-h-[calc(100vh-102px)] min-h-[calc(100vh-102px)]">
         <div
           className="absolute w-full h-full transition-transform duration-300 ease-in-out"
           style={{

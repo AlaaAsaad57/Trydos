@@ -105,16 +105,6 @@ function Init() {
   }, []);
 
   useEffect(() => {
-    window.addEventListener("resize", function () {
-      var windowHeight = window.innerHeight;
-      var outerHeight = window.outerHeight;
-
-      if (windowHeight < outerHeight) {
-        document.body.style.paddingBottom = "60px"; // Adjust accordingly
-      } else {
-        document.body.style.paddingBottom = "0px";
-      }
-    });
     if (typeof navigator !== "undefined" && !navigator.cookieEnabled) {
       showErrorNotification(translateFunction("Cookies Is Not Enabled"));
     }

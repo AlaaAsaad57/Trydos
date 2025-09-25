@@ -254,7 +254,7 @@ function OrdersList({
     }
   }, [selectedOrder]);
   return (
-    <div className="flex-col max-h-[calc(100vh-200px)]">
+    <div className="flex-col max-h-full">
       <SettingTopBar
         goBack={() => {
           router.replace(`/${lang}/setting?tab=Orders`);
