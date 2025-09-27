@@ -1097,6 +1097,9 @@ const translations = {
   "Notify Me When Size Is Available": "ئاگادارم بکە کاتێک قەبارەکە بەردەست بوو",
   "We Will Inform You When Size Is Available":
     "ئاگادارت دەکەین کاتێک قەبارەکە بەردەست ببێت",
+  "Rate Your Experience": "تاقیکردنەوەکەت هەڵسەنگێنە",
+  "Share your thoughts about this product":
+    "بیربوونەکانت بەش بکە سەبارەت بە ئەم بەرھەمە",
 };
 
 export default translations;

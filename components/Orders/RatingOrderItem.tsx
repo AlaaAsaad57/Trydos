@@ -57,101 +57,135 @@ function RatingOrderItem({
     setRating(initialRating);
   };
 
-  const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter" && comment.trim()) {
+  const handleInputKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === "Enter" && comment.trim() && rating > 0) {
       rateOrder(rating);
     }
   };
 
   const handleSubmit = () => {
-    if (comment.trim()) {
-      inputRef.current.focus();
+    if (comment.trim() && rating > 0) {
       rateOrder(rating);
     }
   };
+
   const blurHandler = async () => {
     await new Promise((resolve) => setTimeout(resolve, 200));
     if (!loading) handleCloseModal();
   };
+
+  const isSubmitDisabled = !comment.trim() || rating === 0 || loading;
+
   return (
     <>
-      {showCommentModal ? (
-        <div
-          className="absolute bottom-[-27px] shake left-0 max-w-[200px] z-50 flex items-center justify-center bg-transparent"
-          aria-modal="true"
-          role="dialog"
-          tabIndex={10}
-          onClick={handleCloseModal}
-        >
+      <div
+        className="flex flex-col items-center justify-center w-full space-y-4"
+        onClick={() => {
+          if (!loading) {
+            setShowCommentModal(true);
+          }
+        }}
+      >
+        <div className="flex items-center justify-center">
+          {!loading ? (
+            <RatingStars readOnly={true} initialRating={initialRating} />
+          ) : (
+            <Spinner />
+          )}
+        </div>
+      </div>
+
+      {showCommentModal && (
+        <>
           <div
-            className="relative bg-transparent rounded-2xl shadow-xl  w-[90vw] max-w-md flex flex-col "
-            onClick={(e) => e.stopPropagation()}
+            className="fixed inset-0 bg-black bg-opacity-50 z-40"
+            onClick={handleCloseModal}
+          />
+          <div
+            className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-md mx-4"
+            aria-modal="true"
+            role="dialog"
+            tabIndex={-1}
           >
-            <div className="relative flex items-center">
-              <input
-                id="comment-input"
-                ref={inputRef}
-                type="text"
-                value={comment}
-                onBlur={() => {
-                  blurHandler();
-                }}
-                onChange={(e) => setComment(e.target.value)}
-                onKeyDown={handleInputKeyDown}
-                className="w-full pr-12 pl-4 py-3 rounded-full border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-400 text-base text-gray-800 bg-gray-50 shadow-sm"
-                placeholder={translateFunction("Add your comment")}
-                aria-label="Comment input"
-                disabled={loading}
-              />
-              {
+            <div className="bg-white rounded-2xl shadow-2xl p-6 space-y-6">
+              {/* Header */}
+              <div className="text-center">
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                  {translateFunction("Rate Your Experience")}
+                </h3>
+                <p className="text-sm text-gray-600">
+                  {translateFunction("Share your thoughts about this product")}
+                </p>
+              </div>
+
+              {/* Rating Stars */}
+              <div className="flex justify-center">
+                <RatingStars
+                  readOnly={loading}
+                  initialRating={rating}
+                  size={40}
+                  onRatingChange={(e) => {
+                    if (!loading) {
+                      setRating(e);
+                    }
+                  }}
+                />
+              </div>
+
+              {/* Comment Input */}
+              <div className="space-y-2">
+                <label
+                  htmlFor="comment-input"
+                  className="block text-sm font-medium text-gray-700"
+                >
+                  {translateFunction("Your Comment")}
+                </label>
+                <textarea
+                  id="comment-input"
+                  ref={inputRef}
+                  value={comment}
+                  onChange={(e) => setComment(e.target.value)}
+                  onKeyDown={handleInputKeyDown}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-base text-gray-800 bg-gray-50 transition-colors"
+                  placeholder={translateFunction("Add your comment")}
+                  aria-label="Comment input"
+                  disabled={loading}
+                  rows={3}
+                />
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex space-x-3">
+                <button
+                  type="button"
+                  onClick={handleCloseModal}
+                  className="flex-1 px-4 py-3 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-gray-300"
+                  disabled={loading}
+                >
+                  {translateFunction("Cancel")}
+                </button>
                 <button
                   type="button"
                   onClick={handleSubmit}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 bg-blue-500 hover:bg-blue-600 text-white rounded-full p-2 shadow-md focus:outline-none focus:ring-2 focus:ring-blue-400"
-                  aria-label="Submit comment"
-                  disabled={loading || !comment.trim()}
+                  className={`flex-1 px-4 py-3 rounded-xl font-medium transition-colors focus:outline-none focus:ring-2 ${
+                    isSubmitDisabled
+                      ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                      : "bg-blue-600 hover:bg-blue-700 text-white focus:ring-blue-300"
+                  }`}
+                  disabled={isSubmitDisabled}
                 >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth={2}
-                    stroke="currentColor"
-                    className="w-5 h-5"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M5 12h14M12 5l7 7-7 7"
-                    />
-                  </svg>
+                  {loading ? (
+                    <div className="flex items-center justify-center">
+                      <Spinner />
+                    </div>
+                  ) : (
+                    translateFunction("Submit Rating")
+                  )}
                 </button>
-              }
+              </div>
             </div>
           </div>
-        </div>
-      ) : (
-        <div
-          className={` flex-col w-auto items-center justify-center z-40 rating-star-container`}
-        >
-          <div className="flex-row items-center justify-center">
-            {!loading ? (
-              <RatingStars
-                readOnly={loading}
-                initialRating={initialRating}
-                onRatingChange={(e) => {
-                  if (!loading) {
-                    setRating(e);
-                    setShowCommentModal(true);
-                  }
-                }}
-              />
-            ) : (
-              <Spinner />
-            )}
-          </div>
-          {/* Modal */}
-        </div>
+        </>
       )}
     </>
   );

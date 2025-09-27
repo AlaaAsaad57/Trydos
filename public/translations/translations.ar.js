@@ -1055,6 +1055,8 @@ const translations = {
   "Take A Look At Other Colors": "ألقِ نظرة على الألوان الأخرى",
   "Notify Me When Size Is Available": "أبلغني عندما يتوفر المقاس",
   "We Will Inform You When Size Is Available": "سوف نعلمك عندما يتوفر المقاس",
+  "Rate Your Experience": "قيّم تجربتك",
+  "Share your thoughts about this product": "شارك أفكارك حول هذا المنتج",
 };
 
 export default translations;

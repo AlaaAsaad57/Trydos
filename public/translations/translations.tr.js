@@ -1041,6 +1041,9 @@ const translations = {
   "Notify Me When Size Is Available": "Beden mevcut olduğunda beni bilgilendir",
   "We Will Inform You When Size Is Available":
     "Beden mevcut olduğunda sizi bilgilendireceğiz",
+  "Rate Your Experience": "Deneyiminizi Değerlendirin",
+  "Share your thoughts about this product":
+    "Bu ürün hakkındaki düşüncelerinizi paylaşın",
 };
 
 export default translations;
