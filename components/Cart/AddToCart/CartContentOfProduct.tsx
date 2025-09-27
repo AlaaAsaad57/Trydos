@@ -62,7 +62,7 @@ function CartContentOfProduct() {
         s.id === selected_product_for_add_to_cart?.product_id ||
         selected_product_for_add_to_cart?.id
     );
-    console.log(total_products);
+
     let total_price = 0;
     total_products.map((s) => {
       total_price += s.offer_price * s.quantity;
@@ -94,8 +94,15 @@ function CartContentOfProduct() {
         </div>
 
         <div className="absolute left-0 top-0 z-20 bg-[#513AAF] rounded-[10px] flex items-center justify-center text-[#FCFCFC] text-[10px] medium h-[25px] w-full">
-          {translateFunction("Added")} {1} {translateFunction("Item")}{" "}
-          {getPriceOfProductInCart()}
+          {translateFunction("Added")}{" "}
+          {
+            localCart.filter(
+              (s) =>
+                s.id === selected_product_for_add_to_cart?.product_id ||
+                selected_product_for_add_to_cart?.id
+            )?.length
+          }{" "}
+          {translateFunction("Item")} {getPriceOfProductInCart()}
           {currency.symbol}
           {translateFunction("To Your Bag")}
         </div>
