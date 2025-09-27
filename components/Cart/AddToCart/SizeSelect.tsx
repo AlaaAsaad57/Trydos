@@ -214,15 +214,17 @@ const SizeWarning = ({ qty, size }) => {
       </div>
     );
   } else {
-    <div className="flex flex-row items-center mt-[11px] gap-[4px] w-full justify-center px-[24px]">
-      <div className="flex flex-row items-center text-[11px] text-[#FF5F61] regular gap-[4px] align-baseline pt-[1px]">
-        <span className="bold flex items-center">
-          {size.name} | {size}
-        </span>
-        <span className="flex items-center">
-          {translateFunction("Not Available Now, Stock Is Sold Out")}
-        </span>
+    return (
+      <div className="flex flex-row items-center mt-[11px] gap-[4px] w-full justify-center px-[24px]">
+        <div className="flex flex-row items-center text-[11px] text-[#FF5F61] regular gap-[4px] align-baseline pt-[1px]">
+          <span className="bold flex items-center">
+            {size?.name ?? size} | {size ?? size?.name}
+          </span>
+          <span className="flex items-center">
+            {translateFunction("Not Available Now, Stock Is Sold Out")}
+          </span>
+        </div>
       </div>
-    </div>;
+    );
   }
 };

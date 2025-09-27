@@ -138,10 +138,53 @@ export default async function Page({ params }) {
   let productsData = filtersData.products.map((product) => {
     if (product?.is_redeem) {
       return {
-        ...product,
+        name: product?.name,
+        slug: product?.slug,
+        label_names: product?.label_names,
+        category_tree: product?.category_tree,
+        videos: product.videos,
+        colors: product?.colors,
+        sync_color_images: product?.sync_color_images,
+        ...(!product?.sync_color_images ||
+        product?.sync_color_images?.length === 0
+          ? { images: product.images }
+          : {}),
+        price: product.price,
+        offer_price: product.offer_price,
+        redeem_price: product.redeem_price,
+        categories: product?.categories?.map((s) => ({
+          name: s.name,
+          id: s.id,
+        })),
+        brand: { id: product?.brand?.id, icon: product?.brand?.icon },
+        flash_deal_end_date: product.flash_deal_end_date,
+        product_id: product.product_id,
         is_redeem: !redeemed_ids.find((s) => s.id === product.product_id),
       };
-    } else return product;
+    } else
+      return {
+        name: product?.name,
+        slug: product?.slug,
+        label_names: product?.label_names,
+        category_tree: product?.category_tree,
+        videos: product.videos,
+        colors: product?.colors,
+        sync_color_images: product?.sync_color_images,
+        ...(!product?.sync_color_images ||
+        product?.sync_color_images?.length === 0
+          ? { images: product.images }
+          : {}),
+        price: product.price,
+        offer_price: product.offer_price,
+        redeem_price: product.redeem_price,
+        categories: product?.categories?.map((s) => ({
+          name: s.name,
+          id: s.id,
+        })),
+        brand: { id: product?.brand?.id, icon: product?.brand?.icon },
+        flash_deal_end_date: product.flash_deal_end_date,
+        product_id: product.product_id,
+      };
   });
   return (
     <>

@@ -9,23 +9,6 @@ export interface ProductListServerPropsType {
   };
   searchParams?: URLSearchParams;
   products: {
-    id: string;
-    product_id?: string;
-    name?: string;
-    slug?: string;
-    status?: number;
-    details?: string;
-    language_code?: string;
-    label_names?: string[];
-    videos?: any[];
-    thumbnail?: string;
-    images?: any[];
-    colors?: any[];
-    sync_color_images?: any[];
-    price?: number;
-    offer_price?: number;
-    boutique_id?: string;
-    in_stock?: boolean;
     [key: string]: any;
   }[];
   currency: any;

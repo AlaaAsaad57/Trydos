@@ -21,7 +21,7 @@ function AddToCartButton({
   setLoading,
   id,
   product,
-  onSuccessAddUpdate,
+
   initialLoading,
 }) {
   const { localCart, currency } = useAppStore();
@@ -85,7 +85,9 @@ function AddToCartButton({
           (s.color === selectedColor?.color_option ||
             s.color ===
               product?.colors?.find(
-                (cl) => cl.option === selectedColor?.color_option
+                (cl) =>
+                  cl.option === selectedColor?.color_option ||
+                  cl.name === selectedColor?.selected_option
               )?.color) &&
           s.size === (selectedSize?.option ?? selectedSize)
       )
@@ -96,7 +98,9 @@ function AddToCartButton({
           (s.color === selectedColor?.color_option ||
             s.color ===
               product?.colors?.find(
-                (cl) => cl.option === selectedColor?.color_option
+                (cl) =>
+                  cl.option === selectedColor?.color_option ||
+                  cl.name === selectedColor?.color_option
               )?.color) &&
           s.size === (selectedSize?.option ?? selectedSize)
       );
@@ -130,22 +134,21 @@ function AddToCartButton({
     }, 1800);
   };
   const clickHandler = async ({ variant }) => {
+    let type = selectedVariant?.type;
+
     try {
       setLoading(true);
-
       if (isVariantInCart({ exact: false })) {
-        // Sendevent({
-        //   event: GA_EVENT_NAMES.CLICK,
-        //   value: GA_CLICK_EVENT_VALUES.INCREASE_QTY_IN_ADD_TO_CART_WIDGET,
-        // });
         animateButton();
-        await cart.UpdateCart({
+        let response = await cart.UpdateCart({
           cart_id: isVariantInCart({ exact: false })?.item_id,
           qty: (isVariantInCart({ exact: false })?.quantity ?? 0) + 1,
           isFromAddWidget: true,
           is_redeem: product?.is_redeem,
         });
-
+        if (response === false) {
+          throw "error";
+        }
         GAevent({
           action: GA_EVENT_NAMES.ADD_TO_CART,
           params: {
@@ -175,19 +178,23 @@ function AddToCartButton({
             screen_path: window.location.pathname,
           },
         });
-        await updateQuantity();
+
         animateText("Added To Your Bag");
+        await updateQuantity(
+          true,
+          isVariantInCart({ exact: false })?.type,
+          "add"
+        );
       } else {
-        // Sendevent({
-        //   event: GA_EVENT_NAMES.CLICK,
-        //   value: GA_CLICK_EVENT_VALUES.ADD_TO_CART_BUTTON,
-        // });
         animateButton();
         await cart.AddToCart({
           product_id: id,
           color: product?.colors?.find(
-            (s) => s.option === selectedColor?.color_option
+            (s) =>
+              s.option === selectedColor?.color_option ||
+              s.name === selectedColor?.color_option
           )?.color,
+          type: type,
           choice_1: selectedSize?.option || selectedSize,
           qty: 1,
           image:
@@ -197,8 +204,11 @@ function AddToCartButton({
             product?.images[0],
           isFromAddWidget: true,
           is_redeem: product?.showRedeemPrice && product?.is_redeem,
+          offer_price:
+            product?.showRedeemPrice && product?.is_redeem
+              ? selectedVariant?.redeem_price
+              : selectedVariant.offer_price,
         });
-        onSuccessAddUpdate();
 
         GAevent({
           action: GA_EVENT_NAMES.ADD_TO_CART,
@@ -226,15 +236,19 @@ function AddToCartButton({
             screen_path: window.location.pathname,
           },
         });
-        await updateQuantity();
         animateText("Added To Your Bag");
+        await updateQuantity(
+          true,
+          [selectedColor?.color_option, selectedSize?.option || selectedSize]
+            .filter((e) => Boolean(e))
+            .join("-"),
+          "add"
+        );
       }
       setLoading(false);
-      getCart({
-        callback: () => {},
-      });
     } catch (error) {
-      console.error(error);
+      console.log("add/update", error);
+      await updateQuantity(false);
       setLoading(false);
     }
   };
@@ -242,18 +256,24 @@ function AddToCartButton({
     try {
       if (isVariantInCart({ exact: true })?.quantity > 1) {
         setLoading(true);
-
         animateButton();
-        await cart.UpdateCart({
+        let response = await cart.UpdateCart({
           cart_id: isVariantInCart({ exact: true })?.item_id,
           qty: isVariantInCart({ exact: true })?.quantity - 1,
           isFromAddWidget: true,
         });
-        await updateQuantity();
+
+        if (response === false) {
+          throw "error";
+        }
         animateText("Removed From Your Bag");
         setLoading(false);
-      }
-      if (isVariantInCart({ exact: true })?.quantity === 1) {
+        await updateQuantity(
+          true,
+          isVariantInCart({ exact: true })?.type,
+          "decrease"
+        );
+      } else if (isVariantInCart({ exact: true })?.quantity === 1) {
         setLoading(true);
         animateButton();
         await cart.RemoveFromCart({
@@ -274,14 +294,17 @@ function AddToCartButton({
             ],
           },
         });
-        await updateQuantity();
         animateText("Removed From Your Bag");
         setLoading(false);
-        getCart({
-          callback: () => {},
-        });
+        await updateQuantity(
+          true,
+          isVariantInCart({ exact: true })?.type,
+          "decrease"
+        );
       }
     } catch (error) {
+      console.log("decrease", error);
+      await updateQuantity(false);
       setLoading(false);
     }
   };
@@ -291,7 +314,6 @@ function AddToCartButton({
         onClick={(e) => {
           if ((e.target as any).closest(".minuse-qty-icon")) return false;
           let val = Validate();
-          console.log(val);
           if (!val) return;
           if (!loading && !initialLoading) {
             clickHandler({ variant: selectedVariant });

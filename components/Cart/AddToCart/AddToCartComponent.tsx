@@ -62,7 +62,7 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
     useAppStore();
   const { lang } = useParams();
   // @ts-ignore
-  const [country, languageVariable] = lang?.split("-");
+  const [, languageVariable] = lang?.split("-");
   const [ProductData, setProductData] = useState({
     ...product,
     is_redeem: product?.is_redeem && shouldShowRedeem(),
@@ -92,8 +92,7 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
       getProductData();
     }
   }, [product?.shouldUpdate]);
-
-  const getProductData = async () => {
+  const GetLightData = async () => {
     try {
       setLoading(true);
       getCart({
@@ -101,7 +100,7 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
           initCart(data ?? { cart: [] });
         },
       });
-      let [data1, data2, data3, data4] = await Promise.all([
+      let [data1, data2] = await Promise.all([
         (async () => {
           let response = await fetchData({
             url: `/web/product/qtyPriceDetails/${slug}`,
@@ -119,37 +118,6 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
           let response = await fetchData({
             url: `/web/product/likesDetails/${slug}`,
             reqTitle: REQUESTS_DATA.GET_PRODUCT_VARIANTS_NOTIFICATIONS,
-            method: "GET",
-            server: "market",
-          });
-          // @ts-ignore
-          if (!response.success) {
-            throw new Error(response.message);
-          }
-          return response;
-        })(),
-        (async () => {
-          let response = await fetchData({
-            url: `/api/products/view`,
-            reqTitle: REQUESTS_DATA.GET_VIEW_PRODUCT,
-            method: "POST",
-            server: "elastic",
-            body: JSON.stringify({
-              user_id: auth.UserID(),
-              product_id: product.id,
-            }),
-            noMessage: true,
-          });
-          // @ts-ignore
-          if (!response.success) {
-            throw new Error(response.message);
-          }
-          return response;
-        })(),
-        (async () => {
-          let response = await fetchData({
-            url: `/web/product/globalDetails/${slug}`,
-            reqTitle: REQUESTS_DATA.GET_PRODUCT_GLOBAL_DETAILS,
             method: "GET",
             server: "market",
           });
@@ -180,18 +148,16 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
         is_redeem: data1.data.is_redeem && shouldShowRedeem(),
         // is_redeem: shouldShowRedeem() && true,
         ...data2.data,
-        ...data4.data,
-        ...data3,
         shared_count: product?.shared_count || 0,
         variation: newVariants,
         sync_color_images: !product.singleColor
-          ? data4.data.sync_color_images || []
+          ? product.sync_color_images || []
           : [
-              data4?.data?.sync_color_images?.find(
+              product?.sync_color_images?.find(
                 (s) =>
                   s?.color_name === product?.sync_color_images?.[0]?.color_name
               ),
-              ...data4?.data?.sync_color_images?.filter(
+              ...product?.sync_color_images?.filter(
                 (s) =>
                   s?.color_name !== product?.sync_color_images?.[0]?.color_name
               ),
@@ -237,6 +203,145 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
       // Handle error as needed
       console.error(err);
       setLoading(false);
+    }
+  };
+  const getAllProductData = async () => {
+    try {
+      setLoading(true);
+      getCart({
+        callback: ([data]) => {
+          initCart(data ?? { cart: [] });
+        },
+      });
+      let [data1, data2, data3] = await Promise.all([
+        (async () => {
+          let response = await fetchData({
+            url: `/web/product/qtyPriceDetails/${slug}`,
+            reqTitle: REQUESTS_DATA.GET_PRODUCT_VRIANTES,
+            method: "GET",
+            server: "market",
+          });
+          // @ts-ignore
+          if (!response.success) {
+            throw new Error(response.message);
+          }
+          return response;
+        })(),
+        (async () => {
+          let response = await fetchData({
+            url: `/web/product/likesDetails/${slug}`,
+            reqTitle: REQUESTS_DATA.GET_PRODUCT_VARIANTS_NOTIFICATIONS,
+            method: "GET",
+            server: "market",
+          });
+          // @ts-ignore
+          if (!response.success) {
+            throw new Error(response.message);
+          }
+          return response;
+        })(),
+        (async () => {
+          let response = await fetchData({
+            url: `/api/products/view`,
+            reqTitle: REQUESTS_DATA.GET_VIEW_PRODUCT,
+            method: "POST",
+            server: "elastic",
+            body: JSON.stringify({
+              user_id: auth.UserID(),
+              product_id: product.id,
+            }),
+            noMessage: true,
+          });
+          // @ts-ignore
+          if (!response.success) {
+            throw new Error(response.message);
+          }
+          return response;
+        })(),
+      ]);
+
+      let variants_arr = data1.data.variation;
+      let newVariants = data2.data.variation.map((item) => {
+        let d = variants_arr.find((s) => s.type === item.type);
+        if (d)
+          return {
+            ...item,
+            ...d,
+          };
+        else {
+          return item;
+        }
+      });
+
+      let tempProductData = {
+        ...product,
+        ...data1.data,
+        is_redeem: data1.data.is_redeem && shouldShowRedeem(),
+        // is_redeem: shouldShowRedeem() && true,
+        ...data2.data,
+        ...data3,
+        shared_count: product?.shared_count || 0,
+        variation: newVariants,
+        sync_color_images: !product.singleColor
+          ? product.sync_color_images || []
+          : [
+              product?.sync_color_images?.find(
+                (s) =>
+                  s?.color_name === product?.sync_color_images?.[0]?.color_name
+              ),
+              ...product?.sync_color_images?.filter(
+                (s) =>
+                  s?.color_name !== product?.sync_color_images?.[0]?.color_name
+              ),
+            ],
+      };
+
+      setProductData(tempProductData);
+      if (product?.singleColor) {
+        // setSelectedColor(tempProductData?.sync_color_images[0]);
+      } else if (colorFromUrl) {
+        setSelectedColor(
+          tempProductData?.sync_color_images?.find(
+            (s) =>
+              s?.color_option?.toLowerCase() === colorFromUrl?.toLowerCase() ||
+              s?.color_name?.toLowerCase() === colorFromUrl?.toLowerCase()
+          ) ?? tempProductData?.sync_color_images?.[0]
+        );
+      } else {
+        // setSelectedColor(tempProductData?.sync_color_images[0]);
+      }
+      if (product)
+        setSelectedProductForCart({
+          ...tempProductData,
+          shouldUpdate: 0,
+        });
+
+      if (tempProductData?.choice_options?.[0]?.options?.length > 0) {
+        if (sizeFromUrl?.length > 0) {
+          setSelectedSize(
+            tempProductData?.choice_options?.[0]?.options.find(
+              (s) =>
+                s.option?.toLowerCase() === sizeFromUrl?.toLowerCase() ||
+                s.name?.toLowerCase() === sizeFromUrl?.toLowerCase()
+            ) ?? tempProductData?.choice_options?.[0]?.options?.[0]
+          );
+        } else {
+          // setSelectedSize(tempProductData?.choice_options?.[0]?.options?.[0]);
+        }
+      }
+      // checkIfVariantEmpty();
+      setLoading(false);
+    } catch (err) {
+      // Handle error as needed
+      console.error(err);
+      setLoading(false);
+    }
+  };
+  const getProductData = async () => {
+    if (product?.is_from_listing) {
+      getAllProductData();
+    } else {
+      await GetLightData();
     }
   };
   const checkIfVariantEmpty = () => {
@@ -485,7 +590,7 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
     if (getSelectedVariantQty()?.qty === 0) return true;
     return bool;
   };
-  const updateQuantity = async (type, qty) => {
+  const updateQuantityRemotley = async () => {
     let response = await fetchData({
       method: "GET",
       server: "market",
@@ -496,18 +601,47 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
 
     setProductData({
       ...ProductData,
-      variation: response.data.variation.map((s) => {
+      ...response.data,
+      variation: response.data.variation.map((variant) => {
         return {
-          ...s,
-          qty: s.qty,
-          notify_for_user: ProductData?.variation?.find((s) => s.type === type)
-            ?.notify_for_user,
+          ...variant,
+          notify_for_user: ProductData?.variation?.find(
+            (s) => s.type === variant.type
+          )?.notify_for_user,
         };
       }),
-      is_redeem: response.data.is_redeem && shouldShowRedeem(),
+      is_redeem: response?.data?.is_redeem && shouldShowRedeem(),
     });
   };
-
+  const updateQuantityLocally = (type, operation) => {
+    let response = ProductData;
+    setProductData({
+      ...ProductData,
+      variation: response?.variation?.map((s) => {
+        if (s.type !== type) {
+          return s;
+        } else {
+          return {
+            ...s,
+            qty: operation === "add" ? s.qty - 1 : s.qty + 1,
+            notify_for_user: ProductData?.variation?.find(
+              (s) => s.type === type
+            )?.notify_for_user,
+          };
+        }
+      }),
+      available_quantity:
+        operation === "add"
+          ? response.available_quantity - 1
+          : response.available_quantity + 1,
+      is_redeem: response?.is_redeem && shouldShowRedeem(),
+    });
+  };
+  const updateQuantity = async ({ isLocal = true, type, operation }) => {
+    console.log(isLocal, type, operation);
+    if (isLocal) updateQuantityLocally(type, operation);
+    else await updateQuantityRemotley();
+  };
   return (
     <BottomSheet
       fromProductPage={product?.fromProductPage}
@@ -527,6 +661,10 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
             src:
               (selectedColor?.images?.[0]?.file_path &&
                 GetImageUrl(selectedColor?.images?.[0]?.file_path)) ||
+              (ProductData?.sync_color_images?.[0]?.images?.[0] &&
+                GetImageUrl(
+                  ProductData?.sync_color_images?.[0]?.images?.[0]?.file_path
+                )) ||
               GetImageUrl(selectedColor?.images?.[0]) ||
               (ProductData?.images?.[0]?.file_path &&
                 GetImageUrl(ProductData?.images?.[0]?.file_path)) ||
@@ -669,7 +807,6 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
           />
         ) : (
           <AddToCartButton
-            onSuccessAddUpdate={() => {}}
             fullQty={localCart.filter((s) => s.id === product?.id)?.length}
             colors={ProductData?.sync_color_images}
             sizes={ProductData?.choice_options?.[0]?.options}
@@ -678,7 +815,10 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
             product={ProductData}
             initialLoading={loading && product?.is_from_listing}
             id={ProductData?.id}
-            updateQuantity={async (type, qty) => updateQuantity(type, qty)}
+            updateQuantity={async (isLocal, type = null, operation) => {
+              if (ProductData.collected_after_ordering === 0)
+                await updateQuantity({ isLocal, type, operation });
+            }}
             loading={requestLoading}
             setLoading={setRequestLoading}
             selectedVariant={getSelectedVariantQty()}

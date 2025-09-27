@@ -13,6 +13,8 @@ class CartService {
     image,
     isFromAddWidget = false,
     is_redeem = false,
+    type,
+    offer_price,
   }) {
     const { addProductToCart } = useAppStore.getState();
     const imageVar = image.split("/")[image.split("/").length - 1];
@@ -62,6 +64,8 @@ class CartService {
           size: choice_1,
           image,
           quantity: 1,
+          type,
+          offer_price,
         });
         return true;
       }

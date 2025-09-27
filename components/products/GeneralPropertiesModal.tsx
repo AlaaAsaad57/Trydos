@@ -83,8 +83,8 @@ function GeneralPropertiesModal() {
                 </span>
               </HortiznalScrollBar>
               <div className="flex-col gap-[12px] mt-[10px]">
-                {rating_arr.map((s) => (
-                  <div className="flex-row items-center gap-[12px]">
+                {rating_arr.map((s, i) => (
+                  <div className="flex-row items-center gap-[12px]" key={i}>
                     <RatingStars
                       size={14}
                       color="#1d1d1d"

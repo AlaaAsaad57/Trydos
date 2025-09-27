@@ -1,4 +1,4 @@
-import React from "react";
+import React, { memo } from "react";
 import FlashDealBanner from "./FlashDealBanner";
 
 function ProductBanner({ flashDeals }) {
@@ -11,4 +11,4 @@ function ProductBanner({ flashDeals }) {
   );
 }
 
-export default ProductBanner;
+export default memo(ProductBanner);

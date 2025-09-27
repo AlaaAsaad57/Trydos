@@ -1,11 +1,16 @@
 import Image from "next/image";
 import React from "react";
 import { useAppStore } from "store";
-import { getConfiguredImage, translateFunction } from "utils/functions";
+import {
+  getConfiguredImage,
+  RoundPrice,
+  translateFunction,
+} from "utils/functions";
 import { GetImageUrl } from "utils/tinyUtils";
 
 function CartContentOfProduct() {
-  const { localCart, selected_product_for_add_to_cart } = useAppStore();
+  const { localCart, selected_product_for_add_to_cart, currency } =
+    useAppStore();
 
   const renderVaritionString = (s) => {
     if (s.color && s.size) {
@@ -51,6 +56,20 @@ function CartContentOfProduct() {
       }
     }
   };
+  const getPriceOfProductInCart = () => {
+    let total_products = localCart.filter(
+      (s) =>
+        s.id === selected_product_for_add_to_cart?.product_id ||
+        selected_product_for_add_to_cart?.id
+    );
+    console.log(total_products);
+    let total_price = 0;
+    total_products.map((s) => {
+      total_price += s.offer_price * s.quantity;
+    });
+    return RoundPrice({ num: total_price, rate: currency?.exchange_rate });
+  };
+
   return (
     <div className="flex-row flex items-center min-h-[40px] max-h-[85px] w-full px-[20px]">
       <div className="flex flex-col rounded-[10px] justify-start items-center  relative pt-[30px] max-h-[69px]  min-h-[54px] w-full">
@@ -76,6 +95,8 @@ function CartContentOfProduct() {
 
         <div className="absolute left-0 top-0 z-20 bg-[#513AAF] rounded-[10px] flex items-center justify-center text-[#FCFCFC] text-[10px] medium h-[25px] w-full">
           {translateFunction("Added")} {1} {translateFunction("Item")}{" "}
+          {getPriceOfProductInCart()}
+          {currency.symbol}
           {translateFunction("To Your Bag")}
         </div>
         <svg
@@ -109,7 +130,7 @@ const ProductImageCircle = ({ image }) => {
         src={GetImageUrl(
           getConfiguredImage({ src: image, width: 20, height: 20, q: 100 })
         )}
-        alt="product-image"
+        alt="product-image h-[13px]"
         width={13}
         height={13}
         className="rounded-full"

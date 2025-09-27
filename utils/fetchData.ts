@@ -46,6 +46,7 @@ const requestCache = new Map<string, any>();
 const retryableStatusCodes = [502, 503, 504, 429];
 const ignoredMessages = [
   "Data Got!",
+  "Data Got",
   "تم الحصول على البيانات!",
   "Veri Alındı!",
   "Success",

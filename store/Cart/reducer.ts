@@ -369,6 +369,8 @@ export const useCartStore = (set, get) => ({
               ? `-${s.variations?.[0]?.size_options}`
               : ""
           }`,
+          type: s?.variant,
+          offer_price: s.offer_price,
         })),
       ],
     })),

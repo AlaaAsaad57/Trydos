@@ -1376,5 +1376,6 @@ function buildAtLeastTwoClause(
 function calculateFuzziness(searchText?: string): string | number | null {
   if (!searchText) return null;
   const length = searchText.length;
+  return 1;
   return length >= 7 && length <= 12 ? 1 : null;
 }

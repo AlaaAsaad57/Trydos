@@ -363,7 +363,7 @@ const NotificationIconHolder = ({ isNotified }) => {
             viewBox="0 0 15 15"
           >
             <defs>
-              <clipPath id="clip-path">
+              <clipPath id="3467">
                 <rect
                   id="Rectangle_4830"
                   data-name="Rectangle 4830"
@@ -378,7 +378,7 @@ const NotificationIconHolder = ({ isNotified }) => {
               id="Mask_Group_372"
               data-name="Mask Group 372"
               transform="translate(-200 -851.892)"
-              clip-path="url(#clip-path)"
+              clip-path="url(#3467)"
             >
               <g id="ringing-2" transform="translate(200.62 852)">
                 <g

@@ -138,8 +138,27 @@ export const useDetailsStore = (set, get) => ({
   setShareLoading: (loading: boolean) => set({ shareLoading: loading }),
   setColorBottomSheet: (colorBottomSheet: boolean | any) =>
     set({ ColorBottomSheet: colorBottomSheet }),
-  setSelectedProductForCart: (product: any) =>
-    set({ selected_product_for_add_to_cart: product }),
+  setSelectedProductForCart: (product: any) => {
+    if (!product?.sync_color_images)
+      return set({ selected_product_for_add_to_cart: product });
+    else
+      return set({
+        selected_product_for_add_to_cart: {
+          ...product,
+          sync_color_images: product?.sync_color_images?.map((s) => {
+            return {
+              ...s,
+              color_option: s.color_name,
+            };
+          }),
+          colors: product?.colors.map((s) => ({
+            ...s,
+            color_option: s.name,
+            option: s.name,
+          })),
+        },
+      });
+  },
   storeProduct: (product: any) =>
     set((state) => ({
       product: {

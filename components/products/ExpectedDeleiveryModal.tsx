@@ -149,8 +149,8 @@ function ExpectedDeleiveryModal() {
                 </span>
               </div>
               <div className="flex-col w-full gap-[6px]">
-                {rating_arr.map((s) => (
-                  <ReviewProgress title={s.days} value={s.value} />
+                {rating_arr.map((s, i) => (
+                  <ReviewProgress key={i} title={s.days} value={s.value} />
                 ))}
               </div>
             </div>

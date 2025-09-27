@@ -68,20 +68,18 @@ function FilterList({
               filters[filter]?.length > 0
             )
               return (
-                <>
-                  <FilterItemsRow
-                    index={index}
-                    isFeatured={isFeatured}
-                    isFlashDeals={isFlashDeals}
-                    params={params}
-                    currency={currency}
-                    filterParams={filterParams}
-                    isUsingParsedFilters={isUsingParsedFilters}
-                    items={filters[filter]}
-                    key={filter}
-                    term={filter}
-                  />
-                </>
+                <FilterItemsRow
+                  index={index}
+                  isFeatured={isFeatured}
+                  isFlashDeals={isFlashDeals}
+                  params={params}
+                  currency={currency}
+                  filterParams={filterParams}
+                  isUsingParsedFilters={isUsingParsedFilters}
+                  items={filters[filter]}
+                  key={filter}
+                  term={filter}
+                />
               );
           })}
         </HortiznalScrollBar>
