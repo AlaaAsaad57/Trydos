@@ -38,10 +38,6 @@ function OrderItemsList({
   const language = lang.split("-")[1];
   const isRtl = language === "ar" || language === "ku";
   const isDelevired = (item) => {
-    console.log(
-      !item.is_returned,
-      ActivePacks?.order_status?.value === "delivered"
-    );
     return (
       !item.is_returned && ActivePacks?.order_status?.value === "delivered"
     );

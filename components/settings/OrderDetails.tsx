@@ -429,6 +429,8 @@ function OrderDetails({
       if (chatAbortControllerRef.current) {
         chatAbortControllerRef.current.abort();
       }
+      setOrderDetails(null);
+      setActivePacks(null);
     };
   }, []);
   const shouldShowRatingBadge = () => {
@@ -451,8 +453,14 @@ function OrderDetails({
       getOrderDetails();
     }
   }, [shouldUpdateOrders]);
-  if (!selectedOrder?.id && !selectedOrder?.order_status) return null;
-
+  if (
+    !selectedOrder?.id &&
+    !selectedOrder?.order_status &&
+    !selectedOrder?.details &&
+    !ActivePacks?.details
+  )
+    return null;
+  console.log(`[SelectedOrder]`, selectedOrder);
   return (
     <>
       {chatInfo && (
@@ -584,7 +592,7 @@ function OrderDetails({
                 isExpanded={isExpanded}
                 items={
                   selectedOrder?.details?.find((s) => s.id === ActivePacks?.id)
-                    ?.details
+                    ?.details || []
                 }
               />
               {isExpanded && (
@@ -701,7 +709,7 @@ const OrderExpandedDetails = ({
       <div className="flex-row justify-between items-center w-full">
         <div className="flex text-[#505050] regular text-[12px] mt-[5px] items-center">
           {translateFunction("Buying")}{" "}
-          <span className="bold mx-[2px]"> {order.details.length}</span>{" "}
+          <span className="bold mx-[2px]"> {order?.details?.length}</span>{" "}
           {translateFunction("Items")} .{" "}
           <span className="bold mx-[2px]">
             {RoundPrice({ num: order.order_amount, language: language })}{" "}
