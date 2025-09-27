@@ -1,5 +1,5 @@
 import RatingStars from "components/settings/cards/RatingStars";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { translateFunction } from "utils/functions";
 
 import order from "services/order";
@@ -69,11 +69,6 @@ function RatingOrderItem({
     }
   };
 
-  const blurHandler = async () => {
-    await new Promise((resolve) => setTimeout(resolve, 200));
-    if (!loading) handleCloseModal();
-  };
-
   const isSubmitDisabled = !comment.trim() || rating === 0 || loading;
 
   return (
@@ -82,6 +77,8 @@ function RatingOrderItem({
         className="flex flex-col items-center justify-center w-full space-y-4"
         onClick={() => {
           if (!loading) {
+            document.documentElement.scrollTop = 0;
+            document.querySelector("#OrderDetails").scrollTop = 0;
             setShowCommentModal(true);
           }
         }}
