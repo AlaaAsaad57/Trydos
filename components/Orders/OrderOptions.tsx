@@ -145,7 +145,6 @@ function OrderOptions({
   };
 
   const renderScreen = () => {
-    console.log(shouldConfirmReturn);
     if (SelectedOrderItem) {
       return (
         <>
@@ -214,7 +213,7 @@ function OrderOptions({
             setShouldConfirmCancel={(e) => {
               if (e) {
                 setShouldConfirmCancel({
-                  order_id: ActivePacks.id,
+                  order_id: ActivePacks?.id,
                   item_id: SelectedOrderItem.id,
                   qty: SelectedOrderItem.qty,
                 });
@@ -346,7 +345,7 @@ function OrderOptions({
                 </div>
               </div>
             }
-            {ActivePacks.can_cancele_order && (
+            {ActivePacks?.can_cancele_order && (
               <div
                 onClick={() => {
                   setCanceled(true);
@@ -365,7 +364,7 @@ function OrderOptions({
                     }`}
                   >
                     {translateFunction("Cancel This Pack")}
-                    <span className="mx-1 bold">{ActivePacks.id}</span>
+                    <span className="mx-1 bold">{ActivePacks?.id}</span>
                   </span>
                   <p
                     className={`regular text-[12px] text-[#8D8D8D] ${
@@ -415,6 +414,7 @@ function OrderOptions({
       );
     }
   };
+  if (!selectedOrder || !selectedOrder?.id || !ActivePacks?.id) return null;
   return (
     <>
       <div
