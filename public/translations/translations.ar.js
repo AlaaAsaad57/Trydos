@@ -1062,6 +1062,8 @@ const translations = {
   "Expected Delivery": "موعد التسليم المتوقع",
   "Delivery Note": "ملاحظة التسليم",
   "Show Address List": "عرض قائمة العناوين",
+  "Notification Is Not Enabled! please Allow Notification Access":
+    "الإشعارات غير مفعلة! يرجى السماح بالوصول إلى الإشعارات",
 };
 
 export default translations;

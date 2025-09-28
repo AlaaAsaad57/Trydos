@@ -1105,6 +1105,8 @@ const translations = {
   "Expected Delivery": "کاتی ناردنی چاوەڕوانکراو",
   "Delivery Note": "تێبینی ناردن",
   "Show Address List": "لیستی ناونیشانەکان پیشان بدە",
+  "Notification Is Not Enabled! please Allow Notification Access":
+    "ئاگادارکردنەوە چالاک نییە! تکایە ڕێگە بدە بە دەستیگەیشتنی ئاگادارکردنەوە",
 };
 
 export default translations;

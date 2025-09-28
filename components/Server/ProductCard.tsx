@@ -38,10 +38,11 @@ function ProductCard({
   const [shouldShowRedeemAction, setShouldShowRedeem] = useState(false);
   const [activeColor, setActiveColor] = useState(getImagesOfProducts());
   const [ProductData, setProductData] = useState(product);
+  const [selectedColor, setSelectedColor] = useState(null);
   const getUrlofProduct = () => {
     let url = `/${params.lang}/products/${product.slug}`;
     let searchParams = new URLSearchParams();
-    if (activeColor?.color_name) {
+    if (selectedColor?.color_name) {
       searchParams.set("color", activeColor.color_name);
     }
     if ([...searchParams].length > 0) {
@@ -131,6 +132,7 @@ function ProductCard({
         setActiveColor={(e) => {
           setColorBottomSheet(null);
           setActiveColor(e);
+          setSelectedColor(e);
         }}
         activeColor={activeColor}
       />

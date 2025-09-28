@@ -146,7 +146,7 @@ async function FeaturedProductWrapper({ lang }) {
       filters: {
         featured: true,
       },
-      limit: 10,
+      limit: 20,
     }),
   ]);
   let end = process.hrtime.bigint();

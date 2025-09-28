@@ -19,7 +19,10 @@ import home from "services/home";
 import { GA_EVENT_NAMES } from "utils/GAEvents";
 import { GetImageUrl } from "utils/tinyUtils";
 import { GAevent } from "utils/gtag";
-import { showSuccessNotification } from "@/store/notifications/reducer";
+import {
+  showErrorNotification,
+  showSuccessNotification,
+} from "@/store/notifications/reducer";
 import { fetchData } from "utils/fetchData";
 import { REQUESTS_DATA } from "utils/Requests";
 import BottomSheet from "components/global/BottomSheet";
@@ -58,6 +61,7 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
     searchParams.get("size"),
     searchParams.get("color"),
   ];
+
   const { localCart, currency, setSelectedProductForCart, initCart } =
     useAppStore();
   const { lang } = useParams();
@@ -76,7 +80,15 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
   if (selected_color) {
     selected_color = {
       ...selected_color,
-      color_option: selected_color?.color_name,
+      color_option: selected_color?.color_option ?? selected_color?.color_name,
+    };
+  }
+  if (ProductData?.sync_color_images?.length === 1) {
+    selected_color = {
+      ...ProductData?.sync_color_images?.[0],
+      color_option:
+        ProductData?.sync_color_images?.[0]?.color_option ??
+        ProductData?.sync_color_images?.[0]?.color_name,
     };
   }
   const [selectedColor, setSelectedColor] = useState(selected_color);
@@ -388,7 +400,6 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
     }
     return;
   };
-
   const getVariantSizeQty = (size) => {
     if (ProductData?.variation?.length > 0) {
       let selected_variant;
@@ -555,6 +566,7 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
       };
     }
   };
+
   useEffect(() => {
     if (
       document.querySelector<HTMLElement>(".alternate-product-details-footer")
@@ -638,7 +650,6 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
     });
   };
   const updateQuantity = async ({ isLocal = true, type, operation }) => {
-    console.log(isLocal, type, operation);
     if (isLocal) updateQuantityLocally(type, operation);
     else await updateQuantityRemotley();
   };
@@ -879,6 +890,11 @@ const NotifyCartButton = ({
         );
       }
     } catch (error) {
+      showErrorNotification(
+        translateFunction(
+          "Notification Is Not Enabled! please Allow Notification Access"
+        )
+      );
       console.log(error);
     }
   };

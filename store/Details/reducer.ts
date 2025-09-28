@@ -148,13 +148,13 @@ export const useDetailsStore = (set, get) => ({
           sync_color_images: product?.sync_color_images?.map((s) => {
             return {
               ...s,
-              color_option: s.color_name,
+              color_option: s?.color_option ?? s.color_name,
             };
           }),
           colors: product?.colors.map((s) => ({
             ...s,
-            color_option: s.name,
-            option: s.name,
+            color_option: s?.option ?? s.name,
+            option: s?.option ?? s.name,
           })),
         },
       });

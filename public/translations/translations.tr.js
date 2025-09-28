@@ -1048,6 +1048,8 @@ const translations = {
     "Bu ürün hakkındaki düşüncelerinizi paylaşın",
   "See Our Many Offers And Take Advantage Of Discounts And Special Products":
     "Birçok teklifimizi görün ve indirimlerden ve özel ürünlerden yararlanın",
+  "Notification Is Not Enabled! please Allow Notification Access":
+    "Bildirimler etkin değil! Lütfen bildirim erişimine izin verin",
 };
 
 export default translations;
