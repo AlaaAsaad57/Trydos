@@ -489,6 +489,8 @@ const translations = {
   Logout: "Çıkış Yap",
   "Shipping & Delivery Address": "Teslimat ve Gönderim Adresi",
   "No Address Selected": "Adres Listeniz Boş",
+  "Expected Delivery": "Tahmini Teslimat",
+  "Delivery Note": "Teslimat Notu",
   "Show Address List": "Adres Listesini Göster",
   "Please Enter Shipping Address To Receive Your Bag":
     "Çantanızı Alabilmeniz İçin Lütfen Teslimat Adresinizi Girin",
@@ -1044,6 +1046,8 @@ const translations = {
   "Rate Your Experience": "Deneyiminizi Değerlendirin",
   "Share your thoughts about this product":
     "Bu ürün hakkındaki düşüncelerinizi paylaşın",
+  "See Our Many Offers And Take Advantage Of Discounts And Special Products":
+    "Birçok teklifimizi görün ve indirimlerden ve özel ürünlerden yararlanın",
 };
 
 export default translations;

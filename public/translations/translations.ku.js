@@ -1100,6 +1100,11 @@ const translations = {
   "Rate Your Experience": "تاقیکردنەوەکەت هەڵسەنگێنە",
   "Share your thoughts about this product":
     "بیربوونەکانت بەش بکە سەبارەت بە ئەم بەرھەمە",
+  "See Our Many Offers And Take Advantage Of Discounts And Special Products":
+    "ئەو زۆر پێشنیارانەی ئێمە ببینە و سوود لە داشکاندن و بەرھەمی تایبەت وەربگرە",
+  "Expected Delivery": "کاتی ناردنی چاوەڕوانکراو",
+  "Delivery Note": "تێبینی ناردن",
+  "Show Address List": "لیستی ناونیشانەکان پیشان بدە",
 };
 
 export default translations;

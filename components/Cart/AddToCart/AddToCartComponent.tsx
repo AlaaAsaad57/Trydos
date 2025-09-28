@@ -642,6 +642,8 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
     if (isLocal) updateQuantityLocally(type, operation);
     else await updateQuantityRemotley();
   };
+  const isRtl = languageVariable === "ar" || languageVariable === "ku";
+
   return (
     <BottomSheet
       fromProductPage={product?.fromProductPage}
@@ -652,7 +654,11 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
       }}
       height={75}
     >
-      <div className="flex flex-col justify-start items-start w-full max-h-[75vh] h-full pt-[32px] overflow-y-auto pb-[213px]">
+      <div
+        className={`${
+          isRtl ? "items-end" : "items-start"
+        } flex flex-col   w-full max-h-[75vh] h-full pt-[32px] overflow-y-auto pb-[213px]`}
+      >
         <Card
           brandImabge={GetImageUrl(
             getConfiguredImage({ src: ProductData?.brand?.icon, height: 15 })

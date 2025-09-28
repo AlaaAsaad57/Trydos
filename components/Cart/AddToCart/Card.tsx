@@ -25,8 +25,13 @@ function Card({
   useEffect(() => {
     getCountries();
   }, []);
+  const isRtl = language === "ar" || language === "ku";
   return (
-    <div className="flex flex-row justify-start items-start gap-[12px] h-full max-h-[170px] px-[12px]">
+    <div
+      className={`${
+        isRtl ? "flex-row-reverse" : "flex-row"
+      } flex  justify-start items-start gap-[12px] h-full max-h-[170px] px-[12px]`}
+    >
       <div className="w-[123px] h-[170px] flex relative">
         <Image
           src={image}
@@ -38,8 +43,16 @@ function Card({
         <div className="absolute w-full h-full rounded-[15px] shadow-[inset_0px_3px_6px_rgb(255,255,255,0.5)] z-20" />
         <ImageBorder isOrange={shouldShowOrangeBorder} />
       </div>
-      <div className="flex flex-col  items-start pt-[8px] h-[170px] justify-between">
-        <div className="flex flex-col justify-start items-start gap-[3px]">
+      <div
+        className={`${
+          isRtl ? "items-end" : "items-start"
+        } flex flex-col   pt-[8px] h-[170px] justify-between`}
+      >
+        <div
+          className={`${
+            isRtl ? "items-end" : "items-start"
+          } flex flex-col justify-start gap-[3px]`}
+        >
           <div className="flex items-center flex-row">
             <Image
               src={brandImabge}
@@ -54,7 +67,11 @@ function Card({
             {name}
           </div>
           {/*  */}
-          <div className="flex flex-row regular gap-[4px] text-[10px] items-center">
+          <div
+            className={`${
+              isRtl ? "flex-row-reverse" : "flex-row"
+            } flex regular gap-[4px] text-[10px] items-center`}
+          >
             <span>
               <Image
                 src={"/svg/addtocart/DeleiverIcon.svg"}
@@ -74,7 +91,11 @@ function Card({
             </span>
           </div>
           {/*  */}
-          <div className="flex flex-row regular text-[10px] items-center gap-[4px]">
+          <div
+            className={`${
+              isRtl ? "flex-row-reverse" : "flex-row"
+            } flex  regular text-[10px] items-center gap-[4px]`}
+          >
             <span>
               <Image
                 src={"/svg/addtocart/DeleiveryManIcon.svg"}
@@ -95,7 +116,11 @@ function Card({
             </span>
           </div>
           {/*  */}
-          <div className="flex flex-row regular text-[10px] items-center gap-[4px]">
+          <div
+            className={`${
+              isRtl ? "flex-row-reverse" : "flex-row"
+            } flex regular text-[10px] items-center gap-[4px]`}
+          >
             <span>
               <Image
                 src={"/svg/addtocart/TwoManDeleivery.svg"}
@@ -122,7 +147,11 @@ function Card({
             <span className="text-[#8d8d8d]">{/*Delevery Gurante Icon */}</span>
           </div>
           {/*  */}
-          <div className="flex flex-row regular text-[9px] items-center gap-[3px] text-[#1D1D1D]">
+          <div
+            className={`${
+              isRtl ? "flex-row-reverse" : "flex-row"
+            } flex regular text-[9px] items-center gap-[3px] text-[#1D1D1D]`}
+          >
             <span className="">{translateFunction("Get a")}</span>
             <span className="text-[#388CFF]">
               25% {translateFunction("Refund")}

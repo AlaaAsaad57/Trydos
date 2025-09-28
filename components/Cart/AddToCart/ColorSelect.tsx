@@ -2,16 +2,24 @@ import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 import { getBorder } from "components/products/ProductColors";
 import Image from "next/image";
 import React from "react";
+import { useAppStore } from "store";
 import { getConfiguredImage, translateFunction } from "utils/functions";
 import { GetImageUrl } from "utils/tinyUtils";
 
 function ColorSelect({ colors, setSelectedColor, selectedColor }) {
+  const { language } = useAppStore();
+  const isRtl = language === "ar" || language === "ku";
+
   return (
     <div
-      className="w-full flex-col mt-[12px] px-[12px] gap-[12px]"
+      className={`w-full flex-col mt-[12px] px-[12px] gap-[12px]`}
       id={"color-select"}
     >
-      <div className="flex-row h-[28px] w-full rounded-[10px] bg-[#F8F8F8] relative items-center px-[12px] gap-[4px]">
+      <div
+        className={`${
+          isRtl ? "flex-row-reverse" : "flex-row"
+        } flex h-[28px] w-full rounded-[10px] bg-[#F8F8F8] relative items-center px-[12px] gap-[4px]`}
+      >
         <Image
           alt="colors-icon"
           src={"/svg/product/colors.svg"}
@@ -24,7 +32,9 @@ function ColorSelect({ colors, setSelectedColor, selectedColor }) {
         </span>
       </div>
       <HortiznalScrollBar
-        className="flex flex-row items-start w-full gap-[2px]"
+        className={`${
+          isRtl ? "flex-row-reverse" : "flex-row"
+        } flex items-start w-full gap-[2px]`}
         id="colors-select-for-cart"
       >
         {colors.map((color) => {

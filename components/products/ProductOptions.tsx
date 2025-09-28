@@ -257,7 +257,11 @@ function ProductOptions({
               </div>
             </div>
             <div className="min-w-[130px]" />
-            <div className="flex justify-between w-full">
+            <div
+              className={`${
+                isRtl && "flex-row-reverse"
+              } flex justify-between w-full`}
+            >
               <div
                 className={`product-option-item relative flex-row ${
                   activeOption === "Share" && "active-option"

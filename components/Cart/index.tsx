@@ -31,6 +31,7 @@ import CartErrorComponent from "./CartErrorComponent";
 import OldCartContainer from "./OldCartContainer";
 import CartItem from "./CartItem";
 import Image from "next/image";
+import EmptyCart from "./EmptyCart";
 
 function CartContainer({ close, toOrders }: CartContainerPropsType) {
   const {
@@ -206,7 +207,7 @@ function CartContainer({ close, toOrders }: CartContainerPropsType) {
               viewBox="0 0 20 20"
             >
               <defs>
-                <clipPath id="clipPath">
+                <clipPath id="8876">
                   <rect
                     id="Rectangle_4612"
                     data-name="Rectangle 4612"
@@ -231,7 +232,7 @@ function CartContainer({ close, toOrders }: CartContainerPropsType) {
                 id="Mask_Group_388"
                 data-name="Mask Group 388"
                 transform="translate(-385 -60)"
-                clipPath="url(#clipPath)"
+                clipPath="url(#8876)"
               >
                 <g
                   id="Group_10817"
@@ -399,15 +400,7 @@ function CartContainer({ close, toOrders }: CartContainerPropsType) {
                   ))}
                 </>
               ) : (
-                <div
-                  className="flex-row items-center justify-center light text-[#5d5d5d] text-[16px]"
-                  data-cy="EmptyCRart"
-                >
-                  {translate(
-                    "Cart is Empty",
-                    LocalizationServiceClass.GetAppLanguage()
-                  )}
-                </div>
+                <EmptyCart />
               )}
             </>
           ) : (

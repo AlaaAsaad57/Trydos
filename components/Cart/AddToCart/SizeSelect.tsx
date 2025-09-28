@@ -1,6 +1,7 @@
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 import Image from "next/image";
 import React from "react";
+import { useAppStore } from "store";
 import { translateFunction } from "utils/functions";
 
 function SizeSelect({
@@ -12,13 +13,19 @@ function SizeSelect({
   sizeQty,
 }) {
   let new_sizes_options = ["Standard", "EU", "IN", "US", "UK"];
+  const { language } = useAppStore();
+  const isRtl = language === "ar" || language === "ku";
 
   return (
     <div
-      className="w-full flex-col mt-[12px] px-[12px] gap-[12px]"
+      className={` w-full flex-col mt-[12px] px-[12px] gap-[12px]`}
       id={"size-select"}
     >
-      <div className="flex-row h-[28px] w-full rounded-[10px] bg-[#F8F8F8] relative items-center px-[12px] gap-[4px]">
+      <div
+        className={`${
+          isRtl ? "flex-row-reverse" : "flex-row"
+        } flex h-[28px] w-full rounded-[10px] bg-[#F8F8F8] relative items-center px-[12px] gap-[4px]`}
+      >
         <Image
           alt="sizes-icon"
           src={"/svg/NewSizesIcon.svg"}
@@ -31,8 +38,16 @@ function SizeSelect({
         </span>
       </div>
       <div className="flex flex-col w-full">
-        <div className="flex-row flex justify-between w-full px-[12px]">
-          <div className={`${"flex-row"} flex-row gap-[2px]`}>
+        <div
+          className={`${
+            isRtl ? "flex-row-reverse" : "flex-row"
+          } flex justify-between w-full px-[12px]`}
+        >
+          <div
+            className={`${
+              isRtl ? "flex-row-reverse" : "flex-row"
+            } flex gap-[2px]`}
+          >
             <div
               className="uppercase cursor-pointer flex-col rounded-[6px] bg-[#F4F4F4] text-[#1d1d1d] text-[11px] w-auto h-[20px] items-center px-[6px]"
               style={{
@@ -50,7 +65,11 @@ function SizeSelect({
               CM
             </div>
           </div>
-          <div className={`${"flex-row"} gap-[2px] items-start`}>
+          <div
+            className={`${
+              isRtl ? "flex-row-reverse" : "flex-row"
+            } flex gap-[2px] items-start`}
+          >
             {new_sizes_options?.map((s) => (
               <div
                 key={s}
@@ -67,7 +86,9 @@ function SizeSelect({
           </div>
         </div>
         <HortiznalScrollBar
-          className={`w-full ${"flex-row"} gap-[2px] px-[22px] pt-[11px]`}
+          className={`w-full ${
+            isRtl ? "flex-row-reverse" : "flex-row"
+          } flex gap-[2px] px-[22px] pt-[11px]`}
           id="sizes-new-bar-cart"
         >
           {sizes.map((s) => (

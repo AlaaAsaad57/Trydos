@@ -59,6 +59,8 @@ const OrderCartItem = () => {
       return cart;
     }
   };
+  const isRtl = language === "ar" || language === "ku";
+
   return (
     <div
       style={{
@@ -66,20 +68,24 @@ const OrderCartItem = () => {
       }}
       className={`flex-col relative pl-[12px] justify-center w-full min-h-[170px] cursor-pointer`}
     >
-      <div className="flex-row ">
+      <div className={`${isRtl ? "flex-row-reverse" : "flex-row"} gap-[4px] `}>
         <OrderCartIcon />
-        <div className="regular text-[#1D1D1D] text-[14px] ml-2">
+        <div
+          className={`regular text-[#1D1D1D] text-[14px] ml-2 flex gap-[4px] ${
+            isRtl && "dir-rtl"
+          }`}
+        >
           {translateFunction("Your Shopping Bag", language)}
-          <span className={language === "ar" ? "mr-1 bold" : "ml-1 bold"}>
+          <span className={"bold flex gap-[4px]"}>
             {getProductsOfOrder()?.length}
-            <span className={"ml-1"}>
-              {translateFunction("items", language)}
-            </span>
+            <span>{translateFunction("items", language)}</span>
           </span>
         </div>
       </div>
       <div
-        className={`${`pl-[11px] pb-[12px] pt-[11px] `} transition flex-row `}
+        className={`pb-[12px] pt-[11px] ${
+          isRtl ? "flex-row-reverse pr-[11px] " : "flex-row pl-[11px] "
+        }`}
       >
         {getProductsOfOrder()?.map((s, i) => {
           return (
@@ -106,7 +112,7 @@ const OrderCartItem = () => {
   );
 };
 const AddressOrder = ({ success }: AddressOrderPropsType) => {
-  const { addressLists } = useAppStore();
+  const { addressLists, language } = useAppStore();
   const GetAddressString = (location) => {
     let str = "";
     if (
@@ -143,14 +149,18 @@ const AddressOrder = ({ success }: AddressOrderPropsType) => {
   };
 
   let defaultAddress = addressLists.filter((s) => s.is_default === 1)[0];
+  const isRtl = language === "ar" || language === "ku";
+
   return (
     <div
       style={{
         borderRadius: "15px",
       }}
-      className={`address-valid-border flex-col mt-[11px] pb-[12px] relative pr-[12px] pl-[12px] justify-start pt-[15px] w-full `}
+      className={`${
+        isRtl ? "items-end" : "items-start"
+      } address-valid-border flex-col mt-[11px] pb-[12px] relative pr-[12px] pl-[12px] justify-start pt-[15px] w-full `}
     >
-      <div className="flex-row ">
+      <div className={`${isRtl ? "flex-row-reverse" : "flex-row"} gap-[9px]`}>
         <svg
           xmlns="http://www.w3.org/2000/svg"
           xmlnsXlink="http://www.w3.org/1999/xlink"
@@ -236,10 +246,10 @@ const AddressOrder = ({ success }: AddressOrderPropsType) => {
             </g>
           </g>
         </svg>
-        <div className="regular text-[#1D1D1D] text-[14px] ml-2">
+        <div className="regular text-[#1D1D1D] text-[14px]">
           {translateFunction("Shipping & Delivery Address")}
         </div>
-        <span className="bold ml-[11px]">
+        <span className="bold ">
           <FreeShippingIcon />
         </span>
       </div>
@@ -253,12 +263,18 @@ const AddressOrder = ({ success }: AddressOrderPropsType) => {
         className={`flex-col  ${
           addressLists?.length === 0
             ? "items-center h-[84px]   py-[12px]"
-            : "items-start h-[auto] min-h-[90px] px-[24px]  py-[7px]"
-        } mt-[10px] rounded-[15px] bg-[#F8F8F8] w-full `}
+            : `${
+                isRtl ? "items-end" : "items-start"
+              }  h-[auto] min-h-[90px] px-[24px]  py-[7px]`
+        } $ mt-[10px] rounded-[15px] bg-[#F8F8F8] w-full `}
       >
         <>
-          <div className="flex-col">
-            <div className="flex-row items-center">
+          <div className={`${isRtl ? "items-end" : "items-start"} flex-col`}>
+            <div
+              className={`${
+                isRtl ? "flex-row-reverse" : "flex-row"
+              } gap-[4px] items-center`}
+            >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="12"
@@ -273,14 +289,22 @@ const AddressOrder = ({ success }: AddressOrderPropsType) => {
                 />
               </svg>
 
-              <span className="regular ml-[4px] text-[12px] text-[#8D8D8D]">
+              <span className="regular text-[12px] text-[#8D8D8D]">
                 {defaultAddress?.address}
               </span>
             </div>
-            <div className="flex-row mt-[5px]  items-center regular text-[12px] text-[#8D8D8D]">
+            <div
+              className={`${
+                isRtl ? "flex-row-reverse" : "flex-row"
+              } flex-row mt-[5px]  items-center regular text-[12px] text-[#8D8D8D]`}
+            >
               {GetAddressString(defaultAddress?.region_details)}
             </div>
-            <div className="flex-row mt-[5px] items-center regular text-[12px] text-[#8D8D8D]">
+            <div
+              className={`${
+                isRtl ? "flex-row-reverse" : "flex-row"
+              } gap-[4px] mt-[5px] items-center regular text-[12px] text-[#8D8D8D]`}
+            >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 xmlnsXlink="http://www.w3.org/1999/xlink"
@@ -317,10 +341,14 @@ const AddressOrder = ({ success }: AddressOrderPropsType) => {
                 </g>
               </svg>
 
-              <div className="flex-row ml-[4px]   items-center regular text-[12px] text-[#8D8D8D]">
+              <div className="flex-row   items-center regular text-[12px] text-[#8D8D8D]">
                 {defaultAddress?.contact_info?.phone}
               </div>
-              <div className="flex-row ml-[17px]  items-center">
+              <div
+                className={`${
+                  isRtl ? "flex-row-reverse" : "flex-row"
+                } gap-[4px] ml-[17px]  items-center`}
+              >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   xmlnsXlink="http://www.w3.org/1999/xlink"
@@ -374,7 +402,7 @@ const AddressOrder = ({ success }: AddressOrderPropsType) => {
                   </g>
                 </svg>
 
-                <div className="flex-row  ml-[4px]  items-center regular text-[12px] text-[#8D8D8D]">
+                <div className="flex-row  items-center regular text-[12px] text-[#8D8D8D]">
                   {defaultAddress?.contact_info?.contact_person_name ||
                     // @ts-ignore
                     defaultAddress?.contact_info?.name}
@@ -388,8 +416,15 @@ const AddressOrder = ({ success }: AddressOrderPropsType) => {
   );
 };
 const PaymentOrder = ({ success }: PaymentOrderPropsType) => {
-  const { orderData, coupon_discount, currency, wallet, total, total_cash } =
-    useAppStore();
+  const {
+    orderData,
+    coupon_discount,
+    language,
+    currency,
+    wallet,
+    total,
+    total_cash,
+  } = useAppStore();
   const getWalletInUSD = () => {
     if (wallet?.wallet_balance > 0)
       return wallet?.wallet_balance / currency?.exchange_rate;
@@ -401,16 +436,22 @@ const PaymentOrder = ({ success }: PaymentOrderPropsType) => {
       return total_cash - getWalletInUSD();
     }
   };
+  const isRtl = language === "ar" || language === "ku";
+
   return (
     <div className="px-[12px] flex-col">
       <div
         style={{
           borderRadius: "15px",
         }}
-        className={`flex-col payment-valid-border pb-[12px] relative pr-[12px] pl-[12px] justify-start pt-[15px] w-full  `}
+        className={`${
+          isRtl ? "items-end" : "items-start"
+        } flex-col payment-valid-border pb-[12px] relative pr-[12px] pl-[12px] justify-start pt-[15px] w-full  `}
         data-cy="Payment-Container-Cart-Page"
       >
-        <div className="flex-row ">
+        <div
+          className={`${isRtl ? " flex-row-reverse" : " flex-row"} gap-[4px] `}
+        >
           <svg
             data-cy="svg-payment"
             id="_15x15_photo_back"
@@ -422,7 +463,7 @@ const PaymentOrder = ({ success }: PaymentOrderPropsType) => {
             viewBox="0 0 18 18"
           >
             <defs>
-              <clipPath id="clipPath">
+              <clipPath id="920329">
                 <rect
                   id="Rectangle_4561"
                   data-name="Rectangle 4561"
@@ -435,7 +476,7 @@ const PaymentOrder = ({ success }: PaymentOrderPropsType) => {
             <g
               id="Mask_Group_658"
               data-name="Mask Group 658"
-              clipPath="url(#clipPath)"
+              clipPath="url(#920329)"
             >
               <g id="money-9">
                 <g id="Group_13431" data-name="Group 13431">
@@ -483,7 +524,7 @@ const PaymentOrder = ({ success }: PaymentOrderPropsType) => {
           </svg>
 
           <div
-            className="regular text-[#1D1D1D] text-[14px] ml-2"
+            className="regular text-[#1D1D1D] text-[14px]"
             data-cy="Payment-Method-Statement"
           >
             {translateFunction("Payment Method")}
@@ -571,10 +612,16 @@ const CODInput = ({
   total: number;
   order_success?: boolean;
 }) => {
-  const { currency, cod_cost } = useAppStore();
+  const { currency, cod_cost, language } = useAppStore();
+
+  const isRtl = language === "ar" || language === "ku";
   return (
     <div
-      className="w-full cursor-pointer mt-[10px] items-center pl-[23px] justify-between pr-[26px] flex rounded-[15px] h-[40px] bg-[#F8F8F8] relative"
+      className={`${
+        isRtl
+          ? "flex-row-reverse pr-[23px] pl-[26px]"
+          : "flex-row pr-[26px] pl-[23px]"
+      } w-full cursor-pointer mt-[10px] items-center  justify-between  flex rounded-[15px] h-[40px] bg-[#F8F8F8] relative`}
       style={{
         border: "#C4C2C28c 1px soild",
       }}
@@ -601,11 +648,16 @@ const CODInput = ({
   );
 };
 const TryDosWalletInput = ({ total }) => {
-  const { currency } = useAppStore();
+  const { currency, language } = useAppStore();
+  const isRtl = language === "ar" || language === "ku";
 
   return (
     <div
-      className="w-full cursor-pointer mt-[10px] items-center pl-[23px] justify-between pr-[26px] flex rounded-[15px] h-[40px] bg-[#F8F8F8] relative"
+      className={`${
+        isRtl
+          ? "flex-row-reverse pr-[23px] pl-[26px]"
+          : "flex-row pr-[26px] pl-[23px]"
+      } w-full cursor-pointer mt-[10px] items-center  justify-between flex rounded-[15px] h-[40px] bg-[#F8F8F8] relative`}
       style={{
         border: "#C4C2C28c 1px soild",
       }}
@@ -628,12 +680,19 @@ const TryDosWalletInput = ({ total }) => {
   );
 };
 const CreditInput = ({ total }: CreditInputPropsType) => {
+  const { language } = useAppStore();
+  const isRtl = language === "ar" || language === "ku";
+
   return (
     <div
       style={{
         border: "#C4C2C28c 1px soild",
       }}
-      className="mt-[6px] cursor-pointer w-full items-center pl-[23px] justify-between pr-[26px] flex rounded-[15px] h-[40px] bg-[#F8F8F8] relative"
+      className={`${
+        isRtl
+          ? "flex-row-reverse pr-[23px] pl-[26px]"
+          : "flex-row pr-[26px] pl-[23px]"
+      } mt-[6px] cursor-pointer w-full items-center pl-[23px] justify-between pr-[26px] flex rounded-[15px] h-[40px] bg-[#F8F8F8] relative`}
     >
       <div className="flex-row items-center">
         <CreditIcon />
@@ -653,6 +712,8 @@ const CreditInput = ({ total }: CreditInputPropsType) => {
   );
 };
 const CryptoInput = ({ total }: CryptoInputPropsType) => {
+  const { language } = useAppStore();
+  const isRtl = language === "ar" || language === "ku";
   return (
     <div
       onClick={(e) => {
@@ -663,7 +724,11 @@ const CryptoInput = ({ total }: CryptoInputPropsType) => {
       style={{
         border: "#C4C2C28c 1px soild",
       }}
-      className="mt-[6px] cursor-pointer w-full items-center pl-[23px] justify-between pr-[26px] flex rounded-[15px] h-[40px] bg-[#F8F8F8] relative"
+      className={`${
+        isRtl
+          ? "flex-row-reverse pr-[23px] pl-[26px]"
+          : "flex-row pr-[26px] pl-[23px]"
+      } mt-[6px] cursor-pointer w-full items-center pl-[23px] justify-between pr-[26px] flex rounded-[15px] h-[40px] bg-[#F8F8F8] relative`}
     >
       <div className="flex-row items-center">
         <CryptoIcon />

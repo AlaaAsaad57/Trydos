@@ -72,7 +72,7 @@ const CartItemSelect = ({ items }) => {
   // @ts-ignore
   const language = lang.split("-")[1];
   const [openCart, setOpenCart] = useState(false);
-
+  const isRtl = language === "ar" || language === "ku";
   return (
     <div
       data-cy="bag-viewer"
@@ -82,13 +82,17 @@ const CartItemSelect = ({ items }) => {
       }}
       className={`flex-col ${
         openCart && "pt-[15px]"
-      } relative pl-[12px] justify-center w-full min-h-[50px] cursor-pointer`}
+      } relative  justify-center w-full min-h-[50px] cursor-pointer ${
+        isRtl ? "pr-[12px] items-end" : "pl-[12px] items-start"
+      }`}
       onClick={() => {
         setOpenCart(!openCart);
       }}
     >
       <span
-        className={` absolute top-[22px] right-[12px] `}
+        className={`${
+          isRtl ? "left-[12px]" : "right-[12px]"
+        } absolute top-[22px]  `}
         data-cy="DropDownIcon"
       >
         <svg
@@ -452,7 +456,7 @@ const AddressContainer = ({
         }
       }}
       style={{
-        border: addressLists?.length === 0 && "#388bff8c 1px solid",
+        border: addressLists?.length !== 0 && "#388bff8c 1px solid",
       }}
       className={`flex-col  ${
         addressLists?.length === 0
@@ -631,12 +635,16 @@ const DefaultAddress = ({
       });
     }
   }, []);
+  const isRtl = language === "ar" || language === "ku";
   return (
-    <div data-cy="flex-cols" className="flex-col w-full ">
+    <div
+      data-cy="flex-cols"
+      className={`${isRtl ? "items-end" : "items-start"} flex-col w-full `}
+    >
       <div
         data-cy="flex-row items-centers"
-        className={`flex-row items-center  ${
-          language === "ar" || language === "ku" ? "flex-row-reverse" : ""
+        className={`items-center gap-[4px]  ${
+          isRtl ? "flex-row-reverse" : "flex-row"
         }`}
       >
         <svg
@@ -656,7 +664,7 @@ const DefaultAddress = ({
 
         <span
           data-cy="regular-addresses"
-          className={`regular ml-[4px] text-[12px] text-[#8D8D8D] flex-row ${
+          className={`regular  text-[12px] text-[#8D8D8D] flex-row ${
             language === "ar" || language === "ku"
               ? "flex-row-reverse pl-2"
               : ""
@@ -675,7 +683,9 @@ const DefaultAddress = ({
       </div>
       <div
         data-cy="Address-Added-Last-flex-row"
-        className="flex-row mt-[5px] items-center regular text-[12px] text-[#8D8D8D]"
+        className={`gap-[4px] flex mt-[5px] items-center regular text-[12px] text-[#8D8D8D] ${
+          isRtl ? "flex-row-reverse" : "flex-row"
+        }`}
       >
         <svg
           data-cy="Address-Added-Last-flex-row-svg"
@@ -716,15 +726,15 @@ const DefaultAddress = ({
 
         <div
           data-cy="defaultAddress-contactinfo"
-          className={`flex-row ml-[4px]   items-center regular text-[12px] text-[#8D8D8D] ${
-            language === "ar" || language === "ku" ? "flex-row-reverse" : ""
+          className={`items-center regular text-[12px] text-[#8D8D8D] ${
+            isRtl ? "flex-row-reverse" : "flex-row"
           }`}
         >
           {defaultAddress?.contact_info?.phone}
         </div>
         <div
           data-cy="flexs-container"
-          className="flex-row ml-[17px]  items-center"
+          className="flex-row mx-[17px] gap-[4px]  items-center"
         >
           <svg
             data-cy="flexs-container-svg"
@@ -782,7 +792,7 @@ const DefaultAddress = ({
 
           <div
             data-cy="defaultAddress-contactpersonname"
-            className={`flex-row  ml-[4px]  items-center regular text-[12px] text-[#8D8D8D] ${
+            className={`flex-row   items-center regular text-[12px] text-[#8D8D8D] ${
               language === "ar" || language === "ku" ? "flex-row-reverse" : ""
             }`}
           >
@@ -792,15 +802,19 @@ const DefaultAddress = ({
           </div>
         </div>
       </div>
-      <div className="flex-row text-[10px]  bg-[#FFFFFF] rounded-[12px] w-full h-[31px] justify-center items-center">
+      <div
+        className={`${
+          isRtl ? "flex-row-reverse" : "flex-row"
+        } gap-[4px] flex text-[10px]  bg-[#FFFFFF] rounded-[12px] w-full h-[31px] justify-center items-center`}
+      >
         <span className="text-[#8D8D8D] regular ">
           {translateFunction("Expected Delivery")}
         </span>
-        <span className="text-[#1D1D1D] regular ml-[4px]">
+        <span className="text-[#1D1D1D] regular">
           {loading ? <Spinner /> : getDeliveryDate()}
         </span>
-        <span className="text-[#388CFF] regular underline cursor-pointer ml-[4px]">
-          {translateFunction("Delivery Not")}
+        <span className="text-[#388CFF] regular underline cursor-pointer">
+          {translateFunction("Delivery Note")}
         </span>
       </div>
     </div>

@@ -25,6 +25,7 @@ function PlaceOrderButtons({
     cart,
     setCouponDiscount,
     userProfile,
+    language,
   } = useAppStore();
 
   const { lang } = useParams();
@@ -103,14 +104,15 @@ function PlaceOrderButtons({
       return total;
     }
   };
+  const isRtl = language === "ar" || language === "ku";
   return (
     <div className="absolute flex-col items-center payment-order-bottom left-0 w-full">
       {!orderData.success && (
         <div className="px-[24px] mb-[12px] w-full">
           <div
-            className={`${
-              orderData.agree ? "bg-[#F5FFF8]" : "bg-[#F8F8F8]"
-            } w-full cursor-pointer agree-valid-border pl-[26px] h-[40px] rounded-[15px] regular flex-row items-center text-[12px] text-[#1D1D1D]`}
+            className={`${orderData.agree ? "bg-[#F5FFF8]" : "bg-[#F8F8F8]"} ${
+              isRtl ? "flex-row-reverse" : "flex-row"
+            } gap-[34px] w-full cursor-pointer agree-valid-border px-[26px] h-[40px] rounded-[15px] regular flex-row items-center text-[12px] text-[#1D1D1D]`}
             data-cy="read-and-agree"
             style={{
               border: "1px solid rgb(56 144 255 / 51%)",
@@ -122,20 +124,8 @@ function PlaceOrderButtons({
             <span className="cursor-pointer">
               <CheckBoxElement active={orderData.agree} />
             </span>
-            <div
-              className={` ${
-                LocalizationServiceClass.GetAppLanguage() === "ar"
-                  ? "dir-rtl"
-                  : ""
-              } flex ml-[34px]`}
-            >
-              <span
-                className={`${
-                  LocalizationServiceClass.GetAppLanguage() === "ar" ? "" : ""
-                } `}
-              >
-                {translateFunction("I read and agree to the")}
-              </span>
+            <div className={` ${isRtl ? "dir-rtl" : ""} flex `}>
+              <span>{translateFunction("I read and agree to the")}</span>
               <span
                 className={`underline ${
                   LocalizationServiceClass.GetAppLanguage() === "ar"

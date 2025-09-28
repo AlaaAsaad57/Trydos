@@ -9,7 +9,7 @@ import {
 import { GetImageUrl } from "utils/tinyUtils";
 
 function CartContentOfProduct() {
-  const { localCart, selected_product_for_add_to_cart, currency } =
+  const { localCart, selected_product_for_add_to_cart, currency, language } =
     useAppStore();
 
   const renderVaritionString = (s) => {
@@ -69,7 +69,7 @@ function CartContentOfProduct() {
     });
     return RoundPrice({ num: total_price, rate: currency?.exchange_rate });
   };
-
+  const isRtl = language === "ar" || language === "ku";
   return (
     <div className="flex-row flex items-center min-h-[40px] max-h-[85px] w-full px-[20px]">
       <div className="flex flex-col rounded-[10px] justify-start items-center  relative pt-[30px] max-h-[69px]  min-h-[54px] w-full">
@@ -93,18 +93,27 @@ function CartContentOfProduct() {
             ))}
         </div>
 
-        <div className="absolute left-0 top-0 z-20 bg-[#513AAF] rounded-[10px] flex items-center justify-center text-[#FCFCFC] text-[10px] medium h-[25px] w-full">
-          {translateFunction("Added")}{" "}
-          {
-            localCart.filter(
-              (s) =>
-                s.id === selected_product_for_add_to_cart?.product_id ||
-                selected_product_for_add_to_cart?.id
-            )?.length
-          }{" "}
-          {translateFunction("Item")} {getPriceOfProductInCart()}
-          {currency.symbol}
-          {translateFunction("To Your Bag")}
+        <div
+          className={`${
+            isRtl ? "flex-row-reverse" : "flex-row"
+          } absolute left-0 top-0 z-20 bg-[#513AAF] rounded-[10px] flex items-center justify-center text-[#FCFCFC] text-[10px] medium h-[25px] w-full gap-[3px]`}
+        >
+          <span>{translateFunction("Added")}</span>
+          <span>
+            {
+              localCart.filter(
+                (s) =>
+                  s.id === selected_product_for_add_to_cart?.product_id ||
+                  selected_product_for_add_to_cart?.id
+              )?.length
+            }
+          </span>
+          <span>{translateFunction("Item")} </span>
+          <span>
+            {getPriceOfProductInCart()} {currency.symbol}
+          </span>
+
+          <span>{translateFunction("To Your Bag")}</span>
         </div>
         <svg
           className="absolute left-0 top-0 "

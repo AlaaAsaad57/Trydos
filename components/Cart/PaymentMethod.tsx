@@ -234,6 +234,8 @@ function PaymentMethod() {
       setWalletLoading(false);
     }
   };
+  const isRtl = language === "ar" || language === "ku";
+
   return (
     <>
       <div data-cy="payment-viewer" className="px-[12px] flex-col">
@@ -262,7 +264,7 @@ function PaymentMethod() {
               viewBox="0 0 18 18"
             >
               <defs>
-                <clipPath id="clipPath">
+                <clipPath id="13256">
                   <rect
                     id="Rectangle_4561"
                     data-name="Rectangle 4561"
@@ -275,7 +277,7 @@ function PaymentMethod() {
               <g
                 id="Mask_Group_658"
                 data-name="Mask Group 658"
-                clipPath="url(#clipPath)"
+                clipPath="url(#13256)"
               >
                 <g id="money-9">
                   <g id="Group_13431" data-name="Group 13431">
@@ -363,7 +365,11 @@ function PaymentMethod() {
               }
               if (item?.toLowerCase() === "trydos_wallet".toLowerCase()) {
                 return (
-                  <div className="flex-row items-end gap-[8px]">
+                  <div
+                    className={`flex-row items-end gap-[8px] ${
+                      isRtl ? "flex-row-reverse" : "flex-row"
+                    }`}
+                  >
                     <TryDosWalletInput
                       key={key}
                       active={
@@ -601,7 +607,8 @@ export default PaymentMethod;
 //   );
 // };
 const CODInput = ({ active, setActive, total }) => {
-  const { cod_cost, currency } = useAppStore();
+  const { language, cod_cost, currency } = useAppStore();
+  const isRtl = language === "ar" || language === "ku";
 
   return (
     <div
@@ -609,13 +616,20 @@ const CODInput = ({ active, setActive, total }) => {
       onClick={() => {
         setActive();
       }}
-      className="w-full cursor-pointer mt-[10px] items-center pl-[23px] justify-between pr-[26px] flex rounded-[15px] h-[40px] bg-[#F8F8F8] relative"
+      className={`${
+        isRtl
+          ? "flex-row-reverse pr-[23px] pl-[26px]"
+          : "flex-row pr-[26px] pl-[23px]"
+      } w-full cursor-pointer mt-[10px] items-center  justify-between  flex rounded-[15px] h-[40px] bg-[#F8F8F8] relative`}
       style={{
         border: active && "1px solid rgb(56 144 255 / 51%)",
       }}
     >
       <div data-cy="WalletIcon-container" className="flex-row items-center">
-        <WalletIcon data-cy="WalletIcon-container-svg" />
+        <WalletIcon
+          className={`${active && "[&_path]:fill-[#1D1D1D]"}`}
+          data-cy="WalletIcon-container-svg"
+        />
         <span
           data-cy="Cash-texts"
           className={`ml-[8px]  ${
@@ -646,23 +660,30 @@ const TryDosWalletInput = ({
   active,
   setActive,
 }: TryDosWalletInputPropsType) => {
-  const { orderLoading, wallet, currency, settings } = useAppStore();
+  const { orderLoading, wallet, currency, settings, language } = useAppStore();
   const points = settings["starting-setting"]?.decimal_point_settings || 0;
+  const isRtl = language === "ar" || language === "ku";
+
   return (
     <div
       data-cy="second-bay-way"
       onClick={() => {
         setActive();
       }}
-      className={`${
-        wallet?.wallet_balance <= 0 && "opacity-45"
-      } w-full cursor-pointer mt-[10px] items-center pl-[23px] justify-between pr-[26px] flex rounded-[15px] h-[40px] bg-[#F8F8F8] relative`}
+      className={`${wallet?.wallet_balance <= 0 && "opacity-45"} ${
+        isRtl
+          ? "flex-row-reverse pr-[23px] pl-[26px]"
+          : "flex-row pr-[26px] pl-[23px]"
+      } w-full cursor-pointer mt-[10px] items-center  justify-between  flex rounded-[15px] h-[40px] bg-[#F8F8F8] relative`}
       style={{
         border: active && "1px solid rgb(56 144 255 / 51%)",
       }}
     >
       <div data-cy="second-bay-way-con" className="flex-row items-center">
-        <WalletIcon data-cy="second-bay-way-svg" />
+        <WalletIcon
+          data-cy="second-bay-way-svg"
+          className={`${active && "[&_path]:fill-[#1D1D1D]"}`}
+        />
         <span
           data-cy="second-bay-way-con-text"
           className={`ml-[8px]  ${
@@ -700,6 +721,9 @@ const TryDosWalletInput = ({
 };
 
 const CreditInput = ({ active, setActive }) => {
+  const { language } = useAppStore();
+  const isRtl = language === "ar" || language === "ku";
+
   return (
     <div
       data-cy="dredit-way"
@@ -709,10 +733,17 @@ const CreditInput = ({ active, setActive }) => {
       style={{
         border: active && "1px solid rgb(56 144 255 / 51%)",
       }}
-      className="mt-[6px] cursor-pointer w-full items-center pl-[23px] justify-between pr-[26px] flex rounded-[15px] h-[40px] bg-[#F8F8F8] relative"
+      className={`${
+        isRtl
+          ? "flex-row-reverse pr-[23px] pl-[26px]"
+          : "flex-row pr-[26px] pl-[23px]"
+      } mt-[6px] cursor-pointer w-full items-center  justify-between  flex rounded-[15px] h-[40px] bg-[#F8F8F8] relative`}
     >
       <div data-cy="dredit-way-con" className="flex-row items-center">
-        <CreditIcon data-cy="dredit-way-svg" />
+        <CreditIcon
+          data-cy="dredit-way-svg"
+          className={`${active && "[&_path]:fill-[#1D1D1D]"}`}
+        />
         <span
           data-cy="dredit-way-text"
           className={`ml-[8px] ${
@@ -737,6 +768,9 @@ const CreditInput = ({ active, setActive }) => {
   );
 };
 const CryptoInput = ({ active, setActive }) => {
+  const { language } = useAppStore();
+  const isRtl = language === "ar" || language === "ku";
+
   return (
     <div
       data-cy="crypto-bay-way"
@@ -748,10 +782,17 @@ const CryptoInput = ({ active, setActive }) => {
       style={{
         border: active && "1px solid rgb(56 144 255 / 51%)",
       }}
-      className="mt-[6px] cursor-pointer w-full items-center pl-[23px] justify-between pr-[26px] flex rounded-[15px] h-[40px] bg-[#F8F8F8] relative"
+      className={`${
+        isRtl
+          ? "flex-row-reverse pr-[23px] pl-[26px]"
+          : "flex-row pr-[26px] pl-[23px]"
+      } mt-[6px] cursor-pointer w-full items-center justify-between flex rounded-[15px] h-[40px] bg-[#F8F8F8] relative`}
     >
       <div data-cy="crypto-bay-way-container" className="flex-row items-center">
-        <CryptoIcon data-cy="crypto-bay-way-svg" />
+        <CryptoIcon
+          data-cy="crypto-bay-way-svg"
+          className={`${active && "[&_path]:fill-[#1D1D1D]"}`}
+        />
         <span
           data-cy="crypto-bay-way-text"
           className={`ml-[8px] ${

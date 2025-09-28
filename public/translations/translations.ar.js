@@ -1057,6 +1057,11 @@ const translations = {
   "We Will Inform You When Size Is Available": "سوف نعلمك عندما يتوفر المقاس",
   "Rate Your Experience": "قيّم تجربتك",
   "Share your thoughts about this product": "شارك أفكارك حول هذا المنتج",
+  "See Our Many Offers And Take Advantage Of Discounts And Special Products":
+    "شاهد عروضنا الكثيرة واستفد من الخصومات والمنتجات الخاصة",
+  "Expected Delivery": "موعد التسليم المتوقع",
+  "Delivery Note": "ملاحظة التسليم",
+  "Show Address List": "عرض قائمة العناوين",
 };
 
 export default translations;
