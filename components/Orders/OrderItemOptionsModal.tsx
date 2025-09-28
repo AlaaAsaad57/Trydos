@@ -157,7 +157,7 @@ function OrderItemOptionsModal({
                 </div>
               </div>
             )}
-            {ActivePacks?.can_cancele_order && (
+            {ActivePacks?.can_cancele_order && item.qty > 0 && (
               <div
                 onClick={() => {
                   setActiveWidget("cancel");
