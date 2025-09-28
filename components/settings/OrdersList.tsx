@@ -241,6 +241,7 @@ function OrdersList({
     };
   }, []); // Run only once on mount
   const { lang } = useParams();
+  const [, language] = (lang as string).split("-");
   useEffect(() => {
     const { setIsNavigating } = useAppStore.getState();
     setIsNavigating(null);
@@ -253,6 +254,8 @@ function OrdersList({
       loadMoreOrders(true, selectedStatus);
     }
   }, [selectedOrder]);
+  const isRtl = language === "ar" || language === "ku";
+
   return (
     <div className="flex-col max-h-full">
       <SettingTopBar
@@ -272,13 +275,19 @@ function OrdersList({
       />
 
       <div className="flex-row justify-center mt-[17px] w-full">
-        <div className="flex-row w-full pl-[20px] pr-[17px]  items-center">
+        <div
+          className={`${
+            isRtl ? "flex-row-reverse" : "flex-row"
+          } flex w-full pl-[20px] pr-[17px]  items-center`}
+        >
           <div className="flex">
             <SearchHistoryIcon />
           </div>
           <div
             ref={statusSliderRef}
-            className="flex-row flex-1 ml-[2px] statues-container overflow-x-scroll overflow-y-hidden user-select-none whitespace-nowrap [&::-webkit-scrollbar]:hidden"
+            className={`${
+              isRtl ? "flex-row-reverse mr-[2px]" : "flex-row ml-[2px]"
+            } flex-row flex-1  statues-container overflow-x-scroll overflow-y-hidden user-select-none whitespace-nowrap [&::-webkit-scrollbar]:hidden`}
           >
             {[
               { label: "All", value: "all" },

@@ -5,8 +5,6 @@ import localFont from "next/font/local";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import Script from "next/script";
 import { GA_MEASUREMENT_ID } from "utils/gtag";
-import { HydrationProfiler } from "app/hydrationUtilty";
-
 export const metadata = {
   title: "TryDos",
   description: "TryDos E-Commerce Website",
@@ -134,7 +132,7 @@ export default async function RootLayout({
         {navauth}
         {cart}
         {notification}
-        <HydrationProfiler />
+        {/* <HydrationProfiler /> */}
       </body>
     </html>
   );

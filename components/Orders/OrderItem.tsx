@@ -19,6 +19,10 @@ import { OrderItemTimePropsType } from "models/componentType/OrderItemTimePropsT
 
 const OrderItem = ({ order, showDetails }) => {
   const { setActivePacks } = useAppStore();
+  const { lang } = useParams();
+  const [, language] = (lang as string).split("-");
+  const isRtl = language === "ar" || language === "ku";
+
   return (
     <div
       onClick={() => {
@@ -31,11 +35,19 @@ const OrderItem = ({ order, showDetails }) => {
       }) && (
         <span className="absolute left-[initial] w-[10px] h-[10px] bg-[#f64f64] rounded-full top-[-2px] right-[-2px] animate-pulse z-20"></span>
       )}
-      <div className="flex-row w-full justify-between items-start">
+      <div
+        className={`${
+          isRtl ? "flex-row-reverse" : "flex-row"
+        } flex w-full justify-between items-start`}
+      >
         <OrderItemTime time={order.created_at} />
         <OrderItemId id={order.order_group_id.toString()} />
       </div>
-      <div className="flex-row w-full justify-between items-start mt-[11px]">
+      <div
+        className={`${
+          isRtl ? "flex-row-reverse" : "flex-row"
+        } flex w-full justify-between items-start mt-[11px]`}
+      >
         <OrderStatus status={order.order_group_status} />
         <OrderInvoice
           invoice={{
@@ -56,8 +68,16 @@ const OrderItem = ({ order, showDetails }) => {
 
 export default OrderItem;
 const OrderProductSlider = ({ products, onClickProduct }) => {
+  const { lang } = useParams();
+  const [, language] = (lang as string).split("-");
+  const isRtl = language === "ar" || language === "ku";
+
   return (
-    <div className="flex-row items-center pl-[12px] mt-[12px] whitespace-nowrap overflow-x-scroll overflow-y-hidden [&::-webkit-scrollbar]:hidden">
+    <div
+      className={`${
+        isRtl ? "flex-row-reverse" : "flex-row"
+      } items-center pl-[12px] mt-[12px] whitespace-nowrap overflow-x-scroll overflow-y-hidden [&::-webkit-scrollbar]:hidden`}
+    >
       {products.map((product) => (
         <div
           key={product.id}
@@ -104,12 +124,14 @@ const OrderStatus = ({
   let languageVariable = lang.split("-")[1];
   const isRtl = languageVariable === "ar" || languageVariable === "ku";
   return (
-    <div className="flex-row items-center">
+    <div
+      className={`${
+        isRtl ? "flex-row-reverse" : "flex-row"
+      } gap-[4px] flex items-center`}
+    >
       <BagStatusIcon status={status?.value} />
-      <span className="ml-[4px] text-[#1D1D1D] text-[12px] regular">
-        {status.label}
-      </span>
-      <span className="ml-[7px]">
+      <span className="text-[#1D1D1D] text-[12px] regular">{status.label}</span>
+      <span className="mx-[3px]">
         <OrderStatusIcon status={status?.value} isRtl={isRtl} />
       </span>
     </div>
@@ -121,9 +143,17 @@ const OrderInvoice = ({
 }: {
   invoice: { items: number; total: number };
 }) => {
-  const { currency, language } = useAppStore();
+  const { currency } = useAppStore();
+  const { lang } = useParams();
+  const [, language] = (lang as string).split("-");
+  const isRtl = language === "ar" || language === "ku";
+
   return (
-    <div className="flex-row items-center">
+    <div
+      className={`${
+        isRtl ? "flex-row-reverse" : "flex-row"
+      } gap-[3px] flex items-center`}
+    >
       <svg
         id="_20x20"
         data-name="20x20"
@@ -227,14 +257,22 @@ const OrderInvoice = ({
           </g>
         </g>
       </svg>
-      <div className="ml-[4px] regular flex-row items-center text-[#505050] text-[12px] regular">
+      <div
+        className={`${
+          isRtl ? "flex-row-reverse" : "flex-row"
+        } gap-[2px] regular  items-center text-[#505050] text-[12px] regular`}
+      >
         <span className="bold">{invoice.items}</span>
-        <span className="ml-[2px]">{translateFunction("Items")}</span>
+        <span>{translateFunction("Items")}</span>
       </div>
-      <div className="regular flex-row text-[12px] text-[#505050]">
+      <div
+        className={`${
+          isRtl ? "flex-row-reverse" : "flex-row"
+        } regular gap-[2px]  text-[12px] text-[#505050]`}
+      >
         <span className="bold mx-[2px]">.</span>
         <span>{RoundPrice({ num: invoice.total, language: language })}</span>
-        <span className="ml-[2px]">{currency?.symbol}</span>
+        <span>{currency?.symbol}</span>
       </div>
     </div>
   );
@@ -265,8 +303,16 @@ const OrderItemTime = ({ time }: OrderItemTimePropsType) => {
 
     return `${day}/${month}/${year} | ${timeFormat}`;
   };
+  const { lang } = useParams();
+  const [, language] = (lang as string).split("-");
+  const isRtl = language === "ar" || language === "ku";
+
   return (
-    <div className="flex-row items-center">
+    <div
+      className={`${
+        isRtl ? "flex-row-reverse" : "flex-row"
+      } gap-[5px] flex items-center`}
+    >
       <svg
         xmlns="http://www.w3.org/2000/svg"
         width="15"
@@ -340,15 +386,23 @@ const OrderItemTime = ({ time }: OrderItemTimePropsType) => {
         </g>
       </svg>
 
-      <span className="ml-[5px] text-[#1D1D1D] text-[12px] regular">
+      <span className=" text-[#1D1D1D] text-[12px] regular">
         {formatTime(time)}
       </span>
     </div>
   );
 };
 const OrderItemId = ({ id }: OrderItemIdPropsType) => {
+  const { lang } = useParams();
+  const [, language] = (lang as string).split("-");
+  const isRtl = language === "ar" || language === "ku";
+
   return (
-    <div className="flex-row items-center">
+    <div
+      className={`${
+        isRtl ? "flex-row-reverse" : "flex-row"
+      } gap-[5px] flex items-center`}
+    >
       <svg
         xmlns="http://www.w3.org/2000/svg"
         xmlnsXlink="http://www.w3.org/1999/xlink"
@@ -403,7 +457,7 @@ const OrderItemId = ({ id }: OrderItemIdPropsType) => {
           </g>
         </g>
       </svg>
-      <span className="ml-[5px] text-[#1D1D1D] text-[12px] medium">{id}</span>
+      <span className=" text-[#1D1D1D] text-[12px] medium">{id}</span>
     </div>
   );
 };
