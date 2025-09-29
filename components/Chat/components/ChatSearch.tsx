@@ -6,7 +6,6 @@ import { DebounceInput } from "react-debounce-input";
 import Spinner from "components/global/Spinner";
 
 import { getMessagesBetweenMessage } from "store/chat/actions";
-import { getUserChat } from "utils/functions";
 import { GetMessageSearchApi } from "models/API/chat/GetMessagesForSearch";
 import { useAppStore } from "store";
 import { fetchData } from "utils/fetchData";

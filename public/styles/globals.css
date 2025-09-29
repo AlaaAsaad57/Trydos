@@ -939,12 +939,7 @@ input[type="number"] {
     bottom: calc(80px + env(safe-area-inset-bottom));
   }
 }
-.add-address-button-m {
-  bottom: calc(80px + env(safe-area-inset-bottom));
-}
-.orange-border {
-  border: 1px solid #ff6200;
-}
+
 svg {
   overflow: visible;
 }

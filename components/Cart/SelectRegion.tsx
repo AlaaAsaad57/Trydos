@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { getLang, translateFunction } from "utils/functions";
+import { translateFunction } from "utils/functions";
 import TargetIcon from "public/svg/cart/Target.svg";
 import { useParams } from "next/navigation";
 import { allCountries } from "country-telephone-data";

@@ -4,7 +4,7 @@ import SearchIcon from "public/svg/listing/searchIcon.svg";
 
 import { useAppStore } from "store";
 import { DebounceInput } from "react-debounce-input/src";
-import { useParams, useRouter, usePathname } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 
 import {
   parseFiltersFromParams,
@@ -13,7 +13,6 @@ import {
 } from "utils/tinyUtils";
 import { SearchBoutiquePageProps } from "models/componentType/boutiqueTypes/SearchBoutiquePageProps";
 function SearchBoutiquePage({ search_text }: SearchBoutiquePageProps) {
-  const pathname = usePathname();
   const params = useParams();
   const router = useRouter();
 
