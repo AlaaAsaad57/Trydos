@@ -11,6 +11,7 @@ function SizeSelect({
   qty,
   isSizeNotified,
   sizeQty,
+  isCollectAfterOrder,
 }) {
   let new_sizes_options = ["Standard", "EU", "IN", "US", "UK"];
   const { language } = useAppStore();
@@ -99,7 +100,7 @@ function SizeSelect({
               }}
               data-cy="add-to-cart-size"
               className={`${
-                sizeQty(s?.option) === 0
+                sizeQty(s?.option) === 0 && !isCollectAfterOrder
                   ? "bg-[#FFF2F2]"
                   : s?.option === selectedSize
                   ? "bg-[#F4F4F4]"
@@ -107,7 +108,7 @@ function SizeSelect({
               } uppercase relative justify-center cursor-pointer rounded-[6px] flex-col  w-auto h-[46px]  min-w-[50px] items-center px-[6px] text-[#1d1d1d] text-[11px]`}
               style={{
                 border:
-                  sizeQty(s?.option) === 0
+                  sizeQty(s?.option) === 0 && !isCollectAfterOrder
                     ? "1px solid #FF5F617f"
                     : "1px solid #D3D3D37f",
               }}
@@ -197,15 +198,21 @@ function SizeSelect({
           ))}
         </HortiznalScrollBar>
       </div>
-      {selectedSize && <SizeWarning size={selectedSize} qty={qty} />}
+      {selectedSize && (
+        <SizeWarning
+          isCollectAfterOrder={isCollectAfterOrder}
+          size={selectedSize}
+          qty={qty}
+        />
+      )}
     </div>
   );
 }
 
 export default SizeSelect;
 
-const SizeWarning = ({ qty, size }) => {
-  if (qty > 0) {
+const SizeWarning = ({ qty, size, isCollectAfterOrder }) => {
+  if (qty > 0 || isCollectAfterOrder) {
     return (
       <div className="flex flex-row items-center mt-[11px] gap-[4px] w-full justify-center px-[24px]">
         <Image

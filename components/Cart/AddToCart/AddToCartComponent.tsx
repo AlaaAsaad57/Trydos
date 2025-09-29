@@ -142,7 +142,7 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
       ]);
 
       let variants_arr = data1.data.variation;
-      let newVariants = data2.data.variation.map((item) => {
+      let newVariants = data2.data.variation?.map((item) => {
         let d = variants_arr.find((s) => s.type === item.type);
         if (d)
           return {
@@ -273,7 +273,7 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
       ]);
 
       let variants_arr = data1.data.variation;
-      let newVariants = data2.data.variation.map((item) => {
+      let newVariants = data2.data?.variation?.map((item) => {
         let d = variants_arr.find((s) => s.type === item.type);
         if (d)
           return {
@@ -407,7 +407,7 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
         ProductData?.sync_color_images?.length > 0 &&
         ProductData?.choice_options?.length > 0
       ) {
-        selected_variant = ProductData?.variation.find(
+        selected_variant = ProductData?.variation?.find(
           (s) =>
             s.type?.toLowerCase() ===
             `${selectedColor?.color_option}-${
@@ -420,7 +420,7 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
         (!ProductData?.choice_options ||
           ProductData?.choice_options?.length === 0)
       ) {
-        selected_variant = ProductData?.variation.find(
+        selected_variant = ProductData?.variation?.find(
           (s) =>
             s.type?.toLowerCase() ===
             (selectedColor?.color_option ?? "")?.toLowerCase()
@@ -431,7 +431,7 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
           ProductData?.sync_color_images?.length === 0) &&
         ProductData?.choice_options?.length > 0
       ) {
-        selected_variant = ProductData?.variation.find(
+        selected_variant = ProductData?.variation?.find(
           (s) =>
             s.type?.toLowerCase() ===
             (
@@ -506,7 +506,7 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
         ProductData?.sync_color_images?.length > 0 &&
         ProductData?.choice_options?.length > 0
       ) {
-        selected_variant = ProductData?.variation.find(
+        selected_variant = ProductData?.variation?.find(
           (s) =>
             s.type?.toLowerCase() ===
             `${selectedColor?.color_option}-${
@@ -519,7 +519,7 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
         (!ProductData?.choice_options ||
           ProductData?.choice_options?.length === 0)
       ) {
-        selected_variant = ProductData?.variation.find(
+        selected_variant = ProductData?.variation?.find(
           (s) =>
             s.type?.toLowerCase() ===
             (selectedColor?.color_option ?? "")?.toLowerCase()
@@ -530,7 +530,7 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
           ProductData?.sync_color_images?.length === 0) &&
         ProductData?.choice_options?.length > 0
       ) {
-        selected_variant = ProductData?.variation.find(
+        selected_variant = ProductData?.variation?.find(
           (s) =>
             s.type?.toLowerCase() ===
             (
@@ -614,7 +614,7 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
     setProductData({
       ...ProductData,
       ...response.data,
-      variation: response.data.variation.map((variant) => {
+      variation: response.data.variation?.map((variant) => {
         return {
           ...variant,
           notify_for_user: ProductData?.variation?.find(
@@ -732,6 +732,7 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
         )}
         {ProductData?.choice_options?.[0]?.options?.length > 0 && (
           <SizeSelect
+            isCollectAfterOrder={ProductData.collected_after_ordering === 1}
             isSizeNotified={(e) =>
               getVariantSizeQty(e)?.variant_notify_for_user
             }
@@ -787,6 +788,7 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
           shipping_cost={product?.shipping_cost}
         />
         <ExtraInfoArea
+          isCollectAfterOrder={ProductData.collected_after_ordering === 1}
           redeem_price={getSelectedVariantQty()?.redeem_price}
           selected_color={selectedColor}
           selected_size={selectedSize}
