@@ -17,6 +17,7 @@ import { getProductsAndFiltersFromElastic } from "services/elastic/elasticSearch
 import { getCurrencyFromCache, StoreCurrency } from "serverRequests/radis";
 import MainCategoriesNavbar from "components/Server/MainCategories";
 import { getCookieServer } from "utils/cookies/cookie-manager";
+import { LogServerError } from "utils/serverErrorReporter";
 
 export async function generateMetadata({ params }) {
   try {
@@ -79,56 +80,61 @@ async function getCurrency(country, language) {
 }
 async function HomePage({ params }) {
   let Params = await params;
-  return (
-    <>
-      <Suspense fallback={null}>
-        {/*@ts-expect-error Async Server Component is valid in Next  */}
-        <StructuredDataScript params={Params} />
-      </Suspense>
+  try {
+    return (
+      <>
+        <Suspense fallback={null}>
+          {/*@ts-expect-error Async Server Component is valid in Next  */}
+          <StructuredDataScript params={Params} />
+        </Suspense>
 
-      <Suspense
-        fallback={<MobileNavigationSkeleton />}
-        key={`Navbar ${Params.lang}`}
-      >
-        {/*@ts-expect-error Async Server Component is valid in Next  */}
-        <MainCategoriesNavbar
-          lang={Params.lang}
-          mainCategory={Params.mainCategory}
-        />
-      </Suspense>
+        <Suspense
+          fallback={<MobileNavigationSkeleton />}
+          key={`Navbar ${Params.lang}`}
+        >
+          {/*@ts-expect-error Async Server Component is valid in Next  */}
+          <MainCategoriesNavbar
+            lang={Params.lang}
+            mainCategory={Params.mainCategory}
+          />
+        </Suspense>
 
-      <Suspense fallback={<StoriesSkeleton />} key={`Stories ${Params.lang}`}>
-        {/*@ts-expect-error Async Server Component is valid in Next  */}
-        <StoriesBarServer
-          language={Params.lang.split("-")[1]}
-          country={Params.lang.split("-")[0]}
-        />
-      </Suspense>
+        <Suspense fallback={<StoriesSkeleton />} key={`Stories ${Params.lang}`}>
+          {/*@ts-expect-error Async Server Component is valid in Next  */}
+          <StoriesBarServer
+            language={Params.lang.split("-")[1]}
+            country={Params.lang.split("-")[0]}
+          />
+        </Suspense>
 
-      <Suspense fallback={<FeaturedProductsSkeleton lang={Params.lang} />}>
-        {/*@ts-expect-error Async Server Component is valid in Next  */}
-        <FeaturedProductWrapper
-          lang={Params.lang}
-          mainCategory={Params.mainCategory}
-        />
-      </Suspense>
-      <Suspense fallback={<FeaturedProductsSkeleton lang={Params.lang} />}>
-        {/*@ts-expect-error Async Server Component is valid in Next  */}
-        <FlashProductWrapper
-          lang={Params.lang}
-          mainCategory={Params.mainCategory}
-        />
-      </Suspense>
-      <Home key={`Home ${Params.lang}`} />
-      <Suspense
-        fallback={<OfferListSkeleton />}
-        key={`OfferList ${Params.lang}`}
-      >
-        {/*@ts-expect-error Async Server Component is valid in Next  */}
-        <BoutiquesListWrapper params={Params} />
-      </Suspense>
-    </>
-  );
+        <Suspense fallback={<FeaturedProductsSkeleton lang={Params.lang} />}>
+          {/*@ts-expect-error Async Server Component is valid in Next  */}
+          <FeaturedProductWrapper
+            lang={Params.lang}
+            mainCategory={Params.mainCategory}
+          />
+        </Suspense>
+        <Suspense fallback={<FeaturedProductsSkeleton lang={Params.lang} />}>
+          {/*@ts-expect-error Async Server Component is valid in Next  */}
+          <FlashProductWrapper
+            lang={Params.lang}
+            mainCategory={Params.mainCategory}
+          />
+        </Suspense>
+        <Home key={`Home ${Params.lang}`} />
+        <Suspense
+          fallback={<OfferListSkeleton />}
+          key={`OfferList ${Params.lang}`}
+        >
+          {/*@ts-expect-error Async Server Component is valid in Next  */}
+          <BoutiquesListWrapper params={Params} />
+        </Suspense>
+      </>
+    );
+  } catch (error) {
+    LogServerError(error, `/${Params.lang}/categories/${Params.mainCategory}`);
+    throw error instanceof Error ? error : new Error(String(error));
+  }
 }
 
 export default HomePage;

@@ -267,6 +267,7 @@ export const fetchData = async <T = any>(
           ...(token?.length > 0 ? { Authorization: `Bearer ${token}` } : {}),
           ...headers,
         },
+        keepalive: !signal,
         signal,
       };
 

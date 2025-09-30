@@ -68,22 +68,6 @@ const Page = () => {
             lang: getCookie(COOKIE_NAMES.LANG),
           });
         } catch {}
-
-        const lastPaths = Array.isArray(parsed.last_paths)
-          ? parsed.last_paths.filter((p) => typeof p === "string")
-          : [];
-        const last =
-          lastPaths.length > 0 ? lastPaths[lastPaths.length - 1] : undefined;
-        if (last && typeof last === "string") {
-          try {
-            const url = last.startsWith("http")
-              ? last
-              : `${window.location.origin}${
-                  last.startsWith("/") ? last : `/${last}`
-                }`;
-            window.open(url, "_blank", "noopener,noreferrer");
-          } catch {}
-        }
       }
     } catch (err: any) {
       setError("Invalid JSON. Please paste a valid JSON string.");
@@ -112,63 +96,142 @@ const Page = () => {
           disabled={isDisabled}
           className="rounded-md bg-blue-600 px-4 py-2 text-white disabled:cursor-not-allowed disabled:opacity-60"
         >
-          Parse & Open Last Path
+          Parse
         </button>
         {error ? <span className="text-sm text-red-600">{error}</span> : null}
       </div>
 
       {preview ? (
         <div className="mt-2 grid gap-4 md:grid-cols-2 text-[#1d1d1d]">
-          <div className="rounded-md border border-gray-200 p-3">
-            <div className="mb-2 text-sm font-medium">User Data</div>
-            <pre className="max-h-64 overflow-auto whitespace-pre-wrap break-words rounded bg-gray-50 p-2 text-xs">
+          {(() => {
+            const msg = (preview as any)?.message;
+            if (msg === undefined || msg === null) return null;
+            const messageText =
+              typeof msg === "string" ? msg : JSON.stringify(msg);
+            return (
+              <div className="md:col-span-2">
+                <span
+                  className="inline-flex items-center rounded-full bg-red-100 px-3 py-1 text-[20px] font-medium text-red-800"
+                  aria-label="Parsed message"
+                >
+                  {messageText}
+                </span>
+              </div>
+            );
+          })()}
+          {(() => {
+            const userIP =
+              (preview as any)?.userIP ??
+              (preview as any)?.ip ??
+              (preview as any)?.ipAddress;
+            if (!userIP) return null;
+            return (
+              <div className="md:col-span-2" aria-label="Parsed user IP">
+                <span className="inline-flex items-center rounded-full bg-gray-100 px-3 py-1 text-base font-medium text-gray-800">
+                  IP: {String(userIP)}
+                </span>
+              </div>
+            );
+          })()}
+          <div
+            className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm"
+            role="region"
+            aria-label="User Data"
+          >
+            <div className="mb-2 text-sm font-semibold text-gray-900">
+              User Data
+            </div>
+            <pre className="max-h-64 overflow-auto whitespace-pre-wrap break-words rounded bg-gray-50 p-3 text-xs">
               {JSON.stringify(preview.userData ?? null, null, 2)}
             </pre>
           </div>
-          <div className="rounded-md border border-gray-200 p-3 text-[#1d1d1d]">
-            <div className="mb-2 text-sm font-medium">User Chat</div>
-            <pre className="max-h-64 overflow-auto whitespace-pre-wrap break-words rounded bg-gray-50 p-2 text-xs">
+          <div
+            className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm text-[#1d1d1d]"
+            role="region"
+            aria-label="User Chat"
+          >
+            <div className="mb-2 text-sm font-semibold text-gray-900">
+              User Chat
+            </div>
+            <pre className="max-h-64 overflow-auto whitespace-pre-wrap break-words rounded bg-gray-50 p-3 text-xs">
               {JSON.stringify(preview.userChat ?? null, null, 2)}
             </pre>
           </div>
-          <div className="rounded-md border border-gray-200 p-3 text-[#1d1d1d]">
-            <div className="mb-2 text-sm font-medium">User Stories</div>
-            <pre className="max-h-64 overflow-auto whitespace-pre-wrap break-words rounded bg-gray-50 p-2 text-xs">
+          <div
+            className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm text-[#1d1d1d]"
+            role="region"
+            aria-label="User Stories"
+          >
+            <div className="mb-2 text-sm font-semibold text-gray-900">
+              User Stories
+            </div>
+            <pre className="max-h-64 overflow-auto whitespace-pre-wrap break-words rounded bg-gray-50 p-3 text-xs">
               {JSON.stringify(preview.userStories ?? null, null, 2)}
             </pre>
           </div>
-          <div className="rounded-md border border-gray-200 p-3 text-[#1d1d1d]">
-            <div className="mb-2 text-sm font-medium">Language & Cookies</div>
+          <div
+            className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm text-[#1d1d1d]"
+            role="region"
+            aria-label="Language and Country"
+          >
+            <div className="mb-2 text-sm font-semibold text-gray-900">
+              Language & Country
+            </div>
             <div className="text-xs text-gray-700">
               <div className="mb-1">
-                Language in payload:{" "}
+                Language in Error:{" "}
                 <span className="font-mono">
                   {String((preview as any)?.language ?? "") || "—"}
                 </span>
               </div>
               <div className="mb-1">
-                Country cookie:{" "}
+                Country in Error:{" "}
                 <span className="font-mono">
-                  {String(cookiesView.country ?? "") || "—"}
-                </span>
-              </div>
-              <div>
-                Language cookie:{" "}
-                <span className="font-mono">
-                  {String(cookiesView.lang ?? "") || "—"}
+                  {String((preview as any)?.Country ?? "") || "—"}
                 </span>
               </div>
             </div>
           </div>
-          <div className="rounded-md border border-gray-200 p-3 md:col-span-2 text-[#1d1d1d]">
-            <div className="mb-2 text-sm font-medium">Last Paths</div>
-            <pre className="max-h-64 overflow-auto whitespace-pre-wrap break-words rounded bg-gray-50 p-2 text-xs">
-              {JSON.stringify(
-                Array.isArray(preview.last_paths) ? preview.last_paths : [],
-                null,
-                2
-              )}
-            </pre>
+          <div
+            className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm md:col-span-2 text-[#1d1d1d]"
+            role="region"
+            aria-label="Last Paths"
+          >
+            <div className="mb-2 text-sm font-semibold text-gray-900">
+              Last Paths
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {(Array.isArray(preview.last_paths)
+                ? preview.last_paths.filter((p) => typeof p === "string")
+                : ([] as string[])
+              ).map((p, i) => {
+                let href = "#";
+                try {
+                  const origin =
+                    typeof window !== "undefined" ? window.location.origin : "";
+                  if (p.startsWith("http")) {
+                    try {
+                      const u = new URL(p);
+                      href = `${origin}${u.pathname}${u.search}${u.hash}`;
+                    } catch {
+                      href = `${origin}${p}`;
+                    }
+                  } else {
+                    href = `${origin}${p.startsWith("/") ? p : `/${p}`}`;
+                  }
+                } catch {}
+                return (
+                  <a
+                    key={`${p}-${i}`}
+                    href={href}
+                    className="text-blue-600 underline underline-offset-2 break-all hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
+                    aria-label={`Open ${p} on same origin`}
+                  >
+                    {p}
+                  </a>
+                );
+              })}
+            </div>
           </div>
         </div>
       ) : null}

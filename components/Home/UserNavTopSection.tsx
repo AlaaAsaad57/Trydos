@@ -154,22 +154,7 @@ function UserNavTopSection({
 
   const enableCartAction = (s) => {
     disableAddToCartOption();
-    if (typeof window !== "undefined")
-      window.history.pushState({ isPopup: true }, "open Cart");
     enableCart(s);
-    if (s) {
-      const newParams = new URLSearchParams(searchParams);
-      newParams.set("cart", "true");
-
-      // @ts-expect-error 'shallow' does not exist in type 'NavigateOptions'
-      router.push(`${pathname}?${newParams.toString()}`, { shallow: true });
-    } else {
-      const newParams = new URLSearchParams(searchParams);
-      newParams.delete("cart");
-
-      // @ts-expect-error 'shallow' does not exist in type 'NavigateOptions'
-      router.push(`${pathname}?${newParams.toString()}`, { shallow: true });
-    }
   };
 
   // Show loading/skeleton until mounted to prevent hydration mismatch

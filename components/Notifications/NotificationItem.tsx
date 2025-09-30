@@ -127,10 +127,6 @@ const NotificationItem = ({ notification, onClose, closeWindow }) => {
               window.history.pushState({ isPopup: true }, "open Cart");
               enableCart(true);
               disableAddToCartOption();
-              const q = new URLSearchParams(searchParams);
-              q.set("cart", "true");
-              // @ts-ignore
-              router.push(`${pathname}?${q}`, { shallow: true });
               baseOnClick();
             }}
           >

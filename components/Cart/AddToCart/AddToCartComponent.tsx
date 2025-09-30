@@ -34,6 +34,7 @@ import ExtraInfoArea from "./ExtraInfoArea";
 import { getCookie } from "utils/cookies/cookie-manager";
 import AddToCartButton from "./Button";
 import NotifyButton from "./NotifyButton";
+import SearchParamUpdater from "components/global/ParamsUpdater";
 
 function AddToCartComponent({ product, slug, close, enableCartAction }) {
   const router = useRouter();
@@ -48,14 +49,6 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
     }
     return true;
   };
-  useEffect(() => {
-    window.history.pushState({ isPopup: true }, "add cart");
-    const newParams = new URLSearchParams(searchParams);
-    newParams.set("modal", "true");
-    // Use router.push with pathname and updated query
-    // @ts-expect-error 'shallow' does not exist in type 'NavigateOptions'
-    router.push(`${pathname}?${newParams.toString()}`, { shallow: true });
-  }, []);
   const searchParams = useSearchParams();
   const [sizeFromUrl, colorFromUrl] = [
     searchParams.get("size"),
@@ -665,6 +658,7 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
       }}
       height={75}
     >
+      <SearchParamUpdater searchKey="addToCart" searchValue={product?.slug} />
       <div
         className={`${
           isRtl ? "items-end" : "items-start"

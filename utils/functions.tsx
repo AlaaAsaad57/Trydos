@@ -392,11 +392,19 @@ export const GetCartOreview = async () => {
   }
 };
 export const LogError = async (error) => {
+  let last_request;
   const userData = getCookie(COOKIE_NAMES.USER_DATA);
   const userChat = getCookie(COOKIE_NAMES.USER_CHAT);
   const userStories = getCookie(COOKIE_NAMES.USER_STORIES);
-  const last_paths = readStoredLastPaths();
-  const last_request = await getLastRequest();
+  const last_paths = await readStoredLastPaths();
+  if (typeof window !== "undefined") {
+    last_request = await getLastRequest();
+  } else {
+    last_request = "server...cannot access localstorage";
+  }
+  const language = getCookie("language");
+  const country = getCookie("country");
+  const userIP = getCookie("userIP");
   const Error_Object = {
     ...(error ?? {}),
     userChat,
@@ -404,7 +412,13 @@ export const LogError = async (error) => {
     userStories,
     last_paths,
     last_request,
+    language,
+    country,
+    userIP,
   };
+  await storeError(Error_Object);
+};
+export async function storeError(error) {
   await fetch(process.env.NEXT_PUBLIC_BACKEND_URL + "/mobile_error_log/store", {
     method: "POST",
     headers: {
@@ -413,12 +427,11 @@ export const LogError = async (error) => {
     body: new URLSearchParams({
       error_description: JSON.stringify({
         platform: "🛑WEB🛑",
-        ...(Error_Object ?? {}),
+        ...(error ?? {}),
       }),
     }),
   });
-};
-
+}
 export const WaitForCondition = async () => {
   const { isRegisteringReady } = useAppStore.getState();
   return new Promise((resolve, reject) => {

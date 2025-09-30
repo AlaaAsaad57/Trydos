@@ -5,29 +5,8 @@ import { RoundPrice, translateFunction } from "utils/functions";
 import { useSearchParams } from "node_modules/next/navigation";
 
 function ProductCartHeader({ language }) {
-  const { cart, currency, total, disableAddToCartOption, enableCart } =
-    useAppStore();
+  const { cart, currency, total, enableCart } = useAppStore();
   const searchParams = useSearchParams();
-  const enableCartAction = (s) => {
-    disableAddToCartOption();
-    window.history.pushState({ isPopup: true }, "open Cart");
-    enableCart(s);
-    if (s) {
-      const newParams = new URLSearchParams(searchParams);
-      newParams.set("cart", "true");
-      // Use router.push with pathname and updated query
-      // @ts-expect-error 'shallow' does not exist in type 'NavigateOptions'
-      router.push(`${pathname}?${newParams.toString()}`, { shallow: true });
-    } else {
-      const newParams = new URLSearchParams(searchParams);
-      newParams.delete("cart");
-
-      // Use router.push with pathname and updated query
-      // @ts-expect-error 'shallow' does not exist in type 'NavigateOptions'
-
-      router.push(`${pathname}?${newParams.toString()}`, { shallow: true });
-    }
-  };
   const isRtl = language === "ar" || language === "ku";
   return (
     <div

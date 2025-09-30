@@ -18,9 +18,10 @@ import { ElasticsearchReader } from "services/elastic/elasticsearch-reader.servi
 import { getProductsAndFiltersFromElastic } from "services/elastic/elasticSearch";
 import { getCurrencyFromCache, StoreCurrency } from "serverRequests/radis";
 import RecomendedProducts from "components/Server/RecomendedProducts";
-import { translateFunction } from "utils/functions";
+import { LogError, storeError, translateFunction } from "utils/functions";
 import MainCategoriesNavbar from "components/Server/MainCategories";
 import { getCookieServer } from "utils/cookies/cookie-manager";
+import { LogServerError } from "utils/serverErrorReporter";
 
 export async function generateMetadata({ params }) {
   let Params = await params;
@@ -93,42 +94,50 @@ async function getCurrency(country, language) {
 }
 async function HomePage({ params }) {
   let { lang } = await params;
-  return (
-    <>
-      <Suspense fallback={null}>
-        {/*@ts-expect-error Async Server Component is valid in Next  */}
-        <StructuredDataScript lang={lang} />
-      </Suspense>
+  try {
+    return (
+      <>
+        <Suspense fallback={null}>
+          {/*@ts-expect-error Async Server Component is valid in Next  */}
+          <StructuredDataScript lang={lang} />
+        </Suspense>
 
-      <Suspense fallback={<MobileNavigationSkeleton />} key={`Navbar ${lang}`}>
-        {/*@ts-expect-error Async Server Component is valid in Next  */}
-        <MainCategoriesNavbar lang={lang} mainCategory={null} />
-      </Suspense>
+        <Suspense
+          fallback={<MobileNavigationSkeleton />}
+          key={`Navbar ${lang}`}
+        >
+          {/*@ts-expect-error Async Server Component is valid in Next  */}
+          <MainCategoriesNavbar lang={lang} mainCategory={null} />
+        </Suspense>
 
-      <Suspense fallback={<StoriesSkeleton />} key={`Stories ${lang}`}>
-        {/*@ts-expect-error Async Server Component is valid in Next  */}
-        <StoriesBarServer
-          language={lang.split("-")[1]}
-          country={lang.split("-")[0]}
-        />
-      </Suspense>
+        <Suspense fallback={<StoriesSkeleton />} key={`Stories ${lang}`}>
+          {/*@ts-expect-error Async Server Component is valid in Next  */}
+          <StoriesBarServer
+            language={lang.split("-")[1]}
+            country={lang.split("-")[0]}
+          />
+        </Suspense>
 
-      <Suspense fallback={<FeaturedProductsSkeleton lang={lang} />}>
-        {/*@ts-expect-error Async Server Component is valid in Next  */}
-        <FeaturedProductWrapper lang={lang} />
-      </Suspense>
-      <Suspense fallback={<FeaturedProductsSkeleton lang={lang} />}>
-        {/*@ts-expect-error Async Server Component is valid in Next  */}
+        <Suspense fallback={<FeaturedProductsSkeleton lang={lang} />}>
+          {/*@ts-expect-error Async Server Component is valid in Next  */}
+          <FeaturedProductWrapper lang={lang} />
+        </Suspense>
+        <Suspense fallback={<FeaturedProductsSkeleton lang={lang} />}>
+          {/*@ts-expect-error Async Server Component is valid in Next  */}
 
-        <FlashProductWrapper lang={lang} />
-      </Suspense>
-      <Home key={`Home ${lang}`} />
-      <Suspense fallback={<OfferListSkeleton />} key={`OfferList ${lang}`}>
-        {/*@ts-expect-error Async Server Component is valid in Next  */}
-        <BoutiquesListWrapper params={{ lang: lang }} />
-      </Suspense>
-    </>
-  );
+          <FlashProductWrapper lang={lang} />
+        </Suspense>
+        <Home key={`Home ${lang}`} />
+        <Suspense fallback={<OfferListSkeleton />} key={`OfferList ${lang}`}>
+          {/*@ts-expect-error Async Server Component is valid in Next  */}
+          <BoutiquesListWrapper params={{ lang: lang }} />
+        </Suspense>
+      </>
+    );
+  } catch (error) {
+    LogServerError(error, `/${lang}`);
+    throw error instanceof Error ? error : new Error(String(error));
+  }
 }
 
 export default HomePage;

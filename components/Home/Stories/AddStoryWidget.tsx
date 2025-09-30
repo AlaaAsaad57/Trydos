@@ -19,6 +19,7 @@ import { getUserStories, translateFunction } from "utils/functions";
 import StoryServiceClass from "services/story";
 import { DisableScroll, EnableScroll, pollinateInput } from "@/utils/tinyUtils";
 import Spinner from "components/global/Spinner";
+import SearchParamUpdater from "components/global/ParamsUpdater";
 
 // Icons
 const CameraIcon = () => (
@@ -393,12 +394,6 @@ export default function AddStoryWidget() {
 
   useEffect(() => {
     if (addStoryEnable) {
-      window.history.pushState({ isPopup: true }, "add cart");
-      const newParams = new URLSearchParams(searchParams);
-      newParams.set("story", "true");
-      // Use router.push with pathname and updated query
-      // @ts-expect-error 'shallow' does not exist in type 'NavigateOptions'
-      router.push(`${pathname}?${newParams.toString()}`, { shallow: true });
       DisableScroll();
     }
     return () => {
@@ -408,6 +403,7 @@ export default function AddStoryWidget() {
   if (!addStoryEnable) return <></>;
   return (
     <>
+      <SearchParamUpdater searchKey="StoryModal" searchValue="true" />
       {OpenCamera && (
         <NewStoryModal
           send={(e) => {

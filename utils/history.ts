@@ -1,5 +1,3 @@
-// Utility to store last 4 visited paths in a cookie, SSR/CSR-safe for Next.js App Router
-
 export type LastPaths = string[];
 
 const COOKIE_NAME = "last_paths";
@@ -41,12 +39,12 @@ const setCookieClient = (name: string, value: string): void => {
   document.cookie = `${name}=${value}; Path=/; Max-Age=${MAX_AGE_SECONDS}; Expires=${expires}; SameSite=Lax`;
 };
 
-const getCookieServer = (name: string): string | undefined => {
+const getCookieServer = async (name: string) => {
   try {
     // Lazy import to avoid bundling client with server only code
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const { cookies } = require("next/headers");
-    const store = cookies();
+    const store = await cookies();
     return store.get(name)?.value;
   } catch {
     return undefined;
@@ -71,9 +69,9 @@ const setCookieServer = (name: string, value: string): void => {
   }
 };
 
-const readLastPaths = (): LastPaths => {
+const readLastPaths = async () => {
   const raw = isServer
-    ? getCookieServer(COOKIE_NAME)
+    ? await getCookieServer(COOKIE_NAME)
     : getCookieClient(COOKIE_NAME);
   return safeParse(raw);
 };
@@ -87,12 +85,12 @@ const writeLastPaths = (paths: LastPaths): void => {
   setCookieClient(COOKIE_NAME, value);
 };
 
-export const storeLastPaths = (path: string): void => {
+export const storeLastPaths = async (path: string) => {
   if (!path || typeof path !== "string") return;
   const trimmed = path.trim();
   if (trimmed.length === 0) return;
 
-  const current = readLastPaths();
+  const current = await readLastPaths();
 
   // Avoid duplicating consecutive same path
   if (current.length > 0 && current[current.length - 1] === trimmed) {
@@ -108,4 +106,4 @@ export const storeLastPaths = (path: string): void => {
   writeLastPaths(next);
 };
 
-export const readStoredLastPaths = (): LastPaths => readLastPaths();
+export const readStoredLastPaths = async () => await readLastPaths();

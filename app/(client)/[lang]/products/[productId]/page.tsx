@@ -54,6 +54,7 @@ import VirtualTryOnWrapper from "components/products/VirtualTryOnWrapper";
 import ProductRedeemCounter from "components/products/ProductRedeemCounter";
 import PricesRow from "components/Cart/AddToCart/PricesRow";
 import { getCookieServer } from "utils/cookies/cookie-manager";
+import { LogServerError } from "utils/serverErrorReporter";
 // export const revalidate = parseInt(process.env.NEXT_PUBLIC_REVALIDATE);
 // For Middle East users
 
@@ -760,7 +761,8 @@ async function Page({ params, searchParams }) {
       </>
     );
   } catch (error) {
-    throw error;
+    LogServerError(error, `/${Params.lang}/products/${Params.productId}`);
+    throw error instanceof Error ? error : new Error(String(error));
   }
 }
 

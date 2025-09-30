@@ -4,6 +4,7 @@ export const runtime = "nodejs";
 // export const preferredRegion = process.env.PREFERRED_REGION || "bom1";
 import Settings from "components/settings";
 import React from "react";
+import { LogServerError } from "utils/serverErrorReporter";
 export async function generateMetadata({ params }) {
   let Params = await params;
   try {
@@ -30,12 +31,16 @@ async function page({ params, searchParams }) {
   // Server component to render JSON-LD structured data
   let order_id = SearchParams?.id;
   let tab = SearchParams?.tab;
-
-  return (
-    <>
-      <Settings order_id={order_id} tab={tab} lang={Params.lang} />
-    </>
-  );
+  try {
+    return (
+      <>
+        <Settings order_id={order_id} tab={tab} lang={Params.lang} />
+      </>
+    );
+  } catch (error) {
+    LogServerError(error, `/${Params.lang}/setting`);
+    throw error instanceof Error ? error : new Error(String(error));
+  }
 }
 
 export default page;

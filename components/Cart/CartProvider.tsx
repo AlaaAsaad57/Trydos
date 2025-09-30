@@ -21,6 +21,7 @@ import { GA_GLOBAL_SCREEN, GA_EVENT_NAMES } from "utils/GAEvents";
 import { GAevent } from "utils/gtag";
 import auth from "services/auth";
 import { getCookie } from "utils/cookies/cookie-manager";
+import SearchParamUpdater from "components/global/ParamsUpdater";
 
 const CartProvider = () => {
   const {
@@ -48,23 +49,7 @@ const CartProvider = () => {
 
   const enableCartAction = (s) => {
     disableAddToCartOption();
-    window.history.pushState({ isPopup: true }, "open Cart");
     enableCart(s);
-    if (s) {
-      const newParams = new URLSearchParams(searchParams);
-      newParams.set("cart", "true");
-      // Use router.push with pathname and updated query
-      // @ts-expect-error 'shallow' does not exist in type 'NavigateOptions'
-      router.push(`${pathname}?${newParams.toString()}`, { shallow: true });
-    } else {
-      const newParams = new URLSearchParams(searchParams);
-      newParams.delete("cart");
-
-      // Use router.push with pathname and updated query
-      // @ts-expect-error 'shallow' does not exist in type 'NavigateOptions'
-
-      router.push(`${pathname}?${newParams.toString()}`, { shallow: true });
-    }
   };
   useEffect(() => {
     setTimeout(() => {
@@ -234,6 +219,7 @@ const StepSlider = ({ enableCart }) => {
 
   return (
     <div className="w-full h-[100vh] fixed z-[9999999999] cart-provider bg-[#fafafa]">
+      <SearchParamUpdater searchKey="cart" searchValue={"true"} />
       <SlideWidget step={step} duration={400}>
         <div className="w-full h-full cart-widget">
           <CartContainer toOrders={handleToOrders} close={handleClose} />

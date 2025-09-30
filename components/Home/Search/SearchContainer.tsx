@@ -12,18 +12,11 @@ import {
   useRouter,
   useSearchParams,
 } from "next/navigation";
+import SearchParamUpdater from "components/global/ParamsUpdater";
 
 function SearchContainer({ active }) {
   const router = useRouter();
   const pathname = usePathname();
-  useEffect(() => {
-    window.history.pushState({ isPopup: true }, "search");
-    const newParams = new URLSearchParams(searchParams);
-    newParams.set("search", "true");
-    // Use router.push with pathname and updated query
-    // @ts-expect-error 'shallow' does not exist in type 'NavigateOptions'
-    router.push(`${pathname}?${newParams.toString()}`, { shallow: true });
-  }, []);
   const { setSearchWord, value, setTrendingSearch } = useAppStore();
   const [searchHistoryItems, setSearchHistory] = useState([]);
   const { lang } = useParams();
@@ -53,6 +46,7 @@ function SearchContainer({ active }) {
   }, [active]);
   return (
     <div className="search-container" data-cy="searchContainer">
+      <SearchParamUpdater searchKey="search" searchValue="true" />
       {value.length === 0 && (
         <>
           {searchHistoryItems.length > 0 && (

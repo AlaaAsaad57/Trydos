@@ -8,7 +8,7 @@ const DEFAULT_COUNTRY = "gb";
 // Cookie options
 const COOKIE_OPTIONS = {
   path: "/",
-  httpOnly: true,
+  httpOnly: false,
   secure: process.env.NODE_ENV === "production",
   sameSite: "strict" as const,
   maxAge: 360 * 7 * 24 * 60 * 60,
@@ -25,11 +25,6 @@ interface ValidationResult {
   isValid: boolean;
   country?: string;
   language?: string;
-}
-
-interface LocalePair {
-  country: string;
-  language: string;
 }
 
 // Bot detection
@@ -191,9 +186,18 @@ function getCleanPathname(
   }
   return pathname.startsWith("/") ? pathname : `/${pathname}`;
 }
-
+function getClientIp(req: NextRequest): string {
+  const forwarded = req.headers.get("x-forwarded-for");
+  if (forwarded) {
+    return forwarded.split(",")[0].trim();
+  }
+  return "0.0.0.0"; // fallback, should not happen on Vercel
+}
 // Main middleware function
 export async function middleware(request: NextRequest) {
+  const ip = getClientIp(request);
+  const userIP = request.cookies.get("userIP")?.value;
+
   const isBotAgent = isBot(request.headers.get("user-agent"));
   const url = request.nextUrl.clone();
   const pathname = url.pathname;
@@ -201,7 +205,12 @@ export async function middleware(request: NextRequest) {
   const allSupportedCountries = getAllSupportedCountries();
   const supportedLocales = buildSupportedLocales(allSupportedCountries);
   const response = NextResponse.next();
-
+  if (ip && ip !== userIP) {
+    response.cookies.set("userIP", ip, {
+      ...COOKIE_OPTIONS,
+      httpOnly: false,
+    });
+  }
   // Handle referer and UTM tracking
   const referer = request.headers.get("referer");
   const utm_source = url.searchParams.get("utm_source");

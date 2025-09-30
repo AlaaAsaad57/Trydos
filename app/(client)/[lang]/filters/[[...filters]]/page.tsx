@@ -26,6 +26,7 @@ import { getCurrencyFromCache, StoreCurrency } from "serverRequests/radis";
 import { ElasticsearchReader } from "services/elastic/elasticsearch-reader.service";
 import DataSourceLogger from "components/global/DataSourceLogger";
 import { getCookieServer } from "utils/cookies/cookie-manager";
+import { LogServerError } from "utils/serverErrorReporter";
 
 export const dynamicParams = true;
 
@@ -92,202 +93,211 @@ async function getCurrency(country, language) {
 export default async function Page({ params }) {
   let Params = await params;
 
-  let parsedFilters = parseFiltersFromParams(Params.filters || []);
-  const [country, language] = Params.lang.split("-");
-  let boutiqueItem = parsedFilters?.boutiques?.[0] || null;
+  try {
+    let parsedFilters = parseFiltersFromParams(Params.filters || []);
+    const [country, language] = Params.lang.split("-");
+    let boutiqueItem = parsedFilters?.boutiques?.[0] || null;
 
-  if (parsedFilters.prices) {
-    parsedFilters = {
-      ...parsedFilters,
-      prices: parsedFilters.prices?.map((s) =>
-        s.split("-").map((d) => Number(d))
-      )?.[0],
-    };
-  }
-  let start = process.hrtime.bigint();
-  let [filtersData, currency, boutique] = await Promise.all([
-    getProductsAndFiltersFromElastic({
-      country,
-      language_code: language,
-      filters: {
+    if (parsedFilters.prices) {
+      parsedFilters = {
         ...parsedFilters,
-        // priceRange:parsedFilters.prices?.map((s)=>s.split('-').map((d)=>Number(d))),
-        featured: false,
-        flashdeal: false,
-        search_text: parsedFilters.search_text?.[0],
-      },
-      limit: 10,
-    }),
-    getCurrency(country, language),
-    GetBoutique(boutiqueItem, country, language),
-  ]);
-  let end = process.hrtime.bigint();
-
-  let filters = {
-    categories: filtersData?.categories || [],
-    brands: filtersData?.brands || [],
-    colors: filtersData?.colors || [],
-    // prices: [],
-    prices: filtersData?.prices?.priceRanges || [],
-    sizes: filtersData?.attributes?.[0]?.options || [],
-    boutiques: filtersData?.boutiques || [],
-    search_text: parsedFilters?.search_text?.[0] || null,
-  };
-  const isRtl = language === "ar" || language === "ku";
-  const redeemed_ids = (await getCookieServer<any[]>("redemed_ids")) ?? [];
-  let productsData = filtersData.products.map((product) => {
-    if (product?.is_redeem) {
-      return {
-        name: product?.name,
-        slug: product?.slug,
-        label_names: product?.label_names,
-        category_tree: product?.category_tree,
-        videos: product.videos,
-        colors: product?.colors,
-        sync_color_images: product?.sync_color_images,
-        ...(!product?.sync_color_images ||
-        product?.sync_color_images?.length === 0
-          ? { images: product.images }
-          : {}),
-        price: product.price,
-        offer_price: product.offer_price,
-        redeem_price: product.redeem_price,
-        categories: product?.categories?.map((s) => ({
-          name: s.name,
-          id: s.id,
-        })),
-        brand: { id: product?.brand?.id, icon: product?.brand?.icon },
-        flash_deal_end_date: product.flash_deal_end_date,
-        product_id: product.product_id,
-        is_redeem: !redeemed_ids.find((s) => s.id === product.product_id),
+        prices: parsedFilters.prices?.map((s) =>
+          s.split("-").map((d) => Number(d))
+        )?.[0],
       };
-    } else
-      return {
-        name: product?.name,
-        slug: product?.slug,
-        label_names: product?.label_names,
-        category_tree: product?.category_tree,
-        videos: product.videos,
-        colors: product?.colors,
-        sync_color_images: product?.sync_color_images,
-        ...(!product?.sync_color_images ||
-        product?.sync_color_images?.length === 0
-          ? { images: product.images }
-          : {}),
-        price: product.price,
-        offer_price: product.offer_price,
-        redeem_price: product.redeem_price,
-        categories: product?.categories?.map((s) => ({
-          name: s.name,
-          id: s.id,
-        })),
-        brand: { id: product?.brand?.id, icon: product?.brand?.icon },
-        flash_deal_end_date: product.flash_deal_end_date,
-        product_id: product.product_id,
-      };
-  });
-  return (
-    <>
-      <Suspense fallback={<></>}>
-        {/*@ts-expect-error Async Server Component is valid in Next  */}
-        <GetStructuredData
-          is_fearured={false}
-          response={filtersData}
-          is_flashDeals={false}
-          params={Params}
-        />
-      </Suspense>
-      <Suspense fallback={<></>}>
-        <FilterWidgetContainer key={JSON.stringify(parsedFilters)} />
-      </Suspense>
-      <div
-        data-cy="filter_listing_bar"
-        className={`filter-listing-bar z-[99999999] relative ${
-          isRtl ? "flex-row-reverse flex" : "flex-row flex"
-        } align-center w-full h-[50px] pl-[15px] pr-[20px] justify-between bg-white z-10`}
-      >
-        <DataSourceLogger
-          dataSourceString={`Listing DataSource :products and filters from elastic , currency from ${
-            currency?.redis ? "redis" : "laravel api"
-          } in ${Number(end - start) / 1_000_000} ms`}
-        />
-        <NextLink
-          data-cy="BackIcon_boutique"
-          ignoreConditionCase={true}
-          data={{
-            is_full_home: true,
-            href: `/${Params.lang}`,
-          }}
-          href={`/${Params.lang}`}
-          ariaLabel={`TryDos Home ${Params.lang}`}
-          className="back-icon"
-        >
-          <BackIcon
-            data-cy="back_icon_boutique_page"
-            className={`${isRtl && "rotate-180"}`}
-          />
-        </NextLink>
-        {/** TODO: classname edit when serach active w-full */}
-        <div
-          data-cy="filter_bar_options"
-          className={`filter-bar-options w-[170px] justify-between ${
-            isRtl ? "flex-row-reverse flex" : "flex-row flex"
-          }  align-center ${
-            parsedFilters?.search_text?.length > 0 && "w-full"
-          }`}
-        >
-          <SearchBoutiquePage search_text={parsedFilters?.search_text?.[0]} />
+    }
+    let start = process.hrtime.bigint();
+    let [filtersData, currency, boutique] = await Promise.all([
+      getProductsAndFiltersFromElastic({
+        country,
+        language_code: language,
+        filters: {
+          ...parsedFilters,
+          // priceRange:parsedFilters.prices?.map((s)=>s.split('-').map((d)=>Number(d))),
+          featured: false,
+          flashdeal: false,
+          search_text: parsedFilters.search_text?.[0],
+        },
+        limit: 10,
+      }),
+      getCurrency(country, language),
+      GetBoutique(boutiqueItem, country, language),
+    ]);
+    let end = process.hrtime.bigint();
 
-          <div
-            data-cy="filter_option_loseSearchInput"
-            className="filter-option"
-          >
-            <SortIcon data-cy="closeSearchInput" />
-          </div>
-
-          <FilterBoutiquePageButton key={"filter-button"} />
-
-          <ShareBoutiquePageButton />
-        </div>
-      </div>
-
-      <div
-        data-cy="boutique_header"
-        className={`boutique-header ${"flex-col"} align-center`}
-      >
-        {/*@ts-expect-error Async Server Component is valid in Next  */}
-        <BoutiqueHeader
-          boutique={boutique}
-          key={Params.filters?.join("/") || "no-filters"}
-        ></BoutiqueHeader>
-
-        <Suspense fallback={<ListingSkeleton justFilters={true} />}>
-          <FilterList
-            filters={filters}
-            currency={currency}
-            key={`filter-list-filters`}
+    let filters = {
+      categories: filtersData?.categories || [],
+      brands: filtersData?.brands || [],
+      colors: filtersData?.colors || [],
+      // prices: [],
+      prices: filtersData?.prices?.priceRanges || [],
+      sizes: filtersData?.attributes?.[0]?.options || [],
+      boutiques: filtersData?.boutiques || [],
+      search_text: parsedFilters?.search_text?.[0] || null,
+    };
+    const isRtl = language === "ar" || language === "ku";
+    const redeemed_ids = (await getCookieServer<any[]>("redemed_ids")) ?? [];
+    let productsData = filtersData.products.map((product) => {
+      if (product?.is_redeem) {
+        return {
+          name: product?.name,
+          slug: product?.slug,
+          label_names: product?.label_names,
+          category_tree: product?.category_tree,
+          videos: product.videos,
+          colors: product?.colors,
+          sync_color_images: product?.sync_color_images,
+          ...(!product?.sync_color_images ||
+          product?.sync_color_images?.length === 0
+            ? { images: product.images }
+            : {}),
+          price: product.price,
+          offer_price: product.offer_price,
+          redeem_price: product.redeem_price,
+          categories: product?.categories?.map((s) => ({
+            name: s.name,
+            id: s.id,
+          })),
+          brand: { id: product?.brand?.id, icon: product?.brand?.icon },
+          flash_deal_end_date: product.flash_deal_end_date,
+          product_id: product.product_id,
+          is_redeem: !redeemed_ids.find((s) => s.id === product.product_id),
+        };
+      } else
+        return {
+          name: product?.name,
+          slug: product?.slug,
+          label_names: product?.label_names,
+          category_tree: product?.category_tree,
+          videos: product.videos,
+          colors: product?.colors,
+          sync_color_images: product?.sync_color_images,
+          ...(!product?.sync_color_images ||
+          product?.sync_color_images?.length === 0
+            ? { images: product.images }
+            : {}),
+          price: product.price,
+          offer_price: product.offer_price,
+          redeem_price: product.redeem_price,
+          categories: product?.categories?.map((s) => ({
+            name: s.name,
+            id: s.id,
+          })),
+          brand: { id: product?.brand?.id, icon: product?.brand?.icon },
+          flash_deal_end_date: product.flash_deal_end_date,
+          product_id: product.product_id,
+        };
+    });
+    return (
+      <>
+        <Suspense fallback={<></>}>
+          {/*@ts-expect-error Async Server Component is valid in Next  */}
+          <GetStructuredData
+            is_fearured={false}
+            response={filtersData}
+            is_flashDeals={false}
             params={Params}
-            parsedFilters={parsedFilters}
           />
         </Suspense>
-      </div>
-      <Suspense
-        key={`Suspense-product-list-${JSON.stringify(parsedFilters)}`}
-        fallback={<ListingSkeleton forProducts={true} />}
-      >
-        <ProductListServer
-          colors={filtersData?.colors}
-          boutique={boutique?.banners ? boutique : null}
-          products={productsData ?? []}
-          offset={filtersData?.offset}
-          currency={currency}
-          key={`product-list-${JSON.stringify(parsedFilters)}`}
-          parsedFilters={parsedFilters}
-          params={Params}
-        />
-      </Suspense>
-    </>
-  );
+        <Suspense fallback={<></>}>
+          <FilterWidgetContainer key={JSON.stringify(parsedFilters)} />
+        </Suspense>
+        <div
+          data-cy="filter_listing_bar"
+          className={`filter-listing-bar z-[99999999] relative ${
+            isRtl ? "flex-row-reverse flex" : "flex-row flex"
+          } align-center w-full h-[50px] pl-[15px] pr-[20px] justify-between bg-white z-10`}
+        >
+          <DataSourceLogger
+            dataSourceString={`Listing DataSource :products and filters from elastic , currency from ${
+              currency?.redis ? "redis" : "laravel api"
+            } in ${Number(end - start) / 1_000_000} ms`}
+          />
+          <NextLink
+            data-cy="BackIcon_boutique"
+            ignoreConditionCase={true}
+            data={{
+              is_full_home: true,
+              href: `/${Params.lang}`,
+            }}
+            href={`/${Params.lang}`}
+            ariaLabel={`TryDos Home ${Params.lang}`}
+            className="back-icon"
+          >
+            <BackIcon
+              data-cy="back_icon_boutique_page"
+              className={`${isRtl && "rotate-180"}`}
+            />
+          </NextLink>
+          {/** TODO: classname edit when serach active w-full */}
+          <div
+            data-cy="filter_bar_options"
+            className={`filter-bar-options w-[170px] justify-between ${
+              isRtl ? "flex-row-reverse flex" : "flex-row flex"
+            }  align-center ${
+              parsedFilters?.search_text?.length > 0 && "w-full"
+            }`}
+          >
+            <SearchBoutiquePage search_text={parsedFilters?.search_text?.[0]} />
+
+            <div
+              data-cy="filter_option_loseSearchInput"
+              className="filter-option"
+            >
+              <SortIcon data-cy="closeSearchInput" />
+            </div>
+
+            <FilterBoutiquePageButton key={"filter-button"} />
+
+            <ShareBoutiquePageButton />
+          </div>
+        </div>
+
+        <div
+          data-cy="boutique_header"
+          className={`boutique-header ${"flex-col"} align-center`}
+        >
+          {/*@ts-expect-error Async Server Component is valid in Next  */}
+          <BoutiqueHeader
+            boutique={boutique}
+            key={Params.filters?.join("/") || "no-filters"}
+          ></BoutiqueHeader>
+
+          <Suspense fallback={<ListingSkeleton justFilters={true} />}>
+            <FilterList
+              filters={filters}
+              currency={currency}
+              key={`filter-list-filters`}
+              params={Params}
+              parsedFilters={parsedFilters}
+            />
+          </Suspense>
+        </div>
+        <Suspense
+          key={`Suspense-product-list-${JSON.stringify(parsedFilters)}`}
+          fallback={<ListingSkeleton forProducts={true} />}
+        >
+          <ProductListServer
+            colors={filtersData?.colors}
+            boutique={boutique?.banners ? boutique : null}
+            products={productsData ?? []}
+            offset={filtersData?.offset}
+            currency={currency}
+            key={`product-list-${JSON.stringify(parsedFilters)}`}
+            parsedFilters={parsedFilters}
+            params={Params}
+          />
+        </Suspense>
+      </>
+    );
+  } catch (error) {
+    const filtersPath =
+      Array.isArray(Params.filters) && Params.filters.length > 0
+        ? `/${Params.filters.join("/")}`
+        : "";
+    LogServerError(error, `/${Params.lang}/filters/${filtersPath}`);
+    throw error instanceof Error ? error : new Error(String(error));
+  }
 }
 async function BoutiqueHeader({ boutique }) {
   return (
