@@ -38,7 +38,6 @@ function UserNavTopSection({
           className="nav-question-item"
           onClick={() => {
             openLogin(true);
-            window.history.pushState({ isPopup: true }, "open Login");
           }}
         >
           <img src="/svg/login.svg" width={15} height={15} alt="login" />
@@ -65,7 +64,6 @@ function UserNavTopSection({
           className="nav-question-item"
           onClick={() => {
             setShouldAuthinticated(true);
-            window.history.pushState({ isPopup: true }, "open Login");
           }}
         >
           <svg

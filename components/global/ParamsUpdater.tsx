@@ -18,7 +18,7 @@ export default function SearchParamUpdater({
 
     // Add or update the query param
     url.searchParams.set(searchKey, searchValue);
-    window.history.pushState({}, "", url.toString());
+    window.history.pushState({ isPopup: true }, "", url.toString());
 
     return () => {
       const cleanupUrl = new URL(window.location.href);

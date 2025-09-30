@@ -33,10 +33,6 @@ export const changeAppCountry = async (iso) => {
 /*Stories Actions */
 export const SelectStory = (e) => {
   const { setSelectedStory } = useAppStore.getState();
-
-  if (e) {
-    window.history.pushState({ isPopup: true }, "open Stories");
-  }
   if (e) {
     // Sendevent({
     //   event: GA_EVENT_NAMES.CLICK,

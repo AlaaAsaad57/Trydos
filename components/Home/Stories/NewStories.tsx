@@ -11,6 +11,7 @@ import Spinner from "components/global/Spinner";
 import { GA_EVENT_NAMES, GA_GLOBAL_SCREEN } from "utils/GAEvents";
 import { GAevent } from "utils/gtag";
 import { StoriesContainerPropsType } from "models/componentType/StoriesContainerPropType";
+import SearchParamUpdater from "components/global/ParamsUpdater";
 
 function StoriesContainer({
   selectedStory,
@@ -129,6 +130,7 @@ function StoriesContainer({
         height: `${window.visualViewport.height}px`,
       }}
     >
+      <SearchParamUpdater searchKey="stories" searchValue="true" />
       <Cube
         index={cubeIndex}
         onChange={(i) => {

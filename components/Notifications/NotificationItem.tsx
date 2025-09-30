@@ -124,7 +124,6 @@ const NotificationItem = ({ notification, onClose, closeWindow }) => {
         return (
           <div
             onClick={() => {
-              window.history.pushState({ isPopup: true }, "open Cart");
               enableCart(true);
               disableAddToCartOption();
               baseOnClick();

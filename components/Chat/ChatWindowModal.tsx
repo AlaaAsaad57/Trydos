@@ -10,6 +10,7 @@ import { SSRDetect, translateFunction } from "utils/functions";
 import dynamic from "next/dynamic";
 import { useParams } from "next/navigation";
 import { useAppStore } from "store";
+import SearchParamUpdater from "components/global/ParamsUpdater";
 function Chat(props) {
   const {
     main: ViewedScreen,
@@ -56,6 +57,7 @@ function Chat(props) {
       <div
         className={`app ${language}-app xs:right-0 xs:left-auto xs:top-0 xs:z-[9999999999999] xs:h-screen`}
       >
+        <SearchParamUpdater searchKey="chat" searchValue="true" />
         <textarea id="text-copy"></textarea>
         {typeof Notification !== "undefined" &&
         Notification.permission === "granted" &&

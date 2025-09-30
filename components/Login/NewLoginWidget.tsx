@@ -29,19 +29,12 @@ import {
 import { GAevent } from "utils/gtag";
 import auth from "services/auth";
 import Image from "next/image";
+import SearchParamUpdater from "components/global/ParamsUpdater";
 
 function NewLoginWidget() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  useEffect(() => {
-    window.history.pushState({ isPopup: true }, "search");
-    const newParams = new URLSearchParams(searchParams);
-    newParams.set("login", "true");
-    // Use router.push with pathname and updated query
-    // @ts-expect-error 'shallow' does not exist in type 'NavigateOptions'
-    router.push(`${pathname}?${newParams.toString()}`, { shallow: true });
-  }, []);
   let { lang } = useParams();
   const {
     setWrongNumber,
@@ -372,6 +365,7 @@ function NewLoginWidget() {
   }, [stepIndicator]);
   return (
     <>
+      <SearchParamUpdater searchKey="login" searchValue="true" />
       <div
         data-testid="backdrop-login "
         onClick={() => {

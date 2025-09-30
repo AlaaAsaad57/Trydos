@@ -111,7 +111,6 @@ export const ChatConroller = (payload) => {
     const { openChat, setChatOpen } = useAppStore.getState();
     if (payload) DisableScroll();
     else EnableScroll();
-    if (payload) window.history.pushState({ isPopup: true }, "open Chat");
     openChat(payload);
     setChatOpen(payload);
   } catch (error) {}
