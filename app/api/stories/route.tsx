@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { fetchServerData } from "serverRequests/ServerFetch";
-import { reportError } from "utils/error-reporter";
+import { ReportError } from "utils/errorReported";
 
 export async function GET(req: NextRequest) {
   const headers = {
@@ -78,13 +78,14 @@ async function fetchStories(
       headers: headers,
     });
     if (response.isError) {
-      reportError(new Error(`Stories Error: ${response.status}`), {
+      ReportError(new Error(`Stories Error: ${response.status}`), {
         source: "stories",
         page: "stories",
-        language: language,
-        country: country,
+        language,
+        country,
         response: JSON.stringify(response)?.substring(0, 300),
       });
+
       return {
         data: [],
         next_page_url: undefined,

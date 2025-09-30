@@ -1,7 +1,7 @@
 "use server";
 
-import { reportError } from "utils/error-reporter";
 import { fetchServerData } from "./ServerFetch";
+import { ReportError } from "utils/errorReported";
 
 interface CurrencyResponse {
   [key: string]: any;
@@ -21,11 +21,11 @@ export async function fetchCurrency(
 
     if (response.isError) {
       console.error(`Currency Error: ${response.status}`);
-      reportError(new Error(`Currency Error: ${response.status}`), {
+      ReportError(new Error(`Currency Error: ${response.status}`), {
         source: "currency",
         page: "currency",
-        language: language,
-        country: country,
+        language,
+        country,
         response: JSON.stringify(response),
       });
       return {

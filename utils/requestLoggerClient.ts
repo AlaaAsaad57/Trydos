@@ -85,3 +85,22 @@ export async function clearLogs(): Promise<void> {
     tx.objectStore(STORE_NAME).clear();
   });
 }
+
+export async function getLastRequest(): Promise<RequestLog | undefined> {
+  const db = await openDB();
+  await purgeOldLogs(db);
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE_NAME, "readonly");
+    const store = tx.objectStore(STORE_NAME);
+    const req = store.openCursor(undefined, "prev");
+    req.onsuccess = (e) => {
+      const cursor = (e.target as IDBRequest).result;
+      if (cursor) {
+        resolve(cursor.value as RequestLog);
+      } else {
+        resolve(undefined);
+      }
+    };
+    req.onerror = () => reject(req.error);
+  });
+}

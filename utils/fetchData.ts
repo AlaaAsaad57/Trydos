@@ -15,8 +15,8 @@ import {
   deleteCookie,
   getCookie,
 } from "./cookies/cookie-manager";
-import { reportError } from "./error-reporter";
 import { logRequest } from "./requestLoggerClient";
+import { ReportError } from "./errorReported";
 
 // ---------- Types ----------
 export type ServerType =
@@ -400,8 +400,22 @@ export const fetchData = async <T = any>(
         !message.includes("signal is aborted without reason") &&
         !message.includes("Fetch is aborted")
       ) {
+        logRequest({
+          url,
+          title: reqTitle.reqTitle,
+          status: status || 0,
+          attempts: retryCount,
+          response: undefined,
+          userId: String(auth.UserID?.() ?? ""),
+          method,
+          body: body?.toString(),
+          timestamp: Date.now(),
+        });
+        const [country, lang] = (
+          window.location.pathname.split("/")[1] || ""
+        ).split("-");
         LogError(errorObj);
-        reportError(err, {
+        ReportError(err, {
           source: "fetchData",
           userId: auth.UserID()?.toString(),
           token: await getToken(server),
@@ -410,20 +424,11 @@ export const fetchData = async <T = any>(
           url,
           method,
           body,
+          server,
+          country: country,
+          language: lang,
         });
       }
-
-      logRequest({
-        url,
-        title: reqTitle.reqTitle,
-        status: status || 0,
-        attempts: retryCount,
-        response: undefined,
-        userId: String(auth.UserID?.() ?? ""),
-        method,
-        body: body?.toString(),
-        timestamp: Date.now(),
-      });
 
       return { ...(responseData || {}), success: false };
     }

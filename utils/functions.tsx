@@ -11,6 +11,8 @@ import { GetConfiguredImagePropsType } from "models/componentType/boutiqueTypes/
 import { fetchData } from "./fetchData";
 import { COOKIE_NAMES, UserData, getCookie } from "./cookies/cookie-manager";
 import { REQUESTS_DATA } from "./Requests";
+import { readStoredLastPaths } from "./history";
+import { getLastRequest } from "./requestLoggerClient";
 export const SSRDetect = () => {
   return typeof window !== "undefined";
 };
@@ -390,13 +392,29 @@ export const GetCartOreview = async () => {
   }
 };
 export const LogError = async (error) => {
+  const userData = getCookie(COOKIE_NAMES.USER_DATA);
+  const userChat = getCookie(COOKIE_NAMES.USER_CHAT);
+  const userStories = getCookie(COOKIE_NAMES.USER_STORIES);
+  const last_paths = readStoredLastPaths();
+  const last_request = await getLastRequest();
+  const Error_Object = {
+    ...(error ?? {}),
+    userChat,
+    userData,
+    userStories,
+    last_paths,
+    last_request,
+  };
   await fetch(process.env.NEXT_PUBLIC_BACKEND_URL + "/mobile_error_log/store", {
     method: "POST",
     headers: {
       "Content-Type": "application/x-www-form-urlencoded",
     },
     body: new URLSearchParams({
-      error_description: JSON.stringify({ ...(error ?? {}), platform: "web" }),
+      error_description: JSON.stringify({
+        platform: "🛑WEB🛑",
+        ...(Error_Object ?? {}),
+      }),
     }),
   });
 };

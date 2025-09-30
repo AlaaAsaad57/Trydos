@@ -3,12 +3,13 @@ import { useEffect } from "react";
 import Logo from "../components/Home/Logo";
 import { LogError } from "../utils/functions";
 import AuthService from "../services/auth";
-import { reportError } from "../utils/error-reporter";
+
 import {
   GeneralErrorIllustration,
   NetworkErrorIllustration,
 } from "../components/global/ErrorIllustrations";
 import "styles/globals.css";
+import * as Sentry from "@sentry/nextjs";
 export default function GlobalError({ error, reset }) {
   const sendError = async () => {
     const userAgent =
@@ -22,16 +23,9 @@ export default function GlobalError({ error, reset }) {
     }
     token = AuthService.UserToken();
     user_id = AuthService.UserID();
-
-    // Report error using our lightweight reporter
-    reportError(error, {
-      source: "global-error",
-      userId: user_id,
-      token: token,
-      lastJson: last_json,
-      page: "global-error-boundary",
-    });
-
+    const [country, lang] = (
+      window.location.pathname.split("/")[1] || ""
+    ).split("-");
     let errorObj = {
       type: "front-end-exception",
       message: error.message,
@@ -39,7 +33,10 @@ export default function GlobalError({ error, reset }) {
       user_id: user_id,
       token: token,
       user_agent: userAgent,
+      country: country,
+      language: lang,
     };
+    Sentry.captureException(errorObj);
     LogError(errorObj);
   };
   useEffect(() => {

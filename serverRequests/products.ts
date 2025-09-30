@@ -1,6 +1,7 @@
 export const runtime = "nodejs";
-import { reportError } from "utils/error-reporter";
+
 import { fetchServerData } from "./ServerFetch";
+import { ReportError } from "utils/errorReported";
 // import { getProductFromCache, storeProduct } from "./radis";
 interface ProductDetailsResponse {
   [key: string]: any;
@@ -40,13 +41,13 @@ export async function fetchProductGeneralDetails(
     });
 
     if (response.isError) {
-      reportError(
+      ReportError(
         new Error(`Product Simple Details Error: ${response.status}`),
         {
           source: "products",
           page: "product-simple-details",
-          language: language,
-          country: country,
+          language,
+          country,
           response: JSON.stringify(response),
         }
       );
@@ -73,13 +74,13 @@ export async function fetchProductExtendedDetails(
     });
 
     if (response.isError) {
-      reportError(
+      ReportError(
         new Error(`Product Extended Details Error: ${response.status}`),
         {
           source: "products",
           page: "product-extended-details",
-          language: language,
-          country: country,
+          language,
+          country,
         }
       );
       throw response.error;

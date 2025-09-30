@@ -1,5 +1,5 @@
-import { reportError } from "utils/error-reporter";
 import { fetchServerData } from "./ServerFetch";
+import { ReportError } from "utils/errorReported";
 
 interface StoryItem {
   id: string | number;
@@ -45,11 +45,11 @@ export async function fetchStories(
       headers: headers,
     });
     if (response.isError) {
-      reportError(new Error(`Stories Error: ${response.status}`), {
+      ReportError(new Error(`Stories Error: ${response.status}`), {
         source: "stories",
         page: "stories",
-        language: language,
-        country: country,
+        language,
+        country,
         response: JSON.stringify(response)?.substring(0, 300),
       });
       return {
