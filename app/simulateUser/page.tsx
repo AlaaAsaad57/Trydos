@@ -68,6 +68,9 @@ const Page = () => {
             lang: getCookie(COOKIE_NAMES.LANG),
           });
         } catch {}
+        alert(
+          "Done...You Can Now Browse the Site as User ..check Last Page Paths below"
+        );
       }
     } catch (err: any) {
       setError("Invalid JSON. Please paste a valid JSON string.");
@@ -96,7 +99,7 @@ const Page = () => {
           disabled={isDisabled}
           className="rounded-md bg-blue-600 px-4 py-2 text-white disabled:cursor-not-allowed disabled:opacity-60"
         >
-          Parse
+          Parse And Simulate User
         </button>
         {error ? <span className="text-sm text-red-600">{error}</span> : null}
       </div>
