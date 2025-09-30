@@ -94,6 +94,7 @@ async function getCurrency(country, language) {
 }
 async function HomePage({ params }) {
   let { lang } = await params;
+
   try {
     return (
       <>

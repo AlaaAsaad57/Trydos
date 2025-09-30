@@ -187,7 +187,7 @@ const Page = () => {
               <div className="mb-1">
                 Country in Error:{" "}
                 <span className="font-mono">
-                  {String((preview as any)?.Country ?? "") || "—"}
+                  {String((preview as any)?.country ?? "") || "—"}
                 </span>
               </div>
             </div>
@@ -200,7 +200,7 @@ const Page = () => {
             <div className="mb-2 text-sm font-semibold text-gray-900">
               Last Paths
             </div>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-col gap-2">
               {(Array.isArray(preview.last_paths)
                 ? preview.last_paths.filter((p) => typeof p === "string")
                 : ([] as string[])
