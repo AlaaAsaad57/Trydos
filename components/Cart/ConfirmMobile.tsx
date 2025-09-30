@@ -11,6 +11,7 @@ import {
   getCookie,
   UserData,
 } from "utils/cookies/cookie-manager";
+import SearchParamUpdater from "components/global/ParamsUpdater";
 
 function ConfirmMobile({ closeWindow, hasMobile, goToOrders }) {
   const { setWrongNumber, verficationID, wrongNumber } = useAppStore();
@@ -131,6 +132,7 @@ function ConfirmMobile({ closeWindow, hasMobile, goToOrders }) {
 
   return (
     <div>
+      <SearchParamUpdater searchKey="confirmPhone" searchValue="true" />
       {stepIndicator === 3 && (!hasMobile || showMobile) && (
         <PhoneInput
           isForCart={true}

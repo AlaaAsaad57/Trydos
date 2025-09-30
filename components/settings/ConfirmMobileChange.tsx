@@ -10,6 +10,7 @@ import "public/styles/login.css";
 import { useAppStore } from "store";
 import PhoneInput from "components/Login/PhoneInput";
 import { ConfirmMobileChangePropsType } from "models/componentType/settingTypes/ConfirmMobileChangePropsType";
+import SearchParamUpdater from "components/global/ParamsUpdater";
 
 function ConfirmMobileChange({
   closeWindow,
@@ -107,6 +108,7 @@ function ConfirmMobileChange({
   const [showMobile, setShowMobile] = useState(false);
   return (
     <div>
+      <SearchParamUpdater searchKey="confirmPhoneChange" searchValue="true" />
       {stepIndicator === 3 &&
         (!userProfile?.phone ||
           (userProfile?.phone === "0" && (
