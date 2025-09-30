@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-
+import { ipAddress } from "@vercel/functions";
 // Constants
 const SUPPORTED_LANGUAGES = ["en", "ar", "tr", "ku"];
 const DEFAULT_LANGUAGE = "en";
@@ -187,10 +187,8 @@ function getCleanPathname(
   return pathname.startsWith("/") ? pathname : `/${pathname}`;
 }
 function getClientIp(req: NextRequest): string {
-  const forwarded = req.headers.get("x-forwarded-for");
-  if (forwarded) {
-    return forwarded.split(",")[0].trim();
-  }
+  const ip = ipAddress(req);
+  if (ip) return ip;
   return "0.0.0.0"; // fallback, should not happen on Vercel
 }
 // Main middleware function
