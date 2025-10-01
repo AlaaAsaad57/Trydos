@@ -139,7 +139,7 @@ export const useDetailsStore = (set, get) => ({
   setColorBottomSheet: (colorBottomSheet: boolean | any) =>
     set({ ColorBottomSheet: colorBottomSheet }),
   setSelectedProductForCart: (product: any) => {
-    if (!product?.sync_color_images)
+    if (!product?.sync_color_images?.length)
       return set({ selected_product_for_add_to_cart: product });
     else
       return set({
@@ -151,7 +151,7 @@ export const useDetailsStore = (set, get) => ({
               color_option: s?.color_option ?? s.color_name,
             };
           }),
-          colors: product?.colors.map((s) => ({
+          colors: product?.colors?.map((s) => ({
             ...s,
             color_option: s?.option ?? s.name,
             option: s?.option ?? s.name,

@@ -807,7 +807,8 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
                   return s;
                 }),
                 is_product_notify_for_user:
-                  ProductData?.variation?.length > 0
+                  !ProductData?.variation ||
+                  ProductData?.variation?.length === 0
                     ? true
                     : ProductData?.is_product_notify_for_user,
               });
@@ -854,8 +855,17 @@ const NotifyCartButton = ({
 }) => {
   const NotifyAction = async () => {
     try {
+      let permission = null;
       if (typeof Notification !== "undefined") {
-        const permission = await Notification.requestPermission();
+        permission = await Notification.requestPermission();
+      }
+      if (permission !== "granted") {
+        showErrorNotification(
+          translateFunction(
+            "Notification Is Not Enabled! please Allow Notification Access"
+          )
+        );
+        return;
       }
       if (!isNotified) {
         GAevent({
@@ -887,9 +897,10 @@ const NotifyCartButton = ({
       }
     } catch (error) {
       showErrorNotification(
-        translateFunction(
-          "Notification Is Not Enabled! please Allow Notification Access"
-        )
+        error ??
+          translateFunction(
+            "Notification Is Not Enabled! please Allow Notification Access"
+          )
       );
       console.log(error);
     }
