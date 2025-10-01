@@ -181,7 +181,7 @@ function ProductOptions({
     }
   }, []);
   const getSafeLikeCount = () => {
-    const likes = SelectedProduct?.likes ?? product?.count_of_likes ?? 0;
+    const likes = SelectedProduct?.likes ?? product?.count_of_likes ?? "";
     return Math.max(0, likes);
   };
   const isRtl = language === "ar" || language === "ku";
@@ -228,7 +228,7 @@ function ProductOptions({
                 ) : (
                   <Heart />
                 )}
-                {product.count_of_likes >= 0 || SelectedProduct?.likes >= 0 ? (
+                {product.count_of_likes > 0 || SelectedProduct?.likes > 0 ? (
                   <span data-cy="CountOfLoves">{getSafeLikeCount()}</span>
                 ) : (
                   <Skeleton width={15} height={14}></Skeleton>
@@ -247,9 +247,11 @@ function ProductOptions({
               >
                 <CommentIcon active={activeOption === "Comment"} />
                 <span data-cy="CountOfComment">
-                  {productDetails.comments_count !== null ||
-                  product.comments_count !== null ? (
-                    productDetails.comments_count ?? product.comments_count ?? 0
+                  {productDetails.comments_count > 0 ||
+                  product.comments_count > 0 ? (
+                    productDetails.comments_count ??
+                    product.comments_count ??
+                    ""
                   ) : (
                     <Skeleton width={15} height={14}></Skeleton>
                   )}
@@ -279,9 +281,9 @@ function ProductOptions({
                 <Share />
                 <span data-cy="CountOfShares">
                   {(SelectedProduct?.sharesCount !== null &&
-                    SelectedProduct?.sharesCount >= 0) ||
-                  product?.shared_count >= 0 ? (
-                    SelectedProduct?.sharesCount ?? product.shared_count
+                    SelectedProduct?.sharesCount > 0) ||
+                  product?.shared_count > 0 ? (
+                    SelectedProduct?.sharesCount ?? product.shared_count ?? ""
                   ) : (
                     <Skeleton width={15} height={14}></Skeleton>
                   )}
