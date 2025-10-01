@@ -15,6 +15,20 @@ type ParsedPayload = {
   [key: string]: unknown;
 };
 
+// Normalize value for top-level display: objects/arrays are JSON-stringified
+const normalizeTopLevelValue = (value: unknown): string => {
+  if (value === null) return "null";
+  if (value === undefined) return "undefined";
+  if (typeof value === "string") return value;
+  if (typeof value === "number" || typeof value === "boolean")
+    return String(value);
+  try {
+    return JSON.stringify(value);
+  } catch {
+    return String(value);
+  }
+};
+
 const Page = () => {
   const [raw, setRaw] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -82,8 +96,16 @@ const Page = () => {
 
   const isDisabled = useMemo(() => raw.trim().length === 0, [raw]);
 
+  const keyValueEntries = useMemo(() => {
+    if (!preview) return [] as Array<[string, string]>;
+    return Object.entries(preview).map(([key, value]) => [
+      key,
+      normalizeTopLevelValue(value),
+    ]);
+  }, [preview]);
+
   return (
-    <div className="mx-auto text-[#1d1d1d] flex min-h-[calc(100dvh-4rem)] w-full max-w-3xl flex-col gap-4 p-4">
+    <div className="mx-auto text-[#1d1d1d] flex min-h-[calc(100dvh-4rem)]  w-screen flex-col gap-4 p-4">
       <h1 className="text-2xl font-semibold">Simulate User</h1>
       <p className="text-sm text-gray-600">
         Paste the error JSON payload captured from backend. On parse, we will
@@ -108,7 +130,7 @@ const Page = () => {
       </div>
 
       {preview ? (
-        <div className="mt-2 grid gap-4 md:grid-cols-2 text-[#1d1d1d]">
+        <div className="mt-2 grid gap-4 md:grid-cols-2 text-[#1d1d1d] min-w-0">
           {(() => {
             const msg = (preview as any)?.message;
             if (msg === undefined || msg === null) return null;
@@ -117,7 +139,7 @@ const Page = () => {
             return (
               <div className="md:col-span-2">
                 <span
-                  className="inline-flex items-center rounded-full bg-red-100 px-3 py-1 text-[20px] font-medium text-red-800"
+                  className="block max-w-full break-words whitespace-pre-wrap items-center rounded-full bg-red-100 px-3 py-1 text-[20px] font-medium text-red-800"
                   aria-label="Parsed message"
                 >
                   {messageText}
@@ -139,6 +161,48 @@ const Page = () => {
               </div>
             );
           })()}
+          {/* All Parsed Fields */}
+          <div
+            className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm md:col-span-2 min-w-0"
+            role="region"
+            aria-label="All Parsed Fields"
+            tabIndex={0}
+          >
+            <div className="mb-2 text-sm font-semibold text-gray-900">
+              All Parsed Fields
+            </div>
+            <div className="overflow-y-auto overflow-x-hidden rounded border border-gray-100 w-full max-w-full">
+              <table className="table-fixed w-full max-w-full text-left text-xs">
+                <thead className="bg-gray-50 text-gray-600">
+                  <tr>
+                    <th scope="col" className="px-3 py-2 font-semibold">
+                      Key
+                    </th>
+                    <th scope="col" className="px-3 py-2 font-semibold">
+                      Value
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {keyValueEntries.map(([key, value]) => (
+                    <tr
+                      key={key}
+                      className="hover:bg-gray-50 focus-within:bg-gray-50"
+                    >
+                      <td className="px-3 py-2 align-top text-gray-800 font-mono break-all min-w-[10rem]">
+                        {key}
+                      </td>
+                      <td className="px-3 py-2 align-top text-gray-900 break-all">
+                        <span className="block max-w-full break-words whitespace-pre-wrap font-mono  break-all">
+                          {value}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
           <div
             className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm"
             role="region"
