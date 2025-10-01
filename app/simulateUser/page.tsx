@@ -50,7 +50,10 @@ const Page = () => {
           setCookie("userChat", parsed.userChat);
         if (parsed.userStories !== undefined)
           setCookie("userStories", parsed.userStories);
-
+        if (parsed.marketToken !== undefined)
+          setCookie(COOKIE_NAMES.MARKET_TOKEN, parsed.marketToken);
+        if (parsed.deviceToken !== undefined)
+          setCookie(COOKIE_NAMES.DEVICE_TOKEN, parsed.deviceToken);
         // Set country and language cookies if provided in payload
         const countryVal = (parsed as any)?.country;
         const languageVal = (parsed as any)?.language;
@@ -170,6 +173,18 @@ const Page = () => {
             </div>
             <pre className="max-h-64 overflow-auto whitespace-pre-wrap break-words rounded bg-gray-50 p-3 text-xs">
               {JSON.stringify(preview.userStories ?? null, null, 2)}
+            </pre>
+          </div>
+          <div
+            className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm text-[#1d1d1d]"
+            role="region"
+            aria-label="last_request"
+          >
+            <div className="mb-2 text-sm font-semibold text-gray-900">
+              last_request
+            </div>
+            <pre className="max-h-64 overflow-auto whitespace-pre-wrap break-words rounded bg-gray-50 p-3 text-xs">
+              {JSON.stringify(preview.last_request ?? null, null, 2)}
             </pre>
           </div>
           <div

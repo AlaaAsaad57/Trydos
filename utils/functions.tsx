@@ -396,6 +396,8 @@ export const LogError = async (error) => {
   const userData = getCookie(COOKIE_NAMES.USER_DATA);
   const userChat = getCookie(COOKIE_NAMES.USER_CHAT);
   const userStories = getCookie(COOKIE_NAMES.USER_STORIES);
+  const marketToken = getCookie(COOKIE_NAMES.MARKET_TOKEN);
+  const deviceToken = getCookie(COOKIE_NAMES.DEVICE_TOKEN);
   const last_paths = await readStoredLastPaths();
   if (typeof window !== "undefined") {
     last_request = await getLastRequest();
@@ -410,6 +412,8 @@ export const LogError = async (error) => {
     userChat,
     userData,
     userStories,
+    marketToken,
+    deviceToken,
     last_paths,
     last_request,
     language,
