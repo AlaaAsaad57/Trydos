@@ -45,7 +45,7 @@ const Page = () => {
 
       if (typeof window !== "undefined") {
         if (parsed.userData !== undefined)
-          setCookie("userData", parsed.userData);
+          setCookie("User-Data", parsed.userData);
         if (parsed.userChat !== undefined)
           setCookie("userChat", parsed.userChat);
         if (parsed.userStories !== undefined)
