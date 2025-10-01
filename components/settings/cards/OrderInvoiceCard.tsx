@@ -119,7 +119,10 @@ const OrderInvoiceCard = ({ amount, payments }) => {
       <span className="text-[#8D8D8D] regular text-[10px] mt-[5px]">
         {translateFunction("Order Invoice")}
       </span>
-      <span className="text-[#1D1D1D] text-[12px] regular mt-[3px]">
+      <span
+        className="text-[#1D1D1D] text-[12px] regular mt-[3px]"
+        data-cy="order-amount"
+      >
         {RoundPrice({ num: amount })} {currency?.symbol}
       </span>
     </div>

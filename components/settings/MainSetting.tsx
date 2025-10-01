@@ -96,7 +96,10 @@ function MainSetting({ swipeToScreen }: MainSettingPropsType) {
           <span className="text-[#1D1D1D] text-[14px] regular mt-[4px]">
             {translateFunction("Trydos Wallet")}
           </span>
-          <span className="text-[#8D8D8D] text-[12px] regular">
+          <span
+            className="text-[#8D8D8D] text-[12px] regular"
+            data-cy="user-wallet-amount"
+          >
             {loading ? (
               <Spinner />
             ) : (
