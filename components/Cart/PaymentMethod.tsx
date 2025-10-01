@@ -712,7 +712,7 @@ const TryDosWalletInput = ({
           className="text-[#1D1D1D] semibold text-[12px] ml-1"
           data-cy="wallet-balance"
         >
-          {!orderLoading && wallet?.wallet_balance?.toFixed(points)}{" "}
+          {!orderLoading && wallet?.wallet_balance?.toFixed(8)}{" "}
           {currency?.symbol}
         </span>
       </div>
