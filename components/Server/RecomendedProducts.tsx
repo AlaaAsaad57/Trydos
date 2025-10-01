@@ -52,8 +52,8 @@ function RecomendedProducts({ lang, products, currencyData }) {
       </div>
       <HortiznalScrollBar
         className="featured-products-container py-[10px] gap-[8px] w-full mt-[12px] flex-row justify-start items-center max-w-[1365px] h-auto pb-[8px] "
-        id="featured-products-container"
-        dataCy="featured-products-container"
+        id="recomended-products-container"
+        dataCy="recomended-products-container"
       >
         {featuredProducts?.data?.products?.map((product, key) => (
           <ProductCard
