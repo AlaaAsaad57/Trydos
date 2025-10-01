@@ -16,7 +16,10 @@ function ProductFeatures({ language, labels }) {
       } flex-row gap-[12px] items-center mt-[11px]`}
     >
       {labels?.map((label) => (
-        <div className={`${isRtl ? "flex-row-reverse" : "flex-row"} gap-[2px]`}>
+        <div
+          className={`${isRtl ? "flex-row-reverse" : "flex-row"} gap-[2px]`}
+          key={label}
+        >
           <div
             className={`${
               isRtl && "dir-rtl"

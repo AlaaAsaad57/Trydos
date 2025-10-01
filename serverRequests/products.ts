@@ -1,5 +1,6 @@
 export const runtime = "nodejs";
 
+import { LogServerError } from "utils/serverErrorReporter";
 import { fetchServerData } from "./ServerFetch";
 import { ReportError } from "utils/errorReported";
 // import { getProductFromCache, storeProduct } from "./radis";
@@ -22,7 +23,6 @@ export async function fetchProductDetails(
       redis: false,
     };
   } catch (error) {
-    console.error("Error fetching product details:", error);
     throw error;
   }
 }
@@ -41,6 +41,15 @@ export async function fetchProductGeneralDetails(
     });
 
     if (response.isError) {
+      LogServerError(
+        {
+          request: `/mobile/product/details/${slug}?lang=${language} || ${response.status}`,
+          message: JSON.stringify(response),
+          language,
+          country,
+        },
+        `/mobile/product/details/${slug}?lang=${language}`
+      );
       ReportError(
         new Error(`Product Simple Details Error: ${response.status}`),
         {
@@ -56,7 +65,6 @@ export async function fetchProductGeneralDetails(
 
     return response.data;
   } catch (error) {
-    console.log(`Product Simple Details Error`, error);
     throw error;
   }
 }
@@ -74,6 +82,15 @@ export async function fetchProductExtendedDetails(
     });
 
     if (response.isError) {
+      LogServerError(
+        {
+          request: `/web/product/qtyPriceDetails/${slug}?lang=${language}&country=${country} || ${response.status}`,
+          message: JSON.stringify(response),
+          language,
+          country,
+        },
+        `/web/product/qtyPriceDetails/${slug}?lang=${language}&country=${country}`
+      );
       ReportError(
         new Error(`Product Extended Details Error: ${response.status}`),
         {
@@ -87,7 +104,6 @@ export async function fetchProductExtendedDetails(
     }
     return response.data;
   } catch (error) {
-    console.log(`Product Extended Details  Error`, error);
     throw error;
   }
 }
