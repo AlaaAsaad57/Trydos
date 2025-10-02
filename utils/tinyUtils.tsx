@@ -640,7 +640,7 @@ export const totalAmount = (arr) => {
  */
 export const pollinateInput = (value: string): string => {
   if (typeof value !== "string") return "";
-  let input = value.replace(/[<>,!@#$%^&*()]/g, "");
+  let input = value.replace(/[<>,!#$%^&*()]/g, "");
   if (input.length > 90) {
     input = input.slice(0, 90);
   }
