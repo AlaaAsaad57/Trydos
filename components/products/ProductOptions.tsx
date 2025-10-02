@@ -185,7 +185,22 @@ function ProductOptions({
     return Math.max(0, likes);
   };
   const isRtl = language === "ar" || language === "ku";
-
+  const getSharesCount = () => {
+    if (SelectedProduct?.sharesCount > 0) return SelectedProduct?.sharesCount;
+    if (product?.shared_count > 0) return product?.shared_count;
+    return "";
+  };
+  const getCommentsCount = () => {
+    if (productDetails?.comments_count > 0)
+      return productDetails?.comments_count;
+    if (product?.comments_count > 0) return product?.comments_count;
+    return "";
+  };
+  const getLikesCount = () => {
+    let num = getSafeLikeCount();
+    if (num > 0) return num;
+    return "";
+  };
   return (
     <div
       className={`product-options-container ${isRtl && "flex-row-reverse"}`}
@@ -228,11 +243,7 @@ function ProductOptions({
                 ) : (
                   <Heart />
                 )}
-                {product.count_of_likes > 0 || SelectedProduct?.likes > 0 ? (
-                  <span data-cy="CountOfLoves">{getSafeLikeCount()}</span>
-                ) : (
-                  <Skeleton width={15} height={14}></Skeleton>
-                )}
+                {<span data-cy="CountOfLoves">{getLikesCount()}</span>}
               </div>
               <div
                 className="product-option-item flex-row"
@@ -246,16 +257,7 @@ function ProductOptions({
                 }}
               >
                 <CommentIcon active={activeOption === "Comment"} />
-                <span data-cy="CountOfComment">
-                  {productDetails.comments_count > 0 ||
-                  product.comments_count > 0 ? (
-                    productDetails.comments_count ??
-                    product.comments_count ??
-                    ""
-                  ) : (
-                    <Skeleton width={15} height={14}></Skeleton>
-                  )}
-                </span>
+                <span data-cy="CountOfComment">{getCommentsCount()}</span>
               </div>
             </div>
             <div className="min-w-[130px]" />
@@ -279,15 +281,7 @@ function ProductOptions({
               >
                 {" "}
                 <Share />
-                <span data-cy="CountOfShares">
-                  {(SelectedProduct?.sharesCount !== null &&
-                    SelectedProduct?.sharesCount > 0) ||
-                  product?.shared_count > 0 ? (
-                    SelectedProduct?.sharesCount ?? product.shared_count ?? ""
-                  ) : (
-                    <Skeleton width={15} height={14}></Skeleton>
-                  )}
-                </span>
+                <span data-cy="CountOfShares">{getSharesCount()}</span>
               </div>
               <div
                 className="product-option-item flex-row"

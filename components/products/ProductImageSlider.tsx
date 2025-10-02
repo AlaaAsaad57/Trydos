@@ -23,7 +23,7 @@ function ProductImagesSlider({ children, language }) {
       params: {
         // image_index: slideIndex,
         user_id_custom: auth.UserID(),
-        item_id: SelectedProduct.id,
+        item_id: SelectedProduct?.id,
         item_name: SelectedProduct?.name,
         brand: SelectedProduct?.brand?.name,
         brand_id: SelectedProduct?.brand?.id,

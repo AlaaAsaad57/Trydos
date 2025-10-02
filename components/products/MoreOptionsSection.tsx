@@ -117,7 +117,7 @@ function MoreOptionsSection() {
       action: GA_EVENT_NAMES.ENABLE_PRODUCT_NOTIFICATION,
       params: {
         user_id_custom: auth.UserID(),
-        item_id: SelectedProduct.id,
+        item_id: SelectedProduct?.id,
         type_notification: notification_type,
         item_name: SelectedProduct?.name,
 
