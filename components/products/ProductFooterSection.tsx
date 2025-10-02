@@ -246,7 +246,7 @@ function ProductFooterSection({
           category: product?.categories?.[0]?.name,
           category_id: product?.categories?.[0]?.id,
           count_likes: likesNum,
-          review_count: response_views?.view_count,
+          // review_count: response_views?.view_count,
           interaction_type: "view",
           screen_name: lastPageData?.screen || "link",
           screen_path: lastPageData?.url || window.location.pathname,

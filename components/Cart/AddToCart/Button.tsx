@@ -168,7 +168,7 @@ function AddToCartButton({
                 category_id:
                   product?.category?.id || product?.categories?.[0]?.id,
                 count_likes: product?.count_of_likes,
-                review_count: product?.views_count ?? product?.view_count,
+                // review_count: product?.views_count ?? product?.view_count,
                 item_variant: selectedVariant?.type,
               },
             ],
@@ -226,7 +226,7 @@ function AddToCartButton({
                 category: product?.category?.name,
                 category_id: product?.category?.id,
                 count_likes: product?.count_of_likes,
-                review_count: product?.views_count ?? product?.view_count,
+                // review_count: product?.views_count ?? product?.view_count,
                 item_variant: selectedVariant?.type,
               },
             ],
