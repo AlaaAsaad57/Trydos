@@ -88,8 +88,8 @@ const translations = {
   "Failed To Remove Image..Try Again": "فشل حذف الصورة ..حاول مجددا",
   "Please Add Photos Of The Product You Received So That We Can Provide You With The Best Service To Avoid This Issue.":
     "يرجى إضافة صور للمنتج الذي استلمته حتى نتمكن من تزويدك بأفضل خدمة وتجنب هذه المشكلة.",
-  "You Can Return The Product Without Any Conditions According To The Return Policy And Get A Full Refund":
-    "يمكنك إرجاع المنتج دون أي شروط وفقًا لسياسة الإرجاع واسترداد المبلغ بالكامل",
+  "You Can Return The Product Without Any Conditions According To The Return Policy And Get A Refund":
+    "يمكنك إرجاع المنتج دون أي شروط وفقًا لسياسة الإرجاع واسترداد المبلغ",
   "Cart Loading Error": "خطأ في تحميل السلة",
   "View Product": "عرض المنتج",
   "Failed To Retrive Results Please Try Again":
@@ -277,8 +277,8 @@ const translations = {
   Clarification: "توضيح",
   "About Return Your Product": "عن إرجاع المنتج",
   "You Will Not Be Charged Any Fees.": "لن يتم فرض أي رسوم عليك.",
-  "You Will Receive Your Full Refund Within 12 Hours.":
-    "ستحصل على استرداد كاملك خلال 12 ساعة.",
+  "You Will Receive Your Refund Within 12 Hours.":
+    "ستحصل على استرداد المبلغ خلال 12 ساعة.",
   "Repeated Cancellations Will Affect Your Rating, Which Will Affect Your Ability To Receive New Offers Or Opportunities From Us.":
     "ستؤثر عمليات الإلغاء المتكررة على تقييمك، مما سيؤثر بدوره على قدرتك على تلقي عروض أو فرص جديدة منا.",
   "I Agree & Cancel": "أوافق و ألغاء",

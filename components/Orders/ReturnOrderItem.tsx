@@ -100,7 +100,7 @@ function ReturnOrderItem({
           } text-[#8D8D8D] text-[12px] regular text-center`}
         >
           {translateFunction(
-            "You Can Return The Product Without Any Conditions According To The Return Policy And Get A Full Refund"
+            "You Can Return The Product Without Any Conditions According To The Return Policy And Get A Refund"
           )}
           <span className="bold text-[12px] text-[#8D8D8D] ml-[4px]">
             {RoundPrice({

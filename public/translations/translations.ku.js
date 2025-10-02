@@ -100,8 +100,8 @@ const translations = {
   "Failed To Remove Image..Try Again": "Görüntü kaldırılamadı.. Tekrar deneyin",
   "Please Add Photos Of The Product You Received So That We Can Provide You With The Best Service To Avoid This Issue.":
     "تکایە وێنەی بەرهەمەکەی کە وەرگرتووت زیاد بکە بۆ ئەوەی بتوانین باشترین خزمەتگوزاری بۆت دابین بکەین و ئەم کێشەیە دوور بگرین.",
-  "You Can Return The Product Without Any Conditions According To The Return Policy And Get A Full Refund":
-    "دەتوانیت بەرهەمەکە بێ هیچ شەرتێک گەڕێنەوە بەپێی یاسای گەڕاندنەوە و پارەکە بە تەواوی وەربگری",
+  "You Can Return The Product Without Any Conditions According To The Return Policy And Get A Refund":
+    "دەتوانیت بەرهەمەکە بێ هیچ شەرتێک گەڕێنەوە بەپێی یاسای گەڕاندنەوە و پارەکە بە تەواوی ",
   "View Product": "بینینی بەرهەم",
   "Cancel Return Request": "داخوازی گەڕاندن بسڕەوە",
   "Failed To Load Products After 3 Attempts":
@@ -236,7 +236,7 @@ const translations = {
   Clarification: "ڕوونکردنەوە",
   "About Return Your Product": "دەربارەی گەڕاندنەوەی بەرهەمەت",
   "You Will Not Be Charged Any Fees.": "هیچ فێسێک لەسەر تۆ داگیر نەبێت.",
-  "You Will Receive Your Full Refund Within 12 Hours.":
+  "You Will Receive Your Refund Within 12 Hours.":
     "پارەی تەواوت لە ماوەی ١٢ کاتژمێر دەوەری دەبینی.",
   "Repeated Cancellations Will Affect Your Rating, Which Will Affect Your Ability To Receive New Offers Or Opportunities From Us.":
     "ڕەتکردنەوەی پێوەکراوەکان سەر نمرەکردنت کاریگەری دەبەخشێت، کە کاریگەری دەکات سەر توانایەت بۆ وەرگرتنی پێشنیار یان دەروازە نوێکان لەمانەوە.",

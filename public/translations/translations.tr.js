@@ -89,7 +89,7 @@ const translations = {
   "Back to Home": "Ana Sayfaya Dön",
   "Try Again": "Tekrar Dene",
   "Retrying...": "Yeniden deneniyor...",
-  "You Can Return The Product Without Any Conditions According To The Return Policy And Get A Full Refund":
+  "You Can Return The Product Without Any Conditions According To The Return Policy And Get A Refund":
     "Ürünü iade koşulu olmadan iade edebilir ve tam ücret iadesi alabilirsiniz",
   "Add Photo": "Fotoğraf Ekle",
   "Add Story": "Hikaye Ekle",
@@ -801,7 +801,7 @@ const translations = {
   Clarification: "Açıklama",
   "About Return Your Product": "Ürününüzü İade Hakkında",
   "You Will Not Be Charged Any Fees.": "Hiçbir Ücret Alınmayacaktır.",
-  "You Will Receive Your Full Refund Within 12 Hours.":
+  "You Will Receive Your Refund Within 12 Hours.":
     "12 Saat İçinde Tam İadenizi Alacaksınız.",
   "Repeated Cancellations Will Affect Your Rating, Which Will Affect Your Ability To Receive New Offers Or Opportunities From Us.":
     "Tekrarlanan İptaller Puanınızı Etkileyecek ve Bu da Bizden Yeni Teklifler veya Fırsatlar Alabilme Yeteneğinizi Etkileyecektir.",

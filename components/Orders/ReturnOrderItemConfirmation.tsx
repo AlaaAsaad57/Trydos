@@ -177,9 +177,7 @@ function ReturnOrderItemConfirmation({
           {translateFunction("You Will Not Be Charged Any Fees.")}
         </span>
         <span className="mt-[19px] regular text-white text-[16px] text-center">
-          {translateFunction(
-            "You Will Receive Your Full Refund Within 12 Hours."
-          )}
+          {translateFunction("You Will Receive Your Refund Within 12 Hours.")}
         </span>
         <span className="mt-[45px] regular text-white text-[16px] text-center">
           {translateFunction(
