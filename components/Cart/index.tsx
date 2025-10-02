@@ -1000,11 +1000,7 @@ export const CartItemLink = ({ product, children }) => {
             ? "min-h-[230px]"
             : "min-h-[161px]"
         } bg-[#FEFEFE] rounded-2xl overflow-hidden shadow-[0px_3px_10px_rgba(0,0,0,0.1)]`}
-        // onClick={(e) => {
-        //   EnableScroll();
-        //   enableCart(false);
-        // }}
-        onNavigate={() => {
+        onClick={(e) => {
           EnableScroll();
           enableCart(false);
         }}

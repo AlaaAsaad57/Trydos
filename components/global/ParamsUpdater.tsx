@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { useAppStore } from "store";
 
 interface SearchParamUpdaterProps {
   searchKey: string;
@@ -25,7 +26,11 @@ export default function SearchParamUpdater({
 
       // Remove the query param
       cleanupUrl.searchParams.delete(searchKey);
-      window.history.pushState({}, "", cleanupUrl.toString());
+      const { isNavigating } = useAppStore.getState();
+      setTimeout(() => {
+        if (!isNavigating)
+          window.history.pushState({}, "", cleanupUrl.toString());
+      }, 600);
     };
   }, [searchKey, searchValue]);
 
