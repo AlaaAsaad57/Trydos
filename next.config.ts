@@ -1,4 +1,4 @@
-import {withSentryConfig} from "@sentry/nextjs";
+import { withSentryConfig } from "@sentry/nextjs";
 import type { NextConfig } from "next";
 
 let nextConfig: NextConfig = {
@@ -61,6 +61,9 @@ let nextConfig: NextConfig = {
   },
   images: {
     unoptimized: false,
+    qualities: [
+      100, 90, 80, 75, 70, 65, 60, 55, 50, 45, 40, 35, 30, 25, 20, 15, 10, 5,
+    ],
     domains: [
       "res.cloudinary.com",
       "eu.ui-avatars.com",
@@ -227,5 +230,5 @@ export default withSentryConfig(undefined, {
   // See the following for more information:
   // https://docs.sentry.io/product/crons/
   // https://vercel.com/docs/cron-jobs
-  automaticVercelMonitors: true
+  automaticVercelMonitors: true,
 });

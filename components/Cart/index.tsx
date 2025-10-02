@@ -15,7 +15,6 @@ import { useParams, usePathname } from "next/navigation";
 import OrderButton from "./OrderButton";
 import Spinner from "components/global/Spinner";
 import { QuantityDetailsProductApi } from "models/API/market/ProductQuantityDetails";
-import LocalizationServiceClass from "services/localization";
 import { useAppStore } from "store";
 import cartService from "services/cart";
 import { GA_EVENT_NAMES, GA_GLOBAL_SCREEN } from "utils/GAEvents";
@@ -1001,7 +1000,11 @@ export const CartItemLink = ({ product, children }) => {
             ? "min-h-[230px]"
             : "min-h-[161px]"
         } bg-[#FEFEFE] rounded-2xl overflow-hidden shadow-[0px_3px_10px_rgba(0,0,0,0.1)]`}
-        onClick={(e) => {
+        // onClick={(e) => {
+        //   EnableScroll();
+        //   enableCart(false);
+        // }}
+        onNavigate={() => {
           EnableScroll();
           enableCart(false);
         }}

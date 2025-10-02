@@ -434,12 +434,6 @@ function OrderDetails({
     };
   }, []);
   const shouldShowRatingBadge = () => {
-    if (
-      ActivePacks.details.filter((s) => !s.comments || s.comments?.length === 0)
-        .length === 0
-    )
-      return false;
-    if (isExpanded) return false;
     if (ActivePacks?.order_status?.value === "delivered") return true;
     else return false;
   };
