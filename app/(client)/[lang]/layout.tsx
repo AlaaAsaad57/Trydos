@@ -6,6 +6,8 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 import Script from "next/script";
 import { GA_MEASUREMENT_ID } from "utils/gtag";
 import PathTracker from "components/PathTracker";
+import SessionChecker from "components/SessionChecker";
+import SessionTimer from "components/Login/SessionTimer";
 export const metadata = {
   title: "TryDos",
   description: "TryDos E-Commerce Website",
@@ -135,6 +137,8 @@ export default async function RootLayout({
         {notification}
         {/* <HydrationProfiler /> */}
         <PathTracker />
+        <SessionChecker />
+        <SessionTimer />
       </body>
     </html>
   );

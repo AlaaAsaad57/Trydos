@@ -1,11 +1,13 @@
 "use client";
 import "styles/globals.css";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useState, useEffect } from "react";
 import {
   setCookie,
   getCookie,
   COOKIE_NAMES,
 } from "utils/cookies/cookie-manager";
+import SessionTimer from "components/Login/SessionTimer";
+import { initializeSessionCheck } from "utils/sessionManager";
 
 type ParsedPayload = {
   last_paths?: string[];
@@ -38,6 +40,11 @@ const Page = () => {
     lang: null,
   });
 
+  // Initialize session check on page load
+  useEffect(() => {
+    initializeSessionCheck();
+  }, []);
+
   const handleChange = useCallback(
     (e: React.ChangeEvent<HTMLTextAreaElement>) => {
       setRaw(e.target.value);
@@ -58,24 +65,43 @@ const Page = () => {
       setPreview(parsed);
 
       if (typeof window !== "undefined") {
-        if (parsed.userData !== undefined)
-          setCookie("User-Data", parsed.userData);
+        // Set session expiry time (30 minutes from now)
+        const sessionExpiry = new Date(Date.now() + 30 * 60 * 1000);
+        localStorage.setItem("sessionExpiry", sessionExpiry.toISOString());
+
+        // Set cookies with 30-minute expiration
+        const cookieOptions = {
+          expires: sessionExpiry,
+          maxAge: 30 * 60, // 30 minutes in seconds
+        };
+
+        if (parsed.userData !== undefined) {
+          setCookie("User-Data", parsed.userData, cookieOptions);
+        }
         if (parsed.userChat !== undefined)
-          setCookie("userChat", parsed.userChat);
+          setCookie("userChat", parsed.userChat, cookieOptions);
         if (parsed.userStories !== undefined)
-          setCookie("userStories", parsed.userStories);
+          setCookie("userStories", parsed.userStories, cookieOptions);
         if (parsed.marketToken !== undefined)
-          setCookie(COOKIE_NAMES.MARKET_TOKEN, parsed.marketToken);
+          setCookie(
+            COOKIE_NAMES.MARKET_TOKEN,
+            parsed.marketToken,
+            cookieOptions
+          );
         if (parsed.deviceToken !== undefined)
-          setCookie(COOKIE_NAMES.DEVICE_TOKEN, parsed.deviceToken);
+          setCookie(
+            COOKIE_NAMES.DEVICE_TOKEN,
+            parsed.deviceToken,
+            cookieOptions
+          );
         // Set country and language cookies if provided in payload
         const countryVal = (parsed as any)?.country;
         const languageVal = (parsed as any)?.language;
         if (typeof countryVal === "string" && countryVal.trim().length > 0) {
-          setCookie(COOKIE_NAMES.COUNTRY, countryVal.trim());
+          setCookie(COOKIE_NAMES.COUNTRY, countryVal.trim(), cookieOptions);
         }
         if (typeof languageVal === "string" && languageVal.trim().length > 0) {
-          setCookie(COOKIE_NAMES.LANG, languageVal.trim());
+          setCookie(COOKIE_NAMES.LANG, languageVal.trim(), cookieOptions);
         }
 
         // Refresh view of cookies after setting
@@ -106,6 +132,7 @@ const Page = () => {
 
   return (
     <div className="mx-auto text-[#1d1d1d] flex min-h-[calc(100dvh-4rem)]  w-screen flex-col gap-4 p-4">
+      <SessionTimer />
       <h1 className="text-2xl font-semibold">Simulate User</h1>
       <p className="text-sm text-gray-600">
         Paste the error JSON payload captured from backend. On parse, we will
@@ -189,7 +216,7 @@ const Page = () => {
                       key={key}
                       className="hover:bg-gray-50 focus-within:bg-gray-50"
                     >
-                      <td className="px-3 py-2 align-top text-gray-800 font-mono break-all min-w-[10rem]">
+                      <td className="px-3 py-2 align-top text-gray-800 font-mono break-all max-w-[90px] w-[90px]">
                         {key}
                       </td>
                       <td className="px-3 py-2 align-top text-gray-900 break-all">

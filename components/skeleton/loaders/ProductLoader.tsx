@@ -282,15 +282,7 @@ function ProductLoader({ product }) {
           resetLoader={false}
           images={getImages(product, color)?.images}
           currency={currency}
-          productGA={{
-            item_id: product.id,
-            item_name: product?.name,
-            brand: product?.brand?.name,
-            brand_id: product?.brand?.id,
-            category: product?.category?.name || product?.categories?.[0]?.name,
-            category_id: product?.category?.id || product?.categories?.[0]?.id,
-            price: product?.offer_price,
-          }}
+          productGA={null}
         />
 
         <div className="product-details-body bg-[#ffffff] flex-row relative mt-[3px] pb-[50px]">

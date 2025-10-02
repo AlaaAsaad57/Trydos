@@ -372,6 +372,7 @@ function PaymentMethod() {
                   >
                     <TryDosWalletInput
                       key={key}
+                      balance={wallet?.wallet_balance?.toFixed(8)}
                       active={
                         orderData?.payment?.filter((s) => s.id === 1).length > 0
                       }
@@ -659,6 +660,7 @@ const CODInput = ({ active, setActive, total }) => {
 const TryDosWalletInput = ({
   active,
   setActive,
+  balance,
 }: TryDosWalletInputPropsType) => {
   const { orderLoading, wallet, currency, settings, language } = useAppStore();
   const points = settings["starting-setting"]?.decimal_point_settings || 0;
@@ -712,8 +714,7 @@ const TryDosWalletInput = ({
           className="text-[#1D1D1D] semibold text-[12px] ml-1"
           data-cy="wallet-balance"
         >
-          {!orderLoading && wallet?.wallet_balance?.toFixed(8)}{" "}
-          {currency?.symbol}
+          {!orderLoading && balance} {currency?.symbol}
         </span>
       </div>
     </div>

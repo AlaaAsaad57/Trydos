@@ -32,20 +32,21 @@ function ProductDetailsSlider({
     if (currency) setCurrency(currency);
     if (resetLoader) {
       elements = document.querySelectorAll(".product-slider-images");
-      elements.forEach((elem, index) => {
-        elem.addEventListener("click", function (e) {
-          GAevent({
-            action: GA_EVENT_NAMES.ZOOM_IMAGE,
-            params: {
-              image_index: index,
-              user_id_custom: auth.UserID(),
-              ...productGA,
-            },
+      if (productGA)
+        elements.forEach((elem, index) => {
+          elem.addEventListener("click", function (e) {
+            GAevent({
+              action: GA_EVENT_NAMES.ZOOM_IMAGE,
+              params: {
+                image_index: index,
+                user_id_custom: auth.UserID(),
+                ...productGA,
+              },
+            });
+            DisableScroll();
+            showImage(index);
           });
-          DisableScroll();
-          showImage(index);
         });
-      });
     }
 
     return () => {

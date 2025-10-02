@@ -103,9 +103,9 @@ function SizeSelect({
                 sizeQty(s?.option) === 0 && !isCollectAfterOrder
                   ? "bg-[#FFF2F2]"
                   : s?.option === selectedSize
-                  ? "bg-[#F4F4F4]"
+                  ? "bg-[#F4F4F4] relative"
                   : "bg-[#FCFCFC]"
-              } uppercase relative justify-center cursor-pointer rounded-[6px] flex-col  w-auto h-[46px]  min-w-[50px] items-center px-[6px] text-[#1d1d1d] text-[11px]`}
+              } uppercase relative justify-center cursor-pointer rounded-[6px] flex-col  w-auto h-[47px]  min-w-[50px] items-center px-[6px] text-[#1d1d1d] text-[11px]`}
               style={{
                 border:
                   sizeQty(s?.option) === 0 && !isCollectAfterOrder
@@ -113,6 +113,26 @@ function SizeSelect({
                     : "1px solid #D3D3D37f",
               }}
             >
+              {s?.option === selectedSize && (
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="50"
+                  height="47"
+                  viewBox="0 0 50 47"
+                  className="absolute top-0 left-0 z-20"
+                >
+                  <rect
+                    x="0.25"
+                    y="0.25"
+                    width="49.5"
+                    height="46.5"
+                    rx="5.75"
+                    stroke="#513aaf"
+                    stroke-width="0.5"
+                    fill="none"
+                  />
+                </svg>
+              )}
               {isSizeNotified(s?.option ?? s) && (
                 <span className="absolute top-[-6px] left-[4px]">
                   <svg

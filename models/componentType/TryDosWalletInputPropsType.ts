@@ -1,4 +1,5 @@
 export interface TryDosWalletInputPropsType {
-    active: boolean,
-    setActive: Function
+  active: boolean;
+  setActive: Function;
+  balance: string;
 }

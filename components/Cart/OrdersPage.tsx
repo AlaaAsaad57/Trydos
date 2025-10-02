@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useState } from "react";
 import BackIcon from "public/svg/listing/backIcon.svg";
 import { getCart, RoundPrice, translateFunction } from "utils/functions";
 import { useParams } from "next/navigation";

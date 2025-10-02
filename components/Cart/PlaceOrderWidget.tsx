@@ -541,9 +541,9 @@ const PaymentOrder = ({ success }: PaymentOrderPropsType) => {
         {orderData?.payment?.filter((s) => s.id === 1).length > 0 && (
           <TryDosWalletInput
             total={
-              orderData?.data?.order_amount ||
+              orderData?.payment?.filter((s) => s.id === 1)[0]?.balance ||
               orderData?.data?.partial_payment_by_wallet ||
-              orderData?.payment?.filter((s) => s.id === 1)[0].balance
+              orderData?.data?.partial_payment_by_wallet
             }
           />
         )}

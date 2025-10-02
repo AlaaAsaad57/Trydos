@@ -25,6 +25,7 @@ import {
 } from "utils/cookies/cookie-manager";
 import { getReferralSource } from "utils/tinyUtils";
 import dynamic from "next/dynamic";
+import { clearSimulatedUserSession } from "utils/sessionManager";
 
 interface MenuProps {
   user: any;
@@ -112,6 +113,7 @@ const Menu = ({ user, setMenuOpen }) => {
     // });
     // localStorage.clear();
     if (loading) return;
+    clearSimulatedUserSession();
     setLoading(true);
     deleteCookie(COOKIE_NAMES.USER_CHAT);
     deleteCookie(COOKIE_NAMES.USER_STORIES);

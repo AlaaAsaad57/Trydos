@@ -1,12 +1,8 @@
 // import translations from "public/translations/translations.js";
 import { useAppStore } from "store";
-import { notFound } from "next/navigation";
-import { LogData } from "store/homepage/actions";
 import { CartResponse } from "models/API/market/CartShipping";
-import { SimpleBoutiqeApi } from "models/API/market/BoutiqueSimpleDetails";
 import { OldCartApi } from "models/API/market/OldCart";
 import LocalizationServiceClass from "services/localization";
-
 import { GetConfiguredImagePropsType } from "models/componentType/boutiqueTypes/metaDataPropsType";
 import { fetchData } from "./fetchData";
 import { COOKIE_NAMES, UserData, getCookie } from "./cookies/cookie-manager";
