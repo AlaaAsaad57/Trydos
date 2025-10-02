@@ -579,6 +579,7 @@ function buildAggregations(
                         "categories.id",
                         "categories.num_available_product",
                         "categories.parent_id",
+                        "categories.most_viewed_product_thumbnail",
                       ],
                     },
                   },
@@ -736,6 +737,7 @@ function processCategoriesAggregation(
       origMap[hit.id] = {
         num_available_product: hit.num_available_product || 0,
         parent_id: hit.parent_id || null,
+        most_viewed_product_thumbnail: hit?.most_viewed_product_thumbnail,
       };
     }
   });
@@ -767,7 +769,8 @@ function processCategoriesAggregation(
       banner_photo_path: src.banner_photo_path || "",
       num_available_product: orig.num_available_product,
       parent_id: orig.parent_id,
-      most_viewed_product_thumbnail: thumbnail,
+      most_viewed_product_thumbnail:
+        orig.most_viewed_product_thumbnail ?? thumbnail,
       childes: [],
     });
   });
