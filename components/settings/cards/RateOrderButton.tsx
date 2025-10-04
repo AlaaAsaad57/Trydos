@@ -1,7 +1,9 @@
 import React from "react";
+import { useAppStore } from "store";
 import { translateFunction } from "utils/functions";
 
-function RateOrderButton({ expand }) {
+function RateOrderButton() {
+  const { language } = useAppStore();
   const handleClick = () => {
     setTimeout(() => {
       document.querySelector(".rating-star-container").scrollIntoView({
@@ -17,6 +19,7 @@ function RateOrderButton({ expand }) {
       });
     }, 500);
   };
+  const isRtl = language === "ar" || language === "ku";
   return (
     <div
       className="flex px-[12px] mt-[8px]"
@@ -24,7 +27,11 @@ function RateOrderButton({ expand }) {
         handleClick();
       }}
     >
-      <div className="flex-col pt-[8px] ob-[12px] px-[12px] justify-start items-start w-full bg-[#F4F4F4] rounded-[15px] border-[#412cdd8d] border-[1px] h-[155px]">
+      <div
+        className={`${
+          isRtl ? "items-end" : "items-start"
+        } flex-col pt-[8px] pb-[12px] px-[12px] justify-start  w-full bg-[#F4F4F4] rounded-[15px] border-[#412cdd8d] border-[1px] h-[155px]`}
+      >
         <span>
           <svg
             xmlns="http://www.w3.org/2000/svg"

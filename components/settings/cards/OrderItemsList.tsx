@@ -52,7 +52,9 @@ function OrderItemsList({
             document.querySelector("#OrderDetails").scrollTop = 0;
           }
         }}
-        className="bg-[#F4F4F4] mt-[8px] ml-[8px] w-full min-h-[74px] h-auto  rounded-[15px] py-[7px] px-[12px] flex-col"
+        className={`${
+          isRtl ? "items-end" : "items-start"
+        } bg-[#F4F4F4] mt-[8px] ml-[8px] w-full min-h-[74px] h-auto  rounded-[15px] py-[7px] px-[12px] flex-col`}
         style={{
           border: isExpanded && "1px solid #C4C2C27f",
         }}
@@ -77,7 +79,9 @@ function OrderItemsList({
       <div
         className={` ${
           isExpanded ? "h-0 pb-[0px] mt-[0px]" : "pb-[72px] mt-[12px] "
-        } flex-row    items-center pl-[12px]  whitespace-nowrap overflow-x-scroll overflow-y-hidden [&::-webkit-scrollbar]:hidden`}
+        }   ${
+          isRtl ? "flex-row-reverse" : "flex-row"
+        }  items-center pl-[12px] flex whitespace-nowrap overflow-x-scroll overflow-y-hidden [&::-webkit-scrollbar]:hidden`}
       >
         {items.map((product) => (
           <div className="relative flex-col" key={product.id}>
