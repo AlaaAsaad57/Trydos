@@ -333,10 +333,12 @@ export const FilterItem = ({
                                 height={40}
                                 src={
                                   GetImageUrl(
-                                    s.most_viewed_product_thumbnail
+                                    sub_s?.most_viewed_product_thumbnail
                                   ) ??
-                                  GetImageUrl(s.flat_photo_path?.file_path) ??
-                                  GetImageUrl(s?.icon?.file_path)
+                                  GetImageUrl(
+                                    sub_s?.flat_photo_path?.file_path
+                                  ) ??
+                                  GetImageUrl(sub_s?.icon?.file_path)
                                 }
                               />
                               {shouldShowSubCategories() && (

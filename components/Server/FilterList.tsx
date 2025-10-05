@@ -32,7 +32,7 @@ function FilterList({
   const isUsingParsedFilters = Boolean(parsedFilters);
   const language = params.lang.split("-")?.[1];
   const isRtl = language === "ar" || language === "ku";
-
+  console.log(filters.categories);
   return (
     <>
       <div
