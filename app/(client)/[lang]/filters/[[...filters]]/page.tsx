@@ -264,13 +264,15 @@ export default async function Page({ params }) {
           ></BoutiqueHeader>
 
           <Suspense fallback={<ListingSkeleton justFilters={true} />}>
-            <FilterList
-              filters={filters}
-              currency={currency}
-              key={`filter-list-filters`}
-              params={Params}
-              parsedFilters={parsedFilters}
-            />
+            {productsData?.length > 1 && (
+              <FilterList
+                filters={filters}
+                currency={currency}
+                key={`filter-list-filters`}
+                params={Params}
+                parsedFilters={parsedFilters}
+              />
+            )}
           </Suspense>
         </div>
         <Suspense

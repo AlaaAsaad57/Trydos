@@ -7,8 +7,6 @@ import CategoryItem from "./Results/CategoryItem";
 import BoutiqueItem from "./Results/BoutiqueItem";
 import { onClickSearchHistory, translateFunction } from "utils/functions";
 import { useParams, useSearchParams } from "next/navigation";
-import { useRouter } from "next/navigation";
-
 import Spinner from "components/global/Spinner";
 
 import { useAppStore } from "store";
@@ -43,7 +41,7 @@ function SearchResults() {
       value.length > 0
     );
   };
-  const router = useRouter();
+
   const { lang } = useParams();
   // @ts-ignore
   let languageVariable = lang.split("-")[1];
@@ -199,10 +197,12 @@ function SearchResults() {
                   )}
                 />
               ))}
-              <InfiniteScrollFiltersSearch
-                shouldShow={searchResults.brands?.length === 10}
-                term="brands"
-              />
+              {!partialLoading && (
+                <InfiniteScrollFiltersSearch
+                  shouldShow={searchResults.brands?.length === 10}
+                  term="brands"
+                />
+              )}
             </div>
           </div>
         )}
@@ -250,10 +250,12 @@ function SearchResults() {
                   )}
                 />
               ))}
-              <InfiniteScrollFiltersSearch
-                term="categories"
-                shouldShow={searchResults.categories.length === 10}
-              />
+              {!partialLoading && (
+                <InfiniteScrollFiltersSearch
+                  term="categories"
+                  shouldShow={searchResults.categories.length === 10}
+                />
+              )}
             </div>
           </div>
         )}
@@ -300,10 +302,12 @@ function SearchResults() {
                   )}
                 />
               ))}
-              <InfiniteScrollFiltersSearch
-                term="boutiques"
-                shouldShow={searchResults.boutiques.length === 10}
-              />
+              {!partialLoading && (
+                <InfiniteScrollFiltersSearch
+                  term="boutiques"
+                  shouldShow={searchResults.boutiques.length === 10}
+                />
+              )}
             </div>
           </div>
         )}

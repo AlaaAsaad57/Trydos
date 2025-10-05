@@ -2,7 +2,6 @@
 import Spinner from "components/global/Spinner";
 import { useParams } from "next/navigation";
 import React, { useState } from "react";
-import { InView } from "react-intersection-observer";
 import search from "services/search";
 import { translateFunction } from "utils/functions";
 
