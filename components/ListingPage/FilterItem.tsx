@@ -233,11 +233,16 @@ export const FilterItem = ({
                       width={50}
                       height={50}
                       className="bg-white"
-                      src={
-                        GetImageUrl(s.most_viewed_product_thumbnail) ??
-                        GetImageUrl(s.flat_photo_path?.file_path) ??
-                        GetImageUrl(s?.icon?.file_path)
-                      }
+                      src={getConfiguredImage({
+                        src:
+                          (s.most_viewed_product_thumbnail &&
+                            GetImageUrl(s.most_viewed_product_thumbnail)) ??
+                          (s.flat_photo_path?.file_path &&
+                            GetImageUrl(s.flat_photo_path?.file_path)) ??
+                          (s?.icon?.file_path &&
+                            GetImageUrl(item?.icon?.file_path)),
+                        height: 100,
+                      })}
                     />
                     {shouldShowSubCategories() && (
                       <div className="category-text-container flex-col align-center max-w-[50px]">
@@ -331,15 +336,20 @@ export const FilterItem = ({
                                 className="min-w-[40px] min-h-[40px] w-[40px] h-[40px]"
                                 width={40}
                                 height={40}
-                                src={
-                                  GetImageUrl(
-                                    sub_s?.most_viewed_product_thumbnail
-                                  ) ??
-                                  GetImageUrl(
-                                    sub_s?.flat_photo_path?.file_path
-                                  ) ??
-                                  GetImageUrl(sub_s?.icon?.file_path)
-                                }
+                                src={getConfiguredImage({
+                                  src:
+                                    (sub_s.most_viewed_product_thumbnail &&
+                                      GetImageUrl(
+                                        sub_s.most_viewed_product_thumbnail
+                                      )) ??
+                                    (sub_s.flat_photo_path?.file_path &&
+                                      GetImageUrl(
+                                        sub_s.flat_photo_path?.file_path
+                                      )) ??
+                                    (sub_s?.icon?.file_path &&
+                                      GetImageUrl(item?.icon?.file_path)),
+                                  height: 100,
+                                })}
                               />
                               {shouldShowSubCategories() && (
                                 <div className="category-text-container flex-col align-center mt-2 max-w-[50px]">
