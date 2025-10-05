@@ -47,6 +47,7 @@ export class ElasticsearchReader {
         if (rec.hits.hits?.length === 0)
           rec = await this.client.search({
             index: "cold_start_recommendations",
+            sort: [{ _score: { order: "desc" } }],
           });
       }
 
@@ -57,6 +58,7 @@ export class ElasticsearchReader {
       ) {
         return { products: [], search_after: [] };
       }
+
       const recommendedIds: string[] =
         // @ts-ignore
         (rec.hits.hits?.[0]?._source as any)?.recommended_products?.map(
