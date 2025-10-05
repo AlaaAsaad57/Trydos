@@ -2,12 +2,18 @@ import React from "react";
 import CartPurbleIcon from "public/svg/CartPurbleIcon.svg";
 import { useAppStore } from "store";
 import { RoundPrice, translateFunction } from "utils/functions";
-import { useSearchParams } from "node_modules/next/navigation";
 
 function ProductCartHeader({ language }) {
-  const { cart, currency, total, enableCart } = useAppStore();
-  const searchParams = useSearchParams();
+  const { localCart, currency, enableCart } = useAppStore();
+
   const isRtl = language === "ar" || language === "ku";
+  const getPrices = () => {
+    let total_price = 0;
+    localCart.map((s) => {
+      total_price += s.offer_price * s.quantity;
+    });
+    return RoundPrice({ num: total_price, rate: currency?.exchange_rate });
+  };
   return (
     <div
       className={`${
@@ -18,15 +24,11 @@ function ProductCartHeader({ language }) {
       }}
     >
       <p className="regular text-[11px] text-[#8D8D8D] flex-row gap-[3px] items-end">
-        <span className="medium text-[13px] text-[#1D1D1D]">{cart.length}</span>
-        <span>{translateFunction("Item", language)}</span>
         <span className="medium text-[13px] text-[#1D1D1D]">
-          {RoundPrice({
-            num: total,
-            rate: currency?.exchange_rate,
-            language: language,
-          })}
+          {localCart.length}
         </span>
+        <span>{translateFunction("Item", language)}</span>
+        <span className="medium text-[13px] text-[#1D1D1D]">{getPrices()}</span>
         <span>{currency?.symbol}</span>
       </p>
       <CartPurbleIcon />

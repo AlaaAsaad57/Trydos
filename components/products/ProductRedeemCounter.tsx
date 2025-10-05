@@ -2,11 +2,16 @@
 import Spinner from "components/global/Spinner";
 import Timer from "components/Login/Timer";
 import React, { useEffect } from "react";
+import { useAppStore } from "store";
 import { getCookie, setCookie } from "utils/cookies/cookie-manager";
 import { translateFunction } from "utils/functions";
 
 function ProductRedeemCounter({ language, product_id }) {
+  const { expireRedeem, SelectedProduct } = useAppStore();
   const configureRedeemedProducts = () => {
+    if (SelectedProduct?.id === product_id) {
+      expireRedeem();
+    }
     let redeemed_products_ids = getCookie<any>("redemed_ids");
 
     if (redeemed_products_ids) {

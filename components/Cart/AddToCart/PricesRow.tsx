@@ -1,8 +1,8 @@
+"use client";
 import React from "react";
 import { RoundPrice } from "utils/functions";
 import PropertiesMarquee from "./PropertiesMarquee";
-import { getCookie } from "utils/cookies/cookie-manager";
-
+import { useAppStore } from "store";
 function PricesRow({
   shipping_cost,
   offer_price,
@@ -12,18 +12,15 @@ function PricesRow({
   currency,
   language,
   noBorder = false,
+  is_redeem,
 }) {
+  const { SelectedProduct } = useAppStore();
   const shouldShowRedeem = () => {
-    if (typeof window === "undefined") return false;
-    let redeemed_products_ids = getCookie<any[]>("redemed_ids");
-    if (redeemed_products_ids) {
-      return !redeemed_products_ids.find((s) => s.id === id);
-    }
-    return true;
+    return is_redeem;
   };
   const isRtl = language === "ar" || language === "ku";
   const renderPrice = () => {
-    if (shouldShowRedeem() && redeem_price && redeem_price > 0) {
+    if (SelectedProduct?.is_redeem && redeem_price && redeem_price > 0) {
       if (price === offer_price) {
         return (
           <div className="flex flex-row items-center gap-[4px] regular text-[16px] text-[#1d1d1d] bg-[#fff]">

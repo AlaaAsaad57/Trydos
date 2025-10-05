@@ -55,8 +55,14 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
     searchParams.get("color"),
   ];
 
-  const { localCart, currency, setSelectedProductForCart, initCart } =
-    useAppStore();
+  const {
+    localCart,
+    currency,
+    setSelectedProductForCart,
+    initCart,
+    expireRedeem,
+    SelectedProduct,
+  } = useAppStore();
   const { lang } = useParams();
   // @ts-ignore
   const [, languageVariable] = lang?.split("-");
@@ -769,6 +775,7 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
         className=" flex pb-[18px] flex-col w-full min-h-[136px] rounded-t-[30px] gap-[8px] h-auto fixed bottom-0 bg-[#FFFFFF] shadow-[0px_-3px_20px_rgb(0,0,0,0.1)] z-50"
       >
         <PricesRow
+          is_redeem={product.is_redeem}
           currency={currency}
           language={languageVariable}
           offer_price={getSelectedVariantQty()?.offer_price}
@@ -791,6 +798,9 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
           flashDeal={ProductData?.flash_deal_end_date}
           id={ProductData?.id}
           RedemEnd={() => {
+            if (SelectedProduct?.id === product.id) {
+              expireRedeem();
+            }
             setProductData({ ...ProductData, is_redeem: false });
           }}
           isInCart={localCart?.find((s) => s.id === ProductData?.id)}

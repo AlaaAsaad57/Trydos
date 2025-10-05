@@ -470,7 +470,11 @@ export const useCartStore = (set, get) => ({
     set((state) => ({
       SelectedProduct: { ...state.SelectedProduct, ...info },
     })),
-
+  expireRedeem: () =>
+    set((state) => ({
+      ...state,
+      SelectedProduct: { ...state.SelectedProduct, is_redeem: false },
+    })),
   storeVariants: (variants) =>
     set((state) => ({
       variants,

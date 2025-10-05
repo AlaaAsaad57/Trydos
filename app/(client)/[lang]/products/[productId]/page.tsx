@@ -4,13 +4,9 @@ export const dynamic = "force-dynamic";
 import "styles/productDetails.css";
 import "styles/product-body.css";
 import FreeReturnIcon from "public/svg/product/FreeReturnIcon.svg";
-import {
-  getConfiguredImage,
-  RoundPrice,
-  translateFunction,
-} from "utils/functions";
+import { getConfiguredImage, translateFunction } from "utils/functions";
 import Image from "next/image";
-import Skeleton from "react-loading-skeleton";
+
 import VerifiedIcon from "public/svg/product/Verified.svg";
 import ProductDescriptors from "components/products/ProductDescriptors";
 import { GetImageUrl } from "utils/tinyUtils";
@@ -24,7 +20,6 @@ import FreeShippingOption from "components/products/FreeShippingOption";
 import ProductColors from "components/products/ProductColors";
 import ProductBackButton from "components/products/ProductBackButton";
 import FlashDealBanner from "components/products/FlashDealBanner";
-import { ProductPagePropsType } from "models/componentType/productTypes/productPagePropsType";
 import { GetProductData } from "utils/pagesDataRequests/ProductPageData";
 import { generateCodeCurrency } from "../../MetaData";
 import { redirect } from "next/navigation";
@@ -746,6 +741,7 @@ async function Page({ params, searchParams }) {
                 id={product.id}
                 offer_price={product.offer_price}
                 price={product.price}
+                is_redeem={product.is_redeem}
                 redeem_price={product.redeem_price}
                 shipping_cost={product?.shipping_cost}
                 noBorder={true}
