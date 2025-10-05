@@ -4,6 +4,7 @@ import {
   _isStoreLastJson,
   getCart,
   getUserChat,
+  LogError,
   WaitForCondition,
 } from "utils/functions";
 import Smartlook from "smartlook-client";
@@ -241,6 +242,7 @@ class HomeService {
       onMessageListener()
         .then((payload) => {})
         .catch((err) => {
+          LogError(err);
           console.log(err);
         });
   }

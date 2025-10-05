@@ -8,6 +8,7 @@ import { useAppStore } from "store";
 import chat from "services/chat";
 import { fetchData } from "utils/fetchData";
 import { REQUESTS_DATA } from "utils/Requests";
+import { LogError } from "utils/functions";
 
 export const GetLastSeen = async (chatId, friendID) => {
   const { setServerTime, setIsTyping } = useAppStore.getState();
@@ -75,7 +76,9 @@ export const setLastSeen = async (MyId) => {
       .then(() => {
         // Success.
       })
-      .catch((error) => {});
+      .catch((error) => {
+        LogError(error);
+      });
   } catch (e) {
     console.error(e);
   }

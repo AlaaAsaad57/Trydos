@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { translateFunction } from "utils/functions";
+import { LogError, translateFunction } from "utils/functions";
 import { NotificationItem as NotificationItemType } from "../../types/notifications";
 import { fetchNotifications } from "../../services/notifications";
 import NotificationItem from "./NotificationItem";
@@ -305,7 +305,7 @@ const NotificationInfo = ({ closeWindow }) => {
         setToken(Fbtoken);
       })
       .catch((err) => {
-        console.log(err);
+        LogError(err);
         setError(err);
       });
   };

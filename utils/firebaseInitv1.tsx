@@ -10,6 +10,7 @@ import {
 import { useAppStore } from "../store";
 
 import { foregroundNotificationHandler } from "./NotificationHandler";
+import { LogError } from "./functions";
 const firebaseConfig = {
   // apiKey: "AIzaSyAl53TxLa2CoTBeXtg9K3Lr8G908ajb6kY",
   // authDomain: "trydos-ce234.firebaseapp.com",
@@ -67,7 +68,7 @@ export const requestFirebaseNotificationPermission = async () => {
     })
     .catch((err) => {
       setNotificationPermission(false);
-      console.error(err);
+      LogError(err);
       localStorage.setItem("FCMError", null);
       throw err;
     });
