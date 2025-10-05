@@ -491,6 +491,7 @@ export class ElasticsearchReader {
                             _source: [
                               "categories.id",
                               "categories.num_available_product",
+                              "categories.most_viewed_product_thumbnail",
                             ],
                           },
                         },
@@ -513,11 +514,13 @@ export class ElasticsearchReader {
 
       const origMap: Record<string, any> = {};
       for (const b of origBuckets) {
-        const hit =
-          b.orig_category_details.hits.hits[0]?._source?.categories || {};
+        const hit = b.orig_category_details.hits.hits[0]?._source || {};
+
         if (hit.id) {
+
           origMap[hit.id] = {
             num_available_product: hit.num_available_product || 0,
+            most_viewed_product_thumbnail: hit.most_viewed_product_thumbnail,
           };
         }
       }
@@ -544,7 +547,11 @@ export class ElasticsearchReader {
           num_available_product: orig.num_available_product,
           position: hitData.position,
           boutique_id: thumbHit.boutique_id || null,
-          most_viewed_product_thumbnail: thumbHit.thumbnail || null,
+          most_viewed_product_thumbnail:
+            hitData?.most_viewed_product_thumbnail ||
+            orig?.most_viewed_product_thumbnail ||
+            thumbHit.thumbnail ||
+            null,
           most_viewed_product_name: thumbHit.name || null,
         });
       }
