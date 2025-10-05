@@ -20,7 +20,7 @@ export class ElasticsearchReader {
     language = "en",
     country = "",
     search_after = [],
-    limit = 20,
+    limit = 50,
   }: {
     language: string;
     country: string;
@@ -66,6 +66,7 @@ export class ElasticsearchReader {
         return { products: [], search_after: [] };
       }
       const numericIds = recommendedIds.filter((id) => /^\d+$/.test(id));
+
       const baseConditions = buildBaseConditions({}, country);
       const { must: mustConditions, must_not: mustNotConditions } =
         baseConditions;
@@ -100,14 +101,23 @@ export class ElasticsearchReader {
         // @ts-ignore
         is_redeem: hit._source?.has_redeem_discount,
       }));
+
       const productsWithFilters = extractFilters(products, language, true);
       const normalizedProducts = normalizeCustomProducts(productsWithFilters);
       // // 6. Get new search_after value
       const newSearchAfter = hits.length > 0 ? hits[hits.length - 1].sort : [];
       let end = process.hrtime.bigint();
 
+      const orderedProducts = numericIds
+        .map((id) =>
+          normalizedProducts.custom_products.find(
+            (p) => String(p.product_id) === String(id)
+          )
+        )
+        .filter(Boolean);
+
       return {
-        products: normalizedProducts.custom_products?.map((s) => ({
+        products: orderedProducts?.map((s) => ({
           ...s,
           is_redeem: s.has_redeem_discount,
         })),
@@ -154,6 +164,7 @@ export class ElasticsearchReader {
         ...query,
       };
       const result = await this.client.search<T>(searchParams);
+
       return result;
     } catch (error) {
       console.error("Elastic Categories:", error);
@@ -517,7 +528,6 @@ export class ElasticsearchReader {
         const hit = b.orig_category_details.hits.hits[0]?._source || {};
 
         if (hit.id) {
-
           origMap[hit.id] = {
             num_available_product: hit.num_available_product || 0,
             most_viewed_product_thumbnail: hit.most_viewed_product_thumbnail,
