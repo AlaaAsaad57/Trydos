@@ -231,7 +231,9 @@ function OrderDetails({
         server: "chat",
         body: JSON.stringify({
           original_user_id: auth.UserID(),
-          order_id: id,
+          ...(ActivePacks?.return_request_id
+            ? { order_id: ActivePacks?.return_request_id }
+            : {}),
           parent_order_id: ActivePacks.id,
         }),
         signal: chatAbortControllerRef.current.signal,
