@@ -71,7 +71,11 @@ function OrderItemsList({
           {translateFunction("Items")}
         </span>
         {shouldShowChat() && (
-          <div className="chat-holder flex-row absolute right-[10px] top-[30px]">
+          <div
+            className={`${
+              isRtl ? "left-[10px]" : "right-[10px]"
+            } chat-holder flex-row absolute  top-[30px]`}
+          >
             {showChats()}
           </div>
         )}
