@@ -8,14 +8,20 @@ import { fetchData } from "utils/fetchData";
 import { REQUESTS_DATA } from "utils/Requests";
 import auth from "services/auth";
 import FeaturedProductsSkeleton from "components/skeleton/loaders/FeaturedProductsSkeleton";
+import { useAppStore } from "store";
 
 function RecomendedProducts({ lang, currencyData }) {
+  const { user } = useAppStore();
   const [products, setProducts] = useState([]);
+
   const [loading, setLoading] = useState(true);
   const getRecommendations = async (page?: number) => {
     setLoading(true);
     let res = await fetchData({
-      url: `/api/products/recomended?user_id=${auth.UserID()}`,
+      url:
+        auth.UserID() ?? user?.id
+          ? `/api/products/recomended?user_id=${auth.UserID() ?? user?.id}`
+          : `/api/products/recomended`,
       server: "local",
       method: "GET",
       reqTitle: REQUESTS_DATA.GET_RECOMENDATIONS,
@@ -24,8 +30,8 @@ function RecomendedProducts({ lang, currencyData }) {
     setProducts(res.data.products);
   };
   useEffect(() => {
-    if (auth.UserID()) getRecommendations();
-  }, [auth.UserID()]);
+    getRecommendations();
+  }, [user]);
 
   const [country, language] = lang.split("-");
   const isRtl = language === "ar" || language === "ku";
