@@ -96,6 +96,8 @@ function OrderDetails({
     // Create new AbortController
     abortControllerRef.current = new AbortController();
     let id = searchParams.get("id");
+    let order_id_chat = searchParams.get("order_id_chat");
+    let order_id = searchParams.get("order_id");
     setLoading(true);
     try {
       let data = await Order.getOrderDetails(
@@ -140,7 +142,24 @@ function OrderDetails({
         returned_data: returnRequests,
       };
 
-      if (data.find((s) => s.id === ActivePacks?.id)) {
+      if (
+        (order_id_chat || order_id) &&
+        data.find(
+          (s) =>
+            String(s.id) === String(order_id_chat) ||
+            String(s?.return_request_id) === String(order_id_chat) ||
+            String(s.id) === String(order_id)
+        )
+      ) {
+        setActivePacks(
+          data.find(
+            (s) =>
+              String(s.id) === String(order_id_chat) ||
+              String(s?.return_request_id) === String(order_id_chat) ||
+              String(s.id) === String(order_id)
+          )
+        );
+      } else if (data.find((s) => s.id === ActivePacks?.id)) {
         setActivePacks(data.find((s) => s.id === ActivePacks?.id));
       } else setActivePacks(data[0]);
 
@@ -461,7 +480,7 @@ function OrderDetails({
     !ActivePacks?.details
   )
     return null;
-  console.log(`[SelectedOrder]`, selectedOrder);
+
   return (
     <>
       {chatInfo && (

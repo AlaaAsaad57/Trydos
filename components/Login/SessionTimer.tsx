@@ -5,6 +5,7 @@ import {
   checkSessionExpiry,
   clearSimulatedUserSession,
 } from "utils/sessionManager";
+import { COOKIE_NAMES, deleteCookie } from "utils/cookies/cookie-manager";
 
 interface SessionTimerProps {
   className?: string;
@@ -36,6 +37,13 @@ const SessionTimer = ({ className = "" }: SessionTimerProps) => {
   }, []);
 
   const handleSessionExpired = () => {
+    deleteCookie(COOKIE_NAMES.USER_DATA);
+    deleteCookie(COOKIE_NAMES.USER_CHAT);
+    deleteCookie(COOKIE_NAMES.USER_STORIES);
+    deleteCookie(COOKIE_NAMES.MARKET_TOKEN);
+    deleteCookie(COOKIE_NAMES.DEVICE_TOKEN);
+    deleteCookie(COOKIE_NAMES.COUNTRY);
+    deleteCookie(COOKIE_NAMES.LANG);
     setIsExpired(true);
 
     // Clear all session data
