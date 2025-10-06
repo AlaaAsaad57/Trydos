@@ -77,7 +77,10 @@ export const clearAllStorage = (): void => {
 export const checkVersionUpdate = (): boolean => {
   const currentVersion = getCurrentVersion();
   const storedVersion = getStoredVersion();
-
+  if (!storedVersion) {
+    setVersionCookie(currentVersion);
+    return false;
+  }
   // If no stored version or versions don't match, update is needed
   return !storedVersion || storedVersion !== currentVersion;
 };
