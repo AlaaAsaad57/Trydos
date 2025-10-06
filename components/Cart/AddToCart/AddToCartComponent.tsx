@@ -374,37 +374,22 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
       await GetLightData();
     }
   };
-  const isVariantInCart = ({ exact }) => {
-    if (product?.variation?.length === 0)
-      return localCart?.find((s) => s.id === ProductData.id);
 
-    if (
-      localCart.find(
-        (s) =>
-          s.id === ProductData.id &&
-          (s.color === selectedColor?.color_option ||
-            s.color ===
-              product?.colors?.find(
-                (cl) =>
-                  cl.option === selectedColor?.color_option ||
-                  cl.name === selectedColor?.selected_option
-              )?.color) &&
-          s.size === (selectedSize?.option ?? selectedSize)
-      )
-    )
-      return localCart.find(
-        (s) =>
-          s.id === ProductData.id &&
-          (s.color === selectedColor?.color_option ||
-            s.color ===
-              product?.colors?.find(
-                (cl) =>
-                  cl.option === selectedColor?.color_option ||
-                  cl.name === selectedColor?.color_option
-              )?.color) &&
-          s.size === (selectedSize?.option ?? selectedSize)
-      );
-    if (exact) return localCart?.find((s) => s.id === ProductData.id);
+  const getSelectedItemCart = () => {
+    if (ProductData?.variation?.length === 0)
+      return localCart?.find((s) => s.id === ProductData.id);
+    return localCart.find(
+      (s) =>
+        s.id === ProductData.id &&
+        (s.color === selectedColor?.color_option ||
+          s.color ===
+            ProductData?.colors?.find(
+              (cl) =>
+                cl.option === selectedColor?.color_option ||
+                cl.name === selectedColor?.selected_option
+            )?.color) &&
+        s.size === (selectedSize?.option ?? selectedSize)
+    );
   };
   const getVariantSizeQty = (size) => {
     if (ProductData?.variation?.length > 0) {
@@ -702,8 +687,8 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
           })}
           name={ProductData?.name}
           offer_price={
-            isVariantInCart({ exact: true })?.is_redeem
-              ? isVariantInCart({ exact: true })?.offer_price
+            getSelectedItemCart()?.is_redeem
+              ? getSelectedItemCart()?.offer_price
               : getSelectedVariantQty()?.offer_price
           }
           price={getSelectedVariantQty()?.price}
@@ -800,8 +785,8 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
           currency={currency}
           language={languageVariable}
           offer_price={
-            isVariantInCart({ exact: true })?.is_redeem
-              ? isVariantInCart({ exact: true })?.offer_price
+            getSelectedItemCart()?.is_redeem
+              ? getSelectedItemCart()?.offer_price
               : getSelectedVariantQty()?.offer_price
           }
           price={getSelectedVariantQty()?.price}
