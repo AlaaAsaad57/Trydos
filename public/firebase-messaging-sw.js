@@ -350,6 +350,7 @@ messaging.onBackgroundMessage(async function (payload) {
         .sender_user.name;
       let notificationOptions = {};
       if (JSON.parse(payload.data.data)?.is_private) {
+        notificationTitle = "Deleivery Worker";
         notificationOptions = {
           body: "there is new message from Deleivery Worker",
           data: {
