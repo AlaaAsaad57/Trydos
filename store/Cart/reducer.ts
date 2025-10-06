@@ -272,7 +272,6 @@ export const useCartStore = (set, get) => ({
     })),
 
   setLoadedCart: (loaded) => set({ loaded }),
-
   updateProductQuantityInCart: ({ id, qty }) =>
     set((state) => {
       const arr = state.localCart.map((s) => {
@@ -356,6 +355,7 @@ export const useCartStore = (set, get) => ({
           item_id: s.id,
           image: s.image,
           quantity: s.quantity,
+          is_redeem: s.is_redeem,
           size: s.variations?.[0]?.size_options
             ? s.variations?.[0]?.size_options
             : undefined,

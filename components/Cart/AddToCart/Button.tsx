@@ -71,9 +71,7 @@ function AddToCartButton({
     });
     return num;
   };
-  const productInCart = () => {
-    return localCart.filter((s) => s.id === id);
-  };
+
   const isVariantInCart = ({ exact }) => {
     if (product?.variation?.length === 0)
       return localCart?.find((s) => s.id === id);
@@ -149,6 +147,9 @@ function AddToCartButton({
         if (response === false) {
           throw "error";
         }
+        await getCart({
+          callback: () => {},
+        });
         GAevent({
           action: GA_EVENT_NAMES.ADD_TO_CART,
           params: {
@@ -244,6 +245,9 @@ function AddToCartButton({
             .join("-"),
           "add"
         );
+        await getCart({
+          callback: () => {},
+        });
       }
       setLoading(false);
     } catch (error) {
@@ -266,6 +270,9 @@ function AddToCartButton({
         if (response === false) {
           throw "error";
         }
+        await getCart({
+          callback: () => {},
+        });
         animateText("Removed From Your Bag");
         setLoading(false);
         await updateQuantity(
@@ -293,6 +300,9 @@ function AddToCartButton({
               },
             ],
           },
+        });
+        await getCart({
+          callback: () => {},
         });
         animateText("Removed From Your Bag");
         setLoading(false);
