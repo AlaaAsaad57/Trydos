@@ -132,9 +132,7 @@ export async function getCookieServer<T = string>(
  */
 export function getCookie<T = string>(name: string): T | null {
   if (isServer()) {
-    throw new Error(
-      "getCookie can only be used on the client. Use getCookieServer instead."
-    );
+    return null;
   }
 
   const value = document.cookie
