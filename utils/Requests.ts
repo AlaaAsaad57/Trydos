@@ -194,4 +194,5 @@ export const REQUESTS_DATA = {
   DETAILS_RETURN_PRODUCT: { reqTitle: "DETAILS_RETURN_PRODUCT", code: 134 },
   CANCEL_RETURN_REQ: { reqTitle: "CANCEL_RETURN_REQ", code: 135 },
   REMOVE_IMAGE: { reqTitle: "REMOVE_IMAGE", code: 136 },
+  GET_RECOMENDATIONS: { reqTitle: "GET_RECOMENDATIONS", code: 137 },
 };

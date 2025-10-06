@@ -25,7 +25,8 @@ export type ServerType =
   | "stories"
   | "elastic"
   | "upload story"
-  | "nest-stories";
+  | "nest-stories"
+  | "local";
 
 export type FetchMethod = "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
 
@@ -75,6 +76,7 @@ const getServerBaseUrl = (server: ServerType) => {
       return process.env.NEXT_PUBLIC_STORIES_BACKEND_URL;
     case "upload story":
     case "nest-stories":
+    case "local":
       return "";
     default:
       throw new Error(`Unknown server type: ${server}`);
@@ -96,6 +98,7 @@ const getToken = async (server: ServerType): Promise<string> => {
       return getCookie<UserData>(COOKIE_NAMES.USER_STORIES)?.access_token || "";
     case "upload story":
     case "elastic":
+    case "local":
       return "";
 
     default:
@@ -266,6 +269,10 @@ export const fetchData = async <T = any>(
         headers: {
           ...(token?.length > 0 ? { Authorization: `Bearer ${token}` } : {}),
           ...headers,
+        },
+        cache: "no-store",
+        next: {
+          revalidate: 0,
         },
         keepalive: !signal,
         signal,

@@ -18,7 +18,7 @@ import { ElasticsearchReader } from "services/elastic/elasticsearch-reader.servi
 import { getProductsAndFiltersFromElastic } from "services/elastic/elasticSearch";
 import { getCurrencyFromCache, StoreCurrency } from "serverRequests/radis";
 import RecomendedProducts from "components/Server/RecomendedProducts";
-import { LogError, storeError, translateFunction } from "utils/functions";
+import { translateFunction } from "utils/functions";
 import MainCategoriesNavbar from "components/Server/MainCategories";
 import { getCookieServer } from "utils/cookies/cookie-manager";
 import { LogServerError } from "utils/serverErrorReporter";
@@ -337,16 +337,16 @@ async function BoutiquesListWrapper({ params }) {
 }
 async function RecomendedProductWrapper({ lang }): Promise<JSX.Element> {
   const [country, language] = lang.split("-");
-  let Reader = new ElasticsearchReader();
+  // let Reader = new ElasticsearchReader();
 
   let [
     currencyData,
-    data,
+    // data,
     // featured,
     // flashdeals
   ] = await Promise.all([
     getCurrency(country, language),
-    Reader.getRecommendations({ language, country }),
+    // Reader.getRecommendations({ language, country }),
     // getProductsAndFiltersFromElastic({
     //   country: country,
     //   language_code: language,
@@ -383,7 +383,7 @@ async function RecomendedProductWrapper({ lang }): Promise<JSX.Element> {
   // });
   return (
     <RecomendedProducts
-      products={{ data: { ...data, products: data.products } }}
+      // products={{ data: { ...data, products: data.products } }}
       lang={lang}
       currencyData={currencyData}
     />

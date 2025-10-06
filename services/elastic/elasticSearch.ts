@@ -337,7 +337,7 @@ export async function GetRecomendationsForUser({
   language,
   country,
   search_after = [],
-  limit = 10,
+  limit = 50,
 }) {
   try {
     let rec;
@@ -346,20 +346,23 @@ export async function GetRecomendationsForUser({
     if (!userId) {
       rec = await client.search({
         index: "cold_start_recommendations",
+        sort: [{ _score: { order: "desc" } }],
       });
     } else {
       rec = await client.search({
         index: "recommended_system",
         query: {
-          term: { user_id: userId },
+          term: { user_id: Number(userId) },
         },
+        sort: [{ _score: { order: "desc" } }],
       });
+
       if (rec.hits.hits?.length === 0)
         rec = await client.search({
           index: "cold_start_recommendations",
+          sort: [{ _score: { order: "desc" } }],
         });
     }
-
     if (
       (rec.hits.hits?.[0]?._source as any)?.recommended_products?.length ===
         0 ||
@@ -416,8 +419,16 @@ export async function GetRecomendationsForUser({
     const newSearchAfter = hits.length > 0 ? hits[hits.length - 1].sort : [];
     let end = process.hrtime.bigint();
 
+    const orderedProducts = numericIds
+      .map((id) =>
+        normalizedProducts.custom_products.find(
+          (p) => String(p.product_id) === String(id)
+        )
+      )
+      .filter(Boolean);
+
     return {
-      products: normalizedProducts.custom_products?.map((s) => ({
+      products: orderedProducts?.map((s) => ({
         ...s,
         is_redeem: s.has_redeem_discount,
       })),

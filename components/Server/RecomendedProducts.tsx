@@ -1,21 +1,40 @@
+"use client";
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { translateFunction } from "utils/functions";
 import ProductCard from "./ProductCard";
-import DataSourceLogger from "components/global/DataSourceLogger";
 
-function RecomendedProducts({ lang, products, currencyData }) {
+import { fetchData } from "utils/fetchData";
+import { REQUESTS_DATA } from "utils/Requests";
+import auth from "services/auth";
+import FeaturedProductsSkeleton from "components/skeleton/loaders/FeaturedProductsSkeleton";
+
+function RecomendedProducts({ lang, currencyData }) {
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const getRecommendations = async (page?: number) => {
+    setLoading(true);
+    let res = await fetchData({
+      url: `/api/products/recomended?user_id=${auth.UserID()}`,
+      server: "local",
+      method: "GET",
+      reqTitle: REQUESTS_DATA.GET_RECOMENDATIONS,
+    });
+    setLoading(false);
+    setProducts(res.data.products);
+  };
+  useEffect(() => {
+    if (auth.UserID()) getRecommendations();
+  }, [auth.UserID()]);
+
   const [country, language] = lang.split("-");
   const isRtl = language === "ar" || language === "ku";
-  let featuredProducts = products;
-  let currency = currencyData;
 
-  if (featuredProducts?.data?.products?.length === 0) return <></>;
+  let currency = currencyData;
+  if (loading) return <FeaturedProductsSkeleton lang={lang} />;
+  if (products?.length === 0) return <></>;
   return (
     <div className="flex-col px-[12px] flex items-start max-w-full w-full mt-[10px]">
-      <DataSourceLogger
-        dataSourceString={`Recomended Products Data Source from elastic ${featuredProducts?.data?.time} ms`}
-      />
       <div
         // href={`/${lang}/featured`}
         // data={{ is_boutique: true }}
@@ -55,7 +74,7 @@ function RecomendedProducts({ lang, products, currencyData }) {
         id="recomended-products-container"
         dataCy="recomended-products-container"
       >
-        {featuredProducts?.data?.products?.map((product, key) => (
+        {products?.map((product, key) => (
           <ProductCard
             key={key}
             product={product}

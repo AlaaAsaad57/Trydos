@@ -36,6 +36,7 @@ export class ElasticsearchReader {
       if (!userId) {
         rec = await this.client.search({
           index: "cold_start_recommendations",
+          sort: [{ _score: { order: "desc" } }],
         });
       } else {
         rec = await this.client.search({
@@ -43,6 +44,7 @@ export class ElasticsearchReader {
           query: {
             term: { user_id: userId },
           },
+          sort: [{ _score: { order: "desc" } }],
         });
         if (rec.hits.hits?.length === 0)
           rec = await this.client.search({

@@ -1,8 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import {
-  getProductsAndFiltersFromElastic,
-  GetRecomendationsForUser,
-} from "services/elastic/elasticSearch";
+import { GetRecomendationsForUser } from "services/elastic/elasticSearch";
 
 export async function GET(req: NextRequest) {
   const headers = {
@@ -73,7 +70,7 @@ export async function GET(req: NextRequest) {
       country: country,
       language: language,
       userId: searchParams.get("user_id") ?? null,
-      limit: Number(searchParams.get("limit") || 20),
+      limit: Number(searchParams.get("limit") || 50),
       search_after: searchParams.get("offset")
         ? parseNumberArray(searchParams.get("offset"))
         : [],
