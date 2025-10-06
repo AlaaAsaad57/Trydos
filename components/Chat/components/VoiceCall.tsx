@@ -174,7 +174,7 @@ const VoiceCall = ({ token, audio = false, name = "", user_id, active }) => {
   // Get other user
   const otherUser = useMemo(() => {
     return (
-      active?.channel_members?.find((member) => member.user_id !== user_id)
+      active?.channel_members?.find((member) => member.user_id === user_id)
         ?.user || null
     );
   }, [active?.channel_members, user_id]);
