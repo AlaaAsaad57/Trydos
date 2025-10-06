@@ -346,8 +346,8 @@ messaging.onBackgroundMessage(async function (payload) {
         notificationOptions
       );
     } else if (payload.data.type === "message") {
-      const notificationTitle = JSON.parse(payload.data.data).message
-        .sender_user.name;
+      let notificationTitle = JSON.parse(payload.data.data).message.sender_user
+        .name;
       let notificationOptions = {};
       if (JSON.parse(payload.data.data)?.is_private) {
         notificationTitle = "Deleivery Worker";
