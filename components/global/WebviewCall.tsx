@@ -263,6 +263,7 @@ function WebviewCall() {
           <WebViewVoiceCall
             onDecline={(d) => onDecline(d)}
             data={data}
+            active={userData?.photo}
             userData={userData}
             urlparam={`/call_direct?authToken=${data.authToken}&token=${data.token}&action=sent&type=${data.type}&message_id=${data.msgId}&uid=${data.sender_user_id}&ch_id=${data.channel_id}`}
           />
@@ -275,6 +276,7 @@ function WebviewCall() {
             onDecline={(e) => onDecline(e)}
             data={data}
             userData={userData}
+            active={userData?.photo}
             urlparam={`/call_direct?authToken=${data.authToken}&token=${data.token}&action=sent&type=${data.type}&message_id=${data.msgId}&uid=${data.sender_user_id}&ch_id=${data.channel_id}`}
           />
         )}

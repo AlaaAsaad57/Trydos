@@ -232,6 +232,7 @@ function OrderDetails({
         body: JSON.stringify({
           original_user_id: auth.UserID(),
           order_id: id,
+          parent_order_id: ActivePacks.id,
         }),
         signal: chatAbortControllerRef.current.signal,
       });

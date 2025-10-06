@@ -24,7 +24,7 @@ function CallComponentWidget({
       <div
         className="hgg"
         style={{
-          backgroundImage: data.photo
+          backgroundImage: userData.photo
             ? `url(${userData.photo})`
             : `url(${"/images/profileNo.png"})`,
           left: 0,

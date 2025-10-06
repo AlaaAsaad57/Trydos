@@ -593,9 +593,24 @@ async function Page({ params, searchParams }) {
                 />
               )}
 
-              {product.sync_color_images?.length > 1 && (
+              {product?.sync_color_images?.filter((s) =>
+                product.colors?.find(
+                  (color) =>
+                    color.option === s.color_option ||
+                    color.name === s.color_name
+                )
+              )?.length > 1 && (
                 <ProductColors
-                  product={product}
+                  product={{
+                    ...product,
+                    sync_color_images: product?.sync_color_images?.filter((s) =>
+                      product.colors?.find(
+                        (color) =>
+                          color.option === s.color_option ||
+                          color.name === s.color_name
+                      )
+                    ),
+                  }}
                   currency={currency}
                   params={Params}
                 />

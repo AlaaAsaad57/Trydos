@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   getCart,
   getConfiguredImage,
@@ -39,6 +39,7 @@ import SearchParamUpdater from "components/global/ParamsUpdater";
 function AddToCartComponent({ product, slug, close, enableCartAction }) {
   const router = useRouter();
   const pathname = usePathname();
+  const abortControllerRef = useRef<AbortController | null>(null);
   const shouldShowRedeem = () => {
     if (!product.is_redeem) return false;
     let redeemed_products_ids = getCookie<any[]>("redemed_ids");
@@ -58,6 +59,7 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
   const {
     localCart,
     currency,
+    selected_product_for_add_to_cart,
     setSelectedProductForCart,
     initCart,
     expireRedeem,
@@ -118,6 +120,7 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
             reqTitle: REQUESTS_DATA.GET_PRODUCT_VRIANTES,
             method: "GET",
             server: "market",
+            signal: abortControllerRef.current?.signal,
           });
           // @ts-ignore
           if (!response.success) {
@@ -131,6 +134,7 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
             reqTitle: REQUESTS_DATA.GET_PRODUCT_VARIANTS_NOTIFICATIONS,
             method: "GET",
             server: "market",
+            signal: abortControllerRef.current?.signal,
           });
           // @ts-ignore
           if (!response.success) {
@@ -175,6 +179,7 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
             ],
       };
 
+      if (abortControllerRef.current?.signal.aborted) return;
       setProductData(tempProductData);
       if (product?.singleColor) {
         // setSelectedColor(tempProductData?.sync_color_images[0]);
@@ -189,7 +194,11 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
       } else {
         // setSelectedColor(tempProductData?.sync_color_images[0]);
       }
-      if (product)
+      if (
+        product &&
+        (selected_product_for_add_to_cart?.id === tempProductData.id ||
+          selected_product_for_add_to_cart?.product_id === tempProductData?.id)
+      )
         setSelectedProductForCart({
           ...tempProductData,
           shouldUpdate: 0,
@@ -209,11 +218,12 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
         }
       }
       // checkIfVariantEmpty();
+      if (abortControllerRef.current?.signal.aborted) return;
       setLoading(false);
     } catch (err) {
       // Handle error as needed
       console.error(err);
-      setLoading(false);
+      if (!abortControllerRef.current?.signal.aborted) setLoading(false);
     }
   };
   const getAllProductData = async () => {
@@ -231,6 +241,7 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
             reqTitle: REQUESTS_DATA.GET_PRODUCT_VRIANTES,
             method: "GET",
             server: "market",
+            signal: abortControllerRef.current?.signal,
           });
           // @ts-ignore
           if (!response.success) {
@@ -244,6 +255,7 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
             reqTitle: REQUESTS_DATA.GET_PRODUCT_VARIANTS_NOTIFICATIONS,
             method: "GET",
             server: "market",
+            signal: abortControllerRef.current?.signal,
           });
           // @ts-ignore
           if (!response.success) {
@@ -262,6 +274,7 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
               product_id: product.id,
             }),
             noMessage: true,
+            signal: abortControllerRef.current?.signal,
           });
           // @ts-ignore
           if (!response.success) {
@@ -307,6 +320,7 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
             ],
       };
 
+      if (abortControllerRef.current?.signal.aborted) return;
       setProductData(tempProductData);
       if (product?.singleColor) {
         // setSelectedColor(tempProductData?.sync_color_images[0]);
@@ -321,7 +335,11 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
       } else {
         // setSelectedColor(tempProductData?.sync_color_images[0]);
       }
-      if (product)
+      if (
+        product &&
+        (selected_product_for_add_to_cart?.id === tempProductData.id ||
+          selected_product_for_add_to_cart?.product_id === tempProductData?.id)
+      )
         setSelectedProductForCart({
           ...tempProductData,
           shouldUpdate: 0,
@@ -341,11 +359,12 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
         }
       }
       // checkIfVariantEmpty();
+      if (abortControllerRef.current?.signal.aborted) return;
       setLoading(false);
     } catch (err) {
       // Handle error as needed
       console.error(err);
-      setLoading(false);
+      if (!abortControllerRef.current?.signal.aborted) setLoading(false);
     }
   };
   const getProductData = async () => {
@@ -567,6 +586,7 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
   };
 
   useEffect(() => {
+    abortControllerRef.current = new AbortController();
     if (
       document.querySelector<HTMLElement>(".alternate-product-details-footer")
     )
@@ -575,6 +595,8 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
       ).style.display = "none";
     getProductData();
     return () => {
+      abortControllerRef.current?.abort();
+      abortControllerRef.current = null;
       if (
         document.querySelector<HTMLElement>(".alternate-product-details-footer")
       )
@@ -608,8 +630,10 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
       url: `/web/product/qtyPriceDetails/${slug}`,
       useCached: false,
       reqTitle: REQUESTS_DATA.GET_PRODUCT_VARIANTS,
+      signal: abortControllerRef.current?.signal,
     });
 
+    if (abortControllerRef.current?.signal.aborted) return;
     setProductData({
       ...ProductData,
       ...response.data,
@@ -653,7 +677,6 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
     else await updateQuantityRemotley();
   };
   const isRtl = languageVariable === "ar" || languageVariable === "ku";
-
   return (
     <BottomSheet
       fromProductPage={product?.fromProductPage}
@@ -704,7 +727,13 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
         />
         {ProductData?.sync_color_images?.length > 0 && (
           <ColorSelect
-            colors={ProductData?.sync_color_images}
+            // colors={ProductData?.sync_color_images}
+            colors={ProductData?.sync_color_images?.filter((s) =>
+              ProductData.colors?.find(
+                (color) =>
+                  color.option === s.color_option || color.name === s.color_name
+              )
+            )}
             selectedColor={selectedColor}
             setSelectedColor={(e) => {
               GAevent({
