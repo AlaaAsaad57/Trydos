@@ -95,11 +95,11 @@ function OrderDetails({
 
     // Create new AbortController
     abortControllerRef.current = new AbortController();
-
+    let id = searchParams.get("id");
     setLoading(true);
     try {
       let data = await Order.getOrderDetails(
-        selectedOrder.order_group_id,
+        id ?? selectedOrder.order_group_id,
         abortControllerRef.current.signal
       );
       let returned_req_ids = data?.map((s) => {
@@ -153,7 +153,7 @@ function OrderDetails({
           (det) => det.id === parseInt(order_id)
         );
         let chat_id = searchParams.get("chat_id");
-        getChatWithShipping(parseInt(chat_id ?? order_id));
+        getChatWithShipping();
       }
     } catch (error) {
       setShouldUpdateOrders(0);
@@ -213,7 +213,7 @@ function OrderDetails({
   const [isGettingChat, setIsGettingChat] = useState(false);
   const chatAbortControllerRef = useRef<AbortController | null>(null);
 
-  const getChatWithShipping = async (id) => {
+  const getChatWithShipping = async () => {
     // Abort any previous chat request
     if (chatAbortControllerRef.current) {
       chatAbortControllerRef.current.abort();
@@ -231,10 +231,10 @@ function OrderDetails({
         server: "chat",
         body: JSON.stringify({
           original_user_id: auth.UserID(),
+          order_id: ActivePacks?.return_request_id ?? ActivePacks.id,
           ...(ActivePacks?.return_request_id
-            ? { order_id: ActivePacks?.return_request_id }
+            ? { parent_order_id: ActivePacks.id }
             : {}),
-          parent_order_id: ActivePacks.id,
         }),
         signal: chatAbortControllerRef.current.signal,
       });
@@ -383,8 +383,8 @@ function OrderDetails({
                 ActivePacks?.return_details?.details?.status?.value ===
                 "out_for_return"
               )
-                getChatWithShipping(ActivePacks?.return_request_id);
-              else getChatWithShipping(s);
+                getChatWithShipping();
+              else getChatWithShipping();
             }}
             id={shouldShowChatIcon(ActivePacks)}
           />
@@ -440,6 +440,10 @@ function OrderDetails({
     if (ActivePacks?.order_status?.value === "delivered") return true;
     else return false;
   };
+  useEffect(() => {
+    let chat_id = searchParams.get("chat_id");
+    if (chat_id) getOrderDetails();
+  }, [searchParams]);
   useEffect(() => {
     if (
       shouldUpdateOrders > 0 &&
