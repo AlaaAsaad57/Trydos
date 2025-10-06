@@ -1050,6 +1050,7 @@ const translations = {
     "Birçok teklifimizi görün ve indirimlerden ve özel ürünlerden yararlanın",
   "Notification Is Not Enabled! please Allow Notification Access":
     "Bildirimler etkin değil! Lütfen bildirim erişimine izin verin",
+  "New Price": "Yeni Fiyat",
 };
 
 export default translations;

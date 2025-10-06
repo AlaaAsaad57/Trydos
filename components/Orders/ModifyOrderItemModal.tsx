@@ -223,7 +223,7 @@ export const ColorList = ({
   current_size,
   item,
   variations,
-}: ColorListPropsType) => {
+}) => {
   const isActive = (color) => {
     if (!newColor)
       return color?.color_name?.toLowerCase() === currentColor?.toLowerCase();
@@ -254,7 +254,7 @@ export const ColorList = ({
             key={s.color_name}
             className={`${disabled} w-auto h-[98px] flex-col items-center justify-center`}
             onClick={() => {
-              if (!disabled) setColor(s?.color_name);
+              if (!disabled) setColor(s?.color_option);
               else
                 showErrorNotification(
                   translateFunction("this option dosent have enough quantity")
@@ -332,7 +332,7 @@ export const SizeList = ({
                 disabled && "opacity-75"
               } w-auto h-[98px] flex-col items-center justify-center pt-[1px]`}
               onClick={() => {
-                if (!disabled) setSize(s?.name);
+                if (!disabled) setSize(s?.option);
                 else
                   showErrorNotification(
                     translateFunction("this option dosent have enough quantity")

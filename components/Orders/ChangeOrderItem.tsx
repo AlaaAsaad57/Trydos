@@ -1,5 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { getConfiguredImage, translateFunction } from "utils/functions";
+import {
+  getConfiguredImage,
+  RoundPrice,
+  translateFunction,
+} from "utils/functions";
 import Image from "next/image";
 import ChangeOrderItemIcon from "public/svg/ChangeOrderItemIcon.svg";
 import Spinner from "components/global/Spinner";
@@ -33,7 +37,7 @@ function ChangeOrderItem({
       setLoading(false);
     }
   };
-  const { ActivePacks } = useAppStore();
+  const { ActivePacks, language } = useAppStore();
   const [tabs, setTabs] = useState<string>(
     item?.variation?.[0]?.color
       ? "Change Color"
@@ -55,13 +59,30 @@ function ChangeOrderItem({
       isExist: true,
     },
   ];
-  const [color, setColor] = useState<string>(item?.variation?.[0]?.color);
-  const [size, setSize] = useState<string>(item?.variation?.[0]?.Size);
+  const [color, setColor] = useState<string>(
+    item?.variation?.[0]?.color_options
+  );
+  const [size, setSize] = useState<string>(item?.variation?.[0]?.size_options);
+  const getVariant = () => {
+    if (!productData?.variation || productData?.variation?.length === 0)
+      return { productData };
+    let variation = [];
+    if (color) variation.push(color);
+    if (size) variation.push(size);
+
+    let variationText = variation.join("-");
+    let selected_vartion = productData?.variation?.find(
+      (s) => s.type?.toLowerCase() === variationText?.toLowerCase()
+    );
+
+    return selected_vartion;
+  };
   const [qty, setQty] = useState<number>(item?.qty);
   const [productData, setProductData] = useState<any>(null);
   useEffect(() => {
     getProductDetails();
   }, []);
+  getVariant();
   const getProductDetails = async () => {
     try {
       let [data1, data2] = await Promise.all([
@@ -212,9 +233,23 @@ function ChangeOrderItem({
           <span className="medium text-[14px] mt-[11px] text-[#1d1d1d]">
             {translateFunction("Change Product Request")}
           </span>
-          <span className="regular text-[12px] mt-[11px] text-[#8D8D8D] text-center">
+          <span className="regular text-[12px] mt-[11px] text-[#8D8D8D] text-center gap-[4px]">
             {translateFunction(
               "You Can Change Size, Color, Qty Of  The Product Without Any Conditions According To The Change Policy"
+            )}
+            {isChanged() && (
+              <pre
+                className="text-[#1d1d1d] medium gap-[4px]"
+                data-cy="new-price-after-change-label"
+              >
+                {translateFunction("New Price")}:{" "}
+                <span data-cy="new-price-after-change-value">
+                  {RoundPrice({
+                    num: getVariant()?.offer_price * qty,
+                    language: language,
+                  })}
+                </span>
+              </pre>
             )}
           </span>
         </div>

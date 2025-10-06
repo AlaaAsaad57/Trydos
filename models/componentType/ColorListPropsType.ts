@@ -12,5 +12,6 @@ export interface ColorListPropsType {
 export interface SyncColorImage {
   color_name: string;
   images: any;
+  color_option: string;
   sync_color_images: SyncColorImage[];
 }
