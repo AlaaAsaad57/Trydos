@@ -8,6 +8,7 @@ import { GA_EVENT_NAMES, GA_GLOBAL_SCREEN } from "utils/GAEvents";
 import auth from "services/auth";
 export const changeAppLanguage = async (language) => {
   const { setAppLanguage } = useAppStore.getState();
+  setAppLanguage(language);
   Cookies.set("language", language, {
     expires: 365,
   });
@@ -17,17 +18,15 @@ export const changeAppLanguage = async (language) => {
       lang: language,
     },
   });
-
-  setAppLanguage(language);
 };
 export const changeAppCountry = async (iso) => {
   const { setAppCountry } = useAppStore.getState();
+  setAppCountry(iso);
   await fetch("/api/setLocal", {
     headers: {
       country: iso,
     },
   });
-  setAppCountry(iso);
 };
 
 /*Stories Actions */

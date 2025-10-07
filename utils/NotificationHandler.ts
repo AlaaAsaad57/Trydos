@@ -91,8 +91,12 @@ class ForegroundNotificationHandler {
         deleteChat,
         showNotificationIndicator,
         showNotificaionCircle,
+        setAppCountry,
       } = useAppStore.getState();
-      console.log(payload);
+      console.log({
+        ...payload,
+        data: { ...payload?.data, data: JSON.parse(payload.data.data) },
+      });
       if (payload.data.title === "market") {
         let lang = `${country?.toLocaleLowerCase()}-${language?.toLocaleLowerCase()}`;
         const data = JSON.parse(payload.data.body);
@@ -490,7 +494,8 @@ class ForegroundNotificationHandler {
                 ),
                 10000,
                 `/${country}-${language}/setting?tab=Orders&id=${
-                  JSON.parse(payload.data.data).order_group_id
+                  // JSON.parse(payload.data.data).order_group_id
+                  "SA2165HKFZL6PGEW"
                 }&order_id_chat=${
                   JSON.parse(payload.data.data)?.parent_order_id ??
                   JSON.parse(payload?.data?.data)?.order_id

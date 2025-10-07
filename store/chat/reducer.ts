@@ -1144,7 +1144,7 @@ export const useChatStore = (set, get) => ({
           mrr = [m, ...mrr];
         }
       });
-      active.messages.forEach((m) => {
+      active?.messages.forEach((m) => {
         if (mrr.filter((s) => s.id === m.id).length === 0) {
           mrr.push(m);
         }

@@ -65,7 +65,7 @@ function ChangeOrderItem({
   const [size, setSize] = useState<string>(item?.variation?.[0]?.size_options);
   const getVariant = () => {
     if (!productData?.variation || productData?.variation?.length === 0)
-      return { productData };
+      return { ...productData };
     let variation = [];
     if (color) variation.push(color);
     if (size) variation.push(size);
@@ -124,22 +124,24 @@ function ChangeOrderItem({
   }
 
   const isChanged = () => {
-    let selectedColor = productData?.sync_color_images
-      .map((s) => {
-        return { color_name: s.color_name, color_option: s.color_option };
-      })
-      .filter((s) => color === s.color_name || color === s.color_option)[0];
-    let previousColor = productData?.sync_color_images
-      .map((s) => {
-        return { color_name: s.color_name, color_option: s.color_option };
-      })
-      .filter(
-        (s) =>
-          item?.variation?.[0]?.color === s.color_name ||
-          item?.variation?.[0]?.color === s.color_option
-      )[0];
-    if (!isSameColor(selectedColor, previousColor)) {
-      return true;
+    if (productData?.sync_color_images) {
+      let selectedColor = productData?.sync_color_images
+        ?.map((s) => {
+          return { color_name: s.color_name, color_option: s.color_option };
+        })
+        .filter((s) => color === s.color_name || color === s.color_option)[0];
+      let previousColor = productData?.sync_color_images
+        ?.map((s) => {
+          return { color_name: s.color_name, color_option: s.color_option };
+        })
+        ?.filter(
+          (s) =>
+            item?.variation?.[0]?.color === s.color_name ||
+            item?.variation?.[0]?.color === s.color_option
+        )[0];
+      if (!isSameColor(selectedColor, previousColor)) {
+        return true;
+      }
     }
     if (size !== item?.variation?.[0]?.Size) {
       return true;

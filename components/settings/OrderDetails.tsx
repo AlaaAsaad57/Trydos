@@ -96,8 +96,7 @@ function OrderDetails({
     // Create new AbortController
     abortControllerRef.current = new AbortController();
     let id = searchParams.get("id");
-    let order_id_chat = searchParams.get("order_id_chat");
-    let order_id = searchParams.get("order_id");
+
     setLoading(true);
     try {
       let data = await Order.getOrderDetails(
@@ -141,7 +140,19 @@ function OrderDetails({
         details: data,
         returned_data: returnRequests,
       };
-
+      let order_id_chat = searchParams.get("order_id_chat");
+      let order_id = searchParams.get("chat_id");
+      console.log(
+        order_id_chat,
+        order_id,
+        data,
+        data.find(
+          (s) =>
+            String(s.id) === String(order_id_chat) ||
+            String(s?.return_request_id) === String(order_id_chat) ||
+            String(s.id) === String(order_id)
+        )
+      );
       if (
         (order_id_chat || order_id) &&
         data.find(
@@ -185,6 +196,7 @@ function OrderDetails({
       let params = new URLSearchParams(window.location.search);
       params.delete("id");
       params.delete("order_id_chat");
+      params.delete("chat_id");
       // @ts-ignore
       router.replace(`/${lang}/setting?${params.toString()}`, {
         scroll: false,
@@ -421,6 +433,7 @@ function OrderDetails({
 
     let params = new URLSearchParams(window.location.search);
     params.delete("order_id_chat");
+    params.delete("chat_id");
     router.replace(`/${lang}/setting?${params.toString()}`, {
       scroll: false,
       // @ts-ignore
@@ -459,10 +472,10 @@ function OrderDetails({
     if (ActivePacks?.order_status?.value === "delivered") return true;
     else return false;
   };
-  useEffect(() => {
-    let chat_id = searchParams.get("chat_id");
-    if (chat_id) getOrderDetails();
-  }, [searchParams]);
+  // useEffect(() => {
+  //   let chat_id = searchParams.get("chat_id");
+  //   if (chat_id && !loading) getOrderDetails();
+  // }, [searchParams]);
   useEffect(() => {
     if (
       shouldUpdateOrders > 0 &&
@@ -502,6 +515,7 @@ function OrderDetails({
             let params = new URLSearchParams(window.location.search);
             params.delete("id");
             params.delete("order_id_chat");
+            params.delete("chat_id");
             // @ts-ignore
             router.replace(`/${lang}/setting?${params.toString()}`, {
               scroll: false,
