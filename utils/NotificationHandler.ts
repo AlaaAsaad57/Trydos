@@ -494,8 +494,7 @@ class ForegroundNotificationHandler {
                 ),
                 10000,
                 `/${country}-${language}/setting?tab=Orders&id=${
-                  // JSON.parse(payload.data.data).order_group_id
-                  "SA2165HKFZL6PGEW"
+                  JSON.parse(payload.data.data).order_group_id
                 }&order_id_chat=${
                   JSON.parse(payload.data.data)?.parent_order_id ??
                   JSON.parse(payload?.data?.data)?.order_id
