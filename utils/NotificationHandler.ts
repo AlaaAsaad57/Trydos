@@ -95,7 +95,13 @@ class ForegroundNotificationHandler {
       } = useAppStore.getState();
       console.log({
         ...payload,
-        data: { ...payload?.data, data: JSON.parse(payload.data.data) },
+        data: {
+          ...(payload?.data ?? {}),
+          data:
+            typeof payload?.data?.data === "string"
+              ? JSON.parse(payload.data.data)
+              : payload.data.data,
+        },
       });
       if (payload.data.title === "market") {
         let lang = `${country?.toLocaleLowerCase()}-${language?.toLocaleLowerCase()}`;

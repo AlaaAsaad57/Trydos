@@ -5,6 +5,7 @@ import { useNotificationStore } from "@/store/notifications/reducer";
 import { GetImageUrl } from "utils/tinyUtils";
 import Image from "next/image";
 import { translateFunction } from "utils/functions";
+import { useAppStore } from "store";
 const NotificationsContainer = () => {
   const { notifications, removeNotification } = useNotificationStore();
   const [dismissingIds, setDismissingIds] = useState<Set<string>>(new Set());
@@ -234,7 +235,13 @@ const NotificationsContainer = () => {
                 key={notification.id}
                 href={notification.href}
                 className={notificationClasses}
-                onClick={() => handleDismiss(notification.id)}
+                onClick={() => {
+                  handleDismiss(notification.id);
+
+                  const { shouldUpdateOrders, setShouldUpdateOrders } =
+                    useAppStore.getState();
+                  setShouldUpdateOrders(shouldUpdateOrders + 2);
+                }}
               >
                 {notificationContent}
               </Link>
