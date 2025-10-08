@@ -177,7 +177,7 @@ function OrderDetails({
       setOrderDetails(orderData);
       setIsNavigating(false);
       setShouldUpdateOrders(0);
-      if (searchParams.get("order_id_chat")) {
+      if (order_id_chat || order_id) {
         let order_id = searchParams.get("order_id_chat");
         let selected_pack = selectedOrder?.details?.find(
           (det) => det.id === parseInt(order_id)

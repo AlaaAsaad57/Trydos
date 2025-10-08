@@ -97,6 +97,10 @@ class ForegroundNotificationHandler {
         ...payload,
         data: {
           ...(payload?.data ?? {}),
+          body:
+            typeof payload?.data?.body === "string"
+              ? JSON.parse(payload?.data?.body ?? "{}")
+              : "",
           data:
             typeof payload?.data?.data === "string"
               ? JSON.parse(payload.data.data)
