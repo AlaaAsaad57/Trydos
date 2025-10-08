@@ -28,6 +28,7 @@ export interface Category {
 export interface Color {
   name: string;
   color: string;
+  option: string;
 }
 
 export interface Image {
@@ -36,6 +37,7 @@ export interface Image {
 
 export interface SyncColorImage {
   color_name: string;
+  color_option: string;
   images: Image2[];
   sync_color_images: SyncColorImage[];
 }

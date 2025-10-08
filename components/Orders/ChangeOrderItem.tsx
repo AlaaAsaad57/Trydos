@@ -382,7 +382,12 @@ export const ChangeColorWidget = ({
       <ColorList
         item={item}
         variations={productData?.variation}
-        colors={productData?.sync_color_images}
+        colors={productData?.sync_color_images?.filter((s) =>
+          productData.colors?.find(
+            (color) =>
+              color.option === s.color_option || color.name === s.color_name
+          )
+        )}
         setColor={setColor}
         sizes={productData?.choice_options?.[0]?.options || []}
         current_size={item?.variation?.[0]?.Size}
