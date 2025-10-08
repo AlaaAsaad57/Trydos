@@ -680,6 +680,7 @@ const PinInputContainer: React.FC<PinInputProps> = ({
     <div style={{ display: "flex" }} className="w-full justify-between z-10">
       {Array.from({ length }).map((_, i) => (
         <input
+          autoFocus={i === 0}
           key={i}
           className="outline-none text-[#707070] text-[20px]  flex items-center justify-center light "
           ref={(el) => (inputsRef.current[i] = el)}
