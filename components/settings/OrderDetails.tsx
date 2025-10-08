@@ -178,14 +178,11 @@ function OrderDetails({
       setIsNavigating(false);
       setShouldUpdateOrders(0);
       if (order_id_chat || order_id) {
-        let order_id = searchParams.get("order_id_chat");
-        let selected_pack = selectedOrder?.details?.find(
-          (det) => det.id === parseInt(order_id)
-        );
-        let chat_id = searchParams.get("chat_id");
+        console.log(order_id_chat, order_id);
         getChatWithShipping();
       }
     } catch (error) {
+      console.log(error);
       setShouldUpdateOrders(0);
       setIsNavigating(false);
       // Don't handle error if it's an abort error
@@ -385,7 +382,7 @@ function OrderDetails({
       if (error.name === "AbortError") {
         return;
       }
-
+      console.log(error);
       EnableScroll();
       document.documentElement.scrollTop = 0;
       document.querySelector("#OrderDetails").scrollTop = 0;
