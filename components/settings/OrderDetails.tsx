@@ -142,17 +142,6 @@ function OrderDetails({
       };
       let order_id_chat = searchParams.get("order_id_chat");
       let order_id = searchParams.get("chat_id");
-      console.log(
-        order_id_chat,
-        order_id,
-        data,
-        data.find(
-          (s) =>
-            String(s.id) === String(order_id_chat) ||
-            String(s?.return_request_id) === String(order_id_chat) ||
-            String(s.id) === String(order_id)
-        )
-      );
       if (
         (order_id_chat || order_id) &&
         data.find(
@@ -176,11 +165,13 @@ function OrderDetails({
 
       setOrderDetails(orderData);
       setIsNavigating(false);
-      setShouldUpdateOrders(0);
-      if (order_id_chat || order_id) {
-        console.log(order_id_chat, order_id);
-        getChatWithShipping();
+      order_id_chat = searchParams.get("order_id_chat");
+      order_id = searchParams.get("chat_id");
+      const { order_chat_id } = useAppStore.getState();
+      if (order_id_chat || order_id || order_chat_id) {
+        getChatWithShipping(order_id_chat || order_id || order_chat_id);
       }
+      setShouldUpdateOrders(0);
     } catch (error) {
       console.log(error);
       setShouldUpdateOrders(0);
@@ -241,7 +232,7 @@ function OrderDetails({
   const [isGettingChat, setIsGettingChat] = useState(false);
   const chatAbortControllerRef = useRef<AbortController | null>(null);
 
-  const getChatWithShipping = async () => {
+  const getChatWithShipping = async (id?: any) => {
     // Abort any previous chat request
     if (chatAbortControllerRef.current) {
       chatAbortControllerRef.current.abort();
@@ -259,9 +250,9 @@ function OrderDetails({
         server: "chat",
         body: JSON.stringify({
           original_user_id: auth.UserID(),
-          order_id: ActivePacks?.return_request_id ?? ActivePacks.id,
+          order_id: ActivePacks?.return_request_id ?? ActivePacks?.id ?? id,
           ...(ActivePacks?.return_request_id
-            ? { parent_order_id: ActivePacks.id }
+            ? { parent_order_id: ActivePacks?.id }
             : {}),
         }),
         signal: chatAbortControllerRef.current.signal,

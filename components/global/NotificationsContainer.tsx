@@ -238,9 +238,14 @@ const NotificationsContainer = () => {
                 onClick={() => {
                   handleDismiss(notification.id);
 
-                  const { shouldUpdateOrders, setShouldUpdateOrders } =
-                    useAppStore.getState();
+                  const {
+                    shouldUpdateOrders,
+                    setShouldUpdateOrders,
+                    setShouldUpdateOrdersChat,
+                  } = useAppStore.getState();
                   setShouldUpdateOrders(shouldUpdateOrders + 2);
+                  let order_id = notification.href_type;
+                  setShouldUpdateOrdersChat(shouldUpdateOrders + 1);
                 }}
               >
                 {notificationContent}

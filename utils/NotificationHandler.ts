@@ -508,7 +508,9 @@ class ForegroundNotificationHandler {
                 }&order_id_chat=${
                   JSON.parse(payload.data.data)?.parent_order_id ??
                   JSON.parse(payload?.data?.data)?.order_id
-                }&chat_id=${JSON.parse(payload?.data?.data)?.order_id}`
+                }&chat_id=${JSON.parse(payload?.data?.data)?.order_id}`,
+                JSON.parse(payload.data.data)?.parent_order_id ??
+                  JSON.parse(payload?.data?.data)?.order_id
               );
               const parsedData = JSON.parse(payload?.data?.data);
               const newItem = {

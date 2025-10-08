@@ -111,6 +111,7 @@ export const useCartStore = (set, get) => ({
   balance: 0,
   crypto: 0,
   credit: 0,
+  order_chat_id: null,
   openPayIframe: false,
   payIframeURL: "",
   orderPageLoading: false,
@@ -135,6 +136,7 @@ export const useCartStore = (set, get) => ({
       payIframeURL: url?.url,
     }),
   setShouldUpdateOrders: (e) => set({ shouldUpdateOrders: e }),
+  setShouldUpdateOrdersChat: (e) => set({ order_chat_id: e }),
   setWalletBalance: () =>
     set((state) => ({
       balance: state.wallet?.wallet_balance || 0,
