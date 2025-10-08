@@ -5,6 +5,7 @@ import {
   setCookie,
   getCookie,
   COOKIE_NAMES,
+  deleteCookie,
 } from "utils/cookies/cookie-manager";
 import SessionTimer from "components/Login/SessionTimer";
 import { initializeSessionCheck } from "utils/sessionManager";
@@ -76,24 +77,32 @@ const Page = () => {
         };
 
         if (parsed.userData !== undefined) {
-          setCookie("User-Data", parsed.userData, cookieOptions);
+          setCookie(COOKIE_NAMES.USER_DATA, parsed.userData, cookieOptions);
         }
         if (parsed.userChat !== undefined)
-          setCookie("userChat", parsed.userChat, cookieOptions);
+          setCookie(COOKIE_NAMES.USER_CHAT, parsed.userChat, cookieOptions);
+        else deleteCookie(COOKIE_NAMES.USER_CHAT);
         if (parsed.userStories !== undefined)
-          setCookie("userStories", parsed.userStories, cookieOptions);
+          setCookie(
+            COOKIE_NAMES.USER_STORIES,
+            parsed.userStories,
+            cookieOptions
+          );
+        else deleteCookie(COOKIE_NAMES.USER_STORIES);
         if (parsed.marketToken !== undefined)
           setCookie(
             COOKIE_NAMES.MARKET_TOKEN,
             parsed.marketToken,
             cookieOptions
           );
+        else deleteCookie(COOKIE_NAMES.MARKET_TOKEN);
         if (parsed.deviceToken !== undefined)
           setCookie(
             COOKIE_NAMES.DEVICE_TOKEN,
             parsed.deviceToken,
             cookieOptions
           );
+        deleteCookie(COOKIE_NAMES.DEVICE_TOKEN);
         // Set country and language cookies if provided in payload
         const countryVal = (parsed as any)?.country;
         const languageVal = (parsed as any)?.language;

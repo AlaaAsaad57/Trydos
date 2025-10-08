@@ -7,7 +7,7 @@ import { GetImageUrl } from "utils/tinyUtils";
 import { StoryElementPropsType } from "models/componentType/StoryElementPropsType";
 
 function StoryElement({ index, story, userData }: StoryElementPropsType) {
-  if (userData?.id === story?.id)
+  if (String(userData?.id) === String(story?.id))
     return (
       <div className="min-w-[100px] relative w-[100px] h-[150px] rounded-[20px] flex">
         <StoryAvatar
