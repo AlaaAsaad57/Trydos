@@ -238,6 +238,7 @@ export async function getProductsAndFiltersFromElastic(
 
     response = await client.search(searchQuery);
     const hits = response.hits.hits as ElasticsearchHit[];
+    let total_size = response.hits?.total?.value;
     hits.forEach((hit: ElasticsearchHit) => {
       customProducts.push(hit._source);
     });
@@ -298,7 +299,7 @@ export async function getProductsAndFiltersFromElastic(
       offset: lastSortValue,
       time: Number(end - start) / 1_000_000,
       limit: limit,
-      total_size: customProducts.length,
+      total_size: total_size,
       products: params.noProducts
         ? []
         : normalizedProducts.custom_products?.map((s) => ({
@@ -337,6 +338,7 @@ export async function GetRecomendationsForUser({
   language,
   country,
   search_after = [],
+  page = 1,
   limit = 50,
 }) {
   try {
@@ -376,9 +378,16 @@ export async function GetRecomendationsForUser({
         (s) => s?.product_id ?? s?.item_id
       ) || [];
     if (!recommendedIds.length) {
-      return { products: [], search_after: [] };
+      return { products: [], offset: [], limit };
     }
     const numericIds = recommendedIds.filter((id) => /^\d+$/.test(id));
+
+    if (numericIds.length === 0)
+      return {
+        products: [],
+        limit,
+        offset: [],
+      };
     const baseConditions = buildBaseConditions({}, country);
     const { must: mustConditions, must_not: mustNotConditions } =
       baseConditions;
@@ -405,7 +414,8 @@ export async function GetRecomendationsForUser({
     // // 4. Run query
     const response = await client.search(searchQuery);
     const hits = response.hits.hits;
-
+    // @ts-ignore
+    let total_size = response.hits?.total?.value;
     // // 5. Extract products
     const products = hits.map((hit) => ({
       // @ts-ignore
@@ -428,12 +438,14 @@ export async function GetRecomendationsForUser({
       .filter(Boolean);
 
     return {
-      products: orderedProducts?.map((s) => ({
+      products: normalizedProducts.custom_products?.map((s) => ({
         ...s,
         is_redeem: s.has_redeem_discount,
       })),
 
-      search_after: newSearchAfter,
+      limit,
+      total_size,
+      offset: newSearchAfter,
       time: Number(end - start) / 1_000_000,
     };
     // return { products: [], search_after: [] };
@@ -442,7 +454,7 @@ export async function GetRecomendationsForUser({
       "************************RECOMENDED************************",
       error
     );
-    return { products: [], search_after: [] };
+    return { products: [], limit };
   }
 }
 /**

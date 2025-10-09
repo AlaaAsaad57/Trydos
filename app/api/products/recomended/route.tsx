@@ -54,13 +54,9 @@ export async function GET(req: NextRequest) {
       filters.sizes = JSON.parse(clean)?.[0]?.options;
     }
 
-    filters.featured = true;
-
     const params = {
       limit: Number(searchParams.get("limit") || 20),
-      search_after: searchParams.get("offset")
-        ? parseNumberArray(searchParams.get("offset"))
-        : [],
+      page: searchParams.get("page") ? searchParams.get("page") : 1,
       filters,
       filters_offset: Number(searchParams.get("filters_offset") || 1),
       country,
@@ -70,7 +66,7 @@ export async function GET(req: NextRequest) {
       country: country,
       language: language,
       userId: searchParams.get("user_id") ?? null,
-      limit: Number(searchParams.get("limit") || 50),
+      limit: params.limit,
       search_after: searchParams.get("offset")
         ? parseNumberArray(searchParams.get("offset"))
         : [],

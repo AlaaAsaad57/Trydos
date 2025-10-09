@@ -45,7 +45,7 @@ function SearchContainer({ active }) {
       if (active) getSearchData();
   }, [active]);
   return (
-    <div className="search-container" data-cy="searchContainer">
+    <div className="search-container pt-[12px]" data-cy="searchContainer">
       <SearchParamUpdater searchKey="search" searchValue="true" />
       {value.length === 0 && (
         <>

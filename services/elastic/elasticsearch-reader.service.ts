@@ -16,127 +16,127 @@ export class ElasticsearchReader {
   private client = elasticSearchClient;
   private readonly index = "products_catalog";
   // simplified recommendation fetcher
-  async getRecommendations({
-    language = "en",
-    country = "",
-    search_after = [],
-    limit = 50,
-  }: {
-    language: string;
-    country: string;
-    search_after?: any[];
-    limit?: number;
-  }) {
-    // 1. Get userId from cookie
-    try {
-      let rec;
-      let start = process.hrtime.bigint();
-      // @ts-ignore
-      const userId = (await getCookieServer(COOKIE_NAMES.USER_DATA))?.id;
-      if (!userId) {
-        rec = await this.client.search({
-          index: "cold_start_recommendations",
-          sort: [{ _score: { order: "desc" } }],
-        });
-      } else {
-        rec = await this.client.search({
-          index: "recommended_system",
-          query: {
-            term: { user_id: userId },
-          },
-          sort: [{ _score: { order: "desc" } }],
-        });
-        if (rec.hits.hits?.length === 0)
-          rec = await this.client.search({
-            index: "cold_start_recommendations",
-            sort: [{ _score: { order: "desc" } }],
-          });
-      }
+  // async getRecommendations({
+  //   language = "en",
+  //   country = "",
+  //   search_after = [],
+  //   limit = 50,
+  // }: {
+  //   language: string;
+  //   country: string;
+  //   search_after?: any[];
+  //   limit?: number;
+  // }) {
+  //   // 1. Get userId from cookie
+  //   try {
+  //     let rec;
+  //     let start = process.hrtime.bigint();
+  //     // @ts-ignore
+  //     const userId = (await getCookieServer(COOKIE_NAMES.USER_DATA))?.id;
+  //     if (!userId) {
+  //       rec = await this.client.search({
+  //         index: "cold_start_recommendations",
+  //         sort: [{ _score: { order: "desc" } }],
+  //       });
+  //     } else {
+  //       rec = await this.client.search({
+  //         index: "recommended_system",
+  //         query: {
+  //           term: { user_id: userId },
+  //         },
+  //         sort: [{ _score: { order: "desc" } }],
+  //       });
+  //       if (rec.hits.hits?.length === 0)
+  //         rec = await this.client.search({
+  //           index: "cold_start_recommendations",
+  //           sort: [{ _score: { order: "desc" } }],
+  //         });
+  //     }
 
-      if (
-        (rec.hits.hits?.[0]?._source as any)?.recommended_products?.length ===
-          0 ||
-        rec.hits.hits?.length === 0
-      ) {
-        return { products: [], search_after: [] };
-      }
+  //     if (
+  //       (rec.hits.hits?.[0]?._source as any)?.recommended_products?.length ===
+  //         0 ||
+  //       rec.hits.hits?.length === 0
+  //     ) {
+  //       return { products: [], search_after: [] };
+  //     }
 
-      const recommendedIds: string[] =
-        // @ts-ignore
-        (rec.hits.hits?.[0]?._source as any)?.recommended_products?.map(
-          (s) => s?.product_id ?? s?.item_id
-        ) || [];
-      if (!recommendedIds.length) {
-        return { products: [], search_after: [] };
-      }
-      const numericIds = recommendedIds.filter((id) => /^\d+$/.test(id));
+  //     const recommendedIds: string[] =
+  //       // @ts-ignore
+  //       (rec.hits.hits?.[0]?._source as any)?.recommended_products?.map(
+  //         (s) => s?.product_id ?? s?.item_id
+  //       ) || [];
+  //     if (!recommendedIds.length) {
+  //       return { products: [], search_after: [] };
+  //     }
+  //     const numericIds = recommendedIds.filter((id) => /^\d+$/.test(id));
 
-      const baseConditions = buildBaseConditions({}, country);
-      const { must: mustConditions, must_not: mustNotConditions } =
-        baseConditions;
-      mustConditions.push({ terms: { id: numericIds } });
-      // // 3. Query products_catalog by IDs
-      const searchQuery = {
-        index: "products_catalog",
-        _source: getSourceFields(),
-        size: limit,
-        query: {
-          bool: {
-            must: mustConditions,
-            must_not: mustNotConditions,
-          },
-        },
-        sort: [{ _score: { order: "desc" } }, { id: { order: "asc" } }],
-      };
+  //     const baseConditions = buildBaseConditions({}, country);
+  //     const { must: mustConditions, must_not: mustNotConditions } =
+  //       baseConditions;
+  //     mustConditions.push({ terms: { id: numericIds } });
+  //     // // 3. Query products_catalog by IDs
+  //     const searchQuery = {
+  //       index: "products_catalog",
+  //       _source: getSourceFields(),
+  //       size: limit,
+  //       query: {
+  //         bool: {
+  //           must: mustConditions,
+  //           must_not: mustNotConditions,
+  //         },
+  //       },
+  //       sort: [{ _score: { order: "desc" } }, { id: { order: "asc" } }],
+  //     };
 
-      if (search_after?.length > 0) {
-        // @ts-ignore
-        searchQuery.search_after = search_after;
-      }
+  //     if (search_after?.length > 0) {
+  //       // @ts-ignore
+  //       searchQuery.search_after = search_after;
+  //     }
 
-      // // 4. Run query
-      const response = await this.client.search(searchQuery);
-      const hits = response.hits.hits;
+  //     // // 4. Run query
+  //     const response = await this.client.search(searchQuery);
+  //     const hits = response.hits.hits;
 
-      // // 5. Extract products
-      const products = hits.map((hit) => ({
-        // @ts-ignore
-        ...hit._source,
-        // @ts-ignore
-        is_redeem: hit._source?.has_redeem_discount,
-      }));
+  //     // // 5. Extract products
+  //     const products = hits.map((hit) => ({
+  //       // @ts-ignore
+  //       ...hit._source,
+  //       // @ts-ignore
+  //       is_redeem: hit._source?.has_redeem_discount,
+  //     }));
 
-      const productsWithFilters = extractFilters(products, language, true);
-      const normalizedProducts = normalizeCustomProducts(productsWithFilters);
-      // // 6. Get new search_after value
-      const newSearchAfter = hits.length > 0 ? hits[hits.length - 1].sort : [];
-      let end = process.hrtime.bigint();
+  //     const productsWithFilters = extractFilters(products, language, true);
+  //     const normalizedProducts = normalizeCustomProducts(productsWithFilters);
+  //     // // 6. Get new search_after value
+  //     const newSearchAfter = hits.length > 0 ? hits[hits.length - 1].sort : [];
+  //     let end = process.hrtime.bigint();
 
-      const orderedProducts = numericIds
-        .map((id) =>
-          normalizedProducts.custom_products.find(
-            (p) => String(p.product_id) === String(id)
-          )
-        )
-        .filter(Boolean);
+  //     const orderedProducts = numericIds
+  //       .map((id) =>
+  //         normalizedProducts.custom_products.find(
+  //           (p) => String(p.product_id) === String(id)
+  //         )
+  //       )
+  //       .filter(Boolean);
 
-      return {
-        products: orderedProducts?.map((s) => ({
-          ...s,
-          is_redeem: s.has_redeem_discount,
-        })),
-        search_after: newSearchAfter,
-        time: Number(end - start) / 1_000_000,
-      };
-      // return { products: [], search_after: [] };
-    } catch (error) {
-      console.error(
-        "************************RECOMENDED************************",
-        error
-      );
-      return { products: [], search_after: [] };
-    }
-  }
+  //     return {
+  //       products: orderedProducts?.map((s) => ({
+  //         ...s,
+  //         is_redeem: s.has_redeem_discount,
+  //       })),
+  //       search_after: newSearchAfter,
+  //       time: Number(end - start) / 1_000_000,
+  //     };
+  //     // return { products: [], search_after: [] };
+  //   } catch (error) {
+  //     console.error(
+  //       "************************RECOMENDED************************",
+  //       error
+  //     );
+  //     return { products: [], search_after: [] };
+  //   }
+  // }
   async getCategories<T>(ReqQuery: any) {
     let country = ReqQuery.country;
     try {

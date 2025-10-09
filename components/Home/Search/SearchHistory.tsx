@@ -46,7 +46,7 @@ function SearchHistory({ options, setOptions, deleteOption }) {
     <div
       className={` ${
         openMenu ? "flex-col" : "align-center flex-row"
-      } search-filter-container`}
+      } search-filter-container mt-0`}
     >
       <div
         className="flex-row align-center cursor-pointer"

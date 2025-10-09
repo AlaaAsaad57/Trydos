@@ -74,12 +74,12 @@ export const AddStoryAction = (story) => {
   addStory(story);
 };
 export const GetUnviewedStory = (story) => {
-  if (typeof window !== "undefined") {
-    const userStories = getCookie(COOKIE_NAMES.USER_STORIES);
-    if (userStories && userStories?.id === story.id) {
-      return story.stories.length - 1;
-    }
-  }
+  // if (typeof window !== "undefined") {
+  //   const userStories = getCookie(COOKIE_NAMES.USER_STORIES);
+  //   if (userStories && userStories?.id === story.id) {
+  //     return story.stories.length - 1;
+  //   }
+  // }
   let index = 0;
   let unseen = [];
   story.stories.map((s, id) => {

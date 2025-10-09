@@ -15,12 +15,15 @@ import FlashDealsProducts from "components/Server/FlashDealsProducts";
 import { getHomeMetadata, GetStructuredData } from "./MetaData";
 import { fetchCurrency } from "serverRequests";
 import { ElasticsearchReader } from "services/elastic/elasticsearch-reader.service";
-import { getProductsAndFiltersFromElastic } from "services/elastic/elasticSearch";
+import {
+  getProductsAndFiltersFromElastic,
+  GetRecomendationsForUser,
+} from "services/elastic/elasticSearch";
 import { getCurrencyFromCache, StoreCurrency } from "serverRequests/radis";
 import RecomendedProducts from "components/Server/RecomendedProducts";
 import { translateFunction } from "utils/functions";
 import MainCategoriesNavbar from "components/Server/MainCategories";
-import { getCookieServer } from "utils/cookies/cookie-manager";
+import { COOKIE_NAMES, getCookieServer } from "utils/cookies/cookie-manager";
 import { LogServerError } from "utils/serverErrorReporter";
 
 export async function generateMetadata({ params }) {
@@ -337,16 +340,22 @@ async function BoutiquesListWrapper({ params }) {
 }
 async function RecomendedProductWrapper({ lang }): Promise<JSX.Element> {
   const [country, language] = lang.split("-");
-  // let Reader = new ElasticsearchReader();
 
+  const userId = ((await getCookieServer(COOKIE_NAMES.USER_DATA)) as any)?.id;
   let [
     currencyData,
-    // data,
+    data,
     // featured,
     // flashdeals
   ] = await Promise.all([
     getCurrency(country, language),
-    // Reader.getRecommendations({ language, country }),
+    GetRecomendationsForUser({
+      country: country,
+      language: language,
+      limit: 7,
+      userId: userId,
+      search_after: null,
+    }),
     // getProductsAndFiltersFromElastic({
     //   country: country,
     //   language_code: language,
@@ -383,7 +392,9 @@ async function RecomendedProductWrapper({ lang }): Promise<JSX.Element> {
   // });
   return (
     <RecomendedProducts
-      // products={{ data: { ...data, products: data.products } }}
+      InitialProducts={data.products}
+      userId={userId}
+      InitialOffset={data.offset}
       lang={lang}
       currencyData={currencyData}
     />

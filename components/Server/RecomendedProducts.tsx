@@ -1,7 +1,7 @@
 "use client";
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 import React, { useEffect, useState } from "react";
-import { translateFunction } from "utils/functions";
+import { LogError, translateFunction } from "utils/functions";
 import ProductCard from "./ProductCard";
 
 import { fetchData } from "utils/fetchData";
@@ -9,28 +9,78 @@ import { REQUESTS_DATA } from "utils/Requests";
 import auth from "services/auth";
 import FeaturedProductsSkeleton from "components/skeleton/loaders/FeaturedProductsSkeleton";
 import { useAppStore } from "store";
+import Spinner from "components/global/Spinner";
+import { showErrorMessage } from "components/global/AddToCartMessage";
 
-function RecomendedProducts({ lang, currencyData }) {
+function RecomendedProducts({
+  lang,
+  currencyData,
+  InitialProducts,
+  InitialOffset,
+  userId,
+}) {
   const { user } = useAppStore();
-  const [products, setProducts] = useState([]);
-
-  const [loading, setLoading] = useState(true);
+  const [products, setProducts] = useState(InitialProducts ?? []);
+  const [offset, setOffset] = useState(InitialOffset ?? []);
+  const [totalSize, setTotalSize] = useState(Infinity);
+  const [loading, setLoading] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
   const getRecommendations = async (page?: number) => {
     setLoading(true);
     let res = await fetchData({
       url:
         auth.UserID() ?? user?.id
-          ? `/api/products/recomended?user_id=${auth.UserID() ?? user?.id}`
-          : `/api/products/recomended`,
+          ? `/api/products/recomended?user_id=${
+              auth.UserID() ?? user?.id
+            }&limit=7&page=${1}&limit=7`
+          : `/api/products/recomended?page=${1}&limit=7`,
       server: "local",
       method: "GET",
       reqTitle: REQUESTS_DATA.GET_RECOMENDATIONS,
     });
     setLoading(false);
     setProducts(res.data.products);
+    console.log(res.data.offset);
+    setOffset(res.data.offset);
+    setTotalSize(res.data.total_size);
+  };
+  const loadMore = async () => {
+    try {
+      setLoadingMore(true);
+      let res = await fetchData({
+        url:
+          auth.UserID() ?? user?.id
+            ? `/api/products/recomended?user_id=${
+                auth.UserID() ?? user?.id
+              }&limit=7&offset=${JSON.stringify(offset)}`
+            : `/api/products/recomended?offset=${JSON.stringify(
+                offset
+              )}&limit=7`,
+        server: "local",
+        method: "GET",
+        reqTitle: REQUESTS_DATA.GET_RECOMENDATIONS,
+      });
+      if (res.data.products?.length === 0) {
+        setTotalSize(products.length);
+      }
+      setOffset(res.data.offset);
+
+      setProducts([...products, ...res.data.products]);
+      setLoadingMore(false);
+    } catch (error) {
+      showErrorMessage(
+        translateFunction("Failed To Load Products Retring in 3 seconds")
+      );
+      LogError(error);
+      console.error(error);
+    }
   };
   useEffect(() => {
-    getRecommendations();
+    if (user && String(user?.id) !== String(userId)) {
+      setOffset([]);
+      setTotalSize(Infinity);
+      getRecommendations();
+    }
   }, [user]);
 
   const [country, language] = lang.split("-");
@@ -91,15 +141,24 @@ function RecomendedProducts({ lang, currencyData }) {
             language={language}
           />
         ))}
-        {/* <NextLink
-          href={`/${lang}/featured`}
-          data={{ is_boutique: true }}
-          className="product-container items-center justify-center min-w-[150px] max-h-[377px] bg-[#0002]  align-center flex-col relative"
-        >
-          <div className="flex regular rounded-md p-3 items-center justify-center bg-[#5d5d5d] text-white shadow-md shadow-[#fff]">
-            {translateFunction("Show More", lang.split("-")[1])}
+        {products?.length !== totalSize && (
+          <div
+            onClick={() => {
+              if (!loadingMore) {
+                loadMore();
+              }
+            }}
+            className="product-container items-center justify-center min-w-[150px] max-h-[377px] bg-[#0002]  align-center flex-col relative"
+          >
+            <div className="flex regular rounded-md p-3 items-center justify-center bg-[#5d5d5d] text-white shadow-md shadow-[#fff]">
+              {loadingMore ? (
+                <Spinner />
+              ) : (
+                translateFunction("Show More", lang.split("-")[1])
+              )}
+            </div>
           </div>
-        </NextLink> */}
+        )}
       </HortiznalScrollBar>
     </div>
   );
