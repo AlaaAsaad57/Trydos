@@ -2,12 +2,12 @@
 import React, { useEffect, useState } from "react";
 import Spinner from "./Spinner";
 import { useParams } from "next/navigation";
-import NormalWidget from "components/Home/OfferWidgets/NormalWidget";
 import { GA_EVENT_NAMES, GA_GLOBAL_SCREEN } from "utils/GAEvents";
 import { GAevent } from "utils/gtag";
 import { InfinteScrollPropsType } from "models/componentType/InfinteScrollPropsType";
 import { useAppStore } from "store";
 import { GetBoutiquesElasticPagination } from "services/elastic/utils";
+import { BoutiqueContainer } from "components/Home/OfferWidgets/BoutiqueElement";
 const useInfiniteScroll = (fetchNextPage) => {
   useEffect(() => {
     // Function to check scroll position
@@ -103,14 +103,7 @@ function InfinteScroll({ offsetVariable, temp }: InfinteScrollPropsType) {
   return (
     <>
       {boutiques.map((boutique) => {
-        return (
-          <NormalWidget
-            key={boutique.slug}
-            lang={lang}
-            boutique={boutique}
-            myKey={boutique.slug}
-          />
-        );
+        return <BoutiqueContainer lang={lang} boutique={boutique} />;
       })}
       {loading && (
         <h2 className="spinner-container w-full flex justify-center items-center">

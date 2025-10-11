@@ -12,6 +12,7 @@ import {
   normalizeCustomProducts,
   buildBaseConditions,
 } from "./helpers";
+import { getProductsAndFiltersFromElastic } from "./elasticSearch";
 export class ElasticsearchReader {
   private client = elasticSearchClient;
   private readonly index = "products_catalog";
@@ -595,11 +596,34 @@ export class ElasticsearchReader {
       }
 
       // merge categories into boutiques
-      for (const boutique of customProducts) {
-        const bid = boutique.boutique_id;
-        boutique.mainCategoriesForProductIds = grouped[bid]?.main || [];
-        boutique.childCategoriesForProductIds = grouped[bid]?.child || [];
-      }
+      await Promise.all(
+        customProducts.map(async (boutique) => {
+          const bid = boutique.boutique_id;
+          boutique.mainCategoriesForProductIds = grouped[bid]?.main || [];
+          if (grouped[bid]?.child?.length > 0)
+            boutique.childCategoriesForProductIds = grouped[bid]?.child || [];
+          else {
+            let products = await getProductsAndFiltersFromElastic({
+              country: country,
+              language_code: language,
+              noFilters: true,
+              filters: {
+                boutiques: [boutique.custom_boutiques[0]?.slug],
+              },
+              limit: 6,
+              is_from_browser: true,
+            });
+            boutique.childCategoriesForProductIds = products?.products?.map(
+              (product) => ({
+                is_product_url: true,
+                slug: product.slug,
+                most_viewed_product_name: product.name,
+                most_viewed_product_thumbnail: product?.images[0],
+              })
+            );
+          }
+        })
+      );
 
       // filter banners
       for (const boutique of customProducts) {
