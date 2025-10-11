@@ -14,7 +14,7 @@ function BoutiqueElement({ boutique }) {
   ]);
   return (
     <div
-      className="w-full flex justify-center items-center overflow-hidden min-h-[20vh] max-h-[50vh] relative"
+      className="w-full flex justify-center items-center overflow-hidden min-h-[20vh] max-h-[55vh] relative"
       ref={emblaRef}
     >
       <div className="embla__container flex">
@@ -35,15 +35,17 @@ function BoutiqueElement({ boutique }) {
               width={400}
               height={250}
               layout="responsive"
-              className="h-auto w-full object-center object-cover  max-w-full max-h-[50vh] "
+              className="h-auto w-full object-center object-cover  max-w-full max-h-[55vh] "
             />
           </div>
         ))}
       </div>
       <div className="absolute flex-col px-[12px] items-start gap-[3px] z-20 bottom-0 left-0 w-full h-[54px] bg-gradient-to-t from-[rgba(0,0,0,0.5)] to-[rgba(0,0,0,0)] flex">
-        <span className="bold text-[16px] uppercase">{boutique?.name}</span>
+        <span className="bold text-[16px] uppercase text-white">
+          {boutique?.name}
+        </span>
         <span
-          className="regular text-[16px] "
+          className="regular text-[16px] text-white"
           dangerouslySetInnerHTML={{
             __html: boutique?.description,
           }}
@@ -61,6 +63,7 @@ export const BoutiqueContainer = ({ boutique, lang }) => {
     >
       <NextLink
         data-cy="boutique_link"
+        className="w-full"
         href={`/${lang}/filters/boutiques/${boutique.slug}`}
         data={{
           is_boutique: true,
