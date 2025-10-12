@@ -81,7 +81,7 @@ export const BoutiqueContainer = ({ boutique, lang }) => {
   );
 };
 
-const CategoriesSlider = ({ categories, boutique, lang }) => {
+export const CategoriesSlider = ({ categories, boutique, lang }) => {
   return (
     <HortiznalScrollBar
       id={`boutique-${boutique.slug}-slider`}
