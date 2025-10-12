@@ -14,7 +14,7 @@ function BoutiqueElement({ boutique }) {
   ]);
   return (
     <div
-      className="w-full flex justify-center items-center overflow-hidden min-h-[20vh] max-h-[55vh] relative"
+      className="w-full flex justify-center items-center overflow-hidden min-h-[20vh] max-h-[75vh] relative"
       ref={emblaRef}
     >
       <div className="embla__container flex">
@@ -34,8 +34,7 @@ function BoutiqueElement({ boutique }) {
               })}
               width={400}
               height={250}
-              layout="responsive"
-              className="h-auto w-full object-center object-cover  max-w-full max-h-[55vh] "
+              className="h-auto w-full object-center object-cover  max-w-full max-h-[75vh] "
             />
           </div>
         ))}

@@ -273,10 +273,15 @@ class AuthService {
     cancelAuth(isForExpired);
   }
   async NotifyForProducts({ id, variant }) {
-    await home.subscribeToTopic({
-      topic: `product_availability_${id}`,
-      variant: variant,
-    });
+    if (!variant || variant?.includes("N/A"))
+      await home.subscribeToTopic({
+        topic: `product_availability_${id}`,
+      });
+    else
+      await home.subscribeToTopic({
+        topic: `product_availability_${id}`,
+        variant: variant,
+      });
   }
 
   getUser() {
