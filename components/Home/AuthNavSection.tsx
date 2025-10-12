@@ -46,7 +46,7 @@ function AuthNavSection({
           transform: !chatVar && getNew(chats).length > 0 && "translateY(-1px)",
         }}
         onClick={() => {
-          if (userChat && userChat.id) {
+          if (userChat && userChat.id && !userChat?.need_auth) {
             setChatOpen(true);
             ChatConroller(true);
           } else {

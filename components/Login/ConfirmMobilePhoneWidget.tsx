@@ -73,7 +73,7 @@ function ConfirmMobilePhoneWidget() {
           hasMobile={userData.phone !== null && userData.phone !== 0}
           goToOrders={() => {
             // equal to success flag when goToOrders trigrred then it means the verification success
-            console.log(shouldAuthinticated);
+
             if (shouldAuthinticated === "open Story") {
               setAddStory(true);
             }

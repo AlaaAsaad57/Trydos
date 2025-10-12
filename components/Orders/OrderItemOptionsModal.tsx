@@ -352,7 +352,6 @@ function OrderItemOptionsModal({
       <div
         onClick={() => {
           close(false);
-          console.log(ActivePacks);
         }}
         className="absolute top-[0px]   left-0 min-w-[100vw] z-[999999998] min-h-[100vh] opacity-40 bg-[black]"
       />

@@ -745,7 +745,6 @@ export default function ApiTestPage() {
         is_from_browser: true,
         limit: 10,
       });
-      console.log(data);
     } catch (error) {
       console.error(error);
     }

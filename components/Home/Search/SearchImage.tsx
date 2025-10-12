@@ -66,7 +66,6 @@ function SearchImage({ setSearchValue }: { setSearchValue: Function }) {
   const [isDesktop, setIsDesktop] = useState(false);
 
   useEffect(() => {
-    console.log(getDeviceCategory());
     setIsDesktop(getDeviceCategory() === "desktop");
   }, []);
 

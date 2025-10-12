@@ -106,7 +106,13 @@ export const getCalls = async (id) => {
 };
 export const SendMessage = async (payload, isNew, isPrivate?) => {
   const { sendNewMessage, sendRealMessage } = useAppStore.getState();
-  let message = payload;
+  let message = isPrivate
+    ? {
+        ...payload,
+        order_chat_participant_id: isPrivate,
+      }
+    : payload;
+
   try {
     let response = await fetchData({
       url: SEND_MESSAGE_URL,

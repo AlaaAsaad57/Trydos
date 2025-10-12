@@ -7,11 +7,18 @@ import { getConfiguredImage } from "utils/functions";
 import { GetImageUrl } from "utils/tinyUtils";
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 import NextLink from "components/global/NextLink";
-
+import AutoHeight from "embla-carousel-auto-height";
 function BoutiqueElement({ boutique }) {
   const [emblaRef] = useEmblaCarousel({ loop: true }, [
     Autoplay({ delay: 3000 }),
+    AutoHeight(),
   ]);
+  const configureImage = (src) => {
+    return src.replace(
+      "/upload",
+      `/upload/w_1356,c_pad,b_auto/f_auto/q_auto:best/fl_lossy/so_0`
+    );
+  };
   return (
     <div
       className="w-full flex justify-center items-center overflow-hidden min-h-[20vh] max-h-[75vh] relative"
@@ -26,14 +33,9 @@ function BoutiqueElement({ boutique }) {
             <div className="absolute w-full h-full top-0 left-0 z-10 shadow-[inset_0px_3px_6px_rgba(255,255,255,0.5)]" />
             <Image
               alt={boutique.name}
-              src={getConfiguredImage({
-                src: GetImageUrl(banner?.file_path),
-                q: 100,
-                height: 700,
-                width: 1190,
-              })}
-              width={400}
-              height={250}
+              src={configureImage(GetImageUrl(banner?.file_path))}
+              width={1280}
+              height={750}
               className="h-auto w-full object-center object-cover  max-w-full max-h-[75vh] "
             />
           </div>
@@ -57,7 +59,7 @@ function BoutiqueElement({ boutique }) {
 export const BoutiqueContainer = ({ boutique, lang }) => {
   return (
     <div
-      className="flex flex-col h-auto w-full rounded-[2px] bg-white"
+      className="flex flex-col h-auto w-full rounded-[2px] bg-white shadow-[0px_3px_20px_rgba(0,0,0,0.15)]"
       id={`boutique-${boutique.slug}`}
     >
       <NextLink

@@ -86,6 +86,13 @@ export const useAuthStore = (set, get) => ({
         ? state.user && { ...state.user, is_phone_verified: 0, is_verified: 0 }
         : null,
       Tempuser: null,
+      userProfile: isForzexpired
+        ? state.userProfile && {
+            ...state.userProfile,
+            is_phone_verified: 0,
+            is_verified: 0,
+          }
+        : state.userProfile,
       userChat: null,
       userStories: null,
       failedLogin: false,

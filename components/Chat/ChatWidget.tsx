@@ -44,7 +44,7 @@ export default function ChatWidget({
       ></div>
       <div className="fixed right-0 top-0 max-w-[430px] w-screen h-[calc(100vh-150px)] bg-white z-[999999999999]">
         <ConversationContainer
-          isPrivate={true}
+          isPrivate={activeChat?.order_chat_participant_id}
           closeWidget={onClose}
           ViewedScreen={"chat"}
           active={activeChat}

@@ -399,7 +399,7 @@ body {
 .site-container {
   transition: transform 0.4s;
   transform-origin: top center;
-  background-color: #fafafa;
+
   width: 100%;
   max-width: 1365px;
   flex-direction: column;

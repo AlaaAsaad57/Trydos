@@ -14,6 +14,7 @@ import {
   UserData,
   deleteCookie,
   getCookie,
+  setCookie,
 } from "./cookies/cookie-manager";
 import { logRequest } from "./requestLoggerClient";
 import { ReportError } from "./errorReported";
@@ -170,6 +171,8 @@ const waitUntilRegisteringComplete = async (): Promise<void> => {
 };
 
 const handleUnauthorized = async (server: ServerType): Promise<boolean> => {
+  let userChat: any = getCookie(COOKIE_NAMES.USER_CHAT);
+  let userStories: any = getCookie(COOKIE_NAMES.USER_STORIES);
   try {
     switch (server) {
       case "elastic":
@@ -182,8 +185,16 @@ const handleUnauthorized = async (server: ServerType): Promise<boolean> => {
       case "stories":
         const { useAppStore } = await import("../store");
         const { setShouldAuthinticated } = useAppStore.getState();
-        deleteCookie(COOKIE_NAMES.USER_CHAT);
-        deleteCookie(COOKIE_NAMES.USER_STORIES);
+        if (userChat?.id)
+          setCookie(COOKIE_NAMES.USER_CHAT, {
+            ...userChat,
+            need_auth: true,
+          });
+        if (userStories?.id)
+          setCookie(COOKIE_NAMES.USER_STORIES, {
+            ...userStories,
+            need_auth: true,
+          });
         deleteCookie(COOKIE_NAMES.CHAT_TOKEN);
         deleteCookie(COOKIE_NAMES.STORIES_TOKEN);
         setShouldAuthinticated(true);

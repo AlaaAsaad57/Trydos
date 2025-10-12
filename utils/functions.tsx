@@ -40,7 +40,8 @@ export function translateFunction(key: string, language?: string | string[]) {
 
 export const getUserChat = (): any => {
   const userChat = getCookie<UserData>(COOKIE_NAMES.USER_CHAT);
-  return userChat;
+  if (userChat) return userChat;
+  else return {};
 };
 export const getUserStories = (): any => {
   const userStories = getCookie<UserData>(COOKIE_NAMES.USER_STORIES);

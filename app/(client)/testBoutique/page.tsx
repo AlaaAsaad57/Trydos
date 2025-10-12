@@ -43,15 +43,15 @@ function Page() {
     banners: [
       {
         file_path:
-          "https://res.cloudinary.com/djooohujg/image/upload/v1760175343/q0oixqej0myxpjpduygu.jpg",
+          "https://res.cloudinary.com/djooohujg/image/upload/v1760301649/ak8mzyjf0uunciolot5e.png",
       },
       {
         file_path:
-          "https://res.cloudinary.com/djooohujg/image/upload/v1760175343/q0oixqej0myxpjpduygu.jpg",
+          "https://res.cloudinary.com/djooohujg/image/upload/v1760301649/ak8mzyjf0uunciolot5e.png",
       },
       {
         file_path:
-          "https://res.cloudinary.com/djooohujg/image/upload/v1760175343/q0oixqej0myxpjpduygu.jpg",
+          "https://res.cloudinary.com/djooohujg/image/upload/v1760301649/ak8mzyjf0uunciolot5e.png",
       },
       // {
       //   file_path:
@@ -65,8 +65,8 @@ function Page() {
   };
   let lang = "sy-en";
   return (
-    <div className=" flex w-full bg-[#8d8d8d] items-center justify-center ">
-      <div className="max-w-[1365px] flex-col flex gap-[20px] w-full  py-20">
+    <div className=" flex w-full bg-[#ffffff] items-center justify-center ">
+      <div className="max-w-[1280px] flex-col flex gap-[20px] w-full  py-20">
         <FirstBoutique boutique={boutique} lang={lang} />
         <hr className="h-[4px] rounded-md bg-black" />
         <SecondBoutique boutique={boutique} lang={lang} />
@@ -94,7 +94,7 @@ const FirstBoutique = ({ boutique, lang }) => {
   ]);
   return (
     <div
-      className="flex flex-col h-auto w-full rounded-[2px] bg-white"
+      className="flex flex-col h-auto w-full rounded-[2px] bg-white shadow-[0px_3px_20px_rgba(0,0,0,0.15)]"
       id={`boutique-${boutique.slug}`}
     >
       <NextLink
@@ -128,7 +128,7 @@ const FirstBoutique = ({ boutique, lang }) => {
                   })}
                   width={400}
                   height={250}
-                  className="h-auto w-full object-center object-cover  max-w-full max-h-[75vh] "
+                  className="h-auto w-full object-top object-cover  max-w-full max-h-[75vh] "
                 />
               </div>
             ))}
@@ -161,7 +161,7 @@ const SecondBoutique = ({ boutique, lang }) => {
   ]);
   return (
     <div
-      className="flex flex-col h-auto w-full rounded-[2px] bg-white"
+      className="flex flex-col h-auto w-full rounded-[2px] bg-white shadow-[0px_3px_20px_rgba(0,0,0,0.15)]"
       id={`boutique-${boutique.slug}`}
     >
       <NextLink
@@ -195,7 +195,7 @@ const SecondBoutique = ({ boutique, lang }) => {
                   })}
                   width={400}
                   height={250}
-                  className="h-auto w-full object-center object-cover  max-w-full"
+                  className="h-auto w-full object-top object-cover  max-w-full"
                 />
               </div>
             ))}
@@ -234,7 +234,7 @@ const ThirdBoutique = ({ boutique, lang }) => {
   };
   return (
     <div
-      className="flex flex-col h-auto w-full rounded-[2px] bg-white"
+      className="flex flex-col h-auto w-full rounded-[2px] bg-white shadow-[0px_3px_20px_rgba(0,0,0,0.15)]"
       id={`boutique-${boutique.slug}`}
     >
       <NextLink
@@ -263,7 +263,7 @@ const ThirdBoutique = ({ boutique, lang }) => {
                   src={configureImage(banner?.file_path ?? banner)}
                   width={400}
                   height={250}
-                  className="h-auto w-full object-center object-cover  max-w-full max-h-[75vh] "
+                  className="h-auto w-full object-top object-cover  max-w-full max-h-[75vh] "
                 />
               </div>
             ))}
@@ -302,7 +302,7 @@ const FourthBoutique = ({ boutique, lang }) => {
   };
   return (
     <div
-      className="flex flex-col h-auto w-full rounded-[2px] bg-white"
+      className="flex flex-col h-auto w-full rounded-[2px] bg-white shadow-[0px_3px_20px_rgba(0,0,0,0.15)]"
       id={`boutique-${boutique.slug}`}
     >
       <NextLink
@@ -331,7 +331,7 @@ const FourthBoutique = ({ boutique, lang }) => {
                   src={configureImage(banner?.file_path)}
                   width={400}
                   height={250}
-                  className="h-auto w-full object-center object-contain  max-w-full max-h-[75vh] "
+                  className="h-auto w-full object-top object-contain  max-w-full max-h-[75vh] "
                 />
               </div>
             ))}

@@ -19,7 +19,7 @@ function OfferListServer({
 
     return (
       <div
-        className={`offers-list w-full flex-col items-center justify-start mt-[30px] pb-[184px] gap-[20px]`}
+        className={`offers-list w-full flex-col items-center max-w-[1280px] justify-start mt-[30px] pb-[184px] gap-[20px]`}
         data-cy="boutiques"
       >
         <DataSourceLogger dataSourceString={dataSourceString} />
@@ -59,15 +59,15 @@ function OfferListServer({
             banners: [
               {
                 file_path:
-                  "https://res.cloudinary.com/djooohujg/image/upload/v1760175343/q0oixqej0myxpjpduygu.jpg",
+                  "https://res.cloudinary.com/djooohujg/image/upload/v1760301649/ak8mzyjf0uunciolot5e.png",
               },
               {
                 file_path:
-                  "https://res.cloudinary.com/djooohujg/image/upload/v1760175343/q0oixqej0myxpjpduygu.jpg",
+                  "https://res.cloudinary.com/djooohujg/image/upload/v1760301649/ak8mzyjf0uunciolot5e.png",
               },
               {
                 file_path:
-                  "https://res.cloudinary.com/djooohujg/image/upload/v1760175343/q0oixqej0myxpjpduygu.jpg",
+                  "https://res.cloudinary.com/djooohujg/image/upload/v1760301649/ak8mzyjf0uunciolot5e.png",
               },
               // {
               //   file_path:

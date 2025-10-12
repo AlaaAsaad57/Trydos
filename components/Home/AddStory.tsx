@@ -19,7 +19,7 @@ function AddStory() {
     user,
   } = useAppStore();
   const handleClick = () => {
-    if (userStories) {
+    if (userStories || !userStories?.need_auth) {
       const user = getCookie<UserData>(COOKIE_NAMES.USER_DATA);
       if (user?.name?.length > 0) {
         // Sendevent({

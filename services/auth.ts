@@ -316,11 +316,22 @@ class AuthService {
     }
   }
   async ExpiredUser(noReq = false) {
+    let userChat: any = getCookie(COOKIE_NAMES.USER_CHAT);
+    let userStories: any = getCookie(COOKIE_NAMES.USER_STORIES);
     if (!noReq) await home.registerForExpire(this.UserID());
     this.cancelAuth(true);
     deleteCookie(COOKIE_NAMES.MARKET_TOKEN);
-    deleteCookie(COOKIE_NAMES.USER_CHAT);
-    deleteCookie(COOKIE_NAMES.USER_STORIES);
+    if (userChat?.id)
+      setCookie(COOKIE_NAMES.USER_CHAT, {
+        ...userChat,
+        need_auth: true,
+      });
+    if (userStories?.id)
+      setCookie(COOKIE_NAMES.USER_STORIES, {
+        ...userStories,
+        need_auth: true,
+      });
+
     deleteCookie(COOKIE_NAMES.CHAT_TOKEN);
     deleteCookie(COOKIE_NAMES.STORIES_TOKEN);
   }

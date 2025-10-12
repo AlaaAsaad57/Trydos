@@ -50,7 +50,7 @@ export async function GET(req: NextRequest) {
       const decoded = decodeValue(searchParams.get("attributes"));
 
       const clean = stripExtraQuotes(decoded);
-      console.log(clean);
+
       filters.sizes = JSON.parse(clean)?.[0]?.options;
     }
 
@@ -108,13 +108,6 @@ function parseArrayParam(value: string | null): string[] {
 function parseNumberArrayOfPrices(value: string | null): number[] {
   const decoded = decodeValue(value);
 
-  console.log(
-    decoded
-      .replace(/^\[|\]$/g, "")
-      .replaceAll('"', "")
-      .split("-")
-      .map((n) => Number(n.trim()))
-  );
   if (!decoded) return [];
   return decoded
     .replace(/^\[|\]$/g, "")

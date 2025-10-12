@@ -58,7 +58,11 @@ function OrderDetails({
   const {
     setOrderDetails,
     selectedOrder,
+    showNotificationIndicator,
+    showNotificaionCircle,
     openChat,
+    setShouldAuthinticated,
+    user,
     ActivePacks,
     setActivePacks,
     orderPageLoading: loading,
@@ -169,7 +173,7 @@ function OrderDetails({
       order_id = searchParams.get("chat_id");
       const { order_chat_id } = useAppStore.getState();
       if (order_id_chat || order_id || order_chat_id) {
-        getChatWithShipping(order_id_chat || order_id || order_chat_id);
+        safeGetChatWithShipping(order_id_chat || order_id || order_chat_id);
       }
       setShouldUpdateOrders(0);
     } catch (error) {
@@ -217,7 +221,7 @@ function OrderDetails({
 
   const [isExpanded, setIsExpanded] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
-  const [chatInfo, setChatInfo] = useState<Channel | null>(null);
+  const [chatInfo, setChatInfo] = useState(null);
   const shouldShowChatIcon = (pack) => {
     // Out for Delivery
     if (pack && pack?.order_status?.value === "out_for_delivery")
@@ -242,6 +246,14 @@ function OrderDetails({
     chatAbortControllerRef.current = new AbortController();
 
     setIsGettingChat(true);
+
+    showNotificationIndicator([
+      ...showNotificaionCircle?.filter(
+        (s) =>
+          s?.order_id !== shouldShowChatIcon(ActivePacks) &&
+          s?.order_group_id !== selectedOrder?.order_group_id
+      ),
+    ]);
     try {
       let response = await fetchData({
         url: "/api/v1/order-chat-participants/get-recipient",
@@ -290,6 +302,7 @@ function OrderDetails({
         });
         openChat({
           ...response.data.channel,
+          order_chat_participant_id: response?.data.chat_participant?.id,
           channel_members: [
             {
               user: getUserChat(),
@@ -318,6 +331,7 @@ function OrderDetails({
         });
       } else {
         setChatInfo({
+          order_chat_participant_id: response?.data.chat_participant?.id,
           channel_members: [
             {
               id: getUserChat()?.id,
@@ -386,6 +400,72 @@ function OrderDetails({
       setIsGettingChat(false);
     }
   };
+  const retryUntilAuthinticated = async () => {
+    const maxRetries = 30; // Maximum number of retries (5 minutes with 10s intervals)
+    const retryInterval = 10000; // 10 seconds between retries
+    let retryCount = 0;
+
+    const checkVerificationStatus = async (): Promise<boolean> => {
+      try {
+        // Get the current user state from the store
+        const { user } = useAppStore.getState();
+
+        // Check if user is phone verified
+        if (user && user.is_phone_verified === 1) {
+          return true;
+        }
+
+        return false;
+      } catch (error) {
+        console.error("Error checking verification status:", error);
+        return false;
+      }
+    };
+
+    const pollForVerification = async (): Promise<void> => {
+      while (retryCount < maxRetries) {
+        try {
+          const isVerified = await checkVerificationStatus();
+
+          if (isVerified) {
+            // User is now verified, call getChatWithShipping
+
+            await getChatWithShipping();
+            return;
+          }
+
+          // Wait before next retry
+          await new Promise((resolve) => setTimeout(resolve, retryInterval));
+          retryCount++;
+        } catch (error) {
+          console.error("Error during verification polling:", error);
+          // Continue retrying even if there's an error
+          await new Promise((resolve) => setTimeout(resolve, retryInterval));
+          retryCount++;
+        }
+      }
+
+      // If we've exhausted all retries, show an error or handle appropriately
+      console.warn("Phone verification timeout - maximum retries reached");
+      // Reset the authentication state to allow user to try again
+      setShouldAuthinticated(false);
+    };
+
+    // Start the polling process
+    try {
+      await pollForVerification();
+    } catch (error) {
+      console.error("Critical error in retryUntilAuthinticated:", error);
+      setShouldAuthinticated(false);
+    }
+  };
+  const safeGetChatWithShipping = async (id?) => {
+    if (user.is_phone_verified !== 0) await getChatWithShipping(id);
+    else {
+      setShouldAuthinticated(true);
+      retryUntilAuthinticated();
+    }
+  };
   const ShowChats = () => {
     if (shouldShowChatIcon(ActivePacks) && ActivePacks?.order_status) {
       let arr = [];
@@ -398,12 +478,7 @@ function OrderDetails({
             isGettingChat={isGettingChat}
             setIsGettingChat={setIsGettingChat}
             getChatWithShipping={() => {
-              if (
-                ActivePacks?.return_details?.details?.status?.value ===
-                "out_for_return"
-              )
-                getChatWithShipping();
-              else getChatWithShipping();
+              safeGetChatWithShipping();
             }}
             id={shouldShowChatIcon(ActivePacks)}
           />
@@ -645,7 +720,7 @@ const OrderExpandedDetails = ({
   setIsExpanded: (e: boolean) => void;
   getProductUrl;
 }) => {
-  const { currency, selectedOrder, setOrderOptions } = useAppStore();
+  const { currency, selectedOrder, setOrderOptions, user } = useAppStore();
 
   const [cancelling, setCancelling] = useState(false);
   const CancelReturnRequest = async () => {

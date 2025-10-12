@@ -5,8 +5,6 @@ const ASSEMBLYAI_BASE_URL = "https://api.assemblyai.com/v2";
 
 export async function POST(request: NextRequest) {
   try {
-    console.log("Speech recognition API called");
-
     if (!ASSEMBLYAI_API_KEY) {
       console.error("AssemblyAI API key not configured");
       return NextResponse.json(
