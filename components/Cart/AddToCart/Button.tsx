@@ -71,13 +71,9 @@ function AddToCartButton({
     });
     return num;
   };
-
-  const isVariantInCart = ({ exact }) => {
-    if (product?.variation?.length === 0)
-      return localCart?.find((s) => s.id === id);
-
-    if (
-      localCart.find(
+  const getLocalCartItem = () => {
+    if (colors?.length > 0 && sizes?.length > 0) {
+      return localCart.find(
         (s) =>
           s.id === id &&
           (s.color === selectedColor?.color_option ||
@@ -88,8 +84,9 @@ function AddToCartButton({
                   cl.name === selectedColor?.selected_option
               )?.color) &&
           s.size === (selectedSize?.option ?? selectedSize)
-      )
-    )
+      );
+    }
+    if (colors?.length > 0) {
       return localCart.find(
         (s) =>
           s.id === id &&
@@ -98,10 +95,22 @@ function AddToCartButton({
               product?.colors?.find(
                 (cl) =>
                   cl.option === selectedColor?.color_option ||
-                  cl.name === selectedColor?.color_option
-              )?.color) &&
-          s.size === (selectedSize?.option ?? selectedSize)
+                  cl.name === selectedColor?.selected_option
+              )?.color)
       );
+    }
+    if (sizes?.length > 0) {
+      return localCart.find(
+        (s) => s.id === id && s.size === (selectedSize?.option ?? selectedSize)
+      );
+    }
+    return null;
+  };
+  const isVariantInCart = ({ exact }) => {
+    if (product?.variation?.length === 0)
+      return localCart?.find((s) => s.id === id);
+    let cartIem = getLocalCartItem();
+    if (cartIem) return cartIem;
     if (exact) return localCart?.find((s) => s.id === id);
   };
 
@@ -136,6 +145,7 @@ function AddToCartButton({
 
     try {
       setLoading(true);
+
       if (isVariantInCart({ exact: false })) {
         animateButton();
         let response = await cart.UpdateCart({
@@ -188,7 +198,7 @@ function AddToCartButton({
         );
       } else {
         animateButton();
-        await cart.AddToCart({
+        let val = await cart.AddToCart({
           product_id: id,
           color: product?.colors?.find(
             (s) =>
@@ -211,43 +221,47 @@ function AddToCartButton({
               : selectedVariant.offer_price,
         });
 
-        GAevent({
-          action: GA_EVENT_NAMES.ADD_TO_CART,
-          params: {
-            currency: currency?.code,
-            value: selectedVariant?.offer_price,
-            items: [
-              {
-                item_id: id,
-                item_name: product?.name,
-                price: selectedVariant?.offer_price,
-                quantity: 1,
-                brand: product?.brand?.name,
-                brand_id: product?.brand?.id,
-                category: product?.category?.name,
-                category_id: product?.category?.id,
-                count_likes: product?.count_of_likes,
-                // review_count: product?.views_count ?? product?.view_count,
-                item_variant: selectedVariant?.type,
-              },
-            ],
-            user_id_custom: auth.UserID(),
-            interaction_type: "add_to_cart",
-            screen_name: DetectScreen(),
-            screen_path: window.location.pathname,
-          },
-        });
-        animateText("Added To Your Bag");
-        await updateQuantity(
-          true,
-          [selectedColor?.color_option, selectedSize?.option || selectedSize]
-            .filter((e) => Boolean(e))
-            .join("-"),
-          "add"
-        );
-        await getCart({
-          callback: () => {},
-        });
+        if (val) {
+          GAevent({
+            action: GA_EVENT_NAMES.ADD_TO_CART,
+            params: {
+              currency: currency?.code,
+              value: selectedVariant?.offer_price,
+              items: [
+                {
+                  item_id: id,
+                  item_name: product?.name,
+                  price: selectedVariant?.offer_price,
+                  quantity: 1,
+                  brand: product?.brand?.name,
+                  brand_id: product?.brand?.id,
+                  category: product?.category?.name,
+                  category_id: product?.category?.id,
+                  count_likes: product?.count_of_likes,
+                  // review_count: product?.views_count ?? product?.view_count,
+                  item_variant: selectedVariant?.type,
+                },
+              ],
+              user_id_custom: auth.UserID(),
+              interaction_type: "add_to_cart",
+              screen_name: DetectScreen(),
+              screen_path: window.location.pathname,
+            },
+          });
+          animateText("Added To Your Bag");
+          await updateQuantity(
+            true,
+            [selectedColor?.color_option, selectedSize?.option || selectedSize]
+              .filter((e) => Boolean(e))
+              .join("-"),
+            "add"
+          );
+          await getCart({
+            callback: () => {},
+          });
+        } else {
+          throw new Error("error");
+        }
       }
       setLoading(false);
     } catch (error) {
