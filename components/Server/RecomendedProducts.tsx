@@ -90,7 +90,10 @@ function RecomendedProducts({
   if (loading) return <FeaturedProductsSkeleton lang={lang} />;
   if (products?.length === 0) return <></>;
   return (
-    <div className="flex-col px-[12px] flex items-start max-w-full w-full mt-[10px]">
+    <div
+      className="flex-col px-[12px] flex items-start max-w-full w-full mt-[10px]"
+      data-cy="recommended-products"
+    >
       <div
         // href={`/${lang}/featured`}
         // data={{ is_boutique: true }}

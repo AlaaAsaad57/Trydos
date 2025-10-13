@@ -124,6 +124,15 @@ function ProductCard({
       }
     },
   });
+  const getDataCy = () => {
+    if (product?.flash_deal_end_date) {
+      return "product-card-flash-deal";
+    }
+    if (shouldShowRedeemAction) {
+      return "producr-card-redeem";
+    }
+    return "product-card";
+  };
   return (
     <div className="relative flex" ref={timerRef}>
       <ColorBottomSheet
@@ -149,7 +158,7 @@ function ProductCard({
       <div
         className="max-h-[377px] relative"
         key={product.slug}
-        data-cy="product-card"
+        data-cy={getDataCy()}
       >
         <NextLink
           ignoreConditionCase={true}

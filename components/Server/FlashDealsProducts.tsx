@@ -52,7 +52,7 @@ function FlashDealsProducts({
       <HortiznalScrollBar
         className="featured-products-container py-[10px] gap-[8px] w-full mt-[12px] flex-row justify-start items-center max-w-[1365px] h-auto pb-[8px] "
         id="featured-products-container"
-        dataCy="featured-products-container"
+        dataCy="flashdeals-products-container"
       >
         {flashDealsProducts?.data?.products?.map((product, key) => (
           <ProductCard
