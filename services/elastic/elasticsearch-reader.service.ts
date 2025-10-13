@@ -490,7 +490,7 @@ export class ElasticsearchReader {
           description: cb.description || null,
           icon: cb.icon || null,
           banners: cb.banners || null,
-          mainCategoriesForProductIds: [],
+          mainCategoriesForProductIds: boutique.childCategoriesForProductIds,
           childCategoriesForProductIds: boutique.childCategoriesForProductIds,
         };
       });
