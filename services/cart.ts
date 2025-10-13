@@ -53,9 +53,9 @@ class CartService {
         throw new Error(response.message);
       }
       if (response?.data?.status === 1 && response?.data?.id_cart) {
-        home.subscribeToTopic({
-          topic: `product_availability_${product_id}`,
-        });
+        // home.subscribeToTopic({
+        //   topic: `product_availability_${product_id}`,
+        // });
 
         addProductToCart({
           id: product_id,
