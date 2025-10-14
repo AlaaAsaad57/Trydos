@@ -187,6 +187,7 @@ async function FeaturedProductWrapper({ lang }) {
         })),
         brand: { id: product?.brand?.id, icon: product?.brand?.icon },
         flash_deal_end_date: product.flash_deal_end_date,
+        flash_deal_price: product.flash_deal_price,
         product_id: product.product_id,
         is_redeem: !redeemed_ids.find((s) => s.id === product.product_id),
       };
@@ -212,6 +213,7 @@ async function FeaturedProductWrapper({ lang }) {
         })),
         brand: { id: product?.brand?.id, icon: product?.brand?.icon },
         flash_deal_end_date: product.flash_deal_end_date,
+        flash_deal_price: product.flash_deal_price,
         product_id: product.product_id,
       };
   });
@@ -268,7 +270,7 @@ async function FlashProductWrapper({ lang }) {
         })),
         brand: { id: product?.brand?.id, icon: product?.brand?.icon },
         flash_deal_end_date: product.flash_deal_end_date,
-
+        flash_deal_price: product.flash_deal_price,
         product_id: product.product_id,
         is_redeem: !redeemed_ids.find((s) => s.id === product.product_id),
       };
@@ -294,7 +296,7 @@ async function FlashProductWrapper({ lang }) {
         })),
         brand: { id: product?.brand?.id, icon: product?.brand?.icon },
         flash_deal_end_date: product.flash_deal_end_date,
-
+        flash_deal_price: product.flash_deal_price,
         product_id: product.product_id,
       };
   });

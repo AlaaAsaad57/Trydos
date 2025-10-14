@@ -39,6 +39,7 @@
     "firebase": "11.9.0",
     "ioredis": "^5.6.1",
     "js-cookie": "^3.0.5",
+    "jsonwebtoken": "^9.0.2",
     "next": "15.5.3",
     "postcss": "^8.4.38",
     "react": "^19.0.0",

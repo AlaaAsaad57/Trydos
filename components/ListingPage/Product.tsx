@@ -77,54 +77,11 @@ export const BuyButtonProduct = ({
       product?.flash_deal_price !== null &&
       isValid()
     ) {
-      if (product.offer_price >= 0 && product.offer_price !== product.price) {
-        return (
-          <>
-            <span
-              className="old-price relative f-12 text-[#3c3c3c] light-text"
-              data-cy="product-price"
-            >
-              {RoundPrice({
-                num: product?.price,
-                rate: currency?.exchange_rate,
-                points: 0,
-                language: language,
-              })}
-              <svg
-                className="absolute w-100"
-                xmlns="http://www.w3.org/2000/svg"
-                width="100%"
-                height="1"
-              >
-                <line
-                  id="Line_1"
-                  data-name="Line 1"
-                  x2="100%"
-                  transform="translate(0 0.5)"
-                  fill="none"
-                  stroke="#3c3c3c"
-                  strokeWidth="1"
-                />
-              </svg>
-            </span>
-            <span
-              className="old-price ml-[3px] relative bold color-dark-gray flex f-12"
-              data-cy="product-offer-price"
-            >
-              {RoundPrice({
-                num: product?.flash_deal_price,
-                rate: currency?.exchange_rate,
-                points: 0,
-                language: language,
-              })}
-            </span>
-          </>
-        );
-      } else {
-        return (
+      return (
+        <>
           <span
-            className="old-price ml-[3px] bold color-dark-gray flex f-12"
-            data-cy="product-redeem-price"
+            className="old-price relative f-12 text-[#3c3c3c] light-text"
+            data-cy="product-price"
           >
             {RoundPrice({
               num: product?.price,
@@ -132,7 +89,6 @@ export const BuyButtonProduct = ({
               points: 0,
               language: language,
             })}
-
             <svg
               className="absolute w-100"
               xmlns="http://www.w3.org/2000/svg"
@@ -145,14 +101,24 @@ export const BuyButtonProduct = ({
                 x2="100%"
                 transform="translate(0 0.5)"
                 fill="none"
-                strokeLinecap="round"
-                stroke="#ff6200"
+                stroke="#3c3c3c"
                 strokeWidth="1"
               />
             </svg>
           </span>
-        );
-      }
+          <span
+            className="old-price ml-[3px] relative bold color-dark-gray flex f-12"
+            data-cy="product-offer-price"
+          >
+            {RoundPrice({
+              num: product?.flash_deal_price,
+              rate: currency?.exchange_rate,
+              points: 0,
+              language: language,
+            })}
+          </span>
+        </>
+      );
     }
     if (product.is_redeem && shouldShowRedeem && seconds > 0) {
       if (product.offer_price >= 0 && product.offer_price !== product.price) {

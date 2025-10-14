@@ -152,6 +152,7 @@ export default async function Page({ params }) {
           slug: product?.slug,
           label_names: product?.label_names,
           category_tree: product?.category_tree,
+          flash_deal_price: product.flash_deal_price,
           videos: product.videos,
           colors: product?.colors,
           sync_color_images: product?.sync_color_images,

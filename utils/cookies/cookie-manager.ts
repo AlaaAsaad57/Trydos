@@ -1,4 +1,5 @@
-// Conditional import to avoid errors in pages directory
+import jwt from "jsonwebtoken";
+
 let cookies: any;
 try {
   if (typeof window === "undefined") {
@@ -40,6 +41,8 @@ export const COOKIE_NAMES = {
   USER_STORIES: "USER-STORIES",
   COUNTRY: "country",
   LANG: "lang",
+  USER_ID_HASH:
+    "x7k9m2p4q8r1s5t3u6v2w9y4z7a1b5c8d2e6f9g3h7j1k4l8m2n5p9q3r6s1t4u7v2w5x8y1z4a7b2c5d8e1f4g7h2j5k8l1m4n7o2p5q8r1s4t7u2v5w8x1y4z7", // Random gibberish name
 } as const;
 
 // Default cookie options
@@ -208,4 +211,57 @@ export function deleteCookie(name: string): void {
   }
 
   setCookie(name, "", { maxAge: -1 });
+}
+
+export function generateToken(userId, SECRET_KEY) {
+  // The payload can contain any claims; here we just include userId
+  const payload = { userId };
+
+  // Create the token; expiresIn can be adjusted (e.g., "1h", "7d")
+  const token = jwt.sign(payload, SECRET_KEY);
+
+  return token;
+}
+export function verifyToken(token, SECRET_KEY) {
+  try {
+    return jwt.verify(token, SECRET_KEY);
+  } catch (error) {
+    return null;
+  }
+}
+/**
+ * Store hashed user ID in cookie
+ * Usage: storeHashedUserId(response.user.id)
+ */
+export function storeHashedUserId(userId: number | string): void {
+  setCookie(COOKIE_NAMES.USER_ID_HASH, userId, {
+    maxAge: 365 * 24 * 60 * 60, // 1 year
+    httpOnly: false,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
+  });
+}
+
+/**
+ * Get and decode hashed user ID from cookie
+ * Returns the hashed user ID if found, null otherwise
+ * Usage: const hashedUserId = getHashedUserId()
+ */
+export function getHashedUserId(): string | null {
+  const hashedId = getCookie<string>(COOKIE_NAMES.USER_ID_HASH);
+
+  if (!hashedId) {
+    return null;
+  }
+
+  // Return the full hash string for comparison
+  return hashedId;
+}
+
+/**
+ * Clear hashed user ID from cookie
+ * Usage: clearHashedUserId() - typically called on logout
+ */
+export function clearHashedUserId(): void {
+  deleteCookie(COOKIE_NAMES.USER_ID_HASH);
 }

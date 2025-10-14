@@ -145,6 +145,7 @@ export default async function Page({ params }) {
           label_names: product?.label_names,
           category_tree: product?.category_tree,
           videos: product.videos,
+          flash_deal_price: product.flash_deal_price,
           colors: product?.colors,
           sync_color_images: product?.sync_color_images,
           ...(!product?.sync_color_images ||

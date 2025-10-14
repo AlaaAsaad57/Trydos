@@ -15,9 +15,9 @@ import {
   getCookie,
   setCookie,
   UserData,
+  storeHashedUserId,
 } from "utils/cookies/cookie-manager";
 import { GA_EVENT_NAMES } from "utils/GAEvents";
-import { getUser } from "components/Chat/chatsFunctions";
 import { REQUESTS_DATA } from "utils/Requests";
 
 class AuthService {
@@ -90,6 +90,15 @@ class AuthService {
       }
       localStorage.setItem("ID-TOKEN", response.data.id_token);
       setCookie(COOKIE_NAMES.MARKET_TOKEN, response.data.token);
+      // Store user_id as hashed
+
+      let token_response = await fetchData({
+        url: `/api/auth/generate?uid=${response.data.user.id}`,
+        method: "GET",
+        reqTitle: { reqTitle: "Store User", code: 999 },
+        server: "local",
+      });
+      if (token_response.token) storeHashedUserId(token_response?.token);
       setCookie(COOKIE_NAMES.USER_DATA, {
         ...response.data.user,
         already_exists: response.data.already_exists,
@@ -334,6 +343,7 @@ class AuthService {
 
     deleteCookie(COOKIE_NAMES.CHAT_TOKEN);
     deleteCookie(COOKIE_NAMES.STORIES_TOKEN);
+    // clearHashedUserId();
   }
   async UpdateProfile(userObj, previousUserObj) {
     const { userProfile } = useAppStore.getState();

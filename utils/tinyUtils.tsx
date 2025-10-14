@@ -374,12 +374,46 @@ export const ShowNotificationSign = ({
 export const formatPhone = (phone) => {
   let valid = false;
   let country = getCountry(phone);
-  const data = phone.replace(/\D/g, "")?.slice(0, 12);
+  let data;
+  switch (country?.iso2?.toLowerCase()) {
+    case "sy":
+      data = phone.replace(/\D/g, "")?.slice(0, 12);
+      if (country && data.length === 12) {
+        valid = true;
+      } else {
+        valid = false;
+      }
+    case "lb":
+      data = phone.replace(/\D/g, "")?.slice(0, 12);
+      if (country && data.length > 10 && data.length <= 12) {
+        valid = true;
+      } else {
+        valid = false;
+      }
+    case "iq":
+      data = phone.replace(/\D/g, "")?.slice(0, 13);
 
-  if (country && data.length > 8 && data.length <= 12) {
-    valid = true;
-  } else {
-    valid = false;
+      if (country && data.length === 13) {
+        valid = true;
+      } else {
+        valid = false;
+      }
+    case "tr":
+      data = phone.replace(/\D/g, "")?.slice(0, 12);
+
+      if (country && data.length === 12) {
+        valid = true;
+      } else {
+        valid = false;
+      }
+    default:
+      data = phone.replace(/\D/g, "")?.slice(0, 13);
+
+      if (country && data.length > 9 && data.length <= 13) {
+        valid = true;
+      } else {
+        valid = false;
+      }
   }
 
   return { data, valid };

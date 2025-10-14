@@ -17,6 +17,7 @@ import WishListPanel from "../WishList/WishListPanel";
 import Spinner from "components/global/Spinner";
 import auth from "services/auth";
 import {
+  clearHashedUserId,
   COOKIE_NAMES,
   deleteCookie,
   getCookie,
@@ -114,6 +115,7 @@ const Menu = ({ user, setMenuOpen }) => {
     // localStorage.clear();
     if (loading) return;
     clearSimulatedUserSession();
+    clearHashedUserId();
     setLoading(true);
     deleteCookie(COOKIE_NAMES.USER_CHAT);
     deleteCookie(COOKIE_NAMES.USER_STORIES);

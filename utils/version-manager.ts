@@ -1,4 +1,9 @@
-import { getCookie, setCookie, deleteCookie } from "./cookies/cookie-manager";
+import {
+  getCookie,
+  setCookie,
+  deleteCookie,
+  clearHashedUserId,
+} from "./cookies/cookie-manager";
 import React from "react";
 
 // Version cookie name
@@ -51,11 +56,6 @@ export const clearAllStorage = (): void => {
     // Clear all cookies (except essential ones)
     const essentialCookies = [
       VERSION_COOKIE_NAME, // Keep version cookie
-      "User-Data",
-      "country", // Keep country setting
-      "lang", // Keep language setting
-      "langauge",
-      "DEVICE-TOKEN",
     ];
 
     // Get all cookies and delete non-essential ones
@@ -66,6 +66,7 @@ export const clearAllStorage = (): void => {
         deleteCookie(cookieName);
       }
     });
+    clearHashedUserId();
 
     console.log("Non-essential cookies cleared");
   } catch (error) {
