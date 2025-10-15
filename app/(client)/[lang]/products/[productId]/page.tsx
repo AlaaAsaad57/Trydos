@@ -728,21 +728,14 @@ async function Page({ params, searchParams }) {
                 lang={Params.lang}
               />
               <FAQSection comments={product?.comments} lang={Params.lang} />
-              {product?.choice_options?.filter(
-                (s) => s.title?.toLowerCase() === "size"
-              )[0]?.options?.length > 0 && (
+
+              {product?.choice_options?.[0]?.options?.length > 0 && (
                 <ProductSizes
                   language={languageVariable}
-                  sizes={
-                    product?.choice_options?.filter(
-                      (s) => s.title?.toLowerCase() === "size"
-                    )[0]?.options || []
-                  }
+                  sizes={product?.choice_options?.[0]?.options || []}
                 />
               )}
-              {product?.choice_options?.filter(
-                (s) => s.title?.toLowerCase() === "size"
-              )[0]?.options?.length > 0 && (
+              {product?.choice_options?.[0]?.options?.length > 0 && (
                 <ProductSizesReview lang={Params.lang} />
               )}
             </div>

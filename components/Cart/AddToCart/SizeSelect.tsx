@@ -116,15 +116,14 @@ function SizeSelect({
               {s?.option === selectedSize && (
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  width="50"
+                  width="100%"
                   height="47"
-                  viewBox="0 0 50 47"
                   className="absolute top-0 left-0 z-20"
                 >
                   <rect
                     x="0.25"
                     y="0.25"
-                    width="49.5"
+                    width="calc(100% - 0.5px)"
                     height="46.5"
                     rx="5.75"
                     stroke="#513aaf"

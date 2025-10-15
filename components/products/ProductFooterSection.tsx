@@ -93,8 +93,7 @@ function ProductFooterSection({
   const translate = (key, lang) => {
     return translateFunction(key, languageVariable);
   };
-  const sizes =
-    product?.choice_options?.filter((s) => s.title == "Size")[0]?.options || [];
+  const sizes = product?.choice_options?.[0]?.options || [];
   const [productState, dispatch] = useReducer(ProductReducer, {
     productDetails: {
       comments_count: null,

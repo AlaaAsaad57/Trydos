@@ -78,7 +78,8 @@ function CartItem({ product, index }) {
           className="text-[12px] mt-1 text-[#505050] flex regular"
           data-cy="productNameInCart"
         >
-          {product.name.substring(0, 30)}
+          {product.name.substring(0, 50)}
+          {product.name.length > 50 ? "..." : ""}
         </div>
 
         <div className="flex-row flex-wrap" data-cy="color-div">

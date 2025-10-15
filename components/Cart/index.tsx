@@ -40,13 +40,11 @@ function CartContainer({ close, toOrders }: CartContainerPropsType) {
     removeFromCart,
     setCartLoading,
     setOrderData,
-    currency,
+
     getProductDetailsForCart,
     setActiveColorDetails,
     language,
-    oldCart,
     cart_loading,
-    product,
     cart,
     cartShippingSuccess,
   } = useAppStore();
@@ -55,31 +53,6 @@ function CartContainer({ close, toOrders }: CartContainerPropsType) {
   let languageVariable = lang.split("-")[1];
   const translate = (key: string, lang?: string) => {
     return translateFunction(key, languageVariable);
-  };
-  const getURLOfProduct = ({ product }) => {
-    let productUrl;
-    const hasValidColor =
-      product.variations[0]?.color &&
-      product.variations[0]?.color !== "undefined";
-    const hasValidSize =
-      product.variations[0]?.Size &&
-      product.variations[0]?.Size !== "undefined";
-
-    if (hasValidColor && !hasValidSize)
-      productUrl = `/${lang}/products/${
-        product.slug
-      }${`?color=${product?.variations[0]?.color}`}`;
-    else if (!hasValidColor && hasValidSize)
-      productUrl = `/${lang}/products/${
-        product.slug
-      }${`?size=${product?.variations[0]?.Size}`}`;
-    else if (!hasValidColor && !hasValidSize)
-      productUrl = `/${lang}/products/${product.slug}`;
-    else if (hasValidColor && hasValidSize)
-      productUrl = `/${lang}/products/${
-        product.slug
-      }${`?size=${product?.variations[0]?.Size}&color=${product?.variations[0]?.color}`}`;
-    return productUrl;
   };
   useEffect(() => {
     GAevent({
@@ -352,14 +325,7 @@ function CartContainer({ close, toOrders }: CartContainerPropsType) {
                       data-cy="one-product"
                     >
                       {" "}
-                      <CartItemLink
-                        product={product}
-                        key={key}
-                        // onClick={(e) => {
-                        //   EnableScroll();
-                        //   close();
-                        // }}
-                      >
+                      <CartItemLink product={product} key={key}>
                         <CartItem product={product} index={key} />
                       </CartItemLink>
                       <QuantutyInput

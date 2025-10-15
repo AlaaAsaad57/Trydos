@@ -403,8 +403,7 @@ export const useCartStore = (set, get) => ({
 
   getProductDetailsForCart: (product) =>
     set((state) => {
-      const a = product?.choice_options?.filter((s) => s.title == "Size")[0]
-        ?.options[0];
+      const a = product?.choice_options?.[0]?.options[0];
       if (
         state.AddToCartOption.enable &&
         state.SelectedProduct.id === product?.temp_id
@@ -506,8 +505,7 @@ export const useCartStore = (set, get) => ({
                 : null),
             selectedSize:
               state.AddToCartOption.selectedSize ||
-              product?.choice_options?.filter((s) => s.title === "Size")[0]
-                ?.options[0] ||
+              product?.choice_options?.[0]?.options[0] ||
               null,
           },
         };
@@ -524,9 +522,7 @@ export const useCartStore = (set, get) => ({
                 : null),
             selectedSize:
               state.AddToCartOption.selectedSize ||
-              state.SelectedProduct?.choice_options?.filter(
-                (s) => s.title === "Size"
-              )[0]?.options[0] ||
+              state.SelectedProduct?.choice_options?.[0]?.options[0] ||
               null,
           },
         };

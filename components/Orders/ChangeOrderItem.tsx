@@ -444,11 +444,7 @@ export const ChangeSizeWidget = ({
         })}
         currentColor={item?.variation?.[0]?.color}
         colors={productData?.sync_color_images}
-        sizes={
-          productData?.choice_options?.filter(
-            (s) => s.title?.toLowerCase() === "size"
-          )[0]?.options
-        }
+        sizes={productData?.choice_options?.[0]?.options}
         setSize={setSize}
         currentSize={item?.variation?.[0]?.Size}
         newSize={size}
