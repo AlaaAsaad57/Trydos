@@ -1,34 +1,30 @@
 import StoryService from "services/story";
-import Cookies from "js-cookie";
 
 import { useAppStore } from "store";
-import { COOKIE_NAMES, getCookie } from "utils/cookies/cookie-manager";
 import { GAevent } from "utils/gtag";
 import { GA_EVENT_NAMES, GA_GLOBAL_SCREEN } from "utils/GAEvents";
 import auth from "services/auth";
-export const changeAppLanguage = async (language) => {
-  const { setAppLanguage } = useAppStore.getState();
-  setAppLanguage(language);
-  Cookies.set("language", language, {
-    expires: 365,
-  });
+import { COOKIE_NAMES, setCookie } from "utils/cookies/cookie-manager";
+
+export const setLocalization = async (language, country) => {
+  const { setAppCountry, setAppLanguage } = useAppStore.getState();
+  if (country) {
+    setAppCountry(country);
+    setCookie(COOKIE_NAMES.COUNTRY, country);
+  }
+  if (language) {
+    setAppLanguage(language);
+    setCookie("language", country);
+  }
   await fetch("/api/setLocal", {
     headers: {
       language: language,
       lang: language,
+      country: country,
     },
+    cache: "no-cache",
   });
 };
-export const changeAppCountry = async (iso) => {
-  const { setAppCountry } = useAppStore.getState();
-  setAppCountry(iso);
-  await fetch("/api/setLocal", {
-    headers: {
-      country: iso,
-    },
-  });
-};
-
 /*Stories Actions */
 export const SelectStory = (e) => {
   const { setSelectedStory } = useAppStore.getState();

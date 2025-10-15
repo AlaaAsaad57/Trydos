@@ -3,7 +3,7 @@ import Link from "next/link";
 import React, { ComponentProps } from "react";
 import { useAppStore } from "store";
 import { GA_GLOBAL_SCREEN } from "utils/GAEvents";
-// import { DisableScroll } from "utils/tinyUtils";
+import { DisableScroll } from "utils/tinyUtils";
 
 export interface INextLinkProps
   extends Omit<ComponentProps<typeof Link>, "href"> {
@@ -81,7 +81,7 @@ export default function NextLink({
             );
           }
           const { setIsNavigating } = useAppStore.getState();
-          // DisableScroll();
+          DisableScroll();
 
           setIsNavigating({ ...data, href });
         }}
@@ -167,7 +167,7 @@ export default function NextLink({
           );
         }
         const { setIsNavigating } = useAppStore.getState();
-        // DisableScroll();
+        DisableScroll();
         setIsNavigating({ ...data, href });
       }}
       // onClick={(e) => {

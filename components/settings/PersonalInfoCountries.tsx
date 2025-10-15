@@ -4,7 +4,7 @@ import AddressInfo from "public/svg/cart/AddressInfo.svg";
 import { translateFunction } from "utils/functions";
 
 import { useParams } from "next/navigation";
-import { changeAppCountry } from "store/homepage/actions";
+import { setLocalization } from "store/homepage/actions";
 
 import { useAppStore } from "store";
 import { FlagIcon } from "utils/tinyUtils";
@@ -78,14 +78,7 @@ function PersonalInfoCountries({
       window.history.replaceState(null, "", newPath);
     }
 
-    await changeAppCountry(country.iso.toLowerCase());
-    await fetch("/api/setLocal", {
-      headers: {
-        country: country.iso.toLowerCase(),
-        lang: language,
-        language: language,
-      },
-    });
+    await setLocalization(language, country.iso.toLowerCase());
 
     setSelectedCountry(country);
 

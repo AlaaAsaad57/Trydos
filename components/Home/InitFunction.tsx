@@ -1,35 +1,26 @@
 "use client";
-import { useSearchParams } from "next/navigation";
-
 import React, { useEffect } from "react";
 import { useAppStore } from "store";
-import { changeAppCountry, changeAppLanguage } from "store/homepage/actions";
+import { setLocalization } from "store/homepage/actions";
+import { COOKIE_NAMES, getCookie } from "utils/cookies/cookie-manager";
 
 function InitFunction({ init }: { init: string | string[] }) {
   const { language, country } = useAppStore();
-  const searchParams = useSearchParams();
+
   const initFunc = async () => {
-    const Cookies = (await import("js-cookie")).default;
-    let languageCookies = Cookies.get("language");
-    let countryCookies = Cookies.get("country");
-    if (!searchParams.get("no-country"))
-      // Cookies.set("country", init.split("-")[0]?.toLowerCase(), {
-      //   expires: 365,
-      // });
-
-      changeAppLanguage(
-        (typeof init === "string" && init.split("-")[1]) ||
-          languageCookies ||
-          language ||
-          process.env.NEXT_PUBLIC_DEFAULT_LANGUAGE
-      );
-
-    let action = await changeAppCountry(
+    let languageCookies = getCookie("language");
+    let countryCookies = getCookie("country");
+    let stored_language =
+      (typeof init === "string" && init.split("-")[1]) ||
+      languageCookies ||
+      language ||
+      process.env.NEXT_PUBLIC_DEFAULT_LANGUAGE;
+    let stored_country =
       (typeof init === "string" && init.split("-")[0]) ||
-        countryCookies ||
-        country ||
-        process.env.NEXT_PUBLIC_DEFAULT_COUNTRY
-    );
+      countryCookies ||
+      country ||
+      process.env.NEXT_PUBLIC_DEFAULT_COUNTRY;
+    setLocalization(stored_language, stored_country);
   };
   useEffect(() => {
     initFunc();

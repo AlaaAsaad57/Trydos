@@ -2,7 +2,6 @@ import {
   showErrorMessage,
   showSuccessMessage,
 } from "components/global/AddToCartMessage";
-import Cookies from "js-cookie";
 import { _isStoreLastJson, LogError } from "./functions";
 import {
   showErrorNotification,
@@ -113,11 +112,12 @@ const getHeader = async (server = null) => {
     "-"
   );
   const userChat = getCookie<UserData>(COOKIE_NAMES.USER_CHAT);
-
+  const languageCookie = getCookie("language");
+  const countryCookie = getCookie("country");
   return {
-    lang: Cookies.get("lang") || Cookies.get("language") || lang,
+    lang: lang ?? languageCookie,
     accept: "application/json",
-    country: Cookies.get("country") || country,
+    country: country ?? countryCookie,
     current_role_id: userChat?.role_id || "-1",
   };
 };

@@ -7,7 +7,7 @@ import { useParams, useRouter } from "next/navigation";
 
 import { FlagIcon } from "utils/tinyUtils";
 import { LanguageFlagPropsType } from "models/componentType/LanguageFlagPropsType";
-import { changeAppLanguage } from "store/homepage/actions";
+import { setLocalization } from "store/homepage/actions";
 
 function LanguageSetting({ goBack }: { goBack: () => void }) {
   const languages = ["ar", "en", "tr", "ku"];
@@ -33,7 +33,7 @@ function LanguageSetting({ goBack }: { goBack: () => void }) {
     try {
       setIsSettingCountry(true);
 
-      await changeAppLanguage(country);
+      await setLocalization(country);
       setSelectedCountry(country);
 
       window.location.href = `/${

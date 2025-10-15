@@ -2,21 +2,19 @@
 
 import "styles/globals.css";
 import { useEffect, useState, useRef, useCallback } from "react";
-import { useParams, usePathname, useSearchParams } from "next/navigation";
+import { useParams, usePathname } from "next/navigation";
 
 import { translateFunction } from "./functions";
 import Cookies from "js-cookie";
 import Spinner from "components/global/Spinner";
 
 import { FlagIcon } from "./tinyUtils";
+import { setLocalization } from "store/homepage/actions";
 
 const PopupCountry = ({ options, countries, forChanged, noCountry }) => {
   const [loading, setLoading] = useState(true);
   const [loadingWidget, setLoadingWidget] = useState(false);
-  const [localization, setLocalization] = useState({
-    country: null,
-    language: "en",
-  });
+
   const [navigating, setNavigating] = useState(false);
   const [progress, setProgress] = useState(0);
   const [initialLoading, setInitialLoading] = useState(true);
@@ -26,7 +24,6 @@ const PopupCountry = ({ options, countries, forChanged, noCountry }) => {
 
   const { lang } = useParams();
   const pathname = usePathname();
-  const searchParams = useSearchParams();
 
   // Set cookies with all methods for maximum compatibility
   const setCookiesAllMethods = useCallback(async (countryCode, langCode) => {
@@ -45,13 +42,7 @@ const PopupCountry = ({ options, countries, forChanged, noCountry }) => {
 
     // Method 3: Server-side API (async but don't wait)
     try {
-      await fetch("/api/setLocal", {
-        headers: {
-          country: countryCode,
-          lang: langCode,
-          language: langCode,
-        },
-      });
+      await setLocalization(langCode, countryCode);
     } catch (error) {
       console.error("Server action failed:", error);
     }
