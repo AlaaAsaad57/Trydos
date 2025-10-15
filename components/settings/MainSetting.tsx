@@ -186,7 +186,8 @@ const OrdersCard = ({
 }: {
   swipeToScreen: (screen: number) => void;
 }) => {
-  const { totalOrders, language, showNotificaionCircle } = useAppStore();
+  const { totalOrders, language, showNotificaionCircle, user, setLoginOpen } =
+    useAppStore();
   useEffect(() => {
     getOrders();
   }, []);
@@ -202,7 +203,8 @@ const OrdersCard = ({
       } flex-col w-1/2 h-[94px] bg-[#F8F8F8] relative rounded-[12px] p-[12px] cursor-pointer`}
       data-cy="orders-page-button"
       onClick={() => {
-        swipeToScreen(9);
+        if (user.phone !== "0" && user) swipeToScreen(9);
+        else setLoginOpen(true);
       }}
     >
       {showNotificaionCircle.length > 0 ? (

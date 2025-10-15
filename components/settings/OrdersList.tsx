@@ -13,6 +13,7 @@ import { useAppStore } from "store";
 import { useParams, useRouter } from "next/navigation";
 import { OrdersListPropsType } from "models/componentType/settingTypes/OrdersListPropsType";
 import OrderSkeletons from "./OrderSkeletons";
+import { COOKIE_NAMES, getCookie } from "utils/cookies/cookie-manager";
 
 // Helper function to get status display name (replace with actual logic if needed)
 
@@ -147,8 +148,13 @@ function OrdersList({
       setLoading(false);
     }
   };
-  const { settings, selectedOrder, shouldUpdateOrders, setShouldUpdateOrders } =
-    useAppStore();
+  const {
+    settings,
+    selectedOrder,
+    shouldUpdateOrders,
+    setShouldUpdateOrders,
+    setLoginOpen,
+  } = useAppStore();
 
   // Initial load and load on status change
   useEffect(() => {
@@ -254,6 +260,14 @@ function OrdersList({
       loadMoreOrders(true, selectedStatus);
     }
   }, [selectedOrder]);
+  useEffect(() => {
+    const user: any = getCookie(COOKIE_NAMES.USER_DATA);
+
+    if (user?.phone === "0" || !user) {
+      setLoginOpen(true);
+      goBack();
+    }
+  }, []);
   const isRtl = language === "ar" || language === "ku";
 
   return (
