@@ -31,7 +31,7 @@ export async function GET(req: NextRequest) {
     const SECRET_KEY = process.env.SECRET_KEY; // Replace with an env variable in production
 
     let token = verifyToken(stored_token, SECRET_KEY);
-    console.log({ token, stored_token, userId });
+
     if (!token) {
       return NextResponse.json(
         { error: "Invalid token" },
