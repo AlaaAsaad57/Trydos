@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
     let stored_token =
       req.headers.get("authorization") || req.headers.get("Authorization");
     const userId = searchParams.get("uid");
-
+    console.log({ userId, stored_token });
     if (!userId || !stored_token) {
       return NextResponse.json(
         { error: "no user id or token!" },
@@ -31,19 +31,21 @@ export async function GET(req: NextRequest) {
     const SECRET_KEY = process.env.SECRET_KEY; // Replace with an env variable in production
 
     let token = verifyToken(stored_token, SECRET_KEY);
+    console.log({ token, stored_token, userId });
     if (!token) {
       return NextResponse.json(
         { error: "Invalid token" },
         { status: 401, headers }
       );
     }
-    if (token.user_id !== userId) {
+
+    if (Number(token.userId) !== Number(userId)) {
       return NextResponse.json(
         { error: "Invalid user id" },
         { status: 401, headers }
       );
     }
-    return NextResponse.json({ token: token, user_id: userId }, { headers });
+    return NextResponse.json({ authinticated: true }, { headers });
   } catch (error: any) {
     console.error(error);
     return NextResponse.json(
