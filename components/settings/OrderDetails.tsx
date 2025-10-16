@@ -23,7 +23,7 @@ import OrderStatusIcon from "./cards/OrderStatusIcon";
 import RateOrderButton from "./cards/RateOrderButton";
 import Order from "services/order";
 import OrderChatIcon from "./OrderChatIcon";
-import { Channel } from "models/Genaral/Channel";
+
 import ReturnedOrderStatusIcon from "public/svg/ReturnedOrderStatusIcon.svg";
 const ChatWidget = dynamic(() => import("components/Chat/ChatWidget"), {
   ssr: false,
@@ -172,8 +172,29 @@ function OrderDetails({
       order_id_chat = searchParams.get("order_id_chat");
       order_id = searchParams.get("chat_id");
       const { order_chat_id } = useAppStore.getState();
-      if (order_id_chat || order_id || order_chat_id) {
-        safeGetChatWithShipping(order_id_chat || order_id || order_chat_id);
+
+      if (
+        (order_id_chat || order_id || order_chat_id) &&
+        data.find(
+          (s) =>
+            String(s.id) === String(order_id_chat) ||
+            (s.return_request_id &&
+              String(s?.return_request_id) === String(order_id_chat)) ||
+            String(s.id) === String(order_id)
+        )
+      ) {
+        let order_item = data.find(
+          (s) =>
+            String(s.id) === String(order_id_chat) ||
+            String(s?.return_request_id) === String(order_id_chat) ||
+            String(s.id) === String(order_id)
+        );
+        if (
+          order_item.order_status?.value === "out_for_delivery" ||
+          order_item?.return_details?.details?.status?.value ===
+            "out_for_return"
+        )
+          safeGetChatWithShipping(order_id_chat || order_id || order_chat_id);
       }
       setShouldUpdateOrders(0);
     } catch (error) {

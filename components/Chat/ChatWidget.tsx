@@ -27,7 +27,19 @@ export default function ChatWidget({
           ?.scrollIntoView({ block: "end", inline: "end" });
     }, 1000);
   }, []);
-  useEffect(() => {}, []);
+  useEffect(() => {
+    return () => {
+      const cleanupUrl = new URL(window.location.href);
+
+      // Remove the query param
+      cleanupUrl.searchParams.delete("chat_id");
+      const { isNavigating } = useAppStore.getState();
+      setTimeout(() => {
+        if (!isNavigating)
+          window.history.pushState({}, "", cleanupUrl.toString());
+      }, 600);
+    };
+  }, []);
   if (!isOpen) return null;
 
   return (
