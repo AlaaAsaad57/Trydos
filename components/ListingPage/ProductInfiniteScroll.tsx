@@ -43,7 +43,19 @@ function ProductsInfiniteScroll({
   const translate = (key, lang?) => {
     return translateFunction(key, languageVariable);
   };
-
+  const getScreen = () => {
+    let screen_name = "";
+    let url = window.location.pathname;
+    if (url.includes("filters/boutique")) {
+      screen_name = GA_GLOBAL_SCREEN.BOUTIQUE_SCREEN;
+    } else if (url.includes("tags_names")) {
+      screen_name = GA_GLOBAL_SCREEN.TAGS_SCREEN;
+    } else if (url.includes("/filters")) {
+      screen_name = GA_GLOBAL_SCREEN.FILTERS_SCREEN;
+    } else {
+      screen_name = GA_GLOBAL_SCREEN.HOME_SCREEN;
+    }
+  };
   useEffect(() => {
     const { setIsNavigating } = useAppStore.getState();
     setIsNavigating(null);
@@ -53,7 +65,7 @@ function ProductsInfiniteScroll({
       params: {
         items: analyticsData,
         item_list_name: getItemsListName(),
-        screen_name: GA_GLOBAL_SCREEN.FILTERS_SCREEN,
+        screen_name: getScreen(),
         screen_path: window.location.pathname,
         user_id_custom: auth.UserID(),
       },
@@ -176,7 +188,7 @@ function ProductsInfiniteScroll({
             })),
             item_list_name: getItemsListName(),
             user_id_custom: auth.UserID(),
-            screen_name: GA_GLOBAL_SCREEN.FILTERS_SCREEN,
+            screen_name: getScreen(),
             screen_path: window.location.pathname,
           },
         });

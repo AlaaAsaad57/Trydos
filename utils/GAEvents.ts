@@ -78,7 +78,7 @@ export const GA_GLOBAL_SCREEN = {
   FILTERS_SCREEN: "filters_screen",
   STORY_SCREEN: "story_screen",
   CHAT_SCREEN: "chat_screen",
-  TAGS_SCREEN: "screen_filter",
+  TAGS_SCREEN: "tags_filters_screen",
 };
 export const GA_GLOBAL_PLATFORM = {
   WEB: "web",
