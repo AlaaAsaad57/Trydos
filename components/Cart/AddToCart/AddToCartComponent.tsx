@@ -6,12 +6,7 @@ import {
   translateFunction,
 } from "utils/functions";
 import { useAppStore } from "store";
-import {
-  useParams,
-  usePathname,
-  useRouter,
-  useSearchParams,
-} from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 
 import auth from "services/auth";
 import home from "services/home";
@@ -37,8 +32,6 @@ import NotifyButton from "./NotifyButton";
 import SearchParamUpdater from "components/global/ParamsUpdater";
 
 function AddToCartComponent({ product, slug, close, enableCartAction }) {
-  const router = useRouter();
-  const pathname = usePathname();
   const abortControllerRef = useRef<AbortController | null>(null);
   const shouldShowRedeem = () => {
     if (!product.is_redeem) return false;

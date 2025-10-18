@@ -206,7 +206,7 @@ const Prices = ({ offer_price, price, redeem_price }) => {
     if (price === offer_price) {
       return (
         <div className="flex flex-row items-center gap-[4px] regular text-[13px] text-[#1d1d1d]">
-          <span className="relative text-[#C4C2C2]">
+          <span className="relative text-[#C4C2C2]" data-cy="offer-price-label">
             <svg
               data-cy="product_addtocart_svg"
               className="top-1/2 left-0 absolute"
@@ -230,7 +230,7 @@ const Prices = ({ offer_price, price, redeem_price }) => {
               language: language,
             })}
           </span>
-          <span className="relative bold">
+          <span className="relative bold" data-cy="redeem-price-label">
             {RoundPrice({
               num: redeem_price,
               rate: currency?.exchange_rate,
@@ -243,7 +243,10 @@ const Prices = ({ offer_price, price, redeem_price }) => {
     } else {
       return (
         <div className="flex flex-row items-center gap-[4px] regular text-[13px] text-[#1d1d1d]">
-          <span className="relative text-[#C4C2C2]">
+          <span
+            className="relative text-[#C4C2C2]"
+            data-cy="normal-price-label"
+          >
             <svg
               data-cy="product_addtocart_svg"
               className="top-1/2 left-0 absolute"
@@ -267,7 +270,7 @@ const Prices = ({ offer_price, price, redeem_price }) => {
               language: language,
             })}
           </span>
-          <span className="relative text-[#C4C2C2]">
+          <span className="relative text-[#C4C2C2]" data-cy="offer-price-label">
             <svg
               data-cy="product_addtocart_svg"
               className="top-1/2 left-0 absolute"
@@ -291,7 +294,7 @@ const Prices = ({ offer_price, price, redeem_price }) => {
               language: language,
             })}
           </span>
-          <span className="relative bold">
+          <span className="relative bold" data-cy="redeem-price-label">
             {RoundPrice({
               num: redeem_price,
               rate: currency?.exchange_rate,
@@ -306,7 +309,10 @@ const Prices = ({ offer_price, price, redeem_price }) => {
     if (price === offer_price) {
       return (
         <div className="flex flex-row items-center gap-[4px] regular text-[13px] text-[#1d1d1d]">
-          <span className="relative text-[#1D1D1D] bold">
+          <span
+            className="relative text-[#1D1D1D] bold"
+            data-cy="offer-price-label"
+          >
             {RoundPrice({
               num: price,
               rate: currency?.exchange_rate,
@@ -319,7 +325,10 @@ const Prices = ({ offer_price, price, redeem_price }) => {
     } else {
       return (
         <div className="flex flex-row items-center gap-[4px] regular text-[13px] text-[#1d1d1d]">
-          <span className="relative text-[#C4C2C2]">
+          <span
+            className="relative text-[#C4C2C2]"
+            data-cy="normal-price-label"
+          >
             <svg
               data-cy="product_addtocart_svg"
               className="top-1/2 left-0 absolute"
@@ -343,7 +352,10 @@ const Prices = ({ offer_price, price, redeem_price }) => {
               language: language,
             })}
           </span>
-          <span className="relative text-[#1D1D1D] bold">
+          <span
+            className="relative text-[#1D1D1D] bold"
+            data-cy="offer-price-label"
+          >
             {RoundPrice({
               num: offer_price,
               rate: currency?.exchange_rate,
@@ -355,5 +367,4 @@ const Prices = ({ offer_price, price, redeem_price }) => {
       );
     }
   }
-  return <></>;
 };
