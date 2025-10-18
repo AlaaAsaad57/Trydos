@@ -111,17 +111,21 @@ class ForegroundNotificationHandler {
         let lang = `${country?.toLocaleLowerCase()}-${language?.toLocaleLowerCase()}`;
         const data = JSON.parse(payload.data.body);
         if (data?.type?.startsWith("order status changed")) {
-          setShouldUpdateOrders(shouldUpdateOrders + 1);
-          showSuccessNotification(
-            data.description,
-            5000,
-            `/${lang}/setting?tab=Orders&id=${data?.order_group_id}`,
-            {
-              is_setting: true,
-              href: `/${lang}/setting?tab=Orders&id=${data?.order_group_id}`,
-            },
-            null
-          );
+          if (data.type === "order status changed") {
+            setShouldUpdateOrders(shouldUpdateOrders + 1);
+          } else {
+            setShouldUpdateOrders(shouldUpdateOrders + 1);
+            showSuccessNotification(
+              data.description,
+              5000,
+              `/${lang}/setting?tab=Orders&id=${data?.order_group_id}`,
+              {
+                is_setting: true,
+                href: `/${lang}/setting?tab=Orders&id=${data?.order_group_id}`,
+              },
+              null
+            );
+          }
         }
         if (JSON.parse(payload.data.body)?.type?.includes("product hurry up")) {
           showSuccessNotification(
