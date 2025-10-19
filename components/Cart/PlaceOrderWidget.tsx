@@ -91,6 +91,12 @@ const OrderCartItem = () => {
           return (
             <div className="flex relative h-[125px]" key={i}>
               <span
+                className="absolute z-20 rounded-full w-[25px] h-[25px] text-center flex items-center justify-center text-[#1d1d1d] light text-[14px] bg-[#bef4cd] shadow-md top-[-5px] right-[-5px]"
+                data-cy="order-item-quantity-label"
+              >
+                {s?.quantity ?? s?.qty}
+              </span>
+              <span
                 className="absolute w-[91px] h-full z-10 rounded-[15px]"
                 style={{
                   boxShadow: "#ffffff80 0px 3px 6px inset",

@@ -140,6 +140,12 @@ const CartItemSelect = ({ items }) => {
             return (
               <div className="flex relative h-[125px]" key={i} data-cy="Item">
                 <span
+                  className="absolute z-20 rounded-full w-[25px] h-[25px] text-center flex items-center justify-center text-[#1d1d1d] light text-[14px] bg-[#bef4cd] shadow-md top-[-5px] right-[-5px]"
+                  data-cy="cart-item-quantity-label"
+                >
+                  {s.quantity}
+                </span>
+                <span
                   data-cy="span-item"
                   className="absolute w-[91px] h-full z-10 rounded-[15px]"
                   style={{
