@@ -71,7 +71,7 @@ const CartItemSelect = ({ items }) => {
   const { lang } = useParams();
   // @ts-ignore
   const language = lang.split("-")[1];
-  const [openCart, setOpenCart] = useState(false);
+  const [openCart, setOpenCart] = useState(true);
   const isRtl = language === "ar" || language === "ku";
   return (
     <div

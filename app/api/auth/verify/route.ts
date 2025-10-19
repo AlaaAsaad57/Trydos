@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
     let stored_token =
       req.headers.get("authorization") || req.headers.get("Authorization");
     const userId = searchParams.get("uid");
-    console.log({ userId, stored_token });
+
     if (!userId || !stored_token) {
       return NextResponse.json(
         { error: "no user id or token!" },
