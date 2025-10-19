@@ -189,81 +189,100 @@ export class ElasticsearchReader {
       const { must, must_not } = this.buildBaseConditions(input, country);
       const customProducts: any[] = [];
 
-      const customQuery: any = {
+      const customQuery = {
         index: "products_catalog",
         body: {
-          track_scores: true,
-          size: limit,
-          collapse: {
-            field: "boutique_id",
-            inner_hits: {
-              name: "by_position",
-              size: 1,
-              sort: [
-                {
-                  "boutique.position": {
-                    order: "desc",
-                    nested: { path: "boutique" },
-                  },
-                },
-              ],
+          size: 0,
+          query: {
+            bool: {
+              must: must,
+              must_not: must_not,
             },
           },
-          _source: [
-            "id",
-            "boutique_id",
-            "boutique.position",
-            "custom_boutiques.id",
-            "custom_boutiques.name",
-            "custom_boutiques.slug",
-            "custom_boutiques.icon",
-            "custom_boutiques.description",
-            "custom_boutiques.banners",
-            "custom_boutiques.language_code",
-          ],
-          query: { bool: { must, must_not } },
-          sort: [{ boutique_id: { order: "asc" } }],
+          aggs: {
+            boutiques_composite: {
+              composite: {
+                size: limit,
+                sources: [
+                  {
+                    boutique_position: {
+                      terms: {
+                        field: "boutique_position",
+                        order: "desc",
+                      },
+                    },
+                  },
+                  {
+                    boutique_id: {
+                      terms: {
+                        field: "boutique_id",
+                        order: "asc",
+                      },
+                    },
+                  },
+                ],
+              },
+              aggs: {
+                boutique_data: {
+                  top_hits: {
+                    size: 1,
+                    _source: {
+                      includes: [
+                        "id",
+                        "boutique_id",
+                        "boutique_position",
+                        "custom_boutiques.id",
+                        "custom_boutiques.name",
+                        "custom_boutiques.slug",
+                        "custom_boutiques.icon",
+                        "custom_boutiques.description",
+                        "custom_boutiques.banners",
+                        "custom_boutiques.language_code",
+                      ],
+                    },
+                  },
+                },
+              },
+            },
+          },
         },
       };
 
-      while (true) {
-        if (searchAfter?.length) {
-          customQuery.body.search_after = searchAfter;
-        }
-
-        const response = await this.client.search(customQuery);
-        const hits = (response.hits.hits as any[]) || [];
-        if (!hits.length) break;
-
-        for (const hit of hits) {
-          const source = hit._source;
-          if (
-            hit.inner_hits?.by_position?.hits?.hits?.[0]?._source?.boutique
-              ?.position
-          ) {
-            source.boutique_position =
-              hit.inner_hits.by_position.hits.hits[0]._source.boutique.position;
-          }
-          customProducts.push(source);
-        }
-
-        searchAfter = hits[hits.length - 1].sort;
-        if (customProducts.length >= limit) break;
+      if (Array.isArray(searchAfter) && searchAfter.length === 2) {
+        // @ts-ignore
+        customQuery.body.aggs.boutiques_composite.composite.after = {
+          boutique_position: searchAfter[0],
+          boutique_id: searchAfter[1],
+        };
       }
 
-      // Sort by position desc, then boutique_id asc
-      customProducts.sort((a, b) => {
-        const posA = a.boutique_position ?? Number.MIN_SAFE_INTEGER;
-        const posB = b.boutique_position ?? Number.MIN_SAFE_INTEGER;
-        if (posA !== posB) return posB - posA;
-        return a.boutique_id - b.boutique_id;
-      });
+      const response = await this.client.search(customQuery);
 
-      // Filter custom_boutiques by language
+      let newSearchAfter = null;
+
+      const bucketsBoutiques =
+        // @ts-ignore
+        response.aggregations?.boutiques_composite?.buckets ?? [];
+
+      for (const bucket of bucketsBoutiques) {
+        const source = bucket.boutique_data?.hits?.hits?.[0]?._source ?? null;
+        if (source) customProducts.push(source);
+      }
+      const afterKey =
+        // @ts-ignore
+
+        response.aggregations?.boutiques_composite?.after_key ?? null;
+      if (afterKey?.boutique_position && afterKey?.boutique_id) {
+        newSearchAfter = [afterKey.boutique_position, afterKey.boutique_id];
+      }
+
+      // Filter custom_boutiques by language code
       for (const boutique of customProducts) {
-        boutique.custom_boutiques = (boutique.custom_boutiques || []).filter(
-          (cb: any) => cb.language_code === language
-        );
+        if (Array.isArray(boutique.custom_boutiques)) {
+          boutique.custom_boutiques = boutique.custom_boutiques.filter(
+            (cb) => cb.language_code === language
+          );
+        }
       }
 
       // build categories query
@@ -442,8 +461,9 @@ export class ElasticsearchReader {
       await Promise.all(
         customProducts.map(async (boutique) => {
           const bid = boutique.boutique_id;
-          if (grouped[bid]?.main?.length > 0)
-            boutique.childCategoriesForProductIds = grouped[bid]?.main || [];
+          if (bid === 8) console.log(bid, grouped[bid]);
+          if (grouped[bid]?.child?.length > 0)
+            boutique.childCategoriesForProductIds = grouped[bid]?.child || [];
           else {
             let products = await getProductsAndFiltersFromElastic({
               country: country,
@@ -496,7 +516,7 @@ export class ElasticsearchReader {
       });
       final = final.filter((b) => b?.slug !== undefined && b?.slug !== null);
 
-      return { boutiques: final, searchAfter };
+      return { boutiques: final, searchAfter: newSearchAfter };
     } catch (error) {
       console.error("GET BOUTIQUE ERROR FROM ELASTIC:", error);
     }
