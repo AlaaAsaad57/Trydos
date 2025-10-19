@@ -461,7 +461,7 @@ export class ElasticsearchReader {
       await Promise.all(
         customProducts.map(async (boutique) => {
           const bid = boutique.boutique_id;
-          if (bid === 8) console.log(bid, grouped[bid]);
+       
           if (grouped[bid]?.child?.length > 0)
             boutique.childCategoriesForProductIds = grouped[bid]?.child || [];
           else {
