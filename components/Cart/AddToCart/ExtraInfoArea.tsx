@@ -19,6 +19,7 @@ function ExtraInfoArea({
   isCollectAfterOrder,
   RedemEnd = () => {},
   id,
+  product,
 }) {
   const configureRedeemedProducts = () => {
     let redeemed_products_ids = getCookie<any>("redemed_ids");
@@ -182,7 +183,7 @@ function ExtraInfoArea({
                   hideRedeemPriceIfItsStillShown();
                 }}
                 minutes={0}
-                seconds={getCounters()}
+                seconds={product?.seconds}
               />
             </span>
             <span className="bold">{translateFunction("Seconds")}</span>

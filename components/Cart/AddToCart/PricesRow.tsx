@@ -238,7 +238,7 @@ function PricesRow({
             transform="translate(0 0.25)"
             fill="none"
             stroke="#e6e6e6"
-            stroke-width="0.5"
+            strokeWidth="0.5"
           />
         </svg>
       )}

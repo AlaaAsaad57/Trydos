@@ -7,7 +7,8 @@ import { getCookie, setCookie } from "utils/cookies/cookie-manager";
 import { translateFunction } from "utils/functions";
 
 function ProductRedeemCounter({ language, product_id }) {
-  const { expireRedeem, SelectedProduct } = useAppStore();
+  const { expireRedeem, SelectedProduct, selected_product_for_add_to_cart } =
+    useAppStore();
   const configureRedeemedProducts = () => {
     if (SelectedProduct?.id === product_id) {
       expireRedeem();
@@ -142,7 +143,11 @@ function ProductRedeemCounter({ language, product_id }) {
       <span className="whitespace-nowrap ">
         {translateFunction("Add To Bag Within ", language)}
       </span>
-      <span className="whitespace-nowrap bold ">
+      <span
+        className="whitespace-nowrap bold "
+        id="product-redeem-counter-label"
+        suppressHydrationWarning={true}
+      >
         {getCounters() > 0 ? (
           <Timer
             seconds={getCounters()}

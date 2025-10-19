@@ -82,7 +82,10 @@ function CartContentOfProduct() {
                   selected_product_for_add_to_cart?.id)
             )
             .map((s) => (
-              <div className="flex-row flex items-center justify-center gap-[3px]">
+              <div
+                className="flex-row flex items-center justify-center gap-[3px]"
+                key={s?.id}
+              >
                 <ProductImageCircle image={s.image} />
                 <div className="text-[10px] text-[#1D1D1D] items-center regular flex flex-row">
                   <span className="medium px-[2px]"> {s.quantity} </span>{" "}

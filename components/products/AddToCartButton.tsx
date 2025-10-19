@@ -28,13 +28,21 @@ function AddToCartButton({ product }: { product: any }) {
       } w-[80px] justify-center bottom-0  left-0 right-0 mx-auto rounded-t-[15px] bg-[#513AAF] text-[13px] medium text-white items-start pt-[11px] shadow-[inset_0px_3px_6px_rgb(255,255,255,0.5)]`}
       data-cy="addToCartButton"
       onClick={(e) => {
+        let seconds: any = 0;
         if (product) {
+          if (shoulShowRedeem()) {
+            seconds = document.querySelector<HTMLSpanElement>(
+              "#product-redeem-counter-label"
+            )?.innerText;
+            console.log(seconds);
+          }
           DisableScroll();
           setSelectedProductForCart({
             ...product,
             shouldUpdate: 0,
             fromProductPage: true,
             showRedeemPrice: shoulShowRedeem(),
+            seconds: Number(seconds),
           });
         }
       }}

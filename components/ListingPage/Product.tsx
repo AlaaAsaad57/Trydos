@@ -60,6 +60,7 @@ export const BuyButtonProduct = ({
         showRedeemPrice: product.is_redeem && shouldShowRedeem,
         singleColor: true,
         is_from_listing: true,
+        seconds: product.is_redeem && shouldShowRedeem ? seconds : 0,
       });
     } else
       setSelectedProductForCart({
@@ -68,6 +69,7 @@ export const BuyButtonProduct = ({
         id: product.product_id || product.id,
         showRedeemPrice: product.is_redeem && shouldShowRedeem,
         is_from_listing: true,
+        seconds: product.is_redeem && shouldShowRedeem ? seconds : 0,
       });
   };
 

@@ -65,6 +65,7 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
     ...product,
     is_redeem: product?.is_redeem && shouldShowRedeem(),
   });
+  // console.log(ProductData?.seconds);
   let selected_color =
     ProductData?.sync_color_images?.find(
       (s) =>
@@ -797,6 +798,7 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
           selected_color={selectedColor}
           selected_size={selectedSize}
           isQtyEmpty={getSelectedVariantQty()?.qty === 0}
+          product={ProductData}
           isRedeem={ProductData?.is_redeem && shouldShowRedeem()}
           flashDeal={ProductData?.flash_deal_end_date}
           id={ProductData?.id}
