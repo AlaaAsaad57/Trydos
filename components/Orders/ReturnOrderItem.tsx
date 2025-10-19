@@ -237,6 +237,7 @@ function ReturnOrderItem({
                 item: { ...item, qty: returnedQty },
                 images: images,
                 reasons: selectedOptions,
+                additon_cost: selectedOptions?.is_cost_by_system === 0,
                 qty: returnedQty,
                 update: item?.return?.already_return,
                 return_request_product_id:

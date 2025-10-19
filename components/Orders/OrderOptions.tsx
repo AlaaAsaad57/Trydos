@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { translateFunction } from "utils/functions";
+import { RoundPrice, translateFunction } from "utils/functions";
 import ChangeAddressIcon from "public/svg/ChangeAddressIcon.svg";
 import ChangeAddressWidget from "./ChangeAddressWidget";
 import { useAppStore } from "store";
@@ -16,6 +16,7 @@ import orderService from "services/order";
 import { totalAmount } from "utils/tinyUtils";
 import { useParams, useRouter } from "next/navigation";
 import { ModifyOrderItemModal } from "./ModifyOrderItemModal";
+import CancelOrderItemIcon from "public/svg/OrderCancelIcon.svg";
 
 function OrderOptions({
   closeOptions,
@@ -277,106 +278,115 @@ function OrderOptions({
                 order={ActivePacks}
                 showDetails={() => {}}
               />
-              <span className="regular text-[12px] mt-[11px] text-[#8D8D8D]">
-                {translateFunction("Action About Your Order")}
-              </span>
-              <div
-                className="w-full h-[1px] mt-[12px]"
-                style={{ borderTop: "1px solid #C4C2C280" }}
-              />
+              {!canceled && (
+                <>
+                  <span className="regular text-[12px] mt-[11px] text-[#8D8D8D]">
+                    {translateFunction("Action About Your Order")}
+                  </span>
+                  <div
+                    className="w-full h-[1px] mt-[12px]"
+                    style={{ borderTop: "1px solid #C4C2C280" }}
+                  />
+                </>
+              )}
             </div>
-            {shouldShowChangeAddress() && (
-              <div
-                onClick={() => {
-                  setScreen("changeAddress");
-                }}
-                className={`cursor-pointer mt-[6px] flex-row w-full items-center px-[15px] bg-[#f8f8f8] rounded-[20px] min-h-[60px] ${
-                  isRtl ? "flex-row-reverse" : " "
-                }`}
-              >
-                <div className="relative flex w-[30px] h-[30px] items-center justify-center">
-                  <ChangeAddressIcon />
-                </div>
-                <div className="flex-col ml-[15px]">
-                  <span
-                    className={`regular text-[14px] text-[#1D1D1D] medium ${
-                      isRtl ? " text-right pr-2" : " "
+
+            {!canceled && (
+              <>
+                {shouldShowChangeAddress() && (
+                  <div
+                    onClick={() => {
+                      setScreen("changeAddress");
+                    }}
+                    className={`cursor-pointer mt-[6px] flex-row w-full items-center px-[15px] bg-[#f8f8f8] rounded-[20px] min-h-[60px] ${
+                      isRtl ? "flex-row-reverse" : " "
                     }`}
                   >
-                    {translateFunction("Change Delivery Address & Note")}
-                  </span>
-                  <p
-                    className={`regular text-[12px] text-[#8D8D8D] ${
-                      isRtl ? "pr-2 text-right" : " "
+                    <div className="relative flex w-[30px] h-[30px] items-center justify-center">
+                      <ChangeAddressIcon />
+                    </div>
+                    <div className="flex-col ml-[15px]">
+                      <span
+                        className={`regular text-[14px] text-[#1D1D1D] medium ${
+                          isRtl ? " text-right pr-2" : " "
+                        }`}
+                      >
+                        {translateFunction("Change Delivery Address & Note")}
+                      </span>
+                      <p
+                        className={`regular text-[12px] text-[#8D8D8D] ${
+                          isRtl ? "pr-2 text-right" : " "
+                        }`}
+                      >
+                        {translateFunction("You Can Change Delivery Address")}
+                      </p>
+                    </div>
+                  </div>
+                )}
+                {
+                  <div
+                    onClick={() => {
+                      // setScreen("changeAddress");
+                    }}
+                    className={`cursor-pointer mt-[6px] flex-row w-full items-center px-[15px] bg-[#f8f8f8] rounded-[20px] min-h-[60px] ${
+                      isRtl ? "flex-row-reverse" : " "
                     }`}
                   >
-                    {translateFunction("You Can Change Delivery Address")}
-                  </p>
-                </div>
-              </div>
-            )}
-            {
-              <div
-                onClick={() => {
-                  // setScreen("changeAddress");
-                }}
-                className={`cursor-pointer mt-[6px] flex-row w-full items-center px-[15px] bg-[#f8f8f8] rounded-[20px] min-h-[60px] ${
-                  isRtl ? "flex-row-reverse" : " "
-                }`}
-              >
-                <div className="relative flex w-[30px] h-[30px] items-center justify-center">
-                  <HideOrderItemIcon />
-                </div>
-                <div className="flex-col ml-[15px]">
-                  <span
-                    className={`regular text-[14px] text-[#1D1D1D] medium ${
-                      isRtl ? " text-right pr-2" : " "
+                    <div className="relative flex w-[30px] h-[30px] items-center justify-center">
+                      <HideOrderItemIcon />
+                    </div>
+                    <div className="flex-col ml-[15px]">
+                      <span
+                        className={`regular text-[14px] text-[#1D1D1D] medium ${
+                          isRtl ? " text-right pr-2" : " "
+                        }`}
+                      >
+                        {translateFunction("Hide This Pack")}
+                      </span>
+                      <p
+                        className={`regular text-[12px] text-[#8D8D8D] ${
+                          isRtl ? "pr-2 " : " "
+                        }`}
+                      >
+                        {translateFunction("Hide This Pack From My List")}
+                      </p>
+                    </div>
+                  </div>
+                }
+                {ActivePacks?.can_cancele_order && (
+                  <div
+                    onClick={() => {
+                      setCanceled(true);
+                    }}
+                    className={`cursor-pointer mt-[6px] flex-row w-full items-center px-[15px] bg-[#f8f8f8] rounded-[20px] min-h-[60px] ${
+                      isRtl ? "flex-row-reverse" : " "
                     }`}
                   >
-                    {translateFunction("Hide This Pack")}
-                  </span>
-                  <p
-                    className={`regular text-[12px] text-[#8D8D8D] ${
-                      isRtl ? "pr-2 " : " "
-                    }`}
-                  >
-                    {translateFunction("Hide This Pack From My List")}
-                  </p>
-                </div>
-              </div>
-            }
-            {ActivePacks?.can_cancele_order && (
-              <div
-                onClick={() => {
-                  setCanceled(true);
-                }}
-                className={`cursor-pointer mt-[6px] flex-row w-full items-center px-[15px] bg-[#f8f8f8] rounded-[20px] min-h-[60px] ${
-                  isRtl ? "flex-row-reverse" : " "
-                }`}
-              >
-                <div className="relative flex w-[30px] h-[30px] items-center justify-center">
-                  <OrderCancelIcon />
-                </div>
-                <div className="flex-col ml-[15px]">
-                  <span
-                    className={`regular text-[14px] text-[#1D1D1D] medium ${
-                      isRtl ? " text-right pr-2" : " "
-                    }`}
-                  >
-                    {translateFunction("Cancel This Pack")}
-                    <span className="mx-1 bold">{ActivePacks?.id}</span>
-                  </span>
-                  <p
-                    className={`regular text-[12px] text-[#8D8D8D] ${
-                      isRtl ? "pr-2 " : " "
-                    }`}
-                  >
-                    {translateFunction(
-                      "You Can Cancel This Pack And Back Your Money"
-                    )}
-                  </p>
-                </div>
-              </div>
+                    <div className="relative flex w-[30px] h-[30px] items-center justify-center">
+                      <OrderCancelIcon />
+                    </div>
+                    <div className="flex-col ml-[15px]">
+                      <span
+                        className={`regular text-[14px] text-[#1D1D1D] medium ${
+                          isRtl ? " text-right pr-2" : " "
+                        }`}
+                      >
+                        {translateFunction("Cancel This Pack")}
+                        <span className="mx-1 bold">{ActivePacks?.id}</span>
+                      </span>
+                      <p
+                        className={`regular text-[12px] text-[#8D8D8D] ${
+                          isRtl ? "pr-2 " : " "
+                        }`}
+                      >
+                        {translateFunction(
+                          "You Can Cancel This Pack And Back Your Money"
+                        )}
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </>
             )}
 
             {canceled && (
@@ -442,6 +452,7 @@ const OrderCanceltionOptions = ({
     "I’m Afraid Of Sizes",
     "I Saw A Better Price",
   ];
+  const { ActivePacks, currency, language } = useAppStore();
   const [selectedOptions, setSelectedOptions] = useState([]);
   const handleOptionClick = (option) => {
     if (selectedOptions.includes(option)) {
@@ -452,6 +463,29 @@ const OrderCanceltionOptions = ({
   };
   return (
     <div className="flex-col mt-[20px] flex-1">
+      <div className="flex-col w-full items-center pb-[12px] px-[24px]">
+        <div className="">
+          <CancelOrderItemIcon className="mt-[12px] [&>path]:fill-[#402CDD]" />
+        </div>
+        <span className="medium text-[14px] mt-[11px] text-[#1D1D1D]">
+          {translateFunction("Cancel This Product")}
+        </span>
+        <p className="text-[#8D8D8D] text-[12px] regular text-center">
+          {translateFunction(
+            "You Can Cancel The Product Without Any Conditions According To The Cancel Policy And Get A Full Refund"
+          )}
+          <span className="bold text-[12px] text-[#8D8D8D] ml-[4px]">
+            {RoundPrice({
+              num: ActivePacks.order_amount,
+              rate: currency?.exchange_rate,
+              language: language,
+            })}
+          </span>
+          <span className="text-[#8D8D8D] mx-[4px]">{currency?.symbol}</span>
+          {translateFunction("To Your Account")}.
+        </p>
+        <span className="border-[#C4C2C280] border-b-[1px] w-full mt-[12px]" />
+      </div>
       <div className="flex-row w-full  items-center justify-center">
         <span className="regular text-[12px] text-[#8D8D8D]">
           {translateFunction("Why Was The Order Cancelled?")}

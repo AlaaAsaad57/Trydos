@@ -173,9 +173,11 @@ function ReturnOrderItemConfirmation({
         <div className="w-full flex-row">
           <RenderReturnedItem returned_items={ReturnedItems()} />
         </div>
-        <span className="mt-[45px] regular text-white text-[16px] text-center">
-          {translateFunction("You Will Not Be Charged Any Fees.")}
-        </span>
+        {!confirmationData?.additon_cost && (
+          <span className="mt-[45px] regular text-white text-[16px] text-center">
+            {translateFunction("You Will Not Be Charged Any Fees.")}
+          </span>
+        )}
         <span className="mt-[19px] regular text-white text-[16px] text-center">
           {translateFunction("You Will Receive Your Refund Within 12 Hours.")}
         </span>
