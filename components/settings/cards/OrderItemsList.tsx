@@ -155,6 +155,7 @@ function OrderItemsList({
                   getOrderDetails();
                 }}
                 productId={product?.product_details.id}
+                variant={product?.variant}
                 order_detail_id={product.id}
                 initialRating={
                   product.comments &&

@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { verifyToken } from "utils/cookies/cookie-manager";
 import { ReportError } from "utils/errorReported";
 import { LogError } from "utils/functions";
+import { GetRatingCommentsFromElastic } from "utils/pagesDataRequests/ProductPageData";
 
 export async function POST(req: NextRequest) {
   const headers = {
@@ -17,17 +18,7 @@ export async function POST(req: NextRequest) {
   }
   const body = await req.json();
   const referer = req.headers.get("referer");
-  const {
-    text,
-    product_id,
-    user_id,
-    user_name,
-    user_avatar,
-    rating,
-    order_detail_id,
-    user_type,
-    variant,
-  } = body;
+  const { order_detail_ids, user_id } = body;
   try {
     let userToken = req.headers.get("authorization");
     userToken = userToken?.split("Bearer ")[1];
@@ -47,81 +38,48 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    if (!user_id || !product_id || !user_name || !text || text?.length === 0) {
+    if (!order_detail_ids || !user_id) {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }
       );
     }
-    let response = await fetch(
-      process.env.COMMENT_BACKEND_URL + "/public_comment/comments/create",
-      {
-        body: JSON.stringify({
-          text,
-          //   @ts-ignore
-          product_id: String(product_id),
-          user_id: String(user_id),
-          user_name,
-          user_avatar,
-          rating,
-          order_details_id: String(order_detail_id),
-          variant,
-          user_type: "customer",
-        }),
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
-    let data = await response.json();
-    if (data.detail) {
-      throw new Error(JSON.stringify(data));
-    }
-    data = data.data;
+    let data = await GetRatingCommentsFromElastic({
+      order_ids: order_detail_ids,
+      user_id: user_id,
+      pageSize: 10,
+    });
+
     return NextResponse.json(
       {
-        data: {
-          comment: {
-            id: data.comment_id,
-            customer: {
-              id: data.user_id,
-              name: data.user_name,
-              image: data.user_avatar,
-            },
-            order_details_id: data?.order_details_id,
-            star_rating: data?.rating,
-            comment: data?.text,
-            variant: data?.variant,
-            product_id: product_id,
-          },
-        },
-        message: "added successfuly",
+        data: data,
+
         code: 200,
       },
       { status: 200, headers }
     );
   } catch (error: any) {
     ReportError(error, {
-      source: "add comment server api",
+      source: "get rating comment for order server api",
       userId: user_id,
       page: referer,
-      url: "/public_comment/comments/create",
+      url: "/public_comment/comments/order_rating",
       method: "POST",
       body,
     });
     LogError({
-      source: "add comment server api",
+      source: "get rating comment for order server api",
       userId: user_id,
       error: error,
       page: referer,
-      url: "/public_comment/comments/create",
+      url: "/public_comment/comments/order_rating",
       method: "POST",
       body,
     });
     return NextResponse.json(
       {
-        message: `${error.message || "Unknown error"}` || "Unknown error",
+        message:
+          `${error.message || error || "Unknown error"}` || "Unknown error",
         data: null,
         code: 500,
       },

@@ -114,10 +114,10 @@ function ProductFooterSection({
   const getComments = async () => {
     try {
       let response: { data: ProductSocialInfo } = await fetchData({
-        url: "/web/product/CommentsSharesDetails/" + product.slug,
+        url: `/api/products/comments/comments?product_id=${product.id}`,
         reqTitle: REQUESTS_DATA.SOCIAL_INFO_REQUEST,
         method: "GET",
-        server: "market",
+        server: "local",
       });
       // @ts-ignore
       if (!response.success) {

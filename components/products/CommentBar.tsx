@@ -54,14 +54,16 @@ function CommentBar({
       });
       setVal("");
       let response: { data: AddComment } = await fetchData({
-        url: "/customer/product_comment",
+        url: "/api/products/comments/create",
         reqTitle: REQUESTS_DATA.ADD_COMMENT_FOR_PRODUCT,
         method: "POST",
-        server: "market",
+        server: "local",
         body: JSON.stringify({
-          customer_id: auth.UserID(),
+          user_id: auth.UserID(),
           product_id: product?.id,
-          comment: s,
+          text: s,
+          user_name: auth.User()?.name,
+          user_avatar: auth.User().image,
         }),
       });
       // @ts-ignore

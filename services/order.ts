@@ -355,43 +355,28 @@ class OrderService {
     order_detail_id,
     productId,
     id = null,
+    variant,
   }) {
     try {
-      if (id) {
-        let res = await fetchData({
-          url: `/customer/product_comment/order/update`,
-          server: "market",
-          method: "POST",
-          body: JSON.stringify({
-            customer_id: auth.UserID(),
-            order_details_id: order_detail_id,
-            comment: comment,
-            star_rating: star_rating,
-            product_id: productId,
-            id: id,
-          }),
-          reqTitle: REQUESTS_DATA.UPDATE_ORDER_RATE,
-        });
-        if (!res.success) {
-          throw new Error(res?.message);
-        }
-      } else {
-        let res = await fetchData({
-          url: `/customer/product_comment/order`,
-          server: "market",
-          method: "POST",
-          body: JSON.stringify({
-            customer_id: auth.UserID(),
-            order_details_id: order_detail_id,
-            comment: comment,
-            star_rating: star_rating,
-            product_id: productId,
-          }),
-          reqTitle: REQUESTS_DATA.RATE_ORDER_DETAILS,
-        });
-        if (!res.success) {
-          throw new Error(res?.message);
-        }
+      let res = await fetchData({
+        url: `/api/products/comments/create`,
+        server: "local",
+        method: "POST",
+        body: JSON.stringify({
+          user_id: auth.UserID(),
+          user_name: auth.User()?.name,
+          user_avatar: auth?.User()?.image,
+          order_detail_id: order_detail_id,
+          text: comment,
+          rating: star_rating,
+          product_id: productId,
+          id: id,
+          variant,
+        }),
+        reqTitle: REQUESTS_DATA.UPDATE_ORDER_RATE,
+      });
+      if (!res.success) {
+        throw new Error(res?.message);
       }
     } catch (e) {
       throw new Error(e?.message);

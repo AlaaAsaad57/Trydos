@@ -32,7 +32,7 @@ export const GetProductData = async (params: {
 };
 export const GetSocialDataForProduct = async ({ productId, slug, lang }) => {
   try {
-    let [commentsRes, sharesRes] = await Promise.all([
+    let [likeRes, sharesRes, commentsRes] = await Promise.all([
       fetchServerData({
         url:
           process.env.NEXT_PUBLIC_BACKEND_URL +
@@ -42,19 +42,24 @@ export const GetSocialDataForProduct = async ({ productId, slug, lang }) => {
         local: lang,
       }),
       getProductSharedCountFromElasticsearch(productId, slug, lang),
+      GetCommentsFromElastic({
+        user_id: null,
+        pageSize: 10,
+        product_id: productId,
+      }),
     ]);
-    if (commentsRes.isError) {
+    if (likeRes.isError) {
       LogServerError(
         {
-          request: `/web/product/CommentsSharesDetails/${slug} || ${commentsRes.status}`,
-          message: JSON.stringify(commentsRes),
+          request: `/web/product/CommentsSharesDetails/${slug} || ${likeRes.status}`,
+          message: JSON.stringify(likeRes),
           language: lang.split("-")[1],
           country: lang.split("-")[0],
         },
         `/web/product/CommentsSharesDetails/${slug}`
       );
       throw new Error(
-        `Comments Requets Error:${commentsRes.status}:${commentsRes.error}`
+        `Comments Requets Error:${likeRes.status}:${likeRes.error}`
       );
     }
     if (sharesRes.isError || sharesRes.error) {
@@ -70,13 +75,16 @@ export const GetSocialDataForProduct = async ({ productId, slug, lang }) => {
       throw new Error(`Shares Requets Error:${sharesRes.error}`);
     }
 
-    let commentsData = commentsRes.data.data;
+    let commentsData = likeRes.data.data;
     // @ts-ignore
     let sharesData = sharesRes.hits?.hits?.[0]?._source?.shared_count || 0;
 
     return {
-      ...commentsData,
+      count_of_likes: commentsData.count_of_likes,
       shared_count: sharesData,
+      comments: commentsRes.comments,
+      comment_offset: commentsRes.searchAfter,
+      comments_count: commentsRes.total,
     };
   } catch (error) {}
 };
@@ -95,4 +103,138 @@ async function getProductSharedCountFromElasticsearch(productId, slug, lang) {
   } catch (error) {
     return { isError: true, error: error };
   }
+}
+// getting asked comments (no rating,noreply)
+export async function GetCommentsFromElastic({
+  user_id,
+  pageSize = 10,
+  searchAfter,
+  product_id,
+}: {
+  user_id?: any;
+  pageSize: number;
+  searchAfter?: any;
+  product_id: string;
+}) {
+  let query: any = {
+    index: "comments",
+    size: pageSize,
+    sort: [
+      { created_at: "desc" }, // newest first
+      { comment_id: "desc" }, // tie-breaker for consistent pagination
+    ],
+    query: {
+      bool: {
+        must: [
+          { term: { status: "active" } },
+          { term: { product_id: product_id } },
+          { term: { has_reply: false } },
+        ],
+        must_not: [
+          { exists: { field: "rating" } },
+          { exists: { field: "order_detail_id" } },
+        ],
+      },
+    },
+  };
+
+  if (searchAfter) {
+    query = {
+      ...query,
+      search_after:
+        typeof searchAfter === "string" ? JSON.parse(searchAfter) : [],
+    };
+  }
+  const response = await client.search(query);
+
+  const results = response.hits.hits.map((hit) => ({
+    id: hit._id,
+    ...((hit?._source as {}) ?? {}),
+  }));
+
+  const nextSearchAfter =
+    results.length > 0 ? response.hits.hits[results.length - 1].sort : null;
+
+  return {
+    comments: results?.map((s: any) => ({
+      id: s.id,
+      customer: {
+        id: s.user_id,
+        name: s.user_name,
+        image: s.user_avatar,
+      },
+      product_id: product_id,
+      comment: s.text,
+      created_at: s.created_at,
+    })),
+    total: (response.hits.total as any)?.value,
+    searchAfter: nextSearchAfter,
+  };
+}
+export async function GetRatingCommentsFromElastic({
+  user_id,
+  pageSize = 10,
+  searchAfter,
+  order_ids,
+}: {
+  user_id?: any;
+  pageSize: number;
+  searchAfter?: any;
+  order_ids: any;
+}) {
+  let query: any = {
+    index: "comments",
+    size: order_ids.length,
+    sort: [
+      { created_at: "desc" }, // newest first
+      { comment_id: "desc" }, // tie-breaker for consistent pagination
+    ],
+    collapse: {
+      field: "order_details_id",
+    },
+    query: {
+      bool: {
+        must: [
+          { term: { status: "active" } },
+          { terms: { order_details_id: order_ids?.map((s) => String(s)) } },
+          { term: { user_id: String(user_id) } },
+        ],
+      },
+    },
+  };
+
+  if (searchAfter) {
+    query = {
+      ...query,
+      search_after:
+        typeof searchAfter === "string" ? JSON.parse(searchAfter) : [],
+    };
+  }
+  const response = await client.search(query);
+
+  const results = response.hits.hits.map((hit) => ({
+    id: hit._id,
+    ...((hit?._source as {}) ?? {}),
+  }));
+
+  const nextSearchAfter =
+    results.length > 0 ? response.hits.hits[results.length - 1].sort : null;
+
+  return {
+    comments: results?.map((s: any) => ({
+      id: s.id,
+      customer: {
+        id: s.user_id,
+        name: s.user_name,
+        image: s.user_avatar,
+      },
+      product_id: s.product_id,
+      comment: s.text,
+      created_at: s.created_at,
+      star_rating: s.rating,
+      order_details_id: s.order_details_id,
+    })),
+    total: (response.hits.total as any)?.value,
+    searchAfter: nextSearchAfter,
+  };
 }

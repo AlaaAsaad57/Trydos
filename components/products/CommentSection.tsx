@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { RoundPrice, translateFunction } from "utils/functions";
+import { translateFunction } from "utils/functions";
 import Comments from "./Comments";
 import CommentBar from "./CommentBar";
 import { useParams } from "next/navigation";
@@ -90,6 +90,7 @@ function CommentSection({
 
       <Comments
         CommentsData={CommentsData}
+        shouldShowMore={product?.comments_count > CommentsData?.length}
         ErrorAccure={(s) => ErrorAccure(s)}
         increase_comments={() => increase_comments()}
         productId={product.id}
@@ -98,6 +99,7 @@ function CommentSection({
         Render={Render}
         comments={CommentsData}
         resendComment={(s) => resendComment(s)}
+        comment_offset={product.comment_offset}
         verifyCommentAction={(mid) => verifyCommentAction(mid)}
       />
       {

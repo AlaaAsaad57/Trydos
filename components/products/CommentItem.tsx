@@ -27,7 +27,7 @@ function CommentItem({
 
   const userData = getCookie(COOKIE_NAMES.USER_DATA);
   // @ts-ignore
-  const isOwner = userData.id === custmerId;
+  const isOwner = String(userData.id) === String(custmerId);
   // @ts-ignore
   const isVerify = userData.is_phone_verified !== 0;
 

@@ -1,5 +1,5 @@
 import RatingStars from "components/settings/cards/RatingStars";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { translateFunction } from "utils/functions";
 
 import order from "services/order";
@@ -13,6 +13,7 @@ function RatingOrderItem({
   lastRatingId = null,
   lastComment = "",
   refresh,
+  variant,
 }) {
   const [rating, setRating] = useState(initialRating);
   const [loading, setLoading] = useState(false);
@@ -31,6 +32,7 @@ function RatingOrderItem({
         order_detail_id: order_detail_id,
         productId: productId,
         id: lastRatingId,
+        variant: variant,
       });
       setRatedComplete(true);
       setComment("");
@@ -118,12 +120,12 @@ function RatingOrderItem({
               {/* Rating Stars */}
               <div className="flex justify-center">
                 <RatingStars
-                  readOnly={loading}
-                  initialRating={rating}
+                  readOnly={loading || Boolean(lastComment)}
+                  initialRating={Number(rating)}
                   size={40}
                   onRatingChange={(e) => {
                     if (!loading) {
-                      setRating(e);
+                      setRating(Number(e));
                     }
                   }}
                 />
@@ -146,7 +148,7 @@ function RatingOrderItem({
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-base text-gray-800 bg-gray-50 transition-colors"
                   placeholder={translateFunction("Add your comment")}
                   aria-label="Comment input"
-                  disabled={loading}
+                  disabled={loading || Boolean(lastComment)}
                   rows={3}
                 />
               </div>

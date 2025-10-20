@@ -100,7 +100,6 @@ function OrderDetails({
     // Create new AbortController
     abortControllerRef.current = new AbortController();
     let id = searchParams.get("id");
-
     setLoading(true);
     try {
       let data = await Order.getOrderDetails(
@@ -144,6 +143,45 @@ function OrderDetails({
         details: data,
         returned_data: returnRequests,
       };
+      let shouldGetRatingValues = data.find(
+        (order) => order?.order_status?.value === "delivered"
+      );
+      if (shouldGetRatingValues) {
+        let order_ids = data.flatMap((order) => order.details.map((d) => d.id));
+        let order_ratings = await fetchData({
+          url: "/api/products/comments/order_rating",
+          method: "POST",
+          body: JSON.stringify({
+            order_detail_ids: order_ids,
+            user_id: auth.UserID(),
+          }),
+          server: "local",
+          reqTitle: REQUESTS_DATA.GET_ORDER_RATING,
+          signal: abortControllerRef.current.signal,
+        });
+        let order_rating_data = order_ratings.data;
+        let new_order_data = data.map((order) => {
+          let new_order = order;
+          new_order.details = new_order.details.map((d) => {
+            let new_detail = d;
+            let order_comment = order_rating_data.comments?.find(
+              (com) => Number(com.order_details_id) === d.id
+            );
+            if (order_comment) {
+              new_detail = {
+                ...new_detail,
+                comments: [order_comment],
+                star_rating: order_comment.star_rating,
+              };
+              return new_detail;
+            } else {
+              return d;
+            }
+          });
+          return new_order;
+        });
+        data = new_order_data;
+      }
       let order_id_chat = searchParams.get("order_id_chat");
       let order_id = searchParams.get("chat_id");
       if (

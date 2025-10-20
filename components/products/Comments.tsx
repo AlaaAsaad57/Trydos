@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import CommentItem from "./CommentItem";
 import Skeleton from "react-loading-skeleton";
 import { AddComment } from "models/API/market/AddComment";
@@ -9,6 +9,9 @@ import { CommentsPropsType } from "models/componentType/CommentsPropsType";
 import { fetchData } from "utils/fetchData";
 import { REQUESTS_DATA } from "utils/Requests";
 import { useAppStore } from "store";
+import { showErrorNotification } from "store/notifications/reducer";
+import { translateFunction } from "utils/functions";
+import Spinner from "components/global/Spinner";
 
 function Comments({
   comments,
@@ -20,19 +23,23 @@ function Comments({
   setComments,
   increase_comments,
   setRender,
+  shouldShowMore,
   verifyCommentAction,
+  comment_offset,
 }: CommentsPropsType) {
   const resendCommentApi = async (mid, s) => {
     try {
       let response: { data: AddComment } = await fetchData({
-        url: "/customer/product_comment",
-        reqTitle: REQUESTS_DATA.RESEND_COMMENT,
+        url: "/api/products/comments/create",
+        reqTitle: REQUESTS_DATA.ADD_COMMENT_FOR_PRODUCT,
         method: "POST",
-        server: "market",
+        server: "local",
         body: JSON.stringify({
-          customer_id: auth.UserID(),
+          user_id: auth.UserID(),
           product_id: productId,
-          comment: s,
+          text: s,
+          user_name: auth.User()?.name,
+          user_avatar: auth.User()?.image,
         }),
       });
       // @ts-ignore
@@ -63,23 +70,34 @@ function Comments({
         photo="https://res.cloudinary.com/dtcmozf4d/image/upload/h_100/f_webp/q_100/v1/product/thumbnail/2024-05-12-663fce81803c3.png"
       /> */}
       {CommentsData !== null ? (
-        CommentsData.map((s, i) => (
-          <CommentItem
-            data-cy="CommentItem"
-            isPending={s?.is_verfied}
-            resendComment={() => {
-              resendComment(s.mid);
-              resendCommentApi(s.mid, s.comment);
-            }}
-            isError={s?.isError}
-            key={i}
-            date={formatTime(s?.created_at)}
-            name={s?.customer?.name}
-            text={s?.comment}
-            photo={GetImageUrl(s.customer.image) ?? profilePng}
-            custmerId={s?.customer?.id}
-          />
-        ))
+        <>
+          {CommentsData.map((s, i) => (
+            <CommentItem
+              data-cy="CommentItem"
+              isPending={s?.is_verfied}
+              resendComment={() => {
+                resendComment(s.mid);
+                resendCommentApi(s.mid, s.comment);
+              }}
+              isError={s?.isError}
+              key={i}
+              date={formatTime(s?.created_at)}
+              name={s?.customer?.name}
+              text={s?.comment}
+              photo={GetImageUrl(s?.customer?.image) ?? profilePng}
+              custmerId={s?.customer?.id}
+            />
+          ))}
+          {shouldShowMore && (
+            <LoadMoreComments
+              offsetVar={comment_offset}
+              product_id={productId}
+              setComments={(new_comments) => {
+                setComments([...comments, ...new_comments]);
+              }}
+            />
+          )}
+        </>
       ) : (
         <>
           <Skeleton
@@ -101,3 +119,64 @@ function Comments({
 }
 
 export default Comments;
+
+const LoadMoreComments = ({ product_id, offsetVar, setComments }) => {
+  const [loading, setLoading] = useState(false);
+  const [offset, setOffset] = useState(offsetVar);
+  const getMoreComments = async () => {
+    try {
+      setLoading(true);
+      console.log(offset);
+      let data = await fetchData({
+        url: `/api/products/comments/comments?product_id=${product_id}&offset=${JSON.stringify(
+          offset
+        )}`,
+        server: "local",
+        method: "GET",
+        reqTitle: REQUESTS_DATA.COMMENT_DATA_REQUEST,
+      });
+
+      setComments(data?.data?.comments ?? []);
+      setOffset(data.offset);
+      setLoading(false);
+    } catch (error) {
+      showErrorNotification(
+        translateFunction("Failed To Retrive Results Please Try Again")
+      );
+      setLoading(false);
+    }
+  };
+  if (loading) {
+    return (
+      <>
+        <Skeleton
+          width={"100%"}
+          height={"100px"}
+          borderRadius={20}
+          className="comment-item"
+        ></Skeleton>
+        <Skeleton
+          width={"100%"}
+          height={"100px"}
+          borderRadius={20}
+          className="comment-item"
+        ></Skeleton>
+      </>
+    );
+  }
+  return (
+    <div className="p-2 flex w-full items-center justify-center">
+      <div
+        className="flex p-2 rounded-md bg-[#f8f8f8] light text-[#1d1d1d] text-center justify-center"
+        onClick={() => {
+          if (!loading) {
+            setLoading(true);
+            getMoreComments();
+          }
+        }}
+      >
+        {loading ? <Spinner /> : translateFunction("Load More")}
+      </div>
+    </div>
+  );
+};

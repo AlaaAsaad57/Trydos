@@ -13,6 +13,7 @@ import {
   UserData,
   deleteCookie,
   getCookie,
+  getHashedUserId,
   setCookie,
 } from "./cookies/cookie-manager";
 import { logRequest } from "./requestLoggerClient";
@@ -85,6 +86,8 @@ const getServerBaseUrl = (server: ServerType) => {
 
 const getToken = async (server: ServerType): Promise<string> => {
   switch (server) {
+    case "local":
+      return getHashedUserId();
     case "chat":
       return getCookie<UserData>(COOKIE_NAMES.USER_CHAT)?.access_token || "";
     case "market":
@@ -98,7 +101,6 @@ const getToken = async (server: ServerType): Promise<string> => {
       return getCookie<UserData>(COOKIE_NAMES.USER_STORIES)?.access_token || "";
     case "upload story":
     case "elastic":
-    case "local":
       return "";
 
     default:
