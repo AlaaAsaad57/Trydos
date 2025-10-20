@@ -1,60 +1,109 @@
 import { ProductPhotosSliderPropsType } from "models/componentType/ProductPhotosSliderPropsType";
-import React from "react";
+import React, { useState } from "react";
 import Image from "next/image";
 import { getConfiguredImage } from "utils/functions";
 import { GetImageUrl, getVideoUrl } from "utils/tinyUtils";
 import ImageSlider from "./ImageSlider";
+import { NormalSlider } from "utils/Slider";
 
 export function ProductPhotosSlider({
   product,
   shouldshowRedem,
   Sliders = true,
-  image,
+  images,
 }: ProductPhotosSliderPropsType) {
+  const [activeSlide, setActiveImageIndex] = useState(0);
   if (Sliders) {
     return (
       <React.Fragment>
         {/* <BorderImage isBig={true} /> */}
-        <div className="inset-shadow-img w-[200px] h-[290px] rounded-15 absolute" />
+
         {product.videos && product.videos.length > 0 ? (
           // Display video if available
-          <video
-            src={getVideoUrl(product.videos[0], { width: 400, height: 400 })}
-            autoPlay
-            loop
-            muted
-            playsInline
-            controls={false}
-            style={{
-              border:
-                (product.flash_deal_end_date || shouldshowRedem) &&
-                "1px solid #FF6200",
-            }}
-            className="w-full object-cover h-[290px] border-[#d3d3d387] border-[1px] rounded-15 z-10"
-          />
+          <>
+            <div className="inset-shadow-img w-[200px] h-[290px] rounded-15 absolute" />
+            <video
+              src={getVideoUrl(product.videos[0], { width: 400, height: 400 })}
+              autoPlay
+              loop
+              muted
+              playsInline
+              controls={false}
+              style={{
+                border:
+                  (product.flash_deal_end_date || shouldshowRedem) &&
+                  "1px solid #FF6200",
+              }}
+              className="w-full object-cover h-[290px] border-[#d3d3d387] border-[1px] rounded-15 z-10"
+            />
+          </>
         ) : (
           // Display first image if no video
-          <Image
-            width={400}
-            height={300}
-            loading="eager"
-            quality={100}
-            fetchPriority="auto"
-            src={getConfiguredImage({
-              src: GetImageUrl(image),
-              width: 189,
-              height: 290,
-              q: 100,
-            })}
-            style={{
-              border:
-                (product.flash_deal_end_date || shouldshowRedem) &&
-                "1px solid #FF6200",
-            }}
-            key={image}
-            className="w-[200px] h-[290px] border-[#d3d3d387] border-[1px] rounded-15 z-10"
-            alt={product.name || "alt"}
-          />
+          // <Image
+          //   width={400}
+          //   height={300}
+          //   loading="eager"
+          //   quality={100}
+          //   fetchPriority="auto"
+          //   src={getConfiguredImage({
+          //     src: GetImageUrl(image),
+          //     width: 189,
+          //     height: 290,
+          //     q: 100,
+          //   })}
+          //   style={{
+          //     border:
+          //       (product.flash_deal_end_date || shouldshowRedem) &&
+          //       "1px solid #FF6200",
+          //   }}
+          //   key={image}
+          //   className="w-[200px] h-[290px] border-[#d3d3d387] border-[1px] rounded-15 z-10"
+          //   alt={product.name || "alt"}
+          // />
+
+          <div
+            className={`product-container-slider h-[290px] duration-300 w-full relative`}
+          >
+            <NormalSlider
+              initialSlide={activeSlide}
+              slideHeight={290}
+              slideWidth={200}
+              slidesArray={images?.map((image, index) => index)}
+              onSlideChange={(index) => {
+                setActiveImageIndex(index);
+              }}
+              renderSlide={({ index, slide, isActive }) => {
+                const image = images?.[index];
+                if (image)
+                  return (
+                    <div className="flex w-full h-[290px] relative" key={index}>
+                      {/* <BorderImage isBig={true} /> */}
+                      <div className="inset-shadow-img w-[200px] h-[290px] rounded-15 absolute " />
+                      <Image
+                        width={400}
+                        height={300}
+                        loading="eager"
+                        quality={100}
+                        fetchPriority="auto"
+                        src={getConfiguredImage({
+                          src: GetImageUrl(image),
+                          width: 189,
+                          height: 290,
+                          q: 100,
+                        })}
+                        style={{
+                          border:
+                            (product.flash_deal_end_date || shouldshowRedem) &&
+                            "1px solid #FF6200",
+                        }}
+                        className="w-[200px] h-[290px] border-[#d3d3d387] border-[1px] rounded-15 z-10"
+                        alt={product.name || "alt"}
+                      />
+                    </div>
+                  );
+              }}
+            />
+          </div>
         )}
       </React.Fragment>
     );
@@ -72,11 +121,28 @@ export function ProductPhotosSlider({
         <div
           className={`product-container-slider h-[290px] duration-300 w-full relative`}
         >
-          <ImageSlider
-            showBorder={Boolean(product.flash_deal_end_date || shouldshowRedem)}
-            product_name={product.name}
-            image={image}
-            key={`Color Images Slider`}
+          <div className="inset-shadow-img w-[200px] h-[290px] rounded-15 absolute " />
+          <Image
+            width={380}
+            height={580}
+            quality={100}
+            loading="eager"
+            fetchPriority="auto"
+            style={{
+              borderRadius: "15px",
+              zIndex: "3",
+              border:
+                Boolean(product.flash_deal_end_date || shouldshowRedem) &&
+                "1px solid #FF6200",
+            }}
+            src={getConfiguredImage({
+              src: GetImageUrl(images[0]),
+              width: 380,
+              height: 580,
+              q: 100,
+            })}
+            className="w-[200px] h-[290px]"
+            alt={product.name || "alt"}
           />
         </div>
       </div>

@@ -9,6 +9,7 @@ import DeleteCommentIcon from "public/svg/DeleteCommentIcon.svg";
 import { showErrorNotification } from "store/notifications/reducer";
 import { useParams } from "node_modules/next/navigation";
 import { translateFunction } from "utils/functions";
+import { convertTextToXFormat } from "utils/tinyUtils";
 function CommentItem({
   custmerId,
   name,
@@ -87,7 +88,7 @@ function CommentItem({
         </div>
         <div className="comment-content">
           <div className="comment-source" data-cy="Source-Of-Comment">
-            {name}
+            {convertTextToXFormat(name)}
           </div>
           <div className="comment-text">{text}</div>
         </div>

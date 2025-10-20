@@ -724,7 +724,7 @@ async function Page({ params, searchParams }) {
 
               <ProductStories id={product.id} />
               <ProductsBuyersComments
-                comments={product?.comments}
+                comments={product?.buyers_comment}
                 lang={Params.lang}
               />
               <FAQSection comments={product?.comments} lang={Params.lang} />

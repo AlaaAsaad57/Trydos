@@ -1,5 +1,6 @@
 "use client";
 import { useRef, useState, useEffect } from "react";
+import useEmblaCarousel from "embla-carousel-react";
 function StackedSlider({
   slide_width = 50,
   slide_height = 0,
@@ -197,124 +198,76 @@ export const NormalSlider = ({
   },
   onSlideChange = (index) => {},
 }) => {
-  const containerRef = useRef(null);
-  const trackRef = useRef(null);
+  const [emblaRef, emblaApi] = useEmblaCarousel({
+    startIndex: initialSlide,
+    dragFree: false,
+    containScroll: "trimSnaps",
+    slidesToScroll: 1,
+  });
 
   const [currentIndex, setCurrentIndex] = useState(initialSlide);
-  const [startX, setStartX] = useState(null);
-  const [translateX, setTranslateX] = useState(0);
-  const [isDragging, setIsDragging] = useState(false);
 
-  const slideCount = slidesArray.length;
-
-  const clampIndex = (index) => Math.max(0, Math.min(slideCount - 1, index));
-
-  // Handle swipe start
-  const handleStart = (e) => {
-    const x = e.type === "mousedown" ? e.clientX : e.touches[0].clientX;
-    setStartX(x);
-    setIsDragging(true);
+  // Handle slide change
+  const handleSlideChange = () => {
+    if (!emblaApi) return;
+    const newIndex = emblaApi.selectedScrollSnap();
+    setCurrentIndex(newIndex);
+    onSlideChange(newIndex);
   };
 
-  const handleMove = (e) => {
-    if (!isDragging || startX === null) return;
-    const x = e.type === "mousemove" ? e.clientX : e.touches[0].clientX;
-    const dx = x - startX;
-    const newTranslate = -currentIndex * slideWidth + dx;
-    setTranslateX(newTranslate);
-  };
-
-  const handleEnd = (e) => {
-    if (!isDragging || startX === null) return;
-
-    const x = e.type === "mouseup" ? e.clientX : e.changedTouches[0].clientX;
-    const dx = x - startX;
-
-    if (dx > 0) {
-      e.stopPropagation();
-      e.preventDefault();
-    }
-    if (dx > threshold) {
-      onSlideChange(clampIndex(currentIndex - 1));
-      setCurrentIndex((prev) => clampIndex(prev - 1));
-    } else if (dx < -threshold) {
-      onSlideChange(clampIndex(currentIndex + 1));
-      setCurrentIndex((prev) => clampIndex(prev + 1));
-    }
-
-    setStartX(null);
-    setIsDragging(false);
-  };
-
-  // Global event listeners for better mouse handling
+  // Initialize Embla and set up event listeners
   useEffect(() => {
-    const el = containerRef.current;
-    if (!el) return;
+    if (!emblaApi) return;
 
-    const options = { passive: false };
+    // Set initial slide
+    if (initialSlide !== 0) {
+      emblaApi.scrollTo(initialSlide);
+    }
 
-    el.addEventListener("touchstart", handleStart, options);
-    el.addEventListener("touchmove", handleMove, options);
-    el.addEventListener("touchend", handleEnd);
-
-    el.addEventListener("mousedown", handleStart);
-    window.addEventListener("mousemove", handleMove);
-    window.addEventListener("mouseup", handleEnd);
+    // Listen for slide changes
+    emblaApi.on("select", handleSlideChange);
 
     return () => {
-      el.removeEventListener("touchstart", handleStart);
-      el.removeEventListener("touchmove", handleMove);
-      el.removeEventListener("touchend", handleEnd);
-
-      el.removeEventListener("mousedown", handleStart);
-      window.removeEventListener("mousemove", handleMove);
-      window.removeEventListener("mouseup", handleEnd);
+      emblaApi.off("select", handleSlideChange);
     };
-  }, [isDragging, startX, currentIndex, slideWidth, threshold]);
+  }, [emblaApi, initialSlide]);
 
-  // Animate to active slide
+  // Update current index when initialSlide prop changes
   useEffect(() => {
-    if (!isDragging) {
-      setTranslateX(-currentIndex * slideWidth);
+    if (emblaApi && initialSlide !== currentIndex) {
+      emblaApi.scrollTo(initialSlide);
     }
-  }, [currentIndex, isDragging, slideWidth]);
+  }, [initialSlide, emblaApi, currentIndex]);
 
   return (
     <div
-      ref={containerRef}
       className={`overflow-hidden relative ${parentClassName}`}
       style={{
         width: `${slideWidth}px`,
         height: `${slideHeight}px`,
         touchAction: "pan-y",
-        cursor: isDragging ? "grabbing" : "grab",
+        cursor: "grab",
       }}
     >
-      <div
-        ref={trackRef}
-        className="flex transition-transform duration-300 ease-in-out "
-        style={{
-          transform: `translateX(${translateX}px)`,
-          width: `${slideWidth * slideCount}px`,
-          height: "100%",
-        }}
-      >
-        {slidesArray.map((slide, index) => (
-          <div
-            key={index}
-            style={{
-              flex: "0 0 auto",
-              width: `${slideWidth}px`,
-              height: "100%",
-            }}
-          >
-            {renderSlide({
-              index,
-              slide,
-              isActive: index === currentIndex,
-            })}
-          </div>
-        ))}
+      <div className="embla p-0" ref={emblaRef}>
+        <div className="embla__container flex">
+          {slidesArray.map((slide, index) => (
+            <div
+              key={index}
+              className="embla__slide flex-shrink-0"
+              style={{
+                width: `${slideWidth}px`,
+                height: "100%",
+              }}
+            >
+              {renderSlide({
+                index,
+                slide,
+                isActive: index === currentIndex,
+              })}
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );

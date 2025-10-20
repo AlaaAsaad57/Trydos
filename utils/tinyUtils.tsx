@@ -875,3 +875,20 @@ export const ShowDayStr = (index, language) => {
   ];
   return days[index];
 };
+
+export function convertTextToXFormat(input) {
+  // Split the input text into words
+  const words = input.split(" ");
+
+  // Transform each word
+  const transformedWords = words.map((word) => {
+    // If the word is empty, return it as is
+    if (word.length === 0) return word;
+
+    // Get the first letter and replace the rest with 'x'
+    return word.charAt(0) + "x".repeat(word.length - 1);
+  });
+
+  // Join the transformed words back into a string and return
+  return transformedWords.join(" ");
+}

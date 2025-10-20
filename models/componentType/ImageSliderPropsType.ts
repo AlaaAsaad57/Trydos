@@ -1,5 +1,5 @@
 export interface ImageSliderPropsType {
   product_name?: string;
-  image: string;
+  images: any[];
   showBorder: boolean;
 }

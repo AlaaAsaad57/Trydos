@@ -3,13 +3,9 @@ import React, { useState } from "react";
 import { useAppStore } from "store";
 import { translateFunction } from "utils/functions";
 import BuyersCommentIcon from "public/svg/product/BuyersCommentsIcon.svg";
-import RatingStars from "components/settings/cards/RatingStars";
+
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
-import ProductViews from "./ProductViews";
-import SolidRecomendIcon from "public/svg/product/SolidRecomendIcon.svg";
-import QualityIcon from "public/svg/product/QualityIcon.svg";
-import RecomendedIcon from "public/svg/RecomendedIcon.svg";
-import NegRecomendedIcon from "public/svg/NegRecomendIcon.svg";
+
 import { RateCommentItem } from "./ProductsBuyersComments";
 import Skeleton from "node_modules/react-loading-skeleton/dist";
 
@@ -110,7 +106,7 @@ function BuyersCommentModal({ comments }) {
                       </div>
                     ))}
                 {!loading &&
-                  comments.map((s) => (
+                  comments?.comments.map((s) => (
                     <RateCommentItem
                       comment={s}
                       language={language}

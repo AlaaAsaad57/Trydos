@@ -3,7 +3,7 @@ import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 import Image from "next/image";
 import React from "react";
 import { translateFunction } from "utils/functions";
-import { formatTime, GetImageUrl } from "utils/tinyUtils";
+import { convertTextToXFormat, formatTime, GetImageUrl } from "utils/tinyUtils";
 import profilePng from "public/images/profileNo.png";
 import FAQIcon from "public/svg/FAQIcon.svg";
 import FAQInputIcon from "public/svg/FAQInputIcon.svg";
@@ -97,7 +97,7 @@ const FaqItem = ({ language, comment }) => {
                 src={GetImageUrl(comment?.customer?.image) ?? profilePng}
                 width={20}
                 height={20}
-                alt={comment?.customer?.name}
+                alt={convertTextToXFormat(comment?.customer?.name)}
               />
             </div>
             <div className="comment-content capitalize">
@@ -106,7 +106,7 @@ const FaqItem = ({ language, comment }) => {
                 data-cy="Source-Of-Comment"
               >
                 <span className="bold pr-[4px]">A</span>{" "}
-                {comment?.customer?.name}
+                {convertTextToXFormat(comment?.customer?.name)}
               </div>
             </div>
           </div>
@@ -169,7 +169,7 @@ const FaqItem = ({ language, comment }) => {
                     src={GetImageUrl(comment?.customer?.image) ?? profilePng}
                     width={20}
                     height={20}
-                    alt={comment?.customer?.name}
+                    alt={convertTextToXFormat(comment?.customer?.name)}
                   />
                 </div>
                 <div className="comment-content capitalize">
@@ -178,12 +178,13 @@ const FaqItem = ({ language, comment }) => {
                     data-cy="Source-Of-Comment"
                   >
                     <span className="bold pr-[4px]">A</span>
-                    {comment?.customer?.name}
+                    {convertTextToXFormat(comment?.customer?.name)}
                   </div>
                 </div>
               </div>
               <span className="medium text-[#1d1d1d] text-[9px] mt-[5px]">
-                {translateFunction("Dear", language)} {comment?.customer?.name}
+                {translateFunction("Dear", language)}{" "}
+                {convertTextToXFormat(comment?.customer?.name)}
               </span>
               <div
                 className="comment-date text-[9px]"

@@ -11,7 +11,7 @@ export interface ProductPhotosSliderPropsType {
     is_redeem?: boolean;
   };
   shouldshowRedem?: boolean;
-  image?: string;
+  images?: any[];
   Sliders?: boolean;
 }
 export interface Image {

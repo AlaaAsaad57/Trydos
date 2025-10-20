@@ -1,0 +1,70 @@
+import { NextRequest, NextResponse } from "next/server";
+
+import { ReportError } from "utils/errorReported";
+import { LogError } from "utils/functions";
+import {
+  GetFQACommentsForProduct,
+  GetRatingCommentsForProduct,
+} from "utils/pagesDataRequests/ProductPageData";
+
+export async function GET(req: NextRequest) {
+  const headers = {
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Methods": "GET, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization",
+    "Cache-Control": "no-store",
+  };
+
+  if (req.method === "OPTIONS") {
+    return new NextResponse(null, { status: 204, headers });
+  }
+
+  const referer = req.headers.get("referer");
+  const product_id = req.nextUrl.searchParams.get("product_id");
+  const offset = req.nextUrl.searchParams.get("offset");
+  try {
+    if (!product_id) {
+      return NextResponse.json(
+        { error: "Missing required fields" },
+        { status: 400 }
+      );
+    }
+    let data = await GetFQACommentsForProduct({
+      product_id: product_id,
+      searchAfter: offset,
+      pageSize: 10,
+    });
+
+    return NextResponse.json(
+      {
+        data: data,
+        code: 200,
+      },
+      { status: 200, headers }
+    );
+  } catch (error: any) {
+    ReportError(error, {
+      source: "get faq comments for prooduct server api",
+      product_id,
+      page: referer,
+      url: "/public_comment/comments/fqa_comments",
+      method: "get",
+    });
+    LogError({
+      source: "get faq comments for prooduct server api",
+      product_id,
+      page: referer,
+      url: "/public_comment/comments/fqa_comments",
+      method: "get",
+    });
+    return NextResponse.json(
+      {
+        message:
+          `${error.message || error || "Unknown error"}` || "Unknown error",
+        data: null,
+        code: 500,
+      },
+      { status: 500, headers }
+    );
+  }
+}

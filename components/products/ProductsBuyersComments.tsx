@@ -4,7 +4,7 @@ import BuyersCommentIcon from "public/svg/product/BuyersCommentsIcon.svg";
 import { translateFunction } from "utils/functions";
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 import Image from "next/image";
-import { formatTime, GetImageUrl } from "utils/tinyUtils";
+import { convertTextToXFormat, formatTime, GetImageUrl } from "utils/tinyUtils";
 import profilePng from "public/images/profileNo.png";
 import RatingStars from "components/settings/cards/RatingStars";
 import RecomendedIcon from "public/svg/RecomendedIcon.svg";
@@ -74,7 +74,7 @@ function ProductsBuyersComments({ lang, comments }) {
           id="comments-buyers-bar"
           className="flex-row w-full gap-[4px]"
         >
-          {comments?.map((s, i) => {
+          {comments?.comments?.map((s, i) => {
             return <RateCommentItem language={language} comment={s} key={i} />;
           })}
         </HortiznalScrollBar>
@@ -109,12 +109,12 @@ export const RateCommentItem = ({ comment, language, width = 90 }) => {
               className="comment-source text-[#1D1D1D] text-[9px] regular"
               data-cy="Source-Of-Comment"
             >
-              {comment?.customer?.name}
+              {convertTextToXFormat(comment?.customer?.name)}
             </div>
           </div>
         </div>
         <span className="medium text-[#1d1d1d] text-[9px] mt-[5px]">
-          Blue | Meduim
+          {comment?.variant}
         </span>
         <div className="comment-date text-[9px]" data-cy="Date-Of-Comment">
           {formatTime(comment?.created_at)}
@@ -123,12 +123,12 @@ export const RateCommentItem = ({ comment, language, width = 90 }) => {
           {comment?.comment}
         </div>
       </div>
-      <BuyerCommentRateInfo language={language} />
+      <BuyerCommentRateInfo language={language} rating={comment.star_rating} />
     </div>
   );
 };
 
-const BuyerCommentRateInfo = ({ language }) => {
+const BuyerCommentRateInfo = ({ language, rating }) => {
   return (
     <div className="flex-row pl-[10px] pr-[3px] justify-between w-full items-center">
       <div className="flex-row  gap-[4px] text-[#1d1d1d] text-[9px] regular">
@@ -160,7 +160,7 @@ const BuyerCommentRateInfo = ({ language }) => {
         <span>110k</span>
       </div>
       <div className="flex-row gap-[4px] text-[9px] text-[#1d1d1d]">
-        <RatingStars color="#1d1d1d" initialRating={2.5} readOnly={true} />
+        <RatingStars color="#1d1d1d" initialRating={rating} readOnly={true} />
         <div className="flex-row gap-[6px]">
           <span>{translateFunction("Good Quality", language)}</span>
           <span>{translateFunction("True Size", language)}</span>
