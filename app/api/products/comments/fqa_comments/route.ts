@@ -37,7 +37,12 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json(
       {
-        data: data,
+        data: {
+          fqa_comments: data.fqa_comments,
+          offset: data.searchAfter,
+          total: data.total,
+          searchAfter: data.searchAfter,
+        },
         code: 200,
       },
       { status: 200, headers }

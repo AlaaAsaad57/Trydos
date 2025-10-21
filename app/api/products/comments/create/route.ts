@@ -25,6 +25,7 @@ export async function POST(req: NextRequest) {
     user_avatar,
     rating,
     order_detail_id,
+    order_details_id,
     user_type,
     variant,
   } = body;
@@ -64,7 +65,7 @@ export async function POST(req: NextRequest) {
           user_name,
           user_avatar,
           rating,
-          order_details_id: String(order_detail_id),
+          order_details_id: String(order_details_id ?? order_detail_id),
           variant,
           user_type: "customer",
         }),

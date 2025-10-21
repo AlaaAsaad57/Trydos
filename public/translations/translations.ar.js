@@ -277,8 +277,8 @@ const translations = {
   Clarification: "توضيح",
   "About Return Your Product": "عن إرجاع المنتج",
   "You Will Not Be Charged Any Fees.": "لن يتم فرض أي رسوم عليك.",
-  "You Will Receive Your Refund Within 12 Hours.":
-    "ستحصل على استرداد المبلغ خلال 12 ساعة.",
+  "You Will Receive Your Refund Within 24 Hours.":
+    "ستحصل على استرداد المبلغ خلال 24 ساعة.",
   "Repeated Cancellations Will Affect Your Rating, Which Will Affect Your Ability To Receive New Offers Or Opportunities From Us.":
     "ستؤثر عمليات الإلغاء المتكررة على تقييمك، مما سيؤثر بدوره على قدرتك على تلقي عروض أو فرص جديدة منا.",
   "I Agree & Cancel": "أوافق و ألغاء",
@@ -1065,6 +1065,7 @@ const translations = {
   "Notification Is Not Enabled! please Allow Notification Access":
     "الإشعارات غير مفعلة! يرجى السماح بالوصول إلى الإشعارات",
   "New Price": "السعر الجديد",
+  "Your Balance Not meet purchase value": "رصيدك لا يغطي قيمة الشراء",
 };
 
 export default translations;

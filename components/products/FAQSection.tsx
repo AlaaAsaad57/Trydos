@@ -1,7 +1,7 @@
 "use client";
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 import Image from "next/image";
-import React from "react";
+import React, { useState } from "react";
 import { translateFunction } from "utils/functions";
 import { convertTextToXFormat, formatTime, GetImageUrl } from "utils/tinyUtils";
 import profilePng from "public/images/profileNo.png";
@@ -9,11 +9,37 @@ import FAQIcon from "public/svg/FAQIcon.svg";
 import FAQInputIcon from "public/svg/FAQInputIcon.svg";
 import { useAppStore } from "store";
 import FAQModal from "./FAQModal";
-function FAQSection({ lang, comments }) {
+import { fetchData } from "utils/fetchData";
+import { REQUESTS_DATA } from "utils/Requests";
+import Spinner from "components/global/Spinner";
+import { AddComment } from "models/API/market/AddComment";
+import auth from "services/auth";
+function FAQSection({ lang, comments, product_id }) {
+  console.log(comments);
   const [country, language] = lang.split("-");
   const { setColorBottomSheet } = useAppStore();
   const isRtl = language === "ar" || language === "ku";
-
+  const [commentsData, setCommentsData] = useState(comments?.comments ?? []);
+  const [offset, setOffset] = useState(comments.offset);
+  const [loading, setLoading] = useState(false);
+  const loadMore = async () => {
+    try {
+      setLoading(true);
+      let data = await fetchData({
+        url: `/api/products/comments/fqa_comments?product_id=${product_id}&offset=${JSON.stringify(
+          offset
+        )}`,
+        method: "GET",
+        server: "local",
+        reqTitle: REQUESTS_DATA.COMMENT_DATA_REQUEST,
+      });
+      setCommentsData([...commentsData, ...data.fqa_comments]);
+      setOffset(data.offset);
+      setLoading(false);
+    } catch (error) {
+      setLoading(false);
+    }
+  };
   return (
     <>
       <FAQModal comments={comments} />
@@ -66,9 +92,24 @@ function FAQSection({ lang, comments }) {
           id="faq-buyers-bar"
           className="flex-row w-full gap-[4px]"
         >
-          {comments?.map((s, i) => {
+          {commentsData?.map((s, i) => {
             return <FaqItem language={language} comment={s} key={i} />;
           })}
+          {true && (
+            <div
+              className={`comment-item rounded-[15px] flex-col justify-between min-w-[330px] max-w-[100px] w-full bg-[#F8F8F8] min-h-[111px] py-[8px] px-[10px]`}
+              style={{
+                position: "relative",
+              }}
+              onClick={() => {
+                if (!loading) loadMore();
+              }}
+            >
+              <div className="w-full flex-col h-full justify-center items-center">
+                {loading ? <Spinner /> : translateFunction("Load More")}
+              </div>
+            </div>
+          )}
         </HortiznalScrollBar>
         <AskInput language={language} />
       </div>
@@ -259,9 +300,45 @@ const AskInput = ({ language }) => {
     );
   };
   const isRtl = language === "ar" || language === "ku";
-
+  const [loading, setLoading] = useState(false);
+  const { SelectedProduct, country } = useAppStore();
+  const [comment, setComment] = useState("");
+  const addComment = async () => {
+    try {
+      setLoading(true);
+      let response: { data: AddComment } = await fetchData({
+        url: "/api/products/comments/create",
+        reqTitle: REQUESTS_DATA.ADD_COMMENT_FOR_PRODUCT,
+        method: "POST",
+        server: "local",
+        body: JSON.stringify({
+          user_id: auth.UserID(),
+          product_id: SelectedProduct?.id,
+          text: comment,
+          user_name: auth.User()?.name,
+          user_avatar: auth.User().image,
+        }),
+      });
+      // @ts-ignore
+      if (!response.success) {
+        // @ts-ignore
+        throw new Error(response.message);
+      }
+      fetch(
+        `/api/editSocialProduct?pid=${SelectedProduct.id}&slug=${SelectedProduct.slug}&language=${language}&country=${country}`
+      );
+      setComment("");
+      setLoading(false);
+    } catch (error) {
+      setLoading(false);
+    }
+  };
   return (
-    <div className="flex mt-[9px] w-full relative h-[40px] rounded-[15px] bg-[#FFFFFF]">
+    <div
+      className={`${
+        loading && "opacity-80"
+      } flex mt-[9px] w-full relative h-[40px] rounded-[15px] bg-[#FFFFFF]`}
+    >
       {
         <span
           className={`absolute top-[10px] ${
@@ -271,12 +348,30 @@ const AskInput = ({ language }) => {
           <FAQInputIcon />
         </span>
       }
+      {loading && (
+        <span
+          className={`absolute top-[10px] ${
+            isRtl ? "left-[10px]" : "right-[10px]"
+          }`}
+        >
+          <Spinner />
+        </span>
+      )}
       {renderBorderSvg()}
       <input
         placeholder={translateFunction(
           "Ask Seller Your Question About This Product …",
           language
         )}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" && !loading) {
+            if (comment.length > 0) addComment();
+          }
+        }}
+        onChange={(e) => {
+          setComment(e.target.value);
+        }}
+        disabled={loading}
         className="outline-none w-full bg-transparent z-40 rounded-[15px] text-[#1d1d1d] placeholder:text-[#C4C2C2] placeholder:text-center px-[40px] flex items-center"
       />
     </div>

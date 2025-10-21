@@ -723,11 +723,18 @@ async function Page({ params, searchParams }) {
               </div>
 
               <ProductStories id={product.id} />
-              <ProductsBuyersComments
-                comments={product?.buyers_comment}
+              {product?.buyers_comment?.comments.length > 0 && (
+                <ProductsBuyersComments
+                  product_id={product.id}
+                  comments={product?.buyers_comment}
+                  lang={Params.lang}
+                />
+              )}
+              <FAQSection
+                product_id={product.id}
+                comments={product?.fqa_questions}
                 lang={Params.lang}
               />
-              <FAQSection comments={product?.comments} lang={Params.lang} />
 
               {product?.choice_options?.[0]?.options?.length > 0 && (
                 <ProductSizes

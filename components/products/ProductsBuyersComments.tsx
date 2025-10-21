@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useState } from "react";
 import BuyersCommentIcon from "public/svg/product/BuyersCommentsIcon.svg";
 import { translateFunction } from "utils/functions";
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
@@ -11,11 +11,34 @@ import RecomendedIcon from "public/svg/RecomendedIcon.svg";
 import NegRecomendedIcon from "public/svg/NegRecomendIcon.svg";
 import { useAppStore } from "store";
 import BuyersCommentModal from "./BuyersCommentModal";
-function ProductsBuyersComments({ lang, comments }) {
+import { fetchData } from "utils/fetchData";
+import { REQUESTS_DATA } from "utils/Requests";
+import Spinner from "components/global/Spinner";
+function ProductsBuyersComments({ lang, comments, product_id }) {
   const [country, language] = lang.split("-");
   const { ColorBottomSheet, setColorBottomSheet } = useAppStore();
   const isRtl = language === "ar" || language === "ku";
-
+  const [commentsData, setCommentsData] = useState(comments.comments ?? []);
+  const [offset, setOffset] = useState(comments.offset);
+  const [loading, setLoading] = useState(false);
+  const loadMore = async () => {
+    try {
+      setLoading(true);
+      let data = await fetchData({
+        url: `/api/products/comments/buyers_comments?product_id=${product_id}&offset=${JSON.stringify(
+          offset
+        )}`,
+        method: "GET",
+        server: "local",
+        reqTitle: REQUESTS_DATA.COMMENT_DATA_REQUEST,
+      });
+      setCommentsData([...commentsData, ...data?.buyers_comments]);
+      setOffset(data?.data?.offset);
+      setLoading(false);
+    } catch (error) {
+      setLoading(false);
+    }
+  };
   return (
     <>
       {ColorBottomSheet && ColorBottomSheet?.is_buyers_comments && (
@@ -74,9 +97,24 @@ function ProductsBuyersComments({ lang, comments }) {
           id="comments-buyers-bar"
           className="flex-row w-full gap-[4px]"
         >
-          {comments?.comments?.map((s, i) => {
+          {commentsData?.map((s, i) => {
             return <RateCommentItem language={language} comment={s} key={i} />;
           })}
+          {true && (
+            <div
+              className={`comment-item rounded-[15px] flex-col justify-between min-w-[330px] max-w-[100px] w-full bg-[#F8F8F8] min-h-[111px] py-[8px] px-[10px]`}
+              style={{
+                position: "relative",
+              }}
+              onClick={() => {
+                if (!loading) loadMore();
+              }}
+            >
+              <div className="w-full flex-col h-full justify-center items-center">
+                {loading ? <Spinner /> : translateFunction("Load More")}
+              </div>
+            </div>
+          )}
         </HortiznalScrollBar>
         <BuyersRatingBar language={language} />
       </div>

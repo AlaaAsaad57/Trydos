@@ -33,7 +33,12 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json(
       {
-        data: data,
+        data: {
+          buers_comments: data.buyers_comments,
+          offset: data.searchAfter,
+          total: data.total,
+          searchAfter: data.searchAfter,
+        },
         code: 200,
       },
       { status: 200, headers }
