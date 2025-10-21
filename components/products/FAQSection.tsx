@@ -95,7 +95,7 @@ function FAQSection({ lang, comments, product_id }) {
           {commentsData?.map((s, i) => {
             return <FaqItem language={language} comment={s} key={i} />;
           })}
-          {true && (
+          {comments.total > commentsData?.length && (
             <div
               className={`comment-item rounded-[15px] flex-col justify-between min-w-[330px] max-w-[100px] w-full bg-[#F8F8F8] min-h-[111px] py-[8px] px-[10px]`}
               style={{
@@ -105,13 +105,18 @@ function FAQSection({ lang, comments, product_id }) {
                 if (!loading) loadMore();
               }}
             >
-              <div className="w-full flex-col h-full justify-center items-center">
+              <div className="w-full flex-col h-full justify-center items-center text-[#1d1d1d] light">
                 {loading ? <Spinner /> : translateFunction("Load More")}
               </div>
             </div>
           )}
         </HortiznalScrollBar>
-        <AskInput language={language} />
+        <AskInput
+          language={language}
+          setCommentsData={(e) => {
+            setCommentsData([e, ...commentsData]);
+          }}
+        />
       </div>
     </>
   );
@@ -277,7 +282,7 @@ const FaqItem = ({ language, comment }) => {
   );
 };
 
-const AskInput = ({ language }) => {
+const AskInput = ({ language, setCommentsData }) => {
   const renderBorderSvg = () => {
     return (
       <svg
@@ -324,6 +329,7 @@ const AskInput = ({ language }) => {
         // @ts-ignore
         throw new Error(response.message);
       }
+      if (response.data.comment) setCommentsData(response.data.comment);
       fetch(
         `/api/editSocialProduct?pid=${SelectedProduct.id}&slug=${SelectedProduct.slug}&language=${language}&country=${country}`
       );
@@ -368,6 +374,7 @@ const AskInput = ({ language }) => {
             if (comment.length > 0) addComment();
           }
         }}
+        value={comment}
         onChange={(e) => {
           setComment(e.target.value);
         }}

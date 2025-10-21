@@ -94,6 +94,7 @@ export async function POST(req: NextRequest) {
             star_rating: data?.rating,
             comment: data?.text,
             variant: data?.variant,
+            created_at: data?.created_at,
             product_id: product_id,
           },
         },
