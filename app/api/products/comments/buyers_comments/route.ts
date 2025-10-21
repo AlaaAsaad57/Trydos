@@ -39,7 +39,6 @@ export async function GET(req: NextRequest) {
         data: {
           buers_comments: data.buyers_comments,
           offset: data.searchAfter,
-          offsetStr: data.searchAfter ? JSON.stringify(data.searchAfter) : null,
           total: data.total,
           searchAfter: data.searchAfter,
         },

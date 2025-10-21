@@ -44,13 +44,7 @@ export async function GET(req: NextRequest) {
       user_id: user_id,
     });
     return NextResponse.json(
-      {
-        data: data,
-        code: 200,
-        offset: data.searchAfter,
-        total: data.total,
-        offsetStr: data.searchAfter ? JSON.stringify(data.searchAfter) : null,
-      },
+      { data: data, code: 200, offset: data.searchAfter },
       { headers }
     );
   } catch (error: any) {
