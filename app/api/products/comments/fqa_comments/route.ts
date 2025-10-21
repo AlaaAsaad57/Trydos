@@ -43,6 +43,7 @@ export async function GET(req: NextRequest) {
         data: {
           fqa_comments: data.fqa_comments,
           offset: data.searchAfter,
+          offsetStr: data.searchAfter ? JSON.stringify(data.searchAfter) : null,
           total: data.total,
           searchAfter: data.searchAfter,
         },
