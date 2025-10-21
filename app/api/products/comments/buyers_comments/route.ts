@@ -17,7 +17,10 @@ export async function GET(req: NextRequest) {
 
   const referer = req.headers.get("referer");
   const product_id = req.nextUrl.searchParams.get("product_id");
-  const offset = req.nextUrl.searchParams.get("offset");
+  let offset = req.nextUrl.searchParams.get("offset");
+  if (offset) {
+    offset = decodeURIComponent(offset);
+  }
   try {
     if (!product_id) {
       return NextResponse.json(

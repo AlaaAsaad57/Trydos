@@ -19,7 +19,11 @@ export async function GET(req: NextRequest) {
   const referer = req.headers.get("referer");
   const searchParams = req.nextUrl.searchParams;
   const product_id = searchParams.get("product_id");
-  const offset = searchParams.get("offset");
+  let offset = searchParams.get("offset");
+  if (offset) {
+    offset = decodeURIComponent(offset);
+  }
+
   let userToken = req.headers.get("authorization");
   userToken = userToken?.split("Bearer ")[1];
   let secret = process.env.SECRET_KEY;
