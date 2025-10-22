@@ -115,15 +115,13 @@ export const CategoriesSlider = ({ categories, boutique, lang }) => {
           <div className="rounded-[15px] absolute w-full h-full top-0 left-0 z-10 shadow-[inset_0px_3px_6px_rgba(255,255,255,0.5)]" />
           <Image
             alt={category?.most_viewed_product_name}
-            src={getConfiguredImage({
-              src: GetImageUrl(category.most_viewed_product_thumbnail),
-              height: 300,
-              width: 300,
-              q: 100,
-            })}
+            src={GetImageUrl(category.most_viewed_product_thumbnail).replace(
+              "/upload",
+              `/upload/h_200,w_200,c_fit/f_auto/q_auto:good/fl_lossy/so_0`
+            )}
             layout="responsive"
             width={300}
-            className="rounded-[15px] w-[90px] h-[90px] object-contain "
+            className="rounded-[15px] w-[90px] h-[90px] object-cover object-center "
             height={300}
           />
         </NextLink>
