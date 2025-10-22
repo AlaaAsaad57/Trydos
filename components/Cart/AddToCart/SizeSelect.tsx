@@ -217,12 +217,14 @@ function SizeSelect({
           ))}
         </HortiznalScrollBar>
       </div>
-      {selectedSize && (
+      {selectedSize ? (
         <SizeWarning
           isCollectAfterOrder={isCollectAfterOrder}
           size={selectedSize}
           qty={qty}
         />
+      ) : (
+        <></>
       )}
     </div>
   );
@@ -231,6 +233,7 @@ function SizeSelect({
 export default SizeSelect;
 
 const SizeWarning = ({ qty, size, isCollectAfterOrder }) => {
+  console.log({ qty, size, isCollectAfterOrder });
   if (qty > 0 || isCollectAfterOrder) {
     return (
       <div className="flex flex-row items-center mt-[11px] gap-[4px] w-full justify-center px-[24px]">
@@ -265,7 +268,7 @@ const SizeWarning = ({ qty, size, isCollectAfterOrder }) => {
       <div className="flex flex-row items-center mt-[11px] gap-[4px] w-full justify-center px-[24px]">
         <div className="flex flex-row items-center text-[11px] text-[#FF5F61] regular gap-[4px] align-baseline pt-[1px]">
           <span className="bold flex items-center">
-            {size?.name ?? size} | {size ?? size?.name}
+            {size?.name ?? size} | {size?.name ?? size}
           </span>
           <span className="flex items-center">
             {translateFunction("Not Available Now, Stock Is Sold Out")}
