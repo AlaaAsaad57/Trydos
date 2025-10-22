@@ -118,6 +118,7 @@ export const CategoriesSlider = ({ categories, boutique, lang }) => {
             src={getConfiguredImage({
               src: GetImageUrl(category.most_viewed_product_thumbnail),
               height: 300,
+              width: 300,
               q: 100,
             })}
             layout="responsive"

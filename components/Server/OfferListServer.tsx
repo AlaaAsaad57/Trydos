@@ -23,7 +23,7 @@ function OfferListServer({
         data-cy="boutiques"
       >
         <DataSourceLogger dataSourceString={dataSourceString} />
-        {/* <BoutiqueContainer
+        <BoutiqueContainer
           lang={params.lang}
           boutique={{
             name: "Mango",
@@ -79,7 +79,7 @@ function OfferListServer({
               // },
             ],
           }}
-        /> */}
+        />
         {HomeData?.boutiques?.map((boutique, myKey) => {
           return (
             <React.Fragment key={myKey}>
