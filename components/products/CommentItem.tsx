@@ -28,9 +28,9 @@ function CommentItem({
 
   const userData = getCookie(COOKIE_NAMES.USER_DATA);
   // @ts-ignore
-  const isOwner = String(userData.id) === String(custmerId);
+  const isOwner = String(userData?.id) === String(custmerId);
   // @ts-ignore
-  const isVerify = userData.is_phone_verified !== 0;
+  const isVerify = userData?.is_phone_verified !== 0;
 
   const handleDeleteComment = async () => {
     setDeleteLoading(true);

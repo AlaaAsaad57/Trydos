@@ -85,36 +85,14 @@ function CommentBar({
     }
   };
   const userData = getCookie<UserData>(COOKIE_NAMES.USER_DATA);
-  const isLoggedIn = userData?.phone !== "0";
   return (
     <div className="comment-input-holder relative">
       <textarea
         data-cy="CommentField"
         tabIndex={0}
         aria-label={translateFunction("Comment input")}
-        className={`w-full resize-none outline-none p-2 rounded border border-gray-300 min-h-[40px] max-h-[120px] transition-all duration-200${
-          !isLoggedIn
-            ? " bg-gray-100 cursor-not-allowed text-gray-400"
-            : " bg-white"
-        }`}
-        readOnly={!isLoggedIn}
-        onClick={() => {
-          if (!isLoggedIn) {
-            showErrorNotification(translateFunction("Please log in first"));
-          }
-        }}
-        onFocus={(e) => {
-          if (!isLoggedIn) {
-            e.target.blur();
-            showErrorNotification(translateFunction("Please log in first"));
-          }
-        }}
+        className={`w-full resize-none outline-none p-2 rounded border border-gray-300 min-h-[40px] max-h-[120px] transition-all duration-200${" bg-white"}`}
         onKeyDown={(e) => {
-          if (!isLoggedIn) {
-            e.preventDefault();
-            showErrorNotification(translateFunction("Please log in first"));
-            return;
-          }
           // @ts-ignore
           if ((e.key === "Enter" || e.keyCode === "13") && !e.shiftKey) {
             e.preventDefault();
@@ -128,14 +106,12 @@ function CommentBar({
           }
         }}
         onInput={(e) => {
-          if (!isLoggedIn) return;
           e.currentTarget.style.height = "auto";
           e.currentTarget.style.height = `${e.currentTarget.scrollHeight}px`;
         }}
         placeholder={translateFunction("type a comment")}
         value={val}
         onChange={(e) => {
-          if (!isLoggedIn) return;
           setVal(e.target.value);
         }}
       />

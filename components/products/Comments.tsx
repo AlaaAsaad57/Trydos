@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import CommentItem from "./CommentItem";
 import Skeleton from "react-loading-skeleton";
 import { AddComment } from "models/API/market/AddComment";
@@ -8,7 +8,6 @@ import { formatTime, GetImageUrl } from "utils/tinyUtils";
 import { CommentsPropsType } from "models/componentType/CommentsPropsType";
 import { fetchData } from "utils/fetchData";
 import { REQUESTS_DATA } from "utils/Requests";
-import { useAppStore } from "store";
 import { showErrorNotification } from "store/notifications/reducer";
 import { translateFunction } from "utils/functions";
 import Spinner from "components/global/Spinner";

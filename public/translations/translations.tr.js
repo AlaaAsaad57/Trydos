@@ -1053,6 +1053,10 @@ const translations = {
   "Your Balance Not meet purchase value":
     "Bakiyeniz satın alma tutarını karşılamıyor",
   "New Price": "Yeni Fiyat",
+  "Please Login so You Can Add a comment":
+    "Yorum ekleyebilmek için lütfen giriş yapın",
+  "Please Login so You Can Add a comment":
+    "تکایە بچۆ ژوورەوە بۆ ئەوەی بتوانیت لێدوانێک زیاد بکەیت",
 };
 
 export default translations;

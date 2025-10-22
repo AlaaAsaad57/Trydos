@@ -27,7 +27,7 @@ function CommentSection({
   let { lang } = useParams();
   // @ts-ignore
   let languageVariable = lang.split("-")[1];
-  const { currency } = useAppStore();
+  const { user } = useAppStore();
   useEffect(() => {
     if (comments) {
       setComments(
@@ -57,8 +57,16 @@ function CommentSection({
     Init();
   }, []);
   return (
-    <div className="extended-section" data-cy="ExtendCoomentSection">
-      <div className="extended-bar-top">
+    <div
+      className="extended-section items-center justify-center"
+      data-cy="ExtendCoomentSection"
+    >
+      {user?.phone === "0" && (
+        <span className="text-red-500">
+          {translateFunction("Please Login so You Can Add a comment")}
+        </span>
+      )}
+      <div className="extended-bar-top m-0">
         <svg
           id="_20x20"
           data-name="20x20"
@@ -102,7 +110,7 @@ function CommentSection({
         comment_offset={product.comment_offset}
         verifyCommentAction={(mid) => verifyCommentAction(mid)}
       />
-      {
+      {user?.phone !== "0" && (
         <CommentBar
           CommentsData={CommentsData}
           verifyCommentAction={(mid) => verifyCommentAction(mid)}
@@ -113,7 +121,7 @@ function CommentSection({
           product={product}
           ErrorAccure={(s) => ErrorAccure(s)}
         />
-      }
+      )}
     </div>
   );
 }

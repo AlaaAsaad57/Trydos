@@ -14,6 +14,7 @@ import { REQUESTS_DATA } from "utils/Requests";
 import Spinner from "components/global/Spinner";
 import { AddComment } from "models/API/market/AddComment";
 import auth from "services/auth";
+import { showErrorNotification } from "store/notifications/reducer";
 function FAQSection({ lang, comments, product_id }) {
   console.log(comments);
   const [country, language] = lang.split("-");
@@ -283,6 +284,7 @@ const FaqItem = ({ language, comment }) => {
 };
 
 const AskInput = ({ language, setCommentsData }) => {
+  const { user } = useAppStore();
   const renderBorderSvg = () => {
     return (
       <svg
@@ -378,7 +380,11 @@ const AskInput = ({ language, setCommentsData }) => {
         onChange={(e) => {
           setComment(e.target.value);
         }}
-        disabled={loading}
+        onMouseDown={() => {
+          if (user?.phone === "0" || !user)
+            showErrorNotification(translateFunction("Please log in first"));
+        }}
+        readOnly={loading || user?.phone === "0" || !user}
         className="outline-none w-full bg-transparent z-40 rounded-[15px] text-[#1d1d1d] placeholder:text-[#C4C2C2] placeholder:text-center px-[40px] flex items-center"
       />
     </div>
