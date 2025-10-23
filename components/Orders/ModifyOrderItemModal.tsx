@@ -45,7 +45,9 @@ export const ModifyOrderItemModal = ({
     await order.changeOrderItemVariant({
       choice_1: confirmationData?.newSize ?? "",
       color: confirmationData?.productDetails?.colors?.find(
-        (s) => s.name === confirmationData.newColor
+        (s) =>
+          s.name === confirmationData.newColor ||
+          s.option === confirmationData?.newColor
       )?.color,
       image: imageVar,
       order_detail_id: confirmationData?.detail_id,
