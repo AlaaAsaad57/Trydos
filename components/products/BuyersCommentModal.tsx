@@ -1,22 +1,25 @@
+import React, { useState, useCallback, useEffect } from "react";
 import BottomSheet from "components/global/BottomSheet";
-import React, { useState } from "react";
-import { useAppStore } from "store";
-import { translateFunction } from "utils/functions";
+import HortiznalScrollBar from "components/global/HortiznalScrollBar";
+import Skeleton from "react-loading-skeleton";
 import BuyersCommentIcon from "public/svg/product/BuyersCommentsIcon.svg";
 
-import HortiznalScrollBar from "components/global/HortiznalScrollBar";
-
-import { RateCommentItem } from "./ProductsBuyersComments";
-import Skeleton from "node_modules/react-loading-skeleton/dist";
+import { useAppStore } from "store";
+import { translateFunction } from "utils/functions";
 import { fetchData } from "utils/fetchData";
 import { REQUESTS_DATA } from "utils/Requests";
+import { RateCommentItem } from "./ProductsBuyersComments";
 
-function BuyersCommentModal({ comments, total, offset }) {
+function BuyersCommentModal({ comments = [], total, offset: initialOffset }) {
   const { ColorBottomSheet, setColorBottomSheet, language, SelectedProduct } =
     useAppStore();
 
-  const [active_comment_type, setActiveCommentType] = useState(0);
-  const comments_types = [
+  const [activeType, setActiveType] = useState(0);
+  const [commentsData, setCommentsData] = useState(comments);
+  const [offset, setOffset] = useState(initialOffset);
+  const [loading, setLoading] = useState(false);
+
+  const commentTypes = [
     { id: 1, name: "Size" },
     { id: 2, name: "Quality" },
     { id: 3, name: "Color" },
@@ -24,60 +27,75 @@ function BuyersCommentModal({ comments, total, offset }) {
     { id: 5, name: "Complaint" },
     { id: 6, name: "Recommendation" },
   ];
-  const [commentsData, setCommentsData] = useState(comments ?? []);
-  const [offsetVar, setOffset] = useState(offset);
-  const [loading, setLoading] = useState(false);
-  const loadMore = async (filter = null) => {
+
+  const isRtl = language === "ar" || language === "ku";
+
+  // ✅ Stable loadMore function
+  const loadMore = async (
+    filterId = null,
+    offsetValue = null,
+    reset = false
+  ) => {
+    if (!SelectedProduct?.id) return;
+
+    setLoading(true);
     try {
-      setLoading(true);
-      let data = await fetchData({
-        url: `/api/products/comments/buyers_comments?product_id=${
-          SelectedProduct.id
-        }${offsetVar ? `&offset=${JSON.stringify(offset)}` : ""}${
-          active_comment_type
-            ? `&filter=${comments_types[active_comment_type]}`
-            : ""
-        }`,
+      const url = `/api/products/comments/buyers_comments?product_id=${
+        SelectedProduct.id
+      }${offsetValue ? `&offset=${JSON.stringify(offsetValue)}` : ""}${
+        filterId
+          ? `&filter=${commentTypes.find((c) => c.id === filterId)?.name}`
+          : ""
+      }`;
+
+      const data = await fetchData({
+        url,
         method: "GET",
         server: "local",
         reqTitle: REQUESTS_DATA.COMMENT_DATA_REQUEST,
       });
-      setCommentsData([...commentsData, ...data?.buyers_comments]);
+
+      setCommentsData((prev) =>
+        reset
+          ? data?.data?.buyers_comments ?? []
+          : [...prev, ...data?.data?.buyers_comments]
+      );
       setOffset(data?.data?.offset);
-      setLoading(false);
-    } catch (error) {
+    } catch (err) {
+      console.error("Error loading comments:", err);
+    } finally {
       setLoading(false);
     }
   };
-  const FilterComments = async (id) => {
-    setLoading(true);
-    if (active_comment_type !== id) {
-      setActiveCommentType(id);
-      setCommentsData([]);
-      setOffset(null);
-      await loadMore(id);
-    } else {
-      setActiveCommentType(0);
-      setCommentsData(comments);
-      setOffset(offsetVar);
-    }
+  // ✅ Handle filter toggle
+  const handleFilter = useCallback(
+    async (id) => {
+      if (loading) return;
 
-    setLoading(false);
-  };
+      if (activeType === id) {
+        // Unselect filter → restore original comments
+        setActiveType(0);
+        setCommentsData(comments);
+        setOffset(initialOffset);
+        return;
+      }
 
-  const isRtl = language === "ar" || language === "ku";
+      setActiveType(id);
+      await loadMore(id, null, true);
+    },
+    [activeType, loading, comments, initialOffset, loadMore]
+  );
 
   return (
     <>
-      {ColorBottomSheet && ColorBottomSheet?.is_buyers_comments && (
+      {ColorBottomSheet?.is_buyers_comments && (
         <BottomSheet
           height={90}
           isOpen={ColorBottomSheet?.is_buyers_comments}
-          onClose={() => {
-            setColorBottomSheet(false);
-          }}
+          onClose={() => setColorBottomSheet(false)}
         >
           <div className="w-full h-auto pb-[80px] flex-col">
+            {/* Header */}
             <div className="flex-col px-[12px] gap-[6px]">
               <BuyersCommentIcon />
               <span className="flex text-[13px] text-[#1d1d1d] regular">
@@ -85,7 +103,7 @@ function BuyersCommentModal({ comments, total, offset }) {
               </span>
               <p
                 className={`${
-                  isRtl && "dir-rtl"
+                  isRtl ? "dir-rtl" : ""
                 } text-[11px] text-[#1d1d1d] regular gap-[4px] inline`}
               >
                 {translateFunction(
@@ -95,68 +113,69 @@ function BuyersCommentModal({ comments, total, offset }) {
                 <span className="bold px-[4px]">trydos</span>
               </p>
             </div>
+
             <div className="w-full px-[12px] bg-[#FFFFFF] py-[11px]">
               <hr className="text-[#D3D3D37f] h-[1px] bg-[#D3D3D37f] mt-0 w-full px-[10px]" />
             </div>
+
+            {/* Filters */}
             <div className="flex-col gap-[2px]">
               <HortiznalScrollBar
                 id="product-properties-general-modal"
                 className={`${
-                  loading && "opacity-65"
-                } flex-row  product-properties px-[12px] items-center justify-start w-full gap-[4px]`}
+                  loading ? "opacity-65" : ""
+                } flex-row product-properties px-[12px] items-center justify-start w-full gap-[4px]`}
               >
-                {comments_types.map((s) => (
+                {commentTypes.map((type) => (
                   <div
-                    onClick={() => {
-                      if (loading) return;
-                      FilterComments(s.id);
-                    }}
+                    key={type.id}
+                    onClick={() => handleFilter(type.id)}
                     className={`pl-[8px] cursor-pointer pr-[12px] rounded-[15px] h-[31px] ${
-                      active_comment_type === s.id
-                        ? "bg-[#bdd3ff]"
-                        : "bg-[#F8F8F8]"
+                      activeType === type.id ? "bg-[#bdd3ff]" : "bg-[#F8F8F8]"
                     } flex-row justify-center items-center regular text-[#505050] text-[11px] medium`}
                   >
-                    {translateFunction(s.name)}
+                    {translateFunction(type.name, language)}
                   </div>
                 ))}
               </HortiznalScrollBar>
-              <div className="flex-col gap-[12px] mt-[10px]  min-h-[372px]">
-                {!loading && comments?.length === 0 && (
-                  <span className="w-full justify-center items-center flex py-4 light text-[#1d1d1d] ">
+
+              {/* Comments List */}
+              <div className="flex-col gap-[12px] mt-[10px] min-h-[372px]">
+                {!loading && commentsData.length === 0 && (
+                  <span className="w-full justify-center items-center flex py-4 light text-[#1d1d1d]">
                     {translateFunction("There is No Comments Yet..", language)}
                   </span>
                 )}
+
                 {loading &&
-                  Array(3)
-                    .fill("")
-                    .map((s) => (
-                      <div className="w-full h-[122px]">
-                        <Skeleton
-                          className="w-full h-[112px] rounded-[15px]"
-                          width={"100%"}
-                          height={112}
-                          borderRadius={15}
-                        />
-                      </div>
-                    ))}
+                  Array.from({ length: 3 }).map((_, idx) => (
+                    <div key={idx} className="w-full h-[122px]">
+                      <Skeleton
+                        className="w-full h-[112px] rounded-[15px]"
+                        width="100%"
+                        height={112}
+                        borderRadius={15}
+                      />
+                    </div>
+                  ))}
+
                 {!loading &&
-                  commentsData.map((s) => (
+                  commentsData.map((comment, idx) => (
                     <RateCommentItem
-                      comment={s}
+                      key={idx}
+                      comment={comment}
                       language={language}
                       width={100}
                     />
                   ))}
-                {!loading && offsetVar && (
+
+                {!loading && offset && (
                   <div
                     className="w-full flex justify-center items-center"
-                    onClick={() => {
-                      loadMore();
-                    }}
+                    onClick={() => loadMore(activeType, offset)}
                   >
                     <div className="bg-[#f8f8f8] text-[#1d1d1d] light text-[14px] rounded-md h-[40px] flex justify-center items-center px-3 pt-2">
-                      {translateFunction("Load More")}
+                      {translateFunction("Load More", language)}
                     </div>
                   </div>
                 )}
@@ -170,40 +189,3 @@ function BuyersCommentModal({ comments, total, offset }) {
 }
 
 export default BuyersCommentModal;
-
-const ReviewProgress = ({ value, title }) => {
-  return (
-    <div className="flex-row gap-[14px] min-w-[280px] w-full">
-      <div className="flex-row  w-[72%] max-w-[72%] h-[14px] rounded-[5px] bg-[#FCFCFC] relative flex-1 ">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="100%"
-          height="14"
-          viewBox="0 0 100% 14"
-          className="absolute top-0 left-0"
-        >
-          <rect
-            x="0.25"
-            y="0.25"
-            width="calc(100%)"
-            height="13.5"
-            rx="2.25"
-            fill="none"
-            stroke="#d3d3d3"
-            strokeWidth="0.5"
-          />
-        </svg>
-        <div
-          className={`h-[14px] rounded-[5px] flex bg-[#1d1d1d]`}
-          style={{
-            width: `${value}%`,
-          }}
-        />
-      </div>
-      <div className="flex-row items-center text-[#1d1d1d] text-[11px] regular gap-[6px] whitespace-nowrap">
-        {value}%
-      </div>
-      <span className="bold">{title}</span>
-    </div>
-  );
-};

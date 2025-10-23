@@ -37,7 +37,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json(
       {
         data: {
-          buers_comments: data.buyers_comments,
+          buyers_comments: data.buyers_comments,
           offset: data.searchAfter,
           total: data.total,
           searchAfter: data.searchAfter,

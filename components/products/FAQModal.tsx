@@ -1,13 +1,10 @@
 import BottomSheet from "components/global/BottomSheet";
 import profilePng from "public/images/profileNo.png";
 
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import { useAppStore } from "store";
 import { translateFunction } from "utils/functions";
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
-import RecomendedIcon from "public/svg/RecomendedIcon.svg";
-import NegRecomendedIcon from "public/svg/NegRecomendIcon.svg";
-import { RateCommentItem } from "./ProductsBuyersComments";
 import Skeleton from "node_modules/react-loading-skeleton/dist";
 import FAQIcon from "public/svg/FAQIcon.svg";
 import Image from "node_modules/next/image";
@@ -15,59 +12,81 @@ import { formatTime, GetImageUrl } from "utils/tinyUtils";
 import { fetchData } from "utils/fetchData";
 import { REQUESTS_DATA } from "utils/Requests";
 
-function FAQModal({ comments, total, offset }) {
+function FAQModal({ comments, total, offset: initialOffset }) {
   const { ColorBottomSheet, setColorBottomSheet, language, SelectedProduct } =
     useAppStore();
 
-  const [active_comment_type, setActiveCommentType] = useState(0);
-  const [offsetVar, setOffset] = useState(offset);
+  const [activeType, setActiveType] = useState(0);
+  const [commentsData, setCommentsData] = useState(comments);
+  const [offset, setOffset] = useState(initialOffset);
   const [loading, setLoading] = useState(false);
-  const [commentsData, setCommentsData] = useState(comments ?? []);
-  const FilterComments = async (id) => {
+
+  const commentTypes = [
+    { id: 1, name: "Size" },
+    { id: 2, name: "Quality" },
+    { id: 3, name: "Color" },
+    { id: 4, name: "Shipping" },
+    { id: 5, name: "Complaint" },
+    { id: 6, name: "Recommendation" },
+  ];
+
+  const isRtl = language === "ar" || language === "ku";
+
+  // ✅ Stable loadMore function
+  const loadMore = async (
+    filterId = null,
+    offsetValue = null,
+    reset = false
+  ) => {
+    if (!SelectedProduct?.id) return;
+
     setLoading(true);
-    if (active_comment_type !== id) {
-      setActiveCommentType(id);
-      setCommentsData([]);
-      setOffset(null);
-      await loadMore(id);
-    } else {
-      setActiveCommentType(0);
-      setCommentsData(comments);
-      setOffset(offsetVar);
-    }
-
-    setLoading(false);
-  };
-
-  const loadMore = async (filter = null) => {
     try {
-      setLoading(true);
-      let data = await fetchData({
-        url: `/api/products/comments/fqa_comments?product_id=${
-          SelectedProduct.id
-        }${offsetVar ? `&offset=${JSON.stringify(offset)}` : ""}${
-          active_comment_type
-            ? `&filter=${comments_types[active_comment_type]}`
-            : ""
-        }`,
+      const url = `/api/products/comments/buyers_comments?product_id=${
+        SelectedProduct.id
+      }${offsetValue ? `&offset=${JSON.stringify(offsetValue)}` : ""}${
+        filterId
+          ? `&filter=${commentTypes.find((c) => c.id === filterId)?.name}`
+          : ""
+      }`;
+
+      const data = await fetchData({
+        url,
         method: "GET",
         server: "local",
         reqTitle: REQUESTS_DATA.COMMENT_DATA_REQUEST,
       });
-      setCommentsData([...commentsData, ...data?.buyers_comments]);
+
+      setCommentsData((prev) =>
+        reset
+          ? data?.data?.buyers_comments ?? []
+          : [...prev, ...data?.data?.buyers_comments]
+      );
       setOffset(data?.data?.offset);
-      setLoading(false);
-    } catch (error) {
+    } catch (err) {
+      console.error("Error loading comments:", err);
+    } finally {
       setLoading(false);
     }
   };
-  const comments_types = [
-    { id: 1, name: "Size" },
-    { id: 2, name: "Quality" },
-    { id: 3, name: "Color" },
-  ];
-  const isRtl = language === "ar" || language === "ku";
+  // ✅ Handle filter toggle
+  const handleFilter = useCallback(
+    async (id) => {
+      if (loading) return;
 
+      if (activeType === id) {
+        // Unselect filter → restore original comments
+        setActiveType(0);
+        setCommentsData(comments);
+        setOffset(initialOffset);
+        return;
+      }
+
+      setActiveType(id);
+      await loadMore(id, null, true);
+    },
+    [activeType, loading, comments, initialOffset, loadMore]
+  );
   return (
     <>
       {ColorBottomSheet && ColorBottomSheet?.is_for_faq && (
@@ -114,16 +133,14 @@ function FAQModal({ comments, total, offset }) {
                   loading && "opacity-65"
                 } flex-row  product-properties px-[12px] items-center justify-start w-full gap-[4px]`}
               >
-                {comments_types.map((s) => (
+                {commentTypes.map((s) => (
                   <div
                     onClick={() => {
                       if (loading) return;
-                      FilterComments(s.id);
+                      handleFilter(s.id);
                     }}
                     className={`pl-[8px] cursor-pointer pr-[12px] rounded-[15px] h-[31px] ${
-                      active_comment_type === s.id
-                        ? "bg-[#bdd3ff]"
-                        : "bg-[#F8F8F8]"
+                      activeType === s.id ? "bg-[#bdd3ff]" : "bg-[#F8F8F8]"
                     } flex-row justify-center items-center regular text-[#505050] text-[11px] medium`}
                   >
                     {translateFunction(s.name)}
@@ -157,7 +174,7 @@ function FAQModal({ comments, total, offset }) {
                   <div
                     className="w-full flex justify-center items-center"
                     onClick={() => {
-                      loadMore();
+                      loadMore(activeType, offset);
                     }}
                   >
                     <div className="bg-[#f8f8f8] text-[#1d1d1d] light text-[14px] rounded-md h-[40px] flex justify-center items-center px-3 pt-2">
