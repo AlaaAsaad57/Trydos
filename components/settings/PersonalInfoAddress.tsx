@@ -49,6 +49,7 @@ function PersonalInfoAddress({
       <SettingTopBar
         goBack={() => goBack()}
         screenName="Profile | Address Info"
+        DataCy="profile-address-screen"
         Save={null}
       />
       {deleteModal && (

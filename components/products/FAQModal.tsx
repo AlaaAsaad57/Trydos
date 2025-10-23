@@ -12,19 +12,54 @@ import Skeleton from "node_modules/react-loading-skeleton/dist";
 import FAQIcon from "public/svg/FAQIcon.svg";
 import Image from "node_modules/next/image";
 import { formatTime, GetImageUrl } from "utils/tinyUtils";
+import { fetchData } from "utils/fetchData";
+import { REQUESTS_DATA } from "utils/Requests";
 
-function FAQModal({ comments }) {
-  const { ColorBottomSheet, setColorBottomSheet, language } = useAppStore();
+function FAQModal({ comments, total, offset }) {
+  const { ColorBottomSheet, setColorBottomSheet, language, SelectedProduct } =
+    useAppStore();
 
-  const [loading, setLoading] = useState(false);
   const [active_comment_type, setActiveCommentType] = useState(0);
+  const [offsetVar, setOffset] = useState(offset);
+  const [loading, setLoading] = useState(false);
+  const [commentsData, setCommentsData] = useState(comments ?? []);
   const FilterComments = async (id) => {
     setLoading(true);
-    if (active_comment_type !== id) setActiveCommentType(id);
-    else setActiveCommentType(0);
+    if (active_comment_type !== id) {
+      setActiveCommentType(id);
+      setCommentsData([]);
+      setOffset(null);
+      await loadMore(id);
+    } else {
+      setActiveCommentType(0);
+      setCommentsData(comments);
+      setOffset(offsetVar);
+    }
 
-    await new Promise((resolve) => setTimeout(resolve, 2000));
     setLoading(false);
+  };
+
+  const loadMore = async (filter = null) => {
+    try {
+      setLoading(true);
+      let data = await fetchData({
+        url: `/api/products/comments/fqa_comments?product_id=${
+          SelectedProduct.id
+        }${offsetVar ? `&offset=${JSON.stringify(offset)}` : ""}${
+          active_comment_type
+            ? `&filter=${comments_types[active_comment_type]}`
+            : ""
+        }`,
+        method: "GET",
+        server: "local",
+        reqTitle: REQUESTS_DATA.COMMENT_DATA_REQUEST,
+      });
+      setCommentsData([...commentsData, ...data?.buyers_comments]);
+      setOffset(data?.data?.offset);
+      setLoading(false);
+    } catch (error) {
+      setLoading(false);
+    }
   };
   const comments_types = [
     { id: 1, name: "Size" },
@@ -115,9 +150,21 @@ function FAQModal({ comments }) {
                       </div>
                     ))}
                 {!loading &&
-                  comments.map((s) => (
+                  commentsData.map((s) => (
                     <FaqItem comment={s} language={language} width={100} />
                   ))}
+                {!loading && (
+                  <div
+                    className="w-full flex justify-center items-center"
+                    onClick={() => {
+                      loadMore();
+                    }}
+                  >
+                    <div className="bg-[#f8f8f8] text-[#1d1d1d] light text-[14px] rounded-md h-[40px] flex justify-center items-center px-3 pt-2">
+                      {translateFunction("Load More")}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>

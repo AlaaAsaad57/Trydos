@@ -43,7 +43,11 @@ function FAQSection({ lang, comments, product_id }) {
   };
   return (
     <>
-      <FAQModal comments={comments} />
+      <FAQModal
+        comments={comments.comments}
+        total={comments?.total}
+        offset={comments?.offset}
+      />
       <div className="w-full flex-col mt-[12px]">
         <div
           className={`flex-col px-[10px] ${isRtl && "items-end"}`}

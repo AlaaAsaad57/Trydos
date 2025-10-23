@@ -14,6 +14,7 @@ function PersonalBankCards({
         goBack={() => goBack()}
         screenName="Profile | Bank Cards"
         Save={null}
+        DataCy="profile-banks-screen"
       />
       <div className="flex-row justify-center mt-[12px] w-full">
         <div

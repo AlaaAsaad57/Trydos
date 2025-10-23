@@ -655,6 +655,7 @@ function OrderDetails({
             </div>
           }
           Save={null}
+          DataCy="order-details-screen"
           hasOptions={true}
           hasChat={shouldShowChatIcon(ActivePacks)}
         />
@@ -1196,11 +1197,17 @@ const ProductCard = ({
             )}
             <div className="flex-row  items-center">
               {product.price_after_discount >= 0 && (
-                <div className="line-through text-[#C4C2C2] regular text-[12px]  line-through-[#C4C2C2]">
+                <div
+                  className="line-through text-[#C4C2C2] regular text-[12px]  line-through-[#C4C2C2]"
+                  data-cy="order-product-offer-price"
+                >
                   {RoundPrice({ num: product.price, language: language })}
                 </div>
               )}
-              <div className="text-[#1D1D1D] text-[12px] ml-[4px] bold">
+              <div
+                className="text-[#1D1D1D] text-[12px] ml-[4px] bold"
+                data-cy="order-product-price"
+              >
                 {RoundPrice({
                   num: product.price_after_discount,
                   language: language,

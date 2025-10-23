@@ -19,6 +19,7 @@ function PersonalInfoAddressModal({
     <div className="flex-col max-h-[calc(100vh-200px)]">
       <SettingTopBar
         goBack={() => goBack()}
+        DataCy="profile-info-screen"
         screenName="Profile | Address Info"
         Save={null}
       />

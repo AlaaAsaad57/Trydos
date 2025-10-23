@@ -47,7 +47,7 @@ function LanguageSetting({ goBack }: { goBack: () => void }) {
   return (
     <div className="flex-col max-h-[calc(100vh-200px)]">
       <SettingTopBar
-        data-cy="language-setting"
+        DataCy="language-setting"
         goBack={() => goBack()}
         screenName="Profile | Languages"
         Save={null}

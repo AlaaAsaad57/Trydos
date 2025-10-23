@@ -21,7 +21,7 @@ function ProductsBuyersComments({ lang, comments, product_id }) {
   const [commentsData, setCommentsData] = useState(comments.comments ?? []);
   const [offset, setOffset] = useState(comments.offset);
   const [loading, setLoading] = useState(false);
-  const loadMore = async () => {
+  const loadMore = async (filter = null) => {
     try {
       setLoading(true);
       let data = await fetchData({
@@ -42,7 +42,11 @@ function ProductsBuyersComments({ lang, comments, product_id }) {
   return (
     <>
       {ColorBottomSheet && ColorBottomSheet?.is_buyers_comments && (
-        <BuyersCommentModal comments={comments} />
+        <BuyersCommentModal
+          comments={comments.comments}
+          total={comments?.total}
+          offset={comments?.offset}
+        />
       )}
       <div className={` w-full flex-col`}>
         <div

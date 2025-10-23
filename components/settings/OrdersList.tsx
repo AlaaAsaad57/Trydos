@@ -285,6 +285,7 @@ function OrdersList({
             </span>
           </div>
         }
+        DataCy="order-list-screen"
         Save={null}
       />
 
