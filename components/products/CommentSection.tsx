@@ -61,7 +61,7 @@ function CommentSection({
       className="extended-section items-center justify-center"
       data-cy="ExtendCoomentSection"
     >
-      {user?.phone === "0" && (
+      {(!user || user?.phone === "0") && (
         <span className="text-red-500">
           {translateFunction("Please Login so You Can Add a comment")}
         </span>
@@ -98,7 +98,7 @@ function CommentSection({
 
       <Comments
         CommentsData={CommentsData}
-        shouldShowMore={product?.comments_count > CommentsData?.length}
+        shouldShowMore={product?.fqa_questions?.total > CommentsData?.length}
         ErrorAccure={(s) => ErrorAccure(s)}
         increase_comments={() => increase_comments()}
         productId={product.id}
@@ -107,10 +107,10 @@ function CommentSection({
         Render={Render}
         comments={CommentsData}
         resendComment={(s) => resendComment(s)}
-        comment_offset={product.comment_offset}
+        comment_offset={product.fqa_questions?.offset}
         verifyCommentAction={(mid) => verifyCommentAction(mid)}
       />
-      {user?.phone !== "0" && (
+      {user && user?.phone !== "0" && (
         <CommentBar
           CommentsData={CommentsData}
           verifyCommentAction={(mid) => verifyCommentAction(mid)}

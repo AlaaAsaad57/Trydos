@@ -29,7 +29,7 @@ function OfferListServer({
             name: "Mango",
             description: "10% Discount For All Zara Collection Now!",
             slug: HomeData?.boutiques?.[0]?.slug,
-            childCategoriesForProductIds: [
+            mainCategoriesForProductIds: [
               {
                 most_viewed_product_thumbnail:
                   "https://res.cloudinary.com/djooohujg/image/upload/v1760174475/kkubaic7rrj1kvjfij4u.jpg",

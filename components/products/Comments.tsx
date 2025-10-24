@@ -72,7 +72,7 @@ function Comments({
         <>
           {CommentsData.map((s, i) => (
             <CommentItem
-              data-cy="CommentItem"
+              comment={s}
               isPending={s?.is_verfied}
               resendComment={() => {
                 resendComment(s.mid);
@@ -127,7 +127,7 @@ const LoadMoreComments = ({ product_id, offsetVar, setComments }) => {
       setLoading(true);
       console.log(offset);
       let data = await fetchData({
-        url: `/api/products/comments/comments?product_id=${product_id}&offset=${JSON.stringify(
+        url: `/api/products/comments/fqa_comments?product_id=${product_id}&offset=${JSON.stringify(
           offset
         )}`,
         server: "local",
@@ -135,8 +135,8 @@ const LoadMoreComments = ({ product_id, offsetVar, setComments }) => {
         reqTitle: REQUESTS_DATA.COMMENT_DATA_REQUEST,
       });
 
-      setComments(data?.data?.comments ?? []);
-      setOffset(data.offset);
+      setComments(data?.data?.fqa_comments ?? []);
+      setOffset(data.offset?.offset);
       setLoading(false);
     } catch (error) {
       showErrorNotification(

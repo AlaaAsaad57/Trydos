@@ -114,7 +114,7 @@ function ProductFooterSection({
   const getComments = async () => {
     try {
       let response: { data: ProductSocialInfo } = await fetchData({
-        url: `/api/products/comments/comments?product_id=${product.id}`,
+        url: `/api/products/comments/fqa_comments?product_id=${product.id}`,
         reqTitle: REQUESTS_DATA.SOCIAL_INFO_REQUEST,
         method: "GET",
         server: "local",
@@ -127,9 +127,9 @@ function ProductFooterSection({
       setProductData({
         ...productState.productDetails,
         // @ts-ignore
-        comments_count: response.data?.comments_count || 0,
+        comments_count: response.data?.total || 0,
         // @ts-ignore
-        comments: response.data?.comments || [],
+        comments: response.data?.fqa_comments || [],
       });
     } catch (err) {
       // Handle error as needed
@@ -419,6 +419,7 @@ const OverlayForClose = ({ close }) => {
     <div
       onClick={() => close()}
       className="absolute z-[99999999999] bottom-full bg-[rgba(0,0,0,0.2)] left-0 w-full h-screen"
+      data-cy="close_extended_area"
     />
   );
 };

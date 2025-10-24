@@ -120,7 +120,7 @@ function RatingOrderItem({
               {/* Rating Stars */}
               <div className="flex justify-center">
                 <RatingStars
-                  readOnly={loading || Boolean(lastComment)}
+                  readOnly={loading}
                   initialRating={Number(rating)}
                   size={40}
                   onRatingChange={(e) => {
@@ -148,7 +148,7 @@ function RatingOrderItem({
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-base text-gray-800 bg-gray-50 transition-colors"
                   placeholder={translateFunction("Add your comment")}
                   aria-label="Comment input"
-                  disabled={loading || Boolean(lastComment)}
+                  disabled={loading}
                   rows={3}
                 />
               </div>

@@ -10,6 +10,7 @@ import { showErrorNotification } from "store/notifications/reducer";
 import { useParams } from "node_modules/next/navigation";
 import { translateFunction } from "utils/functions";
 import { convertTextToXFormat } from "utils/tinyUtils";
+import { FaqItem } from "./FAQSection";
 function CommentItem({
   custmerId,
   name,
@@ -19,6 +20,7 @@ function CommentItem({
   isPending,
   isError,
   resendComment,
+  comment,
 }: CommentItemPropsType) {
   const { lang } = useParams();
   // @ts-ignore
@@ -67,47 +69,21 @@ function CommentItem({
 
   return (
     <>
-      <div
-        className="comment-item"
-        style={{
-          opacity: isPending === true ? "1" : isPending === null ? "1" : "0.7",
-          backgroundColor: isError ? "#ffd6d6" : "#f8f8f8",
-          position: "relative",
-        }}
-      >
+      <div className="relative flex w-full">
         {isError && (
           <Loading
+            className="absolute z-50 right-[10px] top-[30px]"
             style={{ position: "absolute", right: "10px", bottom: "10px" }}
             onClick={() => {
               resendComment();
             }}
           />
         )}
-        <div className="comment-photo">
-          <Image src={photo} width={20} height={20} alt={name} />
-        </div>
-        <div className="comment-content">
-          <div className="comment-source" data-cy="Source-Of-Comment">
-            {convertTextToXFormat(name)}
-          </div>
-          <div className="comment-text">{text}</div>
-        </div>
-        <div className="comment-date" data-cy="Date-Of-Comment">
-          {date}
-        </div>
         {isOwner && !isError && isPending && (
           <div
-            className="comment-delete-btn"
+            className="comment-delete-btn absolute z-50 right-[10px] top-[45px] cursor-pointer flex items-center justify-center w-[20px] h-[20px]"
             style={{
               position: "absolute",
-              top: "45px",
-              right: "10px",
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              width: "20px",
-              height: "20px",
               borderRadius: "50%",
               transition: "background-color 0.2s ease",
             }}
@@ -129,6 +105,28 @@ function CommentItem({
           </div>
         )}
       </div>
+      <FaqItem isFull={true} comment={comment} language={languageVariable} />
+      {/* <div
+        className="comment-item"
+        style={{
+          opacity: isPending === true ? "1" : isPending === null ? "1" : "0.7",
+          backgroundColor: isError ? "#ffd6d6" : "#f8f8f8",
+          position: "relative",
+        }}
+      >
+        <div className="comment-photo">
+          <Image src={photo} width={20} height={20} alt={name} />
+        </div>
+        <div className="comment-content">
+          <div className="comment-source" data-cy="Source-Of-Comment">
+            {convertTextToXFormat(name)}
+          </div>
+          <div className="comment-text">{text}</div>
+        </div>
+        <div className="comment-date" data-cy="Date-Of-Comment">
+          {date}
+        </div>
+      </div> */}
 
       {showDeleteModal && (
         <ConfirmModal

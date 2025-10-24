@@ -3,7 +3,6 @@ import Autoplay from "node_modules/embla-carousel-autoplay/esm";
 import useEmblaCarousel from "node_modules/embla-carousel-react/esm";
 import Image from "next/image";
 import React from "react";
-import { getConfiguredImage } from "utils/functions";
 import { GetImageUrl } from "utils/tinyUtils";
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 import NextLink from "components/global/NextLink";
@@ -76,7 +75,7 @@ export const BoutiqueContainer = ({ boutique, lang }) => {
       </NextLink>
       <CategoriesSlider
         lang={lang}
-        categories={boutique.childCategoriesForProductIds}
+        categories={boutique?.mainCategoriesForProductIds}
         boutique={boutique}
       />
     </div>
@@ -89,7 +88,7 @@ export const CategoriesSlider = ({ categories, boutique, lang }) => {
       id={`boutique-${boutique.slug}-slider`}
       className="flex flex-row items-center  gap-[4px] h-[102px] w-full pl-[6px]"
     >
-      {categories.map((category) => (
+      {categories?.map((category) => (
         <NextLink
           href={
             category?.is_product_url

@@ -16,7 +16,6 @@ import { AddComment } from "models/API/market/AddComment";
 import auth from "services/auth";
 import { showErrorNotification } from "store/notifications/reducer";
 function FAQSection({ lang, comments, product_id }) {
-  console.log(comments);
   const [country, language] = lang.split("-");
   const { setColorBottomSheet } = useAppStore();
   const isRtl = language === "ar" || language === "ku";
@@ -34,8 +33,8 @@ function FAQSection({ lang, comments, product_id }) {
         server: "local",
         reqTitle: REQUESTS_DATA.COMMENT_DATA_REQUEST,
       });
-      setCommentsData([...commentsData, ...data.fqa_comments]);
-      setOffset(data.offset);
+      setCommentsData([...commentsData, ...data?.data?.fqa_comments]);
+      setOffset(data?.data?.offset);
       setLoading(false);
     } catch (error) {
       setLoading(false);
@@ -129,10 +128,14 @@ function FAQSection({ lang, comments, product_id }) {
 
 export default FAQSection;
 
-const FaqItem = ({ language, comment }) => {
-  let has_reply = Math.random() > 0.5;
+export const FaqItem = ({ language, comment, isFull = false }) => {
+  let has_reply = comment.has_reply;
   return (
-    <div className="flex-col min-w-[85%] max-w-[90%]">
+    <div
+      className={`flex-col min-w-[85%] ${
+        isFull ? "max-w-full w-full" : "max-w-[90%]"
+      }`}
+    >
       <div
         className={`comment-item ${
           has_reply ? "rounded-t-[15px] rounded-b-[0px]" : "rounded-[15px]"

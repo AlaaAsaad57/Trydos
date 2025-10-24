@@ -177,7 +177,7 @@ export class ElasticsearchReader {
     language: string;
     offset?: number;
     limit: number;
-    category?: string;
+    category?: string[];
     searchAfter?: any[];
   }) {
     try {
@@ -195,8 +195,8 @@ export class ElasticsearchReader {
           size: 0,
           query: {
             bool: {
-              must: must,
-              must_not: must_not,
+              must,
+              must_not,
             },
           },
           aggs: {
@@ -258,8 +258,6 @@ export class ElasticsearchReader {
 
       const response = await this.client.search(customQuery);
 
-      let newSearchAfter = null;
-
       const bucketsBoutiques =
         // @ts-ignore
         response.aggregations?.boutiques_composite?.buckets ?? [];
@@ -268,15 +266,16 @@ export class ElasticsearchReader {
         const source = bucket.boutique_data?.hits?.hits?.[0]?._source ?? null;
         if (source) customProducts.push(source);
       }
+
       const afterKey =
         // @ts-ignore
-
         response.aggregations?.boutiques_composite?.after_key ?? null;
+      let newSearchAfter = null;
       if (afterKey?.boutique_position && afterKey?.boutique_id) {
         newSearchAfter = [afterKey.boutique_position, afterKey.boutique_id];
       }
 
-      // Filter custom_boutiques by language code
+      // Filter boutiques by language
       for (const boutique of customProducts) {
         if (Array.isArray(boutique.custom_boutiques)) {
           boutique.custom_boutiques = boutique.custom_boutiques.filter(
@@ -285,10 +284,11 @@ export class ElasticsearchReader {
         }
       }
 
-      // build categories query
+      // Build categories query
       const boutiqueIds = [
         ...new Set(customProducts.map((b) => b.boutique_id)),
       ];
+
       const categoriesQuery: any = {
         index: "products_catalog",
         body: {
@@ -303,50 +303,63 @@ export class ElasticsearchReader {
             filtered_results: {
               filter: {
                 bool: {
-                  must: [...must, { terms: { boutique_id: boutiqueIds } }],
+                  must,
                   must_not,
                 },
               },
               aggs: {
-                custom_categories_nested: {
-                  nested: { path: "custom_categories" },
+                by_boutique: {
+                  terms: {
+                    field: "boutique_id",
+                    size: boutiqueIds.length || 10000,
+                    include: boutiqueIds,
+                  },
                   aggs: {
-                    by_language: {
-                      filter: {
-                        term: { "custom_categories.language_code": language },
-                      },
+                    custom_categories_nested: {
+                      nested: { path: "custom_categories" },
                       aggs: {
-                        by_category_id: {
-                          terms: {
-                            field: "custom_categories.category_id",
-                            size: 10000,
+                        by_language: {
+                          filter: {
+                            term: {
+                              "custom_categories.language_code": language,
+                            },
                           },
                           aggs: {
-                            top_category_hit: {
-                              top_hits: {
-                                _source: [
-                                  "custom_categories.category_id",
-                                  "custom_categories.id",
-                                  "custom_categories.slug",
-                                  "custom_categories.name",
-                                  "custom_categories.position",
-                                  "custom_categories.language_code",
-                                  "custom_categories.flat_photo_path",
-                                ],
-                                size: 1,
+                            by_category_id: {
+                              terms: {
+                                field: "custom_categories.category_id",
+                                size: 10000,
                               },
-                            },
-                            to_product: {
-                              reverse_nested: {},
                               aggs: {
-                                product_thumbnail: {
+                                top_category_hit: {
                                   top_hits: {
+                                    _source: {
+                                      includes: [
+                                        "custom_categories.category_id",
+                                        "custom_categories.id",
+                                        "custom_categories.slug",
+                                        "custom_categories.name",
+                                        "custom_categories.position",
+                                        "custom_categories.language_code",
+                                        "custom_categories.flat_photo_path",
+                                      ],
+                                    },
                                     size: 1,
-                                    _source: [
-                                      "boutique_id",
-                                      "thumbnail",
-                                      "name",
-                                    ],
+                                  },
+                                },
+                                to_product: {
+                                  reverse_nested: {},
+                                  aggs: {
+                                    product_thumbnail: {
+                                      top_hits: {
+                                        size: 1,
+                                        _source: [
+                                          "boutique_id",
+                                          "thumbnail",
+                                          "name",
+                                        ],
+                                      },
+                                    },
                                   },
                                 },
                               },
@@ -355,22 +368,21 @@ export class ElasticsearchReader {
                         },
                       },
                     },
-                  },
-                },
-                top_orig_categories: {
-                  nested: { path: "categories" },
-                  aggs: {
-                    orig_categories_by_id: {
-                      terms: { field: "categories.id", size: 10000 },
+                    top_orig_categories: {
+                      nested: { path: "categories" },
                       aggs: {
-                        orig_category_details: {
-                          top_hits: {
-                            size: 1,
-                            _source: [
-                              "categories.id",
-                              "categories.num_available_product",
-                              "categories.most_viewed_product_thumbnail",
-                            ],
+                        orig_categories_by_id: {
+                          terms: { field: "categories.id", size: 10000 },
+                          aggs: {
+                            orig_category_details: {
+                              top_hits: {
+                                size: 1,
+                                _source: [
+                                  "categories.id",
+                                  "categories.num_available_product",
+                                ],
+                              },
+                            },
                           },
                         },
                       },
@@ -384,56 +396,52 @@ export class ElasticsearchReader {
       };
 
       const catResponse = await this.client.search(categoriesQuery);
+      const filteredAgg = catResponse.aggregations?.filtered_results ?? {};
+      // @ts-ignore
+      const boutiqueBuckets = filteredAgg.by_boutique?.buckets ?? [];
 
-      const agg = catResponse.aggregations as any;
-      const origBuckets =
-        agg?.filtered_results?.top_orig_categories?.orig_categories_by_id
-          ?.buckets || [];
+      const categories: any[] = [];
 
-      const origMap: Record<string, any> = {};
-      for (const b of origBuckets) {
-        const hit = b.orig_category_details.hits.hits[0]?._source || {};
+      for (const boutiqueBucket of boutiqueBuckets) {
+        const bid = boutiqueBucket.key;
+        const catBuckets =
+          boutiqueBucket.custom_categories_nested?.by_language?.by_category_id
+            ?.buckets ?? [];
 
-        if (hit.id) {
-          origMap[hit.id] = {
-            num_available_product: hit.num_available_product || 0,
-            most_viewed_product_thumbnail: hit.most_viewed_product_thumbnail,
-          };
+        for (const bucket of catBuckets) {
+          const hitData =
+            bucket.top_category_hit?.hits?.hits?.[0]?._source ?? {};
+          const thumbHit =
+            bucket.to_product?.product_thumbnail?.hits?.hits?.[0]?._source ??
+            {};
+          const catId = bucket.key;
+
+          categories.push({
+            category_id:
+              hitData.custom_categories?.category_id ||
+              hitData.category_id ||
+              catId,
+            id: hitData.custom_categories?.id || hitData.id,
+            slug: hitData.custom_categories?.slug || hitData.slug,
+            name: hitData.custom_categories?.name || hitData.name,
+            language_code:
+              hitData.custom_categories?.language_code ||
+              hitData.language_code ||
+              language,
+            flat_photo_path:
+              hitData.custom_categories?.flat_photo_path ||
+              hitData.flat_photo_path,
+            num_available_product: 0, // optional: could integrate orig category stats if needed
+            position:
+              hitData.custom_categories?.position || hitData.position || 0,
+            boutique_id: bid,
+            most_viewed_product_thumbnail: thumbHit.thumbnail || null,
+            most_viewed_product_name: thumbHit.name || null,
+          });
         }
       }
 
-      const buckets =
-        agg?.filtered_results?.custom_categories_nested?.by_language
-          ?.by_category_id?.buckets || [];
-
-      const categories: any[] = [];
-      for (const bucket of buckets) {
-        const hitData = bucket.top_category_hit.hits.hits[0]?._source;
-        const catId = bucket.key;
-        const orig = origMap[catId] || { num_available_product: 0 };
-
-        const thumbHit =
-          bucket.to_product.product_thumbnail.hits.hits[0]?._source || {};
-        categories.push({
-          category_id: hitData.category_id,
-          id: hitData.id,
-          slug: hitData.slug,
-          name: hitData.name,
-          language_code: hitData.language_code,
-          flat_photo_path: hitData.flat_photo_path,
-          num_available_product: orig.num_available_product,
-          position: hitData.position,
-          boutique_id: thumbHit.boutique_id || null,
-          most_viewed_product_thumbnail:
-            hitData?.most_viewed_product_thumbnail ||
-            orig?.most_viewed_product_thumbnail ||
-            thumbHit.thumbnail ||
-            null,
-          most_viewed_product_name: thumbHit.name || null,
-        });
-      }
-
-      // group categories by boutique
+      // Group categories by boutique
       const grouped: Record<string, { main: any[]; child: any[] }> = {};
       for (const cat of categories) {
         const bid = cat.boutique_id;
@@ -457,37 +465,14 @@ export class ElasticsearchReader {
         }
       }
 
-      // merge categories into boutiques
-      await Promise.all(
-        customProducts.map(async (boutique) => {
-          const bid = boutique.boutique_id;
+      // Merge categories into boutiques
+      for (const boutique of customProducts) {
+        const bid = boutique.boutique_id;
+        boutique.mainCategoriesForProductIds = grouped[bid]?.main || [];
+        // boutique.childCategoriesForProductIds = grouped[bid]?.child || [];
+      }
 
-          if (grouped[bid]?.child?.length > 0)
-            boutique.childCategoriesForProductIds = grouped[bid]?.child || [];
-          else {
-            let products = await getProductsAndFiltersFromElastic({
-              country: country,
-              language_code: language,
-              noFilters: true,
-              filters: {
-                boutiques: [boutique.custom_boutiques[0]?.slug],
-              },
-              limit: 6,
-              is_from_browser: true,
-            });
-            boutique.childCategoriesForProductIds = products?.products?.map(
-              (product) => ({
-                is_product_url: true,
-                slug: product.slug,
-                most_viewed_product_name: product.name,
-                most_viewed_product_thumbnail: product?.images[0],
-              })
-            );
-          }
-        })
-      );
-
-      // filter banners
+      // Filter banners
       for (const boutique of customProducts) {
         for (const cb of boutique.custom_boutiques) {
           if (cb.banners) {
@@ -498,31 +483,38 @@ export class ElasticsearchReader {
         }
       }
 
-      // final result
+      // Final result mapping
       let final = customProducts.map((boutique) => {
         const cb = boutique.custom_boutiques[0] || {};
         return {
           boutique_id: boutique.boutique_id,
           id: cb.id,
-          position: boutique?.position,
           name: cb.name || null,
           slug: cb.slug || null,
           description: cb.description || null,
           icon: cb.icon || null,
           banners: cb.banners || null,
-          mainCategoriesForProductIds: boutique.childCategoriesForProductIds,
-          childCategoriesForProductIds: boutique.childCategoriesForProductIds,
+          mainCategoriesForProductIds:
+            boutique.mainCategoriesForProductIds ?? [],
+          childCategoriesForProductIds: [],
         };
       });
+
       final = final.filter((b) => b?.slug !== undefined && b?.slug !== null);
 
       return { boutiques: final, searchAfter: newSearchAfter };
     } catch (error) {
       console.error("GET BOUTIQUE ERROR FROM ELASTIC:", error);
+      throw error;
     }
   }
+
+  // -----------------------------------------------------------------------------
+  // buildBaseConditions (matches PHP version)
+  // -----------------------------------------------------------------------------
+
   buildBaseConditions(input: InputInitialized, country?: string) {
-    const categorySlugs = input.categorySlugs;
+    const categorySlugs = input.categorySlugs || [];
 
     const must: any[] = [
       { term: { status: 1 } },
@@ -539,7 +531,8 @@ export class ElasticsearchReader {
         },
       },
     ];
-    if (categorySlugs?.length > 0) {
+
+    if (categorySlugs.length > 0) {
       must.push({
         bool: {
           must: [
@@ -553,7 +546,7 @@ export class ElasticsearchReader {
               nested: {
                 path: "custom_categories",
                 query: {
-                  terms: { "custom_categories.slug.keyword": [categorySlugs] },
+                  terms: { "custom_categories.slug.keyword": categorySlugs },
                 },
               },
             },
@@ -643,12 +636,15 @@ export class ElasticsearchReader {
     must_not.push({
       nested: {
         path: "categories",
-        query: { bool: { must: [{ term: { "categories.status": 0 } }] } },
+        query: {
+          bool: { must: [{ term: { "categories.status": 0 } }] },
+        },
       },
     });
 
     return { must, must_not };
   }
+
   async getBoutiqueInfo({
     slug,
     country,
@@ -733,6 +729,6 @@ export class ElasticsearchReader {
 }
 
 type InputInitialized = {
-  categorySlugs?: string;
+  categorySlugs?: string | string[];
   limit: number;
 };

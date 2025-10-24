@@ -193,7 +193,7 @@ function ProductOptions({
   const getCommentsCount = () => {
     if (productDetails?.comments_count > 0)
       return productDetails?.comments_count;
-    if (product?.comments_count > 0) return product?.comments_count;
+    if (product?.fqa_questions?.total > 0) return product?.fqa_questions?.total;
     return "";
   };
   const getLikesCount = () => {

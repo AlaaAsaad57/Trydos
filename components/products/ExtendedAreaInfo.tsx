@@ -92,9 +92,8 @@ function ExtendedAreaInfo({
 
             {option === "More" && <MoreOptionsSection />}
 
-            {active && (
+            {/* {active && (
               <div
-                data-cy="close_extended_area"
                 className="absolute shadow-md border cursor-pointer border-[#1a1a1a20] z-[9999] bg-[#fafafa] bottom-[5px] left-0 right-0 mx-auto w-[50px] h-[50px] rounded-full flex justify-center items-center"
                 onClick={() => {
                   setOption("");
@@ -115,7 +114,7 @@ function ExtendedAreaInfo({
                   />
                 </svg>
               </div>
-            )}
+            )} */}
           </>
         )}
       </div>

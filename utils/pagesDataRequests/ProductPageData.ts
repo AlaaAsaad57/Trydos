@@ -32,31 +32,26 @@ export const GetProductData = async (params: {
 };
 export const GetSocialDataForProduct = async ({ productId, slug, lang }) => {
   try {
-    let [likeRes, sharesRes, commentsRes, ratingComment, FQAComments] =
-      await Promise.all([
-        fetchServerData({
-          url:
-            process.env.NEXT_PUBLIC_BACKEND_URL +
-            `/web/product/CommentsSharesDetails/${slug}`,
-          method: "GET",
-          revalidate: 0,
-          local: lang,
-        }),
-        getProductSharedCountFromElasticsearch(productId, slug, lang),
-        GetCommentsFromElastic({
-          user_id: null,
-          pageSize: 10,
-          product_id: productId,
-        }),
-        GetRatingCommentsForProduct({
-          product_id: productId,
-        }),
-        GetFQACommentsForProduct({
-          product_id: productId,
-          pageSize: 10,
-          searchAfter: null,
-        }),
-      ]);
+    let [likeRes, sharesRes, ratingComment, FQAComments] = await Promise.all([
+      fetchServerData({
+        url:
+          process.env.NEXT_PUBLIC_BACKEND_URL +
+          `/web/product/CommentsSharesDetails/${slug}`,
+        method: "GET",
+        revalidate: 0,
+        local: lang,
+      }),
+      getProductSharedCountFromElasticsearch(productId, slug, lang),
+
+      GetRatingCommentsForProduct({
+        product_id: productId,
+      }),
+      GetFQACommentsForProduct({
+        product_id: productId,
+        pageSize: 10,
+        searchAfter: null,
+      }),
+    ]);
     if (likeRes.isError) {
       LogServerError(
         {
@@ -91,9 +86,9 @@ export const GetSocialDataForProduct = async ({ productId, slug, lang }) => {
     return {
       count_of_likes: commentsData.count_of_likes,
       shared_count: sharesData,
-      comments: commentsRes.comments,
-      comment_offset: commentsRes.searchAfter,
-      comments_count: commentsRes.total,
+      // comments: commentsRes.comments,
+      // comment_offset: commentsRes.searchAfter,
+      // comments_count: commentsRes.total,
       buyers_comment: {
         comments: ratingComment.buyers_comments,
         offset: ratingComment.searchAfter,
@@ -124,69 +119,7 @@ async function getProductSharedCountFromElasticsearch(productId, slug, lang) {
   }
 }
 // getting asked comments (no rating,noreply)
-export async function GetCommentsFromElastic({
-  user_id,
-  pageSize = 10,
-  searchAfter,
-  product_id,
-}: {
-  user_id?: any;
-  pageSize: number;
-  searchAfter?: any;
-  product_id: string;
-}) {
-  let query: any = {
-    index: "comments",
-    size: pageSize,
-    sort: [
-      { created_at: "desc" }, // newest first
-      { comment_id: "desc" }, // tie-breaker for consistent pagination
-    ],
-    query: {
-      bool: {
-        must: [
-          { term: { status: "active" } },
-          { term: { product_id: product_id } },
-          { term: { has_reply: false } },
-          { term: { is_review: false } },
-        ],
-      },
-    },
-  };
 
-  if (searchAfter) {
-    query = {
-      ...query,
-      search_after:
-        typeof searchAfter === "string" ? JSON.parse(searchAfter) : [],
-    };
-  }
-  const response = await client.search(query);
-
-  const results = response.hits.hits.map((hit) => ({
-    id: hit._id,
-    ...((hit?._source as {}) ?? {}),
-  }));
-
-  const nextSearchAfter =
-    results.length > 0 ? response.hits.hits[results.length - 1].sort : null;
-
-  return {
-    comments: results?.map((s: any) => ({
-      id: s.id,
-      customer: {
-        id: s.user_id,
-        name: s.user_name,
-        image: s.user_avatar,
-      },
-      product_id: product_id,
-      comment: s.text,
-      created_at: s.created_at,
-    })),
-    total: (response.hits.total as any)?.value,
-    searchAfter: nextSearchAfter,
-  };
-}
 export async function GetRatingCommentsFromElastic({
   user_id,
   pageSize = 10,
@@ -332,7 +265,7 @@ export async function GetFQACommentsForProduct({
         must: [
           { term: { status: "active" } },
           { term: { product_id: String(product_id) } },
-          { term: { has_reply: true } },
+          { term: { is_review: false } },
         ],
       },
     },
