@@ -84,8 +84,21 @@ function CommentBar({
       fetch(
         `/api/editSocialProduct?pid=${product.id}&slug=${product.slug}&language=${language}&country=${country}`
       );
-      if (response.data?.comment) {
-        let newComment = response.data.comment;
+      if (response.data?.comment_id) {
+        let newComment = {
+          id: response.data.comment_id,
+          customer: {
+            id: response?.data.user_id,
+            name: response?.data.user_name,
+            image: response?.data.user_avatar,
+          },
+          order_details_id: response?.data?.order_details_id,
+          star_rating: response?.data?.rating,
+          comment: response?.data?.text,
+          variant: response?.data?.variant,
+          created_at: response?.data?.created_at,
+          product_id: String(product?.id),
+        };
         verifyComment(mid, newComment);
       } else {
         isError(mid);

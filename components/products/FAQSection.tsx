@@ -350,15 +350,26 @@ const AskInput = ({ language, setCommentsData }) => {
         // @ts-ignore
         throw new Error(response.message);
       }
-      if (response.data.comment) {
-        setCommentsData(response.data.comment);
+      if (response.data.comment_id) {
+        let newComment = {
+          id: response.data.comment_id,
+          customer: {
+            id: response?.data.user_id,
+            name: response?.data.user_name,
+            image: response?.data.user_avatar,
+          },
+          order_details_id: response?.data?.order_details_id,
+          star_rating: response?.data?.rating,
+          comment: response?.data?.text,
+          variant: response?.data?.variant,
+          created_at: response?.data?.created_at,
+          product_id: String(SelectedProduct?.id),
+        };
+        setCommentsData(newComment);
         editInfo({
           fqa_questions: {
             ...SelectedProduct?.fqa_questions,
-            comments: [
-              response.data.comment,
-              ...SelectedProduct?.fqa_questions?.comments,
-            ],
+            comments: [newComment, ...SelectedProduct?.fqa_questions?.comments],
             comments_count: SelectedProduct?.fqa_questions?.comments_count + 1,
           },
         });

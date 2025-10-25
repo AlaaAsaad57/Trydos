@@ -59,7 +59,7 @@ function Comments({
         throw new Error(response.message);
       }
       fetch(`/api/editSocialProduct?pid=${productId}`);
-      if (response.data?.comment) {
+      if (response.data?.comment_id) {
         let s = CommentsData.filter((m) => m.mid === mid)[0];
         verifyCommentAction(mid);
         increase_comments();
