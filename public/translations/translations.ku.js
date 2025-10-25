@@ -1110,6 +1110,7 @@ const translations = {
   "New Price": "نرخی نوێ",
   "Your Balance Not meet purchase value":
     "بەلانستەکەت ناتوانێت نرخی کڕینەکە پۆش بکاتەوە",
+  "Update Rating": "هەڵسەنگاندن نوێ بکە",
 };
 
 export default translations;

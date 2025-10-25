@@ -177,6 +177,8 @@ function RatingOrderItem({
                     <div className="flex items-center justify-center">
                       <Spinner />
                     </div>
+                  ) : lastComment ? (
+                    translateFunction("Update Rating")
                   ) : (
                     translateFunction("Submit Rating")
                   )}

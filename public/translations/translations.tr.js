@@ -1057,6 +1057,7 @@ const translations = {
     "Yorum ekleyebilmek için lütfen giriş yapın",
   "Please Login so You Can Add a comment":
     "تکایە بچۆ ژوورەوە بۆ ئەوەی بتوانیت لێدوانێک زیاد بکەیت",
+  "Update Rating": "Değerlendirmeyi Güncelle",
 };
 
 export default translations;

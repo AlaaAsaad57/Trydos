@@ -1068,6 +1068,7 @@ const translations = {
   "Your Balance Not meet purchase value": "رصيدك لا يغطي قيمة الشراء",
   "Please Login so You Can Add a comment":
     "يرجى تسجيل الدخول حتى تتمكن من إضافة تعليق",
+  "Update Rating": "تحديث التقييم",
 };
 
 export default translations;
