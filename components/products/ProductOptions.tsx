@@ -6,7 +6,7 @@ import Share from "public/svg/share.svg";
 import CommentIcon from "./CommentIcon";
 import ThreePoints from "./ThreePoints";
 import ShareButton from "./ShareButton";
-import Skeleton from "react-loading-skeleton";
+
 import { translateFunction } from "utils/functions";
 import home from "services/home";
 import auth from "services/auth";

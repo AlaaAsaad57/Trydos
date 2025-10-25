@@ -85,6 +85,7 @@ function ProductFooterSection({
     loginOpen,
     editInfo,
     storeProduct,
+    SelectedProduct,
   } = useAppStore();
   let { lang } = useParams();
 
@@ -364,14 +365,31 @@ function ProductFooterSection({
               ErrorAccure={(s) => {
                 dispatch({ type: "ErrorAccure", payload: s });
               }}
-              setComments={(s) => setComments(s)}
-              increase_comments={() =>
+              setComments={(s) => {
+                setComments(s);
+                editInfo({
+                  fqa_questions: {
+                    ...SelectedProduct?.fqa_questions,
+                    comments: s.map((s) => ({
+                      ...s,
+                      is_verfied: s?.is_verfied === undefined,
+                    })),
+                  },
+                });
+              }}
+              increase_comments={() => {
                 setProductData({
                   ...productState.productDetails,
                   comments_count:
                     productState.productDetails.comments_count + 1,
-                })
-              }
+                });
+                editInfo({
+                  fqa_questions: {
+                    ...SelectedProduct?.fqa_questions,
+                    total: SelectedProduct?.fqa_questions?.total + 1,
+                  },
+                });
+              }}
               product={product}
               comments={productState.productDetails.comments}
               sharedContacts={sharedContacts}

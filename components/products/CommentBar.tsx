@@ -44,6 +44,13 @@ function CommentBar({
   const [val, setVal] = useState("");
   const user = auth.User();
   const addComment = async (s) => {
+    let userData: any = getCookie(COOKIE_NAMES.USER_DATA);
+    if (userData.need_auth) {
+      showErrorNotification(
+        translateFunction("Please Verify Your Phone Number")
+      );
+      return null;
+    }
     let mid = Math.round(Math.random() * 1000);
     try {
       addCommentAction({
@@ -53,18 +60,21 @@ function CommentBar({
         mid: mid,
       });
       setVal("");
-      let response: { data: AddComment } = await fetchData({
-        url: "/api/products/comments/create",
-        reqTitle: REQUESTS_DATA.ADD_COMMENT_FOR_PRODUCT,
+      let response = await fetchData({
+        url: "/public_comment/comments/create",
         method: "POST",
-        server: "local",
         body: JSON.stringify({
-          user_id: auth.UserID(),
-          product_id: product?.id,
           text: s,
+          //   @ts-ignore
+          product_id: String(product?.id),
+          user_id: String(auth.UserID()),
           user_name: auth.User()?.name,
           user_avatar: auth.User().image,
+          user_type: "customer",
+          phone: auth?.User()?.phone,
         }),
+        reqTitle: REQUESTS_DATA.ADD_COMMENT_FOR_PRODUCT,
+        server: "comments",
       });
       // @ts-ignore
       if (!response.success) {

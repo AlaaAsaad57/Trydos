@@ -27,7 +27,8 @@ export type ServerType =
   | "elastic"
   | "upload story"
   | "nest-stories"
-  | "local";
+  | "local"
+  | "comments";
 
 export type FetchMethod = "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
 
@@ -75,6 +76,8 @@ const getServerBaseUrl = (server: ServerType) => {
       return process.env.NEXT_PUBLIC_CHAT_BACKEND_URL;
     case "stories":
       return process.env.NEXT_PUBLIC_STORIES_BACKEND_URL;
+    case "comments":
+      return process.env.NEXT_PUBLIC_COMMENT_BACKEND_URL;
     case "upload story":
     case "nest-stories":
     case "local":
@@ -86,6 +89,8 @@ const getServerBaseUrl = (server: ServerType) => {
 
 const getToken = async (server: ServerType): Promise<string> => {
   switch (server) {
+    case "comments":
+      return getHashedUserId();
     case "local":
       return getHashedUserId();
     case "chat":
@@ -175,6 +180,7 @@ const waitUntilRegisteringComplete = async (): Promise<void> => {
 const handleUnauthorized = async (server: ServerType): Promise<boolean> => {
   let userChat: any = getCookie(COOKIE_NAMES.USER_CHAT);
   let userStories: any = getCookie(COOKIE_NAMES.USER_STORIES);
+  let userData: any = getCookie(COOKIE_NAMES.USER_DATA);
   try {
     switch (server) {
       case "elastic":
@@ -185,6 +191,7 @@ const handleUnauthorized = async (server: ServerType): Promise<boolean> => {
         return true;
       case "chat":
       case "stories":
+      case "comments":
         const { useAppStore } = await import("../store");
         const { setShouldAuthinticated } = useAppStore.getState();
         if (userChat?.id)
@@ -197,6 +204,13 @@ const handleUnauthorized = async (server: ServerType): Promise<boolean> => {
             ...userStories,
             need_auth: true,
           });
+        if (userData) {
+          setCookie(COOKIE_NAMES.USER_DATA, {
+            ...userData,
+            need_auth: true,
+            is_phone_verified: 0,
+          });
+        }
         deleteCookie(COOKIE_NAMES.CHAT_TOKEN);
         deleteCookie(COOKIE_NAMES.STORIES_TOKEN);
         setShouldAuthinticated(true);

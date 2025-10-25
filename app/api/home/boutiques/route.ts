@@ -50,7 +50,7 @@ export async function GET(request: NextRequest) {
       country,
       language,
       limit,
-      category: category_slug,
+      category: category_slug as any,
       searchAfter: offset ? JSON.parse(offset.toString()) : null,
     });
 

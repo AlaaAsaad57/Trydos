@@ -2,11 +2,13 @@ import { useAppStore } from "store";
 import { PlaceOrderApi } from "models/API/market/PlaceOrder";
 import { GetAddressListApi } from "models/API/market/GetAddresses";
 import { GetWalletApi } from "models/API/market/GetWallet";
-import { GetCartOreview } from "utils/functions";
+import { GetCartOreview, translateFunction } from "utils/functions";
 import { getCurrency } from "utils/tinyUtils";
 import { fetchData } from "utils/fetchData";
 import auth from "./auth";
 import { REQUESTS_DATA } from "utils/Requests";
+import { COOKIE_NAMES, getCookie } from "utils/cookies/cookie-manager";
+import { showErrorNotification } from "store/notifications/reducer";
 
 class OrderService {
   async PlaceOrder({ payment_method, pay_by_wallet }) {
@@ -358,22 +360,32 @@ class OrderService {
     variant,
   }) {
     try {
+      let userData: any = getCookie(COOKIE_NAMES.USER_DATA);
+      if (userData.need_auth) {
+        showErrorNotification(
+          translateFunction("Please Verify Your Phone Number")
+        );
+        return null;
+      }
       let res = await fetchData({
-        url: `/api/products/comments/create`,
-        server: "local",
+        url: "/public_comment/comments/create",
         method: "POST",
         body: JSON.stringify({
-          user_id: auth.UserID(),
-          user_name: auth.User()?.name,
-          user_avatar: auth?.User()?.image,
-          order_detail_id: order_detail_id,
           text: comment,
+          //   @ts-ignore
+          product_id: String(product?.id),
+          user_id: String(auth.UserID()),
+          user_name: auth.User()?.name,
+          user_avatar: auth.User().image,
+          user_type: "customer",
           rating: star_rating,
-          product_id: productId,
           id: id,
           variant,
+          order_detail_id: order_detail_id,
+          phone: auth?.User()?.phone,
         }),
-        reqTitle: REQUESTS_DATA.UPDATE_ORDER_RATE,
+        reqTitle: REQUESTS_DATA.ADD_COMMENT_FOR_PRODUCT,
+        server: "comments",
       });
       if (!res.success) {
         throw new Error(res?.message);

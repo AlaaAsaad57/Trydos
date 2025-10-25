@@ -15,6 +15,7 @@ import Spinner from "components/global/Spinner";
 import { AddComment } from "models/API/market/AddComment";
 import auth from "services/auth";
 import { showErrorNotification } from "store/notifications/reducer";
+import { COOKIE_NAMES, getCookie } from "utils/cookies/cookie-manager";
 function FAQSection({ lang, comments, product_id }) {
   const [country, language] = lang.split("-");
   const { setColorBottomSheet } = useAppStore();
@@ -315,30 +316,53 @@ const AskInput = ({ language, setCommentsData }) => {
   };
   const isRtl = language === "ar" || language === "ku";
   const [loading, setLoading] = useState(false);
-  const { SelectedProduct, country } = useAppStore();
+  const { SelectedProduct, country, editInfo } = useAppStore();
   const [comment, setComment] = useState("");
   const addComment = async () => {
     try {
+      let userData: any = getCookie(COOKIE_NAMES.USER_DATA);
+      if (userData.need_auth) {
+        showErrorNotification(
+          translateFunction("Please Verify Your Phone Number")
+        );
+        return null;
+      }
       setLoading(true);
-      let response: { data: AddComment } = await fetchData({
-        url: "/api/products/comments/create",
-        reqTitle: REQUESTS_DATA.ADD_COMMENT_FOR_PRODUCT,
+      let response = await fetchData({
+        url: "/public_comment/comments/create",
         method: "POST",
-        server: "local",
         body: JSON.stringify({
-          user_id: auth.UserID(),
-          product_id: SelectedProduct?.id,
           text: comment,
+          //   @ts-ignore
+          product_id: String(SelectedProduct?.id),
+          user_id: String(auth.UserID()),
           user_name: auth.User()?.name,
           user_avatar: auth.User().image,
+          user_type: "customer",
+          phone: auth?.User()?.phone,
         }),
+        reqTitle: REQUESTS_DATA.ADD_COMMENT_FOR_PRODUCT,
+        server: "comments",
       });
+
       // @ts-ignore
       if (!response.success) {
         // @ts-ignore
         throw new Error(response.message);
       }
-      if (response.data.comment) setCommentsData(response.data.comment);
+      if (response.data.comment) {
+        setCommentsData(response.data.comment);
+        editInfo({
+          fqa_questions: {
+            ...SelectedProduct?.fqa_questions,
+            comments: [
+              response.data.comment,
+              ...SelectedProduct?.fqa_questions?.comments,
+            ],
+            comments_count: SelectedProduct?.fqa_questions?.comments_count + 1,
+          },
+        });
+      }
       fetch(
         `/api/editSocialProduct?pid=${SelectedProduct.id}&slug=${SelectedProduct.slug}&language=${language}&country=${country}`
       );

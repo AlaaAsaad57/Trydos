@@ -93,12 +93,22 @@ class AuthService {
       // Store user_id as hashed
 
       let token_response = await fetchData({
-        url: `/api/auth/generate?uid=${response.data.user.id}`,
-        method: "GET",
-        reqTitle: { reqTitle: "Store User", code: 999 },
-        server: "local",
+        url: `/public_comment/auth/exchange_token`,
+        method: "POST",
+        body: JSON.stringify({
+          user_id: String(response.data.user.id),
+          phone: String(response.data.user.phone),
+          id_token: response.data.id_token,
+        }),
+        reqTitle: {
+          reqTitle: "GET Token for User from comments server",
+          code: 999,
+        },
+        server: "comments",
       });
-      if (token_response.token) storeHashedUserId(token_response?.token);
+      console.log(token_response);
+      if (token_response.comments_token)
+        storeHashedUserId(token_response?.comments_token);
       setCookie(COOKIE_NAMES.USER_DATA, {
         ...response.data.user,
         already_exists: response.data.already_exists,

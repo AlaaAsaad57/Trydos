@@ -20,24 +20,6 @@ export async function POST(req: NextRequest) {
   const referer = req.headers.get("referer");
   const { order_detail_ids, user_id } = body;
   try {
-    let userToken = req.headers.get("authorization");
-    userToken = userToken?.split("Bearer ")[1];
-    let secret = process.env.SECRET_KEY;
-    let isUserAuthincticated = verifyToken(userToken, secret);
-    if (
-      !isUserAuthincticated ||
-      Number(isUserAuthincticated.userId) !== Number(user_id)
-    ) {
-      return NextResponse.json(
-        {
-          message: "unAuthincticated",
-          code: 401,
-          data: null,
-        },
-        { status: 401, headers }
-      );
-    }
-
     if (!order_detail_ids || !user_id) {
       return NextResponse.json(
         { error: "Missing required fields" },

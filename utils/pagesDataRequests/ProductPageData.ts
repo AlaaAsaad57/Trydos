@@ -265,7 +265,13 @@ export async function GetFQACommentsForProduct({
         must: [
           { term: { status: "active" } },
           { term: { product_id: String(product_id) } },
-          { term: { is_review: false } },
+        ],
+        must_not: [
+          {
+            exists: {
+              field: "order_details_id",
+            },
+          },
         ],
       },
     },

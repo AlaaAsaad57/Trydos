@@ -11,6 +11,7 @@ import { REQUESTS_DATA } from "utils/Requests";
 import { showErrorNotification } from "store/notifications/reducer";
 import { translateFunction } from "utils/functions";
 import Spinner from "components/global/Spinner";
+import { COOKIE_NAMES, getCookie } from "utils/cookies/cookie-manager";
 
 function Comments({
   comments,
@@ -28,19 +29,30 @@ function Comments({
 }: CommentsPropsType) {
   const resendCommentApi = async (mid, s) => {
     try {
-      let response: { data: AddComment } = await fetchData({
-        url: "/api/products/comments/create",
-        reqTitle: REQUESTS_DATA.ADD_COMMENT_FOR_PRODUCT,
+      let userData: any = getCookie(COOKIE_NAMES.USER_DATA);
+      if (userData.need_auth) {
+        showErrorNotification(
+          translateFunction("Please Verify Your Phone Number")
+        );
+        return null;
+      }
+      let response = await fetchData({
+        url: "/public_comment/comments/create",
         method: "POST",
-        server: "local",
         body: JSON.stringify({
-          user_id: auth.UserID(),
-          product_id: productId,
           text: s,
+          //   @ts-ignore
+          product_id: String(productId),
+          user_id: String(auth.UserID()),
           user_name: auth.User()?.name,
-          user_avatar: auth.User()?.image,
+          user_avatar: auth.User().image,
+          user_type: "customer",
+          phone: auth?.User()?.phone,
         }),
+        reqTitle: REQUESTS_DATA.ADD_COMMENT_FOR_PRODUCT,
+        server: "comments",
       });
+
       // @ts-ignore
       if (!response.success) {
         // @ts-ignore
