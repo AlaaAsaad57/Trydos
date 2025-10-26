@@ -107,6 +107,7 @@ function ProductFooterSection({
         fqa_questions: {
           comments: response.data?.fqa_comments || [],
           total: response.data?.total || 0,
+          offset: response.data?.offset,
         },
       });
     } catch (err) {
@@ -123,6 +124,7 @@ function ProductFooterSection({
       fqa_questions: {
         comments: product.fqa_questions?.comments || [],
         total: product.fqa_questions?.total || 0,
+        offset: product?.fqa_questions?.offset,
       },
     });
     // await home.CheckLogin();

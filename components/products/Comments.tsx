@@ -66,7 +66,7 @@ function Comments({
         increase_comments();
         let { SelectedProduct, editInfo } = useAppStore.getState();
         let selected_comment = SelectedProduct.fqa_questions.comments.filter(
-          (m) => m.mid === s.mid
+          (m) => m.mid === mid
         )[0];
         editInfo({
           fqa_questions: {
@@ -74,14 +74,21 @@ function Comments({
             comments: [
               {
                 ...selected_comment,
+                id: response.data?.comment_id,
+                customer: {
+                  name: response.data?.user_name,
+                  image: response?.data.user_avatar,
+                  id: response?.data?.user_id,
+                },
+                is_verfied: false,
+                isError: false,
               },
               ...SelectedProduct.fqa_questions.comments?.filter(
-                (comment) => comment.mid !== s.mid
+                (comment) => comment.mid !== mid
               ),
             ],
           },
         });
-        setRender(!Render);
       } else {
         ErrorAccure(mid);
       }
@@ -175,20 +182,29 @@ const LoadMoreComments = ({ product_id, offsetVar, setComments }) => {
   const [loading, setLoading] = useState(false);
   const [offset, setOffset] = useState(offsetVar);
   const getMoreComments = async () => {
+    const { SelectedProduct, editInfo } = useAppStore.getState();
     try {
       setLoading(true);
-      console.log(offset);
+
       let data = await fetchData({
         url: `/api/products/comments/fqa_comments?product_id=${product_id}&offset=${JSON.stringify(
-          offset
+          SelectedProduct?.fqa_questions?.offset
         )}`,
         server: "local",
         method: "GET",
         reqTitle: REQUESTS_DATA.COMMENT_DATA_REQUEST,
       });
+      editInfo({
+        fqa_questions: {
+          ...SelectedProduct?.fqa_questions,
+          comments: [
+            ...SelectedProduct.fqa_questions.comments,
+            ...data.data?.fqa_comments,
+          ],
+          offset: data.data.offset,
+        },
+      });
 
-      setComments(data?.data?.fqa_comments ?? []);
-      setOffset(data.offset?.offset);
       setLoading(false);
     } catch (error) {
       showErrorNotification(

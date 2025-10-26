@@ -27,7 +27,7 @@ function CommentSection({
   let { lang } = useParams();
   // @ts-ignore
   let languageVariable = lang.split("-")[1];
-  const { user } = useAppStore();
+  const { user, SelectedProduct } = useAppStore();
   const [loading, setLoading] = useState(true);
   const Init = async () => {
     GAevent({
@@ -49,6 +49,7 @@ function CommentSection({
   useEffect(() => {
     Init();
   }, []);
+
   return (
     <div
       className="extended-section items-center justify-center"
@@ -91,7 +92,9 @@ function CommentSection({
 
       <Comments
         CommentsData={CommentsData}
-        shouldShowMore={product?.fqa_questions?.total > CommentsData?.length}
+        shouldShowMore={
+          SelectedProduct?.fqa_questions?.total > CommentsData?.length
+        }
         ErrorAccure={(s) => ErrorAccure(s)}
         increase_comments={() => increase_comments()}
         productId={product.id}

@@ -772,7 +772,6 @@ async function Page({ params, searchParams }) {
       </>
     );
   } catch (error) {
-    console.log(error, "jjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjj");
     LogServerError(error, `/${Params.lang}/products/${Params.productId}`);
     throw error instanceof Error ? error : new Error(String(error));
   }
