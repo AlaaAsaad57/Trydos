@@ -123,10 +123,14 @@ function ExtraInfoArea({
         <div className="flex-row flex items-center min-h-[40px] max-h-[85px] w-full justify-center px-[20px]">
           <div className="flex flex-row items-center gap-[3px] regular text-[10px] text-[#1d1d1d]">
             <span>{translateFunction("Color")}</span>
-            <span className="bold">{selected_color?.color_name}</span>
+            <span className="bold" data-cy="add-to-cart-selected-color">
+              {selected_color?.color_name}
+            </span>
             <span>|</span>
             <span>{translateFunction("Size")}</span>
-            <span className="bold">{selected_size?.name || selected_size}</span>
+            <span className="bold" data-cy="add-to-cart-selected-size">
+              {selected_size?.name || selected_size}
+            </span>
           </div>
         </div>
       );
