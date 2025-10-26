@@ -384,6 +384,7 @@ function PaymentMethod() {
                     />
                     <div
                       className={`rounded-[10px]  justify-center items-center flex h-[40px] min-w-[45px] bg-[#f8f8f8] cursor-pointer`}
+                      data-cy="refresh-wallet"
                       onClick={() => {
                         refreshWallet();
                       }}
