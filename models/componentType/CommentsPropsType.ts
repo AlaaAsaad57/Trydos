@@ -1,7 +1,6 @@
 export interface CommentsPropsType {
   comments: any[];
   Render: boolean;
-  resendComment: Function;
   productId: number;
   ErrorAccure: Function;
   CommentsData: any[];

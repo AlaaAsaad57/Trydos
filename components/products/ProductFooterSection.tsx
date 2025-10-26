@@ -17,59 +17,6 @@ import { GAevent } from "utils/gtag";
 import { GA_EVENT_NAMES, GA_GLOBAL_SCREEN } from "utils/GAEvents";
 import { REQUESTS_DATA } from "utils/Requests";
 
-function ProductReducer(state, { type, payload }) {
-  if (type === "setProductData") {
-    return {
-      ...state,
-      productDetails: payload,
-    };
-  }
-  if (type === "setComments") {
-    return {
-      ...state,
-      CommentsData: payload,
-    };
-  }
-  if (type === "ErrorAccure") {
-    let s = state.CommentsData.filter((m) => m.mid === payload)[0];
-
-    return {
-      ...state,
-      CommentsData: [
-        { ...s, is_verfied: false, isError: true },
-        ...state.CommentsData.filter((comment) => comment.mid !== payload),
-        ,
-      ],
-    };
-  }
-  if (type === "VerifyComment") {
-    let s = state.CommentsData.filter((m) => m.mid === payload)[0];
-
-    return {
-      ...state,
-      CommentsData: [
-        { ...s, is_verfied: true, isError: false },
-        ...state.CommentsData.filter((comment) => comment.mid !== payload),
-      ],
-    };
-  }
-  if (type === "setRender") {
-    return {
-      ...state,
-      Render: !state.Render,
-    };
-  }
-  if (type === "resendComment") {
-    let s = state.CommentsData.filter((m) => m.mid === payload)[0];
-    return {
-      ...state,
-      CommentsData: [
-        { ...s, is_verfied: false, isError: false },
-        ...state.CommentsData.filter((comment) => comment.mid !== payload),
-      ],
-    };
-  }
-}
 function ProductFooterSection({
   product,
   currency,
@@ -95,26 +42,52 @@ function ProductFooterSection({
     return translateFunction(key, languageVariable);
   };
   const sizes = product?.choice_options?.[0]?.options || [];
-  const [productState, dispatch] = useReducer(ProductReducer, {
-    productDetails: {
-      comments_count: null,
-      comments: null,
-      shares: null,
-      likes: null,
-    },
-    CommentsData: null,
-    Render: false,
-  });
+
   const setProductData = (s) => {
-    dispatch({ type: "setProductData", payload: s });
+    editInfo(s);
   };
-  const setComments = (s) => {
-    dispatch({ type: "setComments", payload: s });
+
+  const VerifyComment = (mid) => {
+    let { SelectedProduct: ProductData } = useAppStore.getState();
+    let selected_comment = ProductData.fqa_questions.comments.find(
+      (m) => m.mid === mid
+    );
+
+    editInfo({
+      fqa_questions: {
+        ...ProductData.fqa_questions,
+        comments: [
+          { ...selected_comment, is_verfied: false, isError: false },
+          ...ProductData.fqa_questions.comments?.filter(
+            (comment) => comment.mid !== mid
+          ),
+        ],
+      },
+    });
   };
+  const ErrorAccure = (mid) => {
+    let { SelectedProduct: ProductData } = useAppStore.getState();
+    let selected_comment = ProductData.fqa_questions.comments.filter(
+      (m) => m.mid === mid
+    )[0];
+    editInfo({
+      fqa_questions: {
+        ...ProductData.fqa_questions,
+        comments: [
+          { ...selected_comment, is_verfied: false, isError: true },
+          ,
+          ...ProductData.fqa_questions.comments?.filter(
+            (comment) => comment.mid !== mid
+          ),
+        ],
+      },
+    });
+  };
+
   const [option, setOption] = useState("");
   const getComments = async () => {
     try {
-      let response: { data: ProductSocialInfo } = await fetchData({
+      let response: any = await fetchData({
         url: `/api/products/comments/fqa_comments?product_id=${product.id}`,
         reqTitle: REQUESTS_DATA.SOCIAL_INFO_REQUEST,
         method: "GET",
@@ -126,11 +99,15 @@ function ProductFooterSection({
         throw new Error(response.message);
       }
       setProductData({
-        ...productState.productDetails,
+        ...SelectedProduct,
         // @ts-ignore
         comments_count: response.data?.total || 0,
         // @ts-ignore
         comments: response.data?.fqa_comments || [],
+        fqa_questions: {
+          comments: response.data?.fqa_comments || [],
+          total: response.data?.total || 0,
+        },
       });
     } catch (err) {
       // Handle error as needed
@@ -142,11 +119,11 @@ function ProductFooterSection({
   const searchParams = useSearchParams();
   const getData = async () => {
     setProductData({
-      ...productState.productDetails,
-      // @ts-ignore
-      comments_count: product?.comments_count || 0,
-      // @ts-ignore
-      comments: product?.comments || [],
+      ...SelectedProduct,
+      fqa_questions: {
+        comments: product.fqa_questions?.comments || [],
+        total: product.fqa_questions?.total || 0,
+      },
     });
     // await home.CheckLogin();
     try {
@@ -193,10 +170,7 @@ function ProductFooterSection({
       let likesNum = likesResponse.data?.count_of_likes || 0;
       // @ts-ignore
       let isLiked = likesResponse.data?.is_liked || 0;
-      setProductData({
-        ...productState.productDetails,
-        // @ts-ignore
-      });
+
       let arr = [];
       // @ts-ignore
       if (likesResponse.data?.variation?.length) {
@@ -354,34 +328,30 @@ function ProductFooterSection({
                 setOption(e);
               }}
               getComments={async () => await getComments()}
-              Render={productState?.Render}
-              verifyCommentAction={(mid) =>
-                dispatch({ type: "VerifyComment", payload: mid })
-              }
+              Render={false}
+              verifyCommentAction={(mid) => VerifyComment(mid)}
               setRender={() => {
-                dispatch({ type: "setRender", payload: "" });
+                // dispatch({ type: "setRender", payload: "" });
               }}
-              CommentsData={productState.CommentsData}
+              CommentsData={SelectedProduct?.fqa_questions?.comments ?? []}
               ErrorAccure={(s) => {
-                dispatch({ type: "ErrorAccure", payload: s });
+                ErrorAccure(s);
               }}
               setComments={(s) => {
-                setComments(s);
                 editInfo({
                   fqa_questions: {
                     ...SelectedProduct?.fqa_questions,
-                    comments: s.map((s) => ({
-                      ...s,
-                      is_verfied: s?.is_verfied === undefined,
-                    })),
+                    comments: s,
                   },
                 });
               }}
               increase_comments={() => {
                 setProductData({
-                  ...productState.productDetails,
-                  comments_count:
-                    productState.productDetails.comments_count + 1,
+                  ...SelectedProduct,
+                  fqa_questions: {
+                    ...SelectedProduct.fqa_questions,
+                    total: SelectedProduct.fqa_questions.total + 1,
+                  },
                 });
                 editInfo({
                   fqa_questions: {
@@ -391,11 +361,8 @@ function ProductFooterSection({
                 });
               }}
               product={product}
-              comments={productState.productDetails.comments}
+              comments={SelectedProduct?.fqa_questions?.comments ?? []}
               sharedContacts={sharedContacts}
-              resendComment={(s) => {
-                dispatch({ type: "resendComment", payload: s });
-              }}
               setShareContacts={(e) => setShareContacts(e)}
               active={option.length > 0 && option !== "Like"}
               option={option}
@@ -406,7 +373,7 @@ function ProductFooterSection({
             clearShare={() => setShareContacts([])}
             loading={loading}
             shareAction={() => shareAction()}
-            productDetails={productState.productDetails}
+            productDetails={SelectedProduct}
             product={{
               name: product.name,
               selectedColor:

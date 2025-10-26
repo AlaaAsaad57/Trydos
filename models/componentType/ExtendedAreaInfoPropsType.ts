@@ -14,6 +14,6 @@ export interface ExtendedAreaInfoPropsType {
   ErrorAccure: Function;
   Render: boolean;
   setRender: any;
-  resendComment: Function;
+
   verifyCommentAction: Function;
 }

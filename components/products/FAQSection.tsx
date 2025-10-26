@@ -12,15 +12,16 @@ import FAQModal from "./FAQModal";
 import { fetchData } from "utils/fetchData";
 import { REQUESTS_DATA } from "utils/Requests";
 import Spinner from "components/global/Spinner";
-import { AddComment } from "models/API/market/AddComment";
 import auth from "services/auth";
 import { showErrorNotification } from "store/notifications/reducer";
 import { COOKIE_NAMES, getCookie } from "utils/cookies/cookie-manager";
 function FAQSection({ lang, comments, product_id }) {
   const [country, language] = lang.split("-");
-  const { setColorBottomSheet } = useAppStore();
+  const { setColorBottomSheet, editInfo, SelectedProduct } = useAppStore();
   const isRtl = language === "ar" || language === "ku";
-  const [commentsData, setCommentsData] = useState(comments?.comments ?? []);
+
+  const AllComments =
+    SelectedProduct?.fqa_questions?.comments ?? comments.comments;
   const [offset, setOffset] = useState(comments.offset);
   const [loading, setLoading] = useState(false);
   const loadMore = async () => {
@@ -34,7 +35,17 @@ function FAQSection({ lang, comments, product_id }) {
         server: "local",
         reqTitle: REQUESTS_DATA.COMMENT_DATA_REQUEST,
       });
-      setCommentsData([...commentsData, ...data?.data?.fqa_comments]);
+      editInfo({
+        fqa_questions: {
+          ...SelectedProduct.fqa_questions,
+          comments: [
+            ...SelectedProduct.fqa_questions?.comments,
+            ...data?.data?.fqa_comments,
+          ],
+          offset: data.data.offset,
+        },
+      });
+      // setCommentsData([...commentsData, ...data?.data?.fqa_comments]);
       setOffset(data?.data?.offset);
       setLoading(false);
     } catch (error) {
@@ -97,10 +108,11 @@ function FAQSection({ lang, comments, product_id }) {
           id="faq-buyers-bar"
           className="flex-row w-full gap-[4px]"
         >
-          {commentsData?.map((s, i) => {
-            return <FaqItem language={language} comment={s} key={i} />;
+          {AllComments?.map((s, i) => {
+            if (s && s.comment && !s.isError)
+              return <FaqItem language={language} comment={s} key={i} />;
           })}
-          {comments.total > commentsData?.length && (
+          {comments.total > AllComments?.length && (
             <div
               className={`comment-item rounded-[15px] flex-col justify-between min-w-[330px] max-w-[100px] w-full bg-[#F8F8F8] min-h-[111px] py-[8px] px-[10px]`}
               style={{
@@ -119,7 +131,13 @@ function FAQSection({ lang, comments, product_id }) {
         <AskInput
           language={language}
           setCommentsData={(e) => {
-            setCommentsData([e, ...commentsData]);
+            editInfo({
+              fqa_questions: {
+                ...SelectedProduct.fqa_questions,
+                comments: [e, ...SelectedProduct.fqa_questions.comments],
+                total: SelectedProduct.fqa_questions.total + 1,
+              },
+            });
           }}
         />
       </div>
@@ -129,7 +147,12 @@ function FAQSection({ lang, comments, product_id }) {
 
 export default FAQSection;
 
-export const FaqItem = ({ language, comment, isFull = false }) => {
+export const FaqItem = ({
+  language,
+  comment,
+  isFull = false,
+  isError = false,
+}) => {
   let has_reply = comment.has_reply;
   return (
     <div
@@ -138,11 +161,12 @@ export const FaqItem = ({ language, comment, isFull = false }) => {
       }`}
     >
       <div
-        className={`comment-item ${
+        className={`comment-item  ${
           has_reply ? "rounded-t-[15px] rounded-b-[0px]" : "rounded-[15px]"
-        } flex-col justify-between max-w-full w-full bg-[#F8F8F8] min-h-[111px] py-[8px] px-[10px]`}
+        } flex-col justify-between max-w-full w-full  min-h-[111px] py-[8px] px-[10px]`}
         style={{
           position: "relative",
+          backgroundColor: isError ? "#ffd6d6" : "#F8F8F8",
         }}
       >
         <div className="w-full flex-col">
@@ -365,12 +389,13 @@ const AskInput = ({ language, setCommentsData }) => {
           created_at: response?.data?.created_at,
           product_id: String(SelectedProduct?.id),
         };
-        setCommentsData(newComment);
+        // setCommentsData(newComment);
         editInfo({
           fqa_questions: {
             ...SelectedProduct?.fqa_questions,
             comments: [newComment, ...SelectedProduct?.fqa_questions?.comments],
-            comments_count: SelectedProduct?.fqa_questions?.comments_count + 1,
+            comments_count: SelectedProduct?.fqa_questions?.total + 1,
+            total: SelectedProduct?.fqa_questions?.total + 1,
           },
         });
       }

@@ -20,7 +20,7 @@ function CommentSection({
   ErrorAccure,
   Render,
   setRender,
-  resendComment,
+
   verifyCommentAction,
   getComments,
 }: CommentSectionPropsType) {
@@ -28,13 +28,6 @@ function CommentSection({
   // @ts-ignore
   let languageVariable = lang.split("-")[1];
   const { user } = useAppStore();
-  useEffect(() => {
-    if (comments) {
-      setComments(
-        comments.map((s) => ({ ...s, is_verfied: s?.is_verfied === undefined }))
-      );
-    }
-  }, [comments]);
   const [loading, setLoading] = useState(true);
   const Init = async () => {
     GAevent({
@@ -106,7 +99,6 @@ function CommentSection({
         setRender={(s) => setRender(s)}
         Render={Render}
         comments={CommentsData}
-        resendComment={(s) => resendComment(s)}
         comment_offset={product.fqa_questions?.offset}
         verifyCommentAction={(mid) => verifyCommentAction(mid)}
       />

@@ -467,10 +467,11 @@ export const useCartStore = (set, get) => ({
       SelectedProduct: { ...state.SelectedProduct, ...product },
     })),
 
-  editInfo: (info) =>
-    set((state) => ({
+  editInfo: (info) => {
+    return set((state) => ({
       SelectedProduct: { ...state.SelectedProduct, ...info },
-    })),
+    }));
+  },
   expireRedeem: () =>
     set((state) => ({
       ...state,

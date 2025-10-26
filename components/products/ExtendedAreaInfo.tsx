@@ -19,7 +19,6 @@ function ExtendedAreaInfo({
   Render,
   setRender,
   ErrorAccure,
-  resendComment,
   verifyCommentAction,
   getComments,
 }: ExtendedAreaInfoPropsType) {
@@ -77,7 +76,6 @@ function ExtendedAreaInfo({
                 CommentsData={CommentsData}
                 setComments={setComments}
                 ErrorAccure={ErrorAccure}
-                resendComment={resendComment}
                 verifyCommentAction={verifyCommentAction}
               />
             )}

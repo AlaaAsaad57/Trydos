@@ -12,11 +12,12 @@ import { showErrorNotification } from "store/notifications/reducer";
 import { translateFunction } from "utils/functions";
 import Spinner from "components/global/Spinner";
 import { COOKIE_NAMES, getCookie } from "utils/cookies/cookie-manager";
+import { useAppStore } from "store";
 
 function Comments({
   comments,
   Render,
-  resendComment,
+
   productId,
   ErrorAccure,
   CommentsData,
@@ -60,9 +61,26 @@ function Comments({
       }
       fetch(`/api/editSocialProduct?pid=${productId}`);
       if (response.data?.comment_id) {
-        let s = CommentsData.filter((m) => m.mid === mid)[0];
-        verifyCommentAction(mid);
+        // verifyCommentAction(mid);
+
         increase_comments();
+        let { SelectedProduct, editInfo } = useAppStore.getState();
+        let selected_comment = SelectedProduct.fqa_questions.comments.filter(
+          (m) => m.mid === s.mid
+        )[0];
+        editInfo({
+          fqa_questions: {
+            ...SelectedProduct.fqa_questions,
+            comments: [
+              {
+                ...selected_comment,
+              },
+              ...SelectedProduct.fqa_questions.comments?.filter(
+                (comment) => comment.mid !== s.mid
+              ),
+            ],
+          },
+        });
         setRender(!Render);
       } else {
         ErrorAccure(mid);
@@ -82,23 +100,45 @@ function Comments({
       /> */}
       {CommentsData !== null ? (
         <>
-          {CommentsData.map((s, i) => (
-            <CommentItem
-              comment={s}
-              isPending={s?.is_verfied}
-              resendComment={() => {
-                resendComment(s.mid);
-                resendCommentApi(s.mid, s.comment);
-              }}
-              isError={s?.isError}
-              key={i}
-              date={formatTime(s?.created_at)}
-              name={s?.customer?.name}
-              text={s?.comment}
-              photo={GetImageUrl(s?.customer?.image) ?? profilePng}
-              custmerId={s?.customer?.id}
-            />
-          ))}
+          {CommentsData.map((s, i) => {
+            if (s && s?.comment)
+              return (
+                <CommentItem
+                  comment={s}
+                  isPending={s?.id}
+                  resendComment={() => {
+                    let { SelectedProduct, editInfo } = useAppStore.getState();
+                    let selected_comment =
+                      SelectedProduct.fqa_questions.comments.filter(
+                        (m) => m.mid === s.mid
+                      )[0];
+                    editInfo({
+                      fqa_questions: {
+                        ...SelectedProduct.fqa_questions,
+                        comments: [
+                          {
+                            ...selected_comment,
+                            is_verfied: false,
+                            isError: false,
+                          },
+                          ...SelectedProduct.fqa_questions.comments?.filter(
+                            (comment) => comment.mid !== s.mid
+                          ),
+                        ],
+                      },
+                    });
+                    resendCommentApi(s.mid, s.comment);
+                  }}
+                  isError={s?.isError}
+                  key={i}
+                  date={formatTime(s?.created_at)}
+                  name={s?.customer?.name}
+                  text={s?.comment}
+                  photo={GetImageUrl(s?.customer?.image) ?? profilePng}
+                  custmerId={s?.customer?.id}
+                />
+              );
+          })}
           {shouldShowMore && (
             <LoadMoreComments
               offsetVar={comment_offset}

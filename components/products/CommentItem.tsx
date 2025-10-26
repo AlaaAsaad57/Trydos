@@ -1,4 +1,3 @@
-import Image from "next/image";
 import React, { useState } from "react";
 import "styles/comment.css";
 import Loading from "public/svg/loading.svg";
@@ -9,8 +8,9 @@ import DeleteCommentIcon from "public/svg/DeleteCommentIcon.svg";
 import { showErrorNotification } from "store/notifications/reducer";
 import { useParams } from "node_modules/next/navigation";
 import { translateFunction } from "utils/functions";
-import { convertTextToXFormat } from "utils/tinyUtils";
 import { FaqItem } from "./FAQSection";
+import { fetchData } from "utils/fetchData";
+import { useAppStore } from "store";
 function CommentItem({
   custmerId,
   name,
@@ -27,7 +27,7 @@ function CommentItem({
   let languageVariable = lang.split("-")[1];
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
-
+  const { editInfo, SelectedProduct } = useAppStore();
   const userData = getCookie(COOKIE_NAMES.USER_DATA);
   // @ts-ignore
   const isOwner = String(userData?.id) === String(custmerId);
@@ -37,18 +37,26 @@ function CommentItem({
   const handleDeleteComment = async () => {
     setDeleteLoading(true);
     try {
-      // let response = await fetchData({
-      //   url: "",
-      //   reqTitle: { reqTitle: "", code: 1000 },
-      //   method: "POST",
-      //   server: "market",
-      //   body: {},
-      // });
-      // // @ts-ignore
-      // if (!response.success) {
-      //   // @ts-ignore
-      //   throw new Error(response.message);
-      // }
+      let response = await fetchData({
+        url: `/public_comment/comments/${comment.id}/delete`,
+        reqTitle: { reqTitle: "DELETE_COMMENT", code: 1000 },
+        method: "DELETE",
+        server: "comments",
+      });
+      // @ts-ignore
+      if (!response.success) {
+        // @ts-ignore
+        throw new Error(response.message);
+      }
+      editInfo({
+        fqa_questions: {
+          ...SelectedProduct,
+          comments: SelectedProduct.fqa_questions.comments?.filter(
+            (s) => s.id !== comment.id
+          ),
+          total: SelectedProduct.fqa_questions.total - 1,
+        },
+      });
       setShowDeleteModal(false);
     } catch (error) {
       console.error("Error deleting comment:", error);
@@ -69,10 +77,14 @@ function CommentItem({
 
   return (
     <>
-      <div className="relative flex w-full">
+      <div
+        className={`${
+          !isPending && !isError && "opacity-70"
+        } relative flex w-full`}
+      >
         {isError && (
           <Loading
-            className="absolute z-50 right-[10px] top-[30px]"
+            className="absolute z-50 right-[10px] top-[45px]"
             style={{ position: "absolute", right: "10px", bottom: "10px" }}
             onClick={() => {
               resendComment();
@@ -105,29 +117,12 @@ function CommentItem({
           </div>
         )}
       </div>
-      <FaqItem isFull={true} comment={comment} language={languageVariable} />
-      {/* <div
-        className="comment-item"
-        style={{
-          opacity: isPending === true ? "1" : isPending === null ? "1" : "0.7",
-          backgroundColor: isError ? "#ffd6d6" : "#f8f8f8",
-          position: "relative",
-        }}
-      >
-        <div className="comment-photo">
-          <Image src={photo} width={20} height={20} alt={name} />
-        </div>
-        <div className="comment-content">
-          <div className="comment-source" data-cy="Source-Of-Comment">
-            {convertTextToXFormat(name)}
-          </div>
-          <div className="comment-text">{text}</div>
-        </div>
-        <div className="comment-date" data-cy="Date-Of-Comment">
-          {date}
-        </div>
-      </div> */}
-
+      <FaqItem
+        isError={isError}
+        isFull={true}
+        comment={comment}
+        language={languageVariable}
+      />
       {showDeleteModal && (
         <ConfirmModal
           onCancel={() => setShowDeleteModal(false)}

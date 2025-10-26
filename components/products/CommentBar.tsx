@@ -13,6 +13,7 @@ import {
   UserData,
 } from "utils/cookies/cookie-manager";
 import { showErrorNotification } from "store/notifications/reducer";
+import { useAppStore } from "store";
 function CommentBar({
   product,
   setComments,
@@ -24,10 +25,19 @@ function CommentBar({
   verifyCommentAction,
 }: CommentBarPropsType) {
   const params = useParams();
-
+  const { SelectedProduct, editInfo } = useAppStore();
   const [country, language] = (params.lang as string).split("-");
   const addCommentAction = (s) => {
-    setComments([{ ...s, is_verfied: false }, ...CommentsData]);
+    editInfo({
+      fqa_questions: {
+        ...SelectedProduct?.fqa_questions,
+        comments: [
+          { ...s, is_verfied: false },
+          ...SelectedProduct?.fqa_questions?.comments,
+        ],
+      },
+    });
+    // setComments([{ ...s, is_verfied: false }, ...CommentsData]);
     setTimeout(() => {
       document.querySelector(".comments-extended").scrollTop = 0;
     }, 300);
@@ -99,12 +109,46 @@ function CommentBar({
           created_at: response?.data?.created_at,
           product_id: String(product?.id),
         };
-        verifyComment(mid, newComment);
+        editInfo({
+          fqa_questions: {
+            ...SelectedProduct?.fqa_questions,
+            comments: [
+              { ...newComment, is_verfied: false, mid: mid },
+              ...SelectedProduct.fqa_questions?.comments?.filter(
+                (com) => com.mid !== mid
+              ),
+            ],
+          },
+        });
+        // verifyComment(mid, newComment);
       } else {
-        isError(mid);
+        throw new Error("Error");
+        // isError(mid);
       }
     } catch (e) {
-      isError(mid);
+      const { SelectedProduct: productData } = useAppStore.getState();
+      let selected_comment = productData.fqa_questions.comments.filter(
+        (m) => m.mid === mid
+      )[0];
+      console.log(
+        SelectedProduct.fqa_questions,
+        productData.fqa_questions,
+        selected_comment,
+        mid
+      );
+
+      editInfo({
+        fqa_questions: {
+          ...productData.fqa_questions,
+          comments: [
+            { ...selected_comment, is_verfied: false, isError: true },
+            ...productData.fqa_questions.comments?.filter(
+              (comment) => comment.mid !== mid
+            ),
+          ],
+        },
+      });
+      // isError(mid);
     }
   };
   const userData = getCookie<UserData>(COOKIE_NAMES.USER_DATA);
