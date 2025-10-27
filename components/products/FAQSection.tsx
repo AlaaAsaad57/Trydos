@@ -15,6 +15,7 @@ import Spinner from "components/global/Spinner";
 import auth from "services/auth";
 import { showErrorNotification } from "store/notifications/reducer";
 import { COOKIE_NAMES, getCookie } from "utils/cookies/cookie-manager";
+import CommentItem from "./CommentItem";
 function FAQSection({ lang, comments, product_id }) {
   const [country, language] = lang.split("-");
   const { setColorBottomSheet, editInfo, SelectedProduct } = useAppStore();
@@ -110,7 +111,20 @@ function FAQSection({ lang, comments, product_id }) {
         >
           {AllComments?.map((s, i) => {
             if (s && s.comment && !s.isError)
-              return <FaqItem language={language} comment={s} key={i} />;
+              return (
+                <CommentItem
+                  isPending={s?.id}
+                  isFull={false}
+                  isError={s?.isError}
+                  key={i}
+                  date={formatTime(s?.created_at)}
+                  name={s?.customer?.name}
+                  text={s?.comment}
+                  photo={GetImageUrl(s?.customer?.image) ?? profilePng}
+                  custmerId={s?.customer?.id}
+                  comment={s}
+                />
+              );
           })}
           {comments.total > AllComments?.length && (
             <div
@@ -156,9 +170,9 @@ export const FaqItem = ({
   let has_reply = comment.has_reply;
   return (
     <div
-      className={`flex-col min-w-[85%] ${
-        isFull ? "max-w-full w-full" : "max-w-[90%]"
-      }`}
+      className={`flex-col ${
+        isFull ? "min-w-full" : "min-w-[85vw]"
+      } ${"max-w-full w-full"}`}
     >
       <div
         className={`comment-item  ${

@@ -348,13 +348,6 @@ function ProductFooterSection({
                 });
               }}
               increase_comments={() => {
-                setProductData({
-                  ...SelectedProduct,
-                  fqa_questions: {
-                    ...SelectedProduct.fqa_questions,
-                    total: SelectedProduct.fqa_questions.total + 1,
-                  },
-                });
                 editInfo({
                   fqa_questions: {
                     ...SelectedProduct?.fqa_questions,

@@ -367,26 +367,40 @@ class OrderService {
         );
         return null;
       }
-      let res = await fetchData({
-        url: "/public_comment/comments/create",
-        method: "POST",
-        body: JSON.stringify({
-          text: comment,
-          //   @ts-ignore
-          product_id: String(product?.id),
-          user_id: String(auth.UserID()),
-          user_name: auth.User()?.name,
-          user_avatar: auth.User().image,
-          user_type: "customer",
-          rating: star_rating,
-          id: id,
-          variant,
-          order_detail_id: order_detail_id,
-          phone: auth?.User()?.phone,
-        }),
-        reqTitle: REQUESTS_DATA.ADD_COMMENT_FOR_PRODUCT,
-        server: "comments",
-      });
+      let res;
+      if (id) {
+        res = await fetchData({
+          url: `/public_comment/comments/${id}/update`,
+          method: "PUT",
+          body: JSON.stringify({
+            text: comment,
+            rating: star_rating,
+          }),
+          reqTitle: REQUESTS_DATA.UPDATE_COMMENT,
+          server: "comments",
+        });
+      } else {
+        res = await fetchData({
+          url: "/public_comment/comments/create",
+          method: "POST",
+          body: JSON.stringify({
+            text: comment,
+            //   @ts-ignore
+            product_id: String(product?.id),
+            user_id: String(auth.UserID()),
+            user_name: auth.User()?.name,
+            user_avatar: auth.User().image,
+            user_type: "customer",
+            rating: star_rating,
+            id: id,
+            variant,
+            order_detail_id: order_detail_id,
+            phone: auth?.User()?.phone,
+          }),
+          reqTitle: REQUESTS_DATA.ADD_COMMENT_FOR_PRODUCT,
+          server: "comments",
+        });
+      }
       if (!res.success) {
         throw new Error(res?.message);
       }

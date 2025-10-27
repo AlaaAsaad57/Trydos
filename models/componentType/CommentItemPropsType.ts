@@ -7,7 +7,8 @@ export interface CommentItemPropsType {
   text: string;
   isPending: boolean;
   isError: boolean;
-  resendComment: Function;
+
   custmerId: number;
   comment: any;
+  isFull?: boolean;
 }

@@ -196,4 +196,6 @@ export const REQUESTS_DATA = {
   REMOVE_IMAGE: { reqTitle: "REMOVE_IMAGE", code: 136 },
   GET_RECOMENDATIONS: { reqTitle: "GET_RECOMENDATIONS", code: 137 },
   GET_ORDER_RATING: { reqTitle: "GET_ORDER_RATING", code: 138 },
+  UPDATE_COMMENT: { reqTitle: "UPDATE_COMMENT", code: 139 },
+  DELETE_COMMENT: { reqTitle: "DELETE_COMMENT", code: 140 },
 };

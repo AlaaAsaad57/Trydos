@@ -16,6 +16,8 @@ import { useAppStore } from "store";
 import { convertTextToXFormat, formatTime, GetImageUrl } from "utils/tinyUtils";
 import Image from "node_modules/next/image";
 import profilePng from "public/images/profileNo.png";
+import auth from "services/auth";
+import { REQUESTS_DATA } from "utils/Requests";
 
 function CommentItem({
   custmerId,
@@ -25,8 +27,8 @@ function CommentItem({
   text,
   isPending,
   isError,
-  resendComment,
   comment,
+  isFull = false,
 }: CommentItemPropsType) {
   const { lang }: { lang: string } = useParams();
   let languageVariable = lang.split("-")[1];
@@ -102,18 +104,130 @@ function CommentItem({
     setShowUpdate(true);
     setShowMenu(false);
   };
+  const ErrorAccure = (mid) => {
+    let { SelectedProduct: ProductData } = useAppStore.getState();
+    let selected_comment = ProductData.fqa_questions.comments.filter(
+      (m) => m.mid === mid
+    )[0];
+    editInfo({
+      fqa_questions: {
+        ...ProductData.fqa_questions,
+        comments: [
+          { ...selected_comment, is_verfied: false, isError: true },
+          ,
+          ...ProductData.fqa_questions.comments?.filter(
+            (comment) => comment.mid !== mid
+          ),
+        ],
+      },
+    });
+  };
+  const increase_comments = () => {
+    editInfo({
+      fqa_questions: {
+        ...SelectedProduct?.fqa_questions,
+        total: SelectedProduct?.fqa_questions?.total + 1,
+      },
+    });
+  };
+  const resendCommentApi = async (mid, s) => {
+    try {
+      let { SelectedProduct, editInfo } = useAppStore.getState();
+      let selected_comment = SelectedProduct.fqa_questions.comments.filter(
+        (m) => m.mid === s.mid
+      )[0];
+      editInfo({
+        fqa_questions: {
+          ...SelectedProduct.fqa_questions,
+          comments: [
+            {
+              ...selected_comment,
+              is_verfied: false,
+              isError: false,
+            },
+            ...SelectedProduct.fqa_questions.comments?.filter(
+              (comment) => comment.mid !== s.mid
+            ),
+          ],
+        },
+      });
+      let userData: any = getCookie(COOKIE_NAMES.USER_DATA);
+      if (userData.need_auth) {
+        showErrorNotification(
+          translateFunction("Please Verify Your Phone Number")
+        );
+        return null;
+      }
+      let response = await fetchData({
+        url: "/public_comment/comments/create",
+        method: "POST",
+        body: JSON.stringify({
+          text: s,
+          //   @ts-ignore
+          product_id: String(productId),
+          user_id: String(auth.UserID()),
+          user_name: auth.User()?.name,
+          user_avatar: auth.User().image,
+          user_type: "customer",
+          phone: auth?.User()?.phone,
+        }),
+        reqTitle: REQUESTS_DATA.ADD_COMMENT_FOR_PRODUCT,
+        server: "comments",
+      });
 
+      // @ts-ignore
+      if (!response.success) {
+        // @ts-ignore
+        throw new Error(response.message);
+      }
+      fetch(`/api/editSocialProduct?pid=${SelectedProduct.id}`);
+      if (response.data?.comment_id) {
+        // verifyCommentAction(mid);
+
+        increase_comments();
+        let { SelectedProduct, editInfo } = useAppStore.getState();
+        let selected_comment = SelectedProduct.fqa_questions.comments.filter(
+          (m) => m.mid === mid
+        )[0];
+        editInfo({
+          fqa_questions: {
+            ...SelectedProduct.fqa_questions,
+            comments: [
+              {
+                ...selected_comment,
+                id: response.data?.comment_id,
+                customer: {
+                  name: response.data?.user_name,
+                  image: response?.data.user_avatar,
+                  id: response?.data?.user_id,
+                },
+                is_verfied: false,
+                isError: false,
+              },
+              ...SelectedProduct.fqa_questions.comments?.filter(
+                (comment) => comment.mid !== mid
+              ),
+            ],
+          },
+        });
+      } else {
+        ErrorAccure(mid);
+      }
+    } catch (e) {
+      ErrorAccure(mid);
+    }
+  };
   return (
     <>
       <div
-        className={`${
-          !isPending && !isError && "opacity-70"
-        } relative flex w-full`}
+        className={`${!isPending && !isError && "opacity-70"} relative flex  ${
+          isFull ? "max-w-full w-full" : "max-w-[710px] min-w-[85vw] "
+        }`}
       >
         {isError && (
           <Loading
             className="absolute z-50 right-[10px] top-[45px]"
-            onClick={resendComment}
+            onClick={resendCommentApi(comment.mid, comment)}
           />
         )}
         {isOwner && !isError && isPending && (
@@ -145,7 +259,7 @@ function CommentItem({
             )}
 
             {showMenu && (
-              <div className="absolute z-50 right-[10px] top-[65px] bg-white border border-gray-200 rounded-lg shadow-lg py-1 min-w-[120px]">
+              <div className="absolute z-50 right-[10px] top-[10px] bg-white border border-gray-200 rounded-lg shadow-lg py-1 min-w-[120px]">
                 <button
                   className="w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
                   onClick={handleUpdateClick}
@@ -226,10 +340,10 @@ const UpdateCommentElement = ({
     try {
       const response = await fetchData({
         url: `/public_comment/comments/${comment.id}/update`,
-        reqTitle: { reqTitle: "UPDATE_COMMENT", code: 1001 },
+        reqTitle: REQUESTS_DATA.UPDATE_COMMENT,
         method: "PUT",
         server: "comments",
-        body: { text: value.trim() },
+        body: JSON.stringify({ text: value.trim() }),
       });
       if (!response.success) throw new Error(response.message);
 

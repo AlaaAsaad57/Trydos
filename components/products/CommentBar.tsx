@@ -1,9 +1,7 @@
-import { AddComment } from "models/API/market/AddComment";
 import React, { useState } from "react";
 import CommentPost from "public/svg/CommentPost.svg";
 import auth from "services/auth";
 import { translateFunction } from "utils/functions";
-import { CommentBarPropsType } from "models/componentType/CommentBarPropsType";
 import { fetchData } from "utils/fetchData";
 import { REQUESTS_DATA } from "utils/Requests";
 import { useParams } from "node_modules/next/navigation";
@@ -14,16 +12,7 @@ import {
 } from "utils/cookies/cookie-manager";
 import { showErrorNotification } from "store/notifications/reducer";
 import { useAppStore } from "store";
-function CommentBar({
-  product,
-  setComments,
-  setRender,
-  Render,
-  CommentsData,
-  increase_comments,
-  ErrorAccure,
-  verifyCommentAction,
-}: CommentBarPropsType) {
+function CommentBar() {
   const params = useParams();
   const { SelectedProduct, editInfo } = useAppStore();
   const [country, language] = (params.lang as string).split("-");
@@ -41,16 +30,8 @@ function CommentBar({
     setTimeout(() => {
       document.querySelector(".comments-extended").scrollTop = 0;
     }, 300);
-    setRender(!Render);
   };
-  const verifyComment = (mid, newComent) => {
-    verifyCommentAction(mid);
-    increase_comments();
-    setRender(!Render);
-  };
-  const isError = (mid) => {
-    ErrorAccure(mid);
-  };
+
   const [val, setVal] = useState("");
   const user = auth.User();
   const addComment = async (s) => {
@@ -76,7 +57,7 @@ function CommentBar({
         body: JSON.stringify({
           text: s,
           //   @ts-ignore
-          product_id: String(product?.id),
+          product_id: String(SelectedProduct?.id),
           user_id: String(auth.UserID()),
           user_name: auth.User()?.name,
           user_avatar: auth.User().image,
@@ -92,7 +73,7 @@ function CommentBar({
         throw new Error(response.message);
       }
       fetch(
-        `/api/editSocialProduct?pid=${product.id}&slug=${product.slug}&language=${language}&country=${country}`
+        `/api/editSocialProduct?pid=${SelectedProduct.id}&slug=${SelectedProduct.slug}&language=${language}&country=${country}`
       );
       if (response.data?.comment_id) {
         let newComment = {
@@ -107,7 +88,7 @@ function CommentBar({
           comment: response?.data?.text,
           variant: response?.data?.variant,
           created_at: response?.data?.created_at,
-          product_id: String(product?.id),
+          product_id: String(SelectedProduct?.id),
         };
         editInfo({
           fqa_questions: {

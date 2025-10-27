@@ -1,15 +1,11 @@
 export interface CommentsPropsType {
   comments: any[];
-  Render: boolean;
   productId: number;
-  ErrorAccure: Function;
   CommentsData: any[];
   setComments: Function;
-  increase_comments: Function;
-  setRender: Function;
-  verifyCommentAction: Function;
   shouldShowMore: boolean;
   comment_offset: any;
+  loading: boolean;
 }
 export interface CommentsData {
   customer: {

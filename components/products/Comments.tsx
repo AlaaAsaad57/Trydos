@@ -11,166 +11,56 @@ import { REQUESTS_DATA } from "utils/Requests";
 import { showErrorNotification } from "store/notifications/reducer";
 import { translateFunction } from "utils/functions";
 import Spinner from "components/global/Spinner";
-import { COOKIE_NAMES, getCookie } from "utils/cookies/cookie-manager";
 import { useAppStore } from "store";
 
 function Comments({
   comments,
-  Render,
-
   productId,
-  ErrorAccure,
   CommentsData,
   setComments,
-  increase_comments,
-  setRender,
+  loading,
   shouldShowMore,
-  verifyCommentAction,
   comment_offset,
 }: CommentsPropsType) {
-  const resendCommentApi = async (mid, s) => {
-    try {
-      let userData: any = getCookie(COOKIE_NAMES.USER_DATA);
-      if (userData.need_auth) {
-        showErrorNotification(
-          translateFunction("Please Verify Your Phone Number")
-        );
-        return null;
-      }
-      let response = await fetchData({
-        url: "/public_comment/comments/create",
-        method: "POST",
-        body: JSON.stringify({
-          text: s,
-          //   @ts-ignore
-          product_id: String(productId),
-          user_id: String(auth.UserID()),
-          user_name: auth.User()?.name,
-          user_avatar: auth.User().image,
-          user_type: "customer",
-          phone: auth?.User()?.phone,
-        }),
-        reqTitle: REQUESTS_DATA.ADD_COMMENT_FOR_PRODUCT,
-        server: "comments",
-      });
-
-      // @ts-ignore
-      if (!response.success) {
-        // @ts-ignore
-        throw new Error(response.message);
-      }
-      fetch(`/api/editSocialProduct?pid=${productId}`);
-      if (response.data?.comment_id) {
-        // verifyCommentAction(mid);
-
-        increase_comments();
-        let { SelectedProduct, editInfo } = useAppStore.getState();
-        let selected_comment = SelectedProduct.fqa_questions.comments.filter(
-          (m) => m.mid === mid
-        )[0];
-        editInfo({
-          fqa_questions: {
-            ...SelectedProduct.fqa_questions,
-            comments: [
-              {
-                ...selected_comment,
-                id: response.data?.comment_id,
-                customer: {
-                  name: response.data?.user_name,
-                  image: response?.data.user_avatar,
-                  id: response?.data?.user_id,
-                },
-                is_verfied: false,
-                isError: false,
-              },
-              ...SelectedProduct.fqa_questions.comments?.filter(
-                (comment) => comment.mid !== mid
-              ),
-            ],
-          },
-        });
-      } else {
-        ErrorAccure(mid);
-      }
-    } catch (e) {
-      ErrorAccure(mid);
-    }
-  };
-
   return (
     <div className="content-extended comments-extended" data-cy="CommentArea">
-      {/* <CommentItem
-        date="18 feb"
-        name="Yxxx Oxxx"   
-        text="Amazing Product I Buy It And I Saw It Is Good Quality Regarding Price"
-        photo="https://res.cloudinary.com/dtcmozf4d/image/upload/h_100/f_webp/q_100/v1/product/thumbnail/2024-05-12-663fce81803c3.png"
-      /> */}
-      {CommentsData !== null ? (
+      {loading ? (
         <>
-          {CommentsData.map((s, i) => {
-            if (s && s?.comment)
-              return (
-                <CommentItem
-                  comment={s}
-                  isPending={s?.id}
-                  resendComment={() => {
-                    let { SelectedProduct, editInfo } = useAppStore.getState();
-                    let selected_comment =
-                      SelectedProduct.fqa_questions.comments.filter(
-                        (m) => m.mid === s.mid
-                      )[0];
-                    editInfo({
-                      fqa_questions: {
-                        ...SelectedProduct.fqa_questions,
-                        comments: [
-                          {
-                            ...selected_comment,
-                            is_verfied: false,
-                            isError: false,
-                          },
-                          ...SelectedProduct.fqa_questions.comments?.filter(
-                            (comment) => comment.mid !== s.mid
-                          ),
-                        ],
-                      },
-                    });
-                    resendCommentApi(s.mid, s.comment);
-                  }}
-                  isError={s?.isError}
-                  key={i}
-                  date={formatTime(s?.created_at)}
-                  name={s?.customer?.name}
-                  text={s?.comment}
-                  photo={GetImageUrl(s?.customer?.image) ?? profilePng}
-                  custmerId={s?.customer?.id}
-                />
-              );
-          })}
-          {shouldShowMore && (
-            <LoadMoreComments
-              offsetVar={comment_offset}
-              product_id={productId}
-              setComments={(new_comments) => {
-                setComments([...comments, ...new_comments]);
-              }}
-            />
-          )}
+          {" "}
+          <Skeleton
+            width={"100%"}
+            height={"100px"}
+            borderRadius={20}
+            className="comment-item"
+          ></Skeleton>
+          <Skeleton
+            width={"100%"}
+            height={"100px"}
+            borderRadius={20}
+            className="comment-item"
+          ></Skeleton>
         </>
       ) : (
-        <>
-          <Skeleton
-            width={"100%"}
-            height={"100px"}
-            borderRadius={20}
-            className="comment-item"
-          ></Skeleton>
-          <Skeleton
-            width={"100%"}
-            height={"100px"}
-            borderRadius={20}
-            className="comment-item"
-          ></Skeleton>
-        </>
+        CommentsData.map((s, i) => {
+          if (s && s?.comment)
+            return (
+              <CommentItem
+                comment={s}
+                isPending={s?.id}
+                isFull={true}
+                isError={s?.isError}
+                key={i}
+                date={formatTime(s?.created_at)}
+                name={s?.customer?.name}
+                text={s?.comment}
+                photo={GetImageUrl(s?.customer?.image) ?? profilePng}
+                custmerId={s?.customer?.id}
+              />
+            );
+        })
+      )}
+      {shouldShowMore && (
+        <LoadMoreComments offsetVar={comment_offset} product_id={productId} />
       )}
     </div>
   );
@@ -178,7 +68,7 @@ function Comments({
 
 export default Comments;
 
-const LoadMoreComments = ({ product_id, offsetVar, setComments }) => {
+const LoadMoreComments = ({ product_id, offsetVar }) => {
   const [loading, setLoading] = useState(false);
   const [offset, setOffset] = useState(offsetVar);
   const getMoreComments = async () => {

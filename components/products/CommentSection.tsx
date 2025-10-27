@@ -95,28 +95,13 @@ function CommentSection({
         shouldShowMore={
           SelectedProduct?.fqa_questions?.total > CommentsData?.length
         }
-        ErrorAccure={(s) => ErrorAccure(s)}
-        increase_comments={() => increase_comments()}
         productId={product.id}
         setComments={(s) => setComments(s)}
-        setRender={(s) => setRender(s)}
-        Render={Render}
+        loading={loading}
         comments={CommentsData}
         comment_offset={product.fqa_questions?.offset}
-        verifyCommentAction={(mid) => verifyCommentAction(mid)}
       />
-      {user && user?.phone !== "0" && (
-        <CommentBar
-          CommentsData={CommentsData}
-          verifyCommentAction={(mid) => verifyCommentAction(mid)}
-          Render={Render}
-          increase_comments={increase_comments}
-          setComments={(s) => setComments(s)}
-          setRender={(e) => setRender(e)}
-          product={product}
-          ErrorAccure={(s) => ErrorAccure(s)}
-        />
-      )}
+      {user && user?.phone !== "0" && <CommentBar />}
     </div>
   );
 }
