@@ -10,16 +10,8 @@ function ExtendedAreaInfo({
   active,
   sharedContacts,
   setShareContacts,
-  comments,
-  increase_comments,
-  setOption,
   product,
   CommentsData,
-  setComments,
-  Render,
-  setRender,
-  ErrorAccure,
-  verifyCommentAction,
   getComments,
 }: ExtendedAreaInfoPropsType) {
   const [show, setShow] = useState(active);
@@ -68,15 +60,8 @@ function ExtendedAreaInfo({
             {option === "Comment" && (
               <CommentSection
                 getComments={getComments}
-                increase_comments={increase_comments}
                 product={product}
-                Render={Render}
-                setRender={setRender}
-                comments={comments}
                 CommentsData={CommentsData}
-                setComments={setComments}
-                ErrorAccure={ErrorAccure}
-                verifyCommentAction={verifyCommentAction}
               />
             )}
 

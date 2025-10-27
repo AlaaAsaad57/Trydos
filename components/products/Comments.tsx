@@ -14,13 +14,11 @@ import Spinner from "components/global/Spinner";
 import { useAppStore } from "store";
 
 function Comments({
-  comments,
   productId,
   CommentsData,
-  setComments,
+
   loading,
   shouldShowMore,
-  comment_offset,
 }: CommentsPropsType) {
   return (
     <div className="content-extended comments-extended" data-cy="CommentArea">
@@ -59,18 +57,16 @@ function Comments({
             );
         })
       )}
-      {shouldShowMore && (
-        <LoadMoreComments offsetVar={comment_offset} product_id={productId} />
-      )}
+      {shouldShowMore && <LoadMoreComments product_id={productId} />}
     </div>
   );
 }
 
 export default Comments;
 
-const LoadMoreComments = ({ product_id, offsetVar }) => {
+const LoadMoreComments = ({ product_id }) => {
   const [loading, setLoading] = useState(false);
-  const [offset, setOffset] = useState(offsetVar);
+
   const getMoreComments = async () => {
     const { SelectedProduct, editInfo } = useAppStore.getState();
     try {

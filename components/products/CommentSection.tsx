@@ -12,16 +12,10 @@ import { useAppStore } from "store";
 import { GA_EVENT_NAMES } from "utils/GAEvents";
 
 function CommentSection({
-  comments,
   product,
-  increase_comments,
-  CommentsData,
-  setComments,
-  ErrorAccure,
-  Render,
-  setRender,
 
-  verifyCommentAction,
+  CommentsData,
+
   getComments,
 }: CommentSectionPropsType) {
   let { lang } = useParams();
@@ -96,10 +90,7 @@ function CommentSection({
           SelectedProduct?.fqa_questions?.total > CommentsData?.length
         }
         productId={product.id}
-        setComments={(s) => setComments(s)}
         loading={loading}
-        comments={CommentsData}
-        comment_offset={product.fqa_questions?.offset}
       />
       {user && user?.phone !== "0" && <CommentBar />}
     </div>

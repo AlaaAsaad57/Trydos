@@ -1,10 +1,9 @@
 export interface CommentsPropsType {
-  comments: any[];
   productId: number;
   CommentsData: any[];
-  setComments: Function;
+
   shouldShowMore: boolean;
-  comment_offset: any;
+
   loading: boolean;
 }
 export interface CommentsData {

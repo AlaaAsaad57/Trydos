@@ -23,14 +23,13 @@ function FAQSection({ lang, comments, product_id }) {
 
   const AllComments =
     SelectedProduct?.fqa_questions?.comments ?? comments.comments;
-  const [offset, setOffset] = useState(comments.offset);
   const [loading, setLoading] = useState(false);
   const loadMore = async () => {
     try {
       setLoading(true);
       let data = await fetchData({
         url: `/api/products/comments/fqa_comments?product_id=${product_id}&offset=${JSON.stringify(
-          offset
+          SelectedProduct?.fqa_questions?.offset
         )}`,
         method: "GET",
         server: "local",
@@ -46,8 +45,7 @@ function FAQSection({ lang, comments, product_id }) {
           offset: data.data.offset,
         },
       });
-      // setCommentsData([...commentsData, ...data?.data?.fqa_comments]);
-      setOffset(data?.data?.offset);
+
       setLoading(false);
     } catch (error) {
       setLoading(false);

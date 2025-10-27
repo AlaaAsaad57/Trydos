@@ -1,11 +1,10 @@
 "use client";
-import React, { useEffect, useReducer, useState } from "react";
+import React, { useEffect, useState } from "react";
 import ExtendedAreaInfo from "./ExtendedAreaInfo";
 import ProductOptions from "./ProductOptions";
 import { translateFunction } from "utils/functions";
 import chat from "services/chat";
 import { useParams, useSearchParams } from "next/navigation";
-import { ProductSocialInfo } from "models/API/market/ProductSocialInfo";
 import auth from "services/auth";
 import LocalizationServiceClass from "services/localization";
 import { useAppStore } from "store";
@@ -326,37 +325,9 @@ function ProductFooterSection({
           )}
           {
             <ExtendedAreaInfo
-              setOption={(e) => {
-                setOption(e);
-              }}
               getComments={async () => await getComments()}
-              Render={false}
-              verifyCommentAction={(mid) => VerifyComment(mid)}
-              setRender={() => {
-                // dispatch({ type: "setRender", payload: "" });
-              }}
               CommentsData={SelectedProduct?.fqa_questions?.comments ?? []}
-              ErrorAccure={(s) => {
-                ErrorAccure(s);
-              }}
-              setComments={(s) => {
-                editInfo({
-                  fqa_questions: {
-                    ...SelectedProduct?.fqa_questions,
-                    comments: s,
-                  },
-                });
-              }}
-              increase_comments={() => {
-                editInfo({
-                  fqa_questions: {
-                    ...SelectedProduct?.fqa_questions,
-                    total: SelectedProduct?.fqa_questions?.total + 1,
-                  },
-                });
-              }}
               product={product}
-              comments={SelectedProduct?.fqa_questions?.comments ?? []}
               sharedContacts={sharedContacts}
               setShareContacts={(e) => setShareContacts(e)}
               active={option.length > 0 && option !== "Like"}
