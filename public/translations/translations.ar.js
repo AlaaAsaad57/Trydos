@@ -1069,6 +1069,9 @@ const translations = {
   "Please Login so You Can Add a comment":
     "يرجى تسجيل الدخول حتى تتمكن من إضافة تعليق",
   "Update Rating": "تحديث التقييم",
+  "Your Comment": "تعليقك",
+  Edit: "تعديل",
+  "Add your comment": "أضف تعليقك",
 };
 
 export default translations;

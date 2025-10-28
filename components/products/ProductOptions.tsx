@@ -17,7 +17,7 @@ import { fetchData } from "utils/fetchData";
 import { GAevent } from "utils/gtag";
 import { GA_EVENT_NAMES, GA_GLOBAL_SCREEN } from "utils/GAEvents";
 import { REQUESTS_DATA } from "utils/Requests";
-import { useParams } from "node_modules/next/navigation";
+import { useParams, useSearchParams } from "node_modules/next/navigation";
 
 function ProductOptions({
   activeOption,
@@ -162,12 +162,26 @@ function ProductOptions({
       setLoading(false);
     }
   };
-
+  const searchParams = useSearchParams();
   useEffect(() => {
+    const color = searchParams.get("color");
+    const size = searchParams.get("size");
     editInfo({
       likes: Math.max(0, product.count_of_likes || 0),
       comments: product.comments,
       shares_count: product.shares_count,
+      ActiveColor:
+        (color &&
+          product?.sync_color_images?.find((s) => s.color_option === color)
+            ?.color_option) ??
+        product?.sync_color_images?.[0]?.color_option ??
+        null,
+      ActiveSize:
+        (size &&
+          product?.choice_options?.[0]?.options?.find((s) => s.option === size)
+            ?.option) ??
+        product?.choice_options?.[0]?.options?.[0]?.option ??
+        null,
     });
     if (product.is_country_restricted) {
       showErrorNotification(

@@ -36,6 +36,7 @@ function ProductColors({
     SelectedProduct,
     setColorBottomSheet,
     ColorBottomSheet,
+    editInfo,
   } = useAppStore();
   let { lang } = useParams();
   // @ts-ignore
@@ -45,6 +46,10 @@ function ProductColors({
   };
 
   const setActiveColor = (e) => {
+    editInfo({
+      ...SelectedProduct,
+      ActiveColor: e.option,
+    });
     setActiveColorDetails(e);
     let variant = e?.color_option;
     let size = searchParams.get("size");

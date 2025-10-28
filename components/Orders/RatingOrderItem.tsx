@@ -70,8 +70,13 @@ function RatingOrderItem({
       rateOrder(rating);
     }
   };
-
-  const isSubmitDisabled = !comment.trim() || rating === 0 || loading;
+  const isChanged = () => {
+    if (!lastComment) return false;
+    if (lastComment === comment && rating === initialRating) return true;
+    return false;
+  };
+  const isSubmitDisabled =
+    !comment.trim() || rating === 0 || loading || isChanged();
 
   return (
     <>

@@ -1,8 +1,6 @@
 import React, { useState } from "react";
 import CommentItem from "./CommentItem";
 import Skeleton from "react-loading-skeleton";
-import { AddComment } from "models/API/market/AddComment";
-import auth from "services/auth";
 import profilePng from "public/images/profileNo.png";
 import { formatTime, GetImageUrl } from "utils/tinyUtils";
 import { CommentsPropsType } from "models/componentType/CommentsPropsType";

@@ -15,6 +15,7 @@ import Spinner from "components/global/Spinner";
 import auth from "services/auth";
 import { showErrorNotification } from "store/notifications/reducer";
 import { COOKIE_NAMES, getCookie } from "utils/cookies/cookie-manager";
+import CommentPost from "public/svg/CommentPost.svg";
 import CommentItem from "./CommentItem";
 function FAQSection({ lang, comments, product_id }) {
   const [country, language] = lang.split("-");
@@ -202,7 +203,7 @@ export const FaqItem = ({
             </div>
           </div>
           <span className="medium text-[#1d1d1d] text-[9px] mt-[5px]">
-            Blue | Meduim
+            {comment?.variant}
           </span>
           <div className="comment-date text-[9px]" data-cy="Date-Of-Comment">
             {formatTime(comment?.created_at)}
@@ -364,6 +365,10 @@ const AskInput = ({ language, setCommentsData }) => {
         return null;
       }
       setLoading(true);
+      const variant =
+        [SelectedProduct?.ActiveColor, SelectedProduct?.ActiveSize]
+          ?.filter((s) => Boolean(s))
+          ?.join("-") ?? null;
       let response = await fetchData({
         url: "/public_comment/comments/create",
         method: "POST",
@@ -376,6 +381,7 @@ const AskInput = ({ language, setCommentsData }) => {
           user_avatar: auth.User().image,
           user_type: "customer",
           phone: auth?.User()?.phone,
+          variant,
         }),
         reqTitle: REQUESTS_DATA.ADD_COMMENT_FOR_PRODUCT,
         server: "comments",
@@ -426,15 +432,14 @@ const AskInput = ({ language, setCommentsData }) => {
         loading && "opacity-80"
       } flex mt-[9px] w-full relative h-[40px] rounded-[15px] bg-[#FFFFFF]`}
     >
-      {
-        <span
-          className={`absolute top-[10px] ${
-            isRtl ? "right-[10px]" : "left-[10px]"
-          } z-10`}
-        >
-          <FAQInputIcon />
-        </span>
-      }
+      <span
+        className={`absolute top-[10px] ${
+          isRtl ? "right-[10px]" : "left-[10px]"
+        } z-10`}
+      >
+        <FAQInputIcon />
+      </span>
+
       {loading && (
         <span
           className={`absolute top-[10px] ${
@@ -442,6 +447,18 @@ const AskInput = ({ language, setCommentsData }) => {
           }`}
         >
           <Spinner />
+        </span>
+      )}
+      {!loading && comment.length > 0 && (
+        <span
+          className={`absolute top-[0px] cursor-pointer z-50 flex items-center justify-center h-full w-[50px] ${
+            isRtl ? "left-[5px]" : "right-[5px]"
+          }`}
+          onClick={() => {
+            addComment();
+          }}
+        >
+          <CommentPost className="[&>path]:fill-[#f0ecff] [&>path]:stroke-[#513aaf]" />
         </span>
       )}
       {renderBorderSvg()}

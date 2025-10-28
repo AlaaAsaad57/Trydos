@@ -1,7 +1,10 @@
 export const runtime = "nodejs";
 import { NextRequest, NextResponse } from "next/server";
 import { getProductFromCache, storeProduct } from "serverRequests/radis";
-import { GetProductData } from "utils/pagesDataRequests/ProductPageData";
+import {
+  GetProductData,
+  getProductDataFromElastic,
+} from "utils/pagesDataRequests/ProductPageData";
 
 // Apply CORS headers to any response
 function withCORS(res: NextResponse) {
@@ -58,9 +61,18 @@ export async function GET(request: NextRequest, { params }) {
       };
     }
 
+    let elasticData = await getProductDataFromElastic({
+      productId: productDataVar.id,
+      lang: language,
+      slug: Params.slug,
+    });
     return withCORS(
       NextResponse.json(
-        { data: { ...productDataVar }, isSuccessful: true, code: 200 },
+        {
+          data: { ...productDataVar, ...elasticData },
+          isSuccessful: true,
+          code: 200,
+        },
         { status: 200 }
       )
     );

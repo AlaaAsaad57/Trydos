@@ -78,17 +78,45 @@ export const GetSocialDataForProduct = async ({ productId, slug, lang }) => {
       );
       throw new Error(`Shares Requets Error:${sharesRes.error}`);
     }
+    let likesData = likeRes.data.data;
+    return {
+      count_of_likes: likesData.count_of_likes,
+    };
+  } catch (error) {}
+};
 
-    let commentsData = likeRes.data.data;
-    // @ts-ignore
-    let sharesData = sharesRes.hits?.hits?.[0]?._source?.shared_count || 0;
+export const getProductDataFromElastic = async ({ productId, slug, lang }) => {
+  try {
+    let [sharesRes, ratingComment, FQAComments] = await Promise.all([
+      getProductSharedCountFromElasticsearch(productId, slug, lang),
+      GetRatingCommentsForProduct({
+        product_id: productId,
+      }),
+      GetFQACommentsForProduct({
+        product_id: productId,
+        pageSize: 10,
+        searchAfter: null,
+      }),
+    ]);
+
+    if (sharesRes.isError || sharesRes.error) {
+      LogServerError(
+        {
+          request: `get shared_products from elasticsearch for product_id: ${productId} slug: ${slug}`,
+          message: JSON.stringify(sharesRes),
+          language: lang.split("-")[1],
+          country: lang.split("-")[0],
+        },
+        `/web/product/CommentsSharesDetails/${slug}`
+      );
+      throw new Error(`Shares Requets Error:${sharesRes.error}`);
+    }
+
+    let sharesData =
+      (sharesRes as any)?.hits?.hits?.[0]?._source?.shared_count || 0;
 
     return {
-      count_of_likes: commentsData.count_of_likes,
       shared_count: sharesData,
-      // comments: commentsRes.comments,
-      // comment_offset: commentsRes.searchAfter,
-      // comments_count: commentsRes.total,
       buyers_comment: {
         comments: ratingComment.buyers_comments,
         offset: ratingComment.searchAfter,

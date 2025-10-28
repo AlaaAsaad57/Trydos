@@ -1058,6 +1058,9 @@ const translations = {
   "Please Login so You Can Add a comment":
     "تکایە بچۆ ژوورەوە بۆ ئەوەی بتوانیت لێدوانێک زیاد بکەیت",
   "Update Rating": "Değerlendirmeyi Güncelle",
+  "Your Comment": "Yorumunuz",
+  Edit: "Düzenle",
+  "Add your comment": "Yorumunuzu ekleyin",
 };
 
 export default translations;

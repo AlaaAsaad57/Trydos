@@ -51,6 +51,10 @@ function CommentBar() {
         mid: mid,
       });
       setVal("");
+      const variant =
+        [SelectedProduct?.ActiveColor, SelectedProduct?.ActiveSize]
+          ?.filter((s) => Boolean(s))
+          ?.join("-") ?? null;
       let response = await fetchData({
         url: "/public_comment/comments/create",
         method: "POST",
@@ -63,6 +67,7 @@ function CommentBar() {
           user_avatar: auth.User().image,
           user_type: "customer",
           phone: auth?.User()?.phone,
+          variant,
         }),
         reqTitle: REQUESTS_DATA.ADD_COMMENT_FOR_PRODUCT,
         server: "comments",

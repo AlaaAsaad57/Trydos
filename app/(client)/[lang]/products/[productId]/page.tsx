@@ -20,7 +20,10 @@ import FreeShippingOption from "components/products/FreeShippingOption";
 import ProductColors from "components/products/ProductColors";
 import ProductBackButton from "components/products/ProductBackButton";
 import FlashDealBanner from "components/products/FlashDealBanner";
-import { GetProductData } from "utils/pagesDataRequests/ProductPageData";
+import {
+  GetProductData,
+  getProductDataFromElastic,
+} from "utils/pagesDataRequests/ProductPageData";
 import { generateCodeCurrency } from "../../MetaData";
 import { redirect } from "next/navigation";
 import {
@@ -103,7 +106,12 @@ async function GetProductDataFunc(params) {
     let data = await getProductFromCache(slug, language, country);
 
     if (data?.product && data?.product?.images) {
-      return data.product;
+      let elasticData = await getProductDataFromElastic({
+        productId: data.product.id,
+        lang: language,
+        slug: slug,
+      });
+      return { ...data.product, ...(elasticData ?? {}) };
     } else {
       let { product: productData, socialData } = await GetProductData(params);
       if (
@@ -120,10 +128,15 @@ async function GetProductDataFunc(params) {
           country
         );
       }
-
+      let elasticData = await getProductDataFromElastic({
+        productId: productData.id,
+        lang: language,
+        slug: slug,
+      });
       return {
         ...productData,
         ...(socialData ?? {}),
+        ...(elasticData ?? {}),
         redis: false,
       };
     }

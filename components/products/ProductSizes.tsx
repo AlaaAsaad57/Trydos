@@ -18,7 +18,7 @@ import auth from "services/auth";
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 
 function ProductSizes({ sizes, language }: ProductSizesPropsType) {
-  const { product, SelectedProduct } = useAppStore();
+  const { product, SelectedProduct, editInfo } = useAppStore();
   let { lang } = useParams();
   // @ts-ignore
   let languageVariable = lang.split("-")[1];
@@ -39,11 +39,15 @@ function ProductSizes({ sizes, language }: ProductSizesPropsType) {
   const pathname = usePathname();
   const router = useRouter();
   const setActiveColor = (e) => {
+    editInfo({
+      ...SelectedProduct,
+      ActiveSize: e?.option ?? e,
+    });
     setActiveColorFunc(e);
-    let variant = e?.option;
+    let variant = e?.option ?? e;
     let color = searchParams.get("color");
     if (color?.length) {
-      variant = `${color}-${e?.option}`;
+      variant = `${color}-${e?.option ?? e}`;
     }
     GAevent({
       action: GA_EVENT_NAMES.CHANGE_SIZE,

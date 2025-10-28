@@ -158,6 +158,10 @@ function CommentItem({
         );
         return null;
       }
+      const variant =
+        [SelectedProduct?.ActiveColor, SelectedProduct?.ActiveSize]
+          ?.filter((s) => Boolean(s))
+          ?.join("-") ?? null;
       let response = await fetchData({
         url: "/public_comment/comments/create",
         method: "POST",
@@ -170,6 +174,7 @@ function CommentItem({
           user_avatar: auth.User().image,
           user_type: "customer",
           phone: auth?.User()?.phone,
+          variant: variant,
         }),
         reqTitle: REQUESTS_DATA.ADD_COMMENT_FOR_PRODUCT,
         server: "comments",
@@ -266,7 +271,7 @@ function CommentItem({
                   disabled={updateLoading}
                 >
                   <PenIcon className="w-4 h-4" />
-                  {updateLoading ? "Updating..." : "Update"}
+                  {translateFunction("Edit")}
                 </button>
                 <button
                   className="w-full px-3 py-2 text-left text-sm text-red-600 hover:bg-gray-100 flex items-center gap-2"

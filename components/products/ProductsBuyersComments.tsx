@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import BuyersCommentIcon from "public/svg/product/BuyersCommentsIcon.svg";
 import { translateFunction } from "utils/functions";
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
@@ -14,11 +14,18 @@ import BuyersCommentModal from "./BuyersCommentModal";
 import { fetchData } from "utils/fetchData";
 import { REQUESTS_DATA } from "utils/Requests";
 import Spinner from "components/global/Spinner";
+import { ConfirmModal } from "components/global/ConfirmModal";
+import ThreePointsIcon from "public/svg/threepoints.svg";
+import DeleteCommentIcon from "public/svg/DeleteCommentIcon.svg";
+import PenIcon from "public/svg/PenIcon.svg";
+import { COOKIE_NAMES, getCookie } from "utils/cookies/cookie-manager";
 function ProductsBuyersComments({ lang, comments, product_id }) {
   const [country, language] = lang.split("-");
-  const { ColorBottomSheet, setColorBottomSheet } = useAppStore();
+  const { ColorBottomSheet, setColorBottomSheet, SelectedProduct, editInfo } =
+    useAppStore();
   const isRtl = language === "ar" || language === "ku";
-  const [commentsData, setCommentsData] = useState(comments.comments ?? []);
+  const commentsData =
+    SelectedProduct?.buyers_comment?.comments ?? comments.comments ?? [];
   const [offset, setOffset] = useState(comments.offset);
   const [loading, setLoading] = useState(false);
   const loadMore = async (filter = null) => {
@@ -32,13 +39,21 @@ function ProductsBuyersComments({ lang, comments, product_id }) {
         server: "local",
         reqTitle: REQUESTS_DATA.COMMENT_DATA_REQUEST,
       });
-      setCommentsData([...commentsData, ...data?.buyers_comments]);
+      editInfo({
+        buyers_comment: {
+          ...SelectedProduct.buyers_comment,
+          comments: [...commentsData, ...data?.buyers_comment],
+          offset: data?.data?.offset,
+          total: data.data?.total,
+        },
+      });
       setOffset(data?.data?.offset);
       setLoading(false);
     } catch (error) {
       setLoading(false);
     }
   };
+  if (comments.comments?.length === 0) return <></>;
   return (
     <>
       {ColorBottomSheet && ColorBottomSheet?.is_buyers_comments && (
@@ -129,6 +144,85 @@ function ProductsBuyersComments({ lang, comments, product_id }) {
 export default ProductsBuyersComments;
 
 export const RateCommentItem = ({ comment, language, width = 90 }) => {
+  const { SelectedProduct, editInfo } = useAppStore();
+  const userData: any = getCookie(COOKIE_NAMES.USER_DATA);
+
+  const isOwner = String(userData?.id) === String(comment.customer.id);
+  const [openModal, setOpenModal] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const EditComment = async (comment_var) => {
+    try {
+      setLoading(true);
+      let res = await await fetchData({
+        url: `/public_comment/comments/${comment_var.id}/update`,
+        method: "PUT",
+        body: JSON.stringify({
+          text: comment_var.comment,
+          rating: comment_var.star_rating,
+        }),
+        reqTitle: REQUESTS_DATA.UPDATE_COMMENT,
+        server: "comments",
+      });
+      if (!res.success) throw new Error(res.message);
+      editInfo({
+        buyers_comment: {
+          ...SelectedProduct.buyers_comment,
+          comments: SelectedProduct.buyers_comment?.comments?.map((s) =>
+            s.id === comment_var.id ? comment_var : s
+          ),
+        },
+      });
+      console.log(comment_var);
+      setLoading(false);
+      setOpenModal("");
+      setMenuOpen(false);
+    } catch (error) {
+      setLoading(false);
+    }
+  };
+  const deleteComment = async (comment_var) => {
+    try {
+      setLoading(true);
+      let res = await fetchData({
+        url: `/public_comment/comments/${comment_var.id}/delete`,
+        reqTitle: { reqTitle: "DELETE_COMMENT", code: 1000 },
+        method: "DELETE",
+        server: "comments",
+      });
+      if (!res.success) throw new Error(res.message);
+      editInfo({
+        buyers_comment: {
+          ...SelectedProduct.buyers_comment,
+          comments: SelectedProduct.buyers_comment?.comments?.filter(
+            (s) => s.id !== comment_var.id
+          ),
+        },
+      });
+      setLoading(false);
+      setOpenModal("");
+      setMenuOpen(false);
+    } catch (error) {
+      setLoading(false);
+    }
+  };
+  const [menuOpen, setMenuOpen] = useState(false);
+  const handleMenuToggle = () => {
+    setMenuOpen(!menuOpen);
+  };
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      console.log(event.target);
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setMenuOpen(false);
+      }
+    };
+    if (menuOpen) document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [menuOpen]);
+  console.log(comment);
   return (
     <div
       className={`comment-item rounded-[15px] flex-col justify-between min-w-[330px] max-w-[${width}%] w-full bg-[#F8F8F8] min-h-[111px] py-[8px] px-[10px]`}
@@ -136,6 +230,73 @@ export const RateCommentItem = ({ comment, language, width = 90 }) => {
         position: "relative",
       }}
     >
+      {menuOpen && (
+        <div
+          ref={menuRef}
+          className="absolute z-[80] right-[10px] top-[20px] bg-white border border-gray-200 rounded-lg shadow-lg py-1 min-w-[120px]"
+        >
+          <button
+            className="w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
+            onClick={() => {
+              setOpenModal("Update");
+              setMenuOpen(false);
+            }}
+            disabled={loading}
+          >
+            <PenIcon className="w-4 h-4" />
+            {loading ? "Updating..." : translateFunction("Edit")}
+          </button>
+          <button
+            className="w-full px-3 py-2 text-left text-sm text-red-600 hover:bg-gray-100 flex items-center gap-2"
+            onClick={() => {
+              setOpenModal("Delete");
+              setMenuOpen(false);
+            }}
+          >
+            <DeleteCommentIcon className="w-4 h-4" />
+            {translateFunction("Delete")}
+          </button>
+        </div>
+      )}
+      {openModal === "" && isOwner && (
+        <div
+          className="comment-menu-btn absolute z-50 right-[10px] top-[45px] cursor-pointer flex items-center justify-center w-[20px] h-[20px]"
+          style={{
+            borderRadius: "50%",
+            transition: "background-color 0.2s ease",
+          }}
+          onClick={handleMenuToggle}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") handleMenuToggle();
+          }}
+          tabIndex={0}
+          role="button"
+          aria-label="Comment options menu"
+        >
+          <ThreePointsIcon
+            style={{
+              filter: "drop-shadow(0px 1px 2px rgba(0,0,0,0.1))",
+            }}
+          />
+        </div>
+      )}
+      {openModal !== "" && (
+        <RatingCommentOptions
+          is_update={openModal === "Update"}
+          is_delete={openModal === "Delete"}
+          comment={comment}
+          deleteAction={async (e) => {
+            await deleteComment(e);
+          }}
+          updateAction={async (e) => {
+            await EditComment(e);
+          }}
+          handleCloseModal={() => {
+            setOpenModal("");
+          }}
+          loading={loading}
+        />
+      )}
       <div className="w-full flex-col">
         <div className="flex-row items-center">
           <div className="comment-photo">
@@ -165,7 +326,11 @@ export const RateCommentItem = ({ comment, language, width = 90 }) => {
           {comment?.comment}
         </div>
       </div>
-      <BuyerCommentRateInfo language={language} rating={comment.star_rating} />
+      <BuyerCommentRateInfo
+        language={language}
+        rating={comment.star_rating}
+        key={comment.star_rating}
+      />
     </div>
   );
 };
@@ -224,6 +389,7 @@ const BuyersRatingBar = ({ language }) => {
     (recomended + not_recomended)
   ).toFixed(0);
   const isRtl = language === "ar" || language === "ku";
+
   return (
     <div className="flex-col w-full mt-[11px] pl-[10px] pr-[10px]">
       <div
@@ -266,4 +432,174 @@ const BuyersRatingBar = ({ language }) => {
       </div>
     </div>
   );
+};
+
+const RatingCommentOptions = ({
+  is_delete,
+  is_update,
+  deleteAction,
+  updateAction,
+  comment,
+  handleCloseModal,
+  loading,
+}: {
+  is_delete?: boolean;
+  is_update: boolean;
+  deleteAction: (comment: any) => Promise<any>;
+  updateAction: (comment: any) => Promise<any>;
+  comment: any;
+  handleCloseModal: () => void;
+  loading: boolean;
+}) => {
+  const { language } = useAppStore();
+  const [rating, setRating] = useState(comment.star_rating);
+  const [comment_str, setComment] = useState(comment.comment);
+  const inputRef = useRef(null);
+  useEffect(() => {
+    if (comment && is_update) {
+      inputRef.current.value = comment.comment;
+    }
+    if (inputRef?.current) inputRef.current?.focus();
+  }, [is_update]);
+
+  if (is_delete) {
+    return (
+      <ConfirmModal
+        onCancel={() => handleCloseModal()}
+        onConfirm={() => {
+          deleteAction(comment);
+        }}
+        loading={loading}
+        type="Delete"
+        showModal={is_delete}
+        confirmMessage="Are you sure you want to delete this comment?"
+        confirmTilte={"Delete Comment"}
+      />
+    );
+  }
+  if (is_update) {
+    const handleInputKeyDown = (
+      e: React.KeyboardEvent<HTMLTextAreaElement>
+    ) => {
+      if (e.key === "Enter" && comment_str.trim() && rating > 0) {
+        updateAction({
+          ...comment,
+          comment: comment_str,
+          star_rating: rating,
+          rating: rating,
+        });
+      }
+    };
+    const handleSubmit = () => {
+      if (comment_str.trim() && rating > 0) {
+        updateAction({
+          ...comment,
+          comment: comment_str,
+          star_rating: rating,
+          rating: rating,
+        });
+      }
+    };
+    const isChanged = () => {
+      if (comment.comment === comment_str && rating === comment.star_rating)
+        return false;
+      return true;
+    };
+    const isSubmitDisabled = loading || !isChanged();
+    const isRtl = language === "ar" || language === "ku";
+    return (
+      <>
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 z-40"
+          onClick={handleCloseModal}
+        />
+        <div
+          className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-md mx-4"
+          aria-modal="true"
+          role="dialog"
+          tabIndex={-1}
+        >
+          <div className="bg-white rounded-2xl shadow-2xl p-6 space-y-6">
+            {/* Header */}
+            <div className="text-center">
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                {translateFunction("Rate Your Experience")}
+              </h3>
+              <p className="text-sm text-gray-600">
+                {translateFunction("Share your thoughts about this product")}
+              </p>
+            </div>
+
+            {/* Rating Stars */}
+            <div className="flex justify-center">
+              <RatingStars
+                readOnly={loading}
+                initialRating={Number(rating)}
+                size={40}
+                onRatingChange={(e) => {
+                  if (!loading) {
+                    setRating(Number(e));
+                  }
+                }}
+              />
+            </div>
+
+            {/* Comment Input */}
+            <div className="space-y-2">
+              <label
+                htmlFor="comment-input"
+                className="block text-sm font-medium text-gray-700"
+              >
+                {translateFunction("Your Comment")}
+              </label>
+              <textarea
+                id="comment-input"
+                ref={inputRef}
+                value={comment_str}
+                onChange={(e) => setComment(e.target.value)}
+                onKeyDown={handleInputKeyDown}
+                className={`${
+                  isRtl ? "text-right" : "text-left"
+                } w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-base text-gray-800 bg-gray-50 transition-colors`}
+                placeholder={translateFunction("Add your comment")}
+                aria-label="Comment input"
+                disabled={loading}
+                rows={3}
+              />
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex space-x-3">
+              <button
+                type="button"
+                onClick={handleCloseModal}
+                className="flex-1 px-4 py-3 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-gray-300"
+                disabled={loading}
+              >
+                {translateFunction("Cancel")}
+              </button>
+              <button
+                type="button"
+                onClick={handleSubmit}
+                className={`flex-1 px-4 py-3 rounded-xl font-medium transition-colors focus:outline-none focus:ring-2 ${
+                  isSubmitDisabled
+                    ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                    : "bg-blue-600 hover:bg-blue-700 text-white focus:ring-blue-300"
+                }`}
+                disabled={isSubmitDisabled}
+              >
+                {loading ? (
+                  <div className="flex items-center justify-center">
+                    <Spinner />
+                  </div>
+                ) : (
+                  translateFunction("Update Rating")
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      </>
+    );
+  }
 };

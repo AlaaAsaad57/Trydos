@@ -1111,6 +1111,9 @@ const translations = {
   "Your Balance Not meet purchase value":
     "بەلانستەکەت ناتوانێت نرخی کڕینەکە پۆش بکاتەوە",
   "Update Rating": "هەڵسەنگاندن نوێ بکە",
+  "Your Comment": "لێدوانەکەت",
+  Edit: "دەستکاریکردن",
+  "Add your comment": "لێدوانەکەت زیاد بکە",
 };
 
 export default translations;
