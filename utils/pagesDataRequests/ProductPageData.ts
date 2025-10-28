@@ -131,6 +131,7 @@ export async function GetRatingCommentsFromElastic({
   searchAfter?: any;
   order_ids: any;
 }) {
+  console.log(order_ids);
   let query: any = {
     index: "comments",
     size: order_ids.length,
@@ -165,23 +166,23 @@ export async function GetRatingCommentsFromElastic({
     id: hit._id,
     ...((hit?._source as {}) ?? {}),
   }));
-
+  console.log(results);
   const nextSearchAfter =
     results.length > 0 ? response.hits.hits[results.length - 1].sort : null;
 
   return {
     comments: results?.map((s: any) => ({
-      id: s.id,
+      id: s?.id,
       customer: {
-        id: s.user_id,
-        name: s.user_name,
-        image: s.user_avatar,
+        id: s?.user_id,
+        name: s?.user_name,
+        image: s?.user_avatar,
       },
-      product_id: s.product_id,
-      comment: s.text,
-      created_at: s.created_at,
-      star_rating: s.rating,
-      order_details_id: s.order_details_id,
+      product_id: s?.product_id,
+      comment: s?.text,
+      created_at: s?.created_at,
+      star_rating: s?.rating,
+      order_details_id: s?.order_details_id,
     })),
     total: (response.hits.total as any)?.value,
     searchAfter: nextSearchAfter,

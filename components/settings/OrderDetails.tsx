@@ -175,7 +175,11 @@ function OrderDetails({
               };
               return new_detail;
             } else {
-              return d;
+              return {
+                ...d,
+                comments: null,
+                star_rating: null,
+              };
             }
           });
           return new_order;

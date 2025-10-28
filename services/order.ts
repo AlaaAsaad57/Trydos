@@ -361,12 +361,12 @@ class OrderService {
   }) {
     try {
       let userData: any = getCookie(COOKIE_NAMES.USER_DATA);
-      if (userData.need_auth) {
-        showErrorNotification(
-          translateFunction("Please Verify Your Phone Number")
-        );
-        return null;
-      }
+      // if (userData.need_auth) {
+      //   showErrorNotification(
+      //     translateFunction("Please Verify Your Phone Number")
+      //   );
+      //   return null;
+      // }
       let res;
       if (id) {
         res = await fetchData({
@@ -386,15 +386,14 @@ class OrderService {
           body: JSON.stringify({
             text: comment,
             //   @ts-ignore
-            product_id: String(product?.id),
+            product_id: String(productId),
             user_id: String(auth.UserID()),
             user_name: auth.User()?.name,
             user_avatar: auth.User().image,
             user_type: "customer",
             rating: star_rating,
-            id: id,
             variant,
-            order_detail_id: order_detail_id,
+            order_details_id: String(order_detail_id),
             phone: auth?.User()?.phone,
           }),
           reqTitle: REQUESTS_DATA.ADD_COMMENT_FOR_PRODUCT,
@@ -405,6 +404,7 @@ class OrderService {
         throw new Error(res?.message);
       }
     } catch (e) {
+      console.log(e);
       throw new Error(e?.message);
     }
   }
