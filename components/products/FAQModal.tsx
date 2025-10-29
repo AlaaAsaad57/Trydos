@@ -25,9 +25,6 @@ function FAQModal({ comments, total, offset: initialOffset }) {
     { id: 1, name: "Size" },
     { id: 2, name: "Quality" },
     { id: 3, name: "Color" },
-    { id: 4, name: "Shipping" },
-    { id: 5, name: "Complaint" },
-    { id: 6, name: "Recommendation" },
   ];
 
   const isRtl = language === "ar" || language === "ku";

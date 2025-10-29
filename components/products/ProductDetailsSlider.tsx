@@ -150,11 +150,14 @@ function ProductDetailsSlider({
                     }}
                     priority={i === 0}
                     loading="eager"
+                    quality={100}
+                    className="object-contain"
                     alt={productGA.item_name}
                     src={getConfiguredImage({
                       src: GetImageUrl(img),
                       width: 500,
                       height: 700,
+                      q: 100,
                     })}
                   />
                 </div>
