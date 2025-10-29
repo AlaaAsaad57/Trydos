@@ -17,6 +17,7 @@ import { AddAddressFormPropsType } from "models/componentType/settingTypes/Perso
 import { AddressSectionPropsType } from "models/componentType/AddressSectionPropsType";
 import { SelectRegionPropsType } from "models/componentType/SelectRegionPropsType";
 import { pollinateInput } from "@/utils/tinyUtils";
+import auth from "services/auth";
 
 function AddAddressForm({
   setAddressDetails,
@@ -24,6 +25,7 @@ function AddAddressForm({
   setOpenSelect,
   activeIndex,
   isInSettings = false,
+  userName = null,
 }: AddAddressFormPropsType) {
   const { setMapCenter, center, addressDetails, countries, orderLoading } =
     useAppStore();
@@ -52,7 +54,14 @@ function AddAddressForm({
   const isValid = () => {
     let addressValid = false,
       valid = false,
-      regionValid = false;
+      regionValid = false,
+      usereValid = false;
+    if (userName === "") {
+      if (addressDetails?.user_name?.length > 0) usereValid = true;
+      else usereValid = false;
+    } else if (userName === null || userName === undefined) {
+      usereValid = true;
+    }
 
     if (
       (addressDetails?.contact_info?.contact_person_name?.length > 0 ||
@@ -80,7 +89,7 @@ function AddAddressForm({
       regionValid = false;
       return;
     }
-    return valid && regionValid && addressValid;
+    return valid && regionValid && addressValid && usereValid;
   };
 
   useEffect(() => {
@@ -181,12 +190,13 @@ function AddAddressForm({
             setOpenSelect();
           }}
         />
-        <ContactInfo data-cy="contact-info" />
+        <ContactInfo userName={userName} data-cy="contact-info" />
       </div>
       {!expanded && (
         <AddAddressButtons
           isInSettings={isInSettings}
           valid={isValid()}
+          userName={userName}
           slidePrev={() => {
             slidePrev();
           }}
@@ -387,9 +397,13 @@ const AddressTitle = () => {
     </div>
   );
 };
-const ContactInfo = () => {
+const ContactInfo = ({ userName = null }) => {
   const { setAddressDetails, addressDetails } = useAppStore();
-
+  useEffect(() => {
+    if (userName === "") {
+      setAddressDetails({ ...addressDetails, user_name: "" });
+    }
+  }, []);
   return (
     <div
       className="flex-col w-full mt-[30px] px-[12px] pb-[110px]"
@@ -408,6 +422,42 @@ const ContactInfo = () => {
           data-cy="Address-info-icon"
         />
       </div>
+      {userName !== null && userName !== undefined && (
+        <div
+          className="flex-col username-border cursor-pointer rounded-[15px] w-full mt-[8px] py-[7px] px-[12px] items-start justify-center"
+          data-cy="name-container"
+          style={{
+            border: "#d3d3d3a3 1px solid",
+          }}
+        >
+          <div
+            className="flex-row regular text-[#505050] text-[12px]"
+            data-cy="recipient-name-statement"
+          >
+            {translateFunction("User Name")}
+          </div>
+          <div className="[&>path]:fill-[#D3D3D3] flex-row items-center mt-[3px] w-full ">
+            <div
+              className="medium flex text-[#D3D3D3] text-[14px] w-full"
+              data-cy="Recipient-Name"
+            >
+              <input
+                data-cy="user-name-input"
+                value={addressDetails?.user_name}
+                onChange={(e) => {
+                  const sanitized = pollinateInput(e.target.value);
+                  setAddressDetails({
+                    ...addressDetails,
+                    user_name: sanitized,
+                  });
+                }}
+                placeholder={translateFunction("Enter Full User Name")}
+                className="w-full pr-6  min-h-[21px] h-auto bg-[transparent] text-[#1D1D1D] medium  text-[14px] placeholder-[#D3D3D3]  border-none outline-none resize-none"
+              />
+            </div>
+          </div>
+        </div>
+      )}
       <div
         className="flex-col name-border cursor-pointer rounded-[15px] w-full mt-[8px] py-[7px] px-[12px] items-start justify-center"
         data-cy="name-container"
@@ -546,7 +596,12 @@ const ContactInfo = () => {
     </div>
   );
 };
-export const AddAddressButtons = ({ valid, slidePrev, isInSettings }) => {
+export const AddAddressButtons = ({
+  valid,
+  slidePrev,
+  isInSettings,
+  userName = null,
+}) => {
   const { addAddress, updateAddress, addressDetails, orderLoading } =
     useAppStore();
 
@@ -569,6 +624,8 @@ export const AddAddressButtons = ({ valid, slidePrev, isInSettings }) => {
     return;
   };
   const validate = () => {
+    if (userName === "" && addressDetails.user_name?.length === 0)
+      return shake("username-border");
     if (addressDetails.address_detail?.length === 0) {
       return shake("details-border");
     }
@@ -624,7 +681,9 @@ export const AddAddressButtons = ({ valid, slidePrev, isInSettings }) => {
               });
               addAddress();
             }
-
+            if (addressDetails.user_name && userName === "") {
+              auth.UpdateName(addressDetails.user_name);
+            }
             return;
           }
           validate();

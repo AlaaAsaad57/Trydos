@@ -27,6 +27,7 @@ import {
 import { getReferralSource } from "utils/tinyUtils";
 import dynamic from "next/dynamic";
 import { clearSimulatedUserSession } from "utils/sessionManager";
+import { useAppStore } from "store";
 
 interface MenuProps {
   user: any;
@@ -101,6 +102,7 @@ const MenuItem = ({
 };
 
 const Menu = ({ user, setMenuOpen }) => {
+  const { setSettingLastPath, setActivePacks } = useAppStore();
   const userChat = getCookie<UserData>(COOKIE_NAMES.USER_CHAT);
   const userStories = getCookie<UserData>(COOKIE_NAMES.USER_STORIES);
   const [showNotifications, setShowNotifications] = useState(false);
@@ -143,7 +145,7 @@ const Menu = ({ user, setMenuOpen }) => {
     }
     return false;
   };
-
+  const pathname = usePathname();
   return (
     <>
       <div
@@ -178,6 +180,7 @@ const Menu = ({ user, setMenuOpen }) => {
               //   value: GA_CLICK_EVENT_VALUES.PERSONAL_SETTING,
               // });
               setMenuOpen(false);
+              setSettingLastPath(pathname);
             }}
             icon={
               <MenuIcon>

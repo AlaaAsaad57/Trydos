@@ -8,6 +8,7 @@ export interface AddAddressFormPropsType {
   setOpenSelect: () => void;
   slidePrev: () => void;
   setAddressDetails: (details: any) => void;
+  userName?: any;
 }
 export interface SelectRegionPropsType {
   closeSelect: () => void;

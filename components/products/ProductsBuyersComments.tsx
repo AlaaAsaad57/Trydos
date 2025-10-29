@@ -215,7 +215,6 @@ export const RateCommentItem = ({ comment, language, width = 90 }) => {
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      console.log(event.target);
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
         setMenuOpen(false);
       }
@@ -223,7 +222,7 @@ export const RateCommentItem = ({ comment, language, width = 90 }) => {
     if (menuOpen) document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [menuOpen]);
-  console.log(comment);
+
   return (
     <div
       className={`comment-item rounded-[15px] flex-col justify-between min-w-[330px] max-w-[${width}%] w-full bg-[#F8F8F8] min-h-[111px] py-[8px] px-[10px]`}

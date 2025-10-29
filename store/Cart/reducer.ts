@@ -63,6 +63,7 @@ export const useCartStore = (set, get) => ({
   addressDetails: {
     id: null,
     location: { latitude: null, longitude: null },
+    user_name: null,
     Country: getCountry(),
     address_detail: "",
     address: "",
@@ -116,7 +117,11 @@ export const useCartStore = (set, get) => ({
   payIframeURL: "",
   orderPageLoading: false,
   orderReturnObject: null,
-
+  settingLastPath: null,
+  setSettingLastPath: (path) =>
+    set((state) => ({
+      settingLastPath: path,
+    })),
   // Actions
   setOrderDetails: (order) => {
     set((state) => ({

@@ -113,6 +113,7 @@ function OrdersPage({ setStep, close }: OrdersPagePropsType) {
     setOrderData,
     setAddressDetails,
     initCart,
+    user,
   } = useAppStore();
   let { lang } = useParams();
   // @ts-ignore
@@ -510,6 +511,7 @@ function OrdersPage({ setStep, close }: OrdersPagePropsType) {
                 setOpenSelect={() => {
                   setOpenSelect(true);
                 }}
+                userName={user?.name === "verified_guest" ? "" : null}
                 slidePrev={() => {
                   setOrderStep(0);
                 }}

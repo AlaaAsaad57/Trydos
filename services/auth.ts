@@ -539,7 +539,7 @@ class AuthService {
     let username_stories = userStories?.name;
     let username_chat = userChat?.name;
     let username_market = user?.name;
-
+    if (user?.name === "verified_guest") return null;
     if (Boolean(userChat) && Boolean(userStories))
       if (
         username_chat !== username_market ||

@@ -8,9 +8,10 @@ import LegalInfoIcon from "public/svg/LegalInfoIcon.svg";
 import AboutIcon from "public/svg/AboutIcon.svg";
 import ShareAppIcon from "public/svg/ShareAppIcon.svg";
 import LanguageIcon from "public/svg/LanguageIcon.svg";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { allCountries } from "country-telephone-data";
 import order from "services/order";
+import BackIcon from "public/svg/listing/backIcon.svg";
 
 import { translateFunction } from "utils/functions";
 import Spinner from "components/global/Spinner";
@@ -22,6 +23,7 @@ import {
 } from "models/componentType/settingTypes/MainSettingPropsType";
 import { fetchOrders } from "services/orders";
 import SettingsLoader from "components/skeleton/loaders/SettingsLoader";
+import NextLink from "components/global/NextLink";
 
 const options = [
   { name: "Settings", Icon: <SettingsIcon /> },
@@ -38,6 +40,8 @@ function MainSetting({ swipeToScreen }: MainSettingPropsType) {
     settings,
     language,
     showNotificaionCircle,
+    settingLastPath,
+    setSettingLastPath,
   } = useAppStore();
   const points = settings?.["starting-setting"]?.decimal_point_settings || 0;
 
@@ -72,10 +76,43 @@ function MainSetting({ swipeToScreen }: MainSettingPropsType) {
     if (iso === "ku") return "کوردی";
   };
   const isRtl = language === "ar" || language === "ku";
-
+  const router = useRouter();
   if (!userProfile) return <SettingsLoader />;
+  const BackBar = () => {
+    const [hasHistory, setHasHistory] = useState(false);
+    const [loading, setLoading] = useState(false);
+    useEffect(() => {
+      // Check if the user has navigated within the app
+      setHasHistory(window.history.length > 2);
+      if (settingLastPath) {
+        router.prefetch(settingLastPath);
+      }
+    }, []);
+
+    const handleBack = () => {
+      setLoading(true);
+      if (hasHistory) {
+        router.back();
+      } else {
+        window.location.href = `/${lang}`;
+      }
+    };
+    return (
+      <div className="bg-[#fff] flex items-center top-0 left-0 w-full h-[50px]">
+        <span
+          className="p-2 cursor-pointer"
+          onClick={() => {
+            if (!loading) handleBack();
+          }}
+        >
+          {loading ? <Spinner /> : <BackIcon />}
+        </span>
+      </div>
+    );
+  };
   return (
     <div className="flex-col w-full pt-[20px] px-[12px]">
+      <BackBar />
       <ProfileCard
         goToProfile={() => swipeToScreen(1)}
         goToProfilePicture={() => swipeToScreen(2)}

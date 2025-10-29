@@ -936,7 +936,7 @@ input[type="number"] {
   }
 
   .add-address-button {
-    bottom: calc(80px + env(safe-area-inset-bottom));
+    bottom: 5px;
   }
 }
 
