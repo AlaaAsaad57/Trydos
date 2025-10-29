@@ -14,6 +14,7 @@ function RatingOrderItem({
   lastComment = "",
   refresh,
   variant,
+  seller_id = null,
 }) {
   const [rating, setRating] = useState(initialRating);
   const [loading, setLoading] = useState(false);
@@ -33,6 +34,7 @@ function RatingOrderItem({
         productId: productId,
         id: lastRatingId,
         variant: variant,
+        seller_id: seller_id,
       });
       setRatedComplete(true);
       setComment("");

@@ -381,6 +381,7 @@ const AskInput = ({ language, setCommentsData }) => {
           user_avatar: auth.User().image,
           user_type: "customer",
           phone: auth?.User()?.phone,
+          seller_id: SelectedProduct?.seller_id,
           variant,
         }),
         reqTitle: REQUESTS_DATA.ADD_COMMENT_FOR_PRODUCT,

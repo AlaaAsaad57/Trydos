@@ -174,6 +174,7 @@ function CommentItem({
           user_avatar: auth.User().image,
           user_type: "customer",
           phone: auth?.User()?.phone,
+          seller_id: SelectedProduct?.seller_id,
           variant: variant,
         }),
         reqTitle: REQUESTS_DATA.ADD_COMMENT_FOR_PRODUCT,
@@ -350,7 +351,10 @@ const UpdateCommentElement = ({
         reqTitle: REQUESTS_DATA.UPDATE_COMMENT,
         method: "PUT",
         server: "comments",
-        body: JSON.stringify({ text: value.trim() }),
+        body: JSON.stringify({
+          text: value.trim(),
+          seller_id: SelectedProduct?.seller_id,
+        }),
       });
       if (!response.success) throw new Error(response.message);
 

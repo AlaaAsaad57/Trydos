@@ -153,6 +153,10 @@ function OrderItemsList({
             </div>
             {isDelevired(product) && (
               <RatingOrderItem
+                seller_id={
+                  // ActivePacks?.seller_id
+                  null
+                }
                 refresh={() => {
                   getOrderDetails();
                 }}
