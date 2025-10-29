@@ -173,7 +173,7 @@ export default function BottomSheet({
       if (e.key === "Escape") debouncedOnColse();
     };
     window.addEventListener("keydown", handleEscape);
-    DisableScroll();
+    DisableScroll(true);
     return () => {
       window.removeEventListener("keydown", handleEscape);
       EnableScroll();

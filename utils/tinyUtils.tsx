@@ -680,9 +680,9 @@ export const pollinateInput = (value: string): string => {
   }
   return input;
 };
-export const DisableScroll = () => {
+export const DisableScroll = (noScrolling = false) => {
   document.documentElement.style.overflow = "hidden";
-  document.documentElement.scrollTop = 0;
+  if (!noScrolling) document.documentElement.scrollTop = 0;
 };
 export const EnableScroll = () => {
   document.documentElement.style.overflow = "initial";

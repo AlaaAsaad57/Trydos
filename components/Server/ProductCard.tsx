@@ -199,12 +199,14 @@ function ProductCard({
         >
           <ProductPhotosSlider
             Sliders={Sliders}
+            key={activeColor?.color_name}
             product={{
               ...product,
               flash_deal_end_date: product?.flash_deal_end_date,
               is_redeem: ProductData.is_redeem,
             }}
             images={
+              activeColor?.images ??
               product?.images ??
               product?.sync_color_images?.flatMap((s) => s.images.map((i) => i))
             }
