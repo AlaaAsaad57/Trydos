@@ -2,10 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { ReportError } from "utils/errorReported";
 import { LogError } from "utils/functions";
-import {
-  GetFQACommentsForProduct,
-  GetRatingCommentsForProduct,
-} from "utils/pagesDataRequests/ProductPageData";
+import { GetFQACommentsForProduct } from "utils/pagesDataRequests/ProductPageData";
 
 export async function GET(req: NextRequest) {
   const headers = {
@@ -21,6 +18,7 @@ export async function GET(req: NextRequest) {
 
   const referer = req.headers.get("referer");
   const product_id = req.nextUrl.searchParams.get("product_id");
+  const filter = req.nextUrl.searchParams.get("filter");
   let offset = req.nextUrl.searchParams.get("offset");
   if (offset) {
     offset = decodeURIComponent(offset);
@@ -36,6 +34,7 @@ export async function GET(req: NextRequest) {
       product_id: product_id,
       searchAfter: offset,
       pageSize: 10,
+      filter,
     });
 
     return NextResponse.json(

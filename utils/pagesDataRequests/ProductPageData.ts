@@ -32,7 +32,7 @@ export const GetProductData = async (params: {
 };
 export const GetSocialDataForProduct = async ({ productId, slug, lang }) => {
   try {
-    let [likeRes, sharesRes, ratingComment, FQAComments] = await Promise.all([
+    let [likeRes] = await Promise.all([
       fetchServerData({
         url:
           process.env.NEXT_PUBLIC_BACKEND_URL +
@@ -40,16 +40,6 @@ export const GetSocialDataForProduct = async ({ productId, slug, lang }) => {
         method: "GET",
         revalidate: 0,
         local: lang,
-      }),
-      getProductSharedCountFromElasticsearch(productId, slug, lang),
-
-      GetRatingCommentsForProduct({
-        product_id: productId,
-      }),
-      GetFQACommentsForProduct({
-        product_id: productId,
-        pageSize: 10,
-        searchAfter: null,
       }),
     ]);
     if (likeRes.isError) {
@@ -66,23 +56,14 @@ export const GetSocialDataForProduct = async ({ productId, slug, lang }) => {
         `Comments Requets Error:${likeRes.status}:${likeRes.error}`
       );
     }
-    if (sharesRes.isError || sharesRes.error) {
-      LogServerError(
-        {
-          request: `get shared_products from elasticsearch for product_id: ${productId} slug: ${slug}`,
-          message: JSON.stringify(sharesRes),
-          language: lang.split("-")[1],
-          country: lang.split("-")[0],
-        },
-        `/web/product/CommentsSharesDetails/${slug}`
-      );
-      throw new Error(`Shares Requets Error:${sharesRes.error}`);
-    }
+
     let likesData = likeRes.data.data;
     return {
       count_of_likes: likesData.count_of_likes,
     };
-  } catch (error) {}
+  } catch (error) {
+    console.error(error);
+  }
 };
 
 export const getProductDataFromElastic = async ({ productId, slug, lang }) => {
@@ -98,19 +79,6 @@ export const getProductDataFromElastic = async ({ productId, slug, lang }) => {
         searchAfter: null,
       }),
     ]);
-
-    if (sharesRes.isError || sharesRes.error) {
-      LogServerError(
-        {
-          request: `get shared_products from elasticsearch for product_id: ${productId} slug: ${slug}`,
-          message: JSON.stringify(sharesRes),
-          language: lang.split("-")[1],
-          country: lang.split("-")[0],
-        },
-        `/web/product/CommentsSharesDetails/${slug}`
-      );
-      throw new Error(`Shares Requets Error:${sharesRes.error}`);
-    }
 
     let sharesData =
       (sharesRes as any)?.hits?.hits?.[0]?._source?.shared_count || 0;
@@ -128,7 +96,9 @@ export const getProductDataFromElastic = async ({ productId, slug, lang }) => {
         total: FQAComments.total,
       },
     };
-  } catch (error) {}
+  } catch (error) {
+    console.error(error);
+  }
 };
 async function getProductSharedCountFromElasticsearch(productId, slug, lang) {
   try {
@@ -159,7 +129,6 @@ export async function GetRatingCommentsFromElastic({
   searchAfter?: any;
   order_ids: any;
 }) {
-  console.log(order_ids);
   let query: any = {
     index: "comments",
     size: order_ids.length,
@@ -173,10 +142,10 @@ export async function GetRatingCommentsFromElastic({
     query: {
       bool: {
         must: [
-          { term: { status: "active" } },
           { terms: { order_details_id: order_ids?.map((s) => String(s)) } },
           { term: { user_id: String(user_id) } },
         ],
+        must_not: [{ term: { status: "deleted" } }],
       },
     },
   };
@@ -194,7 +163,7 @@ export async function GetRatingCommentsFromElastic({
     id: hit._id,
     ...((hit?._source as {}) ?? {}),
   }));
-  console.log(results);
+
   const nextSearchAfter =
     results.length > 0 ? response.hits.hits[results.length - 1].sort : null;
 
@@ -220,6 +189,7 @@ export async function GetRatingCommentsForProduct({
   product_id,
   pageSize = 10,
   searchAfter = null,
+  filter = null,
 }) {
   let query: any = {
     index: "comments",
@@ -231,14 +201,20 @@ export async function GetRatingCommentsForProduct({
     query: {
       bool: {
         must: [
-          { term: { status: "active" } },
           { term: { product_id: String(product_id) } },
           { exists: { field: "rating" } },
           { exists: { field: "order_details_id" } },
         ],
+        must_not: [{ term: { status: "deleted" } }],
       },
     },
   };
+
+  if (filter && typeof filter === "string" && filter.trim() !== "") {
+    query.query.bool.must.push({
+      term: { discussed_aspects: filter },
+    });
+  }
 
   if (searchAfter) {
     query = {
@@ -281,6 +257,7 @@ export async function GetFQACommentsForProduct({
   product_id,
   pageSize = 10,
   searchAfter = null,
+  filter = null,
 }) {
   let query: any = {
     index: "comments",
@@ -291,11 +268,9 @@ export async function GetFQACommentsForProduct({
     ],
     query: {
       bool: {
-        must: [
-          { term: { status: "active" } },
-          { term: { product_id: String(product_id) } },
-        ],
+        must: [{ term: { product_id: String(product_id) } }],
         must_not: [
+          { term: { status: "deleted" } },
           {
             exists: {
               field: "order_details_id",
@@ -305,6 +280,11 @@ export async function GetFQACommentsForProduct({
       },
     },
   };
+  if (filter && typeof filter === "string" && filter?.trim() !== "") {
+    query.query.bool.must.push({
+      term: { discussed_aspects: filter },
+    });
+  }
 
   if (searchAfter) {
     query = {

@@ -141,12 +141,14 @@ function ExtraInfoArea({
             {selected_color ? (
               <>
                 <span>{translateFunction("Color")}</span>
-                <span className="bold">{selected_color?.color_name}</span>
+                <span className="bold" data-cy="add-to-cart-selected-color">
+                  {selected_color?.color_name}
+                </span>
               </>
             ) : selected_size ? (
               <>
                 <span>{translateFunction("Size")}</span>
-                <span className="bold">
+                <span className="bold" data-cy="add-to-cart-selected-size">
                   {selected_size?.name || selected_size}
                 </span>
               </>

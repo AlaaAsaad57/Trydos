@@ -20,12 +20,12 @@ function BuyersCommentModal({ comments = [], total, offset: initialOffset }) {
   const [loading, setLoading] = useState(false);
 
   const commentTypes = [
-    { id: 1, name: "Size" },
-    { id: 2, name: "Quality" },
-    { id: 3, name: "Color" },
-    { id: 4, name: "Shipping" },
-    { id: 5, name: "Complaint" },
-    { id: 6, name: "Recommendation" },
+    { id: 1, name: "Size", value: "size" },
+    { id: 2, name: "Quality", value: "quality" },
+    { id: 3, name: "Color", value: "color" },
+    { id: 4, name: "Shipping", value: "shipping" },
+    { id: 5, name: "Complaint", value: "complaint" },
+    { id: 6, name: "Recommendation", value: "recommend" },
   ];
 
   const isRtl = language === "ar" || language === "ku";
@@ -44,7 +44,7 @@ function BuyersCommentModal({ comments = [], total, offset: initialOffset }) {
         SelectedProduct.id
       }${offsetValue ? `&offset=${JSON.stringify(offsetValue)}` : ""}${
         filterId
-          ? `&filter=${commentTypes.find((c) => c.id === filterId)?.name}`
+          ? `&filter=${commentTypes.find((c) => c.id === filterId)?.value}`
           : ""
       }`;
 

@@ -22,9 +22,9 @@ function FAQModal({ comments, total, offset: initialOffset }) {
   const [loading, setLoading] = useState(false);
 
   const commentTypes = [
-    { id: 1, name: "Size" },
-    { id: 2, name: "Quality" },
-    { id: 3, name: "Color" },
+    { id: 1, name: "Size", value: "size" },
+    { id: 2, name: "Quality", value: "quality" },
+    { id: 3, name: "Color", value: "color" },
   ];
 
   const isRtl = language === "ar" || language === "ku";
@@ -39,11 +39,11 @@ function FAQModal({ comments, total, offset: initialOffset }) {
 
     setLoading(true);
     try {
-      const url = `/api/products/comments/buyers_comments?product_id=${
+      const url = `/api/products/comments/fqa_comments?product_id=${
         SelectedProduct.id
       }${offsetValue ? `&offset=${JSON.stringify(offsetValue)}` : ""}${
         filterId
-          ? `&filter=${commentTypes.find((c) => c.id === filterId)?.name}`
+          ? `&filter=${commentTypes.find((c) => c.id === filterId)?.value}`
           : ""
       }`;
 
@@ -56,8 +56,8 @@ function FAQModal({ comments, total, offset: initialOffset }) {
 
       setCommentsData((prev) =>
         reset
-          ? data?.data?.buyers_comments ?? []
-          : [...prev, ...data?.data?.buyers_comments]
+          ? data?.data?.fqa_comments ?? []
+          : [...prev, ...data?.data?.fqa_comments]
       );
       setOffset(data?.data?.offset);
     } catch (err) {
@@ -167,7 +167,7 @@ function FAQModal({ comments, total, offset: initialOffset }) {
                   commentsData.map((s) => (
                     <FaqItem comment={s} language={language} width={100} />
                   ))}
-                {!loading && (
+                {!loading && offset && (
                   <div
                     className="w-full flex justify-center items-center"
                     onClick={() => {
@@ -228,7 +228,7 @@ const ReviewProgress = ({ value, title }) => {
 };
 
 const FaqItem = ({ language, comment, width }) => {
-  let has_reply = Math.random() > 0.5;
+  let has_reply = comment.has_reply;
   return (
     <div className="flex-col min-w-[100%] max-w-[100%]">
       <div
