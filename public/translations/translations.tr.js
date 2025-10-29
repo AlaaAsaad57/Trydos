@@ -1061,6 +1061,20 @@ const translations = {
   "Your Comment": "Yorumunuz",
   Edit: "Düzenle",
   "Add your comment": "Yorumunuzu ekleyin",
+  // Wallet Transactions
+  "Wallet Transactions": "Cüzdan İşlemleri",
+  Wallet: "Cüzdan",
+  Back: "Geri",
+  Date: "Tarih",
+  Amount: "Tutar",
+  Type: "Tür",
+  Description: "Açıklama",
+  Inflow: "Giriş",
+  Outflow: "Çıkış",
+  "Order Refund": "Sipariş İadesi",
+  "Purchase Payment": "Satın Alma Ödemesi",
+  "Promo Credit": "Promosyon Kredisi",
+  "Order Payment": "Sipariş Ödemesi",
 };
 
 export default translations;

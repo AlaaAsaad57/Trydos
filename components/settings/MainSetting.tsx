@@ -25,14 +25,18 @@ import { fetchOrders } from "services/orders";
 import SettingsLoader from "components/skeleton/loaders/SettingsLoader";
 import NextLink from "components/global/NextLink";
 
-const options = [
-  { name: "Settings", Icon: <SettingsIcon /> },
-  { name: "Terms & Conditions", Icon: <TermsIcon /> },
-  { name: "Legal Information", Icon: <LegalInfoIcon /> },
-  { name: "About Us", Icon: <AboutIcon /> },
-  { name: "Share App", Icon: <ShareAppIcon /> },
-];
 function MainSetting({ swipeToScreen }: MainSettingPropsType) {
+  const options = [
+    {
+      name: "Settings",
+      Icon: <SettingsIcon />,
+      onClick: () => swipeToScreen(13),
+    },
+    { name: "Terms & Conditions", Icon: <TermsIcon /> },
+    { name: "Legal Information", Icon: <LegalInfoIcon /> },
+    { name: "About Us", Icon: <AboutIcon /> },
+    { name: "Share App", Icon: <ShareAppIcon /> },
+  ];
   const {
     wallet,
     currency,
@@ -128,6 +132,10 @@ function MainSetting({ swipeToScreen }: MainSettingPropsType) {
           className={` ${
             isRtl && "items-end"
           } flex-col w-1/2 h-[94px] bg-[#F8F8F8] rounded-[12px] p-[12px]  cursor-pointer`}
+          onClick={() => swipeToScreen(12)}
+          role="button"
+          tabIndex={0}
+          aria-label={translateFunction("Wallet Transactions")}
         >
           <TryDosWalletIcon />
           <span className="text-[#1D1D1D] text-[14px] regular mt-[4px]">
@@ -196,13 +204,18 @@ function MainSetting({ swipeToScreen }: MainSettingPropsType) {
 }
 
 export default MainSetting;
-const SettingOption = ({ name, Icon }: MainSettingOptionPropsType) => {
+const SettingOption = ({ name, Icon, onClick }: MainSettingOptionPropsType) => {
   const { lang } = useParams();
   // @ts-ignore
   const language = lang.split("-")[1];
   const isRtl = language === "ar" || language === "ku";
   return (
     <div
+      onClick={() => {
+        if (onClick) {
+          onClick();
+        }
+      }}
       className={`w-full flex-row cursor-pointer mt-[4px] h-[53px] rounded-[15px] bg-[#f8f8f8] px-[12px] items-center ${
         isRtl ? "flex-row-reverse" : " "
       }`}

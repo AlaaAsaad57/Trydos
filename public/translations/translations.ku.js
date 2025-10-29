@@ -1114,6 +1114,20 @@ const translations = {
   "Your Comment": "لێدوانەکەت",
   Edit: "دەستکاریکردن",
   "Add your comment": "لێدوانەکەت زیاد بکە",
+  // Wallet Transactions
+  "Wallet Transactions": "مامەڵەکانی جزدان",
+  Wallet: "جزدان",
+  Back: "گەڕانەوە",
+  Date: "بەروار",
+  Amount: "بڕ",
+  Type: "جۆر",
+  Description: "پەسنی",
+  Inflow: "هاتوو",
+  Outflow: "چوو",
+  "Order Refund": "گەڕاندنەوەی داوا",
+  "Purchase Payment": "پارەدانی کڕین",
+  "Promo Credit": "باڵانسی هەڵسەنگاندن",
+  "Order Payment": "پارەدانی داوا",
 };
 
 export default translations;

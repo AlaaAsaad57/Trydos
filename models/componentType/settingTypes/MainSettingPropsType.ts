@@ -1,14 +1,14 @@
-
 export interface MainSettingPropsType {
-        swipeToScreen: (index: number) => void;
+  swipeToScreen: (index: number) => void;
 }
 
 export interface ProfileCardPropsType {
-    goToProfile: () => void;
-    goToProfileSize: () => void;
-    goToProfilePicture: () => void;
+  goToProfile: () => void;
+  goToProfileSize: () => void;
+  goToProfilePicture: () => void;
 }
 export interface MainSettingOptionPropsType {
-    name: string;
-    Icon: React.ReactNode;
+  name: string;
+  Icon: React.ReactNode;
+  onClick?: () => void;
 }

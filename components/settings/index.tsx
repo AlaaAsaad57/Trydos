@@ -23,6 +23,8 @@ import {
 } from "models/componentType/settingTypes/SettingsIndexPropsType";
 import home from "services/home";
 import { EnableScroll } from "utils/tinyUtils";
+import WalletTransactions from "./WalletTransactions";
+import SettingsScreen from "./SettingsScreen";
 
 function Settings({ lang, order_id, tab }: SettingsIndexPropsType) {
   const {
@@ -198,6 +200,18 @@ function Settings({ lang, order_id, tab }: SettingsIndexPropsType) {
       id: "Language",
       title: "Language",
       component: () => <LanguageSetting goBack={() => swipeToScreen(0)} />,
+    },
+    {
+      id: "Wallet Transactions",
+      title: "Wallet Transactions",
+      component: () => <WalletTransactions goBack={() => swipeToScreen(0)} />,
+      parentId: "main",
+    },
+    {
+      id: "Setting",
+      title: "Setting",
+      component: () => <SettingsScreen goBack={() => swipeToScreen(0)} />,
+      parentId: "main",
     },
   ]);
 

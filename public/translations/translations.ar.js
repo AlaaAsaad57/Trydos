@@ -1072,6 +1072,20 @@ const translations = {
   "Your Comment": "تعليقك",
   Edit: "تعديل",
   "Add your comment": "أضف تعليقك",
+  // Wallet Transactions
+  "Wallet Transactions": "معاملات المحفظة",
+  Wallet: "المحفظة",
+  Back: "رجوع",
+  Date: "التاريخ",
+  Amount: "المبلغ",
+  Type: "النوع",
+  Description: "الوصف",
+  Inflow: "وارد",
+  Outflow: "صادر",
+  "Order Refund": "استرداد طلب",
+  "Purchase Payment": "دفع شراء",
+  "Promo Credit": "رصيد ترويجي",
+  "Order Payment": "دفع طلب",
 };
 
 export default translations;
