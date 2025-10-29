@@ -197,7 +197,7 @@ export const FaqItem = ({
                 className="comment-source text-[#1D1D1D] text-[9px] regular"
                 data-cy="Source-Of-Comment"
               >
-                <span className="bold pr-[4px]">A</span>{" "}
+                <span className="bold pr-[4px]">Q</span>{" "}
                 {convertTextToXFormat(comment?.customer?.name)}
               </div>
             </div>
@@ -258,10 +258,10 @@ export const FaqItem = ({
               <div className="flex-row items-center">
                 <div className="comment-photo">
                   <Image
-                    src={GetImageUrl(comment?.customer?.image) ?? profilePng}
+                    src={profilePng}
                     width={20}
                     height={20}
-                    alt={convertTextToXFormat(comment?.customer?.name)}
+                    alt={convertTextToXFormat(comment?.seller_name)}
                   />
                 </div>
                 <div className="comment-content capitalize">
@@ -270,7 +270,7 @@ export const FaqItem = ({
                     data-cy="Source-Of-Comment"
                   >
                     <span className="bold pr-[4px]">A</span>
-                    {convertTextToXFormat(comment?.customer?.name)}
+                    {convertTextToXFormat(comment?.seller_name)}
                   </div>
                 </div>
               </div>
@@ -282,10 +282,10 @@ export const FaqItem = ({
                 className="comment-date text-[9px]"
                 data-cy="Date-Of-Comment"
               >
-                {formatTime(comment?.created_at)}
+                {formatTime(comment?.reply_created_at)}
               </div>
               <div className="comment-text regular text-[#1d1d1d] text-[11px] mt-[0px]">
-                {comment?.comment}
+                {comment?.seller_reply}
               </div>
             </div>
             <div className="flex-row pl-[10px] pr-[3px] justify-between w-full items-center">

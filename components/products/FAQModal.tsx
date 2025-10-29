@@ -8,7 +8,7 @@ import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 import Skeleton from "node_modules/react-loading-skeleton/dist";
 import FAQIcon from "public/svg/FAQIcon.svg";
 import Image from "node_modules/next/image";
-import { formatTime, GetImageUrl } from "utils/tinyUtils";
+import { convertTextToXFormat, formatTime, GetImageUrl } from "utils/tinyUtils";
 import { fetchData } from "utils/fetchData";
 import { REQUESTS_DATA } from "utils/Requests";
 
@@ -254,8 +254,8 @@ const FaqItem = ({ language, comment, width }) => {
                 className="comment-source text-[#1D1D1D] text-[9px] regular"
                 data-cy="Source-Of-Comment"
               >
-                <span className="bold pr-[4px]">A</span>{" "}
-                {comment?.customer?.name}
+                <span className="bold pr-[4px]">Q</span>{" "}
+                {convertTextToXFormat(comment?.customer?.name)}
               </div>
             </div>
           </div>
@@ -315,10 +315,10 @@ const FaqItem = ({ language, comment, width }) => {
               <div className="flex-row items-center">
                 <div className="comment-photo">
                   <Image
-                    src={GetImageUrl(comment?.customer?.image) ?? profilePng}
+                    src={profilePng}
                     width={20}
                     height={20}
-                    alt={comment?.customer?.name}
+                    alt={"seller-name"}
                   />
                 </div>
                 <div className="comment-content capitalize">
@@ -327,21 +327,22 @@ const FaqItem = ({ language, comment, width }) => {
                     data-cy="Source-Of-Comment"
                   >
                     <span className="bold pr-[4px]">A</span>
-                    {comment?.customer?.name}
+                    {convertTextToXFormat(comment?.seller_name)}
                   </div>
                 </div>
               </div>
               <span className="medium text-[#1d1d1d] text-[9px] mt-[5px]">
-                {translateFunction("Dear", language)} {comment?.customer?.name}
+                {translateFunction("Dear", language)}{" "}
+                {convertTextToXFormat(comment?.customer?.name)}
               </span>
               <div
                 className="comment-date text-[9px]"
                 data-cy="Date-Of-Comment"
               >
-                {formatTime(comment?.created_at)}
+                {formatTime(comment?.reply_created_at)}
               </div>
               <div className="comment-text regular text-[#1d1d1d] text-[11px] mt-[0px]">
-                {comment?.comment}
+                {comment?.seller_reply}
               </div>
             </div>
             <div className="flex-row pl-[10px] pr-[3px] justify-between w-full items-center">

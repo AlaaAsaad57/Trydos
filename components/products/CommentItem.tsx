@@ -225,7 +225,9 @@ function CommentItem({
   return (
     <>
       <div
-        className={`${!isPending && !isError && "opacity-70"} relative flex  ${
+        className={`${
+          !isPending && !isError && "opacity-70"
+        } relative flex items-start  ${
           isFull ? "max-w-full w-full" : "max-w-[710px] min-w-[85vw] "
         }`}
       >
