@@ -211,9 +211,15 @@ export async function GetRatingCommentsForProduct({
   };
 
   if (filter && typeof filter === "string" && filter.trim() !== "") {
-    query.query.bool.must.push({
-      term: { discussed_aspects: filter },
-    });
+    if (filter !== "recommend")
+      query.query.bool.must.push({
+        term: { discussed_aspects: filter },
+      });
+    else {
+      query.query.bool.must.push({
+        term: { recommendation: true },
+      });
+    }
   }
 
   if (searchAfter) {
