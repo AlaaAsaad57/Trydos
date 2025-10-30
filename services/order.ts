@@ -359,6 +359,8 @@ class OrderService {
     id = null,
     variant,
     seller_id = null,
+    owner_id,
+    owner_type,
   }) {
     try {
       let userData: any = getCookie(COOKIE_NAMES.USER_DATA);
@@ -376,7 +378,8 @@ class OrderService {
           body: JSON.stringify({
             text: comment,
             rating: star_rating,
-            seller_id: seller_id,
+            owner_id: String(owner_id),
+            owner_type: owner_type,
           }),
           reqTitle: REQUESTS_DATA.UPDATE_COMMENT,
           server: "comments",
@@ -394,7 +397,8 @@ class OrderService {
             user_avatar: auth.User().image,
             user_type: "customer",
             rating: star_rating,
-            seller_id: seller_id,
+            owner_id: String(owner_id),
+            owner_type: owner_type,
             variant,
             order_details_id: String(order_detail_id),
             phone: auth?.User()?.phone,

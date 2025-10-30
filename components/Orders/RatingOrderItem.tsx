@@ -4,6 +4,7 @@ import { translateFunction } from "utils/functions";
 
 import order from "services/order";
 import Spinner from "components/global/Spinner";
+import { useAppStore } from "store";
 
 function RatingOrderItem({
   productId,
@@ -16,6 +17,7 @@ function RatingOrderItem({
   variant,
   seller_id = null,
 }) {
+  const { ActivePacks } = useAppStore();
   const [rating, setRating] = useState(initialRating);
   const [loading, setLoading] = useState(false);
   const [comment, setComment] = useState(lastComment || "");
@@ -34,7 +36,8 @@ function RatingOrderItem({
         productId: productId,
         id: lastRatingId,
         variant: variant,
-        seller_id: seller_id,
+        owner_id: ActivePacks?.owner_id,
+        owner_type: ActivePacks?.owner_type,
       });
       setRatedComplete(true);
       setComment("");

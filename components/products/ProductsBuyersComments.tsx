@@ -160,7 +160,8 @@ export const RateCommentItem = ({ comment, language, width = 90 }) => {
         body: JSON.stringify({
           text: comment_var.comment,
           rating: comment_var.star_rating,
-          seller_id: SelectedProduct?.seller_id,
+          owner_id: String(SelectedProduct?.owner_id),
+          owner_type: SelectedProduct?.owner_type,
         }),
         reqTitle: REQUESTS_DATA.UPDATE_COMMENT,
         server: "comments",
