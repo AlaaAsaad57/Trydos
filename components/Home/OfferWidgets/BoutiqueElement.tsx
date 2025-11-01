@@ -33,6 +33,7 @@ function BoutiqueElement({ boutique }) {
             <Image
               alt={boutique.name}
               src={configureImage(GetImageUrl(banner?.file_path))}
+              data-cy="boutique-banner"
               width={1280}
               height={750}
               className="h-auto w-full object-center object-cover  max-w-full max-h-[75vh] "
@@ -41,10 +42,14 @@ function BoutiqueElement({ boutique }) {
         ))}
       </div>
       <div className="absolute flex-col px-[12px] items-start gap-[3px] z-20 bottom-0 left-0 w-full h-[54px] bg-gradient-to-t from-[rgba(0,0,0,0.5)] to-[rgba(0,0,0,0)] flex">
-        <span className="bold text-[16px] uppercase text-white">
+        <span
+          className="bold text-[16px] uppercase text-white"
+          data-cy="boutique-name"
+        >
           {boutique?.name}
         </span>
         <span
+          data-cy="boutique-description"
           className="regular text-[16px] text-white"
           dangerouslySetInnerHTML={{
             __html: boutique?.description,
