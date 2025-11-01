@@ -19,7 +19,12 @@ import ThreePointsIcon from "public/svg/threepoints.svg";
 import DeleteCommentIcon from "public/svg/DeleteCommentIcon.svg";
 import PenIcon from "public/svg/PenIcon.svg";
 import { COOKIE_NAMES, getCookie } from "utils/cookies/cookie-manager";
-function ProductsBuyersComments({ lang, comments, product_id }) {
+function ProductsBuyersComments({
+  lang,
+  comments,
+  product_id,
+  recommendation_stats,
+}) {
   const [country, language] = lang.split("-");
   const { ColorBottomSheet, setColorBottomSheet, SelectedProduct, editInfo } =
     useAppStore();
@@ -135,7 +140,10 @@ function ProductsBuyersComments({ lang, comments, product_id }) {
             </div>
           )}
         </HortiznalScrollBar>
-        <BuyersRatingBar language={language} />
+        <BuyersRatingBar
+          recommendation_stats={recommendation_stats}
+          language={language}
+        />
       </div>
     </>
   );
@@ -330,13 +338,14 @@ export const RateCommentItem = ({ comment, language, width = 90 }) => {
       <BuyerCommentRateInfo
         language={language}
         rating={comment.star_rating}
+        recommendation={comment?.recommendation}
         key={comment.star_rating}
       />
     </div>
   );
 };
 
-const BuyerCommentRateInfo = ({ language, rating }) => {
+const BuyerCommentRateInfo = ({ language, rating, recommendation }) => {
   return (
     <div className="flex-row pl-[10px] pr-[3px] justify-between w-full items-center">
       <div className="flex-row  gap-[4px] text-[#1d1d1d] text-[9px] regular">
@@ -373,22 +382,30 @@ const BuyerCommentRateInfo = ({ language, rating }) => {
           <span>{translateFunction("Good Quality", language)}</span>
           <span>{translateFunction("True Size", language)}</span>
         </div>
-        <div className="flex-row gap-[4px] text-[#1d1d1d] text-[9px]">
-          <RecomendedIcon />
-          <span>{translateFunction("Recommend It", language)}</span>
-        </div>
+        {recommendation && (
+          <div className="flex-row gap-[4px] text-[#1d1d1d] text-[9px]">
+            <RecomendedIcon />
+            <span>{translateFunction("Recommend It", language)}</span>
+          </div>
+        )}
       </div>
     </div>
   );
 };
 
-const BuyersRatingBar = ({ language }) => {
-  let recomended = 123;
-  let not_recomended = 15;
-  let recomendedPRC = (
-    (100 * recomended) /
-    (recomended + not_recomended)
-  ).toFixed(0);
+const BuyersRatingBar = ({ language, recommendation_stats }) => {
+  let recomended = recommendation_stats?.find(
+    (s) => s.category === "recommend"
+  )?.count;
+  let not_recomended = recommendation_stats?.find(
+    (s) => s.category === "not_recommend"
+  )?.count;
+  let recomendedPRC = recommendation_stats?.find(
+    (s) => s.category === "recommend"
+  )?.percentage;
+  let not_recomendedPRC = recommendation_stats?.find(
+    (s) => s.category === "not_recommend"
+  )?.percentage;
   const isRtl = language === "ar" || language === "ku";
 
   return (

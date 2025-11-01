@@ -74,9 +74,29 @@ class OrderService {
         wallet_balance: response.data.wallet_balance || 0,
       });
       setOrderLoading(false);
+      return response.data;
     } catch (error) {
       setOrderLoading(false);
       console.error(error);
+    }
+  }
+  async GetWalletTransactions(limit: number = 10, offset: number = 1) {
+    try {
+      let response: { data: GetWalletApi } = await fetchData({
+        url: `/customer/wallet/list?limit=${limit}&offset=${offset}`,
+        reqTitle: REQUESTS_DATA.GET_WALLET,
+        method: "GET",
+        server: "market",
+      });
+      // @ts-ignore
+      if (!response.success) {
+        // @ts-ignore
+        throw new Error(response.message);
+      }
+      return response.data;
+    } catch (error) {
+      console.error(error);
+      throw error;
     }
   }
   async GetAddressList() {

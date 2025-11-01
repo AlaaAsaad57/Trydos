@@ -68,17 +68,19 @@ export const GetSocialDataForProduct = async ({ productId, slug, lang }) => {
 
 export const getProductDataFromElastic = async ({ productId, slug, lang }) => {
   try {
-    let [sharesRes, ratingComment, FQAComments] = await Promise.all([
-      getProductSharedCountFromElasticsearch(productId, slug, lang),
-      GetRatingCommentsForProduct({
-        product_id: productId,
-      }),
-      GetFQACommentsForProduct({
-        product_id: productId,
-        pageSize: 10,
-        searchAfter: null,
-      }),
-    ]);
+    let [sharesRes, ratingComment, FQAComments, recommendationStats] =
+      await Promise.all([
+        getProductSharedCountFromElasticsearch(productId, slug, lang),
+        GetRatingCommentsForProduct({
+          product_id: productId,
+        }),
+        GetFQACommentsForProduct({
+          product_id: productId,
+          pageSize: 10,
+          searchAfter: null,
+        }),
+        GetRecommendationCountForProduct({ product_id: productId }),
+      ]);
 
     let sharesData =
       (sharesRes as any)?.hits?.hits?.[0]?._source?.shared_count || 0;
@@ -95,6 +97,7 @@ export const getProductDataFromElastic = async ({ productId, slug, lang }) => {
         offset: FQAComments.searchAfter,
         total: FQAComments.total,
       },
+      recommendation_stats: recommendationStats,
     };
   } catch (error) {
     console.error(error);
@@ -253,11 +256,88 @@ export async function GetRatingCommentsForProduct({
       created_at: s.created_at,
       star_rating: s.rating,
       order_details_id: s.order_details_id,
+      recommendation: s?.recommendation,
     })),
     total: (response.hits.total as any)?.value,
     searchAfter: nextSearchAfter,
   };
 }
+export const GetRecommendationCountForProduct = async ({ product_id }) => {
+  const result = await client.search({
+    index: "comments",
+    size: 0,
+    query: {
+      bool: {
+        must: [
+          { term: { product_id: String(product_id) } },
+          { exists: { field: "rating" } },
+          { exists: { field: "order_details_id" } },
+        ],
+        must_not: [{ term: { status: "deleted" } }],
+      },
+    },
+    aggs: {
+      recommendation_status: {
+        filters: {
+          filters: {
+            recommend: {
+              bool: {
+                should: [
+                  { term: { recommendation: true } },
+                  {
+                    range: {
+                      rating: {
+                        gte: 3,
+                      },
+                    },
+                  },
+                ],
+              },
+            },
+            not_recommend: {
+              bool: {
+                should: [
+                  { term: { recommendation: false } },
+                  {
+                    range: {
+                      rating: {
+                        lt: 3,
+                      },
+                    },
+                  },
+                ],
+              },
+            },
+          },
+        },
+      },
+    },
+  });
+  // @ts-ignore
+  const buckets = result.aggregations.recommendation_status.buckets;
+  const total = buckets.recommend.doc_count + buckets.not_recommend.doc_count;
+
+  const stats = [
+    {
+      category: "recommend",
+      count: buckets.recommend.doc_count,
+      percentage:
+        total > 0
+          ? ((buckets.recommend.doc_count / total) * 100).toFixed(0)
+          : "0",
+    },
+    {
+      category: "not_recommend",
+      count: buckets.not_recommend.doc_count,
+      percentage:
+        total > 0
+          ? ((buckets.not_recommend.doc_count / total) * 100).toFixed(0)
+          : "0",
+    },
+  ];
+
+  return stats;
+};
 // comments with questions and replies
 export async function GetFQACommentsForProduct({
   product_id,
@@ -299,8 +379,8 @@ export async function GetFQACommentsForProduct({
         typeof searchAfter === "string" ? JSON.parse(searchAfter) : [],
     };
   }
-  const response = await client.search(query);
 
+  let response = await client.search(query);
   const results = response.hits.hits.map((hit) => ({
     id: hit._id,
     ...((hit?._source as {}) ?? {}),
@@ -326,6 +406,7 @@ export async function GetFQACommentsForProduct({
       reply_created_at: s.reply_created_at,
     })),
     total: (response.hits.total as any)?.value,
+
     searchAfter: nextSearchAfter,
   };
 }

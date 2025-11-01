@@ -738,6 +738,7 @@ async function Page({ params, searchParams }) {
               <ProductStories id={product.id} />
               {product?.buyers_comment?.comments.length > 0 && (
                 <ProductsBuyersComments
+                  recommendation_stats={product?.recommendation_stats}
                   product_id={product.id}
                   comments={product?.buyers_comment}
                   lang={Params.lang}

@@ -11,79 +11,103 @@ interface WalletTransactionsProps {
   goBack: () => void;
 }
 
+interface Transaction {
+  id: string;
+  date: string;
+  description: string;
+  amount: number;
+}
+
 function WalletTransactions({ goBack }: WalletTransactionsProps) {
   const { wallet, currency, language } = useAppStore();
   const isRtl = language === "ar" || language === "ku";
   const [loading, setLoading] = useState(false);
-  const [transactions, setTransactions] = useState<
-    Array<{ id: string; date: string; description: string; amount: number }>
-  >([]);
-  const [page, setPage] = useState(1);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [offset, setOffset] = useState(1);
   const [isFetching, setIsFetching] = useState(false);
   const [hasMore, setHasMore] = useState(true);
+  const [totalTransactions, setTotalTransactions] = useState(0);
+  const [walletBalance, setWalletBalance] = useState(0);
+  const [currencySymbol, setCurrencySymbol] = useState<string | undefined>(
+    currency?.symbol
+  );
   const PAGE_SIZE = 10;
-  const MAX_PAGES = 3; // simulate total 30 rows
+
   const getWallet = async () => {
     try {
       setLoading(true);
       const res = await order.GetWallet();
+      if (res) {
+        setWalletBalance(res.wallet_balance || 0);
+        setCurrencySymbol(res.currency_symbol || currency?.symbol);
+      }
       setLoading(false);
     } catch (error) {
       console.log(error);
       setLoading(false);
     }
   };
+
   useEffect(() => {
     getWallet();
-    // initial load
     void loadMore();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const simulateApi = (pageIndex: number, limit: number) => {
-    return new Promise<
-      Array<{ id: string; date: string; description: string; amount: number }>
-    >((resolve) => {
-      setTimeout(() => {
-        const start = (pageIndex - 1) * limit;
-        const rows = Array.from({ length: limit }).map((_, i) => {
-          const n = start + i + 1;
-          const positive = n % 2 === 0;
-          const amount = positive
-            ? +(5 + (n % 7) * 0.5).toFixed(2)
-            : -+(3 + (n % 5) * 0.7).toFixed(2);
-          const descriptions = [
-            translateFunction("Order Refund"),
-            translateFunction("Purchase Payment"),
-            translateFunction("Promo Credit"),
-            translateFunction("Order Payment"),
-          ];
-          const description = descriptions[n % descriptions.length];
-          const day = String(n % 28 || 1).padStart(2, "0");
-          const hour = String(n % 24).padStart(2, "0");
-          const min = String((n * 3) % 60).padStart(2, "0");
-          return {
-            id: `tx-${n}`,
-            date: `2025-10-${day} ${hour}:${min}`,
-            description,
-            amount,
-          };
-        });
-        resolve(rows);
-      }, 500);
-    });
+  const formatDate = (dateString: string) => {
+    try {
+      const date = new Date(dateString.replace(" ", "T"));
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const day = String(date.getDate()).padStart(2, "0");
+      const hours = String(date.getHours()).padStart(2, "0");
+      const minutes = String(date.getMinutes()).padStart(2, "0");
+      return `${year}-${month}-${day} ${hours}:${minutes}`;
+    } catch {
+      return dateString;
+    }
   };
 
   const loadMore = async () => {
     if (isFetching || !hasMore) return;
     setIsFetching(true);
-    const nextPage = page;
-    const data = await simulateApi(nextPage, PAGE_SIZE);
-    setTransactions((prev) => [...prev, ...data]);
-    const reached = nextPage >= MAX_PAGES;
-    setHasMore(!reached);
-    setPage(nextPage + 1);
-    setIsFetching(false);
+    try {
+      const currentOffset = offset;
+      const response = await order.GetWalletTransactions(
+        PAGE_SIZE,
+        currentOffset
+      );
+      if (response) {
+        const newTransactions: Transaction[] =
+          response.wallet_transaction_list?.map((tx: any) => {
+            const amount = tx.credit > 0 ? tx.credit : -tx.debit;
+            return {
+              id: tx.id,
+              date: formatDate(tx.created_at),
+              description:
+                tx.transaction_type?.name || tx.reference || "Transaction",
+              amount,
+            };
+          }) || [];
+
+        setTransactions((prev) => {
+          const updated = [...prev, ...newTransactions];
+          if (newTransactions.length === 0) {
+            setHasMore(false);
+          } else setHasMore(true);
+          return updated;
+        });
+
+        setTotalTransactions(response.total_wallet_transaction || 0);
+        setWalletBalance(response.wallet_balance || walletBalance);
+        setOffset(currentOffset + 1);
+      }
+    } catch (error) {
+      console.error("Error loading transactions:", error);
+      setHasMore(false);
+    } finally {
+      setIsFetching(false);
+    }
   };
 
   return (
@@ -124,7 +148,7 @@ function WalletTransactions({ goBack }: WalletTransactionsProps) {
                   <Spinner />
                 ) : (
                   <>
-                    {wallet?.wallet_balance?.toFixed(8)} {currency?.symbol}{" "}
+                    {walletBalance.toFixed(8)} {currencySymbol}{" "}
                     {translateFunction("Your Balance")}
                   </>
                 )}
@@ -186,7 +210,7 @@ function WalletTransactions({ goBack }: WalletTransactionsProps) {
                     } ${isPositive ? "text-green-700" : "text-red-600"}`}
                   >
                     {isPositive ? "+" : "-"}
-                    {Math.abs(tx.amount).toFixed(2)} {currency?.symbol}
+                    {Math.abs(tx.amount).toFixed(2)} {currencySymbol}
                   </div>
                 </div>
               );

@@ -50,10 +50,15 @@ function PlaceOrderButtons({
       shake("agree-valid-border");
     }
   };
-  const setAgree = (e) => {
+  const setAgree = async (e) => {
+    if (loading || agreeLoading) return;
+    setAgreeLoading(true);
+    await new Promise((resolve) => setTimeout(resolve, 3000));
     setOrderData({ agree: e });
+    setAgreeLoading(false);
   };
   const [loading, setLoading] = useState(false);
+  const [agreeLoading, setAgreeLoading] = useState(false);
   const VerifyCart = async () => {
     try {
       setLoading(true);
@@ -122,7 +127,11 @@ function PlaceOrderButtons({
             }}
           >
             <span className="cursor-pointer">
-              <CheckBoxElement active={orderData.agree} />
+              {!agreeLoading ? (
+                <CheckBoxElement active={orderData.agree} />
+              ) : (
+                <Spinner />
+              )}
             </span>
             <div className={` ${isRtl ? "dir-rtl" : ""} flex `}>
               <span>{translateFunction("I read and agree to the")}</span>
