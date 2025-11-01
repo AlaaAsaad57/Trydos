@@ -269,14 +269,16 @@ function CommentItem({
 
             {showMenu && (
               <div className="absolute z-50 right-[10px] top-[10px] bg-white border border-gray-200 rounded-lg shadow-lg py-1 min-w-[120px]">
-                <button
-                  className="w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
-                  onClick={handleUpdateClick}
-                  disabled={updateLoading}
-                >
-                  <PenIcon className="w-4 h-4" />
-                  {translateFunction("Edit")}
-                </button>
+                {!comment.has_reply && (
+                  <button
+                    className="w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
+                    onClick={handleUpdateClick}
+                    disabled={updateLoading}
+                  >
+                    <PenIcon className="w-4 h-4" />
+                    {translateFunction("Edit")}
+                  </button>
+                )}
                 <button
                   className="w-full px-3 py-2 text-left text-sm text-red-600 hover:bg-gray-100 flex items-center gap-2"
                   onClick={handleDeleteClick}

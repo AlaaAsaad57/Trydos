@@ -661,9 +661,7 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
         } flex flex-col   w-full max-h-[75vh] h-full pt-[32px] overflow-y-auto pb-[213px]`}
       >
         <Card
-          brandImabge={GetImageUrl(
-            getConfiguredImage({ src: ProductData?.brand?.icon, height: 15 })
-          )}
+          brandImabge={GetImageUrl(ProductData?.brand?.icon)}
           image={getConfiguredImage({
             src:
               (selectedColor?.images?.[0]?.file_path &&
@@ -836,6 +834,7 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
           />
         ) : (
           <AddToCartButton
+            key={product?.is_redeem}
             fullQty={localCart.filter((s) => s.id === product?.id)?.length}
             colors={ProductData?.sync_color_images}
             sizes={ProductData?.choice_options?.[0]?.options}

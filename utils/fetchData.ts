@@ -354,7 +354,14 @@ export const fetchData = async <T = any>(
 
       const msg = responseData?.message ?? responseData?.data?.message ?? "";
       const statusVal = responseData?.data?.status;
-
+      if (reqTitle.reqTitle.includes("apply coupon")) {
+        if (statusVal === 1) {
+          showSuccessMessage(msg);
+        } else {
+          showErrorMessage(msg);
+          throw new Error(msg);
+        }
+      }
       if (reqTitle.reqTitle.includes("cart widget")) {
         if (url.includes("/cart/remove") && status === 200) {
           showSuccessMessage(msg);

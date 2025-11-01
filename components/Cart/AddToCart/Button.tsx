@@ -122,9 +122,6 @@ function AddToCartButton({
     }, 2000);
   };
   const animateText = (text) => {
-    let container = document.querySelector<HTMLDivElement>(
-      "#button-text-container"
-    );
     let newText = document.querySelector<HTMLDivElement>(
       "#text-request-response"
     );
