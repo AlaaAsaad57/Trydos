@@ -68,19 +68,25 @@ export const GetSocialDataForProduct = async ({ productId, slug, lang }) => {
 
 export const getProductDataFromElastic = async ({ productId, slug, lang }) => {
   try {
-    let [sharesRes, ratingComment, FQAComments, recommendationStats] =
-      await Promise.all([
-        getProductSharedCountFromElasticsearch(productId, slug, lang),
-        GetRatingCommentsForProduct({
-          product_id: productId,
-        }),
-        GetFQACommentsForProduct({
-          product_id: productId,
-          pageSize: 10,
-          searchAfter: null,
-        }),
-        GetRecommendationCountForProduct({ product_id: productId }),
-      ]);
+    let [
+      sharesRes,
+      ratingComment,
+      FQAComments,
+      recommendationStats,
+      ratingDetails,
+    ] = await Promise.all([
+      getProductSharedCountFromElasticsearch(productId, slug, lang),
+      GetRatingCommentsForProduct({
+        product_id: productId,
+      }),
+      GetFQACommentsForProduct({
+        product_id: productId,
+        pageSize: 10,
+        searchAfter: null,
+      }),
+      GetRecommendationCountForProduct({ product_id: productId }),
+      getProductRatingDetails({ p_id: productId }),
+    ]);
 
     let sharesData =
       (sharesRes as any)?.hits?.hits?.[0]?._source?.shared_count || 0;
@@ -97,6 +103,7 @@ export const getProductDataFromElastic = async ({ productId, slug, lang }) => {
         offset: FQAComments.searchAfter,
         total: FQAComments.total,
       },
+      ratingDetails,
       recommendation_stats: recommendationStats,
     };
   } catch (error) {
@@ -160,6 +167,7 @@ export async function GetRatingCommentsFromElastic({
         typeof searchAfter === "string" ? JSON.parse(searchAfter) : [],
     };
   }
+
   const response = await client.search(query);
 
   const results = response.hits.hits.map((hit) => ({
@@ -188,6 +196,56 @@ export async function GetRatingCommentsFromElastic({
     searchAfter: nextSearchAfter,
   };
 }
+export const getProductRatingDetails = async ({ p_id }) => {
+  try {
+    const result = await client.search({
+      index: "comments",
+      size: 0, // only want aggregation results
+      query: {
+        bool: {
+          must: [
+            { term: { product_id: String(p_id) } },
+            { exists: { field: "rating" } },
+            { exists: { field: "order_details_id" } },
+          ],
+          must_not: [{ term: { status: "deleted" } }],
+        },
+      },
+      aggs: {
+        rating_buckets: {
+          terms: {
+            script: {
+              source: `
+        if (doc['rating'].size() == 0) return 0;
+  def r = doc['rating'].value;
+              if (r >= 4.5) return 5;
+              if (r >= 3.5) return 4;
+              if (r >= 2.5) return 3;
+              if (r >= 1.5) return 2;
+              if (r >= 0.5) return 1;
+              return 0;
+              `,
+            },
+            size: 6,
+            order: { _key: "desc" }, // ensures keys come 5 → 0
+          },
+        },
+      },
+    });
+
+    const buckets = (result.aggregations?.rating_buckets as any)?.buckets ?? [];
+
+    return {
+      rating_details: buckets.map((b) => ({
+        ratingGroup: b.key,
+        count: b.doc_count,
+      })),
+    };
+  } catch (error) {
+    console.error("Error fetching rating stats:", error);
+    return { rating_details: [] };
+  }
+};
 export async function GetRatingCommentsForProduct({
   product_id,
   pageSize = 10,
