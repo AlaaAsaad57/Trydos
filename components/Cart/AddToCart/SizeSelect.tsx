@@ -133,7 +133,10 @@ function SizeSelect({
                 </svg>
               )}
               {isSizeNotified(s?.option ?? s) && (
-                <span className="absolute top-[-6px] left-[4px]">
+                <span
+                  className="absolute top-[-6px] left-[4px]"
+                  data-cy="is-size-notified"
+                >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     xmlnsXlink="http://www.w3.org/1999/xlink"
