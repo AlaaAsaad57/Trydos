@@ -240,7 +240,7 @@ export default function ApiTestPage() {
     },
     {
       name: "End Call",
-      url: "/api/v1/end_call",
+      url: "/api/v1/messages/end_call",
       method: "POST",
       server: "chat",
     },
@@ -614,7 +614,7 @@ export default function ApiTestPage() {
     },
     {
       name: "Channel Media",
-      url: "/api/v2/channels/{id}/media",
+      url: "/api/v1/channels/{id}/media",
       method: "GET",
       server: "chat",
     },

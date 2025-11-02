@@ -353,7 +353,7 @@ export const GetChatDetails = async (id) => {
   const { editChatInfo } = useAppStore.getState();
   try {
     let response = await fetchData({
-      url: `/api/v2/channels/${id}/media`,
+      url: `/api/v1/channels/${id}/media`,
       reqTitle: REQUESTS_DATA.GET_CHANNEL_DATA,
       method: "GET",
       server: "chat",

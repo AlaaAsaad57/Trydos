@@ -219,7 +219,7 @@ const VoiceCall = ({ token, audio = false, name = "", user_id, active }) => {
       // End call API - always call this
       try {
         let res = await fetchData({
-          url: `/api/v1/end_call`,
+          url: `/api/v1/messages/end_call`,
           reqTitle: REQUESTS_DATA.END_CALL,
           method: "POST",
           server: "chat",

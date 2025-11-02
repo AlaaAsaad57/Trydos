@@ -175,7 +175,7 @@ export const RefuseCall = async (channelId, messageId, duration) => {
   try {
     // Clear user's call state
     const response = await fetchData({
-      url: `/api/v1/end_call`,
+      url: `/api/v1/messages/end_call`,
       reqTitle: REQUESTS_DATA.END_CALL,
       method: "POST",
       server: "chat",

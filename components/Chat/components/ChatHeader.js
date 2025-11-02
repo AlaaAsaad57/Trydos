@@ -195,7 +195,7 @@ function ChatHeader({
             onClick={async () => {
               try {
                 let res = await fetchData({
-                  url: "/api/v1/end_call",
+                  url: "/api/v1/messages/end_call",
                   body: JSON.stringify({ user_id: getUserChat()?.id }),
                   method: "POST",
                   server: "chat",
