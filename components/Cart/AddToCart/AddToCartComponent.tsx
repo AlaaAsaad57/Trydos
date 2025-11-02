@@ -231,10 +231,10 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
       let [data1, data2, data3] = await Promise.all([
         (async () => {
           let response = await fetchData({
-            url: `/web/product/qtyPriceDetails/${slug}`,
+            url: `/api/mobile/product/details/${slug}`,
             reqTitle: REQUESTS_DATA.GET_PRODUCT_VRIANTES,
             method: "GET",
-            server: "market",
+            server: "local",
             signal: abortControllerRef.current?.signal,
           });
           // @ts-ignore
@@ -301,20 +301,23 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
         shared_count: product?.shared_count || 0,
         variation: newVariants,
         sync_color_images: !product.singleColor
-          ? product.sync_color_images || []
+          ? data1.data.sync_color_images || []
           : [
-              product?.sync_color_images?.find(
+              data1.data?.sync_color_images?.find(
                 (s) =>
-                  s?.color_name === product?.sync_color_images?.[0]?.color_name
+                  s?.color_name ===
+                  data1?.data?.sync_color_images?.[0]?.color_name
               ),
-              ...product?.sync_color_images?.filter(
+              ...data1?.data?.sync_color_images?.filter(
                 (s) =>
-                  s?.color_name !== product?.sync_color_images?.[0]?.color_name
+                  s?.color_name !==
+                  data1?.data?.sync_color_images?.[0]?.color_name
               ),
             ],
       };
 
       if (abortControllerRef.current?.signal.aborted) return;
+      console.log(tempProductData);
       setProductData(tempProductData);
       if (product?.singleColor) {
         // setSelectedColor(tempProductData?.sync_color_images[0]);

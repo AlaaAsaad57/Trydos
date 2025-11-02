@@ -44,6 +44,7 @@ function NotifyButton({ isNotified, notifyAction, loading }) {
             {!isNotified ? (
               <>
                 <svg
+                  data-cy="is-not-notified-svg"
                   xmlns="http://www.w3.org/2000/svg"
                   xmlnsXlink="http://www.w3.org/1999/xlink"
                   width="20"
@@ -141,6 +142,7 @@ function NotifyButton({ isNotified, notifyAction, loading }) {
             ) : (
               <>
                 <svg
+                  data-cy="is-notified-svg"
                   xmlns="http://www.w3.org/2000/svg"
                   xmlnsXlink="http://www.w3.org/1999/xlink"
                   width="20"

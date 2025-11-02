@@ -340,8 +340,10 @@ export const GetRecommendationCountForProduct = async ({ product_id }) => {
           filters: {
             recommend: {
               bool: {
-                should: [
-                  { term: { recommendation: true } },
+                must: [
+                  { term: { product_id: String(product_id) } },
+                  { exists: { field: "rating" } },
+                  { exists: { field: "order_details_id" } },
                   {
                     range: {
                       rating: {
@@ -350,12 +352,14 @@ export const GetRecommendationCountForProduct = async ({ product_id }) => {
                     },
                   },
                 ],
+                must_not: [{ term: { status: "deleted" } }],
               },
             },
             not_recommend: {
               bool: {
-                should: [
-                  { term: { recommendation: false } },
+                must: [
+                  { term: { product_id: String(product_id) } },
+                  { exists: { field: "rating" } },
                   {
                     range: {
                       rating: {
@@ -363,7 +367,9 @@ export const GetRecommendationCountForProduct = async ({ product_id }) => {
                       },
                     },
                   },
+                  { exists: { field: "order_details_id" } },
                 ],
+                must_not: [{ term: { status: "deleted" } }],
               },
             },
           },
