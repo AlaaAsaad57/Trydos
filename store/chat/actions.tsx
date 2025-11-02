@@ -20,7 +20,7 @@ export const GetLastSeen = async (chatId, friendID) => {
     let response = await fetchData({
       url: "/api/v1/channels/get_date_time",
       reqTitle: REQUESTS_DATA.GET_LAST_SEEN,
-      method: "GET",
+      method: "POST",
       server: "chat",
     });
     if (!response.success) {
@@ -62,7 +62,7 @@ export const setLastSeen = async (MyId) => {
     let response = await fetchData({
       url: "/api/v1/channels/get_date_time",
       reqTitle: REQUESTS_DATA.GET_LAST_SEEN,
-      method: "GET",
+      method: "POST",
       server: "chat",
     });
     if (!response.success) {
@@ -307,7 +307,7 @@ export async function getContacts() {
     let response = await fetchData({
       url: "/api/v1/users/my_contacts",
       reqTitle: REQUESTS_DATA.GET_CONTACTS,
-      method: "GET",
+      method: "POST",
       server: "chat",
     });
     // @ts-ignore

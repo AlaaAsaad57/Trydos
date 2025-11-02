@@ -198,14 +198,14 @@ export default function ApiTestPage() {
     },
     {
       name: "My Channels",
-      url: "/api/v2/channels/my_channels",
+      url: "/api/v1/channels/my_channels",
       method: "GET",
       server: "chat",
     },
     {
       name: "My Contacts",
       url: "/api/v1/users/my_contacts",
-      method: "GET",
+      method: "POST",
       server: "chat",
     },
     {
@@ -591,7 +591,7 @@ export default function ApiTestPage() {
     {
       name: "Channel Get Date Time",
       url: "/api/v1/channels/get_date_time",
-      method: "GET",
+      method: "POST",
       server: "chat",
     },
     {

@@ -13,14 +13,14 @@ export const HOME_DATA_CATEGORIES_URL = "/api/home/mainCategories";
 export const STARTER_SETTINGS = "/web/home/startingSettings";
 
 export const LOG_IN_CHAT = "/api/v1/users/login";
-export const GET_CHATS_URL = "/api/v2/channels/my_channels";
+export const GET_CHATS_URL = "/api/v1/channels/my_channels";
 export const GET_CONTATCS_URL = "/api/v1/users/my_contacts";
 export const SEND_MESSAGE_URL = "/api/v1/messages/send";
 export const SEARCH_USERS_URL =
   "/wallet-users-backend/public/api/v1/employees/search/";
 export const SEARCH_CONTACTS_URL = "/api/v1/users/search/";
 export const DELETE_CHAT_URL = "/api/v1/channels/destroy";
-export const SET_CHANNEL_OPT_UTL = "/api/v1/channel_members/update";
+export const SET_CHANNEL_OPT_UTL = "/api/v1/channels/update";
 //Listing
 export const LISTING_INFO_URL = "/api/products/searchInCatalog";
 export const EXPIRED_TIME = {
