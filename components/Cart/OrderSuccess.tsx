@@ -87,7 +87,10 @@ function OrderSuccess() {
       <span className="regular text-[12px] text-[#1d1d1d] mt-[11px]">
         {translateFunction("Your Order Number")}
       </span>
-      <span className="bold text-[20px] text-[#404040] mt-[6px]">
+      <span
+        className="bold text-[20px] text-[#404040] mt-[6px]"
+        data-cy="order-group-id"
+      >
         {/* @ts-ignore */}
         {orderData?.data[0]?.order_group_id}
       </span>

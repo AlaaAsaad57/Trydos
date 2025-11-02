@@ -457,7 +457,12 @@ const OrderItemId = ({ id }: OrderItemIdPropsType) => {
           </g>
         </g>
       </svg>
-      <span className=" text-[#1D1D1D] text-[12px] medium">{id}</span>
+      <span
+        className=" text-[#1D1D1D] text-[12px] medium"
+        data-cy="order-group-id"
+      >
+        {id}
+      </span>
     </div>
   );
 };
