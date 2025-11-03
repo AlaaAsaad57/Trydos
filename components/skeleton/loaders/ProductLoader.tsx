@@ -315,6 +315,9 @@ function ProductLoader({ product }) {
                 language={(params?.lang as string)?.split("-")?.[1]}
               />
               <ProductGeneralProperties
+                rating_stats={[]}
+                recommendation_stats={[]}
+                total_rating={0}
                 languageVariable={(params?.lang as string)?.split("-")?.[1]}
               />
             </div>

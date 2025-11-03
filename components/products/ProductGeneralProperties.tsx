@@ -22,18 +22,15 @@ function ProductGeneralProperties({
   const isRtl = languageVariable === "ar" || languageVariable === "ku";
   const TotalBuyers = useMemo(() => {
     let total = 0;
-    rating_stats.map((s) => (total += s.count));
+    rating_stats?.map((s) => (total += s.count));
     return total;
   }, []);
-  let recomended = recommendation_stats?.find(
-    (s) => s.category === "recommend"
-  )?.count;
-  let not_recomended = recommendation_stats?.find(
-    (s) => s.category === "not_recommend"
-  )?.count;
-  let recomendedPRC = recommendation_stats?.find(
-    (s) => s.category === "recommend"
-  )?.percentage;
+  let recomended =
+    recommendation_stats?.find((s) => s.category === "recommend")?.count ?? 0;
+  let not_recomended =
+    recommendation_stats?.find((s) => s.category === "not_recommend")?.count ??
+    0;
+
   return (
     <>
       <GeneralPropertiesModal
