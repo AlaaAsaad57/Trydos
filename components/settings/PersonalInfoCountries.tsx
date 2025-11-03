@@ -68,15 +68,6 @@ function PersonalInfoCountries({
   const changeCountry = async (country: any) => {
     setIsSettingCountry(true);
     const current = window.location.pathname;
-    const newPath = current.replace(
-      // @ts-ignore
-      `/${lang?.split("-")[0]}`,
-      `/${country.iso.toLowerCase()}`
-    );
-
-    if (current !== newPath) {
-      window.history.replaceState(null, "", newPath);
-    }
 
     await setLocalization(language, country.iso.toLowerCase());
 
@@ -96,6 +87,7 @@ function PersonalInfoCountries({
       }
       sessionStorage.setItem("starttingSetting", JSON.stringify(response.data));
       setSettings(response.data);
+      window.location.pathname = `/${country.iso.toLowerCase()}-${language}/setting`;
     } catch (error) {
       console.error("Failed to update starter settings:", error);
     }
