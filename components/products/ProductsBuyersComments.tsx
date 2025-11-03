@@ -183,7 +183,7 @@ export const RateCommentItem = ({ comment, language, width = 90 }) => {
           ),
         },
       });
-      console.log(comment_var);
+
       setLoading(false);
       setOpenModal("");
       setMenuOpen(false);

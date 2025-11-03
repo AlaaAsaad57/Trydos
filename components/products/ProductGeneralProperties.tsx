@@ -1,5 +1,5 @@
 "use client";
-import React, { Suspense } from "react";
+import React, { Suspense, useMemo } from "react";
 import RatingStars from "components/settings/cards/RatingStars";
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 import RecomendedIcon from "public/svg/Recomended.svg";
@@ -12,13 +12,38 @@ import EyeIcon from "public/svg/product/EyeIcon.svg";
 import { useAppStore } from "store";
 import GeneralPropertiesModal from "./GeneralPropertiesModal";
 
-function ProductGeneralProperties({ languageVariable }) {
+function ProductGeneralProperties({
+  languageVariable,
+  total_rating,
+  rating_stats,
+  recommendation_stats,
+}) {
   const { setColorBottomSheet } = useAppStore();
   const isRtl = languageVariable === "ar" || languageVariable === "ku";
-
+  const TotalBuyers = useMemo(() => {
+    let total = 0;
+    rating_stats.map((s) => (total += s.count));
+    return total;
+  }, []);
+  let recomended = recommendation_stats?.find(
+    (s) => s.category === "recommend"
+  )?.count;
+  let not_recomended = recommendation_stats?.find(
+    (s) => s.category === "not_recommend"
+  )?.count;
+  let recomendedPRC = recommendation_stats?.find(
+    (s) => s.category === "recommend"
+  )?.percentage;
   return (
     <>
-      <GeneralPropertiesModal />
+      <GeneralPropertiesModal
+        recommendation_stats={{
+          recomended_count: recomended,
+          not_recomended_count: not_recomended,
+        }}
+        rating_stats={rating_stats}
+        TotalBuyers={TotalBuyers}
+      />
       <HortiznalScrollBar
         onClick={() => {
           setColorBottomSheet({
@@ -30,9 +55,13 @@ function ProductGeneralProperties({ languageVariable }) {
           isRtl ? "flex-row-reverse pl-[90px]" : "flex-row pr-[90px]"
         }  product-properties items-center justify-start w-100 text-[#1d1d1d] text-[9px]`}
       >
-        <RatingStars color="#1d1d1d" initialRating={3.5} readOnly={true} />
+        <RatingStars
+          color="#1d1d1d"
+          initialRating={total_rating}
+          readOnly={true}
+        />
         <div className="flex-row items-center px-[4px]">
-          <span className="bold px-[4px]"> {365}</span>
+          <span className="bold px-[4px]"> {TotalBuyers}</span>
           {translateFunction("Buyer Rate", languageVariable)}
         </div>
         <span className="px-[5px] text-[10px] text-[#1d1d1d]">|</span>
@@ -61,7 +90,7 @@ function ProductGeneralProperties({ languageVariable }) {
           <RecomendedIcon />
           <span>
             {translateFunction("Recommend It By", languageVariable)}
-            <span className="m-0 px-[3px]">125</span>
+            <span className="m-0 px-[3px]">{recomended}</span>
             <span className="m-0">
               {translateFunction("Buyer", languageVariable)}
             </span>

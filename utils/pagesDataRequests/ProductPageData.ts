@@ -104,7 +104,8 @@ export const getProductDataFromElastic = async ({ productId, slug, lang }) => {
         total: FQAComments.total,
       },
       ratingDetails,
-      recommendation_stats: recommendationStats,
+      recommendation_stats: recommendationStats.stats,
+      total_rating: recommendationStats.total_rating,
     };
   } catch (error) {
     console.error(error);
@@ -234,13 +235,11 @@ export const getProductRatingDetails = async ({ p_id }) => {
     });
 
     const buckets = (result.aggregations?.rating_buckets as any)?.buckets ?? [];
-
-    return {
-      rating_details: buckets.map((b) => ({
-        ratingGroup: b.key,
-        count: b.doc_count,
-      })),
-    };
+    let rating_details = [1, 2, 3, 4, 5].map((i) => ({
+      ratingGroup: i,
+      count: buckets?.find((s) => String(s.key) === String(i))?.doc_count ?? 0,
+    }));
+    return rating_details;
   } catch (error) {
     console.error("Error fetching rating stats:", error);
     return { rating_details: [] };
@@ -386,7 +385,6 @@ export const GetRecommendationCountForProduct = async ({ product_id }) => {
   const avgRating = (result.aggregations.total_rating as any).value || 0;
   const stats = [
     {
-      total_rating: avgRating,
       category: "recommend",
       count: buckets.recommend.doc_count,
       percentage:
@@ -404,7 +402,7 @@ export const GetRecommendationCountForProduct = async ({ product_id }) => {
     },
   ];
 
-  return stats;
+  return { stats, total_rating: avgRating };
 };
 // comments with questions and replies
 export async function GetFQACommentsForProduct({
