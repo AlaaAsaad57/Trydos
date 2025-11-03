@@ -375,14 +375,18 @@ export const GetRecommendationCountForProduct = async ({ product_id }) => {
           },
         },
       },
+      total_rating: {
+        avg: { field: "rating" },
+      },
     },
   });
   // @ts-ignore
   const buckets = result.aggregations.recommendation_status.buckets;
   const total = buckets.recommend.doc_count + buckets.not_recommend.doc_count;
-
+  const avgRating = (result.aggregations.total_rating as any).value || 0;
   const stats = [
     {
+      total_rating: avgRating,
       category: "recommend",
       count: buckets.recommend.doc_count,
       percentage:

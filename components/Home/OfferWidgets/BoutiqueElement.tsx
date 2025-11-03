@@ -125,7 +125,7 @@ export const CategoriesSlider = ({ categories, boutique, lang }) => {
             )}
             layout="responsive"
             width={300}
-            className="rounded-[15px] w-[90px] h-[90px] object-cover object-center "
+            className="rounded-[15px] w-[90px] h-[90px] object-contain object-center "
             height={300}
           />
         </NextLink>
