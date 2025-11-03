@@ -174,6 +174,7 @@ function ProductLoader({ product }) {
     }
     return <></>;
   };
+  // @ts-ignore
   const params = useParams();
   const { currency, isNavigating } = useAppStore();
   const color = product?.active_color;
