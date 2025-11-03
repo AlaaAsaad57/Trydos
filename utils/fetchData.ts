@@ -63,6 +63,8 @@ const ignoredMessages = [
   "Unauthorized",
   "The user aborted a request.",
   "Fetch is aborted",
+  "UnAuthentication",
+  "Unknown error",
 ];
 
 // ---------- Helper Functions ----------
