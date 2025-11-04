@@ -534,12 +534,14 @@ function OrderButton({ close, toOrders }) {
                     language: languageVariable,
                   })}
                 </span>{" "}
-                {RoundPrice({
-                  num: getTotaPriceToShow(),
-                  returnNumber: true,
-                  points: 5,
-                  language: languageVariable,
-                })}{" "}
+                <span data-cy="offer-total-price">
+                  {RoundPrice({
+                    num: getTotaPriceToShow(),
+                    returnNumber: true,
+                    points: 5,
+                    language: languageVariable,
+                  })}
+                </span>{" "}
                 {currency?.symbol}
                 <span className="ml-2">
                   <MenuIcon className={expanded && "rotate-180"} />

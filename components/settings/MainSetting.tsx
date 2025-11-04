@@ -95,8 +95,8 @@ function MainSetting({ swipeToScreen }: MainSettingPropsType) {
 
     const handleBack = () => {
       setLoading(true);
-      if (hasHistory) {
-        router.back();
+      if (settingLastPath) {
+        window.location.href = settingLastPath;
       } else {
         window.location.href = `/${lang}`;
       }
