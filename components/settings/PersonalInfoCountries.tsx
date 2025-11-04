@@ -332,7 +332,7 @@ function PersonalInfoCountries({
                     </span>
 
                     <span className="text-[14px] regular text-[#1d1d1d] ml-[12px] ">
-                      {country.name}
+                      {translateFunction(country.name)}
                     </span>
                   </div>
                 );
@@ -366,7 +366,7 @@ function PersonalInfoCountries({
                   <div className="flex items-center">
                     <FlagIcon iso={selectedCountry?.iso} />
                     <span className="ml-2 text-sm ">
-                      {selectedCountry?.name}
+                      {translateFunction(selectedCountry?.name)}
                     </span>
                   </div>
                 </div>
@@ -378,7 +378,7 @@ function PersonalInfoCountries({
                   <div className="flex items-center">
                     <FlagIcon iso={pendingCountry?.iso} />
                     <span className="ml-2 text-sm ">
-                      {pendingCountry?.name}
+                      {translateFunction(pendingCountry?.name)}
                     </span>
                   </div>
                 </div>

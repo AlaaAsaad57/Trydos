@@ -167,6 +167,30 @@ export const FaqItem = ({
   isError = false,
 }) => {
   let has_reply = comment.has_reply;
+  const renderTextWithLinks = (text) => {
+    if (!text) return null;
+
+    const urlRegex = /(https?:\/\/[^\s]+)/g;
+
+    const parts = text.split(urlRegex);
+
+    return parts.map((part, index) => {
+      if (urlRegex.test(part)) {
+        return (
+          <a
+            key={index}
+            href={part}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-600 underline break-all"
+          >
+            {part}
+          </a>
+        );
+      }
+      return <React.Fragment key={index}>{part}</React.Fragment>;
+    });
+  };
   return (
     <div
       className={`flex-col ${
@@ -209,7 +233,7 @@ export const FaqItem = ({
             {formatTime(comment?.created_at)}
           </div>
           <div className="comment-text regular text-[#1d1d1d] text-[11px] mt-[0px]">
-            {comment?.comment}
+            {renderTextWithLinks(comment?.comment)}
           </div>
         </div>
         <div className="flex-row pl-[10px] pr-[3px] justify-between w-full items-center">
@@ -285,7 +309,7 @@ export const FaqItem = ({
                 {formatTime(comment?.reply_created_at)}
               </div>
               <div className="comment-text regular text-[#1d1d1d] text-[11px] mt-[0px]">
-                {comment?.seller_reply}
+                {renderTextWithLinks(comment?.seller_reply)}
               </div>
             </div>
             <div className="flex-row pl-[10px] pr-[3px] justify-between w-full items-center">
@@ -454,7 +478,7 @@ const AskInput = ({ language, setCommentsData }) => {
       {!loading && comment.length > 0 && (
         <span
           className={`absolute top-[0px] cursor-pointer z-50 flex items-center justify-center h-full w-[50px] ${
-            isRtl ? "left-[5px]" : "right-[5px]"
+            isRtl ? "left-[5px] rotate-180" : "right-[5px]"
           }`}
           onClick={() => {
             addComment();
@@ -483,7 +507,9 @@ const AskInput = ({ language, setCommentsData }) => {
             showErrorNotification(translateFunction("Please log in first"));
         }}
         readOnly={loading || user?.phone === "0" || !user}
-        className="outline-none w-full bg-transparent z-40 rounded-[15px] text-[#1d1d1d] placeholder:text-[#C4C2C2] placeholder:text-center px-[40px] flex items-center"
+        className={`${
+          isRtl ? "text-right" : "text-left"
+        } outline-none w-full bg-transparent z-40 rounded-[15px] text-[#1d1d1d] placeholder:text-[#C4C2C2] placeholder:text-center px-[40px] flex items-center`}
       />
     </div>
   );

@@ -343,13 +343,7 @@ export const GetRecommendationCountForProduct = async ({ product_id }) => {
                   { term: { product_id: String(product_id) } },
                   { exists: { field: "rating" } },
                   { exists: { field: "order_details_id" } },
-                  {
-                    range: {
-                      rating: {
-                        gte: 3,
-                      },
-                    },
-                  },
+                  { term: { recommendation: true } },
                 ],
                 must_not: [{ term: { status: "deleted" } }],
               },
@@ -359,13 +353,7 @@ export const GetRecommendationCountForProduct = async ({ product_id }) => {
                 must: [
                   { term: { product_id: String(product_id) } },
                   { exists: { field: "rating" } },
-                  {
-                    range: {
-                      rating: {
-                        lt: 3,
-                      },
-                    },
-                  },
+                  { term: { recommendation: false } },
                   { exists: { field: "order_details_id" } },
                 ],
                 must_not: [{ term: { status: "deleted" } }],

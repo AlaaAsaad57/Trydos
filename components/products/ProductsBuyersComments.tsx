@@ -231,7 +231,30 @@ export const RateCommentItem = ({ comment, language, width = 90 }) => {
     if (menuOpen) document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [menuOpen]);
+  const renderTextWithLinks = (text) => {
+    if (!text) return null;
 
+    const urlRegex = /(https?:\/\/[^\s]+)/g;
+
+    const parts = text.split(urlRegex);
+
+    return parts.map((part, index) => {
+      if (urlRegex.test(part)) {
+        return (
+          <a
+            key={index}
+            href={part}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-600 underline break-all"
+          >
+            {part}
+          </a>
+        );
+      }
+      return <React.Fragment key={index}>{part}</React.Fragment>;
+    });
+  };
   return (
     <div
       className={`comment-item rounded-[15px] flex-col justify-between min-w-[330px] max-w-[${width}%] w-full bg-[#F8F8F8] min-h-[111px] py-[8px] px-[10px]`}
@@ -332,7 +355,7 @@ export const RateCommentItem = ({ comment, language, width = 90 }) => {
           {formatTime(comment?.created_at)}
         </div>
         <div className="comment-text regular text-[#1d1d1d] text-[11px] mt-[0px]">
-          {comment?.comment}
+          {renderTextWithLinks(comment?.comment)}
         </div>
       </div>
       <BuyerCommentRateInfo

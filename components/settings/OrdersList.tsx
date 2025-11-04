@@ -300,7 +300,7 @@ function OrdersList({
           </div>
           <div
             ref={statusSliderRef}
-            className={`${
+            className={`${loading && "opacity-65"} ${
               isRtl ? "flex-row-reverse mr-[2px]" : "flex-row ml-[2px]"
             } flex-row flex-1  statues-container overflow-x-scroll overflow-y-hidden user-select-none whitespace-nowrap [&::-webkit-scrollbar]:hidden`}
           >
@@ -312,6 +312,7 @@ function OrdersList({
             ].map((status) => (
               <div
                 onClick={() => {
+                  if (loading) return;
                   if (status.value === selectedStatus) return;
                   if (status.value !== "all") setSelectedStatus(status.value);
                   else setSelectedStatus(null);

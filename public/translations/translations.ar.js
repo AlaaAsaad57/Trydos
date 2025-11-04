@@ -1086,6 +1086,7 @@ const translations = {
   "Purchase Payment": "دفع شراء",
   "Promo Credit": "رصيد ترويجي",
   "Order Payment": "دفع طلب",
+  "Submit Rating": "إرسال التقييم",
 };
 
 export default translations;

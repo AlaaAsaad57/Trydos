@@ -1128,6 +1128,7 @@ const translations = {
   "Purchase Payment": "پارەدانی کڕین",
   "Promo Credit": "باڵانسی هەڵسەنگاندن",
   "Order Payment": "پارەدانی داوا",
+  "Submit Rating": "هەڵسەنگاندن بنێرە",
 };
 
 export default translations;

@@ -228,6 +228,30 @@ const ReviewProgress = ({ value, title }) => {
 };
 
 const FaqItem = ({ language, comment, width }) => {
+  const renderTextWithLinks = (text) => {
+    if (!text) return null;
+
+    const urlRegex = /(https?:\/\/[^\s]+)/g;
+
+    const parts = text.split(urlRegex);
+
+    return parts.map((part, index) => {
+      if (urlRegex.test(part)) {
+        return (
+          <a
+            key={index}
+            href={part}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-600 underline break-all"
+          >
+            {part}
+          </a>
+        );
+      }
+      return <React.Fragment key={index}>{part}</React.Fragment>;
+    });
+  };
   let has_reply = comment.has_reply;
   return (
     <div className="flex-col min-w-[100%] max-w-[100%]">
@@ -260,13 +284,13 @@ const FaqItem = ({ language, comment, width }) => {
             </div>
           </div>
           <span className="medium text-[#1d1d1d] text-[9px] mt-[5px]">
-            Blue | Meduim
+            {comment?.variant}
           </span>
           <div className="comment-date text-[9px]" data-cy="Date-Of-Comment">
             {formatTime(comment?.created_at)}
           </div>
           <div className="comment-text regular text-[#1d1d1d] text-[11px] mt-[0px]">
-            {comment?.comment}
+            {renderTextWithLinks(comment?.comment)}
           </div>
         </div>
         <div className="flex-row pl-[10px] pr-[3px] justify-between w-full items-center">
@@ -342,7 +366,7 @@ const FaqItem = ({ language, comment, width }) => {
                 {formatTime(comment?.reply_created_at)}
               </div>
               <div className="comment-text regular text-[#1d1d1d] text-[11px] mt-[0px]">
-                {comment?.seller_reply}
+                {renderTextWithLinks(comment?.seller_reply)}
               </div>
             </div>
             <div className="flex-row pl-[10px] pr-[3px] justify-between w-full items-center">

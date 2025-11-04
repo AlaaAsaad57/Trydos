@@ -237,6 +237,7 @@ export async function getProductsAndFiltersFromElastic(
     let response;
 
     response = await client.search(searchQuery);
+    console.log(response.hits.hits.map((s) => [s._score, s._source.id]));
     const hits = response.hits.hits as ElasticsearchHit[];
     let total_size = response.hits?.total?.value;
     hits.forEach((hit: ElasticsearchHit) => {
@@ -276,12 +277,14 @@ export async function getProductsAndFiltersFromElastic(
         ?.buckets || [],
       filters_offset
     );
+
     // Process products
     const productsWithFilters = extractFilters(
       customProducts,
       language_code,
       is_from_browser
     );
+
     // Sort products by filtered colors if color filter is applied
     if (filters.colors?.length) {
       productsWithFilters.custom_products = sortSyncColorImagesByFilteredColor(
@@ -849,19 +852,19 @@ function extractFilters(
   languageCode: string,
   isFromBrowser: boolean
 ): ExtractFiltersResult {
-  const customProducts: Record<string, CustomProduct> = {};
+  const customProducts: CustomProduct[] = [];
 
   products.forEach((product) => {
-    // Process custom products
     if (product.custom_products && Array.isArray(product.custom_products)) {
       product.custom_products.forEach((customProduct: any) => {
         if (customProduct.language_code === languageCode) {
-          customProducts[customProduct.id] = processCustomProduct(
+          const processed = processCustomProduct(
             product,
             customProduct,
             languageCode,
             isFromBrowser
           );
+          customProducts.push(processed);
         }
       });
     }
@@ -871,7 +874,7 @@ function extractFilters(
   const prices = calculatePriceRange(products);
 
   return {
-    custom_products: Object.values(customProducts),
+    custom_products: customProducts,
     prices,
   };
 }

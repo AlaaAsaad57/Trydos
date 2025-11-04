@@ -1075,6 +1075,7 @@ const translations = {
   "Purchase Payment": "Satın Alma Ödemesi",
   "Promo Credit": "Promosyon Kredisi",
   "Order Payment": "Sipariş Ödemesi",
+  "Submit Rating": "Değerlendirmeyi Gönder",
 };
 
 export default translations;
