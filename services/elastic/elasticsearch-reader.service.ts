@@ -187,6 +187,7 @@ export class ElasticsearchReader {
       };
 
       const { must, must_not } = this.buildBaseConditions(input, country);
+      console.log(JSON.stringify(must));
       const customProducts: any[] = [];
 
       const customQuery = {
@@ -546,7 +547,7 @@ export class ElasticsearchReader {
               nested: {
                 path: "custom_categories",
                 query: {
-                  terms: { "custom_categories.slug.keyword": categorySlugs },
+                  term: { "custom_categories.slug.keyword": categorySlugs },
                 },
               },
             },

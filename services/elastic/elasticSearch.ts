@@ -237,7 +237,7 @@ export async function getProductsAndFiltersFromElastic(
     let response;
 
     response = await client.search(searchQuery);
-    console.log(response.hits.hits.map((s) => [s._score, s._source.id]));
+
     const hits = response.hits.hits as ElasticsearchHit[];
     let total_size = response.hits?.total?.value;
     hits.forEach((hit: ElasticsearchHit) => {
