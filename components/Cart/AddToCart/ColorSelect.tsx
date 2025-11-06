@@ -65,7 +65,10 @@ function ColorSelect({ colors, setSelectedColor, selectedColor }) {
                 />
               </div>
               {color?.color_option === selectedColor?.color_option && (
-                <span className="mt-[3px] semibold text-[7px] text-[#505050]">
+                <span
+                  className="mt-[3px] semibold text-[7px] text-[#505050]"
+                  data-cy="selected-color-name"
+                >
                   {color.color_name}
                 </span>
               )}
