@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import CommentItem from "./CommentItem";
 import Skeleton from "react-loading-skeleton";
 import profilePng from "public/images/profileNo.png";
@@ -18,6 +18,10 @@ function Comments({
   loading,
   shouldShowMore,
 }: CommentsPropsType) {
+  const { SelectedProduct } = useAppStore();
+  const seller_name = useMemo(() => {
+    return SelectedProduct?.seller?.f_name ?? "Admin";
+  }, []);
   return (
     <div className="content-extended comments-extended" data-cy="CommentArea">
       {loading ? (
@@ -41,6 +45,7 @@ function Comments({
           if (s && s?.comment)
             return (
               <CommentItem
+                seller_name={seller_name}
                 comment={s}
                 isPending={s?.id}
                 isFull={true}

@@ -493,6 +493,7 @@ export class ElasticsearchReader {
           name: cb.name || null,
           slug: cb.slug || null,
           description: cb.description || null,
+          position: boutique?.position ?? cb.position,
           icon: cb.icon || null,
           banners: cb.banners || null,
           mainCategoriesForProductIds:
