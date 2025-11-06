@@ -187,7 +187,6 @@ export class ElasticsearchReader {
       };
 
       const { must, must_not } = this.buildBaseConditions(input, country);
-      console.log(JSON.stringify(must));
       const customProducts: any[] = [];
 
       const customQuery = {
@@ -267,7 +266,6 @@ export class ElasticsearchReader {
         const source = bucket.boutique_data?.hits?.hits?.[0]?._source ?? null;
         if (source) customProducts.push(source);
       }
-
       const afterKey =
         // @ts-ignore
         response.aggregations?.boutiques_composite?.after_key ?? null;
@@ -493,7 +491,7 @@ export class ElasticsearchReader {
           name: cb.name || null,
           slug: cb.slug || null,
           description: cb.description || null,
-          position: boutique?.position ?? cb.position,
+          position: boutique?.boutique_position ?? cb.boutique_position,
           icon: cb.icon || null,
           banners: cb.banners || null,
           mainCategoriesForProductIds:
