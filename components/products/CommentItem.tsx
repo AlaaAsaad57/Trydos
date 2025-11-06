@@ -29,6 +29,7 @@ function CommentItem({
   isError,
   comment,
   isFull = false,
+  seller_name,
 }: CommentItemPropsType) {
   const { lang }: { lang: string } = useParams();
   let languageVariable = lang.split("-")[1];
@@ -306,6 +307,7 @@ function CommentItem({
         ) : (
           <FaqItem
             isError={isError}
+            seller_name={seller_name}
             isFull={true}
             comment={comment}
             language={languageVariable}

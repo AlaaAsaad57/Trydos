@@ -11,4 +11,5 @@ export interface CommentItemPropsType {
   custmerId: number;
   comment: any;
   isFull?: boolean;
+  seller_name: string;
 }

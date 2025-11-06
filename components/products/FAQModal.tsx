@@ -1,7 +1,7 @@
 import BottomSheet from "components/global/BottomSheet";
 import profilePng from "public/images/profileNo.png";
 
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import { useAppStore } from "store";
 import { translateFunction } from "utils/functions";
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
@@ -84,6 +84,9 @@ function FAQModal({ comments, total, offset: initialOffset }) {
     },
     [activeType, loading, comments, initialOffset, loadMore]
   );
+  const seller_name = useMemo(() => {
+    return SelectedProduct?.seller?.f_name ?? "Admin";
+  }, []);
   return (
     <>
       {ColorBottomSheet && ColorBottomSheet?.is_for_faq && (
@@ -165,7 +168,12 @@ function FAQModal({ comments, total, offset: initialOffset }) {
                     ))}
                 {!loading &&
                   commentsData.map((s) => (
-                    <FaqItem comment={s} language={language} width={100} />
+                    <FaqItem
+                      comment={s}
+                      language={language}
+                      width={100}
+                      seller_name={seller_name}
+                    />
                   ))}
                 {!loading && offset && (
                   <div
@@ -227,7 +235,7 @@ const ReviewProgress = ({ value, title }) => {
   );
 };
 
-const FaqItem = ({ language, comment, width }) => {
+const FaqItem = ({ language, comment, width, seller_name }) => {
   const renderTextWithLinks = (text) => {
     if (!text) return null;
 
@@ -351,7 +359,7 @@ const FaqItem = ({ language, comment, width }) => {
                     data-cy="Source-Of-Comment"
                   >
                     <span className="bold pr-[4px]">A</span>
-                    {convertTextToXFormat(comment?.seller_name)}
+                    {convertTextToXFormat(seller_name)}
                   </div>
                 </div>
               </div>

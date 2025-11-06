@@ -17,7 +17,7 @@ import { showErrorNotification } from "store/notifications/reducer";
 import { COOKIE_NAMES, getCookie } from "utils/cookies/cookie-manager";
 import CommentPost from "public/svg/CommentPost.svg";
 import CommentItem from "./CommentItem";
-function FAQSection({ lang, comments, product_id }) {
+function FAQSection({ lang, comments, product_id, seller_name }) {
   const [country, language] = lang.split("-");
   const { setColorBottomSheet, editInfo, SelectedProduct } = useAppStore();
   const isRtl = language === "ar" || language === "ku";
@@ -113,6 +113,7 @@ function FAQSection({ lang, comments, product_id }) {
               return (
                 <CommentItem
                   isPending={s?.id}
+                  seller_name={seller_name}
                   isFull={false}
                   isError={s?.isError}
                   key={i}
@@ -165,6 +166,7 @@ export const FaqItem = ({
   comment,
   isFull = false,
   isError = false,
+  seller_name,
 }) => {
   let has_reply = comment.has_reply;
   const renderTextWithLinks = (text) => {
@@ -285,7 +287,7 @@ export const FaqItem = ({
                     src={profilePng}
                     width={20}
                     height={20}
-                    alt={convertTextToXFormat(comment?.seller_name)}
+                    alt={convertTextToXFormat(seller_name)}
                   />
                 </div>
                 <div className="comment-content capitalize">
@@ -294,7 +296,7 @@ export const FaqItem = ({
                     data-cy="Source-Of-Comment"
                   >
                     <span className="bold pr-[4px]">A</span>
-                    {convertTextToXFormat(comment?.seller_name)}
+                    {convertTextToXFormat(seller_name)}
                   </div>
                 </div>
               </div>

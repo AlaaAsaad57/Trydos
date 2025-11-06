@@ -751,6 +751,7 @@ async function Page({ params, searchParams }) {
                 product_id={product.id}
                 comments={product?.fqa_questions}
                 lang={Params.lang}
+                seller_name={product?.seller?.f_name ?? "Admin"}
               />
 
               {product?.choice_options?.[0]?.options?.length > 0 && (
