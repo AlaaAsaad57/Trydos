@@ -215,6 +215,8 @@ const handleUnauthorized = async (server: ServerType): Promise<boolean> => {
         }
         deleteCookie(COOKIE_NAMES.CHAT_TOKEN);
         deleteCookie(COOKIE_NAMES.STORIES_TOKEN);
+        deleteCookie(COOKIE_NAMES.USER_CHAT);
+        deleteCookie(COOKIE_NAMES.USER_STORIES);
         setShouldAuthinticated(true);
 
         return new Promise((resolve) => {
