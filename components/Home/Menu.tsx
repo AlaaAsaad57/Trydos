@@ -102,7 +102,7 @@ const MenuItem = ({
 };
 
 const Menu = ({ user, setMenuOpen }) => {
-  const { setSettingLastPath, setActivePacks } = useAppStore();
+  const { setSettingLastPath, setLoggingOut } = useAppStore();
   const userChat = getCookie<UserData>(COOKIE_NAMES.USER_CHAT);
   const userStories = getCookie<UserData>(COOKIE_NAMES.USER_STORIES);
   const [showNotifications, setShowNotifications] = useState(false);
@@ -116,6 +116,7 @@ const Menu = ({ user, setMenuOpen }) => {
     // });
     // localStorage.clear();
     if (loading) return;
+    setLoggingOut(true);
     clearSimulatedUserSession();
     clearHashedUserId();
     setLoading(true);

@@ -70,7 +70,7 @@ function ConfirmMobilePhoneWidget() {
             setShouldAuthinticated(false);
           }}
           // @ts-ignore
-          hasMobile={userData.phone !== null && userData.phone !== 0}
+          hasMobile={userData?.phone !== null && userData?.phone !== 0}
           goToOrders={() => {
             // equal to success flag when goToOrders trigrred then it means the verification success
 

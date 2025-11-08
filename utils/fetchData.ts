@@ -18,6 +18,7 @@ import {
 } from "./cookies/cookie-manager";
 import { logRequest } from "./requestLoggerClient";
 import { ReportError } from "./errorReported";
+import { useAppStore } from "../store";
 
 // ---------- Types ----------
 export type ServerType =
@@ -271,7 +272,8 @@ export const fetchData = async <T = any>(
     noMessage,
     signal,
   } = params;
-
+  const { LoggingOut } = useAppStore();
+  if (LoggingOut) return;
   const cacheKey = generateCacheKey(params);
   let retryCount = 0;
   let status: number;
