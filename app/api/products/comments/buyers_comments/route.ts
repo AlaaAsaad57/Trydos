@@ -14,7 +14,7 @@ export async function GET(req: NextRequest) {
   if (req.method === "OPTIONS") {
     return new NextResponse(null, { status: 204, headers });
   }
-
+  const user_id = req.nextUrl.searchParams.get("user_id");
   const referer = req.headers.get("referer");
   const product_id = req.nextUrl.searchParams.get("product_id");
   const filter = req.nextUrl.searchParams.get("filter");
@@ -33,6 +33,7 @@ export async function GET(req: NextRequest) {
       product_id: product_id,
       searchAfter: offset,
       pageSize: 10,
+      user_id,
       filter,
     });
 

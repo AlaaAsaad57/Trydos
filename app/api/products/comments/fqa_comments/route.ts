@@ -30,11 +30,13 @@ export async function GET(req: NextRequest) {
         { status: 400 }
       );
     }
+    const user_id = req.nextUrl.searchParams.get("user_id");
     let data = await GetFQACommentsForProduct({
       product_id: product_id,
       searchAfter: offset,
       pageSize: 10,
       filter,
+      user_id: user_id,
     });
 
     return NextResponse.json(

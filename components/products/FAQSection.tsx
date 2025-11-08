@@ -17,6 +17,7 @@ import { showErrorNotification } from "store/notifications/reducer";
 import { COOKIE_NAMES, getCookie } from "utils/cookies/cookie-manager";
 import CommentPost from "public/svg/CommentPost.svg";
 import CommentItem from "./CommentItem";
+import home from "services/home";
 function FAQSection({ lang, comments, product_id, seller_name }) {
   const [country, language] = lang.split("-");
   const { setColorBottomSheet, editInfo, SelectedProduct } = useAppStore();
@@ -193,6 +194,13 @@ export const FaqItem = ({
       return <React.Fragment key={index}>{part}</React.Fragment>;
     });
   };
+  const ReactOnComment = async () => {
+    if (comment?.is_liked) {
+      await home.UnLikeComment({ comment_id: comment.id });
+    } else {
+      await home.LikeComment({ comment_id: comment.id });
+    }
+  };
   return (
     <div
       className={`flex-col ${
@@ -239,34 +247,7 @@ export const FaqItem = ({
           </div>
         </div>
         <div className="flex-row pl-[10px] pr-[3px] justify-between w-full items-center">
-          <div className="flex-row  gap-[4px] text-[#1d1d1d] text-[9px] regular">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              xmlnsXlink="http://www.w3.org/1999/xlink"
-              width="11"
-              height="11"
-              viewBox="0 0 11 11"
-            >
-              <g
-                id="Mask_Group_285"
-                data-name="Mask Group 285"
-                transform="translate(0 -0.251)"
-                clipPath="url(#clip-path)"
-              >
-                <g id="Love" transform="translate(0 0.718)">
-                  <path
-                    id="Path_21279"
-                    data-name="Path 21279"
-                    d="M11.68,4.522a3.179,3.179,0,0,0-2.489-2A2.975,2.975,0,0,0,6.453,3.7,2.974,2.974,0,0,0,3.712,2.528,3.175,3.175,0,0,0,1.227,4.522a3.209,3.209,0,0,0,.741,3.456l4.359,4.273a.182.182,0,0,0,.254,0l4.359-4.273a3.209,3.209,0,0,0,.741-3.456Zm-1,3.2L6.453,11.868,2.222,7.719a2.846,2.846,0,0,1-.657-3.066,2.807,2.807,0,0,1,2.2-1.766,2.5,2.5,0,0,1,.334-.023A2.756,2.756,0,0,1,6.308,4.106a.188.188,0,0,0,.292,0A2.687,2.687,0,0,1,9.143,2.885a2.812,2.812,0,0,1,2.2,1.768,2.846,2.846,0,0,1-.657,3.066Z"
-                    transform="translate(-1.007 -2.499)"
-                    fill="#1d1d1d"
-                  />
-                </g>
-              </g>
-            </svg>
-
-            <span>110k</span>
-          </div>
+          <LikeButton comment={comment} />
         </div>
       </div>
       {has_reply && (
@@ -516,3 +497,96 @@ const AskInput = ({ language, setCommentsData }) => {
     </div>
   );
 };
+
+export function LikeButton({ comment }) {
+  const [isLiked, setIsLiked] = useState(comment?.is_liked || false);
+  const [likes, setLikes] = useState(comment?.total_likes || 0);
+  const [animating, setAnimating] = useState(false);
+  const { setLoginOpen } = useAppStore();
+  const ReactOnComment = async () => {
+    let user_cookies = getCookie(COOKIE_NAMES.USER_ID_HASH);
+    if (!user_cookies) {
+      setLoginOpen(true);
+      showErrorNotification(translateFunction("Please Login First"));
+      return;
+    }
+    if (animating) return;
+    setAnimating(true);
+    setIsLiked(!isLiked);
+    setLikes((prev) => (isLiked ? prev - 1 : prev + 1));
+
+    try {
+      if (isLiked) {
+        await home.UnLikeComment({ comment_id: comment.id });
+      } else {
+        await home.LikeComment({ comment_id: comment.id });
+      }
+    } finally {
+      // small delay to allow the animation to finish
+      setTimeout(() => setAnimating(false), 400);
+    }
+  };
+
+  return (
+    <div
+      className="flex items-center gap-[4px] text-[#1d1d1d] text-[9px] regular cursor-pointer select-none"
+      onClick={ReactOnComment}
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="11"
+        height="11"
+        viewBox="0 0 11 11"
+        className={`heart ${isLiked ? "liked" : ""} ${
+          animating ? "pop" : ""
+        } scale-[1.2]`}
+      >
+        <defs>
+          <linearGradient
+            id="heartGradient"
+            x1="0%"
+            y1="0%"
+            x2="100%"
+            y2="100%"
+          >
+            <stop offset="0%" stopColor="#FF6B6B" />
+            <stop offset="100%" stopColor="#FF1E56" />
+          </linearGradient>
+        </defs>
+        <path
+          d="M5.5 9.79L4.85 9.24C2.43 7.13 1 5.66 1 3.94
+       1 2.51 2.02 1.46 3.45 1.46
+       c0.8 0 1.57.37 2.05.95
+       0.48-.58 1.25-.95 2.05-.95
+       1.43 0 2.45 1.05 2.45 2.48
+       0 1.72-1.43 3.19-3.85 5.3L5.5 9.79z"
+          strokeWidth={"0.5"}
+          stroke={isLiked ? "transparent" : "#1d1d1d"}
+        />
+      </svg>
+      <span>{likes.toLocaleString()}</span>
+
+      <style jsx>{`
+        .heart {
+          fill: transparent;
+          transition: fill 0.3s ease, transform 0.3s ease;
+        }
+        .heart.liked {
+          fill: url(#heartGradient);
+        }
+        .heart.pop {
+          transform: scale(1.3);
+        }
+        .heart:not(.pop) {
+          transform: scale(1);
+        }
+
+        /* Define gradient inside the same component */
+        .heart defs,
+        .heart linearGradient {
+          pointer-events: none;
+        }
+      `}</style>
+    </div>
+  );
+}

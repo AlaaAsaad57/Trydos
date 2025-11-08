@@ -740,6 +740,24 @@ class HomeService {
       }
     } catch (error) {}
   }
+  async LikeComment({ comment_id }) {
+    let resp = await fetchData({
+      url: "/public_comment/likes/like",
+      server: "comments",
+      method: "POST",
+      body: JSON.stringify({ comment_id }),
+      reqTitle: REQUESTS_DATA.LIKE_FOR_COMMENT,
+    });
+  }
+  async UnLikeComment({ comment_id }) {
+    let resp = await fetchData({
+      url: "/public_comment/likes/unlike",
+      server: "comments",
+      method: "DELETE",
+      body: JSON.stringify({ comment_id }),
+      reqTitle: REQUESTS_DATA.LIKE_FOR_COMMENT,
+    });
+  }
 }
 
 export default new HomeService();

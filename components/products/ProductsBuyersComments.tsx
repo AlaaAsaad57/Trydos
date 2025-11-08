@@ -19,6 +19,7 @@ import ThreePointsIcon from "public/svg/threepoints.svg";
 import DeleteCommentIcon from "public/svg/DeleteCommentIcon.svg";
 import PenIcon from "public/svg/PenIcon.svg";
 import { COOKIE_NAMES, getCookie } from "utils/cookies/cookie-manager";
+import { LikeButton } from "./FAQSection";
 function ProductsBuyersComments({
   lang,
   comments,
@@ -360,6 +361,7 @@ export const RateCommentItem = ({ comment, language, width = 90 }) => {
       </div>
       <BuyerCommentRateInfo
         language={language}
+        comment={comment}
         rating={comment.star_rating}
         recommendation={comment?.recommendation}
         key={comment.star_rating}
@@ -368,37 +370,15 @@ export const RateCommentItem = ({ comment, language, width = 90 }) => {
   );
 };
 
-const BuyerCommentRateInfo = ({ language, rating, recommendation }) => {
+const BuyerCommentRateInfo = ({
+  language,
+  rating,
+  recommendation,
+  comment,
+}) => {
   return (
     <div className="flex-row pl-[10px] pr-[3px] justify-between w-full items-center">
-      <div className="flex-row  gap-[4px] text-[#1d1d1d] text-[9px] regular">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          xmlnsXlink="http://www.w3.org/1999/xlink"
-          width="11"
-          height="11"
-          viewBox="0 0 11 11"
-        >
-          <g
-            id="Mask_Group_285"
-            data-name="Mask Group 285"
-            transform="translate(0 -0.251)"
-            clipPath="url(#clip-path)"
-          >
-            <g id="Love" transform="translate(0 0.718)">
-              <path
-                id="Path_21279"
-                data-name="Path 21279"
-                d="M11.68,4.522a3.179,3.179,0,0,0-2.489-2A2.975,2.975,0,0,0,6.453,3.7,2.974,2.974,0,0,0,3.712,2.528,3.175,3.175,0,0,0,1.227,4.522a3.209,3.209,0,0,0,.741,3.456l4.359,4.273a.182.182,0,0,0,.254,0l4.359-4.273a3.209,3.209,0,0,0,.741-3.456Zm-1,3.2L6.453,11.868,2.222,7.719a2.846,2.846,0,0,1-.657-3.066,2.807,2.807,0,0,1,2.2-1.766,2.5,2.5,0,0,1,.334-.023A2.756,2.756,0,0,1,6.308,4.106a.188.188,0,0,0,.292,0A2.687,2.687,0,0,1,9.143,2.885a2.812,2.812,0,0,1,2.2,1.768,2.846,2.846,0,0,1-.657,3.066Z"
-                transform="translate(-1.007 -2.499)"
-                fill="#1d1d1d"
-              />
-            </g>
-          </g>
-        </svg>
-
-        <span>110k</span>
-      </div>
+      <LikeButton comment={comment} />
       <div className="flex-row gap-[4px] text-[9px] text-[#1d1d1d]">
         <RatingStars color="#1d1d1d" initialRating={rating} readOnly={true} />
         <div className="flex-row gap-[6px]">

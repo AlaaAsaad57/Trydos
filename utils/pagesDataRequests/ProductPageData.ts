@@ -1,6 +1,8 @@
+import { cookies } from "next/headers";
 import { fetchProductDetails } from "serverRequests";
 import { fetchServerData } from "serverRequests/ServerFetch";
 import { elasticSearchClient } from "services/elastic/elasticsearch.config";
+import { COOKIE_NAMES } from "utils/cookies/cookie-manager";
 import { LogServerError } from "utils/serverErrorReporter";
 let client = elasticSearchClient;
 export const GetProductData = async (params: {
@@ -67,6 +69,10 @@ export const GetSocialDataForProduct = async ({ productId, slug, lang }) => {
 };
 
 export const getProductDataFromElastic = async ({ productId, slug, lang }) => {
+  const cookiesStore = await cookies();
+  let user_data = cookiesStore.get(COOKIE_NAMES.USER_DATA)?.value;
+  let user_id =
+    typeof user_data === "string" ? JSON.parse(user_data)?.id : null;
   try {
     let [
       sharesRes,
@@ -78,11 +84,13 @@ export const getProductDataFromElastic = async ({ productId, slug, lang }) => {
       getProductSharedCountFromElasticsearch(productId, slug, lang),
       GetRatingCommentsForProduct({
         product_id: productId,
+        user_id,
       }),
       GetFQACommentsForProduct({
         product_id: productId,
         pageSize: 10,
         searchAfter: null,
+        user_id: user_id,
       }),
       GetRecommendationCountForProduct({ product_id: productId }),
       getProductRatingDetails({ p_id: productId }),
@@ -250,6 +258,7 @@ export async function GetRatingCommentsForProduct({
   pageSize = 10,
   searchAfter = null,
   filter = null,
+  user_id = null,
 }) {
   let query: any = {
     index: "comments",
@@ -291,14 +300,17 @@ export async function GetRatingCommentsForProduct({
   }
   const response = await client.search(query);
 
-  const results = response.hits.hits.map((hit) => ({
+  let results = response.hits.hits.map((hit) => ({
     id: hit._id,
     ...((hit?._source as {}) ?? {}),
   }));
 
   const nextSearchAfter =
     results.length > 0 ? response.hits.hits[results.length - 1].sort : null;
-
+  results = await GetFQACommentsForProductWithReactions({
+    user_id: user_id,
+    commentsResult: results,
+  });
   return {
     buyers_comments: results?.map((s: any) => ({
       id: s.id,
@@ -314,6 +326,8 @@ export async function GetRatingCommentsForProduct({
       star_rating: s.rating,
       order_details_id: s.order_details_id,
       recommendation: s?.recommendation,
+      total_likes: s?.total_likes,
+      is_liked: s?.is_liked,
     })),
     total: (response.hits.total as any)?.value,
     searchAfter: nextSearchAfter,
@@ -398,6 +412,7 @@ export async function GetFQACommentsForProduct({
   pageSize = 10,
   searchAfter = null,
   filter = null,
+  user_id = null,
 }) {
   let query: any = {
     index: "comments",
@@ -435,14 +450,17 @@ export async function GetFQACommentsForProduct({
   }
 
   let response = await client.search(query);
-  const results = response.hits.hits.map((hit) => ({
+  let results = response.hits.hits.map((hit) => ({
     id: hit._id,
     ...((hit?._source as {}) ?? {}),
   }));
 
   const nextSearchAfter =
     results.length > 0 ? response.hits.hits[results.length - 1].sort : null;
-
+  results = await GetFQACommentsForProductWithReactions({
+    user_id: user_id,
+    commentsResult: results,
+  });
   return {
     fqa_comments: results?.map((s: any) => ({
       id: s.id,
@@ -458,9 +476,76 @@ export async function GetFQACommentsForProduct({
       seller_reply: s.seller_reply,
       seller_name: s.seller_name,
       reply_created_at: s.reply_created_at,
+      total_likes: s?.total_likes,
+      is_liked: s?.is_liked,
     })),
     total: (response.hits.total as any)?.value,
 
     searchAfter: nextSearchAfter,
   };
+}
+
+export async function GetFQACommentsForProductWithReactions({
+  user_id, // new param
+  commentsResult,
+}) {
+  let commentIds = commentsResult.map((s) => s.id);
+  let reactionsQuery: any = {
+    index: "comments_reactions",
+    size: 0,
+    query: {
+      bool: {
+        must: [
+          { terms: { comment_id: commentIds } },
+          { term: { status: "active" } },
+        ],
+      },
+    },
+    aggs: {
+      likes_by_comment: {
+        terms: { field: "comment_id", size: commentIds.length },
+        aggs: {
+          total_likes: { value_count: { field: "interaction_id" } },
+          user_like: {
+            filter: { term: { user_id } },
+          },
+        },
+      },
+    },
+  };
+  if (user_id) {
+    reactionsQuery.aggs.likes_by_comment.aggs = {
+      total_likes: { value_count: { field: "interaction_id" } },
+      user_like: {
+        filter: { term: { user_id } },
+      },
+    };
+  } else {
+    reactionsQuery.aggs.likes_by_comment.aggs = {
+      total_likes: { value_count: { field: "interaction_id" } },
+    };
+  }
+  const reactionsRes = await client.search(reactionsQuery);
+
+  // Step 3: Map aggregation results into a lookup
+  const likesMap: Record<string, { total_likes: number; is_liked: boolean }> =
+    {};
+
+  (reactionsRes.aggregations.likes_by_comment as any).buckets.forEach(
+    (bucket) => {
+      likesMap[bucket.key] = {
+        total_likes: bucket.total_likes.value,
+        is_liked: bucket?.user_like?.doc_count > 0 || false,
+      };
+    }
+  );
+
+  // Step 4: Merge back into comments
+  const enrichedComments = commentsResult.map((comment) => ({
+    ...comment,
+    total_likes: likesMap[comment.id]?.total_likes || 0,
+    is_liked: likesMap[comment.id]?.is_liked || false,
+  }));
+
+  return enrichedComments;
 }
