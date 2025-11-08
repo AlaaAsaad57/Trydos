@@ -60,17 +60,18 @@ function ChatContactsUpload() {
         name: contact.name[0],
         mobile_phone: contact.tel[0] || [],
       }));
-      let map = new Map();
-      [...ContactsData, ...formattedContacts].map((contact) => {
-        map.set(contact.mobile_phone, contact.name);
-      });
+
+      // Deduplicate contacts by mobile_phone before uploading
+      const allContacts = [...ContactsData, ...formattedContacts];
+      const uniqueContacts = deduplicateContacts(allContacts);
+
       // Upload contacts with progress tracking
       let res = await fetchData({
         url: "/api/v1/users/save_contacts",
         server: "chat",
         method: "POST",
         body: JSON.stringify({
-          contacts: [...ContactsData, ...formattedContacts],
+          contacts: uniqueContacts,
         }),
         reqTitle: REQUESTS_DATA.SAVE_CONTACTS,
       });
@@ -123,13 +124,17 @@ function ChatContactsUpload() {
         },
       ];
 
+      // Deduplicate contacts by mobile_phone before uploading
+      const allContacts = [...ContactsData, ...formattedContact];
+      const uniqueContacts = deduplicateContacts(allContacts);
+
       // Upload contact with progress tracking
       let res = await fetchData({
         url: "/api/v1/users/save_contacts",
         server: "chat",
         method: "POST",
         body: JSON.stringify({
-          contacts: [...ContactsData, ...formattedContact],
+          contacts: uniqueContacts,
         }),
         reqTitle: REQUESTS_DATA.SAVE_CONTACTS,
       });
@@ -192,6 +197,25 @@ function ChatContactsUpload() {
     }
 
     return normalized;
+  };
+
+  // Helper function to deduplicate contacts by mobile_phone
+  const deduplicateContacts = (
+    contacts: Array<{ name: string; mobile_phone: string }>
+  ): Array<{ name: string; mobile_phone: string }> => {
+    const seenPhones = new Map<
+      string,
+      { name: string; mobile_phone: string }
+    >();
+
+    contacts.forEach((contact) => {
+      const normalizedPhone = normalizePhoneNumber(contact.mobile_phone);
+      if (!seenPhones.has(normalizedPhone)) {
+        seenPhones.set(normalizedPhone, contact);
+      }
+    });
+
+    return Array.from(seenPhones.values());
   };
 
   return (
