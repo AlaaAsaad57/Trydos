@@ -1076,6 +1076,7 @@ const translations = {
   "Promo Credit": "Promosyon Kredisi",
   "Order Payment": "Sipariş Ödemesi",
   "Submit Rating": "Değerlendirmeyi Gönder",
+  "Do you want to delete this message?": "Bu mesajı silmek istiyor musunuz?",
 };
 
 export default translations;

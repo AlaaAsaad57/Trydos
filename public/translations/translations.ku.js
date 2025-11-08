@@ -1129,6 +1129,7 @@ const translations = {
   "Promo Credit": "باڵانسی هەڵسەنگاندن",
   "Order Payment": "پارەدانی داوا",
   "Submit Rating": "هەڵسەنگاندن بنێرە",
+  "Do you want to delete this message?": "دەتەوێت ئەم نامەیە بسڕیتەوە؟",
 };
 
 export default translations;

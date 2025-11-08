@@ -21,56 +21,62 @@ function OptionsMenu(props) {
   const messageType = props.message?.message_type?.name;
   const isSender =
     parseInt(props.message.sender_user_id) === parseInt(getUserChat()?.id);
-  return (
-    <div className="abs-menu">
-      {DeleteModal ? (
-        <>
-          <div className="message-ops">
-            <div
-              className="message-opt"
-              style={{ width: "90px", height: "35px" }}
+  const handleBackdropClick = (e) => {
+    if (e.target === e.currentTarget) {
+      setDelete(false);
+    }
+  };
+  if (DeleteModal)
+    return (
+      <div
+        className="fixed inset-0 z-[999999999] flex items-center justify-center bg-black bg-opacity-50"
+        onClick={handleBackdropClick}
+      >
+        <div
+          className="bg-white rounded-lg shadow-lg p-6 w-[90vw] max-w-[400px]"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <h2 className="text-lg font-semibold mb-4 text-gray-900 text-center">
+            {translateFunction("Do you want to delete this message?")}
+          </h2>
+          <div className="flex flex-col gap-3">
+            <button
+              className="bg-white border border-gray-200 rounded-lg px-4 py-3 shadow-sm hover:shadow-md transition-shadow text-gray-900 font-medium"
               onClick={() => props.deleteMessage(false)}
+              tabIndex={0}
+              aria-label={translateFunction("For Me")}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  props.deleteMessage(false);
+                }
+              }}
             >
               {translateFunction("For Me")}
-            </div>
-            <span
-              style={{
-                minHeight: "30px",
-                borderRight: "1px solid #5d5d5da2",
-                marginLeft: "5px",
-              }}
-            />
+            </button>
             {isSender && (
-              <>
-                <div
-                  className="message-opt"
-                  data-cy="DELETE-OPTION"
-                  style={{ width: "90px", height: "35px" }}
-                  onClick={() => props.deleteMessage(true)}
-                >
-                  {translateFunction("For All")}
-                </div>
-                <span
-                  style={{
-                    minHeight: "30px",
-                    borderRight: "1px solid #5d5d5da2",
-                    marginLeft: "3px",
-                  }}
-                />
-              </>
+              <button
+                className="bg-white border border-gray-200 rounded-lg px-4 py-3 shadow-sm hover:shadow-md transition-shadow text-gray-900 font-medium"
+                data-cy="DELETE-OPTION"
+                onClick={() => props.deleteMessage(true)}
+                tabIndex={0}
+                aria-label={translateFunction("For All")}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    props.deleteMessage(true);
+                  }
+                }}
+              >
+                {translateFunction("For All")}
+              </button>
             )}
-            <div
-              className="message-opt"
-              style={{ width: "90px", height: "35px", marginLeft: "3px" }}
-              onClick={() => setDelete(false)}
-            >
-              {translateFunction("Cancel")}
-            </div>
           </div>
-        </>
-      ) : (
+        </div>
+      </div>
+    );
+  return (
+    <div className="abs-menu">
+      {
         <>
-          {" "}
           <div className="reply-but" onClick={() => props.click()}>
             <ReplyIcon></ReplyIcon>
             <div className="rep-descs" style={{ bottom: "-34px" }}>
@@ -92,7 +98,9 @@ function OptionsMenu(props) {
                 tabIndex={0}
                 aria-label="Copy message text"
                 onClick={() => props.copy()}
-                onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') props.copy(); }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") props.copy();
+                }}
               >
                 <CopyIcon></CopyIcon>
                 <div className="rep-descs">{translate("Copy", language)}</div>
@@ -124,7 +132,7 @@ function OptionsMenu(props) {
             </div>
           </div>
         </>
-      )}
+      }
     </div>
   );
 }

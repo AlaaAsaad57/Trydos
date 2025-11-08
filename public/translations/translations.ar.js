@@ -1087,6 +1087,7 @@ const translations = {
   "Promo Credit": "رصيد ترويجي",
   "Order Payment": "دفع طلب",
   "Submit Rating": "إرسال التقييم",
+  "Do you want to delete this message?": "هل تريد حذف هذه الرسالة؟",
 };
 
 export default translations;
