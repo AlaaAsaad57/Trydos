@@ -307,10 +307,11 @@ export async function GetRatingCommentsForProduct({
 
   const nextSearchAfter =
     results.length > 0 ? response.hits.hits[results.length - 1].sort : null;
-  results = await GetFQACommentsForProductWithReactions({
-    user_id: user_id,
-    commentsResult: results,
-  });
+  if (results?.length > 0)
+    results = await GetFQACommentsForProductWithReactions({
+      user_id: user_id,
+      commentsResult: results,
+    });
   return {
     buyers_comments: results?.map((s: any) => ({
       id: s.id,
@@ -457,10 +458,11 @@ export async function GetFQACommentsForProduct({
 
   const nextSearchAfter =
     results.length > 0 ? response.hits.hits[results.length - 1].sort : null;
-  results = await GetFQACommentsForProductWithReactions({
-    user_id: user_id,
-    commentsResult: results,
-  });
+  if (results?.length > 0)
+    results = await GetFQACommentsForProductWithReactions({
+      user_id: user_id,
+      commentsResult: results,
+    });
   return {
     fqa_comments: results?.map((s: any) => ({
       id: s.id,
