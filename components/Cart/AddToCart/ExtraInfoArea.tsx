@@ -198,7 +198,7 @@ function ExtraInfoArea({
             <span className="bold">
               {RoundPrice({
                 num: redeem_price,
-                rate: currency.exchange_rate,
+                rate: currency?.exchange_rate,
                 language: language,
               })}
             </span>

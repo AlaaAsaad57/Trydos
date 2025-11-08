@@ -175,7 +175,7 @@ async function Page({ params, searchParams }) {
           process.env.NEXT_PUBLIC_REMOTE_FRONT +
           `/${Params.lang}/product/${Params.productId}`,
         priceCurrency: generateCodeCurrency(currency?.code),
-        price: product.offer_price * currency.exchange_rate,
+        price: product.offer_price * currency?.exchange_rate,
         priceValidUntil: "2025-12-31",
         availability: "https://schema.org/InStock",
         itemCondition: "https://schema.org/NewCondition",

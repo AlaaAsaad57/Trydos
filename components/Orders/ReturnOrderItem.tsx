@@ -109,7 +109,7 @@ function ReturnOrderItem({
                 (selectedOptions?.is_cost_by_system === 0
                   ? selectedOptions.cost
                   : 0),
-              rate: currency.exchange_rate,
+              rate: currency?.exchange_rate,
               language: language,
             })}
           </span>
@@ -198,7 +198,7 @@ function ReturnOrderItem({
                     (
                     {RoundPrice({
                       num: option.cost,
-                      rate: currency.exchange_rate,
+                      rate: currency?.exchange_rate,
                       language: language,
                     })}{" "}
                     {currency.symbol})
