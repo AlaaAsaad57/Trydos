@@ -39,7 +39,7 @@ function OptionsMenu(props) {
           <h2 className="text-lg font-semibold mb-4 text-gray-900 text-center">
             {translateFunction("Do you want to delete this message?")}
           </h2>
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-row justify-between">
             <button
               className="bg-white border border-gray-200 rounded-lg px-4 py-3 shadow-sm hover:shadow-md transition-shadow text-gray-900 font-medium"
               onClick={() => props.deleteMessage(false)}

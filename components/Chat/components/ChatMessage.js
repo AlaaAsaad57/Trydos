@@ -396,20 +396,7 @@ function ChatMessage(props) {
               />
             )}
 
-            <NextLink
-              data={{
-                is_product: true,
-                slug: JSON.parse(props.message.message_content.content)[0]
-                  .product_slug,
-                href: `/products/${
-                  JSON.parse(props.message.message_content.content)[0]
-                    .product_slug
-                }`,
-              }}
-              href={`/products/${
-                JSON.parse(props.message.message_content.content)[0]
-                  .product_slug
-              }`}
+            <div
               onClick={() => setOpen(true)}
               ref={refmessage}
               className={
@@ -425,12 +412,12 @@ function ChatMessage(props) {
                   <ForwardIcon></ForwardIcon>
                 </div>
               )}
-              <div className="border-element">
+              {/* <div className="border-element">
                 {refmessage.current &&
                   showBord(props.type, refmessage.current.clientHeight).map(
                     (ad, i) => <div className="border-child" key={i}></div>
                   )}
-              </div>
+              </div> */}
               {props.type === "first-chat" && <div className="bordse"></div>}
 
               {(props.type === "first-chat" || props.type === "lonely") && (
@@ -469,6 +456,27 @@ function ChatMessage(props) {
                   />
                 </div>
               )}
+              <div className="flex justify-center z-[9999999999] absolute bottom-[20px] left-0 right-0 mx-auto my-0">
+                <NextLink
+                  className="py-2  px-4 text-center flex justify-center light text-[12px] text-[#1d1d1d] bg-slate-50 rounded-md"
+                  data={{
+                    is_product: true,
+                    slug: JSON.parse(props.message.message_content.content)[0]
+                      .product_slug,
+                    href: `/products/${
+                      JSON.parse(props.message.message_content.content)[0]
+                        .product_slug
+                    }`,
+                  }}
+                  href={`/products/${
+                    JSON.parse(props.message.message_content.content)[0]
+                      .product_slug
+                  }`}
+                  prefetch
+                >
+                  {translateFunction("View Product")}
+                </NextLink>
+              </div>
               <img
                 alt="user"
                 onClick={() =>
@@ -503,7 +511,7 @@ function ChatMessage(props) {
               </span>
 
               <div className="message-date">{getMessageStatus()}</div>
-            </NextLink>
+            </div>
             <div className="message-date hovers">
               {
                 <div className="sent-date">
@@ -1464,27 +1472,13 @@ function ChatMessage(props) {
               />
             )}
 
-            <NextLink
-              data={{
-                is_product: true,
-                slug: JSON.parse(props.message.message_content.content)[0]
-                  .product_slug,
-                href: `/products/${
-                  JSON.parse(props.message.message_content.content)[0]
-                    .product_slug
-                }`,
-              }}
-              href={`/products/${
-                JSON.parse(props.message.message_content.content)[0]
-                  .product_slug
-              }`}
+            <div
               onClick={() => setOpen(true)}
               ref={refmessage}
               className={
                 "message-element-body flex-col message-body message-img-body product-share-message " +
                 props.type
               }
-              prefetch
             >
               {(props.message.is_forward === true ||
                 props.message.is_forward === 1) && (
@@ -1492,12 +1486,12 @@ function ChatMessage(props) {
                   <ForwardIcon></ForwardIcon>
                 </div>
               )}
-              <div className="border-element">
+              {/* <div className="border-element">
                 {refmessage.current &&
                   showBord(props.type, refmessage.current.clientHeight).map(
                     (ad, i) => <div className="border-child" key={i}></div>
                   )}
-              </div>
+              </div> */}
               {props.type === "first-chat" && <div className="bordse"></div>}
 
               {(props.type === "first-chat" || props.type === "lonely") && (
@@ -1536,6 +1530,27 @@ function ChatMessage(props) {
                   />
                 </div>
               )}
+              <div className="flex justify-center z-[9999999999] absolute bottom-[20px] left-0 right-0 mx-auto my-0">
+                <NextLink
+                  className="py-2 px-4 text-center flex justify-center light text-[12px] text-[#1d1d1d] bg-slate-50 rounded-md"
+                  data={{
+                    is_product: true,
+                    slug: JSON.parse(props.message.message_content.content)[0]
+                      .product_slug,
+                    href: `/products/${
+                      JSON.parse(props.message.message_content.content)[0]
+                        .product_slug
+                    }`,
+                  }}
+                  href={`/products/${
+                    JSON.parse(props.message.message_content.content)[0]
+                      .product_slug
+                  }`}
+                  prefetch
+                >
+                  {translateFunction("View Product")}
+                </NextLink>
+              </div>
               <img
                 alt="user"
                 onClick={() =>
@@ -1571,7 +1586,7 @@ function ChatMessage(props) {
               <div className="other-date">
                 {getMessageTime(props.message.created_at, true)}
               </div>
-            </NextLink>
+            </div>
             <OptionsMenu
               message={props?.message}
               DeleteModal={DeleteModal}

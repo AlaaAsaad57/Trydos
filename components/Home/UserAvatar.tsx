@@ -34,12 +34,7 @@ function UserAvatar({ avatar, onClick, showIndicator }: UserAvatarProps) {
               alt="user-img"
               width={30}
               height={30}
-              src={getConfiguredImage({
-                src: GetImageUrl(avatar),
-                width: 30,
-                height: 30,
-                q: 80,
-              })}
+              src={GetImageUrl(avatar)}
               quality={100}
               className="avatar-user-image object-cover object-center"
             />
