@@ -480,6 +480,8 @@ export async function GetFQACommentsForProduct({
       reply_created_at: s.reply_created_at,
       total_likes: s?.total_likes,
       is_liked: s?.is_liked,
+      reply_total_likes: s?.reply_total_likes,
+      reply_is_liked: s?.reply_is_liked,
     })),
     total: (response.hits.total as any)?.value,
 
@@ -488,65 +490,82 @@ export async function GetFQACommentsForProduct({
 }
 
 export async function GetFQACommentsForProductWithReactions({
-  user_id, // new param
+  user_id,
   commentsResult,
 }) {
-  let commentIds = commentsResult.map((s) => s.id);
-  let reactionsQuery: any = {
+  const commentIds = commentsResult.map((s) => s.id);
+  if (commentIds.length === 0) return commentsResult;
+
+  const reactionsQuery: any = {
     index: "comments_reactions",
     size: 0,
     query: {
       bool: {
         must: [
-          { terms: { comment_id: commentIds } },
+          { terms: { target_id: commentIds } },
           { term: { status: "active" } },
+          { terms: { target_type: ["comment", "seller_reply"] } },
         ],
       },
     },
     aggs: {
-      likes_by_comment: {
-        terms: { field: "comment_id", size: commentIds.length },
+      reactions_by_type: {
+        terms: { field: "target_type.keyword", size: 2 },
         aggs: {
-          total_likes: { value_count: { field: "interaction_id" } },
-          user_like: {
-            filter: { term: { user_id } },
+          reactions_by_target: {
+            terms: { field: "target_id.keyword", size: commentIds.length },
+            aggs: user_id
+              ? {
+                  total_likes: { value_count: { field: "interaction_id" } },
+                  user_like: { filter: { term: { user_id } } },
+                }
+              : {
+                  total_likes: { value_count: { field: "interaction_id" } },
+                },
           },
         },
       },
     },
   };
-  if (user_id) {
-    reactionsQuery.aggs.likes_by_comment.aggs = {
-      total_likes: { value_count: { field: "interaction_id" } },
-      user_like: {
-        filter: { term: { user_id } },
-      },
-    };
-  } else {
-    reactionsQuery.aggs.likes_by_comment.aggs = {
-      total_likes: { value_count: { field: "interaction_id" } },
-    };
-  }
+
   const reactionsRes = await client.search(reactionsQuery);
 
-  // Step 3: Map aggregation results into a lookup
-  const likesMap: Record<string, { total_likes: number; is_liked: boolean }> =
-    {};
+  // Step 2: Build lookup maps for comments and replies
+  const commentLikesMap: Record<
+    string,
+    { total_likes: number; is_liked: boolean }
+  > = {};
+  const replyLikesMap: Record<
+    string,
+    { total_likes: number; is_liked: boolean }
+  > = {};
 
-  (reactionsRes.aggregations.likes_by_comment as any).buckets.forEach(
-    (bucket) => {
-      likesMap[bucket.key] = {
+  for (const typeBucket of (reactionsRes.aggregations.reactions_by_type as any)
+    .buckets) {
+    const isReply = typeBucket.key === "seller_reply";
+
+    for (const bucket of typeBucket.reactions_by_target.buckets) {
+      const map = isReply ? replyLikesMap : commentLikesMap;
+      map[bucket.key] = {
         total_likes: bucket.total_likes.value,
-        is_liked: bucket?.user_like?.doc_count > 0 || false,
+        is_liked: bucket.user_like ? bucket.user_like.doc_count > 0 : false,
       };
     }
-  );
+  }
 
-  // Step 4: Merge back into comments
+  // Step 3: Merge back into comment list
   const enrichedComments = commentsResult.map((comment) => ({
     ...comment,
-    total_likes: likesMap[comment.id]?.total_likes || 0,
-    is_liked: likesMap[comment.id]?.is_liked || false,
+    total_likes: commentLikesMap[comment.id]?.total_likes || 0,
+    is_liked: commentLikesMap[comment.id]?.is_liked || false,
+    reply_total_likes:
+      comment.has_reply && comment.seller_reply
+        ? replyLikesMap[comment.id]?.total_likes || 0
+        : 0,
+    reply_is_liked:
+      comment.has_reply && comment.seller_reply
+        ? replyLikesMap[comment.id]?.is_liked || false
+        : false,
   }));
 
   return enrichedComments;
