@@ -204,9 +204,7 @@ function UploadProfilePhoto({
                 setOpenMenu(!openMenu);
               }
             }}
-            className={`${
-              !file && "items-center justify-center"
-            } w-full relative h-[406px] rounded-[22px] bg-[#f8f8f8] flex overflow-hidden`}
+            className={`${"items-center justify-center"} max-w-[410px] w-full relative h-[406px] rounded-[22px] bg-[#f8f8f8] flex overflow-hidden`}
             style={{
               filter: "drop-shadow(0px 3px 6px #0000002a)",
             }}
@@ -474,7 +472,9 @@ function UploadProfilePhoto({
                   }}
                   width={window.innerWidth}
                   height={406}
-                  className={`${isUploading ? "opacity-0" : "opacity-100"}`}
+                  className={`${
+                    isUploading ? "opacity-0" : "opacity-100"
+                  } max-w-[410px] max-h-[410px]`}
                   image={file}
                   style={{ width: "100%", height: "100%", objectFit: "cover" }}
                   border={0}
