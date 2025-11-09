@@ -27,10 +27,13 @@ function CartItem({ product, index }) {
       }
     }
   }, []);
+  const isRtl = language === "ar" || language === "ku";
   return (
     <>
       <div
-        className="flex-row w-[110px] min-h-[161px] max-h-[161px] relative"
+        className={`${
+          isRtl ? "flex-row-reverse" : "flex-row"
+        }  w-[110px] min-h-[161px] max-h-[161px] relative`}
         data-cy="container-image-onCard"
       >
         {product.flash_deal_details?.end_date && (
@@ -51,7 +54,7 @@ function CartItem({ product, index }) {
         />
       </div>
       <div
-        className="flex-col mt-4 ml-5"
+        className={`${isRtl ? "items-end" : "items-start"} flex-col mt-4 mx-5`}
         data-cy="container-ofProduct-information"
       >
         <div
@@ -75,17 +78,22 @@ function CartItem({ product, index }) {
           />
         </div>
         <div
-          className="text-[12px] mt-1 text-[#505050] flex regular"
+          className={`${
+            isRtl && "dir-rtl"
+          } text-[12px] mt-1 text-[#505050] flex regular`}
           data-cy="productNameInCart"
         >
           {product.name.substring(0, 50)}
           {product.name.length > 50 ? "..." : ""}
         </div>
 
-        <div className="flex-row flex-wrap" data-cy="color-div">
+        <div
+          className={`${isRtl ? "flex-row-reverse" : "flex-row"} flex-wrap`}
+          data-cy="color-div"
+        >
           {product.variations[0]?.color && (
             <div
-              className="flex-row items-center text-[12px] regular text-[#505050] mt-1 mr-3"
+              className="flex-row items-center text-[12px] regular text-[#505050] mt-1 mx-2"
               data-cy="color-div2"
             >
               <Image
@@ -132,7 +140,9 @@ function CartItem({ product, index }) {
           )}
         </div>
         <div
-          className="flex-row items-center text-[12px] regular text-[#505050] mt-1 mr-3"
+          className={`${
+            isRtl ? "flex-row-reverse" : "flex-row"
+          }  items-center text-[12px] regular text-[#505050] mt-1 mx-3`}
           data-cy="countPieces-container"
         >
           <Image
@@ -157,7 +167,9 @@ function CartItem({ product, index }) {
         </div>
         {product.shipping_days && (
           <div
-            className="flex-row whitespace-nowrap items-center text-[12px] light text-[#505050] mt-1 mr-3"
+            className={`${
+              isRtl ? "flex-row-reverse" : "flex-row"
+            }  whitespace-nowrap items-center text-[12px] light text-[#505050] mt-1 mx-3`}
             data-cy="sshipping-container"
           >
             <Image
@@ -203,7 +215,11 @@ function CartItem({ product, index }) {
         )}
       </div>
       {product?.is_redeem && (
-        <div className="flex absolute origin-center scale-75 top-[30px] right-[-6px] bg-gradient-to-r rounded-[6px] from-[#f64f64] to-[#d73a49] p-[6px] text[12px] text-white items-center justify-center gap-[4px]">
+        <div
+          className={`${
+            isRtl ? "left-[-6px]" : "right-[-6px]"
+          } flex absolute origin-center scale-75 top-[30px]  bg-gradient-to-r rounded-[6px] from-[#f64f64] to-[#d73a49] p-[6px] text[12px] text-white items-center justify-center gap-[4px]`}
+        >
           <svg
             width="20"
             height="20"
@@ -218,7 +234,7 @@ function CartItem({ product, index }) {
         </div>
       )}
       <div
-        className="absolute top-1 right-1"
+        className={`${isRtl ? "left-1" : "right-1"} absolute top-1 `}
         data-cy="card-numbering-container"
       >
         <input
@@ -233,7 +249,11 @@ function CartItem({ product, index }) {
       </div>
       {(product.have_hurry_up_notify_time_left ||
         product?.have_hurry_up_notify_qty) && (
-        <div className="absolute left-2  text-[#A28E5B] text-[12px] bottom-[8px] pl-3 w-[95%] h-[32px] bg-[#FDFDEF] rounded-[5px] flex items-center">
+        <div
+          className={`${
+            isRtl ? "right-2 flex-row-reverse" : "left-2 flex-row"
+          } absolute   text-[#A28E5B] text-[12px] bottom-[8px] px-3 w-[95%] h-[32px] bg-[#FDFDEF] rounded-[5px] flex items-center`}
+        >
           <span className="ml-1">
             <Image
               src={"/svg/cart/HurryIcon.svg"}

@@ -139,6 +139,7 @@ function OldCartContainer() {
       </div>
     );
   }
+  const isRtl = language === "ar" || language === "ku";
   if (filteredOldCart?.length === 0) return <></>;
   return (
     <div
@@ -210,7 +211,11 @@ function OldCartContainer() {
                   className="rounded-2xl opacity-50"
                 />
               </div>
-              <div className="flex-col mt-4 ml-5">
+              <div
+                className={`${
+                  isRtl ? "items-end" : "items-start"
+                } flex-col mt-4 mx-5`}
+              >
                 <div className="h-[10px] overflow-hidden">
                   <img
                     src={getConfiguredImage({
@@ -402,7 +407,9 @@ function OldCartContainer() {
               </div>
             </CartItemLink>
             <div
-              className="absolute right-4 top-[35px] hide-btn cursor-pointer z-40"
+              className={`${
+                isRtl ? "left-4" : "right-4"
+              } absolute  top-[35px] hide-btn cursor-pointer z-40`}
               onClick={(e) => {
                 e.preventDefault();
                 // Sendevent({

@@ -31,6 +31,7 @@ function OrderButton({ close, toOrders }) {
     cart,
     orderData,
     userProfile,
+    language,
   } = useAppStore();
   let { lang } = useParams();
   // @ts-ignore
@@ -224,6 +225,7 @@ function OrderButton({ close, toOrders }) {
       passive: false,
     },
   });
+  const isRtl = language === "ar" || language === "ku";
   return (
     <>
       {expanded && (
@@ -492,9 +494,11 @@ function OrderButton({ close, toOrders }) {
               onClick={() => {
                 setExpanded(!expanded);
               }}
-              className={`${
-                expanded ? "rounded-t-none" : ""
-              } cursor-pointer flex-row items-center min-h-[50px] w-full justify-between  rounded-[12px] pt-1 bg-[#F8F8F8]`}
+              className={`
+                ${isRtl ? "flex-row-reverse" : "flex-row"}
+                ${
+                  expanded ? "rounded-t-none" : ""
+                } px-[10px] cursor-pointer  items-center min-h-[50px] w-full justify-between  rounded-[12px] pt-1 bg-[#F8F8F8]`}
             >
               <div
                 data-cy="total-left-container"
@@ -502,7 +506,9 @@ function OrderButton({ close, toOrders }) {
               >
                 <div
                   data-cy="total-left-container2"
-                  className="flex-col pl-4 text-[#1D1D1D]"
+                  className={`${
+                    isRtl ? "items-end" : "items-start"
+                  } flex-col pl-4 text-[#1D1D1D]`}
                 >
                   <span
                     data-cy="total-left-text"
@@ -521,11 +527,13 @@ function OrderButton({ close, toOrders }) {
 
               <span
                 data-cy="total-right-container"
-                className="flex-row justify-center items-center ml-[5px] bold  text-[16px] pr-[13px] text-[#1D1D1D]"
+                className={`${
+                  isRtl ? "flex-row-reverse" : "flex-row"
+                } justify-center items-center ml-[5px] bold gap-[4px]  text-[16px] pr-[13px] text-[#1D1D1D]`}
               >
                 <span
                   data-cy="total-right-RoundPrice"
-                  className="line-through regular mr-2"
+                  className="line-through regular"
                 >
                   {RoundPrice({
                     num: getTotaPriceToShow() + total_discount,
