@@ -813,13 +813,13 @@ const translations = {
   "Cancellation Terms": "İptal Şartları",
   "I Read And Agree To The": "Okudum ve kabul ediyorum",
   "Change Request": "Değişim Talebi",
-  "About Change Request Product": "Ürün Değişim Talebi Hakkında",
   "About Cancel Your Product": "Ürün İptal Talebi Hakkında",
   "Cancel This Product In": "Bu Ürünü İptal Edin",
   "You Can Cancel The Product Without Any Conditions According To The Cancel Policy And Get A Full Refund":
     "İptal politikası kapsamında hiçbir koşul olmaksızın ürünü iptal edebilir ve tam para iadesi alabilirsiniz",
   "To Your Account": "Hesabınıza",
   "Why Was The Product Return?": "Ürün neden iade edildi?",
+  "About Cancel Your Order": "Siparişinizi İptal Etme Hakkında",
   // Alt attributes
   sy: "Suriye",
   "info icon": "bilgi simgesi",

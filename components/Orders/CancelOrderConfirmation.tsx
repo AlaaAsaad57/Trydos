@@ -4,6 +4,7 @@ import OrderCancelTermsIcon from "public/svg/OrderCancelTerms.svg";
 import { translateFunction } from "utils/functions";
 import { CancelOrderConfirmationPropsType } from "models/componentType/CancelOrderConfirmationPropsType";
 import Spinner from "components/global/Spinner";
+import { CheckBoxElement } from "components/Cart/PlaceOrderButtons";
 
 function CancelOrderConfirmation({
   setShouldConfirmCancel,
@@ -25,7 +26,7 @@ function CancelOrderConfirmation({
       setLoading(false);
     }
   };
-
+  const [active, setActive] = useState(false);
   return (
     <div
       className={`z-[9999999999999] px-[24px]  w-full flex-col ${"justify-end"} items-center h-[calc(100vh)] overflow-auto  pb-[70px] max-h-[calc(100vh)] fixed top-0 left-0 bg-[#0000006c]  backdrop-blur-[10px]`}
@@ -36,7 +37,7 @@ function CancelOrderConfirmation({
           {translateFunction("Clarification")}
         </span>
         <span className="text-white regular text-[16px] mt-[2px] text-center">
-          {translateFunction(`${topic} `)}
+          {translateFunction(`${topic}`)}
         </span>
         <span className="mt-[45px] regular text-white text-[16px] text-center">
           {translateFunction("You Will Not Be Charged Any Fees.")}
@@ -54,23 +55,30 @@ function CancelOrderConfirmation({
           <span className="mt-[7px] regular text-white text-[14px]">
             {translateFunction("Terms Of Cancellation Terms")}
           </span>
-          <p className="text-[14px] text-white regular mt-[40px]">
-            {translateFunction("I Read And Agree To The")}
+          <p
+            className="text-[14px] text-white regular mt-[40px] gap-[4px]"
+            onClick={() => {
+              setActive(!active);
+            }}
+          >
+            <CheckBoxElement active={active} />
+            <span>{translateFunction("I Read And Agree To The")}</span>
+
             <a
               target="_blank"
               href="#"
-              className="ml-[4px] medium text-[14px] text-white underline"
+              className="medium text-[14px] text-white underline"
             >
-              {" "}
               {translateFunction(`Cancellation Terms.`)}
             </a>
           </p>
 
           <div
             className={`w-full h-[50px] mt-[31px] items-center justify-center  flex cursor-pointer ${
-              false ? "bg-[#D3D3D3] " : "bg-[#402CDD] "
+              !active ? "bg-[#D3D3D3] " : "bg-[#402CDD] "
             } rounded-[15px] text-[16px] text-[#fff] medium`}
             onClick={() => {
+              if (!active) return;
               ConfirmFunction();
             }}
           >

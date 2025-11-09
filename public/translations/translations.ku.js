@@ -602,6 +602,7 @@ const translations = {
   "Need Help Finding Your Size?": "پێویستت بە یارمەتیە بۆ دۆزینەوەی قەبارەکەت؟",
   "More Options": "هەڵبژاردنی زیاتر",
   "Share This Product With": "ئەم بەرهەمە بەشدار بکە لەگەڵ",
+  "About Cancel Your Order": "سەبارەت بە هەڵوەشاندنی داواکردنت",
   "Comment About This Product": "تێبینی لەسەر ئەم بەرهەمە",
   "Good Quality Product": "بەرهەمی کوالیتی بەرز",
   "Verified by trydos": "لەلایەن ترایدۆسەوە پشتڕاستکراوە",

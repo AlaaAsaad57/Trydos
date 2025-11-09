@@ -272,7 +272,7 @@ function PlaceOrderButtons({
 }
 
 export default PlaceOrderButtons;
-const CheckBoxElement = ({ active }: CheckBoxElementPropsType) => {
+export const CheckBoxElement = ({ active }: CheckBoxElementPropsType) => {
   return (
     <>
       {active ? (

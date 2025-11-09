@@ -275,7 +275,11 @@ export const RoundPrice = ({
   points?: any;
 }): number | string => {
   let price_num = Number(num);
-  const { currency, settings } = useAppStore.getState();
+  const {
+    currency,
+    settings,
+    language: languageVariable,
+  } = useAppStore.getState();
 
   // Currency conversion at the start
   let rateVariable = rate || currency?.exchange_rate || 1;
@@ -288,11 +292,11 @@ export const RoundPrice = ({
   number = Math.ceil(number);
 
   // Return raw converted number if requested
-
+  let languageCode = language ?? languageVariable ?? "en";
   number = Number(number.toFixed(deciaml_points));
   // Dart's formatNumber logic
-  const thousand = language !== "ar" ? "K" : "أ";
-  const million = language !== "ar" ? "M" : "م";
+  const thousand = languageCode !== "ar" ? "K" : "أ";
+  const million = languageCode !== "ar" ? "M" : "م";
 
   if (number >= 1e5 && number < 1e6) {
     const result = Math.floor((number + 999) / 1000);

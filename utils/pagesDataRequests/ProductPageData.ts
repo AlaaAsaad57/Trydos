@@ -68,11 +68,23 @@ export const GetSocialDataForProduct = async ({ productId, slug, lang }) => {
   }
 };
 
-export const getProductDataFromElastic = async ({ productId, slug, lang }) => {
-  const cookiesStore = await cookies();
-  let user_data = cookiesStore.get(COOKIE_NAMES.USER_DATA)?.value;
-  let user_id =
-    typeof user_data === "string" ? JSON.parse(user_data)?.id : null;
+export const getProductDataFromElastic = async ({
+  productId,
+  slug,
+  lang,
+  userId = null,
+}) => {
+  let user_id;
+
+  if (!userId) {
+    const cookiesStore = await cookies();
+    let user_data = cookiesStore.get(COOKIE_NAMES.USER_DATA)?.value;
+    let user_id =
+      typeof user_data === "string" ? JSON.parse(user_data)?.id : null;
+  } else {
+    user_id = userId;
+  }
+
   try {
     let [
       sharesRes,

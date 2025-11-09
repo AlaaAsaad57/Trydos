@@ -60,11 +60,12 @@ export async function GET(request: NextRequest, { params }) {
         redis: false,
       };
     }
-
+    const user_id = request.nextUrl.searchParams.get("user_id");
     let elasticData = await getProductDataFromElastic({
       productId: productDataVar.id,
       lang: language,
       slug: Params.slug,
+      userId: user_id,
     });
     return withCORS(
       NextResponse.json(

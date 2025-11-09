@@ -161,8 +161,8 @@ function StoryHolder({ story, active, isPaused }: StoryHolderPropsType) {
         />
       )}
       <StoryViewer
-        activeId={story.id}
-        id={story.id}
+        activeId={String(story.id)}
+        id={String(story.id)}
         key={`${story.id}-${currentStoryId}`}
         isPaused={showDeleteModal || !active || showReportModal}
         onStoryStart={(e) => {

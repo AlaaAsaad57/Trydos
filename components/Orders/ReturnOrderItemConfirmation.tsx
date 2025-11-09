@@ -12,6 +12,7 @@ import Spinner from "components/global/Spinner";
 import { useAppStore } from "store";
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 import { useParams } from "node_modules/next/navigation";
+import { CheckBoxElement } from "components/Cart/PlaceOrderButtons";
 
 function ReturnOrderItemConfirmation({
   close,
@@ -157,7 +158,7 @@ function ReturnOrderItemConfirmation({
       setLoading(false);
     }
   };
-
+  const [active, setActive] = useState(false);
   return (
     <div
       className={`z-[9999999999999] px-[24px] pb-[70px]  w-full flex-col ${"justify-end"} items-center h-[calc(100vh)] overflow-auto max-h-[calc(100vh)] fixed top-0 left-0 bg-[#0000006c]  backdrop-blur-[10px]`}
@@ -191,24 +192,32 @@ function ReturnOrderItemConfirmation({
           <span className="mt-[7px] regular text-white text-[14px]">
             {translateFunction("Terms Of Cancellation Terms")}
           </span>
-          <p className="text-[14px] text-white regular mt-[40px]">
+          <p
+            className="text-[14px] text-white regular mt-[40px] gap-[4px]"
+            onClick={() => {
+              setActive(!active);
+            }}
+          >
+            <CheckBoxElement active={active} />
             {translateFunction("I Read And Agree To The")}
             <a
               target="_blank"
               href="#"
-              className="ml-[4px] medium text-[14px] text-white underline"
+              className=" medium text-[14px] text-white underline"
             >
               {translateFunction(`Cancellation Terms.`)}
             </a>
           </p>
 
           <div
-            className={`w-full h-[50px] mt-[31px] items-center justify-center  flex cursor-pointer ${"bg-[#402CDD] "} rounded-[15px] text-[16px] text-[#fff] medium`}
+            className={`w-full h-[50px] mt-[31px] items-center justify-center  flex cursor-pointer ${
+              active ? "bg-[#402CDD]" : "bg-[#D3D3D3]"
+            } rounded-[15px] text-[16px] text-[#fff] medium`}
             style={{
               border: "1px solid #F8F8F880",
             }}
             onClick={() => {
-              if (loading) return;
+              if (loading || !active) return;
               ReturnRequest(true);
             }}
           >
