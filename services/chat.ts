@@ -204,7 +204,7 @@ class ChatService {
         url: GET_CONTATCS_URL,
         reqTitle: REQUESTS_DATA.GET_CONTACTS,
         server: "chat",
-        method: "GET",
+        method: "POST",
       });
       if (!response.success) {
         throw new Error(response.message);
