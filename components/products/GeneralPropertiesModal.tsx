@@ -15,6 +15,7 @@ function GeneralPropertiesModal({
   rating_stats,
   TotalBuyers,
   recommendation_stats,
+  total_rating,
 }) {
   const { ColorBottomSheet, setColorBottomSheet, language } = useAppStore();
   let reviews_arr = [
@@ -67,7 +68,7 @@ function GeneralPropertiesModal({
               <RatingStars
                 size={20}
                 color="#1d1d1d"
-                initialRating={3}
+                initialRating={total_rating}
                 readOnly={true}
               />
               <HortiznalScrollBar

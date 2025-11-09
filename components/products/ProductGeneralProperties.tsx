@@ -39,6 +39,7 @@ function ProductGeneralProperties({
           not_recomended_count: not_recomended,
         }}
         rating_stats={rating_stats}
+        total_rating={total_rating}
         TotalBuyers={TotalBuyers}
       />
       <HortiznalScrollBar
