@@ -41,8 +41,8 @@ export async function GET(req: NextRequest) {
       filter,
       user_id: user_id,
     });
-    let data_filters = await GetAvailableFQAFilters({ product_id });
-    console.log(data_filters);
+    // let data_filters = await GetAvailableFQAFilters({ product_id });
+    // console.log(data_filters);
     return NextResponse.json(
       {
         data: {
