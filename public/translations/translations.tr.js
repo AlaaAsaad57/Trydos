@@ -517,7 +517,7 @@ const translations = {
   "Made In Turkey": "Türkiye'de Üretilmiştir",
   "Read More": "Daha Fazla Oku",
   "Read Less": "Daha Az Oku",
-  "All Inclusive Without Additions": "Tüm Dahil, Ekstra Yok",
+  "All Inclusive Without Additions": "Her Şey Dahil Ekstra Yok",
   "Ship To You Accepted ": "Size Gönderim Kabul Edildi",
   "Buyers Camera": "Alıcı Kamerası",
   "Product Story": "Ürün Hikayesi",

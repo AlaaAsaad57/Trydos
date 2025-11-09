@@ -569,8 +569,7 @@ const translations = {
   Details: "وردەکارییەکان",
   color: "ڕەنگ",
   "Add To Bag": "زیادکردن بۆ سەبەتە",
-  "All Inclusive Without Additions":
-    "هەموو شتەکان لەخۆگرتووە بەبێ هیچ زیادکردنێک",
+  "All Inclusive Without Additions": "هەموو شت تێدایە بەبێ زیادە",
   "Ship To You Accepted": "گەیاندن بۆ تۆ پەسەندکراوە لە",
   "type a comment": "تێبینییەک بنووسە",
   "Free Shipping": "گەیاندنی بەخۆڕایی",

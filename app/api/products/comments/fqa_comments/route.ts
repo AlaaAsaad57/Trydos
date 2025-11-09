@@ -2,7 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { ReportError } from "utils/errorReported";
 import { LogError } from "utils/functions";
-import { GetFQACommentsForProduct } from "utils/pagesDataRequests/ProductPageData";
+import {
+  GetAvailableFQAFilters,
+  GetFQACommentsForProduct,
+} from "utils/pagesDataRequests/ProductPageData";
 
 export async function GET(req: NextRequest) {
   const headers = {
@@ -38,7 +41,8 @@ export async function GET(req: NextRequest) {
       filter,
       user_id: user_id,
     });
-
+    let data_filters = await GetAvailableFQAFilters({ product_id });
+    console.log(data_filters);
     return NextResponse.json(
       {
         data: {

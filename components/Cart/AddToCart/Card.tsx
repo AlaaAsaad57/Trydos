@@ -63,7 +63,11 @@ function Card({
             />
           </div>
           {/*  */}
-          <div className="flex flex-row items-center regular text-[#1D1D1D] text-[11px]">
+          <div
+            className={`${
+              isRtl ? "dir-rtl" : ""
+            } flex flex-row items-center regular text-[#1D1D1D] text-[11px]`}
+          >
             {name}
           </div>
           {/*  */}
