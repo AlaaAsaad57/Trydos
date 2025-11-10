@@ -18,7 +18,7 @@ const NavIcon = (props: React.SVGProps<SVGSVGElement>) => (
         height="14.329"
         filterUnits="userSpaceOnUse"
       >
-        <feOffset dy="2" input="SourceAlpha" />
+        <feOffset dy="2" />
         <feGaussianBlur stdDeviation="1" result="blur" />
         <feFlood flood-opacity="0.2" />
         <feComposite operator="in" in2="blur" />
@@ -32,7 +32,7 @@ const NavIcon = (props: React.SVGProps<SVGSVGElement>) => (
         height="14.329"
         filterUnits="userSpaceOnUse"
       >
-        <feOffset dy="3" input="SourceAlpha" />
+        <feOffset dy="3" />
         <feGaussianBlur stdDeviation="2" result="blur-2" />
         <feFlood flood-color="#fff" flood-opacity="0.302" result="color" />
         <feComposite operator="out" in="SourceGraphic" in2="blur-2" />

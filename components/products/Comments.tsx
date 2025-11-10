@@ -10,6 +10,7 @@ import { showErrorNotification } from "store/notifications/reducer";
 import { translateFunction } from "utils/functions";
 import Spinner from "components/global/Spinner";
 import { useAppStore } from "store";
+import auth from "services/auth";
 
 function Comments({
   productId,
@@ -76,7 +77,7 @@ const LoadMoreComments = ({ product_id }) => {
       setLoading(true);
 
       let data = await fetchData({
-        url: `/api/products/comments/fqa_comments?product_id=${product_id}&offset=${JSON.stringify(
+        url: `/api/products/comments/fqa_comments?user_id=${auth.UserID()}&product_id=${product_id}&offset=${JSON.stringify(
           SelectedProduct?.fqa_questions?.offset
         )}`,
         server: "local",

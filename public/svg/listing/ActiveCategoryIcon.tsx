@@ -18,7 +18,7 @@ const ActiveCategoryIcon = (props: React.SVGProps<SVGSVGElement>) => (
         height="29"
         filterUnits="userSpaceOnUse"
       >
-        <feOffset dy="3" input="SourceAlpha" />
+        <feOffset dy="3" />
         <feGaussianBlur stdDeviation="1.5" result="blur" />
         <feFlood flood-opacity="0.098" />
         <feComposite operator="in" in2="blur" />
@@ -31,7 +31,7 @@ const ActiveCategoryIcon = (props: React.SVGProps<SVGSVGElement>) => (
         height="29"
         filterUnits="userSpaceOnUse"
       >
-        <feOffset dy="4" input="SourceAlpha" />
+        <feOffset dy="4" />
         <feGaussianBlur stdDeviation="3" result="blur-2" />
         <feFlood flood-color="#fff" flood-opacity="0.502" result="color" />
         <feComposite operator="out" in="SourceGraphic" in2="blur-2" />

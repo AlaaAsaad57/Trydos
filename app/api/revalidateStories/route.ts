@@ -6,7 +6,7 @@ export async function GET(request: NextRequest) {
   const value = searchParams?.get("value") || "";
 
   try {
-    revalidateTag("stories");
+    revalidateTag("stories", "max");
     console.log("***** revalidated successfully *****");
     return NextResponse.json(
       { revalidated: "true", error: null },

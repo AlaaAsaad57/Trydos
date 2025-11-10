@@ -382,9 +382,9 @@ class ForegroundNotificationHandler {
                   ).length > 0
                 ) {
                 } else {
-                  let not = new Audio("/wa.mp3");
-                  not.volume = 0.5;
-                  not.play();
+                  // let not = new Audio("/wa.mp3");
+                  // not.volume = 0.5;
+                  // not.play();
                 }
               }
               sendMessage({
@@ -480,9 +480,9 @@ class ForegroundNotificationHandler {
                 ).length > 0
               ) {
               } else {
-                let not = new Audio("/wa.mp3");
-                not.volume = 0.5;
-                not.play();
+                // let not = new Audio("/wa.mp3");
+                // not.volume = 0.5;
+                // not.play();
               }
             }
             sendMessage({
@@ -589,9 +589,9 @@ class ForegroundNotificationHandler {
                 ).length > 0
               ) {
               } else {
-                let not = new Audio("/wa.mp3");
-                not.volume = 0.5;
-                not.play();
+                // let not = new Audio("/wa.mp3");
+                // not.volume = 0.5;
+                // not.play();
               }
             }
             sendMessage({

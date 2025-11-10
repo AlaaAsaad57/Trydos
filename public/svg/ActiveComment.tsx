@@ -9,35 +9,14 @@ const ActiveComment = (props: React.SVGProps<SVGSVGElement>) => (
     viewBox="0 0 25 25"
     {...props}
   >
-    <defs>
-      <clipPath id="clip-path">
-        <rect
-          id="Rectangle_4612"
-          data-name="Rectangle 4612"
-          width="25"
-          height="25"
-          transform="translate(-0.215 -0.244)"
-          fill="none"
-        />
-      </clipPath>
-      <clipPath id="clip-path-2">
-        <path
-          id="path453"
-          d="M0-25H24.785V-.215H0Z"
-          transform="translate(0 25)"
-          fill="#1d1d1d"
-        />
-      </clipPath>
-    </defs>
     <g
       id="Mask_Group_835"
       data-name="Mask Group 835"
       transform="translate(0.215 0.244)"
-      clipPath="url(#clip-path)"
     >
       <g id="g447" transform="translate(0.261 0.068)">
         <g id="g449">
-          <g id="g451" clipPath="url(#clip-path-2)">
+          <g id="g451">
             <g
               id="Group_14433"
               data-name="Group 14433"

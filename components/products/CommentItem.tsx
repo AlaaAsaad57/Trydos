@@ -237,7 +237,7 @@ function CommentItem({
         {isError && (
           <Loading
             className="absolute z-50 right-[10px] top-[45px]"
-            onClick={resendCommentApi(comment.mid, comment)}
+            onClick={() => resendCommentApi(comment.mid, comment)}
           />
         )}
         {isOwner && !isError && isPending && (

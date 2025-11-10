@@ -1,7 +1,0 @@
-import * as React from 'react';
-
-const Am = (props: React.SVGProps<SVGSVGElement>) => (
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 600" {...props}><path fill="#F2A800" d="M0 0h1200v600H0z"/><path fill="#0033A0" d="M0 0h1200v400H0z"/><path fill="#D90012" d="M0 0h1200v200H0z"/></svg>
-);
-
-export default Am;

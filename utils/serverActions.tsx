@@ -3,5 +3,5 @@
 import { revalidateTag } from "next/cache";
 
 export async function revalidateStories() {
-  revalidateTag("stories");
+  revalidateTag("stories", "max");
 }

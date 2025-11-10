@@ -1,7 +1,0 @@
-import * as React from 'react';
-
-const Vc = (props: React.SVGProps<SVGSVGElement>) => (
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 72 48" {...props}><path fill="#009e60" d="M0 0h72v48H0z"/><path fill="#fcd116" d="M0 0h54v48H0z"/><path fill="#0072c6" d="M0 0h18v48H0z"/><path fill="#009e60" d="m32 34 4 8 4-8-4-8zm-5-10 4 8 4-8-4-8zm10 0 4 8 4-8-4-8z"/></svg>
-);
-
-export default Vc;

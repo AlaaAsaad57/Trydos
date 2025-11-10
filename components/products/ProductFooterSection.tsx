@@ -87,7 +87,9 @@ function ProductFooterSection({
   const getComments = async () => {
     try {
       let response: any = await fetchData({
-        url: `/api/products/comments/fqa_comments?product_id=${product.id}`,
+        url: `/api/products/comments/fqa_comments?user_id=${auth.UserID()}&product_id=${
+          product.id
+        }`,
         reqTitle: REQUESTS_DATA.SOCIAL_INFO_REQUEST,
         method: "GET",
         server: "local",

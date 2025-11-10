@@ -39,13 +39,13 @@
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "jsx": "react-jsx",
+    "jsx": "react-jsx", // React 19 uses automatic JSX runtime
     "plugins": [
       {
         "name": "next"
       }
     ],
-    "target": "ES2017",
+    "target": "ES2017", // Consider updating to ES2020+ for better React 19 support
     "strictNullChecks": false
   },
   "include": [

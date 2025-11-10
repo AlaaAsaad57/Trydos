@@ -27,7 +27,7 @@ const Logo = (props: React.SVGProps<SVGSVGElement>) => (
         height="13.409"
         filterUnits="userSpaceOnUse"
       >
-        <feOffset dy="2" input="SourceAlpha" />
+        <feOffset dy="2" />
         <feGaussianBlur stdDeviation="1" result="blur" />
         <feFlood flood-opacity="0.2" />
         <feComposite operator="in" in2="blur" />
@@ -41,7 +41,7 @@ const Logo = (props: React.SVGProps<SVGSVGElement>) => (
         height="13.409"
         filterUnits="userSpaceOnUse"
       >
-        <feOffset dy="3" input="SourceAlpha" />
+        <feOffset dy="3" />
         <feGaussianBlur stdDeviation="2" result="blur-2" />
         <feFlood flood-color="#fff" flood-opacity="0.302" result="color" />
         <feComposite operator="out" in="SourceGraphic" in2="blur-2" />
@@ -66,7 +66,7 @@ const Logo = (props: React.SVGProps<SVGSVGElement>) => (
         height="38.812"
         filterUnits="userSpaceOnUse"
       >
-        <feOffset dy="3" input="SourceAlpha" />
+        <feOffset dy="3" />
         <feGaussianBlur stdDeviation="1.5" result="blur-3" />
         <feFlood flood-opacity="0.2" />
         <feComposite operator="in" in2="blur-3" />
@@ -85,7 +85,6 @@ const Logo = (props: React.SVGProps<SVGSVGElement>) => (
           transform="translate(27.576 4.632)"
         >
           <g
-            class="logoline"
             id="Group_10513"
             data-name="Group 10513"
             transform="translate(0 13.531)"
@@ -130,13 +129,8 @@ const Logo = (props: React.SVGProps<SVGSVGElement>) => (
           />
         </g>
       </g>
-      <g
-        class="logocircle"
-        transform="matrix(1, 0, 0, 1, -4.5, -1.31)"
-        filter="url(#Path_21331)"
-      >
+      <g transform="matrix(1, 0, 0, 1, -4.5, -1.31)" filter="url(#Path_21331)">
         <path
-          class="logocircle"
           id="Path_21331-2"
           data-name="Path 21331"
           d="M14.906,0A14.906,14.906,0,1,0,29.812,14.906,14.906,14.906,0,0,0,14.906,0Z"

@@ -1,7 +1,7 @@
 "use client";
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 import Image from "next/image";
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { translateFunction } from "utils/functions";
 import { convertTextToXFormat, formatTime, GetImageUrl } from "utils/tinyUtils";
 import profilePng from "public/images/profileNo.png";
@@ -23,14 +23,20 @@ function FAQSection({ lang, comments, product_id, seller_name }) {
   const { setColorBottomSheet, editInfo, SelectedProduct } = useAppStore();
   const isRtl = language === "ar" || language === "ku";
 
-  const AllComments =
-    SelectedProduct?.fqa_questions?.comments ?? comments.comments;
+  // Make AllComments reactive to SelectedProduct changes
+  // This ensures it updates when likes are changed via editInfo
+  // The array reference changes when editInfo updates comments, triggering recalculation
+  const AllComments = useMemo(() => {
+    console.log(SelectedProduct.fqa_questions);
+    return SelectedProduct?.fqa_questions?.comments ?? comments.comments;
+  }, [SelectedProduct?.fqa_questions?.comments, comments.comments]);
+  console.log(SelectedProduct?.fqa_questions?.comments);
   const [loading, setLoading] = useState(false);
   const loadMore = async () => {
     try {
       setLoading(true);
       let data = await fetchData({
-        url: `/api/products/comments/fqa_comments?product_id=${product_id}&offset=${JSON.stringify(
+        url: `/api/products/comments/fqa_comments?user_id=${auth.UserID()}&product_id=${product_id}&offset=${JSON.stringify(
           SelectedProduct?.fqa_questions?.offset
         )}`,
         method: "GET",
@@ -241,7 +247,10 @@ export const FaqItem = ({
           </div>
         </div>
         <div className="flex-row pl-[10px] pr-[3px] justify-between w-full items-center">
-          <LikeButton comment={{ ...comment, target_type: "comment" }} />
+          <LikeButton
+            key={`${comment.total_likes}-${comment.reply_total_likes}`}
+            comment={{ ...comment, target_type: "comment" }}
+          />
         </div>
       </div>
       {has_reply && (
@@ -477,7 +486,7 @@ export function LikeButton({ comment, disabled = false }) {
   const [isLiked, setIsLiked] = useState(comment?.is_liked || false);
   const [likes, setLikes] = useState(comment?.total_likes || 0);
   const [animating, setAnimating] = useState(false);
-  const { setLoginOpen } = useAppStore();
+  const { setLoginOpen, editInfo, SelectedProduct } = useAppStore();
   const ReactOnComment = async () => {
     let user_cookies = getCookie(COOKIE_NAMES.USER_ID_HASH);
     if (!user_cookies) {
@@ -506,6 +515,7 @@ export function LikeButton({ comment, disabled = false }) {
           product_id: comment.product_id,
         });
       }
+      handleLikeAction(!isLiked, isLiked ? likes - 1 : likes + 1);
     } catch (error) {
       // Revert to previous state if error occurred
       setIsLiked(previousIsLiked);
@@ -515,7 +525,81 @@ export function LikeButton({ comment, disabled = false }) {
       setTimeout(() => setAnimating(false), 400);
     }
   };
+  const handleLikeAction = (isLikedVar, likesVar) => {
+    const isReply = comment?.target_type === "seller_reply";
 
+    // Find which array contains the comment
+    const fqaComment = SelectedProduct?.fqa_questions?.comments?.find(
+      (s) => s.id === comment?.id
+    );
+    const buyerComment = SelectedProduct?.buyers_comment?.comments?.find(
+      (s) => s.id === comment?.id
+    );
+
+    if (fqaComment) {
+      // Update FAQ comment
+      const updatedComments = SelectedProduct.fqa_questions.comments.map(
+        (c) => {
+          if (c.id === comment?.id) {
+            if (isReply) {
+              // Update reply fields
+              return {
+                ...c,
+                reply_is_liked: isLikedVar,
+                reply_total_likes: likesVar,
+              };
+            } else {
+              // Update comment fields
+              return {
+                ...c,
+                is_liked: isLikedVar,
+                total_likes: likesVar,
+              };
+            }
+          }
+          return c;
+        }
+      );
+
+      editInfo({
+        fqa_questions: {
+          ...SelectedProduct.fqa_questions,
+          comments: updatedComments,
+        },
+      });
+    } else if (buyerComment) {
+      // Update buyer comment
+      const updatedComments = SelectedProduct.buyers_comment.comments.map(
+        (c) => {
+          if (c.id === comment?.id) {
+            if (isReply) {
+              // Update reply fields
+              return {
+                ...c,
+                reply_is_liked: isLikedVar,
+                reply_total_likes: likesVar,
+              };
+            } else {
+              // Update comment fields
+              return {
+                ...c,
+                is_liked: isLikedVar,
+                total_likes: likesVar,
+              };
+            }
+          }
+          return c;
+        }
+      );
+
+      editInfo({
+        buyers_comment: {
+          ...SelectedProduct.buyers_comment,
+          comments: updatedComments,
+        },
+      });
+    }
+  };
   return (
     <div
       className="flex items-center gap-[4px] text-[#1d1d1d] text-[9px] regular cursor-pointer select-none"

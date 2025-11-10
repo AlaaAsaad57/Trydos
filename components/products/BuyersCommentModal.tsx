@@ -9,6 +9,7 @@ import { translateFunction } from "utils/functions";
 import { fetchData } from "utils/fetchData";
 import { REQUESTS_DATA } from "utils/Requests";
 import { RateCommentItem } from "./ProductsBuyersComments";
+import auth from "services/auth";
 
 function BuyersCommentModal({ comments = [], total, offset: initialOffset }) {
   const { ColorBottomSheet, setColorBottomSheet, language, SelectedProduct } =
@@ -40,7 +41,7 @@ function BuyersCommentModal({ comments = [], total, offset: initialOffset }) {
 
     setLoading(true);
     try {
-      const url = `/api/products/comments/buyers_comments?product_id=${
+      const url = `/api/products/comments/buyers_comments?user_id=${auth.UserID()}&product_id=${
         SelectedProduct.id
       }${offsetValue ? `&offset=${JSON.stringify(offsetValue)}` : ""}${
         filterId

@@ -9,23 +9,10 @@ const Share = (props: React.SVGProps<SVGSVGElement>) => (
     viewBox="0 0 25 25"
     {...props}
   >
-    <defs>
-      <clipPath id="clip-path">
-        <rect
-          id="Rectangle_4612"
-          data-name="Rectangle 4612"
-          width="25"
-          height="25"
-          transform="translate(0 -0.029)"
-          fill="none"
-        />
-      </clipPath>
-    </defs>
     <g
       id="Mask_Group_836"
       data-name="Mask Group 836"
       transform="translate(0 0.029)"
-      clipPath="url(#clip-path)"
     >
       <path
         id="send-2"

@@ -1,7 +1,0 @@
-import * as React from 'react';
-
-const Lv = (props: React.SVGProps<SVGSVGElement>) => (
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 600" {...props}><path fill="#9E3039" d="M0 0h1200v600H0"/><path fill="#FFF" d="M0 240h1200v120H0"/></svg>
-);
-
-export default Lv;

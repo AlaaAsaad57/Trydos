@@ -20,6 +20,7 @@ import DeleteCommentIcon from "public/svg/DeleteCommentIcon";
 import PenIcon from "public/svg/PenIcon";
 import { COOKIE_NAMES, getCookie } from "utils/cookies/cookie-manager";
 import { LikeButton } from "./FAQSection";
+import auth from "services/auth";
 function ProductsBuyersComments({
   lang,
   comments,
@@ -38,7 +39,7 @@ function ProductsBuyersComments({
     try {
       setLoading(true);
       let data = await fetchData({
-        url: `/api/products/comments/buyers_comments?product_id=${product_id}&offset=${JSON.stringify(
+        url: `/api/products/comments/buyers_comments?user_id=${auth.UserID()}&product_id=${product_id}&offset=${JSON.stringify(
           offset
         )}`,
         method: "GET",

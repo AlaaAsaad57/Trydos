@@ -9,23 +9,10 @@ const Heart = (props: React.SVGProps<SVGSVGElement>) => (
     viewBox="0 0 30 30"
     {...props}
   >
-    <defs>
-      <clipPath id="clip-path">
-        <rect
-          id="Rectangle_4650"
-          data-name="Rectangle 4650"
-          width="30"
-          height="30"
-          transform="translate(0 -0.213)"
-          fill="#505050"
-        />
-      </clipPath>
-    </defs>
     <g
       id="Mask_Group_285"
       data-name="Mask Group 285"
       transform="translate(0 0.213)"
-      clipPath="url(#clip-path)"
     >
       <g id="Love" transform="translate(0 1.488)">
         <path

@@ -6,7 +6,6 @@ const Ply = (props: React.SVGProps<SVGSVGElement>) => (
     height="34"
     width="34"
     preserveAspectRatio="xMidYMid meet"
-    class=""
     version="1.1"
     x="0px"
     y="0px"

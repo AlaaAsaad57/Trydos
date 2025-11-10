@@ -1180,9 +1180,7 @@ const ProductCard = ({
                     {translateFunction("Return Requested")}
                   </span>
                   <span className="ml-[12px]">
-                    <ReturnedOrderStatusIcon
-                      status={product?.order_status ?? status}
-                    />
+                    <ReturnedOrderStatusIcon />
                   </span>
                 </div>
               </div>

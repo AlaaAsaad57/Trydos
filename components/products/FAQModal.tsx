@@ -12,6 +12,7 @@ import { convertTextToXFormat, formatTime, GetImageUrl } from "utils/tinyUtils";
 import { fetchData } from "utils/fetchData";
 import { REQUESTS_DATA } from "utils/Requests";
 import { LikeButton } from "./FAQSection";
+import auth from "services/auth";
 
 function FAQModal({ comments, total, offset: initialOffset }) {
   const { ColorBottomSheet, setColorBottomSheet, language, SelectedProduct } =
@@ -40,7 +41,7 @@ function FAQModal({ comments, total, offset: initialOffset }) {
 
     setLoading(true);
     try {
-      const url = `/api/products/comments/fqa_comments?product_id=${
+      const url = `/api/products/comments/fqa_comments?user_id=${auth.UserID()}&product_id=${
         SelectedProduct.id
       }${offsetValue ? `&offset=${JSON.stringify(offsetValue)}` : ""}${
         filterId
