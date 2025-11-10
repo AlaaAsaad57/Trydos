@@ -53,7 +53,7 @@ function OptionsMenu(props) {
             >
               {translateFunction("For Me")}
             </button>
-            {isSender && (
+            {isSender ? (
               <button
                 className="bg-white border border-gray-200 rounded-lg px-4 py-3 shadow-sm hover:shadow-md transition-shadow text-gray-900 font-medium"
                 data-cy="DELETE-OPTION"
@@ -67,6 +67,16 @@ function OptionsMenu(props) {
                 }}
               >
                 {translateFunction("For All")}
+              </button>
+            ) : (
+              <button
+                className="bg-white border border-gray-200 rounded-lg px-4 py-3 shadow-sm hover:shadow-md transition-shadow text-gray-900 font-medium"
+                data-cy="DELETE-OPTION"
+                onClick={() => setDelete(false)}
+                tabIndex={0}
+                aria-label={translateFunction("cancel")}
+              >
+                {translateFunction("Cancel")}
               </button>
             )}
           </div>
