@@ -21,6 +21,8 @@ function AddToCartButton({ product }: { product: any }) {
     }
     return false;
   };
+  const isRtl = languageVariable === "ar" || languageVariable === "ku";
+
   return (
     <div
       className={`${
@@ -47,7 +49,11 @@ function AddToCartButton({ product }: { product: any }) {
         }
       }}
     >
-      <div className="flex-row flex items-center justify-center gap-[4px]">
+      <div
+        className={`${
+          isRtl ? "flex-row-reverse" : "flex-row"
+        }  flex items-center justify-center gap-[4px]`}
+      >
         <svg
           id="Group_14474"
           data-name="Group 14474"
