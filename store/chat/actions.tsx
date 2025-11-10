@@ -209,7 +209,6 @@ export async function getPage(channel, mid) {
       reqTitle: REQUESTS_DATA.GET_MESSAGES_OF_CHANNEL,
       method: "POST",
       server: "chat",
-      body: {},
     });
     if (!response.success) {
       throw new Error(response.message);
@@ -289,7 +288,7 @@ export async function getMessagesBetweenMessage(payload) {
       reqTitle: REQUESTS_DATA.GET_MESSAGES_OF_CHANNEL,
       method: "POST",
       server: "chat",
-      body: JSON.stringify({ limit: payload.second + 1 }),
+      // body: JSON.stringify({ limit: payload.second + 1 }),
     });
     // @ts-ignore
     if (!response.success) {
@@ -327,7 +326,7 @@ export const getMedia = async (id, media) => {
       reqTitle: REQUESTS_DATA.GET_MEDIA_FOR_A_CHANNEL,
       method: "POST",
       server: "chat",
-      body: {},
+      // body: {},
     });
     if (!response.success) {
       throw new Error(response.message);
