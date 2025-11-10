@@ -27,10 +27,9 @@ function FAQSection({ lang, comments, product_id, seller_name }) {
   // This ensures it updates when likes are changed via editInfo
   // The array reference changes when editInfo updates comments, triggering recalculation
   const AllComments = useMemo(() => {
-    console.log(SelectedProduct.fqa_questions);
     return SelectedProduct?.fqa_questions?.comments ?? comments.comments;
   }, [SelectedProduct?.fqa_questions?.comments, comments.comments]);
-  console.log(SelectedProduct?.fqa_questions?.comments);
+
   const [loading, setLoading] = useState(false);
   const loadMore = async () => {
     try {
