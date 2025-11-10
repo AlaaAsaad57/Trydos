@@ -1,0 +1,7 @@
+import * as React from 'react';
+
+const Spinn = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg class="bwjm0vhl sx61ek5s" width="32" height="32" viewBox="0 0 43 43" role="status" {...props}><circle class="bvgz89zs a5uym4to pgr" cx="21.5" cy="21.5" r="20" fill="none" strokeWidth="3" style="stroke-dasharray: 126, 126; stroke-dashoffset: 0;"></circle><circle class="bvgz89zs gibn6ev6 pg" cx="21.5" cy="21.5" r="20" fill="none" strokeWidth="3" style="stroke-dasharray: 126, 126; stroke-dashoffset: 75.6;"></circle></svg>
+);
+
+export default Spinn;

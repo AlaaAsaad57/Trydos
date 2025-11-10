@@ -1,6 +1,6 @@
 "use client";
 import React from "react";
-import ShareIcon from "public/svg/listing/shareIcon.svg";
+import ShareIcon from "public/svg/listing/shareIcon";
 
 function ShareBoutiquePageButton() {
   return (

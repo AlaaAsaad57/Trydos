@@ -1,6 +1,6 @@
 import React from "react";
-import ColorsInfo from "public/svg/product/colorsInfo.svg";
-import SizeHelp from "public/svg/product/SizeHelp.svg";
+import ColorsInfo from "public/svg/product/colorsInfo";
+import SizeHelp from "public/svg/product/SizeHelp";
 import { translateFunction } from "utils/functions";
 function SizeInfoBox() {
   return (

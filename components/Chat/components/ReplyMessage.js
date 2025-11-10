@@ -1,8 +1,8 @@
 import React from "react";
-import ReplyIcon from "../svg/rep.svg";
-import CancelIcon from "../svg/cancel.svg";
-import VideoIcon from "../svg/video.svg";
-import AudioIcon from "../svg/audio.svg";
+import ReplyIcon from "../svg/rep";
+import CancelIcon from "../svg/cancel";
+import VideoIcon from "../svg/video";
+import AudioIcon from "../svg/audio";
 import out from "../svg/output.png";
 import { getConfiguredImage, translateFunction } from "utils/functions";
 import Image from "next/image";

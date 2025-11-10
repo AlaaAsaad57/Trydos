@@ -24,14 +24,14 @@ import RateOrderButton from "./cards/RateOrderButton";
 import Order from "services/order";
 import OrderChatIcon from "./OrderChatIcon";
 
-import ReturnedOrderStatusIcon from "public/svg/ReturnedOrderStatusIcon.svg";
+import ReturnedOrderStatusIcon from "public/svg/ReturnedOrderStatusIcon";
 const ChatWidget = dynamic(() => import("components/Chat/ChatWidget"), {
   ssr: false,
   loading: () => <LandingPage afterLoad={true} />,
 });
-import OptionsIcon from "public/svg/OptionsIcon.svg";
+import OptionsIcon from "public/svg/OptionsIcon";
 import OrderRetailsReturnInfo from "components/Orders/OrderRetailsReturnInfo";
-import CanceledOrderStatusIcon from "public/svg/CanceledOrderStatusIcon.svg";
+import CanceledOrderStatusIcon from "public/svg/CanceledOrderStatusIcon";
 import {
   DisableScroll,
   EnableScroll,

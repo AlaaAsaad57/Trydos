@@ -1,9 +1,9 @@
 "use client";
-import ColorsIcon from "public/svg/product/colors.svg";
+import ColorsIcon from "public/svg/product/colors";
 import React, { useEffect, useState } from "react";
 import { getConfiguredImage, translateFunction } from "utils/functions";
 import "styles/listing.css";
-import TrendColorIcon from "public/svg/product/TrendColorIcon.svg";
+import TrendColorIcon from "public/svg/product/TrendColorIcon";
 import {
   useParams,
   usePathname,

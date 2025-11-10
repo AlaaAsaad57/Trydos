@@ -1,6 +1,6 @@
 "use client";
 
-import PlusIcon from "public/svg/chatplus.svg";
+import PlusIcon from "public/svg/chatplus";
 import { useAppStore } from "store";
 import {
   COOKIE_NAMES,

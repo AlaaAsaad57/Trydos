@@ -1,5 +1,5 @@
 import { useState } from "react";
-import ReportOrderItemIcon from "public/svg/ReportOrderItemIcon.svg";
+import ReportOrderItemIcon from "public/svg/ReportOrderItemIcon";
 import TransParentLoader from "components/global/TransParentLoader";
 import {
   SelectStory,
@@ -10,8 +10,8 @@ import StoryViewer from "./StoryViewer";
 import { useAppStore } from "store";
 import StoryServiceClass from "services/story";
 import { StoryHolderPropsType } from "models/componentType/StoryHolderPropsType";
-import Xicon from "public/svg/Xicon.svg";
-import DeleteIcon from "public/svg/DeleteIcon.svg";
+import Xicon from "public/svg/Xicon";
+import DeleteIcon from "public/svg/DeleteIcon";
 import {
   showSuccessNotification,
   showErrorNotification,

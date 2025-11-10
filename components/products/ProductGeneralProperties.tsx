@@ -2,13 +2,13 @@
 import React, { Suspense, useMemo } from "react";
 import RatingStars from "components/settings/cards/RatingStars";
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
-import RecomendedIcon from "public/svg/Recomended.svg";
-import QualityIcon from "public/svg/product/QualityIcon.svg";
+import RecomendedIcon from "public/svg/Recomended";
+import QualityIcon from "public/svg/product/QualityIcon";
 import ProductViews from "components/products/ProductViews";
-import Flag from "public/svg/product/flag.svg";
+import Flag from "public/svg/product/flag";
 import { translateFunction } from "utils/functions";
 import Skeleton from "react-loading-skeleton";
-import EyeIcon from "public/svg/product/EyeIcon.svg";
+import EyeIcon from "public/svg/product/EyeIcon";
 import { useAppStore } from "store";
 import GeneralPropertiesModal from "./GeneralPropertiesModal";
 

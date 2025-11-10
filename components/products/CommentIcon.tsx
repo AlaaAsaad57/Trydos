@@ -1,6 +1,6 @@
 import React from "react";
 
-import ActiveCommentIcon from "public/svg/ActiveComment.svg";
+import ActiveCommentIcon from "public/svg/ActiveComment";
 function CommentIcon({ active }) {
   return (
     <>

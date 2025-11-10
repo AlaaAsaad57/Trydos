@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import SettingTopBar from "./TopBar";
 import { translateFunction } from "utils/functions";
-import AddressInfo from "public/svg/cart/AddressInfo.svg";
+import AddressInfo from "public/svg/cart/AddressInfo";
 import auth from "services/auth";
 import { useAppStore } from "store";
 import { ProfileSizeInfoPropsType } from "models/componentType/settingTypes/ProfileSizeInfoPropsType";

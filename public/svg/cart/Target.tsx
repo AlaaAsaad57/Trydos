@@ -1,0 +1,61 @@
+import * as React from "react";
+
+const Target = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    xmlnsXlink="http://www.w3.org/1999/xlink"
+    width="18"
+    height="18"
+    viewBox="0 0 18 18"
+    {...props}
+  >
+    <defs>
+      <clipPath id="clip-path">
+        <rect
+          id="Rectangle_6091"
+          data-name="Rectangle 6091"
+          width="18"
+          height="18"
+          transform="translate(0.166)"
+          fill="none"
+        />
+      </clipPath>
+    </defs>
+    <g
+      id="Mask_Group_644"
+      data-name="Mask Group 644"
+      transform="translate(-0.166)"
+      clipPath="url(#clip-path)"
+    >
+      <g
+        id="Group_11944"
+        data-name="Group 11944"
+        transform="translate(0.166 0)"
+      >
+        <g id="Group_11943" data-name="Group 11943">
+          <g
+            id="Ellipse_427"
+            data-name="Ellipse 427"
+            fill="none"
+            stroke="#1d1d1d"
+            stroke-width="0.5"
+          >
+            <circle cx="9" cy="9" r="9" stroke="none" />
+            <circle cx="9" cy="9" r="8.75" fill="none" />
+          </g>
+          <circle
+            id="Ellipse_428"
+            data-name="Ellipse 428"
+            cx="4"
+            cy="4"
+            r="4"
+            transform="translate(5 5)"
+            fill="#1d1d1d"
+          />
+        </g>
+      </g>
+    </g>
+  </svg>
+);
+
+export default Target;

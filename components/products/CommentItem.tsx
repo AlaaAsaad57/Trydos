@@ -1,12 +1,12 @@
 import React, { useState, useRef, useEffect } from "react";
 import "styles/comment.css";
-import Loading from "public/svg/loading.svg";
+import Loading from "public/svg/loading";
 import { CommentItemPropsType } from "models/componentType/CommentItemPropsType";
 import { getCookie, COOKIE_NAMES } from "utils/cookies/cookie-manager";
 import { ConfirmModal } from "components/global/ConfirmModal";
-import ThreePointsIcon from "public/svg/threepoints.svg";
-import DeleteCommentIcon from "public/svg/DeleteCommentIcon.svg";
-import PenIcon from "public/svg/PenIcon.svg";
+import ThreePointsIcon from "public/svg/threepoints";
+import DeleteCommentIcon from "public/svg/DeleteCommentIcon";
+import PenIcon from "public/svg/PenIcon";
 import { showErrorNotification } from "store/notifications/reducer";
 import { useParams } from "node_modules/next/navigation";
 import { translateFunction } from "utils/functions";

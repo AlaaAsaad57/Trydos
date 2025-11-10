@@ -67,7 +67,7 @@ function NotifyButton({ isNotified, notifyAction, loading }) {
                     id="Mask_Group_371"
                     data-name="Mask Group 371"
                     transform="translate(-199.969 -852.074)"
-                    clip-path="url(#1223)"
+                    clipPath="url(#1223)"
                   >
                     <g id="ringing" transform="translate(200.832 852.017)">
                       <g
@@ -165,7 +165,7 @@ function NotifyButton({ isNotified, notifyAction, loading }) {
                     id="Mask_Group_856"
                     data-name="Mask Group 856"
                     transform="translate(-200 -851.892)"
-                    clip-path="url(#123)"
+                    clipPath="url(#123)"
                   >
                     <g id="ringing-2" transform="translate(200.827 852.036)">
                       <g
@@ -285,7 +285,7 @@ const NotificationIconHolder = ({ isNotified }) => {
               id="Mask_Group_857"
               data-name="Mask Group 857"
               transform="translate(-199.969 -852.074)"
-              clip-path="url(#4545)"
+              clipPath="url(#4545)"
             >
               <g id="ringing" transform="translate(200.616 852.031)">
                 <g
@@ -380,7 +380,7 @@ const NotificationIconHolder = ({ isNotified }) => {
               id="Mask_Group_372"
               data-name="Mask Group 372"
               transform="translate(-200 -851.892)"
-              clip-path="url(#3467)"
+              clipPath="url(#3467)"
             >
               <g id="ringing-2" transform="translate(200.62 852)">
                 <g

@@ -1,6 +1,6 @@
 "use client";
 import React from "react";
-import BackIcon from "public/svg/listing/backIcon.svg";
+import BackIcon from "public/svg/listing/backIcon";
 import NextLink from "components/global/NextLink";
 import ProductCartHeader from "./ProductCartHeader";
 function ProductBackButton({ lang, productId }) {

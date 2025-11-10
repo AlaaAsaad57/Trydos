@@ -1,5 +1,5 @@
 import { FreeShippingOptionPropsType } from "models/componentType/productTypes/MultiComponentOnProductPage";
-import FreeShippingIcon from "public/svg/product/FreeShipping.svg";
+import FreeShippingIcon from "public/svg/product/FreeShipping";
 
 import { translateFunction } from "utils/functions";
 function FreeShippingOption({ lang }: FreeShippingOptionPropsType) {

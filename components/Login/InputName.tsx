@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { translateFunction } from "utils/functions";
-import LeftArrowIcon from "public/svg/LeftArrowIcon.svg";
+import LeftArrowIcon from "public/svg/LeftArrowIcon";
 import useDetectKeyboardOpen from "use-detect-keyboard-open";
 import { useParams } from "next/navigation";
 import Spinner from "components/global/Spinner";

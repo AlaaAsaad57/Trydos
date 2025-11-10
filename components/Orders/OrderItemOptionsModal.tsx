@@ -1,13 +1,13 @@
 import React, { useState } from "react";
 import { getConfiguredImage, translateFunction } from "utils/functions";
 import Image from "next/image";
-import ChangeOrderItemIcon from "public/svg/ChangeOrderItemIcon.svg";
-import ReturnOrderItemIcon from "public/svg/ReturnOrderItemIcon.svg";
-import ReportOrderItemIcon from "public/svg/ReportOrderItemIcon.svg";
-import HideOrderItemIcon from "public/svg/HideOrderItemIcon.svg";
+import ChangeOrderItemIcon from "public/svg/ChangeOrderItemIcon";
+import ReturnOrderItemIcon from "public/svg/ReturnOrderItemIcon";
+import ReportOrderItemIcon from "public/svg/ReportOrderItemIcon";
+import HideOrderItemIcon from "public/svg/HideOrderItemIcon";
 import ReturnOrderItem from "./ReturnOrderItem";
 import { useAppStore } from "store";
-import CancelOrderIcon from "public/svg/OrderCancelIcon.svg";
+import CancelOrderIcon from "public/svg/OrderCancelIcon";
 import CancelOrderItem from "./CancelOrderItem";
 import ChangeOrderItem from "./ChangeOrderItem";
 import { GetImageUrl } from "utils/tinyUtils";

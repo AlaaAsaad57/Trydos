@@ -1,11 +1,11 @@
 "use client";
 import { useEffect, useState } from "react";
-import ShippingIcon from "public/svg/product/ShippingIcon.svg";
-import ShippingDollar from "public/svg/product/ShippingDollar.svg";
-import FastIcon from "public/svg/product/FastIcon.svg";
-import PlaneIcon from "public/svg/product/PlaneIcon.svg";
-import PackingIcon from "public/svg/product/PackingIcon.svg";
-import MarkerIcon from "public/svg/product/MarkerIcon.svg";
+import ShippingIcon from "public/svg/product/ShippingIcon";
+import ShippingDollar from "public/svg/product/ShippingDollar";
+import FastIcon from "public/svg/product/FastIcon";
+import PlaneIcon from "public/svg/product/PlaneIcon";
+import PackingIcon from "public/svg/product/PackingIcon";
+import MarkerIcon from "public/svg/product/MarkerIcon";
 import { translateFunction } from "utils/functions";
 import { useParams } from "next/navigation";
 import Spinner from "components/global/Spinner";

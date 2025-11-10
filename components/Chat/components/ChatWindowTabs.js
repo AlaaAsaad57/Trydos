@@ -1,12 +1,12 @@
 import ChatTabIcon from "./ChatTabIcon";
-import ChatIcon from "../svg/Tabs/ChatIcon.svg";
-import ActiveChatIcon from "../svg/Tabs/ActiveChatIcon.svg";
-import HasNewChatIon from "../svg/Tabs/HasNewChatIon.svg";
-import CallIcon from "../svg/Tabs/CallIcon.svg";
-import ActiveCallIcon from "../svg/Tabs/ActiveCallIcon.svg";
-import HasNewCallIcon from "../svg/Tabs/HasNewCallIcon.svg";
-import StoryIcon from "../svg/Tabs/StoryIcon.svg";
-import ActiveStoryIcon from "../svg/Tabs/ActiveStoryIcon.svg";
+import ChatIcon from "../svg/Tabs/ChatIcon";
+import ActiveChatIcon from "../svg/Tabs/ActiveChatIcon";
+import HasNewChatIon from "../svg/Tabs/HasNewChatIon";
+import CallIcon from "../svg/Tabs/CallIcon";
+import ActiveCallIcon from "../svg/Tabs/ActiveCallIcon";
+import HasNewCallIcon from "../svg/Tabs/HasNewCallIcon";
+import StoryIcon from "../svg/Tabs/StoryIcon";
+import ActiveStoryIcon from "../svg/Tabs/ActiveStoryIcon";
 import { getNew, getNewCalls } from "../chatsFunctions";
 import { useAppStore } from "store";
 

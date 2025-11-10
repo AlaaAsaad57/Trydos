@@ -6,8 +6,8 @@ import {
   translateFunction,
   GetCartOreview,
 } from "utils/functions";
-import BackIcon from "public/svg/listing/backIcon.svg";
-import ShareIcon from "public/svg/listing/shareIcon.svg";
+import BackIcon from "public/svg/listing/backIcon";
+import ShareIcon from "public/svg/listing/shareIcon";
 import Skeleton from "react-loading-skeleton";
 import "styles/productDetails.css";
 import NextLink from "components/global/NextLink";

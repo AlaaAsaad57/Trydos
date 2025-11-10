@@ -1,17 +1,17 @@
 import React, { useEffect, useState } from "react";
 import ProfileCard from "./ProfileCard";
-import TryDosWalletIcon from "public/svg/TryDosWalletIcon.svg";
-import OrdersIcon from "public/svg/OrdersIcon.svg";
-import SettingsIcon from "public/svg/SettingsIcon.svg";
-import TermsIcon from "public/svg/TermsIcon.svg";
-import LegalInfoIcon from "public/svg/LegalInfoIcon.svg";
-import AboutIcon from "public/svg/AboutIcon.svg";
-import ShareAppIcon from "public/svg/ShareAppIcon.svg";
-import LanguageIcon from "public/svg/LanguageIcon.svg";
+import TryDosWalletIcon from "public/svg/TryDosWalletIcon";
+import OrdersIcon from "public/svg/OrdersIcon";
+import SettingsIcon from "public/svg/SettingsIcon";
+import TermsIcon from "public/svg/TermsIcon";
+import LegalInfoIcon from "public/svg/LegalInfoIcon";
+import AboutIcon from "public/svg/AboutIcon";
+import ShareAppIcon from "public/svg/ShareAppIcon";
+import LanguageIcon from "public/svg/LanguageIcon";
 import { useParams, useRouter } from "next/navigation";
 import { allCountries } from "country-telephone-data";
 import order from "services/order";
-import BackIcon from "public/svg/listing/backIcon.svg";
+import BackIcon from "public/svg/listing/backIcon";
 
 import { translateFunction } from "utils/functions";
 import Spinner from "components/global/Spinner";

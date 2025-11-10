@@ -21,13 +21,13 @@ import Observable from "components/Chat/components/ChatHistoryElement";
 import WebcamCapture from "components/Chat/components/CameraComponent";
 import ChatSearch from "../components/ChatSearch";
 
-import MicIcon from "../svg/mic.svg";
-import RedMicIcon from "../svg/redmic.svg";
-import WaveIcon from "../svg/wave.svg";
-import ShareIcon from "../svg/sharechat.svg";
-import PlusIcon from "../svg/chatplus.svg";
-import CameraIcon from "../svg/camera.svg";
-import SendIcon from "../svg/sendbutton.svg";
+import MicIcon from "../svg/mic";
+import RedMicIcon from "../svg/redmic";
+import WaveIcon from "../svg/wave";
+import ShareIcon from "../svg/sharechat";
+import PlusIcon from "../svg/chatplus";
+import CameraIcon from "../svg/camera";
+import SendIcon from "../svg/sendbutton";
 
 import { dataURLtoFile, upload, getUser } from "../chatsFunctions";
 import {

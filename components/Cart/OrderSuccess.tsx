@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 
-import OrderSuccessIcon from "public/svg/cart/OrderSuccess.svg";
+import OrderSuccessIcon from "public/svg/cart/OrderSuccess";
 import { RoundPrice, translateFunction } from "utils/functions";
 import { useAppStore } from "store";
 import {

@@ -1,7 +1,7 @@
 import React from "react";
-import ActiveCategoryIcon from "public/svg/listing/ActiveCategoryIcon.svg";
-import CloseIcon from "public/svg/CloseIcon.svg";
-import Search from "public/svg/SearchIcon.svg";
+import ActiveCategoryIcon from "public/svg/listing/ActiveCategoryIcon";
+import CloseIcon from "public/svg/CloseIcon";
+import Search from "public/svg/SearchIcon";
 import NextLink from "components/global/NextLink";
 import {
   GetImageUrl,

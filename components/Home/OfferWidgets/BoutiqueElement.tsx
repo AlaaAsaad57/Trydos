@@ -95,6 +95,7 @@ export const CategoriesSlider = ({ categories, boutique, lang }) => {
     >
       {categories?.map((category) => (
         <NextLink
+          key={category?.slug}
           href={
             category?.is_product_url
               ? `/${lang}/products/${category.slug}`
@@ -123,7 +124,6 @@ export const CategoriesSlider = ({ categories, boutique, lang }) => {
               "/upload",
               `/upload/h_200,w_200,c_fit/f_auto/q_auto:good/fl_lossy/so_0`
             )}
-            layout="responsive"
             width={300}
             className="rounded-[15px] w-[90px] h-[90px] object-contain object-center "
             height={300}

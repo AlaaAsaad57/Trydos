@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import AddToCartButton from "./AddToCartButton";
-import Heart from "public/svg/Heart.svg";
-import HeartFill from "public/svg/HeartFill.svg";
-import Share from "public/svg/share.svg";
+import Heart from "public/svg/Heart";
+import HeartFill from "public/svg/HeartFill";
+import Share from "public/svg/share";
 import CommentIcon from "./CommentIcon";
 import ThreePoints from "./ThreePoints";
 import ShareButton from "./ShareButton";

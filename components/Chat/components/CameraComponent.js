@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import Webcam from "react-webcam";
-import CameraIcon from "../svg/image.svg";
-import SendIcon from "../svg/sharechat.svg";
+import CameraIcon from "../svg/image";
+import SendIcon from "../svg/sharechat";
 import Image from "next/image";
 import { showErrorNotification } from "store/notifications/reducer";
 import { translateFunction } from "utils/functions";

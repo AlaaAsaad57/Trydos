@@ -1,5 +1,5 @@
 "use client";
-import ChatIcon from "public/svg/ChatIcon.svg";
+import ChatIcon from "public/svg/ChatIcon";
 import { translateFunction } from "utils/functions";
 import UserAvatar from "./UserAvatar";
 import { ChatConroller } from "utils/tinyUtils";

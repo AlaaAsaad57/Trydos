@@ -1,7 +1,7 @@
 import { getMessageStatusIcon, getUser } from "../chatsFunctions";
-import ImageIcon from "../svg/image.svg";
-import VideoIcon from "../svg/video.svg";
-import AudioIcon from "../svg/audio.svg";
+import ImageIcon from "../svg/image";
+import VideoIcon from "../svg/video";
+import AudioIcon from "../svg/audio";
 import { translateFunction } from "utils/functions";
 import { useParams } from "next/navigation";
 import { useAppStore } from "store";

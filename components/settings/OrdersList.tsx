@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
 import SettingTopBar from "./TopBar";
-import SearchHistoryIcon from "public/svg/SearchHistoryIcon.svg";
+import SearchHistoryIcon from "public/svg/SearchHistoryIcon";
 import {
   OrderItem as OrderItemType,
   OrderDetail,

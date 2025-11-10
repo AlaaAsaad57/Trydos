@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import CameraIcon from "../../Chat/svg/image.svg";
+import CameraIcon from "../../Chat/svg/image";
 
-import SendIcon from "../../Chat/svg/sharechat.svg";
+import SendIcon from "../../Chat/svg/sharechat";
 import Webcam from "react-webcam";
 import Image from "next/image";
 import UploadVideo from "../UploadVideo";

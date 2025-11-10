@@ -1,9 +1,9 @@
-import ReadIcon from "./svg/read.svg";
-import SentIcon from "./svg/sent.svg";
-import ReceiveIcon from "./svg/recieved.svg";
-import MissedCall from "./svg/missedCall.svg";
-import IncomingCall from "./svg/IncomingCall.svg";
-import OutgoingCall from "./svg/outgoingCall.svg";
+import ReadIcon from "./svg/read";
+import SentIcon from "./svg/sent";
+import ReceiveIcon from "./svg/recieved";
+import MissedCall from "./svg/missedCall";
+import IncomingCall from "./svg/IncomingCall";
+import OutgoingCall from "./svg/outgoingCall";
 import { useAppStore } from "store";
 
 import { SendMessage } from "store/chat/actions";

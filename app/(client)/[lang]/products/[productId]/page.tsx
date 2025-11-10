@@ -3,11 +3,11 @@ export const preferredRegion = "bom1";
 export const dynamic = "force-dynamic";
 import "styles/productDetails.css";
 import "styles/product-body.css";
-import FreeReturnIcon from "public/svg/product/FreeReturnIcon.svg";
+import FreeReturnIcon from "public/svg/product/FreeReturnIcon";
 import { getConfiguredImage, translateFunction } from "utils/functions";
 import Image from "next/image";
 
-import VerifiedIcon from "public/svg/product/Verified.svg";
+import VerifiedIcon from "public/svg/product/Verified";
 import ProductDescriptors from "components/products/ProductDescriptors";
 import { GetImageUrl } from "utils/tinyUtils";
 import { generateProductMetaData } from "./MetaData";

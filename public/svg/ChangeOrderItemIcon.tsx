@@ -1,0 +1,12 @@
+import * as React from 'react';
+
+const ChangeOrderItemIcon = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg id="Group_12940" data-name="Group 12940" xmlns="http://www.w3.org/2000/svg" width="30.003" height="30.004" viewBox="0 0 30.003 30.004" {...props}>
+  <g id="Group_12939" data-name="Group 12939" transform="translate(0)">
+    <path id="Path_22809" data-name="Path 22809" d="M36.007,48.019a.353.353,0,0,0-.261.423,14.561,14.561,0,0,1,.388,3.328,14.317,14.317,0,0,1-14.3,14.3,14.124,14.124,0,0,1-8.618-2.9,2.365,2.365,0,1,0-.477.522,14.82,14.82,0,0,0,9.095,3.079,15.023,15.023,0,0,0,14.594-18.5.352.352,0,0,0-.425-.263Z" transform="translate(-6.836 -36.775)" fill="#8d8d8d"/>
+    <path id="Path_22810" data-name="Path 22810" d="M.855,15.168A14.3,14.3,0,0,1,22.638,2.983a2.106,2.106,0,1,0,.4-.581A15.009,15.009,0,0,0,.4,17.9a.35.35,0,0,0,.345.289.291.291,0,0,0,.063-.007.353.353,0,0,0,.284-.409,14.32,14.32,0,0,1-.237-2.6Z" transform="translate(-0.15 -0.16)" fill="#8d8d8d"/>
+  </g>
+</svg>
+);
+
+export default ChangeOrderItemIcon;

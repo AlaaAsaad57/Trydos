@@ -1,11 +1,11 @@
 import Border from "components/global/Border";
 import { useEffect, useRef, useState } from "react";
-import SolidPhoneIcon from "public/svg/SolidPhoneIcon.svg";
+import SolidPhoneIcon from "public/svg/SolidPhoneIcon";
 import { allCountries } from "country-telephone-data";
-import LeftArrowIcon from "public/svg/LeftArrowIcon.svg";
-import LoginIcon from "public/svg/LoginIcon.svg";
-import BlueCall from "public/svg/BlueCall.svg";
-import PrivacyIcon from "public/svg/privacyicon.svg";
+import LeftArrowIcon from "public/svg/LeftArrowIcon";
+import LoginIcon from "public/svg/LoginIcon";
+import BlueCall from "public/svg/BlueCall";
+import PrivacyIcon from "public/svg/privacyicon";
 import useDetectKeyboardOpen from "use-detect-keyboard-open";
 import { translateFunction } from "utils/functions";
 import { useParams } from "next/navigation";

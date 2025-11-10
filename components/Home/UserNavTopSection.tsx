@@ -3,7 +3,7 @@ import { getConfiguredImage, translateFunction } from "utils/functions";
 import { useState } from "react";
 import Image from "next/image";
 import AuthNavSection from "./AuthNavSection";
-import CartIcon from "public/svg/CartIcon.svg";
+import CartIcon from "public/svg/CartIcon";
 import {
   usePathname,
   useSearchParams,

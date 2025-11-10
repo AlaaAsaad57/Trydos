@@ -1,5 +1,5 @@
 import React from "react";
-import CartPurbleIcon from "public/svg/CartPurbleIcon.svg";
+import CartPurbleIcon from "public/svg/CartPurbleIcon";
 import { useAppStore } from "store";
 import { RoundPrice, translateFunction } from "utils/functions";
 

@@ -34,7 +34,7 @@ function UploadProfilePhoto({
       streamVar.getTracks().forEach((track) => track.stop());
       container.remove();
     };
-    CancelButton.innerHTML = `<svg width="24" height="24" xmlns="http://www.w3.org/2000/svg" fill-rule="evenodd" clip-rule="evenodd"><path d="M12 11.293l10.293-10.293.707.707-10.293 10.293 10.293 10.293-.707.707-10.293-10.293-10.293 10.293-.707-.707 10.293-10.293-10.293-10.293.707-.707 10.293 10.293z"/></svg>`;
+    CancelButton.innerHTML = `<svg width="24" height="24" xmlns="http://www.w3.org/2000/svg" fillRule="evenodd" clip-rule="evenodd"><path d="M12 11.293l10.293-10.293.707.707-10.293 10.293 10.293 10.293-.707.707-10.293-10.293-10.293 10.293-.707-.707 10.293-10.293-10.293-10.293.707-.707 10.293 10.293z"/></svg>`;
     container.appendChild(CancelButton);
     container.style.position = "fixed";
     container.style.top = "0";
@@ -64,7 +64,7 @@ function UploadProfilePhoto({
     captureBtn.style.borderRadius = "50px";
     captureBtn.style.backgroundColor = "#f8f8f8";
     captureBtn.style.margin = "10px auto";
-    captureBtn.innerHTML = `<svg id="_15x15" data-name="15x15" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="15" height="15" viewBox="0 0 15 15">
+    captureBtn.innerHTML = `<svg id="_15x15" data-name="15x15" xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" width="15" height="15" viewBox="0 0 15 15">
   <g id="Mask_Group_316" data-name="Mask Group 316" >
     <g id="Mask_Group_272" data-name="Mask Group 272" >
       <g id="photo-camera" transform="translate(0 -29.091)">

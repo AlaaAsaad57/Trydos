@@ -6,7 +6,7 @@ import { useAppStore } from "store";
 import { translateFunction } from "utils/functions";
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 import Skeleton from "node_modules/react-loading-skeleton/dist";
-import FAQIcon from "public/svg/FAQIcon.svg";
+import FAQIcon from "public/svg/FAQIcon";
 import Image from "node_modules/next/image";
 import { convertTextToXFormat, formatTime, GetImageUrl } from "utils/tinyUtils";
 import { fetchData } from "utils/fetchData";

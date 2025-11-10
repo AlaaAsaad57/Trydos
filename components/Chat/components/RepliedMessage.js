@@ -1,9 +1,9 @@
 import React from "react";
 import { getTwoLetters } from "../chatsFunctions";
 
-import ImageIcon from "../svg/image.svg";
-import VideoIcon from "../svg/video.svg";
-import AudioIcon from "../svg/audio.svg";
+import ImageIcon from "../svg/image";
+import VideoIcon from "../svg/video";
+import AudioIcon from "../svg/audio";
 import profile from "public/images/profileNo.png";
 
 import out from "../svg/output.png";

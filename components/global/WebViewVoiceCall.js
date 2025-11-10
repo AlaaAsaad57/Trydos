@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
-import EndCallIcon from "../Chat/svg/endCall.svg";
-import MicIcon from "../Chat/svg/micIcon.svg";
-import CallingIcon from "../Chat/svg/calling.svg";
+import EndCallIcon from "../Chat/svg/endCall";
+import MicIcon from "../Chat/svg/micIcon";
+import CallingIcon from "../Chat/svg/calling";
 import { createClient, createMicrophoneAndCameraTracks } from "agora-rtc-react";
 import { useStopwatch } from "react-timer-hook";
 const config = {

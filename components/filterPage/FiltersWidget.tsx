@@ -1,11 +1,11 @@
 "use client";
 import NextLink from "components/global/NextLink";
-import FilterIcon from "public/svg/listing/filterIcon.svg";
-import ActiveCategoryIcon from "public/svg/listing/ActiveCategoryIcon.svg";
-import PriceCancel from "public/svg/listing/PriceCancel.svg";
+import FilterIcon from "public/svg/listing/filterIcon";
+import ActiveCategoryIcon from "public/svg/listing/ActiveCategoryIcon";
+import PriceCancel from "public/svg/listing/PriceCancel";
 import React, { useEffect, useState } from "react";
 import { useAppStore } from "store";
-import BackIcon from "public/svg/listing/backIcon.svg";
+import BackIcon from "public/svg/listing/backIcon";
 
 import {
   getConfiguredImage,

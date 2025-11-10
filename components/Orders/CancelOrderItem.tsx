@@ -7,7 +7,7 @@ import {
   translateFunction,
 } from "utils/functions";
 
-import CancelOrderItemIcon from "public/svg/OrderCancelIcon.svg";
+import CancelOrderItemIcon from "public/svg/OrderCancelIcon";
 import { GetImageUrl } from "utils/tinyUtils";
 import { CancelOrderItemPropsType } from "models/componentType/CancelOrderItemPropsType";
 function CancelOrderItem({

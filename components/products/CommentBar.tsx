@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import CommentPost from "public/svg/CommentPost.svg";
+import CommentPost from "public/svg/CommentPost";
 import auth from "services/auth";
 import { translateFunction } from "utils/functions";
 import { fetchData } from "utils/fetchData";

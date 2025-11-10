@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import ActiveCategoryIcon from "public/svg/listing/ActiveCategoryIcon.svg";
+import ActiveCategoryIcon from "public/svg/listing/ActiveCategoryIcon";
 import { useAppStore } from "store";
 import Image from "next/image";
 import { GetImageUrl } from "utils/tinyUtils";

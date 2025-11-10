@@ -1,14 +1,14 @@
 import React, { useState } from "react";
 import { RoundPrice, translateFunction } from "utils/functions";
-import ChangeAddressIcon from "public/svg/ChangeAddressIcon.svg";
+import ChangeAddressIcon from "public/svg/ChangeAddressIcon";
 import ChangeAddressWidget from "./ChangeAddressWidget";
 import { useAppStore } from "store";
 import CancelOrderConfirmation from "./CancelOrderConfirmation";
 import OrderItemOptionsModal from "./OrderItemOptionsModal";
 import ReturnOrderItemConfirmation from "./ReturnOrderItemConfirmation";
 import OrderItem from "./OrderItem";
-import HideOrderItemIcon from "public/svg/HideOrderItemIcon.svg";
-import OrderCancelIcon from "public/svg/OrderCancelIcon.svg";
+import HideOrderItemIcon from "public/svg/HideOrderItemIcon";
+import OrderCancelIcon from "public/svg/OrderCancelIcon";
 import { OrderCanceltionOptionsPropsType } from "models/componentType/OrderCanceltionOptionsPropsType";
 import { OrderOptionsPropsType } from "models/componentType/OrderOptionsPropsType";
 import { showErrorNotification } from "@/store/notifications/reducer";
@@ -16,7 +16,7 @@ import orderService from "services/order";
 import { totalAmount } from "utils/tinyUtils";
 import { useParams, useRouter } from "next/navigation";
 import { ModifyOrderItemModal } from "./ModifyOrderItemModal";
-import CancelOrderItemIcon from "public/svg/OrderCancelIcon.svg";
+import CancelOrderItemIcon from "public/svg/OrderCancelIcon";
 
 function OrderOptions({
   closeOptions,

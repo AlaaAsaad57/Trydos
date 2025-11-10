@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
-import OrderCartIcon from "public/svg/cart/orderCartIcon.svg";
+import OrderCartIcon from "public/svg/cart/orderCartIcon";
 import { getConfiguredImage, translateFunction } from "utils/functions";
 import { useParams } from "next/navigation";
-import FreeShippingIcon from "public/svg/product/FreeShipping.svg";
-import AddAddressIcon from "public/svg/cart/AddAddress.svg";
+import FreeShippingIcon from "public/svg/product/FreeShipping";
+import AddAddressIcon from "public/svg/cart/AddAddress";
 import order from "services/order";
 import Spinner from "components/global/Spinner";
 import { useAppStore } from "store";

@@ -1,8 +1,8 @@
 "use client";
 import React, { useState, useRef, useEffect } from "react";
-import CloseIcon from "public/svg/close.svg";
-import CameraIcon from "../Chat/svg/image.svg";
-import UploadIcon from "public/svg/UploadImageOrder.svg";
+import CloseIcon from "public/svg/close";
+import CameraIcon from "../Chat/svg/image";
+import UploadIcon from "public/svg/UploadImageOrder";
 import { getConfiguredImage, translateFunction } from "utils/functions";
 import { DisableScroll, EnableScroll, GetImageUrl } from "utils/tinyUtils";
 import { useAppStore } from "store";

@@ -1,0 +1,96 @@
+import * as React from "react";
+
+const Gift = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    xmlnsXlink="http://www.w3.org/1999/xlink"
+    width="16"
+    height="16"
+    viewBox="0 0 16 16"
+    {...props}
+  >
+    <defs>
+      <clipPath id="clip-path">
+        <rect
+          id="Rectangle_5764"
+          data-name="Rectangle 5764"
+          width="16"
+          height="16"
+          transform="translate(0 0.024)"
+          fill="none"
+        />
+      </clipPath>
+    </defs>
+    <g
+      id="Mask_Group_534"
+      data-name="Mask Group 534"
+      transform="translate(0 -0.024)"
+      clipPath="url(#clip-path)"
+    >
+      <g id="money-9" transform="translate(0 0.643)">
+        <g
+          id="Group_12791"
+          data-name="Group 12791"
+          transform="translate(0 7.429)"
+        >
+          <g id="Group_12790" data-name="Group 12790">
+            <path
+              id="Path_22251"
+              data-name="Path 22251"
+              d="M.218,6.163a.333.333,0,0,0-.2.427l.209.576L1.823,5.572Z"
+              transform="translate(0 -5.572)"
+              fill="#5ba260"
+            />
+          </g>
+        </g>
+        <g
+          id="Group_12793"
+          data-name="Group 12793"
+          transform="translate(1.727 13.14)"
+        >
+          <g id="Group_12792" data-name="Group 12792">
+            <path
+              id="Path_22252"
+              data-name="Path 22252"
+              d="M1.3,9.855l.96,2.64a.33.33,0,0,0,.173.188.335.335,0,0,0,.141.031.326.326,0,0,0,.115-.021L3.743,12.3Z"
+              transform="translate(-1.295 -9.855)"
+              fill="#5ba260"
+            />
+          </g>
+        </g>
+        <g
+          id="Group_12795"
+          data-name="Group 12795"
+          transform="translate(8.899 7.866)"
+        >
+          <g id="Group_12794" data-name="Group 12794">
+            <path
+              id="Path_22253"
+              data-name="Path 22253"
+              d="M13.755,8.92,12.656,5.9,10.02,8.536l1.307-.481a.333.333,0,0,1,.231.625L9.9,9.292a.333.333,0,0,1-.428-.2s0,0,0-.006L6.674,11.883l6.882-2.536A.332.332,0,0,0,13.755,8.92Z"
+              transform="translate(-6.674 -5.9)"
+              fill="#5ba260"
+            />
+          </g>
+        </g>
+        <g
+          id="Group_12797"
+          data-name="Group 12797"
+          transform="translate(0.001)"
+        >
+          <g id="Group_12796" data-name="Group 12796">
+            <path
+              id="Path_22254"
+              data-name="Path 22254"
+              d="M15.9,5.431,10.569.1A.334.334,0,0,0,10.1.1l-10,10a.334.334,0,0,0,0,.471L5.431,15.9a.33.33,0,0,0,.235.1.335.335,0,0,0,.236-.1l10-10A.334.334,0,0,0,15.9,5.431ZM3.9,9.236,2.569,10.569A.334.334,0,0,1,2.1,10.1L3.431,8.765a.334.334,0,0,1,.472.471Zm5.756.423a1.258,1.258,0,0,1-.913.349,2.754,2.754,0,0,1-1.854-.885A3.054,3.054,0,0,1,6.059,7.7a1.393,1.393,0,0,1,.3-1.349,1.389,1.389,0,0,1,1.349-.3,3.048,3.048,0,0,1,1.419.833C10.049,7.817,10.285,9.033,9.659,9.659ZM13.9,5.9,12.569,7.236a.334.334,0,0,1-.472-.471L13.43,5.431A.334.334,0,0,1,13.9,5.9Z"
+              transform="translate(0 0)"
+              fill="#5ba260"
+            />
+          </g>
+        </g>
+      </g>
+    </g>
+  </svg>
+);
+
+export default Gift;

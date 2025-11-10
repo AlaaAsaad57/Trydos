@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import LargeColorIcon from "public/svg/LargeColorIcon.svg";
+import LargeColorIcon from "public/svg/LargeColorIcon";
 import Spinner from "components/global/Spinner";
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 import { getConfiguredImage, translateFunction } from "utils/functions";

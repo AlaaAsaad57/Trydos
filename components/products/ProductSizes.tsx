@@ -1,6 +1,6 @@
 "use client";
 import React, { useState } from "react";
-import NewSizesIcon from "public/svg/NewSizesIcon.svg";
+import NewSizesIcon from "public/svg/NewSizesIcon";
 
 import { translateFunction } from "utils/functions";
 import {

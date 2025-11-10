@@ -15,7 +15,7 @@ import {
 } from "react-share";
 import { getUserChat, RoundPrice, translateFunction } from "utils/functions";
 import { useAppStore } from "store";
-import CopyIcon from "public/svg/copyIcon.svg";
+import CopyIcon from "public/svg/copyIcon";
 import { ShareOptionsPropsType } from "models/componentType/ShareOptionsPropsType";
 import { showSuccessNotification } from "@/store/notifications/reducer";
 import { fetchData } from "utils/fetchData";

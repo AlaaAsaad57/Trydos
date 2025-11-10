@@ -3,14 +3,14 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 import FilterList from "components/Server/FilterList";
 import ProductListServer from "components/Server/ProductList";
-import BackIcon from "public/svg/listing/backIcon.svg";
-import SortIcon from "public/svg/listing/sortIcon.svg";
+import BackIcon from "public/svg/listing/backIcon";
+import SortIcon from "public/svg/listing/sortIcon";
 import ListingSkeleton from "components/skeleton/listing";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import NextLink from "components/global/NextLink";
-import VerificationIcon from "public/svg/listing/VerificationIcon.svg";
-import TopStarIcon from "public/svg/listing/TopStar.svg";
+import VerificationIcon from "public/svg/listing/VerificationIcon";
+import TopStarIcon from "public/svg/listing/TopStar";
 import Image from "next/image";
 import "styles/listing-components.css";
 
@@ -103,7 +103,7 @@ export default async function Page({ params }) {
 
   try {
     let parsedFilters = parseFiltersFromParams(Params.filters || []);
-    const [country, language] = params.lang.split("-");
+    const [country, language] = Params.lang.split("-");
     let boutiqueItem = parsedFilters?.boutiques?.[0] || null;
 
     if (parsedFilters.prices) {

@@ -1,18 +1,18 @@
 import { useParams } from "next/navigation";
 import { RoundPrice, translateFunction } from "utils/functions";
-import WalletIcon from "assets/svg/cart/WalletIcon.svg";
-import CreditIcon from "assets/svg/cart/CreditIcon.svg";
-import PaymentIconOne from "assets/svg/cart/Payment/DimondPay.svg";
-import PaymentIconTwo from "assets/svg/cart/Payment/DimondPay1.svg";
-import PaymentIconThree from "assets/svg/cart/Payment/DimondPay2.svg";
-import PaymentIconFour from "assets/svg/cart/Payment/DimondPay3.svg";
-import VisaIcon from "assets/svg/cart/Payment/Visa.svg";
-import MasterIcon from "assets/svg/cart/Payment/Master.svg";
-import MaestroIcon from "assets/svg/cart/Payment/Maestro.svg";
-import AmericanExpressIcon from "assets/svg/cart/Payment/AmericanExpress.svg";
-import ApplePayIcon from "assets/svg/cart/Payment/ApplePay.svg";
-import GooglePayIcon from "assets/svg/cart/Payment/GooglePay.svg";
-import CryptoIcon from "assets/svg/cart/CryptoIcon.svg";
+import WalletIcon from "assets/svg/cart/WalletIcon";
+import CreditIcon from "assets/svg/cart/CreditIcon";
+import PaymentIconOne from "assets/svg/cart/Payment/DimondPay";
+import PaymentIconTwo from "assets/svg/cart/Payment/DimondPay1";
+import PaymentIconThree from "assets/svg/cart/Payment/DimondPay2";
+import PaymentIconFour from "assets/svg/cart/Payment/DimondPay3";
+import VisaIcon from "assets/svg/cart/Payment/Visa";
+import MasterIcon from "assets/svg/cart/Payment/Master";
+import MaestroIcon from "assets/svg/cart/Payment/Maestro";
+import AmericanExpressIcon from "assets/svg/cart/Payment/AmericanExpress";
+import ApplePayIcon from "assets/svg/cart/Payment/ApplePay";
+import GooglePayIcon from "assets/svg/cart/Payment/GooglePay";
+import CryptoIcon from "assets/svg/cart/CryptoIcon";
 import Spinner from "components/global/Spinner";
 import CouponElement from "./couponElement";
 import { useAppStore } from "store";
@@ -21,7 +21,7 @@ import { TryDosWalletInputPropsType } from "models/componentType/TryDosWalletInp
 import { GAevent } from "utils/gtag";
 import { GA_EVENT_NAMES, GA_PAYMENTS } from "utils/GAEvents";
 import { showErrorNotification } from "@/store/notifications/reducer";
-import RefreshIcon from "public/svg/RefreshIcon.svg";
+import RefreshIcon from "public/svg/RefreshIcon";
 import order from "services/order";
 function PaymentMethod() {
   const {

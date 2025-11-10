@@ -1,14 +1,14 @@
 import { useState } from "react";
-import BackIcon from "public/svg/listing/backIcon.svg";
+import BackIcon from "public/svg/listing/backIcon";
 import { getCart, RoundPrice, translateFunction } from "utils/functions";
 import { useParams } from "next/navigation";
 import ShippingAddressContainer from "./ShippingAddressContainer";
 import { SlideWidget } from "components/global/SlideNavigation";
-import AddAddressIcon from "public/svg/cart/AddAddress.svg";
+import AddAddressIcon from "public/svg/cart/AddAddress";
 import AddAddressForm from "./AddAddressForm";
 import SelectRegion from "./SelectRegion";
 import AddressListContainer from "./AddressListContainer";
-import TrashIcon from "public/svg/cart/TrashIcon.svg";
+import TrashIcon from "public/svg/cart/TrashIcon";
 import order from "services/order";
 import PaymentMethod from "./PaymentMethod";
 import PlaceOrderWidget from "./PlaceOrderWidget";

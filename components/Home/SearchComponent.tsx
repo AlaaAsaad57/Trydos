@@ -1,6 +1,6 @@
 "use client";
-import CloseIcon from "public/svg/CloseIcon.svg";
-import SearchCloseIcon from "public/svg/SearchCloseIcon.svg";
+import CloseIcon from "public/svg/CloseIcon";
+import SearchCloseIcon from "public/svg/SearchCloseIcon";
 import { ChangeEvent, useEffect, useRef, useCallback } from "react";
 import { onClickSearchHistory, translateFunction } from "utils/functions";
 import { useParams } from "next/navigation";

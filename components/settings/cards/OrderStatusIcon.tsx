@@ -1,5 +1,5 @@
 import React from "react";
-import CancelOrderIcon from "public/svg/cancelOrderItemIcon.svg";
+import CancelOrderIcon from "public/svg/cancelOrderItemIcon";
 import {
   DeliveredStatus,
   NormalStatus,

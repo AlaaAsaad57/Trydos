@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import ClarificationIcon from "public/svg/OrderCancelConfirm.svg";
-import OrderCancelTermsIcon from "public/svg/OrderCancelTerms.svg";
+import ClarificationIcon from "public/svg/OrderCancelConfirm";
+import OrderCancelTermsIcon from "public/svg/OrderCancelTerms";
 import { translateFunction } from "utils/functions";
 import { CancelOrderConfirmationPropsType } from "models/componentType/CancelOrderConfirmationPropsType";
 import Spinner from "components/global/Spinner";

@@ -2,10 +2,10 @@ import React, { useState } from "react";
 import SettingTopBar from "./TopBar";
 import { translateFunction } from "utils/functions";
 
-import AddressInfo from "public/svg/cart/AddressInfo.svg";
+import AddressInfo from "public/svg/cart/AddressInfo";
 import auth from "services/auth";
 import ConfirmMobileChange from "./ConfirmMobileChange";
-import XIcon from "public/svg/Xicon.svg";
+import XIcon from "public/svg/Xicon";
 import { useAppStore } from "store";
 import { ConfirmationModalPropsType } from "models/componentType/settingTypes/ConfirmationModalPropsType";
 import { PersonalInfoPropsType } from "models/componentType/settingTypes/PersonalInfoPropsType";

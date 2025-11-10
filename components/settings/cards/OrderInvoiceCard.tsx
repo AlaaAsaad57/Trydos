@@ -1,8 +1,8 @@
 import React from "react";
 import { RoundPrice, translateFunction } from "utils/functions";
-import WalletIcon from "assets/svg/cart/WalletIcon.svg";
-import CreditIcon from "assets/svg/cart/CreditIcon.svg";
-import CryptoIcon from "assets/svg/cart/CryptoIcon.svg";
+import WalletIcon from "assets/svg/cart/WalletIcon";
+import CreditIcon from "assets/svg/cart/CreditIcon";
+import CryptoIcon from "assets/svg/cart/CryptoIcon";
 import { useAppStore } from "store";
 import { OrderInvoiceCardProps } from "models/componentType/settingTypes/OrderDetailsPropsType";
 

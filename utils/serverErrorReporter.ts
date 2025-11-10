@@ -1,4 +1,3 @@
-import { headers } from "next/headers";
 import { COOKIE_NAMES, getCookieServer } from "./cookies/cookie-manager";
 import { storeError } from "./functions";
 import { readStoredLastPaths } from "./history";

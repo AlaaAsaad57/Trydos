@@ -192,7 +192,7 @@ function getClientIp(req: NextRequest): string {
   return "0.0.0.0"; // fallback, should not happen on Vercel
 }
 // Main middleware function
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const ip = getClientIp(request);
   const userIP = request.cookies.get("userIP")?.value;
 

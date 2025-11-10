@@ -1,7 +1,7 @@
-import ArrowIcon from "../svg/arrow.svg";
-import VideoIcon from "../svg/vcall.svg";
-import CallIcon from "../svg/call.svg";
-import CancelCallIcon from "../svg/cancel-call.svg";
+import ArrowIcon from "../svg/arrow";
+import VideoIcon from "../svg/vcall";
+import CallIcon from "../svg/call";
+import CancelCallIcon from "../svg/cancel-call";
 import { getNew, showDate } from "../chatsFunctions";
 import { getUserChat } from "utils/functions";
 import { makeVideoCall, makeVoiceCall } from "store/chat/callActions";

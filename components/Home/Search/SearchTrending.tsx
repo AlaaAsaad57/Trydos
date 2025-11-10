@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import SearchTrendingicon from "public/svg/SearchTrendingicon.svg";
-import SearchMiniIcon from "public/svg/SearchMiniIcon.svg";
+import SearchTrendingicon from "public/svg/SearchTrendingicon";
+import SearchMiniIcon from "public/svg/SearchMiniIcon";
 import { useAppStore } from "store";
 import search from "services/search";
 import { useParams } from "next/navigation";

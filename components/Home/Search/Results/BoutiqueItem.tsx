@@ -1,5 +1,5 @@
 import React from "react";
-import ActiveCategoryIcon from "public/svg/listing/ActiveCategoryIcon.svg";
+import ActiveCategoryIcon from "public/svg/listing/ActiveCategoryIcon";
 import { getConfiguredImage } from "utils/functions";
 import { GetImageUrl } from "utils/tinyUtils";
 

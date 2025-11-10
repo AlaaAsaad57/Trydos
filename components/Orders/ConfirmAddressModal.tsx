@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { translateFunction } from "utils/functions";
-import LargeAddressChangeIcon from "public/svg/LargeAddressChangeIcon.svg";
+import LargeAddressChangeIcon from "public/svg/LargeAddressChangeIcon";
 import { GetAddressString } from "utils/tinyUtils";
 import { ConfirmAddressModalPropsType } from "models/componentType/ConfirmAddressModalPropsType";
 import { CheckBoxElement } from "components/Cart/PlaceOrderButtons";

@@ -1,16 +1,16 @@
 import React, { useEffect, useRef, useState } from "react";
-import ArrowIcon from "../svg/arrow.svg";
-import InfoCallIcon from "../svg/InfoCall.svg";
-import InfoVideoIcon from "../svg/InfoVideo.svg";
-import InfoSearchIcon from "../svg/InfoSearch.svg";
-import InfoGalleryIcon from "../svg/InfoGallery.svg";
-import ImageInfoIcon from "../svg/imageInfo.svg";
-import VideoInfoIcon from "../svg/VideoInfo.svg";
-import FileInfoIcon from "../svg/FileInfo.svg";
-import InfoArrowIcon from "../svg/arrowRight.svg";
-// import SaveToGalleryIcon from "../svg/SaveToGallery.svg";
-import DeleteInfoIcon from "../svg/deleteInfo.svg";
-import BlockInfoIcon from "../svg/BlockInfo.svg";
+import ArrowIcon from "../svg/arrow";
+import InfoCallIcon from "../svg/InfoCall";
+import InfoVideoIcon from "../svg/InfoVideo";
+import InfoSearchIcon from "../svg/InfoSearch";
+import InfoGalleryIcon from "../svg/InfoGallery";
+import ImageInfoIcon from "../svg/imageInfo";
+import VideoInfoIcon from "../svg/VideoInfo";
+import FileInfoIcon from "../svg/FileInfo";
+import InfoArrowIcon from "../svg/arrowRight";
+// import SaveToGalleryIcon from "../svg/SaveToGallery";
+import DeleteInfoIcon from "../svg/deleteInfo";
+import BlockInfoIcon from "../svg/BlockInfo";
 
 import { getTwoLetters, getUser } from "../chatsFunctions";
 import Image from "next/image";

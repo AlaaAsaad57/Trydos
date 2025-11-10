@@ -2,14 +2,14 @@ import BottomSheet from "components/global/BottomSheet";
 import React, { useMemo } from "react";
 import { useAppStore } from "store";
 import { translateFunction } from "utils/functions";
-import RateIcon from "public/svg/RateIconProperty.svg";
+import RateIcon from "public/svg/RateIconProperty";
 import RatingStars from "components/settings/cards/RatingStars";
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 import ProductViews from "./ProductViews";
-import SolidRecomendIcon from "public/svg/product/SolidRecomendIcon.svg";
-import QualityIcon from "public/svg/product/QualityIcon.svg";
-import RecomendedIcon from "public/svg/RecomendedIcon.svg";
-import NegRecomendedIcon from "public/svg/NegRecomendIcon.svg";
+import SolidRecomendIcon from "public/svg/product/SolidRecomendIcon";
+import QualityIcon from "public/svg/product/QualityIcon";
+import RecomendedIcon from "public/svg/RecomendedIcon";
+import NegRecomendedIcon from "public/svg/NegRecomendIcon";
 
 function GeneralPropertiesModal({
   rating_stats,

@@ -1,15 +1,15 @@
 import React from "react";
 import { useAppStore } from "store";
-import Qr from "public/svg/Userqr.svg";
+import Qr from "public/svg/Userqr";
 import Skeleton from "react-loading-skeleton";
-import OrdersIcon from "public/svg/OrdersIcon.svg";
+import OrdersIcon from "public/svg/OrdersIcon";
 import { translateFunction } from "utils/functions";
-import TryDosWalletIcon from "public/svg/TryDosWalletIcon.svg";
-import SettingsIcon from "public/svg/SettingsIcon.svg";
-import TermsIcon from "public/svg/TermsIcon.svg";
-import LegalInfoIcon from "public/svg/LegalInfoIcon.svg";
-import AboutIcon from "public/svg/AboutIcon.svg";
-import ShareAppIcon from "public/svg/ShareAppIcon.svg";
+import TryDosWalletIcon from "public/svg/TryDosWalletIcon";
+import SettingsIcon from "public/svg/SettingsIcon";
+import TermsIcon from "public/svg/TermsIcon";
+import LegalInfoIcon from "public/svg/LegalInfoIcon";
+import AboutIcon from "public/svg/AboutIcon";
+import ShareAppIcon from "public/svg/ShareAppIcon";
 import { GetImageUrl } from "utils/tinyUtils";
 
 const options = [

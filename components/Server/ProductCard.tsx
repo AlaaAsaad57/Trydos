@@ -2,7 +2,7 @@
 import NextLink from "components/global/NextLink";
 import React, { memo, useState } from "react";
 import { BuyButtonProduct } from "../ListingPage/Product";
-import VerifiedIcon from "public/svg/listing/VerifiedIcon.svg";
+import VerifiedIcon from "public/svg/listing/VerifiedIcon";
 import { ProductLabelsAnimated } from "components/products/ProductLabelsAnimated";
 import { getCookie, setCookie } from "utils/cookies/cookie-manager";
 import { ProductPhotosSlider } from "components/ListingPage/ProductSliders";

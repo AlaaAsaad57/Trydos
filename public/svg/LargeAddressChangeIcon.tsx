@@ -1,0 +1,119 @@
+import * as React from "react";
+
+const LargeAddressChangeIcon = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg
+    id="Group_13925"
+    data-name="Group 13925"
+    xmlns="http://www.w3.org/2000/svg"
+    xmlnsXlink="http://www.w3.org/1999/xlink"
+    width="49.999"
+    height="50"
+    viewBox="0 0 49.999 50"
+    {...props}
+  >
+    <defs>
+      <clipPath id="clip-path">
+        <rect
+          id="Rectangle_4612"
+          data-name="Rectangle 4612"
+          width="30"
+          height="30"
+          fill="none"
+        />
+      </clipPath>
+    </defs>
+    <g
+      id="Group_13042"
+      data-name="Group 13042"
+      transform="translate(9.999 9.194)"
+    >
+      <g
+        id="Mask_Group_380"
+        data-name="Mask Group 380"
+        transform="translate(0 0)"
+        clipPath="url(#clip-path)"
+      >
+        <g id="delivery_location" transform="translate(1.927 0.919)">
+          <g id="Group_11335" data-name="Group 11335">
+            <g
+              id="Group_11333"
+              data-name="Group 11333"
+              transform="translate(0 7.954)"
+            >
+              <path
+                id="Path_21554"
+                data-name="Path 21554"
+                d="M17.437,21.385h-10A.361.361,0,0,1,7.072,21a.376.376,0,0,1,.362-.386h10a3.4,3.4,0,0,0,3.5-3.5,3.4,3.4,0,0,0-.868-2.145,3.456,3.456,0,0,0-2.627-1.133H11.146a4.1,4.1,0,1,1,0-8.2H16.28a.361.361,0,0,1,.362.386.343.343,0,0,1-.386.337h-5.11a3.363,3.363,0,0,0,0,6.725h6.291a4.148,4.148,0,0,1,4.242,4,4.2,4.2,0,0,1-4.242,4.291Z"
+                transform="translate(1.075 -5.645)"
+                fill="#fff"
+              />
+              <g
+                id="Group_11332"
+                data-name="Group 11332"
+                transform="translate(0 10.461)"
+              >
+                <ellipse
+                  id="Ellipse_269"
+                  data-name="Ellipse 269"
+                  cx="1.615"
+                  cy="1.639"
+                  rx="1.615"
+                  ry="1.639"
+                  transform="translate(2.82 2.796)"
+                  fill="#fff"
+                />
+                <path
+                  id="Path_21555"
+                  data-name="Path 21555"
+                  d="M6.048,12.645A4.383,4.383,0,0,0,1.613,16.96a4.083,4.083,0,0,0,.844,2.507v.024l3.254,4.483A.377.377,0,0,0,6,24.119a.344.344,0,0,0,.289-.145l3.3-4.483a.024.024,0,0,1,.024-.024,4.187,4.187,0,0,0,.844-2.507A4.347,4.347,0,0,0,6.048,12.645Zm0,6.8A2.386,2.386,0,1,1,8.41,17.056,2.371,2.371,0,0,1,6.048,19.442Z"
+                  transform="translate(-1.613 -12.645)"
+                  fill="#fff"
+                />
+              </g>
+            </g>
+            <g
+              id="Group_11334"
+              data-name="Group 11334"
+              transform="translate(16.005)"
+            >
+              <path
+                id="Path_21556"
+                data-name="Path 21556"
+                d="M12.323,5.264H22.35L17.336.323Z"
+                transform="translate(-12.323 -0.323)"
+                fill="#fff"
+              />
+              <path
+                id="Path_21557"
+                data-name="Path 21557"
+                d="M12.984,10.492H15.25V7.5a.376.376,0,0,1,.362-.386h2.8a.361.361,0,0,1,.362.386v2.989h2.266V4.129H12.984Z"
+                transform="translate(-11.996 1.559)"
+                fill="#fff"
+              />
+            </g>
+          </g>
+        </g>
+      </g>
+    </g>
+    <g id="Group_12940" data-name="Group 12940" transform="translate(0 0)">
+      <g id="Group_12939" data-name="Group 12939" transform="translate(0)">
+        <path
+          id="Path_22809"
+          data-name="Path 22809"
+          d="M54.079,48.025a.588.588,0,0,0-.435.705,24.265,24.265,0,0,1,.646,5.547A23.858,23.858,0,0,1,30.467,78.112a23.536,23.536,0,0,1-14.361-4.826,3.941,3.941,0,1,0-.795.87,24.7,24.7,0,0,0,15.156,5.131A25.035,25.035,0,0,0,54.788,48.464a.587.587,0,0,0-.709-.439Z"
+          transform="translate(-5.467 -29.288)"
+          fill="#fff"
+        />
+        <path
+          id="Path_22810"
+          data-name="Path 22810"
+          d="M1.324,25.171a23.824,23.824,0,0,1,36.3-20.306,3.51,3.51,0,1,0,.669-.968A25.013,25.013,0,0,0,.565,29.722a.583.583,0,0,0,.576.482.485.485,0,0,0,.106-.012.588.588,0,0,0,.474-.682,23.864,23.864,0,0,1-.4-4.34Z"
+          transform="translate(-0.15 -0.16)"
+          fill="#fff"
+        />
+      </g>
+    </g>
+  </svg>
+);
+
+export default LargeAddressChangeIcon;

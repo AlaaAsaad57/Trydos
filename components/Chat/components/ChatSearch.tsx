@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
-import DownArrow from "public/svg/arrow-down.svg";
-import UpArrow from "public/svg/arrow-up.svg";
-import XIcon from "public/svg/Xicon.svg";
+import DownArrow from "public/svg/arrow-down";
+import UpArrow from "public/svg/arrow-up";
+import XIcon from "public/svg/Xicon";
 import { DebounceInput } from "react-debounce-input";
 import Spinner from "components/global/Spinner";
 

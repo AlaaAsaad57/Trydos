@@ -1,0 +1,76 @@
+import * as React from "react";
+
+const NotifyCart = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    xmlnsXlink="http://www.w3.org/1999/xlink"
+    width="30"
+    height="30"
+    viewBox="0 0 30 30"
+    {...props}
+  >
+    <defs>
+      <clipPath id="clip-path">
+        <rect
+          id="Rectangle_4829"
+          data-name="Rectangle 4829"
+          width="30"
+          height="30"
+          transform="translate(200 852)"
+          fill="none"
+        />
+      </clipPath>
+    </defs>
+    <g
+      id="Mask_Group_371"
+      data-name="Mask Group 371"
+      transform="translate(-200 -852)"
+      clipPath="url(#clip-path)"
+    >
+      <g id="ringing" transform="translate(200 852)">
+        <g id="Group_11211" data-name="Group 11211">
+          <path
+            id="Path_21477"
+            data-name="Path 21477"
+            d="M28.125,13.125A.625.625,0,0,1,27.5,12.5a13.657,13.657,0,0,0-4.028-9.722.625.625,0,0,1,.884-.884A14.9,14.9,0,0,1,28.75,12.5.625.625,0,0,1,28.125,13.125Z"
+            fill="#8d8d8d"
+          />
+        </g>
+        <g id="Group_11212" data-name="Group 11212">
+          <path
+            id="Path_21478"
+            data-name="Path 21478"
+            d="M1.875,13.125A.625.625,0,0,1,1.25,12.5,14.9,14.9,0,0,1,5.644,1.894a.625.625,0,0,1,.884.884A13.657,13.657,0,0,0,2.5,12.5a.625.625,0,0,1-.625.625Z"
+            fill="#8d8d8d"
+          />
+        </g>
+        <g id="Group_11213" data-name="Group 11213">
+          <path
+            id="Path_21479"
+            data-name="Path 21479"
+            d="M16.875,5.225A.625.625,0,0,1,16.25,4.6V2.5a1.25,1.25,0,0,0-2.5,0V4.6a.625.625,0,0,1-1.25,0V2.5a2.5,2.5,0,0,1,5,0V4.6A.624.624,0,0,1,16.875,5.225Z"
+            fill="#8d8d8d"
+          />
+        </g>
+        <g id="Group_11214" data-name="Group 11214">
+          <path
+            id="Path_21480"
+            data-name="Path 21480"
+            d="M15,30a4.38,4.38,0,0,1-4.375-4.375.625.625,0,0,1,1.25,0,3.125,3.125,0,0,0,6.25,0,.625.625,0,0,1,1.25,0A4.38,4.38,0,0,1,15,30Z"
+            fill="#8d8d8d"
+          />
+        </g>
+        <g id="Group_11215" data-name="Group 11215">
+          <path
+            id="Path_21481"
+            data-name="Path 21481"
+            d="M25.625,26.25H4.375a1.875,1.875,0,0,1-1.219-3.3A8.69,8.69,0,0,0,6.25,16.3V12.5a8.75,8.75,0,0,1,17.5,0v3.8a8.681,8.681,0,0,0,3.084,6.644,1.875,1.875,0,0,1-1.209,3.309ZM15,5a7.508,7.508,0,0,0-7.5,7.5v3.8a9.931,9.931,0,0,1-3.526,7.6.625.625,0,0,0,.4,1.1h21.25a.625.625,0,0,0,.406-1.1A9.938,9.938,0,0,1,22.5,16.3V12.5A7.508,7.508,0,0,0,15,5Z"
+            fill="#8d8d8d"
+          />
+        </g>
+      </g>
+    </g>
+  </svg>
+);
+
+export default NotifyCart;

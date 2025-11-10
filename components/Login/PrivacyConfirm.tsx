@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 
 import { translateFunction } from "utils/functions";
-import ConditionIcon from "public/svg/ConditionIcon.svg";
+import ConditionIcon from "public/svg/ConditionIcon";
 
 import { useParams } from "next/navigation";
 import { useAppStore } from "store";

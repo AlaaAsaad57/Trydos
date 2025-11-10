@@ -1,6 +1,6 @@
 "use client";
 import React from "react";
-import EyeIcon from "public/svg/product/EyeIcon.svg";
+import EyeIcon from "public/svg/product/EyeIcon";
 import Skeleton from "react-loading-skeleton";
 import { useAppStore } from "store";
 

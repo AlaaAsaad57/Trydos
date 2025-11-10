@@ -4,8 +4,8 @@ import ConfirmMobile from "./ConfirmMobile";
 import { useParams } from "next/navigation";
 import { useSwipeable } from "react-swipeable";
 import OrderMarquee from "./OrderMarquee";
-import DiscoutIcon from "public/svg/cart/Disount.svg";
-import ShippingIcon from "public/svg/cart/Shipping.svg";
+import DiscoutIcon from "public/svg/cart/Disount";
+import ShippingIcon from "public/svg/cart/Shipping";
 import Spinner from "components/global/Spinner";
 import {
   COOKIE_NAMES,
@@ -15,7 +15,7 @@ import {
 import auth from "services/auth";
 import LocalizationServiceClass from "services/localization";
 import { useAppStore } from "store";
-import GiftIcon from "public/svg/cart/Gift.svg";
+import GiftIcon from "public/svg/cart/Gift";
 import home from "services/home";
 import { showErrorNotification } from "@/store/notifications/reducer";
 function OrderButton({ close, toOrders }) {

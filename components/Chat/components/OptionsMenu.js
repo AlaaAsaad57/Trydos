@@ -1,10 +1,10 @@
-import ReplyIcon from "../svg/rep.svg";
-import CopyIcon from "../svg/copy.svg";
-import CategoryIcon from "../svg/categ.svg";
-import DeleteIcon from "../svg/delt.svg";
-import EditIcon from "../svg/edit.svg";
-import ForwardIcon from "../svg/forward.svg";
-import RemindIcon from "../svg/remind.svg";
+import ReplyIcon from "../svg/rep";
+import CopyIcon from "../svg/copy";
+import CategoryIcon from "../svg/categ";
+import DeleteIcon from "../svg/delt";
+import EditIcon from "../svg/edit";
+import ForwardIcon from "../svg/forward";
+import RemindIcon from "../svg/remind";
 import { translateFunction, getUserChat } from "utils/functions";
 
 import { useParams } from "next/navigation";

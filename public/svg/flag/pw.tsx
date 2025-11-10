@@ -1,0 +1,7 @@
+import * as React from 'react';
+
+const Pw = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" {...props}><path fill="#4AADD6" d="M0 0h800v500H0z"/><circle cx="350" cy="250" r="150" fill="#FFDE00"/></svg>
+);
+
+export default Pw;

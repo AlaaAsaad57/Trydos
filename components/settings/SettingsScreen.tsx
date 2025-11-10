@@ -1,5 +1,5 @@
 "use client";
-import BackIcon from "public/svg/listing/backIcon.svg";
+import BackIcon from "public/svg/listing/backIcon";
 import { useParams } from "next/navigation";
 import Setting from "components/global/Setting";
 import { translateFunction } from "utils/functions";

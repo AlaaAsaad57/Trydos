@@ -1,0 +1,7 @@
+import * as React from 'react';
+
+const Tz = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 72 48" {...props}><path fill="#1eb53a" d="M0 48V0h72z"/><path fill="#00a3dd" d="M0 48h72V0z"/><path stroke="#fcd116" stroke-width="19" d="M0 48 72 0"/><path stroke="#000" stroke-width="13" d="M0 48 72 0"/></svg>
+);
+
+export default Tz;

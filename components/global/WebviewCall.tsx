@@ -65,7 +65,7 @@ import {
   getAgoraTokenForInit,
   getUserInfo,
 } from "./WebViewActions";
-import CallingIcon from "../Chat/svg/CallInProg.svg";
+import CallingIcon from "../Chat/svg/CallInProg";
 import { LogError } from "utils/functions";
 function WebviewCall() {
   const [error, setError] = useState(null);

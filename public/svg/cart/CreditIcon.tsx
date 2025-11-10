@@ -1,0 +1,41 @@
+import * as React from "react";
+
+const CreditIcon = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg
+    id="_15x15_photo_back"
+    data-name="15x15 photo back"
+    xmlns="http://www.w3.org/2000/svg"
+    xmlnsXlink="http://www.w3.org/1999/xlink"
+    width="15"
+    height="15"
+    viewBox="0 0 15 15"
+    {...props}
+  >
+    <defs>
+      <clipPath id="clip-path">
+        <rect
+          id="Rectangle_4561"
+          data-name="Rectangle 4561"
+          width="15"
+          height="15"
+          fill="none"
+        />
+      </clipPath>
+    </defs>
+    <g
+      id="Mask_Group_661"
+      data-name="Mask Group 661"
+      clipPath="url(#clip-path)"
+    >
+      <path
+        id="credit-card"
+        d="M1.071,4.821A1.607,1.607,0,0,1,2.679,3.214H14.464a1.607,1.607,0,0,1,1.607,1.607v.536h-15Zm0,1.607h15v5.893a1.607,1.607,0,0,1-1.607,1.607H2.679a1.607,1.607,0,0,1-1.607-1.607Zm8.571,3.75a.536.536,0,0,0,0,1.071h3.214a.536.536,0,0,0,0-1.071Z"
+        transform="translate(-1.072 -1.072)"
+        fill="#c4c2c2"
+        fillRule="evenodd"
+      />
+    </g>
+  </svg>
+);
+
+export default CreditIcon;

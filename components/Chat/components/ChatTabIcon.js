@@ -1,4 +1,4 @@
-import BellIcon from "../svg/bell.svg";
+import BellIcon from "../svg/bell";
 function ChatTabIcon({
   index,
   SelectedTab,

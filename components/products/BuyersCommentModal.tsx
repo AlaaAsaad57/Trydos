@@ -2,7 +2,7 @@ import React, { useState, useCallback, useEffect } from "react";
 import BottomSheet from "components/global/BottomSheet";
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 import Skeleton from "react-loading-skeleton";
-import BuyersCommentIcon from "public/svg/product/BuyersCommentsIcon.svg";
+import BuyersCommentIcon from "public/svg/product/BuyersCommentsIcon";
 
 import { useAppStore } from "store";
 import { translateFunction } from "utils/functions";

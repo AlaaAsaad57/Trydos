@@ -3,7 +3,7 @@ import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import home from "services/home";
 import { addToCompare, RoundPrice, translateFunction } from "utils/functions";
-import CheckIcon from "public/svg/CheckIcon.svg";
+import CheckIcon from "public/svg/CheckIcon";
 import Spinner from "components/global/Spinner";
 import LocalizationServiceClass from "services/localization";
 import { useAppStore } from "store";

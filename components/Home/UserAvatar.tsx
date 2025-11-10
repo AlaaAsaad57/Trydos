@@ -1,4 +1,4 @@
-import UserIcon from "public/svg/userIcon.svg";
+import UserIcon from "public/svg/userIcon";
 import Image from "next/image";
 import { GetImageUrl } from "utils/tinyUtils";
 import { getConfiguredImage } from "utils/functions";

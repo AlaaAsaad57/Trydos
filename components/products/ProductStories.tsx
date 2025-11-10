@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import StoreisIcon from "public/svg/product/StoreisIcon.svg";
+import StoreisIcon from "public/svg/product/StoreisIcon";
 
 import { SelectStory } from "store/homepage/actions";
 import { translateFunction } from "utils/functions";

@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { OrderDetail } from "types/orders";
 import { RoundPrice, translateFunction } from "utils/functions";
-import MiniReturnIcon from "public/svg/MiniReturnIcon.svg";
-import ClockIcon from "public/svg/ClockIcon.svg";
+import MiniReturnIcon from "public/svg/MiniReturnIcon";
+import ClockIcon from "public/svg/ClockIcon";
 import Timer from "components/Login/Timer";
 import order from "services/order";
 import Spinner from "components/global/Spinner";

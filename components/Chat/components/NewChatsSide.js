@@ -1,5 +1,5 @@
 import { getNew, getTwoLetters, getUser } from "../chatsFunctions";
-import PointIcon from "../svg/point.svg";
+import PointIcon from "../svg/point";
 import Image from "next/image";
 import profilePicture from "public/images/profileNo.png";
 import { useAppStore } from "store";

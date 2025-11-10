@@ -5,9 +5,9 @@ import {
   RoundPrice,
   translateFunction,
 } from "utils/functions";
-import ReturnOrderItemIcon from "public/svg/ReturnOrderItemIcon.svg";
+import ReturnOrderItemIcon from "public/svg/ReturnOrderItemIcon";
 import { useAppStore } from "store";
-import UploadImageOrder from "public/svg/UploadImageOrder.svg";
+import UploadImageOrder from "public/svg/UploadImageOrder";
 import Spinner from "components/global/Spinner";
 import { ReturnOrderItemPropsType } from "models/componentType/ReturnOrderItemPropsType";
 import order from "services/order";

@@ -4,8 +4,8 @@ import {
   RoundPrice,
   translateFunction,
 } from "utils/functions";
-import ClarificationIcon from "public/svg/OrderCancelConfirm.svg";
-import OrderCancelTermsIcon from "public/svg/OrderCancelTerms.svg";
+import ClarificationIcon from "public/svg/OrderCancelConfirm";
+import OrderCancelTermsIcon from "public/svg/OrderCancelTerms";
 import { ReturnOrderItemConfirmationPropsType } from "models/componentType/ReturnOrderItemConfirmationPropsType";
 import order from "services/order";
 import Spinner from "components/global/Spinner";
