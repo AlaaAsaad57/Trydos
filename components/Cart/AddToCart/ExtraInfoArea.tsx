@@ -125,7 +125,7 @@ function ExtraInfoArea({
           <div
             className={`${
               isRtl ? "flex-row-reverse" : "flex-row"
-            } flex flex-row items-center gap-[3px] regular text-[10px] text-[#1d1d1d]`}
+            } flex  items-center gap-[3px] regular text-[10px] text-[#1d1d1d]`}
           >
             <span>{translateFunction("Color")}</span>
             <span className="bold" data-cy="add-to-cart-selected-color">
@@ -142,7 +142,11 @@ function ExtraInfoArea({
     } else {
       return (
         <div className="flex-row flex items-center min-h-[40px] max-h-[85px] w-full justify-center px-[20px]">
-          <div className="flex flex-row items-center gap-[3px] regular text-[10px] text-[#1d1d1d]">
+          <div
+            className={`${
+              isRtl ? "flex-row-reverse" : "flex-row"
+            } flex  items-center gap-[3px] regular text-[10px] text-[#1d1d1d]`}
+          >
             {selected_color ? (
               <>
                 <span>{translateFunction("Color")}</span>

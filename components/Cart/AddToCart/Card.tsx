@@ -1,9 +1,14 @@
 import Image from "next/image";
 import { useParams } from "node_modules/next/navigation";
-import React, { useEffect, useState } from "react";
+import DelevieryGurantee from "public/svg/cart/DelevieryGurantee";
+import React, { useEffect, useMemo, useState } from "react";
 import { useAppStore } from "store";
 import { RoundPrice, translateFunction } from "utils/functions";
-import { fetchCountries } from "utils/tinyUtils";
+import {
+  fetchCountries,
+  formatTimeForAddress,
+  ShowDayStr,
+} from "utils/tinyUtils";
 
 function Card({
   image,
@@ -15,6 +20,7 @@ function Card({
   price,
   redeem_price,
 }) {
+  const { settings } = useAppStore();
   const [countries, setCountries] = useState([]);
   const getCountries = async () => {
     let data = await fetchCountries(country, language);
@@ -26,6 +32,42 @@ function Card({
     getCountries();
   }, []);
   const isRtl = language === "ar" || language === "ku";
+  const shippingDate = useMemo(() => {
+    if (shippingDays >= 0)
+      return formatTimeForAddress(
+        new Date(
+          new Date().getTime() +
+            Number(
+              (settings?.["starting-setting"]?.shipping_duration_days || 0) +
+                shippingDays
+            ) *
+              24 *
+              60 *
+              60 *
+              1000
+        ).toString(),
+        language
+      );
+  }, [shippingDays]);
+
+  const shippingDay = useMemo(() => {
+    if (shippingDays >= 0)
+      return ShowDayStr(
+        new Date(
+          new Date().getTime() +
+            Number(
+              (settings?.["starting-setting"]?.shipping_duration_days || 0) +
+                shippingDays
+            ) *
+              24 *
+              60 *
+              60 *
+              1000
+        )?.getDay(),
+        language
+      );
+  }, [shippingDays]);
+
   return (
     <div
       className={`${
@@ -87,7 +129,7 @@ function Card({
             <span className="text-[#8D8D8D]">
               {translateFunction("Shipping", language)}:
             </span>
-            <span className="medium text-[#505050]">
+            <span className={`${isRtl ? "dir-rtl" : ""} medium text-[#505050]`}>
               {shippingDays} {translateFunction("Days", language)}
             </span>
             <span className="text-[#505050] underline cursor-pointer">
@@ -133,7 +175,11 @@ function Card({
                 height={13}
               />
             </span>
-            <span className="text-[#1d1d1d] gap-[3px] flex items-center">
+            <span
+              className={`${
+                isRtl ? "dir-rtl" : ""
+              } text-[#1d1d1d] gap-[3px] flex items-center`}
+            >
               {translateFunction("At Your Address In", language)}
               <span>
                 {countries?.length &&
@@ -144,11 +190,11 @@ function Card({
                   )}
               </span>
             </span>
-            <span className="medium text-[#1d1d1d]">
-              {translateFunction("Monday", language)}
+            <span className="medium text-[#1d1d1d]">{shippingDay}</span>
+            <span className="text-[#1d1d1d] bold">{shippingDate}</span>
+            <span className="text-[#8d8d8d]">
+              <DelevieryGurantee />
             </span>
-            <span className="text-[#1d1d1d] bold">2.Jun</span>
-            <span className="text-[#8d8d8d]">{/*Delevery Gurante Icon */}</span>
           </div>
           {/*  */}
           <div
@@ -165,7 +211,11 @@ function Card({
             </span>
           </div>
         </div>
-        <div className="flex flex-col text-[#1d1d1d] items-start">
+        <div
+          className={`${
+            isRtl ? "items-end" : "items-start"
+          } flex flex-col text-[#1d1d1d] `}
+        >
           <Prices
             offer_price={offer_price}
             price={price}
@@ -206,10 +256,16 @@ const ImageBorder = ({ isOrange = false }) => {
 
 const Prices = ({ offer_price, price, redeem_price }) => {
   const { currency, language } = useAppStore();
+  const isRtl = language === "ar" || language === "ku";
+
   if (redeem_price && redeem_price > 0) {
     if (price === offer_price) {
       return (
-        <div className="flex flex-row items-center gap-[4px] regular text-[13px] text-[#1d1d1d]">
+        <div
+          className={`${
+            isRtl ? "dir-rtl" : ""
+          } flex flex-row items-center gap-[4px] regular text-[13px] text-[#1d1d1d]`}
+        >
           <span className="relative text-[#C4C2C2]" data-cy="offer-price-label">
             <svg
               data-cy="product_addtocart_svg"
@@ -246,7 +302,11 @@ const Prices = ({ offer_price, price, redeem_price }) => {
       );
     } else {
       return (
-        <div className="flex flex-row items-center gap-[4px] regular text-[13px] text-[#1d1d1d]">
+        <div
+          className={`${
+            isRtl ? "dir-rtl" : ""
+          } flex flex-row items-center gap-[4px] regular text-[13px] text-[#1d1d1d]`}
+        >
           <span
             className="relative text-[#C4C2C2]"
             data-cy="normal-price-label"
@@ -312,7 +372,11 @@ const Prices = ({ offer_price, price, redeem_price }) => {
   } else {
     if (price === offer_price) {
       return (
-        <div className="flex flex-row items-center gap-[4px] regular text-[13px] text-[#1d1d1d]">
+        <div
+          className={`${
+            isRtl ? "dir-rtl" : ""
+          } flex flex-row items-center gap-[4px] regular text-[13px] text-[#1d1d1d]`}
+        >
           <span
             className="relative text-[#1D1D1D] bold"
             data-cy="offer-price-label"
@@ -328,7 +392,11 @@ const Prices = ({ offer_price, price, redeem_price }) => {
       );
     } else {
       return (
-        <div className="flex flex-row items-center gap-[4px] regular text-[13px] text-[#1d1d1d]">
+        <div
+          className={`${
+            isRtl ? "dir-rtl" : ""
+          } flex flex-row items-center gap-[4px] regular text-[13px] text-[#1d1d1d]`}
+        >
           <span
             className="relative text-[#C4C2C2]"
             data-cy="normal-price-label"
