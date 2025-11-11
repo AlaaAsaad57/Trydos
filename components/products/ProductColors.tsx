@@ -182,7 +182,7 @@ function ProductColors({
       )}
       <div
         className={`product-colors ${
-          isRtl ? "flex-row-reverse justify-end" : "flex-row"
+          isRtl ? "flex-row-reverse " : "flex-row"
         } mt-[12px]  align-start justify-between relative`}
         data-cy="AvailableColor"
         onClick={() => {

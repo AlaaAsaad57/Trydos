@@ -1131,6 +1131,7 @@ const translations = {
   "Order Payment": "پارەدانی داوا",
   "Submit Rating": "هەڵسەنگاندن بنێرە",
   "Do you want to delete this message?": "دەتەوێت ئەم نامەیە بسڕیتەوە؟",
+  Last: "ماوە",
 };
 
 export default translations;

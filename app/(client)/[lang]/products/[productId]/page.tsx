@@ -401,9 +401,6 @@ async function Page({ params, searchParams }) {
     const getProductText = () => {
       let text_info = [];
       text_info.push(product.name);
-      product.categories?.map((s) => {
-        text_info.push(s.name);
-      });
       if (color) {
         const matchingColor = product?.sync_color_images?.find(
           (s) => s.color_option === color || s.color_name === color

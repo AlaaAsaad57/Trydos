@@ -236,7 +236,9 @@ function SizeSelect({
 export default SizeSelect;
 
 const SizeWarning = ({ qty, size, isCollectAfterOrder }) => {
-  console.log({ qty, size, isCollectAfterOrder });
+  const { language } = useAppStore();
+  const isRtl = language === "ar" || language === "ku";
+
   if (qty > 0 || isCollectAfterOrder) {
     return (
       <div className="flex flex-row items-center mt-[11px] gap-[4px] w-full justify-center px-[24px]">
@@ -259,7 +261,11 @@ const SizeWarning = ({ qty, size, isCollectAfterOrder }) => {
             {translateFunction("For You")}
           </span>
           {qty < 10 && !isCollectAfterOrder && (
-            <span className="text-[#FF6200] flex items-center">
+            <span
+              className={`${
+                isRtl && "dir-rtl"
+              } text-[#FF6200] flex items-center`}
+            >
               {translateFunction("Last")} {qty}
             </span>
           )}

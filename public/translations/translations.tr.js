@@ -1078,6 +1078,7 @@ const translations = {
   "Order Payment": "Sipariş Ödemesi",
   "Submit Rating": "Değerlendirmeyi Gönder",
   "Do you want to delete this message?": "Bu mesajı silmek istiyor musunuz?",
+  Last: "Kalan",
 };
 
 export default translations;
