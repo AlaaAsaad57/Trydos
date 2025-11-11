@@ -17,6 +17,7 @@ function ExtraInfoArea({
   redeem_price,
   flashDeal,
   isCollectAfterOrder,
+  colors,
   RedemEnd = () => {},
   id,
   product,
@@ -170,7 +171,7 @@ function ExtraInfoArea({
     }
   };
   // if qty is 0
-  if (isQtyEmpty && !isCollectAfterOrder) {
+  if (isQtyEmpty && !isCollectAfterOrder && colors?.length > 0) {
     return (
       <div className="flex-row flex items-center min-h-[40px] max-h-[85px] w-full px-[20px]">
         <div className="flex items-center justify-center rounded-[10px] bg-[#F8F8F8] text-[11px] text-[#1d1d1d] w-full h-[25px] medium">

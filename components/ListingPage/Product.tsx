@@ -1,5 +1,5 @@
 "use client";
-import React, { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import BuyButton from "./BuyButton";
 import { useAppStore } from "store";
 import RedeemButton from "./RedeemButton";

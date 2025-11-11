@@ -1034,6 +1034,7 @@ const translations = {
   Lebanon: "Lübnan",
   Turkey: "Türkiye",
   "Selected Color": "Seçilen Renk",
+  "Select Color": "Seçilen Renk",
   "Select Your Required Size": "Gerekli Bedeninizi Seçin",
   "Added To Your Bag": "Sepetinize Eklendi",
   "Removed From Your Bag": "Sepetinizden Çıkarıldı",

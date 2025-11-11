@@ -1,7 +1,7 @@
 "use client";
 import Spinner from "components/global/Spinner";
 import Timer from "components/Login/Timer";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useAppStore } from "store";
 import { getCookie, setCookie } from "utils/cookies/cookie-manager";
 import { translateFunction } from "utils/functions";
@@ -9,6 +9,7 @@ import { translateFunction } from "utils/functions";
 function ProductRedeemCounter({ language, product_id }) {
   const { expireRedeem, SelectedProduct, selected_product_for_add_to_cart } =
     useAppStore();
+  const [isAlreadyRedeemed, setIsAlreadyRedeemed] = useState(false);
   const configureRedeemedProducts = () => {
     if (SelectedProduct?.id === product_id) {
       expireRedeem();
@@ -69,6 +70,15 @@ function ProductRedeemCounter({ language, product_id }) {
     localStorage.removeItem("counter");
   };
   useEffect(() => {
+    let redeemed_products_ids = getCookie<any>("redemed_ids");
+    if (redeemed_products_ids) {
+      let parsed_redeemed_products_ids = redeemed_products_ids
+        ? redeemed_products_ids
+        : [];
+      if (parsed_redeemed_products_ids?.find((s) => s.id === product_id)) {
+        setIsAlreadyRedeemed(true);
+      }
+    }
     return () => {
       finishCounter();
     };
@@ -122,6 +132,9 @@ function ProductRedeemCounter({ language, product_id }) {
       </g>
     </svg>
   );
+  if (isAlreadyRedeemed) {
+    return <></>;
+  }
   const isRtl = language === "ar" || language === "ku";
   return (
     <div

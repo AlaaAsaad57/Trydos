@@ -258,7 +258,7 @@ const SizeWarning = ({ qty, size, isCollectAfterOrder }) => {
           <span className="flex items-center">
             {translateFunction("For You")}
           </span>
-          {qty < 10 && (
+          {qty < 10 && !isCollectAfterOrder && (
             <span className="text-[#FF6200] flex items-center">
               {translateFunction("Last")} {qty}
             </span>

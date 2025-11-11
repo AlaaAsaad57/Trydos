@@ -1088,6 +1088,7 @@ const translations = {
   Lebanon: "لوبنان",
   Turkey: "تورکیا",
   "Selected Color": "ڕەنگی دیاریکراو",
+  "Select Color": "ڕەنگی دیاریکراو",
   "Select Your Required Size": "قەبارەی داواکراوت هەڵبژێرە",
   "Added To Your Bag": "زیاد کرا بۆ جانتاکەت",
   "Removed From Your Bag": "لابرا لە جانتاکەت",
