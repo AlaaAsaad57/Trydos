@@ -85,9 +85,9 @@ export const getProductDataFromElastic = async ({
       },
       ratingDetails,
       recommendation_stats: recommendationStats.stats,
+      count_of_likes: likeDetails?.total_likes,
       total_rating:
         likeDetails?.final_rating ?? recommendationStats.total_rating,
-      ...likeDetails,
     };
   } catch (error) {
     console.error(error);
