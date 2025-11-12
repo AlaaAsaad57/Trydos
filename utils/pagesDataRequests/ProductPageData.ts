@@ -86,6 +86,7 @@ export const getProductDataFromElastic = async ({
       ratingDetails,
       recommendation_stats: recommendationStats.stats,
       count_of_likes: likeDetails?.total_likes,
+      is_liked: likeDetails.is_liked,
       total_rating:
         likeDetails?.final_rating ?? recommendationStats.total_rating,
     };
