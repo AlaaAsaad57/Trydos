@@ -16,6 +16,7 @@ function GeneralPropertiesModal({
   TotalBuyers,
   recommendation_stats,
   total_rating,
+  views,
 }) {
   const { ColorBottomSheet, setColorBottomSheet, language } = useAppStore();
   let reviews_arr = [
@@ -88,7 +89,7 @@ function GeneralPropertiesModal({
                   </span>
                 </div>
                 <span className="px-[5px] text-[11px] text-[#1d1d1d]">|</span>
-                <ProductViews />
+                <ProductViews views={views} />
                 <span className="px-[4px] flex">
                   {translateFunction("Views Product", language)}
                 </span>

@@ -9,23 +9,23 @@ const Delivery = (props: React.SVGProps<SVGSVGElement>) => (
     xmlns="http://www.w3.org/2000/svg"
     {...props}
   >
-    <g stroke="none" stroke-width="1" fill="none" fillRule="evenodd">
+    <g stroke="none" strokeWidth="1" fill="none" fillRule="evenodd">
       <path
         d="M20,8 L20,16 C20,17.1045695 19.1045695,18 18,18 L6,18 C4.8954305,18 4,17.1045695 4,16 L4,8 C4,6.8954305 4.8954305,6 6,6 L18,6 C19.1045695,6 20,6.8954305 20,8 Z"
         stroke="currentColor"
-        stroke-width="2"
+        strokeWidth="2"
       />
       <path
         d="M15,10 L15,14 M9,10 L9,14"
         stroke="currentColor"
-        stroke-width="2"
-        stroke-linecap="round"
+        strokeWidth="2"
+        strokeLinecap="round"
       />
       <path
         d="M12,3 L12,6 M12,18 L12,21"
         stroke="currentColor"
-        stroke-width="2"
-        stroke-linecap="round"
+        strokeWidth="2"
+        strokeLinecap="round"
       />
     </g>
   </svg>

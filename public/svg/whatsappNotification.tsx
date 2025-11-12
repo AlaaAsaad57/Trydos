@@ -13,7 +13,7 @@ const WhatsappNotification = (props: React.SVGProps<SVGSVGElement>) => (
     <title>Whatsapp-color</title>
     <desc>Created with Sketch.</desc>
     <defs></defs>
-    <g id="Icons" stroke="none" stroke-width="1" fill="none" fillRule="evenodd">
+    <g id="Icons" stroke="none" strokeWidth="1" fill="none" fillRule="evenodd">
       <g
         id="Color-"
         transform="translate(-700.000000, -360.000000)"

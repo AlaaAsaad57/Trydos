@@ -50,7 +50,7 @@ function ChatLists(props) {
     );
   }
   return (
-    <div className="chat-list-items">
+    <div className="chat-list-items chat-lists-class ">
       {!loading && (
         <>
           {props.search.length === 0 ? (

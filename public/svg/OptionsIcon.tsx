@@ -19,7 +19,7 @@ const OptionsIcon = (props: React.SVGProps<SVGSVGElement>) => (
           transform="translate(380 852)"
           fill="#f8f8f8"
           stroke="#000"
-          stroke-width="0.6"
+          strokeWidth="0.6"
         />
       </clipPath>
     </defs>
@@ -39,7 +39,7 @@ const OptionsIcon = (props: React.SVGProps<SVGSVGElement>) => (
           data-name="Ellipse 221"
           fill="#f8f8f8"
           stroke="#000"
-          stroke-width="0.6"
+          strokeWidth="0.6"
         >
           <circle cx="3" cy="3" r="3" stroke="none" />
           <circle cx="3" cy="3" r="2.7" fill="none" />
@@ -50,7 +50,7 @@ const OptionsIcon = (props: React.SVGProps<SVGSVGElement>) => (
           transform="translate(0 7)"
           fill="#f8f8f8"
           stroke="#000"
-          stroke-width="0.6"
+          strokeWidth="0.6"
         >
           <circle cx="3" cy="3" r="3" stroke="none" />
           <circle cx="3" cy="3" r="2.7" fill="none" />
@@ -61,7 +61,7 @@ const OptionsIcon = (props: React.SVGProps<SVGSVGElement>) => (
           transform="translate(0 14)"
           fill="#f8f8f8"
           stroke="#000"
-          stroke-width="0.6"
+          strokeWidth="0.6"
         >
           <circle cx="3" cy="3" r="3" stroke="none" />
           <circle cx="3" cy="3" r="2.7" fill="none" />

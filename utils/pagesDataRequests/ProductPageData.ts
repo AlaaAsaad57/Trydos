@@ -37,8 +37,7 @@ export const getProductDataFromElastic = async ({
   if (!userId) {
     const cookiesStore = await cookies();
     let user_data = cookiesStore.get(COOKIE_NAMES.USER_DATA)?.value;
-    let user_id =
-      typeof user_data === "string" ? JSON.parse(user_data)?.id : null;
+    user_id = typeof user_data === "string" ? JSON.parse(user_data)?.id : null;
   } else {
     user_id = userId;
   }
@@ -49,7 +48,7 @@ export const getProductDataFromElastic = async ({
       ratingComment,
       FQAComments,
       recommendationStats,
-      ratingDetails,
+
       likeDetails,
     ] = await Promise.all([
       getProductSharedCountFromElasticsearch(productId, slug, lang),
@@ -64,7 +63,7 @@ export const getProductDataFromElastic = async ({
         user_id: user_id,
       }),
       GetRecommendationCountForProduct({ product_id: productId }),
-      getProductRatingDetails({ p_id: productId }),
+
       getProductInteractions(productId, user_id),
     ]);
 
@@ -83,10 +82,11 @@ export const getProductDataFromElastic = async ({
         offset: FQAComments.searchAfter,
         total: FQAComments.total,
       },
-      ratingDetails,
+      ratingDetails: likeDetails?.ratingDetails,
       recommendation_stats: recommendationStats.stats,
       count_of_likes: likeDetails?.total_likes,
       is_liked: likeDetails.is_liked,
+      total_views: likeDetails?.total_views,
       total_rating:
         likeDetails?.final_rating ?? recommendationStats.total_rating,
     };
@@ -585,7 +585,7 @@ async function getProductInteractions(productId, userId) {
     ];
 
     if (userId) {
-      must.push({ term: { user_id: userId } });
+      must.push({ term: { user_id: String(userId) } });
     }
 
     // Run both queries in parallel
@@ -612,6 +612,13 @@ async function getProductInteractions(productId, userId) {
       final_rating: source.final_rating,
       total_comments: source.total_comments,
       total_likes: source.total_likes,
+      total_views: source?.total_views,
+      ratingDetails:
+        source?.star_distribution &&
+        Object.keys(source.star_distribution).map((s) => ({
+          ratingGroup: s?.split("_")[1],
+          count: source?.star_distribution[s] ?? 0,
+        })),
     };
 
     // If no userId is provided, we skip the like check
@@ -620,7 +627,7 @@ async function getProductInteractions(productId, userId) {
       const hit = likeRes.hits.hits[0];
       isLiked = (hit._source as any).status?.toLowerCase() !== "cancelled";
     }
-    console.log(productInfo);
+
     return {
       ...productInfo,
       is_liked: isLiked,

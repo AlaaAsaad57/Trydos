@@ -100,6 +100,11 @@ function ProductColors({
   const handleSelectColor = (color) => {
     const newParams = new URLSearchParams(searchParams);
     const colorOption = color?.color_option || color?.color_name;
+    if (newParams.get("color") === colorOption) {
+      setLoading(false);
+      setColorBottomSheet(false);
+      return;
+    }
     if (colorOption) {
       newParams.set("color", colorOption);
       router.push(pathname + `?${newParams.toString()}`, {
@@ -172,6 +177,7 @@ function ProductColors({
       {currency && params && (
         <ProductDetailsColorBottom
           loading={loading}
+          colorFromUrl={colorFromUrl}
           handleSelectColor={(e) => {
             handleSelectColor(e);
             setLoading(true);
@@ -226,6 +232,7 @@ const ProductDetailsColorBottom = ({
   params,
   currency,
   handleSelectColor,
+  colorFromUrl,
   loading,
 }) => {
   const { ColorBottomSheet, setColorBottomSheet } = useAppStore();
@@ -244,6 +251,13 @@ const ProductDetailsColorBottom = ({
             <div className={`relative`}>
               <ProductColorCard
                 onClick={() => {
+                  if (
+                    colorFromUrl === (color?.color_name || color?.color_option)
+                  ) {
+                    setColorBottomSheet(false);
+                    setIndex(null);
+                    return;
+                  }
                   setIndex(i);
                   handleSelectColor(color);
                 }}

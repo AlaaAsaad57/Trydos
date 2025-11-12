@@ -18,7 +18,7 @@ const SearchMiniIcon = (props: React.SVGProps<SVGSVGElement>) => (
           height="13"
           fill="none"
           stroke="#388cff"
-          stroke-width="0.5"
+          strokeWidth="0.5"
         />
       </clipPath>
     </defs>
@@ -37,10 +37,10 @@ const SearchMiniIcon = (props: React.SVGProps<SVGSVGElement>) => (
           transform="translate(0)"
           fill="none"
           stroke="#388cff"
-          stroke-linecap="round"
+          strokeLinecap="round"
           stroke-linejoin="round"
           stroke-miterlimit="10"
-          stroke-width="0.5"
+          strokeWidth="0.5"
         />
         <line
           id="Line_900"
@@ -50,10 +50,10 @@ const SearchMiniIcon = (props: React.SVGProps<SVGSVGElement>) => (
           transform="translate(8.088 8.088)"
           fill="none"
           stroke="#388cff"
-          stroke-linecap="round"
+          strokeLinecap="round"
           stroke-linejoin="round"
           stroke-miterlimit="10"
-          stroke-width="0.5"
+          strokeWidth="0.5"
         />
       </g>
     </g>

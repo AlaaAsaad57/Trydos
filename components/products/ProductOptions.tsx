@@ -189,6 +189,10 @@ function ProductOptions({
     const likes = SelectedProduct?.likes ?? product?.count_of_likes ?? "";
     return Math.max(0, likes);
   };
+  const getSafeIsLiked = () => {
+    if (SelectedProduct) return SelectedProduct?.is_liked;
+    return product?.is_liked;
+  };
   const isRtl = language === "ar" || language === "ku";
   const getSharesCount = () => {
     if (SelectedProduct?.sharesCount > 0) return SelectedProduct?.sharesCount;
@@ -208,6 +212,7 @@ function ProductOptions({
     if (num > 0) return num;
     return "";
   };
+
   return (
     <div
       className={`product-options-container ${isRtl && "flex-row-reverse"}`}
@@ -245,7 +250,7 @@ function ProductOptions({
                   else LikeProduct(true);
                 }}
               >
-                {SelectedProduct?.is_liked ? (
+                {getSafeIsLiked() ? (
                   <HeartFill data-cy="LoveClickOnLast" />
                 ) : (
                   <Heart />

@@ -316,6 +316,7 @@ function ProductLoader({ product }) {
                 language={(params?.lang as string)?.split("-")?.[1]}
               />
               <ProductGeneralProperties
+                views={null}
                 rating_stats={[]}
                 recommendation_stats={[]}
                 total_rating={0}

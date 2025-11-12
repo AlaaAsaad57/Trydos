@@ -111,7 +111,7 @@ const CloseIcon = ({ clickHandler }) => {
               transform="matrix(0.695, -0.719, 0.719, 0.695, 0.174, 10.158)"
               fill="none"
               stroke="#ff5f61"
-              stroke-linecap="round"
+              strokeLinecap="round"
               strokeWidth="1"
             />
             <line
@@ -121,7 +121,7 @@ const CloseIcon = ({ clickHandler }) => {
               transform="matrix(0.719, 0.695, -0.695, 0.719, 0, 0.174)"
               fill="none"
               stroke="#ff5f61"
-              stroke-linecap="round"
+              strokeLinecap="round"
               strokeWidth="1"
             />
           </g>

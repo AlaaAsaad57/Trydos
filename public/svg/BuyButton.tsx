@@ -69,8 +69,8 @@ const BuyButton = (props: React.SVGProps<SVGSVGElement>) => (
                 transform="translate(3.039 9.8)"
                 fill="none"
                 stroke="#fff"
-                stroke-linecap="round"
-                stroke-width="0.3"
+                strokeLinecap="round"
+                strokeWidth="0.3"
               />
             </g>
           </g>

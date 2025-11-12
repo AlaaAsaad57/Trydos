@@ -634,6 +634,7 @@ export function LikeButton({ comment, disabled = false }) {
        0 1.72-1.43 3.19-3.85 5.3L5.5 9.79z"
           strokeWidth={"0.5"}
           stroke={isLiked ? "transparent" : "#1d1d1d"}
+          fill={isLiked ? "" : "transparent"}
         />
       </svg>
       <span>{likes.toLocaleString()}</span>

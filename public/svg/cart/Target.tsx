@@ -38,7 +38,7 @@ const Target = (props: React.SVGProps<SVGSVGElement>) => (
             data-name="Ellipse 427"
             fill="none"
             stroke="#1d1d1d"
-            stroke-width="0.5"
+            strokeWidth="0.5"
           >
             <circle cx="9" cy="9" r="9" stroke="none" />
             <circle cx="9" cy="9" r="8.75" fill="none" />

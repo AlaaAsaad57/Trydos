@@ -35,7 +35,7 @@ const GreenBigTruck = (props: React.SVGProps<SVGSVGElement>) => (
           transform="translate(0.837 -5.738)"
           fill="#bef4cd"
           stroke="#1d1d1d"
-          stroke-width="0.328"
+          strokeWidth="0.328"
         />
         <path
           id="Path_22071"
@@ -44,7 +44,7 @@ const GreenBigTruck = (props: React.SVGProps<SVGSVGElement>) => (
           transform="translate(6.186 -4.48)"
           fill="#e8ffed"
           stroke="#1d1d1d"
-          stroke-width="0.328"
+          strokeWidth="0.328"
         />
         <path
           id="Path_22072"
@@ -53,7 +53,7 @@ const GreenBigTruck = (props: React.SVGProps<SVGSVGElement>) => (
           transform="translate(0.839 -4.899)"
           fill="#e8ffed"
           stroke="#1d1d1d"
-          stroke-width="0.328"
+          strokeWidth="0.328"
         />
         <path
           id="Path_22073"
@@ -62,7 +62,7 @@ const GreenBigTruck = (props: React.SVGProps<SVGSVGElement>) => (
           transform="translate(0.419 -3.641)"
           fill="#e8ffed"
           stroke="#1d1d1d"
-          stroke-width="0.328"
+          strokeWidth="0.328"
         />
         <path
           id="Path_22074"
@@ -71,7 +71,7 @@ const GreenBigTruck = (props: React.SVGProps<SVGSVGElement>) => (
           transform="translate(0 -2.383)"
           fill="#e8ffed"
           stroke="#1d1d1d"
-          stroke-width="0.328"
+          strokeWidth="0.328"
         />
         <path
           id="Path_22075"
@@ -80,7 +80,7 @@ const GreenBigTruck = (props: React.SVGProps<SVGSVGElement>) => (
           transform="translate(7.128 -1.964)"
           fill="#e8ffed"
           stroke="#1d1d1d"
-          stroke-width="0.328"
+          strokeWidth="0.328"
         />
         <path
           id="Path_22076"
@@ -89,7 +89,7 @@ const GreenBigTruck = (props: React.SVGProps<SVGSVGElement>) => (
           transform="translate(2.516 -1.964)"
           fill="#e8ffed"
           stroke="#1d1d1d"
-          stroke-width="0.328"
+          strokeWidth="0.328"
         />
       </g>
     </g>

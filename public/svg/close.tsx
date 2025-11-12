@@ -9,12 +9,12 @@ const Close = (props: React.SVGProps<SVGSVGElement>) => (
     xmlns="http://www.w3.org/2000/svg"
     {...props}
   >
-    <g stroke="none" stroke-width="1" fill="none" fillRule="evenodd">
+    <g stroke="none" strokeWidth="1" fill="none" fillRule="evenodd">
       <path
         d="M6,6 L18,18 M6,18 L18,6"
         stroke="currentColor"
-        stroke-width="2"
-        stroke-linecap="round"
+        strokeWidth="2"
+        strokeLinecap="round"
       />
     </g>
   </svg>

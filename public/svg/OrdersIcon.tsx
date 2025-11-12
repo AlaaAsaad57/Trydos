@@ -35,8 +35,8 @@ const OrdersIcon = (props: React.SVGProps<SVGSVGElement>) => (
         x2="0.5"
         gradientUnits="objectBoundingBox"
       >
-        <stop offset="0" stop-color="#f53c3c" />
-        <stop offset="1" stop-color="#ff9696" />
+        <stop offset="0" stopColor="#f53c3c" />
+        <stop offset="1" stopColor="#ff9696" />
       </linearGradient>
     </defs>
     <g id="Group_13482" data-name="Group 13482" transform="translate(-17 -194)">
@@ -78,8 +78,8 @@ const OrdersIcon = (props: React.SVGProps<SVGSVGElement>) => (
               transform="translate(5.066 16.334)"
               fill="none"
               stroke="#fce66e"
-              stroke-linecap="round"
-              stroke-width="0.6"
+              strokeLinecap="round"
+              strokeWidth="0.6"
             />
           </g>
         </g>

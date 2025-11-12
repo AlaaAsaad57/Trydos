@@ -5,6 +5,7 @@ import { useAppStore } from "store";
 import {
   showErrorNotification,
   showSuccessNotification,
+  showChatNotification,
 } from "store/notifications/reducer";
 import { fetchData } from "./fetchData";
 import { InCall } from "store/chat/callActions";
@@ -581,17 +582,58 @@ class ForegroundNotificationHandler {
               );
             } else {
               let active = activeChat;
+              const messageData = JSON.parse(payload.data.data).message;
+              const senderUser = messageData?.sender_user;
+              const messageContent = messageData?.message_content;
+              const messageType = messageData?.message_type?.name;
+              const messageFiles = messageData?.message_files || [];
+              const channel = messageData?.channel;
+
+              // Show chat notification if not muted
               if (
-                active?.id &&
+                !active?.id ||
                 active?.channel_members.filter(
                   (mem) =>
                     mem.user_id === getUserChat()?.id && mem.user.mute === 1
-                ).length > 0
+                ).length === 0
               ) {
-              } else {
-                // let not = new Audio("/wa.mp3");
-                // not.volume = 0.5;
-                // not.play();
+                const senderName =
+                  senderUser?.name || channel?.channel_name || "Unknown";
+                const senderPhoto =
+                  senderUser?.photo_path || channel?.photo_path;
+                let messagePreview = "";
+                let messageImage = null;
+
+                // Check if message has image
+                if (messageFiles && messageFiles.length > 0) {
+                  messageImage =
+                    messageFiles[0]?.file_path || messageFiles[0]?.url;
+                  messagePreview = translateFunction("Sent an image");
+                } else if (messageContent?.content) {
+                  messagePreview = messageContent.content;
+                  // Truncate long messages
+                  if (messagePreview.length > 100) {
+                    messagePreview = messagePreview.substring(0, 100) + "...";
+                  }
+                } else if (messageType) {
+                  messagePreview = translateFunction(`Sent a ${messageType}`);
+                } else {
+                  messagePreview = translateFunction("New message");
+                }
+
+                // Show chat notification
+                let { chatVar } = useAppStore.getState();
+                if (!chatVar)
+                  showChatNotification(
+                    senderName,
+                    messagePreview,
+                    channel?.id || messageData?.channel_id,
+                    channel,
+                    senderPhoto,
+                    messageImage,
+                    messageType,
+                    5000
+                  );
               }
             }
             sendMessage({

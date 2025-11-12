@@ -37,10 +37,10 @@ const SearchHistoryIcon = (props: React.SVGProps<SVGSVGElement>) => (
                 d="M.991,2.9H13.852"
                 fill="none"
                 stroke="#388cff"
-                stroke-linecap="round"
+                strokeLinecap="round"
                 stroke-linejoin="round"
                 stroke-miterlimit="10"
-                stroke-width="0.625"
+                strokeWidth="0.625"
                 fillRule="evenodd"
               />
               <path
@@ -49,10 +49,10 @@ const SearchHistoryIcon = (props: React.SVGProps<SVGSVGElement>) => (
                 d="M.991,17.1H13.852"
                 fill="none"
                 stroke="#388cff"
-                stroke-linecap="round"
+                strokeLinecap="round"
                 stroke-linejoin="round"
                 stroke-miterlimit="10"
-                stroke-width="0.625"
+                strokeWidth="0.625"
                 fillRule="evenodd"
               />
               <path
@@ -61,10 +61,10 @@ const SearchHistoryIcon = (props: React.SVGProps<SVGSVGElement>) => (
                 d="M.991,12.347H7.42"
                 fill="none"
                 stroke="#388cff"
-                stroke-linecap="round"
+                strokeLinecap="round"
                 stroke-linejoin="round"
                 stroke-miterlimit="10"
-                stroke-width="0.625"
+                strokeWidth="0.625"
                 fillRule="evenodd"
               />
               <path
@@ -73,10 +73,10 @@ const SearchHistoryIcon = (props: React.SVGProps<SVGSVGElement>) => (
                 d="M.991,7.622H7.42"
                 fill="none"
                 stroke="#388cff"
-                stroke-linecap="round"
+                strokeLinecap="round"
                 stroke-linejoin="round"
                 stroke-miterlimit="10"
-                stroke-width="0.625"
+                strokeWidth="0.625"
                 fillRule="evenodd"
               />
             </g>
@@ -92,10 +92,10 @@ const SearchHistoryIcon = (props: React.SVGProps<SVGSVGElement>) => (
               d="M16.8,10a3.282,3.282,0,1,1-3.282-3.285A3.284,3.284,0,0,1,16.8,10Z"
               fill="#388cff"
               stroke="#388cff"
-              stroke-linecap="round"
+              strokeLinecap="round"
               stroke-linejoin="round"
               stroke-miterlimit="10"
-              stroke-width="0.625"
+              strokeWidth="0.625"
               fillRule="evenodd"
             />
             <path
@@ -104,10 +104,10 @@ const SearchHistoryIcon = (props: React.SVGProps<SVGSVGElement>) => (
               d="M19.012,15.493l-3.175-3.172"
               fill="none"
               stroke="#388cff"
-              stroke-linecap="round"
+              strokeLinecap="round"
               stroke-linejoin="round"
               stroke-miterlimit="10"
-              stroke-width="0.625"
+              strokeWidth="0.625"
               fillRule="evenodd"
             />
           </g>

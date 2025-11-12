@@ -192,15 +192,12 @@ function ProductFooterSection({
         variation: arr,
         color,
         size,
-        views_count: response_views?.view_count || 0,
       });
       setLoading(false);
       // @ts-ignore
 
       setSharesCount(product.shared_count);
-      setViewsProducts({
-        views_count: response_views?.view_count || 0,
-      });
+
       const lastPage = localStorage.getItem("last-page");
       let lastPageData;
       if (lastPage) {

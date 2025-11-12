@@ -9,7 +9,7 @@ const Camera = (props: React.SVGProps<SVGSVGElement>) => (
     xmlns="http://www.w3.org/2000/svg"
     {...props}
   >
-    <g stroke="none" stroke-width="1" fill="none" fillRule="evenodd">
+    <g stroke="none" strokeWidth="1" fill="none" fillRule="evenodd">
       <path
         d="M12,12 C13.1,12 14,11.1 14,10 C14,8.9 13.1,8 12,8 C10.9,8 10,8.9 10,10 C10,11.1 10.9,12 12,12 Z M12,14 C9.79,14 8,12.21 8,10 C8,7.79 9.79,6 12,6 C14.21,6 16,7.79 16,10 C16,12.21 14.21,14 12,14 Z"
         fill="#4A5568"

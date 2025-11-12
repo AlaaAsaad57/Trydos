@@ -17,10 +17,10 @@ const Colors = (props: React.SVGProps<SVGSVGElement>) => (
         y2="1"
         gradientUnits="objectBoundingBox"
       >
-        <stop offset="0" stop-color="#f46eff" />
-        <stop offset="0.34" stop-color="#61f8ec" />
-        <stop offset="0.69" stop-color="#ffe943" />
-        <stop offset="1" stop-color="#ff6767" />
+        <stop offset="0" stopColor="#f46eff" />
+        <stop offset="0.34" stopColor="#61f8ec" />
+        <stop offset="0.69" stopColor="#ffe943" />
+        <stop offset="1" stopColor="#ff6767" />
       </linearGradient>
     </defs>
     <g id="Exclusion_2" data-name="Exclusion 2" fill="url(#linear-gradient)">

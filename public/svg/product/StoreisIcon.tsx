@@ -34,7 +34,7 @@ const StoreisIcon = (props: React.SVGProps<SVGSVGElement>) => (
           d="M15.279,7.4a5.816,5.816,0,1,1-8.226,0A5.818,5.818,0,0,1,15.279,7.4Z"
           fill="none"
           stroke="#402cdd"
-          stroke-width="0.931"
+          strokeWidth="0.931"
         />
         <path
           id="Path_23585"

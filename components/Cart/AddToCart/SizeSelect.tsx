@@ -127,7 +127,7 @@ function SizeSelect({
                     height="46.5"
                     rx="5.75"
                     stroke="#513aaf"
-                    stroke-width="0.5"
+                    strokeWidth="0.5"
                     fill="none"
                   />
                 </svg>

@@ -66,8 +66,8 @@ const CartPurbleIcon = (props: React.SVGProps<SVGSVGElement>) => (
                 transform="translate(4.019 12.958)"
                 fill="none"
                 stroke="#ffe836"
-                stroke-linecap="round"
-                stroke-width="0.3"
+                strokeLinecap="round"
+                strokeWidth="0.3"
               />
             </g>
           </g>

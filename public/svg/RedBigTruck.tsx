@@ -35,7 +35,7 @@ const RedBigTruck = (props: React.SVGProps<SVGSVGElement>) => (
           transform="translate(8.201 -5.738)"
           fill="#ffa7a8"
           stroke="#1d1d1d"
-          stroke-width="0.328"
+          strokeWidth="0.328"
         />
         <path
           id="Path_22071"
@@ -44,7 +44,7 @@ const RedBigTruck = (props: React.SVGProps<SVGSVGElement>) => (
           transform="translate(-12.093 -4.508)"
           fill="#e8ffed"
           stroke="#1d1d1d"
-          stroke-width="0.328"
+          strokeWidth="0.328"
         />
         <path
           id="Path_22072"
@@ -53,7 +53,7 @@ const RedBigTruck = (props: React.SVGProps<SVGSVGElement>) => (
           transform="translate(19.262 -4.918)"
           fill="#e8ffed"
           stroke="#1d1d1d"
-          stroke-width="0.328"
+          strokeWidth="0.328"
         />
         <path
           id="Path_22073"
@@ -62,7 +62,7 @@ const RedBigTruck = (props: React.SVGProps<SVGSVGElement>) => (
           transform="translate(20.082 -3.688)"
           fill="#e8ffed"
           stroke="#1d1d1d"
-          stroke-width="0.328"
+          strokeWidth="0.328"
         />
         <path
           id="Path_22074"
@@ -71,7 +71,7 @@ const RedBigTruck = (props: React.SVGProps<SVGSVGElement>) => (
           transform="translate(20.902 -2.459)"
           fill="#e8ffed"
           stroke="#1d1d1d"
-          stroke-width="0.328"
+          strokeWidth="0.328"
         />
         <path
           id="Path_22075"
@@ -80,7 +80,7 @@ const RedBigTruck = (props: React.SVGProps<SVGSVGElement>) => (
           transform="translate(-11.475 -2.049)"
           fill="#e8ffed"
           stroke="#1d1d1d"
-          stroke-width="0.328"
+          strokeWidth="0.328"
         />
         <path
           id="Path_22076"
@@ -89,7 +89,7 @@ const RedBigTruck = (props: React.SVGProps<SVGSVGElement>) => (
           transform="translate(11.066 -2.049)"
           fill="#e8ffed"
           stroke="#1d1d1d"
-          stroke-width="0.328"
+          strokeWidth="0.328"
         />
       </g>
     </g>

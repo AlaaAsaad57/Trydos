@@ -1,5 +1,5 @@
 "use client";
-import React, { Suspense, useMemo } from "react";
+import { Suspense, useMemo } from "react";
 import RatingStars from "components/settings/cards/RatingStars";
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 import RecomendedIcon from "public/svg/Recomended";
@@ -17,6 +17,7 @@ function ProductGeneralProperties({
   total_rating,
   rating_stats,
   recommendation_stats,
+  views,
 }) {
   const { setColorBottomSheet } = useAppStore();
   const isRtl = languageVariable === "ar" || languageVariable === "ku";
@@ -34,6 +35,7 @@ function ProductGeneralProperties({
   return (
     <>
       <GeneralPropertiesModal
+        views={views}
         recommendation_stats={{
           recomended_count: recomended,
           not_recomended_count: not_recomended,
@@ -74,7 +76,7 @@ function ProductGeneralProperties({
             </div>
           }
         >
-          <ProductViews />
+          <ProductViews views={views} />
         </Suspense>
         <span className="px-[5px] text-[10px] text-[#1d1d1d]">|</span>
         <div className="flex-row items-center product-property-row">

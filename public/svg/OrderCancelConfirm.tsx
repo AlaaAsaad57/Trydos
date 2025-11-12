@@ -35,7 +35,7 @@ const OrderCancelConfirm = (props: React.SVGProps<SVGSVGElement>) => (
             transform="translate(0 0.179)"
             fill="none"
             stroke="#fff"
-            stroke-width="0.5"
+            strokeWidth="0.5"
           >
             <circle cx="25" cy="25" r="25" stroke="none" />
             <circle cx="25" cy="25" r="24.75" fill="none" />

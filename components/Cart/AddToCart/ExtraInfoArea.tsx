@@ -227,7 +227,7 @@ function ExtraInfoArea({
                 height="24.5"
                 rx="9.75"
                 stroke="#ff6200"
-                stroke-width="0.5"
+                strokeWidth="0.5"
                 fill="none"
               />
             </svg>

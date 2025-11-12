@@ -35,7 +35,7 @@ const Shipping = (props: React.SVGProps<SVGSVGElement>) => (
           transform="translate(0.327 -3.443)"
           fill="#bef4cd"
           stroke="#1d1d1d"
-          stroke-width="0.197"
+          strokeWidth="0.197"
         />
         <path
           id="Path_22071"
@@ -44,7 +44,7 @@ const Shipping = (props: React.SVGProps<SVGSVGElement>) => (
           transform="translate(2.419 -2.95)"
           fill="#e8ffed"
           stroke="#1d1d1d"
-          stroke-width="0.197"
+          strokeWidth="0.197"
         />
         <path
           id="Path_22072"
@@ -53,7 +53,7 @@ const Shipping = (props: React.SVGProps<SVGSVGElement>) => (
           transform="translate(0.328 -3.114)"
           fill="#e8ffed"
           stroke="#1d1d1d"
-          stroke-width="0.197"
+          strokeWidth="0.197"
         />
         <path
           id="Path_22073"
@@ -62,7 +62,7 @@ const Shipping = (props: React.SVGProps<SVGSVGElement>) => (
           transform="translate(0.164 -2.623)"
           fill="#e8ffed"
           stroke="#1d1d1d"
-          stroke-width="0.197"
+          strokeWidth="0.197"
         />
         <path
           id="Path_22074"
@@ -71,7 +71,7 @@ const Shipping = (props: React.SVGProps<SVGSVGElement>) => (
           transform="translate(0 -2.131)"
           fill="#e8ffed"
           stroke="#1d1d1d"
-          stroke-width="0.197"
+          strokeWidth="0.197"
         />
         <path
           id="Path_22075"
@@ -80,7 +80,7 @@ const Shipping = (props: React.SVGProps<SVGSVGElement>) => (
           transform="translate(2.787 -1.967)"
           fill="#e8ffed"
           stroke="#1d1d1d"
-          stroke-width="0.197"
+          strokeWidth="0.197"
         />
         <path
           id="Path_22076"
@@ -89,7 +89,7 @@ const Shipping = (props: React.SVGProps<SVGSVGElement>) => (
           transform="translate(0.984 -1.967)"
           fill="#e8ffed"
           stroke="#1d1d1d"
-          stroke-width="0.197"
+          strokeWidth="0.197"
         />
       </g>
     </g>

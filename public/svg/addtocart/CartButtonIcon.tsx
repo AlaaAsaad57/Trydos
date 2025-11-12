@@ -66,8 +66,8 @@ const CartButtonIcon = (props: React.SVGProps<SVGSVGElement>) => (
                 transform="translate(3.951 12.741)"
                 fill="none"
                 stroke="#513aaf"
-                stroke-linecap="round"
-                stroke-width="1"
+                strokeLinecap="round"
+                strokeWidth="1"
               />
             </g>
           </g>

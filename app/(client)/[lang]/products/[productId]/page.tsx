@@ -412,6 +412,7 @@ async function Page({ params, searchParams }) {
         is_redeem: !redeemed_ids.find((s) => s.id === product.id),
       };
     }
+
     return (
       <>
         <script
@@ -577,6 +578,7 @@ async function Page({ params, searchParams }) {
                   language={languageVariable}
                 />
                 <ProductGeneralProperties
+                  views={product?.total_views}
                   recommendation_stats={product?.recommendation_stats}
                   rating_stats={product.ratingDetails}
                   total_rating={product.total_rating}

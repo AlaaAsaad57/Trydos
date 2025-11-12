@@ -27,8 +27,8 @@ const OldCartIcon = (props: React.SVGProps<SVGSVGElement>) => (
         x2="0.5"
         gradientUnits="objectBoundingBox"
       >
-        <stop offset="0" stop-color="#d3d3d3" />
-        <stop offset="1" stop-color="#c4c2c2" />
+        <stop offset="0" stopColor="#d3d3d3" />
+        <stop offset="1" stopColor="#c4c2c2" />
       </linearGradient>
     </defs>
     <g
@@ -75,8 +75,8 @@ const OldCartIcon = (props: React.SVGProps<SVGSVGElement>) => (
               transform="translate(3.208 10.345)"
               fill="none"
               stroke="#fce66e"
-              stroke-linecap="round"
-              stroke-width="0.5"
+              strokeLinecap="round"
+              strokeWidth="0.5"
             />
           </g>
         </g>

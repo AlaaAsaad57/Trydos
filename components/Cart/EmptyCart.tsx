@@ -46,8 +46,8 @@ const EmptyBagIcon = () => {
           transform="translate(43.121 52.253)"
           fill="none"
           stroke="#f6ebaf"
-          stroke-linecap="round"
-          stroke-width="0.6"
+          strokeLinecap="round"
+          strokeWidth="0.6"
         />
       </g>
     </svg>

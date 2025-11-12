@@ -2,13 +2,23 @@ import { create } from "zustand";
 // sad
 export interface Notification {
   id: string;
-  type: "success" | "error";
+  type: "success" | "error" | "chat";
   message: string;
   duration?: number;
   href?: string;
   href_type?: any;
   image?: string;
   error_code?: number;
+  // Chat-specific fields
+  chatData?: {
+    senderName: string;
+    senderPhoto?: string;
+    channelId: string;
+    channel?: any;
+    messagePreview?: string;
+    messageImage?: string;
+    messageType?: string;
+  };
 }
 
 export interface NotificationState {
@@ -82,5 +92,33 @@ export const showErrorNotification = (
     duration,
     href,
     error_code: error_code,
+  });
+};
+
+// Helper function to show chat notifications
+export const showChatNotification = (
+  senderName: string,
+  messagePreview: string,
+  channelId: string,
+  channel?: any,
+  senderPhoto?: string,
+  messageImage?: string,
+  messageType?: string,
+  duration?: number
+) => {
+  const { addNotification } = useNotificationStore.getState();
+  addNotification({
+    type: "chat",
+    message: messagePreview,
+    duration: 100000000000000,
+    chatData: {
+      senderName,
+      senderPhoto,
+      channelId,
+      channel,
+      messagePreview,
+      messageImage,
+      messageType,
+    },
   });
 };

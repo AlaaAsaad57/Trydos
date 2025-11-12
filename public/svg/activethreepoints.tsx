@@ -34,7 +34,7 @@ const Activethreepoints = (props: React.SVGProps<SVGSVGElement>) => (
           transform="translate(375 852)"
           fill="#505050"
           stroke="#505050"
-          stroke-width="1"
+          strokeWidth="1"
         >
           <circle cx="4.5" cy="4.5" r="4.5" stroke="none" />
           <circle cx="4.5" cy="4.5" r="4" fill="none" />
@@ -45,7 +45,7 @@ const Activethreepoints = (props: React.SVGProps<SVGSVGElement>) => (
           transform="translate(375 862.5)"
           fill="#505050"
           stroke="#505050"
-          stroke-width="1"
+          strokeWidth="1"
         >
           <circle cx="4.5" cy="4.5" r="4.5" stroke="none" />
           <circle cx="4.5" cy="4.5" r="4" fill="none" />
@@ -56,7 +56,7 @@ const Activethreepoints = (props: React.SVGProps<SVGSVGElement>) => (
           transform="translate(375 873)"
           fill="#505050"
           stroke="#505050"
-          stroke-width="1"
+          strokeWidth="1"
         >
           <circle cx="4.5" cy="4.5" r="4.5" stroke="none" />
           <circle cx="4.5" cy="4.5" r="4" fill="none" />

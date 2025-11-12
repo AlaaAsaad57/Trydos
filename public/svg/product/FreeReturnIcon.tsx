@@ -33,7 +33,7 @@ const FreeReturnIcon = (props: React.SVGProps<SVGSVGElement>) => (
           transform="translate(4.922 -5.738)"
           fill="#ffa7a8"
           stroke="#1d1d1d"
-          stroke-width="0.328"
+          strokeWidth="0.328"
         />
         <path
           id="Path_22071"
@@ -42,7 +42,7 @@ const FreeReturnIcon = (props: React.SVGProps<SVGSVGElement>) => (
           transform="translate(-12.093 -5.738)"
           fill="#e8ffed"
           stroke="#1d1d1d"
-          stroke-width="0.328"
+          strokeWidth="0.328"
         />
         <path
           id="Path_22072"
@@ -51,7 +51,7 @@ const FreeReturnIcon = (props: React.SVGProps<SVGSVGElement>) => (
           transform="translate(12.295 -5.738)"
           fill="#e8ffed"
           stroke="#1d1d1d"
-          stroke-width="0.328"
+          strokeWidth="0.328"
         />
         <path
           id="Path_22073"
@@ -60,7 +60,7 @@ const FreeReturnIcon = (props: React.SVGProps<SVGSVGElement>) => (
           transform="translate(13.115 -5.738)"
           fill="#e8ffed"
           stroke="#1d1d1d"
-          stroke-width="0.328"
+          strokeWidth="0.328"
         />
         <path
           id="Path_22074"
@@ -69,7 +69,7 @@ const FreeReturnIcon = (props: React.SVGProps<SVGSVGElement>) => (
           transform="translate(13.934 -5.738)"
           fill="#e8ffed"
           stroke="#1d1d1d"
-          stroke-width="0.328"
+          strokeWidth="0.328"
         />
         <path
           id="Path_22075"
@@ -78,7 +78,7 @@ const FreeReturnIcon = (props: React.SVGProps<SVGSVGElement>) => (
           transform="translate(-12.295 -5.738)"
           fill="#e8ffed"
           stroke="#1d1d1d"
-          stroke-width="0.328"
+          strokeWidth="0.328"
         />
         <path
           id="Path_22076"
@@ -87,7 +87,7 @@ const FreeReturnIcon = (props: React.SVGProps<SVGSVGElement>) => (
           transform="translate(5.738 -5.738)"
           fill="#e8ffed"
           stroke="#1d1d1d"
-          stroke-width="0.328"
+          strokeWidth="0.328"
         />
       </g>
     </g>
