@@ -497,7 +497,7 @@ function LogInPins({
         style={{ marginTop: "0px" }}
       >
         {loadingPin ? (
-          <div className="pin-border-container flex justify-center items-center">
+          <div className="pin-border-container flex justify-center items-center w-full">
             <Spinner />
           </div>
         ) : (
