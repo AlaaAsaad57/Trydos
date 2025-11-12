@@ -53,8 +53,8 @@ function ProductOptions({
           method: "POST",
           server: "comments",
           body: JSON.stringify({
-            product_id: product.id,
-            user_id: auth.UserID(),
+            product_id: String(product.id),
+            user_id: String(auth.UserID()),
           }),
         });
 
@@ -96,8 +96,8 @@ function ProductOptions({
           method: "POST",
           server: "comments",
           body: JSON.stringify({
-            product_id: product.id,
-            user_id: auth.UserID(),
+            product_id: String(product.id),
+            user_id: String(auth.UserID()),
           }),
         });
 
