@@ -45,18 +45,18 @@ export async function GET(request: NextRequest, { params }) {
     if (response.product?.id) {
       productDataVar = { ...response.product, redis: true };
     } else {
-      let { product: productData, socialData } = await GetProductData({
+      let { product: productData } = await GetProductData({
         lang: `${country}-${language}`,
         productId: Params.slug,
       });
 
-      if (productData?.id && productData?.images && socialData) {
-        storeProduct(productData, socialData, Params.slug, language, country);
+      if (productData?.id && productData?.images) {
+        storeProduct(productData, Params.slug, language, country);
       }
 
       productDataVar = {
         ...productData,
-        ...socialData,
+
         redis: false,
       };
     }

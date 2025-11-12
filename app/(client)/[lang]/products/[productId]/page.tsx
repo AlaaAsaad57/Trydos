@@ -113,20 +113,14 @@ async function GetProductDataFunc(params) {
       });
       return { ...data.product, ...(elasticData ?? {}) };
     } else {
-      let { product: productData, socialData } = await GetProductData(params);
+      let { product: productData } = await GetProductData(params);
       if (
         !productData.details_req &&
         !productData.qtyPriceDetails &&
         productData?.offer_price &&
         productData?.images
       ) {
-        storeProduct(
-          productData,
-          socialData,
-          params.productId,
-          language,
-          country
-        );
+        storeProduct(productData, params.productId, language, country);
       }
       let elasticData = await getProductDataFromElastic({
         productId: productData.id,
@@ -135,7 +129,6 @@ async function GetProductDataFunc(params) {
       });
       return {
         ...productData,
-        ...(socialData ?? {}),
         ...(elasticData ?? {}),
         redis: false,
       };

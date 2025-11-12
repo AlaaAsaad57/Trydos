@@ -1,9 +1,8 @@
 import { cookies } from "next/headers";
 import { fetchProductDetails } from "serverRequests";
-import { fetchServerData } from "serverRequests/ServerFetch";
 import { elasticSearchClient } from "services/elastic/elasticsearch.config";
 import { COOKIE_NAMES } from "utils/cookies/cookie-manager";
-import { LogServerError } from "utils/serverErrorReporter";
+
 let client = elasticSearchClient;
 export const GetProductData = async (params: {
   lang: string;
@@ -19,52 +18,11 @@ export const GetProductData = async (params: {
     if (!productData?.id) {
       throw { message: "Couldnt Fetch Product" };
     }
-    let socialData = await GetSocialDataForProduct({
-      productId: productData.id,
-      lang: params.lang,
-      slug: params.productId,
-    });
     return {
       product: productData,
-      socialData: socialData,
     };
   } catch (error) {
     throw error;
-  }
-};
-export const GetSocialDataForProduct = async ({ productId, slug, lang }) => {
-  try {
-    let [likeRes] = await Promise.all([
-      fetchServerData({
-        url:
-          process.env.NEXT_PUBLIC_BACKEND_URL +
-          `/web/product/CommentsSharesDetails/${slug}`,
-        method: "GET",
-        revalidate: 0,
-        local: lang,
-      }),
-    ]);
-    if (likeRes.isError) {
-      LogServerError(
-        {
-          request: `/web/product/CommentsSharesDetails/${slug} || ${likeRes.status}`,
-          message: JSON.stringify(likeRes),
-          language: lang.split("-")[1],
-          country: lang.split("-")[0],
-        },
-        `/web/product/CommentsSharesDetails/${slug}`
-      );
-      throw new Error(
-        `Comments Requets Error:${likeRes.status}:${likeRes.error}`
-      );
-    }
-
-    let likesData = likeRes.data.data;
-    return {
-      count_of_likes: likesData.count_of_likes,
-    };
-  } catch (error) {
-    console.error(error);
   }
 };
 
@@ -92,6 +50,7 @@ export const getProductDataFromElastic = async ({
       FQAComments,
       recommendationStats,
       ratingDetails,
+      likeDetails,
     ] = await Promise.all([
       getProductSharedCountFromElasticsearch(productId, slug, lang),
       GetRatingCommentsForProduct({
@@ -106,6 +65,7 @@ export const getProductDataFromElastic = async ({
       }),
       GetRecommendationCountForProduct({ product_id: productId }),
       getProductRatingDetails({ p_id: productId }),
+      getProductInteractions(productId, user_id),
     ]);
 
     let sharesData =
@@ -125,7 +85,9 @@ export const getProductDataFromElastic = async ({
       },
       ratingDetails,
       recommendation_stats: recommendationStats.stats,
-      total_rating: recommendationStats.total_rating,
+      total_rating:
+        likeDetails?.final_rating ?? recommendationStats.total_rating,
+      ...likeDetails,
     };
   } catch (error) {
     console.error(error);
@@ -611,4 +573,61 @@ export async function GetFQACommentsForProductWithReactions({
   }));
 
   return enrichedComments;
+}
+
+async function getProductInteractions(productId, userId) {
+  try {
+    // Build dynamic must clauses
+    const must: any = [
+      { term: { product_id: productId } },
+      { term: { interaction_type: "like" } },
+    ];
+
+    if (userId) {
+      must.push({ term: { user_id: userId } });
+    }
+
+    // Run both queries in parallel
+    const [productRes, likeRes] = await Promise.all([
+      client.get({
+        index: "product_interactions",
+        id: productId,
+      }),
+      client.search({
+        index: "user_product_likes",
+        body: {
+          query: {
+            bool: { must },
+          },
+          size: 1,
+        },
+      }),
+    ]);
+
+    const source: any = productRes._source;
+
+    const productInfo = {
+      product_id: source.product_id,
+      final_rating: source.final_rating,
+      total_comments: source.total_comments,
+      total_likes: source.total_likes,
+    };
+
+    // If no userId is provided, we skip the like check
+    let isLiked = false;
+    if (userId && likeRes.hits.hits.length > 0) {
+      const hit = likeRes.hits.hits[0];
+      isLiked = (hit._source as any).status?.toLowerCase() !== "cancelled";
+    }
+    console.log(productInfo);
+    return {
+      ...productInfo,
+      is_liked: isLiked,
+    };
+  } catch (err) {
+    if (err.meta?.statusCode === 404) {
+      return null;
+    }
+    throw err;
+  }
 }

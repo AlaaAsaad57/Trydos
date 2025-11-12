@@ -48,10 +48,10 @@ function ProductOptions({
       if (bool) {
         // Like product
         const res = await fetchData({
-          url: "/product_likes/store",
+          url: "/products/like",
           reqTitle: REQUESTS_DATA.LIKE_FOR_PRODUCT,
           method: "POST",
-          server: "market",
+          server: "comments",
           body: JSON.stringify({
             product_id: product.id,
             user_id: auth.UserID(),
@@ -91,10 +91,10 @@ function ProductOptions({
       } else {
         // Unlike product
         const res = await fetchData({
-          url: "/product_likes/delete",
+          url: "/products/unlike",
           reqTitle: REQUESTS_DATA.UNLIKE_PRODUCT,
           method: "POST",
-          server: "market",
+          server: "comments",
           body: JSON.stringify({
             product_id: product.id,
             user_id: auth.UserID(),
@@ -135,15 +135,6 @@ function ProductOptions({
         });
 
         // Unsubscribe from topics
-        home.UnsubscripeFromTopic({
-          topic: `product_availability_${SelectedProduct?.id}`,
-        });
-        home.UnsubscripeFromTopic({
-          topic: `product_discount_${SelectedProduct?.id}`,
-        });
-        home.UnsubscripeFromTopic({
-          topic: `product_comment_${SelectedProduct?.id}`,
-        });
       }
     } catch (error) {
       // Rollback to previous state on error

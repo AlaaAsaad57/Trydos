@@ -26,17 +26,11 @@ if (process.env.NEXT_RUNTIME !== "edge") {
   }
 }
 // Store product in Redis
-export async function storeProduct(
-  product,
-  socialDataProduct,
-  slug,
-  lang,
-  country
-) {
+export async function storeProduct(product, slug, lang, country) {
   if (!redis) {
     throw new Error("Redis is not available in Edge runtime");
   }
-  if (!product?.id || !product?.name || !product.images || !socialDataProduct) {
+  if (!product?.id || !product?.name || !product.images) {
     throw new Error("Invalid product object, missing product data");
   }
 
@@ -52,12 +46,7 @@ export async function storeProduct(
   try {
     await redis.set(productKey, JSON.stringify(product), "EX", ttl);
     await redis.set(slugKey, String(product.id), "EX", ttl);
-    await redis.set(
-      `product:${product.id}:social`,
-      JSON.stringify(socialDataProduct),
-      "EX",
-      ttl
-    );
+
     const end = process.hrtime.bigint();
     return { success: true, timeMs: Number(end - start) / 1_000_000 };
   } catch (err) {
