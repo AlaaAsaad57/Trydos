@@ -12,6 +12,7 @@ import {
 } from "utils/cookies/cookie-manager";
 import { showErrorNotification } from "store/notifications/reducer";
 import { useAppStore } from "store";
+import { getFirstLetterLang } from "utils/tinyUtils";
 function CommentBar() {
   const params = useParams();
   const { SelectedProduct, editInfo } = useAppStore();
@@ -139,14 +140,17 @@ function CommentBar() {
       // isError(mid);
     }
   };
-  const userData = getCookie<UserData>(COOKIE_NAMES.USER_DATA);
+
   return (
     <div className="comment-input-holder relative">
       <textarea
         data-cy="CommentField"
         tabIndex={0}
         aria-label={translateFunction("Comment input")}
-        className={`w-full resize-none outline-none p-2 rounded border border-gray-300 min-h-[40px] max-h-[120px] transition-all duration-200${" bg-white"}`}
+        className={`w-full resize-none outline-none p-2 rounded border border-gray-300 min-h-[40px] max-h-[120px] transition-all duration-200 ${" bg-white"}`}
+        style={{
+          textAlign: getFirstLetterLang(val),
+        }}
         onKeyDown={(e) => {
           // @ts-ignore
           if ((e.key === "Enter" || e.keyCode === "13") && !e.shiftKey) {
@@ -172,7 +176,11 @@ function CommentBar() {
       />
       {val?.length > 0 && (
         <span
-          className="absolute h-full flex items-center right-[30px] top-0"
+          className={`${
+            getFirstLetterLang(val) === "left"
+              ? "right-[30px]"
+              : "left-[30px] rotate-[180deg]"
+          } absolute h-full flex items-center top-0`}
           data-cy="SubmitComment"
           onClick={() => {
             // @ts-ignore

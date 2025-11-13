@@ -892,3 +892,13 @@ export function convertTextToXFormat(input) {
   // Join the transformed words back into a string and return
   return transformedWords.join(" ");
 }
+
+export function getFirstLetterLang(text: string): "right" | "left" {
+  if (!text) return "left"; // default direction
+  const firstChar = text.trim().charAt(0);
+
+  // Arabic and Sorani letters fall in these Unicode ranges
+  const rtlPattern = /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF]/;
+
+  return rtlPattern.test(firstChar) ? "right" : "left";
+}

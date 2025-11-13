@@ -531,7 +531,15 @@ export class ElasticsearchReader {
         },
       },
     ];
-
+    must.push({
+      nested: {
+        path: "custom_products",
+        ignore_unmapped: true,
+        query: {
+          exists: { field: "custom_products.id" },
+        },
+      },
+    });
     if (categorySlugs.length > 0) {
       must.push({
         bool: {

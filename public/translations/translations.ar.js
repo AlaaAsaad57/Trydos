@@ -70,7 +70,7 @@ const translations = {
   "Sizes Available": "المقاسات المتوفرة",
   "Out For Return": "قيد الارجاع",
   "Buyers Reviews On Product Sizing": "مراجعات المشترين حول مقاسات المنتج",
-  "Ask Seller Your Question About This Product…":
+  "Ask Seller Your Question About This Product …":
     "اسأل البائع سؤالك حول هذا المنتج…",
   "Product Return Has Been Requested": "تم طلب إرجاع المنتج",
   "Waiting…": "جارٍ الانتظار…",

@@ -68,7 +68,7 @@ const translations = {
   "Sizes Available": "قەبارەکان بەردەستن",
   "Out For Return": "بەرهەمەکە وەرگیرا",
   "Buyers Reviews On Product Sizing": "لێدوانی کریارەکان لەسەر قەبارەی بەرهەم",
-  "Ask Seller Your Question About This Product…":
+  "Ask Seller Your Question About This Product …":
     "پرسیارت بڵێ بۆ فرۆشیار دەربارەی ئەم بەرهەمە…",
   "Product Return Has Been Requested": "داوای گەڕاندنەوەی بەرهەم کراوە",
   "Waiting…": "چاوەڕێکردن…",

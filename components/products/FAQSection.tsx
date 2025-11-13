@@ -3,7 +3,12 @@ import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 import Image from "next/image";
 import React, { useState, useMemo } from "react";
 import { translateFunction } from "utils/functions";
-import { convertTextToXFormat, formatTime, GetImageUrl } from "utils/tinyUtils";
+import {
+  convertTextToXFormat,
+  formatTime,
+  getFirstLetterLang,
+  GetImageUrl,
+} from "utils/tinyUtils";
 import profilePng from "public/images/profileNo.png";
 import FAQIcon from "public/svg/FAQIcon";
 import FAQInputIcon from "public/svg/FAQInputIcon";
@@ -465,6 +470,9 @@ const AskInput = ({ language, setCommentsData }) => {
           }
         }}
         value={comment}
+        style={{
+          textAlign: getFirstLetterLang(comment),
+        }}
         onChange={(e) => {
           setComment(e.target.value);
         }}
@@ -473,9 +481,7 @@ const AskInput = ({ language, setCommentsData }) => {
             showErrorNotification(translateFunction("Please log in first"));
         }}
         readOnly={loading || user?.phone === "0" || !user}
-        className={`${
-          isRtl ? "text-right" : "text-left"
-        } outline-none w-full bg-transparent z-40 rounded-[15px] text-[#1d1d1d] placeholder:text-[#C4C2C2] placeholder:text-center px-[40px] flex items-center`}
+        className={`outline-none w-full bg-transparent z-40 rounded-[15px] text-[#1d1d1d] placeholder:text-[#C4C2C2] placeholder:text-center pl-[40px] pr-[45px] flex items-center`}
       />
     </div>
   );

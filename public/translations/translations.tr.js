@@ -69,7 +69,7 @@ const translations = {
   "Out For Return": "Yolda",
   "Buyers Reviews On Product Sizing":
     "Alıcıların Ürün Bedenleri Hakkındaki Yorumları",
-  "Ask Seller Your Question About This Product…":
+  "Ask Seller Your Question About This Product …":
     "Satıcıya bu ürün hakkında sorunuzu sorun…",
   "Product Return Has Been Requested": "Ürün iadesi talep edildi",
   "Waiting…": "Bekleniyor…",
