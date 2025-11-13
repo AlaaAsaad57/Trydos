@@ -9,25 +9,10 @@ const OptionsIcon = (props: React.SVGProps<SVGSVGElement>) => (
     viewBox="0 0 20 20"
     {...props}
   >
-    <defs>
-      <clipPath id="clip-path">
-        <rect
-          id="Rectangle_4815"
-          data-name="Rectangle 4815"
-          width="20"
-          height="20"
-          transform="translate(380 852)"
-          fill="#f8f8f8"
-          stroke="#000"
-          strokeWidth="0.6"
-        />
-      </clipPath>
-    </defs>
     <g
       id="Mask_Group_360"
       data-name="Mask Group 360"
       transform="translate(-380 -852)"
-      clipPath="url(#clip-path)"
     >
       <g
         id="Group_11153"
