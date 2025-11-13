@@ -95,7 +95,9 @@ function SearchResult({
           </div>
         )}
         <div
-          className={`chat-conversation-item `}
+          className={`chat-conversation-item  ${
+            isRtl ? "p-[10px_20px_10px_10px] flex-row-reverse" : "flex-row"
+          }  `}
           onClick={() => handleClick()}
         >
           {photo ? (
