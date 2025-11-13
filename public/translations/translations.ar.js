@@ -277,6 +277,7 @@ const translations = {
   Clarification: "إيضاح",
   "About Return Your Product": "عن إرجاع المنتج",
   "You Will Not Be Charged Any Fees.": "لن يتم فرض أي رسوم عليك.",
+  "Cancel Request": "إلغاء الطلب",
   "You Will Receive Your Refund Within 12 Hours.":
     "سوف تستلم على المبلغ المسترد  خلال 12 ساعة.",
   "Repeated Cancellations Will Affect Your Rating, Which Will Affect Your Ability To Receive New Offers Or Opportunities From Us.":

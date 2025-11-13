@@ -236,8 +236,9 @@ const translations = {
   Clarification: "ڕوونکردنەوە",
   "About Return Your Product": "دەربارەی گەڕاندنەوەی بەرهەمەت",
   "You Will Not Be Charged Any Fees.": "هیچ فێسێک لەسەر تۆ داگیر نەبێت.",
-  "You Will Receive Your Refund Within 24 Hours.":
-    "پارەی تەواوت لە ماوەی 24 کاتژمێر دەوەری دەبینی.",
+  "Cancel Request": "داواکاری هەڵوەشاندن",
+  "You Will Receive Your Refund Within 12 Hours.":
+    "پارەی تەواوت لە ماوەی 12 کاتژمێر دەوەری دەبینی.",
   "Repeated Cancellations Will Affect Your Rating, Which Will Affect Your Ability To Receive New Offers Or Opportunities From Us.":
     "ڕەتکردنەوەی پێوەکراوەکان سەر نمرەکردنت کاریگەری دەبەخشێت، کە کاریگەری دەکات سەر توانایەت بۆ وەرگرتنی پێشنیار یان دەروازە نوێکان لەمانەوە.",
   "I Agree & Cancel": "من ڕازی‌م و ڕەتکردن",

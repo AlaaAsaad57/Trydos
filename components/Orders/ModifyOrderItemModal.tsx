@@ -59,6 +59,8 @@ export const ModifyOrderItemModal = ({
     close();
   };
   const [active, setActive] = useState(false);
+  const isRtl = language === "ar" || language === "ku";
+
   return (
     <div
       className={`z-[9999999999999] pb-[70px] px-[24px] w-full flex-col ${
@@ -161,7 +163,9 @@ export const ModifyOrderItemModal = ({
             )}
           </div>
           <p
-            className="text-[14px] text-white regular mt-[40px] gap-[4px]"
+            className={`${
+              isRtl ? "flex-row-reverse" : "flex-row"
+            } text-[14px] text-white regular mt-[40px] gap-[4px]`}
             onClick={() => {
               setActive(!active);
             }}

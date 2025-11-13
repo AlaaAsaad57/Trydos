@@ -278,29 +278,17 @@ export const CheckBoxElement = ({ active }: CheckBoxElementPropsType) => {
       {active ? (
         <>
           <svg
+            className="cursor-pointer"
             xmlns="http://www.w3.org/2000/svg"
             xmlnsXlink="http://www.w3.org/1999/xlink"
             width="15"
             height="15"
             viewBox="0 0 15 15"
           >
-            <defs>
-              <clipPath id="clip-pathCheck">
-                <rect
-                  id="Rectangle_5479"
-                  data-name="Rectangle 5479"
-                  width="15"
-                  height="15"
-                  transform="translate(50 243.139)"
-                  fill="none"
-                />
-              </clipPath>
-            </defs>
             <g
               id="Mask_Group_434"
               data-name="Mask Group 434"
               transform="translate(-50 -243.139)"
-              clipPath="url(#clip-pathCheck)"
             >
               <g
                 id="Group_11944"
@@ -339,29 +327,17 @@ export const CheckBoxElement = ({ active }: CheckBoxElementPropsType) => {
       ) : (
         <>
           <svg
+            className="cursor-pointer"
             xmlns="http://www.w3.org/2000/svg"
             xmlnsXlink="http://www.w3.org/1999/xlink"
             width="15"
             height="15"
             viewBox="0 0 15 15"
           >
-            <defs>
-              <clipPath id="clip-pathCheck">
-                <rect
-                  id="Rectangle_5479"
-                  data-name="Rectangle 5479"
-                  width="15"
-                  height="15"
-                  transform="translate(50 243.139)"
-                  fill="none"
-                />
-              </clipPath>
-            </defs>
             <g
               id="Mask_Group_434"
               data-name="Mask Group 434"
               transform="translate(-50 -243.139)"
-              clipPath="url(#clip-pathCheck)"
             >
               <g
                 id="Group_11944"
@@ -377,7 +353,7 @@ export const CheckBoxElement = ({ active }: CheckBoxElementPropsType) => {
                     id="Ellipse_427"
                     data-name="Ellipse 427"
                     fill="none"
-                    stroke="#8e8e8e"
+                    stroke="#1d1d1d"
                     strokeWidth="0.5"
                   >
                     <circle cx="7.5" cy="7.5" r="7.5" stroke="none" />

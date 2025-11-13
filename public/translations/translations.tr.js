@@ -801,14 +801,15 @@ const translations = {
   Clarification: "Açıklama",
   "About Return Your Product": "Ürününüzü İade Hakkında",
   "You Will Not Be Charged Any Fees.": "Hiçbir Ücret Alınmayacaktır.",
-  "You Will Receive Your Refund Within 24 Hours.":
-    "24 Saat İçinde Tam İadenizi Alacaksınız.",
+  "You Will Receive Your Refund Within 12 Hours.":
+    "12 Saat İçinde Tam İadenizi Alacaksınız.",
   "Repeated Cancellations Will Affect Your Rating, Which Will Affect Your Ability To Receive New Offers Or Opportunities From Us.":
     "Tekrarlanan İptaller Puanınızı Etkileyecek ve Bu da Bizden Yeni Teklifler veya Fırsatlar Alabilme Yeteneğinizi Etkileyecektir.",
   "I Agree & Cancel": "Kabul Ediyor ve İptal Ediyorum",
   "I Disagree": "Katılmıyorum",
   "Terms Of Cancellation Terms": "İptal Şartları",
   "About Change Request Product": "Ürün Değişim Talebi Hakkında",
+  "Cancel Request": "İptal Talebi",
   "Return This Product In": "Bu Ürünü İçinde İade Et",
   "Cancellation Terms": "İptal Şartları",
   "I Read And Agree To The": "Okudum ve kabul ediyorum",

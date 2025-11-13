@@ -11,22 +11,7 @@ const OrderCancelTerms = (props: React.SVGProps<SVGSVGElement>) => (
     viewBox="0 0 25 25"
     {...props}
   >
-    <defs>
-      <clipPath id="clip-path">
-        <rect
-          id="Rectangle_4609"
-          data-name="Rectangle 4609"
-          width="25"
-          height="25"
-          fill="none"
-        />
-      </clipPath>
-    </defs>
-    <g
-      id="Mask_Group_299"
-      data-name="Mask Group 299"
-      clipPath="url(#clip-path)"
-    >
+    <g id="Mask_Group_299" data-name="Mask Group 299">
       <g id="e">
         <path
           id="Path_21407"
