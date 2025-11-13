@@ -82,13 +82,13 @@ export const getProductDataFromElastic = async ({
         offset: FQAComments.searchAfter,
         total: FQAComments.total,
       },
-      ratingDetails: likeDetails?.ratingDetails,
+      ratingDetails: likeDetails?.ratingDetails ?? [],
       recommendation_stats: recommendationStats.stats,
       count_of_likes: likeDetails?.total_likes,
-      is_liked: likeDetails.is_liked,
+      is_liked: likeDetails?.is_liked,
       total_views: likeDetails?.total_views,
       total_rating:
-        likeDetails?.final_rating ?? recommendationStats.total_rating,
+        likeDetails?.final_rating ?? recommendationStats?.total_rating,
     };
   } catch (error) {
     console.error(error);
@@ -608,17 +608,17 @@ async function getProductInteractions(productId, userId) {
     const source: any = productRes._source;
 
     const productInfo = {
-      product_id: source.product_id,
-      final_rating: source.final_rating,
-      total_comments: source.total_comments,
-      total_likes: source.total_likes,
-      total_views: source?.total_views,
-      ratingDetails:
-        source?.star_distribution &&
-        Object.keys(source.star_distribution).map((s) => ({
-          ratingGroup: s?.split("_")[1],
-          count: source?.star_distribution[s] ?? 0,
-        })),
+      product_id: source?.product_id,
+      final_rating: source?.final_rating,
+      total_comments: source?.total_comments,
+      total_likes: source?.total_likes ?? 0,
+      total_views: source?.total_views ?? 0,
+      ratingDetails: source?.star_distribution
+        ? Object.keys(source.star_distribution)?.map((s) => ({
+            ratingGroup: s?.split("_")[1],
+            count: source?.star_distribution[s] ?? 0,
+          }))
+        : [],
     };
 
     // If no userId is provided, we skip the like check
@@ -634,7 +634,13 @@ async function getProductInteractions(productId, userId) {
     };
   } catch (err) {
     if (err.meta?.statusCode === 404) {
-      return null;
+      return {
+        is_liked: false,
+        total_likes: 0,
+        final_rating: 0,
+        ratingDetails: [],
+        total_views: 0,
+      };
     }
     throw err;
   }

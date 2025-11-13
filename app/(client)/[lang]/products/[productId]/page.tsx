@@ -580,7 +580,7 @@ async function Page({ params, searchParams }) {
                 <ProductGeneralProperties
                   views={product?.total_views}
                   recommendation_stats={product?.recommendation_stats}
-                  rating_stats={product.ratingDetails}
+                  rating_stats={product?.ratingDetails}
                   total_rating={product.total_rating}
                   languageVariable={Params.lang?.split("-")?.[1]}
                 />
