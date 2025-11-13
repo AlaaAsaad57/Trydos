@@ -320,7 +320,7 @@ const translations = {
     "معلومات عن طلبك تعديل أو إلغاء",
   "We Have Other Solutions Instead Of Cancellation.":
     "لدينا حلول أخرى بدلاً من إلغاء الطلب",
-  "Learn More Tips.": "تعلم المزيد من النصائح",
+  "Learn More Tips.": "تعرف على المزيد من النصائح",
   "Why Was The Order Cancelled?": "لماذا تم إلغاء الطلب؟",
   "I Changed My Mind": "غيرت رأيي",
   "I Fear Quality": "أخشى جودة المنتج",

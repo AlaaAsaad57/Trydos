@@ -461,6 +461,7 @@ const OrderCanceltionOptions = ({
       setSelectedOptions([...selectedOptions, option]);
     }
   };
+  const isRtl = language === "ar" || language === "ku";
   return (
     <div className="flex-col mt-[20px] flex-1">
       <div className="flex-col w-full items-center pb-[12px] px-[24px]">
@@ -468,29 +469,37 @@ const OrderCanceltionOptions = ({
           <CancelOrderItemIcon className="mt-[12px] [&>path]:fill-[#402CDD]" />
         </div>
         <span className="medium text-[14px] mt-[11px] text-[#1D1D1D]">
-          {translateFunction("Cancel This Product")}
+          {translateFunction("Cancel This Pack")}
         </span>
-        <p className="text-[#8D8D8D] text-[12px] regular text-center">
+        <p
+          className={`${
+            isRtl ? "dir-rtl" : ""
+          } flex gap-[4px] text-[#8D8D8D] text-[12px] regular text-center`}
+        >
           {translateFunction(
             "You Can Cancel The Product Without Any Conditions According To The Cancel Policy And Get A Full Refund"
           )}
-          <span className="bold text-[12px] text-[#8D8D8D] ml-[4px]">
+          <span className="bold text-[12px] text-[#8D8D8D]">
             {RoundPrice({
               num: ActivePacks.order_amount,
               rate: currency?.exchange_rate,
               language: language,
             })}
           </span>
-          <span className="text-[#8D8D8D] mx-[4px]">{currency?.symbol}</span>
+          <span className="text-[#8D8D8D]">{currency?.symbol}</span>
           {translateFunction("To Your Account")}.
         </p>
         <span className="border-[#C4C2C280] border-b-[1px] w-full mt-[12px]" />
       </div>
-      <div className="flex-row w-full  items-center justify-center">
+      <div
+        className={`${
+          isRtl ? "flex-row-reverse" : "flex-row"
+        }  w-full  items-center justify-center`}
+      >
         <span className="regular text-[12px] text-[#8D8D8D]">
           {translateFunction("Why Was The Order Cancelled?")}
         </span>
-        <span className="medium text-[12px] text-[#402CDD] ml-[4px]">
+        <span className="medium text-[12px] text-[#402CDD] mx-[4px]">
           {translateFunction("Learn More Tips.")}
         </span>
       </div>
