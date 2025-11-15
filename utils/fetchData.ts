@@ -301,7 +301,6 @@ export const fetchData = async <T = any>(
         next: {
           revalidate: 0,
         },
-        keepalive: !signal,
         signal,
       };
 
