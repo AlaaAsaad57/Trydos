@@ -18,7 +18,6 @@ import {
 } from "./cookies/cookie-manager";
 import { logRequest } from "./requestLoggerClient";
 import { ReportError } from "./errorReported";
-import { useAppStore } from "../store";
 
 // ---------- Types ----------
 export type ServerType =
@@ -64,8 +63,6 @@ const ignoredMessages = [
   "Unauthorized",
   "The user aborted a request.",
   "Fetch is aborted",
-  "UnAuthentication",
-  "Unknown error",
 ];
 
 // ---------- Helper Functions ----------
@@ -162,6 +159,7 @@ const getHeader = async (server = null) => {
 
 const waitUntilRegisteringComplete = async (): Promise<void> => {
   try {
+    const { useAppStore } = await import("../store");
     const check = () => useAppStore.getState().isRegisteringReady;
     if (check()) return;
 
@@ -194,6 +192,7 @@ const handleUnauthorized = async (server: ServerType): Promise<boolean> => {
       case "chat":
       case "stories":
       case "comments":
+        const { useAppStore } = await import("../store");
         const { setShouldAuthinticated } = useAppStore.getState();
         if (userChat?.id)
           setCookie(COOKIE_NAMES.USER_CHAT, {
@@ -214,8 +213,6 @@ const handleUnauthorized = async (server: ServerType): Promise<boolean> => {
         }
         deleteCookie(COOKIE_NAMES.CHAT_TOKEN);
         deleteCookie(COOKIE_NAMES.STORIES_TOKEN);
-        deleteCookie(COOKIE_NAMES.USER_CHAT);
-        deleteCookie(COOKIE_NAMES.USER_STORIES);
         setShouldAuthinticated(true);
 
         return new Promise((resolve) => {
@@ -270,8 +267,7 @@ export const fetchData = async <T = any>(
     noMessage,
     signal,
   } = params;
-  const { LoggingOut } = useAppStore.getState();
-  if (LoggingOut === true) return;
+
   const cacheKey = generateCacheKey(params);
   let retryCount = 0;
   let status: number;
@@ -286,6 +282,7 @@ export const fetchData = async <T = any>(
     await waitUntilRegisteringComplete();
 
     if (url === "/auth/register-guest") {
+      const { useAppStore } = await import("../store");
       let { setIsRegisteringReady } = useAppStore.getState();
       setIsRegisteringReady(false);
     }
@@ -304,7 +301,7 @@ export const fetchData = async <T = any>(
         next: {
           revalidate: 0,
         },
-        keepalive: !signal,
+
         signal,
       };
 
