@@ -44,7 +44,7 @@ const translations = {
   Normal: "عادي",
   Good: "جيد",
   "Very Good": "جيد جدًا",
-  "get the Amount back": "استرداد المبلغ",
+  "get the Amount back": "المبلغ المسترد",
   January: "يناير",
   February: "فبراير",
   March: "مارس",
@@ -70,10 +70,14 @@ const translations = {
   "Sizes Available": "المقاسات المتوفرة",
   "Out For Return": "قيد الارجاع",
   "Buyers Reviews On Product Sizing": "مراجعات المشترين حول مقاسات المنتج",
-  "Ask Seller Your Question About This Product…":
+  Translate: "ترجمة",
+  "Show Original": "عرض النسخة الأصلية",
+  "Ask Seller Your Question About This Product …":
     "اسأل البائع سؤالك حول هذا المنتج…",
   "Product Return Has Been Requested": "تم طلب إرجاع المنتج",
   "Waiting…": "جارٍ الانتظار…",
+  "Notification is Blocked in This Browser Please Enable Notification premission and refresh":
+    "تم حظر الإشعارات في هذا المتصفح، يرجى تفعيل إذن الإشعارات ثم تحديث الصفحة",
   "Product Return Request Approve": "الموافقة على طلب إرجاع المنتج",
   "Product Return Needs Confirm": "طلب إرجاع المنتج يحتاج إلى تأكيد",
   "You Need To Confirm Your Request": "تحتاج إلى تأكيد طلبك",
@@ -274,20 +278,22 @@ const translations = {
   "Change Color": "تغيير اللون",
   "Change From": "من",
   "To New Color?": "إلى اللون الجديد؟",
-  Clarification: "توضيح",
+  Clarification: "إيضاح",
   "About Return Your Product": "عن إرجاع المنتج",
   "You Will Not Be Charged Any Fees.": "لن يتم فرض أي رسوم عليك.",
-  "You Will Receive Your Refund Within 24 Hours.":
-    "ستحصل على استرداد المبلغ خلال 24 ساعة.",
+  "Cancel Request": "إلغاء الطلب",
+  "You Will Receive Your Refund Within 12 Hours.":
+    "سوف تستلم على المبلغ المسترد  خلال 12 ساعة.",
   "Repeated Cancellations Will Affect Your Rating, Which Will Affect Your Ability To Receive New Offers Or Opportunities From Us.":
     "ستؤثر عمليات الإلغاء المتكررة على تقييمك، مما سيؤثر بدوره على قدرتك على تلقي عروض أو فرص جديدة منا.",
-  "I Agree & Cancel": "أوافق و ألغاء",
-  "I Disagree": "أنا لا أوافق",
+  "I Agree & Cancel": "أوافق و ألغي",
+  "I Disagree": "أنا أعترض",
   "Terms Of Cancellation Terms": "شروط الإلغاء",
   "Cancellation Terms": "شروط الإلغاء",
   "I Read And Agree To The": "لقد قرأت وأوافق على",
   "Change Request": "طلب تغيير",
   "Return This Product In": "إرجاع هذا المنتج في",
+  "About Cancel Your Order": "حول إلغاء طلبك",
   "About Change Request Product": "حول طلب تغيير المنتج",
   "About Cancel Your Product": "حول إلغاء المنتج",
   "Cancel This Product In": "إلغاء هذا المنتج في",
@@ -318,7 +324,7 @@ const translations = {
     "معلومات عن طلبك تعديل أو إلغاء",
   "We Have Other Solutions Instead Of Cancellation.":
     "لدينا حلول أخرى بدلاً من إلغاء الطلب",
-  "Learn More Tips.": "تعلم المزيد من النصائح",
+  "Learn More Tips.": "تعرف على المزيد من النصائح",
   "Why Was The Order Cancelled?": "لماذا تم إلغاء الطلب؟",
   "I Changed My Mind": "غيرت رأيي",
   "I Fear Quality": "أخشى جودة المنتج",
@@ -575,8 +581,8 @@ const translations = {
   "Out Of Bag!": "خارج السلة!",
   Details: "تفاصيل",
   color: "لون",
-  "Add To Bag": "اضافة للسلة",
-  "All Inclusive Without Additions": "شامل جميع الإضافات",
+  "Add To Bag": "اضافة الى السلة",
+  "All Inclusive Without Additions": "شامل كل شيء بدون إضافات",
   "Ship To You Accepted": "تم قبول الشحن إليك في",
   "type a comment": "اكتب تعليقاً",
   "Free Shipping": "شحن مجاني",
@@ -616,7 +622,7 @@ const translations = {
   "Recommend It": "ينصح به",
   "Verified by trydos": "تم التحقق بواسطة ترايدوس",
   "Made In Turkey": "صنع في تركيا",
-  "Free Return": "اعادة مجانية",
+  "Free Return": "ارجاع مجاني",
   "Read More": "عرض المزيد",
   "Read Less": "عرض اقل",
   "Product Shipping & Delivery": "شحن المنتج والتوصيل",
@@ -627,7 +633,7 @@ const translations = {
   "Specify Your Address To Calculate The Delivery Time":
     "حدد عنوانك لحساب وقت التوصيل",
   "Product Story": "قصص المنتج",
-  "You Will Get A": "ستحصل على",
+  "You Will Get A": "سوف تستلم",
   Refund: "استعادة",
   "Of The Product Price If Shipping Is Delayed":
     "من سعر المنتج بحالة تأخر الشحن",
@@ -1047,6 +1053,7 @@ const translations = {
   Lebanon: "لبنان",
   Turkey: "تركيا",
   "Selected Color": "اللون المختار",
+  "Select Color": "اختر اللون",
   "Select Your Required Size": "اختر المقاس المطلوب",
   "Added To Your Bag": "تمت الإضافة إلى سلتك",
   "Removed From Your Bag": "تمت الإزالة من سلتك",
@@ -1086,6 +1093,9 @@ const translations = {
   "Purchase Payment": "دفع شراء",
   "Promo Credit": "رصيد ترويجي",
   "Order Payment": "دفع طلب",
+  "Submit Rating": "إرسال التقييم",
+  "Do you want to delete this message?": "هل تريد حذف هذه الرسالة؟",
+  Last: "متبقي",
 };
 
 export default translations;

@@ -68,9 +68,12 @@ const translations = {
   "Sizes Available": "قەبارەکان بەردەستن",
   "Out For Return": "بەرهەمەکە وەرگیرا",
   "Buyers Reviews On Product Sizing": "لێدوانی کریارەکان لەسەر قەبارەی بەرهەم",
-  "Ask Seller Your Question About This Product…":
+  "Ask Seller Your Question About This Product …":
     "پرسیارت بڵێ بۆ فرۆشیار دەربارەی ئەم بەرهەمە…",
   "Product Return Has Been Requested": "داوای گەڕاندنەوەی بەرهەم کراوە",
+
+  Translate: "وەرگێران",
+  "Show Original": "پیشاندانی ڕەسەن",
   "Waiting…": "چاوەڕێکردن…",
   "Product Return Request Approve": "پەسەندکردنی داوای گەڕاندنەوە",
   "Product Return Needs Confirm":
@@ -236,8 +239,9 @@ const translations = {
   Clarification: "ڕوونکردنەوە",
   "About Return Your Product": "دەربارەی گەڕاندنەوەی بەرهەمەت",
   "You Will Not Be Charged Any Fees.": "هیچ فێسێک لەسەر تۆ داگیر نەبێت.",
-  "You Will Receive Your Refund Within 24 Hours.":
-    "پارەی تەواوت لە ماوەی 24 کاتژمێر دەوەری دەبینی.",
+  "Cancel Request": "داواکاری هەڵوەشاندن",
+  "You Will Receive Your Refund Within 12 Hours.":
+    "پارەی تەواوت لە ماوەی 12 کاتژمێر دەوەری دەبینی.",
   "Repeated Cancellations Will Affect Your Rating, Which Will Affect Your Ability To Receive New Offers Or Opportunities From Us.":
     "ڕەتکردنەوەی پێوەکراوەکان سەر نمرەکردنت کاریگەری دەبەخشێت، کە کاریگەری دەکات سەر توانایەت بۆ وەرگرتنی پێشنیار یان دەروازە نوێکان لەمانەوە.",
   "I Agree & Cancel": "من ڕازی‌م و ڕەتکردن",
@@ -569,8 +573,7 @@ const translations = {
   Details: "وردەکارییەکان",
   color: "ڕەنگ",
   "Add To Bag": "زیادکردن بۆ سەبەتە",
-  "All Inclusive Without Additions":
-    "هەموو شتەکان لەخۆگرتووە بەبێ هیچ زیادکردنێک",
+  "All Inclusive Without Additions": "هەموو شت تێدایە بەبێ زیادە",
   "Ship To You Accepted": "گەیاندن بۆ تۆ پەسەندکراوە لە",
   "type a comment": "تێبینییەک بنووسە",
   "Free Shipping": "گەیاندنی بەخۆڕایی",
@@ -603,6 +606,7 @@ const translations = {
   "Need Help Finding Your Size?": "پێویستت بە یارمەتیە بۆ دۆزینەوەی قەبارەکەت؟",
   "More Options": "هەڵبژاردنی زیاتر",
   "Share This Product With": "ئەم بەرهەمە بەشدار بکە لەگەڵ",
+  "About Cancel Your Order": "سەبارەت بە هەڵوەشاندنی داواکردنت",
   "Comment About This Product": "تێبینی لەسەر ئەم بەرهەمە",
   "Good Quality Product": "بەرهەمی کوالیتی بەرز",
   "Verified by trydos": "لەلایەن ترایدۆسەوە پشتڕاستکراوە",
@@ -1088,6 +1092,7 @@ const translations = {
   Lebanon: "لوبنان",
   Turkey: "تورکیا",
   "Selected Color": "ڕەنگی دیاریکراو",
+  "Select Color": "ڕەنگی دیاریکراو",
   "Select Your Required Size": "قەبارەی داواکراوت هەڵبژێرە",
   "Added To Your Bag": "زیاد کرا بۆ جانتاکەت",
   "Removed From Your Bag": "لابرا لە جانتاکەت",
@@ -1128,6 +1133,9 @@ const translations = {
   "Purchase Payment": "پارەدانی کڕین",
   "Promo Credit": "باڵانسی هەڵسەنگاندن",
   "Order Payment": "پارەدانی داوا",
+  "Submit Rating": "هەڵسەنگاندن بنێرە",
+  "Do you want to delete this message?": "دەتەوێت ئەم نامەیە بسڕیتەوە؟",
+  Last: "ماوە",
 };
 
 export default translations;

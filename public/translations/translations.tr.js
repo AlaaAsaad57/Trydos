@@ -69,12 +69,18 @@ const translations = {
   "Out For Return": "Yolda",
   "Buyers Reviews On Product Sizing":
     "Alıcıların Ürün Bedenleri Hakkındaki Yorumları",
-  "Ask Seller Your Question About This Product…":
+  "Ask Seller Your Question About This Product …":
     "Satıcıya bu ürün hakkında sorunuzu sorun…",
   "Product Return Has Been Requested": "Ürün iadesi talep edildi",
+  Translate: "Çevir",
+  "Show Original": "Orijinali Göster",
   "Waiting…": "Bekleniyor…",
   "Product Return Request Approve": "Ürün iade talebini onayla",
   "Product Return Needs Confirm": "Ürün iade talebi onay gerektiriyor",
+  "Notification is Blocked in This Browser Please Enable Notification premission and refresh":
+    "Bildirimler bu tarayıcıda engellenmiş, lütfen bildirim iznini etkinleştirip sayfayı yenileyin",
+  "Notification is Blocked in This Browser Please Enable Notification premission and refresh":
+    "ئاگادارکردنەوە لەم وێبگەڕەدا قەدەغە کراوە، تکایە مۆڵەتی ئاگادارکردنەوە چالاک بکە و پەڕەکە نوێ بکەرەوە",
   "You Need To Confirm Your Request": "Talebinizi onaylamanız gerekiyor",
   "Product Return Request Approved": "Ürün iade talebi onaylandı",
   "Product Collection Within 1 Day": "Ürün 1 gün içinde teslim alınacak",
@@ -517,7 +523,7 @@ const translations = {
   "Made In Turkey": "Türkiye'de Üretilmiştir",
   "Read More": "Daha Fazla Oku",
   "Read Less": "Daha Az Oku",
-  "All Inclusive Without Additions": "Tüm Dahil, Ekstra Yok",
+  "All Inclusive Without Additions": "Her Şey Dahil Ekstra Yok",
   "Ship To You Accepted ": "Size Gönderim Kabul Edildi",
   "Buyers Camera": "Alıcı Kamerası",
   "Product Story": "Ürün Hikayesi",
@@ -801,25 +807,26 @@ const translations = {
   Clarification: "Açıklama",
   "About Return Your Product": "Ürününüzü İade Hakkında",
   "You Will Not Be Charged Any Fees.": "Hiçbir Ücret Alınmayacaktır.",
-  "You Will Receive Your Refund Within 24 Hours.":
-    "24 Saat İçinde Tam İadenizi Alacaksınız.",
+  "You Will Receive Your Refund Within 12 Hours.":
+    "12 Saat İçinde Tam İadenizi Alacaksınız.",
   "Repeated Cancellations Will Affect Your Rating, Which Will Affect Your Ability To Receive New Offers Or Opportunities From Us.":
     "Tekrarlanan İptaller Puanınızı Etkileyecek ve Bu da Bizden Yeni Teklifler veya Fırsatlar Alabilme Yeteneğinizi Etkileyecektir.",
   "I Agree & Cancel": "Kabul Ediyor ve İptal Ediyorum",
   "I Disagree": "Katılmıyorum",
   "Terms Of Cancellation Terms": "İptal Şartları",
   "About Change Request Product": "Ürün Değişim Talebi Hakkında",
+  "Cancel Request": "İptal Talebi",
   "Return This Product In": "Bu Ürünü İçinde İade Et",
   "Cancellation Terms": "İptal Şartları",
   "I Read And Agree To The": "Okudum ve kabul ediyorum",
   "Change Request": "Değişim Talebi",
-  "About Change Request Product": "Ürün Değişim Talebi Hakkında",
   "About Cancel Your Product": "Ürün İptal Talebi Hakkında",
   "Cancel This Product In": "Bu Ürünü İptal Edin",
   "You Can Cancel The Product Without Any Conditions According To The Cancel Policy And Get A Full Refund":
     "İptal politikası kapsamında hiçbir koşul olmaksızın ürünü iptal edebilir ve tam para iadesi alabilirsiniz",
   "To Your Account": "Hesabınıza",
   "Why Was The Product Return?": "Ürün neden iade edildi?",
+  "About Cancel Your Order": "Siparişinizi İptal Etme Hakkında",
   // Alt attributes
   sy: "Suriye",
   "info icon": "bilgi simgesi",
@@ -1034,6 +1041,7 @@ const translations = {
   Lebanon: "Lübnan",
   Turkey: "Türkiye",
   "Selected Color": "Seçilen Renk",
+  "Select Color": "Seçilen Renk",
   "Select Your Required Size": "Gerekli Bedeninizi Seçin",
   "Added To Your Bag": "Sepetinize Eklendi",
   "Removed From Your Bag": "Sepetinizden Çıkarıldı",
@@ -1075,6 +1083,9 @@ const translations = {
   "Purchase Payment": "Satın Alma Ödemesi",
   "Promo Credit": "Promosyon Kredisi",
   "Order Payment": "Sipariş Ödemesi",
+  "Submit Rating": "Değerlendirmeyi Gönder",
+  "Do you want to delete this message?": "Bu mesajı silmek istiyor musunuz?",
+  Last: "Kalan",
 };
 
 export default translations;
