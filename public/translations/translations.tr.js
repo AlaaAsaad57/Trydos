@@ -77,6 +77,10 @@ const translations = {
   "Waiting…": "Bekleniyor…",
   "Product Return Request Approve": "Ürün iade talebini onayla",
   "Product Return Needs Confirm": "Ürün iade talebi onay gerektiriyor",
+  "Notification is Blocked in This Browser Please Enable Notification premission and refresh":
+    "Bildirimler bu tarayıcıda engellenmiş, lütfen bildirim iznini etkinleştirip sayfayı yenileyin",
+  "Notification is Blocked in This Browser Please Enable Notification premission and refresh":
+    "ئاگادارکردنەوە لەم وێبگەڕەدا قەدەغە کراوە، تکایە مۆڵەتی ئاگادارکردنەوە چالاک بکە و پەڕەکە نوێ بکەرەوە",
   "You Need To Confirm Your Request": "Talebinizi onaylamanız gerekiyor",
   "Product Return Request Approved": "Ürün iade talebi onaylandı",
   "Product Collection Within 1 Day": "Ürün 1 gün içinde teslim alınacak",

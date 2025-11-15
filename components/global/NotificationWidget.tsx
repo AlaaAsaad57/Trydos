@@ -11,6 +11,7 @@ import Illustration from "public/images/notifications.png";
 import Image from "node_modules/next/image";
 import { translateFunction } from "utils/functions";
 import { useAppStore } from "store";
+import { showErrorNotification } from "store/notifications/reducer";
 interface NotificationWidgetProps {
   onAllow?: () => void;
   onDismiss?: () => void;
@@ -102,6 +103,11 @@ export default function NotificationWidget(props: NotificationWidgetProps) {
       if (result === "granted") {
         allowCallbackRef.current && allowCallbackRef.current();
       } else {
+        showErrorNotification(
+          translateFunction(
+            "Notification is Blocked in This Browser Please Enable Notification premission and refresh"
+          )
+        );
         dismissCallbackRef.current && dismissCallbackRef.current();
       }
     } finally {

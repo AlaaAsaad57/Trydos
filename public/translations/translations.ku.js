@@ -71,6 +71,7 @@ const translations = {
   "Ask Seller Your Question About This Product …":
     "پرسیارت بڵێ بۆ فرۆشیار دەربارەی ئەم بەرهەمە…",
   "Product Return Has Been Requested": "داوای گەڕاندنەوەی بەرهەم کراوە",
+
   Translate: "وەرگێران",
   "Show Original": "پیشاندانی ڕەسەن",
   "Waiting…": "چاوەڕێکردن…",
