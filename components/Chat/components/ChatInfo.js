@@ -24,6 +24,7 @@ import MediaContainer from "./MediaContainer";
 import { useAppStore } from "store";
 import ChatPhoto from "./ChatPhoto";
 import { translateFunction } from "utils/functions";
+import { deleteChat as DeleteChatAction } from "store/chat/actions";
 function ChatInfo({
   activeChat,
   cancel,
@@ -266,6 +267,7 @@ function ChatInfo({
             <div
               className="chat-user-option delete-option"
               onClick={() => {
+                DeleteChatAction(activeChat?.id);
                 deleteChat({ id: activeChat?.id });
                 cancel();
               }}

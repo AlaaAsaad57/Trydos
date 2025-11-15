@@ -9,6 +9,7 @@ import { translateFunction } from "utils/functions";
 import { useParams } from "next/navigation";
 import { useAppStore } from "store";
 import Image from "next/image";
+import { MuteChat, PinnChat } from "store/chat/actions";
 function ChatOptions({ id, unread, pinned, muted, member_id }) {
   const { language, setUnreadChat, pinChat, muteChat, deleteChat } =
     useAppStore();
@@ -31,9 +32,10 @@ function ChatOptions({ id, unread, pinned, muted, member_id }) {
       </div>
       <div
         className="chat-option chat-2"
-        onClick={() =>
-          pinChat({ id: id, value: !pinned, member_id: member_id })
-        }
+        onClick={() => {
+          PinnChat({ id: id, value: !pinned, member_id: member_id });
+          pinChat({ id: id, value: !pinned, member_id: member_id });
+        }}
       >
         <PinIcon src={PinIcon} alt="unread-icon" />
 
@@ -43,9 +45,10 @@ function ChatOptions({ id, unread, pinned, muted, member_id }) {
       </div>
       <div
         className="chat-option chat-3"
-        onClick={() =>
-          muteChat({ id: id, value: !muted, member_id: member_id })
-        }
+        onClick={() => {
+          MuteChat({ id: id, value: !muted, member_id: member_id });
+          muteChat({ id: id, value: !muted, member_id: member_id });
+        }}
       >
         {!muted ? <MuteIcon /> : <UnmuteIcon />}
         <div>

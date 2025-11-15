@@ -1,11 +1,5 @@
 import { getUserChat, translateFunction as translate } from "utils/functions";
-import {
-  MuteChat,
-  PinnChat,
-  Recive,
-  deleteChat,
-  watchChannel as watchChannelAction,
-} from "./actions";
+import { Recive, watchChannel as watchChannelAction } from "./actions";
 import { getMediaReducer } from "./actions";
 import { showErrorNotification } from "@/store/notifications/reducer";
 import {
@@ -731,7 +725,6 @@ export const useChatStore = (set, get) => ({
     ) {
       Recive(payload);
     }
-
     let newChats = [];
     let active = state.activeChat;
 
@@ -1203,9 +1196,6 @@ export const useChatStore = (set, get) => ({
 
   muteChat: (payload: any) => {
     const state = get();
-    if (!payload.event) {
-      MuteChat(payload);
-    }
     let arr = [];
     state.data.forEach((chat) => {
       if (chat.id === payload.id) {
@@ -1238,9 +1228,6 @@ export const useChatStore = (set, get) => ({
   pinChat: (payload: any) => {
     const state = get();
     if (state.pinnedChats.length < 3) {
-      if (!payload.event) {
-        PinnChat(payload);
-      }
       let arr = [];
       arr = [
         ...state.data.filter((s) => s.id !== payload.id),
@@ -1336,7 +1323,6 @@ export const useChatStore = (set, get) => ({
     }));
   },
   deleteChat: (payload: any) => {
-    deleteChat(payload.id);
     set((state) => ({
       data: state.data.filter(
         (chat) => parseInt(chat.id) !== parseInt(payload.id)
