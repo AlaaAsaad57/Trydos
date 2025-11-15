@@ -15,6 +15,7 @@ import {
 import { GAevent } from "utils/gtag";
 import { GA_EVENT_NAMES } from "utils/GAEvents";
 import auth from "services/auth";
+import { wishlistService } from "services/wishlist";
 function MoreOptionsSection() {
   const {
     disableNotification,
@@ -78,6 +79,8 @@ function MoreOptionsSection() {
     localStorage.getItem("f_p") === SelectedProduct.slug ||
       localStorage.getItem("s_p") === SelectedProduct.slug
   );
+  const [isInWishlist, setIsInWishlist] = useState(false);
+  const [wishlistLoading, setWishlistLoading] = useState(false);
   let language = LocalizationServiceClass.GetAppLanguage();
   const AddedToCompare = () => {
     return addedToCompare;
@@ -112,6 +115,22 @@ function MoreOptionsSection() {
   useEffect(() => {
     getData();
   }, []);
+
+  useEffect(() => {
+    const checkWishlistStatus = async () => {
+      if (SelectedProduct?.id) {
+        try {
+          const inWishlist = await wishlistService.isInWishlist(
+            String(SelectedProduct.id)
+          );
+          setIsInWishlist(inWishlist);
+        } catch (error) {
+          console.error("Error checking wishlist status:", error);
+        }
+      }
+    };
+    checkWishlistStatus();
+  }, [SelectedProduct?.id]);
   const send_GA_EVENT = (notification_type) => {
     GAevent({
       action: GA_EVENT_NAMES.ENABLE_PRODUCT_NOTIFICATION,
@@ -242,26 +261,79 @@ function MoreOptionsSection() {
           </div>
         </div>
         <div
-          className="more-options-button"
+          className={`more-options-button ${
+            isInWishlist ? "bg-green-300" : ""
+          }`}
           data-cy="add-checkList"
-          onClick={() => {
-            GAevent({
-              action: GA_EVENT_NAMES.ADD_TO_FAV,
-              params: {
-                user_id_custom: auth.UserID(),
-                item_id: SelectedProduct.id,
-                item_name: SelectedProduct?.name,
-                brand: SelectedProduct?.brand?.name,
-                brand_id: SelectedProduct?.brand?.id,
-                category:
-                  SelectedProduct?.category?.name ||
-                  SelectedProduct?.categories?.[0]?.name,
-                category_id:
-                  SelectedProduct?.category?.id ||
-                  SelectedProduct?.categories?.[0]?.id,
-                price: SelectedProduct?.offer_price,
-              },
-            });
+          onClick={async () => {
+            if (wishlistLoading) return;
+            setWishlistLoading(true);
+            try {
+              const productId = String(SelectedProduct.id);
+              const thumbnail =
+                typeof SelectedProduct.thumbnail === "string"
+                  ? SelectedProduct.thumbnail
+                  : SelectedProduct.thumbnail?.file_path || "";
+
+              const colors =
+                SelectedProduct.colors?.map((c) => c.color || c.name) || [];
+              const sizes =
+                SelectedProduct.choice_options?.[0]?.options?.map(
+                  (s) => s.option || s.name
+                ) || [];
+
+              if (isInWishlist) {
+                await wishlistService.removeFromWishlist(productId);
+                setIsInWishlist(false);
+                showSuccessNotification(
+                  translate("Removed from checklist", language)
+                );
+              } else {
+                await wishlistService.addToWishlist({
+                  id: productId,
+                  name: SelectedProduct.name,
+                  slug: SelectedProduct.slug,
+                  thumbnail: thumbnail,
+                  price: SelectedProduct.price,
+                  offer_price: SelectedProduct.offer_price,
+                  colors: colors,
+                  sizes: sizes,
+                  product_link:
+                    SelectedProduct.share_link ||
+                    `/${lang}/products/${SelectedProduct.slug}`,
+                  images: SelectedProduct?.images,
+                });
+                setIsInWishlist(true);
+                showSuccessNotification(
+                  translate("Added to checklist", language)
+                );
+              }
+
+              GAevent({
+                action: GA_EVENT_NAMES.ADD_TO_FAV,
+                params: {
+                  user_id_custom: auth.UserID(),
+                  item_id: SelectedProduct.id,
+                  item_name: SelectedProduct?.name,
+                  brand: SelectedProduct?.brand?.name,
+                  brand_id: SelectedProduct?.brand?.id,
+                  category:
+                    SelectedProduct?.category?.name ||
+                    SelectedProduct?.categories?.[0]?.name,
+                  category_id:
+                    SelectedProduct?.category?.id ||
+                    SelectedProduct?.categories?.[0]?.id,
+                  price: SelectedProduct?.offer_price,
+                },
+              });
+            } catch (error) {
+              console.error("Error updating wishlist:", error);
+              showErrorNotification(
+                translate("Failed to update checklist", language)
+              );
+            } finally {
+              setWishlistLoading(false);
+            }
           }}
         >
           <svg
