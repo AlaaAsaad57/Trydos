@@ -56,7 +56,12 @@ export async function GET(req: NextRequest) {
     if (searchParams.get("featured")) {
       filters.featured = searchParams.get("featured") === "true";
     }
-
+    // if (searchParams.get("noFilters")) {
+    //   filters.noFilters = searchParams.get("noFilters") === "true";
+    // }
+    // if (searchParams?.get("noProducts")) {
+    //   filters.noProducts = searchParams?.get("noProducts") === "true";
+    // }
     const params = {
       limit: Number(searchParams.get("limit") || 20),
       search_after: searchParams.get("offset")

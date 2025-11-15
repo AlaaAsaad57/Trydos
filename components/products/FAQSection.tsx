@@ -178,6 +178,13 @@ export const FaqItem = ({
   isFull = false,
   isError = false,
   seller_name,
+  isCommentTranslated = false,
+  isReplyTranslated = false,
+  translatedComment = null,
+  translatedReply = null,
+  onTranslateComment = null,
+  onTranslateReply = null,
+  translateLoading = false,
 }) => {
   let has_reply = comment.has_reply;
   const renderTextWithLinks = (text) => {
@@ -247,7 +254,11 @@ export const FaqItem = ({
             {formatTime(comment?.created_at)}
           </div>
           <div className="comment-text regular text-[#1d1d1d] text-[11px] mt-[0px]">
-            {renderTextWithLinks(comment?.comment)}
+            {renderTextWithLinks(
+              isCommentTranslated && translatedComment
+                ? translatedComment
+                : comment?.comment
+            )}
           </div>
         </div>
         <div className="flex-row pl-[10px] pr-[3px] justify-between w-full items-center">
@@ -299,7 +310,11 @@ export const FaqItem = ({
                 {formatTime(comment?.reply_created_at)}
               </div>
               <div className="comment-text regular text-[#1d1d1d] text-[11px] mt-[0px]">
-                {renderTextWithLinks(comment?.seller_reply)}
+                {renderTextWithLinks(
+                  isReplyTranslated && translatedReply
+                    ? translatedReply
+                    : comment?.seller_reply
+                )}
               </div>
             </div>
             <div className="flex-row pl-[10px] pr-[3px] justify-between w-full items-center">

@@ -18,6 +18,8 @@ import Image from "node_modules/next/image";
 import profilePng from "public/images/profileNo.png";
 import auth from "services/auth";
 import { REQUESTS_DATA } from "utils/Requests";
+import Spinner from "components/global/Spinner";
+import LanguageIcon from "public/svg/LanguageIcon";
 
 function CommentItem({
   custmerId,
@@ -38,6 +40,15 @@ function CommentItem({
   const [showMenu, setShowMenu] = useState(false);
   const [updateLoading, setUpdateLoading] = useState(false);
   const [showUpdateElement, setShowUpdate] = useState(false);
+  const [isCommentTranslated, setIsCommentTranslated] = useState(false);
+  const [isReplyTranslated, setIsReplyTranslated] = useState(false);
+  const [translatedComment, setTranslatedComment] = useState<string | null>(
+    null
+  );
+  const [translatedReply, setTranslatedReply] = useState<string | null>(null);
+  const [originalComment, setOriginalComment] = useState<string | null>(null);
+  const [originalReply, setOriginalReply] = useState<string | null>(null);
+  const [translateLoading, setTranslateLoading] = useState(false);
 
   const menuRef = useRef<HTMLDivElement>(null);
   const { editInfo, SelectedProduct } = useAppStore();
@@ -104,6 +115,113 @@ function CommentItem({
   const handleUpdateClick = () => {
     setShowUpdate(true);
     setShowMenu(false);
+  };
+
+  const handleTranslateComment = async () => {
+    if (isCommentTranslated) {
+      setIsCommentTranslated(false);
+      setTranslatedComment(null);
+      setTranslatedReply(null);
+      setIsReplyTranslated(false);
+
+      setShowMenu(false);
+      return;
+    }
+    let response, replyResponse;
+    try {
+      setTranslateLoading(true);
+      if (comment.has_reply) {
+        [response, replyResponse] = await Promise.all([
+          fetchData({
+            url: `/public_comment/comments/${comment.id}/translate`,
+            method: "POST",
+            body: JSON.stringify({
+              target_language: languageVariable,
+              translate_type: "comment",
+            }),
+            reqTitle: REQUESTS_DATA.UPDATE_COMMENT,
+            server: "comments",
+          }),
+          handleTranslateReply(),
+        ]);
+      } else
+        response = await fetchData({
+          url: `/public_comment/comments/${comment.id}/translate`,
+          method: "POST",
+          body: JSON.stringify({
+            target_language: languageVariable,
+            translate_type: "comment",
+          }),
+          reqTitle: REQUESTS_DATA.UPDATE_COMMENT,
+          server: "comments",
+        });
+
+      if (!response.success) throw new Error(response.message);
+
+      if (response.success) {
+        // Store original text from API response or comment
+        const original = response.original_text || comment?.comment || null;
+        if (!originalComment && original) {
+          setOriginalComment(original);
+        }
+
+        // Check if it's already in the target language
+        if (response.translated_text) {
+          setTranslatedComment(response.translated_text);
+          setIsCommentTranslated(true);
+        }
+      }
+      setShowMenu(false);
+    } catch (error) {
+      console.error("Error translating comment:", error);
+    } finally {
+      setTranslateLoading(false);
+    }
+  };
+
+  const handleTranslateReply = async () => {
+    if (isReplyTranslated) {
+      setIsReplyTranslated(false);
+      setTranslatedReply(null);
+      return;
+    }
+
+    if (!comment.has_reply) return;
+
+    try {
+      setTranslateLoading(true);
+      const response = await fetchData({
+        url: `/public_comment/comments/${comment.id}/translate`,
+        method: "POST",
+        body: JSON.stringify({
+          target_language: languageVariable,
+          translate_type: "seller_reply",
+        }),
+        reqTitle: REQUESTS_DATA.UPDATE_COMMENT,
+        server: "comments",
+      });
+
+      if (!response.success) throw new Error(response.message);
+
+      if (response.success) {
+        // Store original text from API response or comment
+        const original =
+          response.original_text || comment?.seller_reply || null;
+        if (!originalReply && original) {
+          setOriginalReply(original);
+        }
+
+        // Check if it's already in the target language
+        if (response.translated_text) {
+          setTranslatedReply(response.translated_text);
+          setIsReplyTranslated(true);
+        }
+      }
+    } catch (error) {
+      console.error("Error translating reply:", error);
+    } finally {
+      setTranslateLoading(false);
+    }
   };
   const ErrorAccure = (mid) => {
     let { SelectedProduct: ProductData } = useAppStore.getState();
@@ -240,7 +358,7 @@ function CommentItem({
             onClick={() => resendCommentApi(comment.mid, comment)}
           />
         )}
-        {isOwner && !isError && isPending && (
+        {!isError && (
           <div
             className="absolute top-[45px] right-[10px] z-50 w-[30px] h-[30px]"
             ref={menuRef}
@@ -270,7 +388,21 @@ function CommentItem({
 
             {showMenu && (
               <div className="absolute z-50 right-[10px] top-[10px] bg-white border border-gray-200 rounded-lg shadow-lg py-1 min-w-[120px]">
-                {!comment.has_reply && (
+                <button
+                  className="w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
+                  onClick={handleTranslateComment}
+                  disabled={translateLoading}
+                >
+                  <LanguageIcon className="w-4 h-4" />
+                  {translateLoading ? (
+                    <Spinner />
+                  ) : isCommentTranslated ? (
+                    translateFunction("Show Original", languageVariable)
+                  ) : (
+                    translateFunction("Translate", languageVariable)
+                  )}
+                </button>
+                {isOwner && !comment.has_reply && (
                   <button
                     className="w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
                     onClick={handleUpdateClick}
@@ -280,13 +412,15 @@ function CommentItem({
                     {translateFunction("Edit")}
                   </button>
                 )}
-                <button
-                  className="w-full px-3 py-2 text-left text-sm text-red-600 hover:bg-gray-100 flex items-center gap-2"
-                  onClick={handleDeleteClick}
-                >
-                  <DeleteCommentIcon className="w-4 h-4" />
-                  Delete
-                </button>
+                {isOwner && (
+                  <button
+                    className="w-full px-3 py-2 text-left text-sm text-red-600 hover:bg-gray-100 flex items-center gap-2"
+                    onClick={handleDeleteClick}
+                  >
+                    <DeleteCommentIcon className="w-4 h-4" />
+                    {translateFunction("Delete", languageVariable)}
+                  </button>
+                )}
               </div>
             )}
           </div>
@@ -311,6 +445,13 @@ function CommentItem({
             isFull={true}
             comment={comment}
             language={languageVariable}
+            isCommentTranslated={isCommentTranslated}
+            isReplyTranslated={isReplyTranslated}
+            translatedComment={translatedComment}
+            translatedReply={translatedReply}
+            onTranslateComment={handleTranslateComment}
+            onTranslateReply={handleTranslateReply}
+            translateLoading={translateLoading}
           />
         )}
       </div>

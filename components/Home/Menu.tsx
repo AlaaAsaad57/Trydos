@@ -55,6 +55,7 @@ const MenuItem = ({
   href = null,
   children,
   dataCy = "",
+  data = {},
   icon,
 }) => {
   const style = {
@@ -69,10 +70,7 @@ const MenuItem = ({
   if (href && !pathname.includes(href)) {
     return (
       <NextLink
-        data={{
-          is_settings: true,
-          href,
-        }}
+        data={data}
         ariaLabel={`Menu Item ${href}`}
         data-cy={dataCy}
         style={style}
@@ -183,6 +181,10 @@ const Menu = ({ user, setMenuOpen }) => {
         <>
           <MenuItem
             dataCy="Settings-Icon"
+            data={{
+              is_setting: true,
+              href: `/${lang}/setting?tab=main`,
+            }}
             href={`/${lang}/setting?tab=main`}
             onClick={() => {
               // Sendevent({
@@ -249,11 +251,12 @@ const Menu = ({ user, setMenuOpen }) => {
           </MenuItem> */}
           <MenuItem
             dataCy="Compare-Icon"
+            data={{
+              is_compare: true,
+              href: `/${lang}/setting?tab=main`,
+            }}
             onClick={() => {
-              // Sendevent({
-              //   event: GA_EVENT_NAMES.CLICK,
-              //   value: GA_CLICK_EVENT_VALUES.COMPARE_BUTTON,
-              // });
+              setMenuOpen(false);
             }}
             href={`/${lang}/compare`}
             icon={

@@ -2,7 +2,13 @@
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import home from "services/home";
-import { addToCompare, RoundPrice, translateFunction } from "utils/functions";
+import {
+  addToCompare,
+  removeFromCompare,
+  RoundPrice,
+  translateFunction,
+} from "utils/functions";
+import { getCookie } from "utils/cookies/cookie-manager";
 import CheckIcon from "public/svg/CheckIcon";
 import Spinner from "components/global/Spinner";
 import LocalizationServiceClass from "services/localization";
@@ -76,8 +82,8 @@ function MoreOptionsSection() {
 
   const [loading, setLoading] = useState(false);
   const [addedToCompare, setAddedToCompare] = useState(
-    localStorage.getItem("f_p") === SelectedProduct.slug ||
-      localStorage.getItem("s_p") === SelectedProduct.slug
+    getCookie<string>("f_p") === SelectedProduct.slug ||
+      getCookie<string>("s_p") === SelectedProduct.slug
   );
   const [isInWishlist, setIsInWishlist] = useState(false);
   const [wishlistLoading, setWishlistLoading] = useState(false);
@@ -131,6 +137,25 @@ function MoreOptionsSection() {
     };
     checkWishlistStatus();
   }, [SelectedProduct?.id]);
+
+  useEffect(() => {
+    const checkCompareStatus = () => {
+      const f_p = getCookie<string>("f_p");
+      const s_p = getCookie<string>("s_p");
+      const isAdded =
+        f_p === SelectedProduct.slug || s_p === SelectedProduct.slug;
+      setAddedToCompare(isAdded);
+    };
+    checkCompareStatus();
+    // Check periodically for cookie changes (cookies don't have storage events)
+    const interval = setInterval(checkCompareStatus, 500);
+    // Also check on focus
+    window.addEventListener("focus", checkCompareStatus);
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener("focus", checkCompareStatus);
+    };
+  }, [SelectedProduct.slug]);
   const send_GA_EVENT = (notification_type) => {
     GAevent({
       action: GA_EVENT_NAMES.ENABLE_PRODUCT_NOTIFICATION,
@@ -486,23 +511,22 @@ function MoreOptionsSection() {
           data-cy="add-compare"
           onClick={() => {
             if (AddedToCompare()) {
-              showErrorNotification(
-                translate("Already Added To Compare!", language)
+              removeFromCompare(SelectedProduct.slug);
+              setAddedToCompare(false);
+              showSuccessNotification(
+                translate("Removed From Compare", language)
               );
-
-              return;
+            } else {
+              setAddedToCompare(true);
+              addToCompare(SelectedProduct.slug);
+              showSuccessNotification(
+                translate(
+                  "Added To Compare! Click To Go To Compare Page",
+                  language
+                ),
+                5000
+              );
             }
-            setAddedToCompare(true);
-            addToCompare(SelectedProduct.slug);
-            showSuccessNotification(
-              translate(
-                "Added To Compare! Click To Go To Compare Page",
-                language
-              ),
-              5000,
-              "/compare",
-              { is_full_home: true }
-            );
           }}
         >
           <svg

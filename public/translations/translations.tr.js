@@ -72,6 +72,8 @@ const translations = {
   "Ask Seller Your Question About This Product …":
     "Satıcıya bu ürün hakkında sorunuzu sorun…",
   "Product Return Has Been Requested": "Ürün iadesi talep edildi",
+  Translate: "Çevir",
+  "Show Original": "Orijinali Göster",
   "Waiting…": "Bekleniyor…",
   "Product Return Request Approve": "Ürün iade talebini onayla",
   "Product Return Needs Confirm": "Ürün iade talebi onay gerektiriyor",

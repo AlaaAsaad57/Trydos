@@ -21,6 +21,7 @@ import PenIcon from "public/svg/PenIcon";
 import { COOKIE_NAMES, getCookie } from "utils/cookies/cookie-manager";
 import { LikeButton } from "./FAQSection";
 import auth from "services/auth";
+import LanguageIcon from "public/svg/LanguageIcon";
 function ProductsBuyersComments({
   lang,
   comments,
@@ -160,11 +161,17 @@ export const RateCommentItem = ({ comment, language, width = 90 }) => {
   const isOwner = String(userData?.id) === String(comment.customer.id);
   const [openModal, setOpenModal] = useState("");
   const [loading, setLoading] = useState(false);
+  const [isCommentTranslated, setIsCommentTranslated] = useState(false);
+  const [translatedComment, setTranslatedComment] = useState<string | null>(
+    null
+  );
+  const [originalComment, setOriginalComment] = useState<string | null>(null);
+  const [translateLoading, setTranslateLoading] = useState(false);
 
   const EditComment = async (comment_var) => {
     try {
       setLoading(true);
-      let res = await await fetchData({
+      let res = await fetchData({
         url: `/public_comment/comments/${comment_var.id}/update`,
         method: "PUT",
         body: JSON.stringify({
@@ -224,6 +231,50 @@ export const RateCommentItem = ({ comment, language, width = 90 }) => {
   };
   const menuRef = useRef<HTMLDivElement>(null);
 
+  const handleTranslateComment = async () => {
+    if (isCommentTranslated) {
+      setIsCommentTranslated(false);
+      setTranslatedComment(null);
+      setMenuOpen(false);
+      return;
+    }
+
+    try {
+      setTranslateLoading(true);
+      const response = await fetchData({
+        url: `/public_comment/comments/${comment.id}/translate`,
+        method: "POST",
+        body: JSON.stringify({
+          target_language: language,
+          translate_type: "comment",
+        }),
+        reqTitle: REQUESTS_DATA.UPDATE_COMMENT,
+        server: "comments",
+      });
+
+      if (!response.success) throw new Error(response.message);
+
+      if (response?.success) {
+        // Store original text from API response or comment
+        const original = response.original_text || comment?.comment || null;
+        if (!originalComment && original) {
+          setOriginalComment(original);
+        }
+
+        // Check if it's already in the target language
+        if (response.translated_text) {
+          setTranslatedComment(response.translated_text);
+          setIsCommentTranslated(true);
+        }
+      }
+      setMenuOpen(false);
+    } catch (error) {
+      console.error("Error translating comment:", error);
+    } finally {
+      setTranslateLoading(false);
+    }
+  };
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
@@ -271,28 +322,46 @@ export const RateCommentItem = ({ comment, language, width = 90 }) => {
         >
           <button
             className="w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
-            onClick={() => {
-              setOpenModal("Update");
-              setMenuOpen(false);
-            }}
-            disabled={loading}
+            onClick={handleTranslateComment}
+            disabled={translateLoading}
           >
-            <PenIcon className="w-4 h-4" />
-            {loading ? "Updating..." : translateFunction("Edit")}
+            <LanguageIcon className="w-4 h-4" />
+            {translateLoading ? (
+              <Spinner />
+            ) : isCommentTranslated ? (
+              translateFunction("Show Original", language)
+            ) : (
+              translateFunction("Translate", language)
+            )}
           </button>
-          <button
-            className="w-full px-3 py-2 text-left text-sm text-red-600 hover:bg-gray-100 flex items-center gap-2"
-            onClick={() => {
-              setOpenModal("Delete");
-              setMenuOpen(false);
-            }}
-          >
-            <DeleteCommentIcon className="w-4 h-4" />
-            {translateFunction("Delete")}
-          </button>
+          {isOwner && (
+            <button
+              className="w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
+              onClick={() => {
+                setOpenModal("Update");
+                setMenuOpen(false);
+              }}
+              disabled={loading}
+            >
+              <PenIcon className="w-4 h-4" />
+              {loading ? "Updating..." : translateFunction("Edit")}
+            </button>
+          )}
+          {isOwner && (
+            <button
+              className="w-full px-3 py-2 text-left text-sm text-red-600 hover:bg-gray-100 flex items-center gap-2"
+              onClick={() => {
+                setOpenModal("Delete");
+                setMenuOpen(false);
+              }}
+            >
+              <DeleteCommentIcon className="w-4 h-4" />
+              {translateFunction("Delete")}
+            </button>
+          )}
         </div>
       )}
-      {openModal === "" && isOwner && (
+      {openModal === "" && (
         <div
           className="comment-menu-btn absolute z-50 right-[10px] top-[45px] cursor-pointer flex items-center justify-center w-[20px] h-[20px]"
           style={{
@@ -357,7 +426,11 @@ export const RateCommentItem = ({ comment, language, width = 90 }) => {
           {formatTime(comment?.created_at)}
         </div>
         <div className="comment-text regular text-[#1d1d1d] text-[11px] mt-[0px]">
-          {renderTextWithLinks(comment?.comment)}
+          {renderTextWithLinks(
+            isCommentTranslated && translatedComment
+              ? translatedComment
+              : comment?.comment
+          )}
         </div>
       </div>
       <BuyerCommentRateInfo
