@@ -9,6 +9,7 @@ import { translateFunction, getUserChat } from "utils/functions";
 
 import { useParams } from "next/navigation";
 import { useAppStore } from "store";
+import EyeIcon from "public/svg/product/EyeIcon";
 function OptionsMenu(props) {
   const { language } = useAppStore();
   let { lang } = useParams();
@@ -87,6 +88,16 @@ function OptionsMenu(props) {
     <div className="abs-menu">
       {
         <>
+          {props.setImg && (
+            <div
+              className="reply-but mx-[4px]"
+              onClick={() => {
+                props.setImg();
+              }}
+            >
+              <EyeIcon />
+            </div>
+          )}
           <div className="reply-but" onClick={() => props.click()}>
             <ReplyIcon></ReplyIcon>
             <div className="rep-descs" style={{ bottom: "-34px" }}>

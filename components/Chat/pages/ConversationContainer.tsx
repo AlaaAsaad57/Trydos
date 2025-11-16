@@ -906,7 +906,7 @@ function ConversationContainer({
                 alt="preview"
                 fill
                 sizes="100vw"
-                className="object-contain h-full w-auto bg-[#0000005d]"
+                className="object-contain h-full w-auto -[9999] left-0 right-0 m-[0_auto] p-4"
               />
             )
           )}
@@ -994,7 +994,7 @@ function ConversationContainer({
                 isPrivate={isPrivate}
                 AudioRef={AudioRef}
                 setVid={setVid}
-                setImg={() => setImgs(null)}
+                setImg={(e) => setImgs(e)}
                 GetMessage={(msgId, qoutedId) => {
                   // TODO migrate GetMessage logic to TS
 
