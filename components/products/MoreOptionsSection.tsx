@@ -22,6 +22,7 @@ import { GAevent } from "utils/gtag";
 import { GA_EVENT_NAMES } from "utils/GAEvents";
 import auth from "services/auth";
 import { wishlistService } from "services/wishlist";
+import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 function MoreOptionsSection() {
   const {
     disableNotification,
@@ -49,35 +50,6 @@ function MoreOptionsSection() {
   };
   useEffect(() => {
     getNotificationsType();
-    if (typeof document !== "undefined") {
-      const slider: HTMLDivElement = document?.querySelector("#slider-options");
-      let isDown = false;
-      let startX: number;
-      let scrollLeft: number;
-
-      slider?.addEventListener("mousedown", (e: MouseEvent) => {
-        isDown = true;
-        slider.classList.add("active");
-        startX = e.pageX - slider.offsetLeft;
-        scrollLeft = slider.scrollLeft;
-      });
-      slider?.addEventListener("mouseleave", () => {
-        isDown = false;
-        slider.classList.remove("active");
-      });
-      slider?.addEventListener("mouseup", () => {
-        isDown = false;
-        slider.classList.remove("active");
-      });
-      slider?.addEventListener("mousemove", (e) => {
-        if (!isDown) return;
-        e.preventDefault();
-
-        const x = e.pageX - slider.offsetLeft;
-        const walk = (x - startX) * 3; //scroll-fast
-        slider.scrollLeft = scrollLeft - walk;
-      });
-    }
   }, []);
 
   const [loading, setLoading] = useState(false);
@@ -254,7 +226,7 @@ function MoreOptionsSection() {
               {translate("Notify Me About The Product When", language)}
             </span>
           </div>
-          <div id="slider-options" className="notify-row">
+          <HortiznalScrollBar id="slider-options" className="notify-row">
             {NotificationsType.length === 0 ? (
               <div className="flex items-center w-full h-full justify-center">
                 <Spinner />
@@ -283,7 +255,7 @@ function MoreOptionsSection() {
                 </div>
               ))
             )}
-          </div>
+          </HortiznalScrollBar>
         </div>
         <div
           className={`more-options-button ${
@@ -296,9 +268,11 @@ function MoreOptionsSection() {
             try {
               const productId = String(SelectedProduct.id);
               const thumbnail =
-                typeof SelectedProduct.thumbnail === "string"
-                  ? SelectedProduct.thumbnail
-                  : SelectedProduct.thumbnail?.file_path || "";
+                SelectedProduct?.sync_color_images?.[0]?.images?.[0]
+                  ?.file_path ??
+                SelectedProduct?.sync_color_images?.[0]?.images?.[0] ??
+                SelectedProduct?.images?.[0]?.file_path ??
+                SelectedProduct?.images?.[0];
 
               const colors =
                 SelectedProduct.colors?.map((c) => c.color || c.name) || [];
@@ -317,6 +291,7 @@ function MoreOptionsSection() {
                 await wishlistService.addToWishlist({
                   id: productId,
                   name: SelectedProduct.name,
+                  brand: SelectedProduct?.brand,
                   slug: SelectedProduct.slug,
                   thumbnail: thumbnail,
                   price: SelectedProduct.price,
@@ -369,11 +344,7 @@ function MoreOptionsSection() {
             height="25"
             viewBox="0 0 25 25"
           >
-            <g
-              id="Mask_Group_363"
-              data-name="Mask Group 363"
-              clipPath="url(#clipPath)"
-            >
+            <g id="Mask_Group_363" data-name="Mask Group 363">
               <g
                 id="Group_3487"
                 data-name="Group 3487"

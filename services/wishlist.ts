@@ -10,6 +10,7 @@ interface WishlistItem {
   product_link: string;
   added_at: Date;
   images: any[];
+  brand: any;
 }
 
 class WishlistService {

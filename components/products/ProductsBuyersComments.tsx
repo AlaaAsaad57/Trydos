@@ -318,7 +318,9 @@ export const RateCommentItem = ({ comment, language, width = 90 }) => {
       {menuOpen && (
         <div
           ref={menuRef}
-          className="absolute z-[80] right-[10px] top-[20px] bg-white border border-gray-200 rounded-lg shadow-lg py-1 min-w-[120px]"
+          className={`${
+            isOwner ? "top-[0px]" : "top-[20px]"
+          } absolute z-[80] right-[10px]  bg-white border border-gray-200 rounded-lg shadow-lg py-1 min-w-[120px]`}
         >
           <button
             className="w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"

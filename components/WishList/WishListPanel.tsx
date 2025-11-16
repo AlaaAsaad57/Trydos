@@ -1,5 +1,9 @@
 import React, { useRef, useEffect, useState } from "react";
-import { RoundPrice, translateFunction } from "utils/functions";
+import {
+  getConfiguredImage,
+  RoundPrice,
+  translateFunction,
+} from "utils/functions";
 import Image from "next/image";
 import NextLink from "components/global/NextLink";
 import { useAppStore } from "store";
@@ -113,7 +117,7 @@ const WishListPanel = ({ onClose }) => {
             height="20"
             viewBox="0 0 24 24"
             fill="none"
-            stroke="currentColor"
+            stroke="#1d1d1d"
             strokeWidth="1.5"
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -147,7 +151,7 @@ const WishListPanel = ({ onClose }) => {
             height="20"
             viewBox="0 0 24 24"
             fill="none"
-            stroke="currentColor"
+            stroke="#1d1d1d"
             strokeWidth="1.5"
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -228,6 +232,7 @@ const WishListItem = ({ item, handleDeleteItem, close }) => {
   const { language, currency } = useAppStore();
   const params = useParams();
   const lang = params.lang;
+
   if (params.productId === item.slug) {
     return (
       <div
@@ -247,13 +252,26 @@ const WishListItem = ({ item, handleDeleteItem, close }) => {
           >
             <Image
               data-cy="wishlist-img"
-              src={GetImageUrl(item.thumbnail)}
+              src={getConfiguredImage({
+                src: GetImageUrl(item.thumbnail),
+                width: 100,
+                height: 100,
+              })}
               alt={item.name}
               fill
               className="object-cover rounded-md"
             />
           </div>
           <div className="flex-1" data-cy="wishlist-body-item">
+            <div className="flex">
+              <Image
+                alt="brand-icon"
+                className="max-w-[40px] max-h-[25px] w-auto object-contain h-full"
+                width={50}
+                height={50}
+                src={item.brand?.icon?.file_path}
+              />
+            </div>
             <div
               className="text-sm font-medium text-gray-900 hover:text-blue-600"
               data-cy="wishlist-item-name"
@@ -360,13 +378,26 @@ const WishListItem = ({ item, handleDeleteItem, close }) => {
           >
             <Image
               data-cy="wishlist-img"
-              src={GetImageUrl(item.thumbnail)}
+              src={getConfiguredImage({
+                src: GetImageUrl(item.thumbnail),
+                width: 100,
+                height: 100,
+              })}
               alt={item.name}
               fill
               className="object-cover rounded-md"
             />
           </div>
           <div className="flex-1" data-cy="wishlist-body-item">
+            <div className="flex">
+              <Image
+                alt="brand-icon"
+                className="max-w-[40px] max-h-[25px] w-auto object-contain h-full"
+                width={50}
+                height={50}
+                src={item.brand?.icon?.file_path}
+              />
+            </div>
             <div
               className="text-sm font-medium text-gray-900 hover:text-blue-600"
               data-cy="wishlist-item-name"
