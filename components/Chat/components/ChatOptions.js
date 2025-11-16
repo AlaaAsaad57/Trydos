@@ -8,8 +8,12 @@ import ArchiveIcon from "../svg/ArchiveIcon.svg";
 import { translateFunction } from "utils/functions";
 import { useParams } from "next/navigation";
 import { useAppStore } from "store";
-import Image from "next/image";
-import { MuteChat, PinnChat } from "store/chat/actions";
+
+import {
+  MuteChat,
+  PinnChat,
+  deleteChat as DeleteChatAction,
+} from "store/chat/actions";
 function ChatOptions({ id, unread, pinned, muted, member_id }) {
   const { language, setUnreadChat, pinChat, muteChat, deleteChat } =
     useAppStore();
@@ -57,7 +61,10 @@ function ChatOptions({ id, unread, pinned, muted, member_id }) {
       </div>
       <div
         className="chat-option chat-4"
-        onClick={() => deleteChat({ id: id })}
+        onClick={() => {
+          DeleteChatAction(id);
+          deleteChat({ id: id });
+        }}
       >
         <DeleteIcon />
 
