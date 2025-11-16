@@ -15,7 +15,7 @@ import { OrderItemOptionsModalPropsType } from "models/componentType/OrderItemOp
 import order from "services/order";
 import { showErrorNotification } from "store/notifications/reducer";
 import Spinner from "components/global/Spinner";
-import { useParams } from "node_modules/next/navigation";
+import { useParams } from "next/navigation";
 
 function OrderItemOptionsModal({
   close,

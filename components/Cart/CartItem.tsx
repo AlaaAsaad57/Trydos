@@ -5,7 +5,7 @@ import { useAppStore } from "store";
 import { getConfiguredImage, translateFunction } from "utils/functions";
 import { GetImageUrl } from "utils/tinyUtils";
 import ErrorIcon from "public/svg/cart/Error";
-import Image from "node_modules/next/image";
+import Image from "next/image";
 function CartItem({ product, index }) {
   const { language } = useAppStore();
   const getShippingDay = useCallback(() => {

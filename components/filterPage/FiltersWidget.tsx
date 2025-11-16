@@ -16,7 +16,7 @@ import { useParams } from "next/navigation";
 import FilterLabel from "components/ListingPage/filterComponents/FilterLabel";
 import search from "services/search";
 import { getActiveFilters } from "components/Server/FilterList";
-import Image from "node_modules/next/image";
+import Image from "next/image";
 import Spinner from "components/global/Spinner";
 import PriceSlider from "components/ListingPage/filterComponents/PriceSlider";
 import { GetImageUrl, parseFiltersFromParams } from "utils/tinyUtils";

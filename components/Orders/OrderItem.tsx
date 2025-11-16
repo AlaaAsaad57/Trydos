@@ -12,7 +12,7 @@ import { useAppStore } from "store";
 import OrderStatusIcon, {
   BagStatusIcon,
 } from "components/settings/cards/OrderStatusIcon";
-import Image from "node_modules/next/image";
+import Image from "next/image";
 import { GetImageUrl, ShowNotificationSign } from "utils/tinyUtils";
 import { OrderItemIdPropsType } from "models/componentType/OrderItemIdPropsType";
 import { OrderItemTimePropsType } from "models/componentType/OrderItemTimePropsType";

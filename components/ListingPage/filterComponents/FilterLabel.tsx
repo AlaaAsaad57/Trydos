@@ -7,7 +7,7 @@ import Spinner from "components/global/Spinner";
 import { useAppStore } from "store";
 import { translateFunction } from "utils/functions";
 import { FilterLabelPropsType } from "models/componentType/FilterLabelPropsType";
-import { useParams } from "node_modules/next/navigation";
+import { useParams } from "next/navigation";
 
 function FilterLabel({ text }: FilterLabelPropsType) {
   const { details_loading, filterEnabled } = useAppStore();

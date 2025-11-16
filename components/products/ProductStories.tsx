@@ -9,7 +9,7 @@ import StoriesContainer from "components/Home/Stories/NewStories";
 import InfoWindow from "./InfoWindow";
 import { useParams } from "next/navigation";
 import { useAppStore } from "store";
-import { InView } from "node_modules/react-intersection-observer/dist";
+import { InView } from "react-intersection-observer";
 import Spinner from "components/global/Spinner";
 import { ProductStoriesPropsType } from "models/componentType/productTypes/MultiComponentOnProductPage";
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";

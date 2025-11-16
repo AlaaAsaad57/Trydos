@@ -8,7 +8,7 @@ import {
   formatTimeForAddress,
   ShowDayStr,
 } from "utils/tinyUtils";
-import { useParams } from "node_modules/next/navigation";
+import { useParams } from "next/navigation";
 import Skeleton from "react-loading-skeleton";
 import ThinSepartor from "components/global/ThinSepartor";
 import RefundIcon from "public/svg/RefundIcon";

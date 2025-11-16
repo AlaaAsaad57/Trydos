@@ -1,6 +1,6 @@
 "use client";
-import Autoplay from "node_modules/embla-carousel-autoplay/esm";
-import useEmblaCarousel from "node_modules/embla-carousel-react/esm";
+import Autoplay from "embla-carousel-autoplay";
+import useEmblaCarousel from "embla-carousel-react";
 import Image from "next/image";
 import React from "react";
 import { GetImageUrl } from "utils/tinyUtils";

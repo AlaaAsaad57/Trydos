@@ -17,7 +17,7 @@ import { fetchData } from "utils/fetchData";
 import { GAevent } from "utils/gtag";
 import { GA_EVENT_NAMES, GA_GLOBAL_SCREEN } from "utils/GAEvents";
 import { REQUESTS_DATA } from "utils/Requests";
-import { useParams, useSearchParams } from "node_modules/next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 
 function ProductOptions({
   activeOption,

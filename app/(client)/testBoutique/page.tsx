@@ -1,9 +1,9 @@
 "use client";
 import NextLink from "components/global/NextLink";
 import { CategoriesSlider } from "components/Home/OfferWidgets/BoutiqueElement";
-import Autoplay from "node_modules/embla-carousel-autoplay/esm";
-import useEmblaCarousel from "node_modules/embla-carousel-react/esm";
-import Image from "node_modules/next/image";
+import Autoplay from "embla-carousel-autoplay";
+import useEmblaCarousel from "embla-carousel-react";
+import Image from "next/image";
 import React from "react";
 import "styles/globals.css";
 

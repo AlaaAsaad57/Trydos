@@ -8,7 +8,7 @@ import React, {
   useState,
 } from "react";
 import Illustration from "public/images/notifications.png";
-import Image from "node_modules/next/image";
+import Image from "next/image";
 import { translateFunction } from "utils/functions";
 import { useAppStore } from "store";
 import { showErrorNotification } from "store/notifications/reducer";

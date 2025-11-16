@@ -4,9 +4,9 @@ import Spinner from "components/global/Spinner";
 import profilePlaceholder from "public/images/profileNo.png";
 import VideoPreloader from "./VideoPreloader";
 import ImagePreloader from "./ImagePreloader";
-import Link from "next/link";
+
 import NextLink from "components/global/NextLink";
-import { useParams } from "node_modules/next/navigation";
+import { useParams } from "next/navigation";
 import { useAppStore } from "store";
 import { translateFunction } from "utils/functions";
 import LinkIcon from "public/svg/copyIcon";

@@ -4,7 +4,7 @@ import auth from "services/auth";
 import { translateFunction } from "utils/functions";
 import { fetchData } from "utils/fetchData";
 import { REQUESTS_DATA } from "utils/Requests";
-import { useParams } from "node_modules/next/navigation";
+import { useParams } from "next/navigation";
 import {
   COOKIE_NAMES,
   getCookie,

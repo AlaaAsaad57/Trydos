@@ -11,7 +11,7 @@ import UploadImageOrder from "public/svg/UploadImageOrder";
 import Spinner from "components/global/Spinner";
 import { ReturnOrderItemPropsType } from "models/componentType/ReturnOrderItemPropsType";
 import order from "services/order";
-import Skeleton from "node_modules/react-loading-skeleton/dist";
+import Skeleton from "react-loading-skeleton";
 import { showErrorNotification } from "store/notifications/reducer";
 
 function ReturnOrderItem({

@@ -78,33 +78,31 @@ export function ImageCropWidget({
           </button>
         </div>
 
-        {
-          <div className="space-y-4">
-            <ReactCrop crop={crop} onChange={(c) => setCrop(c)} aspect={1}>
-              <img
-                ref={imageRef}
-                src={imageUrl}
-                alt="Upload"
-                className="max-h-[60vh] object-contain"
-              />
-            </ReactCrop>
+        <div className="space-y-4">
+          <ReactCrop crop={crop} onChange={(c) => setCrop(c)} aspect={1}>
+            <img
+              ref={imageRef}
+              src={imageUrl}
+              alt="Upload"
+              className="max-h-[60vh] object-contain"
+            />
+          </ReactCrop>
 
-            <div className="flex justify-end space-x-4">
-              <button
-                onClick={() => setImageUrl("")}
-                className="px-4 py-2 text-gray-600 hover:text-gray-800"
-              >
-                Change Image
-              </button>
-              <button
-                onClick={getCroppedImg}
-                className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-              >
-                Save
-              </button>
-            </div>
+          <div className="flex justify-end space-x-4">
+            <button
+              onClick={() => setImageUrl("")}
+              className="px-4 py-2 text-gray-600 hover:text-gray-800"
+            >
+              Change Image
+            </button>
+            <button
+              onClick={getCroppedImg}
+              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+            >
+              Save
+            </button>
           </div>
-        }
+        </div>
       </div>
     </div>
   );

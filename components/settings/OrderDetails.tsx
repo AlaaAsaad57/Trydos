@@ -43,7 +43,7 @@ import { ProductCardPropsType } from "models/componentType/settingTypes/ProductC
 import { fetchData } from "utils/fetchData";
 import auth from "services/auth";
 import { REQUESTS_DATA } from "utils/Requests";
-import dynamic from "node_modules/next/dynamic";
+import dynamic from "next/dynamic";
 import LandingPage from "components/Home/LandingPage";
 import Spinner from "components/global/Spinner";
 

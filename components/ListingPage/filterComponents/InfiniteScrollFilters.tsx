@@ -3,7 +3,7 @@
 import Spinner from "components/global/Spinner";
 
 import { InfiniteScrollFiltersPropsType } from "models/componentType/InfiniteScrollFiltersPropsType";
-import { useParams } from "node_modules/next/navigation";
+import { useParams } from "next/navigation";
 
 import React, { useEffect, useState } from "react";
 import { getProductsAndFiltersFromElastic } from "services/elastic/elasticSearch";

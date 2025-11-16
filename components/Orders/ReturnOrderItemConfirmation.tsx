@@ -11,7 +11,7 @@ import order from "services/order";
 import Spinner from "components/global/Spinner";
 import { useAppStore } from "store";
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
-import { useParams } from "node_modules/next/navigation";
+import { useParams } from "next/navigation";
 import { CheckBoxElement } from "components/Cart/PlaceOrderButtons";
 
 function ReturnOrderItemConfirmation({

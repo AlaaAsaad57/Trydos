@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { useParams } from "node_modules/next/navigation";
+import { useParams } from "next/navigation";
 import DelevieryGurantee from "public/svg/cart/DelevieryGurantee";
 import React, { useEffect, useMemo, useState } from "react";
 import { useAppStore } from "store";

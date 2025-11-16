@@ -2,7 +2,7 @@
 import "styles/listing.css";
 import BottomSheet from "components/global/BottomSheet";
 import ProductColorCard from "components/products/ProductColorCard";
-import { useParams } from "node_modules/next/navigation";
+import { useParams } from "next/navigation";
 import React from "react";
 import { useAppStore } from "store";
 
