@@ -13,7 +13,7 @@ function SearchResult({
   handleClickChat,
   item,
 }) {
-  const { setMain } = useAppStore();
+  const { setMain, language } = useAppStore();
   const [showInviteModal, setShowInviteModal] = useState(false);
 
   const handleClick = () => {
@@ -68,7 +68,7 @@ function SearchResult({
     );
     setShowInviteModal(false);
   };
-
+  const isRtl = language === "ar" || language === "ku";
   const handleModalClose = () => {
     setShowInviteModal(false);
   };
