@@ -934,7 +934,7 @@ function ConversationContainer({
                 isPrivate={isPrivate}
                 AudioRef={AudioRef}
                 setVid={setVid}
-                setImg={() => setImgs(null)}
+                setImg={(e) => setImgs(e)}
                 GetMessage={(msgId, qoutedId) => {
                   // TODO migrate GetMessage logic to TS
 
