@@ -1,5 +1,4 @@
 import Image from "next/image";
-import React from "react";
 import { getTwoLetters } from "../chatsFunctions";
 import profile from "public/images/profileNo.png";
 import { GetImageUrl } from "utils/tinyUtils";
