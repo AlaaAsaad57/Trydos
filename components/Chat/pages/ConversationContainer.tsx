@@ -966,6 +966,9 @@ function ConversationContainer({
           chats={chats}
           activeChat={activeChat}
           isPrivate={isPrivate}
+          close={() => {
+            enableSearch(false);
+          }}
         />
 
         {/* Search */}

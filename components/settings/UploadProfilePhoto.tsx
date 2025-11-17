@@ -470,7 +470,7 @@ function UploadProfilePhoto({
                   onPositionChange={(position) => {
                     setIsDragged(true);
                   }}
-                  width={window.innerWidth}
+                  width={410}
                   height={406}
                   className={`${
                     isUploading ? "opacity-0" : "opacity-100"

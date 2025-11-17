@@ -19,6 +19,7 @@ function ChatHeader({
   openDetails,
   isPrivate,
   closeWidget,
+  close,
 }) {
   const {
     callLoading,
@@ -135,6 +136,7 @@ function ChatHeader({
         onClick={() => {
           setMain("main");
           openChat(null);
+          close();
           setReplyMessage(null);
           if (isPrivate) {
             closeWidget();

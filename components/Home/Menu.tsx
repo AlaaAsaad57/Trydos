@@ -447,9 +447,6 @@ const Menu = ({ user, setMenuOpen }) => {
             {translateFunction("Make Stories Token Expired")}
           </MenuItem>
         )}
-        <MenuItem icon={<></>}>
-          <Reffer />
-        </MenuItem>
       </div>
 
       {showNotifications && (
@@ -465,13 +462,3 @@ const Menu = ({ user, setMenuOpen }) => {
 };
 
 export default Menu;
-const Reffer = () => {
-  if (typeof window === "undefined") return <></>;
-  let reffere = getCookie("referer");
-
-  return (
-    <div>
-      Reffere: {reffere?.toString()} - {getReferralSource(reffere)}
-    </div>
-  );
-};
