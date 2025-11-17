@@ -57,7 +57,7 @@ function PersonalInfoCountries({
     countries.find(
       // @ts-ignore
 
-      (s) => s.iso.toLowerCase() === lang?.split("-")[0].toLowerCase()
+      (s) => s?.iso?.toLowerCase() === lang?.split("-")[0].toLowerCase()
     )
   );
   useEffect(() => {
@@ -93,7 +93,15 @@ function PersonalInfoCountries({
       }
       sessionStorage.setItem("starttingSetting", JSON.stringify(response.data));
       setSettings(response.data);
-      window.location.pathname = `/${country.iso.toLowerCase()}-${language}/setting`;
+      if (hideTopBar) {
+        window.location.href =
+          window.location.origin +
+          window.location.pathname.replace(
+            `/gb-${language}`,
+            `/${country.iso.toLowerCase()}-${language}`
+          );
+      } else
+        window.location.pathname = `/${country.iso.toLowerCase()}-${language}/setting`;
     } catch (error) {
       console.error("Failed to update starter settings:", error);
     }
@@ -311,6 +319,11 @@ function PersonalInfoCountries({
                     key={country.iso}
                     data-cy={`personal-info-countries-${country.iso}`}
                     onClick={() => {
+                      if (hideTopBar) {
+                        setPendingCountry(country);
+                        changeCountry(country);
+                        return;
+                      }
                       if (
                         !isSettingCountry &&
                         selectedCountry?.id !== country?.id

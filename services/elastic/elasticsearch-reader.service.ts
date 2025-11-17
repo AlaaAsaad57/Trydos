@@ -529,12 +529,7 @@ export class ElasticsearchReader {
         };
 
         const productsResponse = await this.client.search(productsQuery);
-        console.log(
-          "productsResponse",
-          (productsResponse.aggregations as any)?.products_by_boutique
-            ?.buckets[0]?.top_products?.hits?.hits?.[0]?._source
-            ?.custom_products ?? []
-        );
+
         const productBuckets =
           ((productsResponse.aggregations as any)?.products_by_boutique
             ?.buckets as any[]) ?? [];
