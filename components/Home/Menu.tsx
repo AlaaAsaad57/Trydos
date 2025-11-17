@@ -261,11 +261,7 @@ const Menu = ({ user, setMenuOpen }) => {
             href={`/${lang}/compare`}
             icon={
               <MenuIcon>
-                <g
-                  id="Mask_Group_364"
-                  data-name="Mask Group 364"
-                  clipPath="url(#clipPath)"
-                >
+                <g id="Mask_Group_364" data-name="Mask Group 364">
                   <g
                     id="Group_3489"
                     data-name="Group 3489"

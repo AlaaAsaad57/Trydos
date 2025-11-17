@@ -547,7 +547,8 @@ const ComparePage = ({
         </div>
 
         <div className="bg-white rounded-lg shadow-sm p-6">
-          <div className="flex gap-6 mb-8">
+          <div className="flex gap-6 mb-4">
+            <div className="min-w-[25%]" />
             <div className="flex-1">
               <AsyncSelectCustom
                 placeholder={translateFunction("Search for Product 1")}
