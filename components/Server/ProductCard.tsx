@@ -194,7 +194,7 @@ function ProductCard({
           }}
           ariaLabel={`go to product ${product.name} ${params.lang}`}
           href={getUrlofProduct()}
-          className="product-container  align-center flex-col relative pb-[10px]"
+          className="product-container  align-center flex-col relative pb-[12px]"
           data-cy="product_link"
           id={product.slug}
         >
