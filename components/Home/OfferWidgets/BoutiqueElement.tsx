@@ -2,7 +2,6 @@
 import Autoplay from "embla-carousel-autoplay";
 import useEmblaCarousel from "embla-carousel-react";
 import Image from "next/image";
-import React from "react";
 import { GetImageUrl } from "utils/tinyUtils";
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 import NextLink from "components/global/NextLink";
@@ -20,10 +19,10 @@ function BoutiqueElement({ boutique }) {
   };
   return (
     <div
-      className="w-full flex justify-center items-center overflow-hidden min-h-[15vh] max-h-[75vh] relative"
+      className="w-full flex justify-center items-center overflow-hidden min-h-[15vh]  relative"
       ref={emblaRef}
     >
-      <div className="embla__container flex">
+      <div className="embla__container flex h-auto">
         {boutique?.banners.map((banner, idx) => (
           <div
             key={idx}
@@ -36,7 +35,7 @@ function BoutiqueElement({ boutique }) {
               data-cy="boutique-banner"
               width={1280}
               height={750}
-              className="h-auto w-full object-center object-cover  max-w-full max-h-[75vh] "
+              className="h-auto w-full object-center object-cover  max-w-full "
             />
           </div>
         ))}

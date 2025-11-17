@@ -7,6 +7,7 @@ import { useParams, usePathname } from "next/navigation";
 import { translateFunction } from "./functions";
 import Cookies from "js-cookie";
 import Spinner from "components/global/Spinner";
+import PersonalInfoCountries from "components/settings/PersonalInfoCountries";
 
 import { FlagIcon } from "./tinyUtils";
 import { setLocalization } from "store/homepage/actions";
@@ -235,7 +236,7 @@ const PopupCountry = ({ options, countries, forChanged, noCountry }) => {
               </div>
             </div>
 
-            <div className="p-6">
+            <div className={noCountry ? "p-6" : "pb-6"}>
               {/* Country Change Scenario */}
               {forChanged && !forChanged?.includes("undefined") && (
                 <div className="space-y-4">
@@ -344,84 +345,70 @@ const PopupCountry = ({ options, countries, forChanged, noCountry }) => {
 
               {/* No Country Scenario */}
               {noCountry && (
-                <div className="text-center mb-6">
-                  <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                    <svg
-                      className="w-6 h-6 text-blue-600"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                  </div>
-                  <h3 className="text-lg font-semibold text-gray-800 mb-2">
-                    {translateFunction("Select Your Country", currentLanguage)}
-                  </h3>
-                  <p className="text-gray-600 text-sm">
-                    {translateFunction(
-                      "Choose your country to get the best experience",
-                      currentLanguage
-                    )}
-                  </p>
-                </div>
+                <PersonalInfoCountries
+                  swipeToScreen={() => {}}
+                  goBack={() => {}}
+                  hideTopBar
+                  infoMessage={translateFunction(
+                    "Choose your country to get the best experience",
+                    currentLanguage
+                  )}
+                />
               )}
 
               {/* Country Selection Dropdown */}
               {!forChanged && (
-                <div className="space-y-3">
-                  <label htmlFor="country" className="sr-only">
-                    {translateFunction("Select Country", currentLanguage)}
-                  </label>
+                // <div className="space-y-3">
+                //   <label htmlFor="country" className="sr-only">
+                //     {translateFunction("Select Country", currentLanguage)}
+                //   </label>
 
-                  {/* Country Grid for better UX (alternative to dropdown) */}
-                  {options?.length <= 8 && (
-                    <div className="mt-4">
-                      <p className="text-sm text-gray-500 mb-3 text-center regualr">
-                        {translateFunction(
-                          "choose from below",
-                          currentLanguage
-                        )}
-                      </p>
-                      <div className="grid grid-cols-2 gap-2">
-                        {options?.map(
-                          (
-                            country: { value: string; label: string },
-                            index: number
-                          ) => (
-                            <button
-                              key={index}
-                              onClick={() =>
-                                UpdateUrl(
-                                  `${country.value?.toLocaleLowerCase()}-${currentLanguage}`
-                                )
-                              }
-                              className="flex items-center gap-2 p-3 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-lg text-left"
-                              style={{
-                                cursor: "pointer",
-                                transition: "none",
-                                WebkitTransition: "none",
-                                MozTransition: "none",
-                                OTransition: "none",
-                                msTransition: "none",
-                              }}
-                            >
-                              <div className="w-5 h-5 flex-shrink-0 flex items-center">
-                                <FlagIcon iso={country.value} />
-                              </div>
-                              <span className="text-sm font-medium text-gray-700 truncate light">
-                                {country.label}
-                              </span>
-                            </button>
-                          )
-                        )}
-                      </div>
-                    </div>
-                  )}
-                </div>
+                //   {/* Country Grid for better UX (alternative to dropdown) */}
+                //   {options?.length <= 8 && (
+                //     <div className="mt-4">
+                //       <p className="text-sm text-gray-500 mb-3 text-center regualr">
+                //         {translateFunction(
+                //           "choose from below",
+                //           currentLanguage
+                //         )}
+                //       </p>
+                //       <div className="grid grid-cols-2 gap-2">
+                //         {options?.map(
+                //           (
+                //             country: { value: string; label: string },
+                //             index: number
+                //           ) => (
+                //             <button
+                //               key={index}
+                //               onClick={() =>
+                //                 UpdateUrl(
+                //                   `${country.value?.toLocaleLowerCase()}-${currentLanguage}`
+                //                 )
+                //               }
+                //               className="flex items-center gap-2 p-3 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-lg text-left"
+                //               style={{
+                //                 cursor: "pointer",
+                //                 transition: "none",
+                //                 WebkitTransition: "none",
+                //                 MozTransition: "none",
+                //                 OTransition: "none",
+                //                 msTransition: "none",
+                //               }}
+                //             >
+                //               <div className="w-5 h-5 flex-shrink-0 flex items-center">
+                //                 <FlagIcon iso={country.value} />
+                //               </div>
+                //               <span className="text-sm font-medium text-gray-700 truncate light">
+                //                 {country.label}
+                //               </span>
+                //             </button>
+                //           )
+                //         )}
+                //       </div>
+                //     </div>
+                //   )}
+                // </div>
+                <></>
               )}
             </div>
           </div>
