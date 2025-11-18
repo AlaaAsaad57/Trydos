@@ -381,6 +381,7 @@ class OrderService {
     seller_id = null,
     owner_id,
     owner_type,
+    images = [],
   }) {
     try {
       let userData: any = getCookie(COOKIE_NAMES.USER_DATA);
@@ -422,6 +423,7 @@ class OrderService {
             variant,
             order_details_id: String(order_detail_id),
             phone: auth?.User()?.phone,
+            images,
           }),
           reqTitle: REQUESTS_DATA.ADD_COMMENT_FOR_PRODUCT,
           server: "comments",
