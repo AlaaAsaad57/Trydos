@@ -26,6 +26,7 @@ function FilterList({
   currency,
   isFeatured,
   isFlashDeals,
+  itemsLength,
 }: FilterItemsRowPropsType) {
   // Use parsedFilters if available, otherwise use searchParams for backward compatibility
   const filterParams = parsedFilters || searchParams;
@@ -35,55 +36,57 @@ function FilterList({
 
   return (
     <>
-      <div
-        data-cy="boutique_filter_options"
-        className={`w-full relative flex-row items-center pl-[15px]`}
-      >
-        <SwitchFiltersButton
-          language={language}
-          length={
-            Object.keys(filters).filter(
-              (s) =>
-                filters[s] &&
-                filters[s]?.length > 0 &&
-                s !== "search_text" &&
-                s !== "boutiques"
-            ).length
-          }
-        />
-
-        <HortiznalScrollBar
-          id="filter-list-row-container"
-          className={`${
-            isRtl
-              ? "flex-row-reverse flex mr-[45px]"
-              : "flex-row flex ml-[45px]"
-          }  items-center pr-[20px]   justify-start align-start filter-container overflow-auto scroll-smooth`}
+      {itemsLength > 1 && (
+        <div
+          data-cy="boutique_filter_options"
+          className={`w-full relative flex-row items-center pl-[15px]`}
         >
-          {Object.keys(filters).map((filter, index) => {
-            if (
-              filter !== "search_text" &&
-              filter !== "boutiques" &&
-              filters[filter] &&
-              filters[filter]?.length > 0
-            )
-              return (
-                <FilterItemsRow
-                  index={index}
-                  isFeatured={isFeatured}
-                  isFlashDeals={isFlashDeals}
-                  params={params}
-                  currency={currency}
-                  filterParams={filterParams}
-                  isUsingParsedFilters={isUsingParsedFilters}
-                  items={filters[filter]}
-                  key={filter}
-                  term={filter}
-                />
-              );
-          })}
-        </HortiznalScrollBar>
-      </div>
+          <SwitchFiltersButton
+            language={language}
+            length={
+              Object.keys(filters).filter(
+                (s) =>
+                  filters[s] &&
+                  filters[s]?.length > 0 &&
+                  s !== "search_text" &&
+                  s !== "boutiques"
+              ).length
+            }
+          />
+
+          <HortiznalScrollBar
+            id="filter-list-row-container"
+            className={`${
+              isRtl
+                ? "flex-row-reverse flex mr-[45px]"
+                : "flex-row flex ml-[45px]"
+            }  items-center pr-[20px]   justify-start align-start filter-container overflow-auto scroll-smooth`}
+          >
+            {Object.keys(filters).map((filter, index) => {
+              if (
+                filter !== "search_text" &&
+                filter !== "boutiques" &&
+                filters[filter] &&
+                filters[filter]?.length > 0
+              )
+                return (
+                  <FilterItemsRow
+                    index={index}
+                    isFeatured={isFeatured}
+                    isFlashDeals={isFlashDeals}
+                    params={params}
+                    currency={currency}
+                    filterParams={filterParams}
+                    isUsingParsedFilters={isUsingParsedFilters}
+                    items={filters[filter]}
+                    key={filter}
+                    term={filter}
+                  />
+                );
+            })}
+          </HortiznalScrollBar>
+        </div>
+      )}
       <ActiveFiltersBar
         params={params}
         currency={currency}
@@ -654,7 +657,10 @@ const FilterItemsRow = ({
     if (term === "colors") return "ColorBox";
     if (term === "sizes") return "SizesBox";
   };
-
+  const shouldShowMore = () => {
+    if (term === "categories" && items.length >= 3) return true;
+    else return term.length >= 8;
+  };
   return (
     <div
       className={`${
@@ -675,7 +681,7 @@ const FilterItemsRow = ({
             />
           ))}
 
-        {items?.length >= 8 && (
+        {shouldShowMore() && (
           <InfiniteScrollFilters
             term={term}
             isFeatured={isFeatured}

@@ -272,8 +272,9 @@ export default async function Page({ params }) {
           }
 
           <Suspense fallback={<ListingSkeleton justFilters={true} />}>
-            {productsData?.length > 1 && (
+            {
               <FilterList
+                itemsLength={productsData?.length}
                 filters={filters}
                 currency={currency}
                 key={`filter-list-filters`}
@@ -282,7 +283,7 @@ export default async function Page({ params }) {
                 isFeatured={true}
                 isFlashDeals={false}
               />
-            )}
+            }
           </Suspense>
         </div>
         <Suspense

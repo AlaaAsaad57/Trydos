@@ -16,4 +16,5 @@ export interface FilterItemsRowPropsType {
   searchParams?: URLSearchParams;
   items?: FilterData[];
   term?: string;
+  itemsLength?: number;
 }

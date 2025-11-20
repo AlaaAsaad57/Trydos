@@ -546,7 +546,14 @@ function buildAggregations(
           aggs: {
             filtered_categories: {
               filter: {
-                term: { "custom_categories.language_code": languageCode },
+                bool: {
+                  must: [
+                    {
+                      term: { "custom_categories.language_code": languageCode },
+                    },
+                    { term: { "custom_categories.position": 0 } }, // or "0" if it's a string
+                  ],
+                },
               },
               aggs: {
                 categories_by_id: {
