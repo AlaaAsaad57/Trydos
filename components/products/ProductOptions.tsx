@@ -93,7 +93,7 @@ function ProductOptions({
         const res = await fetchData({
           url: "/products/unlike",
           reqTitle: REQUESTS_DATA.UNLIKE_PRODUCT,
-          method: "POST",
+          method: "DELETE",
           server: "comments",
           body: JSON.stringify({
             product_id: String(product.id),

@@ -13,6 +13,7 @@ import { fetchData } from "utils/fetchData";
 import { REQUESTS_DATA } from "utils/Requests";
 import { LikeButton } from "./FAQSection";
 import auth from "services/auth";
+import CommentItem from "./CommentItem";
 
 function FAQModal({ comments, total, offset: initialOffset }) {
   const { ColorBottomSheet, setColorBottomSheet, language, SelectedProduct } =
@@ -170,11 +171,24 @@ function FAQModal({ comments, total, offset: initialOffset }) {
                     ))}
                 {!loading &&
                   commentsData.map((s) => (
-                    <FaqItem
-                      comment={s}
-                      language={language}
-                      width={100}
+                    //  <></>   <FaqItem
+                    //       comment={s}
+                    //       language={language}
+                    //       width={100}
+                    //       seller_name={seller_name}
+                    //     />
+                    <CommentItem
+                      isPending={s?.id}
                       seller_name={seller_name}
+                      isFull={true}
+                      isError={s?.isError}
+                      key={s?.id}
+                      date={formatTime(s?.created_at)}
+                      name={s?.customer?.name}
+                      text={s?.comment}
+                      photo={GetImageUrl(s?.customer?.image) ?? profilePng}
+                      custmerId={s?.customer?.id}
+                      comment={s}
                     />
                   ))}
                 {!loading && offset && (
