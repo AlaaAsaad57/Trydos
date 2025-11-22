@@ -1116,15 +1116,7 @@ function ConversationContainer({
                   <CameraIcon
                     style={{ minWidth: 50, cursor: "pointer" }}
                     className="camer-icon"
-                    onClick={() =>
-                      window.innerWidth < 800
-                        ? document
-                            .querySelector<HTMLInputElement>(
-                              'input[type="file"]'
-                            )
-                            ?.click()
-                        : enableCamera(true)
-                    }
+                    onClick={() => enableCamera(true)}
                   />
                   <RedMicIcon
                     style={{ cursor: "pointer" }}
