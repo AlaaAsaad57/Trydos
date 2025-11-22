@@ -322,7 +322,7 @@ export async function getProductsAndFiltersFromElastic(
     // Normalize products
     const normalizedProducts = normalizeCustomProducts(productsWithFilters);
     let end = process.hrtime.bigint();
-    console.log(categoriesFilter);
+
     return {
       offset: lastSortValue,
       time: Number(end - start) / 1_000_000,
