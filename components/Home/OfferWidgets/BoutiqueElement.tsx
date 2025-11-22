@@ -7,6 +7,7 @@ import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 import NextLink from "components/global/NextLink";
 import AutoHeight from "embla-carousel-auto-height";
 import { useAppStore } from "store";
+import { useParams } from "node_modules/next/navigation";
 function BoutiqueElement({ boutique }) {
   const { language } = useAppStore();
   const isRtl = language === "ar" || language === "ku";
@@ -68,12 +69,14 @@ function BoutiqueElement({ boutique }) {
 }
 
 export const BoutiqueContainer = ({ boutique, lang }) => {
+  const params = useParams();
   return (
     <div
       className="flex flex-col h-auto w-full rounded-[2px] bg-white shadow-[0px_3px_20px_rgba(0,0,0,0.15)]"
       id={`boutique-${boutique.slug}`}
     >
       <NextLink
+        ignoreConditionCase={true}
         data-cy="boutique_link"
         className="w-full"
         href={`/${lang}/filters/boutiques/${boutique.slug}`}
