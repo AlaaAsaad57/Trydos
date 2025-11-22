@@ -55,14 +55,19 @@ export const getProductDataFromElastic = async ({
       GetRatingCommentsForProduct({
         product_id: productId,
         user_id,
+        language: lang,
       }),
       GetFQACommentsForProduct({
         product_id: productId,
         pageSize: 10,
         searchAfter: null,
         user_id: user_id,
+        language: lang,
       }),
-      GetRecommendationCountForProduct({ product_id: productId }),
+      GetRecommendationCountForProduct({
+        product_id: productId,
+        language: lang,
+      }),
 
       getProductInteractions(productId, user_id),
     ]);
@@ -76,11 +81,13 @@ export const getProductDataFromElastic = async ({
         comments: ratingComment.buyers_comments,
         offset: ratingComment.searchAfter,
         total: ratingComment.total,
+        filters_key: ratingComment.filters_key,
       },
       fqa_questions: {
         comments: FQAComments.fqa_comments,
         offset: FQAComments.searchAfter,
         total: FQAComments.total,
+        filters_key: FQAComments.filters_key,
       },
       ratingDetails: likeDetails?.ratingDetails ?? [],
       recommendation_stats: recommendationStats.stats,
@@ -234,6 +241,7 @@ export async function GetRatingCommentsForProduct({
   searchAfter = null,
   filter = null,
   user_id = null,
+  language = "en",
 }) {
   let query: any = {
     index: "comments",
@@ -252,12 +260,28 @@ export async function GetRatingCommentsForProduct({
         must_not: [{ term: { status: "deleted" } }],
       },
     },
+    aggs: {
+      unique_aspects: {
+        terms: {
+          field: `discussed_aspects_${language}`,
+          size: 1000, // adjust if you have more aspects
+        },
+      },
+    },
   };
 
   if (filter && typeof filter === "string" && filter.trim() !== "") {
     if (filter !== "recommend")
       query.query.bool.must.push({
-        term: { discussed_aspects: filter },
+        bool: {
+          should: [
+            { term: { discussed_aspects_en: filter } },
+            { term: { discussed_aspects_ar: filter } },
+            { term: { discussed_aspects_tr: filter } },
+            { term: { discussed_aspects_ku: filter } },
+          ],
+          minimum_should_match: 1, // at least one should match
+        },
       });
     else {
       query.query.bool.must.push({
@@ -287,6 +311,12 @@ export async function GetRatingCommentsForProduct({
       user_id: user_id,
       commentsResult: results,
     });
+  const filters_key = (
+    (response.aggregations?.unique_aspects as any)?.buckets || []
+  ).map((bucket: any, index) => {
+    return bucket?.key;
+  });
+
   return {
     buyers_comments: results?.map((s: any) => ({
       id: s.id,
@@ -306,10 +336,28 @@ export async function GetRatingCommentsForProduct({
       is_liked: s?.is_liked,
     })),
     total: (response.hits.total as any)?.value,
+    filters_key: filters_key,
     searchAfter: nextSearchAfter,
   };
 }
-export const GetRecommendationCountForProduct = async ({ product_id }) => {
+
+function getLangField(lang: string) {
+  switch (lang) {
+    case "ar":
+      return "discussed_aspects_ar";
+    case "tr":
+      return "discussed_aspects_tr";
+    case "ku":
+      return "discussed_aspects_ku";
+    default:
+      return "discussed_aspects_en";
+  }
+}
+
+export const GetRecommendationCountForProduct = async ({
+  product_id,
+  language,
+}) => {
   const result = await client.search({
     index: "comments",
     size: 0,
@@ -419,6 +467,7 @@ export async function GetFQACommentsForProduct({
   searchAfter = null,
   filter = null,
   user_id = null,
+  language = "en",
 }) {
   let query: any = {
     index: "comments",
@@ -440,10 +489,26 @@ export async function GetFQACommentsForProduct({
         ],
       },
     },
+    aggs: {
+      unique_aspects: {
+        terms: {
+          field: `discussed_aspects_${language}`,
+          size: 1000, // adjust if you have more aspects
+        },
+      },
+    },
   };
   if (filter && typeof filter === "string" && filter?.trim() !== "") {
     query.query.bool.must.push({
-      term: { discussed_aspects: filter },
+      bool: {
+        should: [
+          { term: { discussed_aspects_en: filter } },
+          { term: { discussed_aspects_ar: filter } },
+          { term: { discussed_aspects_tr: filter } },
+          { term: { discussed_aspects_ku: filter } },
+        ],
+        minimum_should_match: 1, // at least one should match
+      },
     });
   }
 
@@ -468,6 +533,11 @@ export async function GetFQACommentsForProduct({
       user_id: user_id,
       commentsResult: results,
     });
+  const filters_key = (
+    (response.aggregations?.unique_aspects as any)?.buckets || []
+  ).map((bucket: any, index) => {
+    return bucket?.key;
+  });
   return {
     fqa_comments: results?.map((s: any) => ({
       id: s.id,
@@ -489,7 +559,7 @@ export async function GetFQACommentsForProduct({
       reply_is_liked: s?.reply_is_liked,
     })),
     total: (response.hits.total as any)?.value,
-
+    filters_key: filters_key,
     searchAfter: nextSearchAfter,
   };
 }

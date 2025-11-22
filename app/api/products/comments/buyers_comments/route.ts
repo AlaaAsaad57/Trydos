@@ -35,6 +35,7 @@ export async function GET(req: NextRequest) {
       pageSize: 10,
       user_id,
       filter,
+      language: req.headers.get("language") || "en",
     });
 
     return NextResponse.json(
@@ -43,6 +44,7 @@ export async function GET(req: NextRequest) {
           buyers_comments: data.buyers_comments,
           offset: data.searchAfter,
           total: data.total,
+          filters_key: data.filters_key,
           searchAfter: data.searchAfter,
         },
         code: 200,

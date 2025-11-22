@@ -40,6 +40,7 @@ export async function GET(req: NextRequest) {
       pageSize: 10,
       filter,
       user_id: user_id,
+      language: req.headers.get("language") || "en",
     });
     // let data_filters = await GetAvailableFQAFilters({ product_id });
     // console.log(data_filters);
@@ -50,6 +51,7 @@ export async function GET(req: NextRequest) {
           offset: data.searchAfter,
           total: data.total,
           searchAfter: data.searchAfter,
+          filters_key: data.filters_key,
         },
         code: 200,
       },

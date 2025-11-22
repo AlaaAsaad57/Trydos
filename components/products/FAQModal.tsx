@@ -45,9 +45,7 @@ function FAQModal({ comments, total, offset: initialOffset }) {
       const url = `/api/products/comments/fqa_comments?user_id=${auth.UserID()}&product_id=${
         SelectedProduct.id
       }${offsetValue ? `&offset=${JSON.stringify(offsetValue)}` : ""}${
-        filterId
-          ? `&filter=${commentTypes.find((c) => c.id === filterId)?.value}`
-          : ""
+        filterId ? `&filter=${filterId}` : ""
       }`;
 
       const data = await fetchData({
@@ -136,17 +134,17 @@ function FAQModal({ comments, total, offset: initialOffset }) {
                   loading && "opacity-65"
                 } flex-row  product-properties px-[12px] items-center justify-start w-full gap-[4px]`}
               >
-                {commentTypes.map((s) => (
+                {SelectedProduct?.fqa_questions?.filters_key.map((s) => (
                   <div
                     onClick={() => {
                       if (loading) return;
-                      handleFilter(s.id);
+                      handleFilter(s);
                     }}
                     className={`pl-[8px] cursor-pointer pr-[12px] rounded-[15px] h-[31px] ${
-                      activeType === s.id ? "bg-[#bdd3ff]" : "bg-[#F8F8F8]"
+                      activeType === s ? "bg-[#bdd3ff]" : "bg-[#F8F8F8]"
                     } flex-row justify-center items-center regular text-[#505050] text-[11px] medium`}
                   >
-                    {translateFunction(s.name)}
+                    {s}
                   </div>
                 ))}
               </HortiznalScrollBar>
