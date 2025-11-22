@@ -6,7 +6,10 @@ import { GetImageUrl } from "utils/tinyUtils";
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 import NextLink from "components/global/NextLink";
 import AutoHeight from "embla-carousel-auto-height";
+import { useAppStore } from "store";
 function BoutiqueElement({ boutique }) {
+  const { language } = useAppStore();
+  const isRtl = language === "ar" || language === "ku";
   const [emblaRef] = useEmblaCarousel({ loop: true }, [
     Autoplay({ delay: 3000 }),
     AutoHeight(),
@@ -40,7 +43,12 @@ function BoutiqueElement({ boutique }) {
           </div>
         ))}
       </div>
-      <div className="absolute flex-col px-[12px] items-start gap-[3px] z-20 bottom-0 left-0 w-full h-[54px] bg-gradient-to-t from-[rgba(0,0,0,0.5)] to-[rgba(0,0,0,0)] flex">
+      <div
+        style={{
+          direction: isRtl ? "rtl" : "ltr",
+        }}
+        className="absolute flex-col px-[12px] items-start gap-[3px] z-20 bottom-0 left-0 w-full h-[54px] bg-gradient-to-t from-[rgba(0,0,0,0.5)] to-[rgba(0,0,0,0)] flex"
+      >
         <span
           className="bold text-[16px] uppercase text-white"
           data-cy="boutique-name"
@@ -87,9 +95,11 @@ export const BoutiqueContainer = ({ boutique, lang }) => {
 };
 
 export const CategoriesSlider = ({ categories, boutique, lang }) => {
+  const { language } = useAppStore();
+  const isRtl = language === "ar" || language === "ku";
   return (
     <HortiznalScrollBar
-      id={`boutique-${boutique.slug}-slider`}
+      id={`boutique-${boutique.slug}-slider ${isRtl ? "dir-rtl" : ""}`}
       className="flex flex-row items-center  gap-[4px] h-[102px] w-full pl-[6px]"
     >
       {categories?.map((category) => (

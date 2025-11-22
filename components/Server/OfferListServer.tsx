@@ -83,11 +83,6 @@ function OfferListServer({
         {HomeData?.boutiques?.map((boutique, myKey) => {
           return (
             <React.Fragment key={myKey}>
-              {/* <NormalWidget
-                boutique={boutique}
-                myKey={myKey}
-                lang={params.lang}
-              /> */}
               <BoutiqueContainer lang={params.lang} boutique={boutique} />
               {myKey === 1 && children}
             </React.Fragment>
