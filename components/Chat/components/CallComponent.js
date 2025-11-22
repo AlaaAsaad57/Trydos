@@ -7,6 +7,7 @@ import "styles/chatstyles.css";
 import { useParams } from "next/navigation";
 import { useAppStore } from "store";
 import ChatPhoto from "./ChatPhoto";
+import { requestPermissions } from "utils/tinyUtils";
 function CallComponent(props) {
   const {
     caller,
@@ -32,7 +33,29 @@ function CallComponent(props) {
       RefAudio?.current?.pause();
     };
   }, [ref]);
-
+  const ReplyAction = async (e) => {
+    // ask for permissions
+    let permissions = await requestPermissions({
+      camera: incomeCallType?.toLowerCase() === "video",
+      mic: true,
+    });
+    if (!permissions) {
+      showErrorNotification(
+        translateFunction(
+          "Please enable notification permissions (camera,mic) to use calls features"
+        )
+      );
+      return;
+    }
+    document.querySelector("#call-rec-id").classList.add("disabled-label");
+    e.target.classList.add("disabled-label");
+    ref.current.pause();
+    ref.current.currentTime = 0;
+    setTimeout(() => {
+      AnswerCall(incomeCallData.channelId, MessageActiveCall);
+      props.reply();
+    }, 200);
+  };
   return (
     <div className="call-element fixed top-7 right-0 left-0 mr-auto ml-auto mt-0 mb-0 flex flex-row items-start p-3 justify-start bg-slate-100">
       <audio ref={ref} loop autoPlay src={"/default.mp3"}>
@@ -53,16 +76,7 @@ function CallComponent(props) {
           id="call-rec-id"
           className={"call-rec"}
           onClick={(e) => {
-            document
-              .querySelector("#call-rec-id")
-              .classList.add("disabled-label");
-            e.target.classList.add("disabled-label");
-            ref.current.pause();
-            ref.current.currentTime = 0;
-            setTimeout(() => {
-              AnswerCall(incomeCallData.channelId, MessageActiveCall);
-              props.reply();
-            }, 200);
+            ReplyAction(e);
           }}
         >
           <svg

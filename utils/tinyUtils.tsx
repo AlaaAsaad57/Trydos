@@ -902,3 +902,122 @@ export function getFirstLetterLang(text: string): "right" | "left" {
 
   return rtlPattern.test(firstChar) ? "right" : "left";
 }
+
+export async function requestPermissions({ camera = false, mic = false } = {}) {
+  // Extend Navigator type for legacy browsers
+  const legacyNavigator = navigator as Navigator & {
+    webkitGetUserMedia?: typeof navigator.mediaDevices.getUserMedia;
+    mozGetUserMedia?: typeof navigator.mediaDevices.getUserMedia;
+    msGetUserMedia?: typeof navigator.mediaDevices.getUserMedia;
+    getUserMedia?: typeof navigator.mediaDevices.getUserMedia;
+  };
+
+  // Nothing requested
+  if (!camera && !mic) return true;
+
+  const constraints = {
+    video: camera || false,
+    audio: mic || false,
+  };
+
+  const getUserMedia = (c: MediaStreamConstraints) => {
+    if (navigator.mediaDevices?.getUserMedia) {
+      return navigator.mediaDevices.getUserMedia(c);
+    }
+    const g =
+      legacyNavigator.getUserMedia ||
+      legacyNavigator.webkitGetUserMedia ||
+      legacyNavigator.mozGetUserMedia ||
+      legacyNavigator.msGetUserMedia;
+
+    if (!g) return Promise.reject(new Error("getUserMedia unsupported"));
+
+    return new Promise<MediaStream>((resolve, reject) =>
+      g.call(legacyNavigator, c, resolve, reject)
+    );
+  };
+
+  const stopStream = (stream?: MediaStream) => {
+    stream?.getTracks().forEach((t) => {
+      try {
+        t.stop();
+      } catch (_) {}
+    });
+  };
+
+  // Permissions API pre-check
+  try {
+    if (navigator.permissions?.query) {
+      const queries: Promise<PermissionStatus>[] = [];
+
+      if (camera) {
+        try {
+          queries.push(
+            navigator.permissions.query({ name: "camera" as PermissionName })
+          );
+        } catch {}
+      }
+      if (mic) {
+        try {
+          queries.push(
+            navigator.permissions.query({
+              name: "microphone" as PermissionName,
+            })
+          );
+        } catch {}
+      }
+
+      if (queries.length) {
+        const results = await Promise.allSettled(queries);
+
+        if (
+          results.some(
+            (r) => r.status === "fulfilled" && r.value.state === "denied"
+          )
+        ) {
+          return false;
+        }
+
+        if (
+          results.every(
+            (r) => r.status === "fulfilled" && r.value.state === "granted"
+          )
+        ) {
+          return true;
+        }
+      }
+    }
+  } catch {}
+
+  // Request together
+  try {
+    const stream = await getUserMedia(constraints);
+    stopStream(stream);
+    return true;
+  } catch {
+    let cameraOk = !camera;
+    let micOk = !mic;
+
+    if (mic) {
+      try {
+        const sA = await getUserMedia({ audio: true });
+        stopStream(sA);
+        micOk = true;
+      } catch {
+        micOk = false;
+      }
+    }
+
+    if (camera) {
+      try {
+        const sV = await getUserMedia({ video: true });
+        stopStream(sV);
+        cameraOk = true;
+      } catch {
+        cameraOk = false;
+      }
+    }
+
+    return cameraOk && micOk;
+  }
+}

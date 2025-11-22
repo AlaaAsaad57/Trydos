@@ -20,7 +20,7 @@ const WebcamCapture = ({ imgs, send, setImgs, imageFile, close }) => {
   const hasTwoCameras = async () => {
     const devices = await navigator?.mediaDevices?.enumerateDevices();
 
-    return devices?.filter((dev) => dev?.kind === "videoinput").length < 1;
+    return devices?.filter((dev) => dev?.kind === "videoinput").length >= 2;
   };
   return (
     <>
@@ -104,6 +104,7 @@ const WebcamCapture = ({ imgs, send, setImgs, imageFile, close }) => {
             loading="eager"
             fill
             sizes="100vw"
+            className="max-w-[400px] h-auto m-auto z-[9999999999]"
             alt="imgs"
             src={imageFile.current}
           />
@@ -113,18 +114,23 @@ const WebcamCapture = ({ imgs, send, setImgs, imageFile, close }) => {
           <Webcam
             className="cameraInput"
             audio={false}
+            style={{
+              height: "-webkit-fill-available",
+              width: "100%",
+              zIndex: 9999999999,
+            }}
             height={800}
             ref={webcamRef}
             screenshotFormat="image/webp"
             width={430}
             videoConstraints={webcamTypeRef.current}
           />
-          <div className="fixed bottom-[20px] left-[10px] w-full flex items-center justify-around z-[99999999999]">
-            {hasTwoCameras() ? (
+          <div className="fixed bottom-[20px] xs:bottom-[80px] left-[10px] w-full flex items-center justify-around z-[99999999999]">
+            {!hasTwoCameras() ? (
               <button
                 className="w-[50px] h-[50px] cursor-pointer rounded-full bg-[#dddddd] p-[10px] flex items-center justify-center shadow-[0_3px_6px_#0000002a]"
                 onClick={() => {
-                  if (hasTwoCameras()) {
+                  if (!hasTwoCameras()) {
                     showErrorNotification(
                       translateFunction("this device has only one camera")
                     );

@@ -1,34 +1,16 @@
 {
   "compilerOptions": {
     "paths": {
-      "*": [
-        "./*"
-      ],
-      "@/*": [
-        "./*"
-      ],
-      "assets/*": [
-        "./public/*"
-      ],
-      "styles/*": [
-        "./public/styles/*"
-      ],
-      "services/*": [
-        "./services/*"
-      ],
-      "components/*": [
-        "./components/*"
-      ]
+      "*": ["./*"],
+      "@/*": ["./*"],
+      "assets/*": ["./public/*"],
+      "styles/*": ["./public/styles/*"],
+      "services/*": ["./services/*"],
+      "components/*": ["./components/*"]
     },
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "esnext"
-    ],
+    "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
-    "types": [
-      "node"
-    ],
+    "types": ["node"],
     "skipLibCheck": true,
     "strict": false,
     "forceConsistentCasingInFileNames": true,
@@ -55,7 +37,5 @@
     "**/*.tsx",
     ".next/dev/types/**/*.ts"
   ],
-  "exclude": [
-    "node_modules"
-  ]
+  "exclude": ["node_modules"]
 }

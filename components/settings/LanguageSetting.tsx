@@ -35,7 +35,7 @@ function LanguageSetting({ goBack }: { goBack: () => void }) {
 
       await setLocalization(country);
       setSelectedCountry(country);
-
+      sessionStorage.removeItem("starttingSetting");
       window.location.href = `/${
         (lang as string)?.split("-")[0]
       }-${country}/setting?tab=Language`;

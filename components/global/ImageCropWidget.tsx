@@ -17,10 +17,10 @@ export function ImageCropWidget({
 }: ImageCropWidgetProps) {
   const [crop, setCrop] = useState<Crop>({
     unit: "%",
-    width: 90,
-    height: 90,
-    x: 5,
-    y: 5,
+    width: 100,
+    height: 100,
+    x: 0,
+    y: 0,
   });
   const [imageUrl, setImageUrl] = useState<string>(() => {
     const reader = new FileReader();
@@ -34,11 +34,22 @@ export function ImageCropWidget({
   const getCroppedImg = () => {
     if (!imageRef.current) return;
 
+    // If no crop is applied or the crop matches the original image dimensions
+    if (
+      crop.width === 100 &&
+      crop.height === 100 &&
+      crop.x === 0 &&
+      crop.y === 0
+    ) {
+      onSave(image); // Save the original image directly
+      return;
+    }
+
     const canvas = document.createElement("canvas");
     const scaleX = imageRef.current.naturalWidth / imageRef.current.width;
     const scaleY = imageRef.current.naturalHeight / imageRef.current.height;
-    canvas.width = crop.width;
-    canvas.height = crop.height;
+    canvas.width = crop.width ?? imageRef.current.width;
+    canvas.height = crop.height ?? imageRef.current.height;
     const ctx = canvas.getContext("2d");
 
     if (!ctx) return;
@@ -47,12 +58,12 @@ export function ImageCropWidget({
       imageRef.current,
       crop.x * scaleX,
       crop.y * scaleY,
-      crop.width * scaleX,
-      crop.height * scaleY,
+      (crop.width ?? imageRef.current.width) * scaleX,
+      (crop.height ?? imageRef.current.height) * scaleY,
       0,
       0,
-      crop.width,
-      crop.height
+      crop.width ?? imageRef.current.width,
+      crop.height ?? imageRef.current.height
     );
 
     canvas.toBlob((blob) => {
@@ -89,12 +100,12 @@ export function ImageCropWidget({
           </ReactCrop>
 
           <div className="flex justify-end space-x-4">
-            <button
+            {/* <button
               onClick={() => setImageUrl("")}
               className="px-4 py-2 text-gray-600 hover:text-gray-800"
             >
               Change Image
-            </button>
+            </button> */}
             <button
               onClick={getCroppedImg}
               className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
