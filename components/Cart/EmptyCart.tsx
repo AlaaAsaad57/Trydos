@@ -3,7 +3,7 @@ import { translateFunction } from "utils/functions";
 
 function EmptyCart() {
   return (
-    <div className="flex text-[#8E8E8E] text-[13px] flex-col w-full max-h-[70vh] h-[70vh] items-center justify-center gap-[7px]">
+    <div className="flex text-[#8E8E8E] text-[13px] flex-col w-full max-h-[50vh] h-[50vh] items-center justify-center gap-[7px]">
       <EmptyBagIcon />
       <div className="flex flex-row items-center medium">
         {translateFunction("Cart is Empty")}
