@@ -34,29 +34,27 @@ import {
 import { REQUESTS_DATA } from "utils/Requests";
 class HomeService {
   async getClientData() {
-    const { setSettings, initCart } = useAppStore.getState();
+    const { setSettings, initCart, language } = useAppStore.getState();
 
     try {
-      if (sessionStorage.getItem("starttingSetting")) {
-        let data = sessionStorage.getItem("starttingSetting");
-        setSettings(JSON.parse(data));
-      } else {
-        const response = await fetchData({
-          url: STARTER_SETTINGS,
-          reqTitle: REQUESTS_DATA.GET_STARTER_SETTINGS,
-          method: "GET",
-          server: "market",
-          useCached: true,
-        });
-        if (!response.success) {
-          throw new Error(response.message);
-        }
-        setSettings(response.data);
-        sessionStorage.setItem(
-          "starttingSetting",
-          JSON.stringify(response.data)
-        );
+      // if (sessionStorage.getItem("starttingSetting")) {
+      //   let data = sessionStorage.getItem("starttingSetting");
+      //   setSettings(JSON.parse(data));
+      // } else {
+
+      // }
+      const response = await fetchData({
+        url: STARTER_SETTINGS + `?language=${language}`,
+        reqTitle: REQUESTS_DATA.GET_STARTER_SETTINGS,
+        method: "GET",
+        server: "market",
+        useCached: true,
+      });
+      if (!response.success) {
+        throw new Error(response.message);
       }
+      setSettings(response.data);
+      sessionStorage.setItem("starttingSetting", JSON.stringify(response.data));
       await this.getCustomerInfo();
 
       getCart({
