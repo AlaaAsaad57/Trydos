@@ -98,7 +98,14 @@ function OptionsMenu(props) {
               <EyeIcon />
             </div>
           )}
-          <div className="reply-but" onClick={() => props.click()}>
+          <div
+            className="reply-but"
+            onClick={() => {
+              document.querySelector("#type")?.focus?.();
+
+              props.click();
+            }}
+          >
             <ReplyIcon></ReplyIcon>
             <div className="rep-descs" style={{ bottom: "-34px" }}>
               {translate("Reply", language)}
