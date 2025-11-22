@@ -280,7 +280,7 @@ export const useChatStore = (set, get) => ({
       ...state.activeChat,
       messages: [
         ...state.activeChat.messages,
-        { ...source, message_type: { name: "VideoCall" } },
+        { ...source, message_type: { name: "VoiceCall" } },
       ],
       id: source.channel.id,
     };

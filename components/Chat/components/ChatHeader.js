@@ -1,7 +1,7 @@
 import ArrowIcon from "../svg/arrow";
 import VideoIcon from "../svg/vcall";
 import CallIcon from "../svg/call";
-import CancelCallIcon from "../svg/cancel-call";
+
 import { getNew, showDate } from "../chatsFunctions";
 import { getUserChat } from "utils/functions";
 import { makeVideoCall, makeVoiceCall } from "store/chat/callActions";
@@ -9,10 +9,9 @@ import { translateFunction } from "../../../utils/functions";
 import { useParams } from "next/navigation";
 import { useAppStore } from "store";
 import ChatPhoto from "./ChatPhoto";
-import { fetchData } from "utils/fetchData";
-import { REQUESTS_DATA } from "utils/Requests";
+
 import { showErrorNotification } from "store/notifications/reducer";
-import { useEffect } from "react";
+
 function ChatHeader({
   chats,
   activeChat,
@@ -60,17 +59,6 @@ function ChatHeader({
   };
   const audioCallFunction = async () => {
     try {
-      if (cameraPermissions === "revoked") {
-        showErrorNotification(
-          translateFunction(
-            "Please enable notification permissions to use camera features"
-          )
-        );
-        return;
-      }
-      if (cameraPermissions === "asked") {
-        await checkCameraPermissions();
-      }
       !callLoading &&
         makeVoiceCall(
           activeChat.id,
@@ -87,24 +75,13 @@ function ChatHeader({
     } catch (error) {
       showErrorNotification(
         translateFunction(
-          "Please enable notification permissions to use camera features"
+          "Please enable notification permissions (camera,mic) to use calls features"
         )
       );
     }
   };
   const videoCallFunction = async () => {
     try {
-      if (cameraPermissions === "revoked") {
-        showErrorNotification(
-          translateFunction(
-            "Please enable notification permissions to use camera features"
-          )
-        );
-        return;
-      }
-      if (cameraPermissions === "asked") {
-        await checkCameraPermissions();
-      }
       !callLoading &&
         makeVideoCall(
           activeChat.id,
@@ -121,7 +98,7 @@ function ChatHeader({
     } catch (error) {
       showErrorNotification(
         translateFunction(
-          "Please enable notification permissions to use camera features"
+          "Please enable notification permissions (camera,mic) to use calls features"
         )
       );
     }

@@ -6,12 +6,22 @@ import {
 } from "@/store/notifications/reducer";
 import { fetchData } from "utils/fetchData";
 import { REQUESTS_DATA } from "utils/Requests";
+import { requestPermissions } from "utils/tinyUtils";
 export const makeVideoCall = async (
   channelId,
   callerName,
   callerPhoto,
   mobilePhone
 ) => {
+  let permissions = await requestPermissions({ camera: true, mic: true });
+  if (!permissions) {
+    showErrorNotification(
+      translateFunction(
+        "Please enable notification permissions (camera,mic) to use calls features"
+      )
+    );
+    return;
+  }
   const { setCallLoading, setVideoCall, endCall, setAudioCall, editCall } =
     useAppStore.getState();
   try {
@@ -55,6 +65,15 @@ export const makeVoiceCall = async (
   callerPhoto,
   mobilePhone
 ) => {
+  let permissions = await requestPermissions({ camera: false, mic: true });
+  if (!permissions) {
+    showErrorNotification(
+      translateFunction(
+        "Please enable notification permissions (camera,mic) to use calls features"
+      )
+    );
+    throw new Error("Permissions not granted for calls");
+  }
   const { setCallLoading, setAudioCall, editCall, language } =
     useAppStore.getState();
   try {
