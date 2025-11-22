@@ -659,7 +659,7 @@ const FilterItemsRow = ({
   };
   const shouldShowMore = () => {
     if (term === "categories" && items.length >= 3) return true;
-    else return term.length >= 8;
+    else return items.length >= 10;
   };
   return (
     <div
