@@ -646,33 +646,33 @@ export async function GetFQACommentsForProductWithReactions({
   return enrichedComments;
 }
 
-async function getProductInteractions(productId, userId) {
+async function getProductInteractions(productId: string, userId?: string) {
   try {
-    // Build dynamic must clauses
-    const must: any = [
-      { term: { product_id: productId } },
-      { term: { interaction_type: "like" } },
-    ];
-
-    if (userId) {
-      must.push({ term: { user_id: String(userId) } });
-    }
-
     // Run both queries in parallel
     const [productRes, likeRes] = await Promise.all([
       client.get({
         index: "product_interactions",
         id: productId,
       }),
-      client.search({
-        index: "user_product_likes",
-        body: {
-          query: {
-            bool: { must },
-          },
-          size: 1,
-        },
-      }),
+      userId
+        ? client.search({
+            index: "user_product_likes",
+            body: {
+              query: {
+                bool: {
+                  must: [
+                    { term: { product_id: productId } },
+                    { term: { user_id: String(userId) } },
+                  ],
+                },
+              },
+              sort: [
+                { interaction_date: { order: "desc" } } // get latest interaction first
+              ],
+              size: 1, // only need the latest
+            },
+          })
+        : Promise.resolve({ hits: { hits: [] } }),
     ]);
 
     const source: any = productRes._source;
@@ -686,23 +686,23 @@ async function getProductInteractions(productId, userId) {
       ratingDetails: source?.star_distribution
         ? Object.keys(source.star_distribution)?.map((s) => ({
             ratingGroup: s?.split("_")[1],
-            count: source?.star_distribution[s] ?? 0,
+            count: source.star_distribution[s] ?? 0,
           }))
         : [],
     };
 
-    // If no userId is provided, we skip the like check
+    // Determine if user liked the product based on latest interaction
     let isLiked = false;
     if (userId && likeRes.hits.hits.length > 0) {
-      const hit = likeRes.hits.hits[0];
-      isLiked = (hit._source as any).status?.toLowerCase() !== "cancelled";
+      const latestInteraction = likeRes.hits.hits[0]._source as any;
+      isLiked = latestInteraction.status?.toLowerCase() === "active";
     }
 
     return {
       ...productInfo,
       is_liked: isLiked,
     };
-  } catch (err) {
+  } catch (err: any) {
     if (err.meta?.statusCode === 404) {
       return {
         is_liked: false,
