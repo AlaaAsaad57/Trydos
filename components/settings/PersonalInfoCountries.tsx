@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import SettingTopBar from "./TopBar";
-import AddressInfo from "public/svg/cart/AddressInfo.svg";
+import AddressInfo from "public/svg/cart/AddressInfo";
 import { translateFunction } from "utils/functions";
 
 import { useParams } from "next/navigation";
@@ -13,13 +13,19 @@ import Spinner from "components/global/Spinner";
 import { fetchData } from "utils/fetchData"; // Make sure this is imported
 import { STARTER_SETTINGS } from "utils/endpointConfig";
 import { REQUESTS_DATA } from "utils/Requests";
+type PersonalInfoCountriesProps = {
+  swipeToScreen: (index: number) => void;
+  goBack: () => void;
+  hideTopBar?: boolean;
+  infoMessage?: string;
+};
+
 function PersonalInfoCountries({
   swipeToScreen,
   goBack,
-}: {
-  swipeToScreen: (index: number) => void;
-  goBack: () => void;
-}) {
+  hideTopBar = false,
+  infoMessage,
+}: PersonalInfoCountriesProps) {
   const { setSettings } = useAppStore.getState();
   const [countries, setCountries] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -51,7 +57,7 @@ function PersonalInfoCountries({
     countries.find(
       // @ts-ignore
 
-      (s) => s.iso.toLowerCase() === lang?.split("-")[0].toLowerCase()
+      (s) => s?.iso?.toLowerCase() === lang?.split("-")[0].toLowerCase()
     )
   );
   useEffect(() => {
@@ -68,15 +74,6 @@ function PersonalInfoCountries({
   const changeCountry = async (country: any) => {
     setIsSettingCountry(true);
     const current = window.location.pathname;
-    const newPath = current.replace(
-      // @ts-ignore
-      `/${lang?.split("-")[0]}`,
-      `/${country.iso.toLowerCase()}`
-    );
-
-    if (current !== newPath) {
-      window.history.replaceState(null, "", newPath);
-    }
 
     await setLocalization(language, country.iso.toLowerCase());
 
@@ -96,6 +93,15 @@ function PersonalInfoCountries({
       }
       sessionStorage.setItem("starttingSetting", JSON.stringify(response.data));
       setSettings(response.data);
+      if (hideTopBar) {
+        window.location.href =
+          window.location.origin +
+          window.location.pathname.replace(
+            `/gb-${language}`,
+            `/${country.iso.toLowerCase()}-${language}`
+          );
+      } else
+        window.location.pathname = `/${country.iso.toLowerCase()}-${language}/setting`;
     } catch (error) {
       console.error("Failed to update starter settings:", error);
     }
@@ -107,14 +113,21 @@ function PersonalInfoCountries({
   useEffect(() => {
     getCountries();
   }, []);
+  const defaultInfoMessage = translateFunction(
+    "Entering The Information Below Clearly And Completely Will Ensure That Your Order Arrives Without Problems And Faster."
+  );
+  const resolvedInfoMessage = infoMessage ?? defaultInfoMessage;
+
   return (
     <div className="flex-col max-h-[calc(100vh-200px)]">
-      <SettingTopBar
-        goBack={() => goBack()}
-        screenName="Profile | Countries"
-        DataCy="personal-info-countries"
-        Save={null}
-      />
+      {!hideTopBar && (
+        <SettingTopBar
+          goBack={() => goBack()}
+          screenName="Profile | Countries"
+          DataCy="personal-info-countries"
+          Save={null}
+        />
+      )}
       <div className="flex-row justify-center mt-[12px] w-full">
         <div
           className="bg-[#F8F8F8] min-h-[50px] w-full flex-row items-center pl-[24px] pr-[20px] "
@@ -168,11 +181,11 @@ function PersonalInfoCountries({
             />
           </svg>
 
-          <div className="regular text-[10px] ml-[12px] text-[#8D8D8D]">
-            {translateFunction(
-              "Entering The Information Below Clearly And Completely Will Ensure That Your Order Arrives Without Problems And Faster."
-            )}
-          </div>
+          {resolvedInfoMessage && (
+            <div className="regular text-[10px] ml-[12px] text-[#8D8D8D]">
+              {resolvedInfoMessage}
+            </div>
+          )}
         </div>
       </div>
       <div className="flex-col w-full px-[12px] ">
@@ -188,24 +201,11 @@ function PersonalInfoCountries({
               viewBox="0 0 15 15"
             >
               <defs>
-                <clipPath id="clipPath">
-                  <rect
-                    id="Rectangle_4561"
-                    data-name="Rectangle 4561"
-                    width="15"
-                    height="15"
-                    fill="none"
-                  />
-                </clipPath>
                 <clipPath id="clipPath-2">
                   <path id="path1173" d="M0-15H15V0H0Z" />
                 </clipPath>
               </defs>
-              <g
-                id="Mask_Group_735"
-                data-name="Mask Group 735"
-                clipPath="url(#clipPath)"
-              >
+              <g id="Mask_Group_735" data-name="Mask Group 735">
                 <g id="g1167" transform="translate(0 15)">
                   <g id="g1169">
                     <g id="g1171" clipPath="url(#clipPath-2)">
@@ -319,6 +319,11 @@ function PersonalInfoCountries({
                     key={country.iso}
                     data-cy={`personal-info-countries-${country.iso}`}
                     onClick={() => {
+                      if (hideTopBar) {
+                        setPendingCountry(country);
+                        changeCountry(country);
+                        return;
+                      }
                       if (
                         !isSettingCountry &&
                         selectedCountry?.id !== country?.id
@@ -340,7 +345,7 @@ function PersonalInfoCountries({
                     </span>
 
                     <span className="text-[14px] regular text-[#1d1d1d] ml-[12px] ">
-                      {country.name}
+                      {translateFunction(country.name)}
                     </span>
                   </div>
                 );
@@ -374,7 +379,7 @@ function PersonalInfoCountries({
                   <div className="flex items-center">
                     <FlagIcon iso={selectedCountry?.iso} />
                     <span className="ml-2 text-sm ">
-                      {selectedCountry?.name}
+                      {translateFunction(selectedCountry?.name)}
                     </span>
                   </div>
                 </div>
@@ -386,7 +391,7 @@ function PersonalInfoCountries({
                   <div className="flex items-center">
                     <FlagIcon iso={pendingCountry?.iso} />
                     <span className="ml-2 text-sm ">
-                      {pendingCountry?.name}
+                      {translateFunction(pendingCountry?.name)}
                     </span>
                   </div>
                 </div>

@@ -2,13 +2,14 @@ import React, { useState, useCallback, useEffect } from "react";
 import BottomSheet from "components/global/BottomSheet";
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 import Skeleton from "react-loading-skeleton";
-import BuyersCommentIcon from "public/svg/product/BuyersCommentsIcon.svg";
+import BuyersCommentIcon from "public/svg/product/BuyersCommentsIcon";
 
 import { useAppStore } from "store";
 import { translateFunction } from "utils/functions";
 import { fetchData } from "utils/fetchData";
 import { REQUESTS_DATA } from "utils/Requests";
 import { RateCommentItem } from "./ProductsBuyersComments";
+import auth from "services/auth";
 
 function BuyersCommentModal({ comments = [], total, offset: initialOffset }) {
   const { ColorBottomSheet, setColorBottomSheet, language, SelectedProduct } =
@@ -18,15 +19,6 @@ function BuyersCommentModal({ comments = [], total, offset: initialOffset }) {
   const [commentsData, setCommentsData] = useState(comments);
   const [offset, setOffset] = useState(initialOffset);
   const [loading, setLoading] = useState(false);
-
-  const commentTypes = [
-    { id: 1, name: "Size", value: "size" },
-    { id: 2, name: "Quality", value: "quality" },
-    { id: 3, name: "Color", value: "color" },
-    { id: 4, name: "Shipping", value: "shipping" },
-    { id: 5, name: "Complaint", value: "complaint" },
-    { id: 6, name: "Recommendation", value: "recommend" },
-  ];
 
   const isRtl = language === "ar" || language === "ku";
 
@@ -40,12 +32,10 @@ function BuyersCommentModal({ comments = [], total, offset: initialOffset }) {
 
     setLoading(true);
     try {
-      const url = `/api/products/comments/buyers_comments?product_id=${
+      const url = `/api/products/comments/buyers_comments?user_id=${auth.UserID()}&product_id=${
         SelectedProduct.id
       }${offsetValue ? `&offset=${JSON.stringify(offsetValue)}` : ""}${
-        filterId
-          ? `&filter=${commentTypes.find((c) => c.id === filterId)?.value}`
-          : ""
+        filterId ? `&filter=${filterId}` : ""
       }`;
 
       const data = await fetchData({
@@ -126,15 +116,15 @@ function BuyersCommentModal({ comments = [], total, offset: initialOffset }) {
                   loading ? "opacity-65" : ""
                 } flex-row product-properties px-[12px] items-center justify-start w-full gap-[4px]`}
               >
-                {commentTypes.map((type) => (
+                {SelectedProduct?.buyers_comment?.filters_key.map((type) => (
                   <div
-                    key={type.id}
-                    onClick={() => handleFilter(type.id)}
+                    key={type}
+                    onClick={() => handleFilter(type)}
                     className={`pl-[8px] cursor-pointer pr-[12px] rounded-[15px] h-[31px] ${
-                      activeType === type.id ? "bg-[#bdd3ff]" : "bg-[#F8F8F8]"
+                      activeType === type ? "bg-[#bdd3ff]" : "bg-[#F8F8F8]"
                     } flex-row justify-center items-center regular text-[#505050] text-[11px] medium`}
                   >
-                    {translateFunction(type.name, language)}
+                    {type}
                   </div>
                 ))}
               </HortiznalScrollBar>

@@ -4,8 +4,8 @@ import ConfirmMobile from "./ConfirmMobile";
 import { useParams } from "next/navigation";
 import { useSwipeable } from "react-swipeable";
 import OrderMarquee from "./OrderMarquee";
-import DiscoutIcon from "public/svg/cart/Disount.svg";
-import ShippingIcon from "public/svg/cart/Shipping.svg";
+import DiscoutIcon from "public/svg/cart/Disount";
+import ShippingIcon from "public/svg/cart/Shipping";
 import Spinner from "components/global/Spinner";
 import {
   COOKIE_NAMES,
@@ -15,7 +15,7 @@ import {
 import auth from "services/auth";
 import LocalizationServiceClass from "services/localization";
 import { useAppStore } from "store";
-import GiftIcon from "public/svg/cart/Gift.svg";
+import GiftIcon from "public/svg/cart/Gift";
 import home from "services/home";
 import { showErrorNotification } from "@/store/notifications/reducer";
 function OrderButton({ close, toOrders }) {
@@ -31,6 +31,7 @@ function OrderButton({ close, toOrders }) {
     cart,
     orderData,
     userProfile,
+    language,
   } = useAppStore();
   let { lang } = useParams();
   // @ts-ignore
@@ -224,6 +225,7 @@ function OrderButton({ close, toOrders }) {
       passive: false,
     },
   });
+  const isRtl = language === "ar" || language === "ku";
   return (
     <>
       {expanded && (
@@ -305,16 +307,19 @@ function OrderButton({ close, toOrders }) {
             {expanded && (
               <div
                 data-cy="itemPriceDiscountShipping-container"
+                style={{
+                  direction: isRtl ? "rtl" : "ltr",
+                }}
                 className="flex-col bg-[#F8F8F8] rounded-t-[12px]  mt-3 pt-[15px]"
               >
                 <div
                   data-cy="item-container"
-                  className="flex-row items-start pl-[12px]"
+                  className="flex-row items-start px-[12px]"
                 >
                   <ItemsIcon />
                   <div
                     data-cy="itemTexts-container"
-                    className="flex-col ml-[5px]"
+                    className="flex-col mx-[5px]"
                   >
                     <span
                       data-cy="itemTexts"
@@ -350,7 +355,7 @@ function OrderButton({ close, toOrders }) {
                     </span>
                   </div>
                   <span
-                    className="ml-[5px] medium text-[#1D1D1D] text-[13px] pr-[13px]"
+                    className="ml-[5px] medium text-[#1D1D1D] text-[13px] px-[13px]"
                     data-cy="cart-total-price"
                   >
                     {RoundPrice({
@@ -371,7 +376,7 @@ function OrderButton({ close, toOrders }) {
                 >
                   <div
                     data-cy="discount-container2"
-                    className="flex-row pl-[12px]"
+                    className="flex-row px-[12px]"
                   >
                     <span
                       data-cy="discount-svg-container"
@@ -379,7 +384,7 @@ function OrderButton({ close, toOrders }) {
                     >
                       <DiscoutIcon data-cy="discount-svg" />
                     </span>{" "}
-                    <div className="flex-col pl-1 text-[#A28E5B]">
+                    <div className="flex-col px-1 text-[#A28E5B]">
                       <span
                         className={`medium ${
                           languageVariable === "ar" && "dir-rtl"
@@ -406,7 +411,7 @@ function OrderButton({ close, toOrders }) {
 
                   <span
                     data-cy="totalDiscount-text"
-                    className="ml-[5px] bold  text-[13px] pr-[13px] text-[#A28E5B]"
+                    className="ml-[5px] bold  text-[13px] px-[13px] text-[#A28E5B]"
                   >
                     -{" "}
                     {RoundPrice({
@@ -420,11 +425,11 @@ function OrderButton({ close, toOrders }) {
                   </span>
                 </div>
                 <div className="flex-row items-start h-[50px] w-full justify-between mt-2 rounded-[12px] pt-1">
-                  <div className="flex-row pl-[12px]">
+                  <div className="flex-row px-[12px]">
                     <span className="flex-row translate-y-[3px]">
                       <GiftIcon />
                     </span>{" "}
-                    <div className="flex-col pl-1 text-[#5BA260]">
+                    <div className="flex-col px-1 text-[#5BA260]">
                       <span className="medium text-[13px] text-[#5BA260]">
                         {translate("Gift")}
                       </span>
@@ -434,7 +439,7 @@ function OrderButton({ close, toOrders }) {
                     </div>
                   </div>
 
-                  <span className="ml-[5px] bold  text-[13px] pr-[13px] text-[#5BA260]">
+                  <span className="ml-[5px] bold  text-[13px] px-[13px] text-[#5BA260]">
                     - {RoundPrice({ num: 0 })} {currency.symbol}
                   </span>
                 </div>
@@ -444,7 +449,7 @@ function OrderButton({ close, toOrders }) {
                 >
                   <div
                     data-cy="Shipping-container2"
-                    className="flex-row pl-[12px]"
+                    className="flex-row px-[12px]"
                   >
                     <span
                       data-cy="Shipping-svg-container2"
@@ -453,7 +458,7 @@ function OrderButton({ close, toOrders }) {
                       <ShippingIcon data-cy="Shipping-svg" />
                     </span>{" "}
                     {
-                      <div className="flex-col pl-1 text-[#5BA260]">
+                      <div className="flex-col px-1 text-[#5BA260]">
                         <span className="medium text-[13px] text-[#5BA260]">
                           {translate("Shipping")}
                         </span>
@@ -470,7 +475,7 @@ function OrderButton({ close, toOrders }) {
 
                   <span
                     data-cy="Shipping-RoundPrice"
-                    className="ml-[5px] bold  text-[13px] pr-[13px] text-[#5BA260]"
+                    className="ml-[5px] bold  text-[13px] px-[13px] text-[#5BA260]"
                   >
                     <span className="">
                       +{" "}
@@ -492,17 +497,21 @@ function OrderButton({ close, toOrders }) {
               onClick={() => {
                 setExpanded(!expanded);
               }}
-              className={`${
-                expanded ? "rounded-t-none" : ""
-              } cursor-pointer flex-row items-center min-h-[50px] w-full justify-between  rounded-[12px] pt-1 bg-[#F8F8F8]`}
+              className={`
+                ${isRtl ? "flex-row-reverse" : "flex-row"}
+                ${
+                  expanded ? "rounded-t-none" : ""
+                } px-[10px] cursor-pointer  items-center min-h-[50px] w-full justify-between  rounded-[12px] pt-1 bg-[#F8F8F8]`}
             >
               <div
                 data-cy="total-left-container"
-                className="flex-row pl-[12px]"
+                className="flex-row px-[12px]"
               >
                 <div
                   data-cy="total-left-container2"
-                  className="flex-col pl-4 text-[#1D1D1D]"
+                  className={`${
+                    isRtl ? "items-end" : "items-start"
+                  } flex-col px-4 text-[#1D1D1D]`}
                 >
                   <span
                     data-cy="total-left-text"
@@ -521,11 +530,13 @@ function OrderButton({ close, toOrders }) {
 
               <span
                 data-cy="total-right-container"
-                className="flex-row justify-center items-center ml-[5px] bold  text-[16px] pr-[13px] text-[#1D1D1D]"
+                className={`${
+                  isRtl ? "flex-row-reverse" : "flex-row"
+                } justify-center items-center ml-[5px] bold gap-[4px]  text-[16px] px-[13px] text-[#1D1D1D]`}
               >
                 <span
                   data-cy="total-right-RoundPrice"
-                  className="line-through regular mr-2"
+                  className="line-through regular"
                 >
                   {RoundPrice({
                     num: getTotaPriceToShow() + total_discount,
@@ -534,12 +545,14 @@ function OrderButton({ close, toOrders }) {
                     language: languageVariable,
                   })}
                 </span>{" "}
-                {RoundPrice({
-                  num: getTotaPriceToShow(),
-                  returnNumber: true,
-                  points: 5,
-                  language: languageVariable,
-                })}{" "}
+                <span data-cy="offer-total-price">
+                  {RoundPrice({
+                    num: getTotaPriceToShow(),
+                    returnNumber: true,
+                    points: 5,
+                    language: languageVariable,
+                  })}
+                </span>{" "}
                 {currency?.symbol}
                 <span className="ml-2">
                   <MenuIcon className={expanded && "rotate-180"} />

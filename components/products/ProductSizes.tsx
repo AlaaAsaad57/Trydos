@@ -1,6 +1,6 @@
 "use client";
 import React, { useState } from "react";
-import NewSizesIcon from "public/svg/NewSizesIcon.svg";
+import NewSizesIcon from "public/svg/NewSizesIcon";
 
 import { translateFunction } from "utils/functions";
 import {
@@ -85,7 +85,7 @@ function ProductSizes({ sizes, language }: ProductSizesPropsType) {
 
   let new_sizes_options = ["Standard", "EU", "IN", "US", "UK"];
   return (
-    <div className="w-full rounded-[15px] mt-[20px] bg-[#FCFCFC] py-[8px] pr-[8px] pl-[10px] h-[131px] flex-col">
+    <div className="w-full rounded-[15px] mt-[20px] bg-[#FCFCFC] py-[8px] pr-[8px] pl-[10px] h-[135px] flex-col">
       <div
         className={`${
           isRtl ? "flex-row-reverse" : "flex-row"
@@ -141,11 +141,15 @@ function ProductSizes({ sizes, language }: ProductSizesPropsType) {
           ))}
         </div>
       </div>
-      <span className="flex-row mt-[5px]">
+      <span
+        className={`${
+          isRtl ? "flex-row-reverse" : "flex-row"
+        }  mt-[5px] text-[#1d1d1d]`}
+      >
         {sizes?.length} {translateFunction("Sizes Available", language)}
       </span>
       <HortiznalScrollBar
-        className={`w-full ${
+        className={`w-full mt-[8px] ${
           isRtl ? "flex-row-reverse" : "flex-row"
         } gap-[2px]`}
         id="sizes-new-bar"

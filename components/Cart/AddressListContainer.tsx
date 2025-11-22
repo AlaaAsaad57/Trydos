@@ -1,6 +1,6 @@
 import React from "react";
 import { translateFunction } from "utils/functions";
-import AddAddressIcon from "public/svg/cart/AddAddress.svg";
+import AddAddressIcon from "public/svg/cart/AddAddress";
 import order from "services/order";
 import { useAppStore } from "store";
 import { AddressListContainerPropsType } from "models/componentType/AddressListContainerPropsType";

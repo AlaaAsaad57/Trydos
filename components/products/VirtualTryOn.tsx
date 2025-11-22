@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import TryOnWidget from "./TryOnWidget";
-import MalicanIcon from "public/svg/MailcanIcon.svg";
+import MalicanIcon from "public/svg/MailcanIcon";
 import { useAppStore } from "store";
 
 interface VirtualTryOnProps {

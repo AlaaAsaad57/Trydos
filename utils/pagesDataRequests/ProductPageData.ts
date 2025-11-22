@@ -1,7 +1,8 @@
+import { cookies } from "next/headers";
 import { fetchProductDetails } from "serverRequests";
-import { fetchServerData } from "serverRequests/ServerFetch";
 import { elasticSearchClient } from "services/elastic/elasticsearch.config";
-import { LogServerError } from "utils/serverErrorReporter";
+import { COOKIE_NAMES } from "utils/cookies/cookie-manager";
+
 let client = elasticSearchClient;
 export const GetProductData = async (params: {
   lang: string;
@@ -17,70 +18,59 @@ export const GetProductData = async (params: {
     if (!productData?.id) {
       throw { message: "Couldnt Fetch Product" };
     }
-    let socialData = await GetSocialDataForProduct({
-      productId: productData.id,
-      lang: params.lang,
-      slug: params.productId,
-    });
     return {
       product: productData,
-      socialData: socialData,
     };
   } catch (error) {
     throw error;
   }
 };
-export const GetSocialDataForProduct = async ({ productId, slug, lang }) => {
-  try {
-    let [likeRes] = await Promise.all([
-      fetchServerData({
-        url:
-          process.env.NEXT_PUBLIC_BACKEND_URL +
-          `/web/product/CommentsSharesDetails/${slug}`,
-        method: "GET",
-        revalidate: 0,
-        local: lang,
-      }),
-    ]);
-    if (likeRes.isError) {
-      LogServerError(
-        {
-          request: `/web/product/CommentsSharesDetails/${slug} || ${likeRes.status}`,
-          message: JSON.stringify(likeRes),
-          language: lang.split("-")[1],
-          country: lang.split("-")[0],
-        },
-        `/web/product/CommentsSharesDetails/${slug}`
-      );
-      throw new Error(
-        `Comments Requets Error:${likeRes.status}:${likeRes.error}`
-      );
-    }
 
-    let likesData = likeRes.data.data;
-    return {
-      count_of_likes: likesData.count_of_likes,
-    };
-  } catch (error) {
-    console.error(error);
+export const getProductDataFromElastic = async ({
+  productId,
+  slug,
+  lang,
+  userId = null,
+}) => {
+  let user_id;
+
+  if (!userId) {
+    const cookiesStore = await cookies();
+    let user_data = cookiesStore.get(COOKIE_NAMES.USER_DATA)?.value;
+    user_id = typeof user_data === "string" ? JSON.parse(user_data)?.id : null;
+  } else {
+    user_id = userId;
   }
-};
 
-export const getProductDataFromElastic = async ({ productId, slug, lang }) => {
   try {
-    let [sharesRes, ratingComment, FQAComments, recommendationStats] =
-      await Promise.all([
-        getProductSharedCountFromElasticsearch(productId, slug, lang),
-        GetRatingCommentsForProduct({
-          product_id: productId,
-        }),
-        GetFQACommentsForProduct({
-          product_id: productId,
-          pageSize: 10,
-          searchAfter: null,
-        }),
-        GetRecommendationCountForProduct({ product_id: productId }),
-      ]);
+    let [
+      sharesRes,
+      ratingComment,
+      FQAComments,
+      recommendationStats,
+
+      likeDetails,
+    ] = await Promise.all([
+      getProductSharedCountFromElasticsearch(productId, slug, lang),
+      GetRatingCommentsForProduct({
+        product_id: productId,
+        user_id,
+        language: lang,
+      }),
+      GetFQACommentsForProduct({
+        product_id: productId,
+        pageSize: 10,
+        searchAfter: null,
+        user_id: user_id,
+        language: lang,
+      }),
+      GetRecommendationCountForProduct({
+        product_id: productId,
+        language: lang,
+      }),
+
+      getProductInteractions(productId, user_id),
+    ]);
 
     let sharesData =
       (sharesRes as any)?.hits?.hits?.[0]?._source?.shared_count || 0;
@@ -91,13 +81,21 @@ export const getProductDataFromElastic = async ({ productId, slug, lang }) => {
         comments: ratingComment.buyers_comments,
         offset: ratingComment.searchAfter,
         total: ratingComment.total,
+        filters_key: ratingComment.filters_key,
       },
       fqa_questions: {
         comments: FQAComments.fqa_comments,
         offset: FQAComments.searchAfter,
         total: FQAComments.total,
+        filters_key: FQAComments.filters_key,
       },
-      recommendation_stats: recommendationStats,
+      ratingDetails: likeDetails?.ratingDetails ?? [],
+      recommendation_stats: recommendationStats.stats,
+      count_of_likes: likeDetails?.total_likes,
+      is_liked: likeDetails?.is_liked,
+      total_views: likeDetails?.total_views,
+      total_rating:
+        likeDetails?.final_rating ?? recommendationStats?.total_rating,
     };
   } catch (error) {
     console.error(error);
@@ -160,6 +158,7 @@ export async function GetRatingCommentsFromElastic({
         typeof searchAfter === "string" ? JSON.parse(searchAfter) : [],
     };
   }
+
   const response = await client.search(query);
 
   const results = response.hits.hits.map((hit) => ({
@@ -188,11 +187,61 @@ export async function GetRatingCommentsFromElastic({
     searchAfter: nextSearchAfter,
   };
 }
+export const getProductRatingDetails = async ({ p_id }) => {
+  try {
+    const result = await client.search({
+      index: "comments",
+      size: 0, // only want aggregation results
+      query: {
+        bool: {
+          must: [
+            { term: { product_id: String(p_id) } },
+            { exists: { field: "rating" } },
+            { exists: { field: "order_details_id" } },
+          ],
+          must_not: [{ term: { status: "deleted" } }],
+        },
+      },
+      aggs: {
+        rating_buckets: {
+          terms: {
+            script: {
+              source: `
+        if (doc['rating'].size() == 0) return 0;
+  def r = doc['rating'].value;
+              if (r >= 4.5) return 5;
+              if (r >= 3.5) return 4;
+              if (r >= 2.5) return 3;
+              if (r >= 1.5) return 2;
+              if (r >= 0.5) return 1;
+              return 0;
+              `,
+            },
+            size: 6,
+            order: { _key: "desc" }, // ensures keys come 5 → 0
+          },
+        },
+      },
+    });
+
+    const buckets = (result.aggregations?.rating_buckets as any)?.buckets ?? [];
+    let rating_details = [1, 2, 3, 4, 5].map((i) => ({
+      ratingGroup: i,
+      count: buckets?.find((s) => String(s.key) === String(i))?.doc_count ?? 0,
+    }));
+    return rating_details;
+  } catch (error) {
+    console.error("Error fetching rating stats:", error);
+    return { rating_details: [] };
+  }
+};
 export async function GetRatingCommentsForProduct({
   product_id,
   pageSize = 10,
   searchAfter = null,
   filter = null,
+  user_id = null,
+  language = "en",
 }) {
   let query: any = {
     index: "comments",
@@ -211,12 +260,28 @@ export async function GetRatingCommentsForProduct({
         must_not: [{ term: { status: "deleted" } }],
       },
     },
+    aggs: {
+      unique_aspects: {
+        terms: {
+          field: `discussed_aspects_${language}`,
+          size: 1000, // adjust if you have more aspects
+        },
+      },
+    },
   };
 
   if (filter && typeof filter === "string" && filter.trim() !== "") {
     if (filter !== "recommend")
       query.query.bool.must.push({
-        term: { discussed_aspects: filter },
+        bool: {
+          should: [
+            { term: { discussed_aspects_en: filter } },
+            { term: { discussed_aspects_ar: filter } },
+            { term: { discussed_aspects_tr: filter } },
+            { term: { discussed_aspects_ku: filter } },
+          ],
+          minimum_should_match: 1, // at least one should match
+        },
       });
     else {
       query.query.bool.must.push({
@@ -234,13 +299,23 @@ export async function GetRatingCommentsForProduct({
   }
   const response = await client.search(query);
 
-  const results = response.hits.hits.map((hit) => ({
+  let results = response.hits.hits.map((hit) => ({
     id: hit._id,
     ...((hit?._source as {}) ?? {}),
   }));
 
   const nextSearchAfter =
     results.length > 0 ? response.hits.hits[results.length - 1].sort : null;
+  if (results?.length > 0)
+    results = await GetFQACommentsForProductWithReactions({
+      user_id: user_id,
+      commentsResult: results,
+    });
+  const filters_key = (
+    (response.aggregations?.unique_aspects as any)?.buckets || []
+  ).map((bucket: any, index) => {
+    return bucket?.key;
+  });
 
   return {
     buyers_comments: results?.map((s: any) => ({
@@ -257,12 +332,32 @@ export async function GetRatingCommentsForProduct({
       star_rating: s.rating,
       order_details_id: s.order_details_id,
       recommendation: s?.recommendation,
+      total_likes: s?.total_likes,
+      is_liked: s?.is_liked,
     })),
     total: (response.hits.total as any)?.value,
+    filters_key: filters_key,
     searchAfter: nextSearchAfter,
   };
 }
-export const GetRecommendationCountForProduct = async ({ product_id }) => {
+
+function getLangField(lang: string) {
+  switch (lang) {
+    case "ar":
+      return "discussed_aspects_ar";
+    case "tr":
+      return "discussed_aspects_tr";
+    case "ku":
+      return "discussed_aspects_ku";
+    default:
+      return "discussed_aspects_en";
+  }
+}
+
+export const GetRecommendationCountForProduct = async ({
+  product_id,
+  language,
+}) => {
   const result = await client.search({
     index: "comments",
     size: 0,
@@ -282,41 +377,38 @@ export const GetRecommendationCountForProduct = async ({ product_id }) => {
           filters: {
             recommend: {
               bool: {
-                should: [
+                must: [
+                  { term: { product_id: String(product_id) } },
+                  { exists: { field: "rating" } },
+                  { exists: { field: "order_details_id" } },
                   { term: { recommendation: true } },
-                  {
-                    range: {
-                      rating: {
-                        gte: 3,
-                      },
-                    },
-                  },
                 ],
+                must_not: [{ term: { status: "deleted" } }],
               },
             },
             not_recommend: {
               bool: {
-                should: [
+                must: [
+                  { term: { product_id: String(product_id) } },
+                  { exists: { field: "rating" } },
                   { term: { recommendation: false } },
-                  {
-                    range: {
-                      rating: {
-                        lt: 3,
-                      },
-                    },
-                  },
+                  { exists: { field: "order_details_id" } },
                 ],
+                must_not: [{ term: { status: "deleted" } }],
               },
             },
           },
         },
+      },
+      total_rating: {
+        avg: { field: "rating" },
       },
     },
   });
   // @ts-ignore
   const buckets = result.aggregations.recommendation_status.buckets;
   const total = buckets.recommend.doc_count + buckets.not_recommend.doc_count;
-
+  const avgRating = (result.aggregations.total_rating as any).value || 0;
   const stats = [
     {
       category: "recommend",
@@ -336,14 +428,46 @@ export const GetRecommendationCountForProduct = async ({ product_id }) => {
     },
   ];
 
-  return stats;
+  return { stats, total_rating: avgRating };
 };
+export async function GetAvailableFQAFilters({ product_id }) {
+  const query = {
+    index: "comments",
+    size: 0, // we don’t need actual documents
+    query: {
+      bool: {
+        must: [{ term: { product_id: String(product_id) } }],
+        must_not: [{ term: { status: "deleted" } }],
+      },
+    },
+    aggs: {
+      available_filters: {
+        terms: {
+          field: "discussed_aspects", // keyword ensures aggregation works
+          size: 50, // limit how many aspects we expect (can adjust)
+        },
+      },
+    },
+  };
+
+  const response = await client.search(query);
+
+  const filters =
+    (response.aggregations?.available_filters as any)?.buckets?.map((b) => ({
+      aspect: b.key,
+      count: b.doc_count,
+    })) || [];
+
+  return filters;
+}
 // comments with questions and replies
 export async function GetFQACommentsForProduct({
   product_id,
   pageSize = 10,
   searchAfter = null,
   filter = null,
+  user_id = null,
+  language = "en",
 }) {
   let query: any = {
     index: "comments",
@@ -365,10 +489,26 @@ export async function GetFQACommentsForProduct({
         ],
       },
     },
+    aggs: {
+      unique_aspects: {
+        terms: {
+          field: `discussed_aspects_${language}`,
+          size: 1000, // adjust if you have more aspects
+        },
+      },
+    },
   };
   if (filter && typeof filter === "string" && filter?.trim() !== "") {
     query.query.bool.must.push({
-      term: { discussed_aspects: filter },
+      bool: {
+        should: [
+          { term: { discussed_aspects_en: filter } },
+          { term: { discussed_aspects_ar: filter } },
+          { term: { discussed_aspects_tr: filter } },
+          { term: { discussed_aspects_ku: filter } },
+        ],
+        minimum_should_match: 1, // at least one should match
+      },
     });
   }
 
@@ -381,14 +521,23 @@ export async function GetFQACommentsForProduct({
   }
 
   let response = await client.search(query);
-  const results = response.hits.hits.map((hit) => ({
+  let results = response.hits.hits.map((hit) => ({
     id: hit._id,
     ...((hit?._source as {}) ?? {}),
   }));
 
   const nextSearchAfter =
     results.length > 0 ? response.hits.hits[results.length - 1].sort : null;
-
+  if (results?.length > 0)
+    results = await GetFQACommentsForProductWithReactions({
+      user_id: user_id,
+      commentsResult: results,
+    });
+  const filters_key = (
+    (response.aggregations?.unique_aspects as any)?.buckets || []
+  ).map((bucket: any, index) => {
+    return bucket?.key;
+  });
   return {
     fqa_comments: results?.map((s: any) => ({
       id: s.id,
@@ -404,9 +553,165 @@ export async function GetFQACommentsForProduct({
       seller_reply: s.seller_reply,
       seller_name: s.seller_name,
       reply_created_at: s.reply_created_at,
+      total_likes: s?.total_likes,
+      is_liked: s?.is_liked,
+      reply_total_likes: s?.reply_total_likes,
+      reply_is_liked: s?.reply_is_liked,
     })),
     total: (response.hits.total as any)?.value,
-
+    filters_key: filters_key,
     searchAfter: nextSearchAfter,
   };
+}
+
+export async function GetFQACommentsForProductWithReactions({
+  user_id,
+  commentsResult,
+}) {
+  const commentIds = commentsResult.map((s) => s.id);
+  if (commentIds.length === 0) return commentsResult;
+
+  const reactionsQuery: any = {
+    index: "comments_reactions",
+    size: 0,
+    query: {
+      bool: {
+        must: [
+          { terms: { target_id: commentIds } },
+          { term: { status: "active" } },
+          { terms: { target_type: ["comment", "seller_reply"] } },
+        ],
+      },
+    },
+    aggs: {
+      reactions_by_type: {
+        terms: { field: "target_type.keyword", size: 2 },
+        aggs: {
+          reactions_by_target: {
+            terms: { field: "target_id.keyword", size: commentIds.length },
+            aggs: user_id
+              ? {
+                  total_likes: { value_count: { field: "interaction_id" } },
+                  user_like: { filter: { term: { user_id } } },
+                }
+              : {
+                  total_likes: { value_count: { field: "interaction_id" } },
+                },
+          },
+        },
+      },
+    },
+  };
+
+  const reactionsRes = await client.search(reactionsQuery);
+
+  // Step 2: Build lookup maps for comments and replies
+  const commentLikesMap: Record<
+    string,
+    { total_likes: number; is_liked: boolean }
+  > = {};
+  const replyLikesMap: Record<
+    string,
+    { total_likes: number; is_liked: boolean }
+  > = {};
+
+  for (const typeBucket of (reactionsRes.aggregations.reactions_by_type as any)
+    .buckets) {
+    const isReply = typeBucket.key === "seller_reply";
+
+    for (const bucket of typeBucket.reactions_by_target.buckets) {
+      const map = isReply ? replyLikesMap : commentLikesMap;
+      map[bucket.key] = {
+        total_likes: bucket.total_likes.value,
+        is_liked: bucket.user_like ? bucket.user_like.doc_count > 0 : false,
+      };
+    }
+  }
+
+  // Step 3: Merge back into comment list
+  const enrichedComments = commentsResult.map((comment) => ({
+    ...comment,
+    total_likes: commentLikesMap[comment.id]?.total_likes || 0,
+    is_liked: commentLikesMap[comment.id]?.is_liked || false,
+    reply_total_likes:
+      comment.has_reply && comment.seller_reply
+        ? replyLikesMap[comment.id]?.total_likes || 0
+        : 0,
+    reply_is_liked:
+      comment.has_reply && comment.seller_reply
+        ? replyLikesMap[comment.id]?.is_liked || false
+        : false,
+  }));
+
+  return enrichedComments;
+}
+
+async function getProductInteractions(productId: string, userId?: string) {
+  try {
+    // Run both queries in parallel
+    const [productRes, likeRes] = await Promise.all([
+      client.get({
+        index: "product_interactions",
+        id: productId,
+      }),
+      userId
+        ? client.search({
+            index: "user_product_likes",
+            body: {
+              query: {
+                bool: {
+                  must: [
+                    { term: { product_id: productId } },
+                    { term: { user_id: String(userId) } },
+                  ],
+                },
+              },
+              sort: [
+                { interaction_date: { order: "desc" } } // get latest interaction first
+              ],
+              size: 1, // only need the latest
+            },
+          })
+        : Promise.resolve({ hits: { hits: [] } }),
+    ]);
+
+    const source: any = productRes._source;
+
+    const productInfo = {
+      product_id: source?.product_id,
+      final_rating: source?.final_rating,
+      total_comments: source?.total_comments,
+      total_likes: source?.total_likes ?? 0,
+      total_views: source?.total_views ?? 0,
+      ratingDetails: source?.star_distribution
+        ? Object.keys(source.star_distribution)?.map((s) => ({
+            ratingGroup: s?.split("_")[1],
+            count: source.star_distribution[s] ?? 0,
+          }))
+        : [],
+    };
+
+    // Determine if user liked the product based on latest interaction
+    let isLiked = false;
+    if (userId && likeRes.hits.hits.length > 0) {
+      const latestInteraction = likeRes.hits.hits[0]._source as any;
+      isLiked = latestInteraction.status?.toLowerCase() === "active";
+    }
+
+    return {
+      ...productInfo,
+      is_liked: isLiked,
+    };
+  } catch (err: any) {
+    if (err.meta?.statusCode === 404) {
+      return {
+        is_liked: false,
+        total_likes: 0,
+        final_rating: 0,
+        ratingDetails: [],
+        total_views: 0,
+      };
+    }
+    throw err;
+  }
 }

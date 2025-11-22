@@ -1,7 +1,7 @@
 import React from "react";
 
 import { getConfiguredImage } from "utils/functions";
-import Image from "node_modules/next/image";
+import Image from "next/image";
 import { GetImageUrl } from "utils/tinyUtils";
 import { ImageSliderPropsType } from "models/componentType/ImageSliderPropsType";
 import { NormalSlider } from "utils/Slider";

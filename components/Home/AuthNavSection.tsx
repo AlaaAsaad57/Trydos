@@ -1,5 +1,5 @@
 "use client";
-import ChatIcon from "public/svg/ChatIcon.svg";
+import ChatIcon from "public/svg/ChatIcon";
 import { translateFunction } from "utils/functions";
 import UserAvatar from "./UserAvatar";
 import { ChatConroller } from "utils/tinyUtils";
@@ -7,7 +7,11 @@ import { getNew } from "components/Chat/chatsFunctions";
 import ChatNotification from "./ChatNotification";
 import { useParams } from "next/navigation";
 import { useAppStore } from "store";
-import { UserData } from "utils/cookies/cookie-manager";
+import {
+  COOKIE_NAMES,
+  getCookie,
+  UserData,
+} from "utils/cookies/cookie-manager";
 
 function AuthNavSection({
   onClick,
@@ -46,11 +50,13 @@ function AuthNavSection({
           transform: !chatVar && getNew(chats).length > 0 && "translateY(-1px)",
         }}
         onClick={() => {
-          if (userChat && userChat.id && !userChat?.need_auth) {
+          const userChatCookie: any = getCookie(COOKIE_NAMES.USER_CHAT);
+          const userDataCookie: any = getCookie(COOKIE_NAMES.USER_DATA);
+          if (userChatCookie && userChatCookie?.id) {
             setChatOpen(true);
             ChatConroller(true);
           } else {
-            if (userData && userData?.phone !== "0") {
+            if (userDataCookie && userDataCookie?.phone !== "0") {
               setShouldAuthinticated("open chat");
             } else {
               setLoginOpen(true);

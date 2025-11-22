@@ -3,7 +3,7 @@ import { getConfiguredImage, translateFunction } from "utils/functions";
 import { useState } from "react";
 import Image from "next/image";
 import AuthNavSection from "./AuthNavSection";
-import CartIcon from "public/svg/CartIcon.svg";
+import CartIcon from "public/svg/CartIcon";
 import {
   usePathname,
   useSearchParams,
@@ -175,7 +175,10 @@ function UserNavTopSection({
         onClick={() => enableCartAction(true)}
       >
         {localCart?.length > 0 && (
-          <div className="bg-green-500 right-[-8px] top-[-4px] text-white rounded-full min-h-3 min-w-[18px] absolute justify-center flex items-center ">
+          <div
+            data-cy="cart-item-counts"
+            className="bg-green-500 right-[-8px] top-[-4px] text-white rounded-full min-h-3 min-w-[18px] absolute justify-center flex items-center "
+          >
             {localCart.length}
           </div>
         )}

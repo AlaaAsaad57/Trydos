@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import SearchCamIcon from "public/svg/SearchCamIcon.svg";
+import SearchCamIcon from "public/svg/SearchCamIcon";
 import { translateFunction } from "utils/functions";
 import Spinner from "components/global/Spinner";
 import { useParams } from "next/navigation";

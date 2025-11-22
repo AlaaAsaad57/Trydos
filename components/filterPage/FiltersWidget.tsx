@@ -1,11 +1,11 @@
 "use client";
 import NextLink from "components/global/NextLink";
-import FilterIcon from "public/svg/listing/filterIcon.svg";
-import ActiveCategoryIcon from "public/svg/listing/ActiveCategoryIcon.svg";
-import PriceCancel from "public/svg/listing/PriceCancel.svg";
+import FilterIcon from "public/svg/listing/filterIcon";
+import ActiveCategoryIcon from "public/svg/listing/ActiveCategoryIcon";
+import PriceCancel from "public/svg/listing/PriceCancel";
 import React, { useEffect, useState } from "react";
 import { useAppStore } from "store";
-import BackIcon from "public/svg/listing/backIcon.svg";
+import BackIcon from "public/svg/listing/backIcon";
 
 import {
   getConfiguredImage,
@@ -16,7 +16,7 @@ import { useParams } from "next/navigation";
 import FilterLabel from "components/ListingPage/filterComponents/FilterLabel";
 import search from "services/search";
 import { getActiveFilters } from "components/Server/FilterList";
-import Image from "node_modules/next/image";
+import Image from "next/image";
 import Spinner from "components/global/Spinner";
 import PriceSlider from "components/ListingPage/filterComponents/PriceSlider";
 import { GetImageUrl, parseFiltersFromParams } from "utils/tinyUtils";

@@ -210,6 +210,7 @@ html[lang="ar"] .chat-window-search-holder svg {
   width: 60px;
   height: 60px;
   user-select: none;
+  background-color: #eeeeee;
   object-fit: cover !important;
   border-radius: 12px;
   user-drag: none;
@@ -698,6 +699,7 @@ html[lang="ar"] .new-chats {
 .user-top-chat .img-uer img {
   width: 40px;
   height: 40px;
+  background-color: #eeeeee;
   border-radius: 12px;
   object-fit: cover;
 }
@@ -908,6 +910,7 @@ html[lang="ar"] .new-chats {
   padding: 0px !important;
 }
 .absolute-avatar img {
+  background-color: #eeeeee;
   border-radius: 10px;
 }
 .absolute-avatar.text-avatar {

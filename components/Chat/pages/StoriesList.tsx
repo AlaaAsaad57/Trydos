@@ -6,7 +6,7 @@ import Spinner from "components/global/Spinner";
 import { useAppStore } from "store";
 import { fetchStories } from "serverRequests";
 import { getUserStories } from "utils/functions";
-import Skeleton from "node_modules/react-loading-skeleton/dist";
+import Skeleton from "react-loading-skeleton";
 import StoryServiceClass from "services/story";
 function StoriesList() {
   const { storiesData, language, country, setStoryData } = useAppStore();

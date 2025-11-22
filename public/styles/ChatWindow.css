@@ -823,7 +823,8 @@ img {
   font-size: 10px;
 }
 
-.self-align .message-body:hover {}
+.self-align .message-body:hover {
+}
 
 .message-date.hovers {
   position: absolute;
@@ -1086,6 +1087,7 @@ svg.redwave g g path {
   align-items: flex-start;
   justify-content: flex-start;
   flex-direction: column;
+  position: absolute;
 }
 
 .first-chat .border-element {

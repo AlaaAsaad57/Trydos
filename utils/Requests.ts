@@ -198,4 +198,6 @@ export const REQUESTS_DATA = {
   GET_ORDER_RATING: { reqTitle: "GET_ORDER_RATING", code: 138 },
   UPDATE_COMMENT: { reqTitle: "UPDATE_COMMENT", code: 139 },
   DELETE_COMMENT: { reqTitle: "DELETE_COMMENT", code: 140 },
+  LIKE_FOR_COMMENT: { reqTitle: "LIKE_FOR_COMMENT", code: 141 },
+  UNLIKE_FOR_COMMENT: { reqTitle: "UNLIKE_FOR_COMMENT", code: 142 },
 };

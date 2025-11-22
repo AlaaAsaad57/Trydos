@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { translateFunction } from "utils/functions";
-import AddressInfo from "public/svg/cart/AddressInfo.svg";
+import AddressInfo from "public/svg/cart/AddressInfo";
 import SettingTopBar from "./TopBar";
-import AddAddressIcon from "public/svg/cart/AddAddress.svg";
+import AddAddressIcon from "public/svg/cart/AddAddress";
 
 import order from "services/order";
 import { DeleteModalComponent } from "components/Cart/OrdersPage";

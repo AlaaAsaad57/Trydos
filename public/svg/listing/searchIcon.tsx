@@ -1,0 +1,41 @@
+import * as React from "react";
+
+const SearchIcon = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    xmlnsXlink="http://www.w3.org/1999/xlink"
+    width="20"
+    height="20"
+    viewBox="0 0 20 20"
+    {...props}
+  >
+    <defs>
+      <clipPath id="clip-path">
+        <rect
+          id="Rectangle_4561"
+          data-name="Rectangle 4561"
+          width="20"
+          height="20"
+          fill="none"
+        />
+      </clipPath>
+    </defs>
+    <g
+      id="Mask_Group_165"
+      data-name="Mask Group 165"
+      clipPath="url(#clip-path)"
+    >
+      <g id="_x32_-Magnifying_Glass" transform="translate(0.001)">
+        <path
+          id="Path_19050"
+          data-name="Path 19050"
+          d="M22.8,21.976l-4.544-4.544A8.72,8.72,0,0,0,5.525,5.525,8.719,8.719,0,0,0,17.432,18.254L21.976,22.8a.582.582,0,0,0,.822-.822ZM6.348,17.041a7.561,7.561,0,1,1,5.347,2.215A7.513,7.513,0,0,1,6.348,17.041Z"
+          transform="translate(-2.97 -2.97)"
+          fill="#8d8d8d"
+        />
+      </g>
+    </g>
+  </svg>
+);
+
+export default SearchIcon;

@@ -1,17 +1,12 @@
-"use client";
-import React from "react";
-import EyeIcon from "public/svg/product/EyeIcon.svg";
+import EyeIcon from "public/svg/product/EyeIcon";
 import Skeleton from "react-loading-skeleton";
-import { useAppStore } from "store";
 
-function ProductViews() {
-  const { SelectedProduct } = useAppStore();
-
+function ProductViews({ views }) {
   return (
     <div className="view-count flex-row align-center">
       <EyeIcon />
-      {SelectedProduct?.views_count >= 0 ? (
-        <span>{SelectedProduct.views_count ?? "1"}</span>
+      {views >= 0 ? (
+        <span>{views ?? "1"}</span>
       ) : (
         <span className="m-0">
           <Skeleton className="m-0" count={1} width={20} height={10} />

@@ -1,9 +1,9 @@
 "use client";
-import TryDosWalletIcon from "public/svg/TryDosWalletIcon.svg";
+import TryDosWalletIcon from "public/svg/TryDosWalletIcon";
 import { useAppStore } from "store";
 import { translateFunction } from "utils/functions";
 import Spinner from "components/global/Spinner";
-import BackIcon from "public/svg/listing/backIcon.svg";
+import BackIcon from "public/svg/listing/backIcon";
 import { useEffect, useState } from "react";
 import order from "services/order";
 

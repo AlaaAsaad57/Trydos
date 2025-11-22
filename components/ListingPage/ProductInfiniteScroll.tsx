@@ -59,7 +59,7 @@ function ProductsInfiniteScroll({
   useEffect(() => {
     const { setIsNavigating } = useAppStore.getState();
     setIsNavigating(null);
-    console.log("**Initial Items IDS**", prductIds);
+
     GAevent({
       action: GA_EVENT_NAMES.VIEW_ITEMS_LIST,
       params: {

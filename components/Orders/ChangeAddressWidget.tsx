@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
-import ChangeAddressIcon from "public/svg/ChangeAddressIcon.svg";
+import ChangeAddressIcon from "public/svg/ChangeAddressIcon";
 import { translateFunction } from "utils/functions";
-import EditIcon from "public/svg/editAddressIcon.svg";
-import AddAddressIcon from "public/svg/cart/AddAddress.svg";
-import BackIcon from "public/svg/listing/backIcon.svg";
+import EditIcon from "public/svg/editAddressIcon";
+import AddAddressIcon from "public/svg/cart/AddAddress";
+import BackIcon from "public/svg/listing/backIcon";
 import { useAppStore } from "store";
 import { GetAddressString } from "utils/tinyUtils";
 import SelectRegion from "components/Cart/SelectRegion";

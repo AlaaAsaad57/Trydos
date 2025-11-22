@@ -2,7 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { ReportError } from "utils/errorReported";
 import { LogError } from "utils/functions";
-import { GetFQACommentsForProduct } from "utils/pagesDataRequests/ProductPageData";
+import {
+  GetAvailableFQAFilters,
+  GetFQACommentsForProduct,
+} from "utils/pagesDataRequests/ProductPageData";
 
 export async function GET(req: NextRequest) {
   const headers = {
@@ -30,13 +33,17 @@ export async function GET(req: NextRequest) {
         { status: 400 }
       );
     }
+    const user_id = req.nextUrl.searchParams.get("user_id");
     let data = await GetFQACommentsForProduct({
       product_id: product_id,
       searchAfter: offset,
       pageSize: 10,
       filter,
+      user_id: user_id,
+      language: req.headers.get("language") || "en",
     });
-
+    // let data_filters = await GetAvailableFQAFilters({ product_id });
+    // console.log(data_filters);
     return NextResponse.json(
       {
         data: {
@@ -44,6 +51,7 @@ export async function GET(req: NextRequest) {
           offset: data.searchAfter,
           total: data.total,
           searchAfter: data.searchAfter,
+          filters_key: data.filters_key,
         },
         code: 200,
       },

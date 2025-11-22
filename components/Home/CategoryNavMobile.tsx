@@ -1,4 +1,4 @@
-import ActiveCategoryIcon from "public/svg/listing/ActiveCategoryIcon.svg";
+import ActiveCategoryIcon from "public/svg/listing/ActiveCategoryIcon";
 import Image from "next/image";
 import React from "react";
 import NextLink from "components/global/NextLink";

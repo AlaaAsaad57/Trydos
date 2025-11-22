@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import SearchHistoryIcon from "public/svg/SearchHistoryIcon.svg";
-import CloseIconOption from "public/svg/CloseIconOption.svg";
+import SearchHistoryIcon from "public/svg/SearchHistoryIcon";
+import CloseIconOption from "public/svg/CloseIconOption";
 import { useAppStore } from "store";
 import search from "services/search";
 import { useParams } from "next/navigation";

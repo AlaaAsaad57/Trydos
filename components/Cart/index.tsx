@@ -6,8 +6,8 @@ import {
   translateFunction,
   GetCartOreview,
 } from "utils/functions";
-import BackIcon from "public/svg/listing/backIcon.svg";
-import ShareIcon from "public/svg/listing/shareIcon.svg";
+import BackIcon from "public/svg/listing/backIcon";
+import ShareIcon from "public/svg/listing/shareIcon";
 import Skeleton from "react-loading-skeleton";
 import "styles/productDetails.css";
 import NextLink from "components/global/NextLink";
@@ -324,7 +324,6 @@ function CartContainer({ close, toOrders }: CartContainerPropsType) {
                       key={key}
                       data-cy="one-product"
                     >
-                      {" "}
                       <CartItemLink product={product} key={key}>
                         <CartItem product={product} index={key} />
                       </CartItemLink>
@@ -501,6 +500,7 @@ export const QuantutyInput = ({
   const translate = (key: string, lang?: string) => {
     return translateFunction(key, languageVariable);
   };
+  const isRtl = languageVariable === "ar" || languageVariable === "ku";
   const decreaseQuantity = async (i) => {
     if (!loading) {
       // Sendevent({
@@ -586,9 +586,11 @@ export const QuantutyInput = ({
   return (
     <div
       data-cy="card-footer"
-      className={`absolute flex-wrap ${"top-[125px]"} left-[137px] flex-row items-center justify-between max-w-[calc(100%-152px)] w-full`}
+      className={`${
+        isRtl ? "right-[137px] flex-row-reverse" : "left-[137px] flex-row"
+      } absolute flex-wrap ${"top-[125px]"}  items-center justify-between max-w-[calc(100%-152px)] w-full`}
     >
-      <div className="flex-col">
+      <div className="flex-col px-[10px]">
         <div
           className={`${
             loading && "opacity-40"
@@ -872,10 +874,11 @@ export const QuantutyInput = ({
 };
 export const CartItemLink = ({ product, children }) => {
   const params = useParams();
-  const { enableCart } = useAppStore();
+  const { enableCart, language } = useAppStore();
   const router = useRouter();
   const pathname = usePathname();
   let lang = params.lang;
+  const isRtl = language === "ar" || language === "ku";
   const getURLOfProduct = ({ product }) => {
     let productUrl;
     const hasValidColor =
@@ -927,7 +930,9 @@ export const CartItemLink = ({ product, children }) => {
   if (params.productId === product?.slug) {
     return (
       <div
-        className={`flex-row mt-2 w-full relative  ${
+        className={`${
+          isRtl ? "flex-row-reverse" : "flex-row"
+        } mt-2 w-full relative  ${
           product.have_hurry_up_notify || true
             ? "min-h-[230px]"
             : "min-h-[161px]"
@@ -961,7 +966,9 @@ export const CartItemLink = ({ product, children }) => {
         href={getProductCartUrl(product).href}
         data={getProductCartUrl(product).data}
         ariaLabel={`Cart Product ${product.slug} ${params.lang}`}
-        className={`flex-row mt-2 w-full relative  ${
+        className={` mt-2 w-full relative ${
+          isRtl ? "flex-row-reverse" : "flex-row"
+        }  ${
           product.have_hurry_up_notify || true
             ? "min-h-[230px]"
             : "min-h-[161px]"

@@ -3,10 +3,10 @@ import ProfilePicture from "public/images/profileNo.png";
 import LastMessageBody from "./LastMessageBody";
 import TypingIndicator from "./TypingIndicator";
 import { getTwoLetters, showDate } from "../chatsFunctions";
-import MessageIcon from "../svg/messageIcon.svg";
-import ArrowRightIcon from "../svg/arrowRight.svg";
-import MutedChatIcon from "../svg/MutedChat.svg";
-import PinnedChatIcon from "../svg/PinnedChat.svg";
+import MessageIcon from "../svg/messageIcon";
+import ArrowRightIcon from "../svg/arrowRight";
+import MutedChatIcon from "../svg/MutedChat";
+import PinnedChatIcon from "../svg/PinnedChat";
 import ChatOptions from "./ChatOptions";
 import { useState } from "react";
 import Image from "next/image";
@@ -27,7 +27,9 @@ function ChatItem({
   muted,
   chat_members,
 }) {
-  const { setMain, openChat } = useAppStore();
+  const { setMain, openChat, language } = useAppStore();
+  const isRtl = language === "ar" || language === "ku";
+
   const [Moving, setMoving] = useState(false);
   var timeout;
   function handleTouchStart(evt, a, index) {
@@ -171,7 +173,7 @@ function ChatItem({
     }, 800);
   };
   return (
-    <div className="chat-conversation-item-container">
+    <div className={`chat-conversation-item-container`}>
       <div className={"chat-activated-options"}>
         {newMessage === 0 && muted && <MutedChatIcon />}
         {newMessage === 0 && pinned && <PinnedChatIcon />}
@@ -179,7 +181,9 @@ function ChatItem({
       <div
         className={`chat-conversation-item ${
           status && status !== "null" && "typing"
-        } ${isActive && "active-chat-effect"}`}
+        } ${isActive && "active-chat-effect"}
+        ${isRtl ? "p-[10px_20px_10px_10px] flex-row-reverse" : "flex-row"} 
+        `}
         data-cy="ChatItem"
         onMouseUp={() => handleClick()}
       >
@@ -205,7 +209,7 @@ function ChatItem({
             height={60}
           />
         )}
-        <div className="chat-info">
+        <div className={`${isRtl ? "mr-[20px]" : "ml-[20px]"} chat-info`}>
           <div className="chat-name">{SenderName || "User-" + id}</div>
           {lastMessage && (!status || status === "null") && (
             <LastMessageBody status={status} message={lastMessage} />
@@ -213,12 +217,20 @@ function ChatItem({
           {status && status !== "null" && <TypingIndicator status={status} />}
         </div>
         {lastMessage && (
-          <div className="chat-date">
+          <div
+            className={`${isRtl ? "left-[18px]" : "right-[18px]"} chat-date`}
+          >
             <div className="date-clock">{showDate(lastMessage.created_at)}</div>
             {/* <div className='date-clock'>{props.chat.messages[props.chat.messages.length-1].sent}</div> */}
           </div>
         )}
-        <div className="arrow-right">
+        <div
+          className={`${
+            isRtl
+              ? "left-[10px] right-[initial] rotate-[180deg] "
+              : "right-[10px]"
+          } arrow-right`}
+        >
           <ArrowRightIcon />
         </div>
         {newMessage > 0 && (

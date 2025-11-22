@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import Qr from "public/svg/qr.svg";
-import LoginCall from "public/svg/loginCall.svg";
+import Qr from "public/svg/qr";
+import LoginCall from "public/svg/loginCall";
 import { translateFunction } from "utils/functions";
 
 import Border from "./Border";

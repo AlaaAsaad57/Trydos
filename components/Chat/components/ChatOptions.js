@@ -1,10 +1,10 @@
 import React from "react";
-import UnreadIcon from "../svg/UnreadIcon.svg";
-import PinIcon from "../svg/PinIcon.svg";
-import MuteIcon from "../svg/muteIcon.svg";
-import UnmuteIcon from "../svg/UnmuteIcon.svg";
-import DeleteIcon from "../svg/DeleteIcon.svg";
-import ArchiveIcon from "../svg/ArchiveIcon.svg";
+import UnreadIcon from "../svg/UnreadIcon";
+import PinIcon from "../svg/PinIcon";
+import MuteIcon from "../svg/muteIcon";
+import UnmuteIcon from "../svg/UnmuteIcon";
+import DeleteIcon from "../svg/DeleteIcon";
+import ArchiveIcon from "../svg/ArchiveIcon";
 import { translateFunction } from "utils/functions";
 import { useParams } from "next/navigation";
 import { useAppStore } from "store";

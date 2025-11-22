@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 
 import { translateFunction } from "utils/functions";
-import WAIcon from "public/svg/WAIcon.svg";
-import MessageIcon from "public/svg/MessageIcon.svg";
+import WAIcon from "public/svg/WAIcon";
+import MessageIcon from "public/svg/MessageIcon";
 import AuthService from "services/auth";
 import { useParams } from "next/navigation";
 import { useAppStore } from "store";

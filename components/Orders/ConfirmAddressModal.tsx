@@ -1,13 +1,15 @@
-import React from "react";
+import React, { useState } from "react";
 import { translateFunction } from "utils/functions";
-import LargeAddressChangeIcon from "public/svg/LargeAddressChangeIcon.svg";
+import LargeAddressChangeIcon from "public/svg/LargeAddressChangeIcon";
 import { GetAddressString } from "utils/tinyUtils";
 import { ConfirmAddressModalPropsType } from "models/componentType/ConfirmAddressModalPropsType";
+import { CheckBoxElement } from "components/Cart/PlaceOrderButtons";
 function ConfirmAddressModal({
   close,
   confirm,
   confirmationData,
 }: ConfirmAddressModalPropsType) {
+  const [active, setActive] = useState(false);
   return (
     <div className="z-[9999999999999] px-[24px] pb-[70px] w-full flex-col justify-end items-center h-[calc(100vh)] overflow-auto max-h-[calc(100vh)] absolute top-0 left-0 bg-[#0000006c]  backdrop-blur-[10px]">
       <div className="flex-col justify-end items-center h-auto">
@@ -280,12 +282,18 @@ function ConfirmAddressModal({
             </div>
           </div>
         </div>
-        <p className="text-[14px] text-white regular mt-[40px]">
-          {translateFunction("I Read And Agree To")}
+        <p
+          className="text-[14px] text-white regular mt-[40px]"
+          onClick={() => {
+            setActive(!active);
+          }}
+        >
+          <CheckBoxElement active={active} />
+          <span>{translateFunction("I Read And Agree To")}</span>
           <a
             target="_blank"
             href="#"
-            className="ml-[4px] medium text-[14px] text-white underline"
+            className=" medium text-[14px] text-white underline"
           >
             {translateFunction("The Change Addres Terms.")}
           </a>
@@ -296,11 +304,14 @@ function ConfirmAddressModal({
           )}
         </p>
         <div
-          className="cursor-pointer mt-[10px] w-full h-[50px] rounded-[15px]  text-[16px] bold flex items-center justify-center bg-[#F8F8F8] text-[#402CDD]"
+          className={`${
+            active ? "bg-[#F8F8F8] text-[#402CDD]" : "bg-[#D3D3D3] text-[#fff]"
+          } cursor-pointer mt-[10px] w-full h-[50px] rounded-[15px]  text-[16px] bold flex items-center justify-center `}
           style={{
             border: "1px solid #402CDD80",
           }}
           onClick={() => {
+            if (!active) return;
             confirm();
           }}
         >

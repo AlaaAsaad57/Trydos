@@ -53,7 +53,7 @@
   font-family: var(--Quicksand-Regular);
   font-size: 11px;
   color: #1d1d1d;
-  display: flex;
+  display: inline;
 }
 
 .read-more {

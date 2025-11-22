@@ -1,6 +1,7 @@
 "use client";
 import Spinner from "components/global/Spinner";
 import BoutiqueLoader from "components/skeleton/loaders/BoutiqueLoader";
+import CompareSkeleton from "components/skeleton/loaders/CompareSkeleton";
 import FilterLoader from "components/skeleton/loaders/FilterLoader";
 import FullHomeLoader from "components/skeleton/loaders/FullHomeLoader";
 import HomeLoader from "components/skeleton/loaders/HomeLoader";
@@ -24,6 +25,9 @@ export default function PageLoadingIndicator() {
 
     if (isNavigating.is_filter_search)
       return <FilterLoader isForSearch boutique={isNavigating} />;
+  }
+  if (isNavigating.is_compare) {
+    return <CompareSkeleton />;
   }
   return (
     <>

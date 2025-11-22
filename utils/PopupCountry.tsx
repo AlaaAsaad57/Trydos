@@ -7,6 +7,7 @@ import { useParams, usePathname } from "next/navigation";
 import { translateFunction } from "./functions";
 import Cookies from "js-cookie";
 import Spinner from "components/global/Spinner";
+import PersonalInfoCountries from "components/settings/PersonalInfoCountries";
 
 import { FlagIcon } from "./tinyUtils";
 import { setLocalization } from "store/homepage/actions";
@@ -235,37 +236,28 @@ const PopupCountry = ({ options, countries, forChanged, noCountry }) => {
               </div>
             </div>
 
-            <div className="p-6">
+            <div className={noCountry ? "p-6" : "pb-6"}>
               {/* Country Change Scenario */}
               {forChanged && !forChanged?.includes("undefined") && (
                 <div className="space-y-4">
-                  <div className="text-center">
-                    <p className="text-gray-600 text-sm leading-relaxed">
-                      {translateFunction(
-                        "You previously visited from",
-                        currentLanguage
-                      )}{" "}
-                      <span className="font-semibold text-gray-800">
-                        {getCountryInfo(decodeURI(forChanged).split(",")[1])
-                          ?.label ||
-                          decodeURI(forChanged).split(",")[1]?.toUpperCase()}
-                      </span>{" "}
-                      {translateFunction(
-                        "but now accessing from",
-                        currentLanguage
-                      )}{" "}
-                      <span className="font-semibold text-gray-800">
-                        {getCountryInfo(decodeURI(forChanged).split(",")[0])
-                          ?.label ||
-                          decodeURI(forChanged).split(",")[0]?.toUpperCase()}
-                      </span>
-                    </p>
-                  </div>
-
-                  <div className="space-y-3">
+                  <CountryInfoRow
+                    message={`${translateFunction(
+                      "You previously visited from",
+                      currentLanguage
+                    )} ${
+                      getCountryInfo(decodeURI(forChanged).split(",")[1])
+                        ?.label ||
+                      decodeURI(forChanged).split(",")[1]?.toUpperCase()
+                    } ${translateFunction("but now accessing from")} ${
+                      getCountryInfo(decodeURI(forChanged).split(",")[0])
+                        ?.label ||
+                      decodeURI(forChanged).split(",")[0]?.toUpperCase()
+                    }`}
+                  />
+                  <div className="space-y-3 px-[8px]">
                     {/* Continue with new country */}
                     <button
-                      className="w-full flex items-center justify-center gap-3 p-4 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-xl disabled:opacity-50"
+                      className={`w-full flex-row cursor-pointer mt-[12px] h-[53px] rounded-[15px] bg-[#f8f8f8] px-[12px] items-center`}
                       style={{
                         cursor:
                           loadingWidget || navigating
@@ -287,11 +279,10 @@ const PopupCountry = ({ options, countries, forChanged, noCountry }) => {
                         );
                       }}
                     >
-                      <div className="w-6 h-6 flex-shrink-0">
+                      <span className="w-[30px] h-[20px]">
                         <FlagIcon iso={decodeURI(forChanged).split(",")[0]} />
-                      </div>
-                      <span className="text-blue-600 font-medium">
-                        {translateFunction("Continue with", currentLanguage)}{" "}
+                      </span>
+                      <span className="text-[14px] regular text-[#1d1d1d] ml-[12px] ">
                         {getCountryInfo(decodeURI(forChanged).split(",")[0])
                           ?.label ||
                           decodeURI(forChanged).split(",")[0]?.toUpperCase()}
@@ -309,7 +300,7 @@ const PopupCountry = ({ options, countries, forChanged, noCountry }) => {
 
                     {/* Continue with previous country */}
                     <button
-                      className="w-full flex items-center justify-center gap-3 p-4 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-xl disabled:opacity-50"
+                      className={`w-full flex-row cursor-pointer mt-[12px] h-[53px] rounded-[15px] bg-[#f8f8f8] px-[12px] items-center`}
                       style={{
                         cursor:
                           loadingWidget || navigating
@@ -328,11 +319,10 @@ const PopupCountry = ({ options, countries, forChanged, noCountry }) => {
                         UpdateUrl(`${targetCountry}-${currentLanguage}`);
                       }}
                     >
-                      <div className="w-6 h-6 flex-shrink-0">
+                      <span className="w-[30px] h-[20px]">
                         <FlagIcon iso={decodeURI(forChanged).split(",")[1]} />
-                      </div>
-                      <span className="text-gray-600 font-medium">
-                        {translateFunction("Continue with", currentLanguage)}{" "}
+                      </span>
+                      <span className="text-[14px] regular text-[#1d1d1d] ml-[12px] ">
                         {getCountryInfo(decodeURI(forChanged).split(",")[1])
                           ?.label ||
                           decodeURI(forChanged).split(",")[1]?.toUpperCase()}
@@ -344,84 +334,70 @@ const PopupCountry = ({ options, countries, forChanged, noCountry }) => {
 
               {/* No Country Scenario */}
               {noCountry && (
-                <div className="text-center mb-6">
-                  <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                    <svg
-                      className="w-6 h-6 text-blue-600"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                  </div>
-                  <h3 className="text-lg font-semibold text-gray-800 mb-2">
-                    {translateFunction("Select Your Country", currentLanguage)}
-                  </h3>
-                  <p className="text-gray-600 text-sm">
-                    {translateFunction(
-                      "Choose your country to get the best experience",
-                      currentLanguage
-                    )}
-                  </p>
-                </div>
+                <PersonalInfoCountries
+                  swipeToScreen={() => {}}
+                  goBack={() => {}}
+                  hideTopBar
+                  infoMessage={translateFunction(
+                    "Choose your country to get the best experience",
+                    currentLanguage
+                  )}
+                />
               )}
 
               {/* Country Selection Dropdown */}
               {!forChanged && (
-                <div className="space-y-3">
-                  <label htmlFor="country" className="sr-only">
-                    {translateFunction("Select Country", currentLanguage)}
-                  </label>
+                // <div className="space-y-3">
+                //   <label htmlFor="country" className="sr-only">
+                //     {translateFunction("Select Country", currentLanguage)}
+                //   </label>
 
-                  {/* Country Grid for better UX (alternative to dropdown) */}
-                  {options?.length <= 8 && (
-                    <div className="mt-4">
-                      <p className="text-sm text-gray-500 mb-3 text-center regualr">
-                        {translateFunction(
-                          "choose from below",
-                          currentLanguage
-                        )}
-                      </p>
-                      <div className="grid grid-cols-2 gap-2">
-                        {options?.map(
-                          (
-                            country: { value: string; label: string },
-                            index: number
-                          ) => (
-                            <button
-                              key={index}
-                              onClick={() =>
-                                UpdateUrl(
-                                  `${country.value?.toLocaleLowerCase()}-${currentLanguage}`
-                                )
-                              }
-                              className="flex items-center gap-2 p-3 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-lg text-left"
-                              style={{
-                                cursor: "pointer",
-                                transition: "none",
-                                WebkitTransition: "none",
-                                MozTransition: "none",
-                                OTransition: "none",
-                                msTransition: "none",
-                              }}
-                            >
-                              <div className="w-5 h-5 flex-shrink-0 flex items-center">
-                                <FlagIcon iso={country.value} />
-                              </div>
-                              <span className="text-sm font-medium text-gray-700 truncate light">
-                                {country.label}
-                              </span>
-                            </button>
-                          )
-                        )}
-                      </div>
-                    </div>
-                  )}
-                </div>
+                //   {/* Country Grid for better UX (alternative to dropdown) */}
+                //   {options?.length <= 8 && (
+                //     <div className="mt-4">
+                //       <p className="text-sm text-gray-500 mb-3 text-center regualr">
+                //         {translateFunction(
+                //           "choose from below",
+                //           currentLanguage
+                //         )}
+                //       </p>
+                //       <div className="grid grid-cols-2 gap-2">
+                //         {options?.map(
+                //           (
+                //             country: { value: string; label: string },
+                //             index: number
+                //           ) => (
+                //             <button
+                //               key={index}
+                //               onClick={() =>
+                //                 UpdateUrl(
+                //                   `${country.value?.toLocaleLowerCase()}-${currentLanguage}`
+                //                 )
+                //               }
+                //               className="flex items-center gap-2 p-3 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-lg text-left"
+                //               style={{
+                //                 cursor: "pointer",
+                //                 transition: "none",
+                //                 WebkitTransition: "none",
+                //                 MozTransition: "none",
+                //                 OTransition: "none",
+                //                 msTransition: "none",
+                //               }}
+                //             >
+                //               <div className="w-5 h-5 flex-shrink-0 flex items-center">
+                //                 <FlagIcon iso={country.value} />
+                //               </div>
+                //               <span className="text-sm font-medium text-gray-700 truncate light">
+                //                 {country.label}
+                //               </span>
+                //             </button>
+                //           )
+                //         )}
+                //       </div>
+                //     </div>
+                //   )}
+                // </div>
+                <></>
               )}
             </div>
           </div>
@@ -470,3 +446,68 @@ const PopupCountry = ({ options, countries, forChanged, noCountry }) => {
   );
 };
 export default PopupCountry;
+
+const CountryInfoRow = ({ message }) => {
+  return (
+    <div className="flex-row justify-center mt-[12px] w-full">
+      <div
+        className="bg-[#F8F8F8] min-h-[50px] w-full flex-row items-center pl-[24px] pr-[20px] "
+        style={{
+          border: "1px solid rgb(211 211 211 / 51%)",
+        }}
+        data-cy="address-info-header" // Added data-cy
+      >
+        <svg
+          id="Group_3387"
+          data-name="Group 3387"
+          xmlns="http://www.w3.org/2000/svg"
+          width="24.997"
+          height="24.997"
+          viewBox="0 0 24.997 24.997"
+        >
+          <path
+            id="Path_15434"
+            data-name="Path 15434"
+            d="M178.661,126.993h-.067a2.3,2.3,0,0,0,0,4.605h.067a2.3,2.3,0,0,0,0-4.605Z"
+            transform="translate(-167.728 -120.932)"
+            fill="#402cdd"
+          />
+          <path
+            id="Path_15435"
+            data-name="Path 15435"
+            d="M180.465,237.18H176.79a.5.5,0,0,0-.5.5v9.113a.5.5,0,0,0,.5.5h3.675a.5.5,0,0,0,.5-.5v-9.113A.5.5,0,0,0,180.465,237.18Z"
+            transform="translate(-167.728 -225.62)"
+            fill="#402cdd"
+          />
+          <path
+            id="Path_15436"
+            data-name="Path 15436"
+            d="M10.832,60.315a10.616,10.616,0,0,0-7.66,3.261A11.346,11.346,0,0,0,3.5,79.641l-.174,2.044a.5.5,0,0,0,.185.436.477.477,0,0,0,.457.08l2.124-.742a10.477,10.477,0,0,0,4.74,1.12,10.617,10.617,0,0,0,7.66-3.261,11.35,11.35,0,0,0,0-15.741A10.617,10.617,0,0,0,10.832,60.315Zm0,21.265A9.539,9.539,0,0,1,6.35,80.475a.476.476,0,0,0-.379-.028l-1.61.563.13-1.529a.506.506,0,0,0-.163-.418A10.264,10.264,0,0,1,.973,71.446a10.01,10.01,0,0,1,9.859-10.133,10.137,10.137,0,0,1,0,20.267Z"
+            transform="translate(0 -57.581)"
+            fill="#402cdd"
+          />
+          <path
+            id="Path_15437"
+            data-name="Path 15437"
+            d="M380.02,5.522a.5.5,0,1,0,0,1,5.126,5.126,0,0,1,5.114,5.126.5.5,0,1,0,1,0A6.125,6.125,0,0,0,380.02,5.522Z"
+            transform="translate(-361.135 -5.522)"
+            fill="#402cdd"
+          />
+          <path
+            id="Path_15438"
+            data-name="Path 15438"
+            d="M390.541,56.12a.5.5,0,0,0,0,1,2.075,2.075,0,0,1,2.07,2.075.5.5,0,1,0,1,0A3.073,3.073,0,0,0,390.541,56.12Z"
+            transform="translate(-371.134 -53.595)"
+            fill="#402cdd"
+          />
+        </svg>
+
+        {message && (
+          <div className="regular text-[10px] ml-[12px] text-[#8D8D8D]">
+            {message}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};

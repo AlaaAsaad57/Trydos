@@ -1,9 +1,9 @@
 "use client";
 import React, { useEffect } from "react";
-import ActiveCategoryIcon from "public/svg/listing/ActiveCategoryIcon.svg";
-import CloseIcon from "public/svg/CloseIcon.svg";
+import ActiveCategoryIcon from "public/svg/listing/ActiveCategoryIcon";
+import CloseIcon from "public/svg/CloseIcon";
 import { useParams, useSearchParams } from "next/navigation";
-import Search from "public/svg/SearchIcon.svg";
+import Search from "public/svg/SearchIcon";
 import { useAppStore } from "store";
 import search from "services/search";
 import { GetImageUrl } from "utils/tinyUtils";

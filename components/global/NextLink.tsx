@@ -11,7 +11,7 @@ export interface INextLinkProps
   ariaLabel?: string;
   data?: any;
   exportparts?: string;
-  ignoreConditionCase?: true;
+  ignoreConditionCase?: boolean;
 }
 export default function NextLink({
   href,
@@ -22,7 +22,7 @@ export default function NextLink({
   style,
   exportparts,
   data,
-  ignoreConditionCase,
+  ignoreConditionCase = false,
   ...props
 }: INextLinkProps) {
   if (ignoreConditionCase) {

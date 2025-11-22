@@ -1,4 +1,4 @@
-import ActiveCategoryIcon from "public/svg/listing/ActiveCategoryIcon.svg";
+import ActiveCategoryIcon from "public/svg/listing/ActiveCategoryIcon";
 import { getConfiguredImage } from "utils/functions";
 import { GetImageUrl } from "utils/tinyUtils";
 function BrandItem({ brand, onClick, isActive }) {

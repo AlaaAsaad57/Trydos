@@ -2,7 +2,7 @@ import React, { memo, useState } from "react";
 import { BuyButtonProduct } from "../ListingPage/Product";
 import Image from "next/image";
 import ProductBanner from "components/products/ProductBanner";
-import VerifiedIcon from "public/svg/listing/VerifiedIcon.svg";
+import VerifiedIcon from "public/svg/listing/VerifiedIcon";
 import { ProductLabelsAnimated } from "components/products/ProductLabelsAnimated";
 import { GetImageUrl } from "utils/tinyUtils";
 import { getConfiguredImage } from "utils/functions";

@@ -13,7 +13,7 @@ function SearchResult({
   handleClickChat,
   item,
 }) {
-  const { setMain } = useAppStore();
+  const { setMain, language } = useAppStore();
   const [showInviteModal, setShowInviteModal] = useState(false);
 
   const handleClick = () => {
@@ -68,7 +68,7 @@ function SearchResult({
     );
     setShowInviteModal(false);
   };
-
+  const isRtl = language === "ar" || language === "ku";
   const handleModalClose = () => {
     setShowInviteModal(false);
   };
@@ -95,7 +95,9 @@ function SearchResult({
           </div>
         )}
         <div
-          className={`chat-conversation-item `}
+          className={`chat-conversation-item  ${
+            isRtl ? "p-[10px_20px_10px_10px] flex-row-reverse" : "flex-row"
+          }  `}
           onClick={() => handleClick()}
         >
           {photo ? (

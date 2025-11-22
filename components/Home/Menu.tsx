@@ -55,6 +55,7 @@ const MenuItem = ({
   href = null,
   children,
   dataCy = "",
+  data = {},
   icon,
 }) => {
   const style = {
@@ -69,10 +70,7 @@ const MenuItem = ({
   if (href && !pathname.includes(href)) {
     return (
       <NextLink
-        data={{
-          is_settings: true,
-          href,
-        }}
+        data={data}
         ariaLabel={`Menu Item ${href}`}
         data-cy={dataCy}
         style={style}
@@ -102,7 +100,7 @@ const MenuItem = ({
 };
 
 const Menu = ({ user, setMenuOpen }) => {
-  const { setSettingLastPath, setActivePacks } = useAppStore();
+  const { setSettingLastPath, setLoggingOut } = useAppStore();
   const userChat = getCookie<UserData>(COOKIE_NAMES.USER_CHAT);
   const userStories = getCookie<UserData>(COOKIE_NAMES.USER_STORIES);
   const [showNotifications, setShowNotifications] = useState(false);
@@ -116,20 +114,30 @@ const Menu = ({ user, setMenuOpen }) => {
     // });
     // localStorage.clear();
     if (loading) return;
+    setLoggingOut(true);
     clearSimulatedUserSession();
     clearHashedUserId();
     setLoading(true);
+    deleteCookie(COOKIE_NAMES.MARKET_TOKEN);
+    deleteCookie(COOKIE_NAMES.DEVICE_TOKEN);
     deleteCookie(COOKIE_NAMES.USER_CHAT);
     deleteCookie(COOKIE_NAMES.USER_STORIES);
     deleteCookie(COOKIE_NAMES.CHAT_TOKEN);
     deleteCookie(COOKIE_NAMES.STORIES_TOKEN);
-    deleteCookie(COOKIE_NAMES.MARKET_TOKEN);
-    deleteCookie(COOKIE_NAMES.DEVICE_TOKEN);
+
     deleteCookie(COOKIE_NAMES.USER_DATA);
     const { messaging } = await import("utils/firebaseInitv1");
     const { deleteToken } = await import("firebase/messaging");
     try {
       await deleteToken(messaging);
+      deleteCookie(COOKIE_NAMES.MARKET_TOKEN);
+      deleteCookie(COOKIE_NAMES.DEVICE_TOKEN);
+      deleteCookie(COOKIE_NAMES.USER_CHAT);
+      deleteCookie(COOKIE_NAMES.USER_STORIES);
+      deleteCookie(COOKIE_NAMES.CHAT_TOKEN);
+      deleteCookie(COOKIE_NAMES.STORIES_TOKEN);
+
+      deleteCookie(COOKIE_NAMES.USER_DATA);
     } catch (error) {}
     await new Promise((resolve) => setTimeout(resolve, 2000));
     window.location.reload();
@@ -173,6 +181,10 @@ const Menu = ({ user, setMenuOpen }) => {
         <>
           <MenuItem
             dataCy="Settings-Icon"
+            data={{
+              is_setting: true,
+              href: `/${lang}/setting?tab=main`,
+            }}
             href={`/${lang}/setting?tab=main`}
             onClick={() => {
               // Sendevent({
@@ -239,20 +251,17 @@ const Menu = ({ user, setMenuOpen }) => {
           </MenuItem> */}
           <MenuItem
             dataCy="Compare-Icon"
+            data={{
+              is_compare: true,
+              href: `/${lang}/setting?tab=main`,
+            }}
             onClick={() => {
-              // Sendevent({
-              //   event: GA_EVENT_NAMES.CLICK,
-              //   value: GA_CLICK_EVENT_VALUES.COMPARE_BUTTON,
-              // });
+              setMenuOpen(false);
             }}
             href={`/${lang}/compare`}
             icon={
               <MenuIcon>
-                <g
-                  id="Mask_Group_364"
-                  data-name="Mask Group 364"
-                  clipPath="url(#clipPath)"
-                >
+                <g id="Mask_Group_364" data-name="Mask Group 364">
                   <g
                     id="Group_3489"
                     data-name="Group 3489"
@@ -434,9 +443,6 @@ const Menu = ({ user, setMenuOpen }) => {
             {translateFunction("Make Stories Token Expired")}
           </MenuItem>
         )}
-        <MenuItem icon={<></>}>
-          <Reffer />
-        </MenuItem>
       </div>
 
       {showNotifications && (
@@ -452,13 +458,3 @@ const Menu = ({ user, setMenuOpen }) => {
 };
 
 export default Menu;
-const Reffer = () => {
-  if (typeof window === "undefined") return <></>;
-  let reffere = getCookie("referer");
-
-  return (
-    <div>
-      Reffere: {reffere?.toString()} - {getReferralSource(reffere)}
-    </div>
-  );
-};

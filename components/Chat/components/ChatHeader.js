@@ -1,7 +1,7 @@
-import ArrowIcon from "../svg/arrow.svg";
-import VideoIcon from "../svg/vcall.svg";
-import CallIcon from "../svg/call.svg";
-import CancelCallIcon from "../svg/cancel-call.svg";
+import ArrowIcon from "../svg/arrow";
+import VideoIcon from "../svg/vcall";
+import CallIcon from "../svg/call";
+import CancelCallIcon from "../svg/cancel-call";
 import { getNew, showDate } from "../chatsFunctions";
 import { getUserChat } from "utils/functions";
 import { makeVideoCall, makeVoiceCall } from "store/chat/callActions";
@@ -19,16 +19,17 @@ function ChatHeader({
   openDetails,
   isPrivate,
   closeWidget,
+  close,
 }) {
   const {
     callLoading,
     Server_time,
-    language,
     setMain,
     openChat,
     setReplyMessage,
     cameraPermissions,
     checkCameraPermissions,
+    language,
   } = useAppStore();
   let { lang } = useParams();
   // @ts-ignore
@@ -125,12 +126,17 @@ function ChatHeader({
       );
     }
   };
+  const isRtl = language === "ar" || language === "ku";
   return (
-    <div className="chat-screen-top">
+    <div
+      className={`${isRtl ? "flex-row-reverse" : "flex-row"} chat-screen-top`}
+    >
       <ArrowIcon
+        className={`${isRtl ? "rotate-[180deg]" : ""}`}
         onClick={() => {
           setMain("main");
           openChat(null);
+          close();
           setReplyMessage(null);
           if (isPrivate) {
             closeWidget();
@@ -143,7 +149,13 @@ function ChatHeader({
             getNew(chats, activeChat).length}
         </span>
       )}
-      <div className="user-top-chat">
+      <div
+        className={`${
+          isRtl
+            ? "flex-row-reverse ml-[0px] mr-[11px]"
+            : "mr-[0px] ml-[11px] flex-row"
+        } user-top-chat`}
+      >
         {activeChat && activeChat.channel_members && (
           <div className="img-uer" onClick={() => openDetails()}>
             <ChatPhoto
@@ -158,7 +170,11 @@ function ChatHeader({
           </div>
         )}
         {activeChat && activeChat.channel_members && (
-          <div className="user-name-top-chat">
+          <div
+            className={`${
+              isRtl ? "mr-[11px] ml-0" : "ml-[11px]"
+            } user-name-top-chat`}
+          >
             {(activeChat.status || activeChat.activeDate) && (
               <div className="user-status">{getStatues()}</div>
             )}
@@ -177,9 +193,17 @@ function ChatHeader({
         )}
       </div>
       {!isPrivate && (
-        <div className="chat-top-contact">
+        <div
+          className={`${
+            isRtl
+              ? "left-[30px] flex-row-reverse right-[initial]"
+              : "right-[30px] flex-row left-[initial]"
+          } chat-top-contact`}
+        >
           <VideoIcon
-            className={`${callLoading === "video" && "loading-svg"} vcall`}
+            className={`${callLoading === "video" && "loading-svg"} vcall ${
+              isRtl ? "ml-[20px] mr-0" : "ml-0 mr-[20px]"
+            }`}
             onClick={() => {
               videoCallFunction();
             }}
@@ -190,8 +214,8 @@ function ChatHeader({
               audioCallFunction();
             }}
           ></CallIcon>
-          <CancelCallIcon
-            className="cancel-call pl-4"
+          {/* <CancelCallIcon
+            className={`${isRtl ? "pr-4" : "pl-4"} cancel-call `}
             onClick={async () => {
               try {
                 let res = await fetchData({
@@ -208,7 +232,7 @@ function ChatHeader({
                 console.error("End call failed", err);
               }
             }}
-          ></CancelCallIcon>
+          ></CancelCallIcon> */}
         </div>
       )}
     </div>

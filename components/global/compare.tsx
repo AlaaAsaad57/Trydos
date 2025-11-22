@@ -2,7 +2,11 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 
-import { translateFunction, RoundPrice } from "utils/functions";
+import {
+  translateFunction,
+  RoundPrice,
+  getConfiguredImage,
+} from "utils/functions";
 import AsyncSelectCustom from "./AsyncSelectCustom";
 import Link from "next/link";
 import CompareLoadingWidget from "./CompareLoadingWidget";
@@ -12,10 +16,15 @@ import NextLink from "./NextLink";
 import { GetImageUrl } from "utils/tinyUtils";
 import { ComparePageComponentPropsType } from "models/componentType/compareTypes/ComparePageComponentPropsType";
 import { showErrorNotification } from "@/store/notifications/reducer";
+import {
+  getCookie,
+  setCookie,
+  deleteCookie,
+} from "utils/cookies/cookie-manager";
 const ComparePage = ({
   showInstantLoading = true,
 }: ComparePageComponentPropsType) => {
-  const { currency } = useAppStore();
+  const { currency, setIsNavigating } = useAppStore();
   const searchParams = useSearchParams();
   const [product1, setProduct1] = useState<any>(null);
   const [product2, setProduct2] = useState<any>(null);
@@ -27,15 +36,16 @@ const ComparePage = ({
   let languageVariable = lang.split("-")[1];
   const isRtl = languageVariable === "ar" || languageVariable === "ku";
   useEffect(() => {
+    setIsNavigating(false);
     const { f_p, s_p } = {
       f_p: searchParams.get("f_p"),
       s_p: searchParams.get("s_p"),
     };
 
-    // If URL has less than two slugs, check localStorage
+    // If URL has less than two slugs, check cookies
     if (!f_p || !s_p) {
-      const storedFp = localStorage.getItem("f_p");
-      const storedSp = localStorage.getItem("s_p");
+      const storedFp = getCookie<string>("f_p");
+      const storedSp = getCookie<string>("s_p");
 
       if (storedFp || storedSp) {
         setInitialLoading(true);
@@ -103,61 +113,41 @@ const ComparePage = ({
   };
 
   const [searchLoading, setSearchLoading] = useState(false);
+  const [country, language] = (lang as string)?.split("-");
+
   const searchFunction = async (inputValue: string) => {
-    setSearchLoading(true);
+    if (!inputValue || inputValue.trim().length === 0) {
+      return [];
+    }
+
     try {
-      // const result = await fetchFilteredProducts(
-      //   lang.toString(),
-      //   lang.toString().split("-")[0],
-      //   [inputValue],
-      //   "false",
-      //   "true"
-      // );
-      // return result.data.products;
+      const params = new URLSearchParams();
+      params.set("search_text", inputValue.trim());
+      params.set("filters_offset", "1");
+      params.set("limit", "10");
+      params.set("noFilters", "true");
+      params.set("noProducts", "false");
+      const response = await fetch(`/api/products/searchInCatalog?${params}`, {
+        method: "GET",
+        headers: {
+          country: country || "sy",
+          language: language || "en",
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Search request failed");
+      }
+
+      const result = await response.json();
+      return result.data?.products || [];
     } catch (error) {
       console.error("Search error:", error);
       return [];
     }
   };
-  const search = async (inputValue: string) => {
-    setSearchLoading(true);
-    const productsVar = await searchFunction(inputValue);
-    setProducts(
-      productsVar?.map((p) => ({
-        label: p.name,
-        value: p.slug,
-        images: p.images[0]?.file_path,
-        price: p.price,
-      })) || []
-    );
-    setSearchLoading(false);
-  };
 
   const [products, setProducts] = useState<any[]>([]);
-  const fetchProducts = async (slug1: string, slug2: string) => {
-    // Fetch product data based on slugs
-    const productData1 = await fetchProductData(slug1);
-    const productData2 = await fetchProductData(slug2);
-
-    setProduct1(productData1);
-    setProduct2(productData2);
-  };
-  const [language, country] = (lang as string)?.split("-");
-  const fetchProductData = async (slug: string) => {
-    // Implement your fetch logic here, e.g., using filterProducts
-    // const results = await fetchFilteredProducts(
-    //   language,
-    //   country,
-    //   ["Search", slug],
-    //   "false",
-    //   "true",
-    //   undefined,
-    //   undefined,
-    //   false,
-    //   false
-    // );
-    // return results?.data?.products?.[0]; // Assuming the first product matches the slug
-  };
 
   const GetProductData = async (slug: string) => {
     try {
@@ -206,7 +196,8 @@ const ComparePage = ({
       const option = {
         label: product.name,
         value: product.slug,
-        images: product.images[0]?.file_path,
+        images:
+          product?.sync_color_images?.[0].images[0] ?? product?.images?.[0],
         price: product.price,
       };
       setProducts([option]);
@@ -214,8 +205,10 @@ const ComparePage = ({
       const currentParams = new URLSearchParams(window.location.search);
       if (isFirstProduct) {
         currentParams.set("f_p", slug);
+        setCookie("f_p", slug);
       } else {
         currentParams.set("s_p", slug);
+        setCookie("s_p", slug);
       }
       window.history.replaceState(
         {},
@@ -227,9 +220,11 @@ const ComparePage = ({
       const currentParams = new URLSearchParams(window.location.search);
       if (isFirstProduct) {
         currentParams.delete("f_p");
+        deleteCookie("f_p");
         setProduct1(null);
       } else {
         currentParams.delete("s_p");
+        deleteCookie("s_p");
         setProduct2(null);
       }
       window.history.replaceState(
@@ -273,10 +268,34 @@ const ComparePage = ({
   };
   const debouncedChangeHandler = useCallback(
     debounce(async (value: string) => {
-      setProducts([]);
-      await search(value);
+      if (!value || value.trim().length === 0) {
+        setProducts([]);
+        setSearchLoading(false);
+        return;
+      }
+      setSearchLoading(true);
+      try {
+        const productsVar = await searchFunction(value);
+        setProducts(
+          productsVar?.map((p) => ({
+            label: p.name,
+            value: p.slug,
+            images:
+              p?.sync_color_images?.[0]?.images?.[0] ||
+              p.images?.[0]?.file_path ||
+              p.thumbnail?.file_path ||
+              "",
+            price: p.price,
+          })) || []
+        );
+      } catch (error) {
+        console.error("Search error:", error);
+        setProducts([]);
+      } finally {
+        setSearchLoading(false);
+      }
     }, 500),
-    []
+    [language, country]
   );
 
   const LoadingCell = () => (
@@ -290,7 +309,7 @@ const ComparePage = ({
       setProduct1(null);
       const params = new URLSearchParams(window.location.search);
       params.delete("f_p");
-      localStorage.removeItem("f_p");
+      deleteCookie("f_p");
       window.history.replaceState(
         {},
         "",
@@ -300,7 +319,7 @@ const ComparePage = ({
       setProduct2(null);
       const params = new URLSearchParams(window.location.search);
       params.delete("s_p");
-      localStorage.removeItem("s_p");
+      deleteCookie("s_p");
       window.history.replaceState(
         {},
         "",
@@ -334,7 +353,14 @@ const ComparePage = ({
         <Link href={`/${lang}/products/${product.slug}`}>
           <img
             // @ts-ignore
-            src={GetImageUrl(product.images)}
+            src={getConfiguredImage({
+              src: GetImageUrl(
+                product?.sync_color_images?.[0]?.images?.[0] ??
+                  product.images?.[0]
+              ),
+              height: 100,
+              width: 100,
+            })}
             alt={product.name}
             className="w-32 h-32 object-contain hover:opacity-80 transition-opacity"
           />
@@ -380,8 +406,7 @@ const ComparePage = ({
       label: translateFunction("Price"),
       render: (product: any) => (
         <span className="font-semibold regular">
-          {currency?.symbol || "$"}
-          {RoundPrice({ num: product.price })}
+          {RoundPrice({ num: product.price })} {currency?.symbol || "$"}
         </span>
       ),
     },
@@ -391,8 +416,7 @@ const ComparePage = ({
       render: (product: any) =>
         product.offer_price ? (
           <span className="text-green-600 font-semibold regular">
-            {currency?.symbol || "$"}
-            {RoundPrice({ num: product.offer_price })}
+            {RoundPrice({ num: product.offer_price })} {currency?.symbol || "$"}
           </span>
         ) : (
           "-"
@@ -431,221 +455,218 @@ const ComparePage = ({
 
   return (
     <>
-      {initialLoading ? (
-        <CompareLoadingWidget />
-      ) : (
-        <div className="container mx-auto p-4 max-w-7xl pb-[200px]">
-          <div
-            className={`flex items-center gap-3 mb-8 flex-row ${
-              isRtl ? "flex-row-reverse" : " "
-            }`}
+      <div className="container mx-auto p-4 max-w-7xl pb-[200px]">
+        <div
+          className={`flex items-center gap-3 mb-8 flex-row ${
+            isRtl ? "flex-row-reverse" : " "
+          }`}
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            xmlnsXlink="http://www.w3.org/1999/xlink"
+            width="25"
+            height="25"
+            viewBox="0 0 25 25"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              xmlnsXlink="http://www.w3.org/1999/xlink"
-              width="25"
-              height="25"
-              viewBox="0 0 25 25"
+            <g
+              id="Mask_Group_364"
+              data-name="Mask Group 364"
+              clipPath="url(#clipPath)"
             >
               <g
-                id="Mask_Group_364"
-                data-name="Mask Group 364"
-                clipPath="url(#clipPath)"
+                id="Group_3489"
+                data-name="Group 3489"
+                transform="translate(3.75 0)"
               >
-                <g
-                  id="Group_3489"
-                  data-name="Group 3489"
-                  transform="translate(3.75 0)"
-                >
-                  <g id="Group_3488" data-name="Group 3488">
-                    <g
-                      id="Rectangle_4149"
-                      data-name="Rectangle 4149"
-                      fill="none"
-                      stroke="#404040"
-                      strokeWidth="0.625"
-                    >
-                      <rect width="17.5" height="12.5" rx="2.5" stroke="none" />
-                      <rect
-                        x="0.313"
-                        y="0.313"
-                        width="16.875"
-                        height="11.875"
-                        rx="2.188"
-                        fill="none"
-                      />
-                    </g>
-                    <rect
-                      id="Rectangle_4150"
-                      data-name="Rectangle 4150"
-                      width="5"
-                      height="7.5"
-                      rx="1.25"
-                      transform="translate(6.25 2.5)"
-                      fill="#8e8e8e"
-                    />
-                  </g>
+                <g id="Group_3488" data-name="Group 3488">
                   <g
-                    id="Group_3486"
-                    data-name="Group 3486"
-                    transform="translate(0 12.5)"
+                    id="Rectangle_4149"
+                    data-name="Rectangle 4149"
+                    fill="none"
+                    stroke="#404040"
+                    strokeWidth="0.625"
                   >
-                    <g
-                      id="Rectangle_4148"
-                      data-name="Rectangle 4148"
-                      fill="none"
-                      stroke="#404040"
-                      strokeWidth="0.625"
-                    >
-                      <rect width="17.5" height="12.5" rx="2.5" stroke="none" />
-                      <rect
-                        x="0.313"
-                        y="0.313"
-                        width="16.875"
-                        height="11.875"
-                        rx="2.188"
-                        fill="none"
-                      />
-                    </g>
+                    <rect width="17.5" height="12.5" rx="2.5" stroke="none" />
                     <rect
-                      id="Rectangle_4151"
-                      data-name="Rectangle 4151"
-                      width="5"
-                      height="7.5"
-                      rx="1.25"
-                      transform="translate(6.25 2.5)"
-                      fill="#8e8e8e"
+                      x="0.313"
+                      y="0.313"
+                      width="16.875"
+                      height="11.875"
+                      rx="2.188"
+                      fill="none"
                     />
                   </g>
+                  <rect
+                    id="Rectangle_4150"
+                    data-name="Rectangle 4150"
+                    width="5"
+                    height="7.5"
+                    rx="1.25"
+                    transform="translate(6.25 2.5)"
+                    fill="#8e8e8e"
+                  />
+                </g>
+                <g
+                  id="Group_3486"
+                  data-name="Group 3486"
+                  transform="translate(0 12.5)"
+                >
+                  <g
+                    id="Rectangle_4148"
+                    data-name="Rectangle 4148"
+                    fill="none"
+                    stroke="#404040"
+                    strokeWidth="0.625"
+                  >
+                    <rect width="17.5" height="12.5" rx="2.5" stroke="none" />
+                    <rect
+                      x="0.313"
+                      y="0.313"
+                      width="16.875"
+                      height="11.875"
+                      rx="2.188"
+                      fill="none"
+                    />
+                  </g>
+                  <rect
+                    id="Rectangle_4151"
+                    data-name="Rectangle 4151"
+                    width="5"
+                    height="7.5"
+                    rx="1.25"
+                    transform="translate(6.25 2.5)"
+                    fill="#8e8e8e"
+                  />
                 </g>
               </g>
-            </svg>
-            <h1 className="text-3xl  text-gray-900 regular">
-              {translateFunction("Compare Products")}
-            </h1>
+            </g>
+          </svg>
+          <h1 className="text-3xl  text-gray-900 regular">
+            {translateFunction("Compare Products")}
+          </h1>
+        </div>
+
+        <div className="bg-white rounded-lg shadow-sm p-6">
+          <div className="flex gap-6 mb-4">
+            <div className="min-w-[25%]" />
+            <div className="flex-1">
+              <AsyncSelectCustom
+                placeholder={translateFunction("Search for Product 1")}
+                onChange={(option) =>
+                  handleSearchChange(option, setProduct1, setLoading1, true)
+                }
+                onClear={() => handleClear(true)}
+                onSearch={debouncedChangeHandler}
+                options={products.map((p) => ({
+                  ...p,
+                  images:
+                    typeof p.images === "string"
+                      ? { file_path: p.images }
+                      : p.images,
+                }))}
+                isLoading={searchLoading || loading1}
+                className="w-full"
+                selectedOption={
+                  product1
+                    ? {
+                        label: product1.name,
+                        value: product1.slug,
+                        images:
+                          product1.images && product1.images[0]
+                            ? { file_path: product1.images[0].file_path }
+                            : undefined,
+                        price: product1.price,
+                      }
+                    : null
+                }
+              />
+            </div>
+            <div className="flex-1">
+              <AsyncSelectCustom
+                placeholder={translateFunction("Search for Product 2")}
+                onChange={(option) =>
+                  handleSearchChange(option, setProduct2, setLoading2, false)
+                }
+                onClear={() => handleClear(false)}
+                onSearch={debouncedChangeHandler}
+                options={products.map((p) => ({
+                  ...p,
+                  images:
+                    typeof p.images === "string"
+                      ? { file_path: p.images }
+                      : p.images,
+                }))}
+                isLoading={searchLoading || loading2}
+                className="w-full"
+                selectedOption={
+                  product2
+                    ? {
+                        label: product2.name,
+                        value: product2.slug,
+                        images:
+                          product2.images && product2.images[0]
+                            ? { file_path: product2.images[0].file_path }
+                            : undefined,
+                        price: product2.price,
+                      }
+                    : null
+                }
+              />
+            </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow-sm p-6">
-            <div className="flex gap-6 mb-8">
-              <div className="flex-1">
-                <AsyncSelectCustom
-                  placeholder={translateFunction("Search for Product 1")}
-                  onChange={(option) =>
-                    handleSearchChange(option, setProduct1, setLoading1, true)
-                  }
-                  onClear={() => handleClear(true)}
-                  onSearch={debouncedChangeHandler}
-                  options={products.map((p) => ({
-                    ...p,
-                    images:
-                      typeof p.images === "string"
-                        ? { file_path: p.images }
-                        : p.images,
-                  }))}
-                  isLoading={searchLoading || loading1}
-                  className="w-full"
-                  selectedOption={
-                    product1
-                      ? {
-                          label: product1.name,
-                          value: product1.slug,
-                          images:
-                            product1.images && product1.images[0]
-                              ? { file_path: product1.images[0].file_path }
-                              : undefined,
-                          price: product1.price,
-                        }
-                      : null
-                  }
-                />
-              </div>
-              <div className="flex-1">
-                <AsyncSelectCustom
-                  placeholder={translateFunction("Search for Product 2")}
-                  onChange={(option) =>
-                    handleSearchChange(option, setProduct2, setLoading2, false)
-                  }
-                  onClear={() => handleClear(false)}
-                  onSearch={debouncedChangeHandler}
-                  options={products.map((p) => ({
-                    ...p,
-                    images:
-                      typeof p.images === "string"
-                        ? { file_path: p.images }
-                        : p.images,
-                  }))}
-                  isLoading={searchLoading || loading2}
-                  className="w-full"
-                  selectedOption={
-                    product2
-                      ? {
-                          label: product2.name,
-                          value: product2.slug,
-                          images:
-                            product2.images && product2.images[0]
-                              ? { file_path: product2.images[0].file_path }
-                              : undefined,
-                          price: product2.price,
-                        }
-                      : null
-                  }
-                />
-              </div>
-            </div>
-
-            <div className="mt-8 overflow-x-auto rounded-xl border border-gray-200 bg-gray-50 shadow-md">
-              <div className="min-w-full">
-                <div className="overflow-x-auto">
-                  <table className="w-full border-collapse text-gray-800 regular">
-                    <tbody>
-                      {compareFields.map(({ key, label, render }) => (
-                        <tr
-                          key={key}
-                          className="border-b last:border-b-0 hover:bg-blue-50 transition-colors"
-                        >
-                          <th className="p-4 text-left bg-blue-100 w-1/4 font-semibold text-blue-900 whitespace-nowrap border-r border-gray-200 regular">
-                            {label}
-                          </th>
-                          <td className="p-4 w-[37.5%] bg-white border-r border-gray-100">
-                            <div className="flex flex-col gap-2">
-                              {loading1 ? (
-                                <LoadingCell />
-                              ) : product1 ? (
-                                render ? (
-                                  render(product1)
-                                ) : (
-                                  product1[key] || "-"
-                                )
+          <div className="mt-8 overflow-x-auto rounded-xl border border-gray-200 bg-gray-50 shadow-md">
+            <div className="min-w-full">
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse text-gray-800 regular">
+                  <tbody>
+                    {compareFields.map(({ key, label, render }) => (
+                      <tr
+                        key={key}
+                        className="border-b last:border-b-0 hover:bg-blue-50 transition-colors"
+                      >
+                        <th className="p-4 text-left bg-blue-100 w-1/4 font-semibold text-blue-900 whitespace-nowrap border-r border-gray-200 regular">
+                          {label}
+                        </th>
+                        <td className="p-4 w-[37.5%] bg-white border-r border-gray-100">
+                          <div className="flex flex-col gap-2">
+                            {loading1 ? (
+                              <LoadingCell />
+                            ) : product1 ? (
+                              render ? (
+                                render(product1)
                               ) : (
-                                "-"
-                              )}
-                            </div>
-                          </td>
-                          <td className="p-4 w-[37.5%] bg-white">
-                            <div className="flex flex-col gap-2">
-                              {loading2 ? (
-                                <LoadingCell />
-                              ) : product2 ? (
-                                render ? (
-                                  render(product2)
-                                ) : (
-                                  product2[key] || "-"
-                                )
+                                product1[key] || "-"
+                              )
+                            ) : (
+                              "-"
+                            )}
+                          </div>
+                        </td>
+                        <td className="p-4 w-[37.5%] bg-white">
+                          <div className="flex flex-col gap-2">
+                            {loading2 ? (
+                              <LoadingCell />
+                            ) : product2 ? (
+                              render ? (
+                                render(product2)
                               ) : (
-                                "-"
-                              )}
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                                product2[key] || "-"
+                              )
+                            ) : (
+                              "-"
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             </div>
           </div>
         </div>
-      )}
+      </div>
     </>
   );
 };

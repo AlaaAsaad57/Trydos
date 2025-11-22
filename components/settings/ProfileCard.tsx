@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import Qr from "public/svg/Userqr.svg";
+import Qr from "public/svg/Userqr";
 
 import { translateFunction } from "utils/functions";
 import { ConfirmationModal } from "./PersonalInfo";

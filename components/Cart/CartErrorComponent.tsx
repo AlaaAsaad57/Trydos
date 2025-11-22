@@ -1,12 +1,14 @@
 "use client";
 
 import { CartErrorComponentPropsType } from "models/componentType/CartErrorIllustrationPropsType";
-import { useParams } from "node_modules/next/navigation";
+import { useParams } from "next/navigation";
 import { translateFunction } from "utils/functions";
 
-
-
-const CartErrorIllustration = ({ className = "w-48 h-48" }: { className?: string }) => {
+const CartErrorIllustration = ({
+  className = "w-48 h-48",
+}: {
+  className?: string;
+}) => {
   return (
     <svg
       className={className}
@@ -16,7 +18,13 @@ const CartErrorIllustration = ({ className = "w-48 h-48" }: { className?: string
     >
       {/* Background circle with gradient */}
       <defs>
-        <linearGradient id="cartErrorGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+        <linearGradient
+          id="cartErrorGradient"
+          x1="0%"
+          y1="0%"
+          x2="100%"
+          y2="100%"
+        >
           <stop offset="0%" stopColor="#fee2e2" />
           <stop offset="100%" stopColor="#fecaca" />
         </linearGradient>
@@ -47,11 +55,11 @@ const CartErrorIllustration = ({ className = "w-48 h-48" }: { className?: string
           stroke="#6b7280"
           strokeWidth="2"
         />
-        
+
         {/* Cart wheels */}
         <circle cx="15" cy="65" r="8" fill="#6b7280" />
         <circle cx="45" cy="65" r="8" fill="#6b7280" />
-        
+
         {/* Cart handle */}
         <path
           d="M10 25 L10 15 Q10 10 15 10 L45 10 Q50 10 50 15 L50 25"
@@ -59,17 +67,33 @@ const CartErrorIllustration = ({ className = "w-48 h-48" }: { className?: string
           strokeWidth="2"
           fill="none"
         />
-        
+
         {/* Cart items (with error X) */}
-        <rect x="10" y="25" width="15" height="15" rx="2" fill="#ef4444" opacity="0.8" />
+        <rect
+          x="10"
+          y="25"
+          width="15"
+          height="15"
+          rx="2"
+          fill="#ef4444"
+          opacity="0.8"
+        />
         <path
           d="M15 30 L25 40 M25 30 L15 40"
           stroke="#ffffff"
           strokeWidth="2"
           strokeLinecap="round"
         />
-        
-        <rect x="35" y="25" width="15" height="15" rx="2" fill="#ef4444" opacity="0.8" />
+
+        <rect
+          x="35"
+          y="25"
+          width="15"
+          height="15"
+          rx="2"
+          fill="#ef4444"
+          opacity="0.8"
+        />
         <path
           d="M40 30 L50 40 M50 30 L40 40"
           stroke="#ffffff"
@@ -107,10 +131,13 @@ const CartErrorIllustration = ({ className = "w-48 h-48" }: { className?: string
   );
 };
 
-const CartErrorComponent = ({ errorMessage, onRetry, }: CartErrorComponentPropsType) => {
-    const { lang } = useParams();
-    // @ts-ignore
-    let language = lang.split("-")[1];
+const CartErrorComponent = ({
+  errorMessage,
+  onRetry,
+}: CartErrorComponentPropsType) => {
+  const { lang } = useParams();
+  // @ts-ignore
+  let language = lang.split("-")[1];
   return (
     <div className="flex flex-col items-center justify-center p-8 min-h-[400px] bg-gradient-to-br from-red-50 via-white to-pink-50 rounded-lg z-[999999998]">
       {/* Error Illustration */}
@@ -123,17 +150,18 @@ const CartErrorComponent = ({ errorMessage, onRetry, }: CartErrorComponentPropsT
         <h2 className="text-2xl font-bold text-gray-800 mb-4 regular">
           {translateFunction("Cart Loading Error", language)}
         </h2>
-        
+
         <div className="bg-white rounded-lg shadow-lg p-6 border border-red-100">
           <p className="text-gray-600 mb-4 leading-relaxed regular">
-            {translateFunction("We encountered an error while loading your cart. Don't worry, we'll fix this issue for you.", language)}
+            {translateFunction(
+              "We encountered an error while loading your cart. Don't worry, we'll fix this issue for you.",
+              language
+            )}
           </p>
-          
+
           {errorMessage && (
             <div className="bg-red-50 rounded-md p-3 mb-4">
-              <p className="text-red-700 text-sm font-medium">
-                {errorMessage}
-              </p>
+              <p className="text-red-700 text-sm font-medium">{errorMessage}</p>
             </div>
           )}
         </div>
@@ -143,7 +171,9 @@ const CartErrorComponent = ({ errorMessage, onRetry, }: CartErrorComponentPropsT
       <button
         onClick={onRetry}
         className="px-8 py-3 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg shadow-md transition-colors duration-200 flex items-center justify-center gap-2 min-w-[200px] transform hover:scale-105 active:scale-95 regular"
-        aria-label={translateFunction("Try Again", language) || "Retry loading cart"}
+        aria-label={
+          translateFunction("Try Again", language) || "Retry loading cart"
+        }
       >
         <svg
           className="w-5 h-5"
@@ -164,4 +194,4 @@ const CartErrorComponent = ({ errorMessage, onRetry, }: CartErrorComponentPropsT
   );
 };
 
-export default CartErrorComponent; 
+export default CartErrorComponent;

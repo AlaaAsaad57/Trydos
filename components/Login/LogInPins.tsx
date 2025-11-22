@@ -493,11 +493,11 @@ function LogInPins({
       </div>
       <div
         data-testid="pin-inputs-container"
-        className="pin-inputs-container"
+        className="pin-inputs-container w-full"
         style={{ marginTop: "0px" }}
       >
         {loadingPin ? (
-          <div className="pin-border-container flex justify-center items-center">
+          <div className="flex justify-center items-center w-full">
             <Spinner />
           </div>
         ) : (

@@ -1,14 +1,9 @@
 "use client";
 import { ProductDetailsTextProps } from "models/componentType/productTypes/ProductDetailsTextPropsType";
-import { ProductInterface } from "models/Genaral/Product";
-import { useParams, useSearchParams } from "next/navigation";
-import { useEffect, useState, useMemo } from "react";
-import auth from "services/auth";
-import { useAppStore } from "store";
-import { translateFunction } from "utils/functions";
-import { GA_EVENT_NAMES } from "utils/GAEvents";
-import { GAevent } from "utils/gtag";
 
+import { useParams, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useAppStore } from "store";
 function ProductDetailsText({
   details,
   product,
@@ -56,7 +51,7 @@ function ProductDetailsText({
     <div className={`${isRtl ? "dir-rtl" : ""} product-details-text`}>
       <div
         id="details"
-        className="have-arabic"
+        className="have-arabic "
         dangerouslySetInnerHTML={{
           __html: show
             ? details

@@ -21,7 +21,8 @@ import { LogServerError } from "utils/serverErrorReporter";
 
 export async function generateMetadata({ params }) {
   try {
-    const metadata = await getHomeMetadata({ params });
+    let Params = await params;
+    const metadata = await getHomeMetadata({ params: Params });
 
     // console.log("**********metadata***********", JSON.stringify(metadata));
     return { ...metadata };

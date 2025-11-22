@@ -21,13 +21,13 @@ import Observable from "components/Chat/components/ChatHistoryElement";
 import WebcamCapture from "components/Chat/components/CameraComponent";
 import ChatSearch from "../components/ChatSearch";
 
-import MicIcon from "../svg/mic.svg";
-import RedMicIcon from "../svg/redmic.svg";
-import WaveIcon from "../svg/wave.svg";
-import ShareIcon from "../svg/sharechat.svg";
-import PlusIcon from "../svg/chatplus.svg";
-import CameraIcon from "../svg/camera.svg";
-import SendIcon from "../svg/sendbutton.svg";
+import MicIcon from "../svg/mic";
+import RedMicIcon from "../svg/redmic";
+import WaveIcon from "../svg/wave";
+import ShareIcon from "../svg/sharechat";
+import PlusIcon from "../svg/chatplus";
+import CameraIcon from "../svg/camera";
+import SendIcon from "../svg/sendbutton";
 
 import { dataURLtoFile, upload, getUser } from "../chatsFunctions";
 import {
@@ -38,10 +38,11 @@ import {
 } from "store/chat/actions";
 import { makeVideoCall, makeVoiceCall } from "store/chat/callActions";
 import { showErrorNotification } from "@/store/notifications/reducer";
-import { SSRDetect, translateFunction, getUserChat } from "utils/functions";
+import { translateFunction, getUserChat } from "utils/functions";
 import { db } from "utils/firebaseInitv1";
 import { useAppStore } from "store";
 import { pollinateInput } from "@/utils/tinyUtils";
+import { ImageCropWidget } from "components/global/ImageCropWidget";
 
 /* -------------------------- Dynamic Components --------------------------- */
 
@@ -142,6 +143,11 @@ function ConversationContainer({
   const [pendingScrollToMessageId, setPendingScrollToMessageId] = useState<
     string | null
   >(null);
+  const [pendingImageFile, setPendingImageFile] = useState<File | null>(null);
+  const [croppedImageFile, setCroppedImageFile] = useState<File | null>(null);
+  const [croppedImagePreview, setCroppedImagePreview] = useState<string | null>(
+    null
+  );
   /* ----------------------------- scroll function ----------------------------- */
   const scrollToMessage = (quoteId) => {
     if (quoteId) {
@@ -299,7 +305,8 @@ function ConversationContainer({
       if (!file || !activeChat) return;
 
       if (file.type.includes("image")) {
-        await handleMediaMessage(file, "ImageMessage", midLocal);
+        // Show preview widget for images
+        setPendingImageFile(file);
       } else if (file.type.includes("audio")) {
         await handleMediaMessage(file, "VoiceMessage", midLocal);
       } else if (file.type.includes("video")) {
@@ -561,52 +568,47 @@ function ConversationContainer({
   );
 
   /* ----------------------- Camera Image Sender -------------------------- */
-  const sendCameraImg = useCallback(
-    async (imageDataUrl: string) => {
-      const midLocal = "m" + Math.random().toString().replace(".", "");
-      try {
-        optimisticMessage({
-          ...baseMessagePayload({}),
-          sender_user_id: senderId,
-          message_type: { name: "ImageMessage" },
-          message_content: [{ file_path: imageDataUrl }],
-          message_files: [{ file_path: imageDataUrl, file_name: "Image" }],
-          type: "pending",
-          created_at: new Date(),
-          message_status: buildMessageStatus(receiverId, senderId),
-          mid: midLocal,
-        });
+  const sendCameraImg = useCallback((imageDataUrl: string) => {
+    // Convert data URL to File and show preview/crop widget
+    const file = dataURLtoFile(imageDataUrl, `camera-image-${Date.now()}.jpg`);
+    setPendingImageFile(file);
+  }, []);
 
-        const file = dataURLtoFile(imageDataUrl, `image-${midLocal}.jpg`);
-        const { path, name } = await upload(file);
+  /* ----------------------- Image Preview Handlers ----------------------- */
+  const handleImageCropSave = useCallback((croppedFile: File) => {
+    setCroppedImageFile(croppedFile);
+    // Create preview URL for the cropped image
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setCroppedImagePreview(reader.result as string);
+    };
+    reader.readAsDataURL(croppedFile);
+  }, []);
 
-        // @ts-ignore – original send util expects certain shape
-        SendMessage(
-          baseMessagePayload({
-            content: [{ file_path: path, file_name: name }],
-            message_type: "ImageMessage",
-            mid: midLocal,
-          }),
-          false,
-          isPrivate
-        );
-      } catch (err) {
-        console.log(err);
-        deleteErrorMessage({ msg_id: midLocal, ch_id: activeChat?.id });
-        showErrorNotification(translateFunction("Failed to Upload file"));
-      } finally {
-        sendStatus(null);
-      }
-    },
-    [
-      optimisticMessage,
-      baseMessagePayload,
-      senderId,
-      receiverId,
-      isPrivate,
-      sendStatus,
-    ]
-  );
+  const handleImagePreviewCancel = useCallback(() => {
+    setPendingImageFile(null);
+    setCroppedImageFile(null);
+    setCroppedImagePreview(null);
+  }, []);
+
+  const handleImagePreviewSend = useCallback(async () => {
+    if (!croppedImageFile || !activeChat) return;
+
+    const midLocal = "m" + Math.random().toString().replace(".", "");
+    try {
+      handleMediaMessage(croppedImageFile, "ImageMessage", midLocal);
+      setCroppedImageFile(null);
+      setCroppedImagePreview(null);
+      setPendingImageFile(null);
+    } catch (error) {
+      console.error("Error sending cropped image:", error);
+      deleteErrorMessage({ msg_id: midLocal, ch_id: activeChat?.id });
+      showErrorNotification(translateFunction("Failed to Upload file"));
+      sendStatus(null);
+      setCroppedImageFile(null);
+      setCroppedImagePreview(null);
+    }
+  }, [croppedImageFile, activeChat, handleMediaMessage, sendStatus]);
 
   /* ------------------------- Audio Sender ------------------------------- */
   const sendAudio = useCallback(
@@ -770,6 +772,64 @@ function ConversationContainer({
         onChange={handleFileChange}
       />
 
+      {/* Image Preview Widget with Crop */}
+      {pendingImageFile && !croppedImageFile && (
+        <ImageCropWidget
+          image={pendingImageFile}
+          onSave={handleImageCropSave}
+          onClose={handleImagePreviewCancel}
+        />
+      )}
+
+      {/* Cropped Image Preview with Send/Cancel buttons */}
+      {croppedImageFile && croppedImagePreview && (
+        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-[9999999999]">
+          <div className="bg-white rounded-lg w-[90%] max-w-2xl max-h-[90vh] overflow-hidden flex flex-col items-end">
+            <div className="p-4 border-b border-gray-200 flex justify-between items-center">
+              <h2 className="text-xl font-semibold">
+                {translateFunction("Preview", language) || "Preview"}
+              </h2>
+              <button
+                onClick={handleImagePreviewCancel}
+                className="text-gray-500 hover:text-gray-700 text-2xl leading-none"
+                aria-label={translateFunction("Close", language)}
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-auto p-4 flex items-center justify-center w-full">
+              <div className="w-full flex flex-col items-center gap-4">
+                <div className="relative w-full ">
+                  <Image
+                    src={croppedImagePreview}
+                    alt="Cropped preview"
+                    width={800}
+                    height={800}
+                    className="w-full h-auto rounded-lg object-contain"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="p-4 border-t border-gray-200 flex justify-end gap-3 w-full">
+              <button
+                onClick={handleImagePreviewCancel}
+                className="px-6 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+              >
+                {translateFunction("Cancel", language)}
+              </button>
+              <button
+                onClick={handleImagePreviewSend}
+                className="px-6 py-2 text-white bg-blue-500 rounded-lg hover:bg-blue-600 transition-colors"
+              >
+                {translateFunction("Send", language) || "Send"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Camera overlay */}
       {cameraEnabled && (
         <div className="fixed top-0 left-0 w-screen h-screen bg-transparent flex flex-col items-center justify-start p-5 z-[9999999999]">
@@ -846,7 +906,7 @@ function ConversationContainer({
                 alt="preview"
                 fill
                 sizes="100vw"
-                className="object-contain h-full w-auto bg-[#0000005d]"
+                className="object-contain h-full w-auto -[9999] left-0 right-0 m-[0_auto] p-4"
               />
             )
           )}
@@ -906,6 +966,9 @@ function ConversationContainer({
           chats={chats}
           activeChat={activeChat}
           isPrivate={isPrivate}
+          close={() => {
+            enableSearch(false);
+          }}
         />
 
         {/* Search */}
@@ -934,7 +997,7 @@ function ConversationContainer({
                 isPrivate={isPrivate}
                 AudioRef={AudioRef}
                 setVid={setVid}
-                setImg={() => setImgs(null)}
+                setImg={(e) => setImgs(e)}
                 GetMessage={(msgId, qoutedId) => {
                   // TODO migrate GetMessage logic to TS
 
@@ -1053,15 +1116,7 @@ function ConversationContainer({
                   <CameraIcon
                     style={{ minWidth: 50, cursor: "pointer" }}
                     className="camer-icon"
-                    onClick={() =>
-                      window.innerWidth < 800
-                        ? document
-                            .querySelector<HTMLInputElement>(
-                              'input[type="file"]'
-                            )
-                            ?.click()
-                        : enableCamera(true)
-                    }
+                    onClick={() => enableCamera(true)}
                   />
                   <RedMicIcon
                     style={{ cursor: "pointer" }}

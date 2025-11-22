@@ -3,14 +3,14 @@ export const dynamic = "force-dynamic";
 // export const revalidate = parseInt(process.env.NEXT_PUBLIC_REVALIDATE);
 import FilterList from "components/Server/FilterList";
 import ProductListServer from "components/Server/ProductList";
-import BackIcon from "public/svg/listing/backIcon.svg";
-import SortIcon from "public/svg/listing/sortIcon.svg";
+import BackIcon from "public/svg/listing/backIcon";
+import SortIcon from "public/svg/listing/sortIcon";
 import ListingSkeleton from "components/skeleton/listing";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import NextLink from "components/global/NextLink";
-import VerificationIcon from "public/svg/listing/VerificationIcon.svg";
-import TopStarIcon from "public/svg/listing/TopStar.svg";
+import VerificationIcon from "public/svg/listing/VerificationIcon";
+import TopStarIcon from "public/svg/listing/TopStar";
 import Image from "next/image";
 import "styles/listing-components.css";
 import { getBoutiqueMetadata, GetStructuredData } from "./Metadata";
@@ -265,15 +265,16 @@ export default async function Page({ params }) {
           ></BoutiqueHeader>
 
           <Suspense fallback={<ListingSkeleton justFilters={true} />}>
-            {productsData?.length > 1 && (
+            {
               <FilterList
                 filters={filters}
+                itemsLength={productsData?.length}
                 currency={currency}
                 key={`filter-list-filters`}
                 params={Params}
                 parsedFilters={parsedFilters}
               />
-            )}
+            }
           </Suspense>
         </div>
         <Suspense

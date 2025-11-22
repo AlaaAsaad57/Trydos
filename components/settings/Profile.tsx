@@ -1,8 +1,8 @@
 import React from "react";
 import SettingTopBar from "./TopBar";
-import PersonIcon from "public/svg/PersonIcon.svg";
-import AddressIcon from "public/svg/AddressIcon.svg";
-import BankIcon from "public/svg/BankIcon.svg";
+import PersonIcon from "public/svg/PersonIcon";
+import AddressIcon from "public/svg/AddressIcon";
+import BankIcon from "public/svg/BankIcon";
 
 import { translateFunction } from "utils/functions";
 import { useAppStore } from "store";

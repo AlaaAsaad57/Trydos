@@ -24,14 +24,14 @@ import RateOrderButton from "./cards/RateOrderButton";
 import Order from "services/order";
 import OrderChatIcon from "./OrderChatIcon";
 
-import ReturnedOrderStatusIcon from "public/svg/ReturnedOrderStatusIcon.svg";
+import ReturnedOrderStatusIcon from "public/svg/ReturnedOrderStatusIcon";
 const ChatWidget = dynamic(() => import("components/Chat/ChatWidget"), {
   ssr: false,
   loading: () => <LandingPage afterLoad={true} />,
 });
-import OptionsIcon from "public/svg/OptionsIcon.svg";
+import OptionsIcon from "public/svg/OptionsIcon";
 import OrderRetailsReturnInfo from "components/Orders/OrderRetailsReturnInfo";
-import CanceledOrderStatusIcon from "public/svg/CanceledOrderStatusIcon.svg";
+import CanceledOrderStatusIcon from "public/svg/CanceledOrderStatusIcon";
 import {
   DisableScroll,
   EnableScroll,
@@ -43,7 +43,7 @@ import { ProductCardPropsType } from "models/componentType/settingTypes/ProductC
 import { fetchData } from "utils/fetchData";
 import auth from "services/auth";
 import { REQUESTS_DATA } from "utils/Requests";
-import dynamic from "node_modules/next/dynamic";
+import dynamic from "next/dynamic";
 import LandingPage from "components/Home/LandingPage";
 import Spinner from "components/global/Spinner";
 
@@ -70,6 +70,7 @@ function OrderDetails({
     setIsNavigating,
     shouldUpdateOrders,
     setShouldUpdateOrders,
+    language,
   } = useAppStore();
   const fetchedOrderIdRef = useRef<string | number | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -619,6 +620,7 @@ function OrderDetails({
     !ActivePacks?.details
   )
     return null;
+  const isRtl = language === "ar" || language === "ku";
 
   return (
     <>
@@ -673,7 +675,12 @@ function OrderDetails({
                 isExpanded && "h-0 pt-0 overflow-hidden"
               } flex-col justify-start  w-full bg-[#F8F8F8] `}
             >
-              <div className="flex-row justify-between items-center w-full">
+              <div
+                className="flex-row justify-between items-center w-full"
+                style={{
+                  direction: isRtl ? "rtl" : "ltr",
+                }}
+              >
                 <OrderNumberCard number={selectedOrder.order_group_id} />
                 <OrderDateCard time={selectedOrder.created_at} />
                 <OrderInvoiceCard
@@ -1180,9 +1187,7 @@ const ProductCard = ({
                     {translateFunction("Return Requested")}
                   </span>
                   <span className="ml-[12px]">
-                    <ReturnedOrderStatusIcon
-                      status={product?.order_status ?? status}
-                    />
+                    <ReturnedOrderStatusIcon />
                   </span>
                 </div>
               </div>

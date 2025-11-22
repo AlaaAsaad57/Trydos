@@ -5,13 +5,13 @@ import {
   RoundPrice,
   translateFunction,
 } from "utils/functions";
-import ReturnOrderItemIcon from "public/svg/ReturnOrderItemIcon.svg";
+import ReturnOrderItemIcon from "public/svg/ReturnOrderItemIcon";
 import { useAppStore } from "store";
-import UploadImageOrder from "public/svg/UploadImageOrder.svg";
+import UploadImageOrder from "public/svg/UploadImageOrder";
 import Spinner from "components/global/Spinner";
 import { ReturnOrderItemPropsType } from "models/componentType/ReturnOrderItemPropsType";
 import order from "services/order";
-import Skeleton from "node_modules/react-loading-skeleton/dist";
+import Skeleton from "react-loading-skeleton";
 import { showErrorNotification } from "store/notifications/reducer";
 
 function ReturnOrderItem({
@@ -109,8 +109,9 @@ function ReturnOrderItem({
                 (selectedOptions?.is_cost_by_system === 0
                   ? selectedOptions.cost
                   : 0),
-              rate: currency.exchange_rate,
+              rate: currency?.exchange_rate,
               language: language,
+              returnNumber: true,
             })}
           </span>
           <span className="text-[#8D8D8D] mx-[4px]">{currency?.symbol}</span>
@@ -198,8 +199,9 @@ function ReturnOrderItem({
                     (
                     {RoundPrice({
                       num: option.cost,
-                      rate: currency.exchange_rate,
+                      rate: currency?.exchange_rate,
                       language: language,
+                      returnNumber: true,
                     })}{" "}
                     {currency.symbol})
                   </span>

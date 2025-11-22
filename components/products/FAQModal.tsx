@@ -1,16 +1,19 @@
 import BottomSheet from "components/global/BottomSheet";
 import profilePng from "public/images/profileNo.png";
 
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import { useAppStore } from "store";
 import { translateFunction } from "utils/functions";
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
-import Skeleton from "node_modules/react-loading-skeleton/dist";
-import FAQIcon from "public/svg/FAQIcon.svg";
-import Image from "node_modules/next/image";
+import Skeleton from "react-loading-skeleton";
+import FAQIcon from "public/svg/FAQIcon";
+import Image from "next/image";
 import { convertTextToXFormat, formatTime, GetImageUrl } from "utils/tinyUtils";
 import { fetchData } from "utils/fetchData";
 import { REQUESTS_DATA } from "utils/Requests";
+import { LikeButton } from "./FAQSection";
+import auth from "services/auth";
+import CommentItem from "./CommentItem";
 
 function FAQModal({ comments, total, offset: initialOffset }) {
   const { ColorBottomSheet, setColorBottomSheet, language, SelectedProduct } =
@@ -39,12 +42,10 @@ function FAQModal({ comments, total, offset: initialOffset }) {
 
     setLoading(true);
     try {
-      const url = `/api/products/comments/fqa_comments?product_id=${
+      const url = `/api/products/comments/fqa_comments?user_id=${auth.UserID()}&product_id=${
         SelectedProduct.id
       }${offsetValue ? `&offset=${JSON.stringify(offsetValue)}` : ""}${
-        filterId
-          ? `&filter=${commentTypes.find((c) => c.id === filterId)?.value}`
-          : ""
+        filterId ? `&filter=${filterId}` : ""
       }`;
 
       const data = await fetchData({
@@ -84,6 +85,9 @@ function FAQModal({ comments, total, offset: initialOffset }) {
     },
     [activeType, loading, comments, initialOffset, loadMore]
   );
+  const seller_name = useMemo(() => {
+    return SelectedProduct?.seller?.f_name ?? "Admin";
+  }, []);
   return (
     <>
       {ColorBottomSheet && ColorBottomSheet?.is_for_faq && (
@@ -130,17 +134,17 @@ function FAQModal({ comments, total, offset: initialOffset }) {
                   loading && "opacity-65"
                 } flex-row  product-properties px-[12px] items-center justify-start w-full gap-[4px]`}
               >
-                {commentTypes.map((s) => (
+                {SelectedProduct?.fqa_questions?.filters_key.map((s) => (
                   <div
                     onClick={() => {
                       if (loading) return;
-                      handleFilter(s.id);
+                      handleFilter(s);
                     }}
                     className={`pl-[8px] cursor-pointer pr-[12px] rounded-[15px] h-[31px] ${
-                      activeType === s.id ? "bg-[#bdd3ff]" : "bg-[#F8F8F8]"
+                      activeType === s ? "bg-[#bdd3ff]" : "bg-[#F8F8F8]"
                     } flex-row justify-center items-center regular text-[#505050] text-[11px] medium`}
                   >
-                    {translateFunction(s.name)}
+                    {s}
                   </div>
                 ))}
               </HortiznalScrollBar>
@@ -165,7 +169,25 @@ function FAQModal({ comments, total, offset: initialOffset }) {
                     ))}
                 {!loading &&
                   commentsData.map((s) => (
-                    <FaqItem comment={s} language={language} width={100} />
+                    //  <></>   <FaqItem
+                    //       comment={s}
+                    //       language={language}
+                    //       width={100}
+                    //       seller_name={seller_name}
+                    //     />
+                    <CommentItem
+                      isPending={s?.id}
+                      seller_name={seller_name}
+                      isFull={true}
+                      isError={s?.isError}
+                      key={s?.id}
+                      date={formatTime(s?.created_at)}
+                      name={s?.customer?.name}
+                      text={s?.comment}
+                      photo={GetImageUrl(s?.customer?.image) ?? profilePng}
+                      custmerId={s?.customer?.id}
+                      comment={s}
+                    />
                   ))}
                 {!loading && offset && (
                   <div
@@ -227,7 +249,31 @@ const ReviewProgress = ({ value, title }) => {
   );
 };
 
-const FaqItem = ({ language, comment, width }) => {
+const FaqItem = ({ language, comment, width, seller_name }) => {
+  const renderTextWithLinks = (text) => {
+    if (!text) return null;
+
+    const urlRegex = /(https?:\/\/[^\s]+)/g;
+
+    const parts = text.split(urlRegex);
+
+    return parts.map((part, index) => {
+      if (urlRegex.test(part)) {
+        return (
+          <a
+            key={index}
+            href={part}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-600 underline break-all"
+          >
+            {part}
+          </a>
+        );
+      }
+      return <React.Fragment key={index}>{part}</React.Fragment>;
+    });
+  };
   let has_reply = comment.has_reply;
   return (
     <div className="flex-col min-w-[100%] max-w-[100%]">
@@ -260,44 +306,17 @@ const FaqItem = ({ language, comment, width }) => {
             </div>
           </div>
           <span className="medium text-[#1d1d1d] text-[9px] mt-[5px]">
-            Blue | Meduim
+            {comment?.variant}
           </span>
           <div className="comment-date text-[9px]" data-cy="Date-Of-Comment">
             {formatTime(comment?.created_at)}
           </div>
           <div className="comment-text regular text-[#1d1d1d] text-[11px] mt-[0px]">
-            {comment?.comment}
+            {renderTextWithLinks(comment?.comment)}
           </div>
         </div>
         <div className="flex-row pl-[10px] pr-[3px] justify-between w-full items-center">
-          <div className="flex-row  gap-[4px] text-[#1d1d1d] text-[9px] regular">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              xmlnsXlink="http://www.w3.org/1999/xlink"
-              width="11"
-              height="11"
-              viewBox="0 0 11 11"
-            >
-              <g
-                id="Mask_Group_285"
-                data-name="Mask Group 285"
-                transform="translate(0 -0.251)"
-                clip-path="url(#clip-path)"
-              >
-                <g id="Love" transform="translate(0 0.718)">
-                  <path
-                    id="Path_21279"
-                    data-name="Path 21279"
-                    d="M11.68,4.522a3.179,3.179,0,0,0-2.489-2A2.975,2.975,0,0,0,6.453,3.7,2.974,2.974,0,0,0,3.712,2.528,3.175,3.175,0,0,0,1.227,4.522a3.209,3.209,0,0,0,.741,3.456l4.359,4.273a.182.182,0,0,0,.254,0l4.359-4.273a3.209,3.209,0,0,0,.741-3.456Zm-1,3.2L6.453,11.868,2.222,7.719a2.846,2.846,0,0,1-.657-3.066,2.807,2.807,0,0,1,2.2-1.766,2.5,2.5,0,0,1,.334-.023A2.756,2.756,0,0,1,6.308,4.106a.188.188,0,0,0,.292,0A2.687,2.687,0,0,1,9.143,2.885a2.812,2.812,0,0,1,2.2,1.768,2.846,2.846,0,0,1-.657,3.066Z"
-                    transform="translate(-1.007 -2.499)"
-                    fill="#1d1d1d"
-                  />
-                </g>
-              </g>
-            </svg>
-
-            <span>110k</span>
-          </div>
+          <LikeButton comment={{ ...comment, target_type: "comment" }} />
         </div>
       </div>
       {has_reply && (
@@ -327,7 +346,7 @@ const FaqItem = ({ language, comment, width }) => {
                     data-cy="Source-Of-Comment"
                   >
                     <span className="bold pr-[4px]">A</span>
-                    {convertTextToXFormat(comment?.seller_name)}
+                    {convertTextToXFormat(seller_name)}
                   </div>
                 </div>
               </div>
@@ -342,38 +361,19 @@ const FaqItem = ({ language, comment, width }) => {
                 {formatTime(comment?.reply_created_at)}
               </div>
               <div className="comment-text regular text-[#1d1d1d] text-[11px] mt-[0px]">
-                {comment?.seller_reply}
+                {renderTextWithLinks(comment?.seller_reply)}
               </div>
             </div>
             <div className="flex-row pl-[10px] pr-[3px] justify-between w-full items-center">
-              <div className="flex-row  gap-[4px] text-[#1d1d1d] text-[9px] regular">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  xmlnsXlink="http://www.w3.org/1999/xlink"
-                  width="11"
-                  height="11"
-                  viewBox="0 0 11 11"
-                >
-                  <g
-                    id="Mask_Group_285"
-                    data-name="Mask Group 285"
-                    transform="translate(0 -0.251)"
-                    clip-path="url(#clip-path)"
-                  >
-                    <g id="Love" transform="translate(0 0.718)">
-                      <path
-                        id="Path_21279"
-                        data-name="Path 21279"
-                        d="M11.68,4.522a3.179,3.179,0,0,0-2.489-2A2.975,2.975,0,0,0,6.453,3.7,2.974,2.974,0,0,0,3.712,2.528,3.175,3.175,0,0,0,1.227,4.522a3.209,3.209,0,0,0,.741,3.456l4.359,4.273a.182.182,0,0,0,.254,0l4.359-4.273a3.209,3.209,0,0,0,.741-3.456Zm-1,3.2L6.453,11.868,2.222,7.719a2.846,2.846,0,0,1-.657-3.066,2.807,2.807,0,0,1,2.2-1.766,2.5,2.5,0,0,1,.334-.023A2.756,2.756,0,0,1,6.308,4.106a.188.188,0,0,0,.292,0A2.687,2.687,0,0,1,9.143,2.885a2.812,2.812,0,0,1,2.2,1.768,2.846,2.846,0,0,1-.657,3.066Z"
-                        transform="translate(-1.007 -2.499)"
-                        fill="#1d1d1d"
-                      />
-                    </g>
-                  </g>
-                </svg>
-
-                <span>110k</span>
-              </div>
+              <LikeButton
+                comment={{
+                  ...comment,
+                  target_type: "seller_reply",
+                  total_likes: comment?.reply_total_likes,
+                  is_liked: comment?.reply_is_liked,
+                }}
+                disabled={true}
+              />
             </div>
             <span className="absolute bottom-[8px] right-[9px] text-[#8D8D8D] regular text-[9px] ">
               {13} {translateFunction("Minutes Answered", language)}

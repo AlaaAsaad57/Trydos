@@ -3,21 +3,21 @@ import {
   RoundPrice,
   translateFunction,
 } from "utils/functions";
-import OrderCartIcon from "public/svg/cart/orderCartIcon.svg";
-import FreeShippingIcon from "public/svg/product/FreeShipping.svg";
-import WalletIcon from "assets/svg/cart/WalletIcon.svg";
-import CreditIcon from "assets/svg/cart/CreditIcon.svg";
-import PaymentIconOne from "assets/svg/cart/Payment/DimondPay.svg";
-import PaymentIconTwo from "assets/svg/cart/Payment/DimondPay1.svg";
-import PaymentIconThree from "assets/svg/cart/Payment/DimondPay2.svg";
-import PaymentIconFour from "assets/svg/cart/Payment/DimondPay3.svg";
-import VisaIcon from "assets/svg/cart/Payment/Visa.svg";
-import MasterIcon from "assets/svg/cart/Payment/Master.svg";
-import MaestroIcon from "assets/svg/cart/Payment/Maestro.svg";
-import AmericanExpressIcon from "assets/svg/cart/Payment/AmericanExpress.svg";
-import ApplePayIcon from "assets/svg/cart/Payment/ApplePay.svg";
-import GooglePayIcon from "assets/svg/cart/Payment/GooglePay.svg";
-import CryptoIcon from "assets/svg/cart/CryptoIcon.svg";
+import OrderCartIcon from "public/svg/cart/orderCartIcon";
+import FreeShippingIcon from "public/svg/product/FreeShipping";
+import WalletIcon from "assets/svg/cart/WalletIcon";
+import CreditIcon from "assets/svg/cart/CreditIcon";
+import PaymentIconOne from "assets/svg/cart/Payment/DimondPay";
+import PaymentIconTwo from "assets/svg/cart/Payment/DimondPay1";
+import PaymentIconThree from "assets/svg/cart/Payment/DimondPay2";
+import PaymentIconFour from "assets/svg/cart/Payment/DimondPay3";
+import VisaIcon from "assets/svg/cart/Payment/Visa";
+import MasterIcon from "assets/svg/cart/Payment/Master";
+import MaestroIcon from "assets/svg/cart/Payment/Maestro";
+import AmericanExpressIcon from "assets/svg/cart/Payment/AmericanExpress";
+import ApplePayIcon from "assets/svg/cart/Payment/ApplePay";
+import GooglePayIcon from "assets/svg/cart/Payment/GooglePay";
+import CryptoIcon from "assets/svg/cart/CryptoIcon";
 import OrderSuccess from "./OrderSuccess";
 import { useParams } from "next/navigation";
 import { useAppStore } from "store";

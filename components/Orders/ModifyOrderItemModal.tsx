@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import LargeColorIcon from "public/svg/LargeColorIcon.svg";
+import LargeColorIcon from "public/svg/LargeColorIcon";
 import Spinner from "components/global/Spinner";
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 import { getConfiguredImage, translateFunction } from "utils/functions";
@@ -10,6 +10,7 @@ import { SizeListPropsType } from "models/componentType/SizeListPropsType";
 import order from "services/order";
 import { useAppStore } from "store";
 import { showErrorNotification } from "store/notifications/reducer";
+import { CheckBoxElement } from "components/Cart/PlaceOrderButtons";
 export const ModifyOrderItemModal = ({
   type,
   confirmationData,
@@ -57,6 +58,8 @@ export const ModifyOrderItemModal = ({
     getOrderDetails();
     close();
   };
+  const [active, setActive] = useState(false);
+  const isRtl = language === "ar" || language === "ku";
 
   return (
     <div
@@ -159,12 +162,20 @@ export const ModifyOrderItemModal = ({
               />
             )}
           </div>
-          <p className="text-[14px] text-white regular mt-[40px]">
-            {translateFunction("I Read And Agree To", language)}{" "}
+          <p
+            className={`${
+              isRtl ? "flex-row-reverse" : "flex-row"
+            } text-[14px] text-white regular mt-[40px] gap-[4px]`}
+            onClick={() => {
+              setActive(!active);
+            }}
+          >
+            <CheckBoxElement active={active} />
+            <span>{translateFunction("I Read And Agree To", language)}</span>
             <a
               target="_blank"
               href="#"
-              className="ml-[4px] medium text-[14px] text-white underline"
+              className=" medium text-[14px] text-white underline"
             >
               {type === "Color"
                 ? translateFunction("The Change Color Terms.", language)
@@ -184,14 +195,15 @@ export const ModifyOrderItemModal = ({
           </p>
           <div
             className={`cursor-pointer mt-[10px] w-full h-[50px] rounded-[15px]  text-[16px] bold flex items-center justify-center ${
-              isChanged()
+              isChanged() && active
                 ? "bg-[#F8F8F8] text-[#402CDD]"
                 : "bg-[#C4C2C2] text-[#fff]"
             }`}
             style={{
-              border: isChanged() && "1px solid #402CDD80",
+              border: isChanged() && active && "1px solid #402CDD80",
             }}
             onClick={() => {
+              if (!active) return;
               if (isChanged()) {
                 ConfirmChange();
               }

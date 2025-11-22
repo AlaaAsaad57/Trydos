@@ -140,8 +140,8 @@ export const FlagIcon = ({ iso }) => {
       <Image
         src="/svg/sy.svg"
         alt={translateFunction("sy") || "sy"}
-        width={15}
-        height={10}
+        width={25}
+        height={16}
       />
     );
 
@@ -149,8 +149,8 @@ export const FlagIcon = ({ iso }) => {
     <Image
       src={`/svg/flag/${iso?.toLowerCase()}.svg`}
       alt={translateFunction(iso) || "iso"}
-      width={15}
-      height={10}
+      width={25}
+      height={16}
     />
   );
 };
@@ -674,7 +674,7 @@ export const totalAmount = (arr) => {
  */
 export const pollinateInput = (value: string): string => {
   if (typeof value !== "string") return "";
-  let input = value.replace(/[<>,!#$%^&*()]/g, "");
+  let input = value.replace(/[<>,#$%^&*()]/g, "");
   if (input.length > 90) {
     input = input.slice(0, 90);
   }
@@ -891,4 +891,14 @@ export function convertTextToXFormat(input) {
 
   // Join the transformed words back into a string and return
   return transformedWords.join(" ");
+}
+
+export function getFirstLetterLang(text: string): "right" | "left" {
+  if (!text) return "left"; // default direction
+  const firstChar = text.trim().charAt(0);
+
+  // Arabic and Sorani letters fall in these Unicode ranges
+  const rtlPattern = /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF]/;
+
+  return rtlPattern.test(firstChar) ? "right" : "left";
 }

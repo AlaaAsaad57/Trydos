@@ -237,6 +237,7 @@ export async function getProductsAndFiltersFromElastic(
     let response;
 
     response = await client.search(searchQuery);
+
     const hits = response.hits.hits as ElasticsearchHit[];
     let total_size = response.hits?.total?.value;
     hits.forEach((hit: ElasticsearchHit) => {
@@ -257,12 +258,37 @@ export async function getProductsAndFiltersFromElastic(
         ?.buckets || [],
       filters_offset
     );
+    let CategoriesIds = (
+      aggregations as any
+    ).top_categories?.filtered_categories?.categories_by_id?.buckets.map(
+      (s) => s?.category_details.hits.hits[0]._source.category_id
+    );
+    let categories_childs = await getChildrenAndGrandchildren(
+      client,
+      "products_catalog",
+      CategoriesIds,
+      language_code,
+      country,
+      filters
+    );
+
+    let categiresCombo = (
+      aggregations as any
+    ).top_categories?.filtered_categories?.categories_by_id?.buckets.concat(
+      categories_childs.top_categories?.filtered_categories?.categories_by_id
+        ?.buckets || []
+    );
+    let by_id_categories_comb = (
+      (aggregations as any).top_orig_categories?.orig_categories_by_id
+        ?.buckets || []
+    ).concat(
+      categories_childs.top_orig_categories?.orig_categories_by_id?.buckets ||
+        []
+    );
 
     const categoriesFilter = processCategoriesAggregation(
-      (aggregations as any).top_categories?.filtered_categories
-        ?.categories_by_id?.buckets || [],
-      (aggregations as any).top_orig_categories?.orig_categories_by_id
-        ?.buckets || [],
+      categiresCombo,
+      by_id_categories_comb,
       filters_offset
     );
 
@@ -276,12 +302,14 @@ export async function getProductsAndFiltersFromElastic(
         ?.buckets || [],
       filters_offset
     );
+
     // Process products
     const productsWithFilters = extractFilters(
       customProducts,
       language_code,
       is_from_browser
     );
+
     // Sort products by filtered colors if color filter is applied
     if (filters.colors?.length) {
       productsWithFilters.custom_products = sortSyncColorImagesByFilteredColor(
@@ -543,7 +571,14 @@ function buildAggregations(
           aggs: {
             filtered_categories: {
               filter: {
-                term: { "custom_categories.language_code": languageCode },
+                bool: {
+                  must: [
+                    {
+                      term: { "custom_categories.language_code": languageCode },
+                    },
+                    { term: { "custom_categories.position": 0 } }, // or "0" if it's a string
+                  ],
+                },
               },
               aggs: {
                 categories_by_id: {
@@ -633,6 +668,126 @@ function buildAggregations(
       },
     },
   };
+}
+
+async function getChildrenAndGrandchildren(
+  client,
+  index,
+  parentCategoryIds,
+  languageCode,
+  country,
+  filters
+) {
+  const baseConditions = buildBaseConditions(filters, country);
+  const { must, must_not } = baseConditions;
+  const filterCondition = {
+    bool: {
+      must: must,
+      must_not: must_not,
+    },
+  };
+  // Step 1: get categories with position = 1 (children)
+  const childrenRes = await client.search({
+    index,
+    size: 0,
+    query: {
+      bool: {
+        must,
+        must_not,
+      },
+    },
+    aggs: {
+      filtered_results: {
+        filter: filterCondition,
+        aggs: {
+          top_categories: {
+            nested: { path: "custom_categories" },
+            aggs: {
+              filtered_categories: {
+                filter: {
+                  bool: {
+                    must: [
+                      {
+                        term: {
+                          "custom_categories.language_code": languageCode,
+                        },
+                      },
+                      // or "0" if it's a string
+                    ],
+                    must_not: [{ term: { "custom_categories.position": 0 } }],
+                  },
+                },
+                aggs: {
+                  categories_by_id: {
+                    terms: {
+                      field: "custom_categories.category_id",
+                      size: 1000,
+                    },
+                    aggs: {
+                      category_details: {
+                        top_hits: {
+                          size: 1,
+                          _source: {
+                            includes: [
+                              "custom_categories.id",
+                              "custom_categories.category_id",
+                              "custom_categories.name",
+                              "custom_categories.slug",
+                              "custom_categories.bio",
+                              "custom_categories.description",
+                              "custom_categories.flat_photo_path",
+                              "custom_categories.png_photo_path",
+                              "custom_categories.fill_photo_path",
+                              "custom_categories.banner_photo_path",
+                            ],
+                          },
+                        },
+                      },
+                      to_product: {
+                        reverse_nested: {},
+                        aggs: {
+                          product_thumbnail: {
+                            top_hits: {
+                              size: 1,
+                              _source: { includes: ["thumbnail"] },
+                            },
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+          top_orig_categories: {
+            nested: { path: "categories" },
+            aggs: {
+              orig_categories_by_id: {
+                terms: { field: "categories.id", size: 1000 },
+                aggs: {
+                  orig_category_details: {
+                    top_hits: {
+                      size: 1,
+                      _source: {
+                        includes: [
+                          "categories.id",
+                          "categories.num_available_product",
+                          "categories.parent_id",
+                          "categories.most_viewed_product_thumbnail",
+                        ],
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  });
+  return childrenRes.aggregations.filtered_results;
 }
 
 // (These would be separate functions due to length constraints)
@@ -849,19 +1004,19 @@ function extractFilters(
   languageCode: string,
   isFromBrowser: boolean
 ): ExtractFiltersResult {
-  const customProducts: Record<string, CustomProduct> = {};
+  const customProducts: CustomProduct[] = [];
 
   products.forEach((product) => {
-    // Process custom products
     if (product.custom_products && Array.isArray(product.custom_products)) {
       product.custom_products.forEach((customProduct: any) => {
         if (customProduct.language_code === languageCode) {
-          customProducts[customProduct.id] = processCustomProduct(
+          const processed = processCustomProduct(
             product,
             customProduct,
             languageCode,
             isFromBrowser
           );
+          customProducts.push(processed);
         }
       });
     }
@@ -871,7 +1026,7 @@ function extractFilters(
   const prices = calculatePriceRange(products);
 
   return {
-    custom_products: Object.values(customProducts),
+    custom_products: customProducts,
     prices,
   };
 }

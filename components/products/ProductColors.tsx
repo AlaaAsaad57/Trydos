@@ -1,9 +1,9 @@
 "use client";
-import ColorsIcon from "public/svg/product/colors.svg";
+import ColorsIcon from "public/svg/product/colors";
 import React, { useEffect, useState } from "react";
 import { getConfiguredImage, translateFunction } from "utils/functions";
 import "styles/listing.css";
-import TrendColorIcon from "public/svg/product/TrendColorIcon.svg";
+import TrendColorIcon from "public/svg/product/TrendColorIcon";
 import {
   useParams,
   usePathname,
@@ -100,6 +100,11 @@ function ProductColors({
   const handleSelectColor = (color) => {
     const newParams = new URLSearchParams(searchParams);
     const colorOption = color?.color_option || color?.color_name;
+    if (newParams.get("color") === colorOption) {
+      setLoading(false);
+      setColorBottomSheet(false);
+      return;
+    }
     if (colorOption) {
       newParams.set("color", colorOption);
       router.push(pathname + `?${newParams.toString()}`, {
@@ -172,6 +177,7 @@ function ProductColors({
       {currency && params && (
         <ProductDetailsColorBottom
           loading={loading}
+          colorFromUrl={colorFromUrl}
           handleSelectColor={(e) => {
             handleSelectColor(e);
             setLoading(true);
@@ -182,7 +188,7 @@ function ProductColors({
       )}
       <div
         className={`product-colors ${
-          isRtl ? "flex-row-reverse justify-end" : "flex-row"
+          isRtl ? "flex-row-reverse " : "flex-row"
         } mt-[12px]  align-start justify-between relative`}
         data-cy="AvailableColor"
         onClick={() => {
@@ -226,6 +232,7 @@ const ProductDetailsColorBottom = ({
   params,
   currency,
   handleSelectColor,
+  colorFromUrl,
   loading,
 }) => {
   const { ColorBottomSheet, setColorBottomSheet } = useAppStore();
@@ -244,6 +251,13 @@ const ProductDetailsColorBottom = ({
             <div className={`relative`}>
               <ProductColorCard
                 onClick={() => {
+                  if (
+                    colorFromUrl === (color?.color_name || color?.color_option)
+                  ) {
+                    setColorBottomSheet(false);
+                    setIndex(null);
+                    return;
+                  }
                   setIndex(i);
                   handleSelectColor(color);
                 }}

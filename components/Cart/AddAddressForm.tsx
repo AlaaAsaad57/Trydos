@@ -3,12 +3,12 @@ import { allCountries } from "country-telephone-data";
 import React, { useEffect, useState } from "react";
 import { translateFunction } from "utils/functions";
 import Map from "./Map";
-import SyFlage from "public/svg/sy.svg";
+import SyFlage from "public/svg/sy";
 import { useParams } from "next/navigation";
-import Addressicon from "public/svg/cart/AddressIcon.svg";
-import AddressInfo from "public/svg/cart/AddressInfo.svg";
-import TargetIcon from "public/svg/cart/Target.svg";
-import ContactInfoIcon from "public/svg/cart/ContactInfoIcon.svg";
+import Addressicon from "public/svg/cart/AddressIcon";
+import AddressInfo from "public/svg/cart/AddressInfo";
+import TargetIcon from "public/svg/cart/Target";
+import ContactInfoIcon from "public/svg/cart/ContactInfoIcon";
 
 import order from "services/order";
 import { useAppStore } from "store";

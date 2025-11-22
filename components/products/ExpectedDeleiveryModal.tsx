@@ -2,20 +2,20 @@ import BottomSheet from "components/global/BottomSheet";
 import React, { useEffect, useState } from "react";
 import { useAppStore } from "store";
 import { translateFunction } from "utils/functions";
-import ExpectedIcon from "public/svg/expectedDelevery.svg";
+import ExpectedIcon from "public/svg/expectedDelevery";
 import {
   fetchCountries,
   formatTimeForAddress,
   ShowDayStr,
 } from "utils/tinyUtils";
-import { useParams } from "node_modules/next/navigation";
+import { useParams } from "next/navigation";
 import Skeleton from "react-loading-skeleton";
 import ThinSepartor from "components/global/ThinSepartor";
-import RefundIcon from "public/svg/RefundIcon.svg";
-import DeleiveryGurantee from "public/svg/DeleiveryGurantee.svg";
-import ReturnGuranteeIcon from "public/svg/ReturnGurantee.svg";
-import GreenBigTruck from "public/svg/GreenBigTruck.svg";
-import RedBigTruck from "public/svg/RedBigTruck.svg";
+import RefundIcon from "public/svg/RefundIcon";
+import DeleiveryGurantee from "public/svg/DeleiveryGurantee";
+import ReturnGuranteeIcon from "public/svg/ReturnGurantee";
+import GreenBigTruck from "public/svg/GreenBigTruck";
+import RedBigTruck from "public/svg/RedBigTruck";
 function ExpectedDeleiveryModal() {
   const [countriesData, setCountries] = useState([]);
   const { lang } = useParams();

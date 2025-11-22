@@ -8,7 +8,7 @@ import React, {
   useState,
 } from "react";
 import Illustration from "public/images/notifications.png";
-import Image from "node_modules/next/image";
+import Image from "next/image";
 import { translateFunction } from "utils/functions";
 import { useAppStore } from "store";
 import { showErrorNotification } from "store/notifications/reducer";
@@ -91,29 +91,85 @@ export default function NotificationWidget(props: NotificationWidgetProps) {
   }, []);
 
   const handleAllowClick = useCallback(async () => {
-    if (typeof Notification === "undefined") {
+    // Check if Notification API is available
+    if (typeof window === "undefined" || typeof Notification === "undefined") {
       setShownToday();
       allowCallbackRef.current && allowCallbackRef.current();
       handleClose();
       return;
     }
+
     try {
-      const result = await Notification.requestPermission();
-      setShownToday();
-      if (result === "granted") {
+      // Check current permission state first
+      const currentPermission = Notification.permission;
+
+      // If already granted, just close and call callback
+      if (currentPermission === "granted") {
+        setShownToday();
         allowCallbackRef.current && allowCallbackRef.current();
-      } else {
+        handleClose();
+        return;
+      }
+
+      // If already denied, show error message
+      if (currentPermission === "denied") {
+        setShownToday();
         showErrorNotification(
           translateFunction(
-            "Notification is Blocked in This Browser Please Enable Notification premission and refresh"
+            "Notification is Blocked in This Browser Please Enable Notification premission and refresh",
+            language
           )
         );
         dismissCallbackRef.current && dismissCallbackRef.current();
+        handleClose();
+        return;
       }
+
+      // Request permission (only works if permission is "default")
+      let result: NotificationPermission;
+      try {
+        // Edge browser compatibility: requestPermission might return a promise or a string
+        const permissionResult = Notification.requestPermission();
+        result =
+          typeof permissionResult === "string"
+            ? permissionResult
+            : await permissionResult;
+      } catch (error) {
+        // Edge browser might throw an error if permission was already requested
+        console.error("Error requesting notification permission:", error);
+        result = Notification.permission;
+      }
+
+      setShownToday();
+
+      if (result === "granted") {
+        allowCallbackRef.current && allowCallbackRef.current();
+      } else if (result === "denied") {
+        showErrorNotification(
+          translateFunction(
+            "Notification is Blocked in This Browser Please Enable Notification premission and refresh",
+            language
+          )
+        );
+        dismissCallbackRef.current && dismissCallbackRef.current();
+      } else {
+        // Permission is still "default" - user dismissed the prompt
+        dismissCallbackRef.current && dismissCallbackRef.current();
+      }
+    } catch (error) {
+      console.error("Error in handleAllowClick:", error);
+      setShownToday();
+      showErrorNotification(
+        translateFunction(
+          "Notification is Blocked in This Browser Please Enable Notification premission and refresh",
+          language
+        )
+      );
+      dismissCallbackRef.current && dismissCallbackRef.current();
     } finally {
       handleClose();
     }
-  }, [handleClose, setShownToday]);
+  }, [handleClose, setShownToday, language]);
 
   const handleDismissClick = useCallback(() => {
     setShownToday();

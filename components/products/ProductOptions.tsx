@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import AddToCartButton from "./AddToCartButton";
-import Heart from "public/svg/Heart.svg";
-import HeartFill from "public/svg/HeartFill.svg";
-import Share from "public/svg/share.svg";
+import Heart from "public/svg/Heart";
+import HeartFill from "public/svg/HeartFill";
+import Share from "public/svg/share";
 import CommentIcon from "./CommentIcon";
 import ThreePoints from "./ThreePoints";
 import ShareButton from "./ShareButton";
@@ -17,7 +17,7 @@ import { fetchData } from "utils/fetchData";
 import { GAevent } from "utils/gtag";
 import { GA_EVENT_NAMES, GA_GLOBAL_SCREEN } from "utils/GAEvents";
 import { REQUESTS_DATA } from "utils/Requests";
-import { useParams, useSearchParams } from "node_modules/next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 
 function ProductOptions({
   activeOption,
@@ -48,13 +48,13 @@ function ProductOptions({
       if (bool) {
         // Like product
         const res = await fetchData({
-          url: "/product_likes/store",
+          url: "/products/like",
           reqTitle: REQUESTS_DATA.LIKE_FOR_PRODUCT,
           method: "POST",
-          server: "market",
+          server: "comments",
           body: JSON.stringify({
-            product_id: product.id,
-            user_id: auth.UserID(),
+            product_id: String(product.id),
+            user_id: String(auth.UserID()),
           }),
         });
 
@@ -91,13 +91,13 @@ function ProductOptions({
       } else {
         // Unlike product
         const res = await fetchData({
-          url: "/product_likes/delete",
+          url: "/products/unlike",
           reqTitle: REQUESTS_DATA.UNLIKE_PRODUCT,
-          method: "POST",
-          server: "market",
+          method: "DELETE",
+          server: "comments",
           body: JSON.stringify({
-            product_id: product.id,
-            user_id: auth.UserID(),
+            product_id: String(product.id),
+            user_id: String(auth.UserID()),
           }),
         });
 
@@ -135,15 +135,6 @@ function ProductOptions({
         });
 
         // Unsubscribe from topics
-        home.UnsubscripeFromTopic({
-          topic: `product_availability_${SelectedProduct?.id}`,
-        });
-        home.UnsubscripeFromTopic({
-          topic: `product_discount_${SelectedProduct?.id}`,
-        });
-        home.UnsubscripeFromTopic({
-          topic: `product_comment_${SelectedProduct?.id}`,
-        });
       }
     } catch (error) {
       // Rollback to previous state on error
@@ -198,6 +189,10 @@ function ProductOptions({
     const likes = SelectedProduct?.likes ?? product?.count_of_likes ?? "";
     return Math.max(0, likes);
   };
+  const getSafeIsLiked = () => {
+    if (SelectedProduct) return SelectedProduct?.is_liked;
+    return product?.is_liked;
+  };
   const isRtl = language === "ar" || language === "ku";
   const getSharesCount = () => {
     if (SelectedProduct?.sharesCount > 0) return SelectedProduct?.sharesCount;
@@ -217,6 +212,7 @@ function ProductOptions({
     if (num > 0) return num;
     return "";
   };
+
   return (
     <div
       className={`product-options-container ${isRtl && "flex-row-reverse"}`}
@@ -254,7 +250,7 @@ function ProductOptions({
                   else LikeProduct(true);
                 }}
               >
-                {SelectedProduct?.is_liked ? (
+                {getSafeIsLiked() ? (
                   <HeartFill data-cy="LoveClickOnLast" />
                 ) : (
                   <Heart />

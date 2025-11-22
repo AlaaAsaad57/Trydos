@@ -266,7 +266,6 @@ export class ElasticsearchReader {
         const source = bucket.boutique_data?.hits?.hits?.[0]?._source ?? null;
         if (source) customProducts.push(source);
       }
-
       const afterKey =
         // @ts-ignore
         response.aggregations?.boutiques_composite?.after_key ?? null;
@@ -472,6 +471,128 @@ export class ElasticsearchReader {
         // boutique.childCategoriesForProductIds = grouped[bid]?.child || [];
       }
 
+      // Fetch top products for boutiques missing enough categories
+      const boutiquesNeedingProducts = customProducts
+        .filter((boutique) => {
+          const categoriesLength =
+            boutique.mainCategoriesForProductIds?.length ?? 0;
+          return categoriesLength <= 1;
+        })
+        .map((boutique) => boutique.boutique_id)
+        .filter((id) => id !== null && id !== undefined);
+
+      const uniqueBoutiquesNeedingProducts = [
+        ...new Set(boutiquesNeedingProducts),
+      ];
+
+      if (uniqueBoutiquesNeedingProducts.length > 0) {
+        const productsQuery: any = {
+          index: "products_catalog",
+          body: {
+            size: 0,
+            query: {
+              bool: {
+                must: [
+                  ...must,
+                  { terms: { boutique_id: uniqueBoutiquesNeedingProducts } },
+                ],
+                must_not,
+              },
+            },
+            aggs: {
+              products_by_boutique: {
+                terms: {
+                  field: "boutique_id",
+                  size: uniqueBoutiquesNeedingProducts.length,
+                },
+                aggs: {
+                  top_products: {
+                    top_hits: {
+                      size: 6,
+                      sort: [{ id: { order: "asc" } }],
+                      _source: {
+                        includes: [
+                          "id",
+                          "custom_products.slug",
+                          "custom_products.name",
+                          "custom_products.language_code",
+                          "thumbnail",
+                          "boutique_id",
+                        ],
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        };
+
+        const productsResponse = await this.client.search(productsQuery);
+
+        const productBuckets =
+          ((productsResponse.aggregations as any)?.products_by_boutique
+            ?.buckets as any[]) ?? [];
+
+        const fallbackProductsByBoutique: Record<string, any[]> = {};
+
+        for (const bucket of productBuckets) {
+          const bucketKey = bucket.key?.toString?.() ?? `${bucket.key}`;
+          const hits = bucket.top_products?.hits?.hits ?? [];
+          fallbackProductsByBoutique[bucketKey] = hits
+            .map((hit: any) => hit?._source ?? null)
+            .filter(Boolean)
+            .map((product: any) => {
+              const customProductEntries = Array.isArray(
+                product.custom_products
+              )
+                ? product.custom_products
+                : [];
+
+              const localizedCustomProduct =
+                customProductEntries.find(
+                  (entry: any) => entry.language_code === language
+                ) ??
+                customProductEntries.find(
+                  (entry: any) => entry.language_code === "en"
+                ) ??
+                customProductEntries[0] ??
+                null;
+
+              const fallbackSlug =
+                localizedCustomProduct?.slug ?? product.slug ?? null;
+              const fallbackName =
+                localizedCustomProduct?.name ?? product.name ?? null;
+
+              return {
+                id: product.id,
+                slug: fallbackSlug,
+                name: fallbackName,
+                language_code: language,
+                most_viewed_product_name: fallbackName,
+                most_viewed_product_thumbnail: product.thumbnail || null,
+                num_available_product: 0,
+                is_product: true,
+                is_product_url: true,
+              };
+            });
+        }
+
+        for (const boutique of customProducts) {
+          const key =
+            boutique.boutique_id?.toString?.() ?? `${boutique.boutique_id}`;
+          const categoriesLength =
+            boutique.mainCategoriesForProductIds?.length ?? 0;
+          if (
+            categoriesLength <= 1 &&
+            fallbackProductsByBoutique[key]?.length
+          ) {
+            boutique.mainCategoriesForProductIds =
+              fallbackProductsByBoutique[key];
+          }
+        }
+      }
+
       // Filter banners
       for (const boutique of customProducts) {
         for (const cb of boutique.custom_boutiques) {
@@ -492,6 +613,7 @@ export class ElasticsearchReader {
           name: cb.name || null,
           slug: cb.slug || null,
           description: cb.description || null,
+          position: boutique?.boutique_position ?? cb.boutique_position,
           icon: cb.icon || null,
           banners: cb.banners || null,
           mainCategoriesForProductIds:
@@ -531,7 +653,15 @@ export class ElasticsearchReader {
         },
       },
     ];
-
+    must.push({
+      nested: {
+        path: "custom_products",
+        ignore_unmapped: true,
+        query: {
+          exists: { field: "custom_products.id" },
+        },
+      },
+    });
     if (categorySlugs.length > 0) {
       must.push({
         bool: {
@@ -546,7 +676,7 @@ export class ElasticsearchReader {
               nested: {
                 path: "custom_categories",
                 query: {
-                  terms: { "custom_categories.slug.keyword": categorySlugs },
+                  term: { "custom_categories.slug.keyword": categorySlugs },
                 },
               },
             },

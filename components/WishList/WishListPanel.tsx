@@ -1,15 +1,23 @@
-import React, { useRef, useEffect } from "react";
-import { translateFunction } from "utils/functions";
+import React, { useRef, useEffect, useState } from "react";
+import {
+  getConfiguredImage,
+  RoundPrice,
+  translateFunction,
+} from "utils/functions";
 import Image from "next/image";
 import NextLink from "components/global/NextLink";
 import { useAppStore } from "store";
 import { useParams } from "next/navigation";
 import { GetImageUrl } from "utils/tinyUtils";
+import { wishlistService, WishlistItem } from "services/wishlist";
+import { showSuccessNotification } from "@/store/notifications/reducer";
 
 const WishListPanel = ({ onClose }) => {
   const { currency } = useAppStore();
   const { lang } = useParams();
   const wishListRef = useRef<HTMLDivElement>(null);
+  const [wishlistItems, setWishlistItems] = useState<WishlistItem[]>([]);
+  const [loading, setLoading] = useState(true);
   // Handle document scroll lock
   useEffect(() => {
     const originalStyle = window.getComputedStyle(document.body).overflow;
@@ -45,48 +53,32 @@ const WishListPanel = ({ onClose }) => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [onClose]);
 
-  const placeholderImage = "https://placehold.co/60x150"; // Placeholder image URL
+  useEffect(() => {
+    const loadWishlist = async () => {
+      try {
+        setLoading(true);
+        const items = await wishlistService.getWishlist();
+        setWishlistItems(items);
+      } catch (error) {
+        console.error("Error loading wishlist:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadWishlist();
+  }, []);
 
-  // Mock data for wishlist items
-  const wishlistItems = [
-    {
-      id: 1,
-      name: "Apple iPhone 14",
-      description:
-        "The latest iPhone with advanced features and stunning design.",
-      slug: "iphone-14",
-      thumbnail: placeholderImage, // Use placeholder image
-      price: 999.99,
-      offer_price: 899.99,
-      colors: ["#FF5733", "#33FF57", "#3357FF"], // Example colors
-      sizes: ["128GB", "256GB", "512GB"], // Example sizes
-    },
-    {
-      id: 2,
-      name: "Samsung Galaxy S22",
-      description: "A powerful smartphone with an amazing camera and display.",
-      slug: "galaxy-s22",
-      thumbnail: placeholderImage, // Use placeholder image
-      price: 799.99,
-      offer_price: 749.99,
-      colors: ["#FF33A1", "#33A1FF", "#A133FF"], // Example colors
-      sizes: ["128GB", "256GB"], // Example sizes
-    },
-    {
-      id: 3,
-      name: "Sony WH-1000XM4",
-      description:
-        "Industry-leading noise-canceling headphones with superior sound quality.",
-      slug: "sony-wh-1000xm4",
-      thumbnail: placeholderImage, // Use placeholder image
-      price: 349.99,
-      offer_price: 299.99,
-      colors: ["#000000", "#FFFFFF"], // Example colors
-      sizes: ["One Size"], // Example sizes
-    },
-    // Add more realistic items as needed
-  ];
-
+  const handleDeleteItem = async (e: React.MouseEvent, productId: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    try {
+      await wishlistService.removeFromWishlist(productId);
+      setWishlistItems((prev) => prev.filter((item) => item.id !== productId));
+      showSuccessNotification(translateFunction("Removed from checklist"));
+    } catch (error) {
+      console.error("Error removing from wishlist:", error);
+    }
+  };
   return (
     <div
       data-cy="wishList-card"
@@ -125,7 +117,7 @@ const WishListPanel = ({ onClose }) => {
             height="20"
             viewBox="0 0 24 24"
             fill="none"
-            stroke="currentColor"
+            stroke="#1d1d1d"
             strokeWidth="1.5"
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -159,7 +151,7 @@ const WishListPanel = ({ onClose }) => {
             height="20"
             viewBox="0 0 24 24"
             fill="none"
-            stroke="currentColor"
+            stroke="#1d1d1d"
             strokeWidth="1.5"
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -182,88 +174,24 @@ const WishListPanel = ({ onClose }) => {
         }}
         className="scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent min-h-[400px]"
       >
-        {wishlistItems.length > 0 ? (
+        {loading ? (
+          <div
+            data-cy="loading-container"
+            style={{
+              padding: "32px 16px",
+              textAlign: "center",
+              color: "#65676b",
+            }}
+          >
+            <p className="text-sm">{translateFunction("Loading...")}</p>
+          </div>
+        ) : wishlistItems.length > 0 ? (
           wishlistItems.map((item) => (
-            <NextLink
-              data={{
-                is_product: true,
-                ...item,
-                href: `/${lang}/products/${item.slug}`,
-              }}
-              ariaLabel={`wishlist item ${item.slug}`}
-              key={item.id}
-              data-cy="wishlist-item"
-              className="flex gap-3 p-4 hover:bg-gray-50 border-b border-gray-100"
-              href={`#`}
-              //   href={`/${lang}/products/${item.slug}`}
-            >
-              <div
-                className="relative w-20 h-[90px] flex-shrink-0"
-                data-cy="wishlist-container-img"
-              >
-                <Image
-                  data-cy="wishlist-img"
-                  src={GetImageUrl(item.thumbnail)}
-                  alt={item.name}
-                  fill
-                  className="object-cover rounded-md"
-                />
-              </div>
-              <div className="flex-1" data-cy="wishlist-body-item">
-                <div
-                  className="text-sm font-medium text-gray-900 hover:text-blue-600"
-                  data-cy="wishlist-item-name"
-                >
-                  {item.name}
-                </div>
-                <div
-                  className="text-xs text-gray-600"
-                  data-cy="wishlist-item-description"
-                >
-                  {item.description}
-                </div>
-                <div
-                  className="mt-1 flex items-center gap-2"
-                  data-cy="wishlist-item-price"
-                >
-                  {item.offer_price < item.price && (
-                    <span
-                      className="text-sm text-gray-500 line-through"
-                      data-cy="wishlist-item-old-price"
-                    >
-                      {currency.symbol}
-                      {item.price}
-                    </span>
-                  )}
-                  <span
-                    className="text-sm font-medium text-gray-900"
-                    data-cy="wishlist-item-new-price"
-                  >
-                    {currency.symbol}
-                    {item.offer_price}
-                  </span>
-                </div>
-                <div className="mt-2" data-cy="wishlist-item-footer">
-                  <div className="flex gap-1" data-cy="wishlist-item-circles">
-                    {item.colors.map((color, index) => (
-                      <div
-                        key={index}
-                        className="w-4 h-4 rounded-full"
-                        data-cy="wishlist-item-color-circle"
-                        style={{ backgroundColor: color }}
-                        aria-label={`Color option ${color}`}
-                      />
-                    ))}
-                  </div>
-                  <div
-                    className="mt-1 text-xs text-gray-600"
-                    data-cy="wishlist-item-sizes"
-                  >
-                    Sizes: {item.sizes.join(", ")}
-                  </div>
-                </div>
-              </div>
-            </NextLink>
+            <WishListItem
+              item={item}
+              handleDeleteItem={handleDeleteItem}
+              close={onClose}
+            />
           ))
         ) : (
           <div
@@ -299,3 +227,256 @@ const WishListPanel = ({ onClose }) => {
 };
 
 export default WishListPanel;
+
+const WishListItem = ({ item, handleDeleteItem, close }) => {
+  const { language, currency } = useAppStore();
+  const params = useParams();
+  const lang = params.lang;
+
+  if (params.productId === item.slug) {
+    return (
+      <div
+        key={item.id}
+        data-cy="wishlist-item"
+        className="flex gap-3 p-4 hover:bg-gray-50 border-b border-gray-100 relative"
+      >
+        <div
+          className="flex gap-3 flex-1"
+          onClick={() => {
+            close();
+          }}
+        >
+          <div
+            className="relative w-20 h-[90px] flex-shrink-0"
+            data-cy="wishlist-container-img"
+          >
+            <Image
+              data-cy="wishlist-img"
+              src={getConfiguredImage({
+                src: GetImageUrl(item.thumbnail),
+                width: 100,
+                height: 100,
+              })}
+              alt={item.name}
+              fill
+              className="object-cover rounded-md"
+            />
+          </div>
+          <div className="flex-1" data-cy="wishlist-body-item">
+            <div className="flex">
+              <Image
+                alt="brand-icon"
+                className="max-w-[40px] max-h-[25px] w-auto object-contain h-full"
+                width={50}
+                height={50}
+                src={item.brand?.icon?.file_path}
+              />
+            </div>
+            <div
+              className="text-sm font-medium text-gray-900 hover:text-blue-600"
+              data-cy="wishlist-item-name"
+            >
+              {item.name}
+            </div>
+            <div
+              className="mt-1 flex items-center gap-2"
+              data-cy="wishlist-item-price"
+            >
+              {item.offer_price < item.price && (
+                <span
+                  className="text-sm text-gray-500 line-through"
+                  data-cy="wishlist-item-old-price"
+                >
+                  {currency.symbol}
+                  {RoundPrice({ num: item.price })}
+                </span>
+              )}
+              <span
+                className="text-sm font-medium text-gray-900"
+                data-cy="wishlist-item-new-price"
+              >
+                {currency.symbol}
+                {RoundPrice({ num: item.offer_price })}
+              </span>
+            </div>
+            <div className="mt-2" data-cy="wishlist-item-footer">
+              <div className="flex gap-1" data-cy="wishlist-item-circles">
+                {item.colors?.map((color, index) => (
+                  <div
+                    key={index}
+                    className="w-4 h-4 rounded-full border border-gray-300"
+                    data-cy="wishlist-item-color-circle"
+                    style={{ backgroundColor: color }}
+                    aria-label={`Color option ${color}`}
+                  />
+                ))}
+              </div>
+              {item.sizes && item.sizes.length > 0 && (
+                <div
+                  className="mt-1 text-xs text-gray-600"
+                  data-cy="wishlist-item-sizes"
+                >
+                  Sizes: {item.sizes.join(", ")}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+        <button
+          onClick={(e) => handleDeleteItem(e, item.id)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              handleDeleteItem(e as any, item.id);
+            }
+          }}
+          className="absolute top-2 right-2 p-1 rounded-full hover:bg-gray-200 transition-colors"
+          data-cy="wishlist-item-delete"
+          aria-label="Remove from wishlist"
+          tabIndex={0}
+        >
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="text-gray-600"
+          >
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
+      </div>
+    );
+  } else {
+    return (
+      <div
+        key={item.id}
+        data-cy="wishlist-item"
+        className="flex gap-3 p-4 hover:bg-gray-50 border-b border-gray-100 relative"
+      >
+        <NextLink
+          onClick={() => {
+            close();
+          }}
+          data={{
+            is_product: true,
+            ...item,
+            href: `/${lang}/products/${item.slug}`,
+          }}
+          ariaLabel={`wishlist item ${item.slug}`}
+          className="flex gap-3 flex-1"
+          href={`/${lang}/products/${item.slug}`}
+        >
+          <div
+            className="relative w-20 h-[90px] flex-shrink-0"
+            data-cy="wishlist-container-img"
+          >
+            <Image
+              data-cy="wishlist-img"
+              src={getConfiguredImage({
+                src: GetImageUrl(item.thumbnail),
+                width: 100,
+                height: 100,
+              })}
+              alt={item.name}
+              fill
+              className="object-cover rounded-md"
+            />
+          </div>
+          <div className="flex-1" data-cy="wishlist-body-item">
+            <div className="flex">
+              <Image
+                alt="brand-icon"
+                className="max-w-[40px] max-h-[25px] w-auto object-contain h-full"
+                width={50}
+                height={50}
+                src={item.brand?.icon?.file_path}
+              />
+            </div>
+            <div
+              className="text-sm font-medium text-gray-900 hover:text-blue-600"
+              data-cy="wishlist-item-name"
+            >
+              {item.name}
+            </div>
+            <div
+              className="mt-1 flex items-center gap-2"
+              data-cy="wishlist-item-price"
+            >
+              {item.offer_price < item.price && (
+                <span
+                  className="text-sm text-gray-500 line-through"
+                  data-cy="wishlist-item-old-price"
+                >
+                  {currency.symbol}
+                  {RoundPrice({ num: item.price })}
+                </span>
+              )}
+              <span
+                className="text-sm font-medium text-gray-900"
+                data-cy="wishlist-item-new-price"
+              >
+                {currency.symbol}
+                {RoundPrice({ num: item.offer_price })}
+              </span>
+            </div>
+            <div className="mt-2" data-cy="wishlist-item-footer">
+              <div className="flex gap-1" data-cy="wishlist-item-circles">
+                {item.colors?.map((color, index) => (
+                  <div
+                    key={index}
+                    className="w-4 h-4 rounded-full border border-gray-300"
+                    data-cy="wishlist-item-color-circle"
+                    style={{ backgroundColor: color }}
+                    aria-label={`Color option ${color}`}
+                  />
+                ))}
+              </div>
+              {item.sizes && item.sizes.length > 0 && (
+                <div
+                  className="mt-1 text-xs text-gray-600"
+                  data-cy="wishlist-item-sizes"
+                >
+                  Sizes: {item.sizes.join(", ")}
+                </div>
+              )}
+            </div>
+          </div>
+        </NextLink>
+        <button
+          onClick={(e) => handleDeleteItem(e, item.id)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              handleDeleteItem(e as any, item.id);
+            }
+          }}
+          className="absolute top-2 right-2 p-1 rounded-full hover:bg-gray-200 transition-colors"
+          data-cy="wishlist-item-delete"
+          aria-label="Remove from wishlist"
+          tabIndex={0}
+        >
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="text-gray-600"
+          >
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
+      </div>
+    );
+  }
+};

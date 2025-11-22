@@ -3,11 +3,11 @@ export const preferredRegion = "bom1";
 export const dynamic = "force-dynamic";
 import "styles/productDetails.css";
 import "styles/product-body.css";
-import FreeReturnIcon from "public/svg/product/FreeReturnIcon.svg";
+import FreeReturnIcon from "public/svg/product/FreeReturnIcon";
 import { getConfiguredImage, translateFunction } from "utils/functions";
 import Image from "next/image";
 
-import VerifiedIcon from "public/svg/product/Verified.svg";
+import VerifiedIcon from "public/svg/product/Verified";
 import ProductDescriptors from "components/products/ProductDescriptors";
 import { GetImageUrl } from "utils/tinyUtils";
 import { generateProductMetaData } from "./MetaData";
@@ -113,20 +113,14 @@ async function GetProductDataFunc(params) {
       });
       return { ...data.product, ...(elasticData ?? {}) };
     } else {
-      let { product: productData, socialData } = await GetProductData(params);
+      let { product: productData } = await GetProductData(params);
       if (
         !productData.details_req &&
         !productData.qtyPriceDetails &&
         productData?.offer_price &&
         productData?.images
       ) {
-        storeProduct(
-          productData,
-          socialData,
-          params.productId,
-          language,
-          country
-        );
+        storeProduct(productData, params.productId, language, country);
       }
       let elasticData = await getProductDataFromElastic({
         productId: productData.id,
@@ -135,7 +129,6 @@ async function GetProductDataFunc(params) {
       });
       return {
         ...productData,
-        ...(socialData ?? {}),
         ...(elasticData ?? {}),
         redis: false,
       };
@@ -175,7 +168,7 @@ async function Page({ params, searchParams }) {
           process.env.NEXT_PUBLIC_REMOTE_FRONT +
           `/${Params.lang}/product/${Params.productId}`,
         priceCurrency: generateCodeCurrency(currency?.code),
-        price: product.offer_price * currency.exchange_rate,
+        price: product.offer_price * currency?.exchange_rate,
         priceValidUntil: "2025-12-31",
         availability: "https://schema.org/InStock",
         itemCondition: "https://schema.org/NewCondition",
@@ -401,9 +394,6 @@ async function Page({ params, searchParams }) {
     const getProductText = () => {
       let text_info = [];
       text_info.push(product.name);
-      product.categories?.map((s) => {
-        text_info.push(s.name);
-      });
       if (color) {
         const matchingColor = product?.sync_color_images?.find(
           (s) => s.color_option === color || s.color_name === color
@@ -422,6 +412,7 @@ async function Page({ params, searchParams }) {
         is_redeem: !redeemed_ids.find((s) => s.id === product.id),
       };
     }
+
     return (
       <>
         <script
@@ -587,6 +578,10 @@ async function Page({ params, searchParams }) {
                   language={languageVariable}
                 />
                 <ProductGeneralProperties
+                  views={product?.total_views}
+                  recommendation_stats={product?.recommendation_stats}
+                  rating_stats={product?.ratingDetails}
+                  total_rating={product.total_rating}
                   languageVariable={Params.lang?.split("-")?.[1]}
                 />
                 <ProductFeatures
@@ -748,6 +743,7 @@ async function Page({ params, searchParams }) {
                 product_id={product.id}
                 comments={product?.fqa_questions}
                 lang={Params.lang}
+                seller_name={product?.seller?.f_name ?? "Admin"}
               />
 
               {product?.choice_options?.[0]?.options?.length > 0 && (

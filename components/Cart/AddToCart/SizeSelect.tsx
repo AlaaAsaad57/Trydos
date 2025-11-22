@@ -127,7 +127,7 @@ function SizeSelect({
                     height="46.5"
                     rx="5.75"
                     stroke="#513aaf"
-                    stroke-width="0.5"
+                    strokeWidth="0.5"
                     fill="none"
                   />
                 </svg>
@@ -236,7 +236,9 @@ function SizeSelect({
 export default SizeSelect;
 
 const SizeWarning = ({ qty, size, isCollectAfterOrder }) => {
-  console.log({ qty, size, isCollectAfterOrder });
+  const { language } = useAppStore();
+  const isRtl = language === "ar" || language === "ku";
+
   if (qty > 0 || isCollectAfterOrder) {
     return (
       <div className="flex flex-row items-center mt-[11px] gap-[4px] w-full justify-center px-[24px]">
@@ -258,8 +260,12 @@ const SizeWarning = ({ qty, size, isCollectAfterOrder }) => {
           <span className="flex items-center">
             {translateFunction("For You")}
           </span>
-          {qty < 10 && (
-            <span className="text-[#FF6200] flex items-center">
+          {qty < 10 && !isCollectAfterOrder && (
+            <span
+              className={`${
+                isRtl && "dir-rtl"
+              } text-[#FF6200] flex items-center`}
+            >
               {translateFunction("Last")} {qty}
             </span>
           )}

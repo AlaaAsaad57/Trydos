@@ -2,8 +2,14 @@
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import home from "services/home";
-import { addToCompare, RoundPrice, translateFunction } from "utils/functions";
-import CheckIcon from "public/svg/CheckIcon.svg";
+import {
+  addToCompare,
+  removeFromCompare,
+  RoundPrice,
+  translateFunction,
+} from "utils/functions";
+import { getCookie } from "utils/cookies/cookie-manager";
+import CheckIcon from "public/svg/CheckIcon";
 import Spinner from "components/global/Spinner";
 import LocalizationServiceClass from "services/localization";
 import { useAppStore } from "store";
@@ -15,6 +21,8 @@ import {
 import { GAevent } from "utils/gtag";
 import { GA_EVENT_NAMES } from "utils/GAEvents";
 import auth from "services/auth";
+import { wishlistService } from "services/wishlist";
+import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 function MoreOptionsSection() {
   const {
     disableNotification,
@@ -42,42 +50,15 @@ function MoreOptionsSection() {
   };
   useEffect(() => {
     getNotificationsType();
-    if (typeof document !== "undefined") {
-      const slider: HTMLDivElement = document?.querySelector("#slider-options");
-      let isDown = false;
-      let startX: number;
-      let scrollLeft: number;
-
-      slider?.addEventListener("mousedown", (e: MouseEvent) => {
-        isDown = true;
-        slider.classList.add("active");
-        startX = e.pageX - slider.offsetLeft;
-        scrollLeft = slider.scrollLeft;
-      });
-      slider?.addEventListener("mouseleave", () => {
-        isDown = false;
-        slider.classList.remove("active");
-      });
-      slider?.addEventListener("mouseup", () => {
-        isDown = false;
-        slider.classList.remove("active");
-      });
-      slider?.addEventListener("mousemove", (e) => {
-        if (!isDown) return;
-        e.preventDefault();
-
-        const x = e.pageX - slider.offsetLeft;
-        const walk = (x - startX) * 3; //scroll-fast
-        slider.scrollLeft = scrollLeft - walk;
-      });
-    }
   }, []);
 
   const [loading, setLoading] = useState(false);
   const [addedToCompare, setAddedToCompare] = useState(
-    localStorage.getItem("f_p") === SelectedProduct.slug ||
-      localStorage.getItem("s_p") === SelectedProduct.slug
+    getCookie<string>("f_p") === SelectedProduct.slug ||
+      getCookie<string>("s_p") === SelectedProduct.slug
   );
+  const [isInWishlist, setIsInWishlist] = useState(false);
+  const [wishlistLoading, setWishlistLoading] = useState(false);
   let language = LocalizationServiceClass.GetAppLanguage();
   const AddedToCompare = () => {
     return addedToCompare;
@@ -112,6 +93,41 @@ function MoreOptionsSection() {
   useEffect(() => {
     getData();
   }, []);
+
+  useEffect(() => {
+    const checkWishlistStatus = async () => {
+      if (SelectedProduct?.id) {
+        try {
+          const inWishlist = await wishlistService.isInWishlist(
+            String(SelectedProduct.id)
+          );
+          setIsInWishlist(inWishlist);
+        } catch (error) {
+          console.error("Error checking wishlist status:", error);
+        }
+      }
+    };
+    checkWishlistStatus();
+  }, [SelectedProduct?.id]);
+
+  useEffect(() => {
+    const checkCompareStatus = () => {
+      const f_p = getCookie<string>("f_p");
+      const s_p = getCookie<string>("s_p");
+      const isAdded =
+        f_p === SelectedProduct.slug || s_p === SelectedProduct.slug;
+      setAddedToCompare(isAdded);
+    };
+    checkCompareStatus();
+    // Check periodically for cookie changes (cookies don't have storage events)
+    const interval = setInterval(checkCompareStatus, 500);
+    // Also check on focus
+    window.addEventListener("focus", checkCompareStatus);
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener("focus", checkCompareStatus);
+    };
+  }, [SelectedProduct.slug]);
   const send_GA_EVENT = (notification_type) => {
     GAevent({
       action: GA_EVENT_NAMES.ENABLE_PRODUCT_NOTIFICATION,
@@ -210,7 +226,7 @@ function MoreOptionsSection() {
               {translate("Notify Me About The Product When", language)}
             </span>
           </div>
-          <div id="slider-options" className="notify-row">
+          <HortiznalScrollBar id="slider-options" className="notify-row">
             {NotificationsType.length === 0 ? (
               <div className="flex items-center w-full h-full justify-center">
                 <Spinner />
@@ -239,29 +255,85 @@ function MoreOptionsSection() {
                 </div>
               ))
             )}
-          </div>
+          </HortiznalScrollBar>
         </div>
         <div
-          className="more-options-button"
+          className={`more-options-button ${
+            isInWishlist ? "bg-green-300" : ""
+          }`}
           data-cy="add-checkList"
-          onClick={() => {
-            GAevent({
-              action: GA_EVENT_NAMES.ADD_TO_FAV,
-              params: {
-                user_id_custom: auth.UserID(),
-                item_id: SelectedProduct.id,
-                item_name: SelectedProduct?.name,
-                brand: SelectedProduct?.brand?.name,
-                brand_id: SelectedProduct?.brand?.id,
-                category:
-                  SelectedProduct?.category?.name ||
-                  SelectedProduct?.categories?.[0]?.name,
-                category_id:
-                  SelectedProduct?.category?.id ||
-                  SelectedProduct?.categories?.[0]?.id,
-                price: SelectedProduct?.offer_price,
-              },
-            });
+          onClick={async () => {
+            if (wishlistLoading) return;
+            setWishlistLoading(true);
+            try {
+              const productId = String(SelectedProduct.id);
+              const thumbnail =
+                SelectedProduct?.sync_color_images?.[0]?.images?.[0]
+                  ?.file_path ??
+                SelectedProduct?.sync_color_images?.[0]?.images?.[0] ??
+                SelectedProduct?.images?.[0]?.file_path ??
+                SelectedProduct?.images?.[0];
+
+              const colors =
+                SelectedProduct.colors?.map((c) => c.color || c.name) || [];
+              const sizes =
+                SelectedProduct.choice_options?.[0]?.options?.map(
+                  (s) => s.option || s.name
+                ) || [];
+
+              if (isInWishlist) {
+                await wishlistService.removeFromWishlist(productId);
+                setIsInWishlist(false);
+                showSuccessNotification(
+                  translate("Removed from checklist", language)
+                );
+              } else {
+                await wishlistService.addToWishlist({
+                  id: productId,
+                  name: SelectedProduct.name,
+                  brand: SelectedProduct?.brand,
+                  slug: SelectedProduct.slug,
+                  thumbnail: thumbnail,
+                  price: SelectedProduct.price,
+                  offer_price: SelectedProduct.offer_price,
+                  colors: colors,
+                  sizes: sizes,
+                  product_link:
+                    SelectedProduct.share_link ||
+                    `/${lang}/products/${SelectedProduct.slug}`,
+                  images: SelectedProduct?.images,
+                });
+                setIsInWishlist(true);
+                showSuccessNotification(
+                  translate("Added to checklist", language)
+                );
+              }
+
+              GAevent({
+                action: GA_EVENT_NAMES.ADD_TO_FAV,
+                params: {
+                  user_id_custom: auth.UserID(),
+                  item_id: SelectedProduct.id,
+                  item_name: SelectedProduct?.name,
+                  brand: SelectedProduct?.brand?.name,
+                  brand_id: SelectedProduct?.brand?.id,
+                  category:
+                    SelectedProduct?.category?.name ||
+                    SelectedProduct?.categories?.[0]?.name,
+                  category_id:
+                    SelectedProduct?.category?.id ||
+                    SelectedProduct?.categories?.[0]?.id,
+                  price: SelectedProduct?.offer_price,
+                },
+              });
+            } catch (error) {
+              console.error("Error updating wishlist:", error);
+              showErrorNotification(
+                translate("Failed to update checklist", language)
+              );
+            } finally {
+              setWishlistLoading(false);
+            }
           }}
         >
           <svg
@@ -272,11 +344,7 @@ function MoreOptionsSection() {
             height="25"
             viewBox="0 0 25 25"
           >
-            <g
-              id="Mask_Group_363"
-              data-name="Mask Group 363"
-              clipPath="url(#clipPath)"
-            >
+            <g id="Mask_Group_363" data-name="Mask Group 363">
               <g
                 id="Group_3487"
                 data-name="Group 3487"
@@ -414,23 +482,22 @@ function MoreOptionsSection() {
           data-cy="add-compare"
           onClick={() => {
             if (AddedToCompare()) {
-              showErrorNotification(
-                translate("Already Added To Compare!", language)
+              removeFromCompare(SelectedProduct.slug);
+              setAddedToCompare(false);
+              showSuccessNotification(
+                translate("Removed From Compare", language)
               );
-
-              return;
+            } else {
+              setAddedToCompare(true);
+              addToCompare(SelectedProduct.slug);
+              showSuccessNotification(
+                translate(
+                  "Added To Compare! Click To Go To Compare Page",
+                  language
+                ),
+                5000
+              );
             }
-            setAddedToCompare(true);
-            addToCompare(SelectedProduct.slug);
-            showSuccessNotification(
-              translate(
-                "Added To Compare! Click To Go To Compare Page",
-                language
-              ),
-              5000,
-              "/compare",
-              { is_full_home: true }
-            );
           }}
         >
           <svg

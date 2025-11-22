@@ -1,12 +1,12 @@
 import { useState } from "react";
 import { translateFunction } from "utils/functions";
-import TargetIcon from "public/svg/cart/Target.svg";
+import TargetIcon from "public/svg/cart/Target";
 import { useParams } from "next/navigation";
 import { allCountries } from "country-telephone-data";
 import { DebounceInput } from "react-debounce-input";
 import Spinner from "components/global/Spinner";
 import { useAppStore } from "store";
-import SyFlage from "public/svg/sy.svg";
+import SyFlage from "public/svg/sy";
 import { FlagIcon } from "utils/tinyUtils";
 import { SelectRegionPropsType } from "models/componentType/settingTypes/PersonalInfoAddressModalPropsType";
 import { SearchLocationsPropsType } from "models/componentType/SearchLocationsPropsType";

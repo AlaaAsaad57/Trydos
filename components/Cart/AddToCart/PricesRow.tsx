@@ -23,7 +23,11 @@ function PricesRow({
     if (SelectedProduct?.is_redeem && redeem_price && redeem_price > 0) {
       if (price === offer_price) {
         return (
-          <div className="flex flex-row items-center gap-[4px] regular text-[16px] text-[#1d1d1d] bg-[#fff]">
+          <div
+            className={`${
+              isRtl ? "flex-row-reverse" : "flex-row"
+            } flex  items-center gap-[4px] regular text-[16px] text-[#1d1d1d] bg-[#fff]`}
+          >
             <span className="relative text-[#C4C2C2]">
               <svg
                 data-cy="product_addtocart_svg"
@@ -60,7 +64,9 @@ function PricesRow({
         );
       } else {
         return (
-          <div className="flex flex-row items-center gap-[4px] regular text-[16px] text-[#1d1d1d] bg-[#fff]">
+          <div
+            className={`flex  items-center gap-[4px] regular text-[16px] text-[#1d1d1d] bg-[#fff]`}
+          >
             <span className="relative text-[#C4C2C2]">
               <svg
                 data-cy="product_addtocart_svg"
@@ -123,7 +129,11 @@ function PricesRow({
     } else {
       if (price === offer_price) {
         return (
-          <div className="flex flex-row items-center gap-[4px] regular text-[16px] text-[#1d1d1d] bg-[#fff]">
+          <div
+            className={`${
+              isRtl ? "flex-row-reverse" : "flex-row"
+            } flex  items-center gap-[4px] regular text-[16px] text-[#1d1d1d] bg-[#fff]`}
+          >
             <span className="relative text-[#1D1D1D] bold">
               {RoundPrice({
                 num: price,
@@ -136,7 +146,11 @@ function PricesRow({
         );
       } else {
         return (
-          <div className="flex flex-row items-center gap-[4px] regular text-[16px] text-[#1d1d1d] bg-[#fff]">
+          <div
+            className={`${
+              isRtl ? "flex-row-reverse" : "flex-row"
+            } flex  items-center gap-[4px] regular text-[16px] text-[#1d1d1d] bg-[#fff]`}
+          >
             <span className="relative text-[#C4C2C2]">
               <svg
                 data-cy="product_addtocart_svg"

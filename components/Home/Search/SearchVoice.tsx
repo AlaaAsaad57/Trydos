@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
-import SearchMicIcon from "public/svg/SearchMicIcon.svg";
+import SearchMicIcon from "public/svg/SearchMicIcon";
 import { useAppStore } from "store";
 import search from "services/search";
 import { useParams } from "next/navigation";

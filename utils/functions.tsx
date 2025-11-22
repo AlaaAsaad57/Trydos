@@ -5,7 +5,13 @@ import { OldCartApi } from "models/API/market/OldCart";
 import LocalizationServiceClass from "services/localization";
 import { GetConfiguredImagePropsType } from "models/componentType/boutiqueTypes/metaDataPropsType";
 import { fetchData } from "./fetchData";
-import { COOKIE_NAMES, UserData, getCookie } from "./cookies/cookie-manager";
+import {
+  COOKIE_NAMES,
+  UserData,
+  getCookie,
+  setCookie,
+  deleteCookie,
+} from "./cookies/cookie-manager";
 import { REQUESTS_DATA } from "./Requests";
 import { readStoredLastPaths } from "./history";
 import { getLastRequest } from "./requestLoggerClient";
@@ -275,7 +281,11 @@ export const RoundPrice = ({
   points?: any;
 }): number | string => {
   let price_num = Number(num);
-  const { currency, settings } = useAppStore.getState();
+  const {
+    currency,
+    settings,
+    language: languageVariable,
+  } = useAppStore.getState();
 
   // Currency conversion at the start
   let rateVariable = rate || currency?.exchange_rate || 1;
@@ -288,11 +298,11 @@ export const RoundPrice = ({
   number = Math.ceil(number);
 
   // Return raw converted number if requested
-
+  let languageCode = language ?? languageVariable ?? "en";
   number = Number(number.toFixed(deciaml_points));
   // Dart's formatNumber logic
-  const thousand = language !== "ar" ? "K" : "أ";
-  const million = language !== "ar" ? "M" : "م";
+  const thousand = languageCode !== "ar" ? "K" : "أ";
+  const million = languageCode !== "ar" ? "M" : "م";
 
   if (number >= 1e5 && number < 1e6) {
     const result = Math.floor((number + 999) / 1000);
@@ -450,20 +460,43 @@ export const WaitForCondition = async () => {
 };
 
 export const addToCompare = (slug: string) => {
-  const f_p = localStorage.getItem("f_p");
-  const s_p = localStorage.getItem("s_p");
+  const f_p = getCookie<string>("f_p");
+  const s_p = getCookie<string>("s_p");
 
   if (!f_p) {
-    localStorage.setItem("f_p", slug);
+    setCookie("f_p", slug);
     return `?f_p=${slug}`;
   } else if (!s_p) {
-    localStorage.setItem("s_p", slug);
+    setCookie("s_p", slug);
     return `?f_p=${f_p}&s_p=${slug}`;
   } else {
     // If both exist, replace the first one
-    localStorage.setItem("f_p", slug);
+    setCookie("f_p", slug);
     return `?f_p=${slug}&s_p=${s_p}`;
   }
+};
+
+export const removeFromCompare = (slug: string) => {
+  const f_p = getCookie<string>("f_p");
+  const s_p = getCookie<string>("s_p");
+
+  if (f_p === slug) {
+    deleteCookie("f_p");
+    if (s_p) {
+      // Move s_p to f_p
+      setCookie("f_p", s_p);
+      deleteCookie("s_p");
+      return `?f_p=${s_p}`;
+    }
+    return "";
+  } else if (s_p === slug) {
+    deleteCookie("s_p");
+    if (f_p) {
+      return `?f_p=${f_p}`;
+    }
+    return "";
+  }
+  return null;
 };
 
 /**

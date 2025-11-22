@@ -2,9 +2,9 @@ import React, { useState } from "react";
 
 import AuthService from "services/auth";
 import { translateFunction } from "utils/functions";
-import ManIcon from "public/svg/manIcon.svg";
+import ManIcon from "public/svg/manIcon";
 import Border from "./Border";
-import LeftArrowIcon from "public/svg/LeftArrowIcon.svg";
+import LeftArrowIcon from "public/svg/LeftArrowIcon";
 import "styles/Modal.css";
 import { useAppStore } from "store";
 import { pollinateInput } from "@/utils/tinyUtils";

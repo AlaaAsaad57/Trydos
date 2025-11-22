@@ -14,7 +14,7 @@ export async function GET(req: NextRequest) {
   if (req.method === "OPTIONS") {
     return new NextResponse(null, { status: 204, headers });
   }
-
+  const user_id = req.nextUrl.searchParams.get("user_id");
   const referer = req.headers.get("referer");
   const product_id = req.nextUrl.searchParams.get("product_id");
   const filter = req.nextUrl.searchParams.get("filter");
@@ -33,7 +33,9 @@ export async function GET(req: NextRequest) {
       product_id: product_id,
       searchAfter: offset,
       pageSize: 10,
+      user_id,
       filter,
+      language: req.headers.get("language") || "en",
     });
 
     return NextResponse.json(
@@ -42,6 +44,7 @@ export async function GET(req: NextRequest) {
           buyers_comments: data.buyers_comments,
           offset: data.searchAfter,
           total: data.total,
+          filters_key: data.filters_key,
           searchAfter: data.searchAfter,
         },
         code: 200,
@@ -65,8 +68,7 @@ export async function GET(req: NextRequest) {
     });
     return NextResponse.json(
       {
-        message:
-          `${error.message || error || "Unknown error"}` || "Unknown error",
+        message: `${error.message || error || "Unknown error"}`,
         data: null,
         code: 500,
       },

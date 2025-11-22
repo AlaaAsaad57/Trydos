@@ -5,6 +5,10 @@ let nextConfig: NextConfig = {
   reactStrictMode: false,
   compress: true,
   bundlePagesRouterDependencies: false,
+  // React 19 Compiler Configuration
+  // Automatically optimizes React components (memoization, etc.)
+  // No additional packages needed - built into Next.js 16
+  reactCompiler: true,
   async headers() {
     return [
       {
@@ -87,70 +91,70 @@ let nextConfig: NextConfig = {
   // compiler: {
   //   removeConsole: process.env.NODE_ENV === "production",
   // },
-  webpack(config, { dev, isServer }) {
-    const fileLoaderRule = config.module.rules.find((rule) =>
-      rule.test?.test?.(".svg")
-    );
+  // webpack(config, { dev, isServer }) {
+  //   const fileLoaderRule = config.module.rules.find((rule) =>
+  //     rule.test?.test?.(".svg")
+  //   );
 
-    config.module.rules.push(
-      // Reapply the existing rule, but only for svg imports ending in ?url
-      {
-        ...fileLoaderRule,
-        test: /\.svg$/i,
-        resourceQuery: /url/, // *.svg?url
-      },
-      // Convert all other *.svg imports to React components
-      {
-        test: /\.svg$/i,
-        issuer: fileLoaderRule.issuer,
-        resourceQuery: { not: [...fileLoaderRule.resourceQuery.not, /url/] }, // exclude if *.svg?url
-        use: ["@svgr/webpack"],
-      }
-    );
+  //   config.module.rules.push(
+  //     // Reapply the existing rule, but only for svg imports ending in ?url
+  //     {
+  //       ...fileLoaderRule,
+  //       test: /\.svg$/i,
+  //       resourceQuery: /url/, // *.svg?url
+  //     },
+  //     // Convert all other *.svg imports to React components
+  //     {
+  //       test: /\.svg$/i,
+  //       issuer: fileLoaderRule.issuer,
+  //       resourceQuery: { not: [...fileLoaderRule.resourceQuery.not, /url/] }, // exclude if *.svg?url
+  //       use: ["@svgr/webpack"],
+  //     }
+  //   );
 
-    // Modify the file loader rule to ignore *.svg, since we have it handled now.
-    fileLoaderRule.exclude = /\.svg$/i;
-    config.module.rules.push({
-      test: /\.mp3$/,
-      use: {
-        loader: "file-loader",
-      },
-    });
-    // if (!isServer && !dev && process.env.NODE_ENV !== "production") {
-    //   config.module.rules.push({
-    //     test: /\.(js|jsx|ts|tsx)$/,
-    //     enforce: "post",
-    //     use: [
-    //       {
-    //         loader: "istanbul-instrumenter-loader",
-    //         options: {
-    //           esModules: true,
-    //         },
-    //       },
-    //     ],
-    //     include: [
-    //       path.resolve(__dirname, "store"),
-    //       path.resolve(__dirname, "components"),
-    //       path.resolve(__dirname, "services"),
-    //       path.resolve(__dirname, "utils"),
-    //     ],
-    //     exclude: [
-    //       // Exclude specific components
-    //       path.resolve(__dirname, "components/global/webViewActions"),
-    //       path.resolve(__dirname, "components/global/WebViewVideoCall"),
-    //       path.resolve(__dirname, "components/global/WebViewVoiceCall"),
-    //       // Exclude utils/libs
-    //       path.resolve(__dirname, "utils/libs"),
-    //       // Exclude specific store actions
-    //       path.resolve(__dirname, "store/chat/callActions"),
-    //     ],
-    //   });
-    // }
-    if (!dev) {
-      config.devtool = false;
-    }
-    return config;
-  },
+  //   // Modify the file loader rule to ignore *.svg, since we have it handled now.
+  //   fileLoaderRule.exclude = /\.svg$/i;
+  //   config.module.rules.push({
+  //     test: /\.mp3$/,
+  //     use: {
+  //       loader: "file-loader",
+  //     },
+  //   });
+  //   // if (!isServer && !dev && process.env.NODE_ENV !== "production") {
+  //   //   config.module.rules.push({
+  //   //     test: /\.(js|jsx|ts|tsx)$/,
+  //   //     enforce: "post",
+  //   //     use: [
+  //   //       {
+  //   //         loader: "istanbul-instrumenter-loader",
+  //   //         options: {
+  //   //           esModules: true,
+  //   //         },
+  //   //       },
+  //   //     ],
+  //   //     include: [
+  //   //       path.resolve(__dirname, "store"),
+  //   //       path.resolve(__dirname, "components"),
+  //   //       path.resolve(__dirname, "services"),
+  //   //       path.resolve(__dirname, "utils"),
+  //   //     ],
+  //   //     exclude: [
+  //   //       // Exclude specific components
+  //   //       path.resolve(__dirname, "components/global/webViewActions"),
+  //   //       path.resolve(__dirname, "components/global/WebViewVideoCall"),
+  //   //       path.resolve(__dirname, "components/global/WebViewVoiceCall"),
+  //   //       // Exclude utils/libs
+  //   //       path.resolve(__dirname, "utils/libs"),
+  //   //       // Exclude specific store actions
+  //   //       path.resolve(__dirname, "store/chat/callActions"),
+  //   //     ],
+  //   //   });
+  //   // }
+  //   if (!dev) {
+  //     config.devtool = false;
+  //   }
+  //   return config;
+  // },
   productionBrowserSourceMaps: true,
   // your config for other plugins or the general next.js here...
 };

@@ -794,6 +794,7 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
           shipping_cost={product?.shipping_cost}
         />
         <ExtraInfoArea
+          colors={ProductData?.sync_color_images}
           isCollectAfterOrder={ProductData.collected_after_ordering === 1}
           redeem_price={getSelectedVariantQty()?.redeem_price}
           selected_color={selectedColor}

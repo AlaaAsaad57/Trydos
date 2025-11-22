@@ -23,11 +23,11 @@ import { useAppStore } from "store";
 import { fetchData } from "utils/fetchData";
 
 // SVG Icons
-import EndCallIcon from "../svg/endCall.svg";
-import MicIcon from "../svg/micIcon.svg";
-import CallingIcon from "../svg/calling.svg";
-import AddUserIcon from "../svg/addUser.svg";
-import LeftArrowIcon from "../svg/leftArrow.svg";
+import EndCallIcon from "../svg/endCall";
+import MicIcon from "../svg/micIcon";
+import CallingIcon from "../svg/calling";
+import AddUserIcon from "../svg/addUser";
+import LeftArrowIcon from "../svg/leftArrow";
 
 // Styles
 import "styles/chat.css";

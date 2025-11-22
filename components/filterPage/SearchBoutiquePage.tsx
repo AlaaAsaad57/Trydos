@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect } from "react";
-import SearchIcon from "public/svg/listing/searchIcon.svg";
+import SearchIcon from "public/svg/listing/searchIcon";
 
 import { useAppStore } from "store";
 import { DebounceInput } from "react-debounce-input/src";

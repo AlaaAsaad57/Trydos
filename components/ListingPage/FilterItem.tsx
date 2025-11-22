@@ -8,7 +8,7 @@ import {
   FilterItemProps,
   FilterState,
 } from "utils/tinyUtils";
-import ActiveCategoryIcon from "public/svg/listing/ActiveCategoryIcon.svg";
+import ActiveCategoryIcon from "public/svg/listing/ActiveCategoryIcon";
 import Image from "next/image";
 import { getConfiguredImage, RoundPrice } from "utils/functions";
 import { GAevent } from "utils/gtag";

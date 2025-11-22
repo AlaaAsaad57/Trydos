@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import SettingTopBar from "./TopBar";
-import AddressInfo from "public/svg/cart/AddressInfo.svg";
+import AddressInfo from "public/svg/cart/AddressInfo";
 import { translateFunction } from "utils/functions";
 
 import { useParams, useRouter } from "next/navigation";

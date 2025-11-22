@@ -1,0 +1,79 @@
+import * as React from "react";
+
+const Flag = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    xmlnsXlink="http://www.w3.org/1999/xlink"
+    width="16"
+    height="12"
+    viewBox="0 0 16 12"
+    {...props}
+  >
+    <defs>
+      <clipPath id="clip-path">
+        <rect
+          id="Rectangle_4601"
+          data-name="Rectangle 4601"
+          width="16"
+          height="12"
+          transform="translate(0 -0.754)"
+          fill="none"
+        />
+      </clipPath>
+      <clipPath id="clip-path-2">
+        <rect
+          id="Rectangle_4601-2"
+          data-name="Rectangle 4601"
+          width="16.56"
+          height="10.8"
+          fill="none"
+        />
+      </clipPath>
+    </defs>
+    <g
+      id="Mask_Group_351"
+      data-name="Mask Group 351"
+      transform="translate(0 0.754)"
+      clipPath="url(#clip-path)"
+    >
+      <g
+        id="Mask_Group_92"
+        data-name="Mask Group 92"
+        transform="translate(0 0.061)"
+        clipPath="url(#clip-path-2)"
+      >
+        <g id="turkey" transform="translate(0.038)">
+          <path
+            id="Path_16019"
+            data-name="Path 16019"
+            d="M15.25,3.089H1.235A1.235,1.235,0,0,0,0,4.324v8.331A1.235,1.235,0,0,0,1.235,13.89H15.25a1.235,1.235,0,0,0,1.235-1.235V4.324A1.235,1.235,0,0,0,15.25,3.089Z"
+            transform="translate(0 -3.089)"
+            fill="#ff4b55"
+          />
+          <g
+            id="Group_4682"
+            data-name="Group 4682"
+            transform="translate(2.096 2.556)"
+          >
+            <path
+              id="Path_16020"
+              data-name="Path 16020"
+              d="M8.8,7.9l.446.582.7-.233a.042.042,0,0,1,.049.065l-.417.6.436.59a.042.042,0,0,1-.047.066l-.7-.21-.426.6a.042.042,0,0,1-.078-.024L8.739,9.2l-.7-.22a.042.042,0,0,1,0-.081l.692-.243-.006-.734A.042.042,0,0,1,8.8,7.9Z"
+              transform="translate(-2.736 -6.029)"
+              fill="#f5f5f5"
+            />
+            <path
+              id="Path_16021"
+              data-name="Path 16021"
+              d="M5.88,10.986a2.275,2.275,0,1,1,0-4.55,2.232,2.232,0,0,1,1.257.387.055.055,0,1,0,.072-.083,2.841,2.841,0,1,0,0,3.938.055.055,0,0,0-.072-.081,2.232,2.232,0,0,1-1.259.389Z"
+              transform="translate(-2.278 -5.868)"
+              fill="#f5f5f5"
+            />
+          </g>
+        </g>
+      </g>
+    </g>
+  </svg>
+);
+
+export default Flag;

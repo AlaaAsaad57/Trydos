@@ -1,13 +1,35 @@
 import React from "react";
-import ReplyIcon from "../svg/rep.svg";
-import CancelIcon from "../svg/cancel.svg";
-import VideoIcon from "../svg/video.svg";
-import AudioIcon from "../svg/audio.svg";
+import ReplyIcon from "../svg/rep";
+import CancelIcon from "../svg/cancel";
+import VideoIcon from "../svg/video";
+import AudioIcon from "../svg/audio";
 import out from "../svg/output.png";
-import { translateFunction } from "utils/functions";
+import { getConfiguredImage, translateFunction } from "utils/functions";
 import Image from "next/image";
+import { GetImageUrl } from "utils/tinyUtils";
 function ReplyMessage({ message, cancel }) {
   const showContent = () => {
+    if (message.message_type.name === "ShareProduct") {
+      return (
+        <>
+          <Image
+            src={getConfiguredImage({
+              src: GetImageUrl(
+                JSON.parse(message.message_content.content)[0]
+                  ?.product_image_url
+              ),
+              width: 315,
+              height: 521,
+              q: 80,
+            })}
+            width={26}
+            height={20}
+            alt="Image"
+          />
+          {JSON.parse(message.message_content.content)[0]?.product_name}
+        </>
+      );
+    }
     if (message.message_type.name === "TextMessage") {
       return <>{message.message_content.content}</>;
     }

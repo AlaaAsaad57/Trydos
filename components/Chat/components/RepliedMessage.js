@@ -1,15 +1,16 @@
 import React from "react";
 import { getTwoLetters } from "../chatsFunctions";
 
-import ImageIcon from "../svg/image.svg";
-import VideoIcon from "../svg/video.svg";
-import AudioIcon from "../svg/audio.svg";
+import ImageIcon from "../svg/image";
+import VideoIcon from "../svg/video";
+import AudioIcon from "../svg/audio";
 import profile from "public/images/profileNo.png";
 
 import out from "../svg/output.png";
 import Image from "next/image";
-import { getUserChat } from "utils/functions";
+import { getConfiguredImage, getUserChat } from "utils/functions";
 import { useAppStore } from "store";
+import { GetImageUrl } from "utils/tinyUtils";
 function RepliedMessage({
   moving,
   message,
@@ -570,6 +571,123 @@ function RepliedMessage({
           </>
         );
       }
+      if (parent_message.message_type.name === "ShareProduct") {
+        return (
+          <div className={"message-hold"} onClick={() => onClick()}>
+            <div
+              ref={message_ref}
+              className={"message-body text-message text-body " + "first-chat"}
+            >
+              {
+                <div
+                  className={
+                    "absolute-avatar " +
+                    `${
+                      (!activeChat.channel_members.filter(
+                        (a) =>
+                          parseInt(a.user_id) === parseInt(getUserChat()?.id)
+                      )[0]?.user?.photo_path ||
+                        activeChat.channel_members
+                          .filter(
+                            (a) =>
+                              parseInt(a.user_id) ===
+                              parseInt(getUserChat()?.id)
+                          )[0]
+                          ?.user?.photo_path?.includes("eu")) &&
+                      activeChat.channel_members.filter(
+                        (a) =>
+                          parseInt(a.user_id) === parseInt(getUserChat()?.id)
+                      )[0]?.user?.name &&
+                      "text-avatar"
+                    }`
+                  }
+                >
+                  {activeChat.channel_members
+                    .filter((user) => user.user_id === getUserChat()?.id)[0]
+                    ?.user?.photo_path?.includes("eu") ? (
+                    activeChat.channel_members.filter(
+                      (a) => parseInt(a.user_id) === parseInt(getUserChat()?.id)
+                    )[0]?.user?.name?.length > 1 ? (
+                      <>
+                        {getTwoLetters(
+                          activeChat.channel_members.filter(
+                            (a) =>
+                              parseInt(a.user_id) ===
+                              parseInt(getUserChat()?.id)
+                          )[0]?.user?.name ||
+                            activeChat.channel_members.filter(
+                              (a) =>
+                                parseInt(a.user_id) ===
+                                parseInt(getUserChat()?.id)
+                            )[0]?.user?.user_name
+                        )}
+                      </>
+                    ) : (
+                      <Image
+                        alt="user-img"
+                        src={profile}
+                        width={30}
+                        height={30}
+                      />
+                    )
+                  ) : activeChat.channel_members.filter(
+                      (user) => user.user_id === getUserChat()?.id
+                    )[0]?.user?.name?.length > 1 ? (
+                    <>
+                      {getTwoLetters(
+                        activeChat.channel_members.filter(
+                          (a) =>
+                            parseInt(a.user_id) === parseInt(getUserChat()?.id)
+                        )[0]?.user?.name ||
+                          activeChat.channel_members.filter(
+                            (a) =>
+                              parseInt(a.user_id) ===
+                              parseInt(getUserChat()?.id)
+                          )[0]?.user?.user_name
+                      )}
+                    </>
+                  ) : (
+                    <Image
+                      alt="user-img"
+                      className="abs-avva"
+                      unoptimized
+                      src={
+                        (activeChat &&
+                          activeChat.channel_members &&
+                          activeChat.channel_members.filter(
+                            (a) =>
+                              parseInt(a.user_id) ===
+                              parseInt(getUserChat()?.id)
+                          )[0]?.user?.photo_path) ||
+                        profile
+                      }
+                    />
+                  )}
+                </div>
+              }
+              <span className="message-body-text-content gap-[4px] flex-row items-center">
+                <Image
+                  width={30}
+                  height={30}
+                  className="rounded-[8px]"
+                  src={getConfiguredImage({
+                    src: GetImageUrl(
+                      JSON.parse(parent_message.message_content?.content)?.[0]
+                        ?.product_image_url
+                    ),
+                    width: 60,
+                    height: 60,
+                  })}
+                />
+                {parent_message.message_content &&
+                  parent_message.message_content?.content &&
+                  JSON.parse(parent_message.message_content?.content)?.[0]
+                    ?.product_name}
+              </span>
+            </div>
+          </div>
+        );
+      }
     } else {
       if (parent_message.message_type.name === "ImageMessage") {
         return (
@@ -1082,6 +1200,123 @@ function RepliedMessage({
                 src={out.src}
               />{" "}
               File
+            </div>
+          </div>
+        );
+      }
+      if (parent_message.message_type.name === "TextMessage") {
+        return (
+          <div className={"message-hold"} onClick={() => onClick()}>
+            <div
+              ref={message_ref}
+              className={"message-body text-message text-body first-chat"}
+            >
+              {
+                <div
+                  className={
+                    "absolute-avatar " +
+                    `${
+                      (!activeChat.channel_members.filter(
+                        (a) =>
+                          parseInt(a.user_id) !== parseInt(getUserChat()?.id)
+                      )[0]?.user?.photo_path ||
+                        activeChat.channel_members
+                          .filter(
+                            (a) =>
+                              parseInt(a.user_id) !==
+                              parseInt(getUserChat()?.id)
+                          )[0]
+                          ?.user?.photo_path?.includes("eu")) &&
+                      activeChat.channel_members.filter(
+                        (a) =>
+                          parseInt(a.user_id) !== parseInt(getUserChat()?.id)
+                      )[0]?.user?.name &&
+                      "text-avatar"
+                    }`
+                  }
+                >
+                  {activeChat.channel_members
+                    .filter((user) => user.user_id !== getUserChat()?.id)[0]
+                    ?.user?.photo_path?.includes("eu") ? (
+                    activeChat.channel_members.filter(
+                      (a) => parseInt(a.user_id) !== parseInt(getUserChat()?.id)
+                    )[0]?.user?.name?.length > 1 ? (
+                      <>
+                        {getTwoLetters(
+                          activeChat.channel_members.filter(
+                            (a) =>
+                              parseInt(a.user_id) !==
+                              parseInt(getUserChat()?.id)
+                          )[0]?.user?.name ||
+                            activeChat.channel_members.filter(
+                              (a) =>
+                                parseInt(a.user_id) !==
+                                parseInt(getUserChat()?.id)
+                            )[0]?.user?.user_name
+                        )}
+                      </>
+                    ) : (
+                      <Image
+                        alt="user-img"
+                        src={profile}
+                        width={30}
+                        height={30}
+                      />
+                    )
+                  ) : activeChat.channel_members.filter(
+                      (user) => user.user_id !== getUserChat()?.id
+                    )[0]?.user?.name?.length > 1 ? (
+                    <>
+                      {getTwoLetters(
+                        activeChat.channel_members.filter(
+                          (a) =>
+                            parseInt(a.user_id) !== parseInt(getUserChat()?.id)
+                        )[0]?.user?.name ||
+                          activeChat.channel_members.filter(
+                            (a) =>
+                              parseInt(a.user_id) ===
+                              parseInt(getUserChat()?.id)
+                          )[0]?.user?.user_name
+                      )}
+                    </>
+                  ) : (
+                    <Image
+                      alt="user-img"
+                      className="abs-avva"
+                      unoptimized
+                      src={
+                        (activeChat &&
+                          activeChat.channel_members &&
+                          activeChat.channel_members.filter(
+                            (a) =>
+                              parseInt(a.user_id) ===
+                              parseInt(getUserChat()?.id)
+                          )[0]?.user?.photo_path) ||
+                        profile
+                      }
+                    />
+                  )}
+                </div>
+              }
+              <span className="message-body-text-content gap-[4px] flex-row items-center">
+                <Image
+                  width={30}
+                  height={30}
+                  className="rounded-[8px]"
+                  src={getConfiguredImage({
+                    src: GetImageUrl(
+                      JSON.parse(parent_message.message_content?.content)?.[0]
+                        ?.product_image_url
+                    ),
+                    width: 60,
+                    height: 60,
+                  })}
+                />
+                {parent_message.message_content &&
+                  parent_message.message_content?.content &&
+                  JSON.parse(parent_message.message_content?.content)?.[0]
+                    ?.product_name}
+              </span>
             </div>
           </div>
         );

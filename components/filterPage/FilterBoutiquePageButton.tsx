@@ -2,7 +2,7 @@
 import React from "react";
 import { useAppStore } from "store";
 
-import FilterIcon from "public/svg/listing/filterIcon.svg";
+import FilterIcon from "public/svg/listing/filterIcon";
 
 function FilterBoutiquePageButton() {
   const { setFilterEnabled, filterEnabled } = useAppStore();

@@ -2,7 +2,7 @@
 import NextLink from "components/global/NextLink";
 import React, { memo, useState } from "react";
 import { BuyButtonProduct } from "../ListingPage/Product";
-import VerifiedIcon from "public/svg/listing/VerifiedIcon.svg";
+import VerifiedIcon from "public/svg/listing/VerifiedIcon";
 import { ProductLabelsAnimated } from "components/products/ProductLabelsAnimated";
 import { getCookie, setCookie } from "utils/cookies/cookie-manager";
 import { ProductPhotosSlider } from "components/ListingPage/ProductSliders";
@@ -133,6 +133,7 @@ function ProductCard({
     }
     return "product-card";
   };
+  const isRtl = language === "ar" || language === "ku";
   return (
     <div className="relative flex" ref={timerRef}>
       <ColorBottomSheet
@@ -193,7 +194,7 @@ function ProductCard({
           }}
           ariaLabel={`go to product ${product.name} ${params.lang}`}
           href={getUrlofProduct()}
-          className="product-container  align-center flex-col relative pb-[10px]"
+          className="product-container  align-center flex-col relative pb-[12px]"
           data-cy="product_link"
           id={product.slug}
         >
@@ -232,7 +233,10 @@ function ProductCard({
                 )}
                 <VerifiedIcon />
               </span>
-              <p className="truncate w-full max-w-full" data-cy="product-name">
+              <p
+                className={`${isRtl && "dir-rtl"} truncate w-full max-w-full`}
+                data-cy="product-name"
+              >
                 {[product?.name, product.categories_tree]
                   ?.filter((s) => typeof s === "string")
                   ?.join(" | ")}

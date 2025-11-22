@@ -131,7 +131,7 @@ function CartContentOfProduct() {
             height="calc(100% - 0.5px)"
             rx="9.75"
             stroke="#513AAF"
-            stroke-width="0.5"
+            strokeWidth="0.5"
             fill="none"
           />
         </svg>
@@ -167,7 +167,7 @@ const ProductImageCircle = ({ image }) => {
           height="12.5"
           rx="100"
           stroke="#513AAF"
-          stroke-width="0.5"
+          strokeWidth="0.5"
           fill="none"
         />
       </svg>

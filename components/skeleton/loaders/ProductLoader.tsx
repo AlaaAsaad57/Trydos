@@ -8,12 +8,12 @@ import {
 } from "utils/functions";
 import "styles/productDetails.css";
 import "styles/product-body.css";
-import MalicanIcon from "public/svg/MailcanIcon.svg";
-import ExpectedIcon from "public/svg/expectedDelevery.svg";
-import FreeShippingIcon from "public/svg/product/FreeShipping.svg";
-import BuyersCommentIcon from "public/svg/product/BuyersCommentsIcon.svg";
-import FreeReturnIcon from "public/svg/product/FreeReturnIcon.svg";
-import VerifiedIcon from "public/svg/product/Verified.svg";
+import MalicanIcon from "public/svg/MailcanIcon";
+import ExpectedIcon from "public/svg/expectedDelevery";
+import FreeShippingIcon from "public/svg/product/FreeShipping";
+import BuyersCommentIcon from "public/svg/product/BuyersCommentsIcon";
+import FreeReturnIcon from "public/svg/product/FreeReturnIcon";
+import VerifiedIcon from "public/svg/product/Verified";
 import Image from "next/image";
 import Skeleton from "react-loading-skeleton";
 import { useAppStore } from "store";
@@ -174,6 +174,7 @@ function ProductLoader({ product }) {
     }
     return <></>;
   };
+  // @ts-ignore
   const params = useParams();
   const { currency, isNavigating } = useAppStore();
   const color = product?.active_color;
@@ -315,6 +316,10 @@ function ProductLoader({ product }) {
                 language={(params?.lang as string)?.split("-")?.[1]}
               />
               <ProductGeneralProperties
+                views={null}
+                rating_stats={[]}
+                recommendation_stats={[]}
+                total_rating={0}
                 languageVariable={(params?.lang as string)?.split("-")?.[1]}
               />
             </div>

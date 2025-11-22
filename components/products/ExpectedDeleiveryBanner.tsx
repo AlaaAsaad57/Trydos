@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import ExpectedIcon from "public/svg/expectedDelevery.svg";
+import ExpectedIcon from "public/svg/expectedDelevery";
 import { translateFunction } from "utils/functions";
 import Skeleton from "react-loading-skeleton";
 import {

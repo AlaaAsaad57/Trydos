@@ -118,6 +118,11 @@ export const useCartStore = (set, get) => ({
   orderPageLoading: false,
   orderReturnObject: null,
   settingLastPath: null,
+  LoggingOut: false,
+  setLoggingOut: (e) =>
+    set((state) => ({
+      LoggingOut: e,
+    })),
   setSettingLastPath: (path) =>
     set((state) => ({
       settingLastPath: path,

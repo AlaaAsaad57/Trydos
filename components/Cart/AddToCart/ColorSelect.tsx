@@ -28,7 +28,7 @@ function ColorSelect({ colors, setSelectedColor, selectedColor }) {
           className="max-h-[14px] object-contain"
         />
         <span className="text-[#1d1d1d] text-[11px] regular">
-          {translateFunction("Selected Color")}
+          {translateFunction("Select Color")}
         </span>
       </div>
       <HortiznalScrollBar
@@ -65,7 +65,10 @@ function ColorSelect({ colors, setSelectedColor, selectedColor }) {
                 />
               </div>
               {color?.color_option === selectedColor?.color_option && (
-                <span className="mt-[3px] semibold text-[7px] text-[#505050]">
+                <span
+                  className="mt-[3px] semibold text-[7px] text-[#505050]"
+                  data-cy="selected-color-name"
+                >
                   {color.color_name}
                 </span>
               )}

@@ -1,7 +1,11 @@
 import "styles/productDetails.css";
 import { ComparePagePropsType } from "models/componentType/compareTypes/comparePagePropsType";
 import ComparePage from "components/global/compare";
+import { Suspense } from "react";
+import CompareSkeleton from "components/skeleton/loaders/CompareSkeleton";
+
 export const dynamic = "auto";
+
 export async function generateMetadata({ params }) {
   let Params = await params;
   try {
@@ -25,12 +29,10 @@ export async function generateMetadata({ params }) {
 }
 
 async function Page() {
-  // Server component to render JSON-LD structured data
-
   return (
-    <>
-      <ComparePage />
-    </>
+    <Suspense fallback={<CompareSkeleton />}>
+      <ComparePage showInstantLoading={false} />
+    </Suspense>
   );
 }
 

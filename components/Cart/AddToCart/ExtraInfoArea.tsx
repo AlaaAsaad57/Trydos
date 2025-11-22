@@ -17,6 +17,7 @@ function ExtraInfoArea({
   redeem_price,
   flashDeal,
   isCollectAfterOrder,
+  colors,
   RedemEnd = () => {},
   id,
   product,
@@ -117,11 +118,16 @@ function ExtraInfoArea({
   );
 
   const showSelectedVariation = () => {
+    const isRtl = language === "ar" || language === "ku";
     if (!selected_color && !selected_size) return <></>;
     if (selected_color && selected_size) {
       return (
         <div className="flex-row flex items-center min-h-[40px] max-h-[85px] w-full justify-center px-[20px]">
-          <div className="flex flex-row items-center gap-[3px] regular text-[10px] text-[#1d1d1d]">
+          <div
+            className={`${
+              isRtl ? "flex-row-reverse" : "flex-row"
+            } flex  items-center gap-[3px] regular text-[10px] text-[#1d1d1d]`}
+          >
             <span>{translateFunction("Color")}</span>
             <span className="bold" data-cy="add-to-cart-selected-color">
               {selected_color?.color_name}
@@ -137,7 +143,11 @@ function ExtraInfoArea({
     } else {
       return (
         <div className="flex-row flex items-center min-h-[40px] max-h-[85px] w-full justify-center px-[20px]">
-          <div className="flex flex-row items-center gap-[3px] regular text-[10px] text-[#1d1d1d]">
+          <div
+            className={`${
+              isRtl ? "flex-row-reverse" : "flex-row"
+            } flex  items-center gap-[3px] regular text-[10px] text-[#1d1d1d]`}
+          >
             {selected_color ? (
               <>
                 <span>{translateFunction("Color")}</span>
@@ -161,7 +171,7 @@ function ExtraInfoArea({
     }
   };
   // if qty is 0
-  if (isQtyEmpty && !isCollectAfterOrder) {
+  if (isQtyEmpty && !isCollectAfterOrder && colors?.length > 0) {
     return (
       <div className="flex-row flex items-center min-h-[40px] max-h-[85px] w-full px-[20px]">
         <div className="flex items-center justify-center rounded-[10px] bg-[#F8F8F8] text-[11px] text-[#1d1d1d] w-full h-[25px] medium">
@@ -198,7 +208,7 @@ function ExtraInfoArea({
             <span className="bold">
               {RoundPrice({
                 num: redeem_price,
-                rate: currency.exchange_rate,
+                rate: currency?.exchange_rate,
                 language: language,
               })}
             </span>
@@ -217,7 +227,7 @@ function ExtraInfoArea({
                 height="24.5"
                 rx="9.75"
                 stroke="#ff6200"
-                stroke-width="0.5"
+                strokeWidth="0.5"
                 fill="none"
               />
             </svg>

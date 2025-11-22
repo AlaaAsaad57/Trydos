@@ -5,7 +5,7 @@ import {
   translateFunction,
 } from "utils/functions";
 import Image from "next/image";
-import ChangeOrderItemIcon from "public/svg/ChangeOrderItemIcon.svg";
+import ChangeOrderItemIcon from "public/svg/ChangeOrderItemIcon";
 import Spinner from "components/global/Spinner";
 import { ColorList, SizeList } from "./ModifyOrderItemModal";
 import { GetImageUrl, isSameColor, pollinateInput } from "utils/tinyUtils";

@@ -37,7 +37,7 @@ function ChatLists(props) {
     return (
       <div className="chat-list-items gap-[10px]">
         {[1, 1, 1, 1, 1].map((s, i) => (
-          <div className="chat-conversation-item mt-[10px]" key={i}>
+          <div className="chat-conversation-item  mt-[10px]" key={i}>
             <div className="w-[60px] h-[60px] rounded-[12px]">
               <Skeleton className="w-full h-full" borderRadius={100} />
             </div>
@@ -50,7 +50,7 @@ function ChatLists(props) {
     );
   }
   return (
-    <div className="chat-list-items">
+    <div className="chat-list-items chat-lists-class ">
       {!loading && (
         <>
           {props.search.length === 0 ? (

@@ -167,7 +167,7 @@ function Init() {
       {shouldShowBluredInfo() && (
         <PopupCountry
           forChanged={searchParams.get("changed-country")}
-          noCountry={searchParams.get("no-country")}
+          noCountry={searchParams.get("no-country") || lang?.includes("gb-")}
           countries={dataCountries.map((s) => s.iso)}
           options={dataCountries.map((s) => {
             return { label: s.name, value: s.iso };

@@ -1,17 +1,23 @@
 import BottomSheet from "components/global/BottomSheet";
-import React, { Suspense } from "react";
+import React, { useMemo } from "react";
 import { useAppStore } from "store";
 import { translateFunction } from "utils/functions";
-import RateIcon from "public/svg/RateIconProperty.svg";
+import RateIcon from "public/svg/RateIconProperty";
 import RatingStars from "components/settings/cards/RatingStars";
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 import ProductViews from "./ProductViews";
-import SolidRecomendIcon from "public/svg/product/SolidRecomendIcon.svg";
-import QualityIcon from "public/svg/product/QualityIcon.svg";
-import RecomendedIcon from "public/svg/RecomendedIcon.svg";
-import NegRecomendedIcon from "public/svg/NegRecomendIcon.svg";
+import SolidRecomendIcon from "public/svg/product/SolidRecomendIcon";
+import QualityIcon from "public/svg/product/QualityIcon";
+import RecomendedIcon from "public/svg/RecomendedIcon";
+import NegRecomendedIcon from "public/svg/NegRecomendIcon";
 
-function GeneralPropertiesModal() {
+function GeneralPropertiesModal({
+  rating_stats,
+  TotalBuyers,
+  recommendation_stats,
+  total_rating,
+  views,
+}) {
   const { ColorBottomSheet, setColorBottomSheet, language } = useAppStore();
   let reviews_arr = [
     { value: 70, title: "True" },
@@ -19,13 +25,19 @@ function GeneralPropertiesModal() {
     { value: 24, title: "Large" },
     { value: 99, title: "Big" },
   ];
-  const rating_arr = [
+  const rating_arr_text = [
     { rating: 1, title: "Very Bad", count: 1 },
     { rating: 2, title: "Bad", count: 2 },
     { rating: 3, title: "Normal", count: 65 },
     { rating: 4, title: "Good", count: 100 },
     { rating: 5, title: "Very Good", count: 200 },
   ];
+  const rating_arr = rating_stats?.map((s) => ({
+    rating: s.ratingGroup,
+    count: s.count,
+    title: rating_arr_text.find((_t) => _t.rating === s.ratingGroup)?.title,
+  }));
+
   return (
     <>
       {ColorBottomSheet && ColorBottomSheet?.is_general_properties && (
@@ -57,15 +69,15 @@ function GeneralPropertiesModal() {
               <RatingStars
                 size={20}
                 color="#1d1d1d"
-                initialRating={3}
-                readOnly
+                initialRating={total_rating}
+                readOnly={true}
               />
               <HortiznalScrollBar
                 id="product-properties-general-modal"
                 className="flex-row pr-[90px] product-properties items-center justify-start w-100 text-[#1d1d1d] text-[11px] [&>*]:!text-[11px]"
               >
                 <div className="flex-row items-center">
-                  <span className="bold pr-[4px]"> {365}</span>
+                  <span className="bold pr-[4px]"> {TotalBuyers}</span>
                   {translateFunction("Buyer Rate", language)}
                 </div>
 
@@ -77,7 +89,7 @@ function GeneralPropertiesModal() {
                   </span>
                 </div>
                 <span className="px-[5px] text-[11px] text-[#1d1d1d]">|</span>
-                <ProductViews />
+                <ProductViews views={views} />
                 <span className="px-[4px] flex">
                   {translateFunction("Views Product", language)}
                 </span>
@@ -88,6 +100,7 @@ function GeneralPropertiesModal() {
                     <RatingStars
                       size={14}
                       color="#1d1d1d"
+                      readOnly={true}
                       initialRating={s.rating}
                     />
                     <div className="regular text-[11px] text-[#1d1d1d] gap-[4px] flex-row items-center">
@@ -129,7 +142,10 @@ function GeneralPropertiesModal() {
                 )}
                 <span className="bold px-[4px]">trydos</span>
               </span>
-              <BuyersRatingBar isFromModal={true} language={language} />
+              <BuyersRatingBar
+                recommendation_stats={recommendation_stats}
+                language={language}
+              />
             </div>
           </div>
         </BottomSheet>
@@ -176,9 +192,9 @@ const ReviewProgress = ({ value, title }) => {
     </div>
   );
 };
-const BuyersRatingBar = ({ language, isFromModal = false }) => {
-  let recomended = 123;
-  let not_recomended = 15;
+const BuyersRatingBar = ({ language, recommendation_stats }) => {
+  let recomended = recommendation_stats.recomended_count;
+  let not_recomended = recommendation_stats?.not_recomended_count;
   let recomendedPRC = (
     (100 * recomended) /
     (recomended + not_recomended)

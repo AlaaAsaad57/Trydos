@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { FIREBASE_SETTINGS_URL } from "utils/endpointConfig";
 import { translateFunction } from "utils/functions";
-import FirebasIcon from "public/svg/FireBase.svg";
-import MailIcon from "public/svg/mail.svg";
-import WhatsIcon from "public/svg/whatsappNotification.svg";
-import CalenderIcon from "public/svg/CalenderIcon.svg";
+import FirebasIcon from "public/svg/FireBase";
+import MailIcon from "public/svg/mail";
+import WhatsIcon from "public/svg/whatsappNotification";
+import CalenderIcon from "public/svg/CalenderIcon";
 import home from "services/home";
 import NotificationsTest from "components/global/NotificationsTest";
 import {

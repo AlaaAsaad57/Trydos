@@ -7,27 +7,27 @@ export async function GET(request: NextRequest) {
 
   try {
     if (value === "stories") {
-      revalidateTag("stories");
+      revalidateTag("stories", "max");
     } else {
       revalidatePath("/", "layout");
       revalidatePath("/", "page");
-      revalidateTag("main-categories-Api");
+      revalidateTag("main-categories-Api", "max");
       revalidatePath("/products");
       revalidatePath("/categories");
       revalidatePath("/filters");
       revalidatePath("/featured");
       revalidatePath("/flashDeals");
-      revalidateTag("flash-deals-Products-Api");
-      revalidateTag("featured-Products-Api");
-      revalidateTag("countries");
-      revalidateTag("boutiques");
-      revalidateTag("stories");
-      revalidateTag("listing");
-      revalidateTag("currency-api");
-      revalidateTag("product-details");
-      revalidateTag("home");
-      revalidateTag("product-meta");
-      revalidateTag("languages");
+      revalidateTag("flash-deals-Products-Api", "max");
+      revalidateTag("featured-Products-Api", "max");
+      revalidateTag("countries", "max");
+      revalidateTag("boutiques", "max");
+      revalidateTag("stories", "max");
+      revalidateTag("listing", "max");
+      revalidateTag("currency-api", "max");
+      revalidateTag("product-details", "max");
+      revalidateTag("home", "max");
+      revalidateTag("product-meta", "max");
+      revalidateTag("languages", "max");
     }
 
     console.log("***** revalidated successfully *****");

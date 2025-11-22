@@ -1,0 +1,9 @@
+import * as React from 'react';
+
+const DividerIcon = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="1" height="17" viewBox="0 0 1 17" {...props}>
+  <line id="Line_1102" data-name="Line 1102" y2="16" transform="translate(0.5 0.5)" fill="none" stroke="#8e8e8e" strokeLinecap="round" strokeWidth="1"/>
+</svg>
+);
+
+export default DividerIcon;

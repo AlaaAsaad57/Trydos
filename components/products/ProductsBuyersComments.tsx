@@ -1,24 +1,27 @@
 "use client";
 import React, { useEffect, useRef, useState } from "react";
-import BuyersCommentIcon from "public/svg/product/BuyersCommentsIcon.svg";
+import BuyersCommentIcon from "public/svg/product/BuyersCommentsIcon";
 import { translateFunction } from "utils/functions";
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 import Image from "next/image";
 import { convertTextToXFormat, formatTime, GetImageUrl } from "utils/tinyUtils";
 import profilePng from "public/images/profileNo.png";
 import RatingStars from "components/settings/cards/RatingStars";
-import RecomendedIcon from "public/svg/RecomendedIcon.svg";
-import NegRecomendedIcon from "public/svg/NegRecomendIcon.svg";
+import RecomendedIcon from "public/svg/RecomendedIcon";
+import NegRecomendedIcon from "public/svg/NegRecomendIcon";
 import { useAppStore } from "store";
 import BuyersCommentModal from "./BuyersCommentModal";
 import { fetchData } from "utils/fetchData";
 import { REQUESTS_DATA } from "utils/Requests";
 import Spinner from "components/global/Spinner";
 import { ConfirmModal } from "components/global/ConfirmModal";
-import ThreePointsIcon from "public/svg/threepoints.svg";
-import DeleteCommentIcon from "public/svg/DeleteCommentIcon.svg";
-import PenIcon from "public/svg/PenIcon.svg";
+import ThreePointsIcon from "public/svg/threepoints";
+import DeleteCommentIcon from "public/svg/DeleteCommentIcon";
+import PenIcon from "public/svg/PenIcon";
 import { COOKIE_NAMES, getCookie } from "utils/cookies/cookie-manager";
+import { LikeButton } from "./FAQSection";
+import auth from "services/auth";
+import LanguageIcon from "public/svg/LanguageIcon";
 function ProductsBuyersComments({
   lang,
   comments,
@@ -37,7 +40,7 @@ function ProductsBuyersComments({
     try {
       setLoading(true);
       let data = await fetchData({
-        url: `/api/products/comments/buyers_comments?product_id=${product_id}&offset=${JSON.stringify(
+        url: `/api/products/comments/buyers_comments?user_id=${auth.UserID()}&product_id=${product_id}&offset=${JSON.stringify(
           offset
         )}`,
         method: "GET",
@@ -158,11 +161,17 @@ export const RateCommentItem = ({ comment, language, width = 90 }) => {
   const isOwner = String(userData?.id) === String(comment.customer.id);
   const [openModal, setOpenModal] = useState("");
   const [loading, setLoading] = useState(false);
+  const [isCommentTranslated, setIsCommentTranslated] = useState(false);
+  const [translatedComment, setTranslatedComment] = useState<string | null>(
+    null
+  );
+  const [originalComment, setOriginalComment] = useState<string | null>(null);
+  const [translateLoading, setTranslateLoading] = useState(false);
 
   const EditComment = async (comment_var) => {
     try {
       setLoading(true);
-      let res = await await fetchData({
+      let res = await fetchData({
         url: `/public_comment/comments/${comment_var.id}/update`,
         method: "PUT",
         body: JSON.stringify({
@@ -183,7 +192,7 @@ export const RateCommentItem = ({ comment, language, width = 90 }) => {
           ),
         },
       });
-      console.log(comment_var);
+
       setLoading(false);
       setOpenModal("");
       setMenuOpen(false);
@@ -222,6 +231,50 @@ export const RateCommentItem = ({ comment, language, width = 90 }) => {
   };
   const menuRef = useRef<HTMLDivElement>(null);
 
+  const handleTranslateComment = async () => {
+    if (isCommentTranslated) {
+      setIsCommentTranslated(false);
+      setTranslatedComment(null);
+      setMenuOpen(false);
+      return;
+    }
+
+    try {
+      setTranslateLoading(true);
+      const response = await fetchData({
+        url: `/public_comment/comments/${comment.id}/translate`,
+        method: "POST",
+        body: JSON.stringify({
+          target_language: language,
+          translate_type: "comment",
+        }),
+        reqTitle: REQUESTS_DATA.UPDATE_COMMENT,
+        server: "comments",
+      });
+
+      if (!response.success) throw new Error(response.message);
+
+      if (response?.success) {
+        // Store original text from API response or comment
+        const original = response.original_text || comment?.comment || null;
+        if (!originalComment && original) {
+          setOriginalComment(original);
+        }
+
+        // Check if it's already in the target language
+        if (response.translated_text) {
+          setTranslatedComment(response.translated_text);
+          setIsCommentTranslated(true);
+        }
+      }
+      setMenuOpen(false);
+    } catch (error) {
+      console.error("Error translating comment:", error);
+    } finally {
+      setTranslateLoading(false);
+    }
+  };
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
@@ -231,7 +284,30 @@ export const RateCommentItem = ({ comment, language, width = 90 }) => {
     if (menuOpen) document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [menuOpen]);
+  const renderTextWithLinks = (text) => {
+    if (!text) return null;
 
+    const urlRegex = /(https?:\/\/[^\s]+)/g;
+
+    const parts = text.split(urlRegex);
+
+    return parts.map((part, index) => {
+      if (urlRegex.test(part)) {
+        return (
+          <a
+            key={index}
+            href={part}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-600 underline break-all"
+          >
+            {part}
+          </a>
+        );
+      }
+      return <React.Fragment key={index}>{part}</React.Fragment>;
+    });
+  };
   return (
     <div
       className={`comment-item rounded-[15px] flex-col justify-between min-w-[330px] max-w-[${width}%] w-full bg-[#F8F8F8] min-h-[111px] py-[8px] px-[10px]`}
@@ -242,32 +318,52 @@ export const RateCommentItem = ({ comment, language, width = 90 }) => {
       {menuOpen && (
         <div
           ref={menuRef}
-          className="absolute z-[80] right-[10px] top-[20px] bg-white border border-gray-200 rounded-lg shadow-lg py-1 min-w-[120px]"
+          className={`${
+            isOwner ? "top-[0px]" : "top-[20px]"
+          } absolute z-[80] right-[10px]  bg-white border border-gray-200 rounded-lg shadow-lg py-1 min-w-[120px]`}
         >
           <button
             className="w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
-            onClick={() => {
-              setOpenModal("Update");
-              setMenuOpen(false);
-            }}
-            disabled={loading}
+            onClick={handleTranslateComment}
+            disabled={translateLoading}
           >
-            <PenIcon className="w-4 h-4" />
-            {loading ? "Updating..." : translateFunction("Edit")}
+            <LanguageIcon className="w-4 h-4" />
+            {translateLoading ? (
+              <Spinner />
+            ) : isCommentTranslated ? (
+              translateFunction("Show Original", language)
+            ) : (
+              translateFunction("Translate", language)
+            )}
           </button>
-          <button
-            className="w-full px-3 py-2 text-left text-sm text-red-600 hover:bg-gray-100 flex items-center gap-2"
-            onClick={() => {
-              setOpenModal("Delete");
-              setMenuOpen(false);
-            }}
-          >
-            <DeleteCommentIcon className="w-4 h-4" />
-            {translateFunction("Delete")}
-          </button>
+          {isOwner && (
+            <button
+              className="w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
+              onClick={() => {
+                setOpenModal("Update");
+                setMenuOpen(false);
+              }}
+              disabled={loading}
+            >
+              <PenIcon className="w-4 h-4" />
+              {loading ? "Updating..." : translateFunction("Edit")}
+            </button>
+          )}
+          {isOwner && (
+            <button
+              className="w-full px-3 py-2 text-left text-sm text-red-600 hover:bg-gray-100 flex items-center gap-2"
+              onClick={() => {
+                setOpenModal("Delete");
+                setMenuOpen(false);
+              }}
+            >
+              <DeleteCommentIcon className="w-4 h-4" />
+              {translateFunction("Delete")}
+            </button>
+          )}
         </div>
       )}
-      {openModal === "" && isOwner && (
+      {openModal === "" && (
         <div
           className="comment-menu-btn absolute z-50 right-[10px] top-[45px] cursor-pointer flex items-center justify-center w-[20px] h-[20px]"
           style={{
@@ -332,11 +428,16 @@ export const RateCommentItem = ({ comment, language, width = 90 }) => {
           {formatTime(comment?.created_at)}
         </div>
         <div className="comment-text regular text-[#1d1d1d] text-[11px] mt-[0px]">
-          {comment?.comment}
+          {renderTextWithLinks(
+            isCommentTranslated && translatedComment
+              ? translatedComment
+              : comment?.comment
+          )}
         </div>
       </div>
       <BuyerCommentRateInfo
         language={language}
+        comment={comment}
         rating={comment.star_rating}
         recommendation={comment?.recommendation}
         key={comment.star_rating}
@@ -345,37 +446,15 @@ export const RateCommentItem = ({ comment, language, width = 90 }) => {
   );
 };
 
-const BuyerCommentRateInfo = ({ language, rating, recommendation }) => {
+const BuyerCommentRateInfo = ({
+  language,
+  rating,
+  recommendation,
+  comment,
+}) => {
   return (
     <div className="flex-row pl-[10px] pr-[3px] justify-between w-full items-center">
-      <div className="flex-row  gap-[4px] text-[#1d1d1d] text-[9px] regular">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          xmlnsXlink="http://www.w3.org/1999/xlink"
-          width="11"
-          height="11"
-          viewBox="0 0 11 11"
-        >
-          <g
-            id="Mask_Group_285"
-            data-name="Mask Group 285"
-            transform="translate(0 -0.251)"
-            clipPath="url(#clip-path)"
-          >
-            <g id="Love" transform="translate(0 0.718)">
-              <path
-                id="Path_21279"
-                data-name="Path 21279"
-                d="M11.68,4.522a3.179,3.179,0,0,0-2.489-2A2.975,2.975,0,0,0,6.453,3.7,2.974,2.974,0,0,0,3.712,2.528,3.175,3.175,0,0,0,1.227,4.522a3.209,3.209,0,0,0,.741,3.456l4.359,4.273a.182.182,0,0,0,.254,0l4.359-4.273a3.209,3.209,0,0,0,.741-3.456Zm-1,3.2L6.453,11.868,2.222,7.719a2.846,2.846,0,0,1-.657-3.066,2.807,2.807,0,0,1,2.2-1.766,2.5,2.5,0,0,1,.334-.023A2.756,2.756,0,0,1,6.308,4.106a.188.188,0,0,0,.292,0A2.687,2.687,0,0,1,9.143,2.885a2.812,2.812,0,0,1,2.2,1.768,2.846,2.846,0,0,1-.657,3.066Z"
-                transform="translate(-1.007 -2.499)"
-                fill="#1d1d1d"
-              />
-            </g>
-          </g>
-        </svg>
-
-        <span>110k</span>
-      </div>
+      <LikeButton comment={{ ...comment, target_type: "comment" }} />
       <div className="flex-row gap-[4px] text-[9px] text-[#1d1d1d]">
         <RatingStars color="#1d1d1d" initialRating={rating} readOnly={true} />
         <div className="flex-row gap-[6px]">

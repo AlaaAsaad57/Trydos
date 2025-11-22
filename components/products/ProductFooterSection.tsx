@@ -87,7 +87,9 @@ function ProductFooterSection({
   const getComments = async () => {
     try {
       let response: any = await fetchData({
-        url: `/api/products/comments/fqa_comments?product_id=${product.id}`,
+        url: `/api/products/comments/fqa_comments?user_id=${auth.UserID()}&product_id=${
+          product.id
+        }`,
         reqTitle: REQUESTS_DATA.SOCIAL_INFO_REQUEST,
         method: "GET",
         server: "local",
@@ -168,9 +170,6 @@ function ProductFooterSection({
         slug_en_topic: likesResponse.data?.slug_en_topic,
       });
       // @ts-ignore
-      let likesNum = likesResponse.data?.count_of_likes || 0;
-      // @ts-ignore
-      let isLiked = likesResponse.data?.is_liked || 0;
 
       let arr = [];
       // @ts-ignore
@@ -191,19 +190,14 @@ function ProductFooterSection({
         is_product_notify_for_user:
           likesResponse.data?.is_product_notify_for_user,
         variation: arr,
-        likes: likesNum,
-        is_liked: isLiked,
         color,
         size,
-        views_count: response_views?.view_count || 0,
       });
       setLoading(false);
       // @ts-ignore
 
       setSharesCount(product.shared_count);
-      setViewsProducts({
-        views_count: response_views?.view_count || 0,
-      });
+
       const lastPage = localStorage.getItem("last-page");
       let lastPageData;
       if (lastPage) {
@@ -220,7 +214,7 @@ function ProductFooterSection({
           brand_id: product?.brand?.id,
           category: product?.categories?.[0]?.name,
           category_id: product?.categories?.[0]?.id,
-          count_likes: likesNum,
+          count_likes: product?.count_of_likes,
           // review_count: response_views?.view_count,
           interaction_type: "view",
           screen_name: lastPageData?.screen || "link",

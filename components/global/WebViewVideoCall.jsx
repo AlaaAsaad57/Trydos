@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
-import EndCallIcon from "../Chat/svg/endCall.svg";
-import MicIcon from "../Chat/svg/micIcon.svg";
-import VideoIcon from "../Chat/svg/vidIcon.svg";
-import CallingIcon from "../Chat/svg/calling.svg";
-import LeftArrowIcon from "../Chat/svg/leftArrow.svg";
+import EndCallIcon from "../Chat/svg/endCall";
+import MicIcon from "../Chat/svg/micIcon";
+import VideoIcon from "../Chat/svg/vidIcon";
+import CallingIcon from "../Chat/svg/calling";
+import LeftArrowIcon from "../Chat/svg/leftArrow";
 import AgoraRTC, {
   AgoraVideoPlayer,
   createClient,

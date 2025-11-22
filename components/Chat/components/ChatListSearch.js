@@ -1,5 +1,5 @@
 import { useParams } from "next/navigation";
-import Mignifier from "../svg/Mignifier.svg";
+import Mignifier from "../svg/Mignifier";
 import { SearchContact } from "store/chat/actions";
 import { translateFunction } from "utils/functions";
 import { useAppStore } from "store";

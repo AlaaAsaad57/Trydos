@@ -1,6 +1,6 @@
 import ProfilePicture from "public/images/profileNo.png";
 import { getCallType } from "../chatsFunctions";
-import DeleteIcon from "../svg/delt.svg";
+import DeleteIcon from "../svg/delt";
 import Image from "next/image";
 import { GetImageUrl } from "utils/tinyUtils";
 function CallItem({ photo, name, date, type, Delete }) {

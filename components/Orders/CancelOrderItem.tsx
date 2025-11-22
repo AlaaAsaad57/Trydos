@@ -7,7 +7,7 @@ import {
   translateFunction,
 } from "utils/functions";
 
-import CancelOrderItemIcon from "public/svg/OrderCancelIcon.svg";
+import CancelOrderItemIcon from "public/svg/OrderCancelIcon";
 import { GetImageUrl } from "utils/tinyUtils";
 import { CancelOrderItemPropsType } from "models/componentType/CancelOrderItemPropsType";
 function CancelOrderItem({
@@ -75,6 +75,7 @@ function CancelOrderItem({
               num: item.price_after_discount || item.price,
               rate: currency?.exchange_rate,
               language: language,
+              returnNumber: true,
             })}
           </span>
           <span className="text-[#8D8D8D] mx-[4px]">{currency?.symbol}</span>

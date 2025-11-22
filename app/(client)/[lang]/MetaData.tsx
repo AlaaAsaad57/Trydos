@@ -164,11 +164,13 @@ export const getHomeMetadata = async ({ params }): Promise<Metadata> => {
   const metadata: Metadata = {
     ...data,
     robots: {
-      index: true,
-      follow: true,
+      index: false,
+      // index: true,
+      follow: false,
+      // follow: true,
       googleBot: {
-        index: true,
-        follow: true,
+        index: false,
+        follow: false,
         "max-video-preview": -1,
         "max-image-preview": "large",
         "max-snippet": -1,

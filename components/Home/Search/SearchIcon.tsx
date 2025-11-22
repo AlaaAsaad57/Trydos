@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import Search from "public/svg/SearchIcon.svg";
+import Search from "public/svg/SearchIcon";
 import "styles/search.css";
 import SearchComponent from "../SearchComponent";
 

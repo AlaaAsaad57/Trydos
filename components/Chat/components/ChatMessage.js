@@ -1,19 +1,19 @@
 import { useEffect, useRef, useState } from "react";
-import SendIcon from "../svg/sent.svg";
-import ReadIcon from "../svg/read.svg";
-import ReceiveIcon from "../svg/recieved.svg";
-import WaveIcon from "../svg/wave.svg";
-import PlayIcon from "../svg/play.svg";
-import PauseIcon from "../svg/pause.svg";
-import RecordIcon from "../svg/record.svg";
-import RedRecord from "../svg/recordme.svg";
-import ForwardIcon from "../svg/forwarded.svg";
-import MissedIcon from "../svg/misscall.svg";
-import VideoIconMissed from "../svg/VideoMissed.svg";
+import SendIcon from "../svg/sent";
+import ReadIcon from "../svg/read";
+import ReceiveIcon from "../svg/recieved";
+import WaveIcon from "../svg/wave";
+import PlayIcon from "../svg/play";
+import PauseIcon from "../svg/pause";
+import RecordIcon from "../svg/record";
+import RedRecord from "../svg/recordme";
+import ForwardIcon from "../svg/forwarded";
+import MissedIcon from "../svg/misscall";
+import VideoIconMissed from "../svg/VideoMissed";
 import OptionsMenu from "./OptionsMenu";
 import RepliedMessage from "./RepliedMessage";
-import SpinIcon from "../svg/spinn.svg";
-import DownIcon from "../svg/down.svg";
+import SpinIcon from "../svg/spinn";
+import DownIcon from "../svg/down";
 import fil from "../svg/output.png";
 
 import Spinner from "../../global/Spinner";
@@ -396,20 +396,7 @@ function ChatMessage(props) {
               />
             )}
 
-            <NextLink
-              data={{
-                is_product: true,
-                slug: JSON.parse(props.message.message_content.content)[0]
-                  .product_slug,
-                href: `/products/${
-                  JSON.parse(props.message.message_content.content)[0]
-                    .product_slug
-                }`,
-              }}
-              href={`/products/${
-                JSON.parse(props.message.message_content.content)[0]
-                  .product_slug
-              }`}
+            <div
               onClick={() => setOpen(true)}
               ref={refmessage}
               className={
@@ -425,12 +412,12 @@ function ChatMessage(props) {
                   <ForwardIcon></ForwardIcon>
                 </div>
               )}
-              <div className="border-element">
+              {/* <div className="border-element">
                 {refmessage.current &&
                   showBord(props.type, refmessage.current.clientHeight).map(
                     (ad, i) => <div className="border-child" key={i}></div>
                   )}
-              </div>
+              </div> */}
               {props.type === "first-chat" && <div className="bordse"></div>}
 
               {(props.type === "first-chat" || props.type === "lonely") && (
@@ -469,6 +456,27 @@ function ChatMessage(props) {
                   />
                 </div>
               )}
+              <div className="flex justify-center z-[9999999999] absolute bottom-[20px] left-0 right-0 mx-auto my-0">
+                <NextLink
+                  className="py-2  px-4 text-center flex justify-center light text-[12px] text-[#1d1d1d] bg-slate-50 rounded-md"
+                  data={{
+                    is_product: true,
+                    slug: JSON.parse(props.message.message_content.content)[0]
+                      .product_slug,
+                    href: `/products/${
+                      JSON.parse(props.message.message_content.content)[0]
+                        .product_slug
+                    }`,
+                  }}
+                  href={`/products/${
+                    JSON.parse(props.message.message_content.content)[0]
+                      .product_slug
+                  }`}
+                  prefetch
+                >
+                  {translateFunction("View Product")}
+                </NextLink>
+              </div>
               <img
                 alt="user"
                 onClick={() =>
@@ -503,7 +511,7 @@ function ChatMessage(props) {
               </span>
 
               <div className="message-date">{getMessageStatus()}</div>
-            </NextLink>
+            </div>
             <div className="message-date hovers">
               {
                 <div className="sent-date">
@@ -687,6 +695,9 @@ function ChatMessage(props) {
               <OptionsMenu
                 message={props?.message}
                 DeleteModal={DeleteModal}
+                setImg={() => {
+                  setImg(props.message.message_files[0]?.file_path);
+                }}
                 setDelete={(e) => setDelete(e)}
                 deleteMessage={(e) =>
                   DeleteMessage(activeChat.id, props.message.id, e)
@@ -1464,27 +1475,13 @@ function ChatMessage(props) {
               />
             )}
 
-            <NextLink
-              data={{
-                is_product: true,
-                slug: JSON.parse(props.message.message_content.content)[0]
-                  .product_slug,
-                href: `/products/${
-                  JSON.parse(props.message.message_content.content)[0]
-                    .product_slug
-                }`,
-              }}
-              href={`/products/${
-                JSON.parse(props.message.message_content.content)[0]
-                  .product_slug
-              }`}
+            <div
               onClick={() => setOpen(true)}
               ref={refmessage}
               className={
                 "message-element-body flex-col message-body message-img-body product-share-message " +
                 props.type
               }
-              prefetch
             >
               {(props.message.is_forward === true ||
                 props.message.is_forward === 1) && (
@@ -1492,12 +1489,12 @@ function ChatMessage(props) {
                   <ForwardIcon></ForwardIcon>
                 </div>
               )}
-              <div className="border-element">
+              {/* <div className="border-element">
                 {refmessage.current &&
                   showBord(props.type, refmessage.current.clientHeight).map(
                     (ad, i) => <div className="border-child" key={i}></div>
                   )}
-              </div>
+              </div> */}
               {props.type === "first-chat" && <div className="bordse"></div>}
 
               {(props.type === "first-chat" || props.type === "lonely") && (
@@ -1536,6 +1533,27 @@ function ChatMessage(props) {
                   />
                 </div>
               )}
+              <div className="flex justify-center z-[9999999999] absolute bottom-[20px] left-0 right-0 mx-auto my-0">
+                <NextLink
+                  className="py-2 px-4 text-center flex justify-center light text-[12px] text-[#1d1d1d] bg-slate-50 rounded-md"
+                  data={{
+                    is_product: true,
+                    slug: JSON.parse(props.message.message_content.content)[0]
+                      .product_slug,
+                    href: `/products/${
+                      JSON.parse(props.message.message_content.content)[0]
+                        .product_slug
+                    }`,
+                  }}
+                  href={`/products/${
+                    JSON.parse(props.message.message_content.content)[0]
+                      .product_slug
+                  }`}
+                  prefetch
+                >
+                  {translateFunction("View Product")}
+                </NextLink>
+              </div>
               <img
                 alt="user"
                 onClick={() =>
@@ -1571,7 +1589,7 @@ function ChatMessage(props) {
               <div className="other-date">
                 {getMessageTime(props.message.created_at, true)}
               </div>
-            </NextLink>
+            </div>
             <OptionsMenu
               message={props?.message}
               DeleteModal={DeleteModal}
@@ -1682,6 +1700,9 @@ function ChatMessage(props) {
             </div>
             {!props.isPrivate && (
               <OptionsMenu
+                setImg={() => {
+                  setImg(props.message.message_files[0]?.file_path);
+                }}
                 message={props?.message}
                 DeleteModal={DeleteModal}
                 setDelete={(e) => setDelete(e)}
