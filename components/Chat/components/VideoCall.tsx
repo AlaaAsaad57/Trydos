@@ -290,6 +290,8 @@ const VideoCall = ({ token, audio = false, name = "", user_id, active }) => {
       try {
         let res = await fetchData({
           url: `/api/v1/end_call`,
+          // ###EDIT###
+          // url: `/api/v1/end_call`,
           reqTitle: REQUESTS_DATA.END_CALL,
           method: "POST",
           server: "chat",

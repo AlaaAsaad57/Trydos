@@ -205,6 +205,8 @@ class ChatService {
         reqTitle: REQUESTS_DATA.GET_CONTACTS,
         server: "chat",
         method: "GET",
+        // ###EDIT###
+        // method: "GET",
       });
       if (!response.success) {
         throw new Error(response.message);

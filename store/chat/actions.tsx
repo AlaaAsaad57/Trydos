@@ -21,6 +21,8 @@ export const GetLastSeen = async (chatId, friendID) => {
       url: "/api/v1/channels/get_date_time",
       reqTitle: REQUESTS_DATA.GET_LAST_SEEN,
       method: "GET",
+      // ###EDIT###
+      // method: "GET",
       server: "chat",
     });
     if (!response.success) {
@@ -63,6 +65,8 @@ export const setLastSeen = async (MyId) => {
       url: "/api/v1/channels/get_date_time",
       reqTitle: REQUESTS_DATA.GET_LAST_SEEN,
       method: "GET",
+      // ###EDIT###
+      // method: "GET",
       server: "chat",
     });
     if (!response.success) {
@@ -210,6 +214,8 @@ export async function getPage(channel, mid) {
       method: "POST",
       server: "chat",
       body: {},
+      // ###EDIT###
+      // body: {},
     });
     if (!response.success) {
       throw new Error(response.message);
@@ -290,6 +296,8 @@ export async function getMessagesBetweenMessage(payload) {
       method: "POST",
       server: "chat",
       body: JSON.stringify({ limit: payload.second + 1 }),
+      // ###EDIT###
+      // body: JSON.stringify({ limit: payload.second + 1 }),
     });
     // @ts-ignore
     if (!response.success) {
@@ -308,6 +316,8 @@ export async function getContacts() {
       url: "/api/v1/users/my_contacts",
       reqTitle: REQUESTS_DATA.GET_CONTACTS,
       method: "GET",
+      // ###EDIT###
+      // method: "GET",
       server: "chat",
     });
     // @ts-ignore
@@ -328,6 +338,7 @@ export const getMedia = async (id, media) => {
       method: "POST",
       server: "chat",
       body: {},
+      // ###EDIT###
     });
     if (!response.success) {
       throw new Error(response.message);
@@ -354,6 +365,8 @@ export const GetChatDetails = async (id) => {
   try {
     let response = await fetchData({
       url: `/api/v2/channels/${id}/media`,
+      // ###EDIT###
+      // url: `/api/v2/channels/${id}/media`,
       reqTitle: REQUESTS_DATA.GET_CHANNEL_DATA,
       method: "GET",
       server: "chat",
