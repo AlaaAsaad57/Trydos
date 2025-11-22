@@ -484,6 +484,7 @@ const OrderCanceltionOptions = ({
               num: ActivePacks.order_amount,
               rate: currency?.exchange_rate,
               language: language,
+              returnNumber: true,
             })}
           </span>
           <span className="text-[#8D8D8D]">{currency?.symbol}</span>

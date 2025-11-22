@@ -70,6 +70,7 @@ function OrderDetails({
     setIsNavigating,
     shouldUpdateOrders,
     setShouldUpdateOrders,
+    language,
   } = useAppStore();
   const fetchedOrderIdRef = useRef<string | number | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -619,6 +620,7 @@ function OrderDetails({
     !ActivePacks?.details
   )
     return null;
+  const isRtl = language === "ar" || language === "ku";
 
   return (
     <>
@@ -673,7 +675,12 @@ function OrderDetails({
                 isExpanded && "h-0 pt-0 overflow-hidden"
               } flex-col justify-start  w-full bg-[#F8F8F8] `}
             >
-              <div className="flex-row justify-between items-center w-full">
+              <div
+                className="flex-row justify-between items-center w-full"
+                style={{
+                  direction: isRtl ? "rtl" : "ltr",
+                }}
+              >
                 <OrderNumberCard number={selectedOrder.order_group_id} />
                 <OrderDateCard time={selectedOrder.created_at} />
                 <OrderInvoiceCard

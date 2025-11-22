@@ -111,6 +111,7 @@ function ReturnOrderItem({
                   : 0),
               rate: currency?.exchange_rate,
               language: language,
+              returnNumber: true,
             })}
           </span>
           <span className="text-[#8D8D8D] mx-[4px]">{currency?.symbol}</span>
@@ -200,6 +201,7 @@ function ReturnOrderItem({
                       num: option.cost,
                       rate: currency?.exchange_rate,
                       language: language,
+                      returnNumber: true,
                     })}{" "}
                     {currency.symbol})
                   </span>

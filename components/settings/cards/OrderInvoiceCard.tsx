@@ -1,7 +1,7 @@
 import React from "react";
 import { RoundPrice, translateFunction } from "utils/functions";
 import WalletIcon from "assets/svg/cart/WalletIcon";
-import CreditIcon from "assets/svg/cart/CreditIcon";
+// import CreditIcon from "assets/svg/cart/CreditIcon";
 import CryptoIcon from "assets/svg/cart/CryptoIcon";
 import { useAppStore } from "store";
 import { OrderInvoiceCardProps } from "models/componentType/settingTypes/OrderDetailsPropsType";
@@ -123,7 +123,7 @@ const OrderInvoiceCard = ({ amount, payments }) => {
         className="text-[#1D1D1D] text-[12px] regular mt-[3px]"
         data-cy="order-amount"
       >
-        {RoundPrice({ num: amount })} {currency?.symbol}
+        {RoundPrice({ num: amount, returnNumber: true })} {currency?.symbol}
       </span>
     </div>
   );
