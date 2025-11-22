@@ -78,7 +78,7 @@ function OldCartContainer() {
           className="flex-col  w-full h-auto mt-3 pb-[200px]"
           data-cy="Product_Non_Available_In_Cart"
         >
-          {[1, 1].map((s, key) => (
+          {[1, 1, 1, 1, 1].map((s, key) => (
             <div className="flex-col bg-white pb-10 pt-2 pl-2 pr-2" key={key}>
               <div className="flex-row min-h-[50px] bg-[#f8f8f8] rounded-2xl justify-between items-center pl-5 pr-5">
                 <Skeleton width={90} height={15} />
