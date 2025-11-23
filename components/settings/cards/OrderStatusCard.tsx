@@ -18,9 +18,7 @@ function OrderStatusCard({ status, fullWidth }: OrderStatusCardPropsType) {
         fullWidth ? "w-full" : "w-1/2"
       } min-h-[74px] h-auto  rounded-[15px] py-[8px] px-[12px] flex-col`}
     >
-      <div
-        className={`flex flex-row items-end ${isRtl ? "flex-row-reverse" : ""}`}
-      >
+      <div className={`flex flex-row items-end`}>
         <OrderStatusCartsIcon status={status?.value} isRtl={isRtl} />
       </div>
       <span
@@ -32,7 +30,7 @@ function OrderStatusCard({ status, fullWidth }: OrderStatusCardPropsType) {
       </span>
       <div
         className={`text-[#1D1D1D] flex-row text-[12px] regular mt-[3px] ${
-          isRtl ? " text-right flex-row-reverse" : " "
+          isRtl ? " text-right " : " "
         }`}
       >
         <span className={`capitalize ${isRtl ? " text-right " : " "}`}>
