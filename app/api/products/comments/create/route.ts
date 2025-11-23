@@ -123,7 +123,7 @@ export async function POST(req: NextRequest) {
     });
     return NextResponse.json(
       {
-        message: `${error.message || "Unknown error"}` || "Unknown error",
+        message: `${error?.message || "error in creating comment"}`,
         data: null,
         code: 500,
       },

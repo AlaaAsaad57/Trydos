@@ -745,6 +745,7 @@ class HomeService {
       method: "POST",
       body: JSON.stringify({ target_id: comment_id, target_type, product_id }),
       reqTitle: REQUESTS_DATA.LIKE_FOR_COMMENT,
+      noMessage: true,
     });
   }
   async UnLikeComment({ comment_id, target_type, product_id }) {
@@ -754,6 +755,7 @@ class HomeService {
       method: "DELETE",
       body: JSON.stringify({ target_id: comment_id, target_type, product_id }),
       reqTitle: REQUESTS_DATA.LIKE_FOR_COMMENT,
+      noMessage: true,
     });
   }
 }

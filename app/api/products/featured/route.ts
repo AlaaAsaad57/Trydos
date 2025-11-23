@@ -76,9 +76,9 @@ export async function GET(req: NextRequest) {
     let errorDesc = JSON.stringify(filters);
     return NextResponse.json(
       {
-        error:
-          `${error.message || "Unknown error"}----${errorDesc}` ||
-          "Unknown error",
+        error: `${
+          error.message || "error getting featured product data from elestic"
+        }----${errorDesc}`,
         appliedFilters: filters,
       },
       { status: 500, headers }

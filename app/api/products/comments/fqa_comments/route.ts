@@ -74,8 +74,11 @@ export async function GET(req: NextRequest) {
     });
     return NextResponse.json(
       {
-        message:
-          `${error.message || error || "Unknown error"}` || "Unknown error",
+        message: `${
+          error.message ||
+          error ||
+          "error getting product faq data from elastic"
+        }`,
         data: null,
         code: 500,
       },

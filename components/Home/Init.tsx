@@ -22,7 +22,8 @@ import { useAppStore } from "store";
 
 function Init() {
   const { lang } = useParams();
-  const { isNotificationModal, setNotificationModal } = useAppStore();
+  const { isNotificationModal, setNotificationModal, setShouldAuthinticated } =
+    useAppStore();
   // @ts-ignore
   const [country, language] = lang?.split("-");
   const searchParams = useSearchParams();
@@ -31,6 +32,7 @@ function Init() {
   // Initialize login check once
   useEffect(() => {
     HomeService.CheckLogin();
+    setShouldAuthinticated(true);
   }, []);
 
   const getCountries = async () => {

@@ -10,15 +10,13 @@ import useDetectKeyboardOpen from "use-detect-keyboard-open";
 import { translateFunction } from "utils/functions";
 import { useParams } from "next/navigation";
 import { useAppStore } from "store";
-import {
-  GA_AUTH_SCREEN,
-  GA_BUTTONS_NAMES,
-  GA_EVENT_NAMES,
-  GA_GLOBAL_PLATFORM,
-} from "utils/GAEvents";
+import { GA_BUTTONS_NAMES, GA_EVENT_NAMES } from "utils/GAEvents";
 import { GAevent } from "utils/gtag";
 import { PhoneInputPropsType } from "models/componentType/settingTypes/PhoneInputPropsType";
 import { FlagIcon, formatPhone } from "utils/tinyUtils";
+
+import { usePhoneInput } from "utils/usePhoneInput";
+import CustomPhoneInput from "components/global/CustomPhoneInput";
 
 function PhoneInput({
   stepIndicator,
@@ -78,20 +76,27 @@ function PhoneInput({
     ref.current.value = data;
     e.target.value = data;
   };
+
   const [validNumber, setValidNumber] = useState(false);
-  const getCountry = () => {
+  const getCountry = (val) => {
     return allCountries.filter((countryItem) =>
-      inputValue?.startsWith(countryItem.dialCode)
+      val?.startsWith(countryItem.dialCode)
     ).length === 1
       ? allCountries.filter((countryItem) =>
-          inputValue?.startsWith(countryItem.dialCode)
+          val?.startsWith(countryItem.dialCode)
         )[0]
       : allCountries.filter((countryItem) =>
-          inputValue?.startsWith(countryItem.dialCode)
+          val?.startsWith(countryItem.dialCode)
         )[0];
   };
 
   const isKeyboardOpen = useDetectKeyboardOpen(200);
+  const { country, data, modifiedValue, setValue, valid, value } =
+    usePhoneInput({
+      initial: inputValue,
+      getCountry: getCountry,
+    });
+
   useEffect(() => {
     if (isKeyboardOpen) {
       if (window.innerWidth < 900) {
@@ -122,7 +127,11 @@ function PhoneInput({
       ref.current.value = inputValue;
     }
   }, []);
-
+  console.log({
+    data,
+    value,
+    modifiedValue,
+  });
   return (
     // <Animated.div
     //   unmountTime={0.5}
@@ -381,7 +390,7 @@ function PhoneInput({
         <Border
           height={60}
           width={"100%"}
-          color={wrongNumber ? "#ff5f61" : validNumber ? "#4D84FF" : ""}
+          color={wrongNumber ? "#ff5f61" : valid ? "#4D84FF" : ""}
         />
         <SolidPhoneIcon
           data-cy="solidPhhone-enterPhone-svg"
@@ -397,8 +406,8 @@ function PhoneInput({
             marginLeft: "0px",
           }}
         >
-          {getCountry() && getCountry()?.iso2 && (
-            <FlagIcon iso={getCountry()?.iso2} />
+          {getCountry(data) && getCountry(data)?.iso2 && (
+            <FlagIcon iso={getCountry(data)?.iso2} />
           )}
         </span>
         <span data-cy="plus-icon-span" className="plus-icon-phone">
@@ -407,7 +416,7 @@ function PhoneInput({
         <label htmlFor="phoneInput" className="hidden">
           Search
         </label>
-        <input
+        {/* <input
           data-cy="phone-number-input"
           ref={ref}
           value={inputValue}
@@ -420,23 +429,6 @@ function PhoneInput({
           autoCapitalize="off"
           autoComplete="off"
           autoCorrect="off"
-          onBlur={() => {
-            window.ontouchmove = function (e) {};
-            // if (window.innerWidth < 900) {
-            //   document.getElementById("logo-auth").style.position =
-            //     "absolute";
-            //   document.getElementById("logo-auth").style.marginLeft = "0px";
-            //   document.getElementById("logo-auth").style.alignSelf =
-            //     "initial";
-            //   document.getElementById("logo-auth").style.transform = "none";
-            //   document.getElementById("logo-auth").style.top = "60px";
-            //   document.getElementById("login-close-icon").style.top = "60px";
-            //   document.getElementById("login-close-icon").style.bottom =
-            //     "initial";
-            //   document.body.style.overflow = "auto";
-            //   document.body.style.height = "auto";
-            // }
-          }}
           style={{
             zIndex: "9",
             paddingLeft: "93px",
@@ -473,8 +465,54 @@ function PhoneInput({
           tabIndex="-1"
           onChange={(e) => handleInput(e)}
           className="login-phone-input"
+        /> */}
+        <CustomPhoneInput
+          style={{
+            zIndex: "9",
+            paddingLeft: "93px",
+            paddingBottom: "0px",
+            height: "100%",
+            width: "100%",
+          }}
+          onKeyDown={(e) => {
+            if (
+              e.key === "Enter" ||
+              // @ts-ignore
+
+              e.key === "Tab"
+            ) {
+              e.preventDefault();
+              // @ts-ignore
+              e.target.blur();
+
+              if (valid && stepIndicator <= 3) {
+                // Sendevent({
+                //   event: GA_EVENT_NAMES.CLICK,
+                //   value: GA_CLICK_EVENT_VALUES.CONFIRM_PHONE_NUMBER_BUTTON,
+                // });
+                setStepIndicator(4);
+                setInputValue(data);
+              }
+            }
+          }}
+          className="login-phone-input"
+          data-testid="phone-number-input"
+          id="phoneInput"
+          value={value} // SHOW raw user input (with 0 / 00 / + retained)
+          setValue={(v) => {
+            // update raw input
+            setValue(v);
+          }}
+          aria-autocomplete="both"
+          aria-haspopup="false"
+          spellCheck="false"
+          placeholder="XXX XXX XXX XXX"
+          maxLength={15}
+          autoCapitalize="off"
+          autoComplete="off"
+          autoCorrect="off"
         />
-        {validNumber && stepIndicator <= 3 && (
+        {valid && stepIndicator <= 3 && (
           <span
             data-testid="phone-arrow"
             className="phone-arrow"
@@ -492,6 +530,7 @@ function PhoneInput({
                 },
               });
               setStepIndicator(4);
+              setInputValue(data);
             }}
           >
             <LeftArrowIcon />

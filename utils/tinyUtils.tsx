@@ -385,7 +385,7 @@ export const formatPhone = (phone) => {
       }
     case "lb":
       data = phone.replace(/\D/g, "")?.slice(0, 12);
-      if (country && data.length > 10 && data.length <= 12) {
+      if (country && data.length > 9 && data.length <= 12) {
         valid = true;
       } else {
         valid = false;
