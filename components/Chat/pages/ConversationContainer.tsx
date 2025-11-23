@@ -806,7 +806,7 @@ function ConversationContainer({
                     alt="Cropped preview"
                     width={800}
                     height={800}
-                    className="w-full h-auto rounded-lg object-contain"
+                    className="w-full h-auto rounded-lg object-contain max-h-[75vh]"
                   />
                 </div>
               </div>
