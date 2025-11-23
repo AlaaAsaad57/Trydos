@@ -6,6 +6,7 @@ const WebviewCall = dynamic(() => import("components/global/WebviewCall"), {
 export const runtime = "nodejs";
 
 function page() {
+  console.log("Webview Call Page Rendered");
   return (
     <div>
       <WebviewCall />

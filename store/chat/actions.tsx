@@ -9,6 +9,7 @@ import chat from "services/chat";
 import { fetchData } from "utils/fetchData";
 import { REQUESTS_DATA } from "utils/Requests";
 import { LogError } from "utils/functions";
+import { MiddlewareNotFoundError } from "node_modules/next/dist/shared/lib/utils";
 
 export const GetLastSeen = async (chatId, friendID) => {
   const { setServerTime, setIsTyping } = useAppStore.getState();
@@ -109,7 +110,8 @@ export const getCalls = async (id) => {
   }
 };
 export const SendMessage = async (payload, isNew, isPrivate?) => {
-  const { sendNewMessage, sendRealMessage } = useAppStore.getState();
+  const { sendNewMessage, sendRealMessage, deleteErrorMessage } =
+    useAppStore.getState();
   let message = isPrivate
     ? {
         ...payload,
@@ -147,6 +149,7 @@ export const SendMessage = async (payload, isNew, isPrivate?) => {
       }
     }
   } catch (e) {
+    deleteErrorMessage({ msg_id: payload.mid, ch_id: payload.cid });
     console.error(e);
   }
 };
