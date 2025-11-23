@@ -207,7 +207,8 @@ class OrderService {
       street: address.region_details?.street ?? "Not Entered",
       building: address.region_details?.building ?? "Not Entered",
       zip: "123123",
-      contact_person_name: address.contact_info?.contact_person_name,
+      contact_person_name:
+        address.contact_info?.contact_person_name ?? address.contact_info?.name,
       phone: address.contact_info?.phone,
       alternative_phone: address.contact_info?.alternative_phone,
     };

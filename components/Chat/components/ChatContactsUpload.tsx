@@ -4,7 +4,7 @@ import { translateFunction } from "utils/functions";
 import { getContacts } from "store/chat/actions";
 import { useAppStore } from "store";
 import { fetchData } from "utils/fetchData";
-import { pollinateInput } from "@/utils/tinyUtils";
+import { pollinateInput, sanitizePhone } from "@/utils/tinyUtils";
 import { REQUESTS_DATA } from "utils/Requests";
 
 declare global {
@@ -116,11 +116,22 @@ function ChatContactsUpload() {
         setIsUploading(false);
         return;
       }
+      const trimLeadingCode = (value: string) => {
+        if (value.startsWith("00")) {
+          return value.slice(2);
+        }
+
+        if (value.startsWith("+")) {
+          return value.slice(1);
+        }
+
+        return value;
+      };
 
       const formattedContact = [
         {
           name: newContact.name,
-          mobile_phone: newContact.phone,
+          mobile_phone: trimLeadingCode(newContact.phone),
         },
       ];
 
@@ -157,7 +168,7 @@ function ChatContactsUpload() {
   };
 
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const phone = pollinateInput(e.target.value);
+    const phone = sanitizePhone(e.target.value);
     setNewContact({ ...newContact, phone: phone });
 
     // Normalize phone number for comparison

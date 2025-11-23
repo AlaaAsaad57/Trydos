@@ -1021,3 +1021,56 @@ export async function requestPermissions({ camera = false, mic = false } = {}) {
     return cameraOk && micOk;
   }
 }
+export const isPhoneValid = (value: string): boolean => {
+  // normalize first
+  let raw = value.replace(/\D/g, "");
+  if (raw.startsWith("00")) raw = raw.slice(2);
+  else if (raw.startsWith("0")) raw = raw.slice(1);
+
+  const country = getCountry(raw);
+  const iso = country?.iso2?.toLowerCase();
+
+  const getMaxLenByIso = (iso?: string) => {
+    switch (iso) {
+      case "sy":
+        return 12;
+      case "lb":
+        return 12;
+      case "iq":
+        return 13;
+      case "tr":
+        return 12;
+      default:
+        return 13;
+    }
+  };
+
+  const maxLen = getMaxLenByIso(iso);
+  const data = raw.slice(0, maxLen);
+
+  switch (iso) {
+    case "sy":
+      return data.length === 12;
+    case "lb":
+      return data.length > 9 && data.length <= 12;
+    case "iq":
+      return data.length === 13;
+    case "tr":
+      return data.length === 12;
+    default:
+      return data.length > 9 && data.length <= 13;
+  }
+};
+export const sanitizePhone = (value: string) => {
+  // Remove everything except digits and +
+  let cleaned = value.replace(/[^+\d]/g, "");
+
+  // Keep only the first + (if present)
+  const hasPlus = cleaned.startsWith("+");
+
+  // Strip all + signs
+  cleaned = cleaned.replace(/\+/g, "");
+
+  // Re-add a single + if the input originally started with one
+  return hasPlus ? "+" + cleaned : cleaned;
+};

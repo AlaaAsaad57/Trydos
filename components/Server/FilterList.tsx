@@ -638,6 +638,7 @@ interface FilterItemsRowProps {
   index: number;
   isFeatured?: boolean;
   isFlashDeals?: boolean;
+  total?: number;
 }
 
 const FilterItemsRow = ({
@@ -650,6 +651,7 @@ const FilterItemsRow = ({
   index,
   isFeatured,
   isFlashDeals,
+  total = 10,
 }: FilterItemsRowProps) => {
   const getDataCy = () => {
     if (term === "categories") return "categoryBox";
@@ -658,8 +660,7 @@ const FilterItemsRow = ({
     if (term === "sizes") return "SizesBox";
   };
   const shouldShowMore = () => {
-    if (term === "categories" && items.length >= 3) return true;
-    else return items.length >= 10;
+    return items.length >= 10;
   };
   return (
     <div
