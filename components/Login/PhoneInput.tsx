@@ -63,21 +63,7 @@ function PhoneInput({
     }
   }, [stepIndicator]);
   const ref = useRef();
-  const handleInput = (e) => {
-    setWrongNumber(false);
-    let { data, valid } = formatPhone(e.target.value);
-    setInputValue(data);
-    if (valid) {
-      setValidNumber(true);
-    } else {
-      setValidNumber(false);
-    }
-    // @ts-ignore
-    ref.current.value = data;
-    e.target.value = data;
-  };
 
-  const [validNumber, setValidNumber] = useState(false);
   const getCountry = (val) => {
     return allCountries.filter((countryItem) =>
       val?.startsWith(countryItem.dialCode)
@@ -121,17 +107,7 @@ function PhoneInput({
     } else {
     }
   }, [isKeyboardOpen]);
-  useEffect(() => {
-    if (inputValue && ref.current) {
-      // @ts-ignore
-      ref.current.value = inputValue;
-    }
-  }, []);
-  console.log({
-    data,
-    value,
-    modifiedValue,
-  });
+
   return (
     // <Animated.div
     //   unmountTime={0.5}
