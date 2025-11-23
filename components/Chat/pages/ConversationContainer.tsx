@@ -906,7 +906,7 @@ function ConversationContainer({
                 alt="preview"
                 fill
                 sizes="100vw"
-                className="object-contain h-full w-auto -[9999] left-0 right-0 m-[0_auto] p-4"
+                className="object-contain h-full w-auto -[9999] left-0 right-0 m-[0_auto] p-4 z-[99999999]"
               />
             )
           )}
