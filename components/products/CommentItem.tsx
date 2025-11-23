@@ -343,6 +343,8 @@ function CommentItem({
       ErrorAccure(mid);
     }
   };
+  const isRtl = languageVariable === "ar" || languageVariable === "ku";
+
   return (
     <>
       <div
@@ -354,21 +356,31 @@ function CommentItem({
       >
         {isError && (
           <Loading
-            className="absolute z-50 right-[10px] top-[45px]"
+            className="absolute z-50  top-[45px]"
+            style={{
+              right: isRtl ? "initial" : "10px",
+              left: isRtl ? "10px" : "initial",
+            }}
             onClick={() => resendCommentApi(comment.mid, comment)}
           />
         )}
         {!isError && (
           <div
-            className="absolute top-[45px] right-[10px] z-50 w-[30px] h-[30px]"
+            className="absolute top-[45px]  z-50 w-[30px] h-[30px]"
+            style={{
+              right: isRtl ? "initial" : "10px",
+              left: isRtl ? "10px" : "initial",
+            }}
             ref={menuRef}
           >
             {!showUpdateElement && (
               <div
-                className="comment-menu-btn absolute z-50 right-[10px] top-[30px] cursor-pointer flex items-center justify-center w-[20px] h-[20px]"
+                className="comment-menu-btn absolute z-50  top-[30px] cursor-pointer flex items-center justify-center w-[20px] h-[20px]"
                 style={{
                   borderRadius: "50%",
                   transition: "background-color 0.2s ease",
+                  right: isRtl ? "initial" : "10px",
+                  left: isRtl ? "10px" : "initial",
                 }}
                 onClick={handleMenuToggle}
                 onKeyDown={(e) => {
@@ -387,7 +399,13 @@ function CommentItem({
             )}
 
             {showMenu && (
-              <div className="absolute z-50 right-[10px] top-[10px] bg-white border border-gray-200 rounded-lg shadow-lg py-1 min-w-[120px]">
+              <div
+                className="absolute z-50  top-[10px] bg-white border border-gray-200 rounded-lg shadow-lg py-1 min-w-[120px]"
+                style={{
+                  right: isRtl ? "initial" : "10px",
+                  left: isRtl ? "10px" : "initial",
+                }}
+              >
                 <button
                   className="w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
                   onClick={handleTranslateComment}
@@ -538,6 +556,7 @@ const UpdateCommentElement = ({
           } flex-col justify-between max-w-full w-full min-h-[111px] py-[8px] px-[10px]`}
           style={{
             backgroundColor: "#F8F8F8",
+            direction: language === "ar" || language === "ku" ? "rtl" : "ltr",
           }}
         >
           <div className="w-full flex-col">

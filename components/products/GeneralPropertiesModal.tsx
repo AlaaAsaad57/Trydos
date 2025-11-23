@@ -95,20 +95,22 @@ function GeneralPropertiesModal({
                 </span>
               </HortiznalScrollBar>
               <div className="flex-col gap-[12px] mt-[10px]">
-                {rating_arr.map((s, i) => (
-                  <div className="flex-row items-center gap-[12px]" key={i}>
-                    <RatingStars
-                      size={14}
-                      color="#1d1d1d"
-                      readOnly={true}
-                      initialRating={s.rating}
-                    />
-                    <div className="regular text-[11px] text-[#1d1d1d] gap-[4px] flex-row items-center">
-                      <span className="bold">{s.count}</span>
-                      <span>{translateFunction(s.title, language)}</span>
+                {rating_arr
+                  ?.sort((a, b) => b.rating - a.rating)
+                  .map((s, i) => (
+                    <div className="flex-row items-center gap-[12px]" key={i}>
+                      <RatingStars
+                        size={14}
+                        color="#1d1d1d"
+                        readOnly={true}
+                        initialRating={s.rating}
+                      />
+                      <div className="regular text-[11px] text-[#1d1d1d] gap-[4px] flex-row items-center">
+                        <span className="bold">{s.count}</span>
+                        <span>{translateFunction(s.title, language)}</span>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
               </div>
             </div>
             <div className="w-full bg-[#FFFFFF] py-[11px]">

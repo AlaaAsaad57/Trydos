@@ -63,6 +63,7 @@ function FAQSection({ lang, comments, product_id, seller_name }) {
       setLoading(false);
     }
   };
+
   return (
     <>
       <FAQModal
@@ -211,6 +212,7 @@ export const FaqItem = ({
       return <React.Fragment key={index}>{part}</React.Fragment>;
     });
   };
+  const isRtl = language === "ar" || language === "ku";
 
   return (
     <div
@@ -225,6 +227,7 @@ export const FaqItem = ({
         style={{
           position: "relative",
           backgroundColor: isError ? "#ffd6d6" : "#F8F8F8",
+          direction: language === "ar" || language === "ku" ? "rtl" : "ltr",
         }}
       >
         <div className="w-full flex-col">
@@ -237,7 +240,7 @@ export const FaqItem = ({
                 alt={convertTextToXFormat(comment?.customer?.name)}
               />
             </div>
-            <div className="comment-content capitalize">
+            <div className="comment-content capitalize mx-[10px]">
               <div
                 className="comment-source text-[#1D1D1D] text-[9px] regular"
                 data-cy="Source-Of-Comment"
@@ -250,7 +253,14 @@ export const FaqItem = ({
           <span className="medium text-[#1d1d1d] text-[9px] mt-[5px]">
             {comment?.variant}
           </span>
-          <div className="comment-date text-[9px]" data-cy="Date-Of-Comment">
+          <div
+            className="comment-date text-[9px]"
+            data-cy="Date-Of-Comment"
+            style={{
+              right: isRtl ? "initial" : "10px",
+              left: isRtl ? "10px" : "initial",
+            }}
+          >
             {formatTime(comment?.created_at)}
           </div>
           <div className="comment-text regular text-[#1d1d1d] text-[11px] mt-[0px]">
@@ -277,6 +287,7 @@ export const FaqItem = ({
             className="comment-item flex-col rounded-t-none mt-0 rounded-b-[15px] justify-between max-w-full w-full bg-[#F8F8F8] min-h-[111px] py-[8px] px-[10px]"
             style={{
               position: "relative",
+              direction: isRtl ? "rtl" : "ltr",
             }}
           >
             <div className="w-full flex-col">
@@ -289,7 +300,7 @@ export const FaqItem = ({
                     alt={convertTextToXFormat(seller_name)}
                   />
                 </div>
-                <div className="comment-content capitalize">
+                <div className="comment-content capitalize mx-[10px]">
                   <div
                     className="comment-source text-[#1D1D1D] text-[9px] regular"
                     data-cy="Source-Of-Comment"
@@ -306,6 +317,10 @@ export const FaqItem = ({
               <div
                 className="comment-date text-[9px]"
                 data-cy="Date-Of-Comment"
+                style={{
+                  right: isRtl ? "initial" : "10px",
+                  left: isRtl ? "10px" : "initial",
+                }}
               >
                 {formatTime(comment?.reply_created_at)}
               </div>
@@ -328,9 +343,15 @@ export const FaqItem = ({
                 disabled={true}
               />
             </div>
-            <span className="absolute bottom-[8px] right-[9px] text-[#8D8D8D] regular text-[9px] ">
+            {/* <span
+              className="absolute bottom-[8px]  text-[#8D8D8D] regular text-[9px] "
+              style={{
+                right: isRtl ? "initial" : "10px",
+                left: isRtl ? "10px" : "initial",
+              }}
+            >
               {13} {translateFunction("Minutes Answered", language)}
-            </span>
+            </span> */}
           </div>
         </>
       )}

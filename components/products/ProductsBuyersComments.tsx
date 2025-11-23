@@ -308,19 +308,26 @@ export const RateCommentItem = ({ comment, language, width = 90 }) => {
       return <React.Fragment key={index}>{part}</React.Fragment>;
     });
   };
+  const isRtl = language === "ar" || language === "ku";
+
   return (
     <div
       className={`comment-item rounded-[15px] flex-col justify-between min-w-[330px] max-w-[${width}%] w-full bg-[#F8F8F8] min-h-[111px] py-[8px] px-[10px]`}
       style={{
         position: "relative",
+        direction: isRtl ? "rtl" : "ltr",
       }}
     >
       {menuOpen && (
         <div
           ref={menuRef}
+          style={{
+            right: isRtl ? "initial" : "10px",
+            left: isRtl ? "10px" : "initial",
+          }}
           className={`${
             isOwner ? "top-[0px]" : "top-[20px]"
-          } absolute z-[80] right-[10px]  bg-white border border-gray-200 rounded-lg shadow-lg py-1 min-w-[120px]`}
+          }  absolute z-[80]   bg-white border border-gray-200 rounded-lg shadow-lg py-1 min-w-[120px]`}
         >
           <button
             className="w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
@@ -365,10 +372,12 @@ export const RateCommentItem = ({ comment, language, width = 90 }) => {
       )}
       {openModal === "" && (
         <div
-          className="comment-menu-btn absolute z-50 right-[10px] top-[45px] cursor-pointer flex items-center justify-center w-[20px] h-[20px]"
+          className="comment-menu-btn absolute z-50 top-[45px] cursor-pointer flex items-center justify-center w-[20px] h-[20px]"
           style={{
             borderRadius: "50%",
             transition: "background-color 0.2s ease",
+            right: isRtl ? "initial" : "10px",
+            left: isRtl ? "10px" : "initial",
           }}
           onClick={handleMenuToggle}
           onKeyDown={(e) => {
@@ -412,7 +421,7 @@ export const RateCommentItem = ({ comment, language, width = 90 }) => {
               alt={comment?.customer?.name}
             />
           </div>
-          <div className="comment-content capitalize">
+          <div className="comment-content capitalize mx-[10px]">
             <div
               className="comment-source text-[#1D1D1D] text-[9px] regular"
               data-cy="Source-Of-Comment"
@@ -424,7 +433,14 @@ export const RateCommentItem = ({ comment, language, width = 90 }) => {
         <span className="medium text-[#1d1d1d] text-[9px] mt-[5px]">
           {comment?.variant}
         </span>
-        <div className="comment-date text-[9px]" data-cy="Date-Of-Comment">
+        <div
+          className="comment-date text-[9px]"
+          data-cy="Date-Of-Comment"
+          style={{
+            right: isRtl ? "initial" : "10px",
+            left: isRtl ? "10px" : "initial",
+          }}
+        >
           {formatTime(comment?.created_at)}
         </div>
         <div className="comment-text regular text-[#1d1d1d] text-[11px] mt-[0px]">

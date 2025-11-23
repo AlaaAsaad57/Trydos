@@ -134,7 +134,7 @@ function FAQModal({ comments, total, offset: initialOffset }) {
                   loading && "opacity-65"
                 } flex-row  product-properties px-[12px] items-center justify-start w-full gap-[4px]`}
               >
-                {SelectedProduct?.fqa_questions?.filters_key.map((s) => (
+                {SelectedProduct?.fqa_questions?.filters_key?.map((s) => (
                   <div
                     onClick={() => {
                       if (loading) return;

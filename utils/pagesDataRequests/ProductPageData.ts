@@ -667,7 +667,7 @@ async function getProductInteractions(productId: string, userId?: string) {
                 },
               },
               sort: [
-                { interaction_date: { order: "desc" } } // get latest interaction first
+                { interaction_date: { order: "desc" } }, // get latest interaction first
               ],
               size: 1, // only need the latest
             },
