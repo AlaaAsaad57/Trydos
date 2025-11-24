@@ -27,7 +27,7 @@ import EndCallIcon from "../svg/endCall";
 import MicIcon from "../svg/micIcon";
 import VideoIcon from "../svg/vidIcon";
 import CallingIcon from "../svg/calling";
-import AddUserIcon from "../svg/addUser";
+
 import LeftArrowIcon from "../svg/leftArrow";
 
 // Styles
@@ -644,9 +644,6 @@ const VideoCall = ({ token, audio = false, name = "", user_id, active }) => {
             </button>
 
             {/* Add caller button */}
-            <div className="add-caller-icon" role="button" tabIndex={0}>
-              <AddUserIcon />
-            </div>
           </>
           <div className="flex-row justify-between px-[30px] w-full absolute bottom-[100px] z-50">
             <>

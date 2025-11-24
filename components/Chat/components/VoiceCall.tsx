@@ -21,7 +21,7 @@ import { fetchData } from "utils/fetchData";
 import EndCallIcon from "../svg/endCall";
 import MicIcon from "../svg/micIcon";
 import CallingIcon from "../svg/calling";
-import AddUserIcon from "../svg/addUser";
+
 import LeftArrowIcon from "../svg/leftArrow";
 import "styles/chat.css";
 import { REQUESTS_DATA } from "utils/Requests";
@@ -249,10 +249,6 @@ const VoiceCall = ({ token, audio = false, name = "", user_id, active }) => {
           >
             <LeftArrowIcon />
           </button>
-
-          <div className="add-caller-icon" role="button" tabIndex={0}>
-            <AddUserIcon />
-          </div>
 
           <div className="flex-row justify-between px-[30px] w-full absolute bottom-[100px] z-50">
             <button
