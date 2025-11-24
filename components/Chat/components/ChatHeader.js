@@ -191,7 +191,7 @@ function ChatHeader({
               audioCallFunction();
             }}
           ></CallIcon>
-          {/* <CancelCallIcon
+          <CancelCallIcon
             className={`${isRtl ? "pr-4" : "pl-4"} cancel-call `}
             onClick={async () => {
               try {
@@ -209,7 +209,7 @@ function ChatHeader({
                 console.error("End call failed", err);
               }
             }}
-          ></CancelCallIcon> */}
+          ></CancelCallIcon>
         </div>
       )}
     </div>
