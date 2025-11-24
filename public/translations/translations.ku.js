@@ -553,7 +553,7 @@ const translations = {
   "Enter Your Phone Number To Complete Order":
     "تکایە ژمارەی تەلەفۆنەکەت بنووسە بۆ تەواوکردنی سفارەشەکە",
   Buy: "کڕین",
-  "Composed Of": "پێکهاتووە لە",
+  "Composed Of:": "پێکهاتووە لە",
   Piece: "پارچە",
   "Hide All": "هەمووی پنهان بکە",
   Shipping: "گەیاندن",
