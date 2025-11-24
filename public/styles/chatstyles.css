@@ -75,6 +75,10 @@
   z-index: 9;
   right: 41px;
 }
+.active-mic-svg svg g line,
+.active-mic-svg svg g g path[data-name="Path 21399"] {
+  display: none;
+}
 .call-element {
   animation-name: call;
   animation-duration: 0.5s;
@@ -241,8 +245,8 @@
   color: #404040;
   z-index: 100;
 }
-.active-mic-svg svg g g .vidIcon_svg__line-path,
-.active-mic-svg svg g path[data-name="Line 903"] {
+.active-mic-svg svg g line,
+.active-mic-svg svg g line {
   display: none;
 }
 .call-rec {
