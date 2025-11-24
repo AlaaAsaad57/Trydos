@@ -52,7 +52,7 @@ function InfinteScroll({ offsetVariable, temp }: InfinteScrollPropsType) {
         let api_url = "/api/home/boutiques";
         let search = new URLSearchParams();
         search.set("limit", "10");
-        search.set("offset", `[${offsetVariable}]`);
+        search.set("offset", `[${offset}]`);
         if (params?.mainCategory)
           search.set("category_slugs", params.mainCategory as string);
         let new_results = await fetch(api_url + `?${search?.toString()}`, {
@@ -68,16 +68,17 @@ function InfinteScroll({ offsetVariable, temp }: InfinteScrollPropsType) {
         result = result.data;
 
         // @ts-ignore
-        if (offset?.[0] === result.offset?.[0]) {
-          setLoading(false);
-          setEnd(true);
-        } else if (result.boutiques.length === 0) {
+        if (result.boutiques.length === 0) {
           setLoading(false);
           setEnd(true);
         } else {
           setBoutiques(result.boutiques);
           setLoading(false);
-          setOffset([...result.offset]);
+        }
+        if (result?.offset) setOffset([...result.offset]);
+        else {
+          setLoading(false);
+          setEnd(true);
         }
       } catch (error) {
         console.error("Error fetching boutiques:", error);
