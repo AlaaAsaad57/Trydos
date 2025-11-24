@@ -270,7 +270,7 @@ export class ElasticsearchReader {
         // @ts-ignore
         response.aggregations?.boutiques_composite?.after_key ?? null;
       let newSearchAfter = null;
-      if (afterKey?.boutique_position && afterKey?.boutique_id) {
+      if (afterKey?.boutique_position >= 0 && afterKey?.boutique_id) {
         newSearchAfter = [afterKey.boutique_position, afterKey.boutique_id];
       }
 
