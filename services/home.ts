@@ -5,6 +5,7 @@ import {
   getCart,
   getUserChat,
   LogError,
+  translateFunction,
   WaitForCondition,
 } from "utils/functions";
 import Smartlook from "smartlook-client";
@@ -194,99 +195,100 @@ class HomeService {
       }
     }
   }
-  async RequestFireBase() {
-    const permission =
-      typeof Notification !== "undefined"
-        ? await Notification.requestPermission()
-        : null;
 
-    if (permission !== "granted") {
-      return null;
-    }
-
-    const { requestFirebaseNotificationPermission, onMessageListener } =
-      await import("utils/firebaseInitv1");
-    await requestFirebaseNotificationPermission().then(async (token) => {
-      // @ts-ignore
-      if (token) {
-        localStorage.setItem("FB-DEVICE-TOKEN", token);
-        setTimeout(async () => {
-          if (auth.UserToken() && auth.UserID()) {
-            try {
-              let response = await fetchData({
-                url: "/firebase_device_tokens",
-                body: JSON.stringify({
-                  device_token: token,
-                  user_id: auth.UserID(),
-                  auth_token: auth.UserToken(),
-                }),
-                reqTitle: REQUESTS_DATA.REGISTER_FIREBASE_TOKEN,
-                method: "POST",
-                server: "market",
-              });
-              if (!response.success) {
-                throw new Error(response.message);
-              }
-            } catch (err) {
-              console.error(err);
-            }
-          }
-        }, 2000);
-        // ininit
-      }
-    });
-    typeof window !== "undefined" &&
-      "serviceWorker" in navigator &&
-      onMessageListener()
-        .then((payload) => {})
-        .catch((err) => {
-          LogError(err);
-          console.log(err);
-        });
-  }
-  isNoificationGranted() {
-    if (typeof window === "undefined" || typeof Notification === "undefined") {
-      return false;
-    }
-    return Notification.permission === "granted";
-  }
-  async allowNotifications() {
-    const { requestFirebaseNotificationPermission } = await import(
-      "utils/firebaseInitv1"
-    );
+  // new unified action
+  async AllowNotifications() {
+    console.log("AllowNotifications called");
     try {
-      requestFirebaseNotificationPermission().then((fbtoken) => {
-        if (fbtoken) this.handleTopicsOnPageRefresh(fbtoken);
-      });
-      await this.RequestFireBase();
-      if (getUserChat()?.id) {
-        const { requestFirebaseNotificationPermission } = await import(
-          "utils/firebaseInitv1"
-        );
-        requestFirebaseNotificationPermission().then(async (fbtoken) => {
-          if (fbtoken && getUserChat()?.id) {
-            fbtoken &&
-              ChatService.StoreToken({
-                id: getUserChat()?.id,
-                token: fbtoken,
-                user: getUserChat(),
-              });
+      const { requestFirebaseNotificationPermission, onMessageListener } =
+        await import("utils/firebaseInitv1");
+
+      const fbtoken = await requestFirebaseNotificationPermission();
+      console.log(fbtoken);
+      if (fbtoken) {
+        // Store token
+        localStorage.setItem("FB-DEVICE-TOKEN", fbtoken);
+
+        // Handle topics on page refresh
+        await this.handleTopicsOnPageRefresh(fbtoken);
+
+        // Register token with backend if user is authenticated
+        if (auth.UserToken() && auth.UserID()) {
+          try {
+            const response = await fetchData({
+              url: "/firebase_device_tokens",
+              body: JSON.stringify({
+                device_token: fbtoken,
+                user_id: auth.UserID(),
+                auth_token: auth.UserToken(),
+              }),
+              reqTitle: REQUESTS_DATA.REGISTER_FIREBASE_TOKEN,
+              method: "POST",
+              server: "market",
+            });
+            if (!response.success) {
+              throw new Error(response.message);
+            }
+          } catch (err) {
+            console.error(err);
           }
-        });
+        }
+
+        // Store chat token if chat user exists
+        if (fbtoken && getUserChat()?.id) {
+          await ChatService.StoreToken({
+            id: getUserChat()?.id,
+            token: fbtoken,
+            user: getUserChat(),
+          });
+        }
+
+        // Setup message listener
+        if (typeof window !== "undefined" && "serviceWorker" in navigator) {
+          onMessageListener()
+            .then((payload) => {})
+            .catch((err) => {
+              LogError(err);
+              console.log(err);
+            });
+        }
       }
     } catch (error) {
-      console.error("Error handling topics on page refresh:", error);
+      LogError(error);
+      console.error(error);
+      throw new Error("Failed to allow notifications");
     }
   }
-  async RequestNotificationWidget() {
-    const { isNotificationModal, setNotificationModal } =
-      useAppStore.getState();
-    if (this.isNoificationGranted()) {
-      this.allowNotifications();
-      return;
+  // get permission status
+  getNotificationPermissionStatus(): 1 | 0 | -1 {
+    const { setNotificationModal } = useAppStore.getState();
+    try {
+      if (
+        typeof window === "undefined" ||
+        typeof Notification === "undefined"
+      ) {
+        setNotificationModal(true);
+        // SSR or browser doesn't support Notification API — treat as "should ask"
+        return -1;
+      }
+      const p = Notification.permission;
+      if (p === "granted") {
+        this.AllowNotifications();
+        return 1;
+      }
+      if (p === "denied") {
+        showErrorNotification(translateFunction("Notification is Denied"));
+        return 0;
+      }
+      // 'default' or any other value => should ask without triggering prompt
+      setNotificationModal(true);
+      return -1;
+    } catch (e) {
+      // on any unexpected error return -1 (safe fallback)
+      return -1;
     }
-    setNotificationModal(true);
   }
+
   async CheckLogin() {
     const marketToken = getCookie(COOKIE_NAMES.MARKET_TOKEN);
     const deviceToken = getCookie(COOKIE_NAMES.DEVICE_TOKEN);
@@ -342,7 +344,6 @@ class HomeService {
       }
     }
     auth.CheckUserName();
-    await this.RequestNotificationWidget();
   }
 
   async RegisterDevice() {
@@ -409,7 +410,6 @@ class HomeService {
                 phone: "guest",
                 // other custom properties
               });
-            await this.RequestNotificationWidget();
           }
         } catch (err) {
           console.error(err);

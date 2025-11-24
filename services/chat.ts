@@ -23,6 +23,7 @@ import {
   UserData,
 } from "utils/cookies/cookie-manager";
 import { REQUESTS_DATA } from "utils/Requests";
+import home from "services/home";
 
 class ChatService {
   async loginChat() {
@@ -49,29 +50,6 @@ class ChatService {
         ...response.data,
       });
       if (response.data?.id) {
-        const { requestFirebaseNotificationPermission } = await import(
-          "utils/firebaseInitv1"
-        );
-        typeof window !== "undefined" &&
-          "serviceWorker" in navigator &&
-          requestFirebaseNotificationPermission().then(
-            (firebaseToken: string) => {
-              localStorage.setItem("firebase_token", firebaseToken);
-              if (response.data) {
-                try {
-                  if (!firebaseToken) {
-                  } else {
-                    localStorage.setItem("firebase_token", firebaseToken);
-                    this.StoreToken({
-                      id: response.data.id,
-                      token: firebaseToken,
-                      user: response.data,
-                    });
-                  }
-                } catch (e) {}
-              }
-            }
-          );
         HomeService.CheckLogin();
       } else {
         throw new Error();

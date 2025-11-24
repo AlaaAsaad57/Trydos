@@ -12,6 +12,11 @@ import {
   getCookie,
   UserData,
 } from "utils/cookies/cookie-manager";
+import home from "services/home";
+import {
+  showErrorNotification,
+  showSuccessNotification,
+} from "store/notifications/reducer";
 
 function AuthNavSection({
   onClick,
@@ -27,6 +32,7 @@ function AuthNavSection({
     userChat,
     setShouldAuthinticated,
     setLoginOpen,
+    setNotificationModal,
     setChatOpen,
     showNotificaionCircle,
   } = useAppStore();
@@ -36,7 +42,43 @@ function AuthNavSection({
   const translate = (key, lang) => {
     return translateFunction(key, languageVariable);
   };
+  const openChatAction = async () => {
+    try {
+      const userChatCookie: any = getCookie(COOKIE_NAMES.USER_CHAT);
+      const userDataCookie: any = getCookie(COOKIE_NAMES.USER_DATA);
+      if (userChatCookie && userChatCookie?.id) {
+        let num = home.getNotificationPermissionStatus();
 
+        if (num === -1) {
+          setNotificationModal(true);
+          return;
+        }
+        if (num === 0) {
+          showErrorNotification(
+            translateFunction(
+              "Notification Is Not Enabled! please Allow Notification Access"
+            )
+          );
+          return;
+        }
+        if (num === 1) {
+          setChatOpen(true);
+          ChatConroller(true);
+          await home.AllowNotifications();
+        }
+        setChatOpen(true);
+        ChatConroller(true);
+      } else {
+        if (userDataCookie && userDataCookie?.phone !== "0") {
+          setShouldAuthinticated("open chat");
+        } else {
+          setLoginOpen(true);
+        }
+      }
+    } catch (error) {
+      console.error("Error opening chat:", error);
+    }
+  };
   return (
     <>
       <div
@@ -50,18 +92,7 @@ function AuthNavSection({
           transform: !chatVar && getNew(chats).length > 0 && "translateY(-1px)",
         }}
         onClick={() => {
-          const userChatCookie: any = getCookie(COOKIE_NAMES.USER_CHAT);
-          const userDataCookie: any = getCookie(COOKIE_NAMES.USER_DATA);
-          if (userChatCookie && userChatCookie?.id) {
-            setChatOpen(true);
-            ChatConroller(true);
-          } else {
-            if (userDataCookie && userDataCookie?.phone !== "0") {
-              setShouldAuthinticated("open chat");
-            } else {
-              setLoginOpen(true);
-            }
-          }
+          openChatAction();
         }}
       >
         {!chatVar && getNew(chats).length === 0 ? (

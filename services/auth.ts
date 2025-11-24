@@ -281,6 +281,9 @@ class AuthService {
     await StoryService.loginStories();
     await ChatService.loginChat();
     await this.CheckUserName();
+    setTimeout(() => {
+      home.getNotificationPermissionStatus();
+    }, 2000);
   }
   async cancelAuth(isForExpired?) {
     const user = getCookie<UserData>(COOKIE_NAMES.USER_DATA);
@@ -553,10 +556,12 @@ class AuthService {
           ...userStories,
           name: username_market,
         });
-        await this.UpdateProfile(
-          { name: username_market },
-          { name: username_market }
-        );
+        try {
+          await this.UpdateProfile(
+            { name: username_market },
+            { name: username_market }
+          );
+        } catch (error) {}
       }
   }
 }

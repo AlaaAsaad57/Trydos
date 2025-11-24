@@ -34,7 +34,7 @@ function SignSteps({
           <WelcomingWidget
             signStep={signStep}
             stepIndicator={stepIndicator}
-            Name={user?.name || "User Test"}
+            Name={user?.name || ""}
             close={() => close()}
             inputValue={inputValue}
           />

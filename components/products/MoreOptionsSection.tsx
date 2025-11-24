@@ -65,19 +65,25 @@ function MoreOptionsSection() {
     return addedToCompare;
   };
   const enableNotificationTopic = async (payload, type) => {
-    if (!loading) {
-      setLoading(true);
-      if (
-        firebaseSettings?.subscribed_topics.some((s) => s.topic === payload)
-      ) {
-        disableNotification(payload);
-        await home.UnsubscripeFromTopic({ topic: payload });
-      } else {
-        send_GA_EVENT(type);
-        enableNotification(payload);
-        await home.subscribeToTopic({ topic: payload });
+    try {
+      await home.AllowNotifications();
+
+      if (!loading) {
+        setLoading(true);
+        if (
+          firebaseSettings?.subscribed_topics.some((s) => s.topic === payload)
+        ) {
+          disableNotification(payload);
+          await home.UnsubscripeFromTopic({ topic: payload });
+        } else {
+          send_GA_EVENT(type);
+          enableNotification(payload);
+          await home.subscribeToTopic({ topic: payload });
+        }
+        setLoading(false);
       }
-      setLoading(false);
+    } catch (error) {
+      console.log("Error enabling notification topic:", error);
     }
   };
   const checkIfTopicEnabled = (topic) => {
