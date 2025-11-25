@@ -4,8 +4,6 @@ import React, { useEffect, useState } from "react";
 import HomeService from "services/home";
 import PopupCountry from "utils/PopupCountry";
 import home from "services/home";
-import ChatService from "services/chat";
-
 import { fetchCountries } from "utils/tinyUtils";
 
 import Smartlook from "smartlook-client";
@@ -137,14 +135,9 @@ function Init() {
     }
 
     if (!shouldShowBluredInfo() && Notification.permission === "granted") {
-      const { requestFirebaseNotificationPermission } = await import(
-        "utils/firebaseInitv1"
-      );
       const handlePageRefresh = async () => {
         try {
-          requestFirebaseNotificationPermission().then((fbtoken) => {
-            if (fbtoken) home.handleTopicsOnPageRefresh(fbtoken);
-          });
+          await home.AllowNotifications();
         } catch (error) {
           console.error("Error handling topics on page refresh:", error);
         }
@@ -157,7 +150,11 @@ function Init() {
     if (typeof Notification !== "undefined") initPageLoad();
   }, []); // Runs once when the app initializes
   const onAllow = async () => {
-    home.allowNotifications();
+    try {
+      await home.AllowNotifications();
+    } catch (error) {
+      console.error("Error allowing notifications:", error);
+    }
   };
   const onDismiss = () => {
     setNotificationModal(false);

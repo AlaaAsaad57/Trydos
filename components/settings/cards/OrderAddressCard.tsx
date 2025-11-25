@@ -24,11 +24,12 @@ function OrderAddressCard({ address }: OrderAddressCardPropsType) {
           isRtl ? " text-right " : " "
         }`}
       >
-        {address?.address}
+        {/* @ts-ignore */}
+        {address?.address_type}
       </span>
       <span
         className={`text-[#1D1D1D] text-[12px] regular mt-[3px] ${
-          isRtl ? " text-right " : " "
+          isRtl ? " text-right dir-rtl " : " "
         }`}
       >
         {GetAddressString(address)}

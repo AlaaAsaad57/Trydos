@@ -198,22 +198,22 @@ function ChatHeader({
 }
 
 export default ChatHeader;
-// <CancelCallIcon
-//     className={`${isRtl ? "pr-4" : "pl-4"} cancel-call `}
-//     onClick={async () => {
-//       try {
-//         let res = await fetchData({
-//           url: "/api/v1/messages/end_call",
-//           body: JSON.stringify({ user_id: getUserChat()?.id }),
-//           method: "POST",
-//           server: "chat",
-//           reqTitle: REQUESTS_DATA.END_CALL,
-//         });
-//         if (!res.success) {
-//           throw new Error(res.message);
-//         }
-//       } catch (err) {
-//         console.error("End call failed", err);
-//       }
-//     }}
-//   ></CancelCallIcon>
+//  <CancelCallIcon
+//             className={`${isRtl ? "pr-4" : "pl-4"} cancel-call `}
+//             onClick={async () => {
+//               try {
+//                 let res = await fetchData({
+//                   url: "/api/v1/messages/end_call",
+//                   body: JSON.stringify({ user_id: getUserChat()?.id }),
+//                   method: "POST",
+//                   server: "chat",
+//                   reqTitle: REQUESTS_DATA.END_CALL,
+//                 });
+//                 if (!res.success) {
+//                   throw new Error(res.message);
+//                 }
+//               } catch (err) {
+//                 console.error("End call failed", err);
+//               }
+//             }}
+//           ></CancelCallIcon>

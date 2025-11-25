@@ -124,7 +124,7 @@ const Menu = ({ user, setMenuOpen }) => {
     deleteCookie(COOKIE_NAMES.USER_STORIES);
     deleteCookie(COOKIE_NAMES.CHAT_TOKEN);
     deleteCookie(COOKIE_NAMES.STORIES_TOKEN);
-
+    localStorage.clear();
     deleteCookie(COOKIE_NAMES.USER_DATA);
     const { messaging } = await import("utils/firebaseInitv1");
     const { deleteToken } = await import("firebase/messaging");
@@ -136,6 +136,7 @@ const Menu = ({ user, setMenuOpen }) => {
       deleteCookie(COOKIE_NAMES.USER_STORIES);
       deleteCookie(COOKIE_NAMES.CHAT_TOKEN);
       deleteCookie(COOKIE_NAMES.STORIES_TOKEN);
+      localStorage.clear();
 
       deleteCookie(COOKIE_NAMES.USER_DATA);
     } catch (error) {}

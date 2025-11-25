@@ -12,7 +12,7 @@ import ContactInfoIcon from "public/svg/cart/ContactInfoIcon";
 
 import order from "services/order";
 import { useAppStore } from "store";
-import { FlagIcon } from "utils/tinyUtils";
+import { FlagIcon, sanitizePhone } from "utils/tinyUtils";
 import { AddAddressFormPropsType } from "models/componentType/settingTypes/PersonalInfoAddressModalPropsType";
 import { AddressSectionPropsType } from "models/componentType/AddressSectionPropsType";
 import { SelectRegionPropsType } from "models/componentType/SelectRegionPropsType";
@@ -67,7 +67,7 @@ function AddAddressForm({
       (addressDetails?.contact_info?.contact_person_name?.length > 0 ||
         // @ts-ignore
         addressDetails?.contact_info?.name?.length > 0) &&
-      addressDetails?.contact_info?.phone?.length > 0
+      addressDetails?.contact_info?.phone?.length > 5
     ) {
       valid = true;
     } else {
@@ -404,6 +404,7 @@ const ContactInfo = ({ userName = null }) => {
       setAddressDetails({ ...addressDetails, user_name: "" });
     }
   }, []);
+
   return (
     <div
       className="flex-col w-full mt-[30px] px-[12px] pb-[110px]"
@@ -525,16 +526,16 @@ const ContactInfo = ({ userName = null }) => {
               spellCheck="false"
               autoCapitalize="off"
               autoComplete="off"
-              pattern="[0-9]*"
               autoCorrect="off"
-              inputMode="numeric"
-              type="number"
+              inputMode="tel"
+              type="text"
               value={addressDetails?.contact_info?.phone}
               onChange={(e) => {
+                const sanitized = sanitizePhone(e.target.value);
                 setAddressDetails({
                   contact_info: {
                     ...addressDetails.contact_info,
-                    phone: pollinateInput(e.target.value),
+                    phone: sanitized,
                   },
                 });
               }}
@@ -572,16 +573,16 @@ const ContactInfo = ({ userName = null }) => {
               aria-haspopup="false"
               spellCheck="false"
               autoCapitalize="off"
-              pattern="[0-9]*"
               autoComplete="off"
               autoCorrect="off"
-              inputMode="numeric"
+              inputMode="tel"
               value={addressDetails?.contact_info?.alternative_phone}
               onChange={(e) => {
+                const sanitized = sanitizePhone(e.target.value);
                 setAddressDetails({
                   contact_info: {
                     ...addressDetails.contact_info,
-                    alternative_phone: pollinateInput(e.target.value),
+                    alternative_phone: sanitized,
                   },
                 });
               }}
@@ -638,7 +639,7 @@ export const AddAddressButtons = ({
     if (addressDetails.contact_info?.contact_person_name?.length === 0) {
       return shake("name-border");
     }
-    if (addressDetails.contact_info?.phone?.length === 0) {
+    if (addressDetails.contact_info?.phone?.length < 5) {
       return shake("phone-border");
     }
   };

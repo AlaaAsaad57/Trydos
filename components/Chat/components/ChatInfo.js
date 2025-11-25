@@ -238,6 +238,7 @@ function ChatInfo({
                 (image, index) => (
                   <div className="slider-gallery-item" key={index}>
                     <Image
+                      className="max-h-[140px]"
                       width={100}
                       src={image.message_files[0]?.file_path}
                       height={130}

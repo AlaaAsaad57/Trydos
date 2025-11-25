@@ -177,7 +177,10 @@ const waitUntilRegisteringComplete = async (): Promise<void> => {
   }
 };
 
-const handleUnauthorized = async (server: ServerType): Promise<boolean> => {
+const handleUnauthorized = async (
+  server: ServerType,
+  options
+): Promise<boolean> => {
   let userChat: any = getCookie(COOKIE_NAMES.USER_CHAT);
   let userStories: any = getCookie(COOKIE_NAMES.USER_STORIES);
   let userData: any = getCookie(COOKIE_NAMES.USER_DATA);
@@ -192,6 +195,12 @@ const handleUnauthorized = async (server: ServerType): Promise<boolean> => {
       case "chat":
       case "stories":
       case "comments":
+        let test_alert = confirm(
+          `############## JUST FOR TEST TO KNOW WHAT HAPPEN TO ASK FOR  OTP ##########:\n ${JSON.stringify(
+            options
+          )}`
+        );
+        await navigator.clipboard.writeText(JSON.stringify(options, null, 2));
         const { useAppStore } = await import("../store");
         const { setShouldAuthinticated } = useAppStore.getState();
         if (userChat?.id)
@@ -213,6 +222,7 @@ const handleUnauthorized = async (server: ServerType): Promise<boolean> => {
         }
         deleteCookie(COOKIE_NAMES.CHAT_TOKEN);
         deleteCookie(COOKIE_NAMES.STORIES_TOKEN);
+
         setShouldAuthinticated(true);
 
         return new Promise((resolve) => {
@@ -335,7 +345,15 @@ export const fetchData = async <T = any>(
           timestamp: Date.now(),
         });
 
-        const shouldRetry = await handleUnauthorized(server);
+        const shouldRetry = await handleUnauthorized(server, {
+          url: url,
+          token: token,
+          server,
+          body,
+          headers,
+          status,
+          responseData,
+        });
         if (shouldRetry) {
           retryActionIfUnAuth?.();
           return fetchData<T>(params, true);
@@ -348,7 +366,7 @@ export const fetchData = async <T = any>(
         throw new Error(
           responseData?.message ??
             responseData?.data?.message ??
-            "Unknown error"
+            `Error fetching data for request ${reqTitle?.code}`
         );
       }
 

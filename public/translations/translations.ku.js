@@ -553,7 +553,7 @@ const translations = {
   "Enter Your Phone Number To Complete Order":
     "تکایە ژمارەی تەلەفۆنەکەت بنووسە بۆ تەواوکردنی سفارەشەکە",
   Buy: "کڕین",
-  "Composed Of": "پێکهاتووە لە",
+  "Composed Of:": "پێکهاتووە لە",
   Piece: "پارچە",
   "Hide All": "هەمووی پنهان بکە",
   Shipping: "گەیاندن",
@@ -1136,6 +1136,8 @@ const translations = {
   "Submit Rating": "هەڵسەنگاندن بنێرە",
   "Do you want to delete this message?": "دەتەوێت ئەم نامەیە بسڕیتەوە؟",
   Last: "ماوە",
+  "Waiting Seller Reply...": "چاوەڕوانی وەڵامی فرۆشکار...",
+  "Add More to Your Bag": "زیاتر زیاد بکە بۆ جانتاکەت",
 };
 
 export default translations;

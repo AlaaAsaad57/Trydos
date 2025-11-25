@@ -293,13 +293,13 @@ export const RoundPrice = ({
   if (returnNumber) {
     return number;
   }
-  let deciaml_points =
-    (settings && settings["starting-setting"]?.decimal_point_settings) || 0;
+  let deciaml_points = currency?.decimal_digits || 0;
+  number = Number(number.toFixed(deciaml_points));
   number = Math.ceil(number);
 
   // Return raw converted number if requested
   let languageCode = language ?? languageVariable ?? "en";
-  number = Number(number.toFixed(deciaml_points));
+
   // Dart's formatNumber logic
   const thousand = languageCode !== "ar" ? "K" : "أ";
   const million = languageCode !== "ar" ? "M" : "م";

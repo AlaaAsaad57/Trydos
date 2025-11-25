@@ -31,7 +31,7 @@ function MoreOptionsSection() {
     firebaseSettings,
     NotificationsType,
     setNotificationsType,
-    currency,
+    language,
   } = useAppStore();
 
   let { lang } = useParams();
@@ -59,24 +59,31 @@ function MoreOptionsSection() {
   );
   const [isInWishlist, setIsInWishlist] = useState(false);
   const [wishlistLoading, setWishlistLoading] = useState(false);
-  let language = LocalizationServiceClass.GetAppLanguage();
+  const isRtl = language === "ar" || language === "ku";
+
   const AddedToCompare = () => {
     return addedToCompare;
   };
   const enableNotificationTopic = async (payload, type) => {
-    if (!loading) {
-      setLoading(true);
-      if (
-        firebaseSettings?.subscribed_topics.some((s) => s.topic === payload)
-      ) {
-        disableNotification(payload);
-        await home.UnsubscripeFromTopic({ topic: payload });
-      } else {
-        send_GA_EVENT(type);
-        enableNotification(payload);
-        await home.subscribeToTopic({ topic: payload });
+    try {
+      await home.AllowNotifications();
+
+      if (!loading) {
+        setLoading(true);
+        if (
+          firebaseSettings?.subscribed_topics.some((s) => s.topic === payload)
+        ) {
+          disableNotification(payload);
+          await home.UnsubscripeFromTopic({ topic: payload });
+        } else {
+          send_GA_EVENT(type);
+          enableNotification(payload);
+          await home.subscribeToTopic({ topic: payload });
+        }
+        setLoading(false);
       }
-      setLoading(false);
+    } catch (error) {
+      console.log("Error enabling notification topic:", error);
     }
   };
   const checkIfTopicEnabled = (topic) => {
@@ -161,8 +168,13 @@ function MoreOptionsSection() {
           )}
         </span>
       </div>
-      <div className="content-extended">
-        <div className="Notify-button-container">
+      <div
+        className="content-extended"
+        style={{
+          direction: isRtl ? "rtl" : "ltr",
+        }}
+      >
+        <div className="Notify-button-container px-[20px]">
           <div className="notify-row">
             <svg
               id="_25x25_Back"
@@ -258,7 +270,7 @@ function MoreOptionsSection() {
           </HortiznalScrollBar>
         </div>
         <div
-          className={`more-options-button ${
+          className={`px-[20px] more-options-button ${
             isInWishlist ? "bg-green-300" : ""
           }`}
           data-cy="add-checkList"
@@ -476,7 +488,7 @@ function MoreOptionsSection() {
           </span>
         </div>
         <div
-          className={`more-options-button ${
+          className={`more-options-button px-[20px] ${
             AddedToCompare() ? "bg-green-300" : ""
           }`}
           data-cy="add-compare"

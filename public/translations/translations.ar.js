@@ -364,7 +364,7 @@ const translations = {
   "Item Status": "حالة المنتج",
   "Composed Of": "مكون من",
   Buying: "شراء",
-  "Expected Delivery Date": "تاريخ التوصيل المتوقع",
+  "Expected Delivery Date": "تاريخ الشحن والتسليم المتوقع",
   "Order Status": "حالة الطلب",
   Pieces: "قطع",
   "Work Days": "أيام العمل",
@@ -1096,6 +1096,8 @@ const translations = {
   "Submit Rating": "إرسال التقييم",
   "Do you want to delete this message?": "هل تريد حذف هذه الرسالة؟",
   Last: "متبقي",
+  "Waiting Seller Reply...": "في انتظار رد البائع...",
+  "Add More to Your Bag": "أضف المزيد إلى سلتك",
 };
 
 export default translations;

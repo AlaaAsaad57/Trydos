@@ -873,18 +873,8 @@ const NotifyCartButton = ({
 }) => {
   const NotifyAction = async () => {
     try {
-      let permission = null;
-      if (typeof Notification !== "undefined") {
-        permission = await Notification.requestPermission();
-      }
-      if (permission !== "granted") {
-        showErrorNotification(
-          translateFunction(
-            "Notification Is Not Enabled! please Allow Notification Access"
-          )
-        );
-        return;
-      }
+      await home.AllowNotifications();
+
       if (!isNotified) {
         GAevent({
           action: GA_EVENT_NAMES.ENABLE_PRODUCT_NOTIFICATION,
@@ -901,7 +891,7 @@ const NotifyCartButton = ({
           },
         });
         setNotify();
-        await home.RequestFireBase();
+
         await auth.NotifyForProducts({
           id: id,
           variant: selected_variant,

@@ -60,8 +60,11 @@ export async function POST(req: NextRequest) {
     });
     return NextResponse.json(
       {
-        message:
-          `${error.message || error || "Unknown error"}` || "Unknown error",
+        message: `${
+          error.message ||
+          error ||
+          "error getting order rating data from elestic"
+        }`,
         data: null,
         code: 500,
       },

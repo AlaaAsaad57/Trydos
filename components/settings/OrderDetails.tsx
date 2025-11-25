@@ -689,7 +689,12 @@ function OrderDetails({
                 />
               </div>
               {selectedOrder?.details?.[0]?.order_group_status && (
-                <div className="flex-row justify-between items-center w-full mt-[8px]">
+                <div
+                  className="flex-row justify-between items-center w-full mt-[8px]"
+                  style={{
+                    direction: isRtl ? "rtl" : "ltr",
+                  }}
+                >
                   <OrderStatusCard
                     fullWidth={true}
                     status={selectedOrder?.details?.[0]?.order_group_status}

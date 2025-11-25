@@ -4,9 +4,14 @@ import { useAppStore } from "store";
 import { translateFunction } from "utils/functions";
 
 function OrderExpectedDeliveryCard({ time }: OrderDateCardProps) {
-  const { ActivePacks } = useAppStore();
+  const { ActivePacks, language } = useAppStore();
+  const isRtl = language === "ar" || language === "ku";
+
   return (
     <div
+      style={{
+        direction: isRtl ? "rtl" : "ltr",
+      }}
       className={`${
         ActivePacks.order_status.value === "canceled" && "opacity-55"
       } bg-[#F4F4F4] relative w-1/2 min-h-[74px] h-auto  rounded-[15px] py-[8px] px-[12px] flex-col`}

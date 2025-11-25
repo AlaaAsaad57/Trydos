@@ -737,7 +737,13 @@ const ShowFilterRow = ({ term, values }) => {
                 }}
               >
                 {term !== "colors" && (
-                  <span className="text-[#5D5C5D] text-[15px] medium">
+                  <span
+                    className="text-[#5D5C5D] text-[15px] medium"
+                    style={{
+                      fontSize:
+                        (value?.name || value)?.length < 6 ? "15px" : "10px",
+                    }}
+                  >
                     {value?.name || value}
                   </span>
                 )}

@@ -7,6 +7,7 @@ import {
 import { fetchData } from "utils/fetchData";
 import { REQUESTS_DATA } from "utils/Requests";
 import { requestPermissions } from "utils/tinyUtils";
+import UPDATED_API_DATA from "migration.staging";
 export const makeVideoCall = async (
   channelId,
   callerName,
@@ -39,6 +40,14 @@ export const makeVideoCall = async (
       typeof channelId === "string" && channelId.includes("ch")
         ? { receiver_user_id: parseInt(channelId.split("ch-")[1]) }
         : { channel_id: channelId };
+    await fetchData({
+      url: UPDATED_API_DATA.MOD_END_CALL,
+
+      reqTitle: REQUESTS_DATA.END_CALL,
+      method: "POST",
+      server: "chat",
+      body: JSON.stringify({ user_id: getUserChat()?.id }),
+    });
     let response = await fetchData({
       url: `/api/v1/messages/video_call`,
       body: JSON.stringify({
@@ -92,9 +101,8 @@ export const makeVoiceCall = async (
         : { channel_id: channelId };
     setCallLoading("voice");
     await fetchData({
-      url: `/api/v1/messages/end_call`,
-      // ###EDIT###
-      // url: `/api/v1/end_call`,
+      url: UPDATED_API_DATA.MOD_END_CALL,
+
       reqTitle: REQUESTS_DATA.END_CALL,
       method: "POST",
       server: "chat",
@@ -212,7 +220,8 @@ export const RefuseCall = async (channelId, messageId, duration) => {
   try {
     // Clear user's call state
     const response = await fetchData({
-      url: `/api/v1/messages/end_call`,
+      url: UPDATED_API_DATA.MOD_END_CALL,
+
       reqTitle: REQUESTS_DATA.END_CALL,
       method: "POST",
       server: "chat",

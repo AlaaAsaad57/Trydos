@@ -10,13 +10,38 @@ const WebcamCapture = ({ imgs, send, setImgs, imageFile, close }) => {
   const webcamTypeRef = useRef({
     width: 430,
     height: 400,
-    facingMode: { exact: "user" },
+    facingMode: { ideal: "user" },
   });
   const webcamRef = useRef(null);
+  const streamRef = useRef(null);
   const capture = () => {
     imageFile.current = webcamRef.current?.getScreenshot();
   };
-  useEffect(() => {}, [imgs]);
+
+  const onUserMedia = (stream) => {
+    console.log("stream", stream);
+    streamRef.current = stream;
+  };
+  const stopStream = () => {
+    console.log("Stopping stream", streamRef.current?.getTracks());
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((track) => {
+        console.log("Stopping track", track);
+        track.stop();
+      });
+      streamRef.current = null;
+    }
+  };
+  useEffect(() => {
+    return () => {
+      // Stop all tracks to turn off camera light
+
+      console.log("streamCleanup", streamRef.current?.getTracks());
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((track) => track.stop());
+      }
+    };
+  }, []);
   const hasTwoCameras = async () => {
     const devices = await navigator?.mediaDevices?.enumerateDevices();
 
@@ -120,6 +145,7 @@ const WebcamCapture = ({ imgs, send, setImgs, imageFile, close }) => {
               zIndex: 9999999999,
             }}
             height={800}
+            onUserMedia={onUserMedia}
             ref={webcamRef}
             screenshotFormat="image/webp"
             width={430}
@@ -179,6 +205,7 @@ const WebcamCapture = ({ imgs, send, setImgs, imageFile, close }) => {
             <button
               className="w-[50px] h-[50px] cursor-pointer rounded-full bg-[#dddddd] p-[10px] flex items-center justify-center shadow-[0_3px_6px_#0000002a]"
               onClick={() => {
+                stopStream(); // Stop stream BEFORE closing
                 imageFile.current = null;
                 close();
               }}

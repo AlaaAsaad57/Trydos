@@ -9,6 +9,8 @@ import chat from "services/chat";
 import { fetchData } from "utils/fetchData";
 import { REQUESTS_DATA } from "utils/Requests";
 import { LogError } from "utils/functions";
+import { MiddlewareNotFoundError } from "node_modules/next/dist/shared/lib/utils";
+import UPDATED_API_DATA from "migration.staging";
 
 export const GetLastSeen = async (chatId, friendID) => {
   const { setServerTime, setIsTyping } = useAppStore.getState();
@@ -20,7 +22,10 @@ export const GetLastSeen = async (chatId, friendID) => {
     let response = await fetchData({
       url: "/api/v1/channels/get_date_time",
       reqTitle: REQUESTS_DATA.GET_LAST_SEEN,
-      method: "POST",
+      method: UPDATED_API_DATA.MOD_DATE_TIME_METHOD as any,
+
+      // ###EDIT###
+      // method: "GET",
       server: "chat",
     });
     if (!response.success) {
@@ -62,7 +67,9 @@ export const setLastSeen = async (MyId) => {
     let response = await fetchData({
       url: "/api/v1/channels/get_date_time",
       reqTitle: REQUESTS_DATA.GET_LAST_SEEN,
-      method: "POST",
+      method: UPDATED_API_DATA.MOD_DATE_TIME_METHOD as any,
+      // ###EDIT###
+      // method: "GET",
       server: "chat",
     });
     if (!response.success) {
@@ -105,7 +112,8 @@ export const getCalls = async (id) => {
   }
 };
 export const SendMessage = async (payload, isNew, isPrivate?) => {
-  const { sendNewMessage, sendRealMessage } = useAppStore.getState();
+  const { sendNewMessage, sendRealMessage, deleteErrorMessage } =
+    useAppStore.getState();
   let message = isPrivate
     ? {
         ...payload,
@@ -143,6 +151,7 @@ export const SendMessage = async (payload, isNew, isPrivate?) => {
       }
     }
   } catch (e) {
+    deleteErrorMessage({ msg_id: payload.mid, ch_id: payload.cid });
     console.error(e);
   }
 };
@@ -209,6 +218,9 @@ export async function getPage(channel, mid) {
       reqTitle: REQUESTS_DATA.GET_MESSAGES_OF_CHANNEL,
       method: "POST",
       server: "chat",
+      body: {},
+      // ###EDIT###
+      // body: {},
     });
     if (!response.success) {
       throw new Error(response.message);
@@ -288,6 +300,8 @@ export async function getMessagesBetweenMessage(payload) {
       reqTitle: REQUESTS_DATA.GET_MESSAGES_OF_CHANNEL,
       method: "POST",
       server: "chat",
+      body: JSON.stringify({ limit: payload.second + 1 }),
+      // ###EDIT###
       // body: JSON.stringify({ limit: payload.second + 1 }),
     });
     // @ts-ignore
@@ -306,7 +320,9 @@ export async function getContacts() {
     let response = await fetchData({
       url: "/api/v1/users/my_contacts",
       reqTitle: REQUESTS_DATA.GET_CONTACTS,
-      method: "POST",
+      method: UPDATED_API_DATA.MOD_CONTACTS_METHOD as any,
+      // ###EDIT###
+      // method: "GET",
       server: "chat",
     });
     // @ts-ignore
@@ -326,7 +342,8 @@ export const getMedia = async (id, media) => {
       reqTitle: REQUESTS_DATA.GET_MEDIA_FOR_A_CHANNEL,
       method: "POST",
       server: "chat",
-      // body: {},
+      body: {},
+      // ###EDIT###
     });
     if (!response.success) {
       throw new Error(response.message);
@@ -352,7 +369,7 @@ export const GetChatDetails = async (id) => {
   const { editChatInfo } = useAppStore.getState();
   try {
     let response = await fetchData({
-      url: `/api/v1/channels/${id}/media`,
+      url: UPDATED_API_DATA.MOD_MEDIA_CHAT_URL.replace("__", `${id}`),
       reqTitle: REQUESTS_DATA.GET_CHANNEL_DATA,
       method: "GET",
       server: "chat",

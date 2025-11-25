@@ -56,6 +56,7 @@ function ProductOptions({
             product_id: String(product.id),
             user_id: String(auth.UserID()),
           }),
+          noMessage: true,
         });
 
         if (!res.success) {
@@ -99,6 +100,7 @@ function ProductOptions({
             product_id: String(product.id),
             user_id: String(auth.UserID()),
           }),
+          noMessage: true,
         });
 
         if (!res.success) {

@@ -73,7 +73,12 @@ function CartContentOfProduct() {
   return (
     <div className="flex-row flex items-center min-h-[40px] max-h-[85px] w-full px-[20px]">
       <div className="flex flex-col rounded-[10px] justify-start items-center  relative pt-[30px] max-h-[69px]  min-h-[54px] w-full">
-        <div className="flex-col flex items-start gap-[3px] z-10 max-h-full  overflow-auto w-fit horizntal-scroll">
+        <div
+          style={{
+            direction: isRtl ? "rtl" : "ltr",
+          }}
+          className="flex-col flex items-start gap-[3px] z-10 max-h-full  overflow-auto w-fit horizntal-scroll"
+        >
           {localCart
             .filter(
               (s) =>

@@ -13,12 +13,7 @@ import AuthService from "services/auth";
 
 import LoginMethods from "./LoginMethods";
 import SlideWidget from "components/global/SlideNavigation";
-import {
-  useParams,
-  usePathname,
-  useRouter,
-  useSearchParams,
-} from "next/navigation";
+import { useParams } from "next/navigation";
 import { useAppStore } from "store";
 import {
   GA_AUTH_SCREEN,
@@ -32,9 +27,6 @@ import Image from "next/image";
 import SearchParamUpdater from "components/global/ParamsUpdater";
 
 function NewLoginWidget() {
-  const router = useRouter();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
   let { lang } = useParams();
   const {
     setWrongNumber,

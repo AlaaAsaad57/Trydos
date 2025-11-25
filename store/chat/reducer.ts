@@ -1399,6 +1399,7 @@ export const useChatStore = (set, get) => ({
   },
   deleteErrorMessage: (payload: any) => {
     const state = get();
+    console.log(payload);
     if (
       state.data.filter((chat) => parseInt(chat.id) === parseInt(payload.ch_id))
         .length > 0
@@ -1415,14 +1416,14 @@ export const useChatStore = (set, get) => ({
             active = {
               ...state.activeChat,
               messages: active.messages.filter(
-                (msg) => parseInt(msg.mid) !== parseInt(payload.msg_id)
+                (msg) => String(msg.mid) !== String(payload.msg_id)
               ),
             };
           }
           arr.push({
             ...chat,
             messages: chat?.messages.filter(
-              (msg) => parseInt(msg.mid) !== parseInt(payload.msg_id)
+              (msg) => String(msg.mid) !== String(payload.msg_id)
             ),
           });
         } else {

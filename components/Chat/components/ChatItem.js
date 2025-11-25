@@ -209,7 +209,9 @@ function ChatItem({
             height={60}
           />
         )}
-        <div className={`${isRtl ? "mr-[20px]" : "ml-[20px]"} chat-info`}>
+        <div
+          className={`${isRtl ? "mr-[20px] dir-rtl" : "ml-[20px]"} chat-info`}
+        >
           <div className="chat-name">{SenderName || "User-" + id}</div>
           {lastMessage && (!status || status === "null") && (
             <LastMessageBody status={status} message={lastMessage} />

@@ -90,7 +90,7 @@ export function ImageCropWidget({
         </div>
 
         <div className="space-y-4">
-          <ReactCrop crop={crop} onChange={(c) => setCrop(c)} aspect={1}>
+          <ReactCrop crop={crop} onChange={(c) => setCrop(c)}>
             <img
               ref={imageRef}
               src={imageUrl}

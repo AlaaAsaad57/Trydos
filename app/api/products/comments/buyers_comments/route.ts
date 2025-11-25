@@ -68,7 +68,11 @@ export async function GET(req: NextRequest) {
     });
     return NextResponse.json(
       {
-        message: `${error.message || error || "Unknown error"}`,
+        message: `${
+          error.message ||
+          error ||
+          "error getting product rating data from elestic"
+        }`,
         data: null,
         code: 500,
       },

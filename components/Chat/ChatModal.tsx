@@ -2,16 +2,17 @@
 import { useEffect } from "react";
 const Chat = dynamic(() => import("./ChatWindowModal"), { ssr: false });
 import { ChatConroller } from "utils/tinyUtils";
-import { SSRDetect, getUserChat, translateFunction } from "utils/functions";
-import ChatService from "services/chat";
+import { SSRDetect } from "utils/functions";
+
 import dynamic from "next/dynamic";
 import { useAppStore } from "store";
 import chat from "services/chat";
 import { GA_EVENT_NAMES, GA_GLOBAL_SCREEN } from "utils/GAEvents";
 import { GAevent } from "utils/gtag";
-import { showErrorNotification } from "@/store/notifications/reducer";
+import home from "services/home";
+
 function ChatModal() {
-  const { isCallIncoming, callInProgress, chatVar } = useAppStore();
+  const { callInProgress, chatVar } = useAppStore();
   useEffect(() => {
     if (chatVar) {
       chat.getChats(false);
@@ -33,32 +34,6 @@ function ChatModal() {
           open={chatVar}
           close={async () => {
             ChatConroller(false);
-            const { requestFirebaseNotificationPermission } = await import(
-              "utils/firebaseInitv1"
-            );
-            typeof window !== "undefined" &&
-              "serviceWorker" in navigator &&
-              requestFirebaseNotificationPermission().then((firebaseToken) => {
-                try {
-                  if (!firebaseToken) {
-                    showErrorNotification(
-                      translateFunction(
-                        "Please Check Notifications Premissions"
-                      )
-                    );
-                  } else {
-                    localStorage.setItem("firebase_token", firebaseToken);
-
-                    firebaseToken &&
-                      getUserChat()?.id &&
-                      ChatService.StoreToken({
-                        id: getUserChat()?.id,
-                        token: firebaseToken,
-                        user: getUserChat(),
-                      });
-                  }
-                } catch (e) {}
-              });
           }}
           callInProgress={callInProgress}
         />

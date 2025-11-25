@@ -12,6 +12,7 @@ import Image from "next/image";
 import { translateFunction } from "utils/functions";
 import { useAppStore } from "store";
 import { showErrorNotification } from "store/notifications/reducer";
+import home from "services/home";
 interface NotificationWidgetProps {
   onAllow?: () => void;
   onDismiss?: () => void;
@@ -19,15 +20,6 @@ interface NotificationWidgetProps {
   localStorageKey?: string;
   position?: "bottom-right" | "bottom-left" | "bottom-center";
 }
-
-const TODAY_KEY_FORMAT = "yyyy-mm-dd";
-
-const formatDate = (date: Date): string => {
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, "0");
-  const d = String(date.getDate()).padStart(2, "0");
-  return `${y}-${m}-${d}`;
-};
 
 export default function NotificationWidget(props: NotificationWidgetProps) {
   const {
@@ -37,24 +29,9 @@ export default function NotificationWidget(props: NotificationWidgetProps) {
     localStorageKey = "notificationWidgetShownDate",
     position = "bottom-right",
   } = props;
-  const { language } = useAppStore();
-  const allowCallbackRef = useRef(onAllow);
-  const dismissCallbackRef = useRef(onDismiss);
-  useEffect(() => {
-    allowCallbackRef.current = onAllow;
-    dismissCallbackRef.current = onDismiss;
-  }, [onAllow, onDismiss]);
+  const { language, setNotificationModal } = useAppStore();
 
-  const [shouldRender, setShouldRender] = useState(false);
-  const [isVisible, setIsVisible] = useState(false);
   const [isClient, setIsClient] = useState(false);
-
-  const isNotificationGranted = useMemo(() => {
-    if (typeof window === "undefined" || typeof Notification === "undefined") {
-      return false;
-    }
-    return Notification.permission === "granted";
-  }, []);
 
   useEffect(() => {
     setIsClient(true);
@@ -67,34 +44,17 @@ export default function NotificationWidget(props: NotificationWidgetProps) {
     if (Notification.permission === "granted") return;
 
     try {
-      const lastShown = localStorage.getItem(localStorageKey);
-      const today = formatDate(new Date());
-      if (lastShown === today) return;
     } catch {}
+  }, [isClient]);
 
-    const timer = setTimeout(() => {
-      setShouldRender(true);
-      requestAnimationFrame(() => setIsVisible(true));
-    }, 3000);
-
-    return () => clearTimeout(timer);
-  }, [isClient, localStorageKey]);
-
-  const setShownToday = useCallback(() => {
-    try {
-      localStorage.setItem(localStorageKey, formatDate(new Date()));
-    } catch {}
-  }, [localStorageKey]);
   const handleClose = useCallback(() => {
-    setIsVisible(false);
-    setTimeout(() => setShouldRender(false), 250);
+    setNotificationModal(false);
   }, []);
 
   const handleAllowClick = useCallback(async () => {
     // Check if Notification API is available
     if (typeof window === "undefined" || typeof Notification === "undefined") {
-      setShownToday();
-      allowCallbackRef.current && allowCallbackRef.current();
+      onAllow();
       handleClose();
       return;
     }
@@ -105,22 +65,20 @@ export default function NotificationWidget(props: NotificationWidgetProps) {
 
       // If already granted, just close and call callback
       if (currentPermission === "granted") {
-        setShownToday();
-        allowCallbackRef.current && allowCallbackRef.current();
+        onAllow();
         handleClose();
         return;
       }
 
       // If already denied, show error message
       if (currentPermission === "denied") {
-        setShownToday();
         showErrorNotification(
           translateFunction(
             "Notification is Blocked in This Browser Please Enable Notification premission and refresh",
             language
           )
         );
-        dismissCallbackRef.current && dismissCallbackRef.current();
+        onDismiss();
         handleClose();
         return;
       }
@@ -140,10 +98,8 @@ export default function NotificationWidget(props: NotificationWidgetProps) {
         result = Notification.permission;
       }
 
-      setShownToday();
-
       if (result === "granted") {
-        allowCallbackRef.current && allowCallbackRef.current();
+        onAllow();
       } else if (result === "denied") {
         showErrorNotification(
           translateFunction(
@@ -151,31 +107,30 @@ export default function NotificationWidget(props: NotificationWidgetProps) {
             language
           )
         );
-        dismissCallbackRef.current && dismissCallbackRef.current();
+        onDismiss();
       } else {
         // Permission is still "default" - user dismissed the prompt
-        dismissCallbackRef.current && dismissCallbackRef.current();
+        onDismiss();
       }
     } catch (error) {
       console.error("Error in handleAllowClick:", error);
-      setShownToday();
+
       showErrorNotification(
         translateFunction(
           "Notification is Blocked in This Browser Please Enable Notification premission and refresh",
           language
         )
       );
-      dismissCallbackRef.current && dismissCallbackRef.current();
+      onDismiss();
     } finally {
       handleClose();
     }
-  }, [handleClose, setShownToday, language]);
+  }, [handleClose, language]);
 
   const handleDismissClick = useCallback(() => {
-    setShownToday();
-    dismissCallbackRef.current && dismissCallbackRef.current();
+    onDismiss();
     handleClose();
-  }, [handleClose, setShownToday]);
+  }, [handleClose]);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLDivElement>) => {
@@ -185,8 +140,6 @@ export default function NotificationWidget(props: NotificationWidgetProps) {
   );
 
   if (!isClient) return null;
-  if (isNotificationGranted) return null;
-  if (!shouldRender) return null;
 
   const positionClasses =
     position === "bottom-right"
@@ -215,7 +168,7 @@ export default function NotificationWidget(props: NotificationWidgetProps) {
           "border border-zinc-100",
           "px-4 py-4 sm:px-5 sm:py-5",
           "transition-all duration-300",
-          isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2",
+
           className || "",
         ].join(" ")}
       >
