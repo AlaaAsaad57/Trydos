@@ -17,6 +17,9 @@ function OrderStatusCard({ status, fullWidth }: OrderStatusCardPropsType) {
       className={`bg-[#F4F4F4] ml-[8px] ${
         fullWidth ? "w-full" : "w-1/2"
       } min-h-[74px] h-auto  rounded-[15px] py-[8px] px-[12px] flex-col`}
+      style={{
+        direction: isRtl ? "rtl" : "ltr",
+      }}
     >
       <div className={`flex flex-row items-end`}>
         <OrderStatusCartsIcon status={status?.value} isRtl={isRtl} />
