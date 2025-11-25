@@ -292,11 +292,18 @@ export const BuyButtonProduct = ({
       }
     }
   };
+  const isRtl = language === "ar" || language === "ku";
+
   if (!isClient)
     return (
       <>
         <ProductBanner flashDeals={product.flash_deal_end_date} />
-        <div className="product-footer justify-between pl-[17.5px] pr-[15px] left-0 bottom-[10px] absolute w-100 flex-row align-center max-h-[30px]">
+        <div
+          style={{
+            direction: isRtl ? "rtl" : "ltr",
+          }}
+          className="product-footer justify-between pl-[17.5px] pr-[15px] left-0 bottom-[10px] absolute w-100 flex-row align-center max-h-[30px]"
+        >
           <div
             className={`${
               params.lang.split("-")[1] === "ar" && "dir-rtl"
@@ -326,7 +333,12 @@ export const BuyButtonProduct = ({
   return (
     <>
       <ProductBanner flashDeals={product.flash_deal_end_date} />
-      <div className="product-footer justify-between pl-[17.5px] pr-[15px] left-0 bottom-[10px] absolute w-100 flex-row align-center max-h-[30px]">
+      <div
+        style={{
+          direction: isRtl ? "rtl" : "ltr",
+        }}
+        className="product-footer justify-between pl-[17.5px] pr-[15px] left-0 bottom-[10px] absolute w-100 flex-row align-center max-h-[30px]"
+      >
         <div
           className={`${
             params.lang.split("-")[1] === "ar" && "dir-rtl"

@@ -1086,6 +1086,8 @@ const translations = {
   "Submit Rating": "Değerlendirmeyi Gönder",
   "Do you want to delete this message?": "Bu mesajı silmek istiyor musunuz?",
   Last: "Kalan",
+  "Waiting Seller Reply...": "Satıcı Yanıtını Bekliyor...",
+  "Add More to Your Bag": " Sepetinize Daha Fazla Ekle",
 };
 
 export default translations;

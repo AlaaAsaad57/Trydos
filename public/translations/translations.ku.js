@@ -1136,6 +1136,8 @@ const translations = {
   "Submit Rating": "هەڵسەنگاندن بنێرە",
   "Do you want to delete this message?": "دەتەوێت ئەم نامەیە بسڕیتەوە؟",
   Last: "ماوە",
+  "Waiting Seller Reply...": "چاوەڕوانی وەڵامی فرۆشکار...",
+  "Add More to Your Bag": "زیاتر زیاد بکە بۆ جانتاکەت",
 };
 
 export default translations;

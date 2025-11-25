@@ -9,12 +9,15 @@ import { EditIconPropsType } from "models/componentType/EditIconPropsType";
 export const GetAddressString = (location) => {
   if (!location) return "";
   let str = "";
+  if (location?.country) {
+    str = `${location.country} `;
+  }
   if (
     location?.province &&
     location?.province.length > 0 &&
     location?.province !== "null"
   )
-    str += `${location?.province}`;
+    str += `|${location?.province}`;
   if (location?.city && location?.city.length > 0 && location?.city !== "null")
     str += ` | ${location?.city}`;
   if (location?.town && location?.town.length > 0 && location?.town !== "null")

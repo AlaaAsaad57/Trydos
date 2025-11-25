@@ -24,10 +24,17 @@ function BuyButton({
     if (shouldShowRedeem && seconds > 0) return "text-[#FF6200]";
     else return "text-[#414141]";
   };
+  const isRtl = languageVariable === "ar" || languageVariable === "ku";
+
   return (
     <>
       <div
-        className={`buy-button pb-[10px]  ${showOrangeFont()} light-text flex-col align-start justify-end cursor-pointer absolute z-[50] bottom-0 right-[0px] pr-[10px] h-[40px] items-center`}
+        style={{
+          left: !isRtl ? "initial" : "0px",
+          right: isRtl ? "initial" : "0px",
+          direction: isRtl ? "rtl" : "ltr",
+        }}
+        className={`buy-button pb-[10px] px-[4px]  ${showOrangeFont()} light-text flex-col align-start justify-end cursor-pointer absolute z-[50] bottom-0  pr-[10px] h-[40px] items-center`}
         data-cy="buy-button"
         onClick={(e) => {
           e.preventDefault();
@@ -68,7 +75,7 @@ function BuyButton({
             width={15}
             height={15}
             alt="buy Button"
-            className="max-h-[20px] max-w-[40px] ml-[8px]"
+            className="max-h-[20px] max-w-[40px] mx-[8px]"
           />
         </div>
       </div>

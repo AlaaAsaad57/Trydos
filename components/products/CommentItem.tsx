@@ -551,9 +551,7 @@ const UpdateCommentElement = ({
         }`}
       >
         <div
-          className={`comment-item ${
-            has_reply ? "rounded-t-[15px] rounded-b-[0px]" : "rounded-[15px]"
-          } flex-col justify-between max-w-full w-full min-h-[111px] py-[8px] px-[10px]`}
+          className={`comment-item rounded-t-[15px] rounded-b-[0px] flex-col justify-between max-w-full w-full min-h-[111px] py-[8px] px-[10px]`}
           style={{
             backgroundColor: "#F8F8F8",
             direction: language === "ar" || language === "ku" ? "rtl" : "ltr",

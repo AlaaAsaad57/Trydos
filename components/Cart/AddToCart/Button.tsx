@@ -384,7 +384,9 @@ function AddToCartButton({
                 id="button-cart-text"
                 className="transition-all ease-in-out duration-700"
               >
-                {translateFunction("Add To Bag")}
+                {getTotalQuantity() > 0
+                  ? translateFunction("Add More to Your Bag")
+                  : translateFunction("Add To Bag")}
               </span>
             </div>
           </>

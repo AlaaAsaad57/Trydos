@@ -65,7 +65,7 @@ function OrderItemsList({
         </span>
         <span className={`text-[#1D1D1D] text-[12px] regular`}>
           <span
-            className={`bold ${isRtl ? " text-right " : " "}`}
+            className={`bold ${isRtl ? " text-right dir-rtl" : " "}`}
             data-cy="order-products-count"
           >
             {items.length}
