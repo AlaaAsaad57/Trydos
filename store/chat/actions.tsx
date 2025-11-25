@@ -218,7 +218,6 @@ export async function getPage(channel, mid) {
       reqTitle: REQUESTS_DATA.GET_MESSAGES_OF_CHANNEL,
       method: "POST",
       server: "chat",
-      body: {},
       // ###EDIT###
       // body: {},
     });
@@ -342,7 +341,7 @@ export const getMedia = async (id, media) => {
       reqTitle: REQUESTS_DATA.GET_MEDIA_FOR_A_CHANNEL,
       method: "POST",
       server: "chat",
-      body: {},
+
       // ###EDIT###
     });
     if (!response.success) {
