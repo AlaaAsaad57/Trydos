@@ -24,6 +24,7 @@ import {
 } from "utils/cookies/cookie-manager";
 import { REQUESTS_DATA } from "utils/Requests";
 import home from "services/home";
+import UPDATED_API_DATA from "migration.staging";
 
 class ChatService {
   async loginChat() {
@@ -182,9 +183,7 @@ class ChatService {
         url: GET_CONTATCS_URL,
         reqTitle: REQUESTS_DATA.GET_CONTACTS,
         server: "chat",
-        method: "GET",
-        // ###EDIT###
-        // method: "GET",
+        method: UPDATED_API_DATA.MOD_CONTACTS_METHOD as any,
       });
       if (!response.success) {
         throw new Error(response.message);

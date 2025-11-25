@@ -10,6 +10,7 @@ import { fetchData } from "utils/fetchData";
 import { REQUESTS_DATA } from "utils/Requests";
 import { LogError } from "utils/functions";
 import { MiddlewareNotFoundError } from "node_modules/next/dist/shared/lib/utils";
+import UPDATED_API_DATA from "migration.staging";
 
 export const GetLastSeen = async (chatId, friendID) => {
   const { setServerTime, setIsTyping } = useAppStore.getState();
@@ -21,7 +22,8 @@ export const GetLastSeen = async (chatId, friendID) => {
     let response = await fetchData({
       url: "/api/v1/channels/get_date_time",
       reqTitle: REQUESTS_DATA.GET_LAST_SEEN,
-      method: "GET",
+      method: UPDATED_API_DATA.MOD_DATE_TIME_METHOD as any,
+
       // ###EDIT###
       // method: "GET",
       server: "chat",
@@ -65,7 +67,7 @@ export const setLastSeen = async (MyId) => {
     let response = await fetchData({
       url: "/api/v1/channels/get_date_time",
       reqTitle: REQUESTS_DATA.GET_LAST_SEEN,
-      method: "GET",
+      method: UPDATED_API_DATA.MOD_DATE_TIME_METHOD as any,
       // ###EDIT###
       // method: "GET",
       server: "chat",
@@ -318,7 +320,7 @@ export async function getContacts() {
     let response = await fetchData({
       url: "/api/v1/users/my_contacts",
       reqTitle: REQUESTS_DATA.GET_CONTACTS,
-      method: "GET",
+      method: UPDATED_API_DATA.MOD_CONTACTS_METHOD as any,
       // ###EDIT###
       // method: "GET",
       server: "chat",
@@ -367,9 +369,7 @@ export const GetChatDetails = async (id) => {
   const { editChatInfo } = useAppStore.getState();
   try {
     let response = await fetchData({
-      url: `/api/v2/channels/${id}/media`,
-      // ###EDIT###
-      // url: `/api/v2/channels/${id}/media`,
+      url: UPDATED_API_DATA.MOD_MEDIA_CHAT_URL.replace("__", `${id}`),
       reqTitle: REQUESTS_DATA.GET_CHANNEL_DATA,
       method: "GET",
       server: "chat",

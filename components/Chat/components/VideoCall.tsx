@@ -33,6 +33,7 @@ import LeftArrowIcon from "../svg/leftArrow";
 // Styles
 import "styles/chat.css";
 import { REQUESTS_DATA } from "utils/Requests";
+import UPDATED_API_DATA from "migration.staging";
 
 // Types
 interface User {
@@ -289,9 +290,8 @@ const VideoCall = ({ token, audio = false, name = "", user_id, active }) => {
       // End call API - always call this
       try {
         let res = await fetchData({
-          url: `/api/v1/end_call`,
-          // ###EDIT###
-          // url: `/api/v1/end_call`,
+          url: UPDATED_API_DATA.MOD_END_CALL,
+
           reqTitle: REQUESTS_DATA.END_CALL,
           method: "POST",
           server: "chat",

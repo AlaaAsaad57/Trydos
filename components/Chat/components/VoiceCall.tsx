@@ -25,6 +25,7 @@ import CallingIcon from "../svg/calling";
 import LeftArrowIcon from "../svg/leftArrow";
 import "styles/chat.css";
 import { REQUESTS_DATA } from "utils/Requests";
+import UPDATED_API_DATA from "migration.staging";
 
 const AGORA_CONFIG = {
   mode: "rtc" as const,
@@ -122,7 +123,7 @@ const VoiceCall = ({ token, audio = false, name = "", user_id, active }) => {
 
     try {
       await fetchData({
-        url: `/api/v1/end_call`,
+        url: UPDATED_API_DATA.MOD_END_CALL,
         reqTitle: REQUESTS_DATA.END_CALL,
         method: "POST",
         server: "chat",
