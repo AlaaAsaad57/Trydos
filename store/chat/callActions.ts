@@ -26,6 +26,15 @@ export const makeVideoCall = async (
     useAppStore.getState();
   try {
     setCallLoading("video");
+    await fetchData({
+      url: `/api/v1/messages/end_call`,
+      // ###EDIT###
+      // url: `/api/v1/end_call`,
+      reqTitle: REQUESTS_DATA.END_CALL,
+      method: "POST",
+      server: "chat",
+      body: JSON.stringify({ user_id: getUserChat()?.id }),
+    });
     let obj =
       typeof channelId === "string" && channelId.includes("ch")
         ? { receiver_user_id: parseInt(channelId.split("ch-")[1]) }
@@ -82,6 +91,15 @@ export const makeVoiceCall = async (
         ? { receiver_user_id: parseInt(channelId.split("ch-")[1]) }
         : { channel_id: channelId };
     setCallLoading("voice");
+    await fetchData({
+      url: `/api/v1/messages/end_call`,
+      // ###EDIT###
+      // url: `/api/v1/end_call`,
+      reqTitle: REQUESTS_DATA.END_CALL,
+      method: "POST",
+      server: "chat",
+      body: JSON.stringify({ user_id: getUserChat()?.id }),
+    });
     let response = await fetchData({
       url: `/api/v1/messages/voice_call`,
       body: JSON.stringify({
