@@ -17,6 +17,6 @@ let NEW_CHATEnv = {
   MOD_CHAT_METHOD: "POST",
   MOD_DATE_TIME_METHOD: "POST",
 };
-let UPDATED_API_DATA = stagingEnv;
-// let UPDATED_API_DATA = NEW_CHATEnv;
+// let UPDATED_API_DATA = stagingEnv;
+let UPDATED_API_DATA = NEW_CHATEnv;
 export default UPDATED_API_DATA;
