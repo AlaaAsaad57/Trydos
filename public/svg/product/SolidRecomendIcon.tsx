@@ -9,23 +9,10 @@ const SolidRecomendIcon = (props: React.SVGProps<SVGSVGElement>) => (
     viewBox="0 0 30 30"
     {...props}
   >
-    <defs>
-      <clipPath id="clip-path">
-        <rect
-          id="Rectangle_4561"
-          data-name="Rectangle 4561"
-          width="30"
-          height="30"
-          transform="translate(0 -0.008)"
-          fill="none"
-        />
-      </clipPath>
-    </defs>
     <g
       id="Mask_Group_848"
       data-name="Mask Group 848"
       transform="translate(0 0.008)"
-      clipPath="url(#clip-path)"
     >
       <path
         id="people"

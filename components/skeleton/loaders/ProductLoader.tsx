@@ -321,6 +321,7 @@ function ProductLoader({ product }) {
                 recommendation_stats={[]}
                 total_rating={0}
                 languageVariable={(params?.lang as string)?.split("-")?.[1]}
+                sizeFitData={null}
               />
             </div>
             {/* {product?.descriptors && product?.descriptors?.length > 0 && (

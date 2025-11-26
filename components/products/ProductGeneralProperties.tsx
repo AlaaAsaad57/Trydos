@@ -18,6 +18,7 @@ function ProductGeneralProperties({
   rating_stats,
   recommendation_stats,
   views,
+  sizeFitData,
 }) {
   const { setColorBottomSheet } = useAppStore();
   const isRtl = languageVariable === "ar" || languageVariable === "ku";
@@ -43,6 +44,7 @@ function ProductGeneralProperties({
         rating_stats={rating_stats}
         total_rating={total_rating}
         TotalBuyers={TotalBuyers}
+        sizeFitData={sizeFitData}
       />
       <HortiznalScrollBar
         onClick={() => {

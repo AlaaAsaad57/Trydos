@@ -586,6 +586,7 @@ async function Page({ params, searchParams }) {
                   rating_stats={product?.ratingDetails}
                   total_rating={product.total_rating}
                   languageVariable={Params.lang?.split("-")?.[1]}
+                  sizeFitData={product?.size_analysis}
                 />
                 <ProductFeatures
                   language={languageVariable}
@@ -756,7 +757,10 @@ async function Page({ params, searchParams }) {
                 />
               )}
               {product?.choice_options?.[0]?.options?.length > 0 && (
-                <ProductSizesReview lang={Params.lang} />
+                <ProductSizesReview
+                  lang={Params.lang}
+                  sizeFitData={product?.size_analysis}
+                />
               )}
             </div>
           </div>
