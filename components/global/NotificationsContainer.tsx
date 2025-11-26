@@ -6,10 +6,22 @@ import { GetImageUrl } from "utils/tinyUtils";
 import Image from "next/image";
 import { translateFunction } from "utils/functions";
 import { useAppStore } from "store";
+import { useParams, usePathname, useRouter } from "next/navigation";
+import { getTwoLetters } from "components/Chat/chatsFunctions";
 const NotificationsContainer = () => {
   const { notifications, removeNotification } = useNotificationStore();
   const [dismissingIds, setDismissingIds] = useState<Set<string>>(new Set());
-  const { data: chatData, openChat, setChatOpen, setMain } = useAppStore();
+  const {
+    data: chatData,
+    openChat,
+    setChatOpen,
+    setMain,
+    setIsNavigating,
+    setShouldUpdateOrders,
+    setOrderLoading,
+    setOrderDetails,
+    setActivePacks,
+  } = useAppStore();
 
   const handleDismiss = (id: string) => {
     setDismissingIds((prev) => new Set(prev).add(id));
@@ -22,10 +34,16 @@ const NotificationsContainer = () => {
       });
     }, 300); // Match animation duration
   };
-
+  const router = useRouter();
+  const pathname = usePathname();
   const handleChatNotificationClick = (notification: any) => {
     handleDismiss(notification.id);
-
+    if (notification?.chatData?.isPrivate) {
+      setOrderLoading(true);
+      setIsNavigating({ is_settings: true });
+      window.location.href = notification.chatData.isPrivate;
+      return;
+    }
     if (notification.chatData?.channelId) {
       // Find the chat channel from the store
       const channel =
@@ -164,12 +182,8 @@ const NotificationsContainer = () => {
                   />
                 </div>
               ) : (
-                <div className="w-[56px] h-[56px] rounded-full  flex items-start justify-center border-2 border-[#402CDD] shadow-md ring-2 ring-[#402CDD]/20">
-                  <span className="text-white text-xl font-bold">
-                    {notification.chatData.senderName
-                      ?.charAt(0)
-                      ?.toUpperCase() || "?"}
-                  </span>
+                <div className="text-avatar">
+                  {getTwoLetters(notification.chatData.senderName)}
                 </div>
               )}
             </div>

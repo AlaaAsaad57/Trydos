@@ -18,6 +18,7 @@ export interface Notification {
     messagePreview?: string;
     messageImage?: string;
     messageType?: string;
+    isPrivate?: any;
   };
 }
 
@@ -104,7 +105,8 @@ export const showChatNotification = (
   senderPhoto?: string,
   messageImage?: string,
   messageType?: string,
-  duration?: number
+  duration?: number,
+  isPrivate?: any
 ) => {
   const { addNotification } = useNotificationStore.getState();
   addNotification({
@@ -119,6 +121,7 @@ export const showChatNotification = (
       messagePreview,
       messageImage,
       messageType,
+      isPrivate: isPrivate,
     },
   });
 };
