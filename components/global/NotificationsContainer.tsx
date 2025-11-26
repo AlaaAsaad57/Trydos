@@ -6,7 +6,6 @@ import { GetImageUrl } from "utils/tinyUtils";
 import Image from "next/image";
 import { translateFunction } from "utils/functions";
 import { useAppStore } from "store";
-import { useParams, usePathname, useRouter } from "next/navigation";
 import { getTwoLetters } from "components/Chat/chatsFunctions";
 const NotificationsContainer = () => {
   const { notifications, removeNotification } = useNotificationStore();
@@ -34,8 +33,7 @@ const NotificationsContainer = () => {
       });
     }, 300); // Match animation duration
   };
-  const router = useRouter();
-  const pathname = usePathname();
+
   const handleChatNotificationClick = (notification: any) => {
     handleDismiss(notification.id);
     if (notification?.chatData?.isPrivate) {
