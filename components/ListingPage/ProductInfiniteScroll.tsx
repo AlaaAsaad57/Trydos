@@ -229,6 +229,7 @@ function ProductsInfiniteScroll({
           <ProductCard
             key={key}
             product={product}
+            language={languageVariable}
             params={{ lang }}
             currency={currency}
             productColor={productColor}
