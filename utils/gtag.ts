@@ -102,34 +102,6 @@ const getUserParam = () => {
   }
 };
 export const SetGAUser = (user, isNewUser = false) => {
-  if (process.env.NEXT_PUBLIC_ENABLE_LOG === "true") {
-    let bool = confirm(
-      `window?.gtag?.("set", {
-      user_id: ${user.id},
-      user_type: ${
-        user.phone === "0" ? "guest" : isNewUser ? "new" : "registered"
-      },
-      user_location: ${country?.name},
-      days_age_account: ${getAccountAge(user)},
-    gender: ${user?.gender?.name === "Man" ? "male" : "female"},
-
-    })`
-    );
-    if (bool && typeof navigator !== "undefined") {
-      navigator.clipboard.writeText(
-        `window?.gtag?.("set", {
-        user_id: ${user.id},
-        user_type: ${
-          user.phone === "0" ? "guest" : isNewUser ? "new" : "registered"
-        },
-        user_location: ${country?.name},
-        days_age_account: ${getAccountAge(user)},
-    gender: ${user?.gender?.name === "Man" ? "male" : "female"},
-        
-      })`
-      );
-    }
-  }
   // @ts-ignore
   window.gtag?.("config", GA_MEASUREMENT_ID, {
     user_id: user.id,

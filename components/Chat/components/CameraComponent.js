@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import Webcam from "react-webcam";
 import CameraIcon from "../svg/image";
 import SendIcon from "../svg/sharechat";
@@ -32,21 +32,31 @@ const WebcamCapture = ({ imgs, send, setImgs, imageFile, close }) => {
       streamRef.current = null;
     }
   };
-  useEffect(() => {
-    return () => {
-      // Stop all tracks to turn off camera light
+  const stopAllStreams = () => {
+    // stop internal webcam stream
+    if (webcamRef.current?.stream) {
+      webcamRef.current.stream.getTracks().forEach((t) => t.stop());
+    }
 
-      console.log("streamCleanup", streamRef.current?.getTracks());
-      if (streamRef.current) {
-        streamRef.current.getTracks().forEach((track) => track.stop());
-      }
-    };
+    // stop your own stored stream
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((t) => t.stop());
+      streamRef.current = null;
+    }
+  };
+  useEffect(() => {
+    return () => stopAllStreams();
   }, []);
+  const [twoCameras, setTwoCameras] = useState(false);
   const hasTwoCameras = async () => {
     const devices = await navigator?.mediaDevices?.enumerateDevices();
 
     return devices?.filter((dev) => dev?.kind === "videoinput").length >= 2;
   };
+  useEffect(() => {
+    hasTwoCameras().then(setTwoCameras);
+  }, []);
+
   return (
     <>
       {imageFile.current && imageFile.current !== "null" ? (
@@ -140,7 +150,7 @@ const WebcamCapture = ({ imgs, send, setImgs, imageFile, close }) => {
             className="cameraInput"
             audio={false}
             style={{
-              height: "-webkit-fill-available",
+              height: "100%",
               width: "100%",
               zIndex: 9999999999,
             }}
@@ -152,11 +162,11 @@ const WebcamCapture = ({ imgs, send, setImgs, imageFile, close }) => {
             videoConstraints={webcamTypeRef.current}
           />
           <div className="fixed bottom-[20px] xs:bottom-[80px] left-[10px] w-full flex items-center justify-around z-[99999999999]">
-            {!hasTwoCameras() ? (
+            {twoCameras ? (
               <button
                 className="w-[50px] h-[50px] cursor-pointer rounded-full bg-[#dddddd] p-[10px] flex items-center justify-center shadow-[0_3px_6px_#0000002a]"
                 onClick={() => {
-                  if (!hasTwoCameras()) {
+                  if (!twoCameras) {
                     showErrorNotification(
                       translateFunction("this device has only one camera")
                     );
@@ -207,6 +217,7 @@ const WebcamCapture = ({ imgs, send, setImgs, imageFile, close }) => {
               onClick={() => {
                 stopStream(); // Stop stream BEFORE closing
                 imageFile.current = null;
+                stopAllStreams();
                 close();
               }}
             >

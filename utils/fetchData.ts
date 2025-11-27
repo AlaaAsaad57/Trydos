@@ -195,12 +195,11 @@ const handleUnauthorized = async (
       case "chat":
       case "stories":
       case "comments":
-        let test_alert = confirm(
+        console.log(
           `############## JUST FOR TEST TO KNOW WHAT HAPPEN TO ASK FOR  OTP ##########:\n ${JSON.stringify(
             options
           )}`
         );
-        await navigator.clipboard.writeText(JSON.stringify(options, null, 2));
         const { useAppStore } = await import("../store");
         const { setShouldAuthinticated } = useAppStore.getState();
         if (userChat?.id)
