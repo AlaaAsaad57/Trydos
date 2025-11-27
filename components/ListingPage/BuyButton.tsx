@@ -75,7 +75,9 @@ function BuyButton({
             width={15}
             height={15}
             alt="buy Button"
-            className="max-h-[20px] max-w-[40px] mx-[8px]"
+            className={`${
+              shouldShowRedeem && seconds > 0 ? "" : "mx-[8px]"
+            } max-h-[20px] max-w-[40px] `}
           />
         </div>
       </div>

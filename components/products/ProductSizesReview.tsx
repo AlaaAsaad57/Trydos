@@ -1,12 +1,12 @@
 import React from "react";
 import { translateFunction } from "utils/functions";
 
-function ProductSizesReview({ lang }) {
+function ProductSizesReview({ lang, sizeFitData }) {
   let reviews_arr = [
-    { value: 70, title: "True" },
-    { value: 55, title: "Small" },
-    { value: 24, title: "Large" },
-    { value: 99, title: "Big" },
+    { value: sizeFitData?.true_percentage ?? 0, title: "True" },
+    { value: sizeFitData?.small_percentage ?? 0, title: "Small" },
+    { value: sizeFitData?.large_percentage ?? 0, title: "Large" },
+    { value: sizeFitData?.big_percentage ?? 0, title: "Big" },
   ];
   const [, language] = lang.split("-");
   const isRtl = language === "ar" || language === "ku";

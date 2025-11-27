@@ -45,7 +45,6 @@ class ForegroundNotificationHandler {
         this.handleServiceWorkerMessage(event);
       });
       this.isListening = true;
-      console.log("🔔 Foreground notification handler initialized");
     }
   }
 
@@ -121,7 +120,7 @@ class ForegroundNotificationHandler {
               5000,
               `/${lang}/setting?tab=Orders&id=${data?.order_group_id}`,
               {
-                is_setting: true,
+                is_settings: true,
                 href: `/${lang}/setting?tab=Orders&id=${data?.order_group_id}`,
               },
               null
@@ -242,7 +241,7 @@ class ForegroundNotificationHandler {
                 5000,
                 `/${lang}/setting?tab=Orders&id=${data?.order_group_id}`,
                 {
-                  is_setting: true,
+                  is_settings: true,
                   href: `/${lang}/setting?tab=Orders&id=${data?.order_group_id}`,
                 },
                 null
@@ -503,20 +502,60 @@ class ForegroundNotificationHandler {
               parseInt(activeChat?.id) !==
               parseInt(JSON.parse(payload?.data.data)?.message?.channel_id)
             ) {
-              showSuccessNotification(
-                translateFunction(
-                  "You Have New Messages From Deleivery Worker..click for more"
-                ),
-                10000,
+              const messageData = JSON.parse(payload.data.data).message;
+              const messageContent = messageData?.message_content;
+              const messageType = messageData?.message_type?.name;
+              const messageFiles = messageData?.message_files || [];
+              let messagePreview = "";
+              let messageImage = null;
+              if (messageFiles && messageFiles.length > 0) {
+                messageImage =
+                  messageFiles[0]?.file_path || messageFiles[0]?.url;
+                messagePreview = translateFunction("Sent an image");
+              } else if (messageContent?.content) {
+                messagePreview = messageContent?.content;
+                // Truncate long messages
+                if (messagePreview.length > 100) {
+                  messagePreview = messagePreview?.substring(0, 100) + "...";
+                }
+              } else if (messageType) {
+                messagePreview = translateFunction(`Sent a ${messageType}`);
+              } else {
+                messagePreview = translateFunction("New message");
+              }
+              const channel = messageData?.channel;
+              showChatNotification(
+                "Deleivery Worker",
+                messagePreview,
+                channel?.id || messageData?.channel_id,
+                channel,
+                null,
+                messageImage,
+                messageType,
+                5000,
                 `/${country}-${language}/setting?tab=Orders&id=${
                   JSON.parse(payload.data.data).order_group_id
                 }&order_id_chat=${
                   JSON.parse(payload.data.data)?.parent_order_id ??
                   JSON.parse(payload?.data?.data)?.order_id
-                }&chat_id=${JSON.parse(payload?.data?.data)?.order_id}`,
-                JSON.parse(payload.data.data)?.parent_order_id ??
-                  JSON.parse(payload?.data?.data)?.order_id
+                }&chat_id=${JSON.parse(payload?.data?.data)?.order_id}&mid=${
+                  messageData?.id
+                }`
               );
+              // showSuccessNotification(
+              //   translateFunction(
+              //     "You Have New Messages From Deleivery Worker..click for more"
+              //   ),
+              //   10000,
+              //   `/${country}-${language}/setting?tab=Orders&id=${
+              //     JSON.parse(payload.data.data).order_group_id
+              //   }&order_id_chat=${
+              //     JSON.parse(payload.data.data)?.parent_order_id ??
+              //     JSON.parse(payload?.data?.data)?.order_id
+              //   }&chat_id=${JSON.parse(payload?.data?.data)?.order_id}`,
+              //   JSON.parse(payload.data.data)?.parent_order_id ??
+              //     JSON.parse(payload?.data?.data)?.order_id
+              // );
               const parsedData = JSON.parse(payload?.data?.data);
               const newItem = {
                 order_id: parsedData?.parent_order_id ?? parsedData?.order_id,
@@ -536,6 +575,7 @@ class ForegroundNotificationHandler {
                 ),
                 newItem,
               ]);
+              return;
             }
             if (
               parseInt(activeChat?.id) ===

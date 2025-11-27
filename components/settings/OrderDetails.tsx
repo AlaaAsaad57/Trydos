@@ -103,8 +103,9 @@ function OrderDetails({
     let id = searchParams.get("id");
     setLoading(true);
     try {
+      console.log(id);
       let data = await Order.getOrderDetails(
-        id ?? selectedOrder.order_group_id,
+        id ?? selectedOrder?.order_group_id,
         abortControllerRef.current.signal
       );
       let returned_req_ids = data?.map((s) => {
@@ -117,7 +118,7 @@ function OrderDetails({
       if (returned_req_ids?.length > 0) {
         try {
           returnRequests = await Order.GetReturnDetailsForOrderGroup({
-            order_group_id: selectedOrder.order_group_id,
+            order_group_id: selectedOrder?.order_group_id,
           });
 
           // Update data with the fetched details
@@ -289,11 +290,11 @@ function OrderDetails({
   const shouldShowChatIcon = (pack) => {
     // Out for Delivery
     if (pack && pack?.order_status?.value === "out_for_delivery")
-      return ActivePacks.id;
+      return ActivePacks?.id;
     if (
       ActivePacks?.return_details?.details?.status?.value === "out_for_return"
     ) {
-      return ActivePacks.return_request_id;
+      return ActivePacks?.return_request_id;
     }
     return false;
   };
@@ -393,6 +394,7 @@ function OrderDetails({
                 new Date(b.created_at).getTime()
             ) || [],
         });
+        setIsNavigating(false);
       } else {
         setChatInfo({
           order_chat_participant_id: response?.data.chat_participant?.id,
@@ -443,6 +445,7 @@ function OrderDetails({
           id: "ch-" + response.data.recipient.id,
           mid: "ch-" + response.data.recipient.id,
         });
+        setIsNavigating(false);
       }
       setIsChatOpen(true);
       setIsGettingChat(false);
@@ -533,11 +536,11 @@ function OrderDetails({
   const ShowChats = () => {
     if (shouldShowChatIcon(ActivePacks) && ActivePacks?.order_status) {
       let arr = [];
-      arr.push(ActivePacks.id);
+      arr.push(ActivePacks?.id);
       return arr.map((s) => {
         return (
           <OrderChatIcon
-            order_group_id={selectedOrder.order_group_id}
+            order_group_id={selectedOrder?.order_group_id}
             key={s}
             isGettingChat={isGettingChat}
             setIsGettingChat={setIsGettingChat}
@@ -577,8 +580,8 @@ function OrderDetails({
       setIsExpanded(false);
       return;
     }
-    // if (fetchedOrderIdRef.current === selectedOrder.order_group_id) return;
-    fetchedOrderIdRef.current = selectedOrder.order_group_id;
+    // if (fetchedOrderIdRef.current === selectedOrder?.order_group_id) return;
+    fetchedOrderIdRef.current = selectedOrder?.order_group_id;
     getOrderDetails();
   }, [selectedOrder?.order_group_id]);
 
@@ -604,12 +607,13 @@ function OrderDetails({
   //   if (chat_id && !loading) getOrderDetails();
   // }, [searchParams]);
   useEffect(() => {
+    let id = searchParams.get("id");
     if (
       shouldUpdateOrders > 0 &&
       selectedOrder?.id &&
       selectedOrder?.order_status
     ) {
-      fetchedOrderIdRef.current = selectedOrder.order_group_id;
+      fetchedOrderIdRef.current = id ?? selectedOrder?.order_group_id;
       getOrderDetails();
     }
   }, [shouldUpdateOrders]);
@@ -681,11 +685,11 @@ function OrderDetails({
                   direction: isRtl ? "rtl" : "ltr",
                 }}
               >
-                <OrderNumberCard number={selectedOrder.order_group_id} />
-                <OrderDateCard time={selectedOrder.created_at} />
+                <OrderNumberCard number={selectedOrder?.order_group_id} />
+                <OrderDateCard time={selectedOrder?.created_at} />
                 <OrderInvoiceCard
-                  amount={selectedOrder.order_amount}
-                  payments={selectedOrder.payment_method}
+                  amount={selectedOrder?.order_amount}
+                  payments={selectedOrder?.payment_method}
                 />
               </div>
               {selectedOrder?.details?.[0]?.order_group_status && (
@@ -702,10 +706,10 @@ function OrderDetails({
                 </div>
               )}
               <div className="flex-row justify-center  items-center h-[50px] w-full bg-[#ececec] rounded-[20px]">
-                {selectedOrder.details?.map((s, i) => (
+                {selectedOrder?.details?.map((s, i) => (
                   <div
                     className={`${
-                      s.id === ActivePacks.id
+                      s.id === ActivePacks?.id
                         ? "bold border-[1px] border-[#402cdd]"
                         : "regular"
                     } text-[#1d1d1d] h-[50px] rounded-[20px]  cursor-pointer text-[12px] flex-1 px-[5px] items-center justify-center flex-row basis-0`}
@@ -822,7 +826,7 @@ const OrderExpandedDetails = ({
   const isThereAReturnedProduct = () => {
     let arr = [];
     if (isAllPreventEdit()) return false;
-    selectedOrder.returned_data?.map((s) => {
+    selectedOrder?.returned_data?.map((s) => {
       s.details?.order_details?.map((req) => {
         if (req.already_return) {
           arr.push(req?.return_request_id);
@@ -837,7 +841,7 @@ const OrderExpandedDetails = ({
   const isThereAReturnedProductForCancel = () => {
     let arr = [];
 
-    selectedOrder.returned_data?.map((s) => {
+    selectedOrder?.returned_data?.map((s) => {
       s.details?.order_details?.map((req) => {
         if (req.already_return) {
           arr.push(req?.return_request_id);
@@ -1244,7 +1248,7 @@ const ProductCard = ({
             <OrderRetailsReturnInfo
               product={{
                 ...product,
-                return_status: ActivePacks.return_details?.details?.status,
+                return_status: ActivePacks?.return_details?.details?.status,
               }}
               callback={() => {
                 getOrderDetails();

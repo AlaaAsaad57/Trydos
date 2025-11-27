@@ -183,7 +183,7 @@ const Menu = ({ user, setMenuOpen }) => {
           <MenuItem
             dataCy="Settings-Icon"
             data={{
-              is_setting: true,
+              is_settings: true,
               href: `/${lang}/setting?tab=main`,
             }}
             href={`/${lang}/setting?tab=main`}

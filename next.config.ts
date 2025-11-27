@@ -79,6 +79,7 @@ let nextConfig: NextConfig = {
     ],
     domains: [
       "res.cloudinary.com",
+      "example.com",
       "eu.ui-avatars.com",
       "trydos.s3.ap-south-1.amazonaws.com",
       "market_staging.trydos.tech",

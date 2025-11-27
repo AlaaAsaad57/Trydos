@@ -365,7 +365,7 @@ html[lang="ar"] .chat-window-search-holder svg {
 }
 .chat-new {
   position: absolute;
-  right: 38px;
+
   bottom: 26px;
   border-radius: 10px;
   display: flex;

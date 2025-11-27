@@ -1,10 +1,8 @@
-import React from "react";
 import { RoundPrice, translateFunction } from "utils/functions";
 import WalletIcon from "assets/svg/cart/WalletIcon";
 // import CreditIcon from "assets/svg/cart/CreditIcon";
 import CryptoIcon from "assets/svg/cart/CryptoIcon";
 import { useAppStore } from "store";
-import { OrderInvoiceCardProps } from "models/componentType/settingTypes/OrderDetailsPropsType";
 
 const OrderInvoiceCard = ({ amount, payments }) => {
   const { currency } = useAppStore();
@@ -136,7 +134,7 @@ const PaymentsIcon = ({
   payments: { value: string; label: string };
 }) => {
   const showPaymentIcon = (payment: { value: string; label: string }) => {
-    switch (payment.value) {
+    switch (payment?.value) {
       case "cash_on_delivery":
         return <WalletIcon />;
       case "trydos_wallet":

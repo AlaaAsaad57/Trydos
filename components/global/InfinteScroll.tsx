@@ -72,7 +72,7 @@ function InfinteScroll({ offsetVariable, temp }: InfinteScrollPropsType) {
           setLoading(false);
           setEnd(true);
         } else {
-          setBoutiques(result.boutiques);
+          setBoutiques([...boutiques, ...result.boutiques]);
           setLoading(false);
         }
         if (result?.offset) setOffset([...result.offset]);

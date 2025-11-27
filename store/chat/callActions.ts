@@ -48,6 +48,7 @@ export const makeVideoCall = async (
       method: "POST",
       server: "chat",
       body: JSON.stringify({ user_id: getUserChat()?.id }),
+      noMessage: true,
     });
     let response = await fetchData({
       url: `/api/v1/messages/video_call`,

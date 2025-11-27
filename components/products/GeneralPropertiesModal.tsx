@@ -17,14 +17,16 @@ function GeneralPropertiesModal({
   recommendation_stats,
   total_rating,
   views,
+  sizeFitData,
 }) {
   const { ColorBottomSheet, setColorBottomSheet, language } = useAppStore();
   let reviews_arr = [
-    { value: 70, title: "True" },
-    { value: 55, title: "Small" },
-    { value: 24, title: "Large" },
-    { value: 99, title: "Big" },
+    { value: sizeFitData?.true_percentage ?? 0, title: "True" },
+    { value: sizeFitData?.small_percentage ?? 0, title: "Small" },
+    { value: sizeFitData?.large_percentage ?? 0, title: "Large" },
+    { value: sizeFitData?.big_percentage ?? 0, title: "Big" },
   ];
+
   const rating_arr_text = [
     { rating: 1, title: "Very Bad", count: 1 },
     { rating: 2, title: "Bad", count: 2 },

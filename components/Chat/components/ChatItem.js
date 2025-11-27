@@ -236,7 +236,13 @@ function ChatItem({
           <ArrowRightIcon />
         </div>
         {newMessage > 0 && (
-          <div className="chat-new">
+          <div
+            className="chat-new"
+            style={{
+              left: isRtl ? "38px" : "initial",
+              right: isRtl ? "initial" : "38px",
+            }}
+          >
             <MessageIcon />
             <div className="new-mes">{newMessage}</div>
           </div>

@@ -96,6 +96,7 @@ export const getProductDataFromElastic = async ({
       total_views: likeDetails?.total_views,
       total_rating:
         likeDetails?.final_rating ?? recommendationStats?.total_rating,
+      size_analysis: likeDetails?.size_analysis,
     };
   } catch (error) {
     console.error(error);
@@ -329,6 +330,7 @@ export async function GetRatingCommentsForProduct({
       comment: s.text,
       variant: s.variant,
       created_at: s.created_at,
+      true_size: s.aspects?.size?.fit_analysis?.correct,
       star_rating: s.rating,
       order_details_id: s.order_details_id,
       recommendation: s?.recommendation,
@@ -689,6 +691,7 @@ async function getProductInteractions(productId: string, userId?: string) {
             count: source.star_distribution[s] ?? 0,
           }))
         : [],
+      size_analysis: source.size_analysis,
     };
 
     // Determine if user liked the product based on latest interaction
@@ -710,6 +713,12 @@ async function getProductInteractions(productId: string, userId?: string) {
         final_rating: 0,
         ratingDetails: [],
         total_views: 0,
+        size_analysis: {
+          small_percentage: 0,
+          large_percentage: 0,
+          big_percentage: 0,
+          true_percentage: 0,
+        },
       };
     }
     throw err;
