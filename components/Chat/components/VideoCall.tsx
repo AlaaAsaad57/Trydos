@@ -160,7 +160,7 @@ const VideoPlayer = ({ user, isLocal = false }) => {
           ? "w-[100px] h-[100px] absolute top-4 right-4 border-2 border-white rounded-lg overflow-hidden z-10"
           : "w-full h-full bg-gray-900 rounded-lg overflow-hidden"
       }`}
-      style={{ objectFit: "cover" }}
+      style={{ objectFit: "contain" }}
     />
   );
 };
@@ -555,6 +555,8 @@ const VideoCall = ({ token, audio = false, name = "", user_id, active }) => {
   // Cleanup on unmount
   useEffect(() => {
     return () => {
+      console.log(activeChat);
+
       isInitialized.current = false;
 
       if (client) {
