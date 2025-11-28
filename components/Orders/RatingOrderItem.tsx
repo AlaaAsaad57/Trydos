@@ -20,7 +20,7 @@ function RatingOrderItem({
   variant,
   seller_id = null,
 }) {
-  const { ActivePacks } = useAppStore();
+  const { ActivePacks, language } = useAppStore();
   const [rating, setRating] = useState(initialRating);
   const [loading, setLoading] = useState(false);
   const [comment, setComment] = useState(lastComment || "");
@@ -88,6 +88,7 @@ function RatingOrderItem({
   };
   const isSubmitDisabled =
     !comment.trim() || rating === 0 || loading || isChanged();
+  const isRtl = language === "ar" || language === "ku";
 
   return (
     <>
@@ -122,7 +123,12 @@ function RatingOrderItem({
             role="dialog"
             tabIndex={-1}
           >
-            <div className="bg-white rounded-2xl shadow-2xl p-6 space-y-6">
+            <div
+              className="bg-white rounded-2xl shadow-2xl p-6 space-y-6"
+              style={{
+                direction: isRtl ? "rtl" : "ltr",
+              }}
+            >
               {/* Header */}
               <div className="text-center">
                 <h3 className="text-xl font-semibold text-gray-900 mb-2">

@@ -31,7 +31,8 @@ const StarIcon = ({ fill = () => "#402CDD", isHalf = false, color, size }) => {
         data-name="Path 23396"
         d="M23.39,7.542,22.122,8.82l.3,1.81a1.47,1.47,0,0,1-.559,1.424,1.352,1.352,0,0,1-1.481.11l-1.564-.851-1.57.853a1.345,1.345,0,0,1-.654.17,1.368,1.368,0,0,1-.827-.28,1.479,1.479,0,0,1-.559-1.426l.3-1.81L14.244,7.542a1.483,1.483,0,0,1-.357-1.493,1.411,1.411,0,0,1,1.133-.992l1.753-.264.784-1.645a1.392,1.392,0,0,1,1.26-.812h0a1.4,1.4,0,0,1,1.26.814l.78,1.642,1.753.264a1.414,1.414,0,0,1,1.135.992,1.483,1.483,0,0,1-.357,1.493Z"
         transform="translate(-13.654 -2.186)"
-        fill={isHalf ? `url(#halfGradient${random})` : fill()}
+        fill={fill()}
+        // fill={isHalf ? `url(#halfGradient${random})` : fill()}
         stroke={color}
         strokeWidth="0.3"
       />
@@ -46,11 +47,12 @@ function RatingStars({
   color = "#402CDD",
   size = 11.326,
 }: RatingStarsPropsType) {
-  const [rating, setRating] = useState(initialRating);
+  const [rating, setRating] = useState(Math.ceil(initialRating));
 
   const handleClick = (index: number, isHalf: boolean) => {
     if (!readOnly) {
-      const newRating = isHalf ? index - 0.5 : index;
+      // const newRating = isHalf ? index - 0.5 : index;
+      const newRating = index;
 
       setRating(newRating);
 
