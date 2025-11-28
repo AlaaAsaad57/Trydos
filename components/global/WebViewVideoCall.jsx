@@ -228,8 +228,13 @@ function WebViewVideoCall(props) {
                     id="remote-stream"
                     style={
                       !displayMethod
-                        ? { height: "100%", width: "100%", position: "fixed" }
-                        : { position: "fixed" }
+                        ? {
+                            height: "100%",
+                            width: "100%",
+                            position: "fixed",
+                            objectFit: "contain",
+                          }
+                        : { position: "fixed", objectFit: "contain" }
                     }
                     videoTrack={user.videoTrack}
                     key={user.uid}

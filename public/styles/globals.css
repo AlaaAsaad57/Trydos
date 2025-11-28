@@ -6,6 +6,9 @@ img {
   user-select: none;
   -webkit-user-drag: none;
 }
+.agora_video_player {
+  object-fit: contain !important;
+}
 .horizntal-scroll {
   scrollbar-width: none; /* Firefox -> hide scrollbar track & thumb */
   -ms-overflow-style: none;

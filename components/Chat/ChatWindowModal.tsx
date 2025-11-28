@@ -34,6 +34,7 @@ function Chat(props) {
   const [search, setSearch] = useState("");
   const [contactOpen, setOpenContacts] = useState(false);
   useEffect(() => {
+    console.log(ViewedScreen, activeChat);
     if (typeof Notification !== "undefined")
       setNotificationPermission(Notification.permission === "granted");
     else setNotificationPermission(false);

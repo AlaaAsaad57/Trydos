@@ -35,6 +35,7 @@ function AuthNavSection({
     setNotificationModal,
     setChatOpen,
     showNotificaionCircle,
+    setMain,
   } = useAppStore();
   let { lang } = useParams();
   // @ts-ignore
@@ -64,6 +65,7 @@ function AuthNavSection({
         if (num === 1) {
           setChatOpen(true);
           ChatConroller(true);
+          setMain("main");
           await home.AllowNotifications();
         }
         setChatOpen(true);

@@ -723,7 +723,12 @@ function OrderDetails({
                   </div>
                 ))}
               </div>
-              <div className="flex-row justify-between items-center w-full mt-[8px]">
+              <div
+                style={{
+                  direction: isRtl ? "rtl" : "ltr",
+                }}
+                className="flex-row justify-between items-center w-full mt-[8px]"
+              >
                 <OrderExpectedDeliveryCard
                   time={
                     selectedOrder?.details?.find(
@@ -1087,6 +1092,10 @@ const ProductCard = ({
       <div className={`relative w-full flex-col`}>
         <span
           className="absolute top-[22px] right-[0px] p-5 cursor-pointer"
+          style={{
+            right: isRtl ? "initial" : "0px",
+            left: isRtl ? "0px" : "initial",
+          }}
           data-cy="order-item-options"
           onClick={() => {
             DisableScroll();
@@ -1104,6 +1113,9 @@ const ProductCard = ({
         </span>
 
         <NextLink
+          style={{
+            direction: isRtl ? "rtl" : "ltr",
+          }}
           href={getProductUrl(product)}
           data={{ is_product: true, ...product.product_details }}
           className="flex-row  w-full border-t border-[#C4C2C27f] py-[12px]"
@@ -1126,7 +1138,7 @@ const ProductCard = ({
               alt={product.product_details?.name}
             />
           </div>
-          <div className="flex  flex-col items-start mt-[10px] ml-[12px] regular text-[12px] text-[#8D8D8D]">
+          <div className="flex  flex-col items-start mt-[10px] mx-[12px] regular text-[12px] text-[#8D8D8D]">
             <span className="w-[70px] h-[10px] bg-[#C4C2C27f]"></span>
             <span className="text-[#505050] text-[12px] regular mt-[3px] pr-[20px]">
               {product.product_details?.name}
