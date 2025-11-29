@@ -44,7 +44,7 @@ function ImageSlider({
                 q: 100,
               })}
               key={`${product_name}-${image}`}
-              className="w-[200px] h-[290px]"
+              className="w-[200px] h-[290px] object-cover object-[top_center]"
               alt={product_name || "alt"}
             />
           </div>
