@@ -1088,6 +1088,8 @@ const translations = {
   Last: "Kalan",
   "Waiting Seller Reply...": "Satıcı Yanıtını Bekliyor...",
   "Add More to Your Bag": " Sepetinize Daha Fazla Ekle",
+  "Please enable camera permissions to use camera feature":
+    "Kamera özelliğini kullanmak için lütfen kamera izinlerini etkinleştirin",
 };
 
 export default translations;

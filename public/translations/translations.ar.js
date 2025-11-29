@@ -1098,6 +1098,8 @@ const translations = {
   Last: "متبقي",
   "Waiting Seller Reply...": "في انتظار رد البائع...",
   "Add More to Your Bag": "أضف المزيد إلى سلتك",
+  "Please enable camera permissions to use camera feature":
+    "يرجى تفعيل أذونات الكاميرا لاستخدام ميزة الكاميرا",
 };
 
 export default translations;

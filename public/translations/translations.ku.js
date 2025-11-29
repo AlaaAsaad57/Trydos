@@ -1138,6 +1138,8 @@ const translations = {
   Last: "ماوە",
   "Waiting Seller Reply...": "چاوەڕوانی وەڵامی فرۆشکار...",
   "Add More to Your Bag": "زیاتر زیاد بکە بۆ جانتاکەت",
+  "Please enable camera permissions to use camera feature":
+    "تکایە مۆڵەتی کامێرا چالاک بکە بۆ بەکارهێنانی تایبەتمەندی کامێرا",
 };
 
 export default translations;
