@@ -40,7 +40,7 @@ function WebViewVoiceCall(props) {
         start();
         setUsers((prev) => [...prev, user]);
         if (window?.flutter_inappwebview)
-          window.flutter_inappwebview.callHandler(
+          window?.flutter_inappwebview?.callHandler?.(
             "flutterMessageHandler",
             "stop-ring" // <-- this becomes args[0] in Flutter
           );
