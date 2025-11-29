@@ -24,7 +24,7 @@ function GeneralPropertiesModal({
     { value: sizeFitData?.true_percentage ?? 0, title: "True" },
     { value: sizeFitData?.small_percentage ?? 0, title: "Small" },
     { value: sizeFitData?.large_percentage ?? 0, title: "Large" },
-    { value: sizeFitData?.big_percentage ?? 0, title: "Big" },
+    // { value: sizeFitData?.big_percentage ?? 0, title: "Big" },
   ];
 
   const rating_arr_text = [
