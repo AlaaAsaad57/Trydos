@@ -35,6 +35,9 @@ module.exports = {
     screens: {
       xs: { max: "480px" }, // custom breakpoint
       lg2: { max: "912px" },
+      md: { max: "768px" },
+      sm: { max: "480px" },
+      lg: { min: "769px" },
     },
   },
 };
