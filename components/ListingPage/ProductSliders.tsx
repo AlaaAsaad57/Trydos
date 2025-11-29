@@ -96,7 +96,7 @@ export function ProductPhotosSlider({
                             (product.flash_deal_end_date || shouldshowRedem) &&
                             "1px solid #FF6200",
                         }}
-                        className="w-[200px] h-[290px] border-[#d3d3d387] border-[1px] rounded-15 z-10"
+                        className="w-[200px] h-[290px] border-[#d3d3d387] object-cover object-[top_center] border-[1px] rounded-15 z-10"
                         alt={product.name || "alt"}
                       />
                     </div>
@@ -141,7 +141,7 @@ export function ProductPhotosSlider({
               height: 580,
               q: 100,
             })}
-            className="w-[200px] h-[290px]"
+            className="w-[200px] h-[290px] object-cover object-[top_center]"
             alt={product.name || "alt"}
           />
         </div>

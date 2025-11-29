@@ -78,7 +78,7 @@ function ProductColorCard({
                     height: 400,
                   })}
                   key={`${product.name}-${index}`}
-                  className="w-[200px] h-[290px] border-[#d3d3d387] border-[1px] rounded-15 z-10"
+                  className="w-[200px] h-[290px] border-[#d3d3d387] border-[1px] rounded-15 z-10  object-cover object-[top_center]"
                   alt={product.name || "alt"}
                 />
               </React.Fragment>
