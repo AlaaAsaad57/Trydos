@@ -508,7 +508,7 @@ html[lang="ar"] .chat-window-search-holder svg {
   margin-right: 5px;
 }
 .status-icon {
-  margin-right: 5px;
+  margin-inline: 5px;
   min-width: 10px;
 }
 * {
