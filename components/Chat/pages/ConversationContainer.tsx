@@ -10,7 +10,6 @@ import React, {
 import Image from "next/image";
 import { push, ref, set } from "firebase/database";
 import { useStopwatch } from "react-timer-hook";
-
 /* ----------------------------- Local Imports ----------------------------- */
 import Recorder from "components/Chat/components/Recorder";
 import ChatHeader from "components/Chat/components/ChatHeader";
@@ -41,7 +40,7 @@ import { showErrorNotification } from "@/store/notifications/reducer";
 import { translateFunction, getUserChat } from "utils/functions";
 import { db } from "utils/firebaseInitv1";
 import { useAppStore } from "store";
-import { pollinateInput } from "@/utils/tinyUtils";
+import { pollinateInput, requestPermissions } from "@/utils/tinyUtils";
 import { ImageCropWidget } from "components/global/ImageCropWidget";
 
 /* -------------------------- Dynamic Components --------------------------- */
@@ -448,18 +447,21 @@ function ConversationContainer({
   }, [activeChat?.messages, pendingScrollToMessageId]);
 
   /* ------------------------- Camera permission -------------------------- */
-  const enableCamera = (bool: boolean) => {
+  const enableCamera = async (bool: boolean) => {
     if (!bool) return setCameraEnabled(false);
 
-    navigator.mediaDevices
-      .getUserMedia({ video: true })
-      .then(() => setCameraEnabled(true))
-      .catch(() => {
-        setCameraEnabled(false);
-        showErrorNotification(
-          translateFunction("check camera permissions and refresh")
-        );
-      });
+    let permission_granted = await requestPermissions({
+      camera: true,
+      mic: false,
+    });
+    if (permission_granted) setCameraEnabled(true);
+    else {
+      showErrorNotification(
+        translateFunction(
+          "Please enable camera permissions to use camera features"
+        )
+      );
+    }
   };
 
   /* --------------------------- Date Helpers ----------------------------- */

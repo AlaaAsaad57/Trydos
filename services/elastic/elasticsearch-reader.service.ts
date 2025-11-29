@@ -172,6 +172,7 @@ export class ElasticsearchReader {
     limit,
     category,
     searchAfter,
+    sellerId,
   }: {
     country?: string;
     language: string;
@@ -179,6 +180,7 @@ export class ElasticsearchReader {
     limit: number;
     category?: string[];
     searchAfter?: any[];
+    sellerId?: string;
   }) {
     try {
       const input: InputInitialized = {
@@ -186,7 +188,7 @@ export class ElasticsearchReader {
         limit,
       };
 
-      const { must, must_not } = this.buildBaseConditions(input, country);
+      let { must, must_not } = this.buildBaseConditions(input, country);
       const customProducts: any[] = [];
 
       const customQuery = {
@@ -254,6 +256,17 @@ export class ElasticsearchReader {
           boutique_position: searchAfter[0],
           boutique_id: searchAfter[1],
         };
+      }
+      if (sellerId) {
+        customQuery.body.query.bool.must = [
+          ...customQuery.body.query.bool.must,
+          {
+            nested: {
+              path: "boutique",
+              query: { term: { "boutique.seller_id": sellerId } },
+            },
+          },
+        ];
       }
 
       const response = await this.client.search(customQuery);

@@ -24,7 +24,7 @@ function GeneralPropertiesModal({
     { value: sizeFitData?.true_percentage ?? 0, title: "True" },
     { value: sizeFitData?.small_percentage ?? 0, title: "Small" },
     { value: sizeFitData?.large_percentage ?? 0, title: "Large" },
-    { value: sizeFitData?.big_percentage ?? 0, title: "Big" },
+    // { value: sizeFitData?.big_percentage ?? 0, title: "Big" },
   ];
 
   const rating_arr_text = [
@@ -39,6 +39,7 @@ function GeneralPropertiesModal({
     count: s.count,
     title: rating_arr_text.find((_t) => _t.rating === s.ratingGroup)?.title,
   }));
+  const isRtl = language === "ar" || language === "ku";
 
   return (
     <>
@@ -50,7 +51,12 @@ function GeneralPropertiesModal({
             setColorBottomSheet(false);
           }}
         >
-          <div className="w-full px-[12px] h-auto pb-[80px] flex-col">
+          <div
+            className="w-full px-[12px] h-auto pb-[80px] flex-col"
+            style={{
+              direction: isRtl ? "rtl" : "ltr",
+            }}
+          >
             <div className="flex-col gap-[6px]">
               <RateIcon />
               <span className="flex text-[13px] text-[#1d1d1d] regular">
@@ -76,7 +82,7 @@ function GeneralPropertiesModal({
               />
               <HortiznalScrollBar
                 id="product-properties-general-modal"
-                className="flex-row pr-[90px] product-properties items-center justify-start w-100 text-[#1d1d1d] text-[11px] [&>*]:!text-[11px]"
+                className="flex-row px-[3px] product-properties items-center justify-start w-100 text-[#1d1d1d] text-[11px] [&>*]:!text-[11px]"
               >
                 <div className="flex-row items-center">
                   <span className="bold pr-[4px]"> {TotalBuyers}</span>

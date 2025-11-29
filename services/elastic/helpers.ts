@@ -117,6 +117,7 @@ interface SearchFilters {
   categories?: string[];
   brands?: string[];
   boutiques?: string[];
+  sellerId?: string;
   colors?: string[];
   sizes?: string[];
   search_text?: string;
@@ -269,7 +270,7 @@ export function processCustomProduct(
   const redeemDiscountRate = parseFloat(product.redeem_discount_rate || "0");
   result.has_redeem_discount =
     redeemDiscountRate > 0 && redeemDiscountRate < 100;
-
+  result.seller_status = product?.seller_status || null;
   if (result.has_redeem_discount) {
     result.redeem_discount_rate = redeemDiscountRate;
     result.redeem_price = calculateDiscountedPrice(
@@ -753,22 +754,36 @@ export function buildBaseConditions(filters: SearchFilters, country: string) {
   }
 
   // Add seller conditions
-  mustConditions.push({
-    bool: {
-      should: [
-        { term: { added_by: "admin" } },
-        {
-          bool: {
-            must: [
-              { term: { added_by: "seller" } },
-              { term: { seller_status: "approved" } },
-            ],
+  if (filters.sellerId) {
+    mustConditions.push({
+      bool: {
+        should: [
+          {
+            bool: {
+              must: [{ term: { added_by: "seller" } }],
+            },
           },
-        },
-      ],
-      minimum_should_match: 1,
-    },
-  });
+        ],
+      },
+    });
+  } else {
+    mustConditions.push({
+      bool: {
+        should: [
+          { term: { added_by: "admin" } },
+          {
+            bool: {
+              must: [
+                { term: { added_by: "seller" } },
+                { term: { seller_status: "approved" } },
+              ],
+            },
+          },
+        ],
+        minimum_should_match: 1,
+      },
+    });
+  }
 
   // Add tags filter
   if (filters.tags_names?.length) {

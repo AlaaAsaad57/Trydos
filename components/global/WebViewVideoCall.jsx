@@ -64,11 +64,15 @@ function WebViewVideoCall(props) {
     let init = async (name) => {
       client.on("user-joined", async (user) => {
         reset();
-
         start();
         setUsers((prevUsers) => {
           return [...prevUsers, user];
         });
+        if (window?.flutter_inappwebview)
+          window?.flutter_inappwebview?.callHandler?.(
+            "flutterMessageHandler",
+            "stop-ring" // <-- this becomes args[0] in Flutter
+          );
       });
       client.on("user-published", async (user, mediaType) => {
         await client.subscribe(user, mediaType);

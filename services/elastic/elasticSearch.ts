@@ -18,6 +18,7 @@ interface SearchFilters {
   brands?: string[];
   boutiques?: string[];
   colors?: string[];
+  sellerId?: string;
   sizes?: string[];
   search_text?: string;
   priceRange?: number[];
@@ -227,7 +228,7 @@ export async function getProductsAndFiltersFromElastic(
       ),
     };
     // Add search_after for pagination
-    if (search_after.length > 0) {
+    if (search_after?.length > 0) {
       // @ts-ignore
       searchQuery.search_after = search_after;
     }
@@ -235,7 +236,25 @@ export async function getProductsAndFiltersFromElastic(
     const customProducts: any[] = [];
     let lastSortValue: any[] = search_after;
     let response;
-
+    if (filters.sellerId) {
+      searchQuery.query.bool.must.push({
+        nested: {
+          path: "boutique", // The name of the nested field (the array)
+          query: {
+            bool: {
+              must: [
+                {
+                  // Use 'term' for the exact match on the nested sub-field
+                  term: {
+                    "boutique.seller_id": filters?.sellerId, // Reference the field as 'path.subfield'
+                  },
+                },
+              ],
+            },
+          },
+        },
+      });
+    }
     response = await client.search(searchQuery);
 
     const hits = response.hits.hits as ElasticsearchHit[];
@@ -333,6 +352,7 @@ export async function getProductsAndFiltersFromElastic(
         : normalizedProducts.custom_products?.map((s) => ({
             ...s,
             is_redeem: s.has_redeem_discount,
+            seller_status: s?.seller_status,
           })),
       brands: brandsFilter,
       boutiques: boutiquesFilter,
@@ -1055,7 +1075,7 @@ function sortSyncColorImagesByFilteredColor(
     for (const color of product.colors) {
       if (
         color.color &&
-        color.color.toLowerCase() === filteredColorCode.toLowerCase()
+        color?.color?.toLowerCase() === filteredColorCode?.toLowerCase()
       ) {
         colorName = color.name;
         break;
@@ -1103,7 +1123,7 @@ function sortColorsByFilteredColor(
     product.colors.sort((a: any, b: any) => {
       const codeA = (a.color || "").toLowerCase();
       const codeB = (b.color || "").toLowerCase();
-      const target = filteredColorCode.toLowerCase();
+      const target = filteredColorCode?.toLowerCase();
 
       if (codeA === target && codeB !== target) return -1;
       if (codeB === target && codeA !== target) return 1;

@@ -716,7 +716,7 @@ async function getProductInteractions(productId: string, userId?: string) {
         size_analysis: {
           small_percentage: 0,
           large_percentage: 0,
-          big_percentage: 0,
+          // big_percentage: 0,
           true_percentage: 0,
         },
       };

@@ -1347,29 +1347,22 @@ export const useChatStore = (set, get) => ({
             state.activeChat?.id &&
             parseInt(state.activeChat.id) === parseInt(payload.ch_id)
           ) {
-            active = bool
-              ? {
-                  ...state.activeChat,
-                  messages: active.messages.map((msg) => {
-                    if (parseInt(msg.id) !== parseInt(payload.msg_id)) {
-                      return msg;
-                    } else {
-                      return {
-                        ...msg,
-                        auth_message_status: {
-                          ...(msg?.auth_message_status || {}),
-                          is_deleted: 1,
-                        },
-                      };
-                    }
-                  }),
+            active = {
+              ...state.activeChat,
+              messages: active.messages.map((msg) => {
+                if (parseInt(msg.id) !== parseInt(payload.msg_id)) {
+                  return msg;
+                } else {
+                  return {
+                    ...msg,
+                    auth_message_status: {
+                      ...(msg?.auth_message_status || {}),
+                      is_deleted: 1,
+                    },
+                  };
                 }
-              : {
-                  ...state.activeChat,
-                  messages: active.messages.filter(
-                    (msg) => parseInt(msg.id) !== parseInt(payload.msg_id)
-                  ),
-                };
+              }),
+            };
           }
           arr.push({
             ...chat,
