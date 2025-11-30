@@ -700,6 +700,7 @@ function OrderDetails({
                   }}
                 >
                   <OrderStatusCard
+                    order={selectedOrder?.details?.[0]}
                     fullWidth={true}
                     status={selectedOrder?.details?.[0]?.order_group_status}
                   />
@@ -737,6 +738,9 @@ function OrderDetails({
                   }
                 />
                 <OrderStatusCard
+                  order={selectedOrder?.details?.find(
+                    (s) => s.id === ActivePacks?.id
+                  )}
                   status={
                     selectedOrder?.details?.find(
                       (s) => s.id === ActivePacks?.id
@@ -1019,14 +1023,18 @@ const OrderExpandedDetails = ({
           <span className="text-[#8D8D8D] regular text-[10px] mt-[5px] text-right">
             {translateFunction("Order Status")}
           </span>
-          <div className="text-[#1D1D1D] flex-row text-[12px] regular mt-[3px]">
+          <div className="text-[#1D1D1D] flex-row text-[12px] regular mt-[3px] gap-[6px] items-center flex">
             <span>{order?.order_status?.label}</span>
-            <span className="ml-[11px]">
-              <OrderStatusIcon
-                status={order?.order_group_status?.value}
-                isRtl={isRtl}
-              />
-            </span>
+            {order?.order_group_status?.value === "delivered" && (
+              <>
+                <span>{translateFunction("to", language)}</span>
+                <span>{order?.shipping_address_data?.contact_person_name}</span>
+              </>
+            )}
+            <OrderStatusIcon
+              status={order?.order_group_status?.value}
+              isRtl={isRtl}
+            />
           </div>
         </div>
       </div>

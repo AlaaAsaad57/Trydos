@@ -6,7 +6,11 @@ import OrderStatusIcon from "./OrderStatusIcon";
 import { OrderStatusCardPropsType } from "models/componentType/OrderStatusCardPropsType";
 import { useParams } from "next/navigation";
 
-function OrderStatusCard({ status, fullWidth }: OrderStatusCardPropsType) {
+function OrderStatusCard({
+  status,
+  fullWidth,
+  order,
+}: OrderStatusCardPropsType) {
   const { settings } = useAppStore();
   const { lang } = useParams();
   // @ts-ignore
@@ -32,14 +36,20 @@ function OrderStatusCard({ status, fullWidth }: OrderStatusCardPropsType) {
         {translateFunction("Order Status")}
       </span>
       <div
-        className={`text-[#1D1D1D] flex-row text-[12px] regular mt-[3px] ${
+        className={`text-[#1D1D1D] flex-row text-[12px] regular mt-[3px] gap-[6px] items-center ${
           isRtl ? " text-right " : " "
         }`}
       >
         <span className={`capitalize ${isRtl ? " text-right " : " "}`}>
           {status?.label}
         </span>
-        <span className="ml-[11px]">
+        {status?.value === "delivered" && (
+          <>
+            <span>{translateFunction("to", language)}</span>
+            <span>{order?.shipping_address_data?.contact_person_name}</span>
+          </>
+        )}
+        <span className="">
           <OrderStatusIcon status={status?.value} isRtl={isRtl} />
         </span>
       </div>
