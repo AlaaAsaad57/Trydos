@@ -300,6 +300,8 @@ export function processCustomProduct(
         result.brand = brand;
         if (product.brand?.is_verified) {
           result.brand.is_verified = product.brand.is_verified;
+        } else {
+          result.brand.is_verified = 0;
         }
         break;
       }

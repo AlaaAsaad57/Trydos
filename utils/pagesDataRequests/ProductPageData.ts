@@ -97,6 +97,7 @@ export const getProductDataFromElastic = async ({
       total_rating:
         likeDetails?.final_rating ?? recommendationStats?.total_rating,
       size_analysis: likeDetails?.size_analysis,
+      good_quality_product: likeDetails?.good_quality_product,
     };
   } catch (error) {
     console.error(error);
@@ -692,6 +693,7 @@ async function getProductInteractions(productId: string, userId?: string) {
           }))
         : [],
       size_analysis: source.size_analysis,
+      good_quality_product: source.good_quality_product,
     };
 
     // Determine if user liked the product based on latest interaction
@@ -709,6 +711,7 @@ async function getProductInteractions(productId: string, userId?: string) {
     if (err.meta?.statusCode === 404) {
       return {
         is_liked: false,
+        good_quality_product: null,
         total_likes: 0,
         final_rating: 0,
         ratingDetails: [],

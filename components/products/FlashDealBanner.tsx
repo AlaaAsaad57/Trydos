@@ -6,11 +6,13 @@ import { translateFunction } from "utils/functions";
 interface FlashDealBannerProps {
   end_data: string;
   top?: string;
+  language: string;
 }
 
 function FlashDealBanner({
   end_data,
   top = "top-[-8px]",
+  language,
 }: FlashDealBannerProps) {
   const [timeLeft, setTimeLeft] = useState<{
     days: number;
@@ -99,7 +101,7 @@ function FlashDealBanner({
     >
       <FlashIcon />
       <span className="whitespace-nowrap bold">
-        {translateFunction("Flash Deal")}
+        {translateFunction("Flash Deal", language)}
       </span>
       {timeLeft?.days >= 0 && (
         <span className="whitespace-nowrap ">

@@ -501,6 +501,7 @@ async function Page({ params, searchParams }) {
                         product?.flash_deal_end_date) &&
                         !shouldShowNotifyButton() && (
                           <FlashDealBanner
+                            language={languageVariable}
                             top="top-[0px]"
                             end_data={
                               product?.flash_deal_details?.end_date ||
@@ -581,6 +582,7 @@ async function Page({ params, searchParams }) {
                   language={languageVariable}
                 />
                 <ProductGeneralProperties
+                  good_quality_product={product.good_quality_product}
                   views={product?.total_views}
                   recommendation_stats={product?.recommendation_stats}
                   rating_stats={product?.ratingDetails}

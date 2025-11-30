@@ -700,6 +700,7 @@ function OrderDetails({
                   }}
                 >
                   <OrderStatusCard
+                    order={selectedOrder?.details?.[0]}
                     fullWidth={true}
                     status={selectedOrder?.details?.[0]?.order_group_status}
                   />
@@ -737,6 +738,9 @@ function OrderDetails({
                   }
                 />
                 <OrderStatusCard
+                  order={selectedOrder?.details?.find(
+                    (s) => s.id === ActivePacks?.id
+                  )}
                   status={
                     selectedOrder?.details?.find(
                       (s) => s.id === ActivePacks?.id
@@ -880,7 +884,12 @@ const OrderExpandedDetails = ({
   const language = lang.split("-")[1];
   const isRtl = language === "ar" || language === "ku";
   return (
-    <div className="bg-[#fff] mt-[20px] rounded-[10px] w-full h-auto p-[12px] flex-col flex items-start">
+    <div
+      className="bg-[#fff] mt-[20px] rounded-[10px] w-full h-auto p-[12px] flex-col flex items-start"
+      style={{
+        direction: isRtl ? "rtl" : "ltr",
+      }}
+    >
       <span className="w-[70px] h-[10px] bg-[#C4C2C27f]"></span>
       <div className="flex-row justify-between items-center w-full">
         <div className="flex text-[#505050] regular text-[12px] mt-[5px] items-center">
@@ -1014,14 +1023,18 @@ const OrderExpandedDetails = ({
           <span className="text-[#8D8D8D] regular text-[10px] mt-[5px] text-right">
             {translateFunction("Order Status")}
           </span>
-          <div className="text-[#1D1D1D] flex-row text-[12px] regular mt-[3px]">
+          <div className="text-[#1D1D1D] flex-row text-[12px] regular mt-[3px] gap-[6px] items-center flex">
             <span>{order?.order_status?.label}</span>
-            <span className="ml-[11px]">
-              <OrderStatusIcon
-                status={order?.order_group_status?.value}
-                isRtl={isRtl}
-              />
-            </span>
+            {order?.order_group_status?.value === "delivered" && (
+              <>
+                <span>{translateFunction("to", language)}</span>
+                <span>{order?.shipping_address_data?.contact_person_name}</span>
+              </>
+            )}
+            <OrderStatusIcon
+              status={order?.order_group_status?.value}
+              isRtl={isRtl}
+            />
           </div>
         </div>
       </div>
@@ -1091,7 +1104,7 @@ const ProductCard = ({
     <>
       <div className={`relative w-full flex-col`}>
         <span
-          className="absolute top-[22px] right-[0px] p-5 cursor-pointer"
+          className="absolute top-[22px]  p-5 cursor-pointer"
           style={{
             right: isRtl ? "initial" : "0px",
             left: isRtl ? "0px" : "initial",
@@ -1113,9 +1126,6 @@ const ProductCard = ({
         </span>
 
         <NextLink
-          style={{
-            direction: isRtl ? "rtl" : "ltr",
-          }}
           href={getProductUrl(product)}
           data={{ is_product: true, ...product.product_details }}
           className="flex-row  w-full border-t border-[#C4C2C27f] py-[12px]"

@@ -52,7 +52,10 @@ function ProductColorCard({
         className="product-container  align-center flex-col relative pb-[10px]"
         data-cy="product_link"
       >
-        <ProductBanner flashDeals={product.flash_deal_end_date} />
+        <ProductBanner
+          flashDeals={product.flash_deal_end_date}
+          language={language}
+        />
         <NormalSlider
           initialSlide={activeImageIndex}
           slideHeight={290}

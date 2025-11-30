@@ -134,6 +134,7 @@ function ProductCard({
     return "product-card";
   };
   const isRtl = language === "ar" || language === "ku";
+
   return (
     <div className="relative flex" ref={timerRef}>
       <ColorBottomSheet
@@ -236,13 +237,13 @@ function ProductCard({
                 ) : (
                   <div className="h-[8px] w-[49.358px] bg-gray-200 rounded" />
                 )}
-                <VerifiedIcon />
+                {product?.brand?.is_verified === 1 && <VerifiedIcon />}
               </span>
               <p
                 className={`${isRtl && "dir-rtl"} truncate w-full max-w-full`}
                 data-cy="product-name"
               >
-                {[product?.name, product.categories_tree]
+                {[product?.name, ...product?.categories?.map((s) => s.name)]
                   ?.filter((s) => typeof s === "string")
                   ?.join(" | ")}
               </p>

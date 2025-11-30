@@ -3,5 +3,6 @@ export interface OrderStatusCardPropsType {
     label: string;
     value: string;
   };
+  order?: any;
   fullWidth?: boolean;
 }
