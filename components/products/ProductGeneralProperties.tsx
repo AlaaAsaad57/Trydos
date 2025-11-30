@@ -19,6 +19,7 @@ function ProductGeneralProperties({
   recommendation_stats,
   views,
   sizeFitData,
+  good_quality_product = false,
 }) {
   const { setColorBottomSheet } = useAppStore();
   const isRtl = languageVariable === "ar" || languageVariable === "ku";
@@ -36,6 +37,7 @@ function ProductGeneralProperties({
   return (
     <>
       <GeneralPropertiesModal
+        good_quality_product={good_quality_product}
         views={views}
         recommendation_stats={{
           recomended_count: recomended,
@@ -80,13 +82,17 @@ function ProductGeneralProperties({
         >
           <ProductViews views={views} />
         </Suspense>
-        <span className="px-[5px] text-[10px] text-[#1d1d1d]">|</span>
-        <div className="flex-row items-center product-property-row">
-          <QualityIcon />
-          <span>
-            {translateFunction("Good Quality Product", languageVariable)}
-          </span>
-        </div>
+        {good_quality_product && (
+          <>
+            <span className="px-[5px] text-[10px] text-[#1d1d1d]">|</span>
+            <div className="flex-row items-center product-property-row">
+              <QualityIcon />
+              <span>
+                {translateFunction("Good Quality Product", languageVariable)}
+              </span>
+            </div>
+          </>
+        )}
         <span className="px-[5px] text-[10px] text-[#1d1d1d]">|</span>
         <div className="flex-row items-center product-property-row">
           <RecomendedIcon />

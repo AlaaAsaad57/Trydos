@@ -18,6 +18,7 @@ function GeneralPropertiesModal({
   total_rating,
   views,
   sizeFitData,
+  good_quality_product = false,
 }) {
   const { ColorBottomSheet, setColorBottomSheet, language } = useAppStore();
   let reviews_arr = [
@@ -89,13 +90,19 @@ function GeneralPropertiesModal({
                   {translateFunction("Buyer Rate", language)}
                 </div>
 
-                <span className="px-[5px] text-[11px] text-[#1d1d1d]">|</span>
-                <div className="flex-row  items-center product-property-row">
-                  <QualityIcon />
-                  <span className="text-[11px]">
-                    {translateFunction("Overall Good Quality", language)}
-                  </span>
-                </div>
+                {good_quality_product && (
+                  <>
+                    <span className="px-[5px] text-[11px] text-[#1d1d1d]">
+                      |
+                    </span>
+                    <div className="flex-row  items-center product-property-row">
+                      <QualityIcon />
+                      <span className="text-[11px]">
+                        {translateFunction("Overall Good Quality", language)}
+                      </span>
+                    </div>
+                  </>
+                )}
                 <span className="px-[5px] text-[11px] text-[#1d1d1d]">|</span>
                 <ProductViews views={views} />
                 <span className="px-[4px] flex">
