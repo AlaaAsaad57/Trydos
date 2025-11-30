@@ -248,6 +248,7 @@ function ProductLoader({ product }) {
                     {(product?.flash_deal_details?.end_date ||
                       product?.flash_deal_end_date) && (
                       <FlashDealBanner
+                        language={languageVariable}
                         top="top-[0px]"
                         end_data={
                           product?.flash_deal_details?.end_date ||

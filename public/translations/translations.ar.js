@@ -1097,7 +1097,7 @@ const translations = {
   "Do you want to delete this message?": "هل تريد حذف هذه الرسالة؟",
   Last: "متبقي",
   "Waiting Seller Reply...": "في انتظار رد البائع...",
-  "Add More to Your Bag": "أضف المزيد إلى سلتك",
+  "Add More to Your Bag": "أضف المزيد إلى السلة",
   "Please enable camera permissions to use camera feature":
     "يرجى تفعيل أذونات الكاميرا لاستخدام ميزة الكاميرا",
 };

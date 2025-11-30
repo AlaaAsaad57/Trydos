@@ -297,7 +297,10 @@ export const BuyButtonProduct = ({
   if (!isClient)
     return (
       <>
-        <ProductBanner flashDeals={product.flash_deal_end_date} />
+        <ProductBanner
+          flashDeals={product.flash_deal_end_date}
+          language={language}
+        />
         <div
           style={{
             direction: isRtl ? "rtl" : "ltr",
@@ -332,7 +335,10 @@ export const BuyButtonProduct = ({
     );
   return (
     <>
-      <ProductBanner flashDeals={product.flash_deal_end_date} />
+      <ProductBanner
+        flashDeals={product.flash_deal_end_date}
+        language={language}
+      />
       <div
         style={{
           direction: isRtl ? "rtl" : "ltr",
@@ -352,7 +358,7 @@ export const BuyButtonProduct = ({
       </div>
       {product.is_redeem && shouldShowRedeem && seconds > 0 && (
         <>
-          <RedeemButton seconds={seconds} />
+          <RedeemButton seconds={seconds} language={language} />
         </>
       )}
       <BuyButton

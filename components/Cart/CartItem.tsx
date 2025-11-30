@@ -38,7 +38,10 @@ function CartItem({ product, index }) {
       >
         {product.flash_deal_details?.end_date && (
           <div className="relative top-[8px]">
-            <FlashDealBanner end_data={product.flash_deal_details?.end_date} />
+            <FlashDealBanner
+              language={language}
+              end_data={product.flash_deal_details?.end_date}
+            />
           </div>
         )}
         <img
