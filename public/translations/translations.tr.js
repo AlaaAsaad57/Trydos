@@ -1093,6 +1093,7 @@ const translations = {
   Small: "küçük",
   Large: "büyük",
   True: "gerçek",
+  "Max Allowed Quantity Reached": "İzin verilen maksimum miktara ulaşıldı",
 };
 
 export default translations;

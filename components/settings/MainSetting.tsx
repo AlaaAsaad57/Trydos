@@ -149,8 +149,10 @@ function MainSetting({ swipeToScreen }: MainSettingPropsType) {
               <Spinner />
             ) : (
               <>
-                {wallet?.wallet_balance?.toFixed(8)} {currency?.symbol}{" "}
-                {translateFunction("Your Balance")}
+                <span className="medium">
+                  {wallet?.wallet_balance?.toFixed(8)}{" "}
+                </span>
+                {currency?.symbol} {translateFunction("Your Balance")}
               </>
             )}
           </span>

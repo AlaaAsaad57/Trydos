@@ -125,7 +125,7 @@ function ProductColorCard({
                 <img
                   src={GetImageUrl(product.brand.icon)}
                   alt={product.brand.name || "Brand"}
-                  className="h-[8px] w-auto object-contain inline-block ml-[7px]"
+                  className="h-[15px] w-auto object-contain inline-block ml-[7px]"
                   loading="eager"
                   draggable="false"
                 />

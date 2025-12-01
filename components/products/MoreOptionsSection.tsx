@@ -5,13 +5,12 @@ import home from "services/home";
 import {
   addToCompare,
   removeFromCompare,
-  RoundPrice,
   translateFunction,
 } from "utils/functions";
 import { getCookie } from "utils/cookies/cookie-manager";
 import CheckIcon from "public/svg/CheckIcon";
 import Spinner from "components/global/Spinner";
-import LocalizationServiceClass from "services/localization";
+
 import { useAppStore } from "store";
 import { getNotificationsTypes } from "services/notifications";
 import {

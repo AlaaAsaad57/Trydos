@@ -1143,6 +1143,7 @@ const translations = {
   Small: " بچوک",
   Large: "گەورە",
   True: "ڕاستەقینە",
+  "Max Allowed Quantity Reached": "گەیشت بە زۆرترین ڕێگەپێدراوی بڕ",
 };
 
 export default translations;

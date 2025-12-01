@@ -1103,6 +1103,8 @@ const translations = {
   Small: "صغير",
   Large: "كبير",
   True: "حقيقي",
+  "Max Allowed Quantity Reached":
+    "تم الوصول إلى الحد الأقصى للكمية المسموح بها",
 };
 
 export default translations;

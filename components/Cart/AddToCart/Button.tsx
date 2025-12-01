@@ -4,6 +4,7 @@ import React from "react";
 import auth from "services/auth";
 import cart from "services/cart";
 import { useAppStore } from "store";
+import { showErrorNotification } from "store/notifications/reducer";
 import { getCart, translateFunction } from "utils/functions";
 import { GA_EVENT_NAMES } from "utils/GAEvents";
 import { GAevent } from "utils/gtag";
@@ -21,14 +22,14 @@ function AddToCartButton({
   setLoading,
   id,
   product,
-
+  reachedMaxQty,
   initialLoading,
 }) {
   const { localCart, currency } = useAppStore();
   const IsValid = () => {
     let color_valid = false,
       size_valid = false;
-
+    if (reachedMaxQty()) return false;
     if (!colors || colors?.length === 0) color_valid = true;
     else {
       color_valid = Boolean(selectedColor);
@@ -41,6 +42,10 @@ function AddToCartButton({
   };
 
   const Validate = () => {
+    if (reachedMaxQty()) {
+      showErrorNotification(translateFunction("Max Allowed Quantity Reached"));
+      return false;
+    }
     if (colors && colors?.length > 0 && !selectedColor) {
       shake("#color-select");
       return false;

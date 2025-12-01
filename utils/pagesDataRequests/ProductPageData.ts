@@ -94,8 +94,7 @@ export const getProductDataFromElastic = async ({
       count_of_likes: likeDetails?.total_likes,
       is_liked: likeDetails?.is_liked,
       total_views: likeDetails?.total_views,
-      total_rating:
-        likeDetails?.final_rating ?? recommendationStats?.total_rating,
+      total_rating: Number(likeDetails?.final_rating) ?? 0,
       size_analysis: likeDetails?.size_analysis,
       good_quality_product: likeDetails?.good_quality_product,
     };
@@ -403,15 +402,12 @@ export const GetRecommendationCountForProduct = async ({
           },
         },
       },
-      total_rating: {
-        avg: { field: "rating" },
-      },
     },
   });
   // @ts-ignore
   const buckets = result.aggregations.recommendation_status.buckets;
   const total = buckets.recommend.doc_count + buckets.not_recommend.doc_count;
-  const avgRating = (result.aggregations.total_rating as any).value || 0;
+
   const stats = [
     {
       category: "recommend",
@@ -431,7 +427,7 @@ export const GetRecommendationCountForProduct = async ({
     },
   ];
 
-  return { stats, total_rating: avgRating };
+  return { stats };
 };
 export async function GetAvailableFQAFilters({ product_id }) {
   const query = {

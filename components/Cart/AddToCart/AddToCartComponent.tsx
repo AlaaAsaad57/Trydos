@@ -388,6 +388,12 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
         s.size === (selectedSize?.option ?? selectedSize)
     );
   };
+  const reachedMaxQty = () => {
+    let selectedItem = getSelectedItemCart();
+    if (!selectedItem) return false;
+    if (Number(product?.max_allowed_qty) === 0) return false;
+    return selectedItem.quantity >= Number(product?.max_allowed_qty);
+  };
   const getVariantSizeQty = (size) => {
     if (ProductData?.variation?.length > 0) {
       let selected_variant;
@@ -458,7 +464,6 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
   const IsValid = () => {
     let color_valid = false,
       size_valid = false;
-
     if (
       !ProductData?.sync_color_images ||
       ProductData?.sync_color_images?.length === 0
@@ -814,6 +819,8 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
         />
         {shouldShowNotifyButton() ? (
           <NotifyCartButton
+            requestLoading={requestLoading}
+            setLoading={setRequestLoading}
             setNotify={() => {
               setProductData({
                 ...ProductData,
@@ -839,6 +846,7 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
         ) : (
           <AddToCartButton
             key={product?.is_redeem}
+            reachedMaxQty={() => reachedMaxQty()}
             fullQty={localCart.filter((s) => s.id === product?.id)?.length}
             colors={ProductData?.sync_color_images}
             sizes={ProductData?.choice_options?.[0]?.options}
@@ -870,9 +878,12 @@ const NotifyCartButton = ({
   id,
   product,
   initialLoading,
+  setLoading,
+  requestLoading,
 }) => {
   const NotifyAction = async () => {
     try {
+      setLoading(true);
       await home.AllowNotifications();
 
       if (!isNotified) {
@@ -903,7 +914,9 @@ const NotifyCartButton = ({
           5000
         );
       }
+      setLoading(false);
     } catch (error) {
+      setLoading(false);
       showErrorNotification(
         error ??
           translateFunction(
@@ -916,7 +929,7 @@ const NotifyCartButton = ({
   return (
     <NotifyButton
       isNotified={isNotified}
-      loading={initialLoading}
+      loading={initialLoading || requestLoading}
       notifyAction={() => {
         NotifyAction();
       }}

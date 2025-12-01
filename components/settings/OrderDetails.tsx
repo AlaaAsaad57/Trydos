@@ -103,7 +103,6 @@ function OrderDetails({
     let id = searchParams.get("id");
     setLoading(true);
     try {
-      console.log(id);
       let data = await Order.getOrderDetails(
         id ?? selectedOrder?.order_group_id,
         abortControllerRef.current.signal
@@ -832,14 +831,14 @@ const OrderExpandedDetails = ({
         ?.length === selectedOrder?.details?.length
     );
   };
+
   const isThereAReturnedProduct = () => {
     let arr = [];
+
     if (isAllPreventEdit()) return false;
     selectedOrder?.returned_data?.map((s) => {
       s.details?.order_details?.map((req) => {
-        if (req.already_return) {
-          arr.push(req?.return_request_id);
-        }
+        arr.push(req?.return_request_id);
       });
     });
     let set = new Set(arr);
@@ -847,14 +846,13 @@ const OrderExpandedDetails = ({
     if (arr.length > 0) return arr;
     return false;
   };
+
   const isThereAReturnedProductForCancel = () => {
     let arr = [];
 
     selectedOrder?.returned_data?.map((s) => {
       s.details?.order_details?.map((req) => {
-        if (req.already_return) {
-          arr.push(req?.return_request_id);
-        }
+        arr.push(req?.return_request_id);
       });
     });
     selectedOrder?.details.map((s) => {
@@ -1099,7 +1097,7 @@ const ProductCard = ({
   // @ts-ignore
   const language = lang.split("-")[1];
   const isRtl = language === "ar" || language === "ku";
-
+  console.log("product", product);
   return (
     <>
       <div className={`relative w-full flex-col`}>
@@ -1235,29 +1233,37 @@ const ProductCard = ({
                 </div>
               </div>
             )}
-            <div className="flex-row  items-center">
+            <div className="flex-row  items-center gap-[5px]">
               {product.price_after_discount >= 0 && (
                 <div
                   className="line-through text-[#C4C2C2] regular text-[12px]  line-through-[#C4C2C2]"
                   data-cy="order-product-offer-price"
                 >
-                  {RoundPrice({ num: product.price, language: language })}
+                  {/* {RoundPrice({ num: product.price, language: language })} */}
+                  {RoundPrice({
+                    num: product?.product_details?.price,
+                    language: language,
+                  })}
                 </div>
               )}
               <div
-                className="text-[#1D1D1D] text-[12px] ml-[4px] bold"
+                className="text-[#1D1D1D] text-[12px] bold"
                 data-cy="order-product-price"
               >
-                {RoundPrice({
+                {/* {RoundPrice({
                   num: product.price_after_discount,
+                  language: language,
+                })} */}
+                {RoundPrice({
+                  num: product.product_details?.offer_price,
                   language: language,
                 })}
               </div>
-              <span className="text-[#1D1D1D] light text-[10px] ml-[4px]">
+              <span className="text-[#1D1D1D] light text-[10px] ">
                 {currency?.symbol}
               </span>
               {(product.is_canceled || product.is_returned) && (
-                <div className="text-[#388CFF] text-[10px] regular ml-[7px]">
+                <div className="text-[#388CFF] text-[10px] regular mx-[7px]">
                   {translateFunction("Back to your wallet")}
                 </div>
               )}

@@ -230,12 +230,12 @@ function ProductCard({
                   <img
                     src={GetImageUrl(product.brand.icon)}
                     alt={product.brand.name || "Brand"}
-                    className="h-[8px] w-auto object-contain"
+                    className="h-[15px] w-auto object-contain"
                     loading="eager"
                     draggable="false"
                   />
                 ) : (
-                  <div className="h-[8px] w-[49.358px] bg-gray-200 rounded" />
+                  <div className="h-[15px] w-[49.358px] bg-gray-200 rounded" />
                 )}
                 {product?.brand?.is_verified === 1 && <VerifiedIcon />}
               </span>

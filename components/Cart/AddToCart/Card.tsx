@@ -99,9 +99,9 @@ function Card({
             <Image
               src={brandImabge}
               alt="brand"
-              height={8}
+              height={15}
               width={30}
-              className="w-auto max-h-[8px]"
+              className="w-auto max-h-[15px]"
             />
           </div>
           {/*  */}
