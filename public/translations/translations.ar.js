@@ -1100,6 +1100,9 @@ const translations = {
   "Add More to Your Bag": "أضف المزيد إلى السلة",
   "Please enable camera permissions to use camera feature":
     "يرجى تفعيل أذونات الكاميرا لاستخدام ميزة الكاميرا",
+  Small: "صغير",
+  Large: "كبير",
+  True: "حقيقي",
 };
 
 export default translations;

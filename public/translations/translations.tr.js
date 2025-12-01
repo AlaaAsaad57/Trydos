@@ -1090,6 +1090,9 @@ const translations = {
   "Add More to Your Bag": " Sepetinize Daha Fazla Ekle",
   "Please enable camera permissions to use camera feature":
     "Kamera özelliğini kullanmak için lütfen kamera izinlerini etkinleştirin",
+  Small: "küçük",
+  Large: "büyük",
+  True: "gerçek",
 };
 
 export default translations;

@@ -26,7 +26,12 @@ function ProductSizesReview({ lang, sizeFitData }) {
         } flex-row w-full mt-[12px] flex-wrap gap-y-[8px] gap-x-[15px]`}
       >
         {reviews_arr.map((r) => (
-          <ReviewProgress title={r.title} value={r.value} key={r.title} />
+          <ReviewProgress
+            language={language}
+            title={r.title}
+            value={r.value}
+            key={r.title}
+          />
         ))}
       </div>
     </div>
@@ -35,11 +40,11 @@ function ProductSizesReview({ lang, sizeFitData }) {
 
 export default ProductSizesReview;
 
-const ReviewProgress = ({ value, title }) => {
+const ReviewProgress = ({ value, title, language }) => {
   return (
     <div className="flex-col gap-[4px] min-w-[120px] w-1/3 max-w-[30%]">
       <div className="flex-row items-center text-[#1d1d1d] text-[11px] regular gap-[6px]">
-        <span>{title}</span>
+        <span>{translateFunction(title, language)}</span>
         <span className="bold">{value} %</span>
       </div>
       <div className="flex-row w-full h-[5px] rounded-[5px] bg-[#FCFCFC] relative">

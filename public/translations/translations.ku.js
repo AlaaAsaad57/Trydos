@@ -1140,6 +1140,9 @@ const translations = {
   "Add More to Your Bag": "زیاتر زیاد بکە بۆ جانتاکەت",
   "Please enable camera permissions to use camera feature":
     "تکایە مۆڵەتی کامێرا چالاک بکە بۆ بەکارهێنانی تایبەتمەندی کامێرا",
+  Small: " بچوک",
+  Large: "گەورە",
+  True: "ڕاستەقینە",
 };
 
 export default translations;
