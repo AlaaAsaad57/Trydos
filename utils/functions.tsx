@@ -290,12 +290,12 @@ export const RoundPrice = ({
   // Currency conversion at the start
   let rateVariable = rate || currency?.exchange_rate || 1;
   let number = price_num * rateVariable;
-  if (returnNumber) {
-    return number;
-  }
   let deciaml_points = currency?.decimal_digits || 0;
   number = Number(number.toFixed(deciaml_points));
   number = Math.ceil(number);
+  if (returnNumber) {
+    return number;
+  }
 
   // Return raw converted number if requested
   let languageCode = language ?? languageVariable ?? "en";

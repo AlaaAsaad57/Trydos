@@ -1097,7 +1097,7 @@ const ProductCard = ({
   // @ts-ignore
   const language = lang.split("-")[1];
   const isRtl = language === "ar" || language === "ku";
-  console.log("product", product);
+
   return (
     <>
       <div className={`relative w-full flex-col`}>
