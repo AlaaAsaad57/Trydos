@@ -54,10 +54,10 @@ import PricesRow from "components/Cart/AddToCart/PricesRow";
 import { getCookieServer } from "utils/cookies/cookie-manager";
 import { LogServerError } from "utils/serverErrorReporter";
 
-const fetchProductMetaData = cache(async (params, searchParams) => {
+const fetchProductMetaData = async (params, searchParams) => {
   const metaData = await generateProductMetaData({ params, searchParams });
   return metaData;
-});
+};
 export async function generateMetadata({ params, searchParams }) {
   let Params = await params;
   let SearchParams = await searchParams;
