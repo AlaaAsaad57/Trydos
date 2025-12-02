@@ -53,9 +53,6 @@ import ProductRedeemCounter from "components/products/ProductRedeemCounter";
 import PricesRow from "components/Cart/AddToCart/PricesRow";
 import { getCookieServer } from "utils/cookies/cookie-manager";
 import { LogServerError } from "utils/serverErrorReporter";
-// export const revalidate = parseInt(process.env.NEXT_PUBLIC_REVALIDATE);
-// For Middle East users
-import { cache } from "react";
 
 const fetchProductMetaData = cache(async (params, searchParams) => {
   const metaData = await generateProductMetaData({ params, searchParams });
