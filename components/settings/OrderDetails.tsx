@@ -834,11 +834,12 @@ const OrderExpandedDetails = ({
 
   const isThereAReturnedProduct = () => {
     let arr = [];
-
     if (isAllPreventEdit()) return false;
     selectedOrder?.returned_data?.map((s) => {
       s.details?.order_details?.map((req) => {
-        arr.push(req?.return_request_id);
+        if (req.already_return) {
+          arr.push(req?.return_request_id);
+        }
       });
     });
     let set = new Set(arr);
@@ -846,13 +847,14 @@ const OrderExpandedDetails = ({
     if (arr.length > 0) return arr;
     return false;
   };
-
   const isThereAReturnedProductForCancel = () => {
     let arr = [];
 
     selectedOrder?.returned_data?.map((s) => {
       s.details?.order_details?.map((req) => {
-        arr.push(req?.return_request_id);
+        if (req.already_return) {
+          arr.push(req?.return_request_id);
+        }
       });
     });
     selectedOrder?.details.map((s) => {
@@ -1097,7 +1099,12 @@ const ProductCard = ({
   // @ts-ignore
   const language = lang.split("-")[1];
   const isRtl = language === "ar" || language === "ku";
-
+  const isShouldShowReturn = () => {
+    console.log(ActivePacks?.return_details);
+    if (ActivePacks?.return_details?.details?.status?.value === "cancelled")
+      return false;
+    else return true;
+  };
   return (
     <>
       <div className={`relative w-full flex-col`}>

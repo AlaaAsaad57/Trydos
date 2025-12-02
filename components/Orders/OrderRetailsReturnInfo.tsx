@@ -64,7 +64,7 @@ function OrderRetailsReturnInfo({
       title: "Product Has Been Resolved Successfully",
       desc: "",
     },
-    { index: 7, label: "canceled", title: "Return Request Canceled" },
+    { index: 7, label: "cancelled", title: "Return Request Canceled" },
     { index: 8, label: "rejected", title: "Return Request Rejected" },
   ];
 
@@ -82,7 +82,7 @@ function OrderRetailsReturnInfo({
 
   // Special case for canceled or rejected
   if (
-    currentStatus?.label === "canceled" ||
+    currentStatus?.label === "cancelled" ||
     currentStatus?.label === "rejected" ||
     currentStatus?.label === "resolved"
   ) {
@@ -90,9 +90,9 @@ function OrderRetailsReturnInfo({
       <div className="w-full flex-col items-center h-auto mt-[12px]">
         <div className="flex-col w-full bg-[#FFFCF0] rounded-[10px] px-[10px] py-[8px]">
           <div className="flex-row items-start">
-            <MiniReturnIcon />
+            <MiniReturnIcon className="text-[#D32F2F] [&>path]:fill-[#D32F2F]" />
             <div className="flex-col ml-[6px] w-full">
-              <div className="text-[#D32F2F] text-[14px] bold">
+              <div className="text-[#D32F2F] text-[14px] medium ">
                 {translateFunction(currentStatus.title)}
               </div>
             </div>

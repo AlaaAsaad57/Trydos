@@ -1,12 +1,14 @@
 import ConfirmMobile from "components/Cart/ConfirmMobile";
 import {
   COOKIE_NAMES,
+  deleteCookie,
   getCookie,
   UserData,
 } from "utils/cookies/cookie-manager";
 import React, { useEffect } from "react";
 import { useAppStore } from "store";
 import { ChatConroller, DisableScroll, EnableScroll } from "utils/tinyUtils";
+import { showSuccessNotification } from "store/notifications/reducer";
 
 function ConfirmMobilePhoneWidget() {
   const { setShouldAuthinticated, shouldAuthinticated, setAddStory, openChat } =
@@ -19,6 +21,16 @@ function ConfirmMobilePhoneWidget() {
     };
   }, []);
   const userData = getCookie<UserData>(COOKIE_NAMES.USER_DATA);
+  const copyInitialData = async () => {
+    let last_verify_date = localStorage.getItem("LAST-VERIFY");
+    let last_unauthorized_request = localStorage.getItem(
+      "last_unauthorized_request"
+    );
+    await navigator.clipboard.writeText(
+      JSON.stringify({ last_verify_date, last_unauthorized_request }, null, 2)
+    );
+    showSuccessNotification("copy success!");
+  };
   return (
     <>
       <div className="fixed top-0 left-0 w-screen h-screen z-[999999999999998] bg-[#00000080] flex items-center justify-center" />
@@ -27,6 +39,10 @@ function ConfirmMobilePhoneWidget() {
         <div
           onClick={() => {
             setShouldAuthinticated(false);
+            deleteCookie(COOKIE_NAMES.USER_CHAT);
+            deleteCookie(COOKIE_NAMES.USER_STORIES);
+            deleteCookie(COOKIE_NAMES.USER_ID_HASH);
+            copyInitialData();
             window.location.reload();
           }}
           className="flex-row cursor-pointer justify-end items-center p-[10px] z-[99999999999] rounded-full  bg-[#0000004d]"
