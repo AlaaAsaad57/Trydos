@@ -267,6 +267,25 @@ export const toUSD = (price) => {
 
   return price / currency?.exchange_rate;
 };
+function preciseMultiply(a, b) {
+  const aStr = a.toString();
+  const bStr = b.toString();
+
+  // عدد الأرقام بعد الفاصلة في كل رقم
+  const aDecimals = (aStr.split(".")[1] || "").length;
+  const bDecimals = (bStr.split(".")[1] || "").length;
+
+  // نحذف الفواصل ونحول الأرقام لأعداد صحيحة
+  const intA = Number(aStr.replace(".", ""));
+  const intB = Number(bStr.replace(".", ""));
+
+  // نضرب الأعداد الصحيحة
+  const resultInt = intA * intB;
+
+  // نعيد الفاصلة لمكانها الصحيح
+  const decimals = aDecimals + bDecimals;
+  return resultInt / Math.pow(10, decimals);
+}
 export const RoundPrice = ({
   num,
   rate,
@@ -291,7 +310,7 @@ export const RoundPrice = ({
   let rateVariable = rate || currency?.exchange_rate || 1;
   let deciaml_points = currency?.decimal_digits || 0;
   price_num = Number(price_num.toFixed(deciaml_points));
-  let number = price_num * rateVariable;
+  let number = preciseMultiply(price_num, rateVariable);
 
   if (returnNumber) {
     return number;

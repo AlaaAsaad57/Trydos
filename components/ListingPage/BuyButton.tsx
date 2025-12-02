@@ -1,6 +1,7 @@
 "use client";
 import { BuyButtonPropsType } from "models/componentType/BuyButtonPropsType";
 import { useParams } from "next/navigation";
+import { useEffect } from "react";
 import LocalizationServiceClass from "services/localization";
 import { useAppStore } from "store";
 import { RoundPrice, translateFunction } from "utils/functions";

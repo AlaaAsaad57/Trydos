@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
 interface Label {
   text: string;
@@ -9,105 +9,84 @@ interface Label {
 
 interface Props {
   labels: Label[];
-  displayDuration?: number;
+  displayDuration?: number; // Total time each label stays visible (including transition)
   transitionDuration?: number;
-  emptyDuration?: number;
 }
 
 export const ProductLabelsAnimated = ({
   labels,
   displayDuration = 2000,
   transitionDuration = 500,
-  emptyDuration = 100,
 }: Props) => {
-  const ref = useRef<HTMLDivElement | null>(null);
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [showLabel, setShowLabel] = useState(false);
-  const [animateIn, setAnimateIn] = useState(false);
-
   const currentLabel = labels[currentIndex];
 
-  // Intersection Observer
-
-  // Animation loop
   useEffect(() => {
-    let stepTimeout: NodeJS.Timeout;
+    if (labels.length <= 1) return;
 
-    const startCycle = () => {
-      // Step 1: Show label (invisible initially)
-      setShowLabel(true);
-      setAnimateIn(false); // Start in hidden state
+    const interval = setInterval(() => {
+      setCurrentIndex((i) => (i + 1) % labels.length);
+    }, displayDuration);
 
-      // Step 2: Wait a tick, then animate in
-      requestAnimationFrame(() => {
-        setAnimateIn(true);
-      });
+    return () => clearInterval(interval);
+  }, [labels.length, displayDuration]);
 
-      // Step 3: After displayDuration, animate out
-      stepTimeout = setTimeout(() => {
-        setAnimateIn(false);
-
-        // Step 4: After transitionDuration, hide label
-        stepTimeout = setTimeout(() => {
-          setShowLabel(false);
-
-          // Step 5: After emptyDuration, show next label
-          stepTimeout = setTimeout(() => {
-            setCurrentIndex((prev) => (prev + 1) % labels.length);
-          }, emptyDuration);
-        }, transitionDuration);
-      }, displayDuration);
-    };
-    if (labels.length > 1) startCycle();
-
-    return () => {
-      if (labels.length > 1) clearTimeout(stepTimeout);
-      if (labels.length > 1) {
-        if (timerRef.current) clearTimeout(timerRef.current);
-      }
-    };
-  }, [currentIndex, labels]);
   if (labels.length === 1) {
     return (
-      <div
-        ref={ref}
-        className="relative h-6 min-w-[150px] overflow-hidden select-none"
-        style={{ height: "1.5rem" }}
-      >
+      <div className="relative h-6 min-w-[150px] overflow-hidden select-none">
         <span
-          key={currentIndex}
-          className="absolute will-change-transform transition-all text-[9px]"
+          className="absolute text-[9px]"
           style={{
-            color: "#388CFF",
+            color: labels[0].color,
             opacity: 1,
           }}
         >
-          {labels[0]?.text}
+          {labels[0].text}
         </span>
       </div>
     );
   }
+
   return (
     <div
-      ref={ref}
       className="relative h-6 min-w-[150px] overflow-hidden select-none"
       style={{ height: "1.5rem" }}
     >
-      {showLabel && (
-        <span
-          key={currentIndex}
-          className="absolute will-change-transform transition-all text-[9px]"
-          style={{
-            color: "#388CFF",
-            opacity: animateIn ? 1 : 0,
-            transform: animateIn ? "translateY(0)" : "translateY(12px)",
-            transition: `transform ${transitionDuration}ms ease, opacity ${transitionDuration}ms ease`,
-          }}
-        >
-          {currentLabel?.text}
-        </span>
-      )}
+      <span
+        key={currentIndex} // this forces re-animation on each label
+        className="absolute will-change-transform text-[9px] transition-all"
+        style={{
+          color: currentLabel.color,
+          opacity: 1,
+          transform: "translateY(0)",
+          transition: `opacity ${transitionDuration}ms ease, transform ${transitionDuration}ms ease`,
+          animation: `fadeSlide ${displayDuration}ms ease`,
+        }}
+      >
+        {currentLabel.text}
+      </span>
+
+      {/* CSS animation injected locally */}
+      <style jsx>{`
+        @keyframes fadeSlide {
+          0% {
+            opacity: 0;
+            transform: translateY(12px);
+          }
+          10% {
+            opacity: 1;
+            transform: translateY(0);
+          }
+          90% {
+            opacity: 1;
+            transform: translateY(0);
+          }
+          100% {
+            opacity: 0;
+            transform: translateY(-12px);
+          }
+        }
+      `}</style>
     </div>
   );
 };
