@@ -55,7 +55,12 @@ import { getCookieServer } from "utils/cookies/cookie-manager";
 import { LogServerError } from "utils/serverErrorReporter";
 // export const revalidate = parseInt(process.env.NEXT_PUBLIC_REVALIDATE);
 // For Middle East users
+import { cache } from "react";
 
+const fetchProductMetaData = cache(async (params, searchParams) => {
+  const metaData = await generateProductMetaData({ params, searchParams });
+  return metaData;
+});
 export async function generateMetadata({ params, searchParams }) {
   let Params = await params;
   let SearchParams = await searchParams;
@@ -64,19 +69,17 @@ export async function generateMetadata({ params, searchParams }) {
     if (cachedData) {
       return typeof cachedData === "string" ? JSON.parse(cachedData) : {};
     } else {
-      const metaData = await generateProductMetaData({
-        params: Params,
-        searchParams: SearchParams,
-      });
+      const metaData = await fetchProductMetaData(Params, SearchParams);
+
       // @ts-ignore
       if (metaData?.error) {
-        redirect(`/${Params.lang}?message=product_not_found`);
+        throw new Error(metaData.error);
       }
       RedisSet(`${Params.productId}-${Params.lang}`, JSON.stringify(metaData));
       return metaData;
     }
   } catch (error) {
-    redirect(`/${Params.lang}?message=product_not_found`);
+    return {};
   }
 }
 async function getCurrency(country, language) {
@@ -134,22 +137,24 @@ async function GetProductDataFunc(params) {
       };
     }
   } catch (error) {
-    throw error;
+    return null;
   }
 }
 async function Page({ params, searchParams }) {
   let Params = await params;
   let SearchParams = await searchParams;
+
   try {
     let [countryVariable, languageVariable] = Params.lang.split("-");
     let start = process.hrtime.bigint();
-
     let [product, currency] = await Promise.all([
       GetProductDataFunc(Params),
       getCurrency(countryVariable, languageVariable),
     ]);
     let end = process.hrtime.bigint();
-
+    if (!product) {
+      redirect(`/${Params.lang}?message=product_not_found`);
+    }
     const color = SearchParams.color;
     const JsonLd = {
       "@context": "https://schema.org",
