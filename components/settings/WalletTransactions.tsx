@@ -148,8 +148,8 @@ function WalletTransactions({ goBack }: WalletTransactionsProps) {
                   <Spinner />
                 ) : (
                   <>
-                    {walletBalance.toFixed(8)} {currencySymbol}{" "}
-                    {translateFunction("Your Balance")}
+                    {walletBalance.toFixed(currency?.decimal_digits)}{" "}
+                    {currencySymbol} {translateFunction("Your Balance")}
                   </>
                 )}
               </span>
@@ -210,7 +210,8 @@ function WalletTransactions({ goBack }: WalletTransactionsProps) {
                     } ${isPositive ? "text-green-700" : "text-red-600"}`}
                   >
                     {isPositive ? "+" : "-"}
-                    {Math.abs(tx.amount).toFixed(2)} {currencySymbol}
+                    {Math.abs(tx.amount).toFixed(currency?.decimal_digits)}{" "}
+                    {currencySymbol}
                   </div>
                 </div>
               );

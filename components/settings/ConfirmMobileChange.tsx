@@ -76,7 +76,7 @@ function ConfirmMobileChange({
     }
   };
   const FinaliseLogin = async () => {
-    await AuthService.ConfirmSignIn();
+    // await AuthService.ConfirmSignIn();
   };
   const [failedLogin, setFailed] = useState(false);
   const [loadingPin, setLoadingPin] = useState(false);

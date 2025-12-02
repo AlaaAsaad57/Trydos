@@ -105,7 +105,7 @@ function ReturnOrderItem({
           <span className="bold text-[12px] text-[#8D8D8D] ml-[4px]">
             {RoundPrice({
               num:
-                (item?.price_after_discount || item.offer_price) * returnedQty -
+                item?.product_details?.offer_price * returnedQty -
                 (selectedOptions?.is_cost_by_system === 0
                   ? selectedOptions.cost
                   : 0),
@@ -171,7 +171,7 @@ function ReturnOrderItem({
               key={option?.id}
               className={`${
                 option.is_cost_by_system === 0 &&
-                option.cost > item.price_after_discount &&
+                option.cost > item.product_details.offer_price &&
                 "opacity-65"
               } px-[12px] w-auto regular text-[12px] text-[#5D5C5D] flex-row h-[39px] justify-start items-center rounded-[12px] bg-[#F8F8F8] `}
               style={{
@@ -183,7 +183,7 @@ function ReturnOrderItem({
               }}
               onClick={() => {
                 if (option.is_cost_by_system === 0) {
-                  if (option.cost > item.price_after_discount) {
+                  if (option.cost > item.product_details.offer_price) {
                     return;
                   }
                 }

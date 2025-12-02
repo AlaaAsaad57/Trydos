@@ -150,7 +150,7 @@ function MainSetting({ swipeToScreen }: MainSettingPropsType) {
             ) : (
               <>
                 <span className="medium">
-                  {wallet?.wallet_balance?.toFixed(8)}{" "}
+                  {wallet?.wallet_balance?.toFixed(currency?.decimal_digits)}{" "}
                 </span>
                 {currency?.symbol} {translateFunction("Your Balance")}
               </>

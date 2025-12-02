@@ -292,7 +292,7 @@ export const RoundPrice = ({
   let number = price_num * rateVariable;
   let deciaml_points = currency?.decimal_digits || 0;
   number = Number(number.toFixed(deciaml_points));
-  number = Math.ceil(number);
+
   if (returnNumber) {
     return number;
   }

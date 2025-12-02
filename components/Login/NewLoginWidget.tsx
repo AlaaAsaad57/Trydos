@@ -304,7 +304,7 @@ function NewLoginWidget() {
   };
 
   const FinaliseLogin = async () => {
-    AuthService.ConfirmSignIn();
+    // AuthService.ConfirmSignIn();
   };
   const backAction = () => {
     // Sendevent({
@@ -639,7 +639,7 @@ function NewLoginWidget() {
                 value={Name}
                 setName={(e) => setName(e)}
                 submit={async () => {
-                  await auth.ConfirmSignIn();
+                  // await auth.ConfirmSignIn();
                   await AuthService.UpdateName(Name);
                   if (operation === "login") {
                     if (Tempuser.already_exists) setSignStep("welcomeLogin");

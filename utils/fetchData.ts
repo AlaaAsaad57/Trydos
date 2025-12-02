@@ -195,10 +195,14 @@ const handleUnauthorized = async (
       case "chat":
       case "stories":
       case "comments":
-        console.log(
-          `############## JUST FOR TEST TO KNOW WHAT HAPPEN TO ASK FOR  OTP ##########:\n ${JSON.stringify(
-            options
-          )}`
+        let token = await getToken(server);
+        localStorage.setItem(
+          "last_unauthorized_request",
+          JSON.stringify({
+            ...options,
+            token: token,
+            date: new Date().toISOString(),
+          })
         );
         const { useAppStore } = await import("../store");
         const { setShouldAuthinticated } = useAppStore.getState();
@@ -228,8 +232,10 @@ const handleUnauthorized = async (
           const interval = setInterval(() => {
             const hasNewToken =
               server === "chat"
-                ? getCookie<UserData>(COOKIE_NAMES.USER_CHAT)?.access_token
-                : getCookie<UserData>(COOKIE_NAMES.USER_STORIES)?.access_token;
+                ? getCookie<UserData>(COOKIE_NAMES.USER_CHAT)?.need_auth ===
+                  false
+                : getCookie<UserData>(COOKIE_NAMES.USER_STORIES)?.need_auth ===
+                  false;
 
             const currentState = useAppStore.getState();
             if (!currentState.shouldAuthinticated) {
