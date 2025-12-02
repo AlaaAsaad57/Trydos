@@ -54,10 +54,6 @@ import PricesRow from "components/Cart/AddToCart/PricesRow";
 import { getCookieServer } from "utils/cookies/cookie-manager";
 import { LogServerError } from "utils/serverErrorReporter";
 
-const fetchProductMetaData = async (params, searchParams) => {
-  const metaData = await generateProductMetaData({ params, searchParams });
-  return metaData;
-};
 export async function generateMetadata({ params, searchParams }) {
   let Params = await params;
   let SearchParams = await searchParams;
@@ -66,11 +62,15 @@ export async function generateMetadata({ params, searchParams }) {
     if (cachedData) {
       return typeof cachedData === "string" ? JSON.parse(cachedData) : {};
     } else {
-      const metaData = await fetchProductMetaData(Params, SearchParams);
+      const metaData = await generateProductMetaData({
+        params: Params,
+        searchParams: SearchParams,
+      });
 
       // @ts-ignore
       if (metaData?.error) {
-        throw new Error(metaData.error);
+        // @ts-ignore
+        throw new Error(metaData?.error);
       }
       RedisSet(`${Params.productId}-${Params.lang}`, JSON.stringify(metaData));
       return metaData;
