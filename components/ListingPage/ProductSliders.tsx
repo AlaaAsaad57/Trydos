@@ -1,5 +1,5 @@
 import { ProductPhotosSliderPropsType } from "models/componentType/ProductPhotosSliderPropsType";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import { getConfiguredImage } from "utils/functions";
 import { GetImageUrl, getVideoUrl } from "utils/tinyUtils";
@@ -13,6 +13,46 @@ export function ProductPhotosSlider({
   images,
 }: ProductPhotosSliderPropsType) {
   const [activeSlide, setActiveImageIndex] = useState(0);
+  const [timeLeft, setTimeLeft] = useState<{
+    days: number;
+    hours: number;
+    minutes: number;
+    seconds: number;
+  } | null>(null);
+  const [isExpired, setIsExpired] = useState(false);
+
+  useEffect(() => {
+    let timer;
+    const calculateTimeLeft = () => {
+      const endDate = new Date(product.flash_deal_end_date);
+      endDate.setHours(23, 59, 59, 999);
+      const now = new Date();
+      const difference = endDate.getTime() - now.getTime();
+
+      if (difference > 0) {
+        const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+        const hours = Math.floor(
+          (difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
+        );
+        const minutes = Math.floor(
+          (difference % (1000 * 60 * 60)) / (1000 * 60)
+        );
+        const seconds = Math.floor((difference % (1000 * 60)) / 1000);
+
+        setTimeLeft({ days, hours, minutes, seconds });
+        setIsExpired(false);
+      } else {
+        setTimeLeft(null);
+        setIsExpired(true);
+      }
+    };
+    if (product?.flash_deal_end_date) {
+      calculateTimeLeft();
+      timer = setInterval(calculateTimeLeft, 1000);
+    }
+
+    return () => clearInterval(timer);
+  }, [product?.flash_deal_end_date]);
   if (Sliders) {
     return (
       <React.Fragment>
@@ -31,7 +71,8 @@ export function ProductPhotosSlider({
               controls={false}
               style={{
                 border:
-                  (product.flash_deal_end_date || shouldshowRedem) &&
+                  ((product.flash_deal_end_date && !isExpired) ||
+                    shouldshowRedem) &&
                   "1px solid #FF6200",
               }}
               className="w-full object-cover h-[290px] border-[#d3d3d387] border-[1px] rounded-15 z-10"
@@ -93,7 +134,8 @@ export function ProductPhotosSlider({
                         })}
                         style={{
                           border:
-                            (product.flash_deal_end_date || shouldshowRedem) &&
+                            ((product.flash_deal_end_date && !isExpired) ||
+                              shouldshowRedem) &&
                             "1px solid #FF6200",
                         }}
                         className="w-[200px] h-[290px] border-[#d3d3d387] object-cover object-[top_center] border-[1px] rounded-15 z-10"
@@ -132,8 +174,9 @@ export function ProductPhotosSlider({
               borderRadius: "15px",
               zIndex: "3",
               border:
-                Boolean(product.flash_deal_end_date || shouldshowRedem) &&
-                "1px solid #FF6200",
+                Boolean(
+                  (product.flash_deal_end_date && !isExpired) || shouldshowRedem
+                ) && "1px solid #FF6200",
             }}
             src={getConfiguredImage({
               src: GetImageUrl(images[0]),

@@ -1105,6 +1105,9 @@ const translations = {
   True: "حقيقي",
   "Max Allowed Quantity Reached":
     "تم الوصول إلى الحد الأقصى للكمية المسموح بها",
+  "I Agree & Return": "أوافق وأرجع",
+  "Delay Confirmation. I want to Return more product":
+    "تأجيل التأكيد. أريد إرجاع المزيد من المنتجات",
 };
 
 export default translations;

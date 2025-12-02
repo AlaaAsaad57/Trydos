@@ -1094,6 +1094,9 @@ const translations = {
   Large: "büyük",
   True: "gerçek",
   "Max Allowed Quantity Reached": "İzin verilen maksimum miktara ulaşıldı",
+  "I Agree & Return": "Kabul Ediyorum ve İade Ediyorum",
+  "Delay Confirmation. I want to Return more product":
+    "Onayı ertele. Daha fazla ürün iade etmek istiyorum",
 };
 
 export default translations;

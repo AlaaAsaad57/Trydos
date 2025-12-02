@@ -1144,6 +1144,9 @@ const translations = {
   Large: "گەورە",
   True: "ڕاستەقینە",
   "Max Allowed Quantity Reached": "گەیشت بە زۆرترین ڕێگەپێدراوی بڕ",
+  "I Agree & Return": "ڕازیەم و گەڕاندنوە دەکەم",
+  "Delay Confirmation. I want to Return more product":
+    "دڵنیاکردنەوە پاشەکشە بکە. دەمەوێت زیاتر بەرهەم بگەڕێنمەوە",
 };
 
 export default translations;

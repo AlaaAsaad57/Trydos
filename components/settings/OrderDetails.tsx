@@ -872,6 +872,13 @@ const OrderExpandedDetails = ({
       )?.length > 0 && isThereAReturnedProduct()
     );
   };
+  const shouldShowCancelReturn = () => {
+    return (
+      order?.edit_return_request &&
+      order.order_has_return_request &&
+      order.return_details?.details?.status?.value !== "cancelled"
+    );
+  };
   const getProductWithReturn = (product) => {
     let return_item = order?.return_details?.details?.order_details?.find(
       (s) => s.detail_id === product.id
@@ -1055,7 +1062,7 @@ const OrderExpandedDetails = ({
             )}
           </div>
         )}
-        {isThereAReturnedProduct() &&
+        {shouldShowCancelReturn() &&
           // order.edit_return_request &&
           (cancelling ? (
             <div
