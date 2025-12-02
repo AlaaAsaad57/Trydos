@@ -28,6 +28,7 @@ import { getReferralSource } from "utils/tinyUtils";
 import dynamic from "next/dynamic";
 import { clearSimulatedUserSession } from "utils/sessionManager";
 import { useAppStore } from "store";
+import { showSuccessNotification } from "store/notifications/reducer";
 
 interface MenuProps {
   user: any;
@@ -107,6 +108,16 @@ const Menu = ({ user, setMenuOpen }) => {
   const [showWishList, setShowWishList] = useState(false);
   const { lang } = useParams();
   const [loading, setLoading] = useState(false);
+  const copyInitialData = async () => {
+    let last_verify_date = localStorage.getItem("LAST-VERIFY");
+    let last_unauthorized_request = localStorage.getItem(
+      "last_unauthorized_request"
+    );
+    await navigator.clipboard.writeText(
+      JSON.stringify({ last_verify_date, last_unauthorized_request }, null, 2)
+    );
+    showSuccessNotification("copy success!");
+  };
   const handleLogout = async () => {
     // Sendevent({
     //   event: GA_EVENT_NAMES.CLICK,
@@ -444,6 +455,15 @@ const Menu = ({ user, setMenuOpen }) => {
             {translateFunction("Make Stories Token Expired")}
           </MenuItem>
         )}
+        <MenuItem
+          dataCy="copy-verify-data"
+          icon={<></>}
+          onClick={() => {
+            copyInitialData();
+          }}
+        >
+          {translateFunction("Make Stories Token Expired")}
+        </MenuItem>
       </div>
 
       {showNotifications && (
