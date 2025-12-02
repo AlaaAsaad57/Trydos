@@ -59,6 +59,7 @@ export async function generateMetadata({ params, searchParams }) {
   let SearchParams = await searchParams;
   try {
     let cachedData = await RedisGet(`${Params.productId}-${Params.lang}`);
+
     if (cachedData) {
       return typeof cachedData === "string" ? JSON.parse(cachedData) : {};
     } else {
@@ -104,7 +105,6 @@ async function GetProductDataFunc(params) {
   let [country, language] = params.lang.split("-");
   try {
     let data = await getProductFromCache(slug, language, country);
-
     if (data?.product && data?.product?.images) {
       let elasticData = await getProductDataFromElastic({
         productId: data.product.id,

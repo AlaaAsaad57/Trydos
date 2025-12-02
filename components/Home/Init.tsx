@@ -8,7 +8,7 @@ import { fetchCountries } from "utils/tinyUtils";
 
 import Smartlook from "smartlook-client";
 
-import { getUserChat, translateFunction } from "utils/functions";
+import { translateFunction } from "utils/functions";
 import { showErrorNotification } from "@/store/notifications/reducer";
 import {
   COOKIE_NAMES,

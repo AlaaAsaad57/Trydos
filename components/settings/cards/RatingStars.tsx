@@ -12,7 +12,7 @@ const StarIcon = ({ fill = () => "#402CDD", isHalf = false, color, size }) => {
       viewBox="0 0 11.326 11.318"
     >
       <defs>
-        <linearGradient
+        {/* <linearGradient
           id={`halfGradient${random}`}
           x1="0%"
           y1="0%"
@@ -24,7 +24,7 @@ const StarIcon = ({ fill = () => "#402CDD", isHalf = false, color, size }) => {
             offset="50%"
             style={{ stopColor: "transparent", stopOpacity: 1 }}
           />
-        </linearGradient>
+        </linearGradient> */}
       </defs>
       <path
         id="Path_23396"

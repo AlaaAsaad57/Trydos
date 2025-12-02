@@ -204,7 +204,7 @@ class HomeService {
         await import("utils/firebaseInitv1");
 
       const fbtoken = await requestFirebaseNotificationPermission();
-      console.log(fbtoken);
+
       if (fbtoken) {
         // Store token
         localStorage.setItem("FB-DEVICE-TOKEN", fbtoken);

@@ -64,7 +64,6 @@ export async function getProductFromCache(slug, lang, country) {
 
   try {
     const productId = await redis.get(slugKey);
-    const end1 = process.hrtime.bigint();
 
     if (!productId) {
       const end = process.hrtime.bigint();
@@ -76,23 +75,10 @@ export async function getProductFromCache(slug, lang, country) {
     )}`;
 
     const cachedProduct = await redis.get(productKey);
-    const socialDataProduct = await redis.get(`product:${productId}:social`);
-    console.debug(
-      "Redis get cachedProduct:",
-      productKey,
-      "time: ",
-      Number(end1 - start) / 1_000_000
-    );
 
     const end = process.hrtime.bigint();
     let product = cachedProduct ? JSON.parse(cachedProduct) : null;
-    product = {
-      ...(product ?? {}),
-      ...(socialDataProduct ? JSON.parse(socialDataProduct) : {}),
-    };
-    if (!product?.comments) {
-      return { product: null, timeMs: Number(end - start) / 1_000_000 };
-    }
+
     return {
       product: { ...product, redis: true },
       timeMs: Number(end - start) / 1_000_000,
