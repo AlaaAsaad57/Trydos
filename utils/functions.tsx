@@ -289,9 +289,9 @@ export const RoundPrice = ({
 
   // Currency conversion at the start
   let rateVariable = rate || currency?.exchange_rate || 1;
-  let number = price_num * rateVariable;
   let deciaml_points = currency?.decimal_digits || 0;
-  number = Number(number.toFixed(deciaml_points));
+  price_num = Number(price_num.toFixed(deciaml_points));
+  let number = price_num * rateVariable;
 
   if (returnNumber) {
     return number;
