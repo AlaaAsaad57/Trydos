@@ -373,23 +373,64 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
   };
 
   const getSelectedItemCart = () => {
-    if (ProductData?.variation?.length === 0)
+    const hasColorVariants = ProductData?.sync_color_images?.length > 0;
+    const hasSizeVariants =
+      ProductData?.choice_options?.[0]?.options?.length > 0;
+
+    // Case 1: No variants at all (no color, no size)
+    if (!hasColorVariants && !hasSizeVariants) {
       return localCart?.find((s) => s.id === ProductData.id);
-    return localCart.find(
-      (s) =>
-        s.id === ProductData.id &&
-        (s.color === selectedColor?.color_option ||
-          s.color ===
-            ProductData?.colors?.find(
-              (cl) =>
-                cl.option === selectedColor?.color_option ||
-                cl.name === selectedColor?.selected_option
-            )?.color) &&
-        s.size === (selectedSize?.option ?? selectedSize)
-    );
+    }
+
+    // Case 2: Has color AND size variants
+    if (hasColorVariants && hasSizeVariants) {
+      return localCart.find(
+        (s) =>
+          s.id === ProductData.id &&
+          (s.color === selectedColor?.color_option ||
+            s.color === selectedColor?.color_name ||
+            s.color ===
+              ProductData?.colors?.find(
+                (cl) =>
+                  cl.option === selectedColor?.color_option ||
+                  cl.name === selectedColor?.color_name
+              )?.color) &&
+          (s.size === selectedSize?.option || s.size === selectedSize?.name)
+      );
+    }
+
+    // Case 3: Has color only (no size)
+    if (hasColorVariants && !hasSizeVariants) {
+      return localCart.find(
+        (s) =>
+          s.id === ProductData.id &&
+          (s.color === selectedColor?.color_option ||
+            s.color === selectedColor?.color_name ||
+            s.color ===
+              ProductData?.colors?.find(
+                (cl) =>
+                  cl.option === selectedColor?.color_option ||
+                  cl.name === selectedColor?.color_name
+              )?.color)
+      );
+    }
+
+    // Case 4: Has size only (no color)
+    if (!hasColorVariants && hasSizeVariants) {
+      return localCart.find(
+        (s) =>
+          s.id === ProductData.id &&
+          (s.size === selectedSize?.option || s.size === selectedSize?.name)
+      );
+    }
+
+    // Fallback
+    return localCart?.find((s) => s.id === ProductData.id);
   };
+
   const reachedMaxQty = () => {
     let selectedItem = getSelectedItemCart();
+
     if (!selectedItem) return false;
     if (Number(product?.max_allowed_qty) === 0) return false;
     return selectedItem.quantity >= Number(product?.max_allowed_qty);

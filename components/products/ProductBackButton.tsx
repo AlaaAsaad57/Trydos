@@ -10,11 +10,11 @@ function ProductBackButton({ lang, productId }) {
         data: { is_full_home: true, href: `/${lang}` },
       };
     let lastPage = localStorage.getItem("last-page");
-    let href = "",
+    let href = `/${lang}`,
       data = {};
     if (lastPage) {
       let lastPageData = JSON.parse(lastPage);
-      href = lastPageData.url;
+      if (lastPageData?.url) href = lastPageData.url;
       if (
         href?.includes("/filters") ||
         href?.includes("/featured") ||

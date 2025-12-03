@@ -747,12 +747,15 @@ function OrderDetails({
                   }
                 />
               </div>
-              <OrderAddressCard
-                address={
-                  selectedOrder?.details?.find((s) => s.id === ActivePacks?.id)
-                    ?.shipping_address_data
-                }
-              />
+              {!shouldShowRatingBadge() && (
+                <OrderAddressCard
+                  address={
+                    selectedOrder?.details?.find(
+                      (s) => s.id === ActivePacks?.id
+                    )?.shipping_address_data
+                  }
+                />
+              )}
             </div>
             {shouldShowRatingBadge() && <RateOrderButton />}
             <div className="flex flex-col justify-start  w-full bg-[#F8F8F8] px-[12px] h-full relative">

@@ -145,9 +145,7 @@ function UserNavTopSection({
   const translate = (key, lang?) => {
     return translateFunction(key, languageVariable);
   };
-  const pathname = usePathname();
-  const router = useRouter();
-  const searchParams = useSearchParams();
+
   const [menuOpen, setMenuOpen] = useState(false);
 
   const enableCartAction = (s) => {

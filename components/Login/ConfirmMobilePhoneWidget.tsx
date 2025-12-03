@@ -15,7 +15,12 @@ function ConfirmMobilePhoneWidget() {
     useAppStore();
   useEffect(() => {
     DisableScroll();
-
+    let bool = confirm(
+      "mounted ConfirmMobilePhoneWidget confirm to copy the reason"
+    );
+    if (bool) {
+      copyInitialData();
+    }
     return () => {
       EnableScroll();
     };
@@ -31,6 +36,7 @@ function ConfirmMobilePhoneWidget() {
     );
     showSuccessNotification("copy success!");
   };
+
   return (
     <>
       <div className="fixed top-0 left-0 w-screen h-screen z-[999999999999998] bg-[#00000080] flex items-center justify-center" />
