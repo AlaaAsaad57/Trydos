@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { getProductsAndFiltersFromElastic } from "services/elastic/elasticSearch";
+import ImageTesting from "./ImageTesting"; // Add this import
 
 interface Header {
   key: string;
@@ -922,8 +923,51 @@ export default function ApiTestPage() {
     });
   };
 
+  const cloudinaryTransformations = [
+    { value: "c_fill", label: "Crop Fill" },
+    { value: "c_pad", label: "Crop Pad" },
+    // Add more transformations as needed
+  ];
+
+  const objectFitOptions = [
+    { value: "object-cover", label: "Cover" },
+    { value: "object-contain", label: "Contain" },
+    { value: "object-fill", label: "Fill" },
+    { value: "object-none", label: "None" },
+  ];
+
+  const objectPositionOptions = [
+    { value: "object-top", label: "Top" },
+    { value: "object-center", label: "Center" },
+    { value: "object-bottom", label: "Bottom" },
+  ];
+
+  const [transformation, setTransformation] = useState(
+    cloudinaryTransformations[0].value
+  );
+  const [width, setWidth] = useState(200);
+  const [height, setHeight] = useState(290);
+  const [objectFit, setObjectFit] = useState(objectFitOptions[0].value);
+  const [objectPosition, setObjectPosition] = useState(
+    objectPositionOptions[0].value
+  );
+  const [imageUrls, setImageUrls] = useState<string[]>([
+    // Add your Cloudinary image URLs here
+    "https://res.cloudinary.com/demo/image/upload/sample.jpg",
+    // Add more images as needed
+  ]);
+  const [appliedImages, setAppliedImages] = useState<string[]>([]);
+
+  const applyTransformations = () => {
+    const transformedImages = imageUrls.map((url) => {
+      return `${url}?w_${width}&h_${height}&c_${transformation}`;
+    });
+    setAppliedImages(transformedImages);
+  };
+
   return (
     <div className="min-h-screen w-full bg-gray-50 p-4 *:text-[#383838]">
+      <ImageTesting />
       <div className="max-w-7xl mx-auto">
         <h1 className="text-3xl font-bold mb-8 text-gray-800">API Tester</h1>
 
