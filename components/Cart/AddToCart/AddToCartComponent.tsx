@@ -388,14 +388,14 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
         (s) =>
           s.id === ProductData.id &&
           (s.color === selectedColor?.color_option ||
-            s.color === selectedColor?.color_name ||
-            s.color ===
+            s?.color === selectedColor?.color_name ||
+            s?.color ===
               ProductData?.colors?.find(
                 (cl) =>
-                  cl.option === selectedColor?.color_option ||
-                  cl.name === selectedColor?.color_name
+                  cl?.option === selectedColor?.color_option ||
+                  cl?.name === selectedColor?.color_name
               )?.color) &&
-          (s.size === selectedSize?.option || s.size === selectedSize?.name)
+          (s?.size === selectedSize?.option || s.size === selectedSize?.name)
       );
     }
 
@@ -403,10 +403,10 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
     if (hasColorVariants && !hasSizeVariants) {
       return localCart.find(
         (s) =>
-          s.id === ProductData.id &&
-          (s.color === selectedColor?.color_option ||
-            s.color === selectedColor?.color_name ||
-            s.color ===
+          s?.id === ProductData?.id &&
+          (s?.color === selectedColor?.color_option ||
+            s?.color === selectedColor?.color_name ||
+            s?.color ===
               ProductData?.colors?.find(
                 (cl) =>
                   cl.option === selectedColor?.color_option ||
@@ -417,15 +417,15 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
 
     // Case 4: Has size only (no color)
     if (!hasColorVariants && hasSizeVariants) {
-      return localCart.find(
+      return localCart?.find(
         (s) =>
-          s.id === ProductData.id &&
-          (s.size === selectedSize?.option || s.size === selectedSize?.name)
+          s?.id === ProductData.id &&
+          (s?.size === selectedSize?.option || s.size === selectedSize?.name)
       );
     }
 
     // Fallback
-    return localCart?.find((s) => s.id === ProductData.id);
+    return localCart?.find((s) => s.id === ProductData?.id);
   };
 
   const reachedMaxQty = () => {
