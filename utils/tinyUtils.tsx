@@ -877,6 +877,7 @@ export const ShowDayStr = (index, language) => {
 };
 
 export function convertTextToXFormat(input) {
+  if (!input) return "";
   // Split the input text into words
   const words = input.split(" ");
 

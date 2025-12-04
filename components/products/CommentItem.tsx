@@ -575,7 +575,7 @@ const UpdateCommentElement = ({
               </div>
             </div>
             <span className="medium text-[#1d1d1d] text-[9px] mt-[5px]">
-              Blue | Medium
+              {comment?.variant}
             </span>
             <div className="comment-date text-[9px]">
               {formatTime(comment?.created_at)}
