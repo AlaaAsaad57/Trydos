@@ -107,6 +107,7 @@ const translations = {
     "دەتوانیت بەرهەمەکە بێ هیچ شەرتێک گەڕێنەوە بەپێی یاسای گەڕاندنەوە و پارەکە بە تەواوی ",
   "View Product": "بینینی بەرهەم",
   "Cancel Return Request": "داخوازی گەڕاندن بسڕەوە",
+  "Return Request": "داواکاری گەڕاندنەوە",
   "Failed To Load Products After 3 Attempts":
     "بەرهەمەکان لەسەر نەبوون، ٣ سەکەڵەیەک بەردەست بە هەوڵبوون",
   "You Need To Confirm Your Request": "پێویستە داواکارییەکەت پشتڕاست بکەیت",

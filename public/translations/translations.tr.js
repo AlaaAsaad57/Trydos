@@ -117,6 +117,7 @@ const translations = {
   "Tap “Agree & Continue” To Accept trydos":
     "Trydos'u kabul etmek için “Kabul Et ve Devam Et”e dokunun",
   "Cancel Return Request": " İade talebini iptal et",
+  "Return Request": "İade Talebi",
   "Initializing Return": "İade başlatılıyor",
   "You Need To Confirm Your Request": "Talebinizi onaylamanız gerekiyor",
   "Product Return Needs Confirm": "Ürün iadesi onay gerektiriyor",
