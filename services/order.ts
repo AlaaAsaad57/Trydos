@@ -424,7 +424,7 @@ class OrderService {
             variant,
             order_details_id: String(order_detail_id),
             phone: auth?.User()?.phone,
-            images,
+            comments_images_customer: images,
           }),
           reqTitle: REQUESTS_DATA.ADD_COMMENT_FOR_PRODUCT,
           server: "comments",
