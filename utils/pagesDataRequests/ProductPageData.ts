@@ -178,6 +178,7 @@ export async function GetRatingCommentsFromElastic({
         name: s?.user_name,
         image: s?.user_avatar,
       },
+      comments_images_customer: s?.comments_images_customer,
       product_id: s?.product_id,
       comment: s?.text,
       created_at: s?.created_at,

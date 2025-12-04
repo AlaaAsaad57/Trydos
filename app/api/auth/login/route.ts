@@ -17,7 +17,11 @@ export async function GET(request: NextRequest) {
     const lang = request.headers.get("lang")?.trim();
     language = language ?? lang ?? "en";
     let cookiesStore = await cookies();
-    let guest_token = cookiesStore.get(COOKIE_NAMES.DEVICE_TOKEN)?.value || "";
+    let guest_token =
+      cookiesStore.get(COOKIE_NAMES.MARKET_TOKEN)?.value ||
+      cookiesStore.get(COOKIE_NAMES.DEVICE_TOKEN)?.value ||
+      "";
+
     let searchParams = request.nextUrl.searchParams;
     let verificationId = searchParams.get("verificationId");
     let otp = searchParams.get("otp");
@@ -50,16 +54,19 @@ export async function GET(request: NextRequest) {
     let otp_response = await fetch_req.json();
 
     if (fetch_req.status !== 200) {
-      return NextResponse.json(otp_response, {
-        status: fetch_req.status,
-        headers: {
-          "Cache-Control":
-            "no-store, no-cache, must-revalidate, proxy-revalidate",
-          Pragma: "no-cache",
-          Expires: "0",
-          "Surrogate-Control": "no-store",
-        },
-      });
+      return NextResponse.json(
+        { ...otp_response, request: VERIFY_OTP_ENDPOINT },
+        {
+          status: fetch_req.status,
+          headers: {
+            "Cache-Control":
+              "no-store, no-cache, must-revalidate, proxy-revalidate",
+            Pragma: "no-cache",
+            Expires: "0",
+            "Surrogate-Control": "no-store",
+          },
+        }
+      );
     }
 
     let MainToken = otp_response.data.token;
@@ -121,40 +128,49 @@ export async function GET(request: NextRequest) {
     );
 
     if (chatLoginResponse.status !== 200) {
-      return NextResponse.json(chat_response, {
-        status: chatLoginResponse.status,
-        headers: {
-          "Cache-Control":
-            "no-store, no-cache, must-revalidate, proxy-revalidate",
-          Pragma: "no-cache",
-          Expires: "0",
-          "Surrogate-Control": "no-store",
-        },
-      });
+      return NextResponse.json(
+        { ...(chat_response ?? {}), request: LOG_IN_CHAT_ENDPOINT },
+        {
+          status: chatLoginResponse.status,
+          headers: {
+            "Cache-Control":
+              "no-store, no-cache, must-revalidate, proxy-revalidate",
+            Pragma: "no-cache",
+            Expires: "0",
+            "Surrogate-Control": "no-store",
+          },
+        }
+      );
     }
     if (StoriesLoginResponse.status !== 200) {
-      return NextResponse.json(stories_response, {
-        status: StoriesLoginResponse.status,
-        headers: {
-          "Cache-Control":
-            "no-store, no-cache, must-revalidate, proxy-revalidate",
-          Pragma: "no-cache",
-          Expires: "0",
-          "Surrogate-Control": "no-store",
-        },
-      });
+      return NextResponse.json(
+        { ...stories_response, request: LOG_IN_STORIES_ENDPOINT },
+        {
+          status: StoriesLoginResponse.status,
+          headers: {
+            "Cache-Control":
+              "no-store, no-cache, must-revalidate, proxy-revalidate",
+            Pragma: "no-cache",
+            Expires: "0",
+            "Surrogate-Control": "no-store",
+          },
+        }
+      );
     }
     if (CommentLoginResponse.status !== 200) {
-      return NextResponse.json(comment_response, {
-        status: CommentLoginResponse.status,
-        headers: {
-          "Cache-Control":
-            "no-store, no-cache, must-revalidate, proxy-revalidate",
-          Pragma: "no-cache",
-          Expires: "0",
-          "Surrogate-Control": "no-store",
-        },
-      });
+      return NextResponse.json(
+        { ...comment_response, request: LOG_IN_COMMENTS_ENDPOINT },
+        {
+          status: CommentLoginResponse.status,
+          headers: {
+            "Cache-Control":
+              "no-store, no-cache, must-revalidate, proxy-revalidate",
+            Pragma: "no-cache",
+            Expires: "0",
+            "Surrogate-Control": "no-store",
+          },
+        }
+      );
     }
 
     let ChatUser = chat_response.data;

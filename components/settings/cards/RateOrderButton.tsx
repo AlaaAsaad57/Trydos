@@ -2,9 +2,10 @@ import React from "react";
 import { useAppStore } from "store";
 import { translateFunction } from "utils/functions";
 
-function RateOrderButton() {
+function RateOrderButton({ setExpanded }) {
   const { language } = useAppStore();
   const handleClick = () => {
+    setExpanded();
     setTimeout(() => {
       document.querySelector(".rating-star-container").scrollIntoView({
         behavior: "smooth",

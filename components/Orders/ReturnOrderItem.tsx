@@ -13,6 +13,7 @@ import { ReturnOrderItemPropsType } from "models/componentType/ReturnOrderItemPr
 import order from "services/order";
 import Skeleton from "react-loading-skeleton";
 import { showErrorNotification } from "store/notifications/reducer";
+import UploadImageComponent from "./UploadImageComponent";
 
 function ReturnOrderItem({
   backToMain,
@@ -215,7 +216,22 @@ function ReturnOrderItem({
         <>
           <span className="border-[#C4C2C280] border-b-[1px] w-full mt-[12px]" />
           <UploadImageComponent
-            return_request_product_id={item.return.return_request_product_id}
+            removeImageAction={async (i) => {
+              try {
+                if (item.return.return_request_product_id) {
+                  setLoading(true);
+                  await order.removeImage({
+                    return_request_product_id:
+                      item.return.return_request_product_id,
+                    img: i,
+                  });
+                  setLoading(false);
+                }
+              } catch (error) {
+                setLoading(false);
+                throw error;
+              }
+            }}
             loading={loadingImage}
             setLoading={setLoadinImage}
             images={images}
@@ -271,153 +287,7 @@ function ReturnOrderItem({
 }
 
 export default ReturnOrderItem;
-const UploadImageComponent = ({
-  images,
-  setImages,
-  loading,
-  setLoading,
-  return_request_product_id,
-}) => {
-  const UploadImage = async () => {
-    const input = document.querySelector<HTMLInputElement>(
-      "#return-modal-file-input"
-    );
-    input.click();
-  };
-  const OnChange = async (e) => {
-    try {
-      const file = (e.target as HTMLInputElement).files[0];
-      if (file) {
-        setLoading(true);
-        // const formData = new FormData();
-        // formData.append("image", file);
-        // const response = await fetch("/api/upload", {
-        //   method: "POST",
-        //   body: formData,
-        // });
-        // const data = await response.json();
-        let data = await order.UploadImageForOrderReturn({ image: file });
 
-        setImages([...images, data.sub_path]);
-        setLoading(false);
-        e.target.value = "";
-        e.target.files = null;
-      }
-    } catch (error) {
-      setLoading(false);
-    }
-  };
-  const GetImageUrl = (img) => {
-    if (img.includes(process.env.NEXT_PUBLIC_BASE_CLOUDINARY_URL)) return img;
-    else
-      return (
-        process.env.NEXT_PUBLIC_BASE_CLOUDINARY_URL +
-        `/return_request_products/` +
-        img
-      );
-  };
-  const removeImage = async (e, i) => {
-    try {
-      e.stopPropagation();
-      e.preventDefault();
-      if (loading) return;
-      if (return_request_product_id) {
-        setLoading(true);
-        await order.removeImage({
-          return_request_product_id: return_request_product_id,
-          img: i,
-        });
-        setLoading(false);
-      }
-
-      setImages(images.filter((im) => im !== i));
-    } catch (error) {
-      showErrorNotification(
-        translateFunction("Failed To Remove Image..Try Again")
-      );
-    }
-  };
-  return (
-    <div
-      className="flex-col w-full items-center mt-[12px] px-[24px] cursor-pointer"
-      onClick={(e) => {
-        if ((e.target as HTMLElement).closest(".order-return-item-image")) {
-          return;
-        }
-        UploadImage();
-      }}
-    >
-      <input
-        accept="image/*"
-        onChange={(e) => {
-          OnChange(e);
-        }}
-        type="file"
-        className="absolute opacity-0 "
-        hidden={true}
-        id="return-modal-file-input"
-        data-cy="return-modal-file-input"
-      />
-      <div
-        style={{
-          border: images.length === 0 ? "1px solid #402CDD80" : "none",
-        }}
-        className={`${
-          images.length === 0 ? "justify-center" : "justify-between pr-[12px]"
-        } flex-row w-full items-center justify-center bg-[#F8F8F8] rounded-[12px] h-[80px]`}
-      >
-        {images.length > 0 && (
-          <div className="flex-row gap-[3px]">
-            {images.map((s, i) => (
-              <div
-                key={i}
-                className="flex-row items-center justify-center cursor-pointer order-return-item-image relative"
-              >
-                <div
-                  onClick={(e) => {
-                    removeImage(e, s);
-                  }}
-                  className="absolute top-[-5px] right-[-5px] z-40 cursor-pointer p-3 rounded-full bg-white text-red-500 light flex justify-center items-center"
-                >
-                  X
-                </div>
-                <Image
-                  className="rounded-[12px] object-cover h-[80px] w-[57px]"
-                  src={GetImageUrl(GetImageUrl(s))}
-                  alt="image"
-                  width={57}
-                  height={80}
-                />
-                <span
-                  style={{
-                    boxShadow: "inset 0px 3px 6px #ffffff80",
-                    border: "1px solid #ffffff80",
-                  }}
-                  className="absolute w-[57px] h-[80px] rounded-[12px] "
-                />
-              </div>
-            ))}
-          </div>
-        )}
-        <div className="flex-col items-center justify-center">
-          {loading ? <Spinner /> : <UploadImageOrder />}
-          {images.length === 0 && (
-            <span className="text-[#402CDD] text-[10px] regular">
-              {translateFunction("Add Photo")}
-            </span>
-          )}
-        </div>
-      </div>
-      {images.length === 0 && (
-        <div className="flex-row w-full  text-center items-center justify-center mt-[12px] text-[#402CDD] text-[10px] regular">
-          {translateFunction(
-            "Please Add Photos Of The Product You Received So That We Can Provide You With The Best Service To Avoid This Issue."
-          )}
-        </div>
-      )}
-    </div>
-  );
-};
 const OptionsSkeleton = () => {
   return (
     <>
