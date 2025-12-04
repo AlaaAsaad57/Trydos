@@ -300,6 +300,8 @@ const UploadImageComponent = ({
 
         setImages([...images, data.sub_path]);
         setLoading(false);
+        e.target.value = "";
+        e.target.files = null;
       }
     } catch (error) {
       setLoading(false);
@@ -369,11 +371,16 @@ const UploadImageComponent = ({
             {images.map((s, i) => (
               <div
                 key={i}
-                className="flex-row items-center justify-center relative cursor-pointer order-return-item-image"
-                onClick={(e) => {
-                  removeImage(e, s);
-                }}
+                className="flex-row items-center justify-center cursor-pointer order-return-item-image relative"
               >
+                <div
+                  onClick={(e) => {
+                    removeImage(e, s);
+                  }}
+                  className="absolute top-[-5px] right-[-5px] z-40 cursor-pointer p-3 rounded-full bg-white text-red-500 light flex justify-center items-center"
+                >
+                  X
+                </div>
                 <Image
                   className="rounded-[12px] object-cover h-[80px] w-[57px]"
                   src={GetImageUrl(GetImageUrl(s))}
