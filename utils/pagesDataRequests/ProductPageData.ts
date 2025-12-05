@@ -182,6 +182,7 @@ export async function GetRatingCommentsFromElastic({
       product_id: s?.product_id,
       comment: s?.text,
       created_at: s?.created_at,
+      good_quality_comment: s?.good_quality_comment,
       star_rating: s?.rating,
       order_details_id: s?.order_details_id,
     })),
@@ -189,54 +190,7 @@ export async function GetRatingCommentsFromElastic({
     searchAfter: nextSearchAfter,
   };
 }
-export const getProductRatingDetails = async ({ p_id }) => {
-  try {
-    const result = await client.search({
-      index: "comments",
-      size: 0, // only want aggregation results
-      query: {
-        bool: {
-          must: [
-            { term: { product_id: String(p_id) } },
-            { exists: { field: "rating" } },
-            { exists: { field: "order_details_id" } },
-          ],
-          must_not: [{ term: { status: "deleted" } }],
-        },
-      },
-      aggs: {
-        rating_buckets: {
-          terms: {
-            script: {
-              source: `
-        if (doc['rating'].size() == 0) return 0;
-  def r = doc['rating'].value;
-              if (r >= 4.5) return 5;
-              if (r >= 3.5) return 4;
-              if (r >= 2.5) return 3;
-              if (r >= 1.5) return 2;
-              if (r >= 0.5) return 1;
-              return 0;
-              `,
-            },
-            size: 6,
-            order: { _key: "desc" }, // ensures keys come 5 → 0
-          },
-        },
-      },
-    });
 
-    const buckets = (result.aggregations?.rating_buckets as any)?.buckets ?? [];
-    let rating_details = [1, 2, 3, 4, 5].map((i) => ({
-      ratingGroup: i,
-      count: buckets?.find((s) => String(s.key) === String(i))?.doc_count ?? 0,
-    }));
-    return rating_details;
-  } catch (error) {
-    console.error("Error fetching rating stats:", error);
-    return { rating_details: [] };
-  }
-};
 export async function GetRatingCommentsForProduct({
   product_id,
   pageSize = 10,
@@ -332,6 +286,7 @@ export async function GetRatingCommentsForProduct({
       variant: s.variant,
       created_at: s.created_at,
       true_size: s.aspects?.size?.fit_analysis?.correct,
+      good_quality_comment: s?.good_quality_comment,
       star_rating: s.rating,
       order_details_id: s.order_details_id,
       recommendation: s?.recommendation,
@@ -550,6 +505,7 @@ export async function GetFQACommentsForProduct({
       comment: s.text,
       created_at: s.created_at,
       has_reply: s.has_reply,
+      good_quality_comment: s?.good_quality_comment,
       seller_reply: s.seller_reply,
       seller_name: s.seller_name,
       reply_created_at: s.reply_created_at,

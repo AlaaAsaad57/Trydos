@@ -474,7 +474,9 @@ const BuyerCommentRateInfo = ({
       <div className="flex-row gap-[4px] text-[9px] text-[#1d1d1d]">
         <RatingStars color="#1d1d1d" initialRating={rating} readOnly={true} />
         <div className="flex-row gap-[6px]">
-          <span>{translateFunction("Good Quality", language)}</span>
+          {comment?.good_quality_comment && (
+            <span>{translateFunction("Good Quality", language)}</span>
+          )}
           {comment?.true_size && (
             <span>{translateFunction("True Size", language)}</span>
           )}
