@@ -23,7 +23,6 @@ export const setLocalization = async (language, country) => {
       country: country,
     },
     cache: "no-cache",
-    credentials: "omit",
   });
 };
 /*Stories Actions */
