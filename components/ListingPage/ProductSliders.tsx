@@ -71,11 +71,11 @@ export function ProductPhotosSlider({
               controls={false}
               style={{
                 border:
-                  ((product.flash_deal_end_date && !isExpired) ||
-                    shouldshowRedem) &&
-                  "1px solid #FF6200",
+                  (product.flash_deal_end_date && !isExpired) || shouldshowRedem
+                    ? "1px solid #FF6200"
+                    : "1px solid #d3d3d3",
               }}
-              className="w-full object-cover h-[290px] border-[#d3d3d387] border-[1px] rounded-15 z-10"
+              className="w-full object-cover h-[290px] border-[#d3d3d3] border-[1px] rounded-15 z-10"
             />
           </>
         ) : (
@@ -134,9 +134,10 @@ export function ProductPhotosSlider({
                         })}
                         style={{
                           border:
-                            ((product.flash_deal_end_date && !isExpired) ||
-                              shouldshowRedem) &&
-                            "1px solid #FF6200",
+                            (product.flash_deal_end_date && !isExpired) ||
+                            shouldshowRedem
+                              ? "1px solid #FF6200"
+                              : "1px solid #d3d3d3",
                         }}
                         className="w-[200px] h-[290px] border-[#d3d3d387] object-cover object-[top_center] border-[1px] rounded-15 z-10"
                         alt={product.name || "alt"}
@@ -173,10 +174,11 @@ export function ProductPhotosSlider({
             style={{
               borderRadius: "15px",
               zIndex: "3",
-              border:
-                Boolean(
-                  (product.flash_deal_end_date && !isExpired) || shouldshowRedem
-                ) && "1px solid #FF6200",
+              border: Boolean(
+                (product.flash_deal_end_date && !isExpired) || shouldshowRedem
+              )
+                ? "1px solid #FF6200"
+                : "1px solid #d3d3d3",
             }}
             src={getConfiguredImage({
               src: GetImageUrl(images[0]),
