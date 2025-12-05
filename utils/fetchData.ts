@@ -324,7 +324,7 @@ export const fetchData = async <T = any>(
         },
 
         signal,
-        credentials: "omit",
+        credentials: server === "local" ? "include" : "omit",
       };
 
       if (body && !(body instanceof FormData)) {

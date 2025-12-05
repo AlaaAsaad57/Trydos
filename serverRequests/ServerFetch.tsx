@@ -46,7 +46,6 @@ const createServerFetch = async <T = any,>({
           tags: tags,
           revalidate: revalidate,
         },
-        credentials: "omit",
       });
 
       // If response is ok and not a retryable status code, return success
