@@ -107,7 +107,7 @@ export function ProductPhotosSlider({
           >
             <NormalSlider
               initialSlide={activeSlide}
-              slideHeight={290}
+              slideHeight={291}
               slideWidth={200}
               slidesArray={images?.map((image, index) => index)}
               onSlideChange={(index) => {
