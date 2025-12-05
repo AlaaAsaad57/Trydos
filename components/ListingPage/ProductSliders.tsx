@@ -63,7 +63,7 @@ export function ProductPhotosSlider({
           <>
             <div className="inset-shadow-img w-[200px] h-[290px] rounded-15 absolute" />
             <video
-              src={getVideoUrl(product.videos[0], { width: 400, height: 400 })}
+              src={getVideoUrl(product.videos[0], { width: 400, height: 580 })}
               autoPlay
               loop
               muted
@@ -122,14 +122,14 @@ export function ProductPhotosSlider({
                       <div className="inset-shadow-img w-[200px] h-[290px] rounded-15 absolute " />
                       <Image
                         width={400}
-                        height={300}
+                        height={580}
                         loading="eager"
                         quality={100}
                         fetchPriority="auto"
                         src={getConfiguredImage({
                           src: GetImageUrl(image),
-                          width: 189,
-                          height: 290,
+                          width: 400,
+                          height: 580,
                           q: 100,
                         })}
                         style={{
@@ -166,7 +166,7 @@ export function ProductPhotosSlider({
         >
           <div className="inset-shadow-img w-[200px] h-[290px] rounded-15 absolute " />
           <Image
-            width={380}
+            width={400}
             height={580}
             quality={100}
             loading="eager"
@@ -182,7 +182,7 @@ export function ProductPhotosSlider({
             }}
             src={getConfiguredImage({
               src: GetImageUrl(images[0]),
-              width: 380,
+              width: 400,
               height: 580,
               q: 100,
             })}
