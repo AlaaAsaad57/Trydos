@@ -195,9 +195,16 @@ const handleUnauthorized = async (
         return true;
       case "market":
       case "market-dashboard":
-        const authService = await import("../services/auth");
-        await authService.default.ExpiredUser();
-        return true;
+      case "local":
+        if (
+          (server === "local" && options?.url.includes("/api/auth/login")) ||
+          server === "market-dashboard" ||
+          server === "market"
+        ) {
+          const authService = await import("../services/auth");
+          await authService.default.ExpiredUser();
+          return true;
+        }
       case "chat":
       case "stories":
       case "comments":
