@@ -145,6 +145,7 @@ function SearchVoice({ setSearchValue }: { setSearchValue: Function }) {
       const response = await fetch("/api/speech-recognition", {
         method: "POST",
         body: formData,
+        credentials: "omit",
       });
 
       const result = await response.json();

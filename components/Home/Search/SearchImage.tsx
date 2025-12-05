@@ -83,6 +83,7 @@ function SearchImage({ setSearchValue }: { setSearchValue: Function }) {
       const result = await fetch("/api/image-search", {
         method: "POST",
         body: formData,
+        credentials: "omit",
       });
       if (!result.ok) {
         const response = await result.json();

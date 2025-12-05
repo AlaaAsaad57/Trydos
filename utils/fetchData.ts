@@ -28,7 +28,8 @@ export type ServerType =
   | "upload story"
   | "nest-stories"
   | "local"
-  | "comments";
+  | "comments"
+  | "market-dashboard";
 
 export type FetchMethod = "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
 
@@ -68,7 +69,10 @@ const ignoredMessages = [
 // ---------- Helper Functions ----------
 const getServerBaseUrl = (server: ServerType) => {
   switch (server) {
+    // case "market-dashboard":
+    //   return process.env.NEXT_PUBLIC_MARKET_DASHBOARD_BACKEND_URL;
     case "market":
+    case "market-dashboard":
       return process.env.NEXT_PUBLIC_BACKEND_URL;
     case "elastic":
       return process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL;
@@ -96,6 +100,7 @@ const getToken = async (server: ServerType): Promise<string> => {
     case "chat":
       return getCookie<UserData>(COOKIE_NAMES.USER_CHAT)?.access_token || "";
     case "market":
+    case "market-dashboard":
       return (
         getCookie<string>(COOKIE_NAMES.MARKET_TOKEN) ||
         getCookie<string>(COOKIE_NAMES.DEVICE_TOKEN) ||
@@ -189,6 +194,7 @@ const handleUnauthorized = async (
       case "elastic":
         return true;
       case "market":
+      case "market-dashboard":
         const authService = await import("../services/auth");
         await authService.default.ExpiredUser();
         return true;
@@ -318,6 +324,7 @@ export const fetchData = async <T = any>(
         },
 
         signal,
+        credentials: "omit",
       };
 
       if (body && !(body instanceof FormData)) {

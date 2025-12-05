@@ -33,6 +33,7 @@ export default async function AnalyzeSearchText(query): Promise<any> {
       method: "POST",
       body: JSON.stringify(payload),
       headers: { "Content-Type": "application/json" },
+      credentials: "omit",
     });
 
     let data = await response.json();

@@ -50,6 +50,7 @@ export async function GET(request: NextRequest) {
         country: country,
         language: language,
       },
+      credentials: "omit",
     });
     let otp_response = await fetch_req.json();
 
@@ -86,6 +87,7 @@ export async function GET(request: NextRequest) {
             name: name || InventoryUser.name,
             original_user_id: InventoryUser.id,
           }),
+          credentials: "omit",
         }),
         fetch(
           process.env.NEXT_PUBLIC_STORIES_BACKEND_URL + LOG_IN_STORIES_ENDPOINT,
@@ -99,6 +101,7 @@ export async function GET(request: NextRequest) {
               otp_id_token: idToken,
               mobile_phone: InventoryUser.phone,
             }),
+            credentials: "omit",
           }
         ),
         fetch(
@@ -115,6 +118,7 @@ export async function GET(request: NextRequest) {
               phone: String(InventoryUser.phone),
               id_token: idToken,
             }),
+            credentials: "omit",
           }
         ),
       ]);

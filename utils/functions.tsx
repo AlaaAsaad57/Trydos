@@ -459,6 +459,7 @@ export async function storeError(error) {
         platform: "🛑WEB🛑",
         ...(error ?? {}),
       }),
+      credentials: "omit",
     }),
   });
 }

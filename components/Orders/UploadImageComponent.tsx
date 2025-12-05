@@ -101,7 +101,9 @@ const UploadImageComponent = ({
     try {
       setLoading(true);
       // Convert base64 to blob
-      const blob = await fetch(capturedImage).then((res) => res.blob());
+      const blob = await fetch(capturedImage, {
+        credentials: "omit",
+      }).then((res) => res.blob());
       const file = new File([blob], `camera-${Date.now()}.webp`, {
         type: "image/webp",
       });

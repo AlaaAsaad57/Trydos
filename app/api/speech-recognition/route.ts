@@ -45,6 +45,8 @@ export async function POST(request: NextRequest) {
         Authorization: `${ASSEMBLYAI_API_KEY}`,
         "Content-Type": "application/octet-stream",
       },
+      credentials: "omit",
+
       body: audioBuffer,
     });
 
@@ -90,6 +92,7 @@ export async function POST(request: NextRequest) {
           Authorization: `${ASSEMBLYAI_API_KEY}`,
         },
         body: JSON.stringify(transcriptionPayload),
+        credentials: "omit",
       }
     );
 

@@ -48,6 +48,7 @@ export default function SentryTestPage() {
       const res = await fetch("/api/sentry-test", {
         method: "GET",
         cache: "no-store",
+        credentials: "omit",
       });
       if (!res.ok) {
         // Intentionally ignore body

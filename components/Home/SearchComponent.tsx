@@ -114,6 +114,7 @@ function SearchComponent({
               language: language,
             },
             signal,
+            credentials: "omit",
           }
         );
 

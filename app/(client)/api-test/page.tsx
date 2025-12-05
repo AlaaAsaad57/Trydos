@@ -799,6 +799,7 @@ export default function ApiTestPage() {
       const options: RequestInit = {
         method,
         headers: requestHeaders,
+        credentials: "omit",
       };
 
       // Add body for methods that support it

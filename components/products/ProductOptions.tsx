@@ -71,7 +71,10 @@ function ProductOptions({
 
         // Update social product data
         fetch(
-          `/api/editSocialProduct?pid=${product.id}&slug=${product.slug}&language=${language}&country=${country}`
+          `/api/editSocialProduct?pid=${product.id}&slug=${product.slug}&language=${language}&country=${country}`,
+          {
+            credentials: "omit",
+          }
         );
 
         // Track GA event
@@ -115,7 +118,10 @@ function ProductOptions({
 
         // Update social product data
         fetch(
-          `/api/editSocialProduct?pid=${product.id}&slug=${product.slug}&language=${language}&country=${country}`
+          `/api/editSocialProduct?pid=${product.id}&slug=${product.slug}&language=${language}&country=${country}`,
+          {
+            credentials: "omit",
+          }
         );
 
         // Track GA event

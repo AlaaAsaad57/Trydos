@@ -153,6 +153,7 @@ class StoryService {
           coountry: country,
           auth: userStories?.access_token,
         },
+        credentials: "omit",
       });
       let stories = await req.json();
       setStoryData(stories.data);
