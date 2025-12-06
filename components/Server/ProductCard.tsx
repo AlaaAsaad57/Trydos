@@ -230,7 +230,7 @@ function ProductCard({
                   <img
                     src={GetImageUrl(product.brand.icon)}
                     alt={product.brand.name || "Brand"}
-                    className="h-[15px] w-auto object-contain"
+                    className="h-[15px]  object-cover w-[30px] inline-block ml-[7px]"
                     loading="eager"
                     draggable="false"
                   />
