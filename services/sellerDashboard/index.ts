@@ -22,6 +22,7 @@ class SellerDashboardService {
         method: "GET",
         server: "market-dashboard",
         reqTitle: REQUESTS_DATA.GET_SHOPES_FOR_SELLER,
+        sellerId,
       });
       console.log("Seller Products Response:", res);
       return res;

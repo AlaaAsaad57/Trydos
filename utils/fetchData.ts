@@ -43,6 +43,7 @@ export interface FetchDataParams {
   retryActionIfUnAuth?: () => void | null;
   signal?: AbortSignal;
   noMessage?: boolean;
+  sellerId?: string;
 }
 
 // ---------- Internal State ----------
@@ -316,7 +317,13 @@ export const fetchData = async <T = any>(
     }
     try {
       const token = await getToken(server);
-      const headers = await getHeader(server === "upload story");
+      let headers: any = await getHeader(server === "upload story");
+      if (params.sellerId) {
+        headers = {
+          ...headers,
+          "X-Seller-ID": params.sellerId,
+        };
+      }
       const fullUrl = getServerBaseUrl(server) + url;
 
       const requestOptions: RequestInit = {
