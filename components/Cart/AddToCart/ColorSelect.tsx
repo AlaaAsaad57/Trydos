@@ -96,7 +96,7 @@ function ColorSelect({
                   className="mt-[3px] semibold text-[7px] text-[#513AAF]"
                   data-cy="selected-color-name"
                 >
-                  {translateFunction("Get a")}{" "}
+                  {translateFunction("Sale")}{" "}
                   <span>{IsColorHasDiscount(color)} %</span>
                 </span>
               ) : (
