@@ -187,7 +187,7 @@ const translations = {
   Pack: "مجموعة",
   "Please Add Photos Of The Product You Received So That We Can Provide You With The Best Service To Avoid This Issue.":
     "يرجى إضافة صور للمنتج الذي استلمته حتى نتمكن من تقديم أفضل خدمة لك لتجنب هذه المشكلة",
-  "Rate & Get Money": "قيم واحصل على المال",
+  "Rate & Get Money": "قيم  واربح المال",
   "Your Accurate Rating Of The Products You Receive Helps Us Improve Quality And Helps Other Customers Purchase.":
     "تقييمك الدقيق للمنتجات التي تتسلمها يساعدنا في تحسين الجودة ويساعد العملاء الآخرين على الشراء.",
   "Story deleted successfully.": "تم حذف القصة بنجاح.",
@@ -363,7 +363,7 @@ const translations = {
   "Order Date": "تاريخ الطلب",
   Recipient: "المستلم",
   "Recipient Phone": "رقم الهاتف",
-  "Orders Details": "تفاصيل الطلبات",
+  "Orders Details": "تفاصيل الطلب",
   "Item Status": "حالة المنتج",
   "Composed Of": "مكون من",
   Buying: "شراء",

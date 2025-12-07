@@ -757,7 +757,7 @@ function OrderDetails({
                 />
               )}
             </div>
-            {shouldShowRatingBadge() && (
+            {shouldShowRatingBadge() && !isExpanded && (
               <RateOrderButton setExpanded={() => setIsExpanded(false)} />
             )}
             <div className="flex flex-col justify-start  w-full bg-[#F8F8F8] px-[12px] h-full relative">
