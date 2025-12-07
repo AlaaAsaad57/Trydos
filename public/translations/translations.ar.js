@@ -26,7 +26,7 @@ const translations = {
   "All Comments Are Genuine From Customers Who Purchased And Actually Received The Product Through":
     "جميع التعليقات حقيقية من العملاء الذين اشتروا المنتج واستلموه فعليًا من خلال",
   "Overall Good Quality": "جودة عامة جيدة",
-  "Expected Shipping & delivery Date": "تاريخ الشحن والتسليم المتوقع",
+  "Expected Shipping & delivery Date": "تاريخ التوصيل المتوقع",
   "Based On The Previous Delivery Statistics Below To Your Area, We Conclude That The Expected Delivery Time For Your Product Is":
     "بناءً على إحصائيات التسليم السابقة أدناه إلى منطقتك، نستنتج أن وقت التسليم المتوقع لمنتجك هو",
   "Get a": "احصل على",

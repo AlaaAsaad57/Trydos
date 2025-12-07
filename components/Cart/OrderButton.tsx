@@ -364,7 +364,7 @@ function OrderButton({ close, toOrders }) {
                         total_discount -
                         total_shipping_cost,
                       returnNumber: true,
-                      points: 5,
+                      points: currency?.decimal_digits,
                       language: languageVariable,
                     })}{" "}
                     {currency.symbol}
@@ -418,7 +418,7 @@ function OrderButton({ close, toOrders }) {
                       num: total_discount,
 
                       returnNumber: true,
-                      points: 5,
+                      points: currency?.decimal_digits,
                       language: languageVariable,
                     })}{" "}
                     {currency.symbol}
@@ -482,7 +482,7 @@ function OrderButton({ close, toOrders }) {
                       {RoundPrice({
                         num: total_shipping_cost,
                         returnNumber: true,
-                        points: 5,
+                        points: currency?.decimal_digits,
                         language: languageVariable,
                       })}{" "}
                       {currency.symbol}
@@ -541,7 +541,7 @@ function OrderButton({ close, toOrders }) {
                   {RoundPrice({
                     num: getTotaPriceToShow() + total_discount,
                     returnNumber: true,
-                    points: 5,
+                    points: currency?.decimal_digits,
                     language: languageVariable,
                   })}
                 </span>{" "}
@@ -549,7 +549,7 @@ function OrderButton({ close, toOrders }) {
                   {RoundPrice({
                     num: getTotaPriceToShow(),
                     returnNumber: true,
-                    points: 5,
+                    points: currency?.decimal_digits,
                     language: languageVariable,
                   })}
                 </span>{" "}
@@ -657,7 +657,7 @@ function OrderButton({ close, toOrders }) {
                           {RoundPrice({
                             num: getTotaPriceToShow(),
                             returnNumber: true,
-                            points: 5,
+                            points: currency?.decimal_digits,
                             language: languageVariable,
                           })}{" "}
                           {currency?.symbol}

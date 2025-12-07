@@ -24,45 +24,6 @@ import CommentPost from "public/svg/CommentPost";
 import CommentItem from "./CommentItem";
 import home from "services/home";
 
-// Simple External Link Warning Popup Component
-const ExternalLinkPopup = ({ url, onConfirm, onClose, language }) => {
-  return (
-    <div
-      className="fixed inset-0 z-[9999] flex items-center justify-center bg-black bg-opacity-50"
-      onClick={onClose}
-    >
-      <div
-        className="bg-white rounded-[15px]  min-w-[350px] p-[12px] flex flex-col w-[350px] shadow-lg"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <h3 className="text-[#1d1d1d] text-[16px] bold mb-[10px]">
-          {translateFunction("External Link Warning", language)}
-        </h3>
-        <p className="text-[#1d1d1d] text-[13px] regular mb-[5px]">
-          {translateFunction("You are about to leave our site", language)}
-        </p>
-        <p className="text-[#8D8D8D] text-[11px] regular mb-[20px] break-all">
-          {url}
-        </p>
-        <div className="flex gap-[10px] justify-end">
-          <button
-            onClick={onClose}
-            className="px-[20px] py-[10px] rounded-[8px] bg-[#F8F8F8] text-[#1d1d1d] text-[13px] medium hover:bg-[#e8e8e8] transition-colors"
-          >
-            {translateFunction("Cancel", language)}
-          </button>
-          <button
-            onClick={onConfirm}
-            className="px-[20px] py-[10px] rounded-[8px] bg-[#513aaf] text-white text-[13px] medium hover:bg-[#4230a0] transition-colors"
-          >
-            {translateFunction("Confirm", language)}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
-
 function FAQSection({ lang, comments, product_id, seller_name }) {
   const [country, language] = lang.split("-");
   const { setColorBottomSheet, editInfo, SelectedProduct } = useAppStore();
@@ -228,69 +189,15 @@ export const FaqItem = ({
   translateLoading = false,
 }) => {
   let has_reply = comment.has_reply;
-  const [externalLink, setExternalLink] = useState(null);
-
-  const isExternalUrl = (url) => {
-    try {
-      const urlObj = new URL(url);
-      return urlObj.origin !== window.location.origin;
-    } catch {
-      return false;
-    }
-  };
-
-  const handleLinkClick = (e, url) => {
-    if (isExternalUrl(url)) {
-      e.preventDefault();
-      setExternalLink(url);
-    }
-  };
-
-  const handleConfirm = () => {
-    if (externalLink) {
-      window.open(externalLink, "_blank", "noopener,noreferrer,nofollow");
-      setExternalLink(null);
-    }
-  };
-
-  const handleClose = () => {
-    setExternalLink(null);
-  };
 
   const renderTextWithLinks = (text) => {
     if (!text) return null;
-
-    const urlRegex = /(https?:\/\/[^\s]+)/g;
-    const parts = text.split(urlRegex);
-
-    return parts.map((part, index) => {
-      if (urlRegex.test(part)) {
-        return (
-          <a
-            key={index}
-            href={part}
-            onClick={(e) => handleLinkClick(e, part)}
-            className="text-blue-600 underline break-all cursor-pointer"
-          >
-            {part}
-          </a>
-        );
-      }
-      return <React.Fragment key={index}>{part}</React.Fragment>;
-    });
+    return <React.Fragment key={text}>{text}</React.Fragment>;
   };
   const isRtl = language === "ar" || language === "ku";
 
   return (
     <>
-      {externalLink && (
-        <ExternalLinkPopup
-          url={externalLink}
-          onConfirm={handleConfirm}
-          onClose={handleClose}
-          language={language}
-        />
-      )}
       <div
         className={`flex-col ${
           isFull ? "min-w-full" : "min-w-[85vw]"

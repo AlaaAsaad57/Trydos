@@ -658,7 +658,7 @@ function OrderDetails({
           screenName={
             <div className="flex-row items-stretch">
               <OrdersIcon />
-              <span className="text-[#1D1D1D] text-[14px] medium ml-[4px]">
+              <span className="text-[#1D1D1D] text-[14px] medium mx-[4px]">
                 {translateFunction("Orders Details")}
               </span>
             </div>
@@ -909,7 +909,11 @@ const OrderExpandedDetails = ({
           <span className="bold mx-[2px]"> {order?.details?.length}</span>{" "}
           {translateFunction("Items")} .{" "}
           <span className="bold mx-[2px]">
-            {RoundPrice({ num: order.order_amount, language: language })}{" "}
+            {RoundPrice({
+              num: order.order_amount,
+              language: language,
+              returnNumber: true,
+            })}{" "}
             {currency?.symbol}
           </span>
         </div>
@@ -1009,16 +1013,20 @@ const OrderExpandedDetails = ({
               </g>
             </g>
           </svg>
-
           <span className="text-[#8D8D8D] regular text-[10px] mt-[5px]">
             {translateFunction("Expected Delivery Date")}
           </span>
-          <span className="text-[#1D1D1D] text-[12px] regular mt-[3px]">
-            Monday{" "}
+          <span
+            style={{
+              direction: isRtl ? "rtl" : "ltr",
+            }}
+            className="text-[#1D1D1D] flex flex-row text-[12px] regular mt-[3px] gap-[3px]"
+          >
+            <span>Monday</span>
             <span className="bold text-[#1D1D1D] text-[12px]  mx-[1px]">
               2.Jun
-            </span>{" "}
-            | 3 {translateFunction("Work Days")}
+            </span>
+            <span> | 3 {translateFunction("Work Days")}</span>
           </span>
         </div>
         <div className="w-auto min-h-[60px] h-auto  px-[12px] flex-col">
@@ -1036,13 +1044,8 @@ const OrderExpandedDetails = ({
             {translateFunction("Order Status")}
           </span>
           <div className="text-[#1D1D1D] flex-row text-[12px] regular mt-[3px] gap-[6px] items-center flex">
-            <span>{order?.order_status?.label}</span>
-            {order?.order_group_status?.value === "delivered" && (
-              <>
-                <span>{translateFunction("to", language)}</span>
-                <span>{order?.shipping_address_data?.contact_person_name}</span>
-              </>
-            )}
+            <span>{order?.order_group_status?.label}</span>
+
             <OrderStatusIcon
               status={order?.order_group_status?.value}
               isRtl={isRtl}
@@ -1170,23 +1173,23 @@ const ProductCard = ({
             <span className="text-[#505050] text-[12px] regular mt-[3px] pr-[20px]">
               {product.product_details?.name}
             </span>
-            <div className="flex-row justify-between w-full">
+            <div className="flex-row justify-between w-full gap-[40px]">
               {product?.variation?.[0]?.color && (
                 <div className="flex-row">
                   <span className="text-[10px] regular">
                     {translateFunction("Color")}:
                   </span>
-                  <span className="text-[#505050] text-[10px] medium ml-[2px]">
+                  <span className="text-[#505050] text-[10px] medium mx-[2px]">
                     {product?.variation?.[0]?.color}
                   </span>
                 </div>
               )}
               {product?.variation?.[0]?.Size && (
-                <div className="flex-row ml-[40px]">
+                <div className="flex-row">
                   <span className="text-[10px] regular">
                     {translateFunction("Size")}:
                   </span>
-                  <span className="text-[#505050] text-[10px] medium ml-[2px]">
+                  <span className="text-[#505050] text-[10px] medium mx-[2px]">
                     {product?.variation?.[0]?.Size}
                   </span>
                 </div>
@@ -1197,17 +1200,17 @@ const ProductCard = ({
                 <span className="text-[10px] regular">
                   {translateFunction("Composed Of")}:
                 </span>
-                <span className="text-[#505050] text-[10px] medium ml-[2px]">
+                <span className="text-[#505050] text-[10px] medium mx-[2px]">
                   {product?.product_details?.count_of_pieces}{" "}
                   {translateFunction("Pieces")}
                 </span>
               </div>
 
-              <div className="flex-row ml-[40px]">
+              <div className="flex-row mx-[40px]">
                 <span className="text-[10px] regular">
                   {translateFunction("Item")}:
                 </span>
-                <span className="text-[#505050] text-[10px] medium ml-[2px]">
+                <span className="text-[#505050] text-[10px] medium mx-[2px]">
                   {product.qty}
                 </span>
               </div>
@@ -1217,10 +1220,10 @@ const ProductCard = ({
                 <span className="text-[10px] regular">
                   {translateFunction("Item Status")}:
                 </span>
-                <span className="text-[#505050] text-[10px] medium ml-[2px]">
+                <span className="text-[#505050] text-[10px] medium mx-[2px]">
                   {product?.order_status ?? status?.label}
                 </span>
-                <span className="ml-[12px]">
+                <span className="mx-[12px]">
                   <OrderStatusIcon
                     status={product?.order_status?.value ?? status?.value}
                     isRtl={isRtl}
@@ -1234,7 +1237,7 @@ const ProductCard = ({
                   <span className="text-[#FFB16F] text-[10px] medium ">
                     {translateFunction("Return Requested")}
                   </span>
-                  <span className="ml-[12px]">
+                  <span className="mx-[12px]">
                     <ReturnedOrderStatusIcon />
                   </span>
                 </div>
@@ -1246,7 +1249,7 @@ const ProductCard = ({
                   <span className="text-[#505050] text-[10px] medium ">
                     {translateFunction("Canceled")}
                   </span>
-                  <span className="ml-[12px]">
+                  <span className="mx-[12px]">
                     <CanceledOrderStatusIcon />
                   </span>
                 </div>
@@ -1262,6 +1265,7 @@ const ProductCard = ({
                   {RoundPrice({
                     num: product?.product_details?.price,
                     language: language,
+                    returnNumber: true,
                   })}
                 </div>
               )}
@@ -1276,6 +1280,7 @@ const ProductCard = ({
                 {RoundPrice({
                   num: product.product_details?.offer_price,
                   language: language,
+                  returnNumber: true,
                 })}
               </div>
               <span className="text-[#1D1D1D] light text-[10px] ">

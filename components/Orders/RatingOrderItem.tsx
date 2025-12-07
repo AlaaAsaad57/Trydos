@@ -115,7 +115,7 @@ function RatingOrderItem({
         tabIndex={-1}
       >
         <div
-          className="bg-white h-full rounded-2xl shadow-2xl p-6 space-y-6"
+          className="bg-white h-full rounded-2xl shadow-2xl p-6 "
           style={{
             direction: isRtl ? "rtl" : "ltr",
           }}

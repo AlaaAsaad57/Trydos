@@ -133,12 +133,14 @@ function ReturnOrderItem({
         {translateFunction("Change Qty")}
       </div>
       <div className="flex-row items-center justify-center mt-[20px] w-full max-w-[200px]">
-        <button
-          onClick={() => setReturnedQty(Math.max(1, returnedQty - 1))}
-          className="flex items-center justify-center w-[40px] h-[40px] rounded-l-[12px] bg-[#F8F8F8] border border-[#E6E6E680] border-r-0 hover:bg-[#EEEEEE] transition-colors duration-200 active:scale-95"
-        >
-          <span className="text-[#1D1D1D] text-[18px] light">−</span>
-        </button>
+        {returnedQty > 1 && (
+          <button
+            onClick={() => setReturnedQty(Math.max(1, returnedQty - 1))}
+            className="flex items-center justify-center w-[40px] h-[40px] rounded-l-[12px] bg-[#F8F8F8] border border-[#E6E6E680] border-r-0 hover:bg-[#EEEEEE] transition-colors duration-200 active:scale-95"
+          >
+            <span className="text-[#1D1D1D] text-[18px] light">−</span>
+          </button>
+        )}
         <input
           type="number"
           value={returnedQty}

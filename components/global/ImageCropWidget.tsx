@@ -95,7 +95,7 @@ export function ImageCropWidget({
               ref={imageRef}
               src={imageUrl}
               alt="Upload"
-              className="max-h-[60vh] object-contain"
+              className="max-h-[50vh] object-contain"
             />
           </ReactCrop>
 

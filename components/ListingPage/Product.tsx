@@ -72,7 +72,15 @@ export const BuyButtonProduct = ({
         seconds: product.is_redeem && shouldShowRedeem ? seconds : 0,
       });
   };
-
+  // console.log({
+  //   offer_price: {
+  //     old: product?.offer_price,
+  //     new: RoundPrice({
+  //       num: product?.offer_price,
+  //       points: currency?.decimal_digits,
+  //     }),
+  //   },
+  // });
   const RenderPrice = () => {
     if (
       product?.flash_deal_price >= 0 &&
@@ -88,7 +96,7 @@ export const BuyButtonProduct = ({
             {RoundPrice({
               num: product?.price,
               rate: currency?.exchange_rate,
-              points: 0,
+              points: currency?.decimal_digits,
               language: language,
             })}
             <svg
@@ -115,7 +123,7 @@ export const BuyButtonProduct = ({
             {RoundPrice({
               num: product?.flash_deal_price,
               rate: currency?.exchange_rate,
-              points: 0,
+              points: currency?.decimal_digits,
               language: language,
             })}
           </span>
@@ -133,7 +141,7 @@ export const BuyButtonProduct = ({
               {RoundPrice({
                 num: product?.price,
                 rate: currency?.exchange_rate,
-                points: 0,
+                points: currency?.decimal_digits,
                 language: language,
               })}
               <svg
@@ -161,13 +169,13 @@ export const BuyButtonProduct = ({
                 ? RoundPrice({
                     num: product?.offer_price,
                     rate: currency?.exchange_rate,
-                    points: 0,
+                    points: currency?.decimal_digits,
                     language: language,
                   })
                 : RoundPrice({
                     num: product?.price,
                     rate: currency?.exchange_rate,
-                    points: 0,
+                    points: currency?.decimal_digits,
                     language: language,
                   })}
               <svg
@@ -199,7 +207,7 @@ export const BuyButtonProduct = ({
             {RoundPrice({
               num: product?.price,
               rate: currency?.exchange_rate,
-              points: 0,
+              points: currency?.decimal_digits,
               language: language,
             })}
 
@@ -235,7 +243,7 @@ export const BuyButtonProduct = ({
               {RoundPrice({
                 num: product?.price,
                 rate: currency?.exchange_rate,
-                points: 0,
+                points: currency?.decimal_digits,
                 language: language,
               })}
               <svg
@@ -263,13 +271,13 @@ export const BuyButtonProduct = ({
                 ? RoundPrice({
                     num: product?.offer_price,
                     rate: currency?.exchange_rate,
-                    points: 0,
+                    points: currency?.decimal_digits,
                     language: language,
                   })
                 : RoundPrice({
                     num: product?.price,
                     rate: currency?.exchange_rate,
-                    points: 0,
+                    points: currency?.decimal_digits,
                     language: language,
                   })}
             </span>
@@ -284,7 +292,7 @@ export const BuyButtonProduct = ({
             {RoundPrice({
               num: product?.price,
               rate: currency?.exchange_rate,
-              points: 0,
+              points: currency?.decimal_digits,
               language: language,
             })}
           </span>

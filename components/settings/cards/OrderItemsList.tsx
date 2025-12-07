@@ -67,7 +67,12 @@ function OrderItemsList({
         <span className={`text-[#8D8D8D] text-[10px] regular mt-[5px]`}>
           {translateFunction("Order Details")}
         </span>
-        <span className={`text-[#1D1D1D] text-[12px] regular`}>
+        <span
+          style={{
+            direction: isRtl ? "rtl" : "ltr",
+          }}
+          className={`text-[#1D1D1D] text-[12px] regular`}
+        >
           <span
             className={`bold ${isRtl ? " text-right dir-rtl" : " "}`}
             data-cy="order-products-count"

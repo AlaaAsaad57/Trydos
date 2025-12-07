@@ -286,6 +286,12 @@ function preciseMultiply(a, b) {
   const decimals = aDecimals + bDecimals;
   return resultInt / Math.pow(10, decimals);
 }
+function toFixedCustom(decimalDigits, number) {
+  const factor = 10 ** decimalDigits;
+  return (Math.floor((number + Number.EPSILON) * factor) / factor).toFixed(
+    decimalDigits
+  );
+}
 export const RoundPrice = ({
   num,
   rate,
@@ -308,8 +314,8 @@ export const RoundPrice = ({
 
   // Currency conversion at the start
   let rateVariable = rate || currency?.exchange_rate || 1;
-  let deciaml_points = currency?.decimal_digits || 0;
-  price_num = Number(price_num.toFixed(deciaml_points));
+  let deciaml_points = points || currency?.decimal_digits || 0;
+  price_num = Number(toFixedCustom(deciaml_points, price_num));
   let number = preciseMultiply(price_num, rateVariable);
 
   if (returnNumber) {
@@ -327,7 +333,7 @@ export const RoundPrice = ({
     const result = Math.floor((number + 999) / 1000);
     return `${result}${thousand}`;
   } else if (number === 0) {
-    return "0.0";
+    return "0";
   } else if (number < 1e5) {
     return number;
   } else {

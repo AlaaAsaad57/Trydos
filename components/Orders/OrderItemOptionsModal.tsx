@@ -35,6 +35,7 @@ function OrderItemOptionsModal({
     setActiveWidget("ChangeRequest");
   };
   const shouldShowRetutn = () => {
+    return true;
     if (ActivePacks?.order_status?.value !== "delivered") return false;
     if (item.qty === 0) return false;
     if (item?.return?.already_return) {

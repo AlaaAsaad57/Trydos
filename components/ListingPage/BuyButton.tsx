@@ -61,6 +61,7 @@ function BuyButton({
                     num: redeem_price,
                     rate: currency?.exchange_rate,
                     language: languageVariable,
+                    points: currency?.decimal_digits,
                   })}
                 </span>
                 <span className="text-[8px] light pt-[2px] flex align-start">
