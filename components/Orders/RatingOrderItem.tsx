@@ -145,7 +145,7 @@ function RatingOrderItem({
           </div>
 
           {/* Comment Input */}
-          <div className="space-y-2">
+          <div className="space-y-2 mt-[10px]">
             <label
               htmlFor="comment-input"
               className="block text-sm font-medium text-gray-700"

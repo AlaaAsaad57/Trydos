@@ -280,7 +280,7 @@ function OrdersList({
         screenName={
           <div className="flex-row items-stretch">
             <OrdersIcon />
-            <span className="text-[#1D1D1D] text-[14px] medium ml-[4px]">
+            <span className="text-[#1D1D1D] text-[14px] medium mx-[4px]">
               {translateFunction("Orders")}
             </span>
           </div>
