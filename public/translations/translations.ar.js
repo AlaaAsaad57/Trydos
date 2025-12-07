@@ -119,7 +119,7 @@ const translations = {
   "Tap “Agree & Continue” To Accept trydos":
     'اضغط على "موافقة ومتابعة" لقبول trydos',
   "Cancel Return Request": "إلغاء طلب الإرجاع",
-  "Return Request": "ارجاع الطلب",
+  "Return Request": "طلب الارجاع",
   "Failed To Load Return Details Try again":
     "فشل في تحميل تفاصيل الإرجاع، حاول مرة أخرى",
   "You Need To Confirm Your Request": "تحتاج إلى تأكيد طلبك",
@@ -203,6 +203,8 @@ const translations = {
   "Share Story": "مشاركة القصة",
   Cancel: "الغاء",
   "For All": "للكل",
+  "You are about to leave our site": "أنت على وشك مغادرة موقعنا",
+  "External Link Warning": "تحذير رابط خارجي",
   "For Me": "لي",
   Imagee: "صورة",
   Video: "فيديو",

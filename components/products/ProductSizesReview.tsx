@@ -21,9 +21,10 @@ function ProductSizesReview({ lang, sizeFitData }) {
         {translateFunction("Buyers Reviews On Product Sizing", language)}
       </div>
       <div
-        className={`${
-          isRtl ? "flex-row-reverse" : "flex-row"
-        } flex-row w-full mt-[12px] flex-wrap gap-y-[8px] gap-x-[15px]`}
+        className={`flex-row w-full mt-[12px] flex-wrap gap-y-[8px] gap-x-[15px]`}
+        style={{
+          direction: isRtl ? "rtl" : "ltr",
+        }}
       >
         {reviews_arr.map((r) => (
           <ReviewProgress

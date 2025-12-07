@@ -108,6 +108,8 @@ const translations = {
   "View Product": "بینینی بەرهەم",
   "Cancel Return Request": "داخوازی گەڕاندن بسڕەوە",
   "Return Request": "داواکاری گەڕاندنەوە",
+  "You are about to leave our site": "تۆ خەریکە ماڵپەڕەکەمان جێبهێڵیت",
+  "External Link Warning": "ئاگاداری بەستەری دەرەکی",
   "Failed To Load Products After 3 Attempts":
     "بەرهەمەکان لەسەر نەبوون، ٣ سەکەڵەیەک بەردەست بە هەوڵبوون",
   "You Need To Confirm Your Request": "پێویستە داواکارییەکەت پشتڕاست بکەیت",

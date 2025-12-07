@@ -124,6 +124,8 @@ const translations = {
   "return this product is not allowed": "Destpêkirina vegerandinê",
   "Failed To Load Return Details Try again":
     "İade detayları yüklenemedi, tekrar deneyin",
+  "You are about to leave our site": "Sitemizden ayrılmak üzeresiniz",
+  "External Link Warning": "Harici Bağlantı Uyarısı",
   "Notification Permission:": "Bildirim İzni:",
   "Preparing Your Experience": "Deneyiminiz hazırlanıyor",
   "this option dosent have enough quantity":
