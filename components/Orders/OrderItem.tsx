@@ -271,7 +271,13 @@ const OrderInvoice = ({
         } regular gap-[2px]  text-[12px] text-[#505050]`}
       >
         <span className="bold mx-[2px]">.</span>
-        <span>{RoundPrice({ num: invoice.total, language: language })}</span>
+        <span>
+          {RoundPrice({
+            num: invoice.total,
+            language: language,
+            returnNumber: true,
+          })}
+        </span>
         <span>{currency?.symbol}</span>
       </div>
     </div>
