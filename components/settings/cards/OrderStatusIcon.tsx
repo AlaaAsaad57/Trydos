@@ -8,7 +8,13 @@ import {
   ShippedSatus,
 } from "./OrderStatusCartsIcon";
 
-function OrderStatusIcon({ status , isRtl} : {status : string , isRtl?: boolean}) {
+function OrderStatusIcon({
+  status,
+  isRtl,
+}: {
+  status: string;
+  isRtl?: boolean;
+}) {
   if (!status || typeof status !== "string") return <></>;
   if (status?.toLowerCase() === "pending")
     return (
@@ -356,9 +362,10 @@ export default OrderStatusIcon;
 export const BagStatusIcon = ({ status }) => {
   const statuses = ["pending", "preparing", "shipped", "delivered"];
   let status_word = status.toLowerCase();
-  if (status_word === "pending") return <PendingStatus />;
-  if (status_word === "preparing") return <PreparingStatus />;
-  if (status_word === "shipped") return <ShippedSatus />;
-  if (status_word === "delivered") return <DeliveredStatus />;
-  return <NormalStatus color={() => false} />;
+  if (status_word === "canceled") return <CancelOrderIcon />;
+  if (status_word === "pending") return <PendingStatus isActive={false} />;
+  if (status_word === "preparing") return <PreparingStatus isActive={false} />;
+  if (status_word === "shipped") return <ShippedSatus isActive={false} />;
+  if (status_word === "delivered") return <DeliveredStatus isActive={false} />;
+  return <NormalStatus />;
 };
