@@ -54,13 +54,13 @@ function SearchResult({
   };
 
   const handleSMS = () => {
-    const text = `Hey! Join us at ${process.env.NEXT_PUBLIC_REMOTE_FRONT} \n Get the app: https://play.google.com/store/apps/details?id=your.app.id`;
+    const text = `Hey! Join us at ${window.location.origin} \n Get the app: https://play.google.com/store/apps/details?id=your.app.id`;
     window.location.href = `sms:${item.mobile_phone}?body=${text}`;
     setShowInviteModal(false);
   };
 
   const handleWhatsApp = () => {
-    const text = `Hey! Join us at ${process.env.NEXT_PUBLIC_REMOTE_FRONT} \n Get the app: https://play.google.com/store/apps/details?id=your.app.id`;
+    const text = `Hey! Join us at ${window.location.origin} \n Get the app: https://play.google.com/store/apps/details?id=your.app.id`;
     const encodedText = encodeURIComponent(text);
     window.open(
       `https://wa.me/${item.mobile_phone}?text=${encodedText}`,
