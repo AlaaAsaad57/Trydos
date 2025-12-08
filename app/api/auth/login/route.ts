@@ -153,11 +153,11 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    let ChatUser = chat_response.data;
-    let StoriesUser = stories_response.data;
-    let ChatToken = chat_response.data.access_token;
-    let StoriesToken = stories_response.data.access_token;
-    let CommentToken = comment_response.comments_token;
+    let ChatUser = chat_response?.data ?? null;
+    let StoriesUser = stories_response?.data ?? null;
+    let ChatToken = chat_response?.data?.access_token ?? null;
+    let StoriesToken = stories_response?.data?.access_token ?? null;
+    let CommentToken = comment_response?.comments_token ?? null;
     let finalResponse = {
       ...otp_response,
       ChatUser,

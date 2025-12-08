@@ -51,12 +51,14 @@ function OrderDetails({
   resetOrderDetails,
   goBack,
   setShouldConfirmReturn,
+  swipeToScreen,
 }: OrderDetailsPropsType) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
   const {
     setOrderDetails,
+
     selectedOrder,
     showNotificationIndicator,
     showNotificaionCircle,
@@ -189,6 +191,8 @@ function OrderDetails({
       }
       let order_id_chat = searchParams.get("order_id_chat");
       let order_id = searchParams.get("chat_id");
+      console.log("Fetched order details:", ActivePacks);
+
       if (
         (order_id_chat || order_id) &&
         data.find(
@@ -209,8 +213,10 @@ function OrderDetails({
       } else if (data.find((s) => s.id === ActivePacks?.id)) {
         setActivePacks(data.find((s) => s.id === ActivePacks?.id));
       } else setActivePacks(data[0]);
-
-      setOrderDetails(orderData);
+      setOrderDetails({
+        ...orderData,
+        is_from_wallet: selectedOrder?.is_from_wallet,
+      });
       setIsNavigating(false);
       order_id_chat = searchParams.get("order_id_chat");
       order_id = searchParams.get("chat_id");
@@ -275,7 +281,11 @@ function OrderDetails({
       chatAbortControllerRef.current.abort();
       chatAbortControllerRef.current = null;
     }
-
+    if (selectedOrder?.is_from_wallet) {
+      swipeToScreen(12);
+    } else {
+      swipeToScreen(9);
+    }
     setOrderDetails(null);
     setActivePacks(null);
     fetchedOrderIdRef.current = null;

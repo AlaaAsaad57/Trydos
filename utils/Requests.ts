@@ -201,4 +201,5 @@ export const REQUESTS_DATA = {
   LIKE_FOR_COMMENT: { reqTitle: "LIKE_FOR_COMMENT", code: 141 },
   UNLIKE_FOR_COMMENT: { reqTitle: "UNLIKE_FOR_COMMENT", code: 142 },
   GET_SHOPES_FOR_SELLER: { reqTitle: "GET_SHOPES_FOR_SELLER", code: 143 },
+  GET_ORDER_DETAILS: { reqTitle: "GET_ORDER_DETAILS", code: 144 },
 };

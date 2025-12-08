@@ -6,33 +6,80 @@ import Spinner from "components/global/Spinner";
 import BackIcon from "public/svg/listing/backIcon";
 import { useEffect, useState } from "react";
 import order from "services/order";
+import { fetchData } from "utils/fetchData";
+import { REQUESTS_DATA } from "utils/Requests";
+import { useParams, useRouter } from "next/navigation";
 
 interface WalletTransactionsProps {
   goBack: () => void;
+  swipeToOrderDetails: () => void;
 }
 
 interface Transaction {
   id: string;
   date: string;
   description: string;
+  order_id?: number;
   amount: number;
 }
 
-function WalletTransactions({ goBack }: WalletTransactionsProps) {
-  const { wallet, currency, language } = useAppStore();
+function WalletTransactions({
+  goBack,
+  swipeToOrderDetails,
+}: WalletTransactionsProps) {
+  const { wallet, currency, language, setActivePacks, setOrderDetails } =
+    useAppStore();
   const isRtl = language === "ar" || language === "ku";
+  const { lang } = useParams();
   const [loading, setLoading] = useState(false);
+  const [loadingNavigation, setLoadingNavigation] = useState(false);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [offset, setOffset] = useState(1);
   const [isFetching, setIsFetching] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [totalTransactions, setTotalTransactions] = useState(0);
+  const router = useRouter();
   const [walletBalance, setWalletBalance] = useState(0);
   const [currencySymbol, setCurrencySymbol] = useState<string | undefined>(
     currency?.symbol
   );
   const PAGE_SIZE = 10;
+  const GoToOrders = async (order_id) => {
+    try {
+      if (loadingNavigation) return;
+      setLoadingNavigation(true);
+      let respons = await fetchData({
+        method: "GET",
+        url: `/customer/order/details?order_id=${order_id}`,
+        server: "market",
+        reqTitle: REQUESTS_DATA.GET_ORDER_DETAILS,
+      });
 
+      if (respons) {
+        let params = new URLSearchParams(window.location.search);
+        params.set("id", respons.data.order_group_id.toString());
+        params.set("tab", "Orders");
+        // @ts-ignore
+        router.replace(`/${lang}/setting?${params.toString()}`, {
+          scroll: false,
+          // @ts-ignore
+          shallow: true,
+        });
+        setActivePacks({ id: order_id });
+        setOrderDetails({
+          order_group_id: respons.data.order_group_id,
+          id: respons.data.order_group_id,
+          is_from_wallet: true,
+        });
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        swipeToOrderDetails();
+        setLoadingNavigation(false);
+      }
+    } catch (error) {
+      console.log(error);
+      setLoadingNavigation(false);
+    }
+  };
   const getWallet = async () => {
     try {
       setLoading(true);
@@ -83,6 +130,7 @@ function WalletTransactions({ goBack }: WalletTransactionsProps) {
             const amount = tx.credit > 0 ? tx.credit : -tx.debit;
             return {
               id: tx.id,
+              order_id: tx?.order_id,
               date: formatDate(tx.created_at),
               description:
                 tx.transaction_type?.name || tx.reference || "Transaction",
@@ -111,7 +159,11 @@ function WalletTransactions({ goBack }: WalletTransactionsProps) {
   };
 
   return (
-    <div className="w-full h-full flex-col">
+    <div
+      className={`${
+        loadingNavigation && "opacity-65 scale-95"
+      } w-full h-full flex-col`}
+    >
       <div className="bg-[#fff] flex items-center justify-between top-0 left-0 w-full h-[50px] sticky z-10">
         <span
           className="p-2 cursor-pointer"
@@ -192,7 +244,18 @@ function WalletTransactions({ goBack }: WalletTransactionsProps) {
                   <div className="col-span-4 text-[12px] text-[#6A6A6A]">
                     {tx.date}
                   </div>
-                  <div className="col-span-4 text-[13px] text-[#1D1D1D]">
+                  <div
+                    onClick={() => {
+                      if (tx?.order_id) {
+                        GoToOrders(tx?.order_id);
+                      }
+                    }}
+                    className={`${
+                      tx?.order_id
+                        ? "underline-offset-1 underline cursor-pointer text-[#3195ff]"
+                        : ""
+                    } col-span-4 text-[13px] text-[#1D1D1D]`}
+                  >
                     {tx.description}
                   </div>
                   <div

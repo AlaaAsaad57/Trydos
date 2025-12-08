@@ -360,7 +360,7 @@ function OrdersList({
                     // @ts-ignore
                     shallow: true,
                   });
-                  setSelectedOrder({ ...order });
+                  setSelectedOrder({ ...order, is_from_wallet: false });
                   swipeToScreen(10);
                 }}
               />

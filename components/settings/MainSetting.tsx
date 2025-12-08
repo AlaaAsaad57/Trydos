@@ -23,7 +23,6 @@ import {
 } from "models/componentType/settingTypes/MainSettingPropsType";
 import { fetchOrders } from "services/orders";
 import SettingsLoader from "components/skeleton/loaders/SettingsLoader";
-import NextLink from "components/global/NextLink";
 
 function MainSetting({ swipeToScreen }: MainSettingPropsType) {
   const options = [

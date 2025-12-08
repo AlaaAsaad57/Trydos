@@ -187,8 +187,8 @@ function Settings({ lang, order_id, tab }: SettingsIndexPropsType) {
               }}
               goBack={() => {
                 setShouldConfirmReturn(false);
-                swipeToScreen(9);
               }}
+              swipeToScreen={(index) => swipeToScreen(index)}
               setShouldConfirmReturn={setShouldConfirmReturn}
             />
           }
@@ -204,7 +204,12 @@ function Settings({ lang, order_id, tab }: SettingsIndexPropsType) {
     {
       id: "Wallet Transactions",
       title: "Wallet Transactions",
-      component: () => <WalletTransactions goBack={() => swipeToScreen(0)} />,
+      component: () => (
+        <WalletTransactions
+          swipeToOrderDetails={() => swipeToScreen(10)}
+          goBack={() => swipeToScreen(0)}
+        />
+      ),
       parentId: "main",
     },
     {

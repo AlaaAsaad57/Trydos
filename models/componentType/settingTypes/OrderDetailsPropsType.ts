@@ -2,6 +2,7 @@ export interface OrderDetailsPropsType {
   resetOrderDetails: () => void;
   goBack: () => void;
   setShouldConfirmReturn: (e: any) => void;
+  swipeToScreen: (index: number) => void;
 }
 export interface OrderDateCardProps {
   time: string;
