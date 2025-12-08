@@ -44,8 +44,9 @@ function OrderItemsList({
       !item.is_returned && ActivePacks?.order_status?.value === "delivered"
     );
   };
-  const [showCommentModal, setShowCommentModal] = useState(false);
+  const [showCommentModal, setShowCommentModal] = useState<any>(false);
   const [loading, setLoading] = React.useState(false);
+
   return (
     <div className="w-full flex-col">
       <div
@@ -168,7 +169,7 @@ function OrderItemsList({
                     if (!loading) {
                       document.documentElement.scrollTop = 0;
                       document.querySelector("#OrderDetails").scrollTop = 0;
-                      setShowCommentModal(true);
+                      setShowCommentModal(product?.id);
                     }
                   }}
                 >
@@ -187,7 +188,7 @@ function OrderItemsList({
                   </div>
                 </div>
 
-                {showCommentModal && (
+                {showCommentModal === product?.id && (
                   <RatingOrderItem
                     seller_id={
                       // ActivePacks?.seller_id
@@ -196,6 +197,7 @@ function OrderItemsList({
                     refresh={() => {
                       getOrderDetails();
                     }}
+                    key={`${product.id}-${product?.id}-rating-modal`}
                     productId={product?.product_details.id}
                     variant={product?.variant}
                     order_detail_id={product.id}

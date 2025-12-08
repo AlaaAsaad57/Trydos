@@ -122,7 +122,7 @@ export async function GET(request: NextRequest) {
           }
         ),
       ]);
-
+    let is_failed = [];
     let [chat_response, stories_response, comment_response] = await Promise.all(
       [
         chatLoginResponse.json(),
@@ -132,49 +132,25 @@ export async function GET(request: NextRequest) {
     );
 
     if (chatLoginResponse.status !== 200) {
-      return NextResponse.json(
-        { ...(chat_response ?? {}), request: LOG_IN_CHAT_ENDPOINT },
-        {
-          status: chatLoginResponse.status,
-          headers: {
-            "Cache-Control":
-              "no-store, no-cache, must-revalidate, proxy-revalidate",
-            Pragma: "no-cache",
-            Expires: "0",
-            "Surrogate-Control": "no-store",
-          },
-        }
-      );
+      is_failed.push({
+        ...(chat_response ?? {}),
+        request: LOG_IN_CHAT_ENDPOINT,
+        status: StoriesLoginResponse.status,
+      });
     }
     if (StoriesLoginResponse.status !== 200) {
-      return NextResponse.json(
-        { ...stories_response, request: LOG_IN_STORIES_ENDPOINT },
-        {
-          status: StoriesLoginResponse.status,
-          headers: {
-            "Cache-Control":
-              "no-store, no-cache, must-revalidate, proxy-revalidate",
-            Pragma: "no-cache",
-            Expires: "0",
-            "Surrogate-Control": "no-store",
-          },
-        }
-      );
+      is_failed.push({
+        ...stories_response,
+        request: LOG_IN_STORIES_ENDPOINT,
+        status: chatLoginResponse.status,
+      });
     }
     if (CommentLoginResponse.status !== 200) {
-      return NextResponse.json(
-        { ...comment_response, request: LOG_IN_COMMENTS_ENDPOINT },
-        {
-          status: CommentLoginResponse.status,
-          headers: {
-            "Cache-Control":
-              "no-store, no-cache, must-revalidate, proxy-revalidate",
-            Pragma: "no-cache",
-            Expires: "0",
-            "Surrogate-Control": "no-store",
-          },
-        }
-      );
+      is_failed.push({
+        ...comment_response,
+        request: LOG_IN_COMMENTS_ENDPOINT,
+        status: CommentLoginResponse.status,
+      });
     }
 
     let ChatUser = chat_response.data;
@@ -187,7 +163,9 @@ export async function GET(request: NextRequest) {
       ChatUser,
       StoriesUser,
     };
-
+    if (is_failed?.length) {
+      finalResponse = { ...finalResponse, is_failed };
+    }
     const tokenCookies = [
       { name: COOKIE_NAMES.MARKET_TOKEN, value: MainToken },
       { name: COOKIE_NAMES.CHAT_TOKEN, value: ChatToken },
