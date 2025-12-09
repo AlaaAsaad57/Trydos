@@ -369,7 +369,9 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
                   cl?.option === selectedColor?.color_option ||
                   cl?.name === selectedColor?.color_name
               )?.color) &&
-          (s?.size === selectedSize?.option || s.size === selectedSize?.name)
+          (s?.size === selectedSize?.option ||
+            s.size === selectedSize?.name ||
+            s.size === selectedSize)
       );
     }
 
@@ -394,7 +396,9 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
       return localCart?.find(
         (s) =>
           s?.id === ProductData.id &&
-          (s?.size === selectedSize?.option || s.size === selectedSize?.name)
+          (s?.size === selectedSize?.option ||
+            s.size === selectedSize?.name ||
+            s.size === selectedSize)
       );
     }
 
@@ -444,8 +448,8 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
           (s) =>
             s.type?.toLowerCase() ===
             (
-              selectedSize?.option &&
-              `${selectedSize?.option?.replace(" ", "")}`
+              selectedSize &&
+              `${(selectedSize?.option ?? selectedSize)?.replace(" ", "")}`
             )?.toLowerCase()
         );
       }
@@ -542,11 +546,12 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
           (s) =>
             s.type?.toLowerCase() ===
             (
-              selectedSize?.option &&
-              `${selectedSize?.option?.replace(" ", "")}`
+              selectedSize &&
+              `${(selectedSize?.option ?? selectedSize)?.replace(" ", "")}`
             )?.toLowerCase()
         );
       }
+
       return {
         ...selected_variant,
         offer_price: selected_variant?.offer_price,
@@ -835,7 +840,8 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
                     ProductData?.categories?.[0]?.id,
                   price: ProductData?.offer_price,
                   selected_color: e?.color_option || e?.color_name,
-                  selected_size: selectedSize?.option ?? selectedSize?.name,
+                  selected_size:
+                    selectedSize?.option ?? selectedSize?.name ?? selectedSize,
                 },
               });
               setSelectedColor(e);
