@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { ipAddress } from "@vercel/functions";
+import { checkRateLimit, sendSecurityAlert } from "serverRequests/radis";
 // Constants
 const SUPPORTED_LANGUAGES = ["en", "ar", "tr", "ku"];
 const DEFAULT_LANGUAGE = "en";
@@ -194,6 +195,17 @@ function getClientIp(req: NextRequest): string {
 // Main middleware function
 export async function proxy(request: NextRequest) {
   const ip = getClientIp(request);
+  // 1️⃣ Rate limiting
+  if (ip && ip !== "0.0.0.0") {
+    const allowed = await checkRateLimit(ip, 100, 60);
+    if (!allowed) {
+      await sendSecurityAlert(
+        `🚨 IP ${ip} exceeded rate limit. Path: ${request.nextUrl.pathname}`
+      );
+      return new NextResponse("Too many requests", { status: 429 });
+    }
+  }
+
   const userIP = request.cookies.get("userIP")?.value;
 
   const isBotAgent = isBot(request.headers.get("user-agent"));
