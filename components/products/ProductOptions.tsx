@@ -37,7 +37,7 @@ function ProductOptions({
   const [country, language] = params.lang.split("-");
 
   const LikeProduct = async (bool) => {
-    if (likeLoading) return;
+    if (likeLoading || !SelectedProduct) return;
     setLoading(true);
 
     // Store current state for potential rollback

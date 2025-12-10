@@ -549,7 +549,16 @@ export async function GetFQACommentsForProductWithReactions({
             aggs: user_id
               ? {
                   total_likes: { value_count: { field: "interaction_id" } },
-                  user_like: { filter: { term: { user_id } } },
+                  user_like: {
+                    filter: {
+                      bool: {
+                        must: [
+                          { term: { user_id } },
+                          { term: { status: "active" } },
+                        ],
+                      },
+                    },
+                  },
                 }
               : {
                   total_likes: { value_count: { field: "interaction_id" } },
@@ -620,6 +629,7 @@ async function getProductInteractions(productId: string, userId?: string) {
                   must: [
                     { term: { product_id: productId } },
                     { term: { user_id: String(userId) } },
+                    { term: { status: "active" } },
                   ],
                 },
               },
