@@ -29,11 +29,11 @@ function OrderItemsList({
 }: OrderItemsListPropsType) {
   const { ActivePacks } = useAppStore();
   const getStatusIcon = (status) => {
-    if (status === "pending") return <PendingStatus />;
-    if (status === "preparing") return <PreparingStatus />;
-    if (status === "shipped") return <ShippedSatus />;
-    if (status === "delivered") return <DeliveredStatus />;
-    return <PendingStatus />;
+    if (status === "pending") return <PendingStatus isActive={false} />;
+    if (status === "preparing") return <PreparingStatus isActive={false} />;
+    if (status === "shipped") return <ShippedSatus isActive={false} />;
+    if (status === "delivered") return <DeliveredStatus isActive={false} />;
+    return <PendingStatus isActive={false} />;
   };
   const { lang } = useParams();
   // @ts-ignore
