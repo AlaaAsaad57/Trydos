@@ -6,7 +6,8 @@ import search from "services/search";
 import { useParams } from "next/navigation";
 
 function SearchHistory({ options, setOptions, deleteOption }) {
-  const { setSearchPartialLoading, setSearchLoading } = useAppStore();
+  const { setSearchPartialLoading, setSearchLoading, setResettingLoadMore } =
+    useAppStore();
   const [openMenu, setOpen] = useState(false);
   useEffect(() => {
     if (typeof document !== "undefined") {
@@ -40,8 +41,18 @@ function SearchHistory({ options, setOptions, deleteOption }) {
       });
     }
   }, []);
-
   const { lang } = useParams();
+  const SearchForHistoryItem = async (historyItem) => {
+    setSearchPartialLoading(true);
+    setSearchLoading(true);
+    setResettingLoadMore(true);
+    setOptions(historyItem);
+    await search.getSearchOptions({
+      noProducts: false,
+      lang: lang,
+    });
+    setResettingLoadMore(false);
+  };
   return (
     <div
       className={` ${
@@ -74,13 +85,7 @@ function SearchHistory({ options, setOptions, deleteOption }) {
                   onClick={(e) => {
                     // @ts-ignore
                     if (!e.target.closest(".close-icon-container")) {
-                      setSearchPartialLoading(true);
-                      setSearchLoading(true);
-                      setOptions(s);
-                      search.getSearchOptions({
-                        noProducts: false,
-                        lang: lang,
-                      });
+                      SearchForHistoryItem(s);
                     }
                   }}
                 >
@@ -145,7 +150,6 @@ function SearchHistory({ options, setOptions, deleteOption }) {
                   className="close-icon-container"
                   onClick={() => {
                     let arr = localStorage.getItem("search-history");
-
                     localStorage.setItem(
                       "search-history",
                       JSON.stringify(

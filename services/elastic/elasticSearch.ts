@@ -272,6 +272,7 @@ export async function getProductsAndFiltersFromElastic(
         ?.buckets || [],
       filters_offset
     );
+
     const boutiquesFilter = processBoutiquesAggregation(
       (aggregations as any).top_boutiques?.filtered_boutiques?.boutiques_by_id
         ?.buckets || [],

@@ -437,18 +437,6 @@ async function Page({ params, searchParams }) {
             className="product-details-slider mt-[12px] relative h-[474px] max-h-[474px]"
             key={`key-${color}`}
           >
-            {product?.videos?.[0] && (
-              <div
-                className={`${
-                  isRtl ? "left-[6px]" : "right-[6px]"
-                } absolute z-[999] bottom-[6px]  product-video`}
-              >
-                <ProductVideo
-                  language={languageVariable}
-                  videos={product?.videos?.[0]}
-                />
-              </div>
-            )}
             <ProductImagesSlider language={languageVariable}>
               {getImages(product, color)?.images?.map((img, i) => (
                 <div
@@ -770,6 +758,12 @@ async function Page({ params, searchParams }) {
           </div>
 
           <div className="product-details-footer alternate-product-details-footer z-[999999999]">
+            {product?.videos?.[0] && (
+              <ProductVideo
+                language={languageVariable}
+                videos={product?.videos?.[0]}
+              />
+            )}
             <div className="product-info-container p-0 h-[40px] overflow-hidden">
               <PricesRow
                 currency={currency}

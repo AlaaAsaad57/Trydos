@@ -90,7 +90,9 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
   const [selectedSize, setSelectedSize] = useState(
     ProductData?.choice_options?.[0]?.options?.find(
       (option) => option.option === sizeFromUrl || option.name === sizeFromUrl
-    ) || null
+    ) ||
+      ProductData?.choice_options?.[0]?.options?.[0] ||
+      null
   );
   const [loading, setLoading] = useState(false);
   const [requestLoading, setRequestLoading] = useState(false);
@@ -680,14 +682,34 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
   };
   const IsColorHasDiscount = (colorVariant) => {
     if (!colorVariant) return false;
-    const variant = ProductData?.variation?.find((s) =>
-      s?.type
-        ?.toLowerCase()
-        ?.startsWith(
-          colorVariant?.color_option?.toLowerCase() ||
-            s?.type.toLowerCase() === colorVariant?.color_name?.toLowerCase()
-        )
-    );
+    if (ProductData?.choice_options?.length > 0 && !selectedSize) return false;
+    const variant = ProductData?.variation?.find((s) => {
+      if (ProductData?.choice_options?.length > 0 && selectedSize) {
+        return (
+          s?.type
+            ?.toLowerCase()
+            ?.startsWith(
+              colorVariant?.color_option?.toLowerCase() ||
+                s?.type.toLowerCase() ===
+                  colorVariant?.color_name?.toLowerCase()
+            ) &&
+          s?.type
+            .toLowerCase()
+            .endsWith(
+              `-${(selectedSize?.option ?? selectedSize)
+                ?.toString()
+                .toLowerCase()}`
+            )
+        );
+      } else {
+        return s?.type
+          ?.toLowerCase()
+          ?.startsWith(
+            colorVariant?.color_option?.toLowerCase() ||
+              s?.type.toLowerCase() === colorVariant?.color_name?.toLowerCase()
+          );
+      }
+    });
     if (!variant) return false;
     if (ProductData?.is_redeem && shouldShowRedeem()) {
       // if(variant?.redeem_price < ProductData?.redeem_price)
@@ -888,7 +910,7 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
           <div className="my-[20px] w-full justify-center items-center flex flex-row">
             {getSelectedVariantQty()?.qty > 0 &&
             ProductData.collected_after_ordering === 0 &&
-            getSelectedVariantQty()?.qty < 10 ? (
+            getSelectedVariantQty()?.qty <= 10 ? (
               <span
                 className={`${
                   isRtl && "dir-rtl"

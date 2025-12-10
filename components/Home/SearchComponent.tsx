@@ -35,6 +35,8 @@ function SearchComponent({
     searchFilters,
     setTotalSizeOfProducts,
     setEnableSearch,
+    setResettingLoadMore,
+    resetLoadingMore,
   } = useAppStore();
 
   const { lang } = useParams();
@@ -48,7 +50,7 @@ function SearchComponent({
   const debouncedSearch = useCallback(
     async (searchValue: string) => {
       const currentRequestId = ++requestIdRef.current;
-
+      setResettingLoadMore(true);
       try {
         setSearchPartialLoading(true);
         setSearchLoading(true);
@@ -162,13 +164,14 @@ function SearchComponent({
 
         setSearchPartialLoading(false);
         setSearchLoading(false);
-
+        setResettingLoadMore(false);
         router.prefetch(SearchService.getSearchPageUrl({ lang }));
       } catch (error) {
         if (
           error.name !== "AbortError" &&
           currentRequestId === requestIdRef.current
         ) {
+          setResettingLoadMore(false);
           setSearchPartialLoading(false);
           setSearchLoading(false);
           showErrorNotification(

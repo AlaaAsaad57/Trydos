@@ -30,6 +30,7 @@ interface SearchState {
   searchFilters: SearchFilter;
   loading_search: boolean;
   partialLoading: boolean;
+  resetLoadingMore: boolean;
 }
 
 const initialState: SearchState = {
@@ -60,11 +61,13 @@ const initialState: SearchState = {
   },
   loading_search: false,
   partialLoading: false,
+  resetLoadingMore: false,
 };
 
 export const useSearchStore = (set, get) => ({
   ...initialState,
-
+  setResettingLoadMore: (resetLoadingMore: boolean) =>
+    set({ resetLoadingMore }),
   setTrendingSearch: (trending: any[]) => set({ trending }),
 
   setSearchPartialLoading: (loading: boolean) =>

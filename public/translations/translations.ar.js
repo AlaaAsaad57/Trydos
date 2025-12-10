@@ -182,7 +182,7 @@ const translations = {
   "Select quantity": "اختر الكمية",
   "Report This Product": "أبلغ عن هذا المنتج",
   "Delivery Time, Delivery Man, Delivery Car":
-    "وقت التسليم، ساعي التوصيل، سيارة التوصيل",
+    "وقت التسليم، رجل التوصيل، سيارة التوصيل",
   "Add Comment…": "أضف تعليق…",
   Pack: "مجموعة",
   "Please Add Photos Of The Product You Received So That We Can Provide You With The Best Service To Avoid This Issue.":
@@ -256,7 +256,7 @@ const translations = {
   "Action About Your Order": "اجراءات حول طلبك",
   "Change Delivery Note": "تغيير ملاحظة التوصيل",
   "Add delivery instructions...": "أدخل تعليمات التوصيل...",
-  "Action About This Product": "اجراءات حول منتجك",
+  "Action About This Product": "الاجراء الخاص بهذا المنتج",
   "And Back Your Money": "واسترد أموالك ",
   Hours: "ساعات  ",
   "Return This Product": "إرجاع هذا المنتج",

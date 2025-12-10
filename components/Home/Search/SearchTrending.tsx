@@ -11,6 +11,7 @@ function SearchTrending() {
     setSearchLoading,
     setSearchWord,
     trending,
+    setResettingLoadMore,
   } = useAppStore();
   const [openMenu, setOpen] = useState(false);
   const { lang } = useParams();
@@ -49,13 +50,38 @@ function SearchTrending() {
       });
     }
   }, []);
-
-
+  const SearchForTrendingItem = async (historyItem) => {
+    setSearchWord(historyItem.term);
+    setSearchPartialLoading(true);
+    setSearchLoading(true);
+    search.getSearchOptions({
+      noProducts: false,
+      lang: lang,
+    });
+    setResettingLoadMore(true);
+    await search.getSearchOptions({
+      noProducts: false,
+      lang: lang,
+    });
+    setResettingLoadMore(false);
+  };
+  const clearAll = async () => {
+    setResettingLoadMore(true);
+    setSearchLoading(true);
+    setSearchPartialLoading(true);
+    setSearchWord("");
+    findProducts([]);
+    await search.getSearchOptions({
+      noProducts: true,
+      lang: lang,
+    });
+    setResettingLoadMore(false);
+  };
   return (
     <div
       className={` ${
         openMenu ? "flex-col" : "align-center flex-row"
-      } search-filter-container ${ isRtl ? "flex-row-reverse pr-2": " "}`}
+      } search-filter-container ${isRtl ? "flex-row-reverse pr-2" : " "}`}
     >
       <div
         className="flex-row align-center cursor-pointer"
@@ -74,15 +100,7 @@ function SearchTrending() {
               key={index}
               className="search-filter-option"
               data-cy="search-trending-option"
-              onClick={(e) => {
-                setSearchWord(s.term);
-                setSearchPartialLoading(true);
-                setSearchLoading(true);
-                search.getSearchOptions({
-                  noProducts: false,
-                  lang: lang,
-                });
-              }}
+              onClick={(e) => {}}
             >
               {s.term}
               {/* {s.isSelected && (
@@ -103,14 +121,7 @@ function SearchTrending() {
         <span
           className="clear-options-button"
           onClick={(e) => {
-            setSearchLoading(true);
-            setSearchPartialLoading(true);
-            setSearchWord("");
-            findProducts([]);
-            search.getSearchOptions({
-              noProducts: true,
-              lang: lang,
-            });
+            clearAll();
           }}
         >
           Clear All
