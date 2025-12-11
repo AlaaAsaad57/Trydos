@@ -83,7 +83,7 @@ function MoreOptionsSection() {
       }
     } catch (error) {
       showErrorNotification(
-        error ??
+        error?.message ??
           translateFunction(
             "Notification Is Not Enabled! please Allow Notification Access"
           )

@@ -1069,18 +1069,17 @@ const NotifyCartButton = ({
     } catch (error) {
       setLoading(false);
       showErrorNotification(
-        error ??
+        error?.message ??
           translateFunction(
             "Notification Is Not Enabled! please Allow Notification Access"
           )
       );
       showErrorMessage(
-        error ??
+        error?.message ??
           translateFunction(
             "Notification Is Not Enabled! please Allow Notification Access"
           )
       );
-      console.log(error);
     }
   };
   return (
