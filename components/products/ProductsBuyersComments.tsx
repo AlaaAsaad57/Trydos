@@ -445,7 +445,11 @@ export const RateCommentItem = ({ comment, language, width = 90 }) => {
         >
           {formatTime(comment?.created_at)}
         </div>
-        <div className="comment-text regular text-[#1d1d1d] text-[11px] mt-[0px]">
+        <div
+          className={`${
+            !isRtl ? "pr-[27px]" : "pl-[27px]"
+          } comment-text max-h-[100px] overflow-auto regular text-[#1d1d1d] text-[11px] mt-[0px]`}
+        >
           {renderTextWithLinks(
             isCommentTranslated && translatedComment
               ? translatedComment
