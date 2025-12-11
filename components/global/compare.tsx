@@ -133,6 +133,7 @@ const ComparePage = ({
           country: country || "sy",
           language: language || "en",
         },
+        credentials: "omit",
       });
 
       if (!response.ok) {
@@ -161,6 +162,7 @@ const ComparePage = ({
             country: lang.toString().split("-")[0],
             lang: lang.toString().split("-")[1],
           },
+          credentials: "omit",
         }
       );
       if (!res.ok) throw new Error("Product not found");
@@ -173,6 +175,7 @@ const ComparePage = ({
             country: lang.toString().split("-")[0],
             lang: lang.toString().split("-")[1],
           },
+          credentials: "omit",
         }
       );
       if (!res1.ok) throw new Error("Product not found");

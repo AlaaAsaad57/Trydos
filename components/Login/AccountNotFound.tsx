@@ -3,6 +3,13 @@ import { translateFunction } from "utils/functions";
 import AuthService from "services/auth";
 import { useParams } from "next/navigation";
 import { useAppStore } from "store";
+import { clearSimulatedUserSession } from "utils/sessionManager";
+import {
+  clearHashedUserId,
+  COOKIE_NAMES,
+  deleteCookie,
+} from "utils/cookies/cookie-manager";
+import Spinner from "components/global/Spinner";
 
 function AccountNotFound({
   inputValue,
@@ -18,7 +25,7 @@ function AccountNotFound({
   setStepIndicator: Function;
 }) {
   const { language } = useAppStore();
-
+  const [loading, setLoading] = useState(false);
   let { lang } = useParams();
   // @ts-ignore
   let languageVariable = lang.split("-")[1];
@@ -47,6 +54,36 @@ function AccountNotFound({
       }, 50);
     }
   }, [stepIndicator, signStep]);
+
+  const Logout = async () => {
+    clearSimulatedUserSession();
+    clearHashedUserId();
+    setLoading(true);
+    deleteCookie(COOKIE_NAMES.MARKET_TOKEN);
+    deleteCookie(COOKIE_NAMES.DEVICE_TOKEN);
+    deleteCookie(COOKIE_NAMES.USER_CHAT);
+    deleteCookie(COOKIE_NAMES.USER_STORIES);
+    deleteCookie(COOKIE_NAMES.CHAT_TOKEN);
+    deleteCookie(COOKIE_NAMES.STORIES_TOKEN);
+    localStorage.clear();
+    deleteCookie(COOKIE_NAMES.USER_DATA);
+    const { messaging } = await import("utils/firebaseInitv1");
+    const { deleteToken } = await import("firebase/messaging");
+    try {
+      await deleteToken(messaging);
+      deleteCookie(COOKIE_NAMES.MARKET_TOKEN);
+      deleteCookie(COOKIE_NAMES.DEVICE_TOKEN);
+      deleteCookie(COOKIE_NAMES.USER_CHAT);
+      deleteCookie(COOKIE_NAMES.USER_STORIES);
+      deleteCookie(COOKIE_NAMES.CHAT_TOKEN);
+      deleteCookie(COOKIE_NAMES.STORIES_TOKEN);
+      localStorage.clear();
+
+      deleteCookie(COOKIE_NAMES.USER_DATA);
+    } catch (error) {}
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+    window.location.reload();
+  };
   if (active)
     return (
       <div className="flex-col items-center w-full pb-[40px]">
@@ -192,11 +229,18 @@ function AccountNotFound({
             marginTop: "3vh",
           }}
           onClick={() => {
+            Logout();
             AuthService.cancelAuth();
-            close();
+            // close();
           }}
         >
-          {translate("Cancel & Take A Look At The Site", language)}
+          {loading ? (
+            <div>
+              <Spinner />
+            </div>
+          ) : (
+            translate("Cancel & Take A Look At The Site", language)
+          )}
         </div>
       </div>
     );

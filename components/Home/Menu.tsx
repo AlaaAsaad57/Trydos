@@ -28,6 +28,7 @@ import { getReferralSource } from "utils/tinyUtils";
 import dynamic from "next/dynamic";
 import { clearSimulatedUserSession } from "utils/sessionManager";
 import { useAppStore } from "store";
+import { showSuccessNotification } from "store/notifications/reducer";
 
 interface MenuProps {
   user: any;
@@ -107,6 +108,7 @@ const Menu = ({ user, setMenuOpen }) => {
   const [showWishList, setShowWishList] = useState(false);
   const { lang } = useParams();
   const [loading, setLoading] = useState(false);
+
   const handleLogout = async () => {
     // Sendevent({
     //   event: GA_EVENT_NAMES.CLICK,

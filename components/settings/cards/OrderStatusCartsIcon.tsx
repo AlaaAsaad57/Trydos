@@ -1,81 +1,117 @@
-import React from "react";
+import CancelOrderItemIcon from "public/svg/cancelOrderItemIcon";
 
-function OrderStatusCartsIcon({ status , isRtl} : { status: string , isRtl: boolean}) {
+function OrderStatusCartsIcon({
+  status,
+  isRtl,
+}: {
+  status: string;
+  isRtl: boolean;
+}) {
   const statuses = [
     "pending",
     "preparing",
+    "processing",
+    "collected",
+    "packaged",
+    "transferred_to_shipping_center",
     "shipping_center",
     "ready_to_shipping",
     "shipped",
-    "out_for_delivery",
     "in_delivery_center",
+    "out_for_delivery",
     "delivered",
+    "on_hold",
+    "failed",
+    "out_for_return",
+    "returned",
+    "partial_return",
+    "canceled",
+    "canceled_archived",
   ];
   let status_word = status?.toLowerCase();
+  if (
+    status_word === "canceled" ||
+    status_word === "canceled_archived" ||
+    status_word === "failed"
+  ) {
+    return <CancelOrderItemIcon />;
+  }
+  if (status_word === "pending" || status_word === "on_hold") {
+    return (
+      <>
+        <PendingStatus isActive={true} />
+        <NormalStatus />
+        <NormalStatus />
+        <NormalStatus />
+      </>
+    );
+  }
+  if (
+    ["preparing", "processing", "collected", "packaged"].includes(status_word)
+  ) {
+    return (
+      <>
+        <PendingStatus isActive={false} />
+        <PreparingStatus isActive={true} />
+        <NormalStatus />
+        <NormalStatus />
+      </>
+    );
+  }
+  if (
+    [
+      "transferred_to_shipping_center",
+      "shipping_center",
+      "ready_to_shipping",
+      "shipped",
+      "in_delivery_center",
+      "out_for_delivery",
+    ].includes(status_word)
+  ) {
+    return (
+      <>
+        <PendingStatus isActive={false} />
+        <PreparingStatus isActive={false} />
+        <ShippedSatus isActive={true} />
+        <NormalStatus />
+      </>
+    );
+  }
+  if (
+    ["out_for_return", "returned", "partial_return", "delivered"].includes(
+      status_word
+    )
+  ) {
+    return (
+      <>
+        <PendingStatus isActive={false} />
+        <PreparingStatus isActive={false} />
+        <ShippedSatus isActive={false} />
+        <DeliveredStatus isActive={true} />
+      </>
+    );
+  }
 
   return (
     <>
-      {status_word === "pending" ? (
-        <PendingStatus />
-      ) : (
-        <NormalStatus
-          color={() => {
-            let i = statuses.findIndex((s) => s === status_word);
-            if (i > 0) return "#FFF5AA";
-            else return false;
-          }}
-        />
-      )}
-      {status_word === "preparing" ||
-      status_word === "shipping_center" ||
-      status_word === "ready_to_shipping" ? (
-        <PreparingStatus />
-      ) : (
-        <NormalStatus
-          color={() => {
-            let i = statuses.findIndex((s) => s === status_word);
-            if (i > 1 || i > 2 || i > 3) return "#FFDBAA";
-            else return false;
-          }}
-        />
-      )}
-      {status_word === "shipped" ||
-      status_word === "out_for_delivery" ||
-      status_word === "in_delivery_center" ? (
-        <ShippedSatus />
-      ) : (
-        <NormalStatus
-          color={() => {
-            let i = statuses.findIndex((s) => s === status_word);
-            if (i > 4 || i > 5) return "#AADEFF";
-            else return false;
-          }}
-        />
-      )}
-      {status_word === "delivered" ? (
-        <DeliveredStatus />
-      ) : (
-        <NormalStatus
-          color={() => {
-            let i = statuses.findIndex((s) => s === status_word);
-            if (i === 7) return "#6FE86A";
-            else return false;
-          }}
-        />
-      )}
+      <PendingStatus isActive={false} />
+      <PreparingStatus isActive={false} />
+      <ShippedSatus isActive={false} />
+      <DeliveredStatus isActive={true} />
     </>
   );
 }
 
 export default OrderStatusCartsIcon;
-export const PendingStatus = () => {
+export const PendingStatus = ({ isActive }) => {
   return (
     <svg
+      className={`${isActive ? "" : "scale-75 origin-bottom"} `}
       xmlns="http://www.w3.org/2000/svg"
       xmlnsXlink="http://www.w3.org/1999/xlink"
       width="20"
       height="20"
-      viewBox="0 0 20 20"
+      viewBox={"0 0 20 20"}
     >
       <defs>
         <clipPath id="clip-path90">
@@ -135,10 +171,11 @@ export const PendingStatus = () => {
     </svg>
   );
 };
-export const PreparingStatus = () => {
+export const PreparingStatus = ({ isActive }) => {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
+      className={`${isActive ? "" : "scale-75 origin-bottom"} `}
       xmlnsXlink="http://www.w3.org/1999/xlink"
       width="20"
       height="20"
@@ -202,10 +239,11 @@ export const PreparingStatus = () => {
     </svg>
   );
 };
-export const DeliveredStatus = () => {
+export const DeliveredStatus = ({ isActive }) => {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
+      className={`${isActive ? "" : "scale-75 origin-bottom"} `}
       xmlnsXlink="http://www.w3.org/1999/xlink"
       width="20"
       height="20"
@@ -269,9 +307,10 @@ export const DeliveredStatus = () => {
     </svg>
   );
 };
-export const ShippedSatus = () => {
+export const ShippedSatus = ({ isActive }) => {
   return (
     <svg
+      className={`${isActive ? "" : "scale-75 origin-bottom"} `}
       xmlns="http://www.w3.org/2000/svg"
       xmlnsXlink="http://www.w3.org/1999/xlink"
       width="20"
@@ -336,7 +375,7 @@ export const ShippedSatus = () => {
     </svg>
   );
 };
-export const NormalStatus = ({ color }) => {
+export const NormalStatus = () => {
   let i = parseInt((Math.random() * 1000).toString());
   return (
     <svg
@@ -372,7 +411,7 @@ export const NormalStatus = ({ color }) => {
               data-name="Path 15859"
               d="M-2.127-1.536H6.607L8.258,7.572s-.826,1.267-1.3,1.267a92.073,92.073,0,0,1-9.649-.16c-.79-.1-1.065-1.106-1.065-1.106Z"
               transform="translate(4.027 5.577)"
-              fill={color() || "#f8f8f8"}
+              fill={"#f8f8f8"}
             />
             <g id="bag-5">
               <g id="Group_2946" data-name="Group 2946">

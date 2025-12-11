@@ -30,6 +30,7 @@ import { getCookie } from "utils/cookies/cookie-manager";
 import AddToCartButton from "./Button";
 import NotifyButton from "./NotifyButton";
 import SearchParamUpdater from "components/global/ParamsUpdater";
+import { showErrorMessage } from "components/global/AddToCartMessage";
 
 function AddToCartComponent({ product, slug, close, enableCartAction }) {
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -90,7 +91,9 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
   const [selectedSize, setSelectedSize] = useState(
     ProductData?.choice_options?.[0]?.options?.find(
       (option) => option.option === sizeFromUrl || option.name === sizeFromUrl
-    ) || null
+    ) ||
+      ProductData?.choice_options?.[0]?.options?.[0] ||
+      null
   );
   const [loading, setLoading] = useState(false);
   const [requestLoading, setRequestLoading] = useState(false);
@@ -175,19 +178,6 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
 
       if (abortControllerRef.current?.signal.aborted) return;
       setProductData(tempProductData);
-      if (product?.singleColor) {
-        // setSelectedColor(tempProductData?.sync_color_images[0]);
-      } else if (colorFromUrl) {
-        setSelectedColor(
-          tempProductData?.sync_color_images?.find(
-            (s) =>
-              s?.color_option?.toLowerCase() === colorFromUrl?.toLowerCase() ||
-              s?.color_name?.toLowerCase() === colorFromUrl?.toLowerCase()
-          ) ?? tempProductData?.sync_color_images?.[0]
-        );
-      } else {
-        // setSelectedColor(tempProductData?.sync_color_images[0]);
-      }
       if (
         product &&
         (selected_product_for_add_to_cart?.id === tempProductData.id ||
@@ -198,19 +188,6 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
           shouldUpdate: 0,
         });
 
-      if (tempProductData?.choice_options?.[0]?.options?.length > 0) {
-        if (sizeFromUrl?.length > 0) {
-          setSelectedSize(
-            tempProductData?.choice_options?.[0]?.options.find(
-              (s) =>
-                s.option?.toLowerCase() === sizeFromUrl?.toLowerCase() ||
-                s.name?.toLowerCase() === sizeFromUrl?.toLowerCase()
-            ) ?? tempProductData?.choice_options?.[0]?.options?.[0]
-          );
-        } else {
-          // setSelectedSize(tempProductData?.choice_options?.[0]?.options?.[0]);
-        }
-      }
       // checkIfVariantEmpty();
       if (abortControllerRef.current?.signal.aborted) return;
       setLoading(false);
@@ -317,7 +294,7 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
       };
 
       if (abortControllerRef.current?.signal.aborted) return;
-      console.log(tempProductData);
+
       setProductData(tempProductData);
       if (product?.singleColor) {
         // setSelectedColor(tempProductData?.sync_color_images[0]);
@@ -373,20 +350,71 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
   };
 
   const getSelectedItemCart = () => {
-    if (ProductData?.variation?.length === 0)
+    const hasColorVariants = ProductData?.sync_color_images?.length > 0;
+    const hasSizeVariants =
+      ProductData?.choice_options?.[0]?.options?.length > 0;
+
+    // Case 1: No variants at all (no color, no size)
+    if (!hasColorVariants && !hasSizeVariants) {
       return localCart?.find((s) => s.id === ProductData.id);
-    return localCart.find(
-      (s) =>
-        s.id === ProductData.id &&
-        (s.color === selectedColor?.color_option ||
-          s.color ===
-            ProductData?.colors?.find(
-              (cl) =>
-                cl.option === selectedColor?.color_option ||
-                cl.name === selectedColor?.selected_option
-            )?.color) &&
-        s.size === (selectedSize?.option ?? selectedSize)
-    );
+    }
+
+    // Case 2: Has color AND size variants
+    if (hasColorVariants && hasSizeVariants) {
+      return localCart.find(
+        (s) =>
+          s.id === ProductData.id &&
+          (s.color === selectedColor?.color_option ||
+            s?.color === selectedColor?.color_name ||
+            s?.color ===
+              ProductData?.colors?.find(
+                (cl) =>
+                  cl?.option === selectedColor?.color_option ||
+                  cl?.name === selectedColor?.color_name
+              )?.color) &&
+          (s?.size === selectedSize?.option ||
+            s.size === selectedSize?.name ||
+            s.size === selectedSize)
+      );
+    }
+
+    // Case 3: Has color only (no size)
+    if (hasColorVariants && !hasSizeVariants) {
+      return localCart.find(
+        (s) =>
+          s?.id === ProductData?.id &&
+          (s?.color === selectedColor?.color_option ||
+            s?.color === selectedColor?.color_name ||
+            s?.color ===
+              ProductData?.colors?.find(
+                (cl) =>
+                  cl.option === selectedColor?.color_option ||
+                  cl.name === selectedColor?.color_name
+              )?.color)
+      );
+    }
+
+    // Case 4: Has size only (no color)
+    if (!hasColorVariants && hasSizeVariants) {
+      return localCart?.find(
+        (s) =>
+          s?.id === ProductData.id &&
+          (s?.size === selectedSize?.option ||
+            s.size === selectedSize?.name ||
+            s.size === selectedSize)
+      );
+    }
+
+    // Fallback
+    return localCart?.find((s) => s.id === ProductData?.id);
+  };
+
+  const reachedMaxQty = () => {
+    let selectedItem = getSelectedItemCart();
+
+    if (!selectedItem) return false;
+    if (Number(product?.max_allowed_qty) === 0) return false;
+    return selectedItem.quantity >= Number(product?.max_allowed_qty);
   };
   const getVariantSizeQty = (size) => {
     if (ProductData?.variation?.length > 0) {
@@ -423,8 +451,8 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
           (s) =>
             s.type?.toLowerCase() ===
             (
-              selectedSize?.option &&
-              `${selectedSize?.option?.replace(" ", "")}`
+              selectedSize &&
+              `${(selectedSize?.option ?? selectedSize)?.replace(" ", "")}`
             )?.toLowerCase()
         );
       }
@@ -458,7 +486,6 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
   const IsValid = () => {
     let color_valid = false,
       size_valid = false;
-
     if (
       !ProductData?.sync_color_images ||
       ProductData?.sync_color_images?.length === 0
@@ -522,11 +549,12 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
           (s) =>
             s.type?.toLowerCase() ===
             (
-              selectedSize?.option &&
-              `${selectedSize?.option?.replace(" ", "")}`
+              selectedSize &&
+              `${(selectedSize?.option ?? selectedSize)?.replace(" ", "")}`
             )?.toLowerCase()
         );
       }
+
       return {
         ...selected_variant,
         offer_price: selected_variant?.offer_price,
@@ -647,6 +675,113 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
     else await updateQuantityRemotley();
   };
   const isRtl = languageVariable === "ar" || languageVariable === "ku";
+  const GetFinalPriceOfProduct = () => {
+    if (ProductData?.is_redeem && shouldShowRedeem()) {
+      return ProductData?.redeem_price;
+    }
+    return ProductData?.offer_price;
+  };
+  const IsColorHasDiscount = (colorVariant) => {
+    if (!colorVariant) return false;
+    if (ProductData?.choice_options?.length > 0 && !selectedSize) return false;
+    const variant = ProductData?.variation?.find((s) => {
+      if (ProductData?.choice_options?.length > 0 && selectedSize) {
+        return (
+          s?.type
+            ?.toLowerCase()
+            ?.startsWith(
+              colorVariant?.color_option?.toLowerCase() ||
+                s?.type.toLowerCase() ===
+                  colorVariant?.color_name?.toLowerCase()
+            ) &&
+          s?.type
+            .toLowerCase()
+            .endsWith(
+              `-${(selectedSize?.option ?? selectedSize)
+                ?.toString()
+                .toLowerCase()}`
+            )
+        );
+      } else {
+        return s?.type
+          ?.toLowerCase()
+          ?.startsWith(
+            colorVariant?.color_option?.toLowerCase() ||
+              s?.type.toLowerCase() === colorVariant?.color_name?.toLowerCase()
+          );
+      }
+    });
+    if (!variant) return false;
+    if (ProductData?.is_redeem && shouldShowRedeem()) {
+      // if(variant?.redeem_price < ProductData?.redeem_price)
+      return Math.round(
+        ((GetFinalPriceOfProduct() - variant?.redeem_price) * 100) /
+          GetFinalPriceOfProduct()
+      );
+    } else {
+      // if(variant?.offer_price < ProductData?.offer_price)
+      return Math.round(
+        ((GetFinalPriceOfProduct() - variant?.offer_price) * 100) /
+          GetFinalPriceOfProduct()
+      );
+    }
+  };
+  const isQtyIsLast = (colorVariant) => {
+    if (!colorVariant) return false;
+    if (ProductData.collected_after_ordering === 1) return false;
+    if (ProductData?.variation?.length > 0) {
+      let selected_variant;
+      if (
+        ProductData?.sync_color_images?.length > 0 &&
+        ProductData?.choice_options?.length > 0
+      ) {
+        selected_variant = ProductData?.variation?.find(
+          (s) =>
+            s.type?.toLowerCase() ===
+            `${colorVariant?.color_option}-${
+              selectedSize?.option ?? selectedSize
+            }`?.toLowerCase()
+        );
+      }
+      if (
+        ProductData?.sync_color_images?.length > 0 &&
+        (!ProductData?.choice_options ||
+          ProductData?.choice_options?.length === 0)
+      ) {
+        selected_variant = ProductData?.variation?.find(
+          (s) =>
+            s.type?.toLowerCase() ===
+            (colorVariant?.color_option ?? "")?.toLowerCase()
+        );
+      }
+      return {
+        ...selected_variant,
+        offer_price: selected_variant?.offer_price,
+        ...(product?.showRedeemPrice
+          ? {
+              redeem_price:
+                selected_variant?.redeem_price ?? product?.redeem_price,
+            }
+          : product?.flash_deal_end_date !== null
+          ? {
+              flash_deal_price: product?.offer_price,
+            }
+          : {}),
+      };
+    } else {
+      // no variants
+      return {
+        type: "N/A",
+        price: ProductData?.price,
+        offer_price: ProductData?.offer_price,
+        redeem_price: ProductData?.redeem_price,
+        flash_deal_price: ProductData?.offer_price,
+        qty: ProductData?.available_quantity,
+        variant_notify_for_user: ProductData?.is_product_notify_for_user,
+      };
+    }
+  };
+
   return (
     <BottomSheet
       fromProductPage={product?.fromProductPage}
@@ -706,6 +841,10 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
                   color.option === s.color_option || color.name === s.color_name
               )
             )}
+            isQtyIsLast={(e) => {
+              return isQtyIsLast(e);
+            }}
+            IsColorHasDiscount={(e) => IsColorHasDiscount(e)}
             selectedColor={selectedColor}
             setSelectedColor={(e) => {
               GAevent({
@@ -724,14 +863,15 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
                     ProductData?.categories?.[0]?.id,
                   price: ProductData?.offer_price,
                   selected_color: e?.color_option || e?.color_name,
-                  selected_size: selectedSize?.option ?? selectedSize?.name,
+                  selected_size:
+                    selectedSize?.option ?? selectedSize?.name ?? selectedSize,
                 },
               });
               setSelectedColor(e);
             }}
           />
         )}
-        {ProductData?.choice_options?.[0]?.options?.length > 0 && (
+        {ProductData?.choice_options?.[0]?.options?.length > 0 ? (
           <SizeSelect
             isCollectAfterOrder={ProductData.collected_after_ordering === 1}
             isSizeNotified={(e) =>
@@ -767,6 +907,22 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
             }}
             sizes={ProductData?.choice_options?.[0]?.options}
           />
+        ) : (
+          <div className="my-[20px] w-full justify-center items-center flex flex-row">
+            {getSelectedVariantQty()?.qty > 0 &&
+            ProductData.collected_after_ordering === 0 &&
+            getSelectedVariantQty()?.qty <= 10 ? (
+              <span
+                className={`${
+                  isRtl && "dir-rtl"
+                } text-[#FF6200] flex items-center`}
+              >
+                {translateFunction("Last")} {getSelectedVariantQty()?.qty}
+              </span>
+            ) : (
+              <></>
+            )}
+          </div>
         )}
       </div>
       <div
@@ -814,6 +970,8 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
         />
         {shouldShowNotifyButton() ? (
           <NotifyCartButton
+            requestLoading={requestLoading}
+            setLoading={setRequestLoading}
             setNotify={() => {
               setProductData({
                 ...ProductData,
@@ -839,6 +997,7 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
         ) : (
           <AddToCartButton
             key={product?.is_redeem}
+            reachedMaxQty={() => reachedMaxQty()}
             fullQty={localCart.filter((s) => s.id === product?.id)?.length}
             colors={ProductData?.sync_color_images}
             sizes={ProductData?.choice_options?.[0]?.options}
@@ -870,9 +1029,12 @@ const NotifyCartButton = ({
   id,
   product,
   initialLoading,
+  setLoading,
+  requestLoading,
 }) => {
   const NotifyAction = async () => {
     try {
+      setLoading(true);
       await home.AllowNotifications();
 
       if (!isNotified) {
@@ -903,20 +1065,27 @@ const NotifyCartButton = ({
           5000
         );
       }
+      setLoading(false);
     } catch (error) {
+      setLoading(false);
       showErrorNotification(
-        error ??
+        error?.message ??
           translateFunction(
             "Notification Is Not Enabled! please Allow Notification Access"
           )
       );
-      console.log(error);
+      showErrorMessage(
+        error?.message ??
+          translateFunction(
+            "Notification Is Not Enabled! please Allow Notification Access"
+          )
+      );
     }
   };
   return (
     <NotifyButton
       isNotified={isNotified}
-      loading={initialLoading}
+      loading={initialLoading || requestLoading}
       notifyAction={() => {
         NotifyAction();
       }}

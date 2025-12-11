@@ -16,25 +16,29 @@ function SettingTopBar({
   DataCy,
   validateFunction,
 }: SettingTopBarPropsType) {
-  const { setOrderOptions } = useAppStore();
-
+  const { setOrderOptions, language } = useAppStore();
+  const isRtl = language === "ar" || language === "ku";
   return (
     <>
-      <div className="flex-row w-full min-h-[50px] h-[50px] items-center px-[12px] justify-between">
+      <div
+        style={{
+          direction: isRtl ? "rtl" : "ltr",
+        }}
+        className="flex-row w-full min-h-[50px] h-[50px] items-center px-[12px] justify-between"
+      >
         <span
           className="cursor-pointer"
+          style={{
+            transform: isRtl ? "rotate(180deg)" : "rotate(0)",
+          }}
           onClick={() => goBack()}
           data-cy={(DataCy && `${DataCy}-back-button`) || "back-button"}
         >
           <BackIcon />
         </span>
-        <div className="flex-row">
+        <div className="flex-row gap-[4px] items-center">
           {Icon || <></>}
-          <span
-            className={`${
-              Icon && "ml-[4px]"
-            } text-[#1D1D1D] text-[14px] medium`}
-          >
+          <span className={` text-[#1D1D1D] text-[14px] medium`}>
             {typeof screenName === "string"
               ? translateFunction(screenName)
               : screenName}

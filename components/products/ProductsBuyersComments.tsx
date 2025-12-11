@@ -22,6 +22,7 @@ import { COOKIE_NAMES, getCookie } from "utils/cookies/cookie-manager";
 import { LikeButton } from "./FAQSection";
 import auth from "services/auth";
 import LanguageIcon from "public/svg/LanguageIcon";
+import UploadImageComponent from "components/Orders/UploadImageComponent";
 function ProductsBuyersComments({
   lang,
   comments,
@@ -179,6 +180,7 @@ export const RateCommentItem = ({ comment, language, width = 90 }) => {
           rating: comment_var.star_rating,
           owner_id: String(SelectedProduct?.owner_id),
           owner_type: SelectedProduct?.owner_type,
+          comments_images_customer: comment_var?.comments_images_customer ?? [],
         }),
         reqTitle: REQUESTS_DATA.UPDATE_COMMENT,
         server: "comments",
@@ -443,7 +445,11 @@ export const RateCommentItem = ({ comment, language, width = 90 }) => {
         >
           {formatTime(comment?.created_at)}
         </div>
-        <div className="comment-text regular text-[#1d1d1d] text-[11px] mt-[0px]">
+        <div
+          className={`${
+            !isRtl ? "pr-[27px]" : "pl-[27px]"
+          } comment-text max-h-[100px] overflow-auto regular text-[#1d1d1d] text-[11px] mt-[0px]`}
+        >
           {renderTextWithLinks(
             isCommentTranslated && translatedComment
               ? translatedComment
@@ -474,7 +480,9 @@ const BuyerCommentRateInfo = ({
       <div className="flex-row gap-[4px] text-[9px] text-[#1d1d1d]">
         <RatingStars color="#1d1d1d" initialRating={rating} readOnly={true} />
         <div className="flex-row gap-[6px]">
-          <span>{translateFunction("Good Quality", language)}</span>
+          {comment?.good_quality_comment && (
+            <span>{translateFunction("Good Quality", language)}</span>
+          )}
           {comment?.true_size && (
             <span>{translateFunction("True Size", language)}</span>
           )}
@@ -570,6 +578,10 @@ const RatingCommentOptions = ({
   const [rating, setRating] = useState(comment.star_rating);
   const [comment_str, setComment] = useState(comment.comment);
   const inputRef = useRef(null);
+  const [images, setImages] = useState<string[]>(
+    comment?.comments_images_customer || []
+  );
+  const [loadingImage, setLoadingImage] = useState(false);
   useEffect(() => {
     if (comment && is_update) {
       inputRef.current.value = comment.comment;
@@ -602,6 +614,7 @@ const RatingCommentOptions = ({
           comment: comment_str,
           star_rating: rating,
           rating: rating,
+          comments_images_customer: images,
         });
       }
     };
@@ -612,11 +625,17 @@ const RatingCommentOptions = ({
           comment: comment_str,
           star_rating: rating,
           rating: rating,
+          comments_images_customer: images,
         });
       }
     };
     const isChanged = () => {
-      if (comment.comment === comment_str && rating === comment.star_rating)
+      if (
+        comment.comment === comment_str &&
+        rating === comment.star_rating &&
+        JSON.stringify(images) ===
+          JSON.stringify(comment?.comments_images_customer || [])
+      )
         return false;
       return true;
     };
@@ -634,7 +653,7 @@ const RatingCommentOptions = ({
           role="dialog"
           tabIndex={-1}
         >
-          <div className="bg-white rounded-2xl shadow-2xl p-6 space-y-6">
+          <div className="bg-white rounded-2xl shadow-2xl p-6">
             {/* Header */}
             <div className="text-center">
               <h3 className="text-xl font-semibold text-gray-900 mb-2">
@@ -682,9 +701,20 @@ const RatingCommentOptions = ({
                 rows={3}
               />
             </div>
+            {/* Upload Images */}
 
+            <UploadImageComponent
+              removeImageAction={async (img: string) => {
+                setImages(images.filter((im) => im !== img));
+              }}
+              images={images}
+              setImages={setImages}
+              isForRating={true}
+              loading={loadingImage}
+              setLoading={setLoadingImage}
+            />
             {/* Action Buttons */}
-            <div className="flex space-x-3">
+            <div className="flex space-x-3 mt-[10px]">
               <button
                 type="button"
                 onClick={handleCloseModal}

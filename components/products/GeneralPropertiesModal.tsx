@@ -205,7 +205,7 @@ const ReviewProgress = ({ value, title }) => {
       <div className="flex-row items-center text-[#1d1d1d] text-[11px] regular gap-[6px] whitespace-nowrap">
         {value}%
       </div>
-      <span className="bold">{title}</span>
+      <span className="bold">{translateFunction(title)}</span>
     </div>
   );
 };

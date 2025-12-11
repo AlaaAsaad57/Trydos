@@ -8,6 +8,7 @@ import { useAppStore } from "store";
 import storyService from "services/story";
 import UploadImageOrder from "public/svg/UploadImageOrder";
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
+import UploadImageComponent from "./UploadImageComponent";
 
 function RatingOrderItem({
   productId,
@@ -18,21 +19,24 @@ function RatingOrderItem({
   lastComment = "",
   refresh,
   variant,
+  comments_images_customer = [],
   seller_id = null,
+  setShowCommentModal,
+  loading,
+  setLoading,
 }) {
   const { ActivePacks, language } = useAppStore();
   const [rating, setRating] = useState(initialRating);
-  const [loading, setLoading] = useState(false);
+
   const [comment, setComment] = useState(lastComment || "");
   const [ratedComplete, setRatedComplete] = useState(isRated);
-  const [showCommentModal, setShowCommentModal] = useState(false);
+
   const inputRef = React.useRef(null);
-  const [images, setImages] = useState<string[]>([]);
+  const [images, setImages] = useState<string[]>(comments_images_customer);
   const [loadingImage, setLoadingImage] = useState(false);
 
   const rateOrder = async (e?) => {
     try {
-      setShowCommentModal(false);
       setLoading(true);
       await order.RateOrderWithhComment({
         comment: comment,
@@ -56,13 +60,15 @@ function RatingOrderItem({
   };
 
   React.useEffect(() => {
-    if (showCommentModal && inputRef.current) {
-      if (lastComment?.length > 0) {
-        inputRef.current.value = lastComment;
-      }
-      if (inputRef?.current) inputRef.current?.focus();
-    }
-  }, [showCommentModal]);
+    if (inputRef?.current) inputRef.current?.focus();
+    inputRef.current.value = lastComment;
+
+    return () => {
+      setImages([]);
+      setComment("");
+      setRating(0);
+    };
+  }, []);
 
   const handleCloseModal = () => {
     if (loading) return;
@@ -83,7 +89,12 @@ function RatingOrderItem({
   };
   const isChanged = () => {
     if (!lastComment) return false;
-    if (lastComment === comment && rating === initialRating) return true;
+    if (
+      lastComment === comment &&
+      rating === initialRating &&
+      JSON.stringify(images) === JSON.stringify(comments_images_customer)
+    )
+      return true;
     return false;
   };
   const isSubmitDisabled =
@@ -93,131 +104,112 @@ function RatingOrderItem({
   return (
     <>
       <div
-        className="flex flex-col items-center justify-center w-full space-y-4"
-        onClick={() => {
-          if (!loading) {
-            document.documentElement.scrollTop = 0;
-            document.querySelector("#OrderDetails").scrollTop = 0;
-            setShowCommentModal(true);
-          }
-        }}
+        className="fixed inset-0 bg-black bg-opacity-50 z-40"
+        onClick={handleCloseModal}
+      />
+      <div
+        className="fixed bottom-0  h-[65vh] left-0 right-0 mx-auto transform  z-50 w-full max-w-full "
+        aria-modal="true"
+        role="dialog"
+        tabIndex={-1}
       >
-        <div className="flex items-center justify-center">
-          {!loading ? (
-            <RatingStars readOnly={true} initialRating={initialRating} />
-          ) : (
-            <Spinner />
-          )}
+        <div
+          className="bg-white h-full rounded-2xl shadow-2xl p-6 "
+          style={{
+            direction: isRtl ? "rtl" : "ltr",
+          }}
+        >
+          {/* Header */}
+          <div className="text-center">
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">
+              {translateFunction("Rate Your Experience")}
+            </h3>
+            <p className="text-sm text-gray-600">
+              {translateFunction("Share your thoughts about this product")}
+            </p>
+          </div>
+
+          {/* Rating Stars */}
+          <div className="flex justify-center">
+            <RatingStars
+              readOnly={loading}
+              initialRating={Number(rating)}
+              size={40}
+              onRatingChange={(e) => {
+                if (!loading) {
+                  setRating(Number(e));
+                }
+              }}
+            />
+          </div>
+
+          {/* Comment Input */}
+          <div className="space-y-2 mt-[10px]">
+            <label
+              htmlFor="comment-input"
+              className="block text-sm font-medium text-gray-700"
+            >
+              {translateFunction("Your Comment")}
+            </label>
+            <textarea
+              id="comment-input"
+              ref={inputRef}
+              value={comment}
+              onChange={(e) => setComment(e.target.value)}
+              onKeyDown={handleInputKeyDown}
+              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-base text-gray-800 bg-gray-50 transition-colors"
+              placeholder={translateFunction("Add your comment")}
+              aria-label="Comment input"
+              disabled={loading}
+              rows={3}
+            />
+          </div>
+
+          {/* Images Upload */}
+          <UploadImageComponent
+            removeImageAction={async (img: string) => {
+              setImages(images.filter((im) => im !== img));
+            }}
+            images={images}
+            setImages={setImages}
+            isForRating={true}
+            loading={loadingImage}
+            setLoading={setLoadingImage}
+          />
+
+          {/* Action Buttons */}
+          <div className="flex space-x-3">
+            <button
+              type="button"
+              onClick={handleCloseModal}
+              className="flex-1 px-4 py-3 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-gray-300"
+              disabled={loading}
+            >
+              {translateFunction("Cancel")}
+            </button>
+            <button
+              type="button"
+              onClick={handleSubmit}
+              className={`flex-1 px-4 py-3 rounded-xl font-medium transition-colors focus:outline-none focus:ring-2 ${
+                isSubmitDisabled
+                  ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                  : "bg-blue-600 hover:bg-blue-700 text-white focus:ring-blue-300"
+              }`}
+              disabled={isSubmitDisabled}
+            >
+              {loading ? (
+                <div className="flex items-center justify-center">
+                  <Spinner />
+                </div>
+              ) : lastComment ? (
+                translateFunction("Update Rating")
+              ) : (
+                translateFunction("Submit Rating")
+              )}
+            </button>
+          </div>
         </div>
       </div>
-
-      {showCommentModal && (
-        <>
-          <div
-            className="fixed inset-0 bg-black bg-opacity-50 z-40"
-            onClick={handleCloseModal}
-          />
-          <div
-            className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-md mx-4"
-            aria-modal="true"
-            role="dialog"
-            tabIndex={-1}
-          >
-            <div
-              className="bg-white rounded-2xl shadow-2xl p-6 space-y-6"
-              style={{
-                direction: isRtl ? "rtl" : "ltr",
-              }}
-            >
-              {/* Header */}
-              <div className="text-center">
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                  {translateFunction("Rate Your Experience")}
-                </h3>
-                <p className="text-sm text-gray-600">
-                  {translateFunction("Share your thoughts about this product")}
-                </p>
-              </div>
-
-              {/* Rating Stars */}
-              <div className="flex justify-center">
-                <RatingStars
-                  readOnly={loading}
-                  initialRating={Number(rating)}
-                  size={40}
-                  onRatingChange={(e) => {
-                    if (!loading) {
-                      setRating(Number(e));
-                    }
-                  }}
-                />
-              </div>
-
-              {/* Comment Input */}
-              <div className="space-y-2">
-                <label
-                  htmlFor="comment-input"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  {translateFunction("Your Comment")}
-                </label>
-                <textarea
-                  id="comment-input"
-                  ref={inputRef}
-                  value={comment}
-                  onChange={(e) => setComment(e.target.value)}
-                  onKeyDown={handleInputKeyDown}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-base text-gray-800 bg-gray-50 transition-colors"
-                  placeholder={translateFunction("Add your comment")}
-                  aria-label="Comment input"
-                  disabled={loading}
-                  rows={3}
-                />
-              </div>
-
-              {/* Images Upload */}
-              <RatingUploadImages
-                images={images}
-                setImages={setImages}
-                loading={loadingImage}
-                setLoading={setLoadingImage}
-              />
-
-              {/* Action Buttons */}
-              <div className="flex space-x-3">
-                <button
-                  type="button"
-                  onClick={handleCloseModal}
-                  className="flex-1 px-4 py-3 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-gray-300"
-                  disabled={loading}
-                >
-                  {translateFunction("Cancel")}
-                </button>
-                <button
-                  type="button"
-                  onClick={handleSubmit}
-                  className={`flex-1 px-4 py-3 rounded-xl font-medium transition-colors focus:outline-none focus:ring-2 ${
-                    isSubmitDisabled
-                      ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                      : "bg-blue-600 hover:bg-blue-700 text-white focus:ring-blue-300"
-                  }`}
-                  disabled={isSubmitDisabled}
-                >
-                  {loading ? (
-                    <div className="flex items-center justify-center">
-                      <Spinner />
-                    </div>
-                  ) : lastComment ? (
-                    translateFunction("Update Rating")
-                  ) : (
-                    translateFunction("Submit Rating")
-                  )}
-                </button>
-              </div>
-            </div>
-          </div>
-        </>
-      )}
     </>
   );
 }

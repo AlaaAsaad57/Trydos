@@ -1,5 +1,5 @@
 import { ProductPhotosSliderPropsType } from "models/componentType/ProductPhotosSliderPropsType";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import { getConfiguredImage } from "utils/functions";
 import { GetImageUrl, getVideoUrl } from "utils/tinyUtils";
@@ -13,6 +13,46 @@ export function ProductPhotosSlider({
   images,
 }: ProductPhotosSliderPropsType) {
   const [activeSlide, setActiveImageIndex] = useState(0);
+  const [timeLeft, setTimeLeft] = useState<{
+    days: number;
+    hours: number;
+    minutes: number;
+    seconds: number;
+  } | null>(null);
+  const [isExpired, setIsExpired] = useState(false);
+
+  useEffect(() => {
+    let timer;
+    const calculateTimeLeft = () => {
+      const endDate = new Date(product.flash_deal_end_date);
+      endDate.setHours(23, 59, 59, 999);
+      const now = new Date();
+      const difference = endDate.getTime() - now.getTime();
+
+      if (difference > 0) {
+        const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+        const hours = Math.floor(
+          (difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
+        );
+        const minutes = Math.floor(
+          (difference % (1000 * 60 * 60)) / (1000 * 60)
+        );
+        const seconds = Math.floor((difference % (1000 * 60)) / 1000);
+
+        setTimeLeft({ days, hours, minutes, seconds });
+        setIsExpired(false);
+      } else {
+        setTimeLeft(null);
+        setIsExpired(true);
+      }
+    };
+    if (product?.flash_deal_end_date) {
+      calculateTimeLeft();
+      timer = setInterval(calculateTimeLeft, 1000);
+    }
+
+    return () => clearInterval(timer);
+  }, [product?.flash_deal_end_date]);
   if (Sliders) {
     return (
       <React.Fragment>
@@ -23,7 +63,7 @@ export function ProductPhotosSlider({
           <>
             <div className="inset-shadow-img w-[200px] h-[290px] rounded-15 absolute" />
             <video
-              src={getVideoUrl(product.videos[0], { width: 400, height: 400 })}
+              src={getVideoUrl(product.videos[0], { width: 400, height: 580 })}
               autoPlay
               loop
               muted
@@ -31,10 +71,11 @@ export function ProductPhotosSlider({
               controls={false}
               style={{
                 border:
-                  (product.flash_deal_end_date || shouldshowRedem) &&
-                  "1px solid #FF6200",
+                  (product.flash_deal_end_date && !isExpired) || shouldshowRedem
+                    ? "1px solid #FF6200"
+                    : "1px solid #d3d3d3",
               }}
-              className="w-full object-cover h-[290px] border-[#d3d3d387] border-[1px] rounded-15 z-10"
+              className="w-full object-cover h-[290px] border-[#d3d3d3] border-[1px] rounded-15 z-10"
             />
           </>
         ) : (
@@ -66,7 +107,7 @@ export function ProductPhotosSlider({
           >
             <NormalSlider
               initialSlide={activeSlide}
-              slideHeight={290}
+              slideHeight={291}
               slideWidth={200}
               slidesArray={images?.map((image, index) => index)}
               onSlideChange={(index) => {
@@ -81,20 +122,22 @@ export function ProductPhotosSlider({
                       <div className="inset-shadow-img w-[200px] h-[290px] rounded-15 absolute " />
                       <Image
                         width={400}
-                        height={300}
+                        height={580}
                         loading="eager"
                         quality={100}
                         fetchPriority="auto"
                         src={getConfiguredImage({
                           src: GetImageUrl(image),
-                          width: 189,
-                          height: 290,
+                          width: 400,
+                          height: 580,
                           q: 100,
                         })}
                         style={{
                           border:
-                            (product.flash_deal_end_date || shouldshowRedem) &&
-                            "1px solid #FF6200",
+                            (product.flash_deal_end_date && !isExpired) ||
+                            shouldshowRedem
+                              ? "1px solid #FF6200"
+                              : "1px solid #d3d3d3",
                         }}
                         className="w-[200px] h-[290px] border-[#d3d3d387] object-cover object-[top_center] border-[1px] rounded-15 z-10"
                         alt={product.name || "alt"}
@@ -123,7 +166,7 @@ export function ProductPhotosSlider({
         >
           <div className="inset-shadow-img w-[200px] h-[290px] rounded-15 absolute " />
           <Image
-            width={380}
+            width={400}
             height={580}
             quality={100}
             loading="eager"
@@ -131,13 +174,15 @@ export function ProductPhotosSlider({
             style={{
               borderRadius: "15px",
               zIndex: "3",
-              border:
-                Boolean(product.flash_deal_end_date || shouldshowRedem) &&
-                "1px solid #FF6200",
+              border: Boolean(
+                (product.flash_deal_end_date && !isExpired) || shouldshowRedem
+              )
+                ? "1px solid #FF6200"
+                : "1px solid #d3d3d3",
             }}
             src={getConfiguredImage({
               src: GetImageUrl(images[0]),
-              width: 380,
+              width: 400,
               height: 580,
               q: 100,
             })}

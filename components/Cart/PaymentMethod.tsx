@@ -372,7 +372,9 @@ function PaymentMethod() {
                   >
                     <TryDosWalletInput
                       key={key}
-                      balance={wallet?.wallet_balance?.toFixed(8)}
+                      balance={wallet?.wallet_balance?.toFixed(
+                        currency?.decimal_digits
+                      )}
                       active={
                         orderData?.payment?.filter((s) => s.id === 1).length > 0
                       }

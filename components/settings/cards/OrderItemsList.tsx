@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { OrdersIcon } from "../OrdersList";
 import { getConfiguredImage, translateFunction } from "utils/functions";
 import { useParams } from "next/navigation";
@@ -14,6 +14,8 @@ import { GetImageUrl } from "utils/tinyUtils";
 import { OrderItemsListPropsType } from "models/componentType/settingTypes/OrderItemsListPropsType";
 import { useAppStore } from "store";
 import RatingOrderItem from "components/Orders/RatingOrderItem";
+import RatingStars from "./RatingStars";
+import Spinner from "components/global/Spinner";
 
 function OrderItemsList({
   items,
@@ -27,11 +29,11 @@ function OrderItemsList({
 }: OrderItemsListPropsType) {
   const { ActivePacks } = useAppStore();
   const getStatusIcon = (status) => {
-    if (status === "pending") return <PendingStatus />;
-    if (status === "preparing") return <PreparingStatus />;
-    if (status === "shipped") return <ShippedSatus />;
-    if (status === "delivered") return <DeliveredStatus />;
-    return <PendingStatus />;
+    if (status === "pending") return <PendingStatus isActive={false} />;
+    if (status === "preparing") return <PreparingStatus isActive={false} />;
+    if (status === "shipped") return <ShippedSatus isActive={false} />;
+    if (status === "delivered") return <DeliveredStatus isActive={false} />;
+    return <PendingStatus isActive={false} />;
   };
   const { lang } = useParams();
   // @ts-ignore
@@ -42,6 +44,9 @@ function OrderItemsList({
       !item.is_returned && ActivePacks?.order_status?.value === "delivered"
     );
   };
+  const [showCommentModal, setShowCommentModal] = useState<any>(false);
+  const [loading, setLoading] = React.useState(false);
+
   return (
     <div className="w-full flex-col">
       <div
@@ -63,7 +68,12 @@ function OrderItemsList({
         <span className={`text-[#8D8D8D] text-[10px] regular mt-[5px]`}>
           {translateFunction("Order Details")}
         </span>
-        <span className={`text-[#1D1D1D] text-[12px] regular`}>
+        <span
+          style={{
+            direction: isRtl ? "rtl" : "ltr",
+          }}
+          className={`text-[#1D1D1D] text-[12px] regular`}
+        >
           <span
             className={`bold ${isRtl ? " text-right dir-rtl" : " "}`}
             data-cy="order-products-count"
@@ -152,34 +162,73 @@ function OrderItemsList({
               <div className="flex-row mt-[4px]"></div>
             </div>
             {isDelevired(product) && (
-              <RatingOrderItem
-                seller_id={
-                  // ActivePacks?.seller_id
-                  null
-                }
-                refresh={() => {
-                  getOrderDetails();
-                }}
-                productId={product?.product_details.id}
-                variant={product?.variant}
-                order_detail_id={product.id}
-                initialRating={
-                  product.comments &&
-                  product.comments?.[product?.comments.length - 1]?.star_rating
-                }
-                lastComment={
-                  product.comments &&
-                  product.comments?.[product?.comments.length - 1]?.comment
-                }
-                isRated={
-                  product.comments &&
-                  product.comments?.[product?.comments.length - 1]?.star_rating
-                }
-                lastRatingId={
-                  product.comments &&
-                  product.comments?.[product?.comments.length - 1]?.id
-                }
-              />
+              <>
+                <div
+                  className="flex flex-col items-center justify-center w-full space-y-4"
+                  onClick={() => {
+                    if (!loading) {
+                      document.documentElement.scrollTop = 0;
+                      document.querySelector("#OrderDetails").scrollTop = 0;
+                      setShowCommentModal(product?.id);
+                    }
+                  }}
+                >
+                  <div className="flex items-center justify-center rating-star-container">
+                    {!loading ? (
+                      <RatingStars
+                        readOnly={true}
+                        initialRating={
+                          product.comments?.[product?.comments.length - 1]
+                            ?.star_rating ?? 0
+                        }
+                      />
+                    ) : (
+                      <Spinner />
+                    )}
+                  </div>
+                </div>
+
+                {showCommentModal === product?.id && (
+                  <RatingOrderItem
+                    seller_id={
+                      // ActivePacks?.seller_id
+                      null
+                    }
+                    refresh={() => {
+                      getOrderDetails();
+                    }}
+                    key={`${product.id}-${product?.id}-rating-modal`}
+                    productId={product?.product_details.id}
+                    variant={product?.variant}
+                    order_detail_id={product.id}
+                    initialRating={
+                      product.comments &&
+                      product.comments?.[product?.comments.length - 1]
+                        ?.star_rating
+                    }
+                    lastComment={
+                      product.comments &&
+                      product.comments?.[product?.comments.length - 1]?.comment
+                    }
+                    isRated={
+                      product.comments &&
+                      product.comments?.[product?.comments.length - 1]
+                        ?.star_rating
+                    }
+                    lastRatingId={
+                      product.comments &&
+                      product.comments?.[product?.comments.length - 1]?.id
+                    }
+                    comments_images_customer={
+                      product.comments?.[product?.comments.length - 1]
+                        ?.comments_images_customer ?? []
+                    }
+                    setShowCommentModal={() => setShowCommentModal(false)}
+                    loading={loading}
+                    setLoading={setLoading}
+                  />
+                )}
+              </>
             )}
           </div>
         ))}

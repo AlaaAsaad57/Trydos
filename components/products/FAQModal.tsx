@@ -311,7 +311,11 @@ const FaqItem = ({ language, comment, width, seller_name }) => {
           <div className="comment-date text-[9px]" data-cy="Date-Of-Comment">
             {formatTime(comment?.created_at)}
           </div>
-          <div className="comment-text regular text-[#1d1d1d] text-[11px] mt-[0px]">
+          <div
+            className={`${
+              !isRtl ? "pr-[27px]" : "pl-[27px]"
+            } comment-text max-h-[100px] overflow-auto regular text-[#1d1d1d] text-[11px] mt-[0px]`}
+          >
             {renderTextWithLinks(comment?.comment)}
           </div>
         </div>
@@ -360,7 +364,7 @@ const FaqItem = ({ language, comment, width, seller_name }) => {
               >
                 {formatTime(comment?.reply_created_at)}
               </div>
-              <div className="comment-text regular text-[#1d1d1d] text-[11px] mt-[0px]">
+              <div className="comment-text max-h-[100px] overflow-auto regular text-[#1d1d1d] text-[11px] mt-[0px]">
                 {renderTextWithLinks(comment?.seller_reply)}
               </div>
             </div>

@@ -26,7 +26,7 @@ const translations = {
   "All Comments Are Genuine From Customers Who Purchased And Actually Received The Product Through":
     "جميع التعليقات حقيقية من العملاء الذين اشتروا المنتج واستلموه فعليًا من خلال",
   "Overall Good Quality": "جودة عامة جيدة",
-  "Expected Shipping & delivery Date": "تاريخ الشحن والتسليم المتوقع",
+  "Expected Shipping & delivery Date": "تاريخ التوصيل المتوقع",
   "Based On The Previous Delivery Statistics Below To Your Area, We Conclude That The Expected Delivery Time For Your Product Is":
     "بناءً على إحصائيات التسليم السابقة أدناه إلى منطقتك، نستنتج أن وقت التسليم المتوقع لمنتجك هو",
   "Get a": "احصل على",
@@ -119,6 +119,7 @@ const translations = {
   "Tap “Agree & Continue” To Accept trydos":
     'اضغط على "موافقة ومتابعة" لقبول trydos',
   "Cancel Return Request": "إلغاء طلب الإرجاع",
+  "Return Request": "طلب الارجاع",
   "Failed To Load Return Details Try again":
     "فشل في تحميل تفاصيل الإرجاع، حاول مرة أخرى",
   "You Need To Confirm Your Request": "تحتاج إلى تأكيد طلبك",
@@ -181,12 +182,12 @@ const translations = {
   "Select quantity": "اختر الكمية",
   "Report This Product": "أبلغ عن هذا المنتج",
   "Delivery Time, Delivery Man, Delivery Car":
-    "وقت التسليم، ساعي التوصيل، سيارة التوصيل",
+    "وقت التسليم، رجل التوصيل، سيارة التوصيل",
   "Add Comment…": "أضف تعليق…",
   Pack: "مجموعة",
   "Please Add Photos Of The Product You Received So That We Can Provide You With The Best Service To Avoid This Issue.":
     "يرجى إضافة صور للمنتج الذي استلمته حتى نتمكن من تقديم أفضل خدمة لك لتجنب هذه المشكلة",
-  "Rate & Get Money": "قيم واحصل على المال",
+  "Rate & Get Money": "قيم  واربح المال",
   "Your Accurate Rating Of The Products You Receive Helps Us Improve Quality And Helps Other Customers Purchase.":
     "تقييمك الدقيق للمنتجات التي تتسلمها يساعدنا في تحسين الجودة ويساعد العملاء الآخرين على الشراء.",
   "Story deleted successfully.": "تم حذف القصة بنجاح.",
@@ -202,6 +203,8 @@ const translations = {
   "Share Story": "مشاركة القصة",
   Cancel: "الغاء",
   "For All": "للكل",
+  "You are about to leave our site": "أنت على وشك مغادرة موقعنا",
+  "External Link Warning": "تحذير رابط خارجي",
   "For Me": "لي",
   Imagee: "صورة",
   Video: "فيديو",
@@ -253,7 +256,7 @@ const translations = {
   "Action About Your Order": "اجراءات حول طلبك",
   "Change Delivery Note": "تغيير ملاحظة التوصيل",
   "Add delivery instructions...": "أدخل تعليمات التوصيل...",
-  "Action About This Product": "اجراءات حول منتجك",
+  "Action About This Product": "الاجراء الخاص بهذا المنتج",
   "And Back Your Money": "واسترد أموالك ",
   Hours: "ساعات  ",
   "Return This Product": "إرجاع هذا المنتج",
@@ -360,13 +363,13 @@ const translations = {
   "Order Date": "تاريخ الطلب",
   Recipient: "المستلم",
   "Recipient Phone": "رقم الهاتف",
-  "Orders Details": "تفاصيل الطلبات",
+  "Orders Details": "تفاصيل الطلب",
   "Item Status": "حالة المنتج",
   "Composed Of": "مكون من",
   Buying: "شراء",
   "Expected Delivery Date": "تاريخ الشحن والتسليم المتوقع",
   "Order Status": "حالة الطلب",
-  Pieces: "قطع",
+  Pieces: "ةقطع",
   "Work Days": "أيام العمل",
   "Order Invoice": "فاتورة الطلب",
   "Order Number": "رقم الطلب",
@@ -571,7 +574,7 @@ const translations = {
   "Time Running Out. ": "الوقت ينفذ.",
   "Confirm And Continue": "الموافقة والمتابعة",
   items: "عناصر",
-  "Size,": "حجم, ",
+  Size: "حجم",
   "color,": "لون, ",
   Saved: "توفير",
   "Time Running Out.": "الوقت ينفذ",
@@ -1100,6 +1103,18 @@ const translations = {
   "Add More to Your Bag": "أضف المزيد إلى السلة",
   "Please enable camera permissions to use camera feature":
     "يرجى تفعيل أذونات الكاميرا لاستخدام ميزة الكاميرا",
+  Small: "صغير",
+  Large: "كبير",
+  True: "حقيقي",
+  "Max Allowed Quantity Reached":
+    "تم الوصول إلى الحد الأقصى للكمية المسموح بها",
+  "I Agree & Return": "أوافق وأرجع",
+  "Delay Confirmation. I want to Return more product":
+    "تأجيل التأكيد. أريد إرجاع المزيد من المنتجات",
+  "chosse an image or video from camera or gallery":
+    "اختر صورة أو فيديو من الكاميرا أو المعرض",
+  camera: "الكاميرا",
+  Gallery: "المعرض",
 };
 
 export default translations;

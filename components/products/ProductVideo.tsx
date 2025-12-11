@@ -1,49 +1,101 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { translateFunction } from "utils/functions";
-import { getVideoUrl } from "utils/tinyUtils";
+import { DisableScroll, getVideoUrl } from "utils/tinyUtils";
 
 function ProductVideo({ videos, language }) {
   const [showVideo, setShowVideo] = useState(true);
-  if (!showVideo) return <></>;
+  const [expanded, setExpanded] = useState(false);
+  const isRtl = language === "ar" || language === "ku";
+
+  const videoRef = useRef<HTMLDivElement>(null);
+
+  if (!showVideo) return null;
+  useEffect(() => {
+    if (expanded) {
+      DisableScroll();
+    }
+  }, [expanded]);
   return (
-    <div className="relative">
-      <video
-        src={getVideoUrl(videos, { width: 700, height: 900 })}
-        autoPlay
-        loop
-        muted
-        playsInline
-        controls={false}
-        className="w-[138px] bg-[#f8f8f8] h-[200px] object-cover  rounded-15 z-10"
-      />
-      <OverlayText language={language} />
-      <VideoBorder />
-      <CloseIcon
-        clickHandler={() => {
-          setShowVideo(false);
-        }}
-      />
-    </div>
+    <>
+      {/* Backdrop */}
+      {expanded && (
+        <div
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[99999999999999]"
+          onClick={() => setExpanded(false)}
+        />
+      )}
+
+      {/* Video container */}
+      <div
+        className={`${isRtl ? "left-[6px]" : "right-[6px]"} 
+        ${
+          expanded
+            ? "fixed bottom-[114px] left-0 right-0 mx-auto flex items-center justify-center "
+            : "absolute bottom-[114px]"
+        }
+        z-[99999999999999] product-video`}
+      >
+        <div
+          ref={videoRef}
+          className="relative"
+          onClick={(e) => e.stopPropagation()} // Prevent backdrop click when clicking video
+        >
+          <video
+            onClick={() => setExpanded(true)}
+            key={String(expanded)}
+            src={
+              expanded
+                ? getVideoUrl(videos, {
+                    width: 700,
+                    height: 900,
+                    end: -1,
+                  })
+                : getVideoUrl(videos, { width: 700, height: 900 })
+            }
+            autoPlay
+            loop={!expanded}
+            muted={!expanded}
+            playsInline
+            controls={expanded}
+            className={`${
+              expanded
+                ? "w-[90vw] max-w-[700px] h-[65vh] object-contain"
+                : "w-[138px] h-[200px] object-cover"
+            } transition-all bg-black rounded-[15px] z-10`}
+          />
+
+          {!expanded && (
+            <>
+              <OverlayText
+                language={language}
+                onClick={() => setExpanded(true)}
+              />
+              <VideoBorder onClick={() => setExpanded(true)} />
+            </>
+          )}
+
+          <CloseIcon
+            clickHandler={() => {
+              if (expanded) {
+                setExpanded(false);
+                return;
+              }
+              setShowVideo(false);
+            }}
+          />
+        </div>
+      </div>
+    </>
   );
 }
-const OverlayText = ({ language }) => {
-  return (
-    <div
-      className="z-[999] absolute top-0 left-0 bold text-[13px] w-full h-full text-[#FFFFFF] text-center items-center justify-center flex "
-      style={{
-        textShadow: "0px 3px 6px rgba(0, 0, 0, 0.16)",
-      }}
-    >
-      {translateFunction("Quick Video", language)}
-    </div>
-  );
-};
-
 export default ProductVideo;
-const VideoBorder = () => {
+const VideoBorder = ({ onClick }) => {
   return (
     <svg
+      onClick={() => {
+        onClick();
+      }}
       className="absolute top-0 left-0 z-[9998]"
       xmlns="http://www.w3.org/2000/svg"
       width="138"
@@ -127,6 +179,21 @@ const CloseIcon = ({ clickHandler }) => {
           </g>
         </g>
       </svg>
+    </div>
+  );
+};
+const OverlayText = ({ language, onClick }) => {
+  return (
+    <div
+      onClick={() => {
+        onClick();
+      }}
+      className="z-[999] absolute top-0 left-0 bold text-[13px] w-full h-full text-[#FFFFFF] text-center items-center justify-center flex "
+      style={{
+        textShadow: "0px 3px 6px rgba(0, 0, 0, 0.16)",
+      }}
+    >
+      {translateFunction("Quick Video", language)}
     </div>
   );
 };

@@ -777,11 +777,7 @@ export const QuantutyInput = ({
                       {RoundPrice({
                         num: product.price * product.quantity,
                         rate: currency?.exchange_rate,
-                        points:
-                          (settings &&
-                            settings["starting-setting"]
-                              ?.decimal_point_settings) ||
-                          0,
+                        points: currency?.decimal_digits,
                         language: languageVariable,
                       })}
                       <svg
@@ -809,11 +805,7 @@ export const QuantutyInput = ({
                       {RoundPrice({
                         num: product?.offer_price * product.quantity,
                         rate: currency?.exchange_rate,
-                        points:
-                          (settings &&
-                            settings["starting-setting"]
-                              ?.decimal_point_settings) ||
-                          0,
+                        points: currency?.decimal_digits,
                         language: languageVariable,
                       })}
                     </div>
@@ -857,10 +849,7 @@ export const QuantutyInput = ({
                   {RoundPrice({
                     num: product.price * product.quantity,
                     rate: currency?.exchange_rate,
-                    points:
-                      (settings &&
-                        settings["starting-setting"]?.decimal_point_settings) ||
-                      0,
+                    points: currency?.decimal_digits,
                     language: languageVariable,
                   })}
                 </div>

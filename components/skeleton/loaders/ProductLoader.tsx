@@ -715,7 +715,7 @@ function ProductLoader({ product }) {
                   RoundPrice({
                     num: product?.price,
                     rate: currency?.exchange_rate,
-                    points: 0,
+                    points: currency?.decimal_digits,
                     language: languageVariable,
                   })) ?? <Skeleton width={30} height={10} />}
               </div>
@@ -726,7 +726,7 @@ function ProductLoader({ product }) {
                 RoundPrice({
                   num: product?.offer_price,
                   rate: currency?.exchange_rate,
-                  points: 0,
+                  points: currency?.decimal_digits,
                   language: languageVariable,
                 })) ?? <Skeleton width={30} height={10} />}
             </div>

@@ -23,7 +23,6 @@ import {
 } from "models/componentType/settingTypes/MainSettingPropsType";
 import { fetchOrders } from "services/orders";
 import SettingsLoader from "components/skeleton/loaders/SettingsLoader";
-import NextLink from "components/global/NextLink";
 
 function MainSetting({ swipeToScreen }: MainSettingPropsType) {
   const options = [
@@ -149,8 +148,10 @@ function MainSetting({ swipeToScreen }: MainSettingPropsType) {
               <Spinner />
             ) : (
               <>
-                {wallet?.wallet_balance?.toFixed(8)} {currency?.symbol}{" "}
-                {translateFunction("Your Balance")}
+                <span className="medium">
+                  {wallet?.wallet_balance?.toFixed(currency?.decimal_digits)}{" "}
+                </span>
+                {currency?.symbol} {translateFunction("Your Balance")}
               </>
             )}
           </span>

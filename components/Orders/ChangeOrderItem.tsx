@@ -62,6 +62,7 @@ function ChangeOrderItem({
   const [color, setColor] = useState<string>(
     item?.variation?.[0]?.color_options
   );
+
   const [size, setSize] = useState<string>(item?.variation?.[0]?.size_options);
   const getVariant = () => {
     if (!productData?.variation || productData?.variation?.length === 0)
@@ -143,7 +144,7 @@ function ChangeOrderItem({
         return true;
       }
     }
-    if (size !== item?.variation?.[0]?.Size) {
+    if (size !== item?.variation?.[0]?.size_options) {
       return true;
     }
     if (qty !== item?.qty) {

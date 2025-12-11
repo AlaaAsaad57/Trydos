@@ -98,8 +98,6 @@ export const useAuthStore = (set, get) => ({
       failedLogin: false,
       attempts: 4,
       wrongNumber: "",
-
-      verficationID: null,
     })),
   loginSuccessChat: (userData) =>
     set((state) => ({

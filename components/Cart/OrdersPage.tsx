@@ -921,7 +921,7 @@ const OrderButtons = ({
                 {RoundPrice({
                   num: getTotalPrice(),
                   returnNumber: true,
-                  points: 5,
+                  points: currency?.decimal_digits,
                 })}{" "}
                 {currency?.symbol}
               </span>

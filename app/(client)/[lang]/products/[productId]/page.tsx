@@ -53,14 +53,13 @@ import ProductRedeemCounter from "components/products/ProductRedeemCounter";
 import PricesRow from "components/Cart/AddToCart/PricesRow";
 import { getCookieServer } from "utils/cookies/cookie-manager";
 import { LogServerError } from "utils/serverErrorReporter";
-// export const revalidate = parseInt(process.env.NEXT_PUBLIC_REVALIDATE);
-// For Middle East users
 
 export async function generateMetadata({ params, searchParams }) {
   let Params = await params;
   let SearchParams = await searchParams;
   try {
     let cachedData = await RedisGet(`${Params.productId}-${Params.lang}`);
+
     if (cachedData) {
       return typeof cachedData === "string" ? JSON.parse(cachedData) : {};
     } else {
@@ -68,15 +67,17 @@ export async function generateMetadata({ params, searchParams }) {
         params: Params,
         searchParams: SearchParams,
       });
+
       // @ts-ignore
       if (metaData?.error) {
-        redirect(`/${Params.lang}?message=product_not_found`);
+        // @ts-ignore
+        throw new Error(metaData?.error);
       }
       RedisSet(`${Params.productId}-${Params.lang}`, JSON.stringify(metaData));
       return metaData;
     }
   } catch (error) {
-    redirect(`/${Params.lang}?message=product_not_found`);
+    return {};
   }
 }
 async function getCurrency(country, language) {
@@ -104,7 +105,6 @@ async function GetProductDataFunc(params) {
   let [country, language] = params.lang.split("-");
   try {
     let data = await getProductFromCache(slug, language, country);
-
     if (data?.product && data?.product?.images) {
       let elasticData = await getProductDataFromElastic({
         productId: data.product.id,
@@ -134,22 +134,24 @@ async function GetProductDataFunc(params) {
       };
     }
   } catch (error) {
-    throw error;
+    return null;
   }
 }
 async function Page({ params, searchParams }) {
   let Params = await params;
   let SearchParams = await searchParams;
+
   try {
     let [countryVariable, languageVariable] = Params.lang.split("-");
     let start = process.hrtime.bigint();
-
     let [product, currency] = await Promise.all([
       GetProductDataFunc(Params),
       getCurrency(countryVariable, languageVariable),
     ]);
     let end = process.hrtime.bigint();
-
+    if (!product) {
+      redirect(`/${Params.lang}?message=product_not_found`);
+    }
     const color = SearchParams.color;
     const JsonLd = {
       "@context": "https://schema.org",
@@ -435,18 +437,6 @@ async function Page({ params, searchParams }) {
             className="product-details-slider mt-[12px] relative h-[474px] max-h-[474px]"
             key={`key-${color}`}
           >
-            {product?.videos?.[0] && (
-              <div
-                className={`${
-                  isRtl ? "left-[6px]" : "right-[6px]"
-                } absolute z-[999] bottom-[6px]  product-video`}
-              >
-                <ProductVideo
-                  language={languageVariable}
-                  videos={product?.videos?.[0]}
-                />
-              </div>
-            )}
             <ProductImagesSlider language={languageVariable}>
               {getImages(product, color)?.images?.map((img, i) => (
                 <div
@@ -768,6 +758,12 @@ async function Page({ params, searchParams }) {
           </div>
 
           <div className="product-details-footer alternate-product-details-footer z-[999999999]">
+            {product?.videos?.[0] && (
+              <ProductVideo
+                language={languageVariable}
+                videos={product?.videos?.[0]}
+              />
+            )}
             <div className="product-info-container p-0 h-[40px] overflow-hidden">
               <PricesRow
                 currency={currency}

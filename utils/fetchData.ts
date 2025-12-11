@@ -28,7 +28,8 @@ export type ServerType =
   | "upload story"
   | "nest-stories"
   | "local"
-  | "comments";
+  | "comments"
+  | "market-dashboard";
 
 export type FetchMethod = "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
 
@@ -42,6 +43,7 @@ export interface FetchDataParams {
   retryActionIfUnAuth?: () => void | null;
   signal?: AbortSignal;
   noMessage?: boolean;
+  sellerId?: string;
 }
 
 // ---------- Internal State ----------
@@ -68,7 +70,10 @@ const ignoredMessages = [
 // ---------- Helper Functions ----------
 const getServerBaseUrl = (server: ServerType) => {
   switch (server) {
+    // case "market-dashboard":
+    //   return process.env.NEXT_PUBLIC_MARKET_DASHBOARD_BACKEND_URL;
     case "market":
+    case "market-dashboard":
       return process.env.NEXT_PUBLIC_BACKEND_URL;
     case "elastic":
       return process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL;
@@ -96,6 +101,7 @@ const getToken = async (server: ServerType): Promise<string> => {
     case "chat":
       return getCookie<UserData>(COOKIE_NAMES.USER_CHAT)?.access_token || "";
     case "market":
+    case "market-dashboard":
       return (
         getCookie<string>(COOKIE_NAMES.MARKET_TOKEN) ||
         getCookie<string>(COOKIE_NAMES.DEVICE_TOKEN) ||
@@ -189,16 +195,28 @@ const handleUnauthorized = async (
       case "elastic":
         return true;
       case "market":
-        const authService = await import("../services/auth");
-        await authService.default.ExpiredUser();
-        return true;
+      case "market-dashboard":
+      case "local":
+        if (
+          (server === "local" && options?.url.includes("/api/auth/login")) ||
+          server === "market-dashboard" ||
+          server === "market"
+        ) {
+          const authService = await import("../services/auth");
+          await authService.default.ExpiredUser();
+          return true;
+        }
       case "chat":
       case "stories":
       case "comments":
-        console.log(
-          `############## JUST FOR TEST TO KNOW WHAT HAPPEN TO ASK FOR  OTP ##########:\n ${JSON.stringify(
-            options
-          )}`
+        let token = await getToken(server);
+        localStorage.setItem(
+          "last_unauthorized_request",
+          JSON.stringify({
+            ...options,
+            token: token,
+            date: new Date().toISOString(),
+          })
         );
         const { useAppStore } = await import("../store");
         const { setShouldAuthinticated } = useAppStore.getState();
@@ -228,8 +246,10 @@ const handleUnauthorized = async (
           const interval = setInterval(() => {
             const hasNewToken =
               server === "chat"
-                ? getCookie<UserData>(COOKIE_NAMES.USER_CHAT)?.access_token
-                : getCookie<UserData>(COOKIE_NAMES.USER_STORIES)?.access_token;
+                ? getCookie<UserData>(COOKIE_NAMES.USER_CHAT)?.need_auth ===
+                  false
+                : getCookie<UserData>(COOKIE_NAMES.USER_STORIES)?.need_auth ===
+                  false;
 
             const currentState = useAppStore.getState();
             if (!currentState.shouldAuthinticated) {
@@ -297,7 +317,13 @@ export const fetchData = async <T = any>(
     }
     try {
       const token = await getToken(server);
-      const headers = await getHeader(server === "upload story");
+      let headers: any = await getHeader(server === "upload story");
+      if (params.sellerId) {
+        headers = {
+          ...headers,
+          "X-Seller-ID": params.sellerId,
+        };
+      }
       const fullUrl = getServerBaseUrl(server) + url;
 
       const requestOptions: RequestInit = {
@@ -312,6 +338,7 @@ export const fetchData = async <T = any>(
         },
 
         signal,
+        credentials: server === "local" ? "include" : "omit",
       };
 
       if (body && !(body instanceof FormData)) {

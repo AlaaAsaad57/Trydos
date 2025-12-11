@@ -46,6 +46,8 @@
   font-size: 14px;
 }
 .comment-text {
+  overflow-wrap: anywhere;
+  white-space: normal;
   display: flex;
   color: #5d5c5d;
   font-family: var(--Quicksand-Regular);

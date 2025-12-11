@@ -1,6 +1,7 @@
 "use client";
 import { BuyButtonPropsType } from "models/componentType/BuyButtonPropsType";
 import { useParams } from "next/navigation";
+import { useEffect } from "react";
 import LocalizationServiceClass from "services/localization";
 import { useAppStore } from "store";
 import { RoundPrice, translateFunction } from "utils/functions";
@@ -60,6 +61,7 @@ function BuyButton({
                     num: redeem_price,
                     rate: currency?.exchange_rate,
                     language: languageVariable,
+                    points: currency?.decimal_digits,
                   })}
                 </span>
                 <span className="text-[8px] light pt-[2px] flex align-start">

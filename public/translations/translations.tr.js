@@ -117,12 +117,16 @@ const translations = {
   "Tap “Agree & Continue” To Accept trydos":
     "Trydos'u kabul etmek için “Kabul Et ve Devam Et”e dokunun",
   "Cancel Return Request": " İade talebini iptal et",
+  "Return Request": "İade Talebi",
   "Initializing Return": "İade başlatılıyor",
+  Size: "Beden",
   "You Need To Confirm Your Request": "Talebinizi onaylamanız gerekiyor",
   "Product Return Needs Confirm": "Ürün iadesi onay gerektiriyor",
   "return this product is not allowed": "Destpêkirina vegerandinê",
   "Failed To Load Return Details Try again":
     "İade detayları yüklenemedi, tekrar deneyin",
+  "You are about to leave our site": "Sitemizden ayrılmak üzeresiniz",
+  "External Link Warning": "Harici Bağlantı Uyarısı",
   "Notification Permission:": "Bildirim İzni:",
   "Preparing Your Experience": "Deneyiminiz hazırlanıyor",
   "this option dosent have enough quantity":
@@ -1090,6 +1094,17 @@ const translations = {
   "Add More to Your Bag": " Sepetinize Daha Fazla Ekle",
   "Please enable camera permissions to use camera feature":
     "Kamera özelliğini kullanmak için lütfen kamera izinlerini etkinleştirin",
+  Small: "küçük",
+  Large: "büyük",
+  True: "gerçek",
+  "Max Allowed Quantity Reached": "İzin verilen maksimum miktara ulaşıldı",
+  "I Agree & Return": "Kabul Ediyorum ve İade Ediyorum",
+  "Delay Confirmation. I want to Return more product":
+    "Onayı ertele. Daha fazla ürün iade etmek istiyorum",
+  "chosse an image or video from camera or gallery":
+    "Kameradan veya galeriden bir fotoğraf ya da video seçin",
+  camera: "Kamera",
+  Gallery: "Galeri",
 };
 
 export default translations;

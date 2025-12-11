@@ -13,6 +13,7 @@ import { ReturnOrderItemPropsType } from "models/componentType/ReturnOrderItemPr
 import order from "services/order";
 import Skeleton from "react-loading-skeleton";
 import { showErrorNotification } from "store/notifications/reducer";
+import UploadImageComponent from "./UploadImageComponent";
 
 function ReturnOrderItem({
   backToMain,
@@ -105,7 +106,7 @@ function ReturnOrderItem({
           <span className="bold text-[12px] text-[#8D8D8D] ml-[4px]">
             {RoundPrice({
               num:
-                (item?.price_after_discount || item.offer_price) * returnedQty -
+                item?.product_details?.offer_price * returnedQty -
                 (selectedOptions?.is_cost_by_system === 0
                   ? selectedOptions.cost
                   : 0),
@@ -132,12 +133,14 @@ function ReturnOrderItem({
         {translateFunction("Change Qty")}
       </div>
       <div className="flex-row items-center justify-center mt-[20px] w-full max-w-[200px]">
-        <button
-          onClick={() => setReturnedQty(Math.max(1, returnedQty - 1))}
-          className="flex items-center justify-center w-[40px] h-[40px] rounded-l-[12px] bg-[#F8F8F8] border border-[#E6E6E680] border-r-0 hover:bg-[#EEEEEE] transition-colors duration-200 active:scale-95"
-        >
-          <span className="text-[#1D1D1D] text-[18px] light">−</span>
-        </button>
+        {returnedQty > 1 && (
+          <button
+            onClick={() => setReturnedQty(Math.max(1, returnedQty - 1))}
+            className="flex items-center justify-center w-[40px] h-[40px] rounded-l-[12px] bg-[#F8F8F8] border border-[#E6E6E680] border-r-0 hover:bg-[#EEEEEE] transition-colors duration-200 active:scale-95"
+          >
+            <span className="text-[#1D1D1D] text-[18px] light">−</span>
+          </button>
+        )}
         <input
           type="number"
           value={returnedQty}
@@ -171,7 +174,7 @@ function ReturnOrderItem({
               key={option?.id}
               className={`${
                 option.is_cost_by_system === 0 &&
-                option.cost > item.price_after_discount &&
+                option.cost > item.product_details.offer_price &&
                 "opacity-65"
               } px-[12px] w-auto regular text-[12px] text-[#5D5C5D] flex-row h-[39px] justify-start items-center rounded-[12px] bg-[#F8F8F8] `}
               style={{
@@ -183,7 +186,7 @@ function ReturnOrderItem({
               }}
               onClick={() => {
                 if (option.is_cost_by_system === 0) {
-                  if (option.cost > item.price_after_discount) {
+                  if (option.cost > item.product_details.offer_price) {
                     return;
                   }
                 }
@@ -215,7 +218,22 @@ function ReturnOrderItem({
         <>
           <span className="border-[#C4C2C280] border-b-[1px] w-full mt-[12px]" />
           <UploadImageComponent
-            return_request_product_id={item.return.return_request_product_id}
+            removeImageAction={async (i) => {
+              try {
+                if (item.return.return_request_product_id) {
+                  setLoading(true);
+                  await order.removeImage({
+                    return_request_product_id:
+                      item.return.return_request_product_id,
+                    img: i,
+                  });
+                  setLoading(false);
+                }
+              } catch (error) {
+                setLoading(false);
+                throw error;
+              }
+            }}
             loading={loadingImage}
             setLoading={setLoadinImage}
             images={images}
@@ -271,146 +289,7 @@ function ReturnOrderItem({
 }
 
 export default ReturnOrderItem;
-const UploadImageComponent = ({
-  images,
-  setImages,
-  loading,
-  setLoading,
-  return_request_product_id,
-}) => {
-  const UploadImage = async () => {
-    const input = document.querySelector<HTMLInputElement>(
-      "#return-modal-file-input"
-    );
-    input.click();
-  };
-  const OnChange = async (e) => {
-    try {
-      const file = (e.target as HTMLInputElement).files[0];
-      if (file) {
-        setLoading(true);
-        // const formData = new FormData();
-        // formData.append("image", file);
-        // const response = await fetch("/api/upload", {
-        //   method: "POST",
-        //   body: formData,
-        // });
-        // const data = await response.json();
-        let data = await order.UploadImageForOrderReturn({ image: file });
 
-        setImages([...images, data.sub_path]);
-        setLoading(false);
-      }
-    } catch (error) {
-      setLoading(false);
-    }
-  };
-  const GetImageUrl = (img) => {
-    if (img.includes(process.env.NEXT_PUBLIC_BASE_CLOUDINARY_URL)) return img;
-    else
-      return (
-        process.env.NEXT_PUBLIC_BASE_CLOUDINARY_URL +
-        `/return_request_products/` +
-        img
-      );
-  };
-  const removeImage = async (e, i) => {
-    try {
-      e.stopPropagation();
-      e.preventDefault();
-      if (loading) return;
-      if (return_request_product_id) {
-        setLoading(true);
-        await order.removeImage({
-          return_request_product_id: return_request_product_id,
-          img: i,
-        });
-        setLoading(false);
-      }
-
-      setImages(images.filter((im) => im !== i));
-    } catch (error) {
-      showErrorNotification(
-        translateFunction("Failed To Remove Image..Try Again")
-      );
-    }
-  };
-  return (
-    <div
-      className="flex-col w-full items-center mt-[12px] px-[24px] cursor-pointer"
-      onClick={(e) => {
-        if ((e.target as HTMLElement).closest(".order-return-item-image")) {
-          return;
-        }
-        UploadImage();
-      }}
-    >
-      <input
-        accept="image/*"
-        onChange={(e) => {
-          OnChange(e);
-        }}
-        type="file"
-        className="absolute opacity-0 "
-        hidden={true}
-        id="return-modal-file-input"
-        data-cy="return-modal-file-input"
-      />
-      <div
-        style={{
-          border: images.length === 0 ? "1px solid #402CDD80" : "none",
-        }}
-        className={`${
-          images.length === 0 ? "justify-center" : "justify-between pr-[12px]"
-        } flex-row w-full items-center justify-center bg-[#F8F8F8] rounded-[12px] h-[80px]`}
-      >
-        {images.length > 0 && (
-          <div className="flex-row gap-[3px]">
-            {images.map((s, i) => (
-              <div
-                key={i}
-                className="flex-row items-center justify-center relative cursor-pointer order-return-item-image"
-                onClick={(e) => {
-                  removeImage(e, s);
-                }}
-              >
-                <Image
-                  className="rounded-[12px] object-cover h-[80px] w-[57px]"
-                  src={GetImageUrl(GetImageUrl(s))}
-                  alt="image"
-                  width={57}
-                  height={80}
-                />
-                <span
-                  style={{
-                    boxShadow: "inset 0px 3px 6px #ffffff80",
-                    border: "1px solid #ffffff80",
-                  }}
-                  className="absolute w-[57px] h-[80px] rounded-[12px] "
-                />
-              </div>
-            ))}
-          </div>
-        )}
-        <div className="flex-col items-center justify-center">
-          {loading ? <Spinner /> : <UploadImageOrder />}
-          {images.length === 0 && (
-            <span className="text-[#402CDD] text-[10px] regular">
-              {translateFunction("Add Photo")}
-            </span>
-          )}
-        </div>
-      </div>
-      {images.length === 0 && (
-        <div className="flex-row w-full  text-center items-center justify-center mt-[12px] text-[#402CDD] text-[10px] regular">
-          {translateFunction(
-            "Please Add Photos Of The Product You Received So That We Can Provide You With The Best Service To Avoid This Issue."
-          )}
-        </div>
-      )}
-    </div>
-  );
-};
 const OptionsSkeleton = () => {
   return (
     <>

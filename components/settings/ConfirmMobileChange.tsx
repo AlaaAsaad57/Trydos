@@ -1,10 +1,8 @@
 import LogInPins from "components/Login/LogInPins";
 
 import SendMethod from "components/Login/SendMethod";
-
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import AuthService from "services/auth";
-
 import "public/styles/newLogin.css";
 import "public/styles/login.css";
 import { useAppStore } from "store";
@@ -76,7 +74,7 @@ function ConfirmMobileChange({
     }
   };
   const FinaliseLogin = async () => {
-    await AuthService.ConfirmSignIn();
+    // await AuthService.ConfirmSignIn();
   };
   const [failedLogin, setFailed] = useState(false);
   const [loadingPin, setLoadingPin] = useState(false);

@@ -73,6 +73,7 @@ export async function POST(req: NextRequest) {
         headers: {
           "Content-Type": "application/json",
         },
+        credentials: "omit",
       }
     );
     let data = await response.json();

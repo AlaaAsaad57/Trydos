@@ -65,16 +65,23 @@ class AuthService {
   ) {
     const userData = getCookie<UserData>(COOKIE_NAMES.USER_DATA);
     let old_geust_id = userData?.id;
-    const { setTempUser, setWrongNumber, loginFailed } = useAppStore.getState();
+    const {
+      setTempUser,
+      setWrongNumber,
+      loginFailed,
+      loginSuccess,
+      loginSuccessChat,
+      loginSuccessStories,
+    } = useAppStore.getState();
     try {
       let response = await fetchData({
         url:
-          "/auth/phone/verify_otp_from_guest" +
+          "/api/auth/login" +
           `?verificationId=${verficationID}&otp=${code}${
             Username.length > 0 ? `&name=${Username}` : ""
           }`,
         method: "GET",
-        server: "market",
+        server: "local",
         reqTitle: REQUESTS_DATA.VERIFY_OTP_FROM_GUEST,
       });
 
@@ -88,27 +95,9 @@ class AuthService {
       if (response?.isSuccessful === false && !response.success) {
         throw new Error("Wrong Code", response?.message);
       }
-      localStorage.setItem("ID-TOKEN", response.data.id_token);
-      setCookie(COOKIE_NAMES.MARKET_TOKEN, response.data.token);
-      // Store user_id as hashed
 
-      let token_response = await fetchData({
-        url: `/public_comment/auth/exchange_token`,
-        method: "POST",
-        body: JSON.stringify({
-          user_id: String(response.data.user.id),
-          phone: String(response.data.user.phone),
-          id_token: response.data.id_token,
-        }),
-        reqTitle: {
-          reqTitle: "GET Token for User from comments server",
-          code: 999,
-        },
-        server: "comments",
-      });
-      console.log(token_response);
-      if (token_response.comments_token)
-        storeHashedUserId(token_response?.comments_token);
+      setCookie(COOKIE_NAMES.MARKET_TOKEN, response.data.token);
+
       setCookie(COOKIE_NAMES.USER_DATA, {
         ...response.data.user,
         already_exists: response.data.already_exists,
@@ -130,8 +119,59 @@ class AuthService {
         already_exists: response.data.already_exists,
         is_verified: false,
       });
+      let userLocal = response.data.user;
+      let userChat = { ...response.ChatUser, need_auth: false };
+      let userStories = { ...response.StoriesUser, need_auth: false };
+      setCookie(COOKIE_NAMES.USER_DATA, userLocal, {
+        httpOnly: false,
+        secure: true,
+        path: "/",
+        maxAge: 365 * 24 * 60 * 60,
+      });
+      setCookie(COOKIE_NAMES.USER_CHAT, userChat, {
+        httpOnly: false,
+        secure: true,
+        path: "/",
+        maxAge: 365 * 24 * 60 * 60,
+      });
+      setCookie(COOKIE_NAMES.USER_STORIES, userStories, {
+        httpOnly: false,
+        secure: true,
+        path: "/",
+        maxAge: 365 * 24 * 60 * 60,
+      });
+      localStorage.setItem("LAST-VERIFY", new Date().toISOString());
+      loginSuccess({
+        id: userLocal.id,
+        idToken: userLocal.id_token,
+        name: userLocal.name,
+        image: userLocal,
+        already_exists: userLocal.already_exists,
+        is_verified: 1,
+        is_phone_verified: 1,
+      });
+      loginSuccessChat({
+        ...userChat,
+        is_verified: 1,
+        is_phone_verified: 1,
+      });
+      loginSuccessStories({
+        ...userStories,
+        is_verified: 1,
+        is_phone_verified: 1,
+      });
+      if (userLocal) {
+        if (Smartlook.initialized())
+          Smartlook.identify(userLocal.id, {
+            name: userLocal.name,
+            phone: userLocal.mobilePhone,
+            // other custom properties
+          });
+      }
+      await this.CheckUserName();
 
       setTimeout(() => {
+        home.getNotificationPermissionStatus();
         home.getClientData();
       }, 2000);
       return [response.data.already_exists, response.data.user.name];
@@ -218,9 +258,6 @@ class AuthService {
         name: name,
       });
       await home.getCustomerInfo();
-      if (!userStories) {
-        await this.ConfirmSignIn();
-      }
       let response = await fetchData({
         url: "/api/v1/users/update",
         reqTitle: REQUESTS_DATA.UPDATE_NAME_IN_STORIES,
@@ -236,55 +273,7 @@ class AuthService {
       console.error(e);
     }
   }
-  async ConfirmSignIn() {
-    let userLocal = getCookie<UserData>(COOKIE_NAMES.USER_DATA);
-    let userChat = getCookie<UserData>(COOKIE_NAMES.USER_CHAT);
-    let userStories = getCookie<UserData>(COOKIE_NAMES.USER_STORIES);
-    const { loginSuccess, loginSuccessChat, loginSuccessStories } =
-      useAppStore.getState();
-    if (userLocal) {
-      if (process.env.NODE_ENV === "production" && Smartlook.initialized())
-        Smartlook.identify(userLocal.id, {
-          name: userLocal.name,
-          phone: userLocal.mobilePhone,
-          // other custom properties
-        });
-    }
-    loginSuccess({
-      id: userLocal.id,
-      idToken: userLocal.id_token,
-      name: userLocal.name,
-      image: userLocal,
-      already_exists: userLocal.already_exists,
-      is_verified: 1,
-      is_phone_verified: 1,
-    });
-    if (userChat) {
-      loginSuccessChat({
-        ...userChat,
-        is_verified: 1,
-        is_phone_verified: 1,
-      });
-    }
-    if (userStories) {
-      loginSuccessStories({
-        ...userStories,
-        is_verified: 1,
-        is_phone_verified: 1,
-      });
-    }
-    setCookie(COOKIE_NAMES.USER_DATA, {
-      ...userLocal,
-      is_verified: 1,
-      is_phone_verified: 1,
-    });
-    await StoryService.loginStories();
-    await ChatService.loginChat();
-    await this.CheckUserName();
-    setTimeout(() => {
-      home.getNotificationPermissionStatus();
-    }, 2000);
-  }
+
   async cancelAuth(isForExpired?) {
     const user = getCookie<UserData>(COOKIE_NAMES.USER_DATA);
     if (!user) {

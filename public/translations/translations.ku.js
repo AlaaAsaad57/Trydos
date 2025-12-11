@@ -107,6 +107,9 @@ const translations = {
     "دەتوانیت بەرهەمەکە بێ هیچ شەرتێک گەڕێنەوە بەپێی یاسای گەڕاندنەوە و پارەکە بە تەواوی ",
   "View Product": "بینینی بەرهەم",
   "Cancel Return Request": "داخوازی گەڕاندن بسڕەوە",
+  "Return Request": "داواکاری گەڕاندنەوە",
+  "You are about to leave our site": "تۆ خەریکە ماڵپەڕەکەمان جێبهێڵیت",
+  "External Link Warning": "ئاگاداری بەستەری دەرەکی",
   "Failed To Load Products After 3 Attempts":
     "بەرهەمەکان لەسەر نەبوون، ٣ سەکەڵەیەک بەردەست بە هەوڵبوون",
   "You Need To Confirm Your Request": "پێویستە داواکارییەکەت پشتڕاست بکەیت",
@@ -563,7 +566,7 @@ const translations = {
   "Time Running Out.": "کات کەمدەکات.",
   "Confirm And Continue": "پشتڕاستکردنەوە و بەردەوامبوون",
   items: "شتەکان",
-  "Size,": "قەبارە،",
+  Size: "قەبارە",
   "color,": "ڕەنگ،",
   Saved: "پاشەکەوتکراو",
   "Add Again?": "دووبارە زیاد بکەیت؟",
@@ -1140,6 +1143,17 @@ const translations = {
   "Add More to Your Bag": "زیاتر زیاد بکە بۆ جانتاکەت",
   "Please enable camera permissions to use camera feature":
     "تکایە مۆڵەتی کامێرا چالاک بکە بۆ بەکارهێنانی تایبەتمەندی کامێرا",
+  Small: " بچوک",
+  Large: "گەورە",
+  True: "ڕاستەقینە",
+  "Max Allowed Quantity Reached": "گەیشت بە زۆرترین ڕێگەپێدراوی بڕ",
+  "I Agree & Return": "ڕازیەم و گەڕاندنوە دەکەم",
+  "Delay Confirmation. I want to Return more product":
+    "دڵنیاکردنەوە پاشەکشە بکە. دەمەوێت زیاتر بەرهەم بگەڕێنمەوە",
+  "chosse an image or video from camera or gallery":
+    "وێنە یان ڤیدیۆێك لە کامێرا یان گالێری ھەڵبژێرە",
+  camera: "کامێرا",
+  Gallery: "گالێری",
 };
 
 export default translations;

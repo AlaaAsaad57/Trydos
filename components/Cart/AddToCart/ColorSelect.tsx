@@ -6,7 +6,13 @@ import { useAppStore } from "store";
 import { getConfiguredImage, translateFunction } from "utils/functions";
 import { GetImageUrl } from "utils/tinyUtils";
 
-function ColorSelect({ colors, setSelectedColor, selectedColor }) {
+function ColorSelect({
+  colors,
+  setSelectedColor,
+  selectedColor,
+  isQtyIsLast,
+  IsColorHasDiscount,
+}) {
   const { language } = useAppStore();
   const isRtl = language === "ar" || language === "ku";
 
@@ -64,13 +70,37 @@ function ColorSelect({ colors, setSelectedColor, selectedColor }) {
                   alt={color.color_name}
                 />
               </div>
-              {color?.color_option === selectedColor?.color_option && (
+              {color?.color_option === selectedColor?.color_option ? (
                 <span
                   className="mt-[3px] semibold text-[7px] text-[#505050]"
                   data-cy="selected-color-name"
                 >
                   {color.color_name}
                 </span>
+              ) : isQtyIsLast(color)?.qty > 0 &&
+                isQtyIsLast(color)?.qty < 10 ? (
+                <span
+                  style={{
+                    direction: isRtl ? "rtl" : "ltr",
+                  }}
+                  className="mt-[3px] semibold text-[7px] text-[#FF6200]"
+                  data-cy="selected-color-name"
+                >
+                  {translateFunction("Last")} {isQtyIsLast(color)?.qty}
+                </span>
+              ) : IsColorHasDiscount(color) > 0 ? (
+                <span
+                  style={{
+                    direction: isRtl ? "rtl" : "ltr",
+                  }}
+                  className="mt-[3px] semibold text-[7px] text-[#513AAF]"
+                  data-cy="selected-color-name"
+                >
+                  {translateFunction("Sale")}{" "}
+                  <span>{IsColorHasDiscount(color)} %</span>
+                </span>
+              ) : (
+                <></>
               )}
             </div>
           );

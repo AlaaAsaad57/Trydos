@@ -161,12 +161,17 @@ function OrderExpectedDeliveryCard({ time }: OrderDateCardProps) {
           <span className="text-[#8D8D8D] regular text-[10px] mt-[5px]">
             {translateFunction("Expected Delivery Date")}
           </span>
-          <span className="text-[#1D1D1D] text-[12px] regular mt-[3px]">
-            Monday{" "}
+          <span
+            style={{
+              direction: isRtl ? "rtl" : "ltr",
+            }}
+            className="text-[#1D1D1D] flex flex-row text-[12px] regular mt-[3px] gap-[3px]"
+          >
+            <span>Monday</span>
             <span className="bold text-[#1D1D1D] text-[12px]  mx-[1px]">
               2.Jun
-            </span>{" "}
-            | 3 {translateFunction("Work Days")}
+            </span>
+            <span> | 3 {translateFunction("Work Days")}</span>
           </span>
         </>
       )}

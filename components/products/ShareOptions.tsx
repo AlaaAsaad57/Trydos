@@ -59,7 +59,10 @@ function ShareOptions({
         throw new Error("");
       }
       fetch(
-        `/api/editSocialProduct?pid=${product.id}&slug=${product.slug}&language=${language}&country=${country}`
+        `/api/editSocialProduct?pid=${product.id}&slug=${product.slug}&language=${language}&country=${country}`,
+        {
+          credentials: "omit",
+        }
       );
       GAevent({
         action: GA_EVENT_NAMES.SHARE_CONTENT,

@@ -267,6 +267,30 @@ export const toUSD = (price) => {
 
   return price / currency?.exchange_rate;
 };
+function preciseMultiply(a, b) {
+  const aStr = a.toString();
+  const bStr = b.toString();
+
+  // عدد الأرقام بعد الفاصلة في كل رقم
+  const aDecimals = (aStr.split(".")[1] || "").length;
+  const bDecimals = (bStr.split(".")[1] || "").length;
+
+  // نحذف الفواصل ونحول الأرقام لأعداد صحيحة
+  const intA = Number(aStr.replace(".", ""));
+  const intB = Number(bStr.replace(".", ""));
+
+  // نضرب الأعداد الصحيحة
+  const resultInt = intA * intB;
+
+  // نعيد الفاصلة لمكانها الصحيح
+  const decimals = aDecimals + bDecimals;
+  return resultInt / Math.pow(10, decimals);
+}
+function toFixedUp(decimalDigits, number) {
+  const factor = 10 ** decimalDigits;
+  return (Math.ceil(Number(number) * factor) / factor).toFixed(decimalDigits);
+}
+
 export const RoundPrice = ({
   num,
   rate,
@@ -289,13 +313,13 @@ export const RoundPrice = ({
 
   // Currency conversion at the start
   let rateVariable = rate || currency?.exchange_rate || 1;
-  let number = price_num * rateVariable;
+  let deciaml_points = points || currency?.decimal_digits || 0;
+  price_num = Number(toFixedUp(deciaml_points, price_num));
+  let number = preciseMultiply(price_num, rateVariable);
+
   if (returnNumber) {
     return number;
   }
-  let deciaml_points = currency?.decimal_digits || 0;
-  number = Number(number.toFixed(deciaml_points));
-  number = Math.ceil(number);
 
   // Return raw converted number if requested
   let languageCode = language ?? languageVariable ?? "en";
@@ -308,7 +332,7 @@ export const RoundPrice = ({
     const result = Math.floor((number + 999) / 1000);
     return `${result}${thousand}`;
   } else if (number === 0) {
-    return "0.0";
+    return "0";
   } else if (number < 1e5) {
     return number;
   } else {
@@ -440,6 +464,7 @@ export async function storeError(error) {
         platform: "🛑WEB🛑",
         ...(error ?? {}),
       }),
+      credentials: "omit",
     }),
   });
 }

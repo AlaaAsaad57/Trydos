@@ -37,7 +37,7 @@ function ProductOptions({
   const [country, language] = params.lang.split("-");
 
   const LikeProduct = async (bool) => {
-    if (likeLoading) return;
+    if (likeLoading || !SelectedProduct) return;
     setLoading(true);
 
     // Store current state for potential rollback
@@ -71,7 +71,10 @@ function ProductOptions({
 
         // Update social product data
         fetch(
-          `/api/editSocialProduct?pid=${product.id}&slug=${product.slug}&language=${language}&country=${country}`
+          `/api/editSocialProduct?pid=${product.id}&slug=${product.slug}&language=${language}&country=${country}`,
+          {
+            credentials: "omit",
+          }
         );
 
         // Track GA event
@@ -115,7 +118,10 @@ function ProductOptions({
 
         // Update social product data
         fetch(
-          `/api/editSocialProduct?pid=${product.id}&slug=${product.slug}&language=${language}&country=${country}`
+          `/api/editSocialProduct?pid=${product.id}&slug=${product.slug}&language=${language}&country=${country}`,
+          {
+            credentials: "omit",
+          }
         );
 
         // Track GA event

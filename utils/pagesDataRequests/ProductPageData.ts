@@ -94,8 +94,7 @@ export const getProductDataFromElastic = async ({
       count_of_likes: likeDetails?.total_likes,
       is_liked: likeDetails?.is_liked,
       total_views: likeDetails?.total_views,
-      total_rating:
-        likeDetails?.final_rating ?? recommendationStats?.total_rating,
+      total_rating: Number(likeDetails?.final_rating) ?? 0,
       size_analysis: likeDetails?.size_analysis,
       good_quality_product: likeDetails?.good_quality_product,
     };
@@ -179,9 +178,11 @@ export async function GetRatingCommentsFromElastic({
         name: s?.user_name,
         image: s?.user_avatar,
       },
+      comments_images_customer: s?.comments_images_customer,
       product_id: s?.product_id,
       comment: s?.text,
       created_at: s?.created_at,
+      good_quality_comment: s?.good_quality_comment,
       star_rating: s?.rating,
       order_details_id: s?.order_details_id,
     })),
@@ -189,54 +190,7 @@ export async function GetRatingCommentsFromElastic({
     searchAfter: nextSearchAfter,
   };
 }
-export const getProductRatingDetails = async ({ p_id }) => {
-  try {
-    const result = await client.search({
-      index: "comments",
-      size: 0, // only want aggregation results
-      query: {
-        bool: {
-          must: [
-            { term: { product_id: String(p_id) } },
-            { exists: { field: "rating" } },
-            { exists: { field: "order_details_id" } },
-          ],
-          must_not: [{ term: { status: "deleted" } }],
-        },
-      },
-      aggs: {
-        rating_buckets: {
-          terms: {
-            script: {
-              source: `
-        if (doc['rating'].size() == 0) return 0;
-  def r = doc['rating'].value;
-              if (r >= 4.5) return 5;
-              if (r >= 3.5) return 4;
-              if (r >= 2.5) return 3;
-              if (r >= 1.5) return 2;
-              if (r >= 0.5) return 1;
-              return 0;
-              `,
-            },
-            size: 6,
-            order: { _key: "desc" }, // ensures keys come 5 → 0
-          },
-        },
-      },
-    });
 
-    const buckets = (result.aggregations?.rating_buckets as any)?.buckets ?? [];
-    let rating_details = [1, 2, 3, 4, 5].map((i) => ({
-      ratingGroup: i,
-      count: buckets?.find((s) => String(s.key) === String(i))?.doc_count ?? 0,
-    }));
-    return rating_details;
-  } catch (error) {
-    console.error("Error fetching rating stats:", error);
-    return { rating_details: [] };
-  }
-};
 export async function GetRatingCommentsForProduct({
   product_id,
   pageSize = 10,
@@ -331,7 +285,9 @@ export async function GetRatingCommentsForProduct({
       comment: s.text,
       variant: s.variant,
       created_at: s.created_at,
-      true_size: s.aspects?.size?.fit_analysis?.correct,
+      true_size: s.aspects?.size?.fit_analysis?.correct ?? false,
+      good_quality_comment: s?.good_quality_comment ?? false,
+      comments_images_customer: s?.comments_images_customer ?? [],
       star_rating: s.rating,
       order_details_id: s.order_details_id,
       recommendation: s?.recommendation,
@@ -403,15 +359,12 @@ export const GetRecommendationCountForProduct = async ({
           },
         },
       },
-      total_rating: {
-        avg: { field: "rating" },
-      },
     },
   });
   // @ts-ignore
   const buckets = result.aggregations.recommendation_status.buckets;
   const total = buckets.recommend.doc_count + buckets.not_recommend.doc_count;
-  const avgRating = (result.aggregations.total_rating as any).value || 0;
+
   const stats = [
     {
       category: "recommend",
@@ -431,7 +384,7 @@ export const GetRecommendationCountForProduct = async ({
     },
   ];
 
-  return { stats, total_rating: avgRating };
+  return { stats };
 };
 export async function GetAvailableFQAFilters({ product_id }) {
   const query = {
@@ -553,6 +506,7 @@ export async function GetFQACommentsForProduct({
       comment: s.text,
       created_at: s.created_at,
       has_reply: s.has_reply,
+      good_quality_comment: s?.good_quality_comment,
       seller_reply: s.seller_reply,
       seller_name: s.seller_name,
       reply_created_at: s.reply_created_at,
@@ -595,7 +549,16 @@ export async function GetFQACommentsForProductWithReactions({
             aggs: user_id
               ? {
                   total_likes: { value_count: { field: "interaction_id" } },
-                  user_like: { filter: { term: { user_id } } },
+                  user_like: {
+                    filter: {
+                      bool: {
+                        must: [
+                          { term: { user_id } },
+                          { term: { status: "active" } },
+                        ],
+                      },
+                    },
+                  },
                 }
               : {
                   total_likes: { value_count: { field: "interaction_id" } },
@@ -666,6 +629,7 @@ async function getProductInteractions(productId: string, userId?: string) {
                   must: [
                     { term: { product_id: productId } },
                     { term: { user_id: String(userId) } },
+                    { term: { status: "active" } },
                   ],
                 },
               },

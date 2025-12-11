@@ -129,6 +129,7 @@ export const useCartStore = (set, get) => ({
     })),
   // Actions
   setOrderDetails: (order) => {
+    console.log("setOrderDetails called with:", order);
     set((state) => ({
       selectedOrder: order,
     }));

@@ -2,9 +2,10 @@ import React from "react";
 import { useAppStore } from "store";
 import { translateFunction } from "utils/functions";
 
-function RateOrderButton() {
+function RateOrderButton({ setExpanded }) {
   const { language } = useAppStore();
   const handleClick = () => {
+    setExpanded();
     setTimeout(() => {
       document.querySelector(".rating-star-container").scrollIntoView({
         behavior: "smooth",
@@ -77,9 +78,9 @@ function RateOrderButton() {
             "Your Accurate Rating Of The Products You Receive Helps Us Improve Quality And Helps Other Customers Purchase."
           )}
         </p>
-        <div className="flex-row justify-center items-center w-full mt-[12px]">
+        <div className="flex-row justify-center items-center w-full mt-[12px] px-[50px]">
           <button
-            className="max-w-[292px]   flex-row justify-center items-center w-full bg-[#402CDD] rounded-[12px] h-[42px]"
+            className=" flex-row justify-center items-center w-full bg-[#402CDD] rounded-[12px] h-[42px]"
             style={{ boxShadow: "0px 3px 10px #00000024" }}
           >
             <RateIcon />

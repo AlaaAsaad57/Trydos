@@ -117,7 +117,7 @@ function ProductColorCard({
         </div>
         <div className="product-body pl-[13px] pr-[15px] z-10 flex-1 mt-[8px]  flex-col align-start justify-start max-h-[60px] min-h-[30px]">
           <p
-            className="prouct-details max-w-full whitespace-normal inline-block  text-left align-top overflow-hidden  regular-text text-[#3c3c3c] text-[10px] max-h-[25px]"
+            className="prouct-details max-w-full whitespace-normal inline-block  text-left align-top overflow-hidden  regular-text text-[#3c3c3c] text-[10px] max-h-[28px]"
             data-cy="productName"
           >
             <span className="flex-row align-center justify-start gap-[4px]">
@@ -125,7 +125,7 @@ function ProductColorCard({
                 <img
                   src={GetImageUrl(product.brand.icon)}
                   alt={product.brand.name || "Brand"}
-                  className="h-[8px] w-auto object-contain inline-block ml-[7px]"
+                  className="h-[15px]  object-cover w-[30px] inline-block ml-[7px]"
                   loading="eager"
                   draggable="false"
                 />

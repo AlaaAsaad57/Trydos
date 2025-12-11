@@ -53,6 +53,8 @@ export interface ProductDetails {
   details: string;
   id: number;
   images: string[];
+  price: number;
+  offer_price: number;
 }
 
 export interface Rating {

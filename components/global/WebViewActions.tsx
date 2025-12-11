@@ -31,6 +31,7 @@ export const getAgoraToken = async (channel_id, token, mid, uid) => {
       headers: {
         Authorization: "Bearer " + token,
       },
+      credentials: "omit",
     }
   );
   let UserData = await UserResponse.json();
@@ -54,6 +55,7 @@ export const getAgoraTokenForInit = async (channel_id, token, mid) => {
       headers: {
         Authorization: "Bearer " + token,
       },
+      credentials: "omit",
     }
   );
   let AgoraTokenData = await AgoraTokenResponse.json();
@@ -70,6 +72,7 @@ export const getUserInfo = async (token, channel) => {
       headers: {
         Authorization: "Bearer " + token,
       },
+      credentials: "omit",
     }
   );
   let UserData = await UserResponse.json();
@@ -93,6 +96,7 @@ export const Decline = async (token, mid, duration) => {
         duration_in_seconds: duration || 0,
         payload: { target: "webview" },
       }),
+      credentials: "omit",
     }
   );
 };
@@ -105,6 +109,7 @@ export const StartTalking = async (token, mid) => {
       headers: {
         Authorization: "Bearer " + token,
       },
+      credentials: "omit",
     }
   );
 };
@@ -118,6 +123,7 @@ export const AnswerWebView = async (token, messageId) => {
         headers: {
           Authorization: "Bearer " + token,
         },
+        credentials: "omit",
       }
     );
   } catch (e) {}

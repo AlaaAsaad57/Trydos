@@ -1,5 +1,5 @@
 import Image from "next/image";
-import React from "react";
+
 import { useAppStore } from "store";
 import {
   getConfiguredImage,
@@ -34,25 +34,30 @@ function CartContentOfProduct() {
       );
     } else {
       if (s.color) {
-        <div className="flex flex-row items-center gap-[3px]">
-          <span>{translateFunction("Color")}</span>
-          <span className="bold">
-            {
-              selected_product_for_add_to_cart.colors?.find(
-                (color) =>
-                  color.code === s.color ||
-                  color.name === s.color ||
-                  color?.option === s.color
-              )?.name
-            }
-          </span>
-        </div>;
+        return (
+          <div className="flex flex-row items-center gap-[3px]">
+            <span>{translateFunction("Color")}</span>
+            <span className="bold">
+              {
+                selected_product_for_add_to_cart.colors?.find(
+                  (color) =>
+                    color.code === s.color ||
+                    color.name === s.color ||
+                    color?.option === s.color ||
+                    color?.color_option === s.color
+                )?.name
+              }
+            </span>
+          </div>
+        );
       }
       if (s.size) {
-        <div className="flex flex-row items-center gap-[3px]">
-          <span>{translateFunction("Size")}</span>
-          <span className="bold">{s.size}</span>
-        </div>;
+        return (
+          <div className="flex flex-row items-center gap-[3px]">
+            <span>{translateFunction("Size")}</span>
+            <span className="bold">{s.size}</span>
+          </div>
+        );
       }
     }
   };
@@ -89,7 +94,7 @@ function CartContentOfProduct() {
             .map((s) => (
               <div
                 className="flex-row flex items-center justify-center gap-[3px]"
-                key={s?.id}
+                key={`${s?.id}-${s?.color || "color"}-${s?.size || "size"}`}
               >
                 <ProductImageCircle image={s.image} />
                 <div className="text-[10px] text-[#1D1D1D] items-center regular flex flex-row">

@@ -330,9 +330,10 @@ export const getVideoUrl = (
   // Default to 5s-15s if not provided
   const start = options?.start ?? 1;
   const end = options?.end ?? 10;
-
-  transformations.push(`so_${start}`);
-  transformations.push(`eo_${end}`);
+  if (end !== -1) {
+    transformations.push(`so_${start}`);
+    transformations.push(`eo_${end}`);
+  }
 
   const transformStr = transformations.join(",");
 
@@ -877,6 +878,7 @@ export const ShowDayStr = (index, language) => {
 };
 
 export function convertTextToXFormat(input) {
+  if (!input) return "";
   // Split the input text into words
   const words = input.split(" ");
 

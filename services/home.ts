@@ -198,13 +198,12 @@ class HomeService {
 
   // new unified action
   async AllowNotifications() {
-    console.log("AllowNotifications called");
     try {
       const { requestFirebaseNotificationPermission, onMessageListener } =
         await import("utils/firebaseInitv1");
 
       const fbtoken = await requestFirebaseNotificationPermission();
-      console.log(fbtoken);
+
       if (fbtoken) {
         // Store token
         localStorage.setItem("FB-DEVICE-TOKEN", fbtoken);
@@ -256,7 +255,11 @@ class HomeService {
     } catch (error) {
       LogError(error);
       console.error(error);
-      throw new Error("Failed to allow notifications");
+      throw new Error(
+        translateFunction(
+          "Notification Is Not Enabled! please Allow Notification Access"
+        )
+      );
     }
   }
   // get permission status

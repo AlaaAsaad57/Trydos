@@ -306,7 +306,9 @@ function CommentItem({
         // @ts-ignore
         throw new Error(response.message);
       }
-      fetch(`/api/editSocialProduct?pid=${SelectedProduct.id}`);
+      fetch(`/api/editSocialProduct?pid=${SelectedProduct.id}`, {
+        credentials: "omit",
+      });
       if (response.data?.comment_id) {
         // verifyCommentAction(mid);
 
@@ -575,13 +577,13 @@ const UpdateCommentElement = ({
               </div>
             </div>
             <span className="medium text-[#1d1d1d] text-[9px] mt-[5px]">
-              Blue | Medium
+              {comment?.variant}
             </span>
             <div className="comment-date text-[9px]">
               {formatTime(comment?.created_at)}
             </div>
             <textarea
-              className="comment-text regular text-[#1d1d1d] text-[11px] mt-[5px] w-full resize-none rounded-[6px] border border-[#ccc] p-[4px] focus:outline-none focus:ring-1 focus:ring-gray-400"
+              className={`comment-text regular text-[#1d1d1d] text-[11px] mt-[5px] w-full resize-none rounded-[6px] border border-[#ccc] p-[4px] focus:outline-none focus:ring-1 focus:ring-gray-400`}
               value={value}
               onChange={(e) => setValue(e.target.value)}
               disabled={loading}

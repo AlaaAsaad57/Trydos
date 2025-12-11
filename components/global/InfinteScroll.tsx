@@ -63,6 +63,7 @@ function InfinteScroll({ offsetVariable, temp }: InfinteScrollPropsType) {
           next: {
             revalidate: 0,
           },
+          credentials: "omit",
         });
         let result = await new_results.json();
         result = result.data;

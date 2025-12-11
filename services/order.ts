@@ -402,6 +402,7 @@ class OrderService {
             rating: star_rating,
             owner_id: String(owner_id),
             owner_type: owner_type,
+            comments_images_customer: images,
           }),
           reqTitle: REQUESTS_DATA.UPDATE_COMMENT,
           server: "comments",
@@ -424,7 +425,7 @@ class OrderService {
             variant,
             order_details_id: String(order_detail_id),
             phone: auth?.User()?.phone,
-            images,
+            comments_images_customer: images,
           }),
           reqTitle: REQUESTS_DATA.ADD_COMMENT_FOR_PRODUCT,
           server: "comments",
@@ -471,6 +472,29 @@ class OrderService {
     let formData = new FormData();
     formData.append("image", image);
     formData.append("path", "return_request_products/");
+
+    try {
+      let response = await fetchData({
+        url: "/storage/storage-upload",
+        body: formData,
+        reqTitle: REQUESTS_DATA.UPDATE_PROFILE_IMAGE,
+        method: "POST",
+        server: "market",
+      });
+      // @ts-ignore
+      if (!response.success) {
+        throw new Error(response.message);
+      }
+      return response?.data;
+    } catch (err) {
+      console.error(err);
+      return null;
+    }
+  }
+  async UploadImageForRating({ image }) {
+    let formData = new FormData();
+    formData.append("image", image);
+    formData.append("path", "rating_orders/");
 
     try {
       let response = await fetchData({
@@ -633,12 +657,15 @@ class OrderService {
     }
   }
   async removeImage({ return_request_product_id, img }) {
-    await fetchData({
+    let res = await fetchData({
       url: `/customer/order/return_request_products/remove_image?return_request_product_id=${return_request_product_id}&image=${img}`,
       server: "market",
       method: "GET",
       reqTitle: REQUESTS_DATA.REMOVE_IMAGE,
     });
+    if (!res.success) {
+      throw new Error(res?.message);
+    }
   }
   async GetReturnDetailsForOrderGroup({ order_group_id }) {
     let resp = await fetchData({

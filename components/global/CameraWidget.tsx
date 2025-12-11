@@ -71,7 +71,9 @@ export const CameraWidget = ({ onCapture, onClose }) => {
   const handleUsePhoto = () => {
     if (capturedImage) {
       // Convert base64 to File
-      fetch(capturedImage)
+      fetch(capturedImage, {
+        credentials: "omit",
+      })
         .then((res) => res.blob())
         .then((blob) => {
           const file = new File([blob], "camera-capture.jpg", {
