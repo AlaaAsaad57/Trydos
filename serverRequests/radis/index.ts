@@ -175,7 +175,7 @@ export async function trackSuspiciousBehavior(ip: string, path: string) {
   const hits = await redis.incr(key);
   await redis.expire(key, 10); // 10s window
 
-  if (hits > 50) {
+  if (hits > 20) {
     return `Suspicious behavior: ${hits} requests in 10s from IP ${ip} on ${path}`;
   }
 

@@ -197,7 +197,7 @@ export async function proxy(request: NextRequest) {
   const ip = getClientIp(request);
   // 1️⃣ Rate limiting
   if (ip && ip !== "0.0.0.0") {
-    const allowed = await checkRateLimit(ip, 100, 60);
+    const allowed = await checkRateLimit(ip, 50, 60);
     if (!allowed) {
       await sendSecurityAlert(
         `🚨 IP ${ip} exceeded rate limit. Path: ${request.nextUrl.pathname}`
