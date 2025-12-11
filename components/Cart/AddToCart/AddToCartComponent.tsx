@@ -30,6 +30,7 @@ import { getCookie } from "utils/cookies/cookie-manager";
 import AddToCartButton from "./Button";
 import NotifyButton from "./NotifyButton";
 import SearchParamUpdater from "components/global/ParamsUpdater";
+import { showErrorMessage } from "components/global/AddToCartMessage";
 
 function AddToCartComponent({ product, slug, close, enableCartAction }) {
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -1068,6 +1069,12 @@ const NotifyCartButton = ({
     } catch (error) {
       setLoading(false);
       showErrorNotification(
+        error ??
+          translateFunction(
+            "Notification Is Not Enabled! please Allow Notification Access"
+          )
+      );
+      showErrorMessage(
         error ??
           translateFunction(
             "Notification Is Not Enabled! please Allow Notification Access"

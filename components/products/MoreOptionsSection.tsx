@@ -82,7 +82,12 @@ function MoreOptionsSection() {
         setLoading(false);
       }
     } catch (error) {
-      console.log("Error enabling notification topic:", error);
+      showErrorNotification(
+        error ??
+          translateFunction(
+            "Notification Is Not Enabled! please Allow Notification Access"
+          )
+      );
     }
   };
   const checkIfTopicEnabled = (topic) => {
