@@ -369,7 +369,7 @@ const translations = {
   Buying: "شراء",
   "Expected Delivery Date": "تاريخ الشحن والتسليم المتوقع",
   "Order Status": "حالة الطلب",
-  Pieces: "قطع",
+  Pieces: "ةقطع",
   "Work Days": "أيام العمل",
   "Order Invoice": "فاتورة الطلب",
   "Order Number": "رقم الطلب",
@@ -574,7 +574,7 @@ const translations = {
   "Time Running Out. ": "الوقت ينفذ.",
   "Confirm And Continue": "الموافقة والمتابعة",
   items: "عناصر",
-  "Size,": "حجم, ",
+  Size: "حجم",
   "color,": "لون, ",
   Saved: "توفير",
   "Time Running Out.": "الوقت ينفذ",
@@ -1111,6 +1111,10 @@ const translations = {
   "I Agree & Return": "أوافق وأرجع",
   "Delay Confirmation. I want to Return more product":
     "تأجيل التأكيد. أريد إرجاع المزيد من المنتجات",
+  "chosse an image or video from camera or gallery":
+    "اختر صورة أو فيديو من الكاميرا أو المعرض",
+  camera: "الكاميرا",
+  Gallery: "المعرض",
 };
 
 export default translations;

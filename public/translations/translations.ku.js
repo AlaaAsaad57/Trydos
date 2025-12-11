@@ -566,7 +566,7 @@ const translations = {
   "Time Running Out.": "کات کەمدەکات.",
   "Confirm And Continue": "پشتڕاستکردنەوە و بەردەوامبوون",
   items: "شتەکان",
-  "Size,": "قەبارە،",
+  Size: "قەبارە",
   "color,": "ڕەنگ،",
   Saved: "پاشەکەوتکراو",
   "Add Again?": "دووبارە زیاد بکەیت؟",
@@ -1150,6 +1150,10 @@ const translations = {
   "I Agree & Return": "ڕازیەم و گەڕاندنوە دەکەم",
   "Delay Confirmation. I want to Return more product":
     "دڵنیاکردنەوە پاشەکشە بکە. دەمەوێت زیاتر بەرهەم بگەڕێنمەوە",
+  "chosse an image or video from camera or gallery":
+    "وێنە یان ڤیدیۆێك لە کامێرا یان گالێری ھەڵبژێرە",
+  camera: "کامێرا",
+  Gallery: "گالێری",
 };
 
 export default translations;

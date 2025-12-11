@@ -340,15 +340,17 @@ const UploadImageComponent = ({
       {showMenu && (
         <>
           <CustomPopup
-            modalTitle={translateFunction("Add Photo")}
+            modalTitle={translateFunction(
+              "chosse an image or video from camera or gallery"
+            )}
             close={() => setShowMenu(false)}
             options={[
               {
-                render: () => <>{translateFunction("From Files")}</>,
+                render: () => <>{translateFunction("Gallery")}</>,
                 onClick: triggerFileInput,
               },
               {
-                render: () => <>{translateFunction("Take Photo")}</>,
+                render: () => <>{translateFunction("camera")}</>,
                 onClick: () => setCameraOpen(true),
               },
             ]}

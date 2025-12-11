@@ -119,6 +119,7 @@ const translations = {
   "Cancel Return Request": " İade talebini iptal et",
   "Return Request": "İade Talebi",
   "Initializing Return": "İade başlatılıyor",
+  Size: "Beden",
   "You Need To Confirm Your Request": "Talebinizi onaylamanız gerekiyor",
   "Product Return Needs Confirm": "Ürün iadesi onay gerektiriyor",
   "return this product is not allowed": "Destpêkirina vegerandinê",
@@ -1100,6 +1101,10 @@ const translations = {
   "I Agree & Return": "Kabul Ediyorum ve İade Ediyorum",
   "Delay Confirmation. I want to Return more product":
     "Onayı ertele. Daha fazla ürün iade etmek istiyorum",
+  "chosse an image or video from camera or gallery":
+    "Kameradan veya galeriden bir fotoğraf ya da video seçin",
+  camera: "Kamera",
+  Gallery: "Galeri",
 };
 
 export default translations;

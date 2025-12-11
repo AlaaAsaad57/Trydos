@@ -1221,7 +1221,7 @@ const ProductCard = ({
                   {translateFunction("Item")}:
                 </span>
                 <span className="text-[#505050] text-[10px] medium mx-[2px]">
-                  {product.qty}
+                  {product?.qty?.toFixed(1)}
                 </span>
               </div>
             </div>
