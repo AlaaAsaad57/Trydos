@@ -1154,6 +1154,15 @@ const translations = {
     "وێنە یان ڤیدیۆێك لە کامێرا یان گالێری ھەڵبژێرە",
   camera: "کامێرا",
   Gallery: "گالێری",
+  Block: "بلۆک کردن",
+  UnBlock: "لابردنی بلۆک",
+  "Delete Chat": "سڕینەوەی چات",
+  "Save To Gallery": "پاشەکەوتکردن بۆ گالەری",
+  Never: "هەرگیز",
+  "Media & Files": "میدیا و پەڕگەکان",
+  Search: "گەڕان",
+  "Video as مكالمة فيديو": "پەیوەندی ڤیدیۆیی",
+  Call: "پەیوەندیکردن",
 };
 
 export default translations;

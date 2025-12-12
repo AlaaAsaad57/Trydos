@@ -202,4 +202,6 @@ export const REQUESTS_DATA = {
   UNLIKE_FOR_COMMENT: { reqTitle: "UNLIKE_FOR_COMMENT", code: 142 },
   GET_SHOPES_FOR_SELLER: { reqTitle: "GET_SHOPES_FOR_SELLER", code: 143 },
   GET_ORDER_DETAILS: { reqTitle: "GET_ORDER_DETAILS", code: 144 },
+  BLOCK_USER: { reqTitle: "BLOCK_USER", code: 145 },
+  UNBLOCK_USER: { reqTitle: "UNBLOCK_USER", code: 146 },
 };

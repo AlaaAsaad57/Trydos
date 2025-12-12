@@ -1115,6 +1115,15 @@ const translations = {
     "اختر صورة أو فيديو من الكاميرا أو المعرض",
   camera: "الكاميرا",
   Gallery: "المعرض",
+  Block: "حظر",
+  UnBlock: "إلغاء الحظر",
+  "Delete Chat": "حذف المحادثة",
+  "Save To Gallery": "حفظ في المعرض",
+  Never: "أبداً",
+  "Media & Files": "الوسائط والملفات",
+  Search: "بحث",
+  "Video as مكالمة فيديو": "مكالمة فيديو",
+  Call: "اتصال",
 };
 
 export default translations;

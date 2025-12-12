@@ -1105,6 +1105,15 @@ const translations = {
     "Kameradan veya galeriden bir fotoğraf ya da video seçin",
   camera: "Kamera",
   Gallery: "Galeri",
+  Block: "Engelle",
+  UnBlock: "Engeli kaldır",
+  "Delete Chat": "Sohbeti sil",
+  "Save To Gallery": "Galeride kaydet",
+  Never: "Asla",
+  "Media & Files": "Medya ve dosyalar",
+  Search: "Ara",
+  "Video as مكالمة فيديو": "Görüntülü arama",
+  Call: "Ara",
 };
 
 export default translations;
