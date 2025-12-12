@@ -421,7 +421,7 @@ function ChangeAddressWidget({
       </div>
       {openModal && (
         <div className="absolute z-[99999999999] top-0 left-0 bg-white overflow-auto w-full flex-col max-h-[100dvh] ">
-          <div className="flex-row h-[50px] w-full px-[20px] items-center">
+          <div className="flex-row min-h-[50px] w-full px-[20px] items-center">
             <span
               onClick={() => {
                 setOpenModal(false);
