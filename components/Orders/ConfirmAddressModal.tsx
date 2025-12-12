@@ -283,7 +283,7 @@ function ConfirmAddressModal({
           </div>
         </div>
         <p
-          className="text-[14px] text-white regular mt-[40px]"
+          className="text-[14px] text-white regular mt-[40px] flex-row  gap-[4px]"
           onClick={() => {
             setActive(!active);
           }}
