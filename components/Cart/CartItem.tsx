@@ -168,7 +168,7 @@ function CartItem({ product, index }) {
             </span>
           </span>
         </div>
-        {product.shipping_days ? (
+        {product.shipping_days + getShippingDay() > 0 ? (
           <div
             className={`${
               isRtl ? "flex-row-reverse" : "flex-row"
