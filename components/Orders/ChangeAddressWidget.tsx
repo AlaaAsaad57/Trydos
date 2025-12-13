@@ -431,7 +431,7 @@ function ChangeAddressWidget({
             } rounded-[20px] text-[16px] text-[#fff] medium`}
             onClick={() => {
               if (address_id === selectedAddressId && deliveryNote === "") {
-                close();
+                // close();
               } else {
                 setConfirmationData({
                   enable: true,
@@ -445,9 +445,7 @@ function ChangeAddressWidget({
               }
             }}
           >
-            {address_id === selectedAddressId && deliveryNote === ""
-              ? translateFunction("Close")
-              : translateFunction("Change Request")}
+            {translateFunction("Change Request")}
           </div>
         </div>
       </BottomSheet>
