@@ -4,24 +4,39 @@ import LargeAddressChangeIcon from "public/svg/LargeAddressChangeIcon";
 import { GetAddressString } from "utils/tinyUtils";
 import { ConfirmAddressModalPropsType } from "models/componentType/ConfirmAddressModalPropsType";
 import { CheckBoxElement } from "components/Cart/PlaceOrderButtons";
+import ClarificationIcon from "public/svg/OrderCancelConfirm";
+import { useAppStore } from "store";
+import OrderCancelTermsIcon from "public/svg/OrderCancelTerms";
+
 function ConfirmAddressModal({
   close,
   confirm,
   confirmationData,
 }: ConfirmAddressModalPropsType) {
   const [active, setActive] = useState(false);
+  const { language } = useAppStore();
+  const isRtl = language === "ar" || language === "ku";
+
   return (
-    <div className="z-[9999999999999] px-[24px] pb-[70px] w-full flex-col justify-end items-center h-[calc(100vh)] overflow-auto max-h-[calc(100vh)] absolute top-0 left-0 bg-[#0000006c]  backdrop-blur-[10px]">
+    <div className="z-[9999999999999] px-[24px] pb-[70px] w-full flex-col justify-start items-center h-[calc(100vh)] overflow-auto max-h-[calc(100vh)] absolute top-0 left-0 bg-[#0000006c]  backdrop-blur-[10px]">
       <div className="flex-col justify-end items-center h-auto">
-        <LargeAddressChangeIcon />
+        <ClarificationIcon className="mt-[20px]" />
+        <span className="medium text-[#fff] text-[40px] mt-[7px] text-center">
+          {translateFunction("Clarification")}
+        </span>
+        <span className="text-white regular text-[16px] mt-[2px] text-center">
+          {translateFunction(`change address request`)}
+        </span>
+        <LargeAddressChangeIcon className="mt-[20px]" />
         <span className="mt-[11px] text-[#D3D3D3] text-[16px] medium">
-          {translateFunction("Cahnge Below Address")}
+          {translateFunction("Change Below Address")}
         </span>
         <div
           style={{
             border: "#D3D3D380 1px solid",
+            direction: isRtl ? "rtl" : "ltr",
           }}
-          className={`flex-col pl-[24px] relative h-auto max-w-[600px]  min-h-[90px] items-start justify-center  mt-[12px] rounded-[15px] bg-[#f8f8f800] w-full `}
+          className={`flex-col px-[24px] relative h-auto max-w-[600px]  min-h-[90px] items-start justify-center  mt-[12px] rounded-[15px] bg-[#f8f8f800] w-full `}
         >
           <div className="flex-col">
             <div className="flex-row items-center">
@@ -39,7 +54,7 @@ function ConfirmAddressModal({
                 />
               </svg>
 
-              <span className="regular ml-[4px] text-[12px] text-[#D3D3D3]">
+              <span className="regular mx-[4px] text-[12px] text-[#D3D3D3]">
                 {confirmationData?.currentAddress.address}
               </span>
             </div>
@@ -85,10 +100,10 @@ function ConfirmAddressModal({
                 </g>
               </svg>
 
-              <div className="flex-row ml-[4px]   items-center regular text-[12px] text-[#D3D3D3]">
+              <div className="flex-row mx-[4px]   items-center regular text-[12px] text-[#D3D3D3]">
                 {confirmationData?.currentAddress?.contact_info?.phone}
               </div>
-              <div className="flex-row ml-[17px]  items-center">
+              <div className="flex-row mx-[17px]  items-center">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   xmlnsXlink="http://www.w3.org/1999/xlink"
@@ -142,7 +157,7 @@ function ConfirmAddressModal({
                   </g>
                 </svg>
 
-                <div className="flex-row  ml-[4px]  items-center regular text-[12px] text-[#D3D3D3]">
+                <div className="flex-row  mx-[4px]  items-center regular text-[12px] text-[#D3D3D3]">
                   {confirmationData?.currentAddress?.contact_info?.name}
                 </div>
               </div>
@@ -155,8 +170,9 @@ function ConfirmAddressModal({
         <div
           style={{
             border: "#FFFFFF80 1px solid",
+            direction: isRtl ? "rtl" : "ltr",
           }}
-          className={`flex-col pl-[24px] relative h-auto max-w-[600px]  min-h-[90px] items-start justify-center  mt-[12px] rounded-[15px] bg-[#f8f8f800] w-full `}
+          className={`flex-col px-[24px] relative h-auto max-w-[600px]  min-h-[90px] items-start justify-center  mt-[12px] rounded-[15px] bg-[#f8f8f800] w-full `}
         >
           <div className="flex-col">
             <div className="flex-row items-center">
@@ -174,7 +190,7 @@ function ConfirmAddressModal({
                 />
               </svg>
 
-              <span className="regular ml-[4px] text-[12px] text-[#FFFFFF]">
+              <span className="regular mx-[4px] text-[12px] text-[#FFFFFF]">
                 {confirmationData?.newAddress.address}
               </span>
             </div>
@@ -218,10 +234,10 @@ function ConfirmAddressModal({
                 </g>
               </svg>
 
-              <div className="flex-row ml-[4px]   items-center regular text-[12px] text-[#FFFFFF]">
+              <div className="flex-row mx-[4px]   items-center regular text-[12px] text-[#FFFFFF]">
                 {confirmationData?.newAddress?.contact_info?.phone}
               </div>
-              <div className="flex-row ml-[17px]  items-center">
+              <div className="flex-row mx-[17px]  items-center">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   xmlnsXlink="http://www.w3.org/1999/xlink"
@@ -275,15 +291,28 @@ function ConfirmAddressModal({
                   </g>
                 </svg>
 
-                <div className="flex-row  ml-[4px]  items-center regular text-[12px] text-[#FFFFFF]">
+                <div className="flex-row  mx-[4px]  items-center regular text-[12px] text-[#FFFFFF]">
                   {confirmationData?.newAddress?.contact_info?.name}
                 </div>
               </div>
             </div>
           </div>
         </div>
+
+        <p className="text-[14px] text-white medium mt-[40px] text-center ">
+          {translateFunction(
+            "We Will Ignore The First Address And Send Your Order To The New Address."
+          )}
+        </p>
+        <OrderCancelTermsIcon className="mt-[15px]" />
+        <span className="mt-[7px] regular text-white text-[14px]">
+          {translateFunction("Terms Of Cancellation Terms")}
+        </span>
         <p
-          className="text-[14px] text-white regular mt-[40px] flex-row  gap-[4px]"
+          className="text-[14px] text-white regular mt-[15px] flex-row  gap-[4px]"
+          style={{
+            direction: isRtl ? "rtl" : "ltr",
+          }}
           onClick={() => {
             setActive(!active);
           }}
@@ -298,11 +327,6 @@ function ConfirmAddressModal({
             {translateFunction("The Change Addres Terms.")}
           </a>
         </p>
-        <p className="text-[14px] text-white medium mt-[40px] text-center ">
-          {translateFunction(
-            "We Will Ignore The First Address And Send Your Order To The New Address."
-          )}
-        </p>
         <div
           className={`${
             active ? "bg-[#F8F8F8] text-[#402CDD]" : "bg-[#D3D3D3] text-[#fff]"
@@ -315,15 +339,15 @@ function ConfirmAddressModal({
             confirm();
           }}
         >
-          {translateFunction("Yes, I Agree")}
+          {translateFunction("Agree & Change")}
         </div>
         <div
-          className="cursor-pointer w-full h-[50px] text-[#fff] text-[16px] regular flex items-center justify-center"
+          className={`w-full h-[53px] items-center justify-center underline  flex cursor-pointer  rounded-[20px] text-[16px] text-[#fff] medium`}
           onClick={() => {
             close();
           }}
         >
-          {translateFunction("Cancel")}
+          {translateFunction("I Disagree")}
         </div>
       </div>
     </div>

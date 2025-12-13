@@ -561,7 +561,7 @@ const AddAddressButton = ({ onClick }: AddAddressButtonPropsType) => {
         data-cy="addShipping-text"
         className="medium text-[12px] ml-1 text-[#1D1D1D]"
       >
-        {translateFunction("Add Shipping Address")}
+        {translateFunction("Add New Shipping Address")}
       </div>
     </div>
   );

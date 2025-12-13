@@ -264,7 +264,6 @@ const translations = {
   "Change Product Request": "طلب تغيير المنتج",
   "You Can Change Delivery Address": "يمكنك تغيير عنوان التوصيل",
   "Delivery Address & Note": "عنوان التوصيل والملاحظات",
-  "Change Selected Address": "تغيير العنوان المحدد",
   "Delivery Address": "عنوان التوصيل",
   "Delivery Note": "ملاحظة التوصيل",
   Close: "إغلاق",
@@ -318,9 +317,9 @@ const translations = {
   "Please select a reason for canceling this order":
     "الرجاء اختيار سبب لالغاء الطلب",
   "Manage Your Order": "إدارة الطلب",
-  "Change Delivery Address & Note": "تعديل عنوان التوصيل والملاحظات",
-  "You Can Easily Change Your Shipping Address And Delivery Notes":
-    "يمكنك بسهولة تغيير عنوان الشحن وملاحظات التسليم",
+  "Change Delivery Address & Note": "تغيير عنوان التسليم والملاحظة",
+  "You Can Change Your Shipping Address And Delivery Notes":
+    "يمكنك  تغيير عنوان التسليم ومذكرة التسليم",
   "Cancel Order": "إلغاء الطلب",
   "You Can Cancel & Back Your Money": "يمكنك إلغاء الطلب واسترجاع المبلغ",
   "Information About Your Order Modify Or Cancel":
@@ -550,7 +549,7 @@ const translations = {
   "Purshase Protection": "حماية المشتريات",
   "Earn Money With This Order": "كسب المال مع هذا الطلب",
   "Contact Info": "معلومات التواصل",
-  "Add Shipping Address": "اضافة عنوان توصيل",
+  "Add New Shipping Address": "اضافة عنوان شحن جديد",
   "Shipping & Delivery Address": "عناوين الشحن والتوصيل",
   "stock is limited": "لا يوجد كمية اضافية من المنتج",
   "Continue as Guest": "الاستمرار كـ ضيف",
@@ -565,6 +564,13 @@ const translations = {
     "الرجاء ادخال الرقم لاكمال الطلب",
   Buy: "شراء",
   "Composed Of:": "مكون من",
+  "change address request": "طلب تغيير العنوان",
+  "Change Below Address": "تغيير العنوان أدناه",
+  "To New Address": "إلى العنوان الجديد",
+  "The Change Addres Terms.": "شروط تغيير العنوان.",
+  "We Will Ignore The First Address And Send Your Order To The New Address.":
+    "سوف نتجاهل العنوان الأول ونرسل طلبك إلى العنوان الجديد.",
+  "Agree & Change": "أوافق وأغير",
   Piece: "قطعة",
   "Hide All": "إخفاء الكل",
   Shipping: "الشحن",

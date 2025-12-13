@@ -135,7 +135,7 @@ export default async function RootLayout({
         {navauth}
         {cart}
         {notification}
-        {/* <HydrationProfiler /> */}
+
         <PathTracker />
         <SessionChecker />
         <SessionTimer />
