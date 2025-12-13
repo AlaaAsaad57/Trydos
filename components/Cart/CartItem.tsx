@@ -182,7 +182,6 @@ function CartItem({ product, index }) {
               height={10}
               data-cy="color-icon"
             />
-
             <span
               className={`ml-1.5 flex whitespace-nowrap ${
                 language === "ar" && "dir-rtl"
