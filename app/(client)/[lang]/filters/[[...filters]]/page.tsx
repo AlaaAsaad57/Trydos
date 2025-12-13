@@ -329,6 +329,7 @@ async function BoutiqueHeader({ boutique }) {
             <VerificationIcon />
             <TopStarIcon />
           </div>
+          <div className="boutique-text">{boutique?.name}</div>
         </div>
       )}
       {boutique?.banners && <BouqiuePhotoSlider banners={boutique.banners} />}
