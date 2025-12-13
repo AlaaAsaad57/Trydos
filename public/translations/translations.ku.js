@@ -546,6 +546,8 @@ const translations = {
   "Shipping & Delivery Address": "ناونیشانەکانی گەیاندن",
   "stock is limited": "کۆگا سنووردارە",
   "Continue as Guest": "بەردەوامبوون وەک میوان",
+  "enter number of pieces you want to return":
+    " ژمارەی پارچەکان بنووسە کە دەتەوێت بگەڕێنیتەوە",
   "Name Should be atleast 8 characters":
     "ناو پێویستە بەلایەنی کەمەوە ٨ پیت بێت",
   Items: "شتەکان",

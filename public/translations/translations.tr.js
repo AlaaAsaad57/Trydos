@@ -424,6 +424,8 @@ const translations = {
   "Share This Product With": "Bu Ürünü Paylaş",
   "Notify Me When Product Is Available": "Bildirim Al, Boyut Mevcut Olduğunda",
   "Agree & Change": "Kabul Et ve Değiştir",
+  "enter number of pieces you want to return":
+    "İade etmek istediğiniz parça sayısını girin",
   Recommended: "Önerilen",
   "Comment About This Product": "Bu Ürün Hakkında Yorum",
   "We Will Inform You When this Is Available":
