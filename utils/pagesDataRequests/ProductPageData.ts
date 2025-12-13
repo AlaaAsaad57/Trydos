@@ -542,27 +542,30 @@ export async function GetFQACommentsForProductWithReactions({
     },
     aggs: {
       reactions_by_type: {
-        terms: { field: "target_type.keyword", size: 2 },
+        terms: {
+          field: "target_type",
+          size: 2,
+        },
         aggs: {
           reactions_by_target: {
-            terms: { field: "target_id.keyword", size: commentIds.length },
+            terms: {
+              field: "target_id",
+              size: commentIds.length,
+            },
             aggs: user_id
               ? {
-                  total_likes: { value_count: { field: "interaction_id" } },
                   user_like: {
                     filter: {
                       bool: {
                         must: [
-                          { term: { user_id } },
+                          { term: { user_id: user_id } },
                           { term: { status: "active" } },
                         ],
                       },
                     },
                   },
                 }
-              : {
-                  total_likes: { value_count: { field: "interaction_id" } },
-                },
+              : {},
           },
         },
       },
@@ -571,31 +574,34 @@ export async function GetFQACommentsForProductWithReactions({
 
   const reactionsRes = await client.search(reactionsQuery);
 
-  // Step 2: Build lookup maps for comments and replies
   const commentLikesMap: Record<
     string,
     { total_likes: number; is_liked: boolean }
   > = {};
+
   const replyLikesMap: Record<
     string,
     { total_likes: number; is_liked: boolean }
   > = {};
 
-  for (const typeBucket of (reactionsRes.aggregations.reactions_by_type as any)
-    .buckets) {
+  const buckets =
+    // @ts-ignore
+    reactionsRes.aggregations.reactions_by_type.buckets;
+
+  for (const typeBucket of buckets) {
     const isReply = typeBucket.key === "seller_reply";
 
     for (const bucket of typeBucket.reactions_by_target.buckets) {
       const map = isReply ? replyLikesMap : commentLikesMap;
+
       map[bucket.key] = {
-        total_likes: bucket.total_likes.value,
+        total_likes: bucket.doc_count,
         is_liked: bucket.user_like ? bucket.user_like.doc_count > 0 : false,
       };
     }
   }
 
-  // Step 3: Merge back into comment list
-  const enrichedComments = commentsResult.map((comment) => ({
+  return commentsResult.map((comment) => ({
     ...comment,
     total_likes: commentLikesMap[comment.id]?.total_likes || 0,
     is_liked: commentLikesMap[comment.id]?.is_liked || false,
@@ -608,8 +614,6 @@ export async function GetFQACommentsForProductWithReactions({
         ? replyLikesMap[comment.id]?.is_liked || false
         : false,
   }));
-
-  return enrichedComments;
 }
 
 async function getProductInteractions(productId: string, userId?: string) {
