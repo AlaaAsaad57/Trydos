@@ -126,13 +126,13 @@ export default async function Page({ params }) {
     let end = process.hrtime.bigint();
     if (filtersData?.applied?.colors?.length) {
       parsedFilters.colors = [
-        ...parsedFilters?.colors,
+        ...(parsedFilters?.colors || []),
         ...(filtersData?.applied?.colors || []),
       ];
     }
     if (filtersData?.applied?.sizes) {
       parsedFilters.sizes = [
-        ...parsedFilters.sizes,
+        ...(parsedFilters?.sizes || []),
         ...(filtersData?.applied?.sizes || []),
       ];
     }
