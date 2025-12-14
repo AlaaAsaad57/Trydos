@@ -31,7 +31,7 @@ const CurrencyTestCard = () => {
     { value: "tr", label: "Turkey" },
     { value: "lb", label: "Lebanon" },
     { value: "jo", label: "Jordan" },
-    { value: "eg", label: "Egypt" },
+    // { value: "eg", label: "Egypt" },
   ];
 
   // Fetch currency when country is selected
