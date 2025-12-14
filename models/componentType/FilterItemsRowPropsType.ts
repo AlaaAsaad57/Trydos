@@ -17,4 +17,5 @@ export interface FilterItemsRowPropsType {
   items?: FilterData[];
   term?: string;
   itemsLength?: number;
+  analyzeData?: any;
 }

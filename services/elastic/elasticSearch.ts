@@ -182,17 +182,27 @@ export async function getProductsAndFiltersFromElastic(
         filters = { ...filters, search_text: CleanSearchText?.name };
       }
       if (CleanSearchText?.color) {
+        let new_colors;
+        if (Array.isArray(CleanSearchText.color))
+          new_colors = CleanSearchText.color;
+        else {
+          new_colors = [CleanSearchText.color];
+        }
         filters = {
           ...filters,
-          colors: [
-            ...new Set([...(filters.colors || []), ...CleanSearchText.color]),
-          ],
+          colors: [...new Set([...(filters.colors || []), ...new_colors])],
         };
       }
       if (CleanSearchText?.size) {
+        let new_sizes;
+        if (Array.isArray(CleanSearchText.size)) {
+          new_sizes = CleanSearchText.size;
+        } else {
+          new_sizes = [CleanSearchText.size];
+        }
         filters = {
           ...filters,
-          sizes: [...new Set([...(filters.sizes || []), CleanSearchText.size])],
+          sizes: [...new Set([...(filters.sizes || []), ...new_sizes])],
         };
       }
       isAnalyzed = CleanSearchText;
