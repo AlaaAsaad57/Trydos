@@ -451,8 +451,7 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
           (s) =>
             s.type?.toLowerCase() ===
             (
-              selectedSize &&
-              `${(selectedSize?.option ?? selectedSize)?.replace(" ", "")}`
+              size && `${(size?.option ?? size)?.replace(" ", "")}`
             )?.toLowerCase()
         );
       }
@@ -879,6 +878,7 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
             }
             qty={getSelectedVariantQty()?.qty}
             sizeQty={(e) => {
+              console.log({ type: e, qty: getVariantSizeQty(e) });
               return getVariantSizeQty(e)?.qty;
             }}
             selectedSize={selectedSize}
