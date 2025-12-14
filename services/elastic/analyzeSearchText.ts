@@ -1,6 +1,6 @@
 import { GetColorAndSizes } from "serverRequests/analyticsUtility";
 
-const API_URL = `"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${process.env.GL_API_KEY}`;
+const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${process.env.GL_API_KEY}`;
 
 export default async function AnalyzeSearchText(query): Promise<any> {
   let start = process.hrtime.bigint();
@@ -19,19 +19,21 @@ export default async function AnalyzeSearchText(query): Promise<any> {
 
 أرجع النتيجة بصيغة JSON فقط بدون تنسيق Markdown (بدون \`\`\`)
 `;
-  const payload = {
-    contents: [
-      {
-        role: "user",
-        parts: [{ text: prompt }],
-      },
-    ],
-  };
 
   try {
     const response = await fetch(API_URL, {
       method: "POST",
-      body: JSON.stringify(payload),
+      body: JSON.stringify({
+        contents: [
+          {
+            parts: [
+              {
+                text: prompt,
+              },
+            ],
+          },
+        ],
+      }),
       headers: { "Content-Type": "application/json" },
       credentials: "omit",
     });
