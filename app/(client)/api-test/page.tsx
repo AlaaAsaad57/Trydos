@@ -3,7 +3,8 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { getProductsAndFiltersFromElastic } from "services/elastic/elasticSearch";
-import ImageTesting from "./ImageTesting"; // Add this import
+import ImageTesting from "./ImageTesting";
+import CurrencyTestCard from "./CurrencyTestCard";
 
 interface Header {
   key: string;
@@ -967,9 +968,12 @@ export default function ApiTestPage() {
   };
 
   return (
-    <div className="min-h-screen w-full bg-gray-50 p-4 *:text-[#383838]">
-      <ImageTesting />
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen w-full bg-gray-50 p-4 *:text-[#383838] flex flex-col ">
+      {/* <ImageTesting /> */}
+
+      {/* Currency Test Card */}
+      <CurrencyTestCard />
+      <div className="max-w-7xl mx-auto my-[50px]">
         <h1 className="text-3xl font-bold mb-8 text-gray-800">API Tester</h1>
 
         {/* Quick Select Section */}
@@ -1259,6 +1263,7 @@ export default function ApiTestPage() {
           </div>
         )}
       </div>
+
       <div className="bg-white rounded-lg shadow-md p-6 mb-6">
         <h2 className="text-lg font-semibold mb-4">Elastic Search Test</h2>
 
