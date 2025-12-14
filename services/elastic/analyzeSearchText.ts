@@ -29,6 +29,7 @@ export default async function AnalyzeSearchText(query): Promise<any> {
   };
 
   try {
+    console.log("Sending request to Gemini API...", API_URL);
     const response = await fetch(API_URL, {
       method: "POST",
       body: JSON.stringify(payload),
