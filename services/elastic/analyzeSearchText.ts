@@ -85,7 +85,9 @@ export default async function AnalyzeSearchText(query): Promise<any> {
     return { ...filtered, Geminitime: Number(end - start) / 1_000_000 };
   } catch (error: any) {
     return {
-      error: "API call to Gemini failed",
+      error: `API call to Gemini failed : ${
+        error?.message ?? JSON.stringify(error, null, 2)
+      }`,
       details: error?.response?.data || error.message,
     };
   }

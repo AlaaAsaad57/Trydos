@@ -209,7 +209,7 @@ export async function getProductsAndFiltersFromElastic(
     }
   } catch (error) {
     isAnalyzed?.length > 4 ? isAnalyzed : "failed to Analyze";
-    console.log(error);
+    console.error(error);
   }
 
   try {
