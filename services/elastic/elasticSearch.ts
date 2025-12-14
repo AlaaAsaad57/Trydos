@@ -11,6 +11,7 @@ import {
   processCustomProduct,
   SyncColorImage,
 } from "./helpers";
+import { LogServerError } from "utils/serverErrorReporter";
 
 // Types and Interfaces
 interface SearchFilters {
@@ -208,6 +209,7 @@ export async function getProductsAndFiltersFromElastic(
       isAnalyzed = CleanSearchText;
     }
   } catch (error) {
+    LogServerError(`Gemini Search Analyze ${error}`, JSON.stringify(filters));
     isAnalyzed?.length > 4 ? isAnalyzed : "failed to Analyze";
     console.error(error);
   }
