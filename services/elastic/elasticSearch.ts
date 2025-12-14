@@ -171,10 +171,12 @@ export async function getProductsAndFiltersFromElastic(
       let CleanSearchText = await AnalyzeSearchText(filters.search_text);
       if (CleanSearchText?.error) {
         console.error(
-          `##################${CleanSearchText.error}#######################`
+          `##################${
+            CleanSearchText?.error || CleanSearchText?.message
+          }#######################`
         );
-        isAnalyzed = CleanSearchText?.error;
-        throw new Error(CleanSearchText?.error);
+        isAnalyzed = CleanSearchText?.error || CleanSearchText?.message;
+        throw new Error(CleanSearchText?.error || CleanSearchText?.message);
       }
       if (CleanSearchText?.name) {
         filters = { ...filters, search_text: CleanSearchText?.name };

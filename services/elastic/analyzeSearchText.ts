@@ -42,12 +42,13 @@ export default async function AnalyzeSearchText(query): Promise<any> {
       data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "";
     const cleanedText = outputText.replace(/^```json|```$/gm, "").trim();
 
-    let parsed;
+    let parsed = cleanedText;
     try {
       parsed = JSON.parse(cleanedText);
     } catch (e) {
       return {
-        error: `Failed to parse JSON from Gemini response ${outputText}`,
+        error: `Failed to parse JSON from Gemini response ${parsed}`,
+        message: `Failed to parse JSON from Gemini response ${parsed}`,
         raw_output: outputText,
         exception: e.toString(),
       };
