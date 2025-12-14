@@ -124,7 +124,18 @@ export default async function Page({ params }) {
       GetBoutique(boutiqueItem, country, language),
     ]);
     let end = process.hrtime.bigint();
-
+    if (filtersData?.applied?.colors?.length) {
+      parsedFilters.colors = [
+        ...parsedFilters?.colors,
+        ...(filtersData?.applied?.colors || []),
+      ];
+    }
+    if (filtersData?.applied?.sizes) {
+      parsedFilters.sizes = [
+        ...parsedFilters.sizes,
+        ...(filtersData?.applied?.sizes || []),
+      ];
+    }
     let filters = {
       categories: filtersData?.categories || [],
       brands: filtersData?.brands || [],
@@ -247,7 +258,12 @@ export default async function Page({ params }) {
               parsedFilters?.search_text?.length > 0 && "w-full"
             }`}
           >
-            <SearchBoutiquePage search_text={parsedFilters?.search_text?.[0]} />
+            <SearchBoutiquePage
+              search_text={
+                filtersData?.applied?.search_text ??
+                parsedFilters?.search_text?.[0]
+              }
+            />
 
             <div
               data-cy="filter_option_loseSearchInput"

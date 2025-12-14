@@ -143,6 +143,18 @@ export default async function Page({ params }) {
       boutiques: filtersData?.boutiques || [],
       search_text: parsedFilters?.search_text?.[0] || null,
     };
+    if (filtersData?.applied?.colors?.length) {
+      parsedFilters.colors = [
+        ...parsedFilters?.colors,
+        ...(filtersData?.applied?.colors || []),
+      ];
+    }
+    if (filtersData?.applied?.sizes?.length) {
+      parsedFilters.sizes = [
+        ...parsedFilters.sizes,
+        ...(filtersData?.applied?.sizes || []),
+      ];
+    }
     const isRtl = language === "ar" || language === "ku";
     const redeemed_ids = (await getCookieServer<any[]>("redemed_ids")) ?? [];
     let productsData = filtersData.products.map((product) => {
@@ -257,7 +269,12 @@ export default async function Page({ params }) {
               parsedFilters?.search_text?.length > 0 && "w-full"
             }`}
           >
-            <SearchBoutiquePage search_text={parsedFilters?.search_text?.[0]} />
+            <SearchBoutiquePage
+              search_text={
+                filtersData?.applied?.search_text ??
+                parsedFilters?.search_text?.[0]
+              }
+            />
 
             <div
               data-cy="filter_option_loseSearchInput"
