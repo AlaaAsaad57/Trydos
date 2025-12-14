@@ -38,7 +38,7 @@ export default async function AnalyzeSearchText(query): Promise<any> {
     });
 
     let data = await response.json();
-
+    console.log("Received response from Gemini API:", data);
     const outputText =
       data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "";
     const cleanedText = outputText.replace(/^```json|```$/gm, "").trim();
