@@ -24,6 +24,7 @@ const CurrencyTestCard = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
   const [roundedPrice, setRoundedPrice] = useState<string | number>("");
+  const [returnNumber, setReturnNumber] = useState<boolean>(false);
 
   const countries: Country[] = [
     { value: "sy", label: "Syria" },
@@ -50,7 +51,7 @@ const CurrencyTestCard = () => {
         const result = RoundPrice({
           num: parseFloat(price),
           rate: currency.exchange_rate,
-          returnNumber: false,
+          returnNumber: returnNumber,
           points: currency.decimal_digits,
         });
         setRoundedPrice(result);
@@ -60,7 +61,7 @@ const CurrencyTestCard = () => {
     } else {
       setRoundedPrice("");
     }
-  }, [price, currency]);
+  }, [price, currency, returnNumber]);
 
   const fetchCurrency = async (country: string) => {
     setLoading(true);
@@ -157,6 +158,23 @@ const CurrencyTestCard = () => {
               </option>
             ))}
           </select>
+        </div>
+
+        {/* Return Number Checkbox */}
+        <div className="flex items-center gap-2">
+          <input
+            id="returnNumber"
+            type="checkbox"
+            checked={returnNumber}
+            onChange={(e) => setReturnNumber(e.target.checked)}
+            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
+          />
+          <label
+            htmlFor="returnNumber"
+            className="text-sm font-medium text-gray-700 cursor-pointer"
+          >
+            For cart & order prices (returnNumber)
+          </label>
         </div>
 
         {/* Loading State */}
