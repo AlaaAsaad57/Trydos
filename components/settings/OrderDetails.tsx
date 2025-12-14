@@ -1221,7 +1221,7 @@ const ProductCard = ({
                   {translateFunction("Item")}:
                 </span>
                 <span className="text-[#505050] text-[10px] medium mx-[2px]">
-                  {product.qty}
+                  {product?.qty?.toFixed(1)}
                 </span>
               </div>
             </div>
@@ -1273,7 +1273,7 @@ const ProductCard = ({
                 >
                   {/* {RoundPrice({ num: product.price, language: language })} */}
                   {RoundPrice({
-                    num: product?.product_details?.price,
+                    num: product?.price,
                     language: language,
                     returnNumber: true,
                   })}
@@ -1288,7 +1288,7 @@ const ProductCard = ({
                   language: language,
                 })} */}
                 {RoundPrice({
-                  num: product.product_details?.offer_price,
+                  num: product?.price_after_discount,
                   language: language,
                   returnNumber: true,
                 })}

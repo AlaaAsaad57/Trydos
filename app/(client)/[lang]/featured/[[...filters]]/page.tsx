@@ -163,7 +163,11 @@ export default async function Page({ params }) {
             name: s.name,
             id: s.id,
           })),
-          brand: { id: product?.brand?.id, icon: product?.brand?.icon },
+          brand: {
+            id: product?.brand?.id,
+            icon: product?.brand?.icon,
+            is_verified: product?.brand?.is_verified,
+          },
           flash_deal_end_date: product.flash_deal_end_date,
           flash_deal_price: product.flash_deal_price,
           is_redeem: !redeemed_ids.find((s) => s.id === product.product_id),
@@ -189,7 +193,11 @@ export default async function Page({ params }) {
             name: s.name,
             id: s.id,
           })),
-          brand: { id: product?.brand?.id, icon: product?.brand?.icon },
+          brand: {
+            id: product?.brand?.id,
+            icon: product?.brand?.icon,
+            is_verified: product?.brand?.is_verified,
+          },
           flash_deal_end_date: product.flash_deal_end_date,
           product_id: product.product_id,
         };

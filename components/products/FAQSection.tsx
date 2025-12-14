@@ -244,7 +244,11 @@ export const FaqItem = ({
             >
               {formatTime(comment?.created_at)}
             </div>
-            <div className="comment-text regular text-[#1d1d1d] text-[11px] mt-[0px]">
+            <div
+              className={`${
+                !isRtl ? "pr-[27px]" : "pl-[27px]"
+              } comment-text max-h-[100px] overflow-auto regular text-[#1d1d1d] text-[11px] mt-[0px]`}
+            >
               {renderTextWithLinks(
                 isCommentTranslated && translatedComment
                   ? translatedComment
@@ -305,7 +309,7 @@ export const FaqItem = ({
                 >
                   {formatTime(comment?.reply_created_at)}
                 </div>
-                <div className="comment-text regular text-[#1d1d1d] text-[11px] mt-[0px]">
+                <div className="comment-text max-h-[100px] overflow-auto regular text-[#1d1d1d] text-[11px] mt-[0px]">
                   {renderTextWithLinks(
                     isReplyTranslated && translatedReply
                       ? translatedReply
@@ -562,6 +566,7 @@ const AskInput = ({ language, setCommentsData }) => {
 
 export function LikeButton({ comment, disabled = false }) {
   const [isLiked, setIsLiked] = useState(comment?.is_liked || false);
+  const [loading, setLoading] = useState(false);
   const [likes, setLikes] = useState(comment?.total_likes || 0);
   const [animating, setAnimating] = useState(false);
   const { setLoginOpen, editInfo, SelectedProduct } = useAppStore();
@@ -580,6 +585,7 @@ export function LikeButton({ comment, disabled = false }) {
     setLikes((prev) => (isLiked ? prev - 1 : prev + 1));
 
     try {
+      setLoading(true);
       if (isLiked) {
         await home.UnLikeComment({
           comment_id: comment.id,
@@ -594,11 +600,14 @@ export function LikeButton({ comment, disabled = false }) {
         });
       }
       handleLikeAction(!isLiked, isLiked ? likes - 1 : likes + 1);
+      setLoading(false);
     } catch (error) {
       // Revert to previous state if error occurred
+      setLoading(false);
       setIsLiked(previousIsLiked);
       setLikes(previousLikes);
     } finally {
+      setLoading(false);
       // small delay to allow the animation to finish
       setTimeout(() => setAnimating(false), 400);
     }
@@ -680,7 +689,9 @@ export function LikeButton({ comment, disabled = false }) {
   };
   return (
     <div
-      className="flex items-center gap-[4px] text-[#1d1d1d] text-[9px] regular cursor-pointer select-none"
+      className={`${
+        loading && "opacity-65 scale-90"
+      } flex items-center gap-[4px] text-[#1d1d1d] text-[9px] regular cursor-pointer select-none`}
       onClick={ReactOnComment}
     >
       <svg
@@ -694,7 +705,7 @@ export function LikeButton({ comment, disabled = false }) {
       >
         <defs>
           <linearGradient
-            id="heartGradient"
+            id={`heartGradient-${comment.id}`}
             x1="0%"
             y1="0%"
             x2="100%"
@@ -724,7 +735,7 @@ export function LikeButton({ comment, disabled = false }) {
           transition: fill 0.3s ease, transform 0.3s ease;
         }
         .heart.liked {
-          fill: url(#heartGradient);
+          fill: url(#${`heartGradient-${comment.id}`});
         }
         .heart.pop {
           transform: scale(1.3);

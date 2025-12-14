@@ -119,6 +119,7 @@ const translations = {
   "Cancel Return Request": " İade talebini iptal et",
   "Return Request": "İade Talebi",
   "Initializing Return": "İade başlatılıyor",
+  Size: "Beden",
   "You Need To Confirm Your Request": "Talebinizi onaylamanız gerekiyor",
   "Product Return Needs Confirm": "Ürün iadesi onay gerektiriyor",
   "return this product is not allowed": "Destpêkirina vegerandinê",
@@ -219,7 +220,7 @@ const translations = {
     "Lütfen Sepetinizi İnceleyin Bazı Ürünler Mevcut Değil",
   "Please Verify Your Phone Number And Try Again":
     "Lütfen Telefon Numaranızı Doğrulayın ve Tekrar Deneyin",
-  "You Can Easily Change Your Shipping Address And Delivery Notes":
+  "You Can Change Your Shipping Address And Delivery Notes":
     "Teslimat Adresinizi ve Teslimat Notlarınızı Kolayca Değiştirebilirsiniz",
   "Shipping Cost": "Kargo Ücreti",
   "Failed to sync contacts": "İletişim bilgileriniz eşitlenemedi",
@@ -406,7 +407,7 @@ const translations = {
   "I Have a Discount Coupon": "Bir İndirim Kodumu Var",
   "Please Choose Your Payment Method About Your Bag":
     "Lütfen Çantalarınız İçin Ödeme Yönteminizi Seçin",
-  "Add Shipping Address": "Kargo Adresi Ekle",
+  "Add New Shipping Address": "Kargo Adresi Ekle",
   Delivery: "Kargo",
   "Earn Money With This Order": "Bu Siparişle Para Kazan",
   "Purshase Protection": "Satın Alma Koruma",
@@ -422,10 +423,19 @@ const translations = {
   Offers: "Teklifler",
   "Share This Product With": "Bu Ürünü Paylaş",
   "Notify Me When Product Is Available": "Bildirim Al, Boyut Mevcut Olduğunda",
+  "Agree & Change": "Kabul Et ve Değiştir",
+  "enter number of pieces you want to return":
+    "İade etmek istediğiniz parça sayısını girin",
   Recommended: "Önerilen",
   "Comment About This Product": "Bu Ürün Hakkında Yorum",
   "We Will Inform You When this Is Available":
     "Bu Ürün Mevcut Olduğunda Size Bildireceğiz",
+  "change address request": "Adres değiştirme talebi",
+  "Change Below Address": "Aşağıdaki adresi değiştir",
+  "To New Address": "Yeni adrese",
+  "The Change Addres Terms.": "Adres değiştirme şartları.",
+  "We Will Ignore The First Address And Send Your Order To The New Address.":
+    "İlk adresi yok sayacağız ve siparişinizi yeni adrese göndereceğiz.",
   "For You": "Sana",
   Last: "Son",
   "Not Available Now, Stock Is Sold Out": "Şu an mevcut değil, stok satıldı",
@@ -790,7 +800,6 @@ const translations = {
   "Change Product Request": "Ürün Değişim Talebi",
   "You Can Change Delivery Address": "Teslimat Adresini Değiştirebilirsiniz",
   "Delivery Address & Note": "Teslimat Adresi ve Not",
-  "Change Selected Address": "Seçilen Adresi Değiştir",
   "Delivery Address": "Teslimat Adresi",
   "Delivery Note": "Teslimat Notu",
   Close: "Kapat",
@@ -1100,6 +1109,10 @@ const translations = {
   "I Agree & Return": "Kabul Ediyorum ve İade Ediyorum",
   "Delay Confirmation. I want to Return more product":
     "Onayı ertele. Daha fazla ürün iade etmek istiyorum",
+  "chosse an image or video from camera or gallery":
+    "Kameradan veya galeriden bir fotoğraf ya da video seçin",
+  camera: "Kamera",
+  Gallery: "Galeri",
 };
 
 export default translations;

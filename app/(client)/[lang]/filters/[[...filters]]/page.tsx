@@ -159,7 +159,11 @@ export default async function Page({ params }) {
             name: s.name,
             id: s.id,
           })),
-          brand: { id: product?.brand?.id, icon: product?.brand?.icon },
+          brand: {
+            id: product?.brand?.id,
+            icon: product?.brand?.icon,
+            is_verified: product?.brand?.is_verified,
+          },
           flash_deal_end_date: product.flash_deal_end_date,
           product_id: product.product_id,
           is_redeem: !redeemed_ids.find((s) => s.id === product.product_id),
@@ -184,7 +188,11 @@ export default async function Page({ params }) {
             name: s.name,
             id: s.id,
           })),
-          brand: { id: product?.brand?.id, icon: product?.brand?.icon },
+          brand: {
+            id: product?.brand?.id,
+            icon: product?.brand?.icon,
+            is_verified: product?.brand?.is_verified,
+          },
           flash_deal_end_date: product.flash_deal_end_date,
           product_id: product.product_id,
         };
@@ -321,6 +329,7 @@ async function BoutiqueHeader({ boutique }) {
             <VerificationIcon />
             <TopStarIcon />
           </div>
+          <div className="boutique-text">{boutique?.name}</div>
         </div>
       )}
       {boutique?.banners && <BouqiuePhotoSlider banners={boutique.banners} />}

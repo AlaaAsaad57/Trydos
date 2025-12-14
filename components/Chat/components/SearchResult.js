@@ -82,7 +82,9 @@ function SearchResult({
       >
         {!isUser && (
           <div
-            className="chat-activated-options"
+            className={`${
+              isRtl ? "left-[30px]" : "right-[30px]"
+            } chat-activated-options`}
             onClick={handleInviteClick}
             style={{
               color: "#388cff",

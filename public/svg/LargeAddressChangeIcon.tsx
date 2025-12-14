@@ -11,17 +11,6 @@ const LargeAddressChangeIcon = (props: React.SVGProps<SVGSVGElement>) => (
     viewBox="0 0 49.999 50"
     {...props}
   >
-    <defs>
-      <clipPath id="clip-path">
-        <rect
-          id="Rectangle_4612"
-          data-name="Rectangle 4612"
-          width="30"
-          height="30"
-          fill="none"
-        />
-      </clipPath>
-    </defs>
     <g
       id="Group_13042"
       data-name="Group 13042"
@@ -31,7 +20,6 @@ const LargeAddressChangeIcon = (props: React.SVGProps<SVGSVGElement>) => (
         id="Mask_Group_380"
         data-name="Mask Group 380"
         transform="translate(0 0)"
-        clipPath="url(#clip-path)"
       >
         <g id="delivery_location" transform="translate(1.927 0.919)">
           <g id="Group_11335" data-name="Group 11335">

@@ -13,7 +13,7 @@ import { useAppStore } from "store";
 import search from "services/search";
 import ActiveSearchFilterBar from "./ActiveSearchFilterBar";
 import NextLink from "components/global/NextLink";
-import InfiniteScrollFiltersSearch from "components/ListingPage/filterComponents/InfiniteScrollFilterSearch";
+import { useInfiniteScrollFiltersSearch } from "components/ListingPage/filterComponents/InfiniteScrollFilterSearch";
 
 function SearchResults() {
   const {
@@ -31,8 +31,11 @@ function SearchResults() {
     setSearchLoading,
     setEnableSearch,
     value,
+    setResettingLoadMore,
+    resetLoadingMore,
   } = useAppStore();
   const searchParams = useSearchParams();
+
   const showFilterBar = () => {
     return (
       searchFilters?.categories.length > 0 ||
@@ -101,14 +104,24 @@ function SearchResults() {
     });
   };
   const updateFiltersApi = async () => {
-    setSearchPartialLoading(true);
-    setSearchLoading(true);
-    await search.getSearchOptions({
-      noProducts: false,
-      lang: lang,
-    });
-    setSearchPartialLoading(false);
-    setSearchLoading(false);
+    try {
+      setResettingLoadMore(true);
+      setSearchPartialLoading(true);
+      setSearchLoading(true);
+      await search.getSearchOptions({
+        noProducts: false,
+        lang: lang,
+      });
+
+      setSearchPartialLoading(false);
+      setSearchLoading(false);
+      setResettingLoadMore(false);
+    } catch (error) {
+      console.log(error);
+      setResettingLoadMore(false);
+      setSearchPartialLoading(false);
+      setSearchLoading(false);
+    }
   };
   const showButton = () => {
     if (
@@ -121,6 +134,18 @@ function SearchResults() {
       return true;
     else return false;
   };
+  const {
+    LoadMoreComponent,
+    isBoutiqueEnds,
+    isBrandsEnd,
+    isCategoriesEnds,
+    reset: ResetFunction,
+  } = useInfiniteScrollFiltersSearch();
+  useEffect(() => {
+    if (!resetLoadingMore) {
+      ResetFunction();
+    }
+  }, [resetLoadingMore]);
   return (
     <div
       className="search-results-container flex-col"
@@ -197,12 +222,9 @@ function SearchResults() {
                   )}
                 />
               ))}
-              {!partialLoading && (
-                <InfiniteScrollFiltersSearch
-                  shouldShow={searchResults.brands?.length === 10}
-                  term="brands"
-                />
-              )}
+              {!isBrandsEnd &&
+                !resetLoadingMore &&
+                searchResults.brands.length >= 10 && <LoadMoreComponent />}
             </div>
           </div>
         )}
@@ -250,12 +272,9 @@ function SearchResults() {
                   )}
                 />
               ))}
-              {!partialLoading && (
-                <InfiniteScrollFiltersSearch
-                  term="categories"
-                  shouldShow={searchResults.categories.length === 10}
-                />
-              )}
+              {!isCategoriesEnds &&
+                !resetLoadingMore &&
+                searchResults.categories.length >= 10 && <LoadMoreComponent />}
             </div>
           </div>
         )}
@@ -302,12 +321,9 @@ function SearchResults() {
                   )}
                 />
               ))}
-              {!partialLoading && (
-                <InfiniteScrollFiltersSearch
-                  term="boutiques"
-                  shouldShow={searchResults.boutiques.length === 10}
-                />
-              )}
+              {!isBoutiqueEnds &&
+                !resetLoadingMore &&
+                searchResults.boutiques.length >= 10 && <LoadMoreComponent />}
             </div>
           </div>
         )}

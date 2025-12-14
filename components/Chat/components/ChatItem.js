@@ -26,6 +26,7 @@ function ChatItem({
   pinned,
   muted,
   chat_members,
+  disabledOptions = false,
 }) {
   const { setMain, openChat, language } = useAppStore();
   const isRtl = language === "ar" || language === "ku";
@@ -33,15 +34,30 @@ function ChatItem({
   const [Moving, setMoving] = useState(false);
   var timeout;
   function handleTouchStart(evt, a, index) {
+    if (disabledOptions) return;
     isMove = null;
     a.style.transform = `translateX(-${Math.abs(0)}px)`;
-    a.addEventListener("touchmove", (e) => handleTouchMove(e, a, index), {
-      once: true,
-      passive: true,
-    });
-    a.addEventListener("mousemove", (e) => handleTouchMove(e, a, index), {
-      once: true,
-    });
+    a.addEventListener(
+      "touchmove",
+      (e) => {
+        if (disabledOptions) return;
+        handleTouchMove(e, a, index);
+      },
+      {
+        once: true,
+        passive: true,
+      }
+    );
+    a.addEventListener(
+      "mousemove",
+      (e) => {
+        if (disabledOptions) return;
+        handleTouchMove(e, a, index);
+      },
+      {
+        once: true,
+      }
+    );
     setMoving(null);
     const firstTouch = getTouches(evt)[0];
     xDown = firstTouch.clientX;
@@ -78,11 +94,9 @@ function ChatItem({
       evt.touches || [evt] // browser API
     ); // jQuery
   }
-  const time_differenc = (date) => {
-    let value = (new Date(Server_time) - new Date(date)) / 1000 / 60;
-    return value;
-  };
+
   function handleTouchMove(evt, a, indexx) {
+    if (disabledOptions) return;
     evt.preventDefault();
     if (!xDown || !yDown) {
       return;
@@ -248,15 +262,17 @@ function ChatItem({
           </div>
         )}
       </div>
-      <ChatOptions
-        unread={unread}
-        muted={muted}
-        pinned={pinned}
-        id={id}
-        member_id={
-          chat_members?.find((s) => s?.user_id === getUserChat()?.id)?.id
-        }
-      />
+      {!disabledOptions && (
+        <ChatOptions
+          unread={unread}
+          muted={muted}
+          pinned={pinned}
+          id={id}
+          member_id={
+            chat_members?.find((s) => s?.user_id === getUserChat()?.id)?.id
+          }
+        />
+      )}
     </div>
   );
 }

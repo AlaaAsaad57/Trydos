@@ -583,7 +583,7 @@ const UpdateCommentElement = ({
               {formatTime(comment?.created_at)}
             </div>
             <textarea
-              className="comment-text regular text-[#1d1d1d] text-[11px] mt-[5px] w-full resize-none rounded-[6px] border border-[#ccc] p-[4px] focus:outline-none focus:ring-1 focus:ring-gray-400"
+              className={`comment-text regular text-[#1d1d1d] text-[11px] mt-[5px] w-full resize-none rounded-[6px] border border-[#ccc] p-[4px] focus:outline-none focus:ring-1 focus:ring-gray-400`}
               value={value}
               onChange={(e) => setValue(e.target.value)}
               disabled={loading}

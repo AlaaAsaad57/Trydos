@@ -106,7 +106,7 @@ function ReturnOrderItem({
           <span className="bold text-[12px] text-[#8D8D8D] ml-[4px]">
             {RoundPrice({
               num:
-                item?.product_details?.offer_price * returnedQty -
+                (item?.price_after_discount || item.price) / returnedQty -
                 (selectedOptions?.is_cost_by_system === 0
                   ? selectedOptions.cost
                   : 0),
@@ -121,6 +121,43 @@ function ReturnOrderItem({
         <span className="border-[#C4C2C280] border-b-[1px] w-full mt-[12px]" />
       </div>
 
+      <div className="flex-row rounded-[12px] bg-white  border border-[#E6E6E680] items-center justify-center mt-[20px] w-full max-w-[350px]">
+        {returnedQty > 1 ? (
+          <button
+            onClick={() => setReturnedQty(Math.max(1, returnedQty - 1))}
+            className="flex items-center justify-center w-[20px] h-[40px] rounded-l-[12px] bg-[#5d5d5d] border border-[#E6E6E680] border-r-0 hover:bg-[#EEEEEE] transition-colors duration-200 active:scale-95"
+          >
+            <span className="text-white text-[18px] light">−</span>
+          </button>
+        ) : (
+          <span className="w-[20px]"></span>
+        )}
+        <div
+          className="flex-row flex items-center justify-center flex-1 gap-[5px] px-[5px]"
+          style={{
+            direction: isRtl ? "rtl" : "ltr",
+          }}
+        >
+          <span className=" text-[#1d1d1d] text-[10px]">
+            {translateFunction("enter number of pieces you want to return")}
+          </span>
+          <div className=" w-[60px] h-[40px] items-center flex text-center text-[14px] font-medium text-[#1D1D1D]   transition-all duration-200">
+            {returnedQty}
+          </div>
+        </div>
+        {item.qty > returnedQty ? (
+          <button
+            onClick={() => {
+              setReturnedQty(Math.max(1, returnedQty + 1));
+            }}
+            className="flex items-center justify-center w-[20px] h-[40px] rounded-r-[12px] bg-[#5d5d5d] border border-[#E6E6E680] border-r-0 hover:bg-[#EEEEEE] transition-colors duration-200 active:scale-95"
+          >
+            <span className="text-white text-[18px] light">+</span>
+          </button>
+        ) : (
+          <span className="w-[20px]"></span>
+        )}
+      </div>
       <div className="flex-row w-full items-center justify-center mt-[30px]">
         <p className="text-[#8D8D8D] text-[12px] regular text-center">
           {translateFunction("Why Was The Product Return?")}
@@ -128,42 +165,6 @@ function ReturnOrderItem({
             {translateFunction("Learn More Tips.")}
           </span>
         </p>
-      </div>
-      <div className="flex-row w-full flex-1 basis-0 text-center rounded-[20px] items-center justify-center h-[50px] text-[14px] medium text-[#1D1D1D]">
-        {translateFunction("Change Qty")}
-      </div>
-      <div className="flex-row items-center justify-center mt-[20px] w-full max-w-[200px]">
-        {returnedQty > 1 && (
-          <button
-            onClick={() => setReturnedQty(Math.max(1, returnedQty - 1))}
-            className="flex items-center justify-center w-[40px] h-[40px] rounded-l-[12px] bg-[#F8F8F8] border border-[#E6E6E680] border-r-0 hover:bg-[#EEEEEE] transition-colors duration-200 active:scale-95"
-          >
-            <span className="text-[#1D1D1D] text-[18px] light">−</span>
-          </button>
-        )}
-        <input
-          type="number"
-          value={returnedQty}
-          onChange={(e) => {
-            if (parseInt(e.target.value) > item.qty) {
-              setReturnedQty(returnedQty);
-            } else {
-              setReturnedQty(Math.max(1, parseInt(e.target.value)));
-            }
-          }}
-          className="flex-1 h-[40px] text-center text-[16px] font-medium text-[#1D1D1D] bg-white border-t border-b border-[#E6E6E680] focus:outline-none focus:border-[#402CDD] focus:ring-1 focus:ring-[#402CDD80] transition-all duration-200"
-          min="1"
-        />
-        {item.qty > returnedQty && (
-          <button
-            onClick={() => {
-              setReturnedQty(Math.max(1, returnedQty + 1));
-            }}
-            className="flex items-center justify-center w-[40px] h-[40px] rounded-r-[12px] bg-[#F8F8F8] border border-[#E6E6E680] border-r-0 hover:bg-[#EEEEEE] transition-colors duration-200 active:scale-95"
-          >
-            <span className="text-[#1D1D1D] text-[18px] light">+</span>
-          </button>
-        )}
       </div>
       <div className="flex-row w-full flex-wrap items-center mt-[12px] gap-y-[10px]  gap-x-[12px] pr-[50px]  pl-[24px]">
         {loading ? (

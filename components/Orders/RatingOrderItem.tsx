@@ -9,7 +9,6 @@ import storyService from "services/story";
 import UploadImageOrder from "public/svg/UploadImageOrder";
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 import UploadImageComponent from "./UploadImageComponent";
-import { DisableScroll, EnableScroll } from "utils/tinyUtils";
 
 function RatingOrderItem({
   productId,

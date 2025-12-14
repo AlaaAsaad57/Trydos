@@ -113,25 +113,27 @@ function SizeSelect({
                     : "1px solid #D3D3D37f",
               }}
             >
-              {s?.option === selectedSize && (
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="100%"
-                  height="47"
-                  className="absolute top-0 left-0 z-20"
-                >
-                  <rect
-                    x="0.25"
-                    y="0.25"
-                    width="calc(100% - 0.5px)"
-                    height="46.5"
-                    rx="5.75"
-                    stroke="#513aaf"
-                    strokeWidth="0.5"
-                    fill="none"
-                  />
-                </svg>
-              )}
+              {selectedSize &&
+                (s?.option === selectedSize ||
+                  s?.option === selectedSize?.option) && (
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="100%"
+                    height="47"
+                    className="absolute top-0 left-0 z-20"
+                  >
+                    <rect
+                      x="0.25"
+                      y="0.25"
+                      width="calc(100% - 0.5px)"
+                      height="46.5"
+                      rx="5.75"
+                      stroke="#513aaf"
+                      strokeWidth="0.5"
+                      fill="none"
+                    />
+                  </svg>
+                )}
               {isSizeNotified(s?.option ?? s) && (
                 <span
                   className="absolute top-[-6px] left-[4px]"
@@ -260,7 +262,7 @@ const SizeWarning = ({ qty, size, isCollectAfterOrder }) => {
           <span className="flex items-center">
             {translateFunction("For You")}
           </span>
-          {qty < 10 && !isCollectAfterOrder && (
+          {qty <= 10 && !isCollectAfterOrder && (
             <span
               className={`${
                 isRtl && "dir-rtl"

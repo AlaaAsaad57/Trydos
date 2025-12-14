@@ -284,6 +284,7 @@ img.flying-img {
   left: 0px;
 }
 .extended-section {
+  background-color: #fff;
   display: flex;
   padding: 20px;
   padding-top: 10px;

@@ -222,7 +222,7 @@ const translations = {
   "Change Product Request": "داوای گۆڕینی بەرهەم",
   "You Can Change Delivery Address": "دەتوانیت ناونیشانی گەیاندن بگۆڕیت",
   "Delivery Address & Note": "ناونیشان و تێبینی گەیاندن",
-  "Change Selected Address": "ناونیشانی هەڵبژێردراو بگۆڕە",
+
   "Delivery Address": "ناونیشانی گەیاندن",
   "Delivery Note": "تێبینی گەیاندن",
   Close: "داخستن",
@@ -275,7 +275,7 @@ const translations = {
     "تکایە هۆکاری ڕەتکردنی ئەم داواکاریە هەڵبژێرە",
   "Manage Your Order": "بەڕێوەبردنی داواکاری",
   "Change Delivery Address & Note": "گۆڕینی ناونیشانی گەیاندن و تێبینی",
-  "You Can Easily Change Your Shipping Address And Delivery Notes":
+  "You Can Change Your Shipping Address And Delivery Notes":
     "دەتوانیت بە ئاسانیدا ناونیشانی گەیاندن و تێبینەکان گۆڕیت",
   "Cancel Order": "ڕەتکردنی داواکاری",
   "You Can Cancel & Back Your Money":
@@ -542,19 +542,28 @@ const translations = {
   "Purshase Protection": "پاراستنی کڕینەکان",
   "Earn Money With This Order": "پارە قازانج بکە لەگەڵ ئەم سفارشه‌",
   "Contact Info": "زانیارییەکانی پەیوەندی",
-  "Add Shipping Address": "زیادکردنی ناونیشانی گەیاندن",
+  "Add New Shipping Address": "زیادکردنی ناونیشانی گەیاندن",
   "Shipping & Delivery Address": "ناونیشانەکانی گەیاندن",
   "stock is limited": "کۆگا سنووردارە",
   "Continue as Guest": "بەردەوامبوون وەک میوان",
+  "enter number of pieces you want to return":
+    " ژمارەی پارچەکان بنووسە کە دەتەوێت بگەڕێنیتەوە",
   "Name Should be atleast 8 characters":
     "ناو پێویستە بەلایەنی کەمەوە ٨ پیت بێت",
   Items: "شتەکان",
   "Shopping Bag": "سەبەتەی کڕین",
   "your session has expired please login again or continue as guest":
     "دانیشتنەکەت کۆتایی هاتووە، تکایە دووبارە بچۆ ژوورەوە یان وەک میوان بەردەوام ببە",
+  "Agree & Change": "ڕازی دەبم و گۆڕین دەکەم",
   "Please Select The Appropriate": "تکایە گونجاوەکە هەڵبژێرە",
   "Enter Your Phone Number To Complete Order":
     "تکایە ژمارەی تەلەفۆنەکەت بنووسە بۆ تەواوکردنی سفارەشەکە",
+  "change address request": "داواکاری گۆڕینی ناونیشان",
+  "Change Below Address": "گۆڕینی ناونیشانی خوارەوە",
+  "To New Address": "بۆ ناونیشانی نوێ",
+  "The Change Addres Terms.": "مەرجەکانی گۆڕینی ناونیشان.",
+  "We Will Ignore The First Address And Send Your Order To The New Address.":
+    "ناونیشانی یەکەم پشتگوێ دەخەین و داواکارییەکەت بۆ ناونیشانی نوێ دەنێرین.",
   Buy: "کڕین",
   "Composed Of:": "پێکهاتووە لە",
   Piece: "پارچە",
@@ -566,7 +575,7 @@ const translations = {
   "Time Running Out.": "کات کەمدەکات.",
   "Confirm And Continue": "پشتڕاستکردنەوە و بەردەوامبوون",
   items: "شتەکان",
-  "Size,": "قەبارە،",
+  Size: "قەبارە",
   "color,": "ڕەنگ،",
   Saved: "پاشەکەوتکراو",
   "Add Again?": "دووبارە زیاد بکەیت؟",
@@ -1150,6 +1159,10 @@ const translations = {
   "I Agree & Return": "ڕازیەم و گەڕاندنوە دەکەم",
   "Delay Confirmation. I want to Return more product":
     "دڵنیاکردنەوە پاشەکشە بکە. دەمەوێت زیاتر بەرهەم بگەڕێنمەوە",
+  "chosse an image or video from camera or gallery":
+    "وێنە یان ڤیدیۆێك لە کامێرا یان گالێری ھەڵبژێرە",
+  camera: "کامێرا",
+  Gallery: "گالێری",
 };
 
 export default translations;
