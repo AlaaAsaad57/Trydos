@@ -30,7 +30,7 @@ const CurrencyTestCard = () => {
     { value: "sy", label: "Syria" },
     { value: "tr", label: "Turkey" },
     { value: "lb", label: "Lebanon" },
-    { value: "jo", label: "Jordan" },
+    { value: "iq", label: "Iraq" },
     // { value: "eg", label: "Egypt" },
   ];
 
