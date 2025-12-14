@@ -18,7 +18,9 @@ class SellerDashboardService {
   async getSellerProducts(sellerId: string, page: number = 1) {
     try {
       let res = await fetchData({
-        url: `/shop/get-user-seller-products/${sellerId}${page > 1 ? `?page=${page}` : ""}`,
+        url: `/shop/get-user-seller-products/${sellerId}${
+          page > 1 ? `?page=${page}` : ""
+        }`,
         method: "GET",
         server: "market-dashboard",
         reqTitle: REQUESTS_DATA.GET_SELLER_PRODUCTS,

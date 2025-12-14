@@ -464,7 +464,7 @@ export const fetchData = async <T = any>(
       }
 
       const message = err?.message || "";
-      if (reqTitle.reqTitle.includes("Add to cart widget")) {
+      if (reqTitle?.reqTitle?.includes("Add to cart widget")) {
         showErrorMessage(message);
       } else if (!ignoredMessages.includes(message) && !noMessage) {
         showErrorNotification(message, 5000, null, null, reqTitle.code);
