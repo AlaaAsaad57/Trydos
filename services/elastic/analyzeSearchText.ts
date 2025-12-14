@@ -39,7 +39,7 @@ export default async function AnalyzeSearchText(query): Promise<any> {
     });
 
     let data = await response.json();
-    console.log(
+    console.warn(
       "Received response from Gemini API:",
       JSON.stringify(data, null, 2)
     );
