@@ -54,7 +54,7 @@ function BuyButton({
             {shouldShowRedeem && seconds > 0 ? (
               <div className="flex-row flex gap-[2px] items-center">
                 <span
-                  className="text-[10px] pt-[2px] flex align-start bold"
+                  className="text-[10px] pt-[2px] flex align-start bold relative"
                   data-cy="product-redeem-price"
                 >
                   {RoundPrice({

@@ -201,8 +201,8 @@ export const BuyButtonProduct = ({
       } else {
         return (
           <span
-            className="old-price ml-[3px] bold color-dark-gray flex f-12"
-            data-cy="product-redeem-price"
+            className="old-price ml-[3px] bold color-dark-gray flex f-12 relative"
+            data-cy="product-redeem-price "
           >
             {RoundPrice({
               num: product?.price,

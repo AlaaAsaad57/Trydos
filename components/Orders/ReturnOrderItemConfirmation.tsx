@@ -23,15 +23,16 @@ function ReturnOrderItemConfirmation({
   const { ActivePacks, selectedOrder, setOrderOptions, language } =
     useAppStore();
   const ReturnedItems = () => {
+    console.log("confirmationData", confirmationData);
     let arr = [];
     if (confirmationData?.item) {
       let product_price =
         (confirmationData.item?.price_after_discount ??
-          confirmationData.item?.price) / confirmationData?.item?.qty;
+          confirmationData.item?.price) / confirmationData?.item?.quantity;
       let sub_total =
         ((confirmationData.item?.price_after_discount ??
           confirmationData.item?.price) /
-          confirmationData?.item?.qty) *
+          confirmationData?.item?.quantity) *
         confirmationData?.qty;
       arr.push({
         already_return: true,

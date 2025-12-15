@@ -255,7 +255,11 @@ function ReturnOrderItem({
               backToMain();
             } else {
               setShouldConfirmReturn({
-                item: { ...item, qty: returnedQty },
+                item: {
+                  ...item,
+                  qty: returnedQty,
+                  quantity: (item as any)?.qty,
+                },
                 images: images,
                 reasons: selectedOptions,
                 additon_cost: selectedOptions?.is_cost_by_system === 0,
