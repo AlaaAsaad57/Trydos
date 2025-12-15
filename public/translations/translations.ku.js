@@ -1159,10 +1159,10 @@ const translations = {
   "I Agree & Return": "ڕازیەم و گەڕاندنوە دەکەم",
   "Delay Confirmation. I want to Return more product":
     "دڵنیاکردنەوە پاشەکشە بکە. دەمەوێت زیاتر بەرهەم بگەڕێنمەوە",
-  "chosse an image or video from camera or gallery":
-    "وێنە یان ڤیدیۆێك لە کامێرا یان گالێری ھەڵبژێرە",
+  "chosse an image or video from camera or files":
+    "وێنە یان ڤیدیۆێك لە کامێرا یان فایلەکان ھەڵبژێرە",
   camera: "کامێرا",
-  Gallery: "گالێری",
+  files: "فایلەکان",
 };
 
 export default translations;

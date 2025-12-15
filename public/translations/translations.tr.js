@@ -1109,10 +1109,10 @@ const translations = {
   "I Agree & Return": "Kabul Ediyorum ve İade Ediyorum",
   "Delay Confirmation. I want to Return more product":
     "Onayı ertele. Daha fazla ürün iade etmek istiyorum",
-  "chosse an image or video from camera or gallery":
-    "Kameradan veya galeriden bir fotoğraf ya da video seçin",
+  "chosse an image or video from camera or files":
+    "Kameradan veya dosyalardan bir fotoğraf ya da video seçin",
   camera: "Kamera",
-  Gallery: "Galeri",
+  files: "Dosyalar",
 };
 
 export default translations;

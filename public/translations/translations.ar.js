@@ -1119,10 +1119,10 @@ const translations = {
   "I Agree & Return": "أوافق وأرجع",
   "Delay Confirmation. I want to Return more product":
     "تأجيل التأكيد. أريد إرجاع المزيد من المنتجات",
-  "chosse an image or video from camera or gallery":
-    "اختر صورة أو فيديو من الكاميرا أو المعرض",
+  "chosse an image or video from camera or files":
+    "اختر صورة أو فيديو من الكاميرا أو الملفات",
   camera: "الكاميرا",
-  Gallery: "المعرض",
+  files: "الملفات",
 };
 
 export default translations;
