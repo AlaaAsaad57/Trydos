@@ -27,12 +27,12 @@ function ReturnOrderItemConfirmation({
     if (confirmationData?.item) {
       let product_price =
         (confirmationData.item?.price_after_discount ??
-          confirmationData.item?.price) / confirmationData.item.quantity;
+          confirmationData.item?.price) / confirmationData?.item?.qty;
       let sub_total =
         ((confirmationData.item?.price_after_discount ??
           confirmationData.item?.price) /
-          confirmationData.item.quantity) *
-        confirmationData.qty;
+          confirmationData?.item?.qty) *
+        confirmationData?.qty;
       arr.push({
         already_return: true,
         image: confirmationData.item.image,
