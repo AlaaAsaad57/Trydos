@@ -97,6 +97,122 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
   );
   const [loading, setLoading] = useState(false);
   const [requestLoading, setRequestLoading] = useState(false);
+  function resolveVariant({
+    colors = [],
+    sizes = [],
+    selectedColor = null,
+    selectedSize = null,
+    variations = [],
+    isForCollect = false,
+  }) {
+    if (isForCollect) {
+      let result: any = {};
+      if (colors && colors?.length > 0) {
+        result = {
+          ...result,
+          color: colors?.[0]?.color_option ?? colors?.[0]?.option,
+        };
+      }
+      if (sizes && sizes?.length > 0) {
+        result = { ...result, size: sizes?.[0]?.option ?? sizes?.[0] };
+      }
+      return result;
+    }
+    try {
+      if (!Array.isArray(variations) || variations.length === 0) {
+        return { variant: null, color: null, size: null };
+      }
+
+      // ---------------- normalization ----------------
+
+      const normalize = (v) => {
+        if (!v) return null;
+        if (typeof v === "string") return v;
+        return v.option || v.color_option || null;
+      };
+
+      const selColor = normalize(selectedColor);
+      const selSize = normalize(selectedSize);
+
+      const colorSet = new Set(colors.map((c) => c.color_option));
+      const sizeSet = new Set(sizes.map((s) => s.option));
+
+      // ---------------- variant parser ----------------
+
+      function parseVariantType(type) {
+        const parts = type.split("-");
+        let color = null;
+        let size = null;
+
+        for (const part of parts) {
+          if (colorSet.has(part)) color = part;
+          else if (sizeSet.has(part)) size = part;
+        }
+
+        return { color, size };
+      }
+
+      const inStock = (v) => v.qty > 0;
+
+      // ---------------- exact match ----------------
+
+      const exact = variations.find((v) => {
+        const { color, size } = parseVariantType(v.type);
+        return (
+          (!selColor || color === selColor) && (!selSize || size === selSize)
+        );
+      });
+
+      if (exact && inStock(exact)) {
+        const { color, size } = parseVariantType(exact.type);
+        return { variant: exact, color, size };
+      }
+
+      // ---------------- ranked matching ----------------
+
+      function rankVariants(source) {
+        return source
+          .map((v) => {
+            const { color, size } = parseVariantType(v.type);
+
+            let score = 0;
+            if (selColor && color === selColor) score += 2;
+            if (selSize && size === selSize) score += 1;
+
+            return { v, color, size, score };
+          })
+          .sort((a, b) => b.score - a.score);
+      }
+
+      const inStockVariants = variations.filter(inStock);
+
+      // ---------------- fallback logic ----------------
+
+      // 1) Prefer in-stock variants
+      if (inStockVariants.length > 0) {
+        const ranked = rankVariants(inStockVariants);
+        const best = ranked[0];
+        return {
+          variant: best.v,
+          color: best.color,
+          size: best.size,
+        };
+      }
+
+      // 2) Everything is out of stock → ignore qty
+      const rankedAll = rankVariants(variations);
+      const best = rankedAll[0];
+
+      return {
+        variant: best.v,
+        color: best.color,
+        size: best.size,
+      };
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
   useEffect(() => {
     if (product.shouldUpdate > 0) {
       getProductData();
@@ -187,10 +303,10 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
           ...tempProductData,
           shouldUpdate: 0,
         });
-
       // checkIfVariantEmpty();
       if (abortControllerRef.current?.signal.aborted) return;
       setLoading(false);
+      return tempProductData;
     } catch (err) {
       // Handle error as needed
       console.error(err);
@@ -333,8 +449,11 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
         }
       }
       // checkIfVariantEmpty();
+
       if (abortControllerRef.current?.signal.aborted) return;
       setLoading(false);
+
+      return tempProductData;
     } catch (err) {
       // Handle error as needed
       console.error(err);
@@ -342,11 +461,13 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
     }
   };
   const getProductData = async () => {
+    let tempProductData;
     if (product?.is_from_listing) {
-      getAllProductData();
+      tempProductData = await getAllProductData();
     } else {
-      await GetLightData();
+      tempProductData = await GetLightData();
     }
+    return tempProductData;
   };
 
   const getSelectedItemCart = () => {
@@ -582,6 +703,42 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
     }
   };
 
+  const initializeUI = async () => {
+    try {
+      let tempProductData = await getProductData();
+      let res = resolveVariant({
+        colors: tempProductData.sync_color_images,
+        isForCollect: tempProductData?.collected_after_ordering === 1,
+        variations: tempProductData?.variation,
+        sizes: tempProductData?.choice_options?.[0]?.options,
+        selectedColor:
+          selectedColor ??
+          product?.sync_color_images?.find(
+            (s) => s?.color_name === product?.sync_color_images?.[0]?.color_name
+          ),
+        selectedSize:
+          selectedSize ?? tempProductData?.choice_options?.[0]?.options?.[0],
+      });
+      if (res.color) {
+        setSelectedColor(
+          tempProductData?.sync_color_images?.find(
+            (s) =>
+              s?.option === res?.color ||
+              s?.name === res.color ||
+              s?.color_option === res.color
+          )
+        );
+      }
+      if (res.size) {
+        setSelectedSize(
+          tempProductData?.choice_options?.[0]?.options?.find(
+            (s) => s.option === res.size || s.name === res.size
+          )
+        );
+      }
+    } catch (error) {}
+  };
+
   useEffect(() => {
     abortControllerRef.current = new AbortController();
     if (
@@ -590,7 +747,7 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
       document.querySelector<HTMLElement>(
         ".alternate-product-details-footer"
       ).style.display = "none";
-    getProductData();
+    initializeUI();
     return () => {
       abortControllerRef.current?.abort();
       abortControllerRef.current = null;
