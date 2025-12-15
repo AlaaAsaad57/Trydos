@@ -25,6 +25,14 @@ function ReturnOrderItemConfirmation({
   const ReturnedItems = () => {
     let arr = [];
     if (confirmationData?.item) {
+      let product_price =
+        (confirmationData.item?.price_after_discount ??
+          confirmationData.item?.price) / confirmationData.item.quantity;
+      let sub_total =
+        ((confirmationData.item?.price_after_discount ??
+          confirmationData.item?.price) /
+          confirmationData.item.quantity) *
+        confirmationData.qty;
       arr.push({
         already_return: true,
         image: confirmationData.item.image,
@@ -32,14 +40,9 @@ function ReturnOrderItemConfirmation({
         img: [],
         images_url: [],
         product_id: confirmationData.item.product_id,
-        product_price:
-          confirmationData.item?.product_details?.offer_price ??
-          confirmationData.item.product_details?.price,
+        product_price: product_price,
         quantity: confirmationData.qty,
-        subtotal:
-          confirmationData.qty *
-          (confirmationData.item?.product_details?.offer_price ??
-            confirmationData.item.product_details?.price),
+        subtotal: sub_total,
         name:
           confirmationData.item.name ||
           confirmationData.item?.product_details?.name,

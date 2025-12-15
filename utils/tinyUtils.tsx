@@ -445,6 +445,7 @@ type parsedFilters = {
   tags_names?: string[];
   sizes?: string[];
   search_text?: string[];
+  search?: string[];
   prices?: any[];
 };
 /**

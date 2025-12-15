@@ -140,6 +140,9 @@ export default async function Page({ params }) {
         ...(filtersData?.applied?.sizes || []),
       ];
     }
+    if (filtersData?.applied?.search_text) {
+      parsedFilters.search = filtersData?.applied?.search_text;
+    }
     let filters = {
       categories: filtersData?.categories || [],
       brands: filtersData?.brands || [],
