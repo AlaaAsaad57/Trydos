@@ -90,7 +90,7 @@ function FilterList({
       <ActiveFiltersBar
         params={params}
         currency={currency}
-        filterParams={filterParams}
+        filterParams={{ ...filterParams, Search: parsedFilters?.search }}
         isUsingParsedFilters={isUsingParsedFilters}
         filters={filters}
       />
