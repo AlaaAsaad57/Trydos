@@ -25,6 +25,7 @@ export interface FilterItemProps {
   isUsingParsedFilters: boolean;
   currency: any;
   params: any;
+  baseUrlOfFiltersPage: string;
 }
 
 export interface FilterState {

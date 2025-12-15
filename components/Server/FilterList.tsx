@@ -667,6 +667,11 @@ const FilterItemsRow = ({
   const shouldShowMore = () => {
     return items.length >= 10;
   };
+  const baseUrlOfFiltersPage = () => {
+    if (isFeatured) return `/featured`;
+    if (isFlashDeals) return "/flashDeals";
+    return "/filters";
+  };
   return (
     <div
       className={`${
@@ -677,6 +682,7 @@ const FilterItemsRow = ({
         {items &&
           items?.map((item) => (
             <FilterItem
+              baseUrlOfFiltersPage={baseUrlOfFiltersPage()}
               params={params}
               filterParams={filterParams}
               isUsingParsedFilters={isUsingParsedFilters}
