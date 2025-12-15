@@ -272,6 +272,7 @@ export async function getProductsAndFiltersFromElastic(
     response = await client.search(searchQuery);
 
     const hits = response.hits.hits as ElasticsearchHit[];
+    console.log(hits);
     let total_size = response.hits?.total?.value;
     hits.forEach((hit: ElasticsearchHit) => {
       customProducts.push(hit._source);
@@ -1372,7 +1373,10 @@ function executePriceCatalogFilter(products: any[]): {
     }
 
     // Check flash deal price if active
-    if (product.flash_deal_status === 1 && product.flash_deal_discount) {
+    if (
+      String(product.flash_deal_status) === "1" &&
+      product.flash_deal_discount
+    ) {
       const basePrice = parseFloat(
         product.unit_price || product.offered_price || "0"
       );
