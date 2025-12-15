@@ -17,8 +17,9 @@ function PricesRow({
 }) {
   const { SelectedProduct } = useAppStore();
   const shouldShowRedeem = () => {
+    if (typeof window === "undefined") return false;
     const redeemed_ids = getCookie<any[]>("redemed_ids");
-    return !redeemed_ids.find((s) => s.id === id);
+    return !redeemed_ids?.find((s) => s.id === id);
   };
   const isRtl = language === "ar" || language === "ku";
   const renderPrice = () => {
