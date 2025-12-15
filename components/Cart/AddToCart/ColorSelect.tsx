@@ -77,8 +77,9 @@ function ColorSelect({
                 >
                   {color.color_name}
                 </span>
-              ) : isQtyIsLast(color)?.qty > 0 &&
-                isQtyIsLast(color)?.qty < 10 ? (
+              ) : isQtyIsLast?.(color) &&
+                Number(isQtyIsLast(color)?.qty) >= 0 &&
+                Number(isQtyIsLast(color)?.qty) <= 10 ? (
                 <span
                   style={{
                     direction: isRtl ? "rtl" : "ltr",
