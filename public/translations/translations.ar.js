@@ -368,7 +368,7 @@ const translations = {
   Buying: "شراء",
   "Expected Delivery Date": "تاريخ الشحن والتسليم المتوقع",
   "Order Status": "حالة الطلب",
-  Pieces: "ةقطع",
+  Pieces: "قطعة",
   "Work Days": "أيام العمل",
   "Order Invoice": "فاتورة الطلب",
   "Order Number": "رقم الطلب",
