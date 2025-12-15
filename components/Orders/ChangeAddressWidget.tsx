@@ -221,6 +221,9 @@ function ChangeAddressWidget({
                         >
                           {GetAddressString(s?.region_details)}
                         </div>
+                        <div className="flex-row regular text-[12px]">
+                          {s?.address_detail}
+                        </div>
                         <div
                           className={`flex-row mt-[5px] items-center regular text-[12px] ${
                             s.id === selectedAddressId

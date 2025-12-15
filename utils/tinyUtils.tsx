@@ -267,6 +267,13 @@ export const formatTimeForAddress = (
 export const GetAddressString = (location) => {
   let str = "";
   if (
+    location?.country &&
+    location?.country.length > 0 &&
+    location?.country !== "null"
+  ) {
+    str += `${location?.country} | `;
+  }
+  if (
     location?.province &&
     location?.province.length > 0 &&
     location?.province !== "null"

@@ -878,7 +878,6 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
             }
             qty={getSelectedVariantQty()?.qty}
             sizeQty={(e) => {
-              console.log({ type: e, qty: getVariantSizeQty(e) });
               return getVariantSizeQty(e)?.qty;
             }}
             selectedSize={selectedSize}
@@ -991,8 +990,21 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
             id={ProductData?.id}
             isNotified={getSelectedVariantQty()?.variant_notify_for_user}
             product={ProductData}
-            selected_variant={getSelectedVariantQty()?.type}
+            colors={ProductData?.sync_color_images}
+            sizes={ProductData?.choice_options?.[0]?.options}
+            selectedSize={selectedSize}
+            selectedColor={selectedColor}
+            selected_variant={getSelectedVariantQty()}
             initialLoading={loading && product?.is_from_listing}
+            updateQuantity={async (isLocal, type = null, operation) => {
+              console.log("updateQuantity in NotifyCartButton", {
+                isLocal,
+                type,
+                operation,
+              });
+              if (ProductData.collected_after_ordering === 0)
+                await updateQuantity({ isLocal, type, operation });
+            }}
           />
         ) : (
           <AddToCartButton
@@ -1007,8 +1019,7 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
             initialLoading={loading && product?.is_from_listing}
             id={ProductData?.id}
             updateQuantity={async (isLocal, type = null, operation) => {
-              if (ProductData.collected_after_ordering === 0)
-                await updateQuantity({ isLocal, type, operation });
+              await updateQuantity({ isLocal, type, operation });
             }}
             loading={requestLoading}
             setLoading={setRequestLoading}
@@ -1031,6 +1042,11 @@ const NotifyCartButton = ({
   initialLoading,
   setLoading,
   requestLoading,
+  colors,
+  sizes,
+  selectedColor,
+  selectedSize,
+  updateQuantity,
 }) => {
   const NotifyAction = async () => {
     try {
@@ -1056,7 +1072,7 @@ const NotifyCartButton = ({
 
         await auth.NotifyForProducts({
           id: id,
-          variant: selected_variant,
+          variant: selected_variant?.type ?? selected_variant,
         });
         await home.GetFireBaseSettings();
       } else {
@@ -1084,6 +1100,17 @@ const NotifyCartButton = ({
   };
   return (
     <NotifyButton
+      setLoading={setLoading}
+      sizes={sizes}
+      updateQuantity={async (isLocal, type = null, operation) => {
+        await updateQuantity(isLocal, type, operation);
+      }}
+      colors={colors}
+      id={id}
+      product={product}
+      selectedColor={selectedColor}
+      selectedSize={selectedSize}
+      selectedVariant={selected_variant}
       isNotified={isNotified}
       loading={initialLoading || requestLoading}
       notifyAction={() => {

@@ -1,4 +1,3 @@
-import Sentry from "sentry.client.config";
 import { COOKIE_NAMES, getCookieServer } from "./cookies/cookie-manager";
 import { storeError } from "./functions";
 import { readStoredLastPaths } from "./history";
@@ -50,6 +49,6 @@ export const LogServerError = async (error?: unknown, pagePath?: string) => {
     country: country,
     language: language,
   };
-  Sentry.captureException(errorObj);
+  // Sentry.captureException(errorObj);
   await storeError(Error_Object);
 };
