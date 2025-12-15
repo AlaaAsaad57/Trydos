@@ -10,7 +10,11 @@ import {
 import { useAppStore } from "../store";
 
 import { foregroundNotificationHandler } from "./NotificationHandler";
-import { LogError } from "./functions";
+import { getUserChat, LogError } from "./functions";
+import auth from "services/auth";
+import { REQUESTS_DATA } from "./Requests";
+import { fetchData } from "./fetchData";
+import ChatService from "services/chat";
 const firebaseConfig = {
   // apiKey: "AIzaSyAl53TxLa2CoTBeXtg9K3Lr8G908ajb6kY",
   // authDomain: "trydos-ce234.firebaseapp.com",
@@ -46,22 +50,25 @@ export const requestFirebaseNotificationPermission = async () => {
   const tokenExpiry = localStorage.getItem("FBTokenExpiry");
   const tokenDate = tokenExpiry ? new Date(tokenExpiry) : null;
   const nowDate = new Date();
-
+  let should_register_fcm = false;
+  if (!tokenExpiry) {
+    should_register_fcm = true;
+  }
   // Check if tokenDate exists and is older than 1 day
   if (
     tokenDate &&
     nowDate.getTime() - tokenDate.getTime() > 24 * 60 * 60 * 1000
   ) {
+    should_register_fcm = true;
     console.log("FCM token is older than 1 day. Refreshing...");
     await deleteToken(messaging); // Delete old token
   }
-
-  return getToken(messaging)
+  let fcm_token = await getToken(messaging)
     .then((currentToken) => {
       if (currentToken) {
         setNotificationPermission(true);
         localStorage.setItem("FBTokenExpiry", nowDate.toISOString());
-        localStorage.setItem("FCMToken", currentToken);
+        localStorage.setItem("FB-DEVICE-TOKEN", currentToken);
         return currentToken;
       } else {
       }
@@ -72,6 +79,38 @@ export const requestFirebaseNotificationPermission = async () => {
       localStorage.setItem("FCMError", null);
       throw err;
     });
+  if (fcm_token && should_register_fcm) {
+    if (auth.UserToken() && auth.UserID()) {
+      try {
+        const response = await fetchData({
+          url: "/firebase_device_tokens",
+          body: JSON.stringify({
+            device_token: fcm_token,
+            user_id: auth.UserID(),
+            auth_token: auth.UserToken(),
+          }),
+          reqTitle: REQUESTS_DATA.REGISTER_FIREBASE_TOKEN,
+          method: "POST",
+          server: "market",
+        });
+        if (!response.success) {
+          throw new Error(response.message);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    // Store chat token if chat user exists
+    if (getUserChat()?.id) {
+      await ChatService.StoreToken({
+        id: getUserChat()?.id,
+        token: fcm_token,
+        user: getUserChat(),
+      });
+    }
+  }
+  return fcm_token;
 };
 
 export const onMessageListener = async () => {

@@ -9,7 +9,6 @@ import {
   WaitForCondition,
 } from "utils/functions";
 import Smartlook from "smartlook-client";
-import ChatService from "services/chat";
 
 import {
   CUSTOMER_INFO_URL,
@@ -210,37 +209,6 @@ class HomeService {
 
         // Handle topics on page refresh
         await this.handleTopicsOnPageRefresh(fbtoken);
-
-        // Register token with backend if user is authenticated
-        if (auth.UserToken() && auth.UserID()) {
-          try {
-            const response = await fetchData({
-              url: "/firebase_device_tokens",
-              body: JSON.stringify({
-                device_token: fbtoken,
-                user_id: auth.UserID(),
-                auth_token: auth.UserToken(),
-              }),
-              reqTitle: REQUESTS_DATA.REGISTER_FIREBASE_TOKEN,
-              method: "POST",
-              server: "market",
-            });
-            if (!response.success) {
-              throw new Error(response.message);
-            }
-          } catch (err) {
-            console.error(err);
-          }
-        }
-
-        // Store chat token if chat user exists
-        if (fbtoken && getUserChat()?.id) {
-          await ChatService.StoreToken({
-            id: getUserChat()?.id,
-            token: fbtoken,
-            user: getUserChat(),
-          });
-        }
 
         // Setup message listener
         if (typeof window !== "undefined" && "serviceWorker" in navigator) {
