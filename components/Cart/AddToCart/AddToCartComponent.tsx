@@ -908,7 +908,7 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
           />
         ) : (
           <div className="my-[20px] w-full justify-center items-center flex flex-row">
-            {getSelectedVariantQty()?.qty > 0 &&
+            {getSelectedVariantQty()?.qty >= 0 &&
             ProductData.collected_after_ordering === 0 &&
             getSelectedVariantQty()?.qty <= 10 ? (
               <span
