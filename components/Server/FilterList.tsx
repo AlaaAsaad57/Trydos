@@ -33,7 +33,11 @@ function FilterList({
   const isUsingParsedFilters = Boolean(parsedFilters);
   const language = params.lang.split("-")?.[1];
   const isRtl = language === "ar" || language === "ku";
-
+  const parseFiltersFunction = () => {
+    if (filterParams?.Search)
+      return { ...filterParams, Search: parsedFilters?.search };
+    return filterParams;
+  };
   return (
     <>
       {itemsLength > 1 && (
@@ -90,7 +94,7 @@ function FilterList({
       <ActiveFiltersBar
         params={params}
         currency={currency}
-        filterParams={{ ...filterParams, Search: parsedFilters?.search }}
+        filterParams={parseFiltersFunction()}
         isUsingParsedFilters={isUsingParsedFilters}
         filters={filters}
       />
