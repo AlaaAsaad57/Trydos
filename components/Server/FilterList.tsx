@@ -167,6 +167,7 @@ const ActiveFiltersBar = ({
       return null;
     }
   };
+  console.log(activeFilters, "active filters");
   if (activeFilters && Object.keys?.(activeFilters)?.length === 0) return <></>;
 
   // Check if only one boutique is selected and no other filters

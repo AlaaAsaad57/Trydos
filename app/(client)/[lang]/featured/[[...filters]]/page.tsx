@@ -140,12 +140,13 @@ export default async function Page({ params }) {
         ...(filtersData?.applied?.sizes || []),
       ];
     }
-    parsedFilters.search =
-      (filtersData?.applied?.search_text && [
-        filtersData?.applied?.search_text,
-      ]) ??
-      (parsedFilters?.search_text && [parsedFilters?.search_text]) ??
-      null;
+    if (filtersData?.applied?.search_text || parsedFilters?.search_text)
+      parsedFilters.search =
+        (filtersData?.applied?.search_text && [
+          filtersData?.applied?.search_text,
+        ]) ??
+        (parsedFilters?.search_text && [parsedFilters?.search_text]) ??
+        null;
     let filters = {
       categories: filtersData?.categories || [],
       brands: filtersData?.brands || [],
