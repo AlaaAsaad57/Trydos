@@ -1152,7 +1152,7 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
             selectedSize={selectedSize}
             selectedColor={selectedColor}
             selected_variant={getSelectedVariantQty()}
-            initialLoading={loading && product?.is_from_listing}
+            initialLoading={loading}
             updateQuantity={async (isLocal, type = null, operation) => {
               console.log("updateQuantity in NotifyCartButton", {
                 isLocal,
@@ -1173,7 +1173,7 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
             selectedSize={selectedSize}
             selectedColor={selectedColor}
             product={ProductData}
-            initialLoading={loading && product?.is_from_listing}
+            initialLoading={loading}
             id={ProductData?.id}
             updateQuantity={async (isLocal, type = null, operation) => {
               await updateQuantity({ isLocal, type, operation });
