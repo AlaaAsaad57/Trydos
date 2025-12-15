@@ -272,7 +272,7 @@ export async function getProductsAndFiltersFromElastic(
     response = await client.search(searchQuery);
 
     const hits = response.hits.hits as ElasticsearchHit[];
-    console.log(hits);
+
     let total_size = response.hits?.total?.value;
     hits.forEach((hit: ElasticsearchHit) => {
       customProducts.push(hit._source);
@@ -492,14 +492,6 @@ export async function GetRecomendationsForUser({
     // // 6. Get new search_after value
     const newSearchAfter = hits.length > 0 ? hits[hits.length - 1].sort : [];
     let end = process.hrtime.bigint();
-
-    const orderedProducts = numericIds
-      .map((id) =>
-        normalizedProducts.custom_products.find(
-          (p) => String(p.product_id) === String(id)
-        )
-      )
-      .filter(Boolean);
 
     return {
       products: normalizedProducts.custom_products?.map((s) => ({

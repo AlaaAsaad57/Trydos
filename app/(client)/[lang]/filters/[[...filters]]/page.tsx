@@ -84,7 +84,6 @@ async function getCurrency(country, language) {
     } else {
       let currencyData = await fetchCurrency(language, country);
       let currency = { ...currencyData.data.currency };
-
       StoreCurrency(country, currency);
       return { ...currency, redis: false };
     }
@@ -183,7 +182,9 @@ export default async function Page({ params }) {
           },
           flash_deal_end_date: product.flash_deal_end_date,
           product_id: product.product_id,
-          is_redeem: !redeemed_ids.find((s) => s.id === product.product_id),
+          is_redeem:
+            product.redeem_price &&
+            !redeemed_ids.find((s) => s.id === product.product_id),
         };
       } else
         return {

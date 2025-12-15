@@ -220,10 +220,11 @@ export default async function Page({ params }) {
             is_verified: product?.brand?.is_verified,
           },
           flash_deal_end_date: product.flash_deal_end_date,
-          is_redeem: !redeemed_ids.find((s) => s.id === product.product_id),
+
           product_id: product.product_id,
         };
     });
+    console.log();
     return (
       <>
         <Suspense fallback={<></>}>

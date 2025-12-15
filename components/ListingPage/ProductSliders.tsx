@@ -60,48 +60,50 @@ export function ProductPhotosSlider({
 
         {product.videos && product.videos.length > 0 ? (
           // Display video if available
-          <>
-            <div className="inset-shadow-img w-[200px] h-[290px] rounded-15 absolute" />
-            <video
-              src={getVideoUrl(product.videos[0], { width: 400, height: 580 })}
-              autoPlay
-              loop
-              muted
-              playsInline
-              controls={false}
-              style={{
-                border:
-                  (product.flash_deal_end_date && !isExpired) || shouldshowRedem
-                    ? "1px solid #FF6200"
-                    : "1px solid #d3d3d3",
-              }}
-              className="w-full object-cover h-[290px] border-[#d3d3d3] border-[1px] rounded-15 z-10"
-            />
-          </>
-        ) : (
-          // Display first image if no video
-          // <Image
-          //   width={400}
-          //   height={300}
-          //   loading="eager"
-          //   quality={100}
-          //   fetchPriority="auto"
-          //   src={getConfiguredImage({
-          //     src: GetImageUrl(image),
-          //     width: 189,
-          //     height: 290,
-          //     q: 100,
-          //   })}
-          //   style={{
-          //     border:
-          //       (product.flash_deal_end_date || shouldshowRedem) &&
-          //       "1px solid #FF6200",
-          //   }}
-          //   key={image}
-          //   className="w-[200px] h-[290px] border-[#d3d3d387] border-[1px] rounded-15 z-10"
-          //   alt={product.name || "alt"}
-          // />
 
+          <div
+            className={`product-container-slider h-[290px] duration-300 w-full relative`}
+          >
+            <NormalSlider
+              initialSlide={activeSlide}
+              slideHeight={291}
+              slideWidth={200}
+              slidesArray={product?.videos?.map((image, index) => index)}
+              onSlideChange={(index) => {
+                setActiveImageIndex(index);
+              }}
+              renderSlide={({ index, slide, isActive }) => {
+                const image = product?.videos?.[index];
+                if (image)
+                  return (
+                    <div className="flex w-full h-[290px] relative" key={index}>
+                      {/* <BorderImage isBig={true} /> */}
+                      <div className="inset-shadow-img w-[200px] h-[290px] rounded-15 absolute " />
+                      <video
+                        src={getVideoUrl(product.videos[index], {
+                          width: 400,
+                          height: 580,
+                        })}
+                        autoPlay
+                        loop
+                        muted
+                        playsInline
+                        controls={false}
+                        style={{
+                          border:
+                            (product.flash_deal_end_date && !isExpired) ||
+                            shouldshowRedem
+                              ? "1px solid #FF6200"
+                              : "1px solid #d3d3d3",
+                        }}
+                        className="w-[200px] h-[290px] border-[#d3d3d387] object-cover object-[top_center] border-[1px] rounded-15 z-10"
+                      />
+                    </div>
+                  );
+              }}
+            />
+          </div>
+        ) : (
           <div
             className={`product-container-slider h-[290px] duration-300 w-full relative`}
           >
