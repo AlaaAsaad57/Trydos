@@ -168,12 +168,12 @@ class AuthService {
             // other custom properties
           });
       }
+      home.getNotificationPermissionStatus();
+      home.getClientData();
+      if (window.location.pathname.includes("/seller")) {
+        window.location.reload();
+      }
       await this.CheckUserName();
-
-      setTimeout(() => {
-        home.getNotificationPermissionStatus();
-        home.getClientData();
-      }, 2000);
       return [response.data.already_exists, response.data.user.name];
     } catch (e) {
       if (e.message === "user not found") {

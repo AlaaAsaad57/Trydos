@@ -1114,6 +1114,9 @@ const translations = {
   camera: "Kamera",
   files: "Dosyalar",
   "Terms Of Change Address": " Adres Değişikliği Şartları",
+  "Copy Invite": " Davetiyeyi Kopyala",
+  "Choose how to send the invitation":
+    " Davetiyeyi nasıl göndereceğinizi seçin",
 };
 
 export default translations;

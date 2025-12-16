@@ -266,9 +266,15 @@ class HomeService {
     const userData = getCookie<UserData>(COOKIE_NAMES.USER_DATA);
     const userChat = getCookie<UserData>(COOKIE_NAMES.USER_CHAT);
     const userStories = getCookie<UserData>(COOKIE_NAMES.USER_STORIES);
-    const { loginSuccess, loginSuccessChat, loginSuccessStories } =
-      useAppStore.getState();
+    const {
+      loginSuccess,
+      loginSuccessChat,
+      loginSuccessStories,
+      editUserInfo,
+    } = useAppStore.getState();
     if (userData) {
+      console.log(userData, "userprofile");
+      editUserInfo(userData);
       SetGAUser(userData, false);
     }
     if (!deviceToken) await this.RegisterDevice();

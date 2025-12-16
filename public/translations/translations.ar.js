@@ -419,6 +419,8 @@ const translations = {
   "Remove Photo": "حذف الصورة",
   "Choose From Library": "اختيار من ملفاتي",
   "take photo": "التقاط صورة",
+  "Copy Invite": " نسخ الدعوة",
+  "Choose how to send the invitation": "اختر كيفية إرسال الدعوة",
   Address: "العنوان",
   "Bank Cards": "بطاقات البنك",
   "Share App": "مشاركة التطبيق",

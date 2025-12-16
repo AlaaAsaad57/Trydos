@@ -143,7 +143,9 @@ const Menu = ({ user, setMenuOpen }) => {
       deleteCookie(COOKIE_NAMES.USER_DATA);
     } catch (error) {}
     await new Promise((resolve) => setTimeout(resolve, 2000));
-    window.location.reload();
+    if (window.location.pathname.includes("/seller")) {
+      window.location.href = `/${lang}`;
+    } else window.location.reload();
   };
   const shouldShowLogout = () => {
     if (loading) return true;
