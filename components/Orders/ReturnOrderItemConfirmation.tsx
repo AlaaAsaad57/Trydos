@@ -222,7 +222,7 @@ function ReturnOrderItemConfirmation({
 
           <div
             className={`w-full h-[50px] mt-[31px] items-center justify-center  flex cursor-pointer ${
-              active ? "bg-[#402CDD]" : "bg-[#D3D3D3]"
+              !active ? "bg-[#D3D3D3] text-[#fff]" : "bg-[#3066CC] text-[#fff]"
             } rounded-[15px] text-[16px] text-[#fff] medium`}
             style={{
               border: "1px solid #F8F8F880",

@@ -329,7 +329,7 @@ function ConfirmAddressModal({
         </p>
         <div
           className={`${
-            active ? "bg-[#F8F8F8] text-[#402CDD]" : "bg-[#D3D3D3] text-[#fff]"
+            !active ? "bg-[#D3D3D3] text-[#fff]" : "bg-[#3066CC] text-[#fff]"
           } cursor-pointer mt-[10px] w-full h-[50px] rounded-[15px]  text-[16px] bold flex items-center justify-center `}
           style={{
             border: "1px solid #402CDD80",
