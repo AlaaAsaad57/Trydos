@@ -324,7 +324,7 @@ const NotificationsContainer = () => {
             {/* Message */}
             <div className="flex-1 flex-col gap-[4px]">
               <p className="text-[12px] regular text-[#402CDD]">
-                {translateFunction("Info Message")}
+                {/* {translateFunction("Info Message")} */}
                 {notification?.error_code && (
                   <span className="text-[#676767] regular mx-[10px]">
                     {notification?.error_code}
