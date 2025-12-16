@@ -3,6 +3,7 @@ import React from "react";
 import { RoundPrice } from "utils/functions";
 import PropertiesMarquee from "./PropertiesMarquee";
 import { useAppStore } from "store";
+import { getCookie } from "utils/cookies/cookie-manager";
 function PricesRow({
   shipping_cost,
   offer_price,
@@ -16,11 +17,18 @@ function PricesRow({
 }) {
   const { SelectedProduct } = useAppStore();
   const shouldShowRedeem = () => {
-    return is_redeem;
+    if (typeof window === "undefined") return false;
+    const redeemed_ids = getCookie<any[]>("redemed_ids");
+    return !redeemed_ids?.find((s) => s.id === id);
   };
   const isRtl = language === "ar" || language === "ku";
   const renderPrice = () => {
-    if (SelectedProduct?.is_redeem && redeem_price && redeem_price > 0) {
+    if (
+      SelectedProduct?.is_redeem &&
+      redeem_price &&
+      redeem_price > 0 &&
+      shouldShowRedeem()
+    ) {
       if (price === offer_price) {
         return (
           <div

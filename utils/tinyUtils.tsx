@@ -25,6 +25,7 @@ export interface FilterItemProps {
   isUsingParsedFilters: boolean;
   currency: any;
   params: any;
+  baseUrlOfFiltersPage: string;
 }
 
 export interface FilterState {
@@ -267,6 +268,13 @@ export const formatTimeForAddress = (
 export const GetAddressString = (location) => {
   let str = "";
   if (
+    location?.country &&
+    location?.country.length > 0 &&
+    location?.country !== "null"
+  ) {
+    str += `${location?.country} | `;
+  }
+  if (
     location?.province &&
     location?.province.length > 0 &&
     location?.province !== "null"
@@ -438,6 +446,7 @@ type parsedFilters = {
   tags_names?: string[];
   sizes?: string[];
   search_text?: string[];
+  search?: string[];
   prices?: any[];
 };
 /**

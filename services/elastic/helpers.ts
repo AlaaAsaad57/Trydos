@@ -20,7 +20,7 @@ export function getSourceFields(): string[] {
     "redeem_discount_rate",
     "current_stock",
     "boutique_id",
-    "available_size",
+    // "available_size",
     "category_ids",
     "end_date",
     "start_date",
@@ -46,8 +46,8 @@ export function getSourceFields(): string[] {
     "custom_categories.category_id",
     "custom_categories.name",
     "custom_categories.slug",
-    "custom_categories.description",
-    "custom_categories.bio",
+    // "custom_categories.description",
+    // "custom_categories.bio",
     "custom_categories.language_code",
     "custom_categories.flat_photo_path",
     "custom_categories.outline_photo_path",
@@ -233,7 +233,11 @@ export function processCustomProduct(
   const flashDealDiscount = product.flash_deal_discount || null;
 
   // Handle flash deal
-  if (flashDealStartDate && flashDealEndDate && flashDealStatus === 1) {
+  if (
+    flashDealStartDate &&
+    flashDealEndDate &&
+    String(flashDealStatus) === "1"
+  ) {
     result.flash_deal_start_date = flashDealStartDate;
     result.flash_deal_end_date = flashDealEndDate;
     result.flash_deal_status = flashDealStatus;

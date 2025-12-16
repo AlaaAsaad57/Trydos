@@ -1,53 +1,72 @@
 import { GetColorAndSizes } from "serverRequests/analyticsUtility";
 
-const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${process.env.GL_API_KEY}`;
+const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${process.env.GL_API_KEY}`;
 
 export default async function AnalyzeSearchText(query): Promise<any> {
   let start = process.hrtime.bigint();
   let data = await GetColorAndSizes();
   const prompt = `
-استلم الاستفسار التالي بأي لغة كانت، وحاول تحليل معناه واستخرج منه الحقول التالية فقط:
-- name: اسم المنتج (اسم المنتج كاملا بدون اللون والقياس ان وجد في كلمة البحث)
-- color: اللون ولكن بصيغة HEX فقط مثل "#FF0000". إذا كان هناك أكثر من لون، أرجعهم كمصفوفة JSON مثل: ["#FF0000", "#0000FF"] ارجع فقط القيم الموجودة في ( ${data?.colors} )
-- size: القياس بصيغة موحدة من: ( ${data?.sizes} ) فقط
-- type: نوع المادة أو الصنف (مثل قطن، حرير...)
-لا تحذف شيء من اسم المنتج فقط أذل اللون والقياس من النص 
-إذا تعذر استخراج أحد الحقول، أرجع "Unknown".
-إذا كان القياس موجودًا ولكن بصيغة مختلفة (كلمات أو أرقام أو وصف)
+استلم الاستفسار التالي بأي لغة كانت، وحلل معناه بدقة، ثم استخرج الحقول التالية فقط وفق القواعد الصارمة أدناه:
 
-النص: "${query}"
+- name: اسم المنتج كاملًا بدون اللون وبدون القياس (لا تحذف أي كلمات أخرى من الاسم).
+- color: مصفوفة JSON من الألوان بصيغة HEX فقط مثل "#FF0000".
+  ارجع فقط القيم الموجودة ضمن: ( ${data?.colors} )
+  إذا لم يوجد أي لون مطابق، أرجع مصفوفة فارغة [].
+- size: مصفوفة JSON من القياسات بصيغة موحدة فقط من: ( ${data?.sizes} ).
+  إذا كان القياس موجودًا بصيغة مختلفة (كلمات أو أرقام أو وصف)، حاول مطابقته مع القيم المسموح بها.
+  إذا لم يوجد أي قياس مطابق، أرجع مصفوفة فارغة [].
+- type: نوع المادة أو الصنف (مثل قطن، حرير، جلد، بوليستر).
 
-أرجع النتيجة بصيغة JSON فقط بدون تنسيق Markdown (بدون \`\`\`)
+قواعد إلزامية:
+- لا تُرجع أي حقول إضافية.
+- لا تستخدم Markdown أو أي تنسيق.
+- يجب أن يكون الحقلان color و size دائمًا مصفوفات JSON حتى لو كانت فارغة.
+- إذا تعذر استخراج name أو type أرجع "Unknown".
+
+النص:
+"${query}"
+
+أرجع النتيجة بصيغة JSON صحيحة فقط.
 `;
-  const payload = {
-    contents: [
-      {
-        role: "user",
-        parts: [{ text: prompt }],
-      },
-    ],
-  };
 
   try {
     const response = await fetch(API_URL, {
       method: "POST",
-      body: JSON.stringify(payload),
+      body: JSON.stringify({
+        contents: [
+          {
+            parts: [
+              {
+                text: prompt,
+              },
+            ],
+          },
+        ],
+      }),
       headers: { "Content-Type": "application/json" },
       credentials: "omit",
     });
 
+    if (!response.ok) {
+      throw new Error(`Gemini API error: ${response.status}`);
+    }
     let data = await response.json();
 
+    console.warn(
+      "Received response from Gemini API:",
+      JSON.stringify(data, null, 2)
+    );
     const outputText =
       data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "";
     const cleanedText = outputText.replace(/^```json|```$/gm, "").trim();
 
-    let parsed;
+    let parsed = cleanedText;
     try {
       parsed = JSON.parse(cleanedText);
     } catch (e) {
       return {
-        error: `Failed to parse JSON from Gemini response ${outputText}`,
+        error: `Failed to parse JSON from Gemini response ${parsed}`,
+        message: `Failed to parse JSON from Gemini response ${parsed}`,
         raw_output: outputText,
         exception: e.toString(),
       };
@@ -66,7 +85,9 @@ export default async function AnalyzeSearchText(query): Promise<any> {
     return { ...filtered, Geminitime: Number(end - start) / 1_000_000 };
   } catch (error: any) {
     return {
-      error: "API call to Gemini failed",
+      error: `API call to Gemini failed : ${
+        error?.message ?? JSON.stringify(error, null, 2)
+      }`,
       details: error?.response?.data || error.message,
     };
   }

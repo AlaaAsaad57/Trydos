@@ -168,7 +168,7 @@ function CartItem({ product, index }) {
             </span>
           </span>
         </div>
-        {product.shipping_days ? (
+        {product.shipping_days + getShippingDay() > 0 ? (
           <div
             className={`${
               isRtl ? "flex-row-reverse" : "flex-row"
@@ -182,7 +182,6 @@ function CartItem({ product, index }) {
               height={10}
               data-cy="color-icon"
             />
-
             <span
               className={`ml-1.5 flex whitespace-nowrap ${
                 language === "ar" && "dir-rtl"

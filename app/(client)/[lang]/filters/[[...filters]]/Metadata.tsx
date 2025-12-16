@@ -86,7 +86,7 @@ export async function getBoutiqueMetadata({
       flashdeal: options.is_flashDeals,
       search_text: parsedFilters?.search_text?.[0],
     },
-    limit: 10,
+    limit: 3,
   });
 
   if (!responseData.products) {
@@ -150,20 +150,6 @@ export const GetStructuredData = async ({
   let filtersUrl =
     params?.filters?.length > 0 ? `/${params.filters?.join("/")}` : "/";
   let [country, language] = params.lang.split("-");
-
-  const parsedFilters = parseFiltersFromParams(params.filters || []);
-  // UrlSearchParams.set("lang", language);
-  // UrlSearchParams.set("country", country);
-  // let response = await fetchServerData({
-  //   url:
-  //     process.env.NEXT_PUBLIC_ELASTIC_BACKEND_URL +
-  //     `/api/products/simplified-meta-filters?${UrlSearchParams.toString()}`,
-  //   local: `${country}-${language}`,
-  //   method: "GET",
-  //   revalidate: 36000,
-  //   tags: ["listing"],
-  // });
-
   let jsonLd = {
     "@context": "https://schema.org",
     "@type": "CollectionPage",

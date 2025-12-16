@@ -141,7 +141,7 @@ const translations = {
   "Make Stories Token Expired": "جعل توكن القصص منتهي الصلاحية",
   "Make Chat Token Expired": "جعل توكن الدردشة منتهي الصلاحية",
   s: "ثا",
-  "I Read And Agree To": "لقد قرأت وأوافق على",
+  "I Read And Agree To": "قرأت ووافقت على",
   "are allowed.": "مسموح بها.",
   "Please enter a valid URL (e.g., example.com or www.example.com)":
     "الرجاء إدخال عنوان URL صالح (مثال: example.com أو www.example.com)",
@@ -264,7 +264,6 @@ const translations = {
   "Change Product Request": "طلب تغيير المنتج",
   "You Can Change Delivery Address": "يمكنك تغيير عنوان التوصيل",
   "Delivery Address & Note": "عنوان التوصيل والملاحظات",
-  "Change Selected Address": "تغيير العنوان المحدد",
   "Delivery Address": "عنوان التوصيل",
   "Delivery Note": "ملاحظة التوصيل",
   Close: "إغلاق",
@@ -294,6 +293,7 @@ const translations = {
   "Terms Of Cancellation Terms": "شروط الإلغاء",
   "Cancellation Terms": "شروط الإلغاء",
   "I Read And Agree To The": "لقد قرأت وأوافق على",
+  "Terms Of Change Address": "شروط تغيير العنوان",
   "Change Request": "طلب تغيير",
   "Return This Product In": "إرجاع هذا المنتج في",
   "About Cancel Your Order": "حول إلغاء طلبك",
@@ -318,9 +318,9 @@ const translations = {
   "Please select a reason for canceling this order":
     "الرجاء اختيار سبب لالغاء الطلب",
   "Manage Your Order": "إدارة الطلب",
-  "Change Delivery Address & Note": "تعديل عنوان التوصيل والملاحظات",
-  "You Can Easily Change Your Shipping Address And Delivery Notes":
-    "يمكنك بسهولة تغيير عنوان الشحن وملاحظات التسليم",
+  "Change Delivery Address & Note": "تغيير عنوان التسليم والملاحظة",
+  "You Can Change Your Shipping Address And Delivery Notes":
+    "يمكنك  تغيير عنوان التسليم ومذكرة التسليم",
   "Cancel Order": "إلغاء الطلب",
   "You Can Cancel & Back Your Money": "يمكنك إلغاء الطلب واسترجاع المبلغ",
   "Information About Your Order Modify Or Cancel":
@@ -369,7 +369,7 @@ const translations = {
   Buying: "شراء",
   "Expected Delivery Date": "تاريخ الشحن والتسليم المتوقع",
   "Order Status": "حالة الطلب",
-  Pieces: "ةقطع",
+  Pieces: "قطعة",
   "Work Days": "أيام العمل",
   "Order Invoice": "فاتورة الطلب",
   "Order Number": "رقم الطلب",
@@ -550,7 +550,7 @@ const translations = {
   "Purshase Protection": "حماية المشتريات",
   "Earn Money With This Order": "كسب المال مع هذا الطلب",
   "Contact Info": "معلومات التواصل",
-  "Add Shipping Address": "اضافة عنوان توصيل",
+  "Add New Shipping Address": "اضافة عنوان شحن جديد",
   "Shipping & Delivery Address": "عناوين الشحن والتوصيل",
   "stock is limited": "لا يوجد كمية اضافية من المنتج",
   "Continue as Guest": "الاستمرار كـ ضيف",
@@ -560,11 +560,20 @@ const translations = {
   "Shopping Bag": "سلة التسوق",
   "your session has expired please login again or continue as guest":
     "لقد انتهت جلستك، يرجى تسجيل الدخول مرة أخرى أو الاستمرار كضيف",
+  "enter number of pieces you want to return":
+    "ادخل عدد القطع التي ترغب بإرجاعها",
   "Please Select The Appropriate": "الرجاء اختيار",
   "Enter Your Phone Number To Complete Order":
     "الرجاء ادخال الرقم لاكمال الطلب",
   Buy: "شراء",
   "Composed Of:": "مكون من",
+  "change address request": "طلب تغيير العنوان",
+  "Change Below Address": "تغيير العنوان أدناه",
+  "To New Address": "إلى العنوان الجديد",
+  "The Change Addres Terms.": "شروط تغيير العنوان.",
+  "We Will Ignore The First Address And Send Your Order To The New Address.":
+    "سوف نتجاهل العنوان الأول ونرسل طلبك إلى العنوان الجديد.",
+  "Agree & Change": "أوافق وأغير",
   Piece: "قطعة",
   "Hide All": "إخفاء الكل",
   Shipping: "الشحن",
@@ -1111,10 +1120,10 @@ const translations = {
   "I Agree & Return": "أوافق وأرجع",
   "Delay Confirmation. I want to Return more product":
     "تأجيل التأكيد. أريد إرجاع المزيد من المنتجات",
-  "chosse an image or video from camera or gallery":
-    "اختر صورة أو فيديو من الكاميرا أو المعرض",
+  "chosse an image or video from camera or files":
+    "اختر صورة أو فيديو من الكاميرا أو الملفات",
   camera: "الكاميرا",
-  Gallery: "المعرض",
+  files: "الملفات",
   Block: "حظر",
   UnBlock: "إلغاء الحظر",
   "Delete Chat": "حذف المحادثة",

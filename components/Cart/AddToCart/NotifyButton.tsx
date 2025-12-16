@@ -1,13 +1,145 @@
 import React from "react";
-import { translateFunction } from "utils/functions";
+import { useAppStore } from "store";
+import { getCart, translateFunction } from "utils/functions";
+import { RemoveIconHolder } from "./Button";
+import cart from "services/cart";
+import { GA_EVENT_NAMES } from "utils/GAEvents";
+import { GAevent } from "utils/gtag";
 
-function NotifyButton({ isNotified, notifyAction, loading }) {
+function NotifyButton({
+  isNotified,
+  notifyAction,
+  loading,
+  id,
+  product,
+  selectedVariant,
+  setLoading,
+  colors,
+  sizes,
+  selectedColor,
+  selectedSize,
+  updateQuantity,
+}) {
+  const { localCart } = useAppStore();
+  const getTotalQuantity = () => {
+    let num = 0;
+    localCart?.map((s) => {
+      if (s.id == id) num = num + s.quantity;
+    });
+    return num;
+  };
+  const isVariantInCart = ({ exact }) => {
+    if (product?.variation?.length === 0)
+      return localCart?.find((s) => s.id === id);
+    let cartIem = getLocalCartItem();
+    if (cartIem) return cartIem;
+    if (exact) return localCart?.find((s) => s.id === id);
+  };
+  const getLocalCartItem = () => {
+    if (colors?.length > 0 && sizes?.length > 0) {
+      return localCart.find(
+        (s) =>
+          s.id === id &&
+          (s.color === selectedColor?.color_option ||
+            s.color ===
+              product?.colors?.find(
+                (cl) =>
+                  cl.option === selectedColor?.color_option ||
+                  cl.name === selectedColor?.selected_option
+              )?.color) &&
+          s.size === (selectedSize?.option ?? selectedSize)
+      );
+    }
+    if (colors?.length > 0) {
+      return localCart.find(
+        (s) =>
+          s.id === id &&
+          (s.color === selectedColor?.color_option ||
+            s.color ===
+              product?.colors?.find(
+                (cl) =>
+                  cl.option === selectedColor?.color_option ||
+                  cl.name === selectedColor?.selected_option
+              )?.color)
+      );
+    }
+    if (sizes?.length > 0) {
+      return localCart.find(
+        (s) => s.id === id && s.size === (selectedSize?.option ?? selectedSize)
+      );
+    }
+    return null;
+  };
+
+  const decreaseHandler = async ({ variant }) => {
+    try {
+      if (isVariantInCart({ exact: true })?.quantity > 1) {
+        setLoading(true);
+
+        let response = await cart.UpdateCart({
+          cart_id: isVariantInCart({ exact: true })?.item_id,
+          qty: isVariantInCart({ exact: true })?.quantity - 1,
+          isFromAddWidget: true,
+        });
+
+        if (response === false) {
+          throw "error";
+        }
+        await getCart({
+          callback: () => {},
+        });
+
+        setLoading(false);
+        await updateQuantity(
+          true,
+          isVariantInCart({ exact: true })?.type,
+          "decrease"
+        );
+      } else if (isVariantInCart({ exact: true })?.quantity === 1) {
+        setLoading(true);
+
+        await cart.RemoveFromCart({
+          cart_item: isVariantInCart({ exact: true }),
+          isFromAddWidget: true,
+        });
+        GAevent({
+          action: GA_EVENT_NAMES.REMOVE_FROM_CART,
+          params: {
+            items: [
+              {
+                item_id: product.id,
+                item_name: product.name,
+                item_variant: variant?.type,
+                quantity: 1,
+                price: variant?.offer_price,
+              },
+            ],
+          },
+        });
+        await getCart({
+          callback: () => {},
+        });
+
+        setLoading(false);
+        await updateQuantity(
+          true,
+          isVariantInCart({ exact: true })?.type,
+          "decrease"
+        );
+      }
+    } catch (error) {
+      console.log("decrease", error);
+      await updateQuantity(false);
+      setLoading(false);
+    }
+  };
   return (
     <div className="w-full duration-75 transition-all px-[20px] flex overflow-hidden">
       <div className="w-full overflow-hidden flex">
         <div
           data-cy="notify_container_2"
           onClick={(e) => {
+            if ((e.target as any).closest(".minuse-qty-icon")) return false;
             notifyAction();
           }}
           className={`${
@@ -19,6 +151,14 @@ function NotifyButton({ isNotified, notifyAction, loading }) {
           } gap-[4px] text-[15px]  shadow-[inset_0px_3px_6px_rgb(255,255,255,0.16)]  rounded-[20px] relative flex-col regular  items-center justify-center`}
           id={"add-to-cart-button-container"}
         >
+          {getTotalQuantity() > 0 && (
+            <RemoveIconHolder
+              qty={getTotalQuantity()}
+              decreaseHandler={() => {
+                decreaseHandler({ variant: selectedVariant });
+              }}
+            />
+          )}
           <ButtonBorder />
           <NotificationIconHolder isNotified={isNotified} />
           <svg
@@ -221,11 +361,11 @@ function NotifyButton({ isNotified, notifyAction, loading }) {
             )}
           </div>
           {isNotified ? (
-            <span>
+            <span id="text-request-response">
               {translateFunction("We Will Inform You When Size Is Available")}
             </span>
           ) : (
-            <span id="button-cart-text">
+            <span id="text-request-response">
               {translateFunction("Notify Me When Size Is Available")}
             </span>
           )}
@@ -260,7 +400,7 @@ const ButtonBorder = () => {
 const NotificationIconHolder = ({ isNotified }) => {
   return (
     <>
-      <div className="w-[55px] h-[55px] z-40 rounded-[20px] shadow-[0px_3px_6px_rgb(255,255,255,0.16)] bg-[#fff] p-[7px] flex-row justify-start items-end absolute top-[-33px] right-[-33px]">
+      <div className="bagIcon w-[55px] h-[55px] z-40 rounded-[20px] shadow-[0px_3px_6px_rgb(255,255,255,0.16)] bg-[#fff] p-[7px] flex-row justify-start items-end absolute top-[-33px] right-[-33px]">
         {isNotified ? (
           <svg
             xmlns="http://www.w3.org/2000/svg"

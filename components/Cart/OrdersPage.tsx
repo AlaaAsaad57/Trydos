@@ -484,7 +484,7 @@ function OrdersPage({ setStep, close }: OrdersPagePropsType) {
                       <>
                         {addressDetails.id
                           ? translate("Edit Shipping Address")
-                          : translate("Add Shipping Address")}
+                          : translate("Add New Shipping Address")}
                       </>
                     </span>
                   </span>

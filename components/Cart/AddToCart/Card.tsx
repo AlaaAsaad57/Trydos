@@ -33,7 +33,9 @@ function Card({
   }, []);
   const isRtl = language === "ar" || language === "ku";
   const shippingDate = useMemo(() => {
-    if (shippingDays >= 0)
+    let date =
+      shippingDays + settings?.["starting-setting"]?.shipping_duration_days;
+    if (date >= 0)
       return formatTimeForAddress(
         new Date(
           new Date().getTime() +
@@ -48,10 +50,13 @@ function Card({
         ).toString(),
         language
       );
-  }, [shippingDays]);
+  }, [shippingDays, settings]);
 
   const shippingDay = useMemo(() => {
-    if (shippingDays >= 0)
+    let date =
+      shippingDays + settings?.["starting-setting"]?.shipping_duration_days;
+
+    if (date >= 0)
       return ShowDayStr(
         new Date(
           new Date().getTime() +
@@ -66,7 +71,7 @@ function Card({
         )?.getDay(),
         language
       );
-  }, [shippingDays]);
+  }, [shippingDays, settings]);
 
   return (
     <div
@@ -130,7 +135,10 @@ function Card({
               {translateFunction("Shipping", language)}:
             </span>
             <span className={`${isRtl ? "dir-rtl" : ""} medium text-[#505050]`}>
-              {shippingDays} {translateFunction("Days", language)}
+              {(shippingDays || 0) +
+                (settings?.["starting-setting"]?.shipping_duration_days ??
+                  0)}{" "}
+              {translateFunction("Days", language)}
             </span>
             <span className="text-[#505050] underline cursor-pointer">
               {translateFunction("Details", language)}

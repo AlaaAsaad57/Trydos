@@ -33,7 +33,11 @@ function FilterList({
   const isUsingParsedFilters = Boolean(parsedFilters);
   const language = params.lang.split("-")?.[1];
   const isRtl = language === "ar" || language === "ku";
-
+  const parseFiltersFunction = () => {
+    if (filterParams?.Search)
+      return { ...filterParams, Search: parsedFilters?.search };
+    return filterParams;
+  };
   return (
     <>
       {itemsLength > 1 && (
@@ -90,7 +94,7 @@ function FilterList({
       <ActiveFiltersBar
         params={params}
         currency={currency}
-        filterParams={filterParams}
+        filterParams={parseFiltersFunction()}
         isUsingParsedFilters={isUsingParsedFilters}
         filters={filters}
       />
@@ -163,6 +167,7 @@ const ActiveFiltersBar = ({
       return null;
     }
   };
+  console.log(activeFilters, "active filters");
   if (activeFilters && Object.keys?.(activeFilters)?.length === 0) return <></>;
 
   // Check if only one boutique is selected and no other filters
@@ -662,6 +667,11 @@ const FilterItemsRow = ({
   const shouldShowMore = () => {
     return items.length >= 10;
   };
+  const baseUrlOfFiltersPage = () => {
+    if (isFeatured) return `/featured`;
+    if (isFlashDeals) return "/flashDeals";
+    return "/filters";
+  };
   return (
     <div
       className={`${
@@ -672,6 +682,7 @@ const FilterItemsRow = ({
         {items &&
           items?.map((item) => (
             <FilterItem
+              baseUrlOfFiltersPage={baseUrlOfFiltersPage()}
               params={params}
               filterParams={filterParams}
               isUsingParsedFilters={isUsingParsedFilters}

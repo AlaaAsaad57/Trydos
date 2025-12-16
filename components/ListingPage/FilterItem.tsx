@@ -31,6 +31,7 @@ export const FilterItem = ({
   isUsingParsedFilters,
   currency,
   params,
+  baseUrlOfFiltersPage,
 }: FilterItemProps) => {
   // Helper function to get filter state with proper typing
   const getFilterState = (
@@ -44,7 +45,8 @@ export const FilterItem = ({
         itemValue,
         filterKey,
         parentValue,
-        params.lang
+        params.lang,
+        baseUrlOfFiltersPage
       );
     } else {
       // For backward compatibility with searchParams
@@ -631,7 +633,8 @@ function getFilterStateForItem(
   itemValue: string,
   filterKey: string,
   parentValue?: string[],
-  lang?: string
+  lang?: string,
+  baseUrlOfFiltersPage?: string
 ): FilterState {
   let currentValues: any[] = [];
 
@@ -714,7 +717,9 @@ function getFilterStateForItem(
 
   // Build URL path using utility function
   const pathParams = buildParamsFromFilters(newFilters);
-  const basePath = lang ? `/${lang}/filters` : "/filters";
+  const basePath = lang
+    ? `/${lang}${baseUrlOfFiltersPage}`
+    : baseUrlOfFiltersPage;
   const href =
     pathParams.length > 0 ? `${basePath}/${pathParams.join("/")}` : basePath;
 

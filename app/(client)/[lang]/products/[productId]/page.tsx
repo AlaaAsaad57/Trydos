@@ -411,10 +411,10 @@ async function Page({ params, searchParams }) {
     };
     const isRtl = languageVariable === "ar" || languageVariable === "ku";
     const redeemed_ids = (await getCookieServer<any[]>("redemed_ids")) ?? [];
-    if (product?.is_redeem) {
+    if (product?.is_redeem && redeemed_ids) {
       product = {
         ...product,
-        is_redeem: !redeemed_ids.find((s) => s.id === product.id),
+        is_redeem: !redeemed_ids?.find((s) => s.id === product.id),
       };
     }
 

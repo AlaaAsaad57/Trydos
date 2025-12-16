@@ -1063,10 +1063,10 @@ const OrderExpandedDetails = ({
           </div>
         </div>
       </div>
-      <div className="flex-col w-full mt-[12px] pb-[50px]">
+      <div className="flex-col w-full mt-[12px] pb-[50px] items-center justify-center">
         {shouldShowConfirmReturn() && (
           <div
-            className={`w-full h-[50px] mt-[31px] items-center justify-center  flex cursor-pointer ${"bg-[#402CDD] "} rounded-[15px] text-[16px] text-[#fff] medium`}
+            className={` underline h-[30px] mt-[31px] items-center justify-center  flex cursor-pointer bg-[#fff]  rounded-[15px] text-[12px] text-green-500 medium`}
             onClick={() => {
               // confirmOrderReturn();
               setShouldConfirmReturn(true);
@@ -1084,13 +1084,13 @@ const OrderExpandedDetails = ({
           // order.edit_return_request &&
           (cancelling ? (
             <div
-              className={`w-full h-[50px] mt-[31px] items-center justify-center  flex cursor-pointer ${"bg-[#fb7070] "} rounded-[15px] text-[16px] text-[#fff] medium`}
+              className={` h-[50px] mt-[31px] items-center justify-center  flex cursor-pointer ${"bg-[#fff] "} rounded-[15px] text-[16px] text-[#fb7070] medium`}
             >
               <Spinner />
             </div>
           ) : (
             <div
-              className={`flex-row mt-[11px] items-center justify-center underline text-[##1D1D1D] text-[12px] regular cursor-pointer`}
+              className={`flex-row mt-[11px] items-center justify-center underline text-[#fb7070] text-[12px] regular cursor-pointer`}
               onClick={() => {
                 CancelReturnRequest();
               }}
@@ -1273,7 +1273,7 @@ const ProductCard = ({
                 >
                   {/* {RoundPrice({ num: product.price, language: language })} */}
                   {RoundPrice({
-                    num: product?.product_details?.price,
+                    num: product?.price,
                     language: language,
                     returnNumber: true,
                   })}
@@ -1288,7 +1288,7 @@ const ProductCard = ({
                   language: language,
                 })} */}
                 {RoundPrice({
-                  num: product.product_details?.offer_price,
+                  num: product?.price_after_discount,
                   language: language,
                   returnNumber: true,
                 })}

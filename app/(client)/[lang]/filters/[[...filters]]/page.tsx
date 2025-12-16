@@ -84,7 +84,6 @@ async function getCurrency(country, language) {
     } else {
       let currencyData = await fetchCurrency(language, country);
       let currency = { ...currencyData.data.currency };
-
       StoreCurrency(country, currency);
       return { ...currency, redis: false };
     }
@@ -124,7 +123,25 @@ export default async function Page({ params }) {
       GetBoutique(boutiqueItem, country, language),
     ]);
     let end = process.hrtime.bigint();
-
+    if (filtersData?.applied?.colors?.length) {
+      parsedFilters.colors = [
+        ...(parsedFilters?.colors || []),
+        ...(filtersData?.applied?.colors || []),
+      ];
+    }
+    if (filtersData?.applied?.sizes) {
+      parsedFilters.sizes = [
+        ...(parsedFilters?.sizes || []),
+        ...(filtersData?.applied?.sizes || []),
+      ];
+    }
+    if (filtersData?.applied?.search_text || parsedFilters?.search_text)
+      parsedFilters.search =
+        (filtersData?.applied?.search_text && [
+          filtersData?.applied?.search_text,
+        ]) ??
+        (parsedFilters?.search_text && [parsedFilters?.search_text]) ??
+        null;
     let filters = {
       categories: filtersData?.categories || [],
       brands: filtersData?.brands || [],
@@ -159,10 +176,16 @@ export default async function Page({ params }) {
             name: s.name,
             id: s.id,
           })),
-          brand: { id: product?.brand?.id, icon: product?.brand?.icon },
+          brand: {
+            id: product?.brand?.id,
+            icon: product?.brand?.icon,
+            is_verified: product?.brand?.is_verified,
+          },
           flash_deal_end_date: product.flash_deal_end_date,
           product_id: product.product_id,
-          is_redeem: !redeemed_ids.find((s) => s.id === product.product_id),
+          is_redeem:
+            product.redeem_price &&
+            !redeemed_ids.find((s) => s.id === product.product_id),
         };
       } else
         return {
@@ -184,7 +207,11 @@ export default async function Page({ params }) {
             name: s.name,
             id: s.id,
           })),
-          brand: { id: product?.brand?.id, icon: product?.brand?.icon },
+          brand: {
+            id: product?.brand?.id,
+            icon: product?.brand?.icon,
+            is_verified: product?.brand?.is_verified,
+          },
           flash_deal_end_date: product.flash_deal_end_date,
           product_id: product.product_id,
         };
@@ -239,7 +266,12 @@ export default async function Page({ params }) {
               parsedFilters?.search_text?.length > 0 && "w-full"
             }`}
           >
-            <SearchBoutiquePage search_text={parsedFilters?.search_text?.[0]} />
+            <SearchBoutiquePage
+              search_text={
+                filtersData?.applied?.search_text ??
+                parsedFilters?.search_text?.[0]
+              }
+            />
 
             <div
               data-cy="filter_option_loseSearchInput"
@@ -321,6 +353,7 @@ async function BoutiqueHeader({ boutique }) {
             <VerificationIcon />
             <TopStarIcon />
           </div>
+          <div className="boutique-text">{boutique?.name}</div>
         </div>
       )}
       {boutique?.banners && <BouqiuePhotoSlider banners={boutique.banners} />}

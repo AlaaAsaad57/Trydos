@@ -11,6 +11,7 @@ import {
   processCustomProduct,
   SyncColorImage,
 } from "./helpers";
+import { LogServerError } from "utils/serverErrorReporter";
 
 // Types and Interfaces
 interface SearchFilters {
@@ -171,33 +172,46 @@ export async function getProductsAndFiltersFromElastic(
       let CleanSearchText = await AnalyzeSearchText(filters.search_text);
       if (CleanSearchText?.error) {
         console.error(
-          `##################${CleanSearchText.error}#######################`
+          `##################${
+            CleanSearchText?.error || CleanSearchText?.message
+          }#######################`
         );
-        isAnalyzed = CleanSearchText?.error;
-        throw new Error(CleanSearchText?.error);
+        isAnalyzed = CleanSearchText?.error || CleanSearchText?.message;
+        throw new Error(CleanSearchText?.error || CleanSearchText?.message);
       }
       if (CleanSearchText?.name) {
         filters = { ...filters, search_text: CleanSearchText?.name };
       }
       if (CleanSearchText?.color) {
+        let new_colors;
+        if (Array.isArray(CleanSearchText.color))
+          new_colors = CleanSearchText.color;
+        else {
+          new_colors = [CleanSearchText.color];
+        }
         filters = {
           ...filters,
-          colors: [
-            ...new Set([...(filters.colors || []), ...CleanSearchText.color]),
-          ],
+          colors: [...new Set([...(filters.colors || []), ...new_colors])],
         };
       }
       if (CleanSearchText?.size) {
+        let new_sizes;
+        if (Array.isArray(CleanSearchText.size)) {
+          new_sizes = CleanSearchText.size;
+        } else {
+          new_sizes = [CleanSearchText.size];
+        }
         filters = {
           ...filters,
-          sizes: [...new Set([...(filters.sizes || []), CleanSearchText.size])],
+          sizes: [...new Set([...(filters.sizes || []), ...new_sizes])],
         };
       }
       isAnalyzed = CleanSearchText;
     }
   } catch (error) {
+    LogServerError(`Gemini Search Analyze ${error}`, JSON.stringify(filters));
     isAnalyzed?.length > 4 ? isAnalyzed : "failed to Analyze";
-    console.log(error);
+    console.error(error);
   }
 
   try {
@@ -258,6 +272,7 @@ export async function getProductsAndFiltersFromElastic(
     response = await client.search(searchQuery);
 
     const hits = response.hits.hits as ElasticsearchHit[];
+
     let total_size = response.hits?.total?.value;
     hits.forEach((hit: ElasticsearchHit) => {
       customProducts.push(hit._source);
@@ -477,14 +492,6 @@ export async function GetRecomendationsForUser({
     // // 6. Get new search_after value
     const newSearchAfter = hits.length > 0 ? hits[hits.length - 1].sort : [];
     let end = process.hrtime.bigint();
-
-    const orderedProducts = numericIds
-      .map((id) =>
-        normalizedProducts.custom_products.find(
-          (p) => String(p.product_id) === String(id)
-        )
-      )
-      .filter(Boolean);
 
     return {
       products: normalizedProducts.custom_products?.map((s) => ({
@@ -1358,7 +1365,10 @@ function executePriceCatalogFilter(products: any[]): {
     }
 
     // Check flash deal price if active
-    if (product.flash_deal_status === 1 && product.flash_deal_discount) {
+    if (
+      String(product.flash_deal_status) === "1" &&
+      product.flash_deal_discount
+    ) {
       const basePrice = parseFloat(
         product.unit_price || product.offered_price || "0"
       );

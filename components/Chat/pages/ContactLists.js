@@ -64,6 +64,7 @@ function ContactLists(props) {
               ) {
                 return (
                   <ChatItem
+                    disabledOptions={true}
                     myKey={key}
                     key={key}
                     isActive={false}
