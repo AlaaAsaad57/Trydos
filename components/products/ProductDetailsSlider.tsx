@@ -58,6 +58,7 @@ function ProductDetailsSlider({
   }, []);
   useEffect(() => {
     if (emblaApi && imageShow >= 0) {
+      if (!productGA) return;
       emblaApi.scrollTo(imageShow);
 
       const handleSelect = (e, evt) => {
@@ -97,6 +98,8 @@ function ProductDetailsSlider({
       // - Update component state
 
       // Example: Track user engagement after 20 seconds
+      if (!productGA) return;
+
       GAevent({
         action: GA_EVENT_NAMES.VIEW_ITEM_PRODUCT,
         params: {

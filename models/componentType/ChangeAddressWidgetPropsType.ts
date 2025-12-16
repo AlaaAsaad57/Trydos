@@ -1,5 +1,5 @@
 export interface ChangeAddressWidgetPropsType {
   close: () => void;
-  address_id: string;
+  address_id: string | number;
   getOrderDetails: () => void;
 }

@@ -3,7 +3,6 @@ import { allCountries } from "country-telephone-data";
 import React, { useEffect, useState } from "react";
 import { translateFunction } from "utils/functions";
 import Map from "./Map";
-import SyFlage from "public/svg/sy";
 import { useParams } from "next/navigation";
 import Addressicon from "public/svg/cart/AddressIcon";
 import AddressInfo from "public/svg/cart/AddressInfo";
@@ -197,8 +196,8 @@ function AddAddressForm({
           isInSettings={isInSettings}
           valid={isValid()}
           userName={userName}
-          slidePrev={() => {
-            slidePrev();
+          slidePrev={(id) => {
+            slidePrev(id);
           }}
           data-cy="add-address-buttons" // Added data-cy
         />
@@ -651,6 +650,32 @@ export const AddAddressButtons = ({
     name: allCountries.filter((s) => s.iso2 === country)[0]?.name,
     code: country,
   };
+  const handleAddressAction = async () => {
+    try {
+      if (addressDetails?.id) {
+        await order.UpdateAddressList({
+          address: { ...addressDetails, Country: country },
+          callback: () => {
+            slidePrev();
+          },
+        });
+        updateAddress(addressDetails);
+      } else {
+        await order.AddAddressList({
+          address: addressDetails,
+          callback: (id) => {
+            slidePrev(id);
+          },
+        });
+        addAddress();
+      }
+      if (addressDetails.user_name && userName === "") {
+        auth.UpdateName(addressDetails.user_name);
+      }
+    } catch (error) {
+      throw error;
+    }
+  };
   return (
     <div
       style={{
@@ -665,26 +690,7 @@ export const AddAddressButtons = ({
         onClick={() => {
           if (valid && !orderLoading) {
             // @ts-ignore
-            if (addressDetails?.id) {
-              order.UpdateAddressList({
-                address: { ...addressDetails, Country: country },
-                callback: () => {
-                  slidePrev();
-                },
-              });
-              updateAddress(addressDetails);
-            } else {
-              order.AddAddressList({
-                address: addressDetails,
-                callback: () => {
-                  slidePrev();
-                },
-              });
-              addAddress();
-            }
-            if (addressDetails.user_name && userName === "") {
-              auth.UpdateName(addressDetails.user_name);
-            }
+            handleAddressAction();
             return;
           }
           validate();

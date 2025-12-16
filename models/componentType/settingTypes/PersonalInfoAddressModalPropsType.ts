@@ -6,7 +6,7 @@ export interface AddAddressFormPropsType {
   isInSettings?: boolean;
   activeIndex: boolean;
   setOpenSelect: () => void;
-  slidePrev: () => void;
+  slidePrev: (value?: any) => void;
   setAddressDetails: (details: any) => void;
   userName?: any;
 }

@@ -38,7 +38,7 @@ function PersonalInfoAddressModal({
           setOpenSelect={() => {
             setOpenSelect(true);
           }}
-          slidePrev={() => {
+          slidePrev={(value) => {
             swipeToScreen(5);
           }}
           setAddressDetails={(e) => {

@@ -512,7 +512,7 @@ function OrdersPage({ setStep, close }: OrdersPagePropsType) {
                   setOpenSelect(true);
                 }}
                 userName={user?.name === "verified_guest" ? "" : null}
-                slidePrev={() => {
+                slidePrev={(value) => {
                   setOrderStep(0);
                 }}
                 setAddressDetails={(e) => {

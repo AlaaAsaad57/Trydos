@@ -32,7 +32,9 @@ function ChangeAddressWidget({
   } = useAppStore();
   const [openModal, setOpenModal] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [selectedAddressId, setAddressId] = useState(address_id);
+  const [selectedAddressId, setAddressId] = useState<number>(
+    Number(address_id)
+  );
   const [ConfirmationData, setConfirmationData] = useState({
     enable: false,
     currentAddress: addressLists?.find((s) => s.id === address_id),
@@ -464,6 +466,9 @@ function ChangeAddressWidget({
             </span>
           </div>
           <AddressModal
+            setAddressId={(id) => {
+              setAddressId(id);
+            }}
             close={() => {
               setOpenModal(false);
               initAddressForm();
@@ -496,7 +501,11 @@ function ChangeAddressWidget({
 }
 
 export default ChangeAddressWidget;
-export const AddressModal = ({ id, close }: AddressModalPropsType) => {
+export const AddressModal = ({
+  id,
+  close,
+  setAddressId,
+}: AddressModalPropsType) => {
   const { setAddressDetails, isActiveAddress } = useAppStore();
 
   const [openSelect, setOpenSelect] = useState(false);
@@ -516,7 +525,10 @@ export const AddressModal = ({ id, close }: AddressModalPropsType) => {
           setOpenSelect={() => {
             setOpenSelect(true);
           }}
-          slidePrev={() => {
+          slidePrev={(value) => {
+            if (value) {
+              setAddressId(value);
+            }
             close();
           }}
           setAddressDetails={(e) => {

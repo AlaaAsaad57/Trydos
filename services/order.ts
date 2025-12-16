@@ -182,7 +182,8 @@ class OrderService {
       }
       await this.GetAddressList();
       await GetCartOreview();
-      callback();
+
+      callback(response?.data?.id);
 
       setOrderLoading(false);
     } catch (error) {
