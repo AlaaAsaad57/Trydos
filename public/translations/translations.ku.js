@@ -1163,6 +1163,7 @@ const translations = {
     "وێنە یان ڤیدیۆێك لە کامێرا یان فایلەکان ھەڵبژێرە",
   camera: "کامێرا",
   files: "فایلەکان",
+  "Terms Of Change Address": " مەرجەکانی گۆڕینی ناونیشان",
 };
 
 export default translations;

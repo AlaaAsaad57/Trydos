@@ -141,7 +141,7 @@ const translations = {
   "Make Stories Token Expired": "جعل توكن القصص منتهي الصلاحية",
   "Make Chat Token Expired": "جعل توكن الدردشة منتهي الصلاحية",
   s: "ثا",
-  "I Read And Agree To": "لقد قرأت وأوافق على",
+  "I Read And Agree To": "قرأت ووافقت على",
   "are allowed.": "مسموح بها.",
   "Please enter a valid URL (e.g., example.com or www.example.com)":
     "الرجاء إدخال عنوان URL صالح (مثال: example.com أو www.example.com)",
@@ -293,6 +293,7 @@ const translations = {
   "Terms Of Cancellation Terms": "شروط الإلغاء",
   "Cancellation Terms": "شروط الإلغاء",
   "I Read And Agree To The": "لقد قرأت وأوافق على",
+  "Terms Of Change Address": "شروط تغيير العنوان",
   "Change Request": "طلب تغيير",
   "Return This Product In": "إرجاع هذا المنتج في",
   "About Cancel Your Order": "حول إلغاء طلبك",

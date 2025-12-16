@@ -1113,6 +1113,7 @@ const translations = {
     "Kameradan veya dosyalardan bir fotoğraf ya da video seçin",
   camera: "Kamera",
   files: "Dosyalar",
+  "Terms Of Change Address": " Adres Değişikliği Şartları",
 };
 
 export default translations;

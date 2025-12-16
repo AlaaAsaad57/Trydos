@@ -306,7 +306,7 @@ function ConfirmAddressModal({
         </p>
         <OrderCancelTermsIcon className="mt-[15px]" />
         <span className="mt-[7px] regular text-white text-[14px]">
-          {translateFunction("Terms Of Cancellation Terms")}
+          {translateFunction("Terms Of Change Address")}
         </span>
         <p
           className="text-[14px] text-white regular mt-[15px] flex-row  gap-[4px]"
