@@ -7,13 +7,14 @@ import SellerDashboardService from "services/sellerDashboard";
 import { translateFunction, getConfiguredImage } from "utils/functions";
 import { GetImageUrl } from "utils/tinyUtils";
 
-type TabType = "products" | "boutiques" | "permissions";
+type TabType = "products" | "boutiques" | "permissions" | "users";
 
 const PERMISSION_GROUPS = {
   PRODUCTS: ["READ_PRODUCTS", "CREATE_PRODUCT", "UPDATE_PRODUCT", "CHANGE_PRODUCT_STATUS"],
   BOUTIQUES: ["READ_BUTIKS", "CREATE_BUTIKS", "UPDATE_BUTIKS", "DELETE_BUTIKS", "CHANGE_BOUTIQUE_STATUS"],
   CATEGORIES: ["READ_CATEGORIES", "CREATE_CATEGORIES", "UPDATE_CATEGORIES", "DELETE_CATEGORIES", "CHANGE_CATEGORY_STATUS"],
   BRANDS: ["READ_BRANDS", "CREATE_BRANDS", "UPDATE_BRANDS", "DELETE_BRANDS", "CHANGE_BRAND_STATUS"],
+  ORDERS: ["READ_ORDERS", "UPDATE_ORDER_INFO", "CHANGE_ORDER_STATUS", "READ_ORDER_PAYMENTS", "CONFIRM_ORDER_PAYMENT", "REFUND_ORDER_PAYMENT", "CANCEL_ORDER", "ASSIGN_SHIPPING", "UPDATE_TRACKING"],
   EMPLOYEES: ["READ_EMPLOYEES", "CREATE_EMPLOYEES", "UPDATE_EMPLOYEES", "DELETE_EMPLOYEES"],
   ROLES: ["READ_ROLES", "CREATE_ROLES", "UPDATE_ROLES", "DELETE_ROLES"],
   JOBTITLES: ["READ_JOBTITLES", "CREATE_JOBTITLES", "UPDATE_JOBTITLES", "DELETE_JOBTITLES"],
@@ -62,6 +63,14 @@ function SellerDashBoard() {
   const [error, setError] = useState<string | null>(null);
   const [productsMeta, setProductsMeta] = useState<any>(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [roles, setRoles] = useState<any[]>([]);
+  const [addUserForm, setAddUserForm] = useState({
+    phone: "",
+    role_id: "",
+    seller_id: parseInt(sellerId) || 0,
+  });
+  const [addUserLoading, setAddUserLoading] = useState(false);
+  const [addUserSuccess, setAddUserSuccess] = useState(false);
 
   const currentShop = useMemo(() => {
     return shopes.find((shop) => shop.seller_id.toString() === sellerId);
@@ -98,6 +107,58 @@ function SellerDashBoard() {
       setError(error?.message || "Failed to load boutiques");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const getRoles = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const res = await SellerDashboardService.getRoles();
+      const rolesData = res.data || [];
+      setRoles(Array.isArray(rolesData) ? rolesData : []);
+    } catch (error: any) {
+      console.error("Error fetching roles:", error);
+      setError(error?.message || "Failed to load roles");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAddUser = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!addUserForm.phone || !addUserForm.role_id) {
+      setError("Please fill in all fields");
+      return;
+    }
+
+    try {
+      setAddUserLoading(true);
+      setError(null);
+      setAddUserSuccess(false);
+      
+      const res = await SellerDashboardService.addUserToShop({
+        phone: addUserForm.phone,
+        role_id: parseInt(addUserForm.role_id as string),
+        seller_id: addUserForm.seller_id,
+      });
+
+      if (res.success || res.isSuccessful) {
+        setAddUserSuccess(true);
+        setAddUserForm({
+          phone: "",
+          role_id: "",
+          seller_id: parseInt(sellerId) || 0,
+        });
+        setTimeout(() => setAddUserSuccess(false), 3000);
+      } else {
+        throw new Error(res.message || "Failed to add user");
+      }
+    } catch (error: any) {
+      console.error("Error adding user:", error);
+      setError(error?.message || "Failed to add user to shop");
+    } finally {
+      setAddUserLoading(false);
     }
   };
 
@@ -142,12 +203,19 @@ function SellerDashBoard() {
     if (sellerId) {
       getSellerProducts();
       getSellerBoutiques();
+      getRoles();
       // Only fetch permissions if not already available from currentShop
       if (!currentShop?.permissions || currentShop.permissions.length === 0) {
         getSellerPermissions();
       }
     }
   }, [sellerId]);
+
+  useEffect(() => {
+    if (activeTab === "users" && roles.length === 0) {
+      getRoles();
+    }
+  }, [activeTab]);
 
   const groupedPermissions = useMemo(() => {
     const groups: Record<string, string[]> = {};
@@ -472,6 +540,163 @@ function SellerDashBoard() {
     );
   };
 
+  const renderUsers = () => {
+    const canManageUsers =
+      hasPermission("USER_MANAGEMENT_ACCESS") || hasPermission("SUPER_ADMIN");
+
+    if (!canManageUsers) {
+      return (
+        <div className="flex items-center justify-center py-12">
+          <div className="text-center">
+            <p className="text-[16px] font-medium text-[#1d1d1d] mb-2">
+              Access Denied
+            </p>
+            <p className="text-[14px] text-[#8D8D8D]">
+              You don't have permission to manage users
+            </p>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="space-y-6">
+        {/* Add User Form */}
+        <div className="bg-white rounded-[15px] shadow-md p-6">
+          <h2 className="text-[20px] font-bold text-[#1d1d1d] mb-4">
+            Add User to Shop
+          </h2>
+          
+          {addUserSuccess && (
+            <div className="mb-4 p-3 bg-green-100 border border-green-300 rounded-lg text-green-700 text-[14px]">
+              User added successfully!
+            </div>
+          )}
+
+          {error && activeTab === "users" && (
+            <div className="mb-4 p-3 bg-red-100 border border-red-300 rounded-lg text-red-700 text-[14px]">
+              {error}
+            </div>
+          )}
+
+          <form onSubmit={handleAddUser} className="space-y-4">
+            <div>
+              <label className="block text-[14px] font-medium text-[#1d1d1d] mb-2">
+                Phone Number
+              </label>
+              <input
+                type="text"
+                value={addUserForm.phone}
+                onChange={(e) =>
+                  setAddUserForm({ ...addUserForm, phone: e.target.value })
+                }
+                placeholder="+(country_code)XXX"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-[14px]"
+                required
+              />
+              <p className="text-[12px] text-[#8D8D8D] mt-1">
+                Format: +(country_code)XXX (e.g., +9611234567)
+              </p>
+            </div>
+
+            <div>
+              <label className="block text-[14px] font-medium text-[#1d1d1d] mb-2">
+                Role
+              </label>
+              {loading && roles.length === 0 ? (
+                <div className="flex items-center gap-2 py-3">
+                  <Spinner />
+                  <span className="text-[14px] text-[#8D8D8D]">Loading roles...</span>
+                </div>
+              ) : (
+                <select
+                  value={addUserForm.role_id}
+                  onChange={(e) =>
+                    setAddUserForm({ ...addUserForm, role_id: e.target.value })
+                  }
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-[14px] bg-white"
+                  required
+                >
+                  <option value="">Select a role</option>
+                  {roles.map((role: any) => (
+                    <option key={role.id} value={role.id}>
+                      {role.name}
+                    </option>
+                  ))}
+                </select>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-[14px] font-medium text-[#1d1d1d] mb-2">
+                Seller ID
+              </label>
+              <input
+                type="number"
+                value={addUserForm.seller_id}
+                onChange={(e) =>
+                  setAddUserForm({
+                    ...addUserForm,
+                    seller_id: parseInt(e.target.value) || 0,
+                  })
+                }
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-[14px] bg-gray-50"
+                readOnly
+                disabled
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={addUserLoading || !addUserForm.phone || !addUserForm.role_id}
+              className="w-full px-6 py-3 bg-blue-500 text-white rounded-lg font-medium hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-[14px]"
+            >
+              {addUserLoading ? (
+                <span className="flex items-center justify-center gap-2">
+                  <Spinner />
+                  Adding User...
+                </span>
+              ) : (
+                "Add User"
+              )}
+            </button>
+          </form>
+        </div>
+
+        {/* Available Roles List */}
+        <div className="bg-white rounded-[15px] shadow-md p-6">
+          <h2 className="text-[20px] font-bold text-[#1d1d1d] mb-4">
+            Available Roles
+          </h2>
+          {loading && roles.length === 0 ? (
+            <div className="flex items-center justify-center py-12">
+              <Spinner />
+              <span className="ml-3 text-[#3c3c3c]">Loading roles...</span>
+            </div>
+          ) : roles.length === 0 ? (
+            <div className="flex items-center justify-center py-12">
+              <p className="text-[#8D8D8D]">No roles available</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {roles.map((role: any) => (
+                <div
+                  key={role.id}
+                  className="p-4 border border-gray-200 rounded-lg hover:shadow-md transition-shadow"
+                >
+                  <h3 className="text-[16px] font-semibold text-[#1d1d1d] mb-1">
+                    {role.name}
+                  </h3>
+                  <p className="text-[12px] text-[#8D8D8D]">ID: {role.id}</p>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="w-full max-w-[1366px] mx-auto">
       {/* Header */}
@@ -517,6 +742,16 @@ function SellerDashBoard() {
           >
             Permissions ({sellerPermissions?.length || 0})
           </button>
+          <button
+            onClick={() => setActiveTab("users")}
+            className={`flex-1 px-6 py-4 text-center font-medium transition-colors ${
+              activeTab === "users"
+                ? "border-b-2 border-blue-500 text-blue-600"
+                : "text-[#8D8D8D] hover:text-[#1d1d1d]"
+            }`}
+          >
+            Users
+          </button>
         </div>
       </div>
 
@@ -525,6 +760,7 @@ function SellerDashBoard() {
         {activeTab === "products" && renderProducts()}
         {activeTab === "boutiques" && renderBoutiques()}
         {activeTab === "permissions" && renderPermissions()}
+        {activeTab === "users" && renderUsers()}
       </div>
     </div>
   );

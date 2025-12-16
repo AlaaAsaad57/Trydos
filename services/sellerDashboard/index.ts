@@ -5,7 +5,7 @@ class SellerDashboardService {
   async getShopes() {
     try {
       let res = await fetchData({
-        url: `/shop/user/permissions`,
+        url: `/shop/auth/permissions`,
         method: "GET",
         server: "market",
         reqTitle: REQUESTS_DATA.GET_SHOPES_FOR_SELLER,
@@ -15,10 +15,11 @@ class SellerDashboardService {
       throw error;
     }
   }
+
   async getSellerProducts(sellerId: string, page: number = 1) {
     try {
       let res = await fetchData({
-        url: `/shop/get-user-seller-products/${sellerId}${
+        url: `/shop/product/${sellerId}/get-list${
           page > 1 ? `?page=${page}` : ""
         }`,
         method: "GET",
@@ -35,7 +36,7 @@ class SellerDashboardService {
   async getSellerBoutiques(sellerId: string) {
     try {
       let res = await fetchData({
-        url: `/shop/get-user-seller-boutiques/${sellerId}`,
+        url: `/shop/boutique/${sellerId}/get-list`,
         method: "GET",
         server: "market-dashboard",
         reqTitle: REQUESTS_DATA.GET_SELLER_BOUTIQUES,
@@ -49,10 +50,37 @@ class SellerDashboardService {
   async getSellerPermissions(sellerId: string) {
     try {
       let res = await fetchData({
-        url: `/shop/user/permissions`,
+        url: `/shop/auth/permissions`,
         method: "GET",
         server: "market",
         reqTitle: REQUESTS_DATA.GET_SELLER_PERMISSIONS,
+      });
+      return res;
+    } catch (error) {
+      throw error;
+    }
+  }
+  async getRoles() {
+    try {
+      let res = await fetchData({
+        url: `/shop/user/roles`,
+        method: "GET",
+        server: "market-dashboard",
+        reqTitle: REQUESTS_DATA.GET_SHOP_ROLES,
+      });
+      return res;
+    } catch (error) {
+      throw error;
+    }
+  }
+  async addUserToShop(data: { phone: string; role_id: number; seller_id: number }) {
+    try {
+      let res = await fetchData({
+        url: `/shop/user/add`,
+        method: "POST",
+        server: "market-dashboard",
+        reqTitle: REQUESTS_DATA.ADD_USER_TO_SHOP,
+        body: JSON.stringify(data),
       });
       return res;
     } catch (error) {
