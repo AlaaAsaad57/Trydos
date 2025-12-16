@@ -44,7 +44,11 @@ function InfiniteScrollFilters({
     sizes: [],
     prices: [],
   });
-
+  const baseUrlOfFiltersPage = () => {
+    if (isFeatured) return `/featured`;
+    if (isFlashDeals) return "/flashDeals";
+    return "/filters";
+  };
   const { filters: filterParamsVar } = PageParams;
   const getNextFilters = async () => {
     try {
@@ -117,6 +121,7 @@ function InfiniteScrollFilters({
     if (term === "categories")
       return data?.categories?.map((s, i) => (
         <FilterItem
+          baseUrlOfFiltersPage={baseUrlOfFiltersPage()}
           currency={currency}
           item={s}
           params={params}
@@ -129,6 +134,7 @@ function InfiniteScrollFilters({
     if (term === "brands")
       return data?.brands?.map((s, i) => (
         <FilterItem
+          baseUrlOfFiltersPage={baseUrlOfFiltersPage()}
           currency={currency}
           item={s}
           params={params}
@@ -141,6 +147,7 @@ function InfiniteScrollFilters({
     if (term === "colors")
       return data?.colors?.map((s, i) => (
         <FilterItem
+          baseUrlOfFiltersPage={baseUrlOfFiltersPage()}
           currency={currency}
           item={s}
           params={params}
@@ -153,6 +160,7 @@ function InfiniteScrollFilters({
     if (term === "sizes")
       return data?.sizes?.map((s, i) => (
         <FilterItem
+          baseUrlOfFiltersPage={baseUrlOfFiltersPage()}
           currency={currency}
           item={s}
           params={params}
@@ -165,6 +173,7 @@ function InfiniteScrollFilters({
     if (term === "prices")
       return data?.prices?.map((s, i) => (
         <FilterItem
+          baseUrlOfFiltersPage={baseUrlOfFiltersPage()}
           currency={currency}
           item={s}
           params={params}
