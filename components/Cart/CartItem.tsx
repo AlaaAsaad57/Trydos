@@ -33,7 +33,7 @@ function CartItem({ product, index }) {
       <div
         className={`${
           isRtl ? "flex-row-reverse" : "flex-row"
-        }  w-[110px] min-h-[161px] max-h-[161px] relative`}
+        }  w-[110px] h-[160px] relative`}
         data-cy="container-image-onCard"
       >
         {product.flash_deal_details?.end_date && (

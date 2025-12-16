@@ -86,10 +86,10 @@ function OldCartContainer() {
               <div className="flex-col w-full">
                 {[1, 1].map((s, key) => (
                   <div
-                    className="flex-row w-full relative  min-h-[161px] bg-[#FEFEFE] mt-3 rounded-2xl overflow-hidden shadow-[0px_3px_10px_rgba(0,0,0,0.1)]"
+                    className="flex-row w-full relative  min-h-[191px] bg-[#FEFEFE] mt-3 rounded-2xl overflow-hidden shadow-[0px_3px_10px_rgba(0,0,0,0.1)]"
                     key={key}
                   >
-                    <div className="flex-row w-[110px] min-h-[161px] relative">
+                    <div className="flex-row w-[116px] min-h-[191px] relative">
                       <Skeleton width={110} height={"100%"} borderRadius={15} />
                     </div>
                     <div className="flex-col mt-4 ml-5">
@@ -192,6 +192,7 @@ function OldCartContainer() {
             data-cy="oldProduct-card"
           >
             <CartItemLink
+              normalHeight="208px"
               product={product}
               key={key}
               // onClick={(e) => {
@@ -199,7 +200,7 @@ function OldCartContainer() {
               //   close();
               // }}
             >
-              <div className="flex-row w-[110px] min-h-[161px] max-h-[161px] relative">
+              <div className="flex-row w-[116px] h-auto rounded-[15px] max-h-[160px]  relative">
                 <img
                   src={getConfiguredImage({
                     height: 150,
@@ -208,7 +209,7 @@ function OldCartContainer() {
                   })}
                   width={110}
                   height={"100%"}
-                  className="rounded-2xl opacity-50"
+                  className="rounded-[15px] opacity-50"
                 />
               </div>
               <div

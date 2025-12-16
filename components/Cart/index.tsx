@@ -380,10 +380,10 @@ function CartContainer({ close, toOrders }: CartContainerPropsType) {
                   <div className="flex-col w-full">
                     {[1, 1].map((s, key) => (
                       <div
-                        className="flex-row w-full relative  min-h-[161px] bg-[#FEFEFE] mt-3 rounded-2xl overflow-hidden shadow-[0px_3px_10px_rgba(0,0,0,0.1)]"
+                        className="flex-row w-full relative  min-h-[191px] h-[191px] bg-[#FEFEFE] mt-3 rounded-2xl overflow-hidden shadow-[0px_3px_10px_rgba(0,0,0,0.1)]"
                         key={key}
                       >
-                        <div className="flex-row w-[110px] min-h-[161px] relative">
+                        <div className="flex-row w-[110px] min-h-[191px] relative">
                           <Skeleton
                             width={110}
                             height={"100%"}
@@ -861,7 +861,7 @@ export const QuantutyInput = ({
     </div>
   );
 };
-export const CartItemLink = ({ product, children }) => {
+export const CartItemLink = ({ normalHeight = "191px", product, children }) => {
   const params = useParams();
   const { enableCart, language } = useAppStore();
   const router = useRouter();
@@ -921,11 +921,15 @@ export const CartItemLink = ({ product, children }) => {
       <div
         className={`${
           isRtl ? "flex-row-reverse" : "flex-row"
-        } mt-2 w-full relative  ${
-          product.have_hurry_up_notify || true
-            ? "min-h-[230px]"
-            : "min-h-[161px]"
-        } bg-[#FEFEFE] cursor-pointer rounded-2xl overflow-hidden shadow-[0px_3px_10px_rgba(0,0,0,0.1)]`}
+        } mt-2 w-full relative  bg-[#FEFEFE] cursor-pointer rounded-2xl overflow-hidden shadow-[0px_3px_10px_rgba(0,0,0,0.1)]`}
+        style={{
+          height: normalHeight,
+          minHeight:
+            product.have_hurry_up_notify ||
+            product?.have_hurry_up_notify_time_left
+              ? "230px"
+              : `${normalHeight}`,
+        }}
         onClick={(e) => {
           const newParams = new URLSearchParams();
           if (
@@ -955,13 +959,17 @@ export const CartItemLink = ({ product, children }) => {
         href={getProductCartUrl(product).href}
         data={getProductCartUrl(product).data}
         ariaLabel={`Cart Product ${product.slug} ${params.lang}`}
-        className={` mt-2 w-full relative ${
+        className={` mt-2  w-full relative ${
           isRtl ? "flex-row-reverse" : "flex-row"
-        }  ${
-          product.have_hurry_up_notify || true
-            ? "min-h-[230px]"
-            : "min-h-[161px]"
         } bg-[#FEFEFE] rounded-2xl overflow-hidden shadow-[0px_3px_10px_rgba(0,0,0,0.1)]`}
+        style={{
+          height: normalHeight,
+          minHeight:
+            product.have_hurry_up_notify ||
+            product?.have_hurry_up_notify_time_left
+              ? "230px"
+              : `${normalHeight}`,
+        }}
         onClick={(e) => {
           EnableScroll();
           enableCart(false);
