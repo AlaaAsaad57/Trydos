@@ -1114,6 +1114,8 @@ const translations = {
   camera: "Kamera",
   files: "Dosyalar",
   "Terms Of Change Address": " Adres Değişikliği Şartları",
+  "You cannot send messages or calls to this user":
+    "Bu kullanıcıya mesaj veya arama gönderemezsiniz",
   Block: "Engelle",
   UnBlock: "Engeli kaldır",
   "Delete Chat": "Sohbeti sil",

@@ -35,8 +35,11 @@ function ChatInfo({
   makeVideoCall,
   enableSearch,
 }) {
-  const { deleteChat, language } = useAppStore();
+  const { deleteChat, language, updateChannelBlockStatus } = useAppStore();
   const ref = useRef();
+  const otherUserId = activeChat?.channel_members?.filter(
+    (user) => String(user.user_id) !== String(getUser()?.id)
+  )?.[0]?.user?.id;
   const handleCopyPhone = async (phoneNumber) => {
     try {
       if (typeof navigator !== "undefined") {
@@ -89,43 +92,66 @@ function ChatInfo({
   }
   const [isBlocked, setIsBlocked] = useState(false);
   const [loading, setLoading] = useState(false);
+  useEffect(() => {
+    if (
+      activeChat?.channel_members?.find((s) => s.user_id !== getUser()?.id)
+        ?.is_blocked === 1
+    ) {
+      setIsBlocked(true);
+    } else {
+      setIsBlocked(false);
+    }
+  }, []);
+  const updateBlockedState = (blocked) => {
+    if (!activeChat?.id || !otherUserId) return;
+
+    updateChannelBlockStatus({
+      channelId: activeChat.id,
+      userId: otherUserId,
+      isBlocked: blocked,
+    });
+  };
   const BlockUser = async () => {
     try {
+      if (!otherUserId) return;
       setLoading(true);
-      await fetchData({
-        url: `/api/v1/users/block/${
-          activeChat?.channel_members.filter(
-            (user) => String(user.user_id) !== String(getUser()?.id)
-          )[0]?.user?.id
-        }`,
+      const response = await fetchData({
+        url: `/api/v1/users/block/${otherUserId}`,
         server: "chat",
         method: "POST",
         reqTitle: REQUESTS_DATA.BLOCK_USER,
         body: "",
       });
+      if (response?.success === false) {
+        throw new Error(response?.message || "Block request failed");
+      }
       setIsBlocked(true);
-      setLoading(false);
+      updateBlockedState(true);
     } catch (error) {
+      console.log(error);
+    } finally {
       setLoading(false);
     }
   };
   const UnBlockUser = async () => {
     try {
+      if (!otherUserId) return;
       setLoading(true);
-      await fetchData({
-        url: `/api/v1/users/unblock/${
-          activeChat?.channel_members.filter(
-            (user) => String(user.user_id) !== String(getUser()?.id)
-          )[0]?.user?.id
-        }`,
+      const response = await fetchData({
+        url: `/api/v1/users/unblock/${otherUserId}`,
         server: "chat",
         method: "POST",
         reqTitle: REQUESTS_DATA.UNBLOCK_USER,
         body: "",
       });
+      if (response?.success === false) {
+        throw new Error(response?.message || "Unblock request failed");
+      }
       setIsBlocked(false);
-      setLoading(false);
+      updateBlockedState(false);
     } catch (error) {
+      console.log(error);
+    } finally {
       setLoading(false);
     }
   };
@@ -324,8 +350,9 @@ function ChatInfo({
             <div
               className="chat-user-option"
               onClick={() => {
+                if (loading) return;
                 if (isBlocked) UnBlockUser();
-                else BlockUser;
+                else BlockUser();
               }}
             >
               {loading ? (

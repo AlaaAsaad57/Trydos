@@ -1259,6 +1259,52 @@ export const useChatStore = (set, get) => ({
     }
   },
 
+  updateChannelBlockStatus: (payload: {
+    channelId: number | string;
+    userId: number | string;
+    isBlocked: boolean;
+  }) => {
+    const state = get();
+    const { channelId, userId, isBlocked } = payload;
+
+    if (channelId === undefined || userId === undefined) {
+      return;
+    }
+
+    const channelKey = channelId.toString();
+    const userKey = userId.toString();
+
+    const updateMembers = (chat: any) => {
+      if (!chat || !chat.channel_members) {
+        return chat;
+      }
+
+      return {
+        ...chat,
+        channel_members: chat.channel_members.map((member: any) =>
+          member && member.user_id?.toString() === userKey
+            ? { ...member, is_blocked: isBlocked ? 1 : 0 }
+            : member
+        ),
+      };
+    };
+
+    const data = state.data.map((chat) =>
+      chat && chat.id?.toString() === channelKey ? updateMembers(chat) : chat
+    );
+
+    const activeChat =
+      state.activeChat && state.activeChat.id?.toString() === channelKey
+        ? updateMembers(state.activeChat)
+        : state.activeChat;
+
+    const newChats = state.newChats.map((chat) =>
+      chat && chat.id?.toString() === channelKey ? updateMembers(chat) : chat
+    );
+
+    set({ data, activeChat, newChats });
+  },
+
   setUnreadChat: (payload: any) => {
     const state = get();
     let arr = [];

@@ -1168,6 +1168,8 @@ const translations = {
   UnBlock: "لابردنی بلۆک",
   "Delete Chat": "سڕینەوەی چات",
   "Save To Gallery": "پاشەکەوتکردن بۆ گالەری",
+  "You cannot send messages or calls to this user":
+    "ناتوانیت بۆ ئەم بەکارهێنەرە پەیام یان پەیوەندی بفرێیت",
   Never: "هەرگیز",
   "Media & Files": "میدیا و پەڕگەکان",
   Search: "گەڕان",
