@@ -427,16 +427,18 @@ export class ElasticsearchReader {
           [];
 
         const origMap: Record<string, any> = {};
+
         for (const b of origBuckets) {
-          const hit = b.orig_category_details?.hits?.hits?.[0]?._source ?? {};
-          const id = hit.categories?.id ?? hit.id;
-          if (id) {
-            origMap[id] = {
-              num_available_product: hit.categories?.num_available_product ?? 0,
-              most_viewed_product_thumbnail:
-                hit.categories?.most_viewed_product_thumbnail ?? null,
-            };
-          }
+          const src = b.orig_category_details?.hits?.hits?.[0]?._source ?? {};
+
+          const cat = src;
+          if (!cat?.id) continue;
+
+          origMap[cat.id] = {
+            num_available_product: cat.num_available_product ?? 0,
+            most_viewed_product_thumbnail:
+              cat.most_viewed_product_thumbnail ?? null,
+          };
         }
 
         const catBuckets =
@@ -477,7 +479,11 @@ export class ElasticsearchReader {
               hitData.custom_categories?.position || hitData.position || 0,
             boutique_id: bid,
             most_viewed_product_thumbnail:
-              orig.most_viewed_product_thumbnail ?? thumbHit.thumbnail ?? null,
+              origMap[catId] &&
+              origMap[catId].most_viewed_product_thumbnail !== null
+                ? origMap[catId].most_viewed_product_thumbnail
+                : thumbHit.thumbnail ?? null,
+
             most_viewed_product_name: thumbHit.name ?? null,
           });
         }
@@ -503,17 +509,16 @@ export class ElasticsearchReader {
         if (cat.position === 0) {
           item.flat_photo_path = cat.flat_photo_path;
           grouped[bid].main.push(item);
+        } else if (cat.position === 1) {
+          grouped[bid].child.push(item);
         }
-        // else if (cat.position === 1) {
-        //   grouped[bid].child.push(item);
-        // }
       }
 
       // === Merge into boutiques (same as PHP) ===
       for (const boutique of customProducts) {
         const bid = boutique.boutique_id;
         boutique.mainCategoriesForProductIds = grouped[bid]?.main || [];
-        // boutique.childCategoriesForProductIds = grouped[bid]?.child || [];
+        boutique.childCategoriesForProductIds = grouped[bid]?.child || [];
       }
 
       // === Filter banners (same as PHP) ===
