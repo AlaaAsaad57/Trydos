@@ -237,12 +237,16 @@ function ReturnOrderItemConfirmation({
           </div>
           {
             <div
-              className={`w-full h-[50px] mt-[31px] items-center justify-center  flex cursor-pointer ${"bg-[#a79cfa] "} rounded-[15px] text-[16px] text-[#575757] medium`}
+              className={`w-full h-[50px] mt-[31px] items-center justify-center  flex cursor-pointer ${
+                !active
+                  ? "bg-[#D3D3D3] text-[#fff]"
+                  : "bg-[#84afff] text-[#fff]"
+              } rounded-[15px] text-[16px]  medium`}
               style={{
                 border: "1px solid #F8F8F880",
               }}
               onClick={() => {
-                if (loading) return;
+                if (loading || !active) return;
                 ReturnRequest(false);
               }}
             >
