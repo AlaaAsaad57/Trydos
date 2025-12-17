@@ -117,7 +117,6 @@ interface SearchFilters {
   categories?: string[];
   brands?: string[];
   boutiques?: string[];
-  sellerId?: string;
   colors?: string[];
   sizes?: string[];
   search_text?: string;
@@ -760,19 +759,7 @@ export function buildBaseConditions(filters: SearchFilters, country: string) {
   }
 
   // Add seller conditions
-  if (filters.sellerId) {
-    mustConditions.push({
-      bool: {
-        should: [
-          {
-            bool: {
-              must: [{ term: { added_by: "seller" } }],
-            },
-          },
-        ],
-      },
-    });
-  } else {
+  {
     mustConditions.push({
       bool: {
         should: [

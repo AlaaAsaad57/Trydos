@@ -19,7 +19,7 @@ interface SearchFilters {
   brands?: string[];
   boutiques?: string[];
   colors?: string[];
-  sellerId?: string;
+
   sizes?: string[];
   search_text?: string;
   priceRange?: number[];
@@ -250,25 +250,7 @@ export async function getProductsAndFiltersFromElastic(
     const customProducts: any[] = [];
     let lastSortValue: any[] = search_after;
     let response;
-    if (filters.sellerId) {
-      searchQuery.query.bool.must.push({
-        nested: {
-          path: "boutique", // The name of the nested field (the array)
-          query: {
-            bool: {
-              must: [
-                {
-                  // Use 'term' for the exact match on the nested sub-field
-                  term: {
-                    "boutique.seller_id": filters?.sellerId, // Reference the field as 'path.subfield'
-                  },
-                },
-              ],
-            },
-          },
-        },
-      });
-    }
+
     response = await client.search(searchQuery);
 
     const hits = response.hits.hits as ElasticsearchHit[];

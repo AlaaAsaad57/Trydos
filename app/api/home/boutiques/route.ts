@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get("limit") || "10");
     const offset = searchParams.get("offset") || null;
     let category_slug = searchParams.get("category_slugs") || undefined;
-    let sellerId = searchParams.get("sellerId") || undefined;
+
     if (typeof category_slug === "string") {
       let categorySlg = JSON.parse(category_slug);
       if (Array.isArray(categorySlg) && categorySlg.length > 0) {
@@ -53,7 +53,6 @@ export async function GET(request: NextRequest) {
       limit,
       category: category_slug as any,
       searchAfter: offset ? JSON.parse(offset.toString()) : null,
-      sellerId: sellerId,
     });
 
     // Check if response exists

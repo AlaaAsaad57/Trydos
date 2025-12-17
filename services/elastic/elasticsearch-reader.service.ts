@@ -345,6 +345,7 @@ export class ElasticsearchReader {
                               aggs: {
                                 top_category_hit: {
                                   top_hits: {
+                                    size: 1,
                                     _source: {
                                       includes: [
                                         "custom_categories.category_id",
@@ -356,7 +357,6 @@ export class ElasticsearchReader {
                                         "custom_categories.flat_photo_path",
                                       ],
                                     },
-                                    size: 1,
                                   },
                                 },
                                 to_product: {
@@ -384,7 +384,10 @@ export class ElasticsearchReader {
                       nested: { path: "categories" },
                       aggs: {
                         orig_categories_by_id: {
-                          terms: { field: "categories.id", size: 10000 },
+                          terms: {
+                            field: "categories.id",
+                            size: 10000,
+                          },
                           aggs: {
                             orig_category_details: {
                               top_hits: {
@@ -392,6 +395,7 @@ export class ElasticsearchReader {
                                 _source: [
                                   "categories.id",
                                   "categories.num_available_product",
+                                  "categories.most_viewed_product_thumbnail",
                                 ],
                               },
                             },
@@ -416,6 +420,25 @@ export class ElasticsearchReader {
 
       for (const boutiqueBucket of boutiqueBuckets) {
         const bid = boutiqueBucket.key;
+
+        // === PHP origMap equivalent ===
+        const origBuckets =
+          boutiqueBucket.top_orig_categories?.orig_categories_by_id?.buckets ??
+          [];
+
+        const origMap: Record<string, any> = {};
+        for (const b of origBuckets) {
+          const hit = b.orig_category_details?.hits?.hits?.[0]?._source ?? {};
+          const id = hit.categories?.id ?? hit.id;
+          if (id) {
+            origMap[id] = {
+              num_available_product: hit.categories?.num_available_product ?? 0,
+              most_viewed_product_thumbnail:
+                hit.categories?.most_viewed_product_thumbnail ?? null,
+            };
+          }
+        }
+
         const catBuckets =
           boutiqueBucket.custom_categories_nested?.by_language?.by_category_id
             ?.buckets ?? [];
@@ -428,38 +451,46 @@ export class ElasticsearchReader {
             {};
           const catId = bucket.key;
 
+          const orig = origMap[catId] ?? {
+            num_available_product: 0,
+            most_viewed_product_thumbnail: null,
+          };
+
           categories.push({
             category_id:
               hitData.custom_categories?.category_id ||
               hitData.category_id ||
               catId,
-            id: hitData.custom_categories?.id || hitData.id,
-            slug: hitData.custom_categories?.slug || hitData.slug,
-            name: hitData.custom_categories?.name || hitData.name,
+            id: hitData.custom_categories?.id || hitData.id || null,
+            slug: hitData.custom_categories?.slug || hitData.slug || null,
+            name: hitData.custom_categories?.name || hitData.name || null,
             language_code:
               hitData.custom_categories?.language_code ||
               hitData.language_code ||
               language,
             flat_photo_path:
               hitData.custom_categories?.flat_photo_path ||
-              hitData.flat_photo_path,
-            num_available_product: 0, // optional: could integrate orig category stats if needed
+              hitData.flat_photo_path ||
+              null,
+            num_available_product: orig.num_available_product,
             position:
               hitData.custom_categories?.position || hitData.position || 0,
             boutique_id: bid,
-            most_viewed_product_thumbnail: thumbHit.thumbnail || null,
-            most_viewed_product_name: thumbHit.name || null,
+            most_viewed_product_thumbnail:
+              orig.most_viewed_product_thumbnail ?? thumbHit.thumbnail ?? null,
+            most_viewed_product_name: thumbHit.name ?? null,
           });
         }
       }
 
-      // Group categories by boutique
+      // === Grouping (same as PHP) ===
       const grouped: Record<string, { main: any[]; child: any[] }> = {};
+
       for (const cat of categories) {
         const bid = cat.boutique_id;
         if (!grouped[bid]) grouped[bid] = { main: [], child: [] };
 
-        const item = {
+        const item: any = {
           id: cat.category_id,
           slug: cat.slug,
           name: cat.name,
@@ -470,143 +501,22 @@ export class ElasticsearchReader {
         };
 
         if (cat.position === 0) {
-          item["flat_photo_path"] = cat.flat_photo_path;
+          item.flat_photo_path = cat.flat_photo_path;
           grouped[bid].main.push(item);
-        } else if (cat.position === 1) {
-          grouped[bid].child.push(item);
         }
+        // else if (cat.position === 1) {
+        //   grouped[bid].child.push(item);
+        // }
       }
 
-      // Merge categories into boutiques
+      // === Merge into boutiques (same as PHP) ===
       for (const boutique of customProducts) {
         const bid = boutique.boutique_id;
         boutique.mainCategoriesForProductIds = grouped[bid]?.main || [];
         // boutique.childCategoriesForProductIds = grouped[bid]?.child || [];
       }
 
-      // Fetch top products for boutiques missing enough categories
-      const boutiquesNeedingProducts = customProducts
-        .filter((boutique) => {
-          const categoriesLength =
-            boutique.mainCategoriesForProductIds?.length ?? 0;
-          return categoriesLength <= 1;
-        })
-        .map((boutique) => boutique.boutique_id)
-        .filter((id) => id !== null && id !== undefined);
-
-      const uniqueBoutiquesNeedingProducts = [
-        ...new Set(boutiquesNeedingProducts),
-      ];
-
-      if (uniqueBoutiquesNeedingProducts.length > 0) {
-        const productsQuery: any = {
-          index: "products_catalog",
-          body: {
-            size: 0,
-            query: {
-              bool: {
-                must: [
-                  ...must,
-                  { terms: { boutique_id: uniqueBoutiquesNeedingProducts } },
-                ],
-                must_not,
-              },
-            },
-            aggs: {
-              products_by_boutique: {
-                terms: {
-                  field: "boutique_id",
-                  size: uniqueBoutiquesNeedingProducts.length,
-                },
-                aggs: {
-                  top_products: {
-                    top_hits: {
-                      size: 6,
-                      sort: [{ id: { order: "asc" } }],
-                      _source: {
-                        includes: [
-                          "id",
-                          "custom_products.slug",
-                          "custom_products.name",
-                          "custom_products.language_code",
-                          "thumbnail",
-                          "boutique_id",
-                        ],
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-        };
-
-        const productsResponse = await this.client.search(productsQuery);
-
-        const productBuckets =
-          ((productsResponse.aggregations as any)?.products_by_boutique
-            ?.buckets as any[]) ?? [];
-
-        const fallbackProductsByBoutique: Record<string, any[]> = {};
-
-        for (const bucket of productBuckets) {
-          const bucketKey = bucket.key?.toString?.() ?? `${bucket.key}`;
-          const hits = bucket.top_products?.hits?.hits ?? [];
-          fallbackProductsByBoutique[bucketKey] = hits
-            .map((hit: any) => hit?._source ?? null)
-            .filter(Boolean)
-            .map((product: any) => {
-              const customProductEntries = Array.isArray(
-                product.custom_products
-              )
-                ? product.custom_products
-                : [];
-
-              const localizedCustomProduct =
-                customProductEntries.find(
-                  (entry: any) => entry.language_code === language
-                ) ??
-                customProductEntries.find(
-                  (entry: any) => entry.language_code === "en"
-                ) ??
-                customProductEntries[0] ??
-                null;
-
-              const fallbackSlug =
-                localizedCustomProduct?.slug ?? product.slug ?? null;
-              const fallbackName =
-                localizedCustomProduct?.name ?? product.name ?? null;
-
-              return {
-                id: product.id,
-                slug: fallbackSlug,
-                name: fallbackName,
-                language_code: language,
-                most_viewed_product_name: fallbackName,
-                most_viewed_product_thumbnail: product.thumbnail || null,
-                num_available_product: 0,
-                is_product: true,
-                is_product_url: true,
-              };
-            });
-        }
-
-        for (const boutique of customProducts) {
-          const key =
-            boutique.boutique_id?.toString?.() ?? `${boutique.boutique_id}`;
-          const categoriesLength =
-            boutique.mainCategoriesForProductIds?.length ?? 0;
-          if (
-            categoriesLength <= 1 &&
-            fallbackProductsByBoutique[key]?.length
-          ) {
-            boutique.mainCategoriesForProductIds =
-              fallbackProductsByBoutique[key];
-          }
-        }
-      }
-
-      // Filter banners
+      // === Filter banners (same as PHP) ===
       for (const boutique of customProducts) {
         for (const cb of boutique.custom_boutiques) {
           if (cb.banners) {
@@ -617,18 +527,17 @@ export class ElasticsearchReader {
         }
       }
 
-      // Final result mapping
+      // === Final mapping (same as PHP) ===
       let final = customProducts.map((boutique) => {
         const cb = boutique.custom_boutiques[0] || {};
         return {
           boutique_id: boutique.boutique_id,
           id: cb.id,
-          name: cb.name || null,
-          slug: cb.slug || null,
-          description: cb.description || null,
-          position: boutique?.boutique_position ?? cb.boutique_position,
-          icon: cb.icon || null,
-          banners: cb.banners || null,
+          name: cb.name ?? null,
+          slug: cb.slug ?? null,
+          description: cb.description ?? null,
+          icon: cb.icon ?? null,
+          banners: cb.banners ?? null,
           mainCategoriesForProductIds:
             boutique.mainCategoriesForProductIds ?? [],
           childCategoriesForProductIds: [],
