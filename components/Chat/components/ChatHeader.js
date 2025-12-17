@@ -148,7 +148,7 @@ function ChatHeader({
             />
           </div>
         )}
-        {activeChat && activeChat.channel_members && (
+        {!isBlockedEachOther && activeChat && activeChat.channel_members && (
           <div
             className={`${
               isRtl ? "mr-[11px] ml-0" : "ml-[11px]"
