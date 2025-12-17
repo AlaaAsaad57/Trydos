@@ -148,15 +148,16 @@ function ChatHeader({
             />
           </div>
         )}
-        {!isBlockedEachOther && activeChat && activeChat.channel_members && (
+        {activeChat && activeChat.channel_members && (
           <div
             className={`${
               isRtl ? "mr-[11px] ml-0" : "ml-[11px]"
             } user-name-top-chat`}
           >
-            {(activeChat.status || activeChat.activeDate) && (
-              <div className="user-status">{getStatues()}</div>
-            )}
+            {!isBlockedEachOther &&
+              (activeChat.status || activeChat.activeDate) && (
+                <div className="user-status">{getStatues()}</div>
+              )}
             {(activeChat.channel_members &&
               activeChat.channel_members.filter(
                 (a) => parseInt(a.user_id) !== parseInt(getUserChat()?.id)
