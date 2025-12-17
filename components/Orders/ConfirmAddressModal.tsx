@@ -63,6 +63,9 @@ function ConfirmAddressModal({
                 confirmationData?.currentAddress?.region_details
               )}
             </div>
+            <div className="flex-row regular text-[12px]">
+              {(confirmationData?.currentAddress as any)?.address_detail}
+            </div>
             <div className="flex-row mt-[5px] items-center regular text-[12px] text-[#D3D3D3]">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -103,6 +106,7 @@ function ConfirmAddressModal({
               <div className="flex-row mx-[4px]   items-center regular text-[12px] text-[#D3D3D3]">
                 {confirmationData?.currentAddress?.contact_info?.phone}
               </div>
+
               <div className="flex-row mx-[17px]  items-center">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -196,6 +200,9 @@ function ConfirmAddressModal({
             </div>
             <div className="flex-row mt-[5px]  items-center regular text-[12px] text-[#FFFFFF]">
               {GetAddressString(confirmationData?.newAddress?.region_details)}
+            </div>
+            <div className="flex-row regular text-[12px]">
+              {(confirmationData?.newAddress as any)?.address_detail}
             </div>
             <div className="flex-row mt-[5px] items-center regular text-[12px] text-[#FFFFFF]">
               <svg

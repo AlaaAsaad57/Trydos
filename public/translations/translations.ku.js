@@ -375,6 +375,7 @@ const translations = {
   "Uploading Profile Photo …": "دابەزینی وێنەی پرۆفایل…",
   "Remove Photo": "وێنە بسڕە",
   "Choose From Library": "هەڵبژێرە لە فایلەکانم",
+  "Shared a product": " بەرهەمێک هاوکرد",
   "take photo": "وێنە بەڕووی بگرە",
   Address: "ناونیشان",
   "Bank Cards": "کارتە بانکیەکان",
@@ -1165,6 +1166,8 @@ const translations = {
   camera: "کامێرا",
   files: "فایلەکان",
   "Terms Of Change Address": " مەرجەکانی گۆڕینی ناونیشان",
+  "Confirm Return Request": "پشتڕاستکردنەوەی داواکاریی گەڕاندنەوە",
+  "Cancel Return Request": "ڕەتکردنەوەی داواکاریی گەڕاندنەوە",
 };
 
 export default translations;

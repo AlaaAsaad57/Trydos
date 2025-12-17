@@ -1117,6 +1117,9 @@ const translations = {
   "Copy Invite": " Davetiyeyi Kopyala",
   "Choose how to send the invitation":
     " Davetiyeyi nasıl göndereceğinizi seçin",
+  "Shared a product": " Bir ürün paylaştı",
+  "Confirm Return Request": " İade Talebini Onayla",
+  "Cancel Return Request": "İade Talebini İptal Et",
 };
 
 export default translations;

@@ -662,7 +662,9 @@ class ForegroundNotificationHandler {
                     messageFiles[0]?.file_path || messageFiles[0]?.url;
                   messagePreview = translateFunction("Sent an image");
                 } else if (messageContent?.content) {
-                  messagePreview = messageContent?.content;
+                  if (messageType?.includes("ShareProduct")) {
+                    messagePreview = translateFunction("Shared a product");
+                  } else messagePreview = messageContent?.content;
                   // Truncate long messages
                   if (messagePreview.length > 100) {
                     messagePreview = messagePreview?.substring(0, 100) + "...";
@@ -675,17 +677,19 @@ class ForegroundNotificationHandler {
 
                 // Show chat notification
                 let { chatVar } = useAppStore.getState();
-                if (!chatVar)
-                  showChatNotification(
-                    senderName,
-                    messagePreview,
-                    channel?.id || messageData?.channel_id,
-                    channel,
-                    senderPhoto,
-                    messageImage,
-                    messageType,
-                    5000
-                  );
+                if (String(getUserChat()?.id) !== String(senderUser?.id)) {
+                  if (!chatVar)
+                    showChatNotification(
+                      senderName,
+                      messagePreview,
+                      channel?.id || messageData?.channel_id,
+                      channel,
+                      senderPhoto,
+                      messageImage,
+                      messageType,
+                      5000
+                    );
+                }
               }
             }
             resolve(payload);
@@ -723,7 +727,9 @@ class ForegroundNotificationHandler {
                     messageFiles[0]?.file_path || messageFiles[0]?.url;
                   messagePreview = translateFunction("Sent an image");
                 } else if (messageContent?.content) {
-                  messagePreview = messageContent?.content;
+                  if (messageType?.includes("ShareProduct")) {
+                    messagePreview = translateFunction("Shared a product");
+                  } else messagePreview = messageContent?.content;
                   // Truncate long messages
                   if (messagePreview.length > 100) {
                     messagePreview = messagePreview?.substring(0, 100) + "...";
@@ -736,17 +742,19 @@ class ForegroundNotificationHandler {
 
                 // Show chat notification
                 let { chatVar } = useAppStore.getState();
-                if (!chatVar)
-                  showChatNotification(
-                    senderName,
-                    messagePreview,
-                    channel?.id || messageData?.channel_id,
-                    channel,
-                    senderPhoto,
-                    messageImage,
-                    messageType,
-                    5000
-                  );
+                if (String(getUserChat()?.id) !== String(senderUser?.id)) {
+                  if (!chatVar)
+                    showChatNotification(
+                      senderName,
+                      messagePreview,
+                      channel?.id || messageData?.channel_id,
+                      channel,
+                      senderPhoto,
+                      messageImage,
+                      messageType,
+                      5000
+                    );
+                }
               }
             }
             chat.getChats(true);

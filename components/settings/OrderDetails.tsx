@@ -1064,22 +1064,6 @@ const OrderExpandedDetails = ({
         </div>
       </div>
       <div className="flex-col w-full mt-[12px] pb-[50px] items-center justify-center">
-        {shouldShowConfirmReturn() && (
-          <div
-            className={` underline h-[30px] mt-[31px] items-center justify-center  flex cursor-pointer bg-[#fff]  rounded-[15px] text-[12px] text-green-500 medium`}
-            onClick={() => {
-              // confirmOrderReturn();
-              setShouldConfirmReturn(true);
-              setOrderOptions(true);
-            }}
-          >
-            {cancelling ? (
-              <Spinner />
-            ) : (
-              translateFunction("Confirm Returning Items")
-            )}
-          </div>
-        )}
         {shouldShowCancelReturn() &&
           // order.edit_return_request &&
           (cancelling ? (
@@ -1095,9 +1079,25 @@ const OrderExpandedDetails = ({
                 CancelReturnRequest();
               }}
             >
-              {translateFunction("Cancel All Return Requests")}
+              {translateFunction("Cancel Return Request")}
             </div>
           ))}
+        {shouldShowConfirmReturn() && (
+          <div
+            className={` underline h-[30px] mt-[31px] items-center justify-center  flex cursor-pointer bg-[#fff]  rounded-[15px] text-[12px] text-green-500 medium`}
+            onClick={() => {
+              // confirmOrderReturn();
+              setShouldConfirmReturn(true);
+              setOrderOptions(true);
+            }}
+          >
+            {cancelling ? (
+              <Spinner />
+            ) : (
+              translateFunction("Confirm Return Request")
+            )}
+          </div>
+        )}
         {order.details.map((Product) => (
           <ProductCard
             getProductUrl={(e) => getProductUrl(e)}

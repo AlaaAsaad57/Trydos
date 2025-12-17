@@ -500,6 +500,15 @@ export const fetchData = async <T = any>(
         const [country, lang] = (
           window.location.pathname.split("/")[1] || ""
         ).split("-");
+        if (
+          (url.includes("cart/update") ||
+            reqTitle.reqTitle.includes("Add to cart widget") ||
+            reqTitle.reqTitle.includes("cart widget") ||
+            reqTitle.reqTitle.includes("apply coupon")) &&
+          status === 200
+        ) {
+          return { ...(responseData || {}), success: false };
+        }
         LogError(errorObj);
         ReportError(err, {
           source: "fetchData",
