@@ -11,22 +11,7 @@ const AboutIcon = (props: React.SVGProps<SVGSVGElement>) => (
     viewBox="0 0 25 25"
     {...props}
   >
-    <defs>
-      <clipPath id="clip-path">
-        <rect
-          id="Rectangle_4609"
-          data-name="Rectangle 4609"
-          width="25"
-          height="25"
-          fill="none"
-        />
-      </clipPath>
-    </defs>
-    <g
-      id="Mask_Group_675"
-      data-name="Mask Group 675"
-      clipPath="url(#clip-path)"
-    >
+    <g id="Mask_Group_675" data-name="Mask Group 675">
       <g id="multimedia" transform="translate(-0.508 -0.508)">
         <path
           id="Path_22926"

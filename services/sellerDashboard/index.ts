@@ -2,13 +2,14 @@ import { fetchData } from "utils/fetchData";
 import { REQUESTS_DATA } from "utils/Requests";
 
 class SellerDashboardService {
-  async getShopes() {
+  async getShopes(noMessage = false) {
     try {
       let res = await fetchData({
         url: `/shop/user/permissions`,
         method: "GET",
         server: "market",
         reqTitle: REQUESTS_DATA.GET_SHOPES_FOR_SELLER,
+        noMessage,
       });
       return res;
     } catch (error) {

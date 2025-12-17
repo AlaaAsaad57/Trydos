@@ -1312,6 +1312,13 @@ const ProductCard = ({
                 ...product,
                 return_status: ActivePacks?.return_details?.details?.status,
               }}
+              price={RoundPrice({
+                num:
+                  (product?.price_after_discount / product?.qty) *
+                  product?.return?.return_request_product_quantity,
+                language: language,
+                returnNumber: true,
+              })}
               callback={() => {
                 getOrderDetails();
               }}

@@ -11,22 +11,7 @@ const ShareAppIcon = (props: React.SVGProps<SVGSVGElement>) => (
     viewBox="0 0 25 25"
     {...props}
   >
-    <defs>
-      <clipPath id="clip-path">
-        <rect
-          id="Rectangle_4609"
-          data-name="Rectangle 4609"
-          width="25"
-          height="25"
-          fill="none"
-        />
-      </clipPath>
-    </defs>
-    <g
-      id="Mask_Group_672"
-      data-name="Mask Group 672"
-      clipPath="url(#clip-path)"
-    >
+    <g id="Mask_Group_672" data-name="Mask Group 672">
       <path
         id="share-9"
         d="M6.244,8.325a4.163,4.163,0,1,0,3.214,6.8l5.6,3.733a4.165,4.165,0,1,0,.462-.693l-5.6-3.733a4.143,4.143,0,0,0,0-3.9l5.6-3.733a4.174,4.174,0,1,0-.462-.693l-5.6,3.733A4.156,4.156,0,0,0,6.244,8.325Zm12.488,9.158a3.33,3.33,0,1,1-3.33,3.33,3.33,3.33,0,0,1,3.33-3.33Zm0-16.651a3.33,3.33,0,1,1-3.33,3.33,3.33,3.33,0,0,1,3.33-3.33ZM6.244,15.818a3.33,3.33,0,1,1,3.33-3.33,3.33,3.33,0,0,1-3.33,3.33Z"

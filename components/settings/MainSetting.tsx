@@ -23,8 +23,9 @@ import {
 } from "models/componentType/settingTypes/MainSettingPropsType";
 import { fetchOrders } from "services/orders";
 import SettingsLoader from "components/skeleton/loaders/SettingsLoader";
+import GoToSellerDashBoard from "./GoToSellerDashBoard";
 
-function MainSetting({ swipeToScreen }: MainSettingPropsType) {
+function MainSetting({ swipeToScreen, userCookiesData }: MainSettingPropsType) {
   const options = [
     {
       name: "Settings",
@@ -80,7 +81,7 @@ function MainSetting({ swipeToScreen }: MainSettingPropsType) {
   };
   const isRtl = language === "ar" || language === "ku";
   const router = useRouter();
-  if (!userProfile) return <SettingsLoader />;
+  // if (!userProfile) return <SettingsLoader />;
   const BackBar = () => {
     const [hasHistory, setHasHistory] = useState(false);
     const [loading, setLoading] = useState(false);
@@ -117,10 +118,12 @@ function MainSetting({ swipeToScreen }: MainSettingPropsType) {
     <div className="flex-col w-full pt-[20px] px-[12px]">
       <BackBar />
       <ProfileCard
+        userCookiesData={userCookiesData}
         goToProfile={() => swipeToScreen(1)}
         goToProfilePicture={() => swipeToScreen(2)}
         goToProfileSize={() => swipeToScreen(4)}
       />
+      <GoToSellerDashBoard language={language} />
       <div
         className={`${
           isRtl ? "flex-row-reverse" : "flex-row"

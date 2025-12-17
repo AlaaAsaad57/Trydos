@@ -1168,6 +1168,7 @@ const translations = {
   "Terms Of Change Address": " مەرجەکانی گۆڕینی ناونیشان",
   "Confirm Return Request": "پشتڕاستکردنەوەی داواکاریی گەڕاندنەوە",
   "Cancel Return Request": "ڕەتکردنەوەی داواکاریی گەڕاندنەوە",
+  "Go to Seller Dashboard": "بڕۆ بۆ داشبۆردی فرۆشکار",
 };
 
 export default translations;

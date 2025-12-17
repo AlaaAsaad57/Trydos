@@ -11,22 +11,7 @@ const SettingsIcon = (props: React.SVGProps<SVGSVGElement>) => (
     viewBox="0 0 25 25"
     {...props}
   >
-    <defs>
-      <clipPath id="clip-path">
-        <rect
-          id="Rectangle_4609"
-          data-name="Rectangle 4609"
-          width="25"
-          height="25"
-          fill="none"
-        />
-      </clipPath>
-    </defs>
-    <g
-      id="Mask_Group_674"
-      data-name="Mask Group 674"
-      clipPath="url(#clip-path)"
-    >
+    <g id="Mask_Group_674" data-name="Mask Group 674">
       <g id="equalizer-2" transform="translate(-0.722 -0.723)">
         <path
           id="Path_22911"

@@ -3,7 +3,8 @@ export const runtime = "nodejs";
 // export const revalidate = parseInt(process.env.NEXT_PUBLIC_REVALIDATE);
 // export const preferredRegion = process.env.PREFERRED_REGION || "bom1";
 import Settings from "components/settings";
-import React from "react";
+import { cookies } from "next/headers";
+import { COOKIE_NAMES } from "utils/cookies/cookie-manager";
 import { LogServerError } from "utils/serverErrorReporter";
 export async function generateMetadata({ params }) {
   let Params = await params;
@@ -31,10 +32,24 @@ async function page({ params, searchParams }) {
   // Server component to render JSON-LD structured data
   let order_id = SearchParams?.id;
   let tab = SearchParams?.tab;
+  let cookiesStore = await cookies();
+  let userCookiesData = cookiesStore.get(COOKIE_NAMES.USER_DATA)?.value || "{}";
+  let userDataParsed = {};
+  try {
+    userDataParsed = JSON.parse(decodeURIComponent(userCookiesData));
+  } catch (err) {
+    userDataParsed = {};
+  }
+
   try {
     return (
       <>
-        <Settings order_id={order_id} tab={tab} lang={Params.lang} />
+        <Settings
+          userCookiesData={userDataParsed}
+          order_id={order_id}
+          tab={tab}
+          lang={Params.lang}
+        />
       </>
     );
   } catch (error) {

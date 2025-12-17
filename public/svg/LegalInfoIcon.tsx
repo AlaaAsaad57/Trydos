@@ -11,22 +11,7 @@ const LegalInfoIcon = (props: React.SVGProps<SVGSVGElement>) => (
     viewBox="0 0 25 25"
     {...props}
   >
-    <defs>
-      <clipPath id="clip-path">
-        <rect
-          id="Rectangle_4609"
-          data-name="Rectangle 4609"
-          width="25"
-          height="25"
-          fill="none"
-        />
-      </clipPath>
-    </defs>
-    <g
-      id="Mask_Group_671"
-      data-name="Mask Group 671"
-      clipPath="url(#clip-path)"
-    >
+    <g id="Mask_Group_671" data-name="Mask Group 671">
       <g id="info-5" transform="translate(-0.3 -0.299)">
         <path
           id="Path_22908"

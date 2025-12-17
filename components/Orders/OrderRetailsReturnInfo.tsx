@@ -12,10 +12,12 @@ function OrderRetailsReturnInfo({
   product,
   return_request_id,
   callback,
+  price,
 }: {
   product: OrderDetail;
   return_request_id: number;
   callback: () => void;
+  price: number | string;
 }) {
   const [expanded, setExpanded] = useState(true);
   const [loading, setLoading] = useState(false);
@@ -31,41 +33,35 @@ function OrderRetailsReturnInfo({
   const status = [
     {
       index: 1,
-      label: null,
-      title: "Product Return Needs Confirm",
-      desc: "You Need To Confirm Your Request",
-    },
-    {
-      index: 2,
       label: "pending",
       title: "Product Return Has Been Requested",
       desc: "Product Return Request Approve",
     },
     {
-      index: 3,
+      index: 2,
       label: "approved",
       title: "Product Return Request Approved",
       desc: "Product Collection Within 1 Day",
     },
     {
-      index: 4,
+      index: 3,
       label: "out_for_return",
       title: "Out For Return",
       desc: "Out For Return",
     },
     {
-      index: 5,
+      index: 4,
       label: "returned_to_location",
       title: "Product Has Been Returned Successfully",
+      desc: `${price} ${translateFunction("Back To Your Wallet")}`,
     },
     {
-      index: 6,
+      index: 5,
       label: "resolved",
       title: "Product Has Been Resolved Successfully",
-      desc: "",
     },
-    { index: 7, label: "cancelled", title: "Return Request Canceled" },
-    { index: 8, label: "rejected", title: "Return Request Rejected" },
+    { index: 6, label: "cancelled", title: "Return Request Canceled" },
+    { index: 7, label: "rejected", title: "Return Request Rejected" },
   ];
 
   const isRtl = language === "ar" || language === "ku";
@@ -110,7 +106,7 @@ function OrderRetailsReturnInfo({
         }`}
       >
         {status
-          .filter((s) => s.index <= 5) // process flow statuses only
+          .filter((s) => s.index <= 4) // process flow statuses only
           .map((s, idx) => {
             const completed = s.index < (currentStatus?.index || 0);
             const active = isActive(s.index);

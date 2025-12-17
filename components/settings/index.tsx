@@ -26,7 +26,12 @@ import { EnableScroll } from "utils/tinyUtils";
 import WalletTransactions from "./WalletTransactions";
 import SettingsScreen from "./SettingsScreen";
 
-function Settings({ lang, order_id, tab }: SettingsIndexPropsType) {
+function Settings({
+  lang,
+  order_id,
+  tab,
+  userCookiesData,
+}: SettingsIndexPropsType) {
   const {
     setIsActiveAddress,
     userProfile,
@@ -62,7 +67,10 @@ function Settings({ lang, order_id, tab }: SettingsIndexPropsType) {
       id: "main",
       title: "main setting",
       component: () => (
-        <MainSetting swipeToScreen={(index: number) => swipeToScreen(index)} />
+        <MainSetting
+          swipeToScreen={(index: number) => swipeToScreen(index)}
+          userCookiesData={userCookiesData}
+        />
       ),
       parentId: null,
     },

@@ -106,7 +106,8 @@ function ReturnOrderItem({
           <span className="bold text-[12px] text-[#8D8D8D] ml-[4px]">
             {RoundPrice({
               num:
-                (item?.price_after_discount || item.price) / returnedQty -
+                ((item?.price_after_discount || item.price) / item.qty) *
+                  returnedQty -
                 (selectedOptions?.is_cost_by_system === 0
                   ? selectedOptions.cost
                   : 0),

@@ -1120,6 +1120,7 @@ const translations = {
   "Shared a product": " Bir ürün paylaştı",
   "Confirm Return Request": " İade Talebini Onayla",
   "Cancel Return Request": "İade Talebini İptal Et",
+  "Go to Seller Dashboard": " Satıcı Kontrol Paneline Git",
 };
 
 export default translations;

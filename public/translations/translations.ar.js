@@ -68,7 +68,7 @@ const translations = {
   "FAQ Buyer & Seller": "الأسئلة الشائعة بين المشتري والبائع",
   Dear: "عزيزي",
   "Sizes Available": "المقاسات المتوفرة",
-  "Out For Return": "قيد الارجاع",
+  "Out For Return": "خارج للإرجاع",
   "Buyers Reviews On Product Sizing": "مراجعات المشترين حول مقاسات المنتج",
   Translate: "ترجمة",
   "Show Original": "عرض النسخة الأصلية",
@@ -82,7 +82,7 @@ const translations = {
   "Product Return Needs Confirm": "طلب إرجاع المنتج يحتاج إلى تأكيد",
   "You Need To Confirm Your Request": "تحتاج إلى تأكيد طلبك",
   "Product Return Request Approved": "تمت الموافقة على طلب إرجاع المنتج",
-  "Product Collection Within 1 Day": "سيتم استلام المنتج خلال يوم واحد",
+  "Product Collection Within 1 Day": "سيتم استلام المنتج خلال 1 يوم ",
   "Product Has Been Returned Successfully": "تم إرجاع المنتج بنجاح",
   "Back To Your Wallet": "سترجع لمحفظتك",
   "Product Has Been Resolved Successfully": "تم حل مشكلة المنتج بنجاح",
@@ -1124,11 +1124,12 @@ const translations = {
     "تم الوصول إلى الحد الأقصى للكمية المسموح بها",
   "I Agree & Return": "أوافق وأرجع",
   "Delay Confirmation. I want to Return more product":
-    "تأجيل التأكيد. أريد إرجاع المزيد من المنتجات",
+    "تأجيل. أرغب في إرجاع المزيد من المنتجات",
   "chosse an image or video from camera or files":
     "اختر صورة أو فيديو من الكاميرا أو الملفات",
   camera: "الكاميرا",
   files: "الملفات",
+  "Go to Seller Dashboard": "الذهاب إلى لوحة تحكم المورد",
 };
 
 export default translations;

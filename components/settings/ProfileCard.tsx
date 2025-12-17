@@ -10,10 +10,14 @@ function ProfileCard({
   goToProfile,
   goToProfileSize,
   goToProfilePicture,
+  userCookiesData,
 }: ProfileCardPropsType) {
+  console.log("userCookiesData in profile card:", userCookiesData);
   const { userProfile, language } = useAppStore();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const isRtl = language === "ar" || language === "ku";
+
+  const SafeUserProfile = userProfile ?? userCookiesData ?? {};
   return (
     <>
       <div
@@ -38,16 +42,16 @@ function ProfileCard({
           >
             <div className="flex-col mt-[5px]">
               <span className="medium text-[#1D1D1D] text-[14px]">
-                {userProfile?.name}
+                {SafeUserProfile?.name}
               </span>
               <span className="regular text-[#8D8D8D] text-[12px] mt-[2px]">
-                + {userProfile?.phone?.replace("+", "")}
+                + {SafeUserProfile?.phone?.replace("+", "")}
               </span>
             </div>
             <div
               className="flex-col items-center cursor-pointer justify-center h-full self-navigate"
               onClick={() => {
-                if (userProfile?.is_phone_verified === 0) {
+                if (SafeUserProfile?.is_phone_verified === 0) {
                   setIsModalOpen(true);
                 }
               }}
@@ -90,7 +94,9 @@ function ProfileCard({
                     d="M15.332,7.332A.667.667,0,0,0,14.665,8a6.668,6.668,0,1,1-1.936-4.7.667.667,0,1,0,.945-.94A8,8,0,1,0,16,8a.667.667,0,0,0-.667-.667Z"
                     transform="translate(37.438 62.538)"
                     fill={
-                      userProfile?.is_phone_verified === 1 ? "#4cff79" : "none"
+                      SafeUserProfile?.is_phone_verified === 1
+                        ? "#4cff79"
+                        : "none"
                     }
                     stroke="#707070"
                     strokeWidth="0.4"
@@ -99,12 +105,12 @@ function ProfileCard({
               </svg>
               <span
                 className={`text-[10px] regular ${
-                  userProfile?.is_phone_verified === 1
+                  SafeUserProfile?.is_phone_verified === 1
                     ? "text-[#1d1d1d]"
                     : "text-[#FF5F61] cursor-pointer"
                 } mt-[4px]`}
               >
-                {userProfile?.is_phone_verified === 1
+                {SafeUserProfile?.is_phone_verified === 1
                   ? translateFunction("Verified")
                   : translateFunction("Verify Now")}
               </span>
@@ -124,10 +130,10 @@ function ProfileCard({
           }}
           onClick={() => goToProfilePicture()}
         >
-          {userProfile?.image ? (
+          {SafeUserProfile?.image ? (
             <img
               className="w-full h-full rounded-[12px] object-cover"
-              src={GetImageUrl(userProfile?.image)}
+              src={GetImageUrl(SafeUserProfile?.image)}
               alt="user"
             />
           ) : (

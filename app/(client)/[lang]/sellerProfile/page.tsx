@@ -21,7 +21,7 @@ function Page() {
     try {
       setLoading(true);
       let res = await SellerDashboardService.getShopes();
-      console.log(res);
+
       setShopes(res.data || []);
     } catch (error) {
     } finally {
