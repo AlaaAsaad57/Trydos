@@ -22,6 +22,10 @@ interface SellerProfileContextType {
   >;
   sellerProducts?: any[];
   setSellerProducts?: React.Dispatch<React.SetStateAction<any[]>>;
+  sellerBoutiques?: any[];
+  setSellerBoutiques?: React.Dispatch<React.SetStateAction<any[]>>;
+  sellerPermissions?: string[];
+  setSellerPermissions?: React.Dispatch<React.SetStateAction<string[]>>;
 }
 
 const SellerProfileContext = createContext<
@@ -46,6 +50,8 @@ export const SellerProfileProvider: React.FC<{ children: React.ReactNode }> = ({
   const [loading, setLoading] = useState(false);
   const [shopes, setShopes] = useState<any[]>([]);
   const [sellerProducts, setSellerProducts] = useState<any[]>([]);
+  const [sellerBoutiques, setSellerBoutiques] = useState<any[]>([]);
+  const [sellerPermissions, setSellerPermissions] = useState<string[]>([]);
   return (
     <SellerProfileContext.Provider
       value={{
@@ -57,6 +63,10 @@ export const SellerProfileProvider: React.FC<{ children: React.ReactNode }> = ({
         setShopes,
         sellerProducts,
         setSellerProducts,
+        sellerBoutiques,
+        setSellerBoutiques,
+        sellerPermissions,
+        setSellerPermissions,
       }}
     >
       {children}
