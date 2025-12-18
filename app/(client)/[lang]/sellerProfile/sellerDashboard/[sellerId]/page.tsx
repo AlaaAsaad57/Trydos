@@ -114,7 +114,7 @@ function SellerDashBoard() {
     try {
       setLoading(true);
       setError(null);
-      const res = await SellerDashboardService.getRoles();
+      const res = await SellerDashboardService.getRoles(sellerId);
       const rolesData = res.data || [];
       setRoles(Array.isArray(rolesData) ? rolesData : []);
     } catch (error: any) {
@@ -140,7 +140,7 @@ function SellerDashBoard() {
       const res = await SellerDashboardService.addUserToShop({
         phone: addUserForm.phone,
         role_id: parseInt(addUserForm.role_id as string),
-        seller_id: addUserForm.seller_id,
+        seller_id: sellerId,
       });
 
       if (res.success || res.isSuccessful) {

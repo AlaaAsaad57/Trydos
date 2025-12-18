@@ -54,26 +54,28 @@ class SellerDashboardService {
         method: "GET",
         server: "market",
         reqTitle: REQUESTS_DATA.GET_SELLER_PERMISSIONS,
+        sellerId
       });
       return res;
     } catch (error) {
       throw error;
     }
   }
-  async getRoles() {
+  async getRoles(sellerId: string) {
     try {
       let res = await fetchData({
         url: `/shop/user/roles`,
         method: "GET",
         server: "market-dashboard",
         reqTitle: REQUESTS_DATA.GET_SHOP_ROLES,
+        sellerId
       });
       return res;
     } catch (error) {
       throw error;
     }
   }
-  async addUserToShop(data: { phone: string; role_id: number; seller_id: number }) {
+  async addUserToShop(data: { phone: string; role_id: number; seller_id: string }) {
     try {
       let res = await fetchData({
         url: `/shop/user/add`,
@@ -81,6 +83,7 @@ class SellerDashboardService {
         server: "market-dashboard",
         reqTitle: REQUESTS_DATA.ADD_USER_TO_SHOP,
         body: JSON.stringify(data),
+        sellerId: data.seller_id
       });
       return res;
     } catch (error) {
