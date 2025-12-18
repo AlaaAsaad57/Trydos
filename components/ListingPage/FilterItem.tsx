@@ -1,4 +1,3 @@
-"use client";
 import NextLink from "components/global/NextLink";
 import React from "react";
 import {
@@ -11,19 +10,7 @@ import {
 import ActiveCategoryIcon from "public/svg/listing/ActiveCategoryIcon";
 import Image from "next/image";
 import { getConfiguredImage, RoundPrice } from "utils/functions";
-import { GAevent } from "utils/gtag";
-import { GA_EVENT_NAMES, GA_GLOBAL_SCREEN } from "utils/GAEvents";
-import auth from "services/auth";
-const Send_Filter_Event = ({ type, value }) => {
-  GAevent({
-    action: GA_EVENT_NAMES.APPLY_FILTER,
-    params: {
-      user_id_custom: auth.UserID(),
-      filter_type: type,
-      filter_value: value,
-    },
-  });
-};
+
 export const FilterItem = ({
   term,
   item,
@@ -96,9 +83,6 @@ export const FilterItem = ({
           data={{
             is_filter: true,
             href: href,
-          }}
-          onClick={() => {
-            Send_Filter_Event({ type: "category", value: item.name });
           }}
           ariaLabel={`filter category ${item.slug} ${params.lang}`}
           href={href}
@@ -173,9 +157,6 @@ export const FilterItem = ({
                     data={{
                       is_filter: true,
                       href: getSubCategoryUrl(s.slug)?.href,
-                    }}
-                    onClick={() => {
-                      Send_Filter_Event({ type: "category", value: s.name });
                     }}
                     href={getSubCategoryUrl(s.slug)?.href}
                     className={`sub-circle`}
@@ -270,18 +251,6 @@ export const FilterItem = ({
                             <NextLink
                               ignoreConditionCase={true}
                               key={sub_s.slug}
-                              data={{
-                                is_filter: true,
-
-                                href: getSubCategoryUrl(sub_s.slug, s.slug)
-                                  ?.href,
-                              }}
-                              onClick={() => {
-                                Send_Filter_Event({
-                                  type: "category",
-                                  value: sub_s.name,
-                                });
-                              }}
                               href={getSubCategoryUrl(sub_s.slug, s.slug)?.href}
                               className="sub-circle w-[40px] h-[40px]"
                               style={{
@@ -386,9 +355,6 @@ export const FilterItem = ({
           href: href,
         }}
         href={href}
-        onClick={() => {
-          Send_Filter_Event({ type: "brand", value: item.name });
-        }}
         ariaLabel={`filter brand ${item.slug} ${params.lang}`}
         className={`category-circle flex-col align-center ${
           true && "extended-circle"
@@ -452,9 +418,6 @@ export const FilterItem = ({
 
           href: href,
         }}
-        onClick={() => {
-          Send_Filter_Event({ type: "color", value: item });
-        }}
         href={href}
         ariaLabel={`filter color ${item} ${params.lang}`}
         className={`category-circle flex-col align-center extended-circle`}
@@ -514,9 +477,6 @@ export const FilterItem = ({
         ariaLabel={`filter size ${item} ${params.lang}`}
         className={`category-circle flex-col align-center extended-circle`}
         data-cy="size_filter_item"
-        onClick={() => {
-          Send_Filter_Event({ type: "size", value: item });
-        }}
       >
         <div className="relative w-[70px] h-[70px]">
           {isFiltered && (
@@ -578,12 +538,6 @@ export const FilterItem = ({
           is_filter: true,
 
           href: href,
-        }}
-        onClick={() => {
-          Send_Filter_Event({
-            type: "price",
-            value: `${item.min_price}-${item.max_price}`,
-          });
         }}
         href={href}
         ariaLabel={`filter price ${item.min_price}-${item.max_price} ${params.lang}`}

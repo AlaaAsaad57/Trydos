@@ -1,6 +1,6 @@
 import ActiveCategoryIcon from "public/svg/listing/ActiveCategoryIcon";
 import Image from "next/image";
-import React from "react";
+
 import NextLink from "components/global/NextLink";
 import { GetImageUrl } from "utils/tinyUtils";
 import { CategoryNavMobileProps } from "models/componentType/HomePagePropsType";

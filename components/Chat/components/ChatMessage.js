@@ -32,6 +32,7 @@ import ChatPhoto from "./ChatPhoto";
 
 import { getUser } from "../chatsFunctions";
 import { GetImageUrl } from "utils/tinyUtils";
+import { isSamePage } from "utils/navigationsUtils";
 // Add a helper to sanitize IDs
 const getSafeId = (id) => {
   if (!id) return "";
@@ -468,6 +469,12 @@ function ChatMessage(props) {
                         .product_slug
                     }`,
                   }}
+                  sameHref={isSamePage(
+                    `/products/${
+                      JSON.parse(props.message.message_content.content)[0]
+                        .product_slug
+                    }`
+                  )}
                   href={`/products/${
                     JSON.parse(props.message.message_content.content)[0]
                       .product_slug
@@ -1549,6 +1556,12 @@ function ChatMessage(props) {
                     JSON.parse(props.message.message_content.content)[0]
                       .product_slug
                   }`}
+                  sameHref={isSamePage(
+                    `/products/${
+                      JSON.parse(props.message.message_content.content)[0]
+                        .product_slug
+                    }`
+                  )}
                   prefetch
                 >
                   {translateFunction("View Product")}

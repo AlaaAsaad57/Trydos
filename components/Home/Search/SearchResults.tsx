@@ -51,10 +51,6 @@ function SearchResults() {
   const isRtl = languageVariable === "ar" || languageVariable === "ku";
 
   const apply = () => {
-    // Sendevent({
-    //   event: GA_EVENT_NAMES.CLICK,
-    //   value: GA_CLICK_EVENT_VALUES.APPLY_HOME_SEARCH_RESULT_BUTTON,
-    // });
     onClickSearchHistory(value || "");
   };
   useEffect(() => {
@@ -89,6 +85,9 @@ function SearchResults() {
           });
         });
     }
+    return () => {
+      apply();
+    };
   }, [searchResults]);
   const reset = () => {
     // Sendevent({
@@ -146,6 +145,7 @@ function SearchResults() {
       ResetFunction();
     }
   }, [resetLoadingMore]);
+
   return (
     <div
       className="search-results-container flex-col"
@@ -350,10 +350,6 @@ function SearchResults() {
                 aria-disabled={partialLoading || loading_search}
                 className="w-full h-10 p-2 cursor-pointer flex bg-[#ff5549] text-[#fff] justify-center items-center rounded-xl"
                 data-cy="apply-filters-search"
-                onClick={() => {
-                  setEnableSearch(false);
-                  apply();
-                }}
               >
                 {translateFunction("Search")}{" "}
                 {partialLoading || loading_search ? (

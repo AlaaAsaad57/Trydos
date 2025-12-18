@@ -42,13 +42,9 @@ function ProductBackButton({ lang, productId }) {
       >
         <NextLink
           ignoreConditionCase={true}
-          suppressHydrationWarning
           data-cy="backIcon_productPage"
           {...getHref()}
           className={`back-icon flex-row`}
-          onClick={() => {
-            localStorage.removeItem("last-page");
-          }}
         >
           <BackIcon className={`${isRtl && "rotate-180"}`} />
         </NextLink>
@@ -65,12 +61,8 @@ function ProductBackButton({ lang, productId }) {
       <NextLink
         ignoreConditionCase={true}
         data-cy="backIcon_productPage"
-        suppressHydrationWarning
         {...getHref()}
         className={`back-icon flex-row`}
-        onClick={() => {
-          localStorage.removeItem("last-page");
-        }}
       >
         <BackIcon className={`${isRtl && "rotate-180"}`} />
       </NextLink>

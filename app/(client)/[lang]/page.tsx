@@ -1,5 +1,3 @@
-export const runtime = "nodejs";
-// export const revalidate = parseInt(process.env.NEXT_PUBLIC_REVALIDATE);
 export const dynamic = "force-dynamic";
 import OfferListServer from "components/Server/OfferListServer";
 import StoriesBarServer from "components/Server/StoriesBarServer";
@@ -97,11 +95,12 @@ async function getCurrency(country, language) {
 }
 async function HomePage({ params }) {
   let { lang } = await params;
-
+  const [country, language] = lang.split("-");
+  let currency = await getCurrency(country, language);
   try {
     return (
       <>
-        <Suspense fallback={null}>
+        <Suspense fallback={<></>}>
           {/*@ts-expect-error Async Server Component is valid in Next  */}
           <StructuredDataScript lang={lang} />
         </Suspense>
@@ -124,17 +123,17 @@ async function HomePage({ params }) {
 
         <Suspense fallback={<FeaturedProductsSkeleton lang={lang} />}>
           {/*@ts-expect-error Async Server Component is valid in Next  */}
-          <FeaturedProductWrapper lang={lang} />
+          <FeaturedProductWrapper currency={currency} lang={lang} />
         </Suspense>
         <Suspense fallback={<FeaturedProductsSkeleton lang={lang} />}>
           {/*@ts-expect-error Async Server Component is valid in Next  */}
 
-          <FlashProductWrapper lang={lang} />
+          <FlashProductWrapper currency={currency} lang={lang} />
         </Suspense>
         <Home key={`Home ${lang}`} />
         <Suspense fallback={<OfferListSkeleton />} key={`OfferList ${lang}`}>
           {/*@ts-expect-error Async Server Component is valid in Next  */}
-          <BoutiquesListWrapper params={{ lang: lang }} />
+          <BoutiquesListWrapper currency={currency} params={{ lang: lang }} />
         </Suspense>
       </>
     );
@@ -148,20 +147,17 @@ export default HomePage;
 // Main Categories Bar
 
 // Featured Products
-async function FeaturedProductWrapper({ lang }) {
+async function FeaturedProductWrapper({ lang, currency: currencyData }) {
   const [country, language] = lang?.split("-");
   let start = process.hrtime.bigint();
-  let [currencyData, data] = await Promise.all([
-    getCurrency(country, language),
-    getProductsAndFiltersFromElastic({
-      country: country,
-      language_code: language,
-      filters: {
-        featured: true,
-      },
-      limit: 20,
-    }),
-  ]);
+  let data = await getProductsAndFiltersFromElastic({
+    country: country,
+    language_code: language,
+    filters: {
+      featured: true,
+    },
+    limit: 20,
+  });
   let end = process.hrtime.bigint();
   const redeemed_ids = (await getCookieServer<any[]>("redemed_ids")) ?? [];
   let productsData = data.products.map((product) => {
@@ -238,21 +234,18 @@ async function FeaturedProductWrapper({ lang }) {
   );
 }
 // FlasDeals Products
-async function FlashProductWrapper({ lang }) {
+async function FlashProductWrapper({ lang, currency: currencyData }) {
   const [country, language] = lang?.split("-");
   let start = process.hrtime.bigint();
 
-  let [currencyData, data] = await Promise.all([
-    getCurrency(country, language),
-    getProductsAndFiltersFromElastic({
-      country: country,
-      language_code: language,
-      filters: {
-        flashdeal: true,
-      },
-      limit: 10,
-    }),
-  ]);
+  let data = await getProductsAndFiltersFromElastic({
+    country: country,
+    language_code: language,
+    filters: {
+      flashdeal: true,
+    },
+    limit: 10,
+  });
   let end = process.hrtime.bigint();
   const redeemed_ids = (await getCookieServer<any[]>("redemed_ids")) ?? [];
   let productsData = data.products.map((product) => {
@@ -328,7 +321,7 @@ async function FlashProductWrapper({ lang }) {
   );
 }
 
-async function BoutiquesListWrapper({ params }) {
+async function BoutiquesListWrapper({ params, currency: currencyData }) {
   const [country, language] = params.lang.split("-");
   let start = process.hrtime.bigint();
   let Reader = new ElasticsearchReader();
@@ -351,63 +344,25 @@ async function BoutiquesListWrapper({ params }) {
     >
       <Suspense fallback={<FeaturedProductsSkeleton lang={params.lang} />}>
         {/*@ts-expect-error Async Server Component is valid in Next  */}
-        <RecomendedProductWrapper lang={params.lang} />
+        <RecomendedProductWrapper lang={params.lang} currency={currencyData} />
       </Suspense>
     </OfferListServer>
   );
 }
-async function RecomendedProductWrapper({ lang }): Promise<JSX.Element> {
+async function RecomendedProductWrapper({
+  lang,
+  currency: currencyData,
+}): Promise<JSX.Element> {
   const [country, language] = lang.split("-");
-
   const userId = ((await getCookieServer(COOKIE_NAMES.USER_DATA)) as any)?.id;
-  let [
-    currencyData,
-    data,
-    // featured,
-    // flashdeals
-  ] = await Promise.all([
-    getCurrency(country, language),
-    GetRecomendationsForUser({
-      country: country,
-      language: language,
-      limit: 7,
-      userId: userId,
-      search_after: null,
-    }),
-    // getProductsAndFiltersFromElastic({
-    //   country: country,
-    //   language_code: language,
-    //   filters: {
-    //     featured: true,
-    //   },
-    //   noFilters: true,
-    //   limit: 10,
-    // }),
-    // getProductsAndFiltersFromElastic({
-    //   country: country,
-    //   language_code: language,
-    //   filters: {
-    //     flashdeal: true,
-    //   },
-    //   noFilters: true,
-    //   limit: 10,
-    // }),
-  ]);
-  // let unique_products = data.products.filter((product) => {
-  //   if (
-  //     featured?.products?.find(
-  //       (f_product) => f_product?.product_id === product.product_id
-  //     )
-  //   )
-  //     return false;
-  //   if (
-  //     flashdeals?.products?.find(
-  //       (f_product) => f_product?.product_id === product.product_id
-  //     )
-  //   )
-  //     return false;
-  //   return true;
-  // });
+  let data = await GetRecomendationsForUser({
+    country: country,
+    language: language,
+    limit: 7,
+    userId: userId,
+    search_after: null,
+  });
+
   return (
     <RecomendedProducts
       InitialProducts={data.products}

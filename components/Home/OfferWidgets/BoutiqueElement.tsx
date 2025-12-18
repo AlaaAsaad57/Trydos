@@ -80,11 +80,6 @@ export const BoutiqueContainer = ({ boutique, lang }) => {
         data-cy="boutique_link"
         className="w-full"
         href={`/${lang}/filters/boutiques/${boutique.slug}`}
-        data={{
-          is_boutique: true,
-          ...boutique,
-          href: `/${lang}/filters/boutiques/${boutique.slug}`,
-        }}
       >
         <BoutiqueElement boutique={boutique} />
       </NextLink>

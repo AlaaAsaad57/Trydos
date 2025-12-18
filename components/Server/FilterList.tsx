@@ -17,6 +17,7 @@ import Image from "next/image";
 import { getConfiguredImage, RoundPrice } from "utils/functions";
 import { FilterItemsRowPropsType } from "models/componentType/FilterItemsRowPropsType";
 import FilterItem from "components/ListingPage/FilterItem";
+import FilterItemWrapper from "components/clientWrapper/FilterItemWrapper";
 
 function FilterList({
   parsedFilters,
@@ -681,16 +682,21 @@ const FilterItemsRow = ({
       <div className="category-row-container flex-row" data-cy={getDataCy()}>
         {items &&
           items?.map((item) => (
-            <FilterItem
-              baseUrlOfFiltersPage={baseUrlOfFiltersPage()}
-              params={params}
-              filterParams={filterParams}
-              isUsingParsedFilters={isUsingParsedFilters}
+            <FilterItemWrapper
+              item={{ value: item?.name ?? item, type: term }}
               key={item.id}
-              currency={currency}
-              term={term}
-              item={item}
-            />
+            >
+              <FilterItem
+                baseUrlOfFiltersPage={baseUrlOfFiltersPage()}
+                params={params}
+                filterParams={filterParams}
+                isUsingParsedFilters={isUsingParsedFilters}
+                key={item.id}
+                currency={currency}
+                term={term}
+                item={item}
+              />
+            </FilterItemWrapper>
           ))}
 
         {shouldShowMore() && (

@@ -423,19 +423,23 @@ const StoryViewer = ({
             </a>
           )}
           {product_slug && (
-            <NextLink
-              className="py-2 px-4 text-center flex justify-center light text-[12px] text-[#1d1d1d] bg-slate-50 rounded-md"
-              data={{
-                is_product: true,
-                href: `/${lang}/products/${product_slug}`,
-              }}
-              href={`/${lang}/products/${product_slug}`}
+            <div
+              className="flex"
               onClick={() => {
                 setSelectedStory(null);
               }}
             >
-              {translateFunction("View Product")}
-            </NextLink>
+              <NextLink
+                className="py-2 px-4 text-center flex justify-center light text-[12px] text-[#1d1d1d] bg-slate-50 rounded-md"
+                data={{
+                  is_product: true,
+                  href: `/${lang}/products/${product_slug}`,
+                }}
+                href={`/${lang}/products/${product_slug}`}
+              >
+                {translateFunction("View Product")}
+              </NextLink>
+            </div>
           )}
         </div>
       )}

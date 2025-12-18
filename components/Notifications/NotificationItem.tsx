@@ -108,14 +108,15 @@ const NotificationItem = ({ notification, onClose, closeWindow }) => {
       case "boutique created": {
         const href = `/${lang}/filters/boutiques/${parsedDescription.boutique_slug}`;
         return (
-          <NextLink
-            href={href}
-            ariaLabel={`notification Boutique ${parsedDescription.boutique_slug} ${lang}`}
-            data={{ is_boutique: true, ...parsedDescription, href }}
-            onClick={baseOnClick}
-          >
-            {content}
-          </NextLink>
+          <div className="felx" onClick={baseOnClick}>
+            <NextLink
+              href={href}
+              ariaLabel={`notification Boutique ${parsedDescription.boutique_slug} ${lang}`}
+              data={{ is_boutique: true, ...parsedDescription, href }}
+            >
+              {content}
+            </NextLink>
+          </div>
         );
       }
 
@@ -139,14 +140,15 @@ const NotificationItem = ({ notification, onClose, closeWindow }) => {
         const slug = parsedDescription.product_slug || parsedDescription.slug;
         const href = `/${lang}/products/${slug}`;
         return (
-          <NextLink
-            href={href}
-            ariaLabel={`notification Product ${slug} ${lang}`}
-            data={{ is_product: true, ...parsedDescription, href }}
-            onClick={baseOnClick}
-          >
-            {content}
-          </NextLink>
+          <div className="felx" onClick={baseOnClick}>
+            <NextLink
+              href={href}
+              ariaLabel={`notification Product ${slug} ${lang}`}
+              data={{ is_product: true, ...parsedDescription, href }}
+            >
+              {content}
+            </NextLink>
+          </div>
         );
       }
 
@@ -154,14 +156,15 @@ const NotificationItem = ({ notification, onClose, closeWindow }) => {
         const slug = parsedDescription.category_slug || parsedDescription.slug;
         const href = `/${lang}/filters/categories/${slug}`;
         return (
-          <NextLink
-            href={href}
-            ariaLabel={`notification Category ${slug} ${lang}`}
-            data={{ is_category: true, ...parsedDescription, href }}
-            onClick={baseOnClick}
-          >
-            {content}
-          </NextLink>
+          <div className="felx" onClick={baseOnClick}>
+            <NextLink
+              href={href}
+              ariaLabel={`notification Category ${slug} ${lang}`}
+              data={{ is_category: true, ...parsedDescription, href }}
+            >
+              {content}
+            </NextLink>
+          </div>
         );
       }
 
@@ -173,14 +176,15 @@ const NotificationItem = ({ notification, onClose, closeWindow }) => {
             : ""
         }`;
         return (
-          <NextLink
-            href={href}
-            ariaLabel="notification Order"
-            data={{ is_settings: true, ...parsedDescription, href }}
-            onClick={baseOnClick}
-          >
-            {content}
-          </NextLink>
+          <div className="felx" onClick={baseOnClick}>
+            <NextLink
+              href={href}
+              ariaLabel="notification Order"
+              data={{ is_settings: true, ...parsedDescription, href }}
+            >
+              {content}
+            </NextLink>
+          </div>
         );
       }
 

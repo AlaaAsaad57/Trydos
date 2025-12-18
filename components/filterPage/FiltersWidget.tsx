@@ -476,20 +476,9 @@ function FiltersWidget({ filters, configureActiveFilters }) {
       >
         {showButton() &&
           (totalProducts !== null && totalProducts > 0 ? (
-            <NextLink
-              href={search.getSearchPageUrl({ lang: lang })}
-              data={{
-                is_filter: true,
-                href: search.getSearchPageUrl({ lang: lang }),
-              }}
-              aria-disabled={partialLoading || loading_search}
-              className="w-full h-10 p-2 cursor-pointer flex bg-[#ff5549] text-[#fff] justify-center items-center rounded-xl"
-              data-cy="searchTotalProduct"
+            <div
+              className="w-auto flex"
               onClick={() => {
-                // Sendevent({
-                //   event: GA_EVENT_NAMES.CLICK,
-                //   value: GA_CLICK_EVENT_VALUES.APPLIED_FILTERS_EVENT,
-                // });
                 document?.documentElement?.style?.setProperty(
                   "overflow",
                   "auto"
@@ -498,24 +487,35 @@ function FiltersWidget({ filters, configureActiveFilters }) {
                 resetFilters();
               }}
             >
-              {translateFunction("Search")}{" "}
-              {partialLoading || loading_search ? (
-                <span className="ml-2">
-                  <Spinner className="" />
-                </span>
-              ) : (
-                <>
-                  {totalProducts !== null && (
-                    <span
-                      className="text-[#fafafa] regular ml-2"
-                      data-cy="countAfterFilter"
-                    >
-                      ({translateFunction("Total Products:")} {totalProducts})
-                    </span>
-                  )}
-                </>
-              )}
-            </NextLink>
+              <NextLink
+                href={search.getSearchPageUrl({ lang: lang })}
+                data={{
+                  is_filter: true,
+                  href: search.getSearchPageUrl({ lang: lang }),
+                }}
+                aria-disabled={partialLoading || loading_search}
+                className="w-full h-10 p-2 cursor-pointer flex bg-[#ff5549] text-[#fff] justify-center items-center rounded-xl"
+                data-cy="searchTotalProduct"
+              >
+                {translateFunction("Search")}{" "}
+                {partialLoading || loading_search ? (
+                  <span className="ml-2">
+                    <Spinner className="" />
+                  </span>
+                ) : (
+                  <>
+                    {totalProducts !== null && (
+                      <span
+                        className="text-[#fafafa] regular ml-2"
+                        data-cy="countAfterFilter"
+                      >
+                        ({translateFunction("Total Products:")} {totalProducts})
+                      </span>
+                    )}
+                  </>
+                )}
+              </NextLink>
+            </div>
           ) : (
             <></>
           ))}

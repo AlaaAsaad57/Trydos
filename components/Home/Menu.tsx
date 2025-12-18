@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 
 import { translateFunction } from "utils/functions";
 import NextLink from "components/global/NextLink";
@@ -76,9 +76,6 @@ const MenuItem = ({
         data-cy={dataCy}
         style={style}
         href={href}
-        onClick={() => {
-          if (onClick) onClick();
-        }}
       >
         {icon}
         {children}
@@ -191,14 +188,6 @@ const Menu = ({ user, setMenuOpen }) => {
               href: `/${lang}/setting?tab=main`,
             }}
             href={`/${lang}/setting?tab=main`}
-            onClick={() => {
-              // Sendevent({
-              //   event: GA_EVENT_NAMES.CLICK,
-              //   value: GA_CLICK_EVENT_VALUES.PERSONAL_SETTING,
-              // });
-              setMenuOpen(false);
-              setSettingLastPath(pathname);
-            }}
             icon={
               <MenuIcon>
                 <circle cx="12" cy="12" r="3" />

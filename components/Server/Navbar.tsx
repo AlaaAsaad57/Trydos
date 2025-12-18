@@ -1,6 +1,5 @@
 "use client";
 import MobileNavigationSkeleton from "components/skeleton/MobileNavigation";
-import SearchIcon from "../Home/Search/SearchIcon";
 import CategoryNavMobile from "components/Home/CategoryNavMobile";
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 

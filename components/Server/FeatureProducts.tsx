@@ -1,6 +1,6 @@
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 import NextLink from "components/global/NextLink";
-import React from "react";
+
 import { translateFunction } from "utils/functions";
 import ProductCard from "./ProductCard";
 import DataSourceLogger from "components/global/DataSourceLogger";

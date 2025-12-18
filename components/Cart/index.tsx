@@ -31,6 +31,7 @@ import OldCartContainer from "./OldCartContainer";
 import CartItem from "./CartItem";
 import Image from "next/image";
 import EmptyCart from "./EmptyCart";
+import { isSamePage } from "utils/navigationsUtils";
 
 function CartContainer({ close, toOrders }: CartContainerPropsType) {
   const {
@@ -957,28 +958,32 @@ export const CartItemLink = ({ normalHeight = "191px", product, children }) => {
     );
   } else {
     return (
-      <NextLink
-        href={getProductCartUrl(product).href}
-        data={getProductCartUrl(product).data}
-        ariaLabel={`Cart Product ${product.slug} ${params.lang}`}
-        className={` mt-2  w-full relative ${
-          isRtl ? "flex-row-reverse" : "flex-row"
-        } bg-[#FEFEFE] rounded-2xl overflow-hidden shadow-[0px_3px_10px_rgba(0,0,0,0.1)]`}
-        style={{
-          height: normalHeight,
-          minHeight:
-            product.have_hurry_up_notify ||
-            product?.have_hurry_up_notify_time_left
-              ? "230px"
-              : `${normalHeight}`,
-        }}
+      <div
         onClick={(e) => {
           EnableScroll();
           enableCart(false);
         }}
       >
-        {children}
-      </NextLink>
+        <NextLink
+          sameHref={isSamePage(getProductCartUrl(product).href)}
+          href={getProductCartUrl(product).href}
+          data={getProductCartUrl(product).data}
+          ariaLabel={`Cart Product ${product.slug} ${params.lang}`}
+          className={` mt-2  w-full relative ${
+            isRtl ? "flex-row-reverse" : "flex-row"
+          } bg-[#FEFEFE] rounded-2xl overflow-hidden shadow-[0px_3px_10px_rgba(0,0,0,0.1)]`}
+          style={{
+            height: normalHeight,
+            minHeight:
+              product.have_hurry_up_notify ||
+              product?.have_hurry_up_notify_time_left
+                ? "230px"
+                : `${normalHeight}`,
+          }}
+        >
+          {children}
+        </NextLink>
+      </div>
     );
   }
 };

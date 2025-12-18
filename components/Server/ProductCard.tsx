@@ -164,35 +164,24 @@ function ProductCard({
       >
         <NextLink
           ignoreConditionCase={true}
-          onClick={() => {
-            if (ProductData?.is_redeem) {
-              let text = document.querySelector(
-                `#counter-${product.product_id}`
-              )?.textContent;
-              if (text) text = text.match(/\d+/)[0];
-              if (text?.length)
-                localStorage.setItem(
-                  "counter",
-                  JSON.stringify({
-                    counter: text,
-                    product_id: product?.product_id,
-                  })
-                );
-            }
-            storeCookies();
-          }}
-          data={{
-            is_product: true,
-            ...product,
-            sync_color_images: [
-              activeColor,
-              ...product?.sync_color_images?.filter(
-                (s) => s?.color_name !== activeColor?.color_name
-              ),
-            ],
-            images: product?.images,
-            href: getUrlofProduct(),
-          }}
+          // onClick={() => {
+          //   if (ProductData?.is_redeem) {
+          //     let text = document.querySelector(
+          //       `#counter-${product.product_id}`
+          //     )?.textContent;
+          //     if (text) text = text.match(/\d+/)[0];
+          //     if (text?.length)
+          //       localStorage.setItem(
+          //         "counter",
+          //         JSON.stringify({
+          //           counter: text,
+          //           product_id: product?.product_id,
+          //         })
+          //       );
+          //   }
+          //   storeCookies();
+          // }}
+
           ariaLabel={`go to product ${product.name} ${params.lang}`}
           href={getUrlofProduct()}
           className="product-container  align-center flex-col relative pb-[12px]"

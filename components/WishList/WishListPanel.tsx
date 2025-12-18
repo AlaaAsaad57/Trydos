@@ -356,13 +356,13 @@ const WishListItem = ({ item, handleDeleteItem, close }) => {
     return (
       <div
         key={item.id}
+        onClick={() => {
+          close();
+        }}
         data-cy="wishlist-item"
         className="flex gap-3 p-4 hover:bg-gray-50 border-b border-gray-100 relative"
       >
         <NextLink
-          onClick={() => {
-            close();
-          }}
           data={{
             is_product: true,
             ...item,

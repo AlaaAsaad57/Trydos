@@ -8,6 +8,12 @@ import { GA_MEASUREMENT_ID } from "utils/gtag";
 import PathTracker from "components/PathTracker";
 import SessionChecker from "components/SessionChecker";
 import SessionTimer from "components/Login/SessionTimer";
+import CartProvider from "components/Cart/CartProvider";
+import Init from "components/Home/Init";
+import NotificationsContainer from "components/global/NotificationsContainer";
+import AuthNavContainer from "components/Home/AuthNavContainer";
+import VersionChecker from "components/global/VersionChecker";
+import NavbarClient from "components/Home/NavbarClient";
 export const metadata = {
   title: "TryDos",
   description: "TryDos E-Commerce Website",
@@ -57,17 +63,9 @@ const quicksand_semibold = localFont({
   fallback: ["system-ui", "arial"],
 });
 
-export default async function RootLayout({
-  params,
-  children,
-  loader,
-  cart,
-  nav,
-  init,
-  navauth,
-  notification,
-}) {
+export default async function RootLayout({ params, children }) {
   const { lang } = await params;
+  console.log("🚀 Server layout render:", new Date().toISOString());
   return (
     <html
       className={`
@@ -109,7 +107,6 @@ export default async function RootLayout({
 
       <body className={lang.split("-")[1] === "ar" ? "text-rtl" : ""}>
         <SpeedInsights />
-
         <div className="site-container items-center">
           <div className="home-navbar z-[999999996] duration-[1s] max-w-[1365px] min-h-[98px]  px-[20px] pt-[52px] bg-white flex-row items-start w-full justify-start">
             <a href={`/`} aria-label="TryDos Home" data-cy="NavLogo">
@@ -124,18 +121,18 @@ export default async function RootLayout({
                 />
               </div>
             </a>
-
-            {nav}
+            {/*@ts-expect-error Async Server Component is valid in Next  */}
+            <AuthNavContainer />
           </div>
 
           {children}
         </div>
-        {init}
-        {loader}
-        {navauth}
-        {cart}
-        {notification}
+        <Init />
 
+        <VersionChecker />
+        <NavbarClient />
+        <CartProvider />
+        <NotificationsContainer />
         <PathTracker />
         <SessionChecker />
         <SessionTimer />

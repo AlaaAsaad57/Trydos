@@ -8,6 +8,7 @@ import NextLink from "components/global/NextLink";
 import { CheckBoxElementPropsType } from "models/componentType/CheckBoxElementPropsType";
 import { PlaceOrderButtonsPropsType } from "models/componentType/PlaceOrderButtonsPropsType";
 import { showErrorNotification } from "@/store/notifications/reducer";
+import { isSamePage } from "utils/navigationsUtils";
 
 function PlaceOrderButtons({
   orderLoading,
@@ -230,13 +231,8 @@ function PlaceOrderButtons({
           </div>
         )}
         {orderData.success && (
-          <NextLink
-            href={`/${lang}`}
-            data-cy="back-to-home-page"
-            data={{
-              is_full_home: true,
-              href: `/${lang}`,
-            }}
+          <div
+            className="flex w-full"
             onClick={() => {
               setOrderData({
                 payment: [],
@@ -248,23 +244,33 @@ function PlaceOrderButtons({
                 data: [],
               });
               initCart({ cart: [] });
-
               setCouponDiscount(null);
               close();
               return;
             }}
-            className={`w-full text-center  justify-center cursor-pointer flex-col items-center h-[70px]
-             bg-[#1D1D1D] text-[#FEFEFE] text-[18px] medium rounded-[20px]`}
           >
-            <span>{translateFunction("Done")}</span>
-            <span
-              className={`text-[#FEFEFE] text-[14px] medium ${
-                LocalizationServiceClass.GetAppLanguage() === "ar" && "dir-rtl"
-              } `}
+            <NextLink
+              sameHref={isSamePage(`/${lang}`)}
+              href={`/${lang}`}
+              data-cy="back-to-home-page"
+              data={{
+                is_full_home: true,
+                href: `/${lang}`,
+              }}
+              className={`w-full text-center  justify-center cursor-pointer flex-col items-center h-[70px]
+             bg-[#1D1D1D] text-[#FEFEFE] text-[18px] medium rounded-[20px]`}
             >
-              {translateFunction("Back To HomePage")}
-            </span>
-          </NextLink>
+              <span>{translateFunction("Done")}</span>
+              <span
+                className={`text-[#FEFEFE] text-[14px] medium ${
+                  LocalizationServiceClass.GetAppLanguage() === "ar" &&
+                  "dir-rtl"
+                } `}
+              >
+                {translateFunction("Back To HomePage")}
+              </span>
+            </NextLink>
+          </div>
         )}
       </div>
     </div>

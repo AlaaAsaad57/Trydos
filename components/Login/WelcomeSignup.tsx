@@ -67,7 +67,12 @@ function WelcomeSignup({ stepIndicator, Name, signStep, close }: Props) {
             language
           )}
         </div>
-        <div className="login-button-group">
+        <div
+          className="login-button-group"
+          onClick={() => {
+            setLoginOpen(false);
+          }}
+        >
           <NextLink
             data={{
               is_settings: true,
@@ -77,9 +82,6 @@ function WelcomeSignup({ stepIndicator, Name, signStep, close }: Props) {
             href={`/${lang}/setting?tab=Profile`}
             className="login-button"
             data-cy="Complate-Close"
-            onClick={() => {
-              setLoginOpen(false);
-            }}
             style={{
               position: "relative",
               backgroundColor: "#F4FFF4",
