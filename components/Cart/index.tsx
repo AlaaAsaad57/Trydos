@@ -799,7 +799,9 @@ export const QuantutyInput = ({
                       </svg>
                     </div>
                     <div
-                      className="product-new-price text-[18px] bold"
+                      className={`${
+                        (product as any)?.is_redeem && "text-[#FF6200]"
+                      } product-new-price text-[18px] bold`}
                       data-cy="new-price"
                     >
                       {RoundPrice({

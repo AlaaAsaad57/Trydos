@@ -1130,6 +1130,8 @@ const translations = {
   camera: "الكاميرا",
   files: "الملفات",
   "Go to Seller Dashboard": "الذهاب إلى لوحة تحكم المورد",
+  "Product is Shared Successfully": "تمت مشاركة المنتج بنجاح",
+  "Product Share error": "خطأ في مشاركة المنتج",
 };
 
 export default translations;

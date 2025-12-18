@@ -76,7 +76,9 @@ class ChatService {
         throw new Error(res.message);
       }
       await this.getChats("share");
-      showSuccessNotification(translate("Shared Successfully", language));
+      showSuccessNotification(
+        translate("Product is Shared Successfully", language)
+      );
       callback();
     } catch (e) {
       showErrorNotification(translate("Product Share error", language));
