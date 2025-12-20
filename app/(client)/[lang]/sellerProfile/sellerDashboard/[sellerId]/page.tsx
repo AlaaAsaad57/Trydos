@@ -7,7 +7,7 @@ import SellerDashboardService from "services/sellerDashboard";
 import { translateFunction, getConfiguredImage } from "utils/functions";
 import { GetImageUrl } from "utils/tinyUtils";
 
-type TabType = "products" | "boutiques" | "permissions" | "users";
+type TabType = "products" | "boutiques" | "permissions" | "users" | "orders";
 
 const PERMISSION_GROUPS = {
   PRODUCTS: ["READ_PRODUCTS", "CREATE_PRODUCT", "UPDATE_PRODUCT", "CHANGE_PRODUCT_STATUS"],
@@ -71,10 +71,20 @@ function SellerDashBoard() {
   });
   const [addUserLoading, setAddUserLoading] = useState(false);
   const [addUserSuccess, setAddUserSuccess] = useState(false);
+  const [sellerOrders, setSellerOrders] = useState<any[]>([]);
+  const [ordersMeta, setOrdersMeta] = useState<any>(null);
+  const [ordersPage, setOrdersPage] = useState(1);
+  const [ordersLoading, setOrdersLoading] = useState(false);
+  const [ordersError, setOrdersError] = useState<string | null>(null);
 
   const currentShop = useMemo(() => {
     return shopes.find((shop) => shop.seller_id.toString() === sellerId);
   }, [shopes, sellerId]);
+
+  const hasPermission = (permission: string): boolean => {
+    return sellerPermissions.includes(permission) || sellerPermissions.includes("SUPER_ADMIN");
+  };
+  const canViewOrders = hasPermission("READ_ORDERS");
 
   const getSellerProducts = async (page: number = 1) => {
     try {
@@ -122,6 +132,22 @@ function SellerDashBoard() {
       setError(error?.message || "Failed to load roles");
     } finally {
       setLoading(false);
+    }
+  };
+  const getSellerOrders = async (page: number = 1) => {
+    try {
+      setOrdersLoading(true);
+      setOrdersError(null);
+      const res = await SellerDashboardService.getSellerOrders(sellerId, page);
+      const orders = res.data?.orders || res.data || [];
+      setSellerOrders(Array.isArray(orders) ? orders : []);
+      setOrdersMeta(res.data?.meta || null);
+      setOrdersPage(page);
+    } catch (error: any) {
+      console.error("Error fetching orders:", error);
+      setOrdersError(error?.message || "Failed to load orders");
+    } finally {
+      setOrdersLoading(false);
     }
   };
 
@@ -209,6 +235,9 @@ function SellerDashBoard() {
         getSellerPermissions();
       }
     }
+    setSellerOrders([]);
+    setOrdersMeta(null);
+    setOrdersPage(1);
   }, [sellerId]);
 
   useEffect(() => {
@@ -216,6 +245,12 @@ function SellerDashBoard() {
       getRoles();
     }
   }, [activeTab]);
+
+  useEffect(() => {
+    if (activeTab === "orders" && canViewOrders && sellerOrders.length === 0) {
+      getSellerOrders();
+    }
+  }, [activeTab, canViewOrders, sellerId]);
 
   const groupedPermissions = useMemo(() => {
     const groups: Record<string, string[]> = {};
@@ -228,10 +263,6 @@ function SellerDashBoard() {
     });
     return groups;
   }, [sellerPermissions]);
-
-  const hasPermission = (permission: string): boolean => {
-    return sellerPermissions.includes(permission) || sellerPermissions.includes("SUPER_ADMIN");
-  };
 
   const renderProducts = () => {
     if (loading && sellerProducts.length === 0) {
@@ -445,6 +476,200 @@ function SellerDashBoard() {
             </div>
           </div>
         ))}
+      </div>
+    );
+  };
+
+  const renderOrders = () => {
+    if (!canViewOrders) {
+      return (
+        <div className="flex items-center justify-center py-12">
+          <div className="text-center">
+            <p className="text-[16px] font-medium text-[#1d1d1d] mb-2">
+              Access Denied
+            </p>
+            <p className="text-[14px] text-[#8D8D8D]">
+              You need order viewing permissions to see this section
+            </p>
+          </div>
+        </div>
+      );
+    }
+
+    if (ordersLoading && sellerOrders.length === 0) {
+      return (
+        <div className="flex items-center justify-center py-12">
+          <Spinner />
+          <span className="ml-3 text-[#3c3c3c]">Loading orders...</span>
+        </div>
+      );
+    }
+
+    if (ordersError && sellerOrders.length === 0) {
+      return (
+        <div className="flex flex-col items-center justify-center py-12">
+          <p className="text-red-500 mb-4">{ordersError}</p>
+          <button
+            onClick={() => getSellerOrders(1)}
+            className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+          >
+            Retry
+          </button>
+        </div>
+      );
+    }
+
+    if (sellerOrders.length === 0) {
+      return (
+        <div className="flex items-center justify-center py-12">
+          <p className="text-[#8D8D8D]">No orders found</p>
+        </div>
+      );
+    }
+
+    return (
+      <div className="space-y-6">
+        {sellerOrders.map((order: any) => {
+          const items = Array.isArray(order.details)
+            ? order.details.flatMap((group: any) =>
+                Array.isArray(group) ? group : []
+              )
+            : [];
+
+          return (
+            <div
+              key={order.id || order.order_group_id}
+              className="border border-gray-200 rounded-[15px] bg-white p-5 shadow-sm"
+            >
+              <div className="flex flex-col gap-4 border-b border-gray-100 pb-4 mb-4">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                  <div className="space-y-1">
+                    <p className="text-[12px] text-[#8D8D8D]">Order ID: {order.id}</p>
+                    <p className="text-[12px] text-[#8D8D8D]">
+                      Group: {order.order_group_id}
+                    </p>
+                    <p className="text-[12px] text-[#8D8D8D]">
+                      Cart Group: {order.cart_group_id}
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    <span className="px-3 py-1 rounded-full text-[11px] font-medium bg-blue-50 text-blue-700 border border-blue-100">
+                      {order.order_status}
+                    </span>
+                    <span className="px-3 py-1 rounded-full text-[11px] font-medium bg-purple-50 text-purple-700 border border-purple-100">
+                      {order.order_group_status}
+                    </span>
+                    <span className="px-3 py-1 rounded-full text-[11px] font-medium bg-green-50 text-green-700 border border-green-100">
+                      {order.payment_method}
+                    </span>
+                    <span
+                      className={`px-3 py-1 rounded-full text-[11px] font-medium border ${
+                        order.payment_status === "paid"
+                          ? "bg-emerald-50 text-emerald-700 border-emerald-100"
+                          : "bg-yellow-50 text-yellow-700 border-yellow-100"
+                      }`}
+                    >
+                      {order.payment_status}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-gray-50 rounded-[12px] p-4">
+                  <div className="space-y-1">
+                    <p className="text-[13px] text-[#1d1d1d] font-semibold">
+                      Amount: {order.order_amount}
+                    </p>
+                    <p className="text-[12px] text-[#8D8D8D]">Shipping: {order.shipping_cost}</p>
+                    <p className="text-[12px] text-[#8D8D8D]">Discount: {order.discount_amount}</p>
+                    <p className="text-[12px] text-[#8D8D8D]">
+                      Delivery: {order.delivery_type || "N/A"}
+                    </p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-[12px] text-[#8D8D8D]">
+                      Shipping Type: {order.shipping_type || "N/A"}
+                    </p>
+                    <p className="text-[12px] text-[#8D8D8D]">
+                      Transaction: {order.transaction_ref}
+                    </p>
+                    <p className="text-[12px] text-[#8D8D8D]">
+                      Return Allowed: {order.can_return_order ? "Yes" : "No"}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-gray-50 rounded-[12px] border border-gray-100 p-4">
+                <h4 className="text-[14px] font-semibold text-[#1d1d1d] mb-3 flex items-center justify-between">
+                  <span>Items</span>
+                  <span className="text-[12px] text-[#8D8D8D] bg-white px-2 py-1 rounded-full border border-gray-200">
+                    {items.length}
+                  </span>
+                </h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {items.map((item: any) => {
+                    const productDetails =
+                      typeof item.product_details === "string"
+                        ? (() => {
+                            try {
+                              return JSON.parse(item.product_details);
+                            } catch (_err) {
+                              return null;
+                            }
+                          })()
+                        : item.product_details || null;
+                    const productName =
+                      productDetails?.name || `Product #${item.product_id}`;
+
+                    return (
+                      <div
+                        key={item.id}
+                        className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 rounded-lg border border-gray-200 bg-white p-3"
+                      >
+                        <div className="space-y-1">
+                          <p className="text-[14px] font-semibold text-[#1d1d1d]">{productName}</p>
+                          <p className="text-[12px] text-[#8D8D8D]">Variant: {item.variant || "N/A"}</p>
+                          <p className="text-[12px] text-[#8D8D8D]">
+                            Delivery: {item.delivery_status}
+                          </p>
+                        </div>
+                        <div className="text-right space-y-1">
+                          <p className="text-[13px] font-semibold text-[#1d1d1d]">
+                            Qty: {item.qty}
+                          </p>
+                          <p className="text-[12px] text-[#8D8D8D]">Price: {item.price}</p>
+                          <p className="text-[12px] text-[#8D8D8D]">Payment: {item.payment_status}</p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          );
+        })}
+
+        {ordersMeta && ordersMeta.last_page > 1 && (
+          <div className="flex items-center justify-center gap-2">
+            <button
+              onClick={() => getSellerOrders(ordersPage - 1)}
+              disabled={ordersPage === 1 || ordersLoading}
+              className="px-4 py-2 bg-white border border-gray-300 rounded-lg text-[#1d1d1d] disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+            >
+              Previous
+            </button>
+            <span className="text-[14px] text-[#8D8D8D]">
+              Page {ordersMeta.current_page} of {ordersMeta.last_page}
+            </span>
+            <button
+              onClick={() => getSellerOrders(ordersPage + 1)}
+              disabled={ordersPage >= ordersMeta.last_page || ordersLoading}
+              className="px-4 py-2 bg-white border border-gray-300 rounded-lg text-[#1d1d1d] disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+            >
+              Next
+            </button>
+          </div>
+        )}
       </div>
     );
   };
@@ -752,6 +977,18 @@ function SellerDashBoard() {
           >
             Users
           </button>
+          {canViewOrders && (
+            <button
+              onClick={() => setActiveTab("orders")}
+              className={`flex-1 px-6 py-4 text-center font-medium transition-colors ${
+                activeTab === "orders"
+                  ? "border-b-2 border-blue-500 text-blue-600"
+                  : "text-[#8D8D8D] hover:text-[#1d1d1d]"
+              }`}
+            >
+              Orders ({ordersMeta?.total || sellerOrders?.length || 0})
+            </button>
+          )}
         </div>
       </div>
 
@@ -761,6 +998,7 @@ function SellerDashBoard() {
         {activeTab === "boutiques" && renderBoutiques()}
         {activeTab === "permissions" && renderPermissions()}
         {activeTab === "users" && renderUsers()}
+        {activeTab === "orders" && renderOrders()}
       </div>
     </div>
   );

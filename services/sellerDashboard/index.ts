@@ -62,6 +62,20 @@ class SellerDashboardService {
       throw error;
     }
   }
+  async getSellerOrders(sellerId: string, page: number = 1) {
+    try {
+      let res = await fetchData({
+        url: `/shop/order/${sellerId}/get-list${page > 1 ? `?page=${page}` : ""}`,
+        method: "GET",
+        server: "market-dashboard",
+        reqTitle: REQUESTS_DATA.GET_SELLER_ORDERS,
+        sellerId,
+      });
+      return res;
+    } catch (error) {
+      throw error;
+    }
+  }
   async getRoles(sellerId: string) {
     try {
       let res = await fetchData({
