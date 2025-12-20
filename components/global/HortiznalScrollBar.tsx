@@ -8,7 +8,7 @@ function HortiznalScrollBar({
   id,
   dataCy,
   time,
-  onClick = () => {},
+  onClick = (e?: React.MouseEvent<HTMLDivElement, MouseEvent>) => {},
 }: HortiznalScrollBarProps) {
   useEffect(() => {
     if (time) {

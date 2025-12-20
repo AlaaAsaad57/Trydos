@@ -4,13 +4,14 @@ import StoriesPaginationWrapper from "components/Home/Stories/StoriesPaginationW
 import StoriesStoreInitializer from "components/Home/Stories/StoriesStoreInitializer";
 import StoryElement from "components/Home/Stories/StoryElement";
 import StoriesSkeleton from "components/skeleton/StoriesSkeleton";
-import { fetchStories } from "@/serverRequests";
+import { fetchStoriesForGuest, fetchStoriesForUser } from "@/serverRequests";
 import {
   COOKIE_NAMES,
   getCookieServer,
   UserData,
 } from "utils/cookies/cookie-manager";
 import AddStoryWidget from "components/Home/Stories/AddStoryWidget";
+import StoriesWrapper from "components/clientWrapper/StoriesWrapper";
 
 interface StoriesBarServerProps {
   language: string;
@@ -25,14 +26,22 @@ async function StoriesBarServer({ language, country }: StoriesBarServerProps) {
     const STORIES_TOKEN = await getCookieServer<UserData>(
       COOKIE_NAMES.USER_STORIES
     );
+    let storiesData, next_page_url;
     let start = process.hrtime.bigint();
     // Fetch stories data
-    const { data: storiesData, next_page_url } = await fetchStories(
-      language,
-      country,
-      1,
-      STORIES_TOKEN?.access_token
-    );
+    if (STORIES_TOKEN?.access_token) {
+      storiesData = await fetchStoriesForUser(
+        language,
+        country,
+        1,
+        STORIES_TOKEN?.access_token
+      );
+    } else {
+      storiesData = await fetchStoriesForGuest(language, country, 1);
+    }
+    storiesData = storiesData.data;
+    next_page_url = storiesData.next_page_url;
+
     let end = process.hrtime.bigint();
     let userData = await getCookieServer<UserData>(COOKIE_NAMES.USER_STORIES);
     return (
@@ -51,11 +60,10 @@ async function StoriesBarServer({ language, country }: StoriesBarServerProps) {
           >
             <AddStory />
             {storiesData && storiesData ? (
-              <HortiznalScrollBar
-                id="stories-bar-container"
-                className={`${
-                  isRtl && "flex-row-reverse"
-                } flex h-full pl-[10px] gap-[15px] items-center`}
+              <StoriesWrapper
+                stories={storiesData}
+                next_page_url={next_page_url}
+                isRtl={isRtl}
               >
                 {storiesData.map((story, index) => (
                   <StoryElement
@@ -65,17 +73,7 @@ async function StoriesBarServer({ language, country }: StoriesBarServerProps) {
                     userData={userData}
                   />
                 ))}
-                {next_page_url && (
-                  <StoriesPaginationWrapper
-                    userData={null}
-                    next_page_url={next_page_url}
-                    time={Number(end - start) / 1_000_000}
-                    language={language}
-                    country={country}
-                    initialStories={storiesData}
-                  />
-                )}
-              </HortiznalScrollBar>
+              </StoriesWrapper>
             ) : (
               <StoriesSkeleton />
             )}

@@ -1,4 +1,3 @@
-import React from "react";
 import {
   COOKIE_NAMES,
   getCookieServer,

@@ -10,7 +10,7 @@ import Spinner from "components/global/Spinner";
 import PersonalInfoCountries from "components/settings/PersonalInfoCountries";
 
 import { FlagIcon } from "./tinyUtils";
-import { setLocalization } from "store/homepage/actions";
+import { setLocaizationCookies } from "./cookies/cookie-manager";
 
 const PopupCountry = ({ options, countries, forChanged, noCountry }) => {
   const [loading, setLoading] = useState(true);
@@ -41,12 +41,7 @@ const PopupCountry = ({ options, countries, forChanged, noCountry }) => {
     Cookies.set("lang", langCode.toLowerCase(), cookieOptions);
     Cookies.set("language", langCode.toLowerCase(), cookieOptions);
 
-    // Method 3: Server-side API (async but don't wait)
-    try {
-      await setLocalization(langCode, countryCode);
-    } catch (error) {
-      console.error("Server action failed:", error);
-    }
+    setLocaizationCookies(countryCode, langCode);
   }, []);
 
   const UpdateUrl = useCallback(

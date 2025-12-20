@@ -11,7 +11,7 @@ import search from "services/search";
 import { DisableScroll, EnableScroll } from "utils/tinyUtils";
 import DataSourceLogger from "components/global/DataSourceLogger";
 
-function SearchIcon({ time }) {
+function SearchIcon() {
   const { setEnableSearch, enable_search } = useAppStore();
   const { lang } = useParams();
   const [focuse, setFocus] = useState(false);
@@ -42,9 +42,9 @@ function SearchIcon({ time }) {
           }
         }}
       >
-        <DataSourceLogger
+        {/* <DataSourceLogger
           dataSourceString={`Main Categories Data Source Elastic in ${time} ms`}
-        />
+        /> */}
         <Search
           id="search-icon"
           className={`absolute duration-[0.4s] ml-[10px]  z-50 ${

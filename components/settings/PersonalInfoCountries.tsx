@@ -4,7 +4,6 @@ import AddressInfo from "public/svg/cart/AddressInfo";
 import { translateFunction } from "utils/functions";
 
 import { useParams } from "next/navigation";
-import { setLocalization } from "store/homepage/actions";
 
 import { useAppStore } from "store";
 import { FlagIcon } from "utils/tinyUtils";
@@ -13,6 +12,7 @@ import Spinner from "components/global/Spinner";
 import { fetchData } from "utils/fetchData"; // Make sure this is imported
 import { STARTER_SETTINGS } from "utils/endpointConfig";
 import { REQUESTS_DATA } from "utils/Requests";
+import { setLocaizationCookies } from "utils/cookies/cookie-manager";
 type PersonalInfoCountriesProps = {
   swipeToScreen: (index: number) => void;
   goBack: () => void;
@@ -74,8 +74,7 @@ function PersonalInfoCountries({
   const changeCountry = async (country: any) => {
     setIsSettingCountry(true);
     const current = window.location.pathname;
-
-    await setLocalization(language, country.iso.toLowerCase());
+    setLocaizationCookies(country.iso.toLowerCase(), language);
 
     setSelectedCountry(country);
 

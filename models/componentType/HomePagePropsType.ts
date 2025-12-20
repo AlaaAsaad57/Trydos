@@ -6,7 +6,7 @@ export interface HortiznalScrollBarProps {
   id: string;
   dataCy?: string;
   time?: string;
-  onClick?: () => void;
+  onClick?: (e?: React.MouseEvent<HTMLDivElement, MouseEvent>) => void;
 }
 
 export interface CategoryNavMobileProps {
@@ -23,7 +23,7 @@ export interface NavbarServerProps {
   lang: string;
   mainCategory: string;
   categoriesData: any;
-  time: any;
+  children: React.ReactNode;
 }
 
 export interface HomePageProps {

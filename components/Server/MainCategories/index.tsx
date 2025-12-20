@@ -1,44 +1,43 @@
-import SearchIcon from "components/Home/Search/SearchIcon";
-import { ElasticsearchReader } from "services/elastic/elasticsearch-reader.service";
 import NavbarServer from "../Navbar";
-import type { JSX } from "react";
+import CategoryNavMobile from "components/Home/CategoryNavMobile";
+import { api } from "lib/eden";
 
 export default async function MainCategoriesNavbar({
   lang,
   mainCategory,
 }): Promise<JSX.Element> {
   const [country, language] = lang?.split("-");
-  let Reader = new ElasticsearchReader();
-  let start = process.hrtime.bigint();
-  let a = await Reader.getCategories({ country: country, size: 4000 });
-  // @ts-ignore
-
-  let mainCategories = a.hits.hits.map((s) => {
-    // @ts-ignore
-    return s._source?.custom_categories?.find(
-      (cat) => cat.language_code?.toLowerCase() === language?.toLowerCase()
-    );
+  let responseData = await api.home.mainCategories.get({
+    headers: { country: country, language: language },
   });
-  mainCategories = mainCategories.filter((c) => c !== undefined);
-  mainCategories = Array.from(
-    new Map(mainCategories.map((c: any) => [c.id, c])).values()
-  );
-  let end = process.hrtime.bigint();
-  const isRtl = language === "ar" || language === "ku";
 
+  let activeCategory = mainCategory;
+  // @ts-ignore
+  let mainCategories = responseData.data.data.mainCategories || [];
   return (
-    <div
-      className={`${
-        isRtl ? "flex-row-reverse pr-[10px]" : "flex-row pl-[10px]"
-      }  bg-white w-full pl-[10px] shadow-[0px_0px_6px_rgb(0,0,0,0.1)] z-[999999995]`}
+    <NavbarServer
+      lang={lang}
+      mainCategory={mainCategory}
+      categoriesData={mainCategories}
     >
-      <SearchIcon time={Number(end - start) / 1_000_000} />
-      <NavbarServer
-        lang={lang}
-        time={Number(end - start) / 1_000_000}
-        mainCategory={mainCategory}
-        categoriesData={mainCategories}
-      />
-    </div>
+      {mainCategories?.map((category, key) => (
+        <div className="flex" key={key}>
+          <CategoryNavMobile
+            params={{ lang, mainCategory }}
+            name={category.name}
+            active={
+              activeCategory === category.slug ||
+              (mainCategory === category.slug &&
+                activeCategory === category?.slug)
+            }
+            key={key}
+            myKey={key}
+            icon={category?.flat_photo_path?.file_path}
+            outline={category?.outline_photo_path?.file_path}
+            slug={category.slug}
+          />
+        </div>
+      ))}
+    </NavbarServer>
   );
 }

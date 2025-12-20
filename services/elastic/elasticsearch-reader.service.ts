@@ -1,7 +1,7 @@
 import { elasticSearchClient } from "./elasticsearch.config";
 
 import { estypes } from "@elastic/elasticsearch";
-import { getProductsAndFiltersFromElastic } from "./elasticSearch";
+
 export class ElasticsearchReader {
   private client = elasticSearchClient;
   private readonly index = "products_catalog";

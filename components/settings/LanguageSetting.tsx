@@ -7,40 +7,40 @@ import { useParams, useRouter } from "next/navigation";
 
 import { FlagIcon } from "utils/tinyUtils";
 import { LanguageFlagPropsType } from "models/componentType/LanguageFlagPropsType";
-import { setLocalization } from "store/homepage/actions";
+import { setLocaizationCookies } from "utils/cookies/cookie-manager";
 
 function LanguageSetting({ goBack }: { goBack: () => void }) {
   const languages = ["ar", "en", "tr", "ku"];
 
   const { lang } = useParams();
-  const [selectedCountry, setSelectedCountry] = useState(
+  const [selectedLanguage, setSelectedLanguage] = useState(
     languages.find(
       // @ts-ignore
       (s) => s.toLowerCase() === lang?.split("-")[1].toLowerCase()
     )
   );
   useEffect(() => {
-    setSelectedCountry(
+    setSelectedLanguage(
       languages.find(
         // @ts-ignore
         (s) => s.toLowerCase() === lang?.split("-")[1].toLowerCase()
       )
     );
   }, []);
-  const [isSettingCountry, setIsSettingCountry] = useState(false);
+  const [isSettingLanguage, setIsSettingLanguage] = useState(false);
 
-  const changeCountry = async (country: any) => {
+  const changeLanguage = async (language: any) => {
     try {
-      setIsSettingCountry(true);
+      setIsSettingLanguage(true);
 
-      await setLocalization(country);
-      setSelectedCountry(country);
+      setLocaizationCookies(null, language);
+      setSelectedLanguage(language);
       sessionStorage.removeItem("starttingSetting");
       window.location.href = `/${
         (lang as string)?.split("-")[0]
-      }-${country}/setting?tab=Language`;
+      }-${language}/setting?tab=Language`;
     } catch (error) {
-      setIsSettingCountry(false);
+      setIsSettingLanguage(false);
       console.error(error);
     }
   };
@@ -242,33 +242,33 @@ function LanguageSetting({ goBack }: { goBack: () => void }) {
           </div>
           <div
             className={`flex flex-col w-full ${
-              isSettingCountry ? "opacity-50" : ""
+              isSettingLanguage ? "opacity-50" : ""
             }`}
           >
-            {languages.map((country) => {
+            {languages.map((language_variable) => {
               return (
                 <div
-                  key={country}
-                  data-cy={`language-${country}`}
+                  key={language_variable}
+                  data-cy={`language-${language_variable}`}
                   onClick={() => {
-                    if (!isSettingCountry) {
-                      changeCountry(country);
+                    if (!isSettingLanguage) {
+                      changeLanguage(language_variable);
                     }
                   }}
                   style={{
                     border:
-                      selectedCountry === country
+                      selectedLanguage === language_variable
                         ? "1px solid #402CDD7f"
                         : "1px solid #D3D3D37f",
                   }}
                   className={`w-full flex-row cursor-pointer mt-[12px] h-[53px] rounded-[15px] bg-[#f8f8f8] px-[12px] items-center`}
                 >
                   <span className="w-[30px] h-[20px]">
-                    <LanguageFlag lang={country} />
+                    <LanguageFlag lang={language_variable} />
                   </span>
 
                   <span className="text-[14px] regular text-[#1d1d1d] ml-[12px] ">
-                    {getLanguage(country)}
+                    {getLanguage(language_variable)}
                   </span>
                 </div>
               );

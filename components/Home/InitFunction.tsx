@@ -1,8 +1,11 @@
 "use client";
 import React, { useEffect } from "react";
 import { useAppStore } from "store";
-import { setLocalization } from "store/homepage/actions";
-import { COOKIE_NAMES, getCookie } from "utils/cookies/cookie-manager";
+import {
+  COOKIE_NAMES,
+  getCookie,
+  setLocaizationCookies,
+} from "utils/cookies/cookie-manager";
 
 function InitFunction({ init }: { init: string | string[] }) {
   const { language, country } = useAppStore();
@@ -20,7 +23,7 @@ function InitFunction({ init }: { init: string | string[] }) {
       countryCookies ||
       country ||
       process.env.NEXT_PUBLIC_DEFAULT_COUNTRY;
-    setLocalization(stored_language, stored_country);
+    setLocaizationCookies(stored_country, stored_language);
   };
   useEffect(() => {
     initFunc();

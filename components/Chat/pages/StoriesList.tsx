@@ -4,7 +4,7 @@ import StoryChatRow from "../components/StoryChatRow";
 import { InView } from "react-intersection-observer";
 import Spinner from "components/global/Spinner";
 import { useAppStore } from "store";
-import { fetchStories } from "serverRequests";
+import { fetchStoriesForUser } from "serverRequests";
 import { getUserStories } from "utils/functions";
 import Skeleton from "react-loading-skeleton";
 import StoryServiceClass from "services/story";
@@ -28,7 +28,7 @@ function StoriesList() {
 
     try {
       setLoading(true);
-      const response = await fetchStories(
+      const response = await fetchStoriesForUser(
         language,
         country,
         pageNumber,

@@ -18,7 +18,7 @@ import {
 } from "store/notifications/reducer";
 import { getUserStories, translateFunction } from "utils/functions";
 import { revalidateStories } from "utils/serverActions";
-import { fetchStories } from "serverRequests";
+import { fetchStoriesForUser } from "serverRequests";
 import {
   COOKIE_NAMES,
   getCookie,
@@ -49,7 +49,12 @@ function StoryHolder({ story, active, isPaused }: StoryHolderPropsType) {
       const response = await StoryServiceClass.deleteStory(storyId);
       await revalidateStories();
       const userToken = user?.access_token;
-      const storiesResult = await fetchStories(language, country, 1, userToken);
+      const storiesResult = await fetchStoriesForUser(
+        language,
+        country,
+        1,
+        userToken
+      );
       setStoryData(storiesResult.data);
       setShowDeleteModal(false);
       setLoading(false);

@@ -1,3 +1,5 @@
+"use server";
+
 import { fetchServerData } from "./ServerFetch";
 import { ReportError } from "utils/errorReported";
 
@@ -24,7 +26,7 @@ interface StoriesResponse {
   next_page_url?: string;
 }
 
-export async function fetchStories(
+export async function fetchStoriesForUser(
   language: string,
   country: string,
   page: number = 1,
@@ -32,6 +34,51 @@ export async function fetchStories(
 ): Promise<StoriesResponse> {
   let headers = {
     ...(userToken && { Authorization: `Bearer ${userToken}` }),
+    Accept: "application/json",
+  };
+  try {
+    const response = await fetchServerData({
+      url: `${process.env.NEXT_PUBLIC_NEST_STORIES_BACKEND_URL}/api/v1/stories/users_stories?page=${page}`,
+      method: "GET",
+      tags: ["stories", "home"],
+      // revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE_STORIES),
+      revalidate: 0,
+      local: `${country}-${language}`,
+      headers: headers,
+    });
+    if (response.isError) {
+      ReportError(new Error(`Stories Error: ${response.status}`), {
+        source: "stories",
+        page: "stories",
+        language,
+        country,
+        response: JSON.stringify(response)?.substring(0, 300),
+      });
+      return {
+        data: [],
+        next_page_url: undefined,
+      };
+    }
+    return {
+      data:
+        response.data?.data?.data?.filter((s) => s?.stories?.length > 0) || [],
+      next_page_url: response.data?.data?.next_page_url,
+    };
+  } catch (error) {
+    console.error("Error fetching stories:", error);
+    return {
+      data: [],
+      next_page_url: undefined,
+    };
+  }
+}
+
+export async function fetchStoriesForGuest(
+  language: string,
+  country: string,
+  page: number = 1
+): Promise<StoriesResponse> {
+  let headers = {
     Accept: "application/json",
   };
   try {

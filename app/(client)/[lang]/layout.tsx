@@ -1,4 +1,3 @@
-export const dynamic = "force-dynamic";
 import "styles/globals.css";
 import "styles/home.css";
 import localFont from "next/font/local";
@@ -65,7 +64,7 @@ const quicksand_semibold = localFont({
 
 export default async function RootLayout({ params, children }) {
   const { lang } = await params;
-  console.log("🚀 Server layout render:", new Date().toISOString());
+
   return (
     <html
       className={`

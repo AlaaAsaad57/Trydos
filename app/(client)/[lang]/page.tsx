@@ -12,17 +12,14 @@ import FeaturedProductsSkeleton from "components/skeleton/loaders/FeaturedProduc
 import FlashDealsProducts from "components/Server/FlashDealsProducts";
 import { getHomeMetadata, GetStructuredData } from "./MetaData";
 import { fetchCurrency } from "serverRequests";
-import { ElasticsearchReader } from "services/elastic/elasticsearch-reader.service";
-import {
-  getProductsAndFiltersFromElastic,
-  GetRecomendationsForUser,
-} from "services/elastic/elasticSearch";
 import { getCurrencyFromCache, StoreCurrency } from "serverRequests/radis";
 import RecomendedProducts from "components/Server/RecomendedProducts";
 import { translateFunction } from "utils/functions";
 import MainCategoriesNavbar from "components/Server/MainCategories";
 import { COOKIE_NAMES, getCookieServer } from "utils/cookies/cookie-manager";
 import { LogServerError } from "utils/serverErrorReporter";
+import SearchIcon from "components/Home/Search/SearchIcon";
+import { api } from "lib/eden";
 
 export async function generateMetadata({ params }) {
   let Params = await params;
@@ -97,6 +94,7 @@ async function HomePage({ params }) {
   let { lang } = await params;
   const [country, language] = lang.split("-");
   let currency = await getCurrency(country, language);
+  const isRtl = language === "ar" || language === "ku";
   try {
     return (
       <>
@@ -104,14 +102,20 @@ async function HomePage({ params }) {
           {/*@ts-expect-error Async Server Component is valid in Next  */}
           <StructuredDataScript lang={lang} />
         </Suspense>
-
-        <Suspense
-          fallback={<MobileNavigationSkeleton />}
-          key={`Navbar ${lang}`}
+        <div
+          className={`${
+            isRtl ? "flex-row-reverse pr-[10px]" : "flex-row pl-[10px]"
+          }  bg-white w-full pl-[10px] shadow-[0px_0px_6px_rgb(0,0,0,0.1)] z-[999999995]`}
         >
-          {/*@ts-expect-error Async Server Component is valid in Next  */}
-          <MainCategoriesNavbar lang={lang} mainCategory={null} />
-        </Suspense>
+          <SearchIcon />
+          <Suspense
+            fallback={<MobileNavigationSkeleton />}
+            key={`Navbar ${lang}`}
+          >
+            {/*@ts-expect-error Async Server Component is valid in Next  */}
+            <MainCategoriesNavbar lang={lang} mainCategory={null} />
+          </Suspense>
+        </div>
 
         <Suspense fallback={<StoriesSkeleton />} key={`Stories ${lang}`}>
           {/*@ts-expect-error Async Server Component is valid in Next  */}
@@ -121,11 +125,11 @@ async function HomePage({ params }) {
           />
         </Suspense>
 
-        <Suspense fallback={<FeaturedProductsSkeleton lang={lang} />}>
+        <Suspense fallback={<FeaturedProductsSkeleton />}>
           {/*@ts-expect-error Async Server Component is valid in Next  */}
           <FeaturedProductWrapper currency={currency} lang={lang} />
         </Suspense>
-        <Suspense fallback={<FeaturedProductsSkeleton lang={lang} />}>
+        <Suspense fallback={<FeaturedProductsSkeleton />}>
           {/*@ts-expect-error Async Server Component is valid in Next  */}
 
           <FlashProductWrapper currency={currency} lang={lang} />
@@ -150,17 +154,13 @@ export default HomePage;
 async function FeaturedProductWrapper({ lang, currency: currencyData }) {
   const [country, language] = lang?.split("-");
   let start = process.hrtime.bigint();
-  let data = await getProductsAndFiltersFromElastic({
-    country: country,
-    language_code: language,
-    filters: {
-      featured: true,
-    },
-    limit: 20,
+  let response: any = await api.products.featured.get({
+    headers: { country: country, language: language },
+    query: { limit: 10, offset: null },
   });
   let end = process.hrtime.bigint();
   const redeemed_ids = (await getCookieServer<any[]>("redemed_ids")) ?? [];
-  let productsData = data.products.map((product) => {
+  let productsData = response.data.data.products.map((product) => {
     if (product?.is_redeem) {
       return {
         name: product?.name,
@@ -238,17 +238,13 @@ async function FlashProductWrapper({ lang, currency: currencyData }) {
   const [country, language] = lang?.split("-");
   let start = process.hrtime.bigint();
 
-  let data = await getProductsAndFiltersFromElastic({
-    country: country,
-    language_code: language,
-    filters: {
-      flashdeal: true,
-    },
-    limit: 10,
+  let response: any = await api.products.flashdeal.get({
+    headers: { country: country, language: language },
+    query: { limit: 10, offset: null },
   });
   let end = process.hrtime.bigint();
   const redeemed_ids = (await getCookieServer<any[]>("redemed_ids")) ?? [];
-  let productsData = data.products.map((product) => {
+  let productsData = response.data.data.products.map((product) => {
     if (product?.is_redeem) {
       return {
         name: product?.name,
@@ -323,26 +319,17 @@ async function FlashProductWrapper({ lang, currency: currencyData }) {
 
 async function BoutiquesListWrapper({ params, currency: currencyData }) {
   const [country, language] = params.lang.split("-");
-  let start = process.hrtime.bigint();
-  let Reader = new ElasticsearchReader();
-  let data = await Reader.getBoutiques({
-    language,
-    country,
-    limit: 10,
-    category: params.mainCategory,
-  });
 
+  let response = await api.home.boutiques.get({
+    headers: { country: country, language: language },
+    query: { limit: 10, offset: null },
+  });
   // @ts-ignore
-  let end = process.hrtime.bigint();
+  let data: any = response.data.data ?? {};
+
   return (
-    <OfferListServer
-      dataSourceString={`Boutiques Data Source: Products From Elastic in ${
-        Number(end - start) / 1_000_000
-      } ms`}
-      boutiquesData={{ ...data, temp: Number(end - start) / 1_000_000 }}
-      params={params}
-    >
-      <Suspense fallback={<FeaturedProductsSkeleton lang={params.lang} />}>
+    <OfferListServer boutiquesData={{ ...(data ?? {}) }} params={params}>
+      <Suspense fallback={<FeaturedProductsSkeleton />}>
         {/*@ts-expect-error Async Server Component is valid in Next  */}
         <RecomendedProductWrapper lang={params.lang} currency={currencyData} />
       </Suspense>
@@ -355,19 +342,18 @@ async function RecomendedProductWrapper({
 }): Promise<JSX.Element> {
   const [country, language] = lang.split("-");
   const userId = ((await getCookieServer(COOKIE_NAMES.USER_DATA)) as any)?.id;
-  let data = await GetRecomendationsForUser({
-    country: country,
-    language: language,
-    limit: 7,
-    userId: userId,
-    search_after: null,
+  let response = await api.products.recomended.get({
+    headers: { language, country },
+    query: {
+      limit: 7,
+      offset: null,
+    },
   });
-
   return (
     <RecomendedProducts
-      InitialProducts={data.products}
+      InitialProducts={(response.data as any).data.products}
       userId={userId}
-      InitialOffset={data.offset}
+      InitialOffset={(response.data as any).data.offset}
       lang={lang}
       currencyData={currencyData}
     />

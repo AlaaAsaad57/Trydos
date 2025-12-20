@@ -5,6 +5,7 @@ let nextConfig: NextConfig = {
   reactStrictMode: false,
   compress: true,
   bundlePagesRouterDependencies: false,
+
   // React 19 Compiler Configuration
   // Automatically optimizes React components (memoization, etc.)
   // No additional packages needed - built into Next.js 16
@@ -88,6 +89,7 @@ let nextConfig: NextConfig = {
     ],
     minimumCacheTTL: 86400,
   },
+
   experimental: {
     externalDir: true,
     webVitalsAttribution: ["CLS", "LCP", "FCP", "FID", "TTFB", "INP"],

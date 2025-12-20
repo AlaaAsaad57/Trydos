@@ -12,24 +12,19 @@ import {
   UserData,
 } from "utils/cookies/cookie-manager";
 import { REQUESTS_DATA } from "utils/Requests";
-import DataSourceLogger from "components/global/DataSourceLogger";
 
 interface StoriesPaginationWrapperProps {
   next_page_url: string | number;
-  language: string;
-  country: string;
+
   initialStories: any[];
   userData: UserData | null;
-  time;
 }
 
 function StoriesPaginationWrapper({
   next_page_url,
-  language,
-  country,
+
   initialStories,
   userData,
-  time,
 }: StoriesPaginationWrapperProps) {
   const { storiesData, setStoryData } = useAppStore();
   const [loading, setLoading] = useState(false);
@@ -98,9 +93,6 @@ function StoriesPaginationWrapper({
 
   return (
     <>
-      <DataSourceLogger
-        dataSourceString={`Stories Data Source Laravil Api in ${time} ms`}
-      />
       {additionalStories.map((story, index) => (
         <StoryElement
           key={story.id || `additional-${index}`}

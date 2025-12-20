@@ -30,7 +30,7 @@ const useInfiniteScroll = (fetchNextPage) => {
     };
   }, [fetchNextPage]);
 };
-function InfinteScroll({ offsetVariable, temp }: InfinteScrollPropsType) {
+function InfinteScroll({ offsetVariable }: InfinteScrollPropsType) {
   const [boutiques, setBoutiques] = useState([]);
   const [offset, setOffset] = useState<any>(offsetVariable);
   const [loading, setLoading] = useState(false);

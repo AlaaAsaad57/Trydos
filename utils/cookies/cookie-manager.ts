@@ -41,6 +41,7 @@ export const COOKIE_NAMES = {
   USER_STORIES: "USER-STORIES",
   COUNTRY: "country",
   LANG: "lang",
+  lANGUAGE: "language",
   USER_ID_HASH:
     "x7k9m2p4q8r1s5t3u6v2w9y4z7a1b5c8d2e6f9g3h7j1k4l8m2n5p9q3r6s1t4u7v2w5x8y1z4a7b2c5d8e1f4g7h2j5k8l1m4n7o2p5q8r1s4t7u2v5w8x1y4z7", // Random gibberish name
 } as const;
@@ -264,4 +265,32 @@ export function getHashedUserId(): string | null {
  */
 export function clearHashedUserId(): void {
   deleteCookie(COOKIE_NAMES.USER_ID_HASH);
+}
+
+export function setLocaizationCookies(country: string, language: string): void {
+  if (country) {
+    setCookie(COOKIE_NAMES.COUNTRY, country, {
+      path: "/",
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 365 * 24 * 60 * 60, // 1 year
+      httpOnly: false,
+    });
+  }
+  if (language) {
+    setCookie(COOKIE_NAMES.LANG, language, {
+      path: "/",
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 365 * 24 * 60 * 60, // 1 year
+      httpOnly: false,
+    });
+    setCookie(COOKIE_NAMES.lANGUAGE, language, {
+      path: "/",
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 365 * 24 * 60 * 60, // 1 year
+      httpOnly: false,
+    });
+  }
 }

@@ -273,7 +273,6 @@ class HomeService {
       editUserInfo,
     } = useAppStore.getState();
     if (userData) {
-      console.log(userData, "userprofile");
       editUserInfo(userData);
       SetGAUser(userData, false);
     }
