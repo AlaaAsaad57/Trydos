@@ -89,16 +89,27 @@ async function fetchCountries(
 }
 
 // Fetch currency data from API
-async function getCurrency(): Promise<any> {
-  const cacheKey = "currency";
+async function getCurrency({
+  country,
+  language,
+  reqUrl,
+}: {
+  country: string;
+  language: string;
+  reqUrl: string;
+}): Promise<any> {
+  const cacheKey = `currency-${country}-${language}`;
 
   return cachedFetch(cacheKey, async () => {
     try {
       const baseUrl = self.location.origin;
-      const response = await fetch(`${baseUrl}/api/market/home/currency`, {
+      const response = await fetch(reqUrl, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
+          country: country,
+          language: language,
+          lang: language,
         },
       });
 
@@ -182,7 +193,8 @@ self.addEventListener("message", async (event: MessageEvent<WorkerRequest>) => {
       }
 
       case "GET_CURRENCY": {
-        const currency = await getCurrency();
+        const { country, language, reqUrl } = payload;
+        const currency = await getCurrency({ country, language, reqUrl });
 
         const response: WorkerResponse = {
           type: "CURRENCY_RESULT",

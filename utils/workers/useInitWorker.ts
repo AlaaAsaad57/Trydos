@@ -159,12 +159,15 @@ export function useInitWorker(callbacks: UseInitWorkerCallbacks) {
     [postMessage]
   );
 
-  const getCurrency = useCallback(() => {
-    postMessage({
-      type: "GET_CURRENCY",
-      payload: {},
-    });
-  }, [postMessage]);
+  const getCurrency = useCallback(
+    (country: string, language: string, reqUrl) => {
+      postMessage({
+        type: "GET_CURRENCY",
+        payload: { country, language, reqUrl },
+      });
+    },
+    [postMessage]
+  );
 
   const checkLogin = useCallback(() => {
     postMessage({

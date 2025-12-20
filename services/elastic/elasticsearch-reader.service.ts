@@ -7,7 +7,7 @@ export class ElasticsearchReader {
   private readonly index = "products_catalog";
 
   async getCategories<T>(ReqQuery: any) {
-    let country = ReqQuery.country;
+    let country = ReqQuery.country || "sy";
     try {
       const { mustConditions, mustNotConditions } = this.getRules(country);
       const query: estypes.SearchRequest = {
@@ -166,8 +166,8 @@ export class ElasticsearchReader {
     return { mustConditions, mustNotConditions };
   }
   async getBoutiques({
-    country,
-    language,
+    country = "sy",
+    language = "en",
     offset,
     limit,
     category,

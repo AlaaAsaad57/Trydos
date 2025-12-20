@@ -267,7 +267,11 @@ function InitSiteData() {
         // Offload to worker for client data
         if (worker.isReady) {
           worker.getClientData();
-          worker.getCurrency();
+          worker.getCurrency(
+            country,
+            language,
+            `${process.env.NEXT_PUBLIC_BACKEND_URL}/mobile/home/currency`
+          );
         }
       }
     }, 10);

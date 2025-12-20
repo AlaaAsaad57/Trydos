@@ -9,9 +9,15 @@ export default async function MainCategoriesNavbar({
   const [country, language] = lang?.split("-");
   let responseData = await api.home.mainCategories.get({
     headers: { country: country, language: language },
+    fetch: {
+      next: {
+        revalidate: 60,
+      },
+    },
   });
 
   let activeCategory = mainCategory;
+
   // @ts-ignore
   let mainCategories = responseData.data.data.mainCategories || [];
   return (

@@ -46,36 +46,49 @@ export const app = new Elysia({ prefix: "/api" })
       },
     };
   })
-  .get("/home/boutiques", async ({ headers: { language, country }, query }) => {
-    let limit = parseInt((query.limit as string) || "10");
-    let offset = query.offset as string;
-    let category_slug = query.category_slugs as string;
-    if (typeof category_slug === "string") {
-      let categorySlg = JSON.parse(category_slug);
-      if (Array.isArray(categorySlg) && categorySlg.length > 0) {
-        category_slug = categorySlg?.[0];
+  .get(
+    "/home/boutiques",
+    async ({ headers: { language, country }, query, set }) => {
+      let limit = parseInt((query.limit as string) || "10");
+      let offset = query.offset as string;
+      let category_slug = query?.category_slugs as string;
+      if (typeof category_slug === "string") {
+        let categorySlg = JSON.parse(category_slug);
+        if (Array.isArray(categorySlg) && categorySlg.length > 0) {
+          category_slug = categorySlg?.[0];
+        }
       }
-    }
-    let Reader = new ElasticsearchReader();
-    const boutiquesResponse = await Reader.getBoutiques({
-      country,
-      language,
-      limit,
-      category: category_slug as any,
-      searchAfter: offset ? JSON.parse(offset.toString()) : null,
-    });
+      let Reader = new ElasticsearchReader();
+      let boutiquesResponse: any = { boutiques: [], searchAfter: null };
+      try {
+        boutiquesResponse = await Reader.getBoutiques({
+          country,
+          language,
+          limit,
+          category: category_slug as any,
+          searchAfter: offset ? JSON.parse(offset.toString()) : null,
+        });
+      } catch (e) {
+        set.status = 500;
+        return {
+          error: "Internal Server Error",
+          error_details: e,
+          message: "Failed to fetch boutiques",
+        };
+      }
 
-    return {
-      data: {
-        total: boutiquesResponse.boutiques?.length || 0,
-        limit,
-        searchAfter: boutiquesResponse.searchAfter,
-        offset: boutiquesResponse.searchAfter, // Use searchAfter as offset, like home page
-        boutiques: boutiquesResponse.boutiques || [],
-        category_slug,
-      },
-    };
-  })
+      return {
+        data: {
+          total: boutiquesResponse.boutiques?.length || 0,
+          limit,
+          searchAfter: boutiquesResponse.searchAfter,
+          offset: boutiquesResponse.searchAfter, // Use searchAfter as offset, like home page
+          boutiques: boutiquesResponse.boutiques || [],
+          category_slug,
+        },
+      };
+    }
+  )
   .get(
     "/products/recomended",
     async ({ headers: { language, country }, query }) => {

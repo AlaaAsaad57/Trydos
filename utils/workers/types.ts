@@ -24,7 +24,11 @@ export type WorkerRequest =
     }
   | {
       type: "GET_CURRENCY";
-      payload: Record<string, never>;
+      payload: {
+        country: string;
+        language: string;
+        reqUrl: string;
+      };
     }
   | {
       type: "CHECK_LOGIN";

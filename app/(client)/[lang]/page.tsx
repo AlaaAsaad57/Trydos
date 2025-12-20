@@ -157,6 +157,11 @@ async function FeaturedProductWrapper({ lang, currency: currencyData }) {
   let response: any = await api.products.featured.get({
     headers: { country: country, language: language },
     query: { limit: 10, offset: null },
+    fetch: {
+      next: {
+        revalidate: 60,
+      },
+    },
   });
   let end = process.hrtime.bigint();
   const redeemed_ids = (await getCookieServer<any[]>("redemed_ids")) ?? [];
@@ -241,6 +246,11 @@ async function FlashProductWrapper({ lang, currency: currencyData }) {
   let response: any = await api.products.flashdeal.get({
     headers: { country: country, language: language },
     query: { limit: 10, offset: null },
+    fetch: {
+      next: {
+        revalidate: 60,
+      },
+    },
   });
   let end = process.hrtime.bigint();
   const redeemed_ids = (await getCookieServer<any[]>("redemed_ids")) ?? [];
@@ -323,6 +333,11 @@ async function BoutiquesListWrapper({ params, currency: currencyData }) {
   let response = await api.home.boutiques.get({
     headers: { country: country, language: language },
     query: { limit: 10, offset: null },
+    fetch: {
+      next: {
+        revalidate: 60,
+      },
+    },
   });
   // @ts-ignore
   let data: any = response.data.data ?? {};
@@ -344,6 +359,11 @@ async function RecomendedProductWrapper({
   const userId = ((await getCookieServer(COOKIE_NAMES.USER_DATA)) as any)?.id;
   let response = await api.products.recomended.get({
     headers: { language, country },
+    fetch: {
+      next: {
+        revalidate: 60,
+      },
+    },
     query: {
       limit: 7,
       offset: null,
