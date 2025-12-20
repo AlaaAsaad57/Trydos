@@ -24,7 +24,6 @@ import {
   GetProductData,
   getProductDataFromElastic,
 } from "utils/pagesDataRequests/ProductPageData";
-import { generateCodeCurrency } from "../../MetaData";
 import { redirect } from "next/navigation";
 import {
   getCurrencyFromCache,
@@ -53,6 +52,7 @@ import ProductRedeemCounter from "components/products/ProductRedeemCounter";
 import PricesRow from "components/Cart/AddToCart/PricesRow";
 import { getCookieServer } from "utils/cookies/cookie-manager";
 import { LogServerError } from "utils/serverErrorReporter";
+import { generateCodeCurrency } from "lib/fetch-layer/metadata/constants-meta";
 
 export async function generateMetadata({ params, searchParams }) {
   let Params = await params;
