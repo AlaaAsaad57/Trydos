@@ -342,7 +342,7 @@ async function RecomendedProductWrapper({
 }): Promise<JSX.Element> {
   const [country, language] = lang.split("-");
   const userId = ((await getCookieServer(COOKIE_NAMES.USER_DATA)) as any)?.id;
-  let response = await api.products.recommended.get({
+  let response = await api.products.recomended.get({
     headers: { language, country },
     query: {
       limit: 7,
