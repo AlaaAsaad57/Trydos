@@ -31,7 +31,10 @@ import AddToCartButton from "./Button";
 import NotifyButton from "./NotifyButton";
 import SearchParamUpdater from "components/global/ParamsUpdater";
 import { showErrorMessage } from "components/global/AddToCartMessage";
-
+const normalizeSize = (s) => {
+  if (typeof s === "string") return s.replace(/_/g, "-");
+  else return s;
+};
 function AddToCartComponent({ product, slug, close, enableCartAction }) {
   const abortControllerRef = useRef<AbortController | null>(null);
   const shouldShowRedeem = () => {
@@ -442,7 +445,8 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
               (s) =>
                 s.option?.toLowerCase() === sizeFromUrl?.toLowerCase() ||
                 s.name?.toLowerCase() === sizeFromUrl?.toLowerCase()
-            ) ?? tempProductData?.choice_options?.[0]?.options?.[0]
+            )?.option ??
+              tempProductData?.choice_options?.[0]?.options?.[0]?.option
           );
         } else {
           // setSelectedSize(tempProductData?.choice_options?.[0]?.options?.[0]);
@@ -547,9 +551,9 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
         selected_variant = ProductData?.variation?.find(
           (s) =>
             s.type?.toLowerCase() ===
-            `${selectedColor?.color_option}-${
+            `${selectedColor?.color_option}-${normalizeSize(
               size?.option ?? size
-            }`?.toLowerCase()
+            )}`?.toLowerCase()
         );
       }
       if (
@@ -572,7 +576,8 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
           (s) =>
             s.type?.toLowerCase() ===
             (
-              size && `${(size?.option ?? size)?.replace(" ", "")}`
+              size &&
+              `${normalizeSize((size?.option ?? size)?.replace(" ", ""))}`
             )?.toLowerCase()
         );
       }
@@ -624,6 +629,7 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
     }
     return color_valid && size_valid;
   };
+
   const getSelectedVariantQty = () => {
     if (!IsValid())
       return {
@@ -644,9 +650,9 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
         selected_variant = ProductData?.variation?.find(
           (s) =>
             s.type?.toLowerCase() ===
-            `${selectedColor?.color_option}-${
+            `${selectedColor?.color_option}-${normalizeSize(
               selectedSize?.option ?? selectedSize
-            }`?.toLowerCase()
+            )}`?.toLowerCase()
         );
       }
       if (
@@ -670,7 +676,9 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
             s.type?.toLowerCase() ===
             (
               selectedSize &&
-              `${(selectedSize?.option ?? selectedSize)?.replace(" ", "")}`
+              `${normalizeSize(
+                (selectedSize?.option ?? selectedSize)?.replace(" ", "")
+              )}`
             )?.toLowerCase()
         );
       }
@@ -733,7 +741,7 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
         setSelectedSize(
           tempProductData?.choice_options?.[0]?.options?.find(
             (s) => s.option === res.size || s.name === res.size
-          )
+          )?.option
         );
       }
     } catch (error) {}
@@ -850,13 +858,11 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
                 s?.type.toLowerCase() ===
                   colorVariant?.color_name?.toLowerCase()
             ) &&
-          s?.type
-            .toLowerCase()
-            .endsWith(
-              `-${(selectedSize?.option ?? selectedSize)
-                ?.toString()
-                .toLowerCase()}`
-            )
+          s?.type.toLowerCase().endsWith(
+            `-${normalizeSize(selectedSize?.option ?? selectedSize)
+              ?.toString()
+              .toLowerCase()}`
+          )
         );
       } else {
         return s?.type
@@ -894,9 +900,9 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
         selected_variant = ProductData?.variation?.find(
           (s) =>
             s.type?.toLowerCase() ===
-            `${colorVariant?.color_option}-${
+            `${colorVariant?.color_option}-${normalizeSize(
               selectedSize?.option ?? selectedSize
-            }`?.toLowerCase()
+            )}`?.toLowerCase()
         );
       }
       if (
@@ -1154,11 +1160,6 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
             selected_variant={getSelectedVariantQty()}
             initialLoading={loading}
             updateQuantity={async (isLocal, type = null, operation) => {
-              console.log("updateQuantity in NotifyCartButton", {
-                isLocal,
-                type,
-                operation,
-              });
               if (ProductData.collected_after_ordering === 0)
                 await updateQuantity({ isLocal, type, operation });
             }}
