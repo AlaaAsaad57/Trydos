@@ -1,8 +1,13 @@
 import { Elysia, t } from "elysia";
 import {
+  GetCatgoriesMetaData,
+  GetHomeMetaData,
+} from "lib/fetch-layer/metadata/home";
+import {
   NormalizeSearchParamsForSearchRequest,
   parseNumberArray,
 } from "lib/searchParamsNormilze";
+import { RedisGet, RedisSet } from "serverRequests/radis";
 import {
   getProductsAndFiltersFromElastic,
   GetRecomendationsForUser,
@@ -320,7 +325,21 @@ export const app = new Elysia({ prefix: "/api" })
       });
       return finalResponse;
     }
-  );
+  )
+  .get("home/meta", async ({ query: { language, country, mainCategory } }) => {
+    let start = process.hrtime.bigint();
+    let metaData = await GetHomeMetaData({
+      language,
+      country,
+      category: mainCategory,
+    });
+    let end = process.hrtime.bigint();
+    console.debug(
+      `Home Meta Data fetched in ${(end - start) / BigInt(1e6)} ms`
+    );
+
+    return metaData;
+  });
 
 // .post(
 //   "/",

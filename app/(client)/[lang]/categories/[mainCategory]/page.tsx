@@ -7,24 +7,27 @@ import OfferListSkeleton from "components/skeleton/OfferList";
 import StoriesSkeleton from "components/skeleton/StoriesSkeleton";
 import { Suspense } from "react";
 import Home from "components/Home";
-import FeatureProducts from "components/Server/FeatureProducts";
 import FeaturedProductsSkeleton from "components/skeleton/loaders/FeaturedProductsSkeleton";
-import FlashDealsProducts from "components/Server/FlashDealsProducts";
-import { getHomeMetadata, GetStructuredData } from "../../MetaData";
+
 import { fetchCurrency } from "serverRequests";
-import { ElasticsearchReader } from "services/elastic/elasticsearch-reader.service";
-import { getProductsAndFiltersFromElastic } from "services/elastic/elasticSearch";
+
 import { getCurrencyFromCache, StoreCurrency } from "serverRequests/radis";
 import MainCategoriesNavbar from "components/Server/MainCategories";
-import { getCookieServer } from "utils/cookies/cookie-manager";
 import { LogServerError } from "utils/serverErrorReporter";
+import { api } from "lib/eden";
+import SearchIcon from "components/Home/Search/SearchIcon";
+import { FeaturedProductWrapper } from "../../ServerWrapper/FeaturedProduct";
+import { FlashProductWrapper } from "../../ServerWrapper/FlashDealsProduct";
+import { BoutiquesListWrapper } from "../../ServerWrapper/BoutiquesListWrapper";
 
 export async function generateMetadata({ params }) {
   try {
     let Params = await params;
-    const metadata = await getHomeMetadata({ params: Params });
+    let [country, language] = Params.lang.split("-");
+    const metadata = await api.home.meta.get({
+      query: { country, language, mainCategory: Params.mainCategory },
+    });
 
-    // console.log("**********metadata***********", JSON.stringify(metadata));
     return { ...metadata };
   } catch (error) {
     console.log(error);
@@ -37,30 +40,25 @@ export async function generateMetadata({ params }) {
 }
 
 // Server component to render JSON-LD structured data
-async function StructuredDataScript({ params }) {
-  try {
-    let Params = await params;
-    const structuredData = await GetStructuredData({ lang: Params.lang });
-    // console.log(
-    //   "**********structuredData***********",
-    //   JSON.stringify(structuredData)
-    // );
+// async function StructuredDataScript({ params }) {
+//   try {
+//     let Params = await params;
+//     const structuredData = await GetStructuredData({ lang: Params.lang });
+//     // console.log(
+//     //   "**********structuredData***********",
+//     //   JSON.stringify(structuredData)
+//     // );
 
-    if (!structuredData) return null;
+//     if (!structuredData) return null;
 
-    return (
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify(structuredData),
-        }}
-      />
-    );
-  } catch (error) {
-    console.error("Error generating structured data:", error);
-    return null;
-  }
-}
+//     return (
+
+//     );
+//   } catch (error) {
+//     console.error("Error generating structured data:", error);
+//     return null;
+//   }
+// }
 async function getCurrency(country, language) {
   try {
     let cachedCurrency = await getCurrencyFromCache(country);
@@ -72,34 +70,41 @@ async function getCurrency(country, language) {
       return { ...cachedCurrency, redis: true };
     } else {
       let currencyData = await fetchCurrency(language, country);
-      let currency = currencyData.data.currency;
+      let currency = { ...currencyData.data.currency };
 
       StoreCurrency(country, currency);
       return { ...currency, redis: false };
     }
-  } catch (error) {}
+  } catch (error) {
+    return {};
+  }
 }
-async function HomePage({ params }) {
+async function CategoryPage({ params }) {
   let Params = await params;
+  const [country, language] = Params.lang.split("-");
+  let currency = await getCurrency(country, language);
+  const isRtl = language === "ar" || language === "ku";
   try {
     return (
       <>
-        <Suspense fallback={null}>
-          {/*@ts-expect-error Async Server Component is valid in Next  */}
-          <StructuredDataScript params={Params} />
-        </Suspense>
-
-        <Suspense
-          fallback={<MobileNavigationSkeleton />}
-          key={`Navbar ${Params.lang}`}
+        {/* <StructuredDataScript params={Params} /> */}
+        <div
+          className={`${
+            isRtl ? "flex-row-reverse pr-[10px]" : "flex-row pl-[10px]"
+          }  bg-white w-full pl-[10px] shadow-[0px_0px_6px_rgb(0,0,0,0.1)] z-[999999995]`}
         >
-          {/*@ts-expect-error Async Server Component is valid in Next  */}
-          <MainCategoriesNavbar
-            lang={Params.lang}
-            mainCategory={Params.mainCategory}
-          />
-        </Suspense>
-
+          <SearchIcon />
+          <Suspense
+            fallback={<MobileNavigationSkeleton />}
+            key={`Navbar ${Params.lang}`}
+          >
+            {/*@ts-expect-error Async Server Component is valid in Next  */}
+            <MainCategoriesNavbar
+              lang={Params.lang}
+              mainCategory={Params.mainCategory}
+            />
+          </Suspense>
+        </div>
         <Suspense fallback={<StoriesSkeleton />} key={`Stories ${Params.lang}`}>
           {/*@ts-expect-error Async Server Component is valid in Next  */}
           <StoriesBarServer
@@ -111,6 +116,7 @@ async function HomePage({ params }) {
         <Suspense fallback={<FeaturedProductsSkeleton />}>
           {/*@ts-expect-error Async Server Component is valid in Next  */}
           <FeaturedProductWrapper
+            currency={currency}
             lang={Params.lang}
             mainCategory={Params.mainCategory}
           />
@@ -118,6 +124,7 @@ async function HomePage({ params }) {
         <Suspense fallback={<FeaturedProductsSkeleton />}>
           {/*@ts-expect-error Async Server Component is valid in Next  */}
           <FlashProductWrapper
+            currency={currency}
             lang={Params.lang}
             mainCategory={Params.mainCategory}
           />
@@ -128,7 +135,11 @@ async function HomePage({ params }) {
           key={`OfferList ${Params.lang}`}
         >
           {/*@ts-expect-error Async Server Component is valid in Next  */}
-          <BoutiquesListWrapper params={Params} />
+          <BoutiquesListWrapper
+            currency={currency}
+            params={Params}
+            mainCategory={Params.mainCategory}
+          />
         </Suspense>
       </>
     );
@@ -138,198 +149,7 @@ async function HomePage({ params }) {
   }
 }
 
-export default HomePage;
+export default CategoryPage;
 // Main Categories Bar
 
 // Featured Products
-async function FeaturedProductWrapper({ lang, mainCategory }) {
-  const [country, language] = lang?.split("-");
-
-  let currencyData = await getCurrency(country, language);
-  let data = await getProductsAndFiltersFromElastic({
-    country: country,
-    language_code: language,
-    filters: {
-      featured: true,
-      categories: mainCategory ? [mainCategory] : null,
-    },
-    limit: 10,
-  });
-  const redeemed_ids = (await getCookieServer<any[]>("redemed_ids")) ?? [];
-  let productsData = data.products.map((product) => {
-    if (product?.is_redeem) {
-      return {
-        name: product?.name,
-        slug: product?.slug,
-        label_names: product?.label_names,
-        category_tree: product?.category_tree,
-        videos: product.videos,
-        colors: product?.colors,
-        sync_color_images: product?.sync_color_images,
-        ...(!product?.sync_color_images ||
-        product?.sync_color_images?.length === 0
-          ? { images: product.images }
-          : {}),
-        price: product.price,
-        offer_price: product.offer_price,
-        redeem_price: product.redeem_price,
-        categories: product?.categories?.map((s) => ({
-          name: s.name,
-          id: s.id,
-        })),
-        brand: {
-          id: product?.brand?.id,
-          icon: product?.brand?.icon,
-          is_verified: product?.brand?.is_verified,
-        },
-        flash_deal_end_date: product.flash_deal_end_date,
-        flash_deal_price: product.flash_deal_price,
-        product_id: product.product_id,
-        is_redeem: !redeemed_ids.find((s) => s.id === product.product_id),
-      };
-    } else
-      return {
-        name: product?.name,
-        slug: product?.slug,
-        label_names: product?.label_names,
-        category_tree: product?.category_tree,
-        videos: product.videos,
-        colors: product?.colors,
-        sync_color_images: product?.sync_color_images,
-        ...(!product?.sync_color_images ||
-        product?.sync_color_images?.length === 0
-          ? { images: product.images }
-          : {}),
-        price: product.price,
-        offer_price: product.offer_price,
-        redeem_price: product.redeem_price,
-        categories: product?.categories?.map((s) => ({
-          name: s.name,
-          id: s.id,
-        })),
-        brand: {
-          id: product?.brand?.id,
-          icon: product?.brand?.icon,
-          is_verified: product?.brand?.is_verified,
-        },
-        flash_deal_end_date: product.flash_deal_end_date,
-        product_id: product.product_id,
-      };
-  });
-  return (
-    <FeatureProducts
-      dataSourceString={""}
-      currencyData={currencyData}
-      fetauredProductsData={{ data: { ...data, products: productsData } }}
-      lang={lang}
-    />
-  );
-}
-// FlasDeals Products
-async function FlashProductWrapper({ lang, mainCategory }) {
-  const [country, language] = lang?.split("-");
-
-  let currencyData = await getCurrency(country, language);
-  let data = await getProductsAndFiltersFromElastic({
-    country: country,
-    language_code: language,
-    filters: {
-      flashdeal: true,
-      categories: mainCategory ? [mainCategory] : null,
-    },
-    limit: 10,
-  });
-  const redeemed_ids = (await getCookieServer<any[]>("redemed_ids")) ?? [];
-  let productsData = data.products.map((product) => {
-    if (product?.is_redeem) {
-      return {
-        name: product?.name,
-        slug: product?.slug,
-        label_names: product?.label_names,
-        category_tree: product?.category_tree,
-        videos: product.videos,
-        colors: product?.colors,
-        sync_color_images: product?.sync_color_images,
-        ...(!product?.sync_color_images ||
-        product?.sync_color_images?.length === 0
-          ? { images: product.images }
-          : {}),
-        price: product.price,
-        offer_price: product.offer_price,
-        redeem_price: product.redeem_price,
-        categories: product?.categories?.map((s) => ({
-          name: s.name,
-          id: s.id,
-        })),
-        brand: {
-          id: product?.brand?.id,
-          icon: product?.brand?.icon,
-          is_verified: product?.brand?.is_verified,
-        },
-        flash_deal_end_date: product.flash_deal_end_date,
-        flash_deal_price: product.flash_deal_price,
-        product_id: product.product_id,
-        is_redeem: !redeemed_ids.find((s) => s.id === product.product_id),
-      };
-    } else
-      return {
-        name: product?.name,
-        slug: product?.slug,
-        label_names: product?.label_names,
-        category_tree: product?.category_tree,
-        videos: product.videos,
-        colors: product?.colors,
-        sync_color_images: product?.sync_color_images,
-        ...(!product?.sync_color_images ||
-        product?.sync_color_images?.length === 0
-          ? { images: product.images }
-          : {}),
-        price: product.price,
-        offer_price: product.offer_price,
-        redeem_price: product.redeem_price,
-        categories: product?.categories?.map((s) => ({
-          name: s.name,
-          id: s.id,
-        })),
-        brand: {
-          id: product?.brand?.id,
-          icon: product?.brand?.icon,
-          is_verified: product?.brand?.is_verified,
-        },
-        flash_deal_end_date: product.flash_deal_end_date,
-        flash_deal_price: product.flash_deal_price,
-        product_id: product.product_id,
-      };
-  });
-  return (
-    <FlashDealsProducts
-      dataSourceString={""}
-      currencyData={currencyData}
-      flashDealsProducts={{ data: { ...data, products: productsData } }}
-      lang={lang}
-    />
-  );
-}
-
-async function BoutiquesListWrapper({ params }) {
-  const [country, language] = params.lang.split("-");
-
-  let start = process.hrtime.bigint();
-
-  let Reader = new ElasticsearchReader();
-  let data = await Reader.getBoutiques({
-    language,
-    country,
-    limit: 10,
-    category: params.mainCategory,
-  });
-  // @ts-ignore
-  let end = process.hrtime.bigint();
-  return (
-    <OfferListServer
-      children={<></>}
-      boutiquesData={{ ...data, temp: Number(end - start) / 1_000_000 }}
-      params={params}
-    />
-  );
-}

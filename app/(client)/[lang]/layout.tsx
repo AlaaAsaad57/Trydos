@@ -13,7 +13,6 @@ import NotificationsContainer from "components/global/NotificationsContainer";
 import AuthNavContainer from "components/Home/AuthNavContainer";
 import VersionChecker from "components/global/VersionChecker";
 import NavbarClient from "components/Home/NavbarClient";
-import InitSiteData from "components/global/InitSiteData";
 export const metadata = {
   title: "TryDos",
   description: "TryDos E-Commerce Website",
@@ -127,11 +126,13 @@ export default async function RootLayout({ params, children }) {
 
           {children}
         </div>
+        <Init />
+
         <VersionChecker />
-        <InitSiteData />
+        <NavbarClient />
         <CartProvider />
         <NotificationsContainer />
-        {/* <PathTracker /> */}
+        <PathTracker />
         <SessionChecker />
         <SessionTimer />
       </body>

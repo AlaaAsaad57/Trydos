@@ -63,9 +63,8 @@ function SearchContainer({ active }) {
           <SearchTrending />
         </>
       )}
-      <Suspense fallback={<div>Loading...</div>}>
-        <SearchResults />
-      </Suspense>
+
+      <SearchResults />
     </div>
   );
 }

@@ -69,19 +69,9 @@ function ProductGeneralProperties({
           {translateFunction("Buyer Rate", languageVariable)}
         </div>
         <span className="px-[5px] text-[10px] text-[#1d1d1d]">|</span>
-        <Suspense
-          fallback={
-            <div className="view-count flex-row align-center">
-              <EyeIcon />
 
-              <span className="m-0">
-                <Skeleton className="m-0" count={1} width={20} height={10} />
-              </span>
-            </div>
-          }
-        >
-          <ProductViews views={views} />
-        </Suspense>
+        <ProductViews views={views} />
+
         {good_quality_product && (
           <>
             <span className="px-[5px] text-[10px] text-[#1d1d1d]">|</span>

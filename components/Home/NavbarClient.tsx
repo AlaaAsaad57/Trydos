@@ -11,7 +11,15 @@ function NavbarClient() {
   const { shouldAuthinticated, selectedStory } = useAppStore();
   const { lang } = useParams();
 
-  return <></>;
+  return (
+    <>
+      <InitFunction init={lang} />
+
+      <AuthSections />
+      {shouldAuthinticated && <ConfirmMobilePhoneWidget />}
+      {selectedStory?.id && <StoriesContainer selectedStory={selectedStory} />}
+    </>
+  );
 }
 
 export default NavbarClient;

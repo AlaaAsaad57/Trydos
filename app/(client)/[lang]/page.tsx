@@ -10,66 +10,58 @@ import Home from "components/Home";
 import FeatureProducts from "components/Server/FeatureProducts";
 import FeaturedProductsSkeleton from "components/skeleton/loaders/FeaturedProductsSkeleton";
 import FlashDealsProducts from "components/Server/FlashDealsProducts";
-import { getHomeMetadata, GetStructuredData } from "./MetaData";
 import { fetchCurrency } from "serverRequests";
 import { getCurrencyFromCache, StoreCurrency } from "serverRequests/radis";
 import RecomendedProducts from "components/Server/RecomendedProducts";
-import { translateFunction } from "utils/functions";
 import MainCategoriesNavbar from "components/Server/MainCategories";
 import { COOKIE_NAMES, getCookieServer } from "utils/cookies/cookie-manager";
 import { LogServerError } from "utils/serverErrorReporter";
 import SearchIcon from "components/Home/Search/SearchIcon";
 import { api } from "lib/eden";
+import { BoutiquesListWrapper } from "./ServerWrapper/BoutiquesListWrapper";
+import { FlashProductWrapper } from "./ServerWrapper/FlashDealsProduct";
+import { FeaturedProductWrapper } from "./ServerWrapper/FeaturedProduct";
 
 export async function generateMetadata({ params }) {
-  let Params = await params;
-  let language = Params.lang?.split("-")[1];
   try {
-    const metadata = await getHomeMetadata({ params: Params });
+    let Params = await params;
+    let [country, language] = Params.lang.split("-");
+    const metadata = await api.home.meta.get({ query: { country, language } });
 
-    return metadata;
+    return { ...metadata };
   } catch (error) {
-    console.log(error);
     return {
-      title: translateFunction(
-        "TryDos - Premium Shopping Experience",
-        language
-      ),
-      description: translateFunction(
+      title: "TryDos - Premium Shopping Experience",
+      description:
         "Discover premium products on TryDos - Your ultimate shopping destination with featured products, flash deals, and boutique collections.",
-        language
-      ),
-      verification: {
-        google: process.env.GOOGLE_VERIFICATION,
-      },
     };
   }
 }
 
 // Server component to render JSON-LD structured data
-async function StructuredDataScript({ lang }): Promise<JSX.Element | null> {
-  try {
-    const structuredData = await GetStructuredData({ lang });
-    // console.log(
-    //   "**********structuredData***********",
-    //   JSON.stringify(structuredData)
-    // );
+// async function StructuredDataScript({ lang }): Promise<JSX.Element | null> {
+//   try {
+//     const structuredData = await GetStructuredData({ lang });
+//     // console.log(
+//     //   "**********structuredData***********",
+//     //   JSON.stringify(structuredData)
+//     // );
 
-    if (!structuredData) return null;
+//     if (!structuredData) return null;
 
-    return (
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify(structuredData),
-        }}
-      />
-    );
-  } catch (error) {
-    console.error("Error generating structured data:", error);
-    return <></>;
-  }
-}
+//     return (
+//       <script
+//         type="application/ld+json"
+//         dangerouslySetInnerHTML={{
+//           __html: JSON.stringify(structuredData),
+//         }}
+//       />
+//     );
+//   } catch (error) {
+//     console.error("Error generating structured data:", error);
+//     return <></>;
+//   }
+// }
 async function getCurrency(country, language) {
   try {
     let cachedCurrency = await getCurrencyFromCache(country);
@@ -98,10 +90,8 @@ async function HomePage({ params }) {
   try {
     return (
       <>
-        <Suspense fallback={<></>}>
-          {/*@ts-expect-error Async Server Component is valid in Next  */}
-          <StructuredDataScript lang={lang} />
-        </Suspense>
+        {/* <StructuredDataScript lang={lang} /> */}
+
         <div
           className={`${
             isRtl ? "flex-row-reverse pr-[10px]" : "flex-row pl-[10px]"
@@ -151,231 +141,5 @@ export default HomePage;
 // Main Categories Bar
 
 // Featured Products
-async function FeaturedProductWrapper({ lang, currency: currencyData }) {
-  const [country, language] = lang?.split("-");
-  let start = process.hrtime.bigint();
-  let response: any = await api.products.featured.get({
-    headers: { country: country, language: language },
-    query: { limit: 10, offset: null },
-    fetch: {
-      next: {
-        revalidate: 60,
-      },
-    },
-  });
-  let end = process.hrtime.bigint();
-  const redeemed_ids = (await getCookieServer<any[]>("redemed_ids")) ?? [];
-  let productsData = response.data.data.products.map((product) => {
-    if (product?.is_redeem) {
-      return {
-        name: product?.name,
-        slug: product?.slug,
-        label_names: product?.label_names,
-        category_tree: product?.category_tree,
-        videos: product.videos,
-        colors: product?.colors,
-        sync_color_images: product?.sync_color_images,
-        ...(!product?.sync_color_images ||
-        product?.sync_color_images?.length === 0
-          ? { images: product.images }
-          : {}),
-        price: product.price,
-        offer_price: product.offer_price,
-        redeem_price: product.redeem_price,
-        categories: product?.categories?.map((s) => ({
-          name: s.name,
-          id: s.id,
-        })),
-        brand: {
-          id: product?.brand?.id,
-          icon: product?.brand?.icon,
-          is_verified: product?.brand?.is_verified,
-        },
-        flash_deal_end_date: product.flash_deal_end_date,
-        flash_deal_price: product.flash_deal_price,
-        product_id: product.product_id,
-        is_redeem: !redeemed_ids.find((s) => s.id === product.product_id),
-      };
-    } else
-      return {
-        name: product?.name,
-        slug: product?.slug,
-        label_names: product?.label_names,
-        category_tree: product?.category_tree,
-        videos: product.videos,
-        colors: product?.colors,
-        sync_color_images: product?.sync_color_images,
-        ...(!product?.sync_color_images ||
-        product?.sync_color_images?.length === 0
-          ? { images: product.images }
-          : {}),
-        price: product.price,
-        offer_price: product.offer_price,
-        redeem_price: product.redeem_price,
-        categories: product?.categories?.map((s) => ({
-          name: s.name,
-          id: s.id,
-        })),
-        brand: {
-          id: product?.brand?.id,
-          icon: product?.brand?.icon,
-          is_verified: product?.brand?.is_verified,
-        },
-        flash_deal_end_date: product.flash_deal_end_date,
-        flash_deal_price: product.flash_deal_price,
-        product_id: product.product_id,
-      };
-  });
 
-  return (
-    <FeatureProducts
-      dataSourceString={`Feature Products Data Source: Products From Elastic, currency from ${
-        currencyData?.redis ? "redis" : "laravel api"
-      } in ${Number(end - start) / 1_000_000} ms`}
-      currencyData={currencyData}
-      fetauredProductsData={{ data: { products: productsData } }}
-      lang={lang}
-    />
-  );
-}
 // FlasDeals Products
-async function FlashProductWrapper({ lang, currency: currencyData }) {
-  const [country, language] = lang?.split("-");
-  let start = process.hrtime.bigint();
-
-  let response: any = await api.products.flashdeal.get({
-    headers: { country: country, language: language },
-    query: { limit: 10, offset: null },
-    fetch: {
-      next: {
-        revalidate: 60,
-      },
-    },
-  });
-  let end = process.hrtime.bigint();
-  const redeemed_ids = (await getCookieServer<any[]>("redemed_ids")) ?? [];
-  let productsData = response.data.data.products.map((product) => {
-    if (product?.is_redeem) {
-      return {
-        name: product?.name,
-        slug: product?.slug,
-        label_names: product?.label_names,
-        category_tree: product?.category_tree,
-        videos: product.videos,
-        colors: product?.colors,
-        sync_color_images: product?.sync_color_images,
-        ...(!product?.sync_color_images ||
-        product?.sync_color_images?.length === 0
-          ? { images: product.images }
-          : {}),
-        price: product.price,
-        offer_price: product.offer_price,
-        redeem_price: product.redeem_price,
-        categories: product?.categories?.map((s) => ({
-          name: s.name,
-          id: s.id,
-        })),
-        brand: {
-          id: product?.brand?.id,
-          icon: product?.brand?.icon,
-          is_verified: product?.brand?.is_verified,
-        },
-        flash_deal_end_date: product.flash_deal_end_date,
-        flash_deal_price: product.flash_deal_price,
-        product_id: product.product_id,
-        is_redeem: !redeemed_ids.find((s) => s.id === product.product_id),
-      };
-    } else
-      return {
-        name: product?.name,
-        slug: product?.slug,
-        label_names: product?.label_names,
-        category_tree: product?.category_tree,
-        videos: product.videos,
-        colors: product?.colors,
-        sync_color_images: product?.sync_color_images,
-        ...(!product?.sync_color_images ||
-        product?.sync_color_images?.length === 0
-          ? { images: product.images }
-          : {}),
-        price: product.price,
-        offer_price: product.offer_price,
-        redeem_price: product.redeem_price,
-        categories: product?.categories?.map((s) => ({
-          name: s.name,
-          id: s.id,
-        })),
-        brand: {
-          id: product?.brand?.id,
-          icon: product?.brand?.icon,
-          is_verified: product?.brand?.is_verified,
-        },
-        flash_deal_end_date: product.flash_deal_end_date,
-        flash_deal_price: product.flash_deal_price,
-        product_id: product.product_id,
-      };
-  });
-  return (
-    <FlashDealsProducts
-      dataSourceString={`FlashDeals Products Data Source: Products From Elastic, currency from ${
-        currencyData?.redis ? "redis" : "laravel api"
-      } in ${Number(end - start) / 1_000_000} ms`}
-      currencyData={currencyData}
-      flashDealsProducts={{ data: { products: productsData } }}
-      lang={lang}
-    />
-  );
-}
-
-async function BoutiquesListWrapper({ params, currency: currencyData }) {
-  const [country, language] = params.lang.split("-");
-
-  let response = await api.home.boutiques.get({
-    headers: { country: country, language: language },
-    query: { limit: 10, offset: null },
-    fetch: {
-      next: {
-        revalidate: 60,
-      },
-    },
-  });
-  // @ts-ignore
-  let data: any = response.data.data ?? {};
-
-  return (
-    <OfferListServer boutiquesData={{ ...(data ?? {}) }} params={params}>
-      <Suspense fallback={<FeaturedProductsSkeleton />}>
-        {/*@ts-expect-error Async Server Component is valid in Next  */}
-        <RecomendedProductWrapper lang={params.lang} currency={currencyData} />
-      </Suspense>
-    </OfferListServer>
-  );
-}
-async function RecomendedProductWrapper({
-  lang,
-  currency: currencyData,
-}): Promise<JSX.Element> {
-  const [country, language] = lang.split("-");
-  const userId = ((await getCookieServer(COOKIE_NAMES.USER_DATA)) as any)?.id;
-  let response = await api.products.recomended.get({
-    headers: { language, country },
-    fetch: {
-      next: {
-        revalidate: 60,
-      },
-    },
-    query: {
-      limit: 7,
-      offset: null,
-    },
-  });
-  return (
-    <RecomendedProducts
-      InitialProducts={(response.data as any).data.products}
-      userId={userId}
-      InitialOffset={(response.data as any).data.offset}
-      lang={lang}
-      currencyData={currencyData}
-    />
-  );
-}
