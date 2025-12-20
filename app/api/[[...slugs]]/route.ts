@@ -1,3 +1,4 @@
+export const runtime = "nodejs";
 import { Elysia, t } from "elysia";
 
 export const app = new Elysia({ prefix: "/api" })
