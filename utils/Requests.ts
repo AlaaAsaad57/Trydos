@@ -207,4 +207,5 @@ export const REQUESTS_DATA = {
   GET_SELLER_PERMISSIONS: { reqTitle: "GET_SELLER_PERMISSIONS", code: 147 },
   GET_SHOP_ROLES: { reqTitle: "GET_SHOP_ROLES", code: 148 },
   ADD_USER_TO_SHOP: { reqTitle: "ADD_USER_TO_SHOP", code: 149 },
+  GET_SELLER_ORDERS: { reqTitle: "GET_SELLER_ORDERS", code: 150 },
 };
