@@ -1,4 +1,4 @@
-// app/api/[[...slugs]]/route.ts
+export const runtime = "nodejs";
 import { Elysia, t } from "elysia";
 
 // Initialize Elysia app with prefix /api
