@@ -22,6 +22,7 @@
     "@google/generative-ai": "^0.21.0",
     "@react-google-maps/api": "^2.20.6",
     "@sentry/nextjs": "10",
+    "@sinclair/typebox": "^0.34.41",
     "@svgr/webpack": "^8.1.0",
     "@vercel/functions": "^3.1.0",
     "@vercel/speed-insights": "^1.2.0",
