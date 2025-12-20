@@ -2,6 +2,7 @@ import { withSentryConfig } from "@sentry/nextjs";
 import type { NextConfig } from "next";
 
 let nextConfig: NextConfig = {
+  transpilePackages: ['elysia', '@boringnode/busboy'],
   reactStrictMode: false,
   compress: true,
   bundlePagesRouterDependencies: false,
