@@ -1,9 +1,26 @@
-import * as React from 'react';
+import * as React from "react";
 
-const PlusIcon = (props: React.SVGProps<SVGSVGElement>) => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="13" height="24" viewBox="0 0 13 24" {...props}>
-  <text id="_" data-name="+" transform="translate(0 19)" fill="#8e8e8e" font-size="18" font-family="SegoeUI, Segoe UI"><tspan x="0" y="0">+</tspan></text>
-</svg>
+const PlusIcon = (props: any) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="13"
+    height="24"
+    viewBox="0 0 13 24"
+    {...props}
+  >
+    <text
+      id="_"
+      data-name="+"
+      transform="translate(0 19)"
+      fill="#8e8e8e"
+      font-size="18"
+      font-family="SegoeUI, Segoe UI"
+    >
+      <tspan x="0" y="0">
+        +
+      </tspan>
+    </text>
+  </svg>
 );
 
 export default PlusIcon;

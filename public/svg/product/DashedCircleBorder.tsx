@@ -1,6 +1,6 @@
 import * as React from "react";
 
-const DashedCircleBorder = (props: React.SVGProps<SVGSVGElement>) => (
+const DashedCircleBorder = (props: any) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     width="calc(100%)"

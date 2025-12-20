@@ -1,6 +1,6 @@
 import * as React from "react";
 
-const Camera = (props: React.SVGProps<SVGSVGElement>) => (
+const Camera = (props: any) => (
   <svg
     width="24px"
     height="24px"

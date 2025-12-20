@@ -1,6 +1,6 @@
 import * as React from "react";
 
-const ArrowUp = (props: React.SVGProps<SVGSVGElement>) => (
+const ArrowUp = (props: any) => (
   <svg
     width="24"
     height="24"

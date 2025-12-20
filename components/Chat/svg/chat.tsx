@@ -1,6 +1,6 @@
 import * as React from "react";
 
-const Chat = (props: React.SVGProps<SVGSVGElement>) => (
+const Chat = (props: any) => (
   <svg
     id="_20X20_photo_Back"
     data-name="20X20 photo Back"

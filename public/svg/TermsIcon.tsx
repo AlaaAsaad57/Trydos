@@ -1,6 +1,6 @@
 import * as React from "react";
 
-const TermsIcon = (props: React.SVGProps<SVGSVGElement>) => (
+const TermsIcon = (props: any) => (
   <svg
     id="_25x25_Back"
     data-name="25x25 Back"

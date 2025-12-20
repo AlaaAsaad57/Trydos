@@ -1,12 +1,40 @@
-import * as React from 'react';
+import * as React from "react";
 
-const Cancel = (props: React.SVGProps<SVGSVGElement>) => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="17.828" height="17.829" viewBox="0 0 17.828 17.829" {...props}>
-  <g id="Group_10676" data-name="Group 10676" transform="translate(-67.032 -2460.283)">
-    <line id="Line_879" data-name="Line 879" y2="21.213" transform="translate(83.447 2461.697) rotate(45)" fill="none" stroke="#555" strokeLinecap="round" strokeWidth="2"/>
-    <line id="Line_880" data-name="Line 880" y2="21.213" transform="translate(83.447 2476.697) rotate(135)" fill="none" stroke="#555" strokeLinecap="round" strokeWidth="2"/>
-  </g>
-</svg>
+const Cancel = (props: any) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="17.828"
+    height="17.829"
+    viewBox="0 0 17.828 17.829"
+    {...props}
+  >
+    <g
+      id="Group_10676"
+      data-name="Group 10676"
+      transform="translate(-67.032 -2460.283)"
+    >
+      <line
+        id="Line_879"
+        data-name="Line 879"
+        y2="21.213"
+        transform="translate(83.447 2461.697) rotate(45)"
+        fill="none"
+        stroke="#555"
+        strokeLinecap="round"
+        strokeWidth="2"
+      />
+      <line
+        id="Line_880"
+        data-name="Line 880"
+        y2="21.213"
+        transform="translate(83.447 2476.697) rotate(135)"
+        fill="none"
+        stroke="#555"
+        strokeLinecap="round"
+        strokeWidth="2"
+      />
+    </g>
+  </svg>
 );
 
 export default Cancel;

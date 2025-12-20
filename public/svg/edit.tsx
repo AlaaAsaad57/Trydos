@@ -1,6 +1,6 @@
 import * as React from "react";
 
-const Edit = (props: React.SVGProps<SVGSVGElement>) => (
+const Edit = (props: any) => (
   <svg
     width="24px"
     height="24px"

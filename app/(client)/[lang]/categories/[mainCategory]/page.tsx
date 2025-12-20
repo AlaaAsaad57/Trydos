@@ -108,14 +108,14 @@ async function HomePage({ params }) {
           />
         </Suspense>
 
-        <Suspense fallback={<FeaturedProductsSkeleton lang={Params.lang} />}>
+        <Suspense fallback={<FeaturedProductsSkeleton />}>
           {/*@ts-expect-error Async Server Component is valid in Next  */}
           <FeaturedProductWrapper
             lang={Params.lang}
             mainCategory={Params.mainCategory}
           />
         </Suspense>
-        <Suspense fallback={<FeaturedProductsSkeleton lang={Params.lang} />}>
+        <Suspense fallback={<FeaturedProductsSkeleton />}>
           {/*@ts-expect-error Async Server Component is valid in Next  */}
           <FlashProductWrapper
             lang={Params.lang}
@@ -328,7 +328,6 @@ async function BoutiquesListWrapper({ params }) {
   return (
     <OfferListServer
       children={<></>}
-      dataSourceString=""
       boutiquesData={{ ...data, temp: Number(end - start) / 1_000_000 }}
       params={params}
     />

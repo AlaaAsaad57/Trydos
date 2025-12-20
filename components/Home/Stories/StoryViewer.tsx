@@ -291,7 +291,7 @@ const StoryViewer = ({
       style={{
         width,
         height,
-        ...(storyContainerStyles || {}),
+        ...((storyContainerStyles as any) || {}),
       }}
     >
       {/* Header (user avatar, name, timestamp) */}
@@ -352,7 +352,7 @@ const StoryViewer = ({
             height: "100%",
             opacity: resourceLoaded && !isPaused ? 1 : 0,
             transition: "opacity 0.15s ease",
-            ...(storyStyles || {}),
+            ...((storyStyles as any) || {}),
           }}
         >
           {isImage ? (

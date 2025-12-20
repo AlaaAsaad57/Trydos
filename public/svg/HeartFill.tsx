@@ -1,6 +1,6 @@
 import * as React from "react";
 
-const HeartFill = (props: React.SVGProps<SVGSVGElement>) => (
+const HeartFill = (props: any) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     xmlSpace="preserve"

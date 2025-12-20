@@ -1,6 +1,6 @@
 import * as React from "react";
 
-const Close = (props: React.SVGProps<SVGSVGElement>) => (
+const Close = (props: any) => (
   <svg
     width="24px"
     height="24px"

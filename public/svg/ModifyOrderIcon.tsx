@@ -1,6 +1,6 @@
 import * as React from "react";
 
-const ModifyOrderIcon = (props: React.SVGProps<SVGSVGElement>) => (
+const ModifyOrderIcon = (props: any) => (
   <svg
     id="Group_13945"
     data-name="Group 13945"

@@ -1,6 +1,6 @@
 import * as React from "react";
 
-const AccountIcon = (props: React.SVGProps<SVGSVGElement>) => (
+const AccountIcon = (props: any) => (
   <svg
     id="_20x20"
     data-name="20x20"

@@ -1,6 +1,6 @@
 import * as React from "react";
 
-const VidIcon = (props: React.SVGProps<SVGSVGElement>) => (
+const VidIcon = (props: any) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     width="34.871"

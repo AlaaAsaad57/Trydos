@@ -1,6 +1,6 @@
 import * as React from "react";
 
-const WAIcon = (props: React.SVGProps<SVGSVGElement>) => (
+const WAIcon = (props: any) => (
   <svg
     id="_20x20"
     data-name="20x20"

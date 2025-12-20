@@ -1,6 +1,6 @@
 import * as React from "react";
 
-const CancelCall = (props: React.SVGProps<SVGSVGElement>) => (
+const CancelCall = (props: any) => (
   <svg
     width="24"
     height="24"

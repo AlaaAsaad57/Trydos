@@ -1,6 +1,6 @@
 import * as React from "react";
 
-const CartIcon = (props: React.SVGProps<SVGSVGElement>) => (
+const CartIcon = (props: any) => (
   <svg
     id="_20x20"
     data-name="20x20"

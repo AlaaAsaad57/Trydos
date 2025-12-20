@@ -1,21 +1,21 @@
-import * as React from 'react';
+import * as React from "react";
 
-const CartMinusIcon = (props: React.SVGProps<SVGSVGElement>) => (
+const CartMinusIcon = (props: any) => (
   <svg
-
-xmlns="http://www.w3.org/2000/svg"
-width="12"
-height="2.548"
-view-box="0 0 12 2.548"
- {...props}>
-<path
-id="Path_22217"
-data-name="Path 22217"
-d="M1.775.295A1.254,1.254,0,0,1,.85-.076,1.259,1.259,0,0,1,.48-1a1.183,1.183,0,0,1,.37-.9,1.3,1.3,0,0,1,.925-.347h9.41a1.275,1.275,0,0,1,.925.359,1.22,1.22,0,0,1,.37.915,1.22,1.22,0,0,1-.37.915,1.275,1.275,0,0,1-.925.359Z"
-transform="translate(-0.48 2.254)"
-fill="#8d8d8d"
-/>
-</svg>
+    xmlns="http://www.w3.org/2000/svg"
+    width="12"
+    height="2.548"
+    view-box="0 0 12 2.548"
+    {...props}
+  >
+    <path
+      id="Path_22217"
+      data-name="Path 22217"
+      d="M1.775.295A1.254,1.254,0,0,1,.85-.076,1.259,1.259,0,0,1,.48-1a1.183,1.183,0,0,1,.37-.9,1.3,1.3,0,0,1,.925-.347h9.41a1.275,1.275,0,0,1,.925.359,1.22,1.22,0,0,1,.37.915,1.22,1.22,0,0,1-.37.915,1.275,1.275,0,0,1-.925.359Z"
+      transform="translate(-0.48 2.254)"
+      fill="#8d8d8d"
+    />
+  </svg>
 );
 
 export default CartMinusIcon;

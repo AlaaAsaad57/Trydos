@@ -1,6 +1,6 @@
 import * as React from "react";
 
-const LargeAddressChangeIcon = (props: React.SVGProps<SVGSVGElement>) => (
+const LargeAddressChangeIcon = (props: any) => (
   <svg
     id="Group_13925"
     data-name="Group 13925"

@@ -1,6 +1,6 @@
 import * as React from "react";
 
-const DeleteIcon = (props: React.SVGProps<SVGSVGElement>) => (
+const DeleteIcon = (props: any) => (
   <svg
     id="delete"
     xmlns="http://www.w3.org/2000/svg"

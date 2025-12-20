@@ -1,6 +1,6 @@
 import * as React from "react";
 
-const ElectricalIcon = (props: React.SVGProps<SVGSVGElement>) => (
+const ElectricalIcon = (props: any) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     xmlnsXlink="http://www.w3.org/1999/xlink"

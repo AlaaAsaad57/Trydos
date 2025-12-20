@@ -1,6 +1,6 @@
 import * as React from "react";
 
-const ArrowDown = (props: React.SVGProps<SVGSVGElement>) => (
+const ArrowDown = (props: any) => (
   <svg
     width="24"
     height="24"

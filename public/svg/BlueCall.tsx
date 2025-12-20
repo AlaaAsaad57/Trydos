@@ -1,6 +1,6 @@
 import * as React from "react";
 
-const BlueCall = (props: React.SVGProps<SVGSVGElement>) => (
+const BlueCall = (props: any) => (
   <svg
     id="_12x12_photo_back"
     data-name="12x12 photo back"

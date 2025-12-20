@@ -1,6 +1,6 @@
 import * as React from "react";
 
-const SearchIcon = (props: React.SVGProps<SVGSVGElement>) => (
+const SearchIcon = (props: any) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     xmlnsXlink="http://www.w3.org/1999/xlink"

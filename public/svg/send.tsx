@@ -1,6 +1,6 @@
 import * as React from "react";
 
-const Send = (props: React.SVGProps<SVGSVGElement>) => (
+const Send = (props: any) => (
   <svg
     width="24px"
     height="24px"

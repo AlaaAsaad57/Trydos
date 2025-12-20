@@ -1,6 +1,6 @@
 import * as React from "react";
 
-const CommentPost = (props: React.SVGProps<SVGSVGElement>) => (
+const CommentPost = (props: any) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     width="30px"

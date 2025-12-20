@@ -1,6 +1,6 @@
 import * as React from "react";
 
-const BestSellIcon = (props: React.SVGProps<SVGSVGElement>) => (
+const BestSellIcon = (props: any) => (
   <svg
     id="_10x10_flag_photo"
     data-name="10x10 flag photo"

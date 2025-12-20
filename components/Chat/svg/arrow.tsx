@@ -1,9 +1,25 @@
-import * as React from 'react';
+import * as React from "react";
 
-const Arrow = (props: React.SVGProps<SVGSVGElement>) => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="11.611" height="24.216" viewBox="0 0 11.611 24.216" {...props}>
-  <path id="Path_14693" data-name="Path 14693" d="M8,0,0,9.715,8,20" transform="translate(1.5 2.111)" fill="none" stroke="#388cff" strokeLinecap="round" stroke-linejoin="round" strokeWidth="3"/>
-</svg>
+const Arrow = (props: any) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="11.611"
+    height="24.216"
+    viewBox="0 0 11.611 24.216"
+    {...props}
+  >
+    <path
+      id="Path_14693"
+      data-name="Path 14693"
+      d="M8,0,0,9.715,8,20"
+      transform="translate(1.5 2.111)"
+      fill="none"
+      stroke="#388cff"
+      strokeLinecap="round"
+      stroke-linejoin="round"
+      strokeWidth="3"
+    />
+  </svg>
 );
 
 export default Arrow;

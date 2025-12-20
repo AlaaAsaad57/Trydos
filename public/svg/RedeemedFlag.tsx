@@ -1,6 +1,6 @@
 import * as React from "react";
 
-const RedeemedFlag = (props: React.SVGProps<SVGSVGElement>) => (
+const RedeemedFlag = (props: any) => (
   <svg
     width="60"
     height="20"

@@ -1,6 +1,6 @@
 import * as React from "react";
 
-const ImageInfo = (props: React.SVGProps<SVGSVGElement>) => (
+const ImageInfo = (props: any) => (
   <svg
     id="_15x15"
     data-name="15x15"

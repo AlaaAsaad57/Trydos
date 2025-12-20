@@ -1,6 +1,6 @@
 import * as React from "react";
 
-const CalenderIcon = (props: React.SVGProps<SVGSVGElement>) => (
+const CalenderIcon = (props: any) => (
   <svg
     width="24px"
     height="24px"

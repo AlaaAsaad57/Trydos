@@ -1,12 +1,32 @@
-import * as React from 'react';
+import * as React from "react";
 
-const OrderCancelIcon = (props: React.SVGProps<SVGSVGElement>) => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 30 30" {...props}>
-  <g id="Group_14111" data-name="Group 14111" transform="translate(-2 -2)">
-    <circle id="Ellipse_552" data-name="Ellipse 552" cx="15" cy="15" r="15" transform="translate(2 2)" fill="#ff5f61"/>
-    <path id="Path_23440" data-name="Path 23440" d="M15.465,13.866l3.705-3.7a1.125,1.125,0,0,0-1.59-1.59l-3.7,3.705-3.7-3.705a1.125,1.125,0,0,0-1.59,1.59l3.7,3.705-3.7,3.7a1.124,1.124,0,0,0,1.59,1.59l3.7-3.7,3.7,3.7a1.124,1.124,0,1,0,1.59-1.59Z" transform="translate(3.125 3.135)" fill="#edebea"/>
-  </g>
-</svg>
+const OrderCancelIcon = (props: any) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="30"
+    height="30"
+    viewBox="0 0 30 30"
+    {...props}
+  >
+    <g id="Group_14111" data-name="Group 14111" transform="translate(-2 -2)">
+      <circle
+        id="Ellipse_552"
+        data-name="Ellipse 552"
+        cx="15"
+        cy="15"
+        r="15"
+        transform="translate(2 2)"
+        fill="#ff5f61"
+      />
+      <path
+        id="Path_23440"
+        data-name="Path 23440"
+        d="M15.465,13.866l3.705-3.7a1.125,1.125,0,0,0-1.59-1.59l-3.7,3.705-3.7-3.705a1.125,1.125,0,0,0-1.59,1.59l3.7,3.705-3.7,3.7a1.124,1.124,0,0,0,1.59,1.59l3.7-3.7,3.7,3.7a1.124,1.124,0,1,0,1.59-1.59Z"
+        transform="translate(3.125 3.135)"
+        fill="#edebea"
+      />
+    </g>
+  </svg>
 );
 
 export default OrderCancelIcon;

@@ -1,6 +1,6 @@
 import * as React from "react";
 
-const Down = (props: React.SVGProps<SVGSVGElement>) => (
+const Down = (props: any) => (
   <svg
     viewBox="0 0 34 34"
     height="34"

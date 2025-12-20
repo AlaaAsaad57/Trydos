@@ -1,6 +1,6 @@
 import * as React from "react";
 
-const Spinn = (props: React.SVGProps<SVGSVGElement>) => (
+const Spinn = (props: any) => (
   <svg width="32" height="32" viewBox="0 0 43 43" role="status" {...props}>
     <circle
       cx="21.5"

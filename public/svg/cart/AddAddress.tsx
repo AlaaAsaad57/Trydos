@@ -1,6 +1,6 @@
 import * as React from "react";
 
-const AddAddress = (props: React.SVGProps<SVGSVGElement>) => (
+const AddAddress = (props: any) => (
   <svg
     id="Group_13034"
     data-name="Group 13034"

@@ -1,6 +1,6 @@
 import * as React from "react";
 
-const StarIcon = (props: React.SVGProps<SVGSVGElement>) => (
+const StarIcon = (props: any) => (
   <svg
     id="_20x20"
     data-name="20x20"

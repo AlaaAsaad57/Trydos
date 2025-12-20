@@ -1,6 +1,6 @@
 import * as React from "react";
 
-const Misscall = (props: React.SVGProps<SVGSVGElement>) => (
+const Misscall = (props: any) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     width="20.538"

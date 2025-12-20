@@ -1,6 +1,6 @@
 import * as React from "react";
 
-const ChatIcon = (props: React.SVGProps<SVGSVGElement>) => (
+const ChatIcon = (props: any) => (
   <svg
     id="_20X20_photo_Back"
     data-name="20X20 photo Back"

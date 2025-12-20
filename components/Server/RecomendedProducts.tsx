@@ -87,7 +87,7 @@ function RecomendedProducts({
   const isRtl = language === "ar" || language === "ku";
 
   let currency = currencyData;
-  if (loading) return <FeaturedProductsSkeleton lang={lang} />;
+  if (loading) return <FeaturedProductsSkeleton />;
   if (products?.length === 0) return <></>;
   return (
     <div

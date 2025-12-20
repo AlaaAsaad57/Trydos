@@ -1,6 +1,6 @@
 import * as React from "react";
 
-const Calling = (props: React.SVGProps<SVGSVGElement>) => (
+const Calling = (props: any) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     width="24.999"

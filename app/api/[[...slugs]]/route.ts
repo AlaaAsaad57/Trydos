@@ -323,3 +323,4 @@ export const app = new Elysia({ prefix: "/api" })
 // Export handlers so Next’s app router invokes Elysia
 export const GET = app.fetch;
 export const POST = app.fetch;
+export type AppType = typeof app;

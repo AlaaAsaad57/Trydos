@@ -1,6 +1,5 @@
 "use client";
 
-import React, { Suspense } from "react";
 import InitFunction from "./InitFunction";
 import AuthSections from "./AuthSections";
 import { useAppStore } from "store";
@@ -12,16 +11,7 @@ function NavbarClient() {
   const { shouldAuthinticated, selectedStory } = useAppStore();
   const { lang } = useParams();
 
-  return (
-    <>
-      <Suspense fallback={<></>}>
-        <InitFunction init={lang} />
-      </Suspense>
-      <AuthSections />
-      {shouldAuthinticated && <ConfirmMobilePhoneWidget />}
-      {selectedStory?.id && <StoriesContainer selectedStory={selectedStory} />}
-    </>
-  );
+  return <></>;
 }
 
 export default NavbarClient;

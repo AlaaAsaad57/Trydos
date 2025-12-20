@@ -1,6 +1,6 @@
 import * as React from "react";
 
-const Pause = (props: React.SVGProps<SVGSVGElement>) => (
+const Pause = (props: any) => (
   <svg
     id="_20x20"
     data-name="20x20"

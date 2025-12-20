@@ -1,6 +1,6 @@
 import * as React from "react";
 
-const Phone = (props: React.SVGProps<SVGSVGElement>) => (
+const Phone = (props: any) => (
   <svg
     width="24px"
     height="24px"
