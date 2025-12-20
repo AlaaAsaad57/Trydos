@@ -1,3 +1,4 @@
+export const runtime = "nodejs";
 import { Elysia, t } from "elysia";
 import {
   NormalizeSearchParamsForSearchRequest,
