@@ -1,10 +1,12 @@
-export const runtime = "nodejs";
+// app/api/[[...slugs]]/route.ts
 import { Elysia, t } from "elysia";
 
+// Initialize Elysia app with prefix /api
 export const app = new Elysia({ prefix: "/api" })
-  .get("/home/mainCategories", async ({ headers: { language, country } }) => {
-    // let start = process.hrtime.bigint();
+  .get("/home/mainCategories", async ({ headers }) => {
+    const { language = "en", country = "US" } = headers;
 
+    // Replace [] with real categories from DB later
     return {
       data: {
         mainCategories: [].map((category: any) => ({
@@ -18,71 +20,53 @@ export const app = new Elysia({ prefix: "/api" })
       },
     };
   })
-  .get("/home/boutiques", async ({ headers: { language, country }, query }) => {
-    let limit = 20;
-    let category_slug = null;
-    let boutiquesResponse = {
+  .get("/home/boutiques", async ({ headers, query }) => {
+    const { language = "en", country = "US" } = headers;
+
+    const limit = 20;
+    const category_slug = null;
+
+    const boutiquesResponse = {
       boutiques: [],
       limit: 10,
       searchAfter: null,
       category_slug: null,
     };
+
     return {
       data: {
-        total: boutiquesResponse.boutiques?.length || 0,
+        total: boutiquesResponse.boutiques.length,
         limit,
         searchAfter: boutiquesResponse.searchAfter,
-        offset: boutiquesResponse.searchAfter, // Use searchAfter as offset, like home page
-        boutiques: boutiquesResponse.boutiques || [],
+        offset: boutiquesResponse.searchAfter,
+        boutiques: boutiquesResponse.boutiques,
         category_slug,
       },
     };
   })
-  .get(
-    "/products/recomended",
-    async ({ headers: { language, country }, query }) => {
-      let result = {};
-      return {
-        data: result,
-      };
-    }
-  )
-  .get(
-    "/products/featured",
-    async ({ headers: { language, country }, query }) => {
-      let result = {},
-        filters = {};
-      return {
-        data: result,
-        appliedFilters: filters,
-      };
-    }
-  )
-  .get(
-    "/products/flashdeal",
-    async ({ headers: { language, country }, query }) => {
-      let result = {},
-        filters = {};
+  .get("/products/recommended", async ({ headers, query }) => {
+    const result = {};
+    return { data: result };
+  })
+  .get("/products/featured", async ({ headers, query }) => {
+    const result = {};
+    const filters = {};
+    return { data: result, appliedFilters: filters };
+  })
+  .get("/products/flashdeal", async ({ headers, query }) => {
+    const result = {};
+    const filters = {};
+    return { data: result, appliedFilters: filters };
+  })
+  .post("/auth/login", async ({ headers, body, cookie, set }) => {
+    // Example login logic placeholder
+    const finalResponse = {};
+    return finalResponse;
+  });
 
-      return {
-        data: result,
-        appliedFilters: filters,
-      };
-    }
-  )
-  .get(
-    "/auth/login",
-    async ({
-      headers: { language, country, Authorization },
-      query,
-      set,
-      cookie,
-    }) => {
-      let finalResponse = {};
-      return finalResponse;
-    }
-  );
-
+// Export Elysia fetch handlers for Next.js App Router
 export const GET = app.fetch;
 export const POST = app.fetch;
+
+// Export app type for treaty
 export type AppType = typeof app;
