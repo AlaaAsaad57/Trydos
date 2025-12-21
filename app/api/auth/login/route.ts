@@ -81,11 +81,15 @@ export async function GET(request: NextRequest) {
       await Promise.all([
         fetch(process.env.NEXT_PUBLIC_CHAT_BACKEND_URL + LOG_IN_CHAT_ENDPOINT, {
           method: "POST",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
           body: JSON.stringify({
-            otp_id_token: idToken,
-            mobile_phone: InventoryUser.phone,
-            name: name || InventoryUser.name,
-            original_user_id: InventoryUser.id,
+            otp_id_token: String(idToken),
+            mobile_phone: String(InventoryUser.phone),
+            name: String(name || InventoryUser.name),
+            original_user_id: String(InventoryUser.id),
           }),
           credentials: "omit",
         }),
@@ -131,9 +135,17 @@ export async function GET(request: NextRequest) {
       ]
     );
 
-    if (chatLoginResponse.status !== 200) {
+    if (!chatLoginResponse.ok) {
       is_failed.push({
         ...(chat_response ?? {}),
+        body: {
+          otp_id_token: String(idToken),
+          mobile_phone: String(InventoryUser.phone),
+          name: String(name || InventoryUser.name),
+          original_user_id: String(InventoryUser.id),
+        },
+        request_url:
+          process.env.NEXT_PUBLIC_CHAT_BACKEND_URL + LOG_IN_CHAT_ENDPOINT,
         request: LOG_IN_CHAT_ENDPOINT,
         status: StoriesLoginResponse.status,
       });
