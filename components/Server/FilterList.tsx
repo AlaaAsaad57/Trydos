@@ -682,21 +682,21 @@ const FilterItemsRow = ({
       <div className="category-row-container flex-row" data-cy={getDataCy()}>
         {items &&
           items?.map((item) => (
-            <FilterItemWrapper
-              item={{ value: item?.name ?? item, type: term }}
+            // <FilterItemWrapper
+            //   item={{ value: item?.name ?? item, type: term }}
+            //   key={item.id}
+            // >
+            <FilterItem
+              baseUrlOfFiltersPage={baseUrlOfFiltersPage()}
+              params={params}
+              filterParams={filterParams}
+              isUsingParsedFilters={isUsingParsedFilters}
               key={item.id}
-            >
-              <FilterItem
-                baseUrlOfFiltersPage={baseUrlOfFiltersPage()}
-                params={params}
-                filterParams={filterParams}
-                isUsingParsedFilters={isUsingParsedFilters}
-                key={item.id}
-                currency={currency}
-                term={term}
-                item={item}
-              />
-            </FilterItemWrapper>
+              currency={currency}
+              term={term}
+              item={item}
+            />
+            // </FilterItemWrapper>
           ))}
 
         {shouldShowMore() && (

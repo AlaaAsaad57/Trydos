@@ -41,6 +41,7 @@ function CategoryNavMobile({
           ? `/${params?.lang}`
           : `/${params?.lang}/categories/${slug}`
       }
+      data-id={slug}
     >
       {active && (
         <ActiveCategoryIcon

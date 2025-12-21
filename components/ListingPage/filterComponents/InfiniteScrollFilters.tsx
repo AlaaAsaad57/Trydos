@@ -121,89 +121,89 @@ function InfiniteScrollFilters({
   const showFilters = () => {
     if (term === "categories")
       return data?.categories?.map((s, i) => (
-        <FilterItemWrapper
-          key={i}
-          item={{ value: s?.name, type: "categories" }}
-        >
-          <FilterItem
-            baseUrlOfFiltersPage={baseUrlOfFiltersPage()}
-            currency={currency}
-            item={s}
-            params={params}
-            filterParams={filterParams}
-            isUsingParsedFilters={isUsingParsedFilters}
-            term={"categories"}
-            key={`categories-${i}`}
-          />
-        </FilterItemWrapper>
+        // <FilterItemWrapper
+        //   key={i}
+        //   item={{ value: s?.name, type: "categories" }}
+        // >
+        <FilterItem
+          baseUrlOfFiltersPage={baseUrlOfFiltersPage()}
+          currency={currency}
+          item={s}
+          params={params}
+          filterParams={filterParams}
+          isUsingParsedFilters={isUsingParsedFilters}
+          term={"categories"}
+          key={`categories-${i}`}
+        />
+        // </FilterItemWrapper>
       ));
     if (term === "brands")
       return data?.brands?.map((s, i) => (
-        <FilterItemWrapper key={i} item={{ value: s?.name, type: "brands" }}>
-          <FilterItem
-            baseUrlOfFiltersPage={baseUrlOfFiltersPage()}
-            currency={currency}
-            item={s}
-            params={params}
-            filterParams={filterParams}
-            isUsingParsedFilters={isUsingParsedFilters}
-            term={"brands"}
-            key={`brands-${i}`}
-          />
-        </FilterItemWrapper>
+        // <FilterItemWrapper key={i} item={{ value: s?.name, type: "brands" }}>
+        <FilterItem
+          baseUrlOfFiltersPage={baseUrlOfFiltersPage()}
+          currency={currency}
+          item={s}
+          params={params}
+          filterParams={filterParams}
+          isUsingParsedFilters={isUsingParsedFilters}
+          term={"brands"}
+          key={`brands-${i}`}
+        />
+        // </FilterItemWrapper>
       ));
     if (term === "colors")
       return data?.colors?.map((s, i) => (
-        <FilterItemWrapper
-          key={i}
-          item={{ value: s?.name || s, type: "colors" }}
-        >
-          <FilterItem
-            baseUrlOfFiltersPage={baseUrlOfFiltersPage()}
-            currency={currency}
-            item={s}
-            params={params}
-            filterParams={filterParams}
-            isUsingParsedFilters={isUsingParsedFilters}
-            term={"colors"}
-            key={`colors-${i}`}
-          />
-        </FilterItemWrapper>
+        // <FilterItemWrapper
+        //   key={i}
+        //   item={{ value: s?.name || s, type: "colors" }}
+        // >
+        <FilterItem
+          baseUrlOfFiltersPage={baseUrlOfFiltersPage()}
+          currency={currency}
+          item={s}
+          params={params}
+          filterParams={filterParams}
+          isUsingParsedFilters={isUsingParsedFilters}
+          term={"colors"}
+          key={`colors-${i}`}
+        />
+        // </FilterItemWrapper>
       ));
     if (term === "sizes")
       return data?.sizes?.map((s, i) => (
-        <FilterItemWrapper
-          key={i}
-          item={{ value: s?.name || s, type: "sizes" }}
-        >
-          <FilterItem
-            term="sizes"
-            baseUrlOfFiltersPage={baseUrlOfFiltersPage()}
-            currency={currency}
-            item={s}
-            params={params}
-            filterParams={filterParams}
-            isUsingParsedFilters={isUsingParsedFilters}
-          />
-        </FilterItemWrapper>
+        // <FilterItemWrapper
+        //   key={i}
+        //   item={{ value: s?.name || s, type: "sizes" }}
+        // >
+        <FilterItem
+          term="sizes"
+          baseUrlOfFiltersPage={baseUrlOfFiltersPage()}
+          currency={currency}
+          item={s}
+          params={params}
+          filterParams={filterParams}
+          isUsingParsedFilters={isUsingParsedFilters}
+        />
+        // </FilterItemWrapper>
       ));
     if (term === "prices")
       return data?.prices?.map((s, i) => (
-        <FilterItemWrapper
-          key={i}
-          item={{ value: `${s.min_price}-${s.max_price}`, type: "prices" }}
-        >
-          <FilterItem
-            baseUrlOfFiltersPage={baseUrlOfFiltersPage()}
-            currency={currency}
-            item={s}
-            params={params}
-            filterParams={filterParams}
-            isUsingParsedFilters={isUsingParsedFilters}
-            term={"prices"}
-            key={`prices-${i}`}
-          />
-        </FilterItemWrapper>
+        // <FilterItemWrapper
+        //   key={i}
+        //   item={{ value: `${s.min_price}-${s.max_price}`, type: "prices" }}
+        // >
+        <FilterItem
+          baseUrlOfFiltersPage={baseUrlOfFiltersPage()}
+          currency={currency}
+          item={s}
+          params={params}
+          filterParams={filterParams}
+          isUsingParsedFilters={isUsingParsedFilters}
+          term={"prices"}
+          key={`prices-${i}`}
+        />
+        // </FilterItemWrapper>
       ));
   };
   useEffect(() => {

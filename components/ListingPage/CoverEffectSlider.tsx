@@ -4,7 +4,6 @@ import { GetImageUrl } from "utils/tinyUtils";
 import { getConfiguredImage } from "utils/functions";
 import { CoverEffectSliderPropsType } from "models/componentType/CoverEffectSliderPropsType";
 import ImageAvatar from "./ImageAvatar";
-import StackedSlider from "utils/Slider";
 import { useAppStore } from "store";
 
 function CoverEffectSlider({
@@ -53,45 +52,7 @@ function CoverEffectSlider({
         onTouchEnd={handleClick}
         onMouseUp={handleClick}
         onMouseDown={handleClick}
-      >
-        <StackedSlider
-          disableSlide={true}
-          initial_index={initialIndex}
-          active_index={initialIndex}
-          max_drag={100}
-          min_scale={0.6}
-          max_scale={1}
-          overlap_factor={0.4}
-          slide_height={35}
-          slide_width={35}
-          slidesArray={rearrangedImages.map((_, i) => i)}
-          renderSlide={({ index, isActive }) => {
-            const img = rearrangedImages[index];
-            return (
-              <div
-                data-cy="wrapperPhotoSlider"
-                key={index}
-                onClick={(e) => handleClick(e)}
-                className="image-avatar bg-white overflow-visible w-100 rounded-50 flex relative cursor-pointer"
-                style={{ width: "22px", height: "22px" }}
-              >
-                <ImageAvatar
-                  width={35}
-                  height={35}
-                  isActive={index === initialIndex}
-                  image={getConfiguredImage({
-                    src: GetImageUrl(img.images[0]?.file_path),
-                    height: 60,
-                  })}
-                  name={isActive ? "#FF5F61" : "#1D1D1D"}
-                  alt={product_name}
-                  priority={priority}
-                />
-              </div>
-            );
-          }}
-        />
-      </div>
+      ></div>
     </div>
   );
 }

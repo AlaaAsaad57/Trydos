@@ -2,12 +2,20 @@
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { expandView, normalizeView } from "utils/functions";
-import CartContainer from ".";
+
 import home from "services/home";
-import OrdersPage from "./OrdersPage";
+
 import ModalIframe from "./ModalIframe";
 import { SlideWidget } from "components/global/SlideNavigation";
-
+import dynamic from "next/dynamic";
+const CartContainer = dynamic(() => import("."), {
+  ssr: false,
+  loading: () => <CartSkeleton />,
+});
+const OrdersPage = dynamic(() => import("./OrdersPage"), {
+  ssr: false,
+  loading: () => <></>,
+});
 import { useAppStore } from "store";
 import {
   DetectScreen,
@@ -22,6 +30,7 @@ import { GAevent } from "utils/gtag";
 import auth from "services/auth";
 import { getCookie } from "utils/cookies/cookie-manager";
 import SearchParamUpdater from "components/global/ParamsUpdater";
+import CartSkeleton from "components/skeleton/CartSkeleton";
 
 const CartProvider = () => {
   const {

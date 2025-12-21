@@ -1,11 +1,7 @@
 "use client";
 import React, { useEffect } from "react";
 import { useAppStore } from "store";
-import {
-  COOKIE_NAMES,
-  getCookie,
-  setLocaizationCookies,
-} from "utils/cookies/cookie-manager";
+import { getCookie, setLocaizationCookies } from "utils/cookies/cookie-manager";
 
 function InitFunction({ init }: { init: string | string[] }) {
   const { language, country } = useAppStore();

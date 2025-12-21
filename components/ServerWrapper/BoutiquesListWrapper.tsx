@@ -12,8 +12,9 @@ export async function BoutiquesListWrapper({
 }) {
   const [country, language] = params.lang.split("-");
   let query: any = { limit: 10, offset: null };
+
   if (mainCategory) {
-    query.categoy_slugs = [mainCategory];
+    query.category_slugs = JSON.stringify([mainCategory]);
   }
   let response = await api.home.boutiques.get({
     headers: { country: country, language: language },

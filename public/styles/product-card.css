@@ -1,0 +1,16 @@
+.product_redeem .buy-card-text {
+  color: #ff6200 !important;
+}
+.product_redeem .redeem_show {
+  display: flex !important;
+}
+.redeem_show {
+  display: none !important;
+}
+.product-media-redeem-show {
+  border: 1px solid #d3d3d3 !important;
+}
+
+.product_redeem .product-media-redeem-show {
+  border: 1px solid #ff6200 !important;
+}

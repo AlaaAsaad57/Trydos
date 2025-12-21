@@ -47,7 +47,7 @@ function HortiznalScrollBar({
     <div
       onClick={(e) => {
         if (onClick) {
-          onClick();
+          onClick(e);
         }
       }}
       id={id}

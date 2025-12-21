@@ -2,8 +2,7 @@ import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 import NextLink from "components/global/NextLink";
 
 import { translateFunction } from "utils/functions";
-import ProductCard from "./ProductCard";
-import DataSourceLogger from "components/global/DataSourceLogger";
+import ProductWrapper from "../ServerWrapper/ProductWrapper";
 
 function FeatureProducts({
   lang,
@@ -19,7 +18,6 @@ function FeatureProducts({
   if (featuredProducts?.data?.products?.length === 0) return <></>;
   return (
     <div className="flex-col px-[12px] flex items-start max-w-full w-full mt-[10px]">
-      <DataSourceLogger dataSourceString={dataSourceString} />
       <NextLink
         href={`/${lang}/featured`}
         data={{ is_boutique: true }}
@@ -48,14 +46,41 @@ function FeatureProducts({
         dataCy="featured-products-container"
       >
         {featuredProducts?.data?.products?.map((product, key) => (
-          <ProductCard
-            key={key}
-            product={product}
-            params={{ lang }}
+          // <ProductCard
+          //   key={key}
+          //   product={product}
+          //   params={{ lang }}
+          //   Sliders={false}
+          //   currency={currency}
+          //   productColor={null}
+          //   language={language}
+          // />
+          <ProductWrapper
+            category_tree={product?.categories?.map((s) => s.name)}
+            labels={product?.label_names}
+            color={product?.sync_color_images?.[0]?.color_name}
+            InitialProductData={{ ...product, id: product?.product_id }}
+            country={country}
+            images={product?.sync_color_images?.[0]?.images ?? product?.images}
+            videos={product?.videos}
+            name={product.name}
+            slug={product.slug}
             Sliders={false}
+            brand={{
+              name: product.brand.name,
+              icon: product.brand.icon?.file_path ?? product?.brand,
+              is_verified: product.brand.is_verified,
+            }}
+            redeem_price={product.redeem_price}
             currency={currency}
-            productColor={null}
+            endDate={product.flash_deal_end_date}
+            flash_deal_price={product.flash_deal_price}
+            id={product?.product_id ?? product?.id}
+            is_flashDeal={product.flash_deal_end_date}
+            is_redeem={product.is_redeem}
             language={language}
+            offer_price={product.offer_price}
+            price={product.price}
           />
         ))}
         {featuredProducts?.data?.products?.length > 8 && (

@@ -1,3 +1,4 @@
+"use client";
 import { useEffect } from "react";
 
 import { useTimer as TimerUtil } from "react-timer-hook";

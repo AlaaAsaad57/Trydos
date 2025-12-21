@@ -80,7 +80,7 @@ export const getConfiguredImage = ({
         c_pad ? "w_800,c_pad" : "c_pad,b_auto"
       }/f_auto/q_auto:good/fl_lossy/so_0`
     );
-  } else return src?.file_path || "";
+  } else return src?.file_path || src || "";
 };
 export const getLang = (lang, cookieLang) => {
   if (lang) {

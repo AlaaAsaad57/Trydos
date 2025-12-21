@@ -1,26 +1,20 @@
 export const dynamic = "force-dynamic";
-import OfferListServer from "components/Server/OfferListServer";
 import StoriesBarServer from "components/Server/StoriesBarServer";
 import MobileNavigationSkeleton from "components/skeleton/MobileNavigation";
 import OfferListSkeleton from "components/skeleton/OfferList";
 import StoriesSkeleton from "components/skeleton/StoriesSkeleton";
 import { Suspense } from "react";
-import type { JSX } from "react";
 import Home from "components/Home";
-import FeatureProducts from "components/Server/FeatureProducts";
 import FeaturedProductsSkeleton from "components/skeleton/loaders/FeaturedProductsSkeleton";
-import FlashDealsProducts from "components/Server/FlashDealsProducts";
 import { fetchCurrency } from "serverRequests";
 import { getCurrencyFromCache, StoreCurrency } from "serverRequests/radis";
-import RecomendedProducts from "components/Server/RecomendedProducts";
 import MainCategoriesNavbar from "components/Server/MainCategories";
-import { COOKIE_NAMES, getCookieServer } from "utils/cookies/cookie-manager";
 import { LogServerError } from "utils/serverErrorReporter";
 import SearchIcon from "components/Home/Search/SearchIcon";
 import { api } from "lib/eden";
-import { BoutiquesListWrapper } from "./ServerWrapper/BoutiquesListWrapper";
-import { FlashProductWrapper } from "./ServerWrapper/FlashDealsProduct";
-import { FeaturedProductWrapper } from "./ServerWrapper/FeaturedProduct";
+import { BoutiquesListWrapper } from "components/ServerWrapper/BoutiquesListWrapper";
+import { FlashProductWrapper } from "components/ServerWrapper/FlashDealsProduct";
+import { FeaturedProductWrapper } from "components/ServerWrapper/FeaturedProduct";
 
 export async function generateMetadata({ params }) {
   try {
@@ -37,31 +31,6 @@ export async function generateMetadata({ params }) {
     };
   }
 }
-
-// Server component to render JSON-LD structured data
-// async function StructuredDataScript({ lang }): Promise<JSX.Element | null> {
-//   try {
-//     const structuredData = await GetStructuredData({ lang });
-//     // console.log(
-//     //   "**********structuredData***********",
-//     //   JSON.stringify(structuredData)
-//     // );
-
-//     if (!structuredData) return null;
-
-//     return (
-//       <script
-//         type="application/ld+json"
-//         dangerouslySetInnerHTML={{
-//           __html: JSON.stringify(structuredData),
-//         }}
-//       />
-//     );
-//   } catch (error) {
-//     console.error("Error generating structured data:", error);
-//     return <></>;
-//   }
-// }
 async function getCurrency(country, language) {
   try {
     let cachedCurrency = await getCurrencyFromCache(country);
@@ -125,10 +94,10 @@ async function HomePage({ params }) {
           <FlashProductWrapper currency={currency} lang={lang} />
         </Suspense>
         <Home key={`Home ${lang}`} />
-        <Suspense fallback={<OfferListSkeleton />} key={`OfferList ${lang}`}>
-          {/*@ts-expect-error Async Server Component is valid in Next  */}
-          <BoutiquesListWrapper currency={currency} params={{ lang: lang }} />
-        </Suspense>
+        <Suspense
+          fallback={<OfferListSkeleton />}
+          key={`OfferList ${lang}`}
+        ></Suspense>
       </>
     );
   } catch (error) {

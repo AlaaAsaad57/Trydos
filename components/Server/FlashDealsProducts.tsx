@@ -3,6 +3,7 @@ import NextLink from "components/global/NextLink";
 import { translateFunction } from "utils/functions";
 import ProductCard from "./ProductCard";
 import DataSourceLogger from "components/global/DataSourceLogger";
+import ProductWrapper from "components/ServerWrapper/ProductWrapper";
 
 function FlashDealsProducts({
   lang,
@@ -55,14 +56,41 @@ function FlashDealsProducts({
         dataCy="flashdeals-products-container"
       >
         {flashDealsProducts?.data?.products?.map((product, key) => (
-          <ProductCard
+          // <ProductCard
+          //   Sliders={false}
+          //   key={key}
+          //   product={product}
+          //   params={{ lang }}
+          //   currency={currency}
+          //   productColor={null}
+          //   language={language}
+          // />
+          <ProductWrapper
+            category_tree={product?.categories?.map((s) => s.name)}
+            labels={product?.label_names}
+            InitialProductData={{ ...product, id: product?.product_id }}
+            country={country}
+            color={product?.sync_color_images?.[0]?.color_name}
+            images={product?.sync_color_images?.[0]?.images ?? product?.images}
+            videos={product?.videos}
+            name={product.name}
+            slug={product.slug}
             Sliders={false}
-            key={key}
-            product={product}
-            params={{ lang }}
+            brand={{
+              name: product.brand.name,
+              icon: product.brand.icon?.file_path ?? product?.brand,
+              is_verified: product.brand.is_verified,
+            }}
+            redeem_price={product.redeem_price}
             currency={currency}
-            productColor={null}
+            endDate={product.flash_deal_end_date}
+            flash_deal_price={product.flash_deal_price}
+            id={product.id}
+            is_flashDeal={product.flash_deal_end_date}
+            is_redeem={product.is_redeem}
             language={language}
+            offer_price={product.offer_price}
+            price={product.price}
           />
         ))}
         {flashDealsProducts?.data?.products?.length > 8 && (

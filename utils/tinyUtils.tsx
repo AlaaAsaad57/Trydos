@@ -1,8 +1,8 @@
 import { useAppStore } from "store";
 import { translateFunction } from "./functions";
-import replaceString from "replace-string";
+
 import { allCountries } from "country-telephone-data";
-import { textMarshal } from "node_modules/text-marshal/lib";
+
 import { GA_GLOBAL_SCREEN } from "./GAEvents";
 import { fetchData } from "./fetchData";
 import Image from "node_modules/next/image";

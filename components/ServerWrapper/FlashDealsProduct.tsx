@@ -1,8 +1,8 @@
-import FeatureProducts from "components/Server/FeatureProducts";
+import FlashDealsProducts from "components/Server/FlashDealsProducts";
 import { api } from "lib/eden";
 import { getCookieServer } from "utils/cookies/cookie-manager";
 
-export async function FeaturedProductWrapper({
+export async function FlashProductWrapper({
   lang,
   currency: currencyData,
   mainCategory = null,
@@ -11,9 +11,9 @@ export async function FeaturedProductWrapper({
   let start = process.hrtime.bigint();
   let query: any = { limit: 10, offset: null };
   if (mainCategory) {
-    query.categoy_slugs = [mainCategory];
+    query.category_slugs = JSON.stringify([mainCategory]);
   }
-  let response: any = await api.products.featured.get({
+  let response: any = await api.products.flashdeal.get({
     headers: { country: country, language: language },
     query: query,
     fetch: {
@@ -85,14 +85,13 @@ export async function FeaturedProductWrapper({
         product_id: product.product_id,
       };
   });
-
   return (
-    <FeatureProducts
-      dataSourceString={`Feature Products Data Source: Products From Elastic, currency from ${
+    <FlashDealsProducts
+      dataSourceString={`FlashDeals Products Data Source: Products From Elastic, currency from ${
         currencyData?.redis ? "redis" : "laravel api"
       } in ${Number(end - start) / 1_000_000} ms`}
       currencyData={currencyData}
-      fetauredProductsData={{ data: { products: productsData } }}
+      flashDealsProducts={{ data: { products: productsData } }}
       lang={lang}
     />
   );

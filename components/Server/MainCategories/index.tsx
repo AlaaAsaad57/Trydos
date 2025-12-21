@@ -20,6 +20,12 @@ export default async function MainCategoriesNavbar({
 
   // @ts-ignore
   let mainCategories = responseData.data.data.mainCategories || [];
+  if (mainCategory) {
+    mainCategories = [
+      mainCategories.find((cat) => cat.slug === mainCategory),
+      ...mainCategories.filter((cat) => cat.slug !== mainCategory),
+    ];
+  }
   return (
     <NavbarServer
       lang={lang}

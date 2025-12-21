@@ -3,9 +3,7 @@ import "styles/listing.css";
 import BottomSheet from "components/global/BottomSheet";
 import ProductColorCard from "components/products/ProductColorCard";
 import { useParams } from "next/navigation";
-import React from "react";
 import { useAppStore } from "store";
-
 function ColorBottomSheet({ id, setActiveColor, activeColor }) {
   const params = useParams();
   const { currency } = useAppStore();

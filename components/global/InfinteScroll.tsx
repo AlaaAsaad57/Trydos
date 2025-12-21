@@ -6,8 +6,7 @@ import { GA_EVENT_NAMES, GA_GLOBAL_SCREEN } from "utils/GAEvents";
 import { GAevent } from "utils/gtag";
 import { InfinteScrollPropsType } from "models/componentType/InfinteScrollPropsType";
 import { useAppStore } from "store";
-import { GetBoutiquesElasticPagination } from "services/elastic/utils";
-import { BoutiqueContainer } from "components/Home/OfferWidgets/BoutiqueElement";
+import { BoutiqueContainer } from "components/clientWrapper/BoutiqueContainer";
 const useInfiniteScroll = (fetchNextPage) => {
   useEffect(() => {
     // Function to check scroll position

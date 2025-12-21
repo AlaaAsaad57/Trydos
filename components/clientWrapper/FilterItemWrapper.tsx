@@ -17,7 +17,14 @@ function FilterItemWrapper({ item, children }) {
   const GtagEventHandler = () => {
     Send_Filter_Event({ type: item?.type, value: item?.value });
   };
-  return <div onClick={() => GtagEventHandler()}>{children}</div>;
+  return (
+    <div
+      onClick={() => GtagEventHandler()}
+      className="flex flex-row max-h-[92px]"
+    >
+      {children}
+    </div>
+  );
 }
 
 export default FilterItemWrapper;

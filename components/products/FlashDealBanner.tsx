@@ -7,19 +7,21 @@ interface FlashDealBannerProps {
   end_data: string;
   top?: string;
   language: string;
+  initial?: any;
 }
 
 function FlashDealBanner({
   end_data,
   top = "top-[-8px]",
   language,
+  initial = null,
 }: FlashDealBannerProps) {
   const [timeLeft, setTimeLeft] = useState<{
     days: number;
     hours: number;
     minutes: number;
     seconds: number;
-  } | null>(null);
+  } | null>(initial);
   const [isExpired, setIsExpired] = useState(false);
 
   useEffect(() => {

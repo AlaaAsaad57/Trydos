@@ -1,5 +1,5 @@
 "use client";
-import MobileNavigationSkeleton from "components/skeleton/MobileNavigation";
+
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 import { NavbarServerProps } from "models/componentType/HomePagePropsType";
 import { useState } from "react";
@@ -18,11 +18,24 @@ function NavbarServer({
   categories.sort((a, b) => (a.slug === mainCategory ? -1 : 1));
   const [, language] = lang.split("-");
   const isRtl = language === "ar" || language === "ku";
+  const handleWrapperClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    // 1. Find the link that was clicked (or the link containing the clicked element)
+    const link = (e.target as HTMLElement).closest("a");
+
+    // 2. Check if the link exists and is inside this specific wrapper
+    if (link && e.currentTarget.contains(link)) {
+      // 3. Extract data from the 'dataset' object
+      const { id } = link.dataset;
+
+      console.log("ID from data-id:", id);
+
+      // If you want to prevent the page from actually changing:
+      // e.preventDefault();
+    }
+  };
   return (
     <HortiznalScrollBar
-      onClick={(e) => {
-        console.log(e.target);
-      }}
+      onClick={handleWrapperClick}
       id="categories-bar-container"
       className={`categories-bar-container m-0 max-w-[900px] pl-2 pr-2 overflow-x-scroll overflow-y-hidden min-h-[47px] bg-white pt-2 z-10 whitespace-nowrap flex  ${
         loading && "opacity-75"

@@ -16,9 +16,9 @@ import MainCategoriesNavbar from "components/Server/MainCategories";
 import { LogServerError } from "utils/serverErrorReporter";
 import { api } from "lib/eden";
 import SearchIcon from "components/Home/Search/SearchIcon";
-import { FeaturedProductWrapper } from "../../ServerWrapper/FeaturedProduct";
-import { FlashProductWrapper } from "../../ServerWrapper/FlashDealsProduct";
-import { BoutiquesListWrapper } from "../../ServerWrapper/BoutiquesListWrapper";
+import { FeaturedProductWrapper } from "components/ServerWrapper/FeaturedProduct";
+import { FlashProductWrapper } from "components/ServerWrapper/FlashDealsProduct";
+import { BoutiquesListWrapper } from "components/ServerWrapper/BoutiquesListWrapper";
 
 export async function generateMetadata({ params }) {
   try {
