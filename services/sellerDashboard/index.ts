@@ -19,7 +19,7 @@ class SellerDashboardService {
   async getSellerProducts(sellerId: string, page: number = 1) {
     try {
       let res = await fetchData({
-        url: `/shop/product/${sellerId}/get-list${
+        url: `/shop/products${
           page > 1 ? `?page=${page}` : ""
         }`,
         method: "GET",
@@ -36,7 +36,7 @@ class SellerDashboardService {
   async getSellerBoutiques(sellerId: string) {
     try {
       let res = await fetchData({
-        url: `/shop/boutique/${sellerId}/get-list`,
+        url: `/shop/boutiques`,
         method: "GET",
         server: "market-dashboard",
         reqTitle: REQUESTS_DATA.GET_SELLER_BOUTIQUES,
@@ -64,10 +64,25 @@ class SellerDashboardService {
   async getSellerOrders(sellerId: string, page: number = 1) {
     try {
       let res = await fetchData({
-        url: `/shop/order/${sellerId}/get-list${page > 1 ? `?page=${page}` : ""}`,
+        url: `/shop/orders${page > 1 ? `?page=${page}` : ""}`,
         method: "GET",
         server: "market-dashboard",
         reqTitle: REQUESTS_DATA.GET_SELLER_ORDERS,
+        sellerId,
+      });
+      return res;
+    } catch (error) {
+      throw error;
+    }
+  }
+  async updateOrderStatus(sellerId: string, data: { id: number | string; status: string }) {
+    try {
+      let res = await fetchData({
+        url: `/shop/orders/status`,
+        method: "PATCH",
+        server: "market-dashboard",
+        reqTitle: REQUESTS_DATA.UPDATE_SELLER_ORDER_STATUS,
+        body: JSON.stringify(data),
         sellerId,
       });
       return res;

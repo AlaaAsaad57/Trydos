@@ -76,6 +76,9 @@ function SellerDashBoard() {
   const [ordersPage, setOrdersPage] = useState(1);
   const [ordersLoading, setOrdersLoading] = useState(false);
   const [ordersError, setOrdersError] = useState<string | null>(null);
+  const [orderStatusOptions, setOrderStatusOptions] = useState<string[]>([]);
+  const [selectedOrderStatuses, setSelectedOrderStatuses] = useState<Record<string, string>>({});
+  const [orderActionLoading, setOrderActionLoading] = useState<string | null>(null);
 
   const currentShop = useMemo(() => {
     return shopes.find((shop) => shop.seller_id.toString() === sellerId);
@@ -142,12 +145,35 @@ function SellerDashBoard() {
       const orders = res.data?.orders || res.data || [];
       setSellerOrders(Array.isArray(orders) ? orders : []);
       setOrdersMeta(res.data?.meta || null);
+      setOrderStatusOptions(res.data?.user_abilities?.change_order_status || []);
       setOrdersPage(page);
     } catch (error: any) {
       console.error("Error fetching orders:", error);
       setOrdersError(error?.message || "Failed to load orders");
     } finally {
       setOrdersLoading(false);
+    }
+  };
+  const handleChangeOrderStatus = async (orderId: number | string) => {
+    const status = selectedOrderStatuses[String(orderId)];
+    if (!status) return;
+    try {
+      setOrderActionLoading(String(orderId));
+      setOrdersError(null);
+      await SellerDashboardService.updateOrderStatus(sellerId, {
+        id: Number(orderId),
+        status,
+      });
+      setSellerOrders((prev) =>
+        prev.map((order) =>
+          order.id === orderId ? { ...order, order_status: status, order_group_status: status } : order
+        )
+      );
+    } catch (error: any) {
+      console.error("Error updating order status:", error);
+      setOrdersError(error?.message || "Failed to update order status");
+    } finally {
+      setOrderActionLoading(null);
     }
   };
 
@@ -573,6 +599,41 @@ function SellerDashBoard() {
                     </span>
                   </div>
                 </div>
+
+                {orderStatusOptions.length > 0 && (
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-gray-50 border border-gray-100 rounded-[12px] p-3">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[13px] font-semibold text-[#1d1d1d]">Change status:</span>
+                      <select
+                        value={selectedOrderStatuses[String(order.id)] || ""}
+                        onChange={(e) =>
+                          setSelectedOrderStatuses((prev) => ({
+                            ...prev,
+                            [String(order.id)]: e.target.value,
+                          }))
+                        }
+                        className="px-3 py-2 border border-gray-300 rounded-lg text-[13px] bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="">Select</option>
+                        {orderStatusOptions.map((statusOption) => (
+                          <option key={statusOption} value={statusOption}>
+                            {formatPermissionName(statusOption)}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <button
+                      onClick={() => handleChangeOrderStatus(order.id)}
+                      disabled={
+                        orderActionLoading === String(order.id) ||
+                        !selectedOrderStatuses[String(order.id)]
+                      }
+                      className="px-4 py-2 bg-blue-500 text-white rounded-lg text-[13px] font-medium hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    >
+                      {orderActionLoading === String(order.id) ? "Updating..." : "Update"}
+                    </button>
+                  </div>
+                )}
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-gray-50 rounded-[12px] p-4">
                   <div className="space-y-1">
