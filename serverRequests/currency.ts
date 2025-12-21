@@ -2,11 +2,31 @@
 
 import { fetchServerData } from "./ServerFetch";
 import { ReportError } from "utils/errorReported";
-
+import { getCurrencyFromCache, StoreCurrency } from "serverRequests/radis";
 interface CurrencyResponse {
   [key: string]: any;
 }
 
+export async function getCurrency(country, language) {
+  try {
+    let cachedCurrency = await getCurrencyFromCache(country);
+
+    if (typeof cachedCurrency === "string") {
+      return { ...JSON.parse(cachedCurrency), redis: true };
+    }
+    if (cachedCurrency?.exchange_rate) {
+      return { ...cachedCurrency, redis: true };
+    } else {
+      let currencyData = await fetchCurrency(language, country);
+      let currency = { ...currencyData.data.currency };
+
+      StoreCurrency(country, currency);
+      return { ...currency, redis: false };
+    }
+  } catch (error) {
+    return {};
+  }
+}
 export async function fetchCurrency(
   language: string,
   country: string

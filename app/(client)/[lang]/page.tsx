@@ -6,8 +6,7 @@ import StoriesSkeleton from "components/skeleton/StoriesSkeleton";
 import { Suspense } from "react";
 import Home from "components/Home";
 import FeaturedProductsSkeleton from "components/skeleton/loaders/FeaturedProductsSkeleton";
-import { fetchCurrency } from "serverRequests";
-import { getCurrencyFromCache, StoreCurrency } from "serverRequests/radis";
+import { getCurrency } from "serverRequests";
 import MainCategoriesNavbar from "components/Server/MainCategories";
 import { LogServerError } from "utils/serverErrorReporter";
 import SearchIcon from "components/Home/Search/SearchIcon";
@@ -31,26 +30,7 @@ export async function generateMetadata({ params }) {
     };
   }
 }
-async function getCurrency(country, language) {
-  try {
-    let cachedCurrency = await getCurrencyFromCache(country);
 
-    if (typeof cachedCurrency === "string") {
-      return { ...JSON.parse(cachedCurrency), redis: true };
-    }
-    if (cachedCurrency?.exchange_rate) {
-      return { ...cachedCurrency, redis: true };
-    } else {
-      let currencyData = await fetchCurrency(language, country);
-      let currency = { ...currencyData.data.currency };
-
-      StoreCurrency(country, currency);
-      return { ...currency, redis: false };
-    }
-  } catch (error) {
-    return {};
-  }
-}
 async function HomePage({ params }) {
   let { lang } = await params;
   const [country, language] = lang.split("-");

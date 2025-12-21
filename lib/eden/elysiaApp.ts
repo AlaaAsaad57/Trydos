@@ -57,7 +57,7 @@ export const app = new Elysia({ prefix: "/api" })
       let limit = parseInt((query.limit as string) || "10");
       let offset = query.offset as string;
       let category_slug = query?.category_slugs as string;
-      console.log("category_slug", category_slug);
+
       let categorySlg: any = null;
       if (typeof category_slug === "string") {
         try {
@@ -113,6 +113,7 @@ export const app = new Elysia({ prefix: "/api" })
         userId: userId,
         search_after: parseNumberArray(offset),
       });
+
       return {
         data: result,
       };
