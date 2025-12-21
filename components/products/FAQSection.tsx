@@ -546,7 +546,7 @@ const AskInput = ({ language, setCommentsData }) => {
             if (comment.length > 0) addComment();
           }
         }}
-        value={comment}
+        value={comment.slice(0, 200)}
         style={{
           textAlign: getFirstLetterLang(comment),
         }}

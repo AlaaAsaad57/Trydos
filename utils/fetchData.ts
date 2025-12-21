@@ -295,6 +295,7 @@ export const fetchData = async <T = any>(
     retryActionIfUnAuth,
     noMessage,
     signal,
+    sellerId,
   } = params;
 
   const cacheKey = generateCacheKey(params);
@@ -357,7 +358,12 @@ export const fetchData = async <T = any>(
       try {
         responseData = await res.json();
       } catch (e) {}
-
+      // if user not linked to seller it should redirect to home page
+      if (status !== 200 && method === "GET") {
+        if (server === "market" && sellerId) {
+          window.location.href = `/`;
+        }
+      }
       if (status === 401 && !isRetryAfterUnauthorized) {
         logRequest({
           url,

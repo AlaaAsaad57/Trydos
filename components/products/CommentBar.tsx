@@ -172,7 +172,7 @@ function CommentBar() {
           e.currentTarget.style.height = `${e.currentTarget.scrollHeight}px`;
         }}
         placeholder={translateFunction("type a comment")}
-        value={val}
+        value={val?.slice(0, 200)}
         onChange={(e) => {
           setVal(e.target.value);
         }}
