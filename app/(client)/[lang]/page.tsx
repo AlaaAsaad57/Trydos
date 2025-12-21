@@ -94,10 +94,10 @@ async function HomePage({ params }) {
           <FlashProductWrapper currency={currency} lang={lang} />
         </Suspense>
         <Home key={`Home ${lang}`} />
-        <Suspense
-          fallback={<OfferListSkeleton />}
-          key={`OfferList ${lang}`}
-        ></Suspense>
+        <Suspense fallback={<OfferListSkeleton />} key={`OfferList ${lang}`}>
+          {/*@ts-expect-error Async Server Component is valid in Next  */}
+          <BoutiquesListWrapper currency={currency} params={{ lang: lang }} />
+        </Suspense>
       </>
     );
   } catch (error) {
