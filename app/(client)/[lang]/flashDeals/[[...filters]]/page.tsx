@@ -18,8 +18,6 @@ import FilterWidgetContainer from "components/filterPage/FiltersWidget";
 import ShareBoutiquePageButton from "components/filterPage/ShareBoutiquePageButton";
 import FilterBoutiquePageButton from "components/filterPage/FilterBoutiquePageButton";
 import SearchBoutiquePage from "components/filterPage/SearchBoutiquePage";
-import CarouselContainer from "components/filterPage/CarouselContainer";
-import { GetImageUrl, parseFiltersFromParams } from "utils/tinyUtils";
 import { fetchCurrency } from "serverRequests";
 import { getProductsAndFiltersFromElastic } from "services/elastic/elasticSearch";
 import { getCurrencyFromCache, StoreCurrency } from "serverRequests/radis";
@@ -31,6 +29,13 @@ import {
 import DataSourceLogger from "components/global/DataSourceLogger";
 import { getCookieServer } from "utils/cookies/cookie-manager";
 import { LogServerError } from "utils/serverErrorReporter";
+import BoutiquePhotoSliderWrapper from "components/clientWrapper/filtersPage/BoutiquePhotoSliderWrapper";
+import {
+  getConfiguredImage,
+  GetImageUrl,
+  parseFiltersFromParams,
+} from "utils/server";
+import BorderImage from "components/ListingPage/BorderImage";
 
 export const dynamicParams = true;
 
@@ -383,7 +388,49 @@ const BouqiuePhotoSlider = ({ banners }) => {
           banners?.length > 1 && "justify-start"
         } offer-slider-container`}
       >
-        <CarouselContainer banners={banners}></CarouselContainer>
+        <BoutiquePhotoSliderWrapper>
+          {banners &&
+            banners?.map((banner, index) => (
+              <div
+                data-cy="embla__slide_embla"
+                className="embla__slide"
+                key={index}
+              >
+                <div
+                  data-cy="offer_slide_item_embla"
+                  className="offer-slide-item"
+                  style={{ width: "100%" }}
+                  key={index}
+                >
+                  <div data-cy="image_offer_image" className="image-offer">
+                    <div
+                      data-cy="image_inner_shadow_image"
+                      className="image-inner-shadow"
+                      style={{ height: "100%" }}
+                    />
+
+                    <Image
+                      data-cy="image_image"
+                      loading={"eager"}
+                      fetchPriority={"high"}
+                      style={{ borderRadius: "15px", height: "auto" }}
+                      className="OfferImage object-cover max-h-full"
+                      src={getConfiguredImage({
+                        src: GetImageUrl(banner.file_path),
+                        height: 400,
+                        c_pad: true,
+                      })}
+                      width={380}
+                      height={135}
+                      alt="offer"
+                    />
+
+                    <BorderImage />
+                  </div>
+                </div>
+              </div>
+            ))}
+        </BoutiquePhotoSliderWrapper>
       </div>
     </div>
   );

@@ -19,7 +19,6 @@ import ShareBoutiquePageButton from "components/filterPage/ShareBoutiquePageButt
 import FilterBoutiquePageButton from "components/filterPage/FilterBoutiquePageButton";
 import SearchBoutiquePage from "components/filterPage/SearchBoutiquePage";
 
-import { parseFiltersFromParams } from "utils/tinyUtils";
 import { fetchCurrency } from "serverRequests";
 import { getProductsAndFiltersFromElastic } from "services/elastic/elasticSearch";
 import { getCurrencyFromCache, StoreCurrency } from "serverRequests/radis";
@@ -28,8 +27,12 @@ import DataSourceLogger from "components/global/DataSourceLogger";
 import { getCookieServer } from "utils/cookies/cookie-manager";
 import { LogServerError } from "utils/serverErrorReporter";
 import BorderImage from "components/ListingPage/BorderImage";
-import BoutiquePhotoSlider from "components/clientWrapper/filtersPage/BoutiquePhotoSlider";
-import { getConfiguredImage, GetImageUrl } from "utils/server";
+import BoutiquePhotoSliderWrapper from "components/clientWrapper/filtersPage/BoutiquePhotoSliderWrapper";
+import {
+  getConfiguredImage,
+  GetImageUrl,
+  parseFiltersFromParams,
+} from "utils/server";
 
 export const dynamicParams = true;
 
@@ -372,7 +375,7 @@ const BouqiuePhotoSlider = ({ banners }) => {
           banners?.length > 1 && "justify-start"
         } offer-slider-container`}
       >
-        <BoutiquePhotoSlider>
+        <BoutiquePhotoSliderWrapper>
           {banners &&
             banners?.map((banner, index) => (
               <div
@@ -414,7 +417,7 @@ const BouqiuePhotoSlider = ({ banners }) => {
                 </div>
               </div>
             ))}
-        </BoutiquePhotoSlider>
+        </BoutiquePhotoSliderWrapper>
       </div>
     </div>
   );

@@ -2,7 +2,7 @@
 import Autoplay from "embla-carousel-autoplay";
 import useEmblaCarousel from "embla-carousel-react";
 
-function BoutiquePhotoSlider({ children }) {
+function BoutiquePhotoSliderWrapper({ children }) {
   const [emblaRef] = useEmblaCarousel({ loop: false }, [
     Autoplay({ delay: 3000 }),
   ]);
@@ -15,4 +15,4 @@ function BoutiquePhotoSlider({ children }) {
   );
 }
 
-export default BoutiquePhotoSlider;
+export default BoutiquePhotoSliderWrapper;

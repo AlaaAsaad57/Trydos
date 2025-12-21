@@ -1,10 +1,11 @@
 import "styles/listing.css";
 import "styles/globals.css";
-import React from "react";
+
 import ProductsInfiniteScroll from "components/ListingPage/ProductInfiniteScroll";
 import { getActiveFilters } from "./FilterList";
 import { ProductListServerPropsType } from "models/componentType/boutiqueTypes/ProductListServerPropsType";
-import ProductCard from "./ProductCard";
+
+import ProductWrapper from "components/ServerWrapper/ProductWrapper";
 
 function ProductListServer({
   params,
@@ -22,7 +23,7 @@ function ProductListServer({
   let activeColor = colors?.find(
     (s) => s === activeFilters[activeFilters.length - 1]
   );
-  let language = params.lang.split("-")[1];
+  let [country, language] = params.lang.split("-");
   const isRtl = language === "ar" || language === "ku";
   return (
     <div
@@ -39,13 +40,32 @@ function ProductListServer({
         );
 
         return (
-          <ProductCard
-            language={language}
-            product={product}
-            params={params}
+          <ProductWrapper
+            category_tree={product?.categories?.map((s) => s.name)}
+            labels={product?.label_names}
+            color={product?.sync_color_images?.[0]?.color_name}
+            InitialProductData={{ ...product, id: product?.product_id }}
+            country={country}
+            images={product?.sync_color_images?.[0]?.images ?? product?.images}
+            videos={product?.videos}
+            name={product.name}
+            slug={product.slug}
+            Sliders={false}
+            brand={{
+              name: product.brand.name,
+              icon: product.brand.icon?.file_path ?? product?.brand,
+              is_verified: product.brand.is_verified,
+            }}
+            redeem_price={product.redeem_price}
             currency={currency}
-            productColor={productColor}
-            key={key}
+            endDate={product.flash_deal_end_date}
+            flash_deal_price={product.flash_deal_price}
+            id={product?.product_id ?? product?.id}
+            is_flashDeal={product.flash_deal_end_date}
+            is_redeem={product.is_redeem}
+            language={language}
+            offer_price={product.offer_price}
+            price={product.price}
           />
         );
       })}

@@ -185,3 +185,99 @@ export const getUrlofProduct = (
     return `/${country}-${language}/product/${slug}`;
   }
 };
+type parsedFilters = {
+  boutiques?: string[];
+  brands?: string[];
+  categories?: string[];
+  colors?: string[];
+  tags_names?: string[];
+  sizes?: string[];
+  search_text?: string[];
+  search?: string[];
+  prices?: any[];
+};
+export const parseFiltersFromParams = (
+  params: string[] = []
+): parsedFilters => {
+  const filters: Record<string, string[]> = {};
+
+  if (!params || params.length === 0) return filters;
+
+  // Handle potential encoding issues in the entire params array
+  const cleanParams = params.map((param) => {
+    try {
+      // First try to decode in case the entire param is encoded
+      return decodeURIComponent(param);
+    } catch (e) {
+      // If that fails, just return the original
+      return param;
+    }
+  });
+
+  let currentIndex = 0;
+  const filterOrder = [
+    "boutiques",
+    "categories",
+    "brands",
+    "colors",
+    "sizes",
+    "prices",
+    "search",
+    "tags_names",
+  ];
+
+  while (currentIndex < cleanParams.length) {
+    const filterType = cleanParams[currentIndex];
+
+    if (!filterOrder.includes(filterType)) {
+      currentIndex++;
+      continue;
+    }
+
+    // Get the values for this filter (next segment)
+    if (currentIndex + 1 < cleanParams.length) {
+      let values = cleanParams[currentIndex + 1];
+
+      // Handle URL encoded commas (%2C) and other encoded characters
+      try {
+        values = decodeURIComponent(values);
+      } catch (e) {
+        // If decoding fails, use the original value
+        console.warn("Failed to decode URL component:", values, e);
+      }
+
+      if (filterType === "search") {
+        // Search is a single value, not comma-separated
+        filters.search_text = [values];
+      } else if (filterType === "colors") {
+        // Colors are hex values - ensure they have # prefix for internal use
+        filters[filterType] = values.split(",").map((color) => {
+          // Handle potential double encoding
+          let cleanColor = color;
+          try {
+            cleanColor = decodeURIComponent(color);
+          } catch (e) {
+            // If decoding fails, use original
+          }
+          return cleanColor.startsWith("#") ? cleanColor : `#${cleanColor}`;
+        });
+      } else {
+        // Other filters are comma-separated
+        filters[filterType] = values.split(",").map((value) => {
+          // Handle potential double encoding of individual values
+          try {
+            return decodeURIComponent(value);
+          } catch (e) {
+            return value;
+          }
+        });
+      }
+
+      currentIndex += 2; // Skip the filter type and its values
+    } else {
+      currentIndex++;
+    }
+  }
+
+  return filters;
+};

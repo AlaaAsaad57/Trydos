@@ -1,6 +1,6 @@
 "use client";
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { LogError, translateFunction } from "utils/functions";
 import ProductCard from "./ProductCard";
 
