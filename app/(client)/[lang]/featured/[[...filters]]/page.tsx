@@ -1,48 +1,34 @@
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-// export const revalidate = parseInt(process.env.NEXT_PUBLIC_REVALIDATE);
-import FilterList from "components/Server/FilterList";
-import ProductListServer from "components/Server/ProductList";
 import BackIcon from "public/svg/listing/backIcon";
 import SortIcon from "public/svg/listing/sortIcon";
-import ListingSkeleton from "components/skeleton/listing";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import NextLink from "components/global/NextLink";
-import VerificationIcon from "public/svg/listing/VerificationIcon";
-import TopStarIcon from "public/svg/listing/TopStar";
-import Image from "next/image";
 import "styles/listing-components.css";
-
-import FilterWidgetContainer from "components/filterPage/FiltersWidget";
 import ShareBoutiquePageButton from "components/filterPage/ShareBoutiquePageButton";
 import FilterBoutiquePageButton from "components/filterPage/FilterBoutiquePageButton";
-import SearchBoutiquePage from "components/filterPage/SearchBoutiquePage";
-
-import { GetImageUrl, parseFiltersFromParams } from "utils/tinyUtils";
 import { fetchCurrency } from "serverRequests";
 import { getProductsAndFiltersFromElastic } from "services/elastic/elasticSearch";
 import { getCurrencyFromCache, StoreCurrency } from "serverRequests/radis";
 import { ElasticsearchReader } from "services/elastic/elasticsearch-reader.service";
-
-import { getCookieServer } from "utils/cookies/cookie-manager";
 import { LogServerError } from "utils/serverErrorReporter";
-import { getConfiguredImage } from "utils/server";
-import BorderImage from "components/ListingPage/BorderImage";
-import BoutiquePhotoSliderWrapper from "components/clientWrapper/filtersPage/BoutiquePhotoSliderWrapper";
+import { parseFiltersFromParams } from "utils/server";
 import {
   generateMetadataForListing,
   GetStructuredData,
 } from "serverRequests/meta/listing";
-
+import ListingBoutiqueSlider from "components/Server/ListingBoutiqueSlider";
+import FilterWidgetServer from "components/Server/FilterWidgetServer";
+import ListingSearchContainer from "components/Server/ListingSearchContainer";
+import FilterListContainer from "components/Server/FilterListContainer";
+import ProductListConainer from "components/Server/ProductListConainer";
 export const dynamicParams = true;
-
 export async function generateMetadata({ params }) {
   // Fetch your main product categories
-  let Params = await params;
   try {
     const metadata = await generateMetadataForListing({
-      params: Params,
+      params,
     });
 
     return metadata;
@@ -51,7 +37,6 @@ export async function generateMetadata({ params }) {
     return [];
   }
 }
-
 async function GetBoutique(boutique, country, language) {
   try {
     if (boutique) {
@@ -90,7 +75,6 @@ async function getCurrency(country, language) {
     } else {
       let currencyData = await fetchCurrency(language, country);
       let currency = { ...currencyData.data.currency };
-
       StoreCurrency(country, currency);
       return { ...currency, redis: false };
     }
@@ -112,133 +96,51 @@ export default async function Page({ params }) {
         )?.[0],
       };
     }
-    let start = process.hrtime.bigint();
 
-    let [filtersData, currency, boutique] = await Promise.all([
+    let [filtersData, currency, boutique] = [
       getProductsAndFiltersFromElastic({
         country,
         language_code: language,
         filters: {
           ...parsedFilters,
           // priceRange:parsedFilters.prices?.map((s)=>s.split('-').map((d)=>Number(d))),
-          featured: true,
+          featured: false,
           flashdeal: false,
           search_text: parsedFilters.search_text?.[0],
         },
+        limit: 10,
       }),
       getCurrency(country, language),
       GetBoutique(boutiqueItem, country, language),
-    ]);
-    let end = process.hrtime.bigint();
-    if (filtersData?.applied?.colors?.length) {
-      parsedFilters.colors = [
-        ...(parsedFilters?.colors || []),
-        ...(filtersData?.applied?.colors || []),
-      ];
-    }
-    if (filtersData?.applied?.sizes) {
-      parsedFilters.sizes = [
-        ...(parsedFilters?.sizes || []),
-        ...(filtersData?.applied?.sizes || []),
-      ];
-    }
-    if (filtersData?.applied?.search_text || parsedFilters?.search_text)
-      parsedFilters.search =
-        (filtersData?.applied?.search_text && [
-          filtersData?.applied?.search_text,
-        ]) ??
-        (parsedFilters?.search_text && [parsedFilters?.search_text]) ??
-        null;
-    let filters = {
-      categories: filtersData?.categories || [],
-      brands: filtersData?.brands || [],
-      colors: filtersData?.colors || [],
-      // prices: [],
-      prices: filtersData?.prices?.priceRanges || [],
-      sizes: filtersData?.attributes?.[0]?.options || [],
-      boutiques: filtersData?.boutiques || [],
-      search_text: parsedFilters?.search_text?.[0] || null,
-    };
+    ];
+
     const isRtl = language === "ar" || language === "ku";
 
-    const redeemed_ids = (await getCookieServer<any[]>("redemed_ids")) ?? [];
-    let productsData = filtersData.products.map((product) => {
-      if (product?.is_redeem) {
-        return {
-          name: product?.name,
-          slug: product?.slug,
-          label_names: product?.label_names,
-          category_tree: product?.category_tree,
-          videos: product.videos,
-          colors: product?.colors,
-          sync_color_images: product?.sync_color_images,
-          ...(!product?.sync_color_images ||
-          product?.sync_color_images?.length === 0
-            ? { images: product.images }
-            : {}),
-          price: product.price,
-          offer_price: product.offer_price,
-          redeem_price: product.redeem_price,
-          categories: product?.categories?.map((s) => ({
-            name: s.name,
-            id: s.id,
-          })),
-          brand: {
-            id: product?.brand?.id,
-            icon: product?.brand?.icon,
-            is_verified: product?.brand?.is_verified,
-          },
-          flash_deal_end_date: product.flash_deal_end_date,
-          flash_deal_price: product.flash_deal_price,
-          is_redeem: !redeemed_ids.find((s) => s.id === product.product_id),
-          product_id: product.product_id,
-        };
-      } else
-        return {
-          name: product?.name,
-          slug: product?.slug,
-          label_names: product?.label_names,
-          category_tree: product?.category_tree,
-          videos: product.videos,
-          colors: product?.colors,
-          sync_color_images: product?.sync_color_images,
-          ...(!product?.sync_color_images ||
-          product?.sync_color_images?.length === 0
-            ? { images: product.images }
-            : {}),
-          price: product.price,
-          offer_price: product.offer_price,
-          redeem_price: product.redeem_price,
-          categories: product?.categories?.map((s) => ({
-            name: s.name,
-            id: s.id,
-          })),
-          brand: {
-            id: product?.brand?.id,
-            icon: product?.brand?.icon,
-            is_verified: product?.brand?.is_verified,
-          },
-          flash_deal_end_date: product.flash_deal_end_date,
-          product_id: product.product_id,
-        };
-    });
     return (
       <>
         <Suspense fallback={<></>}>
           {/*@ts-expect-error Async Server Component is valid in Next  */}
           <GetStructuredData
-            is_fearured={true}
+            is_fearured={false}
             response={filtersData}
             is_flashDeals={false}
             params={Params}
           />
         </Suspense>
-        <Suspense fallback={<></>}>
+        {/* <Suspense fallback={<></>}>
           <FilterWidgetContainer key={JSON.stringify(parsedFilters)} />
-        </Suspense>
+        </Suspense> */}
+        {/*@ts-expect-error Async Server Component is valid in Next  */}
+        <FilterWidgetServer
+          currencyPromise={currency}
+          language={language}
+          country={country}
+          parsedFilters={parsedFilters}
+          filtersPromise={filtersData}
+        />
         <div
           data-cy="filter_listing_bar"
-          className={`filter-listing-bar  z-[99999999] relative ${
+          className={`filter-listing-bar z-[99999999] relative ${
             isRtl ? "flex-row-reverse flex" : "flex-row flex"
           } align-center w-full h-[50px] pl-[15px] pr-[20px] justify-between bg-white z-10`}
         >
@@ -267,24 +169,20 @@ export default async function Page({ params }) {
               parsedFilters?.search_text?.length > 0 && "w-full"
             }`}
           >
-            <SearchBoutiquePage
-              lang={`${country}-${language}`}
+            {/* @ts-expect-error Async Server Component is valid in Next*/}
+            <ListingSearchContainer
+              country={country}
+              language={language}
+              filtersPromise={filtersData}
               parsedFilters={parsedFilters}
-              search_text={
-                filtersData?.applied?.search_text ??
-                parsedFilters?.search_text?.[0]
-              }
             />
-
             <div
               data-cy="filter_option_loseSearchInput"
               className="filter-option"
             >
               <SortIcon data-cy="closeSearchInput" />
             </div>
-
             <FilterBoutiquePageButton key={"filter-button"} />
-
             <ShareBoutiquePageButton />
           </div>
         </div>
@@ -293,45 +191,30 @@ export default async function Page({ params }) {
           data-cy="boutique_header"
           className={`boutique-header ${"flex-col"} align-center`}
         >
-          {
-            <BoutiqueHeader
-              boutique={boutique}
-              key={Params.filters?.join("/") || "no-filters"}
-            ></BoutiqueHeader>
-          }
+          {Params.filters?.boutiques?.[0] && (
+            // @ts-expect-error Async Server Component is valid in Next  */
+            <ListingBoutiqueSlider
+              boutiquePromise={boutique}
+              key={Params.filters?.boutiques?.[0] || "noFilters"}
+            />
+          )}
 
-          <Suspense fallback={<ListingSkeleton justFilters={true} />}>
-            {
-              <FilterList
-                itemsLength={productsData?.length}
-                filters={filters}
-                currency={currency}
-                key={`filter-list-filters`}
-                params={Params}
-                parsedFilters={parsedFilters}
-                isFeatured={true}
-                isFlashDeals={false}
-              />
-            }
-          </Suspense>
-        </div>
-        <Suspense
-          key={`Suspense-product-list-${JSON.stringify(parsedFilters)}`}
-          fallback={<ListingSkeleton forProducts={true} />}
-        >
-          <ProductListServer
-            isFeatured={true}
-            boutique={boutique?.banners ? boutique : null}
-            isFlashDeals={false}
-            colors={filtersData?.colors}
-            products={productsData ?? []}
-            offset={filtersData?.offset}
-            currency={currency}
-            key={`product-list-${JSON.stringify(parsedFilters)}`}
+          {/* @ts-expect-error Async Server Component is valid in Next  */}
+          <FilterListContainer
+            filtersPromis={filtersData}
+            currencyPromise={currency}
+            Params={Params}
             parsedFilters={parsedFilters}
-            params={Params}
           />
-        </Suspense>
+        </div>
+        {/* @ts-expect-error Async Server Component is valid in Next  */}
+        <ProductListConainer
+          Params={Params}
+          boutiquePromise={boutique}
+          currencyPromise={currency}
+          filtersDataPromise={filtersData}
+          parsedFilters={parsedFilters}
+        />
       </>
     );
   } catch (error) {
@@ -339,87 +222,7 @@ export default async function Page({ params }) {
       Array.isArray(Params.filters) && Params.filters.length > 0
         ? `/${Params.filters.join("/")}`
         : "";
-    LogServerError(error, `/${Params.lang}/featured/${filtersPath}`);
+    LogServerError(error, `/${Params.lang}/filters/${filtersPath}`);
     throw error instanceof Error ? error : new Error(String(error));
   }
 }
-function BoutiqueHeader({ boutique }) {
-  return (
-    <>
-      {boutique?.banners && (
-        <div
-          data-cy="boutique_top_icons"
-          className="boutique-top-info flex-col items-center"
-        >
-          <div className="boutique-logo-container flex-row align-center">
-            <Image
-              alt={boutique?.name}
-              width={130}
-              height={20}
-              src={GetImageUrl(boutique?.icon)}
-            />
-            <VerificationIcon />
-            <TopStarIcon />
-          </div>
-        </div>
-      )}
-      {boutique?.banners && <BouqiuePhotoSlider banners={boutique.banners} />}
-    </>
-  );
-}
-const BouqiuePhotoSlider = ({ banners }) => {
-  return (
-    <div data-cy="boutique_photo_holder" className="boutique-photo-holder">
-      <div
-        data-cy="banners_length-1"
-        className={`${
-          banners?.length > 1 && "justify-start"
-        } offer-slider-container`}
-      >
-        <BoutiquePhotoSliderWrapper>
-          {banners &&
-            banners?.map((banner, index) => (
-              <div
-                data-cy="embla__slide_embla"
-                className="embla__slide"
-                key={index}
-              >
-                <div
-                  data-cy="offer_slide_item_embla"
-                  className="offer-slide-item"
-                  style={{ width: "100%" }}
-                  key={index}
-                >
-                  <div data-cy="image_offer_image" className="image-offer">
-                    <div
-                      data-cy="image_inner_shadow_image"
-                      className="image-inner-shadow"
-                      style={{ height: "100%" }}
-                    />
-
-                    <Image
-                      data-cy="image_image"
-                      loading={"eager"}
-                      fetchPriority={"high"}
-                      style={{ borderRadius: "15px", height: "auto" }}
-                      className="OfferImage object-cover max-h-full"
-                      src={getConfiguredImage({
-                        src: GetImageUrl(banner.file_path),
-                        height: 400,
-                        c_pad: true,
-                      })}
-                      width={380}
-                      height={135}
-                      alt="offer"
-                    />
-
-                    <BorderImage />
-                  </div>
-                </div>
-              </div>
-            ))}
-        </BoutiquePhotoSliderWrapper>
-      </div>
-    </div>
-  );
-};

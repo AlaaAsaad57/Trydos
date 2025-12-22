@@ -65,26 +65,25 @@ interface CategoryFilter extends FilterResult {
 
 interface SearchResult {
   offset: any[];
-  time: number;
   limit: number;
   total_size: number;
-  products: CustomProduct[];
-  brands: FilterResult[];
-  boutiques: FilterResult[];
-  categories: CategoryFilter[];
-  attributes: Array<{
+  products?: CustomProduct[];
+  brands?: FilterResult[];
+  boutiques?: FilterResult[];
+  categories?: CategoryFilter[];
+  attributes?: Array<{
     id: number;
     name: string;
     options: string[];
   }>;
-  colors: string[];
-  prices: {
+  colors?: string[];
+  prices?: {
     min_price: number;
     max_price: number;
     priceRanges?: any[];
   };
-  isAnalyzed: any;
-  applied: any;
+  isAnalyzed?: any;
+  applied?: any;
 }
 
 interface ElasticsearchHit {
@@ -141,10 +140,6 @@ interface ProductImage {
 
 interface ExtractFiltersResult {
   custom_products: CustomProduct[];
-  prices: {
-    min_price: number;
-    max_price: number;
-  };
 }
 let client = elasticSearchClient;
 /**
@@ -153,7 +148,6 @@ let client = elasticSearchClient;
 export async function getProductsAndFiltersFromElastic(
   params: SearchParams
 ): Promise<SearchResult> {
-  let start = process.hrtime.bigint();
   let {
     limit = 10,
     search_after = [],
@@ -162,6 +156,8 @@ export async function getProductsAndFiltersFromElastic(
     country = "",
     is_from_browser = false,
     filters_offset = 1,
+    noFilters = false,
+    noProducts = false,
   } = params;
   if (filters?.prices) {
     filters = { ...filters, priceRange: filters.prices };
@@ -216,16 +212,23 @@ export async function getProductsAndFiltersFromElastic(
 
   try {
     const filtersSize = filters_offset * 10;
-
+    let categoriesFilter = [],
+      colorsFilter = [],
+      sizesFilter = [],
+      prices = null,
+      brandsFilter = [],
+      boutiquesFilter = [];
     const baseConditions = buildBaseConditions(filters, country);
     const { must: mustConditions, must_not: mustNotConditions } =
       baseConditions;
 
     // Build the main search query
+
     const searchQuery = {
       index: "products_catalog",
       _source: getSourceFields(),
       track_scores: true,
+      track_total_hits: true,
       size: limit,
       query: {
         bool: {
@@ -241,6 +244,8 @@ export async function getProductsAndFiltersFromElastic(
         filtersSize
       ),
     };
+    if (noProducts) searchQuery.size = 0;
+    if (noFilters) delete searchQuery.aggs;
     // Add search_after for pagination
     if (search_after?.length > 0) {
       // @ts-ignore
@@ -252,29 +257,47 @@ export async function getProductsAndFiltersFromElastic(
     let response;
 
     response = await client.search(searchQuery);
-
     const hits = response.hits.hits as ElasticsearchHit[];
-
     let total_size = response.hits?.total?.value;
     hits.forEach((hit: ElasticsearchHit) => {
       customProducts.push(hit._source);
     });
     lastSortValue = hits.length > 0 ? hits[hits.length - 1].sort : [];
     // Process aggregations
-    const aggregations = response.aggregations?.filtered_results || {};
 
-    // Process filters
-    const brandsFilter = processBrandsAggregation(
-      (aggregations as any).top_brands?.filtered_brands?.brands_by_id
-        ?.buckets || [],
-      filters_offset
+    const productsWithFilters: any = extractFilters(
+      customProducts,
+      language_code,
+      is_from_browser
     );
+    if (filters.colors?.length) {
+      productsWithFilters.custom_products = sortSyncColorImagesByFilteredColor(
+        productsWithFilters.custom_products,
+        filters
+      );
 
-    const boutiquesFilter = processBoutiquesAggregation(
-      (aggregations as any).top_boutiques?.filtered_boutiques?.boutiques_by_id
-        ?.buckets || [],
-      filters_offset
-    );
+      sortColorsByFilteredColor(productsWithFilters.custom_products, filters);
+    }
+    // Normalize products
+    const normalizedProducts = normalizeCustomProducts(productsWithFilters);
+    if (noFilters) {
+      return {
+        colors: colorsFilter,
+        offset: lastSortValue,
+        prices: prices,
+        isAnalyzed: isAnalyzed,
+        applied: filters,
+        total_size: total_size,
+        products: normalizedProducts.custom_products?.map((s) => ({
+          ...s,
+          is_redeem: s.has_redeem_discount,
+          seller_status: s?.seller_status,
+        })),
+        limit: limit,
+      };
+    }
+
+    const aggregations = response.aggregations?.filtered_results || {}; // Process filters
     let CategoriesIds = (
       aggregations as any
     ).top_categories?.filtered_categories?.categories_by_id?.buckets.map(
@@ -288,7 +311,6 @@ export async function getProductsAndFiltersFromElastic(
       country,
       filters
     );
-
     let categiresCombo = (
       aggregations as any
     ).top_categories?.filtered_categories?.categories_by_id?.buckets.concat(
@@ -303,55 +325,43 @@ export async function getProductsAndFiltersFromElastic(
         []
     );
 
-    const categoriesFilter = processCategoriesAggregation(
+    categoriesFilter = processCategoriesAggregation(
       categiresCombo,
       by_id_categories_comb,
       filters_offset
     );
 
-    const colorsFilter = processColorsAggregation(
+    colorsFilter = processColorsAggregation(
       (aggregations as any).top_colors?.colors_by_color?.buckets || [],
       filters_offset
     );
 
-    const sizesFilter = processSizesAggregation(
+    sizesFilter = processSizesAggregation(
       (aggregations as any).top_sizes?.available_size_as_json_by_size
         ?.buckets || [],
       filters_offset
     );
-
-    // Process products
-    const productsWithFilters = extractFilters(
-      customProducts,
-      language_code,
-      is_from_browser
+    prices = calculatePriceRange(productsWithFilters);
+    brandsFilter = processBrandsAggregation(
+      (aggregations as any).top_brands?.filtered_brands?.brands_by_id
+        ?.buckets || [],
+      filters_offset
     );
-
-    // Sort products by filtered colors if color filter is applied
-    if (filters.colors?.length) {
-      productsWithFilters.custom_products = sortSyncColorImagesByFilteredColor(
-        productsWithFilters.custom_products,
-        filters
-      );
-
-      sortColorsByFilteredColor(productsWithFilters.custom_products, filters);
-    }
-    // Normalize products
-    const normalizedProducts = normalizeCustomProducts(productsWithFilters);
-    let end = process.hrtime.bigint();
+    boutiquesFilter = processBoutiquesAggregation(
+      (aggregations as any).top_boutiques?.filtered_boutiques?.boutiques_by_id
+        ?.buckets || [],
+      filters_offset
+    );
 
     return {
       offset: lastSortValue,
-      time: Number(end - start) / 1_000_000,
       limit: limit,
       total_size: total_size,
-      products: params.noProducts
-        ? []
-        : normalizedProducts.custom_products?.map((s) => ({
-            ...s,
-            is_redeem: s.has_redeem_discount,
-            seller_status: s?.seller_status,
-          })),
+      products: normalizedProducts?.custom_products?.map((s) => ({
+        ...s,
+        is_redeem: s.has_redeem_discount,
+        seller_status: s?.seller_status,
+      })),
       brands: brandsFilter,
       boutiques: boutiquesFilter,
       categories: categoriesFilter,
@@ -366,7 +376,7 @@ export async function getProductsAndFiltersFromElastic(
             ]
           : [],
       colors: colorsFilter,
-      prices: productsWithFilters.prices,
+      prices: prices,
       isAnalyzed: isAnalyzed,
       applied: filters,
     };
@@ -1033,11 +1043,9 @@ function extractFilters(
   });
 
   // Calculate price range
-  const prices = calculatePriceRange(products);
 
   return {
     custom_products: customProducts,
-    prices,
   };
 }
 

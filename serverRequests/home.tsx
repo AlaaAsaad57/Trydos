@@ -317,6 +317,7 @@ export async function GetFeaturedProducts({
     filters_offset: 1,
     country,
     language_code: language,
+    noFilters: true,
   };
   let result = await getProductsAndFiltersFromElastic(params);
   return {
@@ -343,6 +344,7 @@ export async function GetFlashDealProducts({
     filters_offset: 1,
     country,
     language_code: language,
+    noFilters: true,
   };
   let result = await getProductsAndFiltersFromElastic(params);
   return {

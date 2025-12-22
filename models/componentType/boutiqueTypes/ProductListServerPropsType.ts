@@ -13,7 +13,6 @@ export interface ProductListServerPropsType {
   }[];
   currency: any;
   offset: any[];
-  colors: string[];
   isFeatured?: boolean;
   boutique?: any;
 }

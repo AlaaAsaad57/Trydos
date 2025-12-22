@@ -1,7 +1,9 @@
 "use server";
 
 import ImageCircel from "components/ListingPage/filterComponents/FiltersWindow/ImageCircel";
+import ProductWrapper from "components/ServerWrapper/ProductWrapper";
 import { getProductsAndFiltersFromElastic } from "services/elastic/elasticSearch";
+import { getCookieServer } from "utils/cookies/cookie-manager";
 import { HandleIsActive } from "utils/server";
 
 export async function GetFilters({
@@ -17,6 +19,7 @@ export async function GetFilters({
       filters: filters,
       filters_offset: filter_offset,
       limit: 10,
+      noProducts: true,
     });
     let new_filters: any = {};
     if (response.categories.length) {
@@ -96,4 +99,125 @@ export async function GetFilters({
   } catch (error) {
     console.log(error);
   }
+}
+
+export async function GetProducts({
+  language,
+  country,
+  offset,
+  parsedFilters,
+  currency,
+}) {
+  let response = await getProductsAndFiltersFromElastic({
+    country,
+    language_code: language,
+    filters: parsedFilters,
+    limit: 10,
+    noFilters: true,
+    search_after: offset,
+  });
+  const redeemed_ids = (await getCookieServer<any[]>("redemed_ids")) ?? [];
+  let productsData: any = response.products.map((product) => {
+    if (product?.is_redeem) {
+      return {
+        name: product?.name,
+        slug: product?.slug,
+        label_names: product?.label_names,
+        category_tree: product?.category_tree,
+        videos: product.videos,
+        colors: product?.colors,
+        sync_color_images: product?.sync_color_images,
+        ...(!product?.sync_color_images ||
+        product?.sync_color_images?.length === 0
+          ? { images: product.images }
+          : {}),
+        price: product.price,
+        offer_price: product.offer_price,
+        redeem_price: product.redeem_price,
+        categories: product?.categories?.map((s) => ({
+          name: s.name,
+          id: s.id,
+        })),
+        brand: {
+          id: product?.brand?.id,
+          icon: product?.brand?.icon,
+          is_verified: product?.brand?.is_verified,
+        },
+        flash_deal_end_date: product.flash_deal_end_date,
+        flash_deal_price: product.flash_deal_price,
+        product_id: product.product_id,
+        is_redeem: !redeemed_ids.find((s) => s.id === product.product_id),
+      };
+    } else
+      return {
+        name: product?.name,
+        slug: product?.slug,
+        label_names: product?.label_names,
+        category_tree: product?.category_tree,
+        videos: product.videos,
+        colors: product?.colors,
+        sync_color_images: product?.sync_color_images,
+        ...(!product?.sync_color_images ||
+        product?.sync_color_images?.length === 0
+          ? { images: product.images }
+          : {}),
+        price: product.price,
+        offer_price: product.offer_price,
+        redeem_price: product.redeem_price,
+        categories: product?.categories?.map((s) => ({
+          name: s.name,
+          id: s.id,
+        })),
+        brand: {
+          id: product?.brand?.id,
+          icon: product?.brand?.icon,
+          is_verified: product?.brand?.is_verified,
+        },
+        flash_deal_end_date: product.flash_deal_end_date,
+        flash_deal_price: product.flash_deal_price,
+        product_id: product.product_id,
+      };
+  });
+  let newOffset = response?.offset;
+  let items = productsData?.map((product) => (
+    <ProductWrapper
+      category_tree={product?.categories?.map((s) => s.name)}
+      labels={product?.label_names}
+      color={product?.sync_color_images?.[0]?.color_name}
+      InitialProductData={{ ...product, id: product?.product_id }}
+      country={country}
+      images={product?.sync_color_images?.[0]?.images ?? product?.images}
+      videos={product?.videos}
+      name={product.name}
+      slug={product.slug}
+      Sliders={false}
+      brand={{
+        name: product?.brand?.name,
+        icon: product.brand.icon?.file_path ?? product?.brand,
+        is_verified: product.brand.is_verified,
+      }}
+      redeem_price={product.redeem_price}
+      currency={currency}
+      endDate={product.flash_deal_end_date}
+      flash_deal_price={product.flash_deal_price}
+      id={product?.product_id ?? product?.id}
+      is_flashDeal={product.flash_deal_end_date}
+      is_redeem={product.is_redeem}
+      language={language}
+      offer_price={product.offer_price}
+      price={product.price}
+    />
+  ));
+  return {
+    items: items,
+    offset: newOffset,
+    GA_PRODUCTS_LIST: response?.products?.map((s) => ({
+      item_id: s?.product_id,
+      item_name: s?.name,
+      category: s?.category?.name,
+      category_id: s?.category?.id,
+      brand: s?.brand?.name,
+      brand_id: s?.brand?.id,
+    })),
+  };
 }

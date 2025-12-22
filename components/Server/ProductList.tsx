@@ -2,7 +2,6 @@ import "styles/listing.css";
 import "styles/globals.css";
 
 import ProductsInfiniteScroll from "components/ListingPage/ProductInfiniteScroll";
-import { getActiveFilters } from "./FilterList";
 import { ProductListServerPropsType } from "models/componentType/boutiqueTypes/ProductListServerPropsType";
 
 import ProductWrapper from "components/ServerWrapper/ProductWrapper";
@@ -13,16 +12,10 @@ function ProductListServer({
   products,
   currency,
   offset,
-  colors,
   isFeatured = false,
   isFlashDeals = false,
   boutique,
 }: ProductListServerPropsType) {
-  const activeFilters = getActiveFilters(parsedFilters)?.colors || [];
-
-  let activeColor = colors?.find(
-    (s) => s === activeFilters[activeFilters.length - 1]
-  );
   let [country, language] = params.lang.split("-");
   const isRtl = language === "ar" || language === "ku";
   return (
@@ -32,15 +25,9 @@ function ProductListServer({
       } listing-container  bg-[#f4f4f4] gap-x-[10px] gap-y-[18px] justify-center  min-w-full min-h-[48vh] relative  pb-[350px] max-w-[1310px] flex-wrap`}
     >
       {products.map((product, key) => {
-        let color_name = product?.colors?.find(
-          (s) => s.color === activeColor
-        )?.name;
-        let productColor = product?.sync_color_images?.find(
-          (s) => s.color_name === color_name
-        );
-
         return (
           <ProductWrapper
+            key={product.slug}
             category_tree={product?.categories?.map((s) => s.name)}
             labels={product?.label_names}
             color={product?.sync_color_images?.[0]?.color_name}
@@ -70,6 +57,7 @@ function ProductListServer({
         );
       })}
       <ProductsInfiniteScroll
+        boutiqueName={boutique?.name}
         analyticsData={products?.map((s) => ({
           item_id: s?.product_id,
           item_name: s?.name,
@@ -78,9 +66,6 @@ function ProductListServer({
           category_id: s?.category?.id,
           brand_id: s?.brand?.id,
         }))}
-        prductIds={products?.map((s) => s.product_id)}
-        boutique={boutique}
-        activeColor={activeColor}
         parsedFilters={{
           ...parsedFilters,
           featured: isFeatured,

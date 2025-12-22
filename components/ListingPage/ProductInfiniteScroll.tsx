@@ -7,39 +7,33 @@ import { useParams } from "next/navigation";
 import { CurrencyApi } from "models/API/market/CurrencyApi";
 import { useAppStore } from "store";
 import { showErrorNotification } from "store/notifications/reducer";
-
 import { GAevent } from "utils/gtag";
 import { GA_EVENT_NAMES, GA_GLOBAL_SCREEN } from "utils/GAEvents";
 import { EnableScroll } from "utils/tinyUtils";
 import auth from "services/auth";
-import { getProductsAndFiltersFromElastic } from "services/elastic/elasticSearch";
-import { getCookie } from "utils/cookies/cookie-manager";
+import { GetProducts } from "serverRequests/listing";
 
 function ProductsInfiniteScroll({
   offset,
   currency,
-  activeColor,
+  boutiqueName,
   analyticsData,
   parsedFilters,
   isFeatured,
   isFlashDeals,
-  boutique,
-  prductIds,
 }: {
   offset: any;
   currency: CurrencyApi["data"]["currency"];
   analyticsData: any;
-  activeColor: string;
   isFeatured?: boolean;
   isFlashDeals?: boolean;
   parsedFilters: any;
-  boutique?: any;
-  prductIds: string[];
+  boutiqueName;
 }) {
   const { resetBoutique } = useAppStore();
   const { lang }: { lang: string } = useParams();
   // @ts-ignore
-  let languageVariable = lang.split("-")[1];
+  let [country, languageVariable] = lang.split("-");
   const translate = (key, lang?) => {
     return translateFunction(key, languageVariable);
   };
@@ -77,7 +71,7 @@ function ProductsInfiniteScroll({
     }, 1000);
   }, []);
 
-  const [products, setProducts] = useState([]);
+  const [products, setProducts] = useState<any[]>([]);
   const [offsetValue, setOffsetValue] = useState(offset);
   const [loading, setLoading] = useState(false);
   const [isReachEnd, setIsReachEnd] = useState(false);
@@ -96,12 +90,12 @@ function ProductsInfiniteScroll({
     if (loading || isReachEnd) return;
     setLoading(true);
 
-    const response = await getProductsAndFiltersFromElastic({
-      country: lang.split("-")[0],
-      language_code: languageVariable,
-      filters: parsedFilters,
-      limit: 10,
-      search_after: offsetValue,
+    const response = await GetProducts({
+      country,
+      language: languageVariable,
+      currency,
+      offset: offsetValue,
+      parsedFilters: parsedFilters,
     });
     if (!response) {
       showErrorNotification(
@@ -113,79 +107,12 @@ function ProductsInfiniteScroll({
       return;
     }
     if (!areArraysEqual(offsetValue, response.offset)) {
-      let uniqueArray = [...products, ...(response?.products ?? [])];
-      uniqueArray = uniqueArray?.filter(
-        (s) => !prductIds?.includes(s.product_id)
-      );
-      let newArray = Array.from(
-        new Map(uniqueArray.map((c: any) => [c.product_id, c])).values()
-      );
-      const redeemed_ids = getCookie<any[]>("redemed_ids") ?? [];
-      let productsData = newArray.map((product) => {
-        if (product?.is_redeem) {
-          return {
-            name: product?.name,
-            slug: product?.slug,
-            label_names: product?.label_names,
-            category_tree: product?.category_tree,
-            videos: product.videos,
-            colors: product?.colors,
-            sync_color_images: product?.sync_color_images,
-            ...(!product?.sync_color_images ||
-            product?.sync_color_images?.length === 0
-              ? { images: product.images }
-              : {}),
-            price: product.price,
-            offer_price: product.offer_price,
-            redeem_price: product.redeem_price,
-            categories: product?.categories?.map((s) => ({
-              name: s.name,
-              id: s.id,
-            })),
-            brand: { id: product?.brand?.id, icon: product?.brand?.icon },
-            flash_deal_end_date: product.flash_deal_end_date,
-
-            product_id: product.product_id,
-            is_redeem: !redeemed_ids.find((s) => s.id === product.product_id),
-          };
-        } else
-          return {
-            name: product?.name,
-            slug: product?.slug,
-            label_names: product?.label_names,
-            category_tree: product?.category_tree,
-            videos: product.videos,
-            colors: product?.colors,
-            sync_color_images: product?.sync_color_images,
-            ...(!product?.sync_color_images ||
-            product?.sync_color_images?.length === 0
-              ? { images: product.images }
-              : {}),
-            price: product.price,
-            offer_price: product.offer_price,
-            redeem_price: product.redeem_price,
-            categories: product?.categories?.map((s) => ({
-              name: s.name,
-              id: s.id,
-            })),
-            brand: { id: product?.brand?.id, icon: product?.brand?.icon },
-            flash_deal_end_date: product.flash_deal_end_date,
-            product_id: product.product_id,
-          };
-      });
-      setProducts(productsData);
-      if (response.products?.length > 0) {
+      setProducts([...(products ?? []), ...response.items]);
+      if (response.GA_PRODUCTS_LIST?.length > 0) {
         GAevent({
           action: GA_EVENT_NAMES.VIEW_ITEMS_LIST,
           params: {
-            items: response?.products?.map((s) => ({
-              item_id: s?.product_id,
-              item_name: s?.name,
-              category: s?.category?.name,
-              category_id: s?.category?.id,
-              brand: s?.brand?.name,
-              brand_id: s?.brand?.id,
-            })),
+            items: response.GA_PRODUCTS_LIST,
             item_list_name: getItemsListName(),
             user_id_custom: auth.UserID(),
             screen_name: getScreen(),
@@ -198,7 +125,7 @@ function ProductsInfiniteScroll({
     setLoading(false);
 
     if (
-      response.products.length === 0 ||
+      response.items.length === 0 ||
       areArraysEqual(offsetValue, response.offset)
     ) {
       setLoading(false);
@@ -213,54 +140,38 @@ function ProductsInfiniteScroll({
       return "FlashDeals-Products";
     }
     if (parsedFilters?.boutiques?.length === 1) {
-      return `${boutique?.name}-Boutique-Page`;
+      return `${boutiqueName}-Boutique-Page`;
     } else return "Filters-Page";
   };
   return (
     <>
-      {products?.map((product, key) => {
-        let color_name = product?.colors?.find(
-          (s) => s.color === activeColor
-        )?.name;
-        let productColor = product?.sync_color_images?.find(
-          (s) => s.color_name === color_name
-        );
-        return <></>;
-      })}
+      {products}
 
-      {/* {products.length === 0 &&
-                   (
-                    <div className="flex p-3 h-10 justify-center items-center light text-[#5d5d5d] text-[14px]">
-                      {translate("No Results Found")}
-                    </div>
-                  )} */}
-      {
-        <div
-          className="get-next-product regular-text color-dark-gray absolute flex justify-center items-end bottom-[300px]"
-          data-cy="ReachEnd"
-        >
-          {!isReachEnd ? (
-            <>
-              {!loading ? (
-                <InView
-                  threshold={0.5}
-                  className="spinner-container"
-                  as="div"
-                  onChange={(inView) => {
-                    if (inView && !loading) {
-                      getProductsReq();
-                    }
-                  }}
-                ></InView>
-              ) : (
-                <h2>{loading && <Spinner no={false} className="" />}</h2>
-              )}
-            </>
-          ) : (
-            <>{translate("Reach End")}</>
-          )}
-        </div>
-      }
+      <div
+        className="get-next-product regular-text color-dark-gray absolute flex justify-center items-end bottom-[300px]"
+        data-cy="ReachEnd"
+      >
+        {!isReachEnd ? (
+          <>
+            {!loading ? (
+              <InView
+                threshold={0.5}
+                className="spinner-container"
+                as="div"
+                onChange={(inView) => {
+                  if (inView && !loading) {
+                    getProductsReq();
+                  }
+                }}
+              ></InView>
+            ) : (
+              <h2>{loading && <Spinner no={false} className="" />}</h2>
+            )}
+          </>
+        ) : (
+          <>{translate("Reach End")}</>
+        )}
+      </div>
     </>
   );
 }
