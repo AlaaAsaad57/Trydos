@@ -23,7 +23,7 @@ export async function BoutiquesListWrapper({
   let response = await GetHomeBoutiques({
     language,
     country,
-    category: [mainCategory],
+    category: mainCategory ? JSON.stringify([mainCategory]) : null,
   });
   // @ts-ignore
   let data: any = response.data ?? {};
