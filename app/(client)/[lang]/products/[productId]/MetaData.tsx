@@ -2,7 +2,8 @@
 
 import { Metadata } from "next";
 import { fetchServerData } from "serverRequests/ServerFetch";
-import { generateCloudinaryUrl } from "utils/tinyUtils";
+import { generateCloudinaryUrl } from "utils/server";
+
 const stripHtml = (html: string) => {
   if (html) {
     return html.replace(/<[^>]*>/g, "").trim();
