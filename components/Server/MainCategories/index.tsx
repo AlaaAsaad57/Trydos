@@ -1,25 +1,17 @@
+import { GetMainCategories } from "serverRequests/home";
 import NavbarServer from "../Navbar";
 import CategoryNavMobile from "components/Home/CategoryNavMobile";
-import { api } from "lib/eden";
 
 export default async function MainCategoriesNavbar({
   lang,
   mainCategory,
 }): Promise<JSX.Element> {
   const [country, language] = lang?.split("-");
-  let responseData = await api.home.mainCategories.get({
-    headers: { country: country, language: language },
-    fetch: {
-      next: {
-        revalidate: 60,
-      },
-    },
-  });
-
+  let responseData = await GetMainCategories({ language, country });
   let activeCategory = mainCategory;
 
   // @ts-ignore
-  let mainCategories = responseData.data.data.mainCategories || [];
+  let mainCategories = responseData.data.mainCategories || [];
   if (mainCategory) {
     mainCategories = [
       mainCategories.find((cat) => cat.slug === mainCategory),

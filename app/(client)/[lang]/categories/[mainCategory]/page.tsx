@@ -14,18 +14,21 @@ import { fetchCurrency } from "serverRequests";
 import { getCurrencyFromCache, StoreCurrency } from "serverRequests/radis";
 import MainCategoriesNavbar from "components/Server/MainCategories";
 import { LogServerError } from "utils/serverErrorReporter";
-import { api } from "lib/eden";
+
 import SearchIcon from "components/Home/Search/SearchIcon";
 import { FeaturedProductWrapper } from "components/ServerWrapper/FeaturedProduct";
 import { FlashProductWrapper } from "components/ServerWrapper/FlashDealsProduct";
 import { BoutiquesListWrapper } from "components/ServerWrapper/BoutiquesListWrapper";
+import { GetHomeMetaData } from "serverRequests/meta/home";
 
 export async function generateMetadata({ params }) {
   try {
     let Params = await params;
     let [country, language] = Params.lang.split("-");
-    const metadata = await api.home.meta.get({
-      query: { country, language, mainCategory: Params.mainCategory },
+    const metadata = await GetHomeMetaData({
+      language,
+      country,
+      category: Params.mainCategory,
     });
 
     return { ...metadata };

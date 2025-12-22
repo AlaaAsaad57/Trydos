@@ -1,7 +1,8 @@
 import { RedisGet, RedisSet } from "serverRequests/radis";
 import { elasticSearchComment } from "services/elastic/elasticsearch.config";
-import { trydosTranslations } from "./translations";
-import { site_og, site_url } from "./constants-meta";
+
+import { site_og, site_url, trydosTranslations } from "./constants-meta";
+import { getRobotsConfig } from "utils/server";
 let client = elasticSearchComment;
 
 export async function GetHomeMetaData({ language, country, category = null }) {
@@ -138,7 +139,6 @@ export async function GetCatgoriesMetaData({ country, language, limit = 20 }) {
       index: "products_catalog",
       _source: [
         "custom_categories.name",
-
         "custom_categories.language_code",
         "custom_categories.id",
       ],

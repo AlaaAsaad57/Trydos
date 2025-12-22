@@ -5,12 +5,7 @@ import ProductCard from "./ProductCard";
 import DataSourceLogger from "components/global/DataSourceLogger";
 import ProductWrapper from "components/ServerWrapper/ProductWrapper";
 
-function FlashDealsProducts({
-  lang,
-  currencyData,
-  flashDealsProducts,
-  dataSourceString,
-}) {
+function FlashDealsProducts({ lang, currencyData, flashDealsProducts }) {
   const [country, language] = lang.split("-");
   const isRtl = language === "ar" || language === "ku";
   const currency = currencyData;
@@ -19,8 +14,6 @@ function FlashDealsProducts({
     <div
       className={`flex-col px-[12px] flex items-start max-w-full w-full mt-[10px]`}
     >
-      <DataSourceLogger dataSourceString={dataSourceString} />
-
       <NextLink
         href={`/${lang}/flashDeals`}
         data={{ is_boutique: true }}

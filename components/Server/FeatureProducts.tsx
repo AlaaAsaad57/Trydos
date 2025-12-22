@@ -4,12 +4,7 @@ import NextLink from "components/global/NextLink";
 import { translateFunction } from "utils/functions";
 import ProductWrapper from "../ServerWrapper/ProductWrapper";
 
-function FeatureProducts({
-  lang,
-  fetauredProductsData,
-  currencyData,
-  dataSourceString,
-}) {
+function FeatureProducts({ lang, fetauredProductsData, currencyData }) {
   const [country, language] = lang.split("-");
   const isRtl = language === "ar" || language === "ku";
   let featuredProducts = fetauredProductsData;

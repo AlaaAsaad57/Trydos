@@ -10,16 +10,17 @@ import { getCurrency } from "serverRequests";
 import MainCategoriesNavbar from "components/Server/MainCategories";
 import { LogServerError } from "utils/serverErrorReporter";
 import SearchIcon from "components/Home/Search/SearchIcon";
-import { api } from "lib/eden";
+
 import { BoutiquesListWrapper } from "components/ServerWrapper/BoutiquesListWrapper";
 import { FlashProductWrapper } from "components/ServerWrapper/FlashDealsProduct";
 import { FeaturedProductWrapper } from "components/ServerWrapper/FeaturedProduct";
+import { GetHomeMetaData } from "serverRequests/meta/home";
 
 export async function generateMetadata({ params }) {
   try {
     let Params = await params;
     let [country, language] = Params.lang.split("-");
-    const metadata = await api.home.meta.get({ query: { country, language } });
+    const metadata = await GetHomeMetaData({ language, country });
 
     return { ...metadata };
   } catch (error) {

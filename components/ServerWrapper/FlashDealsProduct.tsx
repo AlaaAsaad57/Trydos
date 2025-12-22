@@ -1,5 +1,5 @@
 import FlashDealsProducts from "components/Server/FlashDealsProducts";
-import { api } from "lib/eden";
+import { GetFlashDealProducts } from "serverRequests/home";
 import { getCookieServer } from "utils/cookies/cookie-manager";
 
 export async function FlashProductWrapper({
@@ -8,23 +8,19 @@ export async function FlashProductWrapper({
   mainCategory = null,
 }) {
   const [country, language] = lang?.split("-");
-  let start = process.hrtime.bigint();
-  let query: any = { limit: 10, offset: null };
+
+  let category;
   if (mainCategory) {
-    query.category_slugs = JSON.stringify([mainCategory]);
+    category = JSON.stringify([mainCategory]);
   }
-  let response: any = await api.products.flashdeal.get({
-    headers: { country: country, language: language },
-    query: query,
-    fetch: {
-      next: {
-        revalidate: 60,
-      },
-    },
+  let response = await GetFlashDealProducts({
+    language,
+    country,
+    category: category,
+    limit: 10,
   });
-  let end = process.hrtime.bigint();
   const redeemed_ids = (await getCookieServer<any[]>("redemed_ids")) ?? [];
-  let productsData = response.data.data.products.map((product) => {
+  let productsData = response.data.products.map((product) => {
     if (product?.is_redeem) {
       return {
         name: product?.name,
@@ -87,9 +83,6 @@ export async function FlashProductWrapper({
   });
   return (
     <FlashDealsProducts
-      dataSourceString={`FlashDeals Products Data Source: Products From Elastic, currency from ${
-        currencyData?.redis ? "redis" : "laravel api"
-      } in ${Number(end - start) / 1_000_000} ms`}
       currencyData={currencyData}
       flashDealsProducts={{ data: { products: productsData } }}
       lang={lang}

@@ -1,5 +1,6 @@
 import FeatureProducts from "components/Server/FeatureProducts";
-import { api } from "lib/eden";
+
+import { GetFeaturedProducts } from "serverRequests/home";
 import { getCookieServer } from "utils/cookies/cookie-manager";
 
 export async function FeaturedProductWrapper({
@@ -8,23 +9,20 @@ export async function FeaturedProductWrapper({
   mainCategory = null,
 }) {
   const [country, language] = lang?.split("-");
-  let start = process.hrtime.bigint();
-  let query: any = { limit: 10, offset: null };
+
+  let category;
   if (mainCategory) {
-    query.category_slugs = JSON.stringify([mainCategory]);
+    category = JSON.stringify([mainCategory]);
   }
-  let response: any = await api.products.featured.get({
-    headers: { country: country, language: language },
-    query: query,
-    fetch: {
-      next: {
-        revalidate: 60,
-      },
-    },
+  let response = await GetFeaturedProducts({
+    language,
+    country,
+    category: category,
+    limit: 10,
   });
-  let end = process.hrtime.bigint();
+
   const redeemed_ids = (await getCookieServer<any[]>("redemed_ids")) ?? [];
-  let productsData = response.data.data.products.map((product) => {
+  let productsData = response.data.products.map((product) => {
     if (product?.is_redeem) {
       return {
         name: product?.name,
@@ -88,9 +86,6 @@ export async function FeaturedProductWrapper({
 
   return (
     <FeatureProducts
-      dataSourceString={`Feature Products Data Source: Products From Elastic, currency from ${
-        currencyData?.redis ? "redis" : "laravel api"
-      } in ${Number(end - start) / 1_000_000} ms`}
       currencyData={currencyData}
       fetauredProductsData={{ data: { products: productsData } }}
       lang={lang}

@@ -1,12 +1,12 @@
 import OfferListServer from "components/Server/OfferListServer";
 import RecomendedProducts from "components/Server/RecomendedProducts";
 import FeaturedProductsSkeleton from "components/skeleton/loaders/FeaturedProductsSkeleton";
-import { api } from "lib/eden";
 import { Suspense } from "react";
 import { COOKIE_NAMES, getCookieServer } from "utils/cookies/cookie-manager";
 import ProductWrapper from "./ProductWrapper";
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 import { translateFunction } from "utils/server";
+import { GetHomeBoutiques, GetRecommedndedProducts } from "serverRequests/home";
 
 export async function BoutiquesListWrapper({
   params,
@@ -19,17 +19,14 @@ export async function BoutiquesListWrapper({
   if (mainCategory) {
     query.category_slugs = JSON.stringify([mainCategory]);
   }
-  let response = await api.home.boutiques.get({
-    headers: { country: country, language: language },
-    query: query,
-    fetch: {
-      next: {
-        revalidate: 60,
-      },
-    },
+
+  let response = await GetHomeBoutiques({
+    language,
+    country,
+    category: [mainCategory],
   });
   // @ts-ignore
-  let data: any = response.data.data ?? {};
+  let data: any = response.data ?? {};
 
   return (
     <OfferListServer boutiquesData={{ ...(data ?? {}) }} params={params}>
@@ -54,80 +51,14 @@ async function RecomendedProductWrapper({
 }): Promise<JSX.Element> {
   const [country, language] = lang.split("-");
   const userId = ((await getCookieServer(COOKIE_NAMES.USER_DATA)) as any)?.id;
-  let response: any = await api.products.recomended.get({
-    headers: { language, country },
-    fetch: {
-      next: {
-        revalidate: 60,
-      },
-    },
-    query: {
-      limit: 7,
-      offset: null,
-    },
+  let response = await GetRecommedndedProducts({
+    country,
+    language,
+    limit: 7,
+    userId: userId,
   });
-  const redeemed_ids = (await getCookieServer<any[]>("redemed_ids")) ?? [];
-  let productsData = response.data.data.products.map((product) => {
-    if (product?.is_redeem) {
-      return {
-        name: product?.name,
-        slug: product?.slug,
-        label_names: product?.label_names,
-        category_tree: product?.category_tree,
-        videos: product.videos,
-        colors: product?.colors,
-        sync_color_images: product?.sync_color_images,
-        ...(!product?.sync_color_images ||
-        product?.sync_color_images?.length === 0
-          ? { images: product.images }
-          : {}),
-        price: product.price,
-        offer_price: product.offer_price,
-        redeem_price: product.redeem_price,
-        categories: product?.categories?.map((s) => ({
-          name: s.name,
-          id: s.id,
-        })),
-        brand: {
-          id: product?.brand?.id,
-          icon: product?.brand?.icon,
-          is_verified: product?.brand?.is_verified,
-        },
-        flash_deal_end_date: product.flash_deal_end_date,
-        flash_deal_price: product.flash_deal_price,
-        product_id: product.product_id,
-        is_redeem: !redeemed_ids.find((s) => s.id === product.product_id),
-      };
-    } else
-      return {
-        name: product?.name,
-        slug: product?.slug,
-        label_names: product?.label_names,
-        category_tree: product?.category_tree,
-        videos: product.videos,
-        colors: product?.colors,
-        sync_color_images: product?.sync_color_images,
-        ...(!product?.sync_color_images ||
-        product?.sync_color_images?.length === 0
-          ? { images: product.images }
-          : {}),
-        price: product.price,
-        offer_price: product.offer_price,
-        redeem_price: product.redeem_price,
-        categories: product?.categories?.map((s) => ({
-          name: s.name,
-          id: s.id,
-        })),
-        brand: {
-          id: product?.brand?.id,
-          icon: product?.brand?.icon,
-          is_verified: product?.brand?.is_verified,
-        },
-        flash_deal_end_date: product.flash_deal_end_date,
-        flash_deal_price: product.flash_deal_price,
-        product_id: product.product_id,
-      };
-  });
+
+  let productsData = response.items;
 
   const isRtl = language === "ar" || language === "ku";
   return (
@@ -205,7 +136,7 @@ async function RecomendedProductWrapper({
         ))}
         <RecomendedProducts
           userId={userId}
-          InitialOffset={(response.data as any).data.offset}
+          InitialOffset={response.offset}
           lang={lang}
         />
       </HortiznalScrollBar>
