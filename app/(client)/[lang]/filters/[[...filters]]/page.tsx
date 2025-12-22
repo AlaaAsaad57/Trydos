@@ -118,15 +118,15 @@ export default async function Page({ params }) {
 
     return (
       <>
-        <Suspense fallback={<></>}>
-          {/*@ts-expect-error Async Server Component is valid in Next  */}
-          <GetStructuredData
+        {/* <Suspense fallback={<></>}> */}
+
+        {/* <GetStructuredData
             is_fearured={false}
             response={filtersData}
             is_flashDeals={false}
             params={Params}
-          />
-        </Suspense>
+          /> */}
+        {/* </Suspense> */}
         {/* <Suspense fallback={<></>}>
           <FilterWidgetContainer key={JSON.stringify(parsedFilters)} />
         </Suspense> */}
@@ -191,7 +191,7 @@ export default async function Page({ params }) {
           data-cy="boutique_header"
           className={`boutique-header ${"flex-col"} align-center`}
         >
-          {Params.filters?.boutiques?.[0] && (
+          {parsedFilters?.boutiques?.[0] && (
             // @ts-expect-error Async Server Component is valid in Next  */
             <ListingBoutiqueSlider
               boutiquePromise={boutique}

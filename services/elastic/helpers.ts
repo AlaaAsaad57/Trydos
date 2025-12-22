@@ -186,7 +186,7 @@ export function extractFilters(
 ): ExtractFiltersResult {
   const customProducts: Record<string, CustomProduct> = {};
 
-  products.forEach((product) => {
+  products?.forEach((product) => {
     // Process custom products
     if (product.custom_products && Array.isArray(product.custom_products)) {
       product.custom_products.forEach((customProduct: any) => {
@@ -567,7 +567,7 @@ export function calculatePriceRange(products: any[]): {
   let minPrice = Infinity;
   let maxPrice = -Infinity;
 
-  products.forEach((product) => {
+  products?.forEach((product) => {
     const price = parseFloat(
       product.offered_price || product.unit_price || "0"
     );

@@ -341,7 +341,10 @@ export async function getProductsAndFiltersFromElastic(
         ?.buckets || [],
       filters_offset
     );
-    prices = calculatePriceRange(productsWithFilters);
+    prices =
+      productsWithFilters?.length > 0
+        ? calculatePriceRange(productsWithFilters)
+        : null;
     brandsFilter = processBrandsAggregation(
       (aggregations as any).top_brands?.filtered_brands?.brands_by_id
         ?.buckets || [],
@@ -1026,7 +1029,7 @@ function extractFilters(
 ): ExtractFiltersResult {
   const customProducts: CustomProduct[] = [];
 
-  products.forEach((product) => {
+  products?.forEach((product) => {
     if (product.custom_products && Array.isArray(product.custom_products)) {
       product.custom_products.forEach((customProduct: any) => {
         if (customProduct.language_code === languageCode) {
@@ -1062,7 +1065,7 @@ function sortSyncColorImagesByFilteredColor(
 
   const filteredColorCode = filters.colors[0];
   let productsArr = [];
-  products.forEach((product) => {
+  products?.forEach((product) => {
     if (!product.colors || !product.sync_color_images) {
       productsArr.push(product);
       return;
@@ -1113,7 +1116,7 @@ function sortColorsByFilteredColor(
 
   const filteredColorCode = filters.colors[0];
 
-  products.forEach((product) => {
+  products?.forEach((product) => {
     if (!product.colors || !Array.isArray(product.colors)) {
       return;
     }
@@ -1334,7 +1337,7 @@ function executePriceCatalogFilter(products: any[]): {
     };
   }
 
-  products.forEach((product) => {
+  products?.forEach((product) => {
     // Check multiple price fields to find the effective price
     const prices: number[] = [];
 
