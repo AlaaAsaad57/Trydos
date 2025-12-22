@@ -3,11 +3,17 @@ import React from "react";
 import { useAppStore } from "store";
 
 import FilterIcon from "public/svg/listing/filterIcon";
+import { DisableScroll, EnableScroll } from "utils/tinyUtils";
 
 function FilterBoutiquePageButton() {
   const { setFilterEnabled, filterEnabled } = useAppStore();
 
   const handleFilterButtonClick = () => {
+    if (!filterEnabled) {
+      DisableScroll();
+    } else {
+      EnableScroll();
+    }
     setFilterEnabled(!filterEnabled);
   };
 

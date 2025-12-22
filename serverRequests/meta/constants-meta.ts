@@ -16,30 +16,27 @@ export const generateCodeCurrency = (code: string) => {
 // translations/metadata.ts
 export const trydosTranslations = {
   en: {
-    homeTitle: "Trydos | Exclusive Boutiques & Daily Flash Deals",
-    homeDesc: (count) =>
-      `Explore ${count}+ curated boutiques on Trydos. Shop the latest fashion and featured products with fast shipping.`,
-    categoryTitle: (cat, count) => `Best ${cat} Boutiques (${count}) | Trydos`,
+    siteName: "Trydos",
+    // ... الترجمات السابقة
+    listingDesc: (title) =>
+      `Explore the best ${title} products on Trydos. Filter by brand, color, and size with fast shipping.`,
   },
   ar: {
-    homeTitle: "ترايدوس | بوتيكات حصرية وعروض فلاش يومية",
-    homeDesc: (count) =>
-      `اكتشف أكثر من ${count} بوتيك منسق على ترايدوس. تسوق أحدث الأزياء والمنتجات المميزة مع شحن سريع.`,
-    categoryTitle: (cat, count) => `أفضل بوتيكات ${cat} (${count}) | ترايدوس`,
+    siteName: "ترايدوس",
+    // ... الترجمات السابقة
+    listingDesc: (title) =>
+      `اكتشف أفضل منتجات ${title} على ترايدوس. تصفح حسب الماركة، اللون، والقياس مع خدمة شحن سريع.`,
   },
   tr: {
-    homeTitle: "Trydos | Özel Butikler ve Günlük Flaş Fırsatlar",
-    homeDesc: (count) =>
-      `Trydos'ta ${count}+ seçkin butiği keşfedin. En yeni moda ve öne çıkan ürünleri hızlı kargo ile satın alın.`,
-    categoryTitle: (cat, count) =>
-      `En İyi ${cat} Butikleri (${count}) | Trydos`,
+    siteName: "Trydos",
+    // ... الترجمات السابقة
+    listingDesc: (title) =>
+      `Trydos'taki en iyi ${title} ürünlerini keşfedin. Marka, renk ve bedene göre filtreleyin, hızlı kargo ile sahip olun.`,
   },
-  ckb: {
-    // Kurdish Sorani
-    homeTitle: "Trydos | بووتیکە تایبەتەکان و داشکاندنی ڕۆژانە",
-    homeDesc: (count) =>
-      `زیاتر لە ${count} بووتیکی هەڵبژێردراو لە ترايدوس ببینە. نوێترین مۆدێل و کاڵا ناوازەکان بکڕە بە گەیاندنی خێرا.`,
-    categoryTitle: (cat, count) =>
-      `باشترین بووتیکەکانی ${cat} (${count}) | Trydos`,
+  ku: {
+    siteName: "Trydos",
+    // ... الترجمات السابقة
+    listingDesc: (title) =>
+      `باشترین کاڵاکانی ${title} لە ترايدوس ببینە. بەپێی مارکە، ڕەنگ و قەبارە بپشکنە لەگەڵ گەیاندنی خێرا.`,
   },
 };

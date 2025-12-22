@@ -24,16 +24,16 @@ import { fetchCurrency } from "serverRequests";
 import { getProductsAndFiltersFromElastic } from "services/elastic/elasticSearch";
 import { getCurrencyFromCache, StoreCurrency } from "serverRequests/radis";
 import { ElasticsearchReader } from "services/elastic/elasticsearch-reader.service";
-import {
-  getBoutiqueMetadata,
-  GetStructuredData,
-} from "../../filters/[[...filters]]/Metadata";
-import DataSourceLogger from "components/global/DataSourceLogger";
+
 import { getCookieServer } from "utils/cookies/cookie-manager";
 import { LogServerError } from "utils/serverErrorReporter";
 import { getConfiguredImage } from "utils/server";
 import BorderImage from "components/ListingPage/BorderImage";
 import BoutiquePhotoSliderWrapper from "components/clientWrapper/filtersPage/BoutiquePhotoSliderWrapper";
+import {
+  generateMetadataForListing,
+  GetStructuredData,
+} from "serverRequests/meta/listing";
 
 export const dynamicParams = true;
 
@@ -41,9 +41,8 @@ export async function generateMetadata({ params }) {
   // Fetch your main product categories
   let Params = await params;
   try {
-    const metadata = await getBoutiqueMetadata({
+    const metadata = await generateMetadataForListing({
       params: Params,
-      options: { is_fearured: true, is_flashDeals: false },
     });
 
     return metadata;
@@ -243,12 +242,6 @@ export default async function Page({ params }) {
             isRtl ? "flex-row-reverse flex" : "flex-row flex"
           } align-center w-full h-[50px] pl-[15px] pr-[20px] justify-between bg-white z-10`}
         >
-          <DataSourceLogger
-            dataSourceString={`Listing feature DataSource : products and filters from elastic , currency from ${
-              currency?.redis ? "redis" : "laravel api"
-            } in ${Number(end - start) / 1_000_000} ms`}
-          />
-
           <NextLink
             data-cy="BackIcon_boutique"
             ignoreConditionCase={true}
@@ -275,6 +268,8 @@ export default async function Page({ params }) {
             }`}
           >
             <SearchBoutiquePage
+              lang={`${country}-${language}`}
+              parsedFilters={parsedFilters}
               search_text={
                 filtersData?.applied?.search_text ??
                 parsedFilters?.search_text?.[0]

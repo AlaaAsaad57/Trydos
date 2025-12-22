@@ -631,44 +631,6 @@ export const DetectScreen = () => {
     return GA_GLOBAL_SCREEN.HOME_SCREEN;
   }
 };
-export function generateCloudinaryUrl({
-  width,
-  height,
-  publicIds,
-  overlayText,
-}: {
-  width: number;
-  height: number;
-  publicIds: string[];
-  overlayText?: string;
-}) {
-  const baseUrl = `https://res.cloudinary.com/dtcmozf4d/image`;
-
-  // Keep full path including extension
-  const cleanPublicIds = publicIds.map((id) => id.replace(/^\//, ""));
-
-  // Base image (used directly in URL)
-  const baseImage = cleanPublicIds[0]; // must include .png
-
-  // Overlays (all except the first)
-  const overlayIds = cleanPublicIds;
-
-  const layerWidth = Math.floor(width / publicIds.length);
-
-  const layers = overlayIds.map((id, i) => {
-    const safeId = id.split(".")[0].replace(/\//g, ":"); // remove .png for overlay syntax
-    const x = i * layerWidth; // (i + 1) because base is at x=0
-    return `l_${safeId},w_${layerWidth},h_${height},c_fill,g_north_west,x_${x},y_0`;
-  });
-
-  const transform = [
-    `w_${width},h_${height}`,
-    `f_auto/q_auto:good/fl_lossy/so_0`,
-    ...layers,
-  ].join("/");
-
-  return `${baseUrl}/upload/${transform}/${baseImage}`;
-}
 
 export const totalAmount = (arr) => {
   let total = 0;

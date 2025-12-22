@@ -41,15 +41,6 @@ function FeatureProducts({ lang, fetauredProductsData, currencyData }) {
         dataCy="featured-products-container"
       >
         {featuredProducts?.data?.products?.map((product, key) => (
-          // <ProductCard
-          //   key={key}
-          //   product={product}
-          //   params={{ lang }}
-          //   Sliders={false}
-          //   currency={currency}
-          //   productColor={null}
-          //   language={language}
-          // />
           <ProductWrapper
             category_tree={product?.categories?.map((s) => s.name)}
             labels={product?.label_names}

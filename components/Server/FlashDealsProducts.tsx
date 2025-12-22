@@ -1,8 +1,7 @@
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 import NextLink from "components/global/NextLink";
 import { translateFunction } from "utils/functions";
-import ProductCard from "./ProductCard";
-import DataSourceLogger from "components/global/DataSourceLogger";
+
 import ProductWrapper from "components/ServerWrapper/ProductWrapper";
 
 function FlashDealsProducts({ lang, currencyData, flashDealsProducts }) {
@@ -49,15 +48,6 @@ function FlashDealsProducts({ lang, currencyData, flashDealsProducts }) {
         dataCy="flashdeals-products-container"
       >
         {flashDealsProducts?.data?.products?.map((product, key) => (
-          // <ProductCard
-          //   Sliders={false}
-          //   key={key}
-          //   product={product}
-          //   params={{ lang }}
-          //   currency={currency}
-          //   productColor={null}
-          //   language={language}
-          // />
           <ProductWrapper
             category_tree={product?.categories?.map((s) => s.name)}
             labels={product?.label_names}

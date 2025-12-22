@@ -1,5 +1,4 @@
 "use client";
-import React from "react";
 import ActiveCategoryIcon from "public/svg/listing/ActiveCategoryIcon";
 import FilterInfoIcon from "public/svg/listing/FilterInfoIcon";
 

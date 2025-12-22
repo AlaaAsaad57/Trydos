@@ -13,7 +13,7 @@ import VerificationIcon from "public/svg/listing/VerificationIcon";
 import TopStarIcon from "public/svg/listing/TopStar";
 import Image from "next/image";
 import "styles/listing-components.css";
-import { getBoutiqueMetadata, GetStructuredData } from "./Metadata";
+
 import FilterWidgetContainer from "components/filterPage/FiltersWidget";
 import ShareBoutiquePageButton from "components/filterPage/ShareBoutiquePageButton";
 import FilterBoutiquePageButton from "components/filterPage/FilterBoutiquePageButton";
@@ -23,7 +23,7 @@ import { fetchCurrency } from "serverRequests";
 import { getProductsAndFiltersFromElastic } from "services/elastic/elasticSearch";
 import { getCurrencyFromCache, StoreCurrency } from "serverRequests/radis";
 import { ElasticsearchReader } from "services/elastic/elasticsearch-reader.service";
-import DataSourceLogger from "components/global/DataSourceLogger";
+
 import { getCookieServer } from "utils/cookies/cookie-manager";
 import { LogServerError } from "utils/serverErrorReporter";
 import BorderImage from "components/ListingPage/BorderImage";
@@ -31,19 +31,23 @@ import BoutiquePhotoSliderWrapper from "components/clientWrapper/filtersPage/Bou
 import {
   getConfiguredImage,
   GetImageUrl,
+  HandleIsActive,
   parseFiltersFromParams,
 } from "utils/server";
+import {
+  generateMetadataForListing,
+  GetStructuredData,
+} from "serverRequests/meta/listing";
+import FiltersWindow from "components/ListingPage/filterComponents/FiltersWindow";
+import ImageCircel from "components/ListingPage/filterComponents/FiltersWindow/ImageCircel";
 
 export const dynamicParams = true;
 
 export async function generateMetadata({ params }) {
-  let Params = await params;
-
   // Fetch your main product categories
   try {
-    const metadata = await getBoutiqueMetadata({
-      params: Params,
-      options: { is_fearured: false, is_flashDeals: false },
+    const metadata = await generateMetadataForListing({
+      params,
     });
 
     return metadata;
@@ -131,14 +135,22 @@ export default async function Page({ params }) {
     let end = process.hrtime.bigint();
     if (filtersData?.applied?.colors?.length) {
       parsedFilters.colors = [
-        ...(parsedFilters?.colors || []),
-        ...(filtersData?.applied?.colors || []),
+        ...new Set(
+          [
+            ...(parsedFilters?.colors || []),
+            ...(filtersData?.applied?.colors || []),
+          ].map((s) => s)
+        ),
       ];
     }
     if (filtersData?.applied?.sizes) {
       parsedFilters.sizes = [
-        ...(parsedFilters?.sizes || []),
-        ...(filtersData?.applied?.sizes || []),
+        ...new Set(
+          [
+            ...(parsedFilters?.sizes || []),
+            ...(filtersData?.applied?.sizes || []),
+          ].map((s) => s)
+        ),
       ];
     }
     if (filtersData?.applied?.search_text || parsedFilters?.search_text)
@@ -233,20 +245,81 @@ export default async function Page({ params }) {
             params={Params}
           />
         </Suspense>
-        <Suspense fallback={<></>}>
+        {/* <Suspense fallback={<></>}>
           <FilterWidgetContainer key={JSON.stringify(parsedFilters)} />
-        </Suspense>
+        </Suspense> */}
+        <FiltersWindow
+          currency={currency}
+          language={language}
+          country={country}
+          initialFilters={parsedFilters}
+          children={{
+            categories: filtersData.categories.map((category) => (
+              <ImageCircel
+                key={category.slug}
+                isActive={HandleIsActive({
+                  values: parsedFilters.categories,
+                  item: category.slug,
+                })}
+                name={category.name}
+                term={"Category"}
+                value={category.slug}
+                image={category.most_viewed_product_thumbnail}
+                size={70}
+              />
+            )),
+            brands: filtersData.brands.map((brand) => (
+              <ImageCircel
+                key={brand.slug}
+                isActive={HandleIsActive({
+                  values: parsedFilters.brands,
+                  item: brand.slug,
+                })}
+                name={brand.name}
+                term={"Brand"}
+                value={brand.slug}
+                image={brand.icon}
+                size={70}
+              />
+            )),
+            colors: filtersData.colors.map((color) => (
+              <ImageCircel
+                key={color}
+                isActive={HandleIsActive({
+                  values: parsedFilters?.colors?.map((s) =>
+                    s?.replace("#", "")
+                  ),
+                  item: color.replace("#", ""),
+                })}
+                name={color}
+                color={color}
+                term={"Color"}
+                value={color}
+                size={70}
+              />
+            )),
+            sizes: filtersData.attributes?.[0]?.options?.map((size) => (
+              <ImageCircel
+                key={size}
+                isActive={HandleIsActive({
+                  values: parsedFilters.sizes,
+                  item: size,
+                })}
+                name={size}
+                term={"Size"}
+                value={size}
+                size={70}
+              />
+            )),
+            prices: filtersData.prices,
+          }}
+        />
         <div
           data-cy="filter_listing_bar"
           className={`filter-listing-bar z-[99999999] relative ${
             isRtl ? "flex-row-reverse flex" : "flex-row flex"
           } align-center w-full h-[50px] pl-[15px] pr-[20px] justify-between bg-white z-10`}
         >
-          <DataSourceLogger
-            dataSourceString={`Listing DataSource :products and filters from elastic , currency from ${
-              currency?.redis ? "redis" : "laravel api"
-            } in ${Number(end - start) / 1_000_000} ms`}
-          />
           <NextLink
             data-cy="BackIcon_boutique"
             ignoreConditionCase={true}
@@ -273,6 +346,8 @@ export default async function Page({ params }) {
             }`}
           >
             <SearchBoutiquePage
+              lang={`${country}-${language}`}
+              parsedFilters={parsedFilters}
               search_text={
                 filtersData?.applied?.search_text ??
                 parsedFilters?.search_text?.[0]
@@ -300,7 +375,7 @@ export default async function Page({ params }) {
           <BoutiqueHeader
             boutique={boutique}
             key={Params.filters?.join("/") || "no-filters"}
-          ></BoutiqueHeader>
+          />
 
           <Suspense fallback={<ListingSkeleton justFilters={true} />}>
             {

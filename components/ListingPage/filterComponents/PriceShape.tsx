@@ -11,7 +11,7 @@ export default function SmoothPolygon({
   fillColor = "#F8F8F8",
 }: SmoothPolygonProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [size, setSize] = useState({ width: 0, height: 50 });
+  const [size, setSize] = useState({ width: 400, height: 50 });
 
   useEffect(() => {
     const updateSize = () => {
@@ -81,7 +81,7 @@ export default function SmoothPolygon({
 
   return (
     <div className="chart-container absolute w-full bottom-[44px] px-[40px]">
-      <div ref={containerRef} className="w-full h-[50px]">
+      <div ref={containerRef} className="w-full h-[50px] max-w-full">
         <svg
           width={size.width}
           height={size.height}

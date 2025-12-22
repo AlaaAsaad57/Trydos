@@ -7,7 +7,7 @@ import { useParams } from "next/navigation";
 import { CurrencyApi } from "models/API/market/CurrencyApi";
 import { useAppStore } from "store";
 import { showErrorNotification } from "store/notifications/reducer";
-import ProductCard from "components/Server/ProductCard";
+
 import { GAevent } from "utils/gtag";
 import { GA_EVENT_NAMES, GA_GLOBAL_SCREEN } from "utils/GAEvents";
 import { EnableScroll } from "utils/tinyUtils";
@@ -225,16 +225,7 @@ function ProductsInfiniteScroll({
         let productColor = product?.sync_color_images?.find(
           (s) => s.color_name === color_name
         );
-        return (
-          <ProductCard
-            key={key}
-            product={product}
-            language={languageVariable}
-            params={{ lang }}
-            currency={currency}
-            productColor={productColor}
-          />
-        );
+        return <></>;
       })}
 
       {/* {products.length === 0 &&

@@ -1,68 +1,34 @@
 "use client";
-import React, { useEffect } from "react";
+import { useEffect, useState } from "react";
 import SearchIcon from "public/svg/listing/searchIcon";
-
-import { useAppStore } from "store";
 import { DebounceInput } from "react-debounce-input/src";
 import { useParams, useRouter } from "next/navigation";
-
-import {
-  parseFiltersFromParams,
-  buildParamsFromFilters,
-  pollinateInput,
-} from "utils/tinyUtils";
+import { buildParamsFromFilters, pollinateInput } from "utils/tinyUtils";
 import { SearchBoutiquePageProps } from "models/componentType/boutiqueTypes/SearchBoutiquePageProps";
-function SearchBoutiquePage({ search_text }: SearchBoutiquePageProps) {
+function SearchBoutiquePage({
+  search_text,
+  parsedFilters,
+  lang,
+}: SearchBoutiquePageProps) {
   const params = useParams();
   const router = useRouter();
 
   // Parse current filters from URL path
-  const { lang, filters: filterParams } = params;
-  const currentFilters = filterParams
-    ? parseFiltersFromParams(filterParams as string[])
-    : {};
-  const {
-    setFilterLoading,
-    setFilterSearch,
-    searchFilter,
-    setFilterEnabled,
-    setSkeleton,
-    filterEnabled,
-    value,
-    filters,
-    search,
-  } = useAppStore();
+
+  const currentFilters = parsedFilters;
+  const [search, setSearch] = useState(
+    parsedFilters?.search_text?.[0] ?? parsedFilters?.search_text ?? ""
+  );
+  const [focuse, setFocus] = useState(
+    parsedFilters?.search_text?.[0]?.length ??
+      parsedFilters?.search_text?.length ??
+      false
+  );
   const onChange = (e) => {
-    // Sendevent({
-    //   event: GA_EVENT_NAMES.CLICK,
-    //   value: GA_CLICK_EVENT_VALUES.ADD_FILTER_ITEM,
-    //   extra: {
-    //     filter: "search_text",
-    //     value: e?.target.value,
-    //   },
-    // });
-    try {
-      searchFilter(e.target.value);
-
-      if (filterEnabled) {
-      } else {
-        setFilterEnabled(false);
-
-        // Update filters with new search text
-
-        // Build new path-based URL
-        // Navigate to filters page
-      }
-    } catch (error) {
-      console.error(error);
-    }
+    setSearch(e.target.value);
   };
   const onKeyDown = (e) => {
     try {
-      if (filterEnabled) return;
-      setSkeleton(true);
-      setFilterEnabled(false);
-      setFilterLoading(true);
       const newFilters = { ...currentFilters };
       if (e.target.value.length > 0) {
         newFilters.search_text = [e.target.value];
@@ -79,11 +45,11 @@ function SearchBoutiquePage({ search_text }: SearchBoutiquePageProps) {
         pathParams.length > 0
           ? `/${lang}/filters/${pathParams.join("/")}`
           : `/${lang}/filters`;
-      const { setIsNavigating } = useAppStore.getState();
-      setIsNavigating({
-        is_filter_search: true,
-        href: newPath,
-      });
+      // const { setIsNavigating } = useAppStore.getState();
+      // setIsNavigating({
+      //   is_filter_search: true,
+      //   href: newPath,
+      // });
       router.push(newPath);
     } catch (error) {
       console.error(error);
@@ -91,12 +57,9 @@ function SearchBoutiquePage({ search_text }: SearchBoutiquePageProps) {
   };
   useEffect(() => {
     if (search_text?.length > 0) {
-      setFilterSearch(true);
       document.querySelector<HTMLInputElement>("#searchIconBoutique")?.click();
       document.querySelector<HTMLInputElement>("#filter-search")?.focus();
     } else {
-      setFilterSearch(false);
-
       document.querySelector<HTMLInputElement>("#filter-search")?.blur();
     }
   }, []);
@@ -105,16 +68,10 @@ function SearchBoutiquePage({ search_text }: SearchBoutiquePageProps) {
       data-cy="searchIcon_boutiquePage"
       id="searchIconBoutique"
       className={`filter-option transition-all filter-search-option relative ${
-        (search ||
-          value?.length > 0 ||
-          currentFilters?.search_text?.[0]?.length > 0) &&
+        (search?.length || focuse) &&
         "w-[75%] [&>input]:w-full [&>input]:bg-[#f8f8f8] [&>input]:h-[40px]"
       }`}
       onClick={() => {
-        // Sendevent({
-        //   event: GA_EVENT_NAMES.CLICK,
-        //   value: GA_CLICK_EVENT_VALUES.OPEN_SEARCH_FIELD_BUTTON,
-        // });
         document.querySelector<HTMLInputElement>("#filter-search")?.focus();
         if (
           document.querySelector<HTMLInputElement>(".boutique-logo-container")
@@ -122,7 +79,6 @@ function SearchBoutiquePage({ search_text }: SearchBoutiquePageProps) {
           document.querySelector<HTMLInputElement>(
             ".boutique-logo-container"
           ).style.display = "none";
-        setFilterSearch(true);
       }}
     >
       <DebounceInput
@@ -133,14 +89,12 @@ function SearchBoutiquePage({ search_text }: SearchBoutiquePageProps) {
           document
             .querySelector<HTMLInputElement>(".filter-bar-options")
             .classList.add("w-full");
+          setFocus(true);
         }}
         value={pollinateInput(search_text)}
         onBlur={() => {
-          if (
-            value.length === 0 &&
-            (!currentFilters?.search_text?.[0] ||
-              currentFilters.search_text[0]?.length === 0)
-          ) {
+          setFocus(false);
+          if (search.length === 0) {
             if (
               document.querySelector<HTMLInputElement>(
                 ".boutique-logo-container"
@@ -150,7 +104,7 @@ function SearchBoutiquePage({ search_text }: SearchBoutiquePageProps) {
                 ".boutique-logo-container"
               ).style.display = "flex";
             }
-            setFilterSearch(false);
+
             document
               .querySelector<HTMLInputElement>(".filter-bar-options")
               .classList.remove("w-full");
@@ -167,14 +121,12 @@ function SearchBoutiquePage({ search_text }: SearchBoutiquePageProps) {
           }
         }}
         className={`${
-          (search || search_text?.length > 0) && "pl-[40px]"
+          (search?.length || focuse) && "pl-[40px]"
         } rounded-[15px]  w-0 h-full border-0 outline-none text-[#5d5d5d]`}
       />
       <SearchIcon
         className={`absolute z-10 ${
-          search || search_text?.length > 0
-            ? "top-[9px] left-[14px]"
-            : "top-0 left-0"
+          search?.length || focuse ? "top-[9px] left-[14px]" : "top-0 left-0"
         }`}
       />
     </div>
