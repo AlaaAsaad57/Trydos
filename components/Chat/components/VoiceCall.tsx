@@ -1,6 +1,4 @@
-// Mic-only version of the VoiceCall component
-// Camera track creation removed and replaced with microphone-only track
-
+// VideoCall.tsx
 import React, {
   useEffect,
   useRef,
@@ -139,10 +137,20 @@ const VoiceCall = ({ token, audio = false, name = "", user_id, active }) => {
   };
 
   const toggleMute = useCallback(async () => {
-    if (!track) return;
-    await track.setEnabled(isMuted);
-    setIsMuted(!isMuted);
-  }, [track, isMuted]);
+    if (!track || !client) return;
+    try {
+      const newState = !isMuted;
+      await track.setEnabled(newState);
+      setIsMuted(newState);
+      if (newState) {
+        try {
+          await client.publish(track);
+        } catch (e) {}
+      }
+    } catch (e) {
+      console.error("Error toggling mute:", e);
+    }
+  }, [track, isMuted, client]);
 
   useEffect(() => {
     if (!ready || !track || !activeChat?.id || !token) return;

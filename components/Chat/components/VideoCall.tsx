@@ -1,3 +1,4 @@
+// VideoCall.tsx
 import React, {
   useEffect,
   useRef,
@@ -340,27 +341,42 @@ const VideoCall = ({ token, audio = false, name = "", user_id, active }) => {
 
   // Toggle mute
   const toggleMute = useCallback(async () => {
-    if (!tracks?.[0]) return;
+    if (!tracks?.[0] || !client) return;
 
     try {
-      await tracks[0].setEnabled(isMuted);
-      setIsMuted(!isMuted);
+      const newState = !isMuted;
+      await tracks[0].setEnabled(newState);
+      setIsMuted(newState);
+      // Ensure other users get a user-published event if they joined while muted
+      if (newState) {
+        try {
+          await client.publish(tracks[0]);
+        } catch (e) {
+          // ignore publish errors (already published)
+        }
+      }
     } catch (error) {
       console.error("Error toggling mute:", error);
     }
-  }, [tracks, isMuted]);
+  }, [tracks, isMuted, client]);
 
   // Toggle camera
   const toggleCamera = useCallback(async () => {
-    if (!tracks?.[1]) return;
+    if (!tracks?.[1] || !client) return;
 
     try {
-      await tracks[1].setEnabled(isCameraOff);
-      setIsCameraOff(!isCameraOff);
+      const newState = !isCameraOff;
+      await tracks[1].setEnabled(newState);
+      setIsCameraOff(newState);
+      if (newState) {
+        try {
+          await client.publish(tracks[1]);
+        } catch (e) {}
+      }
     } catch (error) {
       console.error("Error toggling camera:", error);
     }
-  }, [tracks, isCameraOff]);
+  }, [tracks, isCameraOff, client]);
 
   // Initialize Agora
   useEffect(() => {
@@ -449,6 +465,27 @@ const VideoCall = ({ token, audio = false, name = "", user_id, active }) => {
           }
         };
 
+        const handleUserUnpublished = (
+          user: IAgoraRTCRemoteUser,
+          mediaType: "audio" | "video"
+        ) => {
+          if (!mounted) return;
+          if (mediaType === "audio") {
+            user.audioTrack?.stop();
+            setRemoteUsers((prev) =>
+              prev.map((u) =>
+                u.uid === user.uid ? { ...u, audioTrack: null } : u
+              )
+            );
+          } else if (mediaType === "video") {
+            setRemoteUsers((prev) =>
+              prev.map((u) =>
+                u.uid === user.uid ? { ...u, videoTrack: null } : u
+              )
+            );
+          }
+        };
+
         const handleUserLeft = (user: IAgoraRTCRemoteUser) => {
           if (!mounted) return;
 
@@ -469,6 +506,7 @@ const VideoCall = ({ token, audio = false, name = "", user_id, active }) => {
         // Set up listeners
         client.on("user-joined", handleUserJoined);
         client.on("user-published", handleUserPublished);
+        client.on("user-unpublished", handleUserUnpublished);
         client.on("user-left", handleUserLeft);
         client.on(
           "network-quality",

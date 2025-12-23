@@ -1,3 +1,4 @@
+// webview voice call component
 import { useState, useEffect } from "react";
 import EndCallIcon from "../Chat/svg/endCall";
 import MicIcon from "../Chat/svg/micIcon";
@@ -48,13 +49,29 @@ function WebViewVoiceCall(props) {
 
       client.on("user-published", async (user, mediaType) => {
         await client.subscribe(user, mediaType);
+
+        setUsers((prev) => {
+          const exists = prev.find((u) => u.uid === user.uid);
+          if (exists) return prev.map((u) => (u.uid === user.uid ? user : u));
+          return [...prev, user];
+        });
+
         if (mediaType === "audio") {
-          user.audioTrack?.play();
+          try {
+            user.audioTrack?.play();
+          } catch (e) {}
         }
       });
 
       client.on("user-unpublished", (user, type) => {
-        if (type === "audio") user.audioTrack?.stop();
+        if (type === "audio") {
+          user.audioTrack?.stop();
+          setUsers((prev) =>
+            prev.map((u) =>
+              u.uid === user.uid ? { ...u, audioTrack: null } : u
+            )
+          );
+        }
       });
 
       client.on("user-left", (user) => {
@@ -98,8 +115,14 @@ function WebViewVoiceCall(props) {
   const [trackState, setTrackState] = useState({ audio: true });
 
   const mute = async () => {
-    await track?.setEnabled(!trackState.audio);
-    setTrackState((s) => ({ ...s, audio: !s.audio }));
+    const newState = !trackState.audio;
+    await track?.setEnabled(newState);
+    setTrackState((s) => ({ ...s, audio: newState }));
+    if (newState && client && track) {
+      try {
+        await client.publish(track);
+      } catch (e) {}
+    }
   };
 
   useEffect(() => {
