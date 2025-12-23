@@ -551,9 +551,9 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
         selected_variant = ProductData?.variation?.find(
           (s) =>
             s.type?.toLowerCase() ===
-            `${selectedColor?.color_option}-${normalizeSize(
+            `${selectedColor?.color_option}-${
               size?.option ?? size
-            )}`?.toLowerCase()
+            }`?.toLowerCase()
         );
       }
       if (
@@ -576,8 +576,7 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
           (s) =>
             s.type?.toLowerCase() ===
             (
-              size &&
-              `${normalizeSize((size?.option ?? size)?.replace(" ", ""))}`
+              size && `${(size?.option ?? size)?.replace(" ", "")}`
             )?.toLowerCase()
         );
       }
@@ -650,9 +649,9 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
         selected_variant = ProductData?.variation?.find(
           (s) =>
             s.type?.toLowerCase() ===
-            `${selectedColor?.color_option}-${normalizeSize(
+            `${selectedColor?.color_option}-${
               selectedSize?.option ?? selectedSize
-            )}`?.toLowerCase()
+            }`?.toLowerCase()
         );
       }
       if (
@@ -676,9 +675,7 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
             s.type?.toLowerCase() ===
             (
               selectedSize &&
-              `${normalizeSize(
-                (selectedSize?.option ?? selectedSize)?.replace(" ", "")
-              )}`
+              `${(selectedSize?.option ?? selectedSize)?.replace(" ", "")}`
             )?.toLowerCase()
         );
       }
@@ -727,6 +724,7 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
         selectedSize:
           selectedSize ?? tempProductData?.choice_options?.[0]?.options?.[0],
       });
+
       if (res.color) {
         setSelectedColor(
           tempProductData?.sync_color_images?.find(
@@ -858,11 +856,13 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
                 s?.type.toLowerCase() ===
                   colorVariant?.color_name?.toLowerCase()
             ) &&
-          s?.type.toLowerCase().endsWith(
-            `-${normalizeSize(selectedSize?.option ?? selectedSize)
-              ?.toString()
-              .toLowerCase()}`
-          )
+          s?.type
+            .toLowerCase()
+            .endsWith(
+              `-${(selectedSize?.option ?? selectedSize)
+                ?.toString()
+                .toLowerCase()}`
+            )
         );
       } else {
         return s?.type
@@ -900,9 +900,9 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
         selected_variant = ProductData?.variation?.find(
           (s) =>
             s.type?.toLowerCase() ===
-            `${colorVariant?.color_option}-${normalizeSize(
+            `${colorVariant?.color_option}-${
               selectedSize?.option ?? selectedSize
-            )}`?.toLowerCase()
+            }`?.toLowerCase()
         );
       }
       if (
