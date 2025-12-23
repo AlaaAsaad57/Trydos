@@ -654,7 +654,7 @@ const VideoCall = ({ token, audio = false, name = "", user_id, active }) => {
             )}
           </>
         )}
-        {ready && !isEndingCall && !remoteVideoUser.hasVideo && (
+        {ready && !isEndingCall && !remoteVideoUser?.hasVideo && (
           <TimerDisplay
             minutes={minutes}
             seconds={seconds}
