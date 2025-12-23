@@ -1,8 +1,9 @@
-export const runtime = "nodejs";
-
+"use server";
 import { LogServerError } from "utils/serverErrorReporter";
 import { fetchServerData } from "./ServerFetch";
 import { ReportError } from "utils/errorReported";
+import { COOKIE_NAMES } from "utils/cookies/cookie-manager";
+import { cookies } from "next/headers";
 // import { getProductFromCache, storeProduct } from "./radis";
 interface ProductDetailsResponse {
   [key: string]: any;
@@ -106,4 +107,62 @@ export async function fetchProductExtendedDetails(
   } catch (error) {
     throw error;
   }
+}
+
+export async function getProductDataForAddToCart({ language, country, slug }) {
+  let cookiesStore = await cookies();
+  let token =
+    cookiesStore.get(COOKIE_NAMES.MARKET_TOKEN)?.value ||
+    cookiesStore.get(COOKIE_NAMES.DEVICE_TOKEN)?.value ||
+    "";
+  let [globalData, pricesData, notificationsSettings] = await Promise.all([
+    fetchServerData({
+      url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/web/product/globalDetails/${slug}`,
+      method: "GET",
+      headers: {
+        language: language,
+        lang: language,
+        country: country,
+      },
+    }),
+    fetchServerData({
+      url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/web/product/qtyPriceDetails/${slug}`,
+      method: "GET",
+      headers: {
+        language: language,
+        lang: language,
+        country: country,
+      },
+    }),
+    fetchServerData({
+      url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/web/product/likesDetails/${slug}`,
+      headers: {
+        Authorization: `Bearer ${token}`,
+        language: language,
+        lang: language,
+        country: country,
+      },
+    }),
+  ]);
+
+  let variants_arr = pricesData.data.data.variation;
+  let newVariants = notificationsSettings?.data?.data?.variation?.map(
+    (item) => {
+      let d = variants_arr.find((s) => s.type === item.type);
+      if (d)
+        return {
+          ...item,
+          ...d,
+        };
+      else {
+        return item;
+      }
+    }
+  );
+
+  return {
+    ...globalData.data?.data,
+    ...pricesData.data?.data,
+    variation: newVariants,
+  };
 }

@@ -20,7 +20,7 @@ function ProductButtonWrapper({
   seconds = null,
   InitialProductData = {},
 }) {
-  const [redeem_expired, setRedeemExpired] = useState(is_redeem);
+  const [redeem_expired, setRedeemExpired] = useState(!is_redeem);
   let isRtl = language === "ar" || language === "ku";
   let isFlash = false;
   let flash_price = offer_price ?? price;
@@ -63,17 +63,6 @@ function ProductButtonWrapper({
     }
   };
 
-  const AddToCart = () => {
-    const { setSelectedProductForCart } = useAppStore.getState();
-    setSelectedProductForCart({
-      ...InitialProductData,
-      shouldUpdate: 0,
-      id: id,
-      showRedeemPrice: is_redeem && !redeem_expired,
-      is_from_listing: true,
-      seconds: is_redeem && !redeem_expired ? seconds : 0,
-    });
-  };
   const TimerHook = is_redeem
     ? useLuckyDrawTimer({
         id: id,
@@ -91,6 +80,29 @@ function ProductButtonWrapper({
       .querySelector(`#product_${slug}`)
       ?.classList.remove("product_redeem");
   };
+  const AddToCart = () => {
+    const { setSelectedProductForCart } = useAppStore.getState();
+    let is_redeem_product_card = document
+      .querySelector(`#product_${slug}`)
+      ?.classList.contains("product_redeem");
+    console.log(
+      "is_redeem-",
+      is_redeem_product_card,
+      is_redeem,
+      !redeem_expired
+    );
+    setSelectedProductForCart({
+      ...InitialProductData,
+      shouldUpdate: 0,
+      id: id,
+      showRedeemPrice: is_redeem_product_card && is_redeem && !redeem_expired,
+      is_from_listing: true,
+      seconds:
+        is_redeem_product_card && is_redeem && !redeem_expired
+          ? TimerHook.secondsLeft
+          : 0,
+    });
+  };
   return (
     <>
       <div
@@ -104,7 +116,7 @@ function ProductButtonWrapper({
         onClick={(e) => {
           e.preventDefault();
           AddToCart();
-          onExpire();
+          // onExpire();
         }}
       >
         {is_redeem && <TimerHook.MiniTimer />}

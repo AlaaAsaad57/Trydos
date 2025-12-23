@@ -178,11 +178,11 @@ export const getUrlofProduct = (
   slug?: string
 ) => {
   if (color_name)
-    return `/${country}-${language}/product/${slug}?color=${encodeURIComponent(
+    return `/${country}-${language}/products/${slug}?color=${encodeURIComponent(
       color_name
     )}`;
   if (!color_name) {
-    return `/${country}-${language}/product/${slug}`;
+    return `/${country}-${language}/products/${slug}`;
   }
 };
 type parsedFilters = {
