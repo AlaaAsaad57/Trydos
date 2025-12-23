@@ -277,8 +277,13 @@ const SyncIcon = ({ spinning }: { spinning: boolean }) => (
     fill="none"
     stroke="currentColor"
     strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
   >
-    <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8m0 0V3m0 5h5m13 4a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L21 16m0 0v5m0-5h-5" />
+    <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+    <path d="M3 3v5h5" />
+    <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16" />
+    <path d="M21 21v-5h-5" />
   </svg>
 );
 const PlusIcon = () => (
