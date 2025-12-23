@@ -1,5 +1,4 @@
-import React, { useState } from "react";
-
+import React, { useState, useMemo } from "react";
 import { translateFunction } from "utils/functions";
 import { getContacts } from "store/chat/actions";
 import { useAppStore } from "store";
@@ -7,323 +6,197 @@ import { fetchData } from "utils/fetchData";
 import { pollinateInput, sanitizePhone } from "@/utils/tinyUtils";
 import { REQUESTS_DATA } from "utils/Requests";
 
-declare global {
-  interface Navigator {
-    contacts?: {
-      select(
-        properties: string[],
-        opts?: { multiple?: boolean }
-      ): Promise<any[]>;
-    };
-  }
-  interface Permissions {
-    query(permissionDesc: { name: "contacts" }): Promise<PermissionStatus>;
-  }
-}
+// --- Utilities ---
+
+/**
+ * Normalizes phone numbers for comparison.
+ * Slices the last 10 digits to catch matches between international and local formats.
+ */
+export const normalizePhoneStrict = (phone: string): string => {
+  if (!phone) return "";
+  const cleaned = phone.replace(/\D/g, "");
+  return cleaned.length >= 10 ? cleaned.slice(-10) : cleaned;
+};
+
+/**
+ * Deduplicates a list of contacts.
+ * If a number repeats, it keeps the version with the longest name.
+ */
+const deduplicateContacts = (contacts: any[]) => {
+  const uniqueMap = new Map();
+
+  contacts.forEach((c) => {
+    // Handle both navigator.contacts format (tel array) and store format (mobile_phone)
+    const rawPhone =
+      c.mobile_phone || (Array.isArray(c.tel) ? c.tel[0] : c.tel) || "";
+    const normalized = normalizePhoneStrict(rawPhone);
+
+    if (!normalized) return;
+
+    const existing = uniqueMap.get(normalized);
+    const currentName = (Array.isArray(c.name) ? c.name[0] : c.name) || "";
+
+    // Keep the entry if it's new or if the new name is more descriptive (longer)
+    if (!existing || currentName.trim().length > existing.name.length) {
+      uniqueMap.set(normalized, {
+        name: currentName.trim(),
+        mobile_phone: rawPhone.replace(/\s+/g, ""), // Cleaned original for storage
+      });
+    }
+  });
+
+  return Array.from(uniqueMap.values());
+};
+
+// --- Component ---
 
 function ChatContactsUpload() {
   const { contacts: ContactsData } = useAppStore();
-  const getContactsData = async () => {
-    await getContacts();
-  };
-  const [uploadProgress, setUploadProgress] = useState(0);
-  const [error, setError] = useState<string>("");
   const [isUploading, setIsUploading] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
   const [newContact, setNewContact] = useState({ name: "", phone: "" });
-  const [isPhoneDuplicate, setIsPhoneDuplicate] = useState(false);
+  const [error, setError] = useState<string>("");
 
-  const handleContactSync = async () => {
-    try {
-      setError("");
-      setIsUploading(true);
+  // Memoized map for UI conflict detection
+  const existingNormalizedMap = useMemo(() => {
+    const map = new Map<string, string>();
+    ContactsData.forEach((c) => {
+      const norm = normalizePhoneStrict(c.mobile_phone);
+      if (norm) map.set(norm, c.name);
+    });
+    return map;
+  }, [ContactsData]);
 
-      // Request permission to access contacts
-      if (!("contacts" in navigator && "ContactsManager" in window)) {
-        throw new Error(
-          translateFunction("Contacts API not supported in this browser")
-        );
-      }
-      await getContactsData();
-      // @ts-ignore - The Contacts API types aren't in the standard lib yet
+  const normalizedNewPhone = normalizePhoneStrict(newContact.phone);
+  const conflictingName = existingNormalizedMap.get(normalizedNewPhone);
 
-      // @ts-ignore - The Contacts API types aren't in the standard lib yet
-      const contacts = await navigator.contacts.select(["name", "tel"], {
-        multiple: true,
-      });
-
-      if (!contacts.length) {
-        throw new Error("No contacts selected");
-      }
-
-      const formattedContacts = contacts.map((contact) => ({
-        name: contact.name[0],
-        mobile_phone: contact.tel[0] || [],
-      }));
-
-      // Deduplicate contacts by mobile_phone before uploading
-      const allContacts = [...ContactsData, ...formattedContacts];
-      const uniqueContacts = deduplicateContacts(allContacts);
-
-      // Upload contacts with progress tracking
-      let res = await fetchData({
-        url: "/api/v1/users/save_contacts",
-        server: "chat",
-        method: "POST",
-        body: JSON.stringify({
-          contacts: uniqueContacts,
-        }),
-        reqTitle: REQUESTS_DATA.SAVE_CONTACTS,
-      });
-      if (!res.success) {
-        throw new Error(res.message);
-      }
-      await getContacts();
-      setUploadProgress(100);
-      setTimeout(() => {
-        setUploadProgress(0);
-        setIsUploading(false);
-      }, 1000);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to sync contacts");
-      setIsUploading(false);
-      setUploadProgress(0);
-    }
-  };
-
-  const handleAddContact = async () => {
-    try {
-      if (!newContact.name || !newContact.phone) {
-        setError("Name and phone are required");
-        return;
-      }
-
-      setError("");
-      setIsUploading(true);
-
-      // Normalize phone number for comparison
-      const normalizedPhone = normalizePhoneNumber(newContact.phone);
-
-      // Check if phone already exists in contacts
-      const isDuplicate = ContactsData.some(
-        (contact) =>
-          normalizePhoneNumber(contact.mobile_phone) === normalizedPhone
-      );
-
-      if (isDuplicate) {
-        setIsPhoneDuplicate(true);
-        setError("This phone number already exists in your contacts");
-        setIsUploading(false);
-        return;
-      }
-      const trimLeadingCode = (value: string) => {
-        if (value.startsWith("00")) {
-          return value.slice(2);
-        }
-
-        if (value.startsWith("+")) {
-          return value.slice(1);
-        }
-
-        return value;
-      };
-
-      const formattedContact = [
-        {
-          name: newContact.name,
-          mobile_phone: trimLeadingCode(newContact.phone),
-        },
-      ];
-
-      // Deduplicate contacts by mobile_phone before uploading
-      const allContacts = [...ContactsData, ...formattedContact];
-      const uniqueContacts = deduplicateContacts(allContacts);
-
-      // Upload contact with progress tracking
-      let res = await fetchData({
-        url: "/api/v1/users/save_contacts",
-        server: "chat",
-        method: "POST",
-        body: JSON.stringify({
-          contacts: uniqueContacts,
-        }),
-        reqTitle: REQUESTS_DATA.SAVE_CONTACTS,
-      });
-      if (!res.success) {
-        throw new Error(res.message);
-      }
-      await getContacts();
-      setUploadProgress(100);
-      setTimeout(() => {
-        setUploadProgress(0);
-        setIsUploading(false);
-        setNewContact({ name: "", phone: "" });
-        setShowAddForm(false);
-      }, 1000);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to add contact");
-      setIsUploading(false);
-      setUploadProgress(0);
-    }
-  };
-
-  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const phone = sanitizePhone(e.target.value);
-    setNewContact({ ...newContact, phone: phone });
-
-    // Normalize phone number for comparison
-    const normalizedPhone = normalizePhoneNumber(phone);
-
-    // Check if phone already exists in contacts
-    const isDuplicate = ContactsData.some(
-      (contact) =>
-        normalizePhoneNumber(contact.mobile_phone) === normalizedPhone
-    );
-
-    setIsPhoneDuplicate(isDuplicate);
-    if (isDuplicate) {
-      setError("This phone number already exists in your contacts");
-    } else {
-      setError("");
-    }
-  };
-
-  // Helper function to normalize phone numbers for comparison
-  const normalizePhoneNumber = (phone: string): string => {
-    // Remove all non-digit characters except the leading +
-    let normalized = phone.trim();
-
-    // If the number starts with +, remove it temporarily
-    const hasPlus = normalized.startsWith("+");
-    if (hasPlus) {
-      normalized = normalized.substring(1);
-    }
-
-    // Remove all non-digit characters
-    normalized = normalized.replace(/\D/g, "");
-
-    // Add back the + if it was there originally
-    if (hasPlus) {
-      normalized = "+" + normalized;
-    }
-
-    return normalized;
-  };
-
-  // Helper function to deduplicate contacts by mobile_phone
-  const deduplicateContacts = (
-    contacts: Array<{ name: string; mobile_phone: string }>
-  ): Array<{ name: string; mobile_phone: string }> => {
-    const seenPhones = new Map<
-      string,
-      { name: string; mobile_phone: string }
-    >();
-
-    contacts.forEach((contact) => {
-      const normalizedPhone = normalizePhoneNumber(contact.mobile_phone);
-      if (!seenPhones.has(normalizedPhone)) {
-        seenPhones.set(normalizedPhone, contact);
-      }
+  /**
+   * Sends the final merged and cleaned list to the server.
+   */
+  const uploadToServer = async (contactsList: any[]) => {
+    let res = await fetchData({
+      url: "/api/v1/users/save_contacts",
+      server: "chat",
+      method: "POST",
+      body: JSON.stringify({ contacts: contactsList }),
+      reqTitle: REQUESTS_DATA.SAVE_CONTACTS,
     });
 
-    return Array.from(seenPhones.values());
+    if (!res.success) throw new Error(res.message);
+    await getContacts(); // Refresh global store to sync UI
+  };
+
+  /**
+   * Syncs from Phone Contacts API
+   */
+  const handleContactSync = async () => {
+    if (isUploading) return;
+    try {
+      setError("");
+      setIsUploading(true);
+
+      if (!("contacts" in navigator)) {
+        throw new Error(
+          translateFunction("Contacts API not supported on this browser")
+        );
+      }
+
+      const rawContacts = await (navigator.contacts as any)?.select(
+        ["name", "tel"],
+        {
+          multiple: true,
+        }
+      );
+
+      if (!rawContacts || !rawContacts.length) return;
+
+      // Logic: Merge ALL current store data with NEWly selected contacts, then deduplicate
+      const combinedList = [...ContactsData, ...rawContacts];
+      const finalPayload = deduplicateContacts(combinedList);
+
+      await uploadToServer(finalPayload);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Sync failed");
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  /**
+   * Adds a single manual contact
+   */
+  const handleAddContact = async () => {
+    if (!newContact.name || !newContact.phone || conflictingName) return;
+
+    try {
+      setError("");
+      setIsUploading(true);
+
+      const manualEntry = {
+        name: newContact.name.trim(),
+        mobile_phone: newContact.phone,
+      };
+
+      // Merge current store data with the manual entry and deduplicate
+      const combinedList = [...ContactsData, manualEntry];
+      const finalPayload = deduplicateContacts(combinedList);
+
+      await uploadToServer(finalPayload);
+
+      setNewContact({ name: "", phone: "" });
+      setShowAddForm(false);
+    } catch (err) {
+      setError("Failed to add contact");
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   return (
-    <div className="w-full">
+    <div className="w-full max-w-md mx-auto">
       {!showAddForm ? (
         <div className="flex flex-col gap-2">
           <button
             onClick={handleContactSync}
             disabled={isUploading}
-            className="w-full p-4 flex cursor-pointer rounded-md items-center justify-center gap-3 bg-[#8fc3ff] transition-colors border-b border-gray-200 relative overflow-hidden"
+            className="w-full p-4 flex rounded-md items-center justify-center gap-3 bg-[#8fc3ff] hover:bg-[#7eb2ef] transition-colors disabled:opacity-50"
           >
-            <svg
-              className={`w-5 h-5 ${isUploading ? "animate-spin" : ""}`}
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
-              <path d="M3 3v5h5" />
-              <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16" />
-              <path d="M21 21v-5h-5" />
-            </svg>
-
+            <SyncIcon spinning={isUploading} />
             <span className="font-medium">
-              {translateFunction(
-                error
-                  ? error
-                  : isUploading
-                  ? "Syncing contacts..."
-                  : "Get from your contacts"
-              )}
+              {isUploading
+                ? "Syncing..."
+                : translateFunction("Get from your contacts")}
             </span>
-
-            {isUploading && uploadProgress > 0 && (
-              <div
-                className="absolute bottom-0 left-0 h-1 bg-blue-500 transition-all duration-300"
-                style={{ width: `${uploadProgress}%` }}
-              />
-            )}
           </button>
 
           <button
             onClick={() => setShowAddForm(true)}
-            className="w-full p-4 flex cursor-pointer   bg-[#8fc3ff] rounded-md items-center justify-center gap-3  hover:bg-gray-200 transition-colors border-b border-gray-200"
+            className="w-full p-4 flex rounded-md items-center justify-center gap-3 border-2 border-[#8fc3ff] hover:bg-blue-50 transition-colors text-[#1d1d1d]"
           >
-            <svg
-              className="w-5 h-5"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M12 5v14M5 12h14" />
-            </svg>
-            <span className="font-medium text-[#1d1d1d]">
-              {translateFunction("Add Contacts")}
+            <PlusIcon />
+            <span className="font-medium">
+              {translateFunction("Add Contact Manually")}
             </span>
           </button>
         </div>
       ) : (
-        <div className="w-full p-4 rounded-md bg-gray-50 border border-gray-200">
+        <div className="w-full p-4 rounded-md bg-white border border-gray-200 shadow-sm">
           <div className="flex justify-between items-center mb-4">
-            <h3 className="font-medium">
+            <h3 className="font-semibold text-gray-700">
               {translateFunction("Add a new contact")}
             </h3>
             <button
-              onClick={() => {
-                setShowAddForm(false);
-                setError("");
-                setNewContact({ name: "", phone: "" });
-                setIsPhoneDuplicate(false);
-              }}
-              className="text-gray-500 hover:text-gray-700"
+              onClick={() => setShowAddForm(false)}
+              className="text-gray-400 hover:text-gray-600"
             >
-              <svg
-                className="w-5 h-5"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M18 6L6 18M6 6l12 12" />
-              </svg>
+              <CloseIcon />
             </button>
           </div>
 
-          <div className="space-y-3">
+          <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                {translateFunction("Name")}
+              <label className="text-xs font-bold text-gray-500 uppercase">
+                Contact Name
               </label>
               <input
                 type="text"
@@ -334,32 +207,40 @@ function ChatContactsUpload() {
                     name: pollinateInput(e.target.value),
                   })
                 }
-                className="w-full text-[#1d1d1d] p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder={translateFunction("Enter name")}
-                disabled={isUploading}
+                className="w-full p-2 border border-gray-300 text-[#1d1d1d] rounded-md focus:ring-2 focus:ring-blue-200 outline-none"
+                placeholder="e.g. John Doe"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                {translateFunction("Phone")}
+              <label className="text-xs font-bold text-gray-500 uppercase">
+                Phone Number
               </label>
               <input
                 type="tel"
                 value={newContact.phone}
-                onChange={handlePhoneChange}
-                className={`w-full text-[#1d1d1d] p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                  isPhoneDuplicate ? "border-red-500" : "border-gray-300"
+                onChange={(e) =>
+                  setNewContact({
+                    ...newContact,
+                    phone: sanitizePhone(e.target.value),
+                  })
+                }
+                className={`w-full p-2 text-[#1d1d1d] border rounded-md outline-none transition-colors ${
+                  conflictingName
+                    ? "border-orange-400 bg-orange-50"
+                    : "border-gray-300 focus:ring-2 focus:ring-blue-200"
                 }`}
-                placeholder={translateFunction("Enter phone number")}
-                disabled={isUploading}
+                placeholder="+1 234 567 890"
               />
-              {isPhoneDuplicate && (
-                <p className="text-red-500 text-xs mt-1">
-                  {translateFunction(
-                    "This phone number already exists in your contacts"
-                  )}
-                </p>
+              {conflictingName && (
+                <div className="flex items-center gap-1 mt-1 text-orange-600">
+                  <span className="text-[10px] bg-orange-200 px-1 rounded">
+                    !
+                  </span>
+                  <p className="text-xs">
+                    Already saved as <strong>{conflictingName}</strong>
+                  </p>
+                </div>
               )}
             </div>
 
@@ -367,63 +248,65 @@ function ChatContactsUpload() {
               onClick={handleAddContact}
               disabled={
                 isUploading ||
-                isPhoneDuplicate ||
+                !!conflictingName ||
                 !newContact.name ||
                 !newContact.phone
               }
-              className="w-full p-3 flex cursor-pointer rounded-md items-center justify-center gap-3 bg-[#8fc3ff] transition-colors relative overflow-hidden disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full p-3 bg-[#8fc3ff] hover:bg-[#7eb2ef] text-white font-bold rounded-md disabled:opacity-50 disabled:bg-gray-200 transition-all"
             >
-              {isUploading ? (
-                <svg
-                  className="w-5 h-5 animate-spin"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <circle cx="12" cy="12" r="10" />
-                  <path d="M12 6v6l4 2" />
-                </svg>
-              ) : (
-                <svg
-                  className="w-5 h-5"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M12 5v14M5 12h14" />
-                </svg>
-              )}
-
-              <span className="font-medium">
-                {translateFunction(
-                  isUploading ? "Adding contact..." : "Add Contacts"
-                )}
-              </span>
-
-              {isUploading && uploadProgress > 0 && (
-                <div
-                  className="absolute bottom-0 left-0 h-1 bg-blue-500 transition-all duration-300"
-                  style={{ width: `${uploadProgress}%` }}
-                />
-              )}
+              {isUploading ? "Adding..." : "Confirm Add"}
             </button>
-
-            {error && !isPhoneDuplicate && (
-              <p className="text-red-500 text-sm mt-1">
-                {translateFunction(error)}
-              </p>
-            )}
           </div>
+        </div>
+      )}
+
+      {error && (
+        <div className="bg-red-50 border-l-4 border-red-500 p-2 mt-3 text-red-700 text-center text-xs font-medium">
+          {error}
         </div>
       )}
     </div>
   );
 }
+
+// --- Icons ---
+const SyncIcon = ({ spinning }: { spinning: boolean }) => (
+  <svg
+    className={`w-5 h-5 ${spinning ? "animate-spin" : ""}`}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+    <path d="M3 3v5h5" />
+    <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16" />
+    <path d="M21 21v-5h-5" />
+  </svg>
+);
+const PlusIcon = () => (
+  <svg
+    className="w-5 h-5"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+  >
+    <path d="M12 5v14M5 12h14" />
+  </svg>
+);
+const CloseIcon = () => (
+  <svg
+    className="w-5 h-5"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+  >
+    <path d="M18 6L6 18M6 6l12 12" />
+  </svg>
+);
 
 export default ChatContactsUpload;

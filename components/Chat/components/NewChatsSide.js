@@ -5,6 +5,7 @@ import profilePicture from "public/images/profileNo.png";
 import { useAppStore } from "store";
 import { GetLastSeen } from "store/chat/actions";
 import { getUserChat } from "utils/functions";
+import { GetImageUrl } from "utils/tinyUtils";
 function NewChatsSide({ activeChat, chats }) {
   const { openChat, watchChannel } = useAppStore();
   return (
@@ -57,12 +58,12 @@ function NewChatsSide({ activeChat, chats }) {
                       width={30}
                       height={30}
                       alt="new-user"
-                      src={
+                      src={GetImageUrl(
                         a.channel_members.filter(
                           (ada) =>
                             parseInt(ada.user_id) !== parseInt(getUser()?.id)
                         )[0]?.user?.photo_path
-                      }
+                      )}
                     />
                   ) : a.channel_members.filter(
                       (ada) => parseInt(ada.user_id) !== parseInt(getUser()?.id)
