@@ -25,7 +25,7 @@ function WebViewVoiceCall(props) {
   const { seconds, minutes, hours, days, isRunning, start, pause, reset } =
     useStopwatch({ autoStart: false });
   const [callStatus, setCallStatus] = useState(null);
-
+  const [isPublished, setIsPublished] = useState(false);
   const [users, setUsers] = useState([]);
   const [startIndicator, setStart] = useState(false);
   const client = useClient(config);
@@ -37,7 +37,11 @@ function WebViewVoiceCall(props) {
     let init = async (name) => {
       client.on("user-joined", (user) => {
         start();
-        setUsers((prev) => [...prev, user]);
+        setUsers((prevUsers) => {
+          // Prevent duplicates
+          if (prevUsers.find((u) => u.uid === user.uid)) return prevUsers;
+          return [...prevUsers, user];
+        });
         if (window?.flutter_inappwebview)
           window?.flutter_inappwebview?.callHandler?.(
             "flutterMessageHandler",
@@ -49,9 +53,8 @@ function WebViewVoiceCall(props) {
         await client.subscribe(user, mediaType);
 
         setUsers((prev) => {
-          const exists = prev.find((u) => u.uid === user.uid);
-          if (exists) return prev.map((u) => (u.uid === user.uid ? user : u));
-          return [...prev, user];
+          const others = prev.filter((u) => u.uid !== user.uid);
+          return [...others, user];
         });
 
         if (mediaType === "audio") {
@@ -82,11 +85,16 @@ function WebViewVoiceCall(props) {
       client.on("user-unpublished", (user, type) => {
         if (type === "audio") {
           user.audioTrack?.stop();
-          setUsers((prev) =>
-            prev.map((u) =>
-              u.uid === user.uid ? { ...u, audioTrack: null } : u
-            )
-          );
+          setUsers((prev) => {
+            return prev.map((u) => {
+              if (u.uid === user.uid) {
+                // Return the 'user' object directly from the event.
+                // It is the Class Instance [aj] with the tracks updated internally.
+                return user;
+              }
+              return u;
+            });
+          });
         }
       });
 
@@ -106,6 +114,7 @@ function WebViewVoiceCall(props) {
       if (track) {
         await track.setEnabled(trackStateRef.current.audio);
         await client.publish(track);
+        setIsPublished(true);
       }
       setStart(true);
     };
@@ -207,12 +216,16 @@ function WebViewVoiceCall(props) {
           <span>End Call</span>
         </div>
 
-        <div
-          className={"toggle-mic " + (trackState.audio && "active-mic-svg")}
-          onClick={mute}
-        >
-          <MicIcon />
-        </div>
+        {isPublished ? (
+          <div
+            className={"toggle-mic " + (trackState.audio && "active-mic-svg")}
+            onClick={mute}
+          >
+            <MicIcon />
+          </div>
+        ) : (
+          <span />
+        )}
 
         {ready && (
           <div className="call-status">

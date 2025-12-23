@@ -1,69 +1,128 @@
 // webview video call component
 import { useState, useEffect, useRef } from "react";
-import EndCallIcon from "../Chat/svg/endCall";
-import MicIcon from "../Chat/svg/micIcon";
-import VideoIcon from "../Chat/svg/vidIcon";
-import CallingIcon from "../Chat/svg/calling";
-import LeftArrowIcon from "../Chat/svg/leftArrow";
+import EndCallIcon from "../svg/endCall";
+import MicIcon from "../svg/micIcon";
+
+import CallingIcon from "../svg/calling";
+import LeftArrowIcon from "../svg/leftArrow";
 import AgoraRTC, {
-  AgoraVideoPlayer,
   createClient,
-  createMicrophoneAndCameraTracks,
+  createMicrophoneAudioTrack,
 } from "agora-rtc-react";
 import { useStopwatch } from "react-timer-hook";
-const config = {
+import { useAppStore } from "store";
+import { getUserChat } from "utils/functions";
+import { GetImageUrl } from "utils/tinyUtils";
+import { getTwoLetters } from "../chatsFunctions";
+import { fetchData } from "utils/fetchData";
+import UPDATED_API_DATA from "migration.staging";
+import { REQUESTS_DATA } from "utils/Requests";
+import { RefuseCall } from "store/chat/callActions";
+
+const useClient = createClient({
   mode: "rtc",
   codec: "h264",
-};
-
-const useClient = createClient(config);
-const useMicrophoneAndCameraTracks = createMicrophoneAndCameraTracks();
+});
+const useMicrophoneTrack = createMicrophoneAudioTrack();
 
 const appId = "0af959943ff542df8f2cb1b925ec0cc4";
-function WebViewVideoCall(props) {
-  AgoraRTC.setLogLevel(4);
+function ChatVoiceCall({ token }) {
   const [loading, setLoading] = useState(false);
+  const endCall = async (duration) => {
+    setLoading(true);
+    try {
+      // Stop timer
+      pause();
 
-  // const switchCamera = async () => {
-  //   await tracks[1].stop()
-  //   await tracks[1].close()
-  //   if (tracks[1]) {
-  //     if (tracks[1].getMediaStreamTrack().label === cameras[0].label) {
-  //       let newTrack =await AgoraRTC.createCameraVideoTrack({facingMode:'environment'})
-  //       await tracks[1].replaceTrack(newTrack, true);
-  //       await client.publish(tracks[1])
-  //     } else {
-  //       setCamera("user");
-  //       alert("user");
-  //       let newTrack = await navigator.mediaDevices
-  //         .getUserMedia({ audio: false, video: { facingMode: "user" } })
-  //         .then((stream) => {
-  //           return stream.getVideoTracks()[0];
-  //         });
-  //       setCamera("user");
-  //       alert("user");
-  //       await tracks[1].replaceTrack(newTrack, true);
-  //     }
-  //   }
-  //   await tracks[1].setEnabled(true);
-  // };
+      // Clean up Agora resources if available
+      if (client) {
+        try {
+          client.removeAllListeners();
+          // Check if client is connected before trying to leave
+          if (
+            client.connectionState === "CONNECTED" ||
+            client.connectionState === "CONNECTING"
+          ) {
+            if (track) {
+              await client.unpublish(track);
+            }
+            await client.leave();
+          }
+        } catch (agoraError) {
+          console.warn("Agora cleanup error:", agoraError);
+        }
+      }
+
+      // Close tracks if available
+      if (track) {
+        track?.close(); // video
+      }
+
+      // End call API - always call this
+      try {
+        let res = await fetchData({
+          url: UPDATED_API_DATA.MOD_END_CALL,
+          reqTitle: REQUESTS_DATA.END_CALL,
+          method: "POST",
+          server: "chat",
+          body: JSON.stringify({ user_id: getUserChat()?.id }),
+        });
+        if (!res.success) {
+          throw new Error(res.message);
+        }
+      } catch (apiError) {
+        console.error("End call API error:", apiError);
+      }
+
+      // Handle RefuseCall if we have the necessary data
+      if (activeChat?.id && MessageActiveCall) {
+        try {
+          if (duration && users.length > 0) {
+            await RefuseCall(activeChat.id, MessageActiveCall, duration);
+          } else {
+            await RefuseCall(
+              activeChat.id,
+              MessageActiveCall,
+              minutes * 60 + seconds
+            );
+          }
+        } catch (refuseError) {
+          console.error("RefuseCall error:", refuseError);
+        }
+      }
+
+      // Always unmount component
+      endCallInStore(MessageActiveCall);
+    } catch (error) {
+      console.error("Error ending call:", error);
+      // Still try to unmount
+      endCallInStore(MessageActiveCall);
+    }
+  };
+  const {
+    activeChat,
+    MessageActiveCall,
+    endCall: endCallInStore,
+  } = useAppStore();
+  let userData = getUserChat();
+
+  AgoraRTC.setLogLevel(4);
 
   const { seconds, minutes, hours, days, isRunning, start, pause, reset } =
     useStopwatch({ autoStart: false });
-  console.log("props in webview video call", seconds, minutes);
+
   const [callStatus, setCallStatus] = useState(null);
 
   const [isPublished, setIsPublished] = useState(false);
   const [users, setUsers] = useState([]);
   const [displayMethod, setDisplayMethod] = useState(false);
-  const client = useClient(config);
+  const client = useClient();
   // ready is a state variable, which returns true when the local tracks are initialized, untill then tracks variable is null
-  const { ready, tracks, error } = useMicrophoneAndCameraTracks();
+  const { ready, track, error } = useMicrophoneTrack();
 
   useEffect(() => {
     // function to initialise the SDK
     let init = async (name) => {
-      console.log("Initializing AgoraRTC client with video call");
       client.on("user-joined", async (user) => {
         start();
         setUsers((prevUsers) => {
@@ -132,43 +191,37 @@ function WebViewVideoCall(props) {
 
       await client.join(appId, name.toString(), token, parseInt(userData.id));
 
-      if (tracks) {
-        const currentVideoState = trackStateRef.current.video;
+      if (track) {
         const currentAudioState = trackStateRef.current.audio;
         // تطبيق الحالة (Mute/Unmute) على التراكات المحلية
-        await tracks[0].setEnabled(currentAudioState);
-        await tracks[1].setEnabled(currentVideoState);
+        await track.setEnabled(currentAudioState);
 
         // النشر فقط إذا كانت الحالة مفعلة
-        await client.publish([tracks[0], tracks[1]]);
+        await client.publish(track);
         setIsPublished(true);
       }
     };
-    console.log("tracks in video call", tracks);
-    if (ready && tracks) {
-      init(props.data.channel_id);
+
+    if (ready && track) {
+      init(activeChat?.id);
     }
-  }, [client, ready, tracks, error]);
-  const userEndCall = async (bool) => {
+  }, [client, ready, track, error]);
+  const userEndCall = async (bool?) => {
     await client.leave();
     client.removeAllListeners();
     // we close the tracks to perform cleanup
-    if (tracks) {
-      tracks[0]?.close();
-      tracks[1].close();
+    if (track) {
+      track?.close();
+
+      track?.stop();
     }
     //   RefuseCall(activeChat.id,MessageActiveCall)
-
     pause();
     let duration = minutes * 60 + seconds;
-    if (!bool) {
-      props.onDecline(duration > 3 && users.length > 0 && duration);
-    } else {
-      window.location.href = "/endCall";
-    }
+    endCall(duration > 3 && users.length > 0 && duration);
     //   dispatch({type:"END-CALL"})
   };
-  const [trackState, setTrackState] = useState({ video: true, audio: true });
+  const [trackState, setTrackState] = useState({ audio: true });
   const trackStateRef = useRef(trackState);
 
   // 2. تحديث المرجع كلما تغيرت الـ State
@@ -176,55 +229,52 @@ function WebViewVideoCall(props) {
     trackStateRef.current = trackState;
   }, [trackState]);
   const mute = async (type) => {
+    console.log("mute called for ", type);
     if (type === "audio") {
       const newState = !trackState.audio;
-      if (tracks && tracks[0]) {
-        await tracks[0].setEnabled(newState);
+      if (track) {
+        await track?.setEnabled(newState);
         setTrackState((ps) => ({ ...ps, audio: newState }));
-      }
-    } else if (type === "video") {
-      const newState = !trackState.video;
-      if (tracks && tracks[1]) {
-        await tracks[1].setEnabled(newState);
-        setTrackState((ps) => ({ ...ps, video: newState }));
       }
     }
   };
 
   useEffect(() => {
     if (seconds === 60 && users.length === 0) {
-      props.onDecline(-1);
       userEndCall(true);
     }
     if (minutes === 30) {
       userEndCall();
     }
   }, [minutes, seconds]);
+
   return (
     <>
       {
-        <div className="video-call webview">
+        <div className="video-call">
           {minutes >= 25 && (
             <div className="call-warn">Call End in {30 - minutes}</div>
           )}
           {
             <>
-              {props.active ? (
+              {userData?.photo_path ? (
                 <div
                   className="hgg"
                   style={{
-                    backgroundImage: `url(${props.active})`,
+                    backgroundImage: `url(${GetImageUrl(
+                      userData?.photo_path
+                    )})`,
                     left: 0,
                     right: 0,
                     margin: "0 auto",
                   }}
                 ></div>
-              ) : props.name ? (
+              ) : userData?.name ? (
                 <div
                   className="hgg text-avatar"
                   style={{ left: 0, right: 0, margin: "0 auto" }}
                 >
-                  {getTwoLetters("User")}
+                  {getTwoLetters(userData?.name || "User")}
                 </div>
               ) : (
                 <div
@@ -239,51 +289,14 @@ function WebViewVideoCall(props) {
               )}
             </>
           }
-          {/* {cameras.length > 0 && tracks && ready && tracks[1] && (
-            <div
-              className="switch-camera"
-              onClick={() => {
-                switchCamera();
-              }}
-            >
-              <SwitchCameraIcon />
-            </div>
-          )} */}
+
           <span className="caller-name">
-            {props.userData.name || props.userData.phone}
+            {userData?.name || userData?.phone}
           </span>
 
-          {users.length > 0 &&
-            users.map((user) => {
-              if (user.videoTrack && user.hasVideo) {
-                return (
-                  <AgoraVideoPlayer
-                    onClick={() => {
-                      if (displayMethod) setDisplayMethod(!displayMethod);
-                    }}
-                    className={displayMethod ? "add-caller-icon" : "my-screen"}
-                    id="remote-stream"
-                    style={
-                      !displayMethod
-                        ? {
-                            height: "100%",
-                            width: "100%",
-                            position: "fixed",
-                            objectFit: "contain",
-                          }
-                        : { position: "fixed", objectFit: "contain" }
-                    }
-                    videoTrack={user.videoTrack}
-                    key={user.uid}
-                  />
-                );
-              } else return <></>;
-            })}
           <div
-            style={tracks && tracks[1] && { zIndex: 3 }}
-            className={
-              "end-icon " + `${props.data.loading && "disabled-label"}`
-            }
+            style={track && { zIndex: 3 }}
+            className={"end-icon " + `${loading && "disabled-label"}`}
             onClick={() => {
               userEndCall();
             }}
@@ -302,23 +315,7 @@ function WebViewVideoCall(props) {
           >
             <LeftArrowIcon></LeftArrowIcon>
           </div>
-          <div
-            style={{ cursor: "pointer", position: "fixed" }}
-            onClick={() => {
-              if (!displayMethod) setDisplayMethod(!displayMethod);
-            }}
-            className={!displayMethod ? "add-caller-icon" : "my-screen"}
-          >
-            {tracks &&
-              tracks.length > 1 &&
-              tracks[1] &&
-              tracks?.[1].enabled && (
-                <AgoraVideoPlayer
-                  className="local-video-stream"
-                  videoTrack={tracks[1]}
-                />
-              )}
-          </div>
+
           {isPublished ? (
             <div
               className={"toggle-mic " + (trackState.audio && "active-mic-svg")}
@@ -329,19 +326,10 @@ function WebViewVideoCall(props) {
           ) : (
             <span />
           )}
-          {isPublished ? (
-            <div
-              className={"toggle-vid " + (trackState.video && "active-mic-svg")}
-              onClick={() => mute("video")}
-            >
-              <VideoIcon></VideoIcon>
-            </div>
-          ) : (
-            <span />
-          )}
-          {ready && !users?.[0]?.hasVideo && (
+          {<span />}
+          {ready && (
             <div className="call-status">
-              {users.length > 0 && !users[0].hasVideo ? (
+              {users.length > 0 ? (
                 <>
                   <CallingIcon></CallingIcon>
                   <span>
@@ -375,4 +363,4 @@ function WebViewVideoCall(props) {
   );
 }
 
-export default WebViewVideoCall;
+export default ChatVoiceCall;

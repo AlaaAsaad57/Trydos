@@ -75,7 +75,7 @@ const VoiceCall = ({ token, audio = false, name = "", user_id, active }) => {
 
   const client = useClient();
   const { ready, track, error: tracksError } = useMicrophoneTrack();
-
+  const [isPublished, setIsPublished] = useState(false);
   const { seconds, minutes, start, pause, reset } = useStopwatch({
     autoStart: true,
   });
@@ -83,10 +83,6 @@ const VoiceCall = ({ token, audio = false, name = "", user_id, active }) => {
   const [remoteUsers, setRemoteUsers] = useState([]);
   const [isCallActive, setIsCallActive] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
-  const isMutedRef = useRef(isMuted);
-  useEffect(() => {
-    isMutedRef.current = isMuted;
-  }, [isMuted]);
   const [isEndingCall, setIsEndingCall] = useState(false);
   const [callError, setCallError] = useState(null);
 
@@ -156,42 +152,57 @@ const VoiceCall = ({ token, audio = false, name = "", user_id, active }) => {
     if (isInitialized.current) return;
 
     isInitialized.current = true;
-    storeClient(client);
-    const initCall = async () => {
-      try {
-        const handleUserJoined = () => {
-          setIsCallActive(true);
-          reset();
-          start();
-        };
+    const init = async () => {
+      storeClient(client);
 
-        const handleUserPublished = async (user, mediaType) => {
-          if (mediaType === "audio") {
-            await client.subscribe(user, mediaType);
-            user.audioTrack?.play();
-            setRemoteUsers((prev) => [...prev, user]);
+      const handleUserJoined = () => {
+        setIsCallActive(true);
+        reset();
+        start();
+      };
+
+      const handleUserPublished = async (user, mediaType) => {
+        if (mediaType === "audio") {
+          await client.subscribe(user, mediaType);
+          const devices = await AgoraRTC.getPlaybackDevices();
+
+          // Log devices to your console so you can see exactly what the browser sees
+          console.log("Available output devices:", devices);
+
+          const earpiece = devices.find((d) =>
+            /earpiece|receiver|handset/i.test(d.label)
+          );
+
+          if (earpiece && user.audioTrack.setPlaybackDevice) {
+            await user.audioTrack.setPlaybackDevice(earpiece.deviceId);
+          } else {
+            // If we are on mobile, we often can't switch, so we just play.
+            console.log(
+              "No earpiece detected via Web API. Playing on default device."
+            );
           }
-        };
+          user.audioTrack?.play();
+          setRemoteUsers((prev) => [...prev, user]);
+        }
+      };
 
-        const handleUserLeft = () => {
-          setRemoteUsers([]);
-          setTimeout(() => endCallInStore(MessageActiveCall), 800);
-        };
+      const handleUserLeft = () => {
+        setRemoteUsers([]);
+        setTimeout(() => endCallInStore(MessageActiveCall), 800);
+      };
 
-        client.removeAllListeners();
-        client.on("user-joined", handleUserJoined);
-        client.on("user-published", handleUserPublished);
-        client.on("user-left", handleUserLeft);
+      client.removeAllListeners();
+      client.on("user-joined", handleUserJoined);
+      client.on("user-published", handleUserPublished);
+      client.on("user-left", handleUserLeft);
 
-        const userId = getUserChat()?.id;
-        await client.join(APP_ID, activeChat.id.toString(), token, userId);
-        await track.setEnabled(isMutedRef.current);
-        await client.publish(track);
-      } catch (error) {
-        setCallError("Failed to connect");
-      }
+      const userId = getUserChat()?.id;
+      client
+        .join(APP_ID, activeChat.id.toString(), token, userId)
+        .then(() => client.publish(track).then(() => setIsPublished(true)))
+        .catch(() => setCallError("Failed to connect"));
     };
-    initCall();
+    init();
   }, [ready, track, activeChat?.id, token]);
 
   useEffect(() => {
@@ -264,17 +275,20 @@ const VoiceCall = ({ token, audio = false, name = "", user_id, active }) => {
           </button>
 
           <div className="flex-row justify-between px-[30px] w-full absolute bottom-[100px] z-50">
-            <button
-              type="button"
-              className={`static toggle-mic ${
-                !isMuted ? "active-mic-svg" : ""
-              }`}
-              onClick={toggleMute}
-              disabled={!ready || !track}
-            >
-              <MicIcon />
-            </button>
-
+            {isPublished ? (
+              <button
+                type="button"
+                className={`static toggle-mic ${
+                  !isMuted ? "active-mic-svg" : ""
+                }`}
+                onClick={toggleMute}
+                disabled={!ready || !track}
+              >
+                <MicIcon />
+              </button>
+            ) : (
+              <span></span>
+            )}
             <button
               type="button"
               className="static end-icon m-0"

@@ -221,7 +221,7 @@ const VideoCall = ({ token, audio = false, name = "", user_id, active }) => {
     });
   };
   const { ready, tracks, error: tracksError } = useMicrophoneAndCameraTracks();
-
+  const [isPublished, setIsPublished] = useState(false);
   // Timer hook
   const { seconds, minutes, start, pause, reset } = useStopwatch({
     autoStart: true,
@@ -232,8 +232,6 @@ const VideoCall = ({ token, audio = false, name = "", user_id, active }) => {
   const [isJoined, setIsJoined] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [isCameraOff, setIsCameraOff] = useState(false);
-  const isCameraMutedRef = useRef(isCameraOff);
-  const isVoiceMutedRef = useRef(isMuted);
   const [callError, setCallError] = useState<string | null>(null);
   const [isCallActive, setIsCallActive] = useState(false);
   const [isEndingCall, setIsEndingCall] = useState(false);
@@ -268,7 +266,6 @@ const VideoCall = ({ token, audio = false, name = "", user_id, active }) => {
       if (client) {
         try {
           client.removeAllListeners();
-
           // Check if client is connected before trying to leave
           if (
             client.connectionState === "CONNECTED" ||
@@ -445,6 +442,23 @@ const VideoCall = ({ token, audio = false, name = "", user_id, active }) => {
             });
 
             if (mediaType === "audio") {
+              const devices = await AgoraRTC.getPlaybackDevices();
+
+              // Log devices to your console so you can see exactly what the browser sees
+              console.log("Available output devices:", devices);
+
+              const earpiece = devices.find((d) =>
+                /earpiece|receiver|handset/i.test(d.label)
+              );
+
+              if (earpiece && user.audioTrack.setPlaybackDevice) {
+                await user.audioTrack.setPlaybackDevice(earpiece.deviceId);
+              } else {
+                // If we are on mobile, we often can't switch, so we just play.
+                console.log(
+                  "No earpiece detected via Web API. Playing on default device."
+                );
+              }
               user.audioTrack?.play();
             } else if (mediaType === "video") {
               // Video will be rendered in VideoPlayer component
@@ -512,9 +526,9 @@ const VideoCall = ({ token, audio = false, name = "", user_id, active }) => {
 
         if (mounted) {
           setIsJoined(true);
-          await tracks[0]?.setEnabled(isVoiceMutedRef.current);
-          await tracks[1]?.setEnabled(isCameraMutedRef.current);
+          // Publish both audio and video tracks
           await client.publish(tracks);
+          setIsPublished(true);
         }
       } catch (error) {
         console.error("Error initializing call:", error);
@@ -549,12 +563,7 @@ const VideoCall = ({ token, audio = false, name = "", user_id, active }) => {
       setCallError("Camera/Microphone access denied");
     }
   }, [tracksError]);
-  useEffect(() => {
-    isCameraMutedRef.current = isCameraOff;
-  }, [isCameraOff]);
-  useEffect(() => {
-    isVoiceMutedRef.current = isMuted;
-  }, [isMuted]);
+
   // Set up call timeout (60 seconds)
   useEffect(() => {
     if (call === "vid-outgoing" && remoteUsers.length === 0) {
@@ -654,7 +663,7 @@ const VideoCall = ({ token, audio = false, name = "", user_id, active }) => {
             )}
           </>
         )}
-        {ready && !isEndingCall && !remoteVideoUser?.hasVideo && (
+        {ready && !isEndingCall && (
           <TimerDisplay
             minutes={minutes}
             seconds={seconds}
@@ -663,9 +672,7 @@ const VideoCall = ({ token, audio = false, name = "", user_id, active }) => {
           />
         )}
         {/* Local video preview (100px x 100px on top right) */}
-        {tracks?.[1].enabled && !isCameraOff && (
-          <LocalVideo track={tracks[1]} />
-        )}
+        {tracks?.[1] && !isCameraOff && <LocalVideo track={tracks[1]} />}
       </div>
 
       {/* Control buttons */}
@@ -685,17 +692,21 @@ const VideoCall = ({ token, audio = false, name = "", user_id, active }) => {
           </>
           <div className="flex-row justify-between px-[30px] w-full absolute bottom-[100px] z-50">
             <>
-              <button
-                type="button"
-                className={`static toggle-mic ${
-                  !isMuted ? "active-mic-svg" : ""
-                }`}
-                onClick={toggleMute}
-                disabled={!ready || !tracks}
-                aria-label={isMuted ? "Unmute microphone" : "Mute microphone"}
-              >
-                <MicIcon />
-              </button>
+              {isPublished ? (
+                <button
+                  type="button"
+                  className={`static toggle-mic ${
+                    !isMuted ? "active-mic-svg" : ""
+                  }`}
+                  onClick={toggleMute}
+                  disabled={!ready || !tracks}
+                  aria-label={isMuted ? "Unmute microphone" : "Mute microphone"}
+                >
+                  <MicIcon />
+                </button>
+              ) : (
+                <span></span>
+              )}
               <button
                 type="button"
                 className="static end-icon m-0"
@@ -709,16 +720,20 @@ const VideoCall = ({ token, audio = false, name = "", user_id, active }) => {
 
               {/* Microphone toggle */}
 
-              <button
-                className={
-                  "static toggle-vid " + (!isCameraOff && "active-mic-svg")
-                }
-                onClick={toggleCamera}
-                disabled={!ready || !tracks}
-                aria-label={isCameraOff ? "Unmute Camera" : "Mute Camera"}
-              >
-                <VideoIcon />
-              </button>
+              {isPublished ? (
+                <button
+                  className={
+                    "static toggle-vid " + (!isCameraOff && "active-mic-svg")
+                  }
+                  onClick={toggleCamera}
+                  disabled={!ready || !tracks}
+                  aria-label={isCameraOff ? "Unmute Camera" : "Mute Camera"}
+                >
+                  <VideoIcon />
+                </button>
+              ) : (
+                <span></span>
+              )}
             </>
           </div>
         </>
