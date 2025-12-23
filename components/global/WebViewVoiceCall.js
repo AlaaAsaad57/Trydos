@@ -1,9 +1,12 @@
 // webview voice call component
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import EndCallIcon from "../Chat/svg/endCall";
 import MicIcon from "../Chat/svg/micIcon";
 import CallingIcon from "../Chat/svg/calling";
-import { createClient, createMicrophoneAudioTrack } from "agora-rtc-react";
+import AgoraRTC, {
+  createClient,
+  createMicrophoneAudioTrack,
+} from "agora-rtc-react";
 import { useStopwatch } from "react-timer-hook";
 
 const config = {
@@ -23,10 +26,6 @@ function WebViewVoiceCall(props) {
     useStopwatch({ autoStart: false });
   const [callStatus, setCallStatus] = useState(null);
 
-  useEffect(() => {
-    start();
-  }, []);
-
   const [users, setUsers] = useState([]);
   const [startIndicator, setStart] = useState(false);
   const client = useClient(config);
@@ -37,7 +36,6 @@ function WebViewVoiceCall(props) {
   useEffect(() => {
     let init = async (name) => {
       client.on("user-joined", (user) => {
-        reset();
         start();
         setUsers((prev) => [...prev, user]);
         if (window?.flutter_inappwebview)
@@ -57,24 +55,25 @@ function WebViewVoiceCall(props) {
         });
 
         if (mediaType === "audio") {
-          try {
-            const devices = await AgoraRTC.getPlaybackDevices();
+          const devices = await AgoraRTC.getPlaybackDevices();
 
-            // Log devices to your console so you can see exactly what the browser sees
-            console.log("Available output devices:", devices);
+          // Log devices to your console so you can see exactly what the browser sees
+          console.log("Available output devices:", devices);
 
-            const earpiece = devices.find((d) =>
-              /earpiece|receiver|handset/i.test(d.label)
+          const earpiece = devices.find((d) =>
+            /earpiece|receiver|handset/i.test(d.label)
+          );
+
+          if (earpiece && user.audioTrack.setPlaybackDevice) {
+            await user.audioTrack.setPlaybackDevice(earpiece.deviceId);
+          } else {
+            // If we are on mobile, we often can't switch, so we just play.
+            console.log(
+              "No earpiece detected via Web API. Playing on default device."
             );
+          }
 
-            if (earpiece && user.audioTrack.setPlaybackDevice) {
-              await user.audioTrack.setPlaybackDevice(earpiece.deviceId);
-            } else {
-              // If we are on mobile, we often can't switch, so we just play.
-              console.log(
-                "No earpiece detected via Web API. Playing on default device."
-              );
-            }
+          try {
             user.audioTrack?.play();
           } catch (e) {}
         }
@@ -104,8 +103,10 @@ function WebViewVoiceCall(props) {
         token,
         parseInt(props.data.sender_user_id)
       );
-
-      if (track && trackState.audio) await client.publish(track);
+      if (track) {
+        await track.setEnabled(trackStateRef.current.audio);
+        await client.publish(track);
+      }
       setStart(true);
     };
 
@@ -130,16 +131,16 @@ function WebViewVoiceCall(props) {
   };
 
   const [trackState, setTrackState] = useState({ audio: true });
+  const trackStateRef = useRef(trackState);
 
+  // 2. تحديث المرجع كلما تغيرت الـ State
+  useEffect(() => {
+    trackStateRef.current = trackState;
+  }, [trackState]);
   const mute = async () => {
     const newState = !trackState.audio;
     await track?.setEnabled(newState);
     setTrackState((s) => ({ ...s, audio: newState }));
-    if (newState && client && track) {
-      try {
-        await client.publish(track);
-      } catch (e) {}
-    }
   };
 
   useEffect(() => {
@@ -156,7 +157,38 @@ function WebViewVoiceCall(props) {
         {minutes >= 25 && (
           <div className="call-warn">Call End in {30 - minutes}</div>
         )}
-
+        {
+          <>
+            {props.active ? (
+              <div
+                className="hgg"
+                style={{
+                  backgroundImage: `url(${props.active})`,
+                  left: 0,
+                  right: 0,
+                  margin: "0 auto",
+                }}
+              ></div>
+            ) : props.name ? (
+              <div
+                className="hgg text-avatar"
+                style={{ left: 0, right: 0, margin: "0 auto" }}
+              >
+                {getTwoLetters("User")}
+              </div>
+            ) : (
+              <div
+                className="hgg"
+                style={{
+                  backgroundImage: `url(${"/images/profileNo.png"})`,
+                  left: 0,
+                  right: 0,
+                  margin: "0 auto",
+                }}
+              ></div>
+            )}
+          </>
+        }
         <span className="caller-name">
           {props.userData.name || props.userData.phone}
         </span>

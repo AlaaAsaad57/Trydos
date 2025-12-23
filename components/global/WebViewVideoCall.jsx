@@ -1,5 +1,5 @@
 // webview video call component
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import EndCallIcon from "../Chat/svg/endCall";
 import MicIcon from "../Chat/svg/micIcon";
 import VideoIcon from "../Chat/svg/vidIcon";
@@ -15,15 +15,15 @@ const config = {
   mode: "rtc",
   codec: "h264",
 };
-AgoraRTC.setLogLevel(4);
 
 const useClient = createClient(config);
 const useMicrophoneAndCameraTracks = createMicrophoneAndCameraTracks();
 
 const appId = "0af959943ff542df8f2cb1b925ec0cc4";
 function WebViewVideoCall(props) {
+  AgoraRTC.setLogLevel(4);
   const [loading, setLoading] = useState(false);
-  const [cameraSelected, setCamera] = useState("user");
+
   // const switchCamera = async () => {
   //   await tracks[1].stop()
   //   await tracks[1].close()
@@ -50,6 +50,7 @@ function WebViewVideoCall(props) {
 
   const { seconds, minutes, hours, days, isRunning, start, pause, reset } =
     useStopwatch({ autoStart: false });
+  console.log("props in webview video call", seconds, minutes);
   const [callStatus, setCallStatus] = useState(null);
   useEffect(() => {}, []);
   const [users, setUsers] = useState([]);
@@ -57,14 +58,12 @@ function WebViewVideoCall(props) {
   const client = useClient(config);
   // ready is a state variable, which returns true when the local tracks are initialized, untill then tracks variable is null
   const { ready, tracks, error } = useMicrophoneAndCameraTracks();
-  useEffect(() => {
-    start();
-  }, []);
+
   useEffect(() => {
     // function to initialise the SDK
     let init = async (name) => {
+      console.log("Initializing AgoraRTC client with video call");
       client.on("user-joined", async (user) => {
-        reset();
         start();
         setUsers((prevUsers) => {
           return [...prevUsers, user];
@@ -86,24 +85,25 @@ function WebViewVideoCall(props) {
         });
 
         if (mediaType === "audio") {
-          try {
-            const devices = await AgoraRTC.getPlaybackDevices();
+          const devices = await AgoraRTC.getPlaybackDevices();
 
-            // Log devices to your console so you can see exactly what the browser sees
-            console.log("Available output devices:", devices);
+          // Log devices to your console so you can see exactly what the browser sees
+          console.log("Available output devices:", devices);
 
-            const earpiece = devices.find((d) =>
-              /earpiece|receiver|handset/i.test(d.label)
+          const earpiece = devices.find((d) =>
+            /earpiece|receiver|handset/i.test(d.label)
+          );
+
+          if (earpiece && user.audioTrack.setPlaybackDevice) {
+            await user.audioTrack.setPlaybackDevice(earpiece.deviceId);
+          } else {
+            // If we are on mobile, we often can't switch, so we just play.
+            console.log(
+              "No earpiece detected via Web API. Playing on default device."
             );
+          }
 
-            if (earpiece && user.audioTrack.setPlaybackDevice) {
-              await user.audioTrack.setPlaybackDevice(earpiece.deviceId);
-            } else {
-              // If we are on mobile, we often can't switch, so we just play.
-              console.log(
-                "No earpiece detected via Web API. Playing on default device."
-              );
-            }
+          try {
             user.audioTrack?.play();
           } catch (e) {}
         }
@@ -150,14 +150,19 @@ function WebViewVideoCall(props) {
         token,
         parseInt(props.data.sender_user_id)
       );
+      console.log("user join", tracks);
       if (tracks) {
-        const publishArr = [];
-        if (tracks[0] && trackState.audio) publishArr.push(tracks[0]);
-        if (tracks[1] && trackState.video) publishArr.push(tracks[1]);
-        if (publishArr.length) await client.publish(publishArr);
+        const currentVideoState = trackStateRef.current.video;
+        const currentAudioState = trackStateRef.current.audio;
+        // تطبيق الحالة (Mute/Unmute) على التراكات المحلية
+        await tracks[0].setEnabled(currentAudioState);
+        await tracks[1].setEnabled(currentVideoState);
+
+        // النشر فقط إذا كانت الحالة مفعلة
+        await client.publish([tracks[0], tracks[1]]);
       }
     };
-
+    console.log("tracks in video call", tracks);
     if (ready && tracks) {
       init(props.data.channel_id);
     }
@@ -182,35 +187,24 @@ function WebViewVideoCall(props) {
     //   dispatch({type:"END-CALL"})
   };
   const [trackState, setTrackState] = useState({ video: true, audio: true });
+  const trackStateRef = useRef(trackState);
+
+  // 2. تحديث المرجع كلما تغيرت الـ State
+  useEffect(() => {
+    trackStateRef.current = trackState;
+  }, [trackState]);
   const mute = async (type) => {
     if (type === "audio") {
       const newState = !trackState.audio;
-      await tracks[0]?.setEnabled(newState);
-      setTrackState((ps) => ({ ...ps, audio: newState }));
-      // If we re-enable, ensure the track is published so joining users can subscribe
-      if (newState && client && tracks[0]) {
-        try {
-          await client.publish(tracks[0]);
-        } catch (e) {
-          // ignore if already published
-        }
-      } else if (!newState && client && tracks[0]) {
-        try {
-          await client.unpublish(tracks[0]);
-        } catch (e) {}
+      if (tracks && tracks[0]) {
+        await tracks[0].setEnabled(newState);
+        setTrackState((ps) => ({ ...ps, audio: newState }));
       }
     } else if (type === "video") {
       const newState = !trackState.video;
-      await tracks[1]?.setEnabled(newState);
-      setTrackState((ps) => ({ ...ps, video: newState }));
-      if (newState && client && tracks[1]) {
-        try {
-          await client.publish(tracks[1]);
-        } catch (e) {}
-      } else if (!newState && client && tracks[1]) {
-        try {
-          await client.unpublish(tracks[1]);
-        } catch (e) {}
+      if (tracks && tracks[1]) {
+        await tracks[1].setEnabled(newState);
+        setTrackState((ps) => ({ ...ps, video: newState }));
       }
     }
   };
@@ -279,7 +273,7 @@ function WebViewVideoCall(props) {
 
           {users.length > 0 &&
             users.map((user) => {
-              if (user.videoTrack) {
+              if (user.videoTrack && user.hasVideo) {
                 return (
                   <AgoraVideoPlayer
                     onClick={() => {
@@ -333,12 +327,15 @@ function WebViewVideoCall(props) {
             }}
             className={!displayMethod ? "add-caller-icon" : "my-screen"}
           >
-            {tracks && tracks.length > 1 && tracks[1] && (
-              <AgoraVideoPlayer
-                className="local-video-stream"
-                videoTrack={tracks[1]}
-              />
-            )}
+            {tracks &&
+              tracks.length > 1 &&
+              tracks[1] &&
+              tracks?.[1].enabled && (
+                <AgoraVideoPlayer
+                  className="local-video-stream"
+                  videoTrack={tracks[1]}
+                />
+              )}
           </div>
           <div
             className={"toggle-mic " + (trackState.audio && "active-mic-svg")}
@@ -352,9 +349,9 @@ function WebViewVideoCall(props) {
           >
             <VideoIcon></VideoIcon>
           </div>
-          {ready && (
+          {ready && !users?.[0]?.hasVideo && (
             <div className="call-status">
-              {users.length > 0 ? (
+              {users.length > 0 && !users[0].hasVideo ? (
                 <>
                   <CallingIcon></CallingIcon>
                   <span>

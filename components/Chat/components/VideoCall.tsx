@@ -232,6 +232,8 @@ const VideoCall = ({ token, audio = false, name = "", user_id, active }) => {
   const [isJoined, setIsJoined] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [isCameraOff, setIsCameraOff] = useState(false);
+  const isCameraMutedRef = useRef(isCameraOff);
+  const isVoiceMutedRef = useRef(isMuted);
   const [callError, setCallError] = useState<string | null>(null);
   const [isCallActive, setIsCallActive] = useState(false);
   const [isEndingCall, setIsEndingCall] = useState(false);
@@ -344,20 +346,10 @@ const VideoCall = ({ token, audio = false, name = "", user_id, active }) => {
     if (!tracks?.[0] || !client) return;
 
     try {
-      const newIsMuted = !isMuted;
-      const enabled = !newIsMuted; // enabled when not muted
-      await tracks[0].setEnabled(enabled);
-      setIsMuted(newIsMuted);
-
-      if (enabled) {
-        try {
-          await client.publish(tracks[0]);
-        } catch (e) {}
-      } else {
-        try {
-          await client.unpublish(tracks[0]);
-        } catch (e) {}
-      }
+      const newState = !isMuted;
+      await tracks[0].setEnabled(newState);
+      setIsMuted(newState);
+      // Ensure other users get a user-published event if they joined while muted
     } catch (error) {
       console.error("Error toggling mute:", error);
     }
@@ -368,20 +360,9 @@ const VideoCall = ({ token, audio = false, name = "", user_id, active }) => {
     if (!tracks?.[1] || !client) return;
 
     try {
-      const newIsCameraOff = !isCameraOff;
-      const enabled = !newIsCameraOff; // enabled when camera is not off
-      await tracks[1].setEnabled(enabled);
-      setIsCameraOff(newIsCameraOff);
-
-      if (enabled) {
-        try {
-          await client.publish(tracks[1]);
-        } catch (e) {}
-      } else {
-        try {
-          await client.unpublish(tracks[1]);
-        } catch (e) {}
-      }
+      const newState = !isCameraOff;
+      await tracks[1].setEnabled(newState);
+      setIsCameraOff(newState);
     } catch (error) {
       console.error("Error toggling camera:", error);
     }
@@ -464,23 +445,6 @@ const VideoCall = ({ token, audio = false, name = "", user_id, active }) => {
             });
 
             if (mediaType === "audio") {
-              const devices = await AgoraRTC.getPlaybackDevices();
-
-              // Log devices to your console so you can see exactly what the browser sees
-              console.log("Available output devices:", devices);
-
-              const earpiece = devices.find((d) =>
-                /earpiece|receiver|handset/i.test(d.label)
-              );
-
-              if (earpiece && user.audioTrack.setPlaybackDevice) {
-                await user.audioTrack.setPlaybackDevice(earpiece.deviceId);
-              } else {
-                // If we are on mobile, we often can't switch, so we just play.
-                console.log(
-                  "No earpiece detected via Web API. Playing on default device."
-                );
-              }
               user.audioTrack?.play();
             } else if (mediaType === "video") {
               // Video will be rendered in VideoPlayer component
@@ -548,11 +512,9 @@ const VideoCall = ({ token, audio = false, name = "", user_id, active }) => {
 
         if (mounted) {
           setIsJoined(true);
-          // Publish only enabled tracks (respect current mute/camera state)
-          const publishArr = [] as any[];
-          if (tracks?.[0] && !isMuted) publishArr.push(tracks[0]);
-          if (tracks?.[1] && !isCameraOff) publishArr.push(tracks[1]);
-          if (publishArr.length) await client.publish(publishArr);
+          await tracks[0]?.setEnabled(isVoiceMutedRef.current);
+          await tracks[1]?.setEnabled(isCameraMutedRef.current);
+          await client.publish(tracks);
         }
       } catch (error) {
         console.error("Error initializing call:", error);
@@ -587,7 +549,12 @@ const VideoCall = ({ token, audio = false, name = "", user_id, active }) => {
       setCallError("Camera/Microphone access denied");
     }
   }, [tracksError]);
-
+  useEffect(() => {
+    isCameraMutedRef.current = isCameraOff;
+  }, [isCameraOff]);
+  useEffect(() => {
+    isVoiceMutedRef.current = isMuted;
+  }, [isMuted]);
   // Set up call timeout (60 seconds)
   useEffect(() => {
     if (call === "vid-outgoing" && remoteUsers.length === 0) {
@@ -687,7 +654,7 @@ const VideoCall = ({ token, audio = false, name = "", user_id, active }) => {
             )}
           </>
         )}
-        {ready && !isEndingCall && (
+        {ready && !isEndingCall && !remoteVideoUser.hasVideo && (
           <TimerDisplay
             minutes={minutes}
             seconds={seconds}
@@ -696,7 +663,9 @@ const VideoCall = ({ token, audio = false, name = "", user_id, active }) => {
           />
         )}
         {/* Local video preview (100px x 100px on top right) */}
-        {tracks?.[1] && !isCameraOff && <LocalVideo track={tracks[1]} />}
+        {tracks?.[1].enabled && !isCameraOff && (
+          <LocalVideo track={tracks[1]} />
+        )}
       </div>
 
       {/* Control buttons */}

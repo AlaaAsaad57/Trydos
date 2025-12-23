@@ -83,6 +83,10 @@ const VoiceCall = ({ token, audio = false, name = "", user_id, active }) => {
   const [remoteUsers, setRemoteUsers] = useState([]);
   const [isCallActive, setIsCallActive] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
+  const isMutedRef = useRef(isMuted);
+  useEffect(() => {
+    isMutedRef.current = isMuted;
+  }, [isMuted]);
   const [isEndingCall, setIsEndingCall] = useState(false);
   const [callError, setCallError] = useState(null);
 
@@ -139,19 +143,9 @@ const VoiceCall = ({ token, audio = false, name = "", user_id, active }) => {
   const toggleMute = useCallback(async () => {
     if (!track || !client) return;
     try {
-      const newIsMuted = !isMuted;
-      const enabled = !newIsMuted;
-      await track.setEnabled(enabled);
-      setIsMuted(newIsMuted);
-      if (enabled) {
-        try {
-          await client.publish(track);
-        } catch (e) {}
-      } else {
-        try {
-          await client.unpublish(track);
-        } catch (e) {}
-      }
+      const newState = !isMuted;
+      await track.setEnabled(newState);
+      setIsMuted(newState);
     } catch (e) {
       console.error("Error toggling mute:", e);
     }
@@ -163,55 +157,41 @@ const VoiceCall = ({ token, audio = false, name = "", user_id, active }) => {
 
     isInitialized.current = true;
     storeClient(client);
+    const initCall = async () => {
+      try {
+        const handleUserJoined = () => {
+          setIsCallActive(true);
+          reset();
+          start();
+        };
 
-    const handleUserJoined = () => {
-      setIsCallActive(true);
-      reset();
-      start();
-    };
+        const handleUserPublished = async (user, mediaType) => {
+          if (mediaType === "audio") {
+            await client.subscribe(user, mediaType);
+            user.audioTrack?.play();
+            setRemoteUsers((prev) => [...prev, user]);
+          }
+        };
 
-    const handleUserPublished = async (user, mediaType) => {
-      if (mediaType === "audio") {
-        await client.subscribe(user, mediaType);
-        const devices = await AgoraRTC.getPlaybackDevices();
+        const handleUserLeft = () => {
+          setRemoteUsers([]);
+          setTimeout(() => endCallInStore(MessageActiveCall), 800);
+        };
 
-        // Log devices to your console so you can see exactly what the browser sees
-        console.log("Available output devices:", devices);
+        client.removeAllListeners();
+        client.on("user-joined", handleUserJoined);
+        client.on("user-published", handleUserPublished);
+        client.on("user-left", handleUserLeft);
 
-        const earpiece = devices.find((d) =>
-          /earpiece|receiver|handset/i.test(d.label)
-        );
-
-        if (earpiece && user.audioTrack.setPlaybackDevice) {
-          await user.audioTrack.setPlaybackDevice(earpiece.deviceId);
-        } else {
-          // If we are on mobile, we often can't switch, so we just play.
-          console.log(
-            "No earpiece detected via Web API. Playing on default device."
-          );
-        }
-        user.audioTrack?.play();
-        setRemoteUsers((prev) => [...prev, user]);
+        const userId = getUserChat()?.id;
+        await client.join(APP_ID, activeChat.id.toString(), token, userId);
+        await track.setEnabled(isMutedRef.current);
+        await client.publish(track);
+      } catch (error) {
+        setCallError("Failed to connect");
       }
     };
-
-    const handleUserLeft = () => {
-      setRemoteUsers([]);
-      setTimeout(() => endCallInStore(MessageActiveCall), 800);
-    };
-
-    client.removeAllListeners();
-    client.on("user-joined", handleUserJoined);
-    client.on("user-published", handleUserPublished);
-    client.on("user-left", handleUserLeft);
-
-    const userId = getUserChat()?.id;
-    client
-      .join(APP_ID, activeChat.id.toString(), token, userId)
-      .then(() => {
-        if (track && !isMuted) return client.publish(track);
-      })
-      .catch(() => setCallError("Failed to connect"));
+    initCall();
   }, [ready, track, activeChat?.id, token]);
 
   useEffect(() => {
