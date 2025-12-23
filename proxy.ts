@@ -441,6 +441,7 @@ export const config = {
         { type: "header", key: "purpose", value: "prefetch" },
         { type: "header", key: "next-router-prefetch" },
         { type: "header", key: "next-action" },
+        { type: "header", key: "next-router-state-tree" },
       ],
     },
   ],
