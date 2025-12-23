@@ -12,7 +12,6 @@ function ProfileCard({
   goToProfilePicture,
   userCookiesData,
 }: ProfileCardPropsType) {
-  console.log("userCookiesData in profile card:", userCookiesData);
   const { userProfile, language } = useAppStore();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const isRtl = language === "ar" || language === "ku";
