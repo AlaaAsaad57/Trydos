@@ -27,7 +27,8 @@ export default async function MainCategoriesNavbar({
       {mainCategories?.map((category, key) => (
         <div className="flex" key={key}>
           <CategoryNavMobile
-            params={{ lang, mainCategory }}
+            params={{ lang }}
+            mainCategory={mainCategory}
             name={category.name}
             active={
               activeCategory === category.slug ||

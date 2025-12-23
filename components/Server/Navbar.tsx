@@ -11,7 +11,6 @@ function NavbarServer({
   categoriesData,
   children,
 }: NavbarServerProps) {
-  const [activeCategory, setActiveCategory] = useState(mainCategory);
   const [loading, setLoading] = useState(false);
   const categories = categoriesData;
   const { enable_search } = useAppStore();

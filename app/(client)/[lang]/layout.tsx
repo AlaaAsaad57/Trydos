@@ -13,6 +13,10 @@ import NotificationsContainer from "components/global/NotificationsContainer";
 import AuthNavContainer from "components/Home/AuthNavContainer";
 import VersionChecker from "components/global/VersionChecker";
 import NavbarClient from "components/Home/NavbarClient";
+import dynamic from "next/dynamic";
+const PageLoadingIndicator = dynamic(
+  () => import("hooks/PageLoadingIndicator")
+);
 export const metadata = {
   title: "TryDos",
   description: "TryDos E-Commerce Website",
@@ -135,6 +139,7 @@ export default async function RootLayout({ params, children }) {
         <PathTracker />
         <SessionChecker />
         <SessionTimer />
+        <PageLoadingIndicator />
       </body>
     </html>
   );

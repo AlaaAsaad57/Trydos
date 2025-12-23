@@ -29,7 +29,10 @@ const useInfiniteScroll = (fetchNextPage) => {
     };
   }, [fetchNextPage]);
 };
-function InfinteScroll({ offsetVariable }: InfinteScrollPropsType) {
+function InfinteScroll({
+  offsetVariable,
+  mainCategory = null,
+}: InfinteScrollPropsType) {
   const [boutiques, setBoutiques] = useState([]);
   const [offset, setOffset] = useState<any>(offsetVariable);
   const [loading, setLoading] = useState(false);
@@ -42,7 +45,7 @@ function InfinteScroll({ offsetVariable }: InfinteScrollPropsType) {
       setLoading(true);
       try {
         let result = await GetNextBoutiques({
-          category: params?.mainCategory ?? null,
+          category: mainCategory,
           language,
           country,
           offset: JSON.stringify(offset),

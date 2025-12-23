@@ -6,4 +6,5 @@ export interface OfferListServerPropsType {
   boutiquesData: any;
 
   children: any;
+  mainCategory?: string;
 }

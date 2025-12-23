@@ -16,11 +16,16 @@ import { FlashProductWrapper } from "components/ServerWrapper/FlashDealsProduct"
 import { FeaturedProductWrapper } from "components/ServerWrapper/FeaturedProduct";
 import { GetHomeMetaData } from "serverRequests/meta/home";
 
-export async function generateMetadata({ params }) {
+export async function generateMetadata({ params, searchParams }) {
   try {
-    let Params = await params;
+    let [Params, query] = await Promise.all([params, searchParams]);
     let [country, language] = Params.lang.split("-");
-    const metadata = await GetHomeMetaData({ language, country });
+    let mainCategory = query?.mainCategory || null;
+    const metadata = await GetHomeMetaData({
+      language,
+      country,
+      category: mainCategory,
+    });
 
     return { ...metadata };
   } catch (error) {
@@ -32,8 +37,10 @@ export async function generateMetadata({ params }) {
   }
 }
 
-async function HomePage({ params }) {
-  let { lang } = await params;
+async function HomePage({ params, searchParams }) {
+  let [Params, query] = await Promise.all([params, searchParams]);
+  let lang = Params.lang;
+  let mainCategory = query?.mainCategory || null;
   const [country, language] = lang.split("-");
   let currency = getCurrency(country, language);
   const isRtl = language === "ar" || language === "ku";
@@ -53,7 +60,7 @@ async function HomePage({ params }) {
             key={`Navbar ${lang}`}
           >
             {/*@ts-expect-error Async Server Component is valid in Next  */}
-            <MainCategoriesNavbar lang={lang} mainCategory={null} />
+            <MainCategoriesNavbar lang={lang} mainCategory={mainCategory} />
           </Suspense>
         </div>
 
@@ -65,19 +72,40 @@ async function HomePage({ params }) {
           />
         </Suspense>
 
-        <Suspense fallback={<FeaturedProductsSkeleton />}>
+        <Suspense
+          fallback={<FeaturedProductsSkeleton />}
+          key={`Featured Products ${lang} ${mainCategory ?? "main"}`}
+        >
           {/*@ts-expect-error Async Server Component is valid in Next  */}
-          <FeaturedProductWrapper currency={currency} lang={lang} />
+          <FeaturedProductWrapper
+            currency={currency}
+            lang={lang}
+            mainCategory={mainCategory}
+          />
         </Suspense>
-        <Suspense fallback={<FeaturedProductsSkeleton />}>
+        <Suspense
+          fallback={<FeaturedProductsSkeleton />}
+          key={`FlashDeals ${lang} ${mainCategory ?? "main"}`}
+        >
           {/*@ts-expect-error Async Server Component is valid in Next  */}
 
-          <FlashProductWrapper currency={currency} lang={lang} />
+          <FlashProductWrapper
+            currency={currency}
+            lang={lang}
+            mainCategory={mainCategory}
+          />
         </Suspense>
         <Home key={`Home ${lang}`} />
-        <Suspense fallback={<OfferListSkeleton />} key={`OfferList ${lang}`}>
+        <Suspense
+          fallback={<OfferListSkeleton />}
+          key={`OfferList ${lang} ${mainCategory ?? "main"}`}
+        >
           {/*@ts-expect-error Async Server Component is valid in Next  */}
-          <BoutiquesListWrapper currency={currency} params={{ lang: lang }} />
+          <BoutiquesListWrapper
+            currency={currency}
+            params={{ lang: lang }}
+            mainCategory={mainCategory}
+          />
         </Suspense>
       </>
     );

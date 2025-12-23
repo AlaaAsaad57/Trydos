@@ -2,14 +2,14 @@ import React from "react";
 import "styles/offers.css";
 import "styles/productDetails.css";
 import InfinteScroll from "components/global/InfinteScroll";
-import OfferListSkeleton from "components/skeleton/OfferList";
+
 import { OfferListServerPropsType } from "models/componentType/OfferListServerPropsType";
 import BoutiqueWrapper from "components/ServerWrapper/BoutiqueWrapper";
 
 function OfferListServer({
   boutiquesData,
   params,
-
+  mainCategory,
   children,
 }: OfferListServerPropsType) {
   const HomeData = boutiquesData;
@@ -26,7 +26,10 @@ function OfferListServer({
           </React.Fragment>
         );
       })}
-      <InfinteScroll offsetVariable={HomeData.searchAfter} />
+      <InfinteScroll
+        mainCategory={mainCategory}
+        offsetVariable={HomeData.searchAfter}
+      />
     </div>
   );
 }

@@ -17,6 +17,7 @@ export interface CategoryNavMobileProps {
   active: boolean;
   params: any;
   outline?: string;
+  mainCategory?: string;
 }
 
 export interface NavbarServerProps {

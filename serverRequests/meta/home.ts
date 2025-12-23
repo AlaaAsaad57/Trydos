@@ -27,7 +27,7 @@ export async function GetHomeMetaData({ language, country, category = null }) {
   let pageTitle = "";
   let pageDesc = "";
   const baseUrl = site_url; // Ensure this is "https://trydos.com"
-  const path = category ? `/categories/${category}` : "";
+  const path = category ? `?mainCategory=${category}` : "";
   const fullUrl = `${baseUrl}/${country}-${lang}${path}`;
   const ogImageUrl = site_og; // Relative path like "/opengraph-image.png"
 

@@ -154,7 +154,7 @@ const NotificationItem = ({ notification, onClose, closeWindow }) => {
 
       case "category created": {
         const slug = parsedDescription.category_slug || parsedDescription.slug;
-        const href = `/${lang}/filters/categories/${slug}`;
+        const href = `/${lang}?mainCategory=${slug}`;
         return (
           <div className="felx" onClick={baseOnClick}>
             <NextLink

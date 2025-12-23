@@ -1,3 +1,4 @@
+// webview video call component
 import { useState, useEffect } from "react";
 import EndCallIcon from "../Chat/svg/endCall";
 import MicIcon from "../Chat/svg/micIcon";
@@ -77,18 +78,35 @@ function WebViewVideoCall(props) {
       client.on("user-published", async (user, mediaType) => {
         await client.subscribe(user, mediaType);
 
-        try {
-          user?.audioTrack?.play();
-        } catch (e) {
-          // alert(e.message)
-        }
+        // Ensure React state updates so the UI re-renders with the new tracks
+        setUsers((prev) => {
+          const exists = prev.find((u) => u.uid === user.uid);
+          if (exists) return prev.map((u) => (u.uid === user.uid ? user : u));
+          return [...prev, user];
+        });
 
-        if (mediaType === "video") {
-          // StartTalking(props.data.authToken, props.data.msgId);
-          // start();
-        }
         if (mediaType === "audio") {
-          user.audioTrack?.play();
+          try {
+            user.audioTrack?.play();
+          } catch (e) {}
+        }
+      });
+
+      client.on("user-unpublished", (user, type) => {
+        if (type === "audio") {
+          user.audioTrack?.stop();
+          setUsers((prev) =>
+            prev.map((u) =>
+              u.uid === user.uid ? { ...u, audioTrack: null } : u
+            )
+          );
+        }
+        if (type === "video") {
+          setUsers((prev) =>
+            prev.map((u) =>
+              u.uid === user.uid ? { ...u, videoTrack: null } : u
+            )
+          );
         }
       });
 
@@ -144,17 +162,26 @@ function WebViewVideoCall(props) {
   const [trackState, setTrackState] = useState({ video: true, audio: true });
   const mute = async (type) => {
     if (type === "audio") {
-      await tracks[0]?.setMuted(false);
-      await tracks[0]?.setEnabled(!trackState.audio);
-      setTrackState((ps) => {
-        return { ...ps, audio: !ps.audio };
-      });
+      const newState = !trackState.audio;
+      await tracks[0]?.setEnabled(newState);
+      setTrackState((ps) => ({ ...ps, audio: newState }));
+      // If we re-enable, ensure the track is published so joining users can subscribe
+      if (newState && client && tracks[0]) {
+        try {
+          await client.publish(tracks[0]);
+        } catch (e) {
+          // ignore if already published
+        }
+      }
     } else if (type === "video") {
-      await tracks[0]?.setMuted(false);
-      await tracks[1].setEnabled(!trackState.video);
-      setTrackState((ps) => {
-        return { ...ps, video: !ps.video };
-      });
+      const newState = !trackState.video;
+      await tracks[1]?.setEnabled(newState);
+      setTrackState((ps) => ({ ...ps, video: newState }));
+      if (newState && client && tracks[1]) {
+        try {
+          await client.publish(tracks[1]);
+        } catch (e) {}
+      }
     }
   };
 

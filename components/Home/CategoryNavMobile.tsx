@@ -14,6 +14,7 @@ function CategoryNavMobile({
   active,
   params,
   outline,
+  mainCategory,
 }: CategoryNavMobileProps) {
   // @ts-ignore
 
@@ -25,19 +26,19 @@ function CategoryNavMobile({
       ariaLabel={`Category ${slug} ${params?.lang}`}
       data-cy="category-Link"
       className={`categories-bar-item  cursor-pointer flex flex-col relative w-auto max-w-full justify-start mx-[5px] items-center ${
-        decodeURI(params.mainCategory) === slug && "active-nav-category"
+        decodeURI(mainCategory) === slug && "active-nav-category"
       }`}
       key={myKey}
       href={
-        decodeURI(params.mainCategory) === slug
+        decodeURI(mainCategory) === slug
           ? `/${params?.lang}`
-          : `/${params?.lang}/categories/${slug}`
+          : `/${params?.lang}?mainCategory=${slug}`
       }
       data-id={slug}
     >
       {active && (
         <ActiveCategoryIcon
-          className="absolute top-[-7px] left-[-13px]"
+          className="absolute top-[-6px] left-[-6px]"
           data-cy="activeCategoryIcon"
         />
       )}
