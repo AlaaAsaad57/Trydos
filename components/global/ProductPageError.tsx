@@ -90,7 +90,7 @@ const ProductPageError = () => {
 
         {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row gap-4">
-          <NextLink href={`/${lang}`}>
+          <NextLink href={`/${lang}`} data={{ i_full_home: true }}>
             <button
               //   onClick={handleBackToHome}
               className="flex-1 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-bold py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl regular"

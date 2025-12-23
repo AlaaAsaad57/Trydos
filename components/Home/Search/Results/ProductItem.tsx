@@ -49,6 +49,7 @@ function ProductItem({ product, onClick, index }) {
       <NextLink
         ariaLabel={`Product ${product.slug} ${lang}`}
         href={`/${lang}/products/${product.slug}`}
+        data={{ ...product, is_product: true }}
         data-cy="product-result-link"
       >
         <div

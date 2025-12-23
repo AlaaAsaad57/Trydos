@@ -76,7 +76,6 @@ function WelcomeSignup({ stepIndicator, Name, signStep, close }: Props) {
           <NextLink
             data={{
               is_settings: true,
-              href: `/${lang}/setting?tab=Profile`,
             }}
             ariaLabel={`Complete My Profile ${lang}`}
             href={`/${lang}/setting?tab=Profile`}

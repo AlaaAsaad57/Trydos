@@ -12,11 +12,9 @@ function BoutiqueWrapper({ boutique, lang }) {
       id={`boutique-${boutique.slug}`}
     >
       <NextLink
-        data-image={configureImageForBoutique(
-          GetImageUrl(boutique?.banners[0]?.file_path)
-        )}
-        data-name={boutique.name}
-        data-type="boutique"
+        data={{
+          is_boutique: true,
+        }}
         ignoreConditionCase={true}
         data-cy="boutique_link"
         className="w-full"
@@ -84,7 +82,6 @@ export const CategoriesSlider = ({ categories, boutique, lang }) => {
               : {
                   is_boutique: true,
                   ...boutique,
-                  href: `/${lang}/filters/boutiques/${boutique.slug}/categories/${category.slug}`,
                 }
           }
           className="w-[90px] min-w-[90px] h-[90px] rounded-[15px] bg-white relative"

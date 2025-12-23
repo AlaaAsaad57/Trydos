@@ -51,12 +51,15 @@ async function RecomendedProductWrapper({
 }): Promise<JSX.Element> {
   const [country, language] = lang.split("-");
   const userId = ((await getCookieServer(COOKIE_NAMES.USER_DATA)) as any)?.id;
-  let response = await GetRecommedndedProducts({
-    country,
-    language,
-    limit: 7,
-    userId: userId,
-  });
+  let [response, currency] = await Promise.all([
+    GetRecommedndedProducts({
+      country,
+      language,
+      limit: 7,
+      userId: userId,
+    }),
+    currencyData,
+  ]);
 
   let productsData = response.items;
 
@@ -123,7 +126,7 @@ async function RecomendedProductWrapper({
               is_verified: product.brand.is_verified,
             }}
             redeem_price={product.redeem_price}
-            currency={currencyData}
+            currency={currency}
             endDate={product.flash_deal_end_date}
             flash_deal_price={product.flash_deal_price}
             id={product?.product_id ?? product?.id}

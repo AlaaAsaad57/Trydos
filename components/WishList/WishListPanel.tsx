@@ -366,7 +366,6 @@ const WishListItem = ({ item, handleDeleteItem, close }) => {
           data={{
             is_product: true,
             ...item,
-            href: `/${lang}/products/${item.slug}`,
           }}
           ariaLabel={`wishlist item ${item.slug}`}
           className="flex gap-3 flex-1"

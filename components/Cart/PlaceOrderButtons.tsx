@@ -255,7 +255,6 @@ function PlaceOrderButtons({
               data-cy="back-to-home-page"
               data={{
                 is_full_home: true,
-                href: `/${lang}`,
               }}
               className={`w-full text-center  justify-center cursor-pointer flex-col items-center h-[70px]
              bg-[#1D1D1D] text-[#FEFEFE] text-[18px] medium rounded-[20px]`}

@@ -185,7 +185,6 @@ const Menu = ({ user, setMenuOpen }) => {
             dataCy="Settings-Icon"
             data={{
               is_settings: true,
-              href: `/${lang}/setting?tab=main`,
             }}
             href={`/${lang}/setting?tab=main`}
             icon={
@@ -247,7 +246,6 @@ const Menu = ({ user, setMenuOpen }) => {
             dataCy="Compare-Icon"
             data={{
               is_compare: true,
-              href: `/${lang}/setting?tab=main`,
             }}
             onClick={() => {
               setMenuOpen(false);

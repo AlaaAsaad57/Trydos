@@ -29,6 +29,9 @@ function FiltersButton({ onReset, filters, isChanged, total_size, loading }) {
               style={{
                 boxShadow: "inset 0px 3px 6px #ffffff29, 0px 3px 6px #0000001a",
               }}
+              data={{
+                is_filter: true,
+              }}
               className="w-full p-2 cursor-pointer flex bg-[#FF5F61] text-[#fff] justify-center items-center rounded-[20px] h-[65px]"
               data-cy="searchTotalProduct"
             >

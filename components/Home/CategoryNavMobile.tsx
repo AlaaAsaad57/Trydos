@@ -21,14 +21,6 @@ function CategoryNavMobile({
     <NextLink
       data={{
         is_home: true,
-        name,
-        icon,
-        slug,
-        active,
-        href:
-          decodeURI(params.mainCategory) === slug
-            ? `/${params?.lang}`
-            : `/${params?.lang}/categories/${slug}`,
       }}
       ariaLabel={`Category ${slug} ${params?.lang}`}
       data-cy="category-Link"

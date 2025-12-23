@@ -183,6 +183,10 @@ function ProductWrapper({
         className="product-container  align-center flex-col relative pb-[12px]"
         data-cy="product_link"
         id={slug}
+        data={{
+          ...InitialProductData,
+          is_product: true,
+        }}
       >
         {Sliders ? (
           <div

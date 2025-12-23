@@ -13,12 +13,15 @@ export async function FlashProductWrapper({
   if (mainCategory) {
     category = JSON.stringify([mainCategory]);
   }
-  let response = await GetFlashDealProducts({
-    language,
-    country,
-    category: category,
-    limit: 10,
-  });
+  let [response, currency] = await Promise.all([
+    GetFlashDealProducts({
+      language,
+      country,
+      category: category,
+      limit: 10,
+    }),
+    currencyData,
+  ]);
   const redeemed_ids = (await getCookieServer<any[]>("redemed_ids")) ?? [];
   let productsData = response.data.products.map((product) => {
     if (product?.is_redeem) {
@@ -83,7 +86,7 @@ export async function FlashProductWrapper({
   });
   return (
     <FlashDealsProducts
-      currencyData={currencyData}
+      currencyData={currency}
       flashDealsProducts={{ data: { products: productsData } }}
       lang={lang}
     />

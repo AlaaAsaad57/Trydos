@@ -27,6 +27,11 @@ function ProductColorsCards({
       {InitialProductData?.sync_color_images?.map((color, i) => (
         <div className="flex relative">
           <NextLink
+            data={{
+              is_product: true,
+              ...InitialProductData,
+              sync_color_image: [color],
+            }}
             ariaLabel={`go to product ${InitialProductData?.name} ${language}`}
             href={getUrlofProduct(color?.color_name, language, country, slug)}
             className="product-container  align-center flex-col relative pb-[12px]"

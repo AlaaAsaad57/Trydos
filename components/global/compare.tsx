@@ -339,7 +339,6 @@ const ComparePage = ({
           data={{
             is_product: true,
             ...product,
-            href: `/${lang}/products/${product.slug}`,
           }}
           ariaLabel={`Compare Product ${product.slug} ${lang}`}
           href={`/${lang}/products/${product.slug}`}

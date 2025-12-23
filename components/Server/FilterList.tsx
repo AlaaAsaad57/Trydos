@@ -214,8 +214,6 @@ const ActiveFiltersBar = ({
       <NextLink
         data={{
           is_filter: true,
-
-          href: getResetUrl(),
         }}
         ignoreConditionCase={true}
         href={getResetUrl()}

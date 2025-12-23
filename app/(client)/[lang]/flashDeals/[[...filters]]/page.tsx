@@ -149,7 +149,6 @@ export default async function Page({ params }) {
             ignoreConditionCase={true}
             data={{
               is_full_home: true,
-              href: `/${Params.lang}`,
             }}
             href={`/${Params.lang}`}
             ariaLabel={`TryDos Home ${Params.lang}`}

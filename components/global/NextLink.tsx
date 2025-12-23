@@ -1,4 +1,6 @@
+"use client";
 import Link from "next/link";
+import { useAppStore } from "store";
 
 export interface INextLinkProps {
   href: string;
@@ -11,10 +13,6 @@ export interface INextLinkProps {
   children: React.ReactNode;
   style?: React.CSSProperties;
   id?: string;
-  "data-id"?: string;
-  "data-name"?: string;
-  "data-type"?: string;
-  "data-image"?: string;
 }
 export default function NextLink({
   sameHref,
@@ -28,6 +26,7 @@ export default function NextLink({
   ignoreConditionCase = false,
   ...props
 }: INextLinkProps) {
+  const { setIsNavigating } = useAppStore();
   if (ignoreConditionCase) {
     return (
       <Link
@@ -36,11 +35,9 @@ export default function NextLink({
         style={style}
         prefetch={true}
         href={href}
-        data-cy={props["data-cy"] ?? ""}
-        data-id={props["data-id"] ?? ""}
-        data-name={props["data-name"] ?? ""}
-        data-type={props["data-type"] ?? ""}
-        data-image={props["data-image"] ?? ""}
+        onClick={() => {
+          setIsNavigating(data);
+        }}
       >
         {children}
       </Link>
@@ -68,12 +65,10 @@ export default function NextLink({
       className={className}
       style={style}
       prefetch={true}
+      onClick={() => {
+        setIsNavigating(data);
+      }}
       href={href}
-      data-id={props["data-id"] ?? ""}
-      data-cy={props["data-cy"] ?? ""}
-      data-name={props["data-name"] ?? ""}
-      data-type={props["data-type"] ?? ""}
-      data-image={props["data-image"] ?? ""}
     >
       {children}
     </Link>

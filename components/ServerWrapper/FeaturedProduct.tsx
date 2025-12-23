@@ -14,12 +14,15 @@ export async function FeaturedProductWrapper({
   if (mainCategory) {
     category = JSON.stringify([mainCategory]);
   }
-  let response = await GetFeaturedProducts({
-    language,
-    country,
-    category: category,
-    limit: 10,
-  });
+  let [response, currency] = await Promise.all([
+    GetFeaturedProducts({
+      language,
+      country,
+      category: category,
+      limit: 10,
+    }),
+    currencyData,
+  ]);
 
   const redeemed_ids = (await getCookieServer<any[]>("redemed_ids")) ?? [];
   let productsData = response.data.products.map((product) => {
@@ -86,7 +89,7 @@ export async function FeaturedProductWrapper({
 
   return (
     <FeatureProducts
-      currencyData={currencyData}
+      currencyData={currency}
       fetauredProductsData={{ data: { products: productsData } }}
       lang={lang}
     />

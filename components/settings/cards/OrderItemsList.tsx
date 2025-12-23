@@ -107,7 +107,6 @@ function OrderItemsList({
               data={{
                 is_product: true,
                 ...product.product_details,
-                href: getProductUrl(product),
               }}
               className="flex-row cursor-pointer items-center relative min-w-[91px] w-[91px] h-[125px] ml-[5px]"
             >

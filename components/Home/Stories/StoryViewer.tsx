@@ -433,7 +433,6 @@ const StoryViewer = ({
                 className="py-2 px-4 text-center flex justify-center light text-[12px] text-[#1d1d1d] bg-slate-50 rounded-md"
                 data={{
                   is_product: true,
-                  href: `/${lang}/products/${product_slug}`,
                 }}
                 href={`/${lang}/products/${product_slug}`}
               >

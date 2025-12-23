@@ -35,7 +35,7 @@ export async function generateMetadata({ params }) {
 async function HomePage({ params }) {
   let { lang } = await params;
   const [country, language] = lang.split("-");
-  let currency = await getCurrency(country, language);
+  let currency = getCurrency(country, language);
   const isRtl = language === "ar" || language === "ku";
   try {
     return (
