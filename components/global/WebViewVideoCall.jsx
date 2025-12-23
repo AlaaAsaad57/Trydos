@@ -87,6 +87,23 @@ function WebViewVideoCall(props) {
 
         if (mediaType === "audio") {
           try {
+            const devices = await AgoraRTC.getPlaybackDevices();
+
+            // Log devices to your console so you can see exactly what the browser sees
+            console.log("Available output devices:", devices);
+
+            const earpiece = devices.find((d) =>
+              /earpiece|receiver|handset/i.test(d.label)
+            );
+
+            if (earpiece && user.audioTrack.setPlaybackDevice) {
+              await user.audioTrack.setPlaybackDevice(earpiece.deviceId);
+            } else {
+              // If we are on mobile, we often can't switch, so we just play.
+              console.log(
+                "No earpiece detected via Web API. Playing on default device."
+              );
+            }
             user.audioTrack?.play();
           } catch (e) {}
         }
@@ -133,7 +150,12 @@ function WebViewVideoCall(props) {
         token,
         parseInt(props.data.sender_user_id)
       );
-      if (tracks) await client.publish([tracks[0], tracks[1]]);
+      if (tracks) {
+        const publishArr = [];
+        if (tracks[0] && trackState.audio) publishArr.push(tracks[0]);
+        if (tracks[1] && trackState.video) publishArr.push(tracks[1]);
+        if (publishArr.length) await client.publish(publishArr);
+      }
     };
 
     if (ready && tracks) {
@@ -172,6 +194,10 @@ function WebViewVideoCall(props) {
         } catch (e) {
           // ignore if already published
         }
+      } else if (!newState && client && tracks[0]) {
+        try {
+          await client.unpublish(tracks[0]);
+        } catch (e) {}
       }
     } else if (type === "video") {
       const newState = !trackState.video;
@@ -180,6 +206,10 @@ function WebViewVideoCall(props) {
       if (newState && client && tracks[1]) {
         try {
           await client.publish(tracks[1]);
+        } catch (e) {}
+      } else if (!newState && client && tracks[1]) {
+        try {
+          await client.unpublish(tracks[1]);
         } catch (e) {}
       }
     }

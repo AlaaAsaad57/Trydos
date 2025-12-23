@@ -58,6 +58,23 @@ function WebViewVoiceCall(props) {
 
         if (mediaType === "audio") {
           try {
+            const devices = await AgoraRTC.getPlaybackDevices();
+
+            // Log devices to your console so you can see exactly what the browser sees
+            console.log("Available output devices:", devices);
+
+            const earpiece = devices.find((d) =>
+              /earpiece|receiver|handset/i.test(d.label)
+            );
+
+            if (earpiece && user.audioTrack.setPlaybackDevice) {
+              await user.audioTrack.setPlaybackDevice(earpiece.deviceId);
+            } else {
+              // If we are on mobile, we often can't switch, so we just play.
+              console.log(
+                "No earpiece detected via Web API. Playing on default device."
+              );
+            }
             user.audioTrack?.play();
           } catch (e) {}
         }
@@ -88,7 +105,7 @@ function WebViewVoiceCall(props) {
         parseInt(props.data.sender_user_id)
       );
 
-      if (track) await client.publish(track);
+      if (track && trackState.audio) await client.publish(track);
       setStart(true);
     };
 

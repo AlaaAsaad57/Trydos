@@ -344,16 +344,19 @@ const VideoCall = ({ token, audio = false, name = "", user_id, active }) => {
     if (!tracks?.[0] || !client) return;
 
     try {
-      const newState = !isMuted;
-      await tracks[0].setEnabled(newState);
-      setIsMuted(newState);
-      // Ensure other users get a user-published event if they joined while muted
-      if (newState) {
+      const newIsMuted = !isMuted;
+      const enabled = !newIsMuted; // enabled when not muted
+      await tracks[0].setEnabled(enabled);
+      setIsMuted(newIsMuted);
+
+      if (enabled) {
         try {
           await client.publish(tracks[0]);
-        } catch (e) {
-          // ignore publish errors (already published)
-        }
+        } catch (e) {}
+      } else {
+        try {
+          await client.unpublish(tracks[0]);
+        } catch (e) {}
       }
     } catch (error) {
       console.error("Error toggling mute:", error);
@@ -365,12 +368,18 @@ const VideoCall = ({ token, audio = false, name = "", user_id, active }) => {
     if (!tracks?.[1] || !client) return;
 
     try {
-      const newState = !isCameraOff;
-      await tracks[1].setEnabled(newState);
-      setIsCameraOff(newState);
-      if (newState) {
+      const newIsCameraOff = !isCameraOff;
+      const enabled = !newIsCameraOff; // enabled when camera is not off
+      await tracks[1].setEnabled(enabled);
+      setIsCameraOff(newIsCameraOff);
+
+      if (enabled) {
         try {
           await client.publish(tracks[1]);
+        } catch (e) {}
+      } else {
+        try {
+          await client.unpublish(tracks[1]);
         } catch (e) {}
       }
     } catch (error) {
@@ -455,6 +464,23 @@ const VideoCall = ({ token, audio = false, name = "", user_id, active }) => {
             });
 
             if (mediaType === "audio") {
+              const devices = await AgoraRTC.getPlaybackDevices();
+
+              // Log devices to your console so you can see exactly what the browser sees
+              console.log("Available output devices:", devices);
+
+              const earpiece = devices.find((d) =>
+                /earpiece|receiver|handset/i.test(d.label)
+              );
+
+              if (earpiece && user.audioTrack.setPlaybackDevice) {
+                await user.audioTrack.setPlaybackDevice(earpiece.deviceId);
+              } else {
+                // If we are on mobile, we often can't switch, so we just play.
+                console.log(
+                  "No earpiece detected via Web API. Playing on default device."
+                );
+              }
               user.audioTrack?.play();
             } else if (mediaType === "video") {
               // Video will be rendered in VideoPlayer component
@@ -522,8 +548,11 @@ const VideoCall = ({ token, audio = false, name = "", user_id, active }) => {
 
         if (mounted) {
           setIsJoined(true);
-          // Publish both audio and video tracks
-          await client.publish(tracks);
+          // Publish only enabled tracks (respect current mute/camera state)
+          const publishArr = [] as any[];
+          if (tracks?.[0] && !isMuted) publishArr.push(tracks[0]);
+          if (tracks?.[1] && !isCameraOff) publishArr.push(tracks[1]);
+          if (publishArr.length) await client.publish(publishArr);
         }
       } catch (error) {
         console.error("Error initializing call:", error);
