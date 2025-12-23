@@ -50,13 +50,11 @@ export const requestFirebaseNotificationPermission = async () => {
   const tokenExpiry = localStorage.getItem("FBTokenExpiry");
   const tokenDate = tokenExpiry ? new Date(tokenExpiry) : null;
   const nowDate = new Date();
-  let should_register_fcm = false;
-  if (!tokenExpiry) {
-    should_register_fcm = true;
-  }
+  let should_register_fcm = true;
+
   // Check if tokenDate exists and is older than 1 day
   if (
-    tokenDate &&
+    !tokenDate ||
     nowDate.getTime() - tokenDate.getTime() > 24 * 60 * 60 * 1000
   ) {
     should_register_fcm = true;
@@ -79,7 +77,7 @@ export const requestFirebaseNotificationPermission = async () => {
       localStorage.setItem("FCMError", null);
       throw err;
     });
-  if (fcm_token && should_register_fcm) {
+  if (fcm_token) {
     if (auth.UserToken() && auth.UserID()) {
       try {
         const response = await fetchData({
