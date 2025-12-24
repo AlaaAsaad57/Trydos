@@ -37,7 +37,24 @@ function ChangeAddressWidget({
   );
   const [ConfirmationData, setConfirmationData] = useState({
     enable: false,
-    currentAddress: addressLists?.find((s) => s.id === address_id),
+    currentAddress: addressLists?.find((s) => s.id === address_id) ?? {
+      address: ActivePacks?.shipping_address_data?.address,
+      address_detail: ActivePacks?.shipping_address_data?.address_detail,
+      contact_info: {
+        name: ActivePacks?.shipping_address_data?.contact_person_name,
+        phone: ActivePacks?.shipping_address_data?.phone,
+        alternate_phone: ActivePacks?.shipping_address_data?.alternate_phone,
+      },
+      iso: ActivePacks?.shipping_address_data?.country_iso,
+      region_details: {
+        country: ActivePacks?.shipping_address_data?.country,
+        building: ActivePacks?.shipping_address_data?.building,
+        street: ActivePacks?.shipping_address_data?.street,
+        city: ActivePacks?.shipping_address_data?.city,
+        province: ActivePacks?.shipping_address_data?.province,
+        town: ActivePacks?.shipping_address_data?.town,
+      },
+    },
     newAddress: addressLists?.find((s) => s.id === selectedAddressId),
   });
   const [tabs, setTabs] = useState<"address" | "note">("address");
@@ -442,7 +459,27 @@ function ChangeAddressWidget({
                   enable: true,
                   currentAddress: addressLists?.find(
                     (s) => s.id === address_id
-                  ),
+                  ) ?? {
+                    address: ActivePacks?.shipping_address_data?.address,
+                    address_detail:
+                      ActivePacks?.shipping_address_data?.address_detail,
+                    contact_info: {
+                      name: ActivePacks?.shipping_address_data
+                        ?.contact_person_name,
+                      phone: ActivePacks?.shipping_address_data?.phone,
+                      alternate_phone:
+                        ActivePacks?.shipping_address_data?.alternate_phone,
+                    },
+                    iso: ActivePacks?.shipping_address_data?.country_iso,
+                    region_details: {
+                      country: ActivePacks?.shipping_address_data?.country,
+                      building: ActivePacks?.shipping_address_data?.building,
+                      street: ActivePacks?.shipping_address_data?.street,
+                      city: ActivePacks?.shipping_address_data?.city,
+                      province: ActivePacks?.shipping_address_data?.province,
+                      town: ActivePacks?.shipping_address_data?.town,
+                    },
+                  },
                   newAddress: addressLists?.find(
                     (s) => s.id === selectedAddressId
                   ),
@@ -482,7 +519,28 @@ function ChangeAddressWidget({
           confirm={() => {
             setConfirmationData({
               enable: false,
-              currentAddress: addressLists?.find((s) => s.id === address_id),
+              currentAddress: addressLists?.find(
+                (s) => s.id === address_id
+              ) ?? {
+                address: ActivePacks?.shipping_address_data?.address,
+                address_detail:
+                  ActivePacks?.shipping_address_data?.address_detail,
+                contact_info: {
+                  name: ActivePacks?.shipping_address_data?.contact_person_name,
+                  phone: ActivePacks?.shipping_address_data?.phone,
+                  alternate_phone:
+                    ActivePacks?.shipping_address_data?.alternate_phone,
+                },
+                iso: ActivePacks?.shipping_address_data?.country_iso,
+                region_details: {
+                  country: ActivePacks?.shipping_address_data?.country,
+                  building: ActivePacks?.shipping_address_data?.building,
+                  street: ActivePacks?.shipping_address_data?.street,
+                  city: ActivePacks?.shipping_address_data?.city,
+                  province: ActivePacks?.shipping_address_data?.province,
+                  town: ActivePacks?.shipping_address_data?.town,
+                },
+              },
               newAddress: addressLists?.find((s) => s.id === selectedAddressId),
             });
             ChangeAddress();
@@ -490,7 +548,28 @@ function ChangeAddressWidget({
           close={() => {
             setConfirmationData({
               enable: false,
-              currentAddress: addressLists?.find((s) => s.id === address_id),
+              currentAddress: addressLists?.find(
+                (s) => s.id === address_id
+              ) ?? {
+                address: ActivePacks?.shipping_address_data?.address,
+                address_detail:
+                  ActivePacks?.shipping_address_data?.address_detail,
+                contact_info: {
+                  name: ActivePacks?.shipping_address_data?.contact_person_name,
+                  phone: ActivePacks?.shipping_address_data?.phone,
+                  alternate_phone:
+                    ActivePacks?.shipping_address_data?.alternate_phone,
+                },
+                iso: ActivePacks?.shipping_address_data?.country_iso,
+                region_details: {
+                  country: ActivePacks?.shipping_address_data?.country,
+                  building: ActivePacks?.shipping_address_data?.building,
+                  street: ActivePacks?.shipping_address_data?.street,
+                  city: ActivePacks?.shipping_address_data?.city,
+                  province: ActivePacks?.shipping_address_data?.province,
+                  town: ActivePacks?.shipping_address_data?.town,
+                },
+              },
               newAddress: addressLists?.find((s) => s.id === selectedAddressId),
             });
           }}

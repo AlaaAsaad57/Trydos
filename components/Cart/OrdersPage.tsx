@@ -596,7 +596,7 @@ export const DeleteModalComponent = ({
             style={{
               border: "#D3D3D38c 1px solid",
             }}
-            className={`flex-col pl-[24px] relative h-auto max-w-[600px]  min-h-[90px] items-center justify-center  mt-[12px] rounded-[15px] bg-[#f8f8f800] w-full `}
+            className={`flex-col pl-[24px] relative h-auto max-w-[600px]  min-h-[90px] items-start  mt-[12px] rounded-[15px] bg-[#f8f8f800] w-full `}
           >
             <div className="flex-col">
               <div className="flex-row items-center">
@@ -620,6 +620,9 @@ export const DeleteModalComponent = ({
               </div>
               <div className="flex-row mt-[5px]  items-center regular text-[12px] text-[#D3D3D3]">
                 {GetAddressString(deletedAddress.region_details)}
+              </div>
+              <div className="flex-row regular text-[12px] text-[#D3D3D3]">
+                {deletedAddress?.address_detail}
               </div>
               <div className="flex-row mt-[5px] items-center regular text-[12px] text-[#D3D3D3]">
                 <svg

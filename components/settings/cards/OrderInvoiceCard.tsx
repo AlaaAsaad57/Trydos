@@ -121,7 +121,12 @@ const OrderInvoiceCard = ({ amount, payments }) => {
         className="text-[#1D1D1D] text-[12px] regular mt-[3px]"
         data-cy="order-amount"
       >
-        {RoundPrice({ num: amount, returnNumber: true })} {currency?.symbol}
+        {RoundPrice({
+          num: amount,
+          returnNumber: true,
+          rate: currency?.exchange_rate,
+        })}{" "}
+        {currency?.symbol}
       </span>
     </div>
   );

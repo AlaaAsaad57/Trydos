@@ -1,6 +1,6 @@
 import * as React from "react";
 
-const TrashIcon = (props: React.SVGProps<SVGSVGElement>) => (
+const TrashIcon = (props: any) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     xmlnsXlink="http://www.w3.org/1999/xlink"
@@ -9,18 +9,6 @@ const TrashIcon = (props: React.SVGProps<SVGSVGElement>) => (
     viewBox="0 0 50 50"
     {...props}
   >
-    <defs>
-      <clipPath id="clip-path">
-        <rect
-          id="Rectangle_4561"
-          data-name="Rectangle 4561"
-          width="50"
-          height="50"
-          transform="translate(0 0.316)"
-          fill="none"
-        />
-      </clipPath>
-    </defs>
     <g
       id="Group_13376"
       data-name="Group 13376"
@@ -30,7 +18,6 @@ const TrashIcon = (props: React.SVGProps<SVGSVGElement>) => (
         id="Mask_Group_510"
         data-name="Mask Group 510"
         transform="translate(386 240.344)"
-        clipPath="url(#clip-path)"
       >
         <g id="trash-can" transform="translate(5.619 0.316)">
           <path
