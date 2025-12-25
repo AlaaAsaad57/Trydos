@@ -1,5 +1,5 @@
 // webview video call component
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import EndCallIcon from "../svg/endCall";
 import MicIcon from "../svg/micIcon";
 import VideoIcon from "../svg/vidIcon";
@@ -28,6 +28,8 @@ const useMicrophoneAndCameraTracks = createMicrophoneAndCameraTracks();
 
 const appId = "0af959943ff542df8f2cb1b925ec0cc4";
 function ChatVideoCall({ token }) {
+  const clientRef = useRef(null);
+  const tracksRef = useRef(null);
   const [loading, setLoading] = useState(false);
   const endCall = async (duration) => {
     setLoading(true);
@@ -106,6 +108,8 @@ function ChatVideoCall({ token }) {
     activeChat,
     MessageActiveCall,
     endCall: endCallInStore,
+    storeClient,
+    storeTrack,
   } = useAppStore();
   let userData = getUserChat();
 
@@ -126,6 +130,10 @@ function ChatVideoCall({ token }) {
   useEffect(() => {
     // function to initialise the SDK
     let init = async (name) => {
+      storeClient(client);
+      storeTrack(tracks);
+      clientRef.current = client;
+      tracksRef.current = tracks;
       console.log("Initializing AgoraRTC client with video call");
       client.on("user-joined", async (user) => {
         start();
@@ -251,7 +259,23 @@ function ChatVideoCall({ token }) {
       }
     }
   };
-
+  const cleanUp = async () => {
+    try {
+      await clientRef?.current?.unpublish(tracks);
+      await clientRef?.current?.leave();
+    } catch (error) {
+      console.error("Error during cleanup:", error);
+    }
+    clientRef.current?.removeAllListeners();
+    if (tracksRef.current) {
+      tracksRef?.current?.[0]?.stop(); // audio
+      tracksRef?.current?.[1]?.stop(); // video
+      tracksRef.current?.[0]?.close(); // audio
+      tracksRef.current?.[1]?.close(); // video
+    }
+    clientRef.current = null;
+    tracksRef.current = null;
+  };
   useEffect(() => {
     if (seconds === 60 && users.length === 0) {
       userEndCall(true);
@@ -259,13 +283,19 @@ function ChatVideoCall({ token }) {
     if (minutes === 30) {
       userEndCall();
     }
+    return () => {
+      // Cleanup logic here
+      cleanUp();
+    };
   }, [minutes, seconds]);
-  console.log("props in webview video call", seconds, minutes, {
-    videoTrack: users?.[0]?.videoTrack,
-    hasVideo: users?.[0]?.hasVideo,
-    length: users.length,
-    users: users,
-  });
+  const otherUser = useMemo(() => {
+    return (
+      activeChat?.channel_members?.find(
+        (member) => String(member.user_id) === String(userData?.id)
+      )?.user || null
+    );
+  }, [activeChat?.channel_members, userData?.id]);
+
   return (
     <>
       {
@@ -275,24 +305,24 @@ function ChatVideoCall({ token }) {
           )}
           {
             <>
-              {userData?.photo_path ? (
+              {otherUser?.photo_path ? (
                 <div
                   className="hgg"
                   style={{
                     backgroundImage: `url(${GetImageUrl(
-                      userData?.photo_path
+                      otherUser?.photo_path
                     )})`,
                     left: 0,
                     right: 0,
                     margin: "0 auto",
                   }}
                 ></div>
-              ) : userData?.name ? (
+              ) : otherUser?.name ? (
                 <div
                   className="hgg text-avatar"
                   style={{ left: 0, right: 0, margin: "0 auto" }}
                 >
-                  {getTwoLetters(userData?.name || "User")}
+                  {getTwoLetters(otherUser?.name || "User")}
                 </div>
               ) : (
                 <div

@@ -69,6 +69,7 @@ interface ChatState {
     chat_id: number;
     order_group_id: string;
   }[];
+  tracks: [];
 }
 
 const initialState: ChatState = {
@@ -128,6 +129,7 @@ const initialState: ChatState = {
   client: null,
   nameModal: false,
   isNotificationModal: false,
+  tracks: [],
 };
 
 export const useChatStore = (set, get) => ({
@@ -142,11 +144,14 @@ export const useChatStore = (set, get) => ({
       set({ client: payload });
     }
   },
-
+  storeTrack: (payload: any) => {
+    const current = get().tracks;
+    if (current !== payload) {
+      set({ tracks: payload });
+    }
+  },
   setCallLoading: (payload: any) => set({ callLoading: payload }),
-
   setCallLoadingState: (payload: boolean) => set({ call_loading: payload }),
-
   setChatOpen: (payload: boolean) => {
     if (payload === false) {
       set({ chatVar: false, activeChat: null, main: "main" });
@@ -199,6 +204,12 @@ export const useChatStore = (set, get) => ({
         state.client?.leave();
         state.client?.removeAllListeners();
       }
+      if (state.tracks) {
+        state.tracks.forEach((track) => {
+          track?.close();
+          track?.stop();
+        });
+      }
       set({
         call: null,
         callInProgress: false,
@@ -209,6 +220,7 @@ export const useChatStore = (set, get) => ({
         caller: null,
         callerChannel: null,
         MessageActiveCall: null,
+        tracks: [],
       });
     }
   },

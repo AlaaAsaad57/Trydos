@@ -1,5 +1,5 @@
 // webview video call component
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import EndCallIcon from "../svg/endCall";
 import MicIcon from "../svg/micIcon";
 
@@ -103,6 +103,8 @@ function ChatVoiceCall({ token }) {
     activeChat,
     MessageActiveCall,
     endCall: endCallInStore,
+    storeClient,
+    storeTrack,
   } = useAppStore();
   let userData = getUserChat();
 
@@ -123,6 +125,8 @@ function ChatVoiceCall({ token }) {
   useEffect(() => {
     // function to initialise the SDK
     let init = async (name) => {
+      storeClient(client);
+      storeTrack([track]);
       client.on("user-joined", async (user) => {
         start();
         setUsers((prevUsers) => {
@@ -141,24 +145,6 @@ function ChatVoiceCall({ token }) {
         });
 
         if (mediaType === "audio") {
-          const devices = await AgoraRTC.getPlaybackDevices();
-
-          // Log devices to your console so you can see exactly what the browser sees
-          console.log("Available output devices:", devices);
-
-          const earpiece = devices.find((d) =>
-            /earpiece|receiver|handset/i.test(d.label)
-          );
-
-          if (earpiece && user.audioTrack.setPlaybackDevice) {
-            await user.audioTrack.setPlaybackDevice(earpiece.deviceId);
-          } else {
-            // If we are on mobile, we often can't switch, so we just play.
-            console.log(
-              "No earpiece detected via Web API. Playing on default device."
-            );
-          }
-
           try {
             user?.audioTrack?.play();
           } catch (e) {}
@@ -247,7 +233,13 @@ function ChatVoiceCall({ token }) {
       userEndCall();
     }
   }, [minutes, seconds]);
-
+  const otherUser = useMemo(() => {
+    return (
+      activeChat?.channel_members?.find(
+        (member) => String(member.user_id) === String(userData?.id)
+      )?.user || null
+    );
+  }, [activeChat?.channel_members, userData?.id]);
   return (
     <>
       {
@@ -257,24 +249,24 @@ function ChatVoiceCall({ token }) {
           )}
           {
             <>
-              {userData?.photo_path ? (
+              {otherUser?.photo_path ? (
                 <div
                   className="hgg"
                   style={{
                     backgroundImage: `url(${GetImageUrl(
-                      userData?.photo_path
+                      otherUser?.photo_path
                     )})`,
                     left: 0,
                     right: 0,
                     margin: "0 auto",
                   }}
                 ></div>
-              ) : userData?.name ? (
+              ) : otherUser?.name ? (
                 <div
                   className="hgg text-avatar"
                   style={{ left: 0, right: 0, margin: "0 auto" }}
                 >
-                  {getTwoLetters(userData?.name || "User")}
+                  {getTwoLetters(otherUser?.name || "User")}
                 </div>
               ) : (
                 <div
