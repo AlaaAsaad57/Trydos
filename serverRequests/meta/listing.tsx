@@ -74,8 +74,9 @@ export const GetStructuredData = async ({
   params,
   is_flashDeals,
   is_fearured,
-  response,
+  responsePromise,
 }) => {
+  let response = await responsePromise;
   let filtersUrl =
     params?.filters?.length > 0 ? `/${params.filters?.join("/")}` : "/";
   let [country, language] = params.lang.split("-");

@@ -430,3 +430,62 @@ export function generateCloudinaryUrl({
 export const HandleIsActive = ({ values, item }) => {
   return values?.includes(item);
 };
+export interface FilterParams {
+  boutiques?: string[];
+  categories?: string[];
+  brands?: string[];
+  colors?: string[];
+  sizes?: string[];
+  prices?: string[];
+  search_text?: string[];
+}
+
+export const pollinateInput = (value: string): string => {
+  if (typeof value !== "string") return "";
+  let input = value.replace(/[<>,#$%^&*()]/g, "");
+  if (input.length > 90) {
+    input = input.slice(0, 90);
+  }
+  return input;
+};
+export const buildParamsFromFilters = (
+  filters: Record<string, string[]>
+): string[] => {
+  const params: string[] = [];
+  const filterOrder = [
+    "boutiques",
+    "tags_names",
+    "categories",
+    "brands",
+    "colors",
+    "sizes",
+    "prices",
+    "search",
+  ];
+
+  filterOrder.forEach((filterType) => {
+    const values = filters[filterType];
+    if (values && values.length > 0) {
+      // Add filter type
+      const paramName = filterType === "search" ? "search" : filterType;
+      params.push(paramName);
+
+      // Add values
+      if (filterType === "search") {
+        // Search is a single value
+        params.push(encodeURIComponent(values[0]));
+      } else if (filterType === "colors") {
+        // Colors should be hex without #
+        const colorValues = values.map((color) =>
+          color.startsWith("#") ? color.substring(1) : color
+        );
+        params.push(colorValues.join(","));
+      } else {
+        // Other filters are comma-separated
+        params.push(values.join(","));
+      }
+    }
+  });
+
+  return params;
+};

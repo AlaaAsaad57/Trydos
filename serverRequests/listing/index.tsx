@@ -40,7 +40,7 @@ export async function GetFilters({
     //   if (response.boutiques.length) {
     //     new_filters.boutiques = response.boutiques;
     //   }
-
+    console.log("NEW FILTERS", new_filters);
     return {
       categories: new_filters?.categories?.map((category) => (
         <ImageCircel
@@ -97,7 +97,7 @@ export async function GetFilters({
       total_size: response.total_size,
     };
   } catch (error) {
-    console.log(error);
+    console.error(error);
   }
 }
 

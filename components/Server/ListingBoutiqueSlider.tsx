@@ -5,11 +5,12 @@ import React, { Suspense } from "react";
 import BoutiquePhotoSliderWrapper from "components/clientWrapper/filtersPage/BoutiquePhotoSliderWrapper";
 import BorderImage from "components/ListingPage/BorderImage";
 import { getConfiguredImage, GetImageUrl } from "utils/server";
+import BoutiqueSlidersSkeleton from "components/skeleton/loaders/BoutiqueSlidersSkeleton";
 
 async function ListingBoutiqueSlider({ boutiquePromise }) {
   let boutique = await boutiquePromise;
   return (
-    <Suspense fallback={<></>}>
+    <Suspense fallback={<BoutiqueSlidersSkeleton />}>
       <BoutiqueHeader boutique={boutique} />
     </Suspense>
   );

@@ -6,7 +6,13 @@ import SearchIcon from "public/svg/SearchIcon";
 import "styles/globals.css";
 function loading() {
   return (
-    <div className="site-container items-center">
+    <div
+      style={{
+        zIndex: "99999999999999",
+        top: "100px",
+      }}
+      className="site-container items-center fixed max-w-[1365px] mx-auto bg-[#fafafa] min-h-screen  flex    w-screen  overflow-hidden"
+    >
       <div
         className={`  bg-white flex-row  w-full pl-[10px] shadow-[0px_0px_6px_rgb(0,0,0,0.1)] z-[999999995]`}
       >

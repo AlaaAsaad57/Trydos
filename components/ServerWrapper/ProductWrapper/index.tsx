@@ -45,7 +45,6 @@ function ProductWrapper({
 }) {
   let isRtl = language === "ar" || language === "ku";
   let isFlash: any = null;
-
   let flash_price = offer_price ?? price;
   if (is_flashDeal && endDate) {
     const now = new Date();

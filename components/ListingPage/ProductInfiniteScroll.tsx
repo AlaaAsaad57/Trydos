@@ -139,7 +139,7 @@ function ProductsInfiniteScroll({
     if (isFlashDeals) {
       return "FlashDeals-Products";
     }
-    if (parsedFilters?.boutiques?.length === 1) {
+    if (parsedFilters?.boutiques?.length === 1 && boutiqueName) {
       return `${boutiqueName}-Boutique-Page`;
     } else return "Filters-Page";
   };

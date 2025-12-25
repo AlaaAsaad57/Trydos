@@ -119,13 +119,14 @@ export default async function Page({ params }) {
     return (
       <>
         {/* <Suspense fallback={<></>}> */}
+        {/*@ts-expect-error Async Server Component is valid in Next  */}
 
-        {/* <GetStructuredData
-            is_fearured={false}
-            response={filtersData}
-            is_flashDeals={false}
-            params={Params}
-          /> */}
+        <GetStructuredData
+          is_fearured={false}
+          responsePromise={filtersData}
+          is_flashDeals={false}
+          params={Params}
+        />
         {/* </Suspense> */}
         {/* <Suspense fallback={<></>}>
           <FilterWidgetContainer key={JSON.stringify(parsedFilters)} />
@@ -208,6 +209,8 @@ export default async function Page({ params }) {
         </div>
         {/* @ts-expect-error Async Server Component is valid in Next  */}
         <ProductListConainer
+          isFlashDeals={false}
+          isFeatured={false}
           Params={Params}
           boutiquePromise={boutique}
           currencyPromise={currency}

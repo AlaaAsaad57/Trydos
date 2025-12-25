@@ -2,7 +2,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 import BackIcon from "public/svg/listing/backIcon";
 import SortIcon from "public/svg/listing/sortIcon";
-import { redirect } from "next/navigation";
+
 import { Suspense } from "react";
 import NextLink from "components/global/NextLink";
 import "styles/listing-components.css";
@@ -18,7 +18,7 @@ import {
   generateMetadataForListing,
   GetStructuredData,
 } from "serverRequests/meta/listing";
-import ListingBoutiqueSlider from "components/Server/ListingBoutiqueSlider";
+
 import FilterWidgetServer from "components/Server/FilterWidgetServer";
 import ListingSearchContainer from "components/Server/ListingSearchContainer";
 import FilterListContainer from "components/Server/FilterListContainer";
@@ -37,32 +37,7 @@ export async function generateMetadata({ params }) {
     return [];
   }
 }
-async function GetBoutique(boutique, country, language) {
-  try {
-    if (boutique) {
-      let reader = new ElasticsearchReader();
-      let boutiqueData = await reader.getBoutiqueInfo({
-        country,
-        language: language,
-        slug: boutique,
-      });
-      if (!boutiqueData?.banners) {
-        redirect(`/${country}-${language}?message=boutique_not_found`);
-      }
-      return boutiqueData;
-    } else {
-      return {
-        banners: null,
-        name: "Search",
-      };
-    }
-  } catch (error) {
-    return {
-      banners: null,
-      name: "Search",
-    };
-  }
-}
+
 async function getCurrency(country, language) {
   try {
     let cachedCurrency = await getCurrencyFromCache(country);
@@ -97,7 +72,7 @@ export default async function Page({ params }) {
       };
     }
 
-    let [filtersData, currency, boutique] = [
+    let [filtersData, currency] = [
       getProductsAndFiltersFromElastic({
         country,
         language_code: language,
@@ -105,13 +80,12 @@ export default async function Page({ params }) {
           ...parsedFilters,
           // priceRange:parsedFilters.prices?.map((s)=>s.split('-').map((d)=>Number(d))),
           featured: false,
-          flashdeal: false,
+          flashdeal: true,
           search_text: parsedFilters.search_text?.[0],
         },
         limit: 10,
       }),
       getCurrency(country, language),
-      GetBoutique(boutiqueItem, country, language),
     ];
 
     const isRtl = language === "ar" || language === "ku";
@@ -122,7 +96,7 @@ export default async function Page({ params }) {
           {/*@ts-expect-error Async Server Component is valid in Next  */}
           <GetStructuredData
             is_fearured={false}
-            response={filtersData}
+            responsePromise={filtersData}
             is_flashDeals={false}
             params={Params}
           />
@@ -190,14 +164,6 @@ export default async function Page({ params }) {
           data-cy="boutique_header"
           className={`boutique-header ${"flex-col"} align-center`}
         >
-          {Params.filters?.boutiques?.[0] && (
-            // @ts-expect-error Async Server Component is valid in Next  */
-            <ListingBoutiqueSlider
-              boutiquePromise={boutique}
-              key={Params.filters?.boutiques?.[0] || "noFilters"}
-            />
-          )}
-
           {/* @ts-expect-error Async Server Component is valid in Next  */}
           <FilterListContainer
             filtersPromis={filtersData}
@@ -208,8 +174,10 @@ export default async function Page({ params }) {
         </div>
         {/* @ts-expect-error Async Server Component is valid in Next  */}
         <ProductListConainer
+          isFlashDeals={true}
+          isFeatured={false}
           Params={Params}
-          boutiquePromise={boutique}
+          boutiquePromise={() => {}}
           currencyPromise={currency}
           filtersDataPromise={filtersData}
           parsedFilters={parsedFilters}

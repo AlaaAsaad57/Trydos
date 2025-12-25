@@ -8,20 +8,18 @@ import {
   buildParamsFromFilters,
   FilterParams,
   pollinateInput,
-} from "utils/tinyUtils";
+} from "utils/server";
 import InfiniteScrollFilters from "components/ListingPage/filterComponents/InfiniteScrollFilters";
-
 import SwitchFiltersButton from "components/filterPage/SwitchFiltersButton";
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 import Image from "next/image";
 import { getConfiguredImage, RoundPrice } from "utils/functions";
 import { FilterItemsRowPropsType } from "models/componentType/FilterItemsRowPropsType";
 import FilterItem from "components/ListingPage/FilterItem";
-import FilterItemWrapper from "components/clientWrapper/FilterItemWrapper";
 
 function FilterList({
   parsedFilters,
-  searchParams,
+
   params,
   filters,
   currency,
@@ -30,7 +28,7 @@ function FilterList({
   itemsLength,
 }: FilterItemsRowPropsType) {
   // Use parsedFilters if available, otherwise use searchParams for backward compatibility
-  const filterParams = parsedFilters || searchParams;
+  const filterParams = parsedFilters;
   const isUsingParsedFilters = Boolean(parsedFilters);
   const language = params.lang.split("-")?.[1];
   const isRtl = language === "ar" || language === "ku";
@@ -67,28 +65,36 @@ function FilterList({
                 : "flex-row flex ml-[45px]"
             }  items-center pr-[20px]   justify-start align-start filter-container overflow-auto scroll-smooth`}
           >
-            {Object.keys(filters).map((filter, index) => {
-              if (
-                filter !== "search_text" &&
-                filter !== "boutiques" &&
-                filters[filter] &&
-                filters[filter]?.length > 0
+            {Object.keys(filters)
+              .filter(
+                (filter) =>
+                  filter !== "search_text" &&
+                  filter !== "boutiques" &&
+                  filters[filter] &&
+                  filters[filter]?.length > 0
               )
-                return (
-                  <FilterItemsRow
-                    index={index}
-                    isFeatured={isFeatured}
-                    isFlashDeals={isFlashDeals}
-                    params={params}
-                    currency={currency}
-                    filterParams={filterParams}
-                    isUsingParsedFilters={isUsingParsedFilters}
-                    items={filters[filter]}
-                    key={filter}
-                    term={filter}
-                  />
-                );
-            })}
+              .map((filter, index) => {
+                if (
+                  filter !== "search_text" &&
+                  filter !== "boutiques" &&
+                  filters[filter] &&
+                  filters[filter]?.length > 0
+                )
+                  return (
+                    <FilterItemsRow
+                      index={index}
+                      isFeatured={isFeatured}
+                      isFlashDeals={isFlashDeals}
+                      params={params}
+                      currency={currency}
+                      filterParams={filterParams}
+                      isUsingParsedFilters={isUsingParsedFilters}
+                      items={filters[filter]}
+                      key={filter}
+                      term={filter}
+                    />
+                  );
+              })}
           </HortiznalScrollBar>
         </div>
       )}
@@ -657,6 +663,7 @@ const FilterItemsRow = ({
   isFlashDeals,
   total = 10,
 }: FilterItemsRowProps) => {
+  const [country, language] = params.lang.split("-");
   const getDataCy = () => {
     if (term === "categories") return "categoryBox";
     if (term === "brands") return "BrandBox";
@@ -700,14 +707,10 @@ const FilterItemsRow = ({
         {shouldShowMore() && (
           <InfiniteScrollFilters
             term={term}
-            isFeatured={isFeatured}
-            isFlashDeals={isFlashDeals}
-            filterParams={filterParams}
-            isUsingParsedFilters={isUsingParsedFilters}
-            lang={params?.lang}
-            currency={currency}
-            params={params}
-            key={JSON.stringify(filterParams)}
+            filters={filterParams}
+            country={country}
+            language={language}
+            // key={JSON.stringify(filterParams)}
           />
         )}
       </div>

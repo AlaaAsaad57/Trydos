@@ -1,8 +1,8 @@
-import { Skeleton } from "components/Server/Skeleton";
+import { GetImageUrl } from "utils/server";
+import Skeleton from "react-loading-skeleton";
+import TopStarIcon from "public/svg/listing/TopStar";
 import VerificationIcon from "public/svg/listing/VerificationIcon";
-import React from "react";
-
-function BoutiqueSlidersSkeleton({ banners = [] }) {
+function BoutiqueSlidersSkeleton({ boutique }: any) {
   return (
     <>
       <div
@@ -10,24 +10,31 @@ function BoutiqueSlidersSkeleton({ banners = [] }) {
         className="boutique-top-info flex-col items-center"
       >
         <div className="boutique-logo-container flex-row align-center">
-          <Skeleton width={130} height={20} borderRadius={"8px"} />
+          {boutique?.icon ? (
+            <img
+              alt={boutique?.name}
+              width={130}
+              height={20}
+              src={GetImageUrl(boutique?.icon)}
+            />
+          ) : (
+            <Skeleton width={70} height={20} borderRadius={"4px"} />
+          )}
           <VerificationIcon />
-          <Skeleton width={24} height={24} borderRadius={"50%"} />
+          <TopStarIcon />
         </div>
-        <div className="boutique-text">
-          <Skeleton width={100} height={16} borderRadius={"4px"} />
-        </div>
+        <div className="boutique-text">{boutique?.name}</div>
       </div>
       <div data-cy="boutique_photo_holder" className="boutique-photo-holder">
         <div
           data-cy="banners_length-1"
           className={`${
-            banners?.length > 1 && "justify-start"
+            boutique?.banners?.length > 1 && "justify-start"
           } offer-slider-container`}
         >
           <div data-cy="embla_embla" className="embla">
             <div data-cy="embla__container_embla" className="embla__container">
-              {banners?.map((s, index) => (
+              {boutique?.banners?.map((s, index) => (
                 <div
                   data-cy="embla__slide_embla"
                   className="embla__slide"
@@ -46,6 +53,28 @@ function BoutiqueSlidersSkeleton({ banners = [] }) {
                         style={{ height: "100%" }}
                       />
 
+                      <img src={GetImageUrl(s)} />
+                    </div>
+                  </div>
+                </div>
+              ))}
+              {boutique?.banners?.length === 0 && (
+                <div data-cy="embla__slide_embla" className="embla__slide">
+                  <div
+                    data-cy="offer_slide_item_embla"
+                    className="offer-slide-item"
+                    style={{ width: "100%" }}
+                  >
+                    <div
+                      data-cy="image_offer_image"
+                      className="image-offer w-full"
+                    >
+                      <div
+                        data-cy="image_inner_shadow_image"
+                        className="image-inner-shadow"
+                        style={{ height: "100%" }}
+                      />
+
                       <Skeleton
                         width={"100%"}
                         height={150}
@@ -54,7 +83,7 @@ function BoutiqueSlidersSkeleton({ banners = [] }) {
                     </div>
                   </div>
                 </div>
-              ))}
+              )}
             </div>
           </div>
         </div>

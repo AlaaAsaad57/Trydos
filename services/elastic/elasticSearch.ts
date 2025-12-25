@@ -148,6 +148,7 @@ let client = elasticSearchClient;
 export async function getProductsAndFiltersFromElastic(
   params: SearchParams
 ): Promise<SearchResult> {
+  console.log("Elasticsearch search params:", params);
   let {
     limit = 10,
     search_after = [],
@@ -244,7 +245,7 @@ export async function getProductsAndFiltersFromElastic(
         filtersSize
       ),
     };
-    if (noProducts) searchQuery.size = 0;
+
     if (noFilters) delete searchQuery.aggs;
     // Add search_after for pagination
     if (search_after?.length > 0) {

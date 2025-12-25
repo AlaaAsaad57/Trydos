@@ -14,6 +14,9 @@ function BoutiqueWrapper({ boutique, lang }) {
       <NextLink
         data={{
           is_boutique: true,
+          name: boutique.name,
+          banners: boutique.banners,
+          icon: boutique.icon,
         }}
         ignoreConditionCase={true}
         data-cy="boutique_link"

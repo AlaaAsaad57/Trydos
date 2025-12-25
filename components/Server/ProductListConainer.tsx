@@ -9,6 +9,8 @@ async function ProductListConainer({
   boutiquePromise,
   parsedFilters,
   Params,
+  isFlashDeals = false,
+  isFeatured = false,
 }) {
   let [filtersData, currency, boutique] = await Promise.all([
     filtersDataPromise,
@@ -54,6 +56,7 @@ async function ProductListConainer({
         name: product?.name,
         slug: product?.slug,
         label_names: product?.label_names,
+        flash_deal_price: product.flash_deal_price,
         category_tree: product?.category_tree,
         videos: product.videos,
         colors: product?.colors,
@@ -91,6 +94,8 @@ async function ProductListConainer({
         key={`product-list-${JSON.stringify(parsedFilters)}`}
         parsedFilters={parsedFilters}
         params={Params}
+        isFeatured={isFeatured}
+        isFlashDeals={isFlashDeals}
       />
     </Suspense>
   );
