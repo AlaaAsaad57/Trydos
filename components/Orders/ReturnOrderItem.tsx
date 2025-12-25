@@ -7,12 +7,12 @@ import {
 } from "utils/functions";
 import ReturnOrderItemIcon from "public/svg/ReturnOrderItemIcon";
 import { useAppStore } from "store";
-import UploadImageOrder from "public/svg/UploadImageOrder";
+
 import Spinner from "components/global/Spinner";
 import { ReturnOrderItemPropsType } from "models/componentType/ReturnOrderItemPropsType";
 import order from "services/order";
 import Skeleton from "react-loading-skeleton";
-import { showErrorNotification } from "store/notifications/reducer";
+
 import UploadImageComponent from "./UploadImageComponent";
 
 function ReturnOrderItem({
@@ -60,6 +60,14 @@ function ReturnOrderItem({
       item.qty
   );
   const isRtl = language === "ar" || language === "ku";
+  console.log({
+    price_fin:
+      ((item?.price_after_discount || item.price) / item.qty) * returnedQty -
+      (selectedOptions?.is_cost_by_system === 0 ? selectedOptions.cost : 0),
+    price: item?.price_after_discount || item.price,
+    qty: item?.qty,
+    returnedQty,
+  });
   return (
     <>
       <div className="flex-col w-full items-center pb-[12px] px-[24px]">
@@ -114,6 +122,7 @@ function ReturnOrderItem({
               rate: currency?.exchange_rate,
               language: language,
               returnNumber: true,
+              points: currency?.decimal_digits,
             })}
           </span>
           <span className="text-[#8D8D8D] mx-[4px]">{currency?.symbol}</span>
