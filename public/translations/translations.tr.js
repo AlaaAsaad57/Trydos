@@ -1121,6 +1121,12 @@ const translations = {
   "Confirm Return Request": " İade Talebini Onayla",
   "Cancel Return Request": "İade Talebini İptal Et",
   "Go to Seller Dashboard": " Satıcı Kontrol Paneline Git",
+  now: "şimdi",
+  "Sent an image": " Bir resim gönderdi",
+  "Sent a video": " Bir video gönderdi",
+  "Sent a file": " Bir dosya gönderdi",
+  "Sent a voice message": " Bir sesli mesaj gönderdi",
+  "Sent a message": " Bir mesaj gönderdi",
 };
 
 export default translations;

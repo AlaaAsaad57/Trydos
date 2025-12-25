@@ -1132,6 +1132,12 @@ const translations = {
   "Go to Seller Dashboard": "الذهاب إلى لوحة تحكم المورد",
   "Product is Shared Successfully": "تمت مشاركة المنتج بنجاح",
   "Product Share error": "خطأ في مشاركة المنتج",
+  now: "الآن",
+  "Sent an image": "أرسل صورة",
+  "Sent a video": "أرسل فيديو",
+  "Sent a file": "أرسل ملف",
+  "Sent a voice message": "أرسل رسالة صوتية",
+  "Sent a message": "أرسل رسالة",
 };
 
 export default translations;

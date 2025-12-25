@@ -26,8 +26,6 @@ function ChatHeader({
     setMain,
     openChat,
     setReplyMessage,
-    cameraPermissions,
-    checkCameraPermissions,
     language,
   } = useAppStore();
   let { lang } = useParams();
@@ -169,51 +167,31 @@ function ChatHeader({
           </div>
         )}
       </div>
-      {!isPrivate && (
-        <div
-          className={`${
-            isRtl
-              ? "left-[30px] flex-row-reverse right-[initial]"
-              : "right-[30px] flex-row left-[initial]"
-          } chat-top-contact`}
-        >
-          <VideoIcon
-            className={`${callLoading === "video" && "loading-svg"} vcall ${
-              isRtl ? "ml-[20px] mr-0" : "ml-0 mr-[20px]"
-            }`}
-            onClick={() => {
-              videoCallFunction();
-            }}
-          ></VideoIcon>
-          <CallIcon
-            className={`${callLoading === "voice" && "loading-svg"} call`}
-            onClick={() => {
-              audioCallFunction();
-            }}
-          ></CallIcon>
-        </div>
-      )}
+
+      <div
+        className={`${
+          isRtl
+            ? "left-[30px] flex-row-reverse right-[initial]"
+            : "right-[30px] flex-row left-[initial]"
+        } chat-top-contact`}
+      >
+        <VideoIcon
+          className={`${callLoading === "video" && "loading-svg"} vcall ${
+            isRtl ? "ml-[20px] mr-0" : "ml-0 mr-[20px]"
+          }`}
+          onClick={() => {
+            videoCallFunction();
+          }}
+        ></VideoIcon>
+        <CallIcon
+          className={`${callLoading === "voice" && "loading-svg"} call`}
+          onClick={() => {
+            audioCallFunction();
+          }}
+        ></CallIcon>
+      </div>
     </div>
   );
 }
 
 export default ChatHeader;
-//  <CancelCallIcon
-//             className={`${isRtl ? "pr-4" : "pl-4"} cancel-call `}
-//             onClick={async () => {
-//               try {
-//                 let res = await fetchData({
-//                   url: "/api/v1/messages/end_call",
-//                   body: JSON.stringify({ user_id: getUserChat()?.id }),
-//                   method: "POST",
-//                   server: "chat",
-//                   reqTitle: REQUESTS_DATA.END_CALL,
-//                 });
-//                 if (!res.success) {
-//                   throw new Error(res.message);
-//                 }
-//               } catch (err) {
-//                 console.error("End call failed", err);
-//               }
-//             }}
-//           ></CancelCallIcon>

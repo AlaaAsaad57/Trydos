@@ -285,6 +285,11 @@ export const fetchData = async <T = any>(
   params: FetchDataParams,
   isRetryAfterUnauthorized = false
 ): Promise<T> => {
+  const { useAppStore } = await import("../store");
+  const { LoggingOut } = useAppStore.getState();
+  if (LoggingOut) {
+    return {} as T;
+  }
   const {
     url,
     method,
@@ -310,10 +315,9 @@ export const fetchData = async <T = any>(
 
   const doFetchWithRetry = async (): Promise<T> => {
     await waitUntilRegisteringComplete();
-
     if (url === "/auth/register-guest") {
       const { useAppStore } = await import("../store");
-      let { setIsRegisteringReady } = useAppStore.getState();
+      let { setIsRegisteringReady, LoggingOut } = useAppStore.getState();
       setIsRegisteringReady(false);
     }
     try {
@@ -326,7 +330,6 @@ export const fetchData = async <T = any>(
         };
       }
       const fullUrl = getServerBaseUrl(server) + url;
-
       const requestOptions: RequestInit = {
         method,
         headers: {

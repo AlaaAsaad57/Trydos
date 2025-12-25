@@ -31,6 +31,10 @@ import AddToCartButton from "./Button";
 import NotifyButton from "./NotifyButton";
 import SearchParamUpdater from "components/global/ParamsUpdater";
 import { showErrorMessage } from "components/global/AddToCartMessage";
+const normalizeSize = (s) => {
+  if (typeof s === "string") return s.replace(/_/g, "-");
+  else return s;
+};
 import { getProductDataForAddToCart } from "serverRequests";
 
 function AddToCartComponent({ product, slug, close, enableCartAction }) {

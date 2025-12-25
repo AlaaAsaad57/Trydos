@@ -34,6 +34,7 @@ function AuthNavSection({
     setLoginOpen,
     setNotificationModal,
     setChatOpen,
+    LoggingOut,
     showNotificaionCircle,
     setMain,
   } = useAppStore();
@@ -81,10 +82,13 @@ function AuthNavSection({
       console.error("Error opening chat:", error);
     }
   };
+
   return (
     <>
       <div
-        className={`${chatVar && "active-nav-item"} nav-question-item`}
+        className={`${chatVar && "active-nav-item"} nav-question-item ${
+          LoggingOut ? "cursor-not-allowed opacity-80" : ""
+        }`}
         style={{
           marginRight:
             (!chatVar && getNew(chats).length === 0) || chatVar
@@ -97,12 +101,13 @@ function AuthNavSection({
           openChatAction();
         }}
       >
-        {!chatVar && getNew(chats).length === 0 ? (
+        {!LoggingOut && !chatVar && getNew(chats).length === 0 ? (
           <ChatIcon data-cy="Chat-Icon" />
         ) : (
+          !LoggingOut &&
           !chatVar && <ChatNotification num={getNew(chats).length} />
         )}
-        {chatVar && <ChatIcon />}
+        {!LoggingOut && chatVar && <ChatIcon />}
       </div>
       <div
         className={`welcome-user ${language + "-medium"}`}

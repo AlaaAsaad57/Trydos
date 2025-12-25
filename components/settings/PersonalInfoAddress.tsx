@@ -214,6 +214,9 @@ function PersonalInfoAddress({
                       <div className="flex-row mt-[5px]  items-center regular text-[12px] text-[#8D8D8D]">
                         {GetAddressString(s.region_details)}
                       </div>
+                      <div className="flex-row regular text-[12px]">
+                        {s?.address_detail}
+                      </div>
                       <div className="flex-row mt-[5px] items-center regular text-[12px] text-[#8D8D8D]">
                         <svg
                           xmlns="http://www.w3.org/2000/svg"

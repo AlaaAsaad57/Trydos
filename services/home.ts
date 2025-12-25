@@ -200,7 +200,6 @@ class HomeService {
     try {
       const { requestFirebaseNotificationPermission, onMessageListener } =
         await import("utils/firebaseInitv1");
-
       const fbtoken = await requestFirebaseNotificationPermission();
 
       if (fbtoken) {

@@ -109,8 +109,9 @@ function Card({
               className="w-auto max-h-[15px]"
             />
           </div>
-          {/*  */}
+
           <div
+            data-cy="product-name-label"
             className={`${
               isRtl ? "dir-rtl" : ""
             } flex flex-row items-center regular text-[#1D1D1D] text-[11px]`}

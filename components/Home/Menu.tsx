@@ -114,19 +114,10 @@ const Menu = ({ user, setMenuOpen }) => {
     // localStorage.clear();
     if (loading) return;
     setLoggingOut(true);
-    clearSimulatedUserSession();
-    clearHashedUserId();
-    setLoading(true);
-    deleteCookie(COOKIE_NAMES.MARKET_TOKEN);
-    deleteCookie(COOKIE_NAMES.DEVICE_TOKEN);
-    deleteCookie(COOKIE_NAMES.USER_CHAT);
-    deleteCookie(COOKIE_NAMES.USER_STORIES);
-    deleteCookie(COOKIE_NAMES.CHAT_TOKEN);
-    deleteCookie(COOKIE_NAMES.STORIES_TOKEN);
-    localStorage.clear();
-    deleteCookie(COOKIE_NAMES.USER_DATA);
+
     const { messaging } = await import("utils/firebaseInitv1");
     const { deleteToken } = await import("firebase/messaging");
+
     try {
       await deleteToken(messaging);
       deleteCookie(COOKIE_NAMES.MARKET_TOKEN);
@@ -135,9 +126,12 @@ const Menu = ({ user, setMenuOpen }) => {
       deleteCookie(COOKIE_NAMES.USER_STORIES);
       deleteCookie(COOKIE_NAMES.CHAT_TOKEN);
       deleteCookie(COOKIE_NAMES.STORIES_TOKEN);
-      localStorage.clear();
-
+      clearSimulatedUserSession();
+      clearHashedUserId();
+      setLoading(true);
+      sessionStorage.clear();
       deleteCookie(COOKIE_NAMES.USER_DATA);
+      localStorage.clear();
     } catch (error) {}
     await new Promise((resolve) => setTimeout(resolve, 2000));
     if (window.location.pathname.includes("/seller")) {

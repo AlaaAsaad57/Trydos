@@ -1,69 +1,139 @@
 // webview video call component
-import { useState, useEffect, useRef } from "react";
-import EndCallIcon from "../Chat/svg/endCall";
-import MicIcon from "../Chat/svg/micIcon";
-import VideoIcon from "../Chat/svg/vidIcon";
-import CallingIcon from "../Chat/svg/calling";
-import LeftArrowIcon from "../Chat/svg/leftArrow";
+import { useState, useEffect, useRef, useMemo } from "react";
+import EndCallIcon from "../svg/endCall";
+import MicIcon from "../svg/micIcon";
+import VideoIcon from "../svg/vidIcon";
+import CallingIcon from "../svg/calling";
+import LeftArrowIcon from "../svg/leftArrow";
 import AgoraRTC, {
   AgoraVideoPlayer,
   createClient,
   createMicrophoneAndCameraTracks,
 } from "agora-rtc-react";
 import { useStopwatch } from "react-timer-hook";
-const config = {
+import { useAppStore } from "store";
+import { getUserChat } from "utils/functions";
+import { GetImageUrl } from "utils/tinyUtils";
+import { getTwoLetters } from "../chatsFunctions";
+import { fetchData } from "utils/fetchData";
+import UPDATED_API_DATA from "migration.staging";
+import { REQUESTS_DATA } from "utils/Requests";
+import { RefuseCall } from "store/chat/callActions";
+
+const useClient = createClient({
   mode: "rtc",
   codec: "h264",
-};
-
-const useClient = createClient(config);
+});
 const useMicrophoneAndCameraTracks = createMicrophoneAndCameraTracks();
 
 const appId = "0af959943ff542df8f2cb1b925ec0cc4";
-function WebViewVideoCall(props) {
-  const [IsSpeaker, setIsSpeaker] = useState(true);
-  AgoraRTC.setLogLevel(4);
+function ChatVideoCall({ token }) {
+  const clientRef = useRef(null);
+  const tracksRef = useRef(null);
   const [loading, setLoading] = useState(false);
+  const endCall = async (duration) => {
+    setLoading(true);
+    try {
+      // Stop timer
+      pause();
 
-  // const switchCamera = async () => {
-  //   await tracks[1].stop()
-  //   await tracks[1].close()
-  //   if (tracks[1]) {
-  //     if (tracks[1].getMediaStreamTrack().label === cameras[0].label) {
-  //       let newTrack =await AgoraRTC.createCameraVideoTrack({facingMode:'environment'})
-  //       await tracks[1].replaceTrack(newTrack, true);
-  //       await client.publish(tracks[1])
-  //     } else {
-  //       setCamera("user");
-  //       alert("user");
-  //       let newTrack = await navigator.mediaDevices
-  //         .getUserMedia({ audio: false, video: { facingMode: "user" } })
-  //         .then((stream) => {
-  //           return stream.getVideoTracks()[0];
-  //         });
-  //       setCamera("user");
-  //       alert("user");
-  //       await tracks[1].replaceTrack(newTrack, true);
-  //     }
-  //   }
-  //   await tracks[1].setEnabled(true);
-  // };
+      // Clean up Agora resources if available
+      if (client) {
+        try {
+          client.removeAllListeners();
+          // Check if client is connected before trying to leave
+          if (
+            client.connectionState === "CONNECTED" ||
+            client.connectionState === "CONNECTING"
+          ) {
+            if (tracks?.length) {
+              await client.unpublish(tracks);
+            }
+            await client.leave();
+          }
+        } catch (agoraError) {
+          console.warn("Agora cleanup error:", agoraError);
+        }
+      }
+
+      // Close tracks if available
+      if (tracks) {
+        tracks[0]?.close(); // audio
+        tracks[1]?.close(); // video
+      }
+
+      // End call API - always call this
+      try {
+        let res = await fetchData({
+          url: UPDATED_API_DATA.MOD_END_CALL,
+
+          reqTitle: REQUESTS_DATA.END_CALL,
+          method: "POST",
+          server: "chat",
+          body: JSON.stringify({ user_id: getUserChat()?.id }),
+        });
+        if (!res.success) {
+          throw new Error(res.message);
+        }
+      } catch (apiError) {
+        console.error("End call API error:", apiError);
+      }
+
+      // Handle RefuseCall if we have the necessary data
+      if (activeChat?.id && MessageActiveCall) {
+        try {
+          if (duration && users.length > 0) {
+            await RefuseCall(activeChat.id, MessageActiveCall, duration);
+          } else {
+            await RefuseCall(
+              activeChat.id,
+              MessageActiveCall,
+              minutes * 60 + seconds
+            );
+          }
+        } catch (refuseError) {
+          console.error("RefuseCall error:", refuseError);
+        }
+      }
+
+      // Always unmount component
+      endCallInStore(MessageActiveCall);
+    } catch (error) {
+      console.error("Error ending call:", error);
+      // Still try to unmount
+      endCallInStore(MessageActiveCall);
+    }
+  };
+  const {
+    activeChat,
+    MessageActiveCall,
+    endCall: endCallInStore,
+    storeClient,
+    storeTrack,
+  } = useAppStore();
+  let userData = getUserChat();
+
+  AgoraRTC.setLogLevel(4);
 
   const { seconds, minutes, hours, days, isRunning, start, pause, reset } =
     useStopwatch({ autoStart: false });
-  console.log("props in webview video call", seconds, minutes);
+
   const [callStatus, setCallStatus] = useState(null);
 
   const [isPublished, setIsPublished] = useState(false);
   const [users, setUsers] = useState([]);
   const [displayMethod, setDisplayMethod] = useState(false);
-  const client = useClient(config);
+  const client = useClient();
   // ready is a state variable, which returns true when the local tracks are initialized, untill then tracks variable is null
   const { ready, tracks, error } = useMicrophoneAndCameraTracks();
 
   useEffect(() => {
     // function to initialise the SDK
     let init = async (name) => {
+      storeClient(client);
+      storeTrack(tracks);
+      clientRef.current = client;
+      tracksRef.current = tracks;
       console.log("Initializing AgoraRTC client with video call");
       client.on("user-joined", async (user) => {
         start();
@@ -72,11 +142,6 @@ function WebViewVideoCall(props) {
           if (prevUsers.find((u) => u.uid === user.uid)) return prevUsers;
           return [...prevUsers, user];
         });
-        if (window?.flutter_inappwebview)
-          window?.flutter_inappwebview?.callHandler?.(
-            "flutterMessageHandler",
-            "stop-ring" // <-- this becomes args[0] in Flutter
-          );
       });
       client.on("user-published", async (user, mediaType) => {
         await client.subscribe(user, mediaType);
@@ -136,12 +201,7 @@ function WebViewVideoCall(props) {
         });
       });
 
-      await client.join(
-        appId,
-        name.toString(),
-        props.data.token,
-        parseInt(props.data.sender_user_id)
-      );
+      await client.join(appId, name.toString(), token, parseInt(userData.id));
 
       if (tracks) {
         const currentVideoState = trackStateRef.current.video;
@@ -157,26 +217,23 @@ function WebViewVideoCall(props) {
     };
     console.log("tracks in video call", tracks);
     if (ready && tracks) {
-      init(props.data.channel_id);
+      init(activeChat?.id);
     }
   }, [client, ready, tracks, error]);
-  const userEndCall = async (bool) => {
+  const userEndCall = async (bool?) => {
     await client.leave();
     client.removeAllListeners();
     // we close the tracks to perform cleanup
     if (tracks) {
       tracks[0]?.close();
       tracks[1].close();
+      tracks?.[0]?.stop();
+      tracks?.[1]?.stop();
     }
     //   RefuseCall(activeChat.id,MessageActiveCall)
-
     pause();
     let duration = minutes * 60 + seconds;
-    if (!bool) {
-      props.onDecline(duration > 3 && users.length > 0 && duration);
-    } else {
-      window.location.href = "/endCall";
-    }
+    endCall(duration > 3 && users.length > 0 && duration);
     //   dispatch({type:"END-CALL"})
   };
   const [trackState, setTrackState] = useState({ video: true, audio: true });
@@ -187,6 +244,7 @@ function WebViewVideoCall(props) {
     trackStateRef.current = trackState;
   }, [trackState]);
   const mute = async (type) => {
+    console.log("mute called for ", type);
     if (type === "audio") {
       const newState = !trackState.audio;
       if (tracks && tracks[0]) {
@@ -201,41 +259,70 @@ function WebViewVideoCall(props) {
       }
     }
   };
-
+  const cleanUp = async () => {
+    try {
+      await clientRef?.current?.unpublish(tracks);
+      await clientRef?.current?.leave();
+    } catch (error) {
+      console.error("Error during cleanup:", error);
+    }
+    clientRef.current?.removeAllListeners();
+    if (tracksRef.current) {
+      tracksRef?.current?.[0]?.stop(); // audio
+      tracksRef?.current?.[1]?.stop(); // video
+      tracksRef.current?.[0]?.close(); // audio
+      tracksRef.current?.[1]?.close(); // video
+    }
+    clientRef.current = null;
+    tracksRef.current = null;
+  };
   useEffect(() => {
     if (seconds === 60 && users.length === 0) {
-      props.onDecline(-1);
       userEndCall(true);
     }
     if (minutes === 30) {
       userEndCall();
     }
+    return () => {
+      // Cleanup logic here
+      cleanUp();
+    };
   }, [minutes, seconds]);
+  const otherUser = useMemo(() => {
+    return (
+      activeChat?.channel_members?.find(
+        (member) => String(member.user_id) === String(userData?.id)
+      )?.user || null
+    );
+  }, [activeChat?.channel_members, userData?.id]);
+
   return (
     <>
       {
-        <div className="video-call webview">
+        <div className="video-call">
           {minutes >= 25 && (
             <div className="call-warn">Call End in {30 - minutes}</div>
           )}
           {
             <>
-              {props.active ? (
+              {otherUser?.photo_path ? (
                 <div
                   className="hgg"
                   style={{
-                    backgroundImage: `url(${props.active})`,
+                    backgroundImage: `url(${GetImageUrl(
+                      otherUser?.photo_path
+                    )})`,
                     left: 0,
                     right: 0,
                     margin: "0 auto",
                   }}
                 ></div>
-              ) : props.name ? (
+              ) : otherUser?.name ? (
                 <div
                   className="hgg text-avatar"
                   style={{ left: 0, right: 0, margin: "0 auto" }}
                 >
-                  {getTwoLetters("User")}
+                  {getTwoLetters(otherUser?.name || "User")}
                 </div>
               ) : (
                 <div
@@ -261,7 +348,7 @@ function WebViewVideoCall(props) {
             </div>
           )} */}
           <span className="caller-name">
-            {props.userData.name || props.userData.phone}
+            {userData?.name || userData?.phone}
           </span>
 
           {users.length > 0 &&
@@ -290,7 +377,16 @@ function WebViewVideoCall(props) {
                 );
               } else return <></>;
             })}
-
+          <div
+            style={tracks && tracks[1] && { zIndex: 3 }}
+            className={"end-icon " + `${loading && "disabled-label"}`}
+            onClick={() => {
+              userEndCall();
+            }}
+          >
+            <EndCallIcon></EndCallIcon>
+            <span>End Call</span>
+          </div>
           <div
             className={"cancel-call-icon " + `${loading && "disabled-label"}`}
             onClick={() => {
@@ -319,98 +415,26 @@ function WebViewVideoCall(props) {
                 />
               )}
           </div>
-          <div className="fixed bottom-[3dvh] left-0 right-0 mx-auto flex justify-center items-center gap-[25px] z-[9999999999]">
-            {isPublished ? (
-              <div
-                className={
-                  "toggle-mic static " + (trackState.audio && "active-mic-svg")
-                }
-                onClick={() => mute("audio")}
-              >
-                <MicIcon></MicIcon>
-              </div>
-            ) : (
-              <span />
-            )}
-            {
-              <div
-                onClick={() => {
-                  if (window?.flutter_inappwebview) {
-                    if (IsSpeaker) {
-                      if (window?.flutter_inappwebview)
-                        window?.flutter_inappwebview?.callHandler?.(
-                          "flutterMessageHandler",
-                          "IsEarpiece" // <-- this becomes args[0] in Flutter
-                        );
-                    } else {
-                      if (window?.flutter_inappwebview)
-                        window?.flutter_inappwebview?.callHandler?.(
-                          "flutterMessageHandler",
-                          "IsSpeaker" // <-- this becomes args[0] in Flutter
-                        );
-                    }
-                  }
-                  setIsSpeaker(!IsSpeaker);
-                }}
-                className={` ${
-                  IsSpeaker ? "opacity-100" : "opacity-65"
-                } flex rounded-full p-[10px] bg-white items-center justify-center `}
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                >
-                  <path
-                    d="M20 6C20 6 21.5 7.8 21.5 12C21.5 16.2 20 18 20 18"
-                    stroke="#1C274C"
-                    stroke-width="1.5"
-                    stroke-linecap="round"
-                  />
-                  <path
-                    d="M18 9C18 9 18.5 9.9 18.5 12C18.5 14.1 18 15 18 15"
-                    stroke="#1C274C"
-                    stroke-width="1.5"
-                    stroke-linecap="round"
-                  />
-                  <path
-                    d="M1.95863 8.57679C2.24482 8.04563 2.79239 7.53042 3.33997 7.27707C3.9393 6.99979 4.62626 6.99979 6.00018 6.99979C6.51225 6.99979 6.76828 6.99979 7.01629 6.95791C7.26147 6.9165 7.50056 6.84478 7.72804 6.74438C7.95815 6.64283 8.1719 6.50189 8.59941 6.22002L8.81835 6.07566C11.3613 4.39898 12.6328 3.56063 13.7001 3.92487C13.9048 3.9947 14.1029 4.09551 14.2798 4.21984C15.2025 4.86829 15.2726 6.37699 15.4128 9.3944C15.4647 10.5117 15.5001 11.4679 15.5001 11.9998C15.5001 12.5317 15.4647 13.4879 15.4128 14.6052C15.2726 17.6226 15.2025 19.1313 14.2798 19.7797C14.1029 19.9041 13.9048 20.0049 13.7001 20.0747C12.6328 20.4389 11.3613 19.6006 8.81834 17.9239L8.59941 17.7796C8.1719 17.4977 7.95815 17.3567 7.72804 17.2552C7.50056 17.1548 7.26147 17.0831 7.01629 17.0417C6.76828 16.9998 6.51225 16.9998 6.00018 16.9998C4.62626 16.9998 3.9393 16.9998 3.33997 16.7225C2.79239 16.4692 2.24482 15.9539 1.95863 15.4228C1.6454 14.8414 1.60856 14.237 1.53488 13.0282C1.52396 12.849 1.51525 12.6722 1.50928 12.4998"
-                    stroke="#1C274C"
-                    stroke-width="1.5"
-                    stroke-linecap="round"
-                  />
-                </svg>
-              </div>
-            }
+          {isPublished ? (
             <div
-              style={tracks && tracks[1] && { zIndex: 3 }}
-              className={
-                "end-icon static flex items-center justify-center m-0 " +
-                `${props.data.loading && "disabled-label"}`
-              }
-              onClick={() => {
-                userEndCall();
-              }}
+              className={"toggle-mic " + (trackState.audio && "active-mic-svg")}
+              onClick={() => mute("audio")}
             >
-              <EndCallIcon></EndCallIcon>
-              <span>End Call</span>
+              <MicIcon></MicIcon>
             </div>
-            {isPublished ? (
-              <div
-                className={
-                  "toggle-vid static " + (trackState.video && "active-mic-svg")
-                }
-                onClick={() => mute("video")}
-              >
-                <VideoIcon></VideoIcon>
-              </div>
-            ) : (
-              <span />
-            )}
-          </div>
-
+          ) : (
+            <span />
+          )}
+          {isPublished ? (
+            <div
+              className={"toggle-vid " + (trackState.video && "active-mic-svg")}
+              onClick={() => mute("video")}
+            >
+              <VideoIcon></VideoIcon>
+            </div>
+          ) : (
+            <span />
+          )}
           {ready && !users?.[0]?.hasVideo && (
             <div className="call-status">
               {users.length > 0 && !users[0].hasVideo ? (
@@ -447,4 +471,4 @@ function WebViewVideoCall(props) {
   );
 }
 
-export default WebViewVideoCall;
+export default ChatVideoCall;

@@ -288,7 +288,20 @@ function preciseMultiply(a, b) {
 }
 function toFixedUp(decimalDigits, number) {
   const factor = 10 ** decimalDigits;
-  return (Math.ceil(Number(number) * factor) / factor).toFixed(decimalDigits);
+
+  // 1. الضرب بالمعامل (مثلاً 100)
+  let multiplied = Number(number) * factor;
+
+  // 2. إصلاح خطأ الفواصل العشرية في لغة البرمجة
+  // نقوم بتقريب الرقم لأقرب 12 خانة عشرية للتخلص من أي كسور وهمية
+  // مثل 830.0000000000001 ستعود لتصبح 830
+  multiplied = Number(multiplied.toFixed(12));
+
+  // 3. الآن نطبق التقريب للأعلى (Ceil)
+  const ceiled = Math.ceil(multiplied);
+
+  // 4. القسمة وإرجاع النص
+  return (ceiled / factor).toFixed(decimalDigits);
 }
 
 export const RoundPrice = ({
@@ -315,6 +328,7 @@ export const RoundPrice = ({
   let rateVariable = rate || currency?.exchange_rate || 1;
   let deciaml_points = points || currency?.decimal_digits || 0;
   price_num = Number(toFixedUp(deciaml_points, price_num));
+  console.log({ price_num, rateVariable, num });
   let number = preciseMultiply(price_num, rateVariable);
 
   if (returnNumber) {
