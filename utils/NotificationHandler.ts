@@ -92,7 +92,9 @@ class ForegroundNotificationHandler {
         showNotificationIndicator,
         showNotificaionCircle,
         setAppCountry,
+        LoggingOut,
       } = useAppStore.getState();
+      if (LoggingOut) return;
       console.log({
         ...payload,
         data: {
