@@ -1169,6 +1169,12 @@ const translations = {
   "Confirm Return Request": "پشتڕاستکردنەوەی داواکاریی گەڕاندنەوە",
   "Cancel Return Request": "ڕەتکردنەوەی داواکاریی گەڕاندنەوە",
   "Go to Seller Dashboard": "بڕۆ بۆ داشبۆردی فرۆشکار",
+  now: "ئێستا",
+  "Sent an image": "وێنە نارد",
+  "Sent a video": "ڤیدیۆ نارد",
+  "Sent a voice message": "پەیامی دەنگ نارد",
+  "Sent a file": "فایل نارد",
+  "Sent a message": "پەیام نارد",
 };
 
 export default translations;

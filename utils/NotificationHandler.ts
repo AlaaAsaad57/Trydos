@@ -511,7 +511,7 @@ class ForegroundNotificationHandler {
           const senderPhoto = senderUser?.photo_path || channel?.photo_path;
           if (messageFiles && messageFiles.length > 0) {
             messageImage = messageFiles[0]?.file_path || messageFiles[0]?.url;
-            messagePreview = translateFunction("Sent an image");
+            messagePreview = getMessageNotificationPreview(messageType);
           } else if (messageContent?.content) {
             if (messageType?.includes("ShareProduct")) {
               messagePreview = translateFunction("Shared a product");
@@ -769,3 +769,18 @@ class ForegroundNotificationHandler {
 // Export singleton instance
 export const foregroundNotificationHandler =
   new ForegroundNotificationHandler();
+
+function getMessageNotificationPreview(messageType: string) {
+  switch (messageType) {
+    case "ImageMessage":
+      return translateFunction("Sent an image");
+    case "VideoMessage":
+      return translateFunction("Sent a video");
+    case "VoiceMessage":
+      return translateFunction("Sent a voice message");
+    case "FileMessage":
+      return translateFunction("Sent a file");
+    default:
+      return translateFunction("Sent a message");
+  }
+}
