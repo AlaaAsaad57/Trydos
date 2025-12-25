@@ -47,7 +47,7 @@ function RatingStars({
   color = "#402CDD",
   size = 11.326,
 }: RatingStarsPropsType) {
-  const [rating, setRating] = useState(Math.ceil(initialRating));
+  const [rating, setRating] = useState(initialRating);
 
   const handleClick = (index: number, isHalf: boolean) => {
     if (!readOnly) {
