@@ -7,6 +7,8 @@ import Image from "next/image";
 import { translateFunction } from "utils/functions";
 import { useAppStore } from "store";
 import { getTwoLetters } from "components/Chat/chatsFunctions";
+import { watchChannel } from "store/chat/actions";
+import CallComponent from "components/Chat/components/CallComponent";
 const NotificationsContainer = () => {
   const { notifications, removeNotification } = useNotificationStore();
   const [dismissingIds, setDismissingIds] = useState<Set<string>>(new Set());
@@ -16,10 +18,10 @@ const NotificationsContainer = () => {
     setChatOpen,
     setMain,
     setIsNavigating,
-    setShouldUpdateOrders,
+
     setOrderLoading,
-    setOrderDetails,
-    setActivePacks,
+
+    isCallIncoming,
   } = useAppStore();
 
   const handleDismiss = (id: string) => {
@@ -61,6 +63,7 @@ const NotificationsContainer = () => {
         const checkForChatList = () => {
           const chatListElement = document.querySelector(".chat-lists-class");
           if (chatListElement) {
+            watchChannel(channel?.id);
             // Chat list is ready, now open the specific chat
             openChat(channel);
             setMain("chat");
@@ -510,6 +513,9 @@ const NotificationsContainer = () => {
           </div>
         );
       })}
+      {isCallIncoming && (
+        <CallComponent reply={() => {}} isCallIncoming={isCallIncoming} />
+      )}
     </>
   );
 };

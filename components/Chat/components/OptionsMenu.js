@@ -54,7 +54,7 @@ function OptionsMenu(props) {
             >
               {translateFunction("For Me")}
             </button>
-            {isSender ? (
+            {isSender && !props.isCall ? (
               <button
                 className="bg-white border border-gray-200 rounded-lg px-4 py-3 shadow-sm hover:shadow-md transition-shadow text-gray-900 font-medium"
                 data-cy="DELETE-OPTION"
@@ -84,6 +84,29 @@ function OptionsMenu(props) {
         </div>
       </div>
     );
+  if (props.isCall) {
+    return (
+      <div className="abs-menu">
+        <div
+          className="message-ops w-auto cursor-pointer"
+          onClick={() => {
+            setDelete(true);
+          }}
+        >
+          <div
+            className="message-opt"
+            data-cy="DELETE-OPTION"
+            onClick={() => {
+              setDelete(true);
+            }}
+          >
+            <DeleteIcon></DeleteIcon>
+            <div className="rep-descs">{translate("Delete", language)}</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
   return (
     <div className="abs-menu">
       {
