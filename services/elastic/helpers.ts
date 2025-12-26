@@ -66,6 +66,7 @@ export function getSourceFields(): string[] {
 }
 export interface ExtractFiltersResult {
   custom_products: CustomProduct[];
+  prices: any;
 }
 
 export interface CustomProduct {
@@ -207,6 +208,7 @@ export function extractFilters(
 
   return {
     custom_products: Object.values(customProducts),
+    prices: prices,
   };
 }
 

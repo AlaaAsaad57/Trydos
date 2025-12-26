@@ -326,7 +326,7 @@ function FiltersWidget({ filters, configureActiveFilters }) {
   };
   const resetFilters = () => {
     resetSearchFilter();
-    console.log(filters);
+
     setSearchResults({
       categories: filters.categories,
       brands: filters.brands,

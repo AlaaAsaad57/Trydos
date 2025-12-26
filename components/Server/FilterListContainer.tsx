@@ -48,7 +48,7 @@ async function FilterListContainer({
     boutiques: filtersData?.boutiques || [],
     search_text: parsedFilters?.search_text?.[0] || null,
   };
-  console.log("filters prices", filtersData.prices);
+
   return (
     <Suspense fallback={<ListingSkeleton justFilters={true} />}>
       {

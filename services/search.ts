@@ -184,7 +184,7 @@ class SearchService {
         filters: {},
         filters_offset: 1,
       });
-      console.log(filtersResponse);
+
       // if (!filtersResponse.success) {
       //   throw new Error(filtersResponse.message);
       // }

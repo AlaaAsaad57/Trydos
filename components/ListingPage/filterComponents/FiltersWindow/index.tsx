@@ -81,7 +81,7 @@ const FiltersWindowUI = ({
 
   const UpdateFilters = useCallback(async () => {
     if (loading) return;
-    console.log(filters);
+
     try {
       setLoading(true);
       let response = await GetFilters({

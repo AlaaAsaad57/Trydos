@@ -36,6 +36,7 @@ function FilterList({
       return { ...filterParams, Search: parsedFilters?.search };
     return filterParams;
   };
+
   return (
     <>
       {itemsLength > 1 && (
@@ -698,8 +699,8 @@ const FilterItemsRow = ({
               key={
                 item.id ??
                 item?.slug ??
-                item ??
-                `${item?.min_price}-${item?.max_price}`
+                (item?.min_price && `${item?.min_price}-${item?.max_price}`) ??
+                item
               }
               currency={currency}
               term={term}

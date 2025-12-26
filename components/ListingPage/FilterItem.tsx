@@ -561,10 +561,12 @@ export const FilterItem = ({
               num: item.min_price,
               language: params.lang.split("-")[1],
               rate: currency?.exchange_rate,
+              points: currency?.decimal_digits,
             })} - ${currency.symbol} ${RoundPrice({
               num: item.max_price,
               language: params.lang.split("-")[1],
               rate: currency?.exchange_rate,
+              points: currency?.decimal_digits,
             })}`}
           </div>
         </div>

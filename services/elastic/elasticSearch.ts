@@ -140,6 +140,7 @@ interface ProductImage {
 
 interface ExtractFiltersResult {
   custom_products: CustomProduct[];
+  prices: any;
 }
 let client = elasticSearchClient;
 /**
@@ -148,7 +149,6 @@ let client = elasticSearchClient;
 export async function getProductsAndFiltersFromElastic(
   params: SearchParams
 ): Promise<SearchResult> {
-  console.log("Elasticsearch search params:", params);
   let {
     limit = 10,
     search_after = [],
@@ -271,6 +271,7 @@ export async function getProductsAndFiltersFromElastic(
       language_code,
       is_from_browser
     );
+    prices = productsWithFilters.prices;
     if (filters.colors?.length) {
       productsWithFilters.custom_products = sortSyncColorImagesByFilteredColor(
         productsWithFilters.custom_products,
@@ -342,10 +343,7 @@ export async function getProductsAndFiltersFromElastic(
         ?.buckets || [],
       filters_offset
     );
-    prices =
-      normalizedProducts?.custom_products?.length > 0
-        ? calculatePriceRange(normalizedProducts?.custom_products)
-        : null;
+
     brandsFilter = processBrandsAggregation(
       (aggregations as any).top_brands?.filtered_brands?.brands_by_id
         ?.buckets || [],
@@ -356,7 +354,7 @@ export async function getProductsAndFiltersFromElastic(
         ?.buckets || [],
       filters_offset
     );
-    console.log("Elastic search", prices);
+
     return {
       offset: lastSortValue,
       limit: limit,
@@ -1046,10 +1044,12 @@ function extractFilters(
     }
   });
 
+  let prices = products.length > 0 ? calculatePriceRange(products) : null;
   // Calculate price range
 
   return {
     custom_products: customProducts,
+    prices: prices,
   };
 }
 
