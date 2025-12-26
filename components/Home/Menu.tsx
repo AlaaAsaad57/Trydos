@@ -29,6 +29,8 @@ import dynamic from "next/dynamic";
 import { clearSimulatedUserSession } from "utils/sessionManager";
 import { useAppStore } from "store";
 import { showSuccessNotification } from "store/notifications/reducer";
+import { fetchData } from "utils/fetchData";
+import { REQUESTS_DATA } from "utils/Requests";
 
 interface MenuProps {
   user: any;
@@ -120,9 +122,22 @@ const Menu = ({ user, setMenuOpen }) => {
 
     const { messaging } = await import("utils/firebaseInitv1");
     const { deleteToken } = await import("firebase/messaging");
-
+    const handleRemoveFCM = async () => {
+      if (localStorage.getItem("FB-DEVICE-TOKEN")) {
+        await fetchData({
+          method: "POST",
+          url: "/api/v1/firebase_tokens/remove-token",
+          server: "chat",
+          reqTitle: REQUESTS_DATA.REOMVE_FCM,
+          body: JSON.stringify({
+            token: localStorage.getItem("FB-DEVICE-TOKEN"),
+          }),
+        });
+      }
+    };
+    setLoading(true);
     try {
-      await deleteToken(messaging);
+      await Promise.all([deleteToken(messaging), handleRemoveFCM()]);
       deleteCookie(COOKIE_NAMES.MARKET_TOKEN);
       deleteCookie(COOKIE_NAMES.DEVICE_TOKEN);
       deleteCookie(COOKIE_NAMES.USER_CHAT);
@@ -131,7 +146,7 @@ const Menu = ({ user, setMenuOpen }) => {
       deleteCookie(COOKIE_NAMES.STORIES_TOKEN);
       clearSimulatedUserSession();
       clearHashedUserId();
-      setLoading(true);
+
       sessionStorage.clear();
       deleteCookie(COOKIE_NAMES.USER_DATA);
       localStorage.clear();

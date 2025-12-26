@@ -19,15 +19,13 @@ const NewLoginWidget = dynamic(
   }
 );
 function AuthSections() {
-  const { loginOpen, chatVar: chatOpen, isCallIncoming, call } = useAppStore();
+  const { loginOpen, chatVar: chatOpen, call } = useAppStore();
 
   return (
     <>
       {chatOpen && <ChatModal />}
       {loginOpen && <NewLoginWidget />}
-      {isCallIncoming && (
-        <CallComponent reply={() => {}} isCallIncoming={isCallIncoming} />
-      )}
+
       {call && <CallContainer />}
     </>
   );

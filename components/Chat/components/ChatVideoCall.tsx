@@ -291,7 +291,7 @@ function ChatVideoCall({ token }) {
   const otherUser = useMemo(() => {
     return (
       activeChat?.channel_members?.find(
-        (member) => String(member.user_id) === String(userData?.id)
+        (member) => String(member.user_id) !== String(userData?.id)
       )?.user || null
     );
   }, [activeChat?.channel_members, userData?.id]);
@@ -348,7 +348,7 @@ function ChatVideoCall({ token }) {
             </div>
           )} */}
           <span className="caller-name">
-            {userData?.name || userData?.phone}
+            {otherUser?.name || otherUser?.phone}
           </span>
 
           {users.length > 0 &&

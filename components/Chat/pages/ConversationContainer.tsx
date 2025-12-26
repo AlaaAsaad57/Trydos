@@ -423,8 +423,7 @@ function ConversationContainer({
     scrollToBottom();
   }, [openChatRenderer]);
   useEffect(() => {
-    if (isPrivate) scrollToBottom();
-    else scrollToBottom();
+    scrollToBottom();
     activeChat && activeChat.id && watchChannel(activeChat.id);
   }, [refs]);
 

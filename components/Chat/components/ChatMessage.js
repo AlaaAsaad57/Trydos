@@ -1373,8 +1373,51 @@ function ChatMessage(props) {
         props.message.message_type.name === "VoiceCall"
       ) {
         return (
-          <div className="call-body">
-            {(props.type === "first-chat" || props.type === "lonely") && (
+          <div
+            className={`${opens && "ac"} flex flex-col gap-[10px] message-hold`}
+          >
+            <div className={` call-body`} onClick={() => setOpen(true)}>
+              {(props.type === "first-chat" || props.type === "lonely") && (
+                <div
+                  className={
+                    "absolute-avatar " +
+                    `${
+                      (!activeChat.channel_members.filter(
+                        (a) =>
+                          parseInt(a.user_id) === parseInt(getUserChat()?.id)
+                      )[0]?.user?.photo_path ||
+                        activeChat.channel_members
+                          .filter(
+                            (a) =>
+                              parseInt(a.user_id) ===
+                              parseInt(getUserChat()?.id)
+                          )[0]
+                          ?.user?.photo_path?.includes("eu")) &&
+                      activeChat.channel_members.filter(
+                        (a) =>
+                          parseInt(a.user_id) === parseInt(getUserChat()?.id)
+                      )[0]?.user?.name &&
+                      "text-avatar"
+                    }`
+                  }
+                >
+                  <ChatPhoto
+                    user={
+                      activeChat.channel_members.filter(
+                        (user) => user.user_id === getUserChat()?.id
+                      )[0]?.user
+                    }
+                    width={30}
+                    className="abs-avva"
+                    height={30}
+                  />
+                </div>
+              )}
+              {props.message.message_type.name === "VoiceCall" ? (
+                <MissedIcon></MissedIcon>
+              ) : (
+                <VideoIconMissed />
+              )}
               <div
                 className={
                   "absolute-avatar " +
@@ -1406,47 +1449,25 @@ function ChatMessage(props) {
                   height={30}
                 />
               </div>
-            )}
-            {props.message.message_type.name === "VoiceCall" ? (
-              <MissedIcon></MissedIcon>
-            ) : (
-              <VideoIconMissed />
-            )}
-            <div
-              className={
-                "absolute-avatar " +
-                `${
-                  (!activeChat.channel_members.filter(
-                    (a) => parseInt(a.user_id) === parseInt(getUserChat()?.id)
-                  )[0]?.user?.photo_path ||
-                    activeChat.channel_members
-                      .filter(
-                        (a) =>
-                          parseInt(a.user_id) === parseInt(getUserChat()?.id)
-                      )[0]
-                      ?.user?.photo_path?.includes("eu")) &&
-                  activeChat.channel_members.filter(
-                    (a) => parseInt(a.user_id) === parseInt(getUserChat()?.id)
-                  )[0]?.user?.name &&
-                  "text-avatar"
-                }`
-              }
-            >
-              <ChatPhoto
-                user={
-                  activeChat.channel_members.filter(
-                    (user) => user.user_id === getUserChat()?.id
-                  )[0]?.user
+              <div className="missed-body">
+                {translate("Missed  Call At", language)}{" "}
+                {getMessageTime(props.message.created_at, true)}
+              </div>
+            </div>
+            {!props.isPrivate && (
+              <OptionsMenu
+                isCall={true}
+                message={props?.message}
+                DeleteModal={DeleteModal}
+                setDelete={(e) => setDelete(e)}
+                deleteMessage={(e) =>
+                  DeleteMessage(activeChat.id, props.message.id, e)
                 }
-                width={30}
-                className="abs-avva"
-                height={30}
+                copy={() => copyText()}
+                forward={() => setForwardMessage(props.message)}
+                click={() => setReplyMessage(props.message)}
               />
-            </div>
-            <div className="missed-body">
-              {translate("Missed  Call At", language)}{" "}
-              {getMessageTime(props.message.created_at, true)}
-            </div>
+            )}
           </div>
         );
       }
@@ -2259,8 +2280,51 @@ function ChatMessage(props) {
         props.message.message_type.name === "VoiceCall"
       ) {
         return (
-          <div className="call-body">
-            {(props.type === "first-chat" || props.type === "lonely") && (
+          <div
+            className={`${opens && "ac"} flex flex-col gap-[10px] message-hold`}
+          >
+            <div className={` call-body`} onClick={() => setOpen(true)}>
+              {(props.type === "first-chat" || props.type === "lonely") && (
+                <div
+                  className={
+                    "absolute-avatar " +
+                    `${
+                      (!activeChat.channel_members.filter(
+                        (a) =>
+                          parseInt(a.user_id) !== parseInt(getUserChat()?.id)
+                      )[0]?.user?.photo_path ||
+                        activeChat.channel_members
+                          .filter(
+                            (a) =>
+                              parseInt(a.user_id) !==
+                              parseInt(getUserChat()?.id)
+                          )[0]
+                          ?.user?.photo_path?.includes("eu")) &&
+                      activeChat.channel_members.filter(
+                        (a) =>
+                          parseInt(a.user_id) !== parseInt(getUserChat()?.id)
+                      )[0]?.user?.name &&
+                      "text-avatar"
+                    }`
+                  }
+                >
+                  <ChatPhoto
+                    user={
+                      activeChat.channel_members.filter(
+                        (user) => user.user_id !== getUserChat()?.id
+                      )[0]?.user
+                    }
+                    width={30}
+                    className="abs-avva"
+                    height={30}
+                  />
+                </div>
+              )}
+              {props.message.message_type.name === "VoiceCall" ? (
+                <MissedIcon></MissedIcon>
+              ) : (
+                <VideoIconMissed />
+              )}
               <div
                 className={
                   "absolute-avatar " +
@@ -2292,47 +2356,25 @@ function ChatMessage(props) {
                   height={30}
                 />
               </div>
-            )}
-            {props.message.message_type.name === "VoiceCall" ? (
-              <MissedIcon></MissedIcon>
-            ) : (
-              <VideoIconMissed />
-            )}
-            <div
-              className={
-                "absolute-avatar " +
-                `${
-                  (!activeChat.channel_members.filter(
-                    (a) => parseInt(a.user_id) !== parseInt(getUserChat()?.id)
-                  )[0]?.user?.photo_path ||
-                    activeChat.channel_members
-                      .filter(
-                        (a) =>
-                          parseInt(a.user_id) !== parseInt(getUserChat()?.id)
-                      )[0]
-                      ?.user?.photo_path?.includes("eu")) &&
-                  activeChat.channel_members.filter(
-                    (a) => parseInt(a.user_id) !== parseInt(getUserChat()?.id)
-                  )[0]?.user?.name &&
-                  "text-avatar"
-                }`
-              }
-            >
-              <ChatPhoto
-                user={
-                  activeChat.channel_members.filter(
-                    (user) => user.user_id !== getUserChat()?.id
-                  )[0]?.user
+              <div className="missed-body">
+                {translate("Missed  Call At", language)}{" "}
+                {getMessageTime(props.message.created_at, true)}
+              </div>
+            </div>
+            {!props.isPrivate && (
+              <OptionsMenu
+                isCall={true}
+                message={props?.message}
+                DeleteModal={DeleteModal}
+                setDelete={(e) => setDelete(e)}
+                deleteMessage={(e) =>
+                  DeleteMessage(activeChat.id, props.message.id, e)
                 }
-                width={30}
-                className="abs-avva"
-                height={30}
+                copy={() => copyText()}
+                forward={() => setForwardMessage(props.message)}
+                click={() => setReplyMessage(props.message)}
               />
-            </div>
-            <div className="missed-body">
-              {translate("Missed  Call At", language)}{" "}
-              {getMessageTime(props.message.created_at, true)}
-            </div>
+            )}
           </div>
         );
       }

@@ -40,11 +40,13 @@ export const useNotificationStore = create<NotificationStore>((set) => ({
   addNotification: (notification) =>
     set((state) => ({
       notifications: [
-        ...state.notifications,
+        ...state.notifications.filter(
+          (n) => n?.chatData?.channelId !== notification?.chatData?.channelId
+        ),
         {
           ...notification,
           id: `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
-          duration: notification.duration || 10000,
+          duration: notification?.duration || 10000,
         },
       ],
     })),
