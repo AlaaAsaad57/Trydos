@@ -42,6 +42,7 @@ function FeatureProducts({ lang, fetauredProductsData, currencyData }) {
       >
         {featuredProducts?.data?.products?.map((product, key) => (
           <ProductWrapper
+            key={product?.product_id ?? product?.id}
             category_tree={product?.categories?.map((s) => s.name)}
             labels={product?.label_names}
             color={product?.sync_color_images?.[0]?.color_name}

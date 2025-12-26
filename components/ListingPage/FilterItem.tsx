@@ -1,15 +1,16 @@
 import NextLink from "components/global/NextLink";
 import React from "react";
+import ActiveCategoryIcon from "public/svg/listing/ActiveCategoryIcon";
+import Image from "next/image";
 import {
+  getConfiguredImage,
+  RoundPrice,
   GetImageUrl,
   buildParamsFromFilters,
   FilterParams,
   FilterItemProps,
   FilterState,
-} from "utils/tinyUtils";
-import ActiveCategoryIcon from "public/svg/listing/ActiveCategoryIcon";
-import Image from "next/image";
-import { getConfiguredImage, RoundPrice } from "utils/functions";
+} from "utils/server";
 
 export const FilterItem = ({
   term,

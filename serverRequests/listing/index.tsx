@@ -1,6 +1,6 @@
 "use server";
-
 import ImageCircel from "components/ListingPage/filterComponents/FiltersWindow/ImageCircel";
+import FilterItem from "components/ListingPage/FilterItem";
 import ProductWrapper from "components/ServerWrapper/ProductWrapper";
 import { getProductsAndFiltersFromElastic } from "services/elastic/elasticSearch";
 import { getCookieServer } from "utils/cookies/cookie-manager";
@@ -220,4 +220,118 @@ export async function GetProducts({
       brand_id: s?.brand?.id,
     })),
   };
+}
+
+export async function GetNextPageFilters({
+  language,
+  country,
+  filter_offset = 1,
+  filters,
+  params,
+  currency = null,
+}) {
+  const baseUrlOfFiltersPage = () => {
+    if (filters.isFeatured || filters?.featured) return `/featured`;
+    if (filters.isFlashDeals || filters?.flashdeal) return "/flashDeals";
+    return "/filters";
+  };
+  try {
+    let response = await getProductsAndFiltersFromElastic({
+      country,
+      language_code: language,
+      filters: filters,
+      filters_offset: filter_offset,
+      limit: 10,
+      noProducts: true,
+    });
+    let new_filters: any = {};
+    if (response.categories.length) {
+      new_filters.categories = response.categories;
+    }
+    if (response.brands?.length) {
+      new_filters.brands = response.brands;
+    }
+    if (response.colors?.length) {
+      new_filters.colors = response.colors;
+    }
+    if (response.attributes?.[0]?.options?.length) {
+      new_filters.sizes = response.attributes?.[0]?.options;
+    }
+    if (response.prices?.[0] >= 0 && response.prices?.[1] >= 0) {
+      new_filters.prices = new_filters.prices;
+    }
+    //   if (response.boutiques.length) {
+    //     new_filters.boutiques = response.boutiques;
+    //   }
+
+    return {
+      categories: new_filters?.categories?.map((item) => (
+        <FilterItem
+          baseUrlOfFiltersPage={baseUrlOfFiltersPage()}
+          params={params}
+          filterParams={filters}
+          isUsingParsedFilters={true}
+          key={item.id ?? item?.slug ?? item}
+          currency={null}
+          term={"categories"}
+          item={item}
+        />
+      )),
+      brands: new_filters?.brands?.map((item) => (
+        <FilterItem
+          baseUrlOfFiltersPage={baseUrlOfFiltersPage()}
+          params={params}
+          filterParams={filters}
+          isUsingParsedFilters={true}
+          key={item.id ?? item?.slug ?? item}
+          currency={null}
+          term={"brands"}
+          item={item}
+        />
+      )),
+      colors: new_filters?.colors?.map((item) => {
+        return (
+          <FilterItem
+            baseUrlOfFiltersPage={baseUrlOfFiltersPage()}
+            params={params}
+            filterParams={filters}
+            isUsingParsedFilters={true}
+            key={item.id ?? item?.slug ?? item}
+            currency={null}
+            term={"colors"}
+            item={item}
+          />
+        );
+      }),
+      sizes: new_filters?.sizes?.map((item) => (
+        <FilterItem
+          baseUrlOfFiltersPage={baseUrlOfFiltersPage()}
+          params={params}
+          filterParams={filters}
+          isUsingParsedFilters={true}
+          key={item}
+          currency={null}
+          term={"sizes"}
+          item={item}
+        />
+      )),
+      prices: response?.prices?.priceRanges?.map((item) => {
+        return (
+          <FilterItem
+            baseUrlOfFiltersPage={baseUrlOfFiltersPage()}
+            params={params}
+            filterParams={filters}
+            isUsingParsedFilters={true}
+            key={`${item.min_price}-${item.max_price}`}
+            currency={currency}
+            term={"prices"}
+            item={item}
+          />
+        );
+      }),
+      total_size: response?.total_size,
+    };
+  } catch (error) {
+    console.error(error);
+  }
 }

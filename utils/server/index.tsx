@@ -489,3 +489,18 @@ export const buildParamsFromFilters = (
 
   return params;
 };
+
+export interface FilterItemProps {
+  term: string;
+  item: any;
+  filterParams: FilterParams | any;
+  isUsingParsedFilters: boolean;
+  currency: any;
+  params: any;
+  baseUrlOfFiltersPage: string;
+}
+
+export interface FilterState {
+  isFiltered: boolean;
+  href: string;
+}

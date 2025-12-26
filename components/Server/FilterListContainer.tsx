@@ -1,5 +1,5 @@
 import ListingSkeleton from "components/skeleton/listing";
-import React, { Suspense } from "react";
+import { Suspense } from "react";
 import FilterList from "./FilterList";
 
 async function FilterListContainer({
@@ -43,12 +43,12 @@ async function FilterListContainer({
     categories: filtersData?.categories || [],
     brands: filtersData?.brands || [],
     colors: filtersData?.colors || [],
-    // prices: [],
     prices: filtersData?.prices?.priceRanges || [],
     sizes: filtersData?.attributes?.[0]?.options || [],
     boutiques: filtersData?.boutiques || [],
     search_text: parsedFilters?.search_text?.[0] || null,
   };
+  console.log("filters prices", filtersData.prices);
   return (
     <Suspense fallback={<ListingSkeleton justFilters={true} />}>
       {

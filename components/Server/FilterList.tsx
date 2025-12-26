@@ -19,7 +19,6 @@ import FilterItem from "components/ListingPage/FilterItem";
 
 function FilterList({
   parsedFilters,
-
   params,
   filters,
   currency,
@@ -696,7 +695,12 @@ const FilterItemsRow = ({
               params={params}
               filterParams={filterParams}
               isUsingParsedFilters={isUsingParsedFilters}
-              key={item.id}
+              key={
+                item.id ??
+                item?.slug ??
+                item ??
+                `${item?.min_price}-${item?.max_price}`
+              }
               currency={currency}
               term={term}
               item={item}
@@ -706,7 +710,9 @@ const FilterItemsRow = ({
 
         {shouldShowMore() && (
           <InfiniteScrollFilters
+            currency={currency}
             term={term}
+            params={params}
             filters={filterParams}
             country={country}
             language={language}

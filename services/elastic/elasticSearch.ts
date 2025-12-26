@@ -343,8 +343,8 @@ export async function getProductsAndFiltersFromElastic(
       filters_offset
     );
     prices =
-      productsWithFilters?.length > 0
-        ? calculatePriceRange(productsWithFilters)
+      normalizedProducts?.custom_products?.length > 0
+        ? calculatePriceRange(normalizedProducts?.custom_products)
         : null;
     brandsFilter = processBrandsAggregation(
       (aggregations as any).top_brands?.filtered_brands?.brands_by_id
@@ -356,7 +356,7 @@ export async function getProductsAndFiltersFromElastic(
         ?.buckets || [],
       filters_offset
     );
-
+    console.log("Elastic search", prices);
     return {
       offset: lastSortValue,
       limit: limit,

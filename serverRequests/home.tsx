@@ -93,6 +93,7 @@ export async function GetNextRecommendations({
   let newOffset = response?.offset;
   let items = productsData?.map((product) => (
     <ProductWrapper
+      key={product?.product_id ?? product?.id}
       category_tree={product?.categories?.map((s) => s.name)}
       labels={product?.label_names}
       color={product?.sync_color_images?.[0]?.color_name}
@@ -140,7 +141,11 @@ export async function GetNextBoutiques({
   });
   let newOffset = response.data.offset;
   let items = response.data.boutiques.map((boutique) => (
-    <BoutiqueWrapper lang={`${country}-${language}`} boutique={boutique} />
+    <BoutiqueWrapper
+      key={boutique?.slug}
+      lang={`${country}-${language}`}
+      boutique={boutique}
+    />
   ));
   return {
     boutiques: items,

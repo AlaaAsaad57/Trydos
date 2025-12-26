@@ -49,6 +49,7 @@ function FlashDealsProducts({ lang, currencyData, flashDealsProducts }) {
       >
         {flashDealsProducts?.data?.products?.map((product, key) => (
           <ProductWrapper
+            key={product?.product_id ?? product?.id}
             category_tree={product?.categories?.map((s) => s.name)}
             labels={product?.label_names}
             InitialProductData={{ ...product, id: product?.product_id }}

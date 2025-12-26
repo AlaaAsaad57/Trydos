@@ -1,23 +1,34 @@
 "use client";
 import Spinner from "components/global/Spinner";
 import React from "react";
-import { GetFilters } from "serverRequests/listing";
+import { GetNextPageFilters } from "serverRequests/listing";
 import { translateFunction } from "utils/server";
 
-function InfiniteScrollFilters({ term, filters, country, language }) {
+function InfiniteScrollFilters({
+  term,
+  filters,
+  country,
+  language,
+  params,
+  currency,
+}) {
   const [loading, setLoading] = React.useState(false);
-  const [filterItems, setFilterItems] = React.useState([<></>]);
+  const [filterItems, setFilterItems] = React.useState([
+    <React.Fragment key={0}></React.Fragment>,
+  ]);
   const [hasEnd, setHasEnd] = React.useState(false);
   const [offset, setOffset] = React.useState(1);
   const getNextFilters = async () => {
     setLoading(true);
 
     try {
-      let response = await GetFilters({
+      let response = await GetNextPageFilters({
         country,
         language,
         filters,
         filter_offset: offset + 1,
+        params,
+        currency,
       });
       let filter_response;
       setOffset(offset + 1);
@@ -62,7 +73,6 @@ function InfiniteScrollFilters({ term, filters, country, language }) {
           </div>
         </>
       ) : (
-        typeof window !== "undefined" &&
         !hasEnd && (
           <div
             onClick={() => {

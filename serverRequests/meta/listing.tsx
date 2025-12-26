@@ -1,7 +1,5 @@
-import { getProductsAndFiltersFromElastic } from "services/elastic/elasticSearch";
 import { elasticSearchClient } from "services/elastic/elasticsearch.config";
 import {
-  generateCloudinaryUrl,
   getConfiguredImage,
   GetImageUrl,
   parseFiltersFromParams,
