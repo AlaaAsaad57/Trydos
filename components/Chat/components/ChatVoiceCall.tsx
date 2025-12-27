@@ -288,16 +288,6 @@ function ChatVoiceCall({ token }) {
           </span>
 
           <div
-            style={track && { zIndex: 3 }}
-            className={"end-icon " + `${loading && "disabled-label"}`}
-            onClick={() => {
-              userEndCall();
-            }}
-          >
-            <EndCallIcon></EndCallIcon>
-            <span>End Call</span>
-          </div>
-          <div
             className={"cancel-call-icon " + `${loading && "disabled-label"}`}
             onClick={() => {
               if (!loading) {
@@ -308,18 +298,39 @@ function ChatVoiceCall({ token }) {
           >
             <LeftArrowIcon></LeftArrowIcon>
           </div>
-
-          {isPublished ? (
+          <div
+            style={{
+              bottom: "50px",
+            }}
+            className="fixed bottom-[3dvh] left-0 right-0 mx-auto flex justify-center items-center gap-[25px] z-[9999999999]"
+          >
+            {isPublished ? (
+              <div
+                className={
+                  "toggle-mic static " + (trackState.audio && "active-mic-svg")
+                }
+                onClick={() => mute("audio")}
+              >
+                <MicIcon></MicIcon>
+              </div>
+            ) : (
+              <span />
+            )}
             <div
-              className={"toggle-mic " + (trackState.audio && "active-mic-svg")}
-              onClick={() => mute("audio")}
+              style={track && { zIndex: 3 }}
+              className={
+                "end-icon  static flex items-center justify-center m-0" +
+                `${loading && "disabled-label"}`
+              }
+              onClick={() => {
+                userEndCall();
+              }}
             >
-              <MicIcon></MicIcon>
+              <EndCallIcon></EndCallIcon>
+              <span>End Call</span>
             </div>
-          ) : (
-            <span />
-          )}
-          {<span />}
+            {<span />}
+          </div>
           {ready && (
             <div className="call-status">
               {users.length > 0 ? (

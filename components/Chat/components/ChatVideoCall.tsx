@@ -375,16 +375,7 @@ function ChatVideoCall({ token }) {
                 );
               } else return <></>;
             })}
-          <div
-            style={tracks && tracks[1] && { zIndex: 3 }}
-            className={"end-icon " + `${loading && "disabled-label"}`}
-            onClick={() => {
-              userEndCall();
-            }}
-          >
-            <EndCallIcon></EndCallIcon>
-            <span>End Call</span>
-          </div>
+
           <div
             className={"cancel-call-icon " + `${loading && "disabled-label"}`}
             onClick={() => {
@@ -413,26 +404,52 @@ function ChatVideoCall({ token }) {
                 />
               )}
           </div>
-          {isPublished ? (
+          <div
+            style={{
+              bottom: "60px",
+            }}
+            className="fixed  left-0 right-0 mx-auto flex justify-center items-center gap-[25px] z-[9999999999]"
+          >
+            {isPublished ? (
+              <div
+                className={
+                  "toggle-mic static " + (trackState.audio && "active-mic-svg")
+                }
+                onClick={() => mute("audio")}
+              >
+                <MicIcon></MicIcon>
+              </div>
+            ) : (
+              <span />
+            )}
             <div
-              className={"toggle-mic " + (trackState.audio && "active-mic-svg")}
-              onClick={() => mute("audio")}
+              style={tracks && tracks[1] && { zIndex: 3 }}
+              className={
+                "end-icon  static flex items-center justify-center m-0 " +
+                `${loading && "disabled-label"}`
+              }
+              onClick={() => {
+                userEndCall();
+              }}
             >
-              <MicIcon></MicIcon>
+              <EndCallIcon></EndCallIcon>
+              <span>End Call</span>
             </div>
-          ) : (
-            <span />
-          )}
-          {isPublished ? (
-            <div
-              className={"toggle-vid " + (trackState.video && "active-mic-svg")}
-              onClick={() => mute("video")}
-            >
-              <VideoIcon></VideoIcon>
-            </div>
-          ) : (
-            <span />
-          )}
+
+            {isPublished ? (
+              <div
+                className={
+                  "toggle-vid static " + (trackState.video && "active-mic-svg")
+                }
+                onClick={() => mute("video")}
+              >
+                <VideoIcon></VideoIcon>
+              </div>
+            ) : (
+              <span />
+            )}
+          </div>
+
           {ready && !users?.[0]?.hasVideo && (
             <div className="call-status">
               {users.length > 0 && !users[0].hasVideo ? (
