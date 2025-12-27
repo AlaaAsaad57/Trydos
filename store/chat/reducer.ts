@@ -194,6 +194,7 @@ export const useChatStore = (set, get) => ({
   },
 
   endCall: (payload: number) => {
+    console.log(payload);
     const state = get();
     if (
       parseInt(state.MessageActiveCall?.toString() || "0") ===

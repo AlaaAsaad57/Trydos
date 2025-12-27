@@ -30,8 +30,11 @@ const appId = "0af959943ff542df8f2cb1b925ec0cc4";
 function ChatVideoCall({ token }) {
   const clientRef = useRef(null);
   const tracksRef = useRef(null);
+  const [trackState, setTrackState] = useState({ video: true, audio: true });
+  const trackStateRef = useRef(trackState);
   const [loading, setLoading] = useState(false);
   const endCall = async (duration) => {
+    console.log("endCall");
     setLoading(true);
     try {
       // Stop timer
@@ -130,97 +133,89 @@ function ChatVideoCall({ token }) {
   useEffect(() => {
     // function to initialise the SDK
     let init = async (name) => {
-      storeClient(client);
-      storeTrack(tracks);
-      clientRef.current = client;
-      tracksRef.current = tracks;
-      console.log("Initializing AgoraRTC client with video call");
-      client.on("user-joined", async (user) => {
-        start();
-        setUsers((prevUsers) => {
-          // Prevent duplicates
-          if (prevUsers.find((u) => u.uid === user.uid)) return prevUsers;
-          return [...prevUsers, user];
-        });
-      });
-      client.on("user-published", async (user, mediaType) => {
-        await client.subscribe(user, mediaType);
+      try {
+        storeClient(client);
+        storeTrack(tracks);
+        clientRef.current = client;
+        tracksRef.current = tracks;
+        console.log("Initializing AgoraRTC client with video call");
+        client.on("user-joined", async (user) => {
+          console.log("user-joined");
 
-        // Ensure React state updates so the UI re-renders with the new tracks
-        setUsers((prev) => {
-          const others = prev.filter((u) => u.uid !== user.uid);
-          return [...others, user];
-        });
-
-        if (mediaType === "audio") {
-          const devices = await AgoraRTC.getPlaybackDevices();
-
-          // Log devices to your console so you can see exactly what the browser sees
-          console.log("Available output devices:", devices);
-
-          const earpiece = devices.find((d) =>
-            /earpiece|receiver|handset/i.test(d.label)
-          );
-
-          if (earpiece && user.audioTrack.setPlaybackDevice) {
-            await user.audioTrack.setPlaybackDevice(earpiece.deviceId);
-          } else {
-            // If we are on mobile, we often can't switch, so we just play.
-            console.log(
-              "No earpiece detected via Web API. Playing on default device."
-            );
-          }
-
-          try {
-            user?.audioTrack?.play();
-          } catch (e) {}
-        }
-      });
-
-      client.on("user-unpublished", (user, type) => {
-        if (type === "audio") {
-          user.audioTrack?.stop();
-        }
-        setUsers((prev) => {
-          return prev.map((u) => {
-            if (u.uid === user.uid) {
-              // Return the 'user' object directly from the event.
-              // It is the Class Instance [aj] with the tracks updated internally.
-              return user;
-            }
-            return u;
+          setUsers((prevUsers) => {
+            // Prevent duplicates
+            if (prevUsers.find((u) => u.uid === user.uid)) return prevUsers;
+            return [...prevUsers, user];
           });
         });
-      });
+        client.on("user-published", async (user, mediaType) => {
+          start();
+          await client.subscribe(user, mediaType);
+          // Ensure React state updates so the UI re-renders with the new tracks
+          setUsers((prev) => {
+            const others = prev.filter((u) => u.uid !== user.uid);
+            return [...others, user];
+          });
 
-      client.on("user-left", (user) => {
-        userEndCall();
-        setCallStatus("");
-        setUsers((prevUsers) => {
-          return prevUsers.filter((User) => User.uid !== user.uid);
+          if (mediaType === "audio") {
+            try {
+              user?.audioTrack?.play();
+            } catch (e) {}
+          }
         });
-      });
 
-      await client.join(appId, name.toString(), token, parseInt(userData.id));
+        client.on("user-unpublished", (user, type) => {
+          console.log("user-unpublished", type);
 
-      if (tracks) {
-        const currentVideoState = trackStateRef.current.video;
-        const currentAudioState = trackStateRef.current.audio;
-        // تطبيق الحالة (Mute/Unmute) على التراكات المحلية
-        await tracks[0].setEnabled(currentAudioState);
-        await tracks[1].setEnabled(currentVideoState);
+          if (type === "audio") {
+            user.audioTrack?.stop();
+          }
+          setUsers((prev) => {
+            return prev.map((u) => {
+              if (u.uid === user.uid) {
+                // Return the 'user' object directly from the event.
+                // It is the Class Instance [aj] with the tracks updated internally.
+                return user;
+              }
+              return u;
+            });
+          });
+        });
 
-        // النشر فقط إذا كانت الحالة مفعلة
-        await client.publish([tracks[0], tracks[1]]);
-        setIsPublished(true);
+        client.on("user-left", (user) => {
+          console.log("user-left");
+
+          userEndCall();
+          setCallStatus("");
+          setUsers((prevUsers) => {
+            return prevUsers.filter((User) => User.uid !== user.uid);
+          });
+        });
+
+        await client.join(appId, name.toString(), token, parseInt(userData.id));
+
+        if (tracks) {
+          const currentVideoState = trackStateRef.current.video;
+          const currentAudioState = trackStateRef.current.audio;
+          // تطبيق الحالة (Mute/Unmute) على التراكات المحلية
+          await tracks[0].setEnabled(currentAudioState);
+          await tracks[1].setEnabled(currentVideoState);
+
+          // النشر فقط إذا كانت الحالة مفعلة
+          await client.publish([tracks[0], tracks[1]]);
+          setIsPublished(true);
+        }
+      } catch (error) {
+        console.error(error);
       }
     };
-    console.log("tracks in video call", tracks);
+
     if (ready && tracks) {
       init(activeChat?.id);
     }
   }, [client, ready, tracks, error]);
   const userEndCall = async (bool?) => {
+    console.log("userEndCall");
     await client.leave();
     client.removeAllListeners();
     // we close the tracks to perform cleanup
@@ -236,8 +231,6 @@ function ChatVideoCall({ token }) {
     endCall(duration > 3 && users.length > 0 && duration);
     //   dispatch({type:"END-CALL"})
   };
-  const [trackState, setTrackState] = useState({ video: true, audio: true });
-  const trackStateRef = useRef(trackState);
 
   // 2. تحديث المرجع كلما تغيرت الـ State
   useEffect(() => {
@@ -278,16 +271,21 @@ function ChatVideoCall({ token }) {
   };
   useEffect(() => {
     if (seconds === 60 && users.length === 0) {
+      console.log("edn call in useEffect", seconds, users);
       userEndCall(true);
     }
     if (minutes === 30) {
+      console.log("edn call in useEffect", seconds, minutes, users);
+
       userEndCall();
     }
+  }, [minutes, seconds]);
+  useEffect(() => {
     return () => {
-      // Cleanup logic here
+      console.log("Component unmounting: Running final cleanup");
       cleanUp();
     };
-  }, [minutes, seconds]);
+  }, []);
   const otherUser = useMemo(() => {
     return (
       activeChat?.channel_members?.find(
@@ -377,16 +375,7 @@ function ChatVideoCall({ token }) {
                 );
               } else return <></>;
             })}
-          <div
-            style={tracks && tracks[1] && { zIndex: 3 }}
-            className={"end-icon " + `${loading && "disabled-label"}`}
-            onClick={() => {
-              userEndCall();
-            }}
-          >
-            <EndCallIcon></EndCallIcon>
-            <span>End Call</span>
-          </div>
+
           <div
             className={"cancel-call-icon " + `${loading && "disabled-label"}`}
             onClick={() => {
@@ -415,26 +404,52 @@ function ChatVideoCall({ token }) {
                 />
               )}
           </div>
-          {isPublished ? (
+          <div
+            style={{
+              bottom: "60px",
+            }}
+            className="fixed  left-0 right-0 mx-auto flex justify-center items-center gap-[25px] z-[9999999999]"
+          >
+            {isPublished ? (
+              <div
+                className={
+                  "toggle-mic static " + (trackState.audio && "active-mic-svg")
+                }
+                onClick={() => mute("audio")}
+              >
+                <MicIcon></MicIcon>
+              </div>
+            ) : (
+              <span />
+            )}
             <div
-              className={"toggle-mic " + (trackState.audio && "active-mic-svg")}
-              onClick={() => mute("audio")}
+              style={tracks && tracks[1] && { zIndex: 3 }}
+              className={
+                "end-icon  static flex items-center justify-center m-0 " +
+                `${loading && "disabled-label"}`
+              }
+              onClick={() => {
+                userEndCall();
+              }}
             >
-              <MicIcon></MicIcon>
+              <EndCallIcon></EndCallIcon>
+              <span>End Call</span>
             </div>
-          ) : (
-            <span />
-          )}
-          {isPublished ? (
-            <div
-              className={"toggle-vid " + (trackState.video && "active-mic-svg")}
-              onClick={() => mute("video")}
-            >
-              <VideoIcon></VideoIcon>
-            </div>
-          ) : (
-            <span />
-          )}
+
+            {isPublished ? (
+              <div
+                className={
+                  "toggle-vid static " + (trackState.video && "active-mic-svg")
+                }
+                onClick={() => mute("video")}
+              >
+                <VideoIcon></VideoIcon>
+              </div>
+            ) : (
+              <span />
+            )}
+          </div>
+
           {ready && !users?.[0]?.hasVideo && (
             <div className="call-status">
               {users.length > 0 && !users[0].hasVideo ? (
