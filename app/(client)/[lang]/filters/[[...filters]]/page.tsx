@@ -127,12 +127,11 @@ export default async function Page({ params }) {
           is_flashDeals={false}
           params={Params}
         />
-        {/* </Suspense> */}
-        {/* <Suspense fallback={<></>}>
-          <FilterWidgetContainer key={JSON.stringify(parsedFilters)} />
-        </Suspense> */}
+
         {/*@ts-expect-error Async Server Component is valid in Next  */}
         <FilterWidgetServer
+          isFeatured={false}
+          isFlashDeal={false}
           currencyPromise={currency}
           language={language}
           country={country}

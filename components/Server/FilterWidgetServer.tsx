@@ -9,12 +9,16 @@ async function FilterWidgetServer({
   parsedFilters,
   country,
   language,
+  isFeatured,
+  isFlashDeal,
 }) {
   let currency = await currencyPromise;
   let filtersData = await filtersPromise;
   return (
     <div>
       <FiltersWindow
+        isFeatured={isFeatured}
+        isFlashDeal={isFlashDeal}
         currency={currency}
         language={language}
         country={country}

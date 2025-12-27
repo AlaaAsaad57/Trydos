@@ -21,6 +21,7 @@ export async function GetFilters({
       limit: 10,
       noProducts: true,
     });
+    console.log(filters, response);
     let new_filters: any = {};
     if (response.categories.length) {
       new_filters.categories = response.categories;
@@ -66,7 +67,7 @@ export async function GetFilters({
           image={brand.icon}
         />
       )),
-      colors: new_filters.colors.map((color) => (
+      colors: new_filters?.colors?.map((color) => (
         <ImageCircel
           key={color}
           isActive={HandleIsActive({
@@ -79,7 +80,7 @@ export async function GetFilters({
           term={"Color"}
         />
       )),
-      sizes: new_filters.sizes.map((size) => (
+      sizes: new_filters?.sizes?.map((size) => (
         <ImageCircel
           isActive={HandleIsActive({
             values: filters?.sizes,
@@ -189,7 +190,7 @@ export async function GetProducts({
       videos={product?.videos}
       name={product.name}
       slug={product.slug}
-      Sliders={false}
+      Sliders={true}
       brand={{
         name: product?.brand?.name,
         icon: product.brand.icon?.file_path ?? product?.brand,

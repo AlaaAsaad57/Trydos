@@ -5,7 +5,15 @@ import { useAppStore } from "store";
 import { translateFunction } from "utils/functions";
 import { EnableScroll } from "utils/tinyUtils";
 
-function FiltersButton({ onReset, filters, isChanged, total_size, loading }) {
+function FiltersButton({
+  onReset,
+  filters,
+  isChanged,
+  total_size,
+  loading,
+  isFeatured,
+  isFlashDeal,
+}) {
   const { setFilterEnabled } = useAppStore();
   const { lang } = useParams();
   return (
@@ -24,7 +32,12 @@ function FiltersButton({ onReset, filters, isChanged, total_size, loading }) {
             }}
           >
             <NextLink
-              href={getSearchPageUrl({ lang: lang, searchFilters: filters })}
+              href={getSearchPageUrl({
+                lang: lang,
+                searchFilters: filters,
+                isFeatured,
+                isFlashDeal,
+              })}
               aria-disabled={loading}
               style={{
                 boxShadow: "inset 0px 3px 6px #ffffff29, 0px 3px 6px #0000001a",
@@ -114,7 +127,7 @@ const buildParamsFromFilters = (
   return params;
 };
 
-function getSearchPageUrl({ lang, searchFilters }) {
+function getSearchPageUrl({ lang, searchFilters, isFeatured, isFlashDeal }) {
   // Build filter object for path-based URL
   const filterObj = {
     boutiques: searchFilters?.boutiques,
@@ -145,10 +158,14 @@ function getSearchPageUrl({ lang, searchFilters }) {
   const pathParams = buildParamsFromFilters(filterObj);
 
   // Get language from current URL or default to 'en-tr'
-
+  let base_url = isFeatured
+    ? `/${lang}/featured`
+    : isFlashDeal
+    ? `/${lang}/flashDeals`
+    : `/${lang}/filters`;
   if (pathParams.length > 0) {
-    return `/${lang}/filters/${pathParams.join("/")}`;
+    return `${base_url}/${pathParams.join("/")}`;
   } else {
-    return `/${lang}/filters`;
+    return `${base_url}`;
   }
 }

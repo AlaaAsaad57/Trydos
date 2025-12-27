@@ -69,7 +69,7 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
   const [country, languageVariable] = lang?.split("-");
   const [ProductData, setProductData] = useState({
     ...product,
-    is_redeem: product?.is_redeem && shouldShowRedeem(),
+    is_redeem: shouldShowRedeem(),
   });
   // console.log(ProductData?.seconds);
   let selected_color =
@@ -242,7 +242,6 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
         ...product,
         ...data,
         is_redeem: data.is_redeem && shouldShowRedeem(),
-        // is_redeem: shouldShowRedeem() && true,
         shared_count: 0,
         sync_color_images: !product.singleColor
           ? data.sync_color_images || product?.sync_color_images || []

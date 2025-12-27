@@ -21,6 +21,8 @@ function FiltersWindow({
   language,
   country,
   currency,
+  isFeatured,
+  isFlashDeal,
 }) {
   const { filterEnabled, setFilterEnabled } = useAppStore();
   if (filterEnabled) {
@@ -30,6 +32,8 @@ function FiltersWindow({
         initialFilters={initialFilters}
         currency={currency}
         language={language}
+        isFeatured={isFeatured}
+        isFlashDeal={isFlashDeal}
       >
         {children}
       </FiltersWindowUI>
@@ -45,6 +49,8 @@ const FiltersWindowUI = ({
   language,
   country,
   currency,
+  isFeatured,
+  isFlashDeal,
 }) => {
   const { filterEnabled, setFilterEnabled } = useAppStore();
   const [FiltersNodes, setFiltersNodes] = useState(children);
@@ -90,7 +96,7 @@ const FiltersWindowUI = ({
         filters,
         filter_offset: 1,
       });
-      console.log(response.prices, "prices");
+      console.log(response, filters);
       setFiltersNodes({
         categories: response?.categories,
         brands: response?.brands,
@@ -372,7 +378,9 @@ const FiltersWindowUI = ({
       </div>
 
       <FiltersButton
+        isFlashDeal={isFlashDeal}
         loading={loading}
+        isFeatured={isFeatured}
         onReset={resetSelection}
         total_size={FiltersNodes.total_size}
         filters={filters}

@@ -101,15 +101,15 @@ export default async function Page({ params }) {
             params={Params}
           />
         </Suspense>
-        {/* <Suspense fallback={<></>}>
-          <FilterWidgetContainer key={JSON.stringify(parsedFilters)} />
-        </Suspense> */}
+
         {/*@ts-expect-error Async Server Component is valid in Next  */}
         <FilterWidgetServer
+          isFeatured={true}
+          isFlashDeal={false}
           currencyPromise={currency}
           language={language}
           country={country}
-          parsedFilters={parsedFilters}
+          parsedFilters={{ ...parsedFilters, featured: true, flashdeal: false }}
           filtersPromise={filtersData}
         />
         <div

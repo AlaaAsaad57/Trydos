@@ -2,7 +2,6 @@ import { withSentryConfig } from "@sentry/nextjs";
 import type { NextConfig } from "next";
 
 let nextConfig: NextConfig = {
-  transpilePackages: ['elysia', '@boringnode/busboy'],
   reactStrictMode: false,
   compress: true,
   bundlePagesRouterDependencies: false,
@@ -93,6 +92,7 @@ let nextConfig: NextConfig = {
 
   experimental: {
     externalDir: true,
+
     webVitalsAttribution: ["CLS", "LCP", "FCP", "FID", "TTFB", "INP"],
     optimizeCss: true, // Disabled due to critters module error
     optimizeServerReact: true,

@@ -37,7 +37,7 @@ function ProductListServer({
             videos={product?.videos}
             name={product.name}
             slug={product.slug}
-            Sliders={false}
+            Sliders={true}
             brand={{
               name: product.brand.name,
               icon: product.brand.icon?.file_path ?? product?.brand,
