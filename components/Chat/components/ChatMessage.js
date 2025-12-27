@@ -15,7 +15,8 @@ import RepliedMessage from "./RepliedMessage";
 import SpinIcon from "../svg/spinn";
 import DownIcon from "../svg/down";
 import fil from "../svg/output.png";
-
+import VideoIcon from "../svg/vcall";
+import CallIcon from "../svg/call";
 import Spinner from "../../global/Spinner";
 import {
   SSRDetect,
@@ -1376,7 +1377,12 @@ function ChatMessage(props) {
           <div
             className={`${opens && "ac"} flex flex-col gap-[10px] message-hold`}
           >
-            <div className={` call-body`} onClick={() => setOpen(true)}>
+            <div
+              className={` ${
+                props.message.duration_in_seconds > 0 && "bg-teal-100"
+              } call-body`}
+              onClick={() => setOpen(true)}
+            >
               {(props.type === "first-chat" || props.type === "lonely") && (
                 <div
                   className={
@@ -1413,11 +1419,19 @@ function ChatMessage(props) {
                   />
                 </div>
               )}
-              {props.message.message_type.name === "VoiceCall" ? (
-                <MissedIcon></MissedIcon>
-              ) : (
-                <VideoIconMissed />
-              )}
+              <>
+                {props?.message?.duration_in_seconds <= 0 ? (
+                  props.message.message_type.name === "VoiceCall" ? (
+                    <MissedIcon></MissedIcon>
+                  ) : (
+                    <VideoIconMissed />
+                  )
+                ) : props.message.message_type.name !== "VoiceCall" ? (
+                  <VideoIcon className="scale-90" />
+                ) : (
+                  <CallIcon className="scale-90" />
+                )}
+              </>
               <div
                 className={
                   "absolute-avatar " +
@@ -1450,7 +1464,9 @@ function ChatMessage(props) {
                 />
               </div>
               <div className="missed-body">
-                {translate("Missed  Call At", language)}{" "}
+                {props.message?.duration_in_seconds <= 0
+                  ? translate("Missed  Call At", language)
+                  : translateFunction("Outgoing Call", language)}{" "}
                 {getMessageTime(props.message.created_at, true)}
               </div>
             </div>
@@ -2283,7 +2299,12 @@ function ChatMessage(props) {
           <div
             className={`${opens && "ac"} flex flex-col gap-[10px] message-hold`}
           >
-            <div className={` call-body`} onClick={() => setOpen(true)}>
+            <div
+              className={`${
+                props.message.duration_in_seconds > 0 && "bg-teal-100"
+              } call-body`}
+              onClick={() => setOpen(true)}
+            >
               {(props.type === "first-chat" || props.type === "lonely") && (
                 <div
                   className={
@@ -2320,11 +2341,19 @@ function ChatMessage(props) {
                   />
                 </div>
               )}
-              {props.message.message_type.name === "VoiceCall" ? (
-                <MissedIcon></MissedIcon>
-              ) : (
-                <VideoIconMissed />
-              )}
+              <>
+                {props.message.duration_in_seconds <= 0 ? (
+                  props.message.message_type.name === "VoiceCall" ? (
+                    <MissedIcon></MissedIcon>
+                  ) : (
+                    <VideoIconMissed />
+                  )
+                ) : props.message.message_type.name !== "VoiceCall" ? (
+                  <VideoIcon className="scale-90" />
+                ) : (
+                  <CallIcon className="scale-90" />
+                )}
+              </>
               <div
                 className={
                   "absolute-avatar " +
@@ -2357,7 +2386,9 @@ function ChatMessage(props) {
                 />
               </div>
               <div className="missed-body">
-                {translate("Missed  Call At", language)}{" "}
+                {props.message?.duration_in_seconds <= 0
+                  ? translate("Missed  Call At", language)
+                  : translateFunction("Incoming Call", language)}{" "}
                 {getMessageTime(props.message.created_at, true)}
               </div>
             </div>
