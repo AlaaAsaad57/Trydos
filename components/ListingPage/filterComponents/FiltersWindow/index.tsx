@@ -90,7 +90,7 @@ const FiltersWindowUI = ({
         filters,
         filter_offset: 1,
       });
-
+      console.log(response.prices, "prices");
       setFiltersNodes({
         categories: response?.categories,
         brands: response?.brands,

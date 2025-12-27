@@ -34,13 +34,11 @@ export async function GetFilters({
     if (response.attributes?.[0]?.options?.length) {
       new_filters.sizes = response.attributes?.[0]?.options;
     }
-    if (response.prices?.[0] >= 0 && response.prices?.[1] >= 0) {
-      new_filters.prices = new_filters.prices;
-    }
+
     //   if (response.boutiques.length) {
     //     new_filters.boutiques = response.boutiques;
     //   }
-    console.log("NEW FILTERS", new_filters);
+    console.log(response.prices);
     return {
       categories: new_filters?.categories?.map((category) => (
         <ImageCircel
@@ -93,7 +91,7 @@ export async function GetFilters({
           term={"Size"}
         />
       )),
-      prices: new_filters.prices,
+      prices: response.prices,
       total_size: response.total_size,
     };
   } catch (error) {
@@ -181,6 +179,7 @@ export async function GetProducts({
   let newOffset = response?.offset;
   let items = productsData?.map((product) => (
     <ProductWrapper
+      key={product?.product_id ?? product?.id ?? product?.slug}
       category_tree={product?.categories?.map((s) => s.name)}
       labels={product?.label_names}
       color={product?.sync_color_images?.[0]?.color_name}

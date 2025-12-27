@@ -133,9 +133,7 @@ function getSearchPageUrl({ lang, searchFilters }) {
       searchFilters?.prices?.[1] &&
       searchFilters?.prices?.[0] >= 0 &&
       searchFilters?.prices?.[1] >= 0
-        ? [
-            `${searchFilters.prices.min_price}-${searchFilters.prices.max_price}`,
-          ]
+        ? [`${searchFilters.prices?.[0]}-${searchFilters.prices?.[1]}`]
         : [],
     search:
       searchFilters?.search_text?.length > 0
