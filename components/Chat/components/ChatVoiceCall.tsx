@@ -233,6 +233,7 @@ function ChatVoiceCall({ token }) {
       userEndCall();
     }
   }, [minutes, seconds]);
+
   const otherUser = useMemo(() => {
     return (
       activeChat?.channel_members?.find(
