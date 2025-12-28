@@ -728,28 +728,6 @@ export function LikeButton({ comment, disabled = false }) {
         />
       </svg>
       <span>{likes.toLocaleString()}</span>
-
-      <style jsx>{`
-        .heart {
-          fill: transparent;
-          transition: fill 0.3s ease, transform 0.3s ease;
-        }
-        .heart.liked {
-          fill: url(#${`heartGradient-${comment.id}`});
-        }
-        .heart.pop {
-          transform: scale(1.3);
-        }
-        .heart:not(.pop) {
-          transform: scale(1);
-        }
-
-        /* Define gradient inside the same component */
-        .heart defs,
-        .heart linearGradient {
-          pointer-events: none;
-        }
-      `}</style>
     </div>
   );
 }

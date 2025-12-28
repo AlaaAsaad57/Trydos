@@ -1,16 +1,28 @@
 import { convertTextToXFormat, formatTime, GetImageUrl } from "utils/server";
 import profilePng from "public/images/profileNo.png";
 import Image from "next/image";
+import BuyersCommentMenu from "./BuyersCommentMenu";
+import { BuyerCommentRateInfo } from "./BuyerCommentRateInfo";
 export const BuyersCommentItem = ({ comment, language, width = 90 }) => {
   const isRtl = language === "ar" || language === "ku";
   return (
     <div
+      id={`comment-${comment.id}`}
       className={`comment-item rounded-[15px] flex-col justify-between min-w-[330px] max-w-[${width}%] w-full bg-[#F8F8F8] min-h-[111px] py-[8px] px-[10px]`}
       style={{
         position: "relative",
         direction: isRtl ? "rtl" : "ltr",
       }}
     >
+      <BuyersCommentMenu
+        comment={comment}
+        isRtl={isRtl}
+        language={language}
+        isOwner={comment?.isOwner}
+        ownerID={comment?.ownerId}
+        id={comment.id}
+        ownerType={comment?.ownerType}
+      />
       {/* here we will put the menu and options */}
       <div className="w-full flex-col">
         <div className="flex-row items-center">
@@ -45,6 +57,7 @@ export const BuyersCommentItem = ({ comment, language, width = 90 }) => {
           {formatTime(comment?.created_at, language)}
         </div>
         <div
+          id={`comment-${comment.id}-text`}
           className={`${
             !isRtl ? "pr-[27px]" : "pl-[27px]"
           } comment-text max-h-[100px] overflow-auto regular text-[#1d1d1d] text-[11px] mt-[0px]`}
@@ -52,6 +65,13 @@ export const BuyersCommentItem = ({ comment, language, width = 90 }) => {
           {comment?.comment}
         </div>
       </div>
+      <BuyerCommentRateInfo
+        language={language}
+        comment={comment}
+        rating={comment.star_rating}
+        recommendation={comment?.recommendation}
+        key={comment.star_rating}
+      />
     </div>
   );
 };

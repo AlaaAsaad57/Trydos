@@ -1,148 +1,55 @@
 "use client";
-import React, { useEffect, useRef, useState } from "react";
-import BuyersCommentIcon from "public/svg/product/BuyersCommentsIcon";
-import { translateFunction } from "utils/functions";
-import HortiznalScrollBar from "components/global/HortiznalScrollBar";
-import Image from "next/image";
-import { convertTextToXFormat, formatTime, GetImageUrl } from "utils/tinyUtils";
-import profilePng from "public/images/profileNo.png";
-import RatingStars from "components/settings/cards/RatingStars";
-import RecomendedIcon from "public/svg/RecomendedIcon";
-import NegRecomendedIcon from "public/svg/NegRecomendIcon";
-import { useAppStore } from "store";
-import BuyersCommentModal from "./BuyersCommentModal";
-import { fetchData } from "utils/fetchData";
-import { REQUESTS_DATA } from "utils/Requests";
 import Spinner from "components/global/Spinner";
-import { ConfirmModal } from "components/global/ConfirmModal";
-import ThreePointsIcon from "public/svg/threepoints";
 import DeleteCommentIcon from "public/svg/DeleteCommentIcon";
-import PenIcon from "public/svg/PenIcon";
-import { COOKIE_NAMES, getCookie } from "utils/cookies/cookie-manager";
-import { LikeButton } from "./FAQSection";
-import auth from "services/auth";
 import LanguageIcon from "public/svg/LanguageIcon";
+import PenIcon from "public/svg/PenIcon";
+import React, { useEffect, useRef, useState } from "react";
+import { translateFunction } from "utils/functions";
+import { REQUESTS_DATA } from "utils/Requests";
+import ThreePointsIcon from "public/svg/threepoints";
 import UploadImageComponent from "components/Orders/UploadImageComponent";
-function ProductsBuyersComments({
-  lang,
-  comments,
-  product_id,
-  recommendation_stats,
+import RatingStars from "components/settings/cards/RatingStars";
+import { ConfirmModal } from "components/global/ConfirmModal";
+import { DeleteComment, UpdateBuyerComment } from "serverRequests/product";
+import { fetchData } from "utils/fetchData";
+
+function BuyersCommentMenu({
+  id,
+  ownerID,
+  ownerType,
+  isRtl,
+  language,
+  isOwner,
+  comment,
 }) {
-  const [country, language] = lang.split("-");
-  const { ColorBottomSheet, setColorBottomSheet, SelectedProduct, editInfo } =
-    useAppStore();
-  const isRtl = language === "ar" || language === "ku";
-  const commentsData =
-    SelectedProduct?.buyers_comment?.comments ?? comments.comments ?? [];
-  const [offset, setOffset] = useState(comments.offset);
   const [loading, setLoading] = useState(false);
-  const loadMore = async (filter = null) => {
-    try {
-      setLoading(true);
-      let data = await fetchData({
-        url: `/api/products/comments/buyers_comments?user_id=${auth.UserID()}&product_id=${product_id}&offset=${JSON.stringify(
-          offset
-        )}`,
-        method: "GET",
-        server: "local",
-        reqTitle: REQUESTS_DATA.COMMENT_DATA_REQUEST,
-      });
-      editInfo({
-        buyers_comment: {
-          ...SelectedProduct.buyers_comment,
-          comments: [...commentsData, ...data?.buyers_comment],
-          offset: data?.data?.offset,
-          total: data.data?.total,
-        },
-      });
-      setOffset(data?.data?.offset);
-      setLoading(false);
-    } catch (error) {
-      setLoading(false);
-    }
-  };
-  if (comments.comments?.length === 0) return <></>;
-  return (
-    <>
-      {ColorBottomSheet && ColorBottomSheet?.is_buyers_comments && (
-        <BuyersCommentModal
-          comments={comments.comments}
-          total={comments?.total}
-          offset={comments?.offset}
-        />
-      )}
-      <div className={`w-full flex-col`}>
-        <HortiznalScrollBar
-          id="comments-buyers-bar"
-          className="flex-row w-full gap-[4px]"
-        >
-          {commentsData?.map((s, i) => {
-            return <RateCommentItem language={language} comment={s} key={i} />;
-          })}
-          {comments.total > commentsData?.length && (
-            <div
-              className={`comment-item rounded-[15px] flex-col justify-between min-w-[330px] max-w-[100px] w-full bg-[#F8F8F8] min-h-[111px] py-[8px] px-[10px]`}
-              style={{
-                position: "relative",
-              }}
-              onClick={() => {
-                if (!loading) loadMore();
-              }}
-            >
-              <div className="w-full flex-col h-full justify-center items-center text-[#1d1d1d] light">
-                {loading ? <Spinner /> : translateFunction("Load More")}
-              </div>
-            </div>
-          )}
-        </HortiznalScrollBar>
-      </div>
-    </>
-  );
-}
-
-export default ProductsBuyersComments;
-
-export const RateCommentItem = ({ comment, language, width = 90 }) => {
-  const { SelectedProduct, editInfo } = useAppStore();
-  const userData: any = getCookie(COOKIE_NAMES.USER_DATA);
-
-  const isOwner = String(userData?.id) === String(comment.customer.id);
   const [openModal, setOpenModal] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [isCommentTranslated, setIsCommentTranslated] = useState(false);
   const [translatedComment, setTranslatedComment] = useState<string | null>(
     null
   );
   const [originalComment, setOriginalComment] = useState<string | null>(null);
   const [translateLoading, setTranslateLoading] = useState(false);
-
+  const [isCommentTranslated, setIsCommentTranslated] = useState(false);
   const EditComment = async (comment_var) => {
     try {
       setLoading(true);
-      let res = await fetchData({
-        url: `/public_comment/comments/${comment_var.id}/update`,
-        method: "PUT",
-        body: JSON.stringify({
+      let res = await UpdateBuyerComment({
+        payload: JSON.stringify({
           text: comment_var.comment,
           rating: comment_var.star_rating,
-          owner_id: String(SelectedProduct?.owner_id),
-          owner_type: SelectedProduct?.owner_type,
+          owner_id: String(ownerID),
+          owner_type: ownerType,
           comments_images_customer: comment_var?.comments_images_customer ?? [],
         }),
-        reqTitle: REQUESTS_DATA.UPDATE_COMMENT,
-        server: "comments",
-      });
-      if (!res.success) throw new Error(res.message);
-      editInfo({
-        buyers_comment: {
-          ...SelectedProduct.buyers_comment,
-          comments: SelectedProduct.buyers_comment?.comments?.map((s) =>
-            s.id === comment_var.id ? comment_var : s
-          ),
-        },
+        language: language,
+        id: comment_var.id,
       });
 
+      if (!res.success) throw new Error(res.message);
+      if (res.comment)
+        document
+          .querySelector(`#comment-${id}`)
+          .replaceWith(res?.comment as unknown as Node);
       setLoading(false);
       setOpenModal("");
       setMenuOpen(false);
@@ -153,21 +60,9 @@ export const RateCommentItem = ({ comment, language, width = 90 }) => {
   const deleteComment = async (comment_var) => {
     try {
       setLoading(true);
-      let res = await fetchData({
-        url: `/public_comment/comments/${comment_var.id}/delete`,
-        reqTitle: { reqTitle: "DELETE_COMMENT", code: 1000 },
-        method: "DELETE",
-        server: "comments",
-      });
+      let res = await DeleteComment({ id: comment_var.id, language: language });
       if (!res.success) throw new Error(res.message);
-      editInfo({
-        buyers_comment: {
-          ...SelectedProduct.buyers_comment,
-          comments: SelectedProduct.buyers_comment?.comments?.filter(
-            (s) => s.id !== comment_var.id
-          ),
-        },
-      });
+      document.querySelector(`#comment-${id}`).remove();
       setLoading(false);
       setOpenModal("");
       setMenuOpen(false);
@@ -186,13 +81,16 @@ export const RateCommentItem = ({ comment, language, width = 90 }) => {
       setIsCommentTranslated(false);
       setTranslatedComment(null);
       setMenuOpen(false);
+      document.querySelector<HTMLDivElement>(
+        `#comment-${comment.id}-text`
+      ).innerText = comment?.comment ?? "";
       return;
     }
 
     try {
       setTranslateLoading(true);
       const response = await fetchData({
-        url: `/public_comment/comments/${comment.id}/translate`,
+        url: `/public_comment/comments/${id}/translate`,
         method: "POST",
         body: JSON.stringify({
           target_language: language,
@@ -206,7 +104,7 @@ export const RateCommentItem = ({ comment, language, width = 90 }) => {
 
       if (response?.success) {
         // Store original text from API response or comment
-        const original = response.original_text || comment?.comment || null;
+        const original = response.original_text;
         if (!originalComment && original) {
           setOriginalComment(original);
         }
@@ -216,6 +114,10 @@ export const RateCommentItem = ({ comment, language, width = 90 }) => {
           setTranslatedComment(response.translated_text);
           setIsCommentTranslated(true);
         }
+
+        document.querySelector<HTMLDivElement>(
+          `#comment-${comment.id}-text`
+        ).innerText = response.translated_text;
       }
       setMenuOpen(false);
     } catch (error) {
@@ -234,40 +136,8 @@ export const RateCommentItem = ({ comment, language, width = 90 }) => {
     if (menuOpen) document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [menuOpen]);
-  const renderTextWithLinks = (text) => {
-    if (!text) return null;
-
-    const urlRegex = /(https?:\/\/[^\s]+)/g;
-
-    const parts = text.split(urlRegex);
-
-    return parts.map((part, index) => {
-      if (urlRegex.test(part)) {
-        return (
-          <a
-            key={index}
-            href={part}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-blue-600 underline break-all"
-          >
-            {part}
-          </a>
-        );
-      }
-      return <React.Fragment key={index}>{part}</React.Fragment>;
-    });
-  };
-  const isRtl = language === "ar" || language === "ku";
-
   return (
-    <div
-      className={`comment-item rounded-[15px] flex-col justify-between min-w-[330px] max-w-[${width}%] w-full bg-[#F8F8F8] min-h-[111px] py-[8px] px-[10px]`}
-      style={{
-        position: "relative",
-        direction: isRtl ? "rtl" : "ltr",
-      }}
-    >
+    <>
       {menuOpen && (
         <div
           ref={menuRef}
@@ -346,6 +216,7 @@ export const RateCommentItem = ({ comment, language, width = 90 }) => {
       )}
       {openModal !== "" && (
         <RatingCommentOptions
+          language={language}
           is_update={openModal === "Update"}
           is_delete={openModal === "Delete"}
           comment={comment}
@@ -361,149 +232,11 @@ export const RateCommentItem = ({ comment, language, width = 90 }) => {
           loading={loading}
         />
       )}
-      <div className="w-full flex-col">
-        <div className="flex-row items-center">
-          <div className="comment-photo">
-            <Image
-              src={GetImageUrl(comment?.customer?.image) ?? profilePng}
-              width={20}
-              height={20}
-              alt={comment?.customer?.name}
-            />
-          </div>
-          <div className="comment-content capitalize mx-[10px]">
-            <div
-              className="comment-source text-[#1D1D1D] text-[9px] regular"
-              data-cy="Source-Of-Comment"
-            >
-              {convertTextToXFormat(comment?.customer?.name)}
-            </div>
-          </div>
-        </div>
-        <span className="medium text-[#1d1d1d] text-[9px] mt-[5px]">
-          {comment?.variant}
-        </span>
-        <div
-          className="comment-date text-[9px]"
-          data-cy="Date-Of-Comment"
-          style={{
-            right: isRtl ? "initial" : "10px",
-            left: isRtl ? "10px" : "initial",
-          }}
-        >
-          {formatTime(comment?.created_at)}
-        </div>
-        <div
-          className={`${
-            !isRtl ? "pr-[27px]" : "pl-[27px]"
-          } comment-text max-h-[100px] overflow-auto regular text-[#1d1d1d] text-[11px] mt-[0px]`}
-        >
-          {renderTextWithLinks(
-            isCommentTranslated && translatedComment
-              ? translatedComment
-              : comment?.comment
-          )}
-        </div>
-      </div>
-      <BuyerCommentRateInfo
-        language={language}
-        comment={comment}
-        rating={comment.star_rating}
-        recommendation={comment?.recommendation}
-        key={comment.star_rating}
-      />
-    </div>
+    </>
   );
-};
+}
 
-const BuyerCommentRateInfo = ({
-  language,
-  rating,
-  recommendation,
-  comment,
-}) => {
-  return (
-    <div className="flex-row pl-[10px] pr-[3px] justify-between w-full items-center">
-      <LikeButton comment={{ ...comment, target_type: "comment" }} />
-      <div className="flex-row gap-[4px] text-[9px] text-[#1d1d1d]">
-        <RatingStars color="#1d1d1d" initialRating={rating} readOnly={true} />
-        <div className="flex-row gap-[6px]">
-          {comment?.good_quality_comment && (
-            <span>{translateFunction("Good Quality", language)}</span>
-          )}
-          {comment?.true_size && (
-            <span>{translateFunction("True Size", language)}</span>
-          )}
-        </div>
-        {recommendation && (
-          <div className="flex-row gap-[4px] text-[#1d1d1d] text-[9px]">
-            <RecomendedIcon />
-            <span>{translateFunction("Recommend It", language)}</span>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-};
-
-const BuyersRatingBar = ({ language, recommendation_stats }) => {
-  let recomended = recommendation_stats?.find(
-    (s) => s.category === "recommend"
-  )?.count;
-  let not_recomended = recommendation_stats?.find(
-    (s) => s.category === "not_recommend"
-  )?.count;
-  let recomendedPRC = recommendation_stats?.find(
-    (s) => s.category === "recommend"
-  )?.percentage;
-  let not_recomendedPRC = recommendation_stats?.find(
-    (s) => s.category === "not_recommend"
-  )?.percentage;
-  const isRtl = language === "ar" || language === "ku";
-
-  return (
-    <div className="flex-col w-full mt-[11px] pl-[10px] pr-[10px]">
-      <div
-        className={`${
-          isRtl ? "flex-row-reverse" : "flex-row"
-        }  items-center w-full justify-between`}
-      >
-        <div
-          className={`${
-            isRtl ? "flex-row-reverse" : "flex-row"
-          }  regular items-center text-[#1d1d1d] text-[9px] gap-[4px]`}
-        >
-          <RecomendedIcon />
-          <span className="bold ">{recomended}</span>
-          <span>{translateFunction("Buyer", language)}</span>
-          <span className="bold">
-            {translateFunction("Recommend It", language)}
-          </span>
-        </div>
-        <div className="flex-row items-center regular text-[#1d1d1d] text-[9px] gap-[4px]">
-          <NegRecomendedIcon />
-          <span className="bold ">{not_recomended}</span>
-          <span>{translateFunction("Buyer", language)}</span>
-          <span className="bold">
-            {translateFunction("Dont Recommend It", language)}
-          </span>
-        </div>
-      </div>
-      <div
-        className={`${
-          isRtl ? "flex-row-reverse" : "flex-row"
-        } rounded-[5px] w-full h-[4px] bg-[#FF6200] mt-[8px]`}
-      >
-        <div
-          className={`bg-[#068D06] rounded-[5px] h-[4px]`}
-          style={{
-            width: `${recomendedPRC}%`,
-          }}
-        />
-      </div>
-    </div>
-  );
-};
+export default BuyersCommentMenu;
 
 const RatingCommentOptions = ({
   is_delete,
@@ -513,6 +246,7 @@ const RatingCommentOptions = ({
   comment,
   handleCloseModal,
   loading,
+  language,
 }: {
   is_delete?: boolean;
   is_update: boolean;
@@ -521,8 +255,8 @@ const RatingCommentOptions = ({
   comment: any;
   handleCloseModal: () => void;
   loading: boolean;
+  language: string;
 }) => {
-  const { language } = useAppStore();
   const [rating, setRating] = useState(comment.star_rating);
   const [comment_str, setComment] = useState(comment.comment);
   const inputRef = useRef(null);

@@ -1,4 +1,4 @@
-import React from "react";
+"use client";
 import { useAppStore } from "store";
 
 function BuyersCommentTopBar({ children, isRtl }) {

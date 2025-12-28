@@ -7,6 +7,7 @@ interface FetchOptions {
   method?: "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
   local?: string;
   headers?: Record<string, string>;
+  body?: any;
 }
 
 interface FetchResponse<T = any> {
@@ -25,6 +26,7 @@ const createServerFetch = async <T = any,>({
   method = "GET",
   local = "gb-en",
   headers = {},
+  body,
 }: FetchOptions): Promise<FetchResponse<T>> => {
   const retryableStatusCodes = [502, 503, 504, 429];
   const [country, lang] = local.split("-");
@@ -121,6 +123,7 @@ const fetchServerData = async <T = any,>({
   method = "GET",
   local = "gb-en",
   headers = {},
+  body,
 }: FetchOptions) => {
   return createServerFetch<T>({
     url,
@@ -131,6 +134,7 @@ const fetchServerData = async <T = any,>({
     method,
     local,
     headers,
+    body,
   });
 };
 

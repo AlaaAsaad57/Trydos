@@ -3,18 +3,28 @@ import { translateFunction } from "utils/server";
 import BuyersCommentsIcon from "public/svg/product/BuyersCommentsIcon";
 import ProductBuyersCommentList from "./ProductBuyersCommentList";
 
-import { GetProductBuyersComment } from "serverRequests/product";
-import { BuyersCommentItem } from "./BuyerCommentItem";
+import {
+  GetProductBuyersComment,
+  GetRecommendationCountForProduct,
+} from "serverRequests/product";
+import { cookies } from "next/headers";
 
 async function ProductBuyersCommentsWrapper({ globalPromise, language }) {
   let product = await globalPromise;
   let productId = product?.id;
-  let buyersComments = await GetProductBuyersComment({
-    productId: productId,
-    language,
-  });
+
+  let cookiesStore = await cookies();
+  let user = cookiesStore.get("User-Data")?.value;
+  let parsedUser = user ? JSON.parse(user) : null;
+  let [buyersComments, recommendation_stats] = await Promise.all([
+    GetProductBuyersComment({
+      productId: productId,
+      language,
+      userId: parsedUser?.id,
+    }),
+    GetRecommendationCountForProduct({ product_id: productId }),
+  ]);
   const isRtl = language === "ar" || language === "ku";
-  let commentsData = buyersComments.comments;
   return (
     <>
       <div className={`w-full flex-col`}>
@@ -60,12 +70,13 @@ async function ProductBuyersCommentsWrapper({ globalPromise, language }) {
           </div>
         </BuyersCommentTopBar>
         <ProductBuyersCommentList
+          recommendation_stats={recommendation_stats.stats}
+          language={language}
+          productId={productId}
           offset={buyersComments.offset}
           loadMoreString={translateFunction("Load More", language)}
         >
-          {commentsData?.map((comment, i) => {
-            return <BuyersCommentItem comment={comment} language={language} />;
-          })}
+          {buyersComments.comments}
         </ProductBuyersCommentList>
       </div>
     </>

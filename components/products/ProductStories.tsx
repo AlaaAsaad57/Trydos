@@ -1,19 +1,16 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import StoreisIcon from "public/svg/product/StoreisIcon";
-
 import { SelectStory } from "store/homepage/actions";
-import { translateFunction } from "utils/functions";
+
 import StoryServiceClass from "services/story";
 import StoriesContainer from "components/Home/Stories/NewStories";
-import InfoWindow from "./InfoWindow";
 import { useParams } from "next/navigation";
 import { useAppStore } from "store";
 import { InView } from "react-intersection-observer";
 import Spinner from "components/global/Spinner";
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 import ProductStoriesSkeleton from "../skeleton/loaders/ProductStoriesSkeleton";
-import { GetProductStories } from "serverRequests";
+import { GetProductStories } from "serverRequests/product";
 function ProductStories({ id, children, InitialStoriesData }) {
   const { selectedStory } = useAppStore();
   let { lang } = useParams();

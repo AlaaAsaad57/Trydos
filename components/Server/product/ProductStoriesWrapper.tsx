@@ -2,7 +2,7 @@ import ProductStories from "components/products/ProductStories";
 
 import StoreisIcon from "public/svg/product/StoreisIcon";
 
-import { GetProductStories } from "serverRequests";
+import { GetProductStories } from "serverRequests/product";
 
 import { translateFunction } from "utils/server";
 

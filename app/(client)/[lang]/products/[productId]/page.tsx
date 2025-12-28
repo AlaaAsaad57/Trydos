@@ -26,6 +26,7 @@ import { translateFunction } from "utils/server";
 import ReturnDaysDetails from "components/products/ReturnDays.Details";
 import { GetStarttingSetting } from "serverRequests";
 import ProductStoriesWrapper from "components/Server/product/ProductStoriesWrapper";
+import ProductBuyersCommentsWrapper from "components/Server/product/ProductBuyersComment/ProductBuyersCommentsWrapper";
 
 export async function generateMetadata({ params, searchParams }) {
   let [Params, SearchParams] = await Promise.all([params, searchParams]);
@@ -238,6 +239,12 @@ async function Page({ params, searchParams }) {
             </div>
             {/*@ts-expect-error Async Server Component is valid in Next  */}
             <ProductStoriesWrapper
+              globalPromise={GlobalData}
+              language={language}
+            />
+
+            {/*@ts-expect-error Async Server Component is valid in Next  */}
+            <ProductBuyersCommentsWrapper
               globalPromise={GlobalData}
               language={language}
             />
