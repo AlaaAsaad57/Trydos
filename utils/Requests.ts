@@ -208,5 +208,9 @@ export const REQUESTS_DATA = {
   GET_SHOP_ROLES: { reqTitle: "GET_SHOP_ROLES", code: 148 },
   ADD_USER_TO_SHOP: { reqTitle: "ADD_USER_TO_SHOP", code: 149 },
   GET_SELLER_ORDERS: { reqTitle: "GET_SELLER_ORDERS", code: 150 },
+  UPDATE_SELLER_ORDER_STATUS: {
+    reqTitle: "UPDATE_SELLER_ORDER_STATUS",
+    code: 151,
+  },
   REOMVE_FCM: { reqTitle: "REOMVE_FCM", code: 151 },
 };
