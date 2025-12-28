@@ -25,6 +25,7 @@ if (process.env.NEXT_RUNTIME !== "edge") {
     global._redis = redis;
   }
 }
+
 // Store product in Redis
 export async function storeProduct(product, slug, lang, country) {
   if (!redis) {
@@ -143,4 +144,9 @@ export async function getKeys(keyword) {
     let keys = await redis.keys(keyword);
     return keys;
   } catch (error) {}
+}
+
+export async function GetFromRedis(key) {
+  let result = await redis.get(key);
+  return result;
 }

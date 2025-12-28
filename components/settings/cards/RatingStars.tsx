@@ -11,21 +11,6 @@ const StarIcon = ({ fill = () => "#402CDD", isHalf = false, color, size }) => {
       height={size}
       viewBox="0 0 11.326 11.318"
     >
-      <defs>
-        {/* <linearGradient
-          id={`halfGradient${random}`}
-          x1="0%"
-          y1="0%"
-          x2="100%"
-          y2="0%"
-        >
-          <stop offset="50%" style={{ stopColor: fill(), stopOpacity: 1 }} />
-          <stop
-            offset="50%"
-            style={{ stopColor: "transparent", stopOpacity: 1 }}
-          />
-        </linearGradient> */}
-      </defs>
       <path
         id="Path_23396"
         data-name="Path 23396"

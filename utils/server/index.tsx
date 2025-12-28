@@ -504,3 +504,158 @@ export interface FilterState {
   isFiltered: boolean;
   href: string;
 }
+
+export function stripHtml(html: string) {
+  if (html) {
+    return html.replace(/<[^>]*>/g, "").trim();
+  }
+  return "";
+}
+
+export const ShowDayStr = (index, language) => {
+  var days = [
+    translateFunction("Sunday", language),
+    translateFunction("Monday", language),
+    translateFunction("Tuesday", language),
+    translateFunction("Wednesday", language),
+    translateFunction("Thursday", language),
+    translateFunction("Friday", language),
+    translateFunction("Saturday", language),
+  ];
+  return days[index];
+};
+export const formatTime = (timeString: string, language) => {
+  const MONTH_NAMES = [
+    translateFunction("January", language),
+    translateFunction("February", language),
+    translateFunction("March", language),
+    translateFunction("April", language),
+    translateFunction("May", language),
+    translateFunction("June", language),
+    translateFunction("July", language),
+    translateFunction("August", language),
+    translateFunction("September", language),
+    translateFunction("October", language),
+    translateFunction("November", language),
+    translateFunction("December", language),
+  ];
+  let date = !timeString?.includes("Z")
+    ? new Date(timeString + "Z")
+    : new Date(timeString);
+  if (isNaN(date?.getTime())) {
+    date = new Date(timeString + "Z");
+  }
+  const today = new Date();
+  const yesterday = new Date(today);
+  yesterday.setDate(yesterday.getDate() - 1);
+
+  const hours = date.getHours().toString().padStart(2, "0");
+  const minutes = date.getMinutes().toString().padStart(2, "0");
+  const seconds = date.getSeconds().toString().padStart(2, "0");
+  const timeFormat = `${hours}:${minutes}:${seconds}`;
+
+  if (date.toDateString() === today.toDateString()) {
+    return `Today | ${timeFormat}`;
+  }
+
+  if (date.toDateString() === yesterday.toDateString()) {
+    return `Yesterday | ${timeFormat}`;
+  }
+
+  const isSameYear = date.getFullYear() === today.getFullYear();
+  const isNewerThanToday = date > today;
+
+  if (isSameYear && isNewerThanToday) {
+    const day = date.getDate();
+    const monthName = MONTH_NAMES[date.getMonth()];
+    return `${day} ${monthName}`;
+  }
+
+  const day = date.getDate().toString().padStart(2, "0");
+  const month = (date.getMonth() + 1).toString().padStart(2, "0");
+  const year = date.getFullYear();
+
+  return `${day}/${month}/${year} | ${timeFormat}`;
+};
+export const formatTimeForAddress = (
+  timeString: string,
+  languageVar = null
+) => {
+  const MONTH_NAMES = [
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
+  ];
+  const date = new Date(timeString);
+
+  const today = new Date();
+  const yesterday = new Date(today);
+  yesterday.setDate(yesterday.getDate() - 1);
+
+  const hours = date.getHours().toString().padStart(2, "0");
+  const minutes = date.getMinutes().toString().padStart(2, "0");
+  const seconds = date.getSeconds().toString().padStart(2, "0");
+  const timeFormat = `${hours}:${minutes}:${seconds}`;
+
+  if (date.toDateString() === today.toDateString()) {
+    return `Today | ${timeFormat}`;
+  }
+
+  if (date.toDateString() === yesterday.toDateString()) {
+    return `Yesterday | ${timeFormat}`;
+  }
+
+  const isSameYear = date.getFullYear() === today.getFullYear();
+  const isNewerThanToday = date > today;
+
+  if (isSameYear && isNewerThanToday) {
+    let translated_month = translateFunction(
+      MONTH_NAMES[date.getMonth()],
+      languageVar
+    );
+    const day = date.getDate();
+    const monthName = translated_month;
+    return `${day} ${monthName}`;
+  }
+
+  const day = date.getDate().toString().padStart(2, "0");
+  const month = (date.getMonth() + 1).toString().padStart(2, "0");
+  const year = date.getFullYear();
+
+  return `${day}/${month}/${year} | ${timeFormat}`;
+};
+
+export function getThumb(url, isVideo) {
+  if (url) {
+    if (isVideo) {
+      return url.replace("/upload", "/upload/h_194/f_webp/q_100");
+    } else return url.replace("/upload", "/upload/h_194/f_webp/q_100");
+  }
+}
+
+export function convertTextToXFormat(input) {
+  if (!input) return "";
+  // Split the input text into words
+  const words = input.split(" ");
+
+  // Transform each word
+  const transformedWords = words.map((word) => {
+    // If the word is empty, return it as is
+    if (word.length === 0) return word;
+
+    // Get the first letter and replace the rest with 'x'
+    return word.charAt(0) + "x".repeat(word.length - 1);
+  });
+
+  // Join the transformed words back into a string and return
+  return transformedWords.join(" ");
+}

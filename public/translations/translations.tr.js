@@ -44,6 +44,8 @@ const translations = {
   Within: "İçinde",
   "Days After Receiving The Product, You Can Return It Without Conditions Or Reasons With Complete Ease And Get The Amount Back":
     "Ürünü teslim aldıktan sonraki günler içinde, hiçbir koşul veya gerekçe olmadan kolayca iade edebilir ve paranızı geri alabilirsiniz",
+  "Days After Receiving The Product, You Can Return It Without Conditions Or Reasons With Complete Ease And":
+    "Ürünü teslim aldıktan sonra günler içinde, herhangi bir şart veya sebep olmadan kolayca iade edebilirsiniz ve",
   "Dont Recommend It": "Tavsiye Etmiyorum",
   "FAQ Buyer & Seller": "SSS Alıcı & Satıcı",
   "Expected Shipping & delivery Date": "Beklenen Kargo ve Teslimat Tarihi",

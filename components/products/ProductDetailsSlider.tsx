@@ -3,7 +3,6 @@ import React, { useEffect, useState } from "react";
 import useEmblaCarousel from "embla-carousel-react";
 import Image from "next/image";
 import { getConfiguredImage, RoundPrice } from "utils/functions";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import CloseIcon from "components/Home/Stories/CloseIcon";
 import { useAppStore } from "store";
 import { DisableScroll, EnableScroll, GetImageUrl } from "utils/tinyUtils";
@@ -12,12 +11,11 @@ import { GAevent } from "utils/gtag";
 import { GA_EVENT_NAMES } from "utils/GAEvents";
 import auth from "services/auth";
 function ProductDetailsSlider({
-  currency,
   images,
   productGA,
   resetLoader = true,
 }: ProductDetailsSliderPropsType) {
-  const { setCurrency, setIsNavigating } = useAppStore();
+  const { setIsNavigating } = useAppStore();
   const [imageShow, showImage] = useState(-1);
   const [emblaRef1, emblaApi] = useEmblaCarousel({
     startIndex: 0,
@@ -29,7 +27,7 @@ function ProductDetailsSlider({
   useEffect(() => {
     let elements;
     if (resetLoader) setIsNavigating(null);
-    if (currency) setCurrency(currency);
+
     if (resetLoader) {
       elements = document.querySelectorAll(".product-slider-images");
       if (productGA)
@@ -148,7 +146,6 @@ function ProductDetailsSlider({
                       height: "auto",
                       maxHeight: "90%",
                       width: "100%",
-
                       borderRadius: "10px",
                     }}
                     priority={i === 0}

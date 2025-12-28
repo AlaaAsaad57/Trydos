@@ -1,14 +1,7 @@
 "use client";
-import { Suspense, useMemo } from "react";
-import RatingStars from "components/settings/cards/RatingStars";
+import { useMemo } from "react";
+
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
-import RecomendedIcon from "public/svg/Recomended";
-import QualityIcon from "public/svg/product/QualityIcon";
-import ProductViews from "components/products/ProductViews";
-import Flag from "public/svg/product/flag";
-import { translateFunction } from "utils/functions";
-import Skeleton from "react-loading-skeleton";
-import EyeIcon from "public/svg/product/EyeIcon";
 import { useAppStore } from "store";
 import GeneralPropertiesModal from "./GeneralPropertiesModal";
 
@@ -20,6 +13,7 @@ function ProductGeneralProperties({
   views,
   sizeFitData,
   good_quality_product = false,
+  children,
 }) {
   const { setColorBottomSheet } = useAppStore();
   const isRtl = languageVariable === "ar" || languageVariable === "ku";
@@ -59,46 +53,7 @@ function ProductGeneralProperties({
           isRtl ? "flex-row-reverse pl-[90px]" : "flex-row pr-[90px]"
         }  product-properties items-center justify-start w-100 text-[#1d1d1d] text-[9px]`}
       >
-        <RatingStars
-          color="#1d1d1d"
-          initialRating={total_rating}
-          readOnly={true}
-        />
-        <div className="flex-row items-center px-[4px]">
-          <span className="bold px-[4px]"> {TotalBuyers}</span>
-          {translateFunction("Buyer Rate", languageVariable)}
-        </div>
-        <span className="px-[5px] text-[10px] text-[#1d1d1d]">|</span>
-
-        <ProductViews views={views} />
-
-        {good_quality_product && (
-          <>
-            <span className="px-[5px] text-[10px] text-[#1d1d1d]">|</span>
-            <div className="flex-row items-center product-property-row">
-              <QualityIcon />
-              <span>
-                {translateFunction("Good Quality Product", languageVariable)}
-              </span>
-            </div>
-          </>
-        )}
-        <span className="px-[5px] text-[10px] text-[#1d1d1d]">|</span>
-        <div className="flex-row items-center product-property-row">
-          <RecomendedIcon />
-          <span>
-            {translateFunction("Recommend It By", languageVariable)}
-            <span className="m-0 px-[3px]">{recomended}</span>
-            <span className="m-0">
-              {translateFunction("Buyer", languageVariable)}
-            </span>
-          </span>
-        </div>
-        <span className="px-[5px] text-[10px] text-[#1d1d1d]">|</span>
-        <div className="flex-row items-center product-property-row">
-          <Flag />
-          <span>{translateFunction("Made In Turkey", languageVariable)}</span>
-        </div>
+        {children}
       </HortiznalScrollBar>
     </>
   );

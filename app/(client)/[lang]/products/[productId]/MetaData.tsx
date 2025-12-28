@@ -1,7 +1,3 @@
-// components/BoutiqueHead.tsx
-
-import { Metadata } from "next";
-import { fetchServerData } from "serverRequests/ServerFetch";
 import { generateCloudinaryUrl } from "utils/server";
 
 const stripHtml = (html: string) => {
@@ -10,94 +6,7 @@ const stripHtml = (html: string) => {
   }
   return "";
 };
-export async function generateProductMetaData({
-  params,
-  searchParams,
-}): Promise<Metadata> {
-  try {
-    const [country, language] = params.lang.split("-");
-    const response = await fetchServerData({
-      url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/web/product/product-meta/${params.productId}?lang=${language}`,
-      method: "GET",
-      local: `${country}-${language}`,
-      revalidate: 3600,
-      tags: ["product-meta", params.productId],
-    });
 
-    if (response.error) {
-      throw new Error(response.error);
-    }
-    let product = response.data.data;
-
-    let title = `${product?.name}`;
-    if (searchParams.color) {
-      title += ` |  ${searchParams.color}`;
-    }
-    if (searchParams.size) {
-      title += ` |  ${searchParams.size}`;
-    }
-    let image = product?.images
-      ? generateCloudinaryUrl({
-          publicIds: product?.images.map((s) => `${s.images}`),
-          width: 1200,
-          height: 630,
-        })
-      : null;
-    let data: Metadata = {
-      title: title,
-      description: stripHtml(product?.details),
-      alternates: {
-        canonical: `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${params.lang}/products/${params.productId}`,
-        languages: {
-          en: `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${country}-en/products/${params.productId}`,
-          tr: `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${country}-tr/products/${params.productId}`,
-          ar: `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${country}-ar/products/${params.productId}`,
-        },
-      },
-      openGraph: {
-        title: title,
-        description: stripHtml(product?.details),
-        url: `${process.env.NEXT_PUBLIC_REMOTE_FRONT}/${params.lang}/products/${params.productId}`,
-        siteName: "Trydos",
-        images: [
-          {
-            url: image,
-            width: 1200,
-            height: 630,
-            alt: "",
-          },
-        ],
-        type: "website",
-      },
-      twitter: {
-        card: "summary_large_image",
-        title: title,
-        description: stripHtml(product?.details),
-        images: [image],
-      },
-      keywords: [
-        product?.name,
-        product?.brand,
-        product?.category,
-        product?.boutique,
-        ...(product?.similar_words || []),
-      ],
-    };
-
-    return data;
-  } catch (error) {
-    console.log(error, "error");
-    return {
-      title: "!Not Found Product MetaData",
-      // @ts-ignore
-      error: "!Not Found Product MetaData",
-      description: "!Not Found Product MetaData",
-      openGraph: {
-        type: "website",
-      },
-    };
-  }
-}
 export const GetStructuredData = ({ params, product, color }) => {
   let imagesArray = product?.images;
   if (color) {

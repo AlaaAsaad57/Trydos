@@ -41,6 +41,8 @@ const translations = {
     "أيام بعد استلام المنتج، يمكنك إرجاعه دون شروط أو أسباب بكل سهولة واسترداد المبلغ",
   "Very Bad": "سيئ جدًا",
   Bad: "سيئ",
+  "Days After Receiving The Product, You Can Return It Without Conditions Or Reasons With Complete Ease And":
+    "خلال أيام بعد استلام المنتج، يمكنك إرجاعه دون شروط أو أسباب بكل سهولة و",
   Normal: "عادي",
   Good: "جيد",
   "Very Good": "جيد جدًا",

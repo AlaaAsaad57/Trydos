@@ -1,71 +1,67 @@
 "use client";
+
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import BackIcon from "public/svg/listing/backIcon";
-import NextLink from "components/global/NextLink";
 import ProductCartHeader from "./ProductCartHeader";
-function ProductBackButton({ lang, productId }) {
-  const getHref = () => {
-    if (typeof localStorage === "undefined")
-      return {
-        href: `/${lang}`,
-        data: { is_full_home: true, href: `/${lang}` },
-      };
-    let lastPage = localStorage.getItem("last-page");
-    let href = `/${lang}`,
-      data = {};
-    if (lastPage) {
-      let lastPageData = JSON.parse(lastPage);
-      if (lastPageData?.url) href = lastPageData.url;
-      if (
-        href?.includes("/filters") ||
-        href?.includes("/featured") ||
-        href?.includes("/flashDeals")
-      ) {
-        data = { is_boutique: true, href };
-      } else {
-        data = { is_full_home: true, href };
-      }
-    } else {
-      href = `/${lang}`;
-      data = { is_full_home: true, href };
-    }
-    return { href, data };
-  };
+import { useAppStore } from "store";
+
+function ProductBackButton({ lang }) {
+  const router = useRouter();
+  const { setIsNavigating, lastPathname } = useAppStore();
+
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    // Clear navigation state on mount
+    setIsNavigating(null);
+  }, [setIsNavigating]);
 
   const language = lang.split("-")[1];
   const isRtl = language === "ar" || language === "ku";
 
-  if (typeof localStorage === "undefined")
-    return (
-      <div
-        className="back-bar align-center w-100 flex-row h-[50px] justify-between"
-        suppressHydrationWarning
-      >
-        <NextLink
-          ignoreConditionCase={true}
-          data-cy="backIcon_productPage"
-          {...getHref()}
-          className={`back-icon flex-row`}
-        >
-          <BackIcon className={`${isRtl && "rotate-180"}`} />
-        </NextLink>
-        <ProductCartHeader language={language} />
-      </div>
-    );
+  const handleBack = () => {
+    // Keywords that trigger the boutique navigation state
+    const boutiqueKeywords = ["boutiques", "filters", "featured", "flashdeals"];
+    console.log(lastPathname);
+    // Check if lastPathname exists and matches any keyword
+    const isBoutiquePath =
+      lastPathname &&
+      boutiqueKeywords.some((key) => lastPathname.includes(key));
+
+    if (isBoutiquePath) {
+      setIsNavigating({ is_boutique: true });
+    } else {
+      setIsNavigating({ is_full_home: true });
+    }
+
+    // Navigation logic
+    if (lastPathname) {
+      router.back();
+    } else {
+      // Fallback for direct entry or page refresh (where lastPathname is null)
+      router.push(`/${lang}`);
+    }
+  };
+
+  if (!mounted) {
+    return <div className="h-[50px] w-full" />;
+  }
+
   return (
     <div
-      className={`${
+      className={`back-bar flex items-center w-full h-[50px] justify-between px-[10px] shadow-[0px_0px_6px_rgba(0,0,0,0.1)] ${
         isRtl ? "flex-row-reverse" : "flex-row"
-      } back-bar align-center w-full  h-[50px] justify-between px-[10px] shadow-[0px_0px_6px_rgb(0,0,0,0.10)]`}
-      suppressHydrationWarning
+      }`}
     >
-      <NextLink
-        ignoreConditionCase={true}
+      <div
         data-cy="backIcon_productPage"
-        {...getHref()}
-        className={`back-icon flex-row`}
+        onClick={handleBack}
+        className="back-icon flex cursor-pointer"
       >
-        <BackIcon className={`${isRtl && "rotate-180"}`} />
-      </NextLink>
+        <BackIcon className={`${isRtl ? "rotate-180" : ""}`} />
+      </div>
       <ProductCartHeader language={language} />
     </div>
   );

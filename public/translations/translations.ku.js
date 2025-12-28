@@ -36,6 +36,8 @@ const translations = {
   Within: "لە ماوەی",
   "Days After Receiving The Product, You Can Return It Without Conditions Or Reasons With Complete Ease And Get The Amount Back":
     "دوای وەرگرتنی بەرهەمەکە، دەتوانیت لە چەند ڕۆژدا بە بێ هیچ مەرج یان هۆکاریەک بە ئاسانترین شێوە گەڕێنیتەوە و بڕەکە وەرگریتەوە",
+  "Days After Receiving The Product, You Can Return It Without Conditions Or Reasons With Complete Ease And":
+    "لە چەند ڕۆژێک دوای وەرگرتنی کاڵاکە، دەتوانیت بە بێ مەرج یان هۆکار بە ئاسانی تەواو بگەڕێنیتەوە و",
   "True Size": "قەبارەی ڕاست",
   "Expected Shipping & delivery Date": "بەرواری نێردن و گەیاندنی پێشبینی کراو",
   "Based On The Previous Delivery Statistics Below To Your Area, We Conclude That The Expected Delivery Time For Your Product Is":

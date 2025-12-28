@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import { usePathname } from "node_modules/next/navigation";
 import { useAppStore } from "store";
 
 export interface INextLinkProps {
@@ -26,7 +27,8 @@ export default function NextLink({
   ignoreConditionCase = false,
   ...props
 }: INextLinkProps) {
-  const { setIsNavigating } = useAppStore();
+  const pathname = usePathname();
+  const { setIsNavigating, setLastPathname } = useAppStore();
   if (ignoreConditionCase) {
     return (
       <Link
@@ -35,7 +37,11 @@ export default function NextLink({
         style={style}
         prefetch={true}
         href={href}
+        onNavigate={(e) => {
+          setLastPathname(pathname);
+        }}
         onClick={() => {
+          setLastPathname(pathname);
           setIsNavigating(data);
         }}
       >
@@ -65,7 +71,11 @@ export default function NextLink({
       className={className}
       style={style}
       prefetch={true}
+      onNavigate={(e) => {
+        setLastPathname(pathname);
+      }}
       onClick={() => {
+        setLastPathname(pathname);
         setIsNavigating(data);
       }}
       href={href}

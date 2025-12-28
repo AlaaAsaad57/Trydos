@@ -117,8 +117,13 @@ export const useCartStore = (set, get) => ({
   payIframeURL: "",
   orderPageLoading: false,
   orderReturnObject: null,
+  lastPathname: null,
   settingLastPath: null,
   LoggingOut: false,
+  setLastPathname: (e) => {
+    console.log(e);
+    set((state) => ({ lastPathname: e }));
+  },
   setLoggingOut: (e) =>
     set((state) => ({
       LoggingOut: e,
@@ -129,7 +134,6 @@ export const useCartStore = (set, get) => ({
     })),
   // Actions
   setOrderDetails: (order) => {
-    console.log("setOrderDetails called with:", order);
     set((state) => ({
       selectedOrder: order,
     }));

@@ -1,5 +1,6 @@
 import { cookies } from "next/headers";
 import { fetchProductDetails } from "serverRequests";
+import { GetRecommendationCountForProduct } from "serverRequests/product";
 import { elasticSearchClient } from "services/elastic/elasticsearch.config";
 import { COOKIE_NAMES } from "utils/cookies/cookie-manager";
 
@@ -48,7 +49,6 @@ export const getProductDataFromElastic = async ({
       ratingComment,
       FQAComments,
       recommendationStats,
-
       likeDetails,
     ] = await Promise.all([
       getProductSharedCountFromElasticsearch(productId, slug, lang),
@@ -66,7 +66,6 @@ export const getProductDataFromElastic = async ({
       }),
       GetRecommendationCountForProduct({
         product_id: productId,
-        language: lang,
       }),
 
       getProductInteractions(productId, user_id),
@@ -313,79 +312,6 @@ function getLangField(lang: string) {
   }
 }
 
-export const GetRecommendationCountForProduct = async ({
-  product_id,
-  language,
-}) => {
-  const result = await client.search({
-    index: "comments",
-    size: 0,
-    query: {
-      bool: {
-        must: [
-          { term: { product_id: String(product_id) } },
-          { exists: { field: "rating" } },
-          { exists: { field: "order_details_id" } },
-        ],
-        must_not: [{ term: { status: "deleted" } }],
-      },
-    },
-    aggs: {
-      recommendation_status: {
-        filters: {
-          filters: {
-            recommend: {
-              bool: {
-                must: [
-                  { term: { product_id: String(product_id) } },
-                  { exists: { field: "rating" } },
-                  { exists: { field: "order_details_id" } },
-                  { term: { recommendation: true } },
-                ],
-                must_not: [{ term: { status: "deleted" } }],
-              },
-            },
-            not_recommend: {
-              bool: {
-                must: [
-                  { term: { product_id: String(product_id) } },
-                  { exists: { field: "rating" } },
-                  { term: { recommendation: false } },
-                  { exists: { field: "order_details_id" } },
-                ],
-                must_not: [{ term: { status: "deleted" } }],
-              },
-            },
-          },
-        },
-      },
-    },
-  });
-  // @ts-ignore
-  const buckets = result.aggregations.recommendation_status.buckets;
-  const total = buckets.recommend.doc_count + buckets.not_recommend.doc_count;
-
-  const stats = [
-    {
-      category: "recommend",
-      count: buckets.recommend.doc_count,
-      percentage:
-        total > 0
-          ? ((buckets.recommend.doc_count / total) * 100).toFixed(0)
-          : "0",
-    },
-    {
-      category: "not_recommend",
-      count: buckets.not_recommend.doc_count,
-      percentage:
-        total > 0
-          ? ((buckets.not_recommend.doc_count / total) * 100).toFixed(0)
-          : "0",
-    },
-  ];
-
-  return { stats };
-};
 export async function GetAvailableFQAFilters({ product_id }) {
   const query = {
     index: "comments",

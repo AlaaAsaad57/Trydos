@@ -280,13 +280,6 @@ function ProductLoader({ product }) {
           </ProductImagesSlider>
         </div>
 
-        <ProductDetailsSlider
-          resetLoader={false}
-          images={getImages(product, color)?.images}
-          currency={currency}
-          productGA={null}
-        />
-
         <div className="product-details-body bg-[#ffffff] flex-row relative mt-[3px] pb-[50px]">
           <div className="product-info-section bg-[#ffffff] flex-col align-start">
             <div className="flex-col px-[10px] max-w-full w-full">

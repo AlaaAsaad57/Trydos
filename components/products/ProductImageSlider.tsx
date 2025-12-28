@@ -43,55 +43,6 @@ function ProductImagesSlider({ children, language }) {
       },
     });
   }, []);
-
-  // useEffect(() => {
-  //   if (emblaApi && SelectedProduct) {
-  //     // Function to send GA events for visible slides (deduped per slide)
-  //     const sendGAEventsForVisibleSlides = () => {
-  //       const slidesInView = emblaApi.slidesInView();
-
-  //       slidesInView.forEach((slideIndex) => {
-  //         if (sentSlidesRef.current.has(slideIndex)) return;
-  //         sentSlidesRef.current.add(slideIndex);
-
-  //         GAevent({
-  //           action: GA_EVENT_NAMES.VIEW_IMAGE,
-  //           params: {
-  //             image_index: slideIndex,
-  //             user_id_custom: auth.UserID(),
-  //             item_id: SelectedProduct.id,
-  //             item_name: SelectedProduct?.name,
-  //             brand: SelectedProduct?.brand?.name,
-  //             brand_id: SelectedProduct?.brand?.id,
-  //             category:
-  //               SelectedProduct?.category?.name ||
-  //               SelectedProduct?.categories?.[0]?.name,
-  //             category_id:
-  //               SelectedProduct?.category?.id ||
-  //               SelectedProduct?.categories?.[0]?.id,
-  //             price: SelectedProduct?.offer_price,
-  //           },
-  //         });
-  //       });
-  //     };
-
-  //     // Send initial GA events for slides currently in view
-  //     setTimeout(() => {
-  //       sendGAEventsForVisibleSlides();
-  //     }, 100);
-
-  //     // Listen only for selection changes to avoid multiple initial triggers
-  //     const handleSelect = () => {
-  //       sendGAEventsForVisibleSlides();
-  //     };
-
-  //     emblaApi.on("select", handleSelect);
-
-  //     return () => {
-  //       emblaApi.off("select", handleSelect);
-  //     };
-  //   }
-  // }, [emblaApi, SelectedProduct, currency]);
   return (
     <div className="embla" ref={emblaRef}>
       <div
