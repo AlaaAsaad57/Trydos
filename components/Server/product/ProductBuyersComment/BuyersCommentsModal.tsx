@@ -1,10 +1,19 @@
-import React, { useState } from "react";
+"use client";
+import BuyersCommentModal from "components/products/BuyersCommentModal";
 
-function BuyersCommentsModal({ children, offset }) {
-  const [commentsNodes, setCommentNodes] = useState(children);
-  const [offsetValue, setOffsetValue] = useState(offset);
+import { useAppStore } from "store";
 
-  return <div>BuyersCommentsModal</div>;
+function BuyersCommentsModal({ children, offset, filters_key }) {
+  const { ColorBottomSheet } = useAppStore();
+  return (
+    <>
+      {ColorBottomSheet && ColorBottomSheet?.is_buyers_comments && (
+        <BuyersCommentModal offset={offset} filters_key={filters_key}>
+          {children}
+        </BuyersCommentModal>
+      )}
+    </>
+  );
 }
 
 export default BuyersCommentsModal;

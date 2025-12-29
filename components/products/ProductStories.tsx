@@ -18,7 +18,7 @@ function ProductStories({ id, children, InitialStoriesData }) {
   const [storiesData, setStoriesData] = useState(InitialStoriesData);
   const [page, setPage] = useState(2);
   const [loading, setLoading] = useState(false);
-  const [initialLoading, setInitialLoading] = useState(true);
+
   const [hasEnd, setHasEnd] = useState(InitialStoriesData.length < 10);
   // @ts-ignore
   let languageVariable = lang.split("-")[1];
@@ -44,15 +44,6 @@ function ProductStories({ id, children, InitialStoriesData }) {
       setHasEnd(true);
     }
   };
-
-  if (initialLoading)
-    return (
-      <div
-        className={`product-colors product-stories justify-center items-center flex-col  align-start relative`}
-      >
-        <ProductStoriesSkeleton />
-      </div>
-    );
 
   if (stories.length === 0) return <></>;
 

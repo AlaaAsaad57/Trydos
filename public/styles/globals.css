@@ -1003,3 +1003,8 @@ svg {
 .heart linearGradient {
   pointer-events: none;
 }
+
+.buers-modal-container .comment-item {
+  width: 100% !important;
+  max-width: 100% !important;
+}

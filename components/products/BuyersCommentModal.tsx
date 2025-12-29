@@ -1,22 +1,18 @@
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback } from "react";
 import BottomSheet from "components/global/BottomSheet";
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 import Skeleton from "react-loading-skeleton";
 import BuyersCommentIcon from "public/svg/product/BuyersCommentsIcon";
-
 import { useAppStore } from "store";
 import { translateFunction } from "utils/functions";
 import { fetchData } from "utils/fetchData";
 import { REQUESTS_DATA } from "utils/Requests";
-import { RateCommentItem } from "./ProductsBuyersComments";
-import auth from "services/auth";
 
-function BuyersCommentModal({ comments = [], total, offset: initialOffset }) {
-  const { ColorBottomSheet, setColorBottomSheet, language, SelectedProduct } =
-    useAppStore();
+function BuyersCommentModal({ children, offset: initialOffset, filters_key }) {
+  const { ColorBottomSheet, setColorBottomSheet, language } = useAppStore();
 
   const [activeType, setActiveType] = useState(0);
-  const [commentsData, setCommentsData] = useState(comments);
+  const [commentsData, setCommentsData] = useState(children);
   const [offset, setOffset] = useState(initialOffset);
   const [loading, setLoading] = useState(false);
 
@@ -28,15 +24,9 @@ function BuyersCommentModal({ comments = [], total, offset: initialOffset }) {
     offsetValue = null,
     reset = false
   ) => {
-    if (!SelectedProduct?.id) return;
-
     setLoading(true);
     try {
-      const url = `/api/products/comments/buyers_comments?user_id=${auth.UserID()}&product_id=${
-        SelectedProduct.id
-      }${offsetValue ? `&offset=${JSON.stringify(offsetValue)}` : ""}${
-        filterId ? `&filter=${filterId}` : ""
-      }`;
+      const url = `/api/products/comments/buyers_comments`;
 
       const data = await fetchData({
         url,
@@ -65,7 +55,7 @@ function BuyersCommentModal({ comments = [], total, offset: initialOffset }) {
       if (activeType === id) {
         // Unselect filter → restore original comments
         setActiveType(0);
-        setCommentsData(comments);
+        setCommentsData(children);
         setOffset(initialOffset);
         return;
       }
@@ -73,7 +63,7 @@ function BuyersCommentModal({ comments = [], total, offset: initialOffset }) {
       setActiveType(id);
       await loadMore(id, null, true);
     },
-    [activeType, loading, comments, initialOffset, loadMore]
+    [activeType, loading, children, initialOffset, loadMore]
   );
 
   return (
@@ -116,7 +106,7 @@ function BuyersCommentModal({ comments = [], total, offset: initialOffset }) {
                   loading ? "opacity-65" : ""
                 } flex-row product-properties px-[12px] items-center justify-start w-full gap-[4px]`}
               >
-                {SelectedProduct?.buyers_comment?.filters_key.map((type) => (
+                {filters_key.map((type) => (
                   <div
                     key={type}
                     onClick={() => handleFilter(type)}
@@ -130,7 +120,7 @@ function BuyersCommentModal({ comments = [], total, offset: initialOffset }) {
               </HortiznalScrollBar>
 
               {/* Comments List */}
-              <div className="flex-col gap-[12px] mt-[10px] min-h-[372px]">
+              <div className="flex-col gap-[12px] mt-[10px] min-h-[372px] buers-modal-container">
                 {!loading && commentsData.length === 0 && (
                   <span className="w-full justify-center items-center flex py-4 light text-[#1d1d1d]">
                     {translateFunction("There is No Comments Yet..", language)}
@@ -149,15 +139,7 @@ function BuyersCommentModal({ comments = [], total, offset: initialOffset }) {
                     </div>
                   ))}
 
-                {!loading &&
-                  commentsData.map((comment, idx) => (
-                    <RateCommentItem
-                      key={idx}
-                      comment={comment}
-                      language={language}
-                      width={100}
-                    />
-                  ))}
+                {!loading && commentsData}
 
                 {!loading && offset && (
                   <div

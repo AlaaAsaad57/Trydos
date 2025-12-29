@@ -390,6 +390,7 @@ export async function GetProductBuyersComment({
       );
     }),
     offset: nextSearchAfter,
+    filters_key: filters_key,
   };
 }
 
@@ -488,6 +489,62 @@ export async function GetFQACommentsForProductWithReactions({
   }));
 }
 
+async function GetBuyerComment({ id }) {
+  const cookieStore = await cookies();
+  let userCookies = cookieStore.get("User-Data")?.value;
+  let userId = JSON.parse(userCookies)?.id;
+  let query: any = {
+    index: "comments",
+    size: 1,
+    sort: [
+      { created_at: "desc" }, // newest first
+      { comment_id: "desc" }, // tie-breaker for consistent pagination
+    ],
+    query: {
+      bool: {
+        must: [{ term: { comment_id: id } }],
+      },
+    },
+  };
+
+  const response = await client.search(query);
+
+  let results: any = response.hits.hits.map((hit) => ({
+    id: hit._id,
+    ...((hit?._source as {}) ?? {}),
+  }));
+  results = await GetFQACommentsForProductWithReactions({
+    user_id: userId,
+    commentsResult: results,
+  });
+  let comment = {
+    id: results?.[0].id,
+    customer: {
+      id: results?.[0].user_id,
+      name: results?.[0].user_name,
+      image: results?.[0]?.user_avatar,
+    },
+    product_id: results?.[0].product_id,
+    comment: results?.[0].text,
+    ownerId: results?.[0]?.owner_id,
+    ownerType: results?.[0]?.owner_type,
+    variant: results?.[0].variant,
+    isOwner:
+      userId &&
+      results?.[0]?.user_id &&
+      String(results?.[0]?.user_id) === String(userId),
+    created_at: results?.[0].created_at,
+    true_size: results?.[0].aspects?.size?.fit_analysis?.correct ?? false,
+    good_quality_comment: results?.[0]?.good_quality_comment ?? false,
+    comments_images_customer: results?.[0]?.comments_images_customer ?? [],
+    star_rating: results?.[0].rating,
+    order_details_id: results?.[0].order_details_id,
+    recommendation: results?.[0]?.recommendation,
+    total_likes: results?.[0]?.total_likes,
+    is_liked: results?.[0]?.is_liked,
+  };
+  return comment;
+}
 export async function UpdateBuyerComment({ payload, language, id }) {
   let cookieStore = await cookies();
   let commentToken = cookieStore.get(
@@ -506,40 +563,15 @@ export async function UpdateBuyerComment({ payload, language, id }) {
     headers: {
       Authorization: `Bearer ${commentToken}`,
     },
-    method: "POST",
+    method: "PUT",
     body: payload,
   });
   if (res.error) {
     return { status: res.status, message: res.error, success: false };
   }
-
-  let comment = res.data;
+  // let comment = await GetBuyerComment({ id: id });
   return {
-    comment: (
-      <BuyersCommentItem
-        comment={{
-          id: comment?.id,
-          customer: {
-            id: comment.user_id,
-            name: comment.user_name,
-            image: comment.user_avatar,
-          },
-          product_id: comment.product_id,
-          comment: comment.text,
-          variant: comment.variant,
-          created_at: comment.created_at,
-          true_size: comment.aspects?.size?.fit_analysis?.correct ?? false,
-          good_quality_comment: comment?.good_quality_comment ?? false,
-          comments_images_customer: comment?.comments_images_customer ?? [],
-          star_rating: comment.rating,
-          order_details_id: comment.order_details_id,
-          recommendation: comment?.recommendation,
-          total_likes: comment?.total_likes,
-          is_liked: comment?.is_liked,
-        }}
-        language={language}
-      />
-    ),
+    // comment: <BuyersCommentItem comment={comment} language={language} />,
     success: true,
     status: 200,
   };

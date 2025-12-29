@@ -29,6 +29,7 @@ const createServerFetch = async <T = any,>({
   body,
 }: FetchOptions): Promise<FetchResponse<T>> => {
   const retryableStatusCodes = [502, 503, 504, 429];
+
   const [country, lang] = local.split("-");
   const handleRetry = async (attempt: number): Promise<FetchResponse<T>> => {
     try {
@@ -40,6 +41,7 @@ const createServerFetch = async <T = any,>({
           lang: lang,
           ...headers,
         },
+        body: body,
       };
 
       const response = await fetch(url, {

@@ -3,7 +3,7 @@ import Spinner from "components/global/Spinner";
 import DeleteCommentIcon from "public/svg/DeleteCommentIcon";
 import LanguageIcon from "public/svg/LanguageIcon";
 import PenIcon from "public/svg/PenIcon";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useTransition } from "react";
 import { translateFunction } from "utils/functions";
 import { REQUESTS_DATA } from "utils/Requests";
 import ThreePointsIcon from "public/svg/threepoints";
@@ -12,6 +12,7 @@ import RatingStars from "components/settings/cards/RatingStars";
 import { ConfirmModal } from "components/global/ConfirmModal";
 import { DeleteComment, UpdateBuyerComment } from "serverRequests/product";
 import { fetchData } from "utils/fetchData";
+import { useRouter } from "next/navigation";
 
 function BuyersCommentMenu({
   id,
@@ -29,7 +30,9 @@ function BuyersCommentMenu({
   );
   const [originalComment, setOriginalComment] = useState<string | null>(null);
   const [translateLoading, setTranslateLoading] = useState(false);
+  const [isPending, startTransition] = useTransition();
   const [isCommentTranslated, setIsCommentTranslated] = useState(false);
+  const router = useRouter();
   const EditComment = async (comment_var) => {
     try {
       setLoading(true);
@@ -46,26 +49,28 @@ function BuyersCommentMenu({
       });
 
       if (!res.success) throw new Error(res.message);
-      if (res.comment)
-        document
-          .querySelector(`#comment-${id}`)
-          .replaceWith(res?.comment as unknown as Node);
-      setLoading(false);
-      setOpenModal("");
-      setMenuOpen(false);
+      startTransition(() => {
+        router.refresh();
+      });
     } catch (error) {
       setLoading(false);
     }
   };
+  useEffect(() => {
+    if (!isPending && loading) {
+      setOpenModal("");
+      setMenuOpen(false);
+      setLoading(false);
+    }
+  }, [isPending, loading]);
   const deleteComment = async (comment_var) => {
     try {
       setLoading(true);
       let res = await DeleteComment({ id: comment_var.id, language: language });
       if (!res.success) throw new Error(res.message);
-      document.querySelector(`#comment-${id}`).remove();
-      setLoading(false);
-      setOpenModal("");
-      setMenuOpen(false);
+      startTransition(() => {
+        router.refresh();
+      });
     } catch (error) {
       setLoading(false);
     }

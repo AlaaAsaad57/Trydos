@@ -65,13 +65,6 @@ function ProductsBuyersComments({
   if (comments.comments?.length === 0) return <></>;
   return (
     <>
-      {ColorBottomSheet && ColorBottomSheet?.is_buyers_comments && (
-        <BuyersCommentModal
-          comments={comments.comments}
-          total={comments?.total}
-          offset={comments?.offset}
-        />
-      )}
       <div className={`w-full flex-col`}>
         <HortiznalScrollBar
           id="comments-buyers-bar"

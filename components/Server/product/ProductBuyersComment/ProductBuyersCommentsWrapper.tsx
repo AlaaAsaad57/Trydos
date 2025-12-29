@@ -8,6 +8,7 @@ import {
   GetRecommendationCountForProduct,
 } from "serverRequests/product";
 import { cookies } from "next/headers";
+import BuyersCommentsModal from "./BuyersCommentsModal";
 
 async function ProductBuyersCommentsWrapper({ globalPromise, language }) {
   let product = await globalPromise;
@@ -25,8 +26,15 @@ async function ProductBuyersCommentsWrapper({ globalPromise, language }) {
     GetRecommendationCountForProduct({ product_id: productId }),
   ]);
   const isRtl = language === "ar" || language === "ku";
+  if (buyersComments.comments.length === 0) return <></>;
   return (
     <>
+      <BuyersCommentsModal
+        filters_key={buyersComments.filters_key}
+        offset={buyersComments.offset}
+      >
+        {buyersComments.comments}
+      </BuyersCommentsModal>
       <div className={`w-full flex-col`}>
         <BuyersCommentTopBar isRtl={isRtl}>
           <BuyersCommentsIcon />

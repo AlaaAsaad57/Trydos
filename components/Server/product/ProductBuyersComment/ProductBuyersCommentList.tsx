@@ -14,6 +14,7 @@ function ProductBuyersCommentList({
   productId,
   recommendation_stats,
 }) {
+  console.log(children);
   const [commentsNodes, setCommentsNodes] = useState(children);
   const [offsetValue, setOffsetValue] = useState(offset);
   const [hasEnd, setHasEnd] = useState(commentsNodes?.length < 5);
