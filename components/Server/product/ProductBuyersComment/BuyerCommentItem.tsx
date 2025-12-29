@@ -3,7 +3,7 @@ import profilePng from "public/images/profileNo.png";
 import Image from "next/image";
 import BuyersCommentMenu from "./BuyersCommentMenu";
 import { BuyerCommentRateInfo } from "./BuyerCommentRateInfo";
-export const BuyersCommentItem = ({ comment, language, width = 90 }) => {
+export const BuyersCommentItem = ({ id, comment, language, width = 90 }) => {
   const isRtl = language === "ar" || language === "ku";
   return (
     <div
@@ -47,7 +47,7 @@ export const BuyersCommentItem = ({ comment, language, width = 90 }) => {
           {comment?.variant}
         </span>
         <div
-          className="comment-date text-[9px]"
+          className="comment-date text-[9px] absolute text-[#1d1d1d]"
           data-cy="Date-Of-Comment"
           style={{
             right: isRtl ? "initial" : "10px",

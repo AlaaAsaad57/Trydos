@@ -58,9 +58,10 @@ function ProductStories({ id, children, InitialStoriesData }) {
     if (link && e.currentTarget.contains(link)) {
       // 3. Extract data from the 'dataset' object
       const { id } = link.dataset;
+
       setSelectStory(
         StoryServiceClass.configureStory(
-          stories.find((s) => String(s.id) === String(id))
+          storiesData.find((s) => String(s.id) === String(id))
         )
       );
       console.log("ID from data-id:", id);
@@ -72,7 +73,7 @@ function ProductStories({ id, children, InitialStoriesData }) {
   return (
     <>
       {selectedStory && selectedStory?.id && (
-        <StoriesContainer stories={stories} selectedStory={selectedStory} />
+        <StoriesContainer stories={storiesData} selectedStory={selectedStory} />
       )}
       <div className={`stories-row flex-row w-100`} onClick={() => {}}>
         <HortiznalScrollBar

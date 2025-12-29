@@ -989,7 +989,7 @@ svg {
   transition: fill 0.3s ease, transform 0.3s ease;
 }
 .heart.liked {
-  fill: url(#${`heartGradient-${comment.id}`});
+  fill: url(#heartGradient);
 }
 .heart.pop {
   transform: scale(1.3);
@@ -1007,4 +1007,17 @@ svg {
 .buers-modal-container .comment-item {
   width: 100% !important;
   max-width: 100% !important;
+}
+
+#not-liked-heart {
+  display: flex;
+}
+#liked-heart {
+  display: none;
+}
+.comment-liked #not-liked-heart {
+  display: none;
+}
+.comment-liked #liked-heart {
+  display: flex;
 }

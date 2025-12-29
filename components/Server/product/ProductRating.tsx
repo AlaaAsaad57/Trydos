@@ -1,4 +1,4 @@
-function ProductRating({ rating, color = "#402CDD", size = 11.326 }) {
+function ProductRating({ rating, color = "#1d1d1d", size = 11.326 }) {
   const getStarFill = (index: number) => {
     const fullStars = Math.floor(rating);
     const hasHalfStar = rating % 1 !== 0;

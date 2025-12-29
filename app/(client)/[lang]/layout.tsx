@@ -140,6 +140,20 @@ export default async function RootLayout({ params, children }) {
         <SessionChecker />
         <SessionTimer />
         <PageLoadingIndicator />
+        <svg className="opacity-0 absolute" width={0} height={0}>
+          <defs>
+            <linearGradient
+              id={`heartGradient77`}
+              x1="0%"
+              y1="0%"
+              x2="100%"
+              y2="100%"
+            >
+              <stop offset="0%" stopColor="#FF6B6B" />
+              <stop offset="100%" stopColor="#FF1E56" />
+            </linearGradient>
+          </defs>
+        </svg>
       </body>
     </html>
   );

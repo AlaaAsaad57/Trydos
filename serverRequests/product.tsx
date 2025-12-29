@@ -333,7 +333,7 @@ export async function GetProductBuyersComment({
   if (offset) {
     query = {
       ...query,
-      search_after: typeof offset === "string" ? JSON.parse(offset) : [],
+      search_after: typeof offset === "string" ? JSON.parse(offset) : offset,
     };
   }
   const response = await client.search(query);
@@ -383,6 +383,7 @@ export async function GetProductBuyersComment({
     comments: commentsData?.map((comment, i) => {
       return (
         <BuyersCommentItem
+          id={comment.id}
           key={comment.id}
           comment={comment}
           language={language}
@@ -566,12 +567,22 @@ export async function UpdateBuyerComment({ payload, language, id }) {
     method: "PUT",
     body: payload,
   });
+  console.log(res, payload);
   if (res.error) {
     return { status: res.status, message: res.error, success: false };
   }
-  // let comment = await GetBuyerComment({ id: id });
+  await new Promise((resolve) => setTimeout(resolve, 3000));
+  let comment = await GetBuyerComment({ id: id });
+  console.log(comment);
   return {
-    // comment: <BuyersCommentItem comment={comment} language={language} />,
+    comment: (
+      <BuyersCommentItem
+        id={id}
+        key={id}
+        comment={comment}
+        language={language}
+      />
+    ),
     success: true,
     status: 200,
   };

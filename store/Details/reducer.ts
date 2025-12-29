@@ -61,6 +61,7 @@ interface DetailsState {
   sharesCount: number | null;
   selected_product_for_add_to_cart: null | any;
   ColorBottomSheet: boolean | any;
+  BuyerCommentModalOption: any;
 }
 
 const initialState: DetailsState = {
@@ -69,6 +70,8 @@ const initialState: DetailsState = {
   isModalOpen: null,
   selected_product_for_add_to_cart: null,
   totalProducts: null,
+  BuyerCommentModalOption: null,
+
   InfoMessage: {
     showInfoMessage: false,
     title: "",
@@ -135,6 +138,7 @@ const initialState: DetailsState = {
 export const useDetailsStore = (set, get) => ({
   ...initialState,
   setIsModalOpen: (e) => set({ isModalOpen: e }),
+  setBuyerCommentModalOption: (e) => set({ BuyerCommentModalOption: e }),
   setShareLoading: (loading: boolean) => set({ shareLoading: loading }),
   setColorBottomSheet: (colorBottomSheet: boolean | any) =>
     set({ ColorBottomSheet: colorBottomSheet }),

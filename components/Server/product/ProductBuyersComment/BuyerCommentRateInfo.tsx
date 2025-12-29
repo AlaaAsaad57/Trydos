@@ -1,8 +1,8 @@
-import { LikeButton } from "components/products/FAQSection";
 import RatingStars from "components/settings/cards/RatingStars";
 import RecomendedIcon from "public/svg/RecomendedIcon";
 import NegRecomendedIcon from "public/svg/NegRecomendIcon";
 import { translateFunction } from "utils/server";
+import { LikeButton } from "../LikeButtton";
 
 export const BuyerCommentRateInfo = ({
   language,
@@ -12,7 +12,13 @@ export const BuyerCommentRateInfo = ({
 }) => {
   return (
     <div className="flex-row pl-[10px] pr-[3px] justify-between w-full items-center">
-      <LikeButton comment={{ ...comment, target_type: "comment" }} />
+      <LikeButton
+        comment_id={comment.id}
+        is_liked={comment.is_liked}
+        productId={comment.product_id}
+        target_type={"comment"}
+        total_likes={comment.total_likes}
+      />
       <div className="flex-row gap-[4px] text-[9px] text-[#1d1d1d]">
         <RatingStars color="#1d1d1d" initialRating={rating} readOnly={true} />
         <div className="flex-row gap-[6px]">

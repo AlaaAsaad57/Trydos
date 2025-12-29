@@ -1,18 +1,34 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import BottomSheet from "components/global/BottomSheet";
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 import Skeleton from "react-loading-skeleton";
 import BuyersCommentIcon from "public/svg/product/BuyersCommentsIcon";
 import { useAppStore } from "store";
 import { translateFunction } from "utils/functions";
-import { fetchData } from "utils/fetchData";
-import { REQUESTS_DATA } from "utils/Requests";
 
-function BuyersCommentModal({ children, offset: initialOffset, filters_key }) {
-  const { ColorBottomSheet, setColorBottomSheet, language } = useAppStore();
+import { GetProductBuyersComment } from "serverRequests/product";
+import auth from "services/auth";
+import { RatingCommentOptions } from "components/Server/product/ProductBuyersComment/RatingCommentOptions";
+
+function BuyersCommentModal({
+  commentNodes,
+  offset: initialOffset,
+  filters_key,
+  productId,
+  deleteComment,
+  editComment,
+}) {
+  const {
+    ColorBottomSheet,
+    setColorBottomSheet,
+    language,
+    BuyerCommentModalOption,
+    setBuyerCommentModalOption,
+  } = useAppStore();
 
   const [activeType, setActiveType] = useState(0);
-  const [commentsData, setCommentsData] = useState(children);
+  const [actionLoading, setActionLoading] = useState(false);
+  const [commentsData, setCommentsData] = useState(commentNodes);
   const [offset, setOffset] = useState(initialOffset);
   const [loading, setLoading] = useState(false);
 
@@ -26,21 +42,18 @@ function BuyersCommentModal({ children, offset: initialOffset, filters_key }) {
   ) => {
     setLoading(true);
     try {
-      const url = `/api/products/comments/buyers_comments`;
-
-      const data = await fetchData({
-        url,
-        method: "GET",
-        server: "local",
-        reqTitle: REQUESTS_DATA.COMMENT_DATA_REQUEST,
+      const data = await GetProductBuyersComment({
+        language: language,
+        productId: productId,
+        userId: auth.UserID(),
+        filter: activeType,
+        offset: offset,
       });
 
       setCommentsData((prev) =>
-        reset
-          ? data?.data?.buyers_comments ?? []
-          : [...prev, ...data?.data?.buyers_comments]
+        reset ? data.comments : [...(prev as any), ...data.comments]
       );
-      setOffset(data?.data?.offset);
+      setOffset(data?.offset);
     } catch (err) {
       console.error("Error loading comments:", err);
     } finally {
@@ -55,7 +68,7 @@ function BuyersCommentModal({ children, offset: initialOffset, filters_key }) {
       if (activeType === id) {
         // Unselect filter → restore original comments
         setActiveType(0);
-        setCommentsData(children);
+        setCommentsData(commentNodes);
         setOffset(initialOffset);
         return;
       }
@@ -63,7 +76,7 @@ function BuyersCommentModal({ children, offset: initialOffset, filters_key }) {
       setActiveType(id);
       await loadMore(id, null, true);
     },
-    [activeType, loading, children, initialOffset, loadMore]
+    [activeType, loading, commentNodes, initialOffset, loadMore]
   );
 
   return (
@@ -155,6 +168,36 @@ function BuyersCommentModal({ children, offset: initialOffset, filters_key }) {
             </div>
           </div>
         </BottomSheet>
+      )}
+      {ColorBottomSheet?.is_buyers_comments && BuyerCommentModalOption && (
+        <RatingCommentOptions
+          language={language}
+          is_update={BuyerCommentModalOption.option === "Update"}
+          is_delete={BuyerCommentModalOption.option === "Delete"}
+          comment={BuyerCommentModalOption}
+          deleteAction={async (id) => {
+            setActionLoading(true);
+            let comment_id = await deleteComment(id);
+            setCommentsData(
+              commentsData.filter((node) => node.key !== comment_id)
+            );
+            setActionLoading(false);
+          }}
+          updateAction={async (comment) => {
+            setActionLoading(true);
+            let { commentElement, id } = await editComment(comment);
+            setCommentsData(
+              commentsData?.map((node) =>
+                node.key === id ? commentElement : node
+              )
+            );
+            setActionLoading(false);
+          }}
+          handleCloseModal={() => {
+            setBuyerCommentModalOption(null);
+          }}
+          loading={actionLoading}
+        />
       )}
     </>
   );
