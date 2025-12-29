@@ -300,9 +300,9 @@ function ChatVoiceCall({ token }) {
           </div>
           <div
             style={{
-              bottom: "50px",
+              bottom: "60px",
             }}
-            className="fixed bottom-[3dvh] left-0 right-0 mx-auto flex justify-center items-center gap-[25px] z-[9999999999]"
+            className="fixed  left-0 right-0 mx-auto flex justify-center items-center gap-[25px] z-[9999999999]"
           >
             {isPublished ? (
               <div
@@ -319,7 +319,7 @@ function ChatVoiceCall({ token }) {
             <div
               style={track && { zIndex: 3 }}
               className={
-                "end-icon  static flex items-center justify-center m-0" +
+                "end-icon  static flex items-center justify-center m-0 " +
                 `${loading && "disabled-label"}`
               }
               onClick={() => {
@@ -329,7 +329,7 @@ function ChatVoiceCall({ token }) {
               <EndCallIcon></EndCallIcon>
               <span>End Call</span>
             </div>
-            {<span />}
+            <span />
           </div>
           {ready && (
             <div className="call-status">
