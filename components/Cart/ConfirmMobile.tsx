@@ -12,6 +12,7 @@ import {
   UserData,
 } from "utils/cookies/cookie-manager";
 import SearchParamUpdater from "components/global/ParamsUpdater";
+import { useRouter } from "next/navigation";
 
 function ConfirmMobile({ closeWindow, hasMobile, goToOrders }) {
   const { setWrongNumber, verficationID, wrongNumber } = useAppStore();
@@ -70,6 +71,7 @@ function ConfirmMobile({ closeWindow, hasMobile, goToOrders }) {
   };
   const [failedLogin, setFailed] = useState(false);
   const [loadingPin, setLoadingPin] = useState(false);
+  const router = useRouter();
   const loginFunc = async (e) => {
     setLoadingPin(true);
     await VerifyOtpHook({
@@ -111,7 +113,7 @@ function ConfirmMobile({ closeWindow, hasMobile, goToOrders }) {
         // });
 
         await FinaliseLogin();
-
+        router.refresh();
         setTimeout(() => {
           setLoadingPin(false);
           closeWindow();

@@ -13,7 +13,7 @@ import AuthService from "services/auth";
 
 import LoginMethods from "./LoginMethods";
 import SlideWidget from "components/global/SlideNavigation";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useAppStore } from "store";
 import {
   GA_AUTH_SCREEN,
@@ -22,7 +22,7 @@ import {
   GA_EXCEPTIONS_DESCRIPTIONS,
 } from "utils/GAEvents";
 import { GAevent } from "utils/gtag";
-import auth from "services/auth";
+
 import Image from "next/image";
 import SearchParamUpdater from "components/global/ParamsUpdater";
 
@@ -175,6 +175,7 @@ function NewLoginWidget() {
   };
   const [loadingPin, setLoadingPin] = useState(false);
   const [attempts, setAttempts] = useState(0);
+  const router = useRouter();
   const loginFunc = async (e) => {
     setAttempts(attempts + 1);
     setLoadingPin(true);
@@ -247,6 +248,7 @@ function NewLoginWidget() {
             success: true,
           },
         });
+        router.refresh();
 
         setTimeout(() => {
           setLoadingPin(false);
