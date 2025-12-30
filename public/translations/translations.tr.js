@@ -1129,6 +1129,14 @@ const translations = {
   "Sent a file": " Bir dosya gönderdi",
   "Sent a voice message": " Bir sesli mesaj gönderdi",
   "Sent a message": " Bir mesaj gönderdi",
+  "Please enable  permissions (camera,mic) to use calls features":
+    "Arama özelliklerini kullanmak için lütfen izinleri (kamera, mikrofon) etkinleştirin",
+  Online: "Çevrimiçi",
+  "last Seen ": "Son görülme",
+  "Outgoing Voice Call": "Giden sesli arama",
+  "Outgoing Video Call": "Giden görüntülü arama",
+  "Missed Voice Call At": "Cevapsız sesli arama saat",
+  "Missed Video Call At": "Cevapsız görüntülü arama saat",
 };
 
 export default translations;

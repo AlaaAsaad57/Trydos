@@ -7,6 +7,7 @@ import { getUserChat } from "utils/functions";
 import { GetLastSeen } from "store/chat/actions";
 import Skeleton from "react-loading-skeleton";
 import { useAppStore } from "store";
+import GetMoreChats from "../components/GetMoreChats";
 function ChatLists(props) {
   const {
     data: chats,
@@ -49,13 +50,31 @@ function ChatLists(props) {
       </div>
     );
   }
+  const getSortedChats = () => {
+    return [...chats].sort((a, b) => {
+      // 1. Find the newest timestamp in Chat A
+      const newestA =
+        a.messages.length > 0
+          ? Math.max(...a.messages.map((m) => new Date(m.created_at).getTime()))
+          : 0;
+
+      // 2. Find the newest timestamp in Chat B
+      const newestB =
+        b.messages.length > 0
+          ? Math.max(...b.messages.map((m) => new Date(m.created_at).getTime()))
+          : 0;
+
+      // 3. Sort Descending (Newest chat first)
+      return newestB - newestA;
+    });
+  };
   return (
     <div className="chat-list-items chat-lists-class ">
       {!loading && (
         <>
           {props.search.length === 0 ? (
             <>
-              {chats
+              {getSortedChats()
                 ?.filter(
                   (s) =>
                     s.channel_members.filter(
@@ -97,7 +116,7 @@ function ChatLists(props) {
                     />
                   );
                 })}
-              {chats
+              {getSortedChats()
                 ?.filter(
                   (s) =>
                     s.channel_members.filter(
@@ -146,6 +165,7 @@ function ChatLists(props) {
                     />
                   );
                 })}
+              <GetMoreChats />
             </>
           ) : (
             <>

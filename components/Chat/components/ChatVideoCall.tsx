@@ -34,7 +34,6 @@ function ChatVideoCall({ token }) {
   const trackStateRef = useRef(trackState);
   const [loading, setLoading] = useState(false);
   const endCall = async (duration) => {
-    console.log("endCall");
     setLoading(true);
     try {
       // Stop timer
@@ -67,7 +66,7 @@ function ChatVideoCall({ token }) {
 
       // End call API - always call this
       try {
-        let res = await fetchData({
+        fetchData({
           url: UPDATED_API_DATA.MOD_END_CALL,
 
           reqTitle: REQUESTS_DATA.END_CALL,
@@ -75,41 +74,29 @@ function ChatVideoCall({ token }) {
           server: "chat",
           body: JSON.stringify({ user_id: getUserChat()?.id }),
         });
-        if (!res.success) {
-          throw new Error(res.message);
-        }
       } catch (apiError) {
         console.error("End call API error:", apiError);
       }
 
       // Handle RefuseCall if we have the necessary data
       if (activeChat?.id && MessageActiveCall) {
-        try {
-          if (duration && users.length > 0) {
-            await RefuseCall(activeChat.id, MessageActiveCall, duration);
-          } else {
-            await RefuseCall(
-              activeChat.id,
-              MessageActiveCall,
-              minutes * 60 + seconds
-            );
-          }
-        } catch (refuseError) {
-          console.error("RefuseCall error:", refuseError);
-        }
+        RefuseCall(activeChat.id, MessageActiveCall, duration);
       }
 
       // Always unmount component
+      storeDuration(MessageActiveCall, duration);
       endCallInStore(MessageActiveCall);
     } catch (error) {
       console.error("Error ending call:", error);
       // Still try to unmount
+      storeDuration(MessageActiveCall, duration);
       endCallInStore(MessageActiveCall);
     }
   };
   const {
     activeChat,
     MessageActiveCall,
+    storeDuration,
     endCall: endCallInStore,
     storeClient,
     storeTrack,
@@ -120,7 +107,12 @@ function ChatVideoCall({ token }) {
 
   const { seconds, minutes, hours, days, isRunning, start, pause, reset } =
     useStopwatch({ autoStart: false });
+  const durationRef = useRef(0);
 
+  // Update the ref whenever the timer changes
+  useEffect(() => {
+    durationRef.current = minutes * 60 + seconds;
+  }, [minutes, seconds]);
   const [callStatus, setCallStatus] = useState(null);
 
   const [isPublished, setIsPublished] = useState(false);
@@ -138,18 +130,17 @@ function ChatVideoCall({ token }) {
         storeTrack(tracks);
         clientRef.current = client;
         tracksRef.current = tracks;
-        console.log("Initializing AgoraRTC client with video call");
-        client.on("user-joined", async (user) => {
-          console.log("user-joined");
 
+        client.on("user-joined", async (user) => {
           setUsers((prevUsers) => {
             // Prevent duplicates
             if (prevUsers.find((u) => u.uid === user.uid)) return prevUsers;
             return [...prevUsers, user];
           });
+          if (!isRunning) start();
         });
         client.on("user-published", async (user, mediaType) => {
-          start();
+          if (!isRunning) start();
           await client.subscribe(user, mediaType);
           // Ensure React state updates so the UI re-renders with the new tracks
           setUsers((prev) => {
@@ -165,8 +156,6 @@ function ChatVideoCall({ token }) {
         });
 
         client.on("user-unpublished", (user, type) => {
-          console.log("user-unpublished", type);
-
           if (type === "audio") {
             user.audioTrack?.stop();
           }
@@ -183,8 +172,6 @@ function ChatVideoCall({ token }) {
         });
 
         client.on("user-left", (user) => {
-          console.log("user-left");
-
           userEndCall();
           setCallStatus("");
           setUsers((prevUsers) => {
@@ -215,7 +202,6 @@ function ChatVideoCall({ token }) {
     }
   }, [client, ready, tracks, error]);
   const userEndCall = async (bool?) => {
-    console.log("userEndCall");
     await client.leave();
     client.removeAllListeners();
     // we close the tracks to perform cleanup
@@ -227,8 +213,8 @@ function ChatVideoCall({ token }) {
     }
     //   RefuseCall(activeChat.id,MessageActiveCall)
     pause();
-    let duration = minutes * 60 + seconds;
-    endCall(duration > 3 && users.length > 0 && duration);
+
+    endCall(durationRef.current);
     //   dispatch({type:"END-CALL"})
   };
 
@@ -237,7 +223,6 @@ function ChatVideoCall({ token }) {
     trackStateRef.current = trackState;
   }, [trackState]);
   const mute = async (type) => {
-    console.log("mute called for ", type);
     if (type === "audio") {
       const newState = !trackState.audio;
       if (tracks && tracks[0]) {
@@ -271,18 +256,14 @@ function ChatVideoCall({ token }) {
   };
   useEffect(() => {
     if (seconds === 60 && users.length === 0) {
-      console.log("edn call in useEffect", seconds, users);
       userEndCall(true);
     }
     if (minutes === 30) {
-      console.log("edn call in useEffect", seconds, minutes, users);
-
       userEndCall();
     }
   }, [minutes, seconds]);
   useEffect(() => {
     return () => {
-      console.log("Component unmounting: Running final cleanup");
       cleanUp();
     };
   }, []);
@@ -450,9 +431,9 @@ function ChatVideoCall({ token }) {
             )}
           </div>
 
-          {ready && !users?.[0]?.hasVideo && (
+          {ready && (
             <div className="call-status">
-              {users.length > 0 && !users[0].hasVideo ? (
+              {users.length > 0 ? (
                 <>
                   <CallingIcon></CallingIcon>
                   <span>

@@ -60,42 +60,29 @@ function ChatVoiceCall({ token }) {
 
       // End call API - always call this
       try {
-        let res = await fetchData({
+        fetchData({
           url: UPDATED_API_DATA.MOD_END_CALL,
           reqTitle: REQUESTS_DATA.END_CALL,
           method: "POST",
           server: "chat",
           body: JSON.stringify({ user_id: getUserChat()?.id }),
         });
-        if (!res.success) {
-          throw new Error(res.message);
-        }
       } catch (apiError) {
         console.error("End call API error:", apiError);
       }
 
       // Handle RefuseCall if we have the necessary data
       if (activeChat?.id && MessageActiveCall) {
-        try {
-          if (duration && users.length > 0) {
-            await RefuseCall(activeChat.id, MessageActiveCall, duration);
-          } else {
-            await RefuseCall(
-              activeChat.id,
-              MessageActiveCall,
-              minutes * 60 + seconds
-            );
-          }
-        } catch (refuseError) {
-          console.error("RefuseCall error:", refuseError);
-        }
+        RefuseCall(activeChat.id, MessageActiveCall, durationRef.current);
       }
 
       // Always unmount component
+      storeDuration(MessageActiveCall, duration);
       endCallInStore(MessageActiveCall);
     } catch (error) {
       console.error("Error ending call:", error);
       // Still try to unmount
+      storeDuration(MessageActiveCall, duration);
       endCallInStore(MessageActiveCall);
     }
   };
@@ -103,6 +90,7 @@ function ChatVoiceCall({ token }) {
     activeChat,
     MessageActiveCall,
     endCall: endCallInStore,
+    storeDuration,
     storeClient,
     storeTrack,
   } = useAppStore();
@@ -112,7 +100,12 @@ function ChatVoiceCall({ token }) {
 
   const { seconds, minutes, hours, days, isRunning, start, pause, reset } =
     useStopwatch({ autoStart: false });
+  const durationRef = useRef(0);
 
+  // Update the ref whenever the timer changes
+  useEffect(() => {
+    durationRef.current = minutes * 60 + seconds;
+  }, [minutes, seconds]);
   const [callStatus, setCallStatus] = useState(null);
 
   const [isPublished, setIsPublished] = useState(false);
@@ -128,7 +121,7 @@ function ChatVoiceCall({ token }) {
       storeClient(client);
       storeTrack([track]);
       client.on("user-joined", async (user) => {
-        start();
+        if (!isRunning) start();
         setUsers((prevUsers) => {
           // Prevent duplicates
           if (prevUsers.find((u) => u.uid === user.uid)) return prevUsers;
@@ -136,6 +129,7 @@ function ChatVoiceCall({ token }) {
         });
       });
       client.on("user-published", async (user, mediaType) => {
+        if (!isRunning) start();
         await client.subscribe(user, mediaType);
 
         // Ensure React state updates so the UI re-renders with the new tracks
@@ -203,8 +197,8 @@ function ChatVoiceCall({ token }) {
     }
     //   RefuseCall(activeChat.id,MessageActiveCall)
     pause();
-    let duration = minutes * 60 + seconds;
-    endCall(duration > 3 && users.length > 0 && duration);
+    let duration = durationRef.current;
+    endCall(duration);
     //   dispatch({type:"END-CALL"})
   };
   const [trackState, setTrackState] = useState({ audio: true });
@@ -215,7 +209,6 @@ function ChatVoiceCall({ token }) {
     trackStateRef.current = trackState;
   }, [trackState]);
   const mute = async (type) => {
-    console.log("mute called for ", type);
     if (type === "audio") {
       const newState = !trackState.audio;
       if (track) {
@@ -300,9 +293,9 @@ function ChatVoiceCall({ token }) {
           </div>
           <div
             style={{
-              bottom: "50px",
+              bottom: "60px",
             }}
-            className="fixed bottom-[3dvh] left-0 right-0 mx-auto flex justify-center items-center gap-[25px] z-[9999999999]"
+            className="fixed  left-0 right-0 mx-auto flex justify-center items-center gap-[25px] z-[9999999999]"
           >
             {isPublished ? (
               <div
@@ -319,7 +312,7 @@ function ChatVoiceCall({ token }) {
             <div
               style={track && { zIndex: 3 }}
               className={
-                "end-icon  static flex items-center justify-center m-0" +
+                "end-icon  static flex items-center justify-center m-0 " +
                 `${loading && "disabled-label"}`
               }
               onClick={() => {
@@ -329,7 +322,7 @@ function ChatVoiceCall({ token }) {
               <EndCallIcon></EndCallIcon>
               <span>End Call</span>
             </div>
-            {<span />}
+            <span />
           </div>
           {ready && (
             <div className="call-status">

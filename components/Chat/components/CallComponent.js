@@ -42,7 +42,7 @@ function CallComponent(props) {
     if (!permissions) {
       showErrorNotification(
         translateFunction(
-          "Please enable notification permissions (camera,mic) to use calls features"
+          "Please enable  permissions (camera,mic) to use calls features"
         )
       );
       return;

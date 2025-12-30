@@ -508,9 +508,8 @@ class ForegroundNotificationHandler {
           const channel = messageData?.channel;
           let messagePreview = "";
           let messageImage = null;
-          const senderName =
-            senderUser?.name || channel?.channel_name || "Unknown";
-          const senderPhoto = senderUser?.photo_path || channel?.photo_path;
+          const senderName = senderUser?.name || senderUser?.mobile_phone;
+          const senderPhoto = senderUser?.photo_path;
           if (messageFiles && messageFiles.length > 0) {
             messageImage = messageFiles[0]?.file_path || messageFiles[0]?.url;
             messagePreview = getMessageNotificationPreview(messageType);
@@ -605,7 +604,7 @@ class ForegroundNotificationHandler {
               return;
             }
           }
-          Recive(parseInt(JSON.parse(payload.data.data).message.channel.id));
+
           if (
             chatData
               .filter(
@@ -728,6 +727,131 @@ class ForegroundNotificationHandler {
           }
         } else if (payload.data.type === "ShareProductEvent") {
           let data = JSON.parse(payload.data.data);
+          const messageData = JSON.parse(payload.data.data).message;
+          const messageContent = messageData?.message_content;
+          const messageType = messageData?.message_type?.name;
+          const messageFiles = messageData?.message_files || [];
+          const senderUser = messageData?.sender_user;
+          const channel = messageData?.channel;
+
+          let messageImage = null;
+          const senderName = senderUser?.name || senderUser?.mobile_phone;
+          const senderPhoto = senderUser?.photo_path;
+          let messagePreview = translateFunction("Shared a product");
+
+          if (
+            chatData
+              .filter(
+                (chat) =>
+                  parseInt(chat.id) ===
+                  parseInt(JSON.parse(payload.data.data).message.channel.id)
+              )[0]
+              ?.messages.filter(
+                (message) =>
+                  parseInt(message.id) ===
+                  parseInt(JSON.parse(payload.data.data).prev_message_id)
+              ).length > 0
+          ) {
+            setLastNotificationDate(new Date().toLocaleString());
+            receiveChannelEvent(
+              parseInt(JSON.parse(payload.data.data).message.channel.id)
+            );
+            if (
+              parseInt(activeChat?.id) ===
+              parseInt(JSON.parse(payload?.data.data)?.message?.channel?.id)
+            ) {
+              watchChannel(
+                parseInt(JSON.parse(payload.data.data)?.message?.channel?.id)
+              );
+            } else {
+              let { chatVar } = useAppStore.getState();
+              if (String(getUserChat()?.id) !== String(senderUser?.id)) {
+                if (!chatVar)
+                  showChatNotification(
+                    senderName,
+                    messagePreview,
+                    channel?.id || messageData?.channel_id,
+                    channel,
+                    senderPhoto,
+                    messageImage,
+                    messageType,
+                    5000
+                  );
+              }
+            }
+            sendMessage({
+              act: JSON.parse(payload.data.data)?.message?.channel,
+              message: {
+                ...JSON.parse(payload.data.data).message,
+                channel: null,
+              },
+            });
+            if (
+              parseInt(activeChat?.id) ===
+              parseInt(JSON.parse(payload?.data.data)?.message?.channel?.id)
+            ) {
+              let active = activeChat;
+              // Show chat notification if not muted
+              if (
+                !active?.id ||
+                active?.channel_members.filter(
+                  (mem) =>
+                    mem.user_id === getUserChat()?.id && mem.user.mute === 1
+                ).length === 0
+              ) {
+                // Check if message has image
+
+                // Show chat notification
+                let { chatVar } = useAppStore.getState();
+                if (String(getUserChat()?.id) !== String(senderUser?.id)) {
+                  if (!chatVar)
+                    showChatNotification(
+                      senderName,
+                      messagePreview,
+                      channel?.id || messageData?.channel_id,
+                      channel,
+                      senderPhoto,
+                      messageImage,
+                      messageType,
+                      5000
+                    );
+                }
+              }
+            }
+            resolve(payload);
+          } else {
+            if (
+              parseInt(activeChat?.id) !==
+              parseInt(JSON.parse(payload?.data.data)?.message?.channel?.id)
+            ) {
+              let active = activeChat;
+              // Show chat notification if not muted
+              if (
+                !active?.id ||
+                active?.channel_members.filter(
+                  (mem) =>
+                    mem.user_id === getUserChat()?.id && mem.user.mute === 1
+                ).length === 0
+              ) {
+                // Show chat notification
+                let { chatVar } = useAppStore.getState();
+                if (String(getUserChat()?.id) !== String(senderUser?.id)) {
+                  if (!chatVar)
+                    showChatNotification(
+                      senderName,
+                      messagePreview,
+                      channel?.id || messageData?.channel_id,
+                      channel,
+                      senderPhoto,
+                      messageImage,
+                      messageType,
+                      5000
+                    );
+                }
+              }
+            }
+            chat.getChats(true);
+          }
         }
         if (payload.data.type === "ChannelWatchedEvent") {
           watchChannelEvent(JSON.parse(payload.data.data).channel_id);

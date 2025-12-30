@@ -1,5 +1,5 @@
 import Image from "next/image";
-import React from "react";
+import React, { SyntheticEvent } from "react";
 import profilePng from "public/images/profileNo.png";
 import { ShareAvatarPropsType } from "models/componentType/ShareAvatarPropsType";
 
@@ -9,6 +9,12 @@ function ShareAvatar({
   contact,
   disable,
 }: ShareAvatarPropsType) {
+  const normializePhoto = (path) => {
+    if (path?.includes("res.cloudinary")) {
+      return path;
+    }
+    return process.env.NEXT_PUBLIC_BASE_CLOUDINARY_URL + path;
+  };
   return (
     <div
       className={`share-avatar ${active && "selected"} ${
@@ -22,8 +28,16 @@ function ShareAvatar({
         <Image
           width={70}
           height={80}
-          alt="Omar"
-          src={contact.contact_user?.photo_path ?? profilePng}
+          alt="User"
+          onError={(e: SyntheticEvent<HTMLImageElement, Event>) => {
+            // @ts-ignore
+            e.target.src = "/images/profileNo.png";
+          }}
+          src={
+            (contact.contact_user?.photo_path &&
+              normializePhoto(contact.contact_user?.photo_path)) ??
+            profilePng
+          }
         />
       </div>
       <div className="share-name">

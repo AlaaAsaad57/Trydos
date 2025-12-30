@@ -194,7 +194,6 @@ export const useChatStore = (set, get) => ({
   },
 
   endCall: (payload: number) => {
-    console.log(payload);
     const state = get();
     if (
       parseInt(state.MessageActiveCall?.toString() || "0") ===
@@ -224,6 +223,28 @@ export const useChatStore = (set, get) => ({
         tracks: [],
       });
     }
+  },
+  storeDuration: (msgId, duartion) => {
+    const state = get();
+    let newActiveChat = state.activeChat;
+    if (
+      newActiveChat &&
+      newActiveChat?.messages.some((m) => String(m.id) === String(msgId))
+    ) {
+      let newMessages = newActiveChat.messages.map((s) =>
+        String(s.id) === String(msgId)
+          ? {
+              ...s,
+              duration_in_seconds: duartion,
+            }
+          : s
+      );
+      newActiveChat = { ...state.activeChat, messages: newMessages };
+    }
+
+    set({
+      activeChat: newActiveChat,
+    });
   },
   setNotificationModal: (e) => set({ isNotificationModal: e }),
   setNotificationPermission: (payload: boolean) =>

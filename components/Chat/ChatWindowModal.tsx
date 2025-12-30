@@ -34,7 +34,6 @@ function Chat(props) {
   const [search, setSearch] = useState("");
   const [contactOpen, setOpenContacts] = useState(false);
   useEffect(() => {
-    console.log(ViewedScreen, activeChat);
     if (typeof Notification !== "undefined")
       setNotificationPermission(Notification.permission === "granted");
     else setNotificationPermission(false);
@@ -81,7 +80,9 @@ function Chat(props) {
                 loading={loading}
                 active={activeChat}
                 setSearch={setSearch}
-                ViewedScreen={ViewedScreen === "chat" && !contactOpen}
+                ViewedScreen={
+                  ViewedScreen === "chat" && !contactOpen && activeChat?.id
+                }
               />
             )}
             <NewChatsSide activeChat={activeChat} chats={chats} />

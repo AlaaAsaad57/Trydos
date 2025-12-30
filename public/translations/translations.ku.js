@@ -1177,6 +1177,14 @@ const translations = {
   "Sent a voice message": "پەیامی دەنگ نارد",
   "Sent a file": "فایل نارد",
   "Sent a message": "پەیام نارد",
+  "Please enable  permissions (camera,mic) to use calls features":
+    "تکایە ڕێگەپێدانەکان (کامێرا، مایکرۆفۆن) چالاک بکە بۆ بەکارهێنانی تایبەتمەندییەکانی پەیوەندی",
+  Online: "سەرهێڵ",
+  "last Seen ": "دوایین بینراو",
+  "Outgoing Voice Call": "پەیوەندی دەنگی دەرچوو",
+  "Outgoing Video Call": "پەیوەندی ڤیدیۆیی دەرچوو",
+  "Missed Voice Call At": "پەیوەندی دەنگی لەدەستچوو لە کاتژمێر",
+  "Missed Video Call At": "پەیوەندی ڤیدیۆیی لەدەستچوو لە کاتژمێر",
 };
 
 export default translations;

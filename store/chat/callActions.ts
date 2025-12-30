@@ -18,7 +18,7 @@ export const makeVideoCall = async (
   if (!permissions) {
     showErrorNotification(
       translateFunction(
-        "Please enable notification permissions (camera,mic) to use calls features"
+        "Please enable  permissions (camera,mic) to use calls features"
       )
     );
     return;
@@ -79,7 +79,7 @@ export const makeVoiceCall = async (
   if (!permissions) {
     showErrorNotification(
       translateFunction(
-        "Please enable notification permissions (camera,mic) to use calls features"
+        "Please enable  permissions (camera,mic) to use calls features"
       )
     );
     throw new Error("Permissions not granted for calls");

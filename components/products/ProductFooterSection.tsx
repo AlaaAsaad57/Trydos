@@ -271,12 +271,7 @@ function ProductFooterSection({
           setOption("");
         },
       });
-      fetch(
-        `/api/editSocialProduct?pid=${product.id}&slug=${product.slug}&language=${languageVariable}&country=${country}`,
-        {
-          credentials: "omit",
-        }
-      );
+
       GAevent({
         action: GA_EVENT_NAMES.SHARE_CONTENT,
         params: {
