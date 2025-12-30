@@ -51,7 +51,13 @@ function WebViewVideoCall(props) {
 
   const { seconds, minutes, hours, days, isRunning, start, pause, reset } =
     useStopwatch({ autoStart: false });
-  console.log("props in webview video call", seconds, minutes);
+  const durationRef = useRef(0);
+
+  // Update the ref whenever the timer changes
+  useEffect(() => {
+    durationRef.current = minutes * 60 + seconds;
+  }, [minutes, seconds]);
+
   const [callStatus, setCallStatus] = useState(null);
 
   const [isPublished, setIsPublished] = useState(false);
@@ -66,7 +72,7 @@ function WebViewVideoCall(props) {
     let init = async (name) => {
       console.log("Initializing AgoraRTC client with video call");
       client.on("user-joined", async (user) => {
-        start();
+        if (!isRunning) start();
         setUsers((prevUsers) => {
           // Prevent duplicates
           if (prevUsers.find((u) => u.uid === user.uid)) return prevUsers;
@@ -79,6 +85,7 @@ function WebViewVideoCall(props) {
           );
       });
       client.on("user-published", async (user, mediaType) => {
+        if (!isRunning) start();
         await client.subscribe(user, mediaType);
 
         // Ensure React state updates so the UI re-renders with the new tracks
@@ -171,9 +178,9 @@ function WebViewVideoCall(props) {
     //   RefuseCall(activeChat.id,MessageActiveCall)
 
     pause();
-    let duration = minutes * 60 + seconds;
+    let duration = durationRef.current;
     if (!bool) {
-      props.onDecline(duration > 3 && users.length > 0 && duration);
+      props.onDecline(duration);
     } else {
       window.location.href = "/endCall";
     }

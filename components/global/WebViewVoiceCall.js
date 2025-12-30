@@ -25,6 +25,12 @@ function WebViewVoiceCall(props) {
   const [loading, setLoading] = useState(false);
   const { seconds, minutes, hours, days, isRunning, start, pause, reset } =
     useStopwatch({ autoStart: false });
+  const durationRef = useRef(0);
+
+  // Update the ref whenever the timer changes
+  useEffect(() => {
+    durationRef.current = minutes * 60 + seconds;
+  }, [minutes, seconds]);
   const [callStatus, setCallStatus] = useState(null);
   const [isPublished, setIsPublished] = useState(false);
   const [users, setUsers] = useState([]);
@@ -37,7 +43,7 @@ function WebViewVoiceCall(props) {
   useEffect(() => {
     let init = async (name) => {
       client.on("user-joined", (user) => {
-        start();
+        if (!isRunning) start();
         setUsers((prevUsers) => {
           // Prevent duplicates
           if (prevUsers.find((u) => u.uid === user.uid)) return prevUsers;
@@ -51,6 +57,7 @@ function WebViewVoiceCall(props) {
       });
 
       client.on("user-published", async (user, mediaType) => {
+        if (!isRunning) start();
         await client.subscribe(user, mediaType);
 
         setUsers((prev) => {
@@ -132,9 +139,9 @@ function WebViewVoiceCall(props) {
     setStart(false);
     pause();
 
-    let duration = minutes * 60 + seconds;
+    let duration = durationRef.current;
     if (!bool) {
-      props.onDecline(duration > 3 && users.length > 0 && duration);
+      props.onDecline(duration);
     } else {
       window.location.href = "/endCall";
     }

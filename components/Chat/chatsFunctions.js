@@ -73,9 +73,10 @@ export const isNew = (ch) => {
   let a = ch?.filter(
     (mes) =>
       !mes.message_type.name.includes("Call") &&
-      mes.sender_user_id !== getUserChat()?.id &&
-      mes.message_status.filter((st) => st.user_id === getUserChat()?.id)[0]
-        ?.is_watched === false
+      String(mes.sender_user_id) !== String(getUserChat()?.id) &&
+      mes.message_status.filter(
+        (st) => String(st.user_id) === String(getUserChat()?.id)
+      )[0]?.is_watched === false
   ).length;
   return a;
 };

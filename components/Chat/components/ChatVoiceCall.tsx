@@ -83,7 +83,7 @@ function ChatVoiceCall({ token }) {
             await RefuseCall(
               activeChat.id,
               MessageActiveCall,
-              minutes * 60 + seconds
+              durationRef.current
             );
           }
         } catch (refuseError) {
@@ -92,10 +92,12 @@ function ChatVoiceCall({ token }) {
       }
 
       // Always unmount component
+      storeDuration(MessageActiveCall, duration);
       endCallInStore(MessageActiveCall);
     } catch (error) {
       console.error("Error ending call:", error);
       // Still try to unmount
+      storeDuration(MessageActiveCall, duration);
       endCallInStore(MessageActiveCall);
     }
   };
@@ -103,6 +105,7 @@ function ChatVoiceCall({ token }) {
     activeChat,
     MessageActiveCall,
     endCall: endCallInStore,
+    storeDuration,
     storeClient,
     storeTrack,
   } = useAppStore();
@@ -112,7 +115,12 @@ function ChatVoiceCall({ token }) {
 
   const { seconds, minutes, hours, days, isRunning, start, pause, reset } =
     useStopwatch({ autoStart: false });
+  const durationRef = useRef(0);
 
+  // Update the ref whenever the timer changes
+  useEffect(() => {
+    durationRef.current = minutes * 60 + seconds;
+  }, [minutes, seconds]);
   const [callStatus, setCallStatus] = useState(null);
 
   const [isPublished, setIsPublished] = useState(false);
@@ -128,7 +136,7 @@ function ChatVoiceCall({ token }) {
       storeClient(client);
       storeTrack([track]);
       client.on("user-joined", async (user) => {
-        start();
+        if (!isRunning) start();
         setUsers((prevUsers) => {
           // Prevent duplicates
           if (prevUsers.find((u) => u.uid === user.uid)) return prevUsers;
@@ -136,6 +144,7 @@ function ChatVoiceCall({ token }) {
         });
       });
       client.on("user-published", async (user, mediaType) => {
+        if (!isRunning) start();
         await client.subscribe(user, mediaType);
 
         // Ensure React state updates so the UI re-renders with the new tracks
@@ -203,8 +212,8 @@ function ChatVoiceCall({ token }) {
     }
     //   RefuseCall(activeChat.id,MessageActiveCall)
     pause();
-    let duration = minutes * 60 + seconds;
-    endCall(duration > 3 && users.length > 0 && duration);
+    let duration = durationRef.current;
+    endCall(duration);
     //   dispatch({type:"END-CALL"})
   };
   const [trackState, setTrackState] = useState({ audio: true });
