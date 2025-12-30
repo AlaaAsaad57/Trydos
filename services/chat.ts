@@ -1,8 +1,4 @@
-import {
-  GET_CHATS_URL,
-  GET_CONTATCS_URL,
-  LOG_IN_CHAT,
-} from "utils/endpointConfig";
+import { GET_CONTATCS_URL, LOG_IN_CHAT } from "utils/endpointConfig";
 import HomeService from "services/home";
 import { useAppStore } from "store";
 import {
@@ -109,7 +105,7 @@ class ChatService {
       console.log(error);
     }
   }
-  async getChats(payload) {
+  async getChats(payload, limit = 10, messages_limit = 10, timestamp = null) {
     const {
       setChatLoading,
       setChatDone,
@@ -124,10 +120,18 @@ class ChatService {
       if (!payload) {
         setChatLoading();
       }
-
+      let body: any = {};
+      body = { limit, messages_limit, role_id: 16 };
+      let params = new URLSearchParams();
+      params.set("limit", limit.toString());
+      params.set("messages_limit", messages_limit.toString());
+      if (timestamp) {
+        params.set("timestamp", timestamp);
+        body = { ...body, timestamp };
+      }
       let response = await fetchData({
-        url: GET_CHATS_URL,
-        body: JSON.stringify({ role_id: 16 }),
+        url: UPDATED_API_DATA.MOD_CHAT_URL + `?${params.toString()}`,
+        body: JSON.stringify(body),
         reqTitle: REQUESTS_DATA.GET_CHATS,
         method: "POST",
         server: "chat",

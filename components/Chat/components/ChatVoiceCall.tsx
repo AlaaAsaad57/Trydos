@@ -60,35 +60,20 @@ function ChatVoiceCall({ token }) {
 
       // End call API - always call this
       try {
-        let res = await fetchData({
+        fetchData({
           url: UPDATED_API_DATA.MOD_END_CALL,
           reqTitle: REQUESTS_DATA.END_CALL,
           method: "POST",
           server: "chat",
           body: JSON.stringify({ user_id: getUserChat()?.id }),
         });
-        if (!res.success) {
-          throw new Error(res.message);
-        }
       } catch (apiError) {
         console.error("End call API error:", apiError);
       }
 
       // Handle RefuseCall if we have the necessary data
       if (activeChat?.id && MessageActiveCall) {
-        try {
-          if (duration && users.length > 0) {
-            await RefuseCall(activeChat.id, MessageActiveCall, duration);
-          } else {
-            await RefuseCall(
-              activeChat.id,
-              MessageActiveCall,
-              durationRef.current
-            );
-          }
-        } catch (refuseError) {
-          console.error("RefuseCall error:", refuseError);
-        }
+        RefuseCall(activeChat.id, MessageActiveCall, durationRef.current);
       }
 
       // Always unmount component
@@ -224,7 +209,6 @@ function ChatVoiceCall({ token }) {
     trackStateRef.current = trackState;
   }, [trackState]);
   const mute = async (type) => {
-    console.log("mute called for ", type);
     if (type === "audio") {
       const newState = !trackState.audio;
       if (track) {

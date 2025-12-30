@@ -225,14 +225,13 @@ export const useChatStore = (set, get) => ({
     }
   },
   storeDuration: (msgId, duartion) => {
-    console.log({ msgId, duartion });
     const state = get();
     let newActiveChat = state.activeChat;
     if (
       newActiveChat &&
       newActiveChat?.messages.some((m) => String(m.id) === String(msgId))
     ) {
-      newActiveChat = newActiveChat.messages.map((s) =>
+      let newMessages = newActiveChat.messages.map((s) =>
         String(s.id) === String(msgId)
           ? {
               ...s,
@@ -240,9 +239,11 @@ export const useChatStore = (set, get) => ({
             }
           : s
       );
+      newActiveChat = { ...state.activeChat, messages: newMessages };
     }
+
     set({
-      active: newActiveChat,
+      activeChat: newActiveChat,
     });
   },
   setNotificationModal: (e) => set({ isNotificationModal: e }),

@@ -15,7 +15,6 @@ export const HOME_DATA_CATEGORIES_URL = "/api/home/mainCategories";
 export const STARTER_SETTINGS = "/web/home/startingSettings";
 
 export const LOG_IN_CHAT = "/api/v1/users/login";
-export const GET_CHATS_URL = UPDATED_API_DATA.MOD_CHAT_URL;
 
 export const GET_CONTATCS_URL = "/api/v1/users/my_contacts";
 export const SEND_MESSAGE_URL = "/api/v1/messages/send";
