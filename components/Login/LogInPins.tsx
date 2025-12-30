@@ -26,11 +26,12 @@ function LogInPins({
   successLogin,
   inputValue,
   init,
+
   loadingPin,
   forChanging,
   operation = "login",
 }: LogInPinsPropsType) {
-  const { language, Tempuser } = useAppStore();
+  const { language, Tempuser, user } = useAppStore();
 
   let { lang } = useParams();
   // @ts-ignore
@@ -512,7 +513,7 @@ function LogInPins({
                       "pin-border-element" +
                       " " +
                       (expired && "input-expired ") +
-                      (Tempuser && !forChanging && " input-success ") +
+                      (Tempuser && user && !forChanging && " input-success ") +
                       " " +
                       ((wrongNumber || failedLogin) &&
                         !Tempuser &&
@@ -527,6 +528,11 @@ function LogInPins({
                         ? "#f5f5f5"
                         : "#fafafa",
                       borderRadius: "15px",
+                    }}
+                    onClick={() => {
+                      let elements =
+                        document.querySelectorAll<any>(".pin-input");
+                      elements?.[index]?.focus();
                     }}
                   >
                     <svg
@@ -584,6 +590,7 @@ function LogInPins({
           </>
         )}
       </div>
+      <input className="opacity-0" disabled />
       {wrongNumber && (
         <span className="light-text error-login-text">
           {translate(
@@ -682,7 +689,7 @@ const PinInputContainer: React.FC<PinInputProps> = ({
         <input
           autoFocus={i === 0}
           key={i}
-          className="outline-none text-[#707070] text-[20px]  flex items-center justify-center light "
+          className="pin-input outline-none text-[#707070] text-[20px]  flex items-center justify-center light "
           ref={(el) => (inputsRef.current[i] = el)}
           type="text"
           inputMode="numeric"

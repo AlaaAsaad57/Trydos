@@ -15,12 +15,12 @@ function ConfirmMobilePhoneWidget() {
     useAppStore();
   useEffect(() => {
     DisableScroll();
-    let bool = confirm(
-      "mounted ConfirmMobilePhoneWidget confirm to copy the reason"
-    );
-    if (bool) {
-      copyInitialData();
-    }
+    // let bool = confirm(
+    //   "mounted ConfirmMobilePhoneWidget confirm to copy the reason"
+    // );
+    // if (bool) {
+    //   copyInitialData();
+    // }
     return () => {
       EnableScroll();
     };
