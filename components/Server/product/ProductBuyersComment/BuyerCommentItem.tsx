@@ -16,6 +16,7 @@ export const BuyersCommentItem = ({ id, comment, language, width = 90 }) => {
     >
       <BuyersCommentMenu
         comment={comment}
+        comment_type={"review"}
         isRtl={isRtl}
         language={language}
         isOwner={comment?.isOwner}

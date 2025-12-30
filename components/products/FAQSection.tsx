@@ -22,8 +22,6 @@ import { showErrorNotification } from "store/notifications/reducer";
 import { COOKIE_NAMES, getCookie } from "utils/cookies/cookie-manager";
 import CommentPost from "public/svg/CommentPost";
 import CommentItem from "./CommentItem";
-import home from "services/home";
-import { useRouter } from "next/navigation";
 
 function FAQSection({ lang, comments, product_id, seller_name }) {
   const [country, language] = lang.split("-");

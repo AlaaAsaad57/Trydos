@@ -1,12 +1,10 @@
 "use client";
 import { ConfirmModal } from "components/global/ConfirmModal";
 import Spinner from "components/global/Spinner";
-import UploadImageComponent from "components/Orders/UploadImageComponent";
-import RatingStars from "components/settings/cards/RatingStars";
 import { useEffect, useRef, useState } from "react";
 import { translateFunction } from "utils/functions";
 
-export const RatingCommentOptions = ({
+export const FaqItemOptions = ({
   is_delete,
   is_update,
   deleteAction,
@@ -25,13 +23,9 @@ export const RatingCommentOptions = ({
   loading: boolean;
   language: string;
 }) => {
-  const [rating, setRating] = useState(comment.star_rating);
   const [comment_str, setComment] = useState(comment.comment);
   const inputRef = useRef(null);
-  const [images, setImages] = useState<string[]>(
-    comment?.comments_images_customer || []
-  );
-  const [loadingImage, setLoadingImage] = useState(false);
+
   useEffect(() => {
     if (comment && is_update) {
       inputRef.current.value = comment.comment;
@@ -58,37 +52,25 @@ export const RatingCommentOptions = ({
     const handleInputKeyDown = (
       e: React.KeyboardEvent<HTMLTextAreaElement>
     ) => {
-      if (e.key === "Enter" && comment_str.trim() && rating > 0) {
+      if (e.key === "Enter" && comment_str.trim()) {
         updateAction({
           ...comment,
           comment: comment_str,
           text: comment_str,
-          star_rating: rating,
-          rating: rating,
-          comments_images_customer: images,
         });
       }
     };
     const handleSubmit = () => {
-      if (comment_str.trim() && rating > 0) {
+      if (comment_str.trim()) {
         updateAction({
           ...comment,
           comment: comment_str,
           text: comment_str,
-          star_rating: rating,
-          rating: rating,
-          comments_images_customer: images,
         });
       }
     };
     const isChanged = () => {
-      if (
-        comment.comment === comment_str &&
-        rating === comment.star_rating &&
-        JSON.stringify(images) ===
-          JSON.stringify(comment?.comments_images_customer || [])
-      )
-        return false;
+      if (comment.comment === comment_str) return false;
       return true;
     };
     const isSubmitDisabled = loading || !isChanged();
@@ -116,20 +98,6 @@ export const RatingCommentOptions = ({
               </p>
             </div>
 
-            {/* Rating Stars */}
-            <div className="flex justify-center">
-              <RatingStars
-                readOnly={loading}
-                initialRating={Number(rating)}
-                size={40}
-                onRatingChange={(e) => {
-                  if (!loading) {
-                    setRating(Number(e));
-                  }
-                }}
-              />
-            </div>
-
             {/* Comment Input */}
             <div className="space-y-2">
               <label
@@ -153,18 +121,6 @@ export const RatingCommentOptions = ({
                 rows={3}
               />
             </div>
-            {/* Upload Images */}
-
-            <UploadImageComponent
-              removeImageAction={async (img: string) => {
-                setImages(images.filter((im) => im !== img));
-              }}
-              images={images}
-              setImages={setImages}
-              isForRating={true}
-              loading={loadingImage}
-              setLoading={setLoadingImage}
-            />
             {/* Action Buttons */}
             <div className="flex space-x-3 mt-[10px]">
               <button

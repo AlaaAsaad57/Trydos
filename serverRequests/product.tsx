@@ -7,6 +7,7 @@ import { Metadata } from "next";
 import { elasticSearchClient } from "services/elastic/elasticsearch.config";
 import { BuyersCommentItem } from "components/Server/product/ProductBuyersComment/BuyerCommentItem";
 import { cookies } from "next/headers";
+import FaqItemComponent from "components/Server/product/ProductFAQSection/FaqItemComponent";
 let client = elasticSearchClient;
 export async function GetGlobalProduct({ slug, country, language }) {
   try {
@@ -546,34 +547,9 @@ async function GetBuyerComment({ id }) {
   };
   return comment;
 }
-export async function UpdateBuyerComment({ payload, language, id }) {
-  let cookieStore = await cookies();
-  let commentToken = cookieStore.get(
-    "x7k9m2p4q8r1s5t3u6v2w9y4z7a1b5c8d2e6f9g3h7j1k4l8m2n5p9q3r6s1t4u7v2w5x8y1z4a7b2c5d8e1f4g7h2j5k8l1m4n7o2p5q8r1s4t7u2v5w8x1y4z7"
-  )?.value;
-  if (!commentToken)
-    return {
-      status: 401,
-      message: "UnAuth-401",
-      success: false,
-    };
-  let res = await fetchServerData({
-    url:
-      process.env.NEXT_PUBLIC_COMMENT_BACKEND_URL +
-      `/public_comment/comments/${id}/update`,
-    headers: {
-      Authorization: `Bearer ${commentToken}`,
-    },
-    method: "PUT",
-    body: payload,
-  });
-  console.log(res, payload);
-  if (res.error) {
-    return { status: res.status, message: res.error, success: false };
-  }
-  await new Promise((resolve) => setTimeout(resolve, 3000));
+export async function UpdateBuyerComment({ language, id }) {
   let comment = await GetBuyerComment({ id: id });
-  console.log(comment);
+
   return {
     comment: (
       <BuyersCommentItem
@@ -586,29 +562,6 @@ export async function UpdateBuyerComment({ payload, language, id }) {
     success: true,
     status: 200,
   };
-}
-
-export async function DeleteComment({ id, language }) {
-  let cookieStore = await cookies();
-  let commentToken = cookieStore.get(
-    "x7k9m2p4q8r1s5t3u6v2w9y4z7a1b5c8d2e6f9g3h7j1k4l8m2n5p9q3r6s1t4u7v2w5x8y1z4a7b2c5d8e1f4g7h2j5k8l1m4n7o2p5q8r1s4t7u2v5w8x1y4z7"
-  )?.value;
-  if (!commentToken)
-    return {
-      status: 401,
-      message: "UnAuth-401",
-      success: false,
-    };
-  let res = await fetchServerData({
-    url:
-      process.env.NEXT_PUBLIC_COMMENT_BACKEND_URL +
-      "/public_comment/comments/${id}/delete",
-    method: "DELETE",
-  });
-  if (res.error) {
-    return { status: res.status, message: res.error, success: false };
-  }
-  return { status: 200, success: true };
 }
 
 export async function GetProductStories({ page, productId }) {
@@ -686,7 +639,7 @@ export async function GetProductStories({ page, productId }) {
       );
     }
   };
-  console.log(response);
+
   if (!response.data) {
     return {
       data: [],
@@ -721,5 +674,230 @@ export async function GetProductStories({ page, productId }) {
         <div className="inset-story-shadow absolute" />
       </div>
     )),
+  };
+}
+
+export async function GetProductFaqQuestions({
+  language,
+  productId,
+  offset = null,
+  filter = null,
+  pageSize = 5,
+  userId,
+  width = 90,
+}) {
+  let query: any = {
+    index: "comments",
+    size: pageSize,
+    sort: [
+      { created_at: "desc" }, // newest first
+      { comment_id: "desc" }, // tie-breaker for consistent pagination
+    ],
+    query: {
+      bool: {
+        must: [{ term: { product_id: String(productId) } }],
+        must_not: [
+          { term: { status: "deleted" } },
+          {
+            exists: {
+              field: "order_details_id",
+            },
+          },
+        ],
+      },
+    },
+    aggs: {
+      unique_aspects: {
+        terms: {
+          field: `discussed_aspects_${language}`,
+          size: 1000, // adjust if you have more aspects
+        },
+      },
+    },
+  };
+  if (filter && typeof filter === "string" && filter?.trim() !== "") {
+    query.query.bool.must.push({
+      bool: {
+        should: [
+          { term: { discussed_aspects_en: filter } },
+          { term: { discussed_aspects_ar: filter } },
+          { term: { discussed_aspects_tr: filter } },
+          { term: { discussed_aspects_ku: filter } },
+        ],
+        minimum_should_match: 1, // at least one should match
+      },
+    });
+  }
+
+  if (offset) {
+    query = {
+      ...query,
+      search_after: typeof offset === "string" ? JSON.parse(offset) : [],
+    };
+  }
+
+  let response = await client.search(query);
+  let results = response.hits.hits.map((hit) => ({
+    id: hit._id,
+    ...((hit?._source as {}) ?? {}),
+  }));
+
+  const nextSearchAfter =
+    results.length > 0 ? response.hits.hits[results.length - 1].sort : null;
+  if (results?.length > 0)
+    results = await GetFQACommentsForProductWithReactions({
+      user_id: userId,
+      commentsResult: results,
+    });
+  const filters_key = (
+    (response.aggregations?.unique_aspects as any)?.buckets || []
+  ).map((bucket: any, index) => {
+    return bucket?.key;
+  });
+  let comments = {
+    fqa_comments: results?.map((s: any) => ({
+      id: s.id,
+      customer: {
+        id: s.user_id,
+        name: s.user_name,
+        image: s.user_avatar,
+      },
+      product_id: s.product_id,
+      comment: s.text,
+      created_at: s.created_at,
+      has_reply: s.has_reply,
+      good_quality_comment: s?.good_quality_comment,
+      seller_reply: s.seller_reply,
+      seller_name: s.seller_name,
+      reply_created_at: s.reply_created_at,
+      total_likes: s?.total_likes,
+      is_liked: s?.is_liked,
+      reply_total_likes: s?.reply_total_likes,
+      reply_is_liked: s?.reply_is_liked,
+      isOwner: userId && s?.user_id && String(s?.user_id) === String(userId),
+    })),
+    total: (response.hits.total as any)?.value,
+    filters_key: filters_key,
+    searchAfter: nextSearchAfter,
+  };
+
+  return {
+    comments: comments.fqa_comments.map((com) => (
+      <FaqItemComponent
+        key={com.id}
+        comment={com}
+        id={com.id}
+        isRtl={language === "ar" || language === "ku"}
+        language={language}
+        seller_name={com.seller_name}
+        width={width}
+      />
+    )),
+    offset: comments.searchAfter,
+    filters_key: filters_key,
+  };
+}
+export async function GetFaqItem({ id }) {
+  let query: any = {
+    index: "comments",
+    size: 1,
+    sort: [
+      { created_at: "desc" }, // newest first
+      { comment_id: "desc" }, // tie-breaker for consistent pagination
+    ],
+    query: {
+      bool: {
+        must: [{ term: { comment_id: String(id) } }],
+        must_not: [
+          { term: { status: "deleted" } },
+          {
+            exists: {
+              field: "order_details_id",
+            },
+          },
+        ],
+      },
+    },
+  };
+
+  let response = await client.search(query);
+  let results: any = response.hits.hits.map((hit) => ({
+    id: hit._id,
+    ...((hit?._source as {}) ?? {}),
+  }));
+
+  const nextSearchAfter =
+    results.length > 0 ? response.hits.hits[results.length - 1].sort : null;
+  const cookieStore = await cookies();
+  let userCookies = cookieStore.get("User-Data")?.value;
+  let userId = JSON.parse(userCookies)?.id;
+  if (results?.length > 0)
+    results = await GetFQACommentsForProductWithReactions({
+      user_id: userId,
+      commentsResult: results,
+    });
+  let comment = {
+    id: results?.[0]?.id,
+    customer: {
+      id: results?.[0]?.user_id,
+      name: results?.[0]?.user_name,
+      image: results?.[0]?.user_avatar,
+    },
+    product_id: results?.[0]?.product_id,
+    comment: results?.[0]?.text,
+    created_at: results?.[0]?.created_at,
+    has_reply: results?.[0]?.has_reply,
+    good_quality_comment: results?.[0]?.good_quality_comment,
+    seller_reply: results?.[0]?.seller_reply,
+    seller_name: results?.[0]?.seller_name,
+    reply_created_at: results?.[0]?.reply_created_at,
+    total_likes: results?.[0]?.total_likes,
+    isOwner:
+      userId &&
+      results?.[0]?.user_id &&
+      String(results?.[0]?.user_id) === String(userId),
+    is_liked: results?.[0]?.is_liked,
+    reply_total_likes: results?.[0]?.reply_total_likes,
+    reply_is_liked: results?.[0]?.reply_is_liked,
+  };
+  return comment;
+}
+export async function UpdateFaqItem({ language, id, width = 90 }) {
+  let comment = await GetFaqItem({ id: id });
+
+  return {
+    comment: (
+      <FaqItemComponent
+        key={comment.id}
+        comment={comment}
+        id={comment.id}
+        isRtl={language === "ar" || language === "ku"}
+        language={language}
+        seller_name={comment.seller_name}
+        width={width}
+      />
+    ),
+    success: true,
+    status: 200,
+  };
+}
+
+export async function CreateFaqQuestion({ id, language, width = 90 }) {
+  let comment = await GetFaqItem({ id: id });
+
+  return {
+    comment: (
+      <FaqItemComponent
+        key={comment.id}
+        comment={comment}
+        id={comment.id}
+        isRtl={language === "ar" || language === "ku"}
+        language={language}
+        seller_name={comment.seller_name}
+        width={width}
+      />
+    ),
+    success: true,
+    status: 200,
   };
 }

@@ -2,15 +2,17 @@ import React, { useState, useCallback, useEffect } from "react";
 import BottomSheet from "components/global/BottomSheet";
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 import Skeleton from "react-loading-skeleton";
-import BuyersCommentIcon from "public/svg/product/BuyersCommentsIcon";
+
 import { useAppStore } from "store";
 import { translateFunction } from "utils/functions";
 
-import { GetProductBuyersComment } from "serverRequests/product";
+import { GetProductFaqQuestions } from "serverRequests/product";
 import auth from "services/auth";
 import { RatingCommentOptions } from "components/Server/product/ProductBuyersComment/RatingCommentOptions";
+import FAQIcon from "public/svg/FAQIcon";
+import { FaqItemOptions } from "./FaqItemOptions";
 
-function BuyersCommentModal({
+function FaqSectionModal({
   commentNodes,
   offset: initialOffset,
   filters_key,
@@ -42,7 +44,7 @@ function BuyersCommentModal({
   ) => {
     setLoading(true);
     try {
-      const data = await GetProductBuyersComment({
+      const data = await GetProductFaqQuestions({
         language: language,
         productId: productId,
         userId: auth.UserID(),
@@ -81,32 +83,39 @@ function BuyersCommentModal({
 
   return (
     <>
-      {ColorBottomSheet?.is_buyers_comments && (
+      {ColorBottomSheet?.is_for_faq && (
         <BottomSheet
           height={90}
-          isOpen={ColorBottomSheet?.is_buyers_comments}
+          isOpen={ColorBottomSheet?.is_for_faq}
           onClose={() => setColorBottomSheet(false)}
         >
           <div className="w-full h-auto pb-[80px] flex-col">
             {/* Header */}
             <div className="flex-col px-[12px] gap-[6px]">
-              <BuyersCommentIcon />
+              <FAQIcon />
               <span className="flex text-[13px] text-[#1d1d1d] regular">
-                {translateFunction("Buyers Comment", language)}
+                {translateFunction("FAQ Buyer & Seller", language)}
               </span>
               <p
                 className={`${
-                  isRtl ? "dir-rtl" : ""
-                } text-[11px] text-[#1d1d1d] regular gap-[4px] inline`}
+                  isRtl && "dir-rtl"
+                } text-[11px] text-[#1d1d1d]  regular gap-[4px] inline`}
               >
                 {translateFunction(
-                  "All Comments Are Genuine From Customers Who Purchased And Actually Received The Product Through",
+                  "All The Questions Below Are From",
                   language
                 )}
-                <span className="bold px-[4px]">trydos</span>
+                <span className="bold px-[4px]">
+                  trydos {translateFunction("Visitors", language)}
+                </span>
+                <span>
+                  {translateFunction(
+                    "And Not Necessarily From Customers Who Have Purchased The Product Before. These Are Pre-Purchase Questions, And They Are Answered Directly By The Seller",
+                    language
+                  )}
+                </span>
               </p>
             </div>
-
             <div className="w-full px-[12px] bg-[#FFFFFF] py-[11px]">
               <hr className="text-[#D3D3D37f] h-[1px] bg-[#D3D3D37f] mt-0 w-full px-[10px]" />
             </div>
@@ -169,10 +178,10 @@ function BuyersCommentModal({
           </div>
         </BottomSheet>
       )}
-      {ColorBottomSheet?.is_buyers_comments &&
+      {ColorBottomSheet?.is_for_faq &&
         BuyerCommentModalOption &&
-        BuyerCommentModalOption?.comment_type === "review" && (
-          <RatingCommentOptions
+        BuyerCommentModalOption?.comment_type === "faq" && (
+          <FaqItemOptions
             language={language}
             is_update={BuyerCommentModalOption.option === "Update"}
             is_delete={BuyerCommentModalOption.option === "Delete"}
@@ -205,4 +214,4 @@ function BuyersCommentModal({
   );
 }
 
-export default BuyersCommentModal;
+export default FaqSectionModal;

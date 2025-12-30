@@ -27,6 +27,9 @@ import ReturnDaysDetails from "components/products/ReturnDays.Details";
 import { GetStarttingSetting } from "serverRequests";
 import ProductStoriesWrapper from "components/Server/product/ProductStoriesWrapper";
 import ProductBuyersCommentsWrapper from "components/Server/product/ProductBuyersComment/ProductBuyersCommentsWrapper";
+import ProductSizesWrapper from "components/Server/product/ProductSizesWrapper";
+import ProductSizeReviews from "components/Server/product/ProductSizeReviews";
+import ProductFaqSectionWrapper from "components/Server/product/ProductFAQSection/ProductFaqSectionWrapper";
 
 export async function generateMetadata({ params, searchParams }) {
   let [Params, SearchParams] = await Promise.all([params, searchParams]);
@@ -67,7 +70,9 @@ async function Page({ params, searchParams }) {
     country: country,
   });
   let StarttingSettingPromise = GetStarttingSetting({ language, country });
+
   let color = SearchParams.color;
+  let Size = SearchParams?.size;
   let slug = Params.productId;
   const isRtl = language === "ar" || language === "ku";
   return (
@@ -248,21 +253,35 @@ async function Page({ params, searchParams }) {
               globalPromise={GlobalData}
               language={language}
             />
+
+            {/*@ts-expect-error Async Server Component is valid in Next  */}
+            <ProductFaqSectionWrapper
+              color={color}
+              size={Size}
+              qtyPricePromise={QtyPricesData}
+              language={language}
+            />
+            {/*@ts-expect-error Async Server Component is valid in Next  */}
+            <ProductSizesWrapper
+              activeSize={Size}
+              language={language}
+              qtyPricePromise={QtyPricesData}
+              isRtl={isRtl}
+            />
+            {/*@ts-expect-error Async Server Component is valid in Next  */}
+            <ProductSizeReviews
+              qtyPricePromise={QtyPricesData}
+              isRtl={isRtl}
+              language={language}
+            />
           </div>
+
           {/*
           
          
           <div className="flex-col w-full h-auto rounded-[15px] bg-[#FCFCFC] mt-[12px] px-[10px]">
 
-          <ProductStories id={product.id} />
-          {product?.buyers_comment?.comments.length > 0 && (
-            <ProductsBuyersComments
-              recommendation_stats={product?.recommendation_stats}
-              product_id={product.id}
-              comments={product?.buyers_comment}
-              lang={Params.lang}
-            />
-          )}
+        
           <FAQSection
             product_id={product.id}
             comments={product?.fqa_questions}

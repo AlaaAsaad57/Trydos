@@ -18,6 +18,7 @@ function BuyersCommentMenu({
   language,
   isOwner,
   comment,
+  comment_type,
 }) {
   const [loading, setLoading] = useState(false);
   const { BuyerCommentModalOption, setBuyerCommentModalOption } = useAppStore();
@@ -131,6 +132,7 @@ function BuyersCommentMenu({
                   ...comment,
                   ownerID,
                   ownerType,
+                  comment_type: comment_type,
                 });
                 setMenuOpen(false);
               }}
@@ -149,6 +151,7 @@ function BuyersCommentMenu({
                   ...comment,
                   ownerID,
                   ownerType,
+                  comment_type: comment_type,
                 });
                 setMenuOpen(false);
               }}

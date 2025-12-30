@@ -1,27 +1,26 @@
 "use client";
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 import Spinner from "components/global/Spinner";
-import { useState } from "react";
-import {
-  GetProductBuyersComment,
-  UpdateBuyerComment,
-} from "serverRequests/product";
+import React, { useState } from "react";
+import { GetProductFaqQuestions, UpdateFaqItem } from "serverRequests/product";
 import auth from "services/auth";
-import { BuyersRatingBar } from "./BuyerCommentRateInfo";
 import { useAppStore } from "store";
-
-import BuyersCommentModal from "components/products/BuyersCommentModal";
-import { RatingCommentOptions } from "./RatingCommentOptions";
+import { FaqItemOptions } from "./FaqItemOptions";
+import FaqSectionModal from "./FaqSectionModal";
+import { AskInput } from "./FaqAskInput";
 import { fetchData } from "utils/fetchData";
 import { REQUESTS_DATA } from "utils/Requests";
 
-function ProductBuyersCommentList({
+function FaqQuestionsList({
   children,
   offset,
   loadMoreString,
   language,
   productId,
-  recommendation_stats,
+  owner_id,
+  owner_type,
+  color,
+  size,
   filterKeys,
 }) {
   const [modalKey, setModalKey] = useState(new Date().getDate());
@@ -37,7 +36,7 @@ function ProductBuyersCommentList({
   const GetNextComments = async () => {
     if (!offset || loading) return;
     setLoading(true);
-    let response = await GetProductBuyersComment({
+    let response = await GetProductFaqQuestions({
       language: language,
       productId: productId,
       filter: null,
@@ -64,12 +63,13 @@ function ProductBuyersCommentList({
           text: comment?.comment,
           rating: comment?.star_rating,
           owner_id: String(comment?.ownerID),
-          owner_type: comment?.ownerType,
+          owner_type: String(comment?.ownerType),
           comments_images_customer: comment?.comments_images_customer ?? [],
         }),
         reqTitle: REQUESTS_DATA.UPDATE_COMMENT,
       });
-      let res = await UpdateBuyerComment({
+
+      let res = await UpdateFaqItem({
         language: language,
         id: comment.id,
       });
@@ -96,7 +96,6 @@ function ProductBuyersCommentList({
         server: "comments",
         reqTitle: REQUESTS_DATA.DELETE_COMMENT,
       });
-
       setCommentsNodes(
         commentsNodes.filter((node) => node.key !== BuyerCommentModalOption.id)
       );
@@ -109,7 +108,7 @@ function ProductBuyersCommentList({
   };
   return (
     <>
-      <BuyersCommentModal
+      <FaqSectionModal
         key={modalKey}
         productId={productId}
         filters_key={filterKeys}
@@ -117,7 +116,7 @@ function ProductBuyersCommentList({
         commentNodes={commentsNodes}
         deleteComment={deleteComment}
         editComment={EditComment}
-      ></BuyersCommentModal>
+      ></FaqSectionModal>
 
       <HortiznalScrollBar
         id="comments-buyers-bar"
@@ -140,14 +139,20 @@ function ProductBuyersCommentList({
           </div>
         )}
       </HortiznalScrollBar>
-      <BuyersRatingBar
-        recommendation_stats={recommendation_stats}
+      <AskInput
+        color={color}
+        size={size}
+        owner_id={owner_id}
+        owner_type={owner_type}
         language={language}
+        setCommentsData={(e) => {
+          setCommentsNodes([e, ...commentsNodes]);
+        }}
       />
-      {!ColorBottomSheet?.is_buyers_comments &&
+      {!ColorBottomSheet?.is_for_faq &&
         BuyerCommentModalOption &&
-        BuyerCommentModalOption?.comment_type === "review" && (
-          <RatingCommentOptions
+        BuyerCommentModalOption?.comment_type === "faq" && (
+          <FaqItemOptions
             language={language}
             is_update={BuyerCommentModalOption.option === "Update"}
             is_delete={BuyerCommentModalOption.option === "Delete"}
@@ -168,4 +173,4 @@ function ProductBuyersCommentList({
   );
 }
 
-export default ProductBuyersCommentList;
+export default FaqQuestionsList;
