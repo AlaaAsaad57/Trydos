@@ -33,7 +33,7 @@ function ShareSection({
   }, []);
   const getContactsData = async () => {
     setContactsLoading(true);
-    await chat.getContacts();
+    await Promise.all([chat.getContacts(), chat.getChats(false)]);
     setContactsLoading(false);
   };
   return (

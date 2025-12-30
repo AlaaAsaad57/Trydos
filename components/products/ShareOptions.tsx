@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useEffect, useMemo } from "react";
 import ShareAvatar from "./ShareAvatar";
 import "styles/share-options.css";
 import {
@@ -31,12 +31,12 @@ function ShareOptions({
 }: ShareOptionsPropsType) {
   const {
     editInfo,
-    sharesCount,
+
     shareLoading,
     user,
     contacts,
     SelectedProduct,
-    currency,
+    data,
   } = useAppStore();
   const params = useParams();
 
@@ -97,6 +97,63 @@ function ShareOptions({
       window.location.pathname
     }?${searchParams.toString()}`;
   };
+
+  const getContactsForSharing = () => {
+    const currentUserId = getUserChat()?.id;
+
+    // 1. Process existing contacts (already in the correct schema)
+    const user_contacts = contacts.filter((s) => Boolean(s.contact_user_id));
+
+    // 2. Process chat data and transform into the contact schema
+    const user_chat_contacts = (data || [])
+      .map((channel) => {
+        // Find the member who is NOT the current user
+        const otherMember = channel.channel_members?.find(
+          (member) => String(member.user_id) !== String(currentUserId)
+        );
+
+        const user = otherMember?.user;
+
+        if (!user) return null;
+
+        // Transform chat user into your specific schema
+        return {
+          id: user.its_record_in_my_contact?.id || `chat_${user.id}`,
+          user_id: String(currentUserId),
+          name: user.its_record_in_my_contact?.name || user.name,
+          mobile_phone: user.mobile_phone,
+          contact_user_id: String(user.id),
+          contact_user: {
+            ...user,
+            id: String(user.id),
+            its_record_in_my_contact: user.its_record_in_my_contact || {
+              id: null,
+              user_id: String(currentUserId),
+              name: user.name,
+              mobile_phone: user.mobile_phone,
+              contact_user_id: String(user.id),
+            },
+          },
+        };
+      })
+      .filter(Boolean); // Remove nulls where no other member was found
+
+    // 3. Merge and De-duplicate using a Map (Key = contact_user_id)
+    // We spread user_chat_contacts first and user_contacts last
+    // so that the formal contact list takes priority if duplicates exist.
+    const allContactsMap = new Map();
+
+    [...user_chat_contacts, ...user_contacts].forEach((contact) => {
+      allContactsMap.set(String(contact.contact_user_id), contact);
+    });
+
+    return Array.from(allContactsMap.values()).filter(
+      (s) => String(s.contact_user_id) !== String(getUserChat()?.id)
+    );
+  };
+  useEffect(() => {
+    console.log(getContactsForSharing());
+  }, [contacts]);
   return (
     <div className="share-options">
       <div className={`share-avatar`}>
@@ -213,23 +270,21 @@ function ShareOptions({
       </div>
       {getUserChat() &&
         user &&
-        contacts
-          .filter((s) => s.contact_user_id)
-          .map((key, i) => (
-            <ShareAvatar
-              key={i}
-              contact={key}
-              disable={shareLoading}
-              active={sharedContacts.some((s) => s === key.contact_user_id)}
-              setActive={() => {
-                if (sharedContacts.some((s) => s === key.contact_user_id))
-                  setShareContacts([
-                    ...sharedContacts.filter((s) => s !== key.contact_user_id),
-                  ]);
-                else setShareContacts([...sharedContacts, key.contact_user_id]);
-              }}
-            />
-          ))}
+        getContactsForSharing().map((key, i) => (
+          <ShareAvatar
+            key={i}
+            contact={key}
+            disable={shareLoading}
+            active={sharedContacts.some((s) => s === key.contact_user_id)}
+            setActive={() => {
+              if (sharedContacts.some((s) => s === key.contact_user_id))
+                setShareContacts([
+                  ...sharedContacts.filter((s) => s !== key.contact_user_id),
+                ]);
+              else setShareContacts([...sharedContacts, key.contact_user_id]);
+            }}
+          />
+        ))}
     </div>
   );
 }

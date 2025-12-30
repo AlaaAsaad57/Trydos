@@ -770,7 +770,7 @@ function ConversationContainer({
         hidden
         accept={FILE_INPUT_ACCEPT}
         onFocus={() => {
-          sendStatus("Sending File");
+          sendStatus("Sending file...");
         }}
         style={{ position: "absolute", opacity: 0 }}
         type="file"
@@ -1095,7 +1095,7 @@ function ConversationContainer({
                   document
                     .querySelector<HTMLInputElement>('input[type="file"]')
                     .click();
-                  sendStatus("Sending File");
+                  sendStatus("Sending file...");
                 }}
                 height={40}
               />
@@ -1127,7 +1127,7 @@ function ConversationContainer({
                     className="camer-icon"
                     onClick={() => {
                       setShowMenu(true);
-                      sendStatus("Sending File");
+                      sendStatus("Sending file...");
                     }}
                   />
                   <RedMicIcon
