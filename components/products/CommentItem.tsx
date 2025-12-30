@@ -306,9 +306,7 @@ function CommentItem({
         // @ts-ignore
         throw new Error(response.message);
       }
-      fetch(`/api/editSocialProduct?pid=${SelectedProduct.id}`, {
-        credentials: "omit",
-      });
+
       if (response.data?.comment_id) {
         // verifyCommentAction(mid);
 

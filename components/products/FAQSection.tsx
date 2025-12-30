@@ -488,12 +488,7 @@ const AskInput = ({ language, setCommentsData }) => {
           },
         });
       }
-      fetch(
-        `/api/editSocialProduct?pid=${SelectedProduct.id}&slug=${SelectedProduct.slug}&language=${language}&country=${country}`,
-        {
-          credentials: "omit",
-        }
-      );
+
       setComment("");
       setLoading(false);
     } catch (error) {

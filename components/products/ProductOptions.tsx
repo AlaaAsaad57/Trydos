@@ -69,14 +69,6 @@ function ProductOptions({
           is_liked: true,
         });
 
-        // Update social product data
-        fetch(
-          `/api/editSocialProduct?pid=${product.id}&slug=${product.slug}&language=${language}&country=${country}`,
-          {
-            credentials: "omit",
-          }
-        );
-
         // Track GA event
         GAevent({
           action: GA_EVENT_NAMES.LIKE_ITEM,
@@ -117,12 +109,6 @@ function ProductOptions({
         });
 
         // Update social product data
-        fetch(
-          `/api/editSocialProduct?pid=${product.id}&slug=${product.slug}&language=${language}&country=${country}`,
-          {
-            credentials: "omit",
-          }
-        );
 
         // Track GA event
         GAevent({

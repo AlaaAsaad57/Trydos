@@ -54,7 +54,7 @@ function ChatMessage(props) {
   };
   const { setImg, setVid } = props;
   const message_ref = useRef();
-  const [width, setWidth] = useState(0);
+
   const [opens, setOpen] = useState(false);
   const refmessage = useRef();
   const AudioRef = useRef();
@@ -280,21 +280,7 @@ function ChatMessage(props) {
     }
     return arr;
   };
-  const animate = (value) => {
-    SSRDetect() && window.requestAnimationFrame(step);
-  };
-  function step() {
-    if (
-      document.querySelector(
-        `#wav${getSafeId(props.message.id || props.message.mid)}`
-      )
-    ) {
-      let el = document.querySelector(
-        `#wav${getSafeId(props.message.id || props.message.mid)}`
-      );
-      el.style.marginLeft = `${width}px`;
-    }
-  }
+
   const copyText = () => {
     let elem = document.querySelector("#text-copy");
     elem.value = props.message?.message_content?.content;
@@ -909,19 +895,10 @@ function ChatMessage(props) {
                       )}
                   </div>
                   <audio
-                    onTimeUpdate={(e) => {
-                      animate();
-                      setWidth(
-                        ((parseFloat(e.target.currentTime) * 100) /
-                          parseFloat(AudioRef.current?.duration)) *
-                          1.8
-                      );
-                    }}
                     onEnded={() => {
                       setPlay(false);
-                      setWidth(0);
+
                       AudioRef.current.currentTime = 0;
-                      setWidth(0);
                     }}
                     controls={false}
                     ref={AudioRef}
@@ -1007,12 +984,11 @@ function ChatMessage(props) {
                         ) : (
                           <div className="player-time border-none h-[22px]"></div>
                         )}
-                        <div
-                          className="wave"
-                          id={`wav${getSafeId(
-                            props.message.id || props.message.mid
-                          )}`}
-                        >
+                        <div className="wave w-full">
+                          <WaveIcon></WaveIcon>
+                          <WaveIcon></WaveIcon>
+                          <WaveIcon></WaveIcon>
+                          <WaveIcon></WaveIcon>
                           <WaveIcon></WaveIcon>
                         </div>
                       </div>
@@ -1465,8 +1441,12 @@ function ChatMessage(props) {
               </div>
               <div className="missed-body">
                 {props.message?.duration_in_seconds <= 0
-                  ? translate("Missed  Call At", language)
-                  : translateFunction("Outgoing Call", language)}{" "}
+                  ? props.message.message_type.name === "VideoCall"
+                    ? translate("Missed Video Call At", language)
+                    : translate("Missed Voice Call At", language)
+                  : props.message.message_type.name === "VideoCall"
+                  ? translateFunction("Outgoing Video Call", language)
+                  : translateFunction("Outgoing Voice Call", language)}{" "}
                 {getMessageTime(props.message.created_at, true)}
               </div>
             </div>
@@ -1957,18 +1937,9 @@ function ChatMessage(props) {
                   )}
                   <div className="audio-message ">
                     <audio
-                      onTimeUpdate={(e) => {
-                        animate();
-                        setWidth(
-                          ((parseFloat(e.target.currentTime) * 100) /
-                            parseFloat(AudioRef.current?.duration)) *
-                            1.8
-                        );
-                      }}
                       onEnded={() => {
                         setPlay(false);
                         AudioRef.current.currentTime = 0;
-                        setWidth(0);
                       }}
                       controls={false}
                       ref={AudioRef}
@@ -2027,12 +1998,11 @@ function ChatMessage(props) {
                             00:00
                           </div>
                         )}
-                        <div
-                          className="wave"
-                          id={`wav${getSafeId(
-                            props.message.id || props.message.mid
-                          )}`}
-                        >
+                        <div className="wave w-full">
+                          <WaveIcon></WaveIcon>
+                          <WaveIcon></WaveIcon>
+                          <WaveIcon></WaveIcon>
+                          <WaveIcon></WaveIcon>
                           <WaveIcon></WaveIcon>
                         </div>
                       </div>
@@ -2387,8 +2357,12 @@ function ChatMessage(props) {
               </div>
               <div className="missed-body">
                 {props.message?.duration_in_seconds <= 0
-                  ? translate("Missed  Call At", language)
-                  : translateFunction("Incoming Call", language)}{" "}
+                  ? props.message.message_type.name === "VideoCall"
+                    ? translate("Missed Video Call At", language)
+                    : translate("Missed Voice Call At", language)
+                  : props.message.message_type.name === "VideoCall"
+                  ? translateFunction("Incoming Video Call", language)
+                  : translateFunction("Incoming Voice Call", language)}{" "}
                 {getMessageTime(props.message.created_at, true)}
               </div>
             </div>

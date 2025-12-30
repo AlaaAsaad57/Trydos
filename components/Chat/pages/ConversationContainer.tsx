@@ -42,6 +42,7 @@ import { db } from "utils/firebaseInitv1";
 import { useAppStore } from "store";
 import { pollinateInput, requestPermissions } from "@/utils/tinyUtils";
 import { ImageCropWidget } from "components/global/ImageCropWidget";
+import CustomPopup from "components/global/Popup";
 
 /* -------------------------- Dynamic Components --------------------------- */
 
@@ -761,15 +762,21 @@ function ConversationContainer({
   /* JSX                                                                    */
   /* ---------------------------------------------------------------------- */
   const WebcamCaptureAny = WebcamCapture as any;
-
+  const [showMenu, setShowMenu] = useState(false);
   return (
     <>
       {/* hidden file input */}
       <input
         hidden
         accept={FILE_INPUT_ACCEPT}
+        onFocus={() => {
+          sendStatus("Sending File");
+        }}
         style={{ position: "absolute", opacity: 0 }}
         type="file"
+        onBlur={() => {
+          sendStatus(null);
+        }}
         onChange={handleFileChange}
       />
 
@@ -1084,11 +1091,12 @@ function ConversationContainer({
               <PlusIcon
                 style={{ minWidth: 43, cursor: "pointer" }}
                 className="chatplus"
-                onClick={() =>
+                onClick={() => {
                   document
                     .querySelector<HTMLInputElement>('input[type="file"]')
-                    ?.click()
-                }
+                    .click();
+                  sendStatus("Sending File");
+                }}
                 height={40}
               />
               <div className="input-chat-container">
@@ -1117,7 +1125,10 @@ function ConversationContainer({
                   <CameraIcon
                     style={{ minWidth: 50, cursor: "pointer" }}
                     className="camer-icon"
-                    onClick={() => enableCamera(true)}
+                    onClick={() => {
+                      setShowMenu(true);
+                      sendStatus("Sending File");
+                    }}
                   />
                   <RedMicIcon
                     style={{ cursor: "pointer" }}
@@ -1153,6 +1164,42 @@ function ConversationContainer({
           </>
         )}
       </div>
+      {showMenu && (
+        <CustomPopup
+          modalTitle={translateFunction(
+            "chosse an image or video from camera or files"
+          )}
+          close={() => {
+            setShowMenu(false);
+            setTimeout(() => {
+              sendStatus(null);
+            }, 3000);
+          }}
+          options={[
+            {
+              render: () => <>{translateFunction("files")}</>,
+              onClick: () => {
+                document.querySelector<HTMLInputElement>(
+                  'input[type="file"]'
+                ).accept = "images/*";
+
+                document
+                  .querySelector<HTMLInputElement>('input[type="file"]')
+                  ?.click();
+                setTimeout(() => {
+                  document.querySelector<HTMLInputElement>(
+                    'input[type="file"]'
+                  ).accept = FILE_INPUT_ACCEPT;
+                }, 1000);
+              },
+            },
+            {
+              render: () => <>{translateFunction("camera")}</>,
+              onClick: () => enableCamera(true),
+            },
+          ]}
+        />
+      )}
     </>
   );
 }

@@ -48,7 +48,7 @@ function ChatHeader({
             activeChat.activeDate
           )}`;
         } else {
-          return translate("Active Now", language);
+          return translate("Online", language);
         }
       } else {
         return <a></a>;
@@ -71,11 +71,7 @@ function ChatHeader({
           )[0]?.user.mobile_phone
         );
     } catch (error) {
-      showErrorNotification(
-        translateFunction(
-          "Please enable notification permissions (camera,mic) to use calls features"
-        )
-      );
+      showErrorNotification(translateFunction("Failed to Initialize Call"));
     }
   };
   const videoCallFunction = async () => {
@@ -94,11 +90,7 @@ function ChatHeader({
           )[0]?.user.mobile_phone
         );
     } catch (error) {
-      showErrorNotification(
-        translateFunction(
-          "Please enable notification permissions (camera,mic) to use calls features"
-        )
-      );
+      showErrorNotification(translateFunction("Failed to Initialize Call"));
     }
   };
   const isRtl = language === "ar" || language === "ku";

@@ -80,12 +80,7 @@ function CommentBar() {
         // @ts-ignore
         throw new Error(response.message);
       }
-      fetch(
-        `/api/editSocialProduct?pid=${SelectedProduct.id}&slug=${SelectedProduct.slug}&language=${language}&country=${country}`,
-        {
-          credentials: "omit",
-        }
-      );
+
       if (response.data?.comment_id) {
         let newComment = {
           id: response.data.comment_id,

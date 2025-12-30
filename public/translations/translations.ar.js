@@ -1138,6 +1138,14 @@ const translations = {
   "Sent a file": "أرسل ملف",
   "Sent a voice message": "أرسل رسالة صوتية",
   "Sent a message": "أرسل رسالة",
+  "Please enable  permissions (camera,mic) to use calls features":
+    "يرجى تفعيل الأذونات (الكاميرا، الميكروفون) لاستخدام ميزات المكالمات",
+  Online: "متصل",
+  "last Seen ": "آخر ظهور",
+  "Outgoing Voice Call": "مكالمة صوتية صادرة",
+  "Outgoing Video Call": "مكالمة فيديو صادرة",
+  "Missed Voice Call At": "مكالمة صوتية فائتة عند",
+  "Missed Video Call At": "مكالمة فيديو فائتة عند",
 };
 
 export default translations;

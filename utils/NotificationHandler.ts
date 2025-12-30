@@ -508,9 +508,8 @@ class ForegroundNotificationHandler {
           const channel = messageData?.channel;
           let messagePreview = "";
           let messageImage = null;
-          const senderName =
-            senderUser?.name || channel?.channel_name || "Unknown";
-          const senderPhoto = senderUser?.photo_path || channel?.photo_path;
+          const senderName = senderUser?.name || senderUser?.mobile_phone;
+          const senderPhoto = senderUser?.photo_path;
           if (messageFiles && messageFiles.length > 0) {
             messageImage = messageFiles[0]?.file_path || messageFiles[0]?.url;
             messagePreview = getMessageNotificationPreview(messageType);

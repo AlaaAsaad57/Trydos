@@ -328,7 +328,6 @@ export const RoundPrice = ({
   let rateVariable = rate || currency?.exchange_rate || 1;
   let deciaml_points = points || currency?.decimal_digits || 0;
   price_num = Number(toFixedUp(deciaml_points, price_num));
-  console.log({ price_num, rateVariable, num });
   let number = preciseMultiply(price_num, rateVariable);
 
   if (returnNumber) {
