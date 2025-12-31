@@ -330,7 +330,7 @@ function OrderDetails({
     ]);
     try {
       let response = await fetchData({
-        url: "/api/v1/order-chat-participants/get-recipient",
+        url: "/api/v1/channels/orderChatParticipant/get-recipient",
         reqTitle: REQUESTS_DATA.GET_CHAT_WITH_DELEIVERY,
         method: "POST",
         server: "chat",
@@ -352,110 +352,81 @@ function OrderDetails({
       document.querySelector("#OrderDetails").classList.add("overflow-hidden");
       document.querySelector("#OrderDetails").classList.remove("overflow-auto");
       if (response.data.channel) {
-        setChatInfo({
-          ...response.data.channel,
-          channel_members: [
-            {
-              user: getUserChat(),
-              ...response.data.channel.channel_members.find(
-                (s) => s.user_id === getUserChat().id
-              ),
-            },
-            {
-              user: {
-                id: response.data.recipient.id,
-                name: "Deleivery Worker",
-                mobile_phone: "",
-                username: "Deleivery Worker",
-              },
-              ...response.data.channel.channel_members.find(
-                (s) => s.user_id !== getUserChat().id
-              ),
-            },
-          ],
-        });
-        openChat({
+        let chat = {
           ...response.data.channel,
           order_chat_participant_id: response?.data.chat_participant?.id,
-          channel_members: [
-            {
-              user: getUserChat(),
-              ...response.data.channel.channel_members.find(
-                (s) => s.user_id === getUserChat().id
-              ),
-            },
-            {
-              user: {
-                id: response.data.recipient.id,
-                name: "Deleivery Worker",
-                mobile_phone: "",
-                username: "Deleivery Worker",
-              },
-              ...response.data.channel.channel_members.find(
-                (s) => s.user_id !== getUserChat().id
-              ),
-            },
-          ],
+          channel_members: response.data.channel.channel_members.map((s) =>
+            String(s.user_id) === String(getUserChat()?.id)
+              ? s
+              : {
+                  ...s,
+                  user: { ...s.user, name: "Deleivery Worker", phone: "" },
+                }
+          ),
           messages:
             response.data.channel.messages?.sort(
               (a, b) =>
                 new Date(a.created_at).getTime() -
                 new Date(b.created_at).getTime()
             ) || [],
-        });
-        setIsNavigating(false);
-      } else {
-        setChatInfo({
-          order_chat_participant_id: response?.data.chat_participant?.id,
-          channel_members: [
-            {
-              id: getUserChat()?.id,
-              user: getUserChat(),
-              user_id: getUserChat().id,
-            },
-            {
-              id: response.data.recipient.id,
-              user_id: response.data.recipient.id,
-              user: {
-                id: response.data.recipient.id,
-                name: "Deleivery Worker",
-                mobile_phone: "",
-                username: "Deleivery Worker",
-              },
-            },
-          ],
-          channel_name: "Deleivery Worker",
-          photo_path: null,
-          messages: [],
-          id: "ch-" + response.data.recipient.id,
-          mid: "ch-" + response.data.recipient.id,
-        });
-        openChat({
-          channel_members: [
-            {
-              id: getUserChat()?.id,
-              user: getUserChat(),
-              user_id: getUserChat().id,
-            },
-            {
-              id: response.data.recipient.id,
-              user_id: response.data.recipient.id,
-              user: {
-                id: response.data.recipient.id,
-                name: "Deleivery Worker",
-                mobile_phone: "",
-                username: "Deleivery Worker",
-              },
-            },
-          ],
-          channel_name: "Deleivery Worker",
-          photo_path: null,
-          messages: [],
-          id: "ch-" + response.data.recipient.id,
-          mid: "ch-" + response.data.recipient.id,
-        });
+        };
+        setChatInfo(chat);
+        openChat(chat);
+        console.log(chat);
         setIsNavigating(false);
       }
+      // else {
+      //   setChatInfo({
+      //     order_chat_participant_id: response?.data.chat_participant?.id,
+      //     channel_members: [
+      //       {
+      //         id: getUserChat()?.id,
+      //         user: getUserChat(),
+      //         user_id: getUserChat().id,
+      //       },
+      //       {
+      //         id: response.data.recipient.id,
+      //         user_id: response.data.recipient.id,
+      //         user: {
+      //           id: response.data.recipient.id,
+      //           name: "Deleivery Worker",
+      //           mobile_phone: "",
+      //           username: "Deleivery Worker",
+      //         },
+      //       },
+      //     ],
+      //     channel_name: "Deleivery Worker",
+      //     photo_path: null,
+      //     messages: [],
+      //     id: "ch-" + response.data.recipient.id,
+      //     mid: "ch-" + response.data.recipient.id,
+      //   });
+      //   openChat({
+      //     channel_members: [
+      //       {
+      //         id: getUserChat()?.id,
+      //         user: getUserChat(),
+      //         user_id: getUserChat().id,
+      //       },
+      //       {
+      //         id: response.data.recipient.id,
+      //         user_id: response.data.recipient.id,
+      //         user: {
+      //           id: response.data.recipient.id,
+      //           name: "Deleivery Worker",
+      //           mobile_phone: "",
+      //           username: "Deleivery Worker",
+      //         },
+      //       },
+      //     ],
+      //     channel_name: "Deleivery Worker",
+      //     photo_path: null,
+      //     messages: [],
+      //     id: "ch-" + response.data.recipient.id,
+      //     mid: "ch-" + response.data.recipient.id,
+      //   });
+      //   setIsNavigating(false);
+      // }
       setIsChatOpen(true);
       setIsGettingChat(false);
     } catch (error) {

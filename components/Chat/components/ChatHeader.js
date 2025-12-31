@@ -56,6 +56,16 @@ function ChatHeader({
     }
   };
   const audioCallFunction = async () => {
+    let payload = null;
+    if (isPrivate && activeChat?.order_chat_participant_id) {
+      payload = {
+        order_chat_participant_id: activeChat?.order_chat_participant_id,
+        receiver_user_id: activeChat?.channel_members?.find(
+          (s) => String(s?.user_id) !== String(getUserChat()?.id)
+        )?.user_id,
+        is_private: true,
+      };
+    }
     try {
       !callLoading &&
         makeVoiceCall(
@@ -68,13 +78,25 @@ function ChatHeader({
           )[0]?.user?.photo_path,
           activeChat.channel_members.filter(
             (s) => parseInt(s.user_id) !== parseInt(getUserChat()?.id)
-          )[0]?.user.mobile_phone
+          )[0]?.user.mobile_phone,
+          payload
         );
     } catch (error) {
       showErrorNotification(translateFunction("Failed to Initialize Call"));
     }
   };
+
   const videoCallFunction = async () => {
+    let payload = null;
+    if (isPrivate && activeChat?.order_chat_participant_id) {
+      payload = {
+        order_chat_participant_id: activeChat?.order_chat_participant_id,
+        receiver_user_id: activeChat?.channel_members?.find(
+          (s) => String(s?.user_id) !== String(getUserChat()?.id)
+        )?.user_id,
+        is_private: true,
+      };
+    }
     try {
       !callLoading &&
         makeVideoCall(
@@ -87,7 +109,8 @@ function ChatHeader({
           )[0]?.user?.photo_path,
           activeChat.channel_members.filter(
             (s) => parseInt(s.user_id) !== parseInt(getUserChat()?.id)
-          )[0]?.user.mobile_phone
+          )[0]?.user.mobile_phone,
+          payload
         );
     } catch (error) {
       showErrorNotification(translateFunction("Failed to Initialize Call"));
@@ -128,7 +151,7 @@ function ChatHeader({
             <ChatPhoto
               user={
                 activeChat.channel_members.filter(
-                  (user) => user.user_id !== getUserChat()?.id
+                  (user) => String(user.user_id) !== String(getUserChat()?.id)
                 )[0]?.user
               }
               width={40}

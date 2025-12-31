@@ -256,8 +256,8 @@ function ConversationContainer({
     (overwrite: Partial<any>): any => {
       const base = {
         receiver_user_id: receiverId,
-        receiver_role_id: receiverRoleId,
-        sender_role_id: (getUser() as any).role_id,
+        // receiver_role_id: receiverRoleId,
+        // sender_role_id: (getUser() as any).role_id,
         parent_message_id: replyMessage?.id,
         cid: activeChat.id,
       };

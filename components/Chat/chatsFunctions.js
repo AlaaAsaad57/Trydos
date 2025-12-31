@@ -148,10 +148,10 @@ export const forwardMessage = async (m, activeChat) => {
         receiver_user_id: activeChat.channel_members.filter(
           (a) => parseInt(a.user_id) !== parseInt(user.id)
         )[0]?.user_id,
-        receiver_role_id: activeChat.channel_members.filter(
-          (a) => parseInt(a.user_id) !== parseInt(user.id)
-        )[0]?.role_id,
-        sender_role_id: user.role_id,
+        // receiver_role_id: activeChat.channel_members.filter(
+        //   (a) => parseInt(a.user_id) !== parseInt(user.id)
+        // )[0]?.role_id,
+        // sender_role_id: user.role_id,
         content: m.message_content?.content,
         parent_message_id: null,
         is_forward: 1,
@@ -167,10 +167,10 @@ export const forwardMessage = async (m, activeChat) => {
         receiver_user_id: activeChat.channel_members.filter(
           (a) => parseInt(a.user_id) !== parseInt(user.id)
         )[0]?.user_id,
-        receiver_role_id: activeChat.channel_members.filter(
-          (a) => parseInt(a.user_id) !== parseInt(user.id)
-        )[0]?.role_id,
-        sender_role_id: user.role_id,
+        // receiver_role_id: activeChat.channel_members.filter(
+        //   (a) => parseInt(a.user_id) !== parseInt(user.id)
+        // )[0]?.role_id,
+        // sender_role_id: user.role_id,
         sender_user_id: user.id,
         message_type: { name: "TextMessage" },
         message_content: { content: m.message_content?.content },
@@ -210,10 +210,10 @@ export const forwardMessage = async (m, activeChat) => {
         receiver_user_id: activeChat.channel_members.filter(
           (a) => parseInt(a.user_id) !== parseInt(user.id)
         )[0]?.user_id,
-        receiver_role_id: activeChat.channel_members.filter(
-          (a) => parseInt(a.user_id) !== parseInt(user.id)
-        )[0]?.role_id,
-        sender_role_id: user.role_id,
+        // receiver_role_id: activeChat.channel_members.filter(
+        //   (a) => parseInt(a.user_id) !== parseInt(user.id)
+        // )[0]?.role_id,
+        // sender_role_id: user.role_id,
         content: [{ file_path: m.message_content[0]?.file_path, caption: "" }],
         parent_message_id: null,
         message_type: "ImageMessage",
@@ -227,10 +227,10 @@ export const forwardMessage = async (m, activeChat) => {
         receiver_user_id: activeChat.channel_members.filter(
           (a) => parseInt(a.user_id) !== parseInt(user.id)
         )[0]?.user_id,
-        receiver_role_id: activeChat.channel_members.filter(
-          (a) => parseInt(a.user_id) !== parseInt(user.id)
-        )[0]?.role_id,
-        sender_role_id: user.role_id,
+        // receiver_role_id: activeChat.channel_members.filter(
+        //   (a) => parseInt(a.user_id) !== parseInt(user.id)
+        // )[0]?.role_id,
+        // sender_role_id: user.role_id,
         sender_user_id: user.id,
         message_type: { name: "ImageMessage" },
         type: "pending",
@@ -271,10 +271,10 @@ export const forwardMessage = async (m, activeChat) => {
         receiver_user_id: activeChat.channel_members.filter(
           (a) => parseInt(a.user_id) !== parseInt(user.id)
         )[0]?.user_id,
-        receiver_role_id: activeChat.channel_members.filter(
-          (a) => parseInt(a.user_id) !== parseInt(user.id)
-        )[0]?.role_id,
-        sender_role_id: user.role_id,
+        // receiver_role_id: activeChat.channel_members.filter(
+        //   (a) => parseInt(a.user_id) !== parseInt(user.id)
+        // )[0]?.role_id,
+        // sender_role_id: user.role_id,
         content: [{ file_path: m.message_content[0]?.file_path, caption: "" }],
         parent_message_id: null,
         message_type: "VoiceMessage",
@@ -290,10 +290,10 @@ export const forwardMessage = async (m, activeChat) => {
         receiver_user_id: activeChat.channel_members.filter(
           (a) => parseInt(a.user_id) !== parseInt(user.id)
         )[0]?.user_id,
-        receiver_role_id: activeChat.channel_members.filter(
-          (a) => parseInt(a.user_id) !== parseInt(user.id)
-        )[0]?.role_id,
-        sender_role_id: user.role_id,
+        // receiver_role_id: activeChat.channel_members.filter(
+        //   (a) => parseInt(a.user_id) !== parseInt(user.id)
+        // )[0]?.role_id,
+        // sender_role_id: user.role_id,
         sender_user_id: user.id,
         message_type: { name: "VoiceMessage" },
         type: "pending",
@@ -334,10 +334,10 @@ export const forwardMessage = async (m, activeChat) => {
         receiver_user_id: activeChat.channel_members.filter(
           (a) => parseInt(a.user_id) !== parseInt(user.id)
         )[0]?.user_id,
-        receiver_role_id: activeChat.channel_members.filter(
-          (a) => parseInt(a.user_id) !== parseInt(user.id)
-        )[0]?.role_id,
-        sender_role_id: user.role_id,
+        // receiver_role_id: activeChat.channel_members.filter(
+        //   (a) => parseInt(a.user_id) !== parseInt(user.id)
+        // )[0]?.role_id,
+        // sender_role_id: user.role_id,
         content: [{ file_path: m.message_content[0]?.file_path, caption: "" }],
         parent_message_id: null,
         message_type: "VideoMessage",
@@ -352,10 +352,10 @@ export const forwardMessage = async (m, activeChat) => {
         receiver_user_id: activeChat.channel_members.filter(
           (a) => parseInt(a.user_id) !== parseInt(user.id)
         )[0]?.user_id,
-        receiver_role_id: activeChat.channel_members.filter(
-          (a) => parseInt(a.user_id) !== parseInt(user.id)
-        )[0]?.role_id,
-        sender_role_id: user.role_id,
+        // receiver_role_id: activeChat.channel_members.filter(
+        //   (a) => parseInt(a.user_id) !== parseInt(user.id)
+        // )[0]?.role_id,
+        // sender_role_id: user.role_id,
         sender_user_id: user.id,
         message_type: { name: "VoiceMessage" },
         type: "pending",
@@ -396,10 +396,10 @@ export const forwardMessage = async (m, activeChat) => {
         receiver_user_id: activeChat.channel_members.filter(
           (a) => parseInt(a.user_id) !== parseInt(user.id)
         )[0]?.user_id,
-        receiver_role_id: activeChat.channel_members.filter(
-          (a) => parseInt(a.user_id) !== parseInt(user.id)
-        )[0]?.role_id,
-        sender_role_id: user.role_id,
+        // receiver_role_id: activeChat.channel_members.filter(
+        //   (a) => parseInt(a.user_id) !== parseInt(user.id)
+        // )[0]?.role_id,
+        // sender_role_id: user.role_id,
         content: [{ file_path: m.message_content[0]?.file_path, caption: "" }],
         parent_message_id: null,
         message_type: "FileMessage",
@@ -413,10 +413,10 @@ export const forwardMessage = async (m, activeChat) => {
         receiver_user_id: activeChat.channel_members.filter(
           (a) => parseInt(a.user_id) !== parseInt(user.id)
         )[0]?.user_id,
-        receiver_role_id: activeChat.channel_members.filter(
-          (a) => parseInt(a.user_id) !== parseInt(user.id)
-        )[0]?.role_id,
-        sender_role_id: user.role_id,
+        // receiver_role_id: activeChat.channel_members.filter(
+        //   (a) => parseInt(a.user_id) !== parseInt(user.id)
+        // )[0]?.role_id,
+        // sender_role_id: user.role_id,
         sender_user_id: user.id,
         message_type: { name: "FileMessage" },
         type: "pending",
@@ -457,10 +457,10 @@ export const forwardMessage = async (m, activeChat) => {
         receiver_user_id: activeChat.channel_members.filter(
           (a) => parseInt(a.user_id) !== parseInt(user.id)
         )[0]?.user_id,
-        receiver_role_id: activeChat.channel_members.filter(
-          (a) => parseInt(a.user_id) !== parseInt(user.id)
-        )[0]?.role_id,
-        sender_role_id: user.role_id,
+        // receiver_role_id: activeChat.channel_members.filter(
+        //   (a) => parseInt(a.user_id) !== parseInt(user.id)
+        // )[0]?.role_id,
+        // sender_role_id: user.role_id,
         content: { ...m.message_content.content },
         parent_message_id: null,
         message_type: "ShareProduct",
@@ -474,10 +474,10 @@ export const forwardMessage = async (m, activeChat) => {
         receiver_user_id: activeChat.channel_members.filter(
           (a) => parseInt(a.user_id) !== parseInt(user.id)
         )[0]?.user_id,
-        receiver_role_id: activeChat.channel_members.filter(
-          (a) => parseInt(a.user_id) !== parseInt(user.id)
-        )[0]?.role_id,
-        sender_role_id: user.role_id,
+        // receiver_role_id: activeChat.channel_members.filter(
+        //   (a) => parseInt(a.user_id) !== parseInt(user.id)
+        // )[0]?.role_id,
+        // sender_role_id: user.role_id,
         sender_user_id: user.id,
         message_type: { name: "ShareProduct" },
         type: "pending",
