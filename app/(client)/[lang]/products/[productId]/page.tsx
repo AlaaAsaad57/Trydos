@@ -276,31 +276,7 @@ async function Page({ params, searchParams }) {
             />
           </div>
 
-          {/*
-          
-         
-          <div className="flex-col w-full h-auto rounded-[15px] bg-[#FCFCFC] mt-[12px] px-[10px]">
-
-        
-          <FAQSection
-            product_id={product.id}
-            comments={product?.fqa_questions}
-            lang={Params.lang}
-            seller_name={product?.seller?.f_name ?? "Admin"}
-          />
-
-          {product?.choice_options?.[0]?.options?.length > 0 && (
-            <ProductSizes
-              language={languageVariable}
-              sizes={product?.choice_options?.[0]?.options || []}
-            />
-          )}
-          {product?.choice_options?.[0]?.options?.length > 0 && (
-            <ProductSizesReview
-              lang={Params.lang}
-              sizeFitData={product?.size_analysis}
-            />
-          )} */}
+          {/* footer */}
         </div>
       </div>
     </div>

@@ -1,7 +1,7 @@
 "use client";
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 import Spinner from "components/global/Spinner";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   GetProductBuyersComment,
   UpdateBuyerComment,
@@ -107,14 +107,15 @@ function ProductBuyersCommentList({
       setLoading(false);
     }
   };
+  useEffect(() => {
+    setCommentsNodes(children);
+  }, [children]);
   return (
     <>
       <BuyersCommentModal
         key={modalKey}
         productId={productId}
         filters_key={filterKeys}
-        offset={offset}
-        commentNodes={commentsNodes}
         deleteComment={deleteComment}
         editComment={EditComment}
       ></BuyersCommentModal>

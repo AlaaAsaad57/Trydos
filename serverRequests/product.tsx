@@ -732,7 +732,7 @@ export async function GetProductFaqQuestions({
   if (offset) {
     query = {
       ...query,
-      search_after: typeof offset === "string" ? JSON.parse(offset) : [],
+      search_after: typeof offset === "string" ? JSON.parse(offset) : offset,
     };
   }
 
@@ -801,21 +801,10 @@ export async function GetFaqItem({ id }) {
   let query: any = {
     index: "comments",
     size: 1,
-    sort: [
-      { created_at: "desc" }, // newest first
-      { comment_id: "desc" }, // tie-breaker for consistent pagination
-    ],
     query: {
       bool: {
         must: [{ term: { comment_id: String(id) } }],
-        must_not: [
-          { term: { status: "deleted" } },
-          {
-            exists: {
-              field: "order_details_id",
-            },
-          },
-        ],
+        must_not: [{ term: { status: "deleted" } }],
       },
     },
   };
@@ -826,11 +815,10 @@ export async function GetFaqItem({ id }) {
     ...((hit?._source as {}) ?? {}),
   }));
 
-  const nextSearchAfter =
-    results.length > 0 ? response.hits.hits[results.length - 1].sort : null;
   const cookieStore = await cookies();
   let userCookies = cookieStore.get("User-Data")?.value;
   let userId = JSON.parse(userCookies)?.id;
+
   if (results?.length > 0)
     results = await GetFQACommentsForProductWithReactions({
       user_id: userId,
@@ -862,27 +850,8 @@ export async function GetFaqItem({ id }) {
   };
   return comment;
 }
-export async function UpdateFaqItem({ language, id, width = 90 }) {
-  let comment = await GetFaqItem({ id: id });
 
-  return {
-    comment: (
-      <FaqItemComponent
-        key={comment.id}
-        comment={comment}
-        id={comment.id}
-        isRtl={language === "ar" || language === "ku"}
-        language={language}
-        seller_name={comment.seller_name}
-        width={width}
-      />
-    ),
-    success: true,
-    status: 200,
-  };
-}
-
-export async function CreateFaqQuestion({ id, language, width = 90 }) {
+export async function GetFaqItemElement({ id, language, width = 90 }) {
   let comment = await GetFaqItem({ id: id });
 
   return {

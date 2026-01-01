@@ -1,8 +1,11 @@
 "use client";
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 import Spinner from "components/global/Spinner";
-import React, { useState } from "react";
-import { GetProductFaqQuestions, UpdateFaqItem } from "serverRequests/product";
+import React, { useEffect, useState } from "react";
+import {
+  GetProductFaqQuestions,
+  GetFaqItemElement,
+} from "serverRequests/product";
 import auth from "services/auth";
 import { useAppStore } from "store";
 import { FaqItemOptions } from "./FaqItemOptions";
@@ -36,6 +39,13 @@ function FaqQuestionsList({
   const GetNextComments = async () => {
     if (!offset || loading) return;
     setLoading(true);
+    console.log({
+      language: language,
+      productId: productId,
+      filter: null,
+      offset: offsetValue,
+      userId: auth.UserID(),
+    });
     let response = await GetProductFaqQuestions({
       language: language,
       productId: productId,
@@ -67,9 +77,10 @@ function FaqQuestionsList({
           comments_images_customer: comment?.comments_images_customer ?? [],
         }),
         reqTitle: REQUESTS_DATA.UPDATE_COMMENT,
+        noMessage: true,
       });
-
-      let res = await UpdateFaqItem({
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+      let res = await GetFaqItemElement({
         language: language,
         id: comment.id,
       });
@@ -106,14 +117,15 @@ function FaqQuestionsList({
       setLoading(false);
     }
   };
+  useEffect(() => {
+    setCommentsNodes(children);
+  }, [children]);
   return (
     <>
       <FaqSectionModal
         key={modalKey}
         productId={productId}
         filters_key={filterKeys}
-        offset={offset}
-        commentNodes={commentsNodes}
         deleteComment={deleteComment}
         editComment={EditComment}
       ></FaqSectionModal>
@@ -140,6 +152,7 @@ function FaqQuestionsList({
         )}
       </HortiznalScrollBar>
       <AskInput
+        productId={productId}
         color={color}
         size={size}
         owner_id={owner_id}

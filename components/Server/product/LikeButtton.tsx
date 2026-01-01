@@ -1,6 +1,6 @@
 "use client";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import home from "services/home";
 import { useAppStore } from "store";
 import { showErrorNotification } from "store/notifications/reducer";
@@ -51,7 +51,7 @@ export function LikeButton({
         });
       }
       router.refresh();
-      handleLikeAction(!isLiked, isLiked ? likes - 1 : likes + 1);
+      // handleLikeAction(!isLiked, isLiked ? likes - 1 : likes + 1);
       setLoading(false);
     } catch (error) {
       // Revert to previous state if error occurred
@@ -64,11 +64,7 @@ export function LikeButton({
       setTimeout(() => setAnimating(false), 400);
     }
   };
-  const handleLikeAction = (isLikedVar, likesVar) => {
-    const isReply = target_type === "seller_reply";
 
-    // Find which array contains the comment
-  };
   const getCommentId = () => {
     let id = comment_id;
     const isReply = target_type === "seller_reply";
@@ -79,6 +75,10 @@ export function LikeButton({
 
     return id;
   };
+  useEffect(() => {
+    setIsLiked(is_liked);
+    setLikes(total_likes);
+  }, [is_liked, total_likes]);
   return (
     <div
       id={`${getCommentId()}`}

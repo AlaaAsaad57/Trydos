@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback, useEffect, useRef } from "react";
 import BottomSheet from "components/global/BottomSheet";
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 import Skeleton from "react-loading-skeleton";
@@ -8,13 +8,11 @@ import { translateFunction } from "utils/functions";
 
 import { GetProductFaqQuestions } from "serverRequests/product";
 import auth from "services/auth";
-import { RatingCommentOptions } from "components/Server/product/ProductBuyersComment/RatingCommentOptions";
+
 import FAQIcon from "public/svg/FAQIcon";
 import { FaqItemOptions } from "./FaqItemOptions";
 
 function FaqSectionModal({
-  commentNodes,
-  offset: initialOffset,
   filters_key,
   productId,
   deleteComment,
@@ -28,34 +26,30 @@ function FaqSectionModal({
     setBuyerCommentModalOption,
   } = useAppStore();
 
-  const [activeType, setActiveType] = useState(0);
+  const activeTabRef = useRef<any>(null);
+
   const [actionLoading, setActionLoading] = useState(false);
-  const [commentsData, setCommentsData] = useState(commentNodes);
-  const [offset, setOffset] = useState(initialOffset);
+  const [commentsData, setCommentsData] = useState([]);
+  const OffsetRef = useRef<any>(null);
+
   const [loading, setLoading] = useState(false);
 
   const isRtl = language === "ar" || language === "ku";
 
   // ✅ Stable loadMore function
-  const loadMore = async (
-    filterId = null,
-    offsetValue = null,
-    reset = false
-  ) => {
+  const loadMore = async () => {
     setLoading(true);
     try {
       const data = await GetProductFaqQuestions({
         language: language,
         productId: productId,
         userId: auth.UserID(),
-        filter: activeType,
-        offset: offset,
+        filter: activeTabRef.current,
+        offset: OffsetRef.current,
       });
 
-      setCommentsData((prev) =>
-        reset ? data.comments : [...(prev as any), ...data.comments]
-      );
-      setOffset(data?.offset);
+      setCommentsData((prev) => [...(prev as any), ...data.comments]);
+      OffsetRef.current = data.offset;
     } catch (err) {
       console.error("Error loading comments:", err);
     } finally {
@@ -63,24 +57,26 @@ function FaqSectionModal({
     }
   };
   // ✅ Handle filter toggle
-  const handleFilter = useCallback(
-    async (id) => {
-      if (loading) return;
+  const handleFilter = async (id) => {
+    if (loading) return;
 
-      if (activeType === id) {
-        // Unselect filter → restore original comments
-        setActiveType(0);
-        setCommentsData(commentNodes);
-        setOffset(initialOffset);
-        return;
-      }
+    if (activeTabRef.current === id || id === 0) {
+      // Unselect filter → restore original comments
+      activeTabRef.current = 0;
+      setCommentsData([]);
+      OffsetRef.current = null;
+    }
 
-      setActiveType(id);
-      await loadMore(id, null, true);
-    },
-    [activeType, loading, commentNodes, initialOffset, loadMore]
-  );
-
+    activeTabRef.current = id;
+    await loadMore();
+  };
+  useEffect(() => {
+    if (ColorBottomSheet?.is_for_faq) handleFilter(0);
+    else {
+      setCommentsData([]);
+      OffsetRef.current = null;
+    }
+  }, [ColorBottomSheet?.is_for_faq]);
   return (
     <>
       {ColorBottomSheet?.is_for_faq && (
@@ -133,7 +129,9 @@ function FaqSectionModal({
                     key={type}
                     onClick={() => handleFilter(type)}
                     className={`pl-[8px] cursor-pointer pr-[12px] rounded-[15px] h-[31px] ${
-                      activeType === type ? "bg-[#bdd3ff]" : "bg-[#F8F8F8]"
+                      activeTabRef.current === type
+                        ? "bg-[#bdd3ff]"
+                        : "bg-[#F8F8F8]"
                     } flex-row justify-center items-center regular text-[#505050] text-[11px] medium`}
                   >
                     {type}
@@ -163,10 +161,10 @@ function FaqSectionModal({
 
                 {!loading && commentsData}
 
-                {!loading && offset && (
+                {!loading && OffsetRef.current && (
                   <div
                     className="w-full flex justify-center items-center"
-                    onClick={() => loadMore(activeType, offset)}
+                    onClick={() => loadMore()}
                   >
                     <div className="bg-[#f8f8f8] text-[#1d1d1d] light text-[14px] rounded-md h-[40px] flex justify-center items-center px-3 pt-2">
                       {translateFunction("Load More", language)}

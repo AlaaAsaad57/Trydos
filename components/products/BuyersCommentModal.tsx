@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import BottomSheet from "components/global/BottomSheet";
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 import Skeleton from "react-loading-skeleton";
@@ -11,8 +11,6 @@ import auth from "services/auth";
 import { RatingCommentOptions } from "components/Server/product/ProductBuyersComment/RatingCommentOptions";
 
 function BuyersCommentModal({
-  commentNodes,
-  offset: initialOffset,
   filters_key,
   productId,
   deleteComment,
@@ -26,34 +24,28 @@ function BuyersCommentModal({
     setBuyerCommentModalOption,
   } = useAppStore();
 
-  const [activeType, setActiveType] = useState(0);
+  const activeTabRef = useRef<any>(null);
   const [actionLoading, setActionLoading] = useState(false);
-  const [commentsData, setCommentsData] = useState(commentNodes);
-  const [offset, setOffset] = useState(initialOffset);
+  const [commentsData, setCommentsData] = useState([]);
+  const OffsetRef = useRef<any>(null);
   const [loading, setLoading] = useState(false);
 
   const isRtl = language === "ar" || language === "ku";
 
   // ✅ Stable loadMore function
-  const loadMore = async (
-    filterId = null,
-    offsetValue = null,
-    reset = false
-  ) => {
+  const loadMore = async () => {
     setLoading(true);
     try {
       const data = await GetProductBuyersComment({
         language: language,
         productId: productId,
         userId: auth.UserID(),
-        filter: activeType,
-        offset: offset,
+        filter: activeTabRef.current,
+        offset: OffsetRef.current,
       });
 
-      setCommentsData((prev) =>
-        reset ? data.comments : [...(prev as any), ...data.comments]
-      );
-      setOffset(data?.offset);
+      setCommentsData((prev) => [...(prev as any), ...data.comments]);
+      OffsetRef.current = data.offset;
     } catch (err) {
       console.error("Error loading comments:", err);
     } finally {
@@ -61,24 +53,27 @@ function BuyersCommentModal({
     }
   };
   // ✅ Handle filter toggle
-  const handleFilter = useCallback(
-    async (id) => {
-      if (loading) return;
+  const handleFilter = async (id) => {
+    if (loading) return;
+    setCommentsData([]);
+    OffsetRef.current = null;
+    if (activeTabRef.current === id) {
+      // Unselect filter → restore original comments
+      activeTabRef.current = 0;
+    } else {
+      activeTabRef.current = id;
+    }
 
-      if (activeType === id) {
-        // Unselect filter → restore original comments
-        setActiveType(0);
-        setCommentsData(commentNodes);
-        setOffset(initialOffset);
-        return;
-      }
-
-      setActiveType(id);
-      await loadMore(id, null, true);
-    },
-    [activeType, loading, commentNodes, initialOffset, loadMore]
-  );
-
+    await loadMore();
+  };
+  useEffect(() => {
+    if (ColorBottomSheet?.is_buyers_comments) handleFilter(0);
+    else {
+      setCommentsData([]);
+      OffsetRef.current = null;
+      activeTabRef.current = null;
+    }
+  }, [ColorBottomSheet?.is_buyers_comments]);
   return (
     <>
       {ColorBottomSheet?.is_buyers_comments && (
@@ -124,7 +119,9 @@ function BuyersCommentModal({
                     key={type}
                     onClick={() => handleFilter(type)}
                     className={`pl-[8px] cursor-pointer pr-[12px] rounded-[15px] h-[31px] ${
-                      activeType === type ? "bg-[#bdd3ff]" : "bg-[#F8F8F8]"
+                      activeTabRef.current === type
+                        ? "bg-[#bdd3ff]"
+                        : "bg-[#F8F8F8]"
                     } flex-row justify-center items-center regular text-[#505050] text-[11px] medium`}
                   >
                     {type}
@@ -153,11 +150,10 @@ function BuyersCommentModal({
                   ))}
 
                 {!loading && commentsData}
-
-                {!loading && offset && (
+                {!loading && OffsetRef.current && (
                   <div
                     className="w-full flex justify-center items-center"
-                    onClick={() => loadMore(activeType, offset)}
+                    onClick={() => loadMore()}
                   >
                     <div className="bg-[#f8f8f8] text-[#1d1d1d] light text-[14px] rounded-md h-[40px] flex justify-center items-center px-3 pt-2">
                       {translateFunction("Load More", language)}

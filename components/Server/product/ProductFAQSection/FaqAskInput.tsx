@@ -3,9 +3,11 @@ import Spinner from "components/global/Spinner";
 import CommentPost from "public/svg/CommentPost";
 import FAQInputIcon from "public/svg/FAQInputIcon";
 import { useState } from "react";
-import { CreateFaqQuestion } from "serverRequests/product";
+import { GetFaqItemElement } from "serverRequests/product";
+
 import auth from "services/auth";
 import { useAppStore } from "store";
+
 import { showErrorNotification } from "store/notifications/reducer";
 import { COOKIE_NAMES, getCookie } from "utils/cookies/cookie-manager";
 import { fetchData } from "utils/fetchData";
@@ -20,9 +22,9 @@ export const AskInput = ({
   size,
   owner_id,
   owner_type,
+  productId,
 }) => {
   const { user } = useAppStore();
-  console.log(owner_id, owner_type);
   const renderBorderSvg = () => {
     return (
       <svg
@@ -66,7 +68,7 @@ export const AskInput = ({
         body: JSON.stringify({
           text: comment,
           //   @ts-ignore
-          product_id: String(SelectedProduct?.id),
+          product_id: String(productId),
           user_id: String(auth.UserID()),
           user_name: auth.User()?.name,
           user_avatar: auth.User().image,
@@ -78,9 +80,11 @@ export const AskInput = ({
         }),
         reqTitle: REQUESTS_DATA.ADD_COMMENT_FOR_PRODUCT,
         server: "comments",
+        noMessage: true,
       });
       let id = res.data.comment_id;
-      let response = await CreateFaqQuestion({
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+      let response = await GetFaqItemElement({
         id: id,
         language,
       });
@@ -95,6 +99,7 @@ export const AskInput = ({
       setComment("");
       setLoading(false);
     } catch (error) {
+      console.log(error);
       setLoading(false);
     }
   };
