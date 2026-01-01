@@ -30,6 +30,7 @@ import ProductBuyersCommentsWrapper from "components/Server/product/ProductBuyer
 import ProductSizesWrapper from "components/Server/product/ProductSizesWrapper";
 import ProductSizeReviews from "components/Server/product/ProductSizeReviews";
 import ProductFaqSectionWrapper from "components/Server/product/ProductFAQSection/ProductFaqSectionWrapper";
+import ProductVideosWrapper from "components/Server/product/ProductVideosWrapper";
 
 export async function generateMetadata({ params, searchParams }) {
   let [Params, SearchParams] = await Promise.all([params, searchParams]);
@@ -277,6 +278,13 @@ async function Page({ params, searchParams }) {
           </div>
 
           {/* footer */}
+        </div>
+      </div>
+      <div className="product-details-footer alternate-product-details-footer z-[999999999]">
+        {/*@ts-expect-error Async Server Component is valid in Next  */}
+        <ProductVideosWrapper globalPromise={GlobalData} language={language} />
+        <div className="product-info-container p-0 h-[40px] overflow-hidden">
+          {/* Prices goes here */}
         </div>
       </div>
     </div>

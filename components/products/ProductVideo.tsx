@@ -1,70 +1,118 @@
 "use client";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
+import useEmblaCarousel from "embla-carousel-react";
 import { translateFunction } from "utils/functions";
 import { DisableScroll, getVideoUrl } from "utils/tinyUtils";
 
-function ProductVideo({ videos, language }) {
+function ProductVideo({ videos = [], language }) {
   const [showVideo, setShowVideo] = useState(true);
   const [expanded, setExpanded] = useState(false);
   const isRtl = language === "ar" || language === "ku";
 
-  const videoRef = useRef<HTMLDivElement>(null);
+  // 1. Embla Setup
+  const [emblaRef, emblaApi] = useEmblaCarousel({
+    direction: isRtl ? "rtl" : "ltr",
+  });
 
-  if (!showVideo) return null;
+  const [selectedIndex, setSelectedIndex] = useState(0);
+  // 2. Refs for video elements to manually control play/pause
+  const videoRefs = useRef([]);
+
+  const onSelect = useCallback(() => {
+    if (!emblaApi) return;
+    setSelectedIndex(emblaApi.selectedScrollSnap());
+  }, [emblaApi]);
+
+  useEffect(() => {
+    if (!emblaApi) return;
+    emblaApi.on("select", onSelect);
+    onSelect();
+  }, [emblaApi, onSelect]);
+
+  // 3. Handle Play/Pause logic when slide changes
+  useEffect(() => {
+    videoRefs.current.forEach((video, index) => {
+      if (!video) return;
+
+      if (index === selectedIndex) {
+        // Play the active video
+        video.play().catch(() => {
+          /* Handle autoplay block if necessary */
+        });
+      } else {
+        // Pause and reset non-active videos
+        video.pause();
+        video.currentTime = 0;
+      }
+    });
+  }, [selectedIndex, expanded]); // Also re-run when expanding to ensure the right video plays
+
+  if (!showVideo || !videos?.length) return null;
+
   useEffect(() => {
     if (expanded) {
       DisableScroll();
+      emblaApi?.reInit();
     }
-  }, [expanded]);
+  }, [expanded, emblaApi]);
+
   return (
     <>
       {/* Backdrop */}
       {expanded && (
         <div
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[99999999999999]"
+          className="fixed inset-0 bg-black/80 backdrop-blur-md z-[99999999999998]"
           onClick={() => setExpanded(false)}
         />
       )}
 
-      {/* Video container */}
+      {/* Main Container */}
       <div
         className={`${isRtl ? "left-[6px]" : "right-[6px]"} 
         ${
           expanded
-            ? "fixed bottom-[114px] left-0 right-0 mx-auto flex items-center justify-center "
-            : "absolute bottom-[114px]"
+            ? "fixed inset-0 m-auto flex items-center justify-center h-full w-full"
+            : "absolute bottom-[114px] w-[138px] h-[200px]"
         }
-        z-[99999999999999] product-video`}
+        z-[99999999999999] transition-all duration-300`}
       >
-        <div
-          ref={videoRef}
-          className="relative"
-          onClick={(e) => e.stopPropagation()} // Prevent backdrop click when clicking video
-        >
-          <video
-            onClick={() => setExpanded(true)}
-            key={String(expanded)}
-            src={
-              expanded
-                ? getVideoUrl(videos, {
-                    width: 700,
-                    height: 900,
-                    end: -1,
-                  })
-                : getVideoUrl(videos, { width: 700, height: 900 })
-            }
-            autoPlay
-            loop={!expanded}
-            muted={!expanded}
-            playsInline
-            controls={expanded}
-            className={`${
-              expanded
-                ? "w-[90vw] max-w-[700px] h-[65vh] object-contain"
-                : "w-[138px] h-[200px] object-cover"
-            } transition-all bg-black rounded-[15px] z-10`}
-          />
+        <div className="relative w-full h-full flex items-center justify-center">
+          {/* Embla Viewport */}
+          <div
+            className={`embla overflow-hidden p-0 w-full h-full cursor-grab active:cursor-grabbing ${
+              expanded ? "max-w-[700px] h-[65vh]" : "rounded-[15px]"
+            }`}
+            ref={emblaRef}
+          >
+            <div className="embla__container flex h-full gap-[4px]">
+              {videos.map((vid, index) => (
+                <div
+                  key={index}
+                  className="embla__slide flex-[0_0_100%] min-w-0 relative h-full"
+                >
+                  <video
+                    ref={(el) => (videoRefs.current[index] = el)}
+                    onClick={() => !expanded && setExpanded(true)}
+                    src={getVideoUrl(vid, {
+                      width: 700,
+                      height: 900,
+                      end: expanded ? -1 : undefined,
+                    })}
+                    // We handle play/pause via useEffect, but keep these for initial load
+                    loop
+                    muted={!expanded} // Keep muted in minimized to allow autoplay
+                    playsInline
+                    controls={expanded}
+                    className={`w-full h-full rounded-[15px] bg-black ${
+                      expanded ? "object-contain" : "object-cover"
+                    }`}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
 
+          {/* Overlay elements (Minimized Only) */}
           {!expanded && (
             <>
               <OverlayText
@@ -72,16 +120,48 @@ function ProductVideo({ videos, language }) {
                 onClick={() => setExpanded(true)}
               />
               <VideoBorder onClick={() => setExpanded(true)} />
+
+              {/* Pagination Dots */}
+              {videos.length > 1 && (
+                <div className="absolute bottom-2 flex gap-1 z-[1000] pointer-events-none">
+                  {videos.map((_, i) => (
+                    <div
+                      key={i}
+                      className={`w-1.5 h-1.5 rounded-full transition-colors ${
+                        selectedIndex === i ? "bg-white" : "bg-white/40"
+                      }`}
+                    />
+                  ))}
+                </div>
+              )}
             </>
           )}
 
+          {/* Controls (Expanded Only) */}
+          {expanded && videos.length > 1 && (
+            <>
+              <button
+                onClick={() => emblaApi?.scrollPrev()}
+                className="absolute left-4 bg-black/40 hover:bg-black/60 p-3 rounded-full text-white z-[100] transition-all"
+              >
+                {isRtl ? "→" : "←"}
+              </button>
+              <button
+                onClick={() => emblaApi?.scrollNext()}
+                className="absolute right-4 bg-black/40 hover:bg-black/60 p-3 rounded-full text-white z-[100] transition-all"
+              >
+                {isRtl ? "←" : "→"}
+              </button>
+            </>
+          )}
           <CloseIcon
+            isExpanded={expanded}
             clickHandler={() => {
               if (expanded) {
                 setExpanded(false);
-                return;
+              } else {
+                setShowVideo(false);
               }
-              setShowVideo(false);
             }}
           />
         </div>
@@ -89,6 +169,8 @@ function ProductVideo({ videos, language }) {
     </>
   );
 }
+
+// ... Keep VideoBorder, CloseIcon, and OverlayText components as they were
 export default ProductVideo;
 const VideoBorder = ({ onClick }) => {
   return (
@@ -116,13 +198,15 @@ const VideoBorder = ({ onClick }) => {
     </svg>
   );
 };
-const CloseIcon = ({ clickHandler }) => {
+const CloseIcon = ({ clickHandler, isExpanded }) => {
   return (
     <div
       onClick={() => {
         clickHandler();
       }}
-      className="absolute top-[-12px] right-[-7px] cursor-pointer w-[30px] z-[9999] h-[30px] flex justify-center items-center"
+      className={`${
+        isExpanded ? "top-[15px] right-[15px]" : "top-[-12px] right-[-7px]"
+      } absolute  cursor-pointer w-[30px] z-[9999] h-[30px] flex justify-center items-center`}
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"
