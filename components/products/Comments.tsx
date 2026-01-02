@@ -12,17 +12,7 @@ import Spinner from "components/global/Spinner";
 import { useAppStore } from "store";
 import auth from "services/auth";
 
-function Comments({
-  productId,
-  CommentsData,
-
-  loading,
-  shouldShowMore,
-}: CommentsPropsType) {
-  const { SelectedProduct } = useAppStore();
-  const seller_name = useMemo(() => {
-    return SelectedProduct?.seller?.f_name ?? "Admin";
-  }, []);
+function Comments({ productId, loading }) {
   return (
     <div className="content-extended comments-extended" data-cy="CommentArea">
       {loading ? (

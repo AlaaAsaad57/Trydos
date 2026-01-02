@@ -30,6 +30,7 @@ function FaqQuestionsList({
   const {
     BuyerCommentModalOption,
     setBuyerCommentModalOption,
+    setShouldUpdateComment,
     ColorBottomSheet,
   } = useAppStore();
   const [commentsNodes, setCommentsNodes] = useState(children);
@@ -93,6 +94,7 @@ function FaqQuestionsList({
       setBuyerCommentModalOption(null);
       setLoading(false);
       setModalKey(new Date().getDate());
+      setShouldUpdateComment({ id: comment.id });
       return { commentElement: res.comment, id: comment.id };
     } catch (error) {
       setLoading(false);
@@ -112,6 +114,7 @@ function FaqQuestionsList({
       );
       setLoading(false);
       setBuyerCommentModalOption(null);
+      setShouldUpdateComment({ id: id });
       return id;
     } catch (error) {
       setLoading(false);

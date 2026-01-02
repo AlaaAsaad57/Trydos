@@ -22,7 +22,7 @@ async function ProductNameAndBrand({ globalPromise, isRtl, color }) {
     return text_info.join(" | ");
   };
   return (
-    <Suspense fallback={<ProductNameAndBrandSkeleton isRtl={isRtl} />}>
+    <>
       <div
         className={`${
           isRtl ? "flex-row-reverse" : "flex-row"
@@ -54,7 +54,7 @@ async function ProductNameAndBrand({ globalPromise, isRtl, color }) {
           {getProductText()}
         </div>
       </div>
-    </Suspense>
+    </>
   );
 }
 

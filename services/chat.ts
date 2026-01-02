@@ -78,6 +78,7 @@ class ChatService {
       callback();
     } catch (e) {
       showErrorNotification(translate("Product Share error", language));
+      throw new Error(e);
     }
   }
   async StoreToken(payload: {

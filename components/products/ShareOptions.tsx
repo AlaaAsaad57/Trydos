@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useMemo } from "react";
+import React, { useEffect } from "react";
 import ShareAvatar from "./ShareAvatar";
 import "styles/share-options.css";
 import {
@@ -23,24 +23,16 @@ import { REQUESTS_DATA } from "utils/Requests";
 import { GAevent } from "utils/gtag";
 import { GA_EVENT_NAMES, GA_GLOBAL_SCREEN } from "utils/GAEvents";
 import auth from "services/auth";
-import { useParams } from "next/navigation";
-function ShareOptions({
-  setShareContacts,
-  sharedContacts,
-  product,
-}: ShareOptionsPropsType) {
-  const {
-    editInfo,
 
+function ShareOptions({ product }: ShareOptionsPropsType) {
+  const {
+    setSelectedContactsForShare,
+    selectedContactsForShare,
     shareLoading,
     user,
     contacts,
-    SelectedProduct,
     data,
   } = useAppStore();
-  const params = useParams();
-
-  const [country, language] = (params.lang as string).split("-");
 
   const shareSocial = async (appName) => {
     try {
@@ -82,10 +74,10 @@ function ShareOptions({
         throw new Error(response.message);
       }
 
-      editInfo({
-        ...SelectedProduct,
-        sharesCount: (SelectedProduct?.sharesCount || 0) + 1,
-      });
+      // editInfo({
+      //   ...SelectedProduct,
+      //   sharesCount: (SelectedProduct?.sharesCount || 0) + 1,
+      // });
     } catch (err) {
       console.error(err);
     }
@@ -275,13 +267,23 @@ function ShareOptions({
             key={i}
             contact={key}
             disable={shareLoading}
-            active={sharedContacts.some((s) => s === key.contact_user_id)}
+            active={selectedContactsForShare?.some(
+              (s) => s === key.contact_user_id
+            )}
             setActive={() => {
-              if (sharedContacts.some((s) => s === key.contact_user_id))
-                setShareContacts([
-                  ...sharedContacts.filter((s) => s !== key.contact_user_id),
+              if (
+                selectedContactsForShare.some((s) => s === key.contact_user_id)
+              )
+                setSelectedContactsForShare([
+                  ...selectedContactsForShare.filter(
+                    (s) => s !== key.contact_user_id
+                  ),
                 ]);
-              else setShareContacts([...sharedContacts, key.contact_user_id]);
+              else
+                setSelectedContactsForShare([
+                  ...selectedContactsForShare,
+                  key.contact_user_id,
+                ]);
             }}
           />
         ))}

@@ -795,6 +795,7 @@ export async function GetProductFaqQuestions({
     )),
     offset: comments.searchAfter,
     filters_key: filters_key,
+    total: (response.hits.total as any)?.value,
   };
 }
 export async function GetFaqItem({ id }) {
@@ -869,4 +870,97 @@ export async function GetFaqItemElement({ id, language, width = 90 }) {
     success: true,
     status: 200,
   };
+}
+
+export async function GetSocialInfoForProduct({ productId, userId }) {
+  //  should return likes,isLiked,comments,shares count
+  let [produtSocialInfo, productSharesCount] = await Promise.all([
+    getProductInteractions(productId, userId),
+    getProductSharedCountFromElasticsearch(productId),
+  ]);
+  console.log(productSharesCount, produtSocialInfo);
+  return {
+    total_likes: produtSocialInfo.total_likes,
+    is_liked: produtSocialInfo.is_liked,
+    total_comments: produtSocialInfo.total_comments,
+    total_shares: productSharesCount,
+  };
+}
+
+async function getProductSharedCountFromElasticsearch(productId) {
+  try {
+    let res = await client.search({
+      index: "shared_products",
+      _source: ["shared_count"],
+      size: 1, // just one document if you expect a single match
+      query: {
+        term: {
+          product_id: productId, // exact match search
+        },
+      },
+    });
+
+    let sharesData = (res as any)?.hits?.hits?.[0]?._source?.shared_count;
+
+    return sharesData;
+  } catch (error) {
+    return null;
+  }
+}
+async function getProductInteractions(productId: string, userId?: string) {
+  try {
+    // Run both queries in parallel
+    const [productRes, likeRes] = await Promise.all([
+      client.get({
+        index: "product_interactions",
+        id: productId,
+        _source: ["total_likes", "total_comments"],
+      }),
+      userId
+        ? client.search({
+            index: "user_product_likes",
+            _source: ["status"],
+            body: {
+              query: {
+                bool: {
+                  must: [
+                    { term: { product_id: productId } },
+                    { term: { user_id: String(userId) } },
+                    { term: { status: "active" } },
+                  ],
+                },
+              },
+              sort: [
+                { interaction_date: { order: "desc" } }, // get latest interaction first
+              ],
+              size: 1, // only need the latest
+            },
+          })
+        : Promise.resolve({ hits: { hits: [] } }),
+    ]);
+
+    const source: any = productRes._source;
+
+    const productInfo = {
+      total_comments: source?.total_comments,
+      total_likes: source?.total_likes ?? 0,
+    };
+
+    // Determine if user liked the product based on latest interaction
+    let isLiked = false;
+    if (userId && likeRes.hits.hits.length > 0) {
+      const latestInteraction = likeRes.hits.hits[0]._source as any;
+      isLiked = latestInteraction.status?.toLowerCase() === "active";
+    }
+
+    return {
+      ...productInfo,
+      is_liked: isLiked,
+    };
+  } catch (err: any) {
+    if (err.meta?.statusCode === 404) {
+      return null;
+    }
+    throw err;
+  }
 }

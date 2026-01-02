@@ -24,13 +24,20 @@ import FreeShippingOption from "components/products/FreeShippingOption";
 import FreeReturnIcon from "public/svg/product/FreeReturnIcon";
 import { translateFunction } from "utils/server";
 import ReturnDaysDetails from "components/products/ReturnDays.Details";
-import { GetStarttingSetting } from "serverRequests";
+import { getCurrency, GetStarttingSetting } from "serverRequests";
 import ProductStoriesWrapper from "components/Server/product/ProductStoriesWrapper";
 import ProductBuyersCommentsWrapper from "components/Server/product/ProductBuyersComment/ProductBuyersCommentsWrapper";
 import ProductSizesWrapper from "components/Server/product/ProductSizesWrapper";
 import ProductSizeReviews from "components/Server/product/ProductSizeReviews";
 import ProductFaqSectionWrapper from "components/Server/product/ProductFAQSection/ProductFaqSectionWrapper";
 import ProductVideosWrapper from "components/Server/product/ProductVideosWrapper";
+import ProductPricesWrapper from "components/Server/product/ProductPrices/ProductPricesWrapper";
+import VirtualTryOnWrapper from "components/products/VirtualTryOnWrapper";
+import ProductFooterWrapper from "components/Server/product/ProductFooter.tsx/ProductFooterWrapper";
+import { Suspense } from "react";
+import ProductPhotosSkeleton from "components/skeleton/product/ProductPhotosSkeleton";
+import ProductNameAndBrandSkeleton from "components/skeleton/product/ProductNameAndBrandSkeleton";
+import Skeleton from "react-loading-skeleton";
 
 export async function generateMetadata({ params, searchParams }) {
   let [Params, SearchParams] = await Promise.all([params, searchParams]);
@@ -71,7 +78,7 @@ async function Page({ params, searchParams }) {
     country: country,
   });
   let StarttingSettingPromise = GetStarttingSetting({ language, country });
-
+  let currency = getCurrency(country, language);
   let color = SearchParams.color;
   let Size = SearchParams?.size;
   let slug = Params.productId;
@@ -83,19 +90,24 @@ async function Page({ params, searchParams }) {
         className="product-details-slider mt-[12px] relative h-[474px] max-h-[474px]"
         key={`key-${color ?? slug}`}
       >
+        <Suspense fallback={<ProductPhotosSkeleton isRtl={isRtl} />}>
+          {/*@ts-expect-error Async Server Component is valid in Next  */}
+          <ProductPhotoSliderWrapper
+            color={color}
+            globalPromise={GlobalData}
+            language={language}
+          />
+        </Suspense>
+      </div>
+
+      <Suspense fallback={<></>}>
         {/*@ts-expect-error Async Server Component is valid in Next  */}
-        <ProductPhotoSliderWrapper
+        <ProductExtendedSliderWrapper
           color={color}
           globalPromise={GlobalData}
           language={language}
         />
-      </div>
-      {/*@ts-expect-error Async Server Component is valid in Next  */}
-      <ProductExtendedSliderWrapper
-        color={color}
-        globalPromise={GlobalData}
-        language={language}
-      />
+      </Suspense>
       <div className="product-details-body bg-[#ffffff] flex-row relative mt-[3px] pb-[50px]">
         <div
           className={`${
@@ -103,30 +115,70 @@ async function Page({ params, searchParams }) {
           } product-info-section bg-[#ffffff] flex-col align-start`}
         >
           <div className="flex-col px-[10px] max-w-full w-full">
-            {/*@ts-expect-error Async Server Component is valid in Next  */}
-            <ProductNameAndBrand
-              color={color}
-              globalPromise={GlobalData}
-              isRtl={isRtl}
-            />
-            {/*@ts-expect-error Async Server Component is valid in Next  */}
-            <ProductDetailsTextWrapper
-              globalPromise={GlobalData}
-              isRtl={isRtl}
-            />
-            {/*@ts-expect-error Async Server Component is valid in Next  */}
-            <ProductGeneralPropertiesWrapper
-              globalData={GlobalData}
-              language={language}
-            />
-            {/*@ts-expect-error Async Server Component is valid in Next  */}
-            <ProductFeaturesWrapper isRtl={isRtl} globalPromise={GlobalData} />
+            <Suspense fallback={<ProductNameAndBrandSkeleton isRtl={isRtl} />}>
+              {/*@ts-expect-error Async Server Component is valid in Next  */}
+              <ProductNameAndBrand
+                color={color}
+                globalPromise={GlobalData}
+                isRtl={isRtl}
+              />
+            </Suspense>
+            <Suspense
+              fallback={
+                <div
+                  className={`${isRtl ? "dir-rtl" : ""} product-details-text`}
+                >
+                  <div id="details" className="have-arabic ">
+                    <Skeleton width={200} height={13} borderRadius={4} />
+                  </div>
+                </div>
+              }
+            >
+              {/*@ts-expect-error Async Server Component is valid in Next  */}
+              <ProductDetailsTextWrapper
+                globalPromise={GlobalData}
+                isRtl={isRtl}
+              />
+            </Suspense>
+            <Suspense
+              fallback={
+                <div
+                  className={`${isRtl ? "dir-rtl" : ""} product-details-text`}
+                >
+                  <div id="details" className="have-arabic ">
+                    <Skeleton width={200} height={13} borderRadius={4} />
+                  </div>
+                </div>
+              }
+            >
+              {/*@ts-expect-error Async Server Component is valid in Next  */}
+              <ProductGeneralPropertiesWrapper
+                globalData={GlobalData}
+                language={language}
+              />
+              {/*@ts-expect-error Async Server Component is valid in Next  */}
+              <ProductFeaturesWrapper
+                isRtl={isRtl}
+                globalPromise={GlobalData}
+              />
+            </Suspense>
           </div>
-          {/*@ts-expect-error Async Server Component is valid in Next  */}
-          <ProductDescriptorsWrapper
-            isRtl={isRtl}
-            priceQtyPromise={QtyPricesData}
-          />
+          <Suspense
+            fallback={
+              <div className={`${isRtl ? "dir-rtl" : ""} product-details-text`}>
+                <div id="details" className="have-arabic ">
+                  <Skeleton width={200} height={13} borderRadius={4} />
+                </div>
+              </div>
+            }
+          >
+            {/*@ts-expect-error Async Server Component is valid in Next  */}
+            <ProductDescriptorsWrapper
+              isRtl={isRtl}
+              priceQtyPromise={QtyPricesData}
+            />
+          </Suspense>
+
           {/*@ts-expect-error Async Server Component is valid in Next  */}
           <ProductColorsWrapper
             country={country}
@@ -284,8 +336,28 @@ async function Page({ params, searchParams }) {
         {/*@ts-expect-error Async Server Component is valid in Next  */}
         <ProductVideosWrapper globalPromise={GlobalData} language={language} />
         <div className="product-info-container p-0 h-[40px] overflow-hidden">
-          {/* Prices goes here */}
+          <Suspense fallback={<></>}>
+            {/*@ts-expect-error Async Server Component is valid in Next  */}
+            <ProductPricesWrapper
+              isRtl={isRtl}
+              language={language}
+              qtyPricePromise={QtyPricesData}
+              currencyPromise={currency}
+            />
+          </Suspense>
+
+          <VirtualTryOnWrapper language={language} />
         </div>
+        <Suspense fallback={<></>}>
+          {/*@ts-expect-error Async Server Component is valid in Next  */}
+          <ProductFooterWrapper
+            QtyPricePromise={QtyPricesData}
+            globalPromise={GlobalData}
+            isRtl={isRtl}
+            color={color}
+            size={Size}
+          />
+        </Suspense>
       </div>
     </div>
   );

@@ -1,0 +1,56 @@
+import { GetImageUrl } from "utils/server";
+import ProductFooter from "./ProductFooter";
+import { GetSocialInfoForProduct } from "serverRequests/product";
+import { cookies } from "next/headers";
+
+async function ProductFooterWrapper({
+  isRtl,
+  globalPromise,
+
+  QtyPricePromise,
+  color,
+  size,
+}) {
+  let [globalData, qtyData] = await Promise.all([
+    globalPromise,
+    QtyPricePromise,
+  ]);
+  let product = {
+    ...globalData,
+    ...qtyData,
+  };
+  let cookiesStore = await cookies();
+  let user = cookiesStore.get("User-Data")?.value;
+  let parsedUser = user ? JSON.parse(user) : null;
+  let socialData = await GetSocialInfoForProduct({
+    productId: product?.id,
+    userId: parsedUser?.id,
+  });
+
+  return (
+    <ProductFooter
+      isRtl={isRtl}
+      productLightData={{
+        id: product.id,
+        image: GetImageUrl(
+          product?.sync_color_images?.[0]?.images?.[0] ?? product?.images?.[0]
+        ),
+        slug: product?.slug,
+        name: product?.name,
+        details: product?.details,
+        brand: product.brand,
+        category: product.category,
+        price: product.price,
+        offer_price: product?.offer_price,
+        total_likes: socialData.total_likes,
+        is_liked: socialData.is_liked,
+        total_comments: socialData.total_comments,
+        total_shares: socialData.total_shares,
+        owner_id: product?.owner_id,
+        owner_type: product?.owner_type,
+      }}
+    />
+  );
+}
+
+export default ProductFooterWrapper;

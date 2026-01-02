@@ -62,16 +62,18 @@ interface DetailsState {
   selected_product_for_add_to_cart: null | any;
   ColorBottomSheet: boolean | any;
   BuyerCommentModalOption: any;
+  shouldUpdateComment: any;
+  selectedContactsForShare: [];
 }
 
 const initialState: DetailsState = {
   activeCameraGallery: false,
+  shouldUpdateComment: null,
   shareLoading: false,
   isModalOpen: null,
   selected_product_for_add_to_cart: null,
   totalProducts: null,
   BuyerCommentModalOption: null,
-
   InfoMessage: {
     showInfoMessage: false,
     title: "",
@@ -133,12 +135,15 @@ const initialState: DetailsState = {
   details_loading: false,
   sharesCount: null,
   ColorBottomSheet: false,
+  selectedContactsForShare: [],
 };
 
 export const useDetailsStore = (set, get) => ({
   ...initialState,
   setIsModalOpen: (e) => set({ isModalOpen: e }),
+  setSelectedContactsForShare: (e) => set({ selectedContactsForShare: e }),
   setBuyerCommentModalOption: (e) => set({ BuyerCommentModalOption: e }),
+  setShouldUpdateComment: (e) => set({ shouldUpdateComment: e }),
   setShareLoading: (loading: boolean) => set({ shareLoading: loading }),
   setColorBottomSheet: (colorBottomSheet: boolean | any) =>
     set({ ColorBottomSheet: colorBottomSheet }),

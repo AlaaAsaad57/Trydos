@@ -1,144 +1,82 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import CommentPost from "public/svg/CommentPost";
 import auth from "services/auth";
 import { translateFunction } from "utils/functions";
 import { fetchData } from "utils/fetchData";
 import { REQUESTS_DATA } from "utils/Requests";
-import { useParams } from "next/navigation";
-import {
-  COOKIE_NAMES,
-  getCookie,
-  UserData,
-} from "utils/cookies/cookie-manager";
+
+import { COOKIE_NAMES, getCookie } from "utils/cookies/cookie-manager";
 import { showErrorNotification } from "store/notifications/reducer";
 import { useAppStore } from "store";
 import { getFirstLetterLang } from "utils/tinyUtils";
-function CommentBar() {
-  const params = useParams();
-  const { SelectedProduct, editInfo } = useAppStore();
-  const [country, language] = (params.lang as string).split("-");
-  const addCommentAction = (s) => {
-    editInfo({
-      fqa_questions: {
-        ...SelectedProduct?.fqa_questions,
-        comments: [
-          { ...s, is_verfied: false },
-          ...SelectedProduct?.fqa_questions?.comments,
-        ],
-      },
-    });
-    // setComments([{ ...s, is_verfied: false }, ...CommentsData]);
-    setTimeout(() => {
-      document.querySelector(".comments-extended").scrollTop = 0;
-    }, 300);
-  };
-
+import "styles/comment.css";
+import { GetFaqItemElement } from "serverRequests/product";
+function CommentBar({ product_data, setCommentsData }) {
+  let { language, setShouldUpdateComment, shouldUpdateComment } = useAppStore();
   const [val, setVal] = useState("");
-  const user = auth.User();
-  const addComment = async (s) => {
-    let userData: any = getCookie(COOKIE_NAMES.USER_DATA);
-    if (userData.need_auth) {
-      showErrorNotification(
-        translateFunction("Please Verify Your Phone Number")
-      );
-      return null;
-    }
-    let mid = Math.round(Math.random() * 1000);
+  const [loading, setLoading] = useState(false);
+
+  const addComment = async () => {
     try {
-      addCommentAction({
-        comment: s,
-        customer: { id: user.id, name: user.name, image: user.image },
-        created_at: new Date().toISOString(),
-        mid: mid,
-      });
-      setVal("");
+      setTimeout(() => {
+        document.querySelector(".comments-extended").scrollTop = 0;
+      }, 300);
+      let userData: any = getCookie(COOKIE_NAMES.USER_DATA);
+      if (userData.need_auth) {
+        showErrorNotification(
+          translateFunction("Please Verify Your Phone Number")
+        );
+        return null;
+      }
+      setLoading(true);
       const variant =
-        [SelectedProduct?.ActiveColor, SelectedProduct?.ActiveSize]
+        [product_data?.color, product_data?.size]
           ?.filter((s) => Boolean(s))
           ?.join("-") ?? null;
-      let response = await fetchData({
-        url: "/public_comment/comments/create",
+      let res = await fetchData({
+        url: `/public_comment/comments/create`,
         method: "POST",
         body: JSON.stringify({
-          text: s,
+          text: val,
           //   @ts-ignore
-          product_id: String(SelectedProduct?.id),
+          product_id: String(productId),
           user_id: String(auth.UserID()),
           user_name: auth.User()?.name,
           user_avatar: auth.User().image,
           user_type: "customer",
           phone: auth?.User()?.phone,
-          owner_id: String(SelectedProduct?.owner_id),
-          owner_type: SelectedProduct?.owner_type,
+          owner_id: String(product_data?.owner_id),
+          owner_type: product_data?.owner_type,
           variant,
         }),
         reqTitle: REQUESTS_DATA.ADD_COMMENT_FOR_PRODUCT,
         server: "comments",
+        noMessage: true,
+      });
+      let id = res.data.comment_id;
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+      let response = await GetFaqItemElement({
+        id: id,
+        language,
       });
       // @ts-ignore
       if (!response.success) {
         // @ts-ignore
         throw new Error(response.message);
       }
-
-      if (response.data?.comment_id) {
-        let newComment = {
-          id: response.data.comment_id,
-          customer: {
-            id: response?.data.user_id,
-            name: response?.data.user_name,
-            image: response?.data.user_avatar,
-          },
-          order_details_id: response?.data?.order_details_id,
-          star_rating: response?.data?.rating,
-          comment: response?.data?.text,
-          variant: response?.data?.variant,
-          created_at: response?.data?.created_at,
-          product_id: String(SelectedProduct?.id),
-        };
-        editInfo({
-          fqa_questions: {
-            ...SelectedProduct?.fqa_questions,
-            comments: [
-              { ...newComment, is_verfied: false, mid: mid },
-              ...SelectedProduct.fqa_questions?.comments?.filter(
-                (com) => com.mid !== mid
-              ),
-            ],
-          },
-        });
-        // verifyComment(mid, newComment);
-      } else {
-        throw new Error("Error");
-        // isError(mid);
+      if (response.comment) {
+        setCommentsData(response.comment);
       }
-    } catch (e) {
-      const { SelectedProduct: productData } = useAppStore.getState();
-      let selected_comment = productData.fqa_questions.comments.filter(
-        (m) => m.mid === mid
-      )[0];
-      console.log(
-        SelectedProduct.fqa_questions,
-        productData.fqa_questions,
-        selected_comment,
-        mid
-      );
-
-      editInfo({
-        fqa_questions: {
-          ...productData.fqa_questions,
-          comments: [
-            { ...selected_comment, is_verfied: false, isError: true },
-            ...productData.fqa_questions.comments?.filter(
-              (comment) => comment.mid !== mid
-            ),
-          ],
-        },
-      });
-      // isError(mid);
+      setVal("");
+      setLoading(false);
+    } catch (error) {
+      console.log(error);
+      setLoading(false);
     }
   };
-
+  useEffect(() => {
+    setShouldUpdateComment(null);
+  }, []);
   return (
     <div className="comment-input-holder relative">
       <textarea

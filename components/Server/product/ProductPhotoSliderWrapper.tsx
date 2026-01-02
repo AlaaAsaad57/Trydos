@@ -1,9 +1,9 @@
 import ProductImageIndicator from "components/products/ProductImageIndicator";
 import ProductImagesSlider from "components/products/ProductImageSlider";
 import VirtualTryOn from "components/products/VirtualTryOn";
-import ProductPhotosSkeleton from "components/skeleton/product/ProductPhotosSkeleton";
+
 import Image from "next/image";
-import { Suspense } from "react";
+
 import { getConfiguredImage, GetImageUrl } from "utils/server";
 
 async function ProductPhotoSliderWrapper({ language, globalPromise, color }) {
@@ -222,57 +222,54 @@ async function ProductPhotoSliderWrapper({ language, globalPromise, color }) {
     return <></>;
   };
   // utils end
+
   return (
-    <Suspense fallback={<ProductPhotosSkeleton isRtl={isRtl} />}>
-      <ProductImagesSlider language={language}>
-        {getImages(globalDetails, color)?.images?.map((img, i) => (
+    <ProductImagesSlider language={language}>
+      {getImages(globalDetails, color)?.images?.map((img, i) => (
+        <div
+          key={i}
+          className={`${i === 0 ? "z-[99999999]" : "z-[88]"} relative flex`}
+        >
           <div
-            key={i}
-            className={`${i === 0 ? "z-[99999999]" : "z-[88]"} relative flex`}
+            className={`${getRoundedClass(
+              i,
+              getImages(globalDetails, color)?.images?.length
+            )} embla__slide product-slider-images relative`}
+            key={img?.file_path}
           >
-            <div
+            {getImageBorder(i, getImages(globalDetails, color)?.images?.length)}
+            <Image
               className={`${getRoundedClass(
                 i,
                 getImages(globalDetails, color)?.images?.length
-              )} embla__slide product-slider-images relative`}
-              key={img?.file_path}
-            >
-              {getImageBorder(
-                i,
-                getImages(globalDetails, color)?.images?.length
+              )} w-[320px] h-[464px]`}
+              width={320}
+              height={464}
+              priority={i === 0}
+              loading={"eager"}
+              alt={globalDetails.name}
+              src={getConfiguredImage({
+                src: GetImageUrl(img),
+                width: 500,
+                height: 700,
+              })}
+            />
+            <ProductImageIndicator language={language} />
+          </div>
+          {i === 0 && (
+            <>
+              {globalDetails?.categories?.[0]?.icon && (
+                <VirtualTryOn
+                  language={language}
+                  product={{
+                    id: globalDetails?.id,
+                    slug: globalDetails?.slug,
+                    images: getImages(globalDetails, color)?.images,
+                  }}
+                />
               )}
-              <Image
-                className={`${getRoundedClass(
-                  i,
-                  getImages(globalDetails, color)?.images?.length
-                )} w-[320px] h-[464px]`}
-                width={320}
-                height={464}
-                priority={i === 0}
-                loading={"eager"}
-                alt={globalDetails.name}
-                src={getConfiguredImage({
-                  src: GetImageUrl(img),
-                  width: 500,
-                  height: 700,
-                })}
-              />
-              <ProductImageIndicator language={language} />
-            </div>
-            {i === 0 && (
-              <>
-                {globalDetails?.categories?.[0]?.icon && (
-                  <VirtualTryOn
-                    language={language}
-                    product={{
-                      id: globalDetails?.id,
-                      slug: globalDetails?.slug,
-                      images: getImages(globalDetails, color)?.images,
-                    }}
-                  />
-                )}
 
-                {/* {(product?.flash_deal_details?.end_date ||
+              {/* {(product?.flash_deal_details?.end_date ||
                   product?.flash_deal_end_date) &&
                   !shouldShowNotifyButton() && (
                     <FlashDealBanner
@@ -290,12 +287,11 @@ async function ProductPhotoSliderWrapper({ language, globalPromise, color }) {
                     product_id={product?.id}
                   />
                 )} */}
-              </>
-            )}
-          </div>
-        ))}
-      </ProductImagesSlider>
-    </Suspense>
+            </>
+          )}
+        </div>
+      ))}
+    </ProductImagesSlider>
   );
 }
 

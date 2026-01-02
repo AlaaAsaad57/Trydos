@@ -22,11 +22,10 @@ import { GA_EVENT_NAMES } from "utils/GAEvents";
 import auth from "services/auth";
 import { wishlistService } from "services/wishlist";
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
-function MoreOptionsSection() {
+function MoreOptionsSection({ product }) {
   const {
     disableNotification,
     enableNotification,
-    SelectedProduct,
     firebaseSettings,
     NotificationsType,
     setNotificationsType,
@@ -53,13 +52,13 @@ function MoreOptionsSection() {
 
   const [loading, setLoading] = useState(false);
   const [addedToCompare, setAddedToCompare] = useState(
-    getCookie<string>("f_p") === SelectedProduct.slug ||
-      getCookie<string>("s_p") === SelectedProduct.slug
+    getCookie<string>("f_p") === product?.slug ||
+      getCookie<string>("s_p") === product?.slug
   );
   const [isInWishlist, setIsInWishlist] = useState(false);
   const [wishlistLoading, setWishlistLoading] = useState(false);
   const isRtl = language === "ar" || language === "ku";
-
+  console.log(product);
   const AddedToCompare = () => {
     return addedToCompare;
   };
@@ -107,10 +106,10 @@ function MoreOptionsSection() {
 
   useEffect(() => {
     const checkWishlistStatus = async () => {
-      if (SelectedProduct?.id) {
+      if (product?.id) {
         try {
           const inWishlist = await wishlistService.isInWishlist(
-            String(SelectedProduct.id)
+            String(product?.id)
           );
           setIsInWishlist(inWishlist);
         } catch (error) {
@@ -119,14 +118,13 @@ function MoreOptionsSection() {
       }
     };
     checkWishlistStatus();
-  }, [SelectedProduct?.id]);
+  }, [product?.id]);
 
   useEffect(() => {
     const checkCompareStatus = () => {
       const f_p = getCookie<string>("f_p");
       const s_p = getCookie<string>("s_p");
-      const isAdded =
-        f_p === SelectedProduct.slug || s_p === SelectedProduct.slug;
+      const isAdded = f_p === product?.slug || s_p === product?.slug;
       setAddedToCompare(isAdded);
     };
     checkCompareStatus();
@@ -138,24 +136,21 @@ function MoreOptionsSection() {
       clearInterval(interval);
       window.removeEventListener("focus", checkCompareStatus);
     };
-  }, [SelectedProduct.slug]);
+  }, [product?.slug]);
   const send_GA_EVENT = (notification_type) => {
     GAevent({
       action: GA_EVENT_NAMES.ENABLE_PRODUCT_NOTIFICATION,
       params: {
         user_id_custom: auth.UserID(),
-        item_id: SelectedProduct?.id,
-        type_notification: notification_type,
-        item_name: SelectedProduct?.name,
 
-        brand: SelectedProduct?.brand?.name,
-        brand_id: SelectedProduct?.brand?.id,
-        category:
-          SelectedProduct?.category?.name ||
-          SelectedProduct?.categories?.[0]?.name,
-        category_id:
-          SelectedProduct?.category?.id || SelectedProduct?.categories?.[0]?.id,
-        price: SelectedProduct?.offer_price,
+        type_notification: notification_type,
+        item_id: product?.id,
+        item_name: product?.name,
+        brand_id: product?.brand?.id,
+        category: product?.category?.name || product?.categories?.[0]?.name,
+        category_id: product?.category?.id || product?.categories?.[0]?.id,
+        brand: product?.brand?.name,
+        price: product?.offer_price,
       },
     });
   };
@@ -252,21 +247,20 @@ function MoreOptionsSection() {
                 <div
                   key={type.topic}
                   className={`button-option ${
-                    checkIfTopicEnabled(
-                      `${type.topic}_${SelectedProduct.id}`
-                    ) && "bg-green-300"
+                    checkIfTopicEnabled(`${type.topic}_${product?.id}`) &&
+                    "bg-green-300"
                   }`}
                   onClick={async () => {
                     enableNotificationTopic(
-                      `${type.topic}_${SelectedProduct.id}`,
+                      `${type.topic}_${product?.id}`,
                       type
                     );
                   }}
                   data-cy={`notify-type`}
                 >
-                  {checkIfTopicEnabled(
-                    `${type.topic}_${SelectedProduct.id}`
-                  ) && <CheckIcon className="mx-1" />}
+                  {checkIfTopicEnabled(`${type.topic}_${product?.id}`) && (
+                    <CheckIcon className="mx-1" />
+                  )}
                   {type.showed_name}
                 </div>
               ))
@@ -282,20 +276,7 @@ function MoreOptionsSection() {
             if (wishlistLoading) return;
             setWishlistLoading(true);
             try {
-              const productId = String(SelectedProduct.id);
-              const thumbnail =
-                SelectedProduct?.sync_color_images?.[0]?.images?.[0]
-                  ?.file_path ??
-                SelectedProduct?.sync_color_images?.[0]?.images?.[0] ??
-                SelectedProduct?.images?.[0]?.file_path ??
-                SelectedProduct?.images?.[0];
-
-              const colors =
-                SelectedProduct.colors?.map((c) => c.color || c.name) || [];
-              const sizes =
-                SelectedProduct.choice_options?.[0]?.options?.map(
-                  (s) => s.option || s.name
-                ) || [];
+              const productId = String(product?.id);
 
               if (isInWishlist) {
                 await wishlistService.removeFromWishlist(productId);
@@ -306,40 +287,33 @@ function MoreOptionsSection() {
               } else {
                 await wishlistService.addToWishlist({
                   id: productId,
-                  name: SelectedProduct.name,
-                  brand: SelectedProduct?.brand,
-                  slug: SelectedProduct.slug,
-                  thumbnail: thumbnail,
-                  price: SelectedProduct.price,
-                  offer_price: SelectedProduct.offer_price,
-                  colors: colors,
-                  sizes: sizes,
-                  product_link:
-                    SelectedProduct.share_link ||
-                    `/${lang}/products/${SelectedProduct.slug}`,
-                  images: SelectedProduct?.images,
+                  name: product?.name,
+                  brand: product?.brand,
+                  slug: product?.slug,
+                  thumbnail: product?.image,
+                  price: product?.price,
+                  offer_price: product?.offer_price,
+                  colors: [],
+                  sizes: [],
+                  product_link: `/${lang}/products/${product?.slug}`,
+                  images: [product?.image],
                 });
                 setIsInWishlist(true);
                 showSuccessNotification(
                   translate("Added to checklist", language)
                 );
               }
-
               GAevent({
                 action: GA_EVENT_NAMES.ADD_TO_FAV,
                 params: {
                   user_id_custom: auth.UserID(),
-                  item_id: SelectedProduct.id,
-                  item_name: SelectedProduct?.name,
-                  brand: SelectedProduct?.brand?.name,
-                  brand_id: SelectedProduct?.brand?.id,
-                  category:
-                    SelectedProduct?.category?.name ||
-                    SelectedProduct?.categories?.[0]?.name,
-                  category_id:
-                    SelectedProduct?.category?.id ||
-                    SelectedProduct?.categories?.[0]?.id,
-                  price: SelectedProduct?.offer_price,
+                  item_id: product?.id,
+                  item_name: product?.name,
+                  brand: product?.brand?.name,
+                  brand_id: product?.brand?.id,
+                  category: product?.category?.name,
+                  category_id: product?.category?.id,
+                  price: product?.price,
                 },
               });
             } catch (error) {
@@ -498,14 +472,14 @@ function MoreOptionsSection() {
           data-cy="add-compare"
           onClick={() => {
             if (AddedToCompare()) {
-              removeFromCompare(SelectedProduct.slug);
+              removeFromCompare(product?.slug);
               setAddedToCompare(false);
               showSuccessNotification(
                 translate("Removed From Compare", language)
               );
             } else {
               setAddedToCompare(true);
-              addToCompare(SelectedProduct.slug);
+              addToCompare(product?.slug);
               showSuccessNotification(
                 translate(
                   "Added To Compare! Click To Go To Compare Page",

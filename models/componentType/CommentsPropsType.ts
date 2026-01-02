@@ -1,6 +1,5 @@
 export interface CommentsPropsType {
   productId: number;
-  CommentsData: any[];
 
   shouldShowMore: boolean;
 

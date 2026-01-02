@@ -1,17 +1,86 @@
 "use client";
 import { useParams } from "next/navigation";
-import React from "react";
+import auth from "services/auth";
+import chat from "services/chat";
 import { useAppStore } from "store";
+import { showErrorNotification } from "store/notifications/reducer";
 
 import { translateFunction } from "utils/functions";
+import { GA_EVENT_NAMES, GA_GLOBAL_SCREEN } from "utils/GAEvents";
+import { GAevent } from "utils/gtag";
 
-function ShareButton({ onClick }: { onClick: () => void }) {
-  const { shareLoading, language } = useAppStore();
+function ShareButton({
+  id,
+  slug,
+  details,
+  brand,
+  category,
+  price,
+  name,
+  close,
+  Image,
+}) {
+  const {
+    shareLoading,
+    setShareLoading,
+    language,
+    selectedContactsForShare,
+    setSelectedContactsForShare,
+  } = useAppStore();
   let { lang } = useParams();
   // @ts-ignore
   let languageVariable = lang.split("-")[1];
   const translate = (key, lang?) => {
     return translateFunction(key, languageVariable);
+  };
+  const shareAction = () => {
+    try {
+      if (selectedContactsForShare.length > 0) {
+        const messageShare = {
+          product_id: id,
+          product_image_url: Image,
+          product_name: name,
+          product_slug: slug,
+          product_description: details,
+        };
+        setShareLoading(true);
+        chat.ShareProduct({
+          userId: selectedContactsForShare,
+          product: messageShare,
+          callback: () => {
+            setShareLoading(false);
+            setSelectedContactsForShare([]);
+            close();
+          },
+        });
+
+        GAevent({
+          action: GA_EVENT_NAMES.SHARE_CONTENT,
+          params: {
+            content_id: id,
+            item_id: id,
+            item_name: name,
+            user_id_custom: auth.UserID(),
+            brand_id: brand.id,
+            category: category,
+            category_id: category.id,
+            brand: brand,
+            price: price,
+            share_context: "internal",
+            shared_from_page: window.location.pathname,
+            screen_name: GA_GLOBAL_SCREEN.PRODUCT_SCREEN,
+            screen_path: window.location.pathname,
+            method_share: "chat_in_share",
+          },
+        });
+      } else {
+        showErrorNotification(
+          translate("please select one contact at least", language)
+        );
+      }
+    } catch (error) {
+      setShareLoading(false);
+    }
   };
   return (
     <div
@@ -21,7 +90,7 @@ function ShareButton({ onClick }: { onClick: () => void }) {
           //   event: "button_clicked",
           //   value: "share_with_chat_button",
           // });
-          onClick();
+          shareAction();
         }
       }}
       className={`share-button ${shareLoading && "opacity-65"}`}

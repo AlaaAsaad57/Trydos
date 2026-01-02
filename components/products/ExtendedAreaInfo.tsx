@@ -1,19 +1,10 @@
 import CommentSection from "./CommentSection";
 import ShareSection from "./ShareSection";
 import MoreOptionsSection from "./MoreOptionsSection";
-import { ExtendedAreaInfoPropsType } from "models/componentType/ExtendedAreaInfoPropsType";
 import React, { useState, useEffect } from "react";
 // ...other imports
 
-function ExtendedAreaInfo({
-  option,
-  active,
-  sharedContacts,
-  setShareContacts,
-  product,
-  CommentsData,
-  getComments,
-}: ExtendedAreaInfoPropsType) {
+function ExtendedAreaInfo({ option, active, product_data }) {
   const [show, setShow] = useState(active);
 
   useEffect(() => {
@@ -58,46 +49,12 @@ function ExtendedAreaInfo({
             </svg>
 
             {option === "Comment" && (
-              <CommentSection
-                getComments={getComments}
-                product={product}
-                CommentsData={CommentsData}
-              />
+              <CommentSection product_data={product_data} />
             )}
 
-            {option === "Share" && (
-              <ShareSection
-                sharedContacts={sharedContacts}
-                product={product}
-                setShareContacts={setShareContacts}
-              />
-            )}
+            {option === "shares" && <ShareSection product={product_data} />}
 
-            {option === "More" && <MoreOptionsSection />}
-
-            {/* {active && (
-              <div
-                className="absolute shadow-md border cursor-pointer border-[#1a1a1a20] z-[9999] bg-[#fafafa] bottom-[5px] left-0 right-0 mx-auto w-[50px] h-[50px] rounded-full flex justify-center items-center"
-                onClick={() => {
-                  setOption("");
-                }}
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="#000000"
-                  height="30px"
-                  width="30px"
-                  viewBox="0 0 330 330"
-                >
-                  <path
-                    fill="#5d5d5d"
-                    d="M325.607,79.393c-5.857-5.857-15.355-5.858-21.213,0.001l-139.39,139.393L25.607,79.393
-                  c-5.857-5.857-15.355-5.858-21.213,0.001c-5.858,5.858-5.858,15.355,0,21.213l150.004,150c2.813,2.813,6.628,4.393,10.606,4.393
-                  s7.794-1.581,10.606-4.394l149.996-150C331.465,94.749,331.465,85.251,325.607,79.393z"
-                  />
-                </svg>
-              </div>
-            )} */}
+            {option === "More" && <MoreOptionsSection product={product_data} />}
           </>
         )}
       </div>

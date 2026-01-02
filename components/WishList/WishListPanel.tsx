@@ -13,8 +13,6 @@ import { wishlistService, WishlistItem } from "services/wishlist";
 import { showSuccessNotification } from "@/store/notifications/reducer";
 
 const WishListPanel = ({ onClose }) => {
-  const { currency } = useAppStore();
-  const { lang } = useParams();
   const wishListRef = useRef<HTMLDivElement>(null);
   const [wishlistItems, setWishlistItems] = useState<WishlistItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -269,7 +267,7 @@ const WishListItem = ({ item, handleDeleteItem, close }) => {
                 className="max-w-[40px] max-h-[25px] w-auto object-contain h-full"
                 width={50}
                 height={50}
-                src={item.brand?.icon?.file_path}
+                src={GetImageUrl(item.brand?.icon)}
               />
             </div>
             <div

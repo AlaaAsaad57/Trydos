@@ -12,11 +12,7 @@ import {
   UserData,
 } from "utils/cookies/cookie-manager";
 
-function ShareSection({
-  setShareContacts,
-  sharedContacts,
-  product,
-}: ShareSectionPropsType) {
+function ShareSection({ product }: ShareSectionPropsType) {
   var language = "en";
   let { lang } = useParams();
   const [contactsLoading, setContactsLoading] = useState(false);
@@ -69,11 +65,7 @@ function ShareSection({
       </div>
 
       <div className="content-extended">
-        <ShareOptions
-          setShareContacts={setShareContacts}
-          product={product}
-          sharedContacts={sharedContacts}
-        />
+        <ShareOptions product={product} />
       </div>
     </div>
   );

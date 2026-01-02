@@ -22,7 +22,6 @@ function PricesRow({
   };
   const isRtl = language === "ar" || language === "ku";
   const renderPrice = () => {
-    console.log(redeem_price, redeem_price > 0, shouldShowRedeem());
     if (redeem_price && redeem_price > 0 && shouldShowRedeem()) {
       if (price === offer_price) {
         return (

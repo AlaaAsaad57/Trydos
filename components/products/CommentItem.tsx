@@ -10,7 +10,7 @@ import PenIcon from "public/svg/PenIcon";
 import { showErrorNotification } from "store/notifications/reducer";
 import { useParams } from "next/navigation";
 import { translateFunction } from "utils/functions";
-import { FaqItem } from "./FAQSection";
+
 import { fetchData } from "utils/fetchData";
 import { useAppStore } from "store";
 import { convertTextToXFormat, formatTime, GetImageUrl } from "utils/tinyUtils";
@@ -353,36 +353,7 @@ function CommentItem({
         } relative flex items-start  ${
           isFull ? "max-w-full w-full" : "max-w-[550px] min-w-[85vw] "
         }`}
-      >
-        {showUpdateElement ? (
-          <UpdateCommentElement
-            loading={updateLoading}
-            setLoading={setUpdateLoading}
-            close={() => setShowUpdate(false)}
-            has_reply={comment.has_reply}
-            comment={comment}
-            isFull={true}
-            editInfo={editInfo}
-            SelectedProduct={SelectedProduct}
-            language={languageVariable}
-          />
-        ) : (
-          <FaqItem
-            isError={isError}
-            seller_name={seller_name}
-            isFull={true}
-            comment={comment}
-            language={languageVariable}
-            isCommentTranslated={isCommentTranslated}
-            isReplyTranslated={isReplyTranslated}
-            translatedComment={translatedComment}
-            translatedReply={translatedReply}
-            onTranslateComment={handleTranslateComment}
-            onTranslateReply={handleTranslateReply}
-            translateLoading={translateLoading}
-          />
-        )}
-      </div>
+      ></div>
 
       {showDeleteModal && (
         <ConfirmModal
