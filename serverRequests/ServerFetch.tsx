@@ -141,4 +141,3 @@ const fetchServerData = async <T = any,>({
 };
 
 export { fetchServerData };
-export type { FetchOptions, FetchResponse };

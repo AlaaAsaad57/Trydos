@@ -1,6 +1,6 @@
 import { create } from "zustand";
 // sad
-export interface Notification {
+interface Notification {
   id: string;
   type: "success" | "error" | "chat";
   message: string;
@@ -22,17 +22,17 @@ export interface Notification {
   };
 }
 
-export interface NotificationState {
+interface NotificationState {
   notifications: Notification[];
 }
 
-export interface NotificationActions {
+interface NotificationActions {
   addNotification: (notification: Omit<Notification, "id">) => void;
   removeNotification: (id: string) => void;
   clearNotifications: () => void;
 }
 
-export type NotificationStore = NotificationState & NotificationActions;
+type NotificationStore = NotificationState & NotificationActions;
 
 export const useNotificationStore = create<NotificationStore>((set) => ({
   notifications: [],

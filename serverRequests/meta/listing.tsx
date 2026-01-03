@@ -131,7 +131,7 @@ export const GetStructuredData = async ({
   );
 };
 
-export const getMetadataLabels = async ({ parsedFilters, language }) => {
+const getMetadataLabels = async ({ parsedFilters, language }) => {
   const shouldQueries = [];
   let client = elasticSearchClient;
   // نجهز استعلامات البحث عن القيم المختارة

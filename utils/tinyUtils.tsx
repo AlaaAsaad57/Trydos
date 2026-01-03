@@ -7,42 +7,6 @@ import { GA_GLOBAL_SCREEN } from "./GAEvents";
 import { fetchData } from "./fetchData";
 import Image from "node_modules/next/image";
 import { REQUESTS_DATA } from "./Requests";
-// TypeScript interfaces for filter system
-export interface FilterParams {
-  boutiques?: string[];
-  categories?: string[];
-  brands?: string[];
-  colors?: string[];
-  sizes?: string[];
-  prices?: string[];
-  search_text?: string[];
-}
-
-export interface FilterItemProps {
-  term: string;
-  item: any;
-  filterParams: FilterParams | any;
-  isUsingParsedFilters: boolean;
-  currency: any;
-  params: any;
-  baseUrlOfFiltersPage: string;
-}
-
-export interface FilterState {
-  isFiltered: boolean;
-  href: string;
-}
-
-export interface FilterListProps {
-  parsedFilters?: FilterParams;
-  searchParams?: any;
-  params: any;
-  filters: any;
-  currency: any;
-
-  isFeatured?: boolean;
-  isFlashDeals?: boolean;
-}
 
 export const configureSearchParams = ({
   searchParams,
@@ -449,103 +413,7 @@ type parsedFilters = {
   search?: string[];
   prices?: any[];
 };
-/**
- * Parse filters from URL path parameters
- * Expected order: boutiques > categories > brands > colors > sizes > prices > search
- * @param params - Array of URL path segments
- * @returns Object with filter arrays
- */
-export const parseFiltersFromParams = (
-  params: string[] = []
-): parsedFilters => {
-  const filters: Record<string, string[]> = {};
 
-  if (!params || params.length === 0) return filters;
-
-  // Handle potential encoding issues in the entire params array
-  const cleanParams = params.map((param) => {
-    try {
-      // First try to decode in case the entire param is encoded
-      return decodeURIComponent(param);
-    } catch (e) {
-      // If that fails, just return the original
-      return param;
-    }
-  });
-
-  let currentIndex = 0;
-  const filterOrder = [
-    "boutiques",
-    "categories",
-    "brands",
-    "colors",
-    "sizes",
-    "prices",
-    "search",
-    "tags_names",
-  ];
-
-  while (currentIndex < cleanParams.length) {
-    const filterType = cleanParams[currentIndex];
-
-    if (!filterOrder.includes(filterType)) {
-      currentIndex++;
-      continue;
-    }
-
-    // Get the values for this filter (next segment)
-    if (currentIndex + 1 < cleanParams.length) {
-      let values = cleanParams[currentIndex + 1];
-
-      // Handle URL encoded commas (%2C) and other encoded characters
-      try {
-        values = decodeURIComponent(values);
-      } catch (e) {
-        // If decoding fails, use the original value
-        console.warn("Failed to decode URL component:", values, e);
-      }
-
-      if (filterType === "search") {
-        // Search is a single value, not comma-separated
-        filters.search_text = [values];
-      } else if (filterType === "colors") {
-        // Colors are hex values - ensure they have # prefix for internal use
-        filters[filterType] = values.split(",").map((color) => {
-          // Handle potential double encoding
-          let cleanColor = color;
-          try {
-            cleanColor = decodeURIComponent(color);
-          } catch (e) {
-            // If decoding fails, use original
-          }
-          return cleanColor.startsWith("#") ? cleanColor : `#${cleanColor}`;
-        });
-      } else {
-        // Other filters are comma-separated
-        filters[filterType] = values.split(",").map((value) => {
-          // Handle potential double encoding of individual values
-          try {
-            return decodeURIComponent(value);
-          } catch (e) {
-            return value;
-          }
-        });
-      }
-
-      currentIndex += 2; // Skip the filter type and its values
-    } else {
-      currentIndex++;
-    }
-  }
-
-  return filters;
-};
-
-/**
- * Build URL path parameters from filters object
- * @param filters - Object with filter arrays
- * @returns Array of path segments
- */
 export const buildParamsFromFilters = (
   filters: Record<string, string[]>
 ): string[] => {
@@ -994,46 +862,7 @@ export async function requestPermissions({ camera = false, mic = false } = {}) {
     return cameraOk && micOk;
   }
 }
-export const isPhoneValid = (value: string): boolean => {
-  // normalize first
-  let raw = value.replace(/\D/g, "");
-  if (raw.startsWith("00")) raw = raw.slice(2);
-  else if (raw.startsWith("0")) raw = raw.slice(1);
 
-  const country = getCountry(raw);
-  const iso = country?.iso2?.toLowerCase();
-
-  const getMaxLenByIso = (iso?: string) => {
-    switch (iso) {
-      case "sy":
-        return 12;
-      case "lb":
-        return 12;
-      case "iq":
-        return 13;
-      case "tr":
-        return 12;
-      default:
-        return 13;
-    }
-  };
-
-  const maxLen = getMaxLenByIso(iso);
-  const data = raw.slice(0, maxLen);
-
-  switch (iso) {
-    case "sy":
-      return data.length === 12;
-    case "lb":
-      return data.length > 9 && data.length <= 12;
-    case "iq":
-      return data.length === 13;
-    case "tr":
-      return data.length === 12;
-    default:
-      return data.length > 9 && data.length <= 13;
-  }
-};
 export const sanitizePhone = (value: string) => {
   // Remove everything except digits and +
   let cleaned = value.replace(/[^+\d]/g, "");

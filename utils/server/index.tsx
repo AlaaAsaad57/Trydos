@@ -282,7 +282,7 @@ export const parseFiltersFromParams = (
   return filters;
 };
 
-export function decodeValue(value: string | null): string {
+function decodeValue(value: string | null): string {
   if (!value) return "";
   try {
     return decodeURIComponent(value);
@@ -291,7 +291,7 @@ export function decodeValue(value: string | null): string {
   }
 }
 
-export function parseArrayParam(value: string | null): string[] {
+function parseArrayParam(value: string | null): string[] {
   const decoded = decodeValue(value);
   if (!decoded) return [];
   return decoded
@@ -300,7 +300,7 @@ export function parseArrayParam(value: string | null): string[] {
     .map((s) => s.replace(/(^"|"$)/g, "").trim())
     .filter(Boolean);
 }
-export function parseNumberArrayOfPrices(value: string | null): number[] {
+function parseNumberArrayOfPrices(value: string | null): number[] {
   const decoded = decodeValue(value);
 
   if (!decoded) return [];
@@ -321,13 +321,13 @@ export function parseNumberArray(value: string | null): number[] {
     .filter((n) => !isNaN(n));
 }
 
-export function stripQuotes(value: string | null): string | undefined {
+function stripQuotes(value: string | null): string | undefined {
   const decoded = decodeValue(value);
   if (!decoded) return undefined;
   return decoded.replace(/^"|"$/g, "");
 }
 
-export function stripExtraQuotes(value: string): string {
+function stripExtraQuotes(value: string): string {
   return value.replace(/^['"]+|['"]+$/g, "");
 }
 

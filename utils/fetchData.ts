@@ -20,7 +20,7 @@ import { logRequest } from "./requestLoggerClient";
 import { ReportError } from "./errorReported";
 
 // ---------- Types ----------
-export type ServerType =
+type ServerType =
   | "chat"
   | "market"
   | "stories"
@@ -31,9 +31,9 @@ export type ServerType =
   | "comments"
   | "market-dashboard";
 
-export type FetchMethod = "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
+type FetchMethod = "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
 
-export interface FetchDataParams {
+interface FetchDataParams {
   url: string;
   method: FetchMethod;
   body?: object | string | null;
@@ -539,12 +539,4 @@ export const fetchData = async <T = any>(
   };
 
   return doFetchWithRetry();
-};
-
-// ---------- Cache Utilities ----------
-export const clearFetchCache = () => requestCache.clear();
-
-export const removeCacheEntry = (params: FetchDataParams) => {
-  const cacheKey = generateCacheKey(params);
-  requestCache.delete(cacheKey);
 };

@@ -7,15 +7,15 @@ import {
 import React from "react";
 
 // Version cookie name
-export const VERSION_COOKIE_NAME = "APP_VERSION";
+const VERSION_COOKIE_NAME = "APP_VERSION";
 
 // Get the current app version from environment variable
-export const getCurrentVersion = (): string => {
+const getCurrentVersion = (): string => {
   return process.env.NEXT_PUBLIC_APP_VERSION || "1.0.0";
 };
 
 // Get the stored version from cookie
-export const getStoredVersion = (): string | null => {
+const getStoredVersion = (): string | null => {
   try {
     return getCookie<string>(VERSION_COOKIE_NAME);
   } catch (error) {
@@ -25,7 +25,7 @@ export const getStoredVersion = (): string | null => {
 };
 
 // Set the version cookie
-export const setVersionCookie = (version: string): void => {
+const setVersionCookie = (version: string): void => {
   try {
     setCookie(VERSION_COOKIE_NAME, version, {
       maxAge: 365 * 24 * 60 * 60, // 1 year
@@ -39,7 +39,7 @@ export const setVersionCookie = (version: string): void => {
 };
 
 // Clear all client-side storage
-export const clearAllStorage = (): void => {
+const clearAllStorage = (): void => {
   try {
     // Clear localStorage
     if (typeof window !== "undefined" && window.localStorage) {
@@ -75,7 +75,7 @@ export const clearAllStorage = (): void => {
 };
 
 // Check if version needs update
-export const checkVersionUpdate = (): boolean => {
+const checkVersionUpdate = (): boolean => {
   const currentVersion = getCurrentVersion();
   const storedVersion = getStoredVersion();
   if (!storedVersion) {
@@ -86,8 +86,7 @@ export const checkVersionUpdate = (): boolean => {
   return !storedVersion || storedVersion !== currentVersion;
 };
 
-// Perform version update
-export const performVersionUpdate = (): void => {
+const performVersionUpdate = (): void => {
   try {
     const currentVersion = getCurrentVersion();
 
@@ -128,7 +127,7 @@ export const checkAndUpdateVersion = (): void => {
 };
 
 // Hook for React components
-export const useVersionCheck = (): void => {
+const useVersionCheck = (): void => {
   if (typeof window === "undefined") {
     return;
   }
@@ -140,11 +139,3 @@ export const useVersionCheck = (): void => {
 };
 
 // Manual version update function (for development/testing)
-export const forceVersionUpdate = (): void => {
-  if (typeof window === "undefined") {
-    return;
-  }
-
-  console.log("Forcing version update...");
-  performVersionUpdate();
-};

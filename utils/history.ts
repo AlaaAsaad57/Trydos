@@ -1,4 +1,4 @@
-export type LastPaths = string[];
+type LastPaths = string[];
 
 const COOKIE_NAME = "last_paths";
 const MAX_PATHS = 4;

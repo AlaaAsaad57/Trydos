@@ -102,13 +102,6 @@ export const getLang = (lang, cookieLang) => {
   }
 };
 
-export const caseCheck = (word, value) => {
-  let inp = value;
-  if (word.substr(0, value.length).toUpperCase() === value.toUpperCase())
-    return word;
-  else return "";
-  //loop through every character in ino
-};
 export const expandView = ({ filter }) => {
   const { filterEnabled } = useAppStore.getState();
 
@@ -262,11 +255,6 @@ export const normalizeView = () => {
   }
 };
 
-export const toUSD = (price) => {
-  const { currency } = useAppStore.getState();
-
-  return price / currency?.exchange_rate;
-};
 function preciseMultiply(a, b) {
   const aStr = a.toString();
   const bStr = b.toString();

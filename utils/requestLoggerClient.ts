@@ -5,7 +5,7 @@ const STORE_NAME = "request_logs";
 const DB_VERSION = 1;
 const THREE_DAYS_MS = 3 * 24 * 60 * 60 * 1000;
 
-export type RequestLog = {
+type RequestLog = {
   url: string;
   title: string;
   status: number;

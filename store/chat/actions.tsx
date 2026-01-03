@@ -9,7 +9,7 @@ import chat from "services/chat";
 import { fetchData } from "utils/fetchData";
 import { REQUESTS_DATA } from "utils/Requests";
 import { LogError } from "utils/functions";
-import { MiddlewareNotFoundError } from "node_modules/next/dist/shared/lib/utils";
+
 import UPDATED_API_DATA from "migration.staging";
 
 export const GetLastSeen = async (chatId, friendID) => {

@@ -1,6 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
 import { translateFunction } from "utils/functions";
-import Comments from "./Comments";
 import CommentBar from "./CommentBar";
 import { useParams } from "next/navigation";
 
@@ -18,7 +17,7 @@ function CommentSection({ product_data }) {
   let languageVariable = lang.split("-")[1];
   const {
     user,
-    BuyerCommentModalOption,
+
     shouldUpdateComment,
     setShouldUpdateComment,
   } = useAppStore();
