@@ -1,0 +1,51 @@
+.label-container {
+  position: relative;
+  height: 1.5rem; /* Matches h-6 */
+  min-width: 150px;
+  overflow: hidden;
+  user-select: none;
+}
+
+.label-slider {
+  display: flex;
+  flex-direction: column;
+  animation-iteration-count: infinite;
+  animation-timing-function: ease-in-out;
+}
+
+.label-item {
+  height: 1.5rem; /* Matches h-6 */
+  display: flex;
+  align-items: center;
+}
+
+.label-text {
+  font-size: 9px;
+  color: #388cff;
+}
+
+/* This animation assumes a 3-label set (moving 100% / count).
+   For a truly generic CSS-only version, we animate to -100% 
+   of the container height minus the duplicated last item.
+*/
+@keyframes scrollUp {
+  0%,
+  20% {
+    transform: translateY(0);
+  }
+  25%,
+  45% {
+    transform: translateY(-1.5rem);
+  }
+  50%,
+  70% {
+    transform: translateY(-3rem);
+  }
+  75%,
+  95% {
+    transform: translateY(-4.5rem);
+  }
+  100% {
+    transform: translateY(-6rem);
+  }
+}

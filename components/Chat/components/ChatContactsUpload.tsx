@@ -12,7 +12,7 @@ import { REQUESTS_DATA } from "utils/Requests";
  * Normalizes phone numbers for comparison.
  * Slices the last 10 digits to catch matches between international and local formats.
  */
-export const normalizePhoneStrict = (phone: string): string => {
+const normalizePhoneStrict = (phone: string): string => {
   if (!phone) return "";
   const cleaned = phone.replace(/\D/g, "");
   return cleaned.length >= 10 ? cleaned.slice(-10) : cleaned;

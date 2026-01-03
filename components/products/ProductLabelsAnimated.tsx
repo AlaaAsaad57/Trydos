@@ -1,66 +1,67 @@
-interface Label {
-  text: string;
-  color: string;
-}
+export const ProductLabelsAnimated = ({ labels }) => {
+  if (!labels || labels.length === 0) return null;
 
-interface Props {
-  labels: Label[];
-  displayDuration?: number; // Total time each label stays visible (including transition)
-  transitionDuration?: number;
-}
+  const labelCount = labels.length;
+  const itemHeight = 14; // Matching h-[14px]
 
-export const ProductLabelsAnimated = ({
-  labels,
-  displayDuration = 2000,
-  transitionDuration = 500,
-}: Props) => {
-  // const [currentIndex, setCurrentIndex] = useState(0);
-  // const currentLabel = labels[currentIndex];
-
-  // useEffect(() => {
-  //   if (labels.length <= 1) return;
-
-  //   const interval = setInterval(() => {
-  //     setCurrentIndex((i) => (i + 1) % labels.length);
-  //   }, displayDuration);
-
-  //   return () => clearInterval(interval);
-  // }, [labels.length, displayDuration]);
-
-  if (labels.length === 1) {
+  if (labelCount === 1) {
     return (
-      <div className="relative h-6 min-w-[150px] overflow-hidden select-none">
-        <span
-          className="absolute text-[9px]"
-          style={{
-            color: "#388CFF",
-            opacity: 1,
-          }}
-        >
-          {labels?.[0]}
+      <div className="relative h-[14px] overflow-hidden select-none flex items-center">
+        <span className="text-[9px] text-[#388CFF] leading-[14px]">
+          {labels[0]}
         </span>
       </div>
     );
   }
 
+  // Create steps for the animation
+  // Each label gets a chunk of the 100% timeline
+  const stepSize = 100 / labelCount;
+  const pausePercentage = stepSize * 0.8; // Spend 80% of the time sitting still
+
+  const keyframes = labels
+    .map((_, i) => {
+      const start = i * stepSize;
+      const end = (i + 1) * stepSize;
+      return `
+      ${start}% { transform: translateY(-${i * itemHeight}px); }
+      ${start + pausePercentage}% { transform: translateY(-${
+        i * itemHeight
+      }px); }
+    `;
+    })
+    .join("");
+
   return (
-    <div
-      className="relative h-6 min-w-[150px] overflow-hidden select-none"
-      style={{ height: "1.5rem" }}
-    >
-      <span
-        key={0} // this forces re-animation on each label
-        className="absolute will-change-transform text-[9px] transition-all"
-        style={{
-          color: "#388CFF",
-          opacity: 1,
-          transform: "translateY(0)",
-          transition: `opacity ${transitionDuration}ms ease, transform ${transitionDuration}ms ease`,
-          animation: `fadeSlide ${displayDuration}ms ease`,
-        }}
-      >
-        {labels?.[0]}
-      </span>
+    <div className="h-[14px] relative overflow-hidden select-none">
+      <style>{`
+        @keyframes scrollStep {
+          ${keyframes}
+          100% { transform: translateY(-${labelCount * itemHeight}px); }
+        }
+        .animate-scroll-step {
+          animation: scrollStep ${
+            labelCount * 2
+          }s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+        }
+      `}</style>
+
+      <div className="flex flex-col animate-scroll-step items-start">
+        {/* Original Labels */}
+        {labels.map((label, index) => (
+          <div key={index} className="h-[14px] flex items-start shrink-0">
+            <span className="text-[9px] text-[#388CFF] leading-[14px] whitespace-nowrap">
+              {label}
+            </span>
+          </div>
+        ))}
+        {/* The Clone for infinite loop */}
+        <div className="h-[14px] flex items-center shrink-0">
+          <span className="text-[9px] text-[#388CFF] leading-[14px] whitespace-nowrap">
+            {labels[0]}
+          </span>
+        </div>
+      </div>
     </div>
   );
 };
