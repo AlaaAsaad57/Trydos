@@ -209,4 +209,8 @@ export const REQUESTS_DATA = {
   ADD_USER_TO_SHOP: { reqTitle: "ADD_USER_TO_SHOP", code: 149 },
   GET_SELLER_ORDERS: { reqTitle: "GET_SELLER_ORDERS", code: 150 },
   UPDATE_SELLER_ORDER_STATUS: { reqTitle: "UPDATE_SELLER_ORDER_STATUS", code: 151 },
+  GET_SHOP_USERS: { reqTitle: "GET_SHOP_USERS", code: 152 },
+  DELETE_SHOP_USER: { reqTitle: "DELETE_SHOP_USER", code: 153 },
+  UPDATE_USER_ROLE: { reqTitle: "UPDATE_USER_ROLE", code: 154 },
+  LEAVE_SHOP: { reqTitle: "LEAVE_SHOP", code: 155 },
 };
