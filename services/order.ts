@@ -679,6 +679,7 @@ class OrderService {
     let arr = resp.data.return_requests_data?.map((s) => ({
       details: s,
       id: s.return_request_id,
+      status: s?.status?.value,
     }));
     return arr;
   }
