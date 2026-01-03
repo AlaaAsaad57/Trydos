@@ -213,4 +213,8 @@ export const REQUESTS_DATA = {
     code: 151,
   },
   REOMVE_FCM: { reqTitle: "REOMVE_FCM", code: 151 },
+  GET_SHOP_USERS: { reqTitle: "GET_SHOP_USERS", code: 152 },
+  DELETE_SHOP_USER: { reqTitle: "DELETE_SHOP_USER", code: 153 },
+  UPDATE_USER_ROLE: { reqTitle: "UPDATE_USER_ROLE", code: 154 },
+  LEAVE_SHOP: { reqTitle: "LEAVE_SHOP", code: 155 },
 };
