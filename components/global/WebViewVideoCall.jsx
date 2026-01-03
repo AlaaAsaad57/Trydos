@@ -179,6 +179,11 @@ function WebViewVideoCall(props) {
 
     pause();
     let duration = durationRef.current;
+    if (window?.flutter_inappwebview)
+      window?.flutter_inappwebview?.callHandler?.(
+        "flutterMessageHandler",
+        durationRef.current // <-- this becomes args[0] in Flutter
+      );
     if (!bool) {
       props.onDecline(duration);
     } else {
