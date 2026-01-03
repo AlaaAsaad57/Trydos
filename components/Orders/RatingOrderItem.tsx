@@ -9,6 +9,7 @@ import storyService from "services/story";
 import UploadImageOrder from "public/svg/UploadImageOrder";
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 import UploadImageComponent from "./UploadImageComponent";
+import { useRouter } from "next/navigation";
 
 function RatingOrderItem({
   productId,
@@ -34,7 +35,7 @@ function RatingOrderItem({
   const inputRef = React.useRef(null);
   const [images, setImages] = useState<string[]>(comments_images_customer);
   const [loadingImage, setLoadingImage] = useState(false);
-
+  const router = useRouter();
   const rateOrder = async (e?) => {
     try {
       setLoading(true);
@@ -49,6 +50,7 @@ function RatingOrderItem({
         owner_type: ActivePacks?.owner_type,
         images: images,
       });
+      router.refresh();
       setRatedComplete(true);
       setComment("");
       setLoading(false);

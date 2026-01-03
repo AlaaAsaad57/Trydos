@@ -11,8 +11,10 @@ import { useAppStore } from "store";
 import { getFirstLetterLang } from "utils/tinyUtils";
 import "styles/comment.css";
 import { GetFaqItemElement } from "serverRequests/product";
+import Spinner from "components/global/Spinner";
 function CommentBar({ product_data, setCommentsData }) {
-  let { language, setShouldUpdateComment, shouldUpdateComment } = useAppStore();
+  let { language, setShouldUpdateComment, setShouldUpdateComeentsCount } =
+    useAppStore();
   const [val, setVal] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -39,7 +41,7 @@ function CommentBar({ product_data, setCommentsData }) {
         body: JSON.stringify({
           text: val,
           //   @ts-ignore
-          product_id: String(productId),
+          product_id: String(product_data?.id),
           user_id: String(auth.UserID()),
           user_name: auth.User()?.name,
           user_avatar: auth.User().image,
@@ -67,6 +69,7 @@ function CommentBar({ product_data, setCommentsData }) {
       if (response.comment) {
         setCommentsData(response.comment);
       }
+      setShouldUpdateComeentsCount(true);
       setVal("");
       setLoading(false);
     } catch (error) {
@@ -78,12 +81,17 @@ function CommentBar({ product_data, setCommentsData }) {
     setShouldUpdateComment(null);
   }, []);
   return (
-    <div className="comment-input-holder relative">
+    <div
+      className={`${
+        loading && "opacity-75 scale-[.97] transition-all duration-150"
+      } comment-input-holder relative `}
+    >
       <textarea
+        disabled={loading}
         data-cy="CommentField"
         tabIndex={0}
         aria-label={translateFunction("Comment input")}
-        className={`w-full resize-none outline-none p-2 rounded border border-gray-300 min-h-[40px] max-h-[120px] transition-all duration-200 ${" bg-white"}`}
+        className={`w-full resize-none outline-none p-2 rounded border border-gray-300 min-h-[56px] max-h-[120px] transition-all duration-200 `}
         style={{
           textAlign: getFirstLetterLang(val),
         }}
@@ -116,9 +124,12 @@ function CommentBar({ product_data, setCommentsData }) {
             getFirstLetterLang(val) === "left"
               ? "right-[30px]"
               : "left-[30px] rotate-[180deg]"
-          } absolute h-full flex items-center top-0`}
+          } absolute h-full flex items-center top-0 ${
+            loading ? "cursor-help" : "cursor-pointer"
+          }`}
           data-cy="SubmitComment"
           onClick={() => {
+            if (loading) return;
             // @ts-ignore
             addComment(val);
             document.querySelector("textarea").style.height = "auto";
@@ -128,7 +139,7 @@ function CommentBar({ product_data, setCommentsData }) {
             // });
           }}
         >
-          <CommentPost />
+          {!loading ? <CommentPost /> : <Spinner />}
         </span>
       )}
     </div>

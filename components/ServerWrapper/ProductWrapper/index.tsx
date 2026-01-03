@@ -183,7 +183,14 @@ function ProductWrapper({
         data-cy="product_link"
         id={slug}
         data={{
-          ...InitialProductData,
+          name: InitialProductData.name,
+          images: [
+            InitialProductData?.sync_color_images?.[0]?.images?.[0] ??
+              InitialProductData?.images?.[0],
+          ],
+          price: InitialProductData.price,
+          is_redeem: is_redeem,
+          offer_price: InitialProductData.offer_price,
           is_product: true,
         }}
       >

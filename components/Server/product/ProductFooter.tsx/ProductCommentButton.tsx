@@ -1,9 +1,31 @@
 import CommentIcon from "components/products/CommentIcon";
-import React from "react";
+import { useEffect, useState } from "react";
+import { GetProductCommentsCount } from "serverRequests/product";
+import { useAppStore } from "store";
 
-function ProductCommentButton({ isActive, setActive, total_comments }) {
+function ProductCommentButton({
+  isActive,
+  setActive,
+  total_comments,
+  productId,
+}) {
+  const { shouldUpdateComeentsCount, setShouldUpdateComeentsCount } =
+    useAppStore();
+  const [commentsTotal, setCommentsTotal] = useState(total_comments);
+  const UpdateCommentCount = async () => {
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+      let res = await GetProductCommentsCount({ productId });
+
+      setCommentsTotal(res.total);
+      setShouldUpdateComeentsCount(false);
+    } catch (error) {}
+  };
+  useEffect(() => {
+    if (shouldUpdateComeentsCount) UpdateCommentCount();
+  }, [shouldUpdateComeentsCount]);
   const getCommentsCount = () => {
-    if (total_comments > 0) return total_comments;
+    if (commentsTotal > 0) return commentsTotal;
     else return <></>;
   };
   return (

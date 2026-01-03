@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { usePathname } from "node_modules/next/navigation";
 import { useAppStore } from "store";
+import { DisableScroll } from "utils/tinyUtils";
 
 export interface INextLinkProps {
   href: string;
@@ -28,7 +29,8 @@ export default function NextLink({
   ...props
 }: INextLinkProps) {
   const pathname = usePathname();
-  const { setIsNavigating, setLastPathname } = useAppStore();
+  const { setIsNavigating, setLastPathname, setColorBottomSheet } =
+    useAppStore();
   if (ignoreConditionCase) {
     return (
       <Link
@@ -38,9 +40,14 @@ export default function NextLink({
         prefetch={true}
         href={href}
         onNavigate={(e) => {
+          setColorBottomSheet(null);
+
+          DisableScroll();
           setLastPathname(pathname);
         }}
         onClick={() => {
+          DisableScroll();
+          setColorBottomSheet(null);
           setLastPathname(pathname);
           setIsNavigating(data);
         }}
@@ -72,9 +79,15 @@ export default function NextLink({
       style={style}
       prefetch={true}
       onNavigate={(e) => {
+        DisableScroll();
+        setColorBottomSheet(null);
+
         setLastPathname(pathname);
       }}
       onClick={() => {
+        DisableScroll();
+        setColorBottomSheet(null);
+
         setLastPathname(pathname);
         setIsNavigating(data);
       }}

@@ -10,7 +10,7 @@ import SettingsLoader from "components/skeleton/loaders/SettingsLoader";
 import { useAppStore } from "store";
 export default function PageLoadingIndicator() {
   const { isNavigating } = useAppStore();
-  console.log(isNavigating);
+
   if (!isNavigating) return <></>;
   else {
     if (isNavigating.is_home) return <HomeLoader />;

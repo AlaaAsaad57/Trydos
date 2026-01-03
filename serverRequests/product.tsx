@@ -874,15 +874,17 @@ export async function GetFaqItemElement({ id, language, width = 90 }) {
 
 export async function GetSocialInfoForProduct({ productId, userId }) {
   //  should return likes,isLiked,comments,shares count
-  let [produtSocialInfo, productSharesCount] = await Promise.all([
-    getProductInteractions(productId, userId),
-    getProductSharedCountFromElasticsearch(productId),
-  ]);
-  console.log(productSharesCount, produtSocialInfo);
+  let [produtSocialInfo, productSharesCount, productComments] =
+    await Promise.all([
+      getProductInteractions(productId, userId),
+      getProductSharedCountFromElasticsearch(productId),
+      GetProductCommentsCount({ productId }),
+    ]);
+
   return {
     total_likes: produtSocialInfo.total_likes,
     is_liked: produtSocialInfo.is_liked,
-    total_comments: produtSocialInfo.total_comments,
+    total_comments: productComments.total,
     total_shares: productSharesCount,
   };
 }
@@ -963,4 +965,30 @@ async function getProductInteractions(productId: string, userId?: string) {
     }
     throw err;
   }
+}
+
+export async function GetProductCommentsCount({ productId }) {
+  let query: any = {
+    index: "comments",
+    query: {
+      bool: {
+        must: [{ term: { product_id: String(productId) } }],
+        must_not: [
+          { term: { status: "deleted" } },
+          {
+            exists: {
+              field: "order_details_id",
+            },
+          },
+        ],
+      },
+    },
+  };
+
+  let response = await client.count(query);
+  let results = response.count;
+
+  return {
+    total: results,
+  };
 }

@@ -1,6 +1,5 @@
-import ProductNameAndBrandSkeleton from "components/skeleton/product/ProductNameAndBrandSkeleton";
 import VerifiedIcon from "public/svg/listing/VerifiedIcon";
-import React, { Suspense } from "react";
+
 import { GetImageUrl } from "utils/server";
 
 async function ProductNameAndBrand({ globalPromise, isRtl, color }) {

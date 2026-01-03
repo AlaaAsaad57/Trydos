@@ -902,20 +902,11 @@ export const CartItemLink = ({ normalHeight = "191px", product, children }) => {
       href: getURLOfProduct({ product }),
       data: {
         is_product: true,
-        active_color: product.variations[0]?.color ?? null,
-        ...product,
-        ...(product.variations[0]?.color
-          ? {
-              sync_color_images: [
-                {
-                  images: [product?.image],
-                  color_name: product.variations[0]?.color,
-                },
-              ],
-            }
-          : {
-              images: [[product?.image]],
-            }),
+        name: product.name,
+        images: [product?.image],
+        price: product?.price,
+
+        offer_price: product?.offer_price,
         href: getURLOfProduct({ product }),
       },
     };

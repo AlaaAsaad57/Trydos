@@ -29,8 +29,13 @@ function ProductColorsCards({
           <NextLink
             data={{
               is_product: true,
-              ...InitialProductData,
-              sync_color_image: [color],
+              name: InitialProductData.name,
+
+              price: InitialProductData.price,
+
+              offer_price: InitialProductData.offer_price,
+
+              images: [color?.images?.[0]],
             }}
             ariaLabel={`go to product ${InitialProductData?.name} ${language}`}
             href={getUrlofProduct(color?.color_name, language, country, slug)}

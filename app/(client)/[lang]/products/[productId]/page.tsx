@@ -178,30 +178,35 @@ async function Page({ params, searchParams }) {
               priceQtyPromise={QtyPricesData}
             />
           </Suspense>
-
-          {/*@ts-expect-error Async Server Component is valid in Next  */}
-          <ProductColorsWrapper
-            country={country}
-            slug={slug}
-            activeColor={color}
-            globalPromise={GlobalData}
-            isRtl={isRtl}
-            language={language}
-          />
-          <div className="flex-col w-full h-auto rounded-[15px] bg-[#FCFCFC] mt-[12px] px-[10px]">
+          <Suspense fallback={<></>}>
             {/*@ts-expect-error Async Server Component is valid in Next  */}
-            <ProductExpectedDeleiveryWrapper
-              StarttingSettingPromise={StarttingSettingPromise}
+            <ProductColorsWrapper
               country={country}
-              language={language}
+              slug={slug}
+              activeColor={color}
               globalPromise={GlobalData}
+              isRtl={isRtl}
+              language={language}
             />
-            {/*@ts-expect-error Async Server Component is valid in Next  */}
+          </Suspense>
 
-            <FreeShippingOption
-              qtyPricePromise={QtyPricesData}
-              lang={Params.lang}
-            />
+          <div className="flex-col w-full h-auto rounded-[15px] bg-[#FCFCFC] mt-[12px] px-[10px]">
+            <Suspense fallback={<></>}>
+              {/*@ts-expect-error Async Server Component is valid in Next  */}
+              <ProductExpectedDeleiveryWrapper
+                StarttingSettingPromise={StarttingSettingPromise}
+                country={country}
+                language={language}
+                globalPromise={GlobalData}
+              />
+              {/*@ts-expect-error Async Server Component is valid in Next  */}
+
+              <FreeShippingOption
+                qtyPricePromise={QtyPricesData}
+                lang={Params.lang}
+              />
+            </Suspense>
+
             <div
               className={`product-shipping h-auto  rounded-none p-0 py-[8px]  justify-start product-colors  flex-col align-start relative`}
             >
@@ -284,57 +289,75 @@ async function Page({ params, searchParams }) {
                       <span>
                         {translateFunction("Return Guarantee", language)}
                       </span>
-                      {/*@ts-expect-error Async Server Component is valid in Next  */}
-                      <ReturnDaysDetails
-                        StarttingSettingPromise={StarttingSettingPromise}
-                        globalPromise={GlobalData}
-                        language={language}
-                      />
+                      <Suspense fallback={<></>}>
+                        {/*@ts-expect-error Async Server Component is valid in Next  */}
+                        <ReturnDaysDetails
+                          StarttingSettingPromise={StarttingSettingPromise}
+                          globalPromise={GlobalData}
+                          language={language}
+                        />
+                      </Suspense>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
-            {/*@ts-expect-error Async Server Component is valid in Next  */}
-            <ProductStoriesWrapper
-              globalPromise={GlobalData}
-              language={language}
-            />
+            <Suspense fallback={<></>}>
+              {/*@ts-expect-error Async Server Component is valid in Next  */}
+              <ProductStoriesWrapper
+                globalPromise={GlobalData}
+                language={language}
+              />
+            </Suspense>
+            <Suspense
+              fallback={
+                <div className="w-full h-[228px] flex-row gap-[8px]">
+                  {[1, 1, 1].map((s) => (
+                    <Skeleton borderRadius={12} width={"85%"} height={"100%"} />
+                  ))}
+                </div>
+              }
+            >
+              {/*@ts-expect-error Async Server Component is valid in Next  */}
+              <ProductBuyersCommentsWrapper
+                globalPromise={GlobalData}
+                language={language}
+              />
 
-            {/*@ts-expect-error Async Server Component is valid in Next  */}
-            <ProductBuyersCommentsWrapper
-              globalPromise={GlobalData}
-              language={language}
-            />
-
-            {/*@ts-expect-error Async Server Component is valid in Next  */}
-            <ProductFaqSectionWrapper
-              color={color}
-              size={Size}
-              qtyPricePromise={QtyPricesData}
-              language={language}
-            />
-            {/*@ts-expect-error Async Server Component is valid in Next  */}
-            <ProductSizesWrapper
-              activeSize={Size}
-              language={language}
-              qtyPricePromise={QtyPricesData}
-              isRtl={isRtl}
-            />
-            {/*@ts-expect-error Async Server Component is valid in Next  */}
-            <ProductSizeReviews
-              qtyPricePromise={QtyPricesData}
-              isRtl={isRtl}
-              language={language}
-            />
+              {/*@ts-expect-error Async Server Component is valid in Next  */}
+              <ProductFaqSectionWrapper
+                color={color}
+                size={Size}
+                qtyPricePromise={QtyPricesData}
+                language={language}
+              />
+              {/*@ts-expect-error Async Server Component is valid in Next  */}
+              <ProductSizesWrapper
+                activeSize={Size}
+                language={language}
+                qtyPricePromise={QtyPricesData}
+                isRtl={isRtl}
+              />
+              {/*@ts-expect-error Async Server Component is valid in Next  */}
+              <ProductSizeReviews
+                qtyPricePromise={QtyPricesData}
+                isRtl={isRtl}
+                language={language}
+              />
+            </Suspense>
           </div>
 
           {/* footer */}
         </div>
       </div>
       <div className="product-details-footer alternate-product-details-footer z-[999999999]">
-        {/*@ts-expect-error Async Server Component is valid in Next  */}
-        <ProductVideosWrapper globalPromise={GlobalData} language={language} />
+        <Suspense fallback={<></>}>
+          {/*@ts-expect-error Async Server Component is valid in Next  */}
+          <ProductVideosWrapper
+            globalPromise={GlobalData}
+            language={language}
+          />
+        </Suspense>
         <div className="product-info-container p-0 h-[40px] overflow-hidden">
           <Suspense fallback={<></>}>
             {/*@ts-expect-error Async Server Component is valid in Next  */}
