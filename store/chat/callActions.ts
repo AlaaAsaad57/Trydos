@@ -13,7 +13,7 @@ export const makeVideoCall = async (
   callerName,
   callerPhoto,
   mobilePhone,
-  privatePayload
+  privatePayload = null
 ) => {
   let permissions = await requestPermissions({ camera: true, mic: true });
   if (!permissions) {
@@ -78,7 +78,7 @@ export const makeVoiceCall = async (
   callerName,
   callerPhoto,
   mobilePhone,
-  privatePayload
+  privatePayload = null
 ) => {
   let permissions = await requestPermissions({ camera: false, mic: true });
   if (!permissions) {
