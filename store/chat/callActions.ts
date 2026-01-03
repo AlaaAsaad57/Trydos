@@ -12,7 +12,8 @@ export const makeVideoCall = async (
   channelId,
   callerName,
   callerPhoto,
-  mobilePhone
+  mobilePhone,
+  privatePayload
 ) => {
   let permissions = await requestPermissions({ camera: true, mic: true });
   if (!permissions) {
@@ -31,6 +32,9 @@ export const makeVideoCall = async (
       typeof channelId === "string" && channelId.includes("ch")
         ? { receiver_user_id: parseInt(channelId.split("ch-")[1]) }
         : { channel_id: channelId };
+    if (privatePayload) {
+      obj = privatePayload;
+    }
     await fetchData({
       url: UPDATED_API_DATA.MOD_END_CALL,
 
@@ -73,7 +77,8 @@ export const makeVoiceCall = async (
   channelId,
   callerName,
   callerPhoto,
-  mobilePhone
+  mobilePhone,
+  privatePayload
 ) => {
   let permissions = await requestPermissions({ camera: false, mic: true });
   if (!permissions) {
@@ -91,6 +96,9 @@ export const makeVoiceCall = async (
       typeof channelId === "string" && channelId.includes("ch")
         ? { receiver_user_id: parseInt(channelId.split("ch-")[1]) }
         : { channel_id: channelId };
+    if (privatePayload) {
+      obj = privatePayload;
+    }
     setCallLoading("voice");
     await fetchData({
       url: UPDATED_API_DATA.MOD_END_CALL,
