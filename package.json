@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "turbo": "next dev --turbopack",
-    "build": "next build --webpack",
+    "build": "next build",
     "start": "next start",
     "lint": "next lint",
     "start-server": "next build --no-lint & next start",
