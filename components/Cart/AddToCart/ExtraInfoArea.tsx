@@ -193,6 +193,7 @@ function ExtraInfoArea({
             <span className="bold">
               <Timer
                 onlySeconds={true}
+                isForRedeem={true}
                 onFinish={() => {
                   configureRedeemedProducts();
                   RedemEnd();

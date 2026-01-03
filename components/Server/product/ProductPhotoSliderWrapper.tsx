@@ -3,12 +3,40 @@ import ProductImagesSlider from "components/products/ProductImageSlider";
 import VirtualTryOn from "components/products/VirtualTryOn";
 
 import Image from "next/image";
+import { cookies } from "next/headers";
 
 import { getConfiguredImage, GetImageUrl } from "utils/server";
+import ProductRedeemCounter from "components/products/ProductRedeemCounter";
+import FlashDealBanner from "components/products/FlashDealBanner";
 
-async function ProductPhotoSliderWrapper({ language, globalPromise, color }) {
-  let globalDetails = await globalPromise;
+async function ProductPhotoSliderWrapper({
+  language,
+  globalPromise,
+  color,
+  qtyPromise,
+}) {
+  let [globalDetails, qtyPromiseData] = await Promise.all([
+    globalPromise,
+    qtyPromise,
+  ]);
+
   const isRtl = language === "ar" || language === "ku";
+  const isRedeemed = async () => {
+    if (!qtyPromiseData?.is_redeem) return false;
+    const cookiesStore = await cookies();
+    let redeemed: any = cookiesStore.get("redeemd_ids")?.value;
+    redeemed = redeemed ? JSON.parse(redeemed) : null;
+    if (
+      redeemed &&
+      redeemed.find((s) => String(s.id) === String(qtyPromiseData.id))
+    ) {
+      return false;
+    } else {
+      return true;
+    }
+  };
+  const redeemed_status = await isRedeemed();
+  qtyPromiseData = { ...qtyPromiseData, is_redeem: redeemed_status };
 
   //   utils
   const getImages = (productData, color): { images: any[] } => {
@@ -29,6 +57,41 @@ async function ProductPhotoSliderWrapper({ language, globalPromise, color }) {
     }
     return productData;
   };
+  const isFlashDeal = () => {
+    let endDate = globalDetails.flash_deal_end_date;
+    let isFlash: any = false;
+    if (endDate) {
+      const now = new Date();
+      const dealEnd = new Date(endDate);
+      dealEnd.setHours(23, 59, 59, 999);
+      isFlash = now < dealEnd;
+      const endDateObj = new Date(endDate);
+      endDateObj.setHours(23, 59, 59, 999);
+      const difference = endDateObj.getTime() - now.getTime();
+      if (difference > 0) {
+        const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+        const hours = Math.floor(
+          (difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
+        );
+        const minutes = Math.floor(
+          (difference % (1000 * 60 * 60)) / (1000 * 60)
+        );
+        const seconds = Math.floor((difference % (1000 * 60)) / 1000);
+
+        isFlash = {
+          days: days,
+          hours: hours,
+          minutes: minutes,
+          seconds: seconds,
+        };
+      } else {
+        isFlash = null;
+      }
+    }
+
+    return isFlash;
+  };
+  qtyPromiseData = { ...qtyPromiseData, isFlash: isFlashDeal() };
   const getRoundedClass = (index, length) => {
     if (length === 1) return "rounded-[15px]";
     else {
@@ -269,24 +332,19 @@ async function ProductPhotoSliderWrapper({ language, globalPromise, color }) {
                 />
               )}
 
-              {/* {(product?.flash_deal_details?.end_date ||
-                  product?.flash_deal_end_date) &&
-                  !shouldShowNotifyButton() && (
-                    <FlashDealBanner
-                      language={languageVariable}
-                      top="top-[0px]"
-                      end_data={
-                        product?.flash_deal_details?.end_date ||
-                        product?.flash_deal_end_date
-                      }
-                    />
-                  )}
-                {product?.is_redeem && (
-                  <ProductRedeemCounter
-                    language={languageVariable}
-                    product_id={product?.id}
-                  />
-                )} */}
+              {qtyPromiseData?.isFlash && (
+                <FlashDealBanner
+                  initial={qtyPromiseData?.isFlash}
+                  language={language}
+                  end_data={globalDetails.flash_deal_end_date}
+                />
+              )}
+              {qtyPromiseData?.is_redeem && (
+                <ProductRedeemCounter
+                  language={language}
+                  product_id={qtyPromiseData.id}
+                />
+              )}
             </>
           )}
         </div>

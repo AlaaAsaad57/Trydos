@@ -167,38 +167,55 @@ export async function GetProductMeta({
 }
 
 export async function GetProductGeneralData({ id }) {
-  let [productData, recommendation_stats] = await Promise.all([
-    client.get({
-      _source: [
-        "final_rating",
-        "total_views",
-        "star_distribution",
-        "size_analysis",
-        "good_quality_product",
-      ],
-      index: "product_interactions",
-      id: id,
-    }),
-    GetRecommendationCountForProduct({ product_id: id }),
-  ]);
-  const source: any = productData._source;
-
-  const productInfo = {
-    product_id: id,
-    final_rating: source?.final_rating,
-    total_views: source?.total_views ?? 0,
-    ratingDetails: source?.star_distribution
-      ? Object.keys(source.star_distribution)?.map((s) => ({
-          ratingGroup: s?.split("_")[1],
-          count: source.star_distribution[s] ?? 0,
-        }))
-      : [],
-    size_analysis: source.size_analysis,
-    good_quality_product: source.good_quality_product,
-    recommendation_stats: recommendation_stats.stats,
-    total_buyers: recommendation_stats.total_buyers,
+  const getProductGeneralQuery = async () => {
+    try {
+      let res = await client.get({
+        _source: [
+          "final_rating",
+          "total_views",
+          "star_distribution",
+          "size_analysis",
+          "good_quality_product",
+        ],
+        index: "product_interactions",
+        id: id,
+      });
+      return res._source as any;
+    } catch (error) {
+      return {
+        _source: {
+          final_rating: 0,
+          total_views: 0,
+          star_distribution: {},
+          size_analysis: null,
+          good_quality_product: false,
+        },
+      };
+    }
   };
-  return productInfo;
+  try {
+    let [source, recommendation_stats] = await Promise.all([
+      getProductGeneralQuery(),
+      GetRecommendationCountForProduct({ product_id: id }),
+    ]);
+
+    const productInfo = {
+      product_id: id,
+      final_rating: source?.final_rating,
+      total_views: source?.total_views ?? 0,
+      ratingDetails: source?.star_distribution
+        ? Object.keys(source.star_distribution)?.map((s) => ({
+            ratingGroup: s?.split("_")[1],
+            count: source.star_distribution[s] ?? 0,
+          }))
+        : [],
+      size_analysis: source.size_analysis,
+      good_quality_product: source.good_quality_product,
+      recommendation_stats: recommendation_stats.stats,
+      total_buyers: recommendation_stats.total_buyers,
+    };
+    return productInfo;
+  } catch (error) {}
 }
 
 export const GetRecommendationCountForProduct = async ({ product_id }) => {
@@ -960,10 +977,11 @@ async function getProductInteractions(productId: string, userId?: string) {
       is_liked: isLiked,
     };
   } catch (err: any) {
-    if (err.meta?.statusCode === 404) {
-      return null;
-    }
-    throw err;
+    return {
+      is_liked: false,
+      total_likes: 0,
+      total_comments: 0,
+    };
   }
 }
 

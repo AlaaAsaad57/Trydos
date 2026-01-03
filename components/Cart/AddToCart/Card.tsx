@@ -299,7 +299,10 @@ const Prices = ({ offer_price, price, redeem_price }) => {
               language: language,
             })}
           </span>
-          <span className="relative bold" data-cy="redeem-price-label">
+          <span
+            className="relative bold text-[#ff6200]"
+            data-cy="redeem-price-label"
+          >
             {RoundPrice({
               num: redeem_price,
               rate: currency?.exchange_rate,
@@ -367,7 +370,10 @@ const Prices = ({ offer_price, price, redeem_price }) => {
               language: language,
             })}
           </span>
-          <span className="relative bold" data-cy="redeem-price-label">
+          <span
+            className="relative bold text-[#ff6200] "
+            data-cy="redeem-price-label "
+          >
             {RoundPrice({
               num: redeem_price,
               rate: currency?.exchange_rate,

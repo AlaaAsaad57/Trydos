@@ -25,7 +25,7 @@ async function ProductFaqSectionWrapper({
     pageSize: 5,
   });
   const isRtl = language === "ar" || language === "ku";
-  if (faq_questions.comments.length === 0) return <></>;
+
   return (
     <div className={`w-full flex-col mt-[12px]`}>
       <FaqSectionTopBar isRtl={isRtl}>

@@ -424,7 +424,7 @@ const DeleteIcon = ({ address, onClick }: DeleteIconPropsType) => {
   );
 };
 
-export const MiniDeliveryIcon = () => {
+const MiniDeliveryIcon = () => {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"

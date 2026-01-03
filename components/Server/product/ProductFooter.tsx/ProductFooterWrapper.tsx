@@ -26,7 +26,19 @@ async function ProductFooterWrapper({
     productId: product?.id,
     userId: parsedUser?.id,
   });
-
+  const isRedeemed = async () => {
+    if (!qtyData?.is_redeem) return false;
+    const cookiesStore = await cookies();
+    let redeemed: any = cookiesStore.get("redeemd_ids")?.value;
+    redeemed = redeemed ? JSON.parse(redeemed) : null;
+    if (redeemed && redeemed.find((s) => String(s.id) === String(qtyData.id))) {
+      return false;
+    } else {
+      return true;
+    }
+  };
+  const redeemed_status = await isRedeemed();
+  qtyData = { ...qtyData, is_redeem: redeemed_status };
   return (
     <ProductFooter
       isRtl={isRtl}
@@ -42,12 +54,14 @@ async function ProductFooterWrapper({
         category: product.category,
         price: product.price,
         offer_price: product?.offer_price,
-        total_likes: socialData.total_likes,
-        is_liked: socialData.is_liked,
-        total_comments: socialData.total_comments,
-        total_shares: socialData.total_shares,
+        total_likes: socialData?.total_likes || 0,
+        is_liked: socialData?.is_liked,
+        total_comments: socialData?.total_comments,
+        total_shares: socialData?.total_shares,
         owner_id: product?.owner_id,
         owner_type: product?.owner_type,
+        is_redeem: qtyData?.is_redeem,
+        redeem_price: qtyData?.redeem_price,
       }}
     />
   );

@@ -26,7 +26,7 @@ import ColorSelect from "./ColorSelect";
 import SizeSelect from "./SizeSelect";
 import PricesRow from "./PricesRow";
 import ExtraInfoArea from "./ExtraInfoArea";
-import { getCookie } from "utils/cookies/cookie-manager";
+import { getCookie, setCookie } from "utils/cookies/cookie-manager";
 import AddToCartButton from "./Button";
 import NotifyButton from "./NotifyButton";
 import SearchParamUpdater from "components/global/ParamsUpdater";
@@ -71,6 +71,35 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
     ...product,
     is_redeem: shouldShowRedeem(),
   });
+  const configureRedeemedProducts = (id) => {
+    let redeemed_products_ids = getCookie<any>("redemed_ids");
+
+    if (redeemed_products_ids) {
+      let parsed_redeemed_products_ids = redeemed_products_ids
+        ? redeemed_products_ids
+        : [];
+      if (!parsed_redeemed_products_ids?.find((s) => s.id === id)) {
+        let MAX_ARRAY_LENGTH =
+          parseInt(process.env.NEXT_PUBLIC_MAX_ARRAY_LENGTH) || 5;
+        if (parsed_redeemed_products_ids.length < MAX_ARRAY_LENGTH)
+          setCookie("redemed_ids", [
+            ...parsed_redeemed_products_ids,
+            { id: id, showingDate: new Date().toISOString() },
+          ]);
+        else
+          setCookie("redemed_ids", [
+            ...parsed_redeemed_products_ids.slice(1, MAX_ARRAY_LENGTH),
+            { id: id, showingDate: new Date().toISOString() },
+          ]);
+      } else {
+        return;
+      }
+    } else {
+      setCookie("redemed_ids", [
+        { id: id, showingDate: new Date().toISOString() },
+      ]);
+    }
+  };
   // console.log(ProductData?.seconds);
   let selected_color =
     ProductData?.sync_color_images?.find(
@@ -567,7 +596,10 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
         selectedSize:
           selectedSize ?? tempProductData?.choice_options?.[0]?.options?.[0],
       });
-
+      setSelectedProductForCart({
+        ...selected_product_for_add_to_cart,
+        done: true,
+      });
       if (res.color) {
         setSelectedColor(
           tempProductData?.sync_color_images?.find(
@@ -816,7 +848,8 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
               GetImageUrl(selectedColor?.images?.[0]) ||
               (ProductData?.images?.[0]?.file_path &&
                 GetImageUrl(ProductData?.images?.[0]?.file_path)) ||
-              GetImageUrl(ProductData?.images?.[0]),
+              GetImageUrl(ProductData?.images?.[0]) ||
+              GetImageUrl(ProductData?.image),
             width: 400,
             height: 400,
           })}
@@ -966,10 +999,12 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
           flashDeal={ProductData?.flash_deal_end_date}
           id={ProductData?.id}
           RedemEnd={() => {
-            if (SelectedProduct?.id === product.id) {
-              expireRedeem();
-            }
+            configureRedeemedProducts(ProductData?.id);
             setProductData({ ...ProductData, is_redeem: false });
+            let element = document.querySelector(".product-redeem-counter");
+            if (element) {
+              element.classList.add("hidden");
+            }
           }}
           isInCart={localCart?.find((s) => s.id === ProductData?.id)}
         />
@@ -1021,6 +1056,17 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
             id={ProductData?.id}
             updateQuantity={async (isLocal, type = null, operation) => {
               await updateQuantity({ isLocal, type, operation });
+            }}
+            expireRedeem={() => {
+              setProductData({
+                ...ProductData,
+                is_redeem: false,
+              });
+              configureRedeemedProducts(ProductData?.id);
+              let element = document.querySelector(".product-redeem-counter");
+              if (element) {
+                element.classList.add("hidden");
+              }
             }}
             loading={requestLoading}
             setLoading={setRequestLoading}

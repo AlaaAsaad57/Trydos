@@ -596,7 +596,7 @@ const ContactInfo = ({ userName = null }) => {
     </div>
   );
 };
-export const AddAddressButtons = ({
+const AddAddressButtons = ({
   valid,
   slidePrev,
   isInSettings,

@@ -24,6 +24,7 @@ function AddToCartButton({
   product,
   reachedMaxQty,
   initialLoading,
+  expireRedeem,
 }) {
   const { localCart, currency } = useAppStore();
   const IsValid = () => {
@@ -222,6 +223,7 @@ function AddToCartButton({
               ? selectedVariant?.redeem_price
               : selectedVariant.offer_price,
         });
+        expireRedeem();
 
         if (val) {
           GAevent({

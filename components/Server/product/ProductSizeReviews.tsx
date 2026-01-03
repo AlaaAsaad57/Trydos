@@ -6,7 +6,7 @@ async function ProductSizeReviews({ qtyPricePromise, language, isRtl }) {
   let productData = await qtyPricePromise;
   let sizes = productData?.choice_options?.[0]?.options;
 
-  if (sizes?.length === 0) return <></>;
+  if (!sizes || sizes?.length === 0) return <></>;
 
   let size_reviews = await GetProductGeneralData({
     id: productData?.id,
