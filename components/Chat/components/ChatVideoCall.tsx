@@ -240,10 +240,12 @@ function ChatVideoCall({ token }) {
   const cleanUp = async () => {
     try {
       await clientRef?.current?.unpublish(tracks);
-      await clientRef?.current?.leave();
     } catch (error) {
       console.error("Error during cleanup:", error);
     }
+    try {
+      await clientRef?.current?.leave();
+    } catch (error) {}
     clientRef.current?.removeAllListeners();
     if (tracksRef.current) {
       tracksRef?.current?.[0]?.stop(); // audio

@@ -4,27 +4,106 @@ import React, { useEffect, useState, useMemo } from "react";
 import { useSellerProfile } from "../../SellerProfileContext";
 import Spinner from "components/global/Spinner";
 import SellerDashboardService from "services/sellerDashboard";
+import auth from "services/auth";
 import { translateFunction, getConfiguredImage } from "utils/functions";
 import { GetImageUrl } from "utils/tinyUtils";
 
 type TabType = "products" | "boutiques" | "permissions" | "users" | "orders";
 
 const PERMISSION_GROUPS = {
-  PRODUCTS: ["READ_PRODUCTS", "CREATE_PRODUCT", "UPDATE_PRODUCT", "CHANGE_PRODUCT_STATUS"],
-  BOUTIQUES: ["READ_BUTIKS", "CREATE_BUTIKS", "UPDATE_BUTIKS", "DELETE_BUTIKS", "CHANGE_BOUTIQUE_STATUS"],
-  CATEGORIES: ["READ_CATEGORIES", "CREATE_CATEGORIES", "UPDATE_CATEGORIES", "DELETE_CATEGORIES", "CHANGE_CATEGORY_STATUS"],
-  BRANDS: ["READ_BRANDS", "CREATE_BRANDS", "UPDATE_BRANDS", "DELETE_BRANDS", "CHANGE_BRAND_STATUS"],
-  ORDERS: ["READ_ORDERS", "UPDATE_ORDER_INFO", "CHANGE_ORDER_STATUS", "READ_ORDER_PAYMENTS", "CONFIRM_ORDER_PAYMENT", "REFUND_ORDER_PAYMENT", "CANCEL_ORDER", "ASSIGN_SHIPPING", "UPDATE_TRACKING"],
-  EMPLOYEES: ["READ_EMPLOYEES", "CREATE_EMPLOYEES", "UPDATE_EMPLOYEES", "DELETE_EMPLOYEES"],
+  PRODUCTS: [
+    "READ_PRODUCTS",
+    "CREATE_PRODUCT",
+    "UPDATE_PRODUCT",
+    "CHANGE_PRODUCT_STATUS",
+  ],
+  BOUTIQUES: [
+    "READ_BUTIKS",
+    "CREATE_BUTIKS",
+    "UPDATE_BUTIKS",
+    "DELETE_BUTIKS",
+    "CHANGE_BOUTIQUE_STATUS",
+  ],
+  CATEGORIES: [
+    "READ_CATEGORIES",
+    "CREATE_CATEGORIES",
+    "UPDATE_CATEGORIES",
+    "DELETE_CATEGORIES",
+    "CHANGE_CATEGORY_STATUS",
+  ],
+  BRANDS: [
+    "READ_BRANDS",
+    "CREATE_BRANDS",
+    "UPDATE_BRANDS",
+    "DELETE_BRANDS",
+    "CHANGE_BRAND_STATUS",
+  ],
+  ORDERS: [
+    "READ_ORDERS",
+    "UPDATE_ORDER_INFO",
+    "CHANGE_ORDER_STATUS",
+    "READ_ORDER_PAYMENTS",
+    "CONFIRM_ORDER_PAYMENT",
+    "REFUND_ORDER_PAYMENT",
+    "CANCEL_ORDER",
+    "ASSIGN_SHIPPING",
+    "UPDATE_TRACKING",
+  ],
+  EMPLOYEES: [
+    "READ_EMPLOYEES",
+    "CREATE_EMPLOYEES",
+    "UPDATE_EMPLOYEES",
+    "DELETE_EMPLOYEES",
+  ],
   ROLES: ["READ_ROLES", "CREATE_ROLES", "UPDATE_ROLES", "DELETE_ROLES"],
-  JOBTITLES: ["READ_JOBTITLES", "CREATE_JOBTITLES", "UPDATE_JOBTITLES", "DELETE_JOBTITLES"],
-  OFFICES: ["READ_OFFICES", "CREATE_OFFICES", "UPDATE_OFFICES", "DELETE_OFFICES"],
-  DEPARTMENTS: ["READ_DEPARTMENTS", "CREATE_DEPARTMENTS", "UPDATE_DEPARTMENTS", "DELETE_DEPARTMENTS"],
-  WORKFORMS: ["READ_WORKFORMS", "CREATE_WORKFORMS", "UPDATE_WORKFORMS", "DELETE_WORKFORMS"],
-  LANGUAGES: ["READ_LANGUAGES", "CREATE_LANGUAGES", "UPDATE_LANGUAGES", "DELETE_LANGUAGES"],
-  CURRENCIES: ["READ_CURRENCIES", "CREATE_CURRENCIES", "UPDATE_CURRENCIES", "DELETE_CURRENCIES"],
-  SHIPPING: ["READ_SHIPPING", "CREATE_SHIPPING", "UPDATE_SHIPPING", "DELETE_SHIPPING"],
-  COUNTRIES: ["READ_COUNTRIES", "CREATE_COUNTRIES", "UPDATE_COUNTRIES", "DELETE_COUNTRIES"],
+  JOBTITLES: [
+    "READ_JOBTITLES",
+    "CREATE_JOBTITLES",
+    "UPDATE_JOBTITLES",
+    "DELETE_JOBTITLES",
+  ],
+  OFFICES: [
+    "READ_OFFICES",
+    "CREATE_OFFICES",
+    "UPDATE_OFFICES",
+    "DELETE_OFFICES",
+  ],
+  DEPARTMENTS: [
+    "READ_DEPARTMENTS",
+    "CREATE_DEPARTMENTS",
+    "UPDATE_DEPARTMENTS",
+    "DELETE_DEPARTMENTS",
+  ],
+  WORKFORMS: [
+    "READ_WORKFORMS",
+    "CREATE_WORKFORMS",
+    "UPDATE_WORKFORMS",
+    "DELETE_WORKFORMS",
+  ],
+  LANGUAGES: [
+    "READ_LANGUAGES",
+    "CREATE_LANGUAGES",
+    "UPDATE_LANGUAGES",
+    "DELETE_LANGUAGES",
+  ],
+  CURRENCIES: [
+    "READ_CURRENCIES",
+    "CREATE_CURRENCIES",
+    "UPDATE_CURRENCIES",
+    "DELETE_CURRENCIES",
+  ],
+  SHIPPING: [
+    "READ_SHIPPING",
+    "CREATE_SHIPPING",
+    "UPDATE_SHIPPING",
+    "DELETE_SHIPPING",
+  ],
+  COUNTRIES: [
+    "READ_COUNTRIES",
+    "CREATE_COUNTRIES",
+    "UPDATE_COUNTRIES",
+    "DELETE_COUNTRIES",
+  ],
   ADMIN: ["SUPER_ADMIN", "USER_MANAGEMENT_ACCESS"],
 };
 
@@ -64,6 +143,17 @@ function SellerDashBoard() {
   const [productsMeta, setProductsMeta] = useState<any>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [roles, setRoles] = useState<any[]>([]);
+  const [rolesMeta, setRolesMeta] = useState<any | null>(null);
+  const [rolesPage, setRolesPage] = useState<number>(1);
+  const [rolesLoadingMore, setRolesLoadingMore] = useState<boolean>(false);
+
+  // Users state
+  const [users, setUsers] = useState<any[]>([]);
+  const [usersMeta, setUsersMeta] = useState<any | null>(null);
+  const [usersPage, setUsersPage] = useState<number>(1);
+  const [usersLoading, setUsersLoading] = useState<boolean>(false);
+  const [usersLoadingMore, setUsersLoadingMore] = useState<boolean>(false);
+  const [usersError, setUsersError] = useState<string | null>(null);
   const [addUserForm, setAddUserForm] = useState({
     phone: "",
     role_id: "",
@@ -77,23 +167,35 @@ function SellerDashBoard() {
   const [ordersLoading, setOrdersLoading] = useState(false);
   const [ordersError, setOrdersError] = useState<string | null>(null);
   const [orderStatusOptions, setOrderStatusOptions] = useState<string[]>([]);
-  const [selectedOrderStatuses, setSelectedOrderStatuses] = useState<Record<string, string>>({});
-  const [orderActionLoading, setOrderActionLoading] = useState<string | null>(null);
+  const [selectedOrderStatuses, setSelectedOrderStatuses] = useState<
+    Record<string, string>
+  >({});
+  const [orderActionLoading, setOrderActionLoading] = useState<string | null>(
+    null
+  );
 
   const currentShop = useMemo(() => {
     return shopes.find((shop) => shop.seller_id.toString() === sellerId);
   }, [shopes, sellerId]);
 
   const hasPermission = (permission: string): boolean => {
-    return sellerPermissions.includes(permission) || sellerPermissions.includes("SUPER_ADMIN");
+    return (
+      sellerPermissions.includes(permission) ||
+      sellerPermissions.includes("SUPER_ADMIN")
+    );
   };
   const canViewOrders = hasPermission("READ_ORDERS");
+
+  const currentUserId = auth.UserID ? auth.UserID() : null;
 
   const getSellerProducts = async (page: number = 1) => {
     try {
       setLoading(true);
       setError(null);
-      const res = await SellerDashboardService.getSellerProducts(sellerId, page);
+      const res = await SellerDashboardService.getSellerProducts(
+        sellerId,
+        page
+      );
       // API returns { data: { products: [...], meta: {...} } }
       const products = res.data?.products || res.data || [];
       setSellerProducts(products);
@@ -123,18 +225,110 @@ function SellerDashBoard() {
     }
   };
 
-  const getRoles = async () => {
+  const getRoles = async (page: number = 1) => {
     try {
-      setLoading(true);
+      if (page === 1) {
+        setLoading(true);
+      } else {
+        setRolesLoadingMore(true);
+      }
       setError(null);
-      const res = await SellerDashboardService.getRoles(sellerId);
-      const rolesData = res.data || [];
-      setRoles(Array.isArray(rolesData) ? rolesData : []);
+      const res = await SellerDashboardService.getRoles(sellerId, page);
+      const rolesData = res.data?.shop_roles || res.data || [];
+      if (page > 1) {
+        setRoles((prev) => [
+          ...prev,
+          ...(Array.isArray(rolesData) ? rolesData : []),
+        ]);
+      } else {
+        setRoles(Array.isArray(rolesData) ? rolesData : []);
+      }
+      setRolesMeta(res.data?.meta || null);
+      setRolesPage(page);
     } catch (error: any) {
       console.error("Error fetching roles:", error);
       setError(error?.message || "Failed to load roles");
     } finally {
-      setLoading(false);
+      if (page === 1) setLoading(false);
+      else setRolesLoadingMore(false);
+    }
+  };
+
+  const getUsers = async (page: number = 1) => {
+    try {
+      if (page === 1) setUsersLoading(true);
+      else setUsersLoadingMore(true);
+      setUsersError(null);
+      // extract language from path like `en-us` or `ar` segment
+      const langSegment = (window.location.pathname.split("/")[1] || "").split("-")[1] || (window.location.pathname.split("/")[1] || "").split("-")[0];
+      const res = await SellerDashboardService.getUsers(sellerId, page, langSegment);
+      const usersData = res.data?.users || res.data || [];
+      if (page > 1) {
+        setUsers((prev) => [
+          ...prev,
+          ...(Array.isArray(usersData) ? usersData : []),
+        ]);
+      } else {
+        setUsers(Array.isArray(usersData) ? usersData : []);
+      }
+      setUsersMeta(res.data?.meta || null);
+      setUsersPage(page);
+    } catch (error: any) {
+      console.error("Error fetching users:", error);
+      setUsersError(error?.message || "Failed to load users");
+    } finally {
+      if (page === 1) setUsersLoading(false);
+      else setUsersLoadingMore(false);
+    }
+  };
+
+  const handleDeleteUser = async (userId: number | string) => {
+    try {
+      setUsersError(null);
+      await SellerDashboardService.deleteUser(userId, sellerId);
+      setUsers((prev) => prev.filter((u) => String(u.id) !== String(userId)));
+    } catch (error: any) {
+      console.error("Error deleting user:", error);
+      setUsersError(error?.message || "Failed to delete user");
+    }
+  };
+
+  const handleUpdateUserRole = async (
+    userId: number | string,
+    roleId: number
+  ) => {
+    try {
+      setUsersError(null);
+      await SellerDashboardService.updateUserRole(
+        { user_id: Number(userId), role_id: Number(roleId) },
+        sellerId
+      );
+      // Update local users array with new role info (name from roles list)
+      const roleObj = roles.find((r) => Number(r.id) === Number(roleId));
+      setUsers((prev) =>
+        prev.map((u) =>
+          String(u.id) === String(userId)
+            ? {
+                ...u,
+                role_id: Number(roleId),
+                role: roleObj ? { id: roleObj.id, name: roleObj.name } : u.role,
+                role_name: roleObj?.name || u.role?.name || u.role_name,
+              }
+            : u
+        )
+      );
+    } catch (error: any) {
+      console.error("Error updating user role:", error);
+      setUsersError(error?.message || "Failed to update user role");
+    }
+  };
+
+  const handleLeaveShop = async () => {
+    try {
+      await SellerDashboardService.leaveShop(sellerId);
+      // client-side behavior after leaving shop is not defined here; trigger a refresh or redirect if needed
+    } catch (error: any) {
+      console.error("Error leaving shop:", error);
     }
   };
   const getSellerOrders = async (page: number = 1) => {
@@ -145,7 +339,9 @@ function SellerDashBoard() {
       const orders = res.data?.orders || res.data || [];
       setSellerOrders(Array.isArray(orders) ? orders : []);
       setOrdersMeta(res.data?.meta || null);
-      setOrderStatusOptions(res.data?.user_abilities?.change_order_status || []);
+      setOrderStatusOptions(
+        res.data?.user_abilities?.change_order_status || []
+      );
       setOrdersPage(page);
     } catch (error: any) {
       console.error("Error fetching orders:", error);
@@ -166,7 +362,9 @@ function SellerDashBoard() {
       });
       setSellerOrders((prev) =>
         prev.map((order) =>
-          order.id === orderId ? { ...order, order_status: status, order_group_status: status } : order
+          order.id === orderId
+            ? { ...order, order_status: status, order_group_status: status }
+            : order
         )
       );
     } catch (error: any) {
@@ -188,7 +386,7 @@ function SellerDashBoard() {
       setAddUserLoading(true);
       setError(null);
       setAddUserSuccess(false);
-      
+
       const res = await SellerDashboardService.addUserToShop({
         phone: addUserForm.phone,
         role_id: parseInt(addUserForm.role_id as string),
@@ -227,10 +425,11 @@ function SellerDashBoard() {
       // Fallback: fetch from API
       const res = await SellerDashboardService.getSellerPermissions(sellerId);
       // API returns array of shops: [{ seller_id, shop_name, permissions: [...] }]
-      const shopData = Array.isArray(res.data) 
+      const shopData = Array.isArray(res.data)
         ? res.data.find((shop: any) => shop.seller_id?.toString() === sellerId)
         : null;
-      const permissions = shopData?.permissions || currentShop?.permissions || [];
+      const permissions =
+        shopData?.permissions || currentShop?.permissions || [];
       setSellerPermissions(Array.isArray(permissions) ? permissions : []);
     } catch (error: any) {
       console.error("Error fetching permissions:", error);
@@ -256,6 +455,7 @@ function SellerDashBoard() {
       getSellerProducts();
       getSellerBoutiques();
       getRoles();
+      getUsers();
       // Only fetch permissions if not already available from currentShop
       if (!currentShop?.permissions || currentShop.permissions.length === 0) {
         getSellerPermissions();
@@ -267,8 +467,9 @@ function SellerDashBoard() {
   }, [sellerId]);
 
   useEffect(() => {
-    if (activeTab === "users" && roles.length === 0) {
-      getRoles();
+    if (activeTab === "users") {
+      if (roles.length === 0) getRoles();
+      if (users.length === 0) getUsers();
     }
   }, [activeTab]);
 
@@ -492,8 +693,11 @@ function SellerDashBoard() {
               </div>
               {boutique.description && (
                 <p className="text-[12px] text-[#8D8D8D] line-clamp-2 mb-2">
-                  {boutique.description.replace(/<[^>]*>/g, "").substring(0, 100)}
-                  {boutique.description.replace(/<[^>]*>/g, "").length > 100 && "..."}
+                  {boutique.description
+                    .replace(/<[^>]*>/g, "")
+                    .substring(0, 100)}
+                  {boutique.description.replace(/<[^>]*>/g, "").length > 100 &&
+                    "..."}
                 </p>
               )}
               {boutique.slug && (
@@ -570,7 +774,9 @@ function SellerDashBoard() {
               <div className="flex flex-col gap-4 border-b border-gray-100 pb-4 mb-4">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                   <div className="space-y-1">
-                    <p className="text-[12px] text-[#8D8D8D]">Order ID: {order.id}</p>
+                    <p className="text-[12px] text-[#8D8D8D]">
+                      Order ID: {order.id}
+                    </p>
                     <p className="text-[12px] text-[#8D8D8D]">
                       Group: {order.order_group_id}
                     </p>
@@ -603,7 +809,9 @@ function SellerDashBoard() {
                 {orderStatusOptions.length > 0 && (
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-gray-50 border border-gray-100 rounded-[12px] p-3">
                     <div className="flex items-center gap-2">
-                      <span className="text-[13px] font-semibold text-[#1d1d1d]">Change status:</span>
+                      <span className="text-[13px] font-semibold text-[#1d1d1d]">
+                        Change status:
+                      </span>
                       <select
                         value={selectedOrderStatuses[String(order.id)] || ""}
                         onChange={(e) =>
@@ -630,7 +838,9 @@ function SellerDashBoard() {
                       }
                       className="px-4 py-2 bg-blue-500 text-white rounded-lg text-[13px] font-medium hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                     >
-                      {orderActionLoading === String(order.id) ? "Updating..." : "Update"}
+                      {orderActionLoading === String(order.id)
+                        ? "Updating..."
+                        : "Update"}
                     </button>
                   </div>
                 )}
@@ -640,8 +850,12 @@ function SellerDashBoard() {
                     <p className="text-[13px] text-[#1d1d1d] font-semibold">
                       Amount: {order.order_amount}
                     </p>
-                    <p className="text-[12px] text-[#8D8D8D]">Shipping: {order.shipping_cost}</p>
-                    <p className="text-[12px] text-[#8D8D8D]">Discount: {order.discount_amount}</p>
+                    <p className="text-[12px] text-[#8D8D8D]">
+                      Shipping: {order.shipping_cost}
+                    </p>
+                    <p className="text-[12px] text-[#8D8D8D]">
+                      Discount: {order.discount_amount}
+                    </p>
                     <p className="text-[12px] text-[#8D8D8D]">
                       Delivery: {order.delivery_type || "N/A"}
                     </p>
@@ -688,8 +902,12 @@ function SellerDashBoard() {
                         className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 rounded-lg border border-gray-200 bg-white p-3"
                       >
                         <div className="space-y-1">
-                          <p className="text-[14px] font-semibold text-[#1d1d1d]">{productName}</p>
-                          <p className="text-[12px] text-[#8D8D8D]">Variant: {item.variant || "N/A"}</p>
+                          <p className="text-[14px] font-semibold text-[#1d1d1d]">
+                            {productName}
+                          </p>
+                          <p className="text-[12px] text-[#8D8D8D]">
+                            Variant: {item.variant || "N/A"}
+                          </p>
                           <p className="text-[12px] text-[#8D8D8D]">
                             Delivery: {item.delivery_status}
                           </p>
@@ -698,8 +916,12 @@ function SellerDashBoard() {
                           <p className="text-[13px] font-semibold text-[#1d1d1d]">
                             Qty: {item.qty}
                           </p>
-                          <p className="text-[12px] text-[#8D8D8D]">Price: {item.price}</p>
-                          <p className="text-[12px] text-[#8D8D8D]">Payment: {item.payment_status}</p>
+                          <p className="text-[12px] text-[#8D8D8D]">
+                            Price: {item.price}
+                          </p>
+                          <p className="text-[12px] text-[#8D8D8D]">
+                            Payment: {item.payment_status}
+                          </p>
                         </div>
                       </div>
                     );
@@ -852,7 +1074,7 @@ function SellerDashBoard() {
           <h2 className="text-[20px] font-bold text-[#1d1d1d] mb-4">
             Add User to Shop
           </h2>
-          
+
           {addUserSuccess && (
             <div className="mb-4 p-3 bg-green-100 border border-green-300 rounded-lg text-green-700 text-[14px]">
               User added successfully!
@@ -892,7 +1114,9 @@ function SellerDashBoard() {
               {loading && roles.length === 0 ? (
                 <div className="flex items-center gap-2 py-3">
                   <Spinner />
-                  <span className="text-[14px] text-[#8D8D8D]">Loading roles...</span>
+                  <span className="text-[14px] text-[#8D8D8D]">
+                    Loading roles...
+                  </span>
                 </div>
               ) : (
                 <select
@@ -934,7 +1158,9 @@ function SellerDashBoard() {
 
             <button
               type="submit"
-              disabled={addUserLoading || !addUserForm.phone || !addUserForm.role_id}
+              disabled={
+                addUserLoading || !addUserForm.phone || !addUserForm.role_id
+              }
               className="w-full px-6 py-3 bg-blue-500 text-white rounded-lg font-medium hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-[14px]"
             >
               {addUserLoading ? (
@@ -964,19 +1190,124 @@ function SellerDashBoard() {
               <p className="text-[#8D8D8D]">No roles available</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {roles.map((role: any) => (
-                <div
-                  key={role.id}
-                  className="p-4 border border-gray-200 rounded-lg hover:shadow-md transition-shadow"
-                >
-                  <h3 className="text-[16px] font-semibold text-[#1d1d1d] mb-1">
-                    {role.name}
-                  </h3>
-                  <p className="text-[12px] text-[#8D8D8D]">ID: {role.id}</p>
-                </div>
-              ))}
-            </div>
+            <>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {roles.map((role: any) => (
+                  <div
+                    key={role.id}
+                    className="p-4 border border-gray-200 rounded-lg hover:shadow-md transition-shadow"
+                  >
+                    <h3 className="text-[16px] font-semibold text-[#1d1d1d] mb-1">
+                      {role.name}
+                    </h3>
+                    <p className="text-[12px] text-[#8D8D8D]">ID: {role.id}</p>
+                  </div>
+                ))}
+              </div>
+
+              {/* Users list */}
+              <div className="mt-6 bg-white rounded-[15px] shadow-md p-6">
+                <h3 className="text-[16px] font-semibold text-[#1d1d1d] mb-4">
+                  Users
+                </h3>
+
+                {usersLoading && users.length === 0 ? (
+                  <div className="flex items-center justify-center py-8">
+                    <Spinner />
+                    <span className="ml-3 text-[#3c3c3c]">
+                      Loading users...
+                    </span>
+                  </div>
+                ) : users.length === 0 ? (
+                  <div className="flex items-center justify-center py-8">
+                    <p className="text-[#8D8D8D]">No users found</p>
+                  </div>
+                ) : (
+                  <div className="overflow-auto">
+                    <table className="w-full text-left">
+                      <thead>
+                        <tr>
+                          <th className="py-2 px-3">Name / Phone</th>
+                          <th className="py-2 px-3">Role</th>
+                          <th className="py-2 px-3">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {users.map((user: any) => (
+                          <tr key={user.id} className="border-t">
+                            <td className="py-3 px-3">
+                              {user.name || user.phone}
+                            </td>
+                            <td className="py-3 px-3">
+                              <div className="flex items-center gap-2">
+                                <span className="text-[13px] text-[#8D8D8D]">
+                                  {user.role?.name || user.role_name || (typeof user.role === 'string' ? user.role : "-")}
+                                </span>
+                                {hasPermission("SUPER_ADMIN") && (
+                                  <select
+                                    value={user.role?.id ?? user.role_id ?? ""}
+                                    onChange={(e) =>
+                                      handleUpdateUserRole(
+                                        user.id,
+                                        Number(e.target.value)
+                                      )
+                                    }
+                                    className="ml-2 px-2 py-1 border rounded"
+                                  >
+                                    <option value="">Change role</option>
+                                    {roles.map((r: any) => (
+                                      <option key={r.id} value={r.id}>
+                                        {r.name}
+                                      </option>
+                                    ))}
+                                  </select>
+                                )}
+                              </div>
+                            </td>
+                            <td className="py-3 px-3">
+                              <div className="flex items-center gap-2">
+                                {hasPermission("SUPER_ADMIN") && (
+                                  <button
+                                    onClick={() => handleDeleteUser(user.id)}
+                                    className="px-3 py-1 bg-red-50 text-red-700 border border-red-100 rounded disabled:opacity-50"
+                                  >
+                                    Delete
+                                  </button>
+                                )}
+                                {String(user.id) === String(currentUserId) && (
+                                  <button
+                                    onClick={handleLeaveShop}
+                                    className="px-3 py-1 bg-yellow-50 text-yellow-700 border border-yellow-100 rounded"
+                                  >
+                                    Leave Shop
+                                  </button>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+
+                    {usersMeta?.has_more_pages && (
+                      <div className="flex justify-center mt-4">
+                        <button
+                          onClick={() => getUsers(usersPage + 1)}
+                          className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+                          disabled={usersLoadingMore}
+                        >
+                          {usersLoadingMore ? <Spinner /> : "Load more"}
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {usersError && (
+                  <div className="mt-3 text-red-500">{usersError}</div>
+                )}
+              </div>
+            </>
           )}
         </div>
       </div>
@@ -990,14 +1321,12 @@ function SellerDashBoard() {
         <h1 className="text-[24px] font-bold text-[#1d1d1d] mb-2">
           {currentShop?.shop_name || "Seller Dashboard"}
         </h1>
-        <p className="text-[14px] text-[#8D8D8D]">
-          Seller ID: {sellerId}
-        </p>
+        <p className="text-[14px] text-[#8D8D8D]">Seller ID: {sellerId}</p>
       </div>
 
       {/* Tabs */}
       <div className="bg-white rounded-lg shadow-md mb-6">
-        <div className="flex flex-row border-b border-[#f0f0f0]">
+        <div className="flex flex-row border-b border-[#f0f0f0] overflow-auto">
           <button
             onClick={() => setActiveTab("products")}
             className={`flex-1 px-6 py-4 text-center font-medium transition-colors ${

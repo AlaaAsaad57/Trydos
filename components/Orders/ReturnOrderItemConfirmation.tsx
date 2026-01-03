@@ -23,7 +23,6 @@ function ReturnOrderItemConfirmation({
   const { ActivePacks, selectedOrder, setOrderOptions, language } =
     useAppStore();
   const ReturnedItems = () => {
-    console.log("confirmationData", confirmationData);
     let arr = [];
     if (confirmationData?.item) {
       let product_price =
@@ -57,14 +56,13 @@ function ReturnOrderItemConfirmation({
       });
     }
     selectedOrder?.returned_data?.map((ret_ite) => {
-      ret_ite?.details?.order_details?.map((s) => {
-        if (
-          s?.already_return &&
-          arr?.filter((d) => d.detail_id === s.detail_id)?.length === 0
-        ) {
-          arr = [...arr, s];
-        }
-      });
+      if (!ret_ite?.status || ret_ite.status?.includes("draft")) {
+        ret_ite?.details?.order_details?.map((s) => {
+          if (arr?.filter((d) => d.detail_id === s.detail_id)?.length === 0) {
+            arr = [...arr, s];
+          }
+        });
+      }
     });
 
     return arr;
