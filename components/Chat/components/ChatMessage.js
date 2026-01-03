@@ -44,6 +44,20 @@ const getSafeId = (id) => {
 };
 
 function ChatMessage(props) {
+  const calculate = (duration) => {
+    if (duration <= 0) return "";
+    // Ensure duration is a positive number
+    const totalSeconds = Math.max(0, Math.floor(duration));
+
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+
+    // PadStart ensures we always have two digits (e.g., "02")
+    const paddedMinutes = String(minutes).padStart(2, "0");
+    const paddedSeconds = String(seconds).padStart(2, "0");
+
+    return `(${paddedMinutes}:${paddedSeconds})`;
+  };
   const user = getUser();
   const { language, activeChat, deleteMessage } = useAppStore();
   let { lang } = useParams();
@@ -1354,9 +1368,9 @@ function ChatMessage(props) {
             className={`${opens && "ac"} flex flex-col gap-[10px] message-hold`}
           >
             <div
-              className={` ${
-                props.message.duration_in_seconds > 0 && "bg-teal-100"
-              } call-body`}
+              className={` call-body ${
+                props.message.duration_in_seconds > 0 && "!bg-teal-100"
+              } `}
               onClick={() => setOpen(true)}
             >
               {(props.type === "first-chat" || props.type === "lonely") && (
@@ -1447,6 +1461,7 @@ function ChatMessage(props) {
                   : props.message.message_type.name === "VideoCall"
                   ? translateFunction("Outgoing Video Call", language)
                   : translateFunction("Outgoing Voice Call", language)}{" "}
+                {calculate(props.message?.duration_in_seconds)}{" "}
                 {getMessageTime(props.message.created_at, true)}
               </div>
             </div>
@@ -2270,9 +2285,9 @@ function ChatMessage(props) {
             className={`${opens && "ac"} flex flex-col gap-[10px] message-hold`}
           >
             <div
-              className={`${
-                props.message.duration_in_seconds > 0 && "bg-teal-100"
-              } call-body`}
+              className={` call-body ${
+                props.message.duration_in_seconds > 0 && "!bg-teal-100"
+              }`}
               onClick={() => setOpen(true)}
             >
               {(props.type === "first-chat" || props.type === "lonely") && (
@@ -2363,6 +2378,7 @@ function ChatMessage(props) {
                   : props.message.message_type.name === "VideoCall"
                   ? translateFunction("Incoming Video Call", language)
                   : translateFunction("Incoming Voice Call", language)}{" "}
+                {calculate(props.message?.duration_in_seconds)}{" "}
                 {getMessageTime(props.message.created_at, true)}
               </div>
             </div>

@@ -226,6 +226,7 @@ export const useChatStore = (set, get) => ({
   },
   storeDuration: (msgId, duartion) => {
     const state = get();
+
     let newActiveChat = state.activeChat;
     if (
       newActiveChat &&
@@ -241,9 +242,15 @@ export const useChatStore = (set, get) => ({
       );
       newActiveChat = { ...state.activeChat, messages: newMessages };
     }
+    let newData = state.data;
+    if (newActiveChat)
+      newData = newData.map((s) =>
+        String(s.id) === String(newActiveChat?.id) ? newActiveChat : s
+      );
 
     set({
       activeChat: newActiveChat,
+      data: newData,
     });
   },
   setNotificationModal: (e) => set({ isNotificationModal: e }),

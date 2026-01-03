@@ -21,6 +21,7 @@ function CallList() {
     <div className="chat-list-items">
       {calls.map((call, index) => (
         <CallItem
+          duration={call.duration_in_seconds}
           key={index}
           Delete={() => {
             DeleteCall(call.id, call.channel_id);

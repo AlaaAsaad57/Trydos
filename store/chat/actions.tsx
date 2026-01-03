@@ -104,7 +104,7 @@ export const getCalls = async (id) => {
     if (!response.success) {
       throw new Error(response.message);
     }
-    setCalls(response);
+    setCalls(response.data);
     setCallLoading(false);
   } catch (e) {
     setCallLoading(false);
