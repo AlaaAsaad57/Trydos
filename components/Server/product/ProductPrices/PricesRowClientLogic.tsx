@@ -38,7 +38,7 @@ export default function PricesRowClientLogic({
       >
         {/* If price != offer, show both original and offer as strikethrough */}
         {prices.isDiscounted && <StrikethroughPrice val={prices.original} />}
-        <StrikethroughPrice val={prices.offer} />
+        <StrikethroughPrice val={prices.offer} color="#1d1d1d" />
         <span className="bold text-[#FF6200]">{prices.redeem}</span>
         <span>{currencySymbol}</span>
       </div>
@@ -60,14 +60,14 @@ export default function PricesRowClientLogic({
 }
 
 // Reusable UI for the strikethrough effect
-const StrikethroughPrice = ({ val }) => (
-  <span className="relative text-[#C4C2C2]">
+const StrikethroughPrice = ({ val, color = "#C4C2C2" }) => (
+  <span className={`relative text-[${color}]`}>
     <svg className="top-1/2 left-0 absolute" width="100%" height="2">
       <line
         x2="100%"
         transform="translate(0 1)"
         fill="none"
-        stroke="#C4C2C2"
+        stroke={color}
         strokeWidth="2"
       />
     </svg>

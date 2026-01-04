@@ -32,14 +32,14 @@ import { getCookie } from "utils/cookies/cookie-manager";
 import SearchParamUpdater from "components/global/ParamsUpdater";
 import CartSkeleton from "components/skeleton/CartSkeleton";
 
-const CartProvider = () => {
+const CartProvider = ({ language }) => {
   const {
     enableCart,
     disableAddToCartOption,
     setEnableSearch,
     setLoginOpen,
     setSelectedStory,
-
+    setAppLanguage,
     setCurrency,
     setChatOpen,
     filterEnabled,
@@ -104,6 +104,7 @@ const CartProvider = () => {
         }
       }
     });
+    setAppLanguage(language);
   }, []);
 
   useEffect(() => {

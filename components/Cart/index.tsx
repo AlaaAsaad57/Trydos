@@ -771,7 +771,13 @@ export const QuantutyInput = ({
             product.price !== product.offer_price ? (
               <>
                 <div className="flex-col" data-cy="Subdivisions">
-                  <div className="flex-row" data-cy="newOld-price">
+                  <div
+                    className="flex-row gap-[4px]"
+                    style={{
+                      direction: isRtl ? "rtl" : "ltr",
+                    }}
+                    data-cy="newOld-price"
+                  >
                     <div
                       className="product-old-price text-[18px] text-[#C4C2C2] regular"
                       data-cy="oldPrice-container"
@@ -803,7 +809,7 @@ export const QuantutyInput = ({
                     <div
                       className={`${
                         (product as any)?.is_redeem && "text-[#FF6200]"
-                      } product-new-price text-[18px] bold`}
+                      } product-new-price text-[18px] bold m-0`}
                       data-cy="new-price"
                     >
                       {RoundPrice({
@@ -814,7 +820,7 @@ export const QuantutyInput = ({
                       })}
                     </div>
                     <div
-                      className="product-currency text-[8px] light text-[#1D1D1D]"
+                      className="product-currency text-[8px] light text-[#1D1D1D] m-0"
                       data-cy="currency-symbol"
                     >
                       {currency?.symbol}
@@ -872,6 +878,7 @@ export const CartItemLink = ({ normalHeight = "191px", product, children }) => {
   const pathname = usePathname();
   let lang = params.lang;
   const isRtl = language === "ar" || language === "ku";
+
   const getURLOfProduct = ({ product }) => {
     let productUrl;
     const hasValidColor =

@@ -14,9 +14,8 @@ import AuthNavContainer from "components/Home/AuthNavContainer";
 import VersionChecker from "components/global/VersionChecker";
 import NavbarClient from "components/Home/NavbarClient";
 import dynamic from "next/dynamic";
-const PageLoadingIndicator = dynamic(
-  () => import("hooks/PageLoadingIndicator")
-);
+import PageLoadingIndicator from "hooks/PageLoadingIndicator";
+
 export const metadata = {
   title: "TryDos",
   description: "TryDos E-Commerce Website",
@@ -68,7 +67,7 @@ const quicksand_semibold = localFont({
 
 export default async function RootLayout({ params, children }) {
   const { lang } = await params;
-
+  const [country, language] = lang.split("-");
   return (
     <html
       className={`
@@ -134,7 +133,7 @@ export default async function RootLayout({ params, children }) {
 
         <VersionChecker />
         <NavbarClient />
-        <CartProvider />
+        <CartProvider language={language} />
         <NotificationsContainer />
         <PathTracker />
         <SessionChecker />
