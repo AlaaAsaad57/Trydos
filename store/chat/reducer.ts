@@ -862,7 +862,6 @@ export const useChatStore = (set, get) => ({
   },
 
   openChat: (payload: any) => {
-    console.log(payload);
     const state = get();
     if (
       payload &&
@@ -1438,7 +1437,7 @@ export const useChatStore = (set, get) => ({
   },
   deleteErrorMessage: (payload: any) => {
     const state = get();
-    console.log(payload);
+
     if (
       state.data.filter((chat) => parseInt(chat.id) === parseInt(payload.ch_id))
         .length > 0
