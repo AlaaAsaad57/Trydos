@@ -38,6 +38,7 @@ import { Suspense } from "react";
 import ProductPhotosSkeleton from "components/skeleton/product/ProductPhotosSkeleton";
 import ProductNameAndBrandSkeleton from "components/skeleton/product/ProductNameAndBrandSkeleton";
 import Skeleton from "react-loading-skeleton";
+import { redirect } from "node_modules/next/navigation";
 
 export async function generateMetadata({ params, searchParams }) {
   let [Params, SearchParams] = await Promise.all([params, searchParams]);
@@ -51,7 +52,7 @@ export async function generateMetadata({ params, searchParams }) {
     });
 
     // @ts-ignore
-    if (metaData?.error) {
+    if (metaData?.error || !metaData) {
       // @ts-ignore
       throw new Error(metaData?.error);
     }
@@ -59,7 +60,7 @@ export async function generateMetadata({ params, searchParams }) {
 
     return metaData;
   } catch (error) {
-    return {};
+    redirect(`/${country}-${language}?message=product_not_found`);
   }
 }
 

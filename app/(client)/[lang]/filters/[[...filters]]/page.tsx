@@ -3,7 +3,6 @@ export const dynamic = "force-dynamic";
 import BackIcon from "public/svg/listing/backIcon";
 import SortIcon from "public/svg/listing/sortIcon";
 import { redirect } from "next/navigation";
-import { Suspense } from "react";
 import NextLink from "components/global/NextLink";
 import "styles/listing-components.css";
 import ShareBoutiquePageButton from "components/filterPage/ShareBoutiquePageButton";

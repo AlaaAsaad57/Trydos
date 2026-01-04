@@ -1,12 +1,12 @@
 "use client";
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 
 import ProductItem from "./Results/ProductItem";
 import BrandItem from "./Results/BrandItem";
 import CategoryItem from "./Results/CategoryItem";
 import BoutiqueItem from "./Results/BoutiqueItem";
 import { onClickSearchHistory, translateFunction } from "utils/functions";
-import { useParams, useSearchParams } from "next/navigation";
+import { useParams } from "next/navigation";
 import Spinner from "components/global/Spinner";
 
 import { useAppStore } from "store";
@@ -34,7 +34,6 @@ function SearchResults() {
     setResettingLoadMore,
     resetLoadingMore,
   } = useAppStore();
-  const searchParams = useSearchParams();
 
   const showFilterBar = () => {
     return (

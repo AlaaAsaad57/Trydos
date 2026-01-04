@@ -8,6 +8,7 @@ import { elasticSearchClient } from "services/elastic/elasticsearch.config";
 import { BuyersCommentItem } from "components/Server/product/ProductBuyersComment/BuyerCommentItem";
 import { cookies } from "next/headers";
 import FaqItemComponent from "components/Server/product/ProductFAQSection/FaqItemComponent";
+
 let client = elasticSearchClient;
 export async function GetGlobalProduct({ slug, country, language }) {
   try {
@@ -45,6 +46,7 @@ export async function GetGlobalProduct({ slug, country, language }) {
     }
     return { ...freshGlobalData.data?.data, globalFromRedis: false };
   } catch (error) {
+    return { error };
     // log error
   }
 }

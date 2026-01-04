@@ -1,22 +1,15 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import SearchHistory from "./SearchHistory";
 import SearchTrending from "./SearchTrending";
 import SearchResults from "./SearchResults";
 import search from "services/search";
-import { Suspense } from "react";
+
 import { useAppStore } from "store";
-import {
-  useParams,
-  usePathname,
-  useRouter,
-  useSearchParams,
-} from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import SearchParamUpdater from "components/global/ParamsUpdater";
 
 function SearchContainer({ active }) {
-  const router = useRouter();
-  const pathname = usePathname();
   const { setSearchWord, value, setTrendingSearch } = useAppStore();
   const [searchHistoryItems, setSearchHistory] = useState([]);
   const { lang } = useParams();

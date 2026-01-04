@@ -39,8 +39,8 @@ async function StoriesBarServer({ language, country }: StoriesBarServerProps) {
     } else {
       storiesData = await fetchStoriesForGuest(language, country, 1);
     }
-    storiesData = storiesData.data;
     next_page_url = storiesData.next_page_url;
+    storiesData = storiesData.data;
 
     let end = process.hrtime.bigint();
     let userData = await getCookieServer<UserData>(COOKIE_NAMES.USER_STORIES);
