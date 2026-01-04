@@ -26,7 +26,10 @@ function ProductDetailsSlider({
 
   useEffect(() => {
     let elements;
-    if (resetLoader) setIsNavigating(null);
+    if (resetLoader) {
+      EnableScroll();
+      setIsNavigating(null);
+    }
 
     if (resetLoader) {
       elements = document.querySelectorAll(".product-slider-images");
