@@ -10,6 +10,7 @@ async function ProductExtendedSliderWrapper({
   return (
     <Suspense fallback={<></>}>
       <ProductDetailsSlider
+        key={color}
         resetLoader={true}
         productGA={{
           item_id: globalDetails.id,

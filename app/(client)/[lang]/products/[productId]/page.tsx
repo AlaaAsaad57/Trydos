@@ -91,7 +91,10 @@ async function Page({ params, searchParams }) {
           className="product-details-slider mt-[12px] relative h-[474px] max-h-[474px]"
           key={`key-${color ?? slug}`}
         >
-          <Suspense fallback={<ProductPhotosSkeleton isRtl={isRtl} />}>
+          <Suspense
+            fallback={<ProductPhotosSkeleton isRtl={isRtl} />}
+            key={color}
+          >
             {/*@ts-expect-error Async Server Component is valid in Next  */}
             <ProductPhotoSliderWrapper
               color={color}
@@ -105,6 +108,7 @@ async function Page({ params, searchParams }) {
         <Suspense fallback={<></>}>
           {/*@ts-expect-error Async Server Component is valid in Next  */}
           <ProductExtendedSliderWrapper
+            key={color}
             color={color}
             globalPromise={GlobalData}
             language={language}
