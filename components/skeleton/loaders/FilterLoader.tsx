@@ -10,7 +10,7 @@ function FilterLoader({
 }) {
   const getOffset = () => {
     let element =
-      document?.querySelector?.(".boutique-header")?.clientHeight + 150;
+      document?.querySelector?.(".boutique-header")?.clientHeight + 120;
     return element;
   };
   return (

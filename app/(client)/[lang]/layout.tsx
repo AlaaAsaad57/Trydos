@@ -133,7 +133,7 @@ export default async function RootLayout({ params, children }) {
 
         <VersionChecker />
         <NavbarClient />
-        <CartProvider language={language} />
+        <CartProvider language={language} country={country} />
         <NotificationsContainer />
         <PathTracker />
         <SessionChecker />

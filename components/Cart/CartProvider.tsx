@@ -32,7 +32,7 @@ import { getCookie } from "utils/cookies/cookie-manager";
 import SearchParamUpdater from "components/global/ParamsUpdater";
 import CartSkeleton from "components/skeleton/CartSkeleton";
 
-const CartProvider = ({ language }) => {
+const CartProvider = ({ language, country }) => {
   const {
     enableCart,
     disableAddToCartOption,
@@ -40,6 +40,7 @@ const CartProvider = ({ language }) => {
     setLoginOpen,
     setSelectedStory,
     setAppLanguage,
+    setAppCountry,
     setCurrency,
     setChatOpen,
     filterEnabled,
@@ -105,6 +106,7 @@ const CartProvider = ({ language }) => {
       }
     });
     setAppLanguage(language);
+    setAppCountry(country);
   }, []);
 
   useEffect(() => {

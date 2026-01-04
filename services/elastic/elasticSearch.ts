@@ -277,7 +277,6 @@ export async function getProductsAndFiltersFromElastic(
         productsWithFilters.custom_products,
         filters
       );
-
       sortColorsByFilteredColor(productsWithFilters.custom_products, filters);
     }
     // Normalize products

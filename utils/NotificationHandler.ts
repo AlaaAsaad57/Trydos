@@ -899,14 +899,14 @@ export const foregroundNotificationHandler =
 function getMessageNotificationPreview(messageType: string) {
   switch (messageType) {
     case "ImageMessage":
-      return translateFunction("Sent an image");
+      return translateFunction("image");
     case "VideoMessage":
-      return translateFunction("Sent a video");
+      return translateFunction("video");
     case "VoiceMessage":
-      return translateFunction("Sent a voice message");
+      return translateFunction("voice message");
     case "FileMessage":
-      return translateFunction("Sent a file");
+      return translateFunction("file");
     default:
-      return translateFunction("Sent a message");
+      return translateFunction("message");
   }
 }

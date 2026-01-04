@@ -5,6 +5,7 @@ import { DebounceInput } from "react-debounce-input/src";
 import { useParams, useRouter } from "next/navigation";
 import { buildParamsFromFilters, pollinateInput } from "utils/tinyUtils";
 import { SearchBoutiquePageProps } from "models/componentType/boutiqueTypes/SearchBoutiquePageProps";
+import { useAppStore } from "store";
 function SearchBoutiquePage({
   search_text,
   parsedFilters,
@@ -45,11 +46,11 @@ function SearchBoutiquePage({
         pathParams.length > 0
           ? `/${lang}/filters/${pathParams.join("/")}`
           : `/${lang}/filters`;
-      // const { setIsNavigating } = useAppStore.getState();
-      // setIsNavigating({
-      //   is_filter_search: true,
-      //   href: newPath,
-      // });
+      const { setIsNavigating } = useAppStore.getState();
+      setIsNavigating({
+        is_filter_search: true,
+        href: newPath,
+      });
       router.push(newPath);
     } catch (error) {
       console.error(error);

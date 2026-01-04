@@ -50,6 +50,7 @@ function ProductItem({ product, onClick, index }) {
         ariaLabel={`Product ${product.slug} ${lang}`}
         href={`/${lang}/products/${product.slug}`}
         data={{ ...product, is_product: true }}
+        className="w-full"
         data-cy="product-result-link"
       >
         <div
