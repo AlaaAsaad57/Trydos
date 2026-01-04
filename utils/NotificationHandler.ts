@@ -303,6 +303,14 @@ class ForegroundNotificationHandler {
           setUserAnswerCall();
         }
         if (payload.data.type === "VoiceCallEvent") {
+          let Private = {};
+          if (JSON.parse(payload.data.data)?.is_private) {
+            Private = {
+              name: "Deleivery Worker",
+              photo_path: null,
+              channel_name: "Deleivery Worker",
+            };
+          }
           try {
             if (call) {
               InCall(
@@ -319,6 +327,7 @@ class ForegroundNotificationHandler {
                   )[0]
                 : {
                     id: JSON.parse(payload.data.data).message.channel.id,
+
                     messages: [
                       {
                         ...JSON.parse(payload.data.data).message,
@@ -327,17 +336,20 @@ class ForegroundNotificationHandler {
                     ],
                     channel_members: [
                       {
-                        user_id: data.user_id,
+                        user_id: JSON.parse(payload.data.data).user?.id,
                         user: {
-                          id: data.user_id,
+                          id: JSON.parse(payload.data.data).user?.id,
                           name: JSON.parse(payload.data.data).message.channel
                             .channel_name,
                           photo_path: JSON.parse(payload.data.data).message
                             .channel.photo_path,
+                          ...Private,
                         },
+                        ...Private,
                         mute: 0,
                         pin: 0,
                         archived: 0,
+                        ...Private,
                       },
                       {
                         mute: 0,
@@ -347,8 +359,14 @@ class ForegroundNotificationHandler {
                         user: getUserChat(),
                       },
                     ],
+                    ...Private,
+                    isPrivate: true,
                   };
-              let caller = { ...JSON.parse(payload.data.data).message.channel };
+              let caller = {
+                ...JSON.parse(payload.data.data).message.channel,
+                ...Private,
+                isPrivate: true,
+              };
 
               if (
                 data.user_id !== getUserChat()?.id &&
@@ -397,6 +415,7 @@ class ForegroundNotificationHandler {
                   message_type: { name: "VoiceCall" },
                   message_status: [],
                 },
+                isPrivate: JSON.parse(payload.data.data)?.is_private,
               });
             }
             resolve(payload);
@@ -404,6 +423,14 @@ class ForegroundNotificationHandler {
             console.error(error);
           }
         } else if (payload.data.type === "VideoCallEvent") {
+          let Private = {};
+          if (JSON.parse(payload.data.data)?.is_private) {
+            Private = {
+              name: "Deleivery Worker",
+              photo_path: null,
+              channel_name: "Deleivery Worker",
+            };
+          }
           if (call) {
             InCall(
               JSON.parse(payload.data.data).message.channel.id,
@@ -427,14 +454,16 @@ class ForegroundNotificationHandler {
                   ],
                   channel_members: [
                     {
-                      user_id: data.user_id,
+                      user_id: JSON.parse(payload.data.data).user?.id,
                       user: {
-                        id: data.user_id,
+                        id: JSON.parse(payload.data.data).user?.id,
                         name: JSON.parse(payload.data.data).message.channel
                           .channel_name,
                         photo_path: JSON.parse(payload.data.data).message
                           .channel.photo_path,
+                        ...Private,
                       },
+                      ...Private,
                       mute: 0,
                       pin: 0,
                       archived: 0,
@@ -447,8 +476,14 @@ class ForegroundNotificationHandler {
                       user: getUserChat(),
                     },
                   ],
+                  ...Private,
+                  isPrivate: true,
                 };
-            let caller = { ...JSON.parse(payload.data.data).message.channel };
+            let caller = {
+              ...JSON.parse(payload.data.data).message.channel,
+              ...Private,
+              isPrivate: true,
+            };
             if (
               data.user_id !== getUserChat()?.id &&
               (!callInProgress || callInProgress === 2)
@@ -495,6 +530,7 @@ class ForegroundNotificationHandler {
                 message_type: { name: "VideoCall" },
                 message_status: [],
               },
+              isPrivate: JSON.parse(payload.data.data)?.is_private,
             });
             resolve(payload);
           }

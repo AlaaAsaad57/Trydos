@@ -8,7 +8,7 @@ import { useParams } from "next/navigation";
 import { useAppStore } from "store";
 import ChatPhoto from "./ChatPhoto";
 import { requestPermissions } from "utils/tinyUtils";
-import { showSuccessNotification } from "store/notifications/reducer";
+
 function CallComponent(props) {
   const {
     caller,

@@ -560,6 +560,7 @@ export const useChatStore = (set, get) => ({
   },
 
   watchChannelEvent: (payload: number) => {
+    if (!payload) return;
     const state = get();
     const id = parseInt(payload.toString());
     let newChats = [];
@@ -756,6 +757,7 @@ export const useChatStore = (set, get) => ({
   },
 
   receiveChannelEvent: (payload: number | string) => {
+    if (!payload) return;
     const state = get();
     const id = parseInt(payload.toString());
 
@@ -927,6 +929,8 @@ export const useChatStore = (set, get) => ({
     } else {
       let PrivateChannel = null;
       if (payload.isPrivate) {
+        if (!state?.activeChat) return;
+        if (String(state?.activeChat?.id) !== String(ac?.id)) return;
         PrivateChannel = state.activeChat;
         PrivateChannel.messages.push(payload.message);
         set({
@@ -1171,20 +1175,20 @@ export const useChatStore = (set, get) => ({
     const state = get();
     let arr = [];
     let active = state.activeChat;
-    if (!state.data.find((s) => s.id === payload.ch)) {
+    if (!state.data.find((s) => String(s.id) === String(payload.ch))) {
       let mrr = [];
       payload.mes.forEach((m) => {
-        if (mrr.filter((s) => s.id === m.id).length === 0) {
+        if (mrr.filter((s) => String(s.id) === String(m.id)).length === 0) {
           mrr = [m, ...mrr];
         }
       });
       active?.messages.forEach((m) => {
-        if (mrr.filter((s) => s.id === m.id).length === 0) {
+        if (mrr.filter((s) => String(s.id) === String(m.id)).length === 0) {
           mrr.push(m);
         }
       });
       set({
-        activeChat: active,
+        activeChat: { ...active, messages: mrr },
         fetch: true,
         searchChat: {
           ...state.searchChat,
@@ -1193,6 +1197,7 @@ export const useChatStore = (set, get) => ({
         first: false,
         mid: payload.mes.length === 0 ? null : state.mid,
       });
+
       return;
     }
     state.data.forEach((ch) => {

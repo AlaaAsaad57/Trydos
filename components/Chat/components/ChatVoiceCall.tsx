@@ -234,6 +234,7 @@ function ChatVoiceCall({ token }) {
       )?.user || null
     );
   }, [activeChat?.channel_members, userData?.id]);
+  console.log(activeChat);
   return (
     <>
       {
