@@ -6,7 +6,6 @@ import PenIcon from "public/svg/PenIcon";
 import React, { useEffect, useRef, useState } from "react";
 import { translateFunction } from "utils/functions";
 import { REQUESTS_DATA } from "utils/Requests";
-import ThreePointsIcon from "public/svg/threepoints";
 import { fetchData } from "utils/fetchData";
 import { useAppStore } from "store";
 
@@ -102,11 +101,11 @@ function BuyersCommentMenu({
         <div
           ref={menuRef}
           style={{
-            right: isRtl ? "initial" : "10px",
-            left: isRtl ? "10px" : "initial",
+            left: isRtl ? "initial" : "50px",
+            right: isRtl ? "50px" : "initial",
           }}
           className={`${
-            isOwner ? "top-[0px]" : "top-[20px]"
+            isOwner ? "bottom-[0px]" : "bottom-[20px]"
           }  absolute z-[80]   bg-white border border-gray-200 rounded-lg shadow-lg py-1 min-w-[120px]`}
         >
           <button
@@ -164,12 +163,12 @@ function BuyersCommentMenu({
       )}
       {!BuyerCommentModalOption && (
         <div
-          className="comment-menu-btn absolute z-50 top-[45px] cursor-pointer flex items-center justify-center w-[20px] h-[20px]"
+          className="comment-menu-btn absolute z-50 bottom-[4px] cursor-pointer flex items-center justify-center w-[20px] h-[20px]"
           style={{
             borderRadius: "50%",
             transition: "background-color 0.2s ease",
-            right: isRtl ? "initial" : "10px",
-            left: isRtl ? "10px" : "initial",
+            left: isRtl ? "initial" : "50px",
+            right: isRtl ? "50px" : "initial",
           }}
           onClick={handleMenuToggle}
           onKeyDown={(e) => {
@@ -179,11 +178,56 @@ function BuyersCommentMenu({
           role="button"
           aria-label="Comment options menu"
         >
-          <ThreePointsIcon
+          <svg
             style={{
               filter: "drop-shadow(0px 1px 2px rgba(0,0,0,0.1))",
             }}
-          />
+            xmlns="http://www.w3.org/2000/svg"
+            width="24px"
+            height="24px"
+            viewBox="0 0 24 24"
+            id="three-dots"
+          >
+            <g
+              id="_20x20_three-dots--grey"
+              data-name="20x20/three-dots--grey"
+              transform="translate(24) rotate(90)"
+            >
+              <rect id="Rectangle" width="24" height="24" fill="none" />
+              <circle
+                id="Oval"
+                cx="1"
+                cy="1"
+                r="1"
+                transform="translate(5 11)"
+                stroke="#000000"
+                stroke-miterlimit="10"
+                stroke-width="0.5"
+              />
+              <circle
+                id="Oval-2"
+                data-name="Oval"
+                cx="1"
+                cy="1"
+                r="1"
+                transform="translate(11 11)"
+                stroke="#000000"
+                stroke-miterlimit="10"
+                stroke-width="0.5"
+              />
+              <circle
+                id="Oval-3"
+                data-name="Oval"
+                cx="1"
+                cy="1"
+                r="1"
+                transform="translate(17 11)"
+                stroke="#000000"
+                stroke-miterlimit="10"
+                stroke-width="0.5"
+              />
+            </g>
+          </svg>
         </div>
       )}
     </>
