@@ -28,7 +28,7 @@ function StoryElement({ index, story, userData }: StoryElementPropsType) {
           index={1}
           media={
             story.stories.filter((s) => s.is_seen === false)?.[0] ??
-            story.stories[0]
+            story.stories[story.stories?.length - 1]
           }
           Name={story.name ?? story.mobile_phone ?? "Unknown"}
           story={story}

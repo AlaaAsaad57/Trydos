@@ -1,5 +1,4 @@
 "use client";
-
 import PlusIcon from "public/svg/chatplus";
 import { useAppStore } from "store";
 import {
@@ -18,6 +17,7 @@ function AddStory() {
     setLoginOpen,
     user,
   } = useAppStore();
+
   const handleClick = () => {
     if (userStories || !userStories?.need_auth) {
       const user = getCookie<UserData>(COOKIE_NAMES.USER_DATA);

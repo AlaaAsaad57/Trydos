@@ -124,8 +124,6 @@ class StoryService {
     endUpload: Function,
     link
   ) {
-    const { language, country, userStories, setStoryData } =
-      useAppStore.getState();
     try {
       let response = await this.UploadToCloudinary(file);
       const add_story_response: UploadStoryApi = await fetchData({
@@ -145,18 +143,6 @@ class StoryService {
         // @ts-ignore
         throw new Error(add_story_response.message);
       }
-
-      await fetch("/api/revalidate");
-      let req = await fetch("/api/stories?page=1", {
-        headers: {
-          lang: language,
-          coountry: country,
-          auth: userStories?.access_token,
-        },
-        credentials: "omit",
-      });
-      let stories = await req.json();
-      setStoryData(stories.data);
       endUpload();
 
       if (add_story_response.data) {
