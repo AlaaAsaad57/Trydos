@@ -61,7 +61,7 @@ const WebcamCapture = ({ imgs, send, setImgs, imageFile, close }) => {
     <>
       {imageFile.current && imageFile.current !== "null" ? (
         <>
-          <div className="fixed bottom-[20px] left-[10px] w-full flex items-center justify-around z-[99999999999]">
+          <div className="fixed bottom-[50px] left-[10px] w-full flex items-center justify-around z-[99999999999]">
             <button className="w-[50px] opacity-0 h-[50px] cursor-pointer rounded-full bg-[#dddddd] p-[10px] flex items-center justify-center shadow-[0_3px_6px_#0000002a]">
               <svg
                 version="1.1"
@@ -161,7 +161,7 @@ const WebcamCapture = ({ imgs, send, setImgs, imageFile, close }) => {
             width={430}
             videoConstraints={webcamTypeRef.current}
           />
-          <div className="fixed bottom-[20px] xs:bottom-[80px] left-[10px] w-full flex items-center justify-around z-[99999999999]">
+          <div className="fixed bottom-[50px] xs:bottom-[80px] left-[10px] w-full flex items-center justify-around z-[99999999999]">
             {twoCameras ? (
               <button
                 className="w-[50px] h-[50px] cursor-pointer rounded-full bg-[#dddddd] p-[10px] flex items-center justify-center shadow-[0_3px_6px_#0000002a]"

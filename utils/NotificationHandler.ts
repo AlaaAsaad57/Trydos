@@ -564,7 +564,10 @@ class ForegroundNotificationHandler {
           }
           // Handle private messages differently
 
-          if (JSON.parse(payload.data.data)?.is_private === true) {
+          if (
+            JSON.parse(payload.data.data)?.is_private === true ||
+            JSON.parse(payload.data.data)?.is_private === 1
+          ) {
             if (
               parseInt(activeChat?.id) !==
               parseInt(JSON.parse(payload?.data.data)?.message?.channel_id)
@@ -587,20 +590,7 @@ class ForegroundNotificationHandler {
                   messageData?.id
                 }`
               );
-              // showSuccessNotification(
-              //   translateFunction(
-              //     "You Have New Messages From Deleivery Worker..click for more"
-              //   ),
-              //   10000,
-              //   `/${country}-${language}/setting?tab=Orders&id=${
-              //     JSON.parse(payload.data.data).order_group_id
-              //   }&order_id_chat=${
-              //     JSON.parse(payload.data.data)?.parent_order_id ??
-              //     JSON.parse(payload?.data?.data)?.order_id
-              //   }&chat_id=${JSON.parse(payload?.data?.data)?.order_id}`,
-              //   JSON.parse(payload.data.data)?.parent_order_id ??
-              //     JSON.parse(payload?.data?.data)?.order_id
-              // );
+
               const parsedData = JSON.parse(payload?.data?.data);
               const newItem = {
                 order_id: parsedData?.parent_order_id ?? parsedData?.order_id,

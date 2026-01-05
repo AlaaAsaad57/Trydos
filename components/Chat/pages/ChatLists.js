@@ -8,6 +8,7 @@ import { GetLastSeen } from "store/chat/actions";
 import Skeleton from "react-loading-skeleton";
 import { useAppStore } from "store";
 import GetMoreChats from "../components/GetMoreChats";
+import { useState } from "react";
 function ChatLists(props) {
   const {
     data: chats,
@@ -19,7 +20,7 @@ function ChatLists(props) {
     activeChat,
     forwarded_message,
   } = useAppStore();
-
+  const [hasMore, setHasMore] = useState(true);
   const handleClick = (e) => {
     if (true) {
       let friendId = e.channel_members.filter(
@@ -171,7 +172,9 @@ function ChatLists(props) {
                     />
                   );
                 })}
-              <GetMoreChats />
+              {chats.length >= 10 && hasMore && (
+                <GetMoreChats hasMore={hasMore} setHasMore={setHasMore} />
+              )}
             </>
           ) : (
             <>

@@ -258,10 +258,15 @@ export const RefuseCall = async (channelId, messageId, duration) => {
 };
 export const Answer = async (channelId, messageId) => {
   try {
-    let obj =
+    let obj: any =
       typeof channelId === "string" && channelId.includes("ch")
         ? { receiver_user_id: parseInt(channelId.split("ch-")[1]) }
         : { channel_id: channelId };
+
+    let fcm = localStorage.getItem("FB-DEVICE-TOKEN");
+    if (fcm) {
+      obj = { ...obj, fcm_token: fcm };
+    }
     const response = await fetchData({
       url: `/api/v1/messages/answer_call/${messageId}`,
       body: JSON.stringify({ ...obj }),
