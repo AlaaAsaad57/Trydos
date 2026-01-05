@@ -41,6 +41,8 @@ async function HomePage({ params, searchParams }) {
   let [Params, query] = await Promise.all([params, searchParams]);
   let lang = Params.lang;
   let mainCategory = query?.mainCategory || null;
+  let search=query?.search;
+  const isSearchOpen = search === 'true';
   const [country, language] = lang.split("-");
   let currency = getCurrency(country, language);
   const isRtl = language === "ar" || language === "ku";
@@ -94,6 +96,9 @@ async function HomePage({ params, searchParams }) {
             lang={lang}
             mainCategory={mainCategory}
           />
+        </Suspense>
+        <Suspense fallback={<></>}>
+            <SearchContainerWrapper isOpen={isSearchOpen} />
         </Suspense>
         <Home key={`Home ${lang}`} />
         <Suspense
