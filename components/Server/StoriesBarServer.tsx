@@ -1,7 +1,4 @@
 import AddStory from "components/Home/AddStory";
-
-
-import StoryElement from "components/Home/Stories/StoryElement";
 import StoriesSkeleton from "components/skeleton/StoriesSkeleton";
 import { fetchStoriesForGuest, fetchStoriesForUser } from "@/serverRequests";
 import {
