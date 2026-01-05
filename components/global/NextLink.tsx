@@ -36,6 +36,7 @@ export default function NextLink({
       <Link
         suppressHydrationWarning
         className={className}
+        data-cy={props["data-cy"] ?? ""}
         style={style}
         prefetch={true}
         href={href}
@@ -77,6 +78,7 @@ export default function NextLink({
       suppressHydrationWarning
       className={className}
       style={style}
+      data-cy={props["data-cy"] ?? ""}
       prefetch={true}
       onNavigate={(e) => {
         DisableScroll();
