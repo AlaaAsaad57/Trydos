@@ -1,6 +1,6 @@
 import AddStory from "components/Home/AddStory";
 
-import StoriesStoreInitializer from "components/Home/Stories/StoriesStoreInitializer";
+
 import StoryElement from "components/Home/Stories/StoryElement";
 import StoriesSkeleton from "components/skeleton/StoriesSkeleton";
 import { fetchStoriesForGuest, fetchStoriesForUser } from "@/serverRequests";
