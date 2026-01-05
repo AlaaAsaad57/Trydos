@@ -5,7 +5,9 @@ import { useEffect } from "react";
 
 import { translateFunction } from "utils/functions";
 const NameModal = dynamic(() => import("components/global/NameModal"));
+
 import StoryServiceClass from "services/story";
+import SearchContainer from "./Search/SearchContainer";
 import { useAppStore } from "store";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
@@ -21,7 +23,7 @@ export default function Home() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const { resetFilters, nameModal } =
+  const { resetFilters, selectedStory, enable_search, nameModal } =
     useAppStore();
   useEffect(() => {
     deleteCookie("last-page");
@@ -73,7 +75,7 @@ export default function Home() {
     <>
       {getNameModalOpen() && <NameModal />}
 
-   
+      {enable_search && <SearchContainer active={enable_search} />}
     </>
   );
 }
