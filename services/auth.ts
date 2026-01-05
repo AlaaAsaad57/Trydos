@@ -1,6 +1,6 @@
 import { useAppStore } from "store";
 import Smartlook from "smartlook-client";
-import { _isStoreLastJson, translateFunction } from "utils/functions";
+import { _isStoreLastJson, LogError, translateFunction } from "utils/functions";
 import { SEND_OTP } from "utils/endpointConfig";
 import ChatService from "services/chat";
 import StoryService from "services/story";
@@ -95,7 +95,17 @@ class AuthService {
       if (response?.isSuccessful === false && !response.success) {
         throw new Error("Wrong Code", response?.message);
       }
-
+      if (response?.is_failed) {
+        LogError({
+          source: "login server api",
+          userId: response.data?.user?.id,
+          error: response.is_failed,
+          page: window.location.href,
+          url: "/auth/login",
+          method: "POST",
+          body: response.is_failed,
+        });
+      }
       setCookie(COOKIE_NAMES.MARKET_TOKEN, response.data.token);
 
       setCookie(COOKIE_NAMES.USER_DATA, {
