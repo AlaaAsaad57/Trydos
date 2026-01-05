@@ -4,9 +4,8 @@ import profilePicture from "public/images/profileNo.png";
 import { GetUnviewedStory } from "store/homepage/actions";
 import { getConfiguredImage } from "utils/functions";
 import { GetImageUrl } from "utils/tinyUtils";
-import { StoryElementPropsType } from "models/componentType/StoryElementPropsType";
 
-function StoryElement({ index, story, userData }: StoryElementPropsType) {
+function StoryElement({ index, story, userData }) {
   if (String(userData?.id) === String(story?.id))
     return (
       <div className="min-w-[100px] relative w-[100px] h-[150px] rounded-[20px] flex">

@@ -4,7 +4,7 @@ import Spinner from "./Spinner";
 import { useParams } from "next/navigation";
 import { GA_EVENT_NAMES, GA_GLOBAL_SCREEN } from "utils/GAEvents";
 import { GAevent } from "utils/gtag";
-import { InfinteScrollPropsType } from "models/componentType/InfinteScrollPropsType";
+
 import { useAppStore } from "store";
 import { GetNextBoutiques } from "serverRequests/home";
 const useInfiniteScroll = (fetchNextPage) => {
@@ -29,10 +29,7 @@ const useInfiniteScroll = (fetchNextPage) => {
     };
   }, [fetchNextPage]);
 };
-function InfinteScroll({
-  offsetVariable,
-  mainCategory = null,
-}: InfinteScrollPropsType) {
+function InfinteScroll({ offsetVariable, mainCategory = null }) {
   const [boutiques, setBoutiques] = useState([]);
   const [offset, setOffset] = useState<any>(offsetVariable);
   const [loading, setLoading] = useState(false);

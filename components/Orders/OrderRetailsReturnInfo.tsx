@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import { OrderDetail } from "types/orders";
-import { RoundPrice, translateFunction } from "utils/functions";
+
+import { translateFunction } from "utils/functions";
 import MiniReturnIcon from "public/svg/MiniReturnIcon";
 import ClockIcon from "public/svg/ClockIcon";
 import Timer from "components/Login/Timer";
@@ -14,7 +14,7 @@ function OrderRetailsReturnInfo({
   callback,
   price,
 }: {
-  product: OrderDetail;
+  product: any;
   return_request_id: number;
   callback: () => void;
   price: number | string;

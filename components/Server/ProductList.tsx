@@ -2,8 +2,6 @@ import "styles/listing.css";
 import "styles/globals.css";
 
 import ProductsInfiniteScroll from "components/ListingPage/ProductInfiniteScroll";
-import { ProductListServerPropsType } from "models/componentType/boutiqueTypes/ProductListServerPropsType";
-
 import ProductWrapper from "components/ServerWrapper/ProductWrapper";
 
 function ProductListServer({
@@ -15,7 +13,7 @@ function ProductListServer({
   isFeatured = false,
   isFlashDeals = false,
   boutique,
-}: ProductListServerPropsType) {
+}: any) {
   let [country, language] = params.lang.split("-");
   const isRtl = language === "ar" || language === "ku";
   return (

@@ -11,7 +11,7 @@ import CancelOrderIcon from "public/svg/OrderCancelIcon";
 import CancelOrderItem from "./CancelOrderItem";
 import ChangeOrderItem from "./ChangeOrderItem";
 import { GetImageUrl } from "utils/tinyUtils";
-import { OrderItemOptionsModalPropsType } from "models/componentType/OrderItemOptionsModalPropsType";
+
 import order from "services/order";
 import { showErrorNotification } from "store/notifications/reducer";
 import Spinner from "components/global/Spinner";
@@ -25,7 +25,7 @@ function OrderItemOptionsModal({
   setShouldConfirmChange,
   shouldConfirmChange,
   cancelOrderItem,
-}: OrderItemOptionsModalPropsType) {
+}: any) {
   const [activeWidget, setActiveWidget] = useState<
     "return" | "report" | "hide" | "main" | "cancel" | "ChangeRequest"
   >("main");
@@ -334,9 +334,6 @@ function OrderItemOptionsModal({
       return (
         <ChangeOrderItem
           shouldConfirmChange={shouldConfirmChange}
-          close={() => {
-            setActiveWidget("main");
-          }}
           backToMain={() => {
             setActiveWidget("main");
           }}

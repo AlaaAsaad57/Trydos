@@ -1,5 +1,5 @@
 import { useAppStore } from "store";
-import { OrdersResponse } from "../types/orders";
+
 import { fetchData } from "utils/fetchData";
 import { REQUESTS_DATA } from "utils/Requests";
 
@@ -7,7 +7,7 @@ export const fetchOrders = async (
   page: number,
   pageSize: number = 8,
   selectedStatus: string = ""
-): Promise<OrdersResponse> => {
+): Promise<any> => {
   try {
     const response = await fetchData({
       url: `/customer/order/list?offset=${page}&limit=${pageSize}${

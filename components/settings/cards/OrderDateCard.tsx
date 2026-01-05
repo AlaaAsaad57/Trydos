@@ -1,5 +1,3 @@
-import { OrderDateCardProps } from "models/componentType/settingTypes/OrderDetailsPropsType";
-import React from "react";
 import { translateFunction } from "utils/functions";
 
 const OrderDateCard = ({ time }) => {

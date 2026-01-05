@@ -22,10 +22,6 @@ import OrderSuccess from "./OrderSuccess";
 import { useParams } from "next/navigation";
 import { useAppStore } from "store";
 import { GetImageUrl } from "utils/tinyUtils";
-import { AddressOrderPropsType } from "models/componentType/AddressOrderPropsType";
-import { PaymentOrderPropsType } from "models/componentType/PaymentOrderPropsType";
-import { CreditInputPropsType } from "models/componentType/CreditInputPropsType";
-import { CryptoInputPropsType } from "models/componentType/CryptoInputPropsType";
 function PlaceOrderWidget() {
   const { orderData } = useAppStore();
 
@@ -117,7 +113,7 @@ const OrderCartItem = () => {
     </div>
   );
 };
-const AddressOrder = ({ success }: AddressOrderPropsType) => {
+const AddressOrder = ({ success }) => {
   const { addressLists, language } = useAppStore();
   const GetAddressString = (location) => {
     let str = "";
@@ -421,7 +417,7 @@ const AddressOrder = ({ success }: AddressOrderPropsType) => {
     </div>
   );
 };
-const PaymentOrder = ({ success }: PaymentOrderPropsType) => {
+const PaymentOrder = ({ success }) => {
   const {
     orderData,
     coupon_discount,
@@ -685,7 +681,7 @@ const TryDosWalletInput = ({ total }) => {
     </div>
   );
 };
-const CreditInput = ({ total }: CreditInputPropsType) => {
+const CreditInput = ({ total }) => {
   const { language } = useAppStore();
   const isRtl = language === "ar" || language === "ku";
 
@@ -717,7 +713,7 @@ const CreditInput = ({ total }: CreditInputPropsType) => {
     </div>
   );
 };
-const CryptoInput = ({ total }: CryptoInputPropsType) => {
+const CryptoInput = ({ total }) => {
   const { language } = useAppStore();
   const isRtl = language === "ar" || language === "ku";
   return (

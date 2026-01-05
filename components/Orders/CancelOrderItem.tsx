@@ -9,13 +9,13 @@ import {
 
 import CancelOrderItemIcon from "public/svg/OrderCancelIcon";
 import { GetImageUrl } from "utils/tinyUtils";
-import { CancelOrderItemPropsType } from "models/componentType/CancelOrderItemPropsType";
+
 function CancelOrderItem({
   item,
   backToMain,
   setShouldConfirmCancel,
   cancelOrderItem,
-}: CancelOrderItemPropsType) {
+}) {
   const { currency, language } = useAppStore();
   const [selectedOptions, setSelectedOptions] = useState([]);
   let options = [

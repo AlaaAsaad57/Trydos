@@ -10,12 +10,8 @@ import { useAppStore } from "store";
 import { useParams } from "next/navigation";
 import { GetAddressString } from "utils/tinyUtils";
 import { fetchCountries } from "utils/tinyUtils";
-import { PersonalInfoAddressPropsType } from "models/componentType/settingTypes/PersonalInfoAddressPropsType";
-function PersonalInfoAddress({
-  swipeToScreen,
-  goBack,
-  setIsActive,
-}: PersonalInfoAddressPropsType) {
+
+function PersonalInfoAddress({ swipeToScreen, goBack, setIsActive }: any) {
   const { setCountries, addressLists } = useAppStore();
   const { lang } = useParams();
   // @ts-ignore

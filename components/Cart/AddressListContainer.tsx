@@ -3,9 +3,7 @@ import { translateFunction } from "utils/functions";
 import AddAddressIcon from "public/svg/cart/AddAddress";
 import order from "services/order";
 import { useAppStore } from "store";
-import { AddressListContainerPropsType } from "models/componentType/AddressListContainerPropsType";
-import { DeleteIconPropsType } from "models/componentType/DeleteIconPropsType";
-import { EditIconPropsType } from "models/componentType/EditIconPropsType";
+
 export const GetAddressString = (location) => {
   if (!location) return "";
   let str = "";
@@ -36,11 +34,7 @@ export const GetAddressString = (location) => {
     str += ` | ${location?.building}`;
   return str;
 };
-function AddressListContainer({
-  closeSelect,
-  slideNext,
-  Delete,
-}: AddressListContainerPropsType) {
+function AddressListContainer({ closeSelect, slideNext, Delete }) {
   const { addressLists, initAddressForm, updateAddress, setDefaultAddress } =
     useAppStore();
 
@@ -257,7 +251,7 @@ function AddressListContainer({
 }
 
 export default AddressListContainer;
-const EditIcon = ({ address, onClick }: EditIconPropsType) => {
+const EditIcon = ({ address, onClick }) => {
   const { startUpdateAddress } = useAppStore();
 
   return (
@@ -335,7 +329,7 @@ const EditIcon = ({ address, onClick }: EditIconPropsType) => {
     </span>
   );
 };
-const DeleteIcon = ({ address, onClick }: DeleteIconPropsType) => {
+const DeleteIcon = ({ address, onClick }) => {
   return (
     <span
       onClick={() => {

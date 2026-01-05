@@ -1,6 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
 import { LogError, translateFunction } from "utils/functions";
-import { NotificationItem as NotificationItemType } from "../../types/notifications";
 import { fetchNotifications } from "../../services/notifications";
 import NotificationItem from "./NotificationItem";
 import auth from "services/auth";
@@ -22,9 +21,7 @@ interface NotificationsPanelProps {
 const NotificationsPanel = ({ onClose, closeWindow }) => {
   const notificationsRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
-  const [notifications, setNotifications] = useState<NotificationItemType[]>(
-    []
-  );
+  const [notifications, setNotifications] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [page, setPage] = useState(1);

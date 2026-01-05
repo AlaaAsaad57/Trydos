@@ -1,11 +1,11 @@
 import { fetchData } from "utils/fetchData";
-import { NotificationResponse } from "../types/notifications";
+
 import { REQUESTS_DATA } from "utils/Requests";
 
 export const fetchNotifications = async (
   page: number,
   pageSize: number = 10
-): Promise<NotificationResponse> => {
+): Promise<any> => {
   try {
     const response = await fetchData({
       url: `/user-notifications/get?page=${page}`,

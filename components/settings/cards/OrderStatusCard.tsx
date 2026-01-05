@@ -1,17 +1,9 @@
-import React from "react";
 import { translateFunction } from "utils/functions";
-import { useAppStore } from "store";
 import OrderStatusCartsIcon from "./OrderStatusCartsIcon";
 import OrderStatusIcon from "./OrderStatusIcon";
-import { OrderStatusCardPropsType } from "models/componentType/OrderStatusCardPropsType";
 import { useParams } from "next/navigation";
 
-function OrderStatusCard({
-  status,
-  fullWidth,
-  order,
-}: OrderStatusCardPropsType) {
-  const { settings } = useAppStore();
+function OrderStatusCard({ status, fullWidth, order }: any) {
   const { lang } = useParams();
   // @ts-ignore
   const language = lang.split("-")[1];

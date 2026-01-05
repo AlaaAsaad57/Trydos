@@ -9,8 +9,6 @@ import { useAppStore } from "store";
 import { useParams } from "next/navigation";
 import search from "services/search";
 import { DisableScroll, EnableScroll } from "utils/tinyUtils";
-import DataSourceLogger from "components/global/DataSourceLogger";
-
 function SearchIcon() {
   const { setEnableSearch, enable_search } = useAppStore();
   const { lang } = useParams();

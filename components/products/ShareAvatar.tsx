@@ -1,14 +1,8 @@
 import Image from "next/image";
 import React, { SyntheticEvent } from "react";
 import profilePng from "public/images/profileNo.png";
-import { ShareAvatarPropsType } from "models/componentType/ShareAvatarPropsType";
 
-function ShareAvatar({
-  active,
-  setActive,
-  contact,
-  disable,
-}: ShareAvatarPropsType) {
+function ShareAvatar({ active, setActive, contact, disable }: any) {
   const normializePhoto = (path) => {
     if (path?.includes("res.cloudinary")) {
       return path;

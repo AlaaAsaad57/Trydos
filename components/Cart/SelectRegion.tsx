@@ -6,14 +6,11 @@ import { allCountries } from "country-telephone-data";
 import { DebounceInput } from "react-debounce-input";
 import Spinner from "components/global/Spinner";
 import { useAppStore } from "store";
-import SyFlage from "public/svg/sy";
 import { FlagIcon } from "utils/tinyUtils";
-import { SelectRegionPropsType } from "models/componentType/settingTypes/PersonalInfoAddressModalPropsType";
-import { SearchLocationsPropsType } from "models/componentType/SearchLocationsPropsType";
-import { SearchResultsPropsType } from "models/componentType/SearchResultsPropsType";
+
 import { fetchData } from "utils/fetchData";
 import { REQUESTS_DATA } from "utils/Requests";
-function SelectRegion({ closeSelect }: SelectRegionPropsType) {
+function SelectRegion({ closeSelect }) {
   const { addressDetails } = useAppStore();
   const { lang } = useParams();
   // @ts-ignore
@@ -123,10 +120,7 @@ function SelectRegion({ closeSelect }: SelectRegionPropsType) {
 
 export default SelectRegion;
 
-const SearchLocations = ({
-  closeSelect,
-  setFocused,
-}: SearchLocationsPropsType) => {
+const SearchLocations = ({ closeSelect, setFocused }) => {
   const [loading, setLoading] = useState(false);
   const [searchResults, setSearchResults] = useState([]);
 
@@ -238,7 +232,7 @@ const SearchResults = ({
   closeSelect,
   shouldShowProvinces,
   searchAction,
-}: SearchResultsPropsType) => {
+}) => {
   const { setMapCenter, setAddressDetails, provinces } = useAppStore();
   const showLocationText = (location) => {
     let str = "";

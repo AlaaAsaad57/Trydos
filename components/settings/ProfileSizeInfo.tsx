@@ -4,10 +4,9 @@ import { translateFunction } from "utils/functions";
 import AddressInfo from "public/svg/cart/AddressInfo";
 import auth from "services/auth";
 import { useAppStore } from "store";
-import { ProfileSizeInfoPropsType } from "models/componentType/settingTypes/ProfileSizeInfoPropsType";
 import { pollinateInput } from "utils/tinyUtils";
 
-function ProfileSizeInfo({ swipeToScreen, goBack }: ProfileSizeInfoPropsType) {
+function ProfileSizeInfo({ swipeToScreen, goBack }: any) {
   const { editUserInfo, userProfile } = useAppStore();
   const [userProfileData, setUserProfileData] = useState({
     tall: userProfile?.tall,

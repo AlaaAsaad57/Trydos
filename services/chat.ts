@@ -3,7 +3,6 @@ import HomeService from "services/home";
 import { useAppStore } from "store";
 import {
   _isStoreLastJson,
-  getLang,
   getUserChat,
   translateFunction as translate,
 } from "utils/functions";

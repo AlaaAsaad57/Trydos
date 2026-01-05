@@ -7,7 +7,6 @@ import Spinner from "components/global/Spinner";
 import { useAppStore } from "store";
 import { GA_BUTTONS_NAMES, GA_EVENT_NAMES } from "utils/GAEvents";
 import { GAevent } from "utils/gtag";
-import { LogInPinsPropsType } from "models/componentType/settingTypes/LogInPinsPropsType";
 
 function LogInPins({
   setPin,
@@ -30,7 +29,7 @@ function LogInPins({
   loadingPin,
   forChanging,
   operation = "login",
-}: LogInPinsPropsType) {
+}: any) {
   const { language, Tempuser, user } = useAppStore();
 
   let { lang } = useParams();

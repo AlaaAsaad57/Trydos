@@ -1,9 +1,7 @@
-import { OrderDateCardProps } from "models/componentType/settingTypes/OrderDetailsPropsType";
-import React from "react";
 import { useAppStore } from "store";
 import { translateFunction } from "utils/functions";
 
-function OrderExpectedDeliveryCard({ time }: OrderDateCardProps) {
+function OrderExpectedDeliveryCard({ time }: any) {
   const { ActivePacks, language } = useAppStore();
   const isRtl = language === "ar" || language === "ku";
 

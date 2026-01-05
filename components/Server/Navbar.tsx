@@ -1,16 +1,10 @@
 "use client";
 
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
-import { NavbarServerProps } from "models/componentType/HomePagePropsType";
 import { useState } from "react";
 import { useAppStore } from "store";
 
-function NavbarServer({
-  lang,
-  mainCategory,
-  categoriesData,
-  children,
-}: NavbarServerProps) {
+function NavbarServer({ lang, mainCategory, categoriesData, children }: any) {
   const [loading, setLoading] = useState(false);
   const categories = categoriesData;
   const { enable_search } = useAppStore();

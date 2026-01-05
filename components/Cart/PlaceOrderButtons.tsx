@@ -5,17 +5,11 @@ import LocalizationServiceClass from "services/localization";
 import { useAppStore } from "store";
 import { useParams } from "next/navigation";
 import NextLink from "components/global/NextLink";
-import { CheckBoxElementPropsType } from "models/componentType/CheckBoxElementPropsType";
-import { PlaceOrderButtonsPropsType } from "models/componentType/PlaceOrderButtonsPropsType";
+
 import { showErrorNotification } from "@/store/notifications/reducer";
 import { isSamePage } from "utils/navigationsUtils";
 
-function PlaceOrderButtons({
-  orderLoading,
-  successOrder,
-  backToCart,
-  close,
-}: PlaceOrderButtonsPropsType) {
+function PlaceOrderButtons({ orderLoading, successOrder, backToCart, close }) {
   const {
     setOrderData,
     initCart,
@@ -277,7 +271,7 @@ function PlaceOrderButtons({
 }
 
 export default PlaceOrderButtons;
-export const CheckBoxElement = ({ active }: CheckBoxElementPropsType) => {
+export const CheckBoxElement = ({ active }) => {
   return (
     <>
       {active ? (

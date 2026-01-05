@@ -3,10 +3,8 @@ import SettingTopBar from "./TopBar";
 import AddressInfo from "public/svg/cart/AddressInfo";
 import { translateFunction } from "utils/functions";
 
-import { useParams, useRouter } from "next/navigation";
-
+import { useParams } from "next/navigation";
 import { FlagIcon } from "utils/tinyUtils";
-import { LanguageFlagPropsType } from "models/componentType/LanguageFlagPropsType";
 import { setLocaizationCookies } from "utils/cookies/cookie-manager";
 
 function LanguageSetting({ goBack }: { goBack: () => void }) {
@@ -288,7 +286,7 @@ const getLanguage = (iso) => {
   if (iso === "ku") return "کوردی";
 };
 export default LanguageSetting;
-const LanguageFlag = ({ lang }: LanguageFlagPropsType) => {
+const LanguageFlag = ({ lang }: any) => {
   if (lang === "ar") return <FlagIcon iso={"sa"} />;
   if (lang === "en") return <FlagIcon iso={"gb"} />;
   if (lang === "tr") return <FlagIcon iso="tr" />;

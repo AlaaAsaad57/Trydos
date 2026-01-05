@@ -1,7 +1,7 @@
 import AlreadyRegistered from "./AlreadyRegistered";
 import AccountNotFound from "./AccountNotFound";
 import WelcomingWidget from "./WelcomingWidget";
-import { UserInterface } from "models/Genaral/User";
+
 import WelcomeSignup from "./WelcomeSignup";
 
 function SignSteps({
@@ -24,7 +24,7 @@ function SignSteps({
   setStepIndactor: Function;
   close: Function;
   Name: string;
-  user: UserInterface;
+  user: any;
   setStepSign: Function;
 }) {
   return (

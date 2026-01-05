@@ -5,9 +5,6 @@ let nextConfig: NextConfig = {
   reactStrictMode: false,
   compress: true,
   bundlePagesRouterDependencies: false,
-  // React 19 Compiler Configuration
-  // Automatically optimizes React components (memoization, etc.)
-  // No additional packages needed - built into Next.js 16
   reactCompiler: true,
   async headers() {
     return [
@@ -105,19 +102,19 @@ let nextConfig: NextConfig = {
 };
 
 if (process.env.NODE_ENV !== "production") {
-  // const withBundleAnalyzer = require("@next/bundle-analyzer")({
-  //   enabled: true,
-  // });
-  // const finalConfig = withBundleAnalyzer(nextConfig);
-  // module.exports = finalConfig;
-  module.exports = nextConfig;
+  const withBundleAnalyzer = require("@next/bundle-analyzer")({
+    enabled: true,
+  });
+  const finalConfig = withBundleAnalyzer(nextConfig);
+  module.exports = finalConfig;
+  // module.exports = nextConfig;
 } else {
-  // const withBundleAnalyzer = require("@next/bundle-analyzer")({
-  //   enabled: true,
-  // });
-  // const finalConfig = withBundleAnalyzer(nextConfig);
-  // module.exports = finalConfig;
-  module.exports = nextConfig;
+  const withBundleAnalyzer = require("@next/bundle-analyzer")({
+    enabled: true,
+  });
+  const finalConfig = withBundleAnalyzer(nextConfig);
+  module.exports = finalConfig;
+  // module.exports = nextConfig;
 }
 
 export default withSentryConfig(undefined, {

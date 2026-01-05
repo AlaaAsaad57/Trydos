@@ -38,7 +38,7 @@ export default function NextLink({
         className={className}
         data-cy={props["data-cy"] ?? ""}
         style={style}
-        prefetch={true}
+        prefetch={"auto"}
         href={href}
         onNavigate={(e) => {
           setColorBottomSheet(null);
@@ -79,7 +79,7 @@ export default function NextLink({
       className={className}
       style={style}
       data-cy={props["data-cy"] ?? ""}
-      prefetch={true}
+      prefetch={"auto"}
       onNavigate={(e) => {
         DisableScroll();
         setColorBottomSheet(null);

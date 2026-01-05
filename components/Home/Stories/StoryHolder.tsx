@@ -9,7 +9,7 @@ import {
 import StoryViewer from "./StoryViewer";
 import { useAppStore } from "store";
 import StoryServiceClass from "services/story";
-import { StoryHolderPropsType } from "models/componentType/StoryHolderPropsType";
+
 import Xicon from "public/svg/Xicon";
 import DeleteIcon from "public/svg/DeleteIcon";
 import {
@@ -17,7 +17,6 @@ import {
   showErrorNotification,
 } from "store/notifications/reducer";
 import { getUserStories, translateFunction } from "utils/functions";
-import { revalidateStories } from "utils/serverActions";
 import { fetchStoriesForUser } from "serverRequests";
 import {
   COOKIE_NAMES,
@@ -28,7 +27,7 @@ import { GAevent } from "utils/gtag";
 import { GA_EVENT_NAMES, GA_GLOBAL_SCREEN } from "utils/GAEvents";
 import auth from "services/auth";
 import { ConfirmModal } from "components/global/ConfirmModal";
-function StoryHolder({ story, active, isPaused }: StoryHolderPropsType) {
+function StoryHolder({ story, active, isPaused }) {
   const { language, country, setStoryData } = useAppStore();
   const userStories = getCookie<UserData>(COOKIE_NAMES.USER_STORIES);
   const [currentStoryId, setCurrentStoryId] = useState(
@@ -47,7 +46,7 @@ function StoryHolder({ story, active, isPaused }: StoryHolderPropsType) {
     try {
       const storyId = story.stories[currentStoryId]?.id;
       const response = await StoryServiceClass.deleteStory(storyId);
-      await revalidateStories();
+
       const userToken = user?.access_token;
       const storiesResult = await fetchStoriesForUser(
         language,

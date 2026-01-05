@@ -17,7 +17,6 @@ import Spinner from "components/global/Spinner";
 import CouponElement from "./couponElement";
 import { useAppStore } from "store";
 import { useEffect, useState } from "react";
-import { TryDosWalletInputPropsType } from "models/componentType/TryDosWalletInputPropsType";
 import { GAevent } from "utils/gtag";
 import { GA_EVENT_NAMES, GA_PAYMENTS } from "utils/GAEvents";
 import { showErrorNotification } from "@/store/notifications/reducer";
@@ -660,11 +659,7 @@ const CODInput = ({ active, setActive, total }) => {
     </div>
   );
 };
-const TryDosWalletInput = ({
-  active,
-  setActive,
-  balance,
-}: TryDosWalletInputPropsType) => {
+const TryDosWalletInput = ({ active, setActive, balance }) => {
   const { orderLoading, wallet, currency, settings, language } = useAppStore();
   const points = settings["starting-setting"]?.decimal_point_settings || 0;
   const isRtl = language === "ar" || language === "ku";

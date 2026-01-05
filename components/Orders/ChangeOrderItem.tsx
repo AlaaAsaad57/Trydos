@@ -6,12 +6,10 @@ import {
 } from "utils/functions";
 import Image from "next/image";
 import ChangeOrderItemIcon from "public/svg/ChangeOrderItemIcon";
-import Spinner from "components/global/Spinner";
+
 import { ColorList, SizeList } from "./ModifyOrderItemModal";
 import { GetImageUrl, isSameColor, pollinateInput } from "utils/tinyUtils";
-import { ChangeColorWidgetPropsType } from "models/componentType/ChangeColorWidgetPropsType";
-import { ChangeOrderItemPropsType } from "models/componentType/ChangeOrderItemPropsType";
-import { ChangeSizeWidgetPropsType } from "models/componentType/ChangeSizeWidgetPropsType";
+
 import { fetchData } from "utils/fetchData";
 import { showErrorNotification } from "store/notifications/reducer";
 import { useAppStore } from "store";
@@ -23,7 +21,7 @@ function ChangeOrderItem({
   backToMain,
   setShouldConfirmChange,
   shouldConfirmChange,
-}: ChangeOrderItemPropsType) {
+}) {
   const [loading, setLoading] = useState(false);
   const CancelQty = async () => {
     try {
@@ -344,12 +342,7 @@ function ChangeOrderItem({
 }
 
 export default ChangeOrderItem;
-export const ChangeColorWidget = ({
-  color,
-  setColor,
-  item,
-  productData,
-}: ChangeColorWidgetPropsType) => {
+export const ChangeColorWidget = ({ color, setColor, item, productData }) => {
   return (
     <div className="flex-col w-full items-center  border-[#E6E6E680] border-b-[1px] pb-[12px] px-[24px] mt-[10px]">
       <div className="relative">
@@ -398,12 +391,7 @@ export const ChangeColorWidget = ({
     </div>
   );
 };
-export const ChangeSizeWidget = ({
-  size,
-  setSize,
-  item,
-  productData,
-}: ChangeSizeWidgetPropsType) => {
+export const ChangeSizeWidget = ({ size, setSize, item, productData }) => {
   return (
     <div className="flex-col w-full items-center  border-[#E6E6E680] border-b-[1px] pb-[12px] px-[24px] mt-[10px]">
       <div className="relative">

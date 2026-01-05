@@ -7,12 +7,8 @@ import Image from "next/image";
 import UploadVideo from "../UploadVideo";
 import { blobToDataURL } from "components/Chat/chatsFunctions";
 import { useStopwatch } from "react-timer-hook";
-import { NewStoryModalPropsType } from "models/componentType/NewStoryModalPropsType";
-function NewStoryModal({
-  close,
-  send,
-  HandleUploadedVideo,
-}: NewStoryModalPropsType) {
+
+function NewStoryModal({ close, send, HandleUploadedVideo }) {
   const [imageFile, setImageFile] = useState(null);
   const [vidUrl, setVideo] = useState(null);
   const [SwitchCamera, setSwitch] = useState(null);

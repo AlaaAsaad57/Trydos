@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import { translateFunction } from "utils/functions";
 import ShareOptions from "./ShareOptions";
 import { useParams } from "next/navigation";
-import { ShareSectionPropsType } from "models/componentType/ShareSectionPropsType";
 
 import chat from "services/chat";
 import Spinner from "components/global/Spinner";
@@ -12,7 +11,7 @@ import {
   UserData,
 } from "utils/cookies/cookie-manager";
 
-function ShareSection({ product }: ShareSectionPropsType) {
+function ShareSection({ product }: any) {
   var language = "en";
   let { lang } = useParams();
   const [contactsLoading, setContactsLoading] = useState(false);

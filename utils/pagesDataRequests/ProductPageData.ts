@@ -299,49 +299,6 @@ export async function GetRatingCommentsForProduct({
   };
 }
 
-function getLangField(lang: string) {
-  switch (lang) {
-    case "ar":
-      return "discussed_aspects_ar";
-    case "tr":
-      return "discussed_aspects_tr";
-    case "ku":
-      return "discussed_aspects_ku";
-    default:
-      return "discussed_aspects_en";
-  }
-}
-
-export async function GetAvailableFQAFilters({ product_id }) {
-  const query = {
-    index: "comments",
-    size: 0, // we don’t need actual documents
-    query: {
-      bool: {
-        must: [{ term: { product_id: String(product_id) } }],
-        must_not: [{ term: { status: "deleted" } }],
-      },
-    },
-    aggs: {
-      available_filters: {
-        terms: {
-          field: "discussed_aspects", // keyword ensures aggregation works
-          size: 50, // limit how many aspects we expect (can adjust)
-        },
-      },
-    },
-  };
-
-  const response = await client.search(query);
-
-  const filters =
-    (response.aggregations?.available_filters as any)?.buckets?.map((b) => ({
-      aspect: b.key,
-      count: b.doc_count,
-    })) || [];
-
-  return filters;
-}
 // comments with questions and replies
 export async function GetFQACommentsForProduct({
   product_id,

@@ -3,7 +3,6 @@ import { useAppStore } from "store";
 import {
   _isStoreLastJson,
   getCart,
-  getUserChat,
   LogError,
   translateFunction,
   WaitForCondition,
@@ -16,9 +15,6 @@ import {
   REGISTER_DEVICE_URL,
   STARTER_SETTINGS,
 } from "utils/endpointConfig";
-
-import { RegisterGuestApi } from "models/API/market/RegisterGuest";
-import { CustomerInfoResponse } from "models/API/market/CustomerInfo";
 import auth from "./auth";
 import LocalizationServiceClass from "./localization";
 import chat from "./chat";
@@ -96,13 +92,12 @@ class HomeService {
     const { updateUserInfo } = useAppStore.getState();
     await WaitForCondition();
     try {
-      let response_customer_Info: { data: CustomerInfoResponse } =
-        await fetchData({
-          url: CUSTOMER_INFO_URL,
-          reqTitle: REQUESTS_DATA.GET_CUSTOMER_INFO,
-          method: "GET",
-          server: "market",
-        });
+      let response_customer_Info: any = await fetchData({
+        url: CUSTOMER_INFO_URL,
+        reqTitle: REQUESTS_DATA.GET_CUSTOMER_INFO,
+        method: "GET",
+        server: "market",
+      });
       // @ts-ignore
       if (!response_customer_Info.success) {
         // @ts-ignore
@@ -153,7 +148,7 @@ class HomeService {
           server: "market",
         });
 
-        let repo: RegisterGuestApi = response;
+        let repo: any = response;
         // @ts-ignore
         if (!repo.success) {
           throw new Error(repo.message);
@@ -349,7 +344,7 @@ class HomeService {
           if (!response.success) {
             throw new Error(response.message);
           }
-          let repo: RegisterGuestApi = response;
+          let repo: any = response;
           if (repo.message === "The user does not exist.") {
             response = await fetchData({
               url: REGISTER_DEVICE_URL,

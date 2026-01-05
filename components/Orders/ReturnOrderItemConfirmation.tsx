@@ -6,7 +6,7 @@ import {
 } from "utils/functions";
 import ClarificationIcon from "public/svg/OrderCancelConfirm";
 import OrderCancelTermsIcon from "public/svg/OrderCancelTerms";
-import { ReturnOrderItemConfirmationPropsType } from "models/componentType/ReturnOrderItemConfirmationPropsType";
+
 import order from "services/order";
 import Spinner from "components/global/Spinner";
 import { useAppStore } from "store";
@@ -19,7 +19,7 @@ function ReturnOrderItemConfirmation({
   setShouldConfirmReturn,
   confirmationData,
   callback,
-}: ReturnOrderItemConfirmationPropsType) {
+}: any) {
   const { ActivePacks, selectedOrder, setOrderOptions, language } =
     useAppStore();
   const ReturnedItems = () => {
@@ -306,7 +306,7 @@ const RenderReturnedItem = ({
       className="w-full px-[10px] flex-row mt-[10px]"
       id="returned-products-container"
     >
-      {returned_items.map((return_item, index) => (
+      {(returned_items as any).map((return_item, index) => (
         <div
           key={`${return_item.detail_id}-${index}`}
           className="flex-shrink-0 w-[170px] regular mx-2 bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden hover:shadow-xl transition-all duration-300 transform"

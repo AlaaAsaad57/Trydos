@@ -18,11 +18,6 @@ import Spinner from "components/global/Spinner";
 import LocalizationServiceClass from "services/localization";
 import { useAppStore } from "store";
 import home from "services/home";
-import {
-  DeleteModalComponentPropsType,
-  OrderButtonsPropsType,
-} from "models/componentType/settingTypes/DeleteModalComponentPropsType";
-import { OrdersPagePropsType } from "models/componentType/OrdersPagePropsType";
 import { showErrorNotification } from "@/store/notifications/reducer";
 
 const DeleteIcon = () => {
@@ -106,7 +101,7 @@ const DeleteIcon = () => {
     </svg>
   );
 };
-function OrdersPage({ setStep, close }: OrdersPagePropsType) {
+function OrdersPage({ setStep, close }) {
   const {
     addressDetails,
     orderData,
@@ -532,7 +527,7 @@ export const DeleteModalComponent = ({
   closeModal,
   deletedAddress,
   slidePrev,
-}: DeleteModalComponentPropsType) => {
+}) => {
   const { deleteAddress } = useAppStore();
   const GetAddressString = (location) => {
     let str = "";
@@ -763,11 +758,7 @@ export const DeleteModalComponent = ({
     </>
   );
 };
-const OrderButtons = ({
-  orderLoading,
-  setNext,
-  setPrev,
-}: OrderButtonsPropsType) => {
+const OrderButtons = ({ orderLoading, setNext, setPrev }) => {
   const {
     initCart,
     currency,

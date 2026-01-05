@@ -92,7 +92,11 @@ export async function GET(request: NextRequest) {
             original_user_id: String(InventoryUser.id),
           }),
           credentials: "omit",
-        }),
+        }).catch((err) => ({
+          ok: false,
+          status: 503, // Service Unavailable
+          json: async () => ({ error: "Network Error", message: err.message }),
+        })),
         fetch(
           process.env.NEXT_PUBLIC_STORIES_BACKEND_URL + LOG_IN_STORIES_ENDPOINT,
           {
@@ -107,7 +111,11 @@ export async function GET(request: NextRequest) {
             }),
             credentials: "omit",
           }
-        ),
+        ).catch((err) => ({
+          ok: false,
+          status: 503,
+          json: async () => ({ error: "Network Error", message: err.message }),
+        })),
         fetch(
           process.env.NEXT_PUBLIC_COMMENT_BACKEND_URL +
             LOG_IN_COMMENTS_ENDPOINT,
@@ -124,7 +132,11 @@ export async function GET(request: NextRequest) {
             }),
             credentials: "omit",
           }
-        ),
+        ).catch((err) => ({
+          ok: false,
+          status: 503,
+          json: async () => ({ error: "Network Error", message: err.message }),
+        })),
       ]);
     let is_failed = [];
     let [chat_response, stories_response, comment_response] = await Promise.all(
@@ -186,17 +198,18 @@ export async function GET(request: NextRequest) {
     ];
 
     tokenCookies.forEach((token) => {
-      cookiesStore.set({
-        name: token.name,
-        value: token.value,
-        httpOnly: false,
-        sameSite: "strict",
-        secure:
-          process.env.VERCEL_ENV === "production" ||
-          process.env.VERCEL_ENV === "preview",
-        path: "/",
-        maxAge: 60 * 60 * 24 * 365 * 1, // 1 year
-      });
+      if (token)
+        cookiesStore.set({
+          name: token.name,
+          value: token.value,
+          httpOnly: false,
+          sameSite: "strict",
+          secure:
+            process.env.VERCEL_ENV === "production" ||
+            process.env.VERCEL_ENV === "preview",
+          path: "/",
+          maxAge: 60 * 60 * 24 * 365 * 1, // 1 year
+        });
     });
 
     return NextResponse.json(finalResponse, {

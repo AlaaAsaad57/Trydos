@@ -1,7 +1,6 @@
 import "styles/spinner.css";
-import { SpinnerPropsType } from "models/componentType/SpinnerPropsType";
 
-function Spinner(props: SpinnerPropsType) {
+function Spinner(props) {
   return (
     <div
       data-cy="spinner-container2"

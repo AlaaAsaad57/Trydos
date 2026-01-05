@@ -1,10 +1,7 @@
-import React, { useState } from "react";
 import BackIcon from "public/svg/listing/backIcon";
 import OptionsIcon from "public/svg/OptionsIcon";
 import { translateFunction } from "utils/functions";
-
 import { useAppStore } from "store";
-import { SettingTopBarPropsType } from "models/componentType/settingTypes/SettingTopBarPrpsType";
 import { DisableScroll } from "utils/tinyUtils";
 
 function SettingTopBar({
@@ -15,7 +12,7 @@ function SettingTopBar({
   Icon,
   DataCy,
   validateFunction,
-}: SettingTopBarPropsType) {
+}: any) {
   const { setOrderOptions, language } = useAppStore();
   const isRtl = language === "ar" || language === "ku";
   return (

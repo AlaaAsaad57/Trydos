@@ -2,10 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { ReportError } from "utils/errorReported";
 import { LogError } from "utils/functions";
-import {
-  GetAvailableFQAFilters,
-  GetFQACommentsForProduct,
-} from "utils/pagesDataRequests/ProductPageData";
+import { GetFQACommentsForProduct } from "utils/pagesDataRequests/ProductPageData";
 
 export async function GET(req: NextRequest) {
   const headers = {
@@ -42,8 +39,7 @@ export async function GET(req: NextRequest) {
       user_id: user_id,
       language: req.headers.get("language") || "en",
     });
-    // let data_filters = await GetAvailableFQAFilters({ product_id });
-    // console.log(data_filters);
+
     return NextResponse.json(
       {
         data: {

@@ -9,17 +9,12 @@ import ReturnOrderItemIcon from "public/svg/ReturnOrderItemIcon";
 import { useAppStore } from "store";
 
 import Spinner from "components/global/Spinner";
-import { ReturnOrderItemPropsType } from "models/componentType/ReturnOrderItemPropsType";
 import order from "services/order";
 import Skeleton from "react-loading-skeleton";
 
 import UploadImageComponent from "./UploadImageComponent";
 
-function ReturnOrderItem({
-  backToMain,
-  item,
-  setShouldConfirmReturn,
-}: ReturnOrderItemPropsType) {
+function ReturnOrderItem({ backToMain, item, setShouldConfirmReturn }: any) {
   const { currency, language, ActivePacks } = useAppStore();
   const [options, setOptions] = useState([]);
   const [selectedOptions, setSelectedOptions] = useState(null);

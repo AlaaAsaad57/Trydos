@@ -2,12 +2,8 @@ import React from "react";
 import SettingTopBar from "./TopBar";
 import AddressInfo from "public/svg/cart/AddressInfo";
 import { translateFunction } from "utils/functions";
-import { PersonalBankCardsPropsType } from "models/componentType/settingTypes/PersonalBankCardsPropsType";
 
-function PersonalBankCards({
-  swipeToScreen,
-  goBack,
-}: PersonalBankCardsPropsType) {
+function PersonalBankCards({ swipeToScreen, goBack }: any) {
   return (
     <div className="flex-col max-h-[calc(100vh-200px)]">
       <SettingTopBar

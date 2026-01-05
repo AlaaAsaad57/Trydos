@@ -214,22 +214,6 @@ export function deleteCookie(name: string): void {
   setCookie(name, "", { maxAge: -1 });
 }
 
-export function generateToken(userId, SECRET_KEY) {
-  // The payload can contain any claims; here we just include userId
-  const payload = { userId };
-
-  // Create the token; expiresIn can be adjusted (e.g., "1h", "7d")
-  const token = jwt.sign(payload, SECRET_KEY);
-
-  return token;
-}
-export function verifyToken(token, SECRET_KEY) {
-  try {
-    return jwt.verify(token, SECRET_KEY);
-  } catch (error) {
-    return null;
-  }
-}
 /**
  * Store hashed user ID in cookie
  * Usage: storeHashedUserId(response.user.id)

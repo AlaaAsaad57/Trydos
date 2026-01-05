@@ -1,10 +1,5 @@
 import { useAppStore } from "store";
-import {
-  buildParamsFromFilters,
-  filtersToSearchParams,
-  configureSearchParams,
-} from "utils/tinyUtils";
-import auth from "./auth";
+import { buildParamsFromFilters } from "utils/tinyUtils";
 import { fetchData } from "utils/fetchData";
 import { REQUESTS_DATA } from "utils/Requests";
 import { getProductsAndFiltersFromElastic } from "services/elastic/elasticSearch";
@@ -157,26 +152,6 @@ class SearchService {
     const [country, language] = lang.split("-");
     const { setSearchResults, setTotalSizeOfProducts } = useAppStore.getState();
     try {
-      // Convert filter object to search params for elastic backend
-      // const searchParams = filtersToSearchParams(filter_obj);
-
-      // const configuredParams = configureSearchParams({
-      //   searchParams,
-      //   noProducts: "true",
-      //   noFilters: "false",
-      //   lang: lang.split("-")[1] || "en",
-      //   offset: "0",
-      //   boutiqueId: "listing",
-      // });
-
-      // const apiUrl = `/api/products/searchInCatalog`;
-      // const filtersResponse = await fetchData({
-      //   method: "GET",
-      //   url: `${apiUrl}?${configuredParams.toString()}`,
-      //   server: "elastic",
-      //   reqTitle: REQUESTS_DATA.GET_SEARCH_OPTIONS,
-      //   signal,
-      // });
       const filtersResponse = await getProductsAndFiltersFromElastic({
         country: country,
         language_code: language,

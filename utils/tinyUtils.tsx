@@ -1,76 +1,11 @@
 import { useAppStore } from "store";
 import { translateFunction } from "./functions";
-
 import { allCountries } from "country-telephone-data";
-
 import { GA_GLOBAL_SCREEN } from "./GAEvents";
 import { fetchData } from "./fetchData";
 import Image from "node_modules/next/image";
 import { REQUESTS_DATA } from "./Requests";
 
-export const configureSearchParams = ({
-  searchParams,
-  noFilters,
-  noProducts,
-  lang,
-  offset,
-  boutiqueId,
-  filters_offset = null,
-}): URLSearchParams => {
-  let params = new URLSearchParams();
-  params.set("lang", lang);
-  params.set("limit", "10");
-  if (filters_offset && filters_offset !== "") {
-    params.set("filters_offset", filters_offset);
-  }
-  if (offset && offset !== "false") {
-    params.set("offset", `[${offset}]`);
-  }
-  if (noProducts && noProducts !== "false") {
-    params.set("with_products", "false");
-  }
-  if (noFilters && noFilters !== "false") {
-    params.set("with_filters", "false");
-  }
-  if (searchParams.search_text) {
-    params.set("search_text", searchParams.search_text);
-  }
-  if (searchParams.categories) {
-    params.set("category_slugs", decodeURIComponent(searchParams.categories));
-  }
-  if (searchParams.prices) {
-    params.set("price", decodeURIComponent(searchParams.prices));
-  }
-  if (searchParams.sizes) {
-    params.set(
-      "attributes",
-      JSON.stringify([
-        {
-          id: 1,
-          options: JSON.parse(decodeURIComponent(searchParams.sizes)),
-          name: "Size",
-        },
-      ])
-    );
-  }
-  if (searchParams.colors) {
-    params.set("colors", decodeURIComponent(searchParams.colors));
-  }
-  if (searchParams.brands) {
-    params.set("brand_slugs", decodeURI(searchParams.brands));
-  }
-  if (searchParams.boutiques && searchParams.boutiques !== "null") {
-    params.set("boutique_slugs", decodeURIComponent(searchParams.boutiques));
-  }
-  if (boutiqueId && boutiqueId !== "listing" && boutiqueId !== null) {
-    params.set("boutique_slugs", `["${decodeURIComponent(boutiqueId)}"]`);
-  }
-  if (searchParams.tags_names && searchParams.tags_names !== "null") {
-    params.set("tags_names", decodeURIComponent(searchParams.tags_names));
-  }
-
-  return params;
-};
 export const ChatConroller = (payload) => {
   try {
     const { openChat, setChatOpen } = useAppStore.getState();
@@ -402,17 +337,6 @@ const getCountry = (text?: string) => {
         text?.startsWith(countryItem.dialCode)
       )[0];
 };
-type parsedFilters = {
-  boutiques?: string[];
-  brands?: string[];
-  categories?: string[];
-  colors?: string[];
-  tags_names?: string[];
-  sizes?: string[];
-  search_text?: string[];
-  search?: string[];
-  prices?: any[];
-};
 
 export const buildParamsFromFilters = (
   filters: Record<string, string[]>
@@ -454,28 +378,6 @@ export const buildParamsFromFilters = (
   });
 
   return params;
-};
-
-/**
- * Convert filters object to the format expected by configureSearchParams
- * @param filters - Parsed filters from URL params
- * @returns SearchParams object
- */
-export const filtersToSearchParams = (filters: Record<string, string[]>) => {
-  const searchParams: any = {};
-
-  Object.keys(filters).forEach((key) => {
-    const values = filters[key];
-    if (values && values.length > 0) {
-      if (key === "search_text") {
-        searchParams[key] = values[0];
-      } else {
-        searchParams[key] = JSON.stringify(values);
-      }
-    }
-  });
-
-  return searchParams;
 };
 
 export const DetectScreen = () => {
