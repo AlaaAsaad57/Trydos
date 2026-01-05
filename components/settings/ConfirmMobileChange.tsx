@@ -8,6 +8,7 @@ import "public/styles/login.css";
 import { useAppStore } from "store";
 import PhoneInput from "components/Login/PhoneInput";
 import SearchParamUpdater from "components/global/ParamsUpdater";
+import { useRouter } from "next/navigation";
 
 function ConfirmMobileChange({
   closeWindow,
@@ -77,6 +78,7 @@ function ConfirmMobileChange({
   };
   const [failedLogin, setFailed] = useState(false);
   const [loadingPin, setLoadingPin] = useState(false);
+  const router = useRouter();
   const loginFunc = async (e) => {
     try {
       setLoadingPin(true);
@@ -84,6 +86,7 @@ function ConfirmMobileChange({
         code: e,
         verificationID: verficationID,
       });
+      router.refresh();
       successCallbackFunction(data);
 
       setLoadingPin(false);

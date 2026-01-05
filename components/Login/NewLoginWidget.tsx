@@ -228,6 +228,7 @@ function NewLoginWidget() {
         }
       },
       successCallback: (exists, name) => {
+        router.refresh();
         GAevent({
           action: GA_EVENT_NAMES.VERIFY_OTP,
           params: {
@@ -250,7 +251,6 @@ function NewLoginWidget() {
             success: true,
           },
         });
-        // router.refresh();
 
         setTimeout(() => {
           setLoadingPin(false);
@@ -289,7 +289,7 @@ function NewLoginWidget() {
       },
     });
     let storiesData = await fetchStoriesForUser(language, country, 1);
-    router.refresh();
+
     setStoryData(storiesData.data);
   };
 
