@@ -248,7 +248,7 @@ function NewLoginWidget() {
             success: true,
           },
         });
-        router.refresh();
+        // router.refresh();
 
         setTimeout(() => {
           setLoadingPin(false);

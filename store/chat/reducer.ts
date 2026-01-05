@@ -228,6 +228,7 @@ export const useChatStore = (set, get) => ({
     const state = get();
 
     let newActiveChat = state.activeChat;
+    console.log(newActiveChat);
     if (
       newActiveChat &&
       newActiveChat?.messages.some((m) => String(m.id) === String(msgId))
@@ -247,7 +248,7 @@ export const useChatStore = (set, get) => ({
       newData = newData.map((s) =>
         String(s.id) === String(newActiveChat?.id) ? newActiveChat : s
       );
-
+    console.log(newActiveChat);
     set({
       activeChat: newActiveChat,
       data: newData,
@@ -406,7 +407,9 @@ export const useChatStore = (set, get) => ({
         AgoraToken: payload,
       });
     } else {
-      const activeChat = {
+      const activeChat = state.data.filter(
+        (s) => parseInt(s.id) === parseInt(state.callerChannel.id)
+      )[0] || {
         ...state.callerChannel,
         channel_name: state.caller.channel_name,
         mobile_phone: state.caller.mobile_phone,
@@ -889,6 +892,7 @@ export const useChatStore = (set, get) => ({
   },
 
   sendMessage: (payload: any) => {
+    console.log(payload);
     const state = get();
     let ac = payload.act;
     let chat = state.data;
@@ -1110,7 +1114,7 @@ export const useChatStore = (set, get) => ({
 
   setFirebaseToken: (payload: string) => set({ fbToken: payload }),
 
-  setChats: (payload: any[], param: any[]) => {
+  setChats: (payload: any[], param: any[], replace = false) => {
     const state = get();
     let arr = [];
     let chatData = [];
@@ -1154,9 +1158,19 @@ export const useChatStore = (set, get) => ({
     param.forEach((p) => {
       prr.push({ ...p, messages: p.messages.reverse() });
     });
+    const mergedMap = new Map();
+
+    // Add first array to map
+    state.data.forEach((item) => mergedMap.set(item.id, item));
+
+    // Add second array to map (this overwrites duplicates from array1)
+    chatData.forEach((item) => mergedMap.set(item.id, item));
+
+    // Convert back to array
+    const finalArray = Array.from(mergedMap.values());
 
     set({
-      data: [...prr, ...chatData],
+      data: [...prr, ...finalArray],
       activeChat: temp?.id ? { ...temp } : null,
       newChats: arr,
       chatUsers: users,

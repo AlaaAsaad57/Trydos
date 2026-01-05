@@ -411,7 +411,7 @@ function ConversationContainer({
   };
 
   const onChangeInput = (e: ChangeEvent<HTMLInputElement>) => {
-    setMessage(pollinateInput(e.target.value));
+    setMessage(e.target.value);
     handleTyping();
   };
 
@@ -1179,18 +1179,22 @@ function ConversationContainer({
             {
               render: () => <>{translateFunction("files")}</>,
               onClick: () => {
-                document.querySelector<HTMLInputElement>(
-                  'input[type="file"]'
-                ).accept = "images/*";
-
-                document
-                  .querySelector<HTMLInputElement>('input[type="file"]')
-                  ?.click();
-                setTimeout(() => {
+                const fileInput =
                   document.querySelector<HTMLInputElement>(
                     'input[type="file"]'
-                  ).accept = FILE_INPUT_ACCEPT;
-                }, 1000);
+                  );
+                if (fileInput) {
+                  // 1. Change "images/*" to "image/*"
+                  fileInput.accept = "image/*";
+
+                  // 2. Trigger the click
+                  fileInput.click();
+
+                  // 3. Reset the accept attribute after a delay
+                  setTimeout(() => {
+                    fileInput.accept = FILE_INPUT_ACCEPT;
+                  }, 1000);
+                }
               },
             },
             {

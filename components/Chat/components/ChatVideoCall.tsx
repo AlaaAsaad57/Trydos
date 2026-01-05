@@ -433,10 +433,9 @@ function ChatVideoCall({ token }) {
             )}
           </div>
 
-          {ready && (
+          {ready && !(users?.[0]?.videoTrack || users?.[0]?.hasVideo) && (
             <div className="call-status">
-              {users.length > 0 &&
-              !(users?.[0]?.videoTrack || users?.[0]?.hasVideo) ? (
+              {users.length > 0 ? (
                 <>
                   <CallingIcon></CallingIcon>
                   <span>

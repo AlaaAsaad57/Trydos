@@ -179,6 +179,7 @@ class ChatService {
 
       setLastNotificationDate(new Date().toLocaleString());
       setChatDone();
+      return [...response.data.channels, ...response.data.pinned_channels];
     } catch (e) {
       console.error(e);
     }
