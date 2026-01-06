@@ -92,10 +92,15 @@ class SellerDashboardService {
       throw error;
     }
   }
-  async getRoles(sellerId: string, page: number = 1) {
+  async getRoles(sellerId: string, page: number = 1, search: string = "") {
     try {
+      const params: string[] = [];
+      if (page > 1) params.push(`page=${page}`);
+      if (search) params.push(`search=${encodeURIComponent(search)}`);
+      const queryString = params.length ? `?${params.join("&")}` : "";
+
       let res = await fetchData({
-        url: `/shop/users/roles${page > 1 ? `?page=${page}` : ""}`,
+        url: `/shop/users/roles${queryString}`,
         method: "GET",
         server: "market-dashboard",
         reqTitle: REQUESTS_DATA.GET_SHOP_ROLES,
@@ -158,7 +163,10 @@ class SellerDashboardService {
     }
   }
 
-  async updateUserRole(data: { user_id: number; role_id: number }, sellerId: string) {
+  async updateUserRole(
+    data: { user_id: number; role_id: number },
+    sellerId: string
+  ) {
     try {
       let res = await fetchData({
         url: `/shop/users/role/update`,
