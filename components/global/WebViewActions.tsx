@@ -1,16 +1,4 @@
-export const AnswerCall = async (token, mid, chid) => {
-  await fetch(
-    process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
-      `/api/v1/messages/answer_call/${mid}`,
-    {
-      method: "POST",
-      headers: {
-        Authorization: "Bearer " + token,
-      },
-    }
-  );
-};
-export const getAgoraToken = async (channel_id, token, mid, uid) => {
+export const getAgoraToken = async (channel_id, token, mid, uid, fcm) => {
   let tok, status, req;
   let AgoraTokenResponse = await fetch(
     process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
@@ -43,7 +31,7 @@ export const getAgoraToken = async (channel_id, token, mid, uid) => {
   } else {
     status = false;
   }
-  if (!status) await AnswerWebView(token, mid);
+  if (!status) await AnswerWebView(token, mid, fcm);
   return [tok, status];
 };
 export const getAgoraTokenForInit = async (channel_id, token, mid) => {
@@ -84,8 +72,6 @@ export const getUserInfo = async (token, channel) => {
   return datas;
 };
 export const Decline = async (token, mid, duration) => {
-  alert(JSON.stringify({ duration, mid }));
-  console.log(duration, mid, "refuse-call");
   let response = await fetch(
     process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
       `/api/v1/messages/refuse_call/${mid}`,
@@ -102,16 +88,6 @@ export const Decline = async (token, mid, duration) => {
     }
   );
   response = await response.json();
-  alert(
-    JSON.stringify({
-      duration,
-      mid,
-
-      response,
-      url: `/api/v1/messages/refuse_call/${mid}`,
-    })
-  );
-  console.log(response, duration, mid, "refuse-call");
 };
 export const StartTalking = async (token, mid) => {
   await fetch(
@@ -126,13 +102,18 @@ export const StartTalking = async (token, mid) => {
     }
   );
 };
-export const AnswerWebView = async (token, messageId) => {
+export const AnswerWebView = async (token, messageId, fcm) => {
+  let obj = {};
+  if (fcm?.length) {
+    obj = { fcm_token: fcm };
+  }
   try {
     await fetch(
       process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
         `/api/v1/messages/answer_call/${messageId}`,
       {
         method: "POST",
+        body: JSON.stringify(obj),
         headers: {
           Authorization: "Bearer " + token,
         },

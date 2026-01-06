@@ -95,6 +95,7 @@ function WebviewCall() {
     loading: false,
     photo: "",
     status: null,
+    fcm: searchParams?.get("fcm"),
   });
   const [userData, setUserData] = useState({ name: "", phone: "", photo: "" });
   useEffect(() => {}, []);
@@ -106,7 +107,8 @@ function WebviewCall() {
           data.channel_id,
           data.authToken,
           data.msgId,
-          data.sender_user_id
+          data.sender_user_id,
+          data?.fcm
         );
 
         if (status) {
