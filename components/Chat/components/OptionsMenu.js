@@ -135,14 +135,18 @@ function OptionsMenu(props) {
             </div>
           </div>
           <div className="message-ops">
-            <div
-              className="message-opt "
-              data-cy="FORWARD-OPTION"
-              onClick={() => props.forward()}
-            >
-              <ForwardIcon></ForwardIcon>
-              <div className="rep-descs">{translate("Forward", language)}</div>
-            </div>
+            {!props.isPrivate && (
+              <div
+                className="message-opt "
+                data-cy="FORWARD-OPTION"
+                onClick={() => props.forward()}
+              >
+                <ForwardIcon></ForwardIcon>
+                <div className="rep-descs">
+                  {translate("Forward", language)}
+                </div>
+              </div>
+            )}
             {messageType === "TextMessage" && (
               <div
                 className="message-opt"

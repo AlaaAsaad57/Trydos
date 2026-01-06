@@ -1447,6 +1447,26 @@ export const useChatStore = (set, get) => ({
         data: arr,
         activeChat: active,
       });
+    } else {
+      let active = {
+        ...state.activeChat,
+        messages: state?.activeChat?.messages.map((msg) => {
+          if (parseInt(msg.id) !== parseInt(payload.msg_id)) {
+            return msg;
+          } else {
+            return {
+              ...msg,
+              auth_message_status: {
+                ...(msg?.auth_message_status || {}),
+                is_deleted: 1,
+              },
+            };
+          }
+        }),
+      };
+      set({
+        activeChat: active,
+      });
     }
   },
   deleteErrorMessage: (payload: any) => {

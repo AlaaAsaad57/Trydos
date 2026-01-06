@@ -47,15 +47,13 @@ function ProductVideo({ videos = [], language }) {
     });
   }, [selectedIndex, expanded]); // Also re-run when expanding to ensure the right video plays
 
-  if (!showVideo || !videos?.length) return null;
-
   useEffect(() => {
     if (expanded) {
       DisableScroll();
       emblaApi?.reInit();
     }
   }, [expanded, emblaApi]);
-
+  if (!showVideo || !videos?.length) return null;
   return (
     <>
       {/* Backdrop */}
