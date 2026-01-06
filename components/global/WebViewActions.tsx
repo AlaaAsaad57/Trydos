@@ -84,7 +84,9 @@ export const getUserInfo = async (token, channel) => {
   return datas;
 };
 export const Decline = async (token, mid, duration) => {
-  await fetch(
+  alert(JSON.stringify({ duration, mid, token }));
+  console.log(duration, mid, "refuse-call");
+  let response = await fetch(
     process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
       `/api/v1/messages/refuse_call/${mid}`,
     {
@@ -93,12 +95,23 @@ export const Decline = async (token, mid, duration) => {
         Authorization: "Bearer " + token,
       },
       body: JSON.stringify({
-        duration_in_seconds: duration || 0,
+        duration_in_seconds: duration ?? 0,
         payload: { target: "webview" },
       }),
       credentials: "omit",
     }
   );
+  response = await response.json();
+  alert(
+    JSON.stringify({
+      duration,
+      mid,
+      token,
+      response,
+      url: `/api/v1/messages/refuse_call/${mid}`,
+    })
+  );
+  console.log(response, duration, mid, "refuse-call");
 };
 export const StartTalking = async (token, mid) => {
   await fetch(
