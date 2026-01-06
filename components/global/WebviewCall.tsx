@@ -261,7 +261,7 @@ function WebviewCall() {
         data.action !== "receive" &&
         data.type === "voice" && (
           <WebViewVoiceCall
-            onDecline={(d) => onDecline(d)}
+            onDecline={onDecline}
             data={data}
             active={userData?.photo}
             userData={userData}
@@ -273,7 +273,7 @@ function WebviewCall() {
         data.action !== "receive" &&
         data.type === "video" && (
           <WebViewVideoCall
-            onDecline={(e) => onDecline(e)}
+            onDecline={onDecline}
             data={data}
             userData={userData}
             active={userData?.photo}
