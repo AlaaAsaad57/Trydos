@@ -84,7 +84,7 @@ export const getUserInfo = async (token, channel) => {
   return datas;
 };
 export const Decline = async (token, mid, duration) => {
-  alert(JSON.stringify({ duration, mid, token }));
+  alert(JSON.stringify({ duration, mid }));
   console.log(duration, mid, "refuse-call");
   let response = await fetch(
     process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
@@ -106,7 +106,7 @@ export const Decline = async (token, mid, duration) => {
     JSON.stringify({
       duration,
       mid,
-      token,
+
       response,
       url: `/api/v1/messages/refuse_call/${mid}`,
     })
