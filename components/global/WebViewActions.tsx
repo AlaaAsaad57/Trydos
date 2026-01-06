@@ -1,27 +1,31 @@
 export const getAgoraToken = async (channel_id, token, mid, uid, fcm) => {
   let tok, status, req;
-  let AgoraTokenResponse = await fetch(
-    process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
-      `/api/v1/channels/${channel_id}/agora_token`,
-    {
-      method: "POST",
-      headers: {
-        Authorization: "Bearer " + token,
-      },
-    }
-  );
+
+  let [AgoraTokenResponse, UserResponse] = await Promise.all([
+    fetch(
+      process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
+        `/api/v1/channels/${channel_id}/agora_token`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: "Bearer " + token,
+        },
+      }
+    ),
+    fetch(
+      process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
+        `/api/v1/messages/${mid}/users`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: "Bearer " + token,
+        },
+        credentials: "omit",
+      }
+    ),
+  ]);
   let AgoraTokenData = await AgoraTokenResponse.json();
   tok = AgoraTokenData.data;
-  let UserResponse = await fetch(
-    process.env.NEXT_PUBLIC_CHAT_BACKEND_URL + `/api/v1/messages/${mid}/users`,
-    {
-      method: "GET",
-      headers: {
-        Authorization: "Bearer " + token,
-      },
-      credentials: "omit",
-    }
-  );
   let UserData = await UserResponse.json();
   if (
     UserData.data.filter((user) => parseInt(user.user.id) === parseInt(uid))[0]
