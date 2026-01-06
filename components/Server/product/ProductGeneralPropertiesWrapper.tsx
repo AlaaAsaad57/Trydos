@@ -13,6 +13,11 @@ async function ProductGeneralPropertiesWrapper({ globalData, language }) {
   let product = await GetProductGeneralData({
     id: productGlobalData?.id,
   });
+  const TotalBuyers = () => {
+    let total = 0;
+    product?.ratingDetails?.map((s) => (total += s.count));
+    return total;
+  };
 
   return (
     <Suspense fallback={<></>}>
@@ -27,7 +32,7 @@ async function ProductGeneralPropertiesWrapper({ globalData, language }) {
       >
         <ProductRating rating={product.final_rating} />
         <div className="flex-row items-center px-[4px]">
-          <span className="bold px-[4px]"> {product.total_buyers}</span>
+          <span className="bold px-[4px]"> {TotalBuyers()}</span>
           {translateFunction("Buyer Rate", language)}
         </div>
         <span className="px-[5px] text-[10px] text-[#1d1d1d]">|</span>
