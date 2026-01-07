@@ -46,6 +46,7 @@ export const getAgoraTokenForInit = async (channel_id, token, mid) => {
       method: "POST",
       headers: {
         Authorization: "Bearer " + token,
+        accept: "application/json",
       },
       credentials: "omit",
     }
@@ -83,6 +84,7 @@ export const Decline = async (token, mid, duration) => {
       method: "POST",
       headers: {
         Authorization: "Bearer " + token,
+        accept: "application/json",
       },
       body: JSON.stringify({
         duration_in_seconds: duration ?? 0,
@@ -120,6 +122,7 @@ export const AnswerWebView = async (token, messageId, fcm) => {
         body: JSON.stringify({ ...obj }),
         headers: {
           Authorization: "Bearer " + token,
+          accept: "application/json",
         },
       }
     );
