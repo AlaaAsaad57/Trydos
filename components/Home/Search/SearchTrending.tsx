@@ -1,82 +1,14 @@
 import React, { useEffect, useState } from "react";
 import SearchTrendingicon from "public/svg/SearchTrendingicon";
 import SearchMiniIcon from "public/svg/SearchMiniIcon";
-import { useAppStore } from "store";
-import search from "services/search";
 import { useParams } from "next/navigation";
-function SearchTrending() {
-  const {
-    setSearchPartialLoading,
-    findProducts,
-    setSearchLoading,
-    setSearchWord,
-    trending,
-    setResettingLoadMore,
-  } = useAppStore();
+function SearchTrending({ trending, clearAll, setValue }) {
   const [openMenu, setOpen] = useState(false);
   const { lang } = useParams();
   // @ts-ignore
   let languageVariable = lang.split("-")[1];
   const isRtl = languageVariable === "ar" || languageVariable === "ku";
-  useEffect(() => {
-    if (typeof document !== "undefined") {
-      const slider: HTMLDivElement = document?.querySelector(
-        ".search-filter-options.s2"
-      );
-      let isDown = false;
-      let startX: number;
-      let scrollLeft: number;
 
-      slider?.addEventListener("mousedown", (e: MouseEvent) => {
-        isDown = true;
-        slider.classList.add("active");
-        startX = e.pageX - slider.offsetLeft;
-        scrollLeft = slider.scrollLeft;
-      });
-      slider?.addEventListener("mouseleave", () => {
-        isDown = false;
-        slider.classList.remove("active");
-      });
-      slider?.addEventListener("mouseup", () => {
-        isDown = false;
-        slider.classList.remove("active");
-      });
-      slider?.addEventListener("mousemove", (e) => {
-        if (!isDown) return;
-        e.preventDefault();
-        const x = e.pageX - slider.offsetLeft;
-        const walk = (x - startX) * 3; //scroll-fast
-        slider.scrollLeft = scrollLeft - walk;
-      });
-    }
-  }, []);
-  const SearchForTrendingItem = async (historyItem) => {
-    setSearchWord(historyItem.term);
-    setSearchPartialLoading(true);
-    setSearchLoading(true);
-    search.getSearchOptions({
-      noProducts: false,
-      lang: lang,
-    });
-    setResettingLoadMore(true);
-    await search.getSearchOptions({
-      noProducts: false,
-      lang: lang,
-    });
-    setResettingLoadMore(false);
-  };
-  const clearAll = async () => {
-    setResettingLoadMore(true);
-    setSearchLoading(true);
-    setSearchPartialLoading(true);
-    setSearchWord("");
-    findProducts([]);
-    await search.getSearchOptions({
-      noProducts: true,
-      lang: lang,
-    });
-    setResettingLoadMore(false);
-  };
   return (
     <div
       className={` ${
@@ -139,9 +71,6 @@ function SearchTrending() {
                 //   event: GA_EVENT_NAMES.CLICK,
                 //   value: GA_CLICK_EVENT_VALUES.SEARCH_TRENDING_OPTION,
                 // });
-                setSearchWord(s.term);
-                setSearchPartialLoading(true);
-                setSearchLoading(true);
               }}
             >
               {s.term}{" "}

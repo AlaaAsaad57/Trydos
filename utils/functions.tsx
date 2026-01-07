@@ -354,9 +354,13 @@ export const onClickSearchHistory = (searchValue) => {
         JSON.stringify([searchValue, ...arr])
       );
     }
+    return [searchValue, ...arr];
   } else {
+    return [searchValue];
     localStorage.setItem("search-history", JSON.stringify([searchValue]));
   }
+
+  return searchValue;
 };
 
 export const getOldCart = async () => {
