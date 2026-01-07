@@ -560,6 +560,7 @@ function ChatMessage(props) {
 
             <OptionsMenu
               message={props?.message}
+              isSender={true}
               isPrivate={props.isPrivate}
               DeleteModal={DeleteModal}
               setDelete={(e) => setDelete(e)}
@@ -708,6 +709,7 @@ function ChatMessage(props) {
               isPrivate={props.isPrivate}
               message={props?.message}
               DeleteModal={DeleteModal}
+              isSender={true}
               setImg={() => {
                 setImg(props.message.message_files[0]?.file_path);
               }}
@@ -860,6 +862,7 @@ function ChatMessage(props) {
             </div>
 
             <OptionsMenu
+              isSender={true}
               isPrivate={props.isPrivate}
               message={props?.message}
               DeleteModal={DeleteModal}
@@ -1064,6 +1067,7 @@ function ChatMessage(props) {
               isPrivate={props.isPrivate}
               message={props?.message}
               DeleteModal={DeleteModal}
+              isSender={true}
               setDelete={(e) => setDelete(e)}
               deleteMessage={(e) =>
                 DeleteMessage(activeChat.id, props.message.id, e)
@@ -1198,6 +1202,7 @@ function ChatMessage(props) {
             </div>
             <OptionsMenu
               isPrivate={props.isPrivate}
+              isSender={true}
               message={props?.message}
               DeleteModal={DeleteModal}
               setDelete={(e) => setDelete(e)}
@@ -1356,6 +1361,7 @@ function ChatMessage(props) {
               <div className="message-date">{getMessageStatus()}</div>
             </div>
             <OptionsMenu
+              isSender={true}
               isPrivate={props.isPrivate}
               message={props?.message}
               DeleteModal={DeleteModal}
@@ -1643,6 +1649,7 @@ function ChatMessage(props) {
             </div>
             <OptionsMenu
               isPrivate={props.isPrivate}
+              isSender={false}
               message={props?.message}
               DeleteModal={DeleteModal}
               setDelete={(e) => setDelete(e)}
@@ -1752,6 +1759,7 @@ function ChatMessage(props) {
               </div>
             </div>
             <OptionsMenu
+              isSender={false}
               isPrivate={props.isPrivate}
               setImg={() => {
                 setImg(props.message.message_files[0]?.file_path);
@@ -1871,6 +1879,7 @@ function ChatMessage(props) {
               </div>
             </div>
             <OptionsMenu
+              isSender={false}
               isPrivate={props.isPrivate}
               message={props?.message}
               DeleteModal={DeleteModal}
@@ -2051,6 +2060,7 @@ function ChatMessage(props) {
                 </div>
               )}
             <OptionsMenu
+              isSender={false}
               isPrivate={props.isPrivate}
               message={props?.message}
               DeleteModal={DeleteModal}
@@ -2155,6 +2165,7 @@ function ChatMessage(props) {
               </div>
             </div>
             <OptionsMenu
+              isSender={false}
               isPrivate={props.isPrivate}
               message={props?.message}
               DeleteModal={DeleteModal}
@@ -2282,6 +2293,7 @@ function ChatMessage(props) {
               </div>
             </div>
             <OptionsMenu
+              isSender={false}
               message={props?.message}
               isPrivate={props.isPrivate}
               DeleteModal={DeleteModal}
@@ -2405,6 +2417,7 @@ function ChatMessage(props) {
               </div>
             </div>
             <OptionsMenu
+              isSender={false}
               isCall={true}
               isPrivate={props.isPrivate}
               message={props?.message}

@@ -261,6 +261,12 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
           initCart(data ?? { cart: [] });
         },
       });
+      fetchData({
+        method: "GET",
+        url: `/api/mobile/product/details/${slug}`,
+        reqTitle: { reqTitle: "", code: 100 },
+        server: "local",
+      });
       let data = await getProductDataForAddToCart({
         language: languageVariable,
         country: country,
