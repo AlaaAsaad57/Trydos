@@ -5,12 +5,9 @@ import { useEffect } from "react";
 
 import { translateFunction } from "utils/functions";
 const NameModal = dynamic(() => import("components/global/NameModal"));
-
 import StoryServiceClass from "services/story";
-import SearchContainer from "./Search/SearchContainer";
 import { useAppStore } from "store";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-
 import { showErrorNotification } from "@/store/notifications/reducer";
 import {
   COOKIE_NAMES,
@@ -71,11 +68,5 @@ export default function Home() {
       );
     }
   };
-  return (
-    <>
-      {getNameModalOpen() && <NameModal />}
-
-      {enable_search && <SearchContainer active={enable_search} />}
-    </>
-  );
+  return <>{getNameModalOpen() && <NameModal />}</>;
 }
