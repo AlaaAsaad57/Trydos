@@ -125,6 +125,13 @@ export const AnswerWebView = async (token, messageId, fcm) => {
       }
     );
     let data = await res.json();
-    alert(JSON.stringify({ data, body: obj, fcm }));
+    alert(
+      JSON.stringify({
+        data,
+        body: obj,
+        fcm,
+        url: `/api/v1/messages/answer_call/${messageId}`,
+      })
+    );
   } catch (e) {}
 };
