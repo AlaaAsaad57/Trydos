@@ -11,7 +11,7 @@ function BrandItem({ brand, onClick, isActive }) {
       {isActive && (
         <ActiveCategoryIcon
           data-cy="IsActive"
-          style={{ top: "-6px", left: "-15px", scale: "0.6" }}
+          style={{ top: "-6px", left: "-4px", scale: "0.6" }}
           className="absolute"
         />
       )}

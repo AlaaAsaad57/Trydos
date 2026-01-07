@@ -32,7 +32,9 @@ function SearchTrending({ trending, clearAll, setValue }) {
               key={index}
               className="search-filter-option"
               data-cy="search-trending-option"
-              onClick={(e) => {}}
+              onClick={(e) => {
+                setValue(s.term);
+              }}
             >
               {s.term}
               {/* {s.isSelected && (
@@ -67,6 +69,7 @@ function SearchTrending({ trending, clearAll, setValue }) {
               className="option-row-search flex-row"
               data-cy="search-trending-option"
               onClick={(e) => {
+                setValue(s.term);
                 // Sendevent({
                 //   event: GA_EVENT_NAMES.CLICK,
                 //   value: GA_CLICK_EVENT_VALUES.SEARCH_TRENDING_OPTION,

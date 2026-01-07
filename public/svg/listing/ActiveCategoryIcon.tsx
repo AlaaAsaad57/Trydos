@@ -5,6 +5,7 @@ const ActiveCategoryIcon = (props: any) => (
     className={props.className ?? ""}
     style={{
       boxShadow: `inset 0px 4px 6px #ffffff80, 0px 3px 3px #0000000a`,
+      ...(props?.style ?? {}),
     }}
   >
     <svg

@@ -1,54 +1,27 @@
 "use client";
-import React, { useEffect } from "react";
 import ActiveCategoryIcon from "public/svg/listing/ActiveCategoryIcon";
 import CloseIcon from "public/svg/CloseIcon";
-import { useParams, useSearchParams } from "next/navigation";
+
 import Search from "public/svg/SearchIcon";
-import { useAppStore } from "store";
-import search from "services/search";
 import { GetImageUrl } from "utils/tinyUtils";
+import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 
-function ActiveSearchFilterBar() {
-  const { value, searchFilters, resetSearchFilter, setSearchWord } =
-    useAppStore();
+function ActiveSearchFilterBar({ value, appliedFilters, reset }) {
+  const showFilterBar = () => {
+    return (
+      appliedFilters?.categories.length > 0 ||
+      appliedFilters?.brands.length > 0 ||
+      appliedFilters?.boutiques.length > 0 ||
+      value.length > 0
+    );
+  };
 
-  useEffect(() => {
-    if (typeof document !== "undefined") {
-      const slider: HTMLDivElement =
-        document?.querySelector(".filter-info-bar");
-      let isDown = false;
-      let startX: number;
-      let scrollLeft: number;
-
-      slider?.addEventListener("mousedown", (e: MouseEvent) => {
-        isDown = true;
-        slider.classList.add("active");
-        startX = e.pageX - slider.offsetLeft;
-        scrollLeft = slider.scrollLeft;
-      });
-      slider?.addEventListener("mouseleave", () => {
-        isDown = false;
-        slider.classList.remove("active");
-      });
-      slider?.addEventListener("mouseup", () => {
-        isDown = false;
-        slider.classList.remove("active");
-      });
-      slider?.addEventListener("mousemove", (e) => {
-        if (!isDown) return;
-        e.preventDefault();
-        const x = e.pageX - slider.offsetLeft;
-        const walk = (x - startX) * 3; //scroll-fast
-        slider.scrollLeft = scrollLeft - walk;
-      });
-    }
-  }, []);
   const getCategory = (slug) => {
     let variable = {
       name: "",
       most_viewed_product_thumbnail: "",
     };
-    searchFilters.categories.map((s) =>
+    appliedFilters.categories.map((s) =>
       s.childes?.map((sub) => {
         variable = sub;
         if (sub.slug === slug) return sub;
@@ -56,36 +29,28 @@ function ActiveSearchFilterBar() {
     );
     return variable;
   };
-  const { lang } = useParams();
+  if (!showFilterBar()) return <></>;
   return (
-    <div
-      className="filter-info-bar w-full mx-[10px] mt-[5px] h-[30px] bg-[#efefef] rounded-[10px] px-[10px] flex-row cursor-pointer align-center overflow-x-scroll overflow-y-hidden whitespace-nowrap [&> *]: select-none "
+    <HortiznalScrollBar
+      id="filter-info-bar"
+      className="filter-info-bar gap-[8px] w-full mx-[10px] mt-[5px] h-[30px] bg-[#efefef] rounded-[10px] px-[10px] flex-row cursor-pointer align-center overflow-x-scroll overflow-y-hidden whitespace-nowrap [&> *]: select-none "
       data-cy="filterInfo"
     >
       <CloseIcon
         data-cy="closeIcon"
-        className="mr-2 ml-2"
+        className="mx-[10px]"
         onClick={() => {
-          // Sendevent({
-          //   event: GA_EVENT_NAMES.CLICK,
-          //   value: GA_CLICK_EVENT_VALUES.RESET_HOME_SEARCH_BUTTON,
-          // });
-          resetSearchFilter();
-          setSearchWord("");
-          search.getSearchOptions({
-            noProducts: true,
-            lang: lang,
-          });
+          reset();
         }}
       />
-      {searchFilters?.categories.length > 0 && (
+      {appliedFilters?.categories.length > 0 && (
         <>
           <ActiveCategoryIcon style={{ height: "21px" }} />
 
-          {searchFilters?.categories.map(
+          {appliedFilters?.categories.map(
             (category, key) =>
               (category.name ||
-                searchFilters.categories.filter(
+                appliedFilters.categories.filter(
                   (s) => s.slug === category.slug
                 )[0]?.name ||
                 getCategory(category.slug)?.name) && (
@@ -125,11 +90,11 @@ function ActiveSearchFilterBar() {
                           )) ??
                         (category.flat_photo_path?.file_path &&
                           GetImageUrl(category.flat_photo_path?.file_path)) ??
-                        (searchFilters.categories.filter(
+                        (appliedFilters.categories.filter(
                           (s) => s.slug === category.slug
                         )[0]?.most_viewed_product_thumbnail &&
                           GetImageUrl(
-                            searchFilters.categories.filter(
+                            appliedFilters.categories.filter(
                               (s) => s.slug === category.slug
                             )[0]?.most_viewed_product_thumbnail
                           )) ??
@@ -147,7 +112,7 @@ function ActiveSearchFilterBar() {
                     data-cy="mainFilter"
                   >
                     {category?.name ||
-                      searchFilters.categories.filter(
+                      appliedFilters.categories.filter(
                         (s) => s.slug === category.slug
                       )[0]?.name ||
                       getCategory(category.slug)?.name}
@@ -180,11 +145,11 @@ function ActiveSearchFilterBar() {
                           src={
                             (s.icon?.file_path &&
                               GetImageUrl(s.icon?.file_path)) ||
-                            (searchFilters.categories.filter(
+                            (appliedFilters.categories.filter(
                               (sub) => sub.slug === s.slug
                             )[0]?.icon?.file_path &&
                               GetImageUrl(
-                                searchFilters.categories.filter(
+                                appliedFilters.categories.filter(
                                   (sub) => sub.slug === s.slug
                                 )[0]?.icon?.file_path
                               ))
@@ -198,7 +163,7 @@ function ActiveSearchFilterBar() {
                         key={`${s.slug}-name`}
                       >
                         {s.name ||
-                          searchFilters.categories.filter(
+                          appliedFilters.categories.filter(
                             (sub) => sub.slug === s.slug
                           )[0]?.name}
                       </div>
@@ -209,10 +174,10 @@ function ActiveSearchFilterBar() {
           )}
         </>
       )}
-      {searchFilters?.boutiques?.length > 0 && (
+      {appliedFilters?.boutiques?.length > 0 && (
         <>
           <ActiveCategoryIcon style={{ height: "21px" }} />
-          {searchFilters?.boutiques?.map(
+          {appliedFilters?.boutiques?.map(
             (category) =>
               category.name && (
                 <div className="flex-row" key={category.slug}>
@@ -256,13 +221,13 @@ function ActiveSearchFilterBar() {
           )}
         </>
       )}
-      {searchFilters?.brands?.length > 0 && (
+      {appliedFilters?.brands?.length > 0 && (
         <>
           <ActiveCategoryIcon style={{ height: "21px" }} />
-          {searchFilters?.brands?.map(
+          {appliedFilters?.brands?.map(
             (brand) =>
               (brand.name ||
-                searchFilters.brands.filter((s) => s.slug === brand.slug)[0]
+                appliedFilters.brands.filter((s) => s.slug === brand.slug)[0]
                   ?.name) && (
                 <div className="flex-row" key={brand.slug}>
                   <div
@@ -294,11 +259,11 @@ function ActiveSearchFilterBar() {
                       src={
                         (brand?.icon?.file_path &&
                           GetImageUrl(brand?.icon?.file_path)) ||
-                        (searchFilters.brands.filter(
+                        (appliedFilters.brands.filter(
                           (sub) => sub.slug === brand.slug
                         )[0]?.icon?.file_path &&
                           GetImageUrl(
-                            searchFilters.brands.filter(
+                            appliedFilters.brands.filter(
                               (sub) => sub.slug === brand.slug
                             )[0]?.icon?.file_path
                           ))
@@ -311,7 +276,7 @@ function ActiveSearchFilterBar() {
                     key={`${brand.slug}-name`}
                   >
                     {brand?.name ||
-                      searchFilters.brands.filter(
+                      appliedFilters.brands.filter(
                         (sub) => sub.slug === brand.slug
                       )[0]?.name}
                   </div>
@@ -332,7 +297,7 @@ function ActiveSearchFilterBar() {
           </div>
         </>
       )}
-    </div>
+    </HortiznalScrollBar>
   );
 }
 

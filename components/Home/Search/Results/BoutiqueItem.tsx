@@ -12,7 +12,7 @@ function BoutiqueItem({ boutique, onClick, isActive }) {
     >
       {isActive && (
         <ActiveCategoryIcon
-          style={{ top: "-6px", left: "-15px", scale: "0.6" }}
+          style={{ top: "-6px", left: "-4px", scale: "0.6" }}
           className="absolute"
         />
       )}

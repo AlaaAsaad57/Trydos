@@ -9,7 +9,7 @@ function Spinner(props: SpinnerPropsType) {
         "spin-cont min-w-4 " +
         (props.no && " no-tran ") +
         props.className +
-        `${props.isMargen && "flex items-center justify-center ml-4"}`
+        ` ${props.isMargen && "flex items-center justify-center ml-4"}`
       }
     >
       <svg
