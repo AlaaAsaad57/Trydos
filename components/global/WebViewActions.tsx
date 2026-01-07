@@ -121,7 +121,6 @@ export const AnswerWebView = async (token, messageId, fcm) => {
         headers: {
           Authorization: "Bearer " + token,
         },
-        credentials: "omit",
       }
     );
     let data = await res.json();
