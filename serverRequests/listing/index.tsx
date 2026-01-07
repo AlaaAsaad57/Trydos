@@ -235,6 +235,7 @@ export async function GetNextPageFilters({
     if (filters.isFlashDeals || filters?.flashdeal) return "/flashDeals";
     return "/filters";
   };
+  const isRtl = language === "ar" || language === "ku";
   try {
     let response = await getProductsAndFiltersFromElastic({
       country,
@@ -267,6 +268,7 @@ export async function GetNextPageFilters({
     return {
       categories: new_filters?.categories?.map((item) => (
         <FilterItem
+          isRtl={isRtl}
           baseUrlOfFiltersPage={baseUrlOfFiltersPage()}
           params={params}
           filterParams={filters}
@@ -279,6 +281,7 @@ export async function GetNextPageFilters({
       )),
       brands: new_filters?.brands?.map((item) => (
         <FilterItem
+          isRtl={isRtl}
           baseUrlOfFiltersPage={baseUrlOfFiltersPage()}
           params={params}
           filterParams={filters}
@@ -292,6 +295,7 @@ export async function GetNextPageFilters({
       colors: new_filters?.colors?.map((item) => {
         return (
           <FilterItem
+            isRtl={isRtl}
             baseUrlOfFiltersPage={baseUrlOfFiltersPage()}
             params={params}
             filterParams={filters}
@@ -305,6 +309,7 @@ export async function GetNextPageFilters({
       }),
       sizes: new_filters?.sizes?.map((item) => (
         <FilterItem
+          isRtl={isRtl}
           baseUrlOfFiltersPage={baseUrlOfFiltersPage()}
           params={params}
           filterParams={filters}
@@ -318,6 +323,7 @@ export async function GetNextPageFilters({
       prices: response?.prices?.priceRanges?.map((item) => {
         return (
           <FilterItem
+            isRtl={isRtl}
             baseUrlOfFiltersPage={baseUrlOfFiltersPage()}
             params={params}
             filterParams={filters}

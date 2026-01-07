@@ -20,6 +20,7 @@ export const FilterItem = ({
   currency,
   params,
   baseUrlOfFiltersPage,
+  isRtl = false,
 }: FilterItemProps) => {
   // Helper function to get filter state with proper typing
   const getFilterState = (
@@ -146,7 +147,17 @@ export const FilterItem = ({
               minWidth: shouldShowSubCategories()
                 ? "max-content"
                 : `${(item?.childes?.length * 10) / 2}px`,
-              right: shouldShowSubCategories() ? "0px" : "40px",
+              right: isRtl
+                ? "initial"
+                : shouldShowSubCategories()
+                ? "0px"
+                : "40px",
+
+              left: isRtl
+                ? shouldShowSubCategories()
+                  ? "0px"
+                  : "40px"
+                : "initial",
             }}
           >
             {item.childes.map((s, index) => {

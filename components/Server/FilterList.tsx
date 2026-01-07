@@ -85,6 +85,7 @@ function FilterList({
                       index={index}
                       isFeatured={isFeatured}
                       isFlashDeals={isFlashDeals}
+                      isRtl={isRtl}
                       params={params}
                       currency={currency}
                       filterParams={filterParams}
@@ -649,6 +650,7 @@ interface FilterItemsRowProps {
   isFeatured?: boolean;
   isFlashDeals?: boolean;
   total?: number;
+  isRtl?: boolean;
 }
 
 const FilterItemsRow = ({
@@ -662,6 +664,7 @@ const FilterItemsRow = ({
   isFeatured,
   isFlashDeals,
   total = 10,
+  isRtl = false,
 }: FilterItemsRowProps) => {
   const [country, language] = params.lang.split("-");
   const getDataCy = () => {
@@ -684,7 +687,13 @@ const FilterItemsRow = ({
         term !== "categories" && term !== "brands" && "pt-[10px]"
       } scrollable-area-${index} boutique-category-filter flex-row`}
     >
-      <div className="category-row-container flex-row" data-cy={getDataCy()}>
+      <div
+        className="category-row-container flex-row"
+        data-cy={getDataCy()}
+        style={{
+          direction: isRtl ? "rtl" : "ltr",
+        }}
+      >
         {items &&
           items?.map((item) => (
             // <FilterItemWrapper
@@ -692,6 +701,7 @@ const FilterItemsRow = ({
             //   key={item.id}
             // >
             <FilterItem
+              isRtl={isRtl}
               baseUrlOfFiltersPage={baseUrlOfFiltersPage()}
               params={params}
               filterParams={filterParams}

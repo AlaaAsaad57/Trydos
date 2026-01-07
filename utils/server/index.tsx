@@ -497,6 +497,7 @@ export interface FilterItemProps {
   isUsingParsedFilters: boolean;
   currency: any;
   params: any;
+  isRtl?: boolean;
   baseUrlOfFiltersPage: string;
 }
 
