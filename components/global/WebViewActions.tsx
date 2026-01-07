@@ -117,7 +117,7 @@ export const AnswerWebView = async (token, messageId, fcm) => {
         `/api/v1/messages/answer_call/${messageId}`,
       {
         method: "POST",
-        body: JSON.stringify(obj),
+        body: JSON.stringify({ ...obj }),
         headers: {
           Authorization: "Bearer " + token,
         },
