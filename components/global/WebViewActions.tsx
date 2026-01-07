@@ -84,6 +84,7 @@ export const Decline = async (token, mid, duration) => {
       method: "POST",
       headers: {
         Authorization: "Bearer " + token,
+        "Content-Type": "application/json",
         accept: "application/json",
       },
       body: JSON.stringify({
@@ -123,17 +124,9 @@ export const AnswerWebView = async (token, messageId, fcm) => {
         headers: {
           Authorization: "Bearer " + token,
           accept: "application/json",
+          "Content-Type": "application/json",
         },
       }
-    );
-    let data = await res.json();
-    alert(
-      JSON.stringify({
-        data,
-        body: obj,
-        fcm,
-        url: `/api/v1/messages/answer_call/${messageId}`,
-      })
     );
   } catch (e) {}
 };
