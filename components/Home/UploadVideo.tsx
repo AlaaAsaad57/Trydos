@@ -1,7 +1,6 @@
-import { UploadVideoPropsType } from "models/componentType/UploadVideoPropsType";
 import { useEffect } from "react";
 
-function UploadVideo({ vidUrl }: UploadVideoPropsType) {
+function UploadVideo({ vidUrl }) {
   useEffect(() => {}, []);
   return <video controls src={vidUrl}></video>;
 }

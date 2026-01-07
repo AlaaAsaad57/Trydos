@@ -106,6 +106,7 @@ function ConfirmMobile({ closeWindow, hasMobile, goToOrders }) {
         setLoadingPin(false);
       },
       successCallback: async (exists, name) => {
+        router.refresh();
         // Sendevent({
         //   event: GA_EVENT_NAMES.PROGRAMMING_EVENT,
 

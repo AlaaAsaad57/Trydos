@@ -5,13 +5,13 @@ import { translateFunction } from "utils/functions";
 import { ConfirmationModal } from "./PersonalInfo";
 import { useAppStore } from "store";
 import { GetImageUrl } from "utils/tinyUtils";
-import { ProfileCardPropsType } from "models/componentType/settingTypes/MainSettingPropsType";
+
 function ProfileCard({
   goToProfile,
   goToProfileSize,
   goToProfilePicture,
   userCookiesData,
-}: ProfileCardPropsType) {
+}: any) {
   const { userProfile, language } = useAppStore();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const isRtl = language === "ar" || language === "ku";

@@ -5,9 +5,6 @@ let nextConfig: NextConfig = {
   reactStrictMode: false,
   compress: true,
   bundlePagesRouterDependencies: false,
-  // React 19 Compiler Configuration
-  // Automatically optimizes React components (memoization, etc.)
-  // No additional packages needed - built into Next.js 16
   reactCompiler: true,
   async headers() {
     return [

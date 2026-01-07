@@ -185,11 +185,10 @@ function WebViewVideoCall(props) {
         durationRef.current // <-- this becomes args[0] in Flutter
       );
     if (!bool) {
-      props.onDecline(duration);
+      await props.onDecline(duration);
     } else {
       window.location.href = "/endCall";
     }
-    //   dispatch({type:"END-CALL"})
   };
   const [trackState, setTrackState] = useState({ video: true, audio: true });
   const trackStateRef = useRef(trackState);

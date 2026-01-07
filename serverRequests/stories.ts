@@ -1,5 +1,10 @@
 "use server";
 
+import {
+  COOKIE_NAMES,
+  getCookieServer,
+  UserData,
+} from "utils/cookies/cookie-manager";
 import { fetchServerData } from "./ServerFetch";
 import { ReportError } from "utils/errorReported";
 
@@ -32,16 +37,20 @@ export async function fetchStoriesForUser(
   page: number = 1,
   userToken?: string
 ): Promise<StoriesResponse> {
+  const STORIES_TOKEN = await getCookieServer<UserData>(
+    COOKIE_NAMES.USER_STORIES
+  );
+
   let headers = {
-    ...(userToken && { Authorization: `Bearer ${userToken}` }),
+    ...(STORIES_TOKEN?.access_token && {
+      Authorization: `Bearer ${STORIES_TOKEN?.access_token ?? userToken}`,
+    }),
     Accept: "application/json",
   };
   try {
     const response = await fetchServerData({
       url: `${process.env.NEXT_PUBLIC_NEST_STORIES_BACKEND_URL}/api/v1/stories/users_stories?page=${page}`,
       method: "GET",
-      tags: ["stories", "home"],
-      // revalidate: parseInt(process.env.NEXT_PUBLIC_REVALIDATE_STORIES),
       revalidate: 0,
       local: `${country}-${language}`,
       headers: headers,

@@ -2,17 +2,12 @@ import React, { useState } from "react";
 import { translateFunction } from "utils/functions";
 import LargeAddressChangeIcon from "public/svg/LargeAddressChangeIcon";
 import { GetAddressString } from "utils/tinyUtils";
-import { ConfirmAddressModalPropsType } from "models/componentType/ConfirmAddressModalPropsType";
 import { CheckBoxElement } from "components/Cart/PlaceOrderButtons";
 import ClarificationIcon from "public/svg/OrderCancelConfirm";
 import { useAppStore } from "store";
 import OrderCancelTermsIcon from "public/svg/OrderCancelTerms";
 
-function ConfirmAddressModal({
-  close,
-  confirm,
-  confirmationData,
-}: ConfirmAddressModalPropsType) {
+function ConfirmAddressModal({ close, confirm, confirmationData }) {
   const [active, setActive] = useState(false);
   const { language } = useAppStore();
   const isRtl = language === "ar" || language === "ku";

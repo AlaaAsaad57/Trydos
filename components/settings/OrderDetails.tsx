@@ -8,7 +8,6 @@ import OrderExpectedDeliveryCard from "./cards/OrderExpectedDeliveryCard";
 import OrderStatusCard from "./cards/OrderStatusCard";
 import OrderAddressCard from "./cards/OrderAddressCard";
 import OrderItemsList from "./cards/OrderItemsList";
-import { OrderItem } from "types/orders";
 import {
   getConfiguredImage,
   getUserChat,
@@ -38,8 +37,6 @@ import {
   GetImageUrl,
   totalAmount,
 } from "utils/tinyUtils";
-import { OrderDetailsPropsType } from "models/componentType/settingTypes/OrderDetailsPropsType";
-import { ProductCardPropsType } from "models/componentType/settingTypes/ProductCardPropsType";
 import { fetchData } from "utils/fetchData";
 import auth from "services/auth";
 import { REQUESTS_DATA } from "utils/Requests";
@@ -52,7 +49,7 @@ function OrderDetails({
   goBack,
   setShouldConfirmReturn,
   swipeToScreen,
-}: OrderDetailsPropsType) {
+}: any) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -788,7 +785,7 @@ const OrderExpandedDetails = ({
   setIsExpanded,
   getProductUrl,
 }: {
-  order: OrderItem;
+  order: any;
   getOrderDetails: () => void;
   setShouldConfirmReturn: (e: any) => void;
   setIsExpanded: (e: boolean) => void;
@@ -1089,7 +1086,7 @@ const ProductCard = ({
   getOrderDetails,
   order,
   getProductUrl,
-}: ProductCardPropsType) => {
+}: any) => {
   const { currency, setSelectedOrderItem, ActivePacks } = useAppStore();
   const { lang } = useParams();
   // @ts-ignore

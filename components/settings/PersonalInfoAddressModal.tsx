@@ -5,12 +5,8 @@ import SelectRegion from "components/Cart/SelectRegion";
 import AddAddressForm from "components/Cart/AddAddressForm";
 
 import { useAppStore } from "store";
-import { PersonalInfoAddressModalPropsType } from "models/componentType/settingTypes/PersonalInfoAddressModalPropsType";
 
-function PersonalInfoAddressModal({
-  swipeToScreen,
-  goBack,
-}: PersonalInfoAddressModalPropsType) {
+function PersonalInfoAddressModal({ swipeToScreen, goBack }: any) {
   const { setAddressDetails, isActiveAddress } = useAppStore();
 
   const [openSelect, setOpenSelect] = useState(false);

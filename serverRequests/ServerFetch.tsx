@@ -47,8 +47,7 @@ const createServerFetch = async <T = any,>({
       const response = await fetch(url, {
         ...fetchOptions,
         next: {
-          tags: tags,
-          revalidate: revalidate,
+          revalidate: 0,
         },
       });
 

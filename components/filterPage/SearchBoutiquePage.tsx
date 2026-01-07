@@ -2,16 +2,10 @@
 import { useEffect, useState } from "react";
 import SearchIcon from "public/svg/listing/searchIcon";
 import { DebounceInput } from "react-debounce-input/src";
-import { useParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { buildParamsFromFilters, pollinateInput } from "utils/tinyUtils";
-import { SearchBoutiquePageProps } from "models/componentType/boutiqueTypes/SearchBoutiquePageProps";
 import { useAppStore } from "store";
-function SearchBoutiquePage({
-  search_text,
-  parsedFilters,
-  lang,
-}: SearchBoutiquePageProps) {
-  const params = useParams();
+function SearchBoutiquePage({ search_text, parsedFilters, lang }) {
   const router = useRouter();
 
   // Parse current filters from URL path

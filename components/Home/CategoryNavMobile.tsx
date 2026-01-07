@@ -3,7 +3,7 @@ import Image from "next/image";
 
 import NextLink from "components/global/NextLink";
 import { GetImageUrl } from "utils/tinyUtils";
-import { CategoryNavMobileProps } from "models/componentType/HomePagePropsType";
+
 import { getConfiguredImage } from "utils/functions";
 
 function CategoryNavMobile({
@@ -15,7 +15,7 @@ function CategoryNavMobile({
   params,
   outline,
   mainCategory,
-}: CategoryNavMobileProps) {
+}) {
   // @ts-ignore
 
   return (

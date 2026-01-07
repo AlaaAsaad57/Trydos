@@ -12,8 +12,8 @@ import { useParams } from "next/navigation";
 import { useAppStore } from "store";
 import { GA_BUTTONS_NAMES, GA_EVENT_NAMES } from "utils/GAEvents";
 import { GAevent } from "utils/gtag";
-import { PhoneInputPropsType } from "models/componentType/settingTypes/PhoneInputPropsType";
-import { FlagIcon, formatPhone } from "utils/tinyUtils";
+
+import { FlagIcon } from "utils/tinyUtils";
 
 import { usePhoneInput } from "utils/usePhoneInput";
 import CustomPhoneInput from "components/global/CustomPhoneInput";
@@ -27,7 +27,7 @@ function PhoneInput({
   operation,
   inputValue,
   setInputValue,
-}: PhoneInputPropsType) {
+}) {
   const { language } = useAppStore();
 
   let { lang } = useParams();

@@ -10,16 +10,10 @@ import SelectRegion from "components/Cart/SelectRegion";
 import AddAddressForm from "components/Cart/AddAddressForm";
 import ConfirmAddressModal from "./ConfirmAddressModal";
 import OrderItem from "./OrderItem";
-import { AddressModalPropsType } from "models/componentType/AddressModalPropsType";
-import { ChangeAddressWidgetPropsType } from "models/componentType/ChangeAddressWidgetPropsType";
 import orderService from "services/order";
 import BottomSheet from "components/global/BottomSheet";
 import Spinner from "components/global/Spinner";
-function ChangeAddressWidget({
-  address_id,
-  close,
-  getOrderDetails,
-}: ChangeAddressWidgetPropsType) {
+function ChangeAddressWidget({ address_id, close, getOrderDetails }) {
   const {
     addressLists,
     setAddressDetails,
@@ -580,11 +574,7 @@ function ChangeAddressWidget({
 }
 
 export default ChangeAddressWidget;
-export const AddressModal = ({
-  id,
-  close,
-  setAddressId,
-}: AddressModalPropsType) => {
+export const AddressModal = ({ id = null, close, setAddressId }) => {
   const { setAddressDetails, isActiveAddress } = useAppStore();
 
   const [openSelect, setOpenSelect] = useState(false);

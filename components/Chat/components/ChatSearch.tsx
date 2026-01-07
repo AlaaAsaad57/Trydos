@@ -6,7 +6,7 @@ import { DebounceInput } from "react-debounce-input";
 import Spinner from "components/global/Spinner";
 
 import { getMessagesBetweenMessage } from "store/chat/actions";
-import { GetMessageSearchApi } from "models/API/chat/GetMessagesForSearch";
+
 import { useAppStore } from "store";
 import { fetchData } from "utils/fetchData";
 import { REQUESTS_DATA } from "utils/Requests";
@@ -31,7 +31,7 @@ function ChatSearch({ close }) {
   const getMessagesForSearch = async (value) => {
     if (value?.length > 0) {
       try {
-        let response: GetMessageSearchApi = await fetchData({
+        let response = await fetchData({
           url: "/api/v2/elastic/channelSearch",
           server: "chat",
           method: "POST",

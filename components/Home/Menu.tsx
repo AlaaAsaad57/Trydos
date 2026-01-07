@@ -73,6 +73,9 @@ const MenuItem = ({
   if (href && !pathname.includes(href)) {
     return (
       <NextLink
+        onClick={() => {
+          onClick();
+        }}
         data={data}
         ariaLabel={`Menu Item ${href}`}
         data-cy={dataCy}

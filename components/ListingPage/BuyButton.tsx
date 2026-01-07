@@ -1,7 +1,7 @@
 "use client";
-import { BuyButtonPropsType } from "models/componentType/BuyButtonPropsType";
+
 import { useParams } from "next/navigation";
-import { useEffect } from "react";
+
 import LocalizationServiceClass from "services/localization";
 import { useAppStore } from "store";
 import { RoundPrice, translateFunction } from "utils/functions";
@@ -14,7 +14,7 @@ function BuyButton({
   id,
   seconds,
   onExpire,
-}: BuyButtonPropsType) {
+}: any) {
   let { lang } = useParams();
   // @ts-ignore
   let languageVariable = lang.split("-")[1];

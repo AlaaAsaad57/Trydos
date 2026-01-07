@@ -1,29 +1,20 @@
 import React, { useEffect, useState, useRef } from "react";
 import SettingTopBar from "./TopBar";
 import SearchHistoryIcon from "public/svg/SearchHistoryIcon";
-import {
-  OrderItem as OrderItemType,
-  OrderDetail,
-  OrdersResponse,
-} from "../../types/orders";
+
 import { fetchOrders } from "../../services/orders";
 import OrderItem from "../Orders/OrderItem"; // Assuming OrderItem component exists and can be reused
 import { translateFunction } from "utils/functions"; // Assuming translateFunction exists
 import { useAppStore } from "store";
 import { useParams, useRouter } from "next/navigation";
-import { OrdersListPropsType } from "models/componentType/settingTypes/OrdersListPropsType";
 import OrderSkeletons from "./OrderSkeletons";
 import { COOKIE_NAMES, getCookie } from "utils/cookies/cookie-manager";
 
 // Helper function to get status display name (replace with actual logic if needed)
 
-function OrdersList({
-  swipeToScreen,
-  goBack,
-  setSelectedOrder,
-}: OrdersListPropsType) {
+function OrdersList({ swipeToScreen, goBack, setSelectedOrder }: any) {
   const [selectedStatus, setSelectedStatus] = useState(null);
-  const [orders, setOrders] = useState<OrderItemType[]>([]);
+  const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [page, setPage] = useState(1);
@@ -47,7 +38,7 @@ function OrdersList({
     try {
       // TODO: Modify fetchOrders or backend to accept selectedStatus for filtering
       reqRef.current = true;
-      const response: OrdersResponse = await fetchOrders(
+      const response: any = await fetchOrders(
         currentPage,
         20,
         status === "all" ? null : status
@@ -59,7 +50,7 @@ function OrdersList({
       ) {
         // Group orders by order_group_id - only use the new response data
         const groupedOrders = response.data.orders.reduce(
-          (acc: { [key: string]: OrderItemType[] }, curr: OrderItemType) => {
+          (acc: { [key: string]: any[] }, curr: any) => {
             const groupId = curr.order_group_id;
             if (!acc[groupId]) {
               acc[groupId] = [];
@@ -72,7 +63,7 @@ function OrdersList({
 
         // Merge orders with the same order_group_id
         const mergedResponseOrders = Object.values(groupedOrders).map(
-          (groupOrders: OrderItemType[]) => {
+          (groupOrders: any[]) => {
             if (groupOrders.length === 1) {
               return groupOrders[0];
             }
@@ -82,7 +73,7 @@ function OrdersList({
 
             // Merge details and sum order_amount for all orders in the group
             baseOrder.details = groupOrders.reduce(
-              (allDetails: OrderDetail[], order: OrderItemType) => [
+              (allDetails: any[], order: any) => [
                 ...allDetails,
                 ...order.details.map((detail) => ({
                   ...detail,
@@ -109,19 +100,21 @@ function OrdersList({
           setOrders(mergedResponseOrders);
         } else {
           // Infinite-scroll / pagination — merge with existing state
-          const existingOrdersMap = orders.reduce<
-            Record<string, OrderItemType>
-          >((acc, order) => {
-            acc[order.order_group_id] = order;
-            return acc;
-          }, {} as Record<string, OrderItemType>);
+          const existingOrdersMap = orders.reduce<Record<string, any>>(
+            (acc, order) => {
+              acc[order.order_group_id] = order;
+              return acc;
+            },
+            {} as Record<string, any>
+          );
 
-          const newOrdersMap = mergedResponseOrders.reduce<
-            Record<string, OrderItemType>
-          >((acc, order) => {
-            acc[order.order_group_id] = order;
-            return acc;
-          }, {} as Record<string, OrderItemType>);
+          const newOrdersMap = mergedResponseOrders.reduce<Record<string, any>>(
+            (acc, order) => {
+              acc[order.order_group_id] = order;
+              return acc;
+            },
+            {} as Record<string, any>
+          );
 
           const finalOrders = Object.values({
             ...existingOrdersMap,

@@ -7,15 +7,15 @@ import "public/styles/newLogin.css";
 import "public/styles/login.css";
 import { useAppStore } from "store";
 import PhoneInput from "components/Login/PhoneInput";
-import { ConfirmMobileChangePropsType } from "models/componentType/settingTypes/ConfirmMobileChangePropsType";
 import SearchParamUpdater from "components/global/ParamsUpdater";
+import { useRouter } from "next/navigation";
 
 function ConfirmMobileChange({
   closeWindow,
   value,
   successCallbackFunction,
   forVerify,
-}: ConfirmMobileChangePropsType) {
+}: any) {
   const { setWrongNumber, verficationID, wrongNumber, userProfile } =
     useAppStore();
   const [stepIndicator, setStepIndicator] = useState(3);
@@ -78,6 +78,7 @@ function ConfirmMobileChange({
   };
   const [failedLogin, setFailed] = useState(false);
   const [loadingPin, setLoadingPin] = useState(false);
+  const router = useRouter();
   const loginFunc = async (e) => {
     try {
       setLoadingPin(true);
@@ -85,6 +86,7 @@ function ConfirmMobileChange({
         code: e,
         verificationID: verficationID,
       });
+      router.refresh();
       successCallbackFunction(data);
 
       setLoadingPin(false);

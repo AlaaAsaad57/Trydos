@@ -17,15 +17,12 @@ import { translateFunction } from "utils/functions";
 import Spinner from "components/global/Spinner";
 import { useAppStore } from "store";
 import { FlagIcon } from "utils/tinyUtils";
-import {
-  MainSettingOptionPropsType,
-  MainSettingPropsType,
-} from "models/componentType/settingTypes/MainSettingPropsType";
+
 import { fetchOrders } from "services/orders";
-import SettingsLoader from "components/skeleton/loaders/SettingsLoader";
+
 import GoToSellerDashBoard from "./GoToSellerDashBoard";
 
-function MainSetting({ swipeToScreen, userCookiesData }: MainSettingPropsType) {
+function MainSetting({ swipeToScreen, userCookiesData }: any) {
   const options = [
     {
       name: "Settings",
@@ -208,7 +205,7 @@ function MainSetting({ swipeToScreen, userCookiesData }: MainSettingPropsType) {
 }
 
 export default MainSetting;
-const SettingOption = ({ name, Icon, onClick }: MainSettingOptionPropsType) => {
+const SettingOption = ({ name, Icon, onClick }: any) => {
   const { lang } = useParams();
   // @ts-ignore
   const language = lang.split("-")[1];

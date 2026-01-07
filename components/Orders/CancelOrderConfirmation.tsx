@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import ClarificationIcon from "public/svg/OrderCancelConfirm";
 import OrderCancelTermsIcon from "public/svg/OrderCancelTerms";
 import { translateFunction } from "utils/functions";
-import { CancelOrderConfirmationPropsType } from "models/componentType/CancelOrderConfirmationPropsType";
+
 import Spinner from "components/global/Spinner";
 import { CheckBoxElement } from "components/Cart/PlaceOrderButtons";
 import { useAppStore } from "store";
@@ -13,7 +13,7 @@ function CancelOrderConfirmation({
   topic = "About Cancel Your Order",
   callback,
   setShouldConfirmChange,
-}: CancelOrderConfirmationPropsType) {
+}) {
   const [loading, setLoading] = useState(false);
   const ConfirmFunction = async () => {
     try {

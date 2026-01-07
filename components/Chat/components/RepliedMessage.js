@@ -20,7 +20,9 @@ function RepliedMessage({
 }) {
   const { activeChat } = useAppStore();
   const sameSource = () => {
-    if (message.sender_user_id === parent_message.sender_user_id) {
+    if (
+      String(message.sender_user_id) === String(parent_message.sender_user_id)
+    ) {
       return true;
     } else return false;
   };
@@ -51,7 +53,26 @@ function RepliedMessage({
       return "him-to-me self-align";
     }
   };
-
+  const MePhoto = () => {
+    let photo =
+      activeChat &&
+      activeChat.channel_members &&
+      activeChat.channel_members.filter(
+        (a) => parseInt(a.user_id) === parseInt(getUserChat()?.id)
+      )[0]?.user?.photo_path;
+    if (photo) return GetImageUrl(photo);
+    else return null;
+  };
+  const OtherPhoto = () => {
+    let photo =
+      activeChat &&
+      activeChat.channel_members &&
+      activeChat.channel_members.filter(
+        (a) => parseInt(a.user_id) !== parseInt(getUserChat()?.id)
+      )[0]?.user?.photo_path;
+    if (photo) return GetImageUrl(photo);
+    else return null;
+  };
   const showMessage = () => {
     if (
       parseInt(parent_message.sender_user_id) === parseInt(getUserChat()?.id)
@@ -135,18 +156,11 @@ function RepliedMessage({
                   ) : (
                     <Image
                       alt="user-img"
+                      width={30}
+                      height={30}
                       unoptimized
                       className="abs-avva"
-                      src={
-                        (activeChat &&
-                          activeChat.channel_members &&
-                          activeChat.channel_members.filter(
-                            (a) =>
-                              parseInt(a.user_id) ===
-                              parseInt(getUserChat()?.id)
-                          )[0]?.user?.photo_path) ||
-                        profile
-                      }
+                      src={MePhoto() || profile}
                     />
                   )}
                 </div>
@@ -237,18 +251,11 @@ function RepliedMessage({
                     ) : (
                       <Image
                         alt="user-img"
+                        width={30}
+                        height={30}
                         className="abs-avva"
                         unoptimized
-                        src={
-                          (activeChat &&
-                            activeChat.channel_members &&
-                            activeChat.channel_members.filter(
-                              (a) =>
-                                parseInt(a.user_id) ===
-                                parseInt(getUserChat()?.id)
-                            )[0]?.user?.photo_path) ||
-                          profile
-                        }
+                        src={MePhoto() || profile}
                       />
                     )}
                   </div>
@@ -337,18 +344,11 @@ function RepliedMessage({
                   ) : (
                     <Image
                       alt="user-img"
+                      width={30}
+                      height={30}
                       className="abs-avva"
                       unoptimized
-                      src={
-                        (activeChat &&
-                          activeChat.channel_members &&
-                          activeChat.channel_members.filter(
-                            (a) =>
-                              parseInt(a.user_id) ===
-                              parseInt(getUserChat()?.id)
-                          )[0]?.user?.photo_path) ||
-                        profile
-                      }
+                      src={MePhoto() || profile}
                     />
                   )}
                 </div>
@@ -437,17 +437,10 @@ function RepliedMessage({
                     <Image
                       alt="user-img"
                       className="abs-avva"
+                      width={30}
+                      height={30}
                       unoptimized
-                      src={
-                        (activeChat &&
-                          activeChat.channel_members &&
-                          activeChat.channel_members.filter(
-                            (a) =>
-                              parseInt(a.user_id) ===
-                              parseInt(getUserChat()?.id)
-                          )[0]?.user?.photo_path) ||
-                        profile
-                      }
+                      src={MePhoto() || profile}
                     />
                   )}
                 </div>
@@ -543,17 +536,10 @@ function RepliedMessage({
                       <Image
                         alt="user-img"
                         unoptimized
+                        width={30}
+                        height={30}
                         className="abs-avva"
-                        src={
-                          (activeChat &&
-                            activeChat.channel_members &&
-                            activeChat.channel_members.filter(
-                              (a) =>
-                                parseInt(a.user_id) ===
-                                parseInt(getUserChat()?.id)
-                            )[0]?.user?.photo_path) ||
-                          profile
-                        }
+                        src={MePhoto() || profile}
                       />
                     )}
                   </div>
@@ -648,19 +634,12 @@ function RepliedMessage({
                     </>
                   ) : (
                     <Image
+                      width={30}
+                      height={30}
                       alt="user-img"
                       className="abs-avva"
                       unoptimized
-                      src={
-                        (activeChat &&
-                          activeChat.channel_members &&
-                          activeChat.channel_members.filter(
-                            (a) =>
-                              parseInt(a.user_id) ===
-                              parseInt(getUserChat()?.id)
-                          )[0]?.user?.photo_path) ||
-                        profile
-                      }
+                      src={MePhoto() || profile}
                     />
                   )}
                 </div>
@@ -769,17 +748,10 @@ function RepliedMessage({
                     <Image
                       alt="user-img"
                       unoptimized
+                      width={30}
+                      height={30}
                       className="abs-avva"
-                      src={
-                        (activeChat &&
-                          activeChat.channel_members &&
-                          activeChat.channel_members.filter(
-                            (a) =>
-                              parseInt(a.user_id) ===
-                              parseInt(getUserChat()?.id)
-                          )[0]?.user?.photo_path) ||
-                        profile
-                      }
+                      src={OtherPhoto() || profile}
                     />
                   )}
                 </div>
@@ -871,17 +843,10 @@ function RepliedMessage({
                       <Image
                         alt="user-img"
                         className="abs-avva"
+                        width={30}
+                        height={30}
                         unoptimized
-                        src={
-                          (activeChat &&
-                            activeChat.channel_members &&
-                            activeChat.channel_members.filter(
-                              (a) =>
-                                parseInt(a.user_id) ===
-                                parseInt(getUserChat()?.id)
-                            )[0]?.user?.photo_path) ||
-                          profile
-                        }
+                        src={OtherPhoto() || profile}
                       />
                     )}
                   </div>
@@ -974,17 +939,10 @@ function RepliedMessage({
                       <Image
                         alt="user-img"
                         className="abs-avva"
+                        width={30}
+                        height={30}
                         unoptimized
-                        src={
-                          (activeChat &&
-                            activeChat.channel_members &&
-                            activeChat.channel_members.filter(
-                              (a) =>
-                                parseInt(a.user_id) ===
-                                parseInt(getUserChat()?.id)
-                            )[0]?.user?.photo_path) ||
-                          profile
-                        }
+                        src={OtherPhoto() || profile}
                       />
                     )}
                   </div>
@@ -1074,17 +1032,10 @@ function RepliedMessage({
                     <Image
                       alt="user-img"
                       className="abs-avva"
+                      width={30}
+                      height={30}
                       unoptimized
-                      src={
-                        (activeChat &&
-                          activeChat.channel_members &&
-                          activeChat.channel_members.filter(
-                            (a) =>
-                              parseInt(a.user_id) ===
-                              parseInt(getUserChat()?.id)
-                          )[0]?.user?.photo_path) ||
-                        profile
-                      }
+                      src={OtherPhoto() || profile}
                     />
                   )}
                 </div>
@@ -1176,18 +1127,11 @@ function RepliedMessage({
                   ) : (
                     <Image
                       alt="user-img"
+                      width={30}
+                      height={30}
                       className="abs-avva"
                       unoptimized
-                      src={
-                        (activeChat &&
-                          activeChat.channel_members &&
-                          activeChat.channel_members.filter(
-                            (a) =>
-                              parseInt(a.user_id) ===
-                              parseInt(getUserChat()?.id)
-                          )[0]?.user?.photo_path) ||
-                        profile
-                      }
+                      src={OtherPhoto() || profile}
                     />
                   )}
                 </div>
@@ -1281,19 +1225,12 @@ function RepliedMessage({
                     </>
                   ) : (
                     <Image
+                      width={30}
+                      height={30}
                       alt="user-img"
                       className="abs-avva"
                       unoptimized
-                      src={
-                        (activeChat &&
-                          activeChat.channel_members &&
-                          activeChat.channel_members.filter(
-                            (a) =>
-                              parseInt(a.user_id) ===
-                              parseInt(getUserChat()?.id)
-                          )[0]?.user?.photo_path) ||
-                        profile
-                      }
+                      src={OtherPhoto() || profile}
                     />
                   )}
                 </div>

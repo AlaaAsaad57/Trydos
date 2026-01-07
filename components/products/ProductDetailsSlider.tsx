@@ -6,15 +6,10 @@ import { getConfiguredImage, RoundPrice } from "utils/functions";
 import CloseIcon from "components/Home/Stories/CloseIcon";
 import { useAppStore } from "store";
 import { DisableScroll, EnableScroll, GetImageUrl } from "utils/tinyUtils";
-import { ProductDetailsSliderPropsType } from "models/componentType/productTypes/ProductDetailsSliderPropsType";
 import { GAevent } from "utils/gtag";
 import { GA_EVENT_NAMES } from "utils/GAEvents";
 import auth from "services/auth";
-function ProductDetailsSlider({
-  images,
-  productGA,
-  resetLoader = true,
-}: ProductDetailsSliderPropsType) {
+function ProductDetailsSlider({ images, productGA, resetLoader = true }: any) {
   const { setIsNavigating } = useAppStore();
   const [imageShow, showImage] = useState(-1);
   const [emblaRef1, emblaApi] = useEmblaCarousel({

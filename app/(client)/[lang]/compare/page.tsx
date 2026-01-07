@@ -1,5 +1,4 @@
 import "styles/productDetails.css";
-import { ComparePagePropsType } from "models/componentType/compareTypes/comparePagePropsType";
 import ComparePage from "components/global/compare";
 import { Suspense } from "react";
 import CompareSkeleton from "components/skeleton/loaders/CompareSkeleton";

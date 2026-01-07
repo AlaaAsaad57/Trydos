@@ -1,6 +1,5 @@
 "use client";
 
-import { CartErrorComponentPropsType } from "models/componentType/CartErrorIllustrationPropsType";
 import { useParams } from "next/navigation";
 import { translateFunction } from "utils/functions";
 
@@ -131,10 +130,7 @@ const CartErrorIllustration = ({
   );
 };
 
-const CartErrorComponent = ({
-  errorMessage,
-  onRetry,
-}: CartErrorComponentPropsType) => {
+const CartErrorComponent = ({ errorMessage, onRetry }) => {
   const { lang } = useParams();
   // @ts-ignore
   let language = lang.split("-")[1];

@@ -15,14 +15,12 @@ import NextLink from "components/global/NextLink";
 import { useParams, usePathname } from "next/navigation";
 import OrderButton from "./OrderButton";
 import Spinner from "components/global/Spinner";
-import { QuantityDetailsProductApi } from "models/API/market/ProductQuantityDetails";
 import { useAppStore } from "store";
 import cartService from "services/cart";
 import { GA_EVENT_NAMES, GA_GLOBAL_SCREEN } from "utils/GAEvents";
 import { GAevent } from "utils/gtag";
-import { EnableScroll, GetImageUrl } from "utils/tinyUtils";
-import { CartContainerPropsType } from "models/componentType/CartContainerPropsType";
-import { QuantutyInputPropsType } from "models/componentType/QuantutyInputPropsType";
+import { EnableScroll } from "utils/tinyUtils";
+
 import { fetchData } from "utils/fetchData";
 import { useRouter } from "next/navigation";
 import { REQUESTS_DATA } from "utils/Requests";
@@ -34,7 +32,7 @@ import Image from "next/image";
 import EmptyCart from "./EmptyCart";
 import { isSamePage } from "utils/navigationsUtils";
 
-function CartContainer({ close, toOrders }: CartContainerPropsType) {
+function CartContainer({ close, toOrders }) {
   const {
     storeOldCart,
     hideOldCart,
@@ -111,7 +109,7 @@ function CartContainer({ close, toOrders }: CartContainerPropsType) {
   const updateDataForProduct = async (slug) => {
     if (params?.productId === slug) {
       try {
-        let response: QuantityDetailsProductApi = await fetchData({
+        let response = await fetchData({
           url: "/web/product/qtyPriceDetails" + `/${slug}`,
           reqTitle: REQUESTS_DATA.GET_PRODUCT_VRIANTES,
           method: "GET",
@@ -462,7 +460,7 @@ export const QuantutyInput = ({
   product,
   maxAllowed,
   isCollectedAfterOrdering,
-}: QuantutyInputPropsType) => {
+}) => {
   const { initCart, settings, currency, removeFromCart } = useAppStore();
   const [inputValue, setInputValue] = useState(parseInt(value));
   useEffect(() => {

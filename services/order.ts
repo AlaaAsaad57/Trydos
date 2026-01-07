@@ -1,14 +1,11 @@
 import { useAppStore } from "store";
-import { PlaceOrderApi } from "models/API/market/PlaceOrder";
-import { GetAddressListApi } from "models/API/market/GetAddresses";
-import { GetWalletApi } from "models/API/market/GetWallet";
-import { GetCartOreview, translateFunction } from "utils/functions";
+
+import { GetCartOreview } from "utils/functions";
 import { getCurrency } from "utils/tinyUtils";
 import { fetchData } from "utils/fetchData";
 import auth from "./auth";
 import { REQUESTS_DATA } from "utils/Requests";
 import { COOKIE_NAMES, getCookie } from "utils/cookies/cookie-manager";
-import { showErrorNotification } from "store/notifications/reducer";
 
 class OrderService {
   async PlaceOrder({ payment_method, pay_by_wallet }) {
@@ -22,7 +19,7 @@ class OrderService {
     let addressId = addressLists.filter((s) => s.is_default === 1)[0]?.id;
     try {
       setOrderLoading(true);
-      let response: { data: PlaceOrderApi } = await fetchData({
+      let response: any = await fetchData({
         url: `/customer/order/checkout/${payment_method}?order_note=order note&address_id=${addressId}&pay_by_wallet=${
           pay_by_wallet ? 1 : 0
         }`,
@@ -58,7 +55,7 @@ class OrderService {
           setCurrency(data.currency);
         },
       });
-      let response: { data: GetWalletApi } = await fetchData({
+      let response: any = await fetchData({
         url: "/customer/wallet/list?limit=10&offset=1",
         reqTitle: REQUESTS_DATA.GET_WALLET,
         method: "GET",
@@ -82,7 +79,7 @@ class OrderService {
   }
   async GetWalletTransactions(limit: number = 10, offset: number = 1) {
     try {
-      let response: { data: GetWalletApi } = await fetchData({
+      let response: any = await fetchData({
         url: `/customer/wallet/list?limit=${limit}&offset=${offset}`,
         reqTitle: REQUESTS_DATA.GET_WALLET,
         method: "GET",
@@ -104,7 +101,7 @@ class OrderService {
     this.GetProvinces();
     try {
       setOrderLoading(true);
-      let response: { data: GetAddressListApi } = await fetchData({
+      let response: any = await fetchData({
         url: "/customer/address/list",
         reqTitle: REQUESTS_DATA.GET_ADDRESS_LIST,
         method: "GET",

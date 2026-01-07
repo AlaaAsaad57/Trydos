@@ -1,12 +1,9 @@
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import LargeColorIcon from "public/svg/LargeColorIcon";
 import Spinner from "components/global/Spinner";
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 import { getConfiguredImage, translateFunction } from "utils/functions";
 import { findVariation, GetImageUrl } from "utils/tinyUtils";
-import { ColorListPropsType } from "models/componentType/ColorListPropsType";
-import { ModifyOrderItemModalPropsType } from "models/componentType/ModifyOrderItemModalPropsType";
-import { SizeListPropsType } from "models/componentType/SizeListPropsType";
 import order from "services/order";
 import { useAppStore } from "store";
 import { showErrorNotification } from "store/notifications/reducer";
@@ -18,7 +15,7 @@ export const ModifyOrderItemModal = ({
   orderItem,
   getOrderDetails,
   close,
-}: ModifyOrderItemModalPropsType) => {
+}) => {
   const { language } = useAppStore();
   const [loading, setLoading] = useState(false);
 
@@ -312,7 +309,7 @@ export const SizeList = ({
   currentColor,
   item,
   variations,
-}: SizeListPropsType) => {
+}: any) => {
   const isActive = (name) => {
     if (!newSize) return name?.toLowerCase() === currentSize?.toLowerCase();
     else {

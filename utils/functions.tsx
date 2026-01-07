@@ -1,9 +1,7 @@
 // import translations from "public/translations/translations.js";
 import { useAppStore } from "store";
-import { CartResponse } from "models/API/market/CartShipping";
-import { OldCartApi } from "models/API/market/OldCart";
 import LocalizationServiceClass from "services/localization";
-import { GetConfiguredImagePropsType } from "models/componentType/boutiqueTypes/metaDataPropsType";
+
 import { fetchData } from "./fetchData";
 import {
   COOKIE_NAMES,
@@ -58,13 +56,7 @@ export const _isStoreLastJson = () => {
   return !!process.env.NEXT_PUBLIC_IS_STORE_LAST_JSON;
 };
 
-export const getConfiguredImage = ({
-  src,
-  width,
-  height,
-  q,
-  c_pad,
-}: GetConfiguredImagePropsType) => {
+export const getConfiguredImage = ({ src, width, height, q, c_pad }: any) => {
   if (typeof src === "string") {
     return src.replace(
       "/upload",
@@ -81,25 +73,6 @@ export const getConfiguredImage = ({
       }/f_auto/q_auto:good/fl_lossy/so_0`
     );
   } else return src?.file_path || src || "";
-};
-export const getLang = (lang, cookieLang) => {
-  if (lang) {
-    if (lang === "ar") {
-      return "ar";
-    } else {
-      return lang;
-    }
-  } else {
-    if (cookieLang) {
-      if (cookieLang === "ar") {
-        return "ar";
-      } else {
-        return cookieLang;
-      }
-    } else {
-      return "en";
-    }
-  }
 };
 
 export const expandView = ({ filter }) => {
@@ -368,7 +341,7 @@ export const getOldCart = async () => {
   const marketToken = getCookie<string>(COOKIE_NAMES.MARKET_TOKEN);
   if (!deviceToken && !marketToken) return [];
   try {
-    let response: OldCartApi = await fetchData({
+    let response: any = await fetchData({
       url: "/old-cart/get_old_cart",
       reqTitle: REQUESTS_DATA.OLD_CART_REQUEST,
       method: "GET",
@@ -390,7 +363,7 @@ export const getCart = async ({ callback }) => {
   const marketToken = getCookie<string>(COOKIE_NAMES.MARKET_TOKEN);
   if (!deviceToken && !marketToken) return { cart: [] };
   try {
-    let response: CartResponse = await fetchData({
+    let response: any = await fetchData({
       url: "/cart/cart_shipping",
       reqTitle: REQUESTS_DATA.CART_REQUEST,
       method: "GET",

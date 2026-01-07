@@ -1,8 +1,6 @@
 "use client";
-import { _isStoreLastJson, getLang } from "utils/functions";
+import { _isStoreLastJson } from "utils/functions";
 import { LOG_IN_STORIES } from "utils/endpointConfig";
-import { GetStoriesApi } from "models/API/stories/GetStories";
-import { UploadStoryApi } from "models/API/stories/UploadStory";
 import profilePicture from "public/images/profileNo.png";
 import { useAppStore } from "store";
 
@@ -36,7 +34,7 @@ class StoryService {
       if (!response.success) {
         throw new Error(response.message);
       }
-      let repo: GetStoriesApi = response;
+      let repo: any = response;
       let data = repo.data.data;
       if (page == 1) {
         setStoryData(data);
@@ -124,11 +122,9 @@ class StoryService {
     endUpload: Function,
     link
   ) {
-    const { language, country, userStories, setStoryData } =
-      useAppStore.getState();
     try {
       let response = await this.UploadToCloudinary(file);
-      const add_story_response: UploadStoryApi = await fetchData({
+      const add_story_response: any = await fetchData({
         url: `/api/v1/stories/add_story`,
         reqTitle: REQUESTS_DATA.UPLOAD_STORY,
         method: "POST",
@@ -145,18 +141,6 @@ class StoryService {
         // @ts-ignore
         throw new Error(add_story_response.message);
       }
-
-      await fetch("/api/revalidate");
-      let req = await fetch("/api/stories?page=1", {
-        headers: {
-          lang: language,
-          coountry: country,
-          auth: userStories?.access_token,
-        },
-        credentials: "omit",
-      });
-      let stories = await req.json();
-      setStoryData(stories.data);
       endUpload();
 
       if (add_story_response.data) {

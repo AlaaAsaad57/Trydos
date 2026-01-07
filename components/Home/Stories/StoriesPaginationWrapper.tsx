@@ -31,18 +31,6 @@ function StoriesPaginationWrapper({
   const [next_page, setNextPage] = useState(next_page_url ? 2 : 1);
   const [additionalStories, setAdditionalStories] = useState<any[]>([]);
 
-  // Initialize store with server data if not already set
-  useEffect(() => {
-    if (initialStories.length > 0 && storiesData.length === 0) {
-      try {
-      } catch (error) {
-        console.error("Error fetching initial stories:", error);
-      }
-
-      setStoryData(initialStories);
-    }
-  }, [initialStories, storiesData, setStoryData]);
-
   if (!next_page_url) return <></>;
 
   const getNextStories = async () => {

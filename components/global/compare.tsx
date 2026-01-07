@@ -14,16 +14,13 @@ import CompareLoadingWidget from "./CompareLoadingWidget";
 import { useAppStore } from "store";
 import NextLink from "./NextLink";
 import { GetImageUrl } from "utils/tinyUtils";
-import { ComparePageComponentPropsType } from "models/componentType/compareTypes/ComparePageComponentPropsType";
 import { showErrorNotification } from "@/store/notifications/reducer";
 import {
   getCookie,
   setCookie,
   deleteCookie,
 } from "utils/cookies/cookie-manager";
-const ComparePage = ({
-  showInstantLoading = true,
-}: ComparePageComponentPropsType) => {
+const ComparePage = ({ showInstantLoading = true }) => {
   const { currency, setIsNavigating } = useAppStore();
   const searchParams = useSearchParams();
   const [product1, setProduct1] = useState<any>(null);

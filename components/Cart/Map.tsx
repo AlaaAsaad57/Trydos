@@ -6,8 +6,6 @@ import { translateFunction } from "utils/functions";
 import Spinner from "components/global/Spinner";
 import { useAppStore } from "store";
 import { useParams } from "next/navigation";
-import { ConfirmLocationPropsType } from "models/componentType/ConfirmLocationPropsType";
-import { MapPropsType } from "models/componentType/MapPropsType";
 import { fetchData } from "utils/fetchData";
 import { REQUESTS_DATA } from "utils/Requests";
 const MapElement = dynamic(
@@ -15,12 +13,7 @@ const MapElement = dynamic(
   { ssr: false }
 );
 
-const Map = ({
-  setAddressDetails,
-  center,
-  expanded,
-  setExpanded,
-}: MapPropsType) => {
+const Map = ({ setAddressDetails, center, expanded, setExpanded }) => {
   const { lang } = useParams();
   const { addressDetails } = useAppStore();
   const [cordinates, setCordinates] = useState(null);
@@ -163,11 +156,7 @@ const Map = ({
 
 export default Map;
 
-const ConfirmLocation = ({
-  locationSelected,
-  selectLocation,
-  closeMap,
-}: ConfirmLocationPropsType) => {
+const ConfirmLocation = ({ locationSelected, selectLocation, closeMap }) => {
   return (
     <div
       data-cy="confirm-location"

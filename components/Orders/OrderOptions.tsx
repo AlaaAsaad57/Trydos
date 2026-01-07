@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { RoundPrice, translateFunction } from "utils/functions";
 import ChangeAddressIcon from "public/svg/ChangeAddressIcon";
 import ChangeAddressWidget from "./ChangeAddressWidget";
@@ -9,8 +9,7 @@ import ReturnOrderItemConfirmation from "./ReturnOrderItemConfirmation";
 import OrderItem from "./OrderItem";
 import HideOrderItemIcon from "public/svg/HideOrderItemIcon";
 import OrderCancelIcon from "public/svg/OrderCancelIcon";
-import { OrderCanceltionOptionsPropsType } from "models/componentType/OrderCanceltionOptionsPropsType";
-import { OrderOptionsPropsType } from "models/componentType/OrderOptionsPropsType";
+
 import { showErrorNotification } from "@/store/notifications/reducer";
 import orderService from "services/order";
 import { totalAmount } from "utils/tinyUtils";
@@ -23,7 +22,7 @@ function OrderOptions({
   CancelOrder,
   setShouldConfirmReturn,
   shouldConfirmReturn,
-}: OrderOptionsPropsType) {
+}: any) {
   const {
     selectedOrder,
     SelectedOrderItem,
@@ -441,10 +440,7 @@ function OrderOptions({
 }
 
 export default OrderOptions;
-const OrderCanceltionOptions = ({
-  close,
-  setShouldConfirmCancel,
-}: OrderCanceltionOptionsPropsType) => {
+const OrderCanceltionOptions = ({ close, setShouldConfirmCancel }: any) => {
   let options = [
     "I Changed My Mind",
     "I Fear Quality",

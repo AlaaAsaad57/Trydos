@@ -210,6 +210,11 @@ const ReviewProgress = ({ value, title }) => {
   );
 };
 const BuyersRatingBar = ({ language, recommendation_stats }) => {
+  if (
+    recommendation_stats?.recomended_count === 0 &&
+    recommendation_stats?.not_recomended_count === 0
+  )
+    return <></>;
   let recomended = recommendation_stats.recomended_count;
   let not_recomended = recommendation_stats?.not_recomended_count;
   let recomendedPRC = (

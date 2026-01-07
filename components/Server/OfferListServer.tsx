@@ -2,8 +2,6 @@ import React from "react";
 import "styles/offers.css";
 import "styles/productDetails.css";
 import InfinteScroll from "components/global/InfinteScroll";
-
-import { OfferListServerPropsType } from "models/componentType/OfferListServerPropsType";
 import BoutiqueWrapper from "components/ServerWrapper/BoutiqueWrapper";
 
 function OfferListServer({
@@ -11,7 +9,7 @@ function OfferListServer({
   params,
   mainCategory,
   children,
-}: OfferListServerPropsType) {
+}: any) {
   const HomeData = boutiquesData;
   return (
     <div

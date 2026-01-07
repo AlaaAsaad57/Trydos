@@ -11,7 +11,6 @@ import {
   ShippedSatus,
 } from "./OrderStatusCartsIcon";
 import { GetImageUrl } from "utils/tinyUtils";
-import { OrderItemsListPropsType } from "models/componentType/settingTypes/OrderItemsListPropsType";
 import { useAppStore } from "store";
 import RatingOrderItem from "components/Orders/RatingOrderItem";
 import RatingStars from "./RatingStars";
@@ -26,7 +25,7 @@ function OrderItemsList({
   showChats,
   getOrderDetails,
   getProductUrl,
-}: OrderItemsListPropsType) {
+}: any) {
   const { ActivePacks } = useAppStore();
   const getStatusIcon = (status) => {
     if (status === "pending") return <PendingStatus isActive={false} />;

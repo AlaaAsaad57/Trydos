@@ -19,7 +19,7 @@ function FaqItemComponent({
   return (
     <div
       className={`flex-col ${
-        width === 100 ? "min-w-full" : "min-w-[85vw]"
+        width === 100 ? "min-w-full" : "min-w-[80vw]"
       } ${"max-w-full w-full"}`}
     >
       <div

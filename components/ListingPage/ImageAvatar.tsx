@@ -1,16 +1,7 @@
-import { ImageAvatarPropsType } from "models/componentType/ImageAvatarPropsType";
 import Image from "next/image";
 import { getConfiguredImage } from "utils/functions";
 
-function ImageAvatar({
-  image,
-  width,
-  height,
-  alt,
-  isActive,
-  name,
-  priority,
-}: ImageAvatarPropsType) {
+function ImageAvatar({ image, width, height, alt, isActive, name, priority }) {
   return (
     <div className="image-avatar h-full relative select-none overflow-visible w-100 rounded-50 flex no-navigate">
       <svg

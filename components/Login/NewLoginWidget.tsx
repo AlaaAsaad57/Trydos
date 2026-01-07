@@ -25,6 +25,7 @@ import { GAevent } from "utils/gtag";
 
 import Image from "next/image";
 import SearchParamUpdater from "components/global/ParamsUpdater";
+import { fetchStoriesForUser } from "serverRequests";
 
 function NewLoginWidget() {
   let { lang } = useParams();
@@ -36,10 +37,11 @@ function NewLoginWidget() {
     wrongNumber,
     verficationID,
     Tempuser,
+    setStoryData,
   } = useAppStore();
 
   // @ts-ignore
-  let languageVariable = lang.split("-")[1];
+  let [country, languageVariable] = lang.split("-");
   const translate = (key, lang) => {
     return translateFunction(key, languageVariable);
   };
@@ -226,6 +228,7 @@ function NewLoginWidget() {
         }
       },
       successCallback: (exists, name) => {
+        // router.refresh();
         GAevent({
           action: GA_EVENT_NAMES.VERIFY_OTP,
           params: {
@@ -248,7 +251,6 @@ function NewLoginWidget() {
             success: true,
           },
         });
-        // router.refresh();
 
         setTimeout(() => {
           setLoadingPin(false);
@@ -286,6 +288,9 @@ function NewLoginWidget() {
         }, 2000);
       },
     });
+    let storiesData = await fetchStoriesForUser(language, country, 1);
+
+    setStoryData(storiesData.data);
   };
 
   const getPageColor = () => {
@@ -693,7 +698,6 @@ function NewLoginWidget() {
               // });
             }}
           >
-            {" "}
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="16.411"

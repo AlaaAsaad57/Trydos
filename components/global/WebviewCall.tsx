@@ -95,24 +95,31 @@ function WebviewCall() {
     loading: false,
     photo: "",
     status: null,
+    fcm: searchParams?.get("fcm"),
   });
   const [userData, setUserData] = useState({ name: "", phone: "", photo: "" });
   useEffect(() => {}, []);
   const onAnswer = async (bool) => {
     try {
       if (!data.loading) {
-        setData({ ...data, loading: true });
+        setData({ ...data, loading: true, fcm: searchParams?.get("fcm") });
         let [token, status] = await getAgoraToken(
           data.channel_id,
           data.authToken,
           data.msgId,
-          data.sender_user_id
+          data.sender_user_id,
+          searchParams?.get("fcm")
         );
 
         if (status) {
           window.location.href = `/callInProg`;
         } else {
-          setData({ ...data, token: token, action: "sent" });
+          setData({
+            ...data,
+            token: token,
+            action: "sent",
+            fcm: searchParams?.get("fcm"),
+          });
           window.location.href = `/call_direct?authToken=${data.authToken}&token=${token}&action=sent&type=${data.type}&message_id=${data.msgId}&uid=${data.sender_user_id}&ch_id=${data.channel_id}`;
         }
       }
@@ -136,6 +143,7 @@ function WebviewCall() {
         setData({
           ...data,
           loading: true,
+          fcm: searchParams?.get("fcm"),
         });
         let token = await getAgoraTokenForInit(
           data.channel_id,
@@ -261,7 +269,7 @@ function WebviewCall() {
         data.action !== "receive" &&
         data.type === "voice" && (
           <WebViewVoiceCall
-            onDecline={(d) => onDecline(d)}
+            onDecline={onDecline}
             data={data}
             active={userData?.photo}
             userData={userData}
@@ -273,7 +281,7 @@ function WebviewCall() {
         data.action !== "receive" &&
         data.type === "video" && (
           <WebViewVideoCall
-            onDecline={(e) => onDecline(e)}
+            onDecline={onDecline}
             data={data}
             userData={userData}
             active={userData?.photo}

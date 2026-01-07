@@ -6,15 +6,9 @@ import MessageIcon from "public/svg/MessageIcon";
 import AuthService from "services/auth";
 import { useParams } from "next/navigation";
 import { useAppStore } from "store";
-import {
-  GA_AUTH_SCREEN,
-  GA_BUTTONS_NAMES,
-  GA_EVENT_NAMES,
-  GA_GLOBAL_PLATFORM,
-} from "utils/GAEvents";
+import { GA_BUTTONS_NAMES, GA_EVENT_NAMES } from "utils/GAEvents";
 import { GAevent } from "utils/gtag";
 import PhoneNumberError from "./PhoneNumberError";
-import { SendMethodPropsType } from "models/componentType/settingTypes/SendMethodPropsType";
 
 function SendMethod({
   inputValue,
@@ -25,7 +19,7 @@ function SendMethod({
   setShowMobile,
   hideEdit,
   operation = "login",
-}: SendMethodPropsType) {
+}: any) {
   const { language, wrongNumber } = useAppStore();
 
   let { lang } = useParams();

@@ -3,14 +3,9 @@ import React from "react";
 import { getConfiguredImage } from "utils/functions";
 import Image from "next/image";
 import { GetImageUrl } from "utils/tinyUtils";
-import { ImageSliderPropsType } from "models/componentType/ImageSliderPropsType";
 import { NormalSlider } from "utils/Slider";
 
-function ImageSlider({
-  product_name,
-  images,
-  showBorder,
-}: ImageSliderPropsType) {
+function ImageSlider({ product_name, images, showBorder }) {
   return (
     <NormalSlider
       initialSlide={0}

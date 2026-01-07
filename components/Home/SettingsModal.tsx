@@ -7,10 +7,7 @@ import WhatsIcon from "public/svg/whatsappNotification";
 import CalenderIcon from "public/svg/CalenderIcon";
 import home from "services/home";
 import NotificationsTest from "components/global/NotificationsTest";
-import {
-  ProfileData,
-  SettingsModalPropsType,
-} from "models/componentType/settingsType/SettingsModalPropsType";
+
 import { fetchData } from "utils/fetchData";
 import {
   COOKIE_NAMES,
@@ -19,23 +16,17 @@ import {
 } from "utils/cookies/cookie-manager";
 import { REQUESTS_DATA } from "utils/Requests";
 
-interface SettingsModalProps {
-  onClose: () => void;
-  lang: string | string[];
-}
-
 const SettingsModal = ({ onClose, lang }) => {
   const [mounted, setMounted] = useState(false);
   const [activeTab, setActiveTab] = useState<"notifications" | "preferences">(
     "notifications"
   );
-  const [profileData, setProfileData] = useState<ProfileData>({
+  const [profileData, setProfileData] = useState<any>({
     name: "",
     email: "",
     phone: "",
   });
-  const [isEditing, setIsEditing] = useState<keyof ProfileData | null>(null);
-  const [editValue, setEditValue] = useState("");
+
   const [loading, setLoading] = useState(true);
   const [loadingTopics, setLoadingTopics] = useState(false);
   const [topics, setTopics] = useState<string[]>([]);

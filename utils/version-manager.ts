@@ -125,17 +125,3 @@ export const checkAndUpdateVersion = (): void => {
     console.error("Version check failed:", error);
   }
 };
-
-// Hook for React components
-const useVersionCheck = (): void => {
-  if (typeof window === "undefined") {
-    return;
-  }
-
-  // Run version check on mount
-  React.useEffect(() => {
-    checkAndUpdateVersion();
-  }, []);
-};
-
-// Manual version update function (for development/testing)

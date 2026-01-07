@@ -17,21 +17,12 @@ import LanguageSetting from "./LanguageSetting";
 import OrderOptions from "components/Orders/OrderOptions";
 import { GA_EVENT_NAMES, GA_GLOBAL_SCREEN } from "utils/GAEvents";
 import { GAevent } from "utils/gtag";
-import {
-  SettingOption,
-  SettingsIndexPropsType,
-} from "models/componentType/settingTypes/SettingsIndexPropsType";
 import home from "services/home";
 import { EnableScroll } from "utils/tinyUtils";
 import WalletTransactions from "./WalletTransactions";
 import SettingsScreen from "./SettingsScreen";
 
-function Settings({
-  lang,
-  order_id,
-  tab,
-  userCookiesData,
-}: SettingsIndexPropsType) {
+function Settings({ lang, order_id, tab, userCookiesData }: any) {
   const {
     setIsActiveAddress,
     userProfile,
@@ -62,7 +53,7 @@ function Settings({
       setIsNavigating(null);
     }
   }, []);
-  const [NavigationOptions, setNavigationOptions] = useState<SettingOption[]>([
+  const [NavigationOptions, setNavigationOptions] = useState<any[]>([
     {
       id: "main",
       title: "main setting",

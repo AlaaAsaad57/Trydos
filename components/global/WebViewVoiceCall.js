@@ -145,11 +145,8 @@ function WebViewVoiceCall(props) {
         "flutterMessageHandler",
         durationRef.current // <-- this becomes args[0] in Flutter
       );
-    if (!bool) {
-      props.onDecline(duration);
-    } else {
-      window.location.href = "/endCall";
-    }
+    await props.onDecline(duration);
+    window.location.href = "/endCall";
   };
 
   const [trackState, setTrackState] = useState({ audio: true });

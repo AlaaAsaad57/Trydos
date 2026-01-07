@@ -14,7 +14,7 @@ import SwitchFiltersButton from "components/filterPage/SwitchFiltersButton";
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 import Image from "next/image";
 import { getConfiguredImage, RoundPrice } from "utils/functions";
-import { FilterItemsRowPropsType } from "models/componentType/FilterItemsRowPropsType";
+
 import FilterItem from "components/ListingPage/FilterItem";
 
 function FilterList({
@@ -25,7 +25,7 @@ function FilterList({
   isFeatured,
   isFlashDeals,
   itemsLength,
-}: FilterItemsRowPropsType) {
+}: any) {
   // Use parsedFilters if available, otherwise use searchParams for backward compatibility
   const filterParams = parsedFilters;
   const isUsingParsedFilters = Boolean(parsedFilters);
@@ -65,7 +65,7 @@ function FilterList({
                 : "flex-row flex ml-[45px]"
             }  items-center pr-[20px]   justify-start align-start filter-container overflow-auto scroll-smooth`}
           >
-            {Object.keys(filters)
+            {(Object.keys(filters) as any)
               .filter(
                 (filter) =>
                   filter !== "search_text" &&
@@ -85,6 +85,7 @@ function FilterList({
                       index={index}
                       isFeatured={isFeatured}
                       isFlashDeals={isFlashDeals}
+                      isRtl={isRtl}
                       params={params}
                       currency={currency}
                       filterParams={filterParams}
@@ -649,6 +650,7 @@ interface FilterItemsRowProps {
   isFeatured?: boolean;
   isFlashDeals?: boolean;
   total?: number;
+  isRtl?: boolean;
 }
 
 const FilterItemsRow = ({
@@ -662,6 +664,7 @@ const FilterItemsRow = ({
   isFeatured,
   isFlashDeals,
   total = 10,
+  isRtl = false,
 }: FilterItemsRowProps) => {
   const [country, language] = params.lang.split("-");
   const getDataCy = () => {
@@ -684,7 +687,13 @@ const FilterItemsRow = ({
         term !== "categories" && term !== "brands" && "pt-[10px]"
       } scrollable-area-${index} boutique-category-filter flex-row`}
     >
-      <div className="category-row-container flex-row" data-cy={getDataCy()}>
+      <div
+        className="category-row-container flex-row"
+        data-cy={getDataCy()}
+        style={{
+          direction: isRtl ? "rtl" : "ltr",
+        }}
+      >
         {items &&
           items?.map((item) => (
             // <FilterItemWrapper
@@ -692,6 +701,7 @@ const FilterItemsRow = ({
             //   key={item.id}
             // >
             <FilterItem
+              isRtl={isRtl}
               baseUrlOfFiltersPage={baseUrlOfFiltersPage()}
               params={params}
               filterParams={filterParams}

@@ -1003,6 +1003,7 @@ function ConversationContainer({
               {/* date separators here – omitted for brevity */}
               <ChatMessage
                 isPrivate={isPrivate}
+                activeChat={activeChat}
                 AudioRef={AudioRef}
                 setVid={setVid}
                 setImg={(e) => setImgs(e)}

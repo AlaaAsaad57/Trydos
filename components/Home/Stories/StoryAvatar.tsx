@@ -1,6 +1,5 @@
-import { StoryAvatarPropsType } from "models/componentType/StoryAvatarPropsType";
-import Image, { StaticImageData } from "next/image";
-function StoryAvatar({ avatar, isSeen }: StoryAvatarPropsType) {
+import Image from "next/image";
+function StoryAvatar({ avatar, isSeen }) {
   return (
     <div
       className={`rounded-full justify-center items-center  absolute top-[-5px] left-[-8px] w-[30px] h-[30px] bg-[#ffab62] flex z-[10] ${

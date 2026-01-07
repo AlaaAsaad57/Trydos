@@ -232,14 +232,10 @@ export const RefuseCall = async (channelId, messageId, duration) => {
       throw new Error(response.message);
     }
     if (messageId) {
-      let obj =
-        typeof channelId === "string" && channelId.includes("ch")
-          ? {
-              receiver_user_id: parseInt(channelId.split("ch-")[1]),
-              duration_in_seconds: duration || 0,
-            }
-          : { channel_id: channelId, duration_in_seconds: duration || 0 };
-
+      let obj = {};
+      if (duration >= 0) {
+        obj = { ...obj, duration_in_seconds: duration || 0 };
+      }
       const response2 = await fetchData({
         url: `/api/v1/messages/refuse_call/${messageId}`,
         body: JSON.stringify({ ...obj, payload: { target: "web" } }),
@@ -258,10 +254,7 @@ export const RefuseCall = async (channelId, messageId, duration) => {
 };
 export const Answer = async (channelId, messageId) => {
   try {
-    let obj: any =
-      typeof channelId === "string" && channelId.includes("ch")
-        ? { receiver_user_id: parseInt(channelId.split("ch-")[1]) }
-        : { channel_id: channelId };
+    let obj: any = {};
 
     let fcm = localStorage.getItem("FB-DEVICE-TOKEN");
     if (fcm) {

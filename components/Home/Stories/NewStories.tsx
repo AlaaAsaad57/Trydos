@@ -10,13 +10,9 @@ import { useAppStore } from "store";
 import Spinner from "components/global/Spinner";
 import { GA_EVENT_NAMES, GA_GLOBAL_SCREEN } from "utils/GAEvents";
 import { GAevent } from "utils/gtag";
-import { StoriesContainerPropsType } from "models/componentType/StoriesContainerPropType";
 import SearchParamUpdater from "components/global/ParamsUpdater";
 
-function StoriesContainer({
-  selectedStory,
-  stories,
-}: StoriesContainerPropsType) {
+function StoriesContainer({ selectedStory, stories }: any) {
   const { storiesData: storiesCache } = useAppStore();
   let storiesData = (stories?.length > 0 && stories) || storiesCache || [];
   var dir = 0;

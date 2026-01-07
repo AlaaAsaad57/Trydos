@@ -7,11 +7,9 @@ import auth from "services/auth";
 import ConfirmMobileChange from "./ConfirmMobileChange";
 import XIcon from "public/svg/Xicon";
 import { useAppStore } from "store";
-import { ConfirmationModalPropsType } from "models/componentType/settingTypes/ConfirmationModalPropsType";
-import { PersonalInfoPropsType } from "models/componentType/settingTypes/PersonalInfoPropsType";
 import { pollinateInput } from "utils/tinyUtils";
 
-function PersonalInfo({ swipeToScreen, goBack }: PersonalInfoPropsType) {
+function PersonalInfo({ swipeToScreen, goBack }: any) {
   const { editUserInfo, userProfile } = useAppStore();
 
   const [userProfileData, setUserProfileData] = useState({
@@ -596,7 +594,7 @@ export const ConfirmationModal = ({
   value,
   successCallback,
   forVerify,
-}: ConfirmationModalPropsType) => {
+}: any) => {
   return (
     <>
       <XIcon

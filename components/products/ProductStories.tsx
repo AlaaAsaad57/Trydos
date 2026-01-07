@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { SelectStory } from "store/homepage/actions";
 
 import StoryServiceClass from "services/story";
@@ -9,7 +9,6 @@ import { useAppStore } from "store";
 import { InView } from "react-intersection-observer";
 import Spinner from "components/global/Spinner";
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
-import ProductStoriesSkeleton from "../skeleton/loaders/ProductStoriesSkeleton";
 import { GetProductStories } from "serverRequests/product";
 function ProductStories({ id, children, InitialStoriesData }) {
   const { selectedStory } = useAppStore();

@@ -11,17 +11,10 @@ import { fetchCountries } from "utils/tinyUtils";
 
 import { formatTimeForAddress, GetImageUrl } from "utils/tinyUtils";
 import home from "services/home";
-import { AddAddressButtonPropsType } from "models/componentType/AddAddressButtonPropsType";
-import { AddressContainerPropsType } from "models/componentType/AddressContainerPropsType";
-import { ShippingAddressContainerPropsType } from "models/componentType/ShippingAddressContainerPropsType";
-import { ShippingAddressInputPropsType } from "models/componentType/ShippingAddressInputPropsType";
+
 import { GAevent } from "utils/gtag";
 import { GA_EVENT_NAMES } from "utils/GAEvents";
-function ShippingAddressContainer({
-  slideNext,
-  slidePrev,
-  openAddressList,
-}: ShippingAddressContainerPropsType) {
+function ShippingAddressContainer({ slideNext, slidePrev, openAddressList }) {
   const { setCountries, cart, user } = useAppStore();
   const { lang } = useParams();
   // @ts-ignore
@@ -169,11 +162,7 @@ const CartItemSelect = ({ items }) => {
   );
 };
 
-const ShippingAddressInput = ({
-  slideNext,
-  slidePrev,
-  openAddressList,
-}: ShippingAddressInputPropsType) => {
+const ShippingAddressInput = ({ slideNext, slidePrev, openAddressList }) => {
   const { initAddressForm, addressLists, orderLoading } = useAppStore();
   const { lang } = useParams();
 
@@ -436,10 +425,7 @@ const ShippingAddressInput = ({
     </div>
   );
 };
-const AddressContainer = ({
-  openAddressList,
-  lang,
-}: AddressContainerPropsType) => {
+const AddressContainer = ({ openAddressList, lang }) => {
   const [loading, setLoading] = useState(false);
   const getData = async () => {
     setLoading(true);
@@ -543,7 +529,7 @@ const AddressContainer = ({
     </div>
   );
 };
-const AddAddressButton = ({ onClick }: AddAddressButtonPropsType) => {
+const AddAddressButton = ({ onClick }) => {
   return (
     <div
       data-cy="AddAddres"

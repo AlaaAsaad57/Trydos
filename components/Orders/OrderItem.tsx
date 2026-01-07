@@ -4,8 +4,6 @@ import {
   RoundPrice,
   getConfiguredImage,
 } from "utils/functions";
-import { OrderItem as OrderItemType } from "../../types/orders";
-
 import { useParams } from "next/navigation";
 
 import { useAppStore } from "store";
@@ -14,8 +12,6 @@ import OrderStatusIcon, {
 } from "components/settings/cards/OrderStatusIcon";
 import Image from "next/image";
 import { GetImageUrl, ShowNotificationSign } from "utils/tinyUtils";
-import { OrderItemIdPropsType } from "models/componentType/OrderItemIdPropsType";
-import { OrderItemTimePropsType } from "models/componentType/OrderItemTimePropsType";
 
 const OrderItem = ({ order, showDetails }) => {
   const { setActivePacks } = useAppStore();
@@ -283,7 +279,7 @@ const OrderInvoice = ({
     </div>
   );
 };
-const OrderItemTime = ({ time }: OrderItemTimePropsType) => {
+const OrderItemTime = ({ time }) => {
   const formatTime = (timeString: string) => {
     const date = new Date(timeString + "Z");
     const today = new Date();
@@ -398,7 +394,7 @@ const OrderItemTime = ({ time }: OrderItemTimePropsType) => {
     </div>
   );
 };
-const OrderItemId = ({ id }: OrderItemIdPropsType) => {
+const OrderItemId = ({ id }) => {
   const { lang } = useParams();
   const [, language] = (lang as string).split("-");
   const isRtl = language === "ar" || language === "ku";

@@ -7,13 +7,8 @@ import BankIcon from "public/svg/BankIcon";
 import { translateFunction } from "utils/functions";
 import { useAppStore } from "store";
 import { GetImageUrl } from "utils/tinyUtils";
-import {
-  ProfilePicturePropsType,
-  ProfilePropsType,
-  SettingOptionsProfileType,
-} from "models/componentType/settingTypes/ProfilePropsType";
 import Image from "next/image";
-function Profile({ swipeToScreen, goBack }: ProfilePropsType) {
+function Profile({ swipeToScreen, goBack }: any) {
   const { userProfile } = useAppStore();
 
   const options = [
@@ -81,10 +76,7 @@ function Profile({ swipeToScreen, goBack }: ProfilePropsType) {
 }
 
 export default Profile;
-const ProfilePicture = ({
-  photo,
-  GoToProfilePhotoScreen,
-}: ProfilePicturePropsType) => {
+const ProfilePicture = ({ photo, GoToProfilePhotoScreen }: any) => {
   if (photo)
     return (
       <div
@@ -195,12 +187,7 @@ const ProfilePicture = ({
       </div>
     );
 };
-const SettingOption = ({
-  name,
-  Icon,
-  callback,
-  dataCy,
-}: SettingOptionsProfileType) => {
+const SettingOption = ({ name, Icon, callback, dataCy }: any) => {
   return (
     <div
       onClick={() => callback()}

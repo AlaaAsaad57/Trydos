@@ -16,7 +16,7 @@ import {
 import { getUserChat, RoundPrice, translateFunction } from "utils/functions";
 import { useAppStore } from "store";
 import CopyIcon from "public/svg/copyIcon";
-import { ShareOptionsPropsType } from "models/componentType/ShareOptionsPropsType";
+
 import { showSuccessNotification } from "@/store/notifications/reducer";
 import { fetchData } from "utils/fetchData";
 import { REQUESTS_DATA } from "utils/Requests";
@@ -24,7 +24,7 @@ import { GAevent } from "utils/gtag";
 import { GA_EVENT_NAMES, GA_GLOBAL_SCREEN } from "utils/GAEvents";
 import auth from "services/auth";
 
-function ShareOptions({ product }: ShareOptionsPropsType) {
+function ShareOptions({ product }: any) {
   const {
     setSelectedContactsForShare,
     selectedContactsForShare,

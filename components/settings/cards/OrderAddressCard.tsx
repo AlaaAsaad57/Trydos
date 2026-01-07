@@ -1,9 +1,7 @@
 import { GetAddressString } from "components/Cart/AddressListContainer";
-import { OrderAddressCardPropsType } from "models/componentType/OrderAddressCardPropsType";
-import React from "react";
 import { translateFunction } from "utils/functions";
 import { useParams } from "next/navigation";
-function OrderAddressCard({ address }: OrderAddressCardPropsType) {
+function OrderAddressCard({ address }: any) {
   const { lang } = useParams();
   // @ts-ignore
   const language = lang.split("-")[1];

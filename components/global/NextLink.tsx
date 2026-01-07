@@ -15,6 +15,7 @@ export interface INextLinkProps {
   children: React.ReactNode;
   style?: React.CSSProperties;
   id?: string;
+  onClick?: any;
 }
 export default function NextLink({
   sameHref,
@@ -26,6 +27,7 @@ export default function NextLink({
   exportparts,
   data,
   ignoreConditionCase = false,
+  onClick,
   ...props
 }: INextLinkProps) {
   const pathname = usePathname();
@@ -38,7 +40,7 @@ export default function NextLink({
         className={className}
         data-cy={props["data-cy"] ?? ""}
         style={style}
-        prefetch={true}
+        prefetch={"auto"}
         href={href}
         onNavigate={(e) => {
           setColorBottomSheet(null);
@@ -47,6 +49,9 @@ export default function NextLink({
           setLastPathname(pathname);
         }}
         onClick={() => {
+          if (onClick) {
+            onClick();
+          }
           DisableScroll();
           setColorBottomSheet(null);
           setLastPathname(pathname);
@@ -61,6 +66,11 @@ export default function NextLink({
     return (
       <div
         suppressHydrationWarning
+        onClick={() => {
+          if (onClick) {
+            onClick();
+          }
+        }}
         className={className}
         style={style}
         data-cy={props["data-cy"] ?? ""}
@@ -79,7 +89,7 @@ export default function NextLink({
       className={className}
       style={style}
       data-cy={props["data-cy"] ?? ""}
-      prefetch={true}
+      prefetch={"auto"}
       onNavigate={(e) => {
         DisableScroll();
         setColorBottomSheet(null);
@@ -87,6 +97,9 @@ export default function NextLink({
         setLastPathname(pathname);
       }}
       onClick={() => {
+        if (onClick) {
+          onClick();
+        }
         DisableScroll();
         setColorBottomSheet(null);
 

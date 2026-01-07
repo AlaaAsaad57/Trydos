@@ -4,7 +4,6 @@ import { InView } from "react-intersection-observer";
 import Spinner from "../global/Spinner";
 import { translateFunction } from "utils/functions";
 import { useParams } from "next/navigation";
-import { CurrencyApi } from "models/API/market/CurrencyApi";
 import { useAppStore } from "store";
 import { showErrorNotification } from "store/notifications/reducer";
 import { GAevent } from "utils/gtag";
@@ -23,7 +22,7 @@ function ProductsInfiniteScroll({
   isFlashDeals,
 }: {
   offset: any;
-  currency: CurrencyApi["data"]["currency"];
+  currency: any;
   analyticsData: any;
   isFeatured?: boolean;
   isFlashDeals?: boolean;

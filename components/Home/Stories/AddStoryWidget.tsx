@@ -20,6 +20,7 @@ import StoryServiceClass from "services/story";
 import { DisableScroll, EnableScroll, pollinateInput } from "@/utils/tinyUtils";
 import Spinner from "components/global/Spinner";
 import SearchParamUpdater from "components/global/ParamsUpdater";
+import { fetchStoriesForUser } from "serverRequests";
 
 // Icons
 const CameraIcon = () => (
@@ -158,9 +159,6 @@ export default function AddStoryWidget() {
   useEffect(() => {
     getUserStories();
   }, []);
-  const router = useRouter();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
@@ -173,6 +171,7 @@ export default function AddStoryWidget() {
     checkCameraPermissions,
     setAddStory,
     addStoryEnable,
+    setStoryData,
   } = useAppStore();
   const [uploaded, setUpload] = useState(-1);
   const [isSelected, setIsSelected] = useState(null);
@@ -242,7 +241,16 @@ export default function AddStoryWidget() {
             }, 500);
           };
         });
+        let storiesData = await fetchStoriesForUser(language, country, 1);
+
+        setStoryData(storiesData.data);
         showSuccessNotification("Story Uploaded");
+        setPreview(null);
+        setFile(null);
+        setSelectedFile(null);
+        setLoading(false);
+        setLink("");
+        onClose();
       } else if (e.target.files[0]?.type.includes("image")) {
         await new Promise((resolve, reject) => {
           const reader = new FileReader();
@@ -271,6 +279,9 @@ export default function AddStoryWidget() {
             setUpload(0);
           };
         });
+        let storiesData = await fetchStoriesForUser(language, country, 1);
+
+        setStoryData(storiesData.data);
         showSuccessNotification("Story Uploaded");
         setPreview(null);
         setFile(null);

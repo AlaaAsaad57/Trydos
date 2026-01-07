@@ -1,39 +1,31 @@
-export const AnswerCall = async (token, mid, chid) => {
-  await fetch(
-    process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
-      `/api/v1/messages/answer_call/${mid}`,
-    {
-      method: "POST",
-      headers: {
-        Authorization: "Bearer " + token,
-      },
-    }
-  );
-};
-export const getAgoraToken = async (channel_id, token, mid, uid) => {
+export const getAgoraToken = async (channel_id, token, mid, uid, fcm) => {
   let tok, status, req;
-  let AgoraTokenResponse = await fetch(
-    process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
-      `/api/v1/channels/${channel_id}/agora_token`,
-    {
-      method: "POST",
-      headers: {
-        Authorization: "Bearer " + token,
-      },
-    }
-  );
+
+  let [AgoraTokenResponse, UserResponse] = await Promise.all([
+    fetch(
+      process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
+        `/api/v1/channels/${channel_id}/agora_token`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: "Bearer " + token,
+        },
+      }
+    ),
+    fetch(
+      process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
+        `/api/v1/messages/${mid}/users`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: "Bearer " + token,
+        },
+        credentials: "omit",
+      }
+    ),
+  ]);
   let AgoraTokenData = await AgoraTokenResponse.json();
   tok = AgoraTokenData.data;
-  let UserResponse = await fetch(
-    process.env.NEXT_PUBLIC_CHAT_BACKEND_URL + `/api/v1/messages/${mid}/users`,
-    {
-      method: "GET",
-      headers: {
-        Authorization: "Bearer " + token,
-      },
-      credentials: "omit",
-    }
-  );
   let UserData = await UserResponse.json();
   if (
     UserData.data.filter((user) => parseInt(user.user.id) === parseInt(uid))[0]
@@ -43,7 +35,7 @@ export const getAgoraToken = async (channel_id, token, mid, uid) => {
   } else {
     status = false;
   }
-  if (!status) await AnswerWebView(token, mid);
+  await AnswerWebView(token, mid, fcm);
   return [tok, status];
 };
 export const getAgoraTokenForInit = async (channel_id, token, mid) => {
@@ -54,6 +46,7 @@ export const getAgoraTokenForInit = async (channel_id, token, mid) => {
       method: "POST",
       headers: {
         Authorization: "Bearer " + token,
+        accept: "application/json",
       },
       credentials: "omit",
     }
@@ -84,21 +77,24 @@ export const getUserInfo = async (token, channel) => {
   return datas;
 };
 export const Decline = async (token, mid, duration) => {
-  await fetch(
+  let response = await fetch(
     process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
       `/api/v1/messages/refuse_call/${mid}`,
     {
       method: "POST",
       headers: {
         Authorization: "Bearer " + token,
+        "Content-Type": "application/json",
+        accept: "application/json",
       },
       body: JSON.stringify({
-        duration_in_seconds: duration || 0,
+        duration_in_seconds: duration ?? 0,
         payload: { target: "webview" },
       }),
       credentials: "omit",
     }
   );
+  response = await response.json();
 };
 export const StartTalking = async (token, mid) => {
   await fetch(
@@ -113,17 +109,23 @@ export const StartTalking = async (token, mid) => {
     }
   );
 };
-export const AnswerWebView = async (token, messageId) => {
+export const AnswerWebView = async (token, messageId, fcm) => {
+  let obj = {};
+  if (fcm?.length) {
+    obj = { fcm_token: fcm };
+  }
   try {
-    await fetch(
+    let res = await fetch(
       process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
         `/api/v1/messages/answer_call/${messageId}`,
       {
         method: "POST",
+        body: JSON.stringify({ ...obj }),
         headers: {
           Authorization: "Bearer " + token,
+          accept: "application/json",
+          "Content-Type": "application/json",
         },
-        credentials: "omit",
       }
     );
   } catch (e) {}

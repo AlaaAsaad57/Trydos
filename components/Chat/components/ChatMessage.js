@@ -61,6 +61,7 @@ function ChatMessage(props) {
   };
   const user = getUser();
   const { language, activeChat, deleteMessage } = useAppStore();
+
   let { lang } = useParams();
   // @ts-ignore
   let languageVariable = lang.split("-")[1];
@@ -357,7 +358,8 @@ function ChatMessage(props) {
                 <ChatPhoto
                   user={
                     activeChat.channel_members.filter(
-                      (user) => user.user_id === getUserChat()?.id
+                      (user) =>
+                        String(user.user_id) === String(getUserChat()?.id)
                     )[0]?.user
                   }
                   width={30}
@@ -449,7 +451,8 @@ function ChatMessage(props) {
                   <ChatPhoto
                     user={
                       activeChat.channel_members.filter(
-                        (user) => user.user_id === getUserChat()?.id
+                        (user) =>
+                          String(user.user_id) === String(getUserChat()?.id)
                       )[0]?.user
                     }
                     width={30}
@@ -557,6 +560,8 @@ function ChatMessage(props) {
 
             <OptionsMenu
               message={props?.message}
+              isSender={true}
+              isPrivate={props.isPrivate}
               DeleteModal={DeleteModal}
               setDelete={(e) => setDelete(e)}
               deleteMessage={(e) =>
@@ -644,7 +649,8 @@ function ChatMessage(props) {
                   <ChatPhoto
                     user={
                       activeChat.channel_members.filter(
-                        (user) => user.user_id === getUserChat()?.id
+                        (user) =>
+                          String(user.user_id) === String(getUserChat()?.id)
                       )[0]?.user
                     }
                     width={30}
@@ -699,22 +705,22 @@ function ChatMessage(props) {
               )}
             </div>
 
-            {!props.isPrivate && (
-              <OptionsMenu
-                message={props?.message}
-                DeleteModal={DeleteModal}
-                setImg={() => {
-                  setImg(props.message.message_files[0]?.file_path);
-                }}
-                setDelete={(e) => setDelete(e)}
-                deleteMessage={(e) =>
-                  DeleteMessage(activeChat.id, props.message.id, e)
-                }
-                copy={() => copyText()}
-                forward={() => setForwardMessage(props.message)}
-                click={() => setReplyMessage(props.message)}
-              />
-            )}
+            <OptionsMenu
+              isPrivate={props.isPrivate}
+              message={props?.message}
+              DeleteModal={DeleteModal}
+              isSender={true}
+              setImg={() => {
+                setImg(props.message.message_files[0]?.file_path);
+              }}
+              setDelete={(e) => setDelete(e)}
+              deleteMessage={(e) =>
+                DeleteMessage(activeChat.id, props.message.id, e)
+              }
+              copy={() => copyText()}
+              forward={() => setForwardMessage(props.message)}
+              click={() => setReplyMessage(props.message)}
+            />
           </div>
         );
       }
@@ -793,7 +799,8 @@ function ChatMessage(props) {
                   <ChatPhoto
                     user={
                       activeChat.channel_members.filter(
-                        (user) => user.user_id === getUserChat()?.id
+                        (user) =>
+                          String(user.user_id) === String(getUserChat()?.id)
                       )[0]?.user
                     }
                     width={30}
@@ -854,19 +861,19 @@ function ChatMessage(props) {
               )}
             </div>
 
-            {!props.isPrivate && (
-              <OptionsMenu
-                message={props?.message}
-                DeleteModal={DeleteModal}
-                setDelete={(e) => setDelete(e)}
-                deleteMessage={(e) =>
-                  DeleteMessage(activeChat.id, props.message.id, e)
-                }
-                copy={() => copyText()}
-                forward={() => setForwardMessage(props.message)}
-                click={() => setReplyMessage(props.message)}
-              />
-            )}
+            <OptionsMenu
+              isSender={true}
+              isPrivate={props.isPrivate}
+              message={props?.message}
+              DeleteModal={DeleteModal}
+              setDelete={(e) => setDelete(e)}
+              deleteMessage={(e) =>
+                DeleteMessage(activeChat.id, props.message.id, e)
+              }
+              copy={() => copyText()}
+              forward={() => setForwardMessage(props.message)}
+              click={() => setReplyMessage(props.message)}
+            />
           </div>
         );
       }
@@ -956,7 +963,8 @@ function ChatMessage(props) {
                       <ChatPhoto
                         user={
                           activeChat.channel_members.filter(
-                            (user) => user.user_id === getUserChat()?.id
+                            (user) =>
+                              String(user.user_id) === String(getUserChat()?.id)
                           )[0]?.user
                         }
                         width={30}
@@ -1055,19 +1063,19 @@ function ChatMessage(props) {
                 </div>
               )}
             </div>
-            {!props.isPrivate && (
-              <OptionsMenu
-                message={props?.message}
-                DeleteModal={DeleteModal}
-                setDelete={(e) => setDelete(e)}
-                deleteMessage={(e) =>
-                  DeleteMessage(activeChat.id, props.message.id, e)
-                }
-                copy={() => copyText()}
-                forward={() => setForwardMessage(props.message)}
-                click={() => setReplyMessage(props.message)}
-              />
-            )}
+            <OptionsMenu
+              isPrivate={props.isPrivate}
+              message={props?.message}
+              DeleteModal={DeleteModal}
+              isSender={true}
+              setDelete={(e) => setDelete(e)}
+              deleteMessage={(e) =>
+                DeleteMessage(activeChat.id, props.message.id, e)
+              }
+              copy={() => copyText()}
+              forward={() => setForwardMessage(props.message)}
+              click={() => setReplyMessage(props.message)}
+            />
           </div>
         );
       }
@@ -1141,7 +1149,8 @@ function ChatMessage(props) {
                   <ChatPhoto
                     user={
                       activeChat.channel_members.filter(
-                        (user) => user.user_id === getUserChat()?.id
+                        (user) =>
+                          String(user.user_id) === String(getUserChat()?.id)
                       )[0]?.user
                     }
                     width={30}
@@ -1191,19 +1200,19 @@ function ChatMessage(props) {
                 </div>
               )}
             </div>
-            {!props.isPrivate && (
-              <OptionsMenu
-                message={props?.message}
-                DeleteModal={DeleteModal}
-                setDelete={(e) => setDelete(e)}
-                deleteMessage={(e) =>
-                  DeleteMessage(activeChat.id, props.message.id, e)
-                }
-                copy={() => copyText()}
-                forward={() => setForwardMessage(props.message)}
-                click={() => setReplyMessage(props.message)}
-              />
-            )}
+            <OptionsMenu
+              isPrivate={props.isPrivate}
+              isSender={true}
+              message={props?.message}
+              DeleteModal={DeleteModal}
+              setDelete={(e) => setDelete(e)}
+              deleteMessage={(e) =>
+                DeleteMessage(activeChat.id, props.message.id, e)
+              }
+              copy={() => copyText()}
+              forward={() => setForwardMessage(props.message)}
+              click={() => setReplyMessage(props.message)}
+            />
           </div>
         );
       }
@@ -1277,7 +1286,8 @@ function ChatMessage(props) {
                   <ChatPhoto
                     user={
                       activeChat.channel_members.filter(
-                        (user) => user.user_id === getUserChat()?.id
+                        (user) =>
+                          String(user.user_id) === String(getUserChat()?.id)
                       )[0]?.user
                     }
                     width={30}
@@ -1350,19 +1360,19 @@ function ChatMessage(props) {
               </div>
               <div className="message-date">{getMessageStatus()}</div>
             </div>
-            {!props.isPrivate && (
-              <OptionsMenu
-                message={props?.message}
-                DeleteModal={DeleteModal}
-                setDelete={(e) => setDelete(e)}
-                deleteMessage={(e) =>
-                  DeleteMessage(activeChat.id, props.message.id, e)
-                }
-                copy={() => copyText()}
-                forward={() => setForwardMessage(props.message)}
-                click={() => setReplyMessage(props.message)}
-              />
-            )}
+            <OptionsMenu
+              isSender={true}
+              isPrivate={props.isPrivate}
+              message={props?.message}
+              DeleteModal={DeleteModal}
+              setDelete={(e) => setDelete(e)}
+              deleteMessage={(e) =>
+                DeleteMessage(activeChat.id, props.message.id, e)
+              }
+              copy={() => copyText()}
+              forward={() => setForwardMessage(props.message)}
+              click={() => setReplyMessage(props.message)}
+            />
           </div>
         );
       }
@@ -1407,7 +1417,8 @@ function ChatMessage(props) {
                   <ChatPhoto
                     user={
                       activeChat.channel_members.filter(
-                        (user) => user.user_id === getUserChat()?.id
+                        (user) =>
+                          String(user.user_id) === String(getUserChat()?.id)
                       )[0]?.user
                     }
                     width={30}
@@ -1452,7 +1463,8 @@ function ChatMessage(props) {
                 <ChatPhoto
                   user={
                     activeChat.channel_members.filter(
-                      (user) => user.user_id === getUserChat()?.id
+                      (user) =>
+                        String(user.user_id) === String(getUserChat()?.id)
                     )[0]?.user
                   }
                   width={30}
@@ -1472,20 +1484,19 @@ function ChatMessage(props) {
                 {getMessageTime(props.message.created_at, true)}
               </div>
             </div>
-            {!props.isPrivate && (
-              <OptionsMenu
-                isCall={true}
-                message={props?.message}
-                DeleteModal={DeleteModal}
-                setDelete={(e) => setDelete(e)}
-                deleteMessage={(e) =>
-                  DeleteMessage(activeChat.id, props.message.id, e)
-                }
-                copy={() => copyText()}
-                forward={() => setForwardMessage(props.message)}
-                click={() => setReplyMessage(props.message)}
-              />
-            )}
+            <OptionsMenu
+              isPrivate={props.isPrivate}
+              isCall={true}
+              message={props?.message}
+              DeleteModal={DeleteModal}
+              setDelete={(e) => setDelete(e)}
+              deleteMessage={(e) =>
+                DeleteMessage(activeChat.id, props.message.id, e)
+              }
+              copy={() => copyText()}
+              forward={() => setForwardMessage(props.message)}
+              click={() => setReplyMessage(props.message)}
+            />
           </div>
         );
       }
@@ -1563,7 +1574,8 @@ function ChatMessage(props) {
                   <ChatPhoto
                     user={
                       activeChat.channel_members.filter(
-                        (user) => user.user_id !== getUserChat()?.id
+                        (user) =>
+                          String(user.user_id) !== String(getUserChat()?.id)
                       )[0]?.user
                     }
                     width={30}
@@ -1636,6 +1648,8 @@ function ChatMessage(props) {
               </div>
             </div>
             <OptionsMenu
+              isPrivate={props.isPrivate}
+              isSender={false}
               message={props?.message}
               DeleteModal={DeleteModal}
               setDelete={(e) => setDelete(e)}
@@ -1722,7 +1736,8 @@ function ChatMessage(props) {
                   <ChatPhoto
                     user={
                       activeChat.channel_members.filter(
-                        (user) => user.user_id !== getUserChat()?.id
+                        (user) =>
+                          String(user.user_id) !== String(getUserChat()?.id)
                       )[0]?.user
                     }
                     width={30}
@@ -1743,22 +1758,22 @@ function ChatMessage(props) {
                 {getMessageTime(props.message.created_at, true)}
               </div>
             </div>
-            {!props.isPrivate && (
-              <OptionsMenu
-                setImg={() => {
-                  setImg(props.message.message_files[0]?.file_path);
-                }}
-                message={props?.message}
-                DeleteModal={DeleteModal}
-                setDelete={(e) => setDelete(e)}
-                deleteMessage={(e) =>
-                  DeleteMessage(activeChat.id, props.message.id, e)
-                }
-                copy={() => copyText()}
-                forward={() => setForwardMessage(props.message)}
-                click={() => setReplyMessage(props.message)}
-              />
-            )}
+            <OptionsMenu
+              isSender={false}
+              isPrivate={props.isPrivate}
+              setImg={() => {
+                setImg(props.message.message_files[0]?.file_path);
+              }}
+              message={props?.message}
+              DeleteModal={DeleteModal}
+              setDelete={(e) => setDelete(e)}
+              deleteMessage={(e) =>
+                DeleteMessage(activeChat.id, props.message.id, e)
+              }
+              copy={() => copyText()}
+              forward={() => setForwardMessage(props.message)}
+              click={() => setReplyMessage(props.message)}
+            />
           </div>
         );
       }
@@ -1835,7 +1850,8 @@ function ChatMessage(props) {
                   <ChatPhoto
                     user={
                       activeChat.channel_members.filter(
-                        (user) => user.user_id !== getUserChat()?.id
+                        (user) =>
+                          String(user.user_id) !== String(getUserChat()?.id)
                       )[0]?.user
                     }
                     width={30}
@@ -1862,19 +1878,19 @@ function ChatMessage(props) {
                 {getMessageTime(props.message.created_at, true)}
               </div>
             </div>
-            {!props.isPrivate && (
-              <OptionsMenu
-                message={props?.message}
-                DeleteModal={DeleteModal}
-                setDelete={(e) => setDelete(e)}
-                deleteMessage={(e) =>
-                  DeleteMessage(activeChat.id, props.message.id, e)
-                }
-                copy={() => copyText()}
-                forward={() => setForwardMessage(props.message)}
-                click={() => setReplyMessage(props.message)}
-              />
-            )}
+            <OptionsMenu
+              isSender={false}
+              isPrivate={props.isPrivate}
+              message={props?.message}
+              DeleteModal={DeleteModal}
+              setDelete={(e) => setDelete(e)}
+              deleteMessage={(e) =>
+                DeleteMessage(activeChat.id, props.message.id, e)
+              }
+              copy={() => copyText()}
+              forward={() => setForwardMessage(props.message)}
+              click={() => setReplyMessage(props.message)}
+            />
           </div>
         );
       }
@@ -1954,7 +1970,8 @@ function ChatMessage(props) {
                       <ChatPhoto
                         user={
                           activeChat.channel_members.filter(
-                            (user) => user.user_id !== getUserChat()?.id
+                            (user) =>
+                              String(user.user_id) !== String(getUserChat()?.id)
                           )[0]?.user
                         }
                         width={30}
@@ -2042,19 +2059,19 @@ function ChatMessage(props) {
                   </div>
                 </div>
               )}
-            {!props.isPrivate && (
-              <OptionsMenu
-                message={props?.message}
-                DeleteModal={DeleteModal}
-                setDelete={(e) => setDelete(e)}
-                deleteMessage={(e) =>
-                  DeleteMessage(activeChat.id, props.message.id, e)
-                }
-                copy={() => copyText()}
-                forward={() => setForwardMessage(props.message)}
-                click={() => setReplyMessage(props.message)}
-              />
-            )}
+            <OptionsMenu
+              isSender={false}
+              isPrivate={props.isPrivate}
+              message={props?.message}
+              DeleteModal={DeleteModal}
+              setDelete={(e) => setDelete(e)}
+              deleteMessage={(e) =>
+                DeleteMessage(activeChat.id, props.message.id, e)
+              }
+              copy={() => copyText()}
+              forward={() => setForwardMessage(props.message)}
+              click={() => setReplyMessage(props.message)}
+            />
           </div>
         );
       }
@@ -2128,7 +2145,8 @@ function ChatMessage(props) {
                   <ChatPhoto
                     user={
                       activeChat.channel_members.filter(
-                        (user) => user.user_id !== getUserChat()?.id
+                        (user) =>
+                          String(user.user_id) !== String(getUserChat()?.id)
                       )[0]?.user
                     }
                     width={30}
@@ -2146,19 +2164,19 @@ function ChatMessage(props) {
                 {getMessageTime(props.message.created_at, true)}
               </div>
             </div>
-            {!props.isPrivate && (
-              <OptionsMenu
-                message={props?.message}
-                DeleteModal={DeleteModal}
-                setDelete={(e) => setDelete(e)}
-                deleteMessage={(e) =>
-                  DeleteMessage(activeChat.id, props.message.id, e)
-                }
-                copy={() => copyText()}
-                forward={() => setForwardMessage(props.message)}
-                click={() => setReplyMessage(props.message)}
-              />
-            )}
+            <OptionsMenu
+              isSender={false}
+              isPrivate={props.isPrivate}
+              message={props?.message}
+              DeleteModal={DeleteModal}
+              setDelete={(e) => setDelete(e)}
+              deleteMessage={(e) =>
+                DeleteMessage(activeChat.id, props.message.id, e)
+              }
+              copy={() => copyText()}
+              forward={() => setForwardMessage(props.message)}
+              click={() => setReplyMessage(props.message)}
+            />
           </div>
         );
       }
@@ -2232,7 +2250,8 @@ function ChatMessage(props) {
                   <ChatPhoto
                     user={
                       activeChat.channel_members.filter(
-                        (user) => user.user_id !== getUserChat()?.id
+                        (user) =>
+                          String(user.user_id) !== String(getUserChat()?.id)
                       )[0]?.user
                     }
                     width={30}
@@ -2273,19 +2292,19 @@ function ChatMessage(props) {
                 {getMessageTime(props.message.created_at, true)}
               </div>
             </div>
-            {!props.isPrivate && (
-              <OptionsMenu
-                message={props?.message}
-                DeleteModal={DeleteModal}
-                setDelete={(e) => setDelete(e)}
-                deleteMessage={(e) =>
-                  DeleteMessage(activeChat.id, props.message.id, e)
-                }
-                copy={() => copyText()}
-                forward={() => setForwardMessage(props.message)}
-                click={() => setReplyMessage(props.message)}
-              />
-            )}
+            <OptionsMenu
+              isSender={false}
+              message={props?.message}
+              isPrivate={props.isPrivate}
+              DeleteModal={DeleteModal}
+              setDelete={(e) => setDelete(e)}
+              deleteMessage={(e) =>
+                DeleteMessage(activeChat.id, props.message.id, e)
+              }
+              copy={() => copyText()}
+              forward={() => setForwardMessage(props.message)}
+              click={() => setReplyMessage(props.message)}
+            />
           </div>
         );
       }
@@ -2330,7 +2349,8 @@ function ChatMessage(props) {
                   <ChatPhoto
                     user={
                       activeChat.channel_members.filter(
-                        (user) => user.user_id !== getUserChat()?.id
+                        (user) =>
+                          String(user.user_id) !== String(getUserChat()?.id)
                       )[0]?.user
                     }
                     width={30}
@@ -2375,7 +2395,8 @@ function ChatMessage(props) {
                 <ChatPhoto
                   user={
                     activeChat.channel_members.filter(
-                      (user) => user.user_id !== getUserChat()?.id
+                      (user) =>
+                        String(user.user_id) !== String(getUserChat()?.id)
                     )[0]?.user
                   }
                   width={30}
@@ -2395,20 +2416,20 @@ function ChatMessage(props) {
                 {getMessageTime(props.message.created_at, true)}
               </div>
             </div>
-            {!props.isPrivate && (
-              <OptionsMenu
-                isCall={true}
-                message={props?.message}
-                DeleteModal={DeleteModal}
-                setDelete={(e) => setDelete(e)}
-                deleteMessage={(e) =>
-                  DeleteMessage(activeChat.id, props.message.id, e)
-                }
-                copy={() => copyText()}
-                forward={() => setForwardMessage(props.message)}
-                click={() => setReplyMessage(props.message)}
-              />
-            )}
+            <OptionsMenu
+              isSender={false}
+              isCall={true}
+              isPrivate={props.isPrivate}
+              message={props?.message}
+              DeleteModal={DeleteModal}
+              setDelete={(e) => setDelete(e)}
+              deleteMessage={(e) =>
+                DeleteMessage(activeChat.id, props.message.id, e)
+              }
+              copy={() => copyText()}
+              forward={() => setForwardMessage(props.message)}
+              click={() => setReplyMessage(props.message)}
+            />
           </div>
         );
       }
