@@ -35,7 +35,7 @@ export const getAgoraToken = async (channel_id, token, mid, uid, fcm) => {
   } else {
     status = false;
   }
-  if (!status) await AnswerWebView(token, mid, fcm);
+  await AnswerWebView(token, mid, fcm);
   return [tok, status];
 };
 export const getAgoraTokenForInit = async (channel_id, token, mid) => {
@@ -112,7 +112,7 @@ export const AnswerWebView = async (token, messageId, fcm) => {
     obj = { fcm_token: fcm };
   }
   try {
-    await fetch(
+    let res = await fetch(
       process.env.NEXT_PUBLIC_CHAT_BACKEND_URL +
         `/api/v1/messages/answer_call/${messageId}`,
       {
@@ -124,5 +124,7 @@ export const AnswerWebView = async (token, messageId, fcm) => {
         credentials: "omit",
       }
     );
+    let data = await res.json();
+    alert(JSON.stringify({ data, body: obj, fcm }));
   } catch (e) {}
 };
