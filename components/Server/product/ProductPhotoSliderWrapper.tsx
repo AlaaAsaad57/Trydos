@@ -199,7 +199,7 @@ async function ProductPhotoSliderWrapper({
             );
         }
         if (index === length - 1) {
-          if (isRtl)
+          if (!isRtl)
             return (
               <svg
                 className="absolute top-0 left-0 z-55"
