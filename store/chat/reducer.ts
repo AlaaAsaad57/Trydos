@@ -228,7 +228,7 @@ export const useChatStore = (set, get) => ({
     const state = get();
 
     let newActiveChat = state.activeChat;
-    console.log(newActiveChat);
+
     if (
       newActiveChat &&
       newActiveChat?.messages.some((m) => String(m.id) === String(msgId))
@@ -248,7 +248,7 @@ export const useChatStore = (set, get) => ({
       newData = newData.map((s) =>
         String(s.id) === String(newActiveChat?.id) ? newActiveChat : s
       );
-    console.log(newActiveChat);
+
     set({
       activeChat: newActiveChat,
       data: newData,
@@ -892,7 +892,6 @@ export const useChatStore = (set, get) => ({
   },
 
   sendMessage: (payload: any) => {
-    console.log(payload);
     const state = get();
     let ac = payload.act;
     let chat = state.data;

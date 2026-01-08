@@ -85,10 +85,7 @@ export const getCallType = (type) => {
   const translate = (key, lang) => {
     return translateFunction(key, lang);
   };
-  if (
-    parseInt(type.sender) !== parseInt(getUserChat().id) &&
-    type.duration === -1
-  ) {
+  if (type.duration <= 0) {
     return (
       <>
         <MissedCall></MissedCall> {translate("Missed Call", language)}
@@ -135,7 +132,7 @@ export const getNewCalls = (calls) => {
   return isNew(calls);
 };
 export const forwardMessage = async (m, activeChat) => {
-  const { sendMessage, setForwardMessage } = useAppStore.getState();
+  const { sendMessage, setForwardMessage, setMain } = useAppStore.getState();
   const user = await getUser();
   let i = Math.random();
 
@@ -197,6 +194,7 @@ export const forwardMessage = async (m, activeChat) => {
       isNew: false,
     });
     setForwardMessage(null);
+    setMain("chat");
   }
   if (
     m.message_type.name === "ImageMessage" ||
@@ -258,6 +256,7 @@ export const forwardMessage = async (m, activeChat) => {
       isNew: false,
     });
     setForwardMessage(null);
+    setMain("chat");
   }
   if (
     m.message_type.name === "VoiceMessage" ||
@@ -321,6 +320,7 @@ export const forwardMessage = async (m, activeChat) => {
       isNew: false,
     });
     setForwardMessage(null);
+    setMain("chat");
   }
   if (
     m.message_type.name === "VideoMessage" ||
@@ -383,6 +383,7 @@ export const forwardMessage = async (m, activeChat) => {
       isNew: false,
     });
     setForwardMessage(null);
+    setMain("chat");
   }
   if (
     m.message_type.name === "FileMessage" ||
@@ -444,6 +445,7 @@ export const forwardMessage = async (m, activeChat) => {
       isNew: false,
     });
     setForwardMessage(null);
+    setMain("chat");
   }
   if (
     m.message_type.name === "ShareProduct" ||
@@ -503,6 +505,7 @@ export const forwardMessage = async (m, activeChat) => {
       isNew: false,
     });
     setForwardMessage(null);
+    setMain("chat");
   }
 };
 

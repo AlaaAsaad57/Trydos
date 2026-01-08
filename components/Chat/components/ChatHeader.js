@@ -27,6 +27,7 @@ function ChatHeader({
     openChat,
     setReplyMessage,
     language,
+    isCallIncoming,
   } = useAppStore();
   let { lang } = useParams();
   // @ts-ignore
@@ -56,6 +57,7 @@ function ChatHeader({
     }
   };
   const audioCallFunction = async () => {
+    if (callLoading || isCallIncoming) return;
     let payload = null;
     if (isPrivate && activeChat?.order_chat_participant_id) {
       payload = {
@@ -87,6 +89,7 @@ function ChatHeader({
   };
 
   const videoCallFunction = async () => {
+    if (callLoading || isCallIncoming) return;
     let payload = null;
     if (isPrivate && activeChat?.order_chat_participant_id) {
       payload = {
@@ -191,15 +194,15 @@ function ChatHeader({
         } chat-top-contact`}
       >
         <VideoIcon
-          className={`${callLoading === "video" && "loading-svg"} vcall ${
-            isRtl ? "ml-[20px] mr-0" : "ml-0 mr-[20px]"
-          }`}
+          className={`${
+            (callLoading || isCallIncoming) && "loading-svg"
+          } vcall ${isRtl ? "ml-[20px] mr-0" : "ml-0 mr-[20px]"}`}
           onClick={() => {
             videoCallFunction();
           }}
         ></VideoIcon>
         <CallIcon
-          className={`${callLoading === "voice" && "loading-svg"} call`}
+          className={`${(callLoading || isCallIncoming) && "loading-svg"} call`}
           onClick={() => {
             audioCallFunction();
           }}

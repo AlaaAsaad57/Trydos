@@ -128,8 +128,8 @@ function ChatInfo({
               </div>
             )}
           </div>
-          <div className="chat-user-info">
-            <div className="chat-info-user-name">
+          <div className="chat-user-info w-full flex items-center">
+            <div className="chat-info-user-name p-0">
               {activeChat?.channel_members.filter(
                 (user) => user.user_id !== getUser()?.id
               )[0]?.user?.name ||
