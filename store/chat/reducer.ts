@@ -1454,7 +1454,17 @@ export const useChatStore = (set, get) => ({
             active = {
               ...state.activeChat,
               messages: active.messages.map((msg) => {
-                if (parseInt(msg.id) !== parseInt(payload.msg_id)) {
+                if (
+                  parseInt(msg.parent_message?.id) === parseInt(payload.msg_id)
+                ) {
+                  return {
+                    ...msg,
+                    parent_message: {
+                      ...msg.parent_message,
+                      message_content: { content: "" },
+                    },
+                  };
+                } else if (parseInt(msg.id) !== parseInt(payload.msg_id)) {
                   return msg;
                 } else {
                   return {
@@ -1471,6 +1481,17 @@ export const useChatStore = (set, get) => ({
           arr.push({
             ...chat,
             messages: chat.messages.map((msg) => {
+              if (
+                parseInt(msg.parent_message?.id) === parseInt(payload.msg_id)
+              ) {
+                return {
+                  ...msg,
+                  parent_message: {
+                    ...msg.parent_message,
+                    message_content: { content: "" },
+                  },
+                };
+              }
               if (parseInt(msg.id) !== parseInt(payload.msg_id)) {
                 return msg;
               } else {
@@ -1496,6 +1517,15 @@ export const useChatStore = (set, get) => ({
       let active = {
         ...state.activeChat,
         messages: state?.activeChat?.messages.map((msg) => {
+          if (parseInt(msg.parent_message?.id) === parseInt(payload.msg_id)) {
+            return {
+              ...msg,
+              parent_message: {
+                ...msg.parent_message,
+                message_content: { content: "" },
+              },
+            };
+          }
           if (parseInt(msg.id) !== parseInt(payload.msg_id)) {
             return msg;
           } else {

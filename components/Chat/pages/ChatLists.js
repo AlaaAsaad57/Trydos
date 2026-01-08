@@ -53,7 +53,7 @@ function ChatLists(props) {
       </div>
     );
   }
-  console.log(activeChat, main);
+
   const getSortedChats = () => {
     return [...chats]
       .filter((s) => !s.isPrivate || s.channel_name !== "Deleivery Worker")
