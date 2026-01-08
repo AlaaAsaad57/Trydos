@@ -25,6 +25,8 @@ import { useAppStore } from "store";
 import ChatPhoto from "./ChatPhoto";
 import { translateFunction } from "utils/functions";
 import { deleteChat as DeleteChatAction } from "store/chat/actions";
+import { fetchData } from "utils/fetchData";
+import { REQUESTS_DATA } from "utils/Requests";
 function ChatInfo({
   activeChat,
   cancel,
@@ -33,8 +35,11 @@ function ChatInfo({
   makeVideoCall,
   enableSearch,
 }) {
-  const { deleteChat } = useAppStore();
+  const { deleteChat, language, updateChannelBlockStatus } = useAppStore();
   const ref = useRef();
+  const otherUserId = activeChat?.channel_members?.filter(
+    (user) => String(user.user_id) !== String(getUser()?.id)
+  )?.[0]?.user?.id;
   const handleCopyPhone = async (phoneNumber) => {
     try {
       if (typeof navigator !== "undefined") {
@@ -85,6 +90,71 @@ function ChatInfo({
       slider.scrollLeft = scrollLeft - walk;
     });
   }
+  const [isBlocked, setIsBlocked] = useState(false);
+  const [loading, setLoading] = useState(false);
+  useEffect(() => {
+    if (
+      activeChat?.channel_members?.find((s) => s.user_id !== getUser()?.id)
+        ?.is_blocked === 1
+    ) {
+      setIsBlocked(true);
+    } else {
+      setIsBlocked(false);
+    }
+  }, []);
+  const updateBlockedState = (blocked) => {
+    if (!activeChat?.id || !otherUserId) return;
+
+    updateChannelBlockStatus({
+      channelId: activeChat.id,
+      userId: otherUserId,
+      isBlocked: blocked,
+    });
+  };
+  const BlockUser = async () => {
+    try {
+      if (!otherUserId) return;
+      setLoading(true);
+      const response = await fetchData({
+        url: `/api/v1/users/block/${otherUserId}`,
+        server: "chat",
+        method: "POST",
+        reqTitle: REQUESTS_DATA.BLOCK_USER,
+        body: "",
+      });
+      if (response?.success === false) {
+        throw new Error(response?.message || "Block request failed");
+      }
+      setIsBlocked(true);
+      updateBlockedState(true);
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+  const UnBlockUser = async () => {
+    try {
+      if (!otherUserId) return;
+      setLoading(true);
+      const response = await fetchData({
+        url: `/api/v1/users/unblock/${otherUserId}`,
+        server: "chat",
+        method: "POST",
+        reqTitle: REQUESTS_DATA.UNBLOCK_USER,
+        body: "",
+      });
+      if (response?.success === false) {
+        throw new Error(response?.message || "Unblock request failed");
+      }
+      setIsBlocked(false);
+      updateBlockedState(false);
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setLoading(false);
+    }
+  };
   return (
     <div ref={ref} className="chat-user-info-container">
       <div
@@ -167,7 +237,7 @@ function ChatInfo({
               <InfoCallIcon
                 className={`${callLoading === "voice" && "loading-svg"}`}
               ></InfoCallIcon>{" "}
-              <span>Call</span>
+              <span>{translateFunction("Call")}</span>
             </div>
             <div
               className="chat-user-info-option"
@@ -180,14 +250,15 @@ function ChatInfo({
               <InfoVideoIcon
                 className={`${callLoading === "video" && "loading-svg"}`}
               ></InfoVideoIcon>{" "}
-              <span>Video</span>
+              <span>{translateFunction("Video")}</span>
             </div>
             <div
               className="chat-user-info-option"
               style={{ marginLeft: "98px" }}
               onClick={() => enableSearch()}
             >
-              <InfoSearchIcon></InfoSearchIcon> <span>Search</span>
+              <InfoSearchIcon></InfoSearchIcon>{" "}
+              <span>{translateFunction("Search")}</span>
             </div>
           </div>
           <div className="chat-user-files-container">
@@ -199,7 +270,7 @@ function ChatInfo({
               onClick={() => setMedia(true)}
             >
               <div className=".chat-user-files-info-text text-[#8d8d8d]">
-                Media & Files
+                {translateFunction("Media & Files")}
               </div>
               <div className="chat-user-files-info-content">
                 <div className="chat-user-files-info-content-item">
@@ -253,14 +324,15 @@ function ChatInfo({
           }
           <div className="chat-user-gallery-container">
             <div className="chat-user-info-arrow gallery-option">
-              <span> Never</span> <InfoArrowIcon></InfoArrowIcon>
+              <span> {translateFunction("Never")}</span>{" "}
+              <InfoArrowIcon></InfoArrowIcon>
             </div>
             <div className="chat-user-files-icon">
               <InfoGalleryIcon></InfoGalleryIcon>
             </div>
             <div className="chat-user-files-info" style={{ height: "auto" }}>
               <div className=".chat-user-files-info-text text-[#8d8d8d]">
-                Save To Gallery
+                {translateFunction("Save To Gallery")}
               </div>
             </div>
           </div>
@@ -273,11 +345,28 @@ function ChatInfo({
                 cancel();
               }}
             >
-              <DeleteInfoIcon /> <span>Delete Chat</span>
+              <DeleteInfoIcon /> <span>{translateFunction("Delete Chat")}</span>
             </div>
-            <div className="chat-user-option">
-              <BlockInfoIcon />
-              <span>Block</span>
+            <div
+              className="chat-user-option"
+              onClick={() => {
+                if (loading) return;
+                if (isBlocked) UnBlockUser();
+                else BlockUser();
+              }}
+            >
+              {loading ? (
+                <Spinner />
+              ) : (
+                <>
+                  <BlockInfoIcon />
+                  <span>
+                    {isBlocked
+                      ? translateFunction("UnBlock")
+                      : translateFunction("Block")}
+                  </span>
+                </>
+              )}
             </div>
           </div>
         </>

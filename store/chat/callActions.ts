@@ -28,6 +28,16 @@ export const makeVideoCall = async (
     useAppStore.getState();
   try {
     setCallLoading("video");
+    await fetchData({
+      url: `/api/v1/messages/end_call`,
+      // ###EDIT###
+      // url: `/api/v1/end_call`,
+      reqTitle: REQUESTS_DATA.END_CALL,
+      method: "POST",
+      server: "chat",
+      body: JSON.stringify({ user_id: getUserChat()?.id }),
+      noMessage: true,
+    });
     let obj =
       typeof channelId === "string" && channelId.includes("ch")
         ? { receiver_user_id: parseInt(channelId.split("ch-")[1]) }

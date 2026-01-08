@@ -15,6 +15,7 @@ import { showErrorNotification } from "store/notifications/reducer";
 function ChatHeader({
   chats,
   activeChat,
+  isBlockedEachOther,
   openDetails,
   isPrivate,
   closeWidget,
@@ -143,6 +144,7 @@ function ChatHeader({
         </span>
       )}
       <div
+        onClick={() => openDetails()}
         className={`${
           isRtl
             ? "flex-row-reverse ml-[0px] mr-[11px]"
@@ -150,7 +152,7 @@ function ChatHeader({
         } user-top-chat`}
       >
         {activeChat && activeChat.channel_members && (
-          <div className="img-uer" onClick={() => openDetails()}>
+          <div className="img-uer">
             <ChatPhoto
               user={
                 activeChat.channel_members.filter(
@@ -168,9 +170,10 @@ function ChatHeader({
               isRtl ? "mr-[11px] ml-0" : "ml-[11px]"
             } user-name-top-chat`}
           >
-            {(activeChat.status || activeChat.activeDate) && (
-              <div className="user-status">{getStatues()}</div>
-            )}
+            {!isBlockedEachOther &&
+              (activeChat.status || activeChat.activeDate) && (
+                <div className="user-status">{getStatues()}</div>
+              )}
             {(activeChat.channel_members &&
               activeChat.channel_members.filter(
                 (a) => parseInt(a.user_id) !== parseInt(getUserChat()?.id)
@@ -198,12 +201,30 @@ function ChatHeader({
             (callLoading || isCallIncoming) && "loading-svg"
           } vcall ${isRtl ? "ml-[20px] mr-0" : "ml-0 mr-[20px]"}`}
           onClick={() => {
+            if (isBlockedEachOther) {
+              showErrorNotification(
+                translateFunction(
+                  "You cannot send messages or calls to this user",
+                  language
+                )
+              );
+              return;
+            }
             videoCallFunction();
           }}
         ></VideoIcon>
         <CallIcon
           className={`${(callLoading || isCallIncoming) && "loading-svg"} call`}
           onClick={() => {
+            if (isBlockedEachOther) {
+              showErrorNotification(
+                translateFunction(
+                  "You cannot send messages or calls to this user",
+                  language
+                )
+              );
+              return;
+            }
             audioCallFunction();
           }}
         ></CallIcon>

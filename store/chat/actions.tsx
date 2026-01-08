@@ -218,6 +218,7 @@ export async function getPage(channel, mid) {
       reqTitle: REQUESTS_DATA.GET_MESSAGES_OF_CHANNEL,
       method: "POST",
       server: "chat",
+
       // ###EDIT###
       // body: {},
     });

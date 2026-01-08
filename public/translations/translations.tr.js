@@ -1116,6 +1116,17 @@ const translations = {
   camera: "Kamera",
   files: "Dosyalar",
   "Terms Of Change Address": " Adres Değişikliği Şartları",
+  "You cannot send messages or calls to this user":
+    "Bu kullanıcıya mesaj veya arama gönderemezsiniz",
+  Block: "Engelle",
+  UnBlock: "Engeli kaldır",
+  "Delete Chat": "Sohbeti sil",
+  "Save To Gallery": "Galeride kaydet",
+  Never: "Asla",
+  "Media & Files": "Medya ve dosyalar",
+  Search: "Ara",
+  "Video as مكالمة فيديو": "Görüntülü arama",
+  Call: "Ara",
   "Copy Invite": " Davetiyeyi Kopyala",
   "Choose how to send the invitation":
     " Davetiyeyi nasıl göndereceğinizi seçin",
