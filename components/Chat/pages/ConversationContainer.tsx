@@ -1098,7 +1098,7 @@ function ConversationContainer({
                           reset();
                         }}
                       >
-                        Cancel
+                        {translateFunction("Cancel", language)}
                       </div>
                     </div>
                     <ShareIcon

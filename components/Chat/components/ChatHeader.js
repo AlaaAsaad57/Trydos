@@ -196,23 +196,25 @@ function ChatHeader({
             : "right-[30px] flex-row left-[initial]"
         } chat-top-contact`}
       >
-        <VideoIcon
-          className={`${
-            (callLoading || isCallIncoming) && "loading-svg"
-          } vcall ${isRtl ? "ml-[20px] mr-0" : "ml-0 mr-[20px]"}`}
-          onClick={() => {
-            if (isBlockedEachOther) {
-              showErrorNotification(
-                translateFunction(
-                  "You cannot send messages or calls to this user",
-                  language
-                )
-              );
-              return;
-            }
-            videoCallFunction();
-          }}
-        ></VideoIcon>
+        {!isPrivate && (
+          <VideoIcon
+            className={`${
+              (callLoading || isCallIncoming) && "loading-svg"
+            } vcall ${isRtl ? "ml-[20px] mr-0" : "ml-0 mr-[20px]"}`}
+            onClick={() => {
+              if (isBlockedEachOther) {
+                showErrorNotification(
+                  translateFunction(
+                    "You cannot send messages or calls to this user",
+                    language
+                  )
+                );
+                return;
+              }
+              videoCallFunction();
+            }}
+          ></VideoIcon>
+        )}
         <CallIcon
           className={`${(callLoading || isCallIncoming) && "loading-svg"} call`}
           onClick={() => {
