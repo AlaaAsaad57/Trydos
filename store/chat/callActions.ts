@@ -204,10 +204,14 @@ export const AnswerCall = async (channelId, messageId) => {
     console.error(e);
   }
 };
-export const InCall = async (channelId, messageId) => {
+export const InCall = async (user_id, messageId) => {
   try {
     if (messageId) {
       let obj = {};
+      if (user_id) {
+        obj = { ...obj, receiver_user_id: user_id };
+      }
+
       const response = await fetchData({
         url: `/api/v1/messages/in_another_call/${messageId}`,
         body: JSON.stringify({ ...obj }),

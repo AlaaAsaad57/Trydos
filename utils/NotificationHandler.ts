@@ -314,7 +314,7 @@ class ForegroundNotificationHandler {
           try {
             if (call) {
               InCall(
-                JSON.parse(payload.data.data).message.channel.id,
+                JSON.parse(payload.data.data).user?.id,
                 JSON.parse(payload.data.data).message.id
               );
             } else {
@@ -433,7 +433,7 @@ class ForegroundNotificationHandler {
           }
           if (call) {
             InCall(
-              JSON.parse(payload.data.data).message.channel.id,
+              JSON.parse(payload.data.data).user?.id,
               JSON.parse(payload.data.data).message.id
             );
           } else {
