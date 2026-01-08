@@ -207,10 +207,7 @@ export const AnswerCall = async (channelId, messageId) => {
 export const InCall = async (channelId, messageId) => {
   try {
     if (messageId) {
-      let obj =
-        typeof channelId === "string" && channelId.includes("ch")
-          ? { receiver_user_id: parseInt(channelId.split("ch-")[1]) }
-          : { channel_id: channelId };
+      let obj = {};
       const response = await fetchData({
         url: `/api/v1/messages/in_another_call/${messageId}`,
         body: JSON.stringify({ ...obj }),
