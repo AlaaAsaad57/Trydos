@@ -68,7 +68,6 @@ function ProductListServer({
           ...parsedFilters,
           featured: isFeatured,
           flashdeal: isFlashDeals,
-          search_text: parsedFilters.search_text?.[0],
         }}
         currency={currency}
         offset={offset}
