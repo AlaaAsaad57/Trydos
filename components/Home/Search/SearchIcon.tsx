@@ -30,6 +30,7 @@ import ActiveSearchFilterBar from "./ActiveSearchFilterBar";
 import NextLink from "components/global/NextLink";
 import { useParams, useRouter } from "next/navigation";
 import { useAppStore } from "store";
+import { showSuccessNotification } from "store/notifications/reducer";
 
 function SearchIcon({ language, country }) {
   const { setIsNavigating } = useAppStore();
@@ -134,7 +135,7 @@ function SearchIcon({ language, country }) {
         // Reset Offsets and HasMore on new search
         setOffsets({ brands: 1, categories: 1, boutiques: 1 });
         setHasMore({ brands: true, categories: true, boutiques: true });
-        console.log(appliedFilters);
+
         const res = await GetSearchData({
           language,
           country,
@@ -143,7 +144,9 @@ function SearchIcon({ language, country }) {
           filters_offset: 1,
           // Assuming server action accepts query text
         });
-        console.log(res);
+        if (value?.length > 0 && res.isAnalyzed) {
+          showSuccessNotification(JSON.stringify(res.isAnalyzed));
+        }
         // RACE CONDITION CHECK: Only update if this is the latest request
         if (requestId === latestRequestRef.current) {
           setResults({
@@ -496,13 +499,13 @@ const SearchContainer = ({
       categories: applied_filter?.categories?.map((s) => s.slug),
       brands: applied_filter?.brands?.map((s) => s.slug),
       boutiques: applied_filter?.boutiques?.map((s) => s.slug),
-      search: value,
+      search: [value],
     });
     return `/${lang}/filters/${pathParams.join("/")}`;
   };
   return (
     <div
-      className="search-container pt-[12px] pb-[40px]"
+      className="search-container pt-[12px] max-h-[100%]"
       data-cy="searchContainer"
     >
       {/* 1. Empty State: History & Trending */}
@@ -531,12 +534,12 @@ const SearchContainer = ({
 
       {/* 2. Results State */}
       <div
-        className="search-results-container flex-col"
+        className="search-results-container flex-col  overflow-y-scroll pb-[115px]"
         data-cy="searchResults_body"
       >
         {/* Products */}
         {value.length > 0 && (loading || products?.length > 0) && (
-          <div className="products-results flex-col max-h-[60%] overflow-auto">
+          <div className="products-results shrink-0 flex-col max-h-[60%] overflow-auto">
             <div
               className={`result-label flex-row ${
                 isRtl ? "flex-row-reverse pr-2" : ""
@@ -561,7 +564,7 @@ const SearchContainer = ({
         {/* Brands */}
         {(brands?.length > 0 || loading) && (
           <div
-            className="products-results brand-results"
+            className="products-results shrink-0 brand-results"
             data-cy="ContainerOfBrands"
           >
             <div
@@ -598,7 +601,7 @@ const SearchContainer = ({
         {/* Categories */}
         {(categories?.length > 0 || loading) && (
           <div
-            className="products-results brand-results"
+            className="products-results shrink-0 brand-results"
             data-cy="ContainerOfCategories"
           >
             <div
@@ -639,7 +642,7 @@ const SearchContainer = ({
         {/* Boutiques */}
         {(boutiques?.length > 0 || loading) && (
           <div
-            className="products-results brand-results"
+            className="products-results shrink-0 brand-results"
             data-cy="ContainerOfBoutiques"
           >
             <div
@@ -676,7 +679,7 @@ const SearchContainer = ({
           </div>
         )}
       </div>
-      <div className="w-full max-w-[1200px] px-[25px] fixed bottom-[40px] left-0 right-0 mx-auto flex flex-col">
+      <div className="w-full max-w-[1200px] z-50 px-[25px] fixed bottom-[40px] left-0 right-0 mx-auto flex flex-col">
         <ActiveSearchFilterBar
           appliedFilters={applied_filter}
           reset={() => {

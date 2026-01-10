@@ -81,6 +81,12 @@ async function ProductListConainer({
         product_id: product.product_id,
       };
   });
+  let parsedFiltersVar = {
+    ...parsedFilters,
+    search_text:
+      filtersData?.isAnalyzed?.name ?? parsedFilters?.search_text?.[0],
+  };
+
   return (
     <Suspense
       key={`Suspense-product-list-${JSON.stringify(parsedFilters)}`}
@@ -92,7 +98,7 @@ async function ProductListConainer({
         offset={filtersData?.offset}
         currency={currency}
         key={`product-list-${JSON.stringify(parsedFilters)}`}
-        parsedFilters={parsedFilters}
+        parsedFilters={parsedFiltersVar}
         params={Params}
         isFeatured={isFeatured}
         isFlashDeals={isFlashDeals}

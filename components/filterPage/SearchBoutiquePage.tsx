@@ -5,7 +5,8 @@ import { DebounceInput } from "react-debounce-input/src";
 import { useRouter } from "next/navigation";
 import { buildParamsFromFilters, pollinateInput } from "utils/tinyUtils";
 import { useAppStore } from "store";
-function SearchBoutiquePage({ search_text, parsedFilters, lang }) {
+import { showSuccessNotification } from "store/notifications/reducer";
+function SearchBoutiquePage({ search_text, parsedFilters, lang, isAnalyzed }) {
   const router = useRouter();
 
   // Parse current filters from URL path
@@ -58,6 +59,11 @@ function SearchBoutiquePage({ search_text, parsedFilters, lang }) {
       document.querySelector<HTMLInputElement>("#filter-search")?.blur();
     }
   }, []);
+  useEffect(() => {
+    if (isAnalyzed) {
+      showSuccessNotification(JSON.stringify(isAnalyzed));
+    }
+  }, [isAnalyzed]);
   return (
     <div
       data-cy="searchIcon_boutiquePage"
