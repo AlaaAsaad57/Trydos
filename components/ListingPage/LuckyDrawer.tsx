@@ -1,5 +1,5 @@
 import { useTimer } from "react-timer-hook";
-import { useEffect, useRef, useCallback, useState } from "react";
+import { useEffect, useRef, useCallback } from "react";
 import { translateFunction } from "utils/functions";
 import { useAppStore } from "store";
 
@@ -8,6 +8,7 @@ interface UseLuckyDrawProps {
   seconds: number;
   language: string;
   onExpire?: () => void;
+  enabled?: boolean; // New property to control execution
 }
 
 export const useLuckyDrawTimer = ({
@@ -15,37 +16,53 @@ export const useLuckyDrawTimer = ({
   seconds = 50,
   language,
   onExpire,
+  enabled = true,
 }: UseLuckyDrawProps) => {
   const isRtl = language === "ar" || language === "ku";
   const wasRunningRef = useRef(false);
+  const isVisibleRefs = useRef<Set<Element>>(new Set());
 
   // Refs for multiple components
   const miniTimerRef = useRef<HTMLDivElement | null>(null);
   const topTimerRef = useRef<HTMLDivElement | null>(null);
 
   // 1. Timer Logic
+  // We provide a fallback timestamp if disabled to prevent useTimer from throwing errors
+  const expiryTimestamp = new Date(Date.now() + (enabled ? seconds : 0) * 1000);
+
   const {
     seconds: secondsLeft,
     isRunning,
     pause,
     resume,
+    restart,
   } = useTimer({
-    expiryTimestamp: new Date(Date.now() + seconds * 1000),
-    autoStart: true,
+    expiryTimestamp,
+    autoStart: enabled,
     onExpire: () => {
-      const { isNavigating } = useAppStore.getState(); // Ensure fresh state access
+      if (!enabled) return;
+      const { isNavigating } = useAppStore.getState();
       if (!isNavigating) {
         onExpire?.();
       }
     },
   });
 
+  // Handle manual restart/pause if 'enabled' changes dynamically
+  useEffect(() => {
+    if (enabled) {
+      const newExpiry = new Date(Date.now() + seconds * 1000);
+      restart(newExpiry);
+    } else {
+      pause();
+    }
+  }, [enabled, restart, seconds, pause]);
+
   // 2. Visibility / Intersection Logic
   const handleStateChange = useCallback(() => {
-    const isTabHidden = document.hidden;
+    if (!enabled) return;
 
-    // Check if at least one element is in the viewport
-    // Note: We use a state/ref check updated by the observer
+    const isTabHidden = document.hidden;
     const anyVisible = isVisibleRefs.current.size > 0;
 
     if (isTabHidden || !anyVisible) {
@@ -59,11 +76,11 @@ export const useLuckyDrawTimer = ({
         resume();
       }
     }
-  }, [isRunning, pause, resume]);
-
-  const isVisibleRefs = useRef<Set<Element>>(new Set());
+  }, [isRunning, pause, resume, enabled]);
 
   useEffect(() => {
+    if (!enabled) return;
+
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -87,7 +104,7 @@ export const useLuckyDrawTimer = ({
       observer.disconnect();
       document.removeEventListener("visibilitychange", handleStateChange);
     };
-  }, [handleStateChange]);
+  }, [handleStateChange, enabled]);
 
   // 3. UI Helpers
   const ClockIcon = () => (
@@ -113,38 +130,49 @@ export const useLuckyDrawTimer = ({
     </svg>
   );
 
-  const MiniTimer = () => (
-    <div
-      className="flex flex-row items-center gap-[2px] w-full justify-end redeem_show"
-      ref={miniTimerRef}
-    >
-      <ClockIcon />
-      <div className="flex flex-row text-[#ff6200]">
-        <span id={`counter-${id}`} className="bold text-[10px]">
-          -{secondsLeft}
-        </span>
-        <span>{translateFunction("s", language)}</span>
+  const MiniTimer = () => {
+    if (!enabled) return null;
+    return (
+      <div
+        className="flex flex-row items-center gap-[2px] w-full justify-end redeem_show"
+        ref={miniTimerRef}
+      >
+        <ClockIcon />
+        <div className="flex flex-row text-[#ff6200]">
+          <span id={`counter-${id}`} className="bold text-[10px]">
+            -{secondsLeft}
+          </span>
+          <span>{translateFunction("s", language)}</span>
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
-  const TopTimer = () => (
-    <div
-      ref={topTimerRef}
-      className="redeem_show absolute pr-[5px] pl-[8px] text-nowrap flex-row h-[19px] gap-[2px] items-center top-[-8px] left-[0px] z-[99] rounded-tr-[4px] rounded-tl-[15px] rounded-bl-[4px] rounded-br-[15px] bg-[#FFF3E8] text-[#FF6200] text-[9px] medium min-w-[140px]"
-      style={{ border: "1px solid #FF6200", direction: isRtl ? "rtl" : "ltr" }}
-    >
-      <ClockIcon />
-      <span className="whitespace-nowrap bold">
-        {translateFunction("Luck!")}{" "}
-      </span>
-      <span className="whitespace-nowrap ">
-        {translateFunction("Add To Bag Within ")}
-      </span>
-      <span className="whitespace-nowrap bold ">{secondsLeft}</span>
-      <span className="whitespace-nowrap ">{translateFunction("seconds")}</span>
-    </div>
-  );
+  const TopTimer = () => {
+    if (!enabled) return null;
+    return (
+      <div
+        ref={topTimerRef}
+        className="redeem_show absolute pr-[5px] pl-[8px] text-nowrap flex-row h-[19px] gap-[2px] items-center top-[-8px] left-[0px] z-[99] rounded-tr-[4px] rounded-tl-[15px] rounded-bl-[4px] rounded-br-[15px] bg-[#FFF3E8] text-[#FF6200] text-[9px] medium min-w-[140px]"
+        style={{
+          border: "1px solid #FF6200",
+          direction: isRtl ? "rtl" : "ltr",
+        }}
+      >
+        <ClockIcon />
+        <span className="whitespace-nowrap bold">
+          {translateFunction("Luck!")}{" "}
+        </span>
+        <span className="whitespace-nowrap ">
+          {translateFunction("Add To Bag Within ")}
+        </span>
+        <span className="whitespace-nowrap bold ">{secondsLeft}</span>
+        <span className="whitespace-nowrap ">
+          {translateFunction("seconds")}
+        </span>
+      </div>
+    );
+  };
 
   return { MiniTimer, TopTimer, secondsLeft, isRunning };
 };

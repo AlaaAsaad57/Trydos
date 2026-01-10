@@ -177,10 +177,8 @@ function AddToCartButton({
                   (isVariantInCart({ exact: false })?.quantity ?? 0) + 1,
                 brand: product?.brand?.name,
                 brand_id: product?.brand?.id,
-                category:
-                  product?.category?.name || product?.categories?.[0]?.name,
-                category_id:
-                  product?.category?.id || product?.categories?.[0]?.id,
+                category: product?.categories?.[0]?.name,
+                category_id: product?.categories?.[0]?.id,
                 count_likes: product?.count_of_likes,
                 // review_count: product?.views_count ?? product?.view_count,
                 item_variant: selectedVariant?.type,
@@ -239,8 +237,8 @@ function AddToCartButton({
                   quantity: 1,
                   brand: product?.brand?.name,
                   brand_id: product?.brand?.id,
-                  category: product?.category?.name,
-                  category_id: product?.category?.id,
+                  category: product?.categories?.[0]?.name,
+                  category_id: product?.categories?.[0]?.id,
                   count_likes: product?.count_of_likes,
                   // review_count: product?.views_count ?? product?.view_count,
                   item_variant: selectedVariant?.type,

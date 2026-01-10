@@ -287,7 +287,18 @@ async function ProductPhotoSliderWrapper({
   // utils end
 
   return (
-    <ProductImagesSlider language={language}>
+    <ProductImagesSlider
+      language={language}
+      productGA={{
+        item_id: globalDetails?.id,
+        item_name: globalDetails?.name,
+        brand: globalDetails?.brand?.name,
+        brand_id: globalDetails?.brand?.id,
+        category: globalDetails?.categories?.[0]?.name,
+        category_id: globalDetails?.categories?.[0]?.id,
+        price: qtyPromiseData?.offer_price,
+      }}
+    >
       {getImages(globalDetails, color)?.images?.map((img, i) => (
         <div
           key={i}

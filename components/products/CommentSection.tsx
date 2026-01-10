@@ -34,10 +34,8 @@ function CommentSection({ product_data }) {
         item_id: product_data?.id,
         item_name: product_data?.name,
         brand_id: product_data?.brand?.id,
-        category:
-          product_data?.category?.name || product_data?.categories?.[0]?.name,
-        category_id:
-          product_data?.category?.id || product_data?.categories?.[0]?.id,
+        category: product_data?.categories?.[0]?.name,
+        category_id: product_data?.categories?.[0]?.id,
         brand: product_data?.brand?.name,
         price: product_data?.offer_price,
       },

@@ -17,11 +17,8 @@ async function ProductExtendedSliderWrapper({
           item_name: globalDetails?.name,
           brand: globalDetails?.brand?.name,
           brand_id: globalDetails?.brand?.id,
-          category:
-            globalDetails?.category?.name ||
-            globalDetails?.categories?.[0]?.name,
-          category_id:
-            globalDetails?.category?.id || globalDetails?.categories?.[0]?.id,
+          category: globalDetails?.categories?.[0]?.name,
+          category_id: globalDetails?.categories?.[0]?.id,
         }}
         images={
           globalDetails?.sync_color_images?.find(
