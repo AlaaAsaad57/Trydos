@@ -435,7 +435,12 @@ class AuthService {
         phone: userObj?.phone ?? userProfile?.phone,
         image: this.getImageForCookie(userObj?.image),
       });
-
+      console.log({
+        name: userObj?.name ?? userProfile?.name,
+        phone: userObj?.phone ?? userProfile?.phone,
+        image: this.getImageForCookie(userObj?.image),
+      });
+      await new Promise((resolve) => setTimeout(resolve, 1500));
       return res;
     } catch (error) {
       console.log(error);

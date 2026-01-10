@@ -44,15 +44,9 @@ function MainSetting({ swipeToScreen, userCookiesData }: any) {
     settingLastPath,
     setSettingLastPath,
   } = useAppStore();
-  const points = settings?.["starting-setting"]?.decimal_point_settings || 0;
-
   const { lang } = useParams();
   // @ts-ignore
-  let country = lang?.split("-")[0];
-  country = {
-    name: allCountries.filter((s) => s.iso2 === country)[0]?.name,
-    iso: country,
-  };
+
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -68,14 +62,7 @@ function MainSetting({ swipeToScreen, userCookiesData }: any) {
       setLoading(false);
     }
   };
-  const getLanguage = () => {
-    // @ts-ignore
-    let iso = lang.split("-")[1];
-    if (iso === "en") return "English";
-    if (iso === "ar") return "العربية";
-    if (iso === "tr") return "Turkish";
-    if (iso === "ku") return "کوردی";
-  };
+
   const isRtl = language === "ar" || language === "ku";
   const router = useRouter();
   // if (!userProfile) return <SettingsLoader />;

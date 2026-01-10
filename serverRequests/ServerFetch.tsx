@@ -15,6 +15,7 @@ interface FetchResponse<T = any> {
   error: string | null;
   status: number;
   isError?: boolean;
+  url?: string;
 }
 
 const createServerFetch = async <T = any,>({
@@ -58,6 +59,7 @@ const createServerFetch = async <T = any,>({
           data,
           error: null,
           status: response.status,
+          url: url,
         };
       }
 
@@ -82,6 +84,7 @@ const createServerFetch = async <T = any,>({
         error: `HTTP ${response.status}: ${errorText}`,
         status: response.status,
         isError: true,
+        url: url,
       };
     } catch (error) {
       // Network errors or other exceptions
@@ -106,6 +109,7 @@ const createServerFetch = async <T = any,>({
         error:
           error instanceof Error ? error.message : "Unknown error occurred",
         status: 0,
+        url: url,
         isError: true,
       };
     }

@@ -121,7 +121,6 @@ export const useCartStore = (set, get) => ({
   settingLastPath: null,
   LoggingOut: false,
   setLastPathname: (e) => {
-    console.log(e);
     set((state) => ({ lastPathname: e }));
   },
   setLoggingOut: (e) =>

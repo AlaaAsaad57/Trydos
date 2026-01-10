@@ -1,5 +1,6 @@
+"use client";
 import Spinner from "components/global/Spinner";
-import { useParams } from "node_modules/next/navigation";
+import { useParams } from "next/navigation";
 import React from "react";
 import SellerDashboardService from "services/sellerDashboard";
 import { translateFunction } from "utils/functions";
