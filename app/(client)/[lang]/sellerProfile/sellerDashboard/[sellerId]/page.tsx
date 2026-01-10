@@ -8,7 +8,13 @@ import auth from "services/auth";
 import { translateFunction, getConfiguredImage } from "utils/functions";
 import { GetImageUrl } from "utils/tinyUtils";
 
-type TabType = "products" | "boutiques" | "permissions" | "users" | "orders";
+type TabType =
+  | "products"
+  | "boutiques"
+  | "permissions"
+  | "users"
+  | "orders"
+  | "none";
 
 const PERMISSION_GROUPS = {
   PRODUCTS: [
@@ -139,7 +145,7 @@ function SellerDashBoard() {
   } = useSellerProfile();
 
   const [permissionsLoading, setPermissionsLoading] = useState<boolean>(false);
-  const [activeTab, setActiveTab] = useState<TabType>("products");
+  const [activeTab, setActiveTab] = useState<TabType>("none");
   const [error, setError] = useState<string | null>(null);
   const [productsMeta, setProductsMeta] = useState<any>(null);
   const [currentPage, setCurrentPage] = useState(1);
@@ -548,10 +554,10 @@ function SellerDashBoard() {
 
   useEffect(() => {
     if (sellerId) {
-      getSellerProducts();
-      getSellerBoutiques();
-      getRoles();
-      getUsers();
+      // getSellerProducts();
+      // getSellerBoutiques();
+      // getRoles();
+      // getUsers();
       // Only fetch permissions if not already available from currentShop
       if (!currentShop?.permissions || currentShop.permissions.length === 0) {
         getSellerPermissions();
@@ -571,19 +577,23 @@ function SellerDashBoard() {
 
   // Debounced server-side search for roles (add user)
   useEffect(() => {
-    const handler = setTimeout(() => {
-      // reset to page 1 whenever search changes
-      getRoles(1, rolesQuery);
-    }, 400);
-    return () => clearTimeout(handler);
+    if (activeTab === "users" && canManageUsers) {
+      const handler = setTimeout(() => {
+        // reset to page 1 whenever search changes
+        getRoles(1, rolesQuery);
+      }, 400);
+      return () => clearTimeout(handler);
+    }
   }, [rolesQuery, sellerId]);
 
   // Debounced server-side search for roles (change role)
   useEffect(() => {
-    const handler = setTimeout(() => {
-      getRolesForChange(1, rolesForChangeQuery);
-    }, 400);
-    return () => clearTimeout(handler);
+    if (activeTab === "users" && canManageUsers) {
+      const handler = setTimeout(() => {
+        getRolesForChange(1, rolesForChangeQuery);
+      }, 400);
+      return () => clearTimeout(handler);
+    }
   }, [rolesForChangeQuery, sellerId]);
 
   // Close per-user roles dropdown on outside click or Escape
@@ -1762,7 +1772,7 @@ function SellerDashBoard() {
                   : "text-[#8D8D8D] hover:text-[#1d1d1d]"
               }`}
             >
-              {translateFunction("Products")} ({sellerProducts?.length || 0})
+              {translateFunction("Products")}
             </button>
           )}
           {canViewBoutiques && (
@@ -1774,7 +1784,7 @@ function SellerDashBoard() {
                   : "text-[#8D8D8D] hover:text-[#1d1d1d]"
               }`}
             >
-              {translateFunction("Boutiques")} ({sellerBoutiques?.length || 0})
+              {translateFunction("Boutiques")}
             </button>
           )}
           {canViewPermissions && (
@@ -1786,8 +1796,7 @@ function SellerDashBoard() {
                   : "text-[#8D8D8D] hover:text-[#1d1d1d]"
               }`}
             >
-              {translateFunction("Permissions")} (
-              {sellerPermissions?.length || 0})
+              {translateFunction("Permissions")}
             </button>
           )}
           {canViewUsers && (
@@ -1811,8 +1820,7 @@ function SellerDashBoard() {
                   : "text-[#8D8D8D] hover:text-[#1d1d1d]"
               }`}
             >
-              {translateFunction("Orders")} (
-              {ordersMeta?.total || sellerOrders?.length || 0})
+              {translateFunction("Orders")}
             </button>
           )}
         </div>
