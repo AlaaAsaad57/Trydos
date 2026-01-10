@@ -21,6 +21,14 @@ function ProductButtonWrapper({
   InitialProductData = {},
 }) {
   const [redeem_expired, setRedeemExpired] = useState(!is_redeem);
+  const timerHook = useLuckyDrawTimer({
+    id: id,
+    language: language,
+    seconds: seconds ?? 50,
+    onExpire: () => onExpire(), // defined below or wrap in useCallback
+    enabled: is_redeem && !redeem_expired, // Add an 'enabled' prop if you want to control it
+  });
+
   let isRtl = language === "ar" || language === "ku";
   let isFlash = false;
   let flash_price = offer_price ?? price;
@@ -63,16 +71,6 @@ function ProductButtonWrapper({
     }
   };
 
-  const TimerHook = is_redeem
-    ? useLuckyDrawTimer({
-        id: id,
-        language: language,
-        seconds: seconds ?? 50,
-        onExpire: () => {
-          onExpire();
-        },
-      })
-    : null;
   const onExpire = () => {
     configureRedeemedProducts();
     setRedeemExpired(true);
@@ -99,7 +97,7 @@ function ProductButtonWrapper({
       is_from_listing: true,
       seconds:
         is_redeem_product_card && is_redeem && !redeem_expired
-          ? TimerHook.secondsLeft
+          ? timerHook.secondsLeft
           : 0,
     });
   };
@@ -119,7 +117,7 @@ function ProductButtonWrapper({
           // onExpire();
         }}
       >
-        {is_redeem && <TimerHook.MiniTimer />}
+        {is_redeem && <timerHook.MiniTimer />}
 
         <div className="flex flex-row items-center product_prices gap-[6px]">
           <div className="text-[10px] pt-[2px] flex align-start regular items-center gap-[2px] buy-card-text">
@@ -148,7 +146,7 @@ function ProductButtonWrapper({
           />
         </div>
       </div>
-      {is_redeem && <TimerHook.TopTimer />}
+      {is_redeem && <timerHook.TopTimer />}
     </>
   );
 }

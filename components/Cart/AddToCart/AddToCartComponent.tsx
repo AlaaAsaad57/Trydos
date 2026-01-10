@@ -899,12 +899,8 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
                   item_name: ProductData?.name,
                   brand: ProductData?.brand?.name,
                   brand_id: ProductData?.brand?.id,
-                  category:
-                    ProductData?.category?.name ||
-                    ProductData?.categories?.[0]?.name,
-                  category_id:
-                    ProductData?.category?.id ||
-                    ProductData?.categories?.[0]?.id,
+                  category: ProductData?.categories?.[0]?.name,
+                  category_id: ProductData?.categories?.[0]?.id,
                   price: ProductData?.offer_price,
                   selected_color: e?.color_option || e?.color_name,
                   selected_size:
@@ -935,12 +931,8 @@ function AddToCartComponent({ product, slug, close, enableCartAction }) {
                   item_name: ProductData?.name,
                   brand: ProductData?.brand?.name,
                   brand_id: ProductData?.brand?.id,
-                  category:
-                    ProductData?.category?.name ||
-                    ProductData?.categories?.[0]?.name,
-                  category_id:
-                    ProductData?.category?.id ||
-                    ProductData?.categories?.[0]?.id,
+                  category: ProductData?.categories?.[0]?.name,
+                  category_id: ProductData?.categories?.[0]?.id,
                   price: ProductData?.offer_price,
                   selected_color:
                     selectedColor?.color_option ?? selectedColor?.color_name,

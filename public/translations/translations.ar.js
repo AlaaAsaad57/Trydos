@@ -314,6 +314,8 @@ const translations = {
   "Total Products:": "إجمالي المنتجات:",
   "Please Review Your Cart Some Products Not Available":
     "الرجاء مراجعة السلة بعض المنتجات غير متوفرة",
+  "You cannot send messages or calls to this user":
+    "لا يمكنك إرسال رسائل أو مكالمات لهذا المستخدم",
   "Please Verify Your Phone Number And Try Again":
     "الرجاء تاكيد رقم الهاتف والمحاولة مجددا",
   "Modify Order": "تعديل الطلب",
@@ -1131,6 +1133,15 @@ const translations = {
     "اختر صورة أو فيديو من الكاميرا أو الملفات",
   camera: "الكاميرا",
   files: "الملفات",
+  Block: "حظر",
+  UnBlock: "إلغاء الحظر",
+  "Delete Chat": "حذف المحادثة",
+  "Save To Gallery": "حفظ في المعرض",
+  Never: "أبداً",
+  "Media & Files": "الوسائط والملفات",
+  Search: "بحث",
+  "Video as مكالمة فيديو": "مكالمة فيديو",
+  Call: "اتصال",
   "Go to Seller Dashboard": "الذهاب إلى لوحة تحكم المورد",
   "Product is Shared Successfully": "تمت مشاركة المنتج بنجاح",
   "Product Share error": "خطأ في مشاركة المنتج",

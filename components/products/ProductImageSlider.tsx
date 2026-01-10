@@ -5,8 +5,7 @@ import { GA_EVENT_NAMES, GA_GLOBAL_SCREEN } from "utils/GAEvents";
 import { GAevent } from "utils/gtag";
 import auth from "services/auth";
 import { useAppStore } from "store";
-function ProductImagesSlider({ children, language }) {
-  const { SelectedProduct, currency } = useAppStore();
+function ProductImagesSlider({ children, language, productGA }) {
   const isRtl = language === "ar" || language === "ku";
 
   const [emblaRef, emblaApi] = useEmblaCarousel({
@@ -23,16 +22,7 @@ function ProductImagesSlider({ children, language }) {
       params: {
         // image_index: slideIndex,
         user_id_custom: auth.UserID(),
-        item_id: SelectedProduct?.id,
-        item_name: SelectedProduct?.name,
-        brand: SelectedProduct?.brand?.name,
-        brand_id: SelectedProduct?.brand?.id,
-        category:
-          SelectedProduct?.category?.name ||
-          SelectedProduct?.categories?.[0]?.name,
-        category_id:
-          SelectedProduct?.category?.id || SelectedProduct?.categories?.[0]?.id,
-        price: SelectedProduct?.offer_price,
+        ...productGA,
       },
     });
     GAevent({

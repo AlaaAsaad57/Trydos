@@ -79,7 +79,12 @@ function RepliedMessage({
     ) {
       if (parent_message.message_type.name === "ImageMessage") {
         return (
-          <div className={"message-hold"} onClick={() => onClick()}>
+          <div
+            className={"message-hold"}
+            onClick={() => {
+              if (!parent_message?.deleted_by_user_id) onClick();
+            }}
+          >
             <div
               ref={message_ref}
               className={"message-body message-img-body first-chat"}
@@ -172,7 +177,12 @@ function RepliedMessage({
       } else if (parent_message.message_type.name === "VideoMessage") {
         return (
           <>
-            <div className={"message-hold"} onClick={() => onClick()}>
+            <div
+              className={"message-hold"}
+              onClick={() => {
+                if (!parent_message?.deleted_by_user_id) onClick();
+              }}
+            >
               <div
                 ref={message_ref}
                 className={"message-body message-img-body first-chat"}
@@ -268,7 +278,12 @@ function RepliedMessage({
       }
       if (parent_message.message_type.name === "VoiceMessage") {
         return (
-          <div className={"message-hold"} onClick={() => onClick()}>
+          <div
+            className={"message-hold"}
+            onClick={() => {
+              if (!parent_message?.deleted_by_user_id) onClick();
+            }}
+          >
             <div
               ref={message_ref}
               className={"message-body audio-body " + "first-chat"}
@@ -360,7 +375,12 @@ function RepliedMessage({
       }
       if (parent_message.message_type.name === "TextMessage") {
         return (
-          <div className={"message-hold"} onClick={() => onClick()}>
+          <div
+            className={"message-hold"}
+            onClick={() => {
+              if (!parent_message?.deleted_by_user_id) onClick();
+            }}
+          >
             <div
               ref={message_ref}
               className={"message-body text-message text-body " + "first-chat"}
@@ -456,7 +476,12 @@ function RepliedMessage({
       if (parent_message.message_type.name === "FileMessage") {
         return (
           <>
-            <div className={"message-hold"} onClick={() => onClick()}>
+            <div
+              className={"message-hold"}
+              onClick={() => {
+                if (!parent_message?.deleted_by_user_id) onClick();
+              }}
+            >
               <div
                 ref={message_ref}
                 className={"message-body message-img-body first-chat"}
@@ -559,7 +584,12 @@ function RepliedMessage({
       }
       if (parent_message.message_type.name === "ShareProduct") {
         return (
-          <div className={"message-hold"} onClick={() => onClick()}>
+          <div
+            className={"message-hold"}
+            onClick={() => {
+              if (!parent_message?.deleted_by_user_id) onClick();
+            }}
+          >
             <div
               ref={message_ref}
               className={"message-body text-message text-body " + "first-chat"}
@@ -670,7 +700,12 @@ function RepliedMessage({
     } else {
       if (parent_message.message_type.name === "ImageMessage") {
         return (
-          <div className={"message-hold"} onClick={() => onClick()}>
+          <div
+            className={"message-hold"}
+            onClick={() => {
+              if (!parent_message?.deleted_by_user_id) onClick();
+            }}
+          >
             <div
               ref={message_ref}
               className={"message-body message-img-body first-chat"}
@@ -763,7 +798,12 @@ function RepliedMessage({
       } else if (parent_message.message_type.name === "VideoMessage") {
         return (
           <>
-            <div className={"message-hold"} onClick={() => onClick()}>
+            <div
+              className={"message-hold"}
+              onClick={() => {
+                if (!parent_message?.deleted_by_user_id) onClick();
+              }}
+            >
               <div
                 ref={message_ref}
                 className={"message-body message-img-body first-chat"}
@@ -859,7 +899,12 @@ function RepliedMessage({
       }
       if (parent_message.message_type.name === "VoiceMessage") {
         return (
-          <div className={"message-hold"} onClick={() => onClick()}>
+          <div
+            className={"message-hold"}
+            onClick={() => {
+              if (!parent_message?.deleted_by_user_id) onClick();
+            }}
+          >
             {
               <div
                 ref={message_ref}
@@ -955,7 +1000,12 @@ function RepliedMessage({
       }
       if (parent_message.message_type.name === "TextMessage") {
         return (
-          <div className={"message-hold"} onClick={() => onClick()}>
+          <div
+            className={"message-hold"}
+            onClick={() => {
+              if (!parent_message?.deleted_by_user_id) onClick();
+            }}
+          >
             <div
               ref={message_ref}
               className={"message-body text-message text-body first-chat"}
@@ -1050,7 +1100,12 @@ function RepliedMessage({
       }
       if (parent_message.message_type.name === "FileMessage") {
         return (
-          <div className={"message-hold"} onClick={() => onClick()}>
+          <div
+            className={"message-hold"}
+            onClick={() => {
+              if (!parent_message?.deleted_by_user_id) onClick();
+            }}
+          >
             <div
               ref={message_ref}
               className={"message-body message-img-body first-chat"}
@@ -1150,7 +1205,12 @@ function RepliedMessage({
       }
       if (parent_message.message_type.name === "TextMessage") {
         return (
-          <div className={"message-hold"} onClick={() => onClick()}>
+          <div
+            className={"message-hold"}
+            onClick={() => {
+              if (!parent_message?.deleted_by_user_id) onClick();
+            }}
+          >
             <div
               ref={message_ref}
               className={"message-body text-message text-body first-chat"}

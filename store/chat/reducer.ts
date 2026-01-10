@@ -228,7 +228,7 @@ export const useChatStore = (set, get) => ({
     const state = get();
 
     let newActiveChat = state.activeChat;
-    console.log(newActiveChat);
+
     if (
       newActiveChat &&
       newActiveChat?.messages.some((m) => String(m.id) === String(msgId))
@@ -248,7 +248,7 @@ export const useChatStore = (set, get) => ({
       newData = newData.map((s) =>
         String(s.id) === String(newActiveChat?.id) ? newActiveChat : s
       );
-    console.log(newActiveChat);
+
     set({
       activeChat: newActiveChat,
       data: newData,
@@ -892,7 +892,6 @@ export const useChatStore = (set, get) => ({
   },
 
   sendMessage: (payload: any) => {
-    console.log(payload);
     const state = get();
     let ac = payload.act;
     let chat = state.data;
@@ -1318,6 +1317,52 @@ export const useChatStore = (set, get) => ({
     }
   },
 
+  updateChannelBlockStatus: (payload: {
+    channelId: number | string;
+    userId: number | string;
+    isBlocked: boolean;
+  }) => {
+    const state = get();
+    const { channelId, userId, isBlocked } = payload;
+
+    if (channelId === undefined || userId === undefined) {
+      return;
+    }
+
+    const channelKey = channelId.toString();
+    const userKey = userId.toString();
+
+    const updateMembers = (chat: any) => {
+      if (!chat || !chat.channel_members) {
+        return chat;
+      }
+
+      return {
+        ...chat,
+        channel_members: chat.channel_members.map((member: any) =>
+          member && member.user_id?.toString() === userKey
+            ? { ...member, is_blocked: isBlocked ? 1 : 0 }
+            : member
+        ),
+      };
+    };
+
+    const data = state.data.map((chat) =>
+      chat && chat.id?.toString() === channelKey ? updateMembers(chat) : chat
+    );
+
+    const activeChat =
+      state.activeChat && state.activeChat.id?.toString() === channelKey
+        ? updateMembers(state.activeChat)
+        : state.activeChat;
+
+    const newChats = state.newChats.map((chat) =>
+      chat && chat.id?.toString() === channelKey ? updateMembers(chat) : chat
+    );
+
+    set({ data, activeChat, newChats });
+  },
+
   setUnreadChat: (payload: any) => {
     const state = get();
     let arr = [];
@@ -1409,7 +1454,17 @@ export const useChatStore = (set, get) => ({
             active = {
               ...state.activeChat,
               messages: active.messages.map((msg) => {
-                if (parseInt(msg.id) !== parseInt(payload.msg_id)) {
+                if (
+                  parseInt(msg.parent_message?.id) === parseInt(payload.msg_id)
+                ) {
+                  return {
+                    ...msg,
+                    parent_message: {
+                      ...msg.parent_message,
+                      message_content: { content: "" },
+                    },
+                  };
+                } else if (parseInt(msg.id) !== parseInt(payload.msg_id)) {
                   return msg;
                 } else {
                   return {
@@ -1426,6 +1481,17 @@ export const useChatStore = (set, get) => ({
           arr.push({
             ...chat,
             messages: chat.messages.map((msg) => {
+              if (
+                parseInt(msg.parent_message?.id) === parseInt(payload.msg_id)
+              ) {
+                return {
+                  ...msg,
+                  parent_message: {
+                    ...msg.parent_message,
+                    message_content: { content: "" },
+                  },
+                };
+              }
               if (parseInt(msg.id) !== parseInt(payload.msg_id)) {
                 return msg;
               } else {
@@ -1451,6 +1517,15 @@ export const useChatStore = (set, get) => ({
       let active = {
         ...state.activeChat,
         messages: state?.activeChat?.messages.map((msg) => {
+          if (parseInt(msg.parent_message?.id) === parseInt(payload.msg_id)) {
+            return {
+              ...msg,
+              parent_message: {
+                ...msg.parent_message,
+                message_content: { content: "" },
+              },
+            };
+          }
           if (parseInt(msg.id) !== parseInt(payload.msg_id)) {
             return msg;
           } else {

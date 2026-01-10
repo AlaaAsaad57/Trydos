@@ -134,7 +134,6 @@ function ProductColorCard({
             </span>
             {product.name?.substring(0, 50)}
             {product?.brand && ` | ${product?.brand?.name}`}
-            {product?.category && ` | ${product?.category?.name}`}
           </p>
           {product?.label_names?.length > 0 && (
             <ProductLabelsAnimated

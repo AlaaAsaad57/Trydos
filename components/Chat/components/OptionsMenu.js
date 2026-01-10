@@ -52,6 +52,7 @@ function OptionsMenu(props) {
               onKeyDown={(e) => {
                 if (e.key === "Enter" || e.key === " ") {
                   props.deleteMessage(false);
+                  setDelete(false);
                 }
               }}
             >
@@ -67,6 +68,7 @@ function OptionsMenu(props) {
                 onKeyDown={(e) => {
                   if (e.key === "Enter" || e.key === " ") {
                     props.deleteMessage(true);
+                    setDelete(false);
                   }
                 }}
               >

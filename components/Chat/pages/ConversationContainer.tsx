@@ -762,6 +762,13 @@ function ConversationContainer({
   /* JSX                                                                    */
   /* ---------------------------------------------------------------------- */
   const WebcamCaptureAny = WebcamCapture as any;
+  const isBlockedEachOther = () => {
+    if (!activeChat || !receiverId) return false;
+    if (activeChat?.channel_members?.some((m: any) => m.is_blocked === 1)) {
+      return true;
+    }
+    return false;
+  };
   const [showMenu, setShowMenu] = useState(false);
   return (
     <>
@@ -938,6 +945,15 @@ function ConversationContainer({
           <ChatInfo
             callLoading={callLoading}
             makeAudioCall={() => {
+              if (isBlockedEachOther()) {
+                showErrorNotification(
+                  translateFunction(
+                    "You cannot send messages or calls to this user",
+                    language
+                  )
+                );
+                return;
+              }
               if (callLoading || !activeChat?.id) return;
               makeVoiceCall(
                 activeChat.id,
@@ -947,6 +963,15 @@ function ConversationContainer({
               );
             }}
             makeVideoCall={() => {
+              if (isBlockedEachOther()) {
+                showErrorNotification(
+                  translateFunction(
+                    "You cannot send messages or calls to this user",
+                    language
+                  )
+                );
+                return;
+              }
               if (callLoading || !activeChat?.id) return;
               makeVideoCall(
                 activeChat.id,
@@ -966,6 +991,7 @@ function ConversationContainer({
 
         {/* Header */}
         <ChatHeader
+          isBlockedEachOther={isBlockedEachOther()}
           openDetails={() => {
             openDetails(true);
             GetChatDetails(activeChat?.id);
@@ -1034,136 +1060,153 @@ function ConversationContainer({
           <div id="scroled" style={{ minHeight: 20 }} />
         </div>
 
-        {/* Footer input controls */}
-        {mics ? (
-          <>
-            {replyMessage && (
-              <ReplyMessage
-                message={replyMessage}
-                cancel={() => setReplyMessage(null)}
-              />
-            )}
-            <div className="chat-input-container bac40">
-              <MicIcon height={40} style={{ cursor: "pointer" }} />
-              <div className="mic-chat">
-                <span className="time-mic">{showDuration()}</span>
-                <WaveIcon className="wave-svg" />
-                <div
-                  className="cancel-button"
-                  onMouseUp={() => {
-                    if (nativeRecorder) {
-                      stopNativeRecording();
-                    }
-                    sendStatus(null);
-                    setMic(false);
-                    setRecording(false);
-                    reset();
-                  }}
-                >
-                  Cancel
-                </div>
+        <>
+          {isBlockedEachOther() ? (
+            <>
+              <div className="flex grow flex-row items-center justify-center medium text-pretty text-[#1d1d1d] bg-gray-200 p-3 rounded-md">
+                {translateFunction(
+                  "You cannot send messages or calls to this user",
+                  language
+                )}
               </div>
-              <ShareIcon
-                onClick={() => {
-                  if (nativeRecorder) stopNativeRecording();
-                  const midLocal =
-                    "m" + Math.random().toString().replace(".", "");
-                  setRecording(false);
-                  setTimeout(() => {
-                    sendAudio(midLocal);
-                  }, 1500);
-                }}
-              />
-            </div>
-          </>
-        ) : (
-          <>
-            {replyMessage && (
-              <ReplyMessage
-                message={replyMessage}
-                cancel={() => setReplyMessage(null)}
-              />
-            )}
-            <div
-              className={`${
-                message.length > 0 && "pr-[23px]"
-              } chat-input-container`}
-            >
-              <PlusIcon
-                style={{ minWidth: 43, cursor: "pointer" }}
-                className="chatplus"
-                onClick={() => {
-                  document
-                    .querySelector<HTMLInputElement>('input[type="file"]')
-                    .click();
-                  sendStatus("Sending file...");
-                }}
-                height={40}
-              />
-              <div className="input-chat-container">
-                <label htmlFor="type" className="hidden">
-                  Type
-                </label>
-                <input
-                  id="type"
-                  className={`input-chat wid31`}
-                  value={message}
-                  onChange={onChangeInput}
-                  onKeyDown={onKeyDown}
-                  onBlur={() => sendStatus(null)}
-                />
-              </div>
-              {message.length > 0 ? (
-                <SendIcon
-                  style={{ minWidth: 50, cursor: "pointer" }}
-                  onClick={() => {
-                    sendTextMessage(message);
-                    setMessage("");
-                  }}
-                />
+            </>
+          ) : (
+            <>
+              {/* Footer input controls */}
+              {mics ? (
+                <>
+                  {replyMessage && (
+                    <ReplyMessage
+                      message={replyMessage}
+                      cancel={() => setReplyMessage(null)}
+                    />
+                  )}
+                  <div className="chat-input-container bac40">
+                    <MicIcon height={40} style={{ cursor: "pointer" }} />
+                    <div className="mic-chat">
+                      <span className="time-mic">{showDuration()}</span>
+                      <WaveIcon className="wave-svg" />
+                      <div
+                        className="cancel-button"
+                        onMouseUp={() => {
+                          if (nativeRecorder) {
+                            stopNativeRecording();
+                          }
+                          sendStatus(null);
+                          setMic(false);
+                          setRecording(false);
+                          reset();
+                        }}
+                      >
+                        {translateFunction("Cancel", language)}
+                      </div>
+                    </div>
+                    <ShareIcon
+                      onClick={() => {
+                        if (nativeRecorder) stopNativeRecording();
+                        const midLocal =
+                          "m" + Math.random().toString().replace(".", "");
+                        setRecording(false);
+                        setTimeout(() => {
+                          sendAudio(midLocal);
+                        }, 1500);
+                      }}
+                    />
+                  </div>
+                </>
               ) : (
                 <>
-                  <CameraIcon
-                    style={{ minWidth: 50, cursor: "pointer" }}
-                    className="camer-icon"
-                    onClick={() => {
-                      setShowMenu(true);
-                      sendStatus("Sending file...");
-                    }}
-                  />
-                  <RedMicIcon
-                    style={{ cursor: "pointer" }}
-                    onClick={() => {
-                      // Try native recording first, fallback to react-record
-                      startNativeRecording().then((success) => {
-                        if (success) {
-                          setMic(true);
-                          sendStatus("Recording...");
-                          start();
-                        } else {
-                          // Fallback to react-record (may have lamejs issues)
-                          navigator.mediaDevices
-                            .getUserMedia({ audio: true })
-                            .then(() => {
-                              setMic(true);
-                              sendStatus("Recording...");
-                              start();
-                              setRecording(true);
-                            })
-                            .catch(() => {
-                              showErrorNotification(
-                                translateFunction("No available Microphone")
-                              );
+                  {replyMessage && (
+                    <ReplyMessage
+                      message={replyMessage}
+                      cancel={() => setReplyMessage(null)}
+                    />
+                  )}
+                  <div
+                    className={`${
+                      message.length > 0 && "pr-[23px]"
+                    } chat-input-container`}
+                  >
+                    <PlusIcon
+                      style={{ minWidth: 43, cursor: "pointer" }}
+                      className="chatplus"
+                      onClick={() => {
+                        document
+                          .querySelector<HTMLInputElement>('input[type="file"]')
+                          .click();
+                        sendStatus("Sending file...");
+                      }}
+                      height={40}
+                    />
+                    <div className="input-chat-container">
+                      <label htmlFor="type" className="hidden">
+                        Type
+                      </label>
+                      <input
+                        id="type"
+                        className={`input-chat wid31`}
+                        value={message}
+                        onChange={onChangeInput}
+                        onKeyDown={onKeyDown}
+                        onBlur={() => sendStatus(null)}
+                      />
+                    </div>
+                    {message.length > 0 ? (
+                      <SendIcon
+                        style={{ minWidth: 50, cursor: "pointer" }}
+                        onClick={() => {
+                          sendTextMessage(message);
+                          setMessage("");
+                        }}
+                      />
+                    ) : (
+                      <>
+                        <CameraIcon
+                          style={{ minWidth: 50, cursor: "pointer" }}
+                          className="camer-icon"
+                          onClick={() => {
+                            setShowMenu(true);
+                            sendStatus("Sending file...");
+                          }}
+                        />
+                        <RedMicIcon
+                          style={{ cursor: "pointer" }}
+                          onClick={() => {
+                            // Try native recording first, fallback to react-record
+                            startNativeRecording().then((success) => {
+                              if (success) {
+                                setMic(true);
+                                sendStatus("Recording...");
+                                start();
+                              } else {
+                                // Fallback to react-record (may have lamejs issues)
+                                navigator.mediaDevices
+                                  .getUserMedia({ audio: true })
+                                  .then(() => {
+                                    setMic(true);
+                                    sendStatus("Recording...");
+                                    start();
+                                    setRecording(true);
+                                  })
+                                  .catch(() => {
+                                    showErrorNotification(
+                                      translateFunction(
+                                        "No available Microphone"
+                                      )
+                                    );
+                                  });
+                              }
                             });
-                        }
-                      });
-                    }}
-                  />
+                          }}
+                        />
+                      </>
+                    )}
+                  </div>
                 </>
               )}
-            </div>
-          </>
-        )}
+            </>
+          )}
+        </>
       </div>
       {showMenu && (
         <CustomPopup
