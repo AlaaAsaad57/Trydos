@@ -1,81 +1,202 @@
-import React, { useEffect, useState, useRef } from "react";
-import { OrdersIcon } from "./OrdersList";
-import SettingTopBar from "./TopBar";
+"use client";
+import ChatWidget from "components/Chat/ChatWidget";
+import { useEffect, useState } from "react";
+import BackBar from "../BackBar";
 import OrderDetailsSkeleton from "components/skeleton/loaders/OrderDetailsSkeleton";
-import { OrderDateCard, OrderInvoiceCard, OrderNumberCard } from "./cards";
-
-import OrderExpectedDeliveryCard from "./cards/OrderExpectedDeliveryCard";
-import OrderStatusCard from "./cards/OrderStatusCard";
-import OrderAddressCard from "./cards/OrderAddressCard";
-import OrderItemsList from "./cards/OrderItemsList";
+import {
+  OrderDateCard,
+  OrderInvoiceCard,
+  OrderNumberCard,
+} from "components/settings/cards";
+import OrderStatusCard from "components/settings/cards/OrderStatusCard";
+import OrderExpectedDeliveryCard from "components/settings/cards/OrderExpectedDeliveryCard";
+import OrderAddressCard from "components/settings/cards/OrderAddressCard";
+import RateOrderButton from "components/settings/cards/RateOrderButton";
+import OrderItemsList from "components/settings/cards/OrderItemsList";
 import {
   getConfiguredImage,
   getUserChat,
   RoundPrice,
   translateFunction,
 } from "utils/functions";
-import { useAppStore } from "store";
+import { DisableScroll, EnableScroll, GetImageUrl } from "utils/tinyUtils";
 import NextLink from "components/global/NextLink";
-import { useParams, useRouter, useSearchParams } from "next/navigation";
-import OrderStatusCartsIcon from "./cards/OrderStatusCartsIcon";
-import OrderStatusIcon from "./cards/OrderStatusIcon";
-import RateOrderButton from "./cards/RateOrderButton";
-import Order from "services/order";
-import OrderChatIcon from "./OrderChatIcon";
-
-import ReturnedOrderStatusIcon from "public/svg/ReturnedOrderStatusIcon";
-const ChatWidget = dynamic(() => import("components/Chat/ChatWidget"), {
-  ssr: false,
-  loading: () => <LandingPage afterLoad={true} />,
-});
-import OptionsIcon from "public/svg/OptionsIcon";
-import OrderRetailsReturnInfo from "components/Orders/OrderRetailsReturnInfo";
-import CanceledOrderStatusIcon from "public/svg/CanceledOrderStatusIcon";
-import {
-  DisableScroll,
-  EnableScroll,
-  GetImageUrl,
-  totalAmount,
-} from "utils/tinyUtils";
-import { fetchData } from "utils/fetchData";
-import auth from "services/auth";
-import { REQUESTS_DATA } from "utils/Requests";
-import dynamic from "next/dynamic";
-import LandingPage from "components/Home/LandingPage";
+import { useParams } from "node_modules/next/navigation";
+import { useAppStore } from "store";
 import Spinner from "components/global/Spinner";
+import OrderStatusIcon from "components/settings/cards/OrderStatusIcon";
+import OrderStatusCartsIcon from "components/settings/cards/OrderStatusCartsIcon";
+import { OrderInterface, OrderRatingData } from "utils/types/OrderInterface";
+import Order from "services/order";
+import OrderChatIcon from "components/settings/OrderChatIcon";
+import { fetchData } from "utils/fetchData";
+import { REQUESTS_DATA } from "utils/Requests";
+import auth from "services/auth";
+import OrderOptionsMenu from "./OrderOptionsMenu";
 
-function OrderDetails({
-  resetOrderDetails,
-  goBack,
-  setShouldConfirmReturn,
-  swipeToScreen,
-}: any) {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-
+function OrderDetailsWrapper({
+  order_id,
+  isRtl,
+  local,
+  order_group_id,
+  chatOpen,
+}) {
+  // State
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [chatInfo, setChatInfo] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [orderData, setOrderData] = useState<OrderInterface[]>([]);
+  const [ActivePack, setActivePack] = useState<OrderInterface>(null);
+  const [returnData, setReturnData] = useState([]);
+  const [ratingDetails, setRatingDetails] = useState<OrderRatingData[]>([]);
+  const [isGettingChat, setIsGettingChat] = useState(false);
+  const [shouldShowConfirmReturn, setShouldConfirmReturn] = useState(false);
+  const [showOrderOptions, setShowOrderOption] =
+    useState<OrderInterface | null>(null);
   const {
-    setOrderDetails,
-
-    selectedOrder,
+    setShouldUpdateOrders,
+    shouldUpdateOrders,
     showNotificationIndicator,
     showNotificaionCircle,
-    openChat,
     setShouldAuthinticated,
-    user,
-    ActivePacks,
-    setActivePacks,
-    orderPageLoading: loading,
-    setOrderPageLoading: setLoading,
     setIsNavigating,
-    shouldUpdateOrders,
-    setShouldUpdateOrders,
-    language,
+    openChat,
+    user,
   } = useAppStore();
-  const fetchedOrderIdRef = useRef<string | number | null>(null);
-  const abortControllerRef = useRef<AbortController | null>(null);
-  const { lang } = useParams();
+
+  const getOrderDetails = async () => {
+    setLoading(true);
+    try {
+      let data: OrderInterface[] = await Order.getOrderDetails(order_group_id);
+      let shouldGetRatingValues = data.find(
+        (order) => order?.order_status?.value === "delivered"
+      );
+      if (shouldGetRatingValues) {
+        let order_ids = data.flatMap((order) => order.details.map((d) => d.id));
+        let order_ratings: any = await fetchData({
+          url: "/api/products/comments/order_rating",
+          method: "POST",
+          body: JSON.stringify({
+            order_detail_ids: order_ids,
+            user_id: auth.UserID(),
+          }),
+          server: "local",
+          reqTitle: REQUESTS_DATA.GET_ORDER_RATING,
+        });
+        let order_rating_data = order_ratings.data?.comments ?? [];
+        setRatingDetails(order_rating_data);
+      }
+      setOrderData(data);
+      setActivePack(data?.find((order) => order.id === order_id) ?? data?.[0]);
+      // let returned_req_ids = data?.map((s) => {
+      //   if (s.return_request_id !== null && s.return_request_id !== undefined)
+      //     return s.return_request_id;
+      // });
+      // returned_req_ids = returned_req_ids?.filter((s) => s !== undefined);
+      // let returnRequests = undefined;
+
+      // if (returned_req_ids?.length > 0) {
+      //   try {
+      //     returnRequests = await Order.GetReturnDetailsForOrderGroup({
+      //       order_group_id:order_group_id,
+      //     });
+
+      //     // Update data with the fetched details
+      //     data = data.map((order) => {
+      //       const match = returnRequests.find(
+      //         (req) => req.id === order.return_request_id
+      //       );
+      //       return match
+      //         ? {
+      //             ...order,
+      //             return_details: { ...match },
+      //             returned_data: returnRequests,
+      //           }
+      //         : { ...order, returned_data: returnRequests };
+      //     });
+      //   } catch (error) {
+      //     console.error(error);
+      //   }
+      // }
+
+      // let orderData = {
+      //   ...data?.[0],
+      //   order_amount: totalAmount(data),
+      //   details: data,
+      //   returned_data: returnRequests,
+      // };
+      // let shouldGetRatingValues = data.find(
+      //   (order) => order?.order_status?.value === "delivered"
+      // );
+
+      // let order_id_chat = chatOpen&& order_id;
+      // if (
+      //   (order_id_chat || order_id) &&
+      //   data.find(
+      //     (s) =>
+      //       String(s.id) === String(order_id_chat) ||
+      //       String(s?.return_request_id) === String(order_id_chat) ||
+      //       String(s.id) === String(order_id)
+      //   )
+      // ) {
+      //   setActivePacks(
+      //     data.find(
+      //       (s) =>
+      //         String(s.id) === String(order_id_chat) ||
+      //         String(s?.return_request_id) === String(order_id_chat) ||
+      //         String(s.id) === String(order_id)
+      //     )
+      //   );
+      // } else if (data.find((s) => s.id === ActivePacks?.id)) {
+      //   setActivePacks(data.find((s) => s.id === ActivePacks?.id));
+      // } else setActivePacks(data[0]);
+      // setOrderDetails({
+      //   ...orderData,
+      //   is_from_wallet: selectedOrder?.is_from_wallet,
+      // });
+
+      // if (
+      //   (order_id_chat || order_id) &&
+      //   data.find(
+      //     (s) =>
+      //       String(s.id) === String(order_id_chat) ||
+      //       (s.return_request_id &&
+      //         String(s?.return_request_id) === String(order_id_chat)) ||
+      //       String(s.id) === String(order_id)
+      //   )
+      // ) {
+      //   let order_item = data.find(
+      //     (s) =>
+      //       String(s.id) === String(order_id_chat) ||
+      //       String(s?.return_request_id) === String(order_id_chat) ||
+      //       String(s.id) === String(order_id)
+      //   );
+      //   if (
+      //     order_item.order_status?.value === "out_for_delivery" ||
+      //     order_item?.return_details?.details?.status?.value ===
+      //       "out_for_return"
+      //   )
+      //     safeGetChatWithShipping(order_id_chat || order_id || order_chat_id);
+      // }
+      setShouldUpdateOrders(0);
+    } catch (error) {
+      console.log(error);
+      setShouldUpdateOrders(0);
+    }
+
+    setLoading(false);
+  };
+  useEffect(() => {
+    if (shouldUpdateOrders > 0) {
+      getOrderDetails();
+    }
+  }, [shouldUpdateOrders]);
+  useEffect(() => {
+    getOrderDetails();
+  }, []);
   const getProductUrl = (product) => {
-    let pathname = `/${lang}/products/${
+    let pathname = `/${local}/products/${
       product.product_slug || product?.product_details?.slug
     }`;
     if (product.variation?.length > 0) {
@@ -91,238 +212,29 @@ function OrderDetails({
     }
     return pathname;
   };
-  const getOrderDetails = async () => {
-    // Abort any previous request
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-    }
-
-    // Create new AbortController
-    abortControllerRef.current = new AbortController();
-    let id = searchParams.get("id");
-    setLoading(true);
-    try {
-      let data = await Order.getOrderDetails(
-        id ?? selectedOrder?.order_group_id,
-        abortControllerRef.current.signal
-      );
-      let returned_req_ids = data?.map((s) => {
-        if (s.return_request_id !== null && s.return_request_id !== undefined)
-          return s.return_request_id;
-      });
-      returned_req_ids = returned_req_ids?.filter((s) => s !== undefined);
-      let returnRequests = undefined;
-
-      if (returned_req_ids?.length > 0) {
-        try {
-          returnRequests = await Order.GetReturnDetailsForOrderGroup({
-            order_group_id: selectedOrder?.order_group_id,
-          });
-
-          // Update data with the fetched details
-          data = data.map((order) => {
-            const match = returnRequests.find(
-              (req) => req.id === order.return_request_id
-            );
-            return match
-              ? {
-                  ...order,
-                  return_details: { ...match },
-                  returned_data: returnRequests,
-                }
-              : { ...order, returned_data: returnRequests };
-          });
-        } catch (error) {
-          console.error(error);
-        }
-      }
-
-      let orderData = {
-        ...data?.[0],
-        order_amount: totalAmount(data),
-        details: data,
-        returned_data: returnRequests,
-      };
-      let shouldGetRatingValues = data.find(
-        (order) => order?.order_status?.value === "delivered"
-      );
-      if (shouldGetRatingValues) {
-        let order_ids = data.flatMap((order) => order.details.map((d) => d.id));
-        let order_ratings = await fetchData({
-          url: "/api/products/comments/order_rating",
-          method: "POST",
-          body: JSON.stringify({
-            order_detail_ids: order_ids,
-            user_id: auth.UserID(),
-          }),
-          server: "local",
-          reqTitle: REQUESTS_DATA.GET_ORDER_RATING,
-          signal: abortControllerRef.current.signal,
-        });
-        let order_rating_data = order_ratings.data;
-        let new_order_data = data.map((order) => {
-          let new_order = order;
-          new_order.details = new_order.details.map((d) => {
-            let new_detail = d;
-            let order_comment = order_rating_data.comments?.find(
-              (com) => Number(com.order_details_id) === d.id
-            );
-            if (order_comment) {
-              new_detail = {
-                ...new_detail,
-                comments: [order_comment],
-                star_rating: order_comment.star_rating,
-              };
-              return new_detail;
-            } else {
-              return {
-                ...d,
-                comments: null,
-                star_rating: null,
-              };
-            }
-          });
-          return new_order;
-        });
-        data = new_order_data;
-      }
-      let order_id_chat = searchParams.get("order_id_chat");
-      let order_id = searchParams.get("chat_id");
-      console.log("Fetched order details:", ActivePacks);
-
-      if (
-        (order_id_chat || order_id) &&
-        data.find(
-          (s) =>
-            String(s.id) === String(order_id_chat) ||
-            String(s?.return_request_id) === String(order_id_chat) ||
-            String(s.id) === String(order_id)
-        )
-      ) {
-        setActivePacks(
-          data.find(
-            (s) =>
-              String(s.id) === String(order_id_chat) ||
-              String(s?.return_request_id) === String(order_id_chat) ||
-              String(s.id) === String(order_id)
-          )
-        );
-      } else if (data.find((s) => s.id === ActivePacks?.id)) {
-        setActivePacks(data.find((s) => s.id === ActivePacks?.id));
-      } else setActivePacks(data[0]);
-      setOrderDetails({
-        ...orderData,
-        is_from_wallet: selectedOrder?.is_from_wallet,
-      });
-      setIsNavigating(false);
-      order_id_chat = searchParams.get("order_id_chat");
-      order_id = searchParams.get("chat_id");
-      const { order_chat_id } = useAppStore.getState();
-
-      if (
-        (order_id_chat || order_id || order_chat_id) &&
-        data.find(
-          (s) =>
-            String(s.id) === String(order_id_chat) ||
-            (s.return_request_id &&
-              String(s?.return_request_id) === String(order_id_chat)) ||
-            String(s.id) === String(order_id)
-        )
-      ) {
-        let order_item = data.find(
-          (s) =>
-            String(s.id) === String(order_id_chat) ||
-            String(s?.return_request_id) === String(order_id_chat) ||
-            String(s.id) === String(order_id)
-        );
-        if (
-          order_item.order_status?.value === "out_for_delivery" ||
-          order_item?.return_details?.details?.status?.value ===
-            "out_for_return"
-        )
-          safeGetChatWithShipping(order_id_chat || order_id || order_chat_id);
-      }
-      setShouldUpdateOrders(0);
-    } catch (error) {
-      console.log(error);
-      setShouldUpdateOrders(0);
-      setIsNavigating(false);
-      // Don't handle error if it's an abort error
-      if (error.name === "AbortError") {
-        return;
-      }
-
-      let params = new URLSearchParams(window.location.search);
-      params.delete("id");
-      params.delete("order_id_chat");
-      params.delete("chat_id");
-      // @ts-ignore
-      router.replace(`/${lang}/setting?${params.toString()}`, {
-        scroll: false,
-        // @ts-ignore
-        shallow: true,
-      });
-      resetOrder();
-    }
-
-    setLoading(false);
+  const shouldShowRatingBadge = () => {
+    if (ActivePack?.order_status?.value === "delivered") return true;
+    else return false;
   };
-  const resetOrder = () => {
-    // Abort any ongoing requests
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-      abortControllerRef.current = null;
-    }
-
-    if (chatAbortControllerRef.current) {
-      chatAbortControllerRef.current.abort();
-      chatAbortControllerRef.current = null;
-    }
-    if (selectedOrder?.is_from_wallet) {
-      swipeToScreen(12);
-    } else {
-      swipeToScreen(9);
-    }
-    setOrderDetails(null);
-    setActivePacks(null);
-    fetchedOrderIdRef.current = null;
-    goBack();
-    setIsExpanded(false);
-  };
-
-  const [isExpanded, setIsExpanded] = useState(false);
-  const [isChatOpen, setIsChatOpen] = useState(false);
-  const [chatInfo, setChatInfo] = useState(null);
   const shouldShowChatIcon = (pack) => {
     // Out for Delivery
     if (pack && pack?.order_status?.value === "out_for_delivery")
-      return ActivePacks?.id;
-    if (
-      ActivePacks?.return_details?.details?.status?.value === "out_for_return"
-    ) {
-      return ActivePacks?.return_request_id;
-    }
+      return ActivePack?.id;
+    // if (
+    //   ActivePack?.return_details?.details?.status?.value === "out_for_return"
+    // ) {
+    //   return ActivePack?.return_request_id;
+    // }
     return false;
   };
-  const [isGettingChat, setIsGettingChat] = useState(false);
-  const chatAbortControllerRef = useRef<AbortController | null>(null);
-
   const getChatWithShipping = async (id?: any) => {
-    // Abort any previous chat request
-    if (chatAbortControllerRef.current) {
-      chatAbortControllerRef.current.abort();
-    }
-
-    // Create new AbortController for chat
-    chatAbortControllerRef.current = new AbortController();
-
     setIsGettingChat(true);
 
     showNotificationIndicator([
       ...showNotificaionCircle?.filter(
         (s) =>
-          s?.order_id !== shouldShowChatIcon(ActivePacks) &&
-          s?.order_group_id !== selectedOrder?.order_group_id
+          s?.order_id !== shouldShowChatIcon(ActivePack) &&
+          s?.order_group_id !== order_group_id
       ),
     ]);
     try {
@@ -333,12 +245,11 @@ function OrderDetails({
         server: "chat",
         body: JSON.stringify({
           original_user_id: auth.UserID(),
-          order_id: ActivePacks?.return_request_id ?? ActivePacks?.id ?? id,
-          ...(ActivePacks?.return_request_id
-            ? { parent_order_id: ActivePacks?.id }
+          order_id: ActivePack?.return_request_id ?? ActivePack?.id ?? id,
+          ...(ActivePack?.return_request_id
+            ? { parent_order_id: ActivePack?.id }
             : {}),
         }),
-        signal: chatAbortControllerRef.current.signal,
       });
       if (!response.success) {
         throw new Error(response.message);
@@ -365,7 +276,6 @@ function OrderDetails({
         };
         setChatInfo(chat);
         openChat(chat);
-        console.log(chat);
         setIsNavigating(false);
       }
 
@@ -447,263 +357,172 @@ function OrderDetails({
     }
   };
   const ShowChats = () => {
-    if (shouldShowChatIcon(ActivePacks) && ActivePacks?.order_status) {
+    if (shouldShowChatIcon(ActivePack) && ActivePack?.order_status) {
       let arr = [];
-      arr.push(ActivePacks?.id);
+      arr.push(ActivePack?.id);
       return arr.map((s) => {
         return (
           <OrderChatIcon
-            order_group_id={selectedOrder?.order_group_id}
+            order_group_id={order_group_id}
             key={s}
             isGettingChat={isGettingChat}
             setIsGettingChat={setIsGettingChat}
             getChatWithShipping={() => {
               safeGetChatWithShipping();
             }}
-            id={shouldShowChatIcon(ActivePacks)}
+            id={shouldShowChatIcon(ActivePack)}
           />
         );
       });
     }
   };
-
-  const closeChat = () => {
-    // Abort any ongoing chat request
-    if (chatAbortControllerRef.current) {
-      chatAbortControllerRef.current.abort();
-      chatAbortControllerRef.current = null;
-    }
-
-    let params = new URLSearchParams(window.location.search);
-    params.delete("order_id_chat");
-    params.delete("chat_id");
-    router.replace(`/${lang}/setting?${params.toString()}`, {
-      scroll: false,
-      // @ts-ignore
-      shallow: true,
-    });
-    EnableScroll();
-    setChatInfo(null);
-    document.querySelector("#OrderDetails").classList.remove("overflow-hidden");
-    document.querySelector("#OrderDetails").classList.add("overflow-auto");
-    setIsChatOpen(false);
-  };
-  useEffect(() => {
-    if (!selectedOrder?.order_group_id) {
-      setIsExpanded(false);
-      return;
-    }
-    // if (fetchedOrderIdRef.current === selectedOrder?.order_group_id) return;
-    fetchedOrderIdRef.current = selectedOrder?.order_group_id;
-    getOrderDetails();
-  }, [selectedOrder?.order_group_id]);
-
-  // Cleanup: abort any ongoing requests when component unmounts
-  useEffect(() => {
-    return () => {
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
-      }
-      if (chatAbortControllerRef.current) {
-        chatAbortControllerRef.current.abort();
-      }
-      setOrderDetails(null);
-      setActivePacks(null);
-    };
-  }, []);
-  const shouldShowRatingBadge = () => {
-    if (ActivePacks?.order_status?.value === "delivered") return true;
-    else return false;
-  };
-  // useEffect(() => {
-  //   let chat_id = searchParams.get("chat_id");
-  //   if (chat_id && !loading) getOrderDetails();
-  // }, [searchParams]);
-  useEffect(() => {
-    let id = searchParams.get("id");
-    if (
-      shouldUpdateOrders > 0 &&
-      selectedOrder?.id &&
-      selectedOrder?.order_status
-    ) {
-      fetchedOrderIdRef.current = id ?? selectedOrder?.order_group_id;
-      getOrderDetails();
-    }
-  }, [shouldUpdateOrders]);
-  if (
-    !selectedOrder?.id &&
-    !selectedOrder?.order_status &&
-    !selectedOrder?.details &&
-    !ActivePacks?.details
-  )
-    return null;
-  const isRtl = language === "ar" || language === "ku";
-
   return (
     <>
       {chatInfo && (
         <ChatWidget
           isOpen={isChatOpen}
           onClose={() => {
-            closeChat();
+            setIsChatOpen(false);
           }}
         />
       )}
-      <div className="flex-col h-[calc(128vh)]">
-        <SettingTopBar
-          goBack={() => {
-            if (isExpanded) {
-              setIsExpanded(false);
-              return;
-            }
-            setIsExpanded(false);
-            let params = new URLSearchParams(window.location.search);
-            params.delete("id");
-            params.delete("order_id_chat");
-            params.delete("chat_id");
-            // @ts-ignore
-            router.replace(`/${lang}/setting?${params.toString()}`, {
-              scroll: false,
-              // @ts-ignore
-              shallow: true,
-            });
-            resetOrder();
+      {showOrderOptions && (
+        <OrderOptionsMenu
+          isRtl={isRtl}
+          order={showOrderOptions}
+          close={() => {
+            setShowOrderOption(null);
           }}
-          screenName={
-            <div className="flex-row items-stretch">
-              <OrdersIcon />
-              <span className="text-[#1D1D1D] text-[14px] medium mx-[4px]">
-                {translateFunction("Orders Details")}
-              </span>
-            </div>
-          }
-          Save={null}
-          DataCy="order-details-screen"
-          hasOptions={true}
-          hasChat={shouldShowChatIcon(ActivePacks)}
         />
-
-        {loading || !ActivePacks?.order_status ? (
+      )}
+      <div className="flex-col w-full max-h-full">
+        <BackBar
+          isRtl={isRtl}
+          local={local}
+          DataCy="order-details-screen"
+          name={"Orders Details"}
+          Icon={"/svg/OrderDetailsIcon.svg"}
+          options={() => {
+            if (ActivePack) setShowOrderOption(ActivePack);
+          }}
+        />
+        {loading ? (
           <OrderDetailsSkeleton />
         ) : (
           <>
-            <div
-              className={`pt-[12px] px-[12px] ${
-                isExpanded && "h-0 pt-0 overflow-hidden"
-              } flex-col justify-start  w-full bg-[#F8F8F8] `}
-            >
+            <div className="flex flex-col max-h-full overflow-y-auto">
               <div
-                className="flex-row justify-between items-center w-full"
-                style={{
-                  direction: isRtl ? "rtl" : "ltr",
-                }}
+                className={`pt-[12px] px-[12px] ${
+                  isExpanded && "h-0 pt-0 overflow-hidden"
+                } flex-col justify-start  w-full bg-[#F8F8F8] `}
               >
-                <OrderNumberCard number={selectedOrder?.order_group_id} />
-                <OrderDateCard time={selectedOrder?.created_at} />
-                <OrderInvoiceCard
-                  amount={selectedOrder?.order_amount}
-                  payments={selectedOrder?.payment_method}
-                />
-              </div>
-              {selectedOrder?.details?.[0]?.order_group_status && (
                 <div
-                  className="flex-row justify-between items-center w-full mt-[8px]"
+                  className="flex-row justify-between items-center w-full"
                   style={{
                     direction: isRtl ? "rtl" : "ltr",
                   }}
                 >
-                  <OrderStatusCard
-                    order={selectedOrder?.details?.[0]}
-                    fullWidth={true}
-                    status={selectedOrder?.details?.[0]?.order_group_status}
+                  <OrderNumberCard number={ActivePack?.order_group_id} />
+                  <OrderDateCard time={ActivePack?.created_at} />
+                  <OrderInvoiceCard
+                    amount={ActivePack?.order_amount}
+                    payments={ActivePack?.payment_method}
                   />
                 </div>
-              )}
-              <div className="flex-row justify-center  items-center h-[50px] w-full bg-[#ececec] rounded-[20px]">
-                {selectedOrder?.details?.map((s, i) => (
+                {ActivePack.order_group_status && (
                   <div
-                    className={`${
-                      s.id === ActivePacks?.id
-                        ? "bold border-[1px] border-[#402cdd]"
-                        : "regular"
-                    } text-[#1d1d1d] h-[50px] rounded-[20px]  cursor-pointer text-[12px] flex-1 px-[5px] items-center justify-center flex-row basis-0`}
-                    key={i}
-                    onClick={() => {
-                      setActivePacks(s);
+                    className="flex-row justify-between items-center w-full mt-[8px]"
+                    style={{
+                      direction: isRtl ? "rtl" : "ltr",
                     }}
                   >
-                    <span className="mx-1 bold">{s.id}</span>
-                    {translateFunction("Pack")}{" "}
+                    <OrderStatusCard
+                      contact_person_name={
+                        ActivePack?.shipping_address_data?.contact_person_name
+                      }
+                      fullWidth={true}
+                      status={ActivePack?.order_group_status}
+                    />
                   </div>
-                ))}
+                )}
+                <div className="flex-row justify-center  items-center h-[50px] w-full bg-[#ececec] rounded-[20px]">
+                  {orderData?.map((s, i) => (
+                    <div
+                      className={`${
+                        s.id === ActivePack?.id
+                          ? "bold border-[1px] border-[#402cdd]"
+                          : "regular"
+                      } text-[#1d1d1d] h-[50px] rounded-[20px]  cursor-pointer text-[12px] flex-1 px-[5px] items-center justify-center flex-row basis-0`}
+                      key={i}
+                      onClick={() => {
+                        setActivePack(s);
+                      }}
+                    >
+                      <span className="mx-1 bold">{s.id}</span>
+                      {translateFunction("Pack")}{" "}
+                    </div>
+                  ))}
+                </div>
+                <div
+                  style={{
+                    direction: isRtl ? "rtl" : "ltr",
+                  }}
+                  className="flex-row justify-between items-center w-full mt-[8px]"
+                >
+                  <OrderExpectedDeliveryCard
+                    status={ActivePack.order_status.value}
+                    time={ActivePack.created_at}
+                  />
+                  <OrderStatusCard
+                    fullWidth={false}
+                    contact_person_name={
+                      ActivePack?.shipping_address_data?.contact_person_name
+                    }
+                    status={ActivePack.order_status}
+                  />
+                </div>
+                {!shouldShowRatingBadge() && (
+                  <OrderAddressCard
+                    address={ActivePack?.shipping_address_data}
+                  />
+                )}
               </div>
-              <div
-                style={{
-                  direction: isRtl ? "rtl" : "ltr",
-                }}
-                className="flex-row justify-between items-center w-full mt-[8px]"
-              >
-                <OrderExpectedDeliveryCard
-                  time={
-                    selectedOrder?.details?.find(
-                      (s) => s.id === ActivePacks?.id
-                    )?.created_at
-                  }
-                />
-                <OrderStatusCard
-                  order={selectedOrder?.details?.find(
-                    (s) => s.id === ActivePacks?.id
-                  )}
-                  status={
-                    selectedOrder?.details?.find(
-                      (s) => s.id === ActivePacks?.id
-                    )?.order_status
-                  }
-                />
-              </div>
-              {!shouldShowRatingBadge() && (
-                <OrderAddressCard
-                  address={
-                    selectedOrder?.details?.find(
-                      (s) => s.id === ActivePacks?.id
-                    )?.shipping_address_data
-                  }
-                />
+              {shouldShowRatingBadge() && !isExpanded && (
+                <RateOrderButton setExpanded={() => setIsExpanded(false)} />
               )}
-            </div>
-            {shouldShowRatingBadge() && !isExpanded && (
-              <RateOrderButton setExpanded={() => setIsExpanded(false)} />
-            )}
-            <div className="flex flex-col justify-start  w-full bg-[#F8F8F8] px-[12px] h-full relative">
-              <OrderItemsList
-                getOrderDetails={() => {
-                  getOrderDetails();
-                }}
-                getProductUrl={(e) => getProductUrl(e)}
-                shouldShowChat={() => shouldShowChatIcon(ActivePacks)}
-                showChats={() => ShowChats()}
-                order_group_status={
-                  selectedOrder?.details?.find((s) => s.id === ActivePacks?.id)
-                    ?.order_status
-                }
-                setExpanded={setIsExpanded}
-                isExpanded={isExpanded}
-                items={
-                  selectedOrder?.details?.find((s) => s.id === ActivePacks?.id)
-                    ?.details || []
-                }
-              />
-              {isExpanded && (
-                <OrderExpandedDetails
+              <div className="flex flex-col justify-start  w-full bg-[#F8F8F8] px-[12px] h-full relative">
+                <OrderItemsList
+                  order_status={ActivePack.order_status}
+                  owner_id={ActivePack.owner_id}
+                  owner_type={ActivePack.owner_type}
+                  getProductComment={(product_id, order_detail_id) => {
+                    return ratingDetails?.find(
+                      (s) =>
+                        String(s.product_id) === String(product_id) &&
+                        String(s?.order_details_id) === String(order_detail_id)
+                    );
+                  }}
+                  getOrderDetails={() => {
+                    getOrderDetails();
+                  }}
                   getProductUrl={(e) => getProductUrl(e)}
-                  setIsExpanded={(e) => setIsExpanded(e)}
-                  setShouldConfirmReturn={setShouldConfirmReturn}
-                  getOrderDetails={() => getOrderDetails()}
-                  order={selectedOrder?.details?.find(
-                    (s) => s.id === ActivePacks?.id
-                  )}
+                  shouldShowChat={() => shouldShowChatIcon(ActivePack)}
+                  showChats={() => ShowChats()}
+                  order_group_status={ActivePack.order_status}
+                  setExpanded={setIsExpanded}
+                  isExpanded={isExpanded}
+                  items={ActivePack?.details || []}
                 />
-              )}
+                {isExpanded && (
+                  <OrderExpandedDetails
+                    getProductUrl={(e) => getProductUrl(e)}
+                    setIsExpanded={(e) => setIsExpanded(e)}
+                    setShouldConfirmReturn={setShouldConfirmReturn}
+                    getOrderDetails={() => getOrderDetails()}
+                    order={ActivePack}
+                  />
+                )}
+              </div>
             </div>
           </>
         )}
@@ -712,7 +531,7 @@ function OrderDetails({
   );
 }
 
-export default OrderDetails;
+export default OrderDetailsWrapper;
 
 const OrderExpandedDetails = ({
   order,
@@ -721,7 +540,7 @@ const OrderExpandedDetails = ({
   setIsExpanded,
   getProductUrl,
 }: {
-  order: any;
+  order: OrderInterface;
   getOrderDetails: () => void;
   setShouldConfirmReturn: (e: any) => void;
   setIsExpanded: (e: boolean) => void;
@@ -793,16 +612,15 @@ const OrderExpandedDetails = ({
   };
   const shouldShowCancelReturn = () => {
     return (
-      order?.edit_return_request &&
-      order.order_has_return_request &&
-      order.return_details?.details?.status?.value !== "cancelled"
+      order?.edit_return_request && order.order_has_return_request
+      //  && order.return_details?.details?.status?.value !== "cancelled"
     );
   };
   const getProductWithReturn = (product) => {
-    let return_item = order?.return_details?.details?.order_details?.find(
-      (s) => s.detail_id === product.id
-    ) ?? { already_return: false };
-    return { ...product, return: return_item };
+    // let return_item = order?.return_details?.details?.order_details?.find(
+    //   (s) => s.detail_id === product.id
+    // ) ?? { already_return: false };
+    // return { ...product, return: return_item };
   };
 
   const { lang } = useParams();
@@ -1007,7 +825,7 @@ const OrderExpandedDetails = ({
             getProductUrl={(e) => getProductUrl(e)}
             status={order?.order_status}
             getOrderDetails={() => getOrderDetails()}
-            product={getProductWithReturn(Product)}
+            product={Product}
             key={Product.id}
             order={order}
           />
@@ -1022,7 +840,11 @@ const ProductCard = ({
   getOrderDetails,
   order,
   getProductUrl,
-}: any) => {
+}: {
+  product: OrderInterface["details"][0];
+  order: OrderInterface;
+  [key: string]: any;
+}) => {
   const { currency, setSelectedOrderItem, ActivePacks } = useAppStore();
   const { lang } = useParams();
   // @ts-ignore
@@ -1046,17 +868,10 @@ const ProductCard = ({
           data-cy="order-item-options"
           onClick={() => {
             DisableScroll();
-            document.querySelector("#OrderDetails").scrollTop = 0;
-            document
-              .querySelector("#OrderDetails")
-              .classList.add("overflow-hidden");
-            document
-              .querySelector("#OrderDetails")
-              .classList.remove("overflow-auto");
             setSelectedOrderItem(product);
           }}
         >
-          <OptionsIcon />
+          <img className="w-[20px] h-[20px]" src="/svg/OptionsIcon.svg" />
         </span>
 
         <NextLink
@@ -1135,28 +950,31 @@ const ProductCard = ({
                   {translateFunction("Item Status")}:
                 </span>
                 <span className="text-[#505050] text-[10px] medium mx-[2px]">
-                  {product?.order_status ?? status?.label}
+                  {order?.order_status.label ?? status?.label}
                 </span>
                 <span className="mx-[12px]">
                   <OrderStatusIcon
-                    status={product?.order_status?.value ?? status?.value}
+                    status={order?.order_status?.value ?? status?.value}
                     isRtl={isRtl}
                   />
                 </span>
               </div>
             </div>
-            {product.is_returned && (
+            {/* {product.is_returned && (
               <div className="flex-row justify-between w-full mt-[6px]">
                 <div className="flex-row">
                   <span className="text-[#FFB16F] text-[10px] medium ">
                     {translateFunction("Return Requested")}
                   </span>
                   <span className="mx-[12px]">
-                    <ReturnedOrderStatusIcon />
+                    <img
+                      className="w-[13px] h-[13px]"
+                      src="/svg/ReturnedOrderStatusIcon.svg"
+                    />
                   </span>
                 </div>
               </div>
-            )}
+            )} */}
             {product.qty === 0 && (
               <div className="flex-row justify-between w-full mt-[6px]">
                 <div className="flex-row">
@@ -1164,7 +982,10 @@ const ProductCard = ({
                     {translateFunction("Canceled")}
                   </span>
                   <span className="mx-[12px]">
-                    <CanceledOrderStatusIcon />
+                    <img
+                      className="w-[13px] h-[13px]"
+                      src="/svg/CanceledOrderStatusIcon.svg"
+                    />
                   </span>
                 </div>
               </div>
@@ -1200,7 +1021,7 @@ const ProductCard = ({
               <span className="text-[#1D1D1D] light text-[10px] ">
                 {currency?.symbol}
               </span>
-              {(product.is_canceled || product.is_returned) && (
+              {product.qty === 0 /*|| product.is_returned*/ && (
                 <div className="text-[#388CFF] text-[10px] regular mx-[7px]">
                   {translateFunction("Back to your wallet")}
                 </div>
@@ -1209,7 +1030,7 @@ const ProductCard = ({
           </div>
         </NextLink>
 
-        {product.return.already_return &&
+        {/* {product.return.already_return &&
           (ActivePacks?.return_details ? (
             <OrderRetailsReturnInfo
               product={{
@@ -1237,7 +1058,7 @@ const ProductCard = ({
             >
               {translateFunction("Failed To Load Return Details Try again")}
             </div>
-          ))}
+          ))} */}
       </div>
     </>
   );

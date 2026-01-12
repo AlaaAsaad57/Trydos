@@ -81,7 +81,7 @@ async function page({ params }) {
     if (iso === "ku") return "کوردی";
   };
   return (
-    <div className="flex-col w-full pt-[20px] px-[12px] flex">
+    <div className="flex-col w-full pt-[20px] px-[12px] flex setting-screen">
       <BackBar isRtl={isRtl} local={Params?.lang} />
       <Suspense
         fallback={
@@ -152,7 +152,7 @@ async function page({ params }) {
         >
           <span className="w-[30px] h-[20px]">
             <img
-              src={`/svg/${country}.svg`}
+              src={`/svg/flag/${country}.svg`}
               alt={"country"}
               width={25}
               height={16}

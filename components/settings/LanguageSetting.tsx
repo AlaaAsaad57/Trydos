@@ -1,32 +1,14 @@
-import React, { useEffect, useState } from "react";
-import SettingTopBar from "./TopBar";
+"use client";
+import React, { useState } from "react";
 import AddressInfo from "public/svg/cart/AddressInfo";
 import { translateFunction } from "utils/functions";
-
-import { useParams } from "next/navigation";
 import { FlagIcon } from "utils/tinyUtils";
 import { setLocaizationCookies } from "utils/cookies/cookie-manager";
 
-function LanguageSetting({ goBack }: { goBack: () => void }) {
+function LanguageSetting({ local, languageVar }) {
   const languages = ["ar", "en", "tr", "ku"];
-
-  const { lang } = useParams();
-  const [selectedLanguage, setSelectedLanguage] = useState(
-    languages.find(
-      // @ts-ignore
-      (s) => s.toLowerCase() === lang?.split("-")[1].toLowerCase()
-    )
-  );
-  useEffect(() => {
-    setSelectedLanguage(
-      languages.find(
-        // @ts-ignore
-        (s) => s.toLowerCase() === lang?.split("-")[1].toLowerCase()
-      )
-    );
-  }, []);
+  const [selectedLanguage, setSelectedLanguage] = useState(languageVar);
   const [isSettingLanguage, setIsSettingLanguage] = useState(false);
-
   const changeLanguage = async (language: any) => {
     try {
       setIsSettingLanguage(true);
@@ -35,21 +17,15 @@ function LanguageSetting({ goBack }: { goBack: () => void }) {
       setSelectedLanguage(language);
       sessionStorage.removeItem("starttingSetting");
       window.location.href = `/${
-        (lang as string)?.split("-")[0]
-      }-${language}/setting?tab=Language`;
+        (local as string)?.split("-")[0]
+      }-${language}/settings`;
     } catch (error) {
       setIsSettingLanguage(false);
       console.error(error);
     }
   };
   return (
-    <div className="flex-col max-h-[calc(100vh-200px)]">
-      <SettingTopBar
-        DataCy="language-setting"
-        goBack={() => goBack()}
-        screenName="Profile | Languages"
-        Save={null}
-      />
+    <div className="flex-col w-full">
       <div className="flex-row justify-center mt-[12px] w-full">
         <div
           className="bg-[#F8F8F8] min-h-[50px] w-full flex-row items-center pl-[24px] pr-[20px] "

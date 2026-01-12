@@ -3,7 +3,7 @@ import OrderStatusCartsIcon from "./OrderStatusCartsIcon";
 import OrderStatusIcon from "./OrderStatusIcon";
 import { useParams } from "next/navigation";
 
-function OrderStatusCard({ status, fullWidth, order }: any) {
+function OrderStatusCard({ status, fullWidth, contact_person_name }) {
   const { lang } = useParams();
   // @ts-ignore
   const language = lang.split("-")[1];
@@ -38,7 +38,7 @@ function OrderStatusCard({ status, fullWidth, order }: any) {
         {status?.value === "delivered" && (
           <>
             <span>{translateFunction("to", language)}</span>
-            <span>{order?.shipping_address_data?.contact_person_name}</span>
+            <span>{contact_person_name}</span>
           </>
         )}
         <span className="">

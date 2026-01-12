@@ -1,6 +1,7 @@
 import NextLink from "components/global/NextLink";
 import { GetOrders } from "serverRequests/settings";
 import { translateFunction } from "utils/server";
+import OrderNotified from "./OrderNotified";
 
 async function OrdersLinkCard({ isRtl, user, local, language }) {
   const totalOrders = await GetOrders({
@@ -16,11 +17,7 @@ async function OrdersLinkCard({ isRtl, user, local, language }) {
       data-cy="orders-page-button"
       href={user.phone !== "0" && user ? `/${local}/settings/orders` : "#login"}
     >
-      {/* {showNotificaionCircle.length > 0 ? (
-        <span className="absolute w-[10px] h-[10px] bg-[#f64f64] rounded-full top-[-2px] right-[-2px] animate-pulse z-20"></span>
-      ) : (
-        <></>
-      )} */}
+      <OrderNotified />
       <img className="w-[32px] h-[25px]" src="/svg/OrdersIcon.svg" />
       <span className="text-[#1D1D1D] text-[14px] regular mt-[4px]">
         {translateFunction("Orders", language)}

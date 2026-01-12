@@ -13,15 +13,22 @@ import OrderItem from "./OrderItem";
 import orderService from "services/order";
 import BottomSheet from "components/global/BottomSheet";
 import Spinner from "components/global/Spinner";
-function ChangeAddressWidget({ address_id, close, getOrderDetails }) {
+import { OrderInterface } from "utils/types/OrderInterface";
+import OrderItemBanner from "components/setting/orders/OrderItemBanner";
+function ChangeAddressWidget({
+  address_id,
+  close,
+  getOrderDetails,
+  ActivePacks,
+}: {
+  ActivePacks: OrderInterface;
+  [key: string]: any;
+}) {
   const {
     addressLists,
     setAddressDetails,
     setIsActiveAddress,
     initAddressForm,
-    selectedOrder,
-    ActivePacks,
-    setOrderPageLoading,
     language,
   } = useAppStore();
   const [openModal, setOpenModal] = useState(false);
@@ -37,7 +44,7 @@ function ChangeAddressWidget({ address_id, close, getOrderDetails }) {
       contact_info: {
         name: ActivePacks?.shipping_address_data?.contact_person_name,
         phone: ActivePacks?.shipping_address_data?.phone,
-        alternate_phone: ActivePacks?.shipping_address_data?.alternate_phone,
+        alternate_phone: ActivePacks?.shipping_address_data?.alternative_phone,
       },
       iso: ActivePacks?.shipping_address_data?.country_iso,
       region_details: {
@@ -52,9 +59,9 @@ function ChangeAddressWidget({ address_id, close, getOrderDetails }) {
     newAddress: addressLists?.find((s) => s.id === selectedAddressId),
   });
   const [tabs, setTabs] = useState<"address" | "note">("address");
-  const [deliveryNote, setDeliveryNote] = useState(selectedOrder?.note || "");
+  const [deliveryNote, setDeliveryNote] = useState("");
   const ChangeAddress = async () => {
-    setOrderPageLoading(true);
+    setLoading(true);
     close();
     let response = await orderService.changeOrderAddress({
       order_id: ActivePacks.order_group_id,
@@ -71,15 +78,15 @@ function ChangeAddressWidget({ address_id, close, getOrderDetails }) {
   useEffect(() => {
     getAddressList();
   }, []);
-  const getTotalOrder = () => {
-    let arr = [];
-    selectedOrder.details.map((s) => {
-      s.details.map((d) => {
-        arr.push(d);
-      });
-    });
-    return { ...selectedOrder, details: arr };
-  };
+  // const getTotalOrder = () => {
+  //   let arr = [];
+  //   selectedOrder.details.map((s) => {
+  //     s.details.map((d) => {
+  //       arr.push(d);
+  //     });
+  //   });
+  //   return { ...selectedOrder, details: arr };
+  // };
   const isRtl = language === "ar" || language === "ku";
 
   return (
@@ -91,12 +98,12 @@ function ChangeAddressWidget({ address_id, close, getOrderDetails }) {
           close();
         }}
       >
-        <div className="flex-col max-h-[calc(100vh-50px)] items-center overflow-auto w-full pt-[14px] px-[24px] z-[999999999] pb-[27px] rounded-t-[30px] bg-white">
+        <div className="flex-col items-center overflow-auto w-full pt-[14px] px-[24px] z-[999999999] pb-[27px] rounded-t-[30px] bg-white">
           <div className="flex-col  items-center w-full justify-center flex-1">
-            <OrderItem
-              key={selectedOrder.order_group_id}
-              order={getTotalOrder()}
-              showDetails={() => {}}
+            <OrderItemBanner
+              isRtl={isRtl}
+              key={ActivePacks.order_group_id}
+              order={ActivePacks}
             />
           </div>
           <div className="flex-col  items-center w-full justify-center mt-[10px]">
@@ -144,7 +151,7 @@ function ChangeAddressWidget({ address_id, close, getOrderDetails }) {
             </div>
           </div>
           {tabs === "address" && (
-            <div className="flex-col items-center mt-[20px]  bg-[#fff] h-[481px] w-full ">
+            <div className="flex-col items-center mt-[20px]  bg-[#fff] max-h-[481px] w-full ">
               <div className="flex-row items-center w-full justify-center">
                 <span className="flex medium text-[#1D1D1D] text-[12px]">
                   {translateFunction("Your Address List")}
@@ -462,7 +469,7 @@ function ChangeAddressWidget({ address_id, close, getOrderDetails }) {
                         ?.contact_person_name,
                       phone: ActivePacks?.shipping_address_data?.phone,
                       alternate_phone:
-                        ActivePacks?.shipping_address_data?.alternate_phone,
+                        ActivePacks?.shipping_address_data?.alternative_phone,
                     },
                     iso: ActivePacks?.shipping_address_data?.country_iso,
                     region_details: {
@@ -486,7 +493,7 @@ function ChangeAddressWidget({ address_id, close, getOrderDetails }) {
         </div>
       </BottomSheet>
       {openModal && (
-        <div className="absolute z-[99999999999] top-0 left-0 bg-white overflow-auto w-full flex-col max-h-[100dvh] ">
+        <div className="absolute z-[99999999999] top-0 left-0 bg-white overflow-auto w-full flex-col h-full ">
           <div className="flex-row min-h-[50px] w-full px-[20px] items-center">
             <span
               onClick={() => {
@@ -523,7 +530,7 @@ function ChangeAddressWidget({ address_id, close, getOrderDetails }) {
                   name: ActivePacks?.shipping_address_data?.contact_person_name,
                   phone: ActivePacks?.shipping_address_data?.phone,
                   alternate_phone:
-                    ActivePacks?.shipping_address_data?.alternate_phone,
+                    ActivePacks?.shipping_address_data?.alternative_phone,
                 },
                 iso: ActivePacks?.shipping_address_data?.country_iso,
                 region_details: {
@@ -552,7 +559,7 @@ function ChangeAddressWidget({ address_id, close, getOrderDetails }) {
                   name: ActivePacks?.shipping_address_data?.contact_person_name,
                   phone: ActivePacks?.shipping_address_data?.phone,
                   alternate_phone:
-                    ActivePacks?.shipping_address_data?.alternate_phone,
+                    ActivePacks?.shipping_address_data?.alternative_phone,
                 },
                 iso: ActivePacks?.shipping_address_data?.country_iso,
                 region_details: {

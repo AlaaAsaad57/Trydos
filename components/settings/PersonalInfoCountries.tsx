@@ -1,10 +1,8 @@
+"use client";
 import React, { useEffect, useState } from "react";
-import SettingTopBar from "./TopBar";
 import AddressInfo from "public/svg/cart/AddressInfo";
 import { translateFunction } from "utils/functions";
-
 import { useParams } from "next/navigation";
-
 import { useAppStore } from "store";
 import { FlagIcon } from "utils/tinyUtils";
 import { fetchCountries } from "utils/tinyUtils";
@@ -13,19 +11,13 @@ import { fetchData } from "utils/fetchData"; // Make sure this is imported
 import { STARTER_SETTINGS } from "utils/endpointConfig";
 import { REQUESTS_DATA } from "utils/Requests";
 import { setLocaizationCookies } from "utils/cookies/cookie-manager";
-type PersonalInfoCountriesProps = {
-  swipeToScreen: (index: number) => void;
-  goBack: () => void;
-  hideTopBar?: boolean;
-  infoMessage?: string;
-};
-
+import BackBar from "components/setting/BackBar";
 function PersonalInfoCountries({
-  swipeToScreen,
-  goBack,
+  local = "",
+  isRtl = false,
   hideTopBar = false,
-  infoMessage,
-}: PersonalInfoCountriesProps) {
+  infoMessage = null,
+}) {
   const { setSettings } = useAppStore.getState();
   const [countries, setCountries] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -100,7 +92,7 @@ function PersonalInfoCountries({
             `/${country.iso.toLowerCase()}-${language}`
           );
       } else
-        window.location.pathname = `/${country.iso.toLowerCase()}-${language}/setting`;
+        window.location.pathname = `/${country.iso.toLowerCase()}-${language}/settings`;
     } catch (error) {
       console.error("Failed to update starter settings:", error);
     }
@@ -118,13 +110,14 @@ function PersonalInfoCountries({
   const resolvedInfoMessage = infoMessage ?? defaultInfoMessage;
 
   return (
-    <div className="flex-col max-h-[calc(100vh-200px)]">
+    <div className="flex-col w-full">
       {!hideTopBar && (
-        <SettingTopBar
-          goBack={() => goBack()}
-          screenName="Profile | Countries"
+        <BackBar
+          isRtl={isRtl}
+          local={local}
+          name={"Profile | Countries"}
           DataCy="personal-info-countries"
-          Save={null}
+          preivous_page={`/${local}/settings`}
         />
       )}
       <div className="flex-row justify-center mt-[12px] w-full">

@@ -1,16 +1,19 @@
+"use client";
 import React, { useState } from "react";
-import SettingTopBar from "./TopBar";
 import { translateFunction } from "utils/functions";
 import AddressInfo from "public/svg/cart/AddressInfo";
 import auth from "services/auth";
-import { useAppStore } from "store";
-import { pollinateInput } from "utils/tinyUtils";
 
-function ProfileSizeInfo({ swipeToScreen, goBack }: any) {
-  const { editUserInfo, userProfile } = useAppStore();
+import { pollinateInput } from "utils/tinyUtils";
+import BackBar from "components/setting/BackBar";
+
+function ProfileSizeInfo({ local, initialData, isRtl }) {
   const [userProfileData, setUserProfileData] = useState({
-    tall: userProfile?.tall,
-    weight: userProfile?.weight,
+    email: initialData?.email,
+    name: initialData?.name,
+    image: initialData?.image,
+    tall: initialData?.tall,
+    weight: initialData?.weight,
   });
   const [validationErrors, setValidationErrors] = useState({
     tall: "",
@@ -18,29 +21,19 @@ function ProfileSizeInfo({ swipeToScreen, goBack }: any) {
   });
   const [showValidation, setShowValidation] = useState(false);
 
-  const isEdited = () => {
-    return (
-      userProfileData.tall !== userProfile?.tall ||
-      userProfileData.weight !== userProfile?.weight
-    );
-  };
   const [loading, setLoading] = useState(false);
   const updateUserProfile = async (payload) => {
     try {
       setLoading(true);
-      await auth.UpdateProfile(payload, userProfile);
+      await auth.UpdateProfile(payload, initialData);
 
-      editUserInfo(payload);
       setLoading(false);
-      goBack();
+      window.location.href = `/${local}/settings/profile`;
     } catch (error) {
       setLoading(false);
 
       console.log(error);
     }
-  };
-  const isValid = () => {
-    return userProfileData.tall && userProfileData.weight;
   };
 
   const validateFunction = () => {
@@ -68,18 +61,15 @@ function ProfileSizeInfo({ swipeToScreen, goBack }: any) {
   };
 
   return (
-    <div className={`flex-col ${loading ? "opacity-50 scale-95" : ""}`}>
-      <SettingTopBar
-        goBack={() => {
-          setUserProfileData({
-            tall: userProfile?.tall ?? "",
-            weight: userProfile?.weight ?? "",
-          });
-          goBack();
-        }}
+    <div className={`flex-col w-full ${loading ? "opacity-50 scale-95" : ""}`}>
+      <BackBar
+        isRtl={isRtl}
         DataCy="personal-size-save-button"
-        screenName="Profile | Size Info"
+        local={local}
         Save={handleSave}
+        Icon={""}
+        name={"Profile"}
+        preivous_page={`/${local}/settings/profile`}
       />
       <div className="flex-row justify-center mt-[12px] w-full">
         <div

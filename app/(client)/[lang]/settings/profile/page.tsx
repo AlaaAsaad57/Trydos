@@ -2,8 +2,6 @@ import NextLink from "components/global/NextLink";
 import BackBar from "components/setting/BackBar";
 import { cookies } from "next/headers";
 import { GetImageUrl, translateFunction } from "utils/server";
-
-import BankIcon from "public/svg/BankIcon";
 async function Profile({ params }) {
   let Params = await params;
   let [country, language] = Params?.lang?.split("-");
@@ -40,10 +38,10 @@ async function Profile({ params }) {
     },
   ];
   return (
-    <div className="flex-col w-full pt-[20px] px-[12px] flex">
+    <div className="flex-col w-full pt-[20px] px-[12px] flex setting-screen">
       <BackBar
         isRtl={isRtl}
-        local={Params?.local}
+        local={Params?.lang}
         Icon={""}
         name={"Profile"}
         preivous_page={`/${Params?.lang}/settings`}

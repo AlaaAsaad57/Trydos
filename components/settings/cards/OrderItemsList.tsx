@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { OrdersIcon } from "../OrdersList";
+
 import { getConfiguredImage, translateFunction } from "utils/functions";
 import { useParams } from "next/navigation";
 import NextLink from "components/global/NextLink";
@@ -11,7 +11,7 @@ import {
   ShippedSatus,
 } from "./OrderStatusCartsIcon";
 import { GetImageUrl } from "utils/tinyUtils";
-import { useAppStore } from "store";
+
 import RatingOrderItem from "components/Orders/RatingOrderItem";
 import RatingStars from "./RatingStars";
 import Spinner from "components/global/Spinner";
@@ -25,8 +25,11 @@ function OrderItemsList({
   showChats,
   getOrderDetails,
   getProductUrl,
-}: any) {
-  const { ActivePacks } = useAppStore();
+  getProductComment,
+  owner_id,
+  owner_type,
+  order_status,
+}) {
   const getStatusIcon = (status) => {
     if (status === "pending") return <PendingStatus isActive={false} />;
     if (status === "preparing") return <PreparingStatus isActive={false} />;
@@ -39,10 +42,9 @@ function OrderItemsList({
   const language = lang.split("-")[1];
   const isRtl = language === "ar" || language === "ku";
   const isDelevired = (item) => {
-    return (
-      !item.is_returned && ActivePacks?.order_status?.value === "delivered"
-    );
+    return !item.is_returned && order_status?.value === "delivered";
   };
+
   const [showCommentModal, setShowCommentModal] = useState<any>(false);
   const [loading, setLoading] = React.useState(false);
 
@@ -53,7 +55,6 @@ function OrderItemsList({
           // @ts-ignore
           if (!e.target.closest(".chat-holder")) {
             setExpanded(!isExpanded);
-            document.querySelector("#OrderDetails").scrollTop = 0;
           }
         }}
         className={`${
@@ -63,7 +64,7 @@ function OrderItemsList({
           border: isExpanded && "1px solid #C4C2C27f",
         }}
       >
-        <OrdersIcon />
+        <img src="/svg/OrderDetailsIcon.svg" />
         <span className={`text-[#8D8D8D] text-[10px] regular mt-[5px]`}>
           {translateFunction("Order Details")}
         </span>
@@ -165,8 +166,6 @@ function OrderItemsList({
                   className="flex flex-col items-center justify-center w-full space-y-4"
                   onClick={() => {
                     if (!loading) {
-                      document.documentElement.scrollTop = 0;
-                      document.querySelector("#OrderDetails").scrollTop = 0;
                       setShowCommentModal(product?.id);
                     }
                   }}
@@ -176,7 +175,7 @@ function OrderItemsList({
                       <RatingStars
                         readOnly={true}
                         initialRating={
-                          product.comments?.[product?.comments.length - 1]
+                          getProductComment(product?.product_id, product.id)
                             ?.star_rating ?? 0
                         }
                       />
@@ -188,6 +187,8 @@ function OrderItemsList({
 
                 {showCommentModal === product?.id && (
                   <RatingOrderItem
+                    owner_id={owner_id}
+                    owner_type={owner_type}
                     seller_id={
                       // ActivePacks?.seller_id
                       null
@@ -200,25 +201,22 @@ function OrderItemsList({
                     variant={product?.variant}
                     order_detail_id={product.id}
                     initialRating={
-                      product.comments &&
-                      product.comments?.[product?.comments.length - 1]
+                      getProductComment(product?.product_id, product.id)
                         ?.star_rating
                     }
                     lastComment={
-                      product.comments &&
-                      product.comments?.[product?.comments.length - 1]?.comment
+                      getProductComment(product?.product_id, product.id)
+                        ?.comment
                     }
                     isRated={
-                      product.comments &&
-                      product.comments?.[product?.comments.length - 1]
+                      getProductComment(product?.product_id, product.id)
                         ?.star_rating
                     }
                     lastRatingId={
-                      product.comments &&
-                      product.comments?.[product?.comments.length - 1]?.id
+                      getProductComment(product?.product_id, product.id)?.id
                     }
                     comments_images_customer={
-                      product.comments?.[product?.comments.length - 1]
+                      getProductComment(product?.product_id, product.id)
                         ?.comments_images_customer ?? []
                     }
                     setShowCommentModal={() => setShowCommentModal(false)}

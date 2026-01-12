@@ -51,7 +51,7 @@ const BackBar = ({
       </span>
       {name && (
         <div className="flex-row gap-[4px] items-center">
-          {Icon && <img src={Icon} className="w-[25px] h-[25px]" />}
+          {Icon && <img src={Icon} className="w-auto h-auto" />}
           <span className={` text-[#1D1D1D] text-[14px] medium`}>{name}</span>
         </div>
       )}
@@ -68,7 +68,7 @@ const BackBar = ({
         {options && (
           <img
             className=""
-            src="/svg/OptionsIcon"
+            src="/svg/OptionsIcon.svg"
             onClick={() => {
               options();
             }}

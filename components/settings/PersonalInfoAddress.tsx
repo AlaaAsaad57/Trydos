@@ -1,346 +1,364 @@
+"use client";
 import React, { useEffect, useState } from "react";
 import { translateFunction } from "utils/functions";
 import AddressInfo from "public/svg/cart/AddressInfo";
-import SettingTopBar from "./TopBar";
 import AddAddressIcon from "public/svg/cart/AddAddress";
-
-import order from "services/order";
 import { DeleteModalComponent } from "components/Cart/OrdersPage";
 import { useAppStore } from "store";
-import { useParams } from "next/navigation";
 import { GetAddressString } from "utils/tinyUtils";
-import { fetchCountries } from "utils/tinyUtils";
 
-function PersonalInfoAddress({ swipeToScreen, goBack, setIsActive }: any) {
-  const { setCountries, addressLists } = useAppStore();
-  const { lang } = useParams();
-  // @ts-ignore
-  const [country, language] = lang?.split("-");
+import BackBar from "components/setting/BackBar";
+import PersonalInfoAddressModal from "./PersonalInfoAddressModal";
+import order from "services/order";
+import Spinner from "components/global/Spinner";
+
+function PersonalInfoAddress({ countries, isRtl, local }) {
+  const {
+    setCountries,
+    addressLists,
+    setIsActiveAddress,
+    orderLoading,
+    setAddressDetails,
+    initAddressForm,
+    isActiveAddress,
+  } = useAppStore();
+
   const getAdditionData = async () => {
-    order.GetAddressList();
-    if (sessionStorage.getItem(`countries-${country}-${language}`)) {
-      let data = sessionStorage.getItem(`countries-${country}-${language}`);
-      setCountries(JSON.parse(data));
-    } else {
-      try {
-        const data = await fetchCountries(country, language);
-        sessionStorage.setItem(
-          `countries-${country}-${language}`,
-          JSON.stringify(data.countries)
-        );
-        setCountries(data.countries);
-      } catch (error) {
-        console.error("Failed to fetch countries:", error);
-      }
-    }
+    setCountries(countries);
   };
   useEffect(() => {
     getAdditionData();
   }, []);
   const [deleteModal, setDeleteModal] = useState<any>(false);
 
-  const { initAddressForm, setAddressDetails } = useAppStore();
+  useEffect(() => {
+    order.GetAddressList();
+  }, [isActiveAddress]);
   return (
-    <div className="flex-col ">
-      <SettingTopBar
-        goBack={() => goBack()}
-        screenName="Profile | Address Info"
-        DataCy="profile-address-screen"
-        Save={null}
-      />
+    <div
+      className={`${
+        orderLoading && "opacity-65"
+      } transition-all duration-300  flex-col w-full flex`}
+    >
+      {!isActiveAddress && (
+        <BackBar
+          isRtl={isRtl}
+          local={local}
+          Icon={""}
+          name="Profile | Address Info"
+          preivous_page={`/${local}/settings/profile`}
+        />
+      )}
       {deleteModal && (
         <DeleteModalComponent
           slidePrev={() => {
-            swipeToScreen(5);
+            setAddressDetails(null);
           }}
           deletedAddress={deleteModal}
           closeModal={() => setDeleteModal(false)}
         />
       )}
-      <div className="flex-row justify-center mt-[12px] w-full">
-        <div
-          className="bg-[#F8F8F8] min-h-[50px] w-full flex-row items-center pl-[24px] pr-[20px] "
-          style={{
-            border: "1px solid rgb(211 211 211 / 51%)",
+      {isActiveAddress ? (
+        <PersonalInfoAddressModal
+          goBack={() => {
+            setAddressDetails(null);
+            setIsActiveAddress(false);
           }}
-          data-cy="address-info-header" // Added data-cy
-        >
-          <svg
-            id="Group_3387"
-            data-name="Group 3387"
-            xmlns="http://www.w3.org/2000/svg"
-            width="24.997"
-            height="24.997"
-            viewBox="0 0 24.997 24.997"
-          >
-            <path
-              id="Path_15434"
-              data-name="Path 15434"
-              d="M178.661,126.993h-.067a2.3,2.3,0,0,0,0,4.605h.067a2.3,2.3,0,0,0,0-4.605Z"
-              transform="translate(-167.728 -120.932)"
-              fill="#402cdd"
-            />
-            <path
-              id="Path_15435"
-              data-name="Path 15435"
-              d="M180.465,237.18H176.79a.5.5,0,0,0-.5.5v9.113a.5.5,0,0,0,.5.5h3.675a.5.5,0,0,0,.5-.5v-9.113A.5.5,0,0,0,180.465,237.18Z"
-              transform="translate(-167.728 -225.62)"
-              fill="#402cdd"
-            />
-            <path
-              id="Path_15436"
-              data-name="Path 15436"
-              d="M10.832,60.315a10.616,10.616,0,0,0-7.66,3.261A11.346,11.346,0,0,0,3.5,79.641l-.174,2.044a.5.5,0,0,0,.185.436.477.477,0,0,0,.457.08l2.124-.742a10.477,10.477,0,0,0,4.74,1.12,10.617,10.617,0,0,0,7.66-3.261,11.35,11.35,0,0,0,0-15.741A10.617,10.617,0,0,0,10.832,60.315Zm0,21.265A9.539,9.539,0,0,1,6.35,80.475a.476.476,0,0,0-.379-.028l-1.61.563.13-1.529a.506.506,0,0,0-.163-.418A10.264,10.264,0,0,1,.973,71.446a10.01,10.01,0,0,1,9.859-10.133,10.137,10.137,0,0,1,0,20.267Z"
-              transform="translate(0 -57.581)"
-              fill="#402cdd"
-            />
-            <path
-              id="Path_15437"
-              data-name="Path 15437"
-              d="M380.02,5.522a.5.5,0,1,0,0,1,5.126,5.126,0,0,1,5.114,5.126.5.5,0,1,0,1,0A6.125,6.125,0,0,0,380.02,5.522Z"
-              transform="translate(-361.135 -5.522)"
-              fill="#402cdd"
-            />
-            <path
-              id="Path_15438"
-              data-name="Path 15438"
-              d="M390.541,56.12a.5.5,0,0,0,0,1,2.075,2.075,0,0,1,2.07,2.075.5.5,0,1,0,1,0A3.073,3.073,0,0,0,390.541,56.12Z"
-              transform="translate(-371.134 -53.595)"
-              fill="#402cdd"
-            />
-          </svg>
+          swipeToScreen={(index) => setIsActiveAddress(false)}
+        />
+      ) : (
+        <>
+          <div className={`-row justify-center mt-[12px] w-full`}>
+            <div
+              className="bg-[#F8F8F8] min-h-[50px] w-full flex-row items-center pl-[24px] pr-[20px] "
+              style={{
+                border: "1px solid rgb(211 211 211 / 51%)",
+              }}
+              data-cy="address-info-header" // Added data-cy
+            >
+              <svg
+                id="Group_3387"
+                data-name="Group 3387"
+                xmlns="http://www.w3.org/2000/svg"
+                width="24.997"
+                height="24.997"
+                viewBox="0 0 24.997 24.997"
+              >
+                <path
+                  id="Path_15434"
+                  data-name="Path 15434"
+                  d="M178.661,126.993h-.067a2.3,2.3,0,0,0,0,4.605h.067a2.3,2.3,0,0,0,0-4.605Z"
+                  transform="translate(-167.728 -120.932)"
+                  fill="#402cdd"
+                />
+                <path
+                  id="Path_15435"
+                  data-name="Path 15435"
+                  d="M180.465,237.18H176.79a.5.5,0,0,0-.5.5v9.113a.5.5,0,0,0,.5.5h3.675a.5.5,0,0,0,.5-.5v-9.113A.5.5,0,0,0,180.465,237.18Z"
+                  transform="translate(-167.728 -225.62)"
+                  fill="#402cdd"
+                />
+                <path
+                  id="Path_15436"
+                  data-name="Path 15436"
+                  d="M10.832,60.315a10.616,10.616,0,0,0-7.66,3.261A11.346,11.346,0,0,0,3.5,79.641l-.174,2.044a.5.5,0,0,0,.185.436.477.477,0,0,0,.457.08l2.124-.742a10.477,10.477,0,0,0,4.74,1.12,10.617,10.617,0,0,0,7.66-3.261,11.35,11.35,0,0,0,0-15.741A10.617,10.617,0,0,0,10.832,60.315Zm0,21.265A9.539,9.539,0,0,1,6.35,80.475a.476.476,0,0,0-.379-.028l-1.61.563.13-1.529a.506.506,0,0,0-.163-.418A10.264,10.264,0,0,1,.973,71.446a10.01,10.01,0,0,1,9.859-10.133,10.137,10.137,0,0,1,0,20.267Z"
+                  transform="translate(0 -57.581)"
+                  fill="#402cdd"
+                />
+                <path
+                  id="Path_15437"
+                  data-name="Path 15437"
+                  d="M380.02,5.522a.5.5,0,1,0,0,1,5.126,5.126,0,0,1,5.114,5.126.5.5,0,1,0,1,0A6.125,6.125,0,0,0,380.02,5.522Z"
+                  transform="translate(-361.135 -5.522)"
+                  fill="#402cdd"
+                />
+                <path
+                  id="Path_15438"
+                  data-name="Path 15438"
+                  d="M390.541,56.12a.5.5,0,0,0,0,1,2.075,2.075,0,0,1,2.07,2.075.5.5,0,1,0,1,0A3.073,3.073,0,0,0,390.541,56.12Z"
+                  transform="translate(-371.134 -53.595)"
+                  fill="#402cdd"
+                />
+              </svg>
 
-          <div className="regular text-[10px] ml-[12px] text-[#8D8D8D]">
-            {translateFunction(
-              "Entering The Information Below Clearly And Completely Will Ensure That Your Order Arrives Without Problems And Faster."
-            )}
-          </div>
-        </div>
-      </div>
-      <div
-        className="flex-col w-full px-[12px] "
-        data-cy="container-name-phone"
-      >
-        <div className="flex flex-col w-full px-[12px] mt-[19px] items-start">
-          <div className="flex flex-row items-stretch">
-            <MiniAddressInfo />
-            <span className="ml-[6px] medium text-[#404040] text-[12px]">
-              {translateFunction("Your Address Info")}
-            </span>
-            <AddressInfo className="ml-[19px] cursor-pointer" />
-          </div>
-          {addressLists.length === 0 ? (
-            <div className="w-full cursor-pointer py-[12px] h-[84px] mt-[12px] bg-[#F8F8F8] justify-start rounded-[15px] flex-col items-center">
-              <AddressInfo />
-              <span className="medium text-[12px] text-[#C4C2C2] mt-[11px]">
-                {translateFunction("Your Address List Is Empty")}
-              </span>
-              <span className="medium text-[12px] text-[#C4C2C2] mt-[3px]">
+              <div className="regular text-[10px] ml-[12px] text-[#8D8D8D]">
                 {translateFunction(
-                  "You Can Also Create Multiple Addresses To Use"
+                  "Entering The Information Below Clearly And Completely Will Ensure That Your Order Arrives Without Problems And Faster."
                 )}
-              </span>
+              </div>
             </div>
-          ) : (
-            <>
-              <div className="flex-col  mt-[20px] h-auto max-h-[290px] overflow-auto w-full">
-                {addressLists.map((s, i) => (
-                  <div
-                    key={i}
-                    onClick={(e) => {
-                      // @ts-ignore
-                      if (!e.target.closest(".map-element-icon")) {
-                        // closeSelect(false);
-                        // order.SetDefault({ id: s.id });
-                      }
-                    }}
-                    style={{
-                      border: s.is_default === 0 ? "" : "#388bff8c 1px solid",
-                    }}
-                    className={`flex-col relative  
+          </div>
+          <div
+            className="flex-col w-full px-[12px] "
+            data-cy="container-name-phone"
+          >
+            <div className="flex flex-col w-full px-[12px] mt-[19px] items-start">
+              <div className="flex flex-row items-stretch">
+                <MiniAddressInfo />
+                <span className="ml-[6px] medium text-[#404040] text-[12px]">
+                  {translateFunction("Your Address Info")}
+                </span>
+                {orderLoading ? (
+                  <Spinner />
+                ) : (
+                  <AddressInfo className="ml-[19px] cursor-pointer" />
+                )}
+              </div>
+              {addressLists.length === 0 ? (
+                <div className="w-full cursor-pointer py-[12px] h-[84px] mt-[12px] bg-[#F8F8F8] justify-start rounded-[15px] flex-col items-center">
+                  <AddressInfo />
+                  <span className="medium text-[12px] text-[#C4C2C2] mt-[11px]">
+                    {translateFunction("Your Address List Is Empty")}
+                  </span>
+                  <span className="medium text-[12px] text-[#C4C2C2] mt-[3px]">
+                    {translateFunction(
+                      "You Can Also Create Multiple Addresses To Use"
+                    )}
+                  </span>
+                </div>
+              ) : (
+                <>
+                  <div className="flex-col  mt-[20px] h-auto max-h-[290px] overflow-auto w-full">
+                    {addressLists.map((s, i) => (
+                      <div
+                        key={i}
+                        onClick={(e) => {
+                          // @ts-ignore
+                          if (!e.target.closest(".map-element-icon")) {
+                            // closeSelect(false);
+                            // order.SetDefault({ id: s.id });
+                          }
+                        }}
+                        style={{
+                          border:
+                            s.is_default === 0 ? "" : "#388bff8c 1px solid",
+                        }}
+                        className={`flex-col relative  
                        items-start h-[auto] min-h-[90px] px-[24px]  py-[7px]
                       
                     
                      mt-[10px] rounded-[15px] bg-[#F8F8F8] w-full `}
-                    data-cy="Address"
-                  >
-                    <EditIcon
-                      data-cy="EditAddress"
-                      onClick={() => {
-                        // closeSelect();
-                        // slideNext();
-                        setIsActive(true);
-                        setAddressDetails(s);
-                        swipeToScreen(6);
-                      }}
-                      address={s}
-                    />
-                    <DeleteIcon
-                      data-cy="DeleteAddress"
-                      address={s}
-                      onClick={() => {
-                        setDeleteModal(s);
-                      }}
-                    />
-                    <div
-                      className={`flex-col ${
-                        s.is_default === 1 &&
-                        " [&_*]:!text-[#1D1D1D]   [&_svg_path]:!fill-[#1D1D1D]"
-                      }`}
-                    >
-                      <div className="flex-row items-center">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="12"
-                          height="12"
-                          viewBox="0 0 12 12"
+                        data-cy="Address"
+                      >
+                        <EditIcon
+                          data-cy="EditAddress"
+                          onClick={() => {
+                            setIsActiveAddress(true);
+                            setAddressDetails(s);
+                          }}
+                          address={s}
+                        />
+                        <DeleteIcon
+                          data-cy="DeleteAddress"
+                          address={s}
+                          onClick={() => {
+                            setDeleteModal(s);
+                          }}
+                        />
+                        <div
+                          className={`flex-col ${
+                            s.is_default === 1 &&
+                            " [&_*]:!text-[#1D1D1D]   [&_svg_path]:!fill-[#1D1D1D]"
+                          }`}
                         >
-                          <path
-                            id="home-3"
-                            d="M11.677,5.219h0L6.781.324a1.1,1.1,0,0,0-1.563,0L.325,5.216l0,.005A1.1,1.1,0,0,0,1.056,7.1l.034,0h.2v3.6A1.294,1.294,0,0,0,2.578,12H4.493a.352.352,0,0,0,.352-.352V8.824a.591.591,0,0,1,.59-.59h1.13a.591.591,0,0,1,.59.59v2.824A.352.352,0,0,0,7.506,12H9.421a1.294,1.294,0,0,0,1.293-1.293V7.1H10.9a1.1,1.1,0,0,0,.782-1.885Zm0,0"
-                            transform="translate(0.001)"
-                            fill="#8d8d8d"
-                          />
-                        </svg>
+                          <div className="flex-row items-center">
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="12"
+                              height="12"
+                              viewBox="0 0 12 12"
+                            >
+                              <path
+                                id="home-3"
+                                d="M11.677,5.219h0L6.781.324a1.1,1.1,0,0,0-1.563,0L.325,5.216l0,.005A1.1,1.1,0,0,0,1.056,7.1l.034,0h.2v3.6A1.294,1.294,0,0,0,2.578,12H4.493a.352.352,0,0,0,.352-.352V8.824a.591.591,0,0,1,.59-.59h1.13a.591.591,0,0,1,.59.59v2.824A.352.352,0,0,0,7.506,12H9.421a1.294,1.294,0,0,0,1.293-1.293V7.1H10.9a1.1,1.1,0,0,0,.782-1.885Zm0,0"
+                                transform="translate(0.001)"
+                                fill="#8d8d8d"
+                              />
+                            </svg>
 
-                        <span className="regular ml-[4px] text-[12px] text-[#8D8D8D]">
-                          {s.address}
-                        </span>
-                      </div>
-                      <div className="flex-row mt-[5px]  items-center regular text-[12px] text-[#8D8D8D]">
-                        {GetAddressString(s.region_details)}
-                      </div>
-                      <div className="flex-row regular text-[12px]">
-                        {s?.address_detail}
-                      </div>
-                      <div className="flex-row mt-[5px] items-center regular text-[12px] text-[#8D8D8D]">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          xmlnsXlink="http://www.w3.org/1999/xlink"
-                          width="12"
-                          height="12"
-                          viewBox="0 0 12 12"
-                        >
-                          <defs>
-                            <clipPath id="clip-path1213">
-                              <rect
-                                id="Rectangle_6097"
-                                data-name="Rectangle 6097"
+                            <span className="regular ml-[4px] text-[12px] text-[#8D8D8D]">
+                              {s.address}
+                            </span>
+                          </div>
+                          <div className="flex-row mt-[5px]  items-center regular text-[12px] text-[#8D8D8D]">
+                            {GetAddressString(s.region_details)}
+                          </div>
+                          <div className="flex-row regular text-[12px]">
+                            {s?.address_detail}
+                          </div>
+                          <div className="flex-row mt-[5px] items-center regular text-[12px] text-[#8D8D8D]">
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              xmlnsXlink="http://www.w3.org/1999/xlink"
+                              width="12"
+                              height="12"
+                              viewBox="0 0 12 12"
+                            >
+                              <defs>
+                                <clipPath id="clip-path1213">
+                                  <rect
+                                    id="Rectangle_6097"
+                                    data-name="Rectangle 6097"
+                                    width="12"
+                                    height="12"
+                                    transform="translate(-0.245)"
+                                    fill="#8d8d8d"
+                                  />
+                                </clipPath>
+                              </defs>
+                              <g
+                                id="Mask_Group_646"
+                                data-name="Mask Group 646"
+                                transform="translate(0.245)"
+                                clipPath="url(#clip-path1213)"
+                              >
+                                <g
+                                  id="XMLID_7_"
+                                  transform="translate(0.202 0.583)"
+                                >
+                                  <path
+                                    id="XMLID_10_"
+                                    d="M10.461,8.411c-.055-.042-.111-.085-.164-.128-.281-.226-.579-.434-.868-.635l-.18-.125a1.791,1.791,0,0,0-1.016-.386,1.317,1.317,0,0,0-1.1.695.583.583,0,0,1-.5.3.993.993,0,0,1-.4-.1A4.848,4.848,0,0,1,3.7,5.568c-.236-.529-.159-.876.255-1.157A1.171,1.171,0,0,0,4.6,3.383,5.865,5.865,0,0,0,2.534.569a1.172,1.172,0,0,0-.8,0A2.306,2.306,0,0,0,.3,1.747,2.194,2.194,0,0,0,.334,3.518,14.288,14.288,0,0,0,3.469,8.291a15.2,15.2,0,0,0,4.756,3.158,2.634,2.634,0,0,0,.47.14c.044.01.081.018.109.026a.183.183,0,0,0,.046.006h.015a2.7,2.7,0,0,0,2.241-1.705C11.388,9.12,10.874,8.727,10.461,8.411Z"
+                                    transform="translate(-0.131 -0.498)"
+                                    fill="#8d8d8d"
+                                  />
+                                </g>
+                              </g>
+                            </svg>
+
+                            <div className="flex-row ml-[4px]   items-center regular text-[12px] text-[#8D8D8D]">
+                              {s?.contact_info?.phone}
+                            </div>
+                            <div className="flex-row ml-[17px]  items-center">
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                xmlnsXlink="http://www.w3.org/1999/xlink"
                                 width="12"
                                 height="12"
-                                transform="translate(-0.245)"
-                                fill="#8d8d8d"
-                              />
-                            </clipPath>
-                          </defs>
-                          <g
-                            id="Mask_Group_646"
-                            data-name="Mask Group 646"
-                            transform="translate(0.245)"
-                            clipPath="url(#clip-path1213)"
-                          >
-                            <g id="XMLID_7_" transform="translate(0.202 0.583)">
-                              <path
-                                id="XMLID_10_"
-                                d="M10.461,8.411c-.055-.042-.111-.085-.164-.128-.281-.226-.579-.434-.868-.635l-.18-.125a1.791,1.791,0,0,0-1.016-.386,1.317,1.317,0,0,0-1.1.695.583.583,0,0,1-.5.3.993.993,0,0,1-.4-.1A4.848,4.848,0,0,1,3.7,5.568c-.236-.529-.159-.876.255-1.157A1.171,1.171,0,0,0,4.6,3.383,5.865,5.865,0,0,0,2.534.569a1.172,1.172,0,0,0-.8,0A2.306,2.306,0,0,0,.3,1.747,2.194,2.194,0,0,0,.334,3.518,14.288,14.288,0,0,0,3.469,8.291a15.2,15.2,0,0,0,4.756,3.158,2.634,2.634,0,0,0,.47.14c.044.01.081.018.109.026a.183.183,0,0,0,.046.006h.015a2.7,2.7,0,0,0,2.241-1.705C11.388,9.12,10.874,8.727,10.461,8.411Z"
-                                transform="translate(-0.131 -0.498)"
-                                fill="#8d8d8d"
-                              />
-                            </g>
-                          </g>
-                        </svg>
-
-                        <div className="flex-row ml-[4px]   items-center regular text-[12px] text-[#8D8D8D]">
-                          {s?.contact_info?.phone}
-                        </div>
-                        <div className="flex-row ml-[17px]  items-center">
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            xmlnsXlink="http://www.w3.org/1999/xlink"
-                            width="12"
-                            height="12"
-                            viewBox="0 0 12 12"
-                          >
-                            <defs>
-                              <clipPath id="clip-path232323">
-                                <rect
-                                  id="Rectangle_6098"
-                                  data-name="Rectangle 6098"
-                                  width="12"
-                                  height="12"
-                                  fill="none"
-                                />
-                              </clipPath>
-                            </defs>
-                            <g
-                              id="Mask_Group_647"
-                              data-name="Mask Group 647"
-                              clipPath="url(#clip-path232323)"
-                            >
-                              <g
-                                id="Group_13"
-                                data-name="Group 13"
-                                transform="translate(1.162 0)"
+                                viewBox="0 0 12 12"
                               >
-                                <path
-                                  id="Path_20"
-                                  data-name="Path 20"
-                                  d="M651.622,148c.318-.068.611-.331.658-.913.04-.476-.083-.722-.264-.846.5-2.042-.88-2.441-.88-2.441a2.072,2.072,0,0,0-3.047-.522,3.6,3.6,0,0,0-.891.765,3.182,3.182,0,0,0-.681,2.132c-.246.092-.44.331-.391.918.05.609.367.868.7.918a2.435,2.435,0,0,0,4.794-.008Zm-2.4,1.5c-1.218,0-2.2-1.653-2.2-3.025,0-.184.005-.362.017-.523a4.18,4.18,0,0,0,3.411-1.257,4,4,0,0,1,.971,1.736v.044c.008,1.371-.973,3.026-2.192,3.026Z"
-                                  transform="translate(-644.484 -142.822)"
-                                  fill="#8d8d8d"
-                                />
-                                <path
-                                  id="Path_21"
-                                  data-name="Path 21"
-                                  d="M643.18,174.122l.141-.584a.341.341,0,0,1,.1-.169l-.042-.032-1.261-1.044-.768.184a2.785,2.785,0,0,0-2.214,2.662v1.653a.613.613,0,0,0,.635.585h3.247l.495-2.822a.344.344,0,0,1-.333-.432Z"
-                                  transform="translate(-639.136 -165.377)"
-                                  fill="#8d8d8d"
-                                />
-                                <path
-                                  id="Path_22"
-                                  data-name="Path 22"
-                                  d="M662.939,172.471l-.756-.184-1.259,1.044-.042.032a.341.341,0,0,1,.1.169l.141.584a.344.344,0,0,1-.333.425l.495,2.822h3.246a.59.59,0,0,0,.61-.585v-1.653a2.772,2.772,0,0,0-2.2-2.655Z"
-                                  transform="translate(-655.714 -165.376)"
-                                  fill="#8d8d8d"
-                                />
-                              </g>
-                            </g>
-                          </svg>
+                                <defs>
+                                  <clipPath id="clip-path232323">
+                                    <rect
+                                      id="Rectangle_6098"
+                                      data-name="Rectangle 6098"
+                                      width="12"
+                                      height="12"
+                                      fill="none"
+                                    />
+                                  </clipPath>
+                                </defs>
+                                <g
+                                  id="Mask_Group_647"
+                                  data-name="Mask Group 647"
+                                  clipPath="url(#clip-path232323)"
+                                >
+                                  <g
+                                    id="Group_13"
+                                    data-name="Group 13"
+                                    transform="translate(1.162 0)"
+                                  >
+                                    <path
+                                      id="Path_20"
+                                      data-name="Path 20"
+                                      d="M651.622,148c.318-.068.611-.331.658-.913.04-.476-.083-.722-.264-.846.5-2.042-.88-2.441-.88-2.441a2.072,2.072,0,0,0-3.047-.522,3.6,3.6,0,0,0-.891.765,3.182,3.182,0,0,0-.681,2.132c-.246.092-.44.331-.391.918.05.609.367.868.7.918a2.435,2.435,0,0,0,4.794-.008Zm-2.4,1.5c-1.218,0-2.2-1.653-2.2-3.025,0-.184.005-.362.017-.523a4.18,4.18,0,0,0,3.411-1.257,4,4,0,0,1,.971,1.736v.044c.008,1.371-.973,3.026-2.192,3.026Z"
+                                      transform="translate(-644.484 -142.822)"
+                                      fill="#8d8d8d"
+                                    />
+                                    <path
+                                      id="Path_21"
+                                      data-name="Path 21"
+                                      d="M643.18,174.122l.141-.584a.341.341,0,0,1,.1-.169l-.042-.032-1.261-1.044-.768.184a2.785,2.785,0,0,0-2.214,2.662v1.653a.613.613,0,0,0,.635.585h3.247l.495-2.822a.344.344,0,0,1-.333-.432Z"
+                                      transform="translate(-639.136 -165.377)"
+                                      fill="#8d8d8d"
+                                    />
+                                    <path
+                                      id="Path_22"
+                                      data-name="Path 22"
+                                      d="M662.939,172.471l-.756-.184-1.259,1.044-.042.032a.341.341,0,0,1,.1.169l.141.584a.344.344,0,0,1-.333.425l.495,2.822h3.246a.59.59,0,0,0,.61-.585v-1.653a2.772,2.772,0,0,0-2.2-2.655Z"
+                                      transform="translate(-655.714 -165.376)"
+                                      fill="#8d8d8d"
+                                    />
+                                  </g>
+                                </g>
+                              </svg>
 
-                          <div className="flex-row  ml-[4px]  items-center regular text-[12px] text-[#8D8D8D]">
-                            {s.contact_info.contact_person_name ||
-                              // @ts-ignore
-                              s?.contact_info?.name}
+                              <div className="flex-row  ml-[4px]  items-center regular text-[12px] text-[#8D8D8D]">
+                                {s.contact_info.contact_person_name ||
+                                  // @ts-ignore
+                                  s?.contact_info?.name}
+                              </div>
+                            </div>
                           </div>
                         </div>
                       </div>
-                    </div>
+                    ))}
                   </div>
-                ))}
+                </>
+              )}
+              <div
+                className="flex cursor-pointer w-full justify-center h-[40px] mt-[8px] items-center bg-[#E8FFED]"
+                data-cy="AddAddres"
+                style={{
+                  border: "1px solid rgb(196 194 194 / 51%)",
+                  borderRadius: "15px",
+                }}
+                onClick={() => {
+                  setIsActiveAddress(true);
+                  initAddressForm();
+
+                  // onClick();
+                }}
+              >
+                <AddAddressIcon />
+                <div className="medium text-[12px] ml-1 text-[#1D1D1D]">
+                  {translateFunction("Add New Shipping Address")}
+                </div>
               </div>
-            </>
-          )}
-          <div
-            className="flex cursor-pointer w-full justify-center h-[40px] mt-[8px] items-center bg-[#E8FFED]"
-            data-cy="AddAddres"
-            style={{
-              border: "1px solid rgb(196 194 194 / 51%)",
-              borderRadius: "15px",
-            }}
-            onClick={() => {
-              setIsActive(true);
-              initAddressForm();
-              swipeToScreen(6);
-              // onClick();
-            }}
-          >
-            <AddAddressIcon />
-            <div className="medium text-[12px] ml-1 text-[#1D1D1D]">
-              {translateFunction("Add New Shipping Address")}
             </div>
           </div>
-        </div>
-      </div>
+        </>
+      )}
     </div>
   );
 }

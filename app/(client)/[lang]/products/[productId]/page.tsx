@@ -3,7 +3,6 @@ export const preferredRegion = "bom1";
 export const dynamic = "force-dynamic";
 import "styles/productDetails.css";
 import "styles/product-body.css";
-
 import { RedisSet } from "serverRequests/radis";
 import {
   GetGlobalProduct,

@@ -23,7 +23,7 @@ function RateOrderButton({ setExpanded }) {
   const isRtl = language === "ar" || language === "ku";
   return (
     <div
-      className="flex px-[12px] mt-[8px]"
+      className="flex px-[12px] mt-[8px] w-full"
       onClick={() => {
         handleClick();
       }}

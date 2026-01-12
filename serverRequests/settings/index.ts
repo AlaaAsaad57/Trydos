@@ -1,4 +1,5 @@
 "use server";
+import { GetStarttingSetting } from "serverRequests";
 import { HandleAuthedFetch } from "serverRequests/HandleAuthedFetch";
 
 export async function GetOrders({
@@ -38,4 +39,11 @@ export async function getWallet({ language, country, offset = 1, limit = 10 }) {
   } catch (error) {
     console.log(error);
   }
+}
+
+export async function getOrderStatues({ language, country }) {
+  try {
+    let res = await GetStarttingSetting({ language, country });
+    return res?.order_group_statuses ?? [];
+  } catch (error) {}
 }

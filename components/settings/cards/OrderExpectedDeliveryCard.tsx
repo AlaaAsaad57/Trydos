@@ -1,8 +1,8 @@
 import { useAppStore } from "store";
 import { translateFunction } from "utils/functions";
 
-function OrderExpectedDeliveryCard({ time }: any) {
-  const { ActivePacks, language } = useAppStore();
+function OrderExpectedDeliveryCard({ time, status }: any) {
+  const { language } = useAppStore();
   const isRtl = language === "ar" || language === "ku";
 
   return (
@@ -11,7 +11,7 @@ function OrderExpectedDeliveryCard({ time }: any) {
         direction: isRtl ? "rtl" : "ltr",
       }}
       className={`${
-        ActivePacks.order_status.value === "canceled" && "opacity-55"
+        status === "canceled" && "opacity-55"
       } bg-[#F4F4F4] relative w-1/2 min-h-[74px] h-auto  rounded-[15px] py-[8px] px-[12px] flex-col`}
     >
       <svg
@@ -154,7 +154,7 @@ function OrderExpectedDeliveryCard({ time }: any) {
         </g>
       </svg>
 
-      {ActivePacks.order_status.value !== "canceled" && (
+      {status !== "canceled" && (
         <>
           <span className="text-[#8D8D8D] regular text-[10px] mt-[5px]">
             {translateFunction("Expected Delivery Date")}

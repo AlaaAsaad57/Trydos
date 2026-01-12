@@ -25,8 +25,10 @@ function RatingOrderItem({
   setShowCommentModal,
   loading,
   setLoading,
+  owner_id,
+  owner_type,
 }) {
-  const { ActivePacks, language } = useAppStore();
+  const { language } = useAppStore();
   const [rating, setRating] = useState(initialRating);
 
   const [comment, setComment] = useState(lastComment || "");
@@ -46,8 +48,8 @@ function RatingOrderItem({
         productId: productId,
         id: lastRatingId,
         variant: variant,
-        owner_id: ActivePacks?.owner_id,
-        owner_type: ActivePacks?.owner_type,
+        owner_id: owner_id,
+        owner_type: owner_type,
         images: images,
       });
       router.refresh();

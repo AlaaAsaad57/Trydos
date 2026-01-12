@@ -2,7 +2,7 @@ export const dynamic = "auto";
 export const runtime = "nodejs";
 // export const revalidate = parseInt(process.env.NEXT_PUBLIC_REVALIDATE);
 // export const preferredRegion = process.env.PREFERRED_REGION || "bom1";
-import Settings from "components/settings";
+// import Settings from "components/settings";
 import { cookies } from "next/headers";
 import { COOKIE_NAMES } from "utils/cookies/cookie-manager";
 import { LogServerError } from "utils/serverErrorReporter";
@@ -44,12 +44,12 @@ async function page({ params, searchParams }) {
   try {
     return (
       <>
-        <Settings
+        {/* <Settings
           userCookiesData={userDataParsed}
           order_id={order_id}
           tab={tab}
           lang={Params.lang}
-        />
+        /> */}
       </>
     );
   } catch (error) {

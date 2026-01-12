@@ -330,8 +330,6 @@ const PopupCountry = ({ options, countries, forChanged, noCountry }) => {
               {/* No Country Scenario */}
               {noCountry && (
                 <PersonalInfoCountries
-                  swipeToScreen={() => {}}
-                  goBack={() => {}}
                   hideTopBar
                   infoMessage={translateFunction(
                     "Choose your country to get the best experience",

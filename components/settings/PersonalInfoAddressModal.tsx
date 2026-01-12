@@ -6,13 +6,13 @@ import AddAddressForm from "components/Cart/AddAddressForm";
 
 import { useAppStore } from "store";
 
-function PersonalInfoAddressModal({ swipeToScreen, goBack }: any) {
+function PersonalInfoAddressModal({ goBack }: any) {
   const { setAddressDetails, isActiveAddress } = useAppStore();
 
   const [openSelect, setOpenSelect] = useState(false);
 
   return (
-    <div className="flex-col max-h-[calc(100vh-200px)]">
+    <div className="flex-col w-full flex">
       <SettingTopBar
         goBack={() => goBack()}
         DataCy="profile-info-screen"
@@ -35,7 +35,7 @@ function PersonalInfoAddressModal({ swipeToScreen, goBack }: any) {
             setOpenSelect(true);
           }}
           slidePrev={(value) => {
-            swipeToScreen(5);
+            goBack();
           }}
           setAddressDetails={(e) => {
             setAddressDetails(e);
