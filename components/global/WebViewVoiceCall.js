@@ -39,11 +39,14 @@ function WebViewVoiceCall(props) {
 
   // Only audio track now
   const { ready, track, error } = useMicrophoneTrack();
-
+  const isRunningRef = useRef(isRunning);
+  useEffect(() => {
+    isRunningRef.current = isRunning;
+  }, [isRunning]);
   useEffect(() => {
     let init = async (name) => {
       client.on("user-joined", (user) => {
-        if (!isRunning) start();
+        if (!isRunningRef.current) start();
         setUsers((prevUsers) => {
           // Prevent duplicates
           if (prevUsers.find((u) => u.uid === user.uid)) return prevUsers;
@@ -57,7 +60,7 @@ function WebViewVoiceCall(props) {
       });
 
       client.on("user-published", async (user, mediaType) => {
-        if (!isRunning) start();
+        if (!isRunningRef.current) start();
         await client.subscribe(user, mediaType);
 
         setUsers((prev) => {

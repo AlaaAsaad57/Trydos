@@ -365,7 +365,7 @@ function OrderDetails({
         };
         setChatInfo(chat);
         openChat(chat);
-        console.log(chat);
+
         setIsNavigating(false);
       }
 
@@ -484,6 +484,7 @@ function OrderDetails({
     });
     EnableScroll();
     setChatInfo(null);
+    openChat(null);
     document.querySelector("#OrderDetails").classList.remove("overflow-hidden");
     document.querySelector("#OrderDetails").classList.add("overflow-auto");
     setIsChatOpen(false);

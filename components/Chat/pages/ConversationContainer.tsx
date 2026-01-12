@@ -847,9 +847,9 @@ function ConversationContainer({
 
       {/* Camera overlay */}
       {cameraEnabled && (
-        <div className="fixed top-0 left-0 w-screen h-screen bg-transparent flex flex-col items-center justify-start p-5 z-[9999999999]">
+        <div className="fixed top-0 left-0 w-full h-full bg-transparent flex flex-col items-center justify-start p-5 z-[9999999999]">
           <div
-            className="absolute top-0 left-0 w-screen h-screen bg-[#585751] opacity-60 z-[9999]"
+            className="absolute top-0 left-0 w-full h-full bg-[#585751] opacity-60 z-[9999]"
             onClick={() => enableCamera(false)}
           />
           {(() => {

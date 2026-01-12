@@ -114,14 +114,17 @@ function ChatVoiceCall({ token }) {
   const client = useClient();
   // ready is a state variable, which returns true when the local tracks are initialized, untill then tracks variable is null
   const { ready, track, error } = useMicrophoneTrack();
-
+  const isRunningRef = useRef(isRunning);
+  useEffect(() => {
+    isRunningRef.current = isRunning;
+  }, [isRunning]);
   useEffect(() => {
     // function to initialise the SDK
     let init = async (name) => {
       storeClient(client);
       storeTrack([track]);
       client.on("user-joined", async (user) => {
-        if (!isRunning) start();
+        if (!isRunningRef.current) start();
         setUsers((prevUsers) => {
           // Prevent duplicates
           if (prevUsers.find((u) => u.uid === user.uid)) return prevUsers;
@@ -129,7 +132,7 @@ function ChatVoiceCall({ token }) {
         });
       });
       client.on("user-published", async (user, mediaType) => {
-        if (!isRunning) start();
+        if (!isRunningRef.current) start();
         await client.subscribe(user, mediaType);
 
         // Ensure React state updates so the UI re-renders with the new tracks
