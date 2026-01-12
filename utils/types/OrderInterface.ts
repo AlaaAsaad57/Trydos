@@ -145,3 +145,41 @@ export interface OrderRatingData {
   star_rating: number;
   order_details_id: string;
 }
+
+export interface returnDetails {
+  order_group_id: string;
+  total_return_requests: number;
+  return_requests_data: Array<{
+    order_id: number;
+    return_request_id: number;
+    total_returnable_amount: number;
+    description_returnable_amount_less_than_0: string;
+    return_request_destination_id: number;
+    status: {
+      name: string;
+      value: string;
+    };
+    order_details: Array<{
+      detail_id: number;
+      product_id: number;
+      return_request_id: number;
+      quantity: number;
+      image: string;
+      name: string;
+      variant: string;
+      product_price: number;
+      subtotal: number;
+      already_return: boolean;
+      return_request_product_id: number;
+      return_request_product_quantity: string;
+      return_request_product_reason_id: number;
+      return_request_product_details: any;
+      return_request_product_status: {
+        name: string;
+        value: string;
+      };
+      images_url: Array<string>;
+      img: Array<string>;
+    }>;
+  }>;
+}

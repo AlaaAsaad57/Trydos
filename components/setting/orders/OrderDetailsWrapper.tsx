@@ -26,13 +26,19 @@ import { useAppStore } from "store";
 import Spinner from "components/global/Spinner";
 import OrderStatusIcon from "components/settings/cards/OrderStatusIcon";
 import OrderStatusCartsIcon from "components/settings/cards/OrderStatusCartsIcon";
-import { OrderInterface, OrderRatingData } from "utils/types/OrderInterface";
+import {
+  OrderInterface,
+  OrderRatingData,
+  returnDetails,
+} from "utils/types/OrderInterface";
 import Order from "services/order";
 import OrderChatIcon from "components/settings/OrderChatIcon";
 import { fetchData } from "utils/fetchData";
 import { REQUESTS_DATA } from "utils/Requests";
 import auth from "services/auth";
 import OrderOptionsMenu from "./OrderOptionsMenu";
+import OrderItemOptions from "./OrderItemOptions";
+import OrderRetailsReturnInfo from "components/Orders/OrderRetailsReturnInfo";
 
 function OrderDetailsWrapper({
   order_id,
@@ -48,10 +54,13 @@ function OrderDetailsWrapper({
   const [loading, setLoading] = useState(true);
   const [orderData, setOrderData] = useState<OrderInterface[]>([]);
   const [ActivePack, setActivePack] = useState<OrderInterface>(null);
-  const [returnData, setReturnData] = useState([]);
+  const [returnData, setReturnData] = useState<returnDetails | null>(null);
   const [ratingDetails, setRatingDetails] = useState<OrderRatingData[]>([]);
   const [isGettingChat, setIsGettingChat] = useState(false);
   const [shouldShowConfirmReturn, setShouldConfirmReturn] = useState(false);
+  const [selectedOrderItem, setSelectedOrderItem] = useState<
+    OrderInterface["details"][0] | null
+  >(null);
   const [showOrderOptions, setShowOrderOption] =
     useState<OrderInterface | null>(null);
   const {
@@ -89,96 +98,12 @@ function OrderDetailsWrapper({
       }
       setOrderData(data);
       setActivePack(data?.find((order) => order.id === order_id) ?? data?.[0]);
-      // let returned_req_ids = data?.map((s) => {
-      //   if (s.return_request_id !== null && s.return_request_id !== undefined)
-      //     return s.return_request_id;
-      // });
-      // returned_req_ids = returned_req_ids?.filter((s) => s !== undefined);
-      // let returnRequests = undefined;
-
-      // if (returned_req_ids?.length > 0) {
-      //   try {
-      //     returnRequests = await Order.GetReturnDetailsForOrderGroup({
-      //       order_group_id:order_group_id,
-      //     });
-
-      //     // Update data with the fetched details
-      //     data = data.map((order) => {
-      //       const match = returnRequests.find(
-      //         (req) => req.id === order.return_request_id
-      //       );
-      //       return match
-      //         ? {
-      //             ...order,
-      //             return_details: { ...match },
-      //             returned_data: returnRequests,
-      //           }
-      //         : { ...order, returned_data: returnRequests };
-      //     });
-      //   } catch (error) {
-      //     console.error(error);
-      //   }
-      // }
-
-      // let orderData = {
-      //   ...data?.[0],
-      //   order_amount: totalAmount(data),
-      //   details: data,
-      //   returned_data: returnRequests,
-      // };
-      // let shouldGetRatingValues = data.find(
-      //   (order) => order?.order_status?.value === "delivered"
-      // );
-
-      // let order_id_chat = chatOpen&& order_id;
-      // if (
-      //   (order_id_chat || order_id) &&
-      //   data.find(
-      //     (s) =>
-      //       String(s.id) === String(order_id_chat) ||
-      //       String(s?.return_request_id) === String(order_id_chat) ||
-      //       String(s.id) === String(order_id)
-      //   )
-      // ) {
-      //   setActivePacks(
-      //     data.find(
-      //       (s) =>
-      //         String(s.id) === String(order_id_chat) ||
-      //         String(s?.return_request_id) === String(order_id_chat) ||
-      //         String(s.id) === String(order_id)
-      //     )
-      //   );
-      // } else if (data.find((s) => s.id === ActivePacks?.id)) {
-      //   setActivePacks(data.find((s) => s.id === ActivePacks?.id));
-      // } else setActivePacks(data[0]);
-      // setOrderDetails({
-      //   ...orderData,
-      //   is_from_wallet: selectedOrder?.is_from_wallet,
-      // });
-
-      // if (
-      //   (order_id_chat || order_id) &&
-      //   data.find(
-      //     (s) =>
-      //       String(s.id) === String(order_id_chat) ||
-      //       (s.return_request_id &&
-      //         String(s?.return_request_id) === String(order_id_chat)) ||
-      //       String(s.id) === String(order_id)
-      //   )
-      // ) {
-      //   let order_item = data.find(
-      //     (s) =>
-      //       String(s.id) === String(order_id_chat) ||
-      //       String(s?.return_request_id) === String(order_id_chat) ||
-      //       String(s.id) === String(order_id)
-      //   );
-      //   if (
-      //     order_item.order_status?.value === "out_for_delivery" ||
-      //     order_item?.return_details?.details?.status?.value ===
-      //       "out_for_return"
-      //   )
-      //     safeGetChatWithShipping(order_id_chat || order_id || order_chat_id);
-      // }
+      if (data.filter((s) => s.return_request_id)?.length) {
+        let returnRequests = await Order.GetReturnDetailsForOrderGroup({
+          order_group_id: order_group_id,
+        });
+        setReturnData(returnRequests);
+      }
       setShouldUpdateOrders(0);
     } catch (error) {
       console.log(error);
@@ -388,11 +313,26 @@ function OrderDetailsWrapper({
       )}
       {showOrderOptions && (
         <OrderOptionsMenu
+          update={async () => await getOrderDetails()}
           isRtl={isRtl}
           order={showOrderOptions}
           close={() => {
             setShowOrderOption(null);
           }}
+        />
+      )}
+      {selectedOrderItem && (
+        <OrderItemOptions
+          orderData={orderData}
+          shouldShowConfirmReturn={shouldShowConfirmReturn}
+          setShouldConfirmReturn={setShouldConfirmReturn}
+          close={() => setSelectedOrderItem(null)}
+          isRtl={isRtl}
+          orderItem={selectedOrderItem}
+          parentOrder={ActivePack}
+          returnDetails={returnData}
+          setActivePack={setActivePack}
+          update={async () => await getOrderDetails()}
         />
       )}
       <div className="flex-col w-full max-h-full">
@@ -515,8 +455,10 @@ function OrderDetailsWrapper({
                 />
                 {isExpanded && (
                   <OrderExpandedDetails
+                    orderData={orderData}
+                    returnDetails={returnData}
+                    setSelectedOrderItem={setSelectedOrderItem}
                     getProductUrl={(e) => getProductUrl(e)}
-                    setIsExpanded={(e) => setIsExpanded(e)}
                     setShouldConfirmReturn={setShouldConfirmReturn}
                     getOrderDetails={() => getOrderDetails()}
                     order={ActivePack}
@@ -535,18 +477,22 @@ export default OrderDetailsWrapper;
 
 const OrderExpandedDetails = ({
   order,
+  orderData,
   getOrderDetails,
   setShouldConfirmReturn,
-  setIsExpanded,
+  returnDetails,
   getProductUrl,
+  setSelectedOrderItem,
 }: {
   order: OrderInterface;
+  orderData: OrderInterface[];
   getOrderDetails: () => void;
   setShouldConfirmReturn: (e: any) => void;
-  setIsExpanded: (e: boolean) => void;
-  getProductUrl;
+  returnDetails: returnDetails;
+  getProductUrl: any;
+  setSelectedOrderItem: any;
 }) => {
-  const { currency, selectedOrder, setOrderOptions, user } = useAppStore();
+  const { currency, user } = useAppStore();
 
   const [cancelling, setCancelling] = useState(false);
   const CancelReturnRequest = async () => {
@@ -565,18 +511,18 @@ const OrderExpandedDetails = ({
   };
   const isAllPreventEdit = () => {
     return (
-      selectedOrder?.details?.filter((s) => s.edit_return_request === false)
-        ?.length === selectedOrder?.details?.length
+      orderData?.filter((s) => s.edit_return_request === false)?.length ===
+      orderData?.length
     );
   };
 
   const isThereAReturnedProduct = () => {
     let arr = [];
     if (isAllPreventEdit()) return false;
-    selectedOrder?.returned_data?.map((s) => {
-      s.details?.order_details?.map((req) => {
-        if (req.already_return) {
-          arr.push(req?.return_request_id);
+    returnDetails.return_requests_data.map((s) => {
+      s.order_details.map((d) => {
+        if (d.already_return && d.return_request_id) {
+          arr.push(d.return_request_id);
         }
       });
     });
@@ -587,16 +533,19 @@ const OrderExpandedDetails = ({
   };
   const isThereAReturnedProductForCancel = () => {
     let arr = [];
-
-    selectedOrder?.returned_data?.map((s) => {
-      s.details?.order_details?.map((req) => {
-        if (req.already_return) {
-          arr.push(req?.return_request_id);
+    returnDetails.return_requests_data.map((s) => {
+      s.order_details.map((d) => {
+        if (d.already_return && d.return_request_id) {
+          arr.push(d.return_request_id);
         }
       });
     });
-    selectedOrder?.details.map((s) => {
-      if (s.return_request_id) arr.push(s.return_request_id);
+    returnDetails.return_requests_data.map((s) => {
+      s.order_details.map((d) => {
+        if (d.already_return && d.return_request_id) {
+          arr.push(d.return_request_id);
+        }
+      });
     });
     let set = new Set(arr);
     arr = [...set];
@@ -605,22 +554,18 @@ const OrderExpandedDetails = ({
   };
   const shouldShowConfirmReturn = () => {
     return (
-      selectedOrder?.returned_data?.filter(
-        (s) => s.details?.status?.value === null
+      returnDetails?.return_requests_data?.filter(
+        (s) => s?.status?.value === null
       )?.length > 0 && isThereAReturnedProduct()
     );
   };
   const shouldShowCancelReturn = () => {
     return (
-      order?.edit_return_request && order.order_has_return_request
-      //  && order.return_details?.details?.status?.value !== "cancelled"
+      order?.edit_return_request &&
+      order.order_has_return_request &&
+      returnDetails?.return_requests_data?.find((s) => s.order_id === order.id)
+        ?.status?.value !== "cancelled"
     );
-  };
-  const getProductWithReturn = (product) => {
-    // let return_item = order?.return_details?.details?.order_details?.find(
-    //   (s) => s.detail_id === product.id
-    // ) ?? { already_return: false };
-    // return { ...product, return: return_item };
   };
 
   const { lang } = useParams();
@@ -810,7 +755,6 @@ const OrderExpandedDetails = ({
             onClick={() => {
               // confirmOrderReturn();
               setShouldConfirmReturn(true);
-              setOrderOptions(true);
             }}
           >
             {cancelling ? (
@@ -822,12 +766,14 @@ const OrderExpandedDetails = ({
         )}
         {order.details.map((Product) => (
           <ProductCard
+            returnDetails={returnDetails}
+            setSelectedOrderItem={setSelectedOrderItem}
             getProductUrl={(e) => getProductUrl(e)}
             status={order?.order_status}
-            getOrderDetails={() => getOrderDetails()}
             product={Product}
             key={Product.id}
             order={order}
+            getOrderDetails={getOrderDetails}
           />
         ))}
       </div>
@@ -837,25 +783,41 @@ const OrderExpandedDetails = ({
 const ProductCard = ({
   product,
   status,
-  getOrderDetails,
+  returnDetails,
   order,
   getProductUrl,
+  setSelectedOrderItem,
+  getOrderDetails,
 }: {
   product: OrderInterface["details"][0];
   order: OrderInterface;
+  returnDetails: returnDetails;
   [key: string]: any;
+  setSelectedOrderItem: (e: any) => void;
 }) => {
-  const { currency, setSelectedOrderItem, ActivePacks } = useAppStore();
+  type ReturnItem =
+    (typeof returnDetails)["return_requests_data"][number]["order_details"][number];
+
+  // 2. The function return type is the product AND the return item merged
+  const getProductWithReturn = (
+    product: OrderInterface["details"][0]
+  ): OrderInterface["details"][0] & Partial<ReturnItem> => {
+    const return_item = returnDetails?.return_requests_data
+      ?.find((s) => s.order_id === order.id)
+      ?.order_details?.find((s) => s.detail_id === product.id);
+
+    return {
+      ...product,
+      already_return: false, // ensures the flag exists
+      ...return_item,
+    };
+  };
+  const { currency } = useAppStore();
   const { lang } = useParams();
   // @ts-ignore
   const language = lang.split("-")[1];
   const isRtl = language === "ar" || language === "ku";
-  const isShouldShowReturn = () => {
-    console.log(ActivePacks?.return_details);
-    if (ActivePacks?.return_details?.details?.status?.value === "cancelled")
-      return false;
-    else return true;
-  };
+
   return (
     <>
       <div className={`relative w-full flex-col`}>
@@ -1030,24 +992,31 @@ const ProductCard = ({
           </div>
         </NextLink>
 
-        {/* {product.return.already_return &&
-          (ActivePacks?.return_details ? (
+        {getProductWithReturn(product).already_return &&
+          (returnDetails ? (
             <OrderRetailsReturnInfo
               product={{
                 ...product,
-                return_status: ActivePacks?.return_details?.details?.status,
+                return_status: returnDetails.return_requests_data.find(
+                  (s) => s.order_id === order.id
+                )?.status,
               }}
               price={RoundPrice({
                 num:
                   (product?.price_after_discount / product?.qty) *
-                  product?.return?.return_request_product_quantity,
+                  Number(
+                    getProductWithReturn(product)
+                      ?.return_request_product_quantity
+                  ),
                 language: language,
                 returnNumber: true,
               })}
               callback={() => {
                 getOrderDetails();
               }}
-              return_request_id={product?.return?.return_request_product_id}
+              return_request_id={
+                getProductWithReturn(product)?.return_request_product_id
+              }
             />
           ) : (
             <div
@@ -1058,7 +1027,7 @@ const ProductCard = ({
             >
               {translateFunction("Failed To Load Return Details Try again")}
             </div>
-          ))} */}
+          ))}
       </div>
     </>
   );

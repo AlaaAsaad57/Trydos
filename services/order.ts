@@ -6,6 +6,7 @@ import { fetchData } from "utils/fetchData";
 import auth from "./auth";
 import { REQUESTS_DATA } from "utils/Requests";
 import { COOKIE_NAMES, getCookie } from "utils/cookies/cookie-manager";
+import { returnDetails } from "utils/types/OrderInterface";
 
 class OrderService {
   async PlaceOrder({ payment_method, pay_by_wallet }) {
@@ -665,7 +666,9 @@ class OrderService {
       throw new Error(res?.message);
     }
   }
-  async GetReturnDetailsForOrderGroup({ order_group_id }) {
+  async GetReturnDetailsForOrderGroup({
+    order_group_id,
+  }): Promise<returnDetails> {
     let resp = await fetchData({
       url: `/customer/order/return_requests/order_details_by_group?order_group_id=${order_group_id}`,
       server: "market",
@@ -673,12 +676,8 @@ class OrderService {
       reqTitle: REQUESTS_DATA.DETAILS_RETURN_PRODUCT,
       noMessage: true,
     });
-    let arr = resp.data.return_requests_data?.map((s) => ({
-      details: s,
-      id: s.return_request_id,
-      status: s?.status?.value,
-    }));
-    return arr;
+
+    return resp.data;
   }
 }
 export default new OrderService();

@@ -6,6 +6,8 @@ import ChangeAddressIcon from "public/svg/ChangeAddressIcon";
 import HideOrderItemIcon from "public/svg/HideOrderItemIcon";
 import OrderCancelIcon from "public/svg/OrderCancelIcon";
 import ChangeAddressWidget from "components/Orders/ChangeAddressWidget";
+import CancelOrderWrapper from "./CancelOrderWrapper";
+import OrderCancelConfirmationWindow from "./confirmations/OrderCancelConfirmationWindow";
 
 function OrderOptionsMenu({
   order,
@@ -15,10 +17,11 @@ function OrderOptionsMenu({
 }: {
   order: OrderInterface;
   close: () => void;
-  update?: () => void;
+  update?: () => Promise<any>;
   isRtl: boolean;
 }) {
   const [canceled, setCanceled] = useState(false);
+  const [ShouldConfirmCancel, setShouldConfirmCancel] = useState(false);
   const shouldShowChangeAddress = () => {
     return !order.can_update_address;
   };
@@ -107,9 +110,10 @@ function OrderOptionsMenu({
                     </div>
                   </div>
                 }
-                {order?.can_cancele_order && (
+                {order.can_cancele_order && (
                   <div
                     onClick={() => {
+                      setSelectedScreen("cancelOrder");
                       setCanceled(true);
                     }}
                     className={`cursor-pointer mt-[6px] flex-row w-full items-center px-[15px] bg-[#f8f8f8] rounded-[20px] min-h-[60px] ${
@@ -159,7 +163,52 @@ function OrderOptionsMenu({
         />
       );
     }
-    return <></>;
+    if (selectedScreen === "cancelOrder") {
+      return (
+        <div className="flex-col max-h-[calc(100vh-100px)] items-center overflow-auto w-full pt-[14px] px-[24px] z-[999999999] pb-[27px] absolute bottom-[0px]  left-0 rounded-t-[30px] bg-white">
+          <span className="w-[40px] h-[4px] bg-[#C4C2C2] rounded-[2px]"></span>
+          <div className="flex-col  items-center w-full justify-center flex-1">
+            <OrderItemBanner
+              isRtl={isRtl}
+              key={order.order_group_id}
+              order={order}
+            />
+            {!canceled && (
+              <>
+                <span className="regular text-[12px] mt-[11px] text-[#8D8D8D]">
+                  {translateFunction("Action About Your Order")}
+                </span>
+                <div
+                  className="w-full h-[1px] mt-[12px]"
+                  style={{ borderTop: "1px solid #C4C2C280" }}
+                />
+              </>
+            )}
+          </div>
+          <CancelOrderWrapper
+            order={order}
+            isRtl={isRtl}
+            setShouldConfirmCancel={(e) => setShouldConfirmCancel(e)}
+          />
+        </div>
+      );
+    }
+  };
+  const renderConfirmation = () => {
+    if (selectedScreen === "cancelOrder" && canceled && ShouldConfirmCancel) {
+      return (
+        <OrderCancelConfirmationWindow
+          isRtl={isRtl}
+          callback={async () => await update()}
+          order={order}
+          close={() => {
+            setCanceled(false);
+            setSelectedScreen("options");
+            setShouldConfirmCancel(false);
+          }}
+        />
+      );
+    }
   };
   return (
     <>
@@ -170,6 +219,7 @@ function OrderOptionsMenu({
         }}
       />
       {renderScreen()}
+      {renderConfirmation()}
     </>
   );
 }

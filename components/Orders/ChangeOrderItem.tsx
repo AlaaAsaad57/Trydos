@@ -15,18 +15,24 @@ import { showErrorNotification } from "store/notifications/reducer";
 import { useAppStore } from "store";
 import { REQUESTS_DATA } from "utils/Requests";
 import ChangeOrderItemSkeleton from "components/skeleton/loaders/ChangeOrderItemSkeleton";
+import { OrderInterface } from "utils/types/OrderInterface";
 
 function ChangeOrderItem({
   item,
+  order_id,
   backToMain,
   setShouldConfirmChange,
   shouldConfirmChange,
+}: {
+  item: OrderInterface["details"][0];
+  order_id: number;
+  [key: string]: any;
 }) {
   const [loading, setLoading] = useState(false);
   const CancelQty = async () => {
     try {
       setShouldConfirmChange({
-        order_id: ActivePacks?.id,
+        order_id: order_id,
         item_id: item?.id,
         qty: item.qty - qty,
         type: "CancelQty",
@@ -35,7 +41,7 @@ function ChangeOrderItem({
       setLoading(false);
     }
   };
-  const { ActivePacks, language } = useAppStore();
+  const { language } = useAppStore();
   const [tabs, setTabs] = useState<string>(
     item?.variation?.[0]?.color
       ? "Change Color"
@@ -213,13 +219,13 @@ function ChangeOrderItem({
               })}
               width={104}
               height={144}
-              alt={item.name || "Image"}
+              alt={item?.product_details?.name || "Image"}
             />
           </div>
           <div className="relative flex w-[30px] h-[30px] items-center justify-center mt-[12px]">
             <ChangeOrderItemIcon className="absolute top-0 left-0 right-0 mx-auto my-0" />
             <Image
-              alt={item.name || "Image"}
+              alt={item?.product_details?.name || "Image"}
               width={20}
               height={20}
               className="rounded-full h-[20px] w-[20px] object-cover ddd"
@@ -295,17 +301,6 @@ function ChangeOrderItem({
           if (!isChanged()) {
             backToMain();
           } else {
-            // changeOrderItem({
-            //   id: item.id,
-            //   color: color,
-            //   size: size,
-            //   qty: qty,
-            //   image:
-            //     productData?.sync_color_images?.find(
-            //       (s) => s.color_name?.toLowerCase() === color?.toLowerCase()
-            //     )?.images?.[0] || productData?.images[0],
-            // });
-
             if (tabs === "Change Color") {
               setShouldConfirmChange({
                 ...shouldConfirmChange,
@@ -342,7 +337,7 @@ function ChangeOrderItem({
 }
 
 export default ChangeOrderItem;
-export const ChangeColorWidget = ({ color, setColor, item, productData }) => {
+const ChangeColorWidget = ({ color, setColor, item, productData }) => {
   return (
     <div className="flex-col w-full items-center  border-[#E6E6E680] border-b-[1px] pb-[12px] px-[24px] mt-[10px]">
       <div className="relative">
@@ -391,7 +386,7 @@ export const ChangeColorWidget = ({ color, setColor, item, productData }) => {
     </div>
   );
 };
-export const ChangeSizeWidget = ({ size, setSize, item, productData }) => {
+const ChangeSizeWidget = ({ size, setSize, item, productData }) => {
   return (
     <div className="flex-col w-full items-center  border-[#E6E6E680] border-b-[1px] pb-[12px] px-[24px] mt-[10px]">
       <div className="relative">
@@ -491,7 +486,7 @@ const ChangeQtyWidget = ({
           type="number"
           value={qty}
           onChange={(e) => {
-            if (parseInt(pollinateInput(e.target.value)) > qty) {
+            if (parseInt(pollinateInput(e.target.value)) > item.qty) {
               showErrorNotification(
                 translateFunction(
                   "You Can't Change Qty To Higher Than The Current Qty"
@@ -504,6 +499,14 @@ const ChangeQtyWidget = ({
           className="flex-1 h-[40px] text-center text-[16px] font-medium text-[#1D1D1D] bg-white border-t border-b border-[#E6E6E680] focus:outline-none focus:border-[#402CDD] focus:ring-1 focus:ring-[#402CDD80] transition-all duration-200"
           min="1"
         />
+        {item.qty !== qty && (
+          <button
+            onClick={() => setQty(Math.min(item.qty, qty + 1))}
+            className="flex items-center justify-center w-[40px] h-[40px] rounded-r-[12px] bg-[#F8F8F8] border border-[#E6E6E680] border-l-0 hover:bg-[#EEEEEE] transition-colors duration-200 active:scale-95"
+          >
+            <span className="text-[#1D1D1D] text-[18px] light">+</span>
+          </button>
+        )}
       </div>
       <span className="text-[#8D8D8D] text-[12px] regular mt-[8px] text-center">
         {translateFunction("Select quantity")}

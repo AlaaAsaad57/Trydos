@@ -62,7 +62,7 @@ export const ModifyOrderItemModal = ({
     <div
       className={`z-[9999999999999] pb-[70px] px-[24px] w-full flex-col ${
         confirmationData.loading ? "justify-start pt-[30px]" : "justify-end"
-      } items-center h-[calc(100vh)] overflow-auto max-h-[calc(100vh)] fixed top-[0px] left-0 bg-[#0000006c]  backdrop-blur-[10px]`}
+      } items-center h-[calc(100vh)] overflow-auto max-h-full fixed top-[0px] left-0 bg-[#0000006c]  backdrop-blur-[10px]`}
     >
       {confirmationData?.loading ? (
         <span className="scale-[4]">

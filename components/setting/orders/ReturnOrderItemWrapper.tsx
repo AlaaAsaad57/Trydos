@@ -1,20 +1,42 @@
+import ReturnOrderItemIcon from "public/svg/ReturnOrderItemIcon";
 import React, { useEffect, useState } from "react";
-import Image from "next/image";
+import { useAppStore } from "store";
 import {
   getConfiguredImage,
   RoundPrice,
   translateFunction,
 } from "utils/functions";
-import ReturnOrderItemIcon from "public/svg/ReturnOrderItemIcon";
-import { useAppStore } from "store";
-
-import Spinner from "components/global/Spinner";
+import { OrderInterface, returnDetails } from "utils/types/OrderInterface";
 import order from "services/order";
-
-import UploadImageComponent from "./UploadImageComponent";
-
-function ReturnOrderItem({ backToMain, item, setShouldConfirmReturn }: any) {
-  const { currency, language, ActivePacks } = useAppStore();
+import UploadImageComponent from "components/Orders/UploadImageComponent";
+import Spinner from "components/global/Spinner";
+import Skeleton from "react-loading-skeleton";
+function ReturnOrderItemWrapper({
+  item,
+  returnDetails,
+  order_id,
+  isRtl,
+  backToMain,
+  setShouldConfirmReturn,
+}: {
+  item: OrderInterface["details"][number];
+  returnDetails: returnDetails;
+  order_id: number;
+  isRtl: boolean;
+  backToMain: () => void;
+  setShouldConfirmReturn: (e) => void;
+}) {
+  const isUpdateOrder = () => {
+    return returnDetails?.return_requests_data
+      ?.find((s) => s.order_id === order_id)
+      ?.order_details?.find((s) => s.detail_id === item?.id)?.already_return;
+  };
+  const ProductReturnDetails = () => {
+    return returnDetails?.return_requests_data
+      ?.find((s) => s.order_id === order_id)
+      ?.order_details?.find((s) => s.detail_id === item?.id);
+  };
+  const { currency, language } = useAppStore();
   const [options, setOptions] = useState([]);
   const [selectedOptions, setSelectedOptions] = useState(null);
 
@@ -25,17 +47,20 @@ function ReturnOrderItem({ backToMain, item, setShouldConfirmReturn }: any) {
       setSelectedOptions(option);
     }
   };
-  const [images, setImages] = useState<string[]>(item?.return?.img ?? []);
+  const [images, setImages] = useState<string[]>(
+    ProductReturnDetails()?.img ?? []
+  );
   const [loading, setLoading] = useState(true);
   const getReasons = async () => {
     try {
       setLoading(true);
       let response = await order.getReturnReasons();
       setOptions(response.data.return_reasons);
-      if (item?.return?.return_request_product_reason_id) {
+      if (ProductReturnDetails()?.return_request_product_reason_id) {
         setSelectedOptions(
           response?.data?.return_reasons?.find(
-            (s) => s.id === item?.return?.return_request_product_reason_id
+            (s) =>
+              s.id === ProductReturnDetails()?.return_request_product_reason_id
           )
         );
       }
@@ -49,11 +74,10 @@ function ReturnOrderItem({ backToMain, item, setShouldConfirmReturn }: any) {
   }, []);
   const [loadingImage, setLoadinImage] = useState(false);
   const [returnedQty, setReturnedQty] = useState(
-    (item.return.return_request_product_quantity &&
-      parseInt(item.return.return_request_product_quantity)) ??
+    (ProductReturnDetails()?.return_request_product_quantity &&
+      parseInt(ProductReturnDetails()?.return_request_product_quantity)) ??
       item.qty
   );
-  const isRtl = language === "ar" || language === "ku";
   return (
     <>
       <div className="flex-col w-full items-center pb-[12px] px-[24px]">
@@ -65,7 +89,7 @@ function ReturnOrderItem({ backToMain, item, setShouldConfirmReturn }: any) {
               boxShadow: "inset 0px 3px 6px #ffffff80",
             }}
           ></span>
-          <Image
+          <img
             className="rounded-[15px] h-[144px] object-cover"
             style={{
               border: "1px solid #ffffff80",
@@ -78,14 +102,14 @@ function ReturnOrderItem({ backToMain, item, setShouldConfirmReturn }: any) {
             })}
             width={104}
             height={144}
-            alt={item.name}
+            alt={item?.product_details?.name}
           />
         </div>
         <div className="">
           <ReturnOrderItemIcon className="mt-[12px] [&>path]:fill-[#402CDD]" />
         </div>
         <span className="medium text-[14px] mt-[11px] text-[#402CDD]">
-          {item?.return?.already_return
+          {isUpdateOrder()
             ? translateFunction("Update Return Request For This Product")
             : translateFunction("Return This Product")}
         </span>
@@ -217,11 +241,11 @@ function ReturnOrderItem({ backToMain, item, setShouldConfirmReturn }: any) {
           <UploadImageComponent
             removeImageAction={async (i) => {
               try {
-                if (item.return.return_request_product_id) {
+                if (ProductReturnDetails()?.return_request_product_id) {
                   setLoading(true);
                   await order.removeImage({
                     return_request_product_id:
-                      item.return.return_request_product_id,
+                      ProductReturnDetails()?.return_request_product_id,
                     img: i,
                   });
                   setLoading(false);
@@ -260,17 +284,10 @@ function ReturnOrderItem({ backToMain, item, setShouldConfirmReturn }: any) {
                 reasons: selectedOptions,
                 additon_cost: selectedOptions?.is_cost_by_system === 0,
                 qty: returnedQty,
-                update: item?.return?.already_return,
+                update: ProductReturnDetails()?.already_return,
                 return_request_product_id:
-                  item?.return?.return_request_product_id,
+                  ProductReturnDetails()?.return_request_product_id,
               });
-              //   setConfirmationData({
-              //     enable: true,
-              //     currentAddress: addressLists?.find((s) => s.id === address_id),
-              //     newAddress: addressLists?.find(
-              //       (s) => s.id === selectedAddressId
-              //     ),
-              //   });
             }
           }}
         >
@@ -289,4 +306,26 @@ function ReturnOrderItem({ backToMain, item, setShouldConfirmReturn }: any) {
   );
 }
 
-export default ReturnOrderItem;
+export default ReturnOrderItemWrapper;
+
+const OptionsSkeleton = () => {
+  return (
+    <>
+      {Array.from({ length: 7 }).map((s, i) => (
+        <div
+          className={`px-[12px] w-[70px] max-w-[70px] regular text-[12px] text-[#5D5C5D] flex-row h-[39px] justify-start items-center rounded-[12px]  `}
+        >
+          <Skeleton
+            key={i}
+            width={70}
+            height={40}
+            borderRadius={12}
+            style={{
+              flex: "0 1 auto",
+            }}
+          ></Skeleton>
+        </div>
+      ))}
+    </>
+  );
+};

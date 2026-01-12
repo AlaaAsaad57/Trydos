@@ -34,8 +34,8 @@ export const HandleAuthedFetch = async <T = any>(
 ): Promise<any> => {
   const cookieStore = await cookies();
   let token =
-    cookieStore?.get(COOKIE_NAMES.DEVICE_TOKEN)?.value ??
-    cookieStore?.get(COOKIE_NAMES?.MARKET_TOKEN)?.value;
+    cookieStore?.get(COOKIE_NAMES?.MARKET_TOKEN)?.value ??
+    cookieStore?.get(COOKIE_NAMES.DEVICE_TOKEN)?.value;
 
   let headers = {
     ...(options?.headers ?? {}),

@@ -11,18 +11,6 @@ const LargeColorIcon = (props: any) => (
     viewBox="0 0 49.999 50"
     {...props}
   >
-    <defs>
-      <clipPath id="clip-path">
-        <rect
-          id="Rectangle_6340"
-          data-name="Rectangle 6340"
-          width="24.999"
-          height="24.999"
-          transform="translate(0 0)"
-          fill="none"
-        />
-      </clipPath>
-    </defs>
     <g id="Group_13936" data-name="Group 13936" transform="translate(0 0)">
       <g id="Group_12940" data-name="Group 12940">
         <g id="Group_12939" data-name="Group 12939" transform="translate(0)">
@@ -47,7 +35,6 @@ const LargeColorIcon = (props: any) => (
       id="Mask_Group_803"
       data-name="Mask Group 803"
       transform="translate(12.499 11.309)"
-      clipPath="url(#clip-path)"
     >
       <g
         id="Group_4033"
