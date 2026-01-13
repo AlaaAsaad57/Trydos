@@ -4,9 +4,11 @@ import { useParams } from "next/navigation";
 import React from "react";
 import SellerDashboardService from "services/sellerDashboard";
 import { translateFunction } from "utils/functions";
+import BecomeSellerModal from "./BecomeSellerModal";
 function GoToSellerDashBoard({ language }: { language: string }) {
   const { lang } = useParams();
   const [shouldShow, setShouldShow] = React.useState(true);
+  const [openSellerModal, setOpenSellerModal] = React.useState(false);
   const [loading, setLoading] = React.useState(true);
   React.useEffect(() => {
     getPermission();
@@ -28,7 +30,19 @@ function GoToSellerDashBoard({ language }: { language: string }) {
     }
   };
   if (!shouldShow) {
-    return <></>;
+    return (
+      <>
+        <button
+          onClick={() => setOpenSellerModal(true)}
+          className="h-[50px] cursor-pointer w-full rounded-[15px]  bg-[#f8f8f8] border border-gray-100 flex justify-center items-center my-[12px]"
+        >
+          {translateFunction("Become A Seller At Trydos", language)}
+        </button>
+        {openSellerModal && (
+          <BecomeSellerModal onClose={() => setOpenSellerModal(false)} />
+        )}
+      </>
+    );
   }
   if (loading) {
     return (
@@ -38,14 +52,25 @@ function GoToSellerDashBoard({ language }: { language: string }) {
     );
   }
   return (
-    <div
-      onClick={() => {
-        window.location.href = `/${lang}/sellerProfile`;
-      }}
-      className="h-[50px] cursor-pointer w-full rounded-[15px]  bg-[#f8f8f8] border border-gray-100 flex justify-center items-center my-[12px]"
-    >
-      {translateFunction("Go to Seller Dashboard", language)}
-    </div>
+    <>
+      <button
+        onClick={() => setOpenSellerModal(true)}
+        className="h-[50px] cursor-pointer w-full rounded-[15px]  bg-[#f8f8f8] border border-gray-100 flex justify-center items-center my-[12px]"
+      >
+        {translateFunction("Become A Seller At Trydos", language)}
+      </button>
+      {openSellerModal && (
+        <BecomeSellerModal onClose={() => setOpenSellerModal(false)} />
+      )}
+      <div
+        onClick={() => {
+          window.location.href = `/${lang}/sellerProfile`;
+        }}
+        className="h-[50px] cursor-pointer w-full rounded-[15px]  bg-[#f8f8f8] border border-gray-100 flex justify-center items-center my-[12px]"
+      >
+        {translateFunction("Go to Seller Dashboard", language)}
+      </div>
+    </>
   );
   return;
 }
