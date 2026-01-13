@@ -47,7 +47,7 @@ export default function NextLink({
         onNavigate={(e) => {
           if (isFromSetting) {
             let element = document.querySelector(".setting-screen");
-            console.log(element, "onNavigate");
+
             if (element) {
               element.classList.add("loading-page-class");
               return;
@@ -61,7 +61,7 @@ export default function NextLink({
         onClick={() => {
           if (isFromSetting) {
             let element = document.querySelector(".setting-screen");
-            console.log(element, "onCLick");
+
             if (element) {
               element.classList.add("loading-page-class");
               return;
@@ -111,7 +111,7 @@ export default function NextLink({
       onNavigate={(e) => {
         if (isFromSetting) {
           let element = document.querySelector(".setting-screen");
-          console.log(element, "onNavigate");
+
           if (element) {
             element.classList.add("loading-page-class");
             return;
@@ -125,7 +125,7 @@ export default function NextLink({
       onClick={() => {
         if (isFromSetting) {
           let element = document.querySelector(".setting-screen");
-          console.log(element, "onCLick");
+
           if (element) {
             element.classList.add("loading-page-class");
             return;

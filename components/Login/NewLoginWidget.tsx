@@ -228,7 +228,7 @@ function NewLoginWidget() {
         }
       },
       successCallback: (exists, name) => {
-        // router.refresh();
+        router.refresh();
         GAevent({
           action: GA_EVENT_NAMES.VERIFY_OTP,
           params: {
