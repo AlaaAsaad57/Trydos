@@ -583,7 +583,7 @@ class ForegroundNotificationHandler {
                 5000,
                 `/${country}-${language}/settings/orders/${
                   JSON.parse(payload.data.data).order_group_id
-                }?order_id_chat=${
+                }?order_id=${
                   JSON.parse(payload.data.data)?.parent_order_id ??
                   JSON.parse(payload?.data?.data)?.order_id
                 }&chat_id=${JSON.parse(payload?.data?.data)?.order_id}&mid=${

@@ -21,12 +21,17 @@ import {
 } from "utils/functions";
 import { DisableScroll, EnableScroll, GetImageUrl } from "utils/tinyUtils";
 import NextLink from "components/global/NextLink";
-import { useParams } from "node_modules/next/navigation";
+import {
+  useParams,
+  usePathname,
+  useRouter,
+} from "node_modules/next/navigation";
 import { useAppStore } from "store";
 import Spinner from "components/global/Spinner";
 import OrderStatusIcon from "components/settings/cards/OrderStatusIcon";
 import OrderStatusCartsIcon from "components/settings/cards/OrderStatusCartsIcon";
 import {
+  orderChatDetails,
   OrderInterface,
   OrderRatingData,
   returnDetails,
@@ -102,8 +107,13 @@ function OrderDetailsWrapper({
           String(order.id) === String(order_chat_id) ||
           String(order.return_request_id) === String(order_chat_id)
       );
+      console.log(order_item);
       setOrderData(data);
-      setActivePack(data?.find((order) => order.id === order_id) ?? data?.[0]);
+      let active_order =
+        data?.find((order) => String(order.id) === String(order_id)) ??
+        data?.[0];
+      console.log(order_id);
+      setActivePack(active_order);
       if (
         order_item.order_status?.value === "out_for_delivery" ||
         returnData.return_requests_data.find(
@@ -157,6 +167,13 @@ function OrderDetailsWrapper({
     if (ActivePack?.order_status?.value === "delivered") return true;
     else return false;
   };
+  const router = useRouter();
+  const pathname = usePathname();
+
+  const handleClear = () => {
+    // This replaces the URL with just the path, effectively deleting params
+    router.replace(pathname);
+  };
   const shouldShowChatIcon = (pack) => {
     // Out for Delivery
     if (pack && pack?.order_status?.value === "out_for_delivery")
@@ -178,7 +195,7 @@ function OrderDetailsWrapper({
       ),
     ]);
     try {
-      let response = await fetchData({
+      let response: orderChatDetails = await fetchData({
         url: "/api/v1/channels/orderChatParticipant/get-recipient",
         reqTitle: REQUESTS_DATA.GET_CHAT_WITH_DELEIVERY,
         method: "POST",
@@ -228,11 +245,11 @@ function OrderDetailsWrapper({
               user_id: getUserChat()?.id,
             },
             {
-              user_id: response?.data.chat_participant?.id,
+              user_id: response?.data?.recipient?.id,
               name: "Deleivery Worker",
               phone: "",
               user: {
-                id: response?.data.chat_participant?.id,
+                id: response?.data.recipient?.id,
                 name: "Deleivery Worker",
                 phone: "",
               },
@@ -240,12 +257,14 @@ function OrderDetailsWrapper({
           ],
           messages: [],
         };
+
         setChatInfo(chat);
         openChat(chat);
         setIsNavigating(false);
       }
       setIsChatOpen(true);
       setIsGettingChat(false);
+      handleClear();
     } catch (error) {
       // Don't handle error if it's an abort error
       if (error.name === "AbortError") {
@@ -266,7 +285,7 @@ function OrderDetailsWrapper({
         const { user } = useAppStore.getState();
 
         // Check if user is phone verified
-        if (user && user.is_phone_verified === 1) {
+        if (user && user?.is_phone_verified === 1) {
           return true;
         }
 
@@ -281,7 +300,6 @@ function OrderDetailsWrapper({
       while (retryCount < maxRetries) {
         try {
           const isVerified = await checkVerificationStatus();
-
           if (isVerified) {
             // User is now verified, call getChatWithShipping
 
@@ -315,7 +333,7 @@ function OrderDetailsWrapper({
     }
   };
   const safeGetChatWithShipping = async (id?) => {
-    if (user.is_phone_verified !== 0) await getChatWithShipping(id);
+    if (user?.is_phone_verified !== 0) await getChatWithShipping(id);
     else {
       setShouldAuthinticated(true);
       retryUntilAuthinticated();

@@ -183,3 +183,30 @@ export interface returnDetails {
     }>;
   }>;
 }
+
+export interface orderChatDetails {
+  isSuccessful: boolean;
+  hasContent: boolean;
+  code: number;
+  message: any;
+  detailed_error: any;
+  data: {
+    recipient: {
+      id: string;
+    };
+    chat_participant: {
+      id: string;
+      delivery_user_id: string;
+      original_user_id: string;
+      order_id: string;
+      parent_order_id: any;
+      order_group_id: string;
+      channel_id: any;
+      created_at: string;
+      updated_at: string;
+    };
+    channel: any | Channel;
+  };
+  success: boolean;
+}
+interface Channel {}
