@@ -219,4 +219,5 @@ export const REQUESTS_DATA = {
   DELETE_SHOP_USER: { reqTitle: "DELETE_SHOP_USER", code: 153 },
   UPDATE_USER_ROLE: { reqTitle: "UPDATE_USER_ROLE", code: 154 },
   LEAVE_SHOP: { reqTitle: "LEAVE_SHOP", code: 155 },
+  VENDOR_REQUEST: { reqTitle: "Vendor Request", code: 156 },
 };
