@@ -923,6 +923,7 @@ function ChatMessage(props) {
                       )}
                   </div>
                   <audio
+                    key={props.message.message_files[0]?.file_path}
                     onEnded={() => {
                       setPlay(false);
 
@@ -1982,6 +1983,7 @@ function ChatMessage(props) {
                   )}
                   <div className="audio-message ">
                     <audio
+                      key={props.message.message_files[0]?.file_path}
                       onEnded={() => {
                         setPlay(false);
                         AudioRef.current.currentTime = 0;
