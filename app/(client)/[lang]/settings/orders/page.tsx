@@ -8,7 +8,10 @@ async function Orders({ params }) {
   const isRtl = language === "ar" || language === "ku";
   let order_group_statuses = await getOrderStatues({ language, country });
   return (
-    <div className="flex-col w-full pt-[20px] px-[12px] flex setting-screen max-h-full">
+    <div
+      className="flex-col w-full pt-[20px] px-[12px] flex setting-screen max-h-full"
+      key="orders-setting-page"
+    >
       <BackBar
         isRtl={isRtl}
         local={Params.lang}

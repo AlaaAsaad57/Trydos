@@ -1021,3 +1021,14 @@ svg {
 .comment-liked #liked-heart {
   display: flex;
 }
+
+.loading-page-class {
+  opacity: 65% !important;
+  scale: 95% !important;
+}
+
+.setting-screen {
+  transition: all;
+  transition-duration: 0.4s;
+  transition-timing-function: ease-in-out;
+}

@@ -61,7 +61,12 @@ function ProfileSizeInfo({ local, initialData, isRtl }) {
   };
 
   return (
-    <div className={`flex-col w-full ${loading ? "opacity-50 scale-95" : ""}`}>
+    <div
+      className={`flex-col w-full  setting-screen ${
+        loading ? "opacity-50 scale-95" : ""
+      }`}
+      key="size-setting-page"
+    >
       <BackBar
         isRtl={isRtl}
         DataCy="personal-size-save-button"

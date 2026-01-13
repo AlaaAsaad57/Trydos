@@ -1,5 +1,4 @@
 import NextLink from "components/global/NextLink";
-import { cookies } from "next/headers";
 import VerifyUser from "./VerifyUser";
 import { GetImageUrl, translateFunction } from "utils/server";
 
@@ -13,6 +12,7 @@ async function Profile({ isRtl, language, local, SafeUserProfile }) {
     >
       {/* 1. الرابط الخفي الذي يغطي البطاقة بالكامل (للذهاب للبروفايل) */}
       <NextLink
+        isFromSetting={true}
         href={`/${local}/settings/profile`}
         className="absolute inset-0 z-0"
         aria-label="View Profile"
@@ -53,6 +53,7 @@ async function Profile({ isRtl, language, local, SafeUserProfile }) {
 
         <NextLink
           href={`/${local}/settings/profile/size`}
+          isFromSetting={true}
           className="pointer-events-auto cursor-pointer whitespace-nowrap w-fit regular text-[12px] text-[#8D8D8D] "
         >
           {translateFunction("Add Size", language)}
@@ -61,6 +62,7 @@ async function Profile({ isRtl, language, local, SafeUserProfile }) {
 
       {/* 3. الصورة (أيضاً فوق الرابط الخفي) */}
       <NextLink
+        isFromSetting={true}
         href={`/${local}/settings/profile/picture`}
         className="pointer-events-auto z-10 flex w-[70px] h-[70px] rounded-[12px] justify-center items-center cursor-pointer overflow-hidden bg-white"
         style={{ border: "1px solid #1D1D1D" }}

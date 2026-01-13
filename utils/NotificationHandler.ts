@@ -120,10 +120,10 @@ class ForegroundNotificationHandler {
             showSuccessNotification(
               data.description,
               5000,
-              `/${lang}/setting?tab=Orders&id=${data?.order_group_id}`,
+              `/${lang}/settings/orders/${data?.order_group_id}`,
               {
                 is_settings: true,
-                href: `/${lang}/setting?tab=Orders&id=${data?.order_group_id}`,
+                href: `/${lang}/setting/orders/${data?.order_group_id}`,
               },
               null
             );
@@ -241,10 +241,10 @@ class ForegroundNotificationHandler {
               showSuccessNotification(
                 data.description,
                 5000,
-                `/${lang}/setting?tab=Orders&id=${data?.order_group_id}`,
+                `/${lang}/setting/orders/${data?.order_group_id}`,
                 {
                   is_settings: true,
-                  href: `/${lang}/setting?tab=Orders&id=${data?.order_group_id}`,
+                  href: `/${lang}/setting/orders/${data?.order_group_id}`,
                 },
                 null
               );
@@ -581,9 +581,9 @@ class ForegroundNotificationHandler {
                 messageImage,
                 messageType,
                 5000,
-                `/${country}-${language}/setting?tab=Orders&id=${
+                `/${country}-${language}/settings/orders/${
                   JSON.parse(payload.data.data).order_group_id
-                }&order_id_chat=${
+                }?order_id_chat=${
                   JSON.parse(payload.data.data)?.parent_order_id ??
                   JSON.parse(payload?.data?.data)?.order_id
                 }&chat_id=${JSON.parse(payload?.data?.data)?.order_id}&mid=${

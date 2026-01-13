@@ -78,7 +78,7 @@ function WelcomeSignup({ stepIndicator, Name, signStep, close }: Props) {
               is_settings: true,
             }}
             ariaLabel={`Complete My Profile ${lang}`}
-            href={`/${lang}/setting?tab=Profile`}
+            href={`/${lang}/settings/profile`}
             className="login-button"
             data-cy="Complate-Close"
             style={{

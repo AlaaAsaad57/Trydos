@@ -20,9 +20,13 @@ const BackBar = ({
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
-  console.log(preivous_page);
+
   const handleBack = () => {
     if (loading) return;
+    let element = document.querySelector(".setting-screen");
+    if (element) {
+      element.classList.add("loading-page-class");
+    }
     if (lastPathname) router.back();
     setLoading(true);
     if (preivous_page) {

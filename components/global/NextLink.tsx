@@ -16,6 +16,7 @@ export interface INextLinkProps {
   style?: React.CSSProperties;
   id?: string;
   onClick?: any;
+  isFromSetting?: boolean;
 }
 export default function NextLink({
   sameHref,
@@ -28,6 +29,7 @@ export default function NextLink({
   data,
   ignoreConditionCase = false,
   onClick,
+  isFromSetting,
   ...props
 }: INextLinkProps) {
   const pathname = usePathname();
@@ -43,12 +45,28 @@ export default function NextLink({
         prefetch={"auto"}
         href={href}
         onNavigate={(e) => {
+          if (isFromSetting) {
+            let element = document.querySelector(".setting-screen");
+            console.log(element, "onNavigate");
+            if (element) {
+              element.classList.add("loading-page-class");
+              return;
+            }
+          }
           setColorBottomSheet(null);
 
           DisableScroll();
           setLastPathname(pathname);
         }}
         onClick={() => {
+          if (isFromSetting) {
+            let element = document.querySelector(".setting-screen");
+            console.log(element, "onCLick");
+            if (element) {
+              element.classList.add("loading-page-class");
+              return;
+            }
+          }
           if (onClick) {
             onClick();
           }
@@ -91,12 +109,28 @@ export default function NextLink({
       data-cy={props["data-cy"] ?? ""}
       prefetch={"auto"}
       onNavigate={(e) => {
+        if (isFromSetting) {
+          let element = document.querySelector(".setting-screen");
+          console.log(element, "onNavigate");
+          if (element) {
+            element.classList.add("loading-page-class");
+            return;
+          }
+        }
         DisableScroll();
         setColorBottomSheet(null);
 
         setLastPathname(pathname);
       }}
       onClick={() => {
+        if (isFromSetting) {
+          let element = document.querySelector(".setting-screen");
+          console.log(element, "onCLick");
+          if (element) {
+            element.classList.add("loading-page-class");
+            return;
+          }
+        }
         if (onClick) {
           onClick();
         }

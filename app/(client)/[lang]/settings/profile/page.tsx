@@ -38,7 +38,10 @@ async function Profile({ params }) {
     },
   ];
   return (
-    <div className="flex-col w-full pt-[20px] px-[12px] flex setting-screen">
+    <div
+      className="flex-col w-full pt-[20px] px-[12px] flex setting-screen"
+      key="profile-setting-page"
+    >
       <BackBar
         isRtl={isRtl}
         local={Params?.lang}
@@ -68,6 +71,7 @@ const ProfilePicture = ({ photo, language, local }) => {
   if (photo)
     return (
       <NextLink
+        isFromSetting={true}
         href={`/${local}/settings/profile/picture`}
         data-cy="go-to-update-photo-screen"
         className="relative w-[128px] h-[128px] flex justify-center items-center object-cover cursor-pointer"
@@ -90,6 +94,7 @@ const ProfilePicture = ({ photo, language, local }) => {
   else
     return (
       <NextLink
+        isFromSetting={true}
         href={`/${local}/settings/profile/picture`}
         data-cy="go-to-update-photo-screen"
         className="relative w-[128px] h-[128px] flex justify-center items-center object-cover cursor-pointer"
@@ -179,6 +184,7 @@ const ProfilePicture = ({ photo, language, local }) => {
 const SettingOption = ({ name, Icon, dataCy, href }: any) => {
   return (
     <NextLink
+      isFromSetting={true}
       href={href}
       data-cy={dataCy}
       className="w-full cursor-pointer flex-row mt-[4px] h-[53px] rounded-[15px] bg-[#f8f8f8] px-[12px] items-center"

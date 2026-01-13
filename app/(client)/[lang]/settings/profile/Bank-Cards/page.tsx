@@ -12,7 +12,10 @@ async function ProfileBankCards({ params }) {
     ? JSON.parse(SafeUserProfileCookie)
     : { name: "", phone: "", is_phone_verified: 0 };
   return (
-    <div className="flex-col w-full pt-[20px] px-[12px] flex setting-screen">
+    <div
+      className="flex-col w-full pt-[20px] px-[12px] flex setting-screen"
+      key="bank-setting-page"
+    >
       <BackBar
         isRtl={isRtl}
         local={Params?.lang}

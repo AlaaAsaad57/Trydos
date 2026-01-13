@@ -110,7 +110,10 @@ function PersonalInfoCountries({
   const resolvedInfoMessage = infoMessage ?? defaultInfoMessage;
 
   return (
-    <div className="flex-col w-full">
+    <div
+      className="flex-col w-full setting-screen"
+      key="countries-setting-page"
+    >
       {!hideTopBar && (
         <BackBar
           isRtl={isRtl}

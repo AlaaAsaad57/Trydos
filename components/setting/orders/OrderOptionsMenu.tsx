@@ -23,7 +23,7 @@ function OrderOptionsMenu({
   const [canceled, setCanceled] = useState(false);
   const [ShouldConfirmCancel, setShouldConfirmCancel] = useState(false);
   const shouldShowChangeAddress = () => {
-    return !order.can_update_address;
+    return order.can_update_address;
   };
   const [selectedScreen, setSelectedScreen] = useState("options");
   const renderScreen = () => {

@@ -16,6 +16,7 @@ async function OrderDetailsPage({ params, searchParams }) {
         order_id={pack_id}
         isRtl={isRtl}
         local={local}
+        order_chat_id={chat_order_id}
         order_group_id={order_group_id}
       />
     </div>

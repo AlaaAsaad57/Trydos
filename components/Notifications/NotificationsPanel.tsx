@@ -375,8 +375,8 @@ const NotificationInfo = ({ closeWindow }) => {
       >
         <NextLink
           data-cy="notification-settings"
-          data={{ is_settings: true, href: `/${lang}/setting?tab=Setting` }}
-          href={`/${lang}/setting?tab=Setting`}
+          data={{ is_settings: true, href: `/${lang}/settings/preferences` }}
+          href={`/${lang}/settings/preferences`}
           className="flex-row w-full rounded-md shadow-md h-[50px] bg-[#f8f8f8] text-[#5d5d5d] medium text-[14px] justify-center items-center"
         >
           <span>{translateFunction("Notification Settings")}</span>

@@ -81,8 +81,15 @@ async function page({ params }) {
     if (iso === "ku") return "کوردی";
   };
   return (
-    <div className="flex-col w-full pt-[20px] px-[12px] flex setting-screen">
-      <BackBar isRtl={isRtl} local={Params?.lang} />
+    <div
+      className="flex-col w-full pt-[20px] px-[12px] flex setting-screen"
+      key="main-setting-page"
+    >
+      <BackBar
+        isRtl={isRtl}
+        local={Params?.lang}
+        preivous_page={`/${Params.lang}`}
+      />
       <Suspense
         fallback={
           <Skeleton
@@ -144,6 +151,7 @@ async function page({ params }) {
         } mt-[12px] gap-[12px] flex w-full`}
       >
         <NextLink
+          isFromSetting={true}
           href={`/${Params?.lang}/settings/countries`}
           data-cy="country-button"
           className={`${
@@ -164,6 +172,7 @@ async function page({ params }) {
           </span>
         </NextLink>
         <NextLink
+          isFromSetting={true}
           href={`/${Params?.lang}/settings/languages`}
           className={`${
             isRtl ? "flex-row-reverse" : "flex-row"
@@ -190,6 +199,7 @@ export default page;
 const SettingOption = ({ name, Icon, href, isRtl, language }: any) => {
   return (
     <NextLink
+      isFromSetting={true}
       href={href}
       className={`w-full flex-row cursor-pointer mt-[4px] h-[53px] rounded-[15px] bg-[#f8f8f8] px-[12px] items-center ${
         isRtl ? "flex-row-reverse" : " "

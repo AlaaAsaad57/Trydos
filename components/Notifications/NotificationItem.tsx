@@ -161,11 +161,7 @@ const NotificationItem = ({ notification, onClose, closeWindow }) => {
 
       case parsedDescription.type.startsWith("order") &&
         parsedDescription.type: {
-        const href = `/${lang}/setting?tab=Orders${
-          parsedDescription.order_group_id
-            ? `&id=${parsedDescription.order_group_id}`
-            : ""
-        }`;
+        const href = `/${lang}/settings/orders/${parsedDescription.order_group_id}`;
         return (
           <div className="felx" onClick={baseOnClick}>
             <NextLink

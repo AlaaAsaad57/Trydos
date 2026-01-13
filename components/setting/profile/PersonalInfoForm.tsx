@@ -1,9 +1,9 @@
 "use client";
 import { useState } from "react";
 import { translateFunction } from "utils/functions";
-// import AddressInfo from "public/svg/cart/AddressInfo";
+
 import auth from "services/auth";
-// import XIcon from "public/svg/Xicon";
+
 import { pollinateInput } from "utils/tinyUtils";
 import BackBar from "../BackBar";
 import ConfirmMobileChange from "components/settings/ConfirmMobileChange";
@@ -111,9 +111,10 @@ function PersonalInfoForm({ initialData, isRtl, language, local }) {
 
   return (
     <div
-      className={`flex-col relative flex w-full ${
+      className={`flex-col setting-screen relative flex w-full ${
         loading ? "opacity-50 scale-95" : ""
       }`}
+      key="personal-info-setting-page"
     >
       {isPhoneShouldChange && (
         <ConfirmationModal

@@ -157,7 +157,10 @@ function UploadProfilePhoto({ local, isRtl, userProfile }) {
   const editorRef = useRef<typeof AvatarEditor>(null);
 
   return (
-    <div className="flex-col w-full flex setting-screen">
+    <div
+      className="flex-col w-full flex setting-screen "
+      key="profile-photo-setting-page"
+    >
       <BackBar
         preivous_page={`/${local}/settings/profile`}
         DataCy="save-image"

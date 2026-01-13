@@ -225,7 +225,7 @@ export const ModifyOrderItemModal = ({
     </div>
   );
 };
-export const ColorList = ({
+const ColorList = ({
   colors,
   setColor,
   currentColor,
@@ -302,7 +302,7 @@ export const ColorList = ({
     </HortiznalScrollBar>
   );
 };
-export const SizeList = ({
+const SizeList = ({
   sizes,
   setSize,
   currentSize,

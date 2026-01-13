@@ -25,7 +25,7 @@ function OrderItemReturnConfirmationWindow({
   close: () => void;
   setShouldConfirmReturn: (e) => void;
   confirmationData: any;
-  callback: () => void;
+  callback: () => Promise<any>;
   orderData: OrderInterface[];
   returnDetails: returnDetails;
   orderItem: OrderInterface;
@@ -65,7 +65,7 @@ function OrderItemReturnConfirmationWindow({
       });
     }
     returnDetails?.return_requests_data?.map((ret_ite) => {
-      if (!ret_ite?.status || ret_ite.status?.value?.includes("draft")) {
+      if (!ret_ite?.status?.value || ret_ite.status?.name?.includes("draft")) {
         ret_ite?.order_details?.map((s) => {
           let product = orderData
             ?.find((order_data_item) => order_data_item.id === ret_ite.order_id)
@@ -140,7 +140,7 @@ function OrderItemReturnConfirmationWindow({
           return_request_id: isThereAReturnedProduct(),
         });
       }
-      callback();
+      await callback();
       close();
       setShouldConfirmReturn(false);
       setLoading(false);
@@ -154,7 +154,7 @@ function OrderItemReturnConfirmationWindow({
 
   return (
     <div
-      className={`z-[9999999999999] px-[24px] pb-[70px]  w-full flex-col ${"justify-start"} items-center h-[calc(100vh)] overflow-auto max-h-[calc(100vh)] fixed top-0 left-0 bg-[#0000006c]  backdrop-blur-[10px]`}
+      className={`z-[9999999999999] px-[24px] pb-[70px]  w-full flex-col ${"justify-start"} items-center h-[calc(100vh)] overflow-auto max-h-full fixed top-0 left-0 bg-[#0000006c]  backdrop-blur-[10px]`}
     >
       <div className="w-full overflow-auto flex-col items-center max-w-[800px] justify-between h-full">
         <div className="flex-col items-center">

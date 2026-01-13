@@ -39,13 +39,14 @@ import auth from "services/auth";
 import OrderOptionsMenu from "./OrderOptionsMenu";
 import OrderItemOptions from "./OrderItemOptions";
 import OrderRetailsReturnInfo from "components/Orders/OrderRetailsReturnInfo";
+import OrderItemReturnConfirmationWindow from "./confirmations/OrderItemReturnConfirmationWindow";
 
 function OrderDetailsWrapper({
   order_id,
   isRtl,
   local,
   order_group_id,
-  chatOpen,
+  order_chat_id,
 }) {
   // State
   const [isExpanded, setIsExpanded] = useState(false);
@@ -96,8 +97,23 @@ function OrderDetailsWrapper({
         let order_rating_data = order_ratings.data?.comments ?? [];
         setRatingDetails(order_rating_data);
       }
+      let order_item = data?.find(
+        (order) =>
+          String(order.id) === String(order_chat_id) ||
+          String(order.return_request_id) === String(order_chat_id)
+      );
       setOrderData(data);
       setActivePack(data?.find((order) => order.id === order_id) ?? data?.[0]);
+      if (
+        order_item.order_status?.value === "out_for_delivery" ||
+        returnData.return_requests_data.find(
+          (return_item) =>
+            String(return_item.order_id) === String(order_chat_id) ||
+            String(order_item?.return_request_id) === String(order_chat_id)
+        )?.status?.value === "out_for_return"
+      )
+        safeGetChatWithShipping(order_chat_id);
+
       if (data.filter((s) => s.return_request_id)?.length) {
         let returnRequests = await Order.GetReturnDetailsForOrderGroup({
           order_group_id: order_group_id,
@@ -154,7 +170,6 @@ function OrderDetailsWrapper({
   };
   const getChatWithShipping = async (id?: any) => {
     setIsGettingChat(true);
-
     showNotificationIndicator([
       ...showNotificaionCircle?.filter(
         (s) =>
@@ -202,8 +217,33 @@ function OrderDetailsWrapper({
         setChatInfo(chat);
         openChat(chat);
         setIsNavigating(false);
+      } else {
+        let chat = {
+          order_chat_participant_id: response?.data.chat_participant?.id,
+          id: `ch-${response?.data.chat_participant?.id}`,
+          channel_members: [
+            {
+              ...getUserChat(),
+              user: getUserChat(),
+              user_id: getUserChat()?.id,
+            },
+            {
+              user_id: response?.data.chat_participant?.id,
+              name: "Deleivery Worker",
+              phone: "",
+              user: {
+                id: response?.data.chat_participant?.id,
+                name: "Deleivery Worker",
+                phone: "",
+              },
+            },
+          ],
+          messages: [],
+        };
+        setChatInfo(chat);
+        openChat(chat);
+        setIsNavigating(false);
       }
-
       setIsChatOpen(true);
       setIsGettingChat(false);
     } catch (error) {
@@ -303,6 +343,32 @@ function OrderDetailsWrapper({
   };
   return (
     <>
+      {shouldShowConfirmReturn && (
+        <>
+          <div
+            className="fixed top-[0px]   left-0 min-w-[100vw] z-[99999999998] min-h-[100vh] opacity-40 bg-[black]"
+            onClick={() => {
+              setShouldConfirmReturn(false);
+            }}
+          />
+
+          <OrderItemReturnConfirmationWindow
+            callback={async () => {
+              await getOrderDetails();
+              setShouldConfirmReturn(null);
+              setSelectedOrderItem(null);
+            }}
+            close={() => {
+              setShouldConfirmReturn(null);
+            }}
+            confirmationData={shouldShowConfirmReturn}
+            orderData={orderData}
+            orderItem={ActivePack}
+            returnDetails={returnData}
+            setShouldConfirmReturn={setShouldConfirmReturn}
+          />
+        </>
+      )}
       {chatInfo && (
         <ChatWidget
           isOpen={isChatOpen}
@@ -335,7 +401,10 @@ function OrderDetailsWrapper({
           update={async () => await getOrderDetails()}
         />
       )}
-      <div className="flex-col w-full max-h-full">
+      <div
+        className="flex-col w-full max-h-full setting-screen"
+        key="order-details-setting-page"
+      >
         <BackBar
           isRtl={isRtl}
           local={local}
@@ -345,6 +414,7 @@ function OrderDetailsWrapper({
           options={() => {
             if (ActivePack) setShowOrderOption(ActivePack);
           }}
+          preivous_page={`/${local}/settings/orders`}
         />
         {loading ? (
           <OrderDetailsSkeleton />
@@ -753,7 +823,7 @@ const OrderExpandedDetails = ({
           <div
             className={` underline h-[30px] mt-[31px] items-center justify-center  flex cursor-pointer bg-[#fff]  rounded-[15px] text-[12px] text-green-500 medium`}
             onClick={() => {
-              // confirmOrderReturn();
+              setSelectedOrderItem();
               setShouldConfirmReturn(true);
             }}
           >

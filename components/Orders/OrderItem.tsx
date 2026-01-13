@@ -31,9 +31,9 @@ const OrderItem = ({
   local: string;
   isRtl: boolean;
 }) => {
-  const { setActivePacks } = useAppStore();
   return (
     <NextLink
+      isFromSetting={true}
       href={`/${local}/settings/orders/${order?.order_group_id}`}
       className="bg-[#f8f8f8] relative w-full cursor-pointer pt-[7px] pb-[12px] pl-[12px] pr-[10px] rounded-[15px] h-[200px] mt-[10px] flex-col"
     >

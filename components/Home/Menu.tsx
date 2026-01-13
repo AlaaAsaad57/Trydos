@@ -198,7 +198,7 @@ const Menu = ({ user, setMenuOpen }) => {
             data={{
               is_settings: true,
             }}
-            href={`/${lang}/setting?tab=main`}
+            href={`/${lang}/settings`}
             icon={
               <MenuIcon>
                 <circle cx="12" cy="12" r="3" />

@@ -203,7 +203,7 @@ function SearchIcon({ language, country }) {
         // This ensures we show the "initial" state (Trending/History)
         performSearch({ isInitial: true });
       }
-    }, 400);
+    }, 1500);
 
     return () => clearTimeout(debounceTimeoutRef.current);
   }, [value, appliedFilters, searchEnabled, performSearch]);

@@ -38,7 +38,8 @@ function PersonalInfoAddress({ countries, isRtl, local }) {
     <div
       className={`${
         orderLoading && "opacity-65"
-      } transition-all duration-300  flex-col w-full flex`}
+      } transition-all duration-300  flex-col w-full flex setting-screen`}
+      key="address-setting-page"
     >
       {!isActiveAddress && (
         <BackBar

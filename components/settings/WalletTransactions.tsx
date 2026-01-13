@@ -3,7 +3,6 @@ import TryDosWalletIcon from "public/svg/TryDosWalletIcon";
 import { useAppStore } from "store";
 import { translateFunction } from "utils/functions";
 import Spinner from "components/global/Spinner";
-import BackIcon from "public/svg/listing/backIcon";
 import { useEffect, useState } from "react";
 import order from "services/order";
 import { fetchData } from "utils/fetchData";
@@ -23,14 +22,9 @@ interface Transaction {
   amount: number;
 }
 
-function WalletTransactions({
-  goBack,
-  swipeToOrderDetails,
-}: WalletTransactionsProps) {
-  const { wallet, currency, language, setActivePacks, setOrderDetails } =
-    useAppStore();
-  const isRtl = language === "ar" || language === "ku";
-  const { lang } = useParams();
+function WalletTransactions({ isRtl, local }) {
+  const { currency, setOrderDetails } = useAppStore();
+
   const [loading, setLoading] = useState(false);
   const [loadingNavigation, setLoadingNavigation] = useState(false);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -56,28 +50,14 @@ function WalletTransactions({
       });
 
       if (respons) {
-        let params = new URLSearchParams(window.location.search);
-        params.set("id", respons.data.order_group_id.toString());
-        params.set("tab", "Orders");
-        // @ts-ignore
-        router.replace(`/${lang}/setting?${params.toString()}`, {
-          scroll: false,
-          // @ts-ignore
-          shallow: true,
-        });
-        setActivePacks({ id: order_id });
-        setOrderDetails({
-          order_group_id: respons.data.order_group_id,
-          id: respons.data.order_group_id,
-          is_from_wallet: true,
-        });
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-        swipeToOrderDetails();
+        router.push(
+          `/${local}/settings/orders/${respons.data.order_group_id}?order_id=${order_id}&is_from_wallet=true`
+        );
         setLoadingNavigation(false);
       }
     } catch (error) {
       console.log(error);
-      setLoadingNavigation(false);
+      // setLoadingNavigation(false);
     }
   };
   const getWallet = async () => {
@@ -164,20 +144,6 @@ function WalletTransactions({
         loadingNavigation && "opacity-65 scale-95"
       } w-full h-full flex-col`}
     >
-      <div className="bg-[#fff] flex items-center justify-between top-0 left-0 w-full h-[50px] sticky z-10">
-        <span
-          className="p-2 cursor-pointer"
-          onClick={goBack}
-          aria-label={translateFunction("Back")}
-        >
-          <BackIcon />
-        </span>
-        <h2 className="text-[#1D1D1D] text-[16px] medium">
-          {translateFunction("Wallet Transactions")}
-        </h2>
-        <span />
-      </div>
-
       <div className="w-full px-[12px] pt-[8px] pb-[24px]">
         <div
           className={`${

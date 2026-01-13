@@ -407,21 +407,7 @@ function OrderItemOptions({
           />
         );
     }
-    if (selectedScreen === "return" && shouldShowConfirmReturn) {
-      return (
-        <OrderItemReturnConfirmationWindow
-          callback={update}
-          close={() => {
-            setShouldConfirmReturn(null);
-          }}
-          confirmationData={shouldShowConfirmReturn}
-          orderData={orderData}
-          orderItem={parentOrder}
-          returnDetails={returnDetails}
-          setShouldConfirmReturn={setShouldConfirmReturn}
-        />
-      );
-    }
+
     if (selectedScreen === "cancel" && canceled && ShouldConfirmCancel) {
       return <></>;
     }
