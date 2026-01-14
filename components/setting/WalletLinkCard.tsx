@@ -11,6 +11,7 @@ async function WalletLinkCard({ isRtl, local, language, country }) {
 
   return (
     <NextLink
+      isFromSetting={true}
       href={`/${local}/settings/wallet`}
       className={` ${
         isRtl && "items-end"
