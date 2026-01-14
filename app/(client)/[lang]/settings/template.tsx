@@ -1,4 +1,5 @@
 "use client";
+import InitialNavigation from "components/global/InitialNavigation";
 import { motion, AnimatePresence, Variants } from "framer-motion";
 import { usePathname } from "next/navigation";
 import { useEffect, useState, useRef } from "react";
@@ -61,6 +62,7 @@ export default function SettingsLayout({
           {children}
         </motion.div>
       </AnimatePresence>
+      <InitialNavigation />
     </div>
   );
 }

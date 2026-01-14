@@ -45,6 +45,7 @@ import OrderOptionsMenu from "./OrderOptionsMenu";
 import OrderItemOptions from "./OrderItemOptions";
 import OrderRetailsReturnInfo from "components/Orders/OrderRetailsReturnInfo";
 import OrderItemReturnConfirmationWindow from "./confirmations/OrderItemReturnConfirmationWindow";
+import { createPortal } from "react-dom";
 
 function OrderDetailsWrapper({
   order_id,
@@ -361,32 +362,34 @@ function OrderDetailsWrapper({
   };
   return (
     <>
-      {shouldShowConfirmReturn && (
-        <>
-          <div
-            className="fixed top-[0px]   left-0 min-w-[100vw] z-[99999999998] min-h-[100vh] opacity-40 bg-[black]"
-            onClick={() => {
-              setShouldConfirmReturn(false);
-            }}
-          />
+      {shouldShowConfirmReturn &&
+        createPortal(
+          <>
+            <div
+              className="fixed top-[0px]   left-0 min-w-[100vw] z-[99999999998] min-h-[100vh] opacity-40 bg-[black]"
+              onClick={() => {
+                setShouldConfirmReturn(false);
+              }}
+            />
 
-          <OrderItemReturnConfirmationWindow
-            callback={async () => {
-              await getOrderDetails();
-              setShouldConfirmReturn(null);
-              setSelectedOrderItem(null);
-            }}
-            close={() => {
-              setShouldConfirmReturn(null);
-            }}
-            confirmationData={shouldShowConfirmReturn}
-            orderData={orderData}
-            orderItem={ActivePack}
-            returnDetails={returnData}
-            setShouldConfirmReturn={setShouldConfirmReturn}
-          />
-        </>
-      )}
+            <OrderItemReturnConfirmationWindow
+              callback={async () => {
+                await getOrderDetails();
+                setShouldConfirmReturn(null);
+                setSelectedOrderItem(null);
+              }}
+              close={() => {
+                setShouldConfirmReturn(null);
+              }}
+              confirmationData={shouldShowConfirmReturn}
+              orderData={orderData}
+              orderItem={ActivePack}
+              returnDetails={returnData}
+              setShouldConfirmReturn={setShouldConfirmReturn}
+            />
+          </>,
+          document.body
+        )}
       {chatInfo && (
         <ChatWidget
           isOpen={isChatOpen}

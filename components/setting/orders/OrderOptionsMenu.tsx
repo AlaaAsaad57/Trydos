@@ -8,6 +8,7 @@ import OrderCancelIcon from "public/svg/OrderCancelIcon";
 import ChangeAddressWidget from "components/Orders/ChangeAddressWidget";
 import CancelOrderWrapper from "./CancelOrderWrapper";
 import OrderCancelConfirmationWindow from "./confirmations/OrderCancelConfirmationWindow";
+import { createPortal } from "react-dom";
 
 function OrderOptionsMenu({
   order,
@@ -210,7 +211,7 @@ function OrderOptionsMenu({
       );
     }
   };
-  return (
+  return createPortal(
     <>
       <div
         className="absolute top-[0px]   left-0 min-w-[100vw] z-[999999998] min-h-[100vh] opacity-40 bg-[black]"
@@ -220,7 +221,8 @@ function OrderOptionsMenu({
       />
       {renderScreen()}
       {renderConfirmation()}
-    </>
+    </>,
+    document.body
   );
 }
 

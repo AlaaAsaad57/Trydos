@@ -16,7 +16,8 @@ import OrderItemCancelConfirmationWindow from "./confirmations/CancelOrderItemCo
 import CancelOrderItemWrapper from "./CancelOrderItemWrapper";
 import OrderCancelIcon from "public/svg/OrderCancelIcon";
 import ReturnOrderItemWrapper from "./ReturnOrderItemWrapper";
-import OrderItemReturnConfirmationWindow from "./confirmations/OrderItemReturnConfirmationWindow";
+
+import { createPortal } from "react-dom";
 function OrderItemOptions({
   orderItem,
   isRtl,
@@ -413,7 +414,7 @@ function OrderItemOptions({
     }
   };
 
-  return (
+  return createPortal(
     <>
       <div
         className="absolute top-[0px]   left-0 min-w-[100vw] z-[999999998] min-h-[100vh] opacity-40 bg-[black]"
@@ -426,7 +427,8 @@ function OrderItemOptions({
       </div>
 
       {renderConfirmation()}
-    </>
+    </>,
+    document.body
   );
 }
 
