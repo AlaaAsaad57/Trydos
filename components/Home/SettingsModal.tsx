@@ -1,10 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { FIREBASE_SETTINGS_URL } from "utils/endpointConfig";
 import { translateFunction } from "utils/functions";
-import FirebasIcon from "public/svg/FireBase";
-import MailIcon from "public/svg/mail";
-import WhatsIcon from "public/svg/whatsappNotification";
-import CalenderIcon from "public/svg/CalenderIcon";
 import home from "services/home";
 import NotificationsTest from "components/global/NotificationsTest";
 
@@ -423,7 +419,11 @@ const SettingsModal = ({ onClose, lang }) => {
                       }
                     }}
                   >
-                    <MailIcon className="h-[30px]" data-cy="mail-icon" />
+                    <img
+                      src="/icons/mail.svg"
+                      className="h-[30px]"
+                      data-cy="mail-icon"
+                    />
                     <span className="ml-2" data-cy="statement-mail">
                       {translateFunction(
                         "Enable Email Notifications",
@@ -461,7 +461,7 @@ const SettingsModal = ({ onClose, lang }) => {
                       }
                     }}
                   >
-                    <FirebasIcon className="h-[30px]" />
+                    <img src="/icons/FireBase.svg" className="h-[30px]" />
                     <span className="ml-2">
                       {translateFunction(
                         "Enable FireBase Notifications",
@@ -498,7 +498,10 @@ const SettingsModal = ({ onClose, lang }) => {
                       }
                     }}
                   >
-                    <WhatsIcon className="h-[30px]" />
+                    <img
+                      src="/icons/whatsappNotification.svg"
+                      className="h-[30px]"
+                    />
                     <span className="ml-2">
                       {translateFunction(
                         "Enable WhatsApp Notifications",
@@ -516,7 +519,7 @@ const SettingsModal = ({ onClose, lang }) => {
                     />
                   </div>
                   <div className="flex-row items-center bg-gray-100 rounded-md p-3 h-[50px]">
-                    <CalenderIcon />
+                    <img src="/icons/CalenderIcon.svg" />
                     <div className="ml-3">
                       {translateFunction(
                         "notifications Receiving Preference:",

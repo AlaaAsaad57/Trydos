@@ -83,7 +83,7 @@ function PropertiesMarquee({ shipping_cost, languageVariable }) {
               width={15}
               height={15}
               alt={translateFunction("truck", languageVariable)}
-              src="/svg/greentruck.svg"
+              src="/icons/greentruck.svg"
             />
             <span>{translateFunction("Free Shipping", languageVariable)}</span>
           </div>
@@ -93,13 +93,13 @@ function PropertiesMarquee({ shipping_cost, languageVariable }) {
             width={15}
             height={15}
             alt={translateFunction("truck", languageVariable)}
-            src="/svg/redtruck.svg"
+            src="/icons/redtruck.svg"
           />
           <span>{translateFunction("Free Return", languageVariable)}</span>
         </div>
         <div className="product-prop-item m-0 flex-none">
           <Image
-            src={"/svg/addtocart/DeleiverIcon.svg"}
+            src={"/icons/DeleiverIcon.svg"}
             width={11}
             height={11}
             alt="deleivery-icon"

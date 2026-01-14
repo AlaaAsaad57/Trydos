@@ -26,7 +26,7 @@ async function Profile({ isRtl, language, local, SafeUserProfile }) {
           isRtl && "items-end"
         }`}
       >
-        <img className="w-[15px] h-[15px]" src="/svg/qr.svg" alt="qr" />
+        <img className="w-[15px] h-[15px]" src="/icons/qr.svg" alt="qr" />
 
         <div
           className={`flex ${

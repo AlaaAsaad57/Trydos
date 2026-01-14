@@ -1,5 +1,3 @@
-import Heart from "public/svg/Heart";
-import HeartFill from "public/svg/HeartFill";
 import React, { useState } from "react";
 import auth from "services/auth";
 import { showErrorNotification } from "store/notifications/reducer";
@@ -144,7 +142,11 @@ function ProductLikeButton({
         else LikeProduct(true);
       }}
     >
-      {isLikedState ? <HeartFill data-cy="LoveClickOnLast" /> : <Heart />}
+      {isLikedState ? (
+        <img src="/icons/HeartFill.svg" data-cy="LoveClickOnLast" />
+      ) : (
+        <img src="/icons/Heart.svg" />
+      )}
       {<span data-cy="CountOfLoves">{getLikesCount()}</span>}
     </div>
   );

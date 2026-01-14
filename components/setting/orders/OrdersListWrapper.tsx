@@ -139,7 +139,7 @@ function OrdersListWrapper({ isRtl, language, order_group_statuses, local }) {
         >
           <img
             className="w-5 h-5"
-            src="/svg/SearchHistoryIcon.svg"
+            src="/icons/SearchHistoryIcon.svg"
             alt="search"
           />
           <div

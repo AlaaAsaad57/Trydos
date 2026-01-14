@@ -99,7 +99,7 @@ function CartItem({ product, index }) {
               data-cy="color-div2"
             >
               <Image
-                src={"/svg/cart/CartColorIcon.svg"}
+                src={"/icons/CartColorIcon.svg"}
                 alt="cart-color"
                 width={10}
                 height={10}
@@ -122,7 +122,7 @@ function CartItem({ product, index }) {
               data-cy="size-container"
             >
               <Image
-                src={"/svg/cart/CartSizeIcon.svg"}
+                src={"/icons/CartSizeIcon.svg"}
                 alt="cart-color"
                 width={10}
                 height={10}
@@ -148,7 +148,7 @@ function CartItem({ product, index }) {
           data-cy="countPieces-container"
         >
           <Image
-            src={"/svg/cart/PiecesIcon.svg"}
+            src={"/icons/PiecesIcon.svg"}
             alt="cart-color"
             width={10}
             height={10}
@@ -175,7 +175,7 @@ function CartItem({ product, index }) {
             data-cy="sshipping-container"
           >
             <Image
-              src={"/svg/cart/DeleiveryIcon.svg"}
+              src={"/icons/DeleiveryIcon.svg"}
               alt="cart-color"
               width={10}
               height={10}
@@ -241,7 +241,7 @@ function CartItem({ product, index }) {
         >
           <span className="ml-1">
             <Image
-              src={"/svg/cart/HurryIcon.svg"}
+              src={"/icons/HurryIcon.svg"}
               alt="cart-color"
               width={10}
               height={10}

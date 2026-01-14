@@ -411,7 +411,7 @@ function OrderDetailsWrapper({
           local={local}
           DataCy="order-details-screen"
           name={"Orders Details"}
-          Icon={"/svg/OrderDetailsIcon.svg"}
+          Icon={"/icons/OrderDetailsIcon.svg"}
           options={() => {
             if (ActivePack) setShowOrderOption(ActivePack);
           }}
@@ -906,7 +906,7 @@ const ProductCard = ({
             setSelectedOrderItem(product);
           }}
         >
-          <img className="w-[20px] h-[20px]" src="/svg/OptionsIcon.svg" />
+          <img className="w-[20px] h-[20px]" src="/icons/OptionsIcon.svg" />
         </span>
 
         <NextLink
@@ -1004,7 +1004,7 @@ const ProductCard = ({
                   <span className="mx-[12px]">
                     <img
                       className="w-[13px] h-[13px]"
-                      src="/svg/ReturnedOrderStatusIcon.svg"
+                      src="/icons/ReturnedOrderStatusIcon.svg"
                     />
                   </span>
                 </div>
@@ -1019,7 +1019,7 @@ const ProductCard = ({
                   <span className="mx-[12px]">
                     <img
                       className="w-[13px] h-[13px]"
-                      src="/svg/CanceledOrderStatusIcon.svg"
+                      src="/icons/CanceledOrderStatusIcon.svg"
                     />
                   </span>
                 </div>

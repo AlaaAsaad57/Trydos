@@ -1,8 +1,5 @@
 "use client";
 import Spinner from "components/global/Spinner";
-import DeleteCommentIcon from "public/svg/DeleteCommentIcon";
-import LanguageIcon from "public/svg/LanguageIcon";
-import PenIcon from "public/svg/PenIcon";
 import React, { useEffect, useRef, useState } from "react";
 import { translateFunction } from "utils/functions";
 import { REQUESTS_DATA } from "utils/Requests";
@@ -113,7 +110,7 @@ function BuyersCommentMenu({
             onClick={handleTranslateComment}
             disabled={translateLoading}
           >
-            <LanguageIcon className="w-4 h-4" />
+            <img src="/icons/LanguageIcon.svg" className="w-4 h-4" />
             {translateLoading ? (
               <Spinner />
             ) : isCommentTranslated ? (
@@ -137,7 +134,7 @@ function BuyersCommentMenu({
               }}
               disabled={loading}
             >
-              <PenIcon className="w-4 h-4" />
+              <img src="/icons/PenIcon.svg" className="w-4 h-4" />
               {loading ? "Updating..." : translateFunction("Edit")}
             </button>
           )}
@@ -155,7 +152,7 @@ function BuyersCommentMenu({
                 setMenuOpen(false);
               }}
             >
-              <DeleteCommentIcon className="w-4 h-4" />
+              <img src="/icons/DeleteCommentIcon.svg" className="w-4 h-4" />
               {translateFunction("Delete")}
             </button>
           )}

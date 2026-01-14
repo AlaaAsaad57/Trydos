@@ -2,9 +2,6 @@ import ProductGeneralProperties from "components/products/ProductGeneralProperti
 import { Suspense } from "react";
 import ProductRating from "./ProductRating";
 import { translateFunction } from "utils/server";
-import QualityIcon from "public/svg/product/QualityIcon";
-import RecomendedIcon from "public/svg/RecomendedIcon";
-import Flag from "public/svg/product/flag";
 import ProductViews from "components/products/ProductViews";
 import { GetProductGeneralData } from "serverRequests/product";
 
@@ -43,14 +40,14 @@ async function ProductGeneralPropertiesWrapper({ globalData, language }) {
           <>
             <span className="px-[5px] text-[10px] text-[#1d1d1d]">|</span>
             <div className="flex-row items-center product-property-row">
-              <QualityIcon />
+              <img src="/icons/QualityIcon.svg" />
               <span>{translateFunction("Good Quality Product", language)}</span>
             </div>
           </>
         )}
         <span className="px-[5px] text-[10px] text-[#1d1d1d]">|</span>
         <div className="flex-row items-center product-property-row">
-          <RecomendedIcon />
+          <img src="/icons/RecomendedIcon.svg" />
           <span>
             {translateFunction("Recommend It By", language)}
             <span className="m-0 px-[3px]">
@@ -61,7 +58,7 @@ async function ProductGeneralPropertiesWrapper({ globalData, language }) {
         </div>
         <span className="px-[5px] text-[10px] text-[#1d1d1d]">|</span>
         <div className="flex-row items-center product-property-row">
-          <Flag />
+          {/* <Flag /> */}
           <span>{translateFunction("Made In Turkey", language)}</span>
         </div>
       </ProductGeneralProperties>

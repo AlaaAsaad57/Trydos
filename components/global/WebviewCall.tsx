@@ -18,13 +18,14 @@ const WebViewVideoCall = dynamic(() => import("./WebViewVideoCall"), {
         flexDirection: "column",
       }}
     >
-      <CallingIcon
+      <img
+        src="/icons/chat/CallInProg.svg"
         style={{
           marginBottom: "10px",
           transform: "scale(1.5)",
           marginRight: "10px",
         }}
-      ></CallingIcon>
+      />
       Loading Call Information...
     </div>
   ),
@@ -45,13 +46,14 @@ const WebViewVoiceCall = dynamic(() => import("./WebViewVoiceCall"), {
         flexDirection: "column",
       }}
     >
-      <CallingIcon
+      <img
+        src="/icons/chat/CallInProg.svg"
         style={{
           marginBottom: "10px",
           transform: "scale(1.5)",
           marginRight: "10px",
         }}
-      ></CallingIcon>
+      />
       Loading Call Information...
     </div>
   ),
@@ -65,7 +67,7 @@ import {
   getAgoraTokenForInit,
   getUserInfo,
 } from "./WebViewActions";
-import CallingIcon from "../Chat/svg/CallInProg";
+
 import { LogError } from "utils/functions";
 function WebviewCall() {
   const [error, setError] = useState(null);
@@ -245,9 +247,10 @@ function WebviewCall() {
             flexDirection: "column",
           }}
         >
-          <CallingIcon
+          <img
+            src="/icons/chat/CallInProg.svg"
             style={{ marginBottom: "10px", transform: "scale(1.5)" }}
-          ></CallingIcon>
+          />
           {error ? error : "  Loading Call Information..."}
         </div>
       )}

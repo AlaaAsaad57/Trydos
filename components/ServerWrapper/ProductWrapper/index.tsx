@@ -8,7 +8,7 @@ import {
 } from "utils/server";
 import ProductPhotosWrapper from "./ProductPhotosWrapper";
 import NextLink from "components/global/NextLink";
-import VerifiedIcon from "public/svg/listing/VerifiedIcon";
+
 import { ProductLabelsAnimated } from "components/products/ProductLabelsAnimated";
 import { OldPrice } from "./OldPrice";
 import { RenderPrice } from "./RenderPrice";
@@ -341,7 +341,9 @@ function ProductWrapper({
               ) : (
                 <div className="h-[15px] w-[49.358px] bg-gray-200 rounded" />
               )}
-              {brand?.is_verified === 1 && <VerifiedIcon />}
+              {brand?.is_verified === 1 && (
+                <img src="/icons/VerifiedIcon.svg" />
+              )}
             </span>
             <p
               className={`${isRtl && "dir-rtl"} truncate w-full max-w-full`}

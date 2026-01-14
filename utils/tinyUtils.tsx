@@ -38,7 +38,7 @@ export const FlagIcon = ({ iso }) => {
   if (iso.toLowerCase() === "sy")
     return (
       <Image
-        src="/svg/sy.svg"
+        src="/icons/flag/sy.svg"
         alt={translateFunction("sy") || "sy"}
         width={25}
         height={16}
@@ -47,7 +47,7 @@ export const FlagIcon = ({ iso }) => {
 
   return (
     <Image
-      src={`/svg/flag/${iso?.toLowerCase()}.svg`}
+      src={`/icons/flag/${iso?.toLowerCase()}.svg`}
       alt={translateFunction(iso) || "iso"}
       width={25}
       height={16}

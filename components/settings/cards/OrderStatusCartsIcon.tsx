@@ -1,5 +1,3 @@
-import CancelOrderItemIcon from "public/svg/cancelOrderItemIcon";
-
 function OrderStatusCartsIcon({
   status,
   isRtl,
@@ -34,7 +32,7 @@ function OrderStatusCartsIcon({
     status_word === "canceled_archived" ||
     status_word === "failed"
   ) {
-    return <CancelOrderItemIcon />;
+    return <img src="/icons/cancelOrderItemIcon.svg" />;
   }
   if (status_word === "pending" || status_word === "on_hold") {
     return (

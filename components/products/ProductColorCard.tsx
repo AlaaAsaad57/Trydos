@@ -2,7 +2,7 @@ import React, { memo, useState } from "react";
 import { BuyButtonProduct } from "../ListingPage/Product";
 import Image from "next/image";
 import ProductBanner from "components/products/ProductBanner";
-import VerifiedIcon from "public/svg/listing/VerifiedIcon";
+
 import { ProductLabelsAnimated } from "components/products/ProductLabelsAnimated";
 import { GetImageUrl } from "utils/tinyUtils";
 import { getConfiguredImage } from "utils/functions";
@@ -129,7 +129,7 @@ function ProductColorCard({
                   draggable="false"
                 />
               )}
-              <VerifiedIcon />
+              <img src="/icons/VerifiedIcon.svg" />
             </span>
             {product.name?.substring(0, 50)}
             {product?.brand && ` | ${product?.brand?.name}`}

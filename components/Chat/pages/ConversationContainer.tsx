@@ -19,15 +19,6 @@ import ChatInfo from "components/Chat/components/ChatInfo";
 import Observable from "components/Chat/components/ChatHistoryElement";
 import WebcamCapture from "components/Chat/components/CameraComponent";
 import ChatSearch from "../components/ChatSearch";
-
-import MicIcon from "../svg/mic";
-import RedMicIcon from "../svg/redmic";
-import WaveIcon from "../svg/wave";
-import ShareIcon from "../svg/sharechat";
-import PlusIcon from "../svg/chatplus";
-import CameraIcon from "../svg/camera";
-import SendIcon from "../svg/sendbutton";
-
 import { dataURLtoFile, upload, getUser } from "../chatsFunctions";
 import {
   GetChatDetails,
@@ -1086,10 +1077,14 @@ function ConversationContainer({
                     />
                   )}
                   <div className="chat-input-container bac40">
-                    <MicIcon height={40} style={{ cursor: "pointer" }} />
+                    <img
+                      src="/icons/chat/mic.svg"
+                      height={40}
+                      style={{ cursor: "pointer" }}
+                    />
                     <div className="mic-chat">
                       <span className="time-mic">{showDuration()}</span>
-                      <WaveIcon className="wave-svg" />
+                      <img src="/icons/chat/wave.svg" className="wave-svg" />
                       <div
                         className="cancel-button"
                         onMouseUp={() => {
@@ -1105,7 +1100,8 @@ function ConversationContainer({
                         {translateFunction("Cancel", language)}
                       </div>
                     </div>
-                    <ShareIcon
+                    <img
+                      src="/icons/chat/sharechat.svg"
                       onClick={() => {
                         if (nativeRecorder) stopNativeRecording();
                         const midLocal =
@@ -1131,7 +1127,8 @@ function ConversationContainer({
                       message.length > 0 && "pr-[23px]"
                     } chat-input-container`}
                   >
-                    <PlusIcon
+                    <img
+                      src="/icons/chat/chatplus.svg"
                       style={{ minWidth: 43, cursor: "pointer" }}
                       className="chatplus"
                       onClick={() => {
@@ -1156,7 +1153,8 @@ function ConversationContainer({
                       />
                     </div>
                     {message.length > 0 ? (
-                      <SendIcon
+                      <img
+                        src="/icons/chat/sendbutton.svg"
                         style={{ minWidth: 50, cursor: "pointer" }}
                         onClick={() => {
                           sendTextMessage(message);
@@ -1165,7 +1163,8 @@ function ConversationContainer({
                       />
                     ) : (
                       <>
-                        <CameraIcon
+                        <img
+                          src="/icons/chat/camera.svg"
                           style={{ minWidth: 50, cursor: "pointer" }}
                           className="camer-icon"
                           onClick={() => {
@@ -1173,7 +1172,8 @@ function ConversationContainer({
                             sendStatus("Sending file...");
                           }}
                         />
-                        <RedMicIcon
+                        <img
+                          src="/icons/chat/redmic.svg"
                           style={{ cursor: "pointer" }}
                           onClick={() => {
                             // Try native recording first, fallback to react-record

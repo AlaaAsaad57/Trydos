@@ -1,7 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import CameraIcon from "../../Chat/svg/image";
 
-import SendIcon from "../../Chat/svg/sharechat";
 import Webcam from "react-webcam";
 import Image from "next/image";
 import UploadVideo from "../UploadVideo";
@@ -187,7 +185,7 @@ function NewStoryModal({ close, send, HandleUploadedVideo }) {
               className="w-[50px] h-[50px] cursor-pointer rounded-full bg-[#dddddd] p-[10px] flex items-center justify-center shadow-[0_3px_6px_#0000002a]"
               onClick={handleDownload}
             >
-              <SendIcon />
+              <img src="/icons/chat/sharechat.svg" />
             </button>
           )}
           <button
@@ -303,7 +301,7 @@ function NewStoryModal({ close, send, HandleUploadedVideo }) {
                   close();
                 }}
               >
-                <SendIcon />
+                <img src="/icons/chat/sharechat.svg" />
               </button>
               <button
                 className="w-[50px] h-[50px] cursor-pointer rounded-full bg-[#dddddd] p-[10px] flex items-center justify-center shadow-[0_3px_6px_#0000002a]"
@@ -416,7 +414,10 @@ function NewStoryModal({ close, send, HandleUploadedVideo }) {
                     capture();
                   }}
                 >
-                  <CameraIcon style={{ transform: "scale(1.5)" }} />
+                  <img
+                    src="/icons/image.svg"
+                    style={{ transform: "scale(1.5)" }}
+                  />
                 </button>
                 <button
                   className="w-[50px] h-[50px] cursor-pointer rounded-full bg-[#dddddd] p-[10px] flex items-center justify-center shadow-[0_3px_6px_#0000002a]"

@@ -135,7 +135,7 @@ function ProductButtonWrapper({
             )}
           </div>
           <img
-            src={"/svg/BuyButton.svg"}
+            src={"/icons/BuyButton.svg"}
             width={15}
             height={15}
             alt="buy Button"

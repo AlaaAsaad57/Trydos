@@ -15,7 +15,6 @@ import {
 } from "react-share";
 import { getUserChat, translateFunction } from "utils/functions";
 import { useAppStore } from "store";
-import CopyIcon from "public/svg/copyIcon";
 
 import { showSuccessNotification } from "@/store/notifications/reducer";
 import { fetchData } from "utils/fetchData";
@@ -256,7 +255,7 @@ function ShareOptions({ product }: any) {
             }
           }}
         >
-          <CopyIcon />
+          <img src="/icons/copyIcon.svg" />
         </div>
         <div className="share-name">Copy Link</div>
       </div>

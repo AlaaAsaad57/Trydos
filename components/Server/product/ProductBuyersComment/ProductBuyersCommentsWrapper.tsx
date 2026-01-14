@@ -1,6 +1,6 @@
 import BuyersCommentTopBar from "./BuyersCommentTopBar";
 import { translateFunction } from "utils/server";
-import BuyersCommentsIcon from "public/svg/product/BuyersCommentsIcon";
+
 import ProductBuyersCommentList from "./ProductBuyersCommentList";
 
 import {
@@ -30,7 +30,7 @@ async function ProductBuyersCommentsWrapper({ globalPromise, language }) {
     <>
       <div className={`w-full flex-col`}>
         <BuyersCommentTopBar isRtl={isRtl}>
-          <BuyersCommentsIcon />
+          <img src="/icons/BuyersCommentsIcon.svg" />
           <div
             className={`${
               isRtl ? "flex-row-reverse" : "flex-row"

@@ -5,7 +5,6 @@ import {
   translateFunction,
 } from "utils/functions";
 import Image from "next/image";
-import ChangeOrderItemIcon from "public/svg/ChangeOrderItemIcon";
 
 import { ColorList, SizeList } from "./ModifyOrderItemModal";
 import { GetImageUrl, isSameColor, pollinateInput } from "utils/tinyUtils";
@@ -223,7 +222,10 @@ function ChangeOrderItem({
             />
           </div>
           <div className="relative flex w-[30px] h-[30px] items-center justify-center mt-[12px]">
-            <ChangeOrderItemIcon className="absolute top-0 left-0 right-0 mx-auto my-0" />
+            <img
+              src="/icons/ChangeOrderItemIcon.svg"
+              className="absolute top-0 left-0 right-0 mx-auto my-0"
+            />
             <Image
               alt={item?.product_details?.name || "Image"}
               width={20}

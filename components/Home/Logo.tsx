@@ -7,7 +7,7 @@ function Logo({ animated, style }) {
         width={130}
         height={36}
         loading="eager"
-        src="/svg/Logo.svg"
+        src="/icons/Logo.svg"
       />
     </div>
   );

@@ -60,7 +60,7 @@ function OldCartContainer() {
         >
           <span className="ml-[32px]" data-cy="spanContainer-oldCartIcon">
             <Image
-              src={"/svg/cart/OldCartIcon.svg"}
+              src={"/icons/OldCartIcon.svg"}
               alt="cart-color"
               width={20}
               height={20}
@@ -153,7 +153,7 @@ function OldCartContainer() {
       >
         <span className="ml-[32px]" data-cy="spanContainer-oldCartIcon">
           <Image
-            src={"/svg/cart/OldCartIcon.svg"}
+            src={"/icons/OldCartIcon.svg"}
             alt="cart-color"
             width={20}
             height={20}
@@ -243,7 +243,7 @@ function OldCartContainer() {
                   {product.variations[0]?.color && (
                     <div className="flex-row items-center text-[12px] regular text-[#505050] mt-1 mr-3">
                       <Image
-                        src={"/svg/cart/CartColorIcon.svg"}
+                        src={"/icons/CartColorIcon.svg"}
                         alt="cart-color"
                         width={10}
                         height={10}
@@ -263,7 +263,7 @@ function OldCartContainer() {
                   {product.variations[0]?.Size && (
                     <div className="flex-row items-center text-[12px] regular text-[#505050] mt-1">
                       <Image
-                        src={"/svg/cart/CartSizeIcon.svg"}
+                        src={"/icons/CartSizeIcon.svg"}
                         alt="cart-color"
                         width={10}
                         height={10}
@@ -283,7 +283,7 @@ function OldCartContainer() {
                 </div>
                 <div className="flex-row items-center text-[12px] regular text-[#505050] mt-1 mr-3">
                   <Image
-                    src={"/svg/cart/PiecesIcon.svg"}
+                    src={"/icons/PiecesIcon.svg"}
                     alt="cart-color"
                     width={10}
                     height={10}
@@ -304,7 +304,7 @@ function OldCartContainer() {
                 {product.shipping_days && (
                   <div className="flex-row whitespace-nowrap items-center text-[12px] regular text-[#505050] mt-1 mr-3">
                     <Image
-                      src={"/svg/cart/DeleiveryIcon.svg"}
+                      src={"/icons/DeleiveryIcon.svg"}
                       alt="cart-color"
                       width={10}
                       height={10}
@@ -347,7 +347,7 @@ function OldCartContainer() {
                   }}
                 >
                   <Image
-                    src={"/svg/cart/OldCartIcon.svg"}
+                    src={"/icons/OldCartIcon.svg"}
                     alt="cart-color"
                     width={20}
                     height={20}

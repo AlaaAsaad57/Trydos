@@ -415,7 +415,7 @@ function NewLoginWidget() {
           </div>
         )}
         <Image
-          src={"/svg/LogoAuth.svg"}
+          src={"/icons/LogoAuth.svg"}
           className="logo-auth"
           width={210}
           height={94}

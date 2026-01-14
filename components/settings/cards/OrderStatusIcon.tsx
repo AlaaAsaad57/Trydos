@@ -1,4 +1,3 @@
-import CancelOrderIcon from "public/svg/cancelOrderItemIcon";
 import {
   DeliveredStatus,
   NormalStatus,
@@ -354,14 +353,16 @@ function OrderStatusIcon({
         </g>
       </svg>
     );
-  if (status.toLowerCase() === "canceled") return <CancelOrderIcon />;
+  if (status.toLowerCase() === "canceled")
+    return <img src="/icons/cancelOrderItemIcon.svg" />;
 }
 
 export default OrderStatusIcon;
 export const BagStatusIcon = ({ status }) => {
   const statuses = ["pending", "preparing", "shipped", "delivered"];
   let status_word = status.toLowerCase();
-  if (status_word === "canceled") return <CancelOrderIcon />;
+  if (status_word === "canceled")
+    return <img src="/icons/cancelOrderItemIcon.svg" />;
   if (status_word === "pending") return <PendingStatus isActive={false} />;
   if (status_word === "preparing") return <PreparingStatus isActive={false} />;
   if (status_word === "shipped") return <ShippedSatus isActive={false} />;

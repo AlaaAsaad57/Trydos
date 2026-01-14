@@ -8,7 +8,6 @@ import {
   translateFunction,
 } from "utils/functions";
 import { getCookie } from "utils/cookies/cookie-manager";
-import CheckIcon from "public/svg/CheckIcon";
 import Spinner from "components/global/Spinner";
 
 import { useAppStore } from "store";
@@ -259,7 +258,7 @@ function MoreOptionsSection({ product }) {
                   data-cy={`notify-type`}
                 >
                   {checkIfTopicEnabled(`${type.topic}_${product?.id}`) && (
-                    <CheckIcon className="mx-1" />
+                    <img src="/icons/CheckIcon.svg" className="mx-1" />
                   )}
                   {type.showed_name}
                 </div>

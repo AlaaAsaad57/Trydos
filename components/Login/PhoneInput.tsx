@@ -1,11 +1,7 @@
 import Border from "components/global/Border";
 import { useEffect, useRef, useState } from "react";
-import SolidPhoneIcon from "public/svg/SolidPhoneIcon";
 import { allCountries } from "country-telephone-data";
-import LeftArrowIcon from "public/svg/LeftArrowIcon";
-import LoginIcon from "public/svg/LoginIcon";
-import BlueCall from "public/svg/BlueCall";
-import PrivacyIcon from "public/svg/privacyicon";
+
 import useDetectKeyboardOpen from "use-detect-keyboard-open";
 import { translateFunction } from "utils/functions";
 import { useParams } from "next/navigation";
@@ -129,7 +125,8 @@ function PhoneInput({
           className="phone-input-desc mb-4v"
           id="phone-desc"
         >
-          <LoginIcon
+          <img
+            src="/icons/LoginIcon.svg"
             data-cy="login-operation-svg"
             style={{ marginTop: "2px" }}
             className="show-logo"
@@ -254,7 +251,8 @@ function PhoneInput({
       )}
       {operation === "signup" && (
         <div className="phone-input-desc mb-4v" id="phone-desc">
-          <BlueCall
+          <img
+            src="/icons/BlueCall.svg"
             style={{ minWidth: "12px", transform: "translateY(2px)" }}
           />
           <div className="text-login-desc">
@@ -265,7 +263,8 @@ function PhoneInput({
               )}
             </div>
             <div className="icon-detail" style={{ marginTop: "3px" }}>
-              <PrivacyIcon
+              <img
+                src="/icons/privacyicon.svg"
                 style={{ transform: "translateY(2px)", minWidth: "10px" }}
               />
               <span>
@@ -368,7 +367,8 @@ function PhoneInput({
           width={"100%"}
           color={wrongNumber ? "#ff5f61" : valid ? "#4D84FF" : ""}
         />
-        <SolidPhoneIcon
+        <img
+          src="/icons/SolidPhoneIcon.svg"
           data-cy="solidPhhone-enterPhone-svg"
           style={{ position: "absolute", top: "22px", left: "20px" }}
         />
@@ -509,7 +509,7 @@ function PhoneInput({
               setInputValue(data);
             }}
           >
-            <LeftArrowIcon />
+            <img src="/icons/LeftArrowIcon.svg" />
           </span>
         )}
       </div>

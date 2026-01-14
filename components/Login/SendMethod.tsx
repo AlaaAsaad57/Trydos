@@ -1,8 +1,6 @@
 import { useEffect, useState } from "react";
 
 import { translateFunction } from "utils/functions";
-import WAIcon from "public/svg/WAIcon";
-import MessageIcon from "public/svg/MessageIcon";
 import AuthService from "services/auth";
 import { useParams } from "next/navigation";
 import { useAppStore } from "store";
@@ -70,14 +68,6 @@ function SendMethod({
   };
 
   const [active, setActive] = useState(false);
-  const mountAnim = ` 
-  0% {transform:translateX(800px)}
-  100% {transform:translateX(0px)}
-`;
-  const unmountAnim = `
-0% {transform:translateX(0px)}
-100% {transform:translateX(-800px)}
-`;
   useEffect(() => {
     if (stepIndicator === 4) {
       setTimeout(() => {
@@ -350,7 +340,11 @@ function SendMethod({
               </g>
             </svg>
           </div>
-          <WAIcon data-cy="way-icon" style={{ left: "34px", top: "17px" }} />
+          <img
+            src="/icons/WAIcon.svg"
+            data-cy="way-icon"
+            style={{ left: "34px", top: "17px" }}
+          />
           <div
             data-cy="whattsapp-text"
             className={`message-recieve-option-text regular `}
@@ -416,7 +410,8 @@ function SendMethod({
               </g>
             </svg>
           </div>
-          <MessageIcon
+          <img
+            src="/icons/MessageIcon.svg"
             data-cy="message-icon-svg"
             style={{ left: "48px", top: "17px" }}
           />

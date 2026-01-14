@@ -1,9 +1,7 @@
 import React, { useEffect, useState } from "react";
-import ChangeAddressIcon from "public/svg/ChangeAddressIcon";
+
 import { translateFunction } from "utils/functions";
-import EditIcon from "public/svg/editAddressIcon";
-import AddAddressIcon from "public/svg/cart/AddAddress";
-import BackIcon from "public/svg/listing/backIcon";
+
 import { useAppStore } from "store";
 import { GetAddressString } from "utils/tinyUtils";
 import SelectRegion from "components/Cart/SelectRegion";
@@ -106,7 +104,7 @@ function ChangeAddressWidget({
             />
           </div>
           <div className="flex-col  items-center w-full justify-center mt-[10px]">
-            <ChangeAddressIcon />
+            <img src="/icons/ChangeAddressIcon.svg" />
             <span className="medium text-[#1D1D1D] text-[14px] mt-[5px] ">
               {translateFunction("Change Delivery Address & Note")}
             </span>
@@ -189,7 +187,8 @@ function ChangeAddressWidget({
                       }  mt-[10px] rounded-[15px] bg-[#F8F8F8] w-full items-start h-[auto] min-h-[90px] px-[24px]  py-[7px]`}
                       data-cy="Address"
                     >
-                      <EditIcon
+                      <img
+                        src="/icons/editAddressIcon.svg"
                         className={`${
                           isRtl ? "left-[12px]" : " right-[12px]"
                         } absolute top-[10px] map-element-icon`}
@@ -405,7 +404,7 @@ function ChangeAddressWidget({
                     //   slideNext();
                   }}
                 >
-                  <AddAddressIcon />
+                  <img src="/icons/AddAddress.svg" />
                   <div className="medium text-[12px] mx-1 text-[#1D1D1D]">
                     {translateFunction("Add New Shipping Address")}
                   </div>
@@ -499,7 +498,7 @@ function ChangeAddressWidget({
                 setOpenModal(false);
               }}
             >
-              <BackIcon />
+              <img src="/icons/backIcon.svg" />
             </span>
           </div>
           <AddressModal

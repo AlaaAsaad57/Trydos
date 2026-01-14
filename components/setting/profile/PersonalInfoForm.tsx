@@ -260,7 +260,7 @@ function PersonalInfoForm({ initialData, isRtl, language, local }) {
             {translateFunction("Full Name", language)}
           </div>
           <img
-            src="/svg/cart/AddressInfo.svg"
+            src="/icons/AddressInfo.svg"
             className="ml-[12px] cursor-pointer w-[15px] h-[15px]"
           />
         </div>
@@ -596,7 +596,7 @@ const ConfirmationModal = ({
     <>
       <img
         onClick={closeWindow}
-        src="/svg/Xicon.svg"
+        src="/icons/settings/Xicon.svg"
         className="w-[20px] absolute z-30 top-[calc(50%-170px)]  right-[30px]  h-[20px] cursor-pointer"
       />
 

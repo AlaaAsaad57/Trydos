@@ -9,7 +9,7 @@ import NextLink from "components/global/NextLink";
 import { useParams } from "next/navigation";
 import { useAppStore } from "store";
 import { translateFunction } from "utils/functions";
-import LinkIcon from "public/svg/copyIcon";
+
 // Using a generic story media type to keep the component independent from
 // the previous `react-insta-stories` definitions.
 type StoryMedia = {
@@ -416,7 +416,10 @@ const StoryViewer = ({
                 onClick={(e) => e.stopPropagation()}
               >
                 <span>
-                  <LinkIcon className="w-[20px] h-[20px]" />
+                  <img
+                    src="/icons/copyIcon.svg"
+                    className="w-[20px] h-[20px]"
+                  />
                 </span>
                 {translateFunction("View More")}
               </a>

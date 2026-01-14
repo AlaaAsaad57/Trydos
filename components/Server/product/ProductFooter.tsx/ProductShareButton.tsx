@@ -1,4 +1,3 @@
-import Share from "public/svg/share";
 import React from "react";
 
 function ProductShareButton({ Active, total_shares, setActive }) {
@@ -21,7 +20,7 @@ function ProductShareButton({ Active, total_shares, setActive }) {
       }}
     >
       {" "}
-      <Share />
+      <img src="/icons/share.svg" />
       <span data-cy="CountOfShares">{getSharesCount()}</span>
     </div>
   );

@@ -1,7 +1,5 @@
 import React, { useState } from "react";
 import { OrderInterface } from "utils/types/OrderInterface";
-import ClarificationIcon from "public/svg/OrderCancelConfirm";
-import OrderCancelTermsIcon from "public/svg/OrderCancelTerms";
 import { translateFunction } from "utils/functions";
 import Order from "services/order";
 import Spinner from "components/global/Spinner";
@@ -37,7 +35,7 @@ function OrderCancelConfirmationWindow({
     >
       <div className="w-full overflow-auto flex-col items-center justify-between h-full">
         <div className="flex-col items-center">
-          <ClarificationIcon className="mt-[100px]" />
+          <img src="/icons/OrderCancelConfirm.svg" className="mt-[100px]" />
 
           <span className="medium text-[#fff] text-[40px] mt-[7px] text-center">
             {translateFunction("Clarification")}
@@ -61,7 +59,7 @@ function OrderCancelConfirmationWindow({
           </span>
         </div>
         <div className="flex-col mt-auto w-full items-center">
-          <OrderCancelTermsIcon />
+          <img src="/icons/OrderCancelTerms.svg" />
           <span className="mt-[7px] regular text-white text-[14px]">
             {translateFunction("Terms Of Cancellation Terms")}
           </span>

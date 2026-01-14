@@ -1,7 +1,6 @@
 import NextLink from "components/global/NextLink";
 import { ProductLabelsAnimated } from "components/products/ProductLabelsAnimated";
 import Image from "node_modules/next/image";
-import VerifiedIcon from "public/svg/listing/VerifiedIcon";
 
 import {
   getConfiguredImage,
@@ -103,7 +102,7 @@ function ProductColorsCards({
                     <div className="h-[15px] w-[49.358px] bg-gray-200 rounded" />
                   )}
                   {InitialProductData.brand?.is_verified === 1 && (
-                    <VerifiedIcon />
+                    <img src="/icons/VerifiedIcon.svg" />
                   )}
                 </span>
                 <p

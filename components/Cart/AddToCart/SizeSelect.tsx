@@ -29,7 +29,7 @@ function SizeSelect({
       >
         <Image
           alt="sizes-icon"
-          src={"/svg/NewSizesIcon.svg"}
+          src={"/icons/NewSizesIcon.svg"}
           width={14}
           height={14}
           className="max-h-[14px] object-contain"
@@ -246,7 +246,7 @@ const SizeWarning = ({ qty, size, isCollectAfterOrder }) => {
       <div className="flex flex-row items-center mt-[11px] gap-[4px] w-full justify-center px-[24px]">
         <Image
           alt="sizes-icon"
-          src={"/svg/addtocart/RecomendedSize.svg"}
+          src={"/icons/RecomendedSize.svg"}
           width={14}
           height={14}
           className="max-h-[14px] object-contain"

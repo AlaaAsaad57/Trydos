@@ -3,13 +3,9 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useAppStore } from "store";
 import FiltersRowContainer from "./FiltersRowContainer";
 import { EnableScroll } from "utils/tinyUtils";
-import BackIcon from "public/svg/listing/backIcon";
-import FilterIcon from "public/svg/listing/filterIcon";
+
 import { GetFilters } from "serverRequests/listing";
 import { PriceSliderComponent } from "./PriceSliderComponent";
-import PriceCancel from "public/svg/listing/PriceCancel";
-import ActiveCategoryIcon from "public/svg/listing/ActiveCategoryIcon";
-import FilterInfoIcon from "public/svg/listing/FilterInfoIcon";
 import { RoundPrice, translateFunction } from "utils/functions";
 import Spinner from "components/global/Spinner";
 import SmoothPolygon from "../PriceShape";
@@ -160,7 +156,7 @@ const FiltersWindowUI = ({
             setFilterEnabled(false);
           }}
         >
-          <BackIcon />
+          <img src="/icons/backIcon.svg" />
         </div>
         <div
           className={`filter-bar-options gap-[20px] justify-between ${
@@ -168,7 +164,8 @@ const FiltersWindowUI = ({
           }  align-center `}
         >
           <div className="filter-option w-[20px]" data-cy="settingsIcon">
-            <FilterIcon
+            <img
+              src="/icons/filterIcon.svg"
               className={`${filterEnabled && "filter-icon-enabled"}`}
             />
           </div>
@@ -281,7 +278,8 @@ const FiltersWindowUI = ({
               } filter-container relative w-full mt-[10px] pb-6`}
               key={`prices-container`}
             >
-              <PriceCancel
+              <img
+                src="/icons/PriceCancel.svg"
                 className="absolute top-[30px] right-[32px]"
                 onClick={() => {
                   // Sendevent({
@@ -294,11 +292,14 @@ const FiltersWindowUI = ({
               <div
                 className={`filter-label flex-row justify-start align-center m-0`}
               >
-                <ActiveCategoryIcon />
+                <img src="/icons/ActiveCategoryIcon.svg" />
                 <div className="filter-label-text">
                   {translateFunction("Filter By Prices")}
                 </div>
-                <FilterInfoIcon className="filter-info-icon" />
+                <img
+                  src="/icons/FilterInfoIcon.svg"
+                  className="filter-info-icon"
+                />
                 {loading && (
                   <span className="ml-2">
                     <Spinner />

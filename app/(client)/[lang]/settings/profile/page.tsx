@@ -15,25 +15,25 @@ async function Profile({ params }) {
     {
       name: translateFunction("Personal Info", language),
       dataCy: "personal-info-button",
-      Icon: `/svg/PersonIcon.svg`,
+      Icon: `/icons/PersonIcon.svg`,
       href: `/${Params?.lang}/settings/profile/info`,
     },
     {
       name: translateFunction("Size", language),
       dataCy: "personal-size-button",
-      Icon: "/svg/SizeIcon.svg",
+      Icon: "/icons/SizeIcon.svg",
       href: `/${Params?.lang}/settings/profile/size`,
     },
     {
       name: translateFunction("Address", language),
       dataCy: "personal-address-button",
-      Icon: `/svg/AddressIcon.svg`,
+      Icon: `/icons/AddressIcon.svg`,
       href: `/${Params?.lang}/settings/profile/address`,
     },
     {
       name: translateFunction("Bank Cards", language),
       dataCy: "personal-bank-button",
-      Icon: "/svg/BankIcon.svg",
+      Icon: "/icons/BankIcon.svg",
       href: `/${Params?.lang}/settings/profile/Bank-Cards`,
     },
   ];

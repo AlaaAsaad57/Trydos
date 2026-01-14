@@ -1,9 +1,5 @@
 import Spinner from "components/global/Spinner";
-import CancelOrderItemIcon from "public/svg/cancelOrderItemIcon";
-import ChangeOrderItemIcon from "public/svg/ChangeOrderItemIcon";
-import HideOrderItemIcon from "public/svg/HideOrderItemIcon";
-import ReportOrderItemIcon from "public/svg/ReportOrderItemIcon";
-import ReturnOrderItemIcon from "public/svg/ReturnOrderItemIcon";
+
 import React, { useState } from "react";
 import { getConfiguredImage, translateFunction } from "utils/functions";
 import { GetImageUrl } from "utils/tinyUtils";
@@ -14,7 +10,6 @@ import ChangeOrderItem from "components/Orders/ChangeOrderItem";
 import { ModifyOrderItemModal } from "./confirmations/ChangeOrderItemConfirmWindow";
 import OrderItemCancelConfirmationWindow from "./confirmations/CancelOrderItemConfirmationWindow";
 import CancelOrderItemWrapper from "./CancelOrderItemWrapper";
-import OrderCancelIcon from "public/svg/OrderCancelIcon";
 import ReturnOrderItemWrapper from "./ReturnOrderItemWrapper";
 
 import { createPortal } from "react-dom";
@@ -145,7 +140,10 @@ function OrderItemOptions({
                 }`}
               >
                 <div className="relative flex w-[30px] h-[30px] items-center justify-center">
-                  <ChangeOrderItemIcon className="absolute top-0 left-0 right-0 mx-auto my-0" />
+                  <img
+                    src="/icons/ChangeOrderItemIcon.svg"
+                    className="absolute top-0 left-0 right-0 mx-auto my-0"
+                  />
                   <img
                     alt={orderItem?.product_details?.name || "Image"}
                     width={15}
@@ -187,7 +185,7 @@ function OrderItemOptions({
                 }`}
               >
                 <div className="relative flex w-[30px] h-[30px] items-center justify-center">
-                  <OrderCancelIcon />
+                  <img src="/icons/OrderCancelIcon.svg" />
                 </div>
                 <div className="flex-col ml-[15px]">
                   <span
@@ -222,7 +220,10 @@ function OrderItemOptions({
                 }`}
               >
                 <div className="relative flex w-[30px] h-[30px] items-center justify-center">
-                  <ReturnOrderItemIcon className="absolute top-0 left-0 right-0 mx-auto my-0" />
+                  <img
+                    src="/icons/ReturnOrderItemIcon.svg"
+                    className="absolute top-0 left-0 right-0 mx-auto my-0"
+                  />
                 </div>
                 {IsInitializing ? (
                   <div className="flex-col ml-[15px] opacity-85">
@@ -275,7 +276,7 @@ function OrderItemOptions({
                 }`}
               >
                 <div className="relative flex w-[30px] h-[30px] items-center justify-center">
-                  <ReportOrderItemIcon />
+                  <img src="/icons/ReportOrderItemIcon.svg" />
                 </div>
                 <div className="flex-col ml-[15px]">
                   <span
@@ -307,7 +308,7 @@ function OrderItemOptions({
                 }`}
               >
                 <div className="relative flex w-[30px] h-[30px] items-center justify-center">
-                  <HideOrderItemIcon />
+                  <img src="/icons/HideOrderItemIcon.svg" />
                 </div>
                 <div className="flex-col ml-[15px]">
                   <span

@@ -1,9 +1,7 @@
-import EyeIcon from "public/svg/product/EyeIcon";
-
 function ProductViews({ views }) {
   return (
     <div className="view-count flex-row align-center">
-      <EyeIcon />
+      <img src="/icons/EyeIcon.svg" />
       <span>{views ?? "1"}</span>
     </div>
   );

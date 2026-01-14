@@ -1,5 +1,3 @@
-import FreeShippingIcon from "public/svg/product/FreeShipping";
-
 import { translateFunction } from "utils/functions";
 async function FreeShippingOption({ lang, qtyPricePromise }) {
   let productData = await qtyPricePromise;
@@ -21,7 +19,7 @@ async function FreeShippingOption({ lang, qtyPricePromise }) {
           className={`${isRtl && "items-end"} w-full flex-col`}
           data-cy="FreeShipping"
         >
-          <FreeShippingIcon />
+          <img src="/icons/FreeShipping.svg" />
           <div
             className={`flex-col text-[#1d1d1d] medium text-[11px] ${
               isRtl && "items-end"

@@ -71,7 +71,7 @@ const BackBar = ({
         {options && (
           <img
             className=""
-            src="/svg/OptionsIcon.svg"
+            src="/icons/OptionsIcon.svg"
             onClick={() => {
               options();
             }}

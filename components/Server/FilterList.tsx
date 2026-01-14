@@ -1,7 +1,4 @@
 import React from "react";
-import ActiveCategoryIcon from "public/svg/listing/ActiveCategoryIcon";
-import CloseIcon from "public/svg/CloseIcon";
-import Search from "public/svg/SearchIcon";
 import NextLink from "components/global/NextLink";
 import {
   GetImageUrl,
@@ -227,11 +224,15 @@ const ActiveFiltersBar = ({
         data-cy="reset_filter_button"
         ariaLabel={`close filter ${params.lang}`}
       >
-        <CloseIcon data-cy="closeIcon" className="mr-2 ml-2" />
+        <img
+          src="/icons/CloseIcon.svg"
+          data-cy="closeIcon"
+          className="mr-2 ml-2"
+        />
       </NextLink>
       {activeFilters?.categories?.length > 0 && (
         <>
-          <ActiveCategoryIcon style={{ height: "21px" }} />
+          <img src="/icons/ActiveCategoryIcon.svg" style={{ height: "21px" }} />
 
           {activeFilters?.categories.map((category) => (
             <React.Fragment key={category}>
@@ -395,7 +396,7 @@ const ActiveFiltersBar = ({
       )}
       {activeFilters?.boutiques?.length > 0 && !shouldHideBoutiques && (
         <>
-          <ActiveCategoryIcon style={{ height: "21px" }} />
+          <img src="/icons/ActiveCategoryIcon.svg" style={{ height: "21px" }} />
           {activeFilters?.boutiques?.map((category) => (
             <React.Fragment key={category}>
               {getItemData({
@@ -460,7 +461,7 @@ const ActiveFiltersBar = ({
       )}
       {activeFilters?.brands?.length > 0 && (
         <>
-          <ActiveCategoryIcon style={{ height: "21px" }} />
+          <img src="/icons/ActiveCategoryIcon.svg" style={{ height: "21px" }} />
           {activeFilters?.brands?.map((brand) => (
             <React.Fragment key={brand}>
               {getItemData({
@@ -528,7 +529,7 @@ const ActiveFiltersBar = ({
       )}
       {activeFilters?.colors?.length > 0 && (
         <>
-          <ActiveCategoryIcon style={{ height: "21px" }} />
+          <img src="/icons/ActiveCategoryIcon.svg" style={{ height: "21px" }} />
           {activeFilters?.colors.map((color) => {
             // Ensure color has # prefix for display
             const displayColor = color.startsWith("#") ? color : `#${color}`;
@@ -567,7 +568,7 @@ const ActiveFiltersBar = ({
       )}
       {activeFilters?.prices?.length > 0 && (
         <>
-          <ActiveCategoryIcon style={{ height: "21px" }} />
+          <img src="/icons/ActiveCategoryIcon.svg" style={{ height: "21px" }} />
           {
             <>
               {activeFilters?.prices && (
@@ -599,7 +600,7 @@ const ActiveFiltersBar = ({
       )}
       {activeFilters?.sizes?.length > 0 && (
         <>
-          <ActiveCategoryIcon style={{ height: "21px" }} />
+          <img src="/icons/ActiveCategoryIcon.svg" style={{ height: "21px" }} />
           {activeFilters?.sizes.map((size, index) => (
             <React.Fragment key={size}>
               <div
@@ -616,9 +617,9 @@ const ActiveFiltersBar = ({
       )}
       {activeFilters?.search_text?.length > 0 && (
         <>
-          <ActiveCategoryIcon style={{ height: "21px" }} />
+          <img src="/icons/ActiveCategoryIcon.svg" style={{ height: "21px" }} />
           <span>
-            <Search className="scale-75" />
+            <img src="/icons/Search.svg" className="scale-75" />
           </span>
           <div className="category-title filter-bar-main-title  text-[#5d5d5d]">
             {typeof activeFilters?.search_text?.[0] === "string"

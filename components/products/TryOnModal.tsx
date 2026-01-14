@@ -1,8 +1,6 @@
 "use client";
 import React, { useState, useRef, useEffect } from "react";
-import CloseIcon from "public/svg/close";
-import CameraIcon from "../Chat/svg/image";
-import UploadIcon from "public/svg/UploadImageOrder";
+
 import { getConfiguredImage, translateFunction } from "utils/functions";
 import { DisableScroll, EnableScroll, GetImageUrl } from "utils/tinyUtils";
 import { useAppStore } from "store";
@@ -183,7 +181,7 @@ const TryOnModal = ({ isOpen, onClose, language }) => {
               disabled={isProcessing}
               className="p-2 text-gray-300 hover:text-white hover:bg-white/10 rounded-xl transition-all duration-200 disabled:opacity-50"
             >
-              <CloseIcon className="w-6 h-6" />
+              <img src="/icons/CloseIcon.svg" className="w-6 h-6" />
             </button>
           </div>
         </div>
@@ -234,7 +232,10 @@ const TryOnModal = ({ isOpen, onClose, language }) => {
                 >
                   <div className="flex flex-col items-center space-y-3">
                     <div className="p-[14px] bg-[#a3c0ff] rounded-2xl shadow-lg group-hover:shadow-xl transition-all duration-300">
-                      <CameraIcon className=" text-white origin-center scale-150 " />
+                      <img
+                        src="/icons/image.svg"
+                        className=" text-white origin-center scale-150 "
+                      />
                     </div>
                     <div>
                       <h4 className="font-semibold text-gray-800 mb-1">
@@ -254,7 +255,10 @@ const TryOnModal = ({ isOpen, onClose, language }) => {
                 >
                   <div className="flex flex-col items-center space-y-3">
                     <div className="p-[14px] bg-[#d1a0ff] rounded-2xl shadow-lg group-hover:shadow-xl transition-all duration-300">
-                      <UploadIcon className=" text-white origin-center scale-150 [&>g>g>g>*]:fill-[#727272]" />
+                      <img
+                        src="/icons/UploadImageOrder.svg"
+                        className=" text-white origin-center scale-150 [&>g>g>g>*]:fill-[#727272]"
+                      />
                     </div>
                     <div>
                       <h4 className="font-semibold text-gray-800 mb-1">

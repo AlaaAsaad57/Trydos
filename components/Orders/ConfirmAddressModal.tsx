@@ -1,11 +1,10 @@
 import React, { useState } from "react";
 import { translateFunction } from "utils/functions";
-import LargeAddressChangeIcon from "public/svg/LargeAddressChangeIcon";
+
 import { GetAddressString } from "utils/tinyUtils";
 import { CheckBoxElement } from "components/Cart/PlaceOrderButtons";
-import ClarificationIcon from "public/svg/OrderCancelConfirm";
+
 import { useAppStore } from "store";
-import OrderCancelTermsIcon from "public/svg/OrderCancelTerms";
 
 function ConfirmAddressModal({ close, confirm, confirmationData }) {
   const [active, setActive] = useState(false);
@@ -15,14 +14,14 @@ function ConfirmAddressModal({ close, confirm, confirmationData }) {
   return (
     <div className="z-[9999999999999] px-[24px] pb-[70px] w-full flex-col justify-start items-center h-[calc(100vh)] overflow-auto max-h-[calc(100vh)] absolute top-0 left-0 bg-[#0000006c]  backdrop-blur-[10px]">
       <div className="flex-col justify-end items-center h-auto">
-        <ClarificationIcon className="mt-[20px]" />
+        <img src="/icons/OrderCancelConfirm.svg" className="mt-[20px]" />
         <span className="medium text-[#fff] text-[40px] mt-[7px] text-center">
           {translateFunction("Clarification")}
         </span>
         <span className="text-white regular text-[16px] mt-[2px] text-center">
           {translateFunction(`change address request`)}
         </span>
-        <LargeAddressChangeIcon className="mt-[20px]" />
+        <img src="/icons/LargeAddressChangeIcon.svg" className="mt-[20px]" />
         <span className="mt-[11px] text-[#D3D3D3] text-[16px] medium">
           {translateFunction("Change Below Address")}
         </span>
@@ -306,7 +305,7 @@ function ConfirmAddressModal({ close, confirm, confirmationData }) {
             "We Will Ignore The First Address And Send Your Order To The New Address."
           )}
         </p>
-        <OrderCancelTermsIcon className="mt-[15px]" />
+        <img src="/icons/OrderCancelTerms.svg" className="mt-[15px]" />
         <span className="mt-[7px] regular text-white text-[14px]">
           {translateFunction("Terms Of Change Address")}
         </span>

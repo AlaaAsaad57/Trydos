@@ -34,7 +34,7 @@ function UserNavTopSection({
             openLogin(true);
           }}
         >
-          <img src="/svg/login.svg" width={15} height={15} alt="login" />
+          <img src="/icons/login.svg" width={15} height={15} alt="login" />
           <span
             className={`regular`}
             style={{
@@ -191,7 +191,7 @@ function UserNavTopSection({
           </div>
           <div className="nav-question-item">
             <img
-              src="/svg/questionIcon.svg"
+              src="/icons/questionIcon.svg"
               width={15}
               height={15}
               alt="info icon"
@@ -235,7 +235,7 @@ function UserNavTopSection({
                       height: 30,
                       q: 80,
                     })
-                  : "/svg/userIcon.svg"
+                  : "/icons/userIcon.svg"
               }
               quality={90}
               width={30}

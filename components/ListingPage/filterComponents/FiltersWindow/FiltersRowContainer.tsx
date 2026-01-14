@@ -1,8 +1,6 @@
 "use client";
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 import Spinner from "components/global/Spinner";
-import ActiveCategoryIcon from "public/svg/listing/ActiveCategoryIcon";
-import FilterInfoIcon from "public/svg/listing/FilterInfoIcon";
 import { translateFunction } from "utils/functions";
 
 function FiltersRowContainer({ children, values, setValues, term, loading }) {
@@ -37,9 +35,9 @@ export default FiltersRowContainer;
 const FilterRowTop = ({ term, loading }) => {
   return (
     <div className={`filter-label flex-row justify-start align-center m-0`}>
-      <ActiveCategoryIcon />
+      <img src="/icons/ActiveCategoryIcon.svg" />
       <div className="filter-label-text">{translateFunction(term)}</div>
-      <FilterInfoIcon className="filter-info-icon" />
+      <img src="/icons/FilterInfoIcon.svg" className="filter-info-icon" />
       {loading && (
         <span className="ml-2">
           <Spinner />

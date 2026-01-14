@@ -26,24 +26,28 @@ function CallList() {
     DeleteMessageApi(id, false);
   };
   if (loading) {
-    return [1, 1, 1].map((s) => (
-      <div className={`call-conversation-item ${type} call-item-row `}>
-        <div className="flex grow-0">
-          <Skeleton width={55} height={55} borderRadius={12} />
-        </div>
-        <div className="call-info chat-info">
-          <div className="call-name chat-name grow-0">
-            <Skeleton width={30} height={10} />
+    return (
+      <div className="chat-list-items">
+        {[1, 1, 1].map((s) => (
+          <div className={`call-conversation-item ${type} call-item-row `}>
+            <div className="flex grow-0">
+              <Skeleton width={55} height={55} borderRadius={12} />
+            </div>
+            <div className="call-info chat-info">
+              <div className="call-name chat-name grow-0">
+                <Skeleton width={30} height={10} />
+              </div>
+              <div className="call-type grow-0">
+                <Skeleton width={30} height={10} />
+              </div>
+            </div>
+            <div className="chat-date call-date grow-0">
+              <Skeleton width={30} height={10} />
+            </div>
           </div>
-          <div className="call-type grow-0">
-            <Skeleton width={30} height={10} />
-          </div>
-        </div>
-        <div className="chat-date call-date grow-0">
-          <Skeleton width={30} height={10} />
-        </div>
+        ))}
       </div>
-    ));
+    );
   }
   const getOldestCallId = (calls) => {
     if (!calls || calls.length === 0) return null;

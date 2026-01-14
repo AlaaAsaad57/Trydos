@@ -6,7 +6,6 @@ import order from "services/order";
 import Spinner from "components/global/Spinner";
 import { useAppStore } from "store";
 import storyService from "services/story";
-import UploadImageOrder from "public/svg/UploadImageOrder";
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 import UploadImageComponent from "./UploadImageComponent";
 import { useRouter } from "next/navigation";
@@ -319,7 +318,7 @@ const RatingUploadImages = ({
                 <Spinner />
               ) : (
                 <span className="text-[#402CDD] text-[8px] regular flex-col items-center">
-                  <UploadImageOrder />
+                  <img src="/icons/UploadImageOrder.svg" />
                   {translateFunction("Add Photo")}
                 </span>
               )}

@@ -1,4 +1,3 @@
-import CancelOrderItemIcon from "public/svg/cancelOrderItemIcon";
 import React, { useState } from "react";
 import { useAppStore } from "store";
 import { showErrorNotification } from "store/notifications/reducer";
@@ -35,7 +34,7 @@ function CancelOrderWrapper({
     <div className="flex-col mt-[20px] flex-1">
       <div className="flex-col w-full items-center pb-[12px] px-[24px]">
         <div className="">
-          <CancelOrderItemIcon className="mt-[12px] [&>path]:fill-[#402CDD]" />
+          <img src="/icons/cancelOrderItemIcon.svg" className="mt-[12px]" />
         </div>
         <span className="medium text-[14px] mt-[11px] text-[#1D1D1D]">
           {translateFunction("Cancel This Pack")}

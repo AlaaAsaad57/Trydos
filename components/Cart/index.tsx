@@ -650,7 +650,7 @@ export const QuantutyInput = ({
                 height={12}
                 alt="cart-plus-icon"
                 className={"hide-btn"}
-                src={"/svg/cart/CartPlusIcon.svg"}
+                src={"/icons/CartPlusIcon.svg"}
               />
             </div>
           )}
@@ -675,7 +675,7 @@ export const QuantutyInput = ({
                   height={12}
                   alt="cart-plus-icon"
                   className={"hide-btn"}
-                  src={"/svg/cart/CartMinusIcon.svg"}
+                  src={"/icons/CartMinusIcon.svg"}
                 />
               </div>
               {!loading && (
@@ -695,7 +695,7 @@ export const QuantutyInput = ({
                     width={12}
                     height={12}
                     alt="cart-delete-icon"
-                    src={"/svg/cart/CartDeleteIcon.svg"}
+                    src={"/icons/CartDeleteIcon.svg"}
                   />
                 </div>
               )}
@@ -717,7 +717,7 @@ export const QuantutyInput = ({
                 width={12}
                 height={12}
                 alt="cart-delete-icon"
-                src={"/svg/cart/CartDeleteIcon.svg"}
+                src={"/icons/CartDeleteIcon.svg"}
               />
             </div>
           )}
@@ -830,7 +830,7 @@ export const QuantutyInput = ({
                       data-cy="saved-svg"
                       width={10}
                       height={10}
-                      src={"/svg/cart/SavedIcon.svg"}
+                      src={"/icons/SavedIcon.svg"}
                     />
                     <span
                       className="text-[8px] text-[#388CFF] flex-row-reverse flex mx-[4px]"

@@ -1,9 +1,13 @@
-import React from "react";
-import ThreePointsIcon from "public/svg/threepoints";
-import ActiveThreePointsIcon from "public/svg/activethreepoints";
-
 function ThreePoints({ active }) {
-  return <>{active ? <ActiveThreePointsIcon /> : <ThreePointsIcon />}</>;
+  return (
+    <>
+      {active ? (
+        <img src="/icons/activethreepoints.svg" />
+      ) : (
+        <img src="/icons/threepoints.svg" />
+      )}
+    </>
+  );
 }
 
 export default ThreePoints;

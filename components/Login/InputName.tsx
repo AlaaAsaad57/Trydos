@@ -1,13 +1,12 @@
 import { useEffect, useState } from "react";
 import { translateFunction } from "utils/functions";
-import LeftArrowIcon from "public/svg/LeftArrowIcon";
+
 import useDetectKeyboardOpen from "use-detect-keyboard-open";
 import { useParams } from "next/navigation";
 import Spinner from "components/global/Spinner";
 import { useAppStore } from "store";
 import { GAevent } from "utils/gtag";
 import { GA_BUTTONS_NAMES, GA_EVENT_NAMES } from "utils/GAEvents";
-import { resolve } from "path";
 import {
   COOKIE_NAMES,
   getCookie,
@@ -289,7 +288,7 @@ function InputName({
                   updateName();
                 }}
               >
-                <LeftArrowIcon />
+                <img src="/icons/Le" />
               </span>
             )}
           </>

@@ -1,5 +1,3 @@
-import React from "react";
-import ExpectedIcon from "public/svg/expectedDelevery";
 import { translateFunction } from "utils/server";
 import { formatTimeForAddress, ShowDayStr } from "utils/tinyUtils";
 import Skeleton from "react-loading-skeleton";
@@ -52,7 +50,7 @@ async function ProductExpectedDeleiveryWrapper({
   const isRtl = language === "ar" || language === "ku";
   return (
     <ExpectedDeleiveryBanner country={country} language={language}>
-      <ExpectedIcon />
+      <img src="/icons/expectedDelevery.svg" />
       <span className="flex-row gap-[12px] items-center">
         {translateFunction("Expected Delivery Date", language)}
 

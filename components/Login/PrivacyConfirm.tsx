@@ -1,8 +1,5 @@
 import { useEffect, useState } from "react";
-
 import { translateFunction } from "utils/functions";
-import ConditionIcon from "public/svg/ConditionIcon";
-
 import { useParams } from "next/navigation";
 import { useAppStore } from "store";
 import { GA_EVENT_NAMES } from "utils/GAEvents";
@@ -52,7 +49,7 @@ function PrivacyConfirm({ stepIndicator, setStepIndicator }) {
           marginTop: "23px",
         }}
       >
-        <ConditionIcon />
+        <img src="/icons/ConditionIcon.svg" />
         <span
           className="privacy-text"
           data-testid="Terms Of Services"

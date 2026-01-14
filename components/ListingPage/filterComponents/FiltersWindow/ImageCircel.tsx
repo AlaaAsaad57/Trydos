@@ -1,4 +1,3 @@
-import ActiveCategoryIcon from "public/svg/listing/ActiveCategoryIcon";
 import { getConfiguredImage, GetImageUrl } from "utils/server";
 
 function ImageCircel({
@@ -33,7 +32,7 @@ function ImageCircel({
         ></span>
         {isActive && (
           <span className="absolute top-0 left-0">
-            <ActiveCategoryIcon />
+            <img src="/icons/ActiveCategoryIcon.svg" />
           </span>
         )}
         {image && (

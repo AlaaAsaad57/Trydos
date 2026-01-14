@@ -1,4 +1,3 @@
-import OptionsIcon from "public/svg/OptionsIcon";
 import { translateFunction } from "utils/functions";
 import { useAppStore } from "store";
 import { DisableScroll } from "utils/tinyUtils";
@@ -54,7 +53,8 @@ function SettingTopBar({
 
           {hasOptions && (
             <>
-              <OptionsIcon
+              <img
+                src="/icons/OptionsIcon.svg"
                 onClick={() => {
                   DisableScroll();
 

@@ -318,7 +318,7 @@ const NotificationsContainer = () => {
                 <Image
                   width={25}
                   height={25}
-                  src={"/svg/NotificationIcon.svg"}
+                  src={"/icons/NotificationIcon.svg"}
                   alt="notification-icon"
                 />
               )}

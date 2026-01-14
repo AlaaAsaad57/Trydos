@@ -316,7 +316,7 @@ const PhoneInput = ({
       <div className="relative w-1/3">
         <div className="absolute left-2 top-1/2 -translate-y-1/2 flex items-center gap-1 pointer-events-none">
           <img
-            src={`/svg/flag/${activeCountry.iso2}.svg`}
+            src={`/icons/flag/${activeCountry.iso2}.svg`}
             alt="flag"
             className="w-5 h-3 object-cover rounded-sm"
             onError={(e) => (e.currentTarget.style.display = "none")}

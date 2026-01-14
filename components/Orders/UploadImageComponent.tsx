@@ -5,7 +5,7 @@ import Image from "next/image";
 import { showErrorNotification } from "store/notifications/reducer";
 import { translateFunction } from "utils/functions";
 import Spinner from "components/global/Spinner";
-import UploadImageOrder from "public/svg/UploadImageOrder";
+
 import { ImageCropWidget } from "components/global/ImageCropWidget";
 import order from "services/order";
 import CustomPopup from "components/global/Popup";
@@ -428,7 +428,7 @@ const UploadImageComponent = ({
             ) : (
               <>
                 <button className="w-full flex flex-col items-center justify-center gap-[4px]">
-                  <UploadImageOrder />
+                  <img src="/icons/UploadImageOrder.svg" />
                   {images.length === 0 && (
                     <span className="text-[#402CDD] text-[10px] regular">
                       {translateFunction("Add Photo")}

@@ -119,7 +119,7 @@ export default async function RootLayout({ params, children }) {
                   width={130}
                   height={36}
                   loading="eager"
-                  src="/svg/Logo.svg"
+                  src="/icons/Logo.svg"
                 />
               </div>
             </a>

@@ -43,27 +43,27 @@ async function page({ params }) {
   const options = [
     {
       name: "Settings",
-      Icon: `/svg/SettingsIcon.svg`,
+      Icon: `/icons/SettingsIcon.svg`,
       href: `/${Params?.lang}/settings/prefferences`,
     },
     {
       name: "Terms & Conditions",
-      Icon: `/svg/TermsIcon.svg`,
+      Icon: `/icons/TermsIcon.svg`,
       href: `/${Params?.lang}/settings/terms`,
     },
     {
       name: "Legal Information",
-      Icon: `/svg/LegalInfoIcon.svg`,
+      Icon: `/icons/LegalInfoIcon.svg`,
       href: `/${Params?.lang}/settings/legalInfo`,
     },
     {
       name: "About Us",
-      Icon: `/svg/AboutIcon.svg`,
+      Icon: `/icons/AboutIcon.svg`,
       href: `/${Params?.lang}/settings/about`,
     },
     {
       name: "Share App",
-      Icon: `/svg/ShareAppIcon.svg`,
+      Icon: `/icons/ShareAppIcon.svg`,
       href: `/${Params?.lang}/settings/share`,
     },
   ];
@@ -160,7 +160,7 @@ async function page({ params }) {
         >
           <span className="w-[30px] h-[20px]">
             <img
-              src={`/svg/flag/${country}.svg`}
+              src={`/icons/flag/${country}.svg`}
               alt={"country"}
               width={25}
               height={16}
@@ -180,7 +180,7 @@ async function page({ params }) {
           data-cy="language-button"
         >
           <img
-            src={`/svg/LanguageIcon.svg`}
+            src={`/icons/LanguageIcon.svg`}
             alt={"country"}
             width={25}
             height={16}

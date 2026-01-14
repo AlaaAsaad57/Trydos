@@ -1,5 +1,5 @@
 import { useState } from "react";
-import ReportOrderItemIcon from "public/svg/ReportOrderItemIcon";
+
 import TransParentLoader from "components/global/TransParentLoader";
 import {
   SelectStory,
@@ -9,9 +9,6 @@ import {
 import StoryViewer from "./StoryViewer";
 import { useAppStore } from "store";
 import StoryServiceClass from "services/story";
-
-import Xicon from "public/svg/Xicon";
-import DeleteIcon from "public/svg/DeleteIcon";
 import {
   showSuccessNotification,
   showErrorNotification,
@@ -107,7 +104,10 @@ function StoryHolder({ story, active, isPaused }) {
                   setShowDeleteModal(true);
               }}
             >
-              <DeleteIcon className="w-[22px] h-[22px] fill-white" />
+              <img
+                src="/icons/DeleteIcon.svg"
+                className="w-[22px] h-[22px] fill-white"
+              />
             </span>
           )}
           {!isOwner && (
@@ -124,7 +124,10 @@ function StoryHolder({ story, active, isPaused }) {
                   setShowReportModal(true);
               }}
             >
-              <ReportOrderItemIcon className="w-[22px] h-[22px] fill-white" />
+              <img
+                src="/icons/ReportOrderItemIcon.svg"
+                className="w-[22px] h-[22px] fill-white"
+              />
             </span>
           )}
           <span
@@ -138,7 +141,10 @@ function StoryHolder({ story, active, isPaused }) {
               if (e.key === "Enter" || e.key === " ") SelectStory(null);
             }}
           >
-            <Xicon className="[&>path]:fill-[#fafafa]" />
+            <img
+              src="/icons/settings/Xicon.svg"
+              className="[&>path]:fill-[#fafafa]"
+            />
           </span>
         </div>
       )}

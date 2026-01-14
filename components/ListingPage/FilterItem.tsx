@@ -1,6 +1,6 @@
 import NextLink from "components/global/NextLink";
 import React from "react";
-import ActiveCategoryIcon from "public/svg/listing/ActiveCategoryIcon";
+
 import Image from "next/image";
 import {
   getConfiguredImage,
@@ -94,7 +94,10 @@ const FilterItem = ({
         >
           <div className="relative w-[70px] h-[70px] z-10">
             {isFiltered && (
-              <ActiveCategoryIcon className="active-category-icon" />
+              <img
+                src="/icons/ActiveCategoryIcon.svg"
+                className="active-category-icon"
+              />
             )}
             <svg
               className="absolute z-10 top-0 left-0"
@@ -184,7 +187,8 @@ const FilterItem = ({
                     }}
                   >
                     {getSubCategoryUrl(s.slug)?.isFiltered && (
-                      <ActiveCategoryIcon
+                      <img
+                        src="/icons/ActiveCategoryIcon.svg"
                         className="active-category-icon"
                         style={{ top: "-5px", left: "-5px" }}
                       />
@@ -272,7 +276,8 @@ const FilterItem = ({
                             >
                               {getSubCategoryUrl(sub_s.slug, s.slug)
                                 ?.isFiltered && (
-                                <ActiveCategoryIcon
+                                <img
+                                  src="/icons/ActiveCategoryIcon.svg"
                                   className="active-category-icon"
                                   style={{ top: "-5px", left: "-5px" }}
                                 />
@@ -374,7 +379,10 @@ const FilterItem = ({
       >
         <div className="relative w-[70px] h-[70px]">
           {isFiltered && (
-            <ActiveCategoryIcon className="active-category-icon" />
+            <img
+              src="/icons/ActiveCategoryIcon.svg"
+              className="active-category-icon"
+            />
           )}
           <svg
             className="absolute z-10 top-0 left-0"
@@ -434,7 +442,10 @@ const FilterItem = ({
       >
         <div className="relative w-[70px] h-[70px]">
           {isFiltered && (
-            <ActiveCategoryIcon className="active-category-icon" />
+            <img
+              src="/icons/ActiveCategoryIcon.svg"
+              className="active-category-icon"
+            />
           )}
 
           <svg
@@ -487,7 +498,10 @@ const FilterItem = ({
       >
         <div className="relative w-[70px] h-[70px]">
           {isFiltered && (
-            <ActiveCategoryIcon className="active-category-icon" />
+            <img
+              src="/icons/ActiveCategoryIcon.svg"
+              className="active-category-icon"
+            />
           )}
 
           <svg
@@ -551,7 +565,10 @@ const FilterItem = ({
       >
         <div className="relative w-[140px] h-[70px]">
           {isFiltered && (
-            <ActiveCategoryIcon className="active-category-icon" />
+            <img
+              src="/icons/ActiveCategoryIcon.svg"
+              className="active-category-icon"
+            />
           )}
 
           <div

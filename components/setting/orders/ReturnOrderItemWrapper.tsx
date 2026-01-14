@@ -1,4 +1,3 @@
-import ReturnOrderItemIcon from "public/svg/ReturnOrderItemIcon";
 import React, { useEffect, useState } from "react";
 import { useAppStore } from "store";
 import {
@@ -106,7 +105,10 @@ function ReturnOrderItemWrapper({
           />
         </div>
         <div className="">
-          <ReturnOrderItemIcon className="mt-[12px] [&>path]:fill-[#402CDD]" />
+          <img
+            src="/icons/ReturnOrderItemIcon.svg"
+            className="mt-[12px] [&>path]:fill-[#402CDD]"
+          />
         </div>
         <span className="medium text-[14px] mt-[11px] text-[#402CDD]">
           {isUpdateOrder()

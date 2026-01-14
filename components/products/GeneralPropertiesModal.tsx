@@ -1,15 +1,10 @@
 import BottomSheet from "components/global/BottomSheet";
-import React, { useMemo } from "react";
 import { useAppStore } from "store";
 import { translateFunction } from "utils/functions";
-import RateIcon from "public/svg/RateIconProperty";
+
 import RatingStars from "components/settings/cards/RatingStars";
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 import ProductViews from "./ProductViews";
-import SolidRecomendIcon from "public/svg/product/SolidRecomendIcon";
-import QualityIcon from "public/svg/product/QualityIcon";
-import RecomendedIcon from "public/svg/RecomendedIcon";
-import NegRecomendedIcon from "public/svg/NegRecomendIcon";
 
 function GeneralPropertiesModal({
   rating_stats,
@@ -59,7 +54,7 @@ function GeneralPropertiesModal({
             }}
           >
             <div className="flex-col gap-[6px]">
-              <RateIcon />
+              <img src="/icons/RateIconProperty.svg" />
               <span className="flex text-[13px] text-[#1d1d1d] regular">
                 {translateFunction("Buyers Product Rate", language)}
               </span>
@@ -96,7 +91,7 @@ function GeneralPropertiesModal({
                       |
                     </span>
                     <div className="flex-row  items-center product-property-row">
-                      <QualityIcon />
+                      <img src="/icons/QualityIcon.svg" />
                       <span className="text-[11px]">
                         {translateFunction("Overall Good Quality", language)}
                       </span>
@@ -148,7 +143,7 @@ function GeneralPropertiesModal({
               <hr className="text-[#D3D3D37f] h-[1px] bg-[#D3D3D37f] mt-0 w-full px-[10px]" />
             </div>
             <div className="flex-col gap-[7px]">
-              <SolidRecomendIcon />
+              <img src="/icons/SolidRecomendIcon.svg" />
               <span className="flex text-[13px] text-[#1d1d1d] regular">
                 {translateFunction("Buyers Product Recommend To Buy", language)}
               </span>
@@ -228,12 +223,12 @@ const BuyersRatingBar = ({ language, recommendation_stats }) => {
           className={`flex-col regular  text-[#1d1d1d] text-[9px] gap-[4px]`}
         >
           <div className={`flex-row`}>
-            <RecomendedIcon />
+            <img src="/icons/RecomendedIcon.svg" />
             <span className="bold px-[4px]">{recomended}</span>
             <span>{translateFunction("Buyer", language)}</span>
           </div>
           <span className="bold w-full flex justify-end px-[4px]">
-            <NegRecomendedIcon className="opacity-0" />
+            <img src="/icons/NegRecomendIcon.svg" className="opacity-0" />
 
             {translateFunction("Recommend It", language)}
           </span>
@@ -242,12 +237,12 @@ const BuyersRatingBar = ({ language, recommendation_stats }) => {
           className={`flex-col  regular  text-[#1d1d1d] text-[9px] gap-[4px]`}
         >
           <div className="flex-row">
-            <NegRecomendedIcon />
+            <img src="/icons/NegRecomendIcon.svg" />
             <span className="bold px-[4px]">{not_recomended}</span>
             <span>{translateFunction("Buyer", language)}</span>
           </div>
           <span className={`w-full flex justify-end bold px-[4px]`}>
-            <NegRecomendedIcon className="opacity-0" />
+            <img src="/icons/NegRecomendIcon.svg" className="opacity-0" />
             {translateFunction("Dont Recommend It", language)}
           </span>
         </div>

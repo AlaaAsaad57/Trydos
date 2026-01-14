@@ -1,5 +1,3 @@
-import React from "react";
-import CartPurbleIcon from "public/svg/CartPurbleIcon";
 import { useAppStore } from "store";
 import { RoundPrice, translateFunction } from "utils/functions";
 
@@ -31,7 +29,7 @@ function ProductCartHeader({ language }) {
         <span className="medium text-[13px] text-[#1D1D1D]">{getPrices()}</span>
         <span>{currency?.symbol}</span>
       </p>
-      <CartPurbleIcon />
+      <img src="/icons/CartPurbleIcon.svg" />
     </div>
   );
 }

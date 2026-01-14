@@ -1,5 +1,5 @@
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
-import NewSizesIcon from "public/svg/NewSizesIcon";
+
 import React from "react";
 import { translateFunction } from "utils/server";
 import SizeItemWrapper from "./SizeItemWrapper";
@@ -25,7 +25,7 @@ async function ProductSizesWrapper({
           className={`${isRtl ? "flex-row-reverse" : "flex-row"}  gap-[20px]`}
         >
           <div className="flex-col text-[#1d1d1d] text-[9px] regular gap-[5px]">
-            <NewSizesIcon />
+            <img src="/icons/NewSizesIcon.svg" />
             <span>{translateFunction("Sizes", language)}</span>
           </div>
           <div

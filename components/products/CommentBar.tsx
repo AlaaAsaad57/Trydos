@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import CommentPost from "public/svg/CommentPost";
 import auth from "services/auth";
 import { translateFunction } from "utils/functions";
 import { fetchData } from "utils/fetchData";
@@ -139,7 +138,7 @@ function CommentBar({ product_data, setCommentsData }) {
             // });
           }}
         >
-          {!loading ? <CommentPost /> : <Spinner />}
+          {!loading ? <img src="/icons/CommentPost.svg" /> : <Spinner />}
         </span>
       )}
     </div>

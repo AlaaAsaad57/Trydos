@@ -1,7 +1,6 @@
 "use client";
 import Spinner from "components/global/Spinner";
-import CommentPost from "public/svg/CommentPost";
-import FAQInputIcon from "public/svg/FAQInputIcon";
+
 import { useState } from "react";
 import { GetFaqItemElement } from "serverRequests/product";
 
@@ -115,7 +114,7 @@ export const AskInput = ({
           isRtl ? "right-[10px]" : "left-[10px]"
         } z-10`}
       >
-        <FAQInputIcon />
+        <img src="/icons/FAQInputIcon.svg" />
       </span>
 
       {loading && (
@@ -136,7 +135,10 @@ export const AskInput = ({
             addComment();
           }}
         >
-          <CommentPost className="[&>path]:fill-[#f0ecff] [&>path]:stroke-[#513aaf]" />
+          <img
+            src="/icons/CommentPost.svg"
+            className="[&>path]:fill-[#f0ecff] [&>path]:stroke-[#513aaf]"
+          />
         </span>
       )}
       {renderBorderSvg()}

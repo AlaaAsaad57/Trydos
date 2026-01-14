@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import BackIcon from "public/svg/listing/backIcon";
+
 import ProductCartHeader from "./ProductCartHeader";
 import { useAppStore } from "store";
 
@@ -60,7 +60,10 @@ function ProductBackButton({ lang }) {
         onClick={handleBack}
         className="back-icon flex cursor-pointer"
       >
-        <BackIcon className={`${isRtl ? "rotate-180" : ""}`} />
+        <img
+          src="/icons/backIcon.svg"
+          className={`${isRtl ? "rotate-180" : ""}`}
+        />
       </div>
       <ProductCartHeader language={language} />
     </div>

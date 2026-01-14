@@ -1,10 +1,9 @@
 // webview video call component
 import { useState, useEffect, useRef, useMemo } from "react";
-import EndCallIcon from "../svg/endCall";
-import MicIcon from "../svg/micIcon";
-import VideoIcon from "../svg/vidIcon";
-import CallingIcon from "../svg/calling";
-import LeftArrowIcon from "../svg/leftArrow";
+
+import MicIcon from "public/icons/chat/micIcon.svg";
+import VideoIcon from "public/icons/chat/vidIcon.svg";
+
 import AgoraRTC, {
   AgoraVideoPlayer,
   createClient,
@@ -368,7 +367,7 @@ function ChatVideoCall({ token }) {
               }
             }}
           >
-            <LeftArrowIcon></LeftArrowIcon>
+            <img src="/icons/chat/leftArrow.svg" />
           </div>
           <div
             style={{ cursor: "pointer", position: "fixed" }}
@@ -415,7 +414,7 @@ function ChatVideoCall({ token }) {
                 userEndCall();
               }}
             >
-              <EndCallIcon></EndCallIcon>
+              <img src="/icons/chat/endCall.svg" />
               <span>End Call</span>
             </div>
 
@@ -437,7 +436,7 @@ function ChatVideoCall({ token }) {
             <div className="call-status">
               {users.length > 0 ? (
                 <>
-                  <CallingIcon></CallingIcon>
+                  <img src="/icons/chat/calling.svg" />
                   <span>
                     {minutes > 9 ? minutes : "0" + minutes}:
                     {seconds > 9 ? seconds : "0" + seconds}

@@ -1,7 +1,4 @@
 import ProductStories from "components/products/ProductStories";
-
-import StoreisIcon from "public/svg/product/StoreisIcon";
-
 import { GetProductStories } from "serverRequests/product";
 
 import { translateFunction } from "utils/server";
@@ -24,7 +21,7 @@ async function ProductStoriesWrapper({ globalPromise, language }) {
           isRtl && "items-end"
         }`}
       >
-        <StoreisIcon data-cy="StoriesIcon" />
+        <img src="/icons/StoreisIcon.svg" data-cy="StoriesIcon" />
         <div className="flex-row gap-[11px] items-baseline">
           <span>{translateFunction("Product Story", language)}</span>
           <svg

@@ -2,7 +2,7 @@ import BottomSheet from "components/global/BottomSheet";
 import React, { useEffect, useState } from "react";
 import { useAppStore } from "store";
 import { translateFunction } from "utils/functions";
-import ExpectedIcon from "public/svg/expectedDelevery";
+
 import {
   fetchCountries,
   formatTimeForAddress,
@@ -11,11 +11,6 @@ import {
 import { useParams } from "next/navigation";
 import Skeleton from "react-loading-skeleton";
 import ThinSepartor from "components/global/ThinSepartor";
-import RefundIcon from "public/svg/RefundIcon";
-import DeleiveryGurantee from "public/svg/DeleiveryGurantee";
-import ReturnGuranteeIcon from "public/svg/ReturnGurantee";
-import GreenBigTruck from "public/svg/GreenBigTruck";
-import RedBigTruck from "public/svg/RedBigTruck";
 function ExpectedDeleiveryModal() {
   const [countriesData, setCountries] = useState([]);
   const { lang } = useParams();
@@ -68,7 +63,7 @@ function ExpectedDeleiveryModal() {
         >
           <div className="w-full px-[12px] h-auto pb-[80px] flex-col text-[#1d1d1d] regular text-[11px]">
             <div className="flex-col gap-[6px]">
-              <ExpectedIcon />
+              <img src="/icons/expectedDelevery.svg" />
               <span className="flex text-[13px] text-[#1d1d1d] regular">
                 {translateFunction(
                   "Expected Shipping & delivery Date",
@@ -156,13 +151,13 @@ function ExpectedDeleiveryModal() {
             </div>
             <ThinSepartor className="py-[11px]   w-full" />
             <div className="flex-col gap-[8px]">
-              <DeleiveryGurantee />
+              <img src="/icons/DelevieryGurantee.svg" />
               <div className="flex-col">
                 <span className="bold">
                   {translateFunction("Delivery Guarantee", language)}
                 </span>
                 <span className="flex gap-[4px] mt-[5px]">
-                  <RefundIcon />
+                  <img src="/icons/RefundIcon.svg" />
                   <p>
                     <span>{translateFunction("Get a")}</span>
                     <span className="text-[#388CFF] medium px-[4px]">25%</span>
@@ -212,7 +207,7 @@ function ExpectedDeleiveryModal() {
               </div>
             </div>
             <div className="flex-col gap-[8px] mt-[10px]">
-              <GreenBigTruck />
+              <img src="/icons/GreenBigTruck.svg" />
               <div className="flex-col">
                 <span className="bold">
                   {translateFunction("Free Shipping", language)}
@@ -226,7 +221,7 @@ function ExpectedDeleiveryModal() {
               </div>
             </div>
             <div className="flex-col gap-[8px] mt-[10px]">
-              <ReturnGuranteeIcon />
+              <img src="/icons/ReturnGurantee.svg" />
               <div className="flex-col">
                 <span className="bold">
                   {translateFunction("Delivery Guarantee", language)}
@@ -245,7 +240,7 @@ function ExpectedDeleiveryModal() {
                   </span>
                 </span>
                 <span className="flex gap-[4px] mt-[5px]">
-                  <RefundIcon />
+                  <img src="/icons/RefundIcon.svg" />
                   <p>
                     <span>{translateFunction("Get a")}</span>
                     <span className="text-[#388CFF] medium px-[4px]">
@@ -257,7 +252,7 @@ function ExpectedDeleiveryModal() {
               </div>
             </div>
             <div className="flex-col gap-[8px] mt-[10px]">
-              <RedBigTruck />
+              <img src="/icons/RedBigTruck.svg" />
               <div className="flex-col">
                 <span className="bold">
                   {translateFunction("Free Return", language)}

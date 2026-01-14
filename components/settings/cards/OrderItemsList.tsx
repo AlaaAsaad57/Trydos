@@ -64,7 +64,7 @@ function OrderItemsList({
           border: isExpanded && "1px solid #C4C2C27f",
         }}
       >
-        <img src="/svg/OrderDetailsIcon.svg" />
+        <img src="/icons/OrderDetailsIcon.svg" />
         <span className={`text-[#8D8D8D] text-[10px] regular mt-[5px]`}>
           {translateFunction("Order Details")}
         </span>

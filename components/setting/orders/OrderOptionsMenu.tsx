@@ -2,9 +2,7 @@ import React, { useState } from "react";
 import { OrderInterface } from "utils/types/OrderInterface";
 import OrderItemBanner from "./OrderItemBanner";
 import { translateFunction } from "utils/functions";
-import ChangeAddressIcon from "public/svg/ChangeAddressIcon";
-import HideOrderItemIcon from "public/svg/HideOrderItemIcon";
-import OrderCancelIcon from "public/svg/OrderCancelIcon";
+
 import ChangeAddressWidget from "components/Orders/ChangeAddressWidget";
 import CancelOrderWrapper from "./CancelOrderWrapper";
 import OrderCancelConfirmationWindow from "./confirmations/OrderCancelConfirmationWindow";
@@ -61,7 +59,7 @@ function OrderOptionsMenu({
                     }`}
                   >
                     <div className="relative flex w-[30px] h-[30px] items-center justify-center">
-                      <ChangeAddressIcon />
+                      <img src="/icons/ChangeAddressIcon.svg" />
                     </div>
                     <div className="flex-col ml-[15px]">
                       <span
@@ -91,7 +89,7 @@ function OrderOptionsMenu({
                     }`}
                   >
                     <div className="relative flex w-[30px] h-[30px] items-center justify-center">
-                      <HideOrderItemIcon />
+                      <img src="/icons/HideOrderItemIcon.svg" />
                     </div>
                     <div className="flex-col ml-[15px]">
                       <span
@@ -122,7 +120,7 @@ function OrderOptionsMenu({
                     }`}
                   >
                     <div className="relative flex w-[30px] h-[30px] items-center justify-center">
-                      <OrderCancelIcon />
+                      <img src="/icons/OrderCancelIcon.svg" />
                     </div>
                     <div className="flex-col ml-[15px]">
                       <span

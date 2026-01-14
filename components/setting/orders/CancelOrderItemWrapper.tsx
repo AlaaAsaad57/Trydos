@@ -1,4 +1,3 @@
-import CancelOrderItemIcon from "public/svg/cancelOrderItemIcon";
 import React, { useState } from "react";
 import { useAppStore } from "store";
 import {
@@ -54,7 +53,10 @@ function CancelOrderItemWrapper({ item, backToMain, cancelOrderItem }) {
           />
         </div>
         <div className="">
-          <CancelOrderItemIcon className="mt-[12px] [&>path]:fill-[#402CDD]" />
+          <img
+            src="/icons/cancelOrderItemIcon.svg"
+            className="mt-[12px] [&>path]:fill-[#402CDD]"
+          />
         </div>
         <span className="medium text-[14px] mt-[11px] text-[#1D1D1D]">
           {translateFunction("Cancel This Product")}

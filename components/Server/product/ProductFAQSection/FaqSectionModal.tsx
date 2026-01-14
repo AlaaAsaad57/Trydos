@@ -8,8 +8,6 @@ import { translateFunction } from "utils/functions";
 
 import { GetProductFaqQuestions } from "serverRequests/product";
 import auth from "services/auth";
-
-import FAQIcon from "public/svg/FAQIcon";
 import { FaqItemOptions } from "./FaqItemOptions";
 
 function FaqSectionModal({
@@ -88,7 +86,7 @@ function FaqSectionModal({
           <div className="w-full h-auto pb-[80px] flex-col">
             {/* Header */}
             <div className="flex-col px-[12px] gap-[6px]">
-              <FAQIcon />
+              <img src="/icons/FAQIcon.svg" />
               <span className="flex text-[13px] text-[#1d1d1d] regular">
                 {translateFunction("FAQ Buyer & Seller", language)}
               </span>

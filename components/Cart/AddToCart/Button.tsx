@@ -368,7 +368,7 @@ function AddToCartButton({
             <div className="flex gap-[4px]">
               <Image
                 className="bagIcon"
-                src={"/svg/addtocart/CartButtonIcon.svg"}
+                src={"/icons/CartButtonIcon.svg"}
                 alt={"cart-icon"}
                 width={20}
                 height={20}

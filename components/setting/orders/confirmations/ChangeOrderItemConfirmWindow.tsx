@@ -1,5 +1,5 @@
 import { useState } from "react";
-import LargeColorIcon from "public/svg/LargeColorIcon";
+
 import Spinner from "components/global/Spinner";
 import HortiznalScrollBar from "components/global/HortiznalScrollBar";
 import { getConfiguredImage, translateFunction } from "utils/functions";
@@ -70,7 +70,7 @@ export const ModifyOrderItemModal = ({
         </span>
       ) : (
         <div className="flex-col justify-end items-center h-auto">
-          <LargeColorIcon />
+          <img src="/icons/LargeColorIcon.svg" />
           <span className="mt-[11px] text-[#D3D3D3] text-[16px] medium">
             {type === "Color"
               ? translateFunction("Change Below Color", language)

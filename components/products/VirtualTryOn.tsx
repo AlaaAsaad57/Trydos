@@ -1,8 +1,5 @@
 "use client";
 
-import React, { useState } from "react";
-import TryOnWidget from "./TryOnWidget";
-import MalicanIcon from "public/svg/MailcanIcon";
 import { useAppStore } from "store";
 
 interface VirtualTryOnProps {
@@ -27,7 +24,7 @@ const VirtualTryOn = ({ language, product }) => {
                 : "rounded-[6px] rounded-bl-[15px] left-[0px]"
             }  bg-[#513AAF] z-50 flex items-center justify-center w-[25px] h-[25px] bottom-[6px]  absolute`}
       >
-        <MalicanIcon />
+        <img src="/icons/MailcanIcon.svg" />
       </span>
     </>
   );

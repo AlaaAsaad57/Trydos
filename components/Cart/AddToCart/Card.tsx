@@ -126,7 +126,7 @@ function Card({
           >
             <span>
               <Image
-                src={"/svg/addtocart/DeleiverIcon.svg"}
+                src={"/icons/DeleiverIcon.svg"}
                 width={13}
                 height={13}
                 alt="deleivery-icon"
@@ -153,7 +153,7 @@ function Card({
           >
             <span>
               <Image
-                src={"/svg/addtocart/DeleiveryManIcon.svg"}
+                src={"/icons/DeleiveryManIcon.svg"}
                 alt="deleivery-icon"
                 width={13}
                 height={13}
@@ -178,7 +178,7 @@ function Card({
           >
             <span>
               <Image
-                src={"/svg/addtocart/TwoManDeleivery.svg"}
+                src={"/icons/TwoManDeleivery.svg"}
                 alt="deleivery-icon"
                 width={13}
                 height={13}
