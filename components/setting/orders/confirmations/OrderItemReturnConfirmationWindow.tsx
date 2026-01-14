@@ -64,14 +64,21 @@ function OrderItemReturnConfirmationWindow({
         variant: confirmationData.item.variant,
       });
     }
+    console.log(confirmationData, returnDetails);
     returnDetails?.return_requests_data?.map((ret_ite) => {
       if (!ret_ite?.status?.value || ret_ite.status?.name?.includes("draft")) {
         ret_ite?.order_details?.map((s) => {
-          let product = orderData
-            ?.find((order_data_item) => order_data_item.id === ret_ite.order_id)
-            ?.details?.find((order_detail) => order_detail.id === s.product_id);
-          if (arr?.filter((d) => d.detail_id === s.detail_id)?.length === 0) {
-            arr = [...arr, { ...product, ...s }];
+          if (s.already_return) {
+            let product = orderData
+              ?.find(
+                (order_data_item) => order_data_item.id === ret_ite.order_id
+              )
+              ?.details?.find(
+                (order_detail) => order_detail.id === s.product_id
+              );
+            if (arr?.filter((d) => d.detail_id === s.detail_id)?.length === 0) {
+              arr = [...arr, { ...product, ...s }];
+            }
           }
         });
       }
@@ -84,7 +91,10 @@ function OrderItemReturnConfirmationWindow({
 
     returnDetails?.return_requests_data?.map((s) => {
       s.order_details?.map((req) => {
-        if (req.already_return || req.detail_id === confirmationData.item.id) {
+        if (
+          req.already_return ||
+          req.detail_id === confirmationData?.item?.id
+        ) {
           if (!arr.find((d) => d === req?.return_request_id))
             arr.push(req?.return_request_id);
         }

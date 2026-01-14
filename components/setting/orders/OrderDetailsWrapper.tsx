@@ -115,22 +115,41 @@ function OrderDetailsWrapper({
         data?.[0];
 
       setActivePack(active_order);
-      if (
-        (order_chat_id &&
-          order_item?.order_status?.value === "out_for_delivery") ||
-        returnData?.return_requests_data?.find(
-          (return_item) =>
-            String(return_item.order_id) === String(order_chat_id) ||
-            String(order_item?.return_request_id) === String(order_chat_id)
-        )?.status?.value === "out_for_return"
-      )
-        safeGetChatWithShipping(order_chat_id);
+
+      let returnRequests;
 
       if (data.filter((s) => s.return_request_id)?.length) {
-        let returnRequests = await Order.GetReturnDetailsForOrderGroup({
+        returnRequests = await Order.GetReturnDetailsForOrderGroup({
           order_group_id: order_group_id,
         });
         setReturnData(returnRequests);
+      }
+      console.log(
+        order_chat_id,
+        order_item,
+        returnData?.return_requests_data?.find(
+          (return_item) =>
+            String(return_item.order_id) === String(order_id) ||
+            String(order_item?.return_request_id) === String(order_chat_id)
+        ),
+        returnData?.return_requests_data,
+        order_id
+      );
+      if (
+        order_chat_id &&
+        (order_item?.order_status?.value === "out_for_delivery" ||
+          returnRequests?.return_requests_data?.find(
+            (return_item) =>
+              String(return_item.order_id) === String(order_id) ||
+              String(order_item?.return_request_id) === String(order_chat_id)
+          )?.status?.value === "out_for_return")
+      ) {
+        console.log("from getOrderDetails");
+        safeGetChatWithShipping({
+          is_return: order_item?.return_request_id,
+          order_id: order_item?.return_request_id,
+          parent_order_id: order_item?.id,
+        });
       }
       setShouldUpdateOrders(0);
     } catch (error) {
@@ -180,14 +199,20 @@ function OrderDetailsWrapper({
     // Out for Delivery
     if (pack && pack?.order_status?.value === "out_for_delivery")
       return ActivePack?.id;
-    // if (
-    //   ActivePack?.return_details?.details?.status?.value === "out_for_return"
-    // ) {
-    //   return ActivePack?.return_request_id;
-    // }
+    if (
+      returnData?.return_requests_data?.find(
+        (s) => s.order_id === ActivePack.id
+      )?.status?.value === "out_for_return"
+    ) {
+      return ActivePack?.return_request_id;
+    }
     return false;
   };
-  const getChatWithShipping = async (id?: any) => {
+  const getChatWithShipping = async ({
+    order_id,
+    parent_order_id,
+    is_return,
+  }) => {
     setIsGettingChat(true);
     showNotificationIndicator([
       ...showNotificaionCircle?.filter(
@@ -204,13 +229,14 @@ function OrderDetailsWrapper({
         server: "chat",
         body: JSON.stringify({
           original_user_id: auth.UserID(),
-          order_id: ActivePack?.return_request_id ?? ActivePack?.id ?? id,
-          ...(ActivePack?.return_request_id
-            ? { parent_order_id: ActivePack?.id }
-            : {}),
+          order_id: order_id,
+          ...(is_return ? { parent_order_id: parent_order_id } : {}),
         }),
       });
-      if (!response.success) {
+      if (
+        !response.success ||
+        (!response?.data?.channel && !response.data?.recipient)
+      ) {
         throw new Error(response.message);
       }
       DisableScroll();
@@ -272,74 +298,22 @@ function OrderDetailsWrapper({
       if (error.name === "AbortError") {
         return;
       }
+      setIsGettingChat(false);
       console.log(error);
       EnableScroll();
     }
   };
-  const retryUntilAuthinticated = async () => {
-    const maxRetries = 30; // Maximum number of retries (5 minutes with 10s intervals)
-    const retryInterval = 10000; // 10 seconds between retries
-    let retryCount = 0;
 
-    const checkVerificationStatus = async (): Promise<boolean> => {
-      try {
-        // Get the current user state from the store
-        const { user } = useAppStore.getState();
-
-        // Check if user is phone verified
-        if (user && user?.is_phone_verified === 1) {
-          return true;
-        }
-
-        return false;
-      } catch (error) {
-        console.error("Error checking verification status:", error);
-        return false;
-      }
-    };
-
-    const pollForVerification = async (): Promise<void> => {
-      while (retryCount < maxRetries) {
-        try {
-          const isVerified = await checkVerificationStatus();
-          if (isVerified) {
-            // User is now verified, call getChatWithShipping
-
-            await getChatWithShipping();
-            return;
-          }
-
-          // Wait before next retry
-          await new Promise((resolve) => setTimeout(resolve, retryInterval));
-          retryCount++;
-        } catch (error) {
-          console.error("Error during verification polling:", error);
-          // Continue retrying even if there's an error
-          await new Promise((resolve) => setTimeout(resolve, retryInterval));
-          retryCount++;
-        }
-      }
-
-      // If we've exhausted all retries, show an error or handle appropriately
-      console.warn("Phone verification timeout - maximum retries reached");
-      // Reset the authentication state to allow user to try again
-      setShouldAuthinticated(false);
-    };
-
-    // Start the polling process
-    try {
-      await pollForVerification();
-    } catch (error) {
-      console.error("Critical error in retryUntilAuthinticated:", error);
-      setShouldAuthinticated(false);
-    }
-  };
-  const safeGetChatWithShipping = async (id?) => {
-    if (user?.is_phone_verified !== 0) await getChatWithShipping(id);
-    else {
-      setShouldAuthinticated(true);
-      retryUntilAuthinticated();
-    }
+  const safeGetChatWithShipping = async ({
+    order_id,
+    parent_order_id,
+    is_return,
+  }) => {
+    await getChatWithShipping({
+      order_id,
+      parent_order_id,
+      is_return,
+    });
   };
   const ShowChats = () => {
     if (shouldShowChatIcon(ActivePack) && ActivePack?.order_status) {
@@ -353,7 +327,12 @@ function OrderDetailsWrapper({
             isGettingChat={isGettingChat}
             setIsGettingChat={setIsGettingChat}
             getChatWithShipping={() => {
-              safeGetChatWithShipping();
+              console.log("from orderChatIcon");
+              safeGetChatWithShipping({
+                order_id: ActivePack?.return_request_id ?? ActivePack?.id,
+                parent_order_id: ActivePack?.id,
+                is_return: ActivePack?.return_request_id,
+              });
             }}
             id={shouldShowChatIcon(ActivePack)}
           />
@@ -647,7 +626,9 @@ const OrderExpandedDetails = ({
   const shouldShowConfirmReturn = () => {
     return (
       returnDetails?.return_requests_data?.filter(
-        (s) => s?.status?.value === null
+        (s) =>
+          s?.status?.value === null &&
+          s.order_details.find((d) => d.already_return)
       )?.length > 0 && isThereAReturnedProduct()
     );
   };

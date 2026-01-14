@@ -770,6 +770,10 @@ function ConversationContainer({
     return false;
   };
   const [showMenu, setShowMenu] = useState(false);
+  const sortedMessages = [...(activeChat?.messages || [])].sort((a, b) => {
+    // Use .getTime() to get the numeric Unix timestamp
+    return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+  });
   return (
     <>
       {/* hidden file input */}
@@ -1017,7 +1021,7 @@ function ConversationContainer({
               <Observable loading={loading} getNext={fetchOlderMessages} />
             )}
 
-          {activeChat?.messages?.map((mes: any, i: number) => (
+          {sortedMessages?.map((mes: any, i: number) => (
             <React.Fragment key={mes.id || i}>
               {(showDate(mes.created_at) !==
                 showDate(activeChat.messages[i - 1]?.created_at) ||
