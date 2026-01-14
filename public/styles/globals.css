@@ -1031,4 +1031,9 @@ svg {
   transition: all;
   transition-duration: 0.4s;
   transition-timing-function: ease-in-out;
+  overflow: auto;
+}
+
+.setting-screen > div {
+  flex-shrink: 0;
 }
